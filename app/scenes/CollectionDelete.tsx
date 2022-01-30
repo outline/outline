@@ -6,7 +6,6 @@ import Collection from "~/models/Collection";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import HelpText from "~/components/HelpText";
-import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useToasts from "~/hooks/useToasts";
 import { homePath } from "~/utils/routeHelpers";
 
@@ -20,7 +19,6 @@ function CollectionDelete({ collection, onSubmit }: Props) {
   const { showToast } = useToasts();
   const history = useHistory();
   const { t } = useTranslation();
-  const team = useCurrentTeam();
   const handleSubmit = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       ev.preventDefault();
@@ -28,9 +26,6 @@ function CollectionDelete({ collection, onSubmit }: Props) {
 
       try {
         await collection.delete();
-        if (team.preferredCollectionId === collection.id) {
-          team.preferredCollectionId = null;
-        }
         onSubmit();
         history.push(homePath());
       } catch (err) {
@@ -41,7 +36,7 @@ function CollectionDelete({ collection, onSubmit }: Props) {
         setIsDeleting(false);
       }
     },
-    [collection, team, history, onSubmit, showToast]
+    [collection, history, onSubmit, showToast]
   );
 
   return (

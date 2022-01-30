@@ -14,7 +14,6 @@ import Modal from "~/components/Modal";
 import PaginatedList from "~/components/PaginatedList";
 import Switch from "~/components/Switch";
 import useBoolean from "~/hooks/useBoolean";
-import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
@@ -30,7 +29,6 @@ type Props = {
 function CollectionPermissions({ collection }: Props) {
   const { t } = useTranslation();
   const user = useCurrentUser();
-  const team = useCurrentTeam();
   const {
     memberships,
     collectionGroupMemberships,
@@ -159,16 +157,13 @@ function CollectionPermissions({ collection }: Props) {
         showToast(t("Default access permissions were updated"), {
           type: "success",
         });
-        if (permission === "" && team.preferredCollectionId === collection.id) {
-          team.preferredCollectionId = null;
-        }
       } catch (err) {
         showToast(t("Could not update permissions"), {
           type: "error",
         });
       }
     },
-    [collection, showToast, t, team]
+    [collection, showToast, t]
   );
 
   const fetchOptions = React.useMemo(

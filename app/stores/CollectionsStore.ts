@@ -139,7 +139,10 @@ export default class CollectionsStore extends BaseStore<Collection> {
   }
 
   @action
-  async fetch(id: string, options: Record<string, any> = {}): Promise<any> {
+  async fetch(
+    id: string,
+    options: Record<string, any> = {}
+  ): Promise<Collection> {
     const item = this.get(id) || this.getByUrl(id);
     if (item && !options.force) {
       return item;

@@ -7,6 +7,7 @@ import io from "socket.io-client";
 import RootStore from "~/stores/RootStore";
 import withStores from "~/components/withStores";
 import { getVisibilityListener, getPageVisible } from "~/utils/pageVisibility";
+import updatePreferredCollection from "~/utils/updatePreferredCollection";
 
 type SocketWithAuthentication = {
   authenticated?: boolean;
@@ -188,14 +189,17 @@ class SocketProvider extends React.Component<Props> {
       if (event.collectionIds) {
         for (const collectionDescriptor of event.collectionIds) {
           const collectionId = collectionDescriptor.id;
-          const collection = collections.get(collectionId) || {};
+          const collection = collections.get(collectionId);
 
           if (event.event === "collections.delete") {
-            const collection = collections.get(collectionId);
-
             if (collection) {
               collection.deletedAt = collectionDescriptor.updatedAt;
             }
+            updatePreferredCollection(
+              "delete",
+              { id: collectionId },
+              auth.team
+            );
 
             const deletedDocuments = documents.inCollection(collectionId);
             deletedDocuments.forEach((doc) => {
@@ -211,17 +215,31 @@ class SocketProvider extends React.Component<Props> {
 
           // if we already have the latest version (it was us that performed
           // the change) then we don't need to update anything either.
-          // @ts-expect-error ts-migrate(2339) FIXME: Property 'updatedAt' does not exist on type '{}'.
-          const { updatedAt } = collection;
 
-          if (updatedAt === collectionDescriptor.updatedAt) {
+          if (
+            collection &&
+            collection.updatedAt === collectionDescriptor.updatedAt
+          ) {
+            updatePreferredCollection(
+              "update",
+              { id: collection.id, permission: collection.permission },
+              auth.team
+            );
             continue;
           }
 
           try {
-            await collections.fetch(collectionId, {
+            const fetchedCollection = await collections.fetch(collectionId, {
               force: true,
             });
+            updatePreferredCollection(
+              "update",
+              {
+                id: fetchedCollection.id,
+                permission: fetchedCollection.permission,
+              },
+              auth.team
+            );
           } catch (err) {
             if (err.statusCode === 404 || err.statusCode === 403) {
               documents.removeCollectionDocuments(collectionId);
