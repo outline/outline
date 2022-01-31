@@ -49,7 +49,6 @@ export default function linksToAttachments(md: MarkdownIt) {
           // of hey, we found a link – lets check to see if it should be
           // converted to a file attachment
           if (insideLink && isAttachment(insideLink)) {
-            console.log("found", insideLink, current);
             const { content } = current;
 
             // convert to embed token

@@ -61,8 +61,10 @@ const Subtitle = styled.span`
   line-height: 0;
 `;
 
+// If updating this style make sure to update the placeholder
+// in Styles to match
 const Wrapper = styled.a`
-  display: inline-flex;
+  display: flex;
   align-items: flex-start;
   gap: 6px;
   background: ${(props) => props.theme.background};
@@ -72,7 +74,6 @@ const Wrapper = styled.a`
   border-radius: 8px;
   padding: 6px 8px;
   max-width: 840px;
-  width: 100%;
 
   user-select: none;
   text-overflow: ellipsis;

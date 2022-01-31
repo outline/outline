@@ -1,5 +1,8 @@
 import { EditorState, Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
+import * as React from "react";
+import ReactDOM from "react-dom";
+import FileExtension from "../components/FileExtension";
 
 // based on the example at: https://prosemirror.net/examples/upload/
 const uploadPlaceholder = new Plugin({
@@ -46,8 +49,23 @@ const uploadPlaceholder = new Plugin({
           set = set.add(tr.doc, [deco]);
         } else {
           const element = document.createElement("div");
-          element.className = "file placeholder";
-          element.innerText = action.add.file.name;
+          element.className = "attachment placeholder";
+
+          const icon = document.createElement("div");
+          icon.className = "icon";
+
+          const component = <FileExtension title={action.add.file.name} />;
+          ReactDOM.render(component, icon);
+          element.appendChild(icon);
+
+          const text = document.createElement("span");
+          text.innerText = action.add.file.name;
+          element.appendChild(text);
+
+          const status = document.createElement("span");
+          status.innerText = "Uploading…";
+          status.className = "status";
+          element.appendChild(status);
 
           const deco = Decoration.widget(action.add.pos, element, {
             id: action.add.id,
