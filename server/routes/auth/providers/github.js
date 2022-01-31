@@ -89,7 +89,7 @@ if (GITHUB_CLIENT_ID) {
           },
           authenticationProvider: {
             name: providerName,
-            providerId: profile.id,
+            providerId: orgInfo.id,
           },
           authentication: {
             providerId: profile.id,
