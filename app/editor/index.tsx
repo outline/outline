@@ -143,7 +143,7 @@ export type Props = {
   /** Whether embeds should be rendered without an iframe */
   embedsDisabled?: boolean;
   /** Callback when a toast message is triggered (eg "link copied") */
-  onShowToast?: (message: string, code: ToastType) => void;
+  onShowToast: (message: string, code: ToastType) => void;
   className?: string;
   style?: React.CSSProperties;
 };
@@ -772,6 +772,7 @@ export class Editor extends React.PureComponent<
               onSearchLink={this.props.onSearchLink}
               onClickLink={this.props.onClickLink}
               onCreateLink={this.props.onCreateLink}
+              onShowToast={this.props.onShowToast}
             />
             <LinkToolbar
               view={this.view}
@@ -788,6 +789,7 @@ export class Editor extends React.PureComponent<
               commands={this.commands}
               dictionary={dictionary}
               rtl={isRTL}
+              onShowToast={this.props.onShowToast}
               isActive={this.state.emojiMenuOpen}
               search={this.state.blockMenuSearch}
               onClose={() => this.setState({ emojiMenuOpen: false })}

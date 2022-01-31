@@ -180,12 +180,10 @@ export default class Heading extends Node {
     const urlWithoutHash = window.location.href.split("#")[0];
     copy(urlWithoutHash + hash);
 
-    if (this.options.onShowToast) {
-      this.options.onShowToast(
-        this.options.dictionary.linkCopied,
-        ToastType.Info
-      );
-    }
+    this.options.onShowToast(
+      this.options.dictionary.linkCopied,
+      ToastType.Info
+    );
   };
 
   keys({ type, schema }: { type: NodeType; schema: Schema }) {

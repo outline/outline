@@ -9,11 +9,14 @@ let uploadId = 0;
 
 export type Options = {
   dictionary: any;
+  /** Set to true to force images to become attachments */
+  isAttachment?: boolean;
+  /** Set to true to replace any existing image at the users selection */
   replaceExisting?: boolean;
   uploadFile?: (file: File) => Promise<string>;
   onFileUploadStart?: () => void;
   onFileUploadStop?: () => void;
-  onShowToast?: (message: string, code: string) => void;
+  onShowToast: (message: string, code: string) => void;
 };
 
 const insertFiles = function (
@@ -51,6 +54,7 @@ const insertFiles = function (
   // the user might have dropped multiple files at once, we need to loop
   for (const file of files) {
     const id = `upload-${uploadId++}`;
+    const isImage = file.type.startsWith("image/") && !options.isAttachment;
 
     const { tr } = view.state;
 
@@ -61,6 +65,7 @@ const insertFiles = function (
         id,
         file,
         pos,
+        isImage,
         replaceExisting: options.replaceExisting,
       },
     });
@@ -71,7 +76,7 @@ const insertFiles = function (
     // happening in the background in parallel.
     uploadFile(file)
       .then((src) => {
-        if (file.type.startsWith("image/")) {
+        if (isImage) {
           const newImg = new Image();
           newImg.onload = () => {
             const result = findPlaceholder(view.state, id);
@@ -155,13 +160,10 @@ const insertFiles = function (
         });
         view.dispatch(transaction);
 
-        // let the user know
-        if (onShowToast) {
-          onShowToast(
-            error.message || dictionary.fileUploadError,
-            ToastType.Error
-          );
-        }
+        onShowToast(
+          error.message || dictionary.fileUploadError,
+          ToastType.Error
+        );
       })
       .finally(() => {
         complete++;

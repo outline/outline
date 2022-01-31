@@ -30,7 +30,7 @@ export type Props<T extends MenuItem = MenuItem> = {
   uploadFile?: (file: File) => Promise<string>;
   onFileUploadStart?: () => void;
   onFileUploadStop?: () => void;
-  onShowToast?: (message: string, id: string) => void;
+  onShowToast: (message: string, id: string) => void;
   onLinkToolbarOpen?: () => void;
   onClose: () => void;
   onClearSearch: () => void;
@@ -208,7 +208,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
       const href = event.currentTarget.value;
       const matches = this.state.insertItem.matcher(href);
 
-      if (!matches && this.props.onShowToast) {
+      if (!matches) {
         this.props.onShowToast(
           this.props.dictionary.embedInvalidLink,
           ToastType.Error
@@ -289,6 +289,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
         onFileUploadStop,
         onShowToast,
         dictionary: this.props.dictionary,
+        isAttachment: this.inputRef.current?.accept === "*",
       });
     }
 

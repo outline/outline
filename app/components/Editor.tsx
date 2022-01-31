@@ -20,7 +20,12 @@ const SharedEditor = React.lazy(
 
 export type Props = Optional<
   EditorProps,
-  "placeholder" | "defaultValue" | "onClickLink" | "embeds" | "dictionary"
+  | "placeholder"
+  | "defaultValue"
+  | "onClickLink"
+  | "embeds"
+  | "dictionary"
+  | "onShowToast"
 > & {
   shareId?: string | undefined;
   embedsDisabled?: boolean;

@@ -65,6 +65,7 @@ const Wrapper = styled.a`
   display: inline-flex;
   align-items: flex-start;
   gap: 6px;
+  background: ${(props) => props.theme.background};
   color: ${(props) => props.theme.text} !important;
   outline: 1px solid ${(props) => props.theme.divider};
   white-space: nowrap;

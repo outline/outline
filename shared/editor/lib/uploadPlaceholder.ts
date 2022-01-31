@@ -31,7 +31,7 @@ const uploadPlaceholder = new Plugin({
             );
             set = set.add(tr.doc, [deco]);
           }
-        } else if (action.add.file.type.startsWith("image/")) {
+        } else if (action.add.isImage) {
           const element = document.createElement("div");
           element.className = "image placeholder";
 
