@@ -64,7 +64,7 @@ export default function linksToEmbeds(embeds: EmbedDescriptor[]) {
             }
 
             // of hey, we found a link – lets check to see if it should be
-            // considered to be an embed
+            // converted to an embed
             if (insideLink) {
               const result = isEmbed(current, insideLink);
               if (result) {

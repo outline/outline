@@ -47,7 +47,8 @@ const uploadPlugin = (options: Options) =>
           const files = Array.prototype.slice
             .call(event.clipboardData.items)
             .filter((dt: DataTransferItem) => dt.kind !== "string")
-            .map((dt: DataTransferItem) => dt.getAsFile());
+            .map((dt: DataTransferItem) => dt.getAsFile())
+            .filter(Boolean);
 
           if (files.length === 0) return false;
 

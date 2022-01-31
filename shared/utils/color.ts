@@ -1,4 +1,4 @@
-import crypto from "crypto";
+import md5 from "crypto-js/md5";
 import { darken } from "polished";
 import theme from "../theme";
 
@@ -24,7 +24,6 @@ export const validateColorHex = (color: string) => {
 };
 
 export const stringToColor = (input: string) => {
-  const idAsHex = crypto.createHash("md5").update(input).digest("hex");
-  const idAsNumber = parseInt(idAsHex, 16);
-  return palette[idAsNumber % palette.length];
+  const inputAsNumber = parseInt(md5(input).toString(), 16);
+  return palette[inputAsNumber % palette.length];
 };

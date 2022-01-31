@@ -34,6 +34,10 @@ const Children = styled.div`
   margin-left: auto;
   height: 20px;
   opacity: 0;
+
+  &:hover {
+    color: ${(props) => props.theme.text};
+  }
 `;
 
 const Title = styled.strong`
@@ -69,6 +73,7 @@ const Wrapper = styled.a`
   max-width: 840px;
   width: 100%;
 
+  user-select: none;
   text-overflow: ellipsis;
   overflow: hidden;
 
