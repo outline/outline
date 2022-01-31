@@ -276,6 +276,14 @@ export default class Image extends Node {
     downloadImageNode(node);
   };
 
+  handleMouseDown = (ev: React.MouseEvent<HTMLParagraphElement>) => {
+    if (document.activeElement !== ev.currentTarget) {
+      ev.preventDefault();
+      ev.stopPropagation();
+      ev.currentTarget.focus();
+    }
+  };
+
   component = (props: ComponentProps) => {
     const { theme, isSelected } = props;
     const { alt, src, layoutClass } = props.node.attrs;
@@ -309,6 +317,7 @@ export default class Image extends Node {
         <Caption
           onKeyDown={this.handleKeyDown(props)}
           onBlur={this.handleBlur(props)}
+          onMouseDown={this.handleMouseDown}
           className="caption"
           tabIndex={-1}
           role="textbox"
