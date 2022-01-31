@@ -15,9 +15,13 @@ const router = new Router();
 const AWS_S3_ACL = process.env.AWS_S3_ACL || "private";
 
 router.post("attachments.create", auth(), async (ctx) => {
-  const { name, documentId, contentType, size } = ctx.body;
+  const {
+    name,
+    documentId,
+    contentType = "application/octet-stream",
+    size,
+  } = ctx.body;
   assertPresent(name, "name is required");
-  assertPresent(contentType, "contentType is required");
   assertPresent(size, "size is required");
   const { user } = ctx.state;
   authorize(user, "createAttachment", user.team);

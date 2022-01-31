@@ -77,8 +77,10 @@ const Wrapper = styled.a`
   text-overflow: ellipsis;
   overflow: hidden;
 
-  &:hover {
+  &:hover,
+  &:active {
     background: ${(props) => props.theme.secondaryBackground};
+    outline: 1px solid ${(props) => props.theme.divider};
 
     ${Children} {
       opacity: 1;

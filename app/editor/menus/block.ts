@@ -15,7 +15,7 @@ import {
   WarningIcon,
   InfoIcon,
   LinkIcon,
-  DocumentIcon,
+  AttachmentIcon,
 } from "outline-icons";
 import { MenuItem } from "@shared/editor/types";
 import { Dictionary } from "~/hooks/useDictionary";
@@ -108,8 +108,8 @@ export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
     {
       name: "attachment",
       title: dictionary.file,
-      icon: DocumentIcon,
-      keywords: "file upload attachment",
+      icon: AttachmentIcon,
+      keywords: "file upload attach",
     },
     {
       name: "image",

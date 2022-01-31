@@ -11044,10 +11044,10 @@ os-browserify@^0.3.0:
   resolved "https://registry.yarnpkg.com/os-browserify/-/os-browserify-0.3.0.tgz#854373c7f5c2315914fc9bfc6bd8238fdda1ec27"
   integrity sha1-hUNzx/XCMVkU/Jv8a9gjj92h7Cc=
 
-outline-icons@^1.39.0:
-  version "1.39.0"
-  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.39.0.tgz#d7b1ecf5d3d2803b4e0defa86300e397f7c4ac2e"
-  integrity sha512-5TpVKHhGYzqeLJvY+FEP+Atn7pEMPM3Rkv6iezb2yZkPoQx5Tbnla1jUdE2aCSzeFZws+mLm17hzANcoRW2sYQ==
+outline-icons@^1.40.0:
+  version "1.40.0"
+  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.40.0.tgz#fcd9e4379e76304a2cd93574ad32123b7e3838a7"
+  integrity sha512-YjXUWyKcaH8r2SuQ0sFr5CJEunctfaj0UsgI6n6fUh79Zp99TaYgv0vPLnjME0r651MI3E1zOCem6PFOH6Dhew==
 
 oy-vey@^0.10.0:
   version "0.10.0"
