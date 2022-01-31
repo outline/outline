@@ -157,7 +157,10 @@ const insertFiles = function (
 
         // let the user know
         if (onShowToast) {
-          onShowToast(dictionary.imageUploadError, ToastType.Error);
+          onShowToast(
+            error.message || dictionary.fileUploadError,
+            ToastType.Error
+          );
         }
       })
       .finally(() => {

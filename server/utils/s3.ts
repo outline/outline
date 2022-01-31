@@ -100,11 +100,12 @@ export const getPresignedPost = (
   const params = {
     Bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME,
     Conditions: [
-      // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
-      ["content-length-range", 0, +process.env.AWS_S3_UPLOAD_MAX_SIZE],
+      process.env.AWS_S3_UPLOAD_MAX_SIZE
+        ? ["content-length-range", 0, +process.env.AWS_S3_UPLOAD_MAX_SIZE]
+        : undefined,
       ["starts-with", "$Content-Type", contentType],
       ["starts-with", "$Cache-Control", ""],
-    ],
+    ].filter(Boolean),
     Fields: {
       key,
       acl,

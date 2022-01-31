@@ -1,6 +1,7 @@
 import Router from "koa-router";
 import { v4 as uuidv4 } from "uuid";
-import { NotFoundError } from "@server/errors";
+import { bytesToHumanReadable } from "@shared/utils/files";
+import { NotFoundError, ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { Attachment, Document, Event } from "@server/models";
 import { authorize } from "@server/policies";
@@ -25,6 +26,18 @@ router.post("attachments.create", auth(), async (ctx) => {
   assertPresent(size, "size is required");
   const { user } = ctx.state;
   authorize(user, "createAttachment", user.team);
+
+  if (
+    process.env.AWS_S3_UPLOAD_MAX_SIZE &&
+    size > process.env.AWS_S3_UPLOAD_MAX_SIZE
+  ) {
+    throw ValidationError(
+      `Sorry, this file is too large – the maximum size is ${bytesToHumanReadable(
+        parseInt(process.env.AWS_S3_UPLOAD_MAX_SIZE, 10)
+      )}`
+    );
+  }
+
   const s3Key = uuidv4();
   const acl =
     ctx.body.public === undefined

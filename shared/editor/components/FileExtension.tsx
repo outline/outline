@@ -4,16 +4,16 @@ import styled from "styled-components";
 import { stringToColor } from "../../utils/color";
 
 type Props = {
-  extension: string;
+  extension?: string;
   size?: number;
 };
 
 export default function FileExtension(props: Props) {
-  const ext = props.extension.slice(0, 4);
+  const ext = props.extension?.slice(0, 4);
 
   return (
     <Icon
-      style={{ background: stringToColor(props.extension) }}
+      style={{ background: stringToColor(props.extension || "") }}
       $size={props.size || 28}
     >
       {ext ? <span>{ext}</span> : <AttachmentIcon color="currentColor" />}

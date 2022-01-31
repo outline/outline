@@ -40,7 +40,7 @@ export default function useDictionary() {
       heading: t("Heading"),
       hr: t("Divider"),
       image: t("Image"),
-      imageUploadError: t("Sorry, an error occurred uploading the image"),
+      fileUploadError: t("Sorry, an error occurred uploading the file"),
       imageCaptionPlaceholder: t("Write a caption"),
       info: t("Info"),
       infoNotice: t("Info notice"),

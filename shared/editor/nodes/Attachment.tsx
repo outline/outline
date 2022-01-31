@@ -59,9 +59,15 @@ export default class Attachment extends Node {
   }
 
   component({ isSelected, theme, node }: ComponentProps) {
+    const parts = node.attrs.title.split(".");
+
     return (
       <Widget
-        icon={<FileExtension extension={node.attrs.title.split(".").pop()} />}
+        icon={
+          <FileExtension
+            extension={parts.length > 1 ? parts.pop() : undefined}
+          />
+        }
         href={node.attrs.href}
         title={node.attrs.title}
         context={bytesToHumanReadable(node.attrs.size)}
