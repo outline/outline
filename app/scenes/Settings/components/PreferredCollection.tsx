@@ -13,14 +13,14 @@ type PreferredCollectionProps = {
   collections: Collection[];
   fetching: boolean;
   onPreferredCollectionChange: (value: string) => void;
-  preferredCollectionId: string | null;
+  defaultCollectionId: string | null;
 };
 
 const PreferredCollection = ({
   collections,
   fetching,
   onPreferredCollectionChange,
-  preferredCollectionId,
+  defaultCollectionId,
 }: PreferredCollectionProps) => {
   const { t } = useTranslation();
 
@@ -87,7 +87,7 @@ const PreferredCollection = ({
 
   return (
     <InputSelect
-      value={preferredCollectionId ? preferredCollectionId : "home"}
+      value={defaultCollectionId ? defaultCollectionId : "home"}
       label={t("Collection")}
       options={options}
       renderLabel={renderLabel}

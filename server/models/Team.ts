@@ -67,7 +67,7 @@ class Team extends ParanoidModel {
   domain: string | null;
 
   @Column(DataType.UUID)
-  preferredCollectionId: string | null;
+  defaultCollectionId: string | null;
 
   @Column
   avatarUrl: string | null;

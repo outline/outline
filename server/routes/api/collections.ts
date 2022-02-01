@@ -605,9 +605,9 @@ router.post("collections.update", auth(), async (ctx) => {
 
     if (
       collection.permission === null &&
-      team?.preferredCollectionId === collection.id
+      team?.defaultCollectionId === collection.id
     ) {
-      await team.update({ preferredCollectionId: null });
+      await team.update({ defaultCollectionId: null });
     }
   }
 
@@ -681,8 +681,8 @@ router.post("collections.delete", auth(), async (ctx) => {
 
   await collection.destroy();
 
-  if (team && team.preferredCollectionId === collection.id) {
-    await team.update({ preferredCollectionId: null });
+  if (team && team.defaultCollectionId === collection.id) {
+    await team.update({ defaultCollectionId: null });
   }
 
   await Event.create({

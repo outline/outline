@@ -24,7 +24,7 @@ function Features() {
 
   const [data, setData] = useState({
     collaborativeEditing: team.collaborativeEditing,
-    preferredCollectionId: team.preferredCollectionId,
+    defaultCollectionId: team.defaultCollectionId,
   });
 
   React.useEffect(() => {
@@ -63,7 +63,7 @@ function Features() {
   const handleDataChange = React.useCallback(
     async (newData: {
       collaborativeEditing: boolean;
-      preferredCollectionId: string | null;
+      defaultCollectionId: string | null;
     }) => {
       setData(newData);
       await auth.updateTeam(newData);
@@ -86,7 +86,7 @@ function Features() {
     async (value: string) => {
       const newData = {
         ...data,
-        preferredCollectionId: value === "home" ? null : value,
+        defaultCollectionId: value === "home" ? null : value,
       };
       handleDataChange(newData);
     },
@@ -120,7 +120,7 @@ function Features() {
         collections={publicCollections}
         fetching={fetching}
         onPreferredCollectionChange={onPreferredCollectionChange}
-        preferredCollectionId={data.preferredCollectionId}
+        defaultCollectionId={data.defaultCollectionId}
       />
     </Scene>
   );

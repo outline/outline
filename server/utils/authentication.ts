@@ -102,12 +102,12 @@ export async function signIn(
       expires,
     });
 
-    const preferredCollectionId = team.preferredCollectionId;
+    const defaultCollectionId = team.defaultCollectionId;
 
-    if (preferredCollectionId) {
+    if (defaultCollectionId) {
       const collection = await Collection.findOne({
         where: {
-          id: preferredCollectionId,
+          id: defaultCollectionId,
           teamId: team.id,
         },
       });

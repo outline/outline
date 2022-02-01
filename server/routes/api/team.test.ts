@@ -83,12 +83,12 @@ describe("#team.update", () => {
     const res = await server.post("/api/team.update", {
       body: {
         token: admin.getJwtToken(),
-        preferredCollectionId: collection.id,
+        defaultCollectionId: collection.id,
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.preferredCollectionId).toEqual(collection.id);
+    expect(body.data.defaultCollectionId).toEqual(collection.id);
   });
 
   it("should default to home if preferred collection is deleted", async () => {
@@ -107,13 +107,13 @@ describe("#team.update", () => {
     const res = await server.post("/api/team.update", {
       body: {
         token: admin.getJwtToken(),
-        preferredCollectionId: collection.id,
+        defaultCollectionId: collection.id,
       },
     });
 
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.preferredCollectionId).toEqual(collection.id);
+    expect(body.data.defaultCollectionId).toEqual(collection.id);
 
     const deleteRes = await server.post("/api/collections.delete", {
       body: {
@@ -130,7 +130,7 @@ describe("#team.update", () => {
     });
     const body3 = await res3.json();
     expect(res3.status).toEqual(200);
-    expect(body3.data.team.preferredCollectionId).toEqual(null);
+    expect(body3.data.team.defaultCollectionId).toEqual(null);
   });
 
   it("should update preferred collection to null when collection is made private", async () => {
@@ -149,13 +149,13 @@ describe("#team.update", () => {
     const res = await server.post("/api/team.update", {
       body: {
         token: admin.getJwtToken(),
-        preferredCollectionId: collection.id,
+        defaultCollectionId: collection.id,
       },
     });
 
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.preferredCollectionId).toEqual(collection.id);
+    expect(body.data.defaultCollectionId).toEqual(collection.id);
 
     const updateRes = await server.post("/api/collections.update", {
       body: {
@@ -174,6 +174,6 @@ describe("#team.update", () => {
     });
     const body3 = await res3.json();
     expect(res3.status).toEqual(200);
-    expect(body3.data.team.preferredCollectionId).toEqual(null);
+    expect(body3.data.team.defaultCollectionId).toEqual(null);
   });
 });

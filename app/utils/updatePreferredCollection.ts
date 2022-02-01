@@ -12,15 +12,15 @@ const updatePreferredCollection = (
 
   const deletedCollectionWasPreffered =
     actionOnCollection === "delete" &&
-    team.preferredCollectionId === collectionInfo.id;
+    team.defaultCollectionId === collectionInfo.id;
 
   const preferredCollectionIsPrivate =
     actionOnCollection === "update" &&
     collectionInfo.permission === null &&
-    team.preferredCollectionId === collectionInfo.id;
+    team.defaultCollectionId === collectionInfo.id;
 
   if (deletedCollectionWasPreffered || preferredCollectionIsPrivate) {
-    team.preferredCollectionId = null;
+    team.defaultCollectionId = null;
   }
 };
 
