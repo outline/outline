@@ -10,6 +10,6 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.removeColumn("teams", "preferredCollectionId");
+    await queryInterface.removeColumn("teams", "defaultCollectionId");
   }
 };
