@@ -27,6 +27,7 @@ function Scene({
     <FillWidth>
       <PageTitle title={textTitle || title} />
       <Header
+        hasSidebar
         title={
           icon ? (
             <>

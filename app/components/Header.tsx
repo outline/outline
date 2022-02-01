@@ -1,19 +1,25 @@
 import { throttle } from "lodash";
 import { observer } from "mobx-react";
+import { MenuIcon } from "outline-icons";
 import { transparentize } from "polished";
 import * as React from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import Button from "~/components/Button";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
+import useStores from "~/hooks/useStores";
 
 type Props = {
   breadcrumb?: React.ReactNode;
   title: React.ReactNode;
   actions?: React.ReactNode;
+  hasSidebar?: boolean;
 };
 
-function Header({ breadcrumb, title, actions }: Props) {
+function Header({ breadcrumb, title, actions, hasSidebar }: Props) {
+  const { ui } = useStores();
+
   const [isScrolled, setScrolled] = React.useState(false);
   const handleScroll = React.useCallback(
     throttle(() => setScrolled(window.scrollY > 75), 50),
@@ -34,7 +40,20 @@ function Header({ breadcrumb, title, actions }: Props) {
 
   return (
     <Wrapper align="center" shrink={false}>
-      {breadcrumb ? <Breadcrumbs>{breadcrumb}</Breadcrumbs> : null}
+      {breadcrumb || hasSidebar ? (
+        <Breadcrumbs>
+          {hasSidebar && (
+            <MobileMenuButton
+              onClick={ui.toggleMobileSidebar}
+              icon={<MenuIcon />}
+              iconColor="currentColor"
+              neutral
+            />
+          )}
+          {breadcrumb}
+        </Breadcrumbs>
+      ) : null}
+
       {isScrolled ? (
         <Title onClick={handleClickTitle}>
           <Fade>{title}</Fade>
@@ -56,12 +75,7 @@ const Breadcrumbs = styled("div")`
   flex-basis: 0;
   align-items: center;
   padding-right: 8px;
-
-  /* Don't show breadcrumbs on mobile */
-  display: none;
-  ${breakpoint("tablet")`	
   display: flex;
-`};
 `;
 
 const Actions = styled(Flex)`
@@ -107,7 +121,7 @@ const Title = styled("div")`
   cursor: pointer;
   min-width: 0;
 
-  ${breakpoint("tablet")`	
+  ${breakpoint("tablet")`
     padding-left: 0;
     display: block;
   `};
@@ -119,6 +133,18 @@ const Title = styled("div")`
   @media (display-mode: standalone) {
     overflow: hidden;
     flex-grow: 0 !important;
+  }
+`;
+
+const MobileMenuButton = styled(Button)`
+  margin-right: 8px;
+
+  ${breakpoint("tablet")`
+    display: none;
+  `};
+
+  @media print {
+    display: none;
   }
 `;
 
