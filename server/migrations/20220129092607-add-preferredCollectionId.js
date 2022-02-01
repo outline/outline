@@ -2,7 +2,7 @@
 
 module.exports = {
   up: async (queryInterface, Sequelize) => {
-    await queryInterface.addColumn("teams", "preferredCollectionId", {
+    await queryInterface.addColumn("teams", "defaultCollectionId", {
       type: Sequelize.UUID,
       defaultValue: null,
       allowNull: true,
