@@ -144,7 +144,7 @@
     "prosemirror-tables": "^1.1.1",
     "prosemirror-transform": "1.2.5",
     "prosemirror-utils": "^0.9.6",
-    "prosemirror-view": "1.18.1",
+    "prosemirror-view": "1.22.0",
     "query-string": "^7.0.1",
     "quoted-printable": "^1.0.1",
     "randomstring": "1.1.5",
@@ -315,7 +315,6 @@
   "resolutions": {
     "socket.io-parser": "^3.4.0",
     "prosemirror-transform": "1.2.5",
-    "prosemirror-view": "1.18.4",
     "dot-prop": "^5.2.0",
     "js-yaml": "^3.14.1"
   },
