@@ -29,7 +29,7 @@ class Team extends BaseModel {
 
   @Field
   @observable
-  preferredCollectionId: string | null;
+  defaultCollectionId: string | null;
 
   @Field
   @observable
