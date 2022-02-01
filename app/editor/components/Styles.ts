@@ -49,6 +49,19 @@ const EditorStyles = styled.div<{
       margin-top: 0;
     }
 
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      margin-top: 1em;
+    }
+
+    h1 {
+      margin-top: .75em;
+      margin-bottom: 0.25em;
+    }
+
     .ProseMirror-yjs-cursor {
       position: relative;
       margin-left: -1px;
@@ -202,7 +215,6 @@ const EditorStyles = styled.div<{
   h4,
   h5,
   h6 {
-    margin: 1em 0 0.5em;
     font-weight: 500;
     cursor: text;
 
