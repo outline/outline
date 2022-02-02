@@ -2,7 +2,6 @@ import ArrowKeyNavigation from "boundless-arrow-key-navigation";
 import { isEqual } from "lodash";
 import { observable, action } from "mobx";
 import { observer } from "mobx-react";
-import { SearchIcon } from "outline-icons";
 import queryString from "query-string";
 import * as React from "react";
 import { WithTranslation, withTranslation, Trans } from "react-i18next";
@@ -361,13 +360,6 @@ const Centered = styled(Flex)`
   margin: 30vh auto 0;
   max-width: 380px;
   transform: translateY(-50%);
-`;
-
-const Container = styled(CenteredContent)`
-  > div {
-    position: relative;
-    height: 100%;
-  }
 `;
 
 const ResultsWrapper = styled(Flex)`
