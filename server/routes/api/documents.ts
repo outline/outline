@@ -1356,6 +1356,7 @@ router.post("documents.import", auth(), async (ctx) => {
 
 router.post("documents.create", auth(), async (ctx) => {
   const {
+    id,
     title = "",
     text = "",
     publish,
@@ -1410,6 +1411,7 @@ router.post("documents.create", auth(), async (ctx) => {
   }
 
   const document = await documentCreator({
+    id,
     title,
     text,
     publish,

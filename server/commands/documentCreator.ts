@@ -1,7 +1,9 @@
 import invariant from "invariant";
 import { Document, Event, User } from "@server/models";
+import { uuid4 } from "@sentry/utils";
 
 export default async function documentCreator({
+  id = uuid4(),
   title = "",
   text = "",
   publish,
@@ -17,6 +19,7 @@ export default async function documentCreator({
   source,
   ip,
 }: {
+  id: string;
   title: string;
   text: string;
   publish?: boolean;
@@ -34,6 +37,7 @@ export default async function documentCreator({
 }): Promise<Document> {
   const templateId = templateDocument ? templateDocument.id : undefined;
   const document = await Document.create({
+    id,
     parentDocumentId,
     editorVersion,
     collectionId,
