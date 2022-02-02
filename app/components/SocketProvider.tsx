@@ -7,7 +7,6 @@ import io from "socket.io-client";
 import RootStore from "~/stores/RootStore";
 import withStores from "~/components/withStores";
 import { getVisibilityListener, getPageVisible } from "~/utils/pageVisibility";
-import updatePreferredCollection from "~/utils/updatePreferredCollection";
 
 type SocketWithAuthentication = {
   authenticated?: boolean;
@@ -195,11 +194,6 @@ class SocketProvider extends React.Component<Props> {
             if (collection) {
               collection.deletedAt = collectionDescriptor.updatedAt;
             }
-            updatePreferredCollection(
-              "delete",
-              { id: collectionId },
-              auth.team
-            );
 
             const deletedDocuments = documents.inCollection(collectionId);
             deletedDocuments.forEach((doc) => {
@@ -220,26 +214,13 @@ class SocketProvider extends React.Component<Props> {
             collection &&
             collection.updatedAt === collectionDescriptor.updatedAt
           ) {
-            updatePreferredCollection(
-              "update",
-              { id: collection.id, permission: collection.permission },
-              auth.team
-            );
             continue;
           }
 
           try {
-            const fetchedCollection = await collections.fetch(collectionId, {
+            await collections.fetch(collectionId, {
               force: true,
             });
-            updatePreferredCollection(
-              "update",
-              {
-                id: fetchedCollection.id,
-                permission: fetchedCollection.permission,
-              },
-              auth.team
-            );
           } catch (err) {
             if (err.statusCode === 404 || err.statusCode === 403) {
               documents.removeCollectionDocuments(collectionId);
