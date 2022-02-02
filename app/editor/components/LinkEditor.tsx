@@ -337,7 +337,7 @@ class LinkEditor extends React.Component<Props, State> {
                 title={result.title}
                 subtitle={result.subtitle}
                 icon={<DocumentIcon color="currentColor" />}
-                onMouseOver={() => this.handleFocusLink(index)}
+                onPointerMove={() => this.handleFocusLink(index)}
                 onClick={this.handleSelectLink(result.url, result.title)}
                 selected={index === selectedIndex}
               />
@@ -349,7 +349,7 @@ class LinkEditor extends React.Component<Props, State> {
                 title={suggestedLinkTitle}
                 subtitle={dictionary.createNewDoc}
                 icon={<PlusIcon color="currentColor" />}
-                onMouseOver={() => this.handleFocusLink(results.length)}
+                onPointerMove={() => this.handleFocusLink(results.length)}
                 onClick={() => {
                   this.handleCreateLink(suggestedLinkTitle);
 
@@ -382,13 +382,14 @@ const SearchResults = styled.ol`
   width: 100%;
   height: auto;
   left: 0;
-  padding: 4px 8px 8px;
+  padding: 0;
   margin: 0;
   margin-top: -3px;
   margin-bottom: 0;
   border-radius: 0 0 4px 4px;
   overflow-y: auto;
-  max-height: 25vh;
+  overscroll-behavior: none;
+  max-height: 260px;
 
   @media (hover: none) and (pointer: coarse) {
     position: fixed;

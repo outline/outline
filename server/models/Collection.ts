@@ -27,7 +27,7 @@ import {
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
 import { sortNavigationNodes } from "@shared/utils/collections";
-import { SLUG_URL_REGEX } from "@shared/utils/routeHelpers";
+import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
 import slugify from "@server/utils/slugify";
 import { NavigationNode, CollectionSort } from "~/types";
 import CollectionGroup from "./CollectionGroup";

@@ -97,6 +97,7 @@ const Wrapper = styled(Flex)<{ $passThrough?: boolean }>`
   top: 0;
   z-index: ${(props) => props.theme.depths.header};
   position: sticky;
+  background: ${(props) => props.theme.background};
 
   ${(props) =>
     props.$passThrough
@@ -115,13 +116,18 @@ const Wrapper = styled(Flex)<{ $passThrough?: boolean }>`
   min-height: 56px;
   justify-content: flex-start;
 
+  @supports (backdrop-filter: blur(20px)) {
+    backdrop-filter: blur(20px);
+    background: ${(props) => transparentize(0.2, props.theme.background)};
+  }
+
   @media print {
     display: none;
   }
 
   ${breakpoint("tablet")`
     padding: 16px 16px 0;
-    justify-content: "center";
+    justify-content: center;
   `};
 `;
 

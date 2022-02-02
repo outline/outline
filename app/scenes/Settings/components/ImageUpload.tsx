@@ -16,16 +16,16 @@ import { uploadFile, dataUrlToBlob } from "~/utils/uploadFile";
 
 const EMPTY_OBJECT = {};
 
-type Props = RootStore & {
+export type Props = {
   children?: React.ReactNode;
-  onSuccess: (arg0: string) => void | Promise<void>;
-  onError: (arg0: string) => void;
+  onSuccess: (url: string) => void | Promise<void>;
+  onError: (error: string) => void;
   submitText?: string;
   borderRadius?: number;
 };
 
 @observer
-class ImageUpload extends React.Component<Props> {
+class ImageUpload extends React.Component<RootStore & Props> {
   @observable
   isUploading = false;
 
@@ -41,7 +41,7 @@ class ImageUpload extends React.Component<Props> {
   avatarEditorRef = React.createRef<AvatarEditor>();
 
   static defaultProps = {
-    submitText: "Crop Picture",
+    submitText: "Crop Image",
     borderRadius: 150,
   };
 

@@ -13,7 +13,7 @@ import Flex from "~/components/Flex";
 import HelpText from "~/components/HelpText";
 import ListItem from "~/components/List/Item";
 import Popover from "~/components/Popover";
-import Toggle from "~/components/Toggle";
+import Switch from "~/components/Switch";
 import useToasts from "~/hooks/useToasts";
 
 type Props = {
@@ -82,13 +82,13 @@ function SlackListItem({ integration, collection }: Props) {
             <Events>
               <h3>{t("Notifications")}</h3>
               <HelpText>{t("These events should be posted to Slack")}</HelpText>
-              <Toggle
+              <Switch
                 label={t("Document published")}
                 name="documents.publish"
                 checked={integration.events.includes("documents.publish")}
                 onChange={handleChange}
               />
-              <Toggle
+              <Switch
                 label={t("Document updated")}
                 name="documents.update"
                 checked={integration.events.includes("documents.update")}

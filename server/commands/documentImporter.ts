@@ -1,10 +1,12 @@
 import fs from "fs";
 import path from "path";
 import { strikethrough, tables } from "joplin-turndown-plugin-gfm";
+import { truncate } from "lodash";
 import mammoth from "mammoth";
 import quotedPrintable from "quoted-printable";
 import TurndownService from "turndown";
 import utf8 from "utf8";
+import { MAX_TITLE_LENGTH } from "@shared/constants";
 import parseTitle from "@shared/utils/parseTitle";
 import { User } from "@server/models";
 import dataURItoBuffer from "@server/utils/dataURItoBuffer";
@@ -201,6 +203,9 @@ export default async function documentImporter({
     });
     text = text.replace(uri, attachment.redirectUrl);
   }
+
+  // It's better to truncate particularly long titles than fail the import
+  title = truncate(title, { length: MAX_TITLE_LENGTH });
 
   return {
     text,

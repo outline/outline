@@ -39,8 +39,27 @@ const EditorStyles = styled.div<{
       display: none;
     }
 
-    & > :first-child {
+    & > * {
+      margin-top: .5em;
+      margin-bottom: .5em;
+    }
+
+    & > :first-child,
+    & > button:first-child + * {
       margin-top: 0;
+    }
+
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      margin-top: 1em;
+    }
+
+    h1 {
+      margin-top: .75em;
+      margin-bottom: 0.25em;
     }
 
     .ProseMirror-yjs-cursor {
@@ -101,7 +120,6 @@ const EditorStyles = styled.div<{
   }
 
   .image {
-    margin: .5em 0;
     text-align: center;
     max-width: 100%;
     clear: both;
@@ -197,7 +215,6 @@ const EditorStyles = styled.div<{
   h4,
   h5,
   h6 {
-    margin: 1em 0 0.5em;
     font-weight: 500;
     cursor: text;
 
@@ -490,7 +507,7 @@ const EditorStyles = styled.div<{
   }
 
   p {
-    margin: 0.5em 0;
+    margin: 0;
 
     span:first-child + br:last-child {
       display: none;
@@ -535,7 +552,8 @@ const EditorStyles = styled.div<{
   ul.checkbox_list {
     list-style: none;
     padding: 0;
-    margin: ${(props) => (props.rtl ? "0 -24px 0 0" : "0 0 0 -24px")};
+    margin-left: ${(props) => (props.rtl ? "0" : "-24px")};
+    margin-right: ${(props) => (props.rtl ? "-24px" : "0")};
   }
 
   ul li,
@@ -614,6 +632,7 @@ const EditorStyles = styled.div<{
     position: relative;
     top: 1px;
     transition: transform 100ms ease-in-out;
+    opacity: .8;
 
     background-image: ${(props) =>
       `url("data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 14 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M3 0C1.34315 0 0 1.34315 0 3V11C0 12.6569 1.34315 14 3 14H11C12.6569 14 14 12.6569 14 11V3C14 1.34315 12.6569 0 11 0H3ZM3 2C2.44772 2 2 2.44772 2 3V11C2 11.5523 2.44772 12 3 12H11C11.5523 12 12 11.5523 12 11V3C12 2.44772 11.5523 2 11 2H3Z' fill='${props.theme.text.replace(
@@ -622,6 +641,7 @@ const EditorStyles = styled.div<{
       )}' /%3E%3C/svg%3E%0A");`}
 
     &[aria-checked=true] {
+      opacity: 1;
       background-image: ${(props) =>
         `url(
           "data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 14 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M3 0C1.34315 0 0 1.34315 0 3V11C0 12.6569 1.34315 14 3 14H11C12.6569 14 14 12.6569 14 11V3C14 1.34315 12.6569 0 11 0H3ZM4.26825 5.85982L5.95873 7.88839L9.70003 2.9C10.0314 2.45817 10.6582 2.36863 11.1 2.7C11.5419 3.03137 11.6314 3.65817 11.3 4.1L6.80002 10.1C6.41275 10.6164 5.64501 10.636 5.2318 10.1402L2.7318 7.14018C2.37824 6.71591 2.43556 6.08534 2.85984 5.73178C3.28412 5.37821 3.91468 5.43554 4.26825 5.85982Z' fill='${props.theme.primary.replace(
@@ -684,6 +704,21 @@ const EditorStyles = styled.div<{
     }
   }
 
+  .code-actions,
+  .notice-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: absolute;
+    z-index: 1;
+    top: 8px;
+    right: 8px;
+  }
+
+  .notice-actions {
+    ${(props) => (props.rtl ? "left" : "right")}: 8px;
+  }
+
   .code-block,
   .notice-block {
     position: relative;
@@ -695,25 +730,9 @@ const EditorStyles = styled.div<{
       border-width: 1px;
       font-size: 13px;
       display: none;
-      position: absolute;
       border-radius: 4px;
-      padding: 2px;
-      z-index: 1;
-      top: 4px;
-    }
-
-    &.code-block {
-      select,
-      button {
-        right: 4px;
-      }
-    }
-
-    &.notice-block {
-      select,
-      button {
-        ${(props) => (props.rtl ? "left" : "right")}: 4px;
-      }
+      padding: 2px 4px;
+      height: 18px;
     }
 
     button {
@@ -726,12 +745,14 @@ const EditorStyles = styled.div<{
       }
 
       button {
-        display: ${(props) => (props.readOnly ? "inline" : "none")};
+        display: inline;
       }
     }
 
     select:focus,
-    select:active {
+    select:active,
+    button:focus,
+    button:active {
       display: inline;
     }
   }

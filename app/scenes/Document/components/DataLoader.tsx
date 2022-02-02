@@ -11,6 +11,7 @@ import Document from "~/models/Document";
 import Revision from "~/models/Revision";
 import Error404 from "~/scenes/Error404";
 import ErrorOffline from "~/scenes/ErrorOffline";
+import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
 import withStores from "~/components/withStores";
 import { NavigationNode } from "~/types";
 import { NotFoundError, OfflineError } from "~/utils/errors";
@@ -91,11 +92,12 @@ class DataLoader extends React.Component<Props> {
     }
   }
 
+  get isEditRoute() {
+    return this.props.match.path === matchDocumentEdit;
+  }
+
   get isEditing() {
-    return (
-      this.props.match.path === matchDocumentEdit ||
-      this.props.auth?.team?.collaborativeEditing
-    );
+    return this.isEditRoute || this.props.auth?.team?.collaborativeEditing;
   }
 
   onSearchLink = async (term: string) => {
@@ -132,13 +134,9 @@ class DataLoader extends React.Component<Props> {
 
     return sortBy(
       results.map((document: Document) => {
-        const time = formatDistanceToNow(Date.parse(document.updatedAt), {
-          addSuffix: true,
-        });
-
         return {
           title: document.title,
-          subtitle: `Updated ${time}`,
+          subtitle: <DocumentBreadcrumb document={document} onlyText />,
           url: document.url,
         };
       }),
@@ -211,7 +209,7 @@ class DataLoader extends React.Component<Props> {
 
       // If we're attempting to update an archived, deleted, or otherwise
       // uneditable document then forward to the canonical read url.
-      if (!can.update && this.isEditing) {
+      if (!can.update && this.isEditRoute) {
         history.push(document.url);
         return;
       }

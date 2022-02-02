@@ -54,7 +54,6 @@ const CollectionGroupMemberListItem = ({
             labelHidden
             nude
           />
-          <Spacer />
           <CollectionGroupMemberMenu
             onMembers={openMembersModal}
             onRemove={onRemove}
@@ -65,14 +64,12 @@ const CollectionGroupMemberListItem = ({
   );
 };
 
-const Spacer = styled.div`
-  width: 8px;
-`;
-
 const Select = styled(InputSelect)`
   margin: 0;
   font-size: 14px;
   border-color: transparent;
+  box-shadow: none;
+  color: ${(props) => props.theme.textSecondary};
 
   select {
     margin: 0;

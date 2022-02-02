@@ -91,7 +91,7 @@ const CollectionEdit = ({ collectionId, onSubmit }: Props) => {
             so often might confuse your team mates.
           </Trans>
         </HelpText>
-        <Flex>
+        <Flex gap={8}>
           <Input
             type="text"
             label={t("Name")}
@@ -101,7 +101,6 @@ const CollectionEdit = ({ collectionId, onSubmit }: Props) => {
             autoFocus
             flex
           />
-          &nbsp;
           <IconPicker onChange={handleChange} color={color} icon={icon} />
         </Flex>
         <InputSelect

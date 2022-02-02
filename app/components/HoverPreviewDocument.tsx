@@ -37,7 +37,7 @@ function HoverPreviewDocument({ url, children }: Props) {
             <Editor
               key={document.id}
               defaultValue={document.getSummary()}
-              disableEmbeds
+              embedsDisabled
               readOnly
             />
           </React.Suspense>

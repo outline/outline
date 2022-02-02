@@ -236,6 +236,7 @@ export const lightMobile = light;
 export const darkMobile = {
   ...dark,
   background: colors.black,
+  codeBackground: colors.almostBlack,
 };
 
 export default light;

@@ -1,4 +1,3 @@
-import { debounce } from "lodash";
 import { observer } from "mobx-react";
 import { BeakerIcon } from "outline-icons";
 import { useState } from "react";
@@ -7,7 +6,7 @@ import { useTranslation, Trans } from "react-i18next";
 import Heading from "~/components/Heading";
 import HelpText from "~/components/HelpText";
 import Scene from "~/components/Scene";
-import Toggle from "~/components/Toggle";
+import Switch from "~/components/Switch";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
@@ -21,24 +20,17 @@ function Features() {
     collaborativeEditing: team.collaborativeEditing,
   });
 
-  const showSuccessMessage = React.useCallback(
-    debounce(() => {
-      showToast(t("Settings saved"), {
-        type: "success",
-      });
-    }, 250),
-    [t, showToast]
-  );
-
   const handleChange = React.useCallback(
     async (ev: React.ChangeEvent<HTMLInputElement>) => {
       const newData = { ...data, [ev.target.name]: ev.target.checked };
       setData(newData);
 
       await auth.updateTeam(newData);
-      showSuccessMessage();
+      showToast(t("Settings saved"), {
+        type: "success",
+      });
     },
-    [auth, data, showSuccessMessage]
+    [auth, data, showToast, t]
   );
 
   return (
@@ -52,7 +44,7 @@ function Features() {
           the experience for all team members.
         </Trans>
       </HelpText>
-      <Toggle
+      <Switch
         label={t("Collaborative editing")}
         name="collaborativeEditing"
         checked={data.collaborativeEditing}

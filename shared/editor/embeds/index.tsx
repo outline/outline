@@ -38,6 +38,8 @@ import Image from "./components/Image";
 
 export type EmbedProps = {
   isSelected: boolean;
+  isEditable: boolean;
+  embed: EmbedDescriptor;
   attrs: {
     href: string;
     matches: RegExpMatchArray;
