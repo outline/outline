@@ -8,6 +8,7 @@ import breakpoint from "styled-components-breakpoint";
 import Button from "~/components/Button";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
+import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 
 type Props = {
@@ -19,6 +20,9 @@ type Props = {
 
 function Header({ breadcrumb, title, actions, hasSidebar }: Props) {
   const { ui } = useStores();
+  const isMobile = useMobile();
+
+  const hasMobileSidebar = hasSidebar && isMobile;
 
   const passThrough = !actions && !breadcrumb && !title;
 
@@ -42,9 +46,9 @@ function Header({ breadcrumb, title, actions, hasSidebar }: Props) {
 
   return (
     <Wrapper align="center" shrink={false} $passThrough={passThrough}>
-      {breadcrumb || hasSidebar ? (
+      {breadcrumb || hasMobileSidebar ? (
         <Breadcrumbs>
-          {hasSidebar && (
+          {hasMobileSidebar && (
             <MobileMenuButton
               onClick={ui.toggleMobileSidebar}
               icon={<MenuIcon />}
@@ -149,10 +153,6 @@ const Title = styled("div")`
 const MobileMenuButton = styled(Button)`
   margin-right: 8px;
   pointer-events: auto;
-
-  ${breakpoint("tablet")`
-    display: none;
-  `};
 
   @media print {
     display: none;
