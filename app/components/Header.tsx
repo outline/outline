@@ -20,6 +20,8 @@ type Props = {
 function Header({ breadcrumb, title, actions, hasSidebar }: Props) {
   const { ui } = useStores();
 
+  const passThrough = !actions && !breadcrumb && !title;
+
   const [isScrolled, setScrolled] = React.useState(false);
   const handleScroll = React.useCallback(
     throttle(() => setScrolled(window.scrollY > 75), 50),
@@ -39,7 +41,7 @@ function Header({ breadcrumb, title, actions, hasSidebar }: Props) {
   }, []);
 
   return (
-    <Wrapper align="center" shrink={false}>
+    <Wrapper align="center" shrink={false} $passThrough={passThrough}>
       {breadcrumb || hasSidebar ? (
         <Breadcrumbs>
           {hasSidebar && (
@@ -61,11 +63,9 @@ function Header({ breadcrumb, title, actions, hasSidebar }: Props) {
       ) : (
         <div />
       )}
-      {actions && (
-        <Actions align="center" justify="flex-end">
-          {actions}
-        </Actions>
-      )}
+      <Actions align="center" justify="flex-end">
+        {actions}
+      </Actions>
     </Wrapper>
   );
 }
@@ -89,15 +89,25 @@ const Actions = styled(Flex)`
   `};
 `;
 
-const Wrapper = styled(Flex)`
-  position: sticky;
+const Wrapper = styled(Flex)<{ $passThrough?: boolean }>`
   top: 0;
   z-index: ${(props) => props.theme.depths.header};
-  background: ${(props) => transparentize(0.2, props.theme.background)};
+  position: sticky;
+
+  ${(props) =>
+    props.$passThrough
+      ? `
+      background: transparent;
+      pointer-events: none;
+      `
+      : `
+      background: ${transparentize(0.2, props.theme.background)};
+      backdrop-filter: blur(20px);
+      `};
+
   padding: 12px;
   transition: all 100ms ease-out;
   transform: translate3d(0, 0, 0);
-  backdrop-filter: blur(20px);
   min-height: 56px;
   justify-content: flex-start;
 
@@ -138,6 +148,7 @@ const Title = styled("div")`
 
 const MobileMenuButton = styled(Button)`
   margin-right: 8px;
+  pointer-events: auto;
 
   ${breakpoint("tablet")`
     display: none;

@@ -2,6 +2,7 @@ import ArrowKeyNavigation from "boundless-arrow-key-navigation";
 import { isEqual } from "lodash";
 import { observable, action } from "mobx";
 import { observer } from "mobx-react";
+import { SearchIcon } from "outline-icons";
 import queryString from "query-string";
 import * as React from "react";
 import { WithTranslation, withTranslation, Trans } from "react-i18next";
@@ -21,8 +22,8 @@ import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import HelpText from "~/components/HelpText";
 import LoadingIndicator from "~/components/LoadingIndicator";
-import PageTitle from "~/components/PageTitle";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
+import Scene from "~/components/Scene";
 import withStores from "~/components/withStores";
 import { searchUrl } from "~/utils/routeHelpers";
 import { decodeURIComponentSafe } from "~/utils/urls";
@@ -259,8 +260,7 @@ class Search extends React.Component<Props> {
     const showEmpty = !this.isLoading && this.query && results.length === 0;
 
     return (
-      <Container>
-        <PageTitle title={this.title} />
+      <Scene textTitle={this.title}>
         <RegisterKeyDown trigger="Escape" handler={this.goBack} />
         {this.isLoading && <LoadingIndicator />}
         {notFound && (
@@ -351,7 +351,7 @@ class Search extends React.Component<Props> {
             )}
           </ResultList>
         </ResultsWrapper>
-      </Container>
+      </Scene>
     );
   }
 }
@@ -371,7 +371,7 @@ const Container = styled(CenteredContent)`
 `;
 
 const ResultsWrapper = styled(Flex)`
-  ${breakpoint("tablet")`	
+  ${breakpoint("tablet")`
     margin-top: 40px;
   `};
 `;
@@ -394,7 +394,7 @@ const Filters = styled(Flex)`
   overflow-x: auto;
   padding: 8px 0;
 
-  ${breakpoint("tablet")`	
+  ${breakpoint("tablet")`
     padding: 0;
   `};
 
