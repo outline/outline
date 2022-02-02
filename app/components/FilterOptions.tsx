@@ -94,13 +94,15 @@ const StyledButton = styled(Button)`
   box-shadow: none;
   text-transform: none;
   border-color: transparent;
+  height: auto;
 
   &:hover {
     background: transparent;
   }
 
   ${Inner} {
-    line-height: 28px;
+    line-height: 24px;
+    min-height: auto;
   }
 `;
 

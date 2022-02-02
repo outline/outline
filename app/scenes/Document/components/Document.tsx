@@ -394,10 +394,12 @@ class DocumentScene extends React.Component<Props> {
     const value = revision ? revision.text : document.text;
     const embedsDisabled =
       (team && team.documentEmbeds === false) || document.embedsDisabled;
+
     const headings = this.editor.current
       ? // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
         this.editor.current.getHeadings()
       : [];
+
     const showContents =
       ui.tocVisible && (readOnly || team?.collaborativeEditing);
     const collaborativeEditing =
@@ -615,11 +617,11 @@ class DocumentScene extends React.Component<Props> {
                 </Flex>
               </React.Suspense>
             </MaxWidth>
+            {isShare && !isCustomDomain() && (
+              <Branding href="//www.getoutline.com?ref=sharelink" />
+            )}
           </Container>
         </Background>
-        {isShare && !isCustomDomain() && (
-          <Branding href="//www.getoutline.com?ref=sharelink" />
-        )}
         {!isShare && (
           <>
             <KeyboardShortcutsButton />
@@ -665,6 +667,8 @@ const MaxWidth = styled(Flex)<MaxWidthProps>`
   transition: padding 100ms;
   max-width: 100vw;
   width: 100%;
+
+  padding-bottom: 16px;
 
   ${breakpoint("tablet")`
     margin: 4px auto 12px;

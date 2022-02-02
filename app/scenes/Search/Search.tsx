@@ -14,15 +14,14 @@ import { DateFilter as TDateFilter } from "@shared/types";
 import { DEFAULT_PAGINATION_LIMIT } from "~/stores/BaseStore";
 import { SearchParams } from "~/stores/DocumentsStore";
 import RootStore from "~/stores/RootStore";
-import CenteredContent from "~/components/CenteredContent";
 import DocumentListItem from "~/components/DocumentListItem";
 import Empty from "~/components/Empty";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import HelpText from "~/components/HelpText";
 import LoadingIndicator from "~/components/LoadingIndicator";
-import PageTitle from "~/components/PageTitle";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
+import Scene from "~/components/Scene";
 import withStores from "~/components/withStores";
 import { searchUrl } from "~/utils/routeHelpers";
 import { decodeURIComponentSafe } from "~/utils/urls";
@@ -259,8 +258,7 @@ class Search extends React.Component<Props> {
     const showEmpty = !this.isLoading && this.query && results.length === 0;
 
     return (
-      <Container>
-        <PageTitle title={this.title} />
+      <Scene textTitle={this.title}>
         <RegisterKeyDown trigger="Escape" handler={this.goBack} />
         {this.isLoading && <LoadingIndicator />}
         {notFound && (
@@ -351,7 +349,7 @@ class Search extends React.Component<Props> {
             )}
           </ResultList>
         </ResultsWrapper>
-      </Container>
+      </Scene>
     );
   }
 }
@@ -363,15 +361,8 @@ const Centered = styled(Flex)`
   transform: translateY(-50%);
 `;
 
-const Container = styled(CenteredContent)`
-  > div {
-    position: relative;
-    height: 100%;
-  }
-`;
-
 const ResultsWrapper = styled(Flex)`
-  ${breakpoint("tablet")`	
+  ${breakpoint("tablet")`
     margin-top: 40px;
   `};
 `;
@@ -394,7 +385,7 @@ const Filters = styled(Flex)`
   overflow-x: auto;
   padding: 8px 0;
 
-  ${breakpoint("tablet")`	
+  ${breakpoint("tablet")`
     padding: 0;
   `};
 
