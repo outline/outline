@@ -1832,14 +1832,35 @@ describe("#documents.create", () => {
         publish: true,
       },
     });
+    expect(res.status).toEqual(200);
     const body = await res.json();
     const newDocument = await Document.findByPk(body.data.id);
-    expect(res.status).toEqual(200);
     expect(newDocument!.parentDocumentId).toBe(null);
     expect(newDocument!.collectionId).toBe(collection.id);
     expect(body.policies[0].abilities.update).toEqual(true);
   });
 
+  it("should create a new document with a specified id", async () => {
+    const { user, collection } = await seed();
+    const myId = "765affa5-5b1c-4ee9-a9fc-1e34e3f5f5d6";
+    const res = await server.post("/api/documents.create", {
+      body: {
+        token: user.getJwtToken(),
+        id: myId,
+        collectionId: collection.id,
+        title: "new document",
+        text: "hello",
+        publish: true,
+      },
+    });
+    expect(res.status).toEqual(200);
+    const body = await res.json();
+    expect(body.data.id).toBe(myId);
+    const newDocument = await Document.findByPk(body.data.id);
+    expect(newDocument!.parentDocumentId).toBe(null);
+    expect(newDocument!.collectionId).toBe(collection.id);
+    expect(body.policies[0].abilities.update).toEqual(true);
+  });
   it("should not allow very long titles", async () => {
     const { user, collection } = await seed();
     const res = await server.post("/api/documents.create", {
