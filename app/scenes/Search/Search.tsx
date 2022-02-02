@@ -14,7 +14,6 @@ import { DateFilter as TDateFilter } from "@shared/types";
 import { DEFAULT_PAGINATION_LIMIT } from "~/stores/BaseStore";
 import { SearchParams } from "~/stores/DocumentsStore";
 import RootStore from "~/stores/RootStore";
-import CenteredContent from "~/components/CenteredContent";
 import DocumentListItem from "~/components/DocumentListItem";
 import Empty from "~/components/Empty";
 import Fade from "~/components/Fade";
