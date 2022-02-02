@@ -3,6 +3,7 @@ import invariant from "invariant";
 import Router from "koa-router";
 import { Sequelize, Op, WhereOptions } from "sequelize";
 import collectionExporter from "@server/commands/collectionExporter";
+import teamUpdater from "@server/commands/teamUpdater";
 import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import {
@@ -607,7 +608,12 @@ router.post("collections.update", auth(), async (ctx) => {
       collection.permission === null &&
       team?.defaultCollectionId === collection.id
     ) {
-      await team.update({ defaultCollectionId: null });
+      await teamUpdater({
+        params: { defaultCollectionId: null },
+        ip: ctx.request.ip,
+        user,
+        team,
+      });
     }
   }
 
@@ -682,7 +688,12 @@ router.post("collections.delete", auth(), async (ctx) => {
   await collection.destroy();
 
   if (team && team.defaultCollectionId === collection.id) {
-    await team.update({ defaultCollectionId: null });
+    await teamUpdater({
+      params: { defaultCollectionId: null },
+      ip: ctx.request.ip,
+      user,
+      team,
+    });
   }
 
   await Event.create({
