@@ -1,9 +1,9 @@
 import invariant from "invariant";
 import { Document, Event, User } from "@server/models";
-import { uuid4 } from "@sentry/utils";
+import { randomUUID } from "crypto";
 
 export default async function documentCreator({
-  id = uuid4(),
+  id = randomUUID(),
   title = "",
   text = "",
   publish,

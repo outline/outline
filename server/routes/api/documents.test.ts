@@ -1821,6 +1821,28 @@ describe("#documents.import", () => {
 });
 
 describe("#documents.create", () => {
+  fit("should create as a new document - failing case", async () => {
+    const { user, collection } = await seed();
+    const res = await server.post("/api/documents.create", {
+      body: {
+        token: user.getJwtToken(),
+        collectionId: collection.id,
+        template: false,
+        title: "",
+        text: "",
+      },
+    });
+    const body = await res.json();
+    if (res.status != 200) {
+      console.log(body);
+    }
+    expect(res.status).toEqual(200);
+    const newDocument = await Document.findByPk(body.data.id);
+    expect(newDocument!.parentDocumentId).toBe(null);
+    expect(newDocument!.collectionId).toBe(collection.id);
+    expect(body.policies[0].abilities.update).toEqual(true);
+  });
+
   it("should create as a new document", async () => {
     const { user, collection } = await seed();
     const res = await server.post("/api/documents.create", {

@@ -40,7 +40,7 @@ import {
 } from "@server/validation";
 import env from "../../env";
 import pagination from "./middlewares/pagination";
-import { uuid4 } from "@sentry/utils";
+import { randomUUID } from "crypto";
 
 const router = new Router();
 
@@ -1357,7 +1357,7 @@ router.post("documents.import", auth(), async (ctx) => {
 
 router.post("documents.create", auth(), async (ctx) => {
   const {
-    id = uuid4(),
+    id = randomUUID(),
     title = "",
     text = "",
     publish,
@@ -1368,6 +1368,7 @@ router.post("documents.create", auth(), async (ctx) => {
     index,
   } = ctx.body;
   const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
+  assertUuid(id, "id must be an uuid");
   assertUuid(collectionId, "collectionId must be an uuid");
 
   if (parentDocumentId) {
