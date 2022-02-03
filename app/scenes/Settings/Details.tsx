@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import Button from "~/components/Button";
+import DefaultCollectionInputSelect from "~/components/DefaultCollectionInputSelect";
 import Heading from "~/components/Heading";
 import HelpText from "~/components/HelpText";
 import Input from "~/components/Input";
@@ -79,6 +80,25 @@ function Details() {
     [showToast, t]
   );
 
+  const onSelectCollection = React.useCallback(
+    async (value: string) => {
+      const defaultCollectionId = value === "home" ? null : value;
+      try {
+        await auth.updateTeam({
+          defaultCollectionId,
+        });
+        showToast(t("Settings saved"), {
+          type: "success",
+        });
+      } catch (err) {
+        showToast(err.message, {
+          type: "error",
+        });
+      }
+    },
+    [auth, showToast, t]
+  );
+
   const isValid = form.current && form.current.checkValidity();
   return (
     <Scene title={t("Details")} icon={<TeamIcon color="currentColor" />}>
@@ -128,6 +148,10 @@ function Details() {
             )}
           </>
         )}
+        <DefaultCollectionInputSelect
+          onSelectCollection={onSelectCollection}
+          defaultCollectionId={team.defaultCollectionId}
+        />
         <Button type="submit" disabled={auth.isSaving || !isValid}>
           {auth.isSaving ? `${t("Saving")}…` : t("Save")}
         </Button>

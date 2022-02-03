@@ -24,7 +24,7 @@ export type Option = {
 };
 
 export type Props = {
-  value?: string;
+  value?: string | null;
   label?: string;
   nude?: boolean;
   ariaLabel: string;
@@ -40,16 +40,13 @@ export type Props = {
   renderLabel?: (option: Option) => React.ReactNode;
 };
 
-const getOptionFromValue = (
-  options: Option[],
-  value: string | undefined | null
-) => {
+const getOptionFromValue = (options: Option[], value: string | null) => {
   return options.find((option) => option.value === value);
 };
 
 const InputSelect = (props: Props) => {
   const {
-    value,
+    value = null,
     label,
     className,
     labelHidden,
@@ -77,7 +74,7 @@ const InputSelect = (props: Props) => {
     disabled,
   });
 
-  const previousValue = React.useRef<string | undefined | null>(value);
+  const previousValue = React.useRef<string | null>(value);
   const contentRef = React.useRef<HTMLDivElement>(null);
   const selectedRef = React.useRef<HTMLDivElement>(null);
   const buttonRef = React.useRef<HTMLButtonElement>(null);
@@ -86,6 +83,10 @@ const InputSelect = (props: Props) => {
   const maxHeight = useMenuHeight(
     select.visible,
     select.unstable_disclosureRef
+  );
+  const wrappedLabel = <LabelText>{label}</LabelText>;
+  const selectedValueIndex = options.findIndex(
+    (option) => option.value === select.selectedValue
   );
 
   React.useEffect(() => {
@@ -100,10 +101,6 @@ const InputSelect = (props: Props) => {
 
     load();
   }, [onChange, select.selectedValue]);
-  const wrappedLabel = <LabelText>{label}</LabelText>;
-  const selectedValueIndex = options.findIndex(
-    (option) => option.value === select.selectedValue
-  );
 
   // Ensure selected option is visible when opening the input
   React.useEffect(() => {

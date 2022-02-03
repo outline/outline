@@ -1,8 +1,8 @@
 import invariant from "invariant";
 import { concat, find, last } from "lodash";
-import { computed, action, runInAction } from "mobx";
+import { computed, action } from "mobx";
 import Collection from "~/models/Collection";
-import { NavigationNode, PaginationParams } from "~/types";
+import { NavigationNode } from "~/types";
 import { client } from "~/utils/ApiClient";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
@@ -167,30 +167,12 @@ export default class CollectionsStore extends BaseStore<Collection> {
     }
   }
 
-  @action
-  fetchPublicCollections = async (
-    params: PaginationParams | undefined
-  ): Promise<Collection[]> => {
-    this.isFetching = true;
-
-    try {
-      const res = await client.post(`/${this.apiEndpoint}.list`, {
-        listTeamAccessibleCollection: true,
-        ...params,
-      });
-      invariant(res && res.data, "Data not available");
-
-      runInAction(`list#${this.modelName}`, () => {
-        this.addPolicies(res.policies);
-        res.data.forEach(this.add);
-      });
-
-      const response = res.data;
-      return response;
-    } finally {
-      this.isFetching = false;
-    }
-  };
+  @computed
+  get publicCollections() {
+    return this.orderedData.filter((collection) =>
+      ["read", "read_write"].includes(collection.permission || "")
+    );
+  }
 
   getPathForDocument(documentId: string): DocumentPath | undefined {
     return this.pathsToDocuments.find((path) => path.id === documentId);

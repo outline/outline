@@ -3,7 +3,6 @@ import { BeakerIcon } from "outline-icons";
 import { useState } from "react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
-import Collection from "~/models/Collection";
 import Heading from "~/components/Heading";
 import HelpText from "~/components/HelpText";
 import Scene from "~/components/Scene";
@@ -11,54 +10,17 @@ import Switch from "~/components/Switch";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
-import PreferredCollection from "./components/PreferredCollection";
 
 function Features() {
-  const { auth, collections } = useStores();
+  const { auth } = useStores();
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const { showToast } = useToasts();
-  const [fetching, setFetching] = useState(false);
-  const [fetchError, setFetchError] = useState();
-  const [publicCollections, setPublicCollections] = useState<Collection[]>([]);
 
   const [data, setData] = useState({
     collaborativeEditing: team.collaborativeEditing,
     defaultCollectionId: team.defaultCollectionId,
   });
-
-  React.useEffect(() => {
-    async function load() {
-      if (publicCollections.length === 0 && !fetching && !fetchError) {
-        try {
-          setFetching(true);
-          const publicCollections = await collections.fetchPublicCollections({
-            limit: 100,
-          });
-          setPublicCollections(publicCollections);
-        } catch (error) {
-          showToast(
-            t("Collections could not be loaded, please reload the app"),
-            {
-              type: "error",
-            }
-          );
-          setFetchError(error);
-        } finally {
-          setFetching(false);
-        }
-      }
-    }
-
-    load();
-  }, [
-    showToast,
-    fetchError,
-    t,
-    fetching,
-    publicCollections.length,
-    collections,
-  ]);
 
   const handleDataChange = React.useCallback(
     async (newData: {
@@ -77,17 +39,6 @@ function Features() {
   const handleChange = React.useCallback(
     async (ev: React.ChangeEvent<HTMLInputElement>) => {
       const newData = { ...data, [ev.target.name]: ev.target.checked };
-      handleDataChange(newData);
-    },
-    [data, handleDataChange]
-  );
-
-  const onPreferredCollectionChange = React.useCallback(
-    async (value: string) => {
-      const newData = {
-        ...data,
-        defaultCollectionId: value === "home" ? null : value,
-      };
       handleDataChange(newData);
     },
     [data, handleDataChange]
@@ -115,12 +66,6 @@ function Features() {
             with shared presence and live cursors.
           </Trans>
         }
-      />
-      <PreferredCollection
-        collections={publicCollections}
-        fetching={fetching}
-        onPreferredCollectionChange={onPreferredCollectionChange}
-        defaultCollectionId={data.defaultCollectionId}
       />
     </Scene>
   );

@@ -1,30 +1,55 @@
 import { SelectStateReturn } from "@renderlesskit/react";
 import { CheckmarkIcon, HomeIcon } from "outline-icons";
-import React, { useCallback } from "react";
+import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import Collection from "~/models/Collection";
 import CollectionIcon from "~/components/CollectionIcon";
 import Flex from "~/components/Flex";
 import InputSelect from "~/components/InputSelect";
 import { IconWrapper } from "~/components/Sidebar/components/SidebarLink";
+import useStores from "~/hooks/useStores";
+import useToasts from "~/hooks/useToasts";
 
-type PreferredCollectionProps = {
-  collections: Collection[];
-  fetching: boolean;
-  onPreferredCollectionChange: (value: string) => void;
-  defaultCollectionId: string | null;
+type DefaultCollectionInputSelectProps = {
+  onSelectCollection: (value: string) => void;
+  defaultCollectionId?: string | null;
 };
 
 const DefaultCollectionInputSelect = ({
-  collections,
-  fetching,
-  onPreferredCollectionChange,
+  onSelectCollection,
   defaultCollectionId,
-}: PreferredCollectionProps) => {
+}: DefaultCollectionInputSelectProps) => {
   const { t } = useTranslation();
+  const { collections } = useStores();
+  const [fetching, setFetching] = useState(false);
+  const [fetchError, setFetchError] = useState();
+  const { showToast } = useToasts();
 
-  const options = collections.reduce(
+  React.useEffect(() => {
+    async function load() {
+      if (!collections.isLoaded && !fetching && !fetchError) {
+        try {
+          setFetching(true);
+          await collections.fetchPage({
+            limit: 100,
+          });
+        } catch (error) {
+          showToast(
+            t("Collections could not be loaded, please reload the app"),
+            {
+              type: "error",
+            }
+          );
+          setFetchError(error);
+        } finally {
+          setFetching(false);
+        }
+      }
+    }
+    load();
+  }, [showToast, fetchError, t, fetching, collections]);
+
+  const options = collections.publicCollections.reduce(
     (acc, collection) => [
       ...acc,
       {
@@ -37,7 +62,9 @@ const DefaultCollectionInputSelect = ({
 
   const renderLabel = useCallback(
     (option: { label: string; value: string }) => {
-      const collection = collections.find((c) => c.id === option.value);
+      const collection = collections.publicCollections.find(
+        (c) => c.id === option.value
+      );
 
       const Icon = collection ? (
         <CollectionIcon collection={collection} />
@@ -57,7 +84,9 @@ const DefaultCollectionInputSelect = ({
 
   const renderOption = useCallback(
     (option: { label: string; value: string }, select: SelectStateReturn) => {
-      const collection = collections.find((c) => c.id === option.value);
+      const collection = collections.publicCollections.find(
+        (c) => c.id === option.value
+      );
 
       const Icon = collection ? (
         <CollectionIcon collection={collection} />
@@ -87,12 +116,12 @@ const DefaultCollectionInputSelect = ({
 
   return (
     <InputSelect
-      value={defaultCollectionId ? defaultCollectionId : "home"}
+      value={defaultCollectionId ?? "home"}
       label={t("Collection")}
       options={options}
       renderLabel={renderLabel}
       renderOption={renderOption}
-      onChange={onPreferredCollectionChange}
+      onChange={onSelectCollection}
       ariaLabel={t("Perferred collection")}
       note={t(
         "We will redirect users to the selected collection when they sign in."
@@ -108,4 +137,4 @@ const Spacer = styled.div`
   flex-shrink: 0;
 `;
 
-export default PreferredCollection;
+export default DefaultCollectionInputSelect;
