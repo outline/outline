@@ -9,18 +9,17 @@ export default function Version() {
 
   React.useEffect(() => {
     async function loadReleases() {
-      let out = 0;
       const res = await fetch(
         "https://api.github.com/repos/outline/outline/releases"
       );
       const releases = await res.json();
 
-      for (const release of releases) {
-        if (release.tag_name === `v${version}`) {
-          return setReleasesBehind(out);
-        } else {
-          out++;
-        }
+      if (Array.isArray(releases)) {
+        const computedReleasesBehind = releases
+          .map((release) => release.tag_name)
+          .findIndex((tagName) => tagName === `v${version}`);
+
+        setReleasesBehind(computedReleasesBehind);
       }
     }
 
