@@ -82,7 +82,9 @@ export default class SlackProcessor {
         service: "slack",
         type: "post",
         events: {
-          [Op.contains]: [event.name],
+          [Op.contains]: [
+            event.name === "revisions.create" ? "documents.update" : event.name,
+          ],
         },
       },
     });
