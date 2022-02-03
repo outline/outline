@@ -16,7 +16,7 @@ type PreferredCollectionProps = {
   defaultCollectionId: string | null;
 };
 
-const PreferredCollection = ({
+const DefaultCollectionInputSelect = ({
   collections,
   fetching,
   onPreferredCollectionChange,
