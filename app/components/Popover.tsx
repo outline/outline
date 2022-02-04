@@ -15,12 +15,13 @@ type Props = {
 function Popover({ children, width = 380, ...rest }: Props) {
   const isMobile = useMobile();
 
-  if (isMobile)
+  if (isMobile) {
     return (
       <Dialog {...rest} modal>
         <Contents>{children}</Contents>
       </Dialog>
     );
+  }
 
   return (
     <ReakitPopover {...rest}>
