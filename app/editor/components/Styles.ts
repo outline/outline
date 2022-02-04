@@ -200,6 +200,19 @@ const EditorStyles = styled.div<{
     pointer-events: none;
   }
 
+  img.ProseMirror-separator {
+    display: inline;
+    border: none !important;
+    margin: 0 !important;
+  }
+
+  // Removes forced paragraph spaces below images, this is needed to images
+  // being inline nodes that are displayed like blocks
+  .component-image + img.ProseMirror-separator,
+  .component-image + img.ProseMirror-separator + br.ProseMirror-trailingBreak {
+    display: none;
+  }
+
   .ProseMirror[contenteditable="false"] {
     .caption {
       pointer-events: none;
