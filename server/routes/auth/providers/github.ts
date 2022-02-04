@@ -1,4 +1,3 @@
-// @flow
 import passport from "@outlinewiki/koa-passport";
 import fetch from "fetch-with-proxy";
 import Router from "koa-router";
@@ -78,7 +77,6 @@ if (GITHUB_CLIENT_ID) {
           ip: req.ip,
           team: {
             name: orgInfo.company || orgInfo.name,
-            domain: orgInfo.blog,
             avatarUrl: orgInfo.avatar_url,
             subdomain: GITHUB_ORGANIZATION,
           },
