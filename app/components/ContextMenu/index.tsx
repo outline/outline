@@ -132,6 +132,8 @@ export const Position = styled.div`
   position: absolute;
   z-index: ${(props) => props.theme.depths.menu};
 
+  // overrides make mobile-first coding style challenging
+  // so we explicitly define mobile breakpoint here
   ${breakpoint("mobile", "tablet")`
     position: fixed !important;
     transform: none !important;
