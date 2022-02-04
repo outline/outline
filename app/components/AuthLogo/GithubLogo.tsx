@@ -2,9 +2,9 @@
 import * as React from "react";
 
 type Props = {
-  size?: number,
-  fill?: string,
-  className?: string,
+  size?: number;
+  fill?: string;
+  className?: string;
 };
 
 function GithubLogo({ size = 34, fill = "#FFF", className }: Props) {
