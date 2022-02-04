@@ -300,6 +300,7 @@
   "Create a document": "Create a document",
   "Manage permissions": "Manage permissions",
   "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however documents within will be moved to the trash.": "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however documents within will be moved to the trash.",
+  "Also, <em>{{collectionName}}</em> is being used as a Default Collection. Deleting it will reset the Default Collection to Home page.": "Also, <em>{{collectionName}}</em> is being used as a Default Collection. Deleting it will reset the Default Collection to Home page.",
   "Deleting": "Deleting",
   "I’m sure – Delete": "I’m sure – Delete",
   "The collection was updated": "The collection was updated",

@@ -6,6 +6,7 @@ import Collection from "~/models/Collection";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import HelpText from "~/components/HelpText";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useToasts from "~/hooks/useToasts";
 import { homePath } from "~/utils/routeHelpers";
 
@@ -16,6 +17,7 @@ type Props = {
 
 function CollectionDelete({ collection, onSubmit }: Props) {
   const [isDeleting, setIsDeleting] = React.useState(false);
+  const team = useCurrentTeam();
   const { showToast } = useToasts();
   const history = useHistory();
   const { t } = useTranslation();
@@ -53,6 +55,19 @@ function CollectionDelete({ collection, onSubmit }: Props) {
             }}
           />
         </HelpText>
+        {team.defaultCollectionId === collection.id ? (
+          <HelpText>
+            <Trans
+              defaults="Also, <em>{{collectionName}}</em> is being used as a Default Collection. Deleting it will reset the Default Collection to Home page."
+              values={{
+                collectionName: collection.name,
+              }}
+              components={{
+                em: <strong />,
+              }}
+            />
+          </HelpText>
+        ) : null}
         <Button type="submit" disabled={isDeleting} autoFocus danger>
           {isDeleting ? `${t("Deleting")}…` : t("I’m sure – Delete")}
         </Button>
