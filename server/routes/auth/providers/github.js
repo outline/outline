@@ -33,7 +33,7 @@ export async function request(endpoint: string, accessToken: string) {
 }
 
 export const config = {
-  name: "Github",
+  name: "GitHub",
   enabled: !!GITHUB_CLIENT_ID,
 };
 
