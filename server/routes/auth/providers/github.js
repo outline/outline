@@ -39,7 +39,7 @@ export const config = {
 
 if (GITHUB_CLIENT_ID) {
   if (GITHUB_ORGANIZATION === "") {
-    throw new Error("`GITHUB_ORGANIZATION` required when using Github.");
+    throw new Error("`GITHUB_ORGANIZATION` required when using GitHub.");
   }
 
   const strategy = new GithubStrategy(
