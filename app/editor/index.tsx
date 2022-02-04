@@ -500,7 +500,7 @@ export class Editor extends React.PureComponent<
   createPasteParser() {
     return this.extensions.parser({
       schema: this.schema,
-      rules: { linkify: true },
+      rules: { linkify: true, emoji: false },
       plugins: this.rulePlugins,
     });
   }
