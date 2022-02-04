@@ -4,7 +4,6 @@ import {
   useSelectState,
   useSelectPopover,
   SelectPopover,
-  SelectStateReturn,
 } from "@renderlesskit/react";
 import { CheckmarkIcon } from "outline-icons";
 import * as React from "react";
@@ -19,7 +18,7 @@ import { MenuAnchorCSS } from "./ContextMenu/MenuItem";
 import { LabelText } from "./Input";
 
 export type Option = {
-  label: string;
+  label: string | JSX.Element;
   value: string;
 };
 
@@ -36,8 +35,6 @@ export type Props = {
   options: Option[];
   note?: React.ReactNode;
   onChange: (value: string | null) => void;
-  renderOption?: (option: Option, select: SelectStateReturn) => React.ReactNode;
-  renderLabel?: (option: Option) => React.ReactNode;
 };
 
 const getOptionFromValue = (options: Option[], value: string | null) => {
@@ -57,8 +54,6 @@ const InputSelect = (props: Props) => {
     disabled,
     note,
     icon,
-    renderOption,
-    renderLabel,
   } = props;
 
   const select = useSelectState({
@@ -147,8 +142,6 @@ const InputSelect = (props: Props) => {
               >
                 {!option ? (
                   <Placeholder>Select a {ariaLabel.toLowerCase()}</Placeholder>
-                ) : renderLabel ? (
-                  renderLabel(option)
                 ) : (
                   option.label
                 )}
@@ -203,15 +196,9 @@ const InputSelect = (props: Props) => {
                             key={option.value}
                             ref={isSelected ? selectedRef : undefined}
                           >
-                            {renderOption ? (
-                              renderOption(option, select)
-                            ) : (
-                              <>
-                                <Icon />
-                                &nbsp;
-                                {option.label}
-                              </>
-                            )}
+                            <Icon />
+                            &nbsp;
+                            {option.label}
                           </StyledSelectOption>
                         );
                       })
@@ -270,6 +257,10 @@ const StyledButton = styled(Button)<{ nude?: boolean }>`
 
 export const StyledSelectOption = styled(SelectOption)`
   ${MenuAnchorCSS}
+  /* overriding the styles from MenuAnchorCSS because we use &nbsp; here */
+  svg:not(:last-child) {
+    margin-right: 0px;
+  }
 `;
 
 const Wrapper = styled.label<{ short?: boolean }>`

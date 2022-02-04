@@ -1,8 +1,6 @@
-import { SelectStateReturn } from "@renderlesskit/react";
-import { CheckmarkIcon, HomeIcon } from "outline-icons";
-import React, { useCallback, useState } from "react";
+import { HomeIcon } from "outline-icons";
+import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
-import styled from "styled-components";
 import CollectionIcon from "~/components/CollectionIcon";
 import Flex from "~/components/Flex";
 import InputSelect from "~/components/InputSelect";
@@ -53,63 +51,30 @@ const DefaultCollectionInputSelect = ({
     (acc, collection) => [
       ...acc,
       {
-        label: collection.name,
+        label: (
+          <Flex align="center">
+            <IconWrapper>
+              <CollectionIcon collection={collection} />
+            </IconWrapper>
+            {collection.name}
+          </Flex>
+        ),
         value: collection.id,
       },
     ],
-    [{ label: t("Home"), value: "home" }]
-  );
-
-  const renderLabel = useCallback(
-    (option: { label: string; value: string }) => {
-      const collection = collections.publicCollections.find(
-        (c) => c.id === option.value
-      );
-
-      const Icon = collection ? (
-        <CollectionIcon collection={collection} />
-      ) : (
-        <HomeIcon color="currentColor" />
-      );
-
-      return (
-        <Flex align="center">
-          <IconWrapper>{Icon}</IconWrapper>
-          {option.label}
-        </Flex>
-      );
-    },
-    [collections]
-  );
-
-  const renderOption = useCallback(
-    (option: { label: string; value: string }, select: SelectStateReturn) => {
-      const collection = collections.publicCollections.find(
-        (c) => c.id === option.value
-      );
-
-      const Icon = collection ? (
-        <CollectionIcon collection={collection} />
-      ) : (
-        <HomeIcon color="currentColor" />
-      );
-
-      return (
-        <Flex align="center">
-          {option.value === select.selectedValue ? (
-            <CheckmarkIcon color="currentColor" />
-          ) : (
-            <>
-              <Spacer />
-              &nbsp;
-            </>
-          )}
-          <IconWrapper>{Icon}</IconWrapper>
-          {option.label}
-        </Flex>
-      );
-    },
-    [collections]
+    [
+      {
+        label: (
+          <Flex align="center">
+            <IconWrapper>
+              <HomeIcon color="currentColor" />
+            </IconWrapper>
+            {t("Home")}
+          </Flex>
+        ),
+        value: "home",
+      },
+    ]
   );
 
   if (fetching) return null;
@@ -119,8 +84,6 @@ const DefaultCollectionInputSelect = ({
       value={defaultCollectionId ?? "home"}
       label={t("Collection")}
       options={options}
-      renderLabel={renderLabel}
-      renderOption={renderOption}
       onChange={onSelectCollection}
       ariaLabel={t("Perferred collection")}
       note={t(
@@ -130,11 +93,5 @@ const DefaultCollectionInputSelect = ({
     />
   );
 };
-
-const Spacer = styled.div`
-  width: 24px;
-  height: 24px;
-  flex-shrink: 0;
-`;
 
 export default DefaultCollectionInputSelect;
