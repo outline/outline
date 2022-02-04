@@ -77,7 +77,7 @@ if (GITHUB_CLIENT_ID) {
         const result = await accountProvisioner({
           ip: req.ip,
           team: {
-            name: orgInfo.name,
+            name: orgInfo.company || orgInfo.name,
             domain: orgInfo.blog,
             avatarUrl: orgInfo.avatar_url,
             subdomain: GITHUB_ORGANIZATION,
