@@ -16,32 +16,21 @@ function Features() {
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const { showToast } = useToasts();
-
   const [data, setData] = useState({
     collaborativeEditing: team.collaborativeEditing,
-    defaultCollectionId: team.defaultCollectionId,
   });
 
-  const handleDataChange = React.useCallback(
-    async (newData: {
-      collaborativeEditing: boolean;
-      defaultCollectionId: string | null;
-    }) => {
+  const handleChange = React.useCallback(
+    async (ev: React.ChangeEvent<HTMLInputElement>) => {
+      const newData = { ...data, [ev.target.name]: ev.target.checked };
       setData(newData);
+
       await auth.updateTeam(newData);
       showToast(t("Settings saved"), {
         type: "success",
       });
     },
-    [auth, showToast, t]
-  );
-
-  const handleChange = React.useCallback(
-    async (ev: React.ChangeEvent<HTMLInputElement>) => {
-      const newData = { ...data, [ev.target.name]: ev.target.checked };
-      handleDataChange(newData);
-    },
-    [data, handleDataChange]
+    [auth, data, showToast, t]
   );
 
   return (

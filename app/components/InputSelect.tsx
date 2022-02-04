@@ -129,25 +129,19 @@ const InputSelect = (props: Props) => {
           ))}
 
         <Select {...select} disabled={disabled} ref={buttonRef}>
-          {(props) => {
-            const option = getOptionFromValue(options, select.selectedValue);
-
-            return (
-              <StyledButton
-                neutral
-                disclosure
-                className={className}
-                icon={icon}
-                {...props}
-              >
-                {!option ? (
-                  <Placeholder>Select a {ariaLabel.toLowerCase()}</Placeholder>
-                ) : (
-                  option.label
-                )}
-              </StyledButton>
-            );
-          }}
+          {(props) => (
+            <StyledButton
+              neutral
+              disclosure
+              className={className}
+              icon={icon}
+              {...props}
+            >
+              {getOptionFromValue(options, select.selectedValue)?.label || (
+                <Placeholder>Select a {ariaLabel.toLowerCase()}</Placeholder>
+              )}
+            </StyledButton>
+          )}
         </Select>
         <SelectPopover {...select} {...popOver} aria-label={ariaLabel}>
           {(

@@ -80,26 +80,8 @@ function Details() {
     [showToast, t]
   );
 
-  const onSelectCollection = React.useCallback(
-    async (value: string) => {
-      const defaultCollectionId = value === "home" ? null : value;
-      try {
-        await auth.updateTeam({
-          defaultCollectionId,
-        });
-        showToast(t("Settings saved"), {
-          type: "success",
-        });
-      } catch (err) {
-        showToast(err.message, {
-          type: "error",
-        });
-      }
-    },
-    [auth, showToast, t]
-  );
-
   const isValid = form.current && form.current.checkValidity();
+
   return (
     <Scene title={t("Details")} icon={<TeamIcon color="currentColor" />}>
       <Heading>{t("Details")}</Heading>
@@ -148,10 +130,7 @@ function Details() {
             )}
           </>
         )}
-        <DefaultCollectionInputSelect
-          onSelectCollection={onSelectCollection}
-          defaultCollectionId={team.defaultCollectionId}
-        />
+        <DefaultCollectionInputSelect />
         <Button type="submit" disabled={auth.isSaving || !isValid}>
           {auth.isSaving ? `${t("Saving")}…` : t("Save")}
         </Button>
