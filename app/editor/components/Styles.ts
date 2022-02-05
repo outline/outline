@@ -120,6 +120,7 @@ const EditorStyles = styled.div<{
   }
 
   .image {
+    line-height: 0;
     text-align: center;
     max-width: 100%;
     clear: both;
