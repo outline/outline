@@ -9,7 +9,9 @@ export default class BacklinksProcessor {
     switch (event.name) {
       case "documents.publish": {
         const document = await Document.findByPk(event.documentId);
-        if (!document) return;
+        if (!document) {
+          return;
+        }
         const linkIds = parseDocumentIds(document.text);
         await Promise.all(
           linkIds.map(async (linkId) => {
@@ -35,10 +37,14 @@ export default class BacklinksProcessor {
 
       case "documents.update": {
         const document = await Document.findByPk(event.documentId);
-        if (!document) return;
+        if (!document) {
+          return;
+        }
 
         // backlinks are only created for published documents
-        if (!document.publishedAt) return;
+        if (!document.publishedAt) {
+          return;
+        }
 
         const linkIds = parseDocumentIds(document.text);
         const linkedDocumentIds: string[] = [];
@@ -80,10 +86,14 @@ export default class BacklinksProcessor {
       case "documents.title_change": {
         // might as well check
         const { title, previousTitle } = event.data;
-        if (!previousTitle || title === previousTitle) break;
+        if (!previousTitle || title === previousTitle) {
+          break;
+        }
 
         const document = await Document.findByPk(event.documentId);
-        if (!document) return;
+        if (!document) {
+          return;
+        }
 
         // TODO: Handle re-writing of titles into CRDT
         const team = await Team.findByPk(document.teamId);

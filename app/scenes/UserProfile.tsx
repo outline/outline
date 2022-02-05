@@ -30,7 +30,9 @@ function UserProfile(props: Props) {
   const currentUser = useCurrentUser();
   const history = useHistory();
   const { user, ...rest } = props;
-  if (!user) return null;
+  if (!user) {
+    return null;
+  }
   const isCurrentUser = currentUser.id === user.id;
 
   return (

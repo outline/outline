@@ -70,7 +70,9 @@ class PaginatedList extends React.Component<Props> {
   };
 
   fetchResults = async () => {
-    if (!this.props.fetch) return;
+    if (!this.props.fetch) {
+      return;
+    }
     this.isFetching = true;
     const limit = DEFAULT_PAGINATION_LIMIT;
     const results = await this.props.fetch({
@@ -94,7 +96,9 @@ class PaginatedList extends React.Component<Props> {
   @action
   loadMoreResults = async () => {
     // Don't paginate if there aren't more results or we’re currently fetching
-    if (!this.allowLoadMore || this.isFetching) return;
+    if (!this.allowLoadMore || this.isFetching) {
+      return;
+    }
     // If there are already cached results that we haven't yet rendered because
     // of lazy rendering then show another page.
     const leftToRender = this.props.items.length - this.renderCount;

@@ -360,7 +360,9 @@ class User extends ParanoidModel {
           `avatars/${model.id}/${uuidv4()}`,
           "public-read"
         );
-        if (newUrl) model.avatarUrl = newUrl;
+        if (newUrl) {
+          model.avatarUrl = newUrl;
+        }
       } catch (err) {
         Logger.error("Couldn't upload user avatar image to S3", err, {
           url: avatarUrl,
@@ -452,8 +454,12 @@ class User extends ParanoidModel {
     query: FindOptions<User>,
     callback: (users: Array<User>, query: FindOptions<User>) => Promise<void>
   ) {
-    if (!query.offset) query.offset = 0;
-    if (!query.limit) query.limit = 10;
+    if (!query.offset) {
+      query.offset = 0;
+    }
+    if (!query.limit) {
+      query.limit = 10;
+    }
     let results;
 
     do {

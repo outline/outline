@@ -127,7 +127,9 @@ export const DOCUMENT_VERSION = 2;
     ],
   },
   withViews: (userId: string) => {
-    if (!userId) return {};
+    if (!userId) {
+      return {};
+    }
     return {
       include: [
         {
@@ -215,7 +217,9 @@ class Document extends ParanoidModel {
   // getters
 
   get url() {
-    if (!this.title) return `/doc/untitled-${this.urlId}`;
+    if (!this.title) {
+      return `/doc/untitled-${this.urlId}`;
+    }
     const slugifiedTitle = slugify(this.title);
     return `/doc/${slugifiedTitle}-${this.urlId}`;
   }
@@ -721,7 +725,9 @@ class Document extends ParanoidModel {
   };
 
   publish = async (userId: string, options?: FindOptions<Document>) => {
-    if (this.publishedAt) return this.save(options);
+    if (this.publishedAt) {
+      return this.save(options);
+    }
 
     if (!this.template) {
       const collection = await Collection.findByPk(this.collectionId);
@@ -735,7 +741,9 @@ class Document extends ParanoidModel {
   };
 
   unpublish = async (userId: string, options?: FindOptions<Document>) => {
-    if (!this.publishedAt) return this;
+    if (!this.publishedAt) {
+      return this;
+    }
     const collection = await this.$get("collection");
     await collection?.removeDocumentInStructure(this);
 
@@ -777,7 +785,9 @@ class Document extends ParanoidModel {
           },
         },
       });
-      if (!parent) this.parentDocumentId = null;
+      if (!parent) {
+        this.parentDocumentId = null;
+      }
     }
 
     if (!this.template && collection) {

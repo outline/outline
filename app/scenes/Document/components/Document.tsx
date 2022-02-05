@@ -194,7 +194,9 @@ class DocumentScene extends React.Component<Props> {
   };
 
   goToMove = (ev: KeyboardEvent) => {
-    if (!this.props.readOnly) return;
+    if (!this.props.readOnly) {
+      return;
+    }
     ev.preventDefault();
     const { document, abilities } = this.props;
 
@@ -204,7 +206,9 @@ class DocumentScene extends React.Component<Props> {
   };
 
   goToEdit = (ev: KeyboardEvent) => {
-    if (!this.props.readOnly) return;
+    if (!this.props.readOnly) {
+      return;
+    }
     ev.preventDefault();
     const { document, abilities } = this.props;
 
@@ -214,8 +218,12 @@ class DocumentScene extends React.Component<Props> {
   };
 
   goToHistory = (ev: KeyboardEvent) => {
-    if (!this.props.readOnly) return;
-    if (ev.ctrlKey) return;
+    if (!this.props.readOnly) {
+      return;
+    }
+    if (ev.ctrlKey) {
+      return;
+    }
     ev.preventDefault();
     const { document, location } = this.props;
 
@@ -229,7 +237,9 @@ class DocumentScene extends React.Component<Props> {
   onPublish = (ev: React.MouseEvent | KeyboardEvent) => {
     ev.preventDefault();
     const { document } = this.props;
-    if (document.publishedAt) return;
+    if (document.publishedAt) {
+      return;
+    }
     this.onSave({
       publish: true,
       done: true,
@@ -237,7 +247,9 @@ class DocumentScene extends React.Component<Props> {
   };
 
   onToggleTableOfContents = (ev: KeyboardEvent) => {
-    if (!this.props.readOnly) return;
+    if (!this.props.readOnly) {
+      return;
+    }
     ev.preventDefault();
     const { ui } = this.props;
 
@@ -257,13 +269,17 @@ class DocumentScene extends React.Component<Props> {
   ) => {
     const { document, auth } = this.props;
     // prevent saves when we are already saving
-    if (document.isSaving) return;
+    if (document.isSaving) {
+      return;
+    }
 
     // get the latest version of the editor text value
     const text = this.getEditorText ? this.getEditorText() : document.text;
 
     // prevent save before anything has been written (single hash is empty doc)
-    if (text.trim() === "" && document.title.trim() === "") return;
+    if (text.trim() === "" && document.title.trim() === "") {
+      return;
+    }
 
     document.text = text;
     document.tasks = getTasks(document.text);

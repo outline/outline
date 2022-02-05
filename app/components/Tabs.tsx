@@ -63,7 +63,9 @@ const Tabs = ({ children }: { children: React.ReactNode }) => {
 
   const updateShadows = React.useCallback(() => {
     const c = ref.current;
-    if (!c) return;
+    if (!c) {
+      return;
+    }
     const scrollLeft = c.scrollLeft;
     const wrapperWidth = c.scrollWidth - c.clientWidth;
     const fade = !!(wrapperWidth - scrollLeft !== 0);

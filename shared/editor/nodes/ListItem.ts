@@ -203,8 +203,12 @@ export default class ListItem extends Node {
         state: EditorState,
         dispatch: (tr: Transaction) => void
       ) => {
-        if (!isInList(state)) return false;
-        if (!state.selection.empty) return false;
+        if (!isInList(state)) {
+          return false;
+        }
+        if (!state.selection.empty) {
+          return false;
+        }
 
         const { tr, selection } = state;
         dispatch(tr.split(selection.to));
@@ -214,9 +218,13 @@ export default class ListItem extends Node {
         state: EditorState,
         dispatch: (tr: Transaction) => void
       ) => {
-        if (!state.selection.empty) return false;
+        if (!state.selection.empty) {
+          return false;
+        }
         const result = getParentListItem(state);
-        if (!result) return false;
+        if (!result) {
+          return false;
+        }
 
         const [li, pos] = result;
         const $pos = state.doc.resolve(pos);
@@ -244,9 +252,13 @@ export default class ListItem extends Node {
         state: EditorState,
         dispatch: (tr: Transaction) => void
       ) => {
-        if (!state.selection.empty) return false;
+        if (!state.selection.empty) {
+          return false;
+        }
         const result = getParentListItem(state);
-        if (!result) return false;
+        if (!result) {
+          return false;
+        }
 
         const [li, pos] = result;
         const $pos = state.doc.resolve(pos + li.nodeSize);

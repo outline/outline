@@ -25,7 +25,9 @@ const insertFiles = function (
 ): void {
   // filter to only include image files
   const images = files.filter((file) => /image/i.test(file.type));
-  if (images.length === 0) return;
+  if (images.length === 0) {
+    return;
+  }
 
   const {
     dictionary,
@@ -47,7 +49,9 @@ const insertFiles = function (
   event.preventDefault();
 
   // let the user know we're starting to process the images
-  if (onImageUploadStart) onImageUploadStart();
+  if (onImageUploadStart) {
+    onImageUploadStart();
+  }
 
   const { schema } = view.state;
 

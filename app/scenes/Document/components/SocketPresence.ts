@@ -58,7 +58,9 @@ export default class SocketPresence extends React.Component<Props> {
   };
 
   emitJoin = () => {
-    if (!this.context) return;
+    if (!this.context) {
+      return;
+    }
     this.context.emit("join", {
       documentId: this.props.documentId,
       isEditing: this.props.isEditing,
@@ -66,7 +68,9 @@ export default class SocketPresence extends React.Component<Props> {
   };
 
   emitPresence = () => {
-    if (!this.context) return;
+    if (!this.context) {
+      return;
+    }
     this.context.emit("presence", {
       documentId: this.props.documentId,
       isEditing: this.props.isEditing,

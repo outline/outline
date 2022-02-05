@@ -80,20 +80,28 @@ export class MarkdownSerializerState {
     //   on a node level by specifying a tight attribute on the node.
     //   Defaults to false.
     this.options = options || {};
-    if (typeof this.options.tightLists === "undefined")
+    if (typeof this.options.tightLists === "undefined") {
       this.options.tightLists = true;
+    }
   }
 
   flushClose(size) {
     if (this.closed) {
-      if (!this.atBlank()) this.out += "\n";
-      if (size === null || size === undefined) size = 2;
+      if (!this.atBlank()) {
+        this.out += "\n";
+      }
+      if (size === null || size === undefined) {
+        size = 2;
+      }
       if (size > 1) {
         let delimMin = this.delim;
         const trim = /\s+$/.exec(delimMin);
-        if (trim)
+        if (trim) {
           delimMin = delimMin.slice(0, delimMin.length - trim[0].length);
-        for (let i = 1; i < size; i++) this.out += delimMin + "\n";
+        }
+        for (let i = 1; i < size; i++) {
+          this.out += delimMin + "\n";
+        }
       }
       this.closed = false;
     }
@@ -120,7 +128,9 @@ export class MarkdownSerializerState {
   // :: ()
   // Ensure the current content ends with a newline.
   ensureNewLine() {
-    if (!this.atBlank()) this.out += "\n";
+    if (!this.atBlank()) {
+      this.out += "\n";
+    }
   }
 
   // :: (?string)
@@ -129,8 +139,12 @@ export class MarkdownSerializerState {
   // (unescaped) to the output.
   write(content) {
     this.flushClose();
-    if (this.delim && this.atBlank()) this.out += this.delim;
-    if (content) this.out += content;
+    if (this.delim && this.atBlank()) {
+      this.out += this.delim;
+    }
+    if (content) {
+      this.out += content;
+    }
   }
 
   // :: (Node)
@@ -148,14 +162,18 @@ export class MarkdownSerializerState {
       const startOfLine = this.atBlank() || this.closed;
       this.write();
       this.out += escape !== false ? this.esc(lines[i], startOfLine) : lines[i];
-      if (i !== lines.length - 1) this.out += "\n";
+      if (i !== lines.length - 1) {
+        this.out += "\n";
+      }
     }
   }
 
   // :: (Node)
   // Render the given node as a block.
   render(node, parent, index) {
-    if (typeof parent === "number") throw new Error("!");
+    if (typeof parent === "number") {
+      throw new Error("!");
+    }
     this.nodes[node.type.name](this, node, parent, index);
   }
 
@@ -178,14 +196,17 @@ export class MarkdownSerializerState {
       // before closing marks.
       // (FIXME it'd be nice if we had a schema-agnostic way to
       // identify nodes that serialize as hard breaks)
-      if (node && node.type.name === "hard_break")
+      if (node && node.type.name === "hard_break") {
         marks = marks.filter((m) => {
-          if (index + 1 === parent.childCount) return false;
+          if (index + 1 === parent.childCount) {
+            return false;
+          }
           const next = parent.child(index + 1);
           return (
             m.isInSet(next.marks) && (!next.isText || /\S/.test(next.text))
           );
         });
+      }
 
       let leading = trailing;
       trailing = "";
@@ -205,7 +226,9 @@ export class MarkdownSerializerState {
         trailing = trail;
         if (lead || trail) {
           node = inner ? node.withText(inner) : null;
-          if (!node) marks = active;
+          if (!node) {
+            marks = active;
+          }
         }
       }
 
@@ -219,23 +242,28 @@ export class MarkdownSerializerState {
       // active.
       outer: for (let i = 0; i < len; i++) {
         const mark = marks[i];
-        if (!this.marks[mark.type.name]().mixable) break;
+        if (!this.marks[mark.type.name]().mixable) {
+          break;
+        }
         for (let j = 0; j < active.length; j++) {
           const other = active[j];
-          if (!this.marks[other.type.name]().mixable) break;
+          if (!this.marks[other.type.name]().mixable) {
+            break;
+          }
           if (mark.eq(other)) {
-            if (i > j)
+            if (i > j) {
               marks = marks
                 .slice(0, j)
                 .concat(mark)
                 .concat(marks.slice(j, i))
                 .concat(marks.slice(i + 1, len));
-            else if (j > i)
+            } else if (j > i) {
               marks = marks
                 .slice(0, i)
                 .concat(marks.slice(i + 1, j))
                 .concat(mark)
                 .concat(marks.slice(j, len));
+            }
             continue outer;
           }
         }
@@ -246,15 +274,19 @@ export class MarkdownSerializerState {
       while (
         keep < Math.min(active.length, len) &&
         marks[keep].eq(active[keep])
-      )
+      ) {
         ++keep;
+      }
 
       // Close the marks that need to be closed
-      while (keep < active.length)
+      while (keep < active.length) {
         this.text(this.markString(active.pop(), false, parent, index), false);
+      }
 
       // Output any previously expelled trailing whitespace outside the marks
-      if (leading) this.text(leading);
+      if (leading) {
+        this.text(leading);
+      }
 
       // Open the marks that need to be opened
       if (node) {
@@ -266,14 +298,16 @@ export class MarkdownSerializerState {
 
         // Render the node. Special case code marks, since their content
         // may not be escaped.
-        if (noEsc && node.isText)
+        if (noEsc && node.isText) {
           this.text(
             this.markString(inner, true, parent, index) +
               node.text +
               this.markString(inner, false, parent, index + 1),
             false
           );
-        else this.render(node, parent, index);
+        } else {
+          this.render(node, parent, index);
+        }
       }
     };
     parent.forEach(progress);
@@ -286,8 +320,11 @@ export class MarkdownSerializerState {
   // `firstDelim` is a function going from an item index to a
   // delimiter for the first line of the item.
   renderList(node, delim, firstDelim) {
-    if (this.closed && this.closed.type === node.type) this.flushClose(3);
-    else if (this.inTightList) this.flushClose(1);
+    if (this.closed && this.closed.type === node.type) {
+      this.flushClose(3);
+    } else if (this.inTightList) {
+      this.flushClose(1);
+    }
 
     const isTight =
       typeof node.attrs.tight !== "undefined"
@@ -298,7 +335,9 @@ export class MarkdownSerializerState {
     this.inList = true;
     this.inTightList = isTight;
     node.forEach((child, _, i) => {
-      if (i && isTight) this.flushClose(1);
+      if (i && isTight) {
+        this.flushClose(1);
+      }
       this.wrapBlock(delim, firstDelim(i), node, () =>
         this.render(child, node, i)
       );
@@ -387,7 +426,9 @@ export class MarkdownSerializerState {
   // Repeat the given string `n` times.
   repeat(str, n) {
     let out = "";
-    for (let i = 0; i < n; i++) out += str;
+    for (let i = 0; i < n; i++) {
+      out += str;
+    }
     return out;
   }
 

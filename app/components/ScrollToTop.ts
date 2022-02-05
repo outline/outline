@@ -12,13 +12,16 @@ export default function ScrollToTop({ children }: Props) {
   const previousLocationPathname = usePrevious(location.pathname);
 
   React.useEffect(() => {
-    if (location.pathname === previousLocationPathname) return;
+    if (location.pathname === previousLocationPathname) {
+      return;
+    }
     // exception for when entering or exiting document edit, scroll position should not reset
     if (
       location.pathname.match(/\/edit\/?$/) ||
       previousLocationPathname?.match(/\/edit\/?$/)
-    )
+    ) {
       return;
+    }
     window.scrollTo(0, 0);
   }, [location.pathname, previousLocationPathname]);
 

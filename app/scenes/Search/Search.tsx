@@ -177,14 +177,18 @@ class Search extends React.Component<Props> {
   get title() {
     const query = this.query;
     const title = this.props.t("Search");
-    if (query) return `${query} – ${title}`;
+    if (query) {
+      return `${query} – ${title}`;
+    }
     return title;
   }
 
   @action
   loadMoreResults = async () => {
     // Don't paginate if there aren't more results or we’re in the middle of fetching
-    if (!this.allowLoadMore || this.isLoading) return;
+    if (!this.allowLoadMore || this.isLoading) {
+      return;
+    }
 
     // Fetch more results
     await this.fetchResults();
@@ -330,7 +334,9 @@ class Search extends React.Component<Props> {
             >
               {results.map((result, index) => {
                 const document = documents.data.get(result.document.id);
-                if (!document) return null;
+                if (!document) {
+                  return null;
+                }
                 return (
                   <DocumentListItem
                     ref={(ref) => index === 0 && this.setFirstDocumentRef(ref)}

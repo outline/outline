@@ -21,7 +21,9 @@ export default class Folding extends Extension {
           return {};
         },
         appendTransaction: (transactions, oldState, newState) => {
-          if (loaded) return;
+          if (loaded) {
+            return;
+          }
           if (
             !transactions.some((transaction) => transaction.getMeta("folding"))
           ) {

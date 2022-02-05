@@ -41,7 +41,9 @@ const uploadPlugin = (options: Options) =>
             return false;
           }
 
-          if (!event.clipboardData) return false;
+          if (!event.clipboardData) {
+            return false;
+          }
 
           // check if we actually pasted any files
           const files = Array.prototype.slice
@@ -49,7 +51,9 @@ const uploadPlugin = (options: Options) =>
             .map((dt: any) => dt.getAsFile())
             .filter((file: File) => file);
 
-          if (files.length === 0) return false;
+          if (files.length === 0) {
+            return false;
+          }
 
           const { tr } = view.state;
           if (!tr.selection.empty) {
@@ -96,7 +100,9 @@ const uploadPlugin = (options: Options) =>
 const IMAGE_CLASSES = ["right-50", "left-50"];
 
 const getLayoutAndTitle = (tokenTitle: string | null) => {
-  if (!tokenTitle) return {};
+  if (!tokenTitle) {
+    return {};
+  }
   if (IMAGE_CLASSES.includes(tokenTitle)) {
     return {
       layoutClass: tokenTitle,
@@ -242,7 +248,9 @@ export default class Image extends Node {
     const alt = event.currentTarget.innerText;
     const { src, title, layoutClass } = node.attrs;
 
-    if (alt === node.attrs.alt) return;
+    if (alt === node.attrs.alt) {
+      return;
+    }
 
     const { view } = this.editor;
     const { tr } = view.state;

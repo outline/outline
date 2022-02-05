@@ -8,15 +8,21 @@ export default function splitHeading(type: NodeType) {
     const { $from, from, $to, to } = state.selection;
 
     // check we're in a matching heading node
-    if ($from.parent.type !== type) return false;
+    if ($from.parent.type !== type) {
+      return false;
+    }
 
     // check that the caret is at the end of the content, if it isn't then
     // standard node splitting behaviour applies
     const endPos = $to.after() - 1;
-    if (endPos !== to) return false;
+    if (endPos !== to) {
+      return false;
+    }
 
     // If the node isn't collapsed standard behavior applies
-    if (!$from.parent.attrs.collapsed) return false;
+    if (!$from.parent.attrs.collapsed) {
+      return false;
+    }
 
     // Find the next visible block after this one. It takes into account nested
     // collapsed headings and reaching the end of the document

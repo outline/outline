@@ -77,7 +77,9 @@ class AddPeopleToCollection extends React.Component<Props> {
   render() {
     const { users, collection, auth, t } = this.props;
     const { user, team } = auth;
-    if (!user || !team) return null;
+    if (!user || !team) {
+      return null;
+    }
 
     return (
       <Flex column>

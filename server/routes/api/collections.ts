@@ -652,7 +652,9 @@ router.post("collections.delete", auth(), async (ctx) => {
   authorize(user, "delete", collection);
 
   const total = await Collection.count();
-  if (total === 1) throw ValidationError("Cannot delete last collection");
+  if (total === 1) {
+    throw ValidationError("Cannot delete last collection");
+  }
 
   await collection.destroy();
   await Event.create({

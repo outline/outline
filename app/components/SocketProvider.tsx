@@ -79,7 +79,9 @@ class SocketProvider extends React.Component<Props> {
       views,
       fileOperations,
     } = this.props;
-    if (!auth.token) return;
+    if (!auth.token) {
+      return;
+    }
 
     this.socket.on("connect", () => {
       // immediately send current users token to the websocket backend where it
@@ -329,8 +331,9 @@ class SocketProvider extends React.Component<Props> {
     this.socket.on("fileOperations.update", async (event: any) => {
       const user = auth.user;
       let collection = null;
-      if (event.collectionId)
+      if (event.collectionId) {
         collection = await collections.fetch(event.collectionId);
+      }
 
       if (user) {
         fileOperations.add({ ...event, user, collection });

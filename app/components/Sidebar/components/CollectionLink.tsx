@@ -79,8 +79,12 @@ function CollectionLink({
     accept: "document",
     drop: (item: DragObject, monitor) => {
       const { id, collectionId } = item;
-      if (monitor.didDrop()) return;
-      if (!collection) return;
+      if (monitor.didDrop()) {
+        return;
+      }
+      if (!collection) {
+        return;
+      }
 
       const document = documents.get(id);
       if (collection.id === collectionId && !document?.parentDocumentId) {
@@ -115,7 +119,9 @@ function CollectionLink({
   const [{ isOverReorder }, dropToReorder] = useDrop({
     accept: "document",
     drop: async (item: DragObject) => {
-      if (!collection) return;
+      if (!collection) {
+        return;
+      }
       documents.move(item.id, collection.id, undefined, 0);
     },
     collect: (monitor) => ({

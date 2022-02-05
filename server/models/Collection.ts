@@ -186,7 +186,9 @@ class Collection extends ParanoidModel {
   // getters
 
   get url(): string {
-    if (!this.name) return `/collection/untitled-${this.urlId}`;
+    if (!this.name) {
+      return `/collection/untitled-${this.urlId}`;
+    }
     return `/collection/${slugify(this.name)}-${this.urlId}`;
   }
 
@@ -354,7 +356,9 @@ class Collection extends ParanoidModel {
   }
 
   getDocumentTree = (documentId: string): NavigationNode | null => {
-    if (!this.documentStructure) return null;
+    if (!this.documentStructure) {
+      return null;
+    }
     const sort: Sort = this.sort || {
       field: "title",
       direction: "asc",
@@ -386,7 +390,9 @@ class Collection extends ParanoidModel {
     loopChildren(this.documentStructure);
 
     // if the document is a draft loopChildren will not find it in the structure
-    if (!result) return null;
+    if (!result) {
+      return null;
+    }
 
     return {
       ...result,
@@ -548,7 +554,9 @@ class Collection extends ParanoidModel {
    * Update document's title and url in the documentStructure
    */
   updateDocument = async function (updatedDocument: Document) {
-    if (!this.documentStructure) return;
+    if (!this.documentStructure) {
+      return;
+    }
     let transaction;
 
     try {
