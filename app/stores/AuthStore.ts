@@ -89,7 +89,9 @@ export default class AuthStore {
           event.newValue
         );
         // data may be null if key is deleted in localStorage
-        if (!data) return;
+        if (!data) {
+          return;
+        }
 
         // If we're not signed in then hydrate from the received data, otherwise if
         // we are signed in and the received data contains no user then sign out

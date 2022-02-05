@@ -71,7 +71,9 @@ async function archiveToPath(zip: JSZip) {
         postfix: ".zip",
       },
       (err, path) => {
-        if (err) return reject(err);
+        if (err) {
+          return reject(err);
+        }
         zip
           .generateNodeStream({
             type: "nodebuffer",

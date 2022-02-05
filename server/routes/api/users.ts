@@ -20,7 +20,9 @@ const router = new Router();
 router.post("users.list", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
   const { sort = "createdAt", query, filter } = ctx.body;
-  if (direction !== "ASC") direction = "DESC";
+  if (direction !== "ASC") {
+    direction = "DESC";
+  }
   assertSort(sort, User);
 
   if (filter) {
@@ -138,9 +140,15 @@ router.post("users.info", auth(), async (ctx) => {
 router.post("users.update", auth(), async (ctx) => {
   const { user } = ctx.state;
   const { name, avatarUrl, language } = ctx.body;
-  if (name) user.name = name;
-  if (avatarUrl) user.avatarUrl = avatarUrl;
-  if (language) user.language = language;
+  if (name) {
+    user.name = name;
+  }
+  if (avatarUrl) {
+    user.avatarUrl = avatarUrl;
+  }
+  if (language) {
+    user.language = language;
+  }
   await user.save();
   await Event.create({
     name: "users.update",

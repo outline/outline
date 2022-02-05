@@ -22,7 +22,9 @@ function PublicReferences(props: Props) {
     let result: NavigationNode[];
 
     function findChildren(node?: NavigationNode) {
-      if (!node) return;
+      if (!node) {
+        return;
+      }
 
       if (node.id === documentId) {
         result = node.children;

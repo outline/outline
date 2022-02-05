@@ -58,7 +58,9 @@ class Group extends ParanoidModel {
 
   @AfterDestroy
   static async deleteGroupUsers(model: Group) {
-    if (!model.deletedAt) return;
+    if (!model.deletedAt) {
+      return;
+    }
     await GroupUser.destroy({
       where: {
         groupId: model.id,

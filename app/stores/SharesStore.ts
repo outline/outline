@@ -39,7 +39,9 @@ export default class SharesStore extends BaseStore<Share> {
   @action
   async create(params: Record<string, any>) {
     const item = this.getByDocumentId(params.documentId);
-    if (item) return item;
+    if (item) {
+      return item;
+    }
     return super.create(params);
   }
 
@@ -49,7 +51,9 @@ export default class SharesStore extends BaseStore<Share> {
     options: Record<string, any> = {}
   ): Promise<any> {
     const item = this.getByDocumentId(documentId);
-    if (item && !options.force) return item;
+    if (item && !options.force) {
+      return item;
+    }
     this.isFetching = true;
 
     try {
@@ -58,7 +62,9 @@ export default class SharesStore extends BaseStore<Share> {
         apiVersion: 2,
       });
 
-      if (isUndefined(res)) return;
+      if (isUndefined(res)) {
+        return;
+      }
       invariant(res && res.data, "Data should be available");
       this.addPolicies(res.policies);
       return res.data.shares.map(this.add);
@@ -69,10 +75,14 @@ export default class SharesStore extends BaseStore<Share> {
 
   getByDocumentParents = (documentId: string): Share | null | undefined => {
     const document = this.rootStore.documents.get(documentId);
-    if (!document) return;
+    if (!document) {
+      return;
+    }
 
     const collection = this.rootStore.collections.get(document.collectionId);
-    if (!collection) return;
+    if (!collection) {
+      return;
+    }
 
     const parentIds = collection
       .pathToDocument(documentId)

@@ -27,7 +27,9 @@ router.get("/:type/:format", async (ctx) => {
       }
   }
 
-  if (!mailerOutput) return;
+  if (!mailerOutput) {
+    return;
+  }
 
   if (ctx.params.format === "text") {
     // @ts-expect-error ts-migrate(2339) FIXME: Property 'text' does not exist on type 'never'.

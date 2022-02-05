@@ -92,8 +92,12 @@ class Attachment extends BaseModel {
       query: FindOptions<Attachment>
     ) => Promise<void>
   ) {
-    if (!query.offset) query.offset = 0;
-    if (!query.limit) query.limit = 10;
+    if (!query.offset) {
+      query.offset = 0;
+    }
+    if (!query.limit) {
+      query.limit = 10;
+    }
     let results;
 
     do {

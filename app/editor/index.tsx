@@ -233,7 +233,9 @@ export class Editor extends React.PureComponent<
 
     this.calculateDir();
 
-    if (this.props.readOnly) return;
+    if (this.props.readOnly) {
+      return;
+    }
 
     if (this.props.autoFocus) {
       this.focusAtEnd();
@@ -581,11 +583,15 @@ export class Editor extends React.PureComponent<
   }
 
   scrollToAnchor(hash: string) {
-    if (!hash) return;
+    if (!hash) {
+      return;
+    }
 
     try {
       const element = document.querySelector(hash);
-      if (element) element.scrollIntoView({ behavior: "smooth" });
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" });
+      }
     } catch (err) {
       // querySelector will throw an error if the hash begins with a number
       // or contains a period. This is protected against now by safeSlugify
@@ -595,7 +601,9 @@ export class Editor extends React.PureComponent<
   }
 
   calculateDir = () => {
-    if (!this.element) return;
+    if (!this.element) {
+      return;
+    }
 
     const isRTL =
       this.props.dir === "rtl" ||
@@ -611,7 +619,9 @@ export class Editor extends React.PureComponent<
   };
 
   handleChange = () => {
-    if (!this.props.onChange) return;
+    if (!this.props.onChange) {
+      return;
+    }
 
     this.props.onChange(() => {
       return this.value();
@@ -661,7 +671,9 @@ export class Editor extends React.PureComponent<
   };
 
   handleCloseBlockMenu = () => {
-    if (!this.state.blockMenuOpen) return;
+    if (!this.state.blockMenuOpen) {
+      return;
+    }
     this.setState({ blockMenuOpen: false });
   };
 

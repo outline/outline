@@ -216,7 +216,9 @@ export default class Heading extends Node {
       const previouslySeen = {};
 
       doc.descendants((node, pos) => {
-        if (node.type.name !== this.name) return;
+        if (node.type.name !== this.name) {
+          return;
+        }
 
         // calculate the optimal id
         const slug = headingToSlug(node);

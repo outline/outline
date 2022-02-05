@@ -48,7 +48,9 @@ export default class GroupsStore extends BaseStore<Group> {
     const groups = filter(this.orderedData, (group) =>
       groupIds.includes(group.id)
     );
-    if (!query) return groups;
+    if (!query) {
+      return groups;
+    }
     return queriedGroups(groups, query);
   };
 
@@ -62,7 +64,9 @@ export default class GroupsStore extends BaseStore<Group> {
       this.orderedData,
       (group) => !groupIds.includes(group.id)
     );
-    if (!query) return groups;
+    if (!query) {
+      return groups;
+    }
     return queriedGroups(groups, query);
   };
 }

@@ -398,7 +398,9 @@ export default class DocumentsStore extends BaseStore<Document> {
     const results: SearchResult[] = compact(
       res.data.map((result: SearchResult) => {
         const document = this.data.get(result.document.id);
-        if (!document) return null;
+        if (!document) {
+          return null;
+        }
         return {
           ranking: result.ranking,
           context: result.context,
@@ -450,7 +452,9 @@ export default class DocumentsStore extends BaseStore<Document> {
     document: Document;
     sharedTree?: NavigationNode;
   }> => {
-    if (!options.prefetch) this.isFetching = true;
+    if (!options.prefetch) {
+      this.isFetching = true;
+    }
 
     try {
       const doc: Document | null | undefined =
@@ -540,7 +544,9 @@ export default class DocumentsStore extends BaseStore<Document> {
     });
     invariant(res && res.data, "Data should be available");
     const collection = this.getCollectionForDocument(document);
-    if (collection) collection.refresh();
+    if (collection) {
+      collection.refresh();
+    }
     this.addPolicies(res.policies);
     return this.add(res.data);
   };
@@ -635,7 +641,9 @@ export default class DocumentsStore extends BaseStore<Document> {
     // Because the collection object contains the url and title
     // we need to ensure they are updated there as well.
     const collection = this.getCollectionForDocument(document);
-    if (collection) collection.updateDocument(document);
+    if (collection) {
+      collection.updateDocument(document);
+    }
     return document;
   }
 
@@ -656,7 +664,9 @@ export default class DocumentsStore extends BaseStore<Document> {
     }
 
     const collection = this.getCollectionForDocument(document);
-    if (collection) collection.refresh();
+    if (collection) {
+      collection.refresh();
+    }
   }
 
   @action
@@ -670,7 +680,9 @@ export default class DocumentsStore extends BaseStore<Document> {
       this.addPolicies(res.policies);
     });
     const collection = this.getCollectionForDocument(document);
-    if (collection) collection.refresh();
+    if (collection) {
+      collection.refresh();
+    }
   };
 
   @action
@@ -692,7 +704,9 @@ export default class DocumentsStore extends BaseStore<Document> {
       this.addPolicies(res.policies);
     });
     const collection = this.getCollectionForDocument(document);
-    if (collection) collection.refresh();
+    if (collection) {
+      collection.refresh();
+    }
   };
 
   @action
@@ -706,7 +720,9 @@ export default class DocumentsStore extends BaseStore<Document> {
       this.addPolicies(res.policies);
     });
     const collection = this.getCollectionForDocument(document);
-    if (collection) collection.refresh();
+    if (collection) {
+      collection.refresh();
+    }
   };
 
   star = async (document: Document) => {

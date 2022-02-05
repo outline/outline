@@ -37,7 +37,9 @@ class Frame extends React.Component<PropsWithRef> {
   }
 
   loadIframe = () => {
-    if (!this.mounted) return;
+    if (!this.mounted) {
+      return;
+    }
     this.isLoaded = true;
   };
 

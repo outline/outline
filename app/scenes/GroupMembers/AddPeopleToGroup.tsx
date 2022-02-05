@@ -76,7 +76,9 @@ class AddPeopleToGroup extends React.Component<Props> {
   render() {
     const { users, group, auth, t } = this.props;
     const { user, team } = auth;
-    if (!user || !team) return null;
+    if (!user || !team) {
+      return null;
+    }
 
     return (
       <Flex column>

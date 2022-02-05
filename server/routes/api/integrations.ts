@@ -12,7 +12,9 @@ const router = new Router();
 router.post("integrations.list", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
   const { sort = "updatedAt" } = ctx.body;
-  if (direction !== "ASC") direction = "DESC";
+  if (direction !== "ASC") {
+    direction = "DESC";
+  }
   assertSort(sort, Integration);
 
   const { user } = ctx.state;

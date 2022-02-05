@@ -10,8 +10,12 @@ type Domain = {
 // a large list of possible TLD's which increase the size of the bundle
 // unnecessarily for our usecase of trusted input.
 export function parseDomain(url?: string): Domain | null | undefined {
-  if (typeof url !== "string") return null;
-  if (url === "") return null;
+  if (typeof url !== "string") {
+    return null;
+  }
+  if (url === "") {
+    return null;
+  }
 
   // strip extermeties and whitespace from input
   const normalizedDomain = trim(url.replace(/(https?:)?\/\//, ""));
@@ -54,8 +58,12 @@ export function parseDomain(url?: string): Domain | null | undefined {
 
 export function stripSubdomain(hostname: string) {
   const parsed = parseDomain(hostname);
-  if (!parsed) return hostname;
-  if (parsed.tld) return `${parsed.domain}.${parsed.tld}`;
+  if (!parsed) {
+    return hostname;
+  }
+  if (parsed.tld) {
+    return `${parsed.domain}.${parsed.tld}`;
+  }
   return parsed.domain;
 }
 

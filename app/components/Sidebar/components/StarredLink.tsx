@@ -67,7 +67,9 @@ function StarredLink({
 
   const handleTitleChange = React.useCallback(
     async (title: string) => {
-      if (!document) return;
+      if (!document) {
+        return;
+      }
       await documents.update(
         {
           id: document.id,

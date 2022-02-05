@@ -28,7 +28,9 @@ function HoverPreviewInternal({ node, onClose }: Props) {
   const startCloseTimer = () => {
     stopOpenTimer();
     timerClose.current = setTimeout(() => {
-      if (isVisible) setVisible(false);
+      if (isVisible) {
+        setVisible(false);
+      }
       onClose();
     }, DELAY_CLOSE);
   };

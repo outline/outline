@@ -44,8 +44,12 @@ function isVisible(props: Props) {
   const { view } = props;
   const { selection } = view.state;
 
-  if (!selection) return false;
-  if (selection.empty) return false;
+  if (!selection) {
+    return false;
+  }
+  if (selection.empty) {
+    return false;
+  }
   if (selection instanceof NodeSelection && selection.node.type.name === "hr") {
     return true;
   }
@@ -209,8 +213,12 @@ export default class SelectionToolbar extends React.Component<Props> {
 
     // Some extensions may be disabled, remove corresponding items
     items = items.filter((item) => {
-      if (item.name === "separator") return true;
-      if (item.name && !this.props.commands[item.name]) return false;
+      if (item.name === "separator") {
+        return true;
+      }
+      if (item.name && !this.props.commands[item.name]) {
+        return false;
+      }
       return true;
     });
 

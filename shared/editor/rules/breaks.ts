@@ -26,7 +26,9 @@ export default function markdownBreakToParagraphs(md: MarkdownIt) {
         const children = tokenChildren.filter((child) => !isHardbreak(child));
 
         let count = matches.length;
-        if (children.length) count++;
+        if (children.length) {
+          count++;
+        }
 
         for (let i = 0; i < count; i++) {
           const isLast = i === count - 1;

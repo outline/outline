@@ -23,8 +23,12 @@ export default function (embeds: EmbedDescriptor[]) {
     const href = link.attrs ? link.attrs[0][1] : "";
     const simpleLink = href === token.content;
 
-    if (!simpleLink) return false;
-    if (!embeds) return false;
+    if (!simpleLink) {
+      return false;
+    }
+    if (!embeds) {
+      return false;
+    }
 
     for (const embed of embeds) {
       const matches = embed.matcher(href);
@@ -51,7 +55,9 @@ export default function (embeds: EmbedDescriptor[]) {
 
           for (let j = 0; j < tokenChildren.length - 1; j++) {
             const current = tokenChildren[j];
-            if (!current) continue;
+            if (!current) {
+              continue;
+            }
 
             if (isLinkOpen(current)) {
               insideLink = current;

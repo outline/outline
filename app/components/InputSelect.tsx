@@ -84,7 +84,9 @@ const InputSelect = (props: Props) => {
   );
 
   React.useEffect(() => {
-    if (previousValue.current === select.selectedValue) return;
+    if (previousValue.current === select.selectedValue) {
+      return;
+    }
     previousValue.current = select.selectedValue;
 
     async function load() {
