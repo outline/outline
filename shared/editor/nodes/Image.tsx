@@ -545,7 +545,7 @@ const Caption = styled.p`
   font-style: italic;
   font-weight: normal;
   color: ${(props) => props.theme.textSecondary};
-  padding: 2px 0;
+  padding: 8px 0 4px;
   line-height: 16px;
   text-align: center;
   min-height: 1em;
@@ -557,7 +557,7 @@ const Caption = styled.p`
   cursor: text;
 
   &:empty:not(:focus) {
-    visibility: hidden;
+    display: none;
   }
 
   &:empty:before {
@@ -579,6 +579,6 @@ const ImageWrapper = styled.span`
   }
 
   &.ProseMirror-selectednode + ${Caption} {
-    visibility: visible;
+    display: block;
   }
 `;

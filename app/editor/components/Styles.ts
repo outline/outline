@@ -120,6 +120,7 @@ const EditorStyles = styled.div<{
   }
 
   .image {
+    line-height: 0;
     text-align: center;
     max-width: 100%;
     clear: both;
@@ -198,6 +199,19 @@ const EditorStyles = styled.div<{
     bottom: -2px;
     border: 2px solid ${(props) => props.theme.selected};
     pointer-events: none;
+  }
+
+  img.ProseMirror-separator {
+    display: inline;
+    border: none !important;
+    margin: 0 !important;
+  }
+
+  // Removes forced paragraph spaces below images, this is needed to images
+  // being inline nodes that are displayed like blocks
+  .component-image + img.ProseMirror-separator,
+  .component-image + img.ProseMirror-separator + br.ProseMirror-trailingBreak {
+    display: none;
   }
 
   .ProseMirror[contenteditable="false"] {

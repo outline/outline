@@ -55,6 +55,8 @@ export default class ComponentView {
       ? document.createElement("span")
       : document.createElement("div");
 
+    this.dom.classList.add(`component-${node.type.name}`);
+
     this.renderElement();
   }
 
