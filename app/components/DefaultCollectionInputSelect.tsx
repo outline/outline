@@ -94,7 +94,9 @@ const DefaultCollectionInputSelect = () => {
     [collections.publicCollections, t]
   );
 
-  if (fetching) return null;
+  if (fetching) {
+    return null;
+  }
 
   return (
     <InputSelect
