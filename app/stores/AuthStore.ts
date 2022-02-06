@@ -25,7 +25,7 @@ type Provider = {
   authUrl: string;
 };
 
-type Config = {
+export type Config = {
   name?: string;
   hostname?: string;
   providers: Provider[];
