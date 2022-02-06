@@ -12,7 +12,7 @@ class FileOperation extends BaseModal {
 
   size: number;
 
-  type: string;
+  type: "import" | "export";
 
   user: User;
 

@@ -73,7 +73,7 @@ function Import() {
       <HelpText>
         <Trans>
           Quickly transfer your existing documents, pages, and files from other
-          tools and services into Outline. You can also drag and drop HTML,
+          tools and services into Outline. You can also drag and drop any HTML,
           Markdown, and text documents directly into Collections in the app.
         </Trans>
       </HelpText>
@@ -88,7 +88,7 @@ function Import() {
 
       <div>
         <Item
-          image={<OutlineLogo size={28} />}
+          image={<OutlineLogo size={28} fill="currentColor" />}
           title="Outline"
           subtitle={t(
             "Import a backup file that was previously exported from Outline"
@@ -108,6 +108,16 @@ function Import() {
           image={<img src={cdnPath("/images/confluence.png")} width={28} />}
           title="Confluence"
           subtitle={t("Import pages from a Confluence instance")}
+          actions={
+            <Button type="submit" onClick={handlePickFile} disabled neutral>
+              {t("Coming soon")}
+            </Button>
+          }
+        />
+        <Item
+          image={<img src={cdnPath("/images/notion.png")} width={28} />}
+          title="Notion"
+          subtitle={t("Import documents from Notion")}
           actions={
             <Button type="submit" onClick={handlePickFile} disabled neutral>
               {t("Coming soon")}
