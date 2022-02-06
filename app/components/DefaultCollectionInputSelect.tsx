@@ -9,9 +9,15 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 
-const DefaultCollectionInputSelect = () => {
+type DefaultCollectionInputSelectProps = {
+  onSelectCollection: (collection: string) => void;
+};
+
+const DefaultCollectionInputSelect = ({
+  onSelectCollection,
+}: DefaultCollectionInputSelectProps) => {
   const { t } = useTranslation();
-  const { collections, auth } = useStores();
+  const { collections } = useStores();
   const team = useCurrentTeam();
   const [fetching, setFetching] = useState(false);
   const [fetchError, setFetchError] = useState();
@@ -40,25 +46,6 @@ const DefaultCollectionInputSelect = () => {
     }
     load();
   }, [showToast, fetchError, t, fetching, collections]);
-
-  const onSelectCollection = React.useCallback(
-    async (value: string) => {
-      const defaultCollectionId = value === "home" ? null : value;
-      try {
-        await auth.updateTeam({
-          defaultCollectionId,
-        });
-        showToast(t("Settings saved"), {
-          type: "success",
-        });
-      } catch (err) {
-        showToast(err.message, {
-          type: "error",
-        });
-      }
-    },
-    [auth, showToast, t]
-  );
 
   const options = React.useMemo(
     () =>
