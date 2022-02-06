@@ -1,3 +1,5 @@
+import { Transaction } from "sequelize";
+import { sequelize } from "@server/database/sequelize";
 import { Event, Team, User } from "@server/models";
 
 type TeamUpdaterProps = {
@@ -51,23 +53,36 @@ const teamUpdater = async ({ params, user, team, ip }: TeamUpdaterProps) => {
 
   const changes = team.changed();
 
-  const savedTeam = await team.save();
+  const transaction: Transaction = await sequelize.transaction();
 
-  if (changes) {
-    const data = changes.reduce((acc, curr) => {
-      return { ...acc, [curr]: team[curr] };
-    }, {});
-
-    await Event.create({
-      name: "teams.update",
-      actorId: user.id,
-      teamId: user.teamId,
-      data,
-      ip: ip,
+  try {
+    const savedTeam = await team.save({
+      transaction,
     });
-  }
+    if (changes) {
+      const data = changes.reduce((acc, curr) => {
+        return { ...acc, [curr]: team[curr] };
+      }, {});
 
-  return savedTeam;
+      await Event.create(
+        {
+          name: "teams.update",
+          actorId: user.id,
+          teamId: user.teamId,
+          data,
+          ip: ip,
+        },
+        {
+          transaction,
+        }
+      );
+    }
+    await transaction.commit();
+    return savedTeam;
+  } catch (error) {
+    await transaction.rollback();
+    throw error;
+  }
 };
 
 export default teamUpdater;
