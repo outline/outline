@@ -101,7 +101,7 @@ const DefaultCollectionInputSelect = () => {
   return (
     <InputSelect
       value={team.defaultCollectionId ?? "home"}
-      label={t("Collection")}
+      label={t("Start view")}
       options={options}
       onChange={onSelectCollection}
       ariaLabel={t("Default collection")}
