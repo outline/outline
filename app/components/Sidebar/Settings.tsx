@@ -11,6 +11,7 @@ import {
   TeamIcon,
   ExpandedIcon,
   BeakerIcon,
+  DownloadIcon,
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -118,11 +119,18 @@ function SettingsSidebar() {
               icon={<LinkIcon color="currentColor" />}
               label={t("Share Links")}
             />
+            {can.manage && (
+              <SidebarLink
+                to="/settings/import"
+                icon={<DocumentIcon color="currentColor" />}
+                label={t("Import")}
+              />
+            )}
             {can.export && (
               <SidebarLink
-                to="/settings/import-export"
-                icon={<DocumentIcon color="currentColor" />}
-                label={`${t("Import")} / ${t("Export")}`}
+                to="/settings/export"
+                icon={<DownloadIcon color="currentColor" />}
+                label={t("Export")}
               />
             )}
           </Section>
