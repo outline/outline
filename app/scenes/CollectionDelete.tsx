@@ -58,7 +58,7 @@ function CollectionDelete({ collection, onSubmit }: Props) {
         {team.defaultCollectionId === collection.id ? (
           <HelpText>
             <Trans
-              defaults="Also, <em>{{collectionName}}</em> is being used as a Default Collection. Deleting it will reset the Default Collection to Home page."
+              defaults="Also, <em>{{collectionName}}</em> is being used as the start view – deleting it will reset the start view to the Home page."
               values={{
                 collectionName: collection.name,
               }}
