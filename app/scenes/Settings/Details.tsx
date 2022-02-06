@@ -139,7 +139,10 @@ function Details() {
             )}
           </>
         )}
-        <DefaultCollectionInputSelect onSelectCollection={onSelectCollection} />
+        <DefaultCollectionInputSelect
+          onSelectCollection={onSelectCollection}
+          defaultCollectionId={defaultCollectionId}
+        />
         <Button type="submit" disabled={auth.isSaving || !isValid}>
           {auth.isSaving ? `${t("Saving")}…` : t("Save")}
         </Button>

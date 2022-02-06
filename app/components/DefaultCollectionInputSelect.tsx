@@ -5,20 +5,20 @@ import CollectionIcon from "~/components/CollectionIcon";
 import Flex from "~/components/Flex";
 import InputSelect from "~/components/InputSelect";
 import { IconWrapper } from "~/components/Sidebar/components/SidebarLink";
-import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 
 type DefaultCollectionInputSelectProps = {
   onSelectCollection: (collection: string) => void;
+  defaultCollectionId: string | null;
 };
 
 const DefaultCollectionInputSelect = ({
   onSelectCollection,
+  defaultCollectionId,
 }: DefaultCollectionInputSelectProps) => {
   const { t } = useTranslation();
   const { collections } = useStores();
-  const team = useCurrentTeam();
   const [fetching, setFetching] = useState(false);
   const [fetchError, setFetchError] = useState();
   const { showToast } = useToasts();
@@ -87,7 +87,7 @@ const DefaultCollectionInputSelect = ({
 
   return (
     <InputSelect
-      value={team.defaultCollectionId ?? "home"}
+      value={defaultCollectionId ?? "home"}
       label={t("Start view")}
       options={options}
       onChange={onSelectCollection}
