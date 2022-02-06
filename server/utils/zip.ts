@@ -7,6 +7,7 @@ import Collection from "@server/models/Collection";
 import Document from "@server/models/Document";
 import { NavigationNode } from "~/types";
 import { serializeFilename } from "./fs";
+import parseAttachmentIds from "./parseAttachmentIds";
 import { getFileByKey } from "./s3";
 
 async function addToArchive(zip: JSZip, documents: NavigationNode[]) {
@@ -20,7 +21,8 @@ async function addToArchive(zip: JSZip, documents: NavigationNode[]) {
     let text = document.toMarkdown();
     const attachments = await Attachment.findAll({
       where: {
-        documentId: document.id,
+        teamId: document.teamId,
+        id: parseAttachmentIds(document.text),
       },
     });
 
