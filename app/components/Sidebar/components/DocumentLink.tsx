@@ -13,6 +13,7 @@ import Fade from "~/components/Fade";
 import NudeButton from "~/components/NudeButton";
 import useBoolean from "~/hooks/useBoolean";
 import useStores from "~/hooks/useStores";
+import useToasts from "~/hooks/useToasts";
 import DocumentMenu from "~/menus/DocumentMenu";
 import { NavigationNode } from "~/types";
 import { newDocumentPath } from "~/utils/routeHelpers";
@@ -56,7 +57,7 @@ function DocumentLink(
   const document = documents.get(node.id);
   const { fetchChildDocuments } = documents;
   const [isEditing, setIsEditing] = React.useState(false);
-
+  const { showToast } = useToasts();
   React.useEffect(() => {
     if (isActiveDocument && hasChildDocuments) {
       fetchChildDocuments(node.id);
@@ -139,6 +140,7 @@ function DocumentLink(
       ...node,
       depth,
       active: isActiveDocument,
+      parentDocumentId: document?.parentDocumentId,
       collectionId: collection?.id || "",
     }),
     collect: (monitor) => ({
@@ -168,14 +170,28 @@ function DocumentLink(
   // Drop to re-parent
   const [{ isOverReparent, canDropToReparent }, dropToReparent] = useDrop({
     accept: "document",
-    drop: (item: DragObject, monitor) => {
+    drop: async (item: DragObject, monitor) => {
       if (monitor.didDrop()) {
         return;
       }
       if (!collection) {
         return;
       }
-      documents.move(item.id, collection.id, node.id);
+      const undo = await documents.move(item.id, collection.id, node.id);
+      showToast(t("Document moved"), {
+        type: "info",
+        action: {
+          text: "undo",
+          onClick: async () => {
+            await documents.move(
+              item.id,
+              undo.collectionId,
+              undo.parentDocumentId,
+              undo.index
+            );
+          },
+        },
+      });
     },
     canDrop: (_item, monitor) =>
       !isDraft &&

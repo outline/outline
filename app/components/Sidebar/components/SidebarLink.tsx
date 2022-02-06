@@ -11,6 +11,7 @@ export type DragObject = NavigationNode & {
   depth: number;
   active: boolean;
   collectionId: string;
+  parentDocumentId?: string;
 };
 
 type Props = Omit<NavLinkProps, "to"> & {

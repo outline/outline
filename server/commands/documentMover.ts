@@ -62,6 +62,12 @@ type Result = {
   collectionChanged: boolean;
 };
 
+type UndoState = {
+  collectionId: string;
+  index?: number;
+  parentDocumentId: string | null;
+};
+
 export default async function documentMover({
   user,
   document,
@@ -70,8 +76,14 @@ export default async function documentMover({
   // convert undefined to null so parentId comparison treats them as equal
   index,
   ip,
-}: Props): Promise<Result> {
+}: Props): Promise<{ result: Result; undo?: UndoState }> {
   let transaction: Transaction | undefined;
+  const undoState: UndoState = {
+    collectionId: document.collectionId,
+    index: undefined,
+    parentDocumentId: document.parentDocumentId,
+  };
+
   const collectionChanged = collectionId !== document.collectionId;
   const previousCollectionId = document.collectionId;
   const result: Result = {
@@ -82,7 +94,7 @@ export default async function documentMover({
 
   if (document.template) {
     if (!collectionChanged) {
-      return result;
+      return { result };
     }
 
     document.collectionId = collectionId;
@@ -107,6 +119,7 @@ export default async function documentMover({
 
       const documentJson = response?.[0];
       const fromIndex = response?.[1] || 0;
+      undoState.index = fromIndex;
 
       // if we're reordering from within the same parent
       // the original and destination collection are the same,
@@ -236,5 +249,5 @@ export default async function documentMover({
   });
 
   // we need to send all updated models back to the client
-  return result;
+  return { result, undo: undoState };
 }
