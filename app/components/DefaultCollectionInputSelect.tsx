@@ -106,7 +106,7 @@ const DefaultCollectionInputSelect = () => {
       onChange={onSelectCollection}
       ariaLabel={t("Default collection")}
       note={t(
-        "We will redirect users to the selected collection when they sign in."
+        "This is the screen that team members will first see when they sign in."
       )}
       short
     />
