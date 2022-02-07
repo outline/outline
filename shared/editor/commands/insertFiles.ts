@@ -1,9 +1,10 @@
-import { EditorState, NodeSelection } from "prosemirror-state";
+import { NodeSelection } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { v4 as uuidv4 } from "uuid";
 import uploadPlaceholderPlugin, {
   findPlaceholder,
 } from "../lib/uploadPlaceholder";
+import findAttachmentById from "../queries/findAttachmentById";
 import { ToastType } from "../types";
 
 export type Options = {
@@ -16,26 +17,6 @@ export type Options = {
   onFileUploadStart?: () => void;
   onFileUploadStop?: () => void;
   onShowToast: (message: string, code: string) => void;
-};
-
-const findAttachmentById = function (
-  state: EditorState,
-  id: string
-): [number, number] | null {
-  let result: [number, number] | null = null;
-
-  state.doc.descendants((node, pos) => {
-    if (result) {
-      return false;
-    }
-    if (node.type.name === "attachment" && node.attrs.id === id) {
-      result = [pos, pos + node.nodeSize];
-      return false;
-    }
-    return true;
-  });
-
-  return result;
 };
 
 const insertFiles = function (
@@ -76,7 +57,7 @@ const insertFiles = function (
   for (const file of files) {
     const id = `upload-${uuidv4()}`;
     const isImage = file.type.startsWith("image/") && !options.isAttachment;
-    const { tr, selection } = view.state;
+    const { tr } = view.state;
 
     if (isImage) {
       // insert a placeholder at this position, or mark an existing file as being
@@ -92,12 +73,11 @@ const insertFiles = function (
       });
       view.dispatch(tr);
     } else {
-      const $pos = selection.$from;
-
+      const $pos = tr.doc.resolve(pos);
       view.dispatch(
         view.state.tr.replaceWith(
-          selection.from,
-          selection.from + ($pos.nodeAfter?.nodeSize || 0),
+          $pos.pos,
+          $pos.pos + ($pos.nodeAfter?.nodeSize || 0),
           schema.nodes.attachment.create({
             id,
             title: file.name,
