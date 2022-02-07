@@ -2,10 +2,11 @@ import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useDrop, useDrag } from "react-dnd";
-import { useTranslation } from "react-i18next";
+import { TFunction, useTranslation } from "react-i18next";
 import { useLocation, useHistory } from "react-router-dom";
 import styled from "styled-components";
 import { sortNavigationNodes } from "@shared/utils/collections";
+import DocumentsStore from "~/stores/DocumentsStore";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import DocumentReparent from "~/scenes/DocumentReparent";
@@ -13,9 +14,10 @@ import CollectionIcon from "~/components/CollectionIcon";
 import Modal from "~/components/Modal";
 import useBoolean from "~/hooks/useBoolean";
 import useStores from "~/hooks/useStores";
+import useToasts from "~/hooks/useToasts";
 import CollectionMenu from "~/menus/CollectionMenu";
 import CollectionSortMenu from "~/menus/CollectionSortMenu";
-import { NavigationNode } from "~/types";
+import { NavigationNode, ToastOptions } from "~/types";
 import DocumentLink from "./DocumentLink";
 import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
@@ -30,6 +32,48 @@ type Props = {
   belowCollection: Collection | void;
 };
 
+type MoveType = {
+  documents: DocumentsStore;
+  documentId: string;
+  collectionId: string;
+  parentDocumentId?: string | null;
+  index?: number | null;
+  showToast: (message: string, options?: ToastOptions) => string | undefined;
+  t: TFunction<"translation", undefined>;
+};
+
+export const moveDocumentWithUndo = async ({
+  documents,
+  documentId,
+  collectionId,
+  parentDocumentId,
+  index,
+  showToast,
+  t,
+}: MoveType) => {
+  const undo = await documents.move(
+    documentId,
+    collectionId,
+    parentDocumentId,
+    index
+  );
+
+  showToast(t("Document moved"), {
+    type: "info",
+    action: {
+      text: "undo",
+      onClick: async () => {
+        await documents.move(
+          documentId,
+          undo.collectionId,
+          undo.parentDocumentId,
+          undo.index
+        );
+      },
+    },
+  });
+};
+
 function CollectionLink({
   collection,
   activeDocument,
@@ -40,6 +84,7 @@ function CollectionLink({
   const history = useHistory();
   const { t } = useTranslation();
   const { search } = useLocation();
+  const { showToast } = useToasts();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const [
     permissionOpen,
@@ -77,7 +122,7 @@ function CollectionLink({
   // Drop to re-parent document
   const [{ isOver, canDrop }, drop] = useDrop({
     accept: "document",
-    drop: (item: DragObject, monitor) => {
+    drop: async (item: DragObject, monitor) => {
       const { id, collectionId } = item;
       if (monitor.didDrop()) {
         return;
@@ -101,7 +146,13 @@ function CollectionLink({
         itemRef.current = item;
         handlePermissionOpen();
       } else {
-        documents.move(id, collection.id);
+        moveDocumentWithUndo({
+          documents,
+          documentId: id,
+          collectionId: collection.id,
+          showToast,
+          t,
+        });
       }
     },
     canDrop: () => {
@@ -122,7 +173,14 @@ function CollectionLink({
       if (!collection) {
         return;
       }
-      documents.move(item.id, collection.id, undefined, 0);
+      moveDocumentWithUndo({
+        documents,
+        documentId: item.id,
+        collectionId: collection.id,
+        index: 0,
+        showToast,
+        t,
+      });
     },
     collect: (monitor) => ({
       isOverReorder: !!monitor.isOver(),

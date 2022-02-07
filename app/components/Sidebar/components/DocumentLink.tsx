@@ -17,6 +17,7 @@ import useToasts from "~/hooks/useToasts";
 import DocumentMenu from "~/menus/DocumentMenu";
 import { NavigationNode } from "~/types";
 import { newDocumentPath } from "~/utils/routeHelpers";
+import { moveDocumentWithUndo } from "./CollectionLink";
 import Disclosure from "./Disclosure";
 import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
@@ -177,20 +178,13 @@ function DocumentLink(
       if (!collection) {
         return;
       }
-      const undo = await documents.move(item.id, collection.id, node.id);
-      showToast(t("Document moved"), {
-        type: "info",
-        action: {
-          text: "undo",
-          onClick: async () => {
-            await documents.move(
-              item.id,
-              undo.collectionId,
-              undo.parentDocumentId,
-              undo.index
-            );
-          },
-        },
+      moveDocumentWithUndo({
+        documents,
+        documentId: item.id,
+        collectionId: collection.id,
+        parentDocumentId: node.id,
+        showToast,
+        t,
       });
     },
     canDrop: (_item, monitor) =>
@@ -242,11 +236,27 @@ function DocumentLink(
       }
 
       if (expanded) {
-        documents.move(item.id, collection.id, node.id, 0);
+        moveDocumentWithUndo({
+          documents,
+          documentId: item.id,
+          collectionId: collection.id,
+          parentDocumentId: node.id,
+          showToast,
+          t,
+          index: 0,
+        });
         return;
       }
 
-      documents.move(item.id, collection.id, parentId, index + 1);
+      moveDocumentWithUndo({
+        documents,
+        documentId: item.id,
+        collectionId: collection.id,
+        parentDocumentId: parentId,
+        showToast,
+        t,
+        index: index + 1,
+      });
     },
     collect: (monitor) => ({
       isOverReorder: !!monitor.isOver(),

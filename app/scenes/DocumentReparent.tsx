@@ -6,6 +6,7 @@ import Collection from "~/models/Collection";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import HelpText from "~/components/HelpText";
+import { moveDocumentWithUndo } from "~/components/Sidebar/components/CollectionLink";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import { NavigationNode } from "~/types";
@@ -49,9 +50,12 @@ function DocumentReparent({ collection, item, onSubmit, onCancel }: Props) {
       setIsSaving(true);
 
       try {
-        await documents.move(item.id, collection.id);
-        showToast(t("Document moved"), {
-          type: "info",
+        await moveDocumentWithUndo({
+          documents,
+          documentId: item.id,
+          collectionId: collection.id,
+          showToast,
+          t,
         });
         onSubmit();
       } catch (err) {
