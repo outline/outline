@@ -514,7 +514,7 @@
   "No documents found for your search filters.": "No documents found for your search filters.",
   "Processing": "Processing",
   "Expired": "Expired",
-  "Error": "Error",
+  "Failed": "Failed",
   "All collections": "All collections",
   "{{userName}} requested": "{{userName}} requested",
   "Upload": "Upload",
