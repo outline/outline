@@ -23,7 +23,12 @@ export default class Attachment extends Node {
   get schema(): NodeSpec {
     return {
       attrs: {
-        href: {},
+        id: {
+          default: null,
+        },
+        href: {
+          default: null,
+        },
         title: {},
         size: {},
       },
@@ -36,6 +41,7 @@ export default class Attachment extends Node {
           tag: "a.attachment",
           getAttrs: (dom: HTMLAnchorElement) => {
             return {
+              id: dom.id,
               title: dom.innerText,
               href: dom.getAttribute("href"),
               size: parseInt(dom.dataset.size || "0", 10),
@@ -48,6 +54,7 @@ export default class Attachment extends Node {
           "a",
           {
             class: `attachment`,
+            id: node.attrs.id,
             href: node.attrs.href,
             download: node.attrs.title,
             "data-size": node.attrs.size,
@@ -68,7 +75,7 @@ export default class Attachment extends Node {
         isSelected={isSelected}
         theme={theme}
       >
-        <DownloadIcon color="currentColor" size={20} />
+        {node.attrs.href && <DownloadIcon color="currentColor" size={20} />}
       </Widget>
     );
   }

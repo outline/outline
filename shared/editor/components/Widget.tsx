@@ -1,5 +1,5 @@
 import * as React from "react";
-import styled, { DefaultTheme, ThemeProps } from "styled-components";
+import styled, { css, DefaultTheme, ThemeProps } from "styled-components";
 
 type Props = {
   icon: React.ReactNode;
@@ -74,18 +74,24 @@ const Wrapper = styled.a`
   border-radius: 8px;
   padding: 6px 8px;
   max-width: 840px;
+  cursor: default;
 
   user-select: none;
   text-overflow: ellipsis;
   overflow: hidden;
 
-  &:hover,
-  &:active {
-    background: ${(props) => props.theme.secondaryBackground};
-    outline: 1px solid ${(props) => props.theme.divider};
+  ${(props) =>
+    props.href &&
+    css`
+      &:hover,
+      &:active {
+        cursor: pointer;
+        background: ${(props) => props.theme.secondaryBackground};
+        outline: 1px solid ${(props) => props.theme.divider};
 
-    ${Children} {
-      opacity: 1;
-    }
-  }
+        ${Children} {
+          opacity: 1;
+        }
+      }
+    `}
 `;

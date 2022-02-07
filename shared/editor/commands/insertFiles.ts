@@ -1,11 +1,10 @@
-import { NodeSelection } from "prosemirror-state";
+import { EditorState, NodeSelection } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
+import { v4 as uuidv4 } from "uuid";
 import uploadPlaceholderPlugin, {
   findPlaceholder,
 } from "../lib/uploadPlaceholder";
 import { ToastType } from "../types";
-
-let uploadId = 0;
 
 export type Options = {
   dictionary: any;
@@ -17,6 +16,26 @@ export type Options = {
   onFileUploadStart?: () => void;
   onFileUploadStop?: () => void;
   onShowToast: (message: string, code: string) => void;
+};
+
+const findAttachmentById = function (
+  state: EditorState,
+  id: string
+): [number, number] | null {
+  let result: [number, number] | null = null;
+
+  state.doc.descendants((node, pos) => {
+    if (result) {
+      return false;
+    }
+    if (node.type.name === "attachment" && node.attrs.id === id) {
+      result = [pos, pos + node.nodeSize];
+      return false;
+    }
+    return true;
+  });
+
+  return result;
 };
 
 const insertFiles = function (
@@ -55,23 +74,38 @@ const insertFiles = function (
 
   // the user might have dropped multiple files at once, we need to loop
   for (const file of files) {
-    const id = `upload-${uploadId++}`;
+    const id = `upload-${uuidv4()}`;
     const isImage = file.type.startsWith("image/") && !options.isAttachment;
+    const { tr, selection } = view.state;
 
-    const { tr } = view.state;
+    if (isImage) {
+      // insert a placeholder at this position, or mark an existing file as being
+      // replaced
+      tr.setMeta(uploadPlaceholderPlugin, {
+        add: {
+          id,
+          file,
+          pos,
+          isImage,
+          replaceExisting: options.replaceExisting,
+        },
+      });
+      view.dispatch(tr);
+    } else {
+      const $pos = selection.$from;
 
-    // insert a placeholder at this position, or mark an existing file as being
-    // replaced
-    tr.setMeta(uploadPlaceholderPlugin, {
-      add: {
-        id,
-        file,
-        pos,
-        isImage,
-        replaceExisting: options.replaceExisting,
-      },
-    });
-    view.dispatch(tr);
+      view.dispatch(
+        view.state.tr.replaceWith(
+          selection.from,
+          selection.from + ($pos.nodeAfter?.nodeSize || 0),
+          schema.nodes.attachment.create({
+            id,
+            title: file.name,
+            size: file.size,
+          })
+        )
+      );
+    }
 
     // start uploading the file to the server. Using "then" syntax
     // to allow all placeholders to be entered at once with the uploads
@@ -118,27 +152,24 @@ const insertFiles = function (
 
           newImg.src = src;
         } else {
-          const result = findPlaceholder(view.state, id);
+          const result = findAttachmentById(view.state, id);
 
-          // if the content around the placeholder has been deleted
-          // then forget about inserting this file
+          // if the attachment has been deleted then forget about updating it
           if (result === null) {
             return;
           }
 
           const [from, to] = result;
           view.dispatch(
-            view.state.tr
-              .replaceWith(
-                from,
-                to || from,
-                schema.nodes.attachment.create({
-                  href: src,
-                  title: file.name,
-                  size: file.size,
-                })
-              )
-              .setMeta(uploadPlaceholderPlugin, { remove: { id } })
+            view.state.tr.replaceWith(
+              from,
+              to || from,
+              schema.nodes.attachment.create({
+                href: src,
+                title: file.name,
+                size: file.size,
+              })
+            )
           );
 
           // If the users selection is still at the file then make sure to select
