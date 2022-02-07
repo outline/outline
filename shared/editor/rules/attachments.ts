@@ -34,7 +34,9 @@ export default function linksToAttachments(md: MarkdownIt) {
 
         for (let j = 0; j < tokenChildren.length - 1; j++) {
           const current = tokenChildren[j];
-          if (!current) continue;
+          if (!current) {
+            continue;
+          }
 
           if (isLinkOpen(current)) {
             insideLink = current;
