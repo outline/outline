@@ -44,7 +44,9 @@ const insertFiles = function (
   event.preventDefault();
 
   // let the user know we're starting to process the files
-  if (onFileUploadStart) onFileUploadStart();
+  if (onFileUploadStart) {
+    onFileUploadStart();
+  }
 
   const { schema } = view.state;
 

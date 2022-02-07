@@ -124,7 +124,9 @@ export default class Table extends Node {
       Tab: goToNextCell(1),
       "Shift-Tab": goToNextCell(-1),
       Enter: (state: EditorState, dispatch: (tr: Transaction) => void) => {
-        if (!isInTable(state)) return false;
+        if (!isInTable(state)) {
+          return false;
+        }
 
         // TODO: Adding row at the end for now, can we find the current cell
         // row index and add the row below that?
@@ -156,11 +158,15 @@ export default class Table extends Node {
             let index = 0;
 
             doc.descendants((node, pos) => {
-              if (node.type.name !== this.name) return;
+              if (node.type.name !== this.name) {
+                return;
+              }
 
               const elements = document.getElementsByClassName("rme-table");
               const table = elements[index];
-              if (!table) return;
+              if (!table) {
+                return;
+              }
 
               const element = table.parentElement;
               const shadowRight = !!(

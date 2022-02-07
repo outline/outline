@@ -39,7 +39,9 @@ export default class HardBreak extends Node {
         state: EditorState,
         dispatch: (tr: Transaction) => void
       ) => {
-        if (!isInTable(state)) return false;
+        if (!isInTable(state)) {
+          return false;
+        }
         dispatch(state.tr.replaceSelectionWith(type.create()).scrollIntoView());
         return true;
       },

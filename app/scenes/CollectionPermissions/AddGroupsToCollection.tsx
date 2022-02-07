@@ -80,7 +80,9 @@ class AddGroupsToCollection extends React.Component<Props> {
   render() {
     const { groups, policies, collection, auth, t } = this.props;
     const { user, team } = auth;
-    if (!user || !team) return null;
+    if (!user || !team) {
+      return null;
+    }
 
     const can = policies.abilities(team.id);
 

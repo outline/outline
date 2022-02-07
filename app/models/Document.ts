@@ -298,7 +298,9 @@ export default class Document extends BaseModel {
       lastRevision?: number;
     }
   ) => {
-    if (this.isSaving) return this;
+    if (this.isSaving) {
+      return this;
+    }
     this.isSaving = true;
 
     try {
@@ -325,7 +327,9 @@ export default class Document extends BaseModel {
 
   @action
   save = async (options?: SaveOptions | undefined) => {
-    if (this.isSaving) return this;
+    if (this.isSaving) {
+      return this;
+    }
     const isCreating = !this.id;
     this.isSaving = true;
 
@@ -422,7 +426,9 @@ export default class Document extends BaseModel {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     // Firefox support requires the anchor tag be in the DOM to trigger the dl
-    if (document.body) document.body.appendChild(a);
+    if (document.body) {
+      document.body.appendChild(a);
+    }
     a.href = url;
     a.download = `${this.titleWithDefault}.md`;
     a.click();

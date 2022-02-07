@@ -106,7 +106,9 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
   }
 
   handleKeyDown = (event: KeyboardEvent) => {
-    if (!this.props.isActive) return;
+    if (!this.props.isActive) {
+      return;
+    }
 
     if (event.key === "Enter") {
       event.preventDefault();
@@ -198,8 +200,12 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
   };
 
   handleLinkInputKeydown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!this.props.isActive) return;
-    if (!this.state.insertItem) return;
+    if (!this.props.isActive) {
+      return;
+    }
+    if (!this.state.insertItem) {
+      return;
+    }
 
     if (event.key === "Enter") {
       event.preventDefault();
@@ -231,8 +237,12 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
   };
 
   handleLinkInputPaste = (event: React.ClipboardEvent<HTMLInputElement>) => {
-    if (!this.props.isActive) return;
-    if (!this.state.insertItem) return;
+    if (!this.props.isActive) {
+      return;
+    }
+    if (!this.state.insertItem) {
+      return;
+    }
 
     const href = event.clipboardData.getData("text/plain");
     const matches = this.state.insertItem.matcher(href);
@@ -429,7 +439,9 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
     }
 
     const filtered = items.filter((item) => {
-      if (item.name === "separator") return true;
+      if (item.name === "separator") {
+        return true;
+      }
 
       // Some extensions may be disabled, remove corresponding menu items
       if (
@@ -441,10 +453,14 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
       }
 
       // If no image upload callback has been passed, filter the image block out
-      if (!uploadFile && item.name === "image") return false;
+      if (!uploadFile && item.name === "image") {
+        return false;
+      }
 
       // some items (defaultHidden) are not visible until a search query exists
-      if (!search) return !item.defaultHidden;
+      if (!search) {
+        return !item.defaultHidden;
+      }
 
       const n = search.toLowerCase();
       if (!filterable) {

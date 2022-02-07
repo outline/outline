@@ -73,7 +73,9 @@ export default class ExtensionManager {
       )
       .reduce((nodes, extension: Node | Mark) => {
         const md = extension.parseMarkdown();
-        if (!md) return nodes;
+        if (!md) {
+          return nodes;
+        }
 
         return {
           ...nodes,

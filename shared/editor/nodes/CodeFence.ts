@@ -150,7 +150,9 @@ export default class CodeFence extends Node {
         state: EditorState,
         dispatch: (tr: Transaction) => void
       ) => {
-        if (!isInCode(state)) return false;
+        if (!isInCode(state)) {
+          return false;
+        }
         const {
           tr,
           selection,
@@ -171,7 +173,9 @@ export default class CodeFence extends Node {
         return true;
       },
       Tab: (state: EditorState, dispatch: (tr: Transaction) => void) => {
-        if (!isInCode(state)) return false;
+        if (!isInCode(state)) {
+          return false;
+        }
 
         const { tr, selection } = state;
         dispatch(tr.insertText("  ", selection.from, selection.to));

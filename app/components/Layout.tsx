@@ -1,10 +1,8 @@
 import { observer } from "mobx-react";
-import { MenuIcon } from "outline-icons";
 import * as React from "react";
 import { Helmet } from "react-helmet";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import { LoadingIndicatorBar } from "~/components/LoadingIndicator";
 import SkipNavContent from "~/components/SkipNavContent";
@@ -41,15 +39,6 @@ function Layout({ title, children, sidebar, rightRail }: Props) {
 
       {ui.progressBarVisible && <LoadingIndicatorBar />}
 
-      {sidebar && (
-        <MobileMenuButton
-          onClick={ui.toggleMobileSidebar}
-          icon={<MenuIcon />}
-          iconColor="currentColor"
-          neutral
-        />
-      )}
-
       <Container auto>
         {sidebar}
 
@@ -83,21 +72,6 @@ const Container = styled(Flex)`
   position: relative;
   width: 100%;
   min-height: 100%;
-`;
-
-const MobileMenuButton = styled(Button)`
-  position: fixed;
-  top: 12px;
-  left: 12px;
-  z-index: ${(props) => props.theme.depths.sidebar - 1};
-
-  ${breakpoint("tablet")`
-    display: none;
-  `};
-
-  @media print {
-    display: none;
-  }
 `;
 
 const Content = styled(Flex)<{

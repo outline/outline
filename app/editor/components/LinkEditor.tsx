@@ -105,7 +105,9 @@ class LinkEditor extends React.Component<Props, State> {
   save = (href: string, title?: string): void => {
     href = href.trim();
 
-    if (href.length === 0) return;
+    if (href.length === 0) {
+      return;
+    }
 
     this.discardInputValue = true;
     const { from, to } = this.props;
@@ -163,7 +165,9 @@ class LinkEditor extends React.Component<Props, State> {
       }
 
       case "ArrowUp": {
-        if (event.shiftKey) return;
+        if (event.shiftKey) {
+          return;
+        }
         event.preventDefault();
         event.stopPropagation();
         const prevIndex = this.state.selectedIndex - 1;
@@ -176,7 +180,9 @@ class LinkEditor extends React.Component<Props, State> {
 
       case "ArrowDown":
       case "Tab": {
-        if (event.shiftKey) return;
+        if (event.shiftKey) {
+          return;
+        }
 
         event.preventDefault();
         event.stopPropagation();
@@ -239,9 +245,13 @@ class LinkEditor extends React.Component<Props, State> {
     const { onCreateLink } = this.props;
 
     value = value.trim();
-    if (value.length === 0) return;
+    if (value.length === 0) {
+      return;
+    }
 
-    if (onCreateLink) return onCreateLink(value);
+    if (onCreateLink) {
+      return onCreateLink(value);
+    }
   };
 
   handleRemoveLink = (): void => {

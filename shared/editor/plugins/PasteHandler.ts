@@ -53,7 +53,9 @@ export default class PasteHandler extends Extension {
             if (view.props.editable && !view.props.editable(view.state)) {
               return false;
             }
-            if (!event.clipboardData) return false;
+            if (!event.clipboardData) {
+              return false;
+            }
 
             const text = event.clipboardData.getData("text/plain");
             const html = event.clipboardData.getData("text/html");

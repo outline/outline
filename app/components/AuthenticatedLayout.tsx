@@ -55,9 +55,13 @@ class AuthenticatedLayout extends React.Component<Props> {
 
   goToNewDocument = () => {
     const { activeCollectionId } = this.props.ui;
-    if (!activeCollectionId) return;
+    if (!activeCollectionId) {
+      return;
+    }
     const can = this.props.policies.abilities(activeCollectionId);
-    if (!can.update) return;
+    if (!can.update) {
+      return;
+    }
     history.push(newDocumentPath(activeCollectionId));
   };
 
@@ -65,7 +69,9 @@ class AuthenticatedLayout extends React.Component<Props> {
     const { auth } = this.props;
     const { user, team } = auth;
     const showSidebar = auth.authenticated && user && team;
-    if (auth.isSuspended) return <ErrorSuspended />;
+    if (auth.isSuspended) {
+      return <ErrorSuspended />;
+    }
 
     const sidebar = showSidebar ? (
       <Switch>

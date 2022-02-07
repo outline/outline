@@ -25,11 +25,21 @@ router.post("team.update", auth(), async (ctx) => {
     team.subdomain = subdomain === "" ? null : subdomain;
   }
 
-  if (name) team.name = name;
-  if (sharing !== undefined) team.sharing = sharing;
-  if (documentEmbeds !== undefined) team.documentEmbeds = documentEmbeds;
-  if (guestSignin !== undefined) team.guestSignin = guestSignin;
-  if (avatarUrl !== undefined) team.avatarUrl = avatarUrl;
+  if (name) {
+    team.name = name;
+  }
+  if (sharing !== undefined) {
+    team.sharing = sharing;
+  }
+  if (documentEmbeds !== undefined) {
+    team.documentEmbeds = documentEmbeds;
+  }
+  if (guestSignin !== undefined) {
+    team.guestSignin = guestSignin;
+  }
+  if (avatarUrl !== undefined) {
+    team.avatarUrl = avatarUrl;
+  }
 
   if (collaborativeEditing !== undefined) {
     team.collaborativeEditing = collaborativeEditing;

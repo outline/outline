@@ -55,10 +55,13 @@ export default class ComponentView {
       ? document.createElement("span")
       : document.createElement("div");
 
+    this.dom.classList.add(`component-${node.type.name}`);
+
     this.renderElement();
+    window.addEventListener("theme-changed", this.renderElement);
   }
 
-  renderElement() {
+  renderElement = () => {
     const { theme } = this.editor.props;
 
     const children = this.component({
@@ -73,7 +76,7 @@ export default class ComponentView {
       <ThemeProvider theme={theme}>{children}</ThemeProvider>,
       this.dom
     );
-  }
+  };
 
   update(node: ProsemirrorNode) {
     if (node.type !== this.node.type) {
@@ -106,6 +109,7 @@ export default class ComponentView {
   destroy() {
     if (this.dom) {
       ReactDOM.unmountComponentAtNode(this.dom);
+      window.removeEventListener("theme-changed", this.renderElement);
     }
     this.dom = null;
   }

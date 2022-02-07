@@ -18,7 +18,9 @@ function safeSlugify(text: string) {
 // in the document that is as stable as possible
 export default function headingToSlug(node: Node, index = 0) {
   const slugified = safeSlugify(node.textContent);
-  if (index === 0) return slugified;
+  if (index === 0) {
+    return slugified;
+  }
   return `${slugified}-${index}`;
 }
 

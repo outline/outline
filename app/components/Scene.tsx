@@ -6,7 +6,7 @@ import PageTitle from "~/components/PageTitle";
 
 type Props = {
   icon?: React.ReactNode;
-  title: React.ReactNode;
+  title?: React.ReactNode;
   textTitle?: string;
   children: React.ReactNode;
   breadcrumb?: React.ReactNode;
@@ -27,6 +27,7 @@ function Scene({
     <FillWidth>
       <PageTitle title={textTitle || title} />
       <Header
+        hasSidebar
         title={
           icon ? (
             <>

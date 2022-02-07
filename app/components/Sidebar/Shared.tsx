@@ -1,5 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
+import styled from "styled-components";
 import Scrollable from "~/components/Scrollable";
 import useStores from "~/hooks/useStores";
 import { NavigationNode } from "~/types";
@@ -17,7 +18,7 @@ function SharedSidebar({ rootNode, shareId }: Props) {
 
   return (
     <Sidebar>
-      <Scrollable flex>
+      <ScrollContainer flex>
         <Section>
           <DocumentLink
             index={0}
@@ -27,9 +28,13 @@ function SharedSidebar({ rootNode, shareId }: Props) {
             activeDocument={documents.active}
           />
         </Section>
-      </Scrollable>
+      </ScrollContainer>
     </Sidebar>
   );
 }
+
+const ScrollContainer = styled(Scrollable)`
+  padding-bottom: 16px;
+`;
 
 export default observer(SharedSidebar);

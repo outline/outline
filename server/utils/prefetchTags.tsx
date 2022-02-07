@@ -30,8 +30,12 @@ try {
 
 let index = 0;
 Object.values(manifestData).forEach((filename) => {
-  if (typeof filename !== "string") return;
-  if (!env.CDN_URL) return;
+  if (typeof filename !== "string") {
+    return;
+  }
+  if (!env.CDN_URL) {
+    return;
+  }
 
   if (filename.endsWith(".js")) {
     //  Preload resources you have high-confidence will be used in the current

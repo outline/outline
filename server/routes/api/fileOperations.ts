@@ -42,7 +42,9 @@ router.post("fileOperations.list", auth(), pagination(), async (ctx) => {
     "type must be one of 'import' or 'export'"
   );
 
-  if (direction !== "ASC") direction = "DESC";
+  if (direction !== "ASC") {
+    direction = "DESC";
+  }
   const { user } = ctx.state;
   const where: WhereOptions<FileOperation> = {
     teamId: user.teamId,

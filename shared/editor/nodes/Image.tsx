@@ -41,7 +41,9 @@ const uploadPlugin = (options: Options) =>
             return false;
           }
 
-          if (!event.clipboardData) return false;
+          if (!event.clipboardData) {
+            return false;
+          }
 
           // check if we actually pasted any files
           const files = Array.prototype.slice
@@ -50,7 +52,9 @@ const uploadPlugin = (options: Options) =>
             .map((dt: DataTransferItem) => dt.getAsFile())
             .filter(Boolean);
 
-          if (files.length === 0) return false;
+          if (files.length === 0) {
+            return false;
+          }
 
           const { tr } = view.state;
           if (!tr.selection.empty) {
@@ -95,7 +99,9 @@ const uploadPlugin = (options: Options) =>
 const IMAGE_CLASSES = ["right-50", "left-50"];
 
 const getLayoutAndTitle = (tokenTitle: string | null) => {
-  if (!tokenTitle) return {};
+  if (!tokenTitle) {
+    return {};
+  }
   if (IMAGE_CLASSES.includes(tokenTitle)) {
     return {
       layoutClass: tokenTitle,
@@ -241,7 +247,9 @@ export default class Image extends Node {
     const alt = event.currentTarget.innerText;
     const { src, title, layoutClass } = node.attrs;
 
-    if (alt === node.attrs.alt) return;
+    if (alt === node.attrs.alt) {
+      return;
+    }
 
     const { view } = this.editor;
     const { tr } = view.state;
@@ -544,7 +552,7 @@ const Caption = styled.p`
   font-style: italic;
   font-weight: normal;
   color: ${(props) => props.theme.textSecondary};
-  padding: 2px 0;
+  padding: 8px 0 4px;
   line-height: 16px;
   text-align: center;
   min-height: 1em;
@@ -556,7 +564,7 @@ const Caption = styled.p`
   cursor: text;
 
   &:empty:not(:focus) {
-    visibility: hidden;
+    display: none;
   }
 
   &:empty:before {
@@ -578,6 +586,6 @@ const ImageWrapper = styled.span`
   }
 
   &.ProseMirror-selectednode + ${Caption} {
-    visibility: visible;
+    display: block;
   }
 `;

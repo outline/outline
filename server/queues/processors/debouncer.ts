@@ -21,12 +21,16 @@ export default class DebounceProcessor {
         });
 
         // If the document has been deleted then prevent further processing
-        if (!document) return;
+        if (!document) {
+          return;
+        }
 
         // If the document has been updated since we initially queued the delayed
         // event then abort, there must be another updated event in the queue –
         // this functions as a simple distributed debounce.
-        if (document.updatedAt > new Date(event.createdAt)) return;
+        if (document.updatedAt > new Date(event.createdAt)) {
+          return;
+        }
 
         globalEventQueue.add({ ...event, name: "documents.update.debounced" });
         break;

@@ -44,7 +44,9 @@ export function run(
 
   const match = regex.exec(textBefore);
   const tr = handler(state, match, match ? from - match[0].length : from, to);
-  if (!tr) return false;
+  if (!tr) {
+    return false;
+  }
   return true;
 }
 
