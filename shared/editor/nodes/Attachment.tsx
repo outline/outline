@@ -2,7 +2,7 @@ import Token from "markdown-it/lib/token";
 import { DownloadIcon } from "outline-icons";
 import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
 import * as React from "react";
-import Spinner from "~/components/Spinner";
+import { Trans } from "react-i18next";
 import { bytesToHumanReadable } from "../../utils/files";
 import toggleWrap from "../commands/toggleWrap";
 import FileExtension from "../components/FileExtension";
@@ -72,15 +72,19 @@ export default class Attachment extends Node {
         icon={<FileExtension title={node.attrs.title} />}
         href={node.attrs.href}
         title={node.attrs.title}
-        context={bytesToHumanReadable(node.attrs.size)}
+        context={
+          node.attrs.href ? (
+            bytesToHumanReadable(node.attrs.size)
+          ) : (
+            <>
+              <Trans>Uploading</Trans>…
+            </>
+          )
+        }
         isSelected={isSelected}
         theme={theme}
       >
-        {node.attrs.href ? (
-          <DownloadIcon color="currentColor" size={20} />
-        ) : (
-          <Spinner size={20} />
-        )}
+        {node.attrs.href && <DownloadIcon color="currentColor" size={20} />}
       </Widget>
     );
   }

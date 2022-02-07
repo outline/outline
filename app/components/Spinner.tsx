@@ -1,15 +1,11 @@
 import * as React from "react";
 import styled from "styled-components";
 
-type Props = React.HTMLAttributes<HTMLOrSVGElement> & {
-  size?: number;
-};
-
-export default function Spinner(props: Props) {
+export default function Spinner(props: React.HTMLAttributes<HTMLOrSVGElement>) {
   return (
     <SVG
-      width={(props.size || 16) - 8}
-      height={(props.size || 16) - 8}
+      width="16px"
+      height="16px"
       viewBox="0 0 16 16"
       xmlns="http://www.w3.org/2000/svg"
       {...props}
