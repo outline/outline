@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { DocumentIcon } from "outline-icons";
+import { DownloadIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import FileOperation from "~/models/FileOperation";
@@ -53,7 +53,7 @@ function Export() {
   );
 
   return (
-    <Scene title={t("Export")} icon={<DocumentIcon color="currentColor" />}>
+    <Scene title={t("Export")} icon={<DownloadIcon color="currentColor" />}>
       <Heading>{t("Export")}</Heading>
       <HelpText>
         <Trans

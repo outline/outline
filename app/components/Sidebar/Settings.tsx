@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import {
-  DocumentIcon,
+  NewDocumentIcon,
   EmailIcon,
   ProfileIcon,
   PadlockIcon,
@@ -122,7 +122,7 @@ function SettingsSidebar() {
             {can.manage && (
               <SidebarLink
                 to="/settings/import"
-                icon={<DocumentIcon color="currentColor" />}
+                icon={<NewDocumentIcon color="currentColor" />}
                 label={t("Import")}
               />
             )}

@@ -1,6 +1,6 @@
 import invariant from "invariant";
 import { observer } from "mobx-react";
-import { DocumentIcon } from "outline-icons";
+import { NewDocumentIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
@@ -71,7 +71,7 @@ function Import() {
   );
 
   return (
-    <Scene title={t("Import")} icon={<DocumentIcon color="currentColor" />}>
+    <Scene title={t("Import")} icon={<NewDocumentIcon color="currentColor" />}>
       <Heading>{t("Import")}</Heading>
       <HelpText>
         <Trans>
