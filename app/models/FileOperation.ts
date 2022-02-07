@@ -1,6 +1,5 @@
 import { computed } from "mobx";
 import BaseModal from "./BaseModel";
-import Collection from "./Collection";
 import User from "./User";
 
 class FileOperation extends BaseModal {
@@ -8,7 +7,11 @@ class FileOperation extends BaseModal {
 
   state: string;
 
-  collection: Collection | null | undefined;
+  name: string;
+
+  error: string | null;
+
+  collectionId: string | null;
 
   size: number;
 

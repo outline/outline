@@ -328,15 +328,17 @@ class SocketProvider extends React.Component<Props> {
       }
     });
 
+    this.socket.on("fileOperations.create", async (event: any) => {
+      const user = auth.user;
+      if (user) {
+        fileOperations.add({ ...event, user });
+      }
+    });
+
     this.socket.on("fileOperations.update", async (event: any) => {
       const user = auth.user;
-      let collection = null;
-      if (event.collectionId) {
-        collection = await collections.fetch(event.collectionId);
-      }
-
       if (user) {
-        fileOperations.add({ ...event, user, collection });
+        fileOperations.add({ ...event, user });
       }
     });
 

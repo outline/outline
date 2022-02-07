@@ -11,15 +11,18 @@ import Heading from "~/components/Heading";
 import HelpText from "~/components/HelpText";
 import Item from "~/components/List/Item";
 import OutlineLogo from "~/components/OutlineLogo";
+import PaginatedList from "~/components/PaginatedList";
 import Scene from "~/components/Scene";
+import Subheading from "~/components/Subheading";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import { uploadFile } from "~/utils/uploadFile";
+import FileOperationListItem from "./components/FileOperationListItem";
 
 function Import() {
   const { t } = useTranslation();
   const fileRef = React.useRef<HTMLInputElement>(null);
-  const { collections } = useStores();
+  const { collections, fileOperations } = useStores();
   const { showToast } = useToasts();
   const [isImporting, setImporting] = React.useState(false);
 
@@ -88,6 +91,7 @@ function Import() {
 
       <div>
         <Item
+          border={false}
           image={<OutlineLogo size={28} fill="currentColor" />}
           title="Outline"
           subtitle={t(
@@ -105,6 +109,7 @@ function Import() {
           }
         />
         <Item
+          border={false}
           image={<img src={cdnPath("/images/confluence.png")} width={28} />}
           title="Confluence"
           subtitle={t("Import pages from a Confluence instance")}
@@ -115,6 +120,7 @@ function Import() {
           }
         />
         <Item
+          border={false}
           image={<img src={cdnPath("/images/notion.png")} width={28} />}
           title="Notion"
           subtitle={t("Import documents from Notion")}
@@ -125,6 +131,22 @@ function Import() {
           }
         />
       </div>
+      <br />
+      <PaginatedList
+        items={fileOperations.imports}
+        fetch={fileOperations.fetchPage}
+        options={{
+          type: "import",
+        }}
+        heading={
+          <Subheading>
+            <Trans>Recent imports</Trans>
+          </Subheading>
+        }
+        renderItem={(item) => (
+          <FileOperationListItem key={item.id} fileOperation={item} />
+        )}
+      />
     </Scene>
   );
 }

@@ -79,9 +79,8 @@ function Export() {
           : t("Export Data")}
       </Button>
       <br />
-      <br />
       <PaginatedList
-        items={fileOperations.orderedDataExports}
+        items={fileOperations.exports}
         fetch={fileOperations.fetchPage}
         options={{
           type: "export",
@@ -93,7 +92,7 @@ function Export() {
         }
         renderItem={(item) => (
           <FileOperationListItem
-            key={item.id + item.state}
+            key={item.id}
             fileOperation={item}
             handleDelete={handleDelete}
           />
