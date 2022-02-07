@@ -118,7 +118,7 @@ describe("#fileOperations.list", () => {
     expect(data.id).toBe(exportData.id);
     expect(data.key).toBe(undefined);
     expect(data.state).toBe(exportData.state);
-    expect(data.collection.id).toBe(collection.id);
+    expect(data.collectionId).toBe(collection.id);
   });
 
   it("should return exports with collection data even if collection is deleted", async () => {
@@ -152,7 +152,7 @@ describe("#fileOperations.list", () => {
     expect(data.id).toBe(exportData.id);
     expect(data.key).toBe(undefined);
     expect(data.state).toBe(exportData.state);
-    expect(data.collection.id).toBe(collection.id);
+    expect(data.collectionId).toBe(collection.id);
   });
 
   it("should return exports with user data even if user is deleted", async () => {

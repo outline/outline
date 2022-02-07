@@ -1,9 +1,10 @@
 import * as React from "react";
 import { Switch, Redirect } from "react-router-dom";
 import Details from "~/scenes/Settings/Details";
+import Export from "~/scenes/Settings/Export";
 import Features from "~/scenes/Settings/Features";
 import Groups from "~/scenes/Settings/Groups";
-import ImportExport from "~/scenes/Settings/ImportExport";
+import Import from "~/scenes/Settings/Import";
 import Notifications from "~/scenes/Settings/Notifications";
 import People from "~/scenes/Settings/People";
 import Profile from "~/scenes/Settings/Profile";
@@ -33,7 +34,11 @@ export default function SettingsRoutes() {
       {isHosted && (
         <Route exact path="/settings/integrations/zapier" component={Zapier} />
       )}
-      <Route exact path="/settings/import-export" component={ImportExport} />
+      <Route exact path="/settings/import" component={Import} />
+      <Route exact path="/settings/export" component={Export} />
+
+      {/* old routes */}
+      <Redirect from="/settings/import-export" to="/settings/export" />
       <Redirect from="/settings/people" to="/settings/members" />
     </Switch>
   );

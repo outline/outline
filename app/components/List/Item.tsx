@@ -10,6 +10,7 @@ type Props = {
   title: React.ReactNode;
   subtitle?: React.ReactNode;
   actions?: React.ReactNode;
+  compact?: boolean;
   border?: boolean;
   small?: boolean;
 };
@@ -49,6 +50,7 @@ const ListItem = (
       <Wrapper
         ref={ref}
         $border={border}
+        $compact={compact}
         activeStyle={{
           background: theme.primary,
         }}
@@ -62,16 +64,16 @@ const ListItem = (
   }
 
   return (
-    <Wrapper $border={border} {...rest}>
+    <Wrapper $compact={compact} $border={border} {...rest}>
       {content(false)}
     </Wrapper>
   );
 };
 
-const Wrapper = styled.div<{ $border?: boolean }>`
+const Wrapper = styled.div<{ $compact?: boolean; $border?: boolean }>`
   display: flex;
-  padding: ${(props) => (props.$border === false ? 0 : "8px 0")};
-  margin: ${(props) => (props.$border === false ? "8px 0" : 0)};
+  margin: ${(props) => (props.$compact === false ? 0 : "8px 0")};
+  padding: ${(props) => (props.$compact === false ? "8px 0" : 0)};
   border-bottom: 1px solid
     ${(props) =>
       props.$border === false ? "transparent" : props.theme.divider};

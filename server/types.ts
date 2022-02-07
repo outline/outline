@@ -130,9 +130,13 @@ export type CollectionExportAllEvent = {
 };
 
 export type FileOperationEvent = {
-  name: "fileOperations.update" | "fileOperation.delete";
+  name:
+    | "fileOperations.create"
+    | "fileOperations.update"
+    | "fileOperation.delete";
   teamId: string;
   actorId: string;
+  modelId: string;
   data: {
     type: string;
     state: string;

@@ -12,15 +12,26 @@ export default class FileOperationsStore extends BaseStore<FileOperation> {
   }
 
   @computed
-  get exports(): FileOperation[] {
-    return Array.from(this.data.values()).reduce(
-      (acc, fileOp) => (fileOp.type === "export" ? [...acc, fileOp] : acc),
-      []
+  get imports(): FileOperation[] {
+    return orderBy(
+      Array.from(this.data.values()).reduce(
+        (acc, fileOp) => (fileOp.type === "import" ? [...acc, fileOp] : acc),
+        []
+      ),
+      "createdAt",
+      "desc"
     );
   }
 
   @computed
-  get orderedDataExports(): FileOperation[] {
-    return orderBy(this.exports, "createdAt", "desc");
+  get exports(): FileOperation[] {
+    return orderBy(
+      Array.from(this.data.values()).reduce(
+        (acc, fileOp) => (fileOp.type === "export" ? [...acc, fileOp] : acc),
+        []
+      ),
+      "createdAt",
+      "desc"
+    );
   }
 }
