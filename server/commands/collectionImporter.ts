@@ -5,9 +5,9 @@ import File from "formidable/lib/file";
 import invariant from "invariant";
 import { values, keys } from "lodash";
 import { v4 as uuidv4 } from "uuid";
-import { parseOutlineExport } from "@shared/utils/zip";
 import Logger from "@server/logging/logger";
 import { Attachment, Event, Document, Collection, User } from "@server/models";
+import { parseOutlineExport, Item } from "@server/utils/zip";
 import { FileImportError } from "../errors";
 import attachmentCreator from "./attachmentCreator";
 import documentCreator from "./documentCreator";
@@ -30,10 +30,10 @@ export default async function collectionImporter({
 }) {
   // load the zip structure into memory
   const zipData = await fs.promises.readFile(file.path);
-  let items;
+  let items: Item[];
 
   try {
-    items = await await parseOutlineExport(zipData);
+    items = await parseOutlineExport(zipData);
   } catch (err) {
     throw FileImportError(err.message);
   }
