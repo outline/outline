@@ -65,7 +65,7 @@ const Subtitle = styled.span`
 // in Styles to match
 const Wrapper = styled.a`
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 6px;
   background: ${(props) => props.theme.background};
   color: ${(props) => props.theme.text} !important;
