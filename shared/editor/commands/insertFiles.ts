@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/react";
 import { NodeSelection } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { v4 as uuidv4 } from "uuid";
@@ -165,13 +166,26 @@ const insertFiles = function (
         }
       })
       .catch((error) => {
-        console.error(error);
+        Sentry.captureException(error);
 
         // cleanup the placeholder if there is a failure
-        const transaction = view.state.tr.setMeta(uploadPlaceholderPlugin, {
-          remove: { id },
-        });
-        view.dispatch(transaction);
+        if (isImage) {
+          view.dispatch(
+            view.state.tr.setMeta(uploadPlaceholderPlugin, {
+              remove: { id },
+            })
+          );
+        } else {
+          const result = findAttachmentById(view.state, id);
+
+          // if the attachment has been deleted then forget about updating it
+          if (result === null) {
+            return;
+          }
+
+          const [from, to] = result;
+          view.dispatch(view.state.tr.deleteRange(from, to || from));
+        }
 
         onShowToast(
           error.message || dictionary.fileUploadError,
