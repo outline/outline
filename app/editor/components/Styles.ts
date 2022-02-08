@@ -147,38 +147,6 @@ const EditorStyles = styled.div<{
     }
   }
 
-  .attachment.placeholder {
-    gap: 8px;
-    display: flex;
-    flex-direction: row;
-    flex-grow: 1;
-    align-items: center;
-    font-weight: 500;
-    font-size: 14px;
-    background: ${(props) => props.theme.background};
-    outline: 1px solid ${(props) => props.theme.divider};
-    white-space: nowrap;
-    border-radius: 8px;
-    padding: 6px 0;
-    max-width: 840px;
-    
-    user-select: none;
-    text-overflow: ellipsis;
-    overflow: hidden;
-
-    .icon {
-      height: 28px;
-      font-family: ${(props) => props.theme.fontFamilyMono};
-    }
-
-    .status {
-      font-size: 13px;
-      font-weight: normal;
-      color: ${(props) => props.theme.textTertiary};
-      line-height: 0;
-    }
-  }
-
   .image-replacement-uploading {
     img {
       opacity: 0.5;

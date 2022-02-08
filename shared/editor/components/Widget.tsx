@@ -61,8 +61,6 @@ const Subtitle = styled.span`
   line-height: 0;
 `;
 
-// If updating this style make sure to update the placeholder
-// in Styles to match
 const Wrapper = styled.a`
   display: flex;
   align-items: center;
