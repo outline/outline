@@ -98,6 +98,9 @@ function CollectionScene() {
 
   return collection ? (
     <Scene
+      // Forced mount prevents animation of pinned documents when navigating
+      // _between_ collections, speeds up perceived performance.
+      key={collection.id}
       centered={false}
       textTitle={collection.name}
       title={
