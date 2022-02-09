@@ -72,7 +72,7 @@ describe("#team.update", () => {
     expect(res.status).toEqual(401);
   });
 
-  it("should update preferred collection", async () => {
+  it("should update default collection", async () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });
     const collection = await buildCollection({
@@ -91,7 +91,7 @@ describe("#team.update", () => {
     expect(body.data.defaultCollectionId).toEqual(collection.id);
   });
 
-  it("should default to home if preferred collection is deleted", async () => {
+  it("should default to home if default collection is deleted", async () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });
     const collection = await buildCollection({
@@ -133,7 +133,7 @@ describe("#team.update", () => {
     expect(body3.data.team.defaultCollectionId).toEqual(null);
   });
 
-  it("should update preferred collection to null when collection is made private", async () => {
+  it("should update default collection to null when collection is made private", async () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });
     const collection = await buildCollection({
