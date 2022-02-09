@@ -68,8 +68,8 @@ export default class AuthStore {
 
     try {
       data = JSON.parse(localStorage.getItem(AUTH_STORE) || "{}");
-    } catch (_) {
-      // no-op Safari private mode
+    } catch (err) {
+      Sentry.captureException(err);
     }
 
     this.rehydrate(data);
@@ -78,8 +78,8 @@ export default class AuthStore {
     autorun(() => {
       try {
         localStorage.setItem(AUTH_STORE, this.asJson);
-      } catch (_) {
-        // no-op Safari private mode
+      } catch (err) {
+        Sentry.captureException(err);
       }
     });
 

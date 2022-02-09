@@ -76,6 +76,7 @@ export default class BaseModel {
 
   /**
    * Returns a plain object representation of all the properties on the model
+   * overrides the inbuilt toJSON method to avoid attempting to serialize store
    *
    * @returns {Record<string, any>}
    */
