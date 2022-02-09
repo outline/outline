@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { DoneIcon, WarningIcon } from "outline-icons";
+import { ArchiveIcon, DoneIcon, WarningIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
@@ -30,6 +30,7 @@ const FileOperationListItem = ({ fileOperation, handleDelete }: Props) => {
   const iconMapping = {
     creating: <Spinner />,
     uploading: <Spinner />,
+    expired: <ArchiveIcon color={theme.textTertiary} />,
     complete: <DoneIcon color={theme.primary} />,
     error: <WarningIcon color={theme.danger} />,
   };
