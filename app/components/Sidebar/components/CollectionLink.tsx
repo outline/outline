@@ -17,7 +17,7 @@ import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import CollectionMenu from "~/menus/CollectionMenu";
 import CollectionSortMenu from "~/menus/CollectionSortMenu";
-import { NavigationNode, ToastOptions } from "~/types";
+import { ToastOptions } from "~/types";
 import DocumentLink from "./DocumentLink";
 import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
@@ -34,28 +34,28 @@ type Props = {
 
 type MoveType = {
   documents: DocumentsStore;
-  documentId: string;
-  collectionId: string;
-  parentDocumentId?: string | null;
-  index?: number | null;
+  move: {
+    collectionId: string;
+    parentDocumentId?: string | null;
+    index?: number | null;
+  };
   showToast: (message: string, options?: ToastOptions) => string | undefined;
   t: TFunction<"translation", undefined>;
+  item: DragObject;
 };
 
 export const moveDocumentWithUndo = async ({
   documents,
-  documentId,
-  collectionId,
-  parentDocumentId,
-  index,
   showToast,
   t,
+  move,
+  item,
 }: MoveType) => {
-  const undo = await documents.move(
-    documentId,
-    collectionId,
-    parentDocumentId,
-    index
+  await documents.move(
+    item.id,
+    move.collectionId,
+    move.parentDocumentId,
+    move.index
   );
 
   showToast(t("Document moved"), {
@@ -64,10 +64,10 @@ export const moveDocumentWithUndo = async ({
       text: "undo",
       onClick: async () => {
         await documents.move(
-          documentId,
-          undo.collectionId,
-          undo.parentDocumentId,
-          undo.index
+          item.id,
+          item.collectionId,
+          item.parentDocumentId,
+          item.index
         );
       },
     },
@@ -91,9 +91,7 @@ function CollectionLink({
     handlePermissionOpen,
     handlePermissionClose,
   ] = useBoolean();
-  const itemRef = React.useRef<
-    NavigationNode & { depth: number; active: boolean; collectionId: string }
-  >();
+  const itemRef = React.useRef<DragObject | undefined>();
   const [isEditing, setIsEditing] = React.useState(false);
 
   const handleTitleChange = React.useCallback(
@@ -123,16 +121,16 @@ function CollectionLink({
   const [{ isOver, canDrop }, drop] = useDrop({
     accept: "document",
     drop: async (item: DragObject, monitor) => {
-      const { id, collectionId } = item;
+      const { collectionId, parentDocumentId } = item;
+
       if (monitor.didDrop()) {
         return;
       }
-      if (!collection) {
+      if (!collection || !item) {
         return;
       }
 
-      const document = documents.get(id);
-      if (collection.id === collectionId && !document?.parentDocumentId) {
+      if (collection.id === collectionId && !parentDocumentId) {
         return;
       }
 
@@ -148,10 +146,12 @@ function CollectionLink({
       } else {
         moveDocumentWithUndo({
           documents,
-          documentId: id,
-          collectionId: collection.id,
           showToast,
           t,
+          item,
+          move: {
+            collectionId: collection.id,
+          },
         });
       }
     },
@@ -170,16 +170,19 @@ function CollectionLink({
   const [{ isOverReorder }, dropToReorder] = useDrop({
     accept: "document",
     drop: async (item: DragObject) => {
-      if (!collection) {
+      if (!collection || !item.id) {
         return;
       }
+
       moveDocumentWithUndo({
         documents,
-        documentId: item.id,
-        collectionId: collection.id,
-        index: 0,
         showToast,
         t,
+        move: {
+          collectionId: collection.id,
+          index: 0,
+        },
+        item,
       });
     },
     collect: (monitor) => ({

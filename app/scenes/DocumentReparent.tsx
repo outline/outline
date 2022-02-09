@@ -7,26 +7,12 @@ import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import HelpText from "~/components/HelpText";
 import { moveDocumentWithUndo } from "~/components/Sidebar/components/CollectionLink";
+import { DragObject } from "~/components/Sidebar/components/SidebarLink";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
-import { NavigationNode } from "~/types";
 
 type Props = {
-  item:
-    | {
-        active: boolean | null | undefined;
-        children: Array<NavigationNode>;
-        collectionId: string;
-        depth: number;
-        id: string;
-        title: string;
-        url: string;
-      }
-    | {
-        id: string;
-        collectionId: string;
-        title: string;
-      };
+  item: DragObject;
   collection: Collection;
   onCancel: () => void;
   onSubmit: () => void;
@@ -52,10 +38,12 @@ function DocumentReparent({ collection, item, onSubmit, onCancel }: Props) {
       try {
         await moveDocumentWithUndo({
           documents,
-          documentId: item.id,
-          collectionId: collection.id,
+          move: {
+            collectionId: collection.id,
+          },
           showToast,
           t,
+          item,
         });
         onSubmit();
       } catch (err) {
@@ -66,7 +54,7 @@ function DocumentReparent({ collection, item, onSubmit, onCancel }: Props) {
         setIsSaving(false);
       }
     },
-    [documents, item.id, collection.id, showToast, t, onSubmit]
+    [documents, collection.id, showToast, t, item, onSubmit]
   );
 
   return (

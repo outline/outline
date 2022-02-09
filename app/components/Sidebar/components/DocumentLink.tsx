@@ -143,6 +143,7 @@ function DocumentLink(
       active: isActiveDocument,
       parentDocumentId: document?.parentDocumentId,
       collectionId: collection?.id || "",
+      index,
     }),
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
@@ -175,16 +176,20 @@ function DocumentLink(
       if (monitor.didDrop()) {
         return;
       }
+
       if (!collection) {
         return;
       }
+
       moveDocumentWithUndo({
         documents,
-        documentId: item.id,
-        collectionId: collection.id,
-        parentDocumentId: node.id,
+        move: {
+          collectionId: collection.id,
+          parentDocumentId: node.id,
+        },
         showToast,
         t,
+        item,
       });
     },
     canDrop: (_item, monitor) =>
@@ -235,27 +240,19 @@ function DocumentLink(
         return;
       }
 
-      if (expanded) {
-        moveDocumentWithUndo({
-          documents,
-          documentId: item.id,
-          collectionId: collection.id,
-          parentDocumentId: node.id,
-          showToast,
-          t,
-          index: 0,
-        });
-        return;
-      }
+      const parentDocumentId = expanded ? node.id : parentId;
+      const droppedDocumentIndex = expanded ? 0 : index + 1;
 
       moveDocumentWithUndo({
         documents,
-        documentId: item.id,
-        collectionId: collection.id,
-        parentDocumentId: parentId,
         showToast,
         t,
-        index: index + 1,
+        move: {
+          collectionId: collection.id,
+          parentDocumentId,
+          index: droppedDocumentIndex,
+        },
+        item,
       });
     },
     collect: (monitor) => ({
