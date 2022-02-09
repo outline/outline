@@ -42,27 +42,15 @@ function NewDocumentMenu() {
     [collections.orderedData, policies]
   );
 
-  if (!can.createDocument || items.length === 0) {
+  if (!can.createDocument) {
     return null;
-  }
-
-  if (items.length === 1) {
-    return (
-      <Button
-        as={Link}
-        to={items[0].type === "route" ? items[0].to : undefined}
-        icon={<PlusIcon />}
-      >
-        {t("New doc")}
-      </Button>
-    );
   }
 
   return (
     <>
       <MenuButton {...menu}>
         {(props) => (
-          <Button icon={<PlusIcon />} {...props}>
+          <Button icon={<PlusIcon />} disabled={items.length === 0} {...props}>
             {`${t("New doc")}…`}
           </Button>
         )}
