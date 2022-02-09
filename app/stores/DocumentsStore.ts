@@ -523,7 +523,6 @@ export default class DocumentsStore extends BaseStore<Document> {
       res.data.documents.forEach(this.add);
       res.data.collections.forEach(this.rootStore.collections.add);
       this.addPolicies(res.policies);
-      return res.undo;
     } finally {
       this.movingDocumentId = undefined;
     }

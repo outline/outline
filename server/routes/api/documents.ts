@@ -1163,7 +1163,7 @@ router.post("documents.move", auth(), async (ctx) => {
     authorize(user, "update", parent);
   }
 
-  const { result, undo } = await documentMover({
+  const { documents, collections, collectionChanged } = await documentMover({
     user,
     document,
     collectionId,
@@ -1171,8 +1171,6 @@ router.post("documents.move", auth(), async (ctx) => {
     index,
     ip: ctx.request.ip,
   });
-
-  const { documents, collections, collectionChanged } = result;
 
   ctx.body = {
     data: {
@@ -1184,7 +1182,6 @@ router.post("documents.move", auth(), async (ctx) => {
       ),
     },
     policies: collectionChanged ? presentPolicies(user, documents) : [],
-    undo,
   };
 });
 
