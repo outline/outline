@@ -100,10 +100,6 @@ export default function init(app: Koa = new Koa()): Koa {
   // Sets common security headers by default, such as no-sniff, hsts, hide powered
   // by etc, these are applied after auth and api so they are only returned on
   // standard non-XHR accessed routes
-  app.use(async (ctx, next) => {
-    ctx.set("Permissions-Policy", "interest-cohort=()");
-    await next();
-  });
   app.use(
     contentSecurityPolicy({
       directives: {
