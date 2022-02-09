@@ -73,6 +73,7 @@ export default class AuthStore {
     }
 
     this.rehydrate(data);
+
     // persists this entire store to localstorage whenever any keys are changed
     autorun(() => {
       try {
@@ -81,6 +82,7 @@ export default class AuthStore {
         // no-op Safari private mode
       }
     });
+
     // listen to the localstorage value changing in other tabs to react to
     // signin/signout events in other tabs and follow suite.
     window.addEventListener("storage", (event) => {
