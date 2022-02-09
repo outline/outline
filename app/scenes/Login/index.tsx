@@ -3,7 +3,7 @@ import { observer } from "mobx-react";
 import { BackIcon, EmailIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
-import { useLocation, Link } from "react-router-dom";
+import { useLocation, Link, Redirect } from "react-router-dom";
 import styled from "styled-components";
 import { setCookie } from "tiny-cookie";
 import { Config } from "~/stores/AuthStore";
@@ -19,7 +19,6 @@ import env from "~/env";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import { isCustomDomain } from "~/utils/domains";
-import history from "~/utils/history";
 import { changeLanguage, detectLanguage } from "~/utils/language";
 import Notices from "./Notices";
 import Provider from "./Provider";
@@ -67,20 +66,6 @@ function Login() {
     auth.fetchConfig();
   }, [auth]);
 
-  React.useEffect(() => {
-    async function load() {
-      if (auth.authenticated) {
-        await auth.fetch();
-        if (auth.team?.defaultCollectionId) {
-          history.replace(`/collection/${auth.team?.defaultCollectionId}`);
-        } else {
-          history.replace("/home");
-        }
-      }
-    }
-    load();
-  }, [auth]);
-
   // TODO: Persist detected language to new user
   // Try to detect the user's language and show the login page on its idiom
   // if translation is available
@@ -98,6 +83,14 @@ function Login() {
       setCookie("signupQueryParams", JSON.stringify(entries));
     }
   }, [query]);
+
+  if (auth.authenticated && auth.team?.defaultCollectionId) {
+    return <Redirect to={`/collection/${auth.team?.defaultCollectionId}`} />;
+  }
+
+  if (auth.authenticated) {
+    return <Redirect to="/home" />;
+  }
 
   // we're counting on the config request being fast
   if (!config) {
