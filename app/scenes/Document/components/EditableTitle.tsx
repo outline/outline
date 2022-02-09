@@ -52,6 +52,17 @@ const EditableTitle = React.forwardRef(
       ref.current?.focus();
     }, [ref]);
 
+    // Ensure only plain text can be pasted into title when pasting from another
+    // rich text editor
+    const handlePaste = React.useCallback(
+      (event: React.ClipboardEvent<HTMLSpanElement>) => {
+        event.preventDefault();
+        const text = event.clipboardData.getData("text/plain");
+        window.document.execCommand("insertText", false, text);
+      },
+      []
+    );
+
     const handleKeyDown = React.useCallback(
       (event: React.KeyboardEvent) => {
         if (event.key === "Enter") {
@@ -119,6 +130,7 @@ const EditableTitle = React.forwardRef(
         onClick={handleClick}
         onChange={onChange}
         onKeyDown={handleKeyDown}
+        onPaste={handlePaste}
         placeholder={
           document.isTemplate
             ? t("Start your template…")
