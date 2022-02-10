@@ -59,6 +59,7 @@ const TeamName = styled.div`
   text-decoration: none;
   font-size: 16px;
 
+  text-align: left;
   text-overflow: ellipsis;
   overflow: hidden;
   width: 100%;
