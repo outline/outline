@@ -30,7 +30,7 @@ export const ExportSuccessEmail = ({
           Your requested data export is complete, the exported files are also
           available in the{" "}
           <a
-            href={`${teamUrl}/settings/import-export`}
+            href={`${teamUrl}/settings/export`}
             rel="noreferrer"
             target="_blank"
           >

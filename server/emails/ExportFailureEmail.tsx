@@ -24,7 +24,7 @@ export const ExportFailureEmail = ({ teamUrl }: { teamUrl: string }) => {
         <p>
           Sorry, your requested data export has failed, please visit the{" "}
           <a
-            href={`${teamUrl}/settings/import-export`}
+            href={`${teamUrl}/settings/export`}
             rel="noreferrer"
             target="_blank"
           >
@@ -34,9 +34,7 @@ export const ExportFailureEmail = ({ teamUrl }: { teamUrl: string }) => {
         </p>
         <EmptySpace height={10} />
         <p>
-          <Button href={`${teamUrl}/settings/import-export`}>
-            Go to export
-          </Button>
+          <Button href={`${teamUrl}/settings/export`}>Go to export</Button>
         </p>
       </Body>
 
