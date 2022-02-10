@@ -25,7 +25,7 @@ type Provider = {
   authUrl: string;
 };
 
-type Config = {
+export type Config = {
   name?: string;
   hostname?: string;
   providers: Provider[];
@@ -228,6 +228,7 @@ export default class AuthStore {
     avatarUrl?: string | null | undefined;
     sharing?: boolean;
     collaborativeEditing?: boolean;
+    defaultCollectionId?: string | null;
     subdomain?: string | null | undefined;
   }) => {
     this.isSaving = true;

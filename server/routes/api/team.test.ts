@@ -1,5 +1,6 @@
 import TestServer from "fetch-test-server";
 import webService from "@server/services/web";
+import { buildAdmin, buildCollection, buildTeam } from "@server/test/factories";
 import { flushdb, seed } from "@server/test/support";
 
 const app = webService();
@@ -69,5 +70,110 @@ describe("#team.update", () => {
     await seed();
     const res = await server.post("/api/team.update");
     expect(res.status).toEqual(401);
+  });
+
+  it("should update default collection", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: admin.id,
+    });
+
+    const res = await server.post("/api/team.update", {
+      body: {
+        token: admin.getJwtToken(),
+        defaultCollectionId: collection.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.defaultCollectionId).toEqual(collection.id);
+  });
+
+  it("should default to home if default collection is deleted", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: admin.id,
+    });
+
+    await buildCollection({
+      teamId: team.id,
+      userId: admin.id,
+    });
+
+    const res = await server.post("/api/team.update", {
+      body: {
+        token: admin.getJwtToken(),
+        defaultCollectionId: collection.id,
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.defaultCollectionId).toEqual(collection.id);
+
+    const deleteRes = await server.post("/api/collections.delete", {
+      body: {
+        token: admin.getJwtToken(),
+        id: collection.id,
+      },
+    });
+    expect(deleteRes.status).toEqual(200);
+
+    const res3 = await server.post("/api/auth.info", {
+      body: {
+        token: admin.getJwtToken(),
+      },
+    });
+    const body3 = await res3.json();
+    expect(res3.status).toEqual(200);
+    expect(body3.data.team.defaultCollectionId).toEqual(null);
+  });
+
+  it("should update default collection to null when collection is made private", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: admin.id,
+    });
+
+    await buildCollection({
+      teamId: team.id,
+      userId: admin.id,
+    });
+
+    const res = await server.post("/api/team.update", {
+      body: {
+        token: admin.getJwtToken(),
+        defaultCollectionId: collection.id,
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.defaultCollectionId).toEqual(collection.id);
+
+    const updateRes = await server.post("/api/collections.update", {
+      body: {
+        token: admin.getJwtToken(),
+        id: collection.id,
+        permission: "",
+      },
+    });
+
+    expect(updateRes.status).toEqual(200);
+
+    const res3 = await server.post("/api/auth.info", {
+      body: {
+        token: admin.getJwtToken(),
+      },
+    });
+    const body3 = await res3.json();
+    expect(res3.status).toEqual(200);
+    expect(body3.data.team.defaultCollectionId).toEqual(null);
   });
 });

@@ -139,7 +139,10 @@ export default class CollectionsStore extends BaseStore<Collection> {
   }
 
   @action
-  async fetch(id: string, options: Record<string, any> = {}): Promise<any> {
+  async fetch(
+    id: string,
+    options: Record<string, any> = {}
+  ): Promise<Collection> {
     const item = this.get(id) || this.getByUrl(id);
     if (item && !options.force) {
       return item;
@@ -162,6 +165,13 @@ export default class CollectionsStore extends BaseStore<Collection> {
     } finally {
       this.isFetching = false;
     }
+  }
+
+  @computed
+  get publicCollections() {
+    return this.orderedData.filter((collection) =>
+      ["read", "read_write"].includes(collection.permission || "")
+    );
   }
 
   getPathForDocument(documentId: string): DocumentPath | undefined {

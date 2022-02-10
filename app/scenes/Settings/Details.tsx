@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import Button from "~/components/Button";
+import DefaultCollectionInputSelect from "~/components/DefaultCollectionInputSelect";
 import Heading from "~/components/Heading";
 import HelpText from "~/components/HelpText";
 import Input from "~/components/Input";
@@ -23,6 +24,9 @@ function Details() {
   const [name, setName] = useState(team.name);
   const [subdomain, setSubdomain] = useState(team.subdomain);
   const [avatarUrl, setAvatarUrl] = useState<string>(team.avatarUrl);
+  const [defaultCollectionId, setDefaultCollectionId] = useState<string | null>(
+    team.defaultCollectionId
+  );
 
   const handleSubmit = React.useCallback(
     async (event?: React.SyntheticEvent) => {
@@ -35,6 +39,7 @@ function Details() {
           name,
           avatarUrl,
           subdomain,
+          defaultCollectionId,
         });
         showToast(t("Settings saved"), {
           type: "success",
@@ -45,7 +50,7 @@ function Details() {
         });
       }
     },
-    [auth, showToast, name, avatarUrl, subdomain, t]
+    [auth, name, avatarUrl, subdomain, defaultCollectionId, showToast, t]
   );
 
   const handleNameChange = React.useCallback(
@@ -79,7 +84,13 @@ function Details() {
     [showToast, t]
   );
 
+  const onSelectCollection = React.useCallback(async (value: string) => {
+    const defaultCollectionId = value === "home" ? null : value;
+    setDefaultCollectionId(defaultCollectionId);
+  }, []);
+
   const isValid = form.current && form.current.checkValidity();
+
   return (
     <Scene title={t("Details")} icon={<TeamIcon color="currentColor" />}>
       <Heading>{t("Details")}</Heading>
@@ -128,6 +139,10 @@ function Details() {
             )}
           </>
         )}
+        <DefaultCollectionInputSelect
+          onSelectCollection={onSelectCollection}
+          defaultCollectionId={defaultCollectionId}
+        />
         <Button type="submit" disabled={auth.isSaving || !isValid}>
           {auth.isSaving ? `${t("Saving")}…` : t("Save")}
         </Button>

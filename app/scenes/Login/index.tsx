@@ -6,6 +6,7 @@ import { Trans, useTranslation } from "react-i18next";
 import { useLocation, Link, Redirect } from "react-router-dom";
 import styled from "styled-components";
 import { setCookie } from "tiny-cookie";
+import { Config } from "~/stores/AuthStore";
 import ButtonLarge from "~/components/ButtonLarge";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
@@ -22,8 +23,7 @@ import { changeLanguage, detectLanguage } from "~/utils/language";
 import Notices from "./Notices";
 import Provider from "./Provider";
 
-// @ts-expect-error ts-migrate(7031) FIXME: Binding element 'config' implicitly has an 'any' t... Remove this comment to see the full error message
-function Header({ config }) {
+function Header({ config }: { config: Config }) {
   const { t } = useTranslation();
   const isHosted = env.DEPLOYMENT === "hosted";
   const isSubdomain = !!config.hostname;
@@ -83,6 +83,10 @@ function Login() {
       setCookie("signupQueryParams", JSON.stringify(entries));
     }
   }, [query]);
+
+  if (auth.authenticated && auth.team?.defaultCollectionId) {
+    return <Redirect to={`/collection/${auth.team?.defaultCollectionId}`} />;
+  }
 
   if (auth.authenticated) {
     return <Redirect to="/home" />;
