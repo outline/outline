@@ -204,7 +204,7 @@
   "devDependencies": {
     "@babel/cli": "^7.10.5",
     "@babel/preset-typescript": "^7.16.0",
-    "@pmmmwh/react-refresh-webpack-plugin": "^0.4.3",
+    "@pmmmwh/react-refresh-webpack-plugin": "^0.5.4",
     "@relative-ci/agent": "^3.0.0",
     "@types/bull": "^3.15.5",
     "@types/datadog-metrics": "^0.6.2",
@@ -228,8 +228,8 @@
     "@types/koa-sslify": "^4.0.2",
     "@types/koa-static": "^4.0.2",
     "@types/markdown-it": "^12.2.3",
-    "@types/markdown-it-emoji": "^2.0.2",
     "@types/markdown-it-container": "^2.0.4",
+    "@types/markdown-it-emoji": "^2.0.2",
     "@types/natural-sort": "^0.0.21",
     "@types/node": "15.12.2",
     "@types/nodemailer": "^6.4.4",
