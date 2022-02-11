@@ -7,6 +7,7 @@ import {
 } from "prosemirror-state";
 import Extension from "../lib/Extension";
 import isModKey from "../lib/isModKey";
+import isInCode from "../queries/isInCode";
 
 export default class Keys extends Extension {
   get name() {
@@ -70,7 +71,7 @@ export default class Keys extends Extension {
               return true;
             }
 
-            if (event.key === "Enter") {
+            if (event.key === "Enter" && !isInCode(view.state)) {
               event.preventDefault();
               this.options.onSaveAndExit();
               return true;
