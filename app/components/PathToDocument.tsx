@@ -9,10 +9,11 @@ import CollectionIcon from "~/components/CollectionIcon";
 import Flex from "~/components/Flex";
 
 type Props = {
-  result: DocumentPath;
-  document?: Document | null | undefined;
+  documentPath: DocumentPath;
+  currentDocument?: Document | null | undefined;
   collection: Collection | null | undefined;
-  onSuccess?: () => void;
+  href?: string;
+  onClick?: (ev: React.SyntheticEvent) => void;
   style?: React.CSSProperties;
   ref?: (arg0: React.ElementRef<"div"> | null | undefined) => void;
 };
@@ -20,27 +21,22 @@ type Props = {
 @observer
 class PathToDocument extends React.Component<Props> {
   handleClick = async (ev: React.SyntheticEvent) => {
-    ev.preventDefault();
-    const { document, result, onSuccess } = this.props;
-    if (!document) {
-      return;
-    }
-
-    if (result.type === "document") {
-      await document.move(result.collectionId, result.id);
-    } else {
-      await document.move(result.collectionId);
-    }
-
-    if (onSuccess) {
-      onSuccess();
+    if (this.props.onClick) {
+      this.props.onClick(ev);
     }
   };
 
   render() {
-    const { result, collection, document, ref, style } = this.props;
-    const Component = document ? ResultWrapperLink : ResultWrapper;
-    if (!result) {
+    const {
+      documentPath,
+      collection,
+      currentDocument,
+      ref,
+      style,
+      href,
+    } = this.props;
+    const Component = currentDocument ? ResultWrapperLink : ResultWrapper;
+    if (!documentPath) {
       return <div />;
     }
 
@@ -49,21 +45,20 @@ class PathToDocument extends React.Component<Props> {
       <Component
         ref={ref}
         onClick={this.handleClick}
-        href=""
+        href={href ?? ""}
         style={style}
         role="option"
         selectable
       >
         {collection && <CollectionIcon collection={collection} />}
         &nbsp;
-        {result.path
+        {documentPath.path
           .map((doc) => <Title key={doc.id}>{doc.title}</Title>)
           // @ts-expect-error ts-migrate(2739) FIXME: Type 'Element[]' is missing the following properti... Remove this comment to see the full error message
           .reduce((prev, curr) => [prev, <StyledGoToIcon />, curr])}
-        {document && (
+        {currentDocument && (
           <DocumentTitle>
-            {" "}
-            <StyledGoToIcon /> <Title>{document.title}</Title>
+            <StyledGoToIcon /> <Title>{currentDocument.title}</Title>
           </DocumentTitle>
         )}
       </Component>

@@ -1,17 +1,20 @@
 import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Document from "~/models/Document";
+import NewDocumentFromTemplate from "~/scenes/NewDocumentFromTemplate";
 import Badge from "~/components/Badge";
 import Button from "~/components/Button";
 import DocumentMeta from "~/components/DocumentMeta";
 import EventBoundary from "~/components/EventBoundary";
 import Flex from "~/components/Flex";
 import Highlight from "~/components/Highlight";
+import Modal from "~/components/Modal";
 import StarButton, { AnimatedStar } from "~/components/Star";
 import Tooltip from "~/components/Tooltip";
 import useBoolean from "~/hooks/useBoolean";
@@ -20,7 +23,6 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
 import { hover } from "~/styles";
-import { newDocumentPath } from "~/utils/routeHelpers";
 
 type Props = {
   document: Document;
@@ -50,6 +52,7 @@ function DocumentListItem(
   const currentUser = useCurrentUser();
   const currentTeam = useCurrentTeam();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
+  const [showCreateDocumentModal, setShowCreateDocumentModal] = useState(false);
 
   const {
     document,
@@ -134,11 +137,18 @@ function DocumentListItem(
           can.createDocument &&
           canCollection.update && (
             <>
+              <Modal
+                title={t("Create Document From Template")}
+                onRequestClose={() => setShowCreateDocumentModal(false)}
+                isOpen={showCreateDocumentModal}
+              >
+                <NewDocumentFromTemplate
+                  template={document}
+                  onRequestClose={() => setShowCreateDocumentModal(false)}
+                />
+              </Modal>
               <Button
-                as={Link}
-                to={newDocumentPath(document.collectionId, {
-                  templateId: document.id,
-                })}
+                onClick={() => setShowCreateDocumentModal(true)}
                 icon={<PlusIcon />}
                 neutral
               >

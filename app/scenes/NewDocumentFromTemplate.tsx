@@ -1,4 +1,3 @@
-import { last } from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -13,61 +12,20 @@ import Labeled from "~/components/Labeled";
 import PathToDocument from "~/components/PathToDocument";
 import useSearchDocumentPath from "~/hooks/useSearchDocumentPath";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
+import { newDocumentPath } from "~/utils/routeHelpers";
 
 type Props = {
-  document: Document;
+  template: Document;
   onRequestClose: () => void;
 };
 
-function DocumentMove({ document, onRequestClose }: Props) {
+function NewDocumentFromTemplate({ template, onRequestClose }: Props) {
   const { collections } = useStores();
-  const { showToast } = useToasts();
   const { t } = useTranslation();
-
-  const postFilterDocumentPath = (results: DocumentPath[]) => {
-    const onlyShowCollections = document.isTemplate;
-    if (onlyShowCollections) {
-      results = results.filter((result) => result.type === "collection");
-    } else {
-      const isDocumentAtRoot = !document.parentDocumentId;
-      if (isDocumentAtRoot) {
-        results = results.filter(
-          (result) => result.id !== document.collectionId
-        );
-      }
-
-      // Exclude document if on the path to result, or the same result
-      results = results.filter(
-        (result) =>
-          !result.path.map((doc) => doc.id).includes(document.id) &&
-          last(result.path.map((doc) => doc.id)) !== document.id
-      );
-    }
-    return results;
-  };
-
-  const { searchResult, setSearchTerm } = useSearchDocumentPath(
-    postFilterDocumentPath
-  );
+  const { searchResult, setSearchTerm } = useSearchDocumentPath();
 
   const handleFilter = (ev: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(ev.target.value);
-  };
-
-  const renderPathToCurrentDocument = () => {
-    const result = collections.getPathForDocument(document.id);
-
-    if (result) {
-      return (
-        <PathToDocument
-          documentPath={result}
-          collection={collections.get(result.collectionId)}
-        />
-      );
-    }
-
-    return null;
   };
 
   const row = ({
@@ -80,50 +38,29 @@ function DocumentMove({ document, onRequestClose }: Props) {
     style: React.CSSProperties;
   }) => {
     const result = data[index];
-
-    const handleMoveDocument = async () => {
-      if (!document) {
-        return;
-      }
-
-      if (result.type === "document") {
-        await document.move(result.collectionId, result.id);
-      } else {
-        await document.move(result.collectionId);
-      }
-
-      showToast(t("Document moved"), {
-        type: "info",
-      });
-
-      onRequestClose();
-    };
-
     return (
       <PathToDocument
         documentPath={result}
-        currentDocument={document}
+        currentDocument={template}
         collection={collections.get(result.collectionId)}
-        onClick={handleMoveDocument}
+        onClick={onRequestClose}
+        href={newDocumentPath(template.collectionId, {
+          parentDocumentId: result.id,
+          templateId: template.id,
+        })}
         style={style}
       />
     );
   };
 
-  if (!document || !collections.isLoaded) {
+  if (!template || !template.isTemplate || !collections.isLoaded) {
     return null;
   }
 
   return (
     <Flex column>
-      <Section>
-        <Labeled label={t("Current location")}>
-          {renderPathToCurrentDocument()}
-        </Labeled>
-      </Section>
-
       <Section column>
-        <Labeled label={t("Choose a new location")} />
+        <Labeled label={t("Choose the location for the new document")} />
         <NewLocation>
           <InputWrapper>
             <Input
@@ -193,4 +130,4 @@ const Section = styled(Flex)`
   margin-bottom: 24px;
 `;
 
-export default observer(DocumentMove);
+export default observer(NewDocumentFromTemplate);
