@@ -15,3 +15,24 @@ export function isMac(): boolean {
   const SSR = typeof window === "undefined";
   return !SSR && window.navigator.platform === "MacIntel";
 }
+
+let supportsPassive = false;
+
+try {
+  const opts = Object.defineProperty({}, "passive", {
+    get: function () {
+      supportsPassive = true;
+    },
+  });
+  // @ts-expect-error ts-migrate(2769) testPassive is not a real event
+  window.addEventListener("testPassive", null, opts);
+  // @ts-expect-error ts-migrate(2769) testPassive is not a real event
+  window.removeEventListener("testPassive", null, opts);
+} catch (e) {
+  // No-op
+}
+
+/**
+ * Returns true if the client supports passive event listeners
+ */
+export const supportsPassiveListener = supportsPassive;

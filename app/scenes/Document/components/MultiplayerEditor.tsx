@@ -15,6 +15,7 @@ import usePageVisibility from "~/hooks/usePageVisibility";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import MultiplayerExtension from "~/multiplayer/MultiplayerExtension";
+import { supportsPassiveListener } from "~/utils/browser";
 import { homePath } from "~/utils/routeHelpers";
 
 type Props = EditorProps & {
@@ -76,7 +77,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
         "scrollY",
         window.scrollY / window.innerHeight
       );
-    }, 200);
+    }, 250);
 
     const finishObserving = () => {
       if (ui.observingUserId) {
@@ -86,7 +87,11 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
 
     window.addEventListener("click", finishObserving);
     window.addEventListener("wheel", finishObserving);
-    window.addEventListener("scroll", syncScrollPosition);
+    window.addEventListener(
+      "scroll",
+      syncScrollPosition,
+      supportsPassiveListener ? { passive: true } : false
+    );
 
     provider.on("authenticationFailed", () => {
       showToast(

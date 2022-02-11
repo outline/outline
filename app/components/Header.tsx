@@ -10,6 +10,7 @@ import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
+import { supportsPassiveListener } from "~/utils/browser";
 
 type Props = {
   breadcrumb?: React.ReactNode;
@@ -33,7 +34,11 @@ function Header({ breadcrumb, title, actions, hasSidebar }: Props) {
   );
 
   React.useEffect(() => {
-    window.addEventListener("scroll", handleScroll);
+    window.addEventListener(
+      "scroll",
+      handleScroll,
+      supportsPassiveListener ? { passive: true } : false
+    );
     return () => window.removeEventListener("scroll", handleScroll);
   }, [handleScroll]);
 
