@@ -135,6 +135,7 @@ router.get("email.callback", async (ctx) => {
     user = await getUserForEmailSigninToken(token as string);
   } catch (err) {
     ctx.redirect(`/?notice=expired-token`);
+    return;
   }
 
   if (!user.team.guestSignin) {
