@@ -8,7 +8,13 @@ import {
   Node,
   Mark as ProsemirrorMark,
 } from "prosemirror-model";
-import { Transaction, EditorState, Plugin } from "prosemirror-state";
+import {
+  Transaction,
+  EditorState,
+  Plugin,
+  TextSelection,
+} from "prosemirror-state";
+import getMarkRange from "../queries/getMarkRange";
 import Mark from "./Mark";
 
 const LINK_INPUT_REGEX = /\[([^[]+)]\((\S+)\)$/;
@@ -124,8 +130,33 @@ export default class Link extends Mark {
               }
               return false;
             },
-            click: (_view, event: MouseEvent) => {
-              if (event.target instanceof HTMLAnchorElement) {
+            click: (view, event: MouseEvent) => {
+              if (!(event.target instanceof HTMLAnchorElement)) {
+                return false;
+              }
+
+              // clicking a link while editing should select the entire link
+              // which will trigger the link editing toolbar to be displayed
+              if (view.editable) {
+                const { state, dispatch } = view;
+                const range = getMarkRange(
+                  state.selection.$from,
+                  state.schema.marks.link
+                );
+
+                if (range) {
+                  dispatch(
+                    state.tr.setSelection(
+                      new TextSelection(
+                        state.doc.resolve(range.from),
+                        state.doc.resolve(range.to)
+                      )
+                    )
+                  );
+                }
+
+                // clicking while read-only will navigate directly to the link
+              } else {
                 const href =
                   event.target.href ||
                   (event.target.parentNode instanceof HTMLAnchorElement
@@ -137,18 +168,16 @@ export default class Link extends Mark {
                   event.stopPropagation();
                   event.preventDefault();
                   this.options.onClickHashtag(href, event);
-                  return true;
                 }
 
                 if (this.options.onClickLink) {
                   event.stopPropagation();
                   event.preventDefault();
                   this.options.onClickLink(href, event);
-                  return true;
                 }
               }
 
-              return false;
+              return true;
             },
           },
         },
