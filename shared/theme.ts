@@ -149,7 +149,7 @@ export const light = {
   inputBorderFocused: colors.slate,
   listItemHoverBackground: colors.warmGrey,
   toolbarHoverBackground: colors.black,
-  toolbarBackground: colors.lightBlack,
+  toolbarBackground: colors.almostBlack,
   toolbarInput: colors.white10,
   toolbarItem: colors.white,
   tableDivider: colors.smokeDark,
