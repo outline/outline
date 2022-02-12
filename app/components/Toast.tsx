@@ -1,5 +1,5 @@
 import { CheckboxIcon, InfoIcon, WarningIcon } from "outline-icons";
-import { darken } from "polished";
+import { darken, lighten } from "polished";
 import * as React from "react";
 import styled, { css } from "styled-components";
 import { fadeAndScaleIn, pulse } from "~/styles/animations";
@@ -45,17 +45,17 @@ function Toast({ closeAfterMs = 3000, onRequestClose, toast }: Props) {
 
 const Action = styled.span`
   display: inline-block;
-  padding: 10px 12px;
+  padding: 6px 12px;
+  margin-left: 8px;
   height: 100%;
   text-transform: uppercase;
   font-size: 12px;
   color: ${(props) => props.theme.toastText};
   background: ${(props) => darken(0.05, props.theme.toastBackground)};
-  border-top-right-radius: 5px;
-  border-bottom-right-radius: 5px;
+  border-radius: 5px;
 
   &:hover {
-    background: ${(props) => darken(0.1, props.theme.toastBackground)};
+    background: ${(props) => lighten(0.1, props.theme.toastBackground)};
   }
 `;
 
