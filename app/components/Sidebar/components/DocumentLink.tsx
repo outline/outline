@@ -138,9 +138,7 @@ function DocumentLink(
       ...node,
       depth,
       active: isActiveDocument,
-      parentDocumentId: document?.parentDocumentId,
       collectionId: collection?.id || "",
-      index,
     }),
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
@@ -169,7 +167,7 @@ function DocumentLink(
   // Drop to re-parent
   const [{ isOverReparent, canDropToReparent }, dropToReparent] = useDrop({
     accept: "document",
-    drop: async (item: DragObject, monitor) => {
+    drop: (item: DragObject, monitor) => {
       if (monitor.didDrop()) {
         return;
       }

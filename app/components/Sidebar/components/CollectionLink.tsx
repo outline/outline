@@ -76,16 +76,17 @@ function CollectionLink({
   const [{ isOver, canDrop }, drop] = useDrop({
     accept: "document",
     drop: async (item: DragObject, monitor) => {
-      const { collectionId, parentDocumentId } = item;
+      const { id, collectionId } = item;
 
       if (monitor.didDrop()) {
         return;
       }
-      if (!collection || !item) {
+      if (!collection) {
         return;
       }
 
-      if (collection.id === collectionId && !parentDocumentId) {
+      const document = documents.get(id);
+      if (collection.id === collectionId && !document?.parentDocumentId) {
         return;
       }
 
@@ -99,7 +100,6 @@ function CollectionLink({
         itemRef.current = item;
         handlePermissionOpen();
       } else {
-        const document = documents.get(item.id);
         document?.moveWithUndo(collection.id);
       }
     },
@@ -118,10 +118,9 @@ function CollectionLink({
   const [{ isOverReorder }, dropToReorder] = useDrop({
     accept: "document",
     drop: async (item: DragObject) => {
-      if (!collection || !item.id) {
+      if (!collection) {
         return;
       }
-
       const document = documents.get(item.id);
       document?.moveWithUndo(collection.id, undefined, 0);
     },
