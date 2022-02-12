@@ -6,7 +6,6 @@ import Collection from "~/models/Collection";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import HelpText from "~/components/HelpText";
-import { moveDocumentWithUndo } from "~/components/Sidebar/components/CollectionLink";
 import { DragObject } from "~/components/Sidebar/components/SidebarLink";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
@@ -36,15 +35,8 @@ function DocumentReparent({ collection, item, onSubmit, onCancel }: Props) {
       setIsSaving(true);
 
       try {
-        await moveDocumentWithUndo({
-          documents,
-          move: {
-            collectionId: collection.id,
-          },
-          showToast,
-          t,
-          item,
-        });
+        const document = documents.get(item.id);
+        document?.moveWithUndo(collection.id);
         onSubmit();
       } catch (err) {
         showToast(err.message, {
@@ -54,7 +46,7 @@ function DocumentReparent({ collection, item, onSubmit, onCancel }: Props) {
         setIsSaving(false);
       }
     },
-    [documents, collection.id, showToast, t, item, onSubmit]
+    [documents, collection.id, showToast, item, onSubmit]
   );
 
   return (

@@ -129,6 +129,29 @@ export default class Collection extends BaseModel {
     return result;
   }
 
+  documentIndexInCollection(documentId: string) {
+    let index: number | undefined;
+    const findIndex = (nodes: NavigationNode[]) => {
+      if (index) {
+        return;
+      }
+
+      nodes.forEach((node, i) => {
+        if (node.id === documentId) {
+          index = i;
+          return;
+        }
+      });
+
+      nodes.forEach((node) => {
+        findIndex(node.children);
+      });
+    };
+
+    findIndex(this.documents);
+    return index;
+  }
+
   pathToDocument(documentId: string) {
     let path: NavigationNode[] | undefined;
     const document = this.store.rootStore.documents.get(documentId);

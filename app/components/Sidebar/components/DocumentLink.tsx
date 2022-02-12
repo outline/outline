@@ -13,11 +13,9 @@ import Fade from "~/components/Fade";
 import NudeButton from "~/components/NudeButton";
 import useBoolean from "~/hooks/useBoolean";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 import DocumentMenu from "~/menus/DocumentMenu";
 import { NavigationNode } from "~/types";
 import { newDocumentPath } from "~/utils/routeHelpers";
-import { moveDocumentWithUndo } from "./CollectionLink";
 import Disclosure from "./Disclosure";
 import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
@@ -58,7 +56,6 @@ function DocumentLink(
   const document = documents.get(node.id);
   const { fetchChildDocuments } = documents;
   const [isEditing, setIsEditing] = React.useState(false);
-  const { showToast } = useToasts();
   React.useEffect(() => {
     if (isActiveDocument && hasChildDocuments) {
       fetchChildDocuments(node.id);
@@ -181,16 +178,8 @@ function DocumentLink(
         return;
       }
 
-      moveDocumentWithUndo({
-        documents,
-        move: {
-          collectionId: collection.id,
-          parentDocumentId: node.id,
-        },
-        showToast,
-        t,
-        item,
-      });
+      const document = documents.get(item.id);
+      document?.moveWithUndo(collection.id, node.id);
     },
     canDrop: (_item, monitor) =>
       !isDraft &&
@@ -242,18 +231,12 @@ function DocumentLink(
 
       const parentDocumentId = expanded ? node.id : parentId;
       const droppedDocumentIndex = expanded ? 0 : index + 1;
-
-      moveDocumentWithUndo({
-        documents,
-        showToast,
-        t,
-        move: {
-          collectionId: collection.id,
-          parentDocumentId,
-          index: droppedDocumentIndex,
-        },
-        item,
-      });
+      const document = documents.get(item.id);
+      document?.moveWithUndo(
+        collection.id,
+        parentDocumentId,
+        droppedDocumentIndex
+      );
     },
     collect: (monitor) => ({
       isOverReorder: !!monitor.isOver(),
