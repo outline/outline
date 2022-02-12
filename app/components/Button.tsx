@@ -26,6 +26,7 @@ const RealButton = styled.button<{
   flex-shrink: 0;
   cursor: pointer;
   user-select: none;
+  appearance: none !important;
 
   ${(props) =>
     !props.borderOnHover &&
