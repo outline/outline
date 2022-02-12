@@ -40,11 +40,11 @@ type Props = {
   view: EditorView;
 };
 
-function isVisible(props: Props, link: boolean) {
+function isVisible(props: Props) {
   const { view } = props;
   const { selection } = view.state;
 
-  if (link) {
+  if (isMarkActive(view.state.schema.marks.link)(view.state)) {
     return true;
   }
   if (!selection || selection.empty) {
@@ -239,7 +239,7 @@ export default class SelectionToolbar extends React.Component<Props> {
     return (
       <FloatingToolbar
         view={view}
-        active={isVisible(this.props, link)}
+        active={isVisible(this.props)}
         ref={this.menuRef}
       >
         {link && range ? (
