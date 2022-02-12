@@ -19,6 +19,7 @@ import Button from "~/components/Button";
 import Collaborators from "~/components/Collaborators";
 import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
 import Header from "~/components/Header";
+import InputSearch from "~/components/InputSearch";
 import Tooltip from "~/components/Tooltip";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";

@@ -1,12 +1,12 @@
 import * as React from "react";
 import { Dialog } from "reakit/Dialog";
-import { Popover as ReakitPopover } from "reakit/Popover";
+import { Popover as ReakitPopover, PopoverProps } from "reakit/Popover";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import useMobile from "~/hooks/useMobile";
 import { fadeAndScaleIn } from "~/styles/animations";
 
-type Props = {
+type Props = PopoverProps & {
   children: React.ReactNode;
   tabIndex?: number;
   width?: number;

@@ -1,6 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
+import SearchPopover from "~/scenes/Document/components/SearchPopover";
 import Scrollable from "~/components/Scrollable";
 import useStores from "~/hooks/useStores";
 import { NavigationNode } from "~/types";
@@ -19,6 +20,9 @@ function SharedSidebar({ rootNode, shareId }: Props) {
   return (
     <Sidebar>
       <ScrollContainer flex>
+        <TopSection>
+          <SearchPopover />
+        </TopSection>
         <Section>
           <DocumentLink
             index={0}
@@ -35,6 +39,10 @@ function SharedSidebar({ rootNode, shareId }: Props) {
 
 const ScrollContainer = styled(Scrollable)`
   padding-bottom: 16px;
+`;
+
+const TopSection = styled(Section)`
+  margin-bottom: 20px;
 `;
 
 export default observer(SharedSidebar);

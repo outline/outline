@@ -119,6 +119,7 @@ export type Props = {
   onChange?: (
     ev: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => unknown;
+  innerRef?: React.RefObject<HTMLInputElement | HTMLTextAreaElement>;
   onKeyDown?: (ev: React.KeyboardEvent<HTMLInputElement>) => unknown;
   onFocus?: (ev: React.SyntheticEvent) => unknown;
   onBlur?: (ev: React.SyntheticEvent) => unknown;
@@ -126,7 +127,10 @@ export type Props = {
 
 @observer
 class Input extends React.Component<Props> {
-  input = React.createRef<HTMLInputElement | HTMLTextAreaElement>();
+  // input = React.createRef<HTMLInputElement | HTMLTextAreaElement>();
+  input =
+    this.props.innerRef ||
+    React.createRef<HTMLInputElement | HTMLTextAreaElement>();
 
   @observable
   focused = false;
@@ -182,7 +186,6 @@ class Input extends React.Component<Props> {
           <Outline focused={this.focused} margin={margin}>
             {icon && <IconWrapper>{icon}</IconWrapper>}
             <InputComponent
-              // @ts-expect-error no idea why this is not working
               ref={this.input}
               onBlur={this.handleBlur}
               onFocus={this.handleFocus}
