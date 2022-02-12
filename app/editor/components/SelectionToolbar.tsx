@@ -40,14 +40,14 @@ type Props = {
   view: EditorView;
 };
 
-function isVisible(props: Props) {
+function isVisible(props: Props, link: boolean) {
   const { view } = props;
   const { selection } = view.state;
 
-  if (!selection) {
-    return false;
+  if (link) {
+    return true;
   }
-  if (selection.empty) {
+  if (!selection || selection.empty) {
     return false;
   }
   if (selection instanceof NodeSelection && selection.node.type.name === "hr") {
@@ -232,14 +232,14 @@ export default class SelectionToolbar extends React.Component<Props> {
       state.selection.to
     ).textContent;
 
-    if (isTextSelection && !selectionText) {
+    if (isTextSelection && !selectionText && !link) {
       return null;
     }
 
     return (
       <FloatingToolbar
         view={view}
-        active={isVisible(this.props)}
+        active={isVisible(this.props, link)}
         ref={this.menuRef}
       >
         {link && range ? (
