@@ -1,4 +1,5 @@
 import Token from "markdown-it/lib/token";
+import { OpenIcon } from "outline-icons";
 import { toggleMark } from "prosemirror-commands";
 import { InputRule } from "prosemirror-inputrules";
 import { MarkdownSerializerState } from "prosemirror-markdown";
@@ -9,6 +10,11 @@ import {
   Mark as ProsemirrorMark,
 } from "prosemirror-model";
 import { Transaction, EditorState, Plugin } from "prosemirror-state";
+import { Decoration, DecorationSet } from "prosemirror-view";
+import * as React from "react";
+import ReactDOM from "react-dom";
+import { isInternalUrl } from "../../utils/urls";
+import findLinkNodes from "../queries/findLinkNodes";
 import Mark from "./Mark";
 
 const LINK_INPUT_REGEX = /\[([^[]+)]\((\S+)\)$/;
@@ -112,6 +118,38 @@ export default class Link extends Mark {
     return [
       new Plugin({
         props: {
+          decorations: (state) => {
+            const { doc } = state;
+            const decorations: Decoration[] = [];
+            const links = findLinkNodes(doc);
+
+            links.forEach((nodeWithPos) => {
+              const linkMark = nodeWithPos.node.marks.find(
+                (mark) => mark.type.name === "link"
+              );
+              if (linkMark && !isInternalUrl(linkMark.attrs.href)) {
+                decorations.push(
+                  Decoration.widget(
+                    nodeWithPos.pos,
+                    () => {
+                      const component = (
+                        <OpenIcon color="currentColor" size={16} />
+                      );
+                      const icon = document.createElement("span");
+                      icon.className = "external-link";
+                      ReactDOM.render(component, icon);
+                      return icon;
+                    },
+                    {
+                      side: -1,
+                    }
+                  )
+                );
+              }
+            });
+
+            return DecorationSet.create(doc, decorations);
+          },
           handleDOMEvents: {
             mouseover: (_view, event: MouseEvent) => {
               if (

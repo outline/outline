@@ -529,13 +529,16 @@ const EditorStyles = styled.div<{
 
     a {
       color: ${(props) => props.theme.text};
-      border-bottom: 1px solid ${(props) => lighten(0.5, props.theme.text)};
-      text-decoration: none !important;
+      text-decoration: underline;
+      text-decoration-color: ${(props) => lighten(0.5, props.theme.text)};
+      text-decoration-thickness: 1px;
+      text-underline-offset: .15em;
       font-weight: 500;
 
       &:hover {
-        border-bottom: 1px solid ${(props) => props.theme.text};
-        text-decoration: none;
+        text-decoration: underline;
+        text-decoration-color: ${(props) => props.theme.text};
+        text-decoration-thickness: 1px;
       }
     }
   }
@@ -716,6 +719,11 @@ const EditorStyles = styled.div<{
     a {
       color: ${(props) => props.theme.textHighlightForeground};
     }
+  }
+
+  .external-link {
+    position: relative;
+    top: 2px;
   }
 
   .code-actions,
