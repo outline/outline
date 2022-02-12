@@ -4,7 +4,7 @@ import styled from "styled-components";
 import Flex from "~/components/Flex";
 import InputSearch from "~/components/InputSearch";
 import Key from "~/components/Key";
-import { metaDisplay } from "~/utils/keyboard";
+import { metaDisplay, altDisplay } from "~/utils/keyboard";
 
 function KeyboardShortcuts() {
   const { t } = useTranslation();
@@ -44,7 +44,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>Ctrl</Key> + <Key>Alt</Key> + <Key>h</Key>
+                <Key>Ctrl</Key> + <Key>{altDisplay}</Key> + <Key>h</Key>
               </>
             ),
             label: t("Table of contents"),
@@ -246,7 +246,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>Alt</Key> + <Key>↑</Key>
+                <Key>{altDisplay}</Key> + <Key>↑</Key>
               </>
             ),
             label: t("Move list item up"),
@@ -254,7 +254,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>Alt</Key> + <Key>↓</Key>
+                <Key>{altDisplay}</Key> + <Key>↓</Key>
               </>
             ),
             label: t("Move list item down"),
