@@ -75,7 +75,7 @@ function CollectionLink({
   // Drop to re-parent document
   const [{ isOver, canDrop }, drop] = useDrop({
     accept: "document",
-    drop: async (item: DragObject, monitor) => {
+    drop: (item: DragObject, monitor) => {
       const { id, collectionId } = item;
 
       if (monitor.didDrop()) {
@@ -117,7 +117,7 @@ function CollectionLink({
   // Drop to reorder document
   const [{ isOverReorder }, dropToReorder] = useDrop({
     accept: "document",
-    drop: async (item: DragObject) => {
+    drop: (item: DragObject) => {
       if (!collection) {
         return;
       }
@@ -135,7 +135,7 @@ function CollectionLink({
     dropToReorderCollection,
   ] = useDrop({
     accept: "collection",
-    drop: async (item: DragObject) => {
+    drop: (item: DragObject) => {
       collections.move(
         item.id,
         fractionalIndex(collection.index, belowCollectionIndex)
