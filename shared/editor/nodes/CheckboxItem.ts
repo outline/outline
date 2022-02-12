@@ -35,7 +35,7 @@ export default class CheckboxItem extends Node {
       toDOM: (node) => {
         const input = document.createElement("span");
         input.tabIndex = -1;
-        input.className = "checkbox";
+        input.className = node.attrs.checked ? "checkbox checked" : "checkbox";
         input.ariaChecked = node.attrs.checked.toString();
         input.setAttribute("role", "checkbox");
         input.addEventListener("click", this.handleClick);

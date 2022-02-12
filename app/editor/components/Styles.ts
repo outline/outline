@@ -654,7 +654,7 @@ const EditorStyles = styled.div<{
         "%23"
       )}' /%3E%3C/svg%3E%0A");`}
 
-    &[aria-checked=true] {
+    &.checked {
       opacity: 1;
       background-image: ${(props) =>
         `url(
