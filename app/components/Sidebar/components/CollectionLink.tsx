@@ -71,6 +71,9 @@ function CollectionLink({
   const [expanded, setExpanded] = React.useState(
     collection.id === ui.activeCollectionId
   );
+  const [expandedViaDisclosure, setExpandedViaDisclosure] = React.useState(
+    false
+  );
 
   const manualSort = collection.sort.field === "index";
   const can = policies.abilities(collection.id);
@@ -208,6 +211,7 @@ function CollectionLink({
 
     if (isDraggingAnyCollection) {
       setExpanded(false);
+      setExpandedViaDisclosure(false);
     } else {
       setExpanded(collection.id === ui.activeCollectionId);
     }
@@ -233,10 +237,10 @@ function CollectionLink({
               icon={
                 <>
                   <Disclosure
-                    expanded={expanded}
+                    expanded={expandedViaDisclosure}
                     onClick={(event) => {
                       event.preventDefault();
-                      setExpanded((prev) => !prev);
+                      setExpandedViaDisclosure((prev) => !prev);
                     }}
                   />
                   <CollectionIcon collection={collection} expanded={expanded} />
@@ -287,9 +291,10 @@ function CollectionLink({
       </div>
       <Transition
         style={{
-          maxHeight: expanded
-            ? (collection?.documentIds?.length ?? 1) * 80 + "px"
-            : "0px",
+          maxHeight:
+            expanded || expandedViaDisclosure
+              ? (collection?.documentIds?.length ?? 1) * 80 + "px"
+              : "0px",
         }}
       >
         {collectionDocuments.map((node, index) => (
