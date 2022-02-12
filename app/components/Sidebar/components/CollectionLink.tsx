@@ -1,5 +1,6 @@
 import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
+import { CollapsedIcon } from "outline-icons";
 import * as React from "react";
 import { useDrop, useDrag } from "react-dnd";
 import { useTranslation } from "react-i18next";
@@ -21,6 +22,7 @@ import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
 import EditableTitle from "./EditableTitle";
 import SidebarLink, { DragObject } from "./SidebarLink";
+import Transition from "./Transition";
 
 type Props = {
   collection: Collection;
@@ -229,7 +231,16 @@ function CollectionLink({
             <SidebarLink
               to={collection.url}
               icon={
-                <CollectionIcon collection={collection} expanded={expanded} />
+                <>
+                  <Disclosure
+                    expanded={expanded}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      setExpanded((prev) => !prev);
+                    }}
+                  />
+                  <CollectionIcon collection={collection} expanded={expanded} />
+                </>
               }
               showActions={menuOpen}
               isActiveDrop={isOver && canDrop}
@@ -242,7 +253,7 @@ function CollectionLink({
                 />
               }
               exact={false}
-              depth={0.5}
+              depth={0.6}
               menu={
                 !isEditing && (
                   <>
@@ -274,8 +285,14 @@ function CollectionLink({
           />
         )}
       </div>
-      {expanded &&
-        collectionDocuments.map((node, index) => (
+      <Transition
+        style={{
+          maxHeight: expanded
+            ? (collection?.documentIds?.length ?? 1) * 80 + "px"
+            : "0px",
+        }}
+      >
+        {collectionDocuments.map((node, index) => (
           <DocumentLink
             key={node.id}
             node={node}
@@ -288,6 +305,7 @@ function CollectionLink({
             index={index}
           />
         ))}
+      </Transition>
       <Modal
         title={t("Move document")}
         onRequestClose={handlePermissionClose}
@@ -309,6 +327,14 @@ function CollectionLink({
 const Draggable = styled("div")<{ $isDragging: boolean; $isMoving: boolean }>`
   opacity: ${(props) => (props.$isDragging || props.$isMoving ? 0.5 : 1)};
   pointer-events: ${(props) => (props.$isMoving ? "none" : "auto")};
+`;
+
+const Disclosure = styled(CollapsedIcon)<{ expanded?: boolean }>`
+  transition: transform 100ms ease, fill 50ms !important;
+  position: absolute;
+  left: 0px;
+  ${({ expanded }) => !expanded && "transform: rotate(-90deg);"};
+  display: none;
 `;
 
 const CollectionSortMenuWithMargin = styled(CollectionSortMenu)`

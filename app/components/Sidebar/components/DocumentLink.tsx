@@ -21,6 +21,7 @@ import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
 import EditableTitle from "./EditableTitle";
 import SidebarLink, { DragObject } from "./SidebarLink";
+import Transition from "./Transition";
 
 type Props = {
   node: NavigationNode;
@@ -351,9 +352,15 @@ function DocumentLink(
           <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
         )}
       </Relative>
-      {expanded &&
-        !isDragging &&
-        nodeChildren.map((childNode, index) => (
+      <Transition
+        style={{
+          maxHeight:
+            expanded && !isDragging
+              ? (collection?.documentIds?.length ?? 1) * 80 + "px"
+              : "0px",
+        }}
+      >
+        {nodeChildren.map((childNode, index) => (
           <ObservedDocumentLink
             key={childNode.id}
             collection={collection}
@@ -367,6 +374,7 @@ function DocumentLink(
             parentId={node.id}
           />
         ))}
+      </Transition>
     </>
   );
 }

@@ -69,7 +69,7 @@ function SidebarLink(
       background: theme.sidebarItemBackground,
       ...style,
     }),
-    [theme, style]
+    [theme.text, theme.sidebarItemBackground, style]
   );
 
   return (
@@ -156,6 +156,10 @@ const Link = styled(NavLink)<{ $isActiveDrop?: boolean; $isDraft?: boolean }>`
   svg {
     ${(props) => (props.$isActiveDrop ? `fill: ${props.theme.white};` : "")}
     transition: fill 50ms;
+  }
+
+  &:hover svg {
+    display: inline-block;
   }
 
   &:focus {
