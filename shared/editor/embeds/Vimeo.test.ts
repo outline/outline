@@ -5,6 +5,7 @@ describe("Vimeo", () => {
 
   test("to be enabled on video link", () => {
     expect("https://vimeo.com/265045525".match(match)).toBeTruthy();
+    expect("https://vimeo.com/265045525/b9fefc8598".match(match)).toBeTruthy();
   });
 
   test("to not be enabled elsewhere", () => {
