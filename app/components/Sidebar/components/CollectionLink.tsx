@@ -69,10 +69,9 @@ function CollectionLink({
   }, []);
 
   const { ui, documents, policies, collections } = useStores();
-  const [expandState, setExpandedState] = React.useState({
-    expanded: collection.id === ui.activeCollectionId,
-    source: "activeCollection",
-  });
+  const [expanded, setExpanded] = React.useState(
+    collection.id === ui.activeCollectionId
+  );
 
   const prevActiveCollectionId = usePrevious<string | undefined>(
     ui.activeCollectionId
@@ -206,39 +205,11 @@ function CollectionLink({
     isDraggingAnotherCollection || isCollectionDragging;
 
   React.useEffect(() => {
-    setExpandedState({
-      expanded: collection.id === ui.activeCollectionId,
-      source: "activeCollection",
-    });
-  }, [collection.id, ui.activeCollectionId]);
-
-  React.useEffect(() => {
-    // If we're viewing a starred document through the starred menu then don't
-    // touch the expanded / collapsed state of the collections
-    if (search === "?starred") {
-      return;
-    }
-
-    const wasUIActiveCollection =
-      collection.id === prevActiveCollectionId &&
-      collection.id !== ui.activeCollectionId;
-
-    if (isDraggingAnyCollection || wasUIActiveCollection) {
-      setExpandedState({ expanded: false, source: "" });
-    } else if (
-      !wasUIActiveCollection &&
-      expandState.expanded &&
-      expandState.source === "disclosure"
-    ) {
-      setExpandedState({
-        expanded: true,
-        source: "disclosure",
-      });
+    if (isDraggingAnyCollection) {
+      setExpanded(false);
     }
   }, [
     collection.id,
-    expandState.expanded,
-    expandState.source,
     isDraggingAnyCollection,
     prevActiveCollectionId,
     search,
@@ -265,19 +236,13 @@ function CollectionLink({
               icon={
                 <>
                   <Disclosure
-                    expanded={expandState.expanded}
+                    expanded={expanded}
                     onClick={(event) => {
                       event.preventDefault();
-                      setExpandedState((prev) => ({
-                        expanded: !prev.expanded,
-                        source: "disclosure",
-                      }));
+                      setExpanded((prev) => !prev);
                     }}
                   />
-                  <CollectionIcon
-                    collection={collection}
-                    expanded={collection.id === ui.activeCollectionId}
-                  />
+                  <CollectionIcon collection={collection} expanded={expanded} />
                 </>
               }
               showActions={menuOpen}
@@ -313,7 +278,7 @@ function CollectionLink({
             />
           </DropToImport>
         </Draggable>
-        {expandState.expanded && manualSort && (
+        {expanded && manualSort && (
           <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
         )}
         {isDraggingAnyCollection && (
@@ -324,11 +289,9 @@ function CollectionLink({
         )}
       </div>
       <Transition
-        $expanded={expandState.expanded}
+        $expanded={expanded}
         $maxHeight={
-          expandState.expanded
-            ? (collection?.documentIds?.length ?? 1) * 80 + "px"
-            : "0px"
+          expanded ? (collection?.documentIds?.length ?? 1) * 80 + "px" : "0px"
         }
       >
         {collectionDocuments.map((node, index) => (
