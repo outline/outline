@@ -219,6 +219,8 @@ function CollectionLink({
 
     if (isDraggingAnyCollection || wasUIActiveCollection) {
       setExpanded(false);
+    } else {
+      setExpanded(collection.id === ui.activeCollectionId);
     }
   }, [
     isDraggingAnyCollection,
