@@ -353,12 +353,12 @@ function DocumentLink(
         )}
       </Relative>
       <Transition
-        style={{
-          maxHeight:
-            expanded && !isDragging
-              ? (collection?.documentIds?.length ?? 1) * 80 + "px"
-              : "0px",
-        }}
+        $expanded={expanded && !isDragging}
+        $maxHeight={
+          expanded && !isDragging
+            ? (collection?.documentIds?.length ?? 1) * 80 + "px"
+            : "0px"
+        }
       >
         {nodeChildren.map((childNode, index) => (
           <ObservedDocumentLink

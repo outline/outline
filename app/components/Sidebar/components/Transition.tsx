@@ -1,7 +1,9 @@
 import styled from "styled-components";
 
-const Transition = styled.div`
-  transition: max-height 400ms cubic-bezier(0.08, 0.17, 0.14, 0.87);
+const Transition = styled.div<{ $expanded: boolean; $maxHeight: string }>`
+  max-height: ${(props) => props.$maxHeight};
+  transition: ${(props) =>
+    props.$expanded ? "max-height 300ms ease-in" : "max-height 400ms ease-out"};
   overflow: hidden;
 `;
 

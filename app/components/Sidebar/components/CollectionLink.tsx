@@ -13,6 +13,7 @@ import DocumentReparent from "~/scenes/DocumentReparent";
 import CollectionIcon from "~/components/CollectionIcon";
 import Modal from "~/components/Modal";
 import useBoolean from "~/hooks/useBoolean";
+import usePrevious from "~/hooks/usePrevious";
 import useStores from "~/hooks/useStores";
 import CollectionMenu from "~/menus/CollectionMenu";
 import CollectionSortMenu from "~/menus/CollectionSortMenu";
@@ -71,8 +72,9 @@ function CollectionLink({
   const [expanded, setExpanded] = React.useState(
     collection.id === ui.activeCollectionId
   );
-  const [expandedViaDisclosure, setExpandedViaDisclosure] = React.useState(
-    false
+
+  const prevActiveCollectionId = usePrevious<string | undefined>(
+    ui.activeCollectionId
   );
 
   const manualSort = collection.sort.field === "index";
@@ -209,13 +211,20 @@ function CollectionLink({
       return;
     }
 
-    if (isDraggingAnyCollection) {
+    const wasUIActiveCollection =
+      collection.id === prevActiveCollectionId &&
+      collection.id !== ui.activeCollectionId;
+
+    if (isDraggingAnyCollection || wasUIActiveCollection) {
       setExpanded(false);
-      setExpandedViaDisclosure(false);
-    } else {
-      setExpanded(collection.id === ui.activeCollectionId);
     }
-  }, [isDraggingAnyCollection, collection.id, ui.activeCollectionId, search]);
+  }, [
+    isDraggingAnyCollection,
+    collection.id,
+    ui.activeCollectionId,
+    search,
+    prevActiveCollectionId,
+  ]);
 
   return (
     <>
@@ -237,10 +246,10 @@ function CollectionLink({
               icon={
                 <>
                   <Disclosure
-                    expanded={expandedViaDisclosure}
+                    expanded={expanded}
                     onClick={(event) => {
                       event.preventDefault();
-                      setExpandedViaDisclosure((prev) => !prev);
+                      setExpanded((prev) => !prev);
                     }}
                   />
                   <CollectionIcon collection={collection} expanded={expanded} />
@@ -290,12 +299,10 @@ function CollectionLink({
         )}
       </div>
       <Transition
-        style={{
-          maxHeight:
-            expanded || expandedViaDisclosure
-              ? (collection?.documentIds?.length ?? 1) * 80 + "px"
-              : "0px",
-        }}
+        $expanded={expanded}
+        $maxHeight={
+          expanded ? (collection?.documentIds?.length ?? 1) * 80 + "px" : "0px"
+        }
       >
         {collectionDocuments.map((node, index) => (
           <DocumentLink
