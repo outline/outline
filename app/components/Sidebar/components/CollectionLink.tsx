@@ -33,6 +33,8 @@ type Props = {
   belowCollection: Collection | void;
 };
 
+// highliight if active and document collapsed with more transperancy
+
 function CollectionLink({
   collection,
   activeDocument,
@@ -252,7 +254,10 @@ function CollectionLink({
                       setExpanded((prev) => !prev);
                     }}
                   />
-                  <CollectionIcon collection={collection} expanded={expanded} />
+                  <CollectionIcon
+                    collection={collection}
+                    expanded={collection.id === ui.activeCollectionId}
+                  />
                 </>
               }
               showActions={menuOpen}
