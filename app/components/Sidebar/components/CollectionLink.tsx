@@ -33,8 +33,6 @@ type Props = {
   belowCollection: Collection | void;
 };
 
-// highliight if active and document collapsed with more transperancy
-
 function CollectionLink({
   collection,
   activeDocument,
