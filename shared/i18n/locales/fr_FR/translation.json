@@ -301,7 +301,7 @@
   "Create a document": "Créer un document",
   "Manage permissions": "Gérer les permissions",
   "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however documents within will be moved to the trash.": "Êtes-vous sûr ? La suppression de la collection <em>{{collectionName}}</em> est définitive et ne peut pas être restaurée. Cependant les documents inclus seront déplacés vers la corbeille.",
-  "Also, <em>{{collectionName}}</em> is being used as the start view – deleting it will reset the start view to the Home page.": "Also, <em>{{collectionName}}</em> is being used as the start view – deleting it will reset the start view to the Home page.",
+  "Also, <em>{{collectionName}}</em> is being used as the start view – deleting it will reset the start view to the Home page.": "De plus, la collection <em>{{collectionName}}</em> est affichée par défaut au démarrage - sa suppression réinitialisera la vue de démarrage sur la page d'accueil.",
   "Deleting": "Suppression",
   "I’m sure – Delete": "Je suis sûr – Supprimer",
   "The collection was updated": "La collection a été mise à jour",
