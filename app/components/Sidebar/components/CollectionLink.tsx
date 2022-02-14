@@ -13,7 +13,6 @@ import DocumentReparent from "~/scenes/DocumentReparent";
 import CollectionIcon from "~/components/CollectionIcon";
 import Modal from "~/components/Modal";
 import useBoolean from "~/hooks/useBoolean";
-import usePrevious from "~/hooks/usePrevious";
 import useStores from "~/hooks/useStores";
 import CollectionMenu from "~/menus/CollectionMenu";
 import CollectionSortMenu from "~/menus/CollectionSortMenu";
@@ -71,10 +70,6 @@ function CollectionLink({
   const { ui, documents, policies, collections } = useStores();
   const [expanded, setExpanded] = React.useState(
     collection.id === ui.activeCollectionId
-  );
-
-  const prevActiveCollectionId = usePrevious<string | undefined>(
-    ui.activeCollectionId
   );
 
   const manualSort = collection.sort.field === "index";
@@ -208,13 +203,17 @@ function CollectionLink({
     if (isDraggingAnyCollection) {
       setExpanded(false);
     }
-  }, [
-    collection.id,
-    isDraggingAnyCollection,
-    prevActiveCollectionId,
-    search,
-    ui.activeCollectionId,
-  ]);
+  }, [collection.name, isDraggingAnyCollection]);
+
+  React.useEffect(() => {
+    // If we're viewing a starred document through the starred menu then don't
+    // touch the expanded / collapsed state of the collections
+    if (search === "?starred") {
+      return;
+    }
+
+    setExpanded((prev) => collection.id === ui.activeCollectionId || prev);
+  }, [collection.id, ui.activeCollectionId, search]);
 
   return (
     <>
