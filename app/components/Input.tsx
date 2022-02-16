@@ -127,7 +127,6 @@ export type Props = {
 
 @observer
 class Input extends React.Component<Props> {
-  // input = React.createRef<HTMLInputElement | HTMLTextAreaElement>();
   input =
     this.props.innerRef ||
     React.createRef<HTMLInputElement | HTMLTextAreaElement>();

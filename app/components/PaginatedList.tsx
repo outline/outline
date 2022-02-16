@@ -81,7 +81,10 @@ class PaginatedList extends React.Component<Props> {
       ...this.props.options,
     });
 
+    console.log({ results });
+
     if (results && (results.length === 0 || results.length < limit)) {
+      console.log("no more results");
       this.allowLoadMore = false;
     } else {
       this.offset += limit;
@@ -123,6 +126,9 @@ class PaginatedList extends React.Component<Props> {
     const showEmpty = !items.length && !showLoading;
     const showList =
       (this.isLoaded || this.isInitiallyLoaded) && !showLoading && !showEmpty;
+
+    console.log({ items });
+
     return (
       <>
         {showEmpty && empty}

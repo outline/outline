@@ -16,13 +16,12 @@ import useStores from "~/hooks/useStores";
 import SharePopover from "./SharePopover";
 
 type Props = { shareId: string };
+type SearchFunction = (options: Record<string, any>) => any;
 
 function ShareButton({ shareId }: Props) {
   const { t } = useTranslation();
   const { documents } = useStores();
   const theme = useTheme();
-
-  const [searchResults, setSearchResults] = React.useState([]);
 
   const popover = usePopoverState({
     placement: "bottom-start",
@@ -31,39 +30,39 @@ function ShareButton({ shareId }: Props) {
   });
 
   const [query, setQuery] = React.useState("");
+  const [searchQuery, setSearchQuery] = React.useState<SearchFunction | null>(
+    null
+  );
 
-  // NOTE: pass the query into the "options" prop of paginated list, which gets spread
+  const searchResults = documents.searchResults(query);
+
+  // TODO next: pass the query into the "options" prop of paginated list, which gets spread
   // into the function call
+
+  // TODO: debounce the search function
+
+  // TODO: render the items in a way that looks good, probably with HTML
+  // TODO: scope the search by the shareId
+  // TODO write tests for that
+
+  // right now I'm making a closure but could shim it into a function with one object argument
+
   const handleSearch = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
+
     console.log({ value });
+
     if (value.length > 0) {
       popover.show();
-
-      const params = {
-        offset: 0,
-        limit: DEFAULT_PAGINATION_LIMIT,
-        shareId,
-      };
-
-      try {
-        const results = await documents.search(value, params);
-
-        if (results.length === 0 || results.length < DEFAULT_PAGINATION_LIMIT) {
-          this.allowLoadMore = false;
-        } else {
-          this.offset += DEFAULT_PAGINATION_LIMIT;
-        }
-      } catch (err) {
-        this.lastQuery = "";
-        throw err;
-      } finally {
-        this.isLoading = false;
-      }
+      setSearchQuery(() => async (options: Record<string, any>) => {
+        return await documents.search(value.trim(), options);
+      });
+      // loading state... might be handled by paginated list
     } else {
       popover.hide();
     }
 
+    // unclear that we even need this in local state
     if (value) {
       setQuery(event.target.value);
     }
@@ -97,12 +96,14 @@ function ShareButton({ shareId }: Props) {
       >
         HELLO THIS IS SEARCH RESULT: {query}
         <br />
-        <PaginatedList
-          items={searchResults}
-          empty={<Empty>{t("No groups have been created yet")}</Empty>}
-          fetch={fetchPage}
-          renderItem={(item) => <div>{item.id}</div>}
-        />
+        {searchQuery && (
+          <PaginatedList
+            items={searchResults}
+            empty={<Empty>{t("No results for...")}</Empty>}
+            fetch={searchQuery}
+            renderItem={(item) => <div>{item.context}</div>}
+          />
+        )}
       </Popover>
     </>
   );
