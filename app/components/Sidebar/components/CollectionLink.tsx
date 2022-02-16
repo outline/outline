@@ -132,7 +132,7 @@ function CollectionLink({
 
   // Drop to reorder collection
   const [
-    { isCollectionDropping, isDraggingAnotherCollection, isCollectionDropped },
+    { isCollectionDropping, isDraggingAnotherCollection },
     dropToReorderCollection,
   ] = useDrop({
     accept: "collection",
@@ -151,7 +151,6 @@ function CollectionLink({
     collect: (monitor) => ({
       isCollectionDropping: monitor.isOver(),
       isDraggingAnotherCollection: monitor.canDrop(),
-      isCollectionDropped: monitor.didDrop(),
     }),
   });
 
@@ -206,14 +205,11 @@ function CollectionLink({
       expandedStateBeforeDragging.current =
         expandedStateBeforeDragging.current ?? expanded;
       setExpanded(false);
-    } else if (
-      isCollectionDropped &&
-      expandedStateBeforeDragging.current !== null
-    ) {
+    } else if (expandedStateBeforeDragging.current !== null) {
       setExpanded(expandedStateBeforeDragging.current);
       expandedStateBeforeDragging.current = null;
     }
-  }, [expanded, isCollectionDropped, isDraggingAnyCollection]);
+  }, [expanded, isDraggingAnyCollection]);
 
   React.useEffect(() => {
     // If we're viewing a starred document through the starred menu then don't
