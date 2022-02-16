@@ -22,7 +22,6 @@ import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
 import EditableTitle from "./EditableTitle";
 import SidebarLink, { DragObject } from "./SidebarLink";
-import Transition from "./Transition";
 
 type Props = {
   collection: Collection;
@@ -133,11 +132,11 @@ function CollectionLink({
 
   // Drop to reorder collection
   const [
-    { isCollectionDropping, isDraggingAnotherCollection },
+    { isCollectionDropping, isDraggingAnotherCollection, isCollectionDropped },
     dropToReorderCollection,
   ] = useDrop({
     accept: "collection",
-    drop: async (item: DragObject) => {
+    drop: (item: DragObject) => {
       collections.move(
         item.id,
         fractionalIndex(collection.index, belowCollectionIndex)
@@ -152,6 +151,7 @@ function CollectionLink({
     collect: (monitor) => ({
       isCollectionDropping: monitor.isOver(),
       isDraggingAnotherCollection: monitor.canDrop(),
+      isCollectionDropped: monitor.didDrop(),
     }),
   });
 
@@ -199,11 +199,21 @@ function CollectionLink({
   const isDraggingAnyCollection =
     isDraggingAnotherCollection || isCollectionDragging;
 
+  const expandedStateBeforeDragging = React.useRef<boolean | null>(null);
+
   React.useEffect(() => {
     if (isDraggingAnyCollection) {
+      expandedStateBeforeDragging.current =
+        expandedStateBeforeDragging.current ?? expanded;
       setExpanded(false);
+    } else if (
+      isCollectionDropped &&
+      expandedStateBeforeDragging.current !== null
+    ) {
+      setExpanded(expandedStateBeforeDragging.current);
+      expandedStateBeforeDragging.current = null;
     }
-  }, [collection.name, isDraggingAnyCollection]);
+  }, [expanded, isCollectionDropped, isDraggingAnyCollection]);
 
   React.useEffect(() => {
     // If we're viewing a starred document through the starred menu then don't
@@ -255,7 +265,7 @@ function CollectionLink({
                 />
               }
               exact={false}
-              depth={0.6}
+              depth={0.5}
               menu={
                 !isEditing && (
                   <>
@@ -287,13 +297,8 @@ function CollectionLink({
           />
         )}
       </div>
-      <Transition
-        $expanded={expanded}
-        $maxHeight={
-          expanded ? (collection?.documentIds?.length ?? 1) * 80 + "px" : "0px"
-        }
-      >
-        {collectionDocuments.map((node, index) => (
+      {expanded &&
+        collectionDocuments.map((node, index) => (
           <DocumentLink
             key={node.id}
             node={node}
@@ -306,7 +311,6 @@ function CollectionLink({
             index={index}
           />
         ))}
-      </Transition>
       <Modal
         title={t("Move document")}
         onRequestClose={handlePermissionClose}
