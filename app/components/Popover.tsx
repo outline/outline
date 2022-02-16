@@ -10,32 +10,35 @@ type Props = PopoverProps & {
   children: React.ReactNode;
   tabIndex?: number;
   width?: number;
+  shrink?: boolean;
 };
 
-function Popover({ children, width = 380, ...rest }: Props) {
+function Popover({ children, shrink, width = 380, ...rest }: Props) {
   const isMobile = useMobile();
 
   if (isMobile) {
     return (
       <Dialog {...rest} modal>
-        <Contents>{children}</Contents>
+        <Contents $shrink={shrink}>{children}</Contents>
       </Dialog>
     );
   }
 
   return (
     <ReakitPopover {...rest}>
-      <Contents $width={width}>{children}</Contents>
+      <Contents $shrink={shrink} $width={width}>
+        {children}
+      </Contents>
     </ReakitPopover>
   );
 }
 
-const Contents = styled.div<{ $width?: number }>`
+const Contents = styled.div<{ $shrink: boolean; $width?: number }>`
   animation: ${fadeAndScaleIn} 200ms ease;
   transform-origin: 75% 0;
   background: ${(props) => props.theme.menuBackground};
   border-radius: 6px;
-  padding: 12px 24px;
+  padding: ${(props) => (props.$shrink ? "6px 0" : "12px 24px")};
   max-height: 50vh;
   overflow-y: scroll;
   box-shadow: ${(props) => props.theme.menuShadow};

@@ -1,8 +1,8 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
-import SearchPopover from "~/scenes/Document/components/SearchPopover";
 import Scrollable from "~/components/Scrollable";
+import SearchPopover from "~/components/SearchPopover";
 import useStores from "~/hooks/useStores";
 import { NavigationNode } from "~/types";
 import Sidebar from "./Sidebar";
