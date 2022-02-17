@@ -33,6 +33,7 @@ import Spotify from "./Spotify";
 import Trello from "./Trello";
 import Typeform from "./Typeform";
 import Vimeo from "./Vimeo";
+import Wekan from "./Wekan";
 import Whimsical from "./Whimsical";
 import YouTube from "./YouTube";
 import Image from "./components/Image";
@@ -309,6 +310,13 @@ const embeds: EmbedDescriptor[] = [
     icon: () => <Img src="/images/whimsical.png" alt="Whimsical" />,
     component: Whimsical,
     matcher: matcher(Whimsical),
+  },
+  {
+    title: "Wekan",
+    keywords: "kanban",
+    icon: () => <Img src="/images/wekan.png" alt="Wekan" />,
+    component: Wekan,
+    matcher: matcher(Wekan),
   },
   {
     title: "YouTube",
