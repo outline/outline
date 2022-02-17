@@ -119,7 +119,7 @@ function CollectionLink({
   // Drop to reorder document
   const [{ isOverReorder }, dropToReorder] = useDrop({
     accept: "document",
-    drop: async (item: DragObject) => {
+    drop: (item: DragObject) => {
       if (!collection) {
         return;
       }
@@ -198,18 +198,7 @@ function CollectionLink({
   const isDraggingAnyCollection =
     isDraggingAnotherCollection || isCollectionDragging;
 
-  const expandedStateBeforeDragging = React.useRef<boolean | null>(null);
-
-  React.useEffect(() => {
-    if (isDraggingAnyCollection) {
-      expandedStateBeforeDragging.current =
-        expandedStateBeforeDragging.current ?? expanded;
-      setExpanded(false);
-    } else if (expandedStateBeforeDragging.current !== null) {
-      setExpanded(expandedStateBeforeDragging.current);
-      expandedStateBeforeDragging.current = null;
-    }
-  }, [expanded, isDraggingAnyCollection]);
+  const displayDocumentLinks = expanded && !isDraggingAnyCollection;
 
   React.useEffect(() => {
     // If we're viewing a starred document through the starred menu then don't
@@ -241,13 +230,16 @@ function CollectionLink({
               icon={
                 <>
                   <Disclosure
-                    expanded={expanded}
+                    expanded={displayDocumentLinks}
                     onClick={(event) => {
                       event.preventDefault();
                       setExpanded((prev) => !prev);
                     }}
                   />
-                  <CollectionIcon collection={collection} expanded={expanded} />
+                  <CollectionIcon
+                    collection={collection}
+                    expanded={displayDocumentLinks}
+                  />
                 </>
               }
               showActions={menuOpen}
@@ -283,17 +275,17 @@ function CollectionLink({
             />
           </DropToImport>
         </Draggable>
-        {expanded && manualSort && (
+        {displayDocumentLinks && manualSort && (
           <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
         )}
-        {isDraggingAnyCollection && (
+        {!displayDocumentLinks && (
           <DropCursor
             isActiveDrop={isCollectionDropping}
             innerRef={dropToReorderCollection}
           />
         )}
       </div>
-      {expanded &&
+      {displayDocumentLinks &&
         collectionDocuments.map((node, index) => (
           <DocumentLink
             key={node.id}
