@@ -125,6 +125,9 @@ function DocumentMeta({
     }
 
     if (!lastViewedAt) {
+      if (lastUpdatedByCurrentUser) {
+        return null;
+      }
       return (
         <Viewed>
           •&nbsp;<Modified highlight>{t("Never viewed")}</Modified>
