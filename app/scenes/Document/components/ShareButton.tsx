@@ -26,6 +26,7 @@ function ShareButton({ document }: Props) {
   const popover = usePopoverState({
     gutter: 0,
     placement: "bottom-end",
+    unstable_fixed: true,
   });
 
   return (
