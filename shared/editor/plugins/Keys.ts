@@ -15,19 +15,22 @@ export default class Keys extends Extension {
   }
 
   keys(): Record<string, Command> {
+    const onCancel = () => {
+      if (this.options.onCancel) {
+        this.options.onCancel();
+        return true;
+      }
+      return false;
+    };
+
     return {
       // No-ops prevent Tab escaping the editor bounds
       Tab: () => true,
       "Shift-Tab": () => true,
 
       // Shortcuts for when editor has separate edit mode
-      Escape: () => {
-        if (this.options.onCancel) {
-          this.options.onCancel();
-          return true;
-        }
-        return false;
-      },
+      "Mod-Escape": onCancel,
+      "Shift-Escape": onCancel,
       "Mod-s": () => {
         if (this.options.onSave) {
           this.options.onSave();
