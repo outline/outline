@@ -196,7 +196,7 @@ class Search extends React.Component<Props> {
 
   @action
   fetchResults = async () => {
-    if (this.query) {
+    if (this.query.trim()) {
       const params = {
         offset: this.offset,
         limit: DEFAULT_PAGINATION_LIMIT,
