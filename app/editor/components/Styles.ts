@@ -548,6 +548,12 @@ const EditorStyles = styled.div<{
     cursor: pointer;
   }
 
+  .ProseMirror-focused {
+    a {
+      cursor: text;
+    }
+  }
+
   a:hover {
     text-decoration: ${(props) => (props.readOnly ? "underline" : "none")};
   }

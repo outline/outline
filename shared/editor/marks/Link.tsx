@@ -170,14 +170,14 @@ export default class Link extends Mark {
             }
             return false;
           },
-          click: (view, event: MouseEvent) => {
+          mousedown: (view, event: MouseEvent) => {
             if (!(event.target instanceof HTMLAnchorElement)) {
               return false;
             }
 
             // clicking a link while editing should show the link toolbar,
             // clicking in read-only will navigate
-            if (!view.editable) {
+            if (!view.editable || (view.editable && !view.hasFocus())) {
               const href =
                 event.target.href ||
                 (event.target.parentNode instanceof HTMLAnchorElement
