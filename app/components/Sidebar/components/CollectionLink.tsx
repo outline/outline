@@ -278,7 +278,7 @@ function CollectionLink({
         {displayDocumentLinks && manualSort && (
           <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
         )}
-        {!displayDocumentLinks && (
+        {isDraggingAnyCollection && (
           <DropCursor
             isActiveDrop={isCollectionDropping}
             innerRef={dropToReorderCollection}

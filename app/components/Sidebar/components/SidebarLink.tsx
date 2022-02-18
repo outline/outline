@@ -159,7 +159,7 @@ const Link = styled(NavLink)<{ $isActiveDrop?: boolean; $isDraft?: boolean }>`
   }
 
   &:hover svg {
-    display: inline-block;
+    display: inline;
   }
 
   &:focus {
