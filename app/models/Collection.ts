@@ -66,7 +66,10 @@ export default class Collection extends BaseModel {
 
   @computed
   get isEmpty(): boolean {
-    return this.documents.length === 0;
+    return (
+      this.documents.length === 0 &&
+      this.store.rootStore.documents.inCollection(this.id).length === 0
+    );
   }
 
   @computed
