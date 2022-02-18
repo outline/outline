@@ -103,4 +103,4 @@ function Editor(props: Props, ref: React.Ref<any>) {
   );
 }
 
-export default React.forwardRef<typeof Editor, Props>(Editor);
+export default React.forwardRef(Editor);

@@ -591,7 +591,7 @@ class DocumentScene extends React.Component<Props> {
                   <Editor
                     id={document.id}
                     key={embedsDisabled ? "disabled" : "enabled"}
-                    innerRef={this.editor}
+                    ref={this.editor}
                     multiplayer={collaborativeEditing}
                     shareId={shareId}
                     isDraft={document.isDraft}
