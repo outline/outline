@@ -83,7 +83,7 @@ const Modal = ({
                 </Content>
                 <Back onClick={onRequestClose}>
                   <BackIcon size={32} color="currentColor" />
-                  <Text type="secondary">{t("Back")}</Text>
+                  <Text>{t("Back")}</Text>
                 </Back>
                 <Close onClick={onRequestClose}>
                   <CloseIcon size={32} color="currentColor" />
