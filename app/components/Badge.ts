@@ -1,3 +1,4 @@
+import { transparentize } from "polished";
 import styled from "styled-components";
 
 const Badge = styled.span<{ yellow?: boolean; primary?: boolean }>`
@@ -9,8 +10,10 @@ const Badge = styled.span<{ yellow?: boolean; primary?: boolean }>`
     primary ? theme.white : yellow ? theme.almostBlack : theme.textTertiary};
   border: 1px solid
     ${({ primary, yellow, theme }) =>
-      primary || yellow ? "transparent" : theme.textTertiary};
-  border-radius: 8px;
+      primary || yellow
+        ? "transparent"
+        : transparentize(0.4, theme.textTertiary)};
+  border-radius: 10px;
   font-size: 12px;
   font-weight: 500;
   user-select: none;
