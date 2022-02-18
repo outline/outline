@@ -21,7 +21,7 @@ const colors = {
   black10: "rgba(0, 0, 0, 0.1)",
   black50: "rgba(0, 0, 0, 0.50)",
   primary: "#0366d6",
-  yellow: "#FBCA04",
+  yellow: "#EDBA07",
   warmGrey: "#EDF2F7",
   searchHighlight: "#FDEA9B",
   danger: "#ff476f",
