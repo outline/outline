@@ -5,6 +5,7 @@ import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
+import styled from "styled-components";
 import { PAGINATION_SYMBOL } from "~/stores/BaseStore";
 import User from "~/models/User";
 import Invite from "~/scenes/Invite";
@@ -23,7 +24,7 @@ import useStores from "~/hooks/useStores";
 import PeopleTable from "./components/PeopleTable";
 import UserStatusFilter from "./components/UserStatusFilter";
 
-function People() {
+function Members() {
   const topRef = React.useRef();
   const location = useLocation();
   const history = useHistory();
@@ -223,7 +224,7 @@ function People() {
           placeholder={`${t("Filter")}…`}
           onChange={handleSearch}
         />
-        <UserStatusFilter activeKey={filter} onSelect={handleFilter} />
+        <LargeUserStatusFilter activeKey={filter} onSelect={handleFilter} />
       </Flex>
       <PeopleTable
         topRef={topRef}
@@ -249,4 +250,8 @@ function People() {
   );
 }
 
-export default observer(People);
+const LargeUserStatusFilter = styled(UserStatusFilter)`
+  height: 32px;
+`;
+
+export default observer(Members);
