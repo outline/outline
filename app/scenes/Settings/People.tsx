@@ -12,10 +12,10 @@ import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
-import HelpText from "~/components/HelpText";
 import InputSearch from "~/components/InputSearch";
 import Modal from "~/components/Modal";
 import Scene from "~/components/Scene";
+import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useQuery from "~/hooks/useQuery";
@@ -209,13 +209,13 @@ function People() {
       }
     >
       <Heading>{t("Members")}</Heading>
-      <HelpText>
+      <Text type="secondary">
         <Trans>
           Everyone that has signed into Outline appears here. It’s possible that
           there are other users who have access through {team.signinMethods} but
           haven’t signed in yet.
         </Trans>
-      </HelpText>
+      </Text>
       <Flex gap={8}>
         <InputSearch
           short

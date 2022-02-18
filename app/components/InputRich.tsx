@@ -3,8 +3,8 @@ import * as React from "react";
 import { Trans } from "react-i18next";
 import styled from "styled-components";
 import Editor from "~/components/Editor";
-import HelpText from "~/components/HelpText";
 import { LabelText, Outline } from "~/components/Input";
+import Text from "~/components/Text";
 
 type Props = {
   label: string;
@@ -32,9 +32,9 @@ function InputRich({ label, minHeight, maxHeight, ...rest }: Props) {
       >
         <React.Suspense
           fallback={
-            <HelpText>
+            <Text type="secondary">
               <Trans>Loading editor</Trans>…
-            </HelpText>
+            </Text>
           }
         >
           <Editor onBlur={handleBlur} onFocus={handleFocus} grow {...rest} />

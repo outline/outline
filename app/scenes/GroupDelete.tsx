@@ -5,7 +5,7 @@ import { useHistory } from "react-router-dom";
 import Group from "~/models/Group";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
-import HelpText from "~/components/HelpText";
+import Text from "~/components/Text";
 import useToasts from "~/hooks/useToasts";
 import { groupSettingsPath } from "~/utils/routeHelpers";
 
@@ -40,7 +40,7 @@ function GroupDelete({ group, onSubmit }: Props) {
   return (
     <Flex column>
       <form onSubmit={handleSubmit}>
-        <HelpText>
+        <Text type="secondary">
           <Trans
             defaults="Are you sure about that? Deleting the <em>{{groupName}}</em> group will cause its members to lose access to collections and documents that it is associated with."
             values={{
@@ -50,7 +50,7 @@ function GroupDelete({ group, onSubmit }: Props) {
               em: <strong />,
             }}
           />
-        </HelpText>
+        </Text>
         <Button type="submit" danger>
           {isDeleting ? `${t("Deleting")}…` : t("I’m sure – Delete")}
         </Button>

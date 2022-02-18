@@ -18,10 +18,10 @@ import DocumentListItem from "~/components/DocumentListItem";
 import Empty from "~/components/Empty";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
-import HelpText from "~/components/HelpText";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import Scene from "~/components/Scene";
+import Text from "~/components/Text";
 import withStores from "~/components/withStores";
 import { searchUrl } from "~/utils/routeHelpers";
 import { decodeURIComponentSafe } from "~/utils/urls";
@@ -321,9 +321,9 @@ class Search extends React.Component<Props> {
           {showEmpty && (
             <Fade>
               <Centered column>
-                <HelpText>
+                <Text type="secondary">
                   <Trans>No documents found for your search filters.</Trans>
-                </HelpText>
+                </Text>
               </Centered>
             </Fade>
           )}

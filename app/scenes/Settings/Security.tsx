@@ -5,10 +5,10 @@ import { useState } from "react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import Heading from "~/components/Heading";
-import HelpText from "~/components/HelpText";
 import InputSelect from "~/components/InputSelect";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
+import Text from "~/components/Text";
 import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
@@ -62,12 +62,12 @@ function Security() {
       <Heading>
         <Trans>Security</Trans>
       </Heading>
-      <HelpText>
+      <Text type="secondary">
         <Trans>
           Settings that impact the access, security, and content of your
           knowledge base.
         </Trans>
-      </HelpText>
+      </Text>
 
       <Switch
         label={t("Allow email authentication")}

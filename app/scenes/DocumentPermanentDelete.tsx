@@ -5,7 +5,7 @@ import { useHistory } from "react-router-dom";
 import Document from "~/models/Document";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
-import HelpText from "~/components/HelpText";
+import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 
@@ -49,7 +49,7 @@ function DocumentPermanentDelete({ document, onSubmit }: Props) {
   return (
     <Flex column>
       <form onSubmit={handleSubmit}>
-        <HelpText>
+        <Text type="secondary">
           <Trans
             defaults="Are you sure you want to permanently delete the <em>{{ documentTitle }}</em> document? This action is immediate and cannot be undone."
             values={{
@@ -59,7 +59,7 @@ function DocumentPermanentDelete({ document, onSubmit }: Props) {
               em: <strong />,
             }}
           />
-        </HelpText>
+        </Text>
         <Button type="submit" danger>
           {isDeleting ? `${t("Deleting")}…` : t("I’m sure – Delete")}
         </Button>

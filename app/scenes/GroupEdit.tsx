@@ -4,8 +4,8 @@ import { useTranslation, Trans } from "react-i18next";
 import Group from "~/models/Group";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
-import HelpText from "~/components/HelpText";
 import Input from "~/components/Input";
+import Text from "~/components/Text";
 import useToasts from "~/hooks/useToasts";
 
 type Props = {
@@ -48,12 +48,12 @@ function GroupEdit({ group, onSubmit }: Props) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <HelpText>
+      <Text type="secondary">
         <Trans>
           You can edit the name of this group at any time, however doing so too
           often might confuse your team mates.
         </Trans>
-      </HelpText>
+      </Text>
       <Flex>
         <Input
           type="text"

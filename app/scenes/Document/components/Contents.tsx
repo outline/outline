@@ -1,7 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import HelpText from "~/components/HelpText";
+import Text from "~/components/Text";
 import useWindowScrollPosition from "~/hooks/useWindowScrollPosition";
 
 const HEADING_OFFSET = 20;
@@ -111,7 +111,7 @@ const Heading = styled.h3`
   letter-spacing: 0.04em;
 `;
 
-const Empty = styled(HelpText)`
+const Empty = styled(Text)`
   margin: 1em 0 4em;
   padding-right: 2em;
   font-size: 14px;

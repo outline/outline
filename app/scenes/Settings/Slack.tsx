@@ -8,12 +8,12 @@ import Integration from "~/models/Integration";
 import Button from "~/components/Button";
 import CollectionIcon from "~/components/CollectionIcon";
 import Heading from "~/components/Heading";
-import HelpText from "~/components/HelpText";
 import List from "~/components/List";
 import ListItem from "~/components/List/Item";
 import Notice from "~/components/Notice";
 import Scene from "~/components/Scene";
 import SlackIcon from "~/components/SlackIcon";
+import Text from "~/components/Text";
 import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useQuery from "~/hooks/useQuery";
@@ -72,7 +72,7 @@ function Slack() {
           </Trans>
         </Notice>
       )}
-      <HelpText>
+      <Text type="secondary">
         <Trans
           defaults="Get rich previews of Outline links shared in Slack and use the <em>{{ command }}</em> slash command to search for documents without leaving your chat."
           values={{
@@ -82,7 +82,7 @@ function Slack() {
             em: <Code />,
           }}
         />
-      </HelpText>
+      </Text>
       {env.SLACK_KEY ? (
         <>
           <p>
@@ -102,13 +102,13 @@ function Slack() {
           <p>&nbsp;</p>
 
           <h2>{t("Collections")}</h2>
-          <HelpText>
+          <Text type="secondary">
             <Trans>
               Connect Outline collections to Slack channels and messages will be
               automatically posted to Slack when documents are published or
               updated.
             </Trans>
-          </HelpText>
+          </Text>
 
           <List>
             {groupedCollections.map(([collection, integration]) => {

@@ -7,10 +7,10 @@ import { languageOptions } from "@shared/i18n";
 import UserDelete from "~/scenes/UserDelete";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
-import HelpText from "~/components/HelpText";
 import Input from "~/components/Input";
 import InputSelect from "~/components/InputSelect";
 import Scene from "~/components/Scene";
+import Text from "~/components/Text";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
@@ -126,12 +126,12 @@ const Profile = () => {
 
       <DangerZone>
         <h2>{t("Delete Account")}</h2>
-        <HelpText small>
+        <Text type="secondary" size="small">
           <Trans>
             You may delete your account at any time, note that this is
             unrecoverable
           </Trans>
-        </HelpText>
+        </Text>
         <Button onClick={toggleDeleteAccount} neutral>
           {t("Delete account")}…
         </Button>

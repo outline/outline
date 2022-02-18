@@ -10,10 +10,10 @@ import Button from "~/components/Button";
 import ButtonLink from "~/components/ButtonLink";
 import CollectionIcon from "~/components/CollectionIcon";
 import Flex from "~/components/Flex";
-import HelpText from "~/components/HelpText";
 import ListItem from "~/components/List/Item";
 import Popover from "~/components/Popover";
 import Switch from "~/components/Switch";
+import Text from "~/components/Text";
 import useToasts from "~/hooks/useToasts";
 
 type Props = {
@@ -81,7 +81,9 @@ function SlackListItem({ integration, collection }: Props) {
           <Popover {...popover} aria-label={t("Settings")}>
             <Events>
               <h3>{t("Notifications")}</h3>
-              <HelpText>{t("These events should be posted to Slack")}</HelpText>
+              <Text type="secondary">
+                {t("These events should be posted to Slack")}
+              </Text>
               <Switch
                 label={t("Document published")}
                 name="documents.publish"

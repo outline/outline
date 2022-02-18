@@ -32,7 +32,7 @@ function CommandBarItem(
 
   return (
     <Item active={active} ref={ref}>
-      <Text align="center" gap={8}>
+      <Text type="secondary" align="center" gap={8}>
         <Icon>
           {action.icon ? (
             // @ts-expect-error no icon on ActionImpl

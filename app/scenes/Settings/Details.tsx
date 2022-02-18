@@ -6,9 +6,9 @@ import { useTranslation, Trans } from "react-i18next";
 import Button from "~/components/Button";
 import DefaultCollectionInputSelect from "~/components/DefaultCollectionInputSelect";
 import Heading from "~/components/Heading";
-import HelpText from "~/components/HelpText";
 import Input from "~/components/Input";
 import Scene from "~/components/Scene";
+import Text from "~/components/Text";
 import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
@@ -94,12 +94,12 @@ function Details() {
   return (
     <Scene title={t("Details")} icon={<TeamIcon color="currentColor" />}>
       <Heading>{t("Details")}</Heading>
-      <HelpText>
+      <Text type="secondary">
         <Trans>
           These details affect the way that your Outline appears to everyone on
           the team.
         </Trans>
-      </HelpText>
+      </Text>
 
       <ImageInput
         label={t("Logo")}
@@ -132,10 +132,10 @@ function Details() {
               short
             />
             {subdomain && (
-              <HelpText small>
+              <Text type="secondary" size="small">
                 <Trans>Your knowledge base will be accessible at</Trans>{" "}
                 <strong>{subdomain}.getoutline.com</strong>
-              </HelpText>
+              </Text>
             )}
           </>
         )}

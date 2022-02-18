@@ -8,11 +8,11 @@ import Button from "~/components/Button";
 import Empty from "~/components/Empty";
 import GroupListItem from "~/components/GroupListItem";
 import Heading from "~/components/Heading";
-import HelpText from "~/components/HelpText";
 import Modal from "~/components/Modal";
 import PaginatedList from "~/components/PaginatedList";
 import Scene from "~/components/Scene";
 import Subheading from "~/components/Subheading";
+import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
@@ -50,11 +50,11 @@ function Groups() {
       }
     >
       <Heading>{t("Groups")}</Heading>
-      <HelpText>
+      <Text type="secondary">
         <Trans>
           Groups can be used to organize and manage the people on your team.
         </Trans>
-      </HelpText>
+      </Text>
       <Subheading>{t("All groups")}</Subheading>
       <PaginatedList
         items={groups.orderedData}

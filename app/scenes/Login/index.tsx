@@ -11,10 +11,10 @@ import ButtonLarge from "~/components/ButtonLarge";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
-import HelpText from "~/components/HelpText";
 import OutlineLogo from "~/components/OutlineLogo";
 import PageTitle from "~/components/PageTitle";
 import TeamLogo from "~/components/TeamLogo";
+import Text from "~/components/Text";
 import env from "~/env";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
@@ -221,12 +221,12 @@ const Logo = styled.div`
   height: 38px;
 `;
 
-const GetStarted = styled(HelpText)`
+const GetStarted = styled(Text)`
   text-align: center;
   margin-top: -12px;
 `;
 
-const Note = styled(HelpText)`
+const Note = styled(Text)`
   text-align: center;
   font-size: 14px;
 

@@ -7,10 +7,10 @@ import User from "~/models/User";
 import Button from "~/components/Button";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
-import HelpText from "~/components/HelpText";
 import Modal from "~/components/Modal";
 import PaginatedList from "~/components/PaginatedList";
 import Subheading from "~/components/Subheading";
+import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import AddPeopleToGroup from "./AddPeopleToGroup";
@@ -56,7 +56,7 @@ function GroupMembers({ group }: Props) {
     <Flex column>
       {can.update ? (
         <>
-          <HelpText>
+          <Text type="secondary">
             <Trans
               defaults="Add and remove team members in the <em>{{groupName}}</em> group. Adding people to the group will give them access to any collections this group has been added to."
               values={{
@@ -66,7 +66,7 @@ function GroupMembers({ group }: Props) {
                 em: <strong />,
               }}
             />
-          </HelpText>
+          </Text>
           <span>
             <Button
               type="button"
@@ -79,7 +79,7 @@ function GroupMembers({ group }: Props) {
           </span>
         </>
       ) : (
-        <HelpText>
+        <Text type="secondary">
           <Trans
             defaults="Listing team members in the <em>{{groupName}}</em> group."
             values={{
@@ -89,7 +89,7 @@ function GroupMembers({ group }: Props) {
               em: <strong />,
             }}
           />
-        </HelpText>
+        </Text>
       )}
 
       <Subheading>

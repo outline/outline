@@ -1,7 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
-import HelpText from "~/components/HelpText";
 import { LabelText } from "~/components/Input";
+import Text from "~/components/Text";
 
 type Props = React.HTMLAttributes<HTMLInputElement> & {
   width?: number;
@@ -48,7 +48,11 @@ function Switch({
           {component}
           <InlineLabelText>{label}</InlineLabelText>
         </Label>
-        {note && <HelpText small>{note}</HelpText>}
+        {note && (
+          <Text type="secondary" size="small">
+            {note}
+          </Text>
+        )}
       </Wrapper>
     );
   }
@@ -67,6 +71,7 @@ const InlineLabelText = styled(LabelText)`
 const Label = styled.label<{ disabled?: boolean }>`
   display: flex;
   align-items: center;
+  user-select: none;
   ${(props) => (props.disabled ? `opacity: 0.75;` : "")}
 `;
 
