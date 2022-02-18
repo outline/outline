@@ -117,25 +117,18 @@ export default class ExtensionManager {
   }
 
   keymaps({ schema }: { schema: Schema }) {
-    const extensionKeymaps = this.extensions
-      .filter((extension) => ["extension"].includes(extension.type))
+    const keymaps = this.extensions
       .filter((extension) => extension.keys)
-      .map((extension: Extension) => extension.keys({ schema }));
-
-    const nodeKeymaps = this.extensions
-      .filter((extension) => ["node", "mark"].includes(extension.type))
-      .filter((extension) => extension.keys)
-      .map((extension: Node | Mark) =>
-        extension.keys({
-          type: schema[`${extension.type}s`][extension.name],
-          schema,
-        })
+      .map((extension) =>
+        ["node", "mark"].includes(extension.type)
+          ? extension.keys({
+              type: schema[`${extension.type}s`][extension.name],
+              schema,
+            })
+          : (extension as Extension).keys({ schema })
       );
 
-    return [
-      ...extensionKeymaps,
-      ...nodeKeymaps,
-    ].map((keys: Record<string, any>) => keymap(keys));
+    return keymaps.map(keymap);
   }
 
   inputRules({ schema }: { schema: Schema }) {
