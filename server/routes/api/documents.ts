@@ -37,6 +37,7 @@ import {
   assertIn,
   assertPresent,
   assertPositiveInteger,
+  assertNotEmpty,
 } from "@server/validation";
 import env from "../../env";
 import pagination from "./middlewares/pagination";
@@ -812,7 +813,7 @@ router.post("documents.search", auth(), pagination(), async (ctx) => {
   const { offset, limit } = ctx.state.pagination;
   const { user } = ctx.state;
 
-  assertPresent(query, "query is required");
+  assertNotEmpty(query, "query is required");
 
   if (collectionId) {
     assertUuid(collectionId, "collectionId must be a UUID");
