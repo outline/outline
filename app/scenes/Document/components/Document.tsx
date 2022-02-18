@@ -1,7 +1,7 @@
 import { debounce } from "lodash";
 import { action, observable } from "mobx";
 import { observer } from "mobx-react";
-import { InputIcon } from "outline-icons";
+import { ArchiveIcon, InputIcon, TrashIcon } from "outline-icons";
 import { AllSelection } from "prosemirror-state";
 import * as React from "react";
 import { WithTranslation, Trans, withTranslation } from "react-i18next";
@@ -546,23 +546,29 @@ class DocumentScene extends React.Component<Props> {
               )}
               {document.archivedAt && !document.deletedAt && (
                 <Notice>
-                  {t("Archived by {{userName}}", {
-                    userName: document.updatedBy.name,
-                  })}{" "}
-                  <Time dateTime={document.updatedAt} addSuffix />
+                  <Flex as="span">
+                    <ArchiveIcon />
+                    {t("Archived by {{userName}}", {
+                      userName: document.updatedBy.name,
+                    })}
+                    &nbsp;
+                    <Time dateTime={document.updatedAt} addSuffix />
+                  </Flex>
                 </Notice>
               )}
               {document.deletedAt && (
                 <Notice>
-                  <strong>
-                    {t("Deleted by {{userName}}", {
-                      userName: document.updatedBy.name,
-                    })}{" "}
-                    <Time dateTime={document.deletedAt || ""} addSuffix />
-                  </strong>
+                  <Flex as="span" style={{ marginLeft: "-4px" }}>
+                    <TrashIcon />
+                    <strong>
+                      {t("Deleted by {{userName}}", {
+                        userName: document.updatedBy.name,
+                      })}{" "}
+                      <Time dateTime={document.deletedAt || ""} addSuffix />
+                    </strong>
+                  </Flex>
                   {document.permanentlyDeletedAt && (
                     <>
-                      <br />
                       {document.template ? (
                         <Trans>
                           This template will be permanently deleted in{" "}
