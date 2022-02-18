@@ -1118,19 +1118,19 @@ const EditorStyles = styled.div<{
     background: none;
     position: absolute;
     transition: color 150ms cubic-bezier(0.175, 0.885, 0.32, 1.275),
-      transform 150ms cubic-bezier(0.175, 0.885, 0.32, 1.275),
       opacity 150ms ease-in-out;
     outline: none;
     border: 0;
     padding: 0;
     margin-top: 1px;
-    margin-${(props) => (props.rtl ? "right" : "left")}: -24px;
+    margin-${(props) => (props.rtl ? "right" : "left")}: -28px;
+    border-radius: 4px;
 
     &:hover,
     &:focus {
       cursor: pointer;
-      transform: scale(1.2);
       color: ${(props) => props.theme.text};
+      background: ${(props) => props.theme.secondaryBackground};
     }
   }
 

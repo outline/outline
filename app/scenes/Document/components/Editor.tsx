@@ -101,6 +101,9 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         onGoToNextInput={handleGoToNextInput}
         onChange={onChangeTitle}
         starrable={!shareId}
+        placeholder={
+          document.isTemplate ? t("Name your template…") : t("Untitled")
+        }
       />
       {!shareId && (
         <DocumentMetaWithViews
@@ -121,7 +124,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
       <EditorComponent
         ref={ref}
         autoFocus={!!title && !props.defaultValue}
-        placeholder={t("…the rest is up to you")}
+        placeholder={t("Type '/' to insert, or start writing…")}
         onHoverLink={handleLinkActive}
         scrollTo={window.location.hash}
         readOnly={readOnly}
