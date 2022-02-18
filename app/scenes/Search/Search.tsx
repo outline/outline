@@ -259,7 +259,7 @@ class Search extends React.Component<Props> {
   render() {
     const { documents, notFound, t } = this.props;
     const results = documents.searchResults(this.query);
-    const showEmpty = !this.isLoading && this.query && results.length === 0;
+    const showEmpty = !this.isLoading && this.query && results?.length === 0;
 
     return (
       <Scene textTitle={this.title}>
@@ -332,7 +332,7 @@ class Search extends React.Component<Props> {
               mode={ArrowKeyNavigation.mode.VERTICAL}
               defaultActiveChildIndex={0}
             >
-              {results.map((result, index) => {
+              {results?.map((result, index) => {
                 const document = documents.data.get(result.document.id);
                 if (!document) {
                   return null;

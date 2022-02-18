@@ -87,7 +87,7 @@ const DocumentLink = styled(Link)<{
 }>`
   display: flex;
   align-items: center;
-  padding: 8px 12px;
+  padding: 6px 12px;
   max-height: 50vh;
 
   &:not(:last-child) {
