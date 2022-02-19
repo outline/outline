@@ -1009,7 +1009,6 @@ router.post("documents.update", auth(), async (ctx) => {
   } = ctx.body;
   const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
   assertPresent(id, "id is required");
-  assertPresent(title || text, "title or text is required");
   if (append) {
     assertPresent(text, "Text is required while appending");
   }
@@ -1027,7 +1026,7 @@ router.post("documents.update", auth(), async (ctx) => {
   const previousTitle = document.title;
 
   // Update document
-  if (title) {
+  if (title !== undefined) {
     document.title = title;
   }
   if (editorVersion) {
