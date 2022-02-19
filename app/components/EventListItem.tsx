@@ -8,6 +8,7 @@ import {
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { useLocation } from "react-router-dom";
 import styled from "styled-components";
 import Document from "~/models/Document";
 import Event from "~/models/Event";
@@ -27,6 +28,7 @@ type Props = {
 const EventListItem = ({ event, latest, document }: Props) => {
   const { t } = useTranslation();
   const { policies } = useStores();
+  const location = useLocation();
   const can = policies.abilities(document.id);
   const opts = {
     userName: event.actor.name,
@@ -86,6 +88,8 @@ const EventListItem = ({ event, latest, document }: Props) => {
     return null;
   }
 
+  const isActive = location.pathname === to;
+
   return (
     <ListItem
       small
@@ -94,8 +98,8 @@ const EventListItem = ({ event, latest, document }: Props) => {
       title={
         <Time
           dateTime={event.createdAt}
-          tooltipDelay={250}
-          format="MMMM do, h:mm a"
+          tooltipDelay={500}
+          format="MMM do, h:mm a"
           relative={false}
           addSuffix
         />
@@ -108,7 +112,7 @@ const EventListItem = ({ event, latest, document }: Props) => {
         </Subtitle>
       }
       actions={
-        isRevision && event.modelId && can.update ? (
+        isRevision && isActive && event.modelId && can.update ? (
           <RevisionMenu document={document} revisionId={event.modelId} />
         ) : undefined
       }
@@ -161,12 +165,9 @@ const ListItem = styled(Item)`
   }
 
   ${Actions} {
-    opacity: 0.25;
-    transition: opacity 100ms ease-in-out;
-  }
+    opacity: 0.5;
 
-  &:hover {
-    ${Actions} {
+    &:hover {
       opacity: 1;
     }
   }

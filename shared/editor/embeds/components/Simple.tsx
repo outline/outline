@@ -53,6 +53,7 @@ const Wrapper = styled.a`
   display: inline-flex;
   align-items: flex-start;
   gap: 4px;
+  box-sizing: border-box !important;
   color: ${(props) => props.theme.text} !important;
   background: ${(props) => props.theme.secondaryBackground};
   white-space: nowrap;
@@ -60,11 +61,11 @@ const Wrapper = styled.a`
   padding: 6px 8px;
   max-width: 840px;
   width: 100%;
-
   text-overflow: ellipsis;
   overflow: hidden;
 
   &:hover {
+    text-decoration: none !important;
     outline: 2px solid ${(props) => props.theme.divider};
   }
 `;

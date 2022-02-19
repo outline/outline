@@ -529,13 +529,16 @@ const EditorStyles = styled.div<{
 
     a {
       color: ${(props) => props.theme.text};
-      border-bottom: 1px solid ${(props) => lighten(0.5, props.theme.text)};
-      text-decoration: none !important;
+      text-decoration: underline;
+      text-decoration-color: ${(props) => lighten(0.5, props.theme.text)};
+      text-decoration-thickness: 1px;
+      text-underline-offset: .15em;
       font-weight: 500;
 
       &:hover {
-        border-bottom: 1px solid ${(props) => props.theme.text};
-        text-decoration: none;
+        text-decoration: underline;
+        text-decoration-color: ${(props) => props.theme.text};
+        text-decoration-thickness: 1px;
       }
     }
   }
@@ -543,6 +546,12 @@ const EditorStyles = styled.div<{
   a {
     color: ${(props) => props.theme.link};
     cursor: pointer;
+  }
+
+  .ProseMirror-focused {
+    a {
+      cursor: text;
+    }
   }
 
   a:hover {
@@ -716,6 +725,11 @@ const EditorStyles = styled.div<{
     a {
       color: ${(props) => props.theme.textHighlightForeground};
     }
+  }
+
+  .external-link {
+    position: relative;
+    top: 2px;
   }
 
   .code-actions,
@@ -1104,19 +1118,19 @@ const EditorStyles = styled.div<{
     background: none;
     position: absolute;
     transition: color 150ms cubic-bezier(0.175, 0.885, 0.32, 1.275),
-      transform 150ms cubic-bezier(0.175, 0.885, 0.32, 1.275),
       opacity 150ms ease-in-out;
     outline: none;
     border: 0;
     padding: 0;
     margin-top: 1px;
-    margin-${(props) => (props.rtl ? "right" : "left")}: -24px;
+    margin-${(props) => (props.rtl ? "right" : "left")}: -28px;
+    border-radius: 4px;
 
     &:hover,
     &:focus {
       cursor: pointer;
-      transform: scale(1.2);
       color: ${(props) => props.theme.text};
+      background: ${(props) => props.theme.secondaryBackground};
     }
   }
 

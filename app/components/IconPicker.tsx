@@ -42,9 +42,9 @@ import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import ContextMenu from "~/components/ContextMenu";
 import Flex from "~/components/Flex";
-import HelpText from "~/components/HelpText";
 import { LabelText } from "~/components/Input";
 import NudeButton from "~/components/NudeButton";
+import Text from "~/components/Text";
 
 const style = {
   width: 30,
@@ -324,7 +324,7 @@ const IconButton = styled(NudeButton)`
   height: 30px;
 `;
 
-const Loading = styled(HelpText)`
+const Loading = styled(Text)`
   padding: 16px;
 `;
 

@@ -1,6 +1,5 @@
 import { observer } from "mobx-react";
 import * as React from "react";
-import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { MAX_TITLE_LENGTH } from "@shared/constants";
@@ -13,6 +12,7 @@ import { isModKey } from "~/utils/keyboard";
 
 type Props = {
   value: string;
+  placeholder: string;
   document: Document;
   /** Should the title be editable, policies will also be considered separately */
   readOnly?: boolean;
@@ -39,11 +39,11 @@ const EditableTitle = React.forwardRef(
       onSave,
       onGoToNextInput,
       starrable,
+      placeholder,
     }: Props,
     ref: React.RefObject<HTMLSpanElement>
   ) => {
     const { policies } = useStores();
-    const { t } = useTranslation();
     const can = policies.abilities(document.id);
     const normalizedTitle =
       !value && readOnly ? document.titleWithDefault : value;
@@ -131,11 +131,7 @@ const EditableTitle = React.forwardRef(
         onChange={onChange}
         onKeyDown={handleKeyDown}
         onPaste={handlePaste}
-        placeholder={
-          document.isTemplate
-            ? t("Start your template…")
-            : t("Start with a title…")
-        }
+        placeholder={placeholder}
         value={normalizedTitle}
         $emojiWidth={emojiWidth}
         $isStarred={document.isStarred}

@@ -8,8 +8,8 @@ import Collection from "~/models/Collection";
 import CollectionPermissions from "~/scenes/CollectionPermissions";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
-import HelpText from "~/components/HelpText";
 import Modal from "~/components/Modal";
+import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
@@ -34,7 +34,7 @@ function EmptyCollection({ collection }: Props) {
 
   return (
     <Centered column>
-      <HelpText>
+      <Text type="secondary">
         <Trans
           defaults="<em>{{ collectionName }}</em> doesn’t contain any
                     documents yet."
@@ -49,7 +49,7 @@ function EmptyCollection({ collection }: Props) {
         {can.createDocument && (
           <Trans>Get started by creating a new one!</Trans>
         )}
-      </HelpText>
+      </Text>
       <Empty>
         {can.createDocument && (
           <Link to={newDocumentPath(collection.id)}>

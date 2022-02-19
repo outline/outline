@@ -5,10 +5,10 @@ import { useTranslation, Trans } from "react-i18next";
 import FileOperation from "~/models/FileOperation";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
-import HelpText from "~/components/HelpText";
 import PaginatedList from "~/components/PaginatedList";
 import Scene from "~/components/Scene";
 import Subheading from "~/components/Subheading";
+import Text from "~/components/Text";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
@@ -55,7 +55,7 @@ function Export() {
   return (
     <Scene title={t("Export")} icon={<DownloadIcon color="currentColor" />}>
       <Heading>{t("Export")}</Heading>
-      <HelpText>
+      <Text type="secondary">
         <Trans
           defaults="A full export might take some time, consider exporting a single document or collection. The exported data is a zip of your documents in Markdown format. You may leave this page once the export has started – we will email a link to <em>{{ userEmail }}</em> when it’s complete."
           values={{
@@ -65,7 +65,7 @@ function Export() {
             em: <strong />,
           }}
         />
-      </HelpText>
+      </Text>
       <Button
         type="submit"
         onClick={handleExport}

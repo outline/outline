@@ -7,7 +7,7 @@ type Props = {
   onSelect: (key: string | null | undefined) => void;
 };
 
-const UserStatusFilter = ({ activeKey, onSelect }: Props) => {
+const UserStatusFilter = ({ activeKey, onSelect, ...rest }: Props) => {
   const { t } = useTranslation();
   const options = React.useMemo(
     () => [
@@ -45,6 +45,7 @@ const UserStatusFilter = ({ activeKey, onSelect }: Props) => {
       activeKey={activeKey}
       onSelect={onSelect}
       defaultLabel={t("Active")}
+      {...rest}
     />
   );
 };

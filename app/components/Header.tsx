@@ -131,7 +131,7 @@ const Wrapper = styled(Flex)<{ $passThrough?: boolean }>`
   }
 
   ${breakpoint("tablet")`
-    padding: 16px 16px 0;
+    padding: 16px;
     justify-content: center;
   `};
 `;

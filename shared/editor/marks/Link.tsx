@@ -1,4 +1,5 @@
 import Token from "markdown-it/lib/token";
+import { OpenIcon } from "outline-icons";
 import { toggleMark } from "prosemirror-commands";
 import { InputRule } from "prosemirror-inputrules";
 import { MarkdownSerializerState } from "prosemirror-markdown";
@@ -9,6 +10,11 @@ import {
   Mark as ProsemirrorMark,
 } from "prosemirror-model";
 import { Transaction, EditorState, Plugin } from "prosemirror-state";
+import { Decoration, DecorationSet } from "prosemirror-view";
+import * as React from "react";
+import ReactDOM from "react-dom";
+import { isInternalUrl } from "../../utils/urls";
+import findLinkNodes from "../queries/findLinkNodes";
 import Mark from "./Mark";
 
 const LINK_INPUT_REGEX = /\[([^[]+)]\((\S+)\)$/;
@@ -109,56 +115,97 @@ export default class Link extends Mark {
   }
 
   get plugins() {
-    return [
-      new Plugin({
-        props: {
-          handleDOMEvents: {
-            mouseover: (_view, event: MouseEvent) => {
-              if (
-                event.target instanceof HTMLAnchorElement &&
-                !event.target.className.includes("ProseMirror-widget")
-              ) {
-                if (this.options.onHoverLink) {
-                  return this.options.onHoverLink(event);
-                }
+    const getLinkDecorations = (doc: Node) => {
+      const decorations: Decoration[] = [];
+      const links = findLinkNodes(doc);
+
+      links.forEach((nodeWithPos) => {
+        const linkMark = nodeWithPos.node.marks.find(
+          (mark) => mark.type.name === "link"
+        );
+        if (linkMark && !isInternalUrl(linkMark.attrs.href)) {
+          decorations.push(
+            Decoration.widget(
+              // place the decoration at the end of the link
+              nodeWithPos.pos + nodeWithPos.node.nodeSize,
+              () => {
+                const component = <OpenIcon color="currentColor" size={16} />;
+                const icon = document.createElement("span");
+                icon.className = "external-link";
+                ReactDOM.render(component, icon);
+                return icon;
+              },
+              {
+                // position on the right side of the position
+                side: 1,
               }
+            )
+          );
+        }
+      });
+
+      return DecorationSet.create(doc, decorations);
+    };
+
+    const plugin: Plugin = new Plugin({
+      state: {
+        init: (config, state) => {
+          return getLinkDecorations(state.doc);
+        },
+        apply: (tr, oldState) => {
+          return tr.docChanged ? getLinkDecorations(tr.doc) : oldState;
+        },
+      },
+      props: {
+        decorations: (state) => plugin.getState(state),
+        handleDOMEvents: {
+          mouseover: (_view, event: MouseEvent) => {
+            if (
+              event.target instanceof HTMLAnchorElement &&
+              !event.target.className.includes("ProseMirror-widget")
+            ) {
+              if (this.options.onHoverLink) {
+                return this.options.onHoverLink(event);
+              }
+            }
+            return false;
+          },
+          mousedown: (view, event: MouseEvent) => {
+            if (!(event.target instanceof HTMLAnchorElement)) {
               return false;
-            },
-            click: (view, event: MouseEvent) => {
-              if (!(event.target instanceof HTMLAnchorElement)) {
-                return false;
+            }
+
+            // clicking a link while editing should show the link toolbar,
+            // clicking in read-only will navigate
+            if (!view.editable || (view.editable && !view.hasFocus())) {
+              const href =
+                event.target.href ||
+                (event.target.parentNode instanceof HTMLAnchorElement
+                  ? event.target.parentNode.href
+                  : "");
+
+              const isHashtag = href.startsWith("#");
+              if (isHashtag && this.options.onClickHashtag) {
+                event.stopPropagation();
+                event.preventDefault();
+                this.options.onClickHashtag(href, event);
               }
 
-              // clicking a link while editing should show the link toolbar,
-              // clicking in read-only will navigate
-              if (!view.editable) {
-                const href =
-                  event.target.href ||
-                  (event.target.parentNode instanceof HTMLAnchorElement
-                    ? event.target.parentNode.href
-                    : "");
-
-                const isHashtag = href.startsWith("#");
-                if (isHashtag && this.options.onClickHashtag) {
-                  event.stopPropagation();
-                  event.preventDefault();
-                  this.options.onClickHashtag(href, event);
-                }
-
-                if (this.options.onClickLink) {
-                  event.stopPropagation();
-                  event.preventDefault();
-                  this.options.onClickLink(href, event);
-                }
-                return true;
+              if (this.options.onClickLink) {
+                event.stopPropagation();
+                event.preventDefault();
+                this.options.onClickLink(href, event);
               }
+              return true;
+            }
 
-              return false;
-            },
+            return false;
           },
         },
-      }),
-    ];
+      },
+    });
+
+    return [plugin];
   }
 
   toMarkdown() {

@@ -117,3 +117,5 @@ export const matchDocumentSlug =
   ":documentSlug([0-9a-zA-Z-_~]*-[a-zA-z0-9]{10,15})";
 
 export const matchDocumentEdit = `/doc/${matchDocumentSlug}/edit`;
+
+export const matchDocumentHistory = `/doc/${matchDocumentSlug}/history/:revisionId?`;

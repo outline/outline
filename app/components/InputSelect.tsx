@@ -11,7 +11,7 @@ import { VisuallyHidden } from "reakit/VisuallyHidden";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled, { css } from "styled-components";
 import Button, { Inner } from "~/components/Button";
-import HelpText from "~/components/HelpText";
+import Text from "~/components/Text";
 import useMenuHeight from "~/hooks/useMenuHeight";
 import { Position, Background, Backdrop, Placement } from "./ContextMenu";
 import { MenuAnchorCSS } from "./ContextMenu/MenuItem";
@@ -203,7 +203,11 @@ const InputSelect = (props: Props) => {
           }}
         </SelectPopover>
       </Wrapper>
-      {note && <HelpText small>{note}</HelpText>}
+      {note && (
+        <Text type="secondary" size="small">
+          {note}
+        </Text>
+      )}
       {select.visible && <Backdrop />}
     </>
   );
