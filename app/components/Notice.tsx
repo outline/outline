@@ -1,31 +1,50 @@
 import React from "react";
 import styled from "styled-components";
 import Flex from "./Flex";
+import Text from "./Text";
 
-type NoticeProps = {
+type Props = {
   children: React.ReactNode;
   icon?: JSX.Element;
   description?: JSX.Element;
 };
 
-const Notice = ({ children, icon, description }: NoticeProps) => {
+const Notice = ({ children, icon, description }: Props) => {
   return (
     <Container>
-      <Flex as="span" gap={4}>
+      <Flex as="span" gap={8}>
         {icon}
-        <span>{children}</span>
+        <span>
+          <Title>{children}</Title>
+          {description && (
+            <>
+              <br />
+              {description}
+            </>
+          )}
+        </span>
       </Flex>
-      {description}
     </Container>
   );
 };
 
-const Container = styled.p`
+const Title = styled.span`
+  font-weight: 500;
+  font-size: 16px;
+`;
+
+const Container = styled(Text)`
   background: ${(props) => props.theme.sidebarBackground};
   color: ${(props) => props.theme.sidebarText};
   padding: 10px 12px;
   border-radius: 4px;
   position: relative;
+  font-size: 14px;
+  margin: 1em 0 0;
+
+  svg {
+    flex-shrink: 0;
+  }
 `;
 
 export default Notice;
