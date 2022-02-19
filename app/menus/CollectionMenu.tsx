@@ -171,6 +171,7 @@ function CollectionMenu({
       {
         type: "button",
         title: `${t("Delete")}…`,
+        dangerous: true,
         visible: !!(collection && can.delete),
         onClick: () => setShowCollectionDelete(true),
         icon: <TrashIcon />,

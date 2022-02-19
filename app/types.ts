@@ -7,6 +7,7 @@ export type MenuItemButton = {
   type: "button";
   title: React.ReactNode;
   onClick: React.MouseEventHandler<HTMLButtonElement | HTMLAnchorElement>;
+  dangerous?: boolean;
   visible?: boolean;
   selected?: boolean;
   disabled?: boolean;

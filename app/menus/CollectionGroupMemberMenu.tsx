@@ -34,6 +34,7 @@ function CollectionGroupMemberMenu({ onMembers, onRemove }: Props) {
             {
               type: "button",
               title: t("Remove"),
+              dangerous: true,
               onClick: onRemove,
             },
           ]}

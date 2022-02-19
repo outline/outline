@@ -387,7 +387,15 @@ function DocumentMenu({
             },
             {
               type: "button",
+              title: `${t("Move")}…`,
+              onClick: () => setShowMoveModal(true),
+              visible: !!can.move,
+              icon: <MoveIcon />,
+            },
+            {
+              type: "button",
               title: `${t("Delete")}…`,
+              dangerous: true,
               onClick: () => setShowDeleteModal(true),
               visible: !!can.delete,
               icon: <TrashIcon />,
@@ -395,16 +403,10 @@ function DocumentMenu({
             {
               type: "button",
               title: `${t("Permanently delete")}…`,
+              dangerous: true,
               onClick: () => setShowPermanentDeleteModal(true),
               visible: can.permanentDelete,
               icon: <CrossIcon />,
-            },
-            {
-              type: "button",
-              title: `${t("Move")}…`,
-              onClick: () => setShowMoveModal(true),
-              visible: !!can.move,
-              icon: <MoveIcon />,
             },
             {
               type: "button",

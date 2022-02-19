@@ -163,6 +163,7 @@ function Template({ items, actions, context, ...menu }: Props) {
               onClick={item.onClick}
               disabled={item.disabled}
               selected={item.selected}
+              dangerous={item.dangerous}
               key={index}
               icon={item.icon}
               {...menu}
