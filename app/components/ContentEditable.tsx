@@ -73,7 +73,7 @@ const ContentEditable = React.forwardRef(
       if (autoFocus) {
         ref.current?.focus();
       }
-    });
+    }, [autoFocus, ref]);
 
     React.useEffect(() => {
       if (value !== ref.current?.innerText) {
