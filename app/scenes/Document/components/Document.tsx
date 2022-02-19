@@ -396,6 +396,26 @@ class DocumentScene extends React.Component<Props> {
     }
   };
 
+  permanentlyDeletedDescription = () => {
+    const { document } = this.props;
+
+    if (!document.permanentlyDeletedAt) {
+      return;
+    }
+
+    return document.template ? (
+      <Trans>
+        This template will be permanently deleted in{" "}
+        <Time dateTime={document.permanentlyDeletedAt} /> unless restored.
+      </Trans>
+    ) : (
+      <Trans>
+        This document will be permanently deleted in{" "}
+        <Time dateTime={document.permanentlyDeletedAt} /> unless restored.
+      </Trans>
+    );
+  };
+
   render() {
     const {
       document,
@@ -545,45 +565,25 @@ class DocumentScene extends React.Component<Props> {
                 </Notice>
               )}
               {document.archivedAt && !document.deletedAt && (
-                <Notice>
-                  <Flex as="span">
-                    <ArchiveIcon />
-                    {t("Archived by {{userName}}", {
-                      userName: document.updatedBy.name,
-                    })}
-                    &nbsp;
-                    <Time dateTime={document.updatedAt} addSuffix />
-                  </Flex>
+                <Notice icon={<ArchiveIcon />}>
+                  {t("Archived by {{userName}}", {
+                    userName: document.updatedBy.name,
+                  })}
+                  &nbsp;
+                  <Time dateTime={document.updatedAt} addSuffix />
                 </Notice>
               )}
               {document.deletedAt && (
-                <Notice>
-                  <Flex as="span" style={{ marginLeft: "-4px" }}>
-                    <TrashIcon />
-                    <strong>
-                      {t("Deleted by {{userName}}", {
-                        userName: document.updatedBy.name,
-                      })}{" "}
-                      <Time dateTime={document.deletedAt || ""} addSuffix />
-                    </strong>
-                  </Flex>
-                  {document.permanentlyDeletedAt && (
-                    <>
-                      {document.template ? (
-                        <Trans>
-                          This template will be permanently deleted in{" "}
-                          <Time dateTime={document.permanentlyDeletedAt} />{" "}
-                          unless restored.
-                        </Trans>
-                      ) : (
-                        <Trans>
-                          This document will be permanently deleted in{" "}
-                          <Time dateTime={document.permanentlyDeletedAt} />{" "}
-                          unless restored.
-                        </Trans>
-                      )}
-                    </>
-                  )}
+                <Notice
+                  icon={<TrashIcon />}
+                  description={this.permanentlyDeletedDescription()}
+                >
+                  <strong>
+                    {t("Deleted by {{userName}}", {
+                      userName: document.updatedBy.name,
+                    })}{" "}
+                    <Time dateTime={document.deletedAt || ""} addSuffix />
+                  </strong>
                 </Notice>
               )}
               <React.Suspense fallback={<PlaceholderDocument />}>
