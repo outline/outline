@@ -6,6 +6,7 @@ import { Portal } from "react-portal";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import CommandBarResults from "~/components/CommandBarResults";
+import SearchActions from "~/components/SearchActions";
 import rootActions from "~/actions/root";
 import useCommandBarActions from "~/hooks/useCommandBarActions";
 import { CommandBarAction } from "~/types";
@@ -19,6 +20,7 @@ export const CommandBarOptions = {
 
 function CommandBar() {
   const { t } = useTranslation();
+
   useCommandBarActions(rootActions);
 
   const { rootAction } = useKBar((state) => ({
@@ -30,20 +32,23 @@ function CommandBar() {
   }));
 
   return (
-    <KBarPortal>
-      <Positioner>
-        <Animator>
-          <SearchInput
-            placeholder={`${
-              rootAction?.placeholder ||
-              rootAction?.name ||
-              t("Type a command or search")
-            }…`}
-          />
-          <CommandBarResults />
-        </Animator>
-      </Positioner>
-    </KBarPortal>
+    <>
+      <SearchActions />
+      <KBarPortal>
+        <Positioner>
+          <Animator>
+            <SearchInput
+              placeholder={`${
+                rootAction?.placeholder ||
+                rootAction?.name ||
+                t("Type a command or search")
+              }…`}
+            />
+            <CommandBarResults />
+          </Animator>
+        </Positioner>
+      </KBarPortal>
+    </>
   );
 }
 

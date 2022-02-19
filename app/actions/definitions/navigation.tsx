@@ -19,9 +19,14 @@ import {
   githubIssuesUrl,
 } from "@shared/utils/urlHelpers";
 import stores from "~/stores";
+import SearchQuery from "~/models/SearchQuery";
 import KeyboardShortcuts from "~/scenes/KeyboardShortcuts";
 import { createAction } from "~/actions";
-import { NavigationSection } from "~/actions/sections";
+import {
+  NavigationSection,
+  NoSection,
+  RecentSearchesSection,
+} from "~/actions/sections";
 import history from "~/utils/history";
 import {
   settingsPath,
@@ -50,6 +55,25 @@ export const navigateToSearch = createAction({
   perform: () => history.push(searchUrl()),
   visible: ({ location }) => location.pathname !== searchUrl(),
 });
+
+export const navigateToRecentSearchQuery = (searchQuery: SearchQuery) =>
+  createAction({
+    section: RecentSearchesSection,
+    name: searchQuery.query,
+    icon: <SearchIcon />,
+    perform: () => history.push(searchUrl(searchQuery.query)),
+  });
+
+export const navigateToSearchQuery = (searchQuery: string) =>
+  createAction({
+    id: "search",
+    section: NoSection,
+    name: ({ t }) =>
+      t(`Search documents for "{{searchQuery}}"`, { searchQuery }),
+    icon: <SearchIcon />,
+    perform: () => history.push(searchUrl(searchQuery)),
+    visible: ({ location }) => location.pathname !== searchUrl(),
+  });
 
 export const navigateToDrafts = createAction({
   name: ({ t }) => t("Drafts"),

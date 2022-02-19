@@ -1,3 +1,4 @@
+import { useKBar } from "kbar";
 import { observer } from "mobx-react";
 import {
   EditIcon,
@@ -21,7 +22,6 @@ import useStores from "~/hooks/useStores";
 import AccountMenu from "~/menus/AccountMenu";
 import {
   homePath,
-  searchUrl,
   draftsPath,
   templatesPath,
   settingsPath,
@@ -41,6 +41,7 @@ function MainSidebar() {
   const { policies, documents } = useStores();
   const team = useCurrentTeam();
   const user = useCurrentUser();
+  const { query } = useKBar();
 
   React.useEffect(() => {
     documents.fetchDrafts();
@@ -81,12 +82,7 @@ function MainSidebar() {
                 label={t("Home")}
               />
               <SidebarLink
-                to={{
-                  pathname: searchUrl(),
-                  state: {
-                    fromMenu: true,
-                  },
-                }}
+                onClick={query.toggle}
                 icon={<SearchIcon color="currentColor" />}
                 label={t("Search")}
                 exact={false}
