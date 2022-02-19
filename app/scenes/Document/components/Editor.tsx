@@ -101,9 +101,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         onGoToNextInput={handleGoToNextInput}
         onChange={onChangeTitle}
         starrable={!shareId}
-        placeholder={
-          document.isTemplate ? t("Name your template…") : t("Untitled")
-        }
+        placeholder={t("Untitled")}
       />
       {!shareId && (
         <DocumentMetaWithViews
