@@ -27,8 +27,8 @@ import useStores from "~/hooks/useStores";
 import Sidebar from "./Sidebar";
 import Header from "./components/Header";
 import Section from "./components/Section";
+import SidebarButton from "./components/SidebarButton";
 import SidebarLink from "./components/SidebarLink";
-import TeamButton from "./components/TeamButton";
 import Version from "./components/Version";
 
 const isHosted = env.DEPLOYMENT === "hosted";
@@ -46,7 +46,7 @@ function SettingsSidebar() {
 
   return (
     <Sidebar>
-      <TeamButton
+      <SidebarButton
         subheading={
           <ReturnToApp align="center">
             <BackIcon color="currentColor" /> {t("Return to App")}

@@ -26,17 +26,19 @@ import {
   templatesPath,
   settingsPath,
 } from "~/utils/routeHelpers";
+import Avatar from "../Avatar";
+import TeamLogo from "../TeamLogo";
 import Sidebar from "./Sidebar";
 import ArchiveLink from "./components/ArchiveLink";
 import Collections from "./components/Collections";
 import Section from "./components/Section";
 import SidebarAction from "./components/SidebarAction";
+import SidebarButton from "./components/SidebarButton";
 import SidebarLink from "./components/SidebarLink";
 import Starred from "./components/Starred";
-import TeamButton from "./components/TeamButton";
 import TrashLink from "./components/TrashLink";
 
-function MainSidebar() {
+function AppSidebar() {
   const { t } = useTranslation();
   const { policies, documents } = useStores();
   const team = useCurrentTeam();
@@ -63,16 +65,15 @@ function MainSidebar() {
         <DndProvider backend={HTML5Backend} options={html5Options}>
           <AccountMenu>
             {(props) => (
-              <TeamButton
+              <SidebarButton
                 {...props}
-                subheading={user.name}
-                teamName={team.name}
-                logoUrl={team.avatarUrl}
+                title={team.name}
+                image={<TeamLogo src={team.avatarUrl} width={24} height={24} />}
                 showDisclosure
               />
             )}
           </AccountMenu>
-          <Scrollable flex topShadow>
+          <Scrollable flex shadow>
             <Section>
               <SidebarLink
                 to={homePath()}
@@ -128,15 +129,18 @@ function MainSidebar() {
                   <TrashLink />
                 </>
               )}
-              <SidebarLink
-                to={settingsPath()}
-                icon={<SettingsIcon color="currentColor" />}
-                exact={false}
-                label={t("Settings")}
-              />
               <SidebarAction action={inviteUser} />
             </Section>
           </Scrollable>
+          <AccountMenu>
+            {(props) => (
+              <SidebarButton
+                {...props}
+                title={user.name}
+                image={<Avatar src={user.avatarUrl} size={24} />}
+              />
+            )}
+          </AccountMenu>
         </DndProvider>
       )}
     </Sidebar>
@@ -147,4 +151,4 @@ const Drafts = styled(Flex)`
   height: 24px;
 `;
 
-export default observer(MainSidebar);
+export default observer(AppSidebar);
