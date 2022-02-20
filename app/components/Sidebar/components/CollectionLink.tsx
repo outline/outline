@@ -253,7 +253,7 @@ function CollectionLink({
                 />
               }
               exact={false}
-              depth={0.5}
+              depth={0}
               menu={
                 !isEditing && (
                   <>
@@ -325,7 +325,7 @@ const Draggable = styled("div")<{ $isDragging: boolean; $isMoving: boolean }>`
 const Disclosure = styled(CollapsedIcon)<{ expanded?: boolean }>`
   transition: transform 100ms ease, fill 50ms !important;
   position: absolute;
-  left: 0px;
+  left: -6px;
   ${({ expanded }) => !expanded && "transform: rotate(-90deg);"};
   display: none;
 `;

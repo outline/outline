@@ -104,7 +104,9 @@ function MainSidebar() {
                 />
               )}
             </Section>
-            <Starred />
+            <Section>
+              <Starred />
+            </Section>
             <Section auto>
               <Collections />
             </Section>

@@ -13,6 +13,7 @@ import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import CollectionLink from "./CollectionLink";
 import DropCursor from "./DropCursor";
+import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
 import SidebarAction from "./SidebarAction";
 import SidebarLink, { DragObject } from "./SidebarLink";
@@ -85,17 +86,14 @@ function Collections() {
           belowCollection={orderedCollections[index + 1]}
         />
       ))}
-      <SidebarAction action={createCollection} depth={0.5} />
+      <SidebarAction action={createCollection} depth={0} />
     </>
   );
 
   if (!collections.isLoaded || fetchError) {
     return (
       <Flex column>
-        <SidebarLink
-          label={t("Collections")}
-          icon={<Disclosure expanded={expanded} color="currentColor" />}
-        />
+        <Header>{t("Collections")}</Header>
         <PlaceholderCollections />
       </Flex>
     );
@@ -103,19 +101,13 @@ function Collections() {
 
   return (
     <Flex column>
-      <SidebarLink
-        onClick={() => setExpanded((prev) => !prev)}
-        label={t("Collections")}
-        icon={<Disclosure expanded={expanded} color="currentColor" />}
-      />
+      <Header onClick={() => setExpanded((prev) => !prev)} expanded={expanded}>
+        {t("Collections")}
+      </Header>
+
       {expanded && (isPreloaded ? content : <Fade>{content}</Fade>)}
     </Flex>
   );
 }
-
-const Disclosure = styled(CollapsedIcon)<{ expanded?: boolean }>`
-  transition: transform 100ms ease, fill 50ms !important;
-  ${({ expanded }) => !expanded && "transform: rotate(-90deg);"};
-`;
 
 export default observer(Collections);

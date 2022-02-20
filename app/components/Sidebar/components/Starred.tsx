@@ -10,8 +10,8 @@ import Flex from "~/components/Flex";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import DropCursor from "./DropCursor";
+import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
-import Section from "./Section";
 import SidebarLink from "./SidebarLink";
 import StarredLink from "./StarredLink";
 
@@ -119,71 +119,60 @@ function Starred() {
     }),
   });
 
-  const content = stars.orderedData.slice(0, upperBound).map((star) => {
-    const document = documents.get(star.documentId);
-
-    return document ? (
-      <StarredLink
-        key={star.id}
-        star={star}
-        documentId={document.id}
-        collectionId={document.collectionId}
-        to={document.url}
-        title={document.title}
-        depth={2}
-      />
-    ) : null;
-  });
-
   if (!stars.orderedData.length) {
     return null;
   }
 
   return (
-    <Section>
-      <Flex column>
-        <SidebarLink
-          onClick={handleExpandClick}
-          label={t("Starred")}
-          icon={<Disclosure expanded={expanded} color="currentColor" />}
-        />
-        {expanded && (
-          <>
-            <DropCursor
-              isActiveDrop={isOverReorder}
-              innerRef={dropToReorder}
-              position="top"
+    <Flex column>
+      <Header onClick={handleExpandClick} expanded={expanded}>
+        {t("Starred")}
+      </Header>
+      {expanded && (
+        <>
+          <DropCursor
+            isActiveDrop={isOverReorder}
+            innerRef={dropToReorder}
+            position="top"
+          />
+          {stars.orderedData.slice(0, upperBound).map((star) => {
+            const document = documents.get(star.documentId);
+
+            return document ? (
+              <StarredLink
+                key={star.id}
+                star={star}
+                documentId={document.id}
+                collectionId={document.collectionId}
+                to={document.url}
+                title={document.title}
+                depth={0}
+              />
+            ) : null;
+          })}
+          {show === "More" && !isFetching && (
+            <SidebarLink
+              onClick={handleShowMore}
+              label={`${t("Show more")}…`}
+              depth={0}
             />
-            {content}
-            {show === "More" && !isFetching && (
-              <SidebarLink
-                onClick={handleShowMore}
-                label={`${t("Show more")}…`}
-                depth={2}
-              />
-            )}
-            {show === "Less" && !isFetching && (
-              <SidebarLink
-                onClick={handleShowLess}
-                label={`${t("Show less")}…`}
-                depth={2}
-              />
-            )}
-            {(isFetching || fetchError) && !stars.orderedData.length && (
-              <Flex column>
-                <PlaceholderCollections />
-              </Flex>
-            )}
-          </>
-        )}
-      </Flex>
-    </Section>
+          )}
+          {show === "Less" && !isFetching && (
+            <SidebarLink
+              onClick={handleShowLess}
+              label={`${t("Show less")}…`}
+              depth={0}
+            />
+          )}
+          {(isFetching || fetchError) && !stars.orderedData.length && (
+            <Flex column>
+              <PlaceholderCollections />
+            </Flex>
+          )}
+        </>
+      )}
+    </Flex>
   );
 }
-
-const Disclosure = styled(CollapsedIcon)<{ expanded?: boolean }>`
-  transition: transform 100ms ease, fill 50ms !important;
-  ${({ expanded }) => !expanded && "transform: rotate(-90deg);"};
-`;
 
 export default observer(Starred);

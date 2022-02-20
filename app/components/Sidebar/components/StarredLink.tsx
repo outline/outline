@@ -1,10 +1,11 @@
 import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
+import { StarredIcon } from "outline-icons";
 import * as React from "react";
 import { useEffect, useState } from "react";
 import { useDrag, useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import { MAX_TITLE_LENGTH } from "@shared/constants";
 import Star from "~/models/Star";
 import Fade from "~/components/Fade";
@@ -33,6 +34,7 @@ function StarredLink({
   collectionId,
   star,
 }: Props) {
+  const theme = useTheme();
   const { t } = useTranslation();
   const { collections, documents, policies } = useStores();
   const collection = collections.get(collectionId);
@@ -122,6 +124,7 @@ function StarredLink({
         <SidebarLink
           depth={depth}
           to={`${to}?starred`}
+          icon={depth === 0 ? <StarredIcon color={theme.yellow} /> : undefined}
           isActive={(match, location) =>
             !!match && location.search === "?starred"
           }
