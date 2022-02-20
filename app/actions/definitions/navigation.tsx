@@ -31,7 +31,7 @@ import history from "~/utils/history";
 import {
   settingsPath,
   homePath,
-  searchUrl,
+  searchPath,
   draftsPath,
   templatesPath,
   archivePath,
@@ -47,21 +47,12 @@ export const navigateToHome = createAction({
   visible: ({ location }) => location.pathname !== homePath(),
 });
 
-export const navigateToSearch = createAction({
-  name: ({ t }) => t("Search"),
-  section: NavigationSection,
-  shortcut: ["/"],
-  icon: <SearchIcon />,
-  perform: () => history.push(searchUrl()),
-  visible: ({ location }) => location.pathname !== searchUrl(),
-});
-
 export const navigateToRecentSearchQuery = (searchQuery: SearchQuery) =>
   createAction({
     section: RecentSearchesSection,
     name: searchQuery.query,
     icon: <SearchIcon />,
-    perform: () => history.push(searchUrl(searchQuery.query)),
+    perform: () => history.push(searchPath(searchQuery.query)),
   });
 
 export const navigateToSearchQuery = (searchQuery: string) =>
@@ -71,8 +62,8 @@ export const navigateToSearchQuery = (searchQuery: string) =>
     name: ({ t }) =>
       t(`Search documents for "{{searchQuery}}"`, { searchQuery }),
     icon: <SearchIcon />,
-    perform: () => history.push(searchUrl(searchQuery)),
-    visible: ({ location }) => location.pathname !== searchUrl(),
+    perform: () => history.push(searchPath(searchQuery)),
+    visible: ({ location }) => location.pathname !== searchPath(),
   });
 
 export const navigateToDrafts = createAction({
@@ -94,6 +85,7 @@ export const navigateToTemplates = createAction({
 export const navigateToArchive = createAction({
   name: ({ t }) => t("Archive"),
   section: NavigationSection,
+  shortcut: ["g", "a"],
   icon: <ArchiveIcon />,
   perform: () => history.push(archivePath()),
   visible: ({ location }) => location.pathname !== archivePath(),
@@ -169,7 +161,6 @@ export const logout = createAction({
 
 export const rootNavigationActions = [
   navigateToHome,
-  navigateToSearch,
   navigateToDrafts,
   navigateToTemplates,
   navigateToArchive,
