@@ -351,9 +351,8 @@ function DocumentLink(
           <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
         )}
       </Relative>
-      {expanded &&
-        !isDragging &&
-        nodeChildren.map((childNode, index) => (
+      <Folder $expanded={expanded && !isDragging}>
+        {nodeChildren.map((childNode, index) => (
           <ObservedDocumentLink
             key={childNode.id}
             collection={collection}
@@ -367,9 +366,14 @@ function DocumentLink(
             parentId={node.id}
           />
         ))}
+      </Folder>
     </>
   );
 }
+
+const Folder = styled.div<{ $expanded?: boolean }>`
+  display: ${(props) => (props.$expanded ? "block" : "none")};
+`;
 
 const Relative = styled.div`
   position: relative;

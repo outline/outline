@@ -2,7 +2,7 @@ import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
 import { CollapsedIcon } from "outline-icons";
 import * as React from "react";
-import { useDrop, useDrag } from "react-dnd";
+import { useDrop, useDrag, DropTargetMonitor } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import { useLocation, useHistory } from "react-router-dom";
 import styled from "styled-components";
@@ -132,7 +132,7 @@ function CollectionLink({
 
   // Drop to reorder collection
   const [
-    { isCollectionDropping, isDraggingAnotherCollection },
+    { isCollectionDropping, isDraggingAnyCollection },
     dropToReorderCollection,
   ] = useDrop({
     accept: "collection",
@@ -148,9 +148,9 @@ function CollectionLink({
         (!belowCollection || item.id !== belowCollection.id)
       );
     },
-    collect: (monitor) => ({
+    collect: (monitor: DropTargetMonitor<Collection, Collection>) => ({
       isCollectionDropping: monitor.isOver(),
-      isDraggingAnotherCollection: monitor.canDrop(),
+      isDraggingAnyCollection: monitor.getItemType() === "collection",
     }),
   });
 
@@ -195,10 +195,7 @@ function CollectionLink({
     collection.sort,
   ]);
 
-  const isDraggingAnyCollection =
-    isDraggingAnotherCollection || isCollectionDragging;
-
-  const displayDocumentLinks = expanded && !isDraggingAnyCollection;
+  const displayDocumentLinks = expanded && !isCollectionDragging;
 
   React.useEffect(() => {
     // If we're viewing a starred document through the starred menu then don't
@@ -207,17 +204,14 @@ function CollectionLink({
       return;
     }
 
-    setExpanded((prev) => collection.id === ui.activeCollectionId || prev);
+    if (collection.id === ui.activeCollectionId) {
+      setExpanded(true);
+    }
   }, [collection.id, ui.activeCollectionId, search]);
 
   return (
     <>
-      <div
-        ref={drop}
-        style={{
-          position: "relative",
-        }}
-      >
+      <Relative ref={drop}>
         <Draggable
           key={collection.id}
           ref={dragToReorderCollection}
@@ -255,7 +249,8 @@ function CollectionLink({
               exact={false}
               depth={0.5}
               menu={
-                !isEditing && (
+                !isEditing &&
+                !isDraggingAnyCollection && (
                   <>
                     {can.update && (
                       <CollectionSortMenuWithMargin
@@ -278,27 +273,30 @@ function CollectionLink({
         {displayDocumentLinks && manualSort && (
           <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
         )}
-        {isDraggingAnyCollection && (
-          <DropCursor
-            isActiveDrop={isCollectionDropping}
-            innerRef={dropToReorderCollection}
-          />
-        )}
-      </div>
-      {displayDocumentLinks &&
-        collectionDocuments.map((node, index) => (
-          <DocumentLink
-            key={node.id}
-            node={node}
-            collection={collection}
-            activeDocument={activeDocument}
-            prefetchDocument={prefetchDocument}
-            canUpdate={canUpdate}
-            isDraft={node.isDraft}
-            depth={2}
-            index={index}
-          />
-        ))}
+      </Relative>
+      <Relative>
+        <Folder $expanded={displayDocumentLinks}>
+          {collectionDocuments.map((node, index) => (
+            <DocumentLink
+              key={node.id}
+              node={node}
+              collection={collection}
+              activeDocument={activeDocument}
+              prefetchDocument={prefetchDocument}
+              canUpdate={canUpdate}
+              isDraft={node.isDraft}
+              depth={2}
+              index={index}
+            />
+          ))}
+        </Folder>
+
+        <DropCursor
+          isActiveDrop={isCollectionDropping}
+          innerRef={dropToReorderCollection}
+        />
+      </Relative>
+
       <Modal
         title={t("Move document")}
         onRequestClose={handlePermissionClose}
@@ -316,6 +314,14 @@ function CollectionLink({
     </>
   );
 }
+
+const Relative = styled.div`
+  position: relative;
+`;
+
+const Folder = styled.div<{ $expanded?: boolean }>`
+  display: ${(props) => (props.$expanded ? "block" : "none")};
+`;
 
 const Draggable = styled("div")<{ $isDragging: boolean; $isMoving: boolean }>`
   opacity: ${(props) => (props.$isDragging || props.$isMoving ? 0.5 : 1)};
