@@ -1,4 +1,5 @@
 import { observer } from "mobx-react";
+import { ArrowIcon, CopyIcon, TrashIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
@@ -62,15 +63,22 @@ function ShareMenu({ share }: Props) {
       <OverflowMenuButton aria-label={t("Show menu")} {...menu} />
       <ContextMenu {...menu} aria-label={t("Share options")}>
         <CopyToClipboard text={share.url} onCopy={handleCopy}>
-          <MenuItem {...menu}>{t("Copy link")}</MenuItem>
+          <MenuItem {...menu} icon={<CopyIcon />}>
+            {t("Copy link")}
+          </MenuItem>
         </CopyToClipboard>
-        <MenuItem {...menu} onClick={handleGoToDocument}>
+        <MenuItem {...menu} onClick={handleGoToDocument} icon={<ArrowIcon />}>
           {t("Go to document")}
         </MenuItem>
         {can.revoke && (
           <>
             <hr />
-            <MenuItem {...menu} onClick={handleRevoke}>
+            <MenuItem
+              {...menu}
+              onClick={handleRevoke}
+              icon={<TrashIcon />}
+              dangerous
+            >
               {t("Revoke link")}
             </MenuItem>
           </>
