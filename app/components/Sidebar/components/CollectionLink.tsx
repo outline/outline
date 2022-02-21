@@ -1,6 +1,5 @@
 import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
-import { CollapsedIcon } from "outline-icons";
 import * as React from "react";
 import { useDrop, useDrag } from "react-dnd";
 import { useTranslation } from "react-i18next";
@@ -17,6 +16,7 @@ import useStores from "~/hooks/useStores";
 import CollectionMenu from "~/menus/CollectionMenu";
 import CollectionSortMenu from "~/menus/CollectionSortMenu";
 import { NavigationNode } from "~/types";
+import Disclosure from "./Disclosure";
 import DocumentLink from "./DocumentLink";
 import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
@@ -227,20 +227,16 @@ function CollectionLink({
           <DropToImport collectionId={collection.id}>
             <SidebarLink
               to={collection.url}
+              expanded={displayDocumentLinks}
+              onDisclosureClick={(event) => {
+                event.preventDefault();
+                setExpanded((prev) => !prev);
+              }}
               icon={
-                <>
-                  <Disclosure
-                    expanded={displayDocumentLinks}
-                    onClick={(event) => {
-                      event.preventDefault();
-                      setExpanded((prev) => !prev);
-                    }}
-                  />
-                  <CollectionIcon
-                    collection={collection}
-                    expanded={displayDocumentLinks}
-                  />
-                </>
+                <CollectionIcon
+                  collection={collection}
+                  expanded={displayDocumentLinks}
+                />
               }
               showActions={menuOpen}
               isActiveDrop={isOver && canDrop}
@@ -257,8 +253,8 @@ function CollectionLink({
               menu={
                 !isEditing && (
                   <>
-                    {can.update && (
-                      <CollectionSortMenuWithMargin
+                    {can.update && displayDocumentLinks && (
+                      <CollectionSortMenu
                         collection={collection}
                         onOpen={handleMenuOpen}
                         onClose={handleMenuClose}
@@ -320,18 +316,14 @@ function CollectionLink({
 const Draggable = styled("div")<{ $isDragging: boolean; $isMoving: boolean }>`
   opacity: ${(props) => (props.$isDragging || props.$isMoving ? 0.5 : 1)};
   pointer-events: ${(props) => (props.$isMoving ? "none" : "auto")};
-`;
 
-const Disclosure = styled(CollapsedIcon)<{ expanded?: boolean }>`
-  transition: transform 100ms ease, fill 50ms !important;
-  position: absolute;
-  left: -6px;
-  ${({ expanded }) => !expanded && "transform: rotate(-90deg);"};
-  display: none;
-`;
+  ${Disclosure} {
+    opacity: 0;
+  }
 
-const CollectionSortMenuWithMargin = styled(CollectionSortMenu)`
-  margin-right: 4px;
+  &:hover ${Disclosure} {
+    opacity: 1;
+  }
 `;
 
 export default observer(CollectionLink);

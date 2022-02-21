@@ -12,7 +12,6 @@ import Fade from "~/components/Fade";
 import useBoolean from "~/hooks/useBoolean";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
-import Disclosure from "./Disclosure";
 import DropCursor from "./DropCursor";
 import EditableTitle from "./EditableTitle";
 import SidebarLink from "./SidebarLink";
@@ -123,27 +122,21 @@ function StarredLink({
       <Draggable key={documentId} ref={drag} $isDragging={isDragging}>
         <SidebarLink
           depth={depth}
+          expanded={hasChildDocuments ? expanded : undefined}
+          onDisclosureClick={handleDisclosureClick}
           to={`${to}?starred`}
           icon={depth === 0 ? <StarredIcon color={theme.yellow} /> : undefined}
           isActive={(match, location) =>
             !!match && location.search === "?starred"
           }
           label={
-            <>
-              {hasChildDocuments && (
-                <Disclosure
-                  expanded={expanded}
-                  onClick={handleDisclosureClick}
-                />
-              )}
-              <EditableTitle
-                title={title || t("Untitled")}
-                onSubmit={handleTitleChange}
-                onEditing={handleTitleEditing}
-                canUpdate={canUpdate}
-                maxLength={MAX_TITLE_LENGTH}
-              />
-            </>
+            <EditableTitle
+              title={title || t("Untitled")}
+              onSubmit={handleTitleChange}
+              onEditing={handleTitleEditing}
+              canUpdate={canUpdate}
+              maxLength={MAX_TITLE_LENGTH}
+            />
           }
           exact={false}
           showActions={menuOpen}
@@ -167,7 +160,7 @@ function StarredLink({
         childDocuments.map((childDocument) => (
           <ObserveredStarredLink
             key={childDocument.id}
-            depth={depth + 1}
+            depth={depth === 0 ? 2 : depth + 1}
             title={childDocument.title}
             to={childDocument.url}
             documentId={childDocument.id}

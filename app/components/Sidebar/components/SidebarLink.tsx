@@ -1,10 +1,10 @@
-import { transparentize } from "polished";
 import * as React from "react";
 import styled, { useTheme, css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "~/components/EventBoundary";
 import NudeButton from "~/components/NudeButton";
 import { NavigationNode } from "~/types";
+import Disclosure from "./Disclosure";
 import NavLink, { Props as NavLinkProps } from "./NavLink";
 
 export type DragObject = NavigationNode & {
@@ -19,11 +19,14 @@ type Props = Omit<NavLinkProps, "to"> & {
   innerRef?: (arg0: HTMLElement | null | undefined) => void;
   onClick?: React.MouseEventHandler<HTMLAnchorElement>;
   onMouseEnter?: React.MouseEventHandler<HTMLAnchorElement>;
+  onDisclosureClick?: React.MouseEventHandler<HTMLOrSVGElement>;
   icon?: React.ReactNode;
   label?: React.ReactNode;
   menu?: React.ReactNode;
   showActions?: boolean;
   active?: boolean;
+  /* If set, a disclosure will be rendered to the left of any icon */
+  expanded?: boolean;
   isActiveDrop?: boolean;
   isDraft?: boolean;
   depth?: number;
@@ -50,6 +53,8 @@ function SidebarLink(
     href,
     depth,
     className,
+    expanded,
+    onDisclosureClick,
     ...rest
   }: Props,
   ref: React.RefObject<HTMLAnchorElement>
@@ -90,13 +95,24 @@ function SidebarLink(
         ref={ref}
         {...rest}
       >
-        {icon && <IconWrapper>{icon}</IconWrapper>}
-        <Label>{label}</Label>
+        <Content>
+          {expanded !== undefined && (
+            <Disclosure expanded={expanded} onClick={onDisclosureClick} />
+          )}
+          {icon && <IconWrapper>{icon}</IconWrapper>}
+          <Label>{label}</Label>
+        </Content>
       </Link>
       {menu && <Actions showActions={showActions}>{menu}</Actions>}
     </>
   );
 }
+
+const Content = styled.span`
+  display: flex;
+  position: relative;
+  width: 100%;
+`;
 
 // accounts for whitespace around icon
 export const IconWrapper = styled.span`
@@ -112,6 +128,7 @@ const Actions = styled(EventBoundary)<{ showActions?: boolean }>`
   position: absolute;
   top: 4px;
   right: 4px;
+  gap: 4px;
   color: ${(props) => props.theme.textTertiary};
   transition: opacity 50ms;
 
@@ -162,22 +179,9 @@ const Link = styled(NavLink)<{ $isActiveDrop?: boolean; $isDraft?: boolean }>`
     display: inline;
   }
 
-  &:focus {
-    color: ${(props) => props.theme.text};
-    background: ${(props) =>
-      transparentize("0.25", props.theme.sidebarItemBackground)};
-  }
-
   & + ${Actions} {
     ${NudeButton} {
       background: ${(props) => props.theme.sidebarBackground};
-    }
-  }
-
-  &:focus + ${Actions} {
-    ${NudeButton} {
-      background: ${(props) =>
-        transparentize("0.25", props.theme.sidebarItemBackground)};
     }
   }
 
