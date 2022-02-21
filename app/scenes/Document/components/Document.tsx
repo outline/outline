@@ -1,10 +1,9 @@
 import { debounce } from "lodash";
 import { action, observable } from "mobx";
 import { observer } from "mobx-react";
-import { InputIcon } from "outline-icons";
 import { AllSelection } from "prosemirror-state";
 import * as React from "react";
-import { WithTranslation, Trans, withTranslation } from "react-i18next";
+import { WithTranslation, withTranslation } from "react-i18next";
 import {
   Prompt,
   Route,
@@ -26,11 +25,9 @@ import ErrorBoundary from "~/components/ErrorBoundary";
 import Flex from "~/components/Flex";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import Modal from "~/components/Modal";
-import Notice from "~/components/Notice";
 import PageTitle from "~/components/PageTitle";
 import PlaceholderDocument from "~/components/PlaceholderDocument";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
-import Time from "~/components/Time";
 import withStores from "~/components/withStores";
 import { NavigationNode } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -50,6 +47,7 @@ import Editor from "./Editor";
 import Header from "./Header";
 import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
 import MarkAsViewed from "./MarkAsViewed";
+import Notices from "./Notices";
 import PublicReferences from "./PublicReferences";
 import References from "./References";
 
@@ -194,7 +192,9 @@ class DocumentScene extends React.Component<Props> {
   };
 
   goToMove = (ev: KeyboardEvent) => {
-    if (!this.props.readOnly) return;
+    if (!this.props.readOnly) {
+      return;
+    }
     ev.preventDefault();
     const { document, abilities } = this.props;
 
@@ -204,7 +204,9 @@ class DocumentScene extends React.Component<Props> {
   };
 
   goToEdit = (ev: KeyboardEvent) => {
-    if (!this.props.readOnly) return;
+    if (!this.props.readOnly) {
+      return;
+    }
     ev.preventDefault();
     const { document, abilities } = this.props;
 
@@ -214,8 +216,12 @@ class DocumentScene extends React.Component<Props> {
   };
 
   goToHistory = (ev: KeyboardEvent) => {
-    if (!this.props.readOnly) return;
-    if (ev.ctrlKey) return;
+    if (!this.props.readOnly) {
+      return;
+    }
+    if (ev.ctrlKey) {
+      return;
+    }
     ev.preventDefault();
     const { document, location } = this.props;
 
@@ -229,7 +235,9 @@ class DocumentScene extends React.Component<Props> {
   onPublish = (ev: React.MouseEvent | KeyboardEvent) => {
     ev.preventDefault();
     const { document } = this.props;
-    if (document.publishedAt) return;
+    if (document.publishedAt) {
+      return;
+    }
     this.onSave({
       publish: true,
       done: true,
@@ -237,7 +245,9 @@ class DocumentScene extends React.Component<Props> {
   };
 
   onToggleTableOfContents = (ev: KeyboardEvent) => {
-    if (!this.props.readOnly) return;
+    if (!this.props.readOnly) {
+      return;
+    }
     ev.preventDefault();
     const { ui } = this.props;
 
@@ -257,13 +267,17 @@ class DocumentScene extends React.Component<Props> {
   ) => {
     const { document, auth } = this.props;
     // prevent saves when we are already saving
-    if (document.isSaving) return;
+    if (document.isSaving) {
+      return;
+    }
 
     // get the latest version of the editor text value
     const text = this.getEditorText ? this.getEditorText() : document.text;
 
     // prevent save before anything has been written (single hash is empty doc)
-    if (text.trim() === "" && document.title.trim() === "") return;
+    if (text.trim() === "" && document.title.trim() === "") {
+      return;
+    }
 
     document.text = text;
     document.tasks = getTasks(document.text);
@@ -375,7 +389,9 @@ class DocumentScene extends React.Component<Props> {
   });
 
   goBack = () => {
-    this.props.history.push(this.props.document.url);
+    if (!this.props.readOnly) {
+      this.props.history.push(this.props.document.url);
+    }
   };
 
   render() {
@@ -392,12 +408,14 @@ class DocumentScene extends React.Component<Props> {
     const team = auth.team;
     const isShare = !!shareId;
     const value = revision ? revision.text : document.text;
-    const disableEmbeds =
+    const embedsDisabled =
       (team && team.documentEmbeds === false) || document.embedsDisabled;
+
     const headings = this.editor.current
       ? // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
         this.editor.current.getHeadings()
       : [];
+
     const showContents =
       ui.tocVisible && (readOnly || team?.collaborativeEditing);
     const collaborativeEditing =
@@ -466,9 +484,20 @@ class DocumentScene extends React.Component<Props> {
                     !this.isUploading &&
                     !team?.collaborativeEditing
                   }
-                  message={t(
-                    `You have unsaved changes.\nAre you sure you want to discard them?`
-                  )}
+                  message={(location, action) => {
+                    if (
+                      // a URL replace matching the current document indicates a title change
+                      // no guard is needed for this transition
+                      action === "REPLACE" &&
+                      location.pathname === editDocumentUrl(document)
+                    ) {
+                      return true;
+                    }
+
+                    return t(
+                      `You have unsaved changes.\nAre you sure you want to discard them?`
+                    ) as string;
+                  }}
                 />
                 <Prompt
                   when={this.isUploading && !this.isEditorDirty}
@@ -503,52 +532,7 @@ class DocumentScene extends React.Component<Props> {
               column
               auto
             >
-              {document.isTemplate && !readOnly && (
-                <Notice>
-                  <Trans>
-                    You’re editing a template. Highlight some text and use the{" "}
-                    <PlaceholderIcon color="currentColor" /> control to add
-                    placeholders that can be filled out when creating new
-                    documents from this template.
-                  </Trans>
-                </Notice>
-              )}
-              {document.archivedAt && !document.deletedAt && (
-                <Notice>
-                  {t("Archived by {{userName}}", {
-                    userName: document.updatedBy.name,
-                  })}{" "}
-                  <Time dateTime={document.updatedAt} addSuffix />
-                </Notice>
-              )}
-              {document.deletedAt && (
-                <Notice>
-                  <strong>
-                    {t("Deleted by {{userName}}", {
-                      userName: document.updatedBy.name,
-                    })}{" "}
-                    <Time dateTime={document.deletedAt || ""} addSuffix />
-                  </strong>
-                  {document.permanentlyDeletedAt && (
-                    <>
-                      <br />
-                      {document.template ? (
-                        <Trans>
-                          This template will be permanently deleted in{" "}
-                          <Time dateTime={document.permanentlyDeletedAt} />{" "}
-                          unless restored.
-                        </Trans>
-                      ) : (
-                        <Trans>
-                          This document will be permanently deleted in{" "}
-                          <Time dateTime={document.permanentlyDeletedAt} />{" "}
-                          unless restored.
-                        </Trans>
-                      )}
-                    </>
-                  )}
-                </Notice>
-              )}
+              <Notices document={document} readOnly={readOnly} />
               <React.Suspense fallback={<PlaceholderDocument />}>
                 <Flex auto={!readOnly}>
                   {showContents && (
@@ -559,8 +543,8 @@ class DocumentScene extends React.Component<Props> {
                   )}
                   <Editor
                     id={document.id}
-                    key={disableEmbeds ? "disabled" : "enabled"}
-                    innerRef={this.editor}
+                    key={embedsDisabled ? "disabled" : "enabled"}
+                    ref={this.editor}
                     multiplayer={collaborativeEditing}
                     shareId={shareId}
                     isDraft={document.isDraft}
@@ -569,7 +553,7 @@ class DocumentScene extends React.Component<Props> {
                     document={document}
                     value={readOnly ? value : undefined}
                     defaultValue={value}
-                    disableEmbeds={disableEmbeds}
+                    embedsDisabled={embedsDisabled}
                     onSynced={this.onSynced}
                     onImageUploadStart={this.onImageUploadStart}
                     onImageUploadStop={this.onImageUploadStop}
@@ -604,11 +588,11 @@ class DocumentScene extends React.Component<Props> {
                 </Flex>
               </React.Suspense>
             </MaxWidth>
+            {isShare && !isCustomDomain() && (
+              <Branding href="//www.getoutline.com?ref=sharelink" />
+            )}
           </Container>
         </Background>
-        {isShare && !isCustomDomain() && (
-          <Branding href="//www.getoutline.com?ref=sharelink" />
-        )}
         {!isShare && (
           <>
             <KeyboardShortcutsButton />
@@ -619,11 +603,6 @@ class DocumentScene extends React.Component<Props> {
     );
   }
 }
-
-const PlaceholderIcon = styled(InputIcon)`
-  position: relative;
-  top: 6px;
-`;
 
 const Background = styled(Container)`
   background: ${(props) => props.theme.background};
@@ -646,14 +625,13 @@ type MaxWidthProps = {
 };
 
 const MaxWidth = styled(Flex)<MaxWidthProps>`
-  ${(props) =>
-    props.archived && `* { color: ${props.theme.textSecondary} !important; } `};
-
   // Adds space to the gutter to make room for heading annotations
   padding: 0 32px;
   transition: padding 100ms;
   max-width: 100vw;
   width: 100%;
+
+  padding-bottom: 16px;
 
   ${breakpoint("tablet")`
     margin: 4px auto 12px;

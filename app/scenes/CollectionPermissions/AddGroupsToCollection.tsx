@@ -13,10 +13,10 @@ import ButtonLink from "~/components/ButtonLink";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
 import GroupListItem from "~/components/GroupListItem";
-import HelpText from "~/components/HelpText";
 import Input from "~/components/Input";
 import Modal from "~/components/Modal";
 import PaginatedList from "~/components/PaginatedList";
+import Text from "~/components/Text";
 import withStores from "~/components/withStores";
 
 type Props = WithTranslation &
@@ -80,20 +80,22 @@ class AddGroupsToCollection extends React.Component<Props> {
   render() {
     const { groups, policies, collection, auth, t } = this.props;
     const { user, team } = auth;
-    if (!user || !team) return null;
+    if (!user || !team) {
+      return null;
+    }
 
     const can = policies.abilities(team.id);
 
     return (
       <Flex column>
         {can.createGroup && (
-          <HelpText>
+          <Text type="secondary">
             {t("Can’t find the group you’re looking for?")}{" "}
             <ButtonLink onClick={this.handleNewGroupModalOpen}>
               {t("Create a group")}
             </ButtonLink>
             .
-          </HelpText>
+          </Text>
         )}
 
         <Input

@@ -6,10 +6,10 @@ import { Trans, useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
-import HelpText from "~/components/HelpText";
 import IconPicker from "~/components/IconPicker";
 import Input from "~/components/Input";
 import InputSelect from "~/components/InputSelect";
+import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 
@@ -74,7 +74,7 @@ const CollectionEdit = ({ collectionId, onSubmit }: Props) => {
   };
 
   const handleNameChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
-    setName(ev.target.value.trim());
+    setName(ev.target.value);
   };
 
   const handleChange = (color: string, icon: string) => {
@@ -85,13 +85,13 @@ const CollectionEdit = ({ collectionId, onSubmit }: Props) => {
   return (
     <Flex column>
       <form onSubmit={handleSubmit}>
-        <HelpText>
+        <Text type="secondary">
           <Trans>
             You can edit the name and other details at any time, however doing
             so often might confuse your team mates.
           </Trans>
-        </HelpText>
-        <Flex>
+        </Text>
+        <Flex gap={8}>
           <Input
             type="text"
             label={t("Name")}
@@ -101,7 +101,6 @@ const CollectionEdit = ({ collectionId, onSubmit }: Props) => {
             autoFocus
             flex
           />
-          &nbsp;
           <IconPicker onChange={handleChange} color={color} icon={icon} />
         </Flex>
         <InputSelect

@@ -78,6 +78,7 @@ const NavLink = ({
         strict,
       })
     : null;
+
   const isActive = !!(isActiveProp
     ? isActiveProp(match, currentLocation)
     : match);

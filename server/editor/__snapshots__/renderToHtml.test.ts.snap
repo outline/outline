@@ -1,0 +1,129 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`renders blockquote 1`] = `
+"<blockquote>
+<p>blockquote</p>
+</blockquote>"
+`;
+
+exports[`renders bold marks 1`] = `"<p>this is <strong>bold</strong> text</p>"`;
+
+exports[`renders bullet list 1`] = `
+"<ul>
+<li>item one</li>
+<li>item two
+<ul>
+<li>nested item</li>
+</ul>
+</li>
+</ul>"
+`;
+
+exports[`renders checkbox list 1`] = `
+"<ul>
+<li class=\\"checkbox-list-item\\"><span class=\\"checkbox \\">[ ]</span>unchecked</li>
+<li class=\\"checkbox-list-item\\"><span class=\\"checkbox checked\\">[x]</span>checked</li>
+</ul>"
+`;
+
+exports[`renders code block 1`] = `
+"<pre><code>this is indented code
+</code></pre>"
+`;
+
+exports[`renders code fence 1`] = `
+"<pre><code class=\\"language-javascript\\">this is code
+</code></pre>"
+`;
+
+exports[`renders code marks 1`] = `"<p>this is <code>inline code</code> text</p>"`;
+
+exports[`renders headings 1`] = `
+"<h1>Heading 1</h1>
+<h2>Heading 2</h2>
+<h3>Heading 3</h3>
+<h4>Heading 4</h4>"
+`;
+
+exports[`renders highlight marks 1`] = `"<p>this is <span class=\\"highlight\\">highlighted</span> text</p>"`;
+
+exports[`renders horizontal rule 1`] = `"<hr>"`;
+
+exports[`renders image 1`] = `"<p><img src=\\"https://lorempixel.com/200/200\\" alt=\\"caption\\"></p>"`;
+
+exports[`renders image with alignment 1`] = `"<p><img src=\\"https://lorempixel.com/200/200\\" alt=\\"caption\\" title=\\"left-40\\"></p>"`;
+
+exports[`renders info notice 1`] = `
+"<div class=\\"notice notice-info\\">
+<p>content of notice</p>
+</div>"
+`;
+
+exports[`renders italic marks 1`] = `"<p>this is <em>italic</em> text</p>"`;
+
+exports[`renders italic marks 2`] = `"<p>this is <em>also italic</em> text</p>"`;
+
+exports[`renders link marks 1`] = `"<p>this is <a href=\\"https://www.example.com\\">linked</a> text</p>"`;
+
+exports[`renders ordered list 1`] = `
+"<ol>
+<li>item one</li>
+<li>item two</li>
+</ol>"
+`;
+
+exports[`renders ordered list 2`] = `
+"<ol>
+<li>item one</li>
+<li>item two</li>
+</ol>"
+`;
+
+exports[`renders plain text as paragraph 1`] = `"<p>plain text</p>"`;
+
+exports[`renders table 1`] = `
+"<table>
+<tr>
+<th>
+<p>heading</p></th>
+<th style=\\"text-align:center\\">
+<p>centered</p></th>
+<th style=\\"text-align:right\\">
+<p>right aligned</p></th>
+</tr>
+<tr>
+<td>
+<p></p></td>
+<td style=\\"text-align:center\\">
+<p>center</p></td>
+<td style=\\"text-align:right\\">
+<p></p></td>
+</tr>
+<tr>
+<td>
+<p></p></td>
+<td style=\\"text-align:center\\">
+<p></p></td>
+<td style=\\"text-align:right\\">
+<p>bottom r</p></td>
+</tr>
+</table>"
+`;
+
+exports[`renders template placeholder marks 1`] = `"<p>this is <span class=\\"placeholder\\">a placeholder</span></p>"`;
+
+exports[`renders tip notice 1`] = `
+"<div class=\\"notice notice-tip\\">
+<p>content of notice</p>
+</div>"
+`;
+
+exports[`renders underline marks 1`] = `"<p>this is <underline>underlined</underline> text</p>"`;
+
+exports[`renders underline marks 2`] = `"<p>this is <s>strikethrough</s> text</p>"`;
+
+exports[`renders warning notice 1`] = `
+"<div class=\\"notice notice-warning\\">
+<p>content of notice</p>
+</div>"
+`;

@@ -211,7 +211,9 @@ export default class UsersStore extends BaseStore<User> {
       this.activeOrInvited,
       (user) => !userIds.includes(user.id)
     );
-    if (!query) return users;
+    if (!query) {
+      return users;
+    }
     return queriedUsers(users, query);
   };
 
@@ -224,7 +226,9 @@ export default class UsersStore extends BaseStore<User> {
     const users = filter(this.activeOrInvited, (user) =>
       userIds.includes(user.id)
     );
-    if (!query) return users;
+    if (!query) {
+      return users;
+    }
     return queriedUsers(users, query);
   };
 
@@ -238,7 +242,9 @@ export default class UsersStore extends BaseStore<User> {
       this.activeOrInvited,
       (user) => !userIds.includes(user.id)
     );
-    if (!query) return users;
+    if (!query) {
+      return users;
+    }
     return queriedUsers(users, query);
   };
 
@@ -251,7 +257,9 @@ export default class UsersStore extends BaseStore<User> {
     const users = filter(this.activeOrInvited, (user) =>
       userIds.includes(user.id)
     );
-    if (!query) return users;
+    if (!query) {
+      return users;
+    }
     return queriedUsers(users, query);
   };
 

@@ -3,8 +3,12 @@ import { AdminRequiredError } from "../errors";
 import { allow } from "./cancan";
 
 allow(User, "createAuthenticationProvider", Team, (actor, team) => {
-  if (!team || actor.teamId !== team.id) return false;
-  if (actor.isAdmin) return true;
+  if (!team || actor.teamId !== team.id) {
+    return false;
+  }
+  if (actor.isAdmin) {
+    return true;
+  }
 
   throw AdminRequiredError();
 });
@@ -24,8 +28,12 @@ allow(
   AuthenticationProvider,
 
   (actor, authenticationProvider) => {
-    if (actor.teamId !== authenticationProvider?.teamId) return false;
-    if (actor.isAdmin) return true;
+    if (actor.teamId !== authenticationProvider?.teamId) {
+      return false;
+    }
+    if (actor.isAdmin) {
+      return true;
+    }
 
     throw AdminRequiredError();
   }

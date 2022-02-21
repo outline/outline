@@ -1,20 +1,20 @@
-import fs from 'fs'
-import path from 'path'
-import util from 'util'
-import Koa from 'koa'
-import Router from 'koa-router'
-import send from 'koa-send'
-import serve from 'koa-static'
-import isUUID from 'validator/lib/isUUID'
-import { languages } from '@shared/i18n'
-import env from '@server/env'
-import { NotFoundError } from '@server/errors'
-import Share from '@server/models/Share'
-import { opensearchResponse } from '@server/utils/opensearch'
-import prefetchTags from '@server/utils/prefetchTags'
-import { robotsResponse } from '@server/utils/robots'
-import apexRedirect from '../middlewares/apexRedirect'
-import presentEnv from '../presenters/env'
+import fs from "fs";
+import path from "path";
+import util from "util";
+import Koa, { Context, Next } from "koa";
+import Router from "koa-router";
+import send from "koa-send";
+import serve from "koa-static";
+import isUUID from "validator/lib/isUUID";
+import { languages } from "@shared/i18n";
+import env from "@server/env";
+import { NotFoundError } from "@server/errors";
+import Share from "@server/models/Share";
+import { opensearchResponse } from "@server/utils/opensearch";
+import prefetchTags from "@server/utils/prefetchTags";
+import { robotsResponse } from "@server/utils/robots";
+import apexRedirect from "../middlewares/apexRedirect";
+import presentEnv from "../presenters/env";
 
 const isProduction = process.env.NODE_ENV === 'production'
 const isTest = process.env.NODE_ENV === 'test'
@@ -22,26 +22,24 @@ const koa = new Koa()
 const router = new Router()
 const readFile = util.promisify(fs.readFile)
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ctx' implicitly has an 'any' type.
-const readIndexFile = async ctx => {
-	if (isProduction) {
-		return readFile(path.join(__dirname, '../../app/index.html'))
-	}
+const readIndexFile = async (ctx: Context): Promise<Buffer> => {
+  if (isProduction) {
+    return readFile(path.join(__dirname, "../../app/index.html"));
+  }
 
 	if (isTest) {
 		return readFile(path.join(__dirname, '../static/index.html'))
 	}
 
-	const middleware = ctx.devMiddleware
-	await new Promise(resolve => middleware.waitUntilValid(resolve))
-	return new Promise((resolve, reject) => {
-		middleware.fileSystem.readFile(
-			`${ctx.webpackConfig.output.path}/index.html`,
-			// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'err' implicitly has an 'any' type.
-			(err, result) => {
-				if (err) {
-					return reject(err)
-				}
+  const middleware = ctx.devMiddleware;
+  await new Promise((resolve) => middleware.waitUntilValid(resolve));
+  return new Promise((resolve, reject) => {
+    middleware.fileSystem.readFile(
+      `${ctx.webpackConfig.output.path}/index.html`,
+      (err: Error, result: Buffer) => {
+        if (err) {
+          return reject(err);
+        }
 
 				resolve(result)
 			},
@@ -49,32 +47,29 @@ const readIndexFile = async ctx => {
 	})
 }
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ctx' implicitly has an 'any' type.
-const renderApp = async (ctx, next, title = 'Outline') => {
-	if (ctx.request.path === '/realtime/') {
-		return next()
-	}
+const renderApp = async (ctx: Context, next: Next, title = "Outline") => {
+  if (ctx.request.path === "/realtime/") {
+    return next();
+  }
 
 	const page = await readIndexFile(ctx)
 	const environment = `
     window.env = ${JSON.stringify(presentEnv(env))};
-  `
-	// @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
-	ctx.body = page
-		.toString()
-		.replace(/\/\/inject-env\/\//g, environment)
-		.replace(/\/\/inject-title\/\//g, title)
-		.replace(/\/\/inject-prefetch\/\//g, prefetchTags)
-		.replace(/\/\/inject-slack-app-id\/\//g, process.env.SLACK_APP_ID || '')
-}
+  `;
+  ctx.body = page
+    .toString()
+    .replace(/\/\/inject-env\/\//g, environment)
+    .replace(/\/\/inject-title\/\//g, title)
+    .replace(/\/\/inject-prefetch\/\//g, prefetchTags)
+    .replace(/\/\/inject-slack-app-id\/\//g, process.env.SLACK_APP_ID || "");
+};
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'ctx' implicitly has an 'any' type.
-const renderShare = async (ctx, next) => {
-	const { shareId } = ctx.params
-	// Find the share record if publicly published so that the document title
-	// can be be returned in the server-rendered HTML. This allows it to appear in
-	// unfurls with more reliablity
-	let share
+const renderShare = async (ctx: Context, next: Next) => {
+  const { shareId } = ctx.params;
+  // Find the share record if publicly published so that the document title
+  // can be be returned in the server-rendered HTML. This allows it to appear in
+  // unfurls with more reliablity
+  let share;
 
 	if (isUUID(shareId)) {
 		share = await Share.findOne({

@@ -50,6 +50,7 @@ export default function useDictionary() {
       newLineWithSlash: `${t("Keep typing to filter")}…`,
       noResults: t("No results"),
       openLink: t("Open link"),
+      goToLink: t("Go to link"),
       orderedList: t("Ordered list"),
       pageBreak: t("Page break"),
       pasteLink: `${t("Paste a link")}…`,
@@ -72,3 +73,5 @@ export default function useDictionary() {
     };
   }, [t]);
 }
+
+export type Dictionary = ReturnType<typeof useDictionary>;

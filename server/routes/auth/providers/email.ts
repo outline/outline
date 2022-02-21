@@ -129,33 +129,36 @@ router.get("email.callback", async (ctx) => {
   const { token } = ctx.request.query;
   assertPresent(token, "token is required");
 
+  let user!: User;
+
   try {
-    const user = await getUserForEmailSigninToken(token as string);
-
-    if (!user.team.guestSignin) {
-      return ctx.redirect("/?notice=auth-error");
-    }
-
-    if (user.isSuspended) {
-      return ctx.redirect("/?notice=suspended");
-    }
-
-    if (user.isInvited) {
-      await mailer.sendTemplate("welcome", {
-        to: user.email,
-        teamUrl: user.team.url,
-      });
-    }
-
-    await user.update({
-      lastActiveAt: new Date(),
-    });
-
-    // set cookies on response and redirect to team subdomain
-    await signIn(ctx, user, user.team, "email", false, false);
+    user = await getUserForEmailSigninToken(token as string);
   } catch (err) {
     ctx.redirect(`/?notice=expired-token`);
+    return;
   }
+
+  if (!user.team.guestSignin) {
+    return ctx.redirect("/?notice=auth-error");
+  }
+
+  if (user.isSuspended) {
+    return ctx.redirect("/?notice=suspended");
+  }
+
+  if (user.isInvited) {
+    await mailer.sendTemplate("welcome", {
+      to: user.email,
+      teamUrl: user.team.url,
+    });
+  }
+
+  await user.update({
+    lastActiveAt: new Date(),
+  });
+
+  // set cookies on response and redirect to team subdomain
+  await signIn(ctx, user, user.team, "email", false, false);
 });
 
 export default router;

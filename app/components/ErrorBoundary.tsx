@@ -4,11 +4,11 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { withTranslation, Trans, WithTranslation } from "react-i18next";
 import styled from "styled-components";
-import { githubIssuesUrl } from "@shared/utils/routeHelpers";
+import { githubIssuesUrl } from "@shared/utils/urlHelpers";
 import Button from "~/components/Button";
 import CenteredContent from "~/components/CenteredContent";
-import HelpText from "~/components/HelpText";
 import PageTitle from "~/components/PageTitle";
+import Text from "~/components/Text";
 import env from "~/env";
 
 type Props = WithTranslation & {
@@ -72,13 +72,13 @@ class ErrorBoundary extends React.Component<Props> {
             <h1>
               <Trans>Loading Failed</Trans>
             </h1>
-            <HelpText>
+            <Text type="secondary">
               <Trans>
                 Sorry, part of the application failed to load. This may be
                 because it was updated since you opened the tab or because of a
                 failed network request. Please try reloading.
               </Trans>
-            </HelpText>
+            </Text>
             <p>
               <Button onClick={this.handleReload}>{t("Reload")}</Button>
             </p>
@@ -92,7 +92,7 @@ class ErrorBoundary extends React.Component<Props> {
           <h1>
             <Trans>Something Unexpected Happened</Trans>
           </h1>
-          <HelpText>
+          <Text type="secondary">
             <Trans
               defaults="Sorry, an unrecoverable error occurred{{notified}}. Please try reloading the page, it may have been a temporary glitch."
               values={{
@@ -101,7 +101,7 @@ class ErrorBoundary extends React.Component<Props> {
                   : undefined,
               }}
             />
-          </HelpText>
+          </Text>
           {this.showDetails && <Pre>{error.toString()}</Pre>}
           <p>
             <Button onClick={this.handleReload}>{t("Reload")}</Button>{" "}

@@ -73,7 +73,7 @@ function Collections() {
       <DropCursor
         isActiveDrop={isCollectionDropping}
         innerRef={dropToReorderCollection}
-        from="collections"
+        position="top"
       />
       {orderedCollections.map((collection: Collection, index: number) => (
         <CollectionLink

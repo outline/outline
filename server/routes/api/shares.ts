@@ -100,7 +100,9 @@ router.post("shares.info", auth(), async (ctx) => {
 router.post("shares.list", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
   const { sort = "updatedAt" } = ctx.body;
-  if (direction !== "ASC") direction = "DESC";
+  if (direction !== "ASC") {
+    direction = "DESC";
+  }
   assertSort(sort, Share);
 
   const { user } = ctx.state;
@@ -168,6 +170,7 @@ router.post("shares.update", auth(), async (ctx) => {
   const { user } = ctx.state;
   const team = await Team.findByPk(user.teamId);
   authorize(user, "share", team);
+
   // fetch the share with document and collection.
   const share = await Share.scope({
     method: ["withCollection", user.id],

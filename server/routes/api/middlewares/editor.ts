@@ -1,6 +1,6 @@
 import { Context, Next } from "koa";
-import pkg from "rich-markdown-editor/package.json";
 import semver from "semver";
+import EDITOR_VERSION from "@shared/editor/version";
 import { EditorUpdateError } from "@server/errors";
 
 export default function editor() {
@@ -12,7 +12,7 @@ export default function editor() {
     // changes) then force a client reload.
     if (clientVersion) {
       const parsedClientVersion = semver.parse(clientVersion as string);
-      const parsedCurrentVersion = semver.parse(pkg.version);
+      const parsedCurrentVersion = semver.parse(EDITOR_VERSION);
 
       if (
         parsedClientVersion &&

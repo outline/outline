@@ -72,13 +72,16 @@ class SocketProvider extends React.Component<Props> {
       collections,
       groups,
       pins,
+      stars,
       memberships,
       policies,
       presence,
       views,
       fileOperations,
     } = this.props;
-    if (!auth.token) return;
+    if (!auth.token) {
+      return;
+    }
 
     this.socket.on("connect", () => {
       // immediately send current users token to the websocket backend where it
@@ -185,11 +188,9 @@ class SocketProvider extends React.Component<Props> {
       if (event.collectionIds) {
         for (const collectionDescriptor of event.collectionIds) {
           const collectionId = collectionDescriptor.id;
-          const collection = collections.get(collectionId) || {};
+          const collection = collections.get(collectionId);
 
           if (event.event === "collections.delete") {
-            const collection = collections.get(collectionId);
-
             if (collection) {
               collection.deletedAt = collectionDescriptor.updatedAt;
             }
@@ -208,10 +209,11 @@ class SocketProvider extends React.Component<Props> {
 
           // if we already have the latest version (it was us that performed
           // the change) then we don't need to update anything either.
-          // @ts-expect-error ts-migrate(2339) FIXME: Property 'updatedAt' does not exist on type '{}'.
-          const { updatedAt } = collection;
 
-          if (updatedAt === collectionDescriptor.updatedAt) {
+          if (
+            collection &&
+            collection.updatedAt === collectionDescriptor.updatedAt
+          ) {
             continue;
           }
 
@@ -273,12 +275,16 @@ class SocketProvider extends React.Component<Props> {
       pins.remove(event.modelId);
     });
 
-    this.socket.on("documents.star", (event: any) => {
-      documents.starredIds.set(event.documentId, true);
+    this.socket.on("stars.create", (event: any) => {
+      stars.add(event);
     });
 
-    this.socket.on("documents.unstar", (event: any) => {
-      documents.starredIds.set(event.documentId, false);
+    this.socket.on("stars.update", (event: any) => {
+      stars.add(event);
+    });
+
+    this.socket.on("stars.delete", (event: any) => {
+      stars.remove(event.modelId);
     });
 
     this.socket.on("documents.permanent_delete", (event: any) => {
@@ -321,14 +327,17 @@ class SocketProvider extends React.Component<Props> {
       }
     });
 
+    this.socket.on("fileOperations.create", async (event: any) => {
+      const user = auth.user;
+      if (user) {
+        fileOperations.add({ ...event, user });
+      }
+    });
+
     this.socket.on("fileOperations.update", async (event: any) => {
       const user = auth.user;
-      let collection = null;
-      if (event.collectionId)
-        collection = await collections.fetch(event.collectionId);
-
       if (user) {
-        fileOperations.add({ ...event, user, collection });
+        fileOperations.add({ ...event, user });
       }
     });
 

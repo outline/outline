@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 import env from "~/env";
 import OutlineLogo from "./OutlineLogo";
 
@@ -17,9 +18,8 @@ function Branding({ href = env.URL }: Props) {
 }
 
 const Link = styled.a`
-  position: fixed;
-  bottom: 0;
-  left: 0;
+  justify-content: center;
+  padding-bottom: 16px;
 
   font-weight: 600;
   font-size: 14px;
@@ -28,7 +28,6 @@ const Link = styled.a`
   color: ${(props) => props.theme.text};
   display: flex;
   align-items: center;
-  padding: 16px;
 
   svg {
     fill: ${(props) => props.theme.text};
@@ -37,6 +36,14 @@ const Link = styled.a`
   &:hover {
     background: ${(props) => props.theme.sidebarBackground};
   }
+
+  ${breakpoint("tablet")`
+    z-index: ${(props: any) => props.theme.depths.sidebar + 1};
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    padding: 16px;
+  `};
 `;
 
 export default Branding;

@@ -25,7 +25,9 @@
   ],
   "rules": {
     "eqeqeq": 2,
+    "curly": 2,
     "no-mixed-operators": "off",
+    "no-useless-escape": "off",
     "@typescript-eslint/no-unused-vars": [
       "error",
       {
@@ -109,8 +111,5 @@
     "import/resolver": {
       "typescript": {}
     }
-  },
-  "globals": {
-    "EDITOR_VERSION": true
   }
 }

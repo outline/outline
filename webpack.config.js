@@ -3,7 +3,6 @@ const path = require('path');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { RelativeCiAgentWebpackPlugin } = require('@relative-ci/agent');
-const pkg = require("rich-markdown-editor/package.json");
 const WebpackPwaManifest = require("webpack-pwa-manifest");
 const WorkboxPlugin = require("workbox-webpack-plugin");
 
@@ -57,9 +56,6 @@ module.exports = {
     }
   },
   plugins: [
-    new webpack.DefinePlugin({
-      EDITOR_VERSION: JSON.stringify(pkg.version)
-    }),
     new webpack.IgnorePlugin(/unicode\/category\/So/),
     new HtmlWebpackPlugin({
       template: 'server/static/index.html',

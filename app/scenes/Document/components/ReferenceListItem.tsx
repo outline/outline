@@ -6,6 +6,7 @@ import styled from "styled-components";
 import Document from "~/models/Document";
 import DocumentMeta from "~/components/DocumentMeta";
 import Flex from "~/components/Flex";
+import { hover } from "~/styles";
 import { NavigationNode } from "~/types";
 
 type Props = {
@@ -25,7 +26,7 @@ const DocumentLink = styled(Link)`
   overflow: hidden;
   position: relative;
 
-  &:hover,
+  &:${hover},
   &:active,
   &:focus {
     background: ${(props) => props.theme.listItemHoverBackground};

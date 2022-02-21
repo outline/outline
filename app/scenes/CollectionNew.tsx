@@ -7,11 +7,11 @@ import RootStore from "~/stores/RootStore";
 import Collection from "~/models/Collection";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
-import HelpText from "~/components/HelpText";
 import IconPicker, { icons } from "~/components/IconPicker";
 import Input from "~/components/Input";
 import InputSelectPermission from "~/components/InputSelectPermission";
 import Switch from "~/components/Switch";
+import Text from "~/components/Text";
 import withStores from "~/components/withStores";
 import history from "~/utils/history";
 
@@ -115,14 +115,14 @@ class CollectionNew extends React.Component<Props> {
     const teamSharingEnabled = !!auth.team && auth.team.sharing;
     return (
       <form onSubmit={this.handleSubmit}>
-        <HelpText>
+        <Text type="secondary">
           <Trans>
             Collections are for grouping your documents. They work best when
             organized around a topic or internal team — Product or Engineering
             for example.
           </Trans>
-        </HelpText>
-        <Flex>
+        </Text>
+        <Flex gap={8}>
           <Input
             type="text"
             label={t("Name")}
@@ -132,7 +132,6 @@ class CollectionNew extends React.Component<Props> {
             autoFocus
             flex
           />
-          &nbsp;
           <IconPicker
             onOpen={this.handleIconPickerOpen}
             onChange={this.handleChange}
@@ -143,29 +142,20 @@ class CollectionNew extends React.Component<Props> {
         <InputSelectPermission
           value={this.permission}
           onChange={this.handlePermissionChange}
-          short
+          note={t(
+            "This is the default level of access, you can give individual users or groups more access once the collection is created."
+          )}
         />
-        <HelpText>
-          <Trans>
-            This is the default level of access given to team members, you can
-            give specific users or groups more access once the collection is
-            created.
-          </Trans>
-        </HelpText>
         {teamSharingEnabled && (
-          <>
-            <Switch
-              id="sharing"
-              label={t("Public document sharing")}
-              onChange={this.handleSharingChange}
-              checked={this.sharing}
-            />
-            <HelpText>
-              <Trans>
-                When enabled, documents can be shared publicly on the internet.
-              </Trans>
-            </HelpText>
-          </>
+          <Switch
+            id="sharing"
+            label={t("Public document sharing")}
+            onChange={this.handleSharingChange}
+            checked={this.sharing}
+            note={t(
+              "When enabled any documents within this collection can be shared publicly on the internet."
+            )}
+          />
         )}
 
         <Button type="submit" disabled={this.isSaving || !this.name}>

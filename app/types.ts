@@ -7,10 +7,11 @@ export type MenuItemButton = {
   type: "button";
   title: React.ReactNode;
   onClick: React.MouseEventHandler<HTMLButtonElement | HTMLAnchorElement>;
+  dangerous?: boolean;
   visible?: boolean;
   selected?: boolean;
   disabled?: boolean;
-  icon?: React.ReactNode;
+  icon?: React.ReactElement;
 };
 
 export type MenuItemWithChildren = {
@@ -22,7 +23,7 @@ export type MenuItemWithChildren = {
   hover?: boolean;
 
   items: MenuItem[];
-  icon?: React.ReactNode;
+  icon?: React.ReactElement;
 };
 
 export type MenuSeparator = {
@@ -43,7 +44,7 @@ export type MenuInternalLink = {
   visible?: boolean;
   selected?: boolean;
   disabled?: boolean;
-  icon?: React.ReactNode;
+  icon?: React.ReactElement;
 };
 
 export type MenuExternalLink = {
@@ -54,7 +55,7 @@ export type MenuExternalLink = {
   selected?: boolean;
   disabled?: boolean;
   level?: number;
-  icon?: React.ReactNode;
+  icon?: React.ReactElement;
 };
 
 export type MenuItem =
@@ -137,6 +138,11 @@ export type NavigationNode = {
   url: string;
   children: NavigationNode[];
   isDraft?: boolean;
+};
+
+export type CollectionSort = {
+  field: string;
+  direction: "asc" | "desc";
 };
 
 // Pagination response in an API call

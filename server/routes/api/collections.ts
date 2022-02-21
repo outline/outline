@@ -3,6 +3,7 @@ import invariant from "invariant";
 import Router from "koa-router";
 import { Sequelize, Op, WhereOptions } from "sequelize";
 import collectionExporter from "@server/commands/collectionExporter";
+import teamUpdater from "@server/commands/teamUpdater";
 import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import {
@@ -25,7 +26,7 @@ import {
   presentCollectionGroupMembership,
   presentFileOperation,
 } from "@server/presenters";
-import collectionIndexing from "@server/utils/collectionIndexing";
+import { collectionIndexing } from "@server/utils/indexing";
 import removeIndexCollision from "@server/utils/removeIndexCollision";
 import {
   assertUuid,
@@ -536,7 +537,7 @@ router.post("collections.update", auth(), async (ctx) => {
   let sharingChanged = false;
 
   if (name !== undefined) {
-    collection.name = name;
+    collection.name = name.trim();
   }
 
   if (description !== undefined) {
@@ -601,6 +602,19 @@ router.post("collections.update", auth(), async (ctx) => {
   // if the privacy level has changed. Otherwise skip this query for speed.
   if (privacyChanged || sharingChanged) {
     await collection.reload();
+    const team = await Team.findByPk(user.teamId);
+
+    if (
+      collection.permission === null &&
+      team?.defaultCollectionId === collection.id
+    ) {
+      await teamUpdater({
+        params: { defaultCollectionId: null },
+        ip: ctx.request.ip,
+        user,
+        team,
+      });
+    }
   }
 
   ctx.body = {
@@ -612,23 +626,25 @@ router.post("collections.update", auth(), async (ctx) => {
 router.post("collections.list", auth(), pagination(), async (ctx) => {
   const { user } = ctx.state;
   const collectionIds = await user.collectionIds();
+  const where: WhereOptions<Collection> = {
+    teamId: user.teamId,
+    id: collectionIds,
+  };
   const collections = await Collection.scope({
     method: ["withMembership", user.id],
   }).findAll({
-    where: {
-      teamId: user.teamId,
-      id: collectionIds,
-    },
+    where,
     order: [["updatedAt", "DESC"]],
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
   });
-  const nullIndexCollection = collections.findIndex(
+
+  const nullIndex = collections.findIndex(
     (collection) => collection.index === null
   );
 
-  if (nullIndexCollection !== -1) {
-    const indexedCollections = await collectionIndexing(ctx.state.user.teamId);
+  if (nullIndex !== -1) {
+    const indexedCollections = await collectionIndexing(user.teamId);
     collections.forEach((collection) => {
       collection.index = indexedCollections[collection.id];
     });
@@ -649,12 +665,26 @@ router.post("collections.delete", auth(), async (ctx) => {
   const collection = await Collection.scope({
     method: ["withMembership", user.id],
   }).findByPk(id);
+  const team = await Team.findByPk(user.teamId);
+
   authorize(user, "delete", collection);
 
   const total = await Collection.count();
-  if (total === 1) throw ValidationError("Cannot delete last collection");
+  if (total === 1) {
+    throw ValidationError("Cannot delete last collection");
+  }
 
   await collection.destroy();
+
+  if (team && team.defaultCollectionId === collection.id) {
+    await teamUpdater({
+      params: { defaultCollectionId: null },
+      ip: ctx.request.ip,
+      user,
+      team,
+    });
+  }
+
   await Event.create({
     name: "collections.delete",
     collectionId: collection.id,

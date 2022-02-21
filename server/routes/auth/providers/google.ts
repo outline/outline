@@ -10,14 +10,13 @@ import {
   GoogleWorkspaceInvalidError,
 } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
-import { getAllowedDomains } from "@server/utils/authentication";
+import { isDomainAllowed } from "@server/utils/authentication";
 import { StateStore } from "@server/utils/passport";
 
 const router = new Router();
 const providerName = "google";
 const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
-const allowedDomains = getAllowedDomains();
 const scopes = [
   "https://www.googleapis.com/auth/userinfo.profile",
   "https://www.googleapis.com/auth/userinfo.email",
@@ -48,7 +47,7 @@ if (GOOGLE_CLIENT_ID) {
             throw GoogleWorkspaceRequiredError();
           }
 
-          if (allowedDomains.length && !allowedDomains.includes(domain)) {
+          if (!isDomainAllowed(domain)) {
             throw GoogleWorkspaceInvalidError();
           }
 

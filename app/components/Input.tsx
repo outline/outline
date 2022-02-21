@@ -88,6 +88,7 @@ export const Outline = styled(Flex)<{
   font-weight: normal;
   align-items: center;
   overflow: hidden;
+  background: ${(props) => props.theme.background};
 `;
 
 export const LabelText = styled.div`

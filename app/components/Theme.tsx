@@ -12,12 +12,25 @@ type Props = {
 
 function Theme({ children }: Props) {
   const { ui } = useStores();
-  const theme = ui.resolvedTheme === "dark" ? dark : light;
-  const mobileTheme = ui.resolvedTheme === "dark" ? darkMobile : lightMobile;
-  const isMobile = useMediaQuery(`(max-width: ${theme.breakpoints.tablet}px)`);
+  const resolvedTheme = ui.resolvedTheme === "dark" ? dark : light;
+  const resolvedMobileTheme =
+    ui.resolvedTheme === "dark" ? darkMobile : lightMobile;
+  const isMobile = useMediaQuery(
+    `(max-width: ${resolvedTheme.breakpoints.tablet}px)`
+  );
+  const isPrinting = useMediaQuery("print");
+  const theme = isPrinting
+    ? light
+    : isMobile
+    ? resolvedMobileTheme
+    : resolvedTheme;
+
+  React.useEffect(() => {
+    window.dispatchEvent(new Event("theme-changed"));
+  }, [theme]);
 
   return (
-    <ThemeProvider theme={isMobile ? mobileTheme : theme}>
+    <ThemeProvider theme={theme}>
       <>
         <GlobalStyles />
         {children}

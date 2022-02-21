@@ -1253,14 +1253,14 @@ describe("#collections.update", () => {
     expect(body.data.name).toBe(collection.name);
   });
 
-  it("allows editing from non-private to private collection", async () => {
+  it("allows editing from non-private to private collection, and trims whitespace", async () => {
     const { user, collection } = await seed();
     const res = await server.post("/api/collections.update", {
       body: {
         token: user.getJwtToken(),
         id: collection.id,
         permission: null,
-        name: "Test",
+        name: "  Test  ",
       },
     });
     const body = await res.json();

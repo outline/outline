@@ -12,10 +12,10 @@ import {
   PinIcon,
 } from "outline-icons";
 import * as React from "react";
+import getDataTransferFiles from "@shared/utils/getDataTransferFiles";
 import DocumentTemplatize from "~/scenes/DocumentTemplatize";
 import { createAction } from "~/actions";
 import { DocumentSection } from "~/actions/sections";
-import getDataTransferFiles from "~/utils/getDataTransferFiles";
 import history from "~/utils/history";
 import { homePath, newDocumentPath } from "~/utils/routeHelpers";
 
@@ -61,14 +61,18 @@ export const starDocument = createAction({
   icon: <StarredIcon />,
   keywords: "favorite bookmark",
   visible: ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) return false;
+    if (!activeDocumentId) {
+      return false;
+    }
     const document = stores.documents.get(activeDocumentId);
     return (
       !document?.isStarred && stores.policies.abilities(activeDocumentId).star
     );
   },
   perform: ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) return;
+    if (!activeDocumentId) {
+      return;
+    }
 
     const document = stores.documents.get(activeDocumentId);
     document?.star();
@@ -81,7 +85,9 @@ export const unstarDocument = createAction({
   icon: <UnstarredIcon />,
   keywords: "unfavorite unbookmark",
   visible: ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) return false;
+    if (!activeDocumentId) {
+      return false;
+    }
     const document = stores.documents.get(activeDocumentId);
     return (
       !!document?.isStarred &&
@@ -89,7 +95,9 @@ export const unstarDocument = createAction({
     );
   },
   perform: ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) return;
+    if (!activeDocumentId) {
+      return;
+    }
 
     const document = stores.documents.get(activeDocumentId);
     document?.unstar();
@@ -105,7 +113,9 @@ export const downloadDocument = createAction({
   visible: ({ activeDocumentId, stores }) =>
     !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
   perform: ({ activeDocumentId, stores }) => {
-    if (!activeDocumentId) return;
+    if (!activeDocumentId) {
+      return;
+    }
 
     const document = stores.documents.get(activeDocumentId);
     document?.download();
@@ -121,7 +131,9 @@ export const duplicateDocument = createAction({
   visible: ({ activeDocumentId, stores }) =>
     !!activeDocumentId && stores.policies.abilities(activeDocumentId).update,
   perform: async ({ activeDocumentId, t, stores }) => {
-    if (!activeDocumentId) return;
+    if (!activeDocumentId) {
+      return;
+    }
 
     const document = stores.documents.get(activeDocumentId);
     invariant(document, "Document must exist");
@@ -189,7 +201,9 @@ export const pinDocumentToHome = createAction({
     );
   },
   perform: async ({ activeDocumentId, location, t, stores }) => {
-    if (!activeDocumentId) return;
+    if (!activeDocumentId) {
+      return;
+    }
     const document = stores.documents.get(activeDocumentId);
 
     await document?.pin();
@@ -265,7 +279,9 @@ export const createTemplate = createAction({
   icon: <ShapesIcon />,
   keywords: "new create template",
   visible: ({ activeCollectionId, activeDocumentId, stores }) => {
-    if (!activeDocumentId) return false;
+    if (!activeDocumentId) {
+      return false;
+    }
     const document = stores.documents.get(activeDocumentId);
     return (
       !!activeCollectionId &&
@@ -274,7 +290,9 @@ export const createTemplate = createAction({
     );
   },
   perform: ({ activeDocumentId, stores, t, event }) => {
-    if (!activeDocumentId) return;
+    if (!activeDocumentId) {
+      return;
+    }
 
     event?.preventDefault();
     event?.stopPropagation();

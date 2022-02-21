@@ -17,6 +17,7 @@ import "./notificationSetting";
 import "./pins";
 import "./searchQuery";
 import "./share";
+import "./star";
 import "./user";
 import "./team";
 import "./group";

@@ -7,7 +7,7 @@ import {
   MenuButton,
   MenuItem as BaseMenuItem,
 } from "reakit/Menu";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import Flex from "~/components/Flex";
 import MenuIconWrapper from "~/components/MenuIconWrapper";
 import { actionToMenuItem } from "~/actions";
@@ -46,16 +46,15 @@ const Submenu = React.forwardRef(
     ref: React.LegacyRef<HTMLButtonElement>
   ) => {
     const { t } = useTranslation();
-    const menu = useMenuState({
-      modal: true,
-    });
+    const theme = useTheme();
+    const menu = useMenuState();
 
     return (
       <>
         <MenuButton ref={ref} {...menu} {...rest}>
           {(props) => (
             <MenuAnchor {...props}>
-              {title} <Disclosure color="currentColor" />
+              {title} <Disclosure color={theme.textTertiary} />
             </MenuAnchor>
           )}
         </MenuButton>
@@ -73,13 +72,18 @@ export function filterTemplateItems(items: TMenuItem[]): TMenuItem[] {
   // this block literally just trims unnecessary separators
   filtered = filtered.reduce((acc, item, index) => {
     // trim separators from start / end
-    if (item.type === "separator" && index === 0) return acc;
-    if (item.type === "separator" && index === filtered.length - 1) return acc;
+    if (item.type === "separator" && index === 0) {
+      return acc;
+    }
+    if (item.type === "separator" && index === filtered.length - 1) {
+      return acc;
+    }
 
     // trim double separators looking ahead / behind
     const prev = filtered[index - 1];
-    if (prev && prev.type === "separator" && item.type === "separator")
+    if (prev && prev.type === "separator" && item.type === "separator") {
       return acc;
+    }
 
     // otherwise, continue
     return [...acc, item];
@@ -159,6 +163,7 @@ function Template({ items, actions, context, ...menu }: Props) {
               onClick={item.onClick}
               disabled={item.disabled}
               selected={item.selected}
+              dangerous={item.dangerous}
               key={index}
               icon={item.icon}
               {...menu}

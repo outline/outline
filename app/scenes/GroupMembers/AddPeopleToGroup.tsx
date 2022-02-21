@@ -10,10 +10,10 @@ import Invite from "~/scenes/Invite";
 import ButtonLink from "~/components/ButtonLink";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
-import HelpText from "~/components/HelpText";
 import Input from "~/components/Input";
 import Modal from "~/components/Modal";
 import PaginatedList from "~/components/PaginatedList";
+import Text from "~/components/Text";
 import withStores from "~/components/withStores";
 import GroupMemberListItem from "./components/GroupMemberListItem";
 
@@ -76,11 +76,13 @@ class AddPeopleToGroup extends React.Component<Props> {
   render() {
     const { users, group, auth, t } = this.props;
     const { user, team } = auth;
-    if (!user || !team) return null;
+    if (!user || !team) {
+      return null;
+    }
 
     return (
       <Flex column>
-        <HelpText>
+        <Text type="secondary">
           {t(
             "Add team members below to give them access to the group. Need to add someone who’s not yet on the team yet?"
           )}{" "}
@@ -90,7 +92,7 @@ class AddPeopleToGroup extends React.Component<Props> {
             })}
           </ButtonLink>
           .
-        </HelpText>
+        </Text>
         <Input
           type="search"
           placeholder={`${t("Search by name")}…`}

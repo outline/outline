@@ -5,10 +5,10 @@ import { useState } from "react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import Heading from "~/components/Heading";
-import HelpText from "~/components/HelpText";
 import InputSelect from "~/components/InputSelect";
 import Scene from "~/components/Scene";
-import Toggle from "~/components/Toggle";
+import Switch from "~/components/Switch";
+import Text from "~/components/Text";
 import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
@@ -62,14 +62,14 @@ function Security() {
       <Heading>
         <Trans>Security</Trans>
       </Heading>
-      <HelpText>
+      <Text type="secondary">
         <Trans>
           Settings that impact the access, security, and content of your
           knowledge base.
         </Trans>
-      </HelpText>
+      </Text>
 
-      <Toggle
+      <Switch
         label={t("Allow email authentication")}
         name="guestSignin"
         checked={data.guestSignin}
@@ -81,7 +81,7 @@ function Security() {
         }
         disabled={!env.EMAIL_ENABLED}
       />
-      <Toggle
+      <Switch
         label={t("Public document sharing")}
         name="sharing"
         checked={data.sharing}
@@ -90,7 +90,7 @@ function Security() {
           "When enabled, documents can be shared publicly on the internet by any team member"
         )}
       />
-      <Toggle
+      <Switch
         label={t("Rich service embeds")}
         name="documentEmbeds"
         checked={data.documentEmbeds}

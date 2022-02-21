@@ -11,7 +11,7 @@ import Time from "~/components/Time";
 type Props = {
   user: User;
   canEdit: boolean;
-  onAdd: () => any;
+  onAdd: () => void;
 };
 
 const UserListItem = ({ user, onAdd, canEdit }: Props) => {

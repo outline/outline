@@ -12,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { useMenuState, MenuButton } from "reakit/Menu";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
+import getDataTransferFiles from "@shared/utils/getDataTransferFiles";
 import Collection from "~/models/Collection";
 import CollectionDelete from "~/scenes/CollectionDelete";
 import CollectionEdit from "~/scenes/CollectionEdit";
@@ -25,7 +26,6 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import { MenuItem } from "~/types";
-import getDataTransferFiles from "~/utils/getDataTransferFiles";
 import { newDocumentPath } from "~/utils/routeHelpers";
 
 type Props = {
@@ -171,6 +171,7 @@ function CollectionMenu({
       {
         type: "button",
         title: `${t("Delete")}…`,
+        dangerous: true,
         visible: !!(collection && can.delete),
         onClick: () => setShowCollectionDelete(true),
         icon: <TrashIcon />,

@@ -32,8 +32,8 @@ import { MAX_TITLE_LENGTH } from "@shared/constants";
 import { DateFilter } from "@shared/types";
 import getTasks from "@shared/utils/getTasks";
 import parseTitle from "@shared/utils/parseTitle";
-import { SLUG_URL_REGEX } from "@shared/utils/routeHelpers";
 import unescape from "@shared/utils/unescape";
+import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
 import slugify from "@server/utils/slugify";
 import Backlink from "./Backlink";
 import Collection from "./Collection";
@@ -127,7 +127,9 @@ export const DOCUMENT_VERSION = 2;
     ],
   },
   withViews: (userId: string) => {
-    if (!userId) return {};
+    if (!userId) {
+      return {};
+    }
     return {
       include: [
         {
@@ -142,19 +144,6 @@ export const DOCUMENT_VERSION = 2;
       ],
     };
   },
-  withStarred: (userId: string) => ({
-    include: [
-      {
-        model: Star,
-        as: "starred",
-        where: {
-          userId,
-        },
-        required: false,
-        separate: true,
-      },
-    ],
-  }),
 }))
 @Table({ tableName: "documents", modelName: "document" })
 @Fix
@@ -215,7 +204,9 @@ class Document extends ParanoidModel {
   // getters
 
   get url() {
-    if (!this.title) return `/doc/untitled-${this.urlId}`;
+    if (!this.title) {
+      return `/doc/untitled-${this.urlId}`;
+    }
     const slugifiedTitle = slugify(this.title);
     return `/doc/${slugifiedTitle}-${this.urlId}`;
   }
@@ -361,21 +352,13 @@ class Document extends ParanoidModel {
   views: View[];
 
   static defaultScopeWithUser(userId: string) {
-    const starredScope: Readonly<ScopeOptions> = {
-      method: ["withStarred", userId],
-    };
     const collectionScope: Readonly<ScopeOptions> = {
       method: ["withCollection", userId],
     };
     const viewScope: Readonly<ScopeOptions> = {
       method: ["withViews", userId],
     };
-    return this.scope([
-      "defaultScope",
-      starredScope,
-      collectionScope,
-      viewScope,
-    ]);
+    return this.scope(["defaultScope", collectionScope, viewScope]);
   }
 
   static async findByPk(
@@ -721,7 +704,9 @@ class Document extends ParanoidModel {
   };
 
   publish = async (userId: string, options?: FindOptions<Document>) => {
-    if (this.publishedAt) return this.save(options);
+    if (this.publishedAt) {
+      return this.save(options);
+    }
 
     if (!this.template) {
       const collection = await Collection.findByPk(this.collectionId);
@@ -735,7 +720,9 @@ class Document extends ParanoidModel {
   };
 
   unpublish = async (userId: string, options?: FindOptions<Document>) => {
-    if (!this.publishedAt) return this;
+    if (!this.publishedAt) {
+      return this;
+    }
     const collection = await this.$get("collection");
     await collection?.removeDocumentInStructure(this);
 
@@ -777,7 +764,9 @@ class Document extends ParanoidModel {
           },
         },
       });
-      if (!parent) this.parentDocumentId = null;
+      if (!parent) {
+        this.parentDocumentId = null;
+      }
     }
 
     if (!this.template && collection) {

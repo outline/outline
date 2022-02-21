@@ -38,10 +38,14 @@ export default class SlackProcessor {
         },
       ],
     });
-    if (!integration) return;
+    if (!integration) {
+      return;
+    }
 
     const collection = integration.collection;
-    if (!collection) return;
+    if (!collection) {
+      return;
+    }
 
     await fetch(integration.settings.url, {
       method: "POST",
@@ -65,15 +69,21 @@ export default class SlackProcessor {
   async documentUpdated(event: DocumentEvent | RevisionEvent) {
     // never send notifications when batch importing documents
     // @ts-expect-error ts-migrate(2339) FIXME: Property 'data' does not exist on type 'DocumentEv... Remove this comment to see the full error message
-    if (event.data && event.data.source === "import") return;
+    if (event.data && event.data.source === "import") {
+      return;
+    }
     const [document, team] = await Promise.all([
       Document.findByPk(event.documentId),
       Team.findByPk(event.teamId),
     ]);
-    if (!document || !team) return;
+    if (!document || !team) {
+      return;
+    }
 
     // never send notifications for draft documents
-    if (!document.publishedAt) return;
+    if (!document.publishedAt) {
+      return;
+    }
 
     const integration = await Integration.findOne({
       where: {
@@ -82,11 +92,15 @@ export default class SlackProcessor {
         service: "slack",
         type: "post",
         events: {
-          [Op.contains]: [event.name],
+          [Op.contains]: [
+            event.name === "revisions.create" ? "documents.update" : event.name,
+          ],
         },
       },
     });
-    if (!integration) return;
+    if (!integration) {
+      return;
+    }
     let text = `${document.updatedBy.name} updated a document`;
 
     if (event.name === "documents.publish") {

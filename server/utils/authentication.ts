@@ -12,6 +12,11 @@ export function getAllowedDomains(): string[] {
   return env ? env.split(",") : [];
 }
 
+export function isDomainAllowed(domain: string): boolean {
+  const allowedDomains = getAllowedDomains();
+  return allowedDomains.includes(domain) || allowedDomains.length === 0;
+}
+
 export async function signIn(
   ctx: Context,
   user: User,
@@ -96,6 +101,23 @@ export async function signIn(
       httpOnly: false,
       expires,
     });
+
+    const defaultCollectionId = team.defaultCollectionId;
+
+    if (defaultCollectionId) {
+      const collection = await Collection.findOne({
+        where: {
+          id: defaultCollectionId,
+          teamId: team.id,
+        },
+      });
+
+      if (collection) {
+        ctx.redirect(`${team.url}${collection.url}`);
+        return;
+      }
+    }
+
     const [collection, view] = await Promise.all([
       Collection.findFirstCollectionForUser(user),
       View.findOne({

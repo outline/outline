@@ -112,7 +112,9 @@ function DocumentLink(
 
   const handleTitleChange = React.useCallback(
     async (title: string) => {
-      if (!document) return;
+      if (!document) {
+        return;
+      }
       await documents.update(
         {
           id: document.id,
@@ -167,8 +169,12 @@ function DocumentLink(
   const [{ isOverReparent, canDropToReparent }, dropToReparent] = useDrop({
     accept: "document",
     drop: (item: DragObject, monitor) => {
-      if (monitor.didDrop()) return;
-      if (!collection) return;
+      if (monitor.didDrop()) {
+        return;
+      }
+      if (!collection) {
+        return;
+      }
       documents.move(item.id, collection.id, node.id);
     },
     canDrop: (_item, monitor) =>
@@ -212,8 +218,12 @@ function DocumentLink(
   const [{ isOverReorder, isDraggingAnyDocument }, dropToReorder] = useDrop({
     accept: "document",
     drop: (item: DragObject) => {
-      if (!collection) return;
-      if (item.id === node.id) return;
+      if (!collection) {
+        return;
+      }
+      if (item.id === node.id) {
+        return;
+      }
 
       if (expanded) {
         documents.move(item.id, collection.id, node.id, 0);

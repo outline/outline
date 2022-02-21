@@ -3,8 +3,8 @@ import * as React from "react";
 import Dropzone from "react-dropzone";
 import { useTranslation } from "react-i18next";
 import styled, { css } from "styled-components";
-import HelpText from "~/components/HelpText";
 import LoadingIndicator from "~/components/LoadingIndicator";
+import Text from "~/components/Text";
 import useImportDocument from "~/hooks/useImportDocument";
 import useToasts from "~/hooks/useToasts";
 
@@ -55,7 +55,7 @@ function DropToImport({ children, disabled, accept, collectionId }: Props) {
   );
 }
 
-const DropMessage = styled(HelpText)`
+const DropMessage = styled(Text)`
   opacity: 0;
   pointer-events: none;
 `;
@@ -79,7 +79,7 @@ const DropzoneContainer = styled.div<{ isDragActive?: boolean }>`
         background: ${theme.background};
         border-radius: 8px;
         border: 1px dashed ${theme.divider};
-        box-shadow: 0 0 0 100px white;
+        box-shadow: 0 0 0 100px ${theme.background};
         z-index: 1;
       }
 

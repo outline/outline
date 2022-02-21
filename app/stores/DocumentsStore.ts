@@ -11,10 +11,10 @@ import RootStore from "~/stores/RootStore";
 import Document from "~/models/Document";
 import env from "~/env";
 import {
-  NavigationNode,
   FetchOptions,
   PaginationParams,
   SearchResult,
+  NavigationNode,
 } from "~/types";
 import { client } from "~/utils/ApiClient";
 
@@ -38,11 +38,10 @@ type ImportOptions = {
 };
 
 export default class DocumentsStore extends BaseStore<Document> {
-  @observable
-  searchCache: Map<string, SearchResult[]> = new Map();
+  sharedTreeCache: Map<string, NavigationNode | undefined> = new Map();
 
   @observable
-  starredIds: Map<string, boolean> = new Map();
+  searchCache: Map<string, SearchResult[]> = new Map();
 
   @observable
   backlinks: Map<string, string[]> = new Map();
@@ -143,7 +142,12 @@ export default class DocumentsStore extends BaseStore<Document> {
       return [];
     }
 
-    return compact(collection.documents.map((node) => this.get(node.id)));
+    const drafts = this.drafts({ collectionId });
+
+    return compact([
+      ...drafts,
+      ...collection.documents.map((node) => this.get(node.id)),
+    ]);
   }
 
   leastRecentlyUpdatedInCollection(collectionId: string): Document[] {
@@ -170,14 +174,6 @@ export default class DocumentsStore extends BaseStore<Document> {
     return this.searchCache.get(query) || [];
   }
 
-  get starred(): Document[] {
-    return orderBy(
-      this.all.filter((d) => d.isStarred),
-      "updatedAt",
-      "desc"
-    );
-  }
-
   @computed
   get archived(): Document[] {
     return orderBy(this.orderedData, "archivedAt", "desc").filter(
@@ -190,11 +186,6 @@ export default class DocumentsStore extends BaseStore<Document> {
     return orderBy(this.orderedData, "deletedAt", "desc").filter(
       (d) => d.deletedAt
     );
-  }
-
-  @computed
-  get starredAlphabetical(): Document[] {
-    return naturalSort(this.starred, "title");
   }
 
   @computed
@@ -262,13 +253,17 @@ export default class DocumentsStore extends BaseStore<Document> {
     });
   };
 
-  getBacklinedDocuments(documentId: string): Document[] {
+  getBacklinkedDocuments(documentId: string): Document[] {
     const documentIds = this.backlinks.get(documentId) || [];
     return orderBy(
       compact(documentIds.map((id) => this.data.get(id))),
       "updatedAt",
       "desc"
     );
+  }
+
+  getSharedTree(documentId: string): NavigationNode | undefined {
+    return this.sharedTreeCache.get(documentId);
   }
 
   @action
@@ -408,7 +403,9 @@ export default class DocumentsStore extends BaseStore<Document> {
     const results: SearchResult[] = compact(
       res.data.map((result: SearchResult) => {
         const document = this.data.get(result.document.id);
-        if (!document) return null;
+        if (!document) {
+          return null;
+        }
         return {
           ranking: result.ranking,
           context: result.context,
@@ -460,7 +457,9 @@ export default class DocumentsStore extends BaseStore<Document> {
     document: Document;
     sharedTree?: NavigationNode;
   }> => {
-    if (!options.prefetch) this.isFetching = true;
+    if (!options.prefetch) {
+      this.isFetching = true;
+    }
 
     try {
       const doc: Document | null | undefined =
@@ -468,9 +467,16 @@ export default class DocumentsStore extends BaseStore<Document> {
       const policy = doc ? this.rootStore.policies.get(doc.id) : undefined;
 
       if (doc && policy && !options.force) {
-        return {
-          document: doc,
-        };
+        if (!options.shareId) {
+          return {
+            document: doc,
+          };
+        } else if (this.sharedTreeCache.has(options.shareId)) {
+          return {
+            document: doc,
+            sharedTree: this.sharedTreeCache.get(options.shareId),
+          };
+        }
       }
 
       const res = await client.post("/documents.info", {
@@ -486,9 +492,16 @@ export default class DocumentsStore extends BaseStore<Document> {
       const document = this.data.get(res.data.document.id);
       invariant(document, "Document not available");
 
+      if (options.shareId) {
+        this.sharedTreeCache.set(options.shareId, res.data.sharedTree);
+        return {
+          document,
+          sharedTree: res.data.sharedTree,
+        };
+      }
+
       return {
         document,
-        sharedTree: res.data.sharedTree,
       };
     } finally {
       this.isFetching = false;
@@ -536,7 +549,9 @@ export default class DocumentsStore extends BaseStore<Document> {
     });
     invariant(res && res.data, "Data should be available");
     const collection = this.getCollectionForDocument(document);
-    if (collection) collection.refresh();
+    if (collection) {
+      collection.refresh();
+    }
     this.addPolicies(res.policies);
     return this.add(res.data);
   };
@@ -603,19 +618,6 @@ export default class DocumentsStore extends BaseStore<Document> {
     return this.add(res.data);
   };
 
-  _add = this.add;
-
-  @action
-  add = (item: Record<string, any>): Document => {
-    const document = this._add(item);
-
-    if (item.starred !== undefined) {
-      this.starredIds.set(document.id, item.starred);
-    }
-
-    return document;
-  };
-
   @action
   removeCollectionDocuments(collectionId: string) {
     const documents = this.inCollection(collectionId);
@@ -644,7 +646,9 @@ export default class DocumentsStore extends BaseStore<Document> {
     // Because the collection object contains the url and title
     // we need to ensure they are updated there as well.
     const collection = this.getCollectionForDocument(document);
-    if (collection) collection.updateDocument(document);
+    if (collection) {
+      collection.updateDocument(document);
+    }
     return document;
   }
 
@@ -665,7 +669,9 @@ export default class DocumentsStore extends BaseStore<Document> {
     }
 
     const collection = this.getCollectionForDocument(document);
-    if (collection) collection.refresh();
+    if (collection) {
+      collection.refresh();
+    }
   }
 
   @action
@@ -679,7 +685,9 @@ export default class DocumentsStore extends BaseStore<Document> {
       this.addPolicies(res.policies);
     });
     const collection = this.getCollectionForDocument(document);
-    if (collection) collection.refresh();
+    if (collection) {
+      collection.refresh();
+    }
   };
 
   @action
@@ -701,7 +709,9 @@ export default class DocumentsStore extends BaseStore<Document> {
       this.addPolicies(res.policies);
     });
     const collection = this.getCollectionForDocument(document);
-    if (collection) collection.refresh();
+    if (collection) {
+      collection.refresh();
+    }
   };
 
   @action
@@ -715,31 +725,22 @@ export default class DocumentsStore extends BaseStore<Document> {
       this.addPolicies(res.policies);
     });
     const collection = this.getCollectionForDocument(document);
-    if (collection) collection.refresh();
+    if (collection) {
+      collection.refresh();
+    }
   };
 
   star = async (document: Document) => {
-    this.starredIds.set(document.id, true);
-
-    try {
-      return await client.post("/documents.star", {
-        id: document.id,
-      });
-    } catch (err) {
-      this.starredIds.set(document.id, false);
-    }
+    await this.rootStore.stars.create({
+      documentId: document.id,
+    });
   };
 
   unstar = async (document: Document) => {
-    this.starredIds.set(document.id, false);
-
-    try {
-      return await client.post("/documents.unstar", {
-        id: document.id,
-      });
-    } catch (err) {
-      this.starredIds.set(document.id, true);
-    }
+    const star = this.rootStore.stars.orderedData.find(
+      (star) => star.documentId === document.id
+    );
+    await star?.delete();
   };
 
   getByUrl = (url = ""): Document | null | undefined => {

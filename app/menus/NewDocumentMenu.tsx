@@ -2,7 +2,6 @@ import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
 import { MenuButton, useMenuState } from "reakit/Menu";
 import styled from "styled-components";
 import Button from "~/components/Button";
@@ -42,27 +41,15 @@ function NewDocumentMenu() {
     [collections.orderedData, policies]
   );
 
-  if (!can.createDocument || items.length === 0) {
+  if (!can.createDocument) {
     return null;
-  }
-
-  if (items.length === 1) {
-    return (
-      <Button
-        as={Link}
-        to={items[0].type === "route" ? items[0].to : undefined}
-        icon={<PlusIcon />}
-      >
-        {t("New doc")}
-      </Button>
-    );
   }
 
   return (
     <>
       <MenuButton {...menu}>
         {(props) => (
-          <Button icon={<PlusIcon />} {...props}>
+          <Button icon={<PlusIcon />} disabled={items.length === 0} {...props}>
             {`${t("New doc")}…`}
           </Button>
         )}

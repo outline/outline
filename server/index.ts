@@ -4,6 +4,7 @@ import env from "./env";
 import "./tracing"; // must come before importing any instrumented module
 
 import http from "http";
+import https from "https";
 import Koa from "koa";
 import compress from "koa-compress";
 import helmet from "koa-helmet";
@@ -18,6 +19,7 @@ import Logger from "./logging/logger";
 import { requestErrorHandler } from "./logging/sentry";
 import services from "./services";
 import { getArg } from "./utils/args";
+import { getSSLOptions } from "./utils/ssl";
 import { checkEnv, checkMigrations } from "./utils/startup";
 import { checkUpdates } from "./utils/updates";
 
@@ -67,10 +69,18 @@ function master() {
 
 // This function will only be called in each forked process
 async function start(id: number, disconnect: () => void) {
+  // Find if SSL certs are available
+  const ssl = getSSLOptions();
+  const useHTTPS = !!ssl.key && !!ssl.cert;
+
   // If a --port flag is passed then it takes priority over the env variable
   const normalizedPortFlag = getArg("port", "p");
   const app = new Koa();
-  const server = stoppable(http.createServer(app.callback()));
+  const server = stoppable(
+    useHTTPS
+      ? https.createServer(ssl, app.callback())
+      : http.createServer(app.callback())
+  );
   const router = new Router();
 
   // install basic middleware shared by all services
@@ -108,7 +118,9 @@ async function start(id: number, disconnect: () => void) {
 
     Logger.info(
       "lifecycle",
-      `Listening on http://localhost:${(address as AddressInfo).port}`
+      `Listening on ${useHTTPS ? "https" : "http"}://localhost:${
+        (address as AddressInfo).port
+      }`
     );
   });
   server.listen(normalizedPortFlag || env.PORT || "3000");

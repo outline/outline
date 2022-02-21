@@ -1,4 +1,5 @@
 import { observer } from "mobx-react";
+import { EditIcon, GroupIcon, TrashIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useMenuState } from "reakit/Menu";
@@ -50,6 +51,7 @@ function GroupMenu({ group, onMembers }: Props) {
             {
               type: "button",
               title: `${t("Members")}…`,
+              icon: <GroupIcon />,
               onClick: onMembers,
               visible: !!(group && can.read),
             },
@@ -59,12 +61,15 @@ function GroupMenu({ group, onMembers }: Props) {
             {
               type: "button",
               title: `${t("Edit")}…`,
+              icon: <EditIcon />,
               onClick: () => setEditModalOpen(true),
               visible: !!(group && can.update),
             },
             {
               type: "button",
               title: `${t("Delete")}…`,
+              icon: <TrashIcon />,
+              dangerous: true,
               onClick: () => setDeleteModalOpen(true),
               visible: !!(group && can.delete),
             },

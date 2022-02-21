@@ -37,6 +37,7 @@ import {
   assertIn,
   assertPresent,
   assertPositiveInteger,
+  assertNotEmpty,
 } from "@server/validation";
 import env from "../../env";
 import pagination from "./middlewares/pagination";
@@ -50,7 +51,9 @@ router.post("documents.list", auth(), pagination(), async (ctx) => {
   const collectionId = ctx.body.collectionId || ctx.body.collection;
   const createdById = ctx.body.userId || ctx.body.user;
   let direction = ctx.body.direction;
-  if (direction !== "ASC") direction = "DESC";
+  if (direction !== "ASC") {
+    direction = "DESC";
+  }
   // always filter by the current team
   const { user } = ctx.state;
   let where: WhereOptions<Document> = {
@@ -162,7 +165,9 @@ router.post("documents.archived", auth(), pagination(), async (ctx) => {
 
   assertSort(sort, Document);
   let direction = ctx.body.direction;
-  if (direction !== "ASC") direction = "DESC";
+  if (direction !== "ASC") {
+    direction = "DESC";
+  }
   const { user } = ctx.state;
   const collectionIds = await user.collectionIds();
   const collectionScope: Readonly<ScopeOptions> = {
@@ -204,7 +209,9 @@ router.post("documents.deleted", auth(), pagination(), async (ctx) => {
 
   assertSort(sort, Document);
   let direction = ctx.body.direction;
-  if (direction !== "ASC") direction = "DESC";
+  if (direction !== "ASC") {
+    direction = "DESC";
+  }
   const { user } = ctx.state;
   const collectionIds = await user.collectionIds({
     paranoid: false,
@@ -257,7 +264,9 @@ router.post("documents.viewed", auth(), pagination(), async (ctx) => {
   const { sort = "updatedAt" } = ctx.body;
 
   assertSort(sort, Document);
-  if (direction !== "ASC") direction = "DESC";
+  if (direction !== "ASC") {
+    direction = "DESC";
+  }
   const { user } = ctx.state;
   const collectionIds = await user.collectionIds();
   const userId = user.id;
@@ -312,12 +321,15 @@ router.post("documents.viewed", auth(), pagination(), async (ctx) => {
   };
 });
 
+// Deprecated – use stars.list instead
 router.post("documents.starred", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
   const { sort = "updatedAt" } = ctx.body;
 
   assertSort(sort, Document);
-  if (direction !== "ASC") direction = "DESC";
+  if (direction !== "ASC") {
+    direction = "DESC";
+  }
   const { user } = ctx.state;
   const collectionIds = await user.collectionIds();
   const stars = await Star.findAll({
@@ -370,7 +382,9 @@ router.post("documents.drafts", auth(), pagination(), async (ctx) => {
   const { collectionId, dateFilter, sort = "updatedAt" } = ctx.body;
 
   assertSort(sort, Document);
-  if (direction !== "ASC") direction = "DESC";
+  if (direction !== "ASC") {
+    direction = "DESC";
+  }
   const { user } = ctx.state;
 
   if (collectionId) {
@@ -602,6 +616,7 @@ router.post(
     });
     // Passing apiVersion=2 has a single effect, to change the response payload to
     // include document and sharedTree keys.
+
     const data =
       apiVersion === 2
         ? {
@@ -798,7 +813,7 @@ router.post("documents.search", auth(), pagination(), async (ctx) => {
   const { offset, limit } = ctx.state.pagination;
   const { user } = ctx.state;
 
-  assertPresent(query, "query is required");
+  assertNotEmpty(query, "query is required");
 
   if (collectionId) {
     assertUuid(collectionId, "collectionId must be a UUID");
@@ -863,6 +878,7 @@ router.post("documents.search", auth(), pagination(), async (ctx) => {
   };
 });
 
+// Deprecated – use stars.create instead
 router.post("documents.star", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertPresent(id, "id is required");
@@ -897,6 +913,7 @@ router.post("documents.star", auth(), async (ctx) => {
   };
 });
 
+// Deprecated – use stars.delete instead
 router.post("documents.unstar", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertPresent(id, "id is required");
@@ -992,8 +1009,9 @@ router.post("documents.update", auth(), async (ctx) => {
   } = ctx.body;
   const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
   assertPresent(id, "id is required");
-  assertPresent(title || text, "title or text is required");
-  if (append) assertPresent(text, "Text is required while appending");
+  if (append) {
+    assertPresent(text, "Text is required while appending");
+  }
   const { user } = ctx.state;
 
   const document = await Document.findByPk(id, {
@@ -1008,10 +1026,18 @@ router.post("documents.update", auth(), async (ctx) => {
   const previousTitle = document.title;
 
   // Update document
-  if (title) document.title = title;
-  if (editorVersion) document.editorVersion = editorVersion;
-  if (templateId) document.templateId = templateId;
-  if (fullWidth !== undefined) document.fullWidth = fullWidth;
+  if (title !== undefined) {
+    document.title = title;
+  }
+  if (editorVersion) {
+    document.editorVersion = editorVersion;
+  }
+  if (templateId) {
+    document.templateId = templateId;
+  }
+  if (fullWidth !== undefined) {
+    document.fullWidth = fullWidth;
+  }
 
   if (!user.team?.collaborativeEditing) {
     if (append) {
@@ -1299,7 +1325,9 @@ router.post("documents.import", auth(), async (ctx) => {
     assertUuid(parentDocumentId, "parentDocumentId must be an uuid");
   }
 
-  if (index) assertPositiveInteger(index, "index must be an integer (>=0)");
+  if (index) {
+    assertPositiveInteger(index, "index must be an integer (>=0)");
+  }
   const { user } = ctx.state;
   authorize(user, "createDocument", user.team);
 
@@ -1368,7 +1396,9 @@ router.post("documents.create", auth(), async (ctx) => {
     assertUuid(parentDocumentId, "parentDocumentId must be an uuid");
   }
 
-  if (index) assertPositiveInteger(index, "index must be an integer (>=0)");
+  if (index) {
+    assertPositiveInteger(index, "index must be an integer (>=0)");
+  }
   const { user } = ctx.state;
   authorize(user, "createDocument", user.team);
 

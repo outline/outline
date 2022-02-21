@@ -29,8 +29,12 @@ export default function init(app: Koa, server: http.Server) {
   const listeners = server.listeners("upgrade");
   const ioHandleUpgrade = listeners.pop();
 
-  // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'Function | undefined' is not ass... Remove this comment to see the full error message
-  server.removeListener("upgrade", ioHandleUpgrade);
+  if (ioHandleUpgrade) {
+    server.removeListener(
+      "upgrade",
+      ioHandleUpgrade as (...args: any[]) => void
+    );
+  }
 
   server.on("upgrade", function (req, socket, head) {
     if (req.url && req.url.indexOf(path) > -1) {

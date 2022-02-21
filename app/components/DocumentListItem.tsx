@@ -19,6 +19,7 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
+import { hover } from "~/styles";
 import { newDocumentPath } from "~/utils/routeHelpers";
 
 type Props = {
@@ -200,7 +201,7 @@ const DocumentLink = styled(Link)<{
     opacity: ${(props) => (props.$isStarred ? "1 !important" : 0)};
   }
 
-  &:hover,
+  &:${hover},
   &:active,
   &:focus,
   &:focus-within {

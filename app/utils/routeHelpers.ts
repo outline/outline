@@ -31,7 +31,9 @@ export function groupSettingsPath(): string {
 }
 
 export function collectionUrl(url: string, section?: string): string {
-  if (section) return `${url}/${section}`;
+  if (section) {
+    return `${url}/${section}`;
+  }
   return url;
 }
 
@@ -60,7 +62,9 @@ export function documentMoveUrl(doc: Document): string {
 
 export function documentHistoryUrl(doc: Document, revisionId?: string): string {
   let base = `${doc.url}/history`;
-  if (revisionId) base += `/${revisionId}`;
+  if (revisionId) {
+    base += `/${revisionId}`;
+  }
   return base;
 }
 
@@ -113,3 +117,5 @@ export const matchDocumentSlug =
   ":documentSlug([0-9a-zA-Z-_~]*-[a-zA-z0-9]{10,15})";
 
 export const matchDocumentEdit = `/doc/${matchDocumentSlug}/edit`;
+
+export const matchDocumentHistory = `/doc/${matchDocumentSlug}/history/:revisionId?`;

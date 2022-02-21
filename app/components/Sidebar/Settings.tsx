@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import {
-  DocumentIcon,
+  NewDocumentIcon,
   EmailIcon,
   ProfileIcon,
   PadlockIcon,
@@ -11,6 +11,7 @@ import {
   TeamIcon,
   ExpandedIcon,
   BeakerIcon,
+  DownloadIcon,
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -94,7 +95,7 @@ function SettingsSidebar() {
                 label={t("Security")}
               />
             )}
-            {can.update && env.DEPLOYMENT !== "hosted" && (
+            {can.update && (
               <SidebarLink
                 to="/settings/features"
                 icon={<BeakerIcon color="currentColor" />}
@@ -118,11 +119,18 @@ function SettingsSidebar() {
               icon={<LinkIcon color="currentColor" />}
               label={t("Share Links")}
             />
+            {can.manage && (
+              <SidebarLink
+                to="/settings/import"
+                icon={<NewDocumentIcon color="currentColor" />}
+                label={t("Import")}
+              />
+            )}
             {can.export && (
               <SidebarLink
-                to="/settings/import-export"
-                icon={<DocumentIcon color="currentColor" />}
-                label={`${t("Import")} / ${t("Export")}`}
+                to="/settings/export"
+                icon={<DownloadIcon color="currentColor" />}
+                label={t("Export")}
               />
             )}
           </Section>

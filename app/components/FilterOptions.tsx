@@ -4,7 +4,7 @@ import styled from "styled-components";
 import Button, { Inner } from "~/components/Button";
 import ContextMenu from "~/components/ContextMenu";
 import MenuItem from "~/components/ContextMenu/MenuItem";
-import HelpText from "~/components/HelpText";
+import Text from "~/components/Text";
 
 type TFilterOption = {
   key: string;
@@ -72,7 +72,7 @@ const FilterOptions = ({
   );
 };
 
-const Note = styled(HelpText)`
+const Note = styled(Text)`
   margin-top: 2px;
   margin-bottom: 0;
   line-height: 1.2em;
@@ -94,13 +94,15 @@ const StyledButton = styled(Button)`
   box-shadow: none;
   text-transform: none;
   border-color: transparent;
+  height: auto;
 
   &:hover {
     background: transparent;
   }
 
   ${Inner} {
-    line-height: 28px;
+    line-height: 24px;
+    min-height: auto;
   }
 `;
 

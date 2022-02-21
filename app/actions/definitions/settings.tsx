@@ -36,7 +36,8 @@ export const changeToSystemTheme = createAction({
 });
 
 export const changeTheme = createAction({
-  name: ({ t }) => t("Change theme"),
+  name: ({ t, isContextMenu }) =>
+    isContextMenu ? t("Appearance") : t("Change theme"),
   placeholder: ({ t }) => t("Change theme to"),
   icon: () =>
     stores.ui.resolvedTheme === "light" ? <SunIcon /> : <MoonIcon />,

@@ -21,7 +21,9 @@ function Scrollable(
   const { height } = useWindowSize();
   const updateShadows = React.useCallback(() => {
     const c = (ref || fallbackRef).current;
-    if (!c) return;
+    if (!c) {
+      return;
+    }
     const scrollTop = c.scrollTop;
     const tsv = !!((shadow || topShadow) && scrollTop > 0);
 

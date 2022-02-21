@@ -157,6 +157,7 @@ function UserMenu({ user }: Props) {
             {
               type: "button",
               title: `${t("Revoke invite")}…`,
+              dangerous: true,
               onClick: handleRevoke,
               visible: user.isInvited,
             },
@@ -169,6 +170,7 @@ function UserMenu({ user }: Props) {
             {
               type: "button",
               title: `${t("Suspend account")}…`,
+              dangerous: true,
               onClick: handleSuspend,
               visible: !user.isInvited && !user.isSuspended,
             },

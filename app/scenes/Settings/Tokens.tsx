@@ -6,11 +6,11 @@ import APITokenNew from "~/scenes/APITokenNew";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
-import HelpText from "~/components/HelpText";
 import Modal from "~/components/Modal";
 import PaginatedList from "~/components/PaginatedList";
 import Scene from "~/components/Scene";
 import Subheading from "~/components/Subheading";
+import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
@@ -42,7 +42,7 @@ function Tokens() {
       }
     >
       <Heading>{t("API Tokens")}</Heading>
-      <HelpText>
+      <Text type="secondary">
         <Trans
           defaults="You can create an unlimited amount of personal tokens to authenticate
           with the API. Tokens have the same permissions as your user account.
@@ -53,7 +53,7 @@ function Tokens() {
             ),
           }}
         />
-      </HelpText>
+      </Text>
       <PaginatedList
         fetch={apiKeys.fetchPage}
         items={apiKeys.orderedData}

@@ -8,8 +8,8 @@ import Error404 from "~/scenes/Error404";
 import Search from "~/scenes/Search";
 import Templates from "~/scenes/Templates";
 import Trash from "~/scenes/Trash";
+import Layout from "~/components/AuthenticatedLayout";
 import CenteredContent from "~/components/CenteredContent";
-import Layout from "~/components/Layout";
 import PlaceholderDocument from "~/components/PlaceholderDocument";
 import Route from "~/components/ProfiledRoute";
 import SocketProvider from "~/components/SocketProvider";
@@ -87,7 +87,7 @@ export default function AuthenticatedRoutes() {
             <Route path="/404" component={Error404} />
             <SettingsRoutes />
             <Route component={NotFound} />
-          </Switch>{" "}
+          </Switch>
         </React.Suspense>
       </Layout>
     </SocketProvider>

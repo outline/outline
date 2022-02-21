@@ -3,12 +3,18 @@ import { Op } from "sequelize";
 import {
   Document,
   Collection,
+  FileOperation,
   Group,
   CollectionGroup,
   GroupUser,
   Pin,
+  Star,
 } from "@server/models";
-import { presentPin } from "@server/presenters";
+import {
+  presentFileOperation,
+  presentPin,
+  presentStar,
+} from "@server/presenters";
 import { Event } from "../../types";
 
 export default class WebsocketsProcessor {
@@ -353,10 +359,14 @@ export default class WebsocketsProcessor {
         return;
       }
 
+      case "fileOperations.create":
       case "fileOperations.update": {
-        return socketio
-          .to(`user-${event.actorId}`)
-          .emit("fileOperations.update", event.data);
+        const fileOperation = await FileOperation.findByPk(event.modelId);
+        if (!fileOperation) {
+          return;
+        }
+        const data = await presentFileOperation(fileOperation);
+        return socketio.to(`user-${event.actorId}`).emit(event.name, data);
       }
 
       case "pins.create":
@@ -384,6 +394,23 @@ export default class WebsocketsProcessor {
           .emit(event.name, {
             modelId: event.modelId,
           });
+      }
+
+      case "stars.create":
+      case "stars.update": {
+        const star = await Star.findByPk(event.modelId);
+        if (!star) {
+          return;
+        }
+        return socketio
+          .to(`user-${event.userId}`)
+          .emit(event.name, presentStar(star));
+      }
+
+      case "stars.delete": {
+        return socketio.to(`user-${event.userId}`).emit(event.name, {
+          modelId: event.modelId,
+        });
       }
 
       case "groups.create":

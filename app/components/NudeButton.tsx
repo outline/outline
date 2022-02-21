@@ -11,6 +11,7 @@ const Button = styled.button.attrs((props) => ({
   height: ${(props) => props.height || props.size || 24}px;
   background: none;
   border-radius: 4px;
+  display: inline-block;
   line-height: 0;
   border: 0;
   padding: 0;

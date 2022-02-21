@@ -66,6 +66,9 @@ class Team extends ParanoidModel {
   @Column
   domain: string | null;
 
+  @Column(DataType.UUID)
+  defaultCollectionId: string | null;
+
   @Column
   avatarUrl: string | null;
 
@@ -125,7 +128,9 @@ class Team extends ParanoidModel {
     requestedSubdomain: string,
     options = {}
   ) {
-    if (this.subdomain) return this.subdomain;
+    if (this.subdomain) {
+      return this.subdomain;
+    }
     let subdomain = requestedSubdomain;
     let append = 0;
 
@@ -234,7 +239,9 @@ class Team extends ParanoidModel {
           `avatars/${model.id}/${uuidv4()}`,
           "public-read"
         );
-        if (newUrl) model.avatarUrl = newUrl;
+        if (newUrl) {
+          model.avatarUrl = newUrl;
+        }
       } catch (err) {
         Logger.error("Error uploading avatar to S3", err, {
           url: avatarUrl,

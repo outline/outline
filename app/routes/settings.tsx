@@ -1,11 +1,12 @@
 import * as React from "react";
 import { Switch, Redirect } from "react-router-dom";
 import Details from "~/scenes/Settings/Details";
+import Export from "~/scenes/Settings/Export";
 import Features from "~/scenes/Settings/Features";
 import Groups from "~/scenes/Settings/Groups";
-import ImportExport from "~/scenes/Settings/ImportExport";
+import Import from "~/scenes/Settings/Import";
+import Members from "~/scenes/Settings/Members";
 import Notifications from "~/scenes/Settings/Notifications";
-import People from "~/scenes/Settings/People";
 import Profile from "~/scenes/Settings/Profile";
 import Security from "~/scenes/Settings/Security";
 import Shares from "~/scenes/Settings/Shares";
@@ -23,7 +24,7 @@ export default function SettingsRoutes() {
       <Route exact path="/settings" component={Profile} />
       <Route exact path="/settings/details" component={Details} />
       <Route exact path="/settings/security" component={Security} />
-      <Route exact path="/settings/members" component={People} />
+      <Route exact path="/settings/members" component={Members} />
       <Route exact path="/settings/features" component={Features} />
       <Route exact path="/settings/groups" component={Groups} />
       <Route exact path="/settings/shares" component={Shares} />
@@ -33,7 +34,11 @@ export default function SettingsRoutes() {
       {isHosted && (
         <Route exact path="/settings/integrations/zapier" component={Zapier} />
       )}
-      <Route exact path="/settings/import-export" component={ImportExport} />
+      <Route exact path="/settings/import" component={Import} />
+      <Route exact path="/settings/export" component={Export} />
+
+      {/* old routes */}
+      <Redirect from="/settings/import-export" to="/settings/export" />
       <Redirect from="/settings/people" to="/settings/members" />
     </Switch>
   );

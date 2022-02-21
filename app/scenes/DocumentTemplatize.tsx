@@ -6,7 +6,7 @@ import { useTranslation, Trans } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
-import HelpText from "~/components/HelpText";
+import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import { documentUrl } from "~/utils/routeHelpers";
@@ -56,7 +56,7 @@ function DocumentTemplatize({ documentId, onSubmit }: Props) {
   return (
     <Flex column>
       <form onSubmit={handleSubmit}>
-        <HelpText>
+        <Text type="secondary">
           <Trans
             defaults="Creating a template from <em>{{titleWithDefault}}</em> is a non-destructive action – we'll make a copy of the document and turn it into a template that can be used as a starting point for new documents."
             values={{
@@ -66,7 +66,7 @@ function DocumentTemplatize({ documentId, onSubmit }: Props) {
               em: <strong />,
             }}
           />
-        </HelpText>
+        </Text>
         <Button type="submit">
           {isSaving ? `${t("Creating")}…` : t("Create template")}
         </Button>

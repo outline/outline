@@ -34,7 +34,7 @@ import Fix from "./decorators/Fix";
     return {
       include: [
         {
-          model: Document,
+          model: Document.scope("withUnpublished"),
           paranoid: true,
           as: "document",
           include: [

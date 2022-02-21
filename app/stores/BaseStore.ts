@@ -111,7 +111,9 @@ export default class BaseStore<T extends BaseModel> {
   }
 
   save(params: Partial<T>): Promise<T> {
-    if (params.id) return this.update(params);
+    if (params.id) {
+      return this.update(params);
+    }
     return this.create(params);
   }
 
@@ -195,7 +197,9 @@ export default class BaseStore<T extends BaseModel> {
     }
 
     const item = this.data.get(id);
-    if (item && !options.force) return item;
+    if (item && !options.force) {
+      return item;
+    }
     this.isFetching = true;
 
     try {

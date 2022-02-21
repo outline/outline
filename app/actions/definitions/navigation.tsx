@@ -17,7 +17,7 @@ import {
   changelogUrl,
   mailToUrl,
   githubIssuesUrl,
-} from "@shared/utils/routeHelpers";
+} from "@shared/utils/urlHelpers";
 import stores from "~/stores";
 import KeyboardShortcuts from "~/scenes/KeyboardShortcuts";
 import { createAction } from "~/actions";

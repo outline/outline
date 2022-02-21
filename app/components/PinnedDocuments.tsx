@@ -34,7 +34,7 @@ type Props = {
 };
 
 function PinnedDocuments({ limit, pins, canUpdate, ...rest }: Props) {
-  const { documents } = useStores();
+  const { documents, collections } = useStores();
   const [items, setItems] = React.useState(pins.map((pin) => pin.documentId));
 
   React.useEffect(() => {
@@ -82,6 +82,10 @@ function PinnedDocuments({ limit, pins, canUpdate, ...rest }: Props) {
     [pins]
   );
 
+  if (collections.orderedData.length === 0) {
+    return null;
+  }
+
   return (
     <DndContext
       sensors={sensors}
@@ -101,6 +105,7 @@ function PinnedDocuments({ limit, pins, canUpdate, ...rest }: Props) {
                   key={documentId}
                   document={document}
                   canUpdatePin={canUpdate}
+                  isDraggable={items.length > 1}
                   pin={pin}
                   {...rest}
                 />

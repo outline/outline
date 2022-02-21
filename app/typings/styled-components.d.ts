@@ -15,6 +15,7 @@ declare module "styled-components" {
     tableDivider: string;
     tableSelected: string;
     tableSelectedBackground: string;
+    tableHeaderBackground: string;
     quote: string;
     codeBackground: string;
     codeBorder: string;
@@ -31,6 +32,7 @@ declare module "styled-components" {
     textHighlight: string;
     textHighlightForeground: string;
     selected: string;
+    code: string;
     codeComment: string;
     codePunctuation: string;
     codeNumber: string;

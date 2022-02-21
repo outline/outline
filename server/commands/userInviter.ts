@@ -1,6 +1,7 @@
 import invariant from "invariant";
 import { uniqBy } from "lodash";
 import { Role } from "@shared/types";
+import Logger from "@server/logging/logger";
 import mailer from "@server/mailer";
 import { User, Event, Team } from "@server/models";
 
@@ -81,6 +82,15 @@ export default async function userInviter({
       teamName: team.name,
       teamUrl: team.url,
     });
+
+    if (process.env.NODE_ENV === "development") {
+      Logger.info(
+        "email",
+        `Sign in immediately: ${
+          process.env.URL
+        }/auth/email.callback?token=${newUser.getEmailSigninToken()}`
+      );
+    }
   }
 
   return {

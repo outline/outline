@@ -5,6 +5,7 @@ const MenuIconWrapper = styled.span`
   height: 24px;
   margin-right: 6px;
   margin-left: -4px;
+  color: ${({ theme }) => theme.textSecondary};
 `;
 
 export default MenuIconWrapper;

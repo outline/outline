@@ -3,8 +3,12 @@ import { AdminRequiredError } from "../errors";
 import { allow } from "./cancan";
 
 allow(User, "createIntegration", Team, (actor, team) => {
-  if (!team || actor.isViewer || actor.teamId !== team.id) return false;
-  if (actor.isAdmin) return true;
+  if (!team || actor.isViewer || actor.teamId !== team.id) {
+    return false;
+  }
+  if (actor.isAdmin) {
+    return true;
+  }
 
   throw AdminRequiredError();
 });
@@ -17,9 +21,15 @@ allow(
 );
 
 allow(User, ["update", "delete"], Integration, (user, integration) => {
-  if (user.isViewer) return false;
-  if (!integration || user.teamId !== integration.teamId) return false;
-  if (user.isAdmin) return true;
+  if (user.isViewer) {
+    return false;
+  }
+  if (!integration || user.teamId !== integration.teamId) {
+    return false;
+  }
+  if (user.isAdmin) {
+    return true;
+  }
 
   throw AdminRequiredError();
 });

@@ -6,17 +6,18 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { RouteComponentProps, StaticContext } from "react-router";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
+import { isInternalUrl } from "@shared/utils/urls";
 import RootStore from "~/stores/RootStore";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
 import Error404 from "~/scenes/Error404";
 import ErrorOffline from "~/scenes/ErrorOffline";
+import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
 import withStores from "~/components/withStores";
 import { NavigationNode } from "~/types";
 import { NotFoundError, OfflineError } from "~/utils/errors";
 import history from "~/utils/history";
 import { matchDocumentEdit } from "~/utils/routeHelpers";
-import { isInternalUrl } from "~/utils/urls";
 import HideSidebar from "./HideSidebar";
 import Loading from "./Loading";
 
@@ -35,8 +36,6 @@ type Props = RootStore &
   > & {
     children: (arg0: any) => React.ReactNode;
   };
-
-const sharedTreeCache = {};
 
 @observer
 class DataLoader extends React.Component<Props> {
@@ -58,7 +57,7 @@ class DataLoader extends React.Component<Props> {
     const { documents, match } = this.props;
     this.document = documents.getByUrl(match.params.documentSlug);
     this.sharedTree = this.document
-      ? sharedTreeCache[this.document.id]
+      ? documents.getSharedTree(this.document.id)
       : undefined;
     this.loadDocument();
   }
@@ -93,11 +92,12 @@ class DataLoader extends React.Component<Props> {
     }
   }
 
+  get isEditRoute() {
+    return this.props.match.path === matchDocumentEdit;
+  }
+
   get isEditing() {
-    return (
-      this.props.match.path === matchDocumentEdit ||
-      this.props.auth?.team?.collaborativeEditing
-    );
+    return this.isEditRoute || this.props.auth?.team?.collaborativeEditing;
   }
 
   onSearchLink = async (term: string) => {
@@ -134,13 +134,9 @@ class DataLoader extends React.Component<Props> {
 
     return sortBy(
       results.map((document: Document) => {
-        const time = formatDistanceToNow(Date.parse(document.updatedAt), {
-          addSuffix: true,
-        });
-
         return {
           title: document.title,
-          subtitle: `Updated ${time}`,
+          subtitle: <DocumentBreadcrumb document={document} onlyText />,
           url: document.url,
         };
       }),
@@ -192,7 +188,6 @@ class DataLoader extends React.Component<Props> {
       );
       this.sharedTree = response.sharedTree;
       this.document = response.document;
-      sharedTreeCache[this.document.id] = response.sharedTree;
 
       if (revisionId && revisionId !== "latest") {
         await this.loadRevision();
@@ -214,7 +209,7 @@ class DataLoader extends React.Component<Props> {
 
       // If we're attempting to update an archived, deleted, or otherwise
       // uneditable document then forward to the canonical read url.
-      if (!can.update && this.isEditing) {
+      if (!can.update && this.isEditRoute) {
         history.push(document.url);
         return;
       }

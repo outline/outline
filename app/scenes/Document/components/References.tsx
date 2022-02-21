@@ -21,19 +21,19 @@ function References({ document }: Props) {
     documents.fetchBacklinks(document.id);
   }, [documents, document.id]);
 
-  const backlinks = documents.getBacklinedDocuments(document.id);
+  const backlinks = documents.getBacklinkedDocuments(document.id);
   const collection = collections.get(document.collectionId);
   const children = collection
     ? collection.getDocumentChildren(document.id)
     : [];
   const showBacklinks = !!backlinks.length;
-  const showParentDocuments = !!children.length;
-  const isBacklinksTab = location.hash === "#backlinks" || !showParentDocuments;
+  const showChildDocuments = !!children.length;
+  const isBacklinksTab = location.hash === "#backlinks" || !showChildDocuments;
 
-  return showBacklinks || showParentDocuments ? (
+  return showBacklinks || showChildDocuments ? (
     <Fade>
       <Tabs>
-        {showParentDocuments && (
+        {showChildDocuments && (
           <Tab to="#children" isActive={() => !isBacklinksTab}>
             <Trans>Nested documents</Trans>
           </Tab>

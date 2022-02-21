@@ -9,3 +9,5 @@ stats.json
 fakes3/*
 .idea
 *.pem
+*.key
+*.cert

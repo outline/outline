@@ -33,12 +33,16 @@ export default class NotificationsProcessor {
   async documentUpdated(event: DocumentEvent | RevisionEvent) {
     // never send notifications when batch importing documents
     // @ts-expect-error ts-migrate(2339) FIXME: Property 'data' does not exist on type 'DocumentEv... Remove this comment to see the full error message
-    if (event.data?.source === "import") return;
+    if (event.data?.source === "import") {
+      return;
+    }
     const [document, team] = await Promise.all([
       Document.findByPk(event.documentId),
       Team.findByPk(event.teamId),
     ]);
-    if (!document || !team || !document.collection) return;
+    if (!document || !team || !document.collection) {
+      return;
+    }
     const { collection } = document;
     const notificationSettings = await NotificationSetting.findAll({
       where: {
@@ -132,8 +136,12 @@ export default class NotificationsProcessor {
         },
       ],
     });
-    if (!collection) return;
-    if (!collection.permission) return;
+    if (!collection) {
+      return;
+    }
+    if (!collection.permission) {
+      return;
+    }
     const notificationSettings = await NotificationSetting.findAll({
       where: {
         userId: {

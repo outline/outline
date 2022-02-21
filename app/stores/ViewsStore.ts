@@ -28,7 +28,9 @@ export default class ViewsStore extends BaseStore<View> {
       this.orderedData,
       (view) => view.documentId === documentId && view.user.id === userId
     );
-    if (!view) return;
+    if (!view) {
+      return;
+    }
     view.touch();
   }
 }

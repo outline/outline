@@ -5,6 +5,7 @@ import styled from "styled-components";
 type Props = Omit<React.HTMLAttributes<HTMLSpanElement>, "ref" | "onChange"> & {
   disabled?: boolean;
   readOnly?: boolean;
+  onClick?: React.MouseEventHandler<HTMLDivElement>;
   onChange?: (text: string) => void;
   onBlur?: React.FocusEventHandler<HTMLSpanElement> | undefined;
   onInput?: React.FormEventHandler<HTMLSpanElement> | undefined;
@@ -36,6 +37,7 @@ const ContentEditable = React.forwardRef(
       placeholder,
       readOnly,
       dir,
+      onClick,
       ...rest
     }: Props,
     forwardedRef: React.RefObject<HTMLSpanElement>
@@ -71,7 +73,7 @@ const ContentEditable = React.forwardRef(
       if (autoFocus) {
         ref.current?.focus();
       }
-    });
+    }, [autoFocus, ref]);
 
     React.useEffect(() => {
       if (value !== ref.current?.innerText) {
@@ -80,7 +82,7 @@ const ContentEditable = React.forwardRef(
     }, [value, ref]);
 
     return (
-      <div className={className} dir={dir}>
+      <div className={className} dir={dir} onClick={onClick}>
         <Content
           ref={ref}
           contentEditable={!disabled && !readOnly}

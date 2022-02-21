@@ -52,7 +52,9 @@ export const editCollection = createAction({
     !!activeCollectionId &&
     stores.policies.abilities(activeCollectionId).update,
   perform: ({ t, activeCollectionId }) => {
-    if (!activeCollectionId) return;
+    if (!activeCollectionId) {
+      return;
+    }
 
     stores.dialogs.openModal({
       title: t("Edit collection"),

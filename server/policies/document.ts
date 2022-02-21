@@ -4,12 +4,16 @@ import { NavigationNode } from "~/types";
 import { allow, _cannot as cannot } from "./cancan";
 
 allow(User, "createDocument", Team, (user, team) => {
-  if (!team || user.isViewer || user.teamId !== team.id) return false;
+  if (!team || user.isViewer || user.teamId !== team.id) {
+    return false;
+  }
   return true;
 });
 
 allow(User, ["read", "download"], Document, (user, document) => {
-  if (!document) return false;
+  if (!document) {
+    return false;
+  }
 
   // existence of collection option is not required here to account for share tokens
   if (document.collection && cannot(user, "read", document.collection)) {
@@ -19,23 +23,56 @@ allow(User, ["read", "download"], Document, (user, document) => {
   return user.teamId === document.teamId;
 });
 
-allow(User, ["star", "unstar"], Document, (user, document) => {
-  if (!document) return false;
-  if (document.archivedAt) return false;
-  if (document.deletedAt) return false;
-  if (document.template) return false;
+allow(User, "star", Document, (user, document) => {
+  if (!document) {
+    return false;
+  }
+  if (document.archivedAt) {
+    return false;
+  }
+  if (document.deletedAt) {
+    return false;
+  }
+  if (document.template) {
+    return false;
+  }
   invariant(
     document.collection,
     "collection is missing, did you forget to include in the query scope?"
   );
-  if (cannot(user, "read", document.collection)) return false;
+  if (cannot(user, "read", document.collection)) {
+    return false;
+  }
+  return user.teamId === document.teamId;
+});
+
+allow(User, "unstar", Document, (user, document) => {
+  if (!document) {
+    return false;
+  }
+  if (document.template) {
+    return false;
+  }
+  invariant(
+    document.collection,
+    "collection is missing, did you forget to include in the query scope?"
+  );
+  if (cannot(user, "read", document.collection)) {
+    return false;
+  }
   return user.teamId === document.teamId;
 });
 
 allow(User, "share", Document, (user, document) => {
-  if (!document) return false;
-  if (document.archivedAt) return false;
-  if (document.deletedAt) return false;
+  if (!document) {
+    return false;
+  }
+  if (document.archivedAt) {
+    return false;
+  }
+  if (document.deletedAt) {
+    return false;
+  }
   invariant(
     document.collection,
     "collection is missing, did you forget to include in the query scope?"
@@ -49,9 +86,15 @@ allow(User, "share", Document, (user, document) => {
 });
 
 allow(User, "update", Document, (user, document) => {
-  if (!document) return false;
-  if (document.archivedAt) return false;
-  if (document.deletedAt) return false;
+  if (!document) {
+    return false;
+  }
+  if (document.archivedAt) {
+    return false;
+  }
+  if (document.deletedAt) {
+    return false;
+  }
 
   if (cannot(user, "update", document.collection)) {
     return false;
@@ -61,60 +104,110 @@ allow(User, "update", Document, (user, document) => {
 });
 
 allow(User, "createChildDocument", Document, (user, document) => {
-  if (!document) return false;
-  if (document.archivedAt) return false;
-  if (document.deletedAt) return false;
-  if (document.template) return false;
-  if (!document.publishedAt) return false;
+  if (!document) {
+    return false;
+  }
+  if (document.archivedAt) {
+    return false;
+  }
+  if (document.deletedAt) {
+    return false;
+  }
+  if (document.template) {
+    return false;
+  }
+  if (!document.publishedAt) {
+    return false;
+  }
   invariant(
     document.collection,
     "collection is missing, did you forget to include in the query scope?"
   );
-  if (cannot(user, "update", document.collection)) return false;
+  if (cannot(user, "update", document.collection)) {
+    return false;
+  }
   return user.teamId === document.teamId;
 });
 
 allow(User, "move", Document, (user, document) => {
-  if (!document) return false;
-  if (document.archivedAt) return false;
-  if (document.deletedAt) return false;
-  if (!document.publishedAt) return false;
+  if (!document) {
+    return false;
+  }
+  if (document.archivedAt) {
+    return false;
+  }
+  if (document.deletedAt) {
+    return false;
+  }
+  if (!document.publishedAt) {
+    return false;
+  }
   invariant(
     document.collection,
     "collection is missing, did you forget to include in the query scope?"
   );
-  if (cannot(user, "update", document.collection)) return false;
+  if (cannot(user, "update", document.collection)) {
+    return false;
+  }
   return user.teamId === document.teamId;
 });
 
 allow(User, ["pin", "unpin"], Document, (user, document) => {
-  if (!document) return false;
-  if (document.archivedAt) return false;
-  if (document.deletedAt) return false;
-  if (document.template) return false;
-  if (!document.publishedAt) return false;
+  if (!document) {
+    return false;
+  }
+  if (document.archivedAt) {
+    return false;
+  }
+  if (document.deletedAt) {
+    return false;
+  }
+  if (document.template) {
+    return false;
+  }
+  if (!document.publishedAt) {
+    return false;
+  }
   invariant(
     document.collection,
     "collection is missing, did you forget to include in the query scope?"
   );
-  if (cannot(user, "update", document.collection)) return false;
+  if (cannot(user, "update", document.collection)) {
+    return false;
+  }
   return user.teamId === document.teamId;
 });
 
 allow(User, ["pinToHome"], Document, (user, document) => {
-  if (!document) return false;
-  if (document.archivedAt) return false;
-  if (document.deletedAt) return false;
-  if (document.template) return false;
-  if (!document.publishedAt) return false;
+  if (!document) {
+    return false;
+  }
+  if (document.archivedAt) {
+    return false;
+  }
+  if (document.deletedAt) {
+    return false;
+  }
+  if (document.template) {
+    return false;
+  }
+  if (!document.publishedAt) {
+    return false;
+  }
 
   return user.teamId === document.teamId && user.isAdmin;
 });
 
 allow(User, "delete", Document, (user, document) => {
-  if (!document) return false;
-  if (document.deletedAt) return false;
-  if (user.isViewer) return false;
+  if (!document) {
+    return false;
+  }
+  if (document.deletedAt) {
+    return false;
+  }
+  if (user.isViewer) {
+    return false;
+  }
 
   // allow deleting document without a collection
   if (document.collection && cannot(user, "update", document.collection)) {
@@ -134,9 +227,15 @@ allow(User, "delete", Document, (user, document) => {
 });
 
 allow(User, "permanentDelete", Document, (user, document) => {
-  if (!document) return false;
-  if (!document.deletedAt) return false;
-  if (user.isViewer) return false;
+  if (!document) {
+    return false;
+  }
+  if (!document.deletedAt) {
+    return false;
+  }
+  if (user.isViewer) {
+    return false;
+  }
 
   // allow deleting document without a collection
   if (document.collection && cannot(user, "update", document.collection)) {
@@ -147,9 +246,15 @@ allow(User, "permanentDelete", Document, (user, document) => {
 });
 
 allow(User, "restore", Document, (user, document) => {
-  if (!document) return false;
-  if (!document.deletedAt) return false;
-  if (user.isViewer) return false;
+  if (!document) {
+    return false;
+  }
+  if (!document.deletedAt) {
+    return false;
+  }
+  if (user.isViewer) {
+    return false;
+  }
 
   if (document.collection && cannot(user, "update", document.collection)) {
     return false;
@@ -159,27 +264,45 @@ allow(User, "restore", Document, (user, document) => {
 });
 
 allow(User, "archive", Document, (user, document) => {
-  if (!document) return false;
-  if (!document.publishedAt) return false;
-  if (document.archivedAt) return false;
-  if (document.deletedAt) return false;
+  if (!document) {
+    return false;
+  }
+  if (!document.publishedAt) {
+    return false;
+  }
+  if (document.archivedAt) {
+    return false;
+  }
+  if (document.deletedAt) {
+    return false;
+  }
   invariant(
     document.collection,
     "collection is missing, did you forget to include in the query scope?"
   );
-  if (cannot(user, "update", document.collection)) return false;
+  if (cannot(user, "update", document.collection)) {
+    return false;
+  }
   return user.teamId === document.teamId;
 });
 
 allow(User, "unarchive", Document, (user, document) => {
-  if (!document) return false;
+  if (!document) {
+    return false;
+  }
   invariant(
     document.collection,
     "collection is missing, did you forget to include in the query scope?"
   );
-  if (cannot(user, "update", document.collection)) return false;
-  if (!document.archivedAt) return false;
-  if (document.deletedAt) return false;
+  if (cannot(user, "update", document.collection)) {
+    return false;
+  }
+  if (!document.archivedAt) {
+    return false;
+  }
+  if (document.deletedAt) {
+    return false;
+  }
   return user.teamId === document.teamId;
 });
 
@@ -191,19 +314,26 @@ allow(
 );
 
 allow(User, "unpublish", Document, (user, document) => {
-  if (!document) return false;
+  if (!document) {
+    return false;
+  }
   invariant(
     document.collection,
     "collection is missing, did you forget to include in the query scope?"
   );
-  if (!document.publishedAt || !!document.deletedAt || !!document.archivedAt)
+  if (!document.publishedAt || !!document.deletedAt || !!document.archivedAt) {
     return false;
-  if (cannot(user, "update", document.collection)) return false;
+  }
+  if (cannot(user, "update", document.collection)) {
+    return false;
+  }
   const documentID = document.id;
 
   const hasChild = (documents: NavigationNode[]): boolean =>
     documents.some((doc) => {
-      if (doc.id === documentID) return doc.children.length > 0;
+      if (doc.id === documentID) {
+        return doc.children.length > 0;
+      }
       return hasChild(doc.children);
     });
 

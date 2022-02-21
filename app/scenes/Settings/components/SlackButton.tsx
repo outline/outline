@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { slackAuth } from "@shared/utils/routeHelpers";
+import { slackAuth } from "@shared/utils/urlHelpers";
 import Button from "~/components/Button";
 import env from "~/env";
 

@@ -3,6 +3,7 @@ import * as React from "react";
 import { MenuItem as BaseMenuItem } from "reakit/Menu";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { hover } from "~/styles";
 import MenuIconWrapper from "../MenuIconWrapper";
 
 type Props = {
@@ -10,13 +11,14 @@ type Props = {
   children?: React.ReactNode;
   selected?: boolean;
   disabled?: boolean;
+  dangerous?: boolean;
   to?: string;
   href?: string;
   target?: "_blank";
   as?: string | React.ComponentType<any>;
   hide?: () => void;
   level?: number;
-  icon?: React.ReactNode;
+  icon?: React.ReactElement;
 };
 
 const MenuItem = ({
@@ -73,7 +75,11 @@ const MenuItem = ({
               &nbsp;
             </>
           )}
-          {icon && <MenuIconWrapper>{icon}</MenuIconWrapper>}
+          {icon && (
+            <MenuIconWrapper>
+              {React.cloneElement(icon, { color: "currentColor" })}
+            </MenuIconWrapper>
+          )}
           {children}
         </MenuAnchor>
       )}
@@ -87,7 +93,11 @@ const Spacer = styled.svg`
   flex-shrink: 0;
 `;
 
-export const MenuAnchorCSS = css<{ level?: number; disabled?: boolean }>`
+export const MenuAnchorCSS = css<{
+  level?: number;
+  disabled?: boolean;
+  dangerous?: boolean;
+}>`
   display: flex;
   margin: 0;
   border: 0;
@@ -103,6 +113,7 @@ export const MenuAnchorCSS = css<{ level?: number; disabled?: boolean }>`
   font-size: 16px;
   cursor: default;
   user-select: none;
+  white-space: nowrap;
 
   svg:not(:last-child) {
     margin-right: 4px;
@@ -118,11 +129,11 @@ export const MenuAnchorCSS = css<{ level?: number; disabled?: boolean }>`
       ? "pointer-events: none;"
       : `
 
-  &:hover,  
+  &:${hover},
   &:focus,
   &.focus-visible {
     color: ${props.theme.white};
-    background: ${props.theme.primary};
+    background: ${props.dangerous ? props.theme.danger : props.theme.primary};
     box-shadow: none;
     cursor: pointer;
 

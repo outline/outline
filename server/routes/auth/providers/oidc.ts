@@ -9,7 +9,7 @@ import {
   AuthenticationError,
 } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
-import { getAllowedDomains } from "@server/utils/authentication";
+import { isDomainAllowed } from "@server/utils/authentication";
 import { StateStore, request } from "@server/utils/passport";
 
 const router = new Router();
@@ -23,7 +23,6 @@ const OIDC_USERINFO_URI = process.env.OIDC_USERINFO_URI || "";
 const OIDC_SCOPES = process.env.OIDC_SCOPES || "";
 const OIDC_USERNAME_CLAIM =
   process.env.OIDC_USERNAME_CLAIM || "preferred_username";
-const allowedDomains = getAllowedDomains();
 
 export const config = {
   name: OIDC_DISPLAY_NAME,
@@ -84,7 +83,7 @@ if (OIDC_CLIENT_ID) {
             throw OIDCMalformedUserInfoError();
           }
 
-          if (allowedDomains.length && !allowedDomains.includes(domain)) {
+          if (!isDomainAllowed(domain)) {
             throw AuthenticationError(
               `Domain ${domain} is not on the whitelist`
             );
