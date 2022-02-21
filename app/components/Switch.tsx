@@ -2,6 +2,7 @@ import * as React from "react";
 import styled from "styled-components";
 import { LabelText } from "~/components/Input";
 import Text from "~/components/Text";
+import Flex from "./Flex";
 
 type Props = React.HTMLAttributes<HTMLInputElement> & {
   width?: number;
@@ -49,9 +50,12 @@ function Switch({
           <InlineLabelText>{label}</InlineLabelText>
         </Label>
         {note && (
-          <Text type="secondary" size="small">
-            {note}
-          </Text>
+          <Flex>
+            <Input width={width} height={height} aria-hidden="true" />
+            <Text type="secondary" size="small">
+              {note}
+            </Text>
+          </Flex>
         )}
       </Wrapper>
     );
