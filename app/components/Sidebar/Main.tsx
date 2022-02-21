@@ -11,9 +11,9 @@ import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import Bubble from "~/components/Bubble";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
+import Text from "~/components/Text";
 import { inviteUser } from "~/actions/definitions/users";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -96,10 +96,12 @@ function MainSidebar() {
                   to={draftsPath()}
                   icon={<EditIcon color="currentColor" />}
                   label={
-                    <Drafts align="center">
+                    <Flex align="center" justify="space-between">
                       {t("Drafts")}
-                      <Bubble count={documents.totalDrafts} />
-                    </Drafts>
+                      <Drafts size="xsmall" type="tertiary">
+                        {documents.totalDrafts}
+                      </Drafts>
+                    </Flex>
                   }
                 />
               )}
@@ -145,8 +147,8 @@ function MainSidebar() {
   );
 }
 
-const Drafts = styled(Flex)`
-  height: 24px;
+const Drafts = styled(Text)`
+  margin: 0 4px;
 `;
 
 export default observer(MainSidebar);

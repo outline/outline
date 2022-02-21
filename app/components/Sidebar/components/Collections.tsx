@@ -1,10 +1,8 @@
 import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
-import { CollapsedIcon } from "outline-icons";
 import * as React from "react";
 import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
-import styled from "styled-components";
 import Collection from "~/models/Collection";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
@@ -16,7 +14,7 @@ import DropCursor from "./DropCursor";
 import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
 import SidebarAction from "./SidebarAction";
-import SidebarLink, { DragObject } from "./SidebarLink";
+import { DragObject } from "./SidebarLink";
 
 function Collections() {
   const [isFetching, setFetching] = React.useState(false);
@@ -104,7 +102,6 @@ function Collections() {
       <Header onClick={() => setExpanded((prev) => !prev)} expanded={expanded}>
         {t("Collections")}
       </Header>
-
       {expanded && (isPreloaded ? content : <Fade>{content}</Fade>)}
     </Flex>
   );
