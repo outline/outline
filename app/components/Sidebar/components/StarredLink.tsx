@@ -4,16 +4,15 @@ import { StarredIcon } from "outline-icons";
 import * as React from "react";
 import { useEffect, useState } from "react";
 import { useDrag, useDrop } from "react-dnd";
-import { useTranslation } from "react-i18next";
 import styled, { useTheme } from "styled-components";
-import { MAX_TITLE_LENGTH } from "@shared/constants";
+import parseTitle from "@shared/utils/parseTitle";
 import Star from "~/models/Star";
+import EmojiIcon from "~/components/EmojiIcon";
 import Fade from "~/components/Fade";
 import useBoolean from "~/hooks/useBoolean";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
 import DropCursor from "./DropCursor";
-import EditableTitle from "./EditableTitle";
 import SidebarLink from "./SidebarLink";
 
 type Props = {
@@ -27,25 +26,22 @@ type Props = {
 
 function StarredLink({
   depth,
-  title,
   to,
   documentId,
+  title,
   collectionId,
   star,
 }: Props) {
   const theme = useTheme();
-  const { t } = useTranslation();
-  const { collections, documents, policies } = useStores();
+  const { collections, documents } = useStores();
   const collection = collections.get(collectionId);
   const document = documents.get(documentId);
   const [expanded, setExpanded] = useState(false);
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
-  const canUpdate = policies.abilities(documentId).update;
   const childDocuments = collection
     ? collection.getDocumentChildren(documentId)
     : [];
   const hasChildDocuments = childDocuments.length > 0;
-  const [isEditing, setIsEditing] = React.useState(false);
 
   useEffect(() => {
     async function load() {
@@ -65,29 +61,6 @@ function StarredLink({
     },
     []
   );
-
-  const handleTitleChange = React.useCallback(
-    async (title: string) => {
-      if (!document) {
-        return;
-      }
-      await documents.update(
-        {
-          id: document.id,
-          text: document.text,
-          title,
-        },
-        {
-          lastRevision: document.revision,
-        }
-      );
-    },
-    [documents, document]
-  );
-
-  const handleTitleEditing = React.useCallback((isEditing: boolean) => {
-    setIsEditing(isEditing);
-  }, []);
 
   // Draggable
   const [{ isDragging }, drag] = useDrag({
@@ -117,6 +90,9 @@ function StarredLink({
     }),
   });
 
+  const { emoji } = parseTitle(title);
+  const label = emoji ? title.replace(emoji, "") : title;
+
   return (
     <>
       <Draggable key={documentId} ref={drag} $isDragging={isDragging}>
@@ -125,23 +101,23 @@ function StarredLink({
           expanded={hasChildDocuments ? expanded : undefined}
           onDisclosureClick={handleDisclosureClick}
           to={`${to}?starred`}
-          icon={depth === 0 ? <StarredIcon color={theme.yellow} /> : undefined}
+          icon={
+            depth === 0 ? (
+              emoji ? (
+                <EmojiIcon emoji={emoji} />
+              ) : (
+                <StarredIcon color={theme.yellow} />
+              )
+            ) : undefined
+          }
           isActive={(match, location) =>
             !!match && location.search === "?starred"
           }
-          label={
-            <EditableTitle
-              title={title || t("Untitled")}
-              onSubmit={handleTitleChange}
-              onEditing={handleTitleEditing}
-              canUpdate={canUpdate}
-              maxLength={MAX_TITLE_LENGTH}
-            />
-          }
+          label={depth === 0 ? label : title}
           exact={false}
           showActions={menuOpen}
           menu={
-            document && !isEditing ? (
+            document ? (
               <Fade>
                 <DocumentMenu
                   document={document}
