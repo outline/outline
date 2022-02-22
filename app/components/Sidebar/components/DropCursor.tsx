@@ -23,7 +23,7 @@ const Cursor = styled.div<{ isOver?: boolean; position?: "top" }>`
   width: 100%;
   height: 14px;
   background: transparent;
-  ${(props) => (props.position === "top" ? "top: 25px;" : "bottom: -7px;")}
+  ${(props) => (props.position === "top" ? "top: -7px;" : "bottom: -7px;")}
 
   ::after {
     background: ${(props) => props.theme.slateDark};

@@ -81,13 +81,21 @@ function DocumentLink(
         isActiveDocument)
     );
   }, [hasChildDocuments, activeDocument, isActiveDocument, node, collection]);
+
   const [expanded, setExpanded] = React.useState(showChildren);
+  const [openedOnce, setOpenedOnce] = React.useState(expanded);
 
   React.useEffect(() => {
     if (showChildren) {
       setExpanded(showChildren);
     }
   }, [showChildren]);
+
+  React.useEffect(() => {
+    if (expanded) {
+      setOpenedOnce(true);
+    }
+  }, [expanded]);
 
   // when the last child document is removed,
   // also close the local folder state to closed
@@ -351,25 +359,31 @@ function DocumentLink(
           <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
         )}
       </Relative>
-      {expanded &&
-        !isDragging &&
-        nodeChildren.map((childNode, index) => (
-          <ObservedDocumentLink
-            key={childNode.id}
-            collection={collection}
-            node={childNode}
-            activeDocument={activeDocument}
-            prefetchDocument={prefetchDocument}
-            isDraft={childNode.isDraft}
-            depth={depth + 1}
-            canUpdate={canUpdate}
-            index={index}
-            parentId={node.id}
-          />
-        ))}
+      {openedOnce && (
+        <Folder $open={expanded && !isDragging}>
+          {nodeChildren.map((childNode, index) => (
+            <ObservedDocumentLink
+              key={childNode.id}
+              collection={collection}
+              node={childNode}
+              activeDocument={activeDocument}
+              prefetchDocument={prefetchDocument}
+              isDraft={childNode.isDraft}
+              depth={depth + 1}
+              canUpdate={canUpdate}
+              index={index}
+              parentId={node.id}
+            />
+          ))}
+        </Folder>
+      )}
     </>
   );
 }
+
+const Folder = styled.div<{ $open?: boolean }>`
+  display: ${(props) => (props.$open ? "block" : "none")};
+`;
 
 const Relative = styled.div`
   position: relative;
