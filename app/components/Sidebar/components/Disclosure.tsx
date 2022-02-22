@@ -6,7 +6,7 @@ import NudeButton from "~/components/NudeButton";
 type Props = {
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
   expanded: boolean;
-  root: boolean;
+  root?: boolean;
 };
 
 function Disclosure({ onClick, root, expanded, ...rest }: Props) {
@@ -17,11 +17,10 @@ function Disclosure({ onClick, root, expanded, ...rest }: Props) {
   );
 }
 
-const Button = styled(NudeButton)<{ $root: boolean }>`
+const Button = styled(NudeButton)<{ $root?: boolean }>`
   position: absolute;
   left: -24px;
   flex-shrink: 0;
-  /* color: ${(props) => props.theme.textTertiary}; */
 
   &:hover {
     color: ${(props) => props.theme.sidebarText};
