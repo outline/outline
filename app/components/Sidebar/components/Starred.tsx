@@ -3,6 +3,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
+import styled from "styled-components";
 import Star from "~/models/Star";
 import Flex from "~/components/Flex";
 import useStores from "~/hooks/useStores";
@@ -127,7 +128,7 @@ function Starred() {
         {t("Starred")}
       </Header>
       {expanded && (
-        <>
+        <Relative>
           <DropCursor
             isActiveDrop={isOverReorder}
             innerRef={dropToReorder}
@@ -167,10 +168,14 @@ function Starred() {
               <PlaceholderCollections />
             </Flex>
           )}
-        </>
+        </Relative>
       )}
     </Flex>
   );
 }
+
+const Relative = styled.div`
+  position: relative;
+`;
 
 export default observer(Starred);

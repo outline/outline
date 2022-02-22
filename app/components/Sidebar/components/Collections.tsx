@@ -3,6 +3,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
+import styled from "styled-components";
 import Collection from "~/models/Collection";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
@@ -102,9 +103,15 @@ function Collections() {
       <Header onClick={() => setExpanded((prev) => !prev)} expanded={expanded}>
         {t("Collections")}
       </Header>
-      {expanded && (isPreloaded ? content : <Fade>{content}</Fade>)}
+      {expanded && (
+        <Relative>{isPreloaded ? content : <Fade>{content}</Fade>}</Relative>
+      )}
     </Flex>
   );
 }
+
+const Relative = styled.div`
+  position: relative;
+`;
 
 export default observer(Collections);
