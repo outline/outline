@@ -24,7 +24,6 @@ type Props = {
 
 function AccountMenu(props: Props) {
   const menu = useMenuState({
-    unstable_offset: [4, 0],
     placement: "bottom-end",
     modal: true,
   });

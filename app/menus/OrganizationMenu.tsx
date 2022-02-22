@@ -20,7 +20,7 @@ type Props = {
 function OrganizationMenu(props: Props) {
   const [sessions] = useSessions();
   const menu = useMenuState({
-    unstable_offset: [4, 0],
+    unstable_offset: [4, -4],
     placement: "bottom-start",
     modal: true,
   });
