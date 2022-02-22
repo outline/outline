@@ -108,10 +108,16 @@ function Collections() {
         label={t("Collections")}
         icon={<Disclosure expanded={expanded} color="currentColor" />}
       />
-      {expanded && (isPreloaded ? content : <Fade>{content}</Fade>)}
+      {expanded && (
+        <Relative>{isPreloaded ? content : <Fade>{content}</Fade>}</Relative>
+      )}
     </Flex>
   );
 }
+
+const Relative = styled.div`
+  position: relative;
+`;
 
 const Disclosure = styled(CollapsedIcon)<{ expanded?: boolean }>`
   transition: transform 100ms ease, fill 50ms !important;

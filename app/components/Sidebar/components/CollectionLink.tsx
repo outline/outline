@@ -71,6 +71,13 @@ function CollectionLink({
     collection.id === ui.activeCollectionId
   );
 
+  const [openedOnce, setOpenedOnce] = React.useState(expanded);
+  React.useEffect(() => {
+    if (expanded) {
+      setOpenedOnce(true);
+    }
+  }, [expanded]);
+
   const manualSort = collection.sort.field === "index";
   const can = policies.abilities(collection.id);
   const belowCollectionIndex = belowCollection ? belowCollection.index : null;
@@ -270,31 +277,38 @@ function CollectionLink({
             />
           </DropToImport>
         </Draggable>
-        {displayDocumentLinks && manualSort && (
-          <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
-        )}
       </Relative>
       <Relative>
-        <Folder $expanded={displayDocumentLinks}>
-          {collectionDocuments.map((node, index) => (
-            <DocumentLink
-              key={node.id}
-              node={node}
-              collection={collection}
-              activeDocument={activeDocument}
-              prefetchDocument={prefetchDocument}
-              canUpdate={canUpdate}
-              isDraft={node.isDraft}
-              depth={2}
-              index={index}
-            />
-          ))}
-        </Folder>
-
-        <DropCursor
-          isActiveDrop={isCollectionDropping}
-          innerRef={dropToReorderCollection}
-        />
+        {openedOnce && (
+          <Folder $open={displayDocumentLinks}>
+            {manualSort && (
+              <DropCursor
+                isActiveDrop={isOverReorder}
+                innerRef={dropToReorder}
+                position="top"
+              />
+            )}
+            {collectionDocuments.map((node, index) => (
+              <DocumentLink
+                key={node.id}
+                node={node}
+                collection={collection}
+                activeDocument={activeDocument}
+                prefetchDocument={prefetchDocument}
+                canUpdate={canUpdate}
+                isDraft={node.isDraft}
+                depth={2}
+                index={index}
+              />
+            ))}
+          </Folder>
+        )}
+        {isDraggingAnyCollection && (
+          <DropCursor
+            isActiveDrop={isCollectionDropping}
+            innerRef={dropToReorderCollection}
+          />
+        )}
       </Relative>
 
       <Modal
@@ -319,8 +333,8 @@ const Relative = styled.div`
   position: relative;
 `;
 
-const Folder = styled.div<{ $expanded?: boolean }>`
-  display: ${(props) => (props.$expanded ? "block" : "none")};
+const Folder = styled.div<{ $open?: boolean }>`
+  display: ${(props) => (props.$open ? "block" : "none")};
 `;
 
 const Draggable = styled("div")<{ $isDragging: boolean; $isMoving: boolean }>`

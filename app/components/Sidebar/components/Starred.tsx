@@ -148,7 +148,7 @@ function Starred() {
           icon={<Disclosure expanded={expanded} color="currentColor" />}
         />
         {expanded && (
-          <>
+          <Relative>
             <DropCursor
               isActiveDrop={isOverReorder}
               innerRef={dropToReorder}
@@ -174,7 +174,7 @@ function Starred() {
                 <PlaceholderCollections />
               </Flex>
             )}
-          </>
+          </Relative>
         )}
       </Flex>
     </Section>
@@ -184,6 +184,10 @@ function Starred() {
 const Disclosure = styled(CollapsedIcon)<{ expanded?: boolean }>`
   transition: transform 100ms ease, fill 50ms !important;
   ${({ expanded }) => !expanded && "transform: rotate(-90deg);"};
+`;
+
+const Relative = styled.div`
+  position: relative;
 `;
 
 export default observer(Starred);
