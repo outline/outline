@@ -37,11 +37,11 @@ const Button = styled.button`
   border-radius: 4px;
   -webkit-appearance: none;
   transition: all 100ms ease;
-  cursor: pointer;
 
   &:not(:disabled):hover,
   &:not(:disabled):active {
     color: ${(props) => props.theme.textSecondary};
+    cursor: pointer;
   }
 `;
 

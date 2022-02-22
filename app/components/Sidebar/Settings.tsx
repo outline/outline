@@ -9,7 +9,7 @@ import {
   GroupIcon,
   LinkIcon,
   TeamIcon,
-  ExpandedIcon,
+  BackIcon,
   BeakerIcon,
   DownloadIcon,
 } from "outline-icons";
@@ -27,8 +27,8 @@ import useStores from "~/hooks/useStores";
 import Sidebar from "./Sidebar";
 import Header from "./components/Header";
 import Section from "./components/Section";
+import SidebarButton from "./components/SidebarButton";
 import SidebarLink from "./components/SidebarLink";
-import TeamButton from "./components/TeamButton";
 import Version from "./components/Version";
 
 const isHosted = env.DEPLOYMENT === "hosted";
@@ -46,14 +46,9 @@ function SettingsSidebar() {
 
   return (
     <Sidebar>
-      <TeamButton
-        subheading={
-          <ReturnToApp align="center">
-            <BackIcon color="currentColor" /> {t("Return to App")}
-          </ReturnToApp>
-        }
-        teamName={team.name}
-        logoUrl={team.avatarUrl}
+      <SidebarButton
+        title={t("Settings")}
+        image={<StyledBackIcon color="currentColor" />}
         onClick={returnToDashboard}
       />
 
@@ -165,13 +160,8 @@ function SettingsSidebar() {
   );
 }
 
-const BackIcon = styled(ExpandedIcon)`
-  transform: rotate(90deg);
-  margin-left: -8px;
-`;
-
-const ReturnToApp = styled(Flex)`
-  height: 16px;
+const StyledBackIcon = styled(BackIcon)`
+  margin-left: 4px;
 `;
 
 export default observer(SettingsSidebar);

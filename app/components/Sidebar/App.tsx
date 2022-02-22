@@ -1,11 +1,5 @@
 import { observer } from "mobx-react";
-import {
-  EditIcon,
-  SearchIcon,
-  ShapesIcon,
-  HomeIcon,
-  SettingsIcon,
-} from "outline-icons";
+import { EditIcon, SearchIcon, ShapesIcon, HomeIcon } from "outline-icons";
 import * as React from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
@@ -19,24 +13,26 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import AccountMenu from "~/menus/AccountMenu";
+import OrganizationMenu from "~/menus/OrganizationMenu";
 import {
   homePath,
   searchUrl,
   draftsPath,
   templatesPath,
-  settingsPath,
 } from "~/utils/routeHelpers";
+import Avatar from "../Avatar";
+import TeamLogo from "../TeamLogo";
 import Sidebar from "./Sidebar";
 import ArchiveLink from "./components/ArchiveLink";
 import Collections from "./components/Collections";
 import Section from "./components/Section";
 import SidebarAction from "./components/SidebarAction";
+import SidebarButton from "./components/SidebarButton";
 import SidebarLink from "./components/SidebarLink";
 import Starred from "./components/Starred";
-import TeamButton from "./components/TeamButton";
 import TrashLink from "./components/TrashLink";
 
-function MainSidebar() {
+function AppSidebar() {
   const { t } = useTranslation();
   const { policies, documents } = useStores();
   const team = useCurrentTeam();
@@ -61,18 +57,19 @@ function MainSidebar() {
     <Sidebar ref={handleSidebarRef}>
       {dndArea && (
         <DndProvider backend={HTML5Backend} options={html5Options}>
-          <AccountMenu>
+          <OrganizationMenu>
             {(props) => (
-              <TeamButton
+              <SidebarButton
                 {...props}
-                subheading={user.name}
-                teamName={team.name}
-                logoUrl={team.avatarUrl}
+                title={team.name}
+                image={
+                  <StyledTeamLogo src={team.avatarUrl} width={32} height={32} />
+                }
                 showDisclosure
               />
             )}
-          </AccountMenu>
-          <Scrollable flex topShadow>
+          </OrganizationMenu>
+          <Scrollable flex shadow>
             <Section>
               <SidebarLink
                 to={homePath()}
@@ -132,23 +129,41 @@ function MainSidebar() {
                   <TrashLink />
                 </>
               )}
-              <SidebarLink
-                to={settingsPath()}
-                icon={<SettingsIcon color="currentColor" />}
-                exact={false}
-                label={t("Settings")}
-              />
               <SidebarAction action={inviteUser} />
             </Section>
           </Scrollable>
+          <AccountMenu>
+            {(props) => (
+              <SidebarButton
+                {...props}
+                showMoreMenu
+                title={user.name}
+                image={
+                  <StyledAvatar
+                    src={user.avatarUrl}
+                    size={24}
+                    showBorder={false}
+                  />
+                }
+              />
+            )}
+          </AccountMenu>
         </DndProvider>
       )}
     </Sidebar>
   );
 }
 
+const StyledTeamLogo = styled(TeamLogo)`
+  margin-right: 4px;
+`;
+
+const StyledAvatar = styled(Avatar)`
+  margin-left: 4px;
+`;
+
 const Drafts = styled(Text)`
   margin: 0 4px;
 `;
 
-export default observer(MainSidebar);
+export default observer(AppSidebar);

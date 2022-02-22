@@ -185,7 +185,7 @@ export const dark = {
   textTertiary: colors.slate,
   placeholder: colors.slateDark,
   sidebarBackground: colors.veryDarkBlue,
-  sidebarActiveBackground: lighten(0.015, colors.almostBlack),
+  sidebarActiveBackground: lighten(0.02, colors.almostBlack),
   sidebarControlHoverBackground: "rgba(255,255,255,0.1)",
   sidebarDraftBorder: darken("0.35", colors.slate),
   sidebarText: colors.slate,

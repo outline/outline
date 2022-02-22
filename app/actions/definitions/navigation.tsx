@@ -10,6 +10,7 @@ import {
   KeyboardIcon,
   EmailIcon,
   LogoutIcon,
+  ProfileIcon,
 } from "outline-icons";
 import * as React from "react";
 import {
@@ -24,7 +25,8 @@ import { createAction } from "~/actions";
 import { NavigationSection } from "~/actions/sections";
 import history from "~/utils/history";
 import {
-  settingsPath,
+  organizationSettingsPath,
+  profileSettingsPath,
   homePath,
   searchUrl,
   draftsPath,
@@ -87,9 +89,16 @@ export const navigateToSettings = createAction({
   name: ({ t }) => t("Settings"),
   section: NavigationSection,
   shortcut: ["g", "s"],
-  iconInContextMenu: false,
   icon: <SettingsIcon />,
-  perform: () => history.push(settingsPath()),
+  perform: () => history.push(organizationSettingsPath()),
+});
+
+export const navigateToProfileSettings = createAction({
+  name: ({ t }) => t("Profile"),
+  section: NavigationSection,
+  iconInContextMenu: false,
+  icon: <ProfileIcon />,
+  perform: () => history.push(profileSettingsPath()),
 });
 
 export const openAPIDocumentation = createAction({
