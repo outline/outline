@@ -13,7 +13,9 @@ export function Header({ onClick, expanded, children }: Props) {
     <H3>
       <Button onClick={onClick} disabled={!onClick}>
         {children}
-        {onClick && <Disclosure expanded={expanded} color="currentColor" />}
+        {onClick && (
+          <Disclosure expanded={expanded} color="currentColor" size={20} />
+        )}
       </Button>
     </H3>
   );
@@ -27,18 +29,18 @@ const Button = styled.button`
   user-select: none;
   color: ${(props) => props.theme.textTertiary};
   letter-spacing: 0.03em;
-  margin: 0 8px;
-  padding: 4px 0 4px 4px;
+  margin: 0;
+  padding: 4px 2px 4px 12px;
   height: 22px;
   border: 0;
   background: none;
   border-radius: 4px;
   -webkit-appearance: none;
   transition: all 100ms ease;
+  cursor: pointer;
 
   &:not(:disabled):hover,
   &:not(:disabled):active {
-    background: ${(props) => props.theme.sidebarItemBackground};
     color: ${(props) => props.theme.textSecondary};
   }
 `;

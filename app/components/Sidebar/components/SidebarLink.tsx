@@ -19,7 +19,7 @@ type Props = Omit<NavLinkProps, "to"> & {
   innerRef?: (arg0: HTMLElement | null | undefined) => void;
   onClick?: React.MouseEventHandler<HTMLAnchorElement>;
   onMouseEnter?: React.MouseEventHandler<HTMLAnchorElement>;
-  onDisclosureClick?: React.MouseEventHandler<HTMLOrSVGElement>;
+  onDisclosureClick?: React.MouseEventHandler<HTMLButtonElement>;
   icon?: React.ReactNode;
   label?: React.ReactNode;
   menu?: React.ReactNode;
@@ -71,10 +71,10 @@ function SidebarLink(
     () => ({
       fontWeight: 600,
       color: theme.text,
-      background: theme.sidebarItemBackground,
+      background: theme.sidebarActiveBackground,
       ...style,
     }),
-    [theme.text, theme.sidebarItemBackground, style]
+    [theme.text, theme.sidebarActiveBackground, style]
   );
 
   return (
@@ -97,7 +97,11 @@ function SidebarLink(
       >
         <Content>
           {expanded !== undefined && (
-            <Disclosure expanded={expanded} onClick={onDisclosureClick} />
+            <Disclosure
+              expanded={expanded}
+              onClick={onDisclosureClick}
+              root={depth === 0}
+            />
           )}
           {icon && <IconWrapper>{icon}</IconWrapper>}
           <Label>{label}</Label>
@@ -110,6 +114,7 @@ function SidebarLink(
 
 const Content = styled.span`
   display: flex;
+  align-items: center;
   position: relative;
   width: 100%;
 `;
@@ -187,7 +192,7 @@ const Link = styled(NavLink)<{ $isActiveDrop?: boolean; $isDraft?: boolean }>`
 
   &[aria-current="page"] + ${Actions} {
     ${NudeButton} {
-      background: ${(props) => props.theme.sidebarItemBackground};
+      background: ${(props) => props.theme.sidebarActiveBackground};
     }
   }
 
@@ -210,6 +215,13 @@ const Link = styled(NavLink)<{ $isActiveDrop?: boolean; $isDraft?: boolean }>`
         props.$isActiveDrop ? props.theme.white : props.theme.text};
     }
   }
+
+  &:hover {
+    ${Disclosure} {
+      opacity: 1;
+      color: ${(props) => props.theme.text};
+    }
+  }
 `;
 
 const Label = styled.div`
@@ -217,6 +229,7 @@ const Label = styled.div`
   width: 100%;
   max-height: 4.8em;
   line-height: 1.6;
+
   * {
     unicode-bidi: plaintext;
   }

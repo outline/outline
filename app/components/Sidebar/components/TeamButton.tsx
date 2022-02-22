@@ -85,7 +85,7 @@ const Header = styled.button`
   &:active,
   &:hover {
     transition: background 100ms ease-in-out;
-    background: ${(props) => props.theme.sidebarItemBackground};
+    background: ${(props) => props.theme.sidebarActiveBackground};
   }
 `;
 

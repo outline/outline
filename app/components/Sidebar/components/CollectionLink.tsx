@@ -16,7 +16,6 @@ import useStores from "~/hooks/useStores";
 import CollectionMenu from "~/menus/CollectionMenu";
 import CollectionSortMenu from "~/menus/CollectionSortMenu";
 import { NavigationNode } from "~/types";
-import Disclosure from "./Disclosure";
 import DocumentLink from "./DocumentLink";
 import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
@@ -316,14 +315,6 @@ function CollectionLink({
 const Draggable = styled("div")<{ $isDragging: boolean; $isMoving: boolean }>`
   opacity: ${(props) => (props.$isDragging || props.$isMoving ? 0.5 : 1)};
   pointer-events: ${(props) => (props.$isMoving ? "none" : "auto")};
-
-  ${Disclosure} {
-    opacity: 0;
-  }
-
-  &:hover ${Disclosure} {
-    opacity: 1;
-  }
 `;
 
 export default observer(CollectionLink);
