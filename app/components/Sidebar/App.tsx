@@ -16,7 +16,12 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import AccountMenu from "~/menus/AccountMenu";
 import OrganizationMenu from "~/menus/OrganizationMenu";
-import { homePath, draftsPath, templatesPath } from "~/utils/routeHelpers";
+import {
+  homePath,
+  draftsPath,
+  templatesPath,
+  searchPath,
+} from "~/utils/routeHelpers";
 import Avatar from "../Avatar";
 import TeamLogo from "../TeamLogo";
 import Sidebar from "./Sidebar";
