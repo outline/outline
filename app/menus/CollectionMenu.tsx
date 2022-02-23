@@ -23,6 +23,7 @@ import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
 import Template from "~/components/ContextMenu/Template";
 import Modal from "~/components/Modal";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import { MenuItem } from "~/types";
@@ -51,7 +52,7 @@ function CollectionMenu({
   });
   const [renderModals, setRenderModals] = React.useState(false);
   const team = useCurrentTeam();
-  const { documents, policies } = useStores();
+  const { documents } = useStores();
   const { showToast } = useToasts();
   const { t } = useTranslation();
   const history = useHistory();
@@ -123,8 +124,8 @@ function CollectionMenu({
     [history, showToast, collection.id, documents]
   );
 
-  const can = policies.abilities(collection.id);
-  const canUserInTeam = policies.abilities(team.id);
+  const can = usePolicy(collection.id);
+  const canUserInTeam = usePolicy(team.id);
   const items: MenuItem[] = React.useMemo(
     () => [
       {

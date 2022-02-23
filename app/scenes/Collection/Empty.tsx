@@ -11,7 +11,7 @@ import Flex from "~/components/Flex";
 import Modal from "~/components/Modal";
 import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
-import useStores from "~/hooks/useStores";
+import usePolicy from "~/hooks/usePolicy";
 import { newDocumentPath } from "~/utils/routeHelpers";
 
 type Props = {
@@ -19,9 +19,8 @@ type Props = {
 };
 
 function EmptyCollection({ collection }: Props) {
-  const { policies } = useStores();
   const { t } = useTranslation();
-  const can = policies.abilities(collection.id);
+  const can = usePolicy(collection.id);
   const collectionName = collection ? collection.name : "";
 
   const [

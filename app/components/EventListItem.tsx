@@ -15,7 +15,7 @@ import Event from "~/models/Event";
 import Avatar from "~/components/Avatar";
 import Item, { Actions } from "~/components/List/Item";
 import Time from "~/components/Time";
-import useStores from "~/hooks/useStores";
+import usePolicy from "~/hooks/usePolicy";
 import RevisionMenu from "~/menus/RevisionMenu";
 import { documentHistoryUrl } from "~/utils/routeHelpers";
 
@@ -27,9 +27,8 @@ type Props = {
 
 const EventListItem = ({ event, latest, document }: Props) => {
   const { t } = useTranslation();
-  const { policies } = useStores();
   const location = useLocation();
-  const can = policies.abilities(document.id);
+  const can = usePolicy(document.id);
   const opts = {
     userName: event.actor.name,
   };

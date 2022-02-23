@@ -9,6 +9,7 @@ import { MAX_TITLE_LENGTH } from "@shared/constants";
 import Star from "~/models/Star";
 import Fade from "~/components/Fade";
 import useBoolean from "~/hooks/useBoolean";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
 import Disclosure from "./Disclosure";
@@ -34,12 +35,12 @@ function StarredLink({
   star,
 }: Props) {
   const { t } = useTranslation();
-  const { collections, documents, policies } = useStores();
+  const { collections, documents } = useStores();
   const collection = collections.get(collectionId);
   const document = documents.get(documentId);
   const [expanded, setExpanded] = useState(false);
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
-  const canUpdate = policies.abilities(documentId).update;
+  const canUpdate = usePolicy(documentId).update;
   const childDocuments = collection
     ? collection.getDocumentChildren(documentId)
     : [];

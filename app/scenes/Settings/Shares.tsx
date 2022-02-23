@@ -10,15 +10,16 @@ import Scene from "~/components/Scene";
 import Subheading from "~/components/Subheading";
 import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import ShareListItem from "./components/ShareListItem";
 
 function Shares() {
   const team = useCurrentTeam();
   const { t } = useTranslation();
-  const { shares, auth, policies } = useStores();
+  const { shares, auth } = useStores();
   const canShareDocuments = auth.team && auth.team.sharing;
-  const can = policies.abilities(team.id);
+  const can = usePolicy(team.id);
 
   return (
     <Scene title={t("Share Links")} icon={<LinkIcon color="currentColor" />}>

@@ -15,14 +15,15 @@ import Subheading from "~/components/Subheading";
 import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import GroupMenu from "~/menus/GroupMenu";
 
 function Groups() {
   const { t } = useTranslation();
-  const { policies, groups } = useStores();
+  const { groups } = useStores();
   const team = useCurrentTeam();
-  const can = policies.abilities(team.id);
+  const can = usePolicy(team.id);
   const [
     newGroupModalOpen,
     handleNewGroupModalOpen,

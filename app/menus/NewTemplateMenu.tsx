@@ -10,6 +10,7 @@ import ContextMenu from "~/components/ContextMenu";
 import Header from "~/components/ContextMenu/Header";
 import Template from "~/components/ContextMenu/Template";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { MenuItem } from "~/types";
 import { newDocumentPath } from "~/utils/routeHelpers";
@@ -21,7 +22,7 @@ function NewTemplateMenu() {
   const { t } = useTranslation();
   const team = useCurrentTeam();
   const { collections, policies } = useStores();
-  const can = policies.abilities(team.id);
+  const can = usePolicy(team.id);
 
   const items = React.useMemo(
     () =>

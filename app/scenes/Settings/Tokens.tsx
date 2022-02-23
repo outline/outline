@@ -13,15 +13,16 @@ import Subheading from "~/components/Subheading";
 import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import TokenListItem from "./components/TokenListItem";
 
 function Tokens() {
   const team = useCurrentTeam();
   const { t } = useTranslation();
-  const { apiKeys, policies } = useStores();
+  const { apiKeys } = useStores();
   const [newModalOpen, handleNewModalOpen, handleNewModalClose] = useBoolean();
-  const can = policies.abilities(team.id);
+  const can = usePolicy(team.id);
 
   return (
     <Scene

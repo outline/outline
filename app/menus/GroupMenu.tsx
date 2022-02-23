@@ -10,7 +10,7 @@ import ContextMenu from "~/components/ContextMenu";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
 import Template from "~/components/ContextMenu/Template";
 import Modal from "~/components/Modal";
-import useStores from "~/hooks/useStores";
+import usePolicy from "~/hooks/usePolicy";
 
 type Props = {
   group: Group;
@@ -19,13 +19,12 @@ type Props = {
 
 function GroupMenu({ group, onMembers }: Props) {
   const { t } = useTranslation();
-  const { policies } = useStores();
   const menu = useMenuState({
     modal: true,
   });
   const [editModalOpen, setEditModalOpen] = React.useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
-  const can = policies.abilities(group.id);
+  const can = usePolicy(group.id);
 
   return (
     <>

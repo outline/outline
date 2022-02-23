@@ -10,6 +10,7 @@ import Editor from "~/components/Editor";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import NudeButton from "~/components/NudeButton";
 import useDebouncedCallback from "~/hooks/useDebouncedCallback";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 
@@ -18,13 +19,13 @@ type Props = {
 };
 
 function CollectionDescription({ collection }: Props) {
-  const { collections, policies } = useStores();
+  const { collections } = useStores();
   const { showToast } = useToasts();
   const { t } = useTranslation();
   const [isExpanded, setExpanded] = React.useState(false);
   const [isEditing, setEditing] = React.useState(false);
   const [isDirty, setDirty] = React.useState(false);
-  const can = policies.abilities(collection.id);
+  const can = usePolicy(collection.id);
 
   const handleStartEditing = React.useCallback(() => {
     setEditing(true);
