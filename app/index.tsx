@@ -8,7 +8,6 @@ import { Router } from "react-router-dom";
 import { initI18n } from "@shared/i18n";
 import stores from "~/stores";
 import Analytics from "~/components/Analytics";
-import { CommandBarOptions } from "~/components/CommandBar";
 import Dialogs from "~/components/Dialogs";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import PageTheme from "~/components/PageTheme";
@@ -53,6 +52,17 @@ if ("serviceWorker" in window.navigator) {
 // Make sure to return the specific export containing the feature bundle.
 const loadFeatures = () => import("./utils/motion").then((res) => res.default);
 
+const commandBarOptions = {
+  animations: {
+    enterMs: 250,
+    exitMs: 200,
+  },
+  callbacks: {
+    onClose: () => stores.ui.disableModKHint(),
+    onQueryChange: () => stores.ui.disableModKHint(),
+  },
+};
+
 if (element) {
   const App = () => (
     <React.StrictMode>
@@ -60,7 +70,7 @@ if (element) {
         <Analytics>
           <Theme>
             <ErrorBoundary>
-              <KBarProvider actions={[]} options={CommandBarOptions}>
+              <KBarProvider actions={[]} options={commandBarOptions}>
                 <LazyMotion features={loadFeatures}>
                   <Router history={history}>
                     <>

@@ -1,9 +1,11 @@
+import { useKBar } from "kbar";
 import { observer } from "mobx-react";
 import { EditIcon, SearchIcon, ShapesIcon, HomeIcon } from "outline-icons";
 import * as React from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { useTranslation } from "react-i18next";
+import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
@@ -14,12 +16,7 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import AccountMenu from "~/menus/AccountMenu";
 import OrganizationMenu from "~/menus/OrganizationMenu";
-import {
-  homePath,
-  searchUrl,
-  draftsPath,
-  templatesPath,
-} from "~/utils/routeHelpers";
+import { homePath, draftsPath, templatesPath } from "~/utils/routeHelpers";
 import Avatar from "../Avatar";
 import TeamLogo from "../TeamLogo";
 import Sidebar from "./Sidebar";
@@ -34,9 +31,12 @@ import TrashLink from "./components/TrashLink";
 
 function AppSidebar() {
   const { t } = useTranslation();
-  const { policies, documents } = useStores();
+  const { ui, policies, documents } = useStores();
   const team = useCurrentTeam();
   const user = useCurrentUser();
+  const { query } = useKBar();
+  const location = useLocation();
+  const history = useHistory();
 
   React.useEffect(() => {
     documents.fetchDrafts();
@@ -52,6 +52,16 @@ function AppSidebar() {
     [dndArea]
   );
   const can = policies.abilities(team.id);
+
+  const handleSearch = React.useCallback(() => {
+    const isSearching = location.pathname.startsWith(searchPath());
+    if (isSearching) {
+      history.push(searchPath());
+    } else {
+      ui.enableModKHint();
+      query.toggle();
+    }
+  }, [ui, location, history, query]);
 
   return (
     <Sidebar ref={handleSidebarRef}>
@@ -78,12 +88,7 @@ function AppSidebar() {
                 label={t("Home")}
               />
               <SidebarLink
-                to={{
-                  pathname: searchUrl(),
-                  state: {
-                    fromMenu: true,
-                  },
-                }}
+                onClick={handleSearch}
                 icon={<SearchIcon color="currentColor" />}
                 label={t("Search")}
                 exact={false}

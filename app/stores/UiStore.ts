@@ -40,6 +40,9 @@ class UiStore {
   observingUserId: string | undefined;
 
   @observable
+  showModKHint = false;
+
+  @observable
   progressBarVisible = false;
 
   @observable
@@ -209,6 +212,16 @@ class UiStore {
   @action
   toggleMobileSidebar = () => {
     this.mobileSidebarVisible = !this.mobileSidebarVisible;
+  };
+
+  @action
+  enableModKHint = () => {
+    this.showModKHint = true;
+  };
+
+  @action
+  disableModKHint = () => {
+    this.showModKHint = false;
   };
 
   @action

@@ -23,7 +23,7 @@ import RegisterKeyDown from "~/components/RegisterKeyDown";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import withStores from "~/components/withStores";
-import { searchUrl } from "~/utils/routeHelpers";
+import { searchPath } from "~/utils/routeHelpers";
 import { decodeURIComponentSafe } from "~/utils/urls";
 import CollectionFilter from "./components/CollectionFilter";
 import DateFilter from "./components/DateFilter";
@@ -247,7 +247,7 @@ class Search extends React.Component<Props> {
 
   updateLocation = (query: string) => {
     this.props.history.replace({
-      pathname: searchUrl(query),
+      pathname: searchPath(query),
       search: this.props.location.search,
     });
   };

@@ -11,3 +11,8 @@ export const SettingsSection = ({ t }: ActionContext) => t("Settings");
 export const NavigationSection = ({ t }: ActionContext) => t("Navigation");
 
 export const UserSection = ({ t }: ActionContext) => t("People");
+
+export const RecentSearchesSection = ({ t }: ActionContext) =>
+  t("Recent searches");
+
+export const NoSection = "";

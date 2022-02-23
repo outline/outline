@@ -99,7 +99,7 @@ export function newDocumentPath(
   return `/collection/${collectionId}/new?${queryString.stringify(params)}`;
 }
 
-export function searchUrl(
+export function searchPath(
   query?: string,
   params: {
     collectionId?: string;
