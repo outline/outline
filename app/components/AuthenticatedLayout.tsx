@@ -11,7 +11,7 @@ import Sidebar from "~/components/Sidebar";
 import SettingsSidebar from "~/components/Sidebar/Settings";
 import history from "~/utils/history";
 import {
-  searchUrl,
+  searchPath,
   matchDocumentSlug as slug,
   newDocumentPath,
   settingsPath,
@@ -49,7 +49,7 @@ class AuthenticatedLayout extends React.Component<Props> {
     if (!ev.metaKey && !ev.ctrlKey) {
       ev.preventDefault();
       ev.stopPropagation();
-      history.push(searchUrl());
+      history.push(searchPath());
     }
   };
 

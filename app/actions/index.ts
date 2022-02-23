@@ -1,6 +1,6 @@
 import { flattenDeep } from "lodash";
 import * as React from "react";
-import { $Diff } from "utility-types";
+import { Optional } from "utility-types";
 import { v4 as uuidv4 } from "uuid";
 import {
   Action,
@@ -10,17 +10,10 @@ import {
   MenuItemWithChildren,
 } from "~/types";
 
-export function createAction(
-  definition: $Diff<
-    Action,
-    {
-      id?: string;
-    }
-  >
-): Action {
+export function createAction(definition: Optional<Action, "id">): Action {
   return {
-    id: uuidv4(),
     ...definition,
+    id: uuidv4(),
   };
 }
 
