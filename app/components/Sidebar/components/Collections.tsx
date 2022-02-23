@@ -52,7 +52,10 @@ function Collections() {
     load();
   }, [collections, isFetching, showToast, fetchError, t]);
 
-  const [{ isCollectionDropping }, dropToReorderCollection] = useDrop({
+  const [
+    { isCollectionDropping, isDraggingAnyCollection },
+    dropToReorderCollection,
+  ] = useDrop({
     accept: "collection",
     drop: async (item: DragObject) => {
       collections.move(
@@ -65,16 +68,19 @@ function Collections() {
     },
     collect: (monitor) => ({
       isCollectionDropping: monitor.isOver(),
+      isDraggingAnyCollection: monitor.getItemType() === "collection",
     }),
   });
 
   const content = (
     <>
-      <DropCursor
-        isActiveDrop={isCollectionDropping}
-        innerRef={dropToReorderCollection}
-        position="top"
-      />
+      {isDraggingAnyCollection && (
+        <DropCursor
+          isActiveDrop={isCollectionDropping}
+          innerRef={dropToReorderCollection}
+          position="top"
+        />
+      )}
       {orderedCollections.map((collection: Collection, index: number) => (
         <CollectionLink
           key={collection.id}
