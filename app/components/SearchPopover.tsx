@@ -82,29 +82,27 @@ function SearchPopover({ shareId }: Props) {
 
       <Popover
         {...popover}
-        unstable_autoFocusOnShow={false}
         aria-label={t("Results")}
+        unstable_autoFocusOnShow={false}
         style={{ zIndex: theme.depths.sidebar + 1 }}
         shrink
       >
-        {popover.visible && (
-          <PaginatedList
-            options={{ query }}
-            items={searchResults}
-            fetch={searchFunction}
-            empty={
-              <NoResults>{t("No results for {{query}}", { query })}</NoResults>
-            }
-            loading={<PlaceholderList count={3} header={{ height: 20 }} />}
-            renderItem={(item) => (
-              <SearchListItem
-                document={item.document}
-                context={item.context}
-                highlight={query}
-              />
-            )}
-          />
-        )}
+        <PaginatedList
+          options={{ query }}
+          items={searchResults}
+          fetch={searchFunction}
+          empty={
+            <NoResults>{t("No results for {{query}}", { query })}</NoResults>
+          }
+          loading={<PlaceholderList count={3} header={{ height: 20 }} />}
+          renderItem={(item) => (
+            <SearchListItem
+              document={item.document}
+              context={item.context}
+              highlight={query}
+            />
+          )}
+        />
       </Popover>
     </>
   );
