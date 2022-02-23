@@ -114,9 +114,13 @@ function SidebarLink(
 
 const Content = styled.span`
   display: flex;
-  align-items: center;
+  align-items: start;
   position: relative;
   width: 100%;
+
+  ${Disclosure} {
+    margin-top: 2px;
+  }
 `;
 
 // accounts for whitespace around icon
