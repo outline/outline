@@ -6,6 +6,7 @@ import Flex from "~/components/Flex";
 type Props = {
   title: React.ReactNode;
   image: React.ReactNode;
+  minHeight?: number;
   rounded?: boolean;
   showDisclosure?: boolean;
   showMoreMenu?: boolean;
@@ -13,11 +14,22 @@ type Props = {
 };
 
 const SidebarButton = React.forwardRef<HTMLButtonElement, Props>(
-  ({ showDisclosure, showMoreMenu, image, title, ...rest }: Props, ref) => (
+  (
+    {
+      showDisclosure,
+      showMoreMenu,
+      image,
+      title,
+      minHeight = 0,
+      ...rest
+    }: Props,
+    ref
+  ) => (
     <Wrapper
       justify="space-between"
       align="center"
       as="button"
+      minHeight={minHeight}
       {...rest}
       ref={ref}
     >
@@ -39,7 +51,7 @@ const Title = styled(Flex)`
   overflow: hidden;
 `;
 
-const Wrapper = styled(Flex)`
+const Wrapper = styled(Flex)<{ minHeight: number }>`
   padding: 8px 4px;
   font-size: 15px;
   font-weight: 500;
@@ -49,6 +61,7 @@ const Wrapper = styled(Flex)`
   border: 0;
   background: none;
   flex-shrink: 0;
+  min-height: ${(props) => props.minHeight}px;
 
   -webkit-appearance: none;
   text-decoration: none;

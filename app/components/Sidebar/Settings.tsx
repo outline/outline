@@ -40,16 +40,17 @@ function SettingsSidebar() {
   const { policies } = useStores();
   const can = policies.abilities(team.id);
 
-  const returnToDashboard = React.useCallback(() => {
+  const returnToApp = React.useCallback(() => {
     history.push("/home");
   }, [history]);
 
   return (
     <Sidebar>
       <SidebarButton
-        title={t("Settings")}
+        title={t("Return to App")}
         image={<StyledBackIcon color="currentColor" />}
-        onClick={returnToDashboard}
+        onClick={returnToApp}
+        minHeight={48}
       />
 
       <Flex auto column>
