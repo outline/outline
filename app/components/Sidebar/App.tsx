@@ -1,46 +1,47 @@
+import { useKBar } from "kbar";
 import { observer } from "mobx-react";
-import {
-  EditIcon,
-  SearchIcon,
-  ShapesIcon,
-  HomeIcon,
-  SettingsIcon,
-} from "outline-icons";
+import { EditIcon, SearchIcon, ShapesIcon, HomeIcon } from "outline-icons";
 import * as React from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { useTranslation } from "react-i18next";
+import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
-import Bubble from "~/components/Bubble";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
+import Text from "~/components/Text";
 import { inviteUser } from "~/actions/definitions/users";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import AccountMenu from "~/menus/AccountMenu";
+import OrganizationMenu from "~/menus/OrganizationMenu";
 import {
   homePath,
-  searchUrl,
   draftsPath,
   templatesPath,
-  settingsPath,
+  searchPath,
 } from "~/utils/routeHelpers";
+import Avatar from "../Avatar";
+import TeamLogo from "../TeamLogo";
 import Sidebar from "./Sidebar";
 import ArchiveLink from "./components/ArchiveLink";
 import Collections from "./components/Collections";
 import Section from "./components/Section";
 import SidebarAction from "./components/SidebarAction";
+import SidebarButton from "./components/SidebarButton";
 import SidebarLink from "./components/SidebarLink";
 import Starred from "./components/Starred";
-import TeamButton from "./components/TeamButton";
 import TrashLink from "./components/TrashLink";
 
-function MainSidebar() {
+function AppSidebar() {
   const { t } = useTranslation();
-  const { policies, documents } = useStores();
+  const { ui, policies, documents } = useStores();
   const team = useCurrentTeam();
   const user = useCurrentUser();
+  const { query } = useKBar();
+  const location = useLocation();
+  const history = useHistory();
 
   React.useEffect(() => {
     documents.fetchDrafts();
@@ -57,22 +58,33 @@ function MainSidebar() {
   );
   const can = policies.abilities(team.id);
 
+  const handleSearch = React.useCallback(() => {
+    const isSearching = location.pathname.startsWith(searchPath());
+    if (isSearching) {
+      history.push(searchPath());
+    } else {
+      ui.enableModKHint();
+      query.toggle();
+    }
+  }, [ui, location, history, query]);
+
   return (
     <Sidebar ref={handleSidebarRef}>
       {dndArea && (
         <DndProvider backend={HTML5Backend} options={html5Options}>
-          <AccountMenu>
+          <OrganizationMenu>
             {(props) => (
-              <TeamButton
+              <SidebarButton
                 {...props}
-                subheading={user.name}
-                teamName={team.name}
-                logoUrl={team.avatarUrl}
+                title={team.name}
+                image={
+                  <StyledTeamLogo src={team.avatarUrl} width={32} height={32} />
+                }
                 showDisclosure
               />
             )}
-          </AccountMenu>
-          <Scrollable flex topShadow>
+          </OrganizationMenu>
+          <Scrollable flex shadow>
             <Section>
               <SidebarLink
                 to={homePath()}
@@ -81,12 +93,7 @@ function MainSidebar() {
                 label={t("Home")}
               />
               <SidebarLink
-                to={{
-                  pathname: searchUrl(),
-                  state: {
-                    fromMenu: true,
-                  },
-                }}
+                onClick={handleSearch}
                 icon={<SearchIcon color="currentColor" />}
                 label={t("Search")}
                 exact={false}
@@ -96,15 +103,19 @@ function MainSidebar() {
                   to={draftsPath()}
                   icon={<EditIcon color="currentColor" />}
                   label={
-                    <Drafts align="center">
+                    <Flex align="center" justify="space-between">
                       {t("Drafts")}
-                      <Bubble count={documents.totalDrafts} />
-                    </Drafts>
+                      <Drafts size="xsmall" type="tertiary">
+                        {documents.totalDrafts}
+                      </Drafts>
+                    </Flex>
                   }
                 />
               )}
             </Section>
-            <Starred />
+            <Section>
+              <Starred />
+            </Section>
             <Section auto>
               <Collections />
             </Section>
@@ -128,23 +139,41 @@ function MainSidebar() {
                   <TrashLink />
                 </>
               )}
-              <SidebarLink
-                to={settingsPath()}
-                icon={<SettingsIcon color="currentColor" />}
-                exact={false}
-                label={t("Settings")}
-              />
               <SidebarAction action={inviteUser} />
             </Section>
           </Scrollable>
+          <AccountMenu>
+            {(props) => (
+              <SidebarButton
+                {...props}
+                showMoreMenu
+                title={user.name}
+                image={
+                  <StyledAvatar
+                    src={user.avatarUrl}
+                    size={24}
+                    showBorder={false}
+                  />
+                }
+              />
+            )}
+          </AccountMenu>
         </DndProvider>
       )}
     </Sidebar>
   );
 }
 
-const Drafts = styled(Flex)`
-  height: 24px;
+const StyledTeamLogo = styled(TeamLogo)`
+  margin-right: 4px;
 `;
 
-export default observer(MainSidebar);
+const StyledAvatar = styled(Avatar)`
+  margin-left: 4px;
+`;
+
+const Drafts = styled(Text)`
+  margin: 0 4px;
+`;
+
+export default observer(AppSidebar);

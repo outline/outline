@@ -52,6 +52,7 @@ const renderApp = async (ctx: Context, next: Next, title = "Outline") => {
     return next();
   }
 
+  const { shareId } = ctx.params;
   const page = await readIndexFile(ctx);
   const environment = `
     window.env = ${JSON.stringify(presentEnv(env))};
@@ -60,7 +61,7 @@ const renderApp = async (ctx: Context, next: Next, title = "Outline") => {
     .toString()
     .replace(/\/\/inject-env\/\//g, environment)
     .replace(/\/\/inject-title\/\//g, title)
-    .replace(/\/\/inject-prefetch\/\//g, prefetchTags)
+    .replace(/\/\/inject-prefetch\/\//g, shareId ? "" : prefetchTags)
     .replace(/\/\/inject-slack-app-id\/\//g, process.env.SLACK_APP_ID || "");
 };
 

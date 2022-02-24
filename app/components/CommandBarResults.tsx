@@ -1,14 +1,18 @@
 import { useMatches, KBarResults } from "kbar";
+import { orderBy } from "lodash";
 import * as React from "react";
 import styled from "styled-components";
 import CommandBarItem from "~/components/CommandBarItem";
+import { NoSection } from "~/actions/sections";
 
 export default function CommandBarResults() {
   const { results, rootActionId } = useMatches();
 
   return (
     <KBarResults
-      items={results}
+      items={orderBy(results, (item) =>
+        typeof item !== "string" && item.section === NoSection ? -1 : 1
+      )}
       maxHeight={400}
       onRender={({ item, active }) =>
         typeof item === "string" ? (

@@ -159,10 +159,11 @@ export default class Link extends Mark {
       props: {
         decorations: (state) => plugin.getState(state),
         handleDOMEvents: {
-          mouseover: (_view, event: MouseEvent) => {
+          mouseover: (view, event: MouseEvent) => {
             if (
               event.target instanceof HTMLAnchorElement &&
-              !event.target.className.includes("ProseMirror-widget")
+              !event.target.className.includes("ProseMirror-widget") &&
+              (!view.editable || (view.editable && !view.hasFocus()))
             ) {
               if (this.options.onHoverLink) {
                 return this.options.onHoverLink(event);
@@ -197,6 +198,20 @@ export default class Link extends Mark {
                 this.options.onClickLink(href, event);
               }
               return true;
+            }
+
+            return false;
+          },
+          click: (view, event) => {
+            if (!(event.target instanceof HTMLAnchorElement)) {
+              return false;
+            }
+
+            // Prevent all default click behavior of links, see mousedown above
+            // for custom link handling.
+            if (this.options.onClickLink) {
+              event.stopPropagation();
+              event.preventDefault();
             }
 
             return false;

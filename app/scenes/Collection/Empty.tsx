@@ -11,7 +11,6 @@ import Flex from "~/components/Flex";
 import Modal from "~/components/Modal";
 import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
-import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import { newDocumentPath } from "~/utils/routeHelpers";
 
@@ -22,8 +21,7 @@ type Props = {
 function EmptyCollection({ collection }: Props) {
   const { policies } = useStores();
   const { t } = useTranslation();
-  const team = useCurrentTeam();
-  const can = policies.abilities(team.id);
+  const can = policies.abilities(collection.id);
   const collectionName = collection ? collection.name : "";
 
   const [
@@ -46,23 +44,21 @@ function EmptyCollection({ collection }: Props) {
           }}
         />
         <br />
-        {can.createDocument && (
-          <Trans>Get started by creating a new one!</Trans>
-        )}
+        {can.update && <Trans>Get started by creating a new one!</Trans>}
       </Text>
-      <Empty>
-        {can.createDocument && (
+      {can.update && (
+        <Empty>
           <Link to={newDocumentPath(collection.id)}>
             <Button icon={<NewDocumentIcon color="currentColor" />}>
               {t("Create a document")}
             </Button>
           </Link>
-        )}
-        &nbsp;&nbsp;
-        <Button onClick={handlePermissionsModalOpen} neutral>
-          {t("Manage permissions")}…
-        </Button>
-      </Empty>
+          &nbsp;&nbsp;
+          <Button onClick={handlePermissionsModalOpen} neutral>
+            {t("Manage permissions")}…
+          </Button>
+        </Empty>
+      )}
       <Modal
         title={t("Collection permissions")}
         onRequestClose={handlePermissionsModalClose}

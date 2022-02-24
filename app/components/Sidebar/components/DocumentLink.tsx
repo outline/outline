@@ -16,7 +16,6 @@ import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
 import { NavigationNode } from "~/types";
 import { newDocumentPath } from "~/utils/routeHelpers";
-import Disclosure from "./Disclosure";
 import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
 import EditableTitle from "./EditableTitle";
@@ -106,7 +105,7 @@ function DocumentLink(
   }, [expanded, hasChildDocuments]);
 
   const handleDisclosureClick = React.useCallback(
-    (ev: React.SyntheticEvent) => {
+    (ev) => {
       ev.preventDefault();
       ev.stopPropagation();
       setExpanded(!expanded);
@@ -278,6 +277,8 @@ function DocumentLink(
     t("Untitled");
 
   const can = policies.abilities(node.id);
+  const isExpanded = expanded && !isDragging;
+  const hasChildren = nodeChildren.length > 0;
 
   return (
     <>
@@ -291,6 +292,8 @@ function DocumentLink(
           <div ref={dropToReparent}>
             <DropToImport documentId={node.id} activeClassName="activeDropZone">
               <SidebarLink
+                expanded={hasChildren ? isExpanded : undefined}
+                onDisclosureClick={handleDisclosureClick}
                 onMouseEnter={handleMouseEnter}
                 to={{
                   pathname: node.url,
@@ -299,21 +302,13 @@ function DocumentLink(
                   },
                 }}
                 label={
-                  <>
-                    {hasChildDocuments && (
-                      <Disclosure
-                        expanded={expanded && !isDragging}
-                        onClick={handleDisclosureClick}
-                      />
-                    )}
-                    <EditableTitle
-                      title={title}
-                      onSubmit={handleTitleChange}
-                      onEditing={handleTitleEditing}
-                      canUpdate={canUpdate}
-                      maxLength={MAX_TITLE_LENGTH}
-                    />
-                  </>
+                  <EditableTitle
+                    title={title}
+                    onSubmit={handleTitleChange}
+                    onEditing={handleTitleEditing}
+                    canUpdate={canUpdate}
+                    maxLength={MAX_TITLE_LENGTH}
+                  />
                 }
                 isActive={(match, location) =>
                   !!match && location.search !== "?starred"

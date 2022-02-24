@@ -10,6 +10,7 @@ import {
   KeyboardIcon,
   EmailIcon,
   LogoutIcon,
+  ProfileIcon,
 } from "outline-icons";
 import * as React from "react";
 import {
@@ -19,14 +20,20 @@ import {
   githubIssuesUrl,
 } from "@shared/utils/urlHelpers";
 import stores from "~/stores";
+import SearchQuery from "~/models/SearchQuery";
 import KeyboardShortcuts from "~/scenes/KeyboardShortcuts";
 import { createAction } from "~/actions";
-import { NavigationSection } from "~/actions/sections";
+import {
+  NavigationSection,
+  NoSection,
+  RecentSearchesSection,
+} from "~/actions/sections";
 import history from "~/utils/history";
 import {
-  settingsPath,
+  organizationSettingsPath,
+  profileSettingsPath,
   homePath,
-  searchUrl,
+  searchPath,
   draftsPath,
   templatesPath,
   archivePath,
@@ -42,14 +49,24 @@ export const navigateToHome = createAction({
   visible: ({ location }) => location.pathname !== homePath(),
 });
 
-export const navigateToSearch = createAction({
-  name: ({ t }) => t("Search"),
-  section: NavigationSection,
-  shortcut: ["/"],
-  icon: <SearchIcon />,
-  perform: () => history.push(searchUrl()),
-  visible: ({ location }) => location.pathname !== searchUrl(),
-});
+export const navigateToRecentSearchQuery = (searchQuery: SearchQuery) =>
+  createAction({
+    section: RecentSearchesSection,
+    name: searchQuery.query,
+    icon: <SearchIcon />,
+    perform: () => history.push(searchPath(searchQuery.query)),
+  });
+
+export const navigateToSearchQuery = (searchQuery: string) =>
+  createAction({
+    id: "search",
+    section: NoSection,
+    name: ({ t }) =>
+      t(`Search documents for "{{searchQuery}}"`, { searchQuery }),
+    icon: <SearchIcon />,
+    perform: () => history.push(searchPath(searchQuery)),
+    visible: ({ location }) => location.pathname !== searchPath(),
+  });
 
 export const navigateToDrafts = createAction({
   name: ({ t }) => t("Drafts"),
@@ -70,6 +87,7 @@ export const navigateToTemplates = createAction({
 export const navigateToArchive = createAction({
   name: ({ t }) => t("Archive"),
   section: NavigationSection,
+  shortcut: ["g", "a"],
   icon: <ArchiveIcon />,
   perform: () => history.push(archivePath()),
   visible: ({ location }) => location.pathname !== archivePath(),
@@ -87,9 +105,16 @@ export const navigateToSettings = createAction({
   name: ({ t }) => t("Settings"),
   section: NavigationSection,
   shortcut: ["g", "s"],
-  iconInContextMenu: false,
   icon: <SettingsIcon />,
-  perform: () => history.push(settingsPath()),
+  perform: () => history.push(organizationSettingsPath()),
+});
+
+export const navigateToProfileSettings = createAction({
+  name: ({ t }) => t("Profile"),
+  section: NavigationSection,
+  iconInContextMenu: false,
+  icon: <ProfileIcon />,
+  perform: () => history.push(profileSettingsPath()),
 });
 
 export const openAPIDocumentation = createAction({
@@ -145,7 +170,6 @@ export const logout = createAction({
 
 export const rootNavigationActions = [
   navigateToHome,
-  navigateToSearch,
   navigateToDrafts,
   navigateToTemplates,
   navigateToArchive,

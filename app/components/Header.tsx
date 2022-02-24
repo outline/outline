@@ -118,7 +118,7 @@ const Wrapper = styled(Flex)<{ $passThrough?: boolean }>`
   padding: 12px;
   transition: all 100ms ease-out;
   transform: translate3d(0, 0, 0);
-  min-height: 56px;
+  min-height: 64px;
   justify-content: flex-start;
 
   @supports (backdrop-filter: blur(20px)) {
