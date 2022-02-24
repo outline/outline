@@ -33,6 +33,10 @@ const SidebarButton = React.forwardRef<HTMLButtonElement, Props>(
 
 const Title = styled(Flex)`
   color: ${(props) => props.theme.text};
+  flex-shrink: 1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
 `;
 
 const Wrapper = styled(Flex)`
@@ -46,11 +50,9 @@ const Wrapper = styled(Flex)`
   background: none;
   flex-shrink: 0;
 
-  white-space: nowrap;
   -webkit-appearance: none;
   text-decoration: none;
   text-align: left;
-  text-overflow: ellipsis;
   overflow: hidden;
   user-select: none;
   cursor: pointer;
