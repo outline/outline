@@ -5,7 +5,6 @@ import { Portal } from "react-portal";
 import { useLocation } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import usePrevious from "~/hooks/usePrevious";
 import useStores from "~/hooks/useStores";
@@ -14,7 +13,6 @@ import ResizeBorder from "./components/ResizeBorder";
 import Toggle, { ToggleButton, Positioner } from "./components/Toggle";
 
 const ANIMATION_MS = 250;
-let isFirstRender = true;
 
 type Props = {
   children: React.ReactNode;
@@ -126,7 +124,6 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(
 
     React.useEffect(() => {
       if (location !== previousLocation) {
-        isFirstRender = false;
         ui.hideMobileSidebar();
       }
     }, [ui, location, previousLocation]);
@@ -146,28 +143,6 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(
       [width, theme.sidebarCollapsedWidth, collapsed]
     );
 
-    const content = (
-      <>
-        {ui.mobileSidebarVisible && (
-          <Portal>
-            <Backdrop onClick={ui.toggleMobileSidebar} />
-          </Portal>
-        )}
-        {children}
-        <ResizeBorder
-          onMouseDown={handleMouseDown}
-          onDoubleClick={ui.sidebarCollapsed ? undefined : handleReset}
-        />
-        {ui.sidebarCollapsed && !ui.isEditing && (
-          <Toggle
-            onClick={ui.toggleCollapsedSidebar}
-            direction={"right"}
-            aria-label={t("Expand")}
-          />
-        )}
-      </>
-    );
-
     return (
       <>
         <Container
@@ -179,7 +154,23 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(
           $collapsed={collapsed}
           column
         >
-          {isFirstRender ? <Fade>{content}</Fade> : content}
+          {ui.mobileSidebarVisible && (
+            <Portal>
+              <Backdrop onClick={ui.toggleMobileSidebar} />
+            </Portal>
+          )}
+          {children}
+          <ResizeBorder
+            onMouseDown={handleMouseDown}
+            onDoubleClick={ui.sidebarCollapsed ? undefined : handleReset}
+          />
+          {ui.sidebarCollapsed && !ui.isEditing && (
+            <Toggle
+              onClick={ui.toggleCollapsedSidebar}
+              direction={"right"}
+              aria-label={t("Expand")}
+            />
+          )}
         </Container>
         {!ui.isEditing && (
           <Toggle

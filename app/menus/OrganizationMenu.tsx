@@ -43,7 +43,6 @@ function OrganizationMenu(props: Props) {
 
     return [
       navigateToSettings,
-      logout,
       separator(),
       ...(otherSessions.length
         ? [
@@ -60,6 +59,7 @@ function OrganizationMenu(props: Props) {
             }),
           ]
         : []),
+      logout,
     ];
   }, [team.id, team.url, sessions, t]);
 
