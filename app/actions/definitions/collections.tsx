@@ -1,12 +1,17 @@
 import { CollectionIcon, EditIcon, PlusIcon } from "outline-icons";
 import * as React from "react";
 import stores from "~/stores";
+import Collection from "~/models/Collection";
 import CollectionEdit from "~/scenes/CollectionEdit";
 import CollectionNew from "~/scenes/CollectionNew";
 import DynamicCollectionIcon from "~/components/CollectionIcon";
 import { createAction } from "~/actions";
 import { CollectionSection } from "~/actions/sections";
 import history from "~/utils/history";
+
+const ColorCollectionIcon = ({ collection }: { collection: Collection }) => {
+  return <DynamicCollectionIcon collection={collection} />;
+};
 
 export const openCollection = createAction({
   name: ({ t }) => t("Open collection"),
@@ -20,7 +25,7 @@ export const openCollection = createAction({
       // cache if the collection is renamed
       id: collection.url,
       name: collection.name,
-      icon: <DynamicCollectionIcon collection={collection} />,
+      icon: <ColorCollectionIcon collection={collection} />,
       section: CollectionSection,
       perform: () => history.push(collection.url),
     }));

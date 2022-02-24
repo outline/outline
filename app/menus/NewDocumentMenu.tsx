@@ -4,6 +4,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { MenuButton, useMenuState } from "reakit/Menu";
 import styled from "styled-components";
+import Collection from "~/models/Collection";
 import Button from "~/components/Button";
 import CollectionIcon from "~/components/CollectionIcon";
 import ContextMenu from "~/components/ContextMenu";
@@ -14,6 +15,10 @@ import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { MenuItem } from "~/types";
 import { newDocumentPath } from "~/utils/routeHelpers";
+
+const ColorCollectionIcon = ({ collection }: { collection: Collection }) => {
+  return <CollectionIcon collection={collection} />;
+};
 
 function NewDocumentMenu() {
   const menu = useMenuState({
@@ -33,7 +38,7 @@ function NewDocumentMenu() {
             type: "route",
             to: newDocumentPath(collection.id),
             title: <CollectionName>{collection.name}</CollectionName>,
-            icon: <CollectionIcon collection={collection} />,
+            icon: <ColorCollectionIcon collection={collection} />,
           });
         }
 
