@@ -1,7 +1,7 @@
 import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { useDrop, useDrag } from "react-dnd";
+import { useDrop, useDrag, DropTargetMonitor } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import { useLocation, useHistory } from "react-router-dom";
 import styled from "styled-components";
@@ -70,6 +70,13 @@ function CollectionLink({
     collection.id === ui.activeCollectionId
   );
 
+  const [openedOnce, setOpenedOnce] = React.useState(expanded);
+  React.useEffect(() => {
+    if (expanded) {
+      setOpenedOnce(true);
+    }
+  }, [expanded]);
+
   const manualSort = collection.sort.field === "index";
   const can = policies.abilities(collection.id);
   const belowCollectionIndex = belowCollection ? belowCollection.index : null;
@@ -118,7 +125,7 @@ function CollectionLink({
   // Drop to reorder document
   const [{ isOverReorder }, dropToReorder] = useDrop({
     accept: "document",
-    drop: async (item: DragObject) => {
+    drop: (item: DragObject) => {
       if (!collection) {
         return;
       }
@@ -131,11 +138,11 @@ function CollectionLink({
 
   // Drop to reorder collection
   const [
-    { isCollectionDropping, isDraggingAnotherCollection },
+    { isCollectionDropping, isDraggingAnyCollection },
     dropToReorderCollection,
   ] = useDrop({
     accept: "collection",
-    drop: async (item: DragObject) => {
+    drop: (item: DragObject) => {
       collections.move(
         item.id,
         fractionalIndex(collection.index, belowCollectionIndex)
@@ -147,9 +154,9 @@ function CollectionLink({
         (!belowCollection || item.id !== belowCollection.id)
       );
     },
-    collect: (monitor) => ({
+    collect: (monitor: DropTargetMonitor<Collection, Collection>) => ({
       isCollectionDropping: monitor.isOver(),
-      isDraggingAnotherCollection: monitor.canDrop(),
+      isDraggingAnyCollection: monitor.getItemType() === "collection",
     }),
   });
 
@@ -194,8 +201,7 @@ function CollectionLink({
     collection.sort,
   ]);
 
-  const isDraggingAnyCollection =
-    isDraggingAnotherCollection || isCollectionDragging;
+  const displayDocumentLinks = expanded && !isCollectionDragging;
 
   React.useEffect(() => {
     // If we're viewing a starred document through the starred menu then don't
@@ -204,21 +210,14 @@ function CollectionLink({
       return;
     }
 
-    if (isDraggingAnyCollection) {
-      setExpanded(false);
-    } else {
-      setExpanded(collection.id === ui.activeCollectionId);
+    if (collection.id === ui.activeCollectionId) {
+      setExpanded(true);
     }
-  }, [isDraggingAnyCollection, collection.id, ui.activeCollectionId, search]);
+  }, [collection.id, ui.activeCollectionId, search]);
 
   return (
     <>
-      <div
-        ref={drop}
-        style={{
-          position: "relative",
-        }}
-      >
+      <Relative ref={drop}>
         <Draggable
           key={collection.id}
           ref={dragToReorderCollection}
@@ -228,8 +227,16 @@ function CollectionLink({
           <DropToImport collectionId={collection.id}>
             <SidebarLink
               to={collection.url}
+              expanded={displayDocumentLinks}
+              onDisclosureClick={(event) => {
+                event.preventDefault();
+                setExpanded((prev) => !prev);
+              }}
               icon={
-                <CollectionIcon collection={collection} expanded={expanded} />
+                <CollectionIcon
+                  collection={collection}
+                  expanded={displayDocumentLinks}
+                />
               }
               showActions={menuOpen}
               isActiveDrop={isOver && canDrop}
@@ -242,12 +249,13 @@ function CollectionLink({
                 />
               }
               exact={false}
-              depth={0.5}
+              depth={0}
               menu={
-                !isEditing && (
+                !isEditing &&
+                !isDraggingAnyCollection && (
                   <>
-                    {can.update && (
-                      <CollectionSortMenuWithMargin
+                    {can.update && displayDocumentLinks && (
+                      <CollectionSortMenu
                         collection={collection}
                         onOpen={handleMenuOpen}
                         onClose={handleMenuClose}
@@ -264,8 +272,31 @@ function CollectionLink({
             />
           </DropToImport>
         </Draggable>
-        {expanded && manualSort && (
-          <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
+      </Relative>
+      <Relative>
+        {openedOnce && (
+          <Folder $open={displayDocumentLinks}>
+            {manualSort && (
+              <DropCursor
+                isActiveDrop={isOverReorder}
+                innerRef={dropToReorder}
+                position="top"
+              />
+            )}
+            {collectionDocuments.map((node, index) => (
+              <DocumentLink
+                key={node.id}
+                node={node}
+                collection={collection}
+                activeDocument={activeDocument}
+                prefetchDocument={prefetchDocument}
+                canUpdate={canUpdate}
+                isDraft={node.isDraft}
+                depth={2}
+                index={index}
+              />
+            ))}
+          </Folder>
         )}
         {isDraggingAnyCollection && (
           <DropCursor
@@ -273,21 +304,8 @@ function CollectionLink({
             innerRef={dropToReorderCollection}
           />
         )}
-      </div>
-      {expanded &&
-        collectionDocuments.map((node, index) => (
-          <DocumentLink
-            key={node.id}
-            node={node}
-            collection={collection}
-            activeDocument={activeDocument}
-            prefetchDocument={prefetchDocument}
-            canUpdate={canUpdate}
-            isDraft={node.isDraft}
-            depth={2}
-            index={index}
-          />
-        ))}
+      </Relative>
+
       <Modal
         title={t("Move document")}
         onRequestClose={handlePermissionClose}
@@ -306,13 +324,17 @@ function CollectionLink({
   );
 }
 
+const Relative = styled.div`
+  position: relative;
+`;
+
+const Folder = styled.div<{ $open?: boolean }>`
+  display: ${(props) => (props.$open ? "block" : "none")};
+`;
+
 const Draggable = styled("div")<{ $isDragging: boolean; $isMoving: boolean }>`
   opacity: ${(props) => (props.$isDragging || props.$isMoving ? 0.5 : 1)};
   pointer-events: ${(props) => (props.$isMoving ? "none" : "auto")};
-`;
-
-const CollectionSortMenuWithMargin = styled(CollectionSortMenu)`
-  margin-right: 4px;
 `;
 
 export default observer(CollectionLink);

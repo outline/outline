@@ -1,3 +1,3 @@
-import Sidebar from "./Main";
+import Sidebar from "./App";
 
 export default Sidebar;

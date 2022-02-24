@@ -150,7 +150,8 @@ declare module "styled-components" {
     textTertiary: string;
     placeholder: string;
     sidebarBackground: string;
-    sidebarItemBackground: string;
+    sidebarActiveBackground: string;
+    sidebarControlHoverBackground: string;
     sidebarDraftBorder: string;
     sidebarText: string;
     backdrop: string;
