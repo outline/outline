@@ -223,7 +223,6 @@ const Link = styled(NavLink)<{ $isActiveDrop?: boolean; $isDraft?: boolean }>`
   &:hover {
     ${Disclosure} {
       opacity: 1;
-      color: ${(props) => props.theme.text};
     }
   }
 `;

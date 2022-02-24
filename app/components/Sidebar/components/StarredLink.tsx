@@ -70,7 +70,7 @@ function StarredLink({
       isDragging: !!monitor.isDragging(),
     }),
     canDrag: () => {
-      return depth === 2;
+      return depth === 0;
     },
   });
 

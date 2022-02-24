@@ -21,9 +21,10 @@ const Button = styled(NudeButton)<{ $root?: boolean }>`
   position: absolute;
   left: -24px;
   flex-shrink: 0;
+  color: ${(props) => props.theme.textSecondary};
 
   &:hover {
-    color: ${(props) => props.theme.sidebarText};
+    color: ${(props) => props.theme.text};
     background: ${(props) => props.theme.sidebarControlHoverBackground};
   }
 
