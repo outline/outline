@@ -46,6 +46,7 @@ import {
 } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import { MenuItem } from "~/types";
@@ -177,7 +178,7 @@ function DocumentMenu({
   );
 
   const collection = collections.get(document.collectionId);
-  const can = policies.abilities(document.id);
+  const can = usePolicy(document.id);
   const canViewHistory = can.read && !can.restore;
   const restoreItems = React.useMemo(
     () => [

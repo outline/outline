@@ -6,6 +6,7 @@ import User from "~/models/User";
 import ContextMenu from "~/components/ContextMenu";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
 import Template from "~/components/ContextMenu/Template";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 
 type Props = {
@@ -13,12 +14,12 @@ type Props = {
 };
 
 function UserMenu({ user }: Props) {
-  const { users, policies } = useStores();
+  const { users } = useStores();
   const { t } = useTranslation();
   const menu = useMenuState({
     modal: true,
   });
-  const can = policies.abilities(user.id);
+  const can = usePolicy(user.id);
 
   const handlePromote = React.useCallback(
     (ev: React.SyntheticEvent) => {

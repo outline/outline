@@ -23,7 +23,7 @@ import SlackIcon from "~/components/SlackIcon";
 import ZapierIcon from "~/components/ZapierIcon";
 import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
-import useStores from "~/hooks/useStores";
+import usePolicy from "~/hooks/usePolicy";
 import Sidebar from "./Sidebar";
 import Header from "./components/Header";
 import Section from "./components/Section";
@@ -37,8 +37,7 @@ function SettingsSidebar() {
   const { t } = useTranslation();
   const history = useHistory();
   const team = useCurrentTeam();
-  const { policies } = useStores();
-  const can = policies.abilities(team.id);
+  const can = usePolicy(team.id);
 
   const returnToApp = React.useCallback(() => {
     history.push("/home");

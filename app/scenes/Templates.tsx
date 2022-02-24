@@ -11,16 +11,17 @@ import Scene from "~/components/Scene";
 import Tab from "~/components/Tab";
 import Tabs from "~/components/Tabs";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import NewTemplateMenu from "~/menus/NewTemplateMenu";
 
 function Templates(props: RouteComponentProps<{ sort: string }>) {
-  const { documents, policies } = useStores();
+  const { documents } = useStores();
   const { t } = useTranslation();
   const team = useCurrentTeam();
   const { fetchTemplates, templates, templatesAlphabetical } = documents;
   const { sort } = props.match.params;
-  const can = policies.abilities(team.id);
+  const can = usePolicy(team.id);
 
   return (
     <Scene

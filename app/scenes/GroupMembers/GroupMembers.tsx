@@ -11,6 +11,7 @@ import Modal from "~/components/Modal";
 import PaginatedList from "~/components/PaginatedList";
 import Subheading from "~/components/Subheading";
 import Text from "~/components/Text";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import AddPeopleToGroup from "./AddPeopleToGroup";
@@ -22,10 +23,10 @@ type Props = {
 
 function GroupMembers({ group }: Props) {
   const [addModalOpen, setAddModalOpen] = React.useState(false);
-  const { users, groupMemberships, policies } = useStores();
+  const { users, groupMemberships } = useStores();
   const { showToast } = useToasts();
   const { t } = useTranslation();
-  const can = policies.abilities(group.id);
+  const can = usePolicy(group.id);
 
   const handleAddModal = (state: boolean) => {
     setAddModalOpen(state);

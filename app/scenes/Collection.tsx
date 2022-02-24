@@ -26,6 +26,7 @@ import Tabs from "~/components/Tabs";
 import Tooltip from "~/components/Tooltip";
 import { editCollection } from "~/actions/definitions/collections";
 import useCommandBarActions from "~/hooks/useCommandBarActions";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { collectionUrl, updateCollectionUrl } from "~/utils/routeHelpers";
 import Actions from "./Collection/Actions";
@@ -37,14 +38,14 @@ function CollectionScene() {
   const history = useHistory();
   const match = useRouteMatch();
   const { t } = useTranslation();
-  const { documents, pins, policies, collections, ui } = useStores();
+  const { documents, pins, collections, ui } = useStores();
   const [isFetching, setFetching] = React.useState(false);
   const [error, setError] = React.useState<Error | undefined>();
 
   const id = params.id || "";
   const collection: Collection | null | undefined =
     collections.getByUrl(id) || collections.get(id);
-  const can = policies.abilities(collection?.id || "");
+  const can = usePolicy(collection?.id || "");
 
   React.useEffect(() => {
     if (collection) {

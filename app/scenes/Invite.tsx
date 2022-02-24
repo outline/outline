@@ -15,6 +15,7 @@ import Text from "~/components/Text";
 import Tooltip from "~/components/Tooltip";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 
@@ -50,13 +51,13 @@ function Invite({ onSubmit }: Props) {
       role: "member",
     },
   ]);
-  const { users, policies } = useStores();
+  const { users } = useStores();
   const { showToast } = useToasts();
   const user = useCurrentUser();
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const predictedDomain = user.email.split("@")[1];
-  const can = policies.abilities(team.id);
+  const can = usePolicy(team.id);
 
   const handleSubmit = React.useCallback(
     async (ev: React.SyntheticEvent) => {

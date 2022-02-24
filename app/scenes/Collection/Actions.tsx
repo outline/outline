@@ -8,7 +8,7 @@ import { Action, Separator } from "~/components/Actions";
 import Button from "~/components/Button";
 import InputSearchPage from "~/components/InputSearchPage";
 import Tooltip from "~/components/Tooltip";
-import useStores from "~/hooks/useStores";
+import usePolicy from "~/hooks/usePolicy";
 import CollectionMenu from "~/menus/CollectionMenu";
 import { newDocumentPath } from "~/utils/routeHelpers";
 
@@ -18,8 +18,7 @@ type Props = {
 
 function Actions({ collection }: Props) {
   const { t } = useTranslation();
-  const { policies } = useStores();
-  const can = policies.abilities(collection.id);
+  const can = usePolicy(collection.id);
 
   return (
     <>

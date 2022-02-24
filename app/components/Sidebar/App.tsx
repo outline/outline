@@ -13,6 +13,7 @@ import Text from "~/components/Text";
 import { inviteUser } from "~/actions/definitions/users";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import AccountMenu from "~/menus/AccountMenu";
 import OrganizationMenu from "~/menus/OrganizationMenu";
@@ -36,12 +37,13 @@ import TrashLink from "./components/TrashLink";
 
 function AppSidebar() {
   const { t } = useTranslation();
-  const { ui, policies, documents } = useStores();
+  const { ui, documents } = useStores();
   const team = useCurrentTeam();
   const user = useCurrentUser();
   const { query } = useKBar();
   const location = useLocation();
   const history = useHistory();
+  const can = usePolicy(team.id);
 
   React.useEffect(() => {
     documents.fetchDrafts();
@@ -56,7 +58,6 @@ function AppSidebar() {
     }),
     [dndArea]
   );
-  const can = policies.abilities(team.id);
 
   const handleSearch = React.useCallback(() => {
     const isSearching = location.pathname.startsWith(searchPath());

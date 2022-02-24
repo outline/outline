@@ -7,7 +7,7 @@ import { light } from "@shared/theme";
 import Document from "~/models/Document";
 import ContentEditable from "~/components/ContentEditable";
 import Star, { AnimatedStar } from "~/components/Star";
-import useStores from "~/hooks/useStores";
+import usePolicy from "~/hooks/usePolicy";
 import { isModKey } from "~/utils/keyboard";
 
 type Props = {
@@ -43,8 +43,7 @@ const EditableTitle = React.forwardRef(
     }: Props,
     ref: React.RefObject<HTMLSpanElement>
   ) => {
-    const { policies } = useStores();
-    const can = policies.abilities(document.id);
+    const can = usePolicy(document.id);
     const normalizedTitle =
       !value && readOnly ? document.titleWithDefault : value;
 

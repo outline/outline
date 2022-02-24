@@ -19,6 +19,7 @@ import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import PeopleTable from "./components/PeopleTable";
@@ -34,14 +35,14 @@ function Members() {
     handleInviteModalClose,
   ] = useBoolean();
   const team = useCurrentTeam();
-  const { users, policies } = useStores();
+  const { users } = useStores();
   const { t } = useTranslation();
   const params = useQuery();
   const [isLoading, setIsLoading] = React.useState(false);
   const [data, setData] = React.useState<User[]>([]);
   const [totalPages, setTotalPages] = React.useState(0);
   const [userIds, setUserIds] = React.useState<string[]>([]);
-  const can = policies.abilities(team.id);
+  const can = usePolicy(team.id);
   const query = params.get("query") || "";
   const filter = params.get("filter") || "";
   const sort = params.get("sort") || "name";

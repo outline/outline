@@ -12,6 +12,7 @@ import DocumentReparent from "~/scenes/DocumentReparent";
 import CollectionIcon from "~/components/CollectionIcon";
 import Modal from "~/components/Modal";
 import useBoolean from "~/hooks/useBoolean";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import CollectionMenu from "~/menus/CollectionMenu";
 import CollectionSortMenu from "~/menus/CollectionSortMenu";
@@ -65,7 +66,7 @@ function CollectionLink({
     setIsEditing(isEditing);
   }, []);
 
-  const { ui, documents, policies, collections } = useStores();
+  const { ui, documents, collections } = useStores();
   const [expanded, setExpanded] = React.useState(
     collection.id === ui.activeCollectionId
   );
@@ -78,7 +79,7 @@ function CollectionLink({
   }, [expanded]);
 
   const manualSort = collection.sort.field === "index";
-  const can = policies.abilities(collection.id);
+  const can = usePolicy(collection.id);
   const belowCollectionIndex = belowCollection ? belowCollection.index : null;
 
   // Drop to re-parent document
@@ -112,7 +113,7 @@ function CollectionLink({
       }
     },
     canDrop: () => {
-      return policies.abilities(collection.id).update;
+      return can.update;
     },
     collect: (monitor) => ({
       isOver: !!monitor.isOver({
