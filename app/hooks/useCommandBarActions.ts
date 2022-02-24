@@ -11,7 +11,10 @@ import useActionContext from "./useActionContext";
  *
  * @param actions actions to make available
  */
-export default function useCommandBarActions(actions: Action[]) {
+export default function useCommandBarActions(
+  actions: Action[],
+  additionalDeps: string[] = []
+) {
   const location = useLocation();
   const context = useActionContext({
     isCommandBar: true,
@@ -24,5 +27,6 @@ export default function useCommandBarActions(actions: Action[]) {
   useRegisterActions(registerable, [
     registerable.map((r) => r.id).join(""),
     location.pathname,
+    ...additionalDeps,
   ]);
 }

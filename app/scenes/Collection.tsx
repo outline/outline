@@ -91,7 +91,10 @@ function CollectionScene() {
     load();
   }, [collections, isFetching, collection, error, id, can]);
 
-  useCommandBarActions([editCollection]);
+  useCommandBarActions(
+    [editCollection],
+    ui.activeCollectionId ? [ui.activeCollectionId] : undefined
+  );
 
   if (!collection && error) {
     return <Search notFound />;
