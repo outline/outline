@@ -14,16 +14,24 @@ export function templatesPath(): string {
   return "/templates";
 }
 
-export function settingsPath(): string {
-  return "/settings";
-}
-
 export function archivePath(): string {
   return "/archive";
 }
 
 export function trashPath(): string {
   return "/trash";
+}
+
+export function settingsPath(): string {
+  return "/settings";
+}
+
+export function organizationSettingsPath(): string {
+  return "/settings/details";
+}
+
+export function profileSettingsPath(): string {
+  return "/settings/profile";
 }
 
 export function groupSettingsPath(): string {

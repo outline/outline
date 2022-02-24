@@ -16,7 +16,6 @@ import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
 import { NavigationNode } from "~/types";
 import { newDocumentPath } from "~/utils/routeHelpers";
-import Disclosure from "./Disclosure";
 import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
 import EditableTitle from "./EditableTitle";
@@ -81,13 +80,21 @@ function DocumentLink(
         isActiveDocument)
     );
   }, [hasChildDocuments, activeDocument, isActiveDocument, node, collection]);
+
   const [expanded, setExpanded] = React.useState(showChildren);
+  const [openedOnce, setOpenedOnce] = React.useState(expanded);
 
   React.useEffect(() => {
     if (showChildren) {
       setExpanded(showChildren);
     }
   }, [showChildren]);
+
+  React.useEffect(() => {
+    if (expanded) {
+      setOpenedOnce(true);
+    }
+  }, [expanded]);
 
   // when the last child document is removed,
   // also close the local folder state to closed
@@ -98,7 +105,7 @@ function DocumentLink(
   }, [expanded, hasChildDocuments]);
 
   const handleDisclosureClick = React.useCallback(
-    (ev: React.SyntheticEvent) => {
+    (ev) => {
       ev.preventDefault();
       ev.stopPropagation();
       setExpanded(!expanded);
@@ -270,6 +277,8 @@ function DocumentLink(
     t("Untitled");
 
   const can = policies.abilities(node.id);
+  const isExpanded = expanded && !isDragging;
+  const hasChildren = nodeChildren.length > 0;
 
   return (
     <>
@@ -283,6 +292,8 @@ function DocumentLink(
           <div ref={dropToReparent}>
             <DropToImport documentId={node.id} activeClassName="activeDropZone">
               <SidebarLink
+                expanded={hasChildren ? isExpanded : undefined}
+                onDisclosureClick={handleDisclosureClick}
                 onMouseEnter={handleMouseEnter}
                 to={{
                   pathname: node.url,
@@ -291,21 +302,13 @@ function DocumentLink(
                   },
                 }}
                 label={
-                  <>
-                    {hasChildDocuments && (
-                      <Disclosure
-                        expanded={expanded && !isDragging}
-                        onClick={handleDisclosureClick}
-                      />
-                    )}
-                    <EditableTitle
-                      title={title}
-                      onSubmit={handleTitleChange}
-                      onEditing={handleTitleEditing}
-                      canUpdate={canUpdate}
-                      maxLength={MAX_TITLE_LENGTH}
-                    />
-                  </>
+                  <EditableTitle
+                    title={title}
+                    onSubmit={handleTitleChange}
+                    onEditing={handleTitleEditing}
+                    canUpdate={canUpdate}
+                    maxLength={MAX_TITLE_LENGTH}
+                  />
                 }
                 isActive={(match, location) =>
                   !!match && location.search !== "?starred"
@@ -351,25 +354,31 @@ function DocumentLink(
           <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
         )}
       </Relative>
-      {expanded &&
-        !isDragging &&
-        nodeChildren.map((childNode, index) => (
-          <ObservedDocumentLink
-            key={childNode.id}
-            collection={collection}
-            node={childNode}
-            activeDocument={activeDocument}
-            prefetchDocument={prefetchDocument}
-            isDraft={childNode.isDraft}
-            depth={depth + 1}
-            canUpdate={canUpdate}
-            index={index}
-            parentId={node.id}
-          />
-        ))}
+      {openedOnce && (
+        <Folder $open={expanded && !isDragging}>
+          {nodeChildren.map((childNode, index) => (
+            <ObservedDocumentLink
+              key={childNode.id}
+              collection={collection}
+              node={childNode}
+              activeDocument={activeDocument}
+              prefetchDocument={prefetchDocument}
+              isDraft={childNode.isDraft}
+              depth={depth + 1}
+              canUpdate={canUpdate}
+              index={index}
+              parentId={node.id}
+            />
+          ))}
+        </Folder>
+      )}
     </>
   );
 }
+
+const Folder = styled.div<{ $open?: boolean }>`
+  display: ${(props) => (props.$open ? "block" : "none")};
+`;
 
 const Relative = styled.div`
   position: relative;

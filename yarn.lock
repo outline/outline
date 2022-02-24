@@ -9596,10 +9596,10 @@ jws@^3.2.2:
     jwa "^1.4.1"
     safe-buffer "^5.0.1"
 
-kbar@0.1.0-beta.26:
-  version "0.1.0-beta.26"
-  resolved "https://registry.yarnpkg.com/kbar/-/kbar-0.1.0-beta.26.tgz#a91be32d4a840a758165fe8d8747f9bb2a8ca763"
-  integrity sha512-JI+oxADOBzxaY/7yrcYWJAXJYkfoeS04aptTXOQy3h/vAwuZuHwhoqW9mAQ/+0I+F+wO135BeVErF9jq7qE9Ig==
+kbar@0.1.0-beta.28:
+  version "0.1.0-beta.28"
+  resolved "https://registry.yarnpkg.com/kbar/-/kbar-0.1.0-beta.28.tgz#35bcf1d45996f5b0cf32f4f70f673c97dc67a1f8"
+  integrity sha512-JmwZUO8fG1irDWqYIUKnoaAXT6t0QxCbmAEBNgHgXWeYFmk9CvhFWwAiFxtSfVX7d+efSTUf93KVrcd2Y61Zaw==
   dependencies:
     "@reach/portal" "^0.16.0"
     fast-equals "^2.0.3"

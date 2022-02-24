@@ -1,6 +1,5 @@
 import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
-import { CollapsedIcon } from "outline-icons";
 import * as React from "react";
 import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
@@ -13,9 +12,10 @@ import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import CollectionLink from "./CollectionLink";
 import DropCursor from "./DropCursor";
+import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
 import SidebarAction from "./SidebarAction";
-import SidebarLink, { DragObject } from "./SidebarLink";
+import { DragObject } from "./SidebarLink";
 
 function Collections() {
   const [isFetching, setFetching] = React.useState(false);
@@ -52,7 +52,10 @@ function Collections() {
     load();
   }, [collections, isFetching, showToast, fetchError, t]);
 
-  const [{ isCollectionDropping }, dropToReorderCollection] = useDrop({
+  const [
+    { isCollectionDropping, isDraggingAnyCollection },
+    dropToReorderCollection,
+  ] = useDrop({
     accept: "collection",
     drop: async (item: DragObject) => {
       collections.move(
@@ -65,16 +68,19 @@ function Collections() {
     },
     collect: (monitor) => ({
       isCollectionDropping: monitor.isOver(),
+      isDraggingAnyCollection: monitor.getItemType() === "collection",
     }),
   });
 
   const content = (
     <>
-      <DropCursor
-        isActiveDrop={isCollectionDropping}
-        innerRef={dropToReorderCollection}
-        position="top"
-      />
+      {isDraggingAnyCollection && (
+        <DropCursor
+          isActiveDrop={isCollectionDropping}
+          innerRef={dropToReorderCollection}
+          position="top"
+        />
+      )}
       {orderedCollections.map((collection: Collection, index: number) => (
         <CollectionLink
           key={collection.id}
@@ -85,17 +91,14 @@ function Collections() {
           belowCollection={orderedCollections[index + 1]}
         />
       ))}
-      <SidebarAction action={createCollection} depth={0.5} />
+      <SidebarAction action={createCollection} depth={0} />
     </>
   );
 
   if (!collections.isLoaded || fetchError) {
     return (
       <Flex column>
-        <SidebarLink
-          label={t("Collections")}
-          icon={<Disclosure expanded={expanded} color="currentColor" />}
-        />
+        <Header>{t("Collections")}</Header>
         <PlaceholderCollections />
       </Flex>
     );
@@ -103,19 +106,18 @@ function Collections() {
 
   return (
     <Flex column>
-      <SidebarLink
-        onClick={() => setExpanded((prev) => !prev)}
-        label={t("Collections")}
-        icon={<Disclosure expanded={expanded} color="currentColor" />}
-      />
-      {expanded && (isPreloaded ? content : <Fade>{content}</Fade>)}
+      <Header onClick={() => setExpanded((prev) => !prev)} expanded={expanded}>
+        {t("Collections")}
+      </Header>
+      {expanded && (
+        <Relative>{isPreloaded ? content : <Fade>{content}</Fade>}</Relative>
+      )}
     </Flex>
   );
 }
 
-const Disclosure = styled(CollapsedIcon)<{ expanded?: boolean }>`
-  transition: transform 100ms ease, fill 50ms !important;
-  ${({ expanded }) => !expanded && "transform: rotate(-90deg);"};
+const Relative = styled.div`
+  position: relative;
 `;
 
 export default observer(Collections);

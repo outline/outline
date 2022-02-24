@@ -16,6 +16,7 @@ import {
   newDocumentPath,
   settingsPath,
 } from "~/utils/routeHelpers";
+import Fade from "./Fade";
 import withStores from "./withStores";
 
 const DocumentHistory = React.lazy(
@@ -74,10 +75,12 @@ class AuthenticatedLayout extends React.Component<Props> {
     }
 
     const sidebar = showSidebar ? (
-      <Switch>
-        <Route path={settingsPath()} component={SettingsSidebar} />
-        <Route component={Sidebar} />
-      </Switch>
+      <Fade>
+        <Switch>
+          <Route path={settingsPath()} component={SettingsSidebar} />
+          <Route component={Sidebar} />
+        </Switch>
+      </Fade>
     ) : undefined;
 
     const rightRail = (
