@@ -23,34 +23,38 @@ function Actions({ collection }: Props) {
 
   return (
     <>
-      <Action>
-        <InputSearchPage
-          source="collection"
-          placeholder={`${t("Search in collection")}…`}
-          label={`${t("Search in collection")}…`}
-          collectionId={collection.id}
-        />
-      </Action>
-      {can.update && (
+      {!collection.isEmpty && (
         <>
           <Action>
-            <Tooltip
-              tooltip={t("New document")}
-              shortcut="n"
-              delay={500}
-              placement="bottom"
-            >
-              <Button
-                as={Link}
-                to={collection ? newDocumentPath(collection.id) : ""}
-                disabled={!collection}
-                icon={<PlusIcon />}
-              >
-                {t("New doc")}
-              </Button>
-            </Tooltip>
+            <InputSearchPage
+              source="collection"
+              placeholder={`${t("Search in collection")}…`}
+              label={`${t("Search in collection")}…`}
+              collectionId={collection.id}
+            />
           </Action>
-          <Separator />
+          {can.update && (
+            <>
+              <Action>
+                <Tooltip
+                  tooltip={t("New document")}
+                  shortcut="n"
+                  delay={500}
+                  placement="bottom"
+                >
+                  <Button
+                    as={Link}
+                    to={collection ? newDocumentPath(collection.id) : ""}
+                    disabled={!collection}
+                    icon={<PlusIcon />}
+                  >
+                    {t("New doc")}
+                  </Button>
+                </Tooltip>
+              </Action>
+              <Separator />
+            </>
+          )}
         </>
       )}
       <Action>
