@@ -13,7 +13,7 @@ import useActionContext from "./useActionContext";
  */
 export default function useCommandBarActions(
   actions: Action[],
-  additionalDeps: string[] = []
+  additionalDeps: React.DependencyList = []
 ) {
   const location = useLocation();
   const context = useActionContext({
