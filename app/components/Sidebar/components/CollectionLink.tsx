@@ -1,9 +1,10 @@
 import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
+import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useDrop, useDrag, DropTargetMonitor } from "react-dnd";
 import { useTranslation } from "react-i18next";
-import { useLocation, useHistory } from "react-router-dom";
+import { useLocation, useHistory, Link } from "react-router-dom";
 import styled from "styled-components";
 import { sortNavigationNodes } from "@shared/utils/collections";
 import Collection from "~/models/Collection";
@@ -11,12 +12,13 @@ import Document from "~/models/Document";
 import DocumentReparent from "~/scenes/DocumentReparent";
 import CollectionIcon from "~/components/CollectionIcon";
 import Modal from "~/components/Modal";
+import NudeButton from "~/components/NudeButton";
 import useBoolean from "~/hooks/useBoolean";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import CollectionMenu from "~/menus/CollectionMenu";
-import CollectionSortMenu from "~/menus/CollectionSortMenu";
 import { NavigationNode } from "~/types";
+import { newDocumentPath } from "~/utils/routeHelpers";
 import DocumentLink from "./DocumentLink";
 import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
@@ -255,12 +257,15 @@ function CollectionLink({
                 !isEditing &&
                 !isDraggingAnyCollection && (
                   <>
-                    {can.update && displayDocumentLinks && (
-                      <CollectionSortMenu
-                        collection={collection}
-                        onOpen={handleMenuOpen}
-                        onClose={handleMenuClose}
-                      />
+                    {can.update && (
+                      <NudeButton
+                        type={undefined}
+                        aria-label={t("New document")}
+                        as={Link}
+                        to={newDocumentPath(collection.id)}
+                      >
+                        <PlusIcon />
+                      </NudeButton>
                     )}
                     <CollectionMenu
                       collection={collection}

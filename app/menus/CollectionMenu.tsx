@@ -6,6 +6,8 @@ import {
   ImportIcon,
   ExportIcon,
   PadlockIcon,
+  AlphabeticalSortIcon,
+  ManualSortIcon,
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -124,6 +126,20 @@ function CollectionMenu({
     [history, showToast, collection.id, documents]
   );
 
+  const handleChangeSort = React.useCallback(
+    (field: string) => {
+      menu.hide();
+      return collection.save({
+        sort: {
+          field,
+          direction: "asc",
+        },
+      });
+    },
+    [collection, menu]
+  );
+
+  const alphabeticalSort = collection.sort.field === "title";
   const can = usePolicy(collection.id);
   const canUserInTeam = usePolicy(team.id);
   const items: MenuItem[] = React.useMemo(
@@ -144,6 +160,30 @@ function CollectionMenu({
       },
       {
         type: "separator",
+      },
+      {
+        type: "submenu",
+        title: t("Sort in sidebar"),
+        visible: can.update,
+        icon: alphabeticalSort ? (
+          <AlphabeticalSortIcon color="currentColor" />
+        ) : (
+          <ManualSortIcon color="currentColor" />
+        ),
+        items: [
+          {
+            type: "button",
+            title: t("Alphabetical sort"),
+            onClick: () => handleChangeSort("title"),
+            selected: alphabeticalSort,
+          },
+          {
+            type: "button",
+            title: t("Manual sort"),
+            onClick: () => handleChangeSort("index"),
+            selected: !alphabeticalSort,
+          },
+        ],
       },
       {
         type: "button",
@@ -182,6 +222,8 @@ function CollectionMenu({
       t,
       can.update,
       can.delete,
+      alphabeticalSort,
+      handleChangeSort,
       handleNewDocument,
       handleImportDocument,
       collection,
