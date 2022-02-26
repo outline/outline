@@ -25,7 +25,8 @@ export type Item = {
 
 async function addDocumentTreeToArchive(
   zip: JSZip,
-  documents: NavigationNode[]
+  documents: NavigationNode[],
+  documentPathInArchive: Map<string, string>
 ) {
   for (const doc of documents) {
     const document = await Document.findByPk(doc.id);
@@ -47,6 +48,23 @@ async function addDocumentTreeToArchive(
       text = text.replace(attachment.redirectUrl, encodeURI(attachment.key));
     }
 
+    const matchedDocumentUrls = [...text.matchAll(/\/doc\/[\w+-]+\w{10}/g)];
+
+    matchedDocumentUrls.forEach((match) => {
+      const matchedUrl = match[0];
+      const pathofCurrentDoc = documentPathInArchive.get(document.url);
+      const matchedDocPath = documentPathInArchive.get(matchedUrl);
+
+      if (matchedDocPath && pathofCurrentDoc) {
+        const relativePath = path.relative(pathofCurrentDoc, matchedDocPath);
+
+        if (relativePath.startsWith(".")) {
+          text = text.replace(matchedUrl, encodeURI(relativePath.substring(1)));
+          console.log(["replaced", matchedUrl, relativePath.substring(1)]);
+        }
+      }
+    });
+
     let title = serializeFilename(document.title) || "Untitled";
 
     title = safeAddFileToArchive(zip, `${title}.md`, text, {
@@ -61,7 +79,11 @@ async function addDocumentTreeToArchive(
       const folder = zip.folder(path.parse(title).name);
 
       if (folder) {
-        await addDocumentTreeToArchive(folder, doc.children);
+        await addDocumentTreeToArchive(
+          folder,
+          doc.children,
+          documentPathInArchive
+        );
       }
     }
   }
@@ -88,6 +110,26 @@ async function addImageToArchive(zip: JSZip, key: string) {
   }
 }
 
+const getSafeFilename = (files: string[], root: string, key: string) => {
+  const keysInDirectory = files
+    .filter((k) => k.includes(root))
+    .filter((k) => !k.endsWith("/"))
+    .map((k) => path.basename(k).replace(/\s\((\d+)\)\./, "."));
+
+  // The number of duplicate filenames
+  const existingKeysCount = keysInDirectory.filter((t) => t === key).length;
+  const filename = path.parse(key).name;
+  const extension = path.extname(key);
+
+  // Construct the new de-duplicated filename (if any)
+  const safeKey =
+    existingKeysCount > 0
+      ? `${filename} (${existingKeysCount})${extension}`
+      : key;
+
+  return safeKey;
+};
+
 /**
  * Adds content to a zip file, if the given filename already exists in the zip
  * then it will automatically increment numbers at the end of the filename.
@@ -106,23 +148,7 @@ function safeAddFileToArchive(
 ) {
   // @ts-expect-error root exists
   const root = zip.root;
-
-  // Filenames in the directory already
-  const keysInDirectory = Object.keys(zip.files)
-    .filter((k) => k.includes(root))
-    .filter((k) => !k.endsWith("/"))
-    .map((k) => path.basename(k).replace(/\s\((\d+)\)\./, "."));
-
-  // The number of duplicate filenames
-  const existingKeysCount = keysInDirectory.filter((t) => t === key).length;
-  const filename = path.parse(key).name;
-  const extension = path.extname(key);
-
-  // Construct the new de-duplicated filename (if any)
-  const safeKey =
-    existingKeysCount > 0
-      ? `${filename} (${existingKeysCount})${extension}`
-      : key;
+  const safeKey = getSafeFilename(Object.keys(zip.files), root, key);
 
   zip.file(safeKey, content, options);
   return safeKey;
@@ -158,15 +184,49 @@ async function archiveToPath(zip: JSZip) {
   });
 }
 
+function getDocumentPathInArchive(
+  documents: NavigationNode[] | null,
+  path: string,
+  mapper: Map<string, string>
+) {
+  if (!documents) {
+    return;
+  }
+  for (const doc of documents) {
+    const title = serializeFilename(doc.title) || "Untitled";
+    const filename = getSafeFilename([...mapper.values()], path, `${title}.md`);
+    mapper.set(doc.url, path + "/" + filename);
+
+    if (doc.children && doc.children.length) {
+      getDocumentPathInArchive(doc.children, path + "/" + title, mapper);
+    }
+  }
+}
+
+function calculateDocumentPaths(collections: Collection[]) {
+  const mapper = new Map<string, string>();
+  for (const collection of collections) {
+    const basePath = "/" + path.parse(collection.name).name;
+    getDocumentPathInArchive(collection.documentStructure, basePath, mapper);
+  }
+
+  return mapper;
+}
+
 export async function archiveCollections(collections: Collection[]) {
   const zip = new JSZip();
+  const documentPathInArchive = calculateDocumentPaths(collections);
 
   for (const collection of collections) {
     if (collection.documentStructure) {
       const folder = zip.folder(collection.name);
 
       if (folder) {
-        await addDocumentTreeToArchive(folder, collection.documentStructure);
+        await addDocumentTreeToArchive(
+          folder,
+          collection.documentStructure,
+          documentPathInArchive
+        );
       }
     }
   }
