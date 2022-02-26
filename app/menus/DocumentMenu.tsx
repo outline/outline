@@ -40,10 +40,7 @@ import Flex from "~/components/Flex";
 import Modal from "~/components/Modal";
 import Switch from "~/components/Switch";
 import { actionToMenuItem } from "~/actions";
-import {
-  pinDocument,
-  pinDocumentToHome,
-} from "~/actions/definitions/documents";
+import { pinDocument } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
@@ -329,7 +326,6 @@ function DocumentMenu({
               visible: !document.isStarred && !!can.star,
               icon: <StarredIcon />,
             },
-            actionToMenuItem(pinDocumentToHome, context),
             actionToMenuItem(pinDocument, context),
             {
               type: "separator",

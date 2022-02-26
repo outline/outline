@@ -41,14 +41,17 @@ export function actionToMenuItem(
       : undefined;
 
   if (resolvedChildren) {
+    const items = resolvedChildren
+      .map((a) => actionToMenuItem(a, context))
+      .filter(Boolean)
+      .filter((a) => a.visible);
+
     return {
       type: "submenu",
       title,
       icon,
-      items: resolvedChildren
-        .map((a) => actionToMenuItem(a, context))
-        .filter((a) => !!a),
-      visible,
+      items,
+      visible: visible && items.length > 0,
     };
   }
 
