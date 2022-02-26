@@ -1,20 +1,30 @@
 import * as React from "react";
 import styled from "styled-components";
 
-function DropCursor({
-  isActiveDrop,
-  innerRef,
-  position,
-}: {
+type Props = {
+  disabled?: boolean;
   isActiveDrop: boolean;
   innerRef: React.Ref<HTMLDivElement>;
   position?: "top";
-}) {
-  return <Cursor isOver={isActiveDrop} ref={innerRef} position={position} />;
+};
+
+function DropCursor({ isActiveDrop, innerRef, position, disabled }: Props) {
+  return (
+    <Cursor
+      isOver={isActiveDrop}
+      disabled={disabled}
+      ref={innerRef}
+      position={position}
+    />
+  );
 }
 
 // transparent hover zone with a thin visible band vertically centered
-const Cursor = styled.div<{ isOver?: boolean; position?: "top" }>`
+const Cursor = styled.div<{
+  isOver?: boolean;
+  disabled?: boolean;
+  position?: "top";
+}>`
   opacity: ${(props) => (props.isOver ? 1 : 0)};
   transition: opacity 150ms;
   position: absolute;
@@ -26,7 +36,10 @@ const Cursor = styled.div<{ isOver?: boolean; position?: "top" }>`
   ${(props) => (props.position === "top" ? "top: -7px;" : "bottom: -7px;")}
 
   ::after {
-    background: ${(props) => props.theme.slateDark};
+    background: ${(props) =>
+      props.disabled
+        ? props.theme.sidebarActiveBackground
+        : props.theme.slateDark};
     position: absolute;
     top: 6px;
     content: "";

@@ -13,6 +13,7 @@ import Fade from "~/components/Fade";
 import NudeButton from "~/components/NudeButton";
 import useBoolean from "~/hooks/useBoolean";
 import useStores from "~/hooks/useStores";
+import useToasts from "~/hooks/useToasts";
 import DocumentMenu from "~/menus/DocumentMenu";
 import { NavigationNode } from "~/types";
 import { newDocumentPath } from "~/utils/routeHelpers";
@@ -47,6 +48,7 @@ function DocumentLink(
   }: Props,
   ref: React.RefObject<HTMLAnchorElement>
 ) {
+  const { showToast } = useToasts();
   const { documents, policies } = useStores();
   const { t } = useTranslation();
   const isActiveDocument = activeDocument && activeDocument.id === node.id;
@@ -225,6 +227,19 @@ function DocumentLink(
   const [{ isOverReorder, isDraggingAnyDocument }, dropToReorder] = useDrop({
     accept: "document",
     drop: (item: DragObject) => {
+      if (!manualSort) {
+        showToast(
+          t(
+            "You can't reorder documents in an alphabetically sorted collection"
+          ),
+          {
+            type: "info",
+            timeout: 5000,
+          }
+        );
+        return;
+      }
+
       if (!collection) {
         return;
       }
@@ -350,8 +365,12 @@ function DocumentLink(
             </DropToImport>
           </div>
         </Draggable>
-        {manualSort && isDraggingAnyDocument && (
-          <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
+        {isDraggingAnyDocument && (
+          <DropCursor
+            disabled={!manualSort}
+            isActiveDrop={isOverReorder}
+            innerRef={dropToReorder}
+          />
         )}
       </Relative>
       {openedOnce && (
