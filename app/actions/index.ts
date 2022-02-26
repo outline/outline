@@ -95,7 +95,7 @@ export function actionToKBar(
       name: resolvedName,
       section: resolvedSection,
       placeholder: resolvedPlaceholder,
-      keywords: `${action.keywords}`,
+      keywords: action.keywords ?? "",
       shortcut: action.shortcut || [],
       icon: resolvedIcon,
       perform: action.perform
