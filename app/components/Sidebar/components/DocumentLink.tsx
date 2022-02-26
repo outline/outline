@@ -11,6 +11,7 @@ import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import Fade from "~/components/Fade";
 import NudeButton from "~/components/NudeButton";
+import Tooltip from "~/components/Tooltip";
 import useBoolean from "~/hooks/useBoolean";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
@@ -342,16 +343,18 @@ function DocumentLink(
                   !isDraggingAnyDocument ? (
                     <Fade>
                       {can.createChildDocument && (
-                        <NudeButton
-                          type={undefined}
-                          aria-label={t("New nested document")}
-                          as={Link}
-                          to={newDocumentPath(document.collectionId, {
-                            parentDocumentId: document.id,
-                          })}
-                        >
-                          <PlusIcon />
-                        </NudeButton>
+                        <Tooltip tooltip={t("New doc")} delay={500}>
+                          <NudeButton
+                            type={undefined}
+                            aria-label={t("New nested document")}
+                            as={Link}
+                            to={newDocumentPath(document.collectionId, {
+                              parentDocumentId: document.id,
+                            })}
+                          >
+                            <PlusIcon />
+                          </NudeButton>
+                        </Tooltip>
                       )}
                       <DocumentMenu
                         document={document}

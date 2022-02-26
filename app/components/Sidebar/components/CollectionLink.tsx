@@ -11,8 +11,10 @@ import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import DocumentReparent from "~/scenes/DocumentReparent";
 import CollectionIcon from "~/components/CollectionIcon";
+import Fade from "~/components/Fade";
 import Modal from "~/components/Modal";
 import NudeButton from "~/components/NudeButton";
+import Tooltip from "~/components/Tooltip";
 import useBoolean from "~/hooks/useBoolean";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -256,23 +258,25 @@ function CollectionLink({
               menu={
                 !isEditing &&
                 !isDraggingAnyCollection && (
-                  <>
+                  <Fade>
                     {can.update && (
-                      <NudeButton
-                        type={undefined}
-                        aria-label={t("New document")}
-                        as={Link}
-                        to={newDocumentPath(collection.id)}
-                      >
-                        <PlusIcon />
-                      </NudeButton>
+                      <Tooltip tooltip={t("New doc")} delay={500}>
+                        <NudeButton
+                          type={undefined}
+                          aria-label={t("New document")}
+                          as={Link}
+                          to={newDocumentPath(collection.id)}
+                        >
+                          <PlusIcon />
+                        </NudeButton>
+                      </Tooltip>
                     )}
                     <CollectionMenu
                       collection={collection}
                       onOpen={handleMenuOpen}
                       onClose={handleMenuClose}
                     />
-                  </>
+                  </Fade>
                 )
               }
             />

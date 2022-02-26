@@ -135,7 +135,7 @@ export const light = {
   placeholder: "#a2b2c3",
   sidebarBackground: colors.warmGrey,
   sidebarActiveBackground: "#d7e0ea",
-  sidebarControlHoverBackground: "rgba(0,0,0,0.1)",
+  sidebarControlHoverBackground: "rgb(138 164 193 / 20%)",
   sidebarDraftBorder: darken("0.25", colors.warmGrey),
   sidebarText: "rgb(78, 92, 110)",
   backdrop: "rgba(0, 0, 0, 0.2)",
