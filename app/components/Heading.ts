@@ -5,14 +5,6 @@ const Heading = styled.h1<{ centered?: boolean }>`
   align-items: center;
   user-select: none;
   ${(props) => (props.centered ? "text-align: center;" : "")}
-
-  svg {
-    margin-top: 4px;
-    margin-left: -6px;
-    margin-right: 2px;
-    align-self: flex-start;
-    flex-shrink: 0;
-  }
 `;
 
 export default Heading;
