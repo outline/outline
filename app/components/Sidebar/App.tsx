@@ -64,7 +64,7 @@ function AppSidebar() {
     if (isSearching) {
       history.push(searchPath());
     } else {
-      ui.enableModKHint();
+      ui.commandBarOpened();
       query.toggle();
     }
   }, [ui, location, history, query]);

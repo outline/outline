@@ -25,7 +25,7 @@ import KeyboardShortcuts from "~/scenes/KeyboardShortcuts";
 import { createAction } from "~/actions";
 import {
   NavigationSection,
-  NoSection,
+  SearchSection,
   RecentSearchesSection,
 } from "~/actions/sections";
 import history from "~/utils/history";
@@ -60,7 +60,7 @@ export const navigateToRecentSearchQuery = (searchQuery: SearchQuery) =>
 export const navigateToSearchQuery = (searchQuery: string) =>
   createAction({
     id: "search",
-    section: NoSection,
+    section: SearchSection,
     name: ({ t }) =>
       t(`Search documents for "{{searchQuery}}"`, { searchQuery }),
     icon: <SearchIcon />,

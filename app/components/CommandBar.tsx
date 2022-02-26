@@ -42,8 +42,10 @@ function CommandBar() {
                 t("Type a command or search")
               }…`}
             />
-            <CommandBarResults />
-            {ui.showModKHint && (
+            <CommandBarResults
+              prioritizeSearchResults={ui.commandBarOpenedFromSidebar}
+            />
+            {ui.commandBarOpenedFromSidebar && (
               <Hint size="small" type="tertiary">
                 <QuestionMarkIcon size={18} color="currentColor" />
                 {t(
@@ -77,14 +79,10 @@ const Hint = styled(Text)`
   display: flex;
   align-items: center;
   gap: 4px;
-  background: ${(props) => props.theme.secondaryBackground};
   border-top: 1px solid ${(props) => props.theme.background};
   margin: 1px 0 0;
   padding: 6px 16px;
   width: 100%;
-
-  position: absolute;
-  bottom: 0;
 `;
 
 const Positioner = styled(KBarPositioner)`

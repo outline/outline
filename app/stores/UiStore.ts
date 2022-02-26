@@ -40,7 +40,7 @@ class UiStore {
   observingUserId: string | undefined;
 
   @observable
-  showModKHint = false;
+  commandBarOpenedFromSidebar = false;
 
   @observable
   progressBarVisible = false;
@@ -215,13 +215,13 @@ class UiStore {
   };
 
   @action
-  enableModKHint = () => {
-    this.showModKHint = true;
+  commandBarOpened = () => {
+    this.commandBarOpenedFromSidebar = true;
   };
 
   @action
-  disableModKHint = () => {
-    this.showModKHint = false;
+  commandBarClosed = () => {
+    this.commandBarOpenedFromSidebar = false;
   };
 
   @action

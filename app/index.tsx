@@ -58,8 +58,7 @@ const commandBarOptions = {
     exitMs: 200,
   },
   callbacks: {
-    onClose: () => stores.ui.disableModKHint(),
-    onQueryChange: () => stores.ui.disableModKHint(),
+    onClose: () => stores.ui.commandBarClosed(),
   },
 };
 
