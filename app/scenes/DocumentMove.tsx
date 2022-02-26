@@ -11,6 +11,7 @@ import { DocumentPath } from "~/stores/CollectionsStore";
 import Document from "~/models/Document";
 import Flex from "~/components/Flex";
 import { Outline } from "~/components/Input";
+import InputSearch from "~/components/InputSearch";
 import Labeled from "~/components/Labeled";
 import PathToDocument from "~/components/PathToDocument";
 import useStores from "~/hooks/useStores";
@@ -143,69 +144,54 @@ function DocumentMove({ document, onRequestClose }: Props) {
 
       <Section column>
         <Labeled label={t("Choose a new location")} />
-        <NewLocation>
-          <InputWrapper>
-            <Input
-              type="search"
-              placeholder={`${t("Search collections & documents")}…`}
-              onChange={handleFilter}
-              required
-              autoFocus
-            />
-          </InputWrapper>
-          <Results>
-            <AutoSizer>
-              {({ width, height }: { width: number; height: number }) => (
-                <Flex role="listbox" column>
-                  <List
-                    key={data.length}
-                    width={width}
-                    height={height}
-                    itemData={data}
-                    itemCount={data.length}
-                    itemSize={40}
-                    itemKey={(index, data) => data[index].id}
-                  >
-                    {row}
-                  </List>
-                </Flex>
-              )}
-            </AutoSizer>
-          </Results>
-        </NewLocation>
+        <Input
+          type="search"
+          onChange={handleFilter}
+          placeholder={`${t("Search collections & documents")}…`}
+          label={t("Choose a new location")}
+          labelHidden
+          required
+          autoFocus
+        />
+        <Results>
+          <AutoSizer>
+            {({ width, height }: { width: number; height: number }) => (
+              <Flex role="listbox" column>
+                <List
+                  key={data.length}
+                  width={width}
+                  height={height}
+                  itemData={data}
+                  itemCount={data.length}
+                  itemSize={40}
+                  itemKey={(index, data) => data[index].id}
+                >
+                  {row}
+                </List>
+              </Flex>
+            )}
+          </AutoSizer>
+        </Results>
       </Section>
     </Flex>
   );
 }
 
-const InputWrapper = styled("div")`
-  padding: 8px;
-  width: 100%;
-`;
-
-const Input = styled("input")`
-  width: 100%;
-  outline: none;
-  background: none;
-  border-radius: 4px;
-  height: 30px;
-  border: 0;
-  color: ${(props) => props.theme.text};
-
-  &::placeholder {
-    color: ${(props) => props.theme.placeholder};
+const Input = styled(InputSearch)`
+  ${Outline} {
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+    padding: 4px 0;
   }
 `;
 
-const NewLocation = styled(Outline)`
-  display: block;
-  flex: initial;
-  height: 40vh;
-`;
-
 const Results = styled.div`
-  padding: 8px 0;
-  height: calc(100% - 46px);
+  padding: 0;
+  height: 40vh;
+  border: 1px solid ${(props) => props.theme.inputBorder};
+  border-top: 0;
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
 `;
 
 const Section = styled(Flex)`
