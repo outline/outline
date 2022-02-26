@@ -124,7 +124,13 @@ class UiStore {
   };
 
   @action
-  setActiveDocument = (document: Document): void => {
+  setActiveDocument = (document: Document | string): void => {
+    if (typeof document === "string") {
+      this.activeDocumentId = document;
+      this.observingUserId = undefined;
+      return;
+    }
+
     this.activeDocumentId = document.id;
     this.observingUserId = undefined;
 
