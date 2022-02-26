@@ -12,6 +12,7 @@ import DocumentMeta from "~/components/DocumentMeta";
 import EventBoundary from "~/components/EventBoundary";
 import Flex from "~/components/Flex";
 import Highlight from "~/components/Highlight";
+import NudeButton from "~/components/NudeButton";
 import StarButton, { AnimatedStar } from "~/components/Star";
 import Tooltip from "~/components/Tooltip";
 import useBoolean from "~/hooks/useBoolean";
@@ -170,6 +171,13 @@ const Actions = styled(EventBoundary)`
   margin: 8px;
   flex-shrink: 0;
   flex-grow: 0;
+
+  ${NudeButton} {
+    &:hover,
+    &[aria-expanded="true"] {
+      background: ${(props) => props.theme.sidebarControlHoverBackground};
+    }
+  }
 
   ${breakpoint("tablet")`
     display: flex;
