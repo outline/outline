@@ -11,8 +11,10 @@ import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import Fade from "~/components/Fade";
 import NudeButton from "~/components/NudeButton";
+import Tooltip from "~/components/Tooltip";
 import useBoolean from "~/hooks/useBoolean";
 import useStores from "~/hooks/useStores";
+import useToasts from "~/hooks/useToasts";
 import DocumentMenu from "~/menus/DocumentMenu";
 import { NavigationNode } from "~/types";
 import { newDocumentPath } from "~/utils/routeHelpers";
@@ -47,6 +49,7 @@ function DocumentLink(
   }: Props,
   ref: React.RefObject<HTMLAnchorElement>
 ) {
+  const { showToast } = useToasts();
   const { documents, policies } = useStores();
   const { t } = useTranslation();
   const isActiveDocument = activeDocument && activeDocument.id === node.id;
@@ -225,6 +228,19 @@ function DocumentLink(
   const [{ isOverReorder, isDraggingAnyDocument }, dropToReorder] = useDrop({
     accept: "document",
     drop: (item: DragObject) => {
+      if (!manualSort) {
+        showToast(
+          t(
+            "You can't reorder documents in an alphabetically sorted collection"
+          ),
+          {
+            type: "info",
+            timeout: 5000,
+          }
+        );
+        return;
+      }
+
       if (!collection) {
         return;
       }
@@ -327,16 +343,18 @@ function DocumentLink(
                   !isDraggingAnyDocument ? (
                     <Fade>
                       {can.createChildDocument && (
-                        <NudeButton
-                          type={undefined}
-                          aria-label={t("New nested document")}
-                          as={Link}
-                          to={newDocumentPath(document.collectionId, {
-                            parentDocumentId: document.id,
-                          })}
-                        >
-                          <PlusIcon />
-                        </NudeButton>
+                        <Tooltip tooltip={t("New doc")} delay={500}>
+                          <NudeButton
+                            type={undefined}
+                            aria-label={t("New nested document")}
+                            as={Link}
+                            to={newDocumentPath(document.collectionId, {
+                              parentDocumentId: document.id,
+                            })}
+                          >
+                            <PlusIcon />
+                          </NudeButton>
+                        </Tooltip>
                       )}
                       <DocumentMenu
                         document={document}
@@ -350,8 +368,12 @@ function DocumentLink(
             </DropToImport>
           </div>
         </Draggable>
-        {manualSort && isDraggingAnyDocument && (
-          <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
+        {isDraggingAnyDocument && (
+          <DropCursor
+            disabled={!manualSort}
+            isActiveDrop={isOverReorder}
+            innerRef={dropToReorder}
+          />
         )}
       </Relative>
       {openedOnce && (

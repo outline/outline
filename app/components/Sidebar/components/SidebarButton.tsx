@@ -71,7 +71,8 @@ const Wrapper = styled(Flex)<{ minHeight: number }>`
   cursor: pointer;
 
   &:active,
-  &:hover {
+  &:hover,
+  &[aria-expanded="true"] {
     color: ${(props) => props.theme.sidebarText};
     transition: background 100ms ease-in-out;
     background: ${(props) => props.theme.sidebarActiveBackground};
