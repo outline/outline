@@ -41,7 +41,8 @@ const RealButton = styled.button<{
     border: 0;
   }
 
-  &:hover:not(:disabled) {
+  &:hover:not(:disabled),
+  &[aria-expanded="true"] {
     background: ${(props) => darken(0.05, props.theme.buttonBackground)};
   }
 
@@ -76,7 +77,8 @@ const RealButton = styled.button<{
     }
 
 
-    &:hover:not(:disabled) {
+    &:hover:not(:disabled),
+    &[aria-expanded="true"] {
       background: ${
         props.borderOnHover
           ? props.theme.buttonNeutralBackground
@@ -103,7 +105,8 @@ const RealButton = styled.button<{
       background: ${props.theme.danger};
       color: ${props.theme.white};
 
-      &:hover:not(:disabled) {
+      &:hover:not(:disabled),
+      &[aria-expanded="true"] {
         background: ${darken(0.05, props.theme.danger)};
       }
 

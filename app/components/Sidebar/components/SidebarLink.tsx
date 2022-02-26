@@ -192,7 +192,8 @@ const Link = styled(NavLink)<{ $isActiveDrop?: boolean; $isDraft?: boolean }>`
     ${NudeButton} {
       background: transparent;
 
-      &:hover {
+      &:hover,
+      &[aria-expanded="true"] {
         background: ${(props) => props.theme.sidebarControlHoverBackground};
       }
     }
