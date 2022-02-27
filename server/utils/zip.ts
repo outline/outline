@@ -60,7 +60,6 @@ async function addDocumentTreeToArchive(
 
         if (relativePath.startsWith(".")) {
           text = text.replace(matchedUrl, encodeURI(relativePath.substring(1)));
-          console.log(["replaced", matchedUrl, relativePath.substring(1)]);
         }
       }
     });

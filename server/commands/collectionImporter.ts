@@ -188,29 +188,33 @@ async function collectionImporter({
     }
   }
 
-  const promises = Object.keys(documents).map((k) => {
-    const document = documents[k];
-    const relativeLinks = [...document.text.matchAll(/]\((.\/.*.md)\)/g)].map(
-      (match) => "." + decodeURI(match[1])
-    );
+  const updatingRelativeLinksToDocumentUrl = Object.keys(documents).map(
+    (pathInZip) => {
+      const document = documents[pathInZip];
+      const relativeLinks = [...document.text.matchAll(/]\((.\/.*.md)\)/g)].map(
+        (match) => "." + decodeURI(match[1])
+      );
 
-    relativeLinks.forEach((r) => {
-      const actualPath = path.resolve(k, r).replace(process.cwd() + "/", "");
-      const actualDocument = documents[actualPath];
-      if (actualDocument) {
-        document.text = document.text.replace(
-          encodeURI(r).slice(1),
-          actualDocument.url
-        );
-      }
-    });
+      relativeLinks.forEach((relativeLink) => {
+        const linkedDocumentPath = path
+          .resolve(pathInZip, relativeLink)
+          .replace(process.cwd() + "/", "");
+        const linkedDocument = documents[linkedDocumentPath];
+        if (linkedDocument) {
+          document.text = document.text.replace(
+            encodeURI(relativeLink).slice(1),
+            linkedDocument.url
+          );
+        }
+      });
 
-    return document.save({
-      fields: ["text"],
-    });
-  });
+      return document.save({
+        fields: ["text"],
+      });
+    }
+  );
 
-  await Promise.all(promises);
+  await Promise.all(updatingRelativeLinksToDocumentUrl);
 
   // reload collections to get document mapping
   for (const collection of values(collections)) {
