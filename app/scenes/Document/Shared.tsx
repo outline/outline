@@ -87,7 +87,6 @@ function SharedDocumentScene(props: Props) {
           shareId,
         });
         setResponse(response);
-        ui.setActiveDocument(response.document);
       } catch (err) {
         setError(err);
       }
