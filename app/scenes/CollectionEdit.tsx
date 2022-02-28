@@ -40,7 +40,7 @@ const CollectionEdit = ({ collectionId, onSubmit }: Props) => {
       setIsSaving(true);
 
       try {
-        const url = collection.url;
+        const redirect = location.pathname === collection.url;
         await collection.save({
           name,
           icon,
@@ -48,7 +48,7 @@ const CollectionEdit = ({ collectionId, onSubmit }: Props) => {
           sort,
         });
         onSubmit();
-        if (location.pathname === url) {
+        if (redirect) {
           history.push(collection.url);
         }
         showToast(t("The collection was updated"), {
