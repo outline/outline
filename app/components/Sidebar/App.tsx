@@ -1,11 +1,9 @@
-import { useKBar } from "kbar";
 import { observer } from "mobx-react";
 import { EditIcon, SearchIcon, ShapesIcon, HomeIcon } from "outline-icons";
 import * as React from "react";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import { useTranslation } from "react-i18next";
-import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
@@ -37,12 +35,9 @@ import TrashLink from "./components/TrashLink";
 
 function AppSidebar() {
   const { t } = useTranslation();
-  const { ui, documents } = useStores();
+  const { documents } = useStores();
   const team = useCurrentTeam();
   const user = useCurrentUser();
-  const { query } = useKBar();
-  const location = useLocation();
-  const history = useHistory();
   const can = usePolicy(team.id);
 
   React.useEffect(() => {
@@ -58,16 +53,6 @@ function AppSidebar() {
     }),
     [dndArea]
   );
-
-  const handleSearch = React.useCallback(() => {
-    const isSearching = location.pathname.startsWith(searchPath());
-    if (isSearching) {
-      history.push(searchPath());
-    } else {
-      ui.commandBarOpened();
-      query.toggle();
-    }
-  }, [ui, location, history, query]);
 
   return (
     <Sidebar ref={handleSidebarRef}>
@@ -94,7 +79,7 @@ function AppSidebar() {
                 label={t("Home")}
               />
               <SidebarLink
-                onClick={handleSearch}
+                to={searchPath()}
                 icon={<SearchIcon color="currentColor" />}
                 label={t("Search")}
                 exact={false}
