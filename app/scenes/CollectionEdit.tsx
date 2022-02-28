@@ -40,14 +40,17 @@ const CollectionEdit = ({ collectionId, onSubmit }: Props) => {
       setIsSaving(true);
 
       try {
+        const url = collection.url;
         await collection.save({
           name,
           icon,
           color,
           sort,
         });
-        history.push(collection.url);
         onSubmit();
+        if (location.pathname === url) {
+          history.push(collection.url);
+        }
         showToast(t("The collection was updated"), {
           type: "success",
         });
