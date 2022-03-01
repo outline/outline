@@ -48,14 +48,14 @@ function CollectionScene() {
   const can = usePolicy(collection?.id || "");
 
   React.useEffect(() => {
-    if (collection) {
+    if (collection?.name) {
       const canonicalUrl = updateCollectionUrl(match.url, collection);
 
       if (match.url !== canonicalUrl) {
         history.replace(canonicalUrl);
       }
     }
-  }, [collection, history, id, match.url]);
+  }, [collection, collection?.name, history, id, match.url]);
 
   React.useEffect(() => {
     if (collection) {
