@@ -11,7 +11,8 @@ import SidebarLink from "./SidebarLink";
 type Props = {
   node: NavigationNode;
   collection?: Collection;
-  activeDocument: Document | null | undefined;
+  activeDocumentId: string | undefined;
+  activeDocument: Document | undefined;
   isDraft?: boolean;
   depth: number;
   index: number;
@@ -20,13 +21,21 @@ type Props = {
 };
 
 function DocumentLink(
-  { node, collection, activeDocument, isDraft, depth, shareId }: Props,
+  {
+    node,
+    collection,
+    activeDocument,
+    activeDocumentId,
+    isDraft,
+    depth,
+    shareId,
+  }: Props,
   ref: React.RefObject<HTMLAnchorElement>
 ) {
   const { documents } = useStores();
   const { t } = useTranslation();
 
-  const isActiveDocument = activeDocument && activeDocument.id === node.id;
+  const isActiveDocument = activeDocumentId === node.id;
 
   const hasChildDocuments =
     !!node.children.length || activeDocument?.parentDocumentId === node.id;
@@ -112,6 +121,7 @@ function DocumentLink(
             key={childNode.id}
             collection={collection}
             node={childNode}
+            activeDocumentId={activeDocumentId}
             activeDocument={activeDocument}
             isDraft={childNode.isDraft}
             depth={depth + 1}
