@@ -83,7 +83,7 @@ const Wrapper = styled.a`
     css`
       &:hover,
       &:active {
-        cursor: pointer;
+        cursor: pointer !important;
         background: ${(props) => props.theme.secondaryBackground};
         outline: 1px solid ${(props) => props.theme.divider};
 
