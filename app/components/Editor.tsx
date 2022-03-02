@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Optional } from "utility-types";
 import embeds from "@shared/editor/embeds";
+import { isInternalUrl } from "@shared/utils/urls";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import { Props as EditorProps } from "~/editor";
 import useDictionary from "~/hooks/useDictionary";
@@ -8,7 +9,7 @@ import useToasts from "~/hooks/useToasts";
 import { uploadFile } from "~/utils/files";
 import history from "~/utils/history";
 import { isModKey } from "~/utils/keyboard";
-import { isInternalUrl, isHash } from "~/utils/urls";
+import { isHash } from "~/utils/urls";
 
 const SharedEditor = React.lazy(
   () =>
@@ -107,4 +108,4 @@ function Editor(props: Props, ref: React.Ref<any>) {
   );
 }
 
-export default React.forwardRef<typeof Editor, Props>(Editor);
+export default React.forwardRef(Editor);

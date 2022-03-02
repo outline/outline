@@ -24,6 +24,7 @@ function GroupMemberMenu({ onRemove }: Props) {
           items={[
             {
               type: "button",
+              dangerous: true,
               title: t("Remove"),
               onClick: onRemove,
             },

@@ -6,6 +6,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { RouteComponentProps, StaticContext } from "react-router";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
+import { isInternalUrl } from "@shared/utils/urls";
 import RootStore from "~/stores/RootStore";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
@@ -17,7 +18,6 @@ import { NavigationNode } from "~/types";
 import { NotFoundError, OfflineError } from "~/utils/errors";
 import history from "~/utils/history";
 import { matchDocumentEdit } from "~/utils/routeHelpers";
-import { isInternalUrl } from "~/utils/urls";
 import HideSidebar from "./HideSidebar";
 import Loading from "./Loading";
 

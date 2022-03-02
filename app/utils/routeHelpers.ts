@@ -14,16 +14,24 @@ export function templatesPath(): string {
   return "/templates";
 }
 
-export function settingsPath(): string {
-  return "/settings";
-}
-
 export function archivePath(): string {
   return "/archive";
 }
 
 export function trashPath(): string {
   return "/trash";
+}
+
+export function settingsPath(): string {
+  return "/settings";
+}
+
+export function organizationSettingsPath(): string {
+  return "/settings/details";
+}
+
+export function profileSettingsPath(): string {
+  return "/settings/profile";
 }
 
 export function groupSettingsPath(): string {
@@ -91,7 +99,7 @@ export function newDocumentPath(
   return `/collection/${collectionId}/new?${queryString.stringify(params)}`;
 }
 
-export function searchUrl(
+export function searchPath(
   query?: string,
   params: {
     collectionId?: string;
@@ -117,3 +125,5 @@ export const matchDocumentSlug =
   ":documentSlug([0-9a-zA-Z-_~]*-[a-zA-z0-9]{10,15})";
 
 export const matchDocumentEdit = `/doc/${matchDocumentSlug}/edit`;
+
+export const matchDocumentHistory = `/doc/${matchDocumentSlug}/history/:revisionId?`;

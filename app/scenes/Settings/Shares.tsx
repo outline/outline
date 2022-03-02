@@ -5,33 +5,34 @@ import { useTranslation, Trans } from "react-i18next";
 import { Link } from "react-router-dom";
 import Empty from "~/components/Empty";
 import Heading from "~/components/Heading";
-import HelpText from "~/components/HelpText";
 import PaginatedList from "~/components/PaginatedList";
 import Scene from "~/components/Scene";
 import Subheading from "~/components/Subheading";
+import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import ShareListItem from "./components/ShareListItem";
 
 function Shares() {
   const team = useCurrentTeam();
   const { t } = useTranslation();
-  const { shares, auth, policies } = useStores();
+  const { shares, auth } = useStores();
   const canShareDocuments = auth.team && auth.team.sharing;
-  const can = policies.abilities(team.id);
+  const can = usePolicy(team.id);
 
   return (
     <Scene title={t("Share Links")} icon={<LinkIcon color="currentColor" />}>
       <Heading>{t("Share Links")}</Heading>
-      <HelpText>
+      <Text type="secondary">
         <Trans>
           Documents that have been shared are listed below. Anyone that has the
           public link can access a read-only version of the document until the
           link has been revoked.
         </Trans>
-      </HelpText>
+      </Text>
       {can.manage && (
-        <HelpText>
+        <Text type="secondary">
           {!canShareDocuments && (
             <strong>{t("Sharing is currently disabled.")}</strong>
           )}{" "}
@@ -41,7 +42,7 @@ function Shares() {
               em: <Link to="/settings/security" />,
             }}
           />
-        </HelpText>
+        </Text>
       )}
       <Subheading>{t("Shared documents")}</Subheading>
       <PaginatedList

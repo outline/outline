@@ -8,6 +8,7 @@ import Bilibili from "./Bilibili";
 import Cawemo from "./Cawemo";
 import ClickUp from "./ClickUp";
 import Codepen from "./Codepen";
+import DBDiagram from "./DBDiagram";
 import Descript from "./Descript";
 import Diagrams from "./Diagrams";
 import Figma from "./Figma";
@@ -114,6 +115,13 @@ const embeds: EmbedDescriptor[] = [
     icon: () => <Img src="/images/codepen.png" alt="Codepen" />,
     component: Codepen,
     matcher: matcher(Codepen),
+  },
+  {
+    title: "DBDiagram",
+    keywords: "diagrams database",
+    icon: () => <Img src="/images/dbdiagram.png" alt="DBDiagram" />,
+    component: DBDiagram,
+    matcher: matcher(DBDiagram),
   },
   {
     title: "Descript",

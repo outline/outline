@@ -10,10 +10,10 @@ import Invite from "~/scenes/Invite";
 import ButtonLink from "~/components/ButtonLink";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
-import HelpText from "~/components/HelpText";
 import Input from "~/components/Input";
 import Modal from "~/components/Modal";
 import PaginatedList from "~/components/PaginatedList";
+import Text from "~/components/Text";
 import withStores from "~/components/withStores";
 import MemberListItem from "./components/MemberListItem";
 
@@ -83,7 +83,7 @@ class AddPeopleToCollection extends React.Component<Props> {
 
     return (
       <Flex column>
-        <HelpText>
+        <Text type="secondary">
           {t("Need to add someone who’s not yet on the team yet?")}{" "}
           <ButtonLink onClick={this.handleInviteModalOpen}>
             {t("Invite people to {{ teamName }}", {
@@ -91,7 +91,7 @@ class AddPeopleToCollection extends React.Component<Props> {
             })}
           </ButtonLink>
           .
-        </HelpText>
+        </Text>
 
         <Input
           type="search"

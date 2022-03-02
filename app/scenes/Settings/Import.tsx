@@ -8,12 +8,12 @@ import getDataTransferFiles from "@shared/utils/getDataTransferFiles";
 import { cdnPath } from "@shared/utils/urls";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
-import HelpText from "~/components/HelpText";
 import Item from "~/components/List/Item";
 import OutlineLogo from "~/components/OutlineLogo";
 import PaginatedList from "~/components/PaginatedList";
 import Scene from "~/components/Scene";
 import Subheading from "~/components/Subheading";
+import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import { uploadFile } from "~/utils/files";
@@ -73,13 +73,13 @@ function Import() {
   return (
     <Scene title={t("Import")} icon={<NewDocumentIcon color="currentColor" />}>
       <Heading>{t("Import")}</Heading>
-      <HelpText>
+      <Text type="secondary">
         <Trans>
           Quickly transfer your existing documents, pages, and files from other
           tools and services into Outline. You can also drag and drop any HTML,
           Markdown, and text documents directly into Collections in the app.
         </Trans>
-      </HelpText>
+      </Text>
       <VisuallyHidden>
         <input
           type="file"

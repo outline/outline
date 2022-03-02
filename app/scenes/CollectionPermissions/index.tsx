@@ -7,12 +7,12 @@ import Collection from "~/models/Collection";
 import Button from "~/components/Button";
 import Divider from "~/components/Divider";
 import Flex from "~/components/Flex";
-import HelpText from "~/components/HelpText";
 import InputSelectPermission from "~/components/InputSelectPermission";
 import Labeled from "~/components/Labeled";
 import Modal from "~/components/Modal";
 import PaginatedList from "~/components/PaginatedList";
 import Switch from "~/components/Switch";
+import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
@@ -205,7 +205,7 @@ function CollectionPermissions({ collection }: Props) {
         value={collection.permission || ""}
         nude
       />
-      <PermissionExplainer small>
+      <PermissionExplainer size="small">
         {!collection.permission && (
           <Trans
             defaults="The <em>{{ collectionName }}</em> collection is private. Team members have no access to it by default."
@@ -349,11 +349,11 @@ function CollectionPermissions({ collection }: Props) {
   );
 }
 
-const Empty = styled(HelpText)`
+const Empty = styled(Text)`
   margin-top: 8px;
 `;
 
-const PermissionExplainer = styled(HelpText)`
+const PermissionExplainer = styled(Text)`
   margin-top: -8px;
   margin-bottom: 24px;
 `;

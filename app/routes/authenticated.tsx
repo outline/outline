@@ -87,7 +87,7 @@ export default function AuthenticatedRoutes() {
             <Route path="/404" component={Error404} />
             <SettingsRoutes />
             <Route component={NotFound} />
-          </Switch>{" "}
+          </Switch>
         </React.Suspense>
       </Layout>
     </SocketProvider>

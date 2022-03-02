@@ -73,6 +73,25 @@ export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
       name: "separator",
     },
     {
+      name: "image",
+      title: dictionary.image,
+      icon: ImageIcon,
+      keywords: "picture photo",
+    },
+    {
+      name: "link",
+      title: dictionary.link,
+      icon: LinkIcon,
+      shortcut: `${metaDisplay} k`,
+      keywords: "link url uri href",
+    },
+    {
+      name: "attachment",
+      title: dictionary.file,
+      icon: AttachmentIcon,
+      keywords: "file upload attach",
+    },
+    {
       name: "table",
       title: dictionary.table,
       icon: TableIcon,
@@ -104,25 +123,6 @@ export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
       icon: PageBreakIcon,
       keywords: "page print break line",
       attrs: { markup: "***" },
-    },
-    {
-      name: "attachment",
-      title: dictionary.file,
-      icon: AttachmentIcon,
-      keywords: "file upload attach",
-    },
-    {
-      name: "image",
-      title: dictionary.image,
-      icon: ImageIcon,
-      keywords: "picture photo",
-    },
-    {
-      name: "link",
-      title: dictionary.link,
-      icon: LinkIcon,
-      shortcut: `${metaDisplay} k`,
-      keywords: "link url uri href",
     },
     {
       name: "separator",

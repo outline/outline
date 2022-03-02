@@ -24,6 +24,7 @@ function MemberMenu({ onRemove }: Props) {
             {
               type: "button",
               title: t("Remove"),
+              dangerous: true,
               onClick: onRemove,
             },
           ]}

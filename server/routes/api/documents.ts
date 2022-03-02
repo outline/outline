@@ -37,6 +37,7 @@ import {
   assertIn,
   assertPresent,
   assertPositiveInteger,
+  assertNotEmpty,
 } from "@server/validation";
 import env from "../../env";
 import pagination from "./middlewares/pagination";
@@ -812,7 +813,7 @@ router.post("documents.search", auth(), pagination(), async (ctx) => {
   const { offset, limit } = ctx.state.pagination;
   const { user } = ctx.state;
 
-  assertPresent(query, "query is required");
+  assertNotEmpty(query, "query is required");
 
   if (collectionId) {
     assertUuid(collectionId, "collectionId must be a UUID");
@@ -1008,7 +1009,6 @@ router.post("documents.update", auth(), async (ctx) => {
   } = ctx.body;
   const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
   assertPresent(id, "id is required");
-  assertPresent(title || text, "title or text is required");
   if (append) {
     assertPresent(text, "Text is required while appending");
   }
@@ -1026,7 +1026,7 @@ router.post("documents.update", auth(), async (ctx) => {
   const previousTitle = document.title;
 
   // Update document
-  if (title) {
+  if (title !== undefined) {
     document.title = title;
   }
   if (editorVersion) {

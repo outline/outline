@@ -1263,6 +1263,17 @@ describe("#documents.search", () => {
     expect(body.data.length).toEqual(0);
   });
 
+  it("should expect a query", async () => {
+    const { user } = await seed();
+    const res = await server.post("/api/documents.search", {
+      body: {
+        token: user.getJwtToken(),
+        query: "   ",
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
   it("should not allow unknown dateFilter values", async () => {
     const { user } = await seed();
     const res = await server.post("/api/documents.search", {

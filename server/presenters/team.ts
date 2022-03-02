@@ -7,6 +7,7 @@ export default function present(team: Team) {
     avatarUrl: team.logoUrl,
     sharing: team.sharing,
     collaborativeEditing: team.collaborativeEditing,
+    defaultCollectionId: team.defaultCollectionId,
     documentEmbeds: team.documentEmbeds,
     guestSignin: team.guestSignin,
     subdomain: team.subdomain,

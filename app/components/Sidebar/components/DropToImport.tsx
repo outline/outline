@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import styled, { css } from "styled-components";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import useImportDocument from "~/hooks/useImportDocument";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 
@@ -19,7 +20,7 @@ type Props = {
 
 function DropToImport({ disabled, children, collectionId, documentId }: Props) {
   const { t } = useTranslation();
-  const { documents, policies } = useStores();
+  const { documents } = useStores();
   const { showToast } = useToasts();
   const { handleFiles, isImporting } = useImportDocument(
     collectionId,
@@ -28,7 +29,7 @@ function DropToImport({ disabled, children, collectionId, documentId }: Props) {
   const targetId = collectionId || documentId;
   invariant(targetId, "Must provide either collectionId or documentId");
 
-  const can = policies.abilities(targetId);
+  const can = usePolicy(targetId);
   const handleRejection = React.useCallback(() => {
     showToast(
       t("Document not supported – try Markdown, Plain text, HTML, or Word"),

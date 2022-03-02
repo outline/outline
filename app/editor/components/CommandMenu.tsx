@@ -619,7 +619,7 @@ export const Wrapper = styled.div<{
   pointer-events: none;
   white-space: nowrap;
   width: 300px;
-  max-height: 224px;
+  max-height: 324px;
   overflow: hidden;
   overflow-y: auto;
 

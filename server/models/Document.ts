@@ -144,19 +144,6 @@ export const DOCUMENT_VERSION = 2;
       ],
     };
   },
-  withStarred: (userId: string) => ({
-    include: [
-      {
-        model: Star,
-        as: "starred",
-        where: {
-          userId,
-        },
-        required: false,
-        separate: true,
-      },
-    ],
-  }),
 }))
 @Table({ tableName: "documents", modelName: "document" })
 @Fix
@@ -365,21 +352,13 @@ class Document extends ParanoidModel {
   views: View[];
 
   static defaultScopeWithUser(userId: string) {
-    const starredScope: Readonly<ScopeOptions> = {
-      method: ["withStarred", userId],
-    };
     const collectionScope: Readonly<ScopeOptions> = {
       method: ["withCollection", userId],
     };
     const viewScope: Readonly<ScopeOptions> = {
       method: ["withViews", userId],
     };
-    return this.scope([
-      "defaultScope",
-      starredScope,
-      collectionScope,
-      viewScope,
-    ]);
+    return this.scope(["defaultScope", collectionScope, viewScope]);
   }
 
   static async findByPk(

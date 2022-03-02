@@ -13,8 +13,7 @@ function PlaceholderCollections() {
 }
 
 const Wrapper = styled.div`
-  margin: 4px 16px;
-  margin-left: 40px;
+  margin: 4px 12px;
   width: 75%;
 `;
 

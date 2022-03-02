@@ -73,13 +73,24 @@ const ContentEditable = React.forwardRef(
       if (autoFocus) {
         ref.current?.focus();
       }
-    });
+    }, [autoFocus, ref]);
 
     React.useEffect(() => {
       if (value !== ref.current?.innerText) {
         setInnerValue(value);
       }
     }, [value, ref]);
+
+    // Ensure only plain text can be pasted into title when pasting from another
+    // rich text editor
+    const handlePaste = React.useCallback(
+      (event: React.ClipboardEvent<HTMLSpanElement>) => {
+        event.preventDefault();
+        const text = event.clipboardData.getData("text/plain");
+        window.document.execCommand("insertText", false, text);
+      },
+      []
+    );
 
     return (
       <div className={className} dir={dir} onClick={onClick}>
@@ -89,6 +100,7 @@ const ContentEditable = React.forwardRef(
           onInput={wrappedEvent(onInput)}
           onBlur={wrappedEvent(onBlur)}
           onKeyDown={wrappedEvent(onKeyDown)}
+          onPaste={handlePaste}
           data-placeholder={placeholder}
           suppressContentEditableWarning
           role="textbox"
@@ -103,6 +115,14 @@ const ContentEditable = React.forwardRef(
 );
 
 const Content = styled.span`
+  background: ${(props) => props.theme.background};
+  transition: ${(props) => props.theme.backgroundTransition};
+  color: ${(props) => props.theme.text};
+  -webkit-text-fill-color: ${(props) => props.theme.text};
+  outline: none;
+  resize: none;
+  cursor: text;
+
   &:empty {
     display: inline-block;
   }

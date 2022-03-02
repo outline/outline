@@ -8,13 +8,14 @@ import { Role } from "@shared/types";
 import Button from "~/components/Button";
 import CopyToClipboard from "~/components/CopyToClipboard";
 import Flex from "~/components/Flex";
-import HelpText from "~/components/HelpText";
 import Input from "~/components/Input";
 import InputSelectRole from "~/components/InputSelectRole";
 import NudeButton from "~/components/NudeButton";
+import Text from "~/components/Text";
 import Tooltip from "~/components/Tooltip";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 
@@ -50,13 +51,13 @@ function Invite({ onSubmit }: Props) {
       role: "member",
     },
   ]);
-  const { users, policies } = useStores();
+  const { users } = useStores();
   const { showToast } = useToasts();
   const user = useCurrentUser();
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const predictedDomain = user.email.split("@")[1];
-  const can = policies.abilities(team.id);
+  const can = usePolicy(team.id);
 
   const handleSubmit = React.useCallback(
     async (ev: React.SyntheticEvent) => {
@@ -141,16 +142,16 @@ function Invite({ onSubmit }: Props) {
   return (
     <form onSubmit={handleSubmit}>
       {team.guestSignin ? (
-        <HelpText>
+        <Text type="secondary">
           <Trans
             defaults="Invite team members or guests to join your knowledge base. Team members can sign in with {{signinMethods}} or use their email address."
             values={{
               signinMethods: team.signinMethods,
             }}
           />
-        </HelpText>
+        </Text>
       ) : (
-        <HelpText>
+        <Text type="secondary">
           <Trans
             defaults="Invite team members to join your knowledge base. They will need to sign in with {{signinMethods}}."
             values={{
@@ -163,7 +164,7 @@ function Invite({ onSubmit }: Props) {
               <Link to="/settings/security">enable email sign-in</Link>.
             </Trans>
           )}
-        </HelpText>
+        </Text>
       )}
       {team.subdomain && (
         <CopyBlock>

@@ -4,7 +4,7 @@ import { useTranslation, Trans } from "react-i18next";
 import Collection from "~/models/Collection";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
-import HelpText from "~/components/HelpText";
+import Text from "~/components/Text";
 import useToasts from "~/hooks/useToasts";
 
 type Props = {
@@ -35,7 +35,7 @@ function CollectionExport({ collection, onSubmit }: Props) {
   return (
     <Flex column>
       <form onSubmit={handleSubmit}>
-        <HelpText>
+        <Text type="secondary">
           <Trans
             defaults="Exporting the collection <em>{{collectionName}}</em> may take a few seconds. Your documents will be a zip of folders with files in Markdown format. Please visit the Export section on settings to get the zip."
             values={{
@@ -45,7 +45,7 @@ function CollectionExport({ collection, onSubmit }: Props) {
               em: <strong />,
             }}
           />
-        </HelpText>
+        </Text>
         <Button type="submit" disabled={isLoading} primary>
           {isLoading ? `${t("Exporting")}…` : t("Export Collection")}
         </Button>

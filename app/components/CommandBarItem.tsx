@@ -32,7 +32,7 @@ function CommandBarItem(
 
   return (
     <Item active={active} ref={ref}>
-      <Text align="center" gap={8}>
+      <Content align="center" gap={8}>
         <Icon>
           {action.icon ? (
             // @ts-expect-error no icon on ActionImpl
@@ -53,7 +53,7 @@ function CommandBarItem(
         ))}
         {action.name}
         {action.children?.length ? "…" : ""}
-      </Text>
+      </Content>
       {action.shortcut?.length ? (
         <div
           style={{
@@ -84,7 +84,7 @@ const Ancestor = styled.span`
   color: ${(props) => props.theme.textSecondary};
 `;
 
-const Text = styled(Flex)`
+const Content = styled(Flex)`
   overflow: hidden;
   text-overflow: ellipsis;
   flex-shrink: 1;
