@@ -2,7 +2,7 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { m } from "framer-motion";
 import { observer } from "mobx-react";
-import { CloseIcon, DocumentIcon } from "outline-icons";
+import { CloseIcon, DocumentIcon, ClockIcon } from "outline-icons";
 import { getLuminance, transparentize } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -10,11 +10,12 @@ import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
 import Document from "~/models/Document";
 import Pin from "~/models/Pin";
-import DocumentMeta from "~/components/DocumentMeta";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
+import Time from "~/components/Time";
 import useStores from "~/hooks/useStores";
 import CollectionIcon from "./CollectionIcon";
+import Text from "./Text";
 import Tooltip from "./Tooltip";
 
 type Props = {
@@ -96,8 +97,10 @@ function DocumentCard(props: Props) {
             )}
             <div>
               <Heading dir={document.dir}>{document.titleWithDefault}</Heading>
-
-              <StyledDocumentMeta document={document} />
+              <DocumentMeta size="xsmall">
+                <ClockIcon color="currentColor" size={18} />{" "}
+                <Time dateTime={document.updatedAt} addSuffix shorten />
+              </DocumentMeta>
             </div>
           </Content>
         </DocumentLink>
@@ -183,8 +186,12 @@ const Content = styled(Flex)`
   z-index: 1;
 `;
 
-const StyledDocumentMeta = styled(DocumentMeta)`
-  color: ${(props) => transparentize(0.25, props.theme.white)} !important;
+const DocumentMeta = styled(Text)`
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  color: ${(props) => transparentize(0.25, props.theme.white)};
+  margin: 0;
 `;
 
 const DocumentLink = styled(Link)<{

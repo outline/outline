@@ -150,10 +150,11 @@ export const duplicateDocument = createAction({
  * Pin a document to a collection. Pinned documents will be displayed at the top
  * of the collection for all collection members to see.
  */
-export const pinDocument = createAction({
+export const pinDocumentToCollection = createAction({
   name: ({ t }) => t("Pin to collection"),
   section: DocumentSection,
   icon: <PinIcon />,
+  iconInContextMenu: false,
   visible: ({ activeCollectionId, activeDocumentId, stores }) => {
     if (!activeDocumentId || !activeCollectionId) {
       return false;
@@ -188,6 +189,7 @@ export const pinDocumentToHome = createAction({
   name: ({ t }) => t("Pin to home"),
   section: DocumentSection,
   icon: <PinIcon />,
+  iconInContextMenu: false,
   visible: ({ activeDocumentId, currentTeamId, stores }) => {
     if (!currentTeamId || !activeDocumentId) {
       return false;
@@ -212,6 +214,13 @@ export const pinDocumentToHome = createAction({
       stores.toasts.showToast(t("Pinned to team home"));
     }
   },
+});
+
+export const pinDocument = createAction({
+  name: ({ t }) => t("Pin"),
+  section: DocumentSection,
+  icon: <PinIcon />,
+  children: [pinDocumentToCollection, pinDocumentToHome],
 });
 
 export const printDocument = createAction({
@@ -319,6 +328,6 @@ export const rootDocumentActions = [
   unstarDocument,
   duplicateDocument,
   printDocument,
-  pinDocument,
+  pinDocumentToCollection,
   pinDocumentToHome,
 ];

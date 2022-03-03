@@ -23,14 +23,16 @@ export default class ExportsProcessor {
         invariant(fileOperation, "fileOperation not found");
 
         const collectionIds =
-          "collectionId" in event
+          "collectionId" in event && event.collectionId
             ? event.collectionId
             : await user.collectionIds();
+
         const collections = await Collection.findAll({
           where: {
             id: collectionIds,
           },
         });
+
         this.updateFileOperation(fileOperation, actorId, teamId, {
           state: "creating",
         });

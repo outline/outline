@@ -22,6 +22,7 @@ import Header from "~/components/Header";
 import InputSearch from "~/components/InputSearch";
 import Tooltip from "~/components/Tooltip";
 import useMobile from "~/hooks/useMobile";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
 import NewChildDocumentMenu from "~/menus/NewChildDocumentMenu";
@@ -74,7 +75,7 @@ function DocumentHeader({
   headings,
 }: Props) {
   const { t } = useTranslation();
-  const { ui, policies, auth } = useStores();
+  const { ui, auth } = useStores();
   const { resolvedTheme } = ui;
   const { team } = auth;
   const isMobile = useMobile();
@@ -98,7 +99,7 @@ function DocumentHeader({
   }, [onSave]);
 
   const { isDeleted, isTemplate } = document;
-  const can = policies.abilities(document.id);
+  const can = usePolicy(document.id);
   const canToggleEmbeds = team?.documentEmbeds;
   const canEdit = can.update && !isEditing;
   const toc = (

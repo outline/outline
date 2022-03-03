@@ -5,6 +5,7 @@ import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
+import styled from "styled-components";
 import { PAGINATION_SYMBOL } from "~/stores/BaseStore";
 import User from "~/models/User";
 import Invite from "~/scenes/Invite";
@@ -12,18 +13,19 @@ import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
-import HelpText from "~/components/HelpText";
 import InputSearch from "~/components/InputSearch";
 import Modal from "~/components/Modal";
 import Scene from "~/components/Scene";
+import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import usePolicy from "~/hooks/usePolicy";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import PeopleTable from "./components/PeopleTable";
 import UserStatusFilter from "./components/UserStatusFilter";
 
-function People() {
+function Members() {
   const topRef = React.useRef();
   const location = useLocation();
   const history = useHistory();
@@ -33,14 +35,14 @@ function People() {
     handleInviteModalClose,
   ] = useBoolean();
   const team = useCurrentTeam();
-  const { users, policies } = useStores();
+  const { users } = useStores();
   const { t } = useTranslation();
   const params = useQuery();
   const [isLoading, setIsLoading] = React.useState(false);
   const [data, setData] = React.useState<User[]>([]);
   const [totalPages, setTotalPages] = React.useState(0);
   const [userIds, setUserIds] = React.useState<string[]>([]);
-  const can = policies.abilities(team.id);
+  const can = usePolicy(team.id);
   const query = params.get("query") || "";
   const filter = params.get("filter") || "";
   const sort = params.get("sort") || "name";
@@ -209,13 +211,13 @@ function People() {
       }
     >
       <Heading>{t("Members")}</Heading>
-      <HelpText>
+      <Text type="secondary">
         <Trans>
           Everyone that has signed into Outline appears here. It’s possible that
           there are other users who have access through {team.signinMethods} but
           haven’t signed in yet.
         </Trans>
-      </HelpText>
+      </Text>
       <Flex gap={8}>
         <InputSearch
           short
@@ -223,7 +225,7 @@ function People() {
           placeholder={`${t("Filter")}…`}
           onChange={handleSearch}
         />
-        <UserStatusFilter activeKey={filter} onSelect={handleFilter} />
+        <LargeUserStatusFilter activeKey={filter} onSelect={handleFilter} />
       </Flex>
       <PeopleTable
         topRef={topRef}
@@ -249,4 +251,8 @@ function People() {
   );
 }
 
-export default observer(People);
+const LargeUserStatusFilter = styled(UserStatusFilter)`
+  height: 32px;
+`;
+
+export default observer(Members);

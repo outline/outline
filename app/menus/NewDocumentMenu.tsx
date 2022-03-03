@@ -2,18 +2,23 @@ import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
 import { MenuButton, useMenuState } from "reakit/Menu";
 import styled from "styled-components";
+import Collection from "~/models/Collection";
 import Button from "~/components/Button";
 import CollectionIcon from "~/components/CollectionIcon";
 import ContextMenu from "~/components/ContextMenu";
 import Header from "~/components/ContextMenu/Header";
 import Template from "~/components/ContextMenu/Template";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { MenuItem } from "~/types";
 import { newDocumentPath } from "~/utils/routeHelpers";
+
+const ColorCollectionIcon = ({ collection }: { collection: Collection }) => {
+  return <CollectionIcon collection={collection} />;
+};
 
 function NewDocumentMenu() {
   const menu = useMenuState({
@@ -22,7 +27,7 @@ function NewDocumentMenu() {
   const { t } = useTranslation();
   const team = useCurrentTeam();
   const { collections, policies } = useStores();
-  const can = policies.abilities(team.id);
+  const can = usePolicy(team.id);
   const items = React.useMemo(
     () =>
       collections.orderedData.reduce<MenuItem[]>((filtered, collection) => {
@@ -33,7 +38,7 @@ function NewDocumentMenu() {
             type: "route",
             to: newDocumentPath(collection.id),
             title: <CollectionName>{collection.name}</CollectionName>,
-            icon: <CollectionIcon collection={collection} />,
+            icon: <ColorCollectionIcon collection={collection} />,
           });
         }
 
@@ -42,27 +47,15 @@ function NewDocumentMenu() {
     [collections.orderedData, policies]
   );
 
-  if (!can.createDocument || items.length === 0) {
+  if (!can.createDocument) {
     return null;
-  }
-
-  if (items.length === 1) {
-    return (
-      <Button
-        as={Link}
-        to={items[0].type === "route" ? items[0].to : undefined}
-        icon={<PlusIcon />}
-      >
-        {t("New doc")}
-      </Button>
-    );
   }
 
   return (
     <>
       <MenuButton {...menu}>
         {(props) => (
-          <Button icon={<PlusIcon />} {...props}>
+          <Button icon={<PlusIcon />} disabled={items.length === 0} {...props}>
             {`${t("New doc")}…`}
           </Button>
         )}

@@ -41,7 +41,7 @@ export default class Notice extends Node {
         {
           tag: "div.notice-block",
           preserveWhitespace: "full",
-          contentElement: "div:last-child",
+          contentElement: "div.content",
           getAttrs: (dom: HTMLDivElement) => ({
             style: dom.className.includes("tip")
               ? "tip"

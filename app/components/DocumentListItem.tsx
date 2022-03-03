@@ -12,12 +12,13 @@ import DocumentMeta from "~/components/DocumentMeta";
 import EventBoundary from "~/components/EventBoundary";
 import Flex from "~/components/Flex";
 import Highlight from "~/components/Highlight";
+import NudeButton from "~/components/NudeButton";
 import StarButton, { AnimatedStar } from "~/components/Star";
 import Tooltip from "~/components/Tooltip";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import useStores from "~/hooks/useStores";
+import usePolicy from "~/hooks/usePolicy";
 import DocumentMenu from "~/menus/DocumentMenu";
 import { hover } from "~/styles";
 import { newDocumentPath } from "~/utils/routeHelpers";
@@ -46,7 +47,6 @@ function DocumentListItem(
   ref: React.RefObject<HTMLAnchorElement>
 ) {
   const { t } = useTranslation();
-  const { policies } = useStores();
   const currentUser = useCurrentUser();
   const currentTeam = useCurrentTeam();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
@@ -67,8 +67,8 @@ function DocumentListItem(
     !!document.title.toLowerCase().includes(highlight.toLowerCase());
   const canStar =
     !document.isDraft && !document.isArchived && !document.isTemplate;
-  const can = policies.abilities(currentTeam.id);
-  const canCollection = policies.abilities(document.collectionId);
+  const can = usePolicy(currentTeam.id);
+  const canCollection = usePolicy(document.collectionId);
 
   return (
     <DocumentLink
@@ -171,6 +171,13 @@ const Actions = styled(EventBoundary)`
   margin: 8px;
   flex-shrink: 0;
   flex-grow: 0;
+
+  ${NudeButton} {
+    &:hover,
+    &[aria-expanded="true"] {
+      background: ${(props) => props.theme.sidebarControlHoverBackground};
+    }
+  }
 
   ${breakpoint("tablet")`
     display: flex;

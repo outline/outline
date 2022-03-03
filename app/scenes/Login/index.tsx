@@ -6,14 +6,15 @@ import { Trans, useTranslation } from "react-i18next";
 import { useLocation, Link, Redirect } from "react-router-dom";
 import styled from "styled-components";
 import { setCookie } from "tiny-cookie";
+import { Config } from "~/stores/AuthStore";
 import ButtonLarge from "~/components/ButtonLarge";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
-import HelpText from "~/components/HelpText";
 import OutlineLogo from "~/components/OutlineLogo";
 import PageTitle from "~/components/PageTitle";
 import TeamLogo from "~/components/TeamLogo";
+import Text from "~/components/Text";
 import env from "~/env";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
@@ -22,8 +23,7 @@ import { changeLanguage, detectLanguage } from "~/utils/language";
 import Notices from "./Notices";
 import Provider from "./Provider";
 
-// @ts-expect-error ts-migrate(7031) FIXME: Binding element 'config' implicitly has an 'any' t... Remove this comment to see the full error message
-function Header({ config }) {
+function Header({ config }: { config: Config }) {
   const { t } = useTranslation();
   const isHosted = env.DEPLOYMENT === "hosted";
   const isSubdomain = !!config.hostname;
@@ -83,6 +83,10 @@ function Login() {
       setCookie("signupQueryParams", JSON.stringify(entries));
     }
   }, [query]);
+
+  if (auth.authenticated && auth.team?.defaultCollectionId) {
+    return <Redirect to={`/collection/${auth.team?.defaultCollectionId}`} />;
+  }
 
   if (auth.authenticated) {
     return <Redirect to="/home" />;
@@ -217,12 +221,12 @@ const Logo = styled.div`
   height: 38px;
 `;
 
-const GetStarted = styled(HelpText)`
+const GetStarted = styled(Text)`
   text-align: center;
   margin-top: -12px;
 `;
 
-const Note = styled(HelpText)`
+const Note = styled(Text)`
   text-align: center;
   font-size: 14px;
 

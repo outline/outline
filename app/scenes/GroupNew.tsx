@@ -5,9 +5,9 @@ import Group from "~/models/Group";
 import GroupMembers from "~/scenes/GroupMembers";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
-import HelpText from "~/components/HelpText";
 import Input from "~/components/Input";
 import Modal from "~/components/Modal";
+import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 
@@ -52,13 +52,13 @@ function GroupNew({ onSubmit }: Props) {
   return (
     <>
       <form onSubmit={handleSubmit}>
-        <HelpText>
+        <Text type="secondary">
           <Trans>
             Groups are for organizing your team. They work best when centered
             around a function or a responsibility — Support or Engineering for
             example.
           </Trans>
-        </HelpText>
+        </Text>
         <Flex>
           <Input
             type="text"
@@ -70,9 +70,9 @@ function GroupNew({ onSubmit }: Props) {
             flex
           />
         </Flex>
-        <HelpText>
+        <Text type="secondary">
           <Trans>You’ll be able to add people to the group next.</Trans>
-        </HelpText>
+        </Text>
 
         <Button type="submit" disabled={isSaving || !name}>
           {isSaving ? `${t("Creating")}…` : t("Continue")}

@@ -11,6 +11,7 @@ type Props = {
   children?: React.ReactNode;
   selected?: boolean;
   disabled?: boolean;
+  dangerous?: boolean;
   to?: string;
   href?: string;
   target?: "_blank";
@@ -92,7 +93,11 @@ const Spacer = styled.svg`
   flex-shrink: 0;
 `;
 
-export const MenuAnchorCSS = css<{ level?: number; disabled?: boolean }>`
+export const MenuAnchorCSS = css<{
+  level?: number;
+  disabled?: boolean;
+  dangerous?: boolean;
+}>`
   display: flex;
   margin: 0;
   border: 0;
@@ -128,7 +133,7 @@ export const MenuAnchorCSS = css<{ level?: number; disabled?: boolean }>`
   &:focus,
   &.focus-visible {
     color: ${props.theme.white};
-    background: ${props.theme.primary};
+    background: ${props.dangerous ? props.theme.danger : props.theme.primary};
     box-shadow: none;
     cursor: pointer;
 

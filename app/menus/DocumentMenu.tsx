@@ -40,12 +40,10 @@ import Flex from "~/components/Flex";
 import Modal from "~/components/Modal";
 import Switch from "~/components/Switch";
 import { actionToMenuItem } from "~/actions";
-import {
-  pinDocument,
-  pinDocumentToHome,
-} from "~/actions/definitions/documents";
+import { pinDocument } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import { MenuItem } from "~/types";
@@ -177,7 +175,7 @@ function DocumentMenu({
   );
 
   const collection = collections.get(document.collectionId);
-  const can = policies.abilities(document.id);
+  const can = usePolicy(document.id);
   const canViewHistory = can.read && !can.restore;
   const restoreItems = React.useMemo(
     () => [
@@ -328,7 +326,6 @@ function DocumentMenu({
               visible: !document.isStarred && !!can.star,
               icon: <StarredIcon />,
             },
-            actionToMenuItem(pinDocumentToHome, context),
             actionToMenuItem(pinDocument, context),
             {
               type: "separator",
@@ -387,7 +384,15 @@ function DocumentMenu({
             },
             {
               type: "button",
+              title: `${t("Move")}…`,
+              onClick: () => setShowMoveModal(true),
+              visible: !!can.move,
+              icon: <MoveIcon />,
+            },
+            {
+              type: "button",
               title: `${t("Delete")}…`,
+              dangerous: true,
               onClick: () => setShowDeleteModal(true),
               visible: !!can.delete,
               icon: <TrashIcon />,
@@ -395,16 +400,10 @@ function DocumentMenu({
             {
               type: "button",
               title: `${t("Permanently delete")}…`,
+              dangerous: true,
               onClick: () => setShowPermanentDeleteModal(true),
               visible: can.permanentDelete,
               icon: <CrossIcon />,
-            },
-            {
-              type: "button",
-              title: `${t("Move")}…`,
-              onClick: () => setShowMoveModal(true),
-              visible: !!can.move,
-              icon: <MoveIcon />,
             },
             {
               type: "button",

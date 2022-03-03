@@ -4,13 +4,48 @@ import {
   Selection,
   AllSelection,
   TextSelection,
+  EditorState,
 } from "prosemirror-state";
-import Extension from "../lib/Extension";
-import isModKey from "../lib/isModKey";
+import Extension, { Command } from "../lib/Extension";
+import isInCode from "../queries/isInCode";
 
 export default class Keys extends Extension {
   get name() {
     return "keys";
+  }
+
+  keys(): Record<string, Command> {
+    const onCancel = () => {
+      if (this.options.onCancel) {
+        this.options.onCancel();
+        return true;
+      }
+      return false;
+    };
+
+    return {
+      // No-ops prevent Tab escaping the editor bounds
+      Tab: () => true,
+      "Shift-Tab": () => true,
+
+      // Shortcuts for when editor has separate edit mode
+      "Mod-Escape": onCancel,
+      "Shift-Escape": onCancel,
+      "Mod-s": () => {
+        if (this.options.onSave) {
+          this.options.onSave();
+          return true;
+        }
+        return false;
+      },
+      "Mod-Enter": (state: EditorState) => {
+        if (!isInCode(state) && this.options.onSaveAndExit) {
+          this.options.onSaveAndExit();
+          return true;
+        }
+        return false;
+      },
+    };
   }
 
   get plugins() {
@@ -57,29 +92,6 @@ export default class Keys extends Extension {
                 );
                 return true;
               }
-            }
-
-            // All the following keys require mod to be down
-            if (!isModKey(event)) {
-              return false;
-            }
-
-            if (event.key === "s") {
-              event.preventDefault();
-              this.options.onSave();
-              return true;
-            }
-
-            if (event.key === "Enter") {
-              event.preventDefault();
-              this.options.onSaveAndExit();
-              return true;
-            }
-
-            if (event.key === "Escape") {
-              event.preventDefault();
-              this.options.onCancel();
-              return true;
             }
 
             return false;

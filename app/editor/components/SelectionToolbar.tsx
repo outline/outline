@@ -44,10 +44,10 @@ function isVisible(props: Props) {
   const { view } = props;
   const { selection } = view.state;
 
-  if (!selection) {
-    return false;
+  if (isMarkActive(view.state.schema.marks.link)(view.state)) {
+    return true;
   }
-  if (selection.empty) {
+  if (!selection || selection.empty) {
     return false;
   }
   if (selection instanceof NodeSelection && selection.node.type.name === "hr") {
@@ -232,7 +232,7 @@ export default class SelectionToolbar extends React.Component<Props> {
       state.selection.to
     ).textContent;
 
-    if (isTextSelection && !selectionText) {
+    if (isTextSelection && !selectionText && !link) {
       return null;
     }
 

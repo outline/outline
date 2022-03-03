@@ -15,11 +15,12 @@ import Tab from "~/components/Tab";
 import Tabs from "~/components/Tabs";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import NewDocumentMenu from "~/menus/NewDocumentMenu";
 
 function Home() {
-  const { documents, pins, policies, ui } = useStores();
+  const { documents, pins, ui } = useStores();
   const team = useCurrentTeam();
   const user = useCurrentUser();
   const userId = user?.id;
@@ -29,7 +30,7 @@ function Home() {
     pins.fetchPage();
   }, [pins]);
 
-  const canManageTeam = policies.abilities(team.id).manage;
+  const canManageTeam = usePolicy(team.id).manage;
 
   return (
     <Scene

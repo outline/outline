@@ -1,10 +1,16 @@
 import styled from "styled-components";
 
-const Key = styled.kbd`
+type Props = {
+  /* Set to true if displaying a single symbol character to disable monospace */
+  symbol?: boolean;
+};
+
+const Key = styled.kbd<Props>`
   display: inline-block;
   padding: 4px 6px;
-  font: 11px "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier,
-    monospace;
+  font-size: 11px;
+  font-family: ${(props) =>
+    props.symbol ? props.theme.fontFamily : props.theme.fontFamilyMono};
   line-height: 10px;
   color: ${(props) => props.theme.almostBlack};
   vertical-align: middle;

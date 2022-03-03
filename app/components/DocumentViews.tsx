@@ -61,7 +61,6 @@ function DocumentViews({ document, isOpen }: Props) {
                 subtitle={subtitle}
                 image={<Avatar key={item.id} src={item.avatarUrl} size={32} />}
                 border={false}
-                compact
                 small
               />
             );

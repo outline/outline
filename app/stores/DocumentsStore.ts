@@ -142,7 +142,12 @@ export default class DocumentsStore extends BaseStore<Document> {
       return [];
     }
 
-    return compact(collection.documents.map((node) => this.get(node.id)));
+    const drafts = this.drafts({ collectionId });
+
+    return compact([
+      ...drafts,
+      ...collection.documents.map((node) => this.get(node.id)),
+    ]);
   }
 
   leastRecentlyUpdatedInCollection(collectionId: string): Document[] {

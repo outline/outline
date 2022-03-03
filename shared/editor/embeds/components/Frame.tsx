@@ -3,8 +3,9 @@ import { observer } from "mobx-react";
 import { OpenIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
+import { Optional } from "utility-types";
 
-type Props = React.HTMLAttributes<HTMLIFrameElement> & {
+type Props = Omit<Optional<HTMLIFrameElement>, "children"> & {
   src?: string;
   border?: boolean;
   title?: string;
@@ -53,6 +54,7 @@ class Frame extends React.Component<PropsWithRef> {
       title,
       canonicalUrl,
       isSelected,
+      referrerPolicy,
       src,
     } = this.props;
     const withBar = !!(icon || canonicalUrl);
@@ -76,6 +78,7 @@ class Frame extends React.Component<PropsWithRef> {
             title="embed"
             loading="lazy"
             src={src}
+            referrerPolicy={referrerPolicy}
             allowFullScreen
           />
         )}

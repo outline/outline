@@ -36,8 +36,10 @@ export const assertSort = (
   }
 };
 
-export const assertNotEmpty = (value: unknown, message?: string) => {
-  if (value === "") {
+export const assertNotEmpty = (value: unknown, message: string) => {
+  assertPresent(value, message);
+
+  if (typeof value === "string" && value.trim() === "") {
     throw ValidationError(message);
   }
 };
