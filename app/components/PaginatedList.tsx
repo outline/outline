@@ -14,7 +14,9 @@ import { dateToHeading } from "~/utils/dates";
 
 type Props = WithTranslation &
   RootStore & {
-    fetch?: (options: Record<string, any> | null | undefined) => Promise<any>;
+    fetch?: (
+      options: Record<string, any> | null | undefined
+    ) => Promise<any> | undefined;
     options?: Record<string, any>;
     heading?: React.ReactNode;
     empty?: React.ReactNode;
@@ -26,8 +28,6 @@ type Props = WithTranslation &
 
 @observer
 class PaginatedList extends React.Component<Props> {
-  // isInitiallyLoaded = !!this.props.items?.length;
-
   @observable
   isFetchingMore = false;
 
@@ -79,8 +79,6 @@ class PaginatedList extends React.Component<Props> {
       offset: this.offset,
       ...this.props.options,
     });
-
-    console.log({ results });
 
     if (results && (results.length === 0 || results.length < limit)) {
       console.log("no more results");

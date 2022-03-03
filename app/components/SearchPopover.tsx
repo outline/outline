@@ -1,3 +1,4 @@
+import debounce from "lodash/debounce";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -24,14 +25,17 @@ function SearchPopover({ shareId }: Props) {
     modal: true,
   });
 
-  const searchFunction = React.useCallback(
-    async ({ query, ...options }: Record<string, any>) => {
-      if (query?.length > 0) {
-        return await documents.search(query, options);
-      }
-      return undefined;
-    },
-    [documents]
+  const searchFunction = React.useMemo(
+    () =>
+      debounce(async ({ query, ...options }: Record<string, any>) => {
+        console.log({ query });
+
+        if (query?.length > 0) {
+          return await documents.search(query, options);
+        }
+        return undefined;
+      }, 1000),
+    []
   );
 
   const [query, setQuery] = React.useState("");
@@ -39,13 +43,14 @@ function SearchPopover({ shareId }: Props) {
 
   // TODO: debounce the search function
   // TODO: get all the keyboard stuff right
-  // TODO: keep old search results when changing the query
 
   // TODO: render the items in a way that looks good, probably with HTML
   // TODO: scope the search by the shareId
   // TODO write tests for that
 
   // TODO think about shrinking the context preview
+  // TODO: keep old search results when changing the query — will require debounce + incrementer to tick the result set number
+  // update search results on a tick, and only display when ticked up (call inside useEffect)
 
   // right now I'm making a closure but could shim it into a function with one object argument
 
@@ -97,6 +102,7 @@ function SearchPopover({ shareId }: Props) {
           loading={<PlaceholderList count={3} header={{ height: 20 }} />}
           renderItem={(item) => (
             <SearchListItem
+              key={item.id}
               document={item.document}
               context={item.context}
               highlight={query}
