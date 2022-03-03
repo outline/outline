@@ -3,7 +3,6 @@ import { observer } from "mobx-react";
 import { useState } from "react";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
-import { useHistory } from "react-router-dom";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import IconPicker from "~/components/IconPicker";
@@ -29,7 +28,6 @@ const CollectionEdit = ({ collectionId, onSubmit }: Props) => {
     field: string;
     direction: "asc" | "desc";
   }>(collection.sort);
-  const history = useHistory();
   const [isSaving, setIsSaving] = useState(false);
   const { showToast } = useToasts();
   const { t } = useTranslation();
@@ -46,7 +44,6 @@ const CollectionEdit = ({ collectionId, onSubmit }: Props) => {
           color,
           sort,
         });
-        history.push(collection.url);
         onSubmit();
         showToast(t("The collection was updated"), {
           type: "success",
@@ -59,7 +56,7 @@ const CollectionEdit = ({ collectionId, onSubmit }: Props) => {
         setIsSaving(false);
       }
     },
-    [collection, history, color, icon, name, onSubmit, showToast, sort, t]
+    [collection, color, icon, name, onSubmit, showToast, sort, t]
   );
 
   const handleSortChange = (value: string) => {

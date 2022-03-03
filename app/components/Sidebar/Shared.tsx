@@ -15,7 +15,7 @@ type Props = {
 };
 
 function SharedSidebar({ rootNode, shareId }: Props) {
-  const { documents } = useStores();
+  const { ui, documents } = useStores();
 
   return (
     <Sidebar>
@@ -29,6 +29,7 @@ function SharedSidebar({ rootNode, shareId }: Props) {
             shareId={shareId}
             depth={1}
             node={rootNode}
+            activeDocumentId={ui.activeDocumentId}
             activeDocument={documents.active}
           />
         </Section>
