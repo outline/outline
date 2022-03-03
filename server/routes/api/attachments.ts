@@ -135,7 +135,7 @@ router.post("attachments.redirect", auth(), async (ctx) => {
     const accessUrl = await getSignedUrl(attachment.key);
     ctx.redirect(accessUrl);
   } else {
-    ctx.redirect(attachment.url);
+    ctx.redirect(attachment.canonicalUrl);
   }
 });
 
