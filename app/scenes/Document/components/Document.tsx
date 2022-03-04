@@ -416,8 +416,10 @@ class DocumentScene extends React.Component<Props> {
         this.editor.current.getHeadings()
       : [];
 
+    const hasHeadings = headings.length > 0;
     const showContents =
-      ui.tocVisible && (readOnly || team?.collaborativeEditing);
+      ui.tocVisible &&
+      ((readOnly && hasHeadings) || team?.collaborativeEditing);
     const collaborativeEditing =
       team?.collaborativeEditing &&
       !document.isArchived &&
@@ -509,6 +511,7 @@ class DocumentScene extends React.Component<Props> {
             )}
             <Header
               document={document}
+              documentHasHeadings={hasHeadings}
               shareId={shareId}
               isRevision={!!revision}
               isDraft={document.isDraft}
