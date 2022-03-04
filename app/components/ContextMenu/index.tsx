@@ -56,15 +56,12 @@ export default function ContextMenu({
   const setIsMenuOpen = useSidebar();
 
   React.useEffect(() => {
-    if (ui.sidebarCollapsed && setIsMenuOpen) {
-      rest.visible ? setIsMenuOpen(true) : setIsMenuOpen(false);
-    }
-  }, [rest.visible, setIsMenuOpen, ui]);
-
-  React.useEffect(() => {
     if (rest.visible && !previousVisible) {
       if (onOpen) {
         onOpen();
+      }
+      if (ui.sidebarCollapsed && setIsMenuOpen) {
+        setIsMenuOpen((prev) => prev + 1);
       }
     }
 
@@ -72,8 +69,18 @@ export default function ContextMenu({
       if (onClose) {
         onClose();
       }
+      if (ui.sidebarCollapsed && setIsMenuOpen) {
+        setIsMenuOpen((prev) => prev - 1);
+      }
     }
-  }, [onOpen, onClose, previousVisible, rest.visible]);
+  }, [
+    onOpen,
+    onClose,
+    previousVisible,
+    rest.visible,
+    ui.sidebarCollapsed,
+    setIsMenuOpen,
+  ]);
 
   // Perf win – don't render anything until the menu has been opened
   if (!rest.visible && !previousVisible) {

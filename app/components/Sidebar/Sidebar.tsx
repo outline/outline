@@ -22,14 +22,14 @@ type Props = {
 const Sidebar = React.forwardRef<HTMLDivElement, Props>(
   ({ children }: Props, ref: React.RefObject<HTMLDivElement>) => {
     const [isCollapsing, setCollapsing] = React.useState(false);
-    const [isMenuOpen, setIsMenuOpen] = React.useState(false);
+    const [openMenus, setOpenMenus] = React.useState(0);
     const theme = useTheme();
     const { t } = useTranslation();
     const { ui } = useStores();
     const location = useLocation();
     const previousLocation = usePrevious(location);
     const width = ui.sidebarWidth;
-    const collapsed = (ui.isEditing || ui.sidebarCollapsed) && !isMenuOpen;
+    const collapsed = (ui.isEditing || ui.sidebarCollapsed) && openMenus < 1;
     const maxWidth = theme.sidebarMaxWidth;
     const minWidth = theme.sidebarMinWidth + 16; // padding
 
@@ -147,7 +147,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(
 
     return (
       <>
-        <SidebarContext.Provider value={setIsMenuOpen}>
+        <SidebarContext.Provider value={setOpenMenus}>
           <Container
             ref={ref}
             style={style}
