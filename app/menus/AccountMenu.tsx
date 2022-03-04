@@ -38,14 +38,6 @@ function AccountMenu(props: Props) {
     }
   }, [menu, theme, previousTheme]);
 
-  React.useEffect(() => {
-    if (ui.sidebarCollapsed) {
-      menu.visible
-        ? ui.setIsAccessingMenuFromSidebar(true)
-        : ui.setIsAccessingMenuFromSidebar(false);
-    }
-  }, [menu.visible, ui]);
-
   const actions = React.useMemo(() => {
     return [
       openKeyboardShortcuts,

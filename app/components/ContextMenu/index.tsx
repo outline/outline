@@ -5,6 +5,8 @@ import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import useMenuHeight from "~/hooks/useMenuHeight";
 import usePrevious from "~/hooks/usePrevious";
+import useSidebar from "~/hooks/useSidebar";
+import useStores from "~/hooks/useStores";
 import {
   fadeIn,
   fadeAndSlideUp,
@@ -50,6 +52,14 @@ export default function ContextMenu({
   const previousVisible = usePrevious(rest.visible);
   const maxHeight = useMenuHeight(rest.visible, rest.unstable_disclosureRef);
   const backgroundRef = React.useRef<HTMLDivElement>(null);
+  const { ui } = useStores();
+  const setIsMenuOpen = useSidebar();
+
+  React.useEffect(() => {
+    if (ui.sidebarCollapsed && setIsMenuOpen) {
+      rest.visible ? setIsMenuOpen(true) : setIsMenuOpen(false);
+    }
+  }, [rest.visible, setIsMenuOpen, ui]);
 
   React.useEffect(() => {
     if (rest.visible && !previousVisible) {

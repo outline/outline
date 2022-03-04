@@ -54,7 +54,7 @@ function CollectionMenu({
   });
   const [renderModals, setRenderModals] = React.useState(false);
   const team = useCurrentTeam();
-  const { documents, ui } = useStores();
+  const { documents } = useStores();
   const { showToast } = useToasts();
   const { t } = useTranslation();
   const history = useHistory();
@@ -66,14 +66,6 @@ function CollectionMenu({
   const [showCollectionEdit, setShowCollectionEdit] = React.useState(false);
   const [showCollectionDelete, setShowCollectionDelete] = React.useState(false);
   const [showCollectionExport, setShowCollectionExport] = React.useState(false);
-
-  React.useEffect(() => {
-    if (ui.sidebarCollapsed) {
-      menu.visible
-        ? ui.setIsAccessingMenuFromSidebar(true)
-        : ui.setIsAccessingMenuFromSidebar(false);
-    }
-  }, [menu.visible, ui]);
 
   const handleOpen = React.useCallback(() => {
     setRenderModals(true);
