@@ -1249,6 +1249,13 @@
   dependencies:
     tslib "^2.1.0"
 
+"@getoutline/y-prosemirror@^1.0.16":
+  version "1.0.16"
+  resolved "https://registry.yarnpkg.com/@getoutline/y-prosemirror/-/y-prosemirror-1.0.16.tgz#34a29966208113bceb8c46bbf8417853e8885e09"
+  integrity sha512-rJ3NF3Qk9v1/dNKQ25k3aud7TcV8s5175U9stagCDdvwsI67JufgzaWhT0jBhX8tEaZPdQVmXoqe8bf6OC72Cg==
+  dependencies:
+    lib0 "^0.2.42"
+
 "@hocuspocus/provider@^1.0.0-alpha.21":
   version "1.0.0-alpha.21"
   resolved "https://registry.yarnpkg.com/@hocuspocus/provider/-/provider-1.0.0-alpha.21.tgz#369869e33a7c138041a03bbb80acd61dd77e3632"
@@ -9932,7 +9939,7 @@ levn@~0.3.0:
     prelude-ls "~1.1.2"
     type-check "~0.3.2"
 
-lib0@^0.2.34, lib0@^0.2.35, lib0@^0.2.41, lib0@^0.2.42:
+lib0@^0.2.35, lib0@^0.2.41, lib0@^0.2.42:
   version "0.2.42"
   resolved "https://registry.yarnpkg.com/lib0/-/lib0-0.2.42.tgz#6d8bf1fb8205dec37a953c521c5ee403fd8769b0"
   integrity sha512-8BNM4MiokEKzMvSxTOC3gnCBisJH+jL67CnSnqzHv3jli3pUvGC8wz+0DQ2YvGr4wVQdb2R2uNNPw9LEpVvJ4Q==
@@ -15448,13 +15455,6 @@ y-indexeddb@^9.0.6:
   integrity sha512-8mdCYdzZDWS2lGiB9Reaz67ZqvnV6EXH/F7L+TmBC+3mWjIBrPw4UcI79nOhEOh+y9lHXzNpSda4YJ06M13F1A==
   dependencies:
     lib0 "^0.2.35"
-
-y-prosemirror@^1.0.9:
-  version "1.0.9"
-  resolved "https://registry.yarnpkg.com/y-prosemirror/-/y-prosemirror-1.0.9.tgz#c0b5bf4e2c6620093ba0658c2aca52055346a683"
-  integrity sha512-OM12aPx04lwiIy1IOBidb6ONAof2KFxQE/Gww26SEsMQuA2dibrJkjaMwXwY1KnYY7yOpwbIFRdwecdNXLU9yQ==
-  dependencies:
-    lib0 "^0.2.34"
 
 y-protocols@^1.0.5:
   version "1.0.5"

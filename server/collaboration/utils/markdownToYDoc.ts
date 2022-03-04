@@ -1,5 +1,5 @@
+import { prosemirrorToYDoc } from "@getoutline/y-prosemirror";
 import { Node, Fragment } from "prosemirror-model";
-import { prosemirrorToYDoc } from "y-prosemirror";
 import * as Y from "yjs";
 import embeds from "@shared/editor/embeds";
 import { parser, schema } from "@server/editor";
