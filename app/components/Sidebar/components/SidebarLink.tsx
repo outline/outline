@@ -140,6 +140,7 @@ const Actions = styled(EventBoundary)<{ showActions?: boolean }>`
   gap: 4px;
   color: ${(props) => props.theme.textTertiary};
   transition: opacity 50ms;
+  height: 24px;
 
   svg {
     color: ${(props) => props.theme.textSecondary};
@@ -189,6 +190,8 @@ const Link = styled(NavLink)<{ $isActiveDrop?: boolean; $isDraft?: boolean }>`
   }
 
   & + ${Actions} {
+    background: ${(props) => props.theme.sidebarBackground};
+
     ${NudeButton} {
       background: transparent;
 
@@ -197,6 +200,10 @@ const Link = styled(NavLink)<{ $isActiveDrop?: boolean; $isDraft?: boolean }>`
         background: ${(props) => props.theme.sidebarControlHoverBackground};
       }
     }
+  }
+
+  &[aria-current="page"] + ${Actions} {
+    background: ${(props) => props.theme.sidebarActiveBackground};
   }
 
   ${breakpoint("tablet")`
