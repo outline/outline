@@ -133,7 +133,8 @@ export const IconWrapper = styled.span`
 `;
 
 const Actions = styled(EventBoundary)<{ showActions?: boolean }>`
-  display: ${(props) => (props.showActions ? "inline-flex" : "none")};
+  display: inline-flex;
+  visibility: ${(props) => (props.showActions ? "visible" : "hidden")};
   position: absolute;
   top: 4px;
   right: 4px;
@@ -149,7 +150,7 @@ const Actions = styled(EventBoundary)<{ showActions?: boolean }>`
   }
 
   &:hover {
-    display: inline-flex;
+    visibility: visible;
 
     svg {
       opacity: 0.75;
@@ -213,7 +214,7 @@ const Link = styled(NavLink)<{ $isActiveDrop?: boolean; $isDraft?: boolean }>`
 
   @media (hover: hover) {
     &:hover + ${Actions}, &:active + ${Actions} {
-      display: inline-flex;
+      visibility: visible;
 
       svg {
         opacity: 0.75;
