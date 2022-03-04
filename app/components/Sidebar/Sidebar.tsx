@@ -27,7 +27,8 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(
     const location = useLocation();
     const previousLocation = usePrevious(location);
     const width = ui.sidebarWidth;
-    const collapsed = ui.isEditing || ui.sidebarCollapsed;
+    const collapsed =
+      (ui.isEditing || ui.sidebarCollapsed) && !ui.isAccessingMenuFromSidebar;
     const maxWidth = theme.sidebarMaxWidth;
     const minWidth = theme.sidebarMinWidth + 16; // padding
 

@@ -49,6 +49,9 @@ class UiStore {
   isEditing = false;
 
   @observable
+  isAccessingMenuFromSidebar = false;
+
+  @observable
   tocVisible = false;
 
   @observable
@@ -168,6 +171,13 @@ class UiStore {
   @action
   setSidebarWidth = (sidebarWidth: number): void => {
     this.sidebarWidth = sidebarWidth;
+  };
+
+  @action
+  setIsAccessingMenuFromSidebar = (
+    isAccessingMenuFromSidebar: boolean
+  ): void => {
+    this.isAccessingMenuFromSidebar = isAccessingMenuFromSidebar;
   };
 
   @action
