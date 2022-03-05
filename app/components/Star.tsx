@@ -1,6 +1,5 @@
 import { StarredIcon, UnstarredIcon } from "outline-icons";
 import * as React from "react";
-import { useTranslation } from "react-i18next";
 import styled, { useTheme } from "styled-components";
 import Document from "~/models/Document";
 import { starDocument, unstarDocument } from "~/actions/definitions/documents";
@@ -14,7 +13,6 @@ type Props = {
 };
 
 function Star({ size, document, ...rest }: Props) {
-  const { t } = useTranslation();
   const theme = useTheme();
   const context = useActionContext({
     activeDocumentId: document.id,
@@ -29,7 +27,6 @@ function Star({ size, document, ...rest }: Props) {
       context={context}
       action={document.isStarred ? unstarDocument : starDocument}
       size={size}
-      aria-label={document.isStarred ? t("Unstar") : t("Star")}
       {...rest}
     >
       {document.isStarred ? (
