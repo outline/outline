@@ -1,10 +1,10 @@
-import { transparentize } from "polished";
 import * as React from "react";
 import styled, { useTheme, css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "~/components/EventBoundary";
 import NudeButton from "~/components/NudeButton";
 import { NavigationNode } from "~/types";
+import Disclosure from "./Disclosure";
 import NavLink, { Props as NavLinkProps } from "./NavLink";
 
 export type DragObject = NavigationNode & {
@@ -19,11 +19,14 @@ type Props = Omit<NavLinkProps, "to"> & {
   innerRef?: (arg0: HTMLElement | null | undefined) => void;
   onClick?: React.MouseEventHandler<HTMLAnchorElement>;
   onMouseEnter?: React.MouseEventHandler<HTMLAnchorElement>;
+  onDisclosureClick?: React.MouseEventHandler<HTMLButtonElement>;
   icon?: React.ReactNode;
   label?: React.ReactNode;
   menu?: React.ReactNode;
   showActions?: boolean;
   active?: boolean;
+  /* If set, a disclosure will be rendered to the left of any icon */
+  expanded?: boolean;
   isActiveDrop?: boolean;
   isDraft?: boolean;
   depth?: number;
@@ -50,6 +53,8 @@ function SidebarLink(
     href,
     depth,
     className,
+    expanded,
+    onDisclosureClick,
     ...rest
   }: Props,
   ref: React.RefObject<HTMLAnchorElement>
@@ -66,10 +71,10 @@ function SidebarLink(
     () => ({
       fontWeight: 600,
       color: theme.text,
-      background: theme.sidebarItemBackground,
+      background: theme.sidebarActiveBackground,
       ...style,
     }),
-    [theme, style]
+    [theme.text, theme.sidebarActiveBackground, style]
   );
 
   return (
@@ -90,16 +95,36 @@ function SidebarLink(
         ref={ref}
         {...rest}
       >
-        {icon && <IconWrapper>{icon}</IconWrapper>}
-        <Label>{label}</Label>
+        <Content>
+          {expanded !== undefined && (
+            <Disclosure
+              expanded={expanded}
+              onClick={onDisclosureClick}
+              root={depth === 0}
+            />
+          )}
+          {icon && <IconWrapper>{icon}</IconWrapper>}
+          <Label>{label}</Label>
+        </Content>
       </Link>
       {menu && <Actions showActions={showActions}>{menu}</Actions>}
     </>
   );
 }
 
+const Content = styled.span`
+  display: flex;
+  align-items: start;
+  position: relative;
+  width: 100%;
+
+  ${Disclosure} {
+    margin-top: 2px;
+  }
+`;
+
 // accounts for whitespace around icon
-const IconWrapper = styled.span`
+export const IconWrapper = styled.span`
   margin-left: -4px;
   margin-right: 4px;
   height: 24px;
@@ -108,12 +133,15 @@ const IconWrapper = styled.span`
 `;
 
 const Actions = styled(EventBoundary)<{ showActions?: boolean }>`
-  display: ${(props) => (props.showActions ? "inline-flex" : "none")};
+  display: inline-flex;
+  visibility: ${(props) => (props.showActions ? "visible" : "hidden")};
   position: absolute;
   top: 4px;
   right: 4px;
+  gap: 4px;
   color: ${(props) => props.theme.textTertiary};
   transition: opacity 50ms;
+  height: 24px;
 
   svg {
     color: ${(props) => props.theme.textSecondary};
@@ -122,7 +150,7 @@ const Actions = styled(EventBoundary)<{ showActions?: boolean }>`
   }
 
   &:hover {
-    display: inline-flex;
+    visibility: visible;
 
     svg {
       opacity: 0.75;
@@ -158,29 +186,25 @@ const Link = styled(NavLink)<{ $isActiveDrop?: boolean; $isDraft?: boolean }>`
     transition: fill 50ms;
   }
 
-  &:focus {
-    color: ${(props) => props.theme.text};
-    background: ${(props) =>
-      transparentize("0.25", props.theme.sidebarItemBackground)};
+  &:hover svg {
+    display: inline;
   }
 
   & + ${Actions} {
-    ${NudeButton} {
-      background: ${(props) => props.theme.sidebarBackground};
-    }
-  }
+    background: ${(props) => props.theme.sidebarBackground};
 
-  &:focus + ${Actions} {
     ${NudeButton} {
-      background: ${(props) =>
-        transparentize("0.25", props.theme.sidebarItemBackground)};
+      background: transparent;
+
+      &:hover,
+      &[aria-expanded="true"] {
+        background: ${(props) => props.theme.sidebarControlHoverBackground};
+      }
     }
   }
 
   &[aria-current="page"] + ${Actions} {
-    ${NudeButton} {
-      background: ${(props) => props.theme.sidebarItemBackground};
-    }
+    background: ${(props) => props.theme.sidebarActiveBackground};
   }
 
   ${breakpoint("tablet")`
@@ -190,7 +214,7 @@ const Link = styled(NavLink)<{ $isActiveDrop?: boolean; $isDraft?: boolean }>`
 
   @media (hover: hover) {
     &:hover + ${Actions}, &:active + ${Actions} {
-      display: inline-flex;
+      visibility: visible;
 
       svg {
         opacity: 0.75;
@@ -202,6 +226,12 @@ const Link = styled(NavLink)<{ $isActiveDrop?: boolean; $isDraft?: boolean }>`
         props.$isActiveDrop ? props.theme.white : props.theme.text};
     }
   }
+
+  &:hover {
+    ${Disclosure} {
+      opacity: 1;
+    }
+  }
 `;
 
 const Label = styled.div`
@@ -209,6 +239,7 @@ const Label = styled.div`
   width: 100%;
   max-height: 4.8em;
   line-height: 1.6;
+
   * {
     unicode-bidi: plaintext;
   }

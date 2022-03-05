@@ -45,6 +45,9 @@ class FileOperation extends BaseModel {
   @Column
   url: string;
 
+  @Column
+  error: string | null;
+
   @Column(DataType.BIGINT)
   size: number;
 

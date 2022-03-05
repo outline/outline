@@ -1,4 +1,5 @@
 import {
+  ArrowIcon,
   DocumentIcon,
   CloseIcon,
   PlusIcon,
@@ -11,6 +12,7 @@ import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import styled from "styled-components";
 import isUrl from "@shared/editor/lib/isUrl";
+import { isInternalUrl } from "@shared/utils/urls";
 import Flex from "~/components/Flex";
 import { Dictionary } from "~/hooks/useDictionary";
 import Input from "./Input";
@@ -299,6 +301,7 @@ class LinkEditor extends React.Component<Props, State> {
 
     const looksLikeUrl = value.match(/^https?:\/\//i);
     const suggestedLinkTitle = this.suggestedLinkTitle;
+    const isInternal = isInternalUrl(value);
 
     const showCreateLink =
       !!this.props.onCreateLink &&
@@ -324,9 +327,15 @@ class LinkEditor extends React.Component<Props, State> {
           autoFocus={this.href === ""}
         />
 
-        <Tooltip tooltip={dictionary.openLink}>
+        <Tooltip
+          tooltip={isInternal ? dictionary.goToLink : dictionary.openLink}
+        >
           <ToolbarButton onClick={this.handleOpenLink} disabled={!value}>
-            <OpenIcon color="currentColor" />
+            {isInternal ? (
+              <ArrowIcon color="currentColor" />
+            ) : (
+              <OpenIcon color="currentColor" />
+            )}
           </ToolbarButton>
         </Tooltip>
         <Tooltip tooltip={dictionary.removeLink}>

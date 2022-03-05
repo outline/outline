@@ -41,7 +41,7 @@ function Star({ size, document, ...rest }: Props) {
       {...rest}
     >
       {document.isStarred ? (
-        <AnimatedStar size={size} color={theme.textSecondary} />
+        <AnimatedStar size={size} color={theme.yellow} />
       ) : (
         <AnimatedStar
           size={size}

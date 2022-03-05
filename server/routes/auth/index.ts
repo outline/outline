@@ -42,12 +42,29 @@ router.get("/redirect", auth(), async (ctx) => {
       },
     }),
   ]);
+
+  const defaultCollectionId = team?.defaultCollectionId;
+
+  if (defaultCollectionId) {
+    const collection = await Collection.findOne({
+      where: {
+        id: defaultCollectionId,
+        teamId: team.id,
+      },
+    });
+
+    if (collection) {
+      ctx.redirect(`${team.url}${collection.url}`);
+      return;
+    }
+  }
+
   const hasViewedDocuments = !!view;
 
   ctx.redirect(
     !hasViewedDocuments && collection
-      ? `${team!.url}${collection.url}`
-      : `${team!.url}/home`
+      ? `${team?.url}${collection.url}`
+      : `${team?.url}/home`
   );
 });
 

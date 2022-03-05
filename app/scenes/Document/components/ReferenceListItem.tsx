@@ -3,8 +3,9 @@ import { DocumentIcon } from "outline-icons";
 import * as React from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import parseTitle from "@shared/utils/parseTitle";
 import Document from "~/models/Document";
-import DocumentMeta from "~/components/DocumentMeta";
+import EmojiIcon from "~/components/EmojiIcon";
 import Flex from "~/components/Flex";
 import { hover } from "~/styles";
 import { NavigationNode } from "~/types";
@@ -33,6 +34,11 @@ const DocumentLink = styled(Link)`
   }
 `;
 
+const Content = styled(Flex)`
+  color: ${(props) => props.theme.textSecondary};
+  margin-left: -4px;
+`;
+
 const Title = styled.div`
   overflow: hidden;
   text-overflow: ellipsis;
@@ -46,22 +52,6 @@ const Title = styled.div`
     Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 `;
 
-const StyledDocumentIcon = styled(DocumentIcon)`
-  margin-left: -4px;
-  color: ${(props) => props.theme.textSecondary};
-  flex-shrink: 0;
-`;
-
-const Emoji = styled.span`
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: -4px;
-  font-size: 16px;
-  width: 24px;
-  height: 24px;
-`;
-
 function ReferenceListItem({
   document,
   showCollection,
@@ -69,6 +59,8 @@ function ReferenceListItem({
   shareId,
   ...rest
 }: Props) {
+  const { emoji } = parseTitle(document.title);
+
   return (
     <DocumentLink
       to={{
@@ -80,21 +72,16 @@ function ReferenceListItem({
       }}
       {...rest}
     >
-      <Flex gap={4} dir="auto">
-        {document instanceof Document && document.emoji ? (
-          <Emoji>{document.emoji}</Emoji>
+      <Content gap={4} dir="auto">
+        {emoji ? (
+          <EmojiIcon emoji={emoji} />
         ) : (
-          <StyledDocumentIcon color="currentColor" />
+          <DocumentIcon color="currentColor" />
         )}
         <Title>
-          {document instanceof Document && document.emoji
-            ? document.title.replace(new RegExp(`^${document.emoji}`), "")
-            : document.title}
+          {emoji ? document.title.replace(emoji, "") : document.title}
         </Title>
-      </Flex>
-      {document instanceof Document && document.updatedBy && (
-        <DocumentMeta document={document} showCollection={showCollection} />
-      )}
+      </Content>
     </DocumentLink>
   );
 }

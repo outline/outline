@@ -1,6 +1,6 @@
 import { flattenDeep } from "lodash";
 import * as React from "react";
-import { $Diff } from "utility-types";
+import { Optional } from "utility-types";
 import { v4 as uuidv4 } from "uuid";
 import {
   Action,
@@ -10,17 +10,10 @@ import {
   MenuItemWithChildren,
 } from "~/types";
 
-export function createAction(
-  definition: $Diff<
-    Action,
-    {
-      id?: string;
-    }
-  >
-): Action {
+export function createAction(definition: Optional<Action, "id">): Action {
   return {
-    id: uuidv4(),
     ...definition,
+    id: uuidv4(),
   };
 }
 
@@ -48,14 +41,17 @@ export function actionToMenuItem(
       : undefined;
 
   if (resolvedChildren) {
+    const items = resolvedChildren
+      .map((a) => actionToMenuItem(a, context))
+      .filter(Boolean)
+      .filter((a) => a.visible);
+
     return {
       type: "submenu",
       title,
       icon,
-      items: resolvedChildren
-        .map((a) => actionToMenuItem(a, context))
-        .filter((a) => !!a),
-      visible,
+      items,
+      visible: visible && items.length > 0,
     };
   }
 
@@ -102,7 +98,7 @@ export function actionToKBar(
       name: resolvedName,
       section: resolvedSection,
       placeholder: resolvedPlaceholder,
-      keywords: `${action.keywords}`,
+      keywords: action.keywords ?? "",
       shortcut: action.shortcut || [],
       icon: resolvedIcon,
       perform: action.perform

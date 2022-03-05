@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import {
-  DocumentIcon,
+  NewDocumentIcon,
   EmailIcon,
   ProfileIcon,
   PadlockIcon,
@@ -9,8 +9,9 @@ import {
   GroupIcon,
   LinkIcon,
   TeamIcon,
-  ExpandedIcon,
+  BackIcon,
   BeakerIcon,
+  DownloadIcon,
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -22,12 +23,12 @@ import SlackIcon from "~/components/SlackIcon";
 import ZapierIcon from "~/components/ZapierIcon";
 import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
-import useStores from "~/hooks/useStores";
+import usePolicy from "~/hooks/usePolicy";
 import Sidebar from "./Sidebar";
 import Header from "./components/Header";
 import Section from "./components/Section";
+import SidebarButton from "./components/SidebarButton";
 import SidebarLink from "./components/SidebarLink";
-import TeamButton from "./components/TeamButton";
 import Version from "./components/Version";
 
 const isHosted = env.DEPLOYMENT === "hosted";
@@ -36,24 +37,19 @@ function SettingsSidebar() {
   const { t } = useTranslation();
   const history = useHistory();
   const team = useCurrentTeam();
-  const { policies } = useStores();
-  const can = policies.abilities(team.id);
+  const can = usePolicy(team.id);
 
-  const returnToDashboard = React.useCallback(() => {
+  const returnToApp = React.useCallback(() => {
     history.push("/home");
   }, [history]);
 
   return (
     <Sidebar>
-      <TeamButton
-        subheading={
-          <ReturnToApp align="center">
-            <BackIcon color="currentColor" /> {t("Return to App")}
-          </ReturnToApp>
-        }
-        teamName={team.name}
-        logoUrl={team.avatarUrl}
-        onClick={returnToDashboard}
+      <SidebarButton
+        title={t("Return to App")}
+        image={<StyledBackIcon color="currentColor" />}
+        onClick={returnToApp}
+        minHeight={48}
       />
 
       <Flex auto column>
@@ -118,11 +114,18 @@ function SettingsSidebar() {
               icon={<LinkIcon color="currentColor" />}
               label={t("Share Links")}
             />
+            {can.manage && (
+              <SidebarLink
+                to="/settings/import"
+                icon={<NewDocumentIcon color="currentColor" />}
+                label={t("Import")}
+              />
+            )}
             {can.export && (
               <SidebarLink
-                to="/settings/import-export"
-                icon={<DocumentIcon color="currentColor" />}
-                label={`${t("Import")} / ${t("Export")}`}
+                to="/settings/export"
+                icon={<DownloadIcon color="currentColor" />}
+                label={t("Export")}
               />
             )}
           </Section>
@@ -157,13 +160,8 @@ function SettingsSidebar() {
   );
 }
 
-const BackIcon = styled(ExpandedIcon)`
-  transform: rotate(90deg);
-  margin-left: -8px;
-`;
-
-const ReturnToApp = styled(Flex)`
-  height: 16px;
+const StyledBackIcon = styled(BackIcon)`
+  margin-left: 4px;
 `;
 
 export default observer(SettingsSidebar);

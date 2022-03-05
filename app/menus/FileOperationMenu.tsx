@@ -1,3 +1,4 @@
+import { DownloadIcon, TrashIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useMenuState } from "reakit/Menu";
@@ -26,6 +27,7 @@ function FileOperationMenu({ id, onDelete }: Props) {
             {
               type: "link",
               title: t("Download"),
+              icon: <DownloadIcon />,
               href: "/api/fileOperations.redirect?id=" + id,
             },
             {
@@ -34,6 +36,8 @@ function FileOperationMenu({ id, onDelete }: Props) {
             {
               type: "button",
               title: t("Delete"),
+              icon: <TrashIcon />,
+              dangerous: true,
               onClick: onDelete,
             },
           ]}

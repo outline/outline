@@ -9,7 +9,7 @@ import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
 import useStores from "~/hooks/useStores";
 import { hover } from "~/styles";
-import { searchUrl } from "~/utils/routeHelpers";
+import { searchPath } from "~/utils/routeHelpers";
 
 function RecentSearches() {
   const { searches } = useStores();
@@ -26,7 +26,7 @@ function RecentSearches() {
       <List>
         {searches.recent.map((searchQuery) => (
           <ListItem key={searchQuery.id}>
-            <RecentSearch to={searchUrl(searchQuery.query)}>
+            <RecentSearch to={searchPath(searchQuery.query)}>
               {searchQuery.query}
               <Tooltip tooltip={t("Remove search")} delay={150}>
                 <RemoveButton

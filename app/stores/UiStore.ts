@@ -40,6 +40,9 @@ class UiStore {
   observingUserId: string | undefined;
 
   @observable
+  commandBarOpenedFromSidebar = false;
+
+  @observable
   progressBarVisible = false;
 
   @observable
@@ -121,7 +124,13 @@ class UiStore {
   };
 
   @action
-  setActiveDocument = (document: Document): void => {
+  setActiveDocument = (document: Document | string): void => {
+    if (typeof document === "string") {
+      this.activeDocumentId = document;
+      this.observingUserId = undefined;
+      return;
+    }
+
     this.activeDocumentId = document.id;
     this.observingUserId = undefined;
 
@@ -209,6 +218,16 @@ class UiStore {
   @action
   toggleMobileSidebar = () => {
     this.mobileSidebarVisible = !this.mobileSidebarVisible;
+  };
+
+  @action
+  commandBarOpened = () => {
+    this.commandBarOpenedFromSidebar = true;
+  };
+
+  @action
+  commandBarClosed = () => {
+    this.commandBarOpenedFromSidebar = false;
   };
 
   @action

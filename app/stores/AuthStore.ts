@@ -25,7 +25,7 @@ type Provider = {
   authUrl: string;
 };
 
-type Config = {
+export type Config = {
   name?: string;
   hostname?: string;
   providers: Provider[];
@@ -68,19 +68,21 @@ export default class AuthStore {
 
     try {
       data = JSON.parse(localStorage.getItem(AUTH_STORE) || "{}");
-    } catch (_) {
-      // no-op Safari private mode
+    } catch (err) {
+      Sentry.captureException(err);
     }
 
     this.rehydrate(data);
+
     // persists this entire store to localstorage whenever any keys are changed
     autorun(() => {
       try {
         localStorage.setItem(AUTH_STORE, this.asJson);
-      } catch (_) {
-        // no-op Safari private mode
+      } catch (err) {
+        Sentry.captureException(err);
       }
     });
+
     // listen to the localstorage value changing in other tabs to react to
     // signin/signout events in other tabs and follow suite.
     window.addEventListener("storage", (event) => {
@@ -226,6 +228,7 @@ export default class AuthStore {
     avatarUrl?: string | null | undefined;
     sharing?: boolean;
     collaborativeEditing?: boolean;
+    defaultCollectionId?: string | null;
     subdomain?: string | null | undefined;
   }) => {
     this.isSaving = true;

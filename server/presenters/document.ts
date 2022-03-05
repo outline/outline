@@ -56,7 +56,6 @@ export default async function present(
     template: document.template,
     templateId: document.templateId,
     collaboratorIds: [],
-    starred: document.starred ? !!document.starred.length : undefined,
     revision: document.revisionCount,
     fullWidth: document.fullWidth,
     collectionId: undefined,

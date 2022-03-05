@@ -13,7 +13,8 @@ const Container = styled.div<{ withStickyHeader?: boolean }>`
   padding: ${(props) => (props.withStickyHeader ? "4px 12px" : "60px 12px")};
 
   ${breakpoint("tablet")`
-    padding: ${(props: any) => (props.withStickyHeader ? "4px 60px" : "60px")};
+    padding: ${(props: any) =>
+      props.withStickyHeader ? "4px 60px 60px" : "60px"};
   `};
 `;
 

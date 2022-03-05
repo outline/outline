@@ -7,7 +7,7 @@ import styled, { useTheme } from "styled-components";
 import useBoolean from "~/hooks/useBoolean";
 import useKeyDown from "~/hooks/useKeyDown";
 import { isModKey } from "~/utils/keyboard";
-import { searchUrl } from "~/utils/routeHelpers";
+import { searchPath } from "~/utils/routeHelpers";
 import Input from "./Input";
 
 type Props = {
@@ -51,7 +51,7 @@ function InputSearchPage({
       if (ev.key === "Enter") {
         ev.preventDefault();
         history.push(
-          searchUrl(ev.currentTarget.value, {
+          searchPath(ev.currentTarget.value, {
             collectionId,
             ref: source,
           })

@@ -1,10 +1,9 @@
 import { debounce } from "lodash";
 import { action, observable } from "mobx";
 import { observer } from "mobx-react";
-import { InputIcon } from "outline-icons";
 import { AllSelection } from "prosemirror-state";
 import * as React from "react";
-import { WithTranslation, Trans, withTranslation } from "react-i18next";
+import { WithTranslation, withTranslation } from "react-i18next";
 import {
   Prompt,
   Route,
@@ -26,11 +25,9 @@ import ErrorBoundary from "~/components/ErrorBoundary";
 import Flex from "~/components/Flex";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import Modal from "~/components/Modal";
-import Notice from "~/components/Notice";
 import PageTitle from "~/components/PageTitle";
 import PlaceholderDocument from "~/components/PlaceholderDocument";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
-import Time from "~/components/Time";
 import withStores from "~/components/withStores";
 import { NavigationNode } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -50,6 +47,7 @@ import Editor from "./Editor";
 import Header from "./Header";
 import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
 import MarkAsViewed from "./MarkAsViewed";
+import Notices from "./Notices";
 import PublicReferences from "./PublicReferences";
 import References from "./References";
 
@@ -418,8 +416,10 @@ class DocumentScene extends React.Component<Props> {
         this.editor.current.getHeadings()
       : [];
 
+    const hasHeadings = headings.length > 0;
     const showContents =
-      ui.tocVisible && (readOnly || team?.collaborativeEditing);
+      ui.tocVisible &&
+      ((readOnly && hasHeadings) || team?.collaborativeEditing);
     const collaborativeEditing =
       team?.collaborativeEditing &&
       !document.isArchived &&
@@ -511,6 +511,7 @@ class DocumentScene extends React.Component<Props> {
             )}
             <Header
               document={document}
+              documentHasHeadings={hasHeadings}
               shareId={shareId}
               isRevision={!!revision}
               isDraft={document.isDraft}
@@ -534,52 +535,7 @@ class DocumentScene extends React.Component<Props> {
               column
               auto
             >
-              {document.isTemplate && !readOnly && (
-                <Notice>
-                  <Trans>
-                    You’re editing a template. Highlight some text and use the{" "}
-                    <PlaceholderIcon color="currentColor" /> control to add
-                    placeholders that can be filled out when creating new
-                    documents from this template.
-                  </Trans>
-                </Notice>
-              )}
-              {document.archivedAt && !document.deletedAt && (
-                <Notice>
-                  {t("Archived by {{userName}}", {
-                    userName: document.updatedBy.name,
-                  })}{" "}
-                  <Time dateTime={document.updatedAt} addSuffix />
-                </Notice>
-              )}
-              {document.deletedAt && (
-                <Notice>
-                  <strong>
-                    {t("Deleted by {{userName}}", {
-                      userName: document.updatedBy.name,
-                    })}{" "}
-                    <Time dateTime={document.deletedAt || ""} addSuffix />
-                  </strong>
-                  {document.permanentlyDeletedAt && (
-                    <>
-                      <br />
-                      {document.template ? (
-                        <Trans>
-                          This template will be permanently deleted in{" "}
-                          <Time dateTime={document.permanentlyDeletedAt} />{" "}
-                          unless restored.
-                        </Trans>
-                      ) : (
-                        <Trans>
-                          This document will be permanently deleted in{" "}
-                          <Time dateTime={document.permanentlyDeletedAt} />{" "}
-                          unless restored.
-                        </Trans>
-                      )}
-                    </>
-                  )}
-                </Notice>
-              )}
+              <Notices document={document} readOnly={readOnly} />
               <React.Suspense fallback={<PlaceholderDocument />}>
                 <Flex auto={!readOnly}>
                   {showContents && (
@@ -591,7 +547,7 @@ class DocumentScene extends React.Component<Props> {
                   <Editor
                     id={document.id}
                     key={embedsDisabled ? "disabled" : "enabled"}
-                    innerRef={this.editor}
+                    ref={this.editor}
                     multiplayer={collaborativeEditing}
                     shareId={shareId}
                     isDraft={document.isDraft}
@@ -651,11 +607,6 @@ class DocumentScene extends React.Component<Props> {
   }
 }
 
-const PlaceholderIcon = styled(InputIcon)`
-  position: relative;
-  top: 6px;
-`;
-
 const Background = styled(Container)`
   background: ${(props) => props.theme.background};
   transition: ${(props) => props.theme.backgroundTransition};
@@ -677,9 +628,6 @@ type MaxWidthProps = {
 };
 
 const MaxWidth = styled(Flex)<MaxWidthProps>`
-  ${(props) =>
-    props.archived && `* { color: ${props.theme.textSecondary} !important; } `};
-
   // Adds space to the gutter to make room for heading annotations
   padding: 0 32px;
   transition: padding 100ms;

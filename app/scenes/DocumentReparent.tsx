@@ -5,8 +5,8 @@ import { Trans, useTranslation } from "react-i18next";
 import Collection from "~/models/Collection";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
-import HelpText from "~/components/HelpText";
 import { DragObject } from "~/components/Sidebar/components/SidebarLink";
+import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 
@@ -52,7 +52,7 @@ function DocumentReparent({ collection, item, onSubmit, onCancel }: Props) {
   return (
     <Flex column>
       <form onSubmit={handleSubmit}>
-        <HelpText>
+        <Text type="secondary">
           <Trans
             defaults="Heads up – moving the document <em>{{ title }}</em> to the <em>{{ newCollectionName }}</em> collection will grant all team members <em>{{ newPermission }}</em>, they currently have {{ prevPermission }}."
             values={{
@@ -67,7 +67,7 @@ function DocumentReparent({ collection, item, onSubmit, onCancel }: Props) {
               em: <strong />,
             }}
           />
-        </HelpText>
+        </Text>
         <Button type="submit">
           {isSaving ? `${t("Moving")}…` : t("Move document")}
         </Button>{" "}

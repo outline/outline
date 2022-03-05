@@ -6,6 +6,8 @@ import {
   ImportIcon,
   ExportIcon,
   PadlockIcon,
+  AlphabeticalSortIcon,
+  ManualSortIcon,
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -23,6 +25,7 @@ import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
 import Template from "~/components/ContextMenu/Template";
 import Modal from "~/components/Modal";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import { MenuItem } from "~/types";
@@ -51,7 +54,7 @@ function CollectionMenu({
   });
   const [renderModals, setRenderModals] = React.useState(false);
   const team = useCurrentTeam();
-  const { documents, policies } = useStores();
+  const { documents } = useStores();
   const { showToast } = useToasts();
   const { t } = useTranslation();
   const history = useHistory();
@@ -123,8 +126,22 @@ function CollectionMenu({
     [history, showToast, collection.id, documents]
   );
 
-  const can = policies.abilities(collection.id);
-  const canUserInTeam = policies.abilities(team.id);
+  const handleChangeSort = React.useCallback(
+    (field: string) => {
+      menu.hide();
+      return collection.save({
+        sort: {
+          field,
+          direction: "asc",
+        },
+      });
+    },
+    [collection, menu]
+  );
+
+  const alphabeticalSort = collection.sort.field === "title";
+  const can = usePolicy(collection.id);
+  const canUserInTeam = usePolicy(team.id);
   const items: MenuItem[] = React.useMemo(
     () => [
       {
@@ -143,6 +160,30 @@ function CollectionMenu({
       },
       {
         type: "separator",
+      },
+      {
+        type: "submenu",
+        title: t("Sort in sidebar"),
+        visible: can.update,
+        icon: alphabeticalSort ? (
+          <AlphabeticalSortIcon color="currentColor" />
+        ) : (
+          <ManualSortIcon color="currentColor" />
+        ),
+        items: [
+          {
+            type: "button",
+            title: t("Alphabetical sort"),
+            onClick: () => handleChangeSort("title"),
+            selected: alphabeticalSort,
+          },
+          {
+            type: "button",
+            title: t("Manual sort"),
+            onClick: () => handleChangeSort("index"),
+            selected: !alphabeticalSort,
+          },
+        ],
       },
       {
         type: "button",
@@ -171,6 +212,7 @@ function CollectionMenu({
       {
         type: "button",
         title: `${t("Delete")}…`,
+        dangerous: true,
         visible: !!(collection && can.delete),
         onClick: () => setShowCollectionDelete(true),
         icon: <TrashIcon />,
@@ -180,6 +222,8 @@ function CollectionMenu({
       t,
       can.update,
       can.delete,
+      alphabeticalSort,
+      handleChangeSort,
       handleNewDocument,
       handleImportDocument,
       collection,

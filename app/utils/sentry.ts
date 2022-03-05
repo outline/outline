@@ -25,6 +25,7 @@ export function initSentry(history: History) {
       "ServiceUnavailableError",
       "UpdateRequiredError",
       "ChunkLoadError",
+      "file://",
     ],
   });
 }

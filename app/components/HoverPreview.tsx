@@ -3,10 +3,10 @@ import * as React from "react";
 import { Portal } from "react-portal";
 import styled from "styled-components";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
+import { isInternalUrl } from "@shared/utils/urls";
 import HoverPreviewDocument from "~/components/HoverPreviewDocument";
 import useStores from "~/hooks/useStores";
 import { fadeAndSlideDown } from "~/styles/animations";
-import { isInternalUrl } from "~/utils/urls";
 
 const DELAY_OPEN = 300;
 const DELAY_CLOSE = 300;

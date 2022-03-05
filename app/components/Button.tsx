@@ -1,5 +1,5 @@
 import { ExpandedIcon } from "outline-icons";
-import { darken } from "polished";
+import { darken, lighten } from "polished";
 import * as React from "react";
 import styled from "styled-components";
 
@@ -26,6 +26,7 @@ const RealButton = styled.button<{
   flex-shrink: 0;
   cursor: pointer;
   user-select: none;
+  appearance: none !important;
 
   ${(props) =>
     !props.borderOnHover &&
@@ -40,7 +41,8 @@ const RealButton = styled.button<{
     border: 0;
   }
 
-  &:hover:not(:disabled) {
+  &:hover:not(:disabled),
+  &[aria-expanded="true"] {
     background: ${(props) => darken(0.05, props.theme.buttonBackground)};
   }
 
@@ -48,6 +50,7 @@ const RealButton = styled.button<{
     cursor: default;
     pointer-events: none;
     color: ${(props) => props.theme.white50};
+    background: ${(props) => lighten(0.2, props.theme.buttonBackground)};
 
     svg {
       fill: ${(props) => props.theme.white50};
@@ -74,7 +77,8 @@ const RealButton = styled.button<{
     }
 
 
-    &:hover:not(:disabled) {
+    &:hover:not(:disabled),
+    &[aria-expanded="true"] {
       background: ${
         props.borderOnHover
           ? props.theme.buttonNeutralBackground
@@ -87,6 +91,7 @@ const RealButton = styled.button<{
 
     &:disabled {
       color: ${props.theme.textTertiary};
+      background: none;
 
       svg {
         fill: currentColor;
@@ -100,8 +105,13 @@ const RealButton = styled.button<{
       background: ${props.theme.danger};
       color: ${props.theme.white};
 
-      &:hover:not(:disabled) {
+      &:hover:not(:disabled),
+      &[aria-expanded="true"] {
         background: ${darken(0.05, props.theme.danger)};
+      }
+
+      &:disabled {
+        background: none;
       }
   `};
 `;

@@ -3,13 +3,14 @@ import os from "os";
 import File from "formidable/lib/file";
 import invariant from "invariant";
 import collectionImporter from "@server/commands/collectionImporter";
-import { Attachment, User } from "@server/models";
-import { Event } from "../../types";
+import { Event, FileOperation, Attachment, User } from "@server/models";
+import { Event as TEvent } from "../../types";
 
 export default class ImportsProcessor {
-  async on(event: Event) {
+  async on(event: TEvent) {
     switch (event.name) {
       case "collections.import": {
+        let state, error;
         const { type } = event.data;
         const attachment = await Attachment.findByPk(event.modelId);
         invariant(attachment, "attachment not found");
@@ -17,22 +18,55 @@ export default class ImportsProcessor {
         const user = await User.findByPk(event.actorId);
         invariant(user, "user not found");
 
-        const buffer: any = await attachment.buffer;
-        const tmpDir = os.tmpdir();
-        const tmpFilePath = `${tmpDir}/upload-${event.modelId}`;
-        await fs.promises.writeFile(tmpFilePath, buffer);
-        const file = new File({
-          name: attachment.name,
-          type: attachment.contentType,
-          path: tmpFilePath,
+        const fileOperation = await FileOperation.create({
+          type: "import",
+          state: "creating",
+          size: attachment.size,
+          key: attachment.key,
+          userId: user.id,
+          teamId: user.teamId,
         });
-        await collectionImporter({
-          file,
-          user,
-          type,
-          ip: event.ip,
+
+        await Event.add({
+          name: "fileOperations.create",
+          modelId: fileOperation.id,
+          teamId: user.teamId,
+          actorId: user.id,
         });
-        await attachment.destroy();
+
+        try {
+          const buffer = await attachment.buffer;
+          const tmpDir = os.tmpdir();
+          const tmpFilePath = `${tmpDir}/upload-${event.modelId}`;
+          await fs.promises.writeFile(tmpFilePath, buffer as Uint8Array);
+          const file = new File({
+            name: attachment.name,
+            type: attachment.contentType,
+            path: tmpFilePath,
+          });
+
+          await collectionImporter({
+            file,
+            user,
+            type,
+            ip: event.ip,
+          });
+          await attachment.destroy();
+
+          state = "complete";
+        } catch (err) {
+          state = "error";
+          error = err.message;
+        } finally {
+          await fileOperation.update({ state, error });
+          await Event.add({
+            name: "fileOperations.update",
+            modelId: fileOperation.id,
+            teamId: user.teamId,
+            actorId: user.id,
+          });
+        }
+
         return;
       }
 

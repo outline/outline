@@ -53,7 +53,7 @@ const Submenu = React.forwardRef(
       <>
         <MenuButton ref={ref} {...menu} {...rest}>
           {(props) => (
-            <MenuAnchor {...props}>
+            <MenuAnchor disclosure {...props}>
               {title} <Disclosure color={theme.textTertiary} />
             </MenuAnchor>
           )}
@@ -163,6 +163,7 @@ function Template({ items, actions, context, ...menu }: Props) {
               onClick={item.onClick}
               disabled={item.disabled}
               selected={item.selected}
+              dangerous={item.dangerous}
               key={index}
               icon={item.icon}
               {...menu}

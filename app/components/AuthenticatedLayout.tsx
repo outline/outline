@@ -11,11 +11,12 @@ import Sidebar from "~/components/Sidebar";
 import SettingsSidebar from "~/components/Sidebar/Settings";
 import history from "~/utils/history";
 import {
-  searchUrl,
+  searchPath,
   matchDocumentSlug as slug,
   newDocumentPath,
   settingsPath,
 } from "~/utils/routeHelpers";
+import Fade from "./Fade";
 import withStores from "./withStores";
 
 const DocumentHistory = React.lazy(
@@ -49,7 +50,7 @@ class AuthenticatedLayout extends React.Component<Props> {
     if (!ev.metaKey && !ev.ctrlKey) {
       ev.preventDefault();
       ev.stopPropagation();
-      history.push(searchUrl());
+      history.push(searchPath());
     }
   };
 
@@ -74,10 +75,12 @@ class AuthenticatedLayout extends React.Component<Props> {
     }
 
     const sidebar = showSidebar ? (
-      <Switch>
-        <Route path={settingsPath()} component={SettingsSidebar} />
-        <Route component={Sidebar} />
-      </Switch>
+      <Fade>
+        <Switch>
+          <Route path={settingsPath()} component={SettingsSidebar} />
+          <Route component={Sidebar} />
+        </Switch>
+      </Fade>
     ) : undefined;
 
     const rightRail = (

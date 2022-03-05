@@ -5,11 +5,11 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
 import Heading from "~/components/Heading";
-import HelpText from "~/components/HelpText";
 import Input from "~/components/Input";
 import Notice from "~/components/Notice";
 import Scene from "~/components/Scene";
 import Subheading from "~/components/Subheading";
+import Text from "~/components/Text";
 import env from "~/env";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
@@ -100,12 +100,12 @@ function Notifications() {
           </Trans>
         </Notice>
       )}
-      <HelpText>
+      <Text type="secondary">
         <Trans>
           Manage when and where you receive email notifications from Outline.
           Your email address can be updated in your SSO provider.
         </Trans>
-      </HelpText>
+      </Text>
 
       {env.EMAIL_ENABLED ? (
         <>

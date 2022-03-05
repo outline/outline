@@ -49,6 +49,7 @@ const ListItem = (
       <Wrapper
         ref={ref}
         $border={border}
+        $small={small}
         activeStyle={{
           background: theme.primary,
         }}
@@ -62,16 +63,17 @@ const ListItem = (
   }
 
   return (
-    <Wrapper $border={border} {...rest}>
+    <Wrapper $border={border} $small={small} {...rest}>
       {content(false)}
     </Wrapper>
   );
 };
 
-const Wrapper = styled.div<{ $border?: boolean }>`
+const Wrapper = styled.div<{ $small?: boolean; $border?: boolean }>`
   display: flex;
   padding: ${(props) => (props.$border === false ? 0 : "8px 0")};
-  margin: ${(props) => (props.$border === false ? "8px 0" : 0)};
+  margin: ${(props) =>
+    props.$border === false ? (props.$small ? "8px 0" : "16px 0") : 0};
   border-bottom: 1px solid
     ${(props) =>
       props.$border === false ? "transparent" : props.theme.divider};

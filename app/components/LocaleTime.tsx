@@ -69,17 +69,21 @@ function LocaleTime({
 
   const tooltipContent = formatDate(
     Date.parse(dateTime),
-    format || "MMMM do, yyyy h:mm a",
+    "MMMM do, yyyy h:mm a",
     {
       locale,
     }
   );
   const content =
-    children || relative !== false ? relativeContent : tooltipContent;
+    relative !== false
+      ? relativeContent
+      : formatDate(Date.parse(dateTime), format || "MMMM do, yyyy h:mm a", {
+          locale,
+        });
 
   return (
     <Tooltip tooltip={tooltipContent} delay={tooltipDelay} placement="bottom">
-      <time dateTime={dateTime}>{content}</time>
+      <time dateTime={dateTime}>{children || content}</time>
     </Tooltip>
   );
 }
