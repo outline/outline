@@ -69,6 +69,7 @@ export type MenuItem =
 export type ActionContext = {
   isContextMenu: boolean;
   isCommandBar: boolean;
+  isButton: boolean;
   activeCollectionId: string | undefined;
   activeDocumentId: string | undefined;
   currentUserId: string | undefined;

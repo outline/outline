@@ -20,6 +20,7 @@ export default function useActionContext(
   return {
     isContextMenu: false,
     isCommandBar: false,
+    isButton: false,
     activeCollectionId: stores.ui.activeCollectionId,
     activeDocumentId: stores.ui.activeDocumentId,
     currentUserId: stores.auth.user?.id,
