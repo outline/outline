@@ -55,7 +55,7 @@ export default function ContextMenu({
   const backgroundRef = React.useRef<HTMLDivElement>(null);
   const { ui } = useStores();
   const { t } = useTranslation();
-  const { setOpenCount } = useMenuContext();
+  const { setIsMenuOpen } = useMenuContext();
 
   React.useEffect(() => {
     if (rest.visible && !previousVisible) {
@@ -63,7 +63,7 @@ export default function ContextMenu({
         onOpen();
       }
       if (rest["aria-label"] !== t("Submenu")) {
-        setOpenCount(true);
+        setIsMenuOpen(true);
       }
     }
 
@@ -72,7 +72,7 @@ export default function ContextMenu({
         onClose();
       }
       if (rest["aria-label"] !== t("Submenu")) {
-        setOpenCount(false);
+        setIsMenuOpen(false);
       }
     }
   }, [
@@ -81,7 +81,7 @@ export default function ContextMenu({
     previousVisible,
     rest.visible,
     ui.sidebarCollapsed,
-    setOpenCount,
+    setIsMenuOpen,
     rest,
     t,
   ]);

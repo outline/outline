@@ -2,20 +2,20 @@ import { noop } from "lodash";
 import React from "react";
 
 type MenuContextType = {
-  openCount: boolean;
-  setOpenCount: React.Dispatch<React.SetStateAction<boolean>>;
+  isMenuOpen: boolean;
+  setIsMenuOpen: React.Dispatch<React.SetStateAction<boolean>>;
 };
 
 const MenuContext = React.createContext<MenuContextType | null>(null);
 
 export const MenuProvider: React.FC = ({ children }) => {
-  const [openCount, setOpenCount] = React.useState(false);
+  const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const memoized = React.useMemo(
     () => ({
-      openCount,
-      setOpenCount,
+      isMenuOpen,
+      setIsMenuOpen,
     }),
-    [openCount, setOpenCount]
+    [isMenuOpen, setIsMenuOpen]
   );
 
   return (
@@ -25,7 +25,7 @@ export const MenuProvider: React.FC = ({ children }) => {
 
 const useMenuContext: () => MenuContextType = () => {
   const value = React.useContext(MenuContext);
-  return value ? value : { openCount: false, setOpenCount: noop };
+  return value ? value : { isMenuOpen: false, setIsMenuOpen: noop };
 };
 
 export default useMenuContext;
