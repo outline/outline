@@ -6,6 +6,7 @@ import { useLocation } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Flex from "~/components/Flex";
+import useMenuContext from "~/hooks/useMenuContext";
 import usePrevious from "~/hooks/usePrevious";
 import useStores from "~/hooks/useStores";
 import { fadeIn } from "~/styles/animations";
@@ -26,8 +27,9 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(
     const { ui } = useStores();
     const location = useLocation();
     const previousLocation = usePrevious(location);
+    const { isMenuOpen } = useMenuContext();
     const width = ui.sidebarWidth;
-    const collapsed = ui.isEditing || ui.sidebarCollapsed;
+    const collapsed = (ui.isEditing || ui.sidebarCollapsed) && !isMenuOpen;
     const maxWidth = theme.sidebarMaxWidth;
     const minWidth = theme.sidebarMinWidth + 16; // padding
 

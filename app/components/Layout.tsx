@@ -8,6 +8,7 @@ import { LoadingIndicatorBar } from "~/components/LoadingIndicator";
 import SkipNavContent from "~/components/SkipNavContent";
 import SkipNavLink from "~/components/SkipNavLink";
 import useKeyDown from "~/hooks/useKeyDown";
+import { MenuProvider } from "~/hooks/useMenuContext";
 import useStores from "~/hooks/useStores";
 import { isModKey } from "~/utils/keyboard";
 
@@ -40,7 +41,7 @@ function Layout({ title, children, sidebar, rightRail }: Props) {
       {ui.progressBarVisible && <LoadingIndicatorBar />}
 
       <Container auto>
-        {sidebar}
+        <MenuProvider>{sidebar}</MenuProvider>
 
         <SkipNavContent />
         <Content
