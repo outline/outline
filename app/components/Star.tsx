@@ -3,6 +3,8 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled, { useTheme } from "styled-components";
 import Document from "~/models/Document";
+import { starDocument, unstarDocument } from "~/actions/definitions/documents";
+import useActionContext from "~/hooks/useActionContext";
 import { hover } from "~/styles";
 import NudeButton from "./NudeButton";
 
@@ -14,20 +16,9 @@ type Props = {
 function Star({ size, document, ...rest }: Props) {
   const { t } = useTranslation();
   const theme = useTheme();
-
-  const handleClick = React.useCallback(
-    (ev: React.MouseEvent<HTMLButtonElement>) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-
-      if (document.isStarred) {
-        document.unstar();
-      } else {
-        document.star();
-      }
-    },
-    [document]
-  );
+  const context = useActionContext({
+    activeDocumentId: document.id,
+  });
 
   if (!document) {
     return null;
@@ -35,7 +26,8 @@ function Star({ size, document, ...rest }: Props) {
 
   return (
     <NudeButton
-      onClick={handleClick}
+      context={context}
+      action={document.isStarred ? unstarDocument : starDocument}
       size={size}
       aria-label={document.isStarred ? t("Unstar") : t("Star")}
       {...rest}
