@@ -18,6 +18,7 @@ import Tooltip from "~/components/Tooltip";
 import useBoolean from "~/hooks/useBoolean";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
+import useToasts from "~/hooks/useToasts";
 import CollectionMenu from "~/menus/CollectionMenu";
 import { newDocumentPath } from "~/utils/routeHelpers";
 import DocumentLink from "./DocumentLink";
@@ -44,6 +45,7 @@ function CollectionLink({
   const history = useHistory();
   const { t } = useTranslation();
   const { search } = useLocation();
+  const { showToast } = useToasts();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const [
     permissionOpen,
@@ -86,17 +88,17 @@ function CollectionLink({
   // Drop to re-parent document
   const [{ isOver, canDrop }, drop] = useDrop({
     accept: "document",
-    drop: (item: DragObject, monitor) => {
+    drop: async (item: DragObject, monitor) => {
       const { id, collectionId } = item;
+      const document = documents.get(id);
 
       if (monitor.didDrop()) {
         return;
       }
-      if (!collection) {
+      if (!collection || !document) {
         return;
       }
 
-      const document = documents.get(id);
       if (collection.id === collectionId && !document?.parentDocumentId) {
         return;
       }
@@ -111,7 +113,21 @@ function CollectionLink({
         itemRef.current = item;
         handlePermissionOpen();
       } else {
-        document?.moveWithUndo(collection.id);
+        const undo = document.metaData;
+        await document.move(collection.id);
+        showToast(t("Document moved"), {
+          type: "info",
+          action: {
+            text: "undo",
+            onClick: async () => {
+              await document.move(
+                undo.collectionId,
+                undo.parentDocumentId,
+                undo.index
+              );
+            },
+          },
+        });
       }
     },
     canDrop: () => {
@@ -128,12 +144,27 @@ function CollectionLink({
   // Drop to reorder document
   const [{ isOverReorder }, dropToReorder] = useDrop({
     accept: "document",
-    drop: (item: DragObject) => {
-      if (!collection) {
+    drop: async (item: DragObject) => {
+      const document = documents.get(item.id);
+      if (!collection || !document) {
         return;
       }
-      const document = documents.get(item.id);
-      document?.moveWithUndo(collection.id, undefined, 0);
+
+      const undo = document.metaData;
+      await document.move(collection.id, undefined, 0);
+      showToast(t("Document moved"), {
+        type: "info",
+        action: {
+          text: "undo",
+          onClick: async () => {
+            await document.move(
+              undo.collectionId,
+              undo.parentDocumentId,
+              undo.index
+            );
+          },
+        },
+      });
     },
     collect: (monitor) => ({
       isOverReorder: !!monitor.isOver(),

@@ -1,5 +1,4 @@
 import { addDays, differenceInDays } from "date-fns";
-import i18next from "i18next";
 import { floor } from "lodash";
 import { action, computed, observable } from "mobx";
 import parseTitle from "@shared/utils/parseTitle";
@@ -379,37 +378,17 @@ export default class Document extends BaseModel {
     return this.store.move(this.id, collectionId, parentDocumentId, index);
   };
 
-  moveWithUndo = async (
-    collectionId: string,
-    parentDocumentId?: string | null,
-    index?: number | null
-  ) => {
+  @computed
+  get metaData() {
     const collection = this.store.rootStore.collections.get(this.collectionId);
-
     const undo = {
       id: this.id,
       collectionId: this.collectionId,
       parentDocumentId: this.parentDocumentId,
       index: collection?.documentIndexInCollection?.(this.id),
     };
-
-    await this.store.move(this.id, collectionId, parentDocumentId, index);
-
-    this.store.rootStore.toasts.showToast(i18next.t("Document moved"), {
-      type: "info",
-      action: {
-        text: "undo",
-        onClick: async () => {
-          await this.store.move(
-            undo.id,
-            undo.collectionId,
-            undo.parentDocumentId,
-            undo.index
-          );
-        },
-      },
-    });
-  };
+    return undo;
+  }
 
   duplicate = () => {
     return this.store.duplicate(this);
