@@ -1,49 +1,18 @@
-import * as React from "react";
 import styled from "styled-components";
-import { Action, ActionContext } from "~/types";
+import ActionButton, {
+  Props as ActionButtonProps,
+} from "~/components/ActionButton";
 
-type Props = {
+type Props = ActionButtonProps & {
   width?: number;
   height?: number;
   size?: number;
-  action?: Action;
   type?: "button" | "submit" | "reset";
-  context?: ActionContext;
 };
 
-const NudeButton = React.forwardRef(
-  (
-    {
-      action,
-      context,
-      ...rest
-    }: Props & React.HTMLAttributes<HTMLButtonElement>,
-    ref: React.Ref<HTMLButtonElement>
-  ) => {
-    if (context && action?.visible && !action.visible(context)) {
-      return null;
-    }
-
-    return (
-      <button
-        {...rest}
-        type={"type" in rest ? rest.type : "button"}
-        ref={ref}
-        onClick={
-          action?.perform && context
-            ? (ev) => {
-                ev.preventDefault();
-                ev.stopPropagation();
-                action.perform?.(context);
-              }
-            : rest.onClick
-        }
-      />
-    );
-  }
-);
-
-const StyledNudeButton = styled(NudeButton)<Props>`
+const StyledNudeButton = styled(ActionButton).attrs((props: Props) => ({
+  type: "type" in props ? props.type : "button",
+}))<Props>`
   width: ${(props) => props.width || props.size || 24}px;
   height: ${(props) => props.height || props.size || 24}px;
   background: none;
