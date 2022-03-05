@@ -3,6 +3,7 @@ import {
   Team,
   User,
   Collection,
+  Comment,
   Document,
   Group,
 } from "@server/models";
@@ -11,6 +12,7 @@ import "./apiKey";
 import "./attachment";
 import "./authenticationProvider";
 import "./collection";
+import "./comment";
 import "./document";
 import "./integration";
 import "./notificationSetting";
@@ -41,7 +43,15 @@ export const abilities = _abilities;
  */
 export function serialize(
   model: User,
-  target: Attachment | Team | Collection | Document | User | Group | null
+  target:
+    | Attachment
+    | Team
+    | Collection
+    | Comment
+    | Document
+    | User
+    | Group
+    | null
 ): Policy {
   const output = {};
   abilities.forEach((ability) => {

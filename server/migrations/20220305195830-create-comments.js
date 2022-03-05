@@ -59,6 +59,7 @@ module.exports = {
     });
 
     await queryInterface.addIndex("comments", ["documentId"]);
+    await queryInterface.addIndex("comments", ["createdAt"]);
   },
 
   down: async (queryInterface, Sequelize) => {
