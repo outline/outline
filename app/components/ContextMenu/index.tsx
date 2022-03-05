@@ -1,11 +1,12 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { Portal } from "react-portal";
 import { Menu } from "reakit/Menu";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import useMenuContext from "~/hooks/useMenuContext";
 import useMenuHeight from "~/hooks/useMenuHeight";
 import usePrevious from "~/hooks/usePrevious";
-import useSidebar from "~/hooks/useSidebar";
 import useStores from "~/hooks/useStores";
 import {
   fadeIn,
@@ -53,15 +54,16 @@ export default function ContextMenu({
   const maxHeight = useMenuHeight(rest.visible, rest.unstable_disclosureRef);
   const backgroundRef = React.useRef<HTMLDivElement>(null);
   const { ui } = useStores();
-  const setIsMenuOpen = useSidebar();
+  const { t } = useTranslation();
+  const { setOpenCount } = useMenuContext();
 
   React.useEffect(() => {
     if (rest.visible && !previousVisible) {
       if (onOpen) {
         onOpen();
       }
-      if (ui.sidebarCollapsed && setIsMenuOpen) {
-        setIsMenuOpen((prev) => prev + 1);
+      if (rest["aria-label"] !== t("Submenu")) {
+        setOpenCount(true);
       }
     }
 
@@ -69,8 +71,8 @@ export default function ContextMenu({
       if (onClose) {
         onClose();
       }
-      if (ui.sidebarCollapsed && setIsMenuOpen) {
-        setIsMenuOpen((prev) => prev - 1);
+      if (rest["aria-label"] !== t("Submenu")) {
+        setOpenCount(false);
       }
     }
   }, [
@@ -79,7 +81,9 @@ export default function ContextMenu({
     previousVisible,
     rest.visible,
     ui.sidebarCollapsed,
-    setIsMenuOpen,
+    setOpenCount,
+    rest,
+    t,
   ]);
 
   // Perf win – don't render anything until the menu has been opened

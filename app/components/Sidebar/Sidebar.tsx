@@ -6,8 +6,8 @@ import { useLocation } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Flex from "~/components/Flex";
+import useMenuContext from "~/hooks/useMenuContext";
 import usePrevious from "~/hooks/usePrevious";
-import { SidebarContext } from "~/hooks/useSidebar";
 import useStores from "~/hooks/useStores";
 import { fadeIn } from "~/styles/animations";
 import ResizeBorder from "./components/ResizeBorder";
@@ -22,14 +22,14 @@ type Props = {
 const Sidebar = React.forwardRef<HTMLDivElement, Props>(
   ({ children }: Props, ref: React.RefObject<HTMLDivElement>) => {
     const [isCollapsing, setCollapsing] = React.useState(false);
-    const [openMenus, setOpenMenus] = React.useState(0);
     const theme = useTheme();
     const { t } = useTranslation();
     const { ui } = useStores();
     const location = useLocation();
     const previousLocation = usePrevious(location);
+    const { openCount } = useMenuContext();
     const width = ui.sidebarWidth;
-    const collapsed = (ui.isEditing || ui.sidebarCollapsed) && openMenus < 1;
+    const collapsed = (ui.isEditing || ui.sidebarCollapsed) && !openCount;
     const maxWidth = theme.sidebarMaxWidth;
     const minWidth = theme.sidebarMinWidth + 16; // padding
 
@@ -147,43 +147,41 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(
 
     return (
       <>
-        <SidebarContext.Provider value={setOpenMenus}>
-          <Container
-            ref={ref}
-            style={style}
-            $isAnimating={isAnimating}
-            $isSmallerThanMinimum={isSmallerThanMinimum}
-            $mobileSidebarVisible={ui.mobileSidebarVisible}
-            $collapsed={collapsed}
-            column
-          >
-            {ui.mobileSidebarVisible && (
-              <Portal>
-                <Backdrop onClick={ui.toggleMobileSidebar} />
-              </Portal>
-            )}
-            {children}
-            <ResizeBorder
-              onMouseDown={handleMouseDown}
-              onDoubleClick={ui.sidebarCollapsed ? undefined : handleReset}
-            />
-            {ui.sidebarCollapsed && !ui.isEditing && (
-              <Toggle
-                onClick={ui.toggleCollapsedSidebar}
-                direction={"right"}
-                aria-label={t("Expand")}
-              />
-            )}
-          </Container>
-          {!ui.isEditing && (
+        <Container
+          ref={ref}
+          style={style}
+          $isAnimating={isAnimating}
+          $isSmallerThanMinimum={isSmallerThanMinimum}
+          $mobileSidebarVisible={ui.mobileSidebarVisible}
+          $collapsed={collapsed}
+          column
+        >
+          {ui.mobileSidebarVisible && (
+            <Portal>
+              <Backdrop onClick={ui.toggleMobileSidebar} />
+            </Portal>
+          )}
+          {children}
+          <ResizeBorder
+            onMouseDown={handleMouseDown}
+            onDoubleClick={ui.sidebarCollapsed ? undefined : handleReset}
+          />
+          {ui.sidebarCollapsed && !ui.isEditing && (
             <Toggle
-              style={toggleStyle}
               onClick={ui.toggleCollapsedSidebar}
-              direction={ui.sidebarCollapsed ? "right" : "left"}
-              aria-label={ui.sidebarCollapsed ? t("Expand") : t("Collapse")}
+              direction={"right"}
+              aria-label={t("Expand")}
             />
           )}
-        </SidebarContext.Provider>
+        </Container>
+        {!ui.isEditing && (
+          <Toggle
+            style={toggleStyle}
+            onClick={ui.toggleCollapsedSidebar}
+            direction={ui.sidebarCollapsed ? "right" : "left"}
+            aria-label={ui.sidebarCollapsed ? t("Expand") : t("Collapse")}
+          />
+        )}
       </>
     );
   }
