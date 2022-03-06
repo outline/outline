@@ -27,7 +27,7 @@ function isAttachment(token: Token) {
 }
 
 export default function linksToAttachments(md: MarkdownIt) {
-  md.core.ruler.after("inline", "attachments", (state) => {
+  md.core.ruler.after("breaks", "attachments", (state) => {
     const tokens = state.tokens;
     let insideLink;
 
@@ -57,7 +57,7 @@ export default function linksToAttachments(md: MarkdownIt) {
           if (insideLink && isAttachment(insideLink)) {
             const { content } = current;
 
-            // convert to embed token
+            // convert to attachment token
             const token = new Token("attachment", "a", 0);
             token.attrSet("href", insideLink.attrGet("href") || "");
 
@@ -68,7 +68,7 @@ export default function linksToAttachments(md: MarkdownIt) {
             token.attrSet("title", title);
 
             // delete the inline link – this makes the assumption that the
-            // embed is the only thing in the para.
+            // attachment is the only thing in the para.
             tokens.splice(i - 1, 3, token);
             insideLink = null;
             break;
