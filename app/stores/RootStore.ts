@@ -2,6 +2,7 @@ import ApiKeysStore from "./ApiKeysStore";
 import AuthStore from "./AuthStore";
 import CollectionGroupMembershipsStore from "./CollectionGroupMembershipsStore";
 import CollectionsStore from "./CollectionsStore";
+import CommentsStore from "./CommentsStore";
 import DialogsStore from "./DialogsStore";
 import DocumentPresenceStore from "./DocumentPresenceStore";
 import DocumentsStore from "./DocumentsStore";
@@ -28,6 +29,7 @@ export default class RootStore {
   auth: AuthStore;
   collections: CollectionsStore;
   collectionGroupMemberships: CollectionGroupMembershipsStore;
+  comments: CommentsStore;
   dialogs: DialogsStore;
   documents: DocumentsStore;
   events: EventsStore;
@@ -56,6 +58,7 @@ export default class RootStore {
     this.auth = new AuthStore(this);
     this.collections = new CollectionsStore(this);
     this.collectionGroupMemberships = new CollectionGroupMembershipsStore(this);
+    this.comments = new CommentsStore(this);
     this.dialogs = new DialogsStore();
     this.documents = new DocumentsStore(this);
     this.events = new EventsStore(this);
@@ -82,6 +85,7 @@ export default class RootStore {
     // this.auth omitted for reasons...
     this.collections.clear();
     this.collectionGroupMemberships.clear();
+    this.comments.clear();
     this.documents.clear();
     this.events.clear();
     this.groups.clear();

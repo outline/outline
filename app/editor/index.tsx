@@ -20,6 +20,7 @@ import { MarkdownSerializer } from "@shared/editor/lib/markdown/serializer";
 // marks
 import Bold from "@shared/editor/marks/Bold";
 import Code from "@shared/editor/marks/Code";
+import Comment from "@shared/editor/marks/Comment";
 import Highlight from "@shared/editor/marks/Highlight";
 import Italic from "@shared/editor/marks/Italic";
 import Link from "@shared/editor/marks/Link";
@@ -118,6 +119,10 @@ export type Props = {
   onCancel?: () => void;
   /** Callback when user changes editor content */
   onChange?: (value: () => string) => void;
+  /** Callback when a comment mark is clicked */
+  onClickComment?: (commentId: string) => void;
+  /** Callback when a comment mark is created */
+  onDraftComment?: (commentId: string) => void;
   /** Callback when a file upload begins */
   onImageUploadStart?: () => void;
   /** Callback when a file upload ends */
@@ -366,6 +371,10 @@ export class Editor extends React.PureComponent<
           }),
           new TableRow(),
           new Bold(),
+          new Comment({
+            onDraftComment: this.props.onDraftComment,
+            onClickComment: this.props.onClickComment,
+          }),
           new Code(),
           new Highlight(),
           new Italic(),

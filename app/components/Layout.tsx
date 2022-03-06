@@ -16,10 +16,10 @@ type Props = {
   title?: string;
   children?: React.ReactNode;
   sidebar?: React.ReactNode;
-  rightRail?: React.ReactNode;
+  rightSidebar?: React.ReactNode;
 };
 
-function Layout({ title, children, sidebar, rightRail }: Props) {
+function Layout({ title, children, sidebar, rightSidebar }: Props) {
   const { ui } = useStores();
   const sidebarCollapsed = !sidebar || ui.isEditing || ui.sidebarCollapsed;
 
@@ -61,7 +61,7 @@ function Layout({ title, children, sidebar, rightRail }: Props) {
           {children}
         </Content>
 
-        {rightRail}
+        {rightSidebar}
       </Container>
     </Container>
   );

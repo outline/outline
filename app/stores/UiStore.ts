@@ -61,6 +61,9 @@ class UiStore {
   sidebarCollapsed = false;
 
   @observable
+  commentsCollapsed = false;
+
+  @observable
   sidebarIsResizing = false;
 
   @observable
@@ -178,6 +181,16 @@ class UiStore {
   @action
   expandSidebar = () => {
     this.sidebarCollapsed = false;
+  };
+
+  @action
+  collapseComments = () => {
+    this.commentsCollapsed = true;
+  };
+
+  @action
+  expandComments = () => {
+    this.commentsCollapsed = false;
   };
 
   @action

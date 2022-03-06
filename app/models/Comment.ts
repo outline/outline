@@ -13,8 +13,11 @@ class Comment extends BaseModel {
   data: Record<string, any>;
 
   @Field
+  @observable
   parentCommentId: string;
 
+  @Field
+  @observable
   documentId: string;
 
   createdAt: string;

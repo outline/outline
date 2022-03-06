@@ -1,14 +1,12 @@
-import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { withTranslation, WithTranslation } from "react-i18next";
 import { Switch, Route } from "react-router-dom";
-import RootStore from "~/stores/RootStore";
 import ErrorSuspended from "~/scenes/ErrorSuspended";
 import Layout from "~/components/Layout";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import Sidebar from "~/components/Sidebar";
 import SettingsSidebar from "~/components/Sidebar/Settings";
+import useStores from "~/hooks/useStores";
 import history from "~/utils/history";
 import {
   searchPath,
@@ -17,13 +15,19 @@ import {
   settingsPath,
 } from "~/utils/routeHelpers";
 import Fade from "./Fade";
-import withStores from "./withStores";
 
+const DocumentComments = React.lazy(
+  () =>
+    import(
+      /* webpackChunkName: "document-comments" */
+      "~/scenes/Document/components/Comments"
+    )
+);
 const DocumentHistory = React.lazy(
   () =>
     import(
       /* webpackChunkName: "document-history" */
-      "~/components/DocumentHistory"
+      "~/scenes/Document/components/History"
     )
 );
 const CommandBar = React.lazy(
@@ -34,76 +38,69 @@ const CommandBar = React.lazy(
     )
 );
 
-type Props = WithTranslation &
-  RootStore & {
-    children?: React.ReactNode;
-  };
+type Props = {
+  children?: React.ReactNode;
+};
 
-@observer
-class AuthenticatedLayout extends React.Component<Props> {
-  scrollable: HTMLDivElement | null | undefined;
+function AuthenticatedLayout(props: Props) {
+  const { auth, ui, policies } = useStores();
+  const { user, team } = auth;
+  const can = policies.abilities(ui.activeCollectionId || "");
+  const showSidebar = auth.authenticated && user && team;
 
-  @observable
-  keyboardShortcutsOpen = false;
-
-  goToSearch = (ev: KeyboardEvent) => {
+  const goToSearch = React.useCallback((ev: KeyboardEvent) => {
     if (!ev.metaKey && !ev.ctrlKey) {
       ev.preventDefault();
       ev.stopPropagation();
       history.push(searchPath());
     }
-  };
+  }, []);
 
-  goToNewDocument = () => {
-    const { activeCollectionId } = this.props.ui;
-    if (!activeCollectionId) {
+  const goToNewDocument = React.useCallback(() => {
+    if (!ui.activeCollectionId) {
       return;
     }
-    const can = this.props.policies.abilities(activeCollectionId);
-    if (!can.update) {
-      return;
+    if (can.update) {
+      history.push(newDocumentPath(ui.activeCollectionId));
     }
-    history.push(newDocumentPath(activeCollectionId));
-  };
+  }, [can.update, ui.activeCollectionId]);
 
-  render() {
-    const { auth } = this.props;
-    const { user, team } = auth;
-    const showSidebar = auth.authenticated && user && team;
-    if (auth.isSuspended) {
-      return <ErrorSuspended />;
-    }
-
-    const sidebar = showSidebar ? (
-      <Fade>
-        <Switch>
-          <Route path={settingsPath()} component={SettingsSidebar} />
-          <Route component={Sidebar} />
-        </Switch>
-      </Fade>
-    ) : undefined;
-
-    const rightRail = (
-      <React.Suspense fallback={null}>
-        <Switch>
-          <Route
-            path={`/doc/${slug}/history/:revisionId?`}
-            component={DocumentHistory}
-          />
-        </Switch>
-      </React.Suspense>
-    );
-
-    return (
-      <Layout title={team?.name} sidebar={sidebar} rightRail={rightRail}>
-        <RegisterKeyDown trigger="n" handler={this.goToNewDocument} />
-        <RegisterKeyDown trigger="t" handler={this.goToSearch} />
-        <RegisterKeyDown trigger="/" handler={this.goToSearch} />
-        {this.props.children}
-        <CommandBar />
-      </Layout>
-    );
+  if (auth.isSuspended) {
+    return <ErrorSuspended />;
   }
+
+  const sidebar = showSidebar ? (
+    <Fade>
+      <Switch>
+        <Route path={settingsPath()} component={SettingsSidebar} />
+        <Route component={Sidebar} />
+      </Switch>
+    </Fade>
+  ) : undefined;
+
+  const rightSidebar = (
+    <React.Suspense fallback={null}>
+      <Switch>
+        <Route
+          path={`/doc/${slug}/history/:revisionId?`}
+          component={DocumentHistory}
+        />
+        {ui.commentsCollapsed ? null : (
+          <Route path={`/doc/${slug}`} component={DocumentComments} />
+        )}
+      </Switch>
+    </React.Suspense>
+  );
+
+  return (
+    <Layout title={team?.name} sidebar={sidebar} rightSidebar={rightSidebar}>
+      <RegisterKeyDown trigger="n" handler={goToNewDocument} />
+      <RegisterKeyDown trigger="t" handler={goToSearch} />
+      <RegisterKeyDown trigger="/" handler={goToSearch} />
+      {props.children}
+      <CommandBar />
+    </Layout>
+  );
 }
 
-export default withTranslation()(withStores(AuthenticatedLayout));
+export default observer(AuthenticatedLayout);

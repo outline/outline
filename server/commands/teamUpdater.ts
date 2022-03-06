@@ -17,6 +17,7 @@ const teamUpdater = async ({ params, user, team, ip }: TeamUpdaterProps) => {
     sharing,
     guestSignin,
     documentEmbeds,
+    commenting,
     collaborativeEditing,
     defaultCollectionId,
     defaultUserRole,
@@ -46,6 +47,9 @@ const teamUpdater = async ({ params, user, team, ip }: TeamUpdaterProps) => {
   }
   if (collaborativeEditing !== undefined) {
     team.collaborativeEditing = collaborativeEditing;
+  }
+  if (commenting !== undefined) {
+    team.commenting = commenting;
   }
   if (defaultUserRole !== undefined) {
     team.defaultUserRole = defaultUserRole;

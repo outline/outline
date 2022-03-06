@@ -39,7 +39,7 @@ module.exports = {
       },
       resolvedById: {
         type: Sequelize.UUID,
-        allowNull: false,
+        allowNull: true,
         references: {
           model: "users"
         }
@@ -58,11 +58,18 @@ module.exports = {
       }
     });
 
+    await queryInterface.addColumn("teams", "commenting", {
+      type: Sequelize.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+    });
+
     await queryInterface.addIndex("comments", ["documentId"]);
     await queryInterface.addIndex("comments", ["createdAt"]);
   },
 
   down: async (queryInterface, Sequelize) => {
-    return queryInterface.dropTable("comments");
+    await queryInterface.removeColumn("teams", "commenting");
+    queryInterface.dropTable("comments");
   }
 };

@@ -4,6 +4,7 @@ import ExtensionManager from "@shared/editor/lib/ExtensionManager";
 // marks
 import Bold from "@shared/editor/marks/Bold";
 import Code from "@shared/editor/marks/Code";
+import Comment from "@shared/editor/marks/Comment";
 import Highlight from "@shared/editor/marks/Highlight";
 import Italic from "@shared/editor/marks/Italic";
 import Link from "@shared/editor/marks/Link";
@@ -59,6 +60,7 @@ const extensions = new ExtensionManager([
   new TableHeadCell(),
   new TableRow(),
   new Bold(),
+  new Comment(),
   new Code(),
   new Highlight(),
   new Italic(),

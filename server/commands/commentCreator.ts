@@ -2,6 +2,7 @@ import { sequelize } from "@server/database/sequelize";
 import { Comment, User, Event } from "@server/models";
 
 type Props = {
+  id: string;
   /** The user creating the comment */
   user: User;
   /** The comment as data in Prosemirror schema format */
@@ -21,6 +22,7 @@ type Props = {
  * @returns Comment The comment that was created
  */
 export default async function commentCreator({
+  id,
   user,
   data,
   documentId,
@@ -35,6 +37,7 @@ export default async function commentCreator({
   try {
     comment = await Comment.create(
       {
+        id,
         createdById: user.id,
         documentId,
         parentCommentId,

@@ -15,6 +15,21 @@ export default class CommentsStore extends BaseStore<Comment> {
     super(rootStore, Comment);
   }
 
+  threadsInDocument(documentId: string): Comment[] {
+    return this.inDocument(documentId).filter(
+      (comment) => !comment.parentCommentId
+    );
+  }
+
+  inThread(parentCommentId: string): Comment[] {
+    return filter(
+      this.orderedData,
+      (comment) =>
+        comment.parentCommentId === parentCommentId ||
+        comment.id === parentCommentId
+    );
+  }
+
   inDocument(documentId: string): Comment[] {
     return filter(
       this.orderedData,
@@ -25,7 +40,7 @@ export default class CommentsStore extends BaseStore<Comment> {
   @action
   fetchDocumentComments = async (
     documentId: string,
-    options: PaginationParams | undefined
+    options?: PaginationParams | undefined
   ): Promise<Document[]> => {
     this.isFetching = true;
 

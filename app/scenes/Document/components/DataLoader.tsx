@@ -217,6 +217,10 @@ class DataLoader extends React.Component<Props> {
       // Prevents unauthorized request to load share information for the document
       // when viewing a public share link
       if (can.read) {
+        if (this.props.auth.team?.commenting) {
+          this.props.comments.fetchDocumentComments(document.id);
+        }
+
         this.props.shares.fetch(document.id).catch((err) => {
           if (!(err instanceof NotFoundError)) {
             throw err;

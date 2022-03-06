@@ -10,10 +10,13 @@ import pagination from "./middlewares/pagination";
 const router = new Router();
 
 router.post("comments.create", auth(), async (ctx) => {
-  const { documentId, parentCommentId, data } = ctx.body;
+  const { id, documentId, parentCommentId, data } = ctx.body;
   assertUuid(documentId, "documentId is required");
   assertPresent(data, "data is required");
 
+  if (id) {
+    assertUuid(id, "id must be a uuid");
+  }
   if (parentCommentId) {
     assertUuid(parentCommentId, "parentCommentId must be a uuid");
   }
@@ -24,6 +27,7 @@ router.post("comments.create", auth(), async (ctx) => {
   authorize(user, "read", document);
 
   const comment = await commentCreator({
+    id,
     data,
     parentCommentId,
     documentId,

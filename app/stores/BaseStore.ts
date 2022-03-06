@@ -111,10 +111,10 @@ export default class BaseStore<T extends BaseModel> {
   }
 
   save(params: Partial<T>): Promise<T> {
-    if (params.id) {
-      return this.update(params);
+    if (params.isNew || !params.id) {
+      return this.create(params);
     }
-    return this.create(params);
+    return this.update(params);
   }
 
   get(id: string): T | undefined {

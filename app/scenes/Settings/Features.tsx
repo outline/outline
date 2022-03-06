@@ -18,6 +18,7 @@ function Features() {
   const { showToast } = useToasts();
   const [data, setData] = useState({
     collaborativeEditing: team.collaborativeEditing,
+    commenting: team.commenting,
   });
 
   const handleChange = React.useCallback(
@@ -54,6 +55,15 @@ function Features() {
             When enabled multiple people can edit documents at the same time
             with shared presence and live cursors.
           </Trans>
+        }
+      />
+      <Switch
+        label={t("Commenting")}
+        name="commenting"
+        checked={data.commenting}
+        onChange={handleChange}
+        note={
+          <Trans>When enabled members can add comments to documents.</Trans>
         }
       />
     </Scene>

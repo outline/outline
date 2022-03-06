@@ -25,6 +25,10 @@ class Team extends BaseModel {
 
   @Field
   @observable
+  commenting: boolean;
+
+  @Field
+  @observable
   documentEmbeds: boolean;
 
   @Field

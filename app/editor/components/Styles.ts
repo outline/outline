@@ -409,6 +409,11 @@ const EditorStyles = styled.div<{
     }
   }
 
+  .comment {
+    background: lightblue;
+    cursor: pointer;
+  }
+
   .placeholder:before {
     display: block;
     opacity: 0;

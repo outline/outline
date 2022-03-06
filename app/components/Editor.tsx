@@ -2,9 +2,11 @@ import * as React from "react";
 import { Optional } from "utility-types";
 import embeds from "@shared/editor/embeds";
 import { isInternalUrl } from "@shared/utils/urls";
+import Comment from "~/models/Comment";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import { Props as EditorProps } from "~/editor";
 import useDictionary from "~/hooks/useDictionary";
+import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import history from "~/utils/history";
 import { isModKey } from "~/utils/keyboard";
@@ -32,10 +34,11 @@ export type Props = Optional<
 
 function Editor(props: Props, ref: React.Ref<any>) {
   const { id, shareId } = props;
+  const { ui, comments } = useStores();
   const { showToast } = useToasts();
   const dictionary = useDictionary();
 
-  const onUploadImage = React.useCallback(
+  const handleUploadImage = React.useCallback(
     async (file: File) => {
       const result = await uploadFile(file, {
         documentId: id,
@@ -45,7 +48,7 @@ function Editor(props: Props, ref: React.Ref<any>) {
     [id]
   );
 
-  const onClickLink = React.useCallback(
+  const handleClickLink = React.useCallback(
     (href: string, event: MouseEvent) => {
       // on page hash
       if (isHash(href)) {
@@ -79,23 +82,45 @@ function Editor(props: Props, ref: React.Ref<any>) {
     [shareId]
   );
 
-  const onShowToast = React.useCallback(
+  const handleShowToast = React.useCallback(
     (message: string) => {
       showToast(message);
     },
     [showToast]
   );
 
+  const handleClickComment = React.useCallback(() => {
+    ui.expandComments();
+  }, [ui]);
+
+  const handleDraftComment = React.useCallback(
+    (commentId: string) => {
+      ui.expandComments();
+
+      const comment = new Comment(
+        {
+          documentId: id,
+        },
+        comments
+      );
+      comment.id = commentId;
+      comments.add(comment);
+    },
+    [comments, id, ui]
+  );
+
   return (
     <ErrorBoundary reloadOnChunkMissing>
       <SharedEditor
         ref={ref}
-        uploadImage={onUploadImage}
-        onShowToast={onShowToast}
+        uploadImage={handleUploadImage}
+        onShowToast={handleShowToast}
         embeds={embeds}
         dictionary={dictionary}
         {...props}
-        onClickLink={onClickLink}
+        onClickLink={handleClickLink}
+        onClickComment={handleClickComment}
+        onDraftComment={handleDraftComment}
         placeholder={props.placeholder || ""}
         defaultValue={props.defaultValue || ""}
       />
