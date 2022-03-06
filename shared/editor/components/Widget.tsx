@@ -82,8 +82,11 @@ const Wrapper = styled.a`
     props.href &&
     css`
       &:hover,
-      &:active {
+      &:active,
+      &:focus,
+      &:focus:not(.focus-visible) {
         cursor: pointer !important;
+        text-decoration: none !important;
         background: ${(props) => props.theme.secondaryBackground};
         outline: 1px solid ${(props) => props.theme.divider};
 
