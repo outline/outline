@@ -15,6 +15,7 @@ import {
   WarningIcon,
   InfoIcon,
   LinkIcon,
+  AttachmentIcon,
 } from "outline-icons";
 import { MenuItem } from "@shared/editor/types";
 import { Dictionary } from "~/hooks/useDictionary";
@@ -85,6 +86,12 @@ export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
       keywords: "link url uri href",
     },
     {
+      name: "attachment",
+      title: dictionary.file,
+      icon: AttachmentIcon,
+      keywords: "file upload attach",
+    },
+    {
       name: "table",
       title: dictionary.table,
       icon: TableIcon,
@@ -124,21 +131,21 @@ export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
       name: "container_notice",
       title: dictionary.infoNotice,
       icon: InfoIcon,
-      keywords: "container_notice card information",
+      keywords: "notice card information",
       attrs: { style: "info" },
     },
     {
       name: "container_notice",
       title: dictionary.warningNotice,
       icon: WarningIcon,
-      keywords: "container_notice card error",
+      keywords: "notice card error",
       attrs: { style: "warning" },
     },
     {
       name: "container_notice",
       title: dictionary.tipNotice,
       icon: StarredIcon,
-      keywords: "container_notice card suggestion",
+      keywords: "notice card suggestion",
       attrs: { style: "tip" },
     },
   ];

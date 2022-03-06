@@ -12,7 +12,7 @@ import LoadingIndicator from "~/components/LoadingIndicator";
 import Modal from "~/components/Modal";
 import withStores from "~/components/withStores";
 import { compressImage } from "~/utils/compressImage";
-import { uploadFile, dataUrlToBlob } from "~/utils/uploadFile";
+import { uploadFile, dataUrlToBlob } from "~/utils/files";
 
 const EMPTY_OBJECT = {};
 

@@ -346,11 +346,11 @@ class DocumentScene extends React.Component<Props> {
 
   updateIsDirtyDebounced = debounce(this.updateIsDirty, 500);
 
-  onImageUploadStart = () => {
+  onFileUploadStart = () => {
     this.isUploading = true;
   };
 
-  onImageUploadStop = () => {
+  onFileUploadStop = () => {
     this.isUploading = false;
   };
 
@@ -558,8 +558,8 @@ class DocumentScene extends React.Component<Props> {
                     defaultValue={value}
                     embedsDisabled={embedsDisabled}
                     onSynced={this.onSynced}
-                    onImageUploadStart={this.onImageUploadStart}
-                    onImageUploadStop={this.onImageUploadStop}
+                    onFileUploadStart={this.onFileUploadStart}
+                    onFileUploadStop={this.onFileUploadStop}
                     onSearchLink={this.props.onSearchLink}
                     onCreateLink={this.props.onCreateLink}
                     onChangeTitle={this.onChangeTitle}

@@ -12,6 +12,7 @@ import Strikethrough from "@shared/editor/marks/Strikethrough";
 import Underline from "@shared/editor/marks/Underline";
 
 // nodes
+import Attachment from "@shared/editor/nodes/Attachment";
 import Blockquote from "@shared/editor/nodes/Blockquote";
 import BulletList from "@shared/editor/nodes/BulletList";
 import CheckboxItem from "@shared/editor/nodes/CheckboxItem";
@@ -51,6 +52,7 @@ const extensions = new ExtensionManager([
   new Embed(),
   new ListItem(),
   new Notice(),
+  new Attachment(),
   new Heading(),
   new HorizontalRule(),
   new Image(),

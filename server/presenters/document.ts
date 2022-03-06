@@ -1,3 +1,4 @@
+import { escapeRegExp } from "lodash";
 import { Document } from "@server/models";
 import Attachment from "@server/models/Attachment";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
@@ -16,8 +17,11 @@ async function replaceImageAttachments(text: string) {
       const attachment = await Attachment.findByPk(id);
 
       if (attachment) {
-        const accessUrl = await getSignedUrl(attachment.key);
-        text = text.replace(attachment.redirectUrl, accessUrl);
+        const signedUrl = await getSignedUrl(attachment.key, 3600);
+        text = text.replace(
+          new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
+          signedUrl
+        );
       }
     })
   );

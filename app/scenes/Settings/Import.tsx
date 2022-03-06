@@ -16,7 +16,7 @@ import Subheading from "~/components/Subheading";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
-import { uploadFile } from "~/utils/uploadFile";
+import { uploadFile } from "~/utils/files";
 import FileOperationListItem from "./components/FileOperationListItem";
 
 function Import() {
