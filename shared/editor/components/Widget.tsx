@@ -67,7 +67,7 @@ const Wrapper = styled.a`
   gap: 6px;
   background: ${(props) => props.theme.background};
   color: ${(props) => props.theme.text} !important;
-  outline: 1px solid ${(props) => props.theme.divider};
+  box-shadow: 0 0 0 1px ${(props) => props.theme.divider};
   white-space: nowrap;
   border-radius: 8px;
   padding: 6px 8px;
@@ -82,13 +82,10 @@ const Wrapper = styled.a`
     props.href &&
     css`
       &:hover,
-      &:active,
-      &:focus,
-      &:focus:not(.focus-visible) {
+      &:active {
         cursor: pointer !important;
         text-decoration: none !important;
         background: ${(props) => props.theme.secondaryBackground};
-        outline: 1px solid ${(props) => props.theme.divider};
 
         ${Children} {
           opacity: 1;
