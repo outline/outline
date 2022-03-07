@@ -74,7 +74,9 @@ const uploadPlugin = (options: Options) =>
           }
 
           // filter to only include image files
-          const files = getDataTransferFiles(event);
+          const files = getDataTransferFiles(event).filter(
+            (dt: any) => dt.kind !== "string"
+          );
           if (files.length === 0) {
             return false;
           }
