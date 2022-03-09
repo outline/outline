@@ -20,7 +20,7 @@ router.post("utils.gc", async (ctx) => {
     "utils",
     `Permanently destroying upto ${limit} documents older than 30 days…`
   );
-  const documents = await Document.scope("withUnpublished").findAll({
+  const documents = await Document.scope("withDrafts").findAll({
     attributes: ["id", "teamId", "text", "deletedAt"],
     where: {
       deletedAt: {
