@@ -1,5 +1,6 @@
 import { Next } from "koa";
 import { User, Team, ApiKey } from "@server/models";
+import tracer from "@server/tracing";
 import { getUserForJWT } from "@server/utils/jwt";
 import { AuthenticationError, UserSuspendedError } from "../errors";
 import { ContextWithState } from "../types";
@@ -97,6 +98,16 @@ export default function auth(
       user.updateActiveAt(ctx.request.ip);
       ctx.state.token = String(token);
       ctx.state.user = user;
+
+      if (tracer) {
+        const span = tracer.scope().active();
+        console.log(span);
+        if (span !== null) {
+          span.setTag("request.userId", user.id);
+          span.setTag("request.teamId", user.teamId);
+          span.setTag("request.authType", ctx.state.authType);
+        }
+      }
     }
 
     return next();
