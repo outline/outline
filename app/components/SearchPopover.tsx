@@ -38,13 +38,25 @@ function SearchPopover({ shareId }: Props) {
     []
   );
 
+  const firstSearchItem = React.useRef<HTMLAnchorElement>(null);
+
+  const handleKeyDown = (ev: React.KeyboardEvent<HTMLInputElement>) => {
+    if (ev.key === "Enter") {
+      console.log("ENTER KEY");
+    }
+
+    if (ev.key === "ArrowDown") {
+      console.log("ARROW DOWN");
+      firstSearchItem.current?.focus();
+      ev.preventDefault();
+    }
+  };
+
   const [query, setQuery] = React.useState("");
   const searchResults = documents.searchResults(query);
 
-  // TODO: debounce the search function
   // TODO: get all the keyboard stuff right
 
-  // TODO: render the items in a way that looks good, probably with HTML
   // TODO: scope the search by the shareId
   // TODO write tests for that
 
@@ -80,6 +92,7 @@ function SearchPopover({ shareId }: Props) {
               aria-haspopup={props["aria-haspopup"]}
               ref={props.ref}
               onChange={handleSearch}
+              onKeyDown={handleKeyDown}
             />
           );
         }}
@@ -100,9 +113,10 @@ function SearchPopover({ shareId }: Props) {
             <NoResults>{t("No results for {{query}}", { query })}</NoResults>
           }
           loading={<PlaceholderList count={3} header={{ height: 20 }} />}
-          renderItem={(item) => (
+          renderItem={(item, index) => (
             <SearchListItem
               key={item.id}
+              ref={index === 0 ? firstSearchItem : undefined}
               document={item.document}
               context={item.context}
               highlight={query}

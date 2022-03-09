@@ -33,7 +33,7 @@ function Popover({ children, shrink, width = 380, ...rest }: Props) {
   );
 }
 
-const Contents = styled.div<{ $shrink: boolean; $width?: number }>`
+const Contents = styled.div<{ $shrink?: boolean; $width?: number }>`
   animation: ${fadeAndScaleIn} 200ms ease;
   transform-origin: 75% 0;
   background: ${(props) => props.theme.menuBackground};
