@@ -101,7 +101,6 @@ export default function auth(
 
       if (tracer) {
         const span = tracer.scope().active();
-        console.log(span);
         if (span !== null) {
           span.setTag("request.userId", user.id);
           span.setTag("request.teamId", user.teamId);
