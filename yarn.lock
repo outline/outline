@@ -1249,6 +1249,13 @@
   dependencies:
     tslib "^2.1.0"
 
+"@getoutline/y-prosemirror@^1.0.16":
+  version "1.0.16"
+  resolved "https://registry.yarnpkg.com/@getoutline/y-prosemirror/-/y-prosemirror-1.0.16.tgz#34a29966208113bceb8c46bbf8417853e8885e09"
+  integrity sha512-rJ3NF3Qk9v1/dNKQ25k3aud7TcV8s5175U9stagCDdvwsI67JufgzaWhT0jBhX8tEaZPdQVmXoqe8bf6OC72Cg==
+  dependencies:
+    lib0 "^0.2.42"
+
 "@hocuspocus/provider@^1.0.0-alpha.21":
   version "1.0.0-alpha.21"
   resolved "https://registry.yarnpkg.com/@hocuspocus/provider/-/provider-1.0.0-alpha.21.tgz#369869e33a7c138041a03bbb80acd61dd77e3632"
@@ -2634,6 +2641,11 @@
     "@types/express" "*"
     "@types/keygrip" "*"
     "@types/node" "*"
+
+"@types/crypto-js@^4.1.0":
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/@types/crypto-js/-/crypto-js-4.1.0.tgz#09ba1b49bcce62c9a8e6d5e50a3364aa98975578"
+  integrity sha512-DCFfy/vh2lG6qHSGezQ+Sn2Ulf/1Mx51dqOdmOKyW5nMK3maLlxeS3onC7r212OnBM2pBR95HkAmAjjF08YkxQ==
 
 "@types/datadog-metrics@^0.6.2":
   version "0.6.2"
@@ -5687,6 +5699,16 @@ crypto-browserify@^3.11.0:
     public-encrypt "^4.0.0"
     randombytes "^2.0.0"
     randomfill "^1.0.3"
+
+crypto-js@^4.1.1:
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/crypto-js/-/crypto-js-4.1.1.tgz#9e485bcf03521041bd85844786b83fb7619736cf"
+  integrity sha512-o2JlM7ydqd3Qk9CA0L4NL6mTzU2sdx96a+oOfPu8Mkl/PK51vSyoi8/rQ8NknZtk44vq15lmhAj9CIAGwgeWKw==
+
+crypto-random-string@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/crypto-random-string/-/crypto-random-string-1.0.0.tgz#a230f64f568310e1498009940790ec99545bca7e"
+  integrity sha1-ojD2T1aDEOFJgAmUB5DsmVRbyn4=
 
 crypto-random-string@^2.0.0:
   version "2.0.0"
@@ -9932,7 +9954,7 @@ levn@~0.3.0:
     prelude-ls "~1.1.2"
     type-check "~0.3.2"
 
-lib0@^0.2.34, lib0@^0.2.35, lib0@^0.2.41, lib0@^0.2.42:
+lib0@^0.2.35, lib0@^0.2.41, lib0@^0.2.42:
   version "0.2.42"
   resolved "https://registry.yarnpkg.com/lib0/-/lib0-0.2.42.tgz#6d8bf1fb8205dec37a953c521c5ee403fd8769b0"
   integrity sha512-8BNM4MiokEKzMvSxTOC3gnCBisJH+jL67CnSnqzHv3jli3pUvGC8wz+0DQ2YvGr4wVQdb2R2uNNPw9LEpVvJ4Q==
@@ -11082,10 +11104,10 @@ os-browserify@^0.3.0:
   resolved "https://registry.yarnpkg.com/os-browserify/-/os-browserify-0.3.0.tgz#854373c7f5c2315914fc9bfc6bd8238fdda1ec27"
   integrity sha1-hUNzx/XCMVkU/Jv8a9gjj92h7Cc=
 
-outline-icons@^1.41.0:
-  version "1.41.0"
-  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.41.0.tgz#6c31cf5b6ee307cf610e652c704f3dabf1fdae40"
-  integrity sha512-9H80wPZuoGCULVe8qNXV9VFnIvt16YTG3kkPB1LVlKpqv89w7CfgF/h1UfQgoFzVnzqLTp3gizpmX0L0cV4o0Q==
+outline-icons@^1.41.1:
+  version "1.41.1"
+  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.41.1.tgz#a56968fb3f955c692dcb0b4aeb17894ff2649ff4"
+  integrity sha512-acYnKEb9FIS781IVL9gfE51NwFXTB+q0ibPFIOEjpQRN47xkf/8ixrt9Mm/y/o6VNe71O226Do74OGmN5jBWdA==
 
 oy-vey@^0.10.0:
   version "0.10.0"
@@ -15448,13 +15470,6 @@ y-indexeddb@^9.0.6:
   integrity sha512-8mdCYdzZDWS2lGiB9Reaz67ZqvnV6EXH/F7L+TmBC+3mWjIBrPw4UcI79nOhEOh+y9lHXzNpSda4YJ06M13F1A==
   dependencies:
     lib0 "^0.2.35"
-
-y-prosemirror@^1.0.9:
-  version "1.0.9"
-  resolved "https://registry.yarnpkg.com/y-prosemirror/-/y-prosemirror-1.0.9.tgz#c0b5bf4e2c6620093ba0658c2aca52055346a683"
-  integrity sha512-OM12aPx04lwiIy1IOBidb6ONAof2KFxQE/Gww26SEsMQuA2dibrJkjaMwXwY1KnYY7yOpwbIFRdwecdNXLU9yQ==
-  dependencies:
-    lib0 "^0.2.34"
 
 y-protocols@^1.0.5:
   version "1.0.5"

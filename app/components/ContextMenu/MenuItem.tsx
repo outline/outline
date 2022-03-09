@@ -93,11 +93,14 @@ const Spacer = styled.svg`
   flex-shrink: 0;
 `;
 
-export const MenuAnchorCSS = css<{
+type MenuAnchorProps = {
   level?: number;
   disabled?: boolean;
   dangerous?: boolean;
-}>`
+  disclosure?: boolean;
+};
+
+export const MenuAnchorCSS = css<MenuAnchorProps>`
   display: flex;
   margin: 0;
   border: 0;
@@ -114,6 +117,7 @@ export const MenuAnchorCSS = css<{
   cursor: default;
   user-select: none;
   white-space: nowrap;
+  position: relative;
 
   svg:not(:last-child) {
     margin-right: 4px;
@@ -145,6 +149,8 @@ export const MenuAnchorCSS = css<{
 
   ${breakpoint("tablet")`
     padding: 4px 12px;
+    padding-right: ${(props: MenuAnchorProps) =>
+      props.disclosure ? 32 : 12}px;
     font-size: 14px;
   `};
 `;

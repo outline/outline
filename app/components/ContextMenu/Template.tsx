@@ -53,7 +53,7 @@ const Submenu = React.forwardRef(
       <>
         <MenuButton ref={ref} {...menu} {...rest}>
           {(props) => (
-            <MenuAnchor {...props}>
+            <MenuAnchor disclosure {...props}>
               {title} <Disclosure color={theme.textTertiary} />
             </MenuAnchor>
           )}

@@ -37,6 +37,7 @@ import ShareButton from "./ShareButton";
 
 type Props = {
   document: Document;
+  documentHasHeadings: boolean;
   sharedTree: NavigationNode | undefined;
   shareId: string | null | undefined;
   isDraft: boolean;
@@ -61,6 +62,7 @@ type Props = {
 
 function DocumentHeader({
   document,
+  documentHasHeadings,
   shareId,
   isEditing,
   isDraft,
@@ -176,7 +178,7 @@ function DocumentHeader({
               shareId={shareId}
               sharedTree={sharedTree}
             >
-              {toc}
+              {documentHasHeadings ? toc : null}
             </PublicBreadcrumb>
           )
         }

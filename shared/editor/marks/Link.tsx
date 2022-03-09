@@ -176,6 +176,10 @@ export default class Link extends Mark {
               return false;
             }
 
+            if (event.target.matches(".component-attachment *")) {
+              return false;
+            }
+
             // clicking a link while editing should show the link toolbar,
             // clicking in read-only will navigate
             if (!view.editable || (view.editable && !view.hasFocus())) {
@@ -204,6 +208,10 @@ export default class Link extends Mark {
           },
           click: (view, event) => {
             if (!(event.target instanceof HTMLAnchorElement)) {
+              return false;
+            }
+
+            if (event.target.matches(".component-attachment *")) {
               return false;
             }
 
