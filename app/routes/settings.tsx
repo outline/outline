@@ -3,10 +3,6 @@ import { Switch, Redirect } from "react-router-dom";
 import Route from "~/components/ProfiledRoute";
 import useAuthorizedSettingsConfig from "~/hooks/useAuthorizedSettingsConfig";
 
-// 2. A hook that creates the a list actions based on the roots;
-// 3. the actions should be mounted in the command bar components;
-// 4. check there are actions that render everytime.
-
 export default function SettingsRoutes() {
   const configs = useAuthorizedSettingsConfig();
   const Routes = React.useMemo(
