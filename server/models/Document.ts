@@ -610,6 +610,7 @@ class Document extends ParanoidModel {
 
     // Final query to get associated document data
     const documents = await this.scope([
+      "defaultScope",
       {
         method: ["withViews", user.id],
       },
@@ -620,18 +621,6 @@ class Document extends ParanoidModel {
       where: {
         id: map(results, "id"),
       },
-      include: [
-        {
-          model: User,
-          as: "createdBy",
-          paranoid: false,
-        },
-        {
-          model: User,
-          as: "updatedBy",
-          paranoid: false,
-        },
-      ],
     });
     return {
       results: map(results, (result: any) => ({
