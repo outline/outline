@@ -19,11 +19,7 @@ import {
 type Options = {
   baseUrl?: string;
 };
-// authorization cookie set by a Cloudflare Access proxy
-const CF_AUTHORIZATION = getCookie("CF_Authorization");
 
-// if the cookie is set, we must pass it with all ApiClient requests
-const CREDENTIALS = CF_AUTHORIZATION ? "same-origin" : "omit";
 const fetchWithRetry = retry(fetch);
 
 class ApiClient {
@@ -105,7 +101,9 @@ class ApiClient {
         body,
         headers,
         redirect: "follow",
-        credentials: CREDENTIALS,
+        // If an authentication cookie for proxy is set we must pass it with
+        // API requests, otherwise we avoid sending cookies for improved perf.
+        credentials: this.isBehindAuthenticatedProxy() ? "same-origin" : "omit",
         cache: "no-cache",
       });
     } catch (err) {
@@ -203,15 +201,22 @@ class ApiClient {
     return this.fetch(path, "POST", data, options);
   };
 
-  // Helpers
-  constructQueryString = (data: Record<string, any>) => {
+  private constructQueryString = (data: Record<string, any>) => {
     return map(
       data,
       (v, k) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`
     ).join("&");
   };
-}
 
-export default ApiClient; // In case you don't want to always initiate, just import with `import { client } ...`
+  /**
+   * Checks if the user is behind a proxy that requires authentication,
+   * currently we automatically recognize Cloudflare Access and Pomerium.
+   *
+   * @returns true if the user is behind a proxy that is authenticated
+   */
+  private isBehindAuthenticatedProxy = (): boolean => {
+    return !!(getCookie("CF_Authorization") || getCookie("_pomerium"));
+  };
+}
 
 export const client = new ApiClient();
