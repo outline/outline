@@ -25,11 +25,22 @@ const fetchWithRetry = retry(fetch);
 class ApiClient {
   baseUrl: string;
 
-  userAgent: string;
+  /**
+   * The user-agent to use for API requests
+   */
+  userAgent = "OutlineFrontend";
+
+  /**
+   * If the user is behind a proxy that requires authentication, currently we
+   * automatically recognize Cloudflare Access and Pomerium.
+   */
+  isBehindAuthenticatedProxy = false;
 
   constructor(options: Options = {}) {
     this.baseUrl = options.baseUrl || "/api";
-    this.userAgent = "OutlineFrontend";
+    this.isBehindAuthenticatedProxy = !!(
+      getCookie("CF_Authorization") || getCookie("_pomerium")
+    );
   }
 
   fetch = async (
@@ -103,7 +114,7 @@ class ApiClient {
         redirect: "follow",
         // If an authentication cookie for proxy is set we must pass it with
         // API requests, otherwise we avoid sending cookies for improved perf.
-        credentials: this.isBehindAuthenticatedProxy() ? "same-origin" : "omit",
+        credentials: this.isBehindAuthenticatedProxy ? "same-origin" : "omit",
         cache: "no-cache",
       });
     } catch (err) {
@@ -206,16 +217,6 @@ class ApiClient {
       data,
       (v, k) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`
     ).join("&");
-  };
-
-  /**
-   * Checks if the user is behind a proxy that requires authentication,
-   * currently we automatically recognize Cloudflare Access and Pomerium.
-   *
-   * @returns true if the user is behind a proxy that is authenticated
-   */
-  private isBehindAuthenticatedProxy = (): boolean => {
-    return !!(getCookie("CF_Authorization") || getCookie("_pomerium"));
   };
 }
 
