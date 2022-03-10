@@ -610,7 +610,8 @@ class Document extends ParanoidModel {
 
     // Final query to get associated document data
     const documents = await this.scope([
-      "defaultScope",
+      "withoutState",
+      "withDrafts",
       {
         method: ["withViews", user.id],
       },
