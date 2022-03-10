@@ -20,8 +20,12 @@ function CommandBar() {
   const { t } = useTranslation();
   const { ui } = useStores();
   const settingsActions = useSettingsActions();
+  const commandBarActions = React.useMemo(
+    () => [...rootActions, ...settingsActions],
+    [settingsActions]
+  );
 
-  useCommandBarActions([...rootActions, ...settingsActions]);
+  useCommandBarActions(commandBarActions);
 
   const { rootAction } = useKBar((state) => ({
     rootAction: state.currentRootActionId
