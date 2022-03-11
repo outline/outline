@@ -477,25 +477,17 @@ class Document extends ParanoidModel {
       resultsQuery,
       countQuery,
     ]);
+
     // Final query to get associated document data
     const documents = await this.findAll({
       where: {
         id: map(results, "id"),
+        teamId: team.id,
       },
       include: [
         {
           model: Collection,
           as: "collection",
-        },
-        {
-          model: User,
-          as: "createdBy",
-          paranoid: false,
-        },
-        {
-          model: User,
-          as: "updatedBy",
-          paranoid: false,
         },
       ],
     });
@@ -620,9 +612,11 @@ class Document extends ParanoidModel {
       },
     ]).findAll({
       where: {
+        teamId: user.teamId,
         id: map(results, "id"),
       },
     });
+
     return {
       results: map(results, (result: any) => ({
         ranking: result.searchRanking,
