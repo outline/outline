@@ -1,4 +1,4 @@
-import React from "react";
+import * as React from "react";
 import { createAction } from "~/actions";
 import history from "~/utils/history";
 import useAuthorizedSettingsConfig from "./useAuthorizedSettingsConfig";
