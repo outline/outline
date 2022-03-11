@@ -66,7 +66,6 @@
     "babel-plugin-lodash": "^3.3.4",
     "babel-plugin-styled-components": "^1.11.1",
     "babel-plugin-transform-class-properties": "^6.24.1",
-    "boundless-arrow-key-navigation": "^1.0.4",
     "bull": "^3.29.0",
     "cancan": "3.1.0",
     "chalk": "^4.1.0",
