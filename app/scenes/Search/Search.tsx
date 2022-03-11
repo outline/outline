@@ -1,4 +1,3 @@
-import ArrowKeyNavigation from "boundless-arrow-key-navigation";
 import { isEqual } from "lodash";
 import { observable, action } from "mobx";
 import { observer } from "mobx-react";
@@ -14,6 +13,7 @@ import { DateFilter as TDateFilter } from "@shared/types";
 import { DEFAULT_PAGINATION_LIMIT } from "~/stores/BaseStore";
 import { SearchParams } from "~/stores/DocumentsStore";
 import RootStore from "~/stores/RootStore";
+import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
 import DocumentListItem from "~/components/DocumentListItem";
 import Empty from "~/components/Empty";
 import Fade from "~/components/Fade";
@@ -44,7 +44,8 @@ type Props = RouteComponentProps<
 
 @observer
 class Search extends React.Component<Props> {
-  firstDocument: HTMLAnchorElement | null | undefined;
+  compositeRef: HTMLDivElement | null | undefined;
+  searchInputRef: HTMLInputElement | null | undefined;
 
   lastQuery = "";
 
@@ -102,10 +103,11 @@ class Search extends React.Component<Props> {
     if (ev.key === "ArrowDown") {
       ev.preventDefault();
 
-      if (this.firstDocument) {
-        if (this.firstDocument instanceof HTMLElement) {
-          this.firstDocument.focus();
-        }
+      if (this.compositeRef) {
+        const linkItems = this.compositeRef.querySelectorAll(
+          "[href]"
+        ) as NodeListOf<HTMLAnchorElement>;
+        linkItems[0]?.focus();
       }
     }
   };
@@ -252,8 +254,16 @@ class Search extends React.Component<Props> {
     });
   };
 
-  setFirstDocumentRef = (ref: HTMLAnchorElement | null) => {
-    this.firstDocument = ref;
+  setCompositeRef = (ref: HTMLDivElement | null) => {
+    this.compositeRef = ref;
+  };
+
+  setSearchInputRef = (ref: HTMLInputElement | null) => {
+    this.searchInputRef = ref;
+  };
+
+  handleEscape = () => {
+    this.searchInputRef?.focus();
   };
 
   render() {
@@ -275,6 +285,7 @@ class Search extends React.Component<Props> {
         )}
         <ResultsWrapper column auto>
           <SearchInput
+            ref={this.setSearchInputRef}
             placeholder={`${t("Search")}…`}
             onKeyDown={this.handleKeyDown}
             defaultValue={this.query}
@@ -329,26 +340,28 @@ class Search extends React.Component<Props> {
           )}
           <ResultList column>
             <StyledArrowKeyNavigation
-              mode={ArrowKeyNavigation.mode.VERTICAL}
-              defaultActiveChildIndex={0}
+              ref={this.setCompositeRef}
+              onEscape={this.handleEscape}
             >
-              {results.map((result, index) => {
-                const document = documents.data.get(result.document.id);
-                if (!document) {
-                  return null;
-                }
-                return (
-                  <DocumentListItem
-                    ref={(ref) => index === 0 && this.setFirstDocumentRef(ref)}
-                    key={document.id}
-                    document={document}
-                    highlight={this.query}
-                    context={result.context}
-                    showCollection
-                    showTemplate
-                  />
-                );
-              })}
+              {(composite) =>
+                results.map((result) => {
+                  const document = documents.data.get(result.document.id);
+                  if (!document) {
+                    return null;
+                  }
+                  return (
+                    <DocumentListItem
+                      key={document.id}
+                      document={document}
+                      highlight={this.query}
+                      context={result.context}
+                      showCollection
+                      showTemplate
+                      composite={composite}
+                    />
+                  );
+                })
+              }
             </StyledArrowKeyNavigation>
             {this.allowLoadMore && (
               <Waypoint key={this.offset} onEnter={this.loadMoreResults} />

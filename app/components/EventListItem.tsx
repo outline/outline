@@ -9,10 +9,14 @@ import {
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
-import styled from "styled-components";
+import { CompositeStateReturn } from "reakit/Composite";
+import styled, { css } from "styled-components";
 import Document from "~/models/Document";
 import Event from "~/models/Event";
 import Avatar from "~/components/Avatar";
+import CompositeItem, {
+  Props as ItemProps,
+} from "~/components/List/CompositeItem";
 import Item, { Actions } from "~/components/List/Item";
 import Time from "~/components/Time";
 import usePolicy from "~/hooks/usePolicy";
@@ -23,9 +27,16 @@ type Props = {
   document: Document;
   event: Event;
   latest?: boolean;
+  composite: CompositeStateReturn;
 };
 
-const EventListItem = ({ event, latest, document }: Props) => {
+const EventListItem = ({
+  event,
+  latest,
+  document,
+  composite,
+  ...rest
+}: Props) => {
   const { t } = useTranslation();
   const location = useLocation();
   const can = usePolicy(document.id);
@@ -34,6 +45,13 @@ const EventListItem = ({ event, latest, document }: Props) => {
   };
   const isRevision = event.name === "revisions.create";
   let meta, icon, to;
+
+  const ref = React.useRef<HTMLAnchorElement>(null);
+  // the time component tends to steal focus when clicked
+  // ...so forward the focus back to the parent item
+  const handleTimeClick = React.useCallback(() => {
+    ref.current?.focus();
+  }, [ref]);
 
   switch (event.name) {
     case "revisions.create":
@@ -89,11 +107,15 @@ const EventListItem = ({ event, latest, document }: Props) => {
 
   const isActive = location.pathname === to;
 
+  if (document.isDeleted) {
+    to = undefined;
+  }
+
   return (
-    <ListItem
+    <BaseItem
       small
       exact
-      to={document.isDeleted ? undefined : to}
+      to={to}
       title={
         <Time
           dateTime={event.createdAt}
@@ -101,6 +123,7 @@ const EventListItem = ({ event, latest, document }: Props) => {
           format="MMM do, h:mm a"
           relative={false}
           addSuffix
+          onClick={handleTimeClick}
         />
       }
       image={<Avatar src={event.actor?.avatarUrl} size={32} />}
@@ -115,9 +138,27 @@ const EventListItem = ({ event, latest, document }: Props) => {
           <RevisionMenu document={document} revisionId={event.modelId} />
         ) : undefined
       }
+      composite={composite}
+      ref={ref}
+      {...rest}
     />
   );
 };
+
+const BaseItem = React.forwardRef(
+  (
+    { to, composite, ...rest }: ItemProps,
+    ref?: React.Ref<HTMLAnchorElement>
+  ) => {
+    if (to) {
+      return (
+        <CompositeListItem to={to} composite={composite} ref={ref} {...rest} />
+      );
+    }
+
+    return <ListItem ref={ref} {...rest} />;
+  }
+);
 
 const Subtitle = styled.span`
   svg {
@@ -126,7 +167,7 @@ const Subtitle = styled.span`
   }
 `;
 
-const ListItem = styled(Item)`
+const ItemStyle = css`
   border: 0;
   position: relative;
   margin: 8px;
@@ -170,6 +211,14 @@ const ListItem = styled(Item)`
       opacity: 1;
     }
   }
+`;
+
+const ListItem = styled(Item)`
+  ${ItemStyle}
+`;
+
+const CompositeListItem = styled(CompositeItem)`
+  ${ItemStyle}
 `;
 
 export default EventListItem;

@@ -1,12 +1,13 @@
-import ArrowKeyNavigation from "boundless-arrow-key-navigation";
 import { isEqual } from "lodash";
 import { observable, action } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { withTranslation, WithTranslation } from "react-i18next";
 import { Waypoint } from "react-waypoint";
+import { CompositeStateReturn } from "reakit/Composite";
 import { DEFAULT_PAGINATION_LIMIT } from "~/stores/BaseStore";
 import RootStore from "~/stores/RootStore";
+import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
 import DelayedMount from "~/components/DelayedMount";
 import PlaceholderList from "~/components/List/Placeholder";
 import withStores from "~/components/withStores";
@@ -18,9 +19,12 @@ type Props = WithTranslation &
     options?: Record<string, any>;
     heading?: React.ReactNode;
     empty?: React.ReactNode;
-
     items: any[];
-    renderItem: (arg0: any, index: number) => React.ReactNode;
+    renderItem: (
+      item: any,
+      index: number,
+      composite: CompositeStateReturn
+    ) => React.ReactNode;
     renderHeading?: (name: React.ReactElement<any> | string) => React.ReactNode;
   };
 
@@ -129,44 +133,47 @@ class PaginatedList extends React.Component<Props> {
         {showList && (
           <>
             {heading}
-            <ArrowKeyNavigation
-              mode={ArrowKeyNavigation.mode.VERTICAL}
-              defaultActiveChildIndex={0}
-            >
-              {items.slice(0, this.renderCount).map((item, index) => {
-                const children = this.props.renderItem(item, index);
-
-                // If there is no renderHeading method passed then no date
-                // headings are rendered
-                if (!renderHeading) {
-                  return children;
-                }
-
-                // Our models have standard date fields, updatedAt > createdAt.
-                // Get what a heading would look like for this item
-                const currentDate =
-                  item.updatedAt || item.createdAt || previousHeading;
-                const currentHeading = dateToHeading(
-                  currentDate,
-                  this.props.t,
-                  auth.user?.language
-                );
-
-                // If the heading is different to any previous heading then we
-                // should render it, otherwise the item can go under the previous
-                // heading
-                if (!previousHeading || currentHeading !== previousHeading) {
-                  previousHeading = currentHeading;
-                  return (
-                    <React.Fragment key={item.id}>
-                      {renderHeading(currentHeading)}
-                      {children}
-                    </React.Fragment>
+            <ArrowKeyNavigation>
+              {(composite: CompositeStateReturn) =>
+                items.slice(0, this.renderCount).map((item, index) => {
+                  const children = this.props.renderItem(
+                    item,
+                    index,
+                    composite
                   );
-                }
 
-                return children;
-              })}
+                  // If there is no renderHeading method passed then no date
+                  // headings are rendered
+                  if (!renderHeading) {
+                    return children;
+                  }
+
+                  // Our models have standard date fields, updatedAt > createdAt.
+                  // Get what a heading would look like for this item
+                  const currentDate =
+                    item.updatedAt || item.createdAt || previousHeading;
+                  const currentHeading = dateToHeading(
+                    currentDate,
+                    this.props.t,
+                    auth.user?.language
+                  );
+
+                  // If the heading is different to any previous heading then we
+                  // should render it, otherwise the item can go under the previous
+                  // heading
+                  if (!previousHeading || currentHeading !== previousHeading) {
+                    previousHeading = currentHeading;
+                    return (
+                      <React.Fragment key={item.id}>
+                        {renderHeading(currentHeading)}
+                        {children}
+                      </React.Fragment>
+                    );
+                  }
+
+                  return children;
+                })
+              }
             </ArrowKeyNavigation>
             {this.allowLoadMore && (
               <Waypoint key={this.renderCount} onEnter={this.loadMoreResults} />

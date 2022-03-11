@@ -3,7 +3,7 @@ import styled, { useTheme } from "styled-components";
 import Flex from "~/components/Flex";
 import NavLink from "~/components/NavLink";
 
-type Props = {
+export type Props = {
   image?: React.ReactNode;
   to?: string;
   exact?: boolean;
@@ -63,13 +63,13 @@ const ListItem = (
   }
 
   return (
-    <Wrapper $border={border} $small={small} {...rest}>
+    <Wrapper ref={ref} $border={border} $small={small} {...rest}>
       {content(false)}
     </Wrapper>
   );
 };
 
-const Wrapper = styled.div<{ $small?: boolean; $border?: boolean }>`
+const Wrapper = styled.a<{ $small?: boolean; $border?: boolean; to?: string }>`
   display: flex;
   padding: ${(props) => (props.$border === false ? 0 : "8px 0")};
   margin: ${(props) =>
@@ -81,6 +81,8 @@ const Wrapper = styled.div<{ $small?: boolean; $border?: boolean }>`
   &:last-child {
     border-bottom: 0;
   }
+
+  cursor: ${({ to }) => (to ? "pointer" : "default")};
 `;
 
 const Image = styled(Flex)`

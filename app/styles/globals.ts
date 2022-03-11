@@ -97,5 +97,6 @@ export default createGlobalStyle`
 
   .js-focus-visible .focus-visible {
     outline-color: ${(props) => props.theme.primary};
+    outline-offset: -1px;
   }
 `;

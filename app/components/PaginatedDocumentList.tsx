@@ -31,11 +31,12 @@ const PaginatedDocumentList = React.memo<Props>(function PaginatedDocumentList({
       heading={heading}
       fetch={fetch}
       options={options}
-      renderItem={(item) => (
+      renderItem={(item, _index, composite) => (
         <DocumentListItem
           key={item.id}
           document={item}
           showPin={!!options?.collectionId}
+          composite={composite}
           {...rest}
         />
       )}

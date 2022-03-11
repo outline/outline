@@ -29,15 +29,18 @@ const PaginatedEventList = React.memo<Props>(function PaginatedEventList({
       heading={heading}
       fetch={fetch}
       options={options}
-      renderItem={(item, index) => (
-        <EventListItem
-          key={item.id}
-          event={item}
-          document={document}
-          latest={index === 0}
-          {...rest}
-        />
-      )}
+      renderItem={(item, index, composite) => {
+        return (
+          <EventListItem
+            key={item.id}
+            event={item}
+            document={document}
+            latest={index === 0}
+            composite={composite}
+            {...rest}
+          />
+        );
+      }}
       renderHeading={(name) => <Heading>{name}</Heading>}
     />
   );
