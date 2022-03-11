@@ -5,7 +5,6 @@ import {
   Composite,
   CompositeStateReturn,
 } from "reakit/Composite";
-import styled from "styled-components";
 
 type Props = {
   children: (composite: CompositeStateReturn) => React.ReactNode;
@@ -37,7 +36,7 @@ function ArrowKeyNavigation(
   );
 
   return (
-    <StyledComposite
+    <Composite
       {...composite}
       onKeyDown={handleKeyDown}
       role="menu"
@@ -45,10 +44,8 @@ function ArrowKeyNavigation(
       ref={ref}
     >
       {children(composite)}
-    </StyledComposite>
+    </Composite>
   );
 }
 
 export default observer(React.forwardRef(ArrowKeyNavigation));
-
-const StyledComposite = styled(Composite)``;
