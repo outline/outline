@@ -21,7 +21,7 @@ function CommandBar() {
   const { ui } = useStores();
   const settingsActions = useSettingsActions();
   const commandBarActions = React.useMemo(
-    () => [...rootActions, ...settingsActions],
+    () => [...rootActions, settingsActions],
     [settingsActions]
   );
 
