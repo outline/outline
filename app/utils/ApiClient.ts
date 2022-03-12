@@ -1,9 +1,9 @@
 import retry from "fetch-retry";
 import invariant from "invariant";
 import { map, trim } from "lodash";
-import { getCookie } from "tiny-cookie";
 import EDITOR_VERSION from "@shared/editor/version";
 import stores from "~/stores";
+import env from "~/env";
 import download from "./download";
 import {
   AuthorizationError,
@@ -21,6 +21,7 @@ type Options = {
 };
 
 const fetchWithRetry = retry(fetch);
+const isHosted = env.DEPLOYMENT === "hosted";
 
 class ApiClient {
   baseUrl: string;
@@ -30,17 +31,8 @@ class ApiClient {
    */
   userAgent = "OutlineFrontend";
 
-  /**
-   * If the user is behind a proxy that requires authentication, currently we
-   * automatically recognize Cloudflare Access and Pomerium.
-   */
-  isBehindAuthenticatedProxy = false;
-
   constructor(options: Options = {}) {
     this.baseUrl = options.baseUrl || "/api";
-    this.isBehindAuthenticatedProxy = !!(
-      getCookie("CF_Authorization") || getCookie("_pomerium")
-    );
   }
 
   fetch = async (
@@ -112,9 +104,11 @@ class ApiClient {
         body,
         headers,
         redirect: "follow",
-        // If an authentication cookie for proxy is set we must pass it with
-        // API requests, otherwise we avoid sending cookies for improved perf.
-        credentials: this.isBehindAuthenticatedProxy ? "same-origin" : "omit",
+        // For the hosted deployment we omit cookies on API requests as they are
+        // not needed for authentication this offers a performance increase.
+        // For self-hosted we include them to support a wide variety of
+        // authenticated proxies, e.g. Pomerium, Cloudflare Access etc.
+        credentials: isHosted ? "omit" : "same-origin",
         cache: "no-cache",
       });
     } catch (err) {
