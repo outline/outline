@@ -136,7 +136,7 @@ const useAuthorizedSettingsConfig = () => {
         icon: GroupIcon,
       },
       Shares: {
-        name: t("Shares"),
+        name: t("Share Links"),
         path: "/settings/shares",
         component: Shares,
         enabled: true,
