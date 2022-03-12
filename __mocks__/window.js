@@ -1,1 +1,2 @@
-window.matchMedia = data => data;
+window.matchMedia = (data) => data;
+window.env = {};
