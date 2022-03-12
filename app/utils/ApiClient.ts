@@ -26,11 +26,6 @@ const isHosted = env.DEPLOYMENT === "hosted";
 class ApiClient {
   baseUrl: string;
 
-  /**
-   * The user-agent to use for API requests
-   */
-  userAgent = "OutlineFrontend";
-
   constructor(options: Options = {}) {
     this.baseUrl = options.baseUrl || "/api";
   }
