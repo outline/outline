@@ -57,7 +57,6 @@ export const navigateToRecentSearchQuery = (searchQuery: SearchQuery) =>
     perform: () => history.push(searchPath(searchQuery.query)),
   });
 
-// could be a document action
 export const navigateToSearchQuery = (searchQuery: string) =>
   createAction({
     id: "search",
