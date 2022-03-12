@@ -51,7 +51,7 @@ type SettingsPage =
 export type ConfigItem = {
   name: string;
   path: string;
-  icon: typeof NewDocumentIcon;
+  icon: React.FC<any>;
   component: () => JSX.Element;
   enabled: boolean;
   group: SettingsGroups;
@@ -161,7 +161,7 @@ const useAuthorizedSettingsConfig = () => {
       },
       // Intergrations
       Slack: {
-        name: t("Slack"),
+        name: "Slack",
         path: "/settings/integrations/slack",
         component: Slack,
         enabled: can.update && (!!env.SLACK_KEY || isHosted),
@@ -169,7 +169,7 @@ const useAuthorizedSettingsConfig = () => {
         icon: SlackIcon,
       },
       Zapier: {
-        name: t("Zapier"),
+        name: "Zapier",
         path: "/settings/integrations/zapier",
         component: Zapier,
         enabled: can.update && isHosted,

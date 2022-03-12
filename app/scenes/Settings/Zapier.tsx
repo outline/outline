@@ -9,8 +9,8 @@ import ZapierIcon from "~/components/ZapierIcon";
 function Zapier() {
   const { t } = useTranslation();
   return (
-    <Scene title={t("Zapier")} icon={<ZapierIcon color="currentColor" />}>
-      <Heading>{t("Zapier")}</Heading>
+    <Scene title="Zapier" icon={<ZapierIcon color="currentColor" />}>
+      <Heading>Zapier</Heading>
       <Text type="secondary">
         <Trans>
           Zapier is a platform that allows Outline to easily integrate with
