@@ -622,7 +622,6 @@
   "You can create an unlimited amount of personal tokens to authenticate\n          with the API. Tokens have the same permissions as your user account.\n          For more details see the <em>developer documentation</em>.": "API 인증을 위해\n           개인 토큰을 무제한 생성할 수 있습니다. 토큰에는 사용자 계정과 동일한 권한이 있습니다.\n          자세한 내용은 <em>개발자 문서</em>를 참조하세요",
   "Tokens": "Tokens",
   "Create a token": "토큰 생성하기",
-  "Zapier": "Zapier",
   "Zapier is a platform that allows Outline to easily integrate with thousands of other business tools. Head over to Zapier to setup a \"Zap\" and start programmatically interacting with Outline.'": "Zapier is a platform that allows Outline to easily integrate with thousands of other business tools. Head over to Zapier to setup a \"Zap\" and start programmatically interacting with Outline.'",
   "Open Zapier": "Open Zapier",
   "There are no templates just yet.": "템플릿이 아직 없습니다.",
