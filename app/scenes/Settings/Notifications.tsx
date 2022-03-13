@@ -8,14 +8,12 @@ import Heading from "~/components/Heading";
 import Input from "~/components/Input";
 import Notice from "~/components/Notice";
 import Scene from "~/components/Scene";
-import Subheading from "~/components/Subheading";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import env from "~/env";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
-import NotificationListItem from "./components/NotificationListItem";
 import SettingRow from "./components/SettingRow";
 
 function Notifications() {
@@ -120,7 +118,7 @@ function Notifications() {
             <Input type="email" value={user.email} readOnly short />
           </SettingRow>
 
-          <Subheading>{t("Notifications")}</Subheading>
+          <h2>{t("Notifications")}</h2>
 
           {options.map((option, index) => {
             if (option.separator || !option.event) {
