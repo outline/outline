@@ -494,6 +494,8 @@
   "Inline code": "Codice inline",
   "Back to home": "Back to home",
   "Back to website": "Back to website",
+  "Login": "Login",
+  "Failed to load configuration.": "Failed to load configuration.",
   "Check your email": "Check your email",
   "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em>, no password needed.": "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em>, no password needed.",
   "Back to login": "Back to login",
