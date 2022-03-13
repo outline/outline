@@ -622,7 +622,6 @@
   "You can create an unlimited amount of personal tokens to authenticate\n          with the API. Tokens have the same permissions as your user account.\n          For more details see the <em>developer documentation</em>.": "Vous pouvez créer un nombre illimité de jetons personnels pour vous authentifier\n          avec l'API. Les jetons ont les mêmes autorisations que votre compte utilisateur.\n          Pour plus de détails consultez la <em>documentation développeur</em>.",
   "Tokens": "Jetons",
   "Create a token": "Créer un jeton",
-  "Zapier": "Zapier",
   "Zapier is a platform that allows Outline to easily integrate with thousands of other business tools. Head over to Zapier to setup a \"Zap\" and start programmatically interacting with Outline.'": "Zapier est une plate-forme permettant à Outline de s'intégrer facilement à des milliers d'autres outils commerciaux. Rendez-vous sur Zapier pour configurer un \"Zap\" et commencer à interagir programmatiquement avec Outline.'",
   "Open Zapier": "Ouvrir Zapier",
   "There are no templates just yet.": "Il n'y a pas encore de modèles.",
