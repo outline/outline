@@ -136,7 +136,6 @@ const Profile = () => {
             value={language}
             onChange={handleLanguageChange}
             ariaLabel={t("Language")}
-            short
           />
         </SettingRow>
 
