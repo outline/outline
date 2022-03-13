@@ -494,6 +494,8 @@
   "Inline code": "인라인 코드",
   "Back to home": "홈으로 돌아가기",
   "Back to website": "웹사이트로 돌아가기",
+  "Login": "Login",
+  "Failed to load configuration.": "Failed to load configuration.",
   "Check your email": "이메일을 확인하십시오",
   "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em>, no password needed.": "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em>, no password needed.",
   "Back to login": "로그인으로 돌아가기",
