@@ -494,6 +494,8 @@
   "Inline code": "インラインコード",
   "Back to home": "ホームへ戻る",
   "Back to website": "サイトに戻る",
+  "Login": "Login",
+  "Failed to load configuration.": "Failed to load configuration.",
   "Check your email": "メールをご確認ください",
   "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em>, no password needed.": "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em>, no password needed.",
   "Back to login": "ログイン画面に戻る",
