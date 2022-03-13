@@ -10,6 +10,7 @@ import CommandBarResults from "~/components/CommandBarResults";
 import SearchActions from "~/components/SearchActions";
 import rootActions from "~/actions/root";
 import useCommandBarActions from "~/hooks/useCommandBarActions";
+import useSettingsActions from "~/hooks/useSettingsAction";
 import useStores from "~/hooks/useStores";
 import { CommandBarAction } from "~/types";
 import { metaDisplay } from "~/utils/keyboard";
@@ -18,8 +19,13 @@ import Text from "./Text";
 function CommandBar() {
   const { t } = useTranslation();
   const { ui } = useStores();
+  const settingsActions = useSettingsActions();
+  const commandBarActions = React.useMemo(
+    () => [...rootActions, settingsActions],
+    [settingsActions]
+  );
 
-  useCommandBarActions(rootActions);
+  useCommandBarActions(commandBarActions);
 
   const { rootAction } = useKBar((state) => ({
     rootAction: state.currentRootActionId

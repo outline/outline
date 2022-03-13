@@ -174,7 +174,6 @@ export const rootNavigationActions = [
   navigateToTemplates,
   navigateToArchive,
   navigateToTrash,
-  navigateToSettings,
   openAPIDocumentation,
   openFeedbackUrl,
   openBugReportUrl,
