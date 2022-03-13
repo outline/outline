@@ -6,7 +6,7 @@ import { LabelText } from "~/components/Input";
 import ImageUpload, { Props as ImageUploadProps } from "./ImageUpload";
 
 type Props = ImageUploadProps & {
-  label: string;
+  label?: string;
   src?: string;
 };
 
@@ -15,7 +15,7 @@ export default function ImageInput({ label, src, ...rest }: Props) {
 
   return (
     <InputWrapper column>
-      <LabelText>{label}</LabelText>
+      {label && <LabelText>{label}</LabelText>}
       <ImageBox>
         <ImageUpload {...rest}>
           <Avatar src={src} />
@@ -33,8 +33,8 @@ const InputWrapper = styled(Flex)`
 `;
 
 const avatarStyles = `
-  width: 80px;
-  height: 80px;
+  width: 64px;
+  height: 64px;
 `;
 
 const Avatar = styled.img`

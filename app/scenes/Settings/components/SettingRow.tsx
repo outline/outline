@@ -9,6 +9,7 @@ type Props = {
   description: React.ReactNode;
   name: string;
   children: React.ReactNode;
+  visible?: boolean;
 };
 
 const Row = styled(Flex)`
@@ -30,6 +31,10 @@ const Column = styled.div`
 `;
 
 export default function SettingRow(props: Props) {
+  if (props.visible === false) {
+    return null;
+  }
+
   return (
     <Row gap={32}>
       <Column>

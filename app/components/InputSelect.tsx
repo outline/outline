@@ -24,6 +24,7 @@ export type Option = {
 
 export type Props = {
   id?: string;
+  name?: string;
   value?: string | null;
   label?: string;
   nude?: boolean;
