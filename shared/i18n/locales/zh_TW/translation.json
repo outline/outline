@@ -494,6 +494,8 @@
   "Inline code": "行內程式碼",
   "Back to home": "回到首頁",
   "Back to website": "回到網站",
+  "Login": "Login",
+  "Failed to load configuration.": "Failed to load configuration.",
   "Check your email": "確認您的電子郵件",
   "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em>, no password needed.": "一個登入用的神奇連結已經發送到 <em>{{ emailLinkSentTo }}</em> 電子信箱，使用神奇連結登入不需要密碼。",
   "Back to login": "返回登入頁面",
