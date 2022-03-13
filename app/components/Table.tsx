@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { useTable, useSortBy, usePagination } from "react-table";
 import styled from "styled-components";
 import Button from "~/components/Button";
+import DelayedMount from "~/components/DelayedMount";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
 import PlaceholderText from "~/components/PlaceholderText";
@@ -190,17 +191,19 @@ export const Placeholder = ({
   rows?: number;
 }) => {
   return (
-    <tbody>
-      {new Array(rows).fill(1).map((_, row) => (
-        <Row key={row}>
-          {new Array(columns).fill(1).map((_, col) => (
-            <Cell key={col}>
-              <PlaceholderText minWidth={25} maxWidth={75} />
-            </Cell>
-          ))}
-        </Row>
-      ))}
-    </tbody>
+    <DelayedMount>
+      <tbody>
+        {new Array(rows).fill(1).map((_, row) => (
+          <Row key={row}>
+            {new Array(columns).fill(1).map((_, col) => (
+              <Cell key={col}>
+                <PlaceholderText minWidth={25} maxWidth={75} />
+              </Cell>
+            ))}
+          </Row>
+        ))}
+      </tbody>
+    </DelayedMount>
   );
 };
 
