@@ -115,7 +115,7 @@ function Notifications() {
               "Your email address should be updated in your SSO provider."
             )}
           >
-            <Input type="email" value={user.email} readOnly short />
+            <Input type="email" value={user.email} readOnly />
           </SettingRow>
 
           <h2>{t("Notifications")}</h2>

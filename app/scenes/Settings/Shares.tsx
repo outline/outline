@@ -1,18 +1,20 @@
+import { sortBy } from "lodash";
 import { observer } from "mobx-react";
 import { LinkIcon, WarningIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { Link } from "react-router-dom";
-import Empty from "~/components/Empty";
+import { PAGINATION_SYMBOL } from "~/stores/BaseStore";
+import Share from "~/models/Share";
 import Heading from "~/components/Heading";
 import Notice from "~/components/Notice";
-import PaginatedList from "~/components/PaginatedList";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
+import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
-import ShareListItem from "./components/ShareListItem";
+import SharesTable from "./components/SharesTable";
 
 function Shares() {
   const team = useCurrentTeam();
@@ -20,6 +22,44 @@ function Shares() {
   const { shares, auth } = useStores();
   const canShareDocuments = auth.team && auth.team.sharing;
   const can = usePolicy(team.id);
+  const [isLoading, setIsLoading] = React.useState(false);
+  const [data, setData] = React.useState<Share[]>([]);
+  const [totalPages, setTotalPages] = React.useState(0);
+  const [shareIds, setShareIds] = React.useState<string[]>([]);
+  const params = useQuery();
+  const query = params.get("query") || "";
+  const sort = params.get("sort") || "createdAt";
+  const direction = (params.get("direction") || "desc").toUpperCase() as
+    | "ASC"
+    | "DESC";
+  const page = parseInt(params.get("page") || "0", 10);
+  const limit = 25;
+
+  React.useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+
+      try {
+        const response = await shares.fetchPage({
+          offset: page * limit,
+          limit,
+          sort,
+          direction,
+        });
+        setTotalPages(Math.ceil(response[PAGINATION_SYMBOL].total / limit));
+        setShareIds(response.map((u: Share) => u.id));
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [query, sort, page, direction, shares]);
+
+  React.useEffect(() => {
+    // sort the resulting data by the original order from the server
+    setData(sortBy(shares.orderedData, (item) => shareIds.indexOf(item.id)));
+  }, [shares.orderedData, shareIds]);
 
   return (
     <Scene title={t("Share Links")} icon={<LinkIcon color="currentColor" />}>
@@ -49,11 +89,15 @@ function Shares() {
       </Text>
 
       <h2>{t("Shared documents")}</h2>
-      <PaginatedList
-        items={shares.published}
-        empty={<Empty>{t("No share links, yet.")}</Empty>}
-        fetch={shares.fetchPage}
-        renderItem={(item) => <ShareListItem key={item.id} share={item} />}
+
+      <SharesTable
+        data={data}
+        canManage={can.manage}
+        isLoading={isLoading}
+        page={page}
+        pageSize={limit}
+        totalPages={totalPages}
+        defaultSortDirection="ASC"
       />
     </Scene>
   );

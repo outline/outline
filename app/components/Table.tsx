@@ -122,7 +122,11 @@ function Table({
             <tr {...headerGroup.getHeaderGroupProps()}>
               {headerGroup.headers.map((column) => (
                 <Head {...column.getHeaderProps(column.getSortByToggleProps())}>
-                  <SortWrapper align="center" gap={4}>
+                  <SortWrapper
+                    align="center"
+                    $sortable={!column.disableSortBy}
+                    gap={4}
+                  >
                     {column.render("Header")}
                     {column.isSorted &&
                       (column.isSortedDesc ? (
@@ -217,6 +221,8 @@ const Pagination = styled(Flex)`
 `;
 
 const DescSortIcon = styled(CollapsedIcon)`
+  margin-left: -2px;
+
   &:hover {
     fill: ${(props) => props.theme.text};
   }
@@ -232,12 +238,22 @@ const InnerTable = styled.table`
   width: 100%;
 `;
 
-const SortWrapper = styled(Flex)`
+const SortWrapper = styled(Flex)<{ $sortable: boolean }>`
+  display: inline-flex;
   height: 24px;
+  user-select: none;
+  border-radius: 4px;
+  margin: 0 -4px;
+  padding: 0 4px;
+
+  &:hover {
+    background: ${(props) =>
+      props.$sortable ? props.theme.secondaryBackground : "none"};
+  }
 `;
 
 const Cell = styled.td`
-  padding: 6px;
+  padding: 8px 6px;
   border-bottom: 1px solid ${(props) => props.theme.divider};
   font-size: 14px;
 
