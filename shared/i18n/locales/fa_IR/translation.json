@@ -494,6 +494,8 @@
   "Inline code": "کد درون خطی",
   "Back to home": "بازگشت به خانه",
   "Back to website": "بازگشت به تارنما",
+  "Login": "Login",
+  "Failed to load configuration.": "Failed to load configuration.",
   "Check your email": "ایمیل خود را بررسی کنید",
   "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em>, no password needed.": "یک پیوند ورود جادویی به ایمیل <em>{{ emailLinkSentTo }}</em>، نیازی به رمز عبور نیست.",
   "Back to login": "بازگشت به صفحه ورود",
