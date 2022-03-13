@@ -14,7 +14,6 @@ type Props = {
 
 const Row = styled(Flex)`
   display: block;
-  min-height: 100px;
   padding: 16px 0;
 
   ${breakpoint("tablet")`
@@ -30,6 +29,10 @@ const Column = styled.div`
   flex: 1;
 `;
 
+const Label = styled(Text)`
+  margin-bottom: 4px;
+`;
+
 export default function SettingRow(props: Props) {
   if (props.visible === false) {
     return null;
@@ -38,9 +41,9 @@ export default function SettingRow(props: Props) {
   return (
     <Row gap={32}>
       <Column>
-        <Text as="h3">
+        <Label as="h3">
           <label htmlFor={props.name}>{props.label}</label>
-        </Text>
+        </Label>
         <Text type="secondary">{props.description}</Text>
       </Column>
       <Column>{props.children}</Column>

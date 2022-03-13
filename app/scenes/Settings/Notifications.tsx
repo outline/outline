@@ -9,12 +9,14 @@ import Input from "~/components/Input";
 import Notice from "~/components/Notice";
 import Scene from "~/components/Scene";
 import Subheading from "~/components/Subheading";
+import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import env from "~/env";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import NotificationListItem from "./components/NotificationListItem";
+import SettingRow from "./components/SettingRow";
 
 function Notifications() {
   const { notificationSettings } = useStores();
@@ -48,6 +50,7 @@ function Notifications() {
       separator: true,
     },
     {
+      visible: env.DEPLOYMENT === "hosted",
       event: "emails.onboarding",
       title: t("Getting started"),
       description: t(
@@ -55,6 +58,7 @@ function Notifications() {
       ),
     },
     {
+      visible: env.DEPLOYMENT === "hosted",
       event: "emails.features",
       title: t("New features"),
       description: t("Receive an email when new features of note are added"),
@@ -101,21 +105,20 @@ function Notifications() {
         </Notice>
       )}
       <Text type="secondary">
-        <Trans>
-          Manage when and where you receive email notifications from Outline.
-          Your email address can be updated in your SSO provider.
-        </Trans>
+        <Trans>Manage when and where you receive email notifications.</Trans>
       </Text>
 
       {env.EMAIL_ENABLED ? (
         <>
-          <Input
-            type="email"
-            value={user.email}
+          <SettingRow
             label={t("Email address")}
-            readOnly
-            short
-          />
+            name="email"
+            description={t(
+              "Your email address should be updated in your SSO provider."
+            )}
+          >
+            <Input type="email" value={user.email} readOnly short />
+          </SettingRow>
 
           <Subheading>{t("Notifications")}</Subheading>
 
@@ -127,16 +130,24 @@ function Notifications() {
             const setting = notificationSettings.getByEvent(option.event);
 
             return (
-              <NotificationListItem
-                key={option.event}
-                onChange={handleChange}
-                setting={setting}
-                disabled={
-                  (setting && setting.isSaving) ||
-                  notificationSettings.isFetching
-                }
-                {...option}
-              />
+              <SettingRow
+                visible={option.visible}
+                label={option.title}
+                name={option.event}
+                description={option.description}
+              >
+                <Switch
+                  key={option.event}
+                  id={option.event}
+                  name={option.event}
+                  checked={!!setting}
+                  onChange={handleChange}
+                  disabled={
+                    (setting && setting.isSaving) ||
+                    notificationSettings.isFetching
+                  }
+                />
+              </SettingRow>
             );
           })}
         </>
