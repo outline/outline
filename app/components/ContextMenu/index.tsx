@@ -8,6 +8,7 @@ import useMenuContext from "~/hooks/useMenuContext";
 import useMenuHeight from "~/hooks/useMenuHeight";
 import usePrevious from "~/hooks/usePrevious";
 import useStores from "~/hooks/useStores";
+import useUnmount from "~/hooks/useUnmount";
 import {
   fadeIn,
   fadeAndSlideUp,
@@ -56,6 +57,10 @@ export default function ContextMenu({
   const { ui } = useStores();
   const { t } = useTranslation();
   const { setIsMenuOpen } = useMenuContext();
+
+  useUnmount(() => {
+    setIsMenuOpen(false);
+  });
 
   React.useEffect(() => {
     if (rest.visible && !previousVisible) {
