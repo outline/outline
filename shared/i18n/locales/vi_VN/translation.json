@@ -622,7 +622,6 @@
   "You can create an unlimited amount of personal tokens to authenticate\n          with the API. Tokens have the same permissions as your user account.\n          For more details see the <em>developer documentation</em>.": "Bạn có thể tạo không giới hạn số lượng mã thông báo cá nhân để xác thực\n          bằng API. Mã thông báo có quyền giống như tài khoản người dùng của bạn.\n          Để biết thêm chi tiết, hãy xem <em>tài liệu dành cho nhà phát triển</em>.",
   "Tokens": "Token",
   "Create a token": "Tạo Token",
-  "Zapier": "Zapier",
   "Zapier is a platform that allows Outline to easily integrate with thousands of other business tools. Head over to Zapier to setup a \"Zap\" and start programmatically interacting with Outline.'": "Zapier là một nền tảng cho phép Outline dễ dàng tích hợp với hàng nghìn công cụ kinh doanh khác. Đi đến Zapier để thiết lập một \"Zap\" và bắt đầu tương tác theo chương trình với Outline. '",
   "Open Zapier": "Mở Zapier",
   "There are no templates just yet.": "Không có mẫu nào được nêu ra.",
