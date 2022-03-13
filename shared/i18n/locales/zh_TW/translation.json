@@ -622,7 +622,6 @@
   "You can create an unlimited amount of personal tokens to authenticate\n          with the API. Tokens have the same permissions as your user account.\n          For more details see the <em>developer documentation</em>.": "您可以無限制數量地建立個人權杖來使用 API，而權杖所具有的權限與您的使用者帳號相同。\n若要了解更多請參閱<em>開發者文件</em>。",
   "Tokens": "權杖",
   "Create a token": "建立權杖",
-  "Zapier": "Zapier",
   "Zapier is a platform that allows Outline to easily integrate with thousands of other business tools. Head over to Zapier to setup a \"Zap\" and start programmatically interacting with Outline.'": "Zapier 是一個平台，可讓 Outline 輕鬆與數千種其他商業工具整合。前往 Zapier 建立「Zap」並開始以撰寫程式的方式與 Outline 互動。",
   "Open Zapier": "打開 Zapier",
   "There are no templates just yet.": "目前還沒有任何文件範本。",
