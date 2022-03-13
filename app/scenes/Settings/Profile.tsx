@@ -147,7 +147,7 @@ const Profile = () => {
 
       <DangerZone>
         <h2>{t("Delete Account")}</h2>
-        <Text type="secondary" size="small">
+        <Text type="secondary">
           <Trans>
             You may delete your account at any time, note that this is
             unrecoverable
