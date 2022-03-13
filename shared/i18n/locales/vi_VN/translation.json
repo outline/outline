@@ -494,6 +494,8 @@
   "Inline code": "Mã nội tuyến",
   "Back to home": "Quay lại trang chủ",
   "Back to website": "Quay lại trang web",
+  "Login": "Login",
+  "Failed to load configuration.": "Failed to load configuration.",
   "Check your email": "Kiểm tra email của bạn",
   "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em>, no password needed.": "Một magic link đã được gửi tới email <em>{{ emailLinkSentTo }}</em>, không cần mật khẩu.",
   "Back to login": "Quay lại đăng nhập",
