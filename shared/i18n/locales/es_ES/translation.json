@@ -494,6 +494,8 @@
   "Inline code": "Código en línea",
   "Back to home": "Volver al inicio",
   "Back to website": "Volver a la página web",
+  "Login": "Login",
+  "Failed to load configuration.": "Failed to load configuration.",
   "Check your email": "Revisa tu correo",
   "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em>, no password needed.": "Se ha enviado un enlace mágico de inicio de sesión al correo electrónico <em>{{ emailLinkSentTo }}</em>. No se necesita contraseña.",
   "Back to login": "Volver al inicio de sesión",
