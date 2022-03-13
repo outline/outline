@@ -494,6 +494,8 @@
   "Inline code": "Встроенный код",
   "Back to home": "Назад на главную",
   "Back to website": "Назад на сайт",
+  "Login": "Login",
+  "Failed to load configuration.": "Failed to load configuration.",
   "Check your email": "Проверьте вашу почту",
   "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em>, no password needed.": "На электронную почту была отправлена ссылка для входа <em>{{ emailLinkSentTo }}</em>, пароль не требуется.",
   "Back to login": "Назад на страницу входа",
