@@ -323,7 +323,7 @@ export default class Image extends Node {
       " ![" +
       state.esc((node.attrs.alt || "").replace("\n", "") || "", false) +
       "](" +
-      state.esc(node.attrs.src, false);
+      state.esc(node.attrs.src || "", false);
     if (node.attrs.layoutClass) {
       markdown += ' "' + state.esc(node.attrs.layoutClass, false) + '"';
     } else if (node.attrs.title) {
