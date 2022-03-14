@@ -34,8 +34,8 @@ type Props = {
   showPin?: boolean;
   showDraft?: boolean;
   showTemplate?: boolean;
-  composite?: CompositeStateReturn;
-};
+} & CompositeStateReturn;
+
 const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
 
 function replaceResultMarks(tag: string) {
@@ -63,7 +63,7 @@ function DocumentListItem(
     showTemplate,
     highlight,
     context,
-    composite,
+    ...rest
   } = props;
   const queryIsInTitle =
     !!highlight &&
@@ -86,7 +86,7 @@ function DocumentListItem(
           title: document.titleWithDefault,
         },
       }}
-      {...composite}
+      {...rest}
     >
       <Content>
         <Heading dir={document.dir}>

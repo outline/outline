@@ -344,7 +344,7 @@ class Search extends React.Component<Props> {
               onEscape={this.handleEscape}
               aria-label={t("Search Results")}
             >
-              {(composite) =>
+              {(compositeProps) =>
                 results.map((result) => {
                   const document = documents.data.get(result.document.id);
                   if (!document) {
@@ -358,7 +358,7 @@ class Search extends React.Component<Props> {
                       context={result.context}
                       showCollection
                       showTemplate
-                      composite={composite}
+                      {...compositeProps}
                     />
                   );
                 })

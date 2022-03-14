@@ -27,16 +27,9 @@ type Props = {
   document: Document;
   event: Event;
   latest?: boolean;
-  composite: CompositeStateReturn;
-};
+} & CompositeStateReturn;
 
-const EventListItem = ({
-  event,
-  latest,
-  document,
-  composite,
-  ...rest
-}: Props) => {
+const EventListItem = ({ event, latest, document, ...rest }: Props) => {
   const { t } = useTranslation();
   const location = useLocation();
   const can = usePolicy(document.id);
@@ -138,7 +131,6 @@ const EventListItem = ({
           <RevisionMenu document={document} revisionId={event.modelId} />
         ) : undefined
       }
-      composite={composite}
       ref={ref}
       {...rest}
     />
@@ -146,14 +138,9 @@ const EventListItem = ({
 };
 
 const BaseItem = React.forwardRef(
-  (
-    { to, composite, ...rest }: ItemProps,
-    ref?: React.Ref<HTMLAnchorElement>
-  ) => {
+  ({ to, ...rest }: ItemProps, ref?: React.Ref<HTMLAnchorElement>) => {
     if (to) {
-      return (
-        <CompositeListItem to={to} composite={composite} ref={ref} {...rest} />
-      );
+      return <CompositeListItem to={to} ref={ref} {...rest} />;
     }
 
     return <ListItem ref={ref} {...rest} />;
