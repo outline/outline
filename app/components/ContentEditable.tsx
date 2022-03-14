@@ -1,6 +1,7 @@
 import isPrintableKeyEvent from "is-printable-key-event";
 import * as React from "react";
 import styled from "styled-components";
+import useOnScreen from "~/hooks/useOnScreen";
 
 type Props = Omit<React.HTMLAttributes<HTMLSpanElement>, "ref" | "onChange"> & {
   disabled?: boolean;
@@ -69,11 +70,17 @@ const ContentEditable = React.forwardRef(
       callback?.(event);
     };
 
-    React.useLayoutEffect(() => {
-      if (autoFocus) {
+    // This is to account for being within a React.Suspense boundary, in this
+    // case the component may be rendered with display: none. React 18 may solve
+    // this in the future by delaying useEffect hooks:
+    // https://github.com/facebook/react/issues/14536#issuecomment-861980492
+    const isVisible = useOnScreen(ref);
+
+    React.useEffect(() => {
+      if (autoFocus && isVisible && !disabled && !readOnly) {
         ref.current?.focus();
       }
-    }, [autoFocus, ref]);
+    }, [autoFocus, disabled, isVisible, readOnly, ref]);
 
     React.useEffect(() => {
       if (value !== ref.current?.innerText) {
