@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import Document from "~/models/Document";
 import DocumentListItem from "~/components/DocumentListItem";
 import PaginatedList from "~/components/PaginatedList";
@@ -22,10 +23,18 @@ const PaginatedDocumentList = React.memo<Props>(function PaginatedDocumentList({
   documents,
   fetch,
   options,
+  showParentDocuments,
+  showCollection,
+  showPublished,
+  showTemplate,
+  showDraft,
   ...rest
 }: Props) {
+  const { t } = useTranslation();
+
   return (
     <PaginatedList
+      aria-label={t("Documents")}
       items={documents}
       empty={empty}
       heading={heading}
@@ -37,9 +46,14 @@ const PaginatedDocumentList = React.memo<Props>(function PaginatedDocumentList({
           document={item}
           showPin={!!options?.collectionId}
           composite={composite}
-          {...rest}
+          showParentDocuments={showParentDocuments}
+          showCollection={showCollection}
+          showPublished={showPublished}
+          showTemplate={showTemplate}
+          showDraft={showDraft}
         />
       )}
+      {...rest}
     />
   );
 });

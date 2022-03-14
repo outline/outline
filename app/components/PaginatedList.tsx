@@ -133,7 +133,7 @@ class PaginatedList extends React.Component<Props> {
         {showList && (
           <>
             {heading}
-            <ArrowKeyNavigation>
+            <ArrowKeyNavigation aria-label={this.props["aria-label"]}>
               {(composite: CompositeStateReturn) =>
                 items.slice(0, this.renderCount).map((item, index) => {
                   const children = this.props.renderItem(

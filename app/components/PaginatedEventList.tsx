@@ -37,11 +37,11 @@ const PaginatedEventList = React.memo<Props>(function PaginatedEventList({
             document={document}
             latest={index === 0}
             composite={composite}
-            {...rest}
           />
         );
       }}
       renderHeading={(name) => <Heading>{name}</Heading>}
+      {...rest}
     />
   );
 });

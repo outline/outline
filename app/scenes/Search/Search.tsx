@@ -342,6 +342,7 @@ class Search extends React.Component<Props> {
             <StyledArrowKeyNavigation
               ref={this.setCompositeRef}
               onEscape={this.handleEscape}
+              aria-label={t("Search Results")}
             >
               {(composite) =>
                 results.map((result) => {

@@ -12,7 +12,7 @@ type Props = {
 };
 
 function ArrowKeyNavigation(
-  { children, onEscape }: Props,
+  { children, onEscape, ...rest }: Props,
   ref: React.RefObject<HTMLDivElement>
 ) {
   const composite = useCompositeState();
@@ -37,10 +37,10 @@ function ArrowKeyNavigation(
 
   return (
     <Composite
+      {...rest}
       {...composite}
       onKeyDown={handleKeyDown}
       role="menu"
-      aria-label="My toolbar"
       ref={ref}
     >
       {children(composite)}
