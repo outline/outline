@@ -86,6 +86,13 @@ export default async function teamPermanentDeleter(team: Team) {
           force: true,
           transaction,
         });
+        await Event.destroy({
+          where: {
+            actorId: userIds,
+          },
+          force: true,
+          transaction,
+        });
       }
     );
     // Destory team-relation models
