@@ -5,6 +5,7 @@ import {
   EmailAuthenticationRequiredError,
   AuthenticationProviderDisabledError,
 } from "@server/errors";
+import { APM } from "@server/logging/tracing";
 import mailer from "@server/mailer";
 import { Collection, Team, User } from "@server/models";
 import teamCreator from "./teamCreator";
@@ -43,7 +44,7 @@ export type AccountProvisionerResult = {
   isNewUser: boolean;
 };
 
-export default async function accountProvisioner({
+async function accountProvisioner({
   ip,
   user: userParams,
   team: teamParams,
@@ -142,3 +143,5 @@ export default async function accountProvisioner({
     throw err;
   }
 }
+
+export default APM.traceFunction({})(accountProvisioner);

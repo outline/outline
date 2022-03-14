@@ -1,6 +1,6 @@
 import { Next } from "koa";
+import tracer, { APM } from "@server/logging/tracing";
 import { User, Team, ApiKey } from "@server/models";
-import tracer from "@server/tracing";
 import { getUserForJWT } from "@server/utils/jwt";
 import { AuthenticationError, UserSuspendedError } from "../errors";
 import { ContextWithState } from "../types";
@@ -100,12 +100,14 @@ export default function auth(
       ctx.state.user = user;
 
       if (tracer) {
-        const span = tracer.scope().active();
-        if (span !== null) {
-          span.setTag("request.userId", user.id);
-          span.setTag("request.teamId", user.teamId);
-          span.setTag("request.authType", ctx.state.authType);
-        }
+        APM.addTags(
+          {
+            "request.userId": user.id,
+            "request.teamId": user.teamId,
+            "request.authType": ctx.state.authType,
+          },
+          APM.getRootSpanFromRequestContext(ctx)
+        );
       }
     }
 

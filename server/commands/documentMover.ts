@@ -1,6 +1,7 @@
 import invariant from "invariant";
 import { Transaction } from "sequelize";
 import { sequelize } from "@server/database/sequelize";
+import { APM } from "@server/logging/tracing";
 import {
   User,
   Document,
@@ -62,7 +63,7 @@ type Result = {
   collectionChanged: boolean;
 };
 
-export default async function documentMover({
+async function documentMover({
   user,
   document,
   collectionId,
@@ -238,3 +239,5 @@ export default async function documentMover({
   // we need to send all updated models back to the client
   return result;
 }
+
+export default APM.traceFunction({})(documentMover);
