@@ -6,20 +6,26 @@ import * as React from "react";
  * @returns boolean if the node is visible
  */
 export default function useOnScreen(ref: React.RefObject<HTMLElement>) {
-  const [isIntersecting, setIntersecting] = React.useState(false);
+  const isSupported = "IntersectionObserver" in window;
+  const [isIntersecting, setIntersecting] = React.useState(!isSupported);
 
   React.useEffect(() => {
     const element = ref.current;
-    const observer = new IntersectionObserver(([entry]) => {
-      // Update our state when observer callback fires
-      setIntersecting(entry.isIntersecting);
-    });
+    let observer: IntersectionObserver | undefined;
+
+    if (isSupported) {
+      observer = new IntersectionObserver(([entry]) => {
+        // Update our state when observer callback fires
+        setIntersecting(entry.isIntersecting);
+      });
+    }
+
     if (element) {
-      observer.observe(element);
+      observer?.observe(element);
     }
     return () => {
       if (element) {
-        observer.unobserve(element);
+        observer?.unobserve(element);
       }
     };
   }, []);
