@@ -497,7 +497,7 @@
   "Login": "Login",
   "Failed to load configuration.": "Failed to load configuration.",
   "Check your email": "Überprüfen Sie Ihre E-Mail",
-  "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em>, no password needed.": "Ein magischer Login-Link wurde an die E-Mail <em>{{ emailLinkSentTo }}</em>gesendet. Kein Passwort erforderlich.",
+  "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em>, no password needed.": "Ein magischer Login-Link wurde an die E-Mail <em>{{ emailLinkSentTo }}</em> gesendet. Kein Passwort erforderlich.",
   "Back to login": "Zurück zur Anmeldung",
   "Create an account": "Erstellen Sie ein Konto",
   "Get started by choosing a sign-in method for your new team below…": "Beginnen Sie mit der Auswahl einer Anmeldemethode für Ihr neues Team unter…",
