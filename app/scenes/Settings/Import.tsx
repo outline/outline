@@ -91,7 +91,7 @@ function Import() {
       <div>
         <Item
           border={false}
-          image={<OutlineLogo size={28} fill="currentColor" />}
+          image={<OutlineLogo size={28} />}
           title="Outline"
           subtitle={t(
             "Import a backup file that was previously exported from Outline"
