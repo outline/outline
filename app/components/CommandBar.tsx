@@ -48,9 +48,7 @@ function CommandBar() {
                 t("Type a command or search")
               }…`}
             />
-            <CommandBarResults
-              prioritizeSearchResults={ui.commandBarOpenedFromSidebar}
-            />
+            <CommandBarResults />
             {ui.commandBarOpenedFromSidebar && (
               <Hint size="small" type="tertiary">
                 <QuestionMarkIcon size={18} color="currentColor" />

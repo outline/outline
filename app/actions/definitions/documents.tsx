@@ -10,6 +10,7 @@ import {
   ShapesIcon,
   ImportIcon,
   PinIcon,
+  SearchIcon,
 } from "outline-icons";
 import * as React from "react";
 import getDataTransferFiles from "@shared/utils/getDataTransferFiles";
@@ -17,7 +18,7 @@ import DocumentTemplatize from "~/scenes/DocumentTemplatize";
 import { createAction } from "~/actions";
 import { DocumentSection } from "~/actions/sections";
 import history from "~/utils/history";
-import { homePath, newDocumentPath } from "~/utils/routeHelpers";
+import { homePath, newDocumentPath, searchPath } from "~/utils/routeHelpers";
 
 export const openDocument = createAction({
   name: ({ t }) => t("Open document"),
@@ -317,6 +318,17 @@ export const createTemplate = createAction({
     });
   },
 });
+
+export const searchDocumentsForQuery = (searchQuery: string) =>
+  createAction({
+    id: "search",
+    section: DocumentSection,
+    name: ({ t }) =>
+      t(`Search documents for "{{searchQuery}}"`, { searchQuery }),
+    icon: <SearchIcon />,
+    perform: () => history.push(searchPath(searchQuery)),
+    visible: ({ location }) => location.pathname !== searchPath(),
+  });
 
 export const rootDocumentActions = [
   openDocument,

@@ -1,9 +1,8 @@
 import { useKBar } from "kbar";
 import * as React from "react";
-import {
-  navigateToRecentSearchQuery,
-  navigateToSearchQuery,
-} from "~/actions/definitions/navigation";
+import { searchDocumentsForQuery } from "~/actions/definitions/documents";
+import { navigateToRecentSearchQuery } from "~/actions/definitions/navigation";
+
 import useCommandBarActions from "~/hooks/useCommandBarActions";
 import useStores from "~/hooks/useStores";
 
@@ -18,7 +17,9 @@ export default function SearchActions() {
     searchQuery: state.searchQuery,
   }));
 
-  useCommandBarActions(searchQuery ? [navigateToSearchQuery(searchQuery)] : []);
+  useCommandBarActions(
+    searchQuery ? [searchDocumentsForQuery(searchQuery)] : []
+  );
 
   useCommandBarActions(searches.recent.map(navigateToRecentSearchQuery));
 
