@@ -102,21 +102,21 @@ function Details() {
         </Trans>
       </Text>
 
-      <SettingRow
-        label={t("Logo")}
-        name="avatarUrl"
-        description={t(
-          "The logo is displayed at the top left of the application."
-        )}
-      >
-        <ImageInput
-          onSuccess={handleAvatarUpload}
-          onError={handleAvatarError}
-          src={avatarUrl}
-          borderRadius={0}
-        />
-      </SettingRow>
       <form onSubmit={handleSubmit} ref={form}>
+        <SettingRow
+          label={t("Logo")}
+          name="avatarUrl"
+          description={t(
+            "The logo is displayed at the top left of the application."
+          )}
+        >
+          <ImageInput
+            onSuccess={handleAvatarUpload}
+            onError={handleAvatarError}
+            src={avatarUrl}
+            borderRadius={0}
+          />
+        </SettingRow>
         <SettingRow
           label={t("Name")}
           name="name"
@@ -157,6 +157,7 @@ function Details() {
           />
         </SettingRow>
         <SettingRow
+          border={false}
           label={t("Start view")}
           name="defaultCollectionId"
           description={t(

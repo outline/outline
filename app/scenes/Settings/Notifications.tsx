@@ -3,7 +3,6 @@ import { observer } from "mobx-react";
 import { EmailIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
-import styled from "styled-components";
 import Heading from "~/components/Heading";
 import Input from "~/components/Input";
 import Notice from "~/components/Notice";
@@ -120,9 +119,9 @@ function Notifications() {
 
           <h2>{t("Notifications")}</h2>
 
-          {options.map((option, index) => {
+          {options.map((option) => {
             if (option.separator || !option.event) {
-              return <Separator key={`separator-${index}`} />;
+              return <br />;
             }
 
             const setting = notificationSettings.getByEvent(option.event);
@@ -161,9 +160,5 @@ function Notifications() {
     </Scene>
   );
 }
-
-const Separator = styled.hr`
-  padding-bottom: 12px;
-`;
 
 export default observer(Notifications);

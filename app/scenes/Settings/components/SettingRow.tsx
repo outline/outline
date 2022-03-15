@@ -1,3 +1,4 @@
+import { transparentize } from "polished";
 import * as React from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -10,16 +11,25 @@ type Props = {
   name: string;
   children: React.ReactNode;
   visible?: boolean;
+  border?: boolean;
 };
 
-const Row = styled(Flex)`
+const Row = styled(Flex)<{ $border?: boolean }>`
   display: block;
-  padding: 16px 0;
+  padding: 24px 0;
+  border-bottom: 1px solid
+    ${(props) =>
+      props.$border === false
+        ? "transparent"
+        : transparentize(0.5, props.theme.divider)};
 
   ${breakpoint("tablet")`
     display: flex;
-    padding-bottom: 0;
   `};
+
+  &:last-child {
+    border-bottom: 0;
+  }
 `;
 
 const Column = styled.div`
@@ -27,6 +37,16 @@ const Column = styled.div`
   flex-direction: column;
   flex-basis: 100%;
   flex: 1;
+
+  &:first-child {
+    min-width: 60%;
+  }
+
+  ${breakpoint("tablet")`
+    p {
+      margin-bottom: 0;
+    }
+  `};
 `;
 
 const Label = styled(Text)`
@@ -39,7 +59,7 @@ export default function SettingRow(props: Props) {
   }
 
   return (
-    <Row gap={32}>
+    <Row gap={32} $border={props.border}>
       <Column>
         <Label as="h3">
           <label htmlFor={props.name}>{props.label}</label>

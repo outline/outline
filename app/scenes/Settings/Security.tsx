@@ -103,8 +103,6 @@ function Security() {
         />
       </SettingRow>
 
-      <hr />
-
       <SettingRow
         label={t("Default role")}
         name="defaultUserRole"

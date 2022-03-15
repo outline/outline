@@ -82,18 +82,18 @@ const Profile = () => {
     <Scene title={t("Profile")} icon={<ProfileIcon color="currentColor" />}>
       <Heading>{t("Profile")}</Heading>
 
-      <SettingRow
-        label={t("Photo")}
-        name="avatarUrl"
-        description={t("Choose a photo or image to represent yourself.")}
-      >
-        <ImageInput
-          onSuccess={handleAvatarUpload}
-          onError={handleAvatarError}
-          src={avatarUrl}
-        />
-      </SettingRow>
       <form onSubmit={handleSubmit} ref={form}>
+        <SettingRow
+          label={t("Photo")}
+          name="avatarUrl"
+          description={t("Choose a photo or image to represent yourself.")}
+        >
+          <ImageInput
+            onSuccess={handleAvatarUpload}
+            onError={handleAvatarError}
+            src={avatarUrl}
+          />
+        </SettingRow>
         <SettingRow
           label={t("Full name")}
           name="name"
@@ -111,6 +111,7 @@ const Profile = () => {
         </SettingRow>
 
         <SettingRow
+          border={false}
           label={t("Language")}
           name="language"
           description={
