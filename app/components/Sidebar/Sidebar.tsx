@@ -6,11 +6,15 @@ import { useLocation } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Flex from "~/components/Flex";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useMenuContext from "~/hooks/useMenuContext";
 import usePrevious from "~/hooks/usePrevious";
 import useStores from "~/hooks/useStores";
+import AccountMenu from "~/menus/AccountMenu";
 import { fadeIn } from "~/styles/animations";
+import Avatar from "../Avatar";
 import ResizeBorder from "./components/ResizeBorder";
+import SidebarButton from "./components/SidebarButton";
 import Toggle, { ToggleButton, Positioner } from "./components/Toggle";
 
 const ANIMATION_MS = 250;
@@ -28,6 +32,8 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(
     const location = useLocation();
     const previousLocation = usePrevious(location);
     const { isMenuOpen } = useMenuContext();
+    const user = useCurrentUser();
+
     const width = ui.sidebarWidth;
     const collapsed = (ui.isEditing || ui.sidebarCollapsed) && !isMenuOpen;
     const maxWidth = theme.sidebarMaxWidth;
@@ -162,6 +168,23 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(
             </Portal>
           )}
           {children}
+
+          <AccountMenu>
+            {(props) => (
+              <SidebarButton
+                {...props}
+                showMoreMenu
+                title={user.name}
+                image={
+                  <StyledAvatar
+                    src={user.avatarUrl}
+                    size={24}
+                    showBorder={false}
+                  />
+                }
+              />
+            )}
+          </AccountMenu>
           <ResizeBorder
             onMouseDown={handleMouseDown}
             onDoubleClick={ui.sidebarCollapsed ? undefined : handleReset}
@@ -186,6 +209,10 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(
     );
   }
 );
+
+const StyledAvatar = styled(Avatar)`
+  margin-left: 4px;
+`;
 
 const Backdrop = styled.a`
   animation: ${fadeIn} 250ms ease-in-out;

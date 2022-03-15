@@ -9,8 +9,6 @@ import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
 import env from "~/env";
 import useAuthorizedSettingsConfig from "~/hooks/useAuthorizedSettingsConfig";
-import useCurrentTeam from "~/hooks/useCurrentTeam";
-import usePolicy from "~/hooks/usePolicy";
 import Sidebar from "./Sidebar";
 import Header from "./components/Header";
 import Section from "./components/Section";
@@ -23,8 +21,6 @@ const isHosted = env.DEPLOYMENT === "hosted";
 function SettingsSidebar() {
   const { t } = useTranslation();
   const history = useHistory();
-  const team = useCurrentTeam();
-  const can = usePolicy(team.id);
   const configs = useAuthorizedSettingsConfig();
   const groupedConfig = groupBy(configs, "group");
 
@@ -42,7 +38,7 @@ function SettingsSidebar() {
       />
 
       <Flex auto column>
-        <Scrollable topShadow>
+        <Scrollable shadow>
           {Object.keys(groupedConfig).map((header) => (
             <Section key={header}>
               <Header>{header}</Header>
@@ -56,7 +52,7 @@ function SettingsSidebar() {
               ))}
             </Section>
           ))}
-          {can.update && !isHosted && (
+          {!isHosted && (
             <Section>
               <Header>{t("Installation")}</Header>
               <Version />

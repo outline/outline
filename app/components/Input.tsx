@@ -97,7 +97,7 @@ export const LabelText = styled.div`
   display: inline-block;
 `;
 
-export type Props = {
+export type Props = React.HTMLAttributes<HTMLInputElement> & {
   type?: "text" | "email" | "checkbox" | "search" | "textarea";
   value?: string;
   label?: string;

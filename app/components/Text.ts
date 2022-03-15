@@ -2,7 +2,7 @@ import styled from "styled-components";
 
 type Props = {
   type?: "secondary" | "tertiary";
-  size?: "small" | "xsmall";
+  size?: "large" | "small" | "xsmall";
 };
 
 /**
@@ -18,7 +18,9 @@ const Text = styled.p<Props>`
       ? props.theme.textTertiary
       : props.theme.text};
   font-size: ${(props) =>
-    props.size === "small"
+    props.size === "large"
+      ? "18px"
+      : props.size === "small"
       ? "14px"
       : props.size === "xsmall"
       ? "13px"

@@ -10,10 +10,8 @@ import Scrollable from "~/components/Scrollable";
 import Text from "~/components/Text";
 import { inviteUser } from "~/actions/definitions/users";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
-import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import AccountMenu from "~/menus/AccountMenu";
 import OrganizationMenu from "~/menus/OrganizationMenu";
 import {
   homePath,
@@ -21,7 +19,6 @@ import {
   templatesPath,
   searchPath,
 } from "~/utils/routeHelpers";
-import Avatar from "../Avatar";
 import TeamLogo from "../TeamLogo";
 import Sidebar from "./Sidebar";
 import ArchiveLink from "./components/ArchiveLink";
@@ -37,7 +34,6 @@ function AppSidebar() {
   const { t } = useTranslation();
   const { documents } = useStores();
   const team = useCurrentTeam();
-  const user = useCurrentUser();
   const can = usePolicy(team.id);
 
   React.useEffect(() => {
@@ -128,22 +124,6 @@ function AppSidebar() {
               <SidebarAction action={inviteUser} />
             </Section>
           </Scrollable>
-          <AccountMenu>
-            {(props) => (
-              <SidebarButton
-                {...props}
-                showMoreMenu
-                title={user.name}
-                image={
-                  <StyledAvatar
-                    src={user.avatarUrl}
-                    size={24}
-                    showBorder={false}
-                  />
-                }
-              />
-            )}
-          </AccountMenu>
         </DndProvider>
       )}
     </Sidebar>
@@ -152,10 +132,6 @@ function AppSidebar() {
 
 const StyledTeamLogo = styled(TeamLogo)`
   margin-right: 4px;
-`;
-
-const StyledAvatar = styled(Avatar)`
-  margin-left: 4px;
 `;
 
 const Drafts = styled(Text)`
