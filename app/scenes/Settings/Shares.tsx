@@ -58,7 +58,12 @@ function Shares() {
 
   React.useEffect(() => {
     // sort the resulting data by the original order from the server
-    setData(sortBy(shares.orderedData, (item) => shareIds.indexOf(item.id)));
+    setData(
+      sortBy(
+        shares.orderedData.filter((item) => shareIds.includes(item.id)),
+        (item) => shareIds.indexOf(item.id)
+      )
+    );
   }, [shares.orderedData, shareIds]);
 
   return (
@@ -87,8 +92,6 @@ function Shares() {
           link has been revoked.
         </Trans>
       </Text>
-
-      <h2>{t("Shared documents")}</h2>
 
       <SharesTable
         data={data}

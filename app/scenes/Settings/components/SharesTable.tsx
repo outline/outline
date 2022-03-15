@@ -4,6 +4,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import Share from "~/models/Share";
+import Flex from "~/components/Flex";
 import TableFromParams from "~/components/TableFromParams";
 import Time from "~/components/Time";
 import ShareMenu from "~/menus/ShareMenu";
@@ -56,7 +57,11 @@ function SharesTable({ canManage, ...rest }: Props) {
           Header: t("Shared nested"),
           accessor: "includeChildDocuments",
           Cell: observer(({ value }: { value: string }) =>
-            value ? <CheckmarkIcon color={theme.primary} /> : null
+            value ? (
+              <Flex align="center">
+                <CheckmarkIcon color={theme.primary} />
+              </Flex>
+            ) : null
           ),
         },
         canManage
@@ -67,7 +72,9 @@ function SharesTable({ canManage, ...rest }: Props) {
               disableSortBy: true,
               Cell: observer(
                 ({ row }: { value: string; row: { original: Share } }) => (
-                  <ShareMenu share={row.original} />
+                  <Flex align="center">
+                    <ShareMenu share={row.original} />
+                  </Flex>
                 )
               ),
             }

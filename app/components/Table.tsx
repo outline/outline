@@ -9,6 +9,7 @@ import Button from "~/components/Button";
 import DelayedMount from "~/components/DelayedMount";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
+import NudeButton from "~/components/NudeButton";
 import PlaceholderText from "~/components/PlaceholderText";
 
 export type Props = {
@@ -243,6 +244,7 @@ const SortWrapper = styled(Flex)<{ $sortable: boolean }>`
   height: 24px;
   user-select: none;
   border-radius: 4px;
+  white-space: nowrap;
   margin: 0 -4px;
   padding: 0 4px;
 
@@ -253,7 +255,7 @@ const SortWrapper = styled(Flex)<{ $sortable: boolean }>`
 `;
 
 const Cell = styled.td`
-  padding: 8px 6px;
+  padding: 10px 6px;
   border-bottom: 1px solid ${(props) => props.theme.divider};
   font-size: 14px;
 
@@ -266,6 +268,13 @@ const Cell = styled.td`
   &.right-aligned {
     text-align: right;
     vertical-align: bottom;
+  }
+
+  ${NudeButton} {
+    &:hover,
+    &[aria-expanded="true"] {
+      background: ${(props) => props.theme.sidebarControlHoverBackground};
+    }
   }
 `;
 
@@ -289,7 +298,7 @@ const Head = styled.th`
   text-align: left;
   position: sticky;
   top: 54px;
-  padding: 6px;
+  padding: 6px 6px 0;
   border-bottom: 1px solid ${(props) => props.theme.divider};
   background: ${(props) => props.theme.background};
   transition: ${(props) => props.theme.backgroundTransition};
