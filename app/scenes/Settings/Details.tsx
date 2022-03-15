@@ -138,10 +138,10 @@ function Details() {
           name="subdomain"
           description={
             subdomain ? (
-              <Text type="secondary" size="small">
+              <>
                 <Trans>Your knowledge base will be accessible at</Trans>{" "}
                 <strong>{subdomain}.getoutline.com</strong>
-              </Text>
+              </>
             ) : (
               t("Choose a subdomain to enable a login page just for your team.")
             )
