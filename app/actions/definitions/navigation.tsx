@@ -23,11 +23,7 @@ import stores from "~/stores";
 import SearchQuery from "~/models/SearchQuery";
 import KeyboardShortcuts from "~/scenes/KeyboardShortcuts";
 import { createAction } from "~/actions";
-import {
-  NavigationSection,
-  SearchSection,
-  RecentSearchesSection,
-} from "~/actions/sections";
+import { NavigationSection, RecentSearchesSection } from "~/actions/sections";
 import history from "~/utils/history";
 import {
   organizationSettingsPath,
@@ -55,17 +51,6 @@ export const navigateToRecentSearchQuery = (searchQuery: SearchQuery) =>
     name: searchQuery.query,
     icon: <SearchIcon />,
     perform: () => history.push(searchPath(searchQuery.query)),
-  });
-
-export const navigateToSearchQuery = (searchQuery: string) =>
-  createAction({
-    id: "search",
-    section: SearchSection,
-    name: ({ t }) =>
-      t(`Search documents for "{{searchQuery}}"`, { searchQuery }),
-    icon: <SearchIcon />,
-    perform: () => history.push(searchPath(searchQuery)),
-    visible: ({ location }) => location.pathname !== searchPath(),
   });
 
 export const navigateToDrafts = createAction({
@@ -174,7 +159,6 @@ export const rootNavigationActions = [
   navigateToTemplates,
   navigateToArchive,
   navigateToTrash,
-  navigateToSettings,
   openAPIDocumentation,
   openFeedbackUrl,
   openBugReportUrl,

@@ -7,7 +7,6 @@ import Button from "~/components/Button";
 import Heading from "~/components/Heading";
 import PaginatedList from "~/components/PaginatedList";
 import Scene from "~/components/Scene";
-import Subheading from "~/components/Subheading";
 import Text from "~/components/Text";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
@@ -86,9 +85,9 @@ function Export() {
           type: "export",
         }}
         heading={
-          <Subheading>
+          <h2>
             <Trans>Recent exports</Trans>
-          </Subheading>
+          </h2>
         }
         renderItem={(item) => (
           <FileOperationListItem

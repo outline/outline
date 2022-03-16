@@ -284,15 +284,6 @@ router.post("documents.viewed", auth(), pagination(), async (ctx) => {
         },
         include: [
           {
-            model: Star,
-            as: "starred",
-            where: {
-              userId,
-            },
-            separate: true,
-            required: false,
-          },
-          {
             model: Collection.scope({
               method: ["withMembership", userId],
             }),

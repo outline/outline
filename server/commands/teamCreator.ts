@@ -1,5 +1,6 @@
 import invariant from "invariant";
 import Logger from "@server/logging/logger";
+import { APM } from "@server/logging/tracing";
 import { Team, AuthenticationProvider } from "@server/models";
 import { isDomainAllowed } from "@server/utils/authentication";
 import { generateAvatarUrl } from "@server/utils/avatars";
@@ -22,7 +23,7 @@ type Props = {
   };
 };
 
-export default async function teamCreator({
+async function teamCreator({
   name,
   domain,
   subdomain,
@@ -125,3 +126,5 @@ export default async function teamCreator({
     isNewTeam: true,
   };
 }
+
+export default APM.traceFunction({})(teamCreator);

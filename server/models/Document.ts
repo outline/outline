@@ -69,6 +69,9 @@ const serializer = new MarkdownSerializer();
 export const DOCUMENT_VERSION = 2;
 
 @DefaultScope(() => ({
+  attributes: {
+    exclude: ["state"],
+  },
   include: [
     {
       model: User,
@@ -112,7 +115,18 @@ export const DOCUMENT_VERSION = 2;
       ],
     };
   },
-  withUnpublished: {
+  withoutState: {
+    attributes: {
+      exclude: ["state"],
+    },
+  },
+  withState: {
+    attributes: {
+      // resets to include the state column
+      exclude: [],
+    },
+  },
+  withDrafts: {
     include: [
       {
         model: User,
@@ -370,7 +384,8 @@ class Document extends ParanoidModel {
     // allow default preloading of collection membership if `userId` is passed in find options
     // almost every endpoint needs the collection membership to determine policy permissions.
     const scope = this.scope([
-      "withUnpublished",
+      "withoutState",
+      "withDrafts",
       {
         method: ["withCollection", options.userId, options.paranoid],
       },
@@ -462,25 +477,17 @@ class Document extends ParanoidModel {
       resultsQuery,
       countQuery,
     ]);
+
     // Final query to get associated document data
     const documents = await this.findAll({
       where: {
         id: map(results, "id"),
+        teamId: team.id,
       },
       include: [
         {
           model: Collection,
           as: "collection",
-        },
-        {
-          model: User,
-          as: "createdBy",
-          paranoid: false,
-        },
-        {
-          model: User,
-          as: "updatedBy",
-          paranoid: false,
         },
       ],
     });
@@ -595,6 +602,8 @@ class Document extends ParanoidModel {
 
     // Final query to get associated document data
     const documents = await this.scope([
+      "withoutState",
+      "withDrafts",
       {
         method: ["withViews", user.id],
       },
@@ -603,21 +612,11 @@ class Document extends ParanoidModel {
       },
     ]).findAll({
       where: {
+        teamId: user.teamId,
         id: map(results, "id"),
       },
-      include: [
-        {
-          model: User,
-          as: "createdBy",
-          paranoid: false,
-        },
-        {
-          model: User,
-          as: "updatedBy",
-          paranoid: false,
-        },
-      ],
     });
+
     return {
       results: map(results, (result: any) => ({
         ranking: result.searchRanking,

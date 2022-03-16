@@ -52,7 +52,7 @@ export default async function documentPermanentDeleter(documents: Document[]) {
     }
   }
 
-  return Document.scope("withUnpublished").destroy({
+  return Document.scope("withDrafts").destroy({
     where: {
       id: documents.map((document) => document.id),
     },

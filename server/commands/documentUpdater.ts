@@ -15,7 +15,7 @@ export default async function documentUpdater({
   ydoc: Y.Doc;
   userId?: string;
 }) {
-  const document = await Document.findByPk(documentId);
+  const document = await Document.scope("withState").findByPk(documentId);
   invariant(document, "document not found");
 
   const state = Y.encodeStateAsUpdate(ydoc);
@@ -34,7 +34,7 @@ export default async function documentUpdater({
   const existingIds = document.collaboratorIds;
   const collaboratorIds = uniq([...pudIds, ...existingIds]);
 
-  await Document.scope("withUnpublished").update(
+  await Document.scope(["withDrafts", "withState"]).update(
     {
       text,
       state: Buffer.from(state),

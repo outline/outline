@@ -17,7 +17,7 @@ function filterProviders(team: Team) {
       // guest sign-in is an exception as it does not have an authentication
       // provider using passport, instead it exists as a boolean option on the team
       if (provider.id === "email") {
-        return team && team.guestSignin;
+        return team?.emailSigninEnabled;
       }
 
       return (

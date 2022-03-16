@@ -20,7 +20,11 @@ export default class Persistence {
       return;
     }
 
-    const document = await Document.findByPk(documentId);
+    const document = await Document.scope("withState").findOne({
+      where: {
+        id: documentId,
+      },
+    });
     invariant(document, "Document not found");
 
     if (document.state) {

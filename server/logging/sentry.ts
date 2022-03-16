@@ -35,15 +35,17 @@ export function requestErrorHandler(error: any, ctx: ContextWithState) {
         scope.setTag("request_id", requestId as string);
       }
 
-      const authType = ctx.state ? ctx.state.authType : undefined;
-
+      const authType = ctx.state?.authType ?? undefined;
       if (authType) {
         scope.setTag("auth_type", authType);
       }
 
-      const userId =
-        ctx.state && ctx.state.user ? ctx.state.user.id : undefined;
+      const teamId = ctx.state?.user?.teamId ?? undefined;
+      if (teamId) {
+        scope.setTag("team_id", teamId);
+      }
 
+      const userId = ctx.state?.user?.id ?? undefined;
       if (userId) {
         scope.setUser({
           id: userId,

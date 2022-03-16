@@ -6,6 +6,7 @@ import invariant from "invariant";
 import { values, keys } from "lodash";
 import { v4 as uuidv4 } from "uuid";
 import Logger from "@server/logging/logger";
+import { APM } from "@server/logging/tracing";
 import { Attachment, Event, Document, Collection, User } from "@server/models";
 import { parseOutlineExport, Item } from "@server/utils/zip";
 import { FileImportError } from "../errors";
@@ -17,7 +18,7 @@ type FileWithPath = File & {
   path: string;
 };
 
-export default async function collectionImporter({
+async function collectionImporter({
   file,
   type,
   user,
@@ -198,3 +199,5 @@ export default async function collectionImporter({
     attachments: values(attachments),
   };
 }
+
+export default APM.traceFunction({})(collectionImporter);

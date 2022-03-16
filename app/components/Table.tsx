@@ -6,8 +6,10 @@ import { useTranslation } from "react-i18next";
 import { useTable, useSortBy, usePagination } from "react-table";
 import styled from "styled-components";
 import Button from "~/components/Button";
+import DelayedMount from "~/components/DelayedMount";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
+import NudeButton from "~/components/NudeButton";
 import PlaceholderText from "~/components/PlaceholderText";
 
 export type Props = {
@@ -121,7 +123,11 @@ function Table({
             <tr {...headerGroup.getHeaderGroupProps()}>
               {headerGroup.headers.map((column) => (
                 <Head {...column.getHeaderProps(column.getSortByToggleProps())}>
-                  <SortWrapper align="center" gap={4}>
+                  <SortWrapper
+                    align="center"
+                    $sortable={!column.disableSortBy}
+                    gap={4}
+                  >
                     {column.render("Header")}
                     {column.isSorted &&
                       (column.isSortedDesc ? (
@@ -190,17 +196,19 @@ export const Placeholder = ({
   rows?: number;
 }) => {
   return (
-    <tbody>
-      {new Array(rows).fill(1).map((_, row) => (
-        <Row key={row}>
-          {new Array(columns).fill(1).map((_, col) => (
-            <Cell key={col}>
-              <PlaceholderText minWidth={25} maxWidth={75} />
-            </Cell>
-          ))}
-        </Row>
-      ))}
-    </tbody>
+    <DelayedMount>
+      <tbody>
+        {new Array(rows).fill(1).map((_, row) => (
+          <Row key={row}>
+            {new Array(columns).fill(1).map((_, col) => (
+              <Cell key={col}>
+                <PlaceholderText minWidth={25} maxWidth={75} />
+              </Cell>
+            ))}
+          </Row>
+        ))}
+      </tbody>
+    </DelayedMount>
   );
 };
 
@@ -214,6 +222,8 @@ const Pagination = styled(Flex)`
 `;
 
 const DescSortIcon = styled(CollapsedIcon)`
+  margin-left: -2px;
+
   &:hover {
     fill: ${(props) => props.theme.text};
   }
@@ -229,12 +239,23 @@ const InnerTable = styled.table`
   width: 100%;
 `;
 
-const SortWrapper = styled(Flex)`
+const SortWrapper = styled(Flex)<{ $sortable: boolean }>`
+  display: inline-flex;
   height: 24px;
+  user-select: none;
+  border-radius: 4px;
+  white-space: nowrap;
+  margin: 0 -4px;
+  padding: 0 4px;
+
+  &:hover {
+    background: ${(props) =>
+      props.$sortable ? props.theme.secondaryBackground : "none"};
+  }
 `;
 
 const Cell = styled.td`
-  padding: 6px;
+  padding: 10px 6px;
   border-bottom: 1px solid ${(props) => props.theme.divider};
   font-size: 14px;
 
@@ -247,6 +268,13 @@ const Cell = styled.td`
   &.right-aligned {
     text-align: right;
     vertical-align: bottom;
+  }
+
+  ${NudeButton} {
+    &:hover,
+    &[aria-expanded="true"] {
+      background: ${(props) => props.theme.sidebarControlHoverBackground};
+    }
   }
 `;
 
@@ -270,7 +298,7 @@ const Head = styled.th`
   text-align: left;
   position: sticky;
   top: 54px;
-  padding: 6px;
+  padding: 6px 6px 0;
   border-bottom: 1px solid ${(props) => props.theme.divider};
   background: ${(props) => props.theme.background};
   transition: ${(props) => props.theme.backgroundTransition};

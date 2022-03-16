@@ -1,6 +1,7 @@
 import "../env";
 
 // test environment variables
+process.env.SMTP_HOST = "smtp.example.com";
 process.env.DATABASE_URL = process.env.DATABASE_URL_TEST;
 process.env.NODE_ENV = "test";
 process.env.GOOGLE_CLIENT_ID = "123";
@@ -19,6 +20,7 @@ jest.mock("../queues");
 jest.mock("aws-sdk", () => {
   const mS3 = {
     createPresignedPost: jest.fn(),
+    putObject: jest.fn().mockReturnThis(),
     deleteObject: jest.fn().mockReturnThis(),
     promise: jest.fn(),
   };

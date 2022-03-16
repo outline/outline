@@ -8,18 +8,19 @@ type Props = React.HTMLAttributes<HTMLInputElement> & {
   placeholder?: string;
 };
 
-function SearchInput({ defaultValue, ...rest }: Props) {
+function SearchInput(
+  { defaultValue, ...rest }: Props,
+  ref: React.RefObject<HTMLInputElement>
+) {
   const theme = useTheme();
-  const inputRef = React.useRef<HTMLInputElement>(null);
-
   const focusInput = React.useCallback(() => {
-    inputRef.current?.focus();
-  }, []);
+    ref.current?.focus();
+  }, [ref]);
 
   React.useEffect(() => {
     // ensure that focus is placed at end of input
     const len = (defaultValue || "").length;
-    inputRef.current?.setSelectionRange(len, len);
+    ref.current?.setSelectionRange(len, len);
     const timeoutId = setTimeout(() => {
       focusInput();
     }, 100); // arbitrary number
@@ -27,7 +28,7 @@ function SearchInput({ defaultValue, ...rest }: Props) {
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [defaultValue, focusInput]);
+  }, [ref, defaultValue, focusInput]);
 
   return (
     <Wrapper align="center">
@@ -35,7 +36,7 @@ function SearchInput({ defaultValue, ...rest }: Props) {
       <StyledInput
         {...rest}
         defaultValue={defaultValue}
-        ref={inputRef}
+        ref={ref}
         spellCheck="false"
         type="search"
         autoFocus
@@ -84,4 +85,4 @@ const StyledIcon = styled(SearchIcon)`
   left: 8px;
 `;
 
-export default SearchInput;
+export default React.forwardRef(SearchInput);

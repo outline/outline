@@ -4,7 +4,7 @@ import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useDrop, useDrag, DropTargetMonitor } from "react-dnd";
 import { useTranslation } from "react-i18next";
-import { useLocation, useHistory, Link } from "react-router-dom";
+import { useLocation, useHistory } from "react-router-dom";
 import styled from "styled-components";
 import { sortNavigationNodes } from "@shared/utils/collections";
 import Collection from "~/models/Collection";
@@ -14,13 +14,13 @@ import CollectionIcon from "~/components/CollectionIcon";
 import Fade from "~/components/Fade";
 import Modal from "~/components/Modal";
 import NudeButton from "~/components/NudeButton";
-import Tooltip from "~/components/Tooltip";
+import { createDocument } from "~/actions/definitions/documents";
+import useActionContext from "~/hooks/useActionContext";
 import useBoolean from "~/hooks/useBoolean";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import CollectionMenu from "~/menus/CollectionMenu";
 import { NavigationNode } from "~/types";
-import { newDocumentPath } from "~/utils/routeHelpers";
 import DocumentLink from "./DocumentLink";
 import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
@@ -220,6 +220,10 @@ function CollectionLink({
     }
   }, [collection.id, ui.activeCollectionId, search]);
 
+  const context = useActionContext({
+    activeCollectionId: collection.id,
+  });
+
   return (
     <>
       <Relative ref={drop}>
@@ -259,18 +263,14 @@ function CollectionLink({
                 !isEditing &&
                 !isDraggingAnyCollection && (
                   <Fade>
-                    {can.update && (
-                      <Tooltip tooltip={t("New doc")} delay={500}>
-                        <NudeButton
-                          type={undefined}
-                          aria-label={t("New document")}
-                          as={Link}
-                          to={newDocumentPath(collection.id)}
-                        >
-                          <PlusIcon />
-                        </NudeButton>
-                      </Tooltip>
-                    )}
+                    <NudeButton
+                      tooltip={{ tooltip: t("New doc"), delay: 500 }}
+                      action={createDocument}
+                      context={context}
+                      hideOnActionDisabled
+                    >
+                      <PlusIcon />
+                    </NudeButton>
                     <CollectionMenu
                       collection={collection}
                       onOpen={handleMenuOpen}

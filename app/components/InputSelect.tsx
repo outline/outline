@@ -23,6 +23,8 @@ export type Option = {
 };
 
 export type Props = {
+  id?: string;
+  name?: string;
   value?: string | null;
   label?: string;
   nude?: boolean;
@@ -54,6 +56,7 @@ const InputSelect = (props: Props) => {
     disabled,
     note,
     icon,
+    ...rest
   } = props;
 
   const select = useSelectState({
@@ -128,7 +131,7 @@ const InputSelect = (props: Props) => {
             wrappedLabel
           ))}
 
-        <Select {...select} disabled={disabled} ref={buttonRef}>
+        <Select {...select} disabled={disabled} {...rest} ref={buttonRef}>
           {(props) => (
             <StyledButton
               neutral
@@ -229,6 +232,7 @@ const StyledButton = styled(Button)<{ nude?: boolean }>`
   margin-bottom: 16px;
   display: block;
   width: 100%;
+  cursor: default;
 
   &:hover:not(:disabled) {
     background: ${(props) => props.theme.buttonNeutralBackground};
