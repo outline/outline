@@ -118,7 +118,7 @@ export type Props = {
   /** Callback when user uses cancel key combo */
   onCancel?: () => void;
   /** Callback when user changes editor content */
-  onChange?: (value: () => string) => void;
+  onChange?: (value: () => string | undefined) => void;
   /** Callback when a file upload begins */
   onFileUploadStart?: () => void;
   /** Callback when a file upload ends */
@@ -629,7 +629,7 @@ export class Editor extends React.PureComponent<
     }
 
     this.props.onChange(() => {
-      return this.value();
+      return this.view ? this.value() : undefined;
     });
   };
 

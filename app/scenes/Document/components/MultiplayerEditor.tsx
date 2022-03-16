@@ -229,6 +229,28 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     }
   }, [remoteProvider, isIdle, isVisible]);
 
+  // Certain emoji combinations trigger this error in YJS, while waiting for a fix
+  // we must prevent the user from continuing to edit as their changes will not
+  // be persisted. See: https://github.com/yjs/yjs/issues/303
+  React.useEffect(() => {
+    function onUnhandledError(err: any) {
+      if (err.message.includes("URIError: URI malformed")) {
+        showToast(
+          t(
+            "Sorry, the last change could not be persisted – please reload the page"
+          ),
+          {
+            type: "error",
+            timeout: 0,
+          }
+        );
+      }
+    }
+
+    window.addEventListener("error", onUnhandledError);
+    return () => window.removeEventListener("error", onUnhandledError);
+  }, [showToast, t]);
+
   if (!extensions.length) {
     return null;
   }
