@@ -29,7 +29,6 @@ async function documentMover({
   index,
   ip,
 }: Props): Promise<Result> {
-  let transaction: Transaction | undefined;
   const collectionChanged = collectionId !== document.collectionId;
   const previousCollectionId = document.collectionId;
   const result: Result = {
@@ -50,17 +49,17 @@ async function documentMover({
     await document.save();
     result.documents.push(document);
   } else {
-    try {
-      transaction = await sequelize.transaction();
-
+    await sequelize.transaction(async (transaction) => {
       // remove from original collection
       const collection = await Collection.findByPk(document.collectionId, {
         transaction,
+        lock: transaction.LOCK.UPDATE,
         paranoid: false,
       });
 
       const response = await collection?.removeDocumentInStructure(document, {
         save: false,
+        transaction,
       });
 
       const documentJson = response?.[0];
@@ -93,17 +92,17 @@ async function documentMover({
       document.updatedBy = user;
 
       const newCollection = collectionChanged
-        ? await Collection.scope({
-            method: ["withMembership", user.id],
-          }).findByPk(collectionId, {
+        ? await Collection.findByPk(collectionId, {
             transaction,
+            lock: transaction.LOCK.UPDATE,
           })
         : collection;
 
       invariant(newCollection, "collection should exist");
 
-      await newCollection?.addDocumentToStructure(document, toIndex, {
+      await newCollection.addDocumentToStructure(document, toIndex, {
         documentJson,
+        transaction,
       });
 
       if (collection) {
@@ -126,7 +125,7 @@ async function documentMover({
             childDocuments.map(async (child) => {
               await loopChildren(child.id);
               child.collectionId = collectionId;
-              await child.save();
+              await child.save({ transaction });
 
               if (newCollection) {
                 child.collection = newCollection;
@@ -162,15 +161,7 @@ async function documentMover({
         document.collection = newCollection;
       }
       result.documents.push(document);
-
-      await transaction.commit();
-    } catch (err) {
-      if (transaction) {
-        await transaction.rollback();
-      }
-
-      throw err;
-    }
+    });
   }
 
   await Event.create({
