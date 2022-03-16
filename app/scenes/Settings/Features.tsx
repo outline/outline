@@ -52,6 +52,7 @@ function Features() {
       >
         <Switch
           id="collaborativeEditing"
+          name="collaborativeEditing"
           checked={data.collaborativeEditing}
           disabled={data.collaborativeEditing}
           onChange={handleChange}

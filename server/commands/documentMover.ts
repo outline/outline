@@ -2,51 +2,8 @@ import invariant from "invariant";
 import { Transaction } from "sequelize";
 import { sequelize } from "@server/database/sequelize";
 import { APM } from "@server/logging/tracing";
-import {
-  User,
-  Document,
-  Attachment,
-  Collection,
-  Pin,
-  Event,
-} from "@server/models";
-import parseAttachmentIds from "@server/utils/parseAttachmentIds";
+import { User, Document, Collection, Pin, Event } from "@server/models";
 import pinDestroyer from "./pinDestroyer";
-
-async function copyAttachments(
-  document: Document,
-  options?: { transaction?: Transaction }
-) {
-  let text = document.text;
-  const documentId = document.id;
-  // find any image attachments that are in this documents text
-  const attachmentIds = parseAttachmentIds(text);
-
-  for (const id of attachmentIds) {
-    const existing = await Attachment.findOne({
-      where: {
-        teamId: document.teamId,
-        id,
-      },
-    });
-
-    // if the image attachment was originally uploaded to another document
-    // (this can happen in various ways, copy/paste, or duplicate for example)
-    // then create a new attachment pointed to this doc and update the reference
-    // in the text so that it gets the moved documents permissions
-    if (existing && existing.documentId !== documentId) {
-      // @ts-expect-error dataValues exists
-      const { id, ...rest } = existing.dataValues;
-      const attachment = await Attachment.create(
-        { ...rest, documentId },
-        options
-      );
-      text = text.replace(existing.redirectUrl, attachment.redirectUrl);
-    }
-  }
-
-  return text;
-}
 
 type Props = {
   user: User;
@@ -127,9 +84,6 @@ async function documentMover({
         await collection?.save({
           transaction,
         });
-        document.text = await copyAttachments(document, {
-          transaction,
-        });
       }
 
       // add to new collection (may be the same)
@@ -171,9 +125,6 @@ async function documentMover({
           await Promise.all(
             childDocuments.map(async (child) => {
               await loopChildren(child.id);
-              child.text = await copyAttachments(child, {
-                transaction,
-              });
               child.collectionId = collectionId;
               await child.save();
 
