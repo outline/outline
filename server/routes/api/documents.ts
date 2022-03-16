@@ -1041,28 +1041,11 @@ router.post("documents.update", auth(), async (ctx) => {
   document.lastModifiedById = user.id;
   const { collection } = document;
   const changed = document.changed();
-  let transaction;
 
-  try {
-    transaction = await document.sequelize.transaction();
-
-    if (publish) {
-      await document.publish(user.id, {
-        transaction,
-      });
-    } else {
-      await document.save({
-        transaction,
-      });
-    }
-
-    await transaction.commit();
-  } catch (err) {
-    if (transaction) {
-      await transaction.rollback();
-    }
-
-    throw err;
+  if (publish) {
+    await document.publish(user.id);
+  } else {
+    await document.save();
   }
 
   if (publish) {
