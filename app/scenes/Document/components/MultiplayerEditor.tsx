@@ -248,7 +248,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     }
 
     window.addEventListener("error", onUnhandledError);
-    return () => window.addEventListener("error", onUnhandledError);
+    return () => window.removeEventListener("error", onUnhandledError);
   }, [showToast, t]);
 
   if (!extensions.length) {
