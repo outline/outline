@@ -367,6 +367,7 @@ const EditorStyles = styled.div<{
     top: -2px;
     width: 26px;
     height: 24px;
+    z-index: 3;
 
     &.collapsed {
       opacity: 1;
