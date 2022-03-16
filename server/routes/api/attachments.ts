@@ -1,7 +1,11 @@
 import Router from "koa-router";
 import { v4 as uuidv4 } from "uuid";
 import { bytesToHumanReadable } from "@shared/utils/files";
-import { NotFoundError, ValidationError } from "@server/errors";
+import {
+  AuthorizationError,
+  NotFoundError,
+  ValidationError,
+} from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { Attachment, Document, Event } from "@server/models";
 import { authorize } from "@server/policies";
@@ -141,12 +145,8 @@ router.post("attachments.redirect", auth(), async (ctx) => {
   }
 
   if (attachment.isPrivate) {
-    if (attachment.documentId) {
-      const document = await Document.findByPk(attachment.documentId, {
-        userId: user.id,
-        paranoid: false,
-      });
-      authorize(user, "read", document);
+    if (attachment.teamId !== user.teamId) {
+      throw AuthorizationError();
     }
 
     const accessUrl = await getSignedUrl(attachment.key);
