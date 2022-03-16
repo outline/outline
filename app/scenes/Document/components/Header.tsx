@@ -18,9 +18,11 @@ import Badge from "~/components/Badge";
 import Button from "~/components/Button";
 import Collaborators from "~/components/Collaborators";
 import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
+import Flex from "~/components/Flex";
 import Header from "~/components/Header";
 import Tooltip from "~/components/Tooltip";
 import useMobile from "~/hooks/useMobile";
+import useMouseMove from "~/hooks/useMouseMove";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
@@ -80,6 +82,8 @@ function DocumentHeader({
   const { resolvedTheme } = ui;
   const { team } = auth;
   const isMobile = useMobile();
+  const isMouseMoving = useMouseMove();
+  const hideHeader = isEditing && !isMouseMoving;
 
   // We cache this value for as long as the component is mounted so that if you
   // apply a template there is still the option to replace it until the user
@@ -196,13 +200,15 @@ function DocumentHeader({
       <Header
         hasSidebar
         breadcrumb={
-          isMobile ? (
-            <TableOfContentsMenu headings={headings} />
-          ) : (
-            <DocumentBreadcrumb document={document}>
-              {!isEditing && toc}
-            </DocumentBreadcrumb>
-          )
+          <Wrapper $hideHeader={hideHeader}>
+            {isMobile ? (
+              <TableOfContentsMenu headings={headings} />
+            ) : (
+              <DocumentBreadcrumb document={document}>
+                {!isEditing && toc}
+              </DocumentBreadcrumb>
+            )}
+          </Wrapper>
         }
         title={
           <>
@@ -211,7 +217,7 @@ function DocumentHeader({
           </>
         }
         actions={
-          <>
+          <Wrapper $hideHeader={hideHeader}>
             <ObservingBanner />
 
             {!isPublishing && isSaving && !team?.collaborativeEditing && (
@@ -324,7 +330,7 @@ function DocumentHeader({
                 </Action>
               </>
             )}
-          </>
+          </Wrapper>
         }
       />
     </>
@@ -335,6 +341,12 @@ const Status = styled(Action)`
   padding-left: 0;
   padding-right: 4px;
   color: ${(props) => props.theme.slate};
+`;
+
+const Wrapper = styled(Flex)<{ $hideHeader: boolean }>`
+  opacity: ${(props) => (props.$hideHeader ? 0 : 1)};
+  visibility: ${(props) => (props.$hideHeader ? "hidden" : "visible")};
+  transition: opacity 400ms ease-in-out, visibility ease-in-out 400ms;
 `;
 
 export default observer(DocumentHeader);
