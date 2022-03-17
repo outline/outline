@@ -1,3 +1,5 @@
+import { sequelize } from "@server/database/sequelize";
+import Pin from "@server/models/Pin";
 import {
   buildDocument,
   buildCollection,
@@ -109,5 +111,42 @@ describe("documentMover", () => {
     expect(response.documents[0].updatedBy.id).toEqual(user.id);
     expect(response.documents[1].collection.id).toEqual(newCollection.id);
     expect(response.documents[1].updatedBy.id).toEqual(user.id);
+  });
+
+  it("should remove associated collection pin if moved to another collection", async () => {
+    const { document, user, collection } = await seed();
+    const newCollection = await buildCollection({
+      teamId: collection.teamId,
+    });
+    await Pin.create({
+      createdById: user.id,
+      collectionId: collection.id,
+      documentId: document.id,
+      teamId: collection.teamId,
+    });
+
+    const response = await sequelize.transaction(async (transaction) =>
+      documentMover({
+        user,
+        document,
+        collectionId: newCollection.id,
+        parentDocumentId: undefined,
+        index: 0,
+        ip,
+        transaction,
+      })
+    );
+
+    const pinCount = await Pin.count();
+    expect(pinCount).toBe(0);
+
+    // check collection structure updated
+    expect(response.collections[0].id).toBe(collection.id);
+    expect(response.collections[1].id).toBe(newCollection.id);
+    expect(response.collections.length).toEqual(2);
+    expect(response.documents.length).toEqual(1);
+
+    expect(response.documents[0].collection.id).toEqual(newCollection.id);
+    expect(response.documents[0].updatedBy.id).toEqual(user.id);
   });
 });
