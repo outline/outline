@@ -114,18 +114,23 @@ async function documentMover({
         result.collections.push(newCollection);
 
         const childDocumentIds = await document.getChildDocumentIds();
-        const [, documents] = await Document.update(
+        await Document.update(
           {
             collectionId: newCollection.id,
           },
           {
             transaction,
-            returning: true,
             where: {
               id: [...childDocumentIds, document.id],
             },
           }
         );
+        const documents = await Document.findAll({
+          where: {
+            id: [...childDocumentIds, document.id],
+          },
+          transaction,
+        });
 
         result.documents.push(
           ...documents.map((document) => {

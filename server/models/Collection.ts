@@ -538,7 +538,7 @@ class Collection extends ParanoidModel {
    */
   updateDocument = async function (
     updatedDocument: Document,
-    options: { transaction: Transaction }
+    options?: { transaction: Transaction }
   ) {
     if (!this.documentStructure) {
       return;
