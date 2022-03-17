@@ -1,5 +1,4 @@
 import invariant from "invariant";
-import { Transaction } from "sequelize";
 import { sequelize } from "@server/database/sequelize";
 import { APM } from "@server/logging/tracing";
 import { User, Document, Collection, Pin, Event } from "@server/models";
@@ -37,19 +36,19 @@ async function documentMover({
     collectionChanged,
   };
 
-  if (document.template) {
-    if (!collectionChanged) {
-      return result;
-    }
+  if (document.template && !collectionChanged) {
+    return result;
+  }
 
-    document.collectionId = collectionId;
-    document.parentDocumentId = null;
-    document.lastModifiedById = user.id;
-    document.updatedBy = user;
-    await document.save();
-    result.documents.push(document);
-  } else {
-    await sequelize.transaction(async (transaction) => {
+  await sequelize.transaction(async (transaction) => {
+    if (document.template) {
+      document.collectionId = collectionId;
+      document.parentDocumentId = null;
+      document.lastModifiedById = user.id;
+      document.updatedBy = user;
+      await document.save({ transaction });
+      result.documents.push(document);
+    } else {
       // remove from original collection
       const collection = await Collection.findByPk(document.collectionId, {
         transaction,
@@ -109,33 +108,31 @@ async function documentMover({
         result.collections.push(collection);
       }
 
-      // if collection does not remain the same loop through children and change their
-      // collectionId and move any attachments they may have too. This includes
-      // archived children, otherwise their collection would be wrong once restored.
+      // if collection does not remain the same update the collectionId of all
+      // active and archived children.
       if (collectionChanged) {
         result.collections.push(newCollection);
 
-        const loopChildren = async (documentId: string) => {
-          const childDocuments = await Document.findAll({
+        const childDocumentIds = await document.getChildDocumentIds();
+        const [, documents] = await Document.update(
+          {
+            collectionId: newCollection.id,
+          },
+          {
+            transaction,
+            returning: true,
             where: {
-              parentDocumentId: documentId,
+              id: [...childDocumentIds, document.id],
             },
-          });
-          await Promise.all(
-            childDocuments.map(async (child) => {
-              await loopChildren(child.id);
-              child.collectionId = collectionId;
-              await child.save({ transaction });
+          }
+        );
 
-              if (newCollection) {
-                child.collection = newCollection;
-              }
-              result.documents.push(child);
-            })
-          );
-        };
-
-        await loopChildren(document.id);
+        result.documents.push(
+          ...documents.map((document) => {
+            document.collection = newCollection;
+            return document;
+          })
+        );
 
         const pin = await Pin.findOne({
           where: {
@@ -151,31 +148,30 @@ async function documentMover({
             ip,
           });
         }
+      } else {
+        await document.save({ transaction });
+        result.documents.push(document);
       }
+    }
 
-      await document.save({
+    await Event.create(
+      {
+        name: "documents.move",
+        actorId: user.id,
+        documentId: document.id,
+        collectionId,
+        teamId: document.teamId,
+        data: {
+          title: document.title,
+          collectionIds: result.collections.map((c) => c.id),
+          documentIds: result.documents.map((d) => d.id),
+        },
+        ip,
+      },
+      {
         transaction,
-      });
-
-      if (newCollection) {
-        document.collection = newCollection;
       }
-      result.documents.push(document);
-    });
-  }
-
-  await Event.create({
-    name: "documents.move",
-    actorId: user.id,
-    documentId: document.id,
-    collectionId,
-    teamId: document.teamId,
-    data: {
-      title: document.title,
-      collectionIds: result.collections.map((c) => c.id),
-      documentIds: result.documents.map((d) => d.id),
-    },
-    ip,
+    );
   });
 
   // we need to send all updated models back to the client

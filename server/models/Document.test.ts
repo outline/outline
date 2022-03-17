@@ -422,6 +422,62 @@ describe("#save", () => {
   });
 });
 
+describe("#getChildDocumentIds", () => {
+  test("should return empty array if no children", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({
+      teamId: team.id,
+    });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: collection.id,
+      title: "test",
+    });
+    const results = await document.getChildDocumentIds();
+    expect(results.length).toBe(0);
+  });
+
+  test("should return nested child document ids", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({
+      teamId: team.id,
+    });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: collection.id,
+      title: "test",
+    });
+    const document2 = await buildDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: collection.id,
+      parentDocumentId: document.id,
+      title: "test",
+    });
+    const document3 = await buildDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: collection.id,
+      parentDocumentId: document2.id,
+      title: "test",
+    });
+    const results = await document.getChildDocumentIds();
+    expect(results.length).toBe(2);
+    expect(results[0]).toBe(document2.id);
+    expect(results[1]).toBe(document3.id);
+  });
+});
+
 describe("#findByPk", () => {
   test("should return document when urlId is correct", async () => {
     const { document } = await seed();

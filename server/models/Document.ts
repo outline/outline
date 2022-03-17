@@ -689,6 +689,43 @@ class Document extends ParanoidModel {
     return undefined;
   };
 
+  /**
+   * Calculate all of the document ids that are children of this document by
+   * iterating through parentDocumentId references in the most efficient way.
+   *
+   * @param options FindOptions
+   * @returns A promise that resolves to a list of document ids
+   */
+  getChildDocumentIds = async (
+    options?: FindOptions<Document>
+  ): Promise<string[]> => {
+    const getChildDocumentIds = async (
+      ...parentDocumentId: string[]
+    ): Promise<string[]> => {
+      const childDocuments = await (this
+        .constructor as typeof Document).findAll({
+        attributes: ["id"],
+        where: {
+          parentDocumentId,
+        },
+        ...options,
+      });
+
+      const childDocumentIds = childDocuments.map((doc) => doc.id);
+
+      if (childDocumentIds.length > 0) {
+        return [
+          ...childDocumentIds,
+          ...(await getChildDocumentIds(...childDocumentIds)),
+        ];
+      }
+
+      return childDocumentIds;
+    };
+
+    return getChildDocumentIds(this.id);
+  };
+
   archiveWithChildren = async (
     userId: string,
     options?: FindOptions<Document>
