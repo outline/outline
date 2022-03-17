@@ -62,6 +62,7 @@ function Actions({ collection }: Props) {
           placement="bottom-end"
           label={(props) => (
             <Button
+              aria-label={t("Collection menu")}
               icon={<MoreIcon />}
               {...props}
               borderOnHover

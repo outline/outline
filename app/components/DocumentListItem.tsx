@@ -78,6 +78,7 @@ function DocumentListItem(
       as={DocumentLink}
       ref={ref}
       dir={document.dir}
+      role="menuitem"
       $isStarred={document.isStarred}
       $menuOpen={menuOpen}
       to={{

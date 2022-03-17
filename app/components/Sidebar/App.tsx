@@ -60,7 +60,12 @@ function AppSidebar() {
                 {...props}
                 title={team.name}
                 image={
-                  <StyledTeamLogo src={team.avatarUrl} width={32} height={32} />
+                  <StyledTeamLogo
+                    src={team.avatarUrl}
+                    width={32}
+                    height={32}
+                    alt={t("Logo")}
+                  />
                 }
                 showDisclosure
               />

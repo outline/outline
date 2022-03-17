@@ -2,6 +2,7 @@ import { capitalize } from "lodash";
 import { findDomRefAtPos, findParentNode } from "prosemirror-utils";
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
+import { Trans } from "react-i18next";
 import { Portal } from "react-portal";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
@@ -545,11 +546,14 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
           )}
           {uploadFile && (
             <VisuallyHidden>
-              <input
-                type="file"
-                ref={this.inputRef}
-                onChange={this.handleFilePicked}
-              />
+              <label>
+                <Trans>Import document</Trans>
+                <input
+                  type="file"
+                  ref={this.inputRef}
+                  onChange={this.handleFilePicked}
+                />
+              </label>
             </VisuallyHidden>
           )}
         </Wrapper>

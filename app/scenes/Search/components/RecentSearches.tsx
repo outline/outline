@@ -30,6 +30,7 @@ function RecentSearches() {
               {searchQuery.query}
               <Tooltip tooltip={t("Remove search")} delay={150}>
                 <RemoveButton
+                  aria-label={t("Remove search")}
                   onClick={(ev) => {
                     ev.preventDefault();
                     searchQuery.delete();
