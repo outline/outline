@@ -1,6 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { Link } from "react-router-dom";
+import { CompositeItem } from "reakit/Composite";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Document from "~/models/Document";
@@ -29,10 +30,11 @@ function DocumentListItem(
   props: Props,
   ref: React.RefObject<HTMLAnchorElement>
 ) {
-  const { document, highlight, context } = props;
+  const { document, highlight, context, ...rest } = props;
 
   return (
-    <DocumentLink
+    <CompositeItem
+      as={DocumentLink}
       ref={ref}
       dir={document.dir}
       to={{
@@ -41,6 +43,7 @@ function DocumentListItem(
           title: document.titleWithDefault,
         },
       }}
+      {...rest}
     >
       <Content>
         <Heading dir={document.dir}>
@@ -59,7 +62,7 @@ function DocumentListItem(
           />
         }
       </Content>
-    </DocumentLink>
+    </CompositeItem>
   );
 }
 

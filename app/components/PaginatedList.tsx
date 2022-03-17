@@ -29,6 +29,7 @@ type Props = WithTranslation &
       compositeProps: CompositeStateReturn
     ) => React.ReactNode;
     renderHeading?: (name: React.ReactElement<any> | string) => React.ReactNode;
+    onEscape?: (ev: React.KeyboardEvent<HTMLDivElement>) => void;
   };
 
 @observer
@@ -124,7 +125,7 @@ class PaginatedList extends React.Component<Props> {
   };
 
   render() {
-    const { items, heading, auth, empty, renderHeading } = this.props;
+    const { items, heading, auth, empty, renderHeading, onEscape } = this.props;
 
     console.log({ items });
 
@@ -141,7 +142,10 @@ class PaginatedList extends React.Component<Props> {
         {showList && (
           <>
             {heading}
-            <ArrowKeyNavigation aria-label={this.props["aria-label"]}>
+            <ArrowKeyNavigation
+              aria-label={this.props["aria-label"]}
+              onEscape={onEscape}
+            >
               {(composite: CompositeStateReturn) =>
                 items.slice(0, this.renderCount).map((item, index) => {
                   const children = this.props.renderItem(

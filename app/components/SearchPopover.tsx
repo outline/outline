@@ -25,7 +25,12 @@ function SearchPopover({ shareId }: Props) {
     modal: true,
   });
 
-  const searchFunction = React.useMemo(
+  const [query, setQuery] = React.useState("");
+  const searchResults = documents.searchResults(query);
+
+  const searchInputRef = popover.unstable_referenceRef;
+
+  const performSearch = React.useMemo(
     () =>
       debounce(async ({ query, ...options }: Record<string, any>) => {
         console.log({ query });
@@ -43,21 +48,22 @@ function SearchPopover({ shareId }: Props) {
   const handleKeyDown = (ev: React.KeyboardEvent<HTMLInputElement>) => {
     if (ev.key === "Enter") {
       console.log("ENTER KEY");
+      if (searchResults?.length) {
+        popover.show();
+      }
     }
 
     if (ev.key === "ArrowDown") {
       console.log("ARROW DOWN");
-      firstSearchItem.current?.focus();
+      if (searchResults?.length) {
+        popover.show();
+        firstSearchItem.current?.focus();
+      }
       ev.preventDefault();
     }
   };
 
-  const [query, setQuery] = React.useState("");
-  const searchResults = documents.searchResults(query);
-
-  // TODO: get all the keyboard stuff right
-
-  // TODO: scope the search by the shareId
+  // TODO: scope the search by the shareId and not the user
   // TODO write tests for that
 
   // TODO think about shrinking the context preview
@@ -108,18 +114,20 @@ function SearchPopover({ shareId }: Props) {
         <PaginatedList
           options={{ query }}
           items={searchResults}
-          fetch={searchFunction}
+          fetch={performSearch}
+          onEscape={() => searchInputRef?.current?.focus()}
           empty={
             <NoResults>{t("No results for {{query}}", { query })}</NoResults>
           }
           loading={<PlaceholderList count={3} header={{ height: 20 }} />}
-          renderItem={(item, index) => (
+          renderItem={(item, index, compositeProps) => (
             <SearchListItem
-              key={item.id}
+              key={item.document.id}
               ref={index === 0 ? firstSearchItem : undefined}
               document={item.document}
               context={item.context}
               highlight={query}
+              {...compositeProps}
             />
           )}
         />
