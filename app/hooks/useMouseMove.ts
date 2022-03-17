@@ -1,6 +1,6 @@
 import * as React from "react";
 
-const useMouseMove = () => {
+const useMouseMove = (timeout: number = 5000) => {
   const [isMouseMoving, setIsMouseMoving] = React.useState(false);
   const timeout = React.useRef<ReturnType<typeof setTimeout>>();
 
