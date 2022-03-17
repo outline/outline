@@ -57,7 +57,7 @@ jobs:
           version: 20.10.6
       - run:
           name: Build Docker image
-          command: docker buildx build -t $IMAGE_NAME:latest --platform linux/amd64,linux/arm64 .
+          command: docker buildx build -t $IMAGE_NAME:latest --platform linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6 .
       - run:
           name: Archive Docker image
           command: docker save -o image.tar $IMAGE_NAME
