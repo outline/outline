@@ -200,7 +200,7 @@ function DocumentHeader({
       <Header
         hasSidebar
         breadcrumb={
-          <Wrapper $hideHeader={hideHeader}>
+          <FadeOut $fade={hideHeader}>
             {isMobile ? (
               <TableOfContentsMenu headings={headings} />
             ) : (
@@ -208,7 +208,7 @@ function DocumentHeader({
                 {!isEditing && toc}
               </DocumentBreadcrumb>
             )}
-          </Wrapper>
+          </FadeOut>
         }
         title={
           <>
@@ -217,120 +217,123 @@ function DocumentHeader({
           </>
         }
         actions={
-          <Wrapper $hideHeader={hideHeader}>
+          <>
             <ObservingBanner />
-
-            {!isPublishing && isSaving && !team?.collaborativeEditing && (
-              <Status>{t("Saving")}…</Status>
-            )}
-            {!isDeleted && <Collaborators document={document} />}
-            {(isEditing || team?.collaborativeEditing) && !isTemplate && isNew && (
-              <Action>
-                <TemplatesMenu
-                  document={document}
-                  onSelectTemplate={onSelectTemplate}
-                />
-              </Action>
-            )}
-            {!isEditing && !isDeleted && (!isMobile || !isTemplate) && (
-              <Action>
-                <ShareButton document={document} />
-              </Action>
-            )}
-            {isEditing && (
-              <>
+            <FadeOut $fade={hideHeader}>
+              {!isPublishing && isSaving && !team?.collaborativeEditing && (
+                <Status>{t("Saving")}…</Status>
+              )}
+              {!isDeleted && <Collaborators document={document} />}
+              {(isEditing || team?.collaborativeEditing) &&
+                !isTemplate &&
+                isNew && (
+                  <Action>
+                    <TemplatesMenu
+                      document={document}
+                      onSelectTemplate={onSelectTemplate}
+                    />
+                  </Action>
+                )}
+              {!isEditing && !isDeleted && (!isMobile || !isTemplate) && (
+                <Action>
+                  <ShareButton document={document} />
+                </Action>
+              )}
+              {isEditing && (
+                <>
+                  <Action>
+                    <Tooltip
+                      tooltip={t("Save")}
+                      shortcut={`${metaDisplay}+enter`}
+                      delay={500}
+                      placement="bottom"
+                    >
+                      <Button
+                        onClick={handleSave}
+                        disabled={savingIsDisabled}
+                        neutral={isDraft}
+                      >
+                        {isDraft ? t("Save Draft") : t("Done Editing")}
+                      </Button>
+                    </Tooltip>
+                  </Action>
+                </>
+              )}
+              {canEdit && !team?.collaborativeEditing && editAction}
+              {canEdit && can.createChildDocument && !isMobile && (
+                <Action>
+                  <NewChildDocumentMenu
+                    document={document}
+                    label={(props) => (
+                      <Tooltip
+                        tooltip={t("New document")}
+                        shortcut="n"
+                        delay={500}
+                        placement="bottom"
+                      >
+                        <Button icon={<PlusIcon />} {...props} neutral>
+                          {t("New doc")}
+                        </Button>
+                      </Tooltip>
+                    )}
+                  />
+                </Action>
+              )}
+              {canEdit && isTemplate && !isDraft && !isRevision && (
+                <Action>
+                  <Button
+                    icon={<PlusIcon />}
+                    as={Link}
+                    to={newDocumentPath(document.collectionId, {
+                      templateId: document.id,
+                    })}
+                    primary
+                  >
+                    {t("New from template")}
+                  </Button>
+                </Action>
+              )}
+              {can.update && isDraft && !isRevision && (
                 <Action>
                   <Tooltip
-                    tooltip={t("Save")}
-                    shortcut={`${metaDisplay}+enter`}
+                    tooltip={t("Publish")}
+                    shortcut={`${metaDisplay}+shift+p`}
                     delay={500}
                     placement="bottom"
                   >
                     <Button
-                      onClick={handleSave}
-                      disabled={savingIsDisabled}
-                      neutral={isDraft}
+                      onClick={handlePublish}
+                      disabled={publishingIsDisabled}
                     >
-                      {isDraft ? t("Save Draft") : t("Done Editing")}
+                      {isPublishing ? `${t("Publishing")}…` : t("Publish")}
                     </Button>
                   </Tooltip>
                 </Action>
-              </>
-            )}
-            {canEdit && !team?.collaborativeEditing && editAction}
-            {canEdit && can.createChildDocument && !isMobile && (
-              <Action>
-                <NewChildDocumentMenu
-                  document={document}
-                  label={(props) => (
-                    <Tooltip
-                      tooltip={t("New document")}
-                      shortcut="n"
-                      delay={500}
-                      placement="bottom"
-                    >
-                      <Button icon={<PlusIcon />} {...props} neutral>
-                        {t("New doc")}
-                      </Button>
-                    </Tooltip>
-                  )}
-                />
-              </Action>
-            )}
-            {canEdit && isTemplate && !isDraft && !isRevision && (
-              <Action>
-                <Button
-                  icon={<PlusIcon />}
-                  as={Link}
-                  to={newDocumentPath(document.collectionId, {
-                    templateId: document.id,
-                  })}
-                  primary
-                >
-                  {t("New from template")}
-                </Button>
-              </Action>
-            )}
-            {can.update && isDraft && !isRevision && (
-              <Action>
-                <Tooltip
-                  tooltip={t("Publish")}
-                  shortcut={`${metaDisplay}+shift+p`}
-                  delay={500}
-                  placement="bottom"
-                >
-                  <Button
-                    onClick={handlePublish}
-                    disabled={publishingIsDisabled}
-                  >
-                    {isPublishing ? `${t("Publishing")}…` : t("Publish")}
-                  </Button>
-                </Tooltip>
-              </Action>
-            )}
-            {!isEditing && (
-              <>
-                {!isDeleted && <Separator />}
-                <Action>
-                  <DocumentMenu
-                    document={document}
-                    isRevision={isRevision}
-                    label={(props) => (
-                      <Button
-                        icon={<MoreIcon />}
-                        iconColor="currentColor"
-                        {...props}
-                        borderOnHover
-                        neutral
-                      />
-                    )}
-                    showToggleEmbeds={canToggleEmbeds}
-                    showDisplayOptions
-                  />
-                </Action>
-              </>
-            )}
-          </Wrapper>
+              )}
+              {!isEditing && (
+                <>
+                  {!isDeleted && <Separator />}
+                  <Action>
+                    <DocumentMenu
+                      document={document}
+                      isRevision={isRevision}
+                      label={(props) => (
+                        <Button
+                          icon={<MoreIcon />}
+                          iconColor="currentColor"
+                          {...props}
+                          borderOnHover
+                          neutral
+                        />
+                      )}
+                      showToggleEmbeds={canToggleEmbeds}
+                      showDisplayOptions
+                    />
+                  </Action>
+                </>
+              )}
+            </FadeOut>
+          </>
         }
       />
     </>
@@ -343,9 +346,9 @@ const Status = styled(Action)`
   color: ${(props) => props.theme.slate};
 `;
 
-const Wrapper = styled(Flex)<{ $hideHeader: boolean }>`
-  opacity: ${(props) => (props.$hideHeader ? 0 : 1)};
-  visibility: ${(props) => (props.$hideHeader ? "hidden" : "visible")};
+const FadeOut = styled(Flex)<{ $fade: boolean }>`
+  opacity: ${(props) => (props.$fade ? 0 : 1)};
+  visibility: ${(props) => (props.$fade ? "hidden" : "visible")};
   transition: opacity 400ms ease-in-out, visibility ease-in-out 400ms;
 `;
 
