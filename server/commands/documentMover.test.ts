@@ -25,7 +25,7 @@ describe("documentMover", () => {
     expect(response.documents.length).toEqual(1);
   });
 
-  it("should not error when not in source collection documentStructure", async () => {
+  it("should error when not in source collection documentStructure", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
       teamId: user.teamId,
@@ -34,14 +34,19 @@ describe("documentMover", () => {
       collectionId: collection.id,
     });
     await document.archive(user.id);
-    const response = await documentMover({
-      user,
-      document,
-      collectionId: collection.id,
-      ip,
-    });
-    expect(response.collections.length).toEqual(1);
-    expect(response.documents.length).toEqual(1);
+
+    let error;
+    try {
+      await documentMover({
+        user,
+        document,
+        collectionId: collection.id,
+        ip,
+      });
+    } catch (err) {
+      error = err;
+    }
+    expect(error).toBeTruthy();
   });
 
   it("should move with children", async () => {
