@@ -8,12 +8,12 @@ COPY ./package.json ./yarn.lock ./
 
 # ---
 FROM deps-common AS deps-dev
-RUN yarn install --no-optional --frozen-lockfile && \
+RUN yarn install --no-optional --frozen-lockfile --network-timeout 1000000 && \
   yarn cache clean
 
 # ---
 FROM deps-common AS deps-prod
-RUN yarn install --production=true --frozen-lockfile && \
+RUN yarn install --production=true --frozen-lockfile --network-timeout 1000000 && \
   yarn cache clean
 
 # ---
