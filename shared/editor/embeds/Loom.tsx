@@ -1,5 +1,5 @@
 import * as React from "react";
-import Frame from "./components/Frame";
+import Frame from "../components/Frame";
 import { EmbedProps as Props } from ".";
 
 const URL_REGEX = /^https:\/\/(www\.)?(use)?loom.com\/(embed|share)\/(.*)$/;

@@ -106,11 +106,12 @@ export const getPresignedPost = (
   const params = {
     Bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME,
     Conditions: [
-      // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
-      ["content-length-range", 0, +process.env.AWS_S3_UPLOAD_MAX_SIZE],
+      process.env.AWS_S3_UPLOAD_MAX_SIZE
+        ? ["content-length-range", 0, +process.env.AWS_S3_UPLOAD_MAX_SIZE]
+        : undefined,
       ["starts-with", "$Content-Type", contentType],
       ["starts-with", "$Cache-Control", ""],
-    ],
+    ].filter(Boolean),
     Fields: {
       key,
       acl,
@@ -208,12 +209,12 @@ export const deleteFromS3 = (key: string) => {
     .promise();
 };
 
-export const getSignedUrl = async (key: string) => {
+export const getSignedUrl = async (key: string, expiresInMs = 60) => {
   const isDocker = AWS_S3_UPLOAD_BUCKET_URL.match(/http:\/\/s3:/);
   const params = {
     Bucket: AWS_S3_UPLOAD_BUCKET_NAME,
     Key: key,
-    Expires: 60,
+    Expires: expiresInMs,
   };
 
   const url = isDocker

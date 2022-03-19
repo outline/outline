@@ -8,9 +8,9 @@ import { Props as EditorProps } from "~/editor";
 import useDictionary from "~/hooks/useDictionary";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
+import { uploadFile } from "~/utils/files";
 import history from "~/utils/history";
 import { isModKey } from "~/utils/keyboard";
-import { uploadFile } from "~/utils/uploadFile";
 import { isHash } from "~/utils/urls";
 
 const SharedEditor = React.lazy(
@@ -23,7 +23,12 @@ const SharedEditor = React.lazy(
 
 export type Props = Optional<
   EditorProps,
-  "placeholder" | "defaultValue" | "onClickLink" | "embeds" | "dictionary"
+  | "placeholder"
+  | "defaultValue"
+  | "onClickLink"
+  | "embeds"
+  | "dictionary"
+  | "onShowToast"
 > & {
   shareId?: string | undefined;
   embedsDisabled?: boolean;
@@ -38,7 +43,7 @@ function Editor(props: Props, ref: React.Ref<any>) {
   const { showToast } = useToasts();
   const dictionary = useDictionary();
 
-  const handleUploadImage = React.useCallback(
+  const handleUploadFile = React.useCallback(
     async (file: File) => {
       const result = await uploadFile(file, {
         documentId: id,
@@ -113,7 +118,7 @@ function Editor(props: Props, ref: React.Ref<any>) {
     <ErrorBoundary reloadOnChunkMissing>
       <SharedEditor
         ref={ref}
-        uploadImage={handleUploadImage}
+        uploadImage={handleUploadFile}
         onShowToast={handleShowToast}
         embeds={embeds}
         dictionary={dictionary}

@@ -29,6 +29,7 @@ import Strikethrough from "@shared/editor/marks/Strikethrough";
 import Underline from "@shared/editor/marks/Underline";
 
 // nodes
+import Attachment from "@shared/editor/nodes/Attachment";
 import Blockquote from "@shared/editor/nodes/Blockquote";
 import BulletList from "@shared/editor/nodes/BulletList";
 import CheckboxItem from "@shared/editor/nodes/CheckboxItem";
@@ -108,7 +109,7 @@ export type Props = {
   /** Heading id to scroll to when the editor has loaded */
   scrollTo?: string;
   /** Callback for handling uploaded images, should return the url of uploaded file */
-  uploadImage?: (file: File) => Promise<string>;
+  uploadFile?: (file: File) => Promise<string>;
   /** Callback when editor is blurred, as native input */
   onBlur?: () => void;
   /** Callback when editor is focused, as native input */
@@ -118,15 +119,15 @@ export type Props = {
   /** Callback when user uses cancel key combo */
   onCancel?: () => void;
   /** Callback when user changes editor content */
-  onChange?: (value: () => string) => void;
+  onChange?: (value: () => string | undefined) => void;
   /** Callback when a comment mark is clicked */
   onClickComment?: (commentId: string) => void;
   /** Callback when a comment mark is created */
   onDraftComment?: (commentId: string) => void;
   /** Callback when a file upload begins */
-  onImageUploadStart?: () => void;
+  onFileUploadStart?: () => void;
   /** Callback when a file upload ends */
-  onImageUploadStop?: () => void;
+  onFileUploadStop?: () => void;
   /** Callback when a link is created, should return url to created document */
   onCreateLink?: (title: string) => Promise<string>;
   /** Callback when user searches for documents from link insert interface */
@@ -147,7 +148,7 @@ export type Props = {
   /** Whether embeds should be rendered without an iframe */
   embedsDisabled?: boolean;
   /** Callback when a toast message is triggered (eg "link copied") */
-  onShowToast?: (message: string, code: ToastType) => void;
+  onShowToast: (message: string, code: ToastType) => void;
   className?: string;
   style?: React.CSSProperties;
 };
@@ -182,10 +183,10 @@ export class Editor extends React.PureComponent<
     defaultValue: "",
     dir: "auto",
     placeholder: "Write something nice…",
-    onImageUploadStart: () => {
+    onFileUploadStart: () => {
       // no default behavior
     },
-    onImageUploadStop: () => {
+    onFileUploadStop: () => {
       // no default behavior
     },
     embeds: [],
@@ -323,7 +324,8 @@ export class Editor extends React.PureComponent<
   createExtensions() {
     const { dictionary } = this.props;
 
-    // adding nodes here? Update schema.ts for serialization on the server
+    // adding nodes here? Update server/editor/renderToHtml.ts for serialization
+    // on the server
     return new ExtensionManager(
       [
         ...[
@@ -346,6 +348,9 @@ export class Editor extends React.PureComponent<
           new BulletList(),
           new Embed({ embeds: this.props.embeds }),
           new ListItem(),
+          new Attachment({
+            dictionary,
+          }),
           new Notice({
             dictionary,
           }),
@@ -356,9 +361,9 @@ export class Editor extends React.PureComponent<
           new HorizontalRule(),
           new Image({
             dictionary,
-            uploadImage: this.props.uploadImage,
-            onImageUploadStart: this.props.onImageUploadStart,
-            onImageUploadStop: this.props.onImageUploadStop,
+            uploadFile: this.props.uploadFile,
+            onFileUploadStart: this.props.onFileUploadStart,
+            onFileUploadStop: this.props.onFileUploadStop,
             onShowToast: this.props.onShowToast,
           }),
           new Table(),
@@ -633,7 +638,7 @@ export class Editor extends React.PureComponent<
     }
 
     this.props.onChange(() => {
-      return this.value();
+      return this.view ? this.value() : undefined;
     });
   };
 
@@ -788,6 +793,7 @@ export class Editor extends React.PureComponent<
               onSearchLink={this.props.onSearchLink}
               onClickLink={this.props.onClickLink}
               onCreateLink={this.props.onCreateLink}
+              onShowToast={this.props.onShowToast}
             />
             <LinkToolbar
               view={this.view}
@@ -804,6 +810,7 @@ export class Editor extends React.PureComponent<
               commands={this.commands}
               dictionary={dictionary}
               rtl={isRTL}
+              onShowToast={this.props.onShowToast}
               isActive={this.state.emojiMenuOpen}
               search={this.state.blockMenuSearch}
               onClose={() => this.setState({ emojiMenuOpen: false })}
@@ -816,10 +823,10 @@ export class Editor extends React.PureComponent<
               isActive={this.state.blockMenuOpen}
               search={this.state.blockMenuSearch}
               onClose={this.handleCloseBlockMenu}
-              uploadImage={this.props.uploadImage}
+              uploadFile={this.props.uploadFile}
               onLinkToolbarOpen={this.handleOpenLinkMenu}
-              onImageUploadStart={this.props.onImageUploadStart}
-              onImageUploadStop={this.props.onImageUploadStop}
+              onFileUploadStart={this.props.onFileUploadStart}
+              onFileUploadStop={this.props.onFileUploadStop}
               onShowToast={this.props.onShowToast}
               embeds={this.props.embeds}
             />

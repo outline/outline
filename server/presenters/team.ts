@@ -10,7 +10,7 @@ export default function present(team: Team) {
     collaborativeEditing: team.collaborativeEditing,
     defaultCollectionId: team.defaultCollectionId,
     documentEmbeds: team.documentEmbeds,
-    guestSignin: team.guestSignin,
+    guestSignin: team.emailSigninEnabled,
     subdomain: team.subdomain,
     domain: team.domain,
     url: team.url,

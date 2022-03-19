@@ -14,5 +14,3 @@ export const UserSection = ({ t }: ActionContext) => t("People");
 
 export const RecentSearchesSection = ({ t }: ActionContext) =>
   t("Recent searches");
-
-export const SearchSection = "";

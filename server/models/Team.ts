@@ -20,6 +20,7 @@ import {
 } from "sequelize-typescript";
 import { v4 as uuidv4 } from "uuid";
 import { stripSubdomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
+import env from "@server/env";
 import Logger from "@server/logging/logger";
 import { generateAvatarUrl } from "@server/utils/avatars";
 import { publicS3Endpoint, uploadToS3FromUrl } from "@server/utils/s3";
@@ -102,6 +103,18 @@ class Team extends ParanoidModel {
   defaultUserRole: string;
 
   // getters
+
+  /**
+   * Returns whether the team has email login enabled. For self-hosted installs
+   * this also considers whether SMTP connection details have been configured.
+   *
+   * @return {boolean} Whether to show email login options
+   */
+  get emailSigninEnabled(): boolean {
+    return (
+      this.guestSignin && (!!env.SMTP_HOST || env.NODE_ENV === "development")
+    );
+  }
 
   get url() {
     if (this.domain) {

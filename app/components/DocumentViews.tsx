@@ -40,6 +40,7 @@ function DocumentViews({ document, isOpen }: Props) {
     <>
       {isOpen && (
         <PaginatedList
+          aria-label={t("Viewers")}
           items={users}
           renderItem={(item) => {
             const view = documentViews.find((v) => v.user.id === item.id);

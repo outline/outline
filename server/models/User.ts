@@ -22,9 +22,9 @@ import {
 } from "sequelize-typescript";
 import { v4 as uuidv4 } from "uuid";
 import { languages } from "@shared/i18n";
+import { stringToColor } from "@shared/utils/color";
 import Logger from "@server/logging/logger";
 import { DEFAULT_AVATAR_HOST } from "@server/utils/avatars";
-import { palette } from "@server/utils/color";
 import { publicS3Endpoint, uploadToS3FromUrl } from "@server/utils/s3";
 import { ValidationError } from "../errors";
 import ApiKey from "./ApiKey";
@@ -157,9 +157,7 @@ class User extends ParanoidModel {
   }
 
   get color() {
-    const idAsHex = crypto.createHash("md5").update(this.id).digest("hex");
-    const idAsNumber = parseInt(idAsHex, 16);
-    return palette[idAsNumber % palette.length];
+    return stringToColor(this.id);
   }
 
   // instance methods

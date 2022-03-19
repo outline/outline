@@ -1,6 +1,6 @@
 import {
   ForeignKey,
-  AfterCreate,
+  AfterSave,
   BeforeCreate,
   BelongsTo,
   Column,
@@ -44,7 +44,7 @@ class Event extends BaseModel {
     }
   }
 
-  @AfterCreate
+  @AfterSave
   static async enqueue(model: Event) {
     globalEventQueue.add(model);
   }

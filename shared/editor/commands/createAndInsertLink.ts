@@ -38,7 +38,7 @@ const createAndInsertLink = async function (
   options: {
     dictionary: any;
     onCreateLink: (title: string) => Promise<string>;
-    onShowToast?: (message: string, code: string) => void;
+    onShowToast: (message: string, code: string) => void;
   }
 ) {
   const { dispatch, state } = view;

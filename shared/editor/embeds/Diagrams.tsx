@@ -1,6 +1,6 @@
 import * as React from "react";
-import Frame from "./components/Frame";
-import Image from "./components/Image";
+import Frame from "../components/Frame";
+import Image from "../components/Image";
 import { EmbedProps as Props } from ".";
 
 const URL_REGEX = /^https:\/\/viewer\.diagrams\.net\/.*(title=\\w+)?/;

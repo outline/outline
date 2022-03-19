@@ -56,6 +56,7 @@ function History() {
     <Sidebar title={t("History")} onClose={onCloseHistory}>
       {document && (
         <PaginatedEventList
+          aria-label={t("History")}
           fetch={events.fetchPage}
           events={items}
           options={{

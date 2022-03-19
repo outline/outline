@@ -1,15 +1,21 @@
+import * as Sentry from "@sentry/react";
 import invariant from "invariant";
 import { client } from "./ApiClient";
 
-type Options = {
+type UploadOptions = {
+  /** The user facing name of the file */
   name?: string;
+  /** The document that this file was uploaded in, if any */
   documentId?: string;
+  /** Whether the file should be public in cloud storage */
   public?: boolean;
+  /** Callback will be passed a number between 0-1 as upload progresses */
+  onProgress?: (fractionComplete: number) => void;
 };
 
 export const uploadFile = async (
   file: File | Blob,
-  options: Options = {
+  options: UploadOptions = {
     name: "",
   }
 ) => {
@@ -38,11 +44,28 @@ export const uploadFile = async (
     formData.append("file", file);
   }
 
-  const uploadResponse = await fetch(data.uploadUrl, {
-    method: "post",
-    body: formData,
+  // Using XMLHttpRequest instead of fetch because fetch doesn't support progress
+  let error;
+  const xhr = new XMLHttpRequest();
+  const success = await new Promise((resolve) => {
+    xhr.upload.addEventListener("progress", (event) => {
+      if (event.lengthComputable && options.onProgress) {
+        options.onProgress(event.loaded / event.total);
+      }
+    });
+    xhr.addEventListener("error", (err) => (error = err));
+    xhr.addEventListener("loadend", () => {
+      resolve(xhr.readyState === 4 && xhr.status >= 200 && xhr.status < 400);
+    });
+    xhr.open("POST", data.uploadUrl, true);
+    xhr.send(formData);
   });
-  invariant(uploadResponse.ok, "Upload failed, try again?");
+
+  if (!success) {
+    Sentry.captureException(error);
+    throw new Error("Upload failed");
+  }
+
   return attachment;
 };
 

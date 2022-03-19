@@ -92,7 +92,7 @@ router.post("email", errorHandling(), async (ctx) => {
       return;
     }
 
-    if (!team.guestSignin) {
+    if (!team.emailSigninEnabled) {
       throw AuthorizationError();
     }
 
@@ -138,7 +138,7 @@ router.get("email.callback", async (ctx) => {
     return;
   }
 
-  if (!user.team.guestSignin) {
+  if (!user.team.emailSigninEnabled) {
     return ctx.redirect("/?notice=auth-error");
   }
 

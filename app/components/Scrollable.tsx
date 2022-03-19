@@ -49,6 +49,7 @@ function Scrollable(
   React.useEffect(() => {
     updateShadows();
   }, [height, updateShadows]);
+
   return (
     <Wrapper
       ref={ref || fallbackRef}

@@ -197,12 +197,10 @@ export default class CodeFence extends Node {
       const node = view.state.doc.nodeAt(result.pos);
       if (node) {
         copy(node.textContent);
-        if (this.options.onShowToast) {
-          this.options.onShowToast(
-            this.options.dictionary.codeCopied,
-            ToastType.Info
-          );
-        }
+        this.options.onShowToast(
+          this.options.dictionary.codeCopied,
+          ToastType.Info
+        );
       }
     }
   };

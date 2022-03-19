@@ -1,3 +1,3 @@
-const EDITOR_VERSION = "11.21.3";
+const EDITOR_VERSION = "12.0.0";
 
 export default EDITOR_VERSION;

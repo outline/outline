@@ -276,7 +276,11 @@ class DataLoader extends React.Component<Props> {
           revision,
           abilities,
           isEditing: this.isEditing,
-          readOnly: !this.isEditing || !abilities.update || document.isArchived,
+          readOnly:
+            !this.isEditing ||
+            !abilities.update ||
+            document.isArchived ||
+            !!revisionId,
           onSearchLink: this.onSearchLink,
           onCreateLink: this.onCreateLink,
           sharedTree: this.sharedTree,

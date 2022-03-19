@@ -8,6 +8,7 @@ import TurndownService from "turndown";
 import utf8 from "utf8";
 import { MAX_TITLE_LENGTH } from "@shared/constants";
 import parseTitle from "@shared/utils/parseTitle";
+import { APM } from "@server/logging/tracing";
 import { User } from "@server/models";
 import dataURItoBuffer from "@server/utils/dataURItoBuffer";
 import { deserializeFilename } from "@server/utils/fs";
@@ -141,7 +142,7 @@ async function confluenceToMarkdown(file): Promise<string> {
   return html.replace(/<br>/g, " \\n ");
 }
 
-export default async function documentImporter({
+async function documentImporter({
   file,
   user,
   ip,
@@ -212,3 +213,8 @@ export default async function documentImporter({
     title,
   };
 }
+
+export default APM.traceFunction({
+  serviceName: "command",
+  spanName: "documentImporter",
+})(documentImporter);

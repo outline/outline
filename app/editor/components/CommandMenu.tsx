@@ -2,6 +2,7 @@ import { capitalize } from "lodash";
 import { findDomRefAtPos, findParentNode } from "prosemirror-utils";
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
+import { Trans } from "react-i18next";
 import { Portal } from "react-portal";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
@@ -27,10 +28,10 @@ export type Props<T extends MenuItem = MenuItem> = {
   dictionary: Dictionary;
   view: EditorView;
   search: string;
-  uploadImage?: (file: File) => Promise<string>;
-  onImageUploadStart?: () => void;
-  onImageUploadStop?: () => void;
-  onShowToast?: (message: string, id: string) => void;
+  uploadFile?: (file: File) => Promise<string>;
+  onFileUploadStart?: () => void;
+  onFileUploadStop?: () => void;
+  onShowToast: (message: string, id: string) => void;
   onLinkToolbarOpen?: () => void;
   onClose: () => void;
   onClearSearch: () => void;
@@ -178,7 +179,9 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
   insertItem = (item: any) => {
     switch (item.name) {
       case "image":
-        return this.triggerImagePick();
+        return this.triggerFilePick("image/*");
+      case "attachment":
+        return this.triggerFilePick("*");
       case "embed":
         return this.triggerLinkInput(item);
       case "link": {
@@ -212,7 +215,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
       const href = event.currentTarget.value;
       const matches = this.state.insertItem.matcher(href);
 
-      if (!matches && this.props.onShowToast) {
+      if (!matches) {
         this.props.onShowToast(
           this.props.dictionary.embedInvalidLink,
           ToastType.Error
@@ -258,8 +261,11 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
     }
   };
 
-  triggerImagePick = () => {
+  triggerFilePick = (accept: string) => {
     if (this.inputRef.current) {
+      if (accept) {
+        this.inputRef.current.accept = accept;
+      }
       this.inputRef.current.click();
     }
   };
@@ -268,14 +274,14 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
     this.setState({ insertItem: item });
   };
 
-  handleImagePicked = (event: React.ChangeEvent<HTMLInputElement>) => {
+  handleFilePicked = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = getDataTransferFiles(event);
 
     const {
       view,
-      uploadImage,
-      onImageUploadStart,
-      onImageUploadStop,
+      uploadFile,
+      onFileUploadStart,
+      onFileUploadStop,
       onShowToast,
     } = this.props;
     const { state } = view;
@@ -283,17 +289,18 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
 
     this.clearSearch();
 
-    if (!uploadImage) {
-      throw new Error("uploadImage prop is required to replace images");
+    if (!uploadFile) {
+      throw new Error("uploadFile prop is required to replace files");
     }
 
     if (parent) {
       insertFiles(view, event, parent.pos, files, {
-        uploadImage,
-        onImageUploadStart,
-        onImageUploadStop,
+        uploadFile,
+        onFileUploadStart,
+        onFileUploadStop,
         onShowToast,
         dictionary: this.props.dictionary,
+        isAttachment: this.inputRef.current?.accept === "*",
       });
     }
 
@@ -409,7 +416,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
     const {
       embeds = [],
       search = "",
-      uploadImage,
+      uploadFile,
       commands,
       filterable = true,
     } = this.props;
@@ -447,7 +454,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
       }
 
       // If no image upload callback has been passed, filter the image block out
-      if (!uploadImage && item.name === "image") {
+      if (!uploadFile && item.name === "image") {
         return false;
       }
 
@@ -470,7 +477,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
   }
 
   render() {
-    const { dictionary, isActive, uploadImage } = this.props;
+    const { dictionary, isActive, uploadFile } = this.props;
     const items = this.filtered;
     const { insertItem, ...positioning } = this.state;
 
@@ -537,14 +544,16 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
               )}
             </List>
           )}
-          {uploadImage && (
+          {uploadFile && (
             <VisuallyHidden>
-              <input
-                type="file"
-                ref={this.inputRef}
-                onChange={this.handleImagePicked}
-                accept="image/*"
-              />
+              <label>
+                <Trans>Import document</Trans>
+                <input
+                  type="file"
+                  ref={this.inputRef}
+                  onChange={this.handleFilePicked}
+                />
+              </label>
             </VisuallyHidden>
           )}
         </Wrapper>

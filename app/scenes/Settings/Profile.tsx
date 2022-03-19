@@ -15,6 +15,7 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import ImageInput from "./components/ImageInput";
+import SettingRow from "./components/SettingRow";
 
 const Profile = () => {
   const { auth } = useStores();
@@ -74,51 +75,71 @@ const Profile = () => {
     setShowDeleteModal((prev) => !prev);
   };
 
-  const isValid = form.current && form.current.checkValidity();
+  const isValid = form.current?.checkValidity();
   const { isSaving } = auth;
 
   return (
     <Scene title={t("Profile")} icon={<ProfileIcon color="currentColor" />}>
       <Heading>{t("Profile")}</Heading>
 
-      <ImageInput
-        label={t("Photo")}
-        onSuccess={handleAvatarUpload}
-        onError={handleAvatarError}
-        src={avatarUrl}
-      />
-
       <form onSubmit={handleSubmit} ref={form}>
-        <Input
+        <SettingRow
+          label={t("Photo")}
+          name="avatarUrl"
+          description={t("Choose a photo or image to represent yourself.")}
+        >
+          <ImageInput
+            onSuccess={handleAvatarUpload}
+            onError={handleAvatarError}
+            src={avatarUrl}
+          />
+        </SettingRow>
+        <SettingRow
           label={t("Full name")}
-          autoComplete="name"
-          value={name}
-          onChange={handleNameChange}
-          required
-          short
-        />
-        <InputSelect
+          name="name"
+          description={t(
+            "This could be your real name, or a nickname — however you’d like people to refer to you."
+          )}
+        >
+          <Input
+            id="name"
+            autoComplete="name"
+            value={name}
+            onChange={handleNameChange}
+            required
+          />
+        </SettingRow>
+
+        <SettingRow
+          border={false}
           label={t("Language")}
-          options={languageOptions}
-          value={language}
-          onChange={handleLanguageChange}
-          ariaLabel={t("Language")}
-          note={
-            <Trans>
-              Please note that translations are currently in early access.
-              <br />
-              Community contributions are accepted though our{" "}
-              <a
-                href="https://translate.getoutline.com"
-                target="_blank"
-                rel="noreferrer"
-              >
-                translation portal
-              </a>
-            </Trans>
+          name="language"
+          description={
+            <>
+              <Trans>
+                Please note that translations are currently in early access.
+                Community contributions are accepted though our{" "}
+                <a
+                  href="https://translate.getoutline.com"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  translation portal
+                </a>
+                .
+              </Trans>
+            </>
           }
-          short
-        />
+        >
+          <InputSelect
+            id="language"
+            options={languageOptions}
+            value={language}
+            onChange={handleLanguageChange}
+            ariaLabel={t("Language")}
+          />
+        </SettingRow>
+
         <Button type="submit" disabled={isSaving || !isValid}>
           {isSaving ? `${t("Saving")}…` : t("Save")}
         </Button>
@@ -126,7 +147,7 @@ const Profile = () => {
 
       <DangerZone>
         <h2>{t("Delete Account")}</h2>
-        <Text type="secondary" size="small">
+        <Text type="secondary">
           <Trans>
             You may delete your account at any time, note that this is
             unrecoverable

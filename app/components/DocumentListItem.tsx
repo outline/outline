@@ -3,6 +3,7 @@ import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import { CompositeStateReturn, CompositeItem } from "reakit/Composite";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Document from "~/models/Document";
@@ -33,7 +34,8 @@ type Props = {
   showPin?: boolean;
   showDraft?: boolean;
   showTemplate?: boolean;
-};
+} & CompositeStateReturn;
+
 const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
 
 function replaceResultMarks(tag: string) {
@@ -61,6 +63,7 @@ function DocumentListItem(
     showTemplate,
     highlight,
     context,
+    ...rest
   } = props;
   const queryIsInTitle =
     !!highlight &&
@@ -71,9 +74,11 @@ function DocumentListItem(
   const canCollection = usePolicy(document.collectionId);
 
   return (
-    <DocumentLink
+    <CompositeItem
+      as={DocumentLink}
       ref={ref}
       dir={document.dir}
+      role="menuitem"
       $isStarred={document.isStarred}
       $menuOpen={menuOpen}
       to={{
@@ -82,6 +87,7 @@ function DocumentListItem(
           title: document.titleWithDefault,
         },
       }}
+      {...rest}
     >
       <Content>
         <Heading dir={document.dir}>
@@ -155,7 +161,7 @@ function DocumentListItem(
           modal={false}
         />
       </Actions>
-    </DocumentLink>
+    </CompositeItem>
   );
 }
 
@@ -195,6 +201,10 @@ const DocumentLink = styled(Link)<{
   border-radius: 8px;
   max-height: 50vh;
   width: calc(100vw - 8px);
+
+  &:focus-visible {
+    outline: none;
+  }
 
   ${breakpoint("tablet")`
     width: auto;

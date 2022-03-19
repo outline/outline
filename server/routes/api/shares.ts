@@ -120,44 +120,48 @@ router.post("shares.list", auth(), pagination(), async (ctx) => {
   }
 
   const collectionIds = await user.collectionIds();
-  const shares = await Share.findAll({
-    where,
-    order: [[sort, direction]],
-    include: [
-      {
-        model: Document,
-        required: true,
-        paranoid: true,
-        as: "document",
-        where: {
-          collectionId: collectionIds,
-        },
-        include: [
-          {
-            model: Collection.scope({
-              method: ["withMembership", user.id],
-            }),
-            as: "collection",
+
+  const [shares, total] = await Promise.all([
+    Share.findAll({
+      where,
+      order: [[sort, direction]],
+      include: [
+        {
+          model: Document,
+          required: true,
+          paranoid: true,
+          as: "document",
+          where: {
+            collectionId: collectionIds,
           },
-        ],
-      },
-      {
-        model: User,
-        required: true,
-        as: "user",
-      },
-      {
-        model: Team,
-        required: true,
-        as: "team",
-      },
-    ],
-    offset: ctx.state.pagination.offset,
-    limit: ctx.state.pagination.limit,
-  });
+          include: [
+            {
+              model: Collection.scope({
+                method: ["withMembership", user.id],
+              }),
+              as: "collection",
+            },
+          ],
+        },
+        {
+          model: User,
+          required: true,
+          as: "user",
+        },
+        {
+          model: Team,
+          required: true,
+          as: "team",
+        },
+      ],
+      offset: ctx.state.pagination.offset,
+      limit: ctx.state.pagination.limit,
+    }),
+    Share.count({ where }),
+  ]);
 
   ctx.body = {
-    pagination: ctx.state.pagination,
+    pagination: { ...ctx.state.pagination, total },
     data: shares.map((share) => presentShare(share, user.isAdmin)),
     policies: presentPolicies(user, shares),
   };
