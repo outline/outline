@@ -6,6 +6,7 @@ import documentCreator from "@server/commands/documentCreator";
 import documentImporter from "@server/commands/documentImporter";
 import documentMover from "@server/commands/documentMover";
 import documentPermanentDeleter from "@server/commands/documentPermanentDeleter";
+import { sequelize } from "@server/database/sequelize";
 import {
   NotFoundError,
   InvalidRequestError,
@@ -1041,28 +1042,11 @@ router.post("documents.update", auth(), async (ctx) => {
   document.lastModifiedById = user.id;
   const { collection } = document;
   const changed = document.changed();
-  let transaction;
 
-  try {
-    transaction = await document.sequelize.transaction();
-
-    if (publish) {
-      await document.publish(user.id, {
-        transaction,
-      });
-    } else {
-      await document.save({
-        transaction,
-      });
-    }
-
-    await transaction.commit();
-  } catch (err) {
-    if (transaction) {
-      await transaction.rollback();
-    }
-
-    throw err;
+  if (publish) {
+    await document.publish(user.id);
+  } else {
+    await document.save();
   }
 
   if (publish) {
@@ -1154,14 +1138,21 @@ router.post("documents.move", auth(), async (ctx) => {
     authorize(user, "update", parent);
   }
 
-  const { documents, collections, collectionChanged } = await documentMover({
-    user,
-    document,
-    collectionId,
-    parentDocumentId,
-    index,
-    ip: ctx.request.ip,
-  });
+  const {
+    documents,
+    collections,
+    collectionChanged,
+  } = await sequelize.transaction(async (transaction) =>
+    documentMover({
+      user,
+      document,
+      collectionId,
+      parentDocumentId,
+      index,
+      ip: ctx.request.ip,
+      transaction,
+    })
+  );
 
   ctx.body = {
     data: {

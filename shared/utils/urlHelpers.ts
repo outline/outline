@@ -35,16 +35,16 @@ export function twitterUrl(): string {
   return "https://twitter.com/getoutline";
 }
 
-export function mailToUrl(): string {
-  return "mailto:hello@getoutline.com";
+export function feedbackUrl(): string {
+  return "https://www.getoutline.com/contact";
 }
 
 export function developersUrl(): string {
-  return `https://www.getoutline.com/developers`;
+  return "https://www.getoutline.com/developers";
 }
 
 export function changelogUrl(): string {
-  return `https://www.getoutline.com/changelog`;
+  return "https://www.getoutline.com/changelog";
 }
 
 export function signin(service = "slack"): string {

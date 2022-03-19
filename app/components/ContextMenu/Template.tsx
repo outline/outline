@@ -21,6 +21,7 @@ import {
 } from "~/types";
 import Header from "./Header";
 import MenuItem, { MenuAnchor } from "./MenuItem";
+import MouseSafeArea from "./MouseSafeArea";
 import Separator from "./Separator";
 import ContextMenu from ".";
 
@@ -59,6 +60,7 @@ const Submenu = React.forwardRef(
           )}
         </MenuButton>
         <ContextMenu {...menu} aria-label={t("Submenu")}>
+          <MouseSafeArea parentRef={menu.unstable_popoverRef} />
           <Template {...menu} items={templateItems} />
         </ContextMenu>
       </>

@@ -127,4 +127,7 @@ async function teamCreator({
   };
 }
 
-export default APM.traceFunction({})(teamCreator);
+export default APM.traceFunction({
+  serviceName: "command",
+  spanName: "teamCreator",
+})(teamCreator);

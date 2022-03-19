@@ -144,4 +144,7 @@ async function accountProvisioner({
   }
 }
 
-export default APM.traceFunction({})(accountProvisioner);
+export default APM.traceFunction({
+  serviceName: "command",
+  spanName: "accountProvisioner",
+})(accountProvisioner);
