@@ -26,7 +26,7 @@ export default class CommentsStore extends BaseStore<Comment> {
       this.orderedData,
       (comment) =>
         comment.parentCommentId === parentCommentId ||
-        comment.id === parentCommentId
+        (comment.id === parentCommentId && !comment.isNew)
     );
   }
 

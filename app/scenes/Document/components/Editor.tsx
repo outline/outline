@@ -8,6 +8,7 @@ import DocumentMetaWithViews from "~/components/DocumentMetaWithViews";
 import Editor, { Props as EditorProps } from "~/components/Editor";
 import Flex from "~/components/Flex";
 import HoverPreview from "~/components/HoverPreview";
+import useStores from "~/hooks/useStores";
 import {
   documentHistoryUrl,
   documentUrl,
@@ -43,6 +44,8 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   const titleRef = React.useRef<HTMLSpanElement>(null);
   const { t } = useTranslation();
   const match = useRouteMatch();
+  const { auth } = useStores();
+  const { user } = auth;
 
   const focusAtStart = React.useCallback(() => {
     if (ref.current) {
@@ -127,6 +130,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         scrollTo={window.location.hash}
         readOnly={readOnly}
         shareId={shareId}
+        userId={user?.id}
         grow
         {...rest}
       />

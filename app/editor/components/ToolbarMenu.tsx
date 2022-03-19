@@ -23,6 +23,17 @@ function ToolbarMenu(props: Props) {
   const { view, items } = props;
   const { state } = view;
 
+  const handleClick = (item: MenuItem) => () => {
+    if (!item.name) {
+      return;
+    }
+
+    const attrs =
+      typeof item.attrs === "function" ? item.attrs(state) : item.attrs;
+
+    props.commands[item.name](attrs);
+  };
+
   return (
     <FlexibleWrapper>
       {items.map((item, index) => {
@@ -37,10 +48,7 @@ function ToolbarMenu(props: Props) {
 
         return (
           <Tooltip tooltip={item.tooltip} key={index}>
-            <ToolbarButton
-              onClick={() => item.name && props.commands[item.name](item.attrs)}
-              active={isActive}
-            >
+            <ToolbarButton onClick={handleClick(item)} active={isActive}>
               <Icon color="currentColor" />
             </ToolbarButton>
           </Tooltip>

@@ -82,6 +82,8 @@ export { default as Extension } from "@shared/editor/lib/Extension";
 export type Props = {
   /** An optional identifier for the editor context. It is used to persist local settings */
   id?: string;
+  /** The current userId, if any */
+  userId?: string;
   /** The editor content, should only be changed if you wish to reset the content */
   value?: string;
   /** The initial editor content */
@@ -124,6 +126,8 @@ export type Props = {
   onClickComment?: (commentId: string) => void;
   /** Callback when a comment mark is created */
   onDraftComment?: (commentId: string) => void;
+  /** Callback when a comment mark is removed */
+  onRemoveComment?: (commentId: string) => void;
   /** Callback when a file upload begins */
   onFileUploadStart?: () => void;
   /** Callback when a file upload ends */
@@ -377,7 +381,9 @@ export class Editor extends React.PureComponent<
           new TableRow(),
           new Bold(),
           new Comment({
+            userId: this.props.userId,
             onDraftComment: this.props.onDraftComment,
+            onRemoveComment: this.props.onRemoveComment,
             onClickComment: this.props.onClickComment,
           }),
           new Code(),

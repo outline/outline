@@ -1,8 +1,9 @@
 import { toggleMark } from "prosemirror-commands";
-import { MarkSpec, MarkType } from "prosemirror-model";
+import { MarkSpec, MarkType, Schema } from "prosemirror-model";
 import { Plugin } from "prosemirror-state";
-import { AddMarkStep } from "prosemirror-transform";
+import { AddMarkStep, RemoveMarkStep } from "prosemirror-transform";
 import { v4 as uuidv4 } from "uuid";
+import { CommandFactory } from "../lib/Extension";
 import Mark from "./Mark";
 
 export default class Comment extends Mark {
@@ -14,6 +15,7 @@ export default class Comment extends Mark {
     return {
       attrs: {
         id: {},
+        userId: {},
       },
       parseDOM: [{ tag: "span.comment" }],
       toDOM: (node) => [
@@ -28,8 +30,17 @@ export default class Comment extends Mark {
       // TODO: Only create, don't toggle
       "Mod-Alt-m": toggleMark(type, {
         id: uuidv4(),
+        userId: this.options.userId,
       }),
     };
+  }
+
+  commands({ type }: { type: MarkType; schema: Schema }): CommandFactory {
+    return () =>
+      toggleMark(type, {
+        id: uuidv4(),
+        userId: this.options.userId,
+      });
   }
 
   toMarkdown() {
@@ -46,16 +57,28 @@ export default class Comment extends Mark {
       new Plugin({
         filterTransaction: (tr) => {
           if (tr.docChanged) {
-            const addComment = tr.steps.filter(
+            const localCommentSteps = tr.steps.filter(
               (step) =>
-                step instanceof AddMarkStep &&
-                (step as any).mark?.type === this.editor.schema.marks.comment
+                (step as any).mark?.type === this.editor.schema.marks.comment &&
+                (step as any).mark?.attrs.userId === this.options.userId
             );
 
-            // transform is adding a comment
-            if (addComment.length > 0) {
+            // transform is adding or removing comments trigger callbacks
+            const addCommentSteps = localCommentSteps.filter(
+              (step) => step instanceof AddMarkStep
+            );
+            const removeCommentSteps = localCommentSteps.filter(
+              (step) => step instanceof RemoveMarkStep
+            );
+
+            if (addCommentSteps.length > 0) {
               this.options?.onDraftComment(
-                (addComment[0] as any).mark.attrs.id
+                (addCommentSteps[0] as any).mark.attrs.id
+              );
+            }
+            if (removeCommentSteps.length > 0) {
+              this.options?.onRemoveComment(
+                (removeCommentSteps[0] as any).mark.attrs.id
               );
             }
           }

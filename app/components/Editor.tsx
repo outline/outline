@@ -114,11 +114,15 @@ function Editor(props: Props, ref: React.Ref<any>) {
     [comments, id, ui]
   );
 
+  const handleRemoveComment = React.useCallback((commentId: string) => {
+    console.log({ commentId });
+  }, []);
+
   return (
     <ErrorBoundary reloadOnChunkMissing>
       <SharedEditor
         ref={ref}
-        uploadImage={handleUploadFile}
+        uploadFile={handleUploadFile}
         onShowToast={handleShowToast}
         embeds={embeds}
         dictionary={dictionary}
@@ -126,6 +130,7 @@ function Editor(props: Props, ref: React.Ref<any>) {
         onClickLink={handleClickLink}
         onClickComment={handleClickComment}
         onDraftComment={handleDraftComment}
+        onRemoveComment={handleRemoveComment}
         placeholder={props.placeholder || ""}
         defaultValue={props.defaultValue || ""}
       />

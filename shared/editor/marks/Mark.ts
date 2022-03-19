@@ -40,6 +40,6 @@ export default abstract class Mark extends Extension {
   }
 
   commands({ type }: { type: MarkType; schema: Schema }): CommandFactory {
-    return () => toggleMark(type);
+    return (attrs) => toggleMark(type, attrs);
   }
 }

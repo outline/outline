@@ -11,6 +11,7 @@ import {
   TodoListIcon,
   InputIcon,
   HighlightIcon,
+  CommentIcon,
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
 import { isInTable } from "prosemirror-tables";
@@ -130,6 +131,12 @@ export default function formattingMenuItems(
       icon: LinkIcon,
       active: isMarkActive(schema.marks.link),
       attrs: { href: "" },
+    },
+    {
+      name: "comment",
+      tooltip: dictionary.comment,
+      icon: CommentIcon,
+      active: isMarkActive(schema.marks.comment),
     },
   ];
 }

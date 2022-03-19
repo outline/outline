@@ -116,6 +116,8 @@ export type Props = React.HTMLAttributes<HTMLInputElement> & {
   required?: boolean;
   disabled?: boolean;
   placeholder?: string;
+  /* Callback is triggered with the CMD+Enter keyboard combo */
+  onRequestSubmit?: (ev: React.KeyboardEvent<HTMLInputElement>) => unknown;
   onChange?: (
     ev: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => unknown;
@@ -126,12 +128,22 @@ export type Props = React.HTMLAttributes<HTMLInputElement> & {
 
 @observer
 class Input extends React.Component<Props> {
-  input = React.createRef<HTMLInputElement | HTMLTextAreaElement>();
+  private input = React.createRef<HTMLInputElement | HTMLTextAreaElement>();
 
   @observable
-  focused = false;
+  public focused = false;
 
-  handleBlur = (ev: React.SyntheticEvent) => {
+  public clear() {
+    if (this.input.current) {
+      this.input.current.value = "";
+    }
+  }
+
+  public focus() {
+    this.input.current?.focus();
+  }
+
+  private handleBlur = (ev: React.SyntheticEvent) => {
     this.focused = false;
 
     if (this.props.onBlur) {
@@ -139,7 +151,7 @@ class Input extends React.Component<Props> {
     }
   };
 
-  handleFocus = (ev: React.SyntheticEvent) => {
+  private handleFocus = (ev: React.SyntheticEvent) => {
     this.focused = true;
 
     if (this.props.onFocus) {
@@ -147,9 +159,17 @@ class Input extends React.Component<Props> {
     }
   };
 
-  focus() {
-    this.input.current?.focus();
-  }
+  private handleKeyDown = (ev: React.KeyboardEvent<HTMLInputElement>) => {
+    if (ev.key === "Enter" && ev.metaKey) {
+      if (this.props.onRequestSubmit) {
+        this.props.onRequestSubmit(ev);
+      }
+    }
+
+    if (this.props.onKeyDown) {
+      this.props.onKeyDown(ev);
+    }
+  };
 
   render() {
     const {
@@ -186,6 +206,7 @@ class Input extends React.Component<Props> {
               ref={this.input}
               onBlur={this.handleBlur}
               onFocus={this.handleFocus}
+              onKeyDown={this.handleKeyDown}
               hasIcon={!!icon}
               type={type === "textarea" ? undefined : type}
               {...rest}

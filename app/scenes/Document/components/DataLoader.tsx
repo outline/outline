@@ -218,7 +218,9 @@ class DataLoader extends React.Component<Props> {
       // when viewing a public share link
       if (can.read) {
         if (this.props.auth.team?.commenting) {
-          this.props.comments.fetchDocumentComments(document.id);
+          this.props.comments.fetchDocumentComments(document.id, {
+            limit: 100,
+          });
         }
 
         this.props.shares.fetch(document.id).catch((err) => {

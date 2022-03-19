@@ -97,10 +97,6 @@ export default class Link extends Mark {
     ];
   }
 
-  commands({ type }: { type: MarkType }) {
-    return ({ href } = { href: "" }) => toggleMark(type, { href });
-  }
-
   keys({ type }: { type: MarkType }) {
     return {
       "Mod-k": (state: EditorState, dispatch: (tr: Transaction) => void) => {

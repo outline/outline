@@ -73,7 +73,7 @@ const Title = styled(Flex)`
 const Header = styled(Flex)`
   align-items: center;
   position: relative;
-  padding: 16px 12px;
+  padding: 16px;
   color: ${(props) => props.theme.text};
   flex-shrink: 0;
 `;
