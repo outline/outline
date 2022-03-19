@@ -11,9 +11,9 @@ jobs:
   build:
     working_directory: ~/outline
     docker:
-      - image: circleci/node:14
-      - image: circleci/redis:latest
-      - image: circleci/postgres:9.6.5-alpine-ram
+      - image: cimg/node:14
+      - image: cimg/redis:latest
+      - image: cimg/postgres:9.6.5-alpine-ram
     environment:
       NODE_ENV: test
       SECRET_KEY: F0E5AD933D7F6FD8F4DBB3E038C501C052DC0593C686D21ACB30AE205D2F634B
@@ -56,8 +56,27 @@ jobs:
       - setup_remote_docker:
           version: 20.10.6
       - run:
+          name: Install Docker buildx
+          command: |
+            mkdir -p ~/.docker/cli-plugins
+            url="https://github.com/docker/buildx/releases/download/v0.8.0/buildx-v0.8.0.linux-amd64"
+            curl -sSL -o ~/.docker/cli-plugins/docker-buildx $url
+            chmod a+x ~/.docker/cli-plugins/docker-buildx
+      - run:
+          name: Enable Docker buildx
+          command: export DOCKER_CLI_EXPERIMENTAL=enabled
+      - run:
+          name: Initialize Docker buildx
+          command: |
+            docker buildx install
+            docker run --rm --privileged multiarch/qemu-user-static: --reset -p yes
+            docker rm -f buildx_buildkit_docker-multiarch0
+            docker buildx create --name docker-multiarch --platform linux/386,linux/amd64,linux/arm/v5,linux/arm/v6,linux/arm/v7,linux/arm64,linux/mips64le,linux/ppc64le,linux/riscv64,linux/s390x
+            docker buildx inspect --builder docker-multiarch --bootstrap
+            docker buildx use docker-multiarch
+      - run:
           name: Build Docker image
-          command: docker buildx build -t $IMAGE_NAME:latest --platform linux/amd64,linux/arm64,linux/arm/v7,linux/arm/v6 .
+          command: docker buildx build -t $IMAGE_NAME:latest --platform linux/386,linux/amd64,linux/arm/v5,linux/arm/v6,linux/arm/v7,linux/arm64,linux/mips64le,linux/ppc64le,linux/riscv64,linux/s390x .
       - run:
           name: Archive Docker image
           command: docker save -o image.tar $IMAGE_NAME
