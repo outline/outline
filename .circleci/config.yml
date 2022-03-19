@@ -11,9 +11,9 @@ jobs:
   build:
     working_directory: ~/outline
     docker:
-      - image: cimg/node:14
-      - image: cimg/redis:latest
-      - image: cimg/postgres:9.6.5-alpine-ram
+      - image: circleci/node:14
+      - image: circleci/redis:latest
+      - image: circleci/postgres:9.6.5-alpine-ram
     environment:
       NODE_ENV: test
       SECRET_KEY: F0E5AD933D7F6FD8F4DBB3E038C501C052DC0593C686D21ACB30AE205D2F634B
