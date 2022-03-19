@@ -205,4 +205,7 @@ async function teamPermanentDeleter(team: Team) {
   }
 }
 
-export default APM.traceFunction({})(teamPermanentDeleter);
+export default APM.traceFunction({
+  serviceName: "command",
+  spanName: "teamPermanentDeleter",
+})(teamPermanentDeleter);

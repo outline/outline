@@ -203,4 +203,7 @@ async function documentMover({
   return result;
 }
 
-export default APM.traceFunction({})(documentMover);
+export default APM.traceFunction({
+  serviceName: "command",
+  spanName: "documentMover",
+})(documentMover);

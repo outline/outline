@@ -45,4 +45,7 @@ async function collectionExporter({
   return fileOperation;
 }
 
-export default APM.traceFunction({})(collectionExporter);
+export default APM.traceFunction({
+  serviceName: "command",
+  spanName: "collectionExporter",
+})(collectionExporter);
