@@ -91,6 +91,7 @@ export default class Comment extends Mark {
                 !(event.target instanceof HTMLSpanElement) ||
                 !event.target.classList.contains("comment")
               ) {
+                this.options?.onClickComment();
                 return false;
               }
 

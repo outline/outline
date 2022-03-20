@@ -4605,24 +4605,6 @@ boolbase@^1.0.0, boolbase@~1.0.0:
   resolved "https://registry.yarnpkg.com/boolbase/-/boolbase-1.0.0.tgz#68dff5fbe60c51eb37725ea9e3ed310dcc1e776e"
   integrity sha1-aN/1++YMUes3cl6p4+0xDcwed24=
 
-boundless-arrow-key-navigation@^1.0.4:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/boundless-arrow-key-navigation/-/boundless-arrow-key-navigation-1.1.0.tgz#9b7908a32e2e8f8c1c6af3af68586fdcfe5c40ff"
-  integrity sha1-m3kIoy4uj4wcavOvaFhv3P5cQP8=
-  dependencies:
-    boundless-utils-omit-keys "^1.1.0"
-    boundless-utils-uuid "^1.1.0"
-
-boundless-utils-omit-keys@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/boundless-utils-omit-keys/-/boundless-utils-omit-keys-1.1.0.tgz#fae73cdb90c113d56201d0b62e8f1143e0d193be"
-  integrity sha1-+uc825DBE9ViAdC2Lo8RQ+DRk74=
-
-boundless-utils-uuid@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/boundless-utils-uuid/-/boundless-utils-uuid-1.1.0.tgz#ae709f1d4fd3a4557ad4a5c77b1f0a9f701e3ed3"
-  integrity sha1-rnCfHU/TpFV61KXHex8Kn3AePtM=
-
 bowser@2.9.0:
   version "2.9.0"
   resolved "https://registry.yarnpkg.com/bowser/-/bowser-2.9.0.tgz#3bed854233b419b9a7422d9ee3e85504373821c9"
@@ -10635,6 +10617,11 @@ mobx-react@^6.3.1:
   integrity sha512-IOxdJGnRSNSJrL2uGpWO5w9JH5q5HoxEqwOF4gye1gmZYdjoYkkMzSGMDnRCUpN/BNzZcFoMdHXrjvkwO7KgaQ==
   dependencies:
     mobx-react-lite "^2.2.0"
+
+mobx-utils@^6.0.4:
+  version "6.0.4"
+  resolved "https://registry.yarnpkg.com/mobx-utils/-/mobx-utils-6.0.4.tgz#5283a466ece8de0ac36ae3cfa1b1c032ec302b37"
+  integrity sha512-CcTgFcCWN78eyRXU7OiKfhIVDEWFFoKdpfj49GIVcWykIQ4deXnaRnnKHElbVYFFgz1TOs8a3bDAq7qsSe864A==
 
 mobx@^4.15.4:
   version "4.15.7"

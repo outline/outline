@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useHistory } from "react-router-dom";
 import { Optional } from "utility-types";
 import embeds from "@shared/editor/embeds";
 import { isInternalUrl } from "@shared/utils/urls";
@@ -9,7 +10,6 @@ import useDictionary from "~/hooks/useDictionary";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import { uploadFile } from "~/utils/files";
-import history from "~/utils/history";
 import { isModKey } from "~/utils/keyboard";
 import { isHash } from "~/utils/urls";
 
@@ -42,6 +42,7 @@ function Editor(props: Props, ref: React.Ref<any>) {
   const { ui, comments } = useStores();
   const { showToast } = useToasts();
   const dictionary = useDictionary();
+  const history = useHistory();
 
   const handleUploadFile = React.useCallback(
     async (file: File) => {
@@ -84,7 +85,7 @@ function Editor(props: Props, ref: React.Ref<any>) {
         window.open(href, "_blank");
       }
     },
-    [shareId]
+    [history, shareId]
   );
 
   const handleShowToast = React.useCallback(
@@ -94,9 +95,22 @@ function Editor(props: Props, ref: React.Ref<any>) {
     [showToast]
   );
 
-  const handleClickComment = React.useCallback(() => {
-    ui.expandComments();
-  }, [ui]);
+  const handleClickComment = React.useCallback(
+    (commentId?: string) => {
+      if (commentId) {
+        ui.expandComments();
+        history.replace({
+          pathname: window.location.pathname,
+          search: `?commentId=${commentId}`,
+        });
+      } else {
+        history.replace({
+          pathname: window.location.pathname,
+        });
+      }
+    },
+    [ui, history]
+  );
 
   const handleDraftComment = React.useCallback(
     (commentId: string) => {

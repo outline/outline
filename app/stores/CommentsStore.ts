@@ -38,6 +38,20 @@ export default class CommentsStore extends BaseStore<Comment> {
   }
 
   @action
+  setTyping({
+    commentId,
+    userId,
+  }: {
+    commentId: string;
+    userId: string;
+  }): void {
+    const comment = this.get(commentId);
+    if (comment) {
+      comment.typingUsers.set(userId, new Date());
+    }
+  }
+
+  @action
   fetchDocumentComments = async (
     documentId: string,
     options?: PaginationParams | undefined

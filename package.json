@@ -121,6 +121,7 @@
     "markdown-it-emoji": "^2.0.0",
     "mobx": "^4.15.4",
     "mobx-react": "^6.3.1",
+    "mobx-utils": "^6.0.4",
     "natural-sort": "^1.0.0",
     "nodemailer": "^6.6.1",
     "outline-icons": "^1.41.1",

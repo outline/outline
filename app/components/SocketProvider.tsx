@@ -18,7 +18,7 @@ type SocketWithAuthentication = {
   io: any;
 };
 
-export const SocketContext: any = React.createContext<SocketWithAuthentication | null>(
+export const SocketContext = React.createContext<SocketWithAuthentication | null>(
   null
 );
 
@@ -392,6 +392,13 @@ class SocketProvider extends React.Component<Props> {
     this.socket.on("user.presence", (event: any) => {
       presence.touch(event.documentId, event.userId, event.isEditing);
     });
+
+    this.socket.on(
+      "user.typing",
+      (event: { userId: string; documentId: string; commentId: string }) => {
+        comments.setTyping(event);
+      }
+    );
   };
 
   render() {
