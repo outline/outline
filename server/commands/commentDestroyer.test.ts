@@ -1,38 +1,37 @@
-import { Pin, Event } from "@server/models";
+import { Comment, Event } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
 import { flushdb } from "@server/test/support";
-import pinDestroyer from "./pinDestroyer";
+import commentDestroyer from "./commentDestroyer";
 
 beforeEach(() => flushdb());
-describe("pinDestroyer", () => {
+describe("commentDestroyer", () => {
   const ip = "127.0.0.1";
 
-  it("should destroy existing pin", async () => {
+  it("should destroy existing comment", async () => {
     const user = await buildUser();
     const document = await buildDocument({
       userId: user.id,
       teamId: user.teamId,
     });
 
-    const pin = await Pin.create({
+    const comment = await Comment.create({
       teamId: document.teamId,
       documentId: document.id,
-      collectionId: document.collectionId,
+      data: { text: "test" },
       createdById: user.id,
-      index: "P",
     });
 
-    await pinDestroyer({
-      pin,
+    await commentDestroyer({
+      comment,
       user,
       ip,
     });
 
-    const count = await Pin.count();
+    const count = await Comment.count();
     expect(count).toEqual(0);
 
     const event = await Event.findOne();
-    expect(event!.name).toEqual("pins.delete");
-    expect(event!.modelId).toEqual(pin.id);
+    expect(event!.name).toEqual("comments.delete");
+    expect(event!.modelId).toEqual(comment.id);
   });
 });

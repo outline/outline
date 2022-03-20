@@ -1,8 +1,8 @@
-import { sequelize } from "@server/database/sequelize";
+import { Transaction } from "sequelize";
 import { Comment, User, Event } from "@server/models";
 
 type Props = {
-  id: string;
+  id?: string;
   /** The user creating the comment */
   user: User;
   /** The comment as data in Prosemirror schema format */
@@ -13,6 +13,7 @@ type Props = {
   parentCommentId?: string;
   /** The IP address of the user creating the comment */
   ip: string;
+  transaction?: Transaction;
 };
 
 /**
@@ -28,40 +29,32 @@ export default async function commentCreator({
   documentId,
   parentCommentId,
   ip,
+  transaction,
 }: Props): Promise<Comment> {
-  const transaction = await sequelize.transaction();
-  let comment;
-
   // TODO: Parse data to validate
 
-  try {
-    comment = await Comment.create(
-      {
-        id,
-        createdById: user.id,
-        documentId,
-        parentCommentId,
-        data,
-      },
-      { transaction }
-    );
+  const comment = await Comment.create(
+    {
+      id,
+      createdById: user.id,
+      documentId,
+      parentCommentId,
+      data,
+    },
+    { transaction }
+  );
 
-    await Event.create(
-      {
-        name: "comments.create",
-        modelId: comment.id,
-        teamId: user.teamId,
-        actorId: user.id,
-        documentId,
-        ip,
-      },
-      { transaction }
-    );
-    await transaction.commit();
-  } catch (err) {
-    await transaction.rollback();
-    throw err;
-  }
+  await Event.create(
+    {
+      name: "comments.create",
+      modelId: comment.id,
+      teamId: user.teamId,
+      actorId: user.id,
+      documentId,
+      ip,
+    },
+    { transaction }
+  );
 
   return comment;
 }
