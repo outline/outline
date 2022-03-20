@@ -9,8 +9,10 @@ import {
   GroupUser,
   Pin,
   Star,
+  Comment,
 } from "@server/models";
 import {
+  presentComment,
   presentFileOperation,
   presentPin,
   presentStar,
@@ -391,6 +393,33 @@ export default class WebsocketsProcessor {
               ? `collection-${event.collectionId}`
               : `team-${event.teamId}`
           )
+          .emit(event.name, {
+            modelId: event.modelId,
+          });
+      }
+
+      case "comments.create":
+      case "comments.update": {
+        const comment = await Comment.scope("withDocument").findByPk(
+          event.modelId
+        );
+        if (!comment) {
+          return;
+        }
+        return socketio
+          .to(`collection-${comment.document.collectionId}`)
+          .emit(event.name, presentComment(comment));
+      }
+
+      case "comments.delete": {
+        const comment = await Comment.scope("withDocument").findByPk(
+          event.modelId
+        );
+        if (!comment) {
+          return;
+        }
+        return socketio
+          .to(`collection-${comment.document.collectionId}`)
           .emit(event.name, {
             modelId: event.modelId,
           });

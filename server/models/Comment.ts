@@ -4,12 +4,24 @@ import {
   ForeignKey,
   Column,
   Table,
+  Scopes,
 } from "sequelize-typescript";
 import Document from "./Document";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
 
+@Scopes(() => ({
+  withDocument: {
+    include: [
+      {
+        model: Document,
+        as: "document",
+        required: true,
+      },
+    ],
+  },
+}))
 @Table({ tableName: "comments", modelName: "comment" })
 @Fix
 class Comment extends ParanoidModel {

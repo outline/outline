@@ -251,6 +251,15 @@ export type PinEvent = {
   ip: string;
 };
 
+export type CommentEvent = {
+  name: "comments.create" | "comments.update" | "comments.delete";
+  teamId: string;
+  modelId: string;
+  documentId: string;
+  actorId: string;
+  ip: string;
+};
+
 export type StarEvent = {
   name: "stars.create" | "stars.update" | "stars.delete";
   teamId: string;
@@ -265,6 +274,7 @@ export type Event =
   | UserEvent
   | DocumentEvent
   | PinEvent
+  | CommentEvent
   | StarEvent
   | CollectionEvent
   | CollectionImportEvent

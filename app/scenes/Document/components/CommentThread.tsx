@@ -21,6 +21,7 @@ function CommentThread({ comment: thread, document }: Props) {
   const { t } = useTranslation();
   const inputRef = React.useRef<Input>(null);
   const formRef = React.useRef<HTMLFormElement>(null);
+  const [text, setText] = React.useState("");
   const user = useCurrentUser();
 
   const handleCreateComment = (commentId: string) => (
@@ -33,12 +34,11 @@ function CommentThread({ comment: thread, document }: Props) {
       comment.save({
         documentId: document?.id,
         data: {
-          text: event.target.text.value,
+          text,
         },
       });
       inputRef.current?.clear();
     }
-    console.log(event);
   };
 
   const handleCreateReply = (parentCommentId: string) => (
@@ -50,11 +50,14 @@ function CommentThread({ comment: thread, document }: Props) {
       parentCommentId,
       documentId: document?.id,
       data: {
-        text: event.target.text.value,
+        text,
       },
     });
     inputRef.current?.clear();
-    console.log(event);
+  };
+
+  const handleChange = (event: React.FormEvent<HTMLInputElement>) => {
+    setText(event.currentTarget.value);
   };
 
   const handleRequestSubmit = (event: React.FormEvent) => {
@@ -63,7 +66,7 @@ function CommentThread({ comment: thread, document }: Props) {
   };
 
   return (
-    <React.Fragment key={thread.id}>
+    <>
       {comments.inThread(thread.id).map((comment) => (
         <Flex gap={8} key={comment.id}>
           <Avatar src={user.avatarUrl} />
@@ -85,6 +88,8 @@ function CommentThread({ comment: thread, document }: Props) {
             name="text"
             type="textarea"
             required
+            value={text}
+            onChange={handleChange}
             maxLength={MAX_COMMENT_LENGTH}
             autoFocus={thread.isNew}
             onRequestSubmit={handleRequestSubmit}
@@ -97,7 +102,7 @@ function CommentThread({ comment: thread, document }: Props) {
           </Button>
         </Flex>
       </form>
-    </React.Fragment>
+    </>
   );
 }
 

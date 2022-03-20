@@ -1,5 +1,5 @@
 /* eslint-disable no-irregular-whitespace */
-import { lighten } from "polished";
+import { lighten, transparentize } from "polished";
 import styled from "styled-components";
 
 const EditorStyles = styled.div<{
@@ -410,8 +410,14 @@ const EditorStyles = styled.div<{
   }
 
   .comment {
-    background: lightblue;
+    background: ${(props) => transparentize(0.7, props.theme.brand.marine)};
+    border-radius: 2px;
+    transition: background 100ms ease-in-out;
     cursor: pointer;
+
+    &:hover {
+      background: ${(props) => transparentize(0.5, props.theme.brand.marine)};
+    }
   }
 
   .placeholder:before {

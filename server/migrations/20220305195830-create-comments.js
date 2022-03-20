@@ -15,6 +15,7 @@ module.exports = {
       documentId: {
         type: Sequelize.UUID,
         allowNull: false,
+        onDelete: "cascade",
         references: {
           model: "documents"
         }
@@ -22,6 +23,7 @@ module.exports = {
       parentCommentId: {
         type: Sequelize.UUID,
         allowNull: true,
+        onDelete: "cascade",
         references: {
           model: "comments"
         }

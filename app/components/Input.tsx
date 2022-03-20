@@ -118,9 +118,7 @@ export type Props = React.HTMLAttributes<HTMLInputElement> & {
   placeholder?: string;
   /* Callback is triggered with the CMD+Enter keyboard combo */
   onRequestSubmit?: (ev: React.KeyboardEvent<HTMLInputElement>) => unknown;
-  onChange?: (
-    ev: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => unknown;
+  onChange?: (ev: React.ChangeEvent<HTMLInputElement>) => unknown;
   onKeyDown?: (ev: React.KeyboardEvent<HTMLInputElement>) => unknown;
   onFocus?: (ev: React.SyntheticEvent) => unknown;
   onBlur?: (ev: React.SyntheticEvent) => unknown;
@@ -183,6 +181,7 @@ class Input extends React.Component<Props> {
       labelHidden,
       onFocus,
       onBlur,
+      onRequestSubmit,
       ...rest
     } = this.props;
 
