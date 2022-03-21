@@ -44,6 +44,8 @@ export default async function commentCreator({
     { transaction }
   );
 
+  comment.createdBy = user;
+
   await Event.create(
     {
       name: "comments.create",

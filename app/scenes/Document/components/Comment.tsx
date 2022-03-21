@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+import { Minute } from "@shared/utils/time";
 import Comment from "~/models/Comment";
 import Avatar from "~/components/Avatar";
 import Flex from "~/components/Flex";
@@ -10,7 +11,7 @@ type Props = {
   comment: Comment;
   firstOfAuthor?: boolean;
   lastOfAuthor?: boolean;
-  secondsSincePreviousComment?: number;
+  msSincePreviousComment?: number;
   highlighted?: boolean;
 };
 
@@ -18,12 +19,12 @@ export default function CommentListItem({
   comment,
   firstOfAuthor,
   lastOfAuthor,
-  secondsSincePreviousComment,
+  msSincePreviousComment,
   highlighted,
 }: Props) {
   const showAuthor = firstOfAuthor;
   const showTime =
-    !secondsSincePreviousComment || secondsSincePreviousComment > 900;
+    !msSincePreviousComment || msSincePreviousComment > 15 * Minute;
 
   return (
     <Flex gap={8} key={comment.id} align="flex-end">
@@ -31,7 +32,7 @@ export default function CommentListItem({
       <Wrapper $lastOfAuthor={lastOfAuthor} column>
         {(showAuthor || showTime) && (
           <Meta size="xsmall" type="secondary">
-            {showAuthor && comment.createdBy.name}
+            {showAuthor && comment.createdBy.name}{" "}
             {showTime && (
               <Time dateTime={comment.createdAt} addSuffix shorten />
             )}
@@ -59,7 +60,7 @@ const Bubble = styled.div<{ $lastOfAuthor?: boolean; $highlighted?: boolean }>`
   border-radius: 1em;
   min-width: 2em;
   padding: 4px 8px;
-  margin-bottom: 4px;
+  margin-bottom: ${(props) => (props.$lastOfAuthor ? 0 : 4)}px;
   transition: color 100ms ease-out,
     ${(props) => props.theme.backgroundTransition};
 

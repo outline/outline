@@ -1,8 +1,9 @@
-import { differenceInSeconds } from "date-fns";
+import { differenceInMilliseconds } from "date-fns";
 import { throttle } from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled from "styled-components";
 import { MAX_COMMENT_LENGTH } from "@shared/constants";
 import Comment from "~/models/Comment";
@@ -46,6 +47,7 @@ function CommentThread({ comment: thread, document }: Props) {
   const { comments } = useStores();
   const { t } = useTranslation();
   const formRef = React.useRef<HTMLFormElement>(null);
+  const topRef = React.useRef<HTMLDivElement>(null);
   const [text, setText] = React.useState("");
   const user = useCurrentUser();
   const params = useQuery();
@@ -99,8 +101,18 @@ function CommentThread({ comment: thread, document }: Props) {
   const commentsInThread = comments.inThread(thread.id);
   const highlighted = params.get("commentId") === thread.id;
 
+  React.useEffect(() => {
+    if (highlighted && topRef.current) {
+      scrollIntoView(topRef.current, {
+        scrollMode: "if-needed",
+        behavior: "smooth",
+        block: "start",
+      });
+    }
+  }, [highlighted]);
+
   return (
-    <Thread>
+    <Thread ref={topRef}>
       {commentsInThread.map((comment, index) => {
         const firstOfAuthor =
           index === 0 ||
@@ -108,10 +120,10 @@ function CommentThread({ comment: thread, document }: Props) {
         const lastOfAuthor =
           index === commentsInThread.length - 1 ||
           comment.createdById !== commentsInThread[index + 1].createdById;
-        const secondsSincePreviousComment =
+        const msSincePreviousComment =
           index === 0
             ? 0
-            : differenceInSeconds(
+            : differenceInMilliseconds(
                 new Date(comment.createdAt),
                 new Date(commentsInThread[index - 1].createdAt)
               );
@@ -122,7 +134,7 @@ function CommentThread({ comment: thread, document }: Props) {
             key={comment.id}
             firstOfAuthor={firstOfAuthor}
             lastOfAuthor={lastOfAuthor}
-            secondsSincePreviousComment={secondsSincePreviousComment}
+            msSincePreviousComment={msSincePreviousComment}
             highlighted={highlighted}
           />
         );
