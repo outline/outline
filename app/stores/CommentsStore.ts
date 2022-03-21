@@ -1,6 +1,6 @@
 import invariant from "invariant";
-import { filter } from "lodash";
-import { action, runInAction } from "mobx";
+import { filter, orderBy } from "lodash";
+import { action, runInAction, computed } from "mobx";
 import Comment from "~/models/Comment";
 import Document from "~/models/Document";
 import { PaginationParams } from "~/types";
@@ -74,4 +74,9 @@ export default class CommentsStore extends BaseStore<Comment> {
       this.isFetching = false;
     }
   };
+
+  @computed
+  get orderedData(): Comment[] {
+    return orderBy(Array.from(this.data.values()), "createdAt", "asc");
+  }
 }

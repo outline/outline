@@ -39,8 +39,8 @@ const Button = styled(NudeButton)`
   display: none;
   position: fixed;
   bottom: 0;
-  right: 32px;
   margin: 24px;
+  transform: translateX(-32px);
 
   ${breakpoint("tablet")`
     display: block;

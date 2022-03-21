@@ -38,7 +38,6 @@ const Button = styled(NudeButton)`
   display: none;
   position: fixed;
   bottom: 0;
-  right: 0;
   margin: 24px;
 
   ${breakpoint("tablet")`

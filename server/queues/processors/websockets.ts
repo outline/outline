@@ -400,9 +400,10 @@ export default class WebsocketsProcessor {
 
       case "comments.create":
       case "comments.update": {
-        const comment = await Comment.scope("withDocument").findByPk(
-          event.modelId
-        );
+        const comment = await Comment.scope([
+          "defaultScope",
+          "withDocument",
+        ]).findByPk(event.modelId);
         if (!comment) {
           return;
         }
@@ -412,9 +413,10 @@ export default class WebsocketsProcessor {
       }
 
       case "comments.delete": {
-        const comment = await Comment.scope("withDocument").findByPk(
-          event.modelId
-        );
+        const comment = await Comment.scope([
+          "defaultScope",
+          "withDocument",
+        ]).findByPk(event.modelId);
         if (!comment) {
           return;
         }

@@ -100,7 +100,7 @@ function Editor(props: Props, ref: React.Ref<any>) {
       if (commentId) {
         ui.expandComments();
         history.replace({
-          pathname: window.location.pathname,
+          pathname: window.location.pathname.replace(/\/history$/, ""),
           search: `?commentId=${commentId}`,
         });
       } else {

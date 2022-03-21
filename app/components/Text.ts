@@ -3,6 +3,7 @@ import styled from "styled-components";
 type Props = {
   type?: "secondary" | "tertiary";
   size?: "large" | "small" | "xsmall";
+  selectable?: boolean;
 };
 
 /**
@@ -26,7 +27,7 @@ const Text = styled.p<Props>`
       ? "13px"
       : "inherit"};
   white-space: normal;
-  user-select: none;
+  user-select: ${(props) => (props.selectable ? "text" : "none")};
 `;
 
 export default Text;

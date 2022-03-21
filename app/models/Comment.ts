@@ -29,6 +29,8 @@ class Comment extends BaseModel {
 
   createdBy: User;
 
+  createdById: string;
+
   resolvedAt: string;
 
   resolvedBy: User;

@@ -5,12 +5,22 @@ import {
   Column,
   Table,
   Scopes,
+  DefaultScope,
 } from "sequelize-typescript";
 import Document from "./Document";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
 
+@DefaultScope(() => ({
+  include: [
+    {
+      model: User,
+      as: "createdBy",
+      paranoid: false,
+    },
+  ],
+}))
 @Scopes(() => ({
   withDocument: {
     include: [

@@ -595,19 +595,28 @@ class DocumentScene extends React.Component<Props> {
               <Branding href="//www.getoutline.com?ref=sharelink" />
             )}
           </Container>
+          {!isShare && (
+            <Footer>
+              <KeyboardShortcutsButton />
+              <ConnectionStatus />
+            </Footer>
+          )}
         </Background>
-        {!isShare && (
-          <>
-            <KeyboardShortcutsButton />
-            <ConnectionStatus />
-          </>
-        )}
       </ErrorBoundary>
     );
   }
 }
 
+const Footer = styled.div`
+  position: absolute;
+  width: 100%;
+  text-align: right;
+  display: flex;
+  justify-content: flex-end;
+`;
+
 const Background = styled(Container)`
+  position: relative;
   background: ${(props) => props.theme.background};
   transition: ${(props) => props.theme.backgroundTransition};
 `;

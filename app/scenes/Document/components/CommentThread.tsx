@@ -1,3 +1,4 @@
+import { differenceInSeconds } from "date-fns";
 import { throttle } from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
@@ -14,6 +15,7 @@ import { SocketContext } from "~/components/SocketProvider";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
+import CommentListItem from "./Comment";
 
 type Props = {
   document: Document;
@@ -43,7 +45,6 @@ function useTypingIndicator({
 function CommentThread({ comment: thread, document }: Props) {
   const { comments } = useStores();
   const { t } = useTranslation();
-  const inputRef = React.useRef<Input>(null);
   const formRef = React.useRef<HTMLFormElement>(null);
   const [text, setText] = React.useState("");
   const user = useCurrentUser();
@@ -53,36 +54,36 @@ function CommentThread({ comment: thread, document }: Props) {
     comment: thread,
   });
 
-  const handleCreateComment = (commentId: string) => (
+  const handleCreateComment = (commentId: string) => async (
     event: React.FormEvent
   ) => {
     event.preventDefault();
 
     const comment = comments.get(commentId);
     if (comment) {
-      comment.save({
+      setText("");
+      await comment.save({
         documentId: document?.id,
         data: {
           text,
         },
       });
-      inputRef.current?.clear();
     }
   };
 
-  const handleCreateReply = (parentCommentId: string) => (
+  const handleCreateReply = (parentCommentId: string) => async (
     event: React.FormEvent
   ) => {
     event.preventDefault();
 
-    comments.save({
+    setText("");
+    await comments.save({
       parentCommentId,
       documentId: document?.id,
       data: {
         text,
       },
     });
-    inputRef.current?.clear();
   };
 
   const handleChange = (event: React.FormEvent<HTMLInputElement>) => {
@@ -95,14 +96,37 @@ function CommentThread({ comment: thread, document }: Props) {
     formRef.current?.submit();
   };
 
+  const commentsInThread = comments.inThread(thread.id);
+  const highlighted = params.get("commentId") === thread.id;
+
   return (
-    <Thread $highlighted={params.get("commentId") === thread.id}>
-      {comments.inThread(thread.id).map((comment) => (
-        <Flex gap={8} key={comment.id}>
-          <Avatar src={user.avatarUrl} />
-          {comment.data.text}
-        </Flex>
-      ))}
+    <Thread>
+      {commentsInThread.map((comment, index) => {
+        const firstOfAuthor =
+          index === 0 ||
+          comment.createdById !== commentsInThread[index - 1].createdById;
+        const lastOfAuthor =
+          index === commentsInThread.length - 1 ||
+          comment.createdById !== commentsInThread[index + 1].createdById;
+        const secondsSincePreviousComment =
+          index === 0
+            ? 0
+            : differenceInSeconds(
+                new Date(comment.createdAt),
+                new Date(commentsInThread[index - 1].createdAt)
+              );
+
+        return (
+          <CommentListItem
+            comment={comment}
+            key={comment.id}
+            firstOfAuthor={firstOfAuthor}
+            lastOfAuthor={lastOfAuthor}
+            secondsSincePreviousComment={secondsSincePreviousComment}
+            highlighted={highlighted}
+          />
+        );
+      })}
       {thread.currentlyTypingUsers
         .filter((typing) => typing.id !== user.id)
         .map((typing) => (
@@ -121,7 +145,6 @@ function CommentThread({ comment: thread, document }: Props) {
         <Flex gap={8}>
           <Avatar src={user.avatarUrl} />
           <Input
-            ref={inputRef}
             name="text"
             type="textarea"
             required
@@ -143,9 +166,8 @@ function CommentThread({ comment: thread, document }: Props) {
   );
 }
 
-const Thread = styled.div<{ $highlighted: boolean }>`
-  background: ${({ $highlighted }) =>
-    $highlighted ? "rgba(255, 255, 255, 0.1)" : "transparent"};
+const Thread = styled.div`
+  margin: 0 12px;
 `;
 
 export default observer(CommentThread);
