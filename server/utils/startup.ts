@@ -54,8 +54,9 @@ export function checkEnv() {
   if (process.env.AWS_ACCESS_KEY_ID) {
     [
       "AWS_REGION",
+      "AWS_S3_BUCKET_NAME",
+      "AWS_ACCESS_KEY_ID",
       "AWS_SECRET_ACCESS_KEY",
-      "AWS_S3_UPLOAD_BUCKET_URL",
       "AWS_S3_UPLOAD_MAX_SIZE",
     ].forEach((key) => {
       if (!process.env[key]) {
@@ -95,7 +96,7 @@ export function checkEnv() {
   if (errors.length) {
     Logger.warn(
       "\n\nThe server could not start, please fix the following configuration errors and try again:\n" +
-        errors.map((e) => `- ${e}`).join("\n")
+      errors.map((e) => `- ${e}`).join("\n")
     );
     process.exit(1);
   }

@@ -6,25 +6,26 @@ import fetch from "fetch-with-proxy";
 import { v4 as uuidv4 } from "uuid";
 import Logger from "@server/logging/logger";
 
-const AWS_S3_ACCELERATE_URL = process.env.AWS_S3_ACCELERATE_URL;
 const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
-const AWS_S3_UPLOAD_BUCKET_URL = process.env.AWS_S3_UPLOAD_BUCKET_URL || "";
 const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
 const AWS_REGION = process.env.AWS_REGION || "";
-const AWS_S3_UPLOAD_BUCKET_NAME = process.env.AWS_S3_UPLOAD_BUCKET_NAME || "";
+const AWS_S3_PROVIDER = process.env.AWS_S3_PROVIDER || "amazonaws.com";
+const AWS_S3_BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME || "s3";
 const AWS_S3_FORCE_PATH_STYLE = process.env.AWS_S3_FORCE_PATH_STYLE !== "false";
 
+const AWS_S3_ENDPOINT = process.env.AWS_S3_ENDPOINT
+  || `https://${AWS_S3_BUCKET_NAME}.${AWS_REGION}.${AWS_S3_PROVIDER}`;
+const AWS_S3_ENDPOINT_MODE = process.env.AWS_S3_ENDPOINT_MODE
+  || AWS_S3_ENDPOINT.includes(AWS_S3_BUCKET_NAME) ? "domain" : "path";
+const AWS_S3_PUBLIC_ENDPOINT = process.env.AWS_S3_PUBLIC_ENDPOINT || AWS_S3_ENDPOINT;
+
 const s3 = new AWS.S3({
-  s3BucketEndpoint: AWS_S3_ACCELERATE_URL ? true : undefined,
+  endpoint: AWS_S3_ENDPOINT,
+  region: AWS_REGION,
+  s3BucketEndpoint: AWS_S3_ENDPOINT_MODE === "domain" ? true : undefined,
   s3ForcePathStyle: AWS_S3_FORCE_PATH_STYLE,
   accessKeyId: AWS_ACCESS_KEY_ID,
   secretAccessKey: AWS_SECRET_ACCESS_KEY,
-  region: AWS_REGION,
-  endpoint: AWS_S3_ACCELERATE_URL
-    ? AWS_S3_ACCELERATE_URL
-    : AWS_S3_UPLOAD_BUCKET_URL.includes(AWS_S3_UPLOAD_BUCKET_NAME)
-    ? undefined
-    : new AWS.Endpoint(AWS_S3_UPLOAD_BUCKET_URL),
   signatureVersion: "v4",
 });
 
@@ -60,7 +61,7 @@ export const makePolicy = (
   const policy = {
     conditions: [
       {
-        bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME,
+        bucket: process.env.AWS_S3_BUCKET_NAME,
       },
       ["starts-with", "$key", ""],
       {
@@ -104,7 +105,7 @@ export const getPresignedPost = (
   contentType = "image"
 ) => {
   const params = {
-    Bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME,
+    Bucket: process.env.AWS_S3_BUCKET_NAME,
     Conditions: [
       process.env.AWS_S3_UPLOAD_MAX_SIZE
         ? ["content-length-range", 0, +process.env.AWS_S3_UPLOAD_MAX_SIZE]
@@ -123,30 +124,11 @@ export const getPresignedPost = (
 };
 
 export const publicS3Endpoint = (isServerUpload?: boolean) => {
-  if (AWS_S3_ACCELERATE_URL) {
-    return AWS_S3_ACCELERATE_URL;
-  }
-
-  // lose trailing slash if there is one and convert fake-s3 url to localhost
-  // for access outside of docker containers in local development
-  const isDocker = AWS_S3_UPLOAD_BUCKET_URL.match(/http:\/\/s3:/);
-
-  const host = AWS_S3_UPLOAD_BUCKET_URL.replace("s3:", "localhost:").replace(
-    /\/$/,
-    ""
-  );
-
-  // support old path-style S3 uploads and new virtual host uploads by checking
-  // for the bucket name in the endpoint url before appending.
-  const isVirtualHost = host.includes(AWS_S3_UPLOAD_BUCKET_NAME);
-
-  if (isVirtualHost) {
-    return host;
-  }
-
-  return `${host}/${
-    isServerUpload && isDocker ? "s3/" : ""
-  }${AWS_S3_UPLOAD_BUCKET_NAME}`;
+  const endpoint = isServerUpload ? AWS_S3_ENDPOINT : AWS_S3_PUBLIC_ENDPOINT
+  if (AWS_S3_ENDPOINT_MODE === "domain")
+    return endpoint;
+  else
+    return `${endpoint}/${AWS_S3_BUCKET_NAME}`;
 };
 
 export const uploadToS3FromBuffer = async (
@@ -158,7 +140,7 @@ export const uploadToS3FromBuffer = async (
   await s3
     .putObject({
       ACL: acl,
-      Bucket: AWS_S3_UPLOAD_BUCKET_NAME,
+      Bucket: AWS_S3_BUCKET_NAME,
       Key: key,
       ContentType: contentType,
       ContentLength: buffer.length,
@@ -182,7 +164,7 @@ export const uploadToS3FromUrl = async (
     await s3
       .putObject({
         ACL: acl,
-        Bucket: AWS_S3_UPLOAD_BUCKET_NAME,
+        Bucket: AWS_S3_BUCKET_NAME,
         Key: key,
         ContentType: res.headers["content-type"],
         ContentLength: res.headers["content-length"],
@@ -203,29 +185,20 @@ export const uploadToS3FromUrl = async (
 export const deleteFromS3 = (key: string) => {
   return s3
     .deleteObject({
-      Bucket: AWS_S3_UPLOAD_BUCKET_NAME,
+      Bucket: AWS_S3_BUCKET_NAME,
       Key: key,
     })
     .promise();
 };
 
 export const getSignedUrl = async (key: string, expiresInMs = 60) => {
-  const isDocker = AWS_S3_UPLOAD_BUCKET_URL.match(/http:\/\/s3:/);
   const params = {
-    Bucket: AWS_S3_UPLOAD_BUCKET_NAME,
+    Bucket: AWS_S3_BUCKET_NAME,
     Key: key,
     Expires: expiresInMs,
   };
 
-  const url = isDocker
-    ? `${publicS3Endpoint()}/${key}`
-    : await s3.getSignedUrlPromise("getObject", params);
-
-  if (AWS_S3_ACCELERATE_URL) {
-    return url.replace(AWS_S3_UPLOAD_BUCKET_URL, AWS_S3_ACCELERATE_URL);
-  }
-
-  return url;
+  return await s3.getSignedUrlPromise("getObject", params);
 };
 
 // function assumes that acl is private
@@ -236,7 +209,7 @@ export const getAWSKeyForFileOp = (teamId: string, name: string) => {
 
 export const getFileByKey = async (key: string) => {
   const params = {
-    Bucket: AWS_S3_UPLOAD_BUCKET_NAME,
+    Bucket: AWS_S3_BUCKET_NAME,
     Key: key,
   };
 
