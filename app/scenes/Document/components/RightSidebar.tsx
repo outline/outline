@@ -28,7 +28,6 @@ function RightSidebar({ title, onClose, children }: Props) {
     (event: MouseEvent) => {
       // suppresses text selection
       event.preventDefault();
-      // this is simple because the sidebar is always against the left edge
       const width = Math.max(
         Math.min(window.innerWidth - event.pageX, maxWidth),
         minWidth

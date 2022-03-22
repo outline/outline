@@ -95,7 +95,9 @@ function CommentThread({ comment: thread, document }: Props) {
 
   const handleRequestSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    formRef.current?.submit();
+    formRef.current?.dispatchEvent(
+      new Event("submit", { cancelable: true, bubbles: true })
+    );
   };
 
   const commentsInThread = comments.inThread(thread.id);
@@ -162,6 +164,7 @@ function CommentThread({ comment: thread, document }: Props) {
             required
             value={text}
             onChange={handleChange}
+            minLength={1}
             maxLength={MAX_COMMENT_LENGTH}
             autoFocus={thread.isNew}
             onRequestSubmit={handleRequestSubmit}
