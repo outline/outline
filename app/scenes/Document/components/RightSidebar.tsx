@@ -7,20 +7,21 @@ import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
 import ResizeBorder from "~/components/Sidebar/components/ResizeBorder";
-import useStores from "~/hooks/useStores";
+import usePersistedState from "~/hooks/usePersistedState";
 
-type Props = {
+type Props = React.HTMLAttributes<HTMLDivElement> & {
   title: React.ReactNode;
   children: React.ReactNode;
   onClose: React.MouseEventHandler;
 };
 
-function RightSidebar({ title, onClose, children }: Props) {
+function RightSidebar({ title, onClose, children, ...rest }: Props) {
   const theme = useTheme();
-  const { ui } = useStores();
-  const setWidth = ui.setSidebarRightWidth;
+  const [width, setWidth] = usePersistedState(
+    "rightSidebarWidth",
+    theme.sidebarWidth
+  );
   const [isResizing, setResizing] = React.useState(false);
-  const width = ui.sidebarRightWidth;
   const maxWidth = theme.sidebarMaxWidth;
   const minWidth = theme.sidebarMinWidth + 16; // padding
 
@@ -70,7 +71,7 @@ function RightSidebar({ title, onClose, children }: Props) {
   );
 
   return (
-    <Sidebar style={style}>
+    <Sidebar style={style} {...rest}>
       <Position style={style} column>
         <Header>
           <Title>{title}</Title>

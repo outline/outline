@@ -19,7 +19,7 @@ function Comments() {
   }
 
   return (
-    <Sidebar title={t("Comments")} onClose={ui.collapseComments}>
+    <Sidebar title={t("Comments")} onClose={ui.collapseComments} id="comments">
       {comments.threadsInDocument(document.id).map((comment) => (
         <CommentThread key={comment.id} comment={comment} document={document} />
       ))}

@@ -109,6 +109,10 @@ function CommentThread({ comment: thread, document }: Props) {
         scrollMode: "if-needed",
         behavior: "smooth",
         block: "start",
+        boundary: (parent) => {
+          // Prevents body and other parent elements from being scrolled
+          return parent.id !== "comments";
+        },
       });
     }
   }, [highlighted]);

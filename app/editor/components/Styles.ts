@@ -410,13 +410,14 @@ const EditorStyles = styled.div<{
   }
 
   .comment {
-    background: ${(props) => transparentize(0.7, props.theme.brand.marine)};
-    border-radius: 2px;
+    border-bottom: 2px solid ${(props) =>
+      transparentize(0.5, props.theme.brand.marine)};
     transition: background 100ms ease-in-out;
     cursor: pointer;
 
     &:hover {
       background: ${(props) => transparentize(0.5, props.theme.brand.marine)};
+      border-radius: 2px;
     }
   }
 

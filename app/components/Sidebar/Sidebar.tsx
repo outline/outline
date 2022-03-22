@@ -6,6 +6,7 @@ import { useLocation } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Flex from "~/components/Flex";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import useMenuContext from "~/hooks/useMenuContext";
 import usePrevious from "~/hooks/usePrevious";
 import useStores from "~/hooks/useStores";
@@ -27,11 +28,11 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(
     const [isCollapsing, setCollapsing] = React.useState(false);
     const theme = useTheme();
     const { t } = useTranslation();
-    const { ui, auth } = useStores();
+    const { ui } = useStores();
     const location = useLocation();
     const previousLocation = usePrevious(location);
     const { isMenuOpen } = useMenuContext();
-    const { user } = auth;
+    const user = useCurrentUser();
 
     const width = ui.sidebarWidth;
     const collapsed = (ui.isEditing || ui.sidebarCollapsed) && !isMenuOpen;
@@ -168,25 +169,22 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(
           )}
           {children}
 
-          {user && (
-            <AccountMenu>
-              {(props) => (
-                <SidebarButton
-                  {...props}
-                  showMoreMenu
-                  title={user.name}
-                  image={
-                    <StyledAvatar
-                      alt={user.name}
-                      src={user.avatarUrl}
-                      size={24}
-                      showBorder={false}
-                    />
-                  }
-                />
-              )}
-            </AccountMenu>
-          )}
+          <AccountMenu>
+            {(props) => (
+              <SidebarButton
+                {...props}
+                showMoreMenu
+                title={user.name}
+                image={
+                  <StyledAvatar
+                    src={user.avatarUrl}
+                    size={24}
+                    showBorder={false}
+                  />
+                }
+              />
+            )}
+          </AccountMenu>
           <ResizeBorder
             onMouseDown={handleMouseDown}
             onDoubleClick={ui.sidebarCollapsed ? undefined : handleReset}

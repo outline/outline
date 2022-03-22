@@ -58,9 +58,6 @@ class UiStore {
   sidebarWidth: number;
 
   @observable
-  sidebarRightWidth: number;
-
-  @observable
   sidebarCollapsed = false;
 
   @observable
@@ -171,11 +168,6 @@ class UiStore {
   clearActiveDocument = (): void => {
     this.activeDocumentId = undefined;
     this.observingUserId = undefined;
-  };
-
-  @action
-  setSidebarRightWidth = (width: number): void => {
-    this.sidebarRightWidth = width;
   };
 
   @action
