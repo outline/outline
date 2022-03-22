@@ -58,6 +58,9 @@ class UiStore {
   sidebarWidth: number;
 
   @observable
+  sidebarRightWidth: number;
+
+  @observable
   sidebarCollapsed = false;
 
   @observable
@@ -100,6 +103,8 @@ class UiStore {
     this.languagePromptDismissed = data.languagePromptDismissed;
     this.sidebarCollapsed = !!data.sidebarCollapsed;
     this.sidebarWidth = data.sidebarWidth || defaultTheme.sidebarWidth;
+    this.sidebarRightWidth =
+      data.sidebarRightWidth || defaultTheme.sidebarWidth;
     this.tocVisible = !!data.tocVisible;
     this.theme = data.theme || Theme.System;
 
@@ -169,8 +174,13 @@ class UiStore {
   };
 
   @action
-  setSidebarWidth = (sidebarWidth: number): void => {
-    this.sidebarWidth = sidebarWidth;
+  setSidebarRightWidth = (width: number): void => {
+    this.sidebarRightWidth = width;
+  };
+
+  @action
+  setSidebarWidth = (width: number): void => {
+    this.sidebarWidth = width;
   };
 
   @action
@@ -263,6 +273,7 @@ class UiStore {
       tocVisible: this.tocVisible,
       sidebarCollapsed: this.sidebarCollapsed,
       sidebarWidth: this.sidebarWidth,
+      sidebarRightWidth: this.sidebarRightWidth,
       languagePromptDismissed: this.languagePromptDismissed,
       theme: this.theme,
     });

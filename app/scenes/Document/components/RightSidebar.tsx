@@ -1,10 +1,13 @@
+import { observer } from "mobx-react";
 import { BackIcon } from "outline-icons";
 import * as React from "react";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
+import ResizeBorder from "~/components/Sidebar/components/ResizeBorder";
+import useStores from "~/hooks/useStores";
 
 type Props = {
   title: React.ReactNode;
@@ -12,10 +15,64 @@ type Props = {
   onClose: React.MouseEventHandler;
 };
 
-export default function RightSidebar({ title, onClose, children }: Props) {
+function RightSidebar({ title, onClose, children }: Props) {
+  const theme = useTheme();
+  const { ui } = useStores();
+  const setWidth = ui.setSidebarRightWidth;
+  const [isResizing, setResizing] = React.useState(false);
+  const width = ui.sidebarRightWidth;
+  const maxWidth = theme.sidebarMaxWidth;
+  const minWidth = theme.sidebarMinWidth + 16; // padding
+
+  const handleDrag = React.useCallback(
+    (event: MouseEvent) => {
+      // suppresses text selection
+      event.preventDefault();
+      // this is simple because the sidebar is always against the left edge
+      const width = Math.max(
+        Math.min(window.innerWidth - event.pageX, maxWidth),
+        minWidth
+      );
+      setWidth(width);
+    },
+    [minWidth, maxWidth, setWidth]
+  );
+
+  const handleStopDrag = React.useCallback(() => {
+    setResizing(false);
+
+    if (document.activeElement) {
+      // @ts-expect-error ts-migrate(2339) FIXME: Property 'blur' does not exist on type 'Element'.
+      document.activeElement.blur();
+    }
+  }, []);
+
+  const handleMouseDown = React.useCallback(() => {
+    setResizing(true);
+  }, []);
+
+  React.useEffect(() => {
+    if (isResizing) {
+      document.addEventListener("mousemove", handleDrag);
+      document.addEventListener("mouseup", handleStopDrag);
+    }
+
+    return () => {
+      document.removeEventListener("mousemove", handleDrag);
+      document.removeEventListener("mouseup", handleStopDrag);
+    };
+  }, [isResizing, handleDrag, handleStopDrag]);
+
+  const style = React.useMemo(
+    () => ({
+      width: `${width}px`,
+    }),
+    [width]
+  );
+
   return (
-    <Sidebar>
-      <Position column>
+    <Sidebar style={style}>
+      <Position style={style} column>
         <Header>
           <Title>{title}</Title>
           <Button
@@ -26,6 +83,7 @@ export default function RightSidebar({ title, onClose, children }: Props) {
           />
         </Header>
         <Scrollable topShadow>{children}</Scrollable>
+        <ResizeBorder onMouseDown={handleMouseDown} dir="right" />
       </Position>
     </Sidebar>
   );
@@ -40,7 +98,6 @@ const Position = styled(Flex)`
   position: fixed;
   top: 0;
   bottom: 0;
-  width: ${(props) => props.theme.sidebarWidth}px;
 `;
 
 const Sidebar = styled(Flex)`
@@ -83,3 +140,5 @@ const Header = styled(Flex)`
   color: ${(props) => props.theme.text};
   flex-shrink: 0;
 `;
+
+export default observer(RightSidebar);
