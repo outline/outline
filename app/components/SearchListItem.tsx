@@ -97,6 +97,10 @@ const DocumentLink = styled(Link)<{
     margin-bottom: 4px;
   }
 
+  &:focus-visible {
+    outline: none;
+  }
+
   ${breakpoint("tablet")`
     width: auto;
   `};

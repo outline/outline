@@ -22,7 +22,7 @@ type Props = WithTranslation &
     heading?: React.ReactNode;
     empty?: React.ReactNode;
     loading?: React.ReactElement;
-    items: any[];
+    items?: any[];
     renderItem: (
       item: any,
       index: number,

@@ -28,7 +28,9 @@ function SearchPopover({ shareId }: Props) {
   const [query, setQuery] = React.useState("");
   const searchResults = documents.searchResults(query);
 
-  const searchInputRef = popover.unstable_referenceRef;
+  const searchInputRef = popover.unstable_referenceRef as React.RefObject<
+    HTMLInputElement
+  >;
 
   const performSearch = React.useMemo(
     () =>
@@ -47,27 +49,46 @@ function SearchPopover({ shareId }: Props) {
 
   const handleKeyDown = (ev: React.KeyboardEvent<HTMLInputElement>) => {
     if (ev.key === "Enter") {
-      console.log("ENTER KEY");
       if (searchResults?.length) {
         popover.show();
       }
     }
 
-    if (ev.key === "ArrowDown") {
-      console.log("ARROW DOWN");
+    if (ev.key === "ArrowDown" && !ev.shiftKey) {
       if (searchResults?.length) {
+        if (ev.currentTarget.value) {
+          const length = ev.currentTarget.value.length;
+          ev.currentTarget.selectionStart = length;
+          ev.currentTarget.selectionEnd = length;
+        }
+
         popover.show();
         firstSearchItem.current?.focus();
+        ev.preventDefault();
       }
-      ev.preventDefault();
+    }
+
+    if (ev.key === "ArrowUp") {
+      if (popover.visible) {
+        popover.hide();
+      }
+    }
+
+    if (ev.key === "Escape") {
+      if (popover.visible) {
+        popover.hide();
+        ev.preventDefault();
+      }
     }
   };
 
   // TODO: scope the search by the shareId and not the user
   // TODO write tests for that
 
+  // when showing, escape or up hides, when
+
   // TODO think about shrinking the context preview
-  // TODO: keep old search results when changing the query — will require debounce + incrementer to tick the result set number
+  // TODO: keep old search results when changing the query — will require debounce + incrementer to tick the result set number
   // update search results on a tick, and only display when ticked up (call inside useEffect)
 
   // right now I'm making a closure but could shim it into a function with one object argument
