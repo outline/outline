@@ -72,7 +72,9 @@ export function checkEnv() {
       );
     }
     if (process.env.AWS_S3_ENDPOINT_STYLE) {
-      if (["path", "domain"].includes(process.env.AWS_S3_ENDPOINT_STYLE) === false) {
+      if (
+        ["path", "domain"].includes(process.env.AWS_S3_ENDPOINT_STYLE) === false
+      ) {
         errors.push(
           `AWS_S3_ENDPOINT_STYLE env variable must be one of "domain" or "path" when using S3 compatible storage`
         );
@@ -107,7 +109,7 @@ export function checkEnv() {
   if (errors.length) {
     Logger.warn(
       "\n\nThe server could not start, please fix the following configuration errors and try again:\n" +
-      errors.map((e) => `- ${e}`).join("\n")
+        errors.map((e) => `- ${e}`).join("\n")
     );
     process.exit(1);
   }
