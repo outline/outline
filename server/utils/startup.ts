@@ -53,7 +53,6 @@ export function checkEnv() {
 
   if (process.env.AWS_ACCESS_KEY_ID) {
     [
-      "AWS_REGION",
       "AWS_S3_BUCKET_NAME",
       "AWS_ACCESS_KEY_ID",
       "AWS_SECRET_ACCESS_KEY",
@@ -67,6 +66,18 @@ export function checkEnv() {
         );
       }
     });
+    if (!process.env.AWS_S3_ENDPOINT && !process.env.AWS_REGION) {
+      errors.push(
+        `Either AWS_S3_ENDPOINT or the AWS_REGION env variable must be set when using S3 compatible storage`
+      );
+    }
+    if (process.env.AWS_S3_ENDPOINT_STYLE) {
+      if (["path", "domain"].includes(process.env.AWS_S3_ENDPOINT_STYLE) === false) {
+        errors.push(
+          `AWS_S3_ENDPOINT_STYLE env variable must be one of "domain" or "path" when using S3 compatible storage`
+        );
+      }
+    }
   }
 
   if (!process.env.URL) {

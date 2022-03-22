@@ -9,21 +9,27 @@ import Logger from "@server/logging/logger";
 const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
 const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
 const AWS_REGION = process.env.AWS_REGION || "";
+const AWS_SERVICE = process.env.AWS_SERVICE || "s3";
 const AWS_S3_PROVIDER = process.env.AWS_S3_PROVIDER || "amazonaws.com";
-const AWS_S3_BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME || "s3";
-const AWS_S3_FORCE_PATH_STYLE = process.env.AWS_S3_FORCE_PATH_STYLE !== "false";
+const AWS_S3_BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME || "outline";
+
 
 const AWS_S3_ENDPOINT = process.env.AWS_S3_ENDPOINT
-  || `https://${AWS_S3_BUCKET_NAME}.${AWS_REGION}.${AWS_S3_PROVIDER}`;
-const AWS_S3_ENDPOINT_MODE = process.env.AWS_S3_ENDPOINT_MODE
-  || AWS_S3_ENDPOINT.includes(AWS_S3_BUCKET_NAME) ? "domain" : "path";
+  || ((process.env.AWS_S3_ENDPOINT_STYLE || "path") === "path"
+    ? `https://${AWS_SERVICE}.${AWS_REGION}.${AWS_S3_PROVIDER}/${AWS_S3_BUCKET_NAME}`
+    : `https://${AWS_S3_BUCKET_NAME}.${AWS_SERVICE}.${AWS_REGION}.${AWS_S3_PROVIDER}`);
+const AWS_S3_ENDPOINT_STYLE = process.env.AWS_S3_ENDPOINT_STYLE
+  || new URL(AWS_S3_ENDPOINT).host.includes(AWS_S3_BUCKET_NAME) ? "domain" : "path";
+const AWS_S3_IS_BUCKET_ENDPOINT = (process.env.AWS_S3_IS_BUCKET_ENDPOINT || "") !== ""
+  || AWS_S3_ENDPOINT.includes(AWS_S3_BUCKET_NAME);
+
 const AWS_S3_PUBLIC_ENDPOINT = process.env.AWS_S3_PUBLIC_ENDPOINT || AWS_S3_ENDPOINT;
 
 const s3 = new AWS.S3({
   endpoint: AWS_S3_ENDPOINT,
   region: AWS_REGION,
-  s3BucketEndpoint: AWS_S3_ENDPOINT_MODE === "domain" ? true : undefined,
-  s3ForcePathStyle: AWS_S3_FORCE_PATH_STYLE,
+  s3BucketEndpoint: AWS_S3_IS_BUCKET_ENDPOINT,
+  s3ForcePathStyle: AWS_S3_ENDPOINT_STYLE === "path",
   accessKeyId: AWS_ACCESS_KEY_ID,
   secretAccessKey: AWS_SECRET_ACCESS_KEY,
   signatureVersion: "v4",
@@ -125,7 +131,7 @@ export const getPresignedPost = (
 
 export const publicS3Endpoint = (isServerUpload?: boolean) => {
   const endpoint = isServerUpload ? AWS_S3_ENDPOINT : AWS_S3_PUBLIC_ENDPOINT
-  if (AWS_S3_ENDPOINT_MODE === "domain")
+  if (AWS_S3_IS_BUCKET_ENDPOINT || AWS_S3_ENDPOINT_STYLE === "domain")
     return endpoint;
   else
     return `${endpoint}/${AWS_S3_BUCKET_NAME}`;
