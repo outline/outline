@@ -32,7 +32,7 @@ export default function CommentListItem({
       <Wrapper $lastOfAuthor={lastOfAuthor} column>
         {(showAuthor || showTime) && (
           <Meta size="xsmall" type="secondary">
-            {showAuthor && comment.createdBy.name}{" "}
+            <em>{showAuthor && comment.createdBy.name}</em>{" "}
             {showTime && (
               <Time dateTime={comment.createdAt} addSuffix shorten />
             )}
@@ -49,6 +49,11 @@ export default function CommentListItem({
 const Meta = styled(Text)`
   margin-top: 1em;
   margin-bottom: 2px;
+
+  em {
+    font-weight: 500;
+    font-style: normal;
+  }
 `;
 
 const Bubble = styled.div<{ $lastOfAuthor?: boolean; $highlighted?: boolean }>`

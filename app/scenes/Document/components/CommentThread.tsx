@@ -14,6 +14,7 @@ import Flex from "~/components/Flex";
 import Input from "~/components/Input";
 import { SocketContext } from "~/components/SocketProvider";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import usePersistedState from "~/hooks/usePersistedState";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import CommentListItem from "./Comment";
@@ -48,7 +49,7 @@ function CommentThread({ comment: thread, document }: Props) {
   const { t } = useTranslation();
   const formRef = React.useRef<HTMLFormElement>(null);
   const topRef = React.useRef<HTMLDivElement>(null);
-  const [text, setText] = React.useState("");
+  const [text, setText] = usePersistedState(`draft-${thread.id}`, "");
   const user = useCurrentUser();
   const params = useQuery();
   const [, setIsTyping] = useTypingIndicator({
