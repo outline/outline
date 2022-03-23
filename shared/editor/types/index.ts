@@ -1,5 +1,5 @@
 import { Node as ProsemirrorNode } from "prosemirror-model";
-import { EditorState } from "prosemirror-state";
+import { EditorState, Transaction } from "prosemirror-state";
 import * as React from "react";
 import { DefaultTheme } from "styled-components";
 
@@ -34,3 +34,5 @@ export type ComponentProps = {
   isEditable: boolean;
   getPos: () => number;
 };
+
+export type Dispatch = (tr: Transaction) => void;
