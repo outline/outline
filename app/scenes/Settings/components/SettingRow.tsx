@@ -58,6 +58,7 @@ const SettingRow: React.FC<Props> = ({
   name,
   label,
   border,
+  children,
 }) => {
   if (visible === false) {
     return null;

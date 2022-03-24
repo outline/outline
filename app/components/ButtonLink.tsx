@@ -5,7 +5,7 @@ type Props = {
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
 };
 
-const ButtonLink = React.forwardRef(
+const ButtonLink: React.FC<Props> = React.forwardRef(
   (props: Props, ref: React.Ref<HTMLButtonElement>) => {
     return <Button {...props} ref={ref} />;
   }
