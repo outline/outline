@@ -616,6 +616,8 @@
   "When enabled, documents can be shared publicly on the internet by any team member": "When enabled, documents can be shared publicly on the internet by any team member",
   "Rich service embeds": "Rich service embeds",
   "Links to supported services are shown as rich embeds within your documents": "Links to supported services are shown as rich embeds within your documents",
+  "Collection creation": "Collection creation",
+  "Allow members to create new collections within the knowledge base": "Allow members to create new collections within the knowledge base",
   "Default role": "Default role",
   "The default user role for new accounts. Changing this setting does not affect existing user accounts.": "The default user role for new accounts. Changing this setting does not affect existing user accounts.",
   "Sharing is currently disabled.": "Sharing is currently disabled.",
