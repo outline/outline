@@ -616,6 +616,8 @@
   "When enabled, documents can be shared publicly on the internet by any team member": "启用后，任何团队成员都可以在互联网上公开分享文档",
   "Rich service embeds": "丰富的服务嵌入",
   "Links to supported services are shown as rich embeds within your documents": "支持服务的链接作为丰富的嵌入显示在您的文档中",
+  "Collection creation": "Collection creation",
+  "Allow members to create new collections within the knowledge base": "Allow members to create new collections within the knowledge base",
   "Default role": "默认权限",
   "The default user role for new accounts. Changing this setting does not affect existing user accounts.": "新帐户的默认用户角色。更改此设置不会影响现有用户帐户。",
   "Sharing is currently disabled.": "共享功能当前被禁用。",
