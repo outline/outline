@@ -13,14 +13,14 @@ type Props = {
   border?: boolean;
 };
 
-const Row = styled(Flex) <{ $border?: boolean; }>`
+const Row = styled(Flex)<{ $border?: boolean }>`
   display: block;
   padding: 24px 0;
   border-bottom: 1px solid
     ${(props) =>
-    props.$border === false
-      ? "transparent"
-      : transparentize(0.5, props.theme.divider)};
+      props.$border === false
+        ? "transparent"
+        : transparentize(0.5, props.theme.divider)};
 
   ${breakpoint("tablet")`
     display: flex;
@@ -57,7 +57,7 @@ const SettingRow: React.FC<Props> = ({
   description,
   name,
   label,
-  border
+  border,
 }) => {
   if (visible === false) {
     return null;

@@ -6,7 +6,7 @@ type Props = {
   withStickyHeader?: boolean;
 };
 
-const Container = styled.div<{ withStickyHeader?: boolean; }>`
+const Container = styled.div<{ withStickyHeader?: boolean }>`
   width: 100%;
   max-width: 100vw;
   padding: ${(props) => (props.withStickyHeader ? "4px 12px" : "60px 12px")};

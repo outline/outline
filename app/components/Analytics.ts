@@ -2,7 +2,7 @@
 import * as React from "react";
 import env from "~/env";
 
-export default class Analytics extends React.Component<{}> {
+export default class Analytics extends React.Component {
   componentDidMount() {
     if (!env.GOOGLE_ANALYTICS_ID) {
       return;

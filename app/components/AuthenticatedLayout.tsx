@@ -34,8 +34,7 @@ const CommandBar = React.lazy(
     )
 );
 
-type Props = WithTranslation &
-  RootStore;
+type Props = WithTranslation & RootStore;
 
 @observer
 class AuthenticatedLayout extends React.Component<Props> {

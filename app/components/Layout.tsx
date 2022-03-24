@@ -53,8 +53,8 @@ const Layout: React.FC<Props> = ({ title, children, sidebar, rightRail }) => {
             sidebarCollapsed
               ? undefined
               : {
-                marginLeft: `${ui.sidebarWidth}px`,
-              }
+                  marginLeft: `${ui.sidebarWidth}px`,
+                }
           }
         >
           {children}
@@ -74,7 +74,7 @@ const Container = styled(Flex)`
   min-height: 100%;
 `;
 
-const Content = styled(Flex) <{
+const Content = styled(Flex)<{
   $isResizing?: boolean;
   $sidebarCollapsed?: boolean;
   $hasSidebar?: boolean;

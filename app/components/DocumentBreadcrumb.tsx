@@ -48,7 +48,11 @@ function useCategory(document: Document): MenuInternalLink | null {
   return null;
 }
 
-const DocumentBreadcrumb: React.FC<Props> = ({ document, children, onlyText }) => {
+const DocumentBreadcrumb: React.FC<Props> = ({
+  document,
+  children,
+  onlyText,
+}) => {
   const { collections } = useStores();
   const { t } = useTranslation();
   const category = useCategory(document);
