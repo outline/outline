@@ -1,9 +1,9 @@
 import styled from "styled-components";
 import { CSSProperties } from "react";
 
-type JustifyValues = CSSProperties['justifyContent'];
+type JustifyValues = CSSProperties["justifyContent"];
 
-type AlignValues = CSSProperties['alignItems'];
+type AlignValues = CSSProperties["alignItems"];
 
 const Flex = styled.div<{
   auto?: boolean;
