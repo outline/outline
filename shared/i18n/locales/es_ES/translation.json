@@ -616,6 +616,8 @@
   "When enabled, documents can be shared publicly on the internet by any team member": "Cuando está activado, los documentos pueden ser compartidos públicamente en Internet por cualquier miembro del equipo",
   "Rich service embeds": "Embedidos de servicio enriquecidos",
   "Links to supported services are shown as rich embeds within your documents": "Los enlaces a los servicios soportados se muestran como incrustaciones enriquecidas dentro de tus documentos",
+  "Collection creation": "Collection creation",
+  "Allow members to create new collections within the knowledge base": "Allow members to create new collections within the knowledge base",
   "Default role": "Rol por defecto",
   "The default user role for new accounts. Changing this setting does not affect existing user accounts.": "The default user role for new accounts. Changing this setting does not affect existing user accounts.",
   "Sharing is currently disabled.": "Compartir está actualmente deshabilitado.",
