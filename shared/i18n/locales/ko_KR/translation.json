@@ -616,6 +616,8 @@
   "When enabled, documents can be shared publicly on the internet by any team member": "활성화되면 모든 멤버가 문서를 인터넷에 공유 할 수 있습니다",
   "Rich service embeds": "확장 임베딩",
   "Links to supported services are shown as rich embeds within your documents": "지원되는 서비스에 대한 링크는 문서 내에서 확장 임베딩으로 표시됩니다",
+  "Collection creation": "Collection creation",
+  "Allow members to create new collections within the knowledge base": "Allow members to create new collections within the knowledge base",
   "Default role": "기본 역할",
   "The default user role for new accounts. Changing this setting does not affect existing user accounts.": "The default user role for new accounts. Changing this setting does not affect existing user accounts.",
   "Sharing is currently disabled.": "공유는 현재 비활성화되어 있습니다",
