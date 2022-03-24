@@ -616,6 +616,8 @@
   "When enabled, documents can be shared publicly on the internet by any team member": "Если этот параметр включен, любой член команды сможет поделиться документами в интернете",
   "Rich service embeds": "Расширенная вставка сервиса",
   "Links to supported services are shown as rich embeds within your documents": "Ссылки на поддерживаемые сервисы отображаются в ваших документах в виде расширенных вставок",
+  "Collection creation": "Collection creation",
+  "Allow members to create new collections within the knowledge base": "Allow members to create new collections within the knowledge base",
   "Default role": "Роль по умолчанию",
   "The default user role for new accounts. Changing this setting does not affect existing user accounts.": "Роль пользователя по умолчанию для новых учетных записей. Изменение этого параметра не влияет на существующие учетные записи пользователей.",
   "Sharing is currently disabled.": "В настоящий момент общий доступ отключен.",
