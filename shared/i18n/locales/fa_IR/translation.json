@@ -616,6 +616,8 @@
   "When enabled, documents can be shared publicly on the internet by any team member": "وقتی فعال باشد، هر عضو تیم می‌تواند سندها را به صورت عمومی روی اینترنت منتشر کند",
   "Rich service embeds": "جاسازی‌های غنی سرویس‌ها",
   "Links to supported services are shown as rich embeds within your documents": "پیوندها به سایت‌ها و سرویس‌های پشتیبانی شده به صورت جاسازی‌های غنی در سندها نمایش داده می‌شود",
+  "Collection creation": "Collection creation",
+  "Allow members to create new collections within the knowledge base": "Allow members to create new collections within the knowledge base",
   "Default role": "نقش پیش‌فرض",
   "The default user role for new accounts. Changing this setting does not affect existing user accounts.": "The default user role for new accounts. Changing this setting does not affect existing user accounts.",
   "Sharing is currently disabled.": "اشتراک‌گذاری در حال حاضر غیرفعال است.",
