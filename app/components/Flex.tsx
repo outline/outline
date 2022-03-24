@@ -1,18 +1,9 @@
 import styled from "styled-components";
+import { CSSProperties } from "react";
 
-type JustifyValues =
-  | "center"
-  | "space-around"
-  | "space-between"
-  | "flex-start"
-  | "flex-end";
+type JustifyValues = CSSProperties['justifyContent'];
 
-type AlignValues =
-  | "stretch"
-  | "center"
-  | "baseline"
-  | "flex-start"
-  | "flex-end";
+type AlignValues = CSSProperties['alignItems'];
 
 const Flex = styled.div<{
   auto?: boolean;
