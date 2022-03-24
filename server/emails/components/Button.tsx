@@ -4,7 +4,7 @@ type Props = {
   href: string;
 };
 
-const style = {
+const style: React.CSSProperties = {
   display: "inline-block",
   padding: "10px 20px",
   color: "#FFFFFF",
