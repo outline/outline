@@ -9,19 +9,18 @@ type Props = {
   label: React.ReactNode;
   description: React.ReactNode;
   name: string;
-  children: React.ReactNode;
   visible?: boolean;
   border?: boolean;
 };
 
-const Row = styled(Flex)<{ $border?: boolean }>`
+const Row = styled(Flex) <{ $border?: boolean; }>`
   display: block;
   padding: 24px 0;
   border-bottom: 1px solid
     ${(props) =>
-      props.$border === false
-        ? "transparent"
-        : transparentize(0.5, props.theme.divider)};
+    props.$border === false
+      ? "transparent"
+      : transparentize(0.5, props.theme.divider)};
 
   ${breakpoint("tablet")`
     display: flex;
@@ -53,20 +52,27 @@ const Label = styled(Text)`
   margin-bottom: 4px;
 `;
 
-export default function SettingRow(props: Props) {
-  if (props.visible === false) {
+const SettingRow: React.FC<Props> = ({
+  visible,
+  description,
+  name,
+  label,
+  border
+}) => {
+  if (visible === false) {
     return null;
   }
-
   return (
-    <Row gap={32} $border={props.border}>
+    <Row gap={32} $border={border}>
       <Column>
         <Label as="h3">
-          <label htmlFor={props.name}>{props.label}</label>
+          <label htmlFor={name}>{label}</label>
         </Label>
-        <Text type="secondary">{props.description}</Text>
+        <Text type="secondary">{description}</Text>
       </Column>
-      <Column>{props.children}</Column>
+      <Column>{children}</Column>
     </Row>
   );
-}
+};
+
+export default SettingRow;

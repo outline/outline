@@ -14,12 +14,11 @@ import { isModKey } from "~/utils/keyboard";
 
 type Props = {
   title?: string;
-  children?: React.ReactNode;
   sidebar?: React.ReactNode;
   rightRail?: React.ReactNode;
 };
 
-function Layout({ title, children, sidebar, rightRail }: Props) {
+const Layout: React.FC<Props> = ({ title, children, sidebar, rightRail }) => {
   const { ui } = useStores();
   const sidebarCollapsed = !sidebar || ui.isEditing || ui.sidebarCollapsed;
 
@@ -54,8 +53,8 @@ function Layout({ title, children, sidebar, rightRail }: Props) {
             sidebarCollapsed
               ? undefined
               : {
-                  marginLeft: `${ui.sidebarWidth}px`,
-                }
+                marginLeft: `${ui.sidebarWidth}px`,
+              }
           }
         >
           {children}
@@ -65,7 +64,7 @@ function Layout({ title, children, sidebar, rightRail }: Props) {
       </Container>
     </Container>
   );
-}
+};
 
 const Container = styled(Flex)`
   background: ${(props) => props.theme.background};
@@ -75,7 +74,7 @@ const Container = styled(Flex)`
   min-height: 100%;
 `;
 
-const Content = styled(Flex)<{
+const Content = styled(Flex) <{
   $isResizing?: boolean;
   $sidebarCollapsed?: boolean;
   $hasSidebar?: boolean;

@@ -3,7 +3,6 @@ import styled from "styled-components";
 
 type Props = {
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
-  children: React.ReactNode;
 };
 
 const ButtonLink = React.forwardRef(
