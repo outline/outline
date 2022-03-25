@@ -38,11 +38,7 @@ const CommandBar = React.lazy(
     )
 );
 
-type Props = {
-  children?: React.ReactNode;
-};
-
-function AuthenticatedLayout(props: Props) {
+const AuthenticatedLayout: React.FC = ({ children }) => {
   const { auth, ui, policies } = useStores();
   const { user, team } = auth;
   const can = policies.abilities(ui.activeCollectionId || "");
@@ -97,10 +93,10 @@ function AuthenticatedLayout(props: Props) {
       <RegisterKeyDown trigger="n" handler={goToNewDocument} />
       <RegisterKeyDown trigger="t" handler={goToSearch} />
       <RegisterKeyDown trigger="/" handler={goToSearch} />
-      {props.children}
+      {children}
       <CommandBar />
     </Layout>
   );
-}
+};
 
 export default observer(AuthenticatedLayout);

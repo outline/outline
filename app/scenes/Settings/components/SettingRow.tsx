@@ -9,7 +9,6 @@ type Props = {
   label: React.ReactNode;
   description: React.ReactNode;
   name: string;
-  children: React.ReactNode;
   visible?: boolean;
   border?: boolean;
 };
@@ -53,20 +52,28 @@ const Label = styled(Text)`
   margin-bottom: 4px;
 `;
 
-export default function SettingRow(props: Props) {
-  if (props.visible === false) {
+const SettingRow: React.FC<Props> = ({
+  visible,
+  description,
+  name,
+  label,
+  border,
+  children,
+}) => {
+  if (visible === false) {
     return null;
   }
-
   return (
-    <Row gap={32} $border={props.border}>
+    <Row gap={32} $border={border}>
       <Column>
         <Label as="h3">
-          <label htmlFor={props.name}>{props.label}</label>
+          <label htmlFor={name}>{label}</label>
         </Label>
-        <Text type="secondary">{props.description}</Text>
+        <Text type="secondary">{description}</Text>
       </Column>
-      <Column>{props.children}</Column>
+      <Column>{children}</Column>
     </Row>
   );
-}
+};
+
+export default SettingRow;

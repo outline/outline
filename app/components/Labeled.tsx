@@ -5,10 +5,9 @@ import Flex from "~/components/Flex";
 
 type Props = {
   label: React.ReactNode | string;
-  children?: React.ReactNode;
 };
 
-const Labeled = ({ label, children, ...props }: Props) => (
+const Labeled: React.FC<Props> = ({ label, children, ...props }) => (
   <Flex column {...props}>
     <Label>{label}</Label>
     {children}

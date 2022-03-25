@@ -89,7 +89,11 @@ class Team extends ParanoidModel {
   @Column
   documentEmbeds: boolean;
 
-  @Default(false)
+  @Default(true)
+  @Column
+  memberCollectionCreate: boolean;
+
+  @Default(true)
   @Column
   collaborativeEditing: boolean;
 

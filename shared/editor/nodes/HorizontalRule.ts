@@ -1,8 +1,9 @@
 import Token from "markdown-it/lib/token";
 import { InputRule } from "prosemirror-inputrules";
 import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
-import { EditorState, Transaction } from "prosemirror-state";
+import { EditorState } from "prosemirror-state";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import { Dispatch } from "../types";
 import Node from "./Node";
 
 export default class HorizontalRule extends Node {
@@ -31,7 +32,7 @@ export default class HorizontalRule extends Node {
   commands({ type }: { type: NodeType }) {
     return (attrs: Record<string, any>) => (
       state: EditorState,
-      dispatch: (tr: Transaction) => void
+      dispatch: Dispatch
     ) => {
       dispatch(
         state.tr.replaceSelectionWith(type.create(attrs)).scrollIntoView()
@@ -42,7 +43,7 @@ export default class HorizontalRule extends Node {
 
   keys({ type }: { type: NodeType }) {
     return {
-      "Mod-_": (state: EditorState, dispatch: (tr: Transaction) => void) => {
+      "Mod-_": (state: EditorState, dispatch: Dispatch) => {
         dispatch(state.tr.replaceSelectionWith(type.create()).scrollIntoView());
         return true;
       },

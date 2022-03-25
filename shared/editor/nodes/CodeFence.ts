@@ -38,7 +38,7 @@ import toggleBlockType from "../commands/toggleBlockType";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import Prism, { LANGUAGES } from "../plugins/Prism";
 import isInCode from "../queries/isInCode";
-import { ToastType } from "../types";
+import { Dispatch, ToastType } from "../types";
 import Node from "./Node";
 
 const PERSISTENCE_KEY = "rme-code-language";
@@ -146,10 +146,7 @@ export default class CodeFence extends Node {
   keys({ type, schema }: { type: NodeType; schema: Schema }) {
     return {
       "Shift-Ctrl-\\": toggleBlockType(type, schema.nodes.paragraph),
-      "Shift-Enter": (
-        state: EditorState,
-        dispatch: (tr: Transaction) => void
-      ) => {
+      "Shift-Enter": (state: EditorState, dispatch: Dispatch) => {
         if (!isInCode(state)) {
           return false;
         }
@@ -172,7 +169,7 @@ export default class CodeFence extends Node {
         dispatch(tr.insertText(newText, selection.from, selection.to));
         return true;
       },
-      Tab: (state: EditorState, dispatch: (tr: Transaction) => void) => {
+      Tab: (state: EditorState, dispatch: Dispatch) => {
         if (!isInCode(state)) {
           return false;
         }

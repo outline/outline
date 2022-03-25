@@ -1,10 +1,11 @@
 import { NodeType } from "prosemirror-model";
-import { EditorState, TextSelection, Transaction } from "prosemirror-state";
+import { EditorState, TextSelection } from "prosemirror-state";
 import { findBlockNodes } from "prosemirror-utils";
 import findCollapsedNodes from "../queries/findCollapsedNodes";
+import { Dispatch } from "../types";
 
 export default function splitHeading(type: NodeType) {
-  return (state: EditorState, dispatch: (tr: Transaction) => void): boolean => {
+  return (state: EditorState, dispatch: Dispatch): boolean => {
     const { $from, from, $to, to } = state.selection;
 
     // check we're in a matching heading node

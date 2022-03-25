@@ -18,6 +18,7 @@ const teamUpdater = async ({ params, user, team, ip }: TeamUpdaterProps) => {
     guestSignin,
     documentEmbeds,
     commenting,
+    memberCollectionCreate,
     collaborativeEditing,
     defaultCollectionId,
     defaultUserRole,
@@ -41,6 +42,9 @@ const teamUpdater = async ({ params, user, team, ip }: TeamUpdaterProps) => {
   }
   if (avatarUrl !== undefined) {
     team.avatarUrl = avatarUrl;
+  }
+  if (memberCollectionCreate !== undefined) {
+    team.memberCollectionCreate = memberCollectionCreate;
   }
   if (defaultCollectionId !== undefined) {
     team.defaultCollectionId = defaultCollectionId;

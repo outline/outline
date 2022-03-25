@@ -37,6 +37,10 @@ class Team extends BaseModel {
 
   @Field
   @observable
+  memberCollectionCreate: boolean;
+
+  @Field
+  @observable
   guestSignin: boolean;
 
   @Field

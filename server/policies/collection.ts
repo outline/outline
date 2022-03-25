@@ -8,7 +8,10 @@ allow(User, "createCollection", Team, (user, team) => {
   if (!team || user.isViewer || user.teamId !== team.id) {
     return false;
   }
-  return true;
+  if (user.isAdmin || team.memberCollectionCreate) {
+    return true;
+  }
+  return false;
 });
 
 allow(User, "importCollection", Team, (actor, team) => {
