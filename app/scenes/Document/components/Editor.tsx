@@ -1,7 +1,8 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useRouteMatch } from "react-router-dom";
+import { useHistory, useRouteMatch } from "react-router-dom";
+import Comment from "~/models/Comment";
 import Document from "~/models/Document";
 import ClickablePadding from "~/components/ClickablePadding";
 import DocumentMetaWithViews from "~/components/DocumentMetaWithViews";
@@ -44,8 +45,9 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   const titleRef = React.useRef<HTMLSpanElement>(null);
   const { t } = useTranslation();
   const match = useRouteMatch();
-  const { auth } = useStores();
+  const { ui, comments, auth } = useStores();
   const { user } = auth;
+  const history = useHistory();
 
   const focusAtStart = React.useCallback(() => {
     if (ref.current) {
@@ -80,6 +82,43 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     },
     [focusAtStart, ref]
   );
+
+  const handleClickComment = React.useCallback(
+    (commentId?: string) => {
+      if (commentId) {
+        ui.expandComments();
+        history.replace({
+          pathname: window.location.pathname.replace(/\/history$/, ""),
+          search: `?commentId=${commentId}`,
+        });
+      } else {
+        history.replace({
+          pathname: window.location.pathname,
+        });
+      }
+    },
+    [ui, history]
+  );
+
+  const handleDraftComment = React.useCallback(
+    (commentId: string) => {
+      ui.expandComments();
+
+      const comment = new Comment(
+        {
+          documentId: props.id,
+        },
+        comments
+      );
+      comment.id = commentId;
+      comments.add(comment);
+    },
+    [comments, props.id, ui]
+  );
+
+  const handleRemoveComment = React.useCallback((commentId: string) => {
+    console.log({ commentId });
+  }, []);
 
   const {
     document,
@@ -132,6 +171,9 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         shareId={shareId}
         userId={user?.id}
         grow
+        onClickComment={handleClickComment}
+        onDraftComment={handleDraftComment}
+        onRemoveComment={handleRemoveComment}
         {...rest}
       />
       {!readOnly && <ClickablePadding onClick={focusAtEnd} grow />}

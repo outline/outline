@@ -1,9 +1,12 @@
 import { toggleMark } from "prosemirror-commands";
 import { MarkSpec, MarkType, Schema } from "prosemirror-model";
-import { Plugin } from "prosemirror-state";
+import { EditorState, Plugin } from "prosemirror-state";
 import { AddMarkStep, RemoveMarkStep } from "prosemirror-transform";
 import { v4 as uuidv4 } from "uuid";
+import collapseSelection from "../commands/collapseSelection";
 import { CommandFactory } from "../lib/Extension";
+import chainTransactions from "../lib/chainTransactions";
+import { Dispatch } from "../types";
 import Mark from "./Mark";
 
 export default class Comment extends Mark {
@@ -36,11 +39,17 @@ export default class Comment extends Mark {
   }
 
   commands({ type }: { type: MarkType; schema: Schema }): CommandFactory {
-    return () =>
-      toggleMark(type, {
-        id: uuidv4(),
-        userId: this.options.userId,
-      });
+    return () => (state: EditorState, dispatch: Dispatch) => {
+      chainTransactions(
+        toggleMark(type, {
+          id: uuidv4(),
+          userId: this.options.userId,
+        }),
+        collapseSelection()
+      )(state, dispatch);
+
+      return true;
+    };
   }
 
   toMarkdown() {

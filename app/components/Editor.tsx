@@ -3,11 +3,9 @@ import { useHistory } from "react-router-dom";
 import { Optional } from "utility-types";
 import embeds from "@shared/editor/embeds";
 import { isInternalUrl } from "@shared/utils/urls";
-import Comment from "~/models/Comment";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import { Props as EditorProps } from "~/editor";
 import useDictionary from "~/hooks/useDictionary";
-import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import { uploadFile } from "~/utils/files";
 import { isModKey } from "~/utils/keyboard";
@@ -39,7 +37,6 @@ export type Props = Optional<
 
 function Editor(props: Props, ref: React.Ref<any>) {
   const { id, shareId } = props;
-  const { ui, comments } = useStores();
   const { showToast } = useToasts();
   const dictionary = useDictionary();
   const history = useHistory();
@@ -95,43 +92,6 @@ function Editor(props: Props, ref: React.Ref<any>) {
     [showToast]
   );
 
-  const handleClickComment = React.useCallback(
-    (commentId?: string) => {
-      if (commentId) {
-        ui.expandComments();
-        history.replace({
-          pathname: window.location.pathname.replace(/\/history$/, ""),
-          search: `?commentId=${commentId}`,
-        });
-      } else {
-        history.replace({
-          pathname: window.location.pathname,
-        });
-      }
-    },
-    [ui, history]
-  );
-
-  const handleDraftComment = React.useCallback(
-    (commentId: string) => {
-      ui.expandComments();
-
-      const comment = new Comment(
-        {
-          documentId: id,
-        },
-        comments
-      );
-      comment.id = commentId;
-      comments.add(comment);
-    },
-    [comments, id, ui]
-  );
-
-  const handleRemoveComment = React.useCallback((commentId: string) => {
-    console.log({ commentId });
-  }, []);
-
   return (
     <ErrorBoundary reloadOnChunkMissing>
       <SharedEditor
@@ -142,9 +102,6 @@ function Editor(props: Props, ref: React.Ref<any>) {
         dictionary={dictionary}
         {...props}
         onClickLink={handleClickLink}
-        onClickComment={handleClickComment}
-        onDraftComment={handleDraftComment}
-        onRemoveComment={handleRemoveComment}
         placeholder={props.placeholder || ""}
         defaultValue={props.defaultValue || ""}
       />

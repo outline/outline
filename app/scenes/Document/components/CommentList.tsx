@@ -2,23 +2,18 @@ import { differenceInMilliseconds } from "date-fns";
 import { throttle } from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { useTranslation } from "react-i18next";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled from "styled-components";
-import { MAX_COMMENT_LENGTH } from "@shared/constants";
 import Comment from "~/models/Comment";
 import Document from "~/models/Document";
 import Avatar from "~/components/Avatar";
-import Button from "~/components/Button";
-import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
-import Input from "~/components/Input";
 import { SocketContext } from "~/components/SocketProvider";
 import Typing from "~/components/Typing";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import usePersistedState from "~/hooks/usePersistedState";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
+import CommentForm from "./CommentForm";
 import CommentListItem from "./CommentListItem";
 
 type Props = {
@@ -48,60 +43,13 @@ function useTypingIndicator({
 
 function CommentList({ comment: thread, document }: Props) {
   const { comments } = useStores();
-  const { t } = useTranslation();
-  const formRef = React.useRef<HTMLFormElement>(null);
   const topRef = React.useRef<HTMLDivElement>(null);
-  const [text, setText] = usePersistedState(`draft-${thread.id}`, "");
   const user = useCurrentUser();
   const params = useQuery();
   const [, setIsTyping] = useTypingIndicator({
     document,
     comment: thread,
   });
-
-  const handleCreateComment = (commentId: string) => async (
-    event: React.FormEvent
-  ) => {
-    event.preventDefault();
-
-    const comment = comments.get(commentId);
-    if (comment) {
-      setText("");
-      await comment.save({
-        documentId: document?.id,
-        data: {
-          text,
-        },
-      });
-    }
-  };
-
-  const handleCreateReply = (parentCommentId: string) => async (
-    event: React.FormEvent
-  ) => {
-    event.preventDefault();
-
-    setText("");
-    await comments.save({
-      parentCommentId,
-      documentId: document?.id,
-      data: {
-        text,
-      },
-    });
-  };
-
-  const handleChange = (event: React.FormEvent<HTMLInputElement>) => {
-    setText(event.currentTarget.value);
-    setIsTyping();
-  };
-
-  const handleRequestSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
-    formRef.current?.dispatchEvent(
-      new Event("submit", { cancelable: true, bubbles: true })
-    );
-  };
 
   const commentsInThread = comments.inThread(thread.id);
   const highlighted = params.get("commentId") === thread.id;
@@ -157,35 +105,11 @@ function CommentList({ comment: thread, document }: Props) {
             <Typing />
           </Flex>
         ))}
-      <form
-        ref={formRef}
-        onSubmit={
-          thread.isNew
-            ? handleCreateComment(thread.id)
-            : handleCreateReply(thread.id)
-        }
-      >
-        <Flex gap={8}>
-          <Avatar src={user.avatarUrl} />
-          <Input
-            name="text"
-            type="textarea"
-            required
-            value={text}
-            onChange={handleChange}
-            minLength={1}
-            maxLength={MAX_COMMENT_LENGTH}
-            autoFocus={thread.isNew}
-            onRequestSubmit={handleRequestSubmit}
-            placeholder={
-              thread.isNew ? `${t("Add a comment")}…` : `${t("Reply")}…`
-            }
-          />
-          <Button type="submit" aria-label={t("Comment")}>
-            ⬆
-          </Button>
-        </Flex>
-      </form>
+      <CommentForm
+        documentId={document.id}
+        thread={thread}
+        onTyping={setIsTyping}
+      />
     </Thread>
   );
 }
