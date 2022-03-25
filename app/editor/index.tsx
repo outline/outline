@@ -8,7 +8,6 @@ import { keymap } from "prosemirror-keymap";
 import { MarkdownParser } from "prosemirror-markdown";
 import { Schema, NodeSpec, MarkSpec, Node } from "prosemirror-model";
 import { EditorState, Selection, Plugin, Transaction } from "prosemirror-state";
-import { selectColumn, selectRow, selectTable } from "prosemirror-utils";
 import { Decoration, EditorView } from "prosemirror-view";
 import * as React from "react";
 import { DefaultTheme, ThemeProps } from "styled-components";
@@ -225,7 +224,11 @@ export class Editor extends React.PureComponent<
   commands: Record<string, CommandFactory>;
   rulePlugins: PluginSimple[];
 
-  componentDidMount() {
+  /**
+   * We use componentDidMount instead of constructor as the init method requires
+   * that the dom is already mounted.
+   */
+  public componentDidMount() {
     this.init();
 
     if (this.props.scrollTo) {
@@ -243,7 +246,7 @@ export class Editor extends React.PureComponent<
     }
   }
 
-  componentDidUpdate(prevProps: Props) {
+  public componentDidUpdate(prevProps: Props) {
     // Allow changes to the 'value' prop to update the editor from outside
     if (this.props.value && prevProps.value !== this.props.value) {
       const newState = this.createState(this.props.value);
@@ -299,7 +302,7 @@ export class Editor extends React.PureComponent<
     }
   }
 
-  init() {
+  private init() {
     this.extensions = this.createExtensions();
     this.nodes = this.createNodes();
     this.marks = this.createMarks();
@@ -316,7 +319,7 @@ export class Editor extends React.PureComponent<
     this.commands = this.createCommands();
   }
 
-  createExtensions() {
+  private createExtensions() {
     const { dictionary } = this.props;
 
     // adding nodes here? Update server/editor/renderToHtml.ts for serialization
@@ -362,13 +365,8 @@ export class Editor extends React.PureComponent<
             onShowToast: this.props.onShowToast,
           }),
           new Table(),
-          new TableCell({
-            onSelectTable: this.handleSelectTable,
-            onSelectRow: this.handleSelectRow,
-          }),
-          new TableHeadCell({
-            onSelectColumn: this.handleSelectColumn,
-          }),
+          new TableCell(),
+          new TableHeadCell(),
           new TableRow(),
           new Bold(),
           new Code(),
@@ -392,9 +390,6 @@ export class Editor extends React.PureComponent<
           new Keys({
             onBlur: this.handleEditorBlur,
             onFocus: this.handleEditorFocus,
-            onSave: this.handleSave,
-            onSaveAndExit: this.handleSaveAndExit,
-            onCancel: this.props.onCancel,
           }),
           new BlockMenuTrigger({
             dictionary,
@@ -402,12 +397,8 @@ export class Editor extends React.PureComponent<
             onClose: this.handleCloseBlockMenu,
           }),
           new EmojiTrigger({
-            onOpen: (search: string) => {
-              this.setState({ emojiMenuOpen: true, blockMenuSearch: search });
-            },
-            onClose: () => {
-              this.setState({ emojiMenuOpen: false });
-            },
+            onOpen: this.handleOpenEmojiMenu,
+            onClose: this.handleCloseEmojiMenu,
           }),
           new Placeholder({
             placeholder: this.props.placeholder,
@@ -422,27 +413,27 @@ export class Editor extends React.PureComponent<
     );
   }
 
-  createPlugins() {
+  private createPlugins() {
     return this.extensions.plugins;
   }
 
-  createRulePlugins() {
+  private createRulePlugins() {
     return this.extensions.rulePlugins;
   }
 
-  createKeymaps() {
+  private createKeymaps() {
     return this.extensions.keymaps({
       schema: this.schema,
     });
   }
 
-  createInputRules() {
+  private createInputRules() {
     return this.extensions.inputRules({
       schema: this.schema,
     });
   }
 
-  createNodeViews() {
+  private createNodeViews() {
     return this.extensions.extensions
       .filter((extension: ReactNode) => extension.component)
       .reduce((nodeViews, extension: ReactNode) => {
@@ -471,40 +462,40 @@ export class Editor extends React.PureComponent<
       }, {});
   }
 
-  createCommands() {
+  private createCommands() {
     return this.extensions.commands({
       schema: this.schema,
       view: this.view,
     });
   }
 
-  createNodes() {
+  private createNodes() {
     return this.extensions.nodes;
   }
 
-  createMarks() {
+  private createMarks() {
     return this.extensions.marks;
   }
 
-  createSchema() {
+  private createSchema() {
     return new Schema({
       nodes: this.nodes,
       marks: this.marks,
     });
   }
 
-  createSerializer() {
+  private createSerializer() {
     return this.extensions.serializer();
   }
 
-  createParser() {
+  private createParser() {
     return this.extensions.parser({
       schema: this.schema,
       plugins: this.rulePlugins,
     });
   }
 
-  createPasteParser() {
+  private createPasteParser() {
     return this.extensions.parser({
       schema: this.schema,
       rules: { linkify: true, emoji: false },
@@ -512,7 +503,7 @@ export class Editor extends React.PureComponent<
     });
   }
 
-  createState(value?: string) {
+  private createState(value?: string) {
     const doc = this.createDocument(value || this.props.defaultValue);
 
     return EditorState.create({
@@ -531,11 +522,11 @@ export class Editor extends React.PureComponent<
     });
   }
 
-  createDocument(content: string) {
+  private createDocument(content: string) {
     return this.parser.parse(content);
   }
 
-  createView() {
+  private createView() {
     if (!this.element) {
       throw new Error("createView called before ref available");
     }
@@ -587,7 +578,7 @@ export class Editor extends React.PureComponent<
     return view;
   }
 
-  scrollToAnchor(hash: string) {
+  public scrollToAnchor(hash: string) {
     if (!hash) {
       return;
     }
@@ -605,7 +596,7 @@ export class Editor extends React.PureComponent<
     }
   }
 
-  calculateDir = () => {
+  private calculateDir = () => {
     if (!this.element) {
       return;
     }
@@ -619,11 +610,11 @@ export class Editor extends React.PureComponent<
     }
   };
 
-  value = (): string => {
+  public value = (): string => {
     return this.serializer.serialize(this.view.state.doc);
   };
 
-  handleChange = () => {
+  private handleChange = () => {
     if (!this.props.onChange) {
       return;
     }
@@ -633,83 +624,78 @@ export class Editor extends React.PureComponent<
     });
   };
 
-  handleSave = () => {
+  private handleSave = () => {
     const { onSave } = this.props;
     if (onSave) {
       onSave({ done: false });
     }
   };
 
-  handleSaveAndExit = () => {
+  private handleSaveAndExit = () => {
     const { onSave } = this.props;
     if (onSave) {
       onSave({ done: true });
     }
   };
 
-  handleEditorBlur = () => {
+  private handleEditorBlur = () => {
     this.setState({ isEditorFocused: false });
   };
 
-  handleEditorFocus = () => {
+  private handleEditorFocus = () => {
     this.setState({ isEditorFocused: true });
   };
 
-  handleOpenSelectionMenu = () => {
+  private handleOpenSelectionMenu = () => {
     this.setState({ blockMenuOpen: false, selectionMenuOpen: true });
   };
 
-  handleCloseSelectionMenu = () => {
+  private handleCloseSelectionMenu = () => {
     this.setState({ selectionMenuOpen: false });
   };
 
-  handleOpenLinkMenu = () => {
+  private handleOpenEmojiMenu = (search: string) => {
+    this.setState({ emojiMenuOpen: true, blockMenuSearch: search });
+  };
+
+  private handleCloseEmojiMenu = () => {
+    this.setState({ emojiMenuOpen: false });
+  };
+
+  private handleOpenLinkMenu = () => {
     this.setState({ blockMenuOpen: false, linkMenuOpen: true });
   };
 
-  handleCloseLinkMenu = () => {
+  private handleCloseLinkMenu = () => {
     this.setState({ linkMenuOpen: false });
   };
 
-  handleOpenBlockMenu = (search: string) => {
+  private handleOpenBlockMenu = (search: string) => {
     this.setState({ blockMenuOpen: true, blockMenuSearch: search });
   };
 
-  handleCloseBlockMenu = () => {
+  private handleCloseBlockMenu = () => {
     if (!this.state.blockMenuOpen) {
       return;
     }
     this.setState({ blockMenuOpen: false });
   };
 
-  handleSelectRow = (index: number, state: EditorState) => {
-    this.view.dispatch(selectRow(index)(state.tr));
-  };
-
-  handleSelectColumn = (index: number, state: EditorState) => {
-    this.view.dispatch(selectColumn(index)(state.tr));
-  };
-
-  handleSelectTable = (state: EditorState) => {
-    this.view.dispatch(selectTable(state.tr));
-  };
-
-  // 'public' methods
-  focusAtStart = () => {
+  public focusAtStart = () => {
     const selection = Selection.atStart(this.view.state.doc);
     const transaction = this.view.state.tr.setSelection(selection);
     this.view.dispatch(transaction);
     this.view.focus();
   };
 
-  focusAtEnd = () => {
+  public focusAtEnd = () => {
     const selection = Selection.atEnd(this.view.state.doc);
     const transaction = this.view.state.tr.setSelection(selection);
     this.view.dispatch(transaction);
     this.view.focus();
   };
 
-  getHeadings = () => {
+  public getHeadings = () => {
     const headings: { title: string; level: number; id: string }[] = [];
     const previouslySeen = {};
 
@@ -740,7 +726,7 @@ export class Editor extends React.PureComponent<
     return headings;
   };
 
-  render() {
+  public render() {
     const {
       dir,
       readOnly,
@@ -804,7 +790,7 @@ export class Editor extends React.PureComponent<
               onShowToast={this.props.onShowToast}
               isActive={this.state.emojiMenuOpen}
               search={this.state.blockMenuSearch}
-              onClose={() => this.setState({ emojiMenuOpen: false })}
+              onClose={this.handleCloseEmojiMenu}
             />
             <BlockMenu
               view={this.view}
