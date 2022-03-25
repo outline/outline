@@ -93,7 +93,7 @@ class Team extends ParanoidModel {
   @Column
   memberCollectionCreate: boolean;
 
-  @Default(false)
+  @Default(true)
   @Column
   collaborativeEditing: boolean;
 
