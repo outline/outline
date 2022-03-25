@@ -13,6 +13,7 @@ type Props = React.HTMLAttributes<HTMLDivElement> & {
   title: React.ReactNode;
   children: React.ReactNode;
   onClose: React.MouseEventHandler;
+  border?: boolean;
 };
 
 function RightSidebar({ title, onClose, children, ...rest }: Props) {
@@ -71,7 +72,7 @@ function RightSidebar({ title, onClose, children, ...rest }: Props) {
   );
 
   return (
-    <Sidebar style={style} {...rest}>
+    <Sidebar style={style} $border={rest.border} {...rest}>
       <Position style={style} column>
         <Header>
           <Title>{title}</Title>
@@ -100,13 +101,14 @@ const Position = styled(Flex)`
   bottom: 0;
 `;
 
-const Sidebar = styled(Flex)`
+const Sidebar = styled(Flex)<{ $border?: boolean }>`
   display: none;
   position: relative;
   flex-shrink: 0;
   background: ${(props) => props.theme.background};
   width: ${(props) => props.theme.sidebarWidth}px;
-  border-left: 1px solid transparent;
+  border-left: 1px solid
+    ${(props) => (props.$border ? props.theme.divider : "transparent")};
   transition: border-left 100ms ease-in-out;
   z-index: 1;
 

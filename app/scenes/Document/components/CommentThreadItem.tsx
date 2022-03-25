@@ -1,3 +1,4 @@
+import { differenceInMilliseconds, formatDistanceToNow } from "date-fns";
 import * as React from "react";
 import styled from "styled-components";
 import { Minute } from "@shared/utils/time";
@@ -6,7 +7,37 @@ import Avatar from "~/components/Avatar";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
-import usePolicy from "~/hooks/usePolicy";
+//import usePolicy from "~/hooks/usePolicy";
+
+/**
+ * Hook to calculate if we should display a timestamp on a comment
+ *
+ * @param createdAt The date the comment was created
+ * @param previousCreatedAt The date of the previous comment, if any
+ * @returns boolean if to show timestamp
+ */
+function useShowTime(
+  createdAt: string,
+  previousCreatedAt: string | undefined
+): boolean {
+  const previousTimeStamp = previousCreatedAt
+    ? formatDistanceToNow(Date.parse(previousCreatedAt))
+    : undefined;
+  const currentTimeStamp = formatDistanceToNow(Date.parse(createdAt));
+
+  const msSincePreviousComment = previousCreatedAt
+    ? differenceInMilliseconds(
+        Date.parse(createdAt),
+        Date.parse(previousCreatedAt)
+      )
+    : 0;
+
+  return (
+    !msSincePreviousComment ||
+    (msSincePreviousComment > 15 * Minute &&
+      previousTimeStamp !== currentTimeStamp)
+  );
+}
 
 type Props = {
   comment: Comment;
@@ -14,8 +45,7 @@ type Props = {
   lastOfThread?: boolean;
   firstOfAuthor?: boolean;
   lastOfAuthor?: boolean;
-  msSincePreviousComment?: number;
-  highlighted?: boolean;
+  previousCommentCreatedAt?: string;
 };
 
 export default function CommentThreadItem({
@@ -23,21 +53,16 @@ export default function CommentThreadItem({
   firstOfAuthor,
   firstOfThread,
   lastOfThread,
-  msSincePreviousComment,
-  highlighted,
+  previousCommentCreatedAt,
 }: Props) {
-  const can = usePolicy(comment.id);
+  //const can = usePolicy(comment.id);
   const showAuthor = firstOfAuthor;
-  const showTime =
-    showAuthor ||
-    !msSincePreviousComment ||
-    msSincePreviousComment > 15 * Minute;
+  const showTime = useShowTime(comment.createdAt, previousCommentCreatedAt);
 
   return (
     <Flex gap={8} key={comment.id} align="flex-start">
       {firstOfAuthor && <Avatar src={comment.createdBy.avatarUrl} />}
       <Bubble
-        $highlighted={highlighted}
         $firstOfThread={firstOfThread}
         $firstOfAuthor={firstOfAuthor}
         $lastOfThread={lastOfThread}
@@ -45,13 +70,15 @@ export default function CommentThreadItem({
       >
         {(showAuthor || showTime) && (
           <Meta size="xsmall" type="secondary">
-            {showAuthor && (
-              <>
-                <em>{comment.createdBy.name}</em> &middot;{" "}
-              </>
-            )}
+            {showAuthor && <em>{comment.createdBy.name}</em>}
+            {showAuthor && showTime && <> &middot; </>}
             {showTime && (
-              <Time dateTime={comment.createdAt} addSuffix shorten />
+              <Time
+                dateTime={comment.createdAt}
+                tooltipDelay={500}
+                addSuffix
+                shorten
+              />
             )}
           </Meta>
         )}
@@ -74,14 +101,11 @@ const Bubble = styled(Flex)<{
   $firstOfThread?: boolean;
   $firstOfAuthor?: boolean;
   $lastOfThread?: boolean;
-  $highlighted?: boolean;
 }>`
   flex-grow: 1;
   font-size: 15px;
-  color: ${(props) =>
-    props.$highlighted ? props.theme.white : props.theme.text};
-  background: ${(props) =>
-    props.$highlighted ? props.theme.primary : props.theme.secondaryBackground};
+  color: ${(props) => props.theme.text};
+  background: ${(props) => props.theme.secondaryBackground};
   min-width: 2em;
   margin-bottom: 1px;
   padding: 8px 12px;

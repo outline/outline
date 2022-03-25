@@ -1,7 +1,7 @@
-import { differenceInMilliseconds } from "date-fns";
 import { throttle } from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
+import { useHistory } from "react-router-dom";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled from "styled-components";
 import Comment from "~/models/Comment";
@@ -46,6 +46,7 @@ function CommentThread({ comment: thread, document }: Props) {
   const topRef = React.useRef<HTMLDivElement>(null);
   const user = useCurrentUser();
   const params = useQuery();
+  const history = useHistory();
   const [, setIsTyping] = useTypingIndicator({
     document,
     comment: thread,
@@ -53,6 +54,13 @@ function CommentThread({ comment: thread, document }: Props) {
 
   const commentsInThread = comments.inThread(thread.id);
   const highlighted = params.get("commentId") === thread.id;
+
+  const handleClickThread = () => {
+    history.replace({
+      pathname: window.location.pathname.replace(/\/history$/, ""),
+      search: `?commentId=${thread.id}`,
+    });
+  };
 
   React.useEffect(() => {
     if (highlighted && topRef.current) {
@@ -69,7 +77,7 @@ function CommentThread({ comment: thread, document }: Props) {
   }, [highlighted]);
 
   return (
-    <Thread ref={topRef}>
+    <Thread ref={topRef} $highlighted={highlighted} onClick={handleClickThread}>
       {commentsInThread.map((comment, index) => {
         const firstOfAuthor =
           index === 0 ||
@@ -77,13 +85,6 @@ function CommentThread({ comment: thread, document }: Props) {
         const lastOfAuthor =
           index === commentsInThread.length - 1 ||
           comment.createdById !== commentsInThread[index + 1].createdById;
-        const msSincePreviousComment =
-          index === 0
-            ? 0
-            : differenceInMilliseconds(
-                new Date(comment.createdAt),
-                new Date(commentsInThread[index - 1].createdAt)
-              );
 
         return (
           <CommentThreadItem
@@ -93,8 +94,7 @@ function CommentThread({ comment: thread, document }: Props) {
             lastOfThread={index === commentsInThread.length - 1}
             firstOfAuthor={firstOfAuthor}
             lastOfAuthor={lastOfAuthor}
-            msSincePreviousComment={msSincePreviousComment}
-            highlighted={highlighted}
+            previousCommentCreatedAt={commentsInThread[index - 1]?.createdAt}
           />
         );
       })}
@@ -116,8 +116,11 @@ function CommentThread({ comment: thread, document }: Props) {
   );
 }
 
-const Thread = styled.div`
-  margin: 0 18px 0 12px;
+const Thread = styled.div<{ $highlighted: boolean }>`
+  margin: 0 18px 12px 12px;
+
+  outline: ${(props) =>
+    props.$highlighted ? `2px solid ${props.theme.brand.marine}` : "none"};
 `;
 
 export default observer(CommentThread);
