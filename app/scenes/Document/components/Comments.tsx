@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useRouteMatch } from "react-router-dom";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
-import CommentList from "./CommentList";
+import CommentThread from "./CommentThread";
 import Sidebar from "./RightSidebar";
 
 function Comments() {
@@ -21,7 +21,7 @@ function Comments() {
   return (
     <Sidebar title={t("Comments")} onClose={ui.collapseComments} id="comments">
       {comments.threadsInDocument(document.id).map((comment) => (
-        <CommentList key={comment.id} comment={comment} document={document} />
+        <CommentThread key={comment.id} comment={comment} document={document} />
       ))}
     </Sidebar>
   );

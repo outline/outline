@@ -14,7 +14,7 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import CommentForm from "./CommentForm";
-import CommentListItem from "./CommentListItem";
+import CommentThreadItem from "./CommentThreadItem";
 
 type Props = {
   document: Document;
@@ -41,7 +41,7 @@ function useTypingIndicator({
   return [undefined, setIsTyping];
 }
 
-function CommentList({ comment: thread, document }: Props) {
+function CommentThread({ comment: thread, document }: Props) {
   const { comments } = useStores();
   const topRef = React.useRef<HTMLDivElement>(null);
   const user = useCurrentUser();
@@ -86,9 +86,11 @@ function CommentList({ comment: thread, document }: Props) {
               );
 
         return (
-          <CommentListItem
+          <CommentThreadItem
             comment={comment}
             key={comment.id}
+            firstOfThread={index === 0}
+            lastOfThread={index === commentsInThread.length - 1}
             firstOfAuthor={firstOfAuthor}
             lastOfAuthor={lastOfAuthor}
             msSincePreviousComment={msSincePreviousComment}
@@ -115,7 +117,7 @@ function CommentList({ comment: thread, document }: Props) {
 }
 
 const Thread = styled.div`
-  margin: 0 12px;
+  margin: 0 18px 0 12px;
 `;
 
-export default observer(CommentList);
+export default observer(CommentThread);

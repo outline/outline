@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { MAX_COMMENT_LENGTH } from "@shared/constants";
 import Comment from "~/models/Comment";
 import Avatar from "~/components/Avatar";
-import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -96,12 +95,9 @@ function CommentForm({ documentId, thread, onTyping }: Props) {
           autoFocus={thread.isNew}
           onRequestSubmit={handleRequestSubmit}
           placeholder={
-            thread.isNew ? `${t("Add a comment")}…` : `${t("Reply")}…`
+            thread.isNew ? `${t("Add a comment")}…` : `${t("Add a reply")}…`
           }
         />
-        <Button type="submit" aria-label={t("Comment")}>
-          ⬆
-        </Button>
       </Flex>
     </form>
   );

@@ -7,7 +7,7 @@ import { sequelize } from "@server/database/sequelize";
 import auth from "@server/middlewares/authentication";
 import { Document, Comment } from "@server/models";
 import { authorize } from "@server/policies";
-import { presentComment } from "@server/presenters";
+import { presentComment, presentPolicies } from "@server/presenters";
 import { assertUuid, assertPresent, assertSort } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
@@ -45,6 +45,7 @@ router.post("comments.create", auth(), async (ctx) => {
 
   ctx.body = {
     data: presentComment(comment),
+    policies: presentPolicies(user, [comment]),
   };
 });
 
@@ -72,6 +73,7 @@ router.post("comments.list", auth(), pagination(), async (ctx) => {
   ctx.body = {
     pagination: ctx.state.pagination,
     data: comments.map(presentComment),
+    policies: presentPolicies(user, comments),
   };
 });
 
@@ -99,6 +101,7 @@ router.post("comments.update", auth(), async (ctx) => {
 
   ctx.body = {
     data: presentComment(comment),
+    policies: presentPolicies(user, [comment]),
   };
 });
 
