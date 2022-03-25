@@ -15,18 +15,17 @@ import { fadeAndScaleIn } from "~/styles/animations";
 
 let openModals = 0;
 type Props = {
-  children?: React.ReactNode;
   isOpen: boolean;
   title?: React.ReactNode;
   onRequestClose: () => void;
 };
 
-const Modal = ({
+const Modal: React.FC<Props> = ({
   children,
   isOpen,
   title = "Untitled",
   onRequestClose,
-}: Props) => {
+}) => {
   const dialog = useDialogState({
     animated: 250,
   });

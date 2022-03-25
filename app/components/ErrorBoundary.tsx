@@ -12,7 +12,6 @@ import Text from "~/components/Text";
 import env from "~/env";
 
 type Props = WithTranslation & {
-  children: React.ReactNode;
   reloadOnChunkMissing?: boolean;
 };
 
