@@ -117,7 +117,7 @@ function CommentThread({ comment: thread, document }: Props) {
 }
 
 const Thread = styled.div<{ $highlighted: boolean }>`
-  margin: 0 18px 12px 12px;
+  margin: 1em 18px 1em 12px;
 
   outline: ${(props) =>
     props.$highlighted ? `2px solid ${props.theme.brand.marine}` : "none"};
