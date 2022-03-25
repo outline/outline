@@ -12,7 +12,6 @@ import { collectionUrl } from "~/utils/routeHelpers";
 
 type Props = {
   document: Document;
-  children?: React.ReactNode;
   onlyText?: boolean;
 };
 
@@ -49,7 +48,11 @@ function useCategory(document: Document): MenuInternalLink | null {
   return null;
 }
 
-const DocumentBreadcrumb = ({ document, children, onlyText }: Props) => {
+const DocumentBreadcrumb: React.FC<Props> = ({
+  document,
+  children,
+  onlyText,
+}) => {
   const { collections } = useStores();
   const { t } = useTranslation();
   const category = useCategory(document);

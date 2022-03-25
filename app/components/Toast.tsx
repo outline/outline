@@ -17,7 +17,7 @@ function Toast({ closeAfterMs = 3000, onRequestClose, toast }: Props) {
   const { action, type = "info", reoccurring } = toast;
 
   React.useEffect(() => {
-    if (toast.timeout) {
+    if (toast.timeout !== 0) {
       timeout.current = setTimeout(
         onRequestClose,
         toast.timeout || closeAfterMs
@@ -41,7 +41,7 @@ function Toast({ closeAfterMs = 3000, onRequestClose, toast }: Props) {
   }, []);
 
   const handleResume = React.useCallback(() => {
-    if (timeout.current && toast.timeout) {
+    if (timeout.current && toast.timeout !== 0) {
       timeout.current = setTimeout(
         onRequestClose,
         toast.timeout || closeAfterMs

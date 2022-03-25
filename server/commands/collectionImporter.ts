@@ -200,4 +200,7 @@ async function collectionImporter({
   };
 }
 
-export default APM.traceFunction({})(collectionImporter);
+export default APM.traceFunction({
+  serviceName: "command",
+  spanName: "collectionImporter",
+})(collectionImporter);

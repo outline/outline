@@ -1,12 +1,6 @@
 import { find, findIndex, remove, uniq } from "lodash";
 import randomstring from "randomstring";
-import {
-  Identifier,
-  Transaction,
-  Op,
-  FindOptions,
-  SaveOptions,
-} from "sequelize";
+import { Identifier, Transaction, Op, FindOptions } from "sequelize";
 import {
   Sequelize,
   Table,
@@ -400,8 +394,8 @@ class Collection extends ParanoidModel {
     };
   };
 
-  deleteDocument = async function (document: Document) {
-    await this.removeDocumentInStructure(document);
+  deleteDocument = async function (document: Document, options?: FindOptions) {
+    await this.removeDocumentInStructure(document, options);
 
     // Helper to destroy all child documents for a document
     const loopChildren = async (
@@ -419,13 +413,13 @@ class Collection extends ParanoidModel {
       });
     };
 
-    await loopChildren(document.id);
-    await document.destroy();
+    await loopChildren(document.id, options);
+    await document.destroy(options);
   };
 
   removeDocumentInStructure = async function (
     document: Document,
-    options?: SaveOptions<Collection> & {
+    options?: FindOptions & {
       save?: boolean;
     }
   ) {
@@ -434,66 +428,55 @@ class Collection extends ParanoidModel {
     }
 
     let result: [NavigationNode, number] | undefined;
-    let transaction;
 
-    try {
-      // documentStructure can only be updated by one request at the time
-      transaction = await this.sequelize.transaction();
+    const removeFromChildren = async (
+      children: NavigationNode[],
+      id: string
+    ) => {
+      children = await Promise.all(
+        children.map(async (childDocument) => {
+          return {
+            ...childDocument,
+            children: await removeFromChildren(childDocument.children, id),
+          };
+        })
+      );
+      const match = find(children, {
+        id,
+      });
 
-      const removeFromChildren = async (
-        children: NavigationNode[],
-        id: string
-      ) => {
-        children = await Promise.all(
-          children.map(async (childDocument) => {
-            return {
-              ...childDocument,
-              children: await removeFromChildren(childDocument.children, id),
-            };
-          })
-        );
-        const match = find(children, {
-          id,
-        });
-
-        if (match) {
-          if (!result) {
-            result = [
-              match,
-              findIndex(children, {
-                id,
-              }),
-            ];
-          }
-
-          remove(children, {
-            id,
-          });
+      if (match) {
+        if (!result) {
+          result = [
+            match,
+            findIndex(children, {
+              id,
+            }),
+          ];
         }
 
-        return children;
-      };
+        remove(children, {
+          id,
+        });
+      }
 
-      this.documentStructure = await removeFromChildren(
-        this.documentStructure,
-        document.id
-      );
+      return children;
+    };
 
-      // Sequelize doesn't seem to set the value with splice on JSONB field
-      // https://github.com/sequelize/sequelize/blob/e1446837196c07b8ff0c23359b958d68af40fd6d/src/model.js#L3937
-      this.changed("documentStructure", true);
+    this.documentStructure = await removeFromChildren(
+      this.documentStructure,
+      document.id
+    );
+
+    // Sequelize doesn't seem to set the value with splice on JSONB field
+    // https://github.com/sequelize/sequelize/blob/e1446837196c07b8ff0c23359b958d68af40fd6d/src/model.js#L3937
+    this.changed("documentStructure", true);
+
+    if (options?.save !== false) {
       await this.save({
         ...options,
         fields: ["documentStructure"],
-        transaction,
       });
-      await transaction.commit();
-    } catch (err) {
-      if (transaction) {
-        await transaction.rollback();
-      }
-
-      throw err;
     }
 
     return result;
@@ -578,48 +561,39 @@ class Collection extends ParanoidModel {
   /**
    * Update document's title and url in the documentStructure
    */
-  updateDocument = async function (updatedDocument: Document) {
+  updateDocument = async function (
+    updatedDocument: Document,
+    options?: { transaction: Transaction }
+  ) {
     if (!this.documentStructure) {
       return;
     }
-    let transaction;
 
-    try {
-      // documentStructure can only be updated by one request at the time
-      transaction = await this.sequelize.transaction();
-      const { id } = updatedDocument;
+    const { id } = updatedDocument;
 
-      const updateChildren = (documents: NavigationNode[]) => {
-        return documents.map((document) => {
-          if (document.id === id) {
-            document = {
-              ...(updatedDocument.toJSON() as NavigationNode),
-              children: document.children,
-            };
-          } else {
-            document.children = updateChildren(document.children);
-          }
+    const updateChildren = (documents: NavigationNode[]) => {
+      return documents.map((document) => {
+        if (document.id === id) {
+          document = {
+            ...(updatedDocument.toJSON() as NavigationNode),
+            children: document.children,
+          };
+        } else {
+          document.children = updateChildren(document.children);
+        }
 
-          return document;
-        });
-      };
-
-      this.documentStructure = updateChildren(this.documentStructure);
-      // Sequelize doesn't seem to set the value with splice on JSONB field
-      // https://github.com/sequelize/sequelize/blob/e1446837196c07b8ff0c23359b958d68af40fd6d/src/model.js#L3937
-      this.changed("documentStructure", true);
-      await this.save({
-        fields: ["documentStructure"],
-        transaction,
+        return document;
       });
-      await transaction.commit();
-    } catch (err) {
-      if (transaction) {
-        await transaction.rollback();
-      }
+    };
 
-      throw err;
-    }
+    this.documentStructure = updateChildren(this.documentStructure);
+    // Sequelize doesn't seem to set the value with splice on JSONB field
+    // https://github.com/sequelize/sequelize/blob/e1446837196c07b8ff0c23359b958d68af40fd6d/src/model.js#L3937
+    this.changed("documentStructure", true);
+    await this.save({
+      fields: ["documentStructure"],
+      ...options,
+    });
 
     return this;
   };
@@ -627,7 +601,7 @@ class Collection extends ParanoidModel {
   addDocumentToStructure = async function (
     document: Document,
     index?: number,
-    options: {
+    options: FindOptions & {
       save?: boolean;
       documentJson?: NavigationNode;
     } = {}
@@ -635,67 +609,48 @@ class Collection extends ParanoidModel {
     if (!this.documentStructure) {
       this.documentStructure = [];
     }
-    let transaction;
 
-    try {
-      // documentStructure can only be updated by one request at a time
-      if (options?.save !== false) {
-        transaction = await this.sequelize.transaction();
-      }
+    // If moving existing document with children, use existing structure
+    const documentJson = { ...document.toJSON(), ...options.documentJson };
 
-      // If moving existing document with children, use existing structure
-      const documentJson = { ...document.toJSON(), ...options.documentJson };
+    if (!document.parentDocumentId) {
+      // Note: Index is supported on DB level but it's being ignored
+      // by the API presentation until we build product support for it.
+      this.documentStructure.splice(
+        index !== undefined ? index : this.documentStructure.length,
+        0,
+        documentJson
+      );
+    } else {
+      // Recursively place document
+      const placeDocument = (documentList: NavigationNode[]) => {
+        return documentList.map((childDocument) => {
+          if (document.parentDocumentId === childDocument.id) {
+            childDocument.children.splice(
+              index !== undefined ? index : childDocument.children.length,
+              0,
+              documentJson
+            );
+          } else {
+            childDocument.children = placeDocument(childDocument.children);
+          }
 
-      if (!document.parentDocumentId) {
-        // Note: Index is supported on DB level but it's being ignored
-        // by the API presentation until we build product support for it.
-        this.documentStructure.splice(
-          index !== undefined ? index : this.documentStructure.length,
-          0,
-          documentJson
-        );
-      } else {
-        // Recursively place document
-        const placeDocument = (documentList: NavigationNode[]) => {
-          return documentList.map((childDocument) => {
-            if (document.parentDocumentId === childDocument.id) {
-              childDocument.children.splice(
-                index !== undefined ? index : childDocument.children.length,
-                0,
-                documentJson
-              );
-            } else {
-              childDocument.children = placeDocument(childDocument.children);
-            }
-
-            return childDocument;
-          });
-        };
-
-        this.documentStructure = placeDocument(this.documentStructure);
-      }
-
-      // Sequelize doesn't seem to set the value with splice on JSONB field
-      // https://github.com/sequelize/sequelize/blob/e1446837196c07b8ff0c23359b958d68af40fd6d/src/model.js#L3937
-      this.changed("documentStructure", true);
-
-      if (options?.save !== false) {
-        await this.save({
-          ...options,
-          fields: ["documentStructure"],
-          transaction,
+          return childDocument;
         });
+      };
 
-        if (transaction) {
-          await transaction.commit();
-        }
-      }
-    } catch (err) {
-      if (transaction) {
-        await transaction.rollback();
-      }
+      this.documentStructure = placeDocument(this.documentStructure);
+    }
 
-      throw err;
+    // Sequelize doesn't seem to set the value with splice on JSONB field
+    // https://github.com/sequelize/sequelize/blob/e1446837196c07b8ff0c23359b958d68af40fd6d/src/model.js#L3937
+    this.changed("documentStructure", true);
+
+    if (options?.save !== false) {
+      await this.save({
+        ...options,
+        fields: ["documentStructure"],
+      });
     }
 
     return this;

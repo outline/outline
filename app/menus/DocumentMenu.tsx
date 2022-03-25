@@ -258,14 +258,17 @@ function DocumentMenu({
   return (
     <>
       <VisuallyHidden>
-        <input
-          type="file"
-          ref={file}
-          onChange={handleFilePicked}
-          onClick={stopPropagation}
-          accept={documents.importFileTypes.join(", ")}
-          tabIndex={-1}
-        />
+        <label>
+          {t("Import document")}
+          <input
+            type="file"
+            ref={file}
+            onChange={handleFilePicked}
+            onClick={stopPropagation}
+            accept={documents.importFileTypes.join(", ")}
+            tabIndex={-1}
+          />
+        </label>
       </VisuallyHidden>
       {label ? (
         <MenuButton {...menu}>{label}</MenuButton>

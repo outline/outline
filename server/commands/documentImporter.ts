@@ -214,4 +214,7 @@ async function documentImporter({
   };
 }
 
-export default APM.traceFunction({})(documentImporter);
+export default APM.traceFunction({
+  serviceName: "command",
+  spanName: "documentImporter",
+})(documentImporter);
