@@ -10,14 +10,16 @@ import Comment from "~/models/Comment";
 import Document from "~/models/Document";
 import Avatar from "~/components/Avatar";
 import Button from "~/components/Button";
+import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import Input from "~/components/Input";
 import { SocketContext } from "~/components/SocketProvider";
+import Typing from "~/components/Typing";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePersistedState from "~/hooks/usePersistedState";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
-import CommentListItem from "./Comment";
+import CommentListItem from "./CommentListItem";
 
 type Props = {
   document: Document;
@@ -44,7 +46,7 @@ function useTypingIndicator({
   return [undefined, setIsTyping];
 }
 
-function CommentThread({ comment: thread, document }: Props) {
+function CommentList({ comment: thread, document }: Props) {
   const { comments } = useStores();
   const { t } = useTranslation();
   const formRef = React.useRef<HTMLFormElement>(null);
@@ -146,12 +148,14 @@ function CommentThread({ comment: thread, document }: Props) {
           />
         );
       })}
+
       {thread.currentlyTypingUsers
         .filter((typing) => typing.id !== user.id)
         .map((typing) => (
-          <p>
-            <Avatar src={user.avatarUrl} size={24} /> {typing.name} is typing…
-          </p>
+          <Flex gap={8} key={typing.id}>
+            <Avatar src={typing.avatarUrl} size={24} />
+            <Typing />
+          </Flex>
         ))}
       <form
         ref={formRef}
@@ -190,4 +194,4 @@ const Thread = styled.div`
   margin: 0 12px;
 `;
 
-export default observer(CommentThread);
+export default observer(CommentList);
