@@ -28,24 +28,34 @@ function SearchPopover({ shareId }: Props) {
   const [query, setQuery] = React.useState("");
   const searchResults = documents.searchResults(query);
 
-  const searchInputRef = popover.unstable_referenceRef as React.RefObject<
-    HTMLInputElement
-  >;
+  // TODO: the debounce is not working correctly
+  // it's at the wrong level -- needs to be in an effect
+  // that updates the stuff that gets send into the component
+  // right now, the params are sent into the paginated list
+  // but the query is not executed until the debounce
+  // creating a mismatch
 
+  // in order to freeze the update until somerthing comes back
+  // also do the same with searchResults (inside of use effect)
   const performSearch = React.useMemo(
     () =>
       debounce(async ({ query, ...options }: Record<string, any>) => {
-        console.log({ query });
-
         if (query?.length > 0) {
-          return await documents.search(query, options);
+          console.log("DEBOUNCE", { options });
+          return await documents.search(query, { shareId, ...options });
         }
         return undefined;
-      }, 1000),
-    []
+      }, 400),
+    [documents, shareId]
   );
 
+  const searchInputRef = popover.unstable_referenceRef;
   const firstSearchItem = React.useRef<HTMLAnchorElement>(null);
+
+  const handleEscapeList = React.useCallback(
+    () => searchInputRef?.current?.focus(),
+    [searchInputRef]
+  );
 
   const handleKeyDown = (ev: React.KeyboardEvent<HTMLInputElement>) => {
     if (ev.key === "Enter") {
@@ -71,6 +81,16 @@ function SearchPopover({ shareId }: Props) {
     if (ev.key === "ArrowUp") {
       if (popover.visible) {
         popover.hide();
+      }
+
+      if (ev.currentTarget.value) {
+        const length = ev.currentTarget.value.length;
+        const selectionEnd = ev.currentTarget.selectionEnd || 0;
+        if (selectionEnd === 0) {
+          ev.currentTarget.selectionStart = 0;
+          ev.currentTarget.selectionEnd = length;
+          ev.preventDefault();
+        }
       }
     }
 
@@ -136,7 +156,7 @@ function SearchPopover({ shareId }: Props) {
           options={{ query }}
           items={searchResults}
           fetch={performSearch}
-          onEscape={() => searchInputRef?.current?.focus()}
+          onEscape={handleEscapeList}
           empty={
             <NoResults>{t("No results for {{query}}", { query })}</NoResults>
           }

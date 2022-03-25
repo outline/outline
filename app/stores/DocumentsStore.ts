@@ -31,6 +31,7 @@ export type SearchParams = {
   includeDrafts?: boolean;
   collectionId?: string;
   userId?: string;
+  shareId?: string;
 };
 
 type ImportOptions = {

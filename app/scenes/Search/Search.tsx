@@ -100,6 +100,18 @@ class Search extends React.Component<Props> {
       return this.goBack();
     }
 
+    if (ev.key === "ArrowUp") {
+      if (ev.currentTarget.value) {
+        const length = ev.currentTarget.value.length;
+        const selectionEnd = ev.currentTarget.selectionEnd || 0;
+        if (selectionEnd === 0) {
+          ev.currentTarget.selectionStart = 0;
+          ev.currentTarget.selectionEnd = length;
+          ev.preventDefault();
+        }
+      }
+    }
+
     if (ev.key === "ArrowDown" && !ev.shiftKey) {
       ev.preventDefault();
 

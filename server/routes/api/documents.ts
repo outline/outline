@@ -441,7 +441,7 @@ async function loadDocument({
 }: {
   id?: string;
   shareId?: string;
-  user: User;
+  user?: User;
 }): Promise<{
   document: Document;
   share?: Share;
@@ -450,6 +450,11 @@ async function loadDocument({
   let document;
   let collection;
   let share;
+
+  assertPresent(
+    (id && user) || shareId,
+    "authenticated (user & document id) or shareId is required"
+  );
 
   if (shareId) {
     share = await Share.findOne({
@@ -509,7 +514,7 @@ async function loadDocument({
 
     // If the user has access to read the document, we can just update
     // the last access date and return the document without additional checks.
-    const canReadDocument = can(user, "read", document);
+    const canReadDocument = user && can(user, "read", document);
 
     if (canReadDocument) {
       await share.update({
@@ -572,9 +577,9 @@ async function loadDocument({
 
     if (document.deletedAt) {
       // don't send data if user cannot restore deleted doc
-      authorize(user, "restore", document);
+      user && authorize(user, "restore", document);
     } else {
-      authorize(user, "read", document);
+      user && authorize(user, "read", document);
     }
 
     collection = document.collection;
@@ -800,45 +805,72 @@ router.post("documents.search", auth(), pagination(), async (ctx) => {
     collectionId,
     userId,
     dateFilter,
+    shareId,
   } = ctx.body;
   const { offset, limit } = ctx.state.pagination;
   const { user } = ctx.state;
 
+  console.log("QUERY>>", query);
+
   assertNotEmpty(query, "query is required");
+  assertPresent(user || shareId, "authenticated user or shareId is required");
 
-  if (collectionId) {
-    assertUuid(collectionId, "collectionId must be a UUID");
-    const collection = await Collection.scope({
-      method: ["withMembership", user.id],
-    }).findByPk(collectionId);
-    authorize(user, "read", collection);
-  }
+  let response;
 
-  let collaboratorIds = undefined;
+  if (shareId) {
+    const { share, document, collection } = await loadDocument({
+      shareId,
+      user,
+    });
 
-  if (userId) {
-    assertUuid(userId, "userId must be a UUID");
-    collaboratorIds = [userId];
-  }
+    const team = collection.team;
 
-  if (dateFilter) {
-    assertIn(
+    response = await Document.searchForTeam(team, query, {
+      includeArchived: includeArchived === "true",
+      includeDrafts: includeDrafts === "true",
+      collectionId: collection.id,
+      documentId: document.id,
+      share,
       dateFilter,
-      ["day", "week", "month", "year"],
-      "dateFilter must be one of day,week,month,year"
-    );
+      offset,
+      limit,
+    });
+  } else if (user) {
+    if (collectionId) {
+      assertUuid(collectionId, "collectionId must be a UUID");
+      const collection = await Collection.scope({
+        method: ["withMembership", user.id],
+      }).findByPk(collectionId);
+      authorize(user, "read", collection);
+    }
+
+    let collaboratorIds = undefined;
+
+    if (userId) {
+      assertUuid(userId, "userId must be a UUID");
+      collaboratorIds = [userId];
+    }
+
+    if (dateFilter) {
+      assertIn(
+        dateFilter,
+        ["day", "week", "month", "year"],
+        "dateFilter must be one of day,week,month,year"
+      );
+    }
+
+    response = await Document.searchForUser(user, query, {
+      includeArchived: includeArchived === "true",
+      includeDrafts: includeDrafts === "true",
+      collaboratorIds,
+      collectionId,
+      dateFilter,
+      offset,
+      limit,
+    });
   }
 
-  const { results, totalCount } = await Document.searchForUser(user, query, {
-    includeArchived: includeArchived === "true",
-    includeDrafts: includeDrafts === "true",
-    collaboratorIds,
-    collectionId,
-    dateFilter,
-    offset,
-    limit,
-  });
-
+  const { results, totalCount } = response;
   const documents = results.map((result) => result.document);
 
   const data = await Promise.all(
@@ -861,6 +893,9 @@ router.post("documents.search", auth(), pagination(), async (ctx) => {
   }
 
   const policies = presentPolicies(user, documents);
+
+  // SLEEP
+  await new Promise((r) => setTimeout(r, 3000));
 
   ctx.body = {
     pagination: ctx.state.pagination,

@@ -60,6 +60,7 @@ class PaginatedList extends React.Component<Props> {
       prevProps.fetch !== this.props.fetch ||
       !isEqual(prevProps.options, this.props.options)
     ) {
+      console.log("RESET");
       this.reset();
       this.fetchResults();
     }
@@ -80,14 +81,23 @@ class PaginatedList extends React.Component<Props> {
     this.isFetching = true;
     const counter = ++this.fetchCounter;
     const limit = DEFAULT_PAGINATION_LIMIT;
+
+    console.log("FETCH", {
+      limit,
+      offset: this.offset,
+      ...this.props.options,
+    });
+
     const results = await this.props.fetch({
       limit,
       offset: this.offset,
       ...this.props.options,
     });
 
+    console.log({ results }, "<");
+
     if (results && (results.length === 0 || results.length < limit)) {
-      console.log("no more results");
+      console.log("no more results", this.props.options);
       this.allowLoadMore = false;
     } else {
       this.offset += limit;
@@ -97,6 +107,7 @@ class PaginatedList extends React.Component<Props> {
 
     // only the most recent fetch should end the loading state
     if (counter >= this.fetchCounter) {
+      console.log("DONE", counter);
       this.isFetching = false;
       this.isFetchingMore = false;
     }
@@ -135,6 +146,12 @@ class PaginatedList extends React.Component<Props> {
     const showEmpty = items?.length === 0;
     const showLoading =
       this.isFetching && !this.isFetchingMore && !showList && !showEmpty;
+
+    console.log(this.isFetching, this.isFetchingMore, {
+      showList,
+      showEmpty,
+      showLoading,
+    });
 
     return (
       <>

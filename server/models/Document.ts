@@ -38,6 +38,7 @@ import slugify from "@server/utils/slugify";
 import Backlink from "./Backlink";
 import Collection from "./Collection";
 import Revision from "./Revision";
+import Share from "./Share";
 import Star from "./Star";
 import Team from "./Team";
 import User from "./User";
@@ -58,6 +59,8 @@ type SearchOptions = {
   limit?: number;
   offset?: number;
   collectionId?: string;
+  documentId?: string;
+  share?: Share;
   dateFilter?: DateFilter;
   collaboratorIds?: string[];
   includeArchived?: boolean;
@@ -424,14 +427,28 @@ class Document extends ParanoidModel {
     const limit = options.limit || 15;
     const offset = options.offset || 0;
     const wildcardQuery = `${escape(query)}:*`;
-    const collectionIds = await team.collectionIds();
 
-    // If the team has access no public collections then shortcircuit the rest of this
+    let collectionIds;
+    if (options.collectionId) {
+      collectionIds = [options.collectionId];
+    } else {
+      collectionIds = await team.collectionIds();
+    }
+
+    // short circuit if no relevant collections
     if (!collectionIds.length) {
       return {
         results: [],
         totalCount: 0,
       };
+    }
+
+    // restrict to documents in the tree of a shared document when one is provided
+    let documentIds;
+    if (options.documentId && options.share) {
+      if (options.share.includeChildDocuments) {
+        documentIds = await Document.getDocumentTree(options.documentId);
+      }
     }
 
     // Build the SQL query to get documentIds, ranking, and search term context
