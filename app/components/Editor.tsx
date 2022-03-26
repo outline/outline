@@ -4,7 +4,7 @@ import embeds from "@shared/editor/embeds";
 import basicPackage from "@shared/editor/packages/basic";
 import { isInternalUrl } from "@shared/utils/urls";
 import ErrorBoundary from "~/components/ErrorBoundary";
-import { Props as EditorProps } from "~/editor";
+import type { Props as EditorProps } from "~/editor";
 import useDictionary from "~/hooks/useDictionary";
 import useToasts from "~/hooks/useToasts";
 import { uploadFile } from "~/utils/files";
@@ -12,7 +12,7 @@ import history from "~/utils/history";
 import { isModKey } from "~/utils/keyboard";
 import { isHash } from "~/utils/urls";
 
-const SharedEditor = React.lazy(
+const LazyLoadedEditor = React.lazy(
   () =>
     import(
       /* webpackChunkName: "shared-editor" */
@@ -86,19 +86,12 @@ function Editor(props: Props, ref: React.Ref<any>) {
     [shareId]
   );
 
-  const onShowToast = React.useCallback(
-    (message: string) => {
-      showToast(message);
-    },
-    [showToast]
-  );
-
   return (
     <ErrorBoundary reloadOnChunkMissing>
-      <SharedEditor
+      <LazyLoadedEditor
         ref={ref}
         uploadFile={onUploadFile}
-        onShowToast={onShowToast}
+        onShowToast={showToast}
         embeds={embeds}
         dictionary={dictionary}
         extensions={basicPackage}

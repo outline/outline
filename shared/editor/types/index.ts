@@ -12,11 +12,6 @@ export enum EventType {
   linkMenuClose = "linkMenuClose",
 }
 
-export enum ToastType {
-  Error = "error",
-  Info = "info",
-}
-
 export type MenuItem = {
   icon?: typeof React.Component | React.FC<any>;
   name?: string;

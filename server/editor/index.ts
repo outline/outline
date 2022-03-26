@@ -1,6 +1,5 @@
 import { Schema } from "prosemirror-model";
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
-
 import fullPackage from "@shared/editor/packages/full";
 import render from "./renderToHtml";
 

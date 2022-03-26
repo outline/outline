@@ -36,7 +36,7 @@ type Props = {
     event: MouseEvent | React.MouseEvent<HTMLButtonElement>
   ) => void;
   onCreateLink?: (title: string) => Promise<string>;
-  onShowToast: (msg: string, code: string) => void;
+  onShowToast: (message: string) => void;
   view: EditorView;
 };
 

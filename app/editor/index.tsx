@@ -23,7 +23,7 @@ import { MarkdownSerializer } from "@shared/editor/lib/markdown/serializer";
 import Mark from "@shared/editor/marks/Mark";
 import Node from "@shared/editor/nodes/Node";
 import ReactNode from "@shared/editor/nodes/ReactNode";
-import { EmbedDescriptor, EventType, ToastType } from "@shared/editor/types";
+import { EmbedDescriptor, EventType } from "@shared/editor/types";
 import EventEmitter from "@shared/utils/events";
 import Flex from "~/components/Flex";
 import { Dictionary } from "~/hooks/useDictionary";
@@ -104,7 +104,7 @@ export type Props = {
   /** Whether embeds should be rendered without an iframe */
   embedsDisabled?: boolean;
   /** Callback when a toast message is triggered (eg "link copied") */
-  onShowToast: (message: string, code: ToastType) => void;
+  onShowToast: (message: string) => void;
   className?: string;
   style?: React.CSSProperties;
 };
@@ -691,12 +691,14 @@ export class Editor extends React.PureComponent<
   }
 }
 
-const EditorWithTheme = React.forwardRef<Editor, Props>((props: Props, ref) => {
-  return (
-    <WithTheme>
-      {(theme) => <Editor theme={theme} {...props} ref={ref} />}
-    </WithTheme>
-  );
-});
+const LazyLoadedEditor = React.forwardRef<Editor, Props>(
+  (props: Props, ref) => {
+    return (
+      <WithTheme>
+        {(theme) => <Editor theme={theme} {...props} ref={ref} />}
+      </WithTheme>
+    );
+  }
+);
 
-export default EditorWithTheme;
+export default LazyLoadedEditor;

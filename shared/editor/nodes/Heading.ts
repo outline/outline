@@ -14,7 +14,6 @@ import toggleBlockType from "../commands/toggleBlockType";
 import { Command } from "../lib/Extension";
 import headingToSlug, { headingToPersistenceKey } from "../lib/headingToSlug";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
-import { ToastType } from "../types";
 import Node from "./Node";
 
 export default class Heading extends Node {
@@ -180,10 +179,7 @@ export default class Heading extends Node {
     const urlWithoutHash = window.location.href.split("#")[0];
     copy(urlWithoutHash + hash);
 
-    this.options.onShowToast(
-      this.options.dictionary.linkCopied,
-      ToastType.Info
-    );
+    this.options.onShowToast(this.options.dictionary.linkCopied);
   };
 
   keys({ type, schema }: { type: NodeType; schema: Schema }) {
