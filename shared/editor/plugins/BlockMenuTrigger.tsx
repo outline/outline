@@ -6,6 +6,7 @@ import { findParentNode } from "prosemirror-utils";
 import { Decoration, DecorationSet, EditorView } from "prosemirror-view";
 import * as React from "react";
 import ReactDOM from "react-dom";
+import { EventType } from "~/editor";
 import Extension from "../lib/Extension";
 
 const MAX_MATCH = 500;
@@ -65,7 +66,7 @@ export default class BlockMenuTrigger extends Extension {
       new Plugin({
         props: {
           handleClick: () => {
-            this.options.onClose();
+            this.editor.events.emit(EventType.blockMenuClose);
             return false;
           },
           handleKeyDown: (view, event) => {
@@ -79,9 +80,9 @@ export default class BlockMenuTrigger extends Extension {
                 const { pos } = view.state.selection.$from;
                 return run(view, pos, pos, OPEN_REGEX, (state, match) => {
                   if (match) {
-                    this.options.onOpen(match[1]);
+                    this.editor.events.emit(EventType.blockMenuOpen, match[1]);
                   } else {
-                    this.options.onClose();
+                    this.editor.events.emit(EventType.blockMenuClose);
                   }
                   return null;
                 });
@@ -125,7 +126,7 @@ export default class BlockMenuTrigger extends Extension {
                 decorations.push(
                   Decoration.widget(parent.pos, () => {
                     button.addEventListener("click", () => {
-                      this.options.onOpen("");
+                      this.editor.events.emit(EventType.blockMenuOpen, "");
                     });
                     return button;
                   })
@@ -176,7 +177,7 @@ export default class BlockMenuTrigger extends Extension {
           state.selection.$from.parent.type.name === "paragraph" &&
           !isInTable(state)
         ) {
-          this.options.onOpen(match[1]);
+          this.editor.events.emit(EventType.blockMenuOpen, match[1]);
         }
         return null;
       }),
@@ -186,7 +187,7 @@ export default class BlockMenuTrigger extends Extension {
       // /word<space>
       new InputRule(CLOSE_REGEX, (state, match) => {
         if (match) {
-          this.options.onClose();
+          this.editor.events.emit(EventType.blockMenuClose);
         }
         return null;
       }),

@@ -33,6 +33,7 @@ import rust from "refractor/lang/rust";
 import sql from "refractor/lang/sql";
 import typescript from "refractor/lang/typescript";
 import yaml from "refractor/lang/yaml";
+import { Dictionary } from "~/hooks/useDictionary";
 
 import toggleBlockType from "../commands/toggleBlockType";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
@@ -67,6 +68,13 @@ const DEFAULT_LANGUAGE = "javascript";
 ].forEach(refractor.register);
 
 export default class CodeFence extends Node {
+  constructor(options: {
+    dictionary: Dictionary;
+    onShowToast: (message: string, type: string) => void;
+  }) {
+    super(options);
+  }
+
   get languageOptions() {
     return Object.entries(LANGUAGES);
   }

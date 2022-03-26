@@ -13,6 +13,7 @@ import { EditorState, Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import * as React from "react";
 import ReactDOM from "react-dom";
+import { EventType } from "~/editor";
 import { isInternalUrl } from "../../utils/urls";
 import findLinkNodes from "../queries/findLinkNodes";
 import { Dispatch } from "../types";
@@ -106,7 +107,7 @@ export default class Link extends Mark {
     return {
       "Mod-k": (state: EditorState, dispatch: Dispatch) => {
         if (state.selection.empty) {
-          this.options.onKeyboardShortcut();
+          this.editor.events.emit(EventType.linkMenuOpen);
           return true;
         }
 

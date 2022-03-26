@@ -64,6 +64,7 @@ import Placeholder from "@shared/editor/plugins/Placeholder";
 import SmartText from "@shared/editor/plugins/SmartText";
 import TrailingNode from "@shared/editor/plugins/TrailingNode";
 import { EmbedDescriptor, ToastType } from "@shared/editor/types";
+import EventEmitter from "@shared/utils/events";
 import Flex from "~/components/Flex";
 import { Dictionary } from "~/hooks/useDictionary";
 import BlockMenu from "./components/BlockMenu";
@@ -77,6 +78,15 @@ import EditorContainer from "./components/Styles";
 import WithTheme from "./components/WithTheme";
 
 export { default as Extension } from "@shared/editor/lib/Extension";
+
+export enum EventType {
+  blockMenuOpen = "blockMenuOpen",
+  blockMenuClose = "blockMenuClose",
+  emojiMenuOpen = "emojiMenuOpen",
+  emojiMenuClose = "emojiMenuClose",
+  linkMenuOpen = "linkMenuOpen",
+  linkMenuClose = "linkMenuClose",
+}
 
 export type Props = {
   /** An optional identifier for the editor context. It is used to persist local settings */
@@ -224,6 +234,17 @@ export class Editor extends React.PureComponent<
   marks: { [name: string]: MarkSpec };
   commands: Record<string, CommandFactory>;
   rulePlugins: PluginSimple[];
+  events = new EventEmitter();
+
+  public constructor(props: Props & ThemeProps<DefaultTheme>) {
+    super(props);
+    this.events.on(EventType.linkMenuOpen, this.handleOpenLinkMenu);
+    this.events.on(EventType.linkMenuClose, this.handleCloseLinkMenu);
+    this.events.on(EventType.blockMenuOpen, this.handleOpenBlockMenu);
+    this.events.on(EventType.blockMenuClose, this.handleCloseBlockMenu);
+    this.events.on(EventType.emojiMenuOpen, this.handleOpenEmojiMenu);
+    this.events.on(EventType.emojiMenuClose, this.handleCloseEmojiMenu);
+  }
 
   /**
    * We use componentDidMount instead of constructor as the init method requires
@@ -376,7 +397,6 @@ export class Editor extends React.PureComponent<
           new TemplatePlaceholder(),
           new Underline(),
           new Link({
-            onKeyboardShortcut: this.handleOpenLinkMenu,
             onClickLink: this.props.onClickLink,
             onClickHashtag: this.props.onClickHashtag,
             onHoverLink: this.props.onHoverLink,
@@ -388,19 +408,11 @@ export class Editor extends React.PureComponent<
           new SmartText(),
           new TrailingNode(),
           new PasteHandler(),
-          new Keys({
-            onBlur: this.handleEditorBlur,
-            onFocus: this.handleEditorFocus,
-          }),
+          new Keys(),
           new BlockMenuTrigger({
             dictionary,
-            onOpen: this.handleOpenBlockMenu,
-            onClose: this.handleCloseBlockMenu,
           }),
-          new EmojiTrigger({
-            onOpen: this.handleOpenEmojiMenu,
-            onClose: this.handleCloseEmojiMenu,
-          }),
+          new EmojiTrigger(),
           new Placeholder({
             placeholder: this.props.placeholder,
           }),
@@ -542,6 +554,10 @@ export class Editor extends React.PureComponent<
 
     const self = this; // eslint-disable-line
     const view = new EditorView(this.element.current, {
+      handleDOMEvents: {
+        blur: this.handleEditorBlur,
+        focus: this.handleEditorFocus,
+      },
       state: this.createState(this.props.value),
       editable: () => !this.props.readOnly,
       nodeViews: this.nodeViews,
@@ -641,10 +657,12 @@ export class Editor extends React.PureComponent<
 
   private handleEditorBlur = () => {
     this.setState({ isEditorFocused: false });
+    return false;
   };
 
   private handleEditorFocus = () => {
     this.setState({ isEditorFocused: true });
+    return false;
   };
 
   private handleOpenSelectionMenu = () => {

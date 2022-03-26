@@ -52,10 +52,6 @@ export default class Keys extends Extension {
     return [
       new Plugin({
         props: {
-          handleDOMEvents: {
-            blur: this.options.onBlur,
-            focus: this.options.onFocus,
-          },
           // we can't use the keys bindings for this as we want to preventDefault
           // on the original keyboard event when handled
           handleKeyDown: (view, event) => {
