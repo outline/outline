@@ -1,10 +1,9 @@
 import * as React from "react";
 import { Optional } from "utility-types";
 import embeds from "@shared/editor/embeds";
-import basicPackage from "@shared/editor/packages/basic";
 import { isInternalUrl } from "@shared/utils/urls";
 import ErrorBoundary from "~/components/ErrorBoundary";
-import type { Props as EditorProps } from "~/editor";
+import type { Props as EditorProps, Editor as SharedEditor } from "~/editor";
 import useDictionary from "~/hooks/useDictionary";
 import useToasts from "~/hooks/useToasts";
 import { uploadFile } from "~/utils/files";
@@ -37,7 +36,7 @@ export type Props = Optional<
   onPublish?: (event: React.MouseEvent) => any;
 };
 
-function Editor(props: Props, ref: React.Ref<any>) {
+function Editor(props: Props, ref: React.Ref<SharedEditor>) {
   const { id, shareId } = props;
   const { showToast } = useToasts();
   const dictionary = useDictionary();
@@ -94,7 +93,6 @@ function Editor(props: Props, ref: React.Ref<any>) {
         onShowToast={showToast}
         embeds={embeds}
         dictionary={dictionary}
-        extensions={basicPackage}
         {...props}
         onClickLink={onClickLink}
         placeholder={props.placeholder || ""}

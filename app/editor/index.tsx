@@ -23,6 +23,7 @@ import { MarkdownSerializer } from "@shared/editor/lib/markdown/serializer";
 import Mark from "@shared/editor/marks/Mark";
 import Node from "@shared/editor/nodes/Node";
 import ReactNode from "@shared/editor/nodes/ReactNode";
+import basicPackage from "@shared/editor/packages/basic";
 import { EmbedDescriptor, EventType } from "@shared/editor/types";
 import EventEmitter from "@shared/utils/events";
 import Flex from "~/components/Flex";
@@ -49,7 +50,7 @@ export type Props = {
   /** Placeholder displayed when the editor is empty */
   placeholder: string;
   /** Extensions to load into the editor */
-  extensions: (typeof Node | typeof Mark | typeof Extension | Extension)[];
+  extensions?: (typeof Node | typeof Mark | typeof Extension | Extension)[];
   /** If the editor should be focused on mount */
   autoFocus?: boolean;
   /** If the editor should not allow editing */
@@ -146,7 +147,7 @@ export class Editor extends React.PureComponent<
       // no default behavior
     },
     embeds: [],
-    extensions: [],
+    extensions: basicPackage,
   };
 
   state = {
@@ -256,9 +257,7 @@ export class Editor extends React.PureComponent<
       !this.state.selectionMenuOpen
     ) {
       this.isBlurred = true;
-      if (this.props.onBlur) {
-        this.props.onBlur();
-      }
+      this.props.onBlur?.();
     }
 
     if (
@@ -269,9 +268,7 @@ export class Editor extends React.PureComponent<
         this.state.selectionMenuOpen)
     ) {
       this.isBlurred = false;
-      if (this.props.onFocus) {
-        this.props.onFocus();
-      }
+      this.props.onFocus?.();
     }
   }
 
@@ -526,6 +523,9 @@ export class Editor extends React.PureComponent<
   };
 
   private handleCloseSelectionMenu = () => {
+    if (!this.state.selectionMenuOpen) {
+      return;
+    }
     this.setState({ selectionMenuOpen: false });
   };
 
@@ -534,6 +534,9 @@ export class Editor extends React.PureComponent<
   };
 
   private handleCloseEmojiMenu = () => {
+    if (!this.state.emojiMenuOpen) {
+      return;
+    }
     this.setState({ emojiMenuOpen: false });
   };
 
