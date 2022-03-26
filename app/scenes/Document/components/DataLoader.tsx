@@ -33,7 +33,9 @@ type Props = RootStore &
     {
       title?: string;
     }
-  >;
+  > & {
+    children: (arg0: any) => React.ReactNode;
+  };
 
 @observer
 class DataLoader extends React.Component<Props> {
