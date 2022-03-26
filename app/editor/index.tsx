@@ -68,6 +68,7 @@ import Flex from "~/components/Flex";
 import { Dictionary } from "~/hooks/useDictionary";
 import BlockMenu from "./components/BlockMenu";
 import ComponentView from "./components/ComponentView";
+import EditorContext from "./components/EditorContext";
 import EmojiMenu from "./components/EmojiMenu";
 import { SearchResult } from "./components/LinkEditor";
 import LinkToolbar from "./components/LinkToolbar";
@@ -199,7 +200,7 @@ export class Editor extends React.PureComponent<
 
   isBlurred: boolean;
   extensions: ExtensionManager;
-  element?: HTMLElement | null;
+  element = React.createRef<HTMLDivElement>();
   view: EditorView;
   schema: Schema;
   serializer: MarkdownSerializer;
@@ -527,7 +528,7 @@ export class Editor extends React.PureComponent<
   }
 
   private createView() {
-    if (!this.element) {
+    if (!this.element.current) {
       throw new Error("createView called before ref available");
     }
 
@@ -540,7 +541,7 @@ export class Editor extends React.PureComponent<
     };
 
     const self = this; // eslint-disable-line
-    const view = new EditorView(this.element, {
+    const view = new EditorView(this.element.current, {
       state: this.createState(this.props.value),
       editable: () => !this.props.readOnly,
       nodeViews: this.nodeViews,
@@ -597,13 +598,13 @@ export class Editor extends React.PureComponent<
   }
 
   private calculateDir = () => {
-    if (!this.element) {
+    if (!this.element.current) {
       return;
     }
 
     const isRTL =
       this.props.dir === "rtl" ||
-      getComputedStyle(this.element).direction === "rtl";
+      getComputedStyle(this.element.current).direction === "rtl";
 
     if (this.state.isRTL !== isRTL) {
       this.setState({ isRTL });
@@ -740,76 +741,78 @@ export class Editor extends React.PureComponent<
     const { isRTL } = this.state;
 
     return (
-      <Flex
-        onKeyDown={onKeyDown}
-        style={style}
-        className={className}
-        align="flex-start"
-        justify="center"
-        dir={dir}
-        column
-      >
-        <EditorContainer
+      <EditorContext.Provider value={this}>
+        <Flex
+          onKeyDown={onKeyDown}
+          style={style}
+          className={className}
+          align="flex-start"
+          justify="center"
           dir={dir}
-          rtl={isRTL}
-          grow={grow}
-          readOnly={readOnly}
-          readOnlyWriteCheckboxes={readOnlyWriteCheckboxes}
-          ref={(ref) => (this.element = ref)}
-        />
-        {!readOnly && this.view && (
-          <React.Fragment>
-            <SelectionToolbar
-              view={this.view}
-              dictionary={dictionary}
-              commands={this.commands}
-              rtl={isRTL}
-              isTemplate={this.props.template === true}
-              onOpen={this.handleOpenSelectionMenu}
-              onClose={this.handleCloseSelectionMenu}
-              onSearchLink={this.props.onSearchLink}
-              onClickLink={this.props.onClickLink}
-              onCreateLink={this.props.onCreateLink}
-              onShowToast={this.props.onShowToast}
-            />
-            <LinkToolbar
-              view={this.view}
-              dictionary={dictionary}
-              isActive={this.state.linkMenuOpen}
-              onCreateLink={this.props.onCreateLink}
-              onSearchLink={this.props.onSearchLink}
-              onClickLink={this.props.onClickLink}
-              onShowToast={this.props.onShowToast}
-              onClose={this.handleCloseLinkMenu}
-            />
-            <EmojiMenu
-              view={this.view}
-              commands={this.commands}
-              dictionary={dictionary}
-              rtl={isRTL}
-              onShowToast={this.props.onShowToast}
-              isActive={this.state.emojiMenuOpen}
-              search={this.state.blockMenuSearch}
-              onClose={this.handleCloseEmojiMenu}
-            />
-            <BlockMenu
-              view={this.view}
-              commands={this.commands}
-              dictionary={dictionary}
-              rtl={isRTL}
-              isActive={this.state.blockMenuOpen}
-              search={this.state.blockMenuSearch}
-              onClose={this.handleCloseBlockMenu}
-              uploadFile={this.props.uploadFile}
-              onLinkToolbarOpen={this.handleOpenLinkMenu}
-              onFileUploadStart={this.props.onFileUploadStart}
-              onFileUploadStop={this.props.onFileUploadStop}
-              onShowToast={this.props.onShowToast}
-              embeds={this.props.embeds}
-            />
-          </React.Fragment>
-        )}
-      </Flex>
+          column
+        >
+          <EditorContainer
+            dir={dir}
+            rtl={isRTL}
+            grow={grow}
+            readOnly={readOnly}
+            readOnlyWriteCheckboxes={readOnlyWriteCheckboxes}
+            ref={this.element}
+          />
+          {!readOnly && this.view && (
+            <>
+              <SelectionToolbar
+                view={this.view}
+                dictionary={dictionary}
+                commands={this.commands}
+                rtl={isRTL}
+                isTemplate={this.props.template === true}
+                onOpen={this.handleOpenSelectionMenu}
+                onClose={this.handleCloseSelectionMenu}
+                onSearchLink={this.props.onSearchLink}
+                onClickLink={this.props.onClickLink}
+                onCreateLink={this.props.onCreateLink}
+                onShowToast={this.props.onShowToast}
+              />
+              <LinkToolbar
+                view={this.view}
+                dictionary={dictionary}
+                isActive={this.state.linkMenuOpen}
+                onCreateLink={this.props.onCreateLink}
+                onSearchLink={this.props.onSearchLink}
+                onClickLink={this.props.onClickLink}
+                onShowToast={this.props.onShowToast}
+                onClose={this.handleCloseLinkMenu}
+              />
+              <EmojiMenu
+                view={this.view}
+                commands={this.commands}
+                dictionary={dictionary}
+                rtl={isRTL}
+                onShowToast={this.props.onShowToast}
+                isActive={this.state.emojiMenuOpen}
+                search={this.state.blockMenuSearch}
+                onClose={this.handleCloseEmojiMenu}
+              />
+              <BlockMenu
+                view={this.view}
+                commands={this.commands}
+                dictionary={dictionary}
+                rtl={isRTL}
+                isActive={this.state.blockMenuOpen}
+                search={this.state.blockMenuSearch}
+                onClose={this.handleCloseBlockMenu}
+                uploadFile={this.props.uploadFile}
+                onLinkToolbarOpen={this.handleOpenLinkMenu}
+                onFileUploadStart={this.props.onFileUploadStart}
+                onFileUploadStop={this.props.onFileUploadStop}
+                onShowToast={this.props.onShowToast}
+                embeds={this.props.embeds}
+              />
+            </>
+          )}
+        </Flex>
+      </EditorContext.Provider>
     );
   }
 }
