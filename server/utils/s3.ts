@@ -1,7 +1,5 @@
-import crypto from "crypto";
 import util from "util";
 import AWS from "aws-sdk";
-import { addHours, format } from "date-fns";
 import fetch from "fetch-with-proxy";
 import { v4 as uuidv4 } from "uuid";
 import Logger from "@server/logging/logger";
@@ -38,75 +36,7 @@ const getPresignedPostPromise = util
   .bind(s3public);
 const getSignedUrlPromise = s3public.getSignedUrlPromise;
 
-const hmac = (
-  key: string | Buffer,
-  message: string,
-  encoding?: "base64" | "hex"
-) => {
-  const o = crypto.createHmac("sha256", key).update(message, "utf8");
-  return encoding ? o.digest(encoding) : o.digest();
-};
-
-export const makeCredential = () => {
-  const credential =
-    AWS_ACCESS_KEY_ID +
-    "/" +
-    format(new Date(), "yyyyMMdd") +
-    "/" +
-    AWS_REGION +
-    "/s3/aws4_request";
-  return credential;
-};
-
-export const makePolicy = (
-  credential: string,
-  longDate: string,
-  acl: string,
-  contentType = "image"
-) => {
-  const tomorrow = addHours(new Date(), 24);
-  const policy = {
-    conditions: [
-      {
-        bucket: process.env.AWS_S3_BUCKET_NAME,
-      },
-      ["starts-with", "$key", ""],
-      {
-        acl,
-      },
-      // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
-      ["content-length-range", 0, +process.env.AWS_S3_UPLOAD_MAX_SIZE],
-      ["starts-with", "$Content-Type", contentType],
-      ["starts-with", "$Cache-Control", ""],
-      {
-        "x-amz-algorithm": "AWS4-HMAC-SHA256",
-      },
-      {
-        "x-amz-credential": credential,
-      },
-      {
-        "x-amz-date": longDate,
-      },
-    ],
-    expiration: format(tomorrow, "yyyy-MM-dd'T'HH:mm:ss'Z'"),
-  };
-
-  return Buffer.from(JSON.stringify(policy)).toString("base64");
-};
-
-export const getSignature = (policy: string) => {
-  const kDate = hmac(
-    "AWS4" + AWS_SECRET_ACCESS_KEY,
-    format(new Date(), "yyyyMMdd")
-  );
-  const kRegion = hmac(kDate, AWS_REGION);
-  const kService = hmac(kRegion, "s3");
-  const kCredentials = hmac(kService, "aws4_request");
-  const signature = hmac(kCredentials, policy, "hex");
-  return signature;
-};
-
-export const getPresignedPost = (
+export const getPresignedPost = async (
   key: string,
   acl: string,
   contentType = "image"
@@ -127,7 +57,7 @@ export const getPresignedPost = (
     Expires: 3600,
   };
 
-  return getPresignedPostPromise(params);
+  return await getPresignedPostPromise(params);
 };
 
 const _publicS3Endpoint = (() => {
