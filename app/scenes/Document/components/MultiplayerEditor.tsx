@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { IndexeddbPersistence } from "y-indexeddb";
 import * as Y from "yjs";
+import fullPackage from "@shared/editor/packages/full";
 import Editor, { Props as EditorProps } from "~/components/Editor";
 import env from "~/env";
 import useCurrentToken from "~/hooks/useCurrentToken";
@@ -188,10 +189,11 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
 
   const extensions = React.useMemo(() => {
     if (!remoteProvider) {
-      return [];
+      return fullPackage;
     }
 
     return [
+      ...fullPackage,
       new MultiplayerExtension({
         user,
         provider: remoteProvider,
@@ -251,7 +253,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     return () => window.removeEventListener("error", onUnhandledError);
   }, [showToast, t]);
 
-  if (!extensions.length) {
+  if (!remoteProvider) {
     return null;
   }
 
@@ -261,7 +263,12 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   return (
     <>
       {showCache && (
-        <Editor defaultValue={props.defaultValue} readOnly ref={ref} />
+        <Editor
+          defaultValue={props.defaultValue}
+          extensions={extensions}
+          readOnly
+          ref={ref}
+        />
       )}
       <Editor
         {...props}

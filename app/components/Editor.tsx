@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Optional } from "utility-types";
 import embeds from "@shared/editor/embeds";
+import basicPackage from "@shared/editor/packages/basic";
 import { isInternalUrl } from "@shared/utils/urls";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import { Props as EditorProps } from "~/editor";
@@ -27,6 +28,7 @@ export type Props = Optional<
   | "embeds"
   | "dictionary"
   | "onShowToast"
+  | "extensions"
 > & {
   shareId?: string | undefined;
   embedsDisabled?: boolean;
@@ -99,6 +101,7 @@ function Editor(props: Props, ref: React.Ref<any>) {
         onShowToast={onShowToast}
         embeds={embeds}
         dictionary={dictionary}
+        extensions={basicPackage}
         {...props}
         onClickLink={onClickLink}
         placeholder={props.placeholder || ""}

@@ -6,8 +6,8 @@ import { findParentNode } from "prosemirror-utils";
 import { Decoration, DecorationSet, EditorView } from "prosemirror-view";
 import * as React from "react";
 import ReactDOM from "react-dom";
-import { EventType } from "~/editor";
 import Extension from "../lib/Extension";
+import { EventType } from "../types";
 
 const MAX_MATCH = 500;
 const OPEN_REGEX = /^\/(\w+)?$/;

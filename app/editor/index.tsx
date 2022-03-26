@@ -6,7 +6,12 @@ import { gapCursor } from "prosemirror-gapcursor";
 import { inputRules, InputRule } from "prosemirror-inputrules";
 import { keymap } from "prosemirror-keymap";
 import { MarkdownParser } from "prosemirror-markdown";
-import { Schema, NodeSpec, MarkSpec, Node } from "prosemirror-model";
+import {
+  Schema,
+  NodeSpec,
+  MarkSpec,
+  Node as ProsemirrorNode,
+} from "prosemirror-model";
 import { EditorState, Selection, Plugin, Transaction } from "prosemirror-state";
 import { Decoration, EditorView } from "prosemirror-view";
 import * as React from "react";
@@ -15,55 +20,10 @@ import Extension, { CommandFactory } from "@shared/editor/lib/Extension";
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
 import headingToSlug from "@shared/editor/lib/headingToSlug";
 import { MarkdownSerializer } from "@shared/editor/lib/markdown/serializer";
-
-// marks
-import Bold from "@shared/editor/marks/Bold";
-import Code from "@shared/editor/marks/Code";
-import Highlight from "@shared/editor/marks/Highlight";
-import Italic from "@shared/editor/marks/Italic";
-import Link from "@shared/editor/marks/Link";
-import TemplatePlaceholder from "@shared/editor/marks/Placeholder";
-import Strikethrough from "@shared/editor/marks/Strikethrough";
-import Underline from "@shared/editor/marks/Underline";
-
-// nodes
-import Attachment from "@shared/editor/nodes/Attachment";
-import Blockquote from "@shared/editor/nodes/Blockquote";
-import BulletList from "@shared/editor/nodes/BulletList";
-import CheckboxItem from "@shared/editor/nodes/CheckboxItem";
-import CheckboxList from "@shared/editor/nodes/CheckboxList";
-import CodeBlock from "@shared/editor/nodes/CodeBlock";
-import CodeFence from "@shared/editor/nodes/CodeFence";
-import Doc from "@shared/editor/nodes/Doc";
-import Embed from "@shared/editor/nodes/Embed";
-import Emoji from "@shared/editor/nodes/Emoji";
-import HardBreak from "@shared/editor/nodes/HardBreak";
-import Heading from "@shared/editor/nodes/Heading";
-import HorizontalRule from "@shared/editor/nodes/HorizontalRule";
-import Image from "@shared/editor/nodes/Image";
-import ListItem from "@shared/editor/nodes/ListItem";
-import Notice from "@shared/editor/nodes/Notice";
-import OrderedList from "@shared/editor/nodes/OrderedList";
-import Paragraph from "@shared/editor/nodes/Paragraph";
+import Mark from "@shared/editor/marks/Mark";
+import Node from "@shared/editor/nodes/Node";
 import ReactNode from "@shared/editor/nodes/ReactNode";
-import Table from "@shared/editor/nodes/Table";
-import TableCell from "@shared/editor/nodes/TableCell";
-import TableHeadCell from "@shared/editor/nodes/TableHeadCell";
-import TableRow from "@shared/editor/nodes/TableRow";
-import Text from "@shared/editor/nodes/Text";
-
-// plugins
-import BlockMenuTrigger from "@shared/editor/plugins/BlockMenuTrigger";
-import EmojiTrigger from "@shared/editor/plugins/EmojiTrigger";
-import Folding from "@shared/editor/plugins/Folding";
-import History from "@shared/editor/plugins/History";
-import Keys from "@shared/editor/plugins/Keys";
-import MaxLength from "@shared/editor/plugins/MaxLength";
-import PasteHandler from "@shared/editor/plugins/PasteHandler";
-import Placeholder from "@shared/editor/plugins/Placeholder";
-import SmartText from "@shared/editor/plugins/SmartText";
-import TrailingNode from "@shared/editor/plugins/TrailingNode";
-import { EmbedDescriptor, ToastType } from "@shared/editor/types";
+import { EmbedDescriptor, EventType, ToastType } from "@shared/editor/types";
 import EventEmitter from "@shared/utils/events";
 import Flex from "~/components/Flex";
 import { Dictionary } from "~/hooks/useDictionary";
@@ -79,15 +39,6 @@ import WithTheme from "./components/WithTheme";
 
 export { default as Extension } from "@shared/editor/lib/Extension";
 
-export enum EventType {
-  blockMenuOpen = "blockMenuOpen",
-  blockMenuClose = "blockMenuClose",
-  emojiMenuOpen = "emojiMenuOpen",
-  emojiMenuClose = "emojiMenuClose",
-  linkMenuOpen = "linkMenuOpen",
-  linkMenuClose = "linkMenuClose",
-}
-
 export type Props = {
   /** An optional identifier for the editor context. It is used to persist local settings */
   id?: string;
@@ -97,8 +48,8 @@ export type Props = {
   defaultValue: string;
   /** Placeholder displayed when the editor is empty */
   placeholder: string;
-  /** Additional extensions to load into the editor */
-  extensions?: Extension[];
+  /** Extensions to load into the editor */
+  extensions: (typeof Node | typeof Mark | typeof Extension | Extension)[];
   /** If the editor should be focused on mount */
   autoFocus?: boolean;
   /** If the editor should not allow editing */
@@ -221,7 +172,7 @@ export class Editor extends React.PureComponent<
   inputRules: InputRule[];
   nodeViews: {
     [name: string]: (
-      node: Node,
+      node: ProsemirrorNode,
       view: EditorView,
       getPos: () => number,
       decorations: Decoration<{
@@ -342,88 +293,7 @@ export class Editor extends React.PureComponent<
   }
 
   private createExtensions() {
-    const { dictionary } = this.props;
-
-    // adding nodes here? Update server/editor/renderToHtml.ts for serialization
-    // on the server
-    return new ExtensionManager(
-      [
-        ...[
-          new Doc(),
-          new HardBreak(),
-          new Paragraph(),
-          new Blockquote(),
-          new CodeBlock({
-            dictionary,
-            onShowToast: this.props.onShowToast,
-          }),
-          new CodeFence({
-            dictionary,
-            onShowToast: this.props.onShowToast,
-          }),
-          new Emoji(),
-          new Text(),
-          new CheckboxList(),
-          new CheckboxItem(),
-          new BulletList(),
-          new Embed({ embeds: this.props.embeds }),
-          new ListItem(),
-          new Attachment({
-            dictionary,
-          }),
-          new Notice({
-            dictionary,
-          }),
-          new Heading({
-            dictionary,
-            onShowToast: this.props.onShowToast,
-          }),
-          new HorizontalRule(),
-          new Image({
-            dictionary,
-            uploadFile: this.props.uploadFile,
-            onFileUploadStart: this.props.onFileUploadStart,
-            onFileUploadStop: this.props.onFileUploadStop,
-            onShowToast: this.props.onShowToast,
-          }),
-          new Table(),
-          new TableCell(),
-          new TableHeadCell(),
-          new TableRow(),
-          new Bold(),
-          new Code(),
-          new Highlight(),
-          new Italic(),
-          new TemplatePlaceholder(),
-          new Underline(),
-          new Link({
-            onClickLink: this.props.onClickLink,
-            onClickHashtag: this.props.onClickHashtag,
-            onHoverLink: this.props.onHoverLink,
-          }),
-          new Strikethrough(),
-          new OrderedList(),
-          new History(),
-          new Folding(),
-          new SmartText(),
-          new TrailingNode(),
-          new PasteHandler(),
-          new Keys(),
-          new BlockMenuTrigger({
-            dictionary,
-          }),
-          new EmojiTrigger(),
-          new Placeholder({
-            placeholder: this.props.placeholder,
-          }),
-          new MaxLength({
-            maxLength: this.props.maxLength,
-          }),
-        ],
-        ...(this.props.extensions || []),
-      ],
-      this
-    );
+    return new ExtensionManager(this.props.extensions, this);
   }
 
   private createPlugins() {
@@ -451,7 +321,7 @@ export class Editor extends React.PureComponent<
       .filter((extension: ReactNode) => extension.component)
       .reduce((nodeViews, extension: ReactNode) => {
         const nodeView = (
-          node: Node,
+          node: ProsemirrorNode,
           view: EditorView,
           getPos: () => number,
           decorations: Decoration<{
@@ -639,20 +509,6 @@ export class Editor extends React.PureComponent<
     this.props.onChange(() => {
       return this.view ? this.value() : undefined;
     });
-  };
-
-  private handleSave = () => {
-    const { onSave } = this.props;
-    if (onSave) {
-      onSave({ done: false });
-    }
-  };
-
-  private handleSaveAndExit = () => {
-    const { onSave } = this.props;
-    if (onSave) {
-      onSave({ done: true });
-    }
   };
 
   private handleEditorBlur = () => {

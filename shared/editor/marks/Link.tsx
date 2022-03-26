@@ -13,10 +13,9 @@ import { EditorState, Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import * as React from "react";
 import ReactDOM from "react-dom";
-import { EventType } from "~/editor";
 import { isInternalUrl } from "../../utils/urls";
 import findLinkNodes from "../queries/findLinkNodes";
-import { Dispatch } from "../types";
+import { EventType, Dispatch } from "../types";
 import Mark from "./Mark";
 
 const LINK_INPUT_REGEX = /\[([^[]+)]\((\S+)\)$/;
