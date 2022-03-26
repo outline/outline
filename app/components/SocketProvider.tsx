@@ -44,7 +44,7 @@ class SocketProvider extends React.Component<Props> {
   }
 
   checkConnection = () => {
-    if (this.socket && this.socket.disconnected && getPageVisible()) {
+    if (this?.socket?.disconnected && getPageVisible()) {
       // null-ifying this reference is important, do not remove. Without it
       // references to old sockets are potentially held in context
       this.socket.close();
@@ -101,7 +101,7 @@ class SocketProvider extends React.Component<Props> {
     this.socket.on("reconnect_attempt", () => {
       if (this.socket) {
         this.socket.io.opts.transports =
-          auth.team && auth.team.domain
+          auth?.team?.domain
             ? ["websocket"]
             : ["websocket", "polling"];
       }
@@ -209,8 +209,7 @@ class SocketProvider extends React.Component<Props> {
           // the change) then we don't need to update anything either.
 
           if (
-            collection &&
-            collection.updatedAt === collectionDescriptor.updatedAt
+            collection?.updatedAt === collectionDescriptor.updatedAt
           ) {
             continue;
           }

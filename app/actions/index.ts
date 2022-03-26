@@ -102,7 +102,7 @@ export function actionToKBar(
       shortcut: action.shortcut || [],
       icon: resolvedIcon,
       perform: action.perform
-        ? () => action.perform && action.perform(context)
+        ? () => action?.perform?.(context)
         : undefined,
     },
     // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
