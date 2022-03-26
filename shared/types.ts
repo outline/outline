@@ -6,7 +6,6 @@ export type PublicEnv = {
   URL: string;
   CDN_URL: string;
   COLLABORATION_URL: string;
-  AWS_S3_UPLOAD_BUCKET_URL: string;
   DEPLOYMENT: "hosted" | "";
   ENVIRONMENT: "production" | "development";
   SENTRY_DSN: string | undefined;

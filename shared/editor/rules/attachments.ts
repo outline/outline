@@ -1,6 +1,5 @@
 import MarkdownIt from "markdown-it";
 import Token from "markdown-it/lib/token";
-import env from "../../env";
 
 function isParagraph(token: Token) {
   return token.type === "paragraph_open";
@@ -20,10 +19,7 @@ function isLinkClose(token: Token) {
 
 function isAttachment(token: Token) {
   const href = token.attrGet("href");
-  return (
-    href?.includes("attachments.redirect") ||
-    href?.startsWith(env.AWS_S3_UPLOAD_BUCKET_URL)
-  );
+  return href?.includes("attachments.redirect");
 }
 
 export default function linksToAttachments(md: MarkdownIt) {

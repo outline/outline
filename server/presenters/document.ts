@@ -20,7 +20,10 @@ async function replaceImageAttachments(text: string) {
         const signedUrl = await getSignedUrl(attachment.key, 3600);
         text = text.replace(
           new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
-          signedUrl
+          // keep "attachments.redirect" string for files in shared urls to be recognized correctly
+          // this behavior should be changed upon switching to `json` based document transfer
+          //     in `documents.info` endpoint
+          signedUrl + "# attachments.redirect"
         );
       }
     })

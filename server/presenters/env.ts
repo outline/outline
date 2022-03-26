@@ -5,7 +5,6 @@ import { PublicEnv } from "@shared/types";
 export default function present(env: Record<string, any>): PublicEnv {
   return {
     URL: env.URL.replace(/\/$/, ""),
-    AWS_S3_UPLOAD_BUCKET_URL: env.AWS_S3_UPLOAD_BUCKET_URL,
     CDN_URL: (env.CDN_URL || "").replace(/\/$/, ""),
     COLLABORATION_URL: (env.COLLABORATION_URL || env.URL)
       .replace(/\/$/, "")
