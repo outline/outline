@@ -100,10 +100,9 @@ class SocketProvider extends React.Component<Props> {
     // connection may have failed (caused by proxy, firewall, browser, ...)
     this.socket.on("reconnect_attempt", () => {
       if (this.socket) {
-        this.socket.io.opts.transports =
-          auth?.team?.domain
-            ? ["websocket"]
-            : ["websocket", "polling"];
+        this.socket.io.opts.transports = auth?.team?.domain
+          ? ["websocket"]
+          : ["websocket", "polling"];
       }
     });
 
@@ -208,9 +207,7 @@ class SocketProvider extends React.Component<Props> {
           // if we already have the latest version (it was us that performed
           // the change) then we don't need to update anything either.
 
-          if (
-            collection?.updatedAt === collectionDescriptor.updatedAt
-          ) {
+          if (collection?.updatedAt === collectionDescriptor.updatedAt) {
             continue;
           }
 

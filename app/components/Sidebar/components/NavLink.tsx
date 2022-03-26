@@ -73,10 +73,10 @@ const NavLink = ({
   const escapedPath = path?.replace(/([.+*?=^!:${}()[\]|/\\])/g, "\\$1");
   const match = escapedPath
     ? matchPath(currentLocation.pathname, {
-      path: escapedPath,
-      exact,
-      strict,
-    })
+        path: escapedPath,
+        exact,
+        strict,
+      })
     : null;
 
   const isActive = !!(isActiveProp
