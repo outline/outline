@@ -22,9 +22,7 @@ export const SocketContext: any = React.createContext<SocketWithAuthentication |
   null
 );
 
-type Props = RootStore & {
-  children: React.ReactNode;
-};
+type Props = RootStore;
 
 @observer
 class SocketProvider extends React.Component<Props> {
