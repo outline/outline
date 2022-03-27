@@ -66,8 +66,7 @@ function DocumentLink(
   }, [fetchChildDocuments, node, hasChildDocuments, isActiveDocument]);
 
   const pathToNode = React.useMemo(
-    () =>
-      collection && collection.pathToDocument(node.id).map((entry) => entry.id),
+    () => collection?.pathToDocument(node.id).map((entry) => entry.id),
     [collection, node]
   );
 

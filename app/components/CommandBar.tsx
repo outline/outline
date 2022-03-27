@@ -67,7 +67,7 @@ function CommandBar() {
   );
 }
 
-function KBarPortal({ children }: { children: React.ReactNode }) {
+const KBarPortal: React.FC = ({ children }) => {
   const { showing } = useKBar((state) => ({
     showing: state.visualState !== "hidden",
   }));
@@ -77,7 +77,7 @@ function KBarPortal({ children }: { children: React.ReactNode }) {
   }
 
   return <Portal>{children}</Portal>;
-}
+};
 
 const Hint = styled(Text)`
   display: flex;

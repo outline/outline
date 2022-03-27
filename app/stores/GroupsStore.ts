@@ -26,7 +26,7 @@ export default class GroupsStore extends BaseStore<Group> {
 
     try {
       const res = await client.post(`/groups.list`, params);
-      invariant(res && res.data, "Data not available");
+      invariant(res?.data, "Data not available");
       runInAction(`GroupsStore#fetchPage`, () => {
         this.addPolicies(res.policies);
         res.data.groups.forEach(this.add);

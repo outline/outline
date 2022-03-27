@@ -17,7 +17,7 @@ export default class StarsStore extends BaseStore<Star> {
 
     try {
       const res = await client.post(`/stars.list`, params);
-      invariant(res && res.data, "Data not available");
+      invariant(res?.data, "Data not available");
       runInAction(`StarsStore#fetchPage`, () => {
         res.data.documents.forEach(this.rootStore.documents.add);
         res.data.stars.forEach(this.add);

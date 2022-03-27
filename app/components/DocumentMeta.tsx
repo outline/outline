@@ -35,11 +35,10 @@ type Props = {
   showLastViewed?: boolean;
   showParentDocuments?: boolean;
   document: Document;
-  children?: React.ReactNode;
   to?: string;
 };
 
-function DocumentMeta({
+const DocumentMeta: React.FC<Props> = ({
   showPublished,
   showCollection,
   showLastViewed,
@@ -48,7 +47,7 @@ function DocumentMeta({
   children,
   to,
   ...rest
-}: Props) {
+}) => {
   const { t } = useTranslation();
   const { collections } = useStores();
   const user = useCurrentUser();
@@ -172,6 +171,6 @@ function DocumentMeta({
       {children}
     </Container>
   );
-}
+};
 
 export default observer(DocumentMeta);
