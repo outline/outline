@@ -139,7 +139,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
         this.setState({
           selectedIndex: Math.max(
             0,
-            prev && prev.name === "separator" ? prevIndex - 1 : prevIndex
+            prev?.name === "separator" ? prevIndex - 1 : prevIndex
           ),
         });
       } else {
@@ -162,7 +162,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
 
         this.setState({
           selectedIndex: Math.min(
-            next && next.name === "separator" ? nextIndex + 1 : nextIndex,
+            next?.name === "separator" ? nextIndex + 1 : nextIndex,
             total
           ),
         });

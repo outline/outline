@@ -17,7 +17,6 @@ import { uploadFile, dataUrlToBlob } from "~/utils/files";
 const EMPTY_OBJECT = {};
 
 export type Props = {
-  children?: React.ReactNode;
   onSuccess: (url: string) => void | Promise<void>;
   onError: (error: string) => void;
   submitText?: string;

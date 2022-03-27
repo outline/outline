@@ -7,16 +7,14 @@ import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
-import env from "~/env";
 import useAuthorizedSettingsConfig from "~/hooks/useAuthorizedSettingsConfig";
+import isHosted from "~/utils/isHosted";
 import Sidebar from "./Sidebar";
 import Header from "./components/Header";
 import Section from "./components/Section";
 import SidebarButton from "./components/SidebarButton";
 import SidebarLink from "./components/SidebarLink";
 import Version from "./components/Version";
-
-const isHosted = env.DEPLOYMENT === "hosted";
 
 function SettingsSidebar() {
   const { t } = useTranslation();

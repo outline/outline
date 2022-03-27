@@ -111,7 +111,7 @@ export default class CollectionsStore extends BaseStore<Collection> {
       id: collectionId,
       index,
     });
-    invariant(res && res.success, "Collection could not be moved");
+    invariant(res?.success, "Collection could not be moved");
     const collection = this.get(collectionId);
 
     if (collection) {
@@ -153,7 +153,7 @@ export default class CollectionsStore extends BaseStore<Collection> {
       const res = await client.post(`/collections.info`, {
         id,
       });
-      invariant(res && res.data, "Collection not available");
+      invariant(res?.data, "Collection not available");
       this.addPolicies(res.policies);
       return this.add(res.data);
     } catch (err) {

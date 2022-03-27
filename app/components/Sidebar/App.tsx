@@ -25,7 +25,7 @@ import ArchiveLink from "./components/ArchiveLink";
 import Collections from "./components/Collections";
 import Section from "./components/Section";
 import SidebarAction from "./components/SidebarAction";
-import SidebarButton from "./components/SidebarButton";
+import SidebarButton, { SidebarButtonProps } from "./components/SidebarButton";
 import SidebarLink from "./components/SidebarLink";
 import Starred from "./components/Starred";
 import TrashLink from "./components/TrashLink";
@@ -55,7 +55,7 @@ function AppSidebar() {
       {dndArea && (
         <DndProvider backend={HTML5Backend} options={html5Options}>
           <OrganizationMenu>
-            {(props) => (
+            {(props: SidebarButtonProps) => (
               <SidebarButton
                 {...props}
                 title={team.name}

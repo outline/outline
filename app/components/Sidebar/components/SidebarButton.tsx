@@ -3,7 +3,7 @@ import * as React from "react";
 import styled from "styled-components";
 import Flex from "~/components/Flex";
 
-type Props = {
+export type SidebarButtonProps = {
   title: React.ReactNode;
   image: React.ReactNode;
   minHeight?: number;
@@ -13,7 +13,7 @@ type Props = {
   onClick: React.MouseEventHandler<HTMLButtonElement>;
 };
 
-const SidebarButton = React.forwardRef<HTMLButtonElement, Props>(
+const SidebarButton = React.forwardRef<HTMLButtonElement, SidebarButtonProps>(
   (
     {
       showDisclosure,
@@ -22,7 +22,7 @@ const SidebarButton = React.forwardRef<HTMLButtonElement, Props>(
       title,
       minHeight = 0,
       ...rest
-    }: Props,
+    }: SidebarButtonProps,
     ref
   ) => (
     <Wrapper

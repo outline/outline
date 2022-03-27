@@ -10,6 +10,7 @@ import CenteredContent from "~/components/CenteredContent";
 import PageTitle from "~/components/PageTitle";
 import Text from "~/components/Text";
 import env from "~/env";
+import isHosted from "~/utils/isHosted";
 
 type Props = WithTranslation & {
   reloadOnChunkMissing?: boolean;
@@ -61,7 +62,7 @@ class ErrorBoundary extends React.Component<Props> {
 
     if (this.error) {
       const error = this.error;
-      const isReported = !!env.SENTRY_DSN && env.DEPLOYMENT === "hosted";
+      const isReported = !!env.SENTRY_DSN && isHosted;
       const isChunkError = this.error.message.match(/chunk/);
 
       if (isChunkError) {
