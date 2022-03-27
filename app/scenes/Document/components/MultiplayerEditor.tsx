@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { IndexeddbPersistence } from "y-indexeddb";
 import * as Y from "yjs";
-import fullPackage from "@shared/editor/packages/full";
 import Editor, { Props as EditorProps } from "~/components/Editor";
 import env from "~/env";
 import useCurrentToken from "~/hooks/useCurrentToken";
@@ -189,18 +188,18 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
 
   const extensions = React.useMemo(() => {
     if (!remoteProvider) {
-      return fullPackage;
+      return props.extensions;
     }
 
     return [
-      ...fullPackage,
+      ...(props.extensions || []),
       new MultiplayerExtension({
         user,
         provider: remoteProvider,
         document: ydoc,
       }),
     ];
-  }, [remoteProvider, user, ydoc]);
+  }, [remoteProvider, user, ydoc, props.extensions]);
 
   React.useEffect(() => {
     if (isLocalSynced && isRemoteSynced) {
@@ -260,12 +259,13 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   // while the collaborative document is loading, we render a version of the
   // document from the last text cache in read-only mode if we have it.
   const showCache = !isLocalSynced && !isRemoteSynced;
+
   return (
     <>
       {showCache && (
         <Editor
           defaultValue={props.defaultValue}
-          extensions={extensions}
+          extensions={props.extensions}
           readOnly
           ref={ref}
         />
