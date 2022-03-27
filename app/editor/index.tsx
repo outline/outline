@@ -23,7 +23,7 @@ import { MarkdownSerializer } from "@shared/editor/lib/markdown/serializer";
 import Mark from "@shared/editor/marks/Mark";
 import Node from "@shared/editor/nodes/Node";
 import ReactNode from "@shared/editor/nodes/ReactNode";
-import basicPackage from "@shared/editor/packages/basic";
+import fullExtensionsPackage from "@shared/editor/packages/full";
 import { EmbedDescriptor, EventType } from "@shared/editor/types";
 import EventEmitter from "@shared/utils/events";
 import Flex from "~/components/Flex";
@@ -147,7 +147,7 @@ export class Editor extends React.PureComponent<
       // no default behavior
     },
     embeds: [],
-    extensions: basicPackage,
+    extensions: fullExtensionsPackage,
   };
 
   state = {

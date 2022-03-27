@@ -26,7 +26,6 @@ export default class ExtensionManager {
       let extension;
 
       if (typeof ext === "function") {
-        // @ts-expect-error abstract class
         extension = new ext(editor?.props);
       } else {
         extension = ext;
