@@ -7,6 +7,8 @@ import Avatar from "~/components/Avatar";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
+import useBoolean from "~/hooks/useBoolean";
+import CommentMenu from "~/menus/CommentMenu";
 //import usePolicy from "~/hooks/usePolicy";
 
 /**
@@ -58,6 +60,7 @@ export default function CommentThreadItem({
   //const can = usePolicy(comment.id);
   const showAuthor = firstOfAuthor;
   const showTime = useShowTime(comment.createdAt, previousCommentCreatedAt);
+  const [isEditing, setEditing] = useBoolean();
 
   return (
     <Flex gap={8} key={comment.id} align="flex-start">
@@ -82,11 +85,26 @@ export default function CommentThreadItem({
             )}
           </Meta>
         )}
-        <Flex>{comment.data.text}</Flex>
+        {isEditing ? <>Editing</> : <Flex>{comment.data.text}</Flex>}
+        <Menu comment={comment} onEdit={setEditing} />
       </Bubble>
     </Flex>
   );
 }
+
+const Menu = styled(CommentMenu)`
+  position: absolute;
+  right: 4px;
+  top: 4px;
+  opacity: 0;
+  transition: opacity 100ms ease-in-out;
+
+  &:hover,
+  &[aria-expanded="true"] {
+    opacity: 1;
+    background: ${(props) => props.theme.sidebarActiveBackground};
+  }
+`;
 
 const Meta = styled(Text)`
   margin-bottom: 2px;
@@ -102,6 +120,7 @@ const Bubble = styled(Flex)<{
   $firstOfAuthor?: boolean;
   $lastOfThread?: boolean;
 }>`
+  position: relative;
   flex-grow: 1;
   font-size: 15px;
   color: ${(props) => props.theme.text};
@@ -124,5 +143,9 @@ const Bubble = styled(Flex)<{
 
   p:last-child {
     margin-bottom: 0;
+  }
+
+  &:hover ${Menu} {
+    opacity: 1;
   }
 `;

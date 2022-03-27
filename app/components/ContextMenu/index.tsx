@@ -181,7 +181,7 @@ export const Background = styled.div<{
   background: ${(props) => props.theme.menuBackground};
   border-radius: 6px;
   padding: 6px 0;
-  min-width: 180px;
+  min-width: 120px;
   min-height: 44px;
   overflow: hidden;
   overflow-y: auto;

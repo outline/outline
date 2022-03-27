@@ -112,7 +112,7 @@ router.post("comments.delete", auth(), async (ctx) => {
   const { user } = ctx.state;
 
   await sequelize.transaction(async (transaction) => {
-    const comment = await Comment.findByPk(id, {
+    const comment = await Comment.unscoped().findByPk(id, {
       transaction,
       lock: Transaction.LOCK.UPDATE,
     });

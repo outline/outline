@@ -107,15 +107,9 @@ const Sidebar = styled(Flex)<{ $border?: boolean }>`
   flex-shrink: 0;
   background: ${(props) => props.theme.background};
   width: ${(props) => props.theme.sidebarWidth}px;
-  border-left: 1px solid
-    ${(props) => (props.$border ? props.theme.divider : "transparent")};
+  border-left: 1px solid ${(props) => props.theme.divider};
   transition: border-left 100ms ease-in-out;
   z-index: 1;
-
-  &:hover,
-  &:focus-within {
-    border-left: 1px solid ${(props) => props.theme.divider};
-  }
 
   ${breakpoint("tablet")`
     display: flex;
