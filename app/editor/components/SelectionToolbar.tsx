@@ -191,8 +191,7 @@ export default class SelectionToolbar extends React.Component<Props> {
     const isTableSelection = colIndex !== undefined && rowIndex !== undefined;
     const link = isMarkActive(state.schema.marks.link)(state);
     const range = getMarkRange(selection.$from, state.schema.marks.link);
-    const isImageSelection =
-      selection.node && selection.node.type.name === "image";
+    const isImageSelection = selection.node?.type?.name === "image";
     let isTextSelection = false;
 
     let items: MenuItem[] = [];

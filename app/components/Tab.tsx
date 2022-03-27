@@ -9,7 +9,6 @@ type Props = Omit<
 > & {
   to: string;
   exact?: boolean;
-  children: React.ReactNode;
 };
 
 const TabLink = styled(NavLinkWithChildrenFunc)`
@@ -45,7 +44,7 @@ const transition = {
   damping: 30,
 };
 
-export default function Tab({ children, ...rest }: Props) {
+const Tab: React.FC<Props> = ({ children, ...rest }) => {
   const theme = useTheme();
   const activeStyle = {
     color: theme.textSecondary,
@@ -67,4 +66,6 @@ export default function Tab({ children, ...rest }: Props) {
       )}
     </TabLink>
   );
-}
+};
+
+export default Tab;

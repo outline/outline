@@ -3,7 +3,6 @@ import UiStore from "~/stores/UiStore";
 
 type Props = {
   ui: UiStore;
-  children?: React.ReactNode;
 };
 
 class HideSidebar extends React.Component<Props> {

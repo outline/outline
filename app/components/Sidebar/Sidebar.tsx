@@ -14,7 +14,7 @@ import AccountMenu from "~/menus/AccountMenu";
 import { fadeIn } from "~/styles/animations";
 import Avatar from "../Avatar";
 import ResizeBorder from "./components/ResizeBorder";
-import SidebarButton from "./components/SidebarButton";
+import SidebarButton, { SidebarButtonProps } from "./components/SidebarButton";
 import Toggle, { ToggleButton, Positioner } from "./components/Toggle";
 
 const ANIMATION_MS = 250;
@@ -169,22 +169,25 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(
           )}
           {children}
 
-          <AccountMenu>
-            {(props) => (
-              <SidebarButton
-                {...props}
-                showMoreMenu
-                title={user.name}
-                image={
-                  <StyledAvatar
-                    src={user.avatarUrl}
-                    size={24}
-                    showBorder={false}
-                  />
-                }
-              />
-            )}
-          </AccountMenu>
+          {user && (
+            <AccountMenu>
+              {(props: SidebarButtonProps) => (
+                <SidebarButton
+                  {...props}
+                  showMoreMenu
+                  title={user.name}
+                  image={
+                    <StyledAvatar
+                      alt={user.name}
+                      src={user.avatarUrl}
+                      size={24}
+                      showBorder={false}
+                    />
+                  }
+                />
+              )}
+            </AccountMenu>
+          )}
           <ResizeBorder
             onMouseDown={handleMouseDown}
             onDoubleClick={ui.sidebarCollapsed ? undefined : handleReset}

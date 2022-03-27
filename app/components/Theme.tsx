@@ -6,11 +6,7 @@ import useMediaQuery from "~/hooks/useMediaQuery";
 import useStores from "~/hooks/useStores";
 import GlobalStyles from "~/styles/globals";
 
-type Props = {
-  children: React.ReactNode;
-};
-
-function Theme({ children }: Props) {
+const Theme: React.FC = ({ children }) => {
   const { ui } = useStores();
   const resolvedTheme = ui.resolvedTheme === "dark" ? dark : light;
   const resolvedMobileTheme =
@@ -37,6 +33,6 @@ function Theme({ children }: Props) {
       </>
     </ThemeProvider>
   );
-}
+};
 
 export default observer(Theme);

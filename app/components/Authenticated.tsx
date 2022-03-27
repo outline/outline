@@ -15,7 +15,7 @@ type Props = {
 const Authenticated = ({ children }: Props) => {
   const { auth } = useStores();
   const { i18n } = useTranslation();
-  const language = auth.user && auth.user.language;
+  const language = auth.user?.language;
 
   // Watching for language changes here as this is the earliest point we have
   // the user available and means we can start loading translations faster

@@ -20,11 +20,10 @@ import env from "~/env";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import { isCustomDomain } from "~/utils/domains";
+import isHosted from "~/utils/isHosted";
 import { changeLanguage, detectLanguage } from "~/utils/language";
 import Notices from "./Notices";
 import Provider from "./Provider";
-
-const isHosted = env.DEPLOYMENT === "hosted";
 
 function Header({ config }: { config?: Config | undefined }) {
   const { t } = useTranslation();
@@ -160,7 +159,7 @@ function Login() {
       <Centered align="center" justify="center" column auto>
         <PageTitle title={t("Login")} />
         <Logo>
-          {env.TEAM_LOGO && env.DEPLOYMENT !== "hosted" ? (
+          {env.TEAM_LOGO && !isHosted ? (
             <TeamLogo src={env.TEAM_LOGO} />
           ) : (
             <OutlineLogo size={38} fill="currentColor" />

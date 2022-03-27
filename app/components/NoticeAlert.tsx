@@ -1,11 +1,7 @@
 import * as React from "react";
 import Notice from "~/components/Notice";
 
-export default function AlertNotice({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+const AlertNotice: React.FC = ({ children }) => {
   return (
     <Notice>
       <svg
@@ -28,4 +24,6 @@ export default function AlertNotice({
       {children}
     </Notice>
   );
-}
+};
+
+export default AlertNotice;

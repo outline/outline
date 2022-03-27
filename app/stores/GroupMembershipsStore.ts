@@ -20,7 +20,7 @@ export default class GroupMembershipsStore extends BaseStore<GroupMembership> {
 
     try {
       const res = await client.post(`/groups.memberships`, params);
-      invariant(res && res.data, "Data not available");
+      invariant(res?.data, "Data not available");
       runInAction(`GroupMembershipsStore#fetchPage`, () => {
         res.data.users.forEach(this.rootStore.users.add);
         res.data.groupMemberships.forEach(this.add);
@@ -38,7 +38,7 @@ export default class GroupMembershipsStore extends BaseStore<GroupMembership> {
       id: groupId,
       userId,
     });
-    invariant(res && res.data, "Group Membership data should be available");
+    invariant(res?.data, "Group Membership data should be available");
     res.data.users.forEach(this.rootStore.users.add);
     res.data.groups.forEach(this.rootStore.groups.add);
 
@@ -52,7 +52,7 @@ export default class GroupMembershipsStore extends BaseStore<GroupMembership> {
       id: groupId,
       userId,
     });
-    invariant(res && res.data, "Group Membership data should be available");
+    invariant(res?.data, "Group Membership data should be available");
     this.remove(`${userId}-${groupId}`);
     runInAction(`GroupMembershipsStore#delete`, () => {
       res.data.groups.forEach(this.rootStore.groups.add);

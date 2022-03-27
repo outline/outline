@@ -38,19 +38,18 @@ type Props = {
   visible?: boolean;
   placement?: Placement;
   animating?: boolean;
-  children: React.ReactNode;
   unstable_disclosureRef?: React.RefObject<HTMLElement | null>;
   onOpen?: () => void;
   onClose?: () => void;
   hide?: () => void;
 };
 
-export default function ContextMenu({
+const ContextMenu: React.FC<Props> = ({
   children,
   onOpen,
   onClose,
   ...rest
-}: Props) {
+}) => {
   const previousVisible = usePrevious(rest.visible);
   const maxHeight = useMenuHeight(rest.visible, rest.unstable_disclosureRef);
   const backgroundRef = React.useRef<HTMLDivElement>(null);
@@ -137,7 +136,9 @@ export default function ContextMenu({
       )}
     </>
   );
-}
+};
+
+export default ContextMenu;
 
 export const Backdrop = styled.div`
   animation: ${fadeIn} 200ms ease-in-out;
