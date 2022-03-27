@@ -44,7 +44,7 @@ class SocketProvider extends React.Component<Props> {
   }
 
   checkConnection = () => {
-    if (this?.socket?.disconnected && getPageVisible()) {
+    if (this.socket?.disconnected && getPageVisible()) {
       // null-ifying this reference is important, do not remove. Without it
       // references to old sockets are potentially held in context
       this.socket.close();
