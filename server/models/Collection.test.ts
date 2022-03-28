@@ -85,56 +85,6 @@ describe("getDocumentTree", () => {
   });
 });
 
-describe("isChildDocument", () => {
-  test("should return false with unexpected data", async () => {
-    const document = await buildDocument();
-    const collection = await buildCollection({
-      documentStructure: [document.toJSON()],
-    });
-    expect(collection.isChildDocument(document.id, document.id)).toEqual(false);
-    expect(collection.isChildDocument(document.id, undefined)).toEqual(false);
-    expect(collection.isChildDocument(undefined, document.id)).toEqual(false);
-  });
-
-  test("should return false if sibling", async () => {
-    const one = await buildDocument();
-    const document = await buildDocument();
-    const collection = await buildCollection({
-      documentStructure: [one.toJSON(), document.toJSON()],
-    });
-    expect(collection.isChildDocument(one.id, document.id)).toEqual(false);
-    expect(collection.isChildDocument(document.id, one.id)).toEqual(false);
-  });
-
-  test("should return true if direct child of parent", async () => {
-    const parent = await buildDocument();
-    const document = await buildDocument();
-    const collection = await buildCollection({
-      documentStructure: [
-        { ...parent.toJSON(), children: [document.toJSON()] },
-      ],
-    });
-    expect(collection.isChildDocument(parent.id, document.id)).toEqual(true);
-    expect(collection.isChildDocument(document.id, parent.id)).toEqual(false);
-  });
-
-  test("should return true if nested child of parent", async () => {
-    const parent = await buildDocument();
-    const nested = await buildDocument();
-    const document = await buildDocument();
-    const collection = await buildCollection({
-      documentStructure: [
-        {
-          ...parent.toJSON(),
-          children: [{ ...nested.toJSON(), children: [document.toJSON()] }],
-        },
-      ],
-    });
-    expect(collection.isChildDocument(parent.id, document.id)).toEqual(true);
-    expect(collection.isChildDocument(document.id, parent.id)).toEqual(false);
-  });
-});
-
 describe("#addDocumentToStructure", () => {
   test("should add as last element without index", async () => {
     const { collection } = await seed();
