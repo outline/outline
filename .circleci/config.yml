@@ -70,7 +70,6 @@ jobs:
           command: |
             docker buildx install
             docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-            docker rm -f buildx_buildkit_docker-multiarch0
             docker buildx create --name docker-multiarch --platform linux/amd64,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x
             docker buildx inspect --builder docker-multiarch --bootstrap
             docker buildx use docker-multiarch
