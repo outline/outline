@@ -16,6 +16,7 @@ import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import getParentListItem from "../queries/getParentListItem";
 import isInList from "../queries/isInList";
 import isList from "../queries/isList";
+import { Dispatch } from "../types";
 import Node from "./Node";
 
 export default class ListItem extends Node {
@@ -199,10 +200,7 @@ export default class ListItem extends Node {
       "Shift-Tab": liftListItem(type),
       "Mod-]": sinkListItem(type),
       "Mod-[": liftListItem(type),
-      "Shift-Enter": (
-        state: EditorState,
-        dispatch: (tr: Transaction) => void
-      ) => {
+      "Shift-Enter": (state: EditorState, dispatch: Dispatch) => {
         if (!isInList(state)) {
           return false;
         }
@@ -214,10 +212,7 @@ export default class ListItem extends Node {
         dispatch(tr.split(selection.to));
         return true;
       },
-      "Alt-ArrowUp": (
-        state: EditorState,
-        dispatch: (tr: Transaction) => void
-      ) => {
+      "Alt-ArrowUp": (state: EditorState, dispatch: Dispatch) => {
         if (!state.selection.empty) {
           return false;
         }
@@ -248,10 +243,7 @@ export default class ListItem extends Node {
         );
         return true;
       },
-      "Alt-ArrowDown": (
-        state: EditorState,
-        dispatch: (tr: Transaction) => void
-      ) => {
+      "Alt-ArrowDown": (state: EditorState, dispatch: Dispatch) => {
         if (!state.selection.empty) {
           return false;
         }

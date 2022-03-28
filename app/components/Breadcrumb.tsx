@@ -9,11 +9,15 @@ import { MenuInternalLink } from "~/types";
 type Props = {
   items: MenuInternalLink[];
   max?: number;
-  children?: React.ReactNode;
   highlightFirstItem?: boolean;
 };
 
-function Breadcrumb({ items, highlightFirstItem, children, max = 2 }: Props) {
+function Breadcrumb({
+  items,
+  highlightFirstItem,
+  children,
+  max = 2,
+}: React.PropsWithChildren<Props>) {
   const totalItems = items.length;
   const topLevelItems: MenuInternalLink[] = [...items];
   let overflowItems;

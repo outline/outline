@@ -3,7 +3,6 @@ import { USER_PRESENCE_INTERVAL } from "@shared/constants";
 import { SocketContext } from "~/components/SocketProvider";
 
 type Props = {
-  children?: React.ReactNode;
   documentId: string;
   isEditing: boolean;
 };

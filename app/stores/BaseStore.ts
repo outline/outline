@@ -138,7 +138,7 @@ export default class BaseStore<T extends BaseModel> {
         ...options,
       });
 
-      invariant(res && res.data, "Data should be available");
+      invariant(res?.data, "Data should be available");
       this.addPolicies(res.policies);
       return this.add(res.data);
     } finally {
@@ -163,7 +163,7 @@ export default class BaseStore<T extends BaseModel> {
         ...options,
       });
 
-      invariant(res && res.data, "Data should be available");
+      invariant(res?.data, "Data should be available");
       this.addPolicies(res.policies);
       return this.add(res.data);
     } finally {
@@ -206,7 +206,7 @@ export default class BaseStore<T extends BaseModel> {
       const res = await client.post(`/${this.apiEndpoint}.info`, {
         id,
       });
-      invariant(res && res.data, "Data should be available");
+      invariant(res?.data, "Data should be available");
       this.addPolicies(res.policies);
       return this.add(res.data);
     } catch (err) {
@@ -230,7 +230,7 @@ export default class BaseStore<T extends BaseModel> {
 
     try {
       const res = await client.post(`/${this.apiEndpoint}.list`, params);
-      invariant(res && res.data, "Data not available");
+      invariant(res?.data, "Data not available");
 
       runInAction(`list#${this.modelName}`, () => {
         this.addPolicies(res.policies);

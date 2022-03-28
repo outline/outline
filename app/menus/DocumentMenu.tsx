@@ -43,6 +43,7 @@ import { actionToMenuItem } from "~/actions";
 import { pinDocument } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
@@ -95,6 +96,7 @@ function DocumentMenu({
     activeCollectionId: document.collectionId,
   });
   const { t } = useTranslation();
+  const isMobile = useMobile();
   const [renderModals, setRenderModals] = React.useState(false);
   const [showDeleteModal, setShowDeleteModal] = React.useState(false);
   const [
@@ -450,7 +452,7 @@ function DocumentMenu({
             },
           ]}
         />
-        {showDisplayOptions && (
+        {showDisplayOptions && !isMobile && (
           <>
             <Separator />
             <Style>

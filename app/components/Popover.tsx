@@ -7,12 +7,11 @@ import useMobile from "~/hooks/useMobile";
 import { fadeAndScaleIn } from "~/styles/animations";
 
 type Props = {
-  children: React.ReactNode;
   tabIndex?: number;
   width?: number;
 };
 
-function Popover({ children, width = 380, ...rest }: Props) {
+const Popover: React.FC<Props> = ({ children, width = 380, ...rest }) => {
   const isMobile = useMobile();
 
   if (isMobile) {
@@ -28,7 +27,7 @@ function Popover({ children, width = 380, ...rest }: Props) {
       <Contents $width={width}>{children}</Contents>
     </ReakitPopover>
   );
-}
+};
 
 const Contents = styled.div<{ $width?: number }>`
   animation: ${fadeAndScaleIn} 200ms ease;
