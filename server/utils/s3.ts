@@ -4,18 +4,37 @@ import fetch from "fetch-with-proxy";
 import { v4 as uuidv4 } from "uuid";
 import Logger from "@server/logging/logger";
 
+// backward compatibility
+const AWS_S3_ACCELERATE_URL = process.env.AWS_S3_ACCELERATE_URL;
+const AWS_S3_UPLOAD_BUCKET_URL = process.env.AWS_S3_UPLOAD_BUCKET_URL;
+const AWS_S3_UPLOAD_BUCKET_NAME = process.env.AWS_S3_UPLOAD_BUCKET_NAME;
+const AWS_S3_FORCE_PATH_STYLE = process.env.AWS_S3_FORCE_PATH_STYLE;
+
 const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
 const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
 const AWS_REGION = process.env.AWS_REGION || "";
 const AWS_SERVICE = process.env.AWS_SERVICE || "s3";
 const AWS_S3_PROVIDER = process.env.AWS_S3_PROVIDER || "amazonaws.com";
-const AWS_S3_BUCKET_NAME = process.env.AWS_S3_BUCKET_NAME || "outline";
+const AWS_S3_BUCKET_NAME =
+  process.env.AWS_S3_BUCKET_NAME || AWS_S3_UPLOAD_BUCKET_NAME || "outline";
 const AWS_S3_ENDPOINT =
   process.env.AWS_S3_ENDPOINT ||
+  AWS_S3_UPLOAD_BUCKET_URL ||
   `https://${AWS_SERVICE}.${AWS_REGION}.${AWS_S3_PROVIDER}`;
-const AWS_S3_ENDPOINT_STYLE = process.env.AWS_S3_ENDPOINT_STYLE || "domain";
+const AWS_S3_ENDPOINT_STYLE =
+  /* eslint-disable-next-line */
+  process.env.AWS_S3_ENDPOINT_STYLE || (() => {
+    /* eslint-disable */
+    switch (AWS_S3_FORCE_PATH_STYLE) {
+      case "true": return "path";
+      case undefined: return "domain";
+      default: return "domain";
+    }
+  })();
 const AWS_S3_PUBLIC_ENDPOINT =
-  process.env.AWS_S3_PUBLIC_ENDPOINT || AWS_S3_ENDPOINT;
+  process.env.AWS_S3_PUBLIC_ENDPOINT ||
+  AWS_S3_ACCELERATE_URL ||
+  AWS_S3_ENDPOINT;
 
 const s3config = {
   endpoint: "",
@@ -34,7 +53,8 @@ const s3public = new AWS.S3(s3config); // used only for signing public urls
 const getPresignedPostPromise = util
   .promisify(s3public.createPresignedPost)
   .bind(s3public);
-const getSignedUrlPromise = s3public.getSignedUrlPromise;
+const getSignedUrlPromise = s3public.getSignedUrlPromise
+  .bind(s3public);
 
 export const getPresignedPost = async (
   key: string,
