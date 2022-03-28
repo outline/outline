@@ -506,33 +506,6 @@ class Collection extends ParanoidModel {
     return result;
   };
 
-  isChildDocument = function (
-    parentDocumentId?: string,
-    documentId?: string
-  ): boolean {
-    let result = false;
-
-    const loopChildren = (documents: NavigationNode[], input: string[]) => {
-      if (result) {
-        return;
-      }
-
-      documents.forEach((document) => {
-        const parents = [...input];
-
-        if (document.id === documentId && parentDocumentId) {
-          result = parents.includes(parentDocumentId);
-        } else {
-          parents.push(document.id);
-          loopChildren(document.children, parents);
-        }
-      });
-    };
-
-    loopChildren(this.documentStructure, []);
-    return result;
-  };
-
   /**
    * Update document's title and url in the documentStructure
    */

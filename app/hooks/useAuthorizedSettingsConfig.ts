@@ -29,6 +29,7 @@ import Zapier from "~/scenes/Settings/Zapier";
 import SlackIcon from "~/components/SlackIcon";
 import ZapierIcon from "~/components/ZapierIcon";
 import env from "~/env";
+import isHosted from "~/utils/isHosted";
 import useCurrentTeam from "./useCurrentTeam";
 import usePolicy from "./usePolicy";
 
@@ -60,8 +61,6 @@ export type ConfigItem = {
 type ConfigType = {
   [key in SettingsPage]: ConfigItem;
 };
-
-const isHosted = env.DEPLOYMENT === "hosted";
 
 const useAuthorizedSettingsConfig = () => {
   const team = useCurrentTeam();

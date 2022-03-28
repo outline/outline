@@ -3,7 +3,7 @@ import invariant from "invariant";
 import { map, trim } from "lodash";
 import EDITOR_VERSION from "@shared/editor/version";
 import stores from "~/stores";
-import env from "~/env";
+import isHosted from "~/utils/isHosted";
 import download from "./download";
 import {
   AuthorizationError,
@@ -21,7 +21,6 @@ type Options = {
 };
 
 const fetchWithRetry = retry(fetch);
-const isHosted = env.DEPLOYMENT === "hosted";
 
 class ApiClient {
   baseUrl: string;

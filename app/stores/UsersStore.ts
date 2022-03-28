@@ -126,7 +126,7 @@ export default class UsersStore extends BaseStore<User> {
     const res = await client.post(`/users.invite`, {
       invites,
     });
-    invariant(res && res.data, "Data should be available");
+    invariant(res?.data, "Data should be available");
     runInAction(`invite`, () => {
       res.data.users.forEach(this.add);
       this.counts.invited += res.data.sent.length;
@@ -140,7 +140,7 @@ export default class UsersStore extends BaseStore<User> {
     const res = await client.post(`/users.count`, {
       teamId,
     });
-    invariant(res && res.data, "Data should be available");
+    invariant(res?.data, "Data should be available");
     this.counts = res.data.counts;
     return res.data;
   };
@@ -268,7 +268,7 @@ export default class UsersStore extends BaseStore<User> {
       id: user.id,
       to,
     });
-    invariant(res && res.data, "Data should be available");
+    invariant(res?.data, "Data should be available");
     runInAction(`UsersStore#${action}`, () => {
       this.addPolicies(res.policies);
       this.add(res.data);

@@ -19,7 +19,7 @@ export default class PinsStore extends BaseStore<Pin> {
 
     try {
       const res = await client.post(`/pins.list`, params);
-      invariant(res && res.data, "Data not available");
+      invariant(res?.data, "Data not available");
       runInAction(`PinsStore#fetchPage`, () => {
         res.data.documents.forEach(this.rootStore.documents.add);
         res.data.pins.forEach(this.add);

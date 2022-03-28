@@ -65,7 +65,7 @@ export default class SharesStore extends BaseStore<Share> {
       if (isUndefined(res)) {
         return;
       }
-      invariant(res && res.data, "Data should be available");
+      invariant(res?.data, "Data should be available");
       this.addPolicies(res.policies);
       return res.data.shares.map(this.add);
     } finally {
@@ -92,7 +92,7 @@ export default class SharesStore extends BaseStore<Share> {
     for (const parentId of parentIds) {
       const share = this.getByDocumentId(parentId);
 
-      if (share && share.includeChildDocuments && share.published) {
+      if (share?.includeChildDocuments && share.published) {
         return share;
       }
     }

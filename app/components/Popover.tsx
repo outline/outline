@@ -8,12 +8,18 @@ import { fadeAndScaleIn } from "~/styles/animations";
 
 type Props = PopoverProps & {
   children: React.ReactNode;
+  // TODO what is tabindex for
   tabIndex?: number;
   width?: number;
   shrink?: boolean;
 };
 
-function Popover({ children, shrink, width = 380, ...rest }: Props) {
+const Popover: React.FC<Props> = ({
+  children,
+  shrink,
+  width = 380,
+  ...rest
+}) => {
   const isMobile = useMobile();
 
   if (isMobile) {
@@ -31,7 +37,7 @@ function Popover({ children, shrink, width = 380, ...rest }: Props) {
       </Contents>
     </ReakitPopover>
   );
-}
+};
 
 const Contents = styled.div<{ $shrink?: boolean; $width?: number }>`
   animation: ${fadeAndScaleIn} 200ms ease;

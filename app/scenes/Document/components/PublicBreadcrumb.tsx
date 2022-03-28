@@ -6,7 +6,6 @@ type Props = {
   documentId: string;
   shareId: string;
   sharedTree: NavigationNode | undefined;
-  children?: React.ReactNode;
 };
 
 function pathToDocument(
@@ -38,12 +37,12 @@ function pathToDocument(
   return path;
 }
 
-const PublicBreadcrumb = ({
+const PublicBreadcrumb: React.FC<Props> = ({
   documentId,
   shareId,
   sharedTree,
   children,
-}: Props) => {
+}) => {
   const items: MenuInternalLink[] = React.useMemo(
     () =>
       pathToDocument(sharedTree, documentId)
