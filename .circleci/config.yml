@@ -70,12 +70,12 @@ jobs:
           command: |
             docker buildx install
             docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-            docker buildx create --name docker-multiarch --platform linux/amd64,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x
+            docker buildx create --name docker-multiarch --platform linux/amd64,linux/arm64,linux/arm/v7
             docker buildx inspect --builder docker-multiarch --bootstrap
             docker buildx use docker-multiarch
       - run:
           name: Build Docker image
-          command: docker buildx build -t $IMAGE_NAME:latest --platform linux/amd64,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x .
+          command: docker buildx build -t $IMAGE_NAME:latest --platform linux/amd64,linux/arm64,linux/arm/v7 .
       - run:
           name: Archive Docker image
           command: docker save -o image.tar $IMAGE_NAME
