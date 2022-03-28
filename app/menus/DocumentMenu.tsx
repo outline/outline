@@ -491,6 +491,7 @@ function DocumentMenu({
               })}
               onRequestClose={() => setShowDeleteModal(false)}
               isOpen={showDeleteModal}
+              isCentered
             >
               <DocumentDelete
                 document={document}
@@ -505,6 +506,7 @@ function DocumentMenu({
               })}
               onRequestClose={() => setShowPermanentDeleteModal(false)}
               isOpen={showPermanentDeleteModal}
+              isCentered
             >
               <DocumentPermanentDelete
                 document={document}
@@ -517,6 +519,7 @@ function DocumentMenu({
               title={t("Create template")}
               onRequestClose={() => setShowTemplateModal(false)}
               isOpen={showTemplateModal}
+              isCentered
             >
               <DocumentTemplatize
                 documentId={document.id}

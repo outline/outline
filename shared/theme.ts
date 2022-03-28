@@ -140,6 +140,12 @@ export const light = {
   sidebarText: "rgb(78, 92, 110)",
   backdrop: "rgba(0, 0, 0, 0.2)",
   shadow: "rgba(0, 0, 0, 0.2)",
+
+  modalBackdrop: colors.black10,
+  modalBackground: colors.white,
+  modalShadow:
+    "0 4px 8px rgb(0 0 0 / 8%), 0 2px 4px rgb(0 0 0 / 0%), 0 30px 40px rgb(0 0 0 / 8%)",
+
   menuItemSelected: colors.warmGrey,
   menuBackground: colors.white,
   menuShadow:
@@ -191,6 +197,12 @@ export const dark = {
   sidebarText: colors.slate,
   backdrop: "rgba(255, 255, 255, 0.3)",
   shadow: "rgba(0, 0, 0, 0.6)",
+
+  modalBackdrop: colors.black50,
+  modalBackground: "#1f2128",
+  modalShadow:
+    "0 0 0 1px rgba(0, 0, 0, 0.1), 0 8px 16px rgba(0, 0, 0, 0.3), 0 2px 4px rgba(0, 0, 0, 0.08)",
+
   menuItemSelected: lighten(0.1, "#1f2128"),
   menuBackground: "#1f2128",
   menuShadow:

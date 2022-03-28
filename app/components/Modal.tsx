@@ -63,7 +63,7 @@ const Modal: React.FC<Props> = ({
   return (
     <DialogBackdrop {...dialog}>
       {(props) => (
-        <Backdrop {...props}>
+        <Backdrop $isCentered={isCentered} {...props}>
           <Dialog
             {...dialog}
             preventBodyScroll
@@ -91,9 +91,13 @@ const Modal: React.FC<Props> = ({
               ) : (
                 <Fullscreen
                   $nested={!!depth}
-                  style={{
-                    marginLeft: `${depth * 12}px`,
-                  }}
+                  style={
+                    isMobile
+                      ? undefined
+                      : {
+                          marginLeft: `${depth * 12}px`,
+                        }
+                  }
                   {...props}
                 >
                   <Content>
@@ -119,14 +123,16 @@ const Modal: React.FC<Props> = ({
   );
 };
 
-const Backdrop = styled(Flex)`
+const Backdrop = styled(Flex)<{ $isCentered?: boolean }>`
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   background-color: ${(props) =>
-    transparentize(0.25, props.theme.background)} !important;
+    props.$isCentered
+      ? props.theme.modalBackdrop
+      : transparentize(0.25, props.theme.background)} !important;
   z-index: ${(props) => props.theme.depths.modalOverlay};
   transition: opacity 50ms ease-in-out;
   opacity: 0;
@@ -165,10 +171,10 @@ const Fullscreen = styled.div<{ $nested: boolean }>`
 
 const Content = styled(Scrollable)`
   width: 100%;
-  padding: 8vh 2rem 2rem;
+  padding: 8vh 32px;
 
   ${breakpoint("tablet")`
-    padding-top: 13vh;
+    padding: 13vh 2rem 2rem;
   `};
 `;
 
@@ -207,6 +213,7 @@ const Back = styled(NudeButton)`
   left: 2rem;
   opacity: 0.75;
   color: ${(props) => props.theme.text};
+  font-weight: 500;
   width: auto;
   height: auto;
 
@@ -220,6 +227,7 @@ const Back = styled(NudeButton)`
 `;
 
 const Header = styled(Flex)`
+  color: ${(props) => props.theme.textSecondary};
   align-items: center;
   justify-content: space-between;
   font-weight: 600;
@@ -230,20 +238,23 @@ const Small = styled.div`
   animation: ${fadeAndScaleIn} 250ms ease;
 
   margin: auto auto;
-  min-width: 300px;
+  min-width: 350px;
   max-width: 30vw;
   z-index: ${(props) => props.theme.depths.modal};
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  background: ${(props) => props.theme.background};
+  background: ${(props) => props.theme.modalBackground};
   transition: ${(props) => props.theme.backgroundTransition};
-  box-shadow: ${(props) => props.theme.menuShadow};
+  box-shadow: ${(props) => props.theme.modalShadow};
   border-radius: 8px;
   outline: none;
 
-  ${Close} {
-    display: inline-block;
+  ${NudeButton} {
+    &:hover,
+    &[aria-expanded="true"] {
+      background: ${(props) => props.theme.sidebarControlHoverBackground};
+    }
   }
 `;
 
