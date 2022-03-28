@@ -533,31 +533,6 @@ class Collection extends ParanoidModel {
     return result;
   };
 
-  // TODO needs tests
-  getChildrenForDocument = function (documentId?: string): string[] {
-    const childDocumentIds = [];
-
-    // some weird thing with flatmap
-
-    const loopChildren = (documents: NavigationNode[], input: string[]) => {
-      documents.forEach((document) => {
-        const parents = [...input];
-
-        if (document.id === documentId && parentDocumentId) {
-          if (parents.includes(parentDocumentId)) {
-            childDocumentIds.push(document.id);
-          }
-        } else {
-          parents.push(document.id);
-          loopChildren(document.children, parents);
-        }
-      });
-    };
-
-    loopChildren(this.documentStructure, []);
-    return result;
-  };
-
   /**
    * Update document's title and url in the documentStructure
    */
