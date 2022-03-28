@@ -9,12 +9,13 @@ import {
   Node,
   Mark as ProsemirrorMark,
 } from "prosemirror-model";
-import { Transaction, EditorState, Plugin } from "prosemirror-state";
+import { EditorState, Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import * as React from "react";
 import ReactDOM from "react-dom";
 import { isInternalUrl } from "../../utils/urls";
 import findLinkNodes from "../queries/findLinkNodes";
+import { Dispatch } from "../types";
 import Mark from "./Mark";
 
 const LINK_INPUT_REGEX = /\[([^[]+)]\((\S+)\)$/;
@@ -103,7 +104,7 @@ export default class Link extends Mark {
 
   keys({ type }: { type: MarkType }) {
     return {
-      "Mod-k": (state: EditorState, dispatch: (tr: Transaction) => void) => {
+      "Mod-k": (state: EditorState, dispatch: Dispatch) => {
         if (state.selection.empty) {
           this.options.onKeyboardShortcut();
           return true;

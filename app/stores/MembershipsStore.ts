@@ -19,7 +19,7 @@ export default class MembershipsStore extends BaseStore<Membership> {
 
     try {
       const res = await client.post(`/collections.memberships`, params);
-      invariant(res && res.data, "Data not available");
+      invariant(res?.data, "Data not available");
       runInAction(`/collections.memberships`, () => {
         res.data.users.forEach(this.rootStore.users.add);
         res.data.memberships.forEach(this.add);
@@ -46,7 +46,7 @@ export default class MembershipsStore extends BaseStore<Membership> {
       userId,
       permission,
     });
-    invariant(res && res.data, "Membership data should be available");
+    invariant(res?.data, "Membership data should be available");
     res.data.users.forEach(this.rootStore.users.add);
 
     const memberships = res.data.memberships.map(this.add);

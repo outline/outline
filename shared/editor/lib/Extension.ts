@@ -1,22 +1,16 @@
 import { PluginSimple } from "markdown-it";
 import { InputRule } from "prosemirror-inputrules";
 import { NodeType, MarkType, Schema } from "prosemirror-model";
-import { EditorState, Plugin, Transaction } from "prosemirror-state";
+import { EditorState, Plugin } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { Editor } from "../../../app/editor";
+import { Dispatch } from "../types";
 
-export type Command = (
-  state: EditorState,
-  dispatch: (tr: Transaction) => void
-) => boolean;
+export type Command = (state: EditorState, dispatch: Dispatch) => boolean;
 
 export type CommandFactory = (
   attrs?: Record<string, any>
-) => (
-  state: EditorState,
-  dispatch: (tr: Transaction) => void,
-  view: EditorView
-) => boolean;
+) => (state: EditorState, dispatch: Dispatch, view: EditorView) => boolean;
 
 export default class Extension {
   options: any;

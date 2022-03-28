@@ -4,12 +4,11 @@ const style = {
   fontWeight: 500,
   fontSize: "18px",
 };
-type Props = {
-  children: React.ReactNode;
-};
 
-export default ({ children }: Props) => (
+const Heading: React.FC = ({ children }) => (
   <p>
     <span style={style}>{children}</span>
   </p>
 );
+
+export default Heading;

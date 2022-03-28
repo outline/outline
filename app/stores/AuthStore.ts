@@ -146,7 +146,7 @@ export default class AuthStore {
   @action
   fetchConfig = async () => {
     const res = await client.post("/auth.config");
-    invariant(res && res.data, "Config not available");
+    invariant(res?.data, "Config not available");
     this.config = res.data;
   };
 
@@ -154,7 +154,7 @@ export default class AuthStore {
   fetch = async () => {
     try {
       const res = await client.post("/auth.info");
-      invariant(res && res.data, "Auth not available");
+      invariant(res?.data, "Auth not available");
       runInAction("AuthStore#fetch", () => {
         this.addPolicies(res.policies);
         const { user, team } = res.data;
@@ -212,7 +212,7 @@ export default class AuthStore {
 
     try {
       const res = await client.post(`/users.update`, params);
-      invariant(res && res.data, "User response not available");
+      invariant(res?.data, "User response not available");
       runInAction("AuthStore#updateUser", () => {
         this.addPolicies(res.policies);
         this.user = new User(res.data, this);
@@ -235,7 +235,7 @@ export default class AuthStore {
 
     try {
       const res = await client.post(`/team.update`, params);
-      invariant(res && res.data, "Team response not available");
+      invariant(res?.data, "Team response not available");
       runInAction("AuthStore#updateTeam", () => {
         this.addPolicies(res.policies);
         this.team = new Team(res.data, this);

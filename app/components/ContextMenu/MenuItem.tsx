@@ -8,7 +8,6 @@ import MenuIconWrapper from "../MenuIconWrapper";
 
 type Props = {
   onClick?: (arg0: React.SyntheticEvent) => void | Promise<void>;
-  children?: React.ReactNode;
   selected?: boolean;
   disabled?: boolean;
   dangerous?: boolean;
@@ -21,7 +20,7 @@ type Props = {
   icon?: React.ReactElement;
 };
 
-const MenuItem = ({
+const MenuItem: React.FC<Props> = ({
   onClick,
   children,
   selected,
@@ -30,7 +29,7 @@ const MenuItem = ({
   hide,
   icon,
   ...rest
-}: Props) => {
+}) => {
   const handleClick = React.useCallback(
     (ev) => {
       if (onClick) {

@@ -22,9 +22,7 @@ export const SocketContext: any = React.createContext<SocketWithAuthentication |
   null
 );
 
-type Props = RootStore & {
-  children: React.ReactNode;
-};
+type Props = RootStore;
 
 @observer
 class SocketProvider extends React.Component<Props> {
@@ -46,7 +44,7 @@ class SocketProvider extends React.Component<Props> {
   }
 
   checkConnection = () => {
-    if (this.socket && this.socket.disconnected && getPageVisible()) {
+    if (this.socket?.disconnected && getPageVisible()) {
       // null-ifying this reference is important, do not remove. Without it
       // references to old sockets are potentially held in context
       this.socket.close();
@@ -102,10 +100,9 @@ class SocketProvider extends React.Component<Props> {
     // connection may have failed (caused by proxy, firewall, browser, ...)
     this.socket.on("reconnect_attempt", () => {
       if (this.socket) {
-        this.socket.io.opts.transports =
-          auth.team && auth.team.domain
-            ? ["websocket"]
-            : ["websocket", "polling"];
+        this.socket.io.opts.transports = auth?.team?.domain
+          ? ["websocket"]
+          : ["websocket", "polling"];
       }
     });
 
@@ -210,10 +207,7 @@ class SocketProvider extends React.Component<Props> {
           // if we already have the latest version (it was us that performed
           // the change) then we don't need to update anything either.
 
-          if (
-            collection &&
-            collection.updatedAt === collectionDescriptor.updatedAt
-          ) {
+          if (collection?.updatedAt === collectionDescriptor.updatedAt) {
             continue;
           }
 

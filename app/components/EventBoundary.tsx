@@ -1,11 +1,10 @@
 import * as React from "react";
 
 type Props = {
-  children: React.ReactNode;
   className?: string;
 };
 
-export default function EventBoundary({ children, className }: Props) {
+const EventBoundary: React.FC<Props> = ({ children, className }) => {
   const handleClick = React.useCallback((event: React.SyntheticEvent) => {
     event.preventDefault();
     event.stopPropagation();
@@ -16,4 +15,6 @@ export default function EventBoundary({ children, className }: Props) {
       {children}
     </span>
   );
-}
+};
+
+export default EventBoundary;

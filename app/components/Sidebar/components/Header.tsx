@@ -5,10 +5,9 @@ import styled from "styled-components";
 type Props = {
   onClick?: React.MouseEventHandler;
   expanded?: boolean;
-  children: React.ReactNode;
 };
 
-export function Header({ onClick, expanded, children }: Props) {
+export const Header: React.FC<Props> = ({ onClick, expanded, children }) => {
   return (
     <H3>
       <Button onClick={onClick} disabled={!onClick}>
@@ -19,7 +18,7 @@ export function Header({ onClick, expanded, children }: Props) {
       </Button>
     </H3>
   );
-}
+};
 
 const Button = styled.button`
   display: inline-flex;

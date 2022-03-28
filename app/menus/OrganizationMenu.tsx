@@ -13,11 +13,7 @@ import useSessions from "~/hooks/useSessions";
 import useStores from "~/hooks/useStores";
 import separator from "~/menus/separator";
 
-type Props = {
-  children: (props: any) => React.ReactNode;
-};
-
-function OrganizationMenu(props: Props) {
+const OrganizationMenu: React.FC = ({ children }) => {
   const [sessions] = useSessions();
   const menu = useMenuState({
     unstable_offset: [4, -4],
@@ -65,13 +61,13 @@ function OrganizationMenu(props: Props) {
 
   return (
     <>
-      <MenuButton {...menu}>{props.children}</MenuButton>
+      <MenuButton {...menu}>{children}</MenuButton>
       <ContextMenu {...menu} aria-label={t("Account")}>
         <Template {...menu} items={undefined} actions={actions} />
       </ContextMenu>
     </>
   );
-}
+};
 
 const Logo = styled("img")`
   border-radius: 2px;

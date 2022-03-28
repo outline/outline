@@ -2,9 +2,10 @@ import nameToEmoji from "gemoji/name-to-emoji.json";
 import Token from "markdown-it/lib/token";
 import { InputRule } from "prosemirror-inputrules";
 import { NodeSpec, Node as ProsemirrorNode, NodeType } from "prosemirror-model";
-import { EditorState, TextSelection, Transaction } from "prosemirror-state";
+import { EditorState, TextSelection } from "prosemirror-state";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import emojiRule from "../rules/emoji";
+import { Dispatch } from "../types";
 import Node from "./Node";
 
 export default class Emoji extends Node {
@@ -63,7 +64,7 @@ export default class Emoji extends Node {
   commands({ type }: { type: NodeType }) {
     return (attrs: Record<string, string>) => (
       state: EditorState,
-      dispatch: (tr: Transaction) => void
+      dispatch: Dispatch
     ) => {
       const { selection } = state;
       const position =

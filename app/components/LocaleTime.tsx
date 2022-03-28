@@ -22,7 +22,6 @@ function eachMinute(fn: () => void) {
 
 type Props = {
   dateTime: string;
-  children?: React.ReactNode;
   tooltipDelay?: number;
   addSuffix?: boolean;
   shorten?: boolean;
@@ -30,7 +29,7 @@ type Props = {
   format?: string;
 };
 
-function LocaleTime({
+const LocaleTime: React.FC<Props> = ({
   addSuffix,
   children,
   dateTime,
@@ -38,7 +37,7 @@ function LocaleTime({
   format,
   relative,
   tooltipDelay,
-}: Props) {
+}) => {
   const userLocale = useUserLocale();
   const [_, setMinutesMounted] = React.useState(0); // eslint-disable-line @typescript-eslint/no-unused-vars
   const callback = React.useRef<() => void>();
@@ -86,6 +85,6 @@ function LocaleTime({
       <time dateTime={dateTime}>{children || content}</time>
     </Tooltip>
   );
-}
+};
 
 export default LocaleTime;

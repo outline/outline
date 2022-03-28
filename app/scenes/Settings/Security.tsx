@@ -25,6 +25,7 @@ function Security() {
     documentEmbeds: team.documentEmbeds,
     guestSignin: team.guestSignin,
     defaultUserRole: team.defaultUserRole,
+    memberCollectionCreate: team.memberCollectionCreate,
   });
 
   const showSuccessMessage = React.useMemo(
@@ -99,6 +100,19 @@ function Security() {
         <Switch
           id="documentEmbeds"
           checked={data.documentEmbeds}
+          onChange={handleChange}
+        />
+      </SettingRow>
+      <SettingRow
+        label={t("Collection creation")}
+        name="memberCollectionCreate"
+        description={t(
+          "Allow members to create new collections within the knowledge base"
+        )}
+      >
+        <Switch
+          id="memberCollectionCreate"
+          checked={data.memberCollectionCreate}
           onChange={handleChange}
         />
       </SettingRow>
