@@ -962,9 +962,6 @@ describe("#documents.search", () => {
       document: findableDocument,
     });
 
-    const document = await share.$get("document");
-    await document?.update({ title: "search term" });
-
     const res = await server.post("/api/documents.search", {
       body: {
         query: "search term",
@@ -976,6 +973,27 @@ describe("#documents.search", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
     expect(body.data[0].document.id).toEqual(share.documentId);
+  });
+
+  it("should not allow search if child documents are not included", async () => {
+    const findableDocument = await buildDocument({
+      title: "search term",
+      text: "random text",
+    });
+
+    const share = await buildShare({
+      includeChildDocuments: false,
+      document: findableDocument,
+    });
+
+    const res = await server.post("/api/documents.search", {
+      body: {
+        query: "search term",
+        shareId: share.id,
+      },
+    });
+
+    expect(res.status).toEqual(400);
   });
 
   it("should return results in ranked order", async () => {

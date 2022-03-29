@@ -846,7 +846,6 @@ router.post(
         includeArchived: includeArchived === "true",
         includeDrafts: includeDrafts === "true",
         collectionId: document.collectionId,
-        document,
         share,
         dateFilter,
         offset,

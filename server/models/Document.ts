@@ -59,7 +59,6 @@ type SearchOptions = {
   limit?: number;
   offset?: number;
   collectionId?: string;
-  document?: Document;
   share?: Share;
   dateFilter?: DateFilter;
   collaboratorIds?: string[];
@@ -444,6 +443,7 @@ class Document extends ParanoidModel {
     const wildcardQuery = `${escape(query)}:*`;
 
     // restrict to specific collection if provided
+    // enables search in private collections if specified
     let collectionIds;
     if (options.collectionId) {
       collectionIds = [options.collectionId];
@@ -461,8 +461,9 @@ class Document extends ParanoidModel {
 
     // restrict to documents in the tree of a shared document when one is provided
     let documentIds;
+
     if (options.share?.includeChildDocuments) {
-      const sharedDocument = options.document;
+      const sharedDocument = await options.share.$get("document");
       if (sharedDocument) {
         const childDocumentIds = await sharedDocument.getChildDocumentIds();
         documentIds = [sharedDocument.id, ...childDocumentIds];
