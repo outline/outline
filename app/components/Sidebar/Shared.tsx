@@ -21,7 +21,7 @@ function SharedSidebar({ rootNode, shareId }: Props) {
     <Sidebar>
       <ScrollContainer flex>
         <TopSection>
-          <SearchPopover />
+          <SearchPopover shareId={shareId} />
         </TopSection>
         <Section>
           <DocumentLink

@@ -944,6 +944,40 @@ describe("#documents.search", () => {
     expect(body.data[0].document.text).toEqual("# Much test support");
   });
 
+  it("should return results using shareId", async () => {
+    const findableDocument = await buildDocument({
+      title: "search term",
+      text: "random text",
+    });
+
+    await buildDocument({
+      title: "search term",
+      text: "should not be found",
+      userId: findableDocument.createdById,
+      teamId: findableDocument.teamId,
+    });
+
+    const share = await buildShare({
+      includeChildDocuments: true,
+      document: findableDocument,
+    });
+
+    const document = await share.$get("document");
+    await document?.update({ title: "search term" });
+
+    const res = await server.post("/api/documents.search", {
+      body: {
+        query: "search term",
+        shareId: share.id,
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].document.id).toEqual(share.documentId);
+  });
+
   it("should return results in ranked order", async () => {
     const { user } = await seed();
     const firstResult = await buildDocument({
@@ -1287,7 +1321,11 @@ describe("#documents.search", () => {
   });
 
   it("should require authentication", async () => {
-    const res = await server.post("/api/documents.search");
+    const res = await server.post("/api/documents.search", {
+      body: {
+        query: "search term",
+      },
+    });
     const body = await res.json();
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();

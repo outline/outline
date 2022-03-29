@@ -46,7 +46,7 @@ import View from "./View";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
 
-type SearchResponse = {
+export type SearchResponse = {
   results: {
     ranking: number;
     context: string;
@@ -59,7 +59,7 @@ type SearchOptions = {
   limit?: number;
   offset?: number;
   collectionId?: string;
-  documentId?: string;
+  document?: Document;
   share?: Share;
   dateFilter?: DateFilter;
   collaboratorIds?: string[];
@@ -443,6 +443,7 @@ class Document extends ParanoidModel {
     const offset = options.offset || 0;
     const wildcardQuery = `${escape(query)}:*`;
 
+    // restrict to specific collection if provided
     let collectionIds;
     if (options.collectionId) {
       collectionIds = [options.collectionId];
@@ -460,17 +461,22 @@ class Document extends ParanoidModel {
 
     // restrict to documents in the tree of a shared document when one is provided
     let documentIds;
-    if (options.documentId && options.share) {
-      if (options.share.includeChildDocuments) {
-        documentIds = await Document.getDocumentTree(options.documentId);
+    if (options.share?.includeChildDocuments) {
+      const sharedDocument = options.document;
+      if (sharedDocument) {
+        const childDocumentIds = await sharedDocument.getChildDocumentIds();
+        documentIds = [sharedDocument.id, ...childDocumentIds];
       }
     }
 
-    // Build the SQL query to get documentIds, ranking, and search term context
+    const documentClause = documentIds ? `"id" IN(:documentIds) AND` : "";
+
+    // Build the SQL query to get result documentIds, ranking, and search term context
     const whereClause = `
   "searchVector" @@ to_tsquery('english', :query) AND
     "teamId" = :teamId AND
     "collectionId" IN(:collectionIds) AND
+    ${documentClause}
     "deletedAt" IS NULL AND
     "publishedAt" IS NOT NULL
   `;
@@ -496,6 +502,7 @@ class Document extends ParanoidModel {
       teamId: team.id,
       query: wildcardQuery,
       collectionIds,
+      documentIds,
     };
     const resultsQuery = this.sequelize!.query(selectSql, {
       type: QueryTypes.SELECT,

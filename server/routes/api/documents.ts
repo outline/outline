@@ -11,6 +11,7 @@ import {
   NotFoundError,
   InvalidRequestError,
   AuthorizationError,
+  AuthenticationError,
 } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import {
@@ -800,112 +801,131 @@ router.post("documents.search_titles", auth(), pagination(), async (ctx) => {
   };
 });
 
-router.post("documents.search", auth(), pagination(), async (ctx) => {
-  const {
-    query,
-    includeArchived,
-    includeDrafts,
-    collectionId,
-    userId,
-    dateFilter,
-    shareId,
-  } = ctx.body;
-  const { offset, limit } = ctx.state.pagination;
-  const { user } = ctx.state;
-
-  console.log("QUERY>>", query);
-
-  assertNotEmpty(query, "query is required");
-  assertPresent(user || shareId, "authenticated user or shareId is required");
-
-  let response;
-
-  if (shareId) {
-    const { share, document, collection } = await loadDocument({
-      shareId,
-      user,
-    });
-
-    const team = collection.team;
-
-    response = await Document.searchForTeam(team, query, {
-      includeArchived: includeArchived === "true",
-      includeDrafts: includeDrafts === "true",
-      collectionId: collection.id,
-      documentId: document.id,
-      share,
-      dateFilter,
-      offset,
-      limit,
-    });
-  } else if (user) {
-    if (collectionId) {
-      assertUuid(collectionId, "collectionId must be a UUID");
-      const collection = await Collection.scope({
-        method: ["withMembership", user.id],
-      }).findByPk(collectionId);
-      authorize(user, "read", collection);
-    }
-
-    let collaboratorIds = undefined;
-
-    if (userId) {
-      assertUuid(userId, "userId must be a UUID");
-      collaboratorIds = [userId];
-    }
-
-    if (dateFilter) {
-      assertIn(
-        dateFilter,
-        ["day", "week", "month", "year"],
-        "dateFilter must be one of day,week,month,year"
-      );
-    }
-
-    response = await Document.searchForUser(user, query, {
-      includeArchived: includeArchived === "true",
-      includeDrafts: includeDrafts === "true",
-      collaboratorIds,
-      collectionId,
-      dateFilter,
-      offset,
-      limit,
-    });
-  }
-
-  const { results, totalCount } = response;
-  const documents = results.map((result) => result.document);
-
-  const data = await Promise.all(
-    results.map(async (result) => {
-      const document = await presentDocument(result.document);
-      return { ...result, document };
-    })
-  );
-
-  // When requesting subsequent pages of search results we don't want to record
-  // duplicate search query records
-  if (offset === 0) {
-    SearchQuery.create({
-      userId: user.id,
-      teamId: user.teamId,
-      source: ctx.state.authType,
+router.post(
+  "documents.search",
+  auth({
+    required: false,
+  }),
+  pagination(),
+  async (ctx) => {
+    const {
       query,
-      results: totalCount,
-    });
+      includeArchived,
+      includeDrafts,
+      collectionId,
+      userId,
+      dateFilter,
+      shareId,
+    } = ctx.body;
+    assertNotEmpty(query, "query is required");
+    console.log("QUERY>>", query);
+
+    const { offset, limit } = ctx.state.pagination;
+    // this typing is a bit ugly, would be better to have the auth middleware
+    // define the data type for state.user
+    const { user }: { user: User | undefined } = ctx.state;
+
+    let teamId;
+    let response;
+
+    if (shareId) {
+      const { share, document } = await loadDocument({
+        shareId,
+        user,
+      });
+
+      if (!share?.includeChildDocuments) {
+        throw InvalidRequestError("Child documents cannot be searched");
+      }
+
+      teamId = share.teamId;
+      const team = await Team.findByPk(teamId);
+      invariant(team, "Share must belong to a team");
+
+      response = await Document.searchForTeam(team, query, {
+        includeArchived: includeArchived === "true",
+        includeDrafts: includeDrafts === "true",
+        collectionId: document.collectionId,
+        document,
+        share,
+        dateFilter,
+        offset,
+        limit,
+      });
+    } else {
+      if (!user) {
+        throw AuthenticationError("Authentication error");
+      }
+
+      teamId = user.teamId;
+
+      if (collectionId) {
+        assertUuid(collectionId, "collectionId must be a UUID");
+        const collection = await Collection.scope({
+          method: ["withMembership", user.id],
+        }).findByPk(collectionId);
+        authorize(user, "read", collection);
+      }
+
+      let collaboratorIds = undefined;
+
+      if (userId) {
+        assertUuid(userId, "userId must be a UUID");
+        collaboratorIds = [userId];
+      }
+
+      if (dateFilter) {
+        assertIn(
+          dateFilter,
+          ["day", "week", "month", "year"],
+          "dateFilter must be one of day,week,month,year"
+        );
+      }
+
+      response = await Document.searchForUser(user, query, {
+        includeArchived: includeArchived === "true",
+        includeDrafts: includeDrafts === "true",
+        collaboratorIds,
+        collectionId,
+        dateFilter,
+        offset,
+        limit,
+      });
+    }
+
+    const { results, totalCount } = response;
+    const documents = results.map((result) => result.document);
+
+    const data = await Promise.all(
+      results.map(async (result) => {
+        const document = await presentDocument(result.document);
+        return { ...result, document };
+      })
+    );
+
+    // When requesting subsequent pages of search results we don't want to record
+    // duplicate search query records
+    if (offset === 0) {
+      SearchQuery.create({
+        userId: user?.id,
+        teamId,
+        shareId,
+        source: ctx.state.authType || "app", // we need to write a valid enum member into here
+        query,
+        results: totalCount,
+      });
+    }
+
+    // SLEEP
+    await new Promise((r) => setTimeout(r, 3000));
+
+    ctx.body = {
+      pagination: ctx.state.pagination,
+      data,
+      policies: user ? presentPolicies(user, documents) : null,
+    };
   }
-
-  const policies = presentPolicies(user, documents);
-
-  // SLEEP
-  await new Promise((r) => setTimeout(r, 3000));
-
-  ctx.body = {
-    pagination: ctx.state.pagination,
-    data,
-    policies,
-  };
-});
+);
 
 // Deprecated – use stars.create instead
 router.post("documents.star", auth(), async (ctx) => {
