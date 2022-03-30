@@ -164,10 +164,12 @@ function SearchPopover({ shareId }: Props) {
           renderItem={(item, index, compositeProps) => (
             <SearchListItem
               key={item.document.id}
+              shareId={shareId}
               ref={index === 0 ? firstSearchItem : undefined}
               document={item.document}
               context={item.context}
               highlight={query}
+              onClick={popover.hide}
               {...compositeProps}
             />
           )}

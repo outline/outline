@@ -17,6 +17,8 @@ type Props = {
   showParentDocuments?: boolean;
   showCollection?: boolean;
   showPublished?: boolean;
+  shareId?: string;
+  onClick?: React.MouseEventHandler<HTMLAnchorElement>;
 };
 const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
 
@@ -30,7 +32,7 @@ function DocumentListItem(
   props: Props,
   ref: React.RefObject<HTMLAnchorElement>
 ) {
-  const { document, highlight, context, ...rest } = props;
+  const { document, highlight, context, shareId, ...rest } = props;
 
   return (
     <CompositeItem
@@ -38,7 +40,7 @@ function DocumentListItem(
       ref={ref}
       dir={document.dir}
       to={{
-        pathname: document.url,
+        pathname: shareId ? `/share/${shareId}${document.url}` : document.url,
         state: {
           title: document.titleWithDefault,
         },
