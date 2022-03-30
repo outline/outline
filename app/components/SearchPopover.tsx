@@ -66,29 +66,23 @@ function SearchPopover({ shareId }: Props) {
 
     if (ev.key === "ArrowDown" && !ev.shiftKey) {
       if (searchResults?.length) {
-        if (ev.currentTarget.value) {
-          const length = ev.currentTarget.value.length;
-          ev.currentTarget.selectionStart = length;
-          ev.currentTarget.selectionEnd = length;
+        if (ev.currentTarget.value.length === ev.currentTarget.selectionStart) {
+          popover.show();
         }
-
-        popover.show();
         firstSearchItem.current?.focus();
-        ev.preventDefault();
       }
     }
 
     if (ev.key === "ArrowUp") {
       if (popover.visible) {
         popover.hide();
+        ev.preventDefault();
       }
 
       if (ev.currentTarget.value) {
-        const length = ev.currentTarget.value.length;
-        const selectionEnd = ev.currentTarget.selectionEnd || 0;
-        if (selectionEnd === 0) {
+        if (ev.currentTarget.selectionEnd === 0) {
           ev.currentTarget.selectionStart = 0;
-          ev.currentTarget.selectionEnd = length;
+          ev.currentTarget.selectionEnd = ev.currentTarget.value.length;
           ev.preventDefault();
         }
       }
