@@ -127,9 +127,7 @@ export type Props = React.HTMLAttributes<HTMLInputElement> & {
 
 @observer
 class Input extends React.Component<Props> {
-  input =
-    this.props.innerRef ||
-    React.createRef<HTMLInputElement | HTMLTextAreaElement>();
+  input = this.props.innerRef;
 
   @observable
   focused = false;
@@ -149,10 +147,6 @@ class Input extends React.Component<Props> {
       this.props.onFocus(ev);
     }
   };
-
-  focus() {
-    this.input.current?.focus();
-  }
 
   render() {
     const {
