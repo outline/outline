@@ -15,7 +15,7 @@ type Props = {
     href: string,
     event: React.MouseEvent<HTMLButtonElement>
   ) => void;
-  onShowToast: (msg: string, code: string) => void;
+  onShowToast: (message: string) => void;
   onClose: () => void;
 };
 

@@ -1,6 +1,5 @@
 import { Node } from "prosemirror-model";
 import { EditorView } from "prosemirror-view";
-import { ToastType } from "../types";
 
 function findPlaceholderLink(doc: Node, href: string) {
   let result: { pos: number; node: Node } | undefined;
@@ -38,7 +37,7 @@ const createAndInsertLink = async function (
   options: {
     dictionary: any;
     onCreateLink: (title: string) => Promise<string>;
-    onShowToast: (message: string, code: string) => void;
+    onShowToast: (message: string) => void;
   }
 ) {
   const { dispatch, state } = view;
@@ -79,10 +78,7 @@ const createAndInsertLink = async function (
       )
     );
 
-    // let the user know
-    if (onShowToast) {
-      onShowToast(options.dictionary.createLinkError, ToastType.Error);
-    }
+    onShowToast(options.dictionary.createLinkError);
   }
 };
 

@@ -3,9 +3,13 @@ import { EditorState, Transaction } from "prosemirror-state";
 import * as React from "react";
 import { DefaultTheme } from "styled-components";
 
-export enum ToastType {
-  Error = "error",
-  Info = "info",
+export enum EventType {
+  blockMenuOpen = "blockMenuOpen",
+  blockMenuClose = "blockMenuClose",
+  emojiMenuOpen = "emojiMenuOpen",
+  emojiMenuClose = "emojiMenuClose",
+  linkMenuOpen = "linkMenuOpen",
+  linkMenuClose = "linkMenuClose",
 }
 
 export type MenuItem = {

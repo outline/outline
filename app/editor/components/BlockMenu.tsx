@@ -25,17 +25,15 @@ function BlockMenu(props: BlockMenuProps) {
       {...props}
       filterable={true}
       onClearSearch={clearSearch}
-      renderMenuItem={(item, _index, options) => {
-        return (
-          <BlockMenuItem
-            onClick={options.onClick}
-            selected={options.selected}
-            icon={item.icon}
-            title={item.title}
-            shortcut={item.shortcut}
-          />
-        );
-      }}
+      renderMenuItem={(item, _index, options) => (
+        <BlockMenuItem
+          onClick={options.onClick}
+          selected={options.selected}
+          icon={item.icon}
+          title={item.title}
+          shortcut={item.shortcut}
+        />
+      )}
       items={getMenuItems(props.dictionary)}
     />
   );

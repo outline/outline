@@ -5,6 +5,8 @@ import {
   isTableSelected,
   isRowSelected,
   getCellsInColumn,
+  selectRow,
+  selectTable,
 } from "prosemirror-utils";
 import { DecorationSet, Decoration } from "prosemirror-view";
 import Node from "./Node";
@@ -72,7 +74,7 @@ export default class TableCell extends Node {
                       grip.addEventListener("mousedown", (event) => {
                         event.preventDefault();
                         event.stopImmediatePropagation();
-                        this.options.onSelectTable(state);
+                        this.editor.view.dispatch(selectTable(state.tr));
                       });
                       return grip;
                     })
@@ -97,7 +99,7 @@ export default class TableCell extends Node {
                     grip.addEventListener("mousedown", (event) => {
                       event.preventDefault();
                       event.stopImmediatePropagation();
-                      this.options.onSelectRow(index, state);
+                      this.editor.view.dispatch(selectRow(index)(state.tr));
                     });
                     return grip;
                   })

@@ -15,6 +15,7 @@ import isUrl from "@shared/editor/lib/isUrl";
 import { isInternalUrl } from "@shared/utils/urls";
 import Flex from "~/components/Flex";
 import { Dictionary } from "~/hooks/useDictionary";
+import { ToastOptions } from "~/types";
 import Input from "./Input";
 import LinkSearchResult from "./LinkSearchResult";
 import ToolbarButton from "./ToolbarButton";
@@ -44,7 +45,7 @@ type Props = {
     href: string,
     event: React.MouseEvent<HTMLButtonElement>
   ) => void;
-  onShowToast: (message: string, code: string) => void;
+  onShowToast: (message: string, options: ToastOptions) => void;
   view: EditorView;
 };
 

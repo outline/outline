@@ -15,7 +15,7 @@ import * as React from "react";
 import ReactDOM from "react-dom";
 import { isInternalUrl } from "../../utils/urls";
 import findLinkNodes from "../queries/findLinkNodes";
-import { Dispatch } from "../types";
+import { EventType, Dispatch } from "../types";
 import Mark from "./Mark";
 
 const LINK_INPUT_REGEX = /\[([^[]+)]\((\S+)\)$/;
@@ -106,7 +106,7 @@ export default class Link extends Mark {
     return {
       "Mod-k": (state: EditorState, dispatch: Dispatch) => {
         if (state.selection.empty) {
-          this.options.onKeyboardShortcut();
+          this.editor.events.emit(EventType.linkMenuOpen);
           return true;
         }
 
