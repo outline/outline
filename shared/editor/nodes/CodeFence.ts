@@ -30,6 +30,7 @@ import powershell from "refractor/lang/powershell";
 import python from "refractor/lang/python";
 import ruby from "refractor/lang/ruby";
 import rust from "refractor/lang/rust";
+import solidity from "refractor/lang/solidity";
 import sql from "refractor/lang/sql";
 import typescript from "refractor/lang/typescript";
 import yaml from "refractor/lang/yaml";
@@ -63,6 +64,7 @@ const DEFAULT_LANGUAGE = "javascript";
   ruby,
   rust,
   sql,
+  solidity,
   typescript,
   yaml,
 ].forEach(refractor.register);
