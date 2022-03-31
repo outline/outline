@@ -5,9 +5,7 @@ import { CompositeItem } from "reakit/Composite";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Document from "~/models/Document";
-import EventBoundary from "~/components/EventBoundary";
 import Highlight from "~/components/Highlight";
-import { AnimatedStar } from "~/components/Star";
 import { hover } from "~/styles";
 
 type Props = {
@@ -74,18 +72,6 @@ const Content = styled.div`
   min-width: 0;
 `;
 
-const Actions = styled(EventBoundary)`
-  display: none;
-  align-items: center;
-  margin: 8px;
-  flex-shrink: 0;
-  flex-grow: 0;
-
-  ${breakpoint("tablet")`
-    display: flex;
-  `};
-`;
-
 const DocumentLink = styled(Link)<{
   $isStarred?: boolean;
   $menuOpen?: boolean;
@@ -107,45 +93,17 @@ const DocumentLink = styled(Link)<{
     width: auto;
   `};
 
-  ${Actions} {
-    opacity: 0;
-  }
-
-  ${AnimatedStar} {
-    opacity: ${(props) => (props.$isStarred ? "1 !important" : 0)};
-  }
-
   &:${hover},
   &:active,
   &:focus,
   &:focus-within {
     background: ${(props) => props.theme.listItemHoverBackground};
-
-    ${Actions} {
-      opacity: 1;
-    }
-
-    ${AnimatedStar} {
-      opacity: 0.5;
-
-      &:hover {
-        opacity: 1;
-      }
-    }
   }
 
   ${(props) =>
     props.$menuOpen &&
     css`
       background: ${(props) => props.theme.listItemHoverBackground};
-
-      ${Actions} {
-        opacity: 1;
-      }
-
-      ${AnimatedStar} {
-        opacity: 0.5;
-      }
     `}
 `;
 
