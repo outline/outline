@@ -28,25 +28,29 @@ function SearchPopover({ shareId }: Props) {
   const [query, setQuery] = React.useState("");
   const searchResults = documents.searchResults(query);
 
-  // TODO: the debounce is not working correctly
-  // it's at the wrong level -- needs to be in an effect
-  // that updates the stuff that gets send into the component
-  // right now, the params are sent into the paginated list
-  // but the query is not executed until the debounce
-  // creating a mismatch
-
-  // in order to freeze the update until somerthing comes back
-  // also do the same with searchResults (inside of use effect)
-  const performSearch = React.useMemo(
-    () =>
-      debounce(async ({ query, ...options }: Record<string, any>) => {
-        if (query?.length > 0) {
-          console.log("DEBOUNCE", { options });
-          return await documents.search(query, { shareId, ...options });
-        }
-        return undefined;
-      }, 400),
+  const performSearch = React.useCallback(
+    async ({ query, ...options }: Record<string, any>) => {
+      if (query?.length > 0) {
+        return await documents.search(query, { shareId, ...options });
+      }
+      return undefined;
+    },
     [documents, shareId]
+  );
+
+  const handleSearch = React.useMemo(
+    () =>
+      debounce(async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const { value } = event.target;
+
+        if (value.length) {
+          popover.show();
+          setQuery(event.target.value.trim());
+        } else {
+          popover.hide();
+        }
+      }, 1000),
+    [popover]
   );
 
   const searchInputRef = popover.unstable_referenceRef;
@@ -95,30 +99,6 @@ function SearchPopover({ shareId }: Props) {
       }
     }
   };
-
-  // TODO: scope the search by the shareId and not the user
-  // TODO write tests for that
-
-  // when showing, escape or up hides, when
-
-  // TODO think about shrinking the context preview
-  // TODO: keep old search results when changing the query — will require debounce + incrementer to tick the result set number
-  // update search results on a tick, and only display when ticked up (call inside useEffect)
-
-  // right now I'm making a closure but could shim it into a function with one object argument
-
-  const handleSearch = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.target;
-
-    if (value.length) {
-      popover.show();
-      setQuery(event.target.value.trim());
-    } else {
-      popover.hide();
-    }
-  };
-
-  // if the input has any stuff, then show the disclosure
 
   return (
     <>

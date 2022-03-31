@@ -395,9 +395,6 @@ export default class DocumentsStore extends BaseStore<Document> {
     });
     invariant(res?.data, "Search response should be available");
 
-    console.log({ query });
-    console.log({ options });
-
     // add the documents and associated policies to the store
     res.data.forEach((result: SearchResult) => this.add(result.document));
     this.addPolicies(res.policies);
