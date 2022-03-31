@@ -102,16 +102,6 @@ class DocumentScene extends React.Component<Props> {
     this.updateIsDirty();
   }
 
-  componentWillUnmount() {
-    if (
-      this.isEmpty &&
-      this.props.document.isDraft &&
-      this.props.document.title === ""
-    ) {
-      this.props.document.delete();
-    }
-  }
-
   componentDidUpdate(prevProps: Props) {
     const { auth, document, t } = this.props;
 
@@ -145,6 +135,18 @@ class DocumentScene extends React.Component<Props> {
           }
         );
       }
+    }
+  }
+
+  componentWillUnmount() {
+    if (
+      this.isEmpty &&
+      this.props.document.createdBy.id === this.props.auth.user?.id &&
+      this.props.document.isDraft &&
+      this.props.document.isActive &&
+      this.props.document.hasEmptyTitle
+    ) {
+      this.props.document.delete();
     }
   }
 
