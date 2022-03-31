@@ -136,6 +136,10 @@ const ResultContext = styled(Highlight)`
   margin-top: -0.25em;
   margin-bottom: 0.25em;
 
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
   mark {
     padding: 0;
   }

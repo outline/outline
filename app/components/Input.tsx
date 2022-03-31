@@ -179,6 +179,7 @@ class Input extends React.Component<Props> {
           <Outline focused={this.focused} margin={margin}>
             {icon && <IconWrapper>{icon}</IconWrapper>}
             <InputComponent
+              // @ts-expect-error no idea why this is not working
               ref={this.input}
               onBlur={this.handleBlur}
               onFocus={this.handleFocus}

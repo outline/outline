@@ -816,9 +816,16 @@ router.post(
       userId,
       dateFilter,
       shareId,
+      minWords = 0,
+      maxWords,
     } = ctx.body;
     assertNotEmpty(query, "query is required");
-    console.log("QUERY>>", query);
+    if (maxWords) {
+      assertPositiveInteger(
+        maxWords - minWords,
+        "maxWords must be greater than minWords"
+      );
+    }
 
     const { offset, limit } = ctx.state.pagination;
     // this typing is a bit ugly, would be better to have the auth middleware
@@ -850,6 +857,8 @@ router.post(
         dateFilter,
         offset,
         limit,
+        minWords,
+        maxWords,
       });
     } else {
       if (!user) {
@@ -889,6 +898,8 @@ router.post(
         dateFilter,
         offset,
         limit,
+        minWords,
+        maxWords,
       });
     }
 

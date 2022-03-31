@@ -191,6 +191,8 @@ const Link = styled(NavLink)<{ $isActiveDrop?: boolean; $isDraft?: boolean }>`
   }
 
   & + ${Actions} {
+    background: ${(props) => props.theme.sidebarBackground};
+
     ${NudeButton} {
       background: transparent;
 
@@ -199,6 +201,10 @@ const Link = styled(NavLink)<{ $isActiveDrop?: boolean; $isDraft?: boolean }>`
         background: ${(props) => props.theme.sidebarControlHoverBackground};
       }
     }
+  }
+
+  &[aria-current="page"] + ${Actions} {
+    background: ${(props) => props.theme.sidebarActiveBackground};
   }
 
   ${breakpoint("tablet")`
