@@ -64,8 +64,8 @@ type SearchOptions = {
   collaboratorIds?: string[];
   includeArchived?: boolean;
   includeDrafts?: boolean;
-  minWords: number;
-  maxWords: number;
+  minWords?: number;
+  maxWords?: number;
 };
 
 const serializer = new MarkdownSerializer();
@@ -438,10 +438,10 @@ class Document extends ParanoidModel {
   static async searchForTeam(
     team: Team,
     query: string,
-    options: SearchOptions = { minWords: 20, maxWords: 30 }
+    options: SearchOptions = {}
   ): Promise<SearchResponse> {
     const wildcardQuery = `${escape(query)}:*`;
-    const { minWords, maxWords, limit = 15, offset = 0 } = options;
+    const { minWords = 20, maxWords = 30, limit = 15, offset = 0 } = options;
 
     // restrict to specific collection if provided
     // enables search in private collections if specified
@@ -550,9 +550,9 @@ class Document extends ParanoidModel {
   static async searchForUser(
     user: User,
     query: string,
-    options: SearchOptions = { minWords: 20, maxWords: 30 }
+    options: SearchOptions = {}
   ): Promise<SearchResponse> {
-    const { minWords, maxWords, limit = 15, offset = 0 } = options;
+    const { minWords = 20, maxWords = 30, limit = 15, offset = 0 } = options;
     const wildcardQuery = `${escape(query)}:*`;
 
     // Ensure we're filtering by the users accessible collections. If

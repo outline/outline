@@ -30,7 +30,7 @@ function InputSearchPage({
   collectionId,
   source,
 }: Props) {
-  const inputRef = React.useRef<Input>(null);
+  const inputRef = React.useRef<HTMLInputElement>(null);
   const theme = useTheme();
   const history = useHistory();
   const { t } = useTranslation();
@@ -67,7 +67,7 @@ function InputSearchPage({
 
   return (
     <InputMaxWidth
-      ref={inputRef}
+      innerRef={inputRef}
       type="search"
       placeholder={placeholder || `${t("Search")}…`}
       value={value}

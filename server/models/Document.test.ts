@@ -207,7 +207,7 @@ describe("#searchForTeam", () => {
     expect(results.length).toBe(1);
   });
 
-  test.only("should return results from document tree of shared document", async () => {
+  test("should return results from document tree of shared document", async () => {
     const team = await buildTeam();
     const collection = await buildCollection({
       permission: null,
