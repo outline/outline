@@ -102,6 +102,16 @@ class DocumentScene extends React.Component<Props> {
     this.updateIsDirty();
   }
 
+  componentWillUnmount() {
+    if (
+      this.isEmpty &&
+      this.props.document.isDraft &&
+      this.props.document.title === ""
+    ) {
+      this.props.document.delete();
+    }
+  }
+
   componentDidUpdate(prevProps: Props) {
     const { auth, document, t } = this.props;
 
@@ -341,7 +351,8 @@ class DocumentScene extends React.Component<Props> {
     this.isEditorDirty = editorText !== document.text.trim();
 
     // a single hash is a doc with just an empty title
-    this.isEmpty = (!editorText || editorText === "#") && !this.title;
+    this.isEmpty =
+      (!editorText || editorText === "#" || editorText === "\\") && !this.title;
   };
 
   updateIsDirtyDebounced = debounce(this.updateIsDirty, 500);
