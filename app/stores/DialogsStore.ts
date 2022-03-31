@@ -2,23 +2,19 @@ import { observable, action } from "mobx";
 import * as React from "react";
 import { v4 as uuidv4 } from "uuid";
 
+type DialogDefinition = {
+  title: string;
+  content: React.ReactNode;
+  isOpen: boolean;
+  isCentered?: boolean;
+};
+
 export default class DialogsStore {
   @observable
-  guide: {
-    title: string;
-    content: React.ReactNode;
-    isOpen: boolean;
-  };
+  guide: DialogDefinition;
 
   @observable
-  modalStack = new Map<
-    string,
-    {
-      title: string;
-      content: React.ReactNode;
-      isOpen: boolean;
-    }
-  >();
+  modalStack = new Map<string, DialogDefinition>();
 
   openGuide = ({
     title,
@@ -49,9 +45,11 @@ export default class DialogsStore {
   openModal = ({
     title,
     content,
+    isCentered,
     replace,
   }: {
     title: string;
+    isCentered?: boolean;
     content: React.ReactNode;
     replace?: boolean;
   }) => {
@@ -67,6 +65,7 @@ export default class DialogsStore {
           title,
           content,
           isOpen: true,
+          isCentered,
         });
       }),
       0

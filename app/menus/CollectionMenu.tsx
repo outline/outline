@@ -54,7 +54,7 @@ function CollectionMenu({
   });
   const [renderModals, setRenderModals] = React.useState(false);
   const team = useCurrentTeam();
-  const { documents } = useStores();
+  const { documents, dialogs } = useStores();
   const { showToast } = useToasts();
   const { t } = useTranslation();
   const history = useHistory();
@@ -64,7 +64,6 @@ function CollectionMenu({
     setShowCollectionPermissions,
   ] = React.useState(false);
   const [showCollectionEdit, setShowCollectionEdit] = React.useState(false);
-  const [showCollectionDelete, setShowCollectionDelete] = React.useState(false);
   const [showCollectionExport, setShowCollectionExport] = React.useState(false);
 
   const handleOpen = React.useCallback(() => {
@@ -138,6 +137,19 @@ function CollectionMenu({
     },
     [collection, menu]
   );
+
+  const handleDelete = React.useCallback(() => {
+    dialogs.openModal({
+      isCentered: true,
+      title: t("Delete collection"),
+      content: (
+        <CollectionDelete
+          collection={collection}
+          onSubmit={dialogs.closeAllModals}
+        />
+      ),
+    });
+  }, [dialogs, t, collection]);
 
   const alphabeticalSort = collection.sort.field === "title";
   const can = usePolicy(collection.id);
@@ -214,7 +226,7 @@ function CollectionMenu({
         title: `${t("Delete")}…`,
         dangerous: true,
         visible: !!(collection && can.delete),
-        onClick: () => setShowCollectionDelete(true),
+        onClick: handleDelete,
         icon: <TrashIcon />,
       },
     ],
@@ -226,6 +238,7 @@ function CollectionMenu({
       handleChangeSort,
       handleNewDocument,
       handleImportDocument,
+      handleDelete,
       collection,
       canUserInTeam.export,
     ]
@@ -280,16 +293,6 @@ function CollectionMenu({
             <CollectionEdit
               onSubmit={() => setShowCollectionEdit(false)}
               collectionId={collection.id}
-            />
-          </Modal>
-          <Modal
-            title={t("Delete collection")}
-            isOpen={showCollectionDelete}
-            onRequestClose={() => setShowCollectionDelete(false)}
-          >
-            <CollectionDelete
-              onSubmit={() => setShowCollectionDelete(false)}
-              collection={collection}
             />
           </Modal>
           <Modal
