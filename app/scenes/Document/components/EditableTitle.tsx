@@ -99,7 +99,6 @@ const EditableTitle = React.forwardRef(
 
     const handleChange = React.useCallback(
       (text: string) => {
-        console.log(text, text === "/date ");
         if (/\/date\s$/.test(text)) {
           onChange(getCurrentDateAsString());
           ref.current?.focusAtEnd();
