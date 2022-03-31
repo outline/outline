@@ -30,8 +30,8 @@ import powershell from "refractor/lang/powershell";
 import python from "refractor/lang/python";
 import ruby from "refractor/lang/ruby";
 import rust from "refractor/lang/rust";
-import sql from "refractor/lang/sql";
 import solidity from "refractor/lang/solidity";
+import sql from "refractor/lang/sql";
 import typescript from "refractor/lang/typescript";
 import yaml from "refractor/lang/yaml";
 
