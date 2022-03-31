@@ -915,9 +915,6 @@ router.post(
       });
     }
 
-    // SLEEP
-    await new Promise((r) => setTimeout(r, 3000));
-
     ctx.body = {
       pagination: ctx.state.pagination,
       data,

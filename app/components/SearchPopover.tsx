@@ -49,7 +49,7 @@ function SearchPopover({ shareId }: Props) {
         } else {
           popover.hide();
         }
-      }, 1000),
+      }, 400),
     [popover]
   );
 
