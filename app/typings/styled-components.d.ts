@@ -156,6 +156,9 @@ declare module "styled-components" {
     sidebarText: string;
     backdrop: string;
     shadow: string;
+    modalBackdrop: string;
+    modalBackground: string;
+    modalShadow: string;
     menuItemSelected: string;
     menuBackground: string;
     menuShadow: string;

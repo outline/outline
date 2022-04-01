@@ -15,7 +15,7 @@ import * as React from "react";
 import ReactDOM from "react-dom";
 import { isInternalUrl } from "../../utils/urls";
 import findLinkNodes from "../queries/findLinkNodes";
-import { Dispatch } from "../types";
+import { EventType, Dispatch } from "../types";
 import Mark from "./Mark";
 
 const LINK_INPUT_REGEX = /\[([^[]+)]\((\S+)\)$/;
@@ -106,7 +106,7 @@ export default class Link extends Mark {
     return {
       "Mod-k": (state: EditorState, dispatch: Dispatch) => {
         if (state.selection.empty) {
-          this.options.onKeyboardShortcut();
+          this.editor.events.emit(EventType.linkMenuOpen);
           return true;
         }
 
@@ -116,6 +116,11 @@ export default class Link extends Mark {
   }
 
   get plugins() {
+    const component = <OpenIcon color="currentColor" size={16} />;
+    const icon = document.createElement("span");
+    icon.className = "external-link";
+    ReactDOM.render(component, icon);
+
     const getLinkDecorations = (doc: Node) => {
       const decorations: Decoration[] = [];
       const links = findLinkNodes(doc);
@@ -129,16 +134,11 @@ export default class Link extends Mark {
             Decoration.widget(
               // place the decoration at the end of the link
               nodeWithPos.pos + nodeWithPos.node.nodeSize,
-              () => {
-                const component = <OpenIcon color="currentColor" size={16} />;
-                const icon = document.createElement("span");
-                icon.className = "external-link";
-                ReactDOM.render(component, icon);
-                return icon;
-              },
+              () => icon.cloneNode(true),
               {
                 // position on the right side of the position
                 side: 1,
+                key: "external-link",
               }
             )
           );

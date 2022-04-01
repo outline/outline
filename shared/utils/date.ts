@@ -19,3 +19,44 @@ export function subtractDate(date: Date, period: DateFilter) {
       return date;
   }
 }
+
+/**
+ * Returns the current date as a string formatted depending on current locale.
+ *
+ * @returns The current date
+ */
+export function getCurrentDateAsString() {
+  return new Date().toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+}
+
+/**
+ * Returns the current time as a string formatted depending on current locale.
+ *
+ * @returns The current time
+ */
+export function getCurrentTimeAsString() {
+  return new Date().toLocaleTimeString(undefined, {
+    hour: "numeric",
+    minute: "numeric",
+  });
+}
+
+/**
+ * Returns the current date and time as a string formatted depending on current
+ * locale.
+ *
+ * @returns The current date and time
+ */
+export function getCurrentDateTimeAsString() {
+  return new Date().toLocaleString(undefined, {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "numeric",
+    minute: "numeric",
+  });
+}

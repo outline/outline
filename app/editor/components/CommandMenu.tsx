@@ -9,7 +9,7 @@ import styled from "styled-components";
 import insertFiles from "@shared/editor/commands/insertFiles";
 import { CommandFactory } from "@shared/editor/lib/Extension";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
-import { EmbedDescriptor, MenuItem, ToastType } from "@shared/editor/types";
+import { EmbedDescriptor, MenuItem } from "@shared/editor/types";
 import getDataTransferFiles from "@shared/utils/getDataTransferFiles";
 import { Dictionary } from "~/hooks/useDictionary";
 import Input from "./Input";
@@ -31,7 +31,7 @@ export type Props<T extends MenuItem = MenuItem> = {
   uploadFile?: (file: File) => Promise<string>;
   onFileUploadStart?: () => void;
   onFileUploadStop?: () => void;
-  onShowToast: (message: string, id: string) => void;
+  onShowToast: (message: string) => void;
   onLinkToolbarOpen?: () => void;
   onClose: () => void;
   onClearSearch: () => void;
@@ -216,10 +216,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
       const matches = this.state.insertItem.matcher(href);
 
       if (!matches) {
-        this.props.onShowToast(
-          this.props.dictionary.embedInvalidLink,
-          ToastType.Error
-        );
+        this.props.onShowToast(this.props.dictionary.embedInvalidLink);
         return;
       }
 

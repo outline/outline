@@ -24,6 +24,7 @@ export const LANGUAGES = {
   ruby: "Ruby",
   rust: "Rust",
   sql: "SQL",
+  solidity: "Solidity",
   typescript: "TypeScript",
   yaml: "YAML",
 };

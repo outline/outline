@@ -542,10 +542,12 @@ async function loadDocument({
     // shared then includeChildDocuments must be enabled and the document must
     // still be nested within the shared document
     if (share.document.id !== document.id) {
-      if (
-        !share.includeChildDocuments ||
-        !collection.isChildDocument(share.document.id, document.id)
-      ) {
+      if (!share.includeChildDocuments) {
+        throw AuthorizationError();
+      }
+
+      const childDocumentIds = await share.document.getChildDocumentIds();
+      if (!childDocumentIds.includes(document.id)) {
         throw AuthorizationError();
       }
     }
