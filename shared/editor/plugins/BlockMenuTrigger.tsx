@@ -124,12 +124,18 @@ export default class BlockMenuTrigger extends Extension {
             if (isTopLevel) {
               if (isEmpty) {
                 decorations.push(
-                  Decoration.widget(parent.pos, () => {
-                    button.addEventListener("click", () => {
-                      this.editor.events.emit(EventType.blockMenuOpen, "");
-                    });
-                    return button;
-                  })
+                  Decoration.widget(
+                    parent.pos,
+                    () => {
+                      button.addEventListener("click", () => {
+                        this.editor.events.emit(EventType.blockMenuOpen, "");
+                      });
+                      return button;
+                    },
+                    {
+                      key: "block-trigger",
+                    }
+                  )
                 );
 
                 decorations.push(
