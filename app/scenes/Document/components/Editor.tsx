@@ -5,6 +5,7 @@ import { useRouteMatch } from "react-router-dom";
 import fullPackage from "@shared/editor/packages/full";
 import Document from "~/models/Document";
 import ClickablePadding from "~/components/ClickablePadding";
+import { RefHandle } from "~/components/ContentEditable";
 import DocumentMetaWithViews from "~/components/DocumentMetaWithViews";
 import Editor, { Props as EditorProps } from "~/components/Editor";
 import Flex from "~/components/Flex";
@@ -41,7 +42,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     activeLinkEvent,
     setActiveLinkEvent,
   ] = React.useState<MouseEvent | null>(null);
-  const titleRef = React.useRef<HTMLSpanElement>(null);
+  const titleRef = React.useRef<RefHandle>(null);
   const { t } = useTranslation();
   const match = useRouteMatch();
 
@@ -114,9 +115,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
               : documentHistoryUrl(document)
           }
           rtl={
-            titleRef.current
-              ? window.getComputedStyle(titleRef.current).direction === "rtl"
-              : false
+            titleRef.current?.getComputedDirection() === "rtl" ? true : false
           }
         />
       )}
