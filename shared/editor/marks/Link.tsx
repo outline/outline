@@ -134,10 +134,7 @@ export default class Link extends Mark {
             Decoration.widget(
               // place the decoration at the end of the link
               nodeWithPos.pos + nodeWithPos.node.nodeSize,
-              () => {
-                console.log(icon);
-                return icon.cloneNode(true);
-              },
+              () => icon.cloneNode(true),
               {
                 // position on the right side of the position
                 side: 1,
