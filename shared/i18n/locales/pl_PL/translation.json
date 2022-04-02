@@ -454,6 +454,7 @@
   "You haven’t created any documents yet": "Nie utworzyłeś jeszcze żadnych dokumentów",
   "Documents you’ve recently viewed will be here for easy access": "Tutaj będą dostępne dokumenty, które ostatnio przeglądałeś",
   "We sent out your invites!": "Wysłaliśmy Twoje zaproszenia!",
+  "Those email addresses are already invited": "Those email addresses are already invited",
   "Sorry, you can only send {{MAX_INVITES}} invites at a time": "Przepraszamy, możesz wysłać tylko {{MAX_INVITES}} zaproszeń na raz",
   "Invite team members or guests to join your knowledge base. Team members can sign in with {{signinMethods}} or use their email address.": "Zaproś członków zespołu lub gości do dołączenia do Twojej bazy wiedzy. Członkowie zespołu mogą logować się za pomocą {{signinMethods}} lub używać swojego adresu e-mail.",
   "Invite team members to join your knowledge base. They will need to sign in with {{signinMethods}}.": "Zaproś członków zespołu do dołączenia do Twojej bazy wiedzy. Będą musieli się zalogować za pomocą {{signinMethods}}.",
