@@ -1,4 +1,5 @@
 import fractionalIndex from "fractional-index";
+import { Location } from "history";
 import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
@@ -44,7 +45,9 @@ function CollectionLink({
 }: Props) {
   const history = useHistory();
   const { t } = useTranslation();
-  const { search } = useLocation();
+  const location = useLocation<{
+    starred?: boolean;
+  }>();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const [
     permissionOpen,
@@ -211,14 +214,14 @@ function CollectionLink({
   React.useEffect(() => {
     // If we're viewing a starred document through the starred menu then don't
     // touch the expanded / collapsed state of the collections
-    if (search === "?starred") {
+    if (location.state?.starred) {
       return;
     }
 
     if (collection.id === ui.activeCollectionId) {
       setExpanded(true);
     }
-  }, [collection.id, ui.activeCollectionId, search]);
+  }, [collection.id, ui.activeCollectionId, location]);
 
   const context = useActionContext({
     activeCollectionId: collection.id,
@@ -249,8 +252,8 @@ function CollectionLink({
               }
               showActions={menuOpen}
               isActiveDrop={isOver && canDrop}
-              isActive={(match, location) =>
-                !!match && location.search !== "?starred"
+              isActive={(match, location: Location<{ starred?: boolean }>) =>
+                !!match && !location.state?.starred
               }
               label={
                 <EditableTitle

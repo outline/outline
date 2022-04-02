@@ -1,3 +1,4 @@
+import { Location } from "history";
 import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
@@ -325,8 +326,8 @@ function DocumentLink(
                     maxLength={MAX_TITLE_LENGTH}
                   />
                 }
-                isActive={(match, location) =>
-                  !!match && location.search !== "?starred"
+                isActive={(match, location: Location<{ starred?: boolean }>) =>
+                  !!match && !location.state?.starred
                 }
                 isActiveDrop={isOverReparent && canDropToReparent}
                 depth={depth}

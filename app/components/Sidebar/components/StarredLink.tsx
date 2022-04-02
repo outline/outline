@@ -1,4 +1,5 @@
 import fractionalIndex from "fractional-index";
+import { Location } from "history";
 import { observer } from "mobx-react";
 import { StarredIcon } from "outline-icons";
 import * as React from "react";
@@ -105,7 +106,10 @@ function StarredLink({
             depth={depth}
             expanded={hasChildDocuments ? expanded : undefined}
             onDisclosureClick={handleDisclosureClick}
-            to={`${to}?starred`}
+            to={{
+              pathname: to,
+              state: { starred: true },
+            }}
             icon={
               depth === 0 ? (
                 emoji ? (
@@ -115,8 +119,8 @@ function StarredLink({
                 )
               ) : null
             }
-            isActive={(match, location) =>
-              !!match && location.search === "?starred"
+            isActive={(match, location: Location<{ starred?: boolean }>) =>
+              !!match && location.state?.starred === true
             }
             label={depth === 0 ? label : title}
             exact={false}
@@ -154,10 +158,13 @@ function StarredLink({
     content = (
       <SidebarLink
         depth={depth}
-        to={`${to}?starred`}
+        to={{
+          pathname: to,
+          state: { starred: true },
+        }}
         icon={<CollectionIcon collection={collection} />}
-        isActive={(match, location) =>
-          !!match && location.search === "?starred"
+        isActive={(match, location: Location<{ starred?: boolean }>) =>
+          !!match && location.state?.starred === true
         }
         label={collection.name}
         exact={false}
