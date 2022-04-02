@@ -10,6 +10,7 @@ import insertFiles from "@shared/editor/commands/insertFiles";
 import { CommandFactory } from "@shared/editor/lib/Extension";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
 import { EmbedDescriptor, MenuItem } from "@shared/editor/types";
+import { supportedImageMimeTypes } from "@shared/utils/files";
 import getDataTransferFiles from "@shared/utils/getDataTransferFiles";
 import { Dictionary } from "~/hooks/useDictionary";
 import Input from "./Input";
@@ -179,7 +180,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
   insertItem = (item: any) => {
     switch (item.name) {
       case "image":
-        return this.triggerFilePick("image/*");
+        return this.triggerFilePick(supportedImageMimeTypes.join(", "));
       case "attachment":
         return this.triggerFilePick("*");
       case "embed":
