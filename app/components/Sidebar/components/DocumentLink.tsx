@@ -14,6 +14,7 @@ import Fade from "~/components/Fade";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
 import useBoolean from "~/hooks/useBoolean";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import DocumentMenu from "~/menus/DocumentMenu";
@@ -23,13 +24,13 @@ import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
 import EditableTitle from "./EditableTitle";
 import SidebarLink, { DragObject } from "./SidebarLink";
+import { useStarredContext } from "./StarredContext";
 
 type Props = {
   node: NavigationNode;
-  canUpdate: boolean;
   collection?: Collection;
   activeDocument: Document | null | undefined;
-  prefetchDocument: (documentId: string) => Promise<Document | void>;
+  prefetchDocument?: (documentId: string) => Promise<Document | void>;
   isDraft?: boolean;
   depth: number;
   index: number;
@@ -39,7 +40,6 @@ type Props = {
 function DocumentLink(
   {
     node,
-    canUpdate,
     collection,
     activeDocument,
     prefetchDocument,
@@ -53,12 +53,14 @@ function DocumentLink(
   const { showToast } = useToasts();
   const { documents, policies } = useStores();
   const { t } = useTranslation();
+  const canUpdate = usePolicy(node.id).update;
   const isActiveDocument = activeDocument && activeDocument.id === node.id;
   const hasChildDocuments =
     !!node.children.length || activeDocument?.parentDocumentId === node.id;
   const document = documents.get(node.id);
   const { fetchChildDocuments } = documents;
   const [isEditing, setIsEditing] = React.useState(false);
+  const inStarredSection = useStarredContext();
 
   React.useEffect(() => {
     if (isActiveDocument && hasChildDocuments) {
@@ -99,8 +101,7 @@ function DocumentLink(
     }
   }, [expanded]);
 
-  // when the last child document is removed,
-  // also close the local folder state to closed
+  // when the last child document is removed auto-close the local folder state
   React.useEffect(() => {
     if (expanded && !hasChildDocuments) {
       setExpanded(false);
@@ -117,7 +118,7 @@ function DocumentLink(
   );
 
   const handleMouseEnter = React.useCallback(() => {
-    prefetchDocument(node.id);
+    prefetchDocument?.(node.id);
   }, [prefetchDocument, node]);
 
   const handleTitleChange = React.useCallback(
@@ -191,7 +192,7 @@ function DocumentLink(
       !isDraft &&
       !!pathToNode &&
       !pathToNode.includes(monitor.getItem<DragObject>().id),
-    hover: (item, monitor) => {
+    hover: (_item, monitor) => {
       // Enables expansion of document children when hovering over the document
       // for more than half a second.
       if (
@@ -315,6 +316,7 @@ function DocumentLink(
                   pathname: node.url,
                   state: {
                     title: node.title,
+                    starred: inStarredSection,
                   },
                 }}
                 label={
@@ -327,13 +329,13 @@ function DocumentLink(
                   />
                 }
                 isActive={(match, location: Location<{ starred?: boolean }>) =>
-                  !!match && !location.state?.starred
+                  !!match && location.state?.starred === inStarredSection
                 }
                 isActiveDrop={isOverReparent && canDropToReparent}
                 depth={depth}
                 exact={false}
                 showActions={menuOpen}
-                scrollIntoViewIfNeeded={!document?.isStarred}
+                scrollIntoViewIfNeeded={!inStarredSection}
                 isDraft={isDraft}
                 ref={ref}
                 menu={
@@ -387,7 +389,6 @@ function DocumentLink(
               prefetchDocument={prefetchDocument}
               isDraft={childNode.isDraft}
               depth={depth + 1}
-              canUpdate={canUpdate}
               index={index}
               parentId={node.id}
             />

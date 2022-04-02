@@ -10,7 +10,7 @@ import Flex from "~/components/Flex";
 import { createCollection } from "~/actions/definitions/collections";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
-import CollectionLink from "./CollectionLink";
+import DraggableCollectionLink from "./DraggableCollectionLink";
 import DropCursor from "./DropCursor";
 import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
@@ -20,7 +20,7 @@ import { DragObject } from "./SidebarLink";
 function Collections() {
   const [isFetching, setFetching] = React.useState(false);
   const [fetchError, setFetchError] = React.useState();
-  const { policies, documents, collections } = useStores();
+  const { documents, collections } = useStores();
   const { showToast } = useToasts();
   const [expanded, setExpanded] = React.useState(true);
   const isPreloaded = !!collections.orderedData.length;
@@ -82,12 +82,11 @@ function Collections() {
         />
       )}
       {orderedCollections.map((collection: Collection, index: number) => (
-        <CollectionLink
+        <DraggableCollectionLink
           key={collection.id}
           collection={collection}
           activeDocument={documents.active}
           prefetchDocument={documents.prefetchDocument}
-          canUpdate={policies.abilities(collection.id).update}
           belowCollection={orderedCollections[index + 1]}
         />
       ))}

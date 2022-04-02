@@ -12,6 +12,7 @@ import DropCursor from "./DropCursor";
 import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
 import SidebarLink from "./SidebarLink";
+import StarredContext from "./StarredContext";
 import StarredLink from "./StarredLink";
 
 const STARRED_PAGINATION_LIMIT = 10;
@@ -25,7 +26,7 @@ function Starred() {
   const [offset, setOffset] = React.useState(0);
   const [upperBound, setUpperBound] = React.useState(STARRED_PAGINATION_LIMIT);
   const { showToast } = useToasts();
-  const { stars, documents, collections } = useStores();
+  const { stars } = useStores();
   const { t } = useTranslation();
 
   const fetchResults = React.useCallback(async () => {
@@ -123,64 +124,44 @@ function Starred() {
   }
 
   return (
-    <Flex column>
-      <Header onClick={handleExpandClick} expanded={expanded}>
-        {t("Starred")}
-      </Header>
-      {expanded && (
-        <Relative>
-          <DropCursor
-            isActiveDrop={isOverReorder}
-            innerRef={dropToReorder}
-            position="top"
-          />
-          {stars.orderedData.slice(0, upperBound).map((star) => {
-            const document = documents.get(star.documentId);
-            const collection = collections.get(star.collectionId);
-
-            return document ? (
-              <StarredLink
-                key={star.id}
-                star={star}
-                documentId={document.id}
-                collectionId={document.collectionId}
-                to={document.url}
-                title={document.title}
+    <StarredContext.Provider value={true}>
+      <Flex column>
+        <Header onClick={handleExpandClick} expanded={expanded}>
+          {t("Starred")}
+        </Header>
+        {expanded && (
+          <Relative>
+            <DropCursor
+              isActiveDrop={isOverReorder}
+              innerRef={dropToReorder}
+              position="top"
+            />
+            {stars.orderedData.slice(0, upperBound).map((star) => (
+              <StarredLink key={star.id} star={star} />
+            ))}
+            {show === "More" && !isFetching && (
+              <SidebarLink
+                onClick={handleShowMore}
+                label={`${t("Show more")}…`}
                 depth={0}
               />
-            ) : collection ? (
-              <StarredLink
-                key={star.id}
-                star={star}
-                collectionId={collection.id}
-                to={collection.url}
-                title={collection.name}
+            )}
+            {show === "Less" && !isFetching && (
+              <SidebarLink
+                onClick={handleShowLess}
+                label={`${t("Show less")}…`}
                 depth={0}
               />
-            ) : null;
-          })}
-          {show === "More" && !isFetching && (
-            <SidebarLink
-              onClick={handleShowMore}
-              label={`${t("Show more")}…`}
-              depth={0}
-            />
-          )}
-          {show === "Less" && !isFetching && (
-            <SidebarLink
-              onClick={handleShowLess}
-              label={`${t("Show less")}…`}
-              depth={0}
-            />
-          )}
-          {(isFetching || fetchError) && !stars.orderedData.length && (
-            <Flex column>
-              <PlaceholderCollections />
-            </Flex>
-          )}
-        </Relative>
-      )}
-    </Flex>
+            )}
+            {(isFetching || fetchError) && !stars.orderedData.length && (
+              <Flex column>
+                <PlaceholderCollections />
+              </Flex>
+            )}
+          </Relative>
+        )}
+      </Flex>
+    </StarredContext.Provider>
   );
 }
 

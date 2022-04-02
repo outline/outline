@@ -8,37 +8,27 @@ import { useDrag, useDrop } from "react-dnd";
 import styled, { useTheme } from "styled-components";
 import parseTitle from "@shared/utils/parseTitle";
 import Star from "~/models/Star";
-import CollectionIcon from "~/components/CollectionIcon";
 import EmojiIcon from "~/components/EmojiIcon";
 import Fade from "~/components/Fade";
 import useBoolean from "~/hooks/useBoolean";
 import useStores from "~/hooks/useStores";
-import CollectionMenu from "~/menus/CollectionMenu";
 import DocumentMenu from "~/menus/DocumentMenu";
+import CollectionLink from "./CollectionLink";
+import DocumentLink from "./DocumentLink";
 import DropCursor from "./DropCursor";
 import SidebarLink from "./SidebarLink";
+import useCollectionDocuments from "./useCollectionDocuments";
 
 type Props = {
-  star?: Star;
-  depth: number;
-  title: string;
-  to: string;
-  documentId?: string;
-  collectionId: string;
+  star: Star;
 };
 
-function StarredLink({
-  depth,
-  to,
-  documentId,
-  title,
-  collectionId,
-  star,
-}: Props) {
+function StarredLink({ star }: Props) {
   const theme = useTheme();
   const { collections, documents } = useStores();
   const [expanded, setExpanded] = useState(false);
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
+  const { documentId, collectionId } = star;
   const collection = collections.get(collectionId);
 
   useEffect(() => {
@@ -60,6 +50,11 @@ function StarredLink({
     []
   );
 
+  const collectionDocuments = useCollectionDocuments(
+    collection,
+    documents.active
+  );
+
   // Draggable
   const [{ isDragging }, drag] = useDrag({
     type: "star",
@@ -67,9 +62,7 @@ function StarredLink({
     collect: (monitor) => ({
       isDragging: !!monitor.isDragging(),
     }),
-    canDrag: () => {
-      return depth === 0;
-    },
+    canDrag: () => true,
   });
 
   // Drop to reorder
@@ -91,9 +84,14 @@ function StarredLink({
   let content;
 
   if (documentId) {
-    const { emoji } = parseTitle(title);
-    const label = emoji ? title.replace(emoji, "") : title;
     const document = documents.get(documentId);
+    if (!document) {
+      return null;
+    }
+
+    const collection = collections.get(document.collectionId);
+    const { emoji } = parseTitle(document.title);
+    const label = emoji ? document.title.replace(emoji, "") : document.title;
     const childDocuments = collection
       ? collection.getDocumentChildren(documentId)
       : [];
@@ -101,28 +99,26 @@ function StarredLink({
 
     content = (
       <>
-        <Draggable key={documentId} ref={drag} $isDragging={isDragging}>
+        <Draggable key={star.id} ref={drag} $isDragging={isDragging}>
           <SidebarLink
-            depth={depth}
-            expanded={hasChildDocuments ? expanded : undefined}
-            onDisclosureClick={handleDisclosureClick}
+            depth={0}
             to={{
-              pathname: to,
+              pathname: document.url,
               state: { starred: true },
             }}
+            expanded={hasChildDocuments ? expanded : undefined}
+            onDisclosureClick={handleDisclosureClick}
             icon={
-              depth === 0 ? (
-                emoji ? (
-                  <EmojiIcon emoji={emoji} />
-                ) : (
-                  <StarredIcon color={theme.yellow} />
-                )
-              ) : null
+              emoji ? (
+                <EmojiIcon emoji={emoji} />
+              ) : (
+                <StarredIcon color={theme.yellow} />
+              )
             }
             isActive={(match, location: Location<{ starred?: boolean }>) =>
               !!match && location.state?.starred === true
             }
-            label={depth === 0 ? label : title}
+            label={label}
             exact={false}
             showActions={menuOpen}
             menu={
@@ -142,59 +138,67 @@ function StarredLink({
           )}
         </Draggable>
         {expanded &&
-          childDocuments.map((childDocument) => (
-            <ObserveredStarredLink
-              key={childDocument.id}
-              depth={depth === 0 ? 2 : depth + 1}
-              title={childDocument.title}
-              to={childDocument.url}
-              documentId={childDocument.id}
-              collectionId={collectionId}
+          childDocuments.map((node, index) => (
+            <DocumentLink
+              key={node.id}
+              node={node}
+              collection={collection}
+              activeDocument={documents.active}
+              isDraft={node.isDraft}
+              depth={2}
+              index={index}
             />
           ))}
       </>
     );
   } else if (collection) {
     content = (
-      <SidebarLink
-        depth={depth}
-        to={{
-          pathname: to,
-          state: { starred: true },
-        }}
-        icon={<CollectionIcon collection={collection} />}
-        isActive={(match, location: Location<{ starred?: boolean }>) =>
-          !!match && location.state?.starred === true
-        }
-        label={collection.name}
-        exact={false}
-        showActions={menuOpen}
-        menu={
-          collection ? (
-            <Fade>
-              <CollectionMenu
+      <>
+        <Draggable key={star?.id} ref={drag} $isDragging={isDragging}>
+          <CollectionLink
+            collection={collection}
+            expanded={expanded}
+            activeDocument={documents.active}
+            onDisclosureClick={handleDisclosureClick}
+            isActiveDrop={false}
+          />
+        </Draggable>
+        <Relative>
+          <Folder $open={expanded && !isDragging}>
+            {collectionDocuments.map((node, index) => (
+              <DocumentLink
+                key={node.id}
+                node={node}
                 collection={collection}
-                onOpen={handleMenuOpen}
-                onClose={handleMenuClose}
+                activeDocument={documents.active}
+                isDraft={node.isDraft}
+                depth={2}
+                index={index}
               />
-            </Fade>
-          ) : undefined
-        }
-      />
+            ))}
+          </Folder>
+        </Relative>
+      </>
     );
-    {
-      isDraggingAny && (
-        <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
-      );
-    }
   }
 
   return (
-    <Draggable key={star?.id} ref={drag} $isDragging={isDragging}>
+    <>
       {content}
-    </Draggable>
+      {isDraggingAny && (
+        <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
+      )}
+    </>
   );
 }
+
+const Relative = styled.div`
+  position: relative;
+`;
+
+const Folder = styled.div<{ $open?: boolean }>`
+  display: ${(props) => (props.$open ? "block" : "none")};
+`;
 
 const Draggable = styled.div<{ $isDragging?: boolean }>`
   position: relative;
