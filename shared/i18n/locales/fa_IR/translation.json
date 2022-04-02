@@ -500,7 +500,7 @@
   "Login": "Login",
   "Failed to load configuration.": "Failed to load configuration.",
   "Check your email": "ایمیل خود را بررسی کنید",
-  "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em>, no password needed.": "یک پیوند ورود جادویی به ایمیل <em>{{ emailLinkSentTo }}</em>، نیازی به رمز عبور نیست.",
+  "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em> if an account exists.": "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em> if an account exists.",
   "Back to login": "بازگشت به صفحه ورود",
   "Create an account": "ایجاد یک حساب",
   "Get started by choosing a sign-in method for your new team below…": "برای شروع، یک شیوه برای ورود تیم جدید خود از زیر انتخاب کنید…",
