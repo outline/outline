@@ -500,7 +500,7 @@
   "Login": "Identification",
   "Failed to load configuration.": "Échec du chargement de la configuration.",
   "Check your email": "Vérifiez votre messagerie",
-  "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em>, no password needed.": "Un lien de connexion a été envoyé à l'email <em>{{ emailLinkSentTo }}</em>, il n'y aura pas besoin de mot de passe.",
+  "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em> if an account exists.": "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em> if an account exists.",
   "Back to login": "Retour à la page d'identification",
   "Create an account": "Créer un compte",
   "Get started by choosing a sign-in method for your new team below…": "Commencez par choisir ci-dessous une méthode de connexion pour votre nouvelle équipe…",
