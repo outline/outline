@@ -500,7 +500,7 @@
   "Login": "Login",
   "Failed to load configuration.": "Не удалось загрузить конфигурацию.",
   "Check your email": "Проверьте вашу почту",
-  "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em>, no password needed.": "На электронную почту была отправлена ссылка для входа <em>{{ emailLinkSentTo }}</em>, пароль не требуется.",
+  "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em> if an account exists.": "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em> if an account exists.",
   "Back to login": "Назад на страницу входа",
   "Create an account": "Создать учетную запись",
   "Get started by choosing a sign-in method for your new team below…": "Начните с выбора метода входа для вашей новой команды ниже…",
