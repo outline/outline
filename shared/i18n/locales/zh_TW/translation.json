@@ -454,6 +454,7 @@
   "You haven’t created any documents yet": "您還沒有建立任何文件",
   "Documents you’ve recently viewed will be here for easy access": "您最近檢視過的文件會被列於此方便您快速存取",
   "We sent out your invites!": "我們發出了您的邀請！",
+  "Those email addresses are already invited": "Those email addresses are already invited",
   "Sorry, you can only send {{MAX_INVITES}} invites at a time": "抱歉，您一次最多只能發送 {{MAX_INVITES}} 個邀請",
   "Invite team members or guests to join your knowledge base. Team members can sign in with {{signinMethods}} or use their email address.": "邀請團隊成員或訪客加入您的知識庫。團隊成員可以使用 {{signinMethods}} 或 email 進行登入。",
   "Invite team members to join your knowledge base. They will need to sign in with {{signinMethods}}.": "邀請團隊成員加入您的知識庫。他們需要使用 {{signinMethods}} 進行登入。",
