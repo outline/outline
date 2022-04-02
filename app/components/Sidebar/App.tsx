@@ -137,6 +137,7 @@ function AppSidebar() {
 
 const StyledTeamLogo = styled(TeamLogo)`
   margin-right: 4px;
+  background: white;
 `;
 
 const Drafts = styled(Text)`
