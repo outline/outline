@@ -1,3 +1,4 @@
+import { observer } from "mobx-react";
 import { StarredIcon, UnstarredIcon } from "outline-icons";
 import * as React from "react";
 import styled, { useTheme } from "styled-components";
@@ -34,14 +35,17 @@ function Star({ size, document, collection, ...rest }: Props) {
   return (
     <NudeButton
       context={context}
+      hideOnActionDisabled
       action={
         collection
           ? collection.isStarred
             ? unstarCollection
             : starCollection
-          : document.isStarred
-          ? unstarDocument
-          : starDocument
+          : document
+          ? document.isStarred
+            ? unstarDocument
+            : starDocument
+          : undefined
       }
       size={size}
       {...rest}
@@ -75,4 +79,4 @@ export const AnimatedStar = styled(StarredIcon)`
   }
 `;
 
-export default Star;
+export default observer(Star);

@@ -89,12 +89,17 @@ router.post("stars.list", auth(), pagination(), async (ctx) => {
     });
   }
 
-  const documents = await Document.defaultScopeWithUser(user.id).findAll({
-    where: {
-      id: stars.map((star) => star.documentId),
-      collectionId: collectionIds,
-    },
-  });
+  const documentIds = stars
+    .map((star) => star.documentId)
+    .filter(Boolean) as string[];
+  const documents = documentIds.length
+    ? await Document.defaultScopeWithUser(user.id).findAll({
+        where: {
+          id: documentIds,
+          collectionId: collectionIds,
+        },
+      })
+    : [];
 
   const policies = presentPolicies(user, [...documents, ...stars]);
 

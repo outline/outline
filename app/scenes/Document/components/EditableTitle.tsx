@@ -13,7 +13,6 @@ import Document from "~/models/Document";
 import ContentEditable, { RefHandle } from "~/components/ContentEditable";
 import Star, { AnimatedStar } from "~/components/Star";
 import useEmojiWidth from "~/hooks/useEmojiWidth";
-import usePolicy from "~/hooks/usePolicy";
 import { isModKey } from "~/utils/keyboard";
 
 type Props = {
@@ -49,7 +48,6 @@ const EditableTitle = React.forwardRef(
     }: Props,
     ref: React.RefObject<RefHandle>
   ) => {
-    const can = usePolicy(document.id);
     const normalizedTitle =
       !value && readOnly ? document.titleWithDefault : value;
 
@@ -135,9 +133,7 @@ const EditableTitle = React.forwardRef(
         dir="auto"
         ref={ref}
       >
-        {(can.star || can.unstar) && starrable !== false && (
-          <StarButton document={document} size={32} />
-        )}
+        {starrable !== false && <StarButton document={document} size={32} />}
       </Title>
     );
   }
