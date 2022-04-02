@@ -31,7 +31,7 @@ export function organizationSettingsPath(): string {
 }
 
 export function profileSettingsPath(): string {
-  return "/settings/profile";
+  return "/settings";
 }
 
 export function groupSettingsPath(): string {
