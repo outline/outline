@@ -191,6 +191,9 @@ function CollectionMenu({
         icon: <StarredIcon />,
       },
       {
+        type: "separator",
+      },
+      {
         type: "button",
         title: t("New document"),
         visible: can.update,
@@ -268,6 +271,10 @@ function CollectionMenu({
       t,
       can.update,
       can.delete,
+      can.star,
+      can.unstar,
+      handleStar,
+      handleUnstar,
       alphabeticalSort,
       handleChangeSort,
       handleNewDocument,
