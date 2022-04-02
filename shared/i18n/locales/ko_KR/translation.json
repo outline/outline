@@ -500,7 +500,7 @@
   "Login": "Login",
   "Failed to load configuration.": "Failed to load configuration.",
   "Check your email": "이메일을 확인하십시오",
-  "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em>, no password needed.": "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em>, no password needed.",
+  "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em> if an account exists.": "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em> if an account exists.",
   "Back to login": "로그인으로 돌아가기",
   "Create an account": "계정 생성",
   "Get started by choosing a sign-in method for your new team below…": "Get started by choosing a sign-in method for your new team below…",
