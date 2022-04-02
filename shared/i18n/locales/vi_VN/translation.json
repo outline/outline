@@ -454,6 +454,7 @@
   "You haven’t created any documents yet": "Bạn chưa tạo bất kỳ tài liệu nào",
   "Documents you’ve recently viewed will be here for easy access": "Các tài liệu bạn đã xem gần đây sẽ ở đây để dễ dàng truy cập",
   "We sent out your invites!": "Chúng tôi đã gửi lời mời của bạn!",
+  "Those email addresses are already invited": "Those email addresses are already invited",
   "Sorry, you can only send {{MAX_INVITES}} invites at a time": "Xin lỗi, bạn chỉ có thể gửi {{MAX_INVITES}} lời mời cùng một lúc",
   "Invite team members or guests to join your knowledge base. Team members can sign in with {{signinMethods}} or use their email address.": "Mời các thành viên trong nhóm hoặc khách tham gia vào cơ sở kiến thức của bạn. Các thành viên trong nhóm có thể đăng nhập bằng {{signinMethods}} hoặc sử dụng địa chỉ email của họ.",
   "Invite team members to join your knowledge base. They will need to sign in with {{signinMethods}}.": "Mời các thành viên trong nhóm tham gia vào kho kiến thức của bạn. Họ sẽ cần đăng nhập bằng {{signinMethods}}.",
