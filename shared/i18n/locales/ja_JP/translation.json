@@ -500,7 +500,7 @@
   "Login": "Login",
   "Failed to load configuration.": "Failed to load configuration.",
   "Check your email": "メールをご確認ください",
-  "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em>, no password needed.": "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em>, no password needed.",
+  "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em> if an account exists.": "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em> if an account exists.",
   "Back to login": "ログイン画面に戻る",
   "Create an account": "アカウントを作成する",
   "Get started by choosing a sign-in method for your new team below…": "Get started by choosing a sign-in method for your new team below…",
