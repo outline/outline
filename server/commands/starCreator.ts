@@ -55,11 +55,15 @@ export default async function starCreator({
   }
 
   const response = await Star.findOrCreate({
-    where: {
-      userId: user.id,
-      documentId,
-      collectionId,
-    },
+    where: documentId
+      ? {
+          userId: user.id,
+          documentId,
+        }
+      : {
+          userId: user.id,
+          collectionId,
+        },
     defaults: {
       index,
     },

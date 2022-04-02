@@ -25,7 +25,7 @@ function Starred() {
   const [offset, setOffset] = React.useState(0);
   const [upperBound, setUpperBound] = React.useState(STARRED_PAGINATION_LIMIT);
   const { showToast } = useToasts();
-  const { stars, documents } = useStores();
+  const { stars, documents, collections } = useStores();
   const { t } = useTranslation();
 
   const fetchResults = React.useCallback(async () => {
@@ -136,6 +136,7 @@ function Starred() {
           />
           {stars.orderedData.slice(0, upperBound).map((star) => {
             const document = documents.get(star.documentId);
+            const collection = collections.get(star.collectionId);
 
             return document ? (
               <StarredLink
@@ -145,6 +146,15 @@ function Starred() {
                 collectionId={document.collectionId}
                 to={document.url}
                 title={document.title}
+                depth={0}
+              />
+            ) : collection ? (
+              <StarredLink
+                key={star.id}
+                star={star}
+                collectionId={collection.id}
+                to={collection.url}
+                title={collection.name}
                 depth={0}
               />
             ) : null;

@@ -7,10 +7,12 @@ import { useDrag, useDrop } from "react-dnd";
 import styled, { useTheme } from "styled-components";
 import parseTitle from "@shared/utils/parseTitle";
 import Star from "~/models/Star";
+import CollectionIcon from "~/components/CollectionIcon";
 import EmojiIcon from "~/components/EmojiIcon";
 import Fade from "~/components/Fade";
 import useBoolean from "~/hooks/useBoolean";
 import useStores from "~/hooks/useStores";
+import CollectionMenu from "~/menus/CollectionMenu";
 import DocumentMenu from "~/menus/DocumentMenu";
 import DropCursor from "./DropCursor";
 import SidebarLink from "./SidebarLink";
@@ -20,7 +22,7 @@ type Props = {
   depth: number;
   title: string;
   to: string;
-  documentId: string;
+  documentId?: string;
   collectionId: string;
 };
 
@@ -34,24 +36,19 @@ function StarredLink({
 }: Props) {
   const theme = useTheme();
   const { collections, documents } = useStores();
-  const collection = collections.get(collectionId);
-  const document = documents.get(documentId);
   const [expanded, setExpanded] = useState(false);
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
-  const childDocuments = collection
-    ? collection.getDocumentChildren(documentId)
-    : [];
-  const hasChildDocuments = childDocuments.length > 0;
+  const collection = collections.get(collectionId);
 
   useEffect(() => {
     async function load() {
-      if (!document) {
+      if (documentId) {
         await documents.fetch(documentId);
       }
     }
 
     load();
-  }, [collection, collectionId, collections, document, documentId, documents]);
+  }, [documentId, documents]);
 
   const handleDisclosureClick = React.useCallback(
     (ev: React.MouseEvent<HTMLButtonElement>) => {
@@ -90,60 +87,105 @@ function StarredLink({
     }),
   });
 
-  const { emoji } = parseTitle(title);
-  const label = emoji ? title.replace(emoji, "") : title;
+  let content;
+
+  if (documentId) {
+    const { emoji } = parseTitle(title);
+    const label = emoji ? title.replace(emoji, "") : title;
+    const document = documents.get(documentId);
+    const childDocuments = collection
+      ? collection.getDocumentChildren(documentId)
+      : [];
+    const hasChildDocuments = childDocuments.length > 0;
+
+    content = (
+      <>
+        <Draggable key={documentId} ref={drag} $isDragging={isDragging}>
+          <SidebarLink
+            depth={depth}
+            expanded={hasChildDocuments ? expanded : undefined}
+            onDisclosureClick={handleDisclosureClick}
+            to={`${to}?starred`}
+            icon={
+              depth === 0 ? (
+                emoji ? (
+                  <EmojiIcon emoji={emoji} />
+                ) : (
+                  <StarredIcon color={theme.yellow} />
+                )
+              ) : null
+            }
+            isActive={(match, location) =>
+              !!match && location.search === "?starred"
+            }
+            label={depth === 0 ? label : title}
+            exact={false}
+            showActions={menuOpen}
+            menu={
+              document ? (
+                <Fade>
+                  <DocumentMenu
+                    document={document}
+                    onOpen={handleMenuOpen}
+                    onClose={handleMenuClose}
+                  />
+                </Fade>
+              ) : undefined
+            }
+          />
+          {isDraggingAny && (
+            <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
+          )}
+        </Draggable>
+        {expanded &&
+          childDocuments.map((childDocument) => (
+            <ObserveredStarredLink
+              key={childDocument.id}
+              depth={depth === 0 ? 2 : depth + 1}
+              title={childDocument.title}
+              to={childDocument.url}
+              documentId={childDocument.id}
+              collectionId={collectionId}
+            />
+          ))}
+      </>
+    );
+  } else if (collection) {
+    content = (
+      <SidebarLink
+        depth={depth}
+        to={`${to}?starred`}
+        icon={<CollectionIcon collection={collection} />}
+        isActive={(match, location) =>
+          !!match && location.search === "?starred"
+        }
+        label={collection.name}
+        exact={false}
+        showActions={menuOpen}
+        menu={
+          collection ? (
+            <Fade>
+              <CollectionMenu
+                collection={collection}
+                onOpen={handleMenuOpen}
+                onClose={handleMenuClose}
+              />
+            </Fade>
+          ) : undefined
+        }
+      />
+    );
+    {
+      isDraggingAny && (
+        <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
+      );
+    }
+  }
 
   return (
-    <>
-      <Draggable key={documentId} ref={drag} $isDragging={isDragging}>
-        <SidebarLink
-          depth={depth}
-          expanded={hasChildDocuments ? expanded : undefined}
-          onDisclosureClick={handleDisclosureClick}
-          to={`${to}?starred`}
-          icon={
-            depth === 0 ? (
-              emoji ? (
-                <EmojiIcon emoji={emoji} />
-              ) : (
-                <StarredIcon color={theme.yellow} />
-              )
-            ) : undefined
-          }
-          isActive={(match, location) =>
-            !!match && location.search === "?starred"
-          }
-          label={depth === 0 ? label : title}
-          exact={false}
-          showActions={menuOpen}
-          menu={
-            document ? (
-              <Fade>
-                <DocumentMenu
-                  document={document}
-                  onOpen={handleMenuOpen}
-                  onClose={handleMenuClose}
-                />
-              </Fade>
-            ) : undefined
-          }
-        />
-        {isDraggingAny && (
-          <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
-        )}
-      </Draggable>
-      {expanded &&
-        childDocuments.map((childDocument) => (
-          <ObserveredStarredLink
-            key={childDocument.id}
-            depth={depth === 0 ? 2 : depth + 1}
-            title={childDocument.title}
-            to={childDocument.url}
-            documentId={childDocument.id}
-            collectionId={collectionId}
-          />
-        ))}
-    </>
+    <Draggable key={star?.id} ref={drag} $isDragging={isDragging}>
+      {content}
+    </Draggable>
   );
 }
 

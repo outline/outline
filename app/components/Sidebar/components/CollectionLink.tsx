@@ -249,6 +249,9 @@ function CollectionLink({
               }
               showActions={menuOpen}
               isActiveDrop={isOver && canDrop}
+              isActive={(match, location) =>
+                !!match && location.search !== "?starred"
+              }
               label={
                 <EditableTitle
                   title={collection.name}

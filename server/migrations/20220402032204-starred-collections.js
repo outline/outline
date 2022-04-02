@@ -9,9 +9,26 @@ module.exports = {
         model: "collections",
       },
     });
+    await queryInterface.changeColumn("stars", "documentId", {
+      type: Sequelize.UUID,
+      allowNull: true
+    });
+    await queryInterface.changeColumn("stars", "documentId", {
+      type: Sequelize.UUID,
+      references: {
+        model: "documents",
+      },
+    });
+    await queryInterface.changeColumn("stars", "userId", {
+      type: Sequelize.UUID,
+      allowNull: false,
+      references: {
+        model: "users",
+      },
+    });
   },
 
-  down: async (queryInterface, Sequelize) => {
+  down: async (queryInterface) => {
     await queryInterface.removeColumn("stars", "collectionId");
   }
 };

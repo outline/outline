@@ -1,5 +1,6 @@
 import { trim } from "lodash";
 import { action, computed, observable } from "mobx";
+import CollectionsStore from "~/stores/CollectionsStore";
 import BaseModel from "~/models/BaseModel";
 import Document from "~/models/Document";
 import { NavigationNode } from "~/types";
@@ -7,6 +8,8 @@ import { client } from "~/utils/ApiClient";
 import Field from "./decorators/Field";
 
 export default class Collection extends BaseModel {
+  store: CollectionsStore;
+
   @observable
   isSaving: boolean;
 
@@ -91,6 +94,13 @@ export default class Collection extends BaseModel {
     return !!trim(this.description, "\\").trim();
   }
 
+  @computed
+  get isStarred(): boolean {
+    return !!this.store.rootStore.stars.orderedData.find(
+      (star) => star.collectionId === this.id
+    );
+  }
+
   @action
   updateDocument(document: Document) {
     const travelNodes = (nodes: NavigationNode[]) =>
@@ -166,6 +176,16 @@ export default class Collection extends BaseModel {
 
     return path || [];
   }
+
+  @action
+  star = async () => {
+    return this.store.star(this);
+  };
+
+  @action
+  unstar = async () => {
+    return this.store.unstar(this);
+  };
 
   export = () => {
     return client.get("/collections.export", {
