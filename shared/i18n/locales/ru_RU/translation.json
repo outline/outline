@@ -454,6 +454,7 @@
   "You haven’t created any documents yet": "Вы еще не создали ни одного документа",
   "Documents you’ve recently viewed will be here for easy access": "Документы, которые вы недавно просматривали, будут здесь для быстрого доступа",
   "We sent out your invites!": "Мы отправили ваши приглашения!",
+  "Those email addresses are already invited": "Those email addresses are already invited",
   "Sorry, you can only send {{MAX_INVITES}} invites at a time": "Извините, вы можете отправлять только {{MAX_INVITES}} за раз",
   "Invite team members or guests to join your knowledge base. Team members can sign in with {{signinMethods}} or use their email address.": "Пригласите членов команды или гостей присоединиться к вашей базе знаний. Члены команды могут войти в систему с использованием {{signinMethods}} или с помощью своего адреса электронной почты.",
   "Invite team members to join your knowledge base. They will need to sign in with {{signinMethods}}.": "Пригласите членов команды присоединиться к вашей базе знаний. Им нужно будет войти в систему с помощью {{signinMethods}}.",
