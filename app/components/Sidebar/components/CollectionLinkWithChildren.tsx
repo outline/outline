@@ -9,6 +9,7 @@ import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import DocumentReparent from "~/scenes/DocumentReparent";
 import Modal from "~/components/Modal";
+import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -26,7 +27,7 @@ type Props = {
   belowCollection: Collection | void;
 };
 
-function DraggableCollectionLink({
+function CollectionLinkWithChildren({
   collection,
   activeDocument,
   prefetchDocument,
@@ -157,16 +158,15 @@ function DraggableCollectionLink({
   });
 
   React.useEffect(() => {
-    // If we're viewing a starred document through the starred menu then don't
-    // touch the expanded / collapsed state of the collections
-    if (location.state?.starred) {
-      return;
-    }
-
     if (collection.id === ui.activeCollectionId) {
       setExpanded(true);
     }
   }, [collection.id, ui.activeCollectionId, location]);
+
+  const handleDisclosureClick = React.useCallback((ev) => {
+    ev.preventDefault();
+    setExpanded((e) => !e);
+  }, []);
 
   const collectionDocuments = useCollectionDocuments(
     collection,
@@ -187,7 +187,7 @@ function DraggableCollectionLink({
             collection={collection}
             expanded={displayDocumentLinks}
             activeDocument={activeDocument}
-            onDisclosureClick={() => setExpanded(!expanded)}
+            onDisclosureClick={handleDisclosureClick}
             isActiveDrop={isOver && canDrop}
             isDraggingAnyCollection={isDraggingAnyCollection}
           />
@@ -215,6 +215,11 @@ function DraggableCollectionLink({
                 index={index}
               />
             ))}
+            {collectionDocuments.length === 0 && (
+              <Empty type="tertiary" size="small">
+                {t("Empty")}
+              </Empty>
+            )}
           </Folder>
         )}
         {isDraggingAnyCollection && (
@@ -242,6 +247,13 @@ function DraggableCollectionLink({
   );
 }
 
+const Empty = styled(Text)`
+  margin-left: 46px;
+  margin-bottom: 0;
+  line-height: 34px;
+  font-style: italic;
+`;
+
 const Relative = styled.div`
   position: relative;
 `;
@@ -255,4 +267,4 @@ const Draggable = styled("div")<{ $isDragging: boolean; $isMoving: boolean }>`
   pointer-events: ${(props) => (props.$isMoving ? "none" : "auto")};
 `;
 
-export default observer(DraggableCollectionLink);
+export default observer(CollectionLinkWithChildren);
