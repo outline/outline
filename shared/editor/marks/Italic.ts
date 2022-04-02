@@ -12,7 +12,14 @@ export default class Italic extends Mark {
 
   get schema(): MarkSpec {
     return {
-      parseDOM: [{ tag: "i" }, { tag: "em" }],
+      parseDOM: [
+        { tag: "i" },
+        { tag: "em" },
+        {
+          style: "font-style",
+          getAttrs: (value) => (value === "italic" ? null : false),
+        },
+      ],
       toDOM: () => ["em"],
     };
   }

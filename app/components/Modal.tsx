@@ -68,7 +68,7 @@ const Modal: React.FC<Props> = ({
             {...dialog}
             preventBodyScroll
             hideOnEsc
-            hideOnClickOutside={isCentered}
+            hideOnClickOutside={!!isCentered}
             hide={onRequestClose}
           >
             {(props) =>

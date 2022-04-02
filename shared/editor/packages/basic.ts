@@ -13,6 +13,7 @@ import Image from "../nodes/Image";
 import Node from "../nodes/Node";
 import Paragraph from "../nodes/Paragraph";
 import Text from "../nodes/Text";
+import DateTime from "../plugins/DateTime";
 import History from "../plugins/History";
 import MaxLength from "../plugins/MaxLength";
 import PasteHandler from "../plugins/PasteHandler";
@@ -39,6 +40,7 @@ const basicPackage: (typeof Node | typeof Mark | typeof Extension)[] = [
   PasteHandler,
   Placeholder,
   MaxLength,
+  DateTime,
 ];
 
 export default basicPackage;

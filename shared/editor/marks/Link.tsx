@@ -116,6 +116,11 @@ export default class Link extends Mark {
   }
 
   get plugins() {
+    const component = <OpenIcon color="currentColor" size={16} />;
+    const icon = document.createElement("span");
+    icon.className = "external-link";
+    ReactDOM.render(component, icon);
+
     const getLinkDecorations = (doc: Node) => {
       const decorations: Decoration[] = [];
       const links = findLinkNodes(doc);
@@ -129,16 +134,11 @@ export default class Link extends Mark {
             Decoration.widget(
               // place the decoration at the end of the link
               nodeWithPos.pos + nodeWithPos.node.nodeSize,
-              () => {
-                const component = <OpenIcon color="currentColor" size={16} />;
-                const icon = document.createElement("span");
-                icon.className = "external-link";
-                ReactDOM.render(component, icon);
-                return icon;
-              },
+              () => icon.cloneNode(true),
               {
                 // position on the right side of the position
                 side: 1,
+                key: "external-link",
               }
             )
           );
