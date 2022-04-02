@@ -500,7 +500,7 @@
   "Login": "登录",
   "Failed to load configuration.": "配置文件加载失败。",
   "Check your email": "请查看您的电子邮件",
-  "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em>, no password needed.": "魔法登录链接已经发送到电子邮箱 <em>{{ emailLinkSentTo }}</em>，不需要密码。",
+  "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em> if an account exists.": "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em> if an account exists.",
   "Back to login": "回到登录界面",
   "Create an account": "创建一个帐户",
   "Get started by choosing a sign-in method for your new team below…": "请在下面为您的新团队选择一种登陆方式",
