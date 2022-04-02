@@ -1,9 +1,6 @@
 import Router from "koa-router";
 import { v4 as uuidv4 } from "uuid";
-import {
-  bytesToHumanReadable,
-  supportedImageMimeTypes,
-} from "@shared/utils/files";
+import { bytesToHumanReadable } from "@shared/utils/files";
 import {
   AuthorizationError,
   NotFoundError,
@@ -17,7 +14,7 @@ import {
   publicS3Endpoint,
   getSignedUrl,
 } from "@server/utils/s3";
-import { assertPresent, assertIn } from "@server/validation";
+import { assertPresent } from "@server/validation";
 
 const router = new Router();
 const AWS_S3_ACL = process.env.AWS_S3_ACL || "private";
@@ -33,14 +30,6 @@ router.post("attachments.create", auth(), async (ctx) => {
   assertPresent(size, "size is required");
   const { user } = ctx.state;
   authorize(user, "createAttachment", user.team);
-
-  if (contentType.startsWith("image/")) {
-    assertIn(
-      contentType,
-      supportedImageMimeTypes,
-      "Sorry, the image type is not currently supported"
-    );
-  }
 
   if (
     process.env.AWS_S3_UPLOAD_MAX_SIZE &&
