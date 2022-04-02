@@ -500,7 +500,7 @@
   "Login": "登入",
   "Failed to load configuration.": "設定載入失敗",
   "Check your email": "確認您的電子郵件",
-  "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em>, no password needed.": "一個登入用的神奇連結已經發送到 <em>{{ emailLinkSentTo }}</em> 電子信箱，使用神奇連結登入不需要密碼。",
+  "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em> if an account exists.": "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em> if an account exists.",
   "Back to login": "返回登入頁面",
   "Create an account": "建立帳號",
   "Get started by choosing a sign-in method for your new team below…": "從以下登入方式擇一以開始您的團隊...",
