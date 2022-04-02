@@ -500,7 +500,7 @@
   "Login": "Login",
   "Failed to load configuration.": "Failed to load configuration.",
   "Check your email": "Verifique seu e-mail",
-  "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em>, no password needed.": "Um link de login mágico foi enviado para o e-mail <em>{{ emailLinkSentTo }}</em>, sem necessidade de senha.",
+  "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em> if an account exists.": "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em> if an account exists.",
   "Back to login": "Voltar ao login",
   "Create an account": "Criar uma conta",
   "Get started by choosing a sign-in method for your new team below…": "Comece escolhendo um método de login para sua nova equipe abaixo de…",
