@@ -454,6 +454,7 @@
   "You haven’t created any documents yet": "You haven’t created any documents yet",
   "Documents you’ve recently viewed will be here for easy access": "Documents you’ve recently viewed will be here for easy access",
   "We sent out your invites!": "We sent out your invites!",
+  "Those email addresses are already invited": "Those email addresses are already invited",
   "Sorry, you can only send {{MAX_INVITES}} invites at a time": "죄송합니다. 한 번에 {{MAX_INVITES}} 명만 초대할 수 있습니다.",
   "Invite team members or guests to join your knowledge base. Team members can sign in with {{signinMethods}} or use their email address.": "팀 구성원이나 게스트를 초대합니다. 팀원은 {{signinMethods}} 혹은 이메일 주소를 통해 가입할 수 있습니다.",
   "Invite team members to join your knowledge base. They will need to sign in with {{signinMethods}}.": "Invite team members to join your knowledge base. They will need to sign in with {{signinMethods}}.",
