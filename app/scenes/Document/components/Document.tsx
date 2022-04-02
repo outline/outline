@@ -144,7 +144,8 @@ class DocumentScene extends React.Component<Props> {
       this.props.document.createdBy.id === this.props.auth.user?.id &&
       this.props.document.isDraft &&
       this.props.document.isActive &&
-      this.props.document.hasEmptyTitle
+      this.props.document.hasEmptyTitle &&
+      this.props.document.isPersistedOnce
     ) {
       this.props.document.delete();
     }
