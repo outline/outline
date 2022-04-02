@@ -454,6 +454,7 @@
   "You haven’t created any documents yet": "شما هنوز هیچ سندی ایجاد نکرده اید",
   "Documents you’ve recently viewed will be here for easy access": "اسنادی که اخیراً مشاهده کرده اید برای دسترسی آسان در اینجا خواهند بود",
   "We sent out your invites!": "دعوت‌نامه‌های شما ارسال شد!",
+  "Those email addresses are already invited": "Those email addresses are already invited",
   "Sorry, you can only send {{MAX_INVITES}} invites at a time": "متأسفانه شما تنها می‌توانید {{MAX_INVITES}} دعوت‌نامه به صورت همزمان ارسال نمایید",
   "Invite team members or guests to join your knowledge base. Team members can sign in with {{signinMethods}} or use their email address.": "از اعضای تیم یا مهمانان دعوت کنید تا به پایگاه دانش شما بپیوندند. اعضای تیم می‌توانند با {{signinMethods}} یا آدرس ایمیل خود وارد شوند.",
   "Invite team members to join your knowledge base. They will need to sign in with {{signinMethods}}.": "از اعضای تیم دعوت کنید تا به پایگاه دانش شما بپیوندند. آن‌ها باید با {{signinMethods}} وارد شوند.",
