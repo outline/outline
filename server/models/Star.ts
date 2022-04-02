@@ -5,6 +5,7 @@ import {
   ForeignKey,
   Table,
 } from "sequelize-typescript";
+import Collection from "./Collection";
 import Document from "./Document";
 import User from "./User";
 import BaseModel from "./base/BaseModel";
@@ -31,6 +32,13 @@ class Star extends BaseModel {
   @ForeignKey(() => Document)
   @Column(DataType.UUID)
   documentId: string;
+
+  @BelongsTo(() => Collection, "collectionId")
+  collection: Collection;
+
+  @ForeignKey(() => Collection)
+  @Column(DataType.UUID)
+  collectionId: string;
 }
 
 export default Star;

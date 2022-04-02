@@ -1,17 +1,19 @@
 import fractionalIndex from "fractional-index";
-import { Sequelize, WhereOptions } from "sequelize";
-import { sequelize } from "@server/database/sequelize";
+import { Sequelize, Transaction, WhereOptions } from "sequelize";
 import { Star, User, Event } from "@server/models";
 
 type Props = {
   /** The user creating the star */
   user: User;
   /** The document to star */
-  documentId: string;
+  documentId?: string;
+  /** The collection to star */
+  collectionId?: string;
   /** The sorted index for the star in the sidebar If no index is provided then it will be at the end */
   index?: string;
   /** The IP address of the user creating the star */
   ip: string;
+  transaction: Transaction;
 };
 
 /**
@@ -24,7 +26,9 @@ type Props = {
 export default async function starCreator({
   user,
   documentId,
+  collectionId,
   ip,
+  transaction,
   ...rest
 }: Props): Promise<Star> {
   let { index } = rest;
@@ -43,46 +47,39 @@ export default async function starCreator({
         Sequelize.literal('"star"."index" collate "C"'),
         ["updatedAt", "DESC"],
       ],
+      transaction,
     });
 
     // create a star at the beginning of the list
     index = fractionalIndex(null, stars.length ? stars[0].index : null);
   }
 
-  const transaction = await sequelize.transaction();
-  let star;
+  const response = await Star.findOrCreate({
+    where: {
+      userId: user.id,
+      documentId,
+      collectionId,
+    },
+    defaults: {
+      index,
+    },
+    transaction,
+  });
+  const star = response[0];
 
-  try {
-    const response = await Star.findOrCreate({
-      where: {
+  if (response[1]) {
+    await Event.create(
+      {
+        name: "stars.create",
+        modelId: star.id,
         userId: user.id,
+        actorId: user.id,
         documentId,
+        collectionId,
+        ip,
       },
-      defaults: {
-        index,
-      },
-      transaction,
-    });
-    star = response[0];
-
-    if (response[1]) {
-      await Event.create(
-        {
-          name: "stars.create",
-          modelId: star.id,
-          userId: user.id,
-          actorId: user.id,
-          documentId,
-          ip,
-        },
-        { transaction }
-      );
-    }
-
-    await transaction.commit();
-  } catch (err) {
-    await transaction.rollback();
-    throw err;
+      { transaction }
+    );
   }
 
   return star;
