@@ -12,6 +12,7 @@ import CollectionLink from "./CollectionLink";
 import DocumentLink from "./DocumentLink";
 import DropCursor from "./DropCursor";
 import EmptyCollectionPlaceholder from "./EmptyCollectionPlaceholder";
+import Relative from "./Relative";
 import { DragObject } from "./SidebarLink";
 import { useStarredContext } from "./StarredContext";
 import useCollectionDocuments from "./useCollectionDocuments";
@@ -38,7 +39,6 @@ function CollectionLinkWithChildren({
     collection.id === ui.activeCollectionId
   );
   const inStarredSection = useStarredContext();
-
   const [openedOnce, setOpenedOnce] = React.useState(expanded);
   React.useEffect(() => {
     if (expanded) {
@@ -175,10 +175,6 @@ function CollectionLinkWithChildren({
     </>
   );
 }
-
-const Relative = styled.div`
-  position: relative;
-`;
 
 const Folder = styled.div<{ $open?: boolean }>`
   display: ${(props) => (props.$open ? "block" : "none")};

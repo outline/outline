@@ -3,7 +3,6 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
-import styled from "styled-components";
 import Star from "~/models/Star";
 import Flex from "~/components/Flex";
 import useStores from "~/hooks/useStores";
@@ -11,6 +10,7 @@ import useToasts from "~/hooks/useToasts";
 import DropCursor from "./DropCursor";
 import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
+import Relative from "./Relative";
 import SidebarLink from "./SidebarLink";
 import StarredContext from "./StarredContext";
 import StarredLink from "./StarredLink";
@@ -164,9 +164,5 @@ function Starred() {
     </StarredContext.Provider>
   );
 }
-
-const Relative = styled.div`
-  position: relative;
-`;
 
 export default observer(Starred);

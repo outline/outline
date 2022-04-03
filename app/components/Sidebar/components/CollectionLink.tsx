@@ -5,13 +5,11 @@ import * as React from "react";
 import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
-import styled from "styled-components";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import DocumentReparent from "~/scenes/DocumentReparent";
 import CollectionIcon from "~/components/CollectionIcon";
 import Fade from "~/components/Fade";
-import Modal from "~/components/Modal";
 import NudeButton from "~/components/NudeButton";
 import { createDocument } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
@@ -22,6 +20,7 @@ import CollectionMenu from "~/menus/CollectionMenu";
 import { NavigationNode } from "~/types";
 import DropToImport from "./DropToImport";
 import EditableTitle from "./EditableTitle";
+import Relative from "./Relative";
 import SidebarLink, { DragObject } from "./SidebarLink";
 import { useStarredContext } from "./StarredContext";
 
@@ -42,18 +41,13 @@ const CollectionLink: React.FC<Props> = ({
   const itemRef = React.useRef<
     NavigationNode & { depth: number; active: boolean; collectionId: string }
   >();
-  const { documents, collections } = useStores();
+  const { dialogs, documents, collections } = useStores();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const [isEditing, setIsEditing] = React.useState(false);
   const canUpdate = usePolicy(collection.id).update;
   const { t } = useTranslation();
   const history = useHistory();
   const inStarredSection = useStarredContext();
-  const [
-    permissionOpen,
-    handlePermissionOpen,
-    handlePermissionClose,
-  ] = useBoolean();
 
   const handleTitleChange = React.useCallback(
     async (name: string) => {
@@ -90,7 +84,18 @@ const CollectionLink: React.FC<Props> = ({
         prevCollection.permission !== collection.permission
       ) {
         itemRef.current = item;
-        handlePermissionOpen();
+
+        dialogs.openModal({
+          title: t("Move document"),
+          content: (
+            <DocumentReparent
+              item={item}
+              collection={collection}
+              onSubmit={dialogs.closeAllModals}
+              onCancel={dialogs.closeAllModals}
+            />
+          ),
+        });
       } else {
         documents.move(id, collection.id);
       }
@@ -166,27 +171,8 @@ const CollectionLink: React.FC<Props> = ({
           />
         </DropToImport>
       </Relative>
-
-      <Modal
-        title={t("Move document")}
-        onRequestClose={handlePermissionClose}
-        isOpen={permissionOpen}
-      >
-        {itemRef.current && (
-          <DocumentReparent
-            item={itemRef.current}
-            collection={collection}
-            onSubmit={handlePermissionClose}
-            onCancel={handlePermissionClose}
-          />
-        )}
-      </Modal>
     </>
   );
 };
-
-const Relative = styled.div`
-  position: relative;
-`;
 
 export default observer(CollectionLink);

@@ -17,6 +17,7 @@ import CollectionLink from "./CollectionLink";
 import DocumentLink from "./DocumentLink";
 import DropCursor from "./DropCursor";
 import EmptyCollectionPlaceholder from "./EmptyCollectionPlaceholder";
+import Relative from "./Relative";
 import SidebarLink from "./SidebarLink";
 import useCollectionDocuments from "./useCollectionDocuments";
 
@@ -32,6 +33,7 @@ function StarredLink({ star }: Props) {
   const { documentId, collectionId } = star;
   const collection = collections.get(collectionId);
   const [openedOnce, setOpenedOnce] = React.useState(expanded);
+
   React.useEffect(() => {
     if (expanded) {
       setOpenedOnce(true);
@@ -88,8 +90,6 @@ function StarredLink({ star }: Props) {
     }),
   });
 
-  let content;
-
   if (documentId) {
     const document = documents.get(documentId);
     if (!document) {
@@ -104,7 +104,7 @@ function StarredLink({ star }: Props) {
       : [];
     const hasChildDocuments = childDocuments.length > 0;
 
-    content = (
+    return (
       <>
         <Draggable key={star.id} ref={drag} $isDragging={isDragging}>
           <SidebarLink
@@ -129,7 +129,7 @@ function StarredLink({ star }: Props) {
             exact={false}
             showActions={menuOpen}
             menu={
-              document ? (
+              document && !isDragging ? (
                 <Fade>
                   <DocumentMenu
                     document={document}
@@ -160,8 +160,9 @@ function StarredLink({ star }: Props) {
     );
   } else if (collection) {
     const displayDocumentLinks = expanded && !isDragging;
+    const manualSort = collection.sort.field === "index";
 
-    content = (
+    return (
       <>
         <Draggable key={star?.id} ref={drag} $isDragging={isDragging}>
           <CollectionLink
@@ -169,11 +170,22 @@ function StarredLink({ star }: Props) {
             expanded={displayDocumentLinks}
             activeDocument={documents.active}
             onDisclosureClick={handleDisclosureClick}
+            isDraggingAnyCollection={isDraggingAny}
           />
+          {isDraggingAny && (
+            <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
+          )}
         </Draggable>
         <Relative>
           {openedOnce && (
             <Folder $open={displayDocumentLinks}>
+              {manualSort && (
+                <DropCursor
+                  isActiveDrop={isOverReorder}
+                  innerRef={dropToReorder}
+                  position="top"
+                />
+              )}
               {collectionDocuments.map((node, index) => (
                 <DocumentLink
                   key={node.id}
@@ -195,19 +207,8 @@ function StarredLink({ star }: Props) {
     );
   }
 
-  return (
-    <>
-      {content}
-      {isDraggingAny && (
-        <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
-      )}
-    </>
-  );
+  return null;
 }
-
-const Relative = styled.div`
-  position: relative;
-`;
 
 const Folder = styled.div<{ $open?: boolean }>`
   display: ${(props) => (props.$open ? "block" : "none")};
@@ -218,6 +219,4 @@ const Draggable = styled.div<{ $isDragging?: boolean }>`
   opacity: ${(props) => (props.$isDragging ? 0.5 : 1)};
 `;
 
-const ObserveredStarredLink = observer(StarredLink);
-
-export default ObserveredStarredLink;
+export default observer(StarredLink);

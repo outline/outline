@@ -23,6 +23,7 @@ import { newDocumentPath } from "~/utils/routeHelpers";
 import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
 import EditableTitle from "./EditableTitle";
+import Relative from "./Relative";
 import SidebarLink, { DragObject } from "./SidebarLink";
 import { useStarredContext } from "./StarredContext";
 
@@ -401,10 +402,6 @@ function DocumentLink(
 
 const Folder = styled.div<{ $open?: boolean }>`
   display: ${(props) => (props.$open ? "block" : "none")};
-`;
-
-const Relative = styled.div`
-  position: relative;
 `;
 
 const Draggable = styled.div<{ $isDragging?: boolean; $isMoving?: boolean }>`

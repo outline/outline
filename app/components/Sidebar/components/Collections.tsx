@@ -3,7 +3,6 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
-import styled from "styled-components";
 import Collection from "~/models/Collection";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
@@ -14,6 +13,7 @@ import CollectionLinkWithChildren from "./CollectionLinkWithChildren";
 import DropCursor from "./DropCursor";
 import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
+import Relative from "./Relative";
 import SidebarAction from "./SidebarAction";
 import { DragObject } from "./SidebarLink";
 
@@ -114,9 +114,5 @@ function Collections() {
     </Flex>
   );
 }
-
-const Relative = styled.div`
-  position: relative;
-`;
 
 export default observer(Collections);
