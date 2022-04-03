@@ -189,9 +189,6 @@ function StarredLink({ star }: Props) {
             onDisclosureClick={handleDisclosureClick}
             isDraggingAnyCollection={isDraggingAny}
           />
-          {isDraggingAny && (
-            <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
-          )}
         </Draggable>
         <Relative>
           {openedOnce && (
