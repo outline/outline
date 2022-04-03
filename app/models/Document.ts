@@ -173,6 +173,11 @@ export default class Document extends BaseModel {
   }
 
   @computed
+  get hasEmptyTitle(): boolean {
+    return this.title === "";
+  }
+
+  @computed
   get titleWithDefault(): string {
     return this.title || "Untitled";
   }
