@@ -115,6 +115,7 @@ const CollectionLink: React.FC<Props> = ({
 
   const context = useActionContext({
     activeCollectionId: collection.id,
+    inStarredSection,
   });
 
   return (

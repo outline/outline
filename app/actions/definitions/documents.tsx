@@ -52,11 +52,10 @@ export const createDocument = createAction({
   visible: ({ activeCollectionId, stores }) =>
     !!activeCollectionId &&
     stores.policies.abilities(activeCollectionId).update,
-  perform: ({ activeCollectionId, location }) =>
+  perform: ({ activeCollectionId, inStarredSection }) =>
     activeCollectionId &&
-    history.push({
-      pathname: newDocumentPath(activeCollectionId),
-      state: location.state,
+    history.push(newDocumentPath(activeCollectionId), {
+      starred: inStarredSection,
     }),
 });
 

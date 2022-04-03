@@ -46,6 +46,15 @@ function StarredLink({ star }: Props) {
     }
   }, [expanded]);
 
+  React.useEffect(() => {
+    if (
+      star.collectionId === ui.activeCollectionId &&
+      location.state?.starred
+    ) {
+      setExpanded(true);
+    }
+  }, [star.collectionId, ui.activeCollectionId, location]);
+
   useEffect(() => {
     async function load() {
       if (documentId) {
