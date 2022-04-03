@@ -2,22 +2,18 @@ import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useDrop, useDrag, DropTargetMonitor } from "react-dnd";
-import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import styled from "styled-components";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
-import DocumentReparent from "~/scenes/DocumentReparent";
-import Modal from "~/components/Modal";
-import Text from "~/components/Text";
-import useBoolean from "~/hooks/useBoolean";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import { NavigationNode } from "~/types";
 import CollectionLink from "./CollectionLink";
 import DocumentLink from "./DocumentLink";
 import DropCursor from "./DropCursor";
+import EmptyCollectionPlaceholder from "./EmptyCollectionPlaceholder";
 import { DragObject } from "./SidebarLink";
+import { useStarredContext } from "./StarredContext";
 import useCollectionDocuments from "./useCollectionDocuments";
 
 type Props = {
@@ -33,23 +29,15 @@ function CollectionLinkWithChildren({
   prefetchDocument,
   belowCollection,
 }: Props) {
-  const { t } = useTranslation();
   const location = useLocation<{
     starred?: boolean;
   }>();
-  const [
-    permissionOpen,
-    handlePermissionOpen,
-    handlePermissionClose,
-  ] = useBoolean();
-  const itemRef = React.useRef<
-    NavigationNode & { depth: number; active: boolean; collectionId: string }
-  >();
 
   const { ui, documents, collections } = useStores();
   const [expanded, setExpanded] = React.useState(
     collection.id === ui.activeCollectionId
   );
+  const inStarredSection = useStarredContext();
 
   const [openedOnce, setOpenedOnce] = React.useState(expanded);
   React.useEffect(() => {
@@ -61,47 +49,6 @@ function CollectionLinkWithChildren({
   const manualSort = collection.sort.field === "index";
   const can = usePolicy(collection.id);
   const belowCollectionIndex = belowCollection ? belowCollection.index : null;
-
-  // Drop to re-parent document
-  const [{ isOver, canDrop }, drop] = useDrop({
-    accept: "document",
-    drop: (item: DragObject, monitor) => {
-      const { id, collectionId } = item;
-      if (monitor.didDrop()) {
-        return;
-      }
-      if (!collection) {
-        return;
-      }
-
-      const document = documents.get(id);
-      if (collection.id === collectionId && !document?.parentDocumentId) {
-        return;
-      }
-
-      const prevCollection = collections.get(collectionId);
-
-      if (
-        prevCollection &&
-        prevCollection.permission === null &&
-        prevCollection.permission !== collection.permission
-      ) {
-        itemRef.current = item;
-        handlePermissionOpen();
-      } else {
-        documents.move(id, collection.id);
-      }
-    },
-    canDrop: () => {
-      return can.update;
-    },
-    collect: (monitor) => ({
-      isOver: !!monitor.isOver({
-        shallow: true,
-      }),
-      canDrop: monitor.canDrop(),
-    }),
-  });
 
   // Drop to reorder document
   const [{ isOverReorder }, dropToReorder] = useDrop({
@@ -158,10 +105,13 @@ function CollectionLinkWithChildren({
   });
 
   React.useEffect(() => {
-    if (collection.id === ui.activeCollectionId) {
+    if (
+      collection.id === ui.activeCollectionId &&
+      location.state?.starred === inStarredSection
+    ) {
       setExpanded(true);
     }
-  }, [collection.id, ui.activeCollectionId, location]);
+  }, [collection.id, ui.activeCollectionId, location, inStarredSection]);
 
   const handleDisclosureClick = React.useCallback((ev) => {
     ev.preventDefault();
@@ -176,23 +126,20 @@ function CollectionLinkWithChildren({
 
   return (
     <>
-      <Relative ref={drop}>
-        <Draggable
-          key={collection.id}
-          ref={dragToReorderCollection}
-          $isDragging={isCollectionDragging}
-          $isMoving={isCollectionDragging}
-        >
-          <CollectionLink
-            collection={collection}
-            expanded={displayDocumentLinks}
-            activeDocument={activeDocument}
-            onDisclosureClick={handleDisclosureClick}
-            isActiveDrop={isOver && canDrop}
-            isDraggingAnyCollection={isDraggingAnyCollection}
-          />
-        </Draggable>
-      </Relative>
+      <Draggable
+        key={collection.id}
+        ref={dragToReorderCollection}
+        $isDragging={isCollectionDragging}
+        $isMoving={isCollectionDragging}
+      >
+        <CollectionLink
+          collection={collection}
+          expanded={displayDocumentLinks}
+          activeDocument={activeDocument}
+          onDisclosureClick={handleDisclosureClick}
+          isDraggingAnyCollection={isDraggingAnyCollection}
+        />
+      </Draggable>
       <Relative>
         {openedOnce && (
           <Folder $open={displayDocumentLinks}>
@@ -215,11 +162,7 @@ function CollectionLinkWithChildren({
                 index={index}
               />
             ))}
-            {collectionDocuments.length === 0 && (
-              <Empty type="tertiary" size="small">
-                {t("Empty")}
-              </Empty>
-            )}
+            {collectionDocuments.length === 0 && <EmptyCollectionPlaceholder />}
           </Folder>
         )}
         {isDraggingAnyCollection && (
@@ -229,30 +172,9 @@ function CollectionLinkWithChildren({
           />
         )}
       </Relative>
-      <Modal
-        title={t("Move document")}
-        onRequestClose={handlePermissionClose}
-        isOpen={permissionOpen}
-      >
-        {itemRef.current && (
-          <DocumentReparent
-            item={itemRef.current}
-            collection={collection}
-            onSubmit={handlePermissionClose}
-            onCancel={handlePermissionClose}
-          />
-        )}
-      </Modal>
     </>
   );
 }
-
-const Empty = styled(Text)`
-  margin-left: 46px;
-  margin-bottom: 0;
-  line-height: 34px;
-  font-style: italic;
-`;
 
 const Relative = styled.div`
   position: relative;

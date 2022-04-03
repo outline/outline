@@ -16,6 +16,7 @@ import DocumentMenu from "~/menus/DocumentMenu";
 import CollectionLink from "./CollectionLink";
 import DocumentLink from "./DocumentLink";
 import DropCursor from "./DropCursor";
+import EmptyCollectionPlaceholder from "./EmptyCollectionPlaceholder";
 import SidebarLink from "./SidebarLink";
 import useCollectionDocuments from "./useCollectionDocuments";
 
@@ -30,6 +31,12 @@ function StarredLink({ star }: Props) {
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const { documentId, collectionId } = star;
   const collection = collections.get(collectionId);
+  const [openedOnce, setOpenedOnce] = React.useState(expanded);
+  React.useEffect(() => {
+    if (expanded) {
+      setOpenedOnce(true);
+    }
+  }, [expanded]);
 
   useEffect(() => {
     async function load() {
@@ -152,31 +159,37 @@ function StarredLink({ star }: Props) {
       </>
     );
   } else if (collection) {
+    const displayDocumentLinks = expanded && !isDragging;
+
     content = (
       <>
         <Draggable key={star?.id} ref={drag} $isDragging={isDragging}>
           <CollectionLink
             collection={collection}
-            expanded={expanded}
+            expanded={displayDocumentLinks}
             activeDocument={documents.active}
             onDisclosureClick={handleDisclosureClick}
-            isActiveDrop={false}
           />
         </Draggable>
         <Relative>
-          <Folder $open={expanded && !isDragging}>
-            {collectionDocuments.map((node, index) => (
-              <DocumentLink
-                key={node.id}
-                node={node}
-                collection={collection}
-                activeDocument={documents.active}
-                isDraft={node.isDraft}
-                depth={2}
-                index={index}
-              />
-            ))}
-          </Folder>
+          {openedOnce && (
+            <Folder $open={displayDocumentLinks}>
+              {collectionDocuments.map((node, index) => (
+                <DocumentLink
+                  key={node.id}
+                  node={node}
+                  collection={collection}
+                  activeDocument={documents.active}
+                  isDraft={node.isDraft}
+                  depth={2}
+                  index={index}
+                />
+              ))}
+              {collectionDocuments.length === 0 && (
+                <EmptyCollectionPlaceholder />
+              )}
+            </Folder>
+          )}
         </Relative>
       </>
     );
