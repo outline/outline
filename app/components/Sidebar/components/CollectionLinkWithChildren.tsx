@@ -33,12 +33,12 @@ function CollectionLinkWithChildren({
   const location = useLocation<{
     starred?: boolean;
   }>();
-
   const { ui, documents, collections } = useStores();
-  const [expanded, setExpanded] = React.useState(
-    collection.id === ui.activeCollectionId
-  );
   const inStarredSection = useStarredContext();
+  const [expanded, setExpanded] = React.useState(
+    collection.id === ui.activeCollectionId &&
+      location.state?.starred === inStarredSection
+  );
   const [openedOnce, setOpenedOnce] = React.useState(expanded);
   React.useEffect(() => {
     if (expanded) {

@@ -52,8 +52,12 @@ export const createDocument = createAction({
   visible: ({ activeCollectionId, stores }) =>
     !!activeCollectionId &&
     stores.policies.abilities(activeCollectionId).update,
-  perform: ({ activeCollectionId }) =>
-    activeCollectionId && history.push(newDocumentPath(activeCollectionId)),
+  perform: ({ activeCollectionId, location }) =>
+    activeCollectionId &&
+    history.push({
+      pathname: newDocumentPath(activeCollectionId),
+      state: location.state,
+    }),
 });
 
 export const starDocument = createAction({

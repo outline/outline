@@ -26,7 +26,7 @@ import { useStarredContext } from "./StarredContext";
 
 type Props = {
   collection: Collection;
-  expanded: boolean;
+  expanded?: boolean;
   onDisclosureClick: (ev: React.MouseEvent<HTMLButtonElement>) => void;
   activeDocument: Document | undefined;
   isDraggingAnyCollection?: boolean;
@@ -100,9 +100,7 @@ const CollectionLink: React.FC<Props> = ({
         documents.move(id, collection.id);
       }
     },
-    canDrop: () => {
-      return canUpdate;
-    },
+    canDrop: () => canUpdate,
     collect: (monitor) => ({
       isOver: !!monitor.isOver({
         shallow: true,

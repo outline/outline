@@ -5,6 +5,7 @@ import { StarredIcon } from "outline-icons";
 import * as React from "react";
 import { useEffect, useState } from "react";
 import { useDrag, useDrop } from "react-dnd";
+import { useLocation } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import parseTitle from "@shared/utils/parseTitle";
 import Star from "~/models/Star";
@@ -27,11 +28,16 @@ type Props = {
 
 function StarredLink({ star }: Props) {
   const theme = useTheme();
-  const { collections, documents } = useStores();
-  const [expanded, setExpanded] = useState(false);
+  const location = useLocation<{
+    starred?: boolean;
+  }>();
+  const { ui, collections, documents } = useStores();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const { documentId, collectionId } = star;
   const collection = collections.get(collectionId);
+  const [expanded, setExpanded] = useState(
+    star.collectionId === ui.activeCollectionId && !!location.state?.starred
+  );
   const [openedOnce, setOpenedOnce] = React.useState(expanded);
 
   React.useEffect(() => {
@@ -98,7 +104,9 @@ function StarredLink({ star }: Props) {
 
     const collection = collections.get(document.collectionId);
     const { emoji } = parseTitle(document.title);
-    const label = emoji ? document.title.replace(emoji, "") : document.title;
+    const label = emoji
+      ? document.title.replace(emoji, "")
+      : document.titleWithDefault;
     const childDocuments = collection
       ? collection.getDocumentChildren(documentId)
       : [];
@@ -113,7 +121,7 @@ function StarredLink({ star }: Props) {
               pathname: document.url,
               state: { starred: true },
             }}
-            expanded={hasChildDocuments ? expanded : undefined}
+            expanded={hasChildDocuments && !isDragging ? expanded : undefined}
             onDisclosureClick={handleDisclosureClick}
             icon={
               emoji ? (
@@ -167,7 +175,7 @@ function StarredLink({ star }: Props) {
         <Draggable key={star?.id} ref={drag} $isDragging={isDragging}>
           <CollectionLink
             collection={collection}
-            expanded={displayDocumentLinks}
+            expanded={isDragging ? undefined : displayDocumentLinks}
             activeDocument={documents.active}
             onDisclosureClick={handleDisclosureClick}
             isDraggingAnyCollection={isDraggingAny}

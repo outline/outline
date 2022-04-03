@@ -34,7 +34,10 @@ function DocumentNew() {
           title: "",
           text: "",
         });
-        history.replace(editDocumentUrl(document));
+        history.replace({
+          pathname: editDocumentUrl(document),
+          state: location.state,
+        });
       } catch (err) {
         showToast(t("Couldn’t create the document, try again?"), {
           type: "error",
