@@ -9,7 +9,7 @@ import Flex from "~/components/Flex";
 import { createCollection } from "~/actions/definitions/collections";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
-import CollectionLinkWithChildren from "./CollectionLinkWithChildren";
+import DraggableCollectionLink from "./DraggableCollectionLink";
 import DropCursor from "./DropCursor";
 import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
@@ -82,7 +82,7 @@ function Collections() {
         />
       )}
       {orderedCollections.map((collection: Collection, index: number) => (
-        <CollectionLinkWithChildren
+        <DraggableCollectionLink
           key={collection.id}
           collection={collection}
           activeDocument={documents.active}

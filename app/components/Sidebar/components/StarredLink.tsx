@@ -15,12 +15,12 @@ import useBoolean from "~/hooks/useBoolean";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
 import CollectionLink from "./CollectionLink";
+import CollectionLinkChildren from "./CollectionLinkChildren";
 import DocumentLink from "./DocumentLink";
 import DropCursor from "./DropCursor";
-import EmptyCollectionPlaceholder from "./EmptyCollectionPlaceholder";
+import Folder from "./Folder";
 import Relative from "./Relative";
 import SidebarLink from "./SidebarLink";
-import useCollectionDocuments from "./useCollectionDocuments";
 
 type Props = {
   star: Star;
@@ -38,13 +38,6 @@ function StarredLink({ star }: Props) {
   const [expanded, setExpanded] = useState(
     star.collectionId === ui.activeCollectionId && !!location.state?.starred
   );
-  const [openedOnce, setOpenedOnce] = React.useState(expanded);
-
-  React.useEffect(() => {
-    if (expanded) {
-      setOpenedOnce(true);
-    }
-  }, [expanded]);
 
   React.useEffect(() => {
     if (
@@ -74,11 +67,6 @@ function StarredLink({ star }: Props) {
     []
   );
 
-  const collectionDocuments = useCollectionDocuments(
-    collection,
-    documents.active
-  );
-
   // Draggable
   const [{ isDragging }, drag] = useDrag({
     type: "star",
@@ -104,6 +92,8 @@ function StarredLink({ star }: Props) {
       isDraggingAny: !!monitor.canDrop(),
     }),
   });
+
+  const displayChildDocuments = expanded && !isDragging;
 
   if (documentId) {
     const document = documents.get(documentId);
@@ -157,64 +147,48 @@ function StarredLink({ star }: Props) {
               ) : undefined
             }
           />
+        </Draggable>
+        <Relative>
+          <Folder expanded={displayChildDocuments}>
+            {childDocuments.map((node, index) => (
+              <DocumentLink
+                key={node.id}
+                node={node}
+                collection={collection}
+                activeDocument={documents.active}
+                isDraft={node.isDraft}
+                depth={2}
+                index={index}
+              />
+            ))}
+          </Folder>
           {isDraggingAny && (
             <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
           )}
-        </Draggable>
-        {expanded &&
-          childDocuments.map((node, index) => (
-            <DocumentLink
-              key={node.id}
-              node={node}
-              collection={collection}
-              activeDocument={documents.active}
-              isDraft={node.isDraft}
-              depth={2}
-              index={index}
-            />
-          ))}
+        </Relative>
       </>
     );
-  } else if (collection) {
-    const displayDocumentLinks = expanded && !isDragging;
-    const manualSort = collection.sort.field === "index";
+  }
 
+  if (collection) {
     return (
       <>
         <Draggable key={star?.id} ref={drag} $isDragging={isDragging}>
           <CollectionLink
             collection={collection}
-            expanded={isDragging ? undefined : displayDocumentLinks}
+            expanded={isDragging ? undefined : displayChildDocuments}
             activeDocument={documents.active}
             onDisclosureClick={handleDisclosureClick}
             isDraggingAnyCollection={isDraggingAny}
           />
         </Draggable>
         <Relative>
-          {openedOnce && (
-            <Folder $open={displayDocumentLinks}>
-              {manualSort && (
-                <DropCursor
-                  isActiveDrop={isOverReorder}
-                  innerRef={dropToReorder}
-                  position="top"
-                />
-              )}
-              {collectionDocuments.map((node, index) => (
-                <DocumentLink
-                  key={node.id}
-                  node={node}
-                  collection={collection}
-                  activeDocument={documents.active}
-                  isDraft={node.isDraft}
-                  depth={2}
-                  index={index}
-                />
-              ))}
-              {collectionDocuments.length === 0 && (
-                <EmptyCollectionPlaceholder />
-              )}
-            </Folder>
+          <CollectionLinkChildren
+            collection={collection}
+            expanded={displayChildDocuments}
+          />
+          {isDraggingAny && (
+            <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
           )}
         </Relative>
       </>
@@ -223,10 +197,6 @@ function StarredLink({ star }: Props) {
 
   return null;
 }
-
-const Folder = styled.div<{ $open?: boolean }>`
-  display: ${(props) => (props.$open ? "block" : "none")};
-`;
 
 const Draggable = styled.div<{ $isDragging?: boolean }>`
   position: relative;

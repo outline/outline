@@ -23,6 +23,7 @@ import { newDocumentPath } from "~/utils/routeHelpers";
 import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
 import EditableTitle from "./EditableTitle";
+import Folder from "./Folder";
 import Relative from "./Relative";
 import SidebarLink, { DragObject } from "./SidebarLink";
 import { useStarredContext } from "./StarredContext";
@@ -38,7 +39,7 @@ type Props = {
   parentId?: string;
 };
 
-function DocumentLink(
+function InnerDocumentLink(
   {
     node,
     collection,
@@ -88,19 +89,12 @@ function DocumentLink(
   }, [hasChildDocuments, activeDocument, isActiveDocument, node, collection]);
 
   const [expanded, setExpanded] = React.useState(showChildren);
-  const [openedOnce, setOpenedOnce] = React.useState(expanded);
 
   React.useEffect(() => {
     if (showChildren) {
       setExpanded(showChildren);
     }
   }, [showChildren]);
-
-  React.useEffect(() => {
-    if (expanded) {
-      setOpenedOnce(true);
-    }
-  }, [expanded]);
 
   // when the last child document is removed auto-close the local folder state
   React.useEffect(() => {
@@ -379,36 +373,30 @@ function DocumentLink(
           />
         )}
       </Relative>
-      {openedOnce && (
-        <Folder $open={expanded && !isDragging}>
-          {nodeChildren.map((childNode, index) => (
-            <ObservedDocumentLink
-              key={childNode.id}
-              collection={collection}
-              node={childNode}
-              activeDocument={activeDocument}
-              prefetchDocument={prefetchDocument}
-              isDraft={childNode.isDraft}
-              depth={depth + 1}
-              index={index}
-              parentId={node.id}
-            />
-          ))}
-        </Folder>
-      )}
+      <Folder expanded={expanded && !isDragging}>
+        {nodeChildren.map((childNode, index) => (
+          <DocumentLink
+            key={childNode.id}
+            collection={collection}
+            node={childNode}
+            activeDocument={activeDocument}
+            prefetchDocument={prefetchDocument}
+            isDraft={childNode.isDraft}
+            depth={depth + 1}
+            index={index}
+            parentId={node.id}
+          />
+        ))}
+      </Folder>
     </>
   );
 }
-
-const Folder = styled.div<{ $open?: boolean }>`
-  display: ${(props) => (props.$open ? "block" : "none")};
-`;
 
 const Draggable = styled.div<{ $isDragging?: boolean; $isMoving?: boolean }>`
   opacity: ${(props) => (props.$isDragging || props.$isMoving ? 0.5 : 1)};
   pointer-events: ${(props) => (props.$isMoving ? "none" : "all")};
 `;
 
-const ObservedDocumentLink = observer(React.forwardRef(DocumentLink));
+const DocumentLink = observer(React.forwardRef(InnerDocumentLink));
 
-export default ObservedDocumentLink;
+export default DocumentLink;

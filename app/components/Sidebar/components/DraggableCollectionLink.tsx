@@ -9,13 +9,11 @@ import Document from "~/models/Document";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import CollectionLink from "./CollectionLink";
-import DocumentLink from "./DocumentLink";
+import CollectionLinkChildren from "./CollectionLinkChildren";
 import DropCursor from "./DropCursor";
-import EmptyCollectionPlaceholder from "./EmptyCollectionPlaceholder";
 import Relative from "./Relative";
 import { DragObject } from "./SidebarLink";
 import { useStarredContext } from "./StarredContext";
-import useCollectionDocuments from "./useCollectionDocuments";
 
 type Props = {
   collection: Collection;
@@ -24,7 +22,7 @@ type Props = {
   belowCollection: Collection | void;
 };
 
-function CollectionLinkWithChildren({
+function DraggableCollectionLink({
   collection,
   activeDocument,
   prefetchDocument,
@@ -33,36 +31,14 @@ function CollectionLinkWithChildren({
   const location = useLocation<{
     starred?: boolean;
   }>();
-  const { ui, documents, collections } = useStores();
+  const { ui, collections } = useStores();
   const inStarredSection = useStarredContext();
   const [expanded, setExpanded] = React.useState(
     collection.id === ui.activeCollectionId &&
       location.state?.starred === inStarredSection
   );
-  const [openedOnce, setOpenedOnce] = React.useState(expanded);
-  React.useEffect(() => {
-    if (expanded) {
-      setOpenedOnce(true);
-    }
-  }, [expanded]);
-
-  const manualSort = collection.sort.field === "index";
   const can = usePolicy(collection.id);
   const belowCollectionIndex = belowCollection ? belowCollection.index : null;
-
-  // Drop to reorder document
-  const [{ isOverReorder }, dropToReorder] = useDrop({
-    accept: "document",
-    drop: (item: DragObject) => {
-      if (!collection) {
-        return;
-      }
-      documents.move(item.id, collection.id, undefined, 0);
-    },
-    collect: (monitor) => ({
-      isOverReorder: !!monitor.isOver(),
-    }),
-  });
 
   // Drop to reorder collection
   const [
@@ -104,6 +80,8 @@ function CollectionLinkWithChildren({
     },
   });
 
+  // If the current collection is active and relevant to the sidebar section we
+  // are in then expand it automatically
   React.useEffect(() => {
     if (
       collection.id === ui.activeCollectionId &&
@@ -118,11 +96,7 @@ function CollectionLinkWithChildren({
     setExpanded((e) => !e);
   }, []);
 
-  const collectionDocuments = useCollectionDocuments(
-    collection,
-    activeDocument
-  );
-  const displayDocumentLinks = expanded && !isCollectionDragging;
+  const displayChildDocuments = expanded && !isCollectionDragging;
 
   return (
     <>
@@ -130,41 +104,21 @@ function CollectionLinkWithChildren({
         key={collection.id}
         ref={dragToReorderCollection}
         $isDragging={isCollectionDragging}
-        $isMoving={isCollectionDragging}
       >
         <CollectionLink
           collection={collection}
-          expanded={displayDocumentLinks}
+          expanded={displayChildDocuments}
           activeDocument={activeDocument}
           onDisclosureClick={handleDisclosureClick}
           isDraggingAnyCollection={isDraggingAnyCollection}
         />
       </Draggable>
       <Relative>
-        {openedOnce && (
-          <Folder $open={displayDocumentLinks}>
-            {manualSort && (
-              <DropCursor
-                isActiveDrop={isOverReorder}
-                innerRef={dropToReorder}
-                position="top"
-              />
-            )}
-            {collectionDocuments.map((node, index) => (
-              <DocumentLink
-                key={node.id}
-                node={node}
-                collection={collection}
-                activeDocument={activeDocument}
-                prefetchDocument={prefetchDocument}
-                isDraft={node.isDraft}
-                depth={2}
-                index={index}
-              />
-            ))}
-            {collectionDocuments.length === 0 && <EmptyCollectionPlaceholder />}
-          </Folder>
-        )}
+        <CollectionLinkChildren
+          collection={collection}
+          expanded={displayChildDocuments}
+          prefetchDocument={prefetchDocument}
+        />
         {isDraggingAnyCollection && (
           <DropCursor
             isActiveDrop={isCollectionDropping}
@@ -176,13 +130,9 @@ function CollectionLinkWithChildren({
   );
 }
 
-const Folder = styled.div<{ $open?: boolean }>`
-  display: ${(props) => (props.$open ? "block" : "none")};
+const Draggable = styled("div")<{ $isDragging: boolean }>`
+  opacity: ${(props) => (props.$isDragging ? 0.5 : 1)};
+  pointer-events: ${(props) => (props.$isDragging ? "none" : "auto")};
 `;
 
-const Draggable = styled("div")<{ $isDragging: boolean; $isMoving: boolean }>`
-  opacity: ${(props) => (props.$isDragging || props.$isMoving ? 0.5 : 1)};
-  pointer-events: ${(props) => (props.$isMoving ? "none" : "auto")};
-`;
-
-export default observer(CollectionLinkWithChildren);
+export default observer(DraggableCollectionLink);
