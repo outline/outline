@@ -4,6 +4,7 @@ import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import DocumentLink from "./DocumentLink";
@@ -24,6 +25,7 @@ function CollectionLinkChildren({
   expanded,
   prefetchDocument,
 }: Props) {
+  const can = usePolicy(collection.id);
   const { showToast } = useToasts();
   const manualSort = collection.sort.field === "index";
   const { documents } = useStores();
@@ -61,7 +63,7 @@ function CollectionLinkChildren({
 
   return (
     <Folder expanded={expanded}>
-      {isDraggingAnyDocument && (
+      {isDraggingAnyDocument && can.update && (
         <DropCursor
           disabled={!manualSort}
           isActiveDrop={isOverReorder}

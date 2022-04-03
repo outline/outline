@@ -22,20 +22,25 @@ type Props = {
   belowCollection: Collection | void;
 };
 
+function useLocationStateStarred() {
+  const location = useLocation<{
+    starred?: boolean;
+  }>();
+  return location.state?.starred;
+}
+
 function DraggableCollectionLink({
   collection,
   activeDocument,
   prefetchDocument,
   belowCollection,
 }: Props) {
-  const location = useLocation<{
-    starred?: boolean;
-  }>();
+  const locationStateStarred = useLocationStateStarred();
   const { ui, collections } = useStores();
   const inStarredSection = useStarredContext();
   const [expanded, setExpanded] = React.useState(
     collection.id === ui.activeCollectionId &&
-      location.state?.starred === inStarredSection
+      locationStateStarred === inStarredSection
   );
   const can = usePolicy(collection.id);
   const belowCollectionIndex = belowCollection ? belowCollection.index : null;
@@ -85,11 +90,16 @@ function DraggableCollectionLink({
   React.useEffect(() => {
     if (
       collection.id === ui.activeCollectionId &&
-      location.state?.starred === inStarredSection
+      locationStateStarred === inStarredSection
     ) {
       setExpanded(true);
     }
-  }, [collection.id, ui.activeCollectionId, location, inStarredSection]);
+  }, [
+    collection.id,
+    ui.activeCollectionId,
+    locationStateStarred,
+    inStarredSection,
+  ]);
 
   const handleDisclosureClick = React.useCallback((ev) => {
     ev.preventDefault();

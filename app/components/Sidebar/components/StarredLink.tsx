@@ -26,27 +26,29 @@ type Props = {
   star: Star;
 };
 
-function StarredLink({ star }: Props) {
-  const theme = useTheme();
+function useLocationStateStarred() {
   const location = useLocation<{
     starred?: boolean;
   }>();
+  return location.state?.starred;
+}
+
+function StarredLink({ star }: Props) {
+  const theme = useTheme();
   const { ui, collections, documents } = useStores();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const { documentId, collectionId } = star;
   const collection = collections.get(collectionId);
+  const locationStateStarred = useLocationStateStarred();
   const [expanded, setExpanded] = useState(
-    star.collectionId === ui.activeCollectionId && !!location.state?.starred
+    star.collectionId === ui.activeCollectionId && !!locationStateStarred
   );
 
   React.useEffect(() => {
-    if (
-      star.collectionId === ui.activeCollectionId &&
-      location.state?.starred
-    ) {
+    if (star.collectionId === ui.activeCollectionId && locationStateStarred) {
       setExpanded(true);
     }
-  }, [star.collectionId, ui.activeCollectionId, location]);
+  }, [star.collectionId, ui.activeCollectionId, locationStateStarred]);
 
   useEffect(() => {
     async function load() {
