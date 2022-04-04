@@ -431,10 +431,12 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
     }
 
     if (embedItems.length) {
-      items.push({
-        name: "separator",
-      });
-      items = items.concat(embedItems);
+      items = items.concat(
+        {
+          name: "separator",
+        },
+        embedItems
+      );
     }
 
     const filtered = items.filter((item) => {
