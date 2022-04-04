@@ -127,7 +127,7 @@ function SearchPopover({ shareId }: Props) {
         shrink
       >
         <PaginatedList
-          options={{ query, minWords: 10, maxWords: 11 }}
+          options={{ query, snippetMinWords: 10, snippetMaxWords: 11 }}
           items={searchResults}
           fetch={performSearch}
           onEscape={handleEscapeList}

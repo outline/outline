@@ -64,8 +64,8 @@ type SearchOptions = {
   collaboratorIds?: string[];
   includeArchived?: boolean;
   includeDrafts?: boolean;
-  minWords?: number;
-  maxWords?: number;
+  snippetMinWords?: number;
+  snippetMaxWords?: number;
 };
 
 const serializer = new MarkdownSerializer();
@@ -441,7 +441,12 @@ class Document extends ParanoidModel {
     options: SearchOptions = {}
   ): Promise<SearchResponse> {
     const wildcardQuery = `${escape(query)}:*`;
-    const { minWords = 20, maxWords = 30, limit = 15, offset = 0 } = options;
+    const {
+      snippetMinWords = 20,
+      snippetMaxWords = 30,
+      limit = 15,
+      offset = 0,
+    } = options;
 
     // restrict to specific collection if provided
     // enables search in private collections if specified
@@ -486,7 +491,7 @@ class Document extends ParanoidModel {
     SELECT
       id,
       ts_rank(documents."searchVector", to_tsquery('english', :query)) as "searchRanking",
-      ts_headline('english', "text", to_tsquery('english', :query), 'MaxFragments=1, MinWords=${minWords}, MaxWords=${maxWords}') as "searchContext"
+      ts_headline('english', "text", to_tsquery('english', :query), 'MaxFragments=1, MinWords=:snippetMinWords, MaxWords=:snippetMaxWords') as "searchContext"
     FROM documents
     WHERE ${whereClause}
     ORDER BY
@@ -505,6 +510,8 @@ class Document extends ParanoidModel {
       query: wildcardQuery,
       collectionIds,
       documentIds,
+      snippetMinWords,
+      snippetMaxWords,
     };
     const resultsQuery = this.sequelize!.query(selectSql, {
       type: QueryTypes.SELECT,
@@ -552,7 +559,12 @@ class Document extends ParanoidModel {
     query: string,
     options: SearchOptions = {}
   ): Promise<SearchResponse> {
-    const { minWords = 20, maxWords = 30, limit = 15, offset = 0 } = options;
+    const {
+      snippetMinWords = 20,
+      snippetMaxWords = 30,
+      limit = 15,
+      offset = 0,
+    } = options;
     const wildcardQuery = `${escape(query)}:*`;
 
     // Ensure we're filtering by the users accessible collections. If
@@ -605,7 +617,7 @@ class Document extends ParanoidModel {
   SELECT
     id,
     ts_rank(documents."searchVector", to_tsquery('english', :query)) as "searchRanking",
-    ts_headline('english', "text", to_tsquery('english', :query), 'MaxFragments=1, MinWords=${minWords}, MaxWords=${maxWords}') as "searchContext"
+    ts_headline('english', "text", to_tsquery('english', :query), 'MaxFragments=1, MinWords=:snippetMinWords, MaxWords=:snippetMaxWords') as "searchContext"
   FROM documents
   WHERE ${whereClause}
   ORDER BY
@@ -626,6 +638,8 @@ class Document extends ParanoidModel {
       query: wildcardQuery,
       collectionIds,
       dateFilter,
+      snippetMinWords,
+      snippetMaxWords,
     };
     const resultsQuery = this.sequelize!.query(selectSql, {
       type: QueryTypes.SELECT,

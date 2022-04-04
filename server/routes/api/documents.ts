@@ -816,8 +816,8 @@ router.post(
       userId,
       dateFilter,
       shareId,
-      minWords,
-      maxWords,
+      snippetMinWords,
+      snippetMaxWords,
     } = ctx.body;
     assertNotEmpty(query, "query is required");
 
@@ -851,8 +851,8 @@ router.post(
         dateFilter,
         offset,
         limit,
-        minWords,
-        maxWords,
+        snippetMinWords,
+        snippetMaxWords,
       });
     } else {
       if (!user) {
@@ -892,8 +892,8 @@ router.post(
         dateFilter,
         offset,
         limit,
-        minWords,
-        maxWords,
+        snippetMinWords,
+        snippetMaxWords,
       });
     }
 
