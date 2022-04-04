@@ -1,6 +1,5 @@
 import removeMarkdown from "@tommoor/remove-markdown";
 import { compact, find, map, uniq } from "lodash";
-import { invariant } from "mobx/lib/internal";
 import randomstring from "randomstring";
 import {
   Transaction,
