@@ -39,7 +39,7 @@ allow(User, "move", Collection, (user, collection) => {
   throw AdminRequiredError();
 });
 
-allow(User, "read", Collection, (user, collection) => {
+allow(User, ["read", "star", "unstar"], Collection, (user, collection) => {
   if (!collection || user.teamId !== collection.teamId) {
     return false;
   }

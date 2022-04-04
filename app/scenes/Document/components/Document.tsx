@@ -397,6 +397,7 @@ class DocumentScene extends React.Component<Props> {
   };
 
   onChangeTitle = action((value: string) => {
+    this.title = value;
     this.props.document.title = value;
     this.updateIsDirty();
     this.autosave();
@@ -448,7 +449,12 @@ class DocumentScene extends React.Component<Props> {
     return (
       <ErrorBoundary>
         {this.props.location.pathname !== canonicalUrl && (
-          <Redirect to={canonicalUrl} />
+          <Redirect
+            to={{
+              pathname: canonicalUrl,
+              state: this.props.location.state,
+            }}
+          />
         )}
         <RegisterKeyDown trigger="m" handler={this.goToMove} />
         <RegisterKeyDown trigger="e" handler={this.goToEdit} />

@@ -313,62 +313,6 @@ router.post("documents.viewed", auth(), pagination(), async (ctx) => {
   };
 });
 
-// Deprecated – use stars.list instead
-router.post("documents.starred", auth(), pagination(), async (ctx) => {
-  let { direction } = ctx.body;
-  const { sort = "updatedAt" } = ctx.body;
-
-  assertSort(sort, Document);
-  if (direction !== "ASC") {
-    direction = "DESC";
-  }
-  const { user } = ctx.state;
-  const collectionIds = await user.collectionIds();
-  const stars = await Star.findAll({
-    where: {
-      userId: user.id,
-    },
-    order: [[sort, direction]],
-    include: [
-      {
-        model: Document,
-        where: {
-          collectionId: collectionIds,
-        },
-        include: [
-          {
-            model: Collection.scope({
-              method: ["withMembership", user.id],
-            }),
-            as: "collection",
-          },
-          {
-            model: Star,
-            as: "starred",
-            where: {
-              userId: user.id,
-            },
-          },
-        ],
-      },
-    ],
-    offset: ctx.state.pagination.offset,
-    limit: ctx.state.pagination.limit,
-  });
-
-  const documents = stars.map((star) => star.document);
-  const data = await Promise.all(
-    documents.map((document) => presentDocument(document))
-  );
-  const policies = presentPolicies(user, documents);
-
-  ctx.body = {
-    pagination: ctx.state.pagination,
-    data,
-    policies,
-  };
-});
-
 router.post("documents.drafts", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
   const { collectionId, dateFilter, sort = "updatedAt" } = ctx.body;

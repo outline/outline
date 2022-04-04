@@ -11,6 +11,8 @@ class Star extends BaseModel {
 
   documentId: string;
 
+  collectionId: string;
+
   createdAt: string;
   updatedAt: string;
 
