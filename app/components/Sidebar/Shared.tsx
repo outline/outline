@@ -43,7 +43,11 @@ const ScrollContainer = styled(Scrollable)`
 `;
 
 const TopSection = styled(Section)`
-  margin-bottom: 20px;
+  // this weird looking && increases the specificity of the style rule
+  && {
+    margin-top: 16px;
+    margin-bottom: 16px;
+  }
 `;
 
 export default observer(SharedSidebar);
