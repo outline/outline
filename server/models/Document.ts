@@ -1,5 +1,6 @@
 import removeMarkdown from "@tommoor/remove-markdown";
 import { compact, find, map, uniq } from "lodash";
+import { invariant } from "mobx/lib/internal";
 import randomstring from "randomstring";
 import {
   Transaction,
@@ -470,9 +471,12 @@ class Document extends ParanoidModel {
 
     if (options.share?.includeChildDocuments) {
       const sharedDocument = await options.share.$get("document");
+
       if (sharedDocument) {
         const childDocumentIds = await sharedDocument.getChildDocumentIds();
         documentIds = [sharedDocument.id, ...childDocumentIds];
+      } else {
+        throw new Error("Share does not have associated document");
       }
     }
 
