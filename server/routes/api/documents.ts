@@ -453,10 +453,9 @@ async function loadDocument({
   let collection;
   let share;
 
-  assertPresent(
-    (id && user) || shareId,
-    "authenticated (user & document id) or shareId is required"
-  );
+  if (!shareId && !(id && user)) {
+    throw AuthenticationError(`Authentication or shareId required`);
+  }
 
   if (shareId) {
     share = await Share.findOne({

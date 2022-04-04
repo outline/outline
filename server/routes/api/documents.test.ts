@@ -433,7 +433,7 @@ describe("#documents.info", () => {
         id: document.id,
       },
     });
-    expect(res.status).toEqual(403);
+    expect(res.status).toEqual(401);
   });
 
   it("should require authorization with incorrect token", async () => {
@@ -445,7 +445,7 @@ describe("#documents.info", () => {
         id: document.id,
       },
     });
-    expect(res.status).toEqual(403);
+    expect(res.status).toEqual(401);
   });
 
   it("should require a valid shareId", async () => {
