@@ -445,7 +445,7 @@ describe("#documents.info", () => {
         id: document.id,
       },
     });
-    expect(res.status).toEqual(401);
+    expect(res.status).toEqual(403);
   });
 
   it("should require a valid shareId", async () => {
@@ -633,7 +633,7 @@ describe("#documents.export", () => {
         id: document.id,
       },
     });
-    expect(res.status).toEqual(403);
+    expect(res.status).toEqual(401);
   });
 
   it("should require authorization with incorrect token", async () => {
@@ -957,9 +957,12 @@ describe("#documents.search", () => {
       teamId: findableDocument.teamId,
     });
 
+    console.log("findable collection", findableDocument.collectionId);
+
     const share = await buildShare({
       includeChildDocuments: true,
-      document: findableDocument,
+      documentId: findableDocument.id,
+      teamId: findableDocument.teamId,
     });
 
     const res = await server.post("/api/documents.search", {
