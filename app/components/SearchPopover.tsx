@@ -68,7 +68,7 @@ function SearchPopover({ shareId }: Props) {
           popover.hide();
         }
       }, 300),
-    [popover]
+    [popover, cachedQuery]
   );
 
   const searchInputRef = popover.unstable_referenceRef;
