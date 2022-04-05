@@ -913,7 +913,7 @@ router.post(
         userId: user?.id,
         teamId,
         shareId,
-        source: ctx.state.authType || "app", // we need to write a valid enum member into here
+        source: ctx.state.authType || "app", // we'll consider anything that isn't "api" to be "app"
         query,
         results: totalCount,
       });
