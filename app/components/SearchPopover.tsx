@@ -122,7 +122,7 @@ function SearchPopover({ shareId }: Props) {
         }
       }
     },
-    [popover]
+    [popover, searchResults]
   );
 
   return (
