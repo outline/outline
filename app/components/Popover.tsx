@@ -8,10 +8,9 @@ import { fadeAndScaleIn } from "~/styles/animations";
 
 type Props = PopoverProps & {
   children: React.ReactNode;
-  // TODO what is tabindex for
-  tabIndex?: number;
   width?: number;
   shrink?: boolean;
+  tabIndex?: number;
 };
 
 const Popover: React.FC<Props> = ({

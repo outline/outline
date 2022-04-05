@@ -957,8 +957,6 @@ describe("#documents.search", () => {
       teamId: findableDocument.teamId,
     });
 
-    console.log("findable collection", findableDocument.collectionId);
-
     const share = await buildShare({
       includeChildDocuments: true,
       documentId: findableDocument.id,

@@ -1,4 +1,5 @@
 import removeMarkdown from "@tommoor/remove-markdown";
+import invariant from "invariant";
 import { compact, find, map, uniq } from "lodash";
 import randomstring from "randomstring";
 import {
@@ -470,13 +471,10 @@ class Document extends ParanoidModel {
 
     if (options.share?.includeChildDocuments) {
       const sharedDocument = await options.share.$get("document");
+      invariant(sharedDocument, "Cannot find document for share");
 
-      if (sharedDocument) {
-        const childDocumentIds = await sharedDocument.getChildDocumentIds();
-        documentIds = [sharedDocument.id, ...childDocumentIds];
-      } else {
-        throw new Error("Share does not have associated document");
-      }
+      const childDocumentIds = await sharedDocument.getChildDocumentIds();
+      documentIds = [sharedDocument.id, ...childDocumentIds];
     }
 
     const documentClause = documentIds ? `"id" IN(:documentIds) AND` : "";
