@@ -4,8 +4,9 @@ import { Portal } from "react-portal";
 import styled from "styled-components";
 import { depths } from "@shared/styles";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
-import { isInternalUrl } from "@shared/utils/urls";
+import { isExternalUrl } from "@shared/utils/urls";
 import HoverPreviewDocument from "~/components/HoverPreviewDocument";
+import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 import { fadeAndSlideDown } from "~/styles/animations";
 
@@ -124,8 +125,13 @@ function HoverPreviewInternal({ node, onClose }: Props) {
 }
 
 function HoverPreview({ node, ...rest }: Props) {
+  const isMobile = useMobile();
+  if (!isMobile) {
+    return null;
+  }
+
   // previews only work for internal doc links for now
-  if (!isInternalUrl(node.href)) {
+  if (isExternalUrl(node.href)) {
     return null;
   }
 
