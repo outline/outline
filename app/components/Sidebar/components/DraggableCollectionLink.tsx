@@ -13,7 +13,6 @@ import CollectionLinkChildren from "./CollectionLinkChildren";
 import DropCursor from "./DropCursor";
 import Relative from "./Relative";
 import { DragObject } from "./SidebarLink";
-import { useStarredContext } from "./StarredContext";
 
 type Props = {
   collection: Collection;
@@ -37,10 +36,8 @@ function DraggableCollectionLink({
 }: Props) {
   const locationStateStarred = useLocationStateStarred();
   const { ui, collections } = useStores();
-  const inStarredSection = useStarredContext();
   const [expanded, setExpanded] = React.useState(
-    collection.id === ui.activeCollectionId &&
-      locationStateStarred === inStarredSection
+    collection.id === ui.activeCollectionId && !locationStateStarred
   );
   const can = usePolicy(collection.id);
   const belowCollectionIndex = belowCollection ? belowCollection.index : null;
@@ -88,18 +85,10 @@ function DraggableCollectionLink({
   // If the current collection is active and relevant to the sidebar section we
   // are in then expand it automatically
   React.useEffect(() => {
-    if (
-      collection.id === ui.activeCollectionId &&
-      locationStateStarred === inStarredSection
-    ) {
+    if (collection.id === ui.activeCollectionId && !locationStateStarred) {
       setExpanded(true);
     }
-  }, [
-    collection.id,
-    ui.activeCollectionId,
-    locationStateStarred,
-    inStarredSection,
-  ]);
+  }, [collection.id, ui.activeCollectionId, locationStateStarred]);
 
   const handleDisclosureClick = React.useCallback((ev) => {
     ev.preventDefault();

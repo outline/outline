@@ -200,7 +200,7 @@ class DocumentScene extends React.Component<Props> {
     if (response) {
       this.replaceDocument(response.data);
       toasts.showToast(t("Document restored"));
-      history.replace(this.props.document.url);
+      history.replace(this.props.document.url, history.location.state);
     }
   };
 

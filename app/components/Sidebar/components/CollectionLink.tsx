@@ -54,7 +54,7 @@ const CollectionLink: React.FC<Props> = ({
       await collection.save({
         name,
       });
-      history.push(collection.url);
+      history.replace(collection.url, history.location.state);
     },
     [collection, history]
   );

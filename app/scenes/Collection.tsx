@@ -55,15 +55,17 @@ function CollectionScene() {
       const canonicalUrl = updateCollectionUrl(match.url, collection);
 
       if (match.url !== canonicalUrl) {
-        history.replace(canonicalUrl);
+        history.replace(canonicalUrl, history.location.state);
       }
     }
   }, [collection, collection?.name, history, id, match.url]);
 
   React.useEffect(() => {
     if (collection) {
-      ui.setActiveCollection(collection);
+      ui.setActiveCollection(collection.id);
     }
+
+    return () => ui.setActiveCollection(undefined);
   }, [ui, collection]);
 
   React.useEffect(() => {
