@@ -37,8 +37,9 @@ function SearchPopover({ shareId }: Props) {
     if (searchResults) {
       setCachedQuery(query);
       setCachedSearchResults(searchResults);
+      popover.show();
     }
-  }, [searchResults]);
+  }, [searchResults, query, popover.show]);
 
   const performSearch = React.useCallback(
     async ({ query, ...options }: Record<string, any>) => {
@@ -54,14 +55,19 @@ function SearchPopover({ shareId }: Props) {
     () =>
       debounce(async (event: React.ChangeEvent<HTMLInputElement>) => {
         const { value } = event.target;
+        setQuery(value.trim());
 
-        if (value.length) {
+        // covers edge case: user manually dismisses popover then
+        // quickly edits input resulting in no change in query
+        // the useEffect that normally shows the popover will miss it
+        if (value === cachedQuery) {
           popover.show();
-          setQuery(event.target.value.trim());
-        } else {
+        }
+
+        if (!value.length) {
           popover.hide();
         }
-      }, 400),
+      }, 300),
     [popover]
   );
 
@@ -73,44 +79,51 @@ function SearchPopover({ shareId }: Props) {
     [searchInputRef]
   );
 
-  const handleKeyDown = (ev: React.KeyboardEvent<HTMLInputElement>) => {
-    if (ev.key === "Enter") {
-      if (searchResults?.length) {
-        popover.show();
-      }
-    }
-
-    if (ev.key === "ArrowDown" && !ev.shiftKey) {
-      if (searchResults?.length) {
-        if (ev.currentTarget.value.length === ev.currentTarget.selectionStart) {
+  const handleKeyDown = React.useCallback(
+    (ev: React.KeyboardEvent<HTMLInputElement>) => {
+      if (ev.key === "Enter") {
+        if (searchResults) {
           popover.show();
         }
-        firstSearchItem.current?.focus();
-      }
-    }
-
-    if (ev.key === "ArrowUp") {
-      if (popover.visible) {
-        popover.hide();
-        ev.preventDefault();
       }
 
-      if (ev.currentTarget.value) {
-        if (ev.currentTarget.selectionEnd === 0) {
-          ev.currentTarget.selectionStart = 0;
-          ev.currentTarget.selectionEnd = ev.currentTarget.value.length;
+      if (ev.key === "ArrowDown" && !ev.shiftKey) {
+        if (ev.currentTarget.value.length) {
+          if (
+            ev.currentTarget.value.length === ev.currentTarget.selectionStart
+          ) {
+            popover.show();
+          }
+          firstSearchItem.current?.focus();
+        }
+      }
+
+      if (ev.key === "ArrowUp") {
+        if (popover.visible) {
+          popover.hide();
+          if (!ev.shiftKey) {
+            ev.preventDefault();
+          }
+        }
+
+        if (ev.currentTarget.value) {
+          if (ev.currentTarget.selectionEnd === 0) {
+            ev.currentTarget.selectionStart = 0;
+            ev.currentTarget.selectionEnd = ev.currentTarget.value.length;
+            ev.preventDefault();
+          }
+        }
+      }
+
+      if (ev.key === "Escape") {
+        if (popover.visible) {
+          popover.hide();
           ev.preventDefault();
         }
       }
-    }
-
-    if (ev.key === "Escape") {
-      if (popover.visible) {
-        popover.hide();
-        ev.preventDefault();
-      }
-    }
-  };
+    },
+    [popover]
+  );
 
   return (
     <>
