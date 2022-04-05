@@ -821,8 +821,8 @@ router.post(
     assertNotEmpty(query, "query is required");
 
     const { offset, limit } = ctx.state.pagination;
-    // this typing is a bit ugly, would be better to have the auth middleware
-    // define the data type for state.user
+    // this typing is a bit ugly, would be better to use a type like ContextWithState
+    // but that doesn't adequately handle cases when auth is optional
     const { user }: { user: User | undefined } = ctx.state;
 
     let teamId;
