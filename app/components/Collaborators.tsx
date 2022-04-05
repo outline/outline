@@ -52,18 +52,14 @@ function Collaborators(props: Props) {
 
   // load any users we don't yet have in memory
   React.useEffect(() => {
-    const userIdsToFetch = uniq([
-      ...document.collaboratorIds,
-      ...presentIds,
-    ]).filter((userId) => !users.get(userId));
+    const ids = uniq([...document.collaboratorIds, ...presentIds])
+      .filter((userId) => !users.get(userId))
+      .sort();
 
-    if (!isEqual(requestedUserIds, userIdsToFetch)) {
-      setRequestedUserIds(userIdsToFetch);
+    if (!isEqual(requestedUserIds, ids) && ids.length > 0) {
+      setRequestedUserIds(ids);
+      users.fetchPage({ ids, limit: 100 });
     }
-
-    userIdsToFetch
-      .filter((userId) => requestedUserIds.includes(userId))
-      .forEach((userId) => users.fetch(userId));
   }, [document, users, presentIds, document.collaboratorIds, requestedUserIds]);
 
   const popover = usePopoverState({
