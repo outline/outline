@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { Portal } from "react-portal";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { depths } from "@shared/styles";
 import CommandBarResults from "~/components/CommandBarResults";
 import SearchActions from "~/components/SearchActions";
 import rootActions from "~/actions/root";
@@ -90,7 +91,7 @@ const Hint = styled(Text)`
 `;
 
 const Positioner = styled(KBarPositioner)`
-  z-index: ${(props) => props.theme.depths.commandBar};
+  z-index: ${depths.commandBar};
 `;
 
 const SearchInput = styled(KBarSearch)`

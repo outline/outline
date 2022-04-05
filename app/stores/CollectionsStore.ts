@@ -174,6 +174,19 @@ export default class CollectionsStore extends BaseStore<Collection> {
     );
   }
 
+  star = async (collection: Collection) => {
+    await this.rootStore.stars.create({
+      collectionId: collection.id,
+    });
+  };
+
+  unstar = async (collection: Collection) => {
+    const star = this.rootStore.stars.orderedData.find(
+      (star) => star.collectionId === collection.id
+    );
+    await star?.delete();
+  };
+
   getPathForDocument(documentId: string): DocumentPath | undefined {
     return this.pathsToDocuments.find((path) => path.id === documentId);
   }

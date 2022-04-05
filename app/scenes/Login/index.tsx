@@ -135,13 +135,9 @@ function Login() {
           <Heading centered>{t("Check your email")}</Heading>
           <Note>
             <Trans
-              defaults="A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em>, no password needed."
-              values={{
-                emailLinkSentTo: emailLinkSentTo,
-              }}
-              components={{
-                em: <em />,
-              }}
+              defaults="A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em> if an account exists."
+              values={{ emailLinkSentTo }}
+              components={{ em: <em /> }}
             />
           </Note>
           <br />

@@ -10,6 +10,8 @@ import insertFiles from "@shared/editor/commands/insertFiles";
 import { CommandFactory } from "@shared/editor/lib/Extension";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
 import { EmbedDescriptor, MenuItem } from "@shared/editor/types";
+import { depths } from "@shared/styles";
+import { supportedImageMimeTypes } from "@shared/utils/files";
 import getDataTransferFiles from "@shared/utils/getDataTransferFiles";
 import { Dictionary } from "~/hooks/useDictionary";
 import Input from "./Input";
@@ -179,7 +181,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
   insertItem = (item: any) => {
     switch (item.name) {
       case "image":
-        return this.triggerFilePick("image/*");
+        return this.triggerFilePick(supportedImageMimeTypes.join(", "));
       case "attachment":
         return this.triggerFilePick("*");
       case "embed":
@@ -417,7 +419,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
       commands,
       filterable = true,
     } = this.props;
-    let items: (EmbedDescriptor | MenuItem)[] = this.props.items;
+    let items: (EmbedDescriptor | MenuItem)[] = [...this.props.items];
     const embedItems: EmbedDescriptor[] = [];
 
     for (const embed of embeds) {
@@ -430,10 +432,12 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
     }
 
     if (embedItems.length) {
-      items.push({
-        name: "separator",
-      });
-      items = items.concat(embedItems);
+      items = items.concat(
+        {
+          name: "separator",
+        },
+        embedItems
+      );
     }
 
     const filtered = items.filter((item) => {
@@ -602,7 +606,7 @@ export const Wrapper = styled.div<{
   color: ${(props) => props.theme.text};
   font-family: ${(props) => props.theme.fontFamily};
   position: absolute;
-  z-index: ${(props) => props.theme.zIndex + 100};
+  z-index: ${depths.editorToolbar};
   ${(props) => props.top !== undefined && `top: ${props.top}px`};
   ${(props) => props.bottom !== undefined && `bottom: ${props.bottom}px`};
   left: ${(props) => props.left}px;

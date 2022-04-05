@@ -1,3 +1,4 @@
+import { Location } from "history";
 import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
@@ -13,6 +14,7 @@ import Fade from "~/components/Fade";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
 import useBoolean from "~/hooks/useBoolean";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import DocumentMenu from "~/menus/DocumentMenu";
@@ -21,24 +23,25 @@ import { newDocumentPath } from "~/utils/routeHelpers";
 import DropCursor from "./DropCursor";
 import DropToImport from "./DropToImport";
 import EditableTitle from "./EditableTitle";
+import Folder from "./Folder";
+import Relative from "./Relative";
 import SidebarLink, { DragObject } from "./SidebarLink";
+import { useStarredContext } from "./StarredContext";
 
 type Props = {
   node: NavigationNode;
-  canUpdate: boolean;
   collection?: Collection;
   activeDocument: Document | null | undefined;
-  prefetchDocument: (documentId: string) => Promise<Document | void>;
+  prefetchDocument?: (documentId: string) => Promise<Document | void>;
   isDraft?: boolean;
   depth: number;
   index: number;
   parentId?: string;
 };
 
-function DocumentLink(
+function InnerDocumentLink(
   {
     node,
-    canUpdate,
     collection,
     activeDocument,
     prefetchDocument,
@@ -52,12 +55,14 @@ function DocumentLink(
   const { showToast } = useToasts();
   const { documents, policies } = useStores();
   const { t } = useTranslation();
+  const canUpdate = usePolicy(node.id).update;
   const isActiveDocument = activeDocument && activeDocument.id === node.id;
   const hasChildDocuments =
     !!node.children.length || activeDocument?.parentDocumentId === node.id;
   const document = documents.get(node.id);
   const { fetchChildDocuments } = documents;
   const [isEditing, setIsEditing] = React.useState(false);
+  const inStarredSection = useStarredContext();
 
   React.useEffect(() => {
     if (isActiveDocument && hasChildDocuments) {
@@ -84,7 +89,6 @@ function DocumentLink(
   }, [hasChildDocuments, activeDocument, isActiveDocument, node, collection]);
 
   const [expanded, setExpanded] = React.useState(showChildren);
-  const [openedOnce, setOpenedOnce] = React.useState(expanded);
 
   React.useEffect(() => {
     if (showChildren) {
@@ -92,14 +96,7 @@ function DocumentLink(
     }
   }, [showChildren]);
 
-  React.useEffect(() => {
-    if (expanded) {
-      setOpenedOnce(true);
-    }
-  }, [expanded]);
-
-  // when the last child document is removed,
-  // also close the local folder state to closed
+  // when the last child document is removed auto-close the local folder state
   React.useEffect(() => {
     if (expanded && !hasChildDocuments) {
       setExpanded(false);
@@ -116,7 +113,7 @@ function DocumentLink(
   );
 
   const handleMouseEnter = React.useCallback(() => {
-    prefetchDocument(node.id);
+    prefetchDocument?.(node.id);
   }, [prefetchDocument, node]);
 
   const handleTitleChange = React.useCallback(
@@ -190,7 +187,7 @@ function DocumentLink(
       !isDraft &&
       !!pathToNode &&
       !pathToNode.includes(monitor.getItem<DragObject>().id),
-    hover: (item, monitor) => {
+    hover: (_item, monitor) => {
       // Enables expansion of document children when hovering over the document
       // for more than half a second.
       if (
@@ -314,6 +311,7 @@ function DocumentLink(
                   pathname: node.url,
                   state: {
                     title: node.title,
+                    starred: inStarredSection,
                   },
                 }}
                 label={
@@ -325,14 +323,14 @@ function DocumentLink(
                     maxLength={MAX_TITLE_LENGTH}
                   />
                 }
-                isActive={(match, location) =>
-                  !!match && location.search !== "?starred"
+                isActive={(match, location: Location<{ starred?: boolean }>) =>
+                  !!match && location.state?.starred === inStarredSection
                 }
                 isActiveDrop={isOverReparent && canDropToReparent}
                 depth={depth}
                 exact={false}
                 showActions={menuOpen}
-                scrollIntoViewIfNeeded={!document?.isStarred}
+                scrollIntoViewIfNeeded={!inStarredSection}
                 isDraft={isDraft}
                 ref={ref}
                 menu={
@@ -375,41 +373,30 @@ function DocumentLink(
           />
         )}
       </Relative>
-      {openedOnce && (
-        <Folder $open={expanded && !isDragging}>
-          {nodeChildren.map((childNode, index) => (
-            <ObservedDocumentLink
-              key={childNode.id}
-              collection={collection}
-              node={childNode}
-              activeDocument={activeDocument}
-              prefetchDocument={prefetchDocument}
-              isDraft={childNode.isDraft}
-              depth={depth + 1}
-              canUpdate={canUpdate}
-              index={index}
-              parentId={node.id}
-            />
-          ))}
-        </Folder>
-      )}
+      <Folder expanded={expanded && !isDragging}>
+        {nodeChildren.map((childNode, index) => (
+          <DocumentLink
+            key={childNode.id}
+            collection={collection}
+            node={childNode}
+            activeDocument={activeDocument}
+            prefetchDocument={prefetchDocument}
+            isDraft={childNode.isDraft}
+            depth={depth + 1}
+            index={index}
+            parentId={node.id}
+          />
+        ))}
+      </Folder>
     </>
   );
 }
-
-const Folder = styled.div<{ $open?: boolean }>`
-  display: ${(props) => (props.$open ? "block" : "none")};
-`;
-
-const Relative = styled.div`
-  position: relative;
-`;
 
 const Draggable = styled.div<{ $isDragging?: boolean; $isMoving?: boolean }>`
   opacity: ${(props) => (props.$isDragging || props.$isMoving ? 0.5 : 1)};
   pointer-events: ${(props) => (props.$isMoving ? "none" : "all")};
 `;
 
-const ObservedDocumentLink = observer(React.forwardRef(DocumentLink));
+const DocumentLink = observer(React.forwardRef(InnerDocumentLink));
 
-export default ObservedDocumentLink;
+export default DocumentLink;

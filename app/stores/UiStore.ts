@@ -1,6 +1,5 @@
 import { action, autorun, computed, observable } from "mobx";
-import { light as defaultTheme } from "@shared/theme";
-import Collection from "~/models/Collection";
+import { light as defaultTheme } from "@shared/styles/theme";
 import Document from "~/models/Document";
 import { ConnectionStatus } from "~/scenes/Document/components/MultiplayerEditor";
 
@@ -150,8 +149,8 @@ class UiStore {
   };
 
   @action
-  setActiveCollection = (collection: Collection): void => {
-    this.activeCollectionId = collection.id;
+  setActiveCollection = (collectionId: string | undefined): void => {
+    this.activeCollectionId = collectionId;
   };
 
   @action

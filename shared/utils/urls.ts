@@ -28,3 +28,7 @@ export function isInternalUrl(href: string) {
 
   return false;
 }
+
+export function isExternalUrl(href: string) {
+  return !isInternalUrl(href);
+}

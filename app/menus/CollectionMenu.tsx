@@ -8,6 +8,8 @@ import {
   PadlockIcon,
   AlphabeticalSortIcon,
   ManualSortIcon,
+  UnstarredIcon,
+  StarredIcon,
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -151,11 +153,46 @@ function CollectionMenu({
     });
   }, [dialogs, t, collection]);
 
+  const handleStar = React.useCallback(
+    (ev: React.SyntheticEvent) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      collection.star();
+    },
+    [collection]
+  );
+
+  const handleUnstar = React.useCallback(
+    (ev: React.SyntheticEvent) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      collection.unstar();
+    },
+    [collection]
+  );
+
   const alphabeticalSort = collection.sort.field === "title";
   const can = usePolicy(collection.id);
   const canUserInTeam = usePolicy(team.id);
   const items: MenuItem[] = React.useMemo(
     () => [
+      {
+        type: "button",
+        title: t("Unstar"),
+        onClick: handleUnstar,
+        visible: collection.isStarred && !!can.unstar,
+        icon: <UnstarredIcon />,
+      },
+      {
+        type: "button",
+        title: t("Star"),
+        onClick: handleStar,
+        visible: !collection.isStarred && !!can.star,
+        icon: <StarredIcon />,
+      },
+      {
+        type: "separator",
+      },
       {
         type: "button",
         title: t("New document"),
@@ -234,6 +271,10 @@ function CollectionMenu({
       t,
       can.update,
       can.delete,
+      can.star,
+      can.unstar,
+      handleStar,
+      handleUnstar,
       alphabeticalSort,
       handleChangeSort,
       handleNewDocument,
