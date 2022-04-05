@@ -59,12 +59,13 @@ export function checkEnv() {
       ["AWS_S3_FORCE_PATH_STYLE", "AWS_S3_ENDPOINT_STYLE"],
     ].forEach((key) => {
       if (process.env[key[0]]) {
-        Logger.warn(
-          `\n${key[0]} is deprecated, use ${key[1]} instead.\n`
-        );
+        Logger.warn(`\n${key[0]} is deprecated, use ${key[1]} instead.\n`);
       }
     });
-    if (process.env.AWS_S3_UPLOAD_BUCKET_NAME && process.env.AWS_S3_BUCKET_NAME === undefined) {
+    if (
+      process.env.AWS_S3_UPLOAD_BUCKET_NAME &&
+      process.env.AWS_S3_BUCKET_NAME === undefined
+    ) {
       process.env.AWS_S3_BUCKET_NAME = process.env.AWS_S3_UPLOAD_BUCKET_NAME;
     }
 
