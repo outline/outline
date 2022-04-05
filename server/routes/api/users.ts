@@ -19,7 +19,7 @@ const router = new Router();
 
 router.post("users.list", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
-  const { sort = "createdAt", query, filter } = ctx.body;
+  const { sort = "createdAt", query, filter, ids } = ctx.body;
   if (direction !== "ASC") {
     direction = "DESC";
   }
@@ -85,6 +85,14 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
       name: {
         [Op.iLike]: `%${query}%`,
       },
+    };
+  }
+
+  if (ids) {
+    assertArray(ids, "ids must be an array of UUIDs");
+    where = {
+      ...where,
+      id: ids,
     };
   }
 
