@@ -1,4 +1,5 @@
 import { darken, lighten } from "polished";
+import breakpoints from "./breakpoints";
 
 const colors = {
   transparent: "transparent",
@@ -96,6 +97,7 @@ export const base = {
   noticeTipText: colors.almostBlack,
   noticeWarningBackground: "#ffadbf",
   noticeWarningText: colors.almostBlack,
+  breakpoints,
 };
 
 export const light = {
