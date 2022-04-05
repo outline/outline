@@ -2,6 +2,7 @@ import { transparentize } from "polished";
 import * as React from "react";
 import { Portal } from "react-portal";
 import styled from "styled-components";
+import { depths } from "@shared/styles";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { isInternalUrl } from "@shared/utils/urls";
 import HoverPreviewDocument from "~/components/HoverPreviewDocument";
@@ -195,7 +196,7 @@ const Card = styled.div`
 const Position = styled.div<{ fixed?: boolean; top?: number; left?: number }>`
   margin-top: 10px;
   position: ${({ fixed }) => (fixed ? "fixed" : "absolute")};
-  z-index: ${(props) => props.theme.depths.hoverPreview};
+  z-index: ${depths.hoverPreview};
   display: flex;
   max-height: 75%;
 

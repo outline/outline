@@ -3,7 +3,7 @@ import * as React from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { MAX_TITLE_LENGTH } from "@shared/constants";
-import { light } from "@shared/theme";
+import { light } from "@shared/styles/theme";
 import {
   getCurrentDateAsString,
   getCurrentDateTimeAsString,

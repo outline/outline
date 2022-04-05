@@ -116,27 +116,6 @@ declare module "styled-components" {
     sidebarMaxWidth: number;
   }
 
-  interface Breakpoints {
-    mobile: number;
-    tablet: number;
-    desktop: number;
-    desktopLarge: number;
-  }
-
-  interface Depths {
-    header: number;
-    sidebar: number;
-    hoverPreview: number;
-    modalOverlay: number;
-    modal: number;
-    menu: number;
-    toasts: number;
-    popover: number;
-    titleBarDivider: number;
-    loadingIndicatorBar: number;
-    commandBar: number;
-  }
-
   export interface DefaultTheme extends Colors, Spacing, EditorTheme {
     background: string;
     backgroundTransition: string;
@@ -183,8 +162,5 @@ declare module "styled-components" {
     progressBarBackground: string;
     scrollbarBackground: string;
     scrollbarThumb: string;
-
-    breakpoints: Breakpoints;
-    depths: Depths;
   }
 }

@@ -5,6 +5,7 @@ import { Portal } from "react-portal";
 import { useLocation } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { depths } from "@shared/styles";
 import Flex from "~/components/Flex";
 import useMenuContext from "~/hooks/useMenuContext";
 import usePrevious from "~/hooks/usePrevious";
@@ -224,7 +225,7 @@ const Backdrop = styled.a`
   bottom: 0;
   right: 0;
   cursor: default;
-  z-index: ${(props) => props.theme.depths.sidebar - 1};
+  z-index: ${depths.sidebar - 1};
   background: ${(props) => props.theme.backdrop};
 `;
 
@@ -246,7 +247,7 @@ const Container = styled(Flex)<{
   transform: translateX(
     ${(props) => (props.$mobileSidebarVisible ? 0 : "-100%")}
   );
-  z-index: ${(props) => props.theme.depths.sidebar};
+  z-index: ${depths.sidebar};
   max-width: 70%;
   min-width: 280px;
 

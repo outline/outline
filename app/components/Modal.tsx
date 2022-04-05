@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { Dialog, DialogBackdrop, useDialogState } from "reakit/Dialog";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { depths } from "@shared/styles";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
 import Scrollable from "~/components/Scrollable";
@@ -133,7 +134,7 @@ const Backdrop = styled(Flex)<{ $isCentered?: boolean }>`
     props.$isCentered
       ? props.theme.modalBackdrop
       : transparentize(0.25, props.theme.background)} !important;
-  z-index: ${(props) => props.theme.depths.modalOverlay};
+  z-index: ${depths.modalOverlay};
   transition: opacity 50ms ease-in-out;
   opacity: 0;
 
@@ -150,7 +151,7 @@ const Fullscreen = styled.div<{ $nested: boolean }>`
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: ${(props) => props.theme.depths.modal};
+  z-index: ${depths.modal};
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -240,7 +241,7 @@ const Small = styled.div`
   margin: auto auto;
   min-width: 350px;
   max-width: 30vw;
-  z-index: ${(props) => props.theme.depths.modal};
+  z-index: ${depths.modal};
   display: flex;
   justify-content: center;
   align-items: flex-start;

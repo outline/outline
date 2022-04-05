@@ -5,6 +5,7 @@ import { transparentize } from "polished";
 import * as React from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { depths } from "@shared/styles";
 import Button from "~/components/Button";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
@@ -100,7 +101,7 @@ const Actions = styled(Flex)`
 
 const Wrapper = styled(Flex)<{ $passThrough?: boolean }>`
   top: 0;
-  z-index: ${(props) => props.theme.depths.header};
+  z-index: ${depths.header};
   position: sticky;
   background: ${(props) => props.theme.background};
 

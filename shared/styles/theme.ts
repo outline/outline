@@ -97,30 +97,6 @@ export const base = {
   noticeTipText: colors.almostBlack,
   noticeWarningBackground: "#ffadbf",
   noticeWarningText: colors.almostBlack,
-  breakpoints: {
-    mobile: 0,
-    // targeting all devices
-    tablet: 737,
-    // targeting devices that are larger than the iPhone 6 Plus (which is 736px in landscape mode)
-    desktop: 1025,
-    // targeting devices that are larger than the iPad (which is 1024px in landscape mode)
-    desktopLarge: 1600,
-  },
-  depths: {
-    header: 800,
-    sidebar: 900,
-    // Note: editor toolbars are 900
-    hoverPreview: 998,
-    // Note: editor lightbox is z-index 999
-    modalOverlay: 2000,
-    modal: 3000,
-    menu: 4000,
-    toasts: 5000,
-    popover: 9000,
-    titleBarDivider: 10000,
-    loadingIndicatorBar: 20000,
-    commandBar: 30000,
-  },
 };
 
 export const light = {

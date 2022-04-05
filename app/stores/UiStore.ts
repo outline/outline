@@ -1,5 +1,5 @@
 import { action, autorun, computed, observable } from "mobx";
-import { light as defaultTheme } from "@shared/theme";
+import { light as defaultTheme } from "@shared/styles/theme";
 import Document from "~/models/Document";
 import { ConnectionStatus } from "~/scenes/Document/components/MultiplayerEditor";
 

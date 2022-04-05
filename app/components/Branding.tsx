@@ -1,6 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { depths } from "@shared/styles";
 import env from "~/env";
 import OutlineLogo from "./OutlineLogo";
 
@@ -38,7 +39,7 @@ const Link = styled.a`
   }
 
   ${breakpoint("tablet")`
-    z-index: ${(props: any) => props.theme.depths.sidebar + 1};
+    z-index: ${depths.sidebar + 1};
     position: fixed;
     bottom: 0;
     left: 0;
