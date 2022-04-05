@@ -28,6 +28,18 @@ function SearchPopover({ shareId }: Props) {
   const [query, setQuery] = React.useState("");
   const searchResults = documents.searchResults(query);
 
+  const [cachedQuery, setCachedQuery] = React.useState(query);
+  const [cachedSearchResults, setCachedSearchResults] = React.useState<
+    Record<string, any>[] | undefined
+  >(searchResults);
+
+  React.useEffect(() => {
+    if (searchResults) {
+      setCachedQuery(query);
+      setCachedSearchResults(searchResults);
+    }
+  }, [searchResults]);
+
   const performSearch = React.useCallback(
     async ({ query, ...options }: Record<string, any>) => {
       if (query?.length > 0) {
@@ -128,7 +140,7 @@ function SearchPopover({ shareId }: Props) {
       >
         <PaginatedList
           options={{ query, snippetMinWords: 10, snippetMaxWords: 11 }}
-          items={searchResults}
+          items={cachedSearchResults}
           fetch={performSearch}
           onEscape={handleEscapeList}
           empty={
@@ -142,7 +154,7 @@ function SearchPopover({ shareId }: Props) {
               ref={index === 0 ? firstSearchItem : undefined}
               document={item.document}
               context={item.context}
-              highlight={query}
+              highlight={cachedQuery}
               onClick={popover.hide}
               {...compositeProps}
             />
@@ -155,6 +167,7 @@ function SearchPopover({ shareId }: Props) {
 
 const NoResults = styled(Empty)`
   padding: 0 12px;
+  margin: 6px 0;
 `;
 
 const PlaceholderList = styled(Placeholder)`
