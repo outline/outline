@@ -10,6 +10,7 @@ import insertFiles from "@shared/editor/commands/insertFiles";
 import { CommandFactory } from "@shared/editor/lib/Extension";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
 import { EmbedDescriptor, MenuItem } from "@shared/editor/types";
+import { depths } from "@shared/styles";
 import { supportedImageMimeTypes } from "@shared/utils/files";
 import getDataTransferFiles from "@shared/utils/getDataTransferFiles";
 import { Dictionary } from "~/hooks/useDictionary";
@@ -605,7 +606,7 @@ export const Wrapper = styled.div<{
   color: ${(props) => props.theme.text};
   font-family: ${(props) => props.theme.fontFamily};
   position: absolute;
-  z-index: ${(props) => props.theme.zIndex + 100};
+  z-index: ${depths.editorToolbar};
   ${(props) => props.top !== undefined && `top: ${props.top}px`};
   ${(props) => props.bottom !== undefined && `bottom: ${props.bottom}px`};
   left: ${(props) => props.left}px;

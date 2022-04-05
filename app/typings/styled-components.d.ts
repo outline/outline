@@ -25,7 +25,6 @@ declare module "styled-components" {
     fontFamily: string;
     fontFamilyMono: string;
     fontWeight: number;
-    zIndex: number;
     link: string;
     placeholder: string;
     textSecondary: string;

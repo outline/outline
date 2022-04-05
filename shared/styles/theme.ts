@@ -58,7 +58,6 @@ export const base = {
     "'SFMono-Regular',Consolas,'Liberation Mono', Menlo, Courier,monospace",
   fontWeight: 400,
   backgroundTransition: "background 100ms ease-in-out",
-  zIndex: 800,
   selected: colors.primary,
   buttonBackground: colors.primary,
   buttonText: colors.white,
