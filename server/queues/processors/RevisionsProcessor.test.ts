@@ -3,6 +3,8 @@ import { buildDocument } from "@server/test/factories";
 import { flushdb } from "@server/test/support";
 import RevisionsProcessor from "./RevisionsProcessor";
 
+const ip = "127.0.0.1";
+
 beforeEach(() => flushdb());
 beforeEach(jest.resetAllMocks);
 
@@ -11,13 +13,15 @@ describe("documents.update.debounced", () => {
     const document = await buildDocument();
 
     const processor = new RevisionsProcessor();
-    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ name: "documents.update.deboun... Remove this comment to see the full error message
     await processor.perform({
       name: "documents.update.debounced",
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: document.createdById,
+      createdAt: new Date().toISOString(),
+      data: { title: document.title, autosave: false, done: true },
+      ip,
     });
     const amount = await Revision.count({
       where: {
@@ -32,13 +36,15 @@ describe("documents.update.debounced", () => {
     await Revision.createFromDocument(document);
 
     const processor = new RevisionsProcessor();
-    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ name: "documents.update.deboun... Remove this comment to see the full error message
     await processor.perform({
       name: "documents.update.debounced",
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: document.createdById,
+      createdAt: new Date().toISOString(),
+      data: { title: document.title, autosave: false, done: true },
+      ip,
     });
     const amount = await Revision.count({
       where: {

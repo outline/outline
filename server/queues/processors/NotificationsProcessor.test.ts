@@ -9,6 +9,7 @@ import { flushdb } from "@server/test/support";
 import NotificationsProcessor from "./NotificationsProcessor";
 
 jest.mock("@server/queues/tasks/EmailTask");
+const ip = "127.0.0.1";
 
 beforeEach(() => flushdb());
 beforeEach(jest.resetAllMocks);
@@ -33,10 +34,10 @@ describe("documents.publish", () => {
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: document.createdById,
-      ip: "127.0.0.1",
       data: {
         title: document.title,
       },
+      ip,
     });
     expect(EmailTask.schedule).not.toHaveBeenCalled();
   });
@@ -59,10 +60,10 @@ describe("documents.publish", () => {
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: document.createdById,
-      ip: "127.0.0.1",
       data: {
         title: document.title,
       },
+      ip,
     });
     expect(EmailTask.schedule).toHaveBeenCalled();
   });
@@ -89,10 +90,10 @@ describe("documents.publish", () => {
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: document.createdById,
-      ip: "127.0.0.1",
       data: {
         title: document.title,
       },
+      ip,
     });
     expect(EmailTask.schedule).not.toHaveBeenCalled();
   });

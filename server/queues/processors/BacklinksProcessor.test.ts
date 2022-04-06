@@ -3,6 +3,8 @@ import { buildDocument } from "@server/test/factories";
 import { flushdb } from "@server/test/support";
 import BacklinksProcessor from "./BacklinksProcessor";
 
+const ip = "127.0.0.1";
+
 beforeEach(() => flushdb());
 beforeEach(jest.resetAllMocks);
 
@@ -14,13 +16,14 @@ describe("documents.publish", () => {
     });
 
     const processor = new BacklinksProcessor();
-    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ name: "documents.publish"; doc... Remove this comment to see the full error message
     await processor.perform({
       name: "documents.publish",
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: document.createdById,
+      data: { title: document.title },
+      ip,
     });
     const backlinks = await Backlink.findAll({
       where: {
@@ -41,13 +44,14 @@ describe("documents.publish", () => {
     await document.save();
 
     const processor = new BacklinksProcessor();
-    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ name: "documents.publish"; doc... Remove this comment to see the full error message
     await processor.perform({
       name: "documents.publish",
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: document.createdById,
+      data: { title: document.title },
+      ip,
     });
     const backlinks = await Backlink.findAll({
       where: {
@@ -66,13 +70,15 @@ describe("documents.update", () => {
     });
 
     const processor = new BacklinksProcessor();
-    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ name: "documents.publish"; doc... Remove this comment to see the full error message
     await processor.perform({
       name: "documents.update",
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: document.createdById,
+      createdAt: new Date().toISOString(),
+      data: { title: document.title, autosave: false, done: true },
+      ip,
     });
     const backlinks = await Backlink.findAll({
       where: {
@@ -92,13 +98,15 @@ describe("documents.update", () => {
     await document.save();
 
     const processor = new BacklinksProcessor();
-    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ name: "documents.publish"; doc... Remove this comment to see the full error message
     await processor.perform({
       name: "documents.update",
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: document.createdById,
+      createdAt: new Date().toISOString(),
+      data: { title: document.title, autosave: false, done: true },
+      ip,
     });
     const backlinks = await Backlink.findAll({
       where: {
@@ -115,13 +123,15 @@ describe("documents.update", () => {
     await document.save();
 
     const processor = new BacklinksProcessor();
-    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ name: "documents.publish"; doc... Remove this comment to see the full error message
     await processor.perform({
       name: "documents.update",
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: document.createdById,
+      createdAt: new Date().toISOString(),
+      data: { title: document.title, autosave: false, done: true },
+      ip,
     });
     const backlinks = await Backlink.findAll({
       where: {
@@ -141,26 +151,29 @@ describe("documents.update", () => {
     });
 
     const processor = new BacklinksProcessor();
-    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ name: "documents.publish"; doc... Remove this comment to see the full error message
     await processor.perform({
       name: "documents.publish",
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: document.createdById,
+      data: { title: document.title },
+      ip,
     });
     document.text = `First link is gone
     
 [this is a another link](${yetAnotherDocument.url})`;
     await document.save();
 
-    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ name: "documents.publish"; doc... Remove this comment to see the full error message
     await processor.perform({
       name: "documents.update",
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: document.createdById,
+      createdAt: new Date().toISOString(),
+      data: { title: document.title, autosave: false, done: true },
+      ip,
     });
     const backlinks = await Backlink.findAll({
       where: {
@@ -180,22 +193,25 @@ describe("documents.delete", () => {
     await document.save();
 
     const processor = new BacklinksProcessor();
-    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ name: "documents.publish"; doc... Remove this comment to see the full error message
     await processor.perform({
       name: "documents.update",
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: document.createdById,
+      createdAt: new Date().toISOString(),
+      data: { title: document.title, autosave: false, done: true },
+      ip,
     });
 
-    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ name: "documents.publish"; doc... Remove this comment to see the full error message
     await processor.perform({
       name: "documents.delete",
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: document.createdById,
+      data: { title: document.title },
+      ip,
     });
     const backlinks = await Backlink.findAll({
       where: {
@@ -217,29 +233,32 @@ describe("documents.title_change", () => {
     await document.save();
     // ensure the backlinks are created
     const processor = new BacklinksProcessor();
-    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ name: "documents.publish"; doc... Remove this comment to see the full error message
     await processor.perform({
       name: "documents.update",
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: document.createdById,
+      createdAt: new Date().toISOString(),
+      data: { title: document.title, autosave: false, done: true },
+      ip,
     });
     // change the title of the linked doc
     otherDocument.title = newTitle;
     await otherDocument.save();
     // does the text get updated with the new title
-    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ name: "documents.publish"; doc... Remove this comment to see the full error message
     await processor.perform({
       name: "documents.title_change",
       documentId: otherDocument.id,
       collectionId: otherDocument.collectionId,
       teamId: otherDocument.teamId,
       actorId: otherDocument.createdById,
+      createdAt: new Date().toISOString(),
       data: {
         previousTitle,
         title: newTitle,
       },
+      ip,
     });
     await document.reload();
     expect(document.text).toBe(`[${newTitle}](${otherDocument.url})`);
