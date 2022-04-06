@@ -1,5 +1,6 @@
 import { subHours } from "date-fns";
 import { Op } from "sequelize";
+import { Server } from "socket.io";
 import {
   Document,
   Collection,
@@ -18,7 +19,7 @@ import {
 import { Event } from "../../types";
 
 export default class WebsocketsProcessor {
-  async on(event: Event, socketio: any) {
+  async perform(event: Event, socketio: Server) {
     switch (event.name) {
       case "documents.publish":
       case "documents.restore":

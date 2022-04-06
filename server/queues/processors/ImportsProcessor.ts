@@ -4,10 +4,13 @@ import File from "formidable/lib/file";
 import invariant from "invariant";
 import collectionImporter from "@server/commands/collectionImporter";
 import { Event, FileOperation, Attachment, User } from "@server/models";
-import { Event as TEvent } from "../../types";
+import { Event as TEvent } from "@server/types";
+import BaseProcessor from "./BaseProcessor";
 
-export default class ImportsProcessor {
-  async on(event: TEvent) {
+export default class ImportsProcessor extends BaseProcessor {
+  static applicableEvents: TEvent["name"][] = ["collections.import"];
+
+  async perform(event: TEvent) {
     switch (event.name) {
       case "collections.import": {
         let state, error;

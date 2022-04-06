@@ -1,9 +1,12 @@
 import Document from "@server/models/Document";
-import { globalEventQueue } from "../../queues";
-import { Event } from "../../types";
+import { Event } from "@server/types";
+import { globalEventQueue } from "..";
+import BaseProcessor from "./BaseProcessor";
 
-export default class DebounceProcessor {
-  async on(event: Event) {
+export default class DebounceProcessor extends BaseProcessor {
+  static applicableEvents: ["documents.update", "documents.update.delayed"];
+
+  async perform(event: Event) {
     switch (event.name) {
       case "documents.update": {
         globalEventQueue.add(

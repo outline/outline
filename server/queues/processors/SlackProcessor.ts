@@ -7,10 +7,17 @@ import {
   IntegrationEvent,
   RevisionEvent,
   Event,
-} from "../../types";
+} from "@server/types";
+import BaseProcessor from "./BaseProcessor";
 
-export default class SlackProcessor {
-  async on(event: Event) {
+export default class SlackProcessor extends BaseProcessor {
+  static applicableEvents: Event["name"][] = [
+    "documents.publish",
+    "revisions.create",
+    "integrations.create",
+  ];
+
+  async perform(event: Event) {
     switch (event.name) {
       case "documents.publish":
       case "revisions.create":
