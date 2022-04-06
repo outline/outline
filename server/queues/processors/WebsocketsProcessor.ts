@@ -605,6 +605,7 @@ export default class WebsocketsProcessor {
       }
 
       default:
+        return;
     }
   }
 }
