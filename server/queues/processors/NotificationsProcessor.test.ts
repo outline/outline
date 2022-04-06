@@ -1,16 +1,16 @@
-import mailer from "@server/mailer";
 import { View, NotificationSetting } from "@server/models";
+import EmailTask from "@server/queues/tasks/EmailTask";
 import {
   buildDocument,
   buildCollection,
   buildUser,
 } from "@server/test/factories";
 import { flushdb } from "@server/test/support";
-import NotificationsService from "./notifications";
+import NotificationsProcessor from "./NotificationsProcessor";
 
-jest.mock("@server/mailer");
+jest.mock("@server/queues/tasks/EmailTask");
+const ip = "127.0.0.1";
 
-const Notifications = new NotificationsService();
 beforeEach(() => flushdb());
 beforeEach(jest.resetAllMocks);
 
@@ -26,18 +26,20 @@ describe("documents.publish", () => {
       teamId: user.teamId,
       event: "documents.publish",
     });
-    await Notifications.on({
+
+    const processor = new NotificationsProcessor();
+    await processor.perform({
       name: "documents.publish",
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: document.createdById,
-      ip: "127.0.0.1",
       data: {
         title: document.title,
       },
+      ip,
     });
-    expect(mailer.documentNotification).not.toHaveBeenCalled();
+    expect(EmailTask.schedule).not.toHaveBeenCalled();
   });
 
   test("should send a notification to other users in team", async () => {
@@ -51,18 +53,19 @@ describe("documents.publish", () => {
       event: "documents.publish",
     });
 
-    await Notifications.on({
+    const processor = new NotificationsProcessor();
+    await processor.perform({
       name: "documents.publish",
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: document.createdById,
-      ip: "127.0.0.1",
       data: {
         title: document.title,
       },
+      ip,
     });
-    expect(mailer.documentNotification).toHaveBeenCalled();
+    expect(EmailTask.schedule).toHaveBeenCalled();
   });
 
   test("should not send a notification to users without collection access", async () => {
@@ -80,18 +83,19 @@ describe("documents.publish", () => {
       teamId: user.teamId,
       event: "documents.publish",
     });
-    await Notifications.on({
+    const processor = new NotificationsProcessor();
+    await processor.perform({
       name: "documents.publish",
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: document.createdById,
-      ip: "127.0.0.1",
       data: {
         title: document.title,
       },
+      ip,
     });
-    expect(mailer.documentNotification).not.toHaveBeenCalled();
+    expect(EmailTask.schedule).not.toHaveBeenCalled();
   });
 });
 
@@ -108,13 +112,14 @@ describe("revisions.create", () => {
       teamId: collaborator.teamId,
       event: "documents.update",
     });
-    await Notifications.on({
+    const processor = new NotificationsProcessor();
+    await processor.perform({
       name: "revisions.create",
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
     });
-    expect(mailer.documentNotification).toHaveBeenCalled();
+    expect(EmailTask.schedule).toHaveBeenCalled();
   });
 
   test("should not send a notification if viewed since update", async () => {
@@ -130,13 +135,15 @@ describe("revisions.create", () => {
       event: "documents.update",
     });
     await View.touch(document.id, collaborator.id, true);
-    await Notifications.on({
+
+    const processor = new NotificationsProcessor();
+    await processor.perform({
       name: "revisions.create",
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
     });
-    expect(mailer.documentNotification).not.toHaveBeenCalled();
+    expect(EmailTask.schedule).not.toHaveBeenCalled();
   });
 
   test("should not send a notification to last editor", async () => {
@@ -150,12 +157,13 @@ describe("revisions.create", () => {
       teamId: user.teamId,
       event: "documents.update",
     });
-    await Notifications.on({
+    const processor = new NotificationsProcessor();
+    await processor.perform({
       name: "revisions.create",
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
     });
-    expect(mailer.documentNotification).not.toHaveBeenCalled();
+    expect(EmailTask.schedule).not.toHaveBeenCalled();
   });
 });

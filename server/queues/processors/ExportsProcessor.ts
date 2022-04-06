@@ -1,14 +1,20 @@
 import fs from "fs";
 import invariant from "invariant";
 import Logger from "@server/logging/logger";
-import mailer from "@server/mailer";
 import { FileOperation, Collection, Event, Team, User } from "@server/models";
+import EmailTask from "@server/queues/tasks/EmailTask";
 import { Event as TEvent } from "@server/types";
 import { uploadToS3FromBuffer } from "@server/utils/s3";
 import { archiveCollections } from "@server/utils/zip";
+import BaseProcessor from "./BaseProcessor";
 
-export default class ExportsProcessor {
-  async on(event: TEvent) {
+export default class ExportsProcessor extends BaseProcessor {
+  static applicableEvents: TEvent["name"][] = [
+    "collections.export",
+    "collections.export_all",
+  ];
+
+  async perform(event: TEvent) {
     switch (event.name) {
       case "collections.export":
       case "collections.export_all": {
@@ -82,15 +88,21 @@ export default class ExportsProcessor {
           });
 
           if (state === "error") {
-            mailer.sendTemplate("exportFailure", {
-              to: user.email,
-              teamUrl: team.url,
+            await EmailTask.schedule({
+              type: "exportFailure",
+              options: {
+                to: user.email,
+                teamUrl: team.url,
+              },
             });
           } else {
-            mailer.sendTemplate("exportSuccess", {
-              to: user.email,
-              id: fileOperation.id,
-              teamUrl: team.url,
+            await EmailTask.schedule({
+              type: "exportSuccess",
+              options: {
+                to: user.email,
+                id: fileOperation.id,
+                teamUrl: team.url,
+              },
             });
           }
         }
@@ -108,7 +120,7 @@ export default class ExportsProcessor {
     data: Partial<FileOperation>
   ) {
     await fileOperation.update(data);
-    await Event.add({
+    await Event.schedule({
       name: "fileOperations.update",
       teamId,
       actorId,

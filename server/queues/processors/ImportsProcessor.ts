@@ -4,10 +4,13 @@ import File from "formidable/lib/file";
 import invariant from "invariant";
 import collectionImporter from "@server/commands/collectionImporter";
 import { Event, FileOperation, Attachment, User } from "@server/models";
-import { Event as TEvent } from "../../types";
+import { Event as TEvent } from "@server/types";
+import BaseProcessor from "./BaseProcessor";
 
-export default class ImportsProcessor {
-  async on(event: TEvent) {
+export default class ImportsProcessor extends BaseProcessor {
+  static applicableEvents: TEvent["name"][] = ["collections.import"];
+
+  async perform(event: TEvent) {
     switch (event.name) {
       case "collections.import": {
         let state, error;
@@ -27,7 +30,7 @@ export default class ImportsProcessor {
           teamId: user.teamId,
         });
 
-        await Event.add({
+        await Event.schedule({
           name: "fileOperations.create",
           modelId: fileOperation.id,
           teamId: user.teamId,
@@ -59,7 +62,7 @@ export default class ImportsProcessor {
           error = err.message;
         } finally {
           await fileOperation.update({ state, error });
-          await Event.add({
+          await Event.schedule({
             name: "fileOperations.update",
             modelId: fileOperation.id,
             teamId: user.teamId,

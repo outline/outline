@@ -6,8 +6,8 @@ import {
   AuthenticationProviderDisabledError,
 } from "@server/errors";
 import { APM } from "@server/logging/tracing";
-import mailer from "@server/mailer";
 import { Collection, Team, User } from "@server/models";
+import EmailTask from "@server/queues/tasks/EmailTask";
 import teamCreator from "./teamCreator";
 import userCreator from "./userCreator";
 
@@ -89,9 +89,12 @@ async function accountProvisioner({
     const { isNewUser, user } = result;
 
     if (isNewUser) {
-      await mailer.sendTemplate("welcome", {
-        to: user.email,
-        teamUrl: team.url,
+      await EmailTask.schedule({
+        type: "welcome",
+        options: {
+          to: user.email,
+          teamUrl: team.url,
+        },
       });
     }
 

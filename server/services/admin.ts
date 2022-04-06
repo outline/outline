@@ -3,10 +3,10 @@ import { BullAdapter } from "@bull-board/api/bullAdapter";
 import { KoaAdapter } from "@bull-board/koa";
 import Koa from "koa";
 import {
-  emailsQueue,
   globalEventQueue,
   processorEventQueue,
-  websocketsQueue,
+  websocketQueue,
+  taskQueue,
 } from "../queues";
 
 export default function init(app: Koa) {
@@ -15,8 +15,8 @@ export default function init(app: Koa) {
     queues: [
       new BullAdapter(globalEventQueue),
       new BullAdapter(processorEventQueue),
-      new BullAdapter(emailsQueue),
-      new BullAdapter(websocketsQueue),
+      new BullAdapter(websocketQueue),
+      new BullAdapter(taskQueue),
     ],
     serverAdapter,
   });

@@ -3,10 +3,10 @@ import Router from "koa-router";
 import { find } from "lodash";
 import { parseDomain, isCustomSubdomain } from "@shared/utils/domains";
 import { AuthorizationError } from "@server/errors";
-import mailer from "@server/mailer";
 import errorHandling from "@server/middlewares/errorHandling";
 import methodOverride from "@server/middlewares/methodOverride";
 import { User, Team } from "@server/models";
+import EmailTask from "@server/queues/tasks/EmailTask";
 import { signIn } from "@server/utils/authentication";
 import { isCustomDomain } from "@server/utils/domains";
 import { getUserForEmailSigninToken } from "@server/utils/jwt";
@@ -110,10 +110,13 @@ router.post("email", errorHandling(), async (ctx) => {
     }
 
     // send email to users registered address with a short-lived token
-    await mailer.sendTemplate("signin", {
-      to: user.email,
-      token: user.getEmailSigninToken(),
-      teamUrl: team.url,
+    await EmailTask.schedule({
+      type: "signin",
+      options: {
+        to: user.email,
+        token: user.getEmailSigninToken(),
+        teamUrl: team.url,
+      },
     });
     user.lastSigninEmailSentAt = new Date();
     await user.save();
@@ -147,9 +150,12 @@ router.get("email.callback", async (ctx) => {
   }
 
   if (user.isInvited) {
-    await mailer.sendTemplate("welcome", {
-      to: user.email,
-      teamUrl: user.team.url,
+    await EmailTask.schedule({
+      type: "welcome",
+      options: {
+        to: user.email,
+        teamUrl: user.team.url,
+      },
     });
   }
 

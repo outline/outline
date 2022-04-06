@@ -1,10 +1,15 @@
 import invariant from "invariant";
 import revisionCreator from "@server/commands/revisionCreator";
+import { APM } from "@server/logging/tracing";
 import { Revision, Document, User } from "@server/models";
-import { DocumentEvent, RevisionEvent } from "../../types";
+import { DocumentEvent, RevisionEvent, Event } from "@server/types";
+import BaseProcessor from "./BaseProcessor";
 
-export default class RevisionsProcessor {
-  async on(event: DocumentEvent | RevisionEvent) {
+@APM.trace()
+export default class RevisionsProcessor extends BaseProcessor {
+  static applicableEvents: Event["name"][] = ["documents.update.debounced"];
+
+  async perform(event: DocumentEvent | RevisionEvent) {
     switch (event.name) {
       case "documents.update.debounced": {
         const document = await Document.findByPk(event.documentId);

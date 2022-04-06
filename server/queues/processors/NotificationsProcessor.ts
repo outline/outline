@@ -1,6 +1,6 @@
 import { Op } from "sequelize";
 import Logger from "@server/logging/logger";
-import mailer from "@server/mailer";
+import { APM } from "@server/logging/tracing";
 import {
   View,
   Document,
@@ -15,9 +15,18 @@ import {
   RevisionEvent,
   Event,
 } from "@server/types";
+import EmailTask from "../tasks/EmailTask";
+import BaseProcessor from "./BaseProcessor";
 
-export default class NotificationsProcessor {
-  async on(event: Event) {
+@APM.trace()
+export default class NotificationsProcessor extends BaseProcessor {
+  static applicableEvents: Event["name"][] = [
+    "documents.publish",
+    "revisions.create",
+    "collections.create",
+  ];
+
+  async perform(event: Event) {
     switch (event.name) {
       case "documents.publish":
       case "revisions.create":
@@ -114,14 +123,17 @@ export default class NotificationsProcessor {
         continue;
       }
 
-      mailer.documentNotification({
-        to: setting.user.email,
-        eventName,
-        document,
-        team,
-        collection,
-        actor: document.updatedBy,
-        unsubscribeUrl: setting.unsubscribeUrl,
+      await EmailTask.schedule({
+        type: "documentNotification",
+        options: {
+          to: setting.user.email,
+          eventName,
+          documentId: document.id,
+          teamUrl: team.url,
+          actorName: document.updatedBy.name,
+          collectionName: collection.name,
+          unsubscribeUrl: setting.unsubscribeUrl,
+        },
       });
     }
   }
@@ -165,12 +177,14 @@ export default class NotificationsProcessor {
         continue;
       }
 
-      mailer.collectionNotification({
-        to: setting.user.email,
-        eventName: "created",
-        collection,
-        actor: collection.user,
-        unsubscribeUrl: setting.unsubscribeUrl,
+      await EmailTask.schedule({
+        type: "collectionNotification",
+        options: {
+          to: setting.user.email,
+          eventName: "created",
+          collectionId: collection.id,
+          unsubscribeUrl: setting.unsubscribeUrl,
+        },
       });
     }
   }

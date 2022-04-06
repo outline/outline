@@ -45,7 +45,8 @@ server
 ├── policies          - Authorization logic based on cancan
 ├── presenters        - JSON presenters for database models, the interface between backend -> frontend
 ├── queues            - Async queue definitions
-│   └── processors    - Processors perform async jobs, usually working on events from the event bus
+│   └── processors    - Processors perform jobs on events from the event bus
+│   └── tasks         - Tasks are arbitrary async jobs not from the event bus
 ├── services          - Services start distinct portions of the application eg api, worker
 ├── static            - Static assets
 ├── test              - Test helpers and fixtures, tests themselves are colocated
