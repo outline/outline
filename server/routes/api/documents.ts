@@ -1024,7 +1024,7 @@ router.post("documents.update", auth(), async (ctx) => {
   }
 
   if (document.title !== previousTitle) {
-    Event.add({
+    Event.schedule({
       name: "documents.title_change",
       documentId: document.id,
       collectionId: document.collectionId,

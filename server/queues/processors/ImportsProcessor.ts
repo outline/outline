@@ -30,7 +30,7 @@ export default class ImportsProcessor extends BaseProcessor {
           teamId: user.teamId,
         });
 
-        await Event.add({
+        await Event.schedule({
           name: "fileOperations.create",
           modelId: fileOperation.id,
           teamId: user.teamId,
@@ -62,7 +62,7 @@ export default class ImportsProcessor extends BaseProcessor {
           error = err.message;
         } finally {
           await fileOperation.update({ state, error });
-          await Event.add({
+          await Event.schedule({
             name: "fileOperations.update",
             modelId: fileOperation.id,
             teamId: user.teamId,

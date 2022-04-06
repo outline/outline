@@ -1,5 +1,6 @@
 import { Op } from "sequelize";
 import Logger from "@server/logging/logger";
+import { APM } from "@server/logging/tracing";
 import {
   View,
   Document,
@@ -17,6 +18,7 @@ import {
 import EmailTask from "../tasks/EmailTask";
 import BaseProcessor from "./BaseProcessor";
 
+@APM.trace()
 export default class NotificationsProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = [
     "documents.publish",

@@ -1,5 +1,6 @@
 import fetch from "fetch-with-proxy";
 import { Op } from "sequelize";
+import { APM } from "@server/logging/tracing";
 import { Document, Integration, Collection, Team } from "@server/models";
 import { presentSlackAttachment } from "@server/presenters";
 import {
@@ -10,6 +11,7 @@ import {
 } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
 
+@APM.trace()
 export default class SlackProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = [
     "documents.publish",

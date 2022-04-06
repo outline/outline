@@ -1,10 +1,12 @@
 import { Op } from "sequelize";
+import { APM } from "@server/logging/tracing";
 import { Document, Backlink, Team } from "@server/models";
 import { Event, DocumentEvent, RevisionEvent } from "@server/types";
 import parseDocumentIds from "@server/utils/parseDocumentIds";
 import slugify from "@server/utils/slugify";
 import BaseProcessor from "./BaseProcessor";
 
+@APM.trace()
 export default class BacklinksProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = [
     "documents.publish",

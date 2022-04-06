@@ -120,7 +120,7 @@ export default class ExportsProcessor extends BaseProcessor {
     data: Partial<FileOperation>
   ) {
     await fileOperation.update(data);
-    await Event.add({
+    await Event.schedule({
       name: "fileOperations.update",
       teamId,
       actorId,

@@ -20,8 +20,8 @@ export default function init() {
       const ProcessorClass = processors[name];
 
       if (name === "WebsocketsProcessor") {
-        // websockets are on their own queue because they must only be
-        // consumed by the websockets service rather than workers.
+        // websockets are a special case on their own queue because they must
+        // only be consumed by the websockets service rather than workers.
         websocketQueue.add(job.data);
       } else if (
         ProcessorClass.applicableEvents.length === 0 ||
