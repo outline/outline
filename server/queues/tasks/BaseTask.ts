@@ -5,9 +5,9 @@ export default abstract class BaseTask<T> {
   public static schedule<T>(props: T) {
     // @ts-expect-error cannot create an instance of an abstract class, we wont
     const task = new this();
-    taskQueue.add(
+    return taskQueue.add(
       {
-        name: this.constructor.name,
+        name: this.name,
         props,
       },
       task.options

@@ -68,6 +68,8 @@ export default function init() {
       );
     }
 
+    Logger.info("task", `${name} triggered`, props);
+
     const task = new TaskClass();
     task.perform(props).catch((error: Error) => {
       Logger.error(`Error processing task  in ${name}`, error, props);

@@ -3,11 +3,11 @@ import BaseTask from "./BaseTask";
 
 type Props = {
   type: EmailTypes;
-  opts: EmailSendOptions;
+  options: EmailSendOptions;
 };
 
 export default class EmailTask extends BaseTask<Props> {
   public async perform(props: Props) {
-    await mailer[props.type](props.opts);
+    await mailer[props.type](props.options);
   }
 }
