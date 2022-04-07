@@ -55,7 +55,7 @@ export default async function documentUpdater({
     return;
   }
 
-  await Event.add({
+  await Event.schedule({
     name: "documents.update",
     documentId: document.id,
     collectionId: document.collectionId,

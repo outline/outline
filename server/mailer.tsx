@@ -1,13 +1,13 @@
+import invariant from "invariant";
 import nodemailer from "nodemailer";
 import Oy from "oy-vey";
 import * as React from "react";
+import { Collection, Document } from "@server/models";
 import {
-  Props as CollectionNotificationEmailT,
   CollectionNotificationEmail,
   collectionNotificationEmailText,
 } from "./emails/CollectionNotificationEmail";
 import {
-  Props as DocumentNotificationEmailT,
   DocumentNotificationEmail,
   documentNotificationEmailText,
 } from "./emails/DocumentNotificationEmail";
@@ -28,7 +28,6 @@ import { SigninEmail, signinEmailText } from "./emails/SigninEmail";
 import { WelcomeEmail, welcomeEmailText } from "./emails/WelcomeEmail";
 import { baseStyles } from "./emails/components/EmailLayout";
 import Logger from "./logging/logger";
-import { emailsQueue } from "./queues";
 
 const useTestEmailService =
   process.env.NODE_ENV === "development" && !process.env.SMTP_USERNAME;
@@ -223,48 +222,45 @@ export class Mailer {
     });
   };
 
-  documentNotification = async (
-    opts: {
-      to: string;
-    } & DocumentNotificationEmailT
-  ) => {
+  documentNotification = async (opts: {
+    to: string;
+    eventName: string;
+    actorName: string;
+    documentId: string;
+    teamUrl: string;
+    collectionName: string;
+    unsubscribeUrl: string;
+  }) => {
+    const document = await Document.unscoped().findByPk(opts.documentId);
+    invariant(document, "Document not found");
+
     this.sendMail({
       to: opts.to,
-      title: `“${opts.document.title}” ${opts.eventName}`,
-      previewText: `${opts.actor.name} ${opts.eventName} a new document`,
-      html: <DocumentNotificationEmail {...opts} />,
-      text: documentNotificationEmailText(opts),
+      title: `“${document.title}” ${opts.eventName}`,
+      previewText: `${opts.actorName} ${opts.eventName} a new document`,
+      html: <DocumentNotificationEmail document={document} {...opts} />,
+      text: documentNotificationEmailText({ ...opts, document }),
     });
   };
 
-  collectionNotification = async (
-    opts: {
-      to: string;
-    } & CollectionNotificationEmailT
-  ) => {
-    this.sendMail({
-      to: opts.to,
-      title: `“${opts.collection.name}” ${opts.eventName}`,
-      previewText: `${opts.actor.name} ${opts.eventName} a collection`,
-      html: <CollectionNotificationEmail {...opts} />,
-      text: collectionNotificationEmailText(opts),
-    });
-  };
-
-  sendTemplate = (type: EmailTypes, opts: Record<string, any> = {}) => {
-    return emailsQueue.add(
-      {
-        type,
-        opts,
-      },
-      {
-        attempts: 5,
-        backoff: {
-          type: "exponential",
-          delay: 60 * 1000,
-        },
-      }
+  collectionNotification = async (opts: {
+    to: string;
+    eventName: string;
+    collectionId: string;
+    unsubscribeUrl: string;
+  }) => {
+    const collection = await Collection.scope("withUser").findByPk(
+      opts.collectionId
     );
+    invariant(collection, "Collection not found");
+
+    this.sendMail({
+      to: opts.to,
+      title: `“${collection.name}” ${opts.eventName}`,
+      previewText: `${collection.user.name} ${opts.eventName} a collection`,
+      html: <CollectionNotificationEmail collection={collection} {...opts} />,
+      text: collectionNotificationEmailText({ ...opts, collection }),
+    });
   };
 }
 

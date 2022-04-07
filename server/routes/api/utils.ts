@@ -1,11 +1,8 @@
-import { subDays } from "date-fns";
 import Router from "koa-router";
-import { Op } from "sequelize";
-import documentPermanentDeleter from "@server/commands/documentPermanentDeleter";
-import teamPermanentDeleter from "@server/commands/teamPermanentDeleter";
 import { AuthenticationError } from "@server/errors";
-import { Document, Team, FileOperation } from "@server/models";
-import Logger from "../../logging/logger";
+import CleanupDeletedDocumentsTask from "@server/queues/tasks/CleanupDeletedDocumentsTask";
+import CleanupDeletedTeamsTask from "@server/queues/tasks/CleanupDeletedTeamsTask";
+import CleanupExpiredFileOperationsTask from "@server/queues/tasks/CleanupExpiredFileOperationsTask";
 
 const router = new Router();
 
@@ -16,59 +13,11 @@ router.post("utils.gc", async (ctx) => {
     throw AuthenticationError("Invalid secret token");
   }
 
-  Logger.info(
-    "utils",
-    `Permanently destroying upto ${limit} documents older than 30 days…`
-  );
-  const documents = await Document.scope("withDrafts").findAll({
-    attributes: ["id", "teamId", "text", "deletedAt"],
-    where: {
-      deletedAt: {
-        [Op.lt]: subDays(new Date(), 30),
-      },
-    },
-    paranoid: false,
-    limit,
-  });
-  const countDeletedDocument = await documentPermanentDeleter(documents);
-  Logger.info("utils", `Destroyed ${countDeletedDocument} documents`);
-  Logger.info(
-    "utils",
-    `Expiring all the collection export older than 30 days…`
-  );
-  const exports = await FileOperation.unscoped().findAll({
-    where: {
-      type: "export",
-      createdAt: {
-        [Op.lt]: subDays(new Date(), 30),
-      },
-      state: {
-        [Op.ne]: "expired",
-      },
-    },
-  });
-  await Promise.all(
-    exports.map(async (e) => {
-      await e.expire();
-    })
-  );
-  Logger.info(
-    "utils",
-    `Permanently destroying upto ${limit} teams older than 30 days…`
-  );
-  const teams = await Team.findAll({
-    where: {
-      deletedAt: {
-        [Op.lt]: subDays(new Date(), 30),
-      },
-    },
-    paranoid: false,
-    limit,
-  });
+  await CleanupDeletedDocumentsTask.schedule({ limit });
 
-  for (const team of teams) {
-    await teamPermanentDeleter(team);
-  }
+  await CleanupExpiredFileOperationsTask.schedule({ limit });
+
+  await CleanupDeletedTeamsTask.schedule({ limit });
 
   ctx.body = {
     success: true,

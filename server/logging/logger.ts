@@ -11,6 +11,7 @@ type LogCategory =
   | "http"
   | "commands"
   | "processor"
+  | "task"
   | "email"
   | "queue"
   | "database"

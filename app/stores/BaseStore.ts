@@ -19,11 +19,7 @@ export enum RPCAction {
   Count = "count",
 }
 
-type FetchPageParams = PaginationParams & {
-  documentId?: string;
-  query?: string;
-  filter?: string;
-};
+type FetchPageParams = PaginationParams & Record<string, any>;
 
 function modelNameFromClassName(string: string) {
   return string.charAt(0).toLowerCase() + string.slice(1);

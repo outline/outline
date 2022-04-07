@@ -270,14 +270,14 @@ describe("#collections.move", () => {
 
 describe("#collections.export", () => {
   it("should not allow export of private collection not a member", async () => {
-    const { admin } = await seed();
+    const { user } = await seed();
     const collection = await buildCollection({
       permission: null,
-      teamId: admin.teamId,
+      teamId: user.teamId,
     });
     const res = await server.post("/api/collections.export", {
       body: {
-        token: admin.getJwtToken(),
+        token: user.getJwtToken(),
         id: collection.id,
       },
     });

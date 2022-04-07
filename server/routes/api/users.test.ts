@@ -87,6 +87,20 @@ describe("#users.list", () => {
     expect(body.data[1].id).toEqual(admin.id);
   });
 
+  it("should allow filtering by id", async () => {
+    const { admin, user } = await seed();
+    const res = await server.post("/api/users.list", {
+      body: {
+        token: admin.getJwtToken(),
+        ids: [user.id],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(user.id);
+  });
+
   it("should require admin for detailed info", async () => {
     const { user, admin } = await seed();
     const res = await server.post("/api/users.list", {

@@ -1,5 +1,6 @@
 import fetch from "fetch-with-proxy";
 import { Op } from "sequelize";
+import { APM } from "@server/logging/tracing";
 import { Document, Integration, Collection, Team } from "@server/models";
 import { presentSlackAttachment } from "@server/presenters";
 import {
@@ -7,10 +8,18 @@ import {
   IntegrationEvent,
   RevisionEvent,
   Event,
-} from "../../types";
+} from "@server/types";
+import BaseProcessor from "./BaseProcessor";
 
-export default class SlackProcessor {
-  async on(event: Event) {
+@APM.trace()
+export default class SlackProcessor extends BaseProcessor {
+  static applicableEvents: Event["name"][] = [
+    "documents.publish",
+    "revisions.create",
+    "integrations.create",
+  ];
+
+  async perform(event: Event) {
     switch (event.name) {
       case "documents.publish":
       case "revisions.create":

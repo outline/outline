@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Document, User, Team, Collection } from "@server/models";
+import { Document } from "@server/models";
 import Body from "./components/Body";
 import Button from "./components/Button";
 import EmailTemplate from "./components/EmailLayout";
@@ -9,34 +9,34 @@ import Header from "./components/Header";
 import Heading from "./components/Heading";
 
 export type Props = {
-  actor: User;
-  team: Team;
   document: Document;
-  collection: Collection;
+  actorName: string;
+  collectionName: string;
   eventName: string;
+  teamUrl: string;
   unsubscribeUrl: string;
 };
 
 export const documentNotificationEmailText = ({
-  actor,
-  team,
+  actorName,
+  teamUrl,
   document,
-  collection,
+  collectionName,
   eventName = "published",
 }: Props) => `
 "${document.title}" ${eventName}
 
-${actor.name} ${eventName} the document "${document.title}", in the ${collection.name} collection.
+${actorName} ${eventName} the document "${document.title}", in the ${collectionName} collection.
 
-Open Document: ${team.url}${document.url}
+Open Document: ${teamUrl}${document.url}
 `;
 
 export const DocumentNotificationEmail = ({
-  actor,
-  team,
   document,
-  collection,
+  actorName,
+  collectionName,
   eventName = "published",
+  teamUrl,
   unsubscribeUrl,
 }: Props) => {
   return (
@@ -48,15 +48,15 @@ export const DocumentNotificationEmail = ({
           "{document.title}" {eventName}
         </Heading>
         <p>
-          {actor.name} {eventName} the document "{document.title}", in the{" "}
-          {collection.name} collection.
+          {actorName} {eventName} the document "{document.title}", in the{" "}
+          {collectionName} collection.
         </p>
         <hr />
         <EmptySpace height={10} />
         <p>{document.getSummary()}</p>
         <EmptySpace height={10} />
         <p>
-          <Button href={`${team.url}${document.url}`}>Open Document</Button>
+          <Button href={`${teamUrl}${document.url}`}>Open Document</Button>
         </p>
       </Body>
 

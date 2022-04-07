@@ -1,11 +1,21 @@
 import { Op } from "sequelize";
+import { APM } from "@server/logging/tracing";
 import { Document, Backlink, Team } from "@server/models";
+import { Event, DocumentEvent, RevisionEvent } from "@server/types";
 import parseDocumentIds from "@server/utils/parseDocumentIds";
 import slugify from "@server/utils/slugify";
-import { DocumentEvent, RevisionEvent } from "../../types";
+import BaseProcessor from "./BaseProcessor";
 
-export default class BacklinksProcessor {
-  async on(event: DocumentEvent | RevisionEvent) {
+@APM.trace()
+export default class BacklinksProcessor extends BaseProcessor {
+  static applicableEvents: Event["name"][] = [
+    "documents.publish",
+    "documents.update",
+    "documents.title_change",
+    "documents.delete",
+  ];
+
+  async perform(event: DocumentEvent | RevisionEvent) {
     switch (event.name) {
       case "documents.publish": {
         const document = await Document.findByPk(event.documentId);
