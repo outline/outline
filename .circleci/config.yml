@@ -1,15 +1,7 @@
 version: 2.1
 
-executors:
-  docker-publisher:
-    environment:
-      IMAGE_NAME: outlinewiki/outline
-    docker:
-      - image: cimg/base
-
-jobs:
-  build:
-    working_directory: ~/outline
+defaults: &defaults
+  working_directory: ~/outline
     docker:
       - image: cimg/node:16.14
       - image: cimg/redis:5.0
@@ -27,6 +19,16 @@ jobs:
       SMTP_FROM_EMAIL: hello@example.com
       AWS_S3_UPLOAD_BUCKET_URL: https://s3.amazonaws.com
       AWS_S3_UPLOAD_BUCKET_NAME: outline-circle
+
+executors:
+  docker-publisher:
+    environment:
+      IMAGE_NAME: outlinewiki/outline
+    docker:
+      - image: cimg/base
+
+jobs:
+  build:
     steps:
       - checkout
       - restore_cache:
@@ -41,15 +43,39 @@ jobs:
       - run:
           name: migrate
           command: ./node_modules/.bin/sequelize db:migrate --url $DATABASE_URL_TEST
+  lint:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
       - run:
           name: lint
           command: yarn lint
+  types:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
       - run:
           name: typescript
           command: yarn tsc
+  test:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
       - run:
           name: test
           command: yarn test
+  bundle-size:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
       - run:
           name: build-webpack
           command: yarn build:webpack
@@ -107,12 +133,22 @@ jobs:
 
 workflows:
   version: 2
-  build-and-test:
+  all:
     jobs:
-      - build:
-          filters:
-            tags:
-              ignore: /^v.*/
+      - build
+      - lint:
+         requires:
+            - build
+      - test:
+         requires:
+            - build
+      - types:
+         requires:
+            - build
+      - bundle-size:
+         requires:
+            - test
+
   build-docker:
     jobs:
       - build-image:
