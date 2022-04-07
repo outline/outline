@@ -9,6 +9,12 @@ export enum TaskPriority {
 }
 
 export default abstract class BaseTask<T> {
+  /**
+   * Schedule this task type to be processed asyncronously by a worker.
+   *
+   * @param props Properties to be used by the task
+   * @returns A promise that resolves once the job is placed on the task queue
+   */
   public static schedule<T>(props: T) {
     // @ts-expect-error cannot create an instance of an abstract class, we wont
     const task = new this();
@@ -21,8 +27,17 @@ export default abstract class BaseTask<T> {
     );
   }
 
+  /**
+   * Execute the task.
+   *
+   * @param props Properties to be used by the task
+   * @returns A promise that resolves once the task has completed.
+   */
   public abstract perform(props: T): Promise<void>;
 
+  /**
+   * Job options such as priority and retry strategy, as defined by Bull.
+   */
   public get options(): JobOptions {
     return {
       priority: TaskPriority.Normal,

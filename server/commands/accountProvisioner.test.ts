@@ -1,6 +1,6 @@
+import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
 import Collection from "@server/models/Collection";
 import UserAuthentication from "@server/models/UserAuthentication";
-import EmailTask from "@server/queues/tasks/EmailTask";
 import { buildUser, buildTeam } from "@server/test/factories";
 import { flushdb } from "@server/test/support";
 import accountProvisioner from "./accountProvisioner";
@@ -13,7 +13,7 @@ describe("accountProvisioner", () => {
   const ip = "127.0.0.1";
 
   it("should create a new user and team", async () => {
-    const spy = jest.spyOn(EmailTask, "schedule");
+    const spy = jest.spyOn(WelcomeEmail, "schedule");
     const { user, team, isNewTeam, isNewUser } = await accountProvisioner({
       ip,
       user: {
@@ -55,7 +55,7 @@ describe("accountProvisioner", () => {
   });
 
   it("should update exising user and authentication", async () => {
-    const spy = jest.spyOn(EmailTask, "schedule");
+    const spy = jest.spyOn(WelcomeEmail, "schedule");
     const existingTeam = await buildTeam();
     const providers = await existingTeam.$get("authenticationProviders");
     const authenticationProvider = providers[0];
@@ -149,7 +149,7 @@ describe("accountProvisioner", () => {
   });
 
   it("should create a new user in an existing team", async () => {
-    const spy = jest.spyOn(EmailTask, "schedule");
+    const spy = jest.spyOn(WelcomeEmail, "schedule");
     const team = await buildTeam();
     const authenticationProviders = await team.$get("authenticationProviders");
     const authenticationProvider = authenticationProviders[0];

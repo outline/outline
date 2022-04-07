@@ -1,5 +1,6 @@
 import invariant from "invariant";
 import { UniqueConstraintError } from "sequelize";
+import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
 import {
   AuthenticationError,
   EmailAuthenticationRequiredError,
@@ -7,7 +8,6 @@ import {
 } from "@server/errors";
 import { APM } from "@server/logging/tracing";
 import { Collection, Team, User } from "@server/models";
-import EmailTask from "@server/queues/tasks/EmailTask";
 import teamCreator from "./teamCreator";
 import userCreator from "./userCreator";
 
@@ -89,12 +89,9 @@ async function accountProvisioner({
     const { isNewUser, user } = result;
 
     if (isNewUser) {
-      await EmailTask.schedule({
-        type: "welcome",
-        options: {
-          to: user.email,
-          teamUrl: team.url,
-        },
+      await WelcomeEmail.schedule({
+        to: user.email,
+        teamUrl: team.url,
       });
     }
 
