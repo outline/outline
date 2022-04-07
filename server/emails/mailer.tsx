@@ -57,7 +57,7 @@ export class Mailer {
     }
 
     const html = Oy.renderTemplate(data.html, {
-      subject: data.subject,
+      title: data.subject,
       headCSS: [baseStyles, data.headCSS].join(" "),
       previewText: data.previewText,
     });
