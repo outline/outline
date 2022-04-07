@@ -8,7 +8,7 @@ import useBoolean from "~/hooks/useBoolean";
 import useKeyDown from "~/hooks/useKeyDown";
 import { isModKey } from "~/utils/keyboard";
 import { searchPath } from "~/utils/routeHelpers";
-import Input from "./Input";
+import Input, { Outline } from "./Input";
 
 type Props = {
   source: string;
@@ -89,6 +89,10 @@ function InputSearchPage({
 
 const InputMaxWidth = styled(Input)`
   max-width: 30vw;
+
+  ${Outline} {
+    border-radius: 16px;
+  }
 `;
 
 export default observer(InputSearchPage);

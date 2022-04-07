@@ -5,7 +5,7 @@ import { CompositeItem } from "reakit/Composite";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Document from "~/models/Document";
-import Highlight from "~/components/Highlight";
+import Highlight, { Mark } from "~/components/Highlight";
 import { hover } from "~/styles";
 
 type Props = {
@@ -124,7 +124,7 @@ const Title = styled(Highlight)`
   overflow: hidden;
   text-overflow: ellipsis;
 
-  mark {
+  ${Mark} {
     padding: 0;
   }
 `;
@@ -140,7 +140,7 @@ const ResultContext = styled(Highlight)`
   text-overflow: ellipsis;
   white-space: nowrap;
 
-  mark {
+  ${Mark} {
     padding: 0;
   }
 `;
