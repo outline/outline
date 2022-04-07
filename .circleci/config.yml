@@ -59,7 +59,16 @@ jobs:
       - run:
           name: typescript
           command: yarn tsc
-  test:
+  test-app:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+      - run:
+          name: test
+          command: yarn test:app
+  test-server:
     <<: *defaults
     steps:
       - checkout
@@ -70,7 +79,7 @@ jobs:
           command: ./node_modules/.bin/sequelize db:migrate --url $DATABASE_URL_TEST
       - run:
           name: test
-          command: yarn test
+          command: yarn test:server
   bundle-size:
     <<: *defaults
     steps:
@@ -140,7 +149,10 @@ workflows:
       - lint:
           requires:
             - build
-      - test:
+      - test-server:
+          requires:
+            - build
+      - test-app:
           requires:
             - build
       - types:
