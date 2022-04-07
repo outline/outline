@@ -1,5 +1,5 @@
+import DocumentNotificationEmail from "@server/emails/templates/DocumentNotificationEmail";
 import { View, NotificationSetting } from "@server/models";
-import EmailTask from "@server/queues/tasks/EmailTask";
 import {
   buildDocument,
   buildCollection,
@@ -8,7 +8,7 @@ import {
 import { flushdb } from "@server/test/support";
 import NotificationsProcessor from "./NotificationsProcessor";
 
-jest.mock("@server/queues/tasks/EmailTask");
+jest.mock("@server/emails/templates/DocumentNotificationEmail");
 const ip = "127.0.0.1";
 
 beforeEach(() => flushdb());
@@ -39,7 +39,7 @@ describe("documents.publish", () => {
       },
       ip,
     });
-    expect(EmailTask.schedule).not.toHaveBeenCalled();
+    expect(DocumentNotificationEmail.schedule).not.toHaveBeenCalled();
   });
 
   test("should send a notification to other users in team", async () => {
@@ -65,7 +65,7 @@ describe("documents.publish", () => {
       },
       ip,
     });
-    expect(EmailTask.schedule).toHaveBeenCalled();
+    expect(DocumentNotificationEmail.schedule).toHaveBeenCalled();
   });
 
   test("should not send a notification to users without collection access", async () => {
@@ -95,7 +95,7 @@ describe("documents.publish", () => {
       },
       ip,
     });
-    expect(EmailTask.schedule).not.toHaveBeenCalled();
+    expect(DocumentNotificationEmail.schedule).not.toHaveBeenCalled();
   });
 });
 
@@ -119,7 +119,7 @@ describe("revisions.create", () => {
       collectionId: document.collectionId,
       teamId: document.teamId,
     });
-    expect(EmailTask.schedule).toHaveBeenCalled();
+    expect(DocumentNotificationEmail.schedule).toHaveBeenCalled();
   });
 
   test("should not send a notification if viewed since update", async () => {
@@ -143,7 +143,7 @@ describe("revisions.create", () => {
       collectionId: document.collectionId,
       teamId: document.teamId,
     });
-    expect(EmailTask.schedule).not.toHaveBeenCalled();
+    expect(DocumentNotificationEmail.schedule).not.toHaveBeenCalled();
   });
 
   test("should not send a notification to last editor", async () => {
@@ -164,6 +164,6 @@ describe("revisions.create", () => {
       collectionId: document.collectionId,
       teamId: document.teamId,
     });
-    expect(EmailTask.schedule).not.toHaveBeenCalled();
+    expect(DocumentNotificationEmail.schedule).not.toHaveBeenCalled();
   });
 });

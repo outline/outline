@@ -1,4 +1,6 @@
 import { Op } from "sequelize";
+import CollectionNotificationEmail from "@server/emails/templates/CollectionNotificationEmail";
+import DocumentNotificationEmail from "@server/emails/templates/DocumentNotificationEmail";
 import Logger from "@server/logging/logger";
 import { APM } from "@server/logging/tracing";
 import {
@@ -15,7 +17,6 @@ import {
   RevisionEvent,
   Event,
 } from "@server/types";
-import EmailTask from "../tasks/EmailTask";
 import BaseProcessor from "./BaseProcessor";
 
 @APM.trace()
@@ -123,17 +124,14 @@ export default class NotificationsProcessor extends BaseProcessor {
         continue;
       }
 
-      await EmailTask.schedule({
-        type: "documentNotification",
-        options: {
-          to: setting.user.email,
-          eventName,
-          documentId: document.id,
-          teamUrl: team.url,
-          actorName: document.updatedBy.name,
-          collectionName: collection.name,
-          unsubscribeUrl: setting.unsubscribeUrl,
-        },
+      await DocumentNotificationEmail.schedule({
+        to: setting.user.email,
+        eventName,
+        documentId: document.id,
+        teamUrl: team.url,
+        actorName: document.updatedBy.name,
+        collectionName: collection.name,
+        unsubscribeUrl: setting.unsubscribeUrl,
       });
     }
   }
@@ -177,14 +175,11 @@ export default class NotificationsProcessor extends BaseProcessor {
         continue;
       }
 
-      await EmailTask.schedule({
-        type: "collectionNotification",
-        options: {
-          to: setting.user.email,
-          eventName: "created",
-          collectionId: collection.id,
-          unsubscribeUrl: setting.unsubscribeUrl,
-        },
+      await CollectionNotificationEmail.schedule({
+        to: setting.user.email,
+        eventName: "created",
+        collectionId: collection.id,
+        unsubscribeUrl: setting.unsubscribeUrl,
       });
     }
   }
