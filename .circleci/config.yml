@@ -160,7 +160,8 @@ workflows:
             - build
       - bundle-size:
           requires:
-            - test
+            - test-app
+            - test-server
 
   build-docker:
     jobs:
