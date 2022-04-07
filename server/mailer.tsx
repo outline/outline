@@ -249,7 +249,9 @@ export class Mailer {
     collectionId: string;
     unsubscribeUrl: string;
   }) => {
-    const collection = await Collection.findByPk(opts.collectionId);
+    const collection = await Collection.scope("withUser").findByPk(
+      opts.collectionId
+    );
     invariant(collection, "Collection not found");
 
     this.sendMail({

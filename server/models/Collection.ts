@@ -73,6 +73,15 @@ type Sort = CollectionSort;
       },
     ],
   },
+  withUser: () => ({
+    include: [
+      {
+        model: User,
+        required: true,
+        as: "user",
+      },
+    ],
+  }),
   withMembership: (userId: string) => ({
     include: [
       {
