@@ -17,12 +17,22 @@ type InputProps = {
   unsubscribeUrl: string;
 };
 
-type Props = InputProps & {
+type BeforeSend = {
   collection: Collection;
 };
 
-export default class CollectionNotificationEmail extends BaseEmail<Props> {
-  protected async beforeSend({ collectionId }: InputProps) {
+type Props = InputProps & BeforeSend;
+
+/**
+ * Email sent to a user when they have enabled notifications of new collection
+ * creation.
+ */
+
+export default class CollectionNotificationEmail extends BaseEmail<
+  InputProps,
+  BeforeSend
+> {
+  protected async beforeSend({ collectionId }: Props) {
     const collection = await Collection.scope("withUser").findByPk(
       collectionId
     );

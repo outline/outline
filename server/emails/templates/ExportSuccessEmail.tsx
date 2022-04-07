@@ -14,6 +14,10 @@ type Props = {
   teamUrl: string;
 };
 
+/**
+ * Email sent to a user when their data export has completed and is available
+ * for download in the settings section.
+ */
 export default class ExportSuccessEmail extends BaseEmail<Props> {
   protected subject() {
     return "Your requested export";

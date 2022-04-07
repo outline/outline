@@ -12,7 +12,7 @@ type SendMailOptions = {
   subject: string;
   previewText?: string;
   text: string;
-  html: React.ReactNode;
+  component: React.ReactNode;
   headCSS?: string;
 };
 
@@ -56,7 +56,7 @@ export class Mailer {
       return;
     }
 
-    const html = Oy.renderTemplate(data.html, {
+    const html = Oy.renderTemplate(data.component, {
       title: data.subject,
       headCSS: [baseStyles, data.headCSS].join(" "),
       previewText: data.previewText,
@@ -69,7 +69,7 @@ export class Mailer {
         replyTo: process.env.SMTP_REPLY_EMAIL || process.env.SMTP_FROM_EMAIL,
         to: data.to,
         subject: data.subject,
-        html: html,
+        html,
         text: data.text,
       });
 

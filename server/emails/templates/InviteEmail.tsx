@@ -17,6 +17,9 @@ type Props = {
   teamUrl: string;
 };
 
+/**
+ * Email sent to an external user when an admin sends them an invite.
+ */
 export default class InviteEmail extends BaseEmail<Props> {
   protected subject({ actorName, teamName }: Props) {
     return `${actorName} invited you to join ${teamName}’s knowledge base`;

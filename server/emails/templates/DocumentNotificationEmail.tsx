@@ -20,11 +20,20 @@ type InputProps = {
   unsubscribeUrl: string;
 };
 
-type Props = InputProps & {
+type BeforeSend = {
   document: Document;
 };
 
-export default class DocumentNotificationEmail extends BaseEmail<Props> {
+type Props = InputProps & BeforeSend;
+
+/**
+ * Email sent to a user when they have enabled document notifications, the event
+ * may be published or updated.
+ */
+export default class DocumentNotificationEmail extends BaseEmail<
+  InputProps,
+  BeforeSend
+> {
   protected async beforeSend({ documentId }: InputProps) {
     const document = await Document.unscoped().findByPk(documentId);
     invariant(document, "Document not found");

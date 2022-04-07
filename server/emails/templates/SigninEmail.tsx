@@ -15,6 +15,9 @@ type Props = {
   teamUrl: string;
 };
 
+/**
+ * Email sent to a user when they request a magic sign-in link.
+ */
 export default class SigninEmail extends BaseEmail<Props> {
   protected subject() {
     return "Magic signin link";
