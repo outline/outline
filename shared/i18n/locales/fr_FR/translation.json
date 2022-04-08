@@ -136,6 +136,8 @@
   "Dismiss": "Rejeter",
   "Back": "Retour",
   "Documents": "Documents",
+  "Results": "Results",
+  "No results for {{query}}": "No results for {{query}}",
   "Logo": "Logo",
   "Document archived": "Document archivé",
   "Move document": "Déplacer le document",
