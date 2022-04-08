@@ -6,6 +6,7 @@ import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
 import styled from "styled-components";
 import { depths } from "@shared/styles";
 import Empty from "~/components/Empty";
+import { Outline } from "~/components/Input";
 import InputSearch from "~/components/InputSearch";
 import Placeholder from "~/components/List/Placeholder";
 import PaginatedList from "~/components/PaginatedList";
@@ -132,7 +133,7 @@ function SearchPopover({ shareId }: Props) {
           // props assumes the disclosure is a button, but we want a type-ahead
           // so we take the aria props, and ref and ignore the event handlers
           return (
-            <InputSearch
+            <StyledInputSearch
               aria-controls={props["aria-controls"]}
               aria-expanded={props["aria-expanded"]}
               aria-haspopup={props["aria-haspopup"]}
@@ -185,6 +186,12 @@ const NoResults = styled(Empty)`
 
 const PlaceholderList = styled(Placeholder)`
   padding: 6px 12px;
+`;
+
+const StyledInputSearch = styled(InputSearch)`
+  ${Outline} {
+    border-radius: 16px;
+  }
 `;
 
 export default observer(SearchPopover);
