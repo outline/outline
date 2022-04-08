@@ -11,8 +11,8 @@ import InputSearch from "~/components/InputSearch";
 import Placeholder from "~/components/List/Placeholder";
 import PaginatedList from "~/components/PaginatedList";
 import Popover from "~/components/Popover";
-import RegisterKeyDown from "~/components/RegisterKeyDown";
 import { id as bodyContentId } from "~/components/SkipNavContent";
+import useKeyDown from "~/hooks/useKeyDown";
 import useStores from "~/hooks/useStores";
 import SearchListItem from "./SearchListItem";
 
@@ -79,19 +79,6 @@ function SearchPopover({ shareId }: Props) {
     HTMLInputElement
   >;
 
-  const handleSearchShortcut = React.useCallback(
-    (ev) => {
-      if (
-        searchInputRef.current &&
-        searchInputRef.current !== document.activeElement
-      ) {
-        searchInputRef.current.focus();
-        ev.preventDefault();
-      }
-    },
-    [searchInputRef]
-  );
-
   const firstSearchItem = React.useRef<HTMLAnchorElement>(null);
 
   const handleEscapeList = React.useCallback(
@@ -157,9 +144,18 @@ function SearchPopover({ shareId }: Props) {
     }
   }, [popover.hide]);
 
+  useKeyDown("/", (ev) => {
+    if (
+      searchInputRef.current &&
+      searchInputRef.current !== document.activeElement
+    ) {
+      searchInputRef.current.focus();
+      ev.preventDefault();
+    }
+  });
+
   return (
     <>
-      <RegisterKeyDown trigger="/" handler={handleSearchShortcut} />
       <PopoverDisclosure {...popover}>
         {(props) => {
           // props assumes the disclosure is a button, but we want a type-ahead
