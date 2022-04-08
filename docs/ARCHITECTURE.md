@@ -37,7 +37,7 @@ server
 ├── commands          - We are gradually moving to the command pattern for new write logic
 ├── config            - Database configuration
 ├── emails            - Transactional email templates
-│   └── components    - Shared React components for email templates
+│   └── templates     - Classes that define each possible email template
 ├── middlewares       - Koa middlewares
 ├── migrations        - Database migrations
 ├── models            - Sequelize models
