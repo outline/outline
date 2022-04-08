@@ -136,6 +136,8 @@
   "Dismiss": "닫기",
   "Back": "뒤로 가기",
   "Documents": "문서",
+  "Results": "Results",
+  "No results for {{query}}": "No results for {{query}}",
   "Logo": "로고",
   "Document archived": "문서가 보관되었습니다",
   "Move document": "문서 이동",
