@@ -5,8 +5,28 @@ import { v4 as uuidv4 } from "uuid";
 import Logger from "@server/logging/logger";
 
 // backward compatibility
-const AWS_S3_ACCELERATE_URL = process.env.AWS_S3_ACCELERATE_URL;
-const AWS_S3_UPLOAD_BUCKET_URL = process.env.AWS_S3_UPLOAD_BUCKET_URL;
+function removeBucketName(url: string | undefined) {
+  if (
+    !process.env.AWS_S3_FORCE_PATH_STYLE &&
+    process.env.AWS_S3_UPLOAD_BUCKET_NAME &&
+    url
+  ) {
+    const bucket_url = new URL(url);
+    if (bucket_url.hostname.startsWith(process.env.AWS_S3_UPLOAD_BUCKET_NAME)) {
+      bucket_url.hostname = bucket_url.hostname.substring(
+        process.env.AWS_S3_UPLOAD_BUCKET_NAME.length + 1
+      );
+      return bucket_url.toString();
+    }
+  }
+  return url;
+}
+const AWS_S3_ACCELERATE_URL = removeBucketName(
+  process.env.AWS_S3_ACCELERATE_URL
+);
+const AWS_S3_UPLOAD_BUCKET_URL = removeBucketName(
+  process.env.AWS_S3_UPLOAD_BUCKET_URL
+);
 const AWS_S3_UPLOAD_BUCKET_NAME = process.env.AWS_S3_UPLOAD_BUCKET_NAME;
 const AWS_S3_FORCE_PATH_STYLE = process.env.AWS_S3_FORCE_PATH_STYLE;
 
