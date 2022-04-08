@@ -136,6 +136,8 @@
   "Dismiss": "終了",
   "Back": "戻る",
   "Documents": "ドキュメント",
+  "Results": "Results",
+  "No results for {{query}}": "No results for {{query}}",
   "Logo": "ロゴ",
   "Document archived": "ドキュメントをアーカイブしました",
   "Move document": "ドキュメントの移動",
