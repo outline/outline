@@ -136,6 +136,8 @@
   "Dismiss": "忽略",
   "Back": "返回",
   "Documents": "文档",
+  "Results": "Results",
+  "No results for {{query}}": "No results for {{query}}",
   "Logo": "网站标志 (Logo)",
   "Document archived": "文件已归档",
   "Move document": "移动文档",
