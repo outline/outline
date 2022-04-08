@@ -136,6 +136,8 @@
   "Dismiss": "ปิด",
   "Back": "Back",
   "Documents": "Documents",
+  "Results": "Results",
+  "No results for {{query}}": "No results for {{query}}",
   "Logo": "Logo",
   "Document archived": "Document archived",
   "Move document": "Move document",
