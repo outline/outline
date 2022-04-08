@@ -3,6 +3,8 @@ import { Op, WhereOptions } from "sequelize";
 import userDestroyer from "@server/commands/userDestroyer";
 import userInviter from "@server/commands/userInviter";
 import userSuspender from "@server/commands/userSuspender";
+import InviteEmail from "@server/emails/templates/InviteEmail";
+import logger from "@server/logging/logger";
 import auth from "@server/middlewares/authentication";
 import { Event, User, Team } from "@server/models";
 import { can, authorize } from "@server/policies";
@@ -303,6 +305,36 @@ router.post("users.invite", auth(), async (ctx) => {
       sent: response.sent,
       users: response.users.map((user) => presentUser(user)),
     },
+  };
+});
+
+router.post("users.resendInvite", auth(), async (ctx) => {
+  const { id } = ctx.body;
+  const actor = ctx.state.user;
+
+  const user = await User.findByPk(id);
+  authorize(actor, "resendInvite", user);
+
+  await InviteEmail.schedule({
+    to: user.email,
+    name: user.name,
+    actorName: actor.name,
+    actorEmail: actor.email,
+    teamName: actor.team.name,
+    teamUrl: actor.team.url,
+  });
+
+  if (process.env.NODE_ENV === "development") {
+    logger.info(
+      "email",
+      `Sign in immediately: ${
+        process.env.URL
+      }/auth/email.callback?token=${user.getEmailSigninToken()}`
+    );
+  }
+
+  ctx.body = {
+    success: true,
   };
 });
 
