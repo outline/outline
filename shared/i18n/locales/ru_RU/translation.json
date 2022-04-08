@@ -136,6 +136,8 @@
   "Dismiss": "Убрать",
   "Back": "Назад",
   "Documents": "Документы",
+  "Results": "Results",
+  "No results for {{query}}": "No results for {{query}}",
   "Logo": "Логотип",
   "Document archived": "Документ архивирован",
   "Move document": "Переместить документ",
