@@ -136,6 +136,8 @@
   "Dismiss": "Anuluj",
   "Back": "Wstecz",
   "Documents": "Dokumenty",
+  "Results": "Results",
+  "No results for {{query}}": "No results for {{query}}",
   "Logo": "Logo",
   "Document archived": "Dokument zarchiwizowany",
   "Move document": "Przenieś dokument",
