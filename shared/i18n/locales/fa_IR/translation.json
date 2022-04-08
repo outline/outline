@@ -136,6 +136,8 @@
   "Dismiss": "رد کردن",
   "Back": "بازگشت",
   "Documents": "اسناد",
+  "Results": "Results",
+  "No results for {{query}}": "No results for {{query}}",
   "Logo": "لوگو",
   "Document archived": "سند آرشیو شد",
   "Move document": "انتقال سند",
