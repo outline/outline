@@ -136,6 +136,8 @@
   "Dismiss": "Descartar",
   "Back": "Voltar",
   "Documents": "Documentos",
+  "Results": "Results",
+  "No results for {{query}}": "No results for {{query}}",
   "Logo": "Logotipo",
   "Document archived": "Documento arquivado",
   "Move document": "Mover documento",
