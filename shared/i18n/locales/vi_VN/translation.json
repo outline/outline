@@ -136,6 +136,8 @@
   "Dismiss": "Bỏ qua",
   "Back": "Quay Lại",
   "Documents": "Tài liệu",
+  "Results": "Results",
+  "No results for {{query}}": "No results for {{query}}",
   "Logo": "Logo",
   "Document archived": "Đã lưu trữ tài liệu",
   "Move document": "Chuyển tài liệu",
