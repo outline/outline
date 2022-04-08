@@ -124,7 +124,7 @@
     "mobx-react": "^6.3.1",
     "natural-sort": "^1.0.0",
     "nodemailer": "^6.6.1",
-    "outline-icons": "^1.41.1",
+    "outline-icons": "^1.42.0",
     "oy-vey": "^0.10.0",
     "passport": "^0.4.1",
     "passport-google-oauth2": "^0.2.0",

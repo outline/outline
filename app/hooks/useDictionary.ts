@@ -71,6 +71,9 @@ export default function useDictionary() {
       tipNotice: t("Tip notice"),
       warning: t("Warning"),
       warningNotice: t("Warning notice"),
+      insertDate: t("Current date"),
+      insertTime: t("Current time"),
+      insertDateTime: t("Current date and time"),
     };
   }, [t]);
 }
