@@ -3,7 +3,8 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
-import styled, { useTheme } from "styled-components";
+import styled from "styled-components";
+import { depths } from "@shared/styles";
 import Empty from "~/components/Empty";
 import InputSearch from "~/components/InputSearch";
 import Placeholder from "~/components/List/Placeholder";
@@ -17,7 +18,6 @@ type Props = { shareId: string };
 function SearchPopover({ shareId }: Props) {
   const { t } = useTranslation();
   const { documents } = useStores();
-  const theme = useTheme();
 
   const popover = usePopoverState({
     placement: "bottom-start",
@@ -148,7 +148,7 @@ function SearchPopover({ shareId }: Props) {
         {...popover}
         aria-label={t("Results")}
         unstable_autoFocusOnShow={false}
-        style={{ zIndex: theme.depths.sidebar + 1 }}
+        style={{ zIndex: depths.sidebar + 1 }}
         shrink
       >
         <PaginatedList
