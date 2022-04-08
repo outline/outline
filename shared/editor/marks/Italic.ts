@@ -46,8 +46,8 @@ export default class Italic extends Mark {
      * 1_123_
      */
     return [
-      markInputRule(/(?<=[^_\na-zA-Z0-9]|^)_([^_\n]+)_$/, type),
-      markInputRule(/(?<=[^*\na-zA-Z0-9]|^)\*([^*\n]+)\*$/, type),
+      markInputRule(/(?:^|[^_a-zA-Z0-9])(_([^_]+)_)$/, type),
+      markInputRule(/(?:^|[^*a-zA-Z0-9])(\*([^*]+)\*)$/, type),
     ];
   }
 
