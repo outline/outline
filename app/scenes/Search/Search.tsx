@@ -100,8 +100,30 @@ class Search extends React.Component<Props> {
       return this.goBack();
     }
 
-    if (ev.key === "ArrowDown") {
+    if (ev.key === "ArrowUp") {
+      if (ev.currentTarget.value) {
+        const length = ev.currentTarget.value.length;
+        const selectionEnd = ev.currentTarget.selectionEnd || 0;
+        if (selectionEnd === 0) {
+          ev.currentTarget.selectionStart = 0;
+          ev.currentTarget.selectionEnd = length;
+          ev.preventDefault();
+        }
+      }
+    }
+
+    if (ev.key === "ArrowDown" && !ev.shiftKey) {
       ev.preventDefault();
+
+      if (ev.currentTarget.value) {
+        const length = ev.currentTarget.value.length;
+        const selectionStart = ev.currentTarget.selectionStart || 0;
+        if (selectionStart < length) {
+          ev.currentTarget.selectionStart = length;
+          ev.currentTarget.selectionEnd = length;
+          return;
+        }
+      }
 
       if (this.compositeRef) {
         const linkItems = this.compositeRef.querySelectorAll(
@@ -269,7 +291,7 @@ class Search extends React.Component<Props> {
   render() {
     const { documents, notFound, t } = this.props;
     const results = documents.searchResults(this.query);
-    const showEmpty = !this.isLoading && this.query && results.length === 0;
+    const showEmpty = !this.isLoading && this.query && results?.length === 0;
 
     return (
       <Scene textTitle={this.title}>
@@ -345,7 +367,7 @@ class Search extends React.Component<Props> {
               aria-label={t("Search Results")}
             >
               {(compositeProps) =>
-                results.map((result) => {
+                results?.map((result) => {
                   const document = documents.data.get(result.document.id);
                   if (!document) {
                     return null;

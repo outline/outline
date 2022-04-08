@@ -1,41 +1,50 @@
 import * as React from "react";
 import { Dialog } from "reakit/Dialog";
-import { Popover as ReakitPopover } from "reakit/Popover";
+import { Popover as ReakitPopover, PopoverProps } from "reakit/Popover";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { depths } from "@shared/styles";
 import useMobile from "~/hooks/useMobile";
 import { fadeAndScaleIn } from "~/styles/animations";
 
-type Props = {
-  tabIndex?: number;
+type Props = PopoverProps & {
+  children: React.ReactNode;
   width?: number;
+  shrink?: boolean;
+  tabIndex?: number;
 };
 
-const Popover: React.FC<Props> = ({ children, width = 380, ...rest }) => {
+const Popover: React.FC<Props> = ({
+  children,
+  shrink,
+  width = 380,
+  ...rest
+}) => {
   const isMobile = useMobile();
 
   if (isMobile) {
     return (
       <Dialog {...rest} modal>
-        <Contents>{children}</Contents>
+        <Contents $shrink={shrink}>{children}</Contents>
       </Dialog>
     );
   }
 
   return (
     <ReakitPopover {...rest}>
-      <Contents $width={width}>{children}</Contents>
+      <Contents $shrink={shrink} $width={width}>
+        {children}
+      </Contents>
     </ReakitPopover>
   );
 };
 
-const Contents = styled.div<{ $width?: number }>`
+const Contents = styled.div<{ $shrink?: boolean; $width?: number }>`
   animation: ${fadeAndScaleIn} 200ms ease;
   transform-origin: 75% 0;
   background: ${(props) => props.theme.menuBackground};
   border-radius: 6px;
-  padding: 12px 24px;
+  padding: ${(props) => (props.$shrink ? "6px 0" : "12px 24px")};
   max-height: 50vh;
   overflow-y: scroll;
   box-shadow: ${(props) => props.theme.menuShadow};

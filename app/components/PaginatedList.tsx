@@ -15,31 +15,32 @@ import { dateToHeading } from "~/utils/dates";
 
 type Props = WithTranslation &
   RootStore & {
-    fetch?: (options: Record<string, any> | null | undefined) => Promise<any>;
+    fetch?: (
+      options: Record<string, any> | null | undefined
+    ) => Promise<any> | undefined;
     options?: Record<string, any>;
     heading?: React.ReactNode;
     empty?: React.ReactNode;
-    items: any[];
+    loading?: React.ReactElement;
+    items?: any[];
     renderItem: (
       item: any,
       index: number,
-      composite: CompositeStateReturn
+      compositeProps: CompositeStateReturn
     ) => React.ReactNode;
     renderHeading?: (name: React.ReactElement<any> | string) => React.ReactNode;
+    onEscape?: (ev: React.KeyboardEvent<HTMLDivElement>) => void;
   };
 
 @observer
 class PaginatedList extends React.Component<Props> {
-  isInitiallyLoaded = this.props.items.length > 0;
-
-  @observable
-  isLoaded = false;
-
   @observable
   isFetchingMore = false;
 
   @observable
   isFetching = false;
+
+  fetchCounter = 0;
 
   @observable
   renderCount: number = DEFAULT_PAGINATION_LIMIT;
@@ -70,7 +71,6 @@ class PaginatedList extends React.Component<Props> {
     this.renderCount = DEFAULT_PAGINATION_LIMIT;
     this.isFetching = false;
     this.isFetchingMore = false;
-    this.isLoaded = false;
   };
 
   fetchResults = async () => {
@@ -78,7 +78,9 @@ class PaginatedList extends React.Component<Props> {
       return;
     }
     this.isFetching = true;
+    const counter = ++this.fetchCounter;
     const limit = DEFAULT_PAGINATION_LIMIT;
+
     const results = await this.props.fetch({
       limit,
       offset: this.offset,
@@ -92,9 +94,12 @@ class PaginatedList extends React.Component<Props> {
     }
 
     this.renderCount += limit;
-    this.isLoaded = true;
-    this.isFetching = false;
-    this.isFetchingMore = false;
+
+    // only the most recent fetch should end the loading state
+    if (counter >= this.fetchCounter) {
+      this.isFetching = false;
+      this.isFetchingMore = false;
+    }
   };
 
   @action
@@ -105,7 +110,7 @@ class PaginatedList extends React.Component<Props> {
     }
     // If there are already cached results that we haven't yet rendered because
     // of lazy rendering then show another page.
-    const leftToRender = this.props.items.length - this.renderCount;
+    const leftToRender = (this.props.items?.length ?? 0) - this.renderCount;
 
     if (leftToRender > 1) {
       this.renderCount += DEFAULT_PAGINATION_LIMIT;
@@ -120,20 +125,24 @@ class PaginatedList extends React.Component<Props> {
   };
 
   render() {
-    const { items, heading, auth, empty, renderHeading } = this.props;
+    const { items, heading, auth, empty, renderHeading, onEscape } = this.props;
     let previousHeading = "";
+
+    const showList = !!items?.length;
+    const showEmpty = items?.length === 0;
     const showLoading =
-      this.isFetching && !this.isFetchingMore && !this.isInitiallyLoaded;
-    const showEmpty = !items.length && !showLoading;
-    const showList =
-      (this.isLoaded || this.isInitiallyLoaded) && !showLoading && !showEmpty;
+      this.isFetching && !this.isFetchingMore && !showList && !showEmpty;
+
     return (
       <>
         {showEmpty && empty}
         {showList && (
           <>
             {heading}
-            <ArrowKeyNavigation aria-label={this.props["aria-label"]}>
+            <ArrowKeyNavigation
+              aria-label={this.props["aria-label"]}
+              onEscape={onEscape}
+            >
               {(composite: CompositeStateReturn) =>
                 items.slice(0, this.renderCount).map((item, index) => {
                   const children = this.props.renderItem(
@@ -180,11 +189,12 @@ class PaginatedList extends React.Component<Props> {
             )}
           </>
         )}
-        {showLoading && (
-          <DelayedMount>
-            <PlaceholderList count={5} />
-          </DelayedMount>
-        )}
+        {showLoading &&
+          (this.props.loading || (
+            <DelayedMount>
+              <PlaceholderList count={5} />
+            </DelayedMount>
+          ))}
       </>
     );
   }
