@@ -9,7 +9,6 @@ import mount from "koa-mount";
 import enforceHttps from "koa-sslify";
 import env from "@server/env";
 import Logger from "@server/logging/logger";
-import emails from "../emails";
 import routes from "../routes";
 import api from "../routes/api";
 import auth from "../routes/auth";
@@ -92,7 +91,6 @@ export default function init(app: Koa = new Koa()): Koa {
         })
       )
     );
-    app.use(mount("/emails", emails));
   }
 
   app.use(mount("/auth", auth));

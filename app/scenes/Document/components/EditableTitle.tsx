@@ -3,12 +3,16 @@ import * as React from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { MAX_TITLE_LENGTH } from "@shared/constants";
-import { light } from "@shared/theme";
+import { light } from "@shared/styles/theme";
+import {
+  getCurrentDateAsString,
+  getCurrentDateTimeAsString,
+  getCurrentTimeAsString,
+} from "@shared/utils/date";
 import Document from "~/models/Document";
-import ContentEditable from "~/components/ContentEditable";
+import ContentEditable, { RefHandle } from "~/components/ContentEditable";
 import Star, { AnimatedStar } from "~/components/Star";
 import useEmojiWidth from "~/hooks/useEmojiWidth";
-import usePolicy from "~/hooks/usePolicy";
 import { isModKey } from "~/utils/keyboard";
 
 type Props = {
@@ -42,9 +46,8 @@ const EditableTitle = React.forwardRef(
       starrable,
       placeholder,
     }: Props,
-    ref: React.RefObject<HTMLSpanElement>
+    ref: React.RefObject<RefHandle>
   ) => {
-    const can = usePolicy(document.id);
     const normalizedTitle =
       !value && readOnly ? document.titleWithDefault : value;
 
@@ -92,6 +95,24 @@ const EditableTitle = React.forwardRef(
       [onGoToNextInput, onSave]
     );
 
+    const handleChange = React.useCallback(
+      (text: string) => {
+        if (/\/date\s$/.test(text)) {
+          onChange(getCurrentDateAsString());
+          ref.current?.focusAtEnd();
+        } else if (/\/time$/.test(text)) {
+          onChange(getCurrentTimeAsString());
+          ref.current?.focusAtEnd();
+        } else if (/\/datetime$/.test(text)) {
+          onChange(getCurrentDateTimeAsString());
+          ref.current?.focusAtEnd();
+        } else {
+          onChange(text);
+        }
+      },
+      [ref, onChange]
+    );
+
     const emojiWidth = useEmojiWidth(document.emoji, {
       fontSize,
       lineHeight,
@@ -100,7 +121,7 @@ const EditableTitle = React.forwardRef(
     return (
       <Title
         onClick={handleClick}
-        onChange={onChange}
+        onChange={handleChange}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
         value={normalizedTitle}
@@ -112,9 +133,7 @@ const EditableTitle = React.forwardRef(
         dir="auto"
         ref={ref}
       >
-        {(can.star || can.unstar) && starrable !== false && (
-          <StarButton document={document} size={32} />
-        )}
+        {starrable !== false && <StarButton document={document} size={32} />}
       </Title>
     );
   }

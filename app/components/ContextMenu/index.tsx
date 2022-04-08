@@ -4,6 +4,7 @@ import { Portal } from "react-portal";
 import { Menu } from "reakit/Menu";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { depths } from "@shared/styles";
 import useMenuContext from "~/hooks/useMenuContext";
 import useMenuHeight from "~/hooks/useMenuHeight";
 import usePrevious from "~/hooks/usePrevious";
@@ -148,7 +149,7 @@ export const Backdrop = styled.div`
   right: 0;
   bottom: 0;
   background: ${(props) => props.theme.backdrop};
-  z-index: ${(props) => props.theme.depths.menu - 1};
+  z-index: ${depths.menu - 1};
 
   ${breakpoint("tablet")`
     display: none;
@@ -157,7 +158,7 @@ export const Backdrop = styled.div`
 
 export const Position = styled.div`
   position: absolute;
-  z-index: ${(props) => props.theme.depths.menu};
+  z-index: ${depths.menu};
 
   // overrides make mobile-first coding style challenging
   // so we explicitly define mobile breakpoint here

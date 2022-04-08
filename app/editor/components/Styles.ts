@@ -728,8 +728,11 @@ const EditorStyles = styled.div<{
   }
 
   .external-link {
+    display: inline-block;
     position: relative;
     top: 2px;
+    width: 16px;
+    height: 16px;
   }
 
   .code-actions,

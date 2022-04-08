@@ -113,6 +113,10 @@ const RealButton = styled.button<{
       &:disabled {
         background: none;
       }
+
+      &.focus-visible {
+        outline-color: ${darken(0.2, props.theme.danger)} !important;
+      }
   `};
 `;
 

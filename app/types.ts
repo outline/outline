@@ -70,6 +70,7 @@ export type ActionContext = {
   isContextMenu: boolean;
   isCommandBar: boolean;
   isButton: boolean;
+  inStarredSection?: boolean;
   activeCollectionId: string | undefined;
   activeDocumentId: string | undefined;
   currentUserId: string | undefined;

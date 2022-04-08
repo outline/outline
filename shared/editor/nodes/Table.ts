@@ -171,11 +171,17 @@ export default class Table extends Node {
 
               if (shadowRight) {
                 decorations.push(
-                  Decoration.widget(pos + 1, () => {
-                    const shadow = document.createElement("div");
-                    shadow.className = "scrollable-shadow right";
-                    return shadow;
-                  })
+                  Decoration.widget(
+                    pos + 1,
+                    () => {
+                      const shadow = document.createElement("div");
+                      shadow.className = "scrollable-shadow right";
+                      return shadow;
+                    },
+                    {
+                      key: "table-shadow-right",
+                    }
+                  )
                 );
               }
               index++;

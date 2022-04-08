@@ -3,6 +3,7 @@ import { keymap } from "prosemirror-keymap";
 import { MarkdownParser, TokenConfig } from "prosemirror-markdown";
 import { Schema } from "prosemirror-model";
 import { EditorView } from "prosemirror-view";
+import { Editor } from "~/editor";
 import Mark from "../marks/Mark";
 import Node from "../nodes/Node";
 import Extension, { CommandFactory } from "./Extension";
@@ -10,16 +11,32 @@ import makeRules from "./markdown/rules";
 import { MarkdownSerializer } from "./markdown/serializer";
 
 export default class ExtensionManager {
-  extensions: (Node | Mark | Extension)[];
+  extensions: (Node | Mark | Extension)[] = [];
 
-  constructor(extensions: (Node | Mark | Extension)[] = [], editor?: any) {
-    if (editor) {
-      extensions.forEach((extension) => {
+  constructor(
+    extensions: (
+      | Extension
+      | typeof Node
+      | typeof Mark
+      | typeof Extension
+    )[] = [],
+    editor?: Editor
+  ) {
+    extensions.forEach((ext) => {
+      let extension;
+
+      if (typeof ext === "function") {
+        extension = new ext(editor?.props);
+      } else {
+        extension = ext;
+      }
+
+      if (editor) {
         extension.bindEditor(editor);
-      });
-    }
+      }
 
-    this.extensions = extensions;
+      this.extensions.push(extension);
+    });
   }
 
   get nodes() {

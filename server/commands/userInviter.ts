@@ -1,8 +1,8 @@
 import invariant from "invariant";
 import { uniqBy } from "lodash";
 import { Role } from "@shared/types";
+import InviteEmail from "@server/emails/templates/InviteEmail";
 import Logger from "@server/logging/logger";
-import mailer from "@server/mailer";
 import { User, Event, Team } from "@server/models";
 
 type Invite = {
@@ -74,7 +74,8 @@ export default async function userInviter({
       },
       ip,
     });
-    await mailer.sendTemplate("invite", {
+
+    await InviteEmail.schedule({
       to: invite.email,
       name: invite.name,
       actorName: user.name,

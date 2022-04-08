@@ -1,7 +1,8 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { ThemeProvider } from "styled-components";
-import { dark, light, lightMobile, darkMobile } from "@shared/theme";
+import { breakpoints } from "@shared/styles";
+import { dark, light, lightMobile, darkMobile } from "@shared/styles/theme";
 import useMediaQuery from "~/hooks/useMediaQuery";
 import useStores from "~/hooks/useStores";
 import GlobalStyles from "~/styles/globals";
@@ -11,9 +12,7 @@ const Theme: React.FC = ({ children }) => {
   const resolvedTheme = ui.resolvedTheme === "dark" ? dark : light;
   const resolvedMobileTheme =
     ui.resolvedTheme === "dark" ? darkMobile : lightMobile;
-  const isMobile = useMediaQuery(
-    `(max-width: ${resolvedTheme.breakpoints.tablet}px)`
-  );
+  const isMobile = useMediaQuery(`(max-width: ${breakpoints.tablet}px)`);
   const isPrinting = useMediaQuery("print");
   const theme = isPrinting
     ? light

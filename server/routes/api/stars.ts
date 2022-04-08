@@ -3,8 +3,9 @@ import { Sequelize } from "sequelize";
 import starCreator from "@server/commands/starCreator";
 import starDestroyer from "@server/commands/starDestroyer";
 import starUpdater from "@server/commands/starUpdater";
+import { sequelize } from "@server/database/sequelize";
 import auth from "@server/middlewares/authentication";
-import { Document, Star } from "@server/models";
+import { Document, Star, Collection } from "@server/models";
 import { authorize } from "@server/policies";
 import {
   presentStar,
@@ -18,27 +19,43 @@ import pagination from "./middlewares/pagination";
 const router = new Router();
 
 router.post("stars.create", auth(), async (ctx) => {
-  const { documentId } = ctx.body;
+  const { documentId, collectionId } = ctx.body;
   const { index } = ctx.body;
-  assertUuid(documentId, "documentId is required");
-
   const { user } = ctx.state;
-  const document = await Document.findByPk(documentId, {
-    userId: user.id,
-  });
-  authorize(user, "star", document);
+
+  assertUuid(
+    documentId || collectionId,
+    "documentId or collectionId is required"
+  );
+
+  if (documentId) {
+    const document = await Document.findByPk(documentId, {
+      userId: user.id,
+    });
+    authorize(user, "star", document);
+  }
+
+  if (collectionId) {
+    const collection = await Collection.scope({
+      method: ["withMembership", user.id],
+    }).findByPk(collectionId);
+    authorize(user, "star", collection);
+  }
 
   if (index) {
     assertIndexCharacters(index);
   }
 
-  const star = await starCreator({
-    user,
-    documentId,
-    ip: ctx.request.ip,
-    index,
-  });
-
+  const star = await sequelize.transaction(async (transaction) =>
+    starCreator({
+      user,
+      documentId,
+      collectionId,
+      ip: ctx.request.ip,
+      index,
+      transaction,
+    })
+  );
   ctx.body = {
     data: presentStar(star),
     policies: presentPolicies(user, [star]),
@@ -72,12 +89,17 @@ router.post("stars.list", auth(), pagination(), async (ctx) => {
     });
   }
 
-  const documents = await Document.defaultScopeWithUser(user.id).findAll({
-    where: {
-      id: stars.map((star) => star.documentId),
-      collectionId: collectionIds,
-    },
-  });
+  const documentIds = stars
+    .map((star) => star.documentId)
+    .filter(Boolean) as string[];
+  const documents = documentIds.length
+    ? await Document.defaultScopeWithUser(user.id).findAll({
+        where: {
+          id: documentIds,
+          collectionId: collectionIds,
+        },
+      })
+    : [];
 
   const policies = presentPolicies(user, [...documents, ...stars]);
 

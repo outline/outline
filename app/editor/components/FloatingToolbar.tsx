@@ -4,6 +4,7 @@ import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import { Portal } from "react-portal";
 import styled from "styled-components";
+import { depths } from "@shared/styles";
 import useComponentSize from "~/hooks/useComponentSize";
 import useMediaQuery from "~/hooks/useMediaQuery";
 import useViewportHeight from "~/hooks/useViewportHeight";
@@ -208,7 +209,7 @@ const Wrapper = styled.div<{
   will-change: opacity, transform;
   padding: 8px 16px;
   position: absolute;
-  z-index: ${(props) => props.theme.zIndex + 100};
+  z-index: ${depths.editorToolbar};
   opacity: 0;
   background-color: ${(props) => props.theme.toolbarBackground};
   border-radius: 4px;

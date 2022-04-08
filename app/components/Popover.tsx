@@ -3,6 +3,7 @@ import { Dialog } from "reakit/Dialog";
 import { Popover as ReakitPopover, PopoverProps } from "reakit/Popover";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { depths } from "@shared/styles";
 import useMobile from "~/hooks/useMobile";
 import { fadeAndScaleIn } from "~/styles/animations";
 
@@ -51,7 +52,7 @@ const Contents = styled.div<{ $shrink?: boolean; $width?: number }>`
 
   ${breakpoint("mobile", "tablet")`
     position: fixed;
-    z-index: ${(props: any) => props.theme.depths.menu};
+    z-index: ${depths.menu};
 
     // 50 is a magic number that positions us nicely under the top bar
     top: 50px;

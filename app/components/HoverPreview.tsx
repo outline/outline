@@ -2,9 +2,11 @@ import { transparentize } from "polished";
 import * as React from "react";
 import { Portal } from "react-portal";
 import styled from "styled-components";
+import { depths } from "@shared/styles";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
-import { isInternalUrl } from "@shared/utils/urls";
+import { isExternalUrl } from "@shared/utils/urls";
 import HoverPreviewDocument from "~/components/HoverPreviewDocument";
+import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 import { fadeAndSlideDown } from "~/styles/animations";
 
@@ -123,8 +125,13 @@ function HoverPreviewInternal({ node, onClose }: Props) {
 }
 
 function HoverPreview({ node, ...rest }: Props) {
+  const isMobile = useMobile();
+  if (!isMobile) {
+    return null;
+  }
+
   // previews only work for internal doc links for now
-  if (!isInternalUrl(node.href)) {
+  if (isExternalUrl(node.href)) {
     return null;
   }
 
@@ -195,7 +202,7 @@ const Card = styled.div`
 const Position = styled.div<{ fixed?: boolean; top?: number; left?: number }>`
   margin-top: 10px;
   position: ${({ fixed }) => (fixed ? "fixed" : "absolute")};
-  z-index: ${(props) => props.theme.depths.hoverPreview};
+  z-index: ${depths.hoverPreview};
   display: flex;
   max-height: 75%;
 

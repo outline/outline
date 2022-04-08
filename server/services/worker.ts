@@ -1,69 +1,101 @@
 import Logger from "@server/logging/logger";
+import { APM } from "@server/logging/tracing";
 import {
   globalEventQueue,
   processorEventQueue,
-  websocketsQueue,
-  emailsQueue,
+  websocketQueue,
+  taskQueue,
 } from "../queues";
-import Backlinks from "../queues/processors/backlinks";
-import Debouncer from "../queues/processors/debouncer";
-import Emails from "../queues/processors/emails";
-import Exports from "../queues/processors/exports";
-import Imports from "../queues/processors/imports";
-import Notifications from "../queues/processors/notifications";
-import Revisions from "../queues/processors/revisions";
-import Slack from "../queues/processors/slack";
-
-const EmailsProcessor = new Emails();
-const eventProcessors = {
-  backlinks: new Backlinks(),
-  debouncer: new Debouncer(),
-  imports: new Imports(),
-  exports: new Exports(),
-  notifications: new Notifications(),
-  revisions: new Revisions(),
-  slack: new Slack(),
-};
+import processors from "../queues/processors";
+import tasks from "../queues/tasks";
 
 export default function init() {
-  // this queue processes global events and hands them off to services
-  globalEventQueue.process(function (job) {
-    Object.keys(eventProcessors).forEach((name) => {
-      processorEventQueue.add({ ...job.data, service: name });
-    });
-    websocketsQueue.add(job.data);
-  });
-  processorEventQueue.process(function (job) {
-    const event = job.data;
-    const processor = eventProcessors[event.service];
+  // This queue processes the global event bus
+  globalEventQueue.process(
+    APM.traceFunction({
+      serviceName: "worker",
+      spanName: "processGlobalEvent",
+      isRoot: true,
+    })(function (job) {
+      const event = job.data;
 
-    if (!processor) {
-      Logger.warn(`Received event for processor that isn't registered`, event);
-      return;
-    }
+      // For each registered processor we check to see if it wants to handle the
+      // event (applicableEvents), and if so add a new queued job specifically
+      // for that processor.
+      for (const name in processors) {
+        const ProcessorClass = processors[name];
 
-    if (processor.on) {
-      Logger.info("processor", `${event.service} processing ${event.name}`, {
-        name: event.name,
-        modelId: event.modelId,
-      });
-      processor.on(event).catch((error: Error) => {
-        Logger.error(
-          `Error processing ${event.name} in ${event.service}`,
-          error,
-          event
+        if (name === "WebsocketsProcessor") {
+          // websockets are a special case on their own queue because they must
+          // only be consumed by the websockets service rather than workers.
+          websocketQueue.add(job.data);
+        } else if (
+          ProcessorClass.applicableEvents.length === 0 ||
+          ProcessorClass.applicableEvents.includes(event.name)
+        ) {
+          processorEventQueue.add({ event, name });
+        }
+      }
+    })
+  );
+
+  // Jobs for individual processors are processed here. Only applicable events
+  // as unapplicable events were filtered in the global event queue above.
+  processorEventQueue.process(
+    APM.traceFunction({
+      serviceName: "worker",
+      spanName: "processEvent",
+      isRoot: true,
+    })(function (job) {
+      const { event, name } = job.data;
+      const ProcessorClass = processors[name];
+
+      if (!ProcessorClass) {
+        throw new Error(
+          `Received event "${event.name}" for processor (${name}) that isn't registered. Check the file name matches the class name.`
         );
+      }
+
+      const processor = new ProcessorClass();
+
+      if (processor.perform) {
+        Logger.info("processor", `${name} processing ${event.name}`, {
+          name: event.name,
+          modelId: event.modelId,
+        });
+        processor.perform(event).catch((error: Error) => {
+          Logger.error(
+            `Error processing ${event.name} in ${name}`,
+            error,
+            event
+          );
+        });
+      }
+    })
+  );
+
+  // Jobs for async tasks are processed here.
+  taskQueue.process(
+    APM.traceFunction({
+      serviceName: "worker",
+      spanName: "processTask",
+      isRoot: true,
+    })(function (job) {
+      const { name, props } = job.data;
+      const TaskClass = tasks[name];
+
+      if (!TaskClass) {
+        throw new Error(
+          `Task "${name}" is not registered. Check the file name matches the class name.`
+        );
+      }
+
+      Logger.info("task", `${name} triggered`, props);
+
+      const task = new TaskClass();
+      task.perform(props).catch((error: Error) => {
+        Logger.error(`Error processing task  in ${name}`, error, props);
       });
-    }
-  });
-  emailsQueue.process(function (job) {
-    const event = job.data;
-    EmailsProcessor.on(event).catch((error) => {
-      Logger.error(
-        `Error processing ${event.name} in emails processor`,
-        error,
-        event
-      );
-    });
-  });
+    })
+  );
 }

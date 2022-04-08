@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled, { keyframes } from "styled-components";
+import { depths } from "@shared/styles";
 
 const LoadingIndicatorBar = () => {
   return (
@@ -17,7 +18,7 @@ const loadingFrame = keyframes`
 const Container = styled.div`
   position: fixed;
   top: 0;
-  z-index: ${(props) => props.theme.depths.loadingIndicatorBar};
+  z-index: ${depths.loadingIndicatorBar};
   width: 100%;
   animation: ${loadingFrame} 4s ease-in-out infinite;
   animation-delay: 250ms;

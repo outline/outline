@@ -2,8 +2,9 @@ import { subMinutes } from "date-fns";
 import Router from "koa-router";
 import { find } from "lodash";
 import { parseDomain, isCustomSubdomain } from "@shared/utils/domains";
+import SigninEmail from "@server/emails/templates/SigninEmail";
+import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
 import { AuthorizationError } from "@server/errors";
-import mailer from "@server/mailer";
 import errorHandling from "@server/middlewares/errorHandling";
 import methodOverride from "@server/middlewares/methodOverride";
 import { User, Team } from "@server/models";
@@ -110,7 +111,7 @@ router.post("email", errorHandling(), async (ctx) => {
     }
 
     // send email to users registered address with a short-lived token
-    await mailer.sendTemplate("signin", {
+    await SigninEmail.schedule({
       to: user.email,
       token: user.getEmailSigninToken(),
       teamUrl: team.url,
@@ -147,7 +148,7 @@ router.get("email.callback", async (ctx) => {
   }
 
   if (user.isInvited) {
-    await mailer.sendTemplate("welcome", {
+    await WelcomeEmail.schedule({
       to: user.email,
       teamUrl: user.team.url,
     });

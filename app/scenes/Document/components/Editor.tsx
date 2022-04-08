@@ -2,8 +2,10 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useRouteMatch } from "react-router-dom";
+import fullPackage from "@shared/editor/packages/full";
 import Document from "~/models/Document";
 import ClickablePadding from "~/components/ClickablePadding";
+import { RefHandle } from "~/components/ContentEditable";
 import DocumentMetaWithViews from "~/components/DocumentMetaWithViews";
 import Editor, { Props as EditorProps } from "~/components/Editor";
 import Flex from "~/components/Flex";
@@ -16,7 +18,7 @@ import {
 import MultiplayerEditor from "./AsyncMultiplayerEditor";
 import EditableTitle from "./EditableTitle";
 
-type Props = EditorProps & {
+type Props = Omit<EditorProps, "extensions"> & {
   onChangeTitle: (text: string) => void;
   title: string;
   id: string;
@@ -40,7 +42,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     activeLinkEvent,
     setActiveLinkEvent,
   ] = React.useState<MouseEvent | null>(null);
-  const titleRef = React.useRef<HTMLSpanElement>(null);
+  const titleRef = React.useRef<RefHandle>(null);
   const { t } = useTranslation();
   const match = useRouteMatch();
 
@@ -113,9 +115,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
               : documentHistoryUrl(document)
           }
           rtl={
-            titleRef.current
-              ? window.getComputedStyle(titleRef.current).direction === "rtl"
-              : false
+            titleRef.current?.getComputedDirection() === "rtl" ? true : false
           }
         />
       )}
@@ -127,6 +127,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         scrollTo={window.location.hash}
         readOnly={readOnly}
         shareId={shareId}
+        extensions={fullPackage}
         grow
         {...rest}
       />
