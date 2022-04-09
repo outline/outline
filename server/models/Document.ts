@@ -8,6 +8,7 @@ import {
   QueryTypes,
   FindOptions,
   ScopeOptions,
+  WhereOptions,
 } from "sequelize";
 import {
   ForeignKey,
@@ -473,7 +474,11 @@ class Document extends ParanoidModel {
       const sharedDocument = await options.share.$get("document");
       invariant(sharedDocument, "Cannot find document for share");
 
-      const childDocumentIds = await sharedDocument.getChildDocumentIds();
+      const childDocumentIds = await sharedDocument.getChildDocumentIds({
+        archivedAt: {
+          [Op.is]: null,
+        },
+      });
       documentIds = [sharedDocument.id, ...childDocumentIds];
     }
 
@@ -737,6 +742,7 @@ class Document extends ParanoidModel {
    * @returns A promise that resolves to a list of document ids
    */
   getChildDocumentIds = async (
+    where?: Omit<WhereOptions<Document>, "parentDocumentId">,
     options?: FindOptions<Document>
   ): Promise<string[]> => {
     const getChildDocumentIds = async (
@@ -747,6 +753,7 @@ class Document extends ParanoidModel {
         attributes: ["id"],
         where: {
           parentDocumentId,
+          ...where,
         },
         ...options,
       });
