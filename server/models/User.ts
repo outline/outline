@@ -57,6 +57,31 @@ export enum UserFlag {
       },
     ],
   },
+  withTeam: {
+    include: [
+      {
+        model: Team,
+        as: "team",
+        required: true,
+      },
+    ],
+  },
+  withInvitedBy: {
+    include: [
+      {
+        model: User,
+        as: "invitedBy",
+        required: true,
+      },
+    ],
+  },
+  invited: {
+    where: {
+      lastActiveAt: {
+        [Op.is]: null,
+      },
+    },
+  },
 }))
 @Table({ tableName: "users", modelName: "user" })
 @Fix
@@ -141,11 +166,18 @@ class User extends ParanoidModel {
   // associations
 
   @HasOne(() => User, "suspendedById")
-  suspendedBy: User;
+  suspendedBy: User | null;
 
   @ForeignKey(() => User)
   @Column(DataType.UUID)
-  suspendedById: string;
+  suspendedById: string | null;
+
+  @HasOne(() => User, "invitedById")
+  invitedBy: User | null;
+
+  @ForeignKey(() => User)
+  @Column(DataType.UUID)
+  invitedById: string | null;
 
   @BelongsTo(() => Team)
   team: Team;

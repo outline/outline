@@ -15,7 +15,7 @@ export default abstract class BaseTask<T> {
    * @param props Properties to be used by the task
    * @returns A promise that resolves once the job is placed on the task queue
    */
-  public static schedule<T>(props: T) {
+  public static schedule<T>(props?: T) {
     // @ts-expect-error cannot create an instance of an abstract class, we wont
     const task = new this();
     return taskQueue.add(

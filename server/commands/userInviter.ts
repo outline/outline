@@ -62,6 +62,7 @@ export default async function userInviter({
       service: null,
       isAdmin: invite.role === "admin",
       isViewer: invite.role === "viewer",
+      invitedById: user.id,
       flags: {
         [UserFlag.InviteSent]: 1,
       },
