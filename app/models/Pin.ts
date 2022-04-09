@@ -10,9 +10,6 @@ class Pin extends BaseModel {
   @observable
   @Field
   index: string;
-
-  createdAt: string;
-  updatedAt: string;
 }
 
 export default Pin;

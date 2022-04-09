@@ -12,18 +12,23 @@ export default class StarsStore extends BaseStore<Star> {
   }
 
   @action
-  fetchPage = async (params?: PaginationParams | undefined): Promise<void> => {
+  fetchPage = async (
+    params?: PaginationParams | undefined
+  ): Promise<Star[]> => {
     this.isFetching = true;
 
     try {
       const res = await client.post(`/stars.list`, params);
       invariant(res?.data, "Data not available");
+
+      let models: Star[] = [];
       runInAction(`StarsStore#fetchPage`, () => {
         res.data.documents.forEach(this.rootStore.documents.add);
-        res.data.stars.forEach(this.add);
+        models = res.data.stars.map(this.add);
         this.addPolicies(res.policies);
         this.isLoaded = true;
       });
+      return models;
     } finally {
       this.isFetching = false;
     }

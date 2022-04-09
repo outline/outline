@@ -15,18 +15,22 @@ export default class GroupMembershipsStore extends BaseStore<GroupMembership> {
   }
 
   @action
-  fetchPage = async (params: PaginationParams | undefined): Promise<any> => {
+  fetchPage = async (
+    params: PaginationParams | undefined
+  ): Promise<GroupMembership[]> => {
     this.isFetching = true;
 
     try {
       const res = await client.post(`/groups.memberships`, params);
       invariant(res?.data, "Data not available");
+
+      let models: GroupMembership[] = [];
       runInAction(`GroupMembershipsStore#fetchPage`, () => {
         res.data.users.forEach(this.rootStore.users.add);
-        res.data.groupMemberships.forEach(this.add);
+        models = res.data.groupMemberships.map(this.add);
         this.isLoaded = true;
       });
-      return res.data.users;
+      return models;
     } finally {
       this.isFetching = false;
     }

@@ -9,6 +9,7 @@ type UserPresentation = {
   name: string;
   avatarUrl: string | null | undefined;
   createdAt: Date;
+  updatedAt: Date;
   lastActiveAt: Date | null;
   color: string;
   isAdmin: boolean;
@@ -31,6 +32,7 @@ export default (
     isSuspended: user.isSuspended,
     isViewer: user.isViewer,
     createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
     lastActiveAt: user.lastActiveAt,
   };
 

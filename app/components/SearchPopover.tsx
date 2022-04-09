@@ -9,9 +9,10 @@ import Empty from "~/components/Empty";
 import { Outline } from "~/components/Input";
 import InputSearch from "~/components/InputSearch";
 import Placeholder from "~/components/List/Placeholder";
-import PaginatedList from "~/components/PaginatedList";
+import PaginatedList, { PaginatedItem } from "~/components/PaginatedList";
 import Popover from "~/components/Popover";
 import useStores from "~/hooks/useStores";
+import { SearchResult } from "~/types";
 import SearchListItem from "./SearchListItem";
 
 type Props = { shareId: string };
@@ -31,7 +32,7 @@ function SearchPopover({ shareId }: Props) {
 
   const [cachedQuery, setCachedQuery] = React.useState(query);
   const [cachedSearchResults, setCachedSearchResults] = React.useState<
-    Record<string, any>[] | undefined
+    PaginatedItem[] | undefined
   >(searchResults);
 
   React.useEffect(() => {
@@ -43,7 +44,7 @@ function SearchPopover({ shareId }: Props) {
   }, [searchResults, query, popover.show]);
 
   const performSearch = React.useCallback(
-    async ({ query, ...options }: Record<string, any>) => {
+    async ({ query, ...options }) => {
       if (query?.length > 0) {
         return await documents.search(query, { shareId, ...options });
       }
@@ -161,7 +162,7 @@ function SearchPopover({ shareId }: Props) {
             <NoResults>{t("No results for {{query}}", { query })}</NoResults>
           }
           loading={<PlaceholderList count={3} header={{ height: 20 }} />}
-          renderItem={(item, index, compositeProps) => (
+          renderItem={(item: SearchResult, index, compositeProps) => (
             <SearchListItem
               key={item.document.id}
               shareId={shareId}

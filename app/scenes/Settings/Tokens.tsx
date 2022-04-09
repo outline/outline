@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import { CodeIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import ApiKey from "~/models/ApiKey";
 import APITokenNew from "~/scenes/APITokenNew";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
@@ -59,7 +60,7 @@ function Tokens() {
         fetch={apiKeys.fetchPage}
         items={apiKeys.orderedData}
         heading={<Subheading sticky>{t("Tokens")}</Subheading>}
-        renderItem={(token) => (
+        renderItem={(token: ApiKey) => (
           <TokenListItem key={token.id} token={token} onDelete={token.delete} />
         )}
       />
