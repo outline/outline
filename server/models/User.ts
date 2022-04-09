@@ -40,6 +40,9 @@ import Encrypted, {
 } from "./decorators/Encrypted";
 import Fix from "./decorators/Fix";
 
+/**
+ * Flags that are available for setting on the user.
+ */
 export enum UserFlag {
   InviteSent = "inviteSent",
   InviteReminderSent = "inviteReminderSent",
@@ -178,12 +181,24 @@ class User extends ParanoidModel {
    * @param value Set the flag to true/false
    * @returns The current user flags
    */
-  setFlag = (flag: UserFlag, value = true) => {
+  public setFlag = (flag: UserFlag, value = true) => {
     if (!this.flags) {
       this.flags = {};
     }
     this.flags[flag] = value ? 1 : 0;
+    this.changed("flags", true);
+
     return this.flags;
+  };
+
+  /**
+   * Returns the content of the given user flag.
+   *
+   * @param flag The flag to retrieve
+   * @returns The flag value
+   */
+  public getFlag = (flag: UserFlag) => {
+    return this.flags?.[flag] ?? 0;
   };
 
   /**
@@ -194,11 +209,13 @@ class User extends ParanoidModel {
    * @param value The amount to increment by, defaults to 1
    * @returns The current user flags
    */
-  incrementFlag = (flag: UserFlag, value = 1) => {
+  public incrementFlag = (flag: UserFlag, value = 1) => {
     if (!this.flags) {
       this.flags = {};
     }
     this.flags[flag] = (this.flags[flag] ?? 0) + value;
+    this.changed("flags", true);
+
     return this.flags;
   };
 

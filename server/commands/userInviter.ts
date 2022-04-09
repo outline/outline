@@ -4,6 +4,7 @@ import { Role } from "@shared/types";
 import InviteEmail from "@server/emails/templates/InviteEmail";
 import Logger from "@server/logging/logger";
 import { User, Event, Team } from "@server/models";
+import { UserFlag } from "@server/models/User";
 
 type Invite = {
   name: string;
@@ -61,6 +62,9 @@ export default async function userInviter({
       service: null,
       isAdmin: invite.role === "admin",
       isViewer: invite.role === "viewer",
+      flags: {
+        [UserFlag.InviteSent]: 1,
+      },
     });
     users.push(newUser);
     await Event.create({

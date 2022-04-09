@@ -123,9 +123,12 @@ function UserMenu({ user }: Props) {
         await users.resendInvite(user);
         showToast(t(`Invite was resent to ${user.name}`), { type: "success" });
       } catch (err) {
-        showToast(t(`An error occurred while sending the invite`), {
-          type: "error",
-        });
+        showToast(
+          err.message ?? t(`An error occurred while sending the invite`),
+          {
+            type: "error",
+          }
+        );
       }
     },
     [users, user, t, showToast]
