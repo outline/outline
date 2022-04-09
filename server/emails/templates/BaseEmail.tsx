@@ -1,4 +1,5 @@
 import mailer from "@server/emails/mailer";
+import Metrics from "@server/logging/metrics";
 import { taskQueue } from "@server/queues";
 import { TaskPriority } from "@server/queues/tasks/BaseTask";
 
@@ -16,13 +17,19 @@ export default abstract class BaseEmail<T extends EmailProps, S = any> {
    * @returns A promise that resolves once the email is placed on the task queue
    */
   public static schedule<T>(props: T) {
+    const templateName = this.name;
+
+    Metrics.increment("email.scheduled", {
+      templateName,
+    });
+
     // Ideally we'd use EmailTask.schedule here but importing creates a circular
     // dependency so we're pushing onto the task queue in the expected format
     return taskQueue.add(
       {
         name: "EmailTask",
         props: {
-          templateName: this.name,
+          templateName,
           props,
         },
       },
@@ -51,14 +58,25 @@ export default abstract class BaseEmail<T extends EmailProps, S = any> {
       ? await this.beforeSend(this.props)
       : ({} as S);
     const data = { ...this.props, ...bsResponse };
+    const templateName = this.constructor.name;
 
-    return mailer.sendMail({
-      to: this.props.to,
-      subject: this.subject(data),
-      previewText: this.preview(data),
-      component: this.render(data),
-      text: this.renderAsText(data),
-    });
+    try {
+      await mailer.sendMail({
+        to: this.props.to,
+        subject: this.subject(data),
+        previewText: this.preview(data),
+        component: this.render(data),
+        text: this.renderAsText(data),
+      });
+      Metrics.increment("email.sent", {
+        templateName,
+      });
+    } catch (err) {
+      Metrics.increment("email.sending_failed", {
+        templateName,
+      });
+      throw err;
+    }
   }
 
   /**
