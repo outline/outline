@@ -6,7 +6,14 @@ import { flushdb, seed } from "@server/test/support";
 const app = webService();
 const server = new TestServer(app.callback());
 beforeEach(() => flushdb());
-afterAll(() => server.close());
+
+beforeAll(() => {
+  jest.useFakeTimers().setSystemTime(new Date("2018-01-02T00:00:00.000Z"));
+});
+afterAll(() => {
+  jest.useRealTimers();
+  return server.close();
+});
 
 describe("#users.list", () => {
   it("should allow filtering by user name", async () => {
