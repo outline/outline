@@ -14,6 +14,7 @@ Object {
     "language": "en_US",
     "lastActiveAt": null,
     "name": "User 1",
+    "updatedAt": "2022-04-09T18:16:07.701Z",
   },
   "ok": true,
   "policies": Array [
@@ -67,6 +68,7 @@ Object {
     "language": "en_US",
     "lastActiveAt": null,
     "name": "User 1",
+    "updatedAt": "2022-04-09T18:16:06.630Z",
   },
   "ok": true,
   "policies": Array [
@@ -102,6 +104,7 @@ Object {
     "language": "en_US",
     "lastActiveAt": null,
     "name": "User 1",
+    "updatedAt": "2022-04-09T18:16:07.013Z",
   },
   "ok": true,
   "policies": Array [
@@ -137,6 +140,7 @@ Object {
     "language": "en_US",
     "lastActiveAt": null,
     "name": "User 1",
+    "updatedAt": "2022-04-09T18:16:06.877Z",
   },
   "ok": true,
   "policies": Array [
@@ -190,6 +194,7 @@ Object {
     "language": "en_US",
     "lastActiveAt": null,
     "name": "User 1",
+    "updatedAt": "2022-04-09T18:16:06.385Z",
   },
   "ok": true,
   "policies": Array [
@@ -252,6 +257,7 @@ Object {
     "language": "en_US",
     "lastActiveAt": null,
     "name": "User 1",
+    "updatedAt": "2022-04-09T18:16:07.355Z",
   },
   "ok": true,
   "policies": Array [
