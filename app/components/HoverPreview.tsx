@@ -126,7 +126,7 @@ function HoverPreviewInternal({ node, onClose }: Props) {
 
 function HoverPreview({ node, ...rest }: Props) {
   const isMobile = useMobile();
-  if (!isMobile) {
+  if (isMobile) {
     return null;
   }
 
@@ -157,7 +157,7 @@ const Margin = styled.div`
 
 const CardContent = styled.div`
   overflow: hidden;
-  max-height: 350px;
+  max-height: 20em;
   user-select: none;
 `;
 
