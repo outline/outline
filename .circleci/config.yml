@@ -27,7 +27,7 @@ executors:
       IMAGE_NAME: outlinewiki/outline
       BASE_IMAGE_NAME: outlinewiki/outline-base
     docker:
-      - image: cimg/base
+      - image: circleci/buildpack-deps:stretch
 
 jobs:
   build:
