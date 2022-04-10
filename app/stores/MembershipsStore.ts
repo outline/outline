@@ -14,18 +14,22 @@ export default class MembershipsStore extends BaseStore<Membership> {
   }
 
   @action
-  fetchPage = async (params: PaginationParams | undefined): Promise<any> => {
+  fetchPage = async (
+    params: PaginationParams | undefined
+  ): Promise<Membership[]> => {
     this.isFetching = true;
 
     try {
       const res = await client.post(`/collections.memberships`, params);
       invariant(res?.data, "Data not available");
-      runInAction(`/collections.memberships`, () => {
+
+      let models: Membership[] = [];
+      runInAction(`MembershipsStore#fetchPage`, () => {
         res.data.users.forEach(this.rootStore.users.add);
-        res.data.memberships.forEach(this.add);
+        models = res.data.memberships.map(this.add);
         this.isLoaded = true;
       });
-      return res.data.users;
+      return models;
     } finally {
       this.isFetching = false;
     }

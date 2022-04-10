@@ -6,5 +6,6 @@ export default function present(key: ApiKey) {
     name: key.name,
     secret: key.secret,
     createdAt: key.createdAt,
+    updatedAt: key.updatedAt,
   };
 }

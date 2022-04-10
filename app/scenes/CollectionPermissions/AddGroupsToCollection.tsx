@@ -117,7 +117,7 @@ class AddGroupsToCollection extends React.Component<Props> {
           }
           items={groups.notInCollection(collection.id, this.query)}
           fetch={this.query ? undefined : groups.fetchPage}
-          renderItem={(item) => (
+          renderItem={(item: Group) => (
             <GroupListItem
               key={item.id}
               group={item}
