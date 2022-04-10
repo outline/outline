@@ -50,7 +50,7 @@ jobs:
           steps.calibre.outputs.markdown != ''
         uses: peter-evans/create-pull-request@v3
         with:
-          title: Auto Compress Images
+          title: "chore: Auto Compress Images"
           branch-suffix: timestamp
-          commit-message: Compress Images
+          commit-message: "chore: Compressed inefficient images automatically"
           body: ${{ steps.calibre.outputs.markdown }}
