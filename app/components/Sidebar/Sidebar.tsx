@@ -229,12 +229,14 @@ const Backdrop = styled.a`
   background: ${(props) => props.theme.backdrop};
 `;
 
-const Container = styled(Flex)<{
+type ContainerProps = {
   $mobileSidebarVisible: boolean;
   $isAnimating: boolean;
   $isSmallerThanMinimum: boolean;
   $collapsed: boolean;
-}>`
+};
+
+const Container = styled(Flex)<ContainerProps>`
   position: fixed;
   top: 0;
   bottom: 0;
@@ -242,7 +244,7 @@ const Container = styled(Flex)<{
   background: ${(props) => props.theme.sidebarBackground};
   transition: box-shadow 100ms ease-in-out, transform 100ms ease-out,
     ${(props) => props.theme.backgroundTransition}
-      ${(props: any) =>
+      ${(props: ContainerProps) =>
         props.$isAnimating ? `,width ${ANIMATION_MS}ms ease-out` : ""};
   transform: translateX(
     ${(props) => (props.$mobileSidebarVisible ? 0 : "-100%")}
@@ -263,13 +265,13 @@ const Container = styled(Flex)<{
   ${breakpoint("tablet")`
     margin: 0;
     min-width: 0;
-    transform: translateX(${(props: any) =>
+    transform: translateX(${(props: ContainerProps) =>
       props.$collapsed ? "calc(-100% + 16px)" : 0});
 
     &:hover,
     &:focus-within {
       transform: none;
-      box-shadow: ${(props: any) =>
+      box-shadow: ${(props: ContainerProps) =>
         props.$collapsed
           ? "rgba(0, 0, 0, 0.2) 1px 0 4px"
           : props.$isSmallerThanMinimum
@@ -286,7 +288,7 @@ const Container = styled(Flex)<{
     }
 
     &:not(:hover):not(:focus-within) > div {
-      opacity: ${(props: any) => (props.$collapsed ? "0" : "1")};
+      opacity: ${(props: ContainerProps) => (props.$collapsed ? "0" : "1")};
       transition: opacity 100ms ease-in-out;
     }
   `};

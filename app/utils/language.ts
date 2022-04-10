@@ -1,3 +1,5 @@
+import { i18n } from "i18next";
+
 export function detectLanguage() {
   const [ln, r] = navigator.language.split("-");
   const region = (r || ln).toUpperCase();
@@ -6,7 +8,7 @@ export function detectLanguage() {
 
 export function changeLanguage(
   toLanguageString: string | null | undefined,
-  i18n: any
+  i18n: i18n
 ) {
   if (toLanguageString && i18n.language !== toLanguageString) {
     // Languages are stored in en_US format in the database, however the

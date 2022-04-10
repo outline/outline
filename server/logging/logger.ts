@@ -19,7 +19,7 @@ type LogCategory =
 type Extra = Record<string, any>;
 
 class Logger {
-  output: any;
+  output: winston.Logger;
 
   constructor() {
     this.output = winston.createLogger();

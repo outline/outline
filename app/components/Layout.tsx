@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { Helmet } from "react-helmet";
-import styled from "styled-components";
+import styled, { DefaultTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Flex from "~/components/Flex";
 import { LoadingIndicatorBar } from "~/components/LoadingIndicator";
@@ -74,11 +74,14 @@ const Container = styled(Flex)`
   min-height: 100%;
 `;
 
-const Content = styled(Flex)<{
+type ContentProps = {
   $isResizing?: boolean;
   $sidebarCollapsed?: boolean;
   $hasSidebar?: boolean;
-}>`
+  theme: DefaultTheme;
+};
+
+const Content = styled(Flex)<ContentProps>`
   margin: 0;
   transition: ${(props) =>
     props.$isResizing ? "none" : `margin-left 100ms ease-out`};
@@ -92,7 +95,7 @@ const Content = styled(Flex)<{
   `}
 
   ${breakpoint("tablet")`
-    ${(props: any) =>
+    ${(props: ContentProps) =>
       props.$hasSidebar &&
       props.$sidebarCollapsed &&
       `margin-left: ${props.theme.sidebarCollapsedWidth}px;`}
