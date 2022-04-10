@@ -20,4 +20,10 @@ export const websocketQueue = createQueue("websockets", {
   timeout: 10 * 1000,
 });
 
-export const taskQueue = createQueue("tasks");
+export const taskQueue = createQueue("tasks", {
+  attempts: 5,
+  backoff: {
+    type: "exponential",
+    delay: 10 * 1000,
+  },
+});
