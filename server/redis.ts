@@ -1,7 +1,8 @@
 import Redis from "ioredis";
 import Logger from "./logging/logger";
+import { defaults } from "lodash";
 
-const options = {
+const defaultOptions = {
   maxRetriesPerRequest: 20,
 
   retryStrategy(times: number) {
@@ -14,16 +15,30 @@ const options = {
   tls:
     process.env.REDIS_URL && process.env.REDIS_URL.startsWith("rediss://")
       ? {
-          rejectUnauthorized: false,
-        }
+        rejectUnauthorized: false,
+      }
       : undefined,
 };
-const client = new Redis(process.env.REDIS_URL, options);
-const subscriber = new Redis(process.env.REDIS_URL, options);
+
+function newRedisClient(url: String | undefined): Redis.Redis {
+  if (!(url || "").startsWith("ioredis://")) {
+    return new Redis(process.env.REDIS_URL, defaultOptions)
+  }
+
+  const decodedString = Buffer.from(url!.slice(10), "base64").toString();
+  const customOptions = JSON.parse(decodedString);
+  const mergedOptions = defaults(defaultOptions, customOptions);
+
+  return new Redis(mergedOptions);
+}
+
+const client = newRedisClient(process.env.REDIS_URL);
+const subscriber = newRedisClient(process.env.REDIS_URL);
+
 // More than the default of 10 listeners is expected for the amount of queues
 // we're running. Increase the max here to prevent a warning in the console:
 // https://github.com/OptimalBits/bull/issues/1192
 client.setMaxListeners(100);
 subscriber.setMaxListeners(100);
 
-export { client, subscriber };
+export { client, subscriber, newRedisClient };

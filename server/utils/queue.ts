@@ -2,7 +2,7 @@ import Queue from "bull";
 import Redis from "ioredis";
 import { snakeCase } from "lodash";
 import Metrics from "@server/logging/metrics";
-import { client, subscriber } from "../redis";
+import { client, subscriber, newRedisClient } from "../redis";
 
 export function createQueue(
   name: string,
@@ -19,7 +19,7 @@ export function createQueue(
           return subscriber;
 
         default:
-          return new Redis(process.env.REDIS_URL);
+          return newRedisClient(process.env.REDIS_URL);
       }
     },
 
