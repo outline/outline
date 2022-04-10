@@ -11,6 +11,8 @@ import InputSearch from "~/components/InputSearch";
 import Placeholder from "~/components/List/Placeholder";
 import PaginatedList, { PaginatedItem } from "~/components/PaginatedList";
 import Popover from "~/components/Popover";
+import { id as bodyContentId } from "~/components/SkipNavContent";
+import useKeyDown from "~/hooks/useKeyDown";
 import useStores from "~/hooks/useStores";
 import { SearchResult } from "~/types";
 import SearchListItem from "./SearchListItem";
@@ -20,6 +22,7 @@ type Props = { shareId: string };
 function SearchPopover({ shareId }: Props) {
   const { t } = useTranslation();
   const { documents } = useStores();
+  const focusRef = React.useRef<HTMLElement | null>(null);
 
   const popover = usePopoverState({
     placement: "bottom-start",
@@ -53,7 +56,7 @@ function SearchPopover({ shareId }: Props) {
     [documents, shareId]
   );
 
-  const handleSearch = React.useMemo(
+  const handleSearchInputChange = React.useMemo(
     () =>
       debounce(async (event: React.ChangeEvent<HTMLInputElement>) => {
         const { value } = event.target;
@@ -73,13 +76,20 @@ function SearchPopover({ shareId }: Props) {
     [popover, cachedQuery]
   );
 
-  const searchInputRef = popover.unstable_referenceRef;
+  const searchInputRef = popover.unstable_referenceRef as React.RefObject<
+    HTMLInputElement
+  >;
+
   const firstSearchItem = React.useRef<HTMLAnchorElement>(null);
 
   const handleEscapeList = React.useCallback(
     () => searchInputRef?.current?.focus(),
     [searchInputRef]
   );
+
+  const handleSearchInputFocus = React.useCallback(() => {
+    focusRef.current = searchInputRef.current;
+  }, []);
 
   const handleKeyDown = React.useCallback(
     (ev: React.KeyboardEvent<HTMLInputElement>) => {
@@ -127,6 +137,24 @@ function SearchPopover({ shareId }: Props) {
     [popover, searchResults]
   );
 
+  const handleSearchItemClick = React.useCallback(() => {
+    popover.hide();
+    if (searchInputRef.current) {
+      searchInputRef.current.value = "";
+      focusRef.current = document.getElementById(bodyContentId);
+    }
+  }, [popover.hide]);
+
+  useKeyDown("/", (ev) => {
+    if (
+      searchInputRef.current &&
+      searchInputRef.current !== document.activeElement
+    ) {
+      searchInputRef.current.focus();
+      ev.preventDefault();
+    }
+  });
+
   return (
     <>
       <PopoverDisclosure {...popover}>
@@ -139,17 +167,18 @@ function SearchPopover({ shareId }: Props) {
               aria-expanded={props["aria-expanded"]}
               aria-haspopup={props["aria-haspopup"]}
               ref={props.ref}
-              onChange={handleSearch}
+              onChange={handleSearchInputChange}
+              onFocus={handleSearchInputFocus}
               onKeyDown={handleKeyDown}
             />
           );
         }}
       </PopoverDisclosure>
-
       <Popover
         {...popover}
         aria-label={t("Results")}
         unstable_autoFocusOnShow={false}
+        unstable_finalFocusRef={focusRef}
         style={{ zIndex: depths.sidebar + 1 }}
         shrink
       >
@@ -170,7 +199,7 @@ function SearchPopover({ shareId }: Props) {
               document={item.document}
               context={item.context}
               highlight={cachedQuery}
-              onClick={popover.hide}
+              onClick={handleSearchItemClick}
               {...compositeProps}
             />
           )}
