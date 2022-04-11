@@ -1,6 +1,6 @@
 import Redis from "ioredis";
-import Logger from "./logging/logger";
 import { defaults } from "lodash";
+import Logger from "./logging/logger";
 
 const defaultOptions = {
   maxRetriesPerRequest: 20,
@@ -15,14 +15,14 @@ const defaultOptions = {
   tls:
     process.env.REDIS_URL && process.env.REDIS_URL.startsWith("rediss://")
       ? {
-        rejectUnauthorized: false,
-      }
+          rejectUnauthorized: false,
+        }
       : undefined,
 };
 
-function newRedisClient(url: String | undefined): Redis.Redis {
+function newRedisClient(url: string | undefined): Redis.Redis {
   if (!(url || "").startsWith("ioredis://")) {
-    return new Redis(process.env.REDIS_URL, defaultOptions)
+    return new Redis(process.env.REDIS_URL, defaultOptions);
   }
 
   const decodedString = Buffer.from(url!.slice(10), "base64").toString();
