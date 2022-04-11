@@ -1,7 +1,6 @@
 import { subHours } from "date-fns";
 import { Op } from "sequelize";
 import { Server } from "socket.io";
-import { APM } from "@server/logging/tracing";
 import {
   Document,
   Collection,
@@ -19,9 +18,6 @@ import {
 } from "@server/presenters";
 import { Event } from "../../types";
 
-@APM.trace({
-  spanName: "processor",
-})
 export default class WebsocketsProcessor {
   async perform(event: Event, socketio: Server) {
     switch (event.name) {

@@ -2,7 +2,6 @@ import { Op } from "sequelize";
 import CollectionNotificationEmail from "@server/emails/templates/CollectionNotificationEmail";
 import DocumentNotificationEmail from "@server/emails/templates/DocumentNotificationEmail";
 import Logger from "@server/logging/logger";
-import { APM } from "@server/logging/tracing";
 import {
   View,
   Document,
@@ -19,9 +18,6 @@ import {
 } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
 
-@APM.trace({
-  spanName: "processor",
-})
 export default class NotificationsProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = [
     "documents.publish",
