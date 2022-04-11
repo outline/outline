@@ -19,7 +19,9 @@ import {
 } from "@server/presenters";
 import { Event } from "../../types";
 
-@APM.trace()
+@APM.trace({
+  spanName: "processor",
+})
 export default class WebsocketsProcessor {
   async perform(event: Event, socketio: Server) {
     switch (event.name) {

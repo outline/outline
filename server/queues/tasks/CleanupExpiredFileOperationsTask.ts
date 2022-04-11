@@ -9,7 +9,9 @@ type Props = {
   limit: number;
 };
 
-@APM.trace()
+@APM.trace({
+  spanName: "task",
+})
 export default class CleanupExpiredFileOperationsTask extends BaseTask<Props> {
   public async perform({ limit }: Props) {
     Logger.info("task", `Expiring export file operations older than 30 days…`);

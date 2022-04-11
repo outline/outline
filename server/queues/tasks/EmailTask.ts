@@ -7,7 +7,9 @@ type Props = {
   props: Record<string, any>;
 };
 
-@APM.trace()
+@APM.trace({
+  spanName: "task",
+})
 export default class EmailTask extends BaseTask<Props> {
   public async perform({ templateName, props }: Props) {
     const EmailClass = emails[templateName];

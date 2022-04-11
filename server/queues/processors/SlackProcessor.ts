@@ -11,7 +11,9 @@ import {
 } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
 
-@APM.trace()
+@APM.trace({
+  spanName: "processor",
+})
 export default class SlackProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = [
     "documents.publish",

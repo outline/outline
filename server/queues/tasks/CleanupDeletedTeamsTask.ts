@@ -10,7 +10,9 @@ type Props = {
   limit: number;
 };
 
-@APM.trace()
+@APM.trace({
+  spanName: "task",
+})
 export default class CleanupDeletedTeamsTask extends BaseTask<Props> {
   public async perform({ limit }: Props) {
     Logger.info(

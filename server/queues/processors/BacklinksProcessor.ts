@@ -6,7 +6,9 @@ import parseDocumentIds from "@server/utils/parseDocumentIds";
 import slugify from "@server/utils/slugify";
 import BaseProcessor from "./BaseProcessor";
 
-@APM.trace()
+@APM.trace({
+  spanName: "processor",
+})
 export default class BacklinksProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = [
     "documents.publish",

@@ -5,7 +5,9 @@ import { Revision, Document, User } from "@server/models";
 import { DocumentEvent, RevisionEvent, Event } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
 
-@APM.trace()
+@APM.trace({
+  spanName: "processor",
+})
 export default class RevisionsProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = ["documents.update.debounced"];
 

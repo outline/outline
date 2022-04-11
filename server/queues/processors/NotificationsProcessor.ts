@@ -19,7 +19,9 @@ import {
 } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
 
-@APM.trace()
+@APM.trace({
+  spanName: "processor",
+})
 export default class NotificationsProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = [
     "documents.publish",
