@@ -3,10 +3,13 @@ import { Op, WhereOptions } from "sequelize";
 import userDestroyer from "@server/commands/userDestroyer";
 import userInviter from "@server/commands/userInviter";
 import userSuspender from "@server/commands/userSuspender";
+import { sequelize } from "@server/database/sequelize";
 import InviteEmail from "@server/emails/templates/InviteEmail";
+import { ValidationError } from "@server/errors";
 import logger from "@server/logging/logger";
 import auth from "@server/middlewares/authentication";
 import { Event, User, Team } from "@server/models";
+import { UserFlag } from "@server/models/User";
 import { can, authorize } from "@server/policies";
 import { presentUser, presentPolicies } from "@server/presenters";
 import {
@@ -312,26 +315,38 @@ router.post("users.resendInvite", auth(), async (ctx) => {
   const { id } = ctx.body;
   const actor = ctx.state.user;
 
-  const user = await User.findByPk(id);
-  authorize(actor, "resendInvite", user);
+  await sequelize.transaction(async (transaction) => {
+    const user = await User.findByPk(id, {
+      lock: transaction.LOCK.UPDATE,
+      transaction,
+    });
+    authorize(actor, "resendInvite", user);
 
-  await InviteEmail.schedule({
-    to: user.email,
-    name: user.name,
-    actorName: actor.name,
-    actorEmail: actor.email,
-    teamName: actor.team.name,
-    teamUrl: actor.team.url,
+    if (user.getFlag(UserFlag.InviteReminderSent) > 2) {
+      throw ValidationError("This invite has been sent too many times");
+    }
+
+    await InviteEmail.schedule({
+      to: user.email,
+      name: user.name,
+      actorName: actor.name,
+      actorEmail: actor.email,
+      teamName: actor.team.name,
+      teamUrl: actor.team.url,
+    });
+
+    user.incrementFlag(UserFlag.InviteReminderSent);
+    await user.save({ transaction });
+
+    if (process.env.NODE_ENV === "development") {
+      logger.info(
+        "email",
+        `Sign in immediately: ${
+          process.env.URL
+        }/auth/email.callback?token=${user.getEmailSigninToken()}`
+      );
+    }
   });
-
-  if (process.env.NODE_ENV === "development") {
-    logger.info(
-      "email",
-      `Sign in immediately: ${
-        process.env.URL
-      }/auth/email.callback?token=${user.getEmailSigninToken()}`
-    );
-  }
 
   ctx.body = {
     success: true,
