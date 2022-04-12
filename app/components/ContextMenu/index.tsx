@@ -5,6 +5,7 @@ import { Menu } from "reakit/Menu";
 import styled, { DefaultTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { depths } from "@shared/styles";
+import Scrollable from "~/components/Scrollable";
 import useMenuContext from "~/hooks/useMenuContext";
 import useMenuHeight from "~/hooks/useMenuHeight";
 import usePrevious from "~/hooks/usePrevious";
@@ -116,6 +117,7 @@ const ContextMenu: React.FC<Props> = ({
                 topAnchor={topAnchor}
                 rightAnchor={rightAnchor}
                 ref={backgroundRef}
+                hiddenScrollbars
                 style={
                   maxHeight && topAnchor
                     ? {
@@ -180,7 +182,7 @@ type BackgroundProps = {
   theme: DefaultTheme;
 };
 
-export const Background = styled.div<BackgroundProps>`
+export const Background = styled(Scrollable)<BackgroundProps>`
   animation: ${mobileContextMenu} 200ms ease;
   transform-origin: 50% 100%;
   max-width: 100%;
@@ -189,8 +191,6 @@ export const Background = styled.div<BackgroundProps>`
   padding: 6px 0;
   min-width: 180px;
   min-height: 44px;
-  overflow: hidden;
-  overflow-y: auto;
   max-height: 75vh;
   pointer-events: all;
   font-weight: normal;
