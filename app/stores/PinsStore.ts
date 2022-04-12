@@ -14,18 +14,22 @@ export default class PinsStore extends BaseStore<Pin> {
   }
 
   @action
-  fetchPage = async (params?: FetchParams | undefined): Promise<void> => {
+  fetchPage = async (params?: FetchParams | undefined): Promise<Pin[]> => {
     this.isFetching = true;
 
     try {
       const res = await client.post(`/pins.list`, params);
       invariant(res?.data, "Data not available");
+
+      let models: Pin[] = [];
       runInAction(`PinsStore#fetchPage`, () => {
         res.data.documents.forEach(this.rootStore.documents.add);
-        res.data.pins.forEach(this.add);
+        models = res.data.pins.map(this.add);
         this.addPolicies(res.policies);
         this.isLoaded = true;
       });
+
+      return models;
     } finally {
       this.isFetching = false;
     }

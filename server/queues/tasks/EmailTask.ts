@@ -1,5 +1,4 @@
 import emails from "@server/emails/templates";
-import { APM } from "@server/logging/tracing";
 import BaseTask from "./BaseTask";
 
 type Props = {
@@ -7,7 +6,6 @@ type Props = {
   props: Record<string, any>;
 };
 
-@APM.trace()
 export default class EmailTask extends BaseTask<Props> {
   public async perform({ templateName, props }: Props) {
     const EmailClass = emails[templateName];

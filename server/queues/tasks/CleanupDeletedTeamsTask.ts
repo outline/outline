@@ -2,7 +2,6 @@ import { subDays } from "date-fns";
 import { Op } from "sequelize";
 import teamPermanentDeleter from "@server/commands/teamPermanentDeleter";
 import Logger from "@server/logging/logger";
-import { APM } from "@server/logging/tracing";
 import { Team } from "@server/models";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
@@ -10,7 +9,6 @@ type Props = {
   limit: number;
 };
 
-@APM.trace()
 export default class CleanupDeletedTeamsTask extends BaseTask<Props> {
   public async perform({ limit }: Props) {
     Logger.info(

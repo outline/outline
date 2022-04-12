@@ -4,9 +4,9 @@ import { action, computed, observable } from "mobx";
 import parseTitle from "@shared/utils/parseTitle";
 import unescape from "@shared/utils/unescape";
 import DocumentsStore from "~/stores/DocumentsStore";
-import BaseModel from "~/models/BaseModel";
 import User from "~/models/User";
 import { NavigationNode } from "~/types";
+import ParanoidModel from "./ParanoidModel";
 import View from "./View";
 import Field from "./decorators/Field";
 
@@ -17,7 +17,7 @@ type SaveOptions = {
   lastRevision?: number;
 };
 
-export default class Document extends BaseModel {
+export default class Document extends ParanoidModel {
   @observable
   isSaving = false;
 
@@ -63,19 +63,13 @@ export default class Document extends BaseModel {
 
   collaboratorIds: string[];
 
-  createdAt: string;
-
   createdBy: User;
-
-  updatedAt: string;
 
   updatedBy: User;
 
   publishedAt: string | undefined;
 
   archivedAt: string;
-
-  deletedAt: string | undefined;
 
   url: string;
 

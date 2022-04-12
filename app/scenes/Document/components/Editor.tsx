@@ -9,7 +9,6 @@ import { RefHandle } from "~/components/ContentEditable";
 import DocumentMetaWithViews from "~/components/DocumentMetaWithViews";
 import Editor, { Props as EditorProps } from "~/components/Editor";
 import Flex from "~/components/Flex";
-import HoverPreview from "~/components/HoverPreview";
 import {
   documentHistoryUrl,
   documentUrl,
@@ -38,10 +37,6 @@ type Props = Omit<EditorProps, "extensions"> & {
  * and support for hover previews of internal links.
  */
 function DocumentEditor(props: Props, ref: React.RefObject<any>) {
-  const [
-    activeLinkEvent,
-    setActiveLinkEvent,
-  ] = React.useState<MouseEvent | null>(null);
   const titleRef = React.useRef<RefHandle>(null);
   const { t } = useTranslation();
   const match = useRouteMatch();
@@ -57,15 +52,6 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
       ref.current.focusAtEnd();
     }
   }, [ref]);
-
-  const handleLinkActive = React.useCallback((event: MouseEvent) => {
-    setActiveLinkEvent(event);
-    return false;
-  }, []);
-
-  const handleLinkInactive = React.useCallback(() => {
-    setActiveLinkEvent(null);
-  }, []);
 
   const handleGoToNextInput = React.useCallback(
     (insertParagraph: boolean) => {
@@ -123,7 +109,6 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         ref={ref}
         autoFocus={!!title && !props.defaultValue}
         placeholder={t("Type '/' to insert, or start writing…")}
-        onHoverLink={handleLinkActive}
         scrollTo={window.location.hash}
         readOnly={readOnly}
         shareId={shareId}
@@ -132,13 +117,6 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         {...rest}
       />
       {!readOnly && <ClickablePadding onClick={focusAtEnd} grow />}
-      {activeLinkEvent && !shareId && (
-        <HoverPreview
-          node={activeLinkEvent.target as HTMLAnchorElement}
-          event={activeLinkEvent}
-          onClose={handleLinkInactive}
-        />
-      )}
       {children}
     </Flex>
   );

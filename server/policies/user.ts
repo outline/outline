@@ -80,6 +80,20 @@ allow(User, "promote", User, (actor, user) => {
   throw AdminRequiredError();
 });
 
+allow(User, "resendInvite", User, (actor, user) => {
+  if (!user || user.teamId !== actor.teamId) {
+    return false;
+  }
+  if (!user.isInvited) {
+    return false;
+  }
+  if (actor.isAdmin) {
+    return true;
+  }
+
+  throw AdminRequiredError();
+});
+
 allow(User, "demote", User, (actor, user) => {
   if (!user || user.teamId !== actor.teamId) {
     return false;

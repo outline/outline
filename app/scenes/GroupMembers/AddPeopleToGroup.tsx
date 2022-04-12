@@ -113,7 +113,7 @@ class AddPeopleToGroup extends React.Component<Props> {
           }
           items={users.notInGroup(group.id, this.query)}
           fetch={this.query ? undefined : users.fetchPage}
-          renderItem={(item) => (
+          renderItem={(item: User) => (
             <GroupMemberListItem
               key={item.id}
               user={item}

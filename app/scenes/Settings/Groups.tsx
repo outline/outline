@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import { PlusIcon, GroupIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import Group from "~/models/Group";
 import GroupNew from "~/scenes/GroupNew";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
@@ -61,7 +62,7 @@ function Groups() {
         items={groups.orderedData}
         empty={<Empty>{t("No groups have been created yet")}</Empty>}
         fetch={groups.fetchPage}
-        renderItem={(item) => (
+        renderItem={(item: Group) => (
           <GroupListItem
             key={item.id}
             group={item}

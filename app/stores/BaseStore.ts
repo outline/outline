@@ -29,7 +29,7 @@ export const DEFAULT_PAGINATION_LIMIT = 25;
 
 export const PAGINATION_SYMBOL = Symbol.for("pagination");
 
-export default class BaseStore<T extends BaseModel> {
+export default abstract class BaseStore<T extends BaseModel> {
   @observable
   data: Map<string, T> = new Map();
 
@@ -217,7 +217,7 @@ export default class BaseStore<T extends BaseModel> {
   }
 
   @action
-  fetchPage = async (params: FetchPageParams | undefined): Promise<any> => {
+  fetchPage = async (params: FetchPageParams | undefined): Promise<T[]> => {
     if (!this.actions.includes(RPCAction.List)) {
       throw new Error(`Cannot list ${this.modelName}`);
     }

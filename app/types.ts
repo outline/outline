@@ -163,6 +163,7 @@ export type PaginationParams = {
 };
 
 export type SearchResult = {
+  id: string;
   ranking: number;
   context: string;
   document: Document;

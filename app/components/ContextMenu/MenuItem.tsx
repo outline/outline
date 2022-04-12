@@ -7,7 +7,7 @@ import { hover } from "~/styles";
 import MenuIconWrapper from "../MenuIconWrapper";
 
 type Props = {
-  onClick?: (arg0: React.SyntheticEvent) => void | Promise<void>;
+  onClick?: (event: React.SyntheticEvent) => void | Promise<void>;
   selected?: boolean;
   disabled?: boolean;
   dangerous?: boolean;

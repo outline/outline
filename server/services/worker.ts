@@ -1,4 +1,5 @@
 import Logger from "@server/logging/logger";
+import * as Tracing from "@server/logging/tracing";
 import { APM } from "@server/logging/tracing";
 import {
   globalEventQueue,
@@ -14,10 +15,19 @@ export default function init() {
   globalEventQueue.process(
     APM.traceFunction({
       serviceName: "worker",
-      spanName: "processGlobalEvent",
+      spanName: "process",
       isRoot: true,
-    })(function (job) {
+    })(async function (job) {
       const event = job.data;
+      let err;
+
+      Tracing.setResource(`Event.${event.name}`);
+
+      Logger.info("worker", `Processing ${event.name}`, {
+        name: event.name,
+        modelId: event.modelId,
+        attempt: job.attemptsMade,
+      });
 
       // For each registered processor we check to see if it wants to handle the
       // event (applicableEvents), and if so add a new queued job specifically
@@ -25,16 +35,32 @@ export default function init() {
       for (const name in processors) {
         const ProcessorClass = processors[name];
 
-        if (name === "WebsocketsProcessor") {
-          // websockets are a special case on their own queue because they must
-          // only be consumed by the websockets service rather than workers.
-          websocketQueue.add(job.data);
-        } else if (
-          ProcessorClass.applicableEvents.length === 0 ||
-          ProcessorClass.applicableEvents.includes(event.name)
-        ) {
-          processorEventQueue.add({ event, name });
+        if (!ProcessorClass) {
+          throw new Error(
+            `Received event "${event.name}" for processor (${name}) that isn't registered. Check the file name matches the class name.`
+          );
         }
+
+        try {
+          if (name === "WebsocketsProcessor") {
+            // websockets are a special case on their own queue because they must
+            // only be consumed by the websockets service rather than workers.
+            await websocketQueue.add(job.data);
+          } else if (ProcessorClass.applicableEvents.includes(event.name)) {
+            await processorEventQueue.add({ event, name });
+          }
+        } catch (error) {
+          Logger.error(
+            `Error adding ${event.name} to ${name} queue`,
+            error,
+            event
+          );
+          err = error;
+        }
+      }
+
+      if (err) {
+        throw err;
       }
     })
   );
@@ -44,11 +70,13 @@ export default function init() {
   processorEventQueue.process(
     APM.traceFunction({
       serviceName: "worker",
-      spanName: "processEvent",
+      spanName: "process",
       isRoot: true,
-    })(function (job) {
+    })(async function (job) {
       const { event, name } = job.data;
       const ProcessorClass = processors[name];
+
+      Tracing.setResource(`Processor.${name}`);
 
       if (!ProcessorClass) {
         throw new Error(
@@ -59,17 +87,17 @@ export default function init() {
       const processor = new ProcessorClass();
 
       if (processor.perform) {
-        Logger.info("processor", `${name} processing ${event.name}`, {
+        Logger.info("worker", `${name} running ${event.name}`, {
           name: event.name,
           modelId: event.modelId,
         });
-        processor.perform(event).catch((error: Error) => {
-          Logger.error(
-            `Error processing ${event.name} in ${name}`,
-            error,
-            event
-          );
-        });
+
+        try {
+          await processor.perform(event);
+        } catch (err) {
+          Logger.error(`Error processing ${event.name} in ${name}`, err, event);
+          throw err;
+        }
       }
     })
   );
@@ -78,11 +106,13 @@ export default function init() {
   taskQueue.process(
     APM.traceFunction({
       serviceName: "worker",
-      spanName: "processTask",
+      spanName: "process",
       isRoot: true,
-    })(function (job) {
+    })(async function (job) {
       const { name, props } = job.data;
       const TaskClass = tasks[name];
+
+      Tracing.setResource(`Task.${name}`);
 
       if (!TaskClass) {
         throw new Error(
@@ -90,12 +120,16 @@ export default function init() {
         );
       }
 
-      Logger.info("task", `${name} triggered`, props);
+      Logger.info("worker", `${name} running`, props);
 
       const task = new TaskClass();
-      task.perform(props).catch((error: Error) => {
-        Logger.error(`Error processing task  in ${name}`, error, props);
-      });
+
+      try {
+        await task.perform(props);
+      } catch (err) {
+        Logger.error(`Error processing task in ${name}`, err, props);
+        throw err;
+      }
     })
   );
 }

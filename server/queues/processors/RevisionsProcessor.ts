@@ -1,11 +1,9 @@
 import invariant from "invariant";
 import revisionCreator from "@server/commands/revisionCreator";
-import { APM } from "@server/logging/tracing";
 import { Revision, Document, User } from "@server/models";
 import { DocumentEvent, RevisionEvent, Event } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
 
-@APM.trace()
 export default class RevisionsProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = ["documents.update.debounced"];
 

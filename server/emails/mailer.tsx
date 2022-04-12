@@ -2,6 +2,7 @@ import nodemailer, { Transporter } from "nodemailer";
 import Oy from "oy-vey";
 import * as React from "react";
 import Logger from "@server/logging/logger";
+import { APM } from "@server/logging/tracing";
 import { baseStyles } from "./templates/components/EmailLayout";
 
 const useTestEmailService =
@@ -19,6 +20,9 @@ type SendMailOptions = {
 /**
  * Mailer class to send emails.
  */
+@APM.trace({
+  spanName: "mailer",
+})
 export class Mailer {
   transporter: Transporter | undefined;
 
