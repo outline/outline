@@ -187,12 +187,13 @@ describe("userCreator", () => {
     const team = await buildTeam();
     const invite = await buildInvite({
       teamId: team.id,
+      email: "invite@example.com",
     });
     const authenticationProviders = await team.$get("authenticationProviders");
     const authenticationProvider = authenticationProviders[0];
     const result = await userCreator({
       name: invite.name,
-      email: invite.email!,
+      email: "invite@ExamPle.com",
       teamId: invite.teamId,
       ip,
       authentication: {

@@ -51,7 +51,6 @@ if (GOOGLE_CLIENT_ID) {
             throw GoogleWorkspaceInvalidError();
           }
 
-          const email = profile.email.toLowerCase();
           const subdomain = domain.split(".")[0];
           const teamName = capitalize(subdomain);
           const result = await accountProvisioner({
@@ -62,7 +61,7 @@ if (GOOGLE_CLIENT_ID) {
               subdomain,
             },
             user: {
-              email,
+              email: profile.email,
               name: profile.displayName,
               avatarUrl: profile.picture,
             },

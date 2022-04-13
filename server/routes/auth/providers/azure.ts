@@ -69,11 +69,7 @@ if (AZURE_CLIENT_ID) {
         }
 
         const organization = organizationResponse.value[0];
-        const email = (
-          profile.email ||
-          profileResponse.mail ||
-          ""
-        ).toLowerCase();
+        const email = profile.email || profileResponse.mail;
 
         if (!email) {
           throw MicrosoftGraphError(
