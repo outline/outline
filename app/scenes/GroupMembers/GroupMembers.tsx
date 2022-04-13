@@ -103,7 +103,7 @@ function GroupMembers({ group }: Props) {
           id: group.id,
         }}
         empty={<Empty>{t("This group has no members.")}</Empty>}
-        renderItem={(item) => (
+        renderItem={(item: User) => (
           <GroupMemberListItem
             key={item.id}
             user={item}

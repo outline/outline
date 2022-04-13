@@ -16,7 +16,7 @@ export type DragObject = NavigationNode & {
 type Props = Omit<NavLinkProps, "to"> & {
   to?: string | Record<string, any>;
   href?: string | Record<string, any>;
-  innerRef?: (arg0: HTMLElement | null | undefined) => void;
+  innerRef?: (ref: HTMLElement | null | undefined) => void;
   onClick?: React.MouseEventHandler<HTMLAnchorElement>;
   onMouseEnter?: React.MouseEventHandler<HTMLAnchorElement>;
   onDisclosureClick?: React.MouseEventHandler<HTMLButtonElement>;

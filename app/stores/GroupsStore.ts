@@ -21,19 +21,21 @@ export default class GroupsStore extends BaseStore<Group> {
   }
 
   @action
-  fetchPage = async (params: FetchPageParams | undefined): Promise<any> => {
+  fetchPage = async (params: FetchPageParams | undefined): Promise<Group[]> => {
     this.isFetching = true;
 
     try {
       const res = await client.post(`/groups.list`, params);
       invariant(res?.data, "Data not available");
+
+      let models: Group[] = [];
       runInAction(`GroupsStore#fetchPage`, () => {
         this.addPolicies(res.policies);
-        res.data.groups.forEach(this.add);
+        models = res.data.groups.map(this.add);
         res.data.groupMemberships.forEach(this.rootStore.groupMemberships.add);
         this.isLoaded = true;
       });
-      return res.data.groups;
+      return models;
     } finally {
       this.isFetching = false;
     }
@@ -72,7 +74,7 @@ export default class GroupsStore extends BaseStore<Group> {
 }
 
 function queriedGroups(groups: Group[], query: string) {
-  return filter(groups, (group) =>
+  return groups.filter((group) =>
     group.name.toLowerCase().match(query.toLowerCase())
   );
 }

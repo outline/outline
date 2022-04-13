@@ -1,9 +1,9 @@
 import { computed, observable } from "mobx";
 import { Role } from "@shared/types";
-import BaseModel from "./BaseModel";
+import ParanoidModel from "./ParanoidModel";
 import Field from "./decorators/Field";
 
-class User extends BaseModel {
+class User extends ParanoidModel {
   @Field
   @observable
   id: string;
@@ -33,8 +33,6 @@ class User extends BaseModel {
   lastActiveAt: string;
 
   isSuspended: boolean;
-
-  createdAt: string;
 
   @computed
   get isInvited(): boolean {

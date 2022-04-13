@@ -135,7 +135,8 @@ export async function buildUser(overrides: Partial<User> = {}) {
       name: `User ${count}`,
       username: `user${count}`,
       createdAt: new Date("2018-01-01T00:00:00.000Z"),
-      lastActiveAt: new Date("2018-01-01T00:00:00.000Z"),
+      updatedAt: new Date("2018-01-02T00:00:00.000Z"),
+      lastActiveAt: new Date("2018-01-03T00:00:00.000Z"),
       authentications: [
         {
           authenticationProviderId: authenticationProvider!.id,

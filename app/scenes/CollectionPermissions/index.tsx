@@ -4,6 +4,8 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
 import Collection from "~/models/Collection";
+import Group from "~/models/Group";
+import User from "~/models/User";
 import Button from "~/components/Button";
 import Divider from "~/components/Divider";
 import Flex from "~/components/Flex";
@@ -292,7 +294,7 @@ function CollectionPermissions({ collection }: Props) {
         items={collectionGroups}
         fetch={collectionGroupMemberships.fetchPage}
         options={fetchOptions}
-        renderItem={(group) => (
+        renderItem={(group: Group) => (
           <CollectionGroupMemberListItem
             key={group.id}
             group={group}
@@ -310,7 +312,7 @@ function CollectionPermissions({ collection }: Props) {
         items={collectionUsers}
         fetch={memberships.fetchPage}
         options={fetchOptions}
-        renderItem={(item) => (
+        renderItem={(item: User) => (
           <MemberListItem
             key={item.id}
             user={item}

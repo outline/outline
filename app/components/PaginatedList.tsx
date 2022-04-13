@@ -13,18 +13,24 @@ import PlaceholderList from "~/components/List/Placeholder";
 import withStores from "~/components/withStores";
 import { dateToHeading } from "~/utils/dates";
 
-type Props = WithTranslation &
+export interface PaginatedItem {
+  id: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+type Props<T> = WithTranslation &
   RootStore & {
     fetch?: (
-      options: Record<string, any> | null | undefined
-    ) => Promise<any> | undefined;
+      options: Record<string, any> | undefined
+    ) => Promise<T[] | undefined> | undefined;
     options?: Record<string, any>;
     heading?: React.ReactNode;
     empty?: React.ReactNode;
     loading?: React.ReactElement;
-    items?: any[];
+    items?: T[];
     renderItem: (
-      item: any,
+      item: T,
       index: number,
       compositeProps: CompositeStateReturn
     ) => React.ReactNode;
@@ -33,13 +39,14 @@ type Props = WithTranslation &
   };
 
 @observer
-class PaginatedList extends React.Component<Props> {
+class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
   @observable
   isFetchingMore = false;
 
   @observable
   isFetching = false;
 
+  @observable
   fetchCounter = 0;
 
   @observable
@@ -55,7 +62,7 @@ class PaginatedList extends React.Component<Props> {
     this.fetchResults();
   }
 
-  componentDidUpdate(prevProps: Props) {
+  componentDidUpdate(prevProps: Props<T>) {
     if (
       prevProps.fetch !== this.props.fetch ||
       !isEqual(prevProps.options, this.props.options)
@@ -125,76 +132,82 @@ class PaginatedList extends React.Component<Props> {
   };
 
   render() {
-    const { items, heading, auth, empty, renderHeading, onEscape } = this.props;
+    const {
+      items = [],
+      heading,
+      auth,
+      empty = null,
+      renderHeading,
+      onEscape,
+    } = this.props;
     let previousHeading = "";
 
-    const showList = !!items?.length;
-    const showEmpty = items?.length === 0;
     const showLoading =
-      this.isFetching && !this.isFetchingMore && !showList && !showEmpty;
+      this.isFetching &&
+      !this.isFetchingMore &&
+      (!items?.length || this.fetchCounter === 0);
+
+    if (showLoading) {
+      return (
+        this.props.loading || (
+          <DelayedMount>
+            <PlaceholderList count={5} />
+          </DelayedMount>
+        )
+      );
+    }
+
+    if (items?.length === 0) {
+      return empty;
+    }
 
     return (
       <>
-        {showEmpty && empty}
-        {showList && (
-          <>
-            {heading}
-            <ArrowKeyNavigation
-              aria-label={this.props["aria-label"]}
-              onEscape={onEscape}
-            >
-              {(composite: CompositeStateReturn) =>
-                items.slice(0, this.renderCount).map((item, index) => {
-                  const children = this.props.renderItem(
-                    item,
-                    index,
-                    composite
-                  );
+        {heading}
+        <ArrowKeyNavigation
+          aria-label={this.props["aria-label"]}
+          onEscape={onEscape}
+        >
+          {(composite: CompositeStateReturn) =>
+            items.slice(0, this.renderCount).map((item, index) => {
+              const children = this.props.renderItem(item, index, composite);
 
-                  // If there is no renderHeading method passed then no date
-                  // headings are rendered
-                  if (!renderHeading) {
-                    return children;
-                  }
-
-                  // Our models have standard date fields, updatedAt > createdAt.
-                  // Get what a heading would look like for this item
-                  const currentDate =
-                    item.updatedAt || item.createdAt || previousHeading;
-                  const currentHeading = dateToHeading(
-                    currentDate,
-                    this.props.t,
-                    auth.user?.language
-                  );
-
-                  // If the heading is different to any previous heading then we
-                  // should render it, otherwise the item can go under the previous
-                  // heading
-                  if (!previousHeading || currentHeading !== previousHeading) {
-                    previousHeading = currentHeading;
-                    return (
-                      <React.Fragment key={item.id}>
-                        {renderHeading(currentHeading)}
-                        {children}
-                      </React.Fragment>
-                    );
-                  }
-
-                  return children;
-                })
+              // If there is no renderHeading method passed then no date
+              // headings are rendered
+              if (!renderHeading) {
+                return children;
               }
-            </ArrowKeyNavigation>
-            {this.allowLoadMore && (
-              <Waypoint key={this.renderCount} onEnter={this.loadMoreResults} />
-            )}
-          </>
+
+              // Our models have standard date fields, updatedAt > createdAt.
+              // Get what a heading would look like for this item
+              const currentDate =
+                item.updatedAt || item.createdAt || previousHeading;
+              const currentHeading = dateToHeading(
+                currentDate,
+                this.props.t,
+                auth.user?.language
+              );
+
+              // If the heading is different to any previous heading then we
+              // should render it, otherwise the item can go under the previous
+              // heading
+              if (!previousHeading || currentHeading !== previousHeading) {
+                previousHeading = currentHeading;
+                return (
+                  <React.Fragment key={item.id}>
+                    {renderHeading(currentHeading)}
+                    {children}
+                  </React.Fragment>
+                );
+              }
+
+              return children;
+            })
+          }
+        </ArrowKeyNavigation>
+        {this.allowLoadMore && (
+          <Waypoint key={this.renderCount} onEnter={this.loadMoreResults} />
         )}
-        {showLoading &&
-          (this.props.loading || (
-            <DelayedMount>
-              <PlaceholderList count={5} />
-            </DelayedMount>
-          ))}
       </>
     );
   }

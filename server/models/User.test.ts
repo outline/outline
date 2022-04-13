@@ -4,6 +4,12 @@ import CollectionUser from "./CollectionUser";
 import UserAuthentication from "./UserAuthentication";
 
 beforeEach(() => flushdb());
+beforeAll(() => {
+  jest.useFakeTimers().setSystemTime(new Date("2018-01-02T00:00:00.000Z"));
+});
+afterAll(() => {
+  jest.useRealTimers();
+});
 
 describe("user model", () => {
   describe("destroy", () => {

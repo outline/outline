@@ -25,8 +25,9 @@ executors:
   docker-publisher:
     environment:
       IMAGE_NAME: outlinewiki/outline
+      BASE_IMAGE_NAME: outlinewiki/outline-base
     docker:
-      - image: cimg/base
+      - image: circleci/buildpack-deps:stretch
 
 jobs:
   build:
@@ -97,50 +98,36 @@ jobs:
       - setup_remote_docker:
           version: 20.10.6
       - run:
-          name: Build Docker image
-          command: docker build -t $IMAGE_NAME:latest .
-      - run:
-          name: Archive Docker image
-          command: docker save -o image.tar $IMAGE_NAME
-      - persist_to_workspace:
-          root: .
-          paths:
-            - ./image.tar
-  publish-latest:
-    executor: docker-publisher
-    steps:
-      - attach_workspace:
-          at: /tmp/workspace
-      - setup_remote_docker:
-          version: 20.10.6
-      - run:
-          name: Load archived Docker image
-          command: docker load -i /tmp/workspace/image.tar
-      - run:
-          name: Publish Docker Image to Docker Hub
+          name: Install Docker buildx
           command: |
-            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            IMAGE_TAG=${CIRCLE_TAG/v/''}
-            docker tag $IMAGE_NAME:latest $IMAGE_NAME:$IMAGE_TAG
-            docker push $IMAGE_NAME:latest
-            docker push $IMAGE_NAME:$IMAGE_TAG
-  publish-tag:
-    executor: docker-publisher
-    steps:
-      - attach_workspace:
-          at: /tmp/workspace
-      - setup_remote_docker:
-          version: 20.10.6
+            mkdir -p ~/.docker/cli-plugins
+            url="https://github.com/docker/buildx/releases/download/v0.8.0/buildx-v0.8.0.linux-amd64"
+            curl -sSL -o ~/.docker/cli-plugins/docker-buildx $url
+            chmod a+x ~/.docker/cli-plugins/docker-buildx
       - run:
-          name: Load archived Docker image
-          command: docker load -i /tmp/workspace/image.tar
+          name: Enable Docker buildx
+          command: export DOCKER_CLI_EXPERIMENTAL=enabled
       - run:
-          name: Publish Docker Image to Docker Hub
+          name: Initialize Docker buildx
           command: |
-            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            IMAGE_TAG=${CIRCLE_TAG/v/''}
-            docker tag $IMAGE_NAME:latest $IMAGE_NAME:$IMAGE_TAG
-            docker push $IMAGE_NAME:$IMAGE_TAG
+            docker buildx install
+            docker context create docker-multiarch
+            docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+            docker buildx create --name docker-multiarch --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x docker-multiarch
+            docker buildx inspect --builder docker-multiarch --bootstrap
+            docker buildx use docker-multiarch
+      - run:
+          name: Build base image
+          command: docker build -f Dockerfile.base -t $BASE_IMAGE_NAME:latest --load .
+      - run:
+          name: Login to Docker Hub
+          command: echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+      - run:
+          name: Publish base Docker Image to Docker Hub
+          command: docker push $BASE_IMAGE_NAME:latest
+      - run:
+          name: Build and push Docker image
+          command: docker buildx build -t $IMAGE_NAME:latest -t $IMAGE_NAME:${CIRCLE_TAG/v/''} --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x --push .
 
 workflows:
   version: 2
@@ -170,21 +157,5 @@ workflows:
           filters:
             tags:
               only: /^v.*/
-            branches:
-              ignore: /.*/
-      - publish-latest:
-          requires:
-            - build-image
-          filters:
-            tags:
-              only: /^v\d+\.\d+\.\d+$/
-            branches:
-              ignore: /.*/
-      - publish-tag:
-          requires:
-            - build-image
-          filters:
-            tags:
-              only: /^v\d+\.\d+\.\d+-.*$/
             branches:
               ignore: /.*/

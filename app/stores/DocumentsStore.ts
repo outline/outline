@@ -408,6 +408,7 @@ export default class DocumentsStore extends BaseStore<Document> {
           return null;
         }
         return {
+          id: document.id,
           ranking: result.ranking,
           context: result.context,
           document,
