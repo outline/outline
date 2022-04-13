@@ -626,6 +626,7 @@ export const Wrapper = styled(Scrollable)<{
   pointer-events: none;
   white-space: nowrap;
   width: 300px;
+  height: auto;
   max-height: 324px;
 
   * {
