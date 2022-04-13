@@ -76,7 +76,8 @@ if (OIDC_CLIENT_ID) {
             );
           }
 
-          const parts = profile.email.split("@");
+          const email = profile.email.toLowerCase();
+          const parts = email.split("@");
           const domain = parts.length && parts[1];
 
           if (!domain) {
@@ -100,7 +101,7 @@ if (OIDC_CLIENT_ID) {
             },
             user: {
               name: profile.name,
-              email: profile.email,
+              email,
               avatarUrl: profile.picture,
               // Claim name can be overriden using an env variable.
               // Default is 'preferred_username' as per OIDC spec.
