@@ -243,6 +243,7 @@ export default class SelectionToolbar extends React.Component<Props> {
       >
         {link && range ? (
           <LinkEditor
+            key={`${range.from}-${range.to}`}
             dictionary={dictionary}
             mark={range.mark}
             from={range.from}
