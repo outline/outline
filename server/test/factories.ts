@@ -161,12 +161,16 @@ export async function buildInvite(overrides: Partial<User> = {}) {
     overrides.teamId = team.id;
   }
 
+  const actor = await buildUser({ teamId: overrides.teamId });
+
   count++;
   return User.create({
     email: `user${count}@example.com`,
     name: `User ${count}`,
     createdAt: new Date("2018-01-01T00:00:00.000Z"),
+    invitedById: actor.id,
     ...overrides,
+    lastActiveAt: null,
   });
 }
 

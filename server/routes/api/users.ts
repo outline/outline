@@ -322,7 +322,7 @@ router.post("users.resendInvite", auth(), async (ctx) => {
     });
     authorize(actor, "resendInvite", user);
 
-    if (user.getFlag(UserFlag.InviteReminderSent) > 2) {
+    if (user.getFlag(UserFlag.InviteSent) > 2) {
       throw ValidationError("This invite has been sent too many times");
     }
 
@@ -335,7 +335,7 @@ router.post("users.resendInvite", auth(), async (ctx) => {
       teamUrl: actor.team.url,
     });
 
-    user.incrementFlag(UserFlag.InviteReminderSent);
+    user.incrementFlag(UserFlag.InviteSent);
     await user.save({ transaction });
 
     if (process.env.NODE_ENV === "development") {
