@@ -21,7 +21,10 @@ export type Options = {
 
 const insertFiles = function (
   view: EditorView,
-  event: Event | React.ChangeEvent<HTMLInputElement>,
+  event:
+    | Event
+    | React.ChangeEvent<HTMLInputElement>
+    | React.DragEvent<HTMLDivElement>,
   pos: number,
   files: File[],
   options: Options

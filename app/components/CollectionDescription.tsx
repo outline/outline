@@ -66,7 +66,7 @@ function CollectionDescription({ collection }: Props) {
           throw err;
         }
       }, 1000),
-    []
+    [collection, showToast, t]
   );
 
   const handleChange = React.useCallback(
@@ -111,7 +111,6 @@ function CollectionDescription({ collection }: Props) {
                 maxLength={1000}
                 embedsDisabled
                 readOnlyWriteCheckboxes
-                grow
               />
             </React.Suspense>
           ) : (
