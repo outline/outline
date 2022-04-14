@@ -294,7 +294,7 @@
   "Make {{ userName }} a member": "Faire de {{ userName }} un membre",
   "Make {{ userName }} a viewer": "Faire de {{ userName }} un lecteur",
   "Make {{ userName }} an admin…": "Faire de {{ userName }} un administrateur…",
-  "Resend invite": "Resend invite",
+  "Resend invite": "Renvoyer l'invitation",
   "Revoke invite": "Révoquer l'invitation",
   "Activate account": "Activer le compte",
   "Suspend account": "Suspendre le compte",
