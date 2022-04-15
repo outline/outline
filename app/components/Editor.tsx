@@ -164,6 +164,7 @@ function Editor(props: Props, ref: React.Ref<SharedEditor>) {
       <>
         <LazyLoadedEditor
           ref={ref}
+          uploadImage={onUploadFile}
           uploadFile={onUploadFile}
           onShowToast={showToast}
           embeds={embeds}

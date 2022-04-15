@@ -7,6 +7,10 @@ export function cdnPath(path: string): string {
 }
 
 export function isInternalUrl(href: string) {
+  const attachment = "/api/attachments.redirect?";
+  if (href.includes(attachment)) {
+    return false;
+  }
   if (href[0] === "/") {
     return true;
   }

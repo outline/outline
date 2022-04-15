@@ -24,6 +24,7 @@ export const uploadFile = async (
     public: options.public,
     documentId: options.documentId,
     contentType: file.type,
+    contentType: file.type ? file.type : "application/octet-stream",
     size: file.size,
     name,
   });
