@@ -55,7 +55,7 @@ class Search extends React.Component<Props> {
   query: string = decodeURIComponentSafe(this.props.match.params.term || "");
 
   @observable
-  params: URLSearchParams = new URLSearchParams();
+  params: URLSearchParams = new URLSearchParams(this.props.location.search);
 
   @observable
   offset = 0;
