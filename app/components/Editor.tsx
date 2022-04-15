@@ -1,11 +1,16 @@
 import { formatDistanceToNow } from "date-fns";
 import { deburr, sortBy } from "lodash";
+import { TextSelection } from "prosemirror-state";
 import * as React from "react";
 import { Optional } from "utility-types";
+import insertFiles from "@shared/editor/commands/insertFiles";
 import embeds from "@shared/editor/embeds";
+import { supportedImageMimeTypes } from "@shared/utils/files";
+import getDataTransferFiles from "@shared/utils/getDataTransferFiles";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { isInternalUrl } from "@shared/utils/urls";
 import Document from "~/models/Document";
+import ClickablePadding from "~/components/ClickablePadding";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import HoverPreview from "~/components/HoverPreview";
 import type { Props as EditorProps, Editor as SharedEditor } from "~/editor";
@@ -44,7 +49,7 @@ export type Props = Optional<
   onPublish?: (event: React.MouseEvent) => any;
 };
 
-function Editor(props: Props, ref: React.Ref<SharedEditor>) {
+function Editor(props: Props, ref: React.RefObject<SharedEditor>) {
   const { id, shareId } = props;
   const { documents } = useStores();
   const { showToast } = useToasts();
@@ -159,6 +164,58 @@ function Editor(props: Props, ref: React.Ref<SharedEditor>) {
     [shareId]
   );
 
+  const focusAtEnd = React.useCallback(() => {
+    ref.current?.focusAtEnd();
+  }, [ref]);
+
+  const handleDrop = React.useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const files = getDataTransferFiles(event);
+      const view = ref.current?.view;
+      if (!view) {
+        return;
+      }
+
+      // Insert all files as attachments if any of the files are not images.
+      const isAttachment = files.some(
+        (file) => !supportedImageMimeTypes.includes(file.type)
+      );
+
+      // Find a valid position at the end of the document
+      const pos = TextSelection.near(
+        view.state.doc.resolve(view.state.doc.nodeSize - 2)
+      ).from;
+
+      insertFiles(view, event, pos, files, {
+        uploadFile: onUploadFile,
+        onFileUploadStart: props.onFileUploadStart,
+        onFileUploadStop: props.onFileUploadStop,
+        onShowToast: showToast,
+        dictionary,
+        isAttachment,
+      });
+    },
+    [
+      ref,
+      props.onFileUploadStart,
+      props.onFileUploadStop,
+      dictionary,
+      onUploadFile,
+      showToast,
+    ]
+  );
+
+  // see: https://stackoverflow.com/a/50233827/192065
+  const handleDragOver = React.useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      event.stopPropagation();
+      event.preventDefault();
+    },
+    []
+  );
+
   return (
     <ErrorBoundary reloadOnChunkMissing>
       <>
@@ -175,6 +232,14 @@ function Editor(props: Props, ref: React.Ref<SharedEditor>) {
           placeholder={props.placeholder || ""}
           defaultValue={props.defaultValue || ""}
         />
+        {props.grow && !props.readOnly && (
+          <ClickablePadding
+            onClick={focusAtEnd}
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            grow
+          />
+        )}
         {activeLinkEvent && !shareId && (
           <HoverPreview
             node={activeLinkEvent.target as HTMLAnchorElement}
