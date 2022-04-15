@@ -88,7 +88,7 @@ function Security() {
                 await saveData(newData);
               }}
               submitText={t("I’m sure — Disable")}
-              savingText={`${t("Disabling…")}`}
+              savingText={`${t("Disabling")}…`}
               danger
             >
               <Trans

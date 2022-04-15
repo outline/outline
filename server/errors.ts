@@ -21,7 +21,7 @@ export function AuthorizationError(
 }
 
 export function InviteRequiredError(
-  message = "You need an invite join this team"
+  message = "You need an invite to join this team"
 ) {
   return httpErrors(403, message, {
     id: "invite_required",
