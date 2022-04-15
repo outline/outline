@@ -602,6 +602,6 @@ const ImageWrapper = styled.div`
   }
 
   &.ProseMirror-selectednode + ${Caption} {
-    display: block;
+    display: inherit;
   }
 `;
