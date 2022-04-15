@@ -15,6 +15,7 @@ import Diagrams from "./Diagrams";
 import Figma from "./Figma";
 import Framer from "./Framer";
 import Gist from "./Gist";
+import Gliffy from "./Gliffy";
 import GoogleCalendar from "./GoogleCalendar";
 import GoogleDataStudio from "./GoogleDataStudio";
 import GoogleDocs from "./GoogleDocs";
@@ -159,6 +160,13 @@ const embeds: EmbedDescriptor[] = [
     icon: () => <Img src="/images/github-gist.png" alt="GitHub" />,
     component: Gist,
     matcher: matcher(Gist),
+  },
+  {
+    title: "Gliffy",
+    keywords: "diagram",
+    icon: () => <Img src="/images/gliffy.png" alt="Gliffy" />,
+    component: Gliffy,
+    matcher: matcher(Gliffy),
   },
   {
     title: "Diagrams.net",
