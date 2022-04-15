@@ -207,6 +207,15 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor>) {
     ]
   );
 
+  // see: https://stackoverflow.com/a/50233827/192065
+  const handleDragOver = React.useCallback(
+    (event: React.DragEvent<HTMLDivElement>) => {
+      event.stopPropagation();
+      event.preventDefault();
+    },
+    []
+  );
+
   return (
     <ErrorBoundary reloadOnChunkMissing>
       <>
@@ -224,7 +233,12 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor>) {
           defaultValue={props.defaultValue || ""}
         />
         {props.grow && !props.readOnly && (
-          <ClickablePadding onClick={focusAtEnd} onDrop={handleDrop} grow />
+          <ClickablePadding
+            onClick={focusAtEnd}
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            grow
+          />
         )}
         {activeLinkEvent && !shareId && (
           <HoverPreview
