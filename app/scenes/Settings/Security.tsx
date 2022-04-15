@@ -4,7 +4,7 @@ import { PadlockIcon } from "outline-icons";
 import { useState } from "react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
-import DisableSignupsConfirmation from "~/components/ConfirmationDialog";
+import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Heading from "~/components/Heading";
 import InputSelect from "~/components/InputSelect";
 import Scene from "~/components/Scene";
@@ -83,7 +83,7 @@ function Security() {
           isCentered: true,
           title: t("Are you sure you want to disable authorized signups?"),
           content: (
-            <DisableSignupsConfirmation
+            <ConfirmationDialog
               onSubmit={async () => {
                 await saveData(newData);
               }}
@@ -92,7 +92,7 @@ function Security() {
               danger
             >
               <Trans
-                defaults="Team members will no longer be able to create accounts on their own with <em>{{authMethodSnippet}}</em> and will need to be invited first."
+                defaults="New account creation using <em>{{ authenticationMethods }}</em> will be disabled. New users will need to be invited."
                 values={{
                   authMethodSnippet,
                 }}
@@ -100,7 +100,7 @@ function Security() {
                   em: <strong />,
                 }}
               />
-            </DisableSignupsConfirmation>
+            </ConfirmationDialog>
           ),
         });
         return;
