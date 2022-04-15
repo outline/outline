@@ -1959,12 +1959,14 @@ describe("#documents.update", () => {
     const user = await buildUser();
     const collection = await buildCollection({
       teamId: user.teamId,
+      userId: user.id,
     });
     const template = await buildDocument({
       teamId: user.teamId,
       collectionId: collection.id,
       template: true,
       publishedAt: null,
+      userId: user.id,
     });
     const res = await server.post("/api/documents.update", {
       body: {

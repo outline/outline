@@ -459,6 +459,7 @@ async function loadDocument({
 
     // If the user has access to read the document, we can just update
     // the last access date and return the document without additional checks.
+    document.fromShare = true;
     const canReadDocument = user && can(user, "read", document);
 
     if (canReadDocument) {
@@ -567,12 +568,12 @@ router.post(
     const data =
       apiVersion === 2
         ? {
-            document: serializedDocument,
-            sharedTree:
-              share && share.includeChildDocuments
-                ? collection.getDocumentTree(share.documentId)
-                : undefined,
-          }
+          document: serializedDocument,
+          sharedTree:
+            share && share.includeChildDocuments
+              ? collection.getDocumentTree(share.documentId)
+              : undefined,
+        }
         : serializedDocument;
     ctx.body = {
       data,

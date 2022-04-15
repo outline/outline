@@ -11,9 +11,19 @@ allow(User, "createDocument", Team, (user, team) => {
 });
 
 allow(User, ["read", "download"], Document, (user, document) => {
+  if (
+    !document.fromShare &&
+    !document.publishedAt &&
+    document.createdById !== user.id
+  ) {
+    return false;
+  }
+
   if (!document) {
     return false;
   }
+
+  if (!document.publishedAt && document.createdById !== user.id) return false;
 
   // existence of collection option is not required here to account for share tokens
   if (document.collection && cannot(user, "read", document.collection)) {
@@ -64,6 +74,7 @@ allow(User, "unstar", Document, (user, document) => {
 });
 
 allow(User, "share", Document, (user, document) => {
+  if (!document.publishedAt && document.createdById !== user.id) return false;
   if (!document) {
     return false;
   }
@@ -86,6 +97,7 @@ allow(User, "share", Document, (user, document) => {
 });
 
 allow(User, "update", Document, (user, document) => {
+  if (!document.publishedAt && document.createdById !== user.id) return false;
   if (!document) {
     return false;
   }
@@ -199,6 +211,7 @@ allow(User, ["pinToHome"], Document, (user, document) => {
 });
 
 allow(User, "delete", Document, (user, document) => {
+  if (!document.publishedAt && document.createdById !== user.id) return false;
   if (!document) {
     return false;
   }
@@ -215,11 +228,7 @@ allow(User, "delete", Document, (user, document) => {
   }
 
   // unpublished drafts can always be deleted
-  if (
-    !document.deletedAt &&
-    !document.publishedAt &&
-    user.teamId === document.teamId
-  ) {
+  if (!document.publishedAt && user.teamId === document.teamId) {
     return true;
   }
 
