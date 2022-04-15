@@ -67,8 +67,7 @@ function Security() {
 
   const handleDefaultRoleChange = React.useCallback(
     async (newDefaultRole: string) => {
-      const newData = { ...data, defaultUserRole: newDefaultRole };
-      await saveData(newData);
+      await saveData({ ...data, defaultUserRole: newDefaultRole });
     },
     [data, saveData]
   );
