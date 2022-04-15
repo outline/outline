@@ -24,6 +24,7 @@ import GoogleDrive from "./GoogleDrive";
 import GoogleSheets from "./GoogleSheets";
 import GoogleSlides from "./GoogleSlides";
 import InVision from "./InVision";
+import JSFiddle from "./JSFiddle";
 import Loom from "./Loom";
 import Lucidchart from "./Lucidchart";
 import Marvel from "./Marvel";
@@ -233,6 +234,14 @@ const embeds: EmbedDescriptor[] = [
     icon: () => <Img src="/images/invision.png" alt="InVision" />,
     component: InVision,
     matcher: matcher(InVision),
+  },
+  {
+    title: "JSFiddle",
+    keywords: "code",
+    defaultHidden: true,
+    icon: () => <Img src="/images/jsfiddle.png" alt="JSFiddle" />,
+    component: JSFiddle,
+    matcher: matcher(JSFiddle),
   },
   {
     title: "Loom",
