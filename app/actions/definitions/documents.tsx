@@ -13,12 +13,18 @@ import {
   SearchIcon,
 } from "outline-icons";
 import * as React from "react";
+import { Trans } from "react-i18next";
 import getDataTransferFiles from "@shared/utils/getDataTransferFiles";
-import DocumentTemplatize from "~/scenes/DocumentTemplatize";
+import ConfirmationDialog from "~/components/ConfirmationDialog";
 import { createAction } from "~/actions";
 import { DocumentSection } from "~/actions/sections";
 import history from "~/utils/history";
-import { homePath, newDocumentPath, searchPath } from "~/utils/routeHelpers";
+import {
+  documentUrl,
+  homePath,
+  newDocumentPath,
+  searchPath,
+} from "~/utils/routeHelpers";
 
 export const openDocument = createAction({
   name: ({ t }) => t("Open document"),
@@ -306,17 +312,43 @@ export const createTemplate = createAction({
     if (!activeDocumentId) {
       return;
     }
-
+    const document = stores.documents.get(activeDocumentId);
+    if (!document) {
+      return;
+    }
     event?.preventDefault();
     event?.stopPropagation();
 
     stores.dialogs.openModal({
       title: t("Create template"),
+      isCentered: true,
       content: (
-        <DocumentTemplatize
-          documentId={activeDocumentId}
-          onSubmit={stores.dialogs.closeAllModals}
-        />
+        <ConfirmationDialog
+          onSubmit={async () => {
+            const template = await document?.templatize();
+            if (template) {
+              history.push(documentUrl(template));
+              stores.toasts.showToast(
+                t("Template created, go ahead and customize it"),
+                {
+                  type: "info",
+                }
+              );
+            }
+          }}
+          submitText={t("Create template")}
+          savingText={`${t("Creating")}…`}
+        >
+          <Trans
+            defaults="Creating a template from <em>{{titleWithDefault}}</em> is a non-destructive action – we'll make a copy of the document and turn it into a template that can be used as a starting point for new documents."
+            values={{
+              titleWithDefault: document.titleWithDefault,
+            }}
+            components={{
+              em: <strong />,
+            }}
+          />
+        </ConfirmationDialog>
       ),
     });
   },
