@@ -13,6 +13,7 @@ import Document from "~/models/Document";
 import ContentEditable, { RefHandle } from "~/components/ContentEditable";
 import Star, { AnimatedStar } from "~/components/Star";
 import useEmojiWidth from "~/hooks/useEmojiWidth";
+import { AnimatedStar } from "~/components/Star";
 import { isModKey } from "~/utils/keyboard";
 
 type Props = {
@@ -38,17 +39,7 @@ const fontSize = "2.25em";
 
 const EditableTitle = React.forwardRef(
   (
-    {
-      value,
-      document,
-      readOnly,
-      onChange,
-      onSave,
-      onGoToNextInput,
-      onBlur,
-      starrable,
-      placeholder,
-    }: Props,
+    { value, document, readOnly, onChange, onSave, onGoToNextInput }: Props,
     ref: React.RefObject<RefHandle>
   ) => {
     const normalizedTitle =
@@ -161,7 +152,7 @@ type TitleProps = {
   $emojiWidth: number;
 };
 
-const Title = styled(ContentEditable)<TitleProps>`
+const Title = styled(ContentEditable) <TitleProps>`
   line-height: ${lineHeight};
   margin-top: 1em;
   margin-bottom: 0.5em;
@@ -172,6 +163,10 @@ const Title = styled(ContentEditable)<TitleProps>`
 
   > span {
     outline: none;
+    display: block;
+    padding-bottom: 10px;
+    margin-bottom: 5px;
+    border-bottom: 1px solid ${(props) => props.theme.smokeDark};
   }
 
   &::placeholder {
