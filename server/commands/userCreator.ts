@@ -144,9 +144,16 @@ export default async function userCreator({
 
   try {
     const team = await Team.findByPk(teamId, {
-      attributes: ["defaultUserRole"],
+      attributes: ["defaultUserRole", "inviteRequired"],
       transaction,
     });
+
+    // If the team settings are set to require invites, and the user is not already invited,
+    // throw an error and fail user creation.
+    if (team?.inviteRequired && !invite) {
+      throw new Error("Invite required");
+    }
+
     const defaultUserRole = team?.defaultUserRole;
 
     const user = await User.create(
