@@ -1,5 +1,9 @@
 export function isHash(href: string) {
-  if (href[0] === "#") {
+  const attachment = "/api/attachments.redirect?";
+  if (href.includes(attachment)) {
+    return false;
+  }
+  if (href[0] === "/") {
     return true;
   }
 

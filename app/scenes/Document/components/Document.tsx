@@ -368,6 +368,14 @@ class DocumentScene extends React.Component<Props> {
     this.isUploading = false;
   };
 
+  onFileUploadStart = () => {
+    this.isUploading = true;
+  };
+
+  onFileUploadStop = () => {
+    this.isUploading = false;
+  };
+
   onChange = (getEditorText: () => string) => {
     const { document, auth } = this.props;
     this.getEditorText = getEditorText;
@@ -428,7 +436,7 @@ class DocumentScene extends React.Component<Props> {
 
     const headings = this.editor.current
       ? // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
-        this.editor.current.getHeadings()
+      this.editor.current.getHeadings()
       : [];
 
     const hasHeadings = headings.length > 0;
@@ -647,7 +655,7 @@ type MaxWidthProps = {
   showContents?: boolean;
 };
 
-const MaxWidth = styled(Flex)<MaxWidthProps>`
+const MaxWidth = styled(Flex) <MaxWidthProps>`
   // Adds space to the gutter to make room for heading annotations
   padding: 0 32px;
   transition: padding 100ms;

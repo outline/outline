@@ -125,6 +125,16 @@ function Editor(props: Props, ref: React.Ref<SharedEditor>) {
     [id]
   );
 
+  const onUpload = React.useCallback(
+    async (file: File) => {
+      const result = await uploadFile(file, {
+        documentId: id,
+      });
+      return result.url;
+    },
+    [id]
+  );
+
   const onClickLink = React.useCallback(
     (href: string, event: MouseEvent) => {
       // on page hash
