@@ -13,10 +13,6 @@ export default function createMiddleware(providerName: string) {
       },
       async (err, user, result: AccountProvisionerResult) => {
         if (err) {
-          if (err.message === "Invite required") {
-            return ctx.redirect(`/?notice=invite-required`);
-          }
-
           Logger.error("Error during authentication", err);
 
           if (err.id) {

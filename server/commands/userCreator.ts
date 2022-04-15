@@ -1,4 +1,5 @@
 import { Op } from "sequelize";
+import { InviteRequiredError } from "@server/errors";
 import { Event, Team, User, UserAuthentication } from "@server/models";
 
 type UserCreatorResult = {
@@ -151,7 +152,7 @@ export default async function userCreator({
     // If the team settings are set to require invites, and the user is not already invited,
     // throw an error and fail user creation.
     if (team?.inviteRequired && !invite) {
-      throw new Error("Invite required");
+      throw InviteRequiredError();
     }
 
     const defaultUserRole = team?.defaultUserRole;
