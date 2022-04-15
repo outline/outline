@@ -22,6 +22,7 @@ import GoogleDrawings from "./GoogleDrawings";
 import GoogleDrive from "./GoogleDrive";
 import GoogleSheets from "./GoogleSheets";
 import GoogleSlides from "./GoogleSlides";
+import Giphy from "./Giphy";
 import InVision from "./InVision";
 import Loom from "./Loom";
 import Lucidchart from "./Lucidchart";
@@ -201,6 +202,13 @@ const embeds: EmbedDescriptor[] = [
     icon: () => <Img src="/images/google-slides.png" alt="Google Slides" />,
     component: GoogleSlides,
     matcher: matcher(GoogleSlides),
+  },
+  {
+    title: "Giphy",
+    keywords: "gif video",
+    icon: () => <Img src="/images/giphy.png" />,
+    component: Giphy,
+    matcher: matcher(Giphy),
   },
   {
     title: "Google Calendar",
