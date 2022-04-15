@@ -1,0 +1,83 @@
+version: "3"
+services:
+  redis:
+    image: redis
+    ports:
+      - "6479:6379"
+  postgres:
+    image: postgres
+    ports:
+      - "5532:5432"
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+      POSTGRES_DB: outline
+  s3:
+    image: lphoward/fake-s3
+    ports:
+      - "4569:4569"
+    volumes:
+      - ./fakes3:/fakes3_root
+  outline:
+    image: outline:v001
+    command: sh -c "yarn sequelize:migrate --env production-ssl-disabled && yarn dev:watch"
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    ports:
+      # web ports
+      - "3000:3000"
+      # multiplayer ports
+      - "4000:4000"
+      # debug ports
+      - "9229:9229"
+      - "9230:9230"
+    environment:
+      # Preset some configurations to quickly initialize the container for development
+      - SECRET_KEY=f6ed695c4d007a2986b075253a998ac74bbdd9a3d66e975dd4f74ecec736d7f7
+      - UTILS_SECRET=ccc7839c14fe4757eec1b7d1447fe3f5769b0eca48f877e4c750fa800a8b11d8
+      - DATABASE_URL=postgres://user:pass@postgres:5432/outline
+      - DATABASE_URL_TEST=postgres://user:pass@postgres:5432/outline-test
+      - REDIS_URL=redis://redis:6379
+      - URL=http://localhost:3000
+      - PORT=3000
+      - AWS_ACCESS_KEY_ID=get_a_key_from_aws
+      - AWS_SECRET_ACCESS_KEY=get_the_secret_of_above_key
+      - AWS_REGION=xx-xxxx-x
+      - AWS_S3_UPLOAD_BUCKET_URL=http://s3:4569
+      - AWS_S3_UPLOAD_BUCKET_NAME=bucket_name_here
+      - AWS_S3_UPLOAD_MAX_SIZE=26214400
+      - AWS_S3_FORCE_PATH_STYLE=true
+      - AWS_S3_ACL=private
+      - OIDC_ALLOWED_DOMAINS=company.ltd
+      - OIDC_DISPLAY_NAME=MySSO
+      - OIDC_CLIENT_ID=b8c40013-cc03-4bc5-b3a5-6a31046fa415
+      - OIDC_CLIENT_SECRET=26272010-37d9-4bea-a58e-6b0a382d7626
+      - OIDC_AUTH_URI=http://localhost:8012/dialog/authorize
+      - OIDC_TOKEN_URI=http://outline-dev-sso/oauth/token
+      - OIDC_USERINFO_URI=http://outline-dev-sso/api/outline/oidc
+      - WEB_CONCURRENCY=1
+    volumes:
+      # Only need to map the source code
+      - ./app:/opt/outline/app
+      - ./server:/opt/outline/server
+      - ./shared:/opt/outline/shared
+    depends_on:
+      - postgres
+      - redis
+      - s3
+  sso:
+    image: soulteary/sso-server:1.1.5
+    container_name: outline-dev-sso
+    restart: always
+    ports:
+      - 8012:80
+    command: ./main
+    environment:
+      - PORT=80
+      - SERVER_NAME=SELF-HOSTED SSO
+      - CLIENT_NAME=My SSO Service
+      - CLIENT_ID=b8c40013-cc03-4bc5-b3a5-6a31046fa415
+      - CLIENT_SECRET=26272010-37d9-4bea-a58e-6b0a382d7626
+      - USER_PASS=password
+      - CLIENT_ISTRUSTED=true
