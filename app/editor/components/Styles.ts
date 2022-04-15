@@ -367,6 +367,7 @@ const EditorStyles = styled.div<{
     top: -2px;
     width: 26px;
     height: 24px;
+    z-index: 3;
 
     &.collapsed {
       opacity: 1;
@@ -516,7 +517,7 @@ const EditorStyles = styled.div<{
     &:hover {
       border-bottom: 1px dotted
         ${(props) =>
-          props.readOnly ? props.theme.placeholder : props.theme.textSecondary};
+    props.readOnly ? props.theme.placeholder : props.theme.textSecondary};
     }
   }
 
@@ -646,9 +647,9 @@ const EditorStyles = styled.div<{
     display: inline-block;
     cursor: pointer;
     pointer-events: ${(props) =>
-      props.readOnly && !props.readOnlyWriteCheckboxes ? "none" : "initial"};
+    props.readOnly && !props.readOnlyWriteCheckboxes ? "none" : "initial"};
     opacity: ${(props) =>
-      props.readOnly && !props.readOnlyWriteCheckboxes ? 0.75 : 1};
+    props.readOnly && !props.readOnlyWriteCheckboxes ? 0.75 : 1};
     margin: ${(props) => (props.rtl ? "0 0 0 0.5em" : "0 0.5em 0 0")};
     width: 14px;
     height: 14px;
@@ -658,19 +659,19 @@ const EditorStyles = styled.div<{
     opacity: .8;
 
     background-image: ${(props) =>
-      `url("data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 14 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M3 0C1.34315 0 0 1.34315 0 3V11C0 12.6569 1.34315 14 3 14H11C12.6569 14 14 12.6569 14 11V3C14 1.34315 12.6569 0 11 0H3ZM3 2C2.44772 2 2 2.44772 2 3V11C2 11.5523 2.44772 12 3 12H11C11.5523 12 12 11.5523 12 11V3C12 2.44772 11.5523 2 11 2H3Z' fill='${props.theme.text.replace(
-        "#",
-        "%23"
-      )}' /%3E%3C/svg%3E%0A");`}
+    `url("data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 14 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M3 0C1.34315 0 0 1.34315 0 3V11C0 12.6569 1.34315 14 3 14H11C12.6569 14 14 12.6569 14 11V3C14 1.34315 12.6569 0 11 0H3ZM3 2C2.44772 2 2 2.44772 2 3V11C2 11.5523 2.44772 12 3 12H11C11.5523 12 12 11.5523 12 11V3C12 2.44772 11.5523 2 11 2H3Z' fill='${props.theme.text.replace(
+      "#",
+      "%23"
+    )}' /%3E%3C/svg%3E%0A");`}
 
     &[aria-checked=true] {
       opacity: 1;
       background-image: ${(props) =>
-        `url(
+    `url(
           "data:image/svg+xml,%3Csvg width='14' height='14' viewBox='0 0 14 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath fill-rule='evenodd' clip-rule='evenodd' d='M3 0C1.34315 0 0 1.34315 0 3V11C0 12.6569 1.34315 14 3 14H11C12.6569 14 14 12.6569 14 11V3C14 1.34315 12.6569 0 11 0H3ZM4.26825 5.85982L5.95873 7.88839L9.70003 2.9C10.0314 2.45817 10.6582 2.36863 11.1 2.7C11.5419 3.03137 11.6314 3.65817 11.3 4.1L6.80002 10.1C6.41275 10.6164 5.64501 10.636 5.2318 10.1402L2.7318 7.14018C2.37824 6.71591 2.43556 6.08534 2.85984 5.73178C3.28412 5.37821 3.91468 5.43554 4.26825 5.85982Z' fill='${props.theme.primary.replace(
-            "#",
-            "%23"
-          )}' /%3E%3C/svg%3E%0A"
+      "#",
+      "%23"
+    )}' /%3E%3C/svg%3E%0A"
         )`};
     }
 
@@ -954,7 +955,7 @@ const EditorStyles = styled.div<{
 
     .selectedCell {
       background: ${(props) =>
-        props.readOnly ? "inherit" : props.theme.tableSelectedBackground};
+    props.readOnly ? "inherit" : props.theme.tableSelectedBackground};
 
       /* fixes Firefox background color painting over border:
        * https://bugzilla.mozilla.org/show_bug.cgi?id=688556 */
@@ -1054,7 +1055,7 @@ const EditorStyles = styled.div<{
 
     &:hover {
       scrollbar-color: ${(props) => props.theme.scrollbarThumb} ${(props) =>
-  props.theme.scrollbarBackground};
+    props.theme.scrollbarBackground};
     }
 
     & ::-webkit-scrollbar {
