@@ -59,8 +59,7 @@ function Security() {
 
   const handleChange = React.useCallback(
     async (ev: React.ChangeEvent<HTMLInputElement>) => {
-      const newData = { ...data, [ev.target.id]: ev.target.checked };
-      await saveData(newData);
+      await saveData({ ...data, [ev.target.id]: ev.target.checked });
     },
     [data, saveData]
   );
