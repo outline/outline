@@ -30,7 +30,7 @@ function Security() {
     inviteRequired: team.inviteRequired,
   });
 
-  const authMethodSnippet = team.signinMethods;
+  const authenticationMethods = team.signinMethods;
 
   const showSuccessMessage = React.useMemo(
     () =>
@@ -92,7 +92,7 @@ function Security() {
               <Trans
                 defaults="New account creation using <em>{{ authenticationMethods }}</em> will be disabled. New users will need to be invited."
                 values={{
-                  authMethodSnippet,
+                  authenticationMethods,
                 }}
                 components={{
                   em: <strong />,
@@ -106,7 +106,7 @@ function Security() {
 
       await saveData(newData);
     },
-    [data, saveData, t, dialogs, authMethodSnippet]
+    [data, saveData, t, dialogs, authenticationMethods]
   );
 
   return (
@@ -176,9 +176,9 @@ function Security() {
         name="allowSignups"
         description={
           <Trans
-            defaults="Allow authorized <em>{{ authMethodSnippet }}</em> users to create new accounts without first receiving an invite"
+            defaults="Allow authorized <em>{{ authenticationMethods }}</em> users to create new accounts without first receiving an invite"
             values={{
-              authMethodSnippet,
+              authenticationMethods,
             }}
             components={{
               em: <strong />,

@@ -632,7 +632,7 @@
   "Collection creation": "Collection creation",
   "Allow members to create new collections within the knowledge base": "Allow members to create new collections within the knowledge base",
   "Allow authorized signups": "Allow authorized signups",
-  "Allow authorized <em>{{ authMethodSnippet }}</em> users to create new accounts without first receiving an invite": "Allow authorized <em>{{ authMethodSnippet }}</em> users to create new accounts without first receiving an invite",
+  "Allow authorized <em>{{ authenticationMethods }}</em> users to create new accounts without first receiving an invite": "Allow authorized <em>{{ authenticationMethods }}</em> users to create new accounts without first receiving an invite",
   "Default role": "Default role",
   "The default user role for new accounts. Changing this setting does not affect existing user accounts.": "The default user role for new accounts. Changing this setting does not affect existing user accounts.",
   "Sharing is currently disabled.": "Sharing is currently disabled.",
