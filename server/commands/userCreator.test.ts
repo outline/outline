@@ -211,7 +211,7 @@ describe("userCreator", () => {
     expect(isNewUser).toEqual(true);
   });
 
-  it.only("should reject an uninvited user when invites are required", async () => {
+  it("should reject an uninvited user when invites are required", async () => {
     const team = await buildTeam({ inviteRequired: true });
 
     const authenticationProviders = await team.$get("authenticationProviders");
