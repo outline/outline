@@ -1,4 +1,5 @@
 import { useObserver } from "mobx-react";
+import { CommentIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
@@ -16,9 +17,10 @@ type Props = {
   rtl?: boolean;
 };
 
-function DocumentMetaWithViews({ to, isDraft, document, ...rest }: Props) {
-  const { views } = useStores();
+function TitleDocumentMeta({ to, isDraft, document, ...rest }: Props) {
+  const { auth, views, ui } = useStores();
   const { t } = useTranslation();
+  const { team } = auth;
   const documentViews = useObserver(() => views.inDocument(document.id));
   const totalViewers = documentViews.length;
   const onlyYou = totalViewers === 1 && documentViews[0].user.id;
@@ -30,6 +32,10 @@ function DocumentMetaWithViews({ to, isDraft, document, ...rest }: Props) {
       });
     }
   }, [views, document.id, document.isDeleted]);
+
+  const handleClickComments = () => {
+    ui.expandComments();
+  };
 
   const popover = usePopoverState({
     gutter: 8,
@@ -59,9 +65,23 @@ function DocumentMetaWithViews({ to, isDraft, document, ...rest }: Props) {
       <Popover {...popover} width={300} aria-label={t("Viewers")} tabIndex={0}>
         <DocumentViews document={document} isOpen={popover.visible} />
       </Popover>
+      {team?.commenting && (
+        <>
+          &nbsp;•&nbsp;
+          <Link onClick={handleClickComments}>
+            <CommentIcon color="currentColor" size={18} />
+            {t("Comment")}
+          </Link>
+        </>
+      )}
     </Meta>
   );
 }
+
+const Link = styled.a`
+  display: inline-flex;
+  align-items: center;
+`;
 
 const Meta = styled(DocumentMeta)<{ rtl?: boolean }>`
   justify-content: ${(props) => (props.rtl ? "flex-end" : "flex-start")};
@@ -83,4 +103,4 @@ const Meta = styled(DocumentMeta)<{ rtl?: boolean }>`
   }
 `;
 
-export default DocumentMetaWithViews;
+export default TitleDocumentMeta;

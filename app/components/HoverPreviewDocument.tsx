@@ -3,7 +3,7 @@ import * as React from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
-import DocumentMetaWithViews from "~/components/DocumentMetaWithViews";
+import DocumentMeta from "~/components/DocumentMeta";
 import Editor from "~/components/Editor";
 import useStores from "~/hooks/useStores";
 
@@ -30,10 +30,7 @@ function HoverPreviewDocument({ url, children }: Props) {
       {children(
         <Content to={document.url}>
           <Heading>{document.titleWithDefault}</Heading>
-          <DocumentMetaWithViews
-            isDraft={document.isDraft}
-            document={document}
-          />
+          <DocumentMeta document={document} />
 
           <React.Suspense fallback={<div />}>
             <Editor

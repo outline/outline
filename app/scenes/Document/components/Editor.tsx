@@ -6,7 +6,6 @@ import fullWithCommentsPackage from "@shared/editor/packages/fullWithComments";
 import Comment from "~/models/Comment";
 import Document from "~/models/Document";
 import { RefHandle } from "~/components/ContentEditable";
-import DocumentMetaWithViews from "~/components/DocumentMetaWithViews";
 import Editor, { Props as EditorProps } from "~/components/Editor";
 import Flex from "~/components/Flex";
 import useStores from "~/hooks/useStores";
@@ -16,6 +15,7 @@ import {
   matchDocumentHistory,
 } from "~/utils/routeHelpers";
 import MultiplayerEditor from "./AsyncMultiplayerEditor";
+import DocumentMeta from "./DocumentMeta";
 import EditableTitle from "./EditableTitle";
 
 type Props = Omit<EditorProps, "extensions"> & {
@@ -132,7 +132,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         placeholder={t("Untitled")}
       />
       {!shareId && (
-        <DocumentMetaWithViews
+        <DocumentMeta
           isDraft={isDraft}
           document={document}
           to={
@@ -155,7 +155,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         userId={user?.id}
         extensions={fullWithCommentsPackage}
         grow
-        onClickComment={team?.commenting ? handleClickComment : undefined}
+        onClickComment={handleClickComment}
         onDraftComment={team?.commenting ? handleDraftComment : undefined}
         onRemoveComment={team?.commenting ? handleRemoveComment : undefined}
         {...rest}

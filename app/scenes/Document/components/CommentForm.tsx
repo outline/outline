@@ -22,6 +22,7 @@ function CommentForm({ documentId, thread, onTyping }: Props) {
     undefined
   );
   const formRef = React.useRef<HTMLFormElement>(null);
+  const [forceRender, setForceRender] = React.useState(0);
   const { t } = useTranslation();
   const { showToast } = useToasts();
   const { comments } = useStores();
@@ -33,6 +34,7 @@ function CommentForm({ documentId, thread, onTyping }: Props) {
     const comment = comments.get(thread.id);
     if (comment) {
       setData(undefined);
+      setForceRender((s) => ++s);
 
       try {
         await comment.save({
@@ -49,6 +51,7 @@ function CommentForm({ documentId, thread, onTyping }: Props) {
     event.preventDefault();
 
     setData(undefined);
+    setForceRender((s) => ++s);
 
     try {
       await comments.save({
@@ -80,6 +83,7 @@ function CommentForm({ documentId, thread, onTyping }: Props) {
       <Flex gap={8}>
         <Avatar src={user.avatarUrl} />
         <CommentEditor
+          key={`${forceRender}`}
           onChange={handleChange}
           onSave={handleSave}
           maxLength={MAX_COMMENT_LENGTH}
