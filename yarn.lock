@@ -1276,10 +1276,10 @@
   dependencies:
     tslib "^2.1.0"
 
-"@getoutline/y-prosemirror@^1.0.16":
-  version "1.0.16"
-  resolved "https://registry.yarnpkg.com/@getoutline/y-prosemirror/-/y-prosemirror-1.0.16.tgz#34a29966208113bceb8c46bbf8417853e8885e09"
-  integrity sha512-rJ3NF3Qk9v1/dNKQ25k3aud7TcV8s5175U9stagCDdvwsI67JufgzaWhT0jBhX8tEaZPdQVmXoqe8bf6OC72Cg==
+"@getoutline/y-prosemirror@^1.0.18":
+  version "1.0.18"
+  resolved "https://registry.yarnpkg.com/@getoutline/y-prosemirror/-/y-prosemirror-1.0.18.tgz#17245c0362d30adb85131c86fb9a59358884b234"
+  integrity sha512-nLxqUHEHJDBwbcMWhlPWlJ4VpdjtajkmKSAWeVTsIEa5HTo1JQSdnADdS/HFSVSkESW8b6TRrOJylyHDn46uYQ==
   dependencies:
     lib0 "^0.2.42"
 
