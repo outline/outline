@@ -15,6 +15,7 @@ import Paragraph from "../nodes/Paragraph";
 import Text from "../nodes/Text";
 import DateTime from "../plugins/DateTime";
 import History from "../plugins/History";
+import Keys from "../plugins/Keys";
 import MaxLength from "../plugins/MaxLength";
 import PasteHandler from "../plugins/PasteHandler";
 import Placeholder from "../plugins/Placeholder";
@@ -41,6 +42,7 @@ const basicPackage: (typeof Node | typeof Mark | typeof Extension)[] = [
   Placeholder,
   MaxLength,
   DateTime,
+  Keys,
 ];
 
 export default basicPackage;

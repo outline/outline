@@ -17,7 +17,6 @@ router.post("comments.create", auth(), async (ctx) => {
   const { id, documentId, parentCommentId, data } = ctx.body;
   assertUuid(documentId, "documentId is required");
   assertPresent(data, "data is required");
-  assertPresent(data.text, "text is required");
 
   if (id) {
     assertUuid(id, "id must be a uuid");

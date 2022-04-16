@@ -1,4 +1,5 @@
 import { differenceInMilliseconds, formatDistanceToNow } from "date-fns";
+import { toJS } from "mobx";
 import * as React from "react";
 import styled from "styled-components";
 import { Minute } from "@shared/utils/time";
@@ -9,6 +10,7 @@ import Text from "~/components/Text";
 import Time from "~/components/Time";
 import useBoolean from "~/hooks/useBoolean";
 import CommentMenu from "~/menus/CommentMenu";
+import CommentEditor from "./CommentEditor";
 //import usePolicy from "~/hooks/usePolicy";
 
 /**
@@ -85,7 +87,10 @@ export default function CommentThreadItem({
             )}
           </Meta>
         )}
-        {isEditing ? <>Editing</> : <Flex>{comment.data.text}</Flex>}
+        <CommentEditor
+          readOnly={!isEditing}
+          defaultValue={toJS(comment.data)}
+        />
         <Menu comment={comment} onEdit={setEditing} />
       </Bubble>
     </Flex>

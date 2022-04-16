@@ -99,7 +99,9 @@ export default abstract class BaseModel {
       if (
         // eslint-disable-next-line no-prototype-builtins
         this.hasOwnProperty(property) &&
-        !["persistedAttributes", "store", "isSaving"].includes(property)
+        !["persistedAttributes", "store", "isSaving", "isNew"].includes(
+          property
+        )
       ) {
         output[property] = this[property];
       }

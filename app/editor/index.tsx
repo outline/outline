@@ -47,8 +47,8 @@ export type Props = {
   userId?: string;
   /** The editor content, should only be changed if you wish to reset the content */
   value?: string;
-  /** The initial editor content */
-  defaultValue: string;
+  /** The initial editor content as a markdown string or JSON object */
+  defaultValue: string | object;
   /** Placeholder displayed when the editor is empty */
   placeholder: string;
   /** Extensions to load into the editor */
@@ -391,7 +391,7 @@ export class Editor extends React.PureComponent<
     });
   }
 
-  private createState(value?: string) {
+  private createState(value?: string | object) {
     const doc = this.createDocument(value || this.props.defaultValue);
 
     return EditorState.create({
@@ -410,8 +410,13 @@ export class Editor extends React.PureComponent<
     });
   }
 
-  private createDocument(content: string) {
-    return this.parser.parse(content);
+  private createDocument(content: string | object) {
+    // Looks like Markdown
+    if (typeof content === "string") {
+      return this.parser.parse(content);
+    }
+
+    return ProsemirrorNode.fromJSON(this.schema, content);
   }
 
   private createView() {
@@ -502,8 +507,10 @@ export class Editor extends React.PureComponent<
     }
   };
 
-  public value = (): string => {
-    return this.serializer.serialize(this.view.state.doc);
+  public value = (asString = true): string => {
+    return asString
+      ? this.serializer.serialize(this.view.state.doc)
+      : this.view.state.doc;
   };
 
   private handleChange = () => {
@@ -511,8 +518,8 @@ export class Editor extends React.PureComponent<
       return;
     }
 
-    this.props.onChange(() => {
-      return this.view ? this.value() : undefined;
+    this.props.onChange((asString = true) => {
+      return this.view ? this.value(asString) : undefined;
     });
   };
 

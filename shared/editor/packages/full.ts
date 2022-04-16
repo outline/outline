@@ -22,7 +22,6 @@ import TableHeadCell from "../nodes/TableHeadCell";
 import TableRow from "../nodes/TableRow";
 import BlockMenuTrigger from "../plugins/BlockMenuTrigger";
 import Folding from "../plugins/Folding";
-import Keys from "../plugins/Keys";
 import basicPackage from "./basic";
 
 const fullPackage: (typeof Node | typeof Mark | typeof Extension)[] = [
@@ -47,7 +46,6 @@ const fullPackage: (typeof Node | typeof Mark | typeof Extension)[] = [
   Highlight,
   TemplatePlaceholder,
   Folding,
-  Keys,
   BlockMenuTrigger,
 ];
 
