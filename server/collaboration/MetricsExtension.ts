@@ -7,7 +7,7 @@ import {
 } from "@hocuspocus/server";
 import Metrics from "@server/logging/metrics";
 
-export default class Tracing implements Extension {
+export default class MetricsExtension implements Extension {
   async onLoadDocument({ documentName, instance }: onLoadDocumentPayload) {
     Metrics.increment("collaboration.load_document", {
       documentName,

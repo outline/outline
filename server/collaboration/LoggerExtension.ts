@@ -9,7 +9,7 @@ import Logger from "@server/logging/logger";
 export default class LoggerExtension implements Extension {
   async onLoadDocument(data: onLoadDocumentPayload) {
     Logger.info("hocuspocus", `Loaded document "${data.documentName}"`, {
-      userId: data.context.user.id,
+      userId: data.context.user?.id,
     });
   }
 
@@ -19,7 +19,7 @@ export default class LoggerExtension implements Extension {
 
   async onDisconnect(data: onDisconnectPayload) {
     Logger.info("hocuspocus", `Closed connection to "${data.documentName}"`, {
-      userId: data.context.user.id,
+      userId: data.context.user?.id,
     });
   }
 }

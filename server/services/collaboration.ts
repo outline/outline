@@ -4,10 +4,10 @@ import { Server } from "@hocuspocus/server";
 import invariant from "invariant";
 import Koa from "koa";
 import WebSocket from "ws";
-import AuthenticationExtension from "../collaboration/authentication";
-import LoggerExtension from "../collaboration/logger";
-import PersistenceExtension from "../collaboration/persistence";
-import TracingExtension from "../collaboration/tracing";
+import AuthenticationExtension from "../collaboration/AuthenticationExtension";
+import LoggerExtension from "../collaboration/LoggerExtension";
+import MetricsExtension from "../collaboration/MetricsExtension";
+import PersistenceExtension from "../collaboration/PersistenceExtension";
 
 export default function init(app: Koa, server: http.Server) {
   const path = "/collaboration";
@@ -22,7 +22,7 @@ export default function init(app: Koa, server: http.Server) {
       new AuthenticationExtension(),
       new PersistenceExtension(),
       new LoggerExtension(),
-      new TracingExtension(),
+      new MetricsExtension(),
     ],
   });
 
