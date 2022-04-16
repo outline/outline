@@ -6,10 +6,14 @@ import {
 import invariant from "invariant";
 import * as Y from "yjs";
 import Logger from "@server/logging/logger";
+import { APM } from "@server/logging/tracing";
 import Document from "@server/models/Document";
 import documentUpdater from "../commands/documentUpdater";
 import markdownToYDoc from "./utils/markdownToYDoc";
 
+@APM.trace({
+  spanName: "persistence",
+})
 export default class Persistence implements Extension {
   async onLoadDocument({ documentName, ...data }: onLoadDocumentPayload) {
     const [, documentId] = documentName.split(".");
