@@ -8,7 +8,7 @@ import { AuthenticationError } from "../errors";
 @APM.trace({
   spanName: "authentication",
 })
-export default class Authentication implements Extension {
+export default class AuthenticationExtension implements Extension {
   async onAuthenticate({
     connection,
     token,

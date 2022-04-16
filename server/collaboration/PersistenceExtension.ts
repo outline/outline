@@ -5,6 +5,7 @@ import {
 } from "@hocuspocus/server";
 import invariant from "invariant";
 import * as Y from "yjs";
+import { sequelize } from "@server/database/sequelize";
 import Logger from "@server/logging/logger";
 import { APM } from "@server/logging/tracing";
 import Document from "@server/models/Document";
@@ -14,7 +15,7 @@ import markdownToYDoc from "./utils/markdownToYDoc";
 @APM.trace({
   spanName: "persistence",
 })
-export default class Persistence implements Extension {
+export default class PersistenceExtension implements Extension {
   async onLoadDocument({ documentName, ...data }: onLoadDocumentPayload) {
     const [, documentId] = documentName.split(".");
     const fieldName = "default";
@@ -25,35 +26,40 @@ export default class Persistence implements Extension {
       return;
     }
 
-    const document = await Document.scope("withState").findOne({
-      where: {
-        id: documentId,
-      },
-    });
-    invariant(document, "Document not found");
+    return await sequelize.transaction(async (transaction) => {
+      const document = await Document.scope("withState").findOne({
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+        where: {
+          id: documentId,
+        },
+      });
+      invariant(document, "Document not found");
 
-    if (document.state) {
-      const ydoc = new Y.Doc();
-      Logger.info("database", `Document ${documentId} is in database state`);
-      Y.applyUpdate(ydoc, document.state);
-      return ydoc;
-    }
-
-    Logger.info(
-      "database",
-      `Document ${documentId} is not in state, creating from markdown`
-    );
-    const ydoc = markdownToYDoc(document.text, fieldName);
-    const state = Y.encodeStateAsUpdate(ydoc);
-    await document.update(
-      {
-        state: Buffer.from(state),
-      },
-      {
-        hooks: false,
+      if (document.state) {
+        const ydoc = new Y.Doc();
+        Logger.info("database", `Document ${documentId} is in database state`);
+        Y.applyUpdate(ydoc, document.state);
+        return ydoc;
       }
-    );
-    return ydoc;
+
+      Logger.info(
+        "database",
+        `Document ${documentId} is not in state, creating from markdown`
+      );
+      const ydoc = markdownToYDoc(document.text, fieldName);
+      const state = Y.encodeStateAsUpdate(ydoc);
+      await document.update(
+        {
+          state: Buffer.from(state),
+        },
+        {
+          hooks: false,
+          transaction,
+        }
+      );
+      return ydoc;
+    });
   }
 
   async onStoreDocument({
