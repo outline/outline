@@ -1,6 +1,8 @@
 import { differenceInMilliseconds, formatDistanceToNow } from "date-fns";
 import { toJS } from "mobx";
+import { observer } from "mobx-react";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { Minute } from "@shared/utils/time";
 import Comment from "~/models/Comment";
@@ -9,6 +11,7 @@ import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
 import useBoolean from "~/hooks/useBoolean";
+import useToasts from "~/hooks/useToasts";
 import CommentMenu from "~/menus/CommentMenu";
 import CommentEditor from "./CommentEditor";
 //import usePolicy from "~/hooks/usePolicy";
@@ -52,7 +55,7 @@ type Props = {
   previousCommentCreatedAt?: string;
 };
 
-export default function CommentThreadItem({
+function CommentThreadItem({
   comment,
   firstOfAuthor,
   firstOfThread,
@@ -60,9 +63,43 @@ export default function CommentThreadItem({
   previousCommentCreatedAt,
 }: Props) {
   //const can = usePolicy(comment.id);
+  const { showToast } = useToasts();
+  const { t } = useTranslation();
+  const [forceRender, setForceRender] = React.useState(0);
+  const [data, setData] = React.useState(toJS(comment.data));
   const showAuthor = firstOfAuthor;
   const showTime = useShowTime(comment.createdAt, previousCommentCreatedAt);
-  const [isEditing, setEditing] = useBoolean();
+  const [isEditing, setEditing, setReadOnly] = useBoolean();
+  const formRef = React.useRef<HTMLFormElement>(null);
+
+  const handleChange = (value: (asString: boolean) => object) => {
+    setData(value(false));
+  };
+
+  const handleSave = () => {
+    formRef.current?.dispatchEvent(
+      new Event("submit", { cancelable: true, bubbles: true })
+    );
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    try {
+      setReadOnly();
+      await comment.save({
+        data,
+      });
+    } catch (error) {
+      setEditing();
+      showToast(t("Error updating comment"), { type: "error" });
+    }
+  };
+
+  React.useEffect(() => {
+    setData(toJS(comment.data));
+    setForceRender((s) => ++s);
+  }, [comment.data]);
 
   return (
     <Flex gap={8} key={comment.id} align="flex-start">
@@ -87,15 +124,25 @@ export default function CommentThreadItem({
             )}
           </Meta>
         )}
-        <CommentEditor
-          readOnly={!isEditing}
-          defaultValue={toJS(comment.data)}
-        />
+        <Body ref={formRef} $isEditing={isEditing} onSubmit={handleSubmit}>
+          <CommentEditor
+            key={`${forceRender}`}
+            readOnly={!isEditing}
+            defaultValue={data}
+            onChange={handleChange}
+            onSave={handleSave}
+          />
+        </Body>
         <Menu comment={comment} onEdit={setEditing} />
       </Bubble>
     </Flex>
   );
 }
+
+const Body = styled.form<{ $isEditing: boolean }>`
+  background: ${(props) => (props.$isEditing ? "white" : "none")};
+  border-radius: 2px;
+`;
 
 const Menu = styled(CommentMenu)`
   position: absolute;
@@ -154,3 +201,5 @@ const Bubble = styled(Flex)<{
     opacity: 1;
   }
 `;
+
+export default observer(CommentThreadItem);

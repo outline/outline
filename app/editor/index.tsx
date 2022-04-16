@@ -82,7 +82,7 @@ export type Props = {
   /** Callback when user uses cancel key combo */
   onCancel?: () => void;
   /** Callback when user changes editor content */
-  onChange?: (value: () => string | undefined) => void;
+  onChange?: (value: () => any) => void;
   /** Callback when a comment mark is clicked */
   onClickComment?: (commentId: string) => void;
   /** Callback when a comment mark is created */

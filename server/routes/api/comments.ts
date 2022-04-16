@@ -85,7 +85,10 @@ router.post("comments.update", auth(), async (ctx) => {
   const comment = await sequelize.transaction(async (transaction) => {
     const comment = await Comment.findByPk(id, {
       transaction,
-      lock: Transaction.LOCK.UPDATE,
+      lock: {
+        level: transaction.LOCK.UPDATE,
+        of: Comment,
+      },
     });
     authorize(user, "update", comment);
 

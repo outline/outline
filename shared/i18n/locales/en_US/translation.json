@@ -381,6 +381,7 @@
   "Add a comment": "Add a comment",
   "Add a reply": "Add a reply",
   "Comments": "Comments",
+  "Error updating comment": "Error updating comment",
   "Document updated by {{userName}}": "Document updated by {{userName}}",
   "You have unsaved changes.\nAre you sure you want to discard them?": "You have unsaved changes.\nAre you sure you want to discard them?",
   "Images are still uploading.\nAre you sure you want to discard them?": "Images are still uploading.\nAre you sure you want to discard them?",
