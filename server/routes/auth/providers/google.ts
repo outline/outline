@@ -61,8 +61,8 @@ if (GOOGLE_CLIENT_ID) {
               subdomain,
             },
             user: {
-              name: profile.displayName,
               email: profile.email,
+              name: profile.displayName,
               avatarUrl: profile.picture,
             },
             authenticationProvider: {

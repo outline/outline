@@ -41,10 +41,10 @@ function Highlight({
   );
 }
 
-const Mark = styled.mark`
+export const Mark = styled.mark`
   background: ${(props) => props.theme.searchHighlight};
   border-radius: 2px;
-  padding: 0 4px;
+  padding: 0 2px;
 `;
 
 export default Highlight;

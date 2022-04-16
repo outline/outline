@@ -36,7 +36,7 @@ type Props = {
     event: MouseEvent | React.MouseEvent<HTMLButtonElement>
   ) => void;
   onCreateLink?: (title: string) => Promise<string>;
-  onShowToast: (msg: string, code: string) => void;
+  onShowToast: (message: string) => void;
   view: EditorView;
 };
 
@@ -243,6 +243,7 @@ export default class SelectionToolbar extends React.Component<Props> {
       >
         {link && range ? (
           <LinkEditor
+            key={`${range.from}-${range.to}`}
             dictionary={dictionary}
             mark={range.mark}
             from={range.from}

@@ -52,14 +52,21 @@ const AuthenticatedLayout: React.FC = ({ children }) => {
     }
   }, []);
 
-  const goToNewDocument = React.useCallback(() => {
-    if (!ui.activeCollectionId) {
-      return;
-    }
-    if (can.update) {
-      history.push(newDocumentPath(ui.activeCollectionId));
-    }
-  }, [can.update, ui.activeCollectionId]);
+  const goToNewDocument = React.useCallback(
+    (event) => {
+      if (event.metaKey || event.altKey) {
+        return;
+      }
+
+      if (!ui.activeCollectionId) {
+        return;
+      }
+      if (can.update) {
+        history.push(newDocumentPath(ui.activeCollectionId));
+      }
+    },
+    [can.update, ui.activeCollectionId]
+  );
 
   if (auth.isSuspended) {
     return <ErrorSuspended />;

@@ -2,13 +2,13 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useRouteMatch } from "react-router-dom";
+import extensions from "@shared/editor/packages/fullWithComments";
 import Comment from "~/models/Comment";
 import Document from "~/models/Document";
-import ClickablePadding from "~/components/ClickablePadding";
+import { RefHandle } from "~/components/ContentEditable";
 import DocumentMetaWithViews from "~/components/DocumentMetaWithViews";
 import Editor, { Props as EditorProps } from "~/components/Editor";
 import Flex from "~/components/Flex";
-import HoverPreview from "~/components/HoverPreview";
 import useStores from "~/hooks/useStores";
 import {
   documentHistoryUrl,
@@ -18,7 +18,7 @@ import {
 import MultiplayerEditor from "./AsyncMultiplayerEditor";
 import EditableTitle from "./EditableTitle";
 
-type Props = EditorProps & {
+type Props = Omit<EditorProps, "extensions"> & {
   onChangeTitle: (text: string) => void;
   title: string;
   id: string;
@@ -38,16 +38,23 @@ type Props = EditorProps & {
  * and support for hover previews of internal links.
  */
 function DocumentEditor(props: Props, ref: React.RefObject<any>) {
-  const [
-    activeLinkEvent,
-    setActiveLinkEvent,
-  ] = React.useState<MouseEvent | null>(null);
-  const titleRef = React.useRef<HTMLSpanElement>(null);
+  const titleRef = React.useRef<RefHandle>(null);
   const { t } = useTranslation();
   const match = useRouteMatch();
   const { ui, comments, auth } = useStores();
   const { user } = auth;
   const history = useHistory();
+  const {
+    document,
+    title,
+    onChangeTitle,
+    isDraft,
+    shareId,
+    readOnly,
+    children,
+    multiplayer,
+    ...rest
+  } = props;
 
   const focusAtStart = React.useCallback(() => {
     if (ref.current) {
@@ -55,20 +62,9 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     }
   }, [ref]);
 
-  const focusAtEnd = React.useCallback(() => {
-    if (ref.current) {
-      ref.current.focusAtEnd();
-    }
-  }, [ref]);
-
-  const handleLinkActive = React.useCallback((event: MouseEvent) => {
-    setActiveLinkEvent(event);
-    return false;
-  }, []);
-
-  const handleLinkInactive = React.useCallback(() => {
-    setActiveLinkEvent(null);
-  }, []);
+  const handleBlur = React.useCallback(() => {
+    props.onSave({ autosave: true });
+  }, [props]);
 
   const handleGoToNextInput = React.useCallback(
     (insertParagraph: boolean) => {
@@ -120,17 +116,6 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     console.log({ commentId });
   }, []);
 
-  const {
-    document,
-    title,
-    onChangeTitle,
-    isDraft,
-    shareId,
-    readOnly,
-    children,
-    multiplayer,
-    ...rest
-  } = props;
   const EditorComponent = multiplayer ? MultiplayerEditor : Editor;
 
   return (
@@ -142,6 +127,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         document={document}
         onGoToNextInput={handleGoToNextInput}
         onChange={onChangeTitle}
+        onBlur={handleBlur}
         starrable={!shareId}
         placeholder={t("Untitled")}
       />
@@ -155,9 +141,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
               : documentHistoryUrl(document)
           }
           rtl={
-            titleRef.current
-              ? window.getComputedStyle(titleRef.current).direction === "rtl"
-              : false
+            titleRef.current?.getComputedDirection() === "rtl" ? true : false
           }
         />
       )}
@@ -165,25 +149,17 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         ref={ref}
         autoFocus={!!title && !props.defaultValue}
         placeholder={t("Type '/' to insert, or start writing…")}
-        onHoverLink={handleLinkActive}
         scrollTo={window.location.hash}
         readOnly={readOnly}
         shareId={shareId}
         userId={user?.id}
+        extensions={extensions}
         grow
         onClickComment={handleClickComment}
         onDraftComment={handleDraftComment}
         onRemoveComment={handleRemoveComment}
         {...rest}
       />
-      {!readOnly && <ClickablePadding onClick={focusAtEnd} grow />}
-      {activeLinkEvent && !shareId && (
-        <HoverPreview
-          node={activeLinkEvent.target as HTMLAnchorElement}
-          event={activeLinkEvent}
-          onClose={handleLinkInactive}
-        />
-      )}
       {children}
     </Flex>
   );

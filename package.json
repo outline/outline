@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "clean": "rimraf build",
-    "build:i18n": "i18next --silent 'shared/**/*.tsx' 'shared/**/*.ts' 'app/**/*.tsx' 'app/**/*.ts' 'server/**/*.ts' 'server/**/*.tsx' && mkdir -p ./build/shared/i18n && cp -R ./shared/i18n/locales ./build/shared/i18n",
+    "copy:i18n": "mkdir -p ./build/shared/i18n && cp -R ./shared/i18n/locales ./build/shared/i18n",
+    "build:i18n": "i18next --silent 'shared/**/*.tsx' 'shared/**/*.ts' 'app/**/*.tsx' 'app/**/*.ts' 'server/**/*.ts' 'server/**/*.tsx' && yarn copy:i18n",
     "build:server": "babel --extensions .ts,.tsx --quiet -d ./build/server ./server && babel --quiet --extensions .ts,.tsx -d./build/shared ./shared && cp ./server/collaboration/Procfile ./build/server/collaboration/Procfile && cp package.json ./build && ln -sf \"$(pwd)/webpack.config.dev.js\" ./build",
     "build:webpack": "webpack --config webpack.config.prod.js",
     "build": "yarn clean && yarn build:webpack && yarn build:i18n && yarn build:server",
@@ -15,7 +16,7 @@
     "lint": "eslint app server shared",
     "deploy": "git push heroku master",
     "prepare": "yarn yarn-deduplicate yarn.lock",
-    "heroku-postbuild": "yarn build && yarn db:migrate",
+    "heroku-postbuild": "yarn build:webpack && yarn build:server && yarn copy:i18n && yarn db:migrate",
     "sequelize:migrate": "sequelize db:migrate",
     "db:create-migration": "sequelize migration:create",
     "db:migrate": "sequelize db:migrate",
@@ -124,7 +125,7 @@
     "mobx-utils": "^6.0.4",
     "natural-sort": "^1.0.0",
     "nodemailer": "^6.6.1",
-    "outline-icons": "^1.41.1",
+    "outline-icons": "^1.42.0",
     "oy-vey": "^0.10.0",
     "passport": "^0.4.1",
     "passport-google-oauth2": "^0.2.0",
@@ -287,6 +288,7 @@
     "eslint": "^7.6.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-import-resolver-typescript": "^2.5.0",
+    "eslint-plugin-es": "^4.1.0",
     "eslint-plugin-import": "^2.25.3",
     "eslint-plugin-jsx-a11y": "^6.1.0",
     "eslint-plugin-node": "^11.1.0",
@@ -321,5 +323,5 @@
     "dot-prop": "^5.2.0",
     "js-yaml": "^3.14.1"
   },
-  "version": "0.62.0"
+  "version": "0.63.0"
 }

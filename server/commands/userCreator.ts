@@ -86,7 +86,9 @@ export default async function userCreator({
   // shell user record.
   const invite = await User.findOne({
     where: {
-      email,
+      // Email from auth providers may be capitalized and we should respect that
+      // however any existing invites will always be lowercased.
+      email: email.toLowerCase(),
       teamId,
       lastActiveAt: {
         [Op.is]: null,

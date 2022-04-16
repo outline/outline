@@ -48,17 +48,21 @@ export default class RevisionsStore extends BaseStore<Revision> {
   }
 
   @action
-  fetchPage = async (options: PaginationParams | undefined): Promise<any> => {
+  fetchPage = async (
+    options: PaginationParams | undefined
+  ): Promise<Revision[]> => {
     this.isFetching = true;
 
     try {
       const res = await client.post("/revisions.list", options);
       invariant(res?.data, "Document revisions not available");
+
+      let models: Revision[] = [];
       runInAction("RevisionsStore#fetchPage", () => {
-        res.data.forEach(this.add);
+        models = res.data.map(this.add);
         this.isLoaded = true;
       });
-      return res.data;
+      return models;
     } finally {
       this.isFetching = false;
     }

@@ -740,8 +740,11 @@ const EditorStyles = styled.div<{
   }
 
   .external-link {
+    display: inline-block;
     position: relative;
     top: 2px;
+    width: 16px;
+    height: 16px;
   }
 
   .code-actions,
@@ -765,8 +768,8 @@ const EditorStyles = styled.div<{
 
     select,
     button {
-      background: ${(props) => props.theme.blockToolbarBackground};
-      color: ${(props) => props.theme.blockToolbarItem};
+      background: ${(props) => props.theme.background};
+      color: ${(props) => props.theme.text};
       border-width: 1px;
       font-size: 13px;
       display: none;

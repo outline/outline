@@ -92,7 +92,6 @@ class AddPeopleToCollection extends React.Component<Props> {
           </ButtonLink>
           .
         </Text>
-
         <Input
           type="search"
           placeholder={`${t("Search by name")}…`}
@@ -113,7 +112,7 @@ class AddPeopleToCollection extends React.Component<Props> {
           }
           items={users.notInCollection(collection.id, this.query)}
           fetch={this.query ? undefined : users.fetchPage}
-          renderItem={(item) => (
+          renderItem={(item: User) => (
             <MemberListItem
               key={item.id}
               user={item}

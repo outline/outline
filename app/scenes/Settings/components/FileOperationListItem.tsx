@@ -13,7 +13,7 @@ import FileOperationMenu from "~/menus/FileOperationMenu";
 
 type Props = {
   fileOperation: FileOperation;
-  handleDelete?: (arg0: FileOperation) => Promise<void>;
+  handleDelete?: (fileOperation: FileOperation) => Promise<void>;
 };
 
 const FileOperationListItem = ({ fileOperation, handleDelete }: Props) => {

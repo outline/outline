@@ -1,35 +1,56 @@
+import { observer } from "mobx-react";
 import { StarredIcon, UnstarredIcon } from "outline-icons";
 import * as React from "react";
 import styled, { useTheme } from "styled-components";
+import Collection from "~/models/Collection";
 import Document from "~/models/Document";
+import {
+  starCollection,
+  unstarCollection,
+} from "~/actions/definitions/collections";
 import { starDocument, unstarDocument } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
 import { hover } from "~/styles";
 import NudeButton from "./NudeButton";
 
 type Props = {
-  document: Document;
+  collection?: Collection;
+  document?: Document;
   size?: number;
 };
 
-function Star({ size, document, ...rest }: Props) {
+function Star({ size, document, collection, ...rest }: Props) {
   const theme = useTheme();
   const context = useActionContext({
-    activeDocumentId: document.id,
+    activeDocumentId: document?.id,
+    activeCollectionId: collection?.id,
   });
 
-  if (!document) {
+  const target = document || collection;
+
+  if (!target) {
     return null;
   }
 
   return (
     <NudeButton
       context={context}
-      action={document.isStarred ? unstarDocument : starDocument}
+      hideOnActionDisabled
+      action={
+        collection
+          ? collection.isStarred
+            ? unstarCollection
+            : starCollection
+          : document
+          ? document.isStarred
+            ? unstarDocument
+            : starDocument
+          : undefined
+      }
       size={size}
       {...rest}
     >
-      {document.isStarred ? (
+      {target.isStarred ? (
         <AnimatedStar size={size} color={theme.yellow} />
       ) : (
         <AnimatedStar
@@ -58,4 +79,4 @@ export const AnimatedStar = styled(StarredIcon)`
   }
 `;
 
-export default Star;
+export default observer(Star);

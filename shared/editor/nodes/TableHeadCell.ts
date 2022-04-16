@@ -1,7 +1,11 @@
 import Token from "markdown-it/lib/token";
 import { NodeSpec } from "prosemirror-model";
 import { Plugin } from "prosemirror-state";
-import { isColumnSelected, getCellsInRow } from "prosemirror-utils";
+import {
+  isColumnSelected,
+  getCellsInRow,
+  selectColumn,
+} from "prosemirror-utils";
 import { DecorationSet, Decoration } from "prosemirror-view";
 import Node from "./Node";
 
@@ -72,7 +76,7 @@ export default class TableHeadCell extends Node {
                     grip.addEventListener("mousedown", (event) => {
                       event.preventDefault();
                       event.stopImmediatePropagation();
-                      this.options.onSelectColumn(index, state);
+                      this.editor.view.dispatch(selectColumn(index)(state.tr));
                     });
                     return grip;
                   })

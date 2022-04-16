@@ -6726,6 +6726,14 @@ eslint-plugin-es@^3.0.0:
     eslint-utils "^2.0.0"
     regexpp "^3.0.0"
 
+eslint-plugin-es@^4.1.0:
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/eslint-plugin-es/-/eslint-plugin-es-4.1.0.tgz#f0822f0c18a535a97c3e714e89f88586a7641ec9"
+  integrity sha512-GILhQTnjYE2WorX5Jyi5i4dz5ALWxBIdQECVQavL6s7cI76IZTDWleTHkxz/QT3kvcs2QlGHvKLYsSlPOlPXnQ==
+  dependencies:
+    eslint-utils "^2.0.0"
+    regexpp "^3.0.0"
+
 eslint-plugin-import@^2.25.3:
   version "2.25.3"
   resolved "https://registry.yarnpkg.com/eslint-plugin-import/-/eslint-plugin-import-2.25.3.tgz#a554b5f66e08fb4f6dc99221866e57cfff824766"
@@ -11122,10 +11130,10 @@ os-browserify@^0.3.0:
   resolved "https://registry.yarnpkg.com/os-browserify/-/os-browserify-0.3.0.tgz#854373c7f5c2315914fc9bfc6bd8238fdda1ec27"
   integrity sha1-hUNzx/XCMVkU/Jv8a9gjj92h7Cc=
 
-outline-icons@^1.41.1:
-  version "1.41.1"
-  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.41.1.tgz#a56968fb3f955c692dcb0b4aeb17894ff2649ff4"
-  integrity sha512-acYnKEb9FIS781IVL9gfE51NwFXTB+q0ibPFIOEjpQRN47xkf/8ixrt9Mm/y/o6VNe71O226Do74OGmN5jBWdA==
+outline-icons@^1.42.0:
+  version "1.42.0"
+  resolved "https://registry.yarnpkg.com/outline-icons/-/outline-icons-1.42.0.tgz#76b02f57b9dcac79c1f6876e918d472fefaa4568"
+  integrity sha512-px2wNGrzTDCU0pxUO2pKs5dgE3fdz3bQ3lpLA9CgzBpkcadpOQgRxxxyBQ12fyOXyKC0L4evAJeomoAtvMWISQ==
 
 oy-vey@^0.10.0:
   version "0.10.0"

@@ -11,6 +11,7 @@ import {
 import * as React from "react";
 import ImageZoom from "react-medium-image-zoom";
 import styled from "styled-components";
+import { supportedImageMimeTypes } from "../../utils/files";
 import getDataTransferFiles from "../../utils/getDataTransferFiles";
 import insertFiles, { Options } from "../commands/insertFiles";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
@@ -411,7 +412,7 @@ export default class Image extends Node {
         // create an input element and click to trigger picker
         const inputElement = document.createElement("input");
         inputElement.type = "file";
-        inputElement.accept = "image/*";
+        inputElement.accept = supportedImageMimeTypes.join(", ");
         inputElement.onchange = (event: Event) => {
           const files = getDataTransferFiles(event);
           insertFiles(view, event, state.selection.from, files, {

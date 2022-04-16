@@ -1,5 +1,6 @@
 import { createGlobalStyle } from "styled-components";
 import styledNormalize from "styled-normalize";
+import { breakpoints, depths } from "@shared/styles";
 
 export default createGlobalStyle`
   ${styledNormalize}
@@ -36,8 +37,7 @@ export default createGlobalStyle`
     text-rendering: optimizeLegibility;
   }
 
-  @media (min-width: ${(props) =>
-    props.theme.breakpoints.tablet}px) and (display-mode: standalone) {
+  @media (min-width: ${breakpoints.tablet}px) and (display-mode: standalone) {
     body:after {
       content: "";
       display: block;
@@ -47,7 +47,7 @@ export default createGlobalStyle`
       right: 0;
       height: 1px;
       background: ${(props) => props.theme.titleBarDivider};
-      z-index: ${(props) => props.theme.depths.titleBarDivider};
+      z-index: ${depths.titleBarDivider};
     }
   }
 

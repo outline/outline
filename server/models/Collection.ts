@@ -73,6 +73,15 @@ type Sort = CollectionSort;
       },
     ],
   },
+  withUser: () => ({
+    include: [
+      {
+        model: User,
+        required: true,
+        as: "user",
+      },
+    ],
+  }),
   withMembership: (userId: string) => ({
     include: [
       {
@@ -503,33 +512,6 @@ class Collection extends ParanoidModel {
       loopChildren(this.documentStructure);
     }
 
-    return result;
-  };
-
-  isChildDocument = function (
-    parentDocumentId?: string,
-    documentId?: string
-  ): boolean {
-    let result = false;
-
-    const loopChildren = (documents: NavigationNode[], input: string[]) => {
-      if (result) {
-        return;
-      }
-
-      documents.forEach((document) => {
-        const parents = [...input];
-
-        if (document.id === documentId && parentDocumentId) {
-          result = parents.includes(parentDocumentId);
-        } else {
-          parents.push(document.id);
-          loopChildren(document.children, parents);
-        }
-      });
-    };
-
-    loopChildren(this.documentStructure, []);
     return result;
   };
 

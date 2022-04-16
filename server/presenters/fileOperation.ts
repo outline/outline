@@ -13,5 +13,6 @@ export default function present(data: FileOperation) {
     collectionId: data.collectionId,
     user: presentUser(data.user),
     createdAt: data.createdAt,
+    updatedAt: data.updatedAt,
   };
 }

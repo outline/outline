@@ -1,51 +1,93 @@
 version: 2.1
 
+defaults: &defaults
+  working_directory: ~/outline
+  docker:
+    - image: cimg/node:14.19
+    - image: cimg/redis:5.0
+    - image: cimg/postgres:14.2
+      environment:
+        POSTGRES_USER: postgres
+        POSTGRES_PASSWORD: password
+        POSTGRES_DB: circle_test
+  resource_class: large
+  environment:
+    NODE_ENV: test
+    SECRET_KEY: F0E5AD933D7F6FD8F4DBB3E038C501C052DC0593C686D21ACB30AE205D2F634B
+    DATABASE_URL_TEST: postgres://postgres:password@localhost:5432/circle_test
+    DATABASE_URL: postgres://postgres:password@localhost:5432/circle_test
+    URL: http://localhost:3000
+    SMTP_FROM_EMAIL: hello@example.com
+    AWS_S3_UPLOAD_BUCKET_URL: https://s3.amazonaws.com
+    AWS_S3_UPLOAD_BUCKET_NAME: outline-circle
+
 executors:
   docker-publisher:
     environment:
       IMAGE_NAME: outlinewiki/outline
+      BASE_IMAGE_NAME: outlinewiki/outline-base
     docker:
       - image: circleci/buildpack-deps:stretch
 
 jobs:
   build:
-    working_directory: ~/outline
-    docker:
-      - image: circleci/node:14
-      - image: circleci/redis:latest
-      - image: circleci/postgres:9.6.5-alpine-ram
-    environment:
-      NODE_ENV: test
-      SECRET_KEY: F0E5AD933D7F6FD8F4DBB3E038C501C052DC0593C686D21ACB30AE205D2F634B
-      DATABASE_URL_TEST: postgres://root@localhost:5432/circle_test
-      DATABASE_URL: postgres://root@localhost:5432/circle_test
-      URL: http://localhost:3000
-      SMTP_FROM_EMAIL: hello@example.com
-      AWS_S3_UPLOAD_BUCKET_URL: https://s3.amazonaws.com
-      AWS_S3_UPLOAD_BUCKET_NAME: outline-circle
+    <<: *defaults
     steps:
       - checkout
       - restore_cache:
           key: dependency-cache-{{ checksum "package.json" }}
       - run:
           name: install-deps
-          command: yarn install --pure-lockfile
+          command: yarn install --frozen-lockfile
       - save_cache:
           key: dependency-cache-{{ checksum "package.json" }}
           paths:
             - ./node_modules
+  lint:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+      - run:
+          name: lint
+          command: yarn lint
+  types:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+      - run:
+          name: typescript
+          command: yarn tsc
+  test-app:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+      - run:
+          name: test
+          command: yarn test:app
+  test-server:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
       - run:
           name: migrate
           command: ./node_modules/.bin/sequelize db:migrate --url $DATABASE_URL_TEST
       - run:
-          name: lint
-          command: yarn lint
-      - run:
-          name: typescript
-          command: yarn tsc
-      - run:
           name: test
-          command: yarn test
+          command: yarn test:server
+  bundle-size:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
       - run:
           name: build-webpack
           command: yarn build:webpack
@@ -56,80 +98,64 @@ jobs:
       - setup_remote_docker:
           version: 20.10.6
       - run:
-          name: Build Docker image
-          command: docker build -t $IMAGE_NAME:latest .
-      - run:
-          name: Archive Docker image
-          command: docker save -o image.tar $IMAGE_NAME
-      - persist_to_workspace:
-          root: .
-          paths:
-            - ./image.tar
-  publish-latest:
-    executor: docker-publisher
-    steps:
-      - attach_workspace:
-          at: /tmp/workspace
-      - setup_remote_docker:
-          version: 20.10.6
-      - run:
-          name: Load archived Docker image
-          command: docker load -i /tmp/workspace/image.tar
-      - run:
-          name: Publish Docker Image to Docker Hub
+          name: Install Docker buildx
           command: |
-            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            IMAGE_TAG=${CIRCLE_TAG/v/''}
-            docker tag $IMAGE_NAME:latest $IMAGE_NAME:$IMAGE_TAG
-            docker push $IMAGE_NAME:latest
-            docker push $IMAGE_NAME:$IMAGE_TAG
-  publish-tag:
-    executor: docker-publisher
-    steps:
-      - attach_workspace:
-          at: /tmp/workspace
-      - setup_remote_docker:
-          version: 20.10.6
+            mkdir -p ~/.docker/cli-plugins
+            url="https://github.com/docker/buildx/releases/download/v0.8.0/buildx-v0.8.0.linux-amd64"
+            curl -sSL -o ~/.docker/cli-plugins/docker-buildx $url
+            chmod a+x ~/.docker/cli-plugins/docker-buildx
       - run:
-          name: Load archived Docker image
-          command: docker load -i /tmp/workspace/image.tar
+          name: Enable Docker buildx
+          command: export DOCKER_CLI_EXPERIMENTAL=enabled
       - run:
-          name: Publish Docker Image to Docker Hub
+          name: Initialize Docker buildx
           command: |
-            echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
-            IMAGE_TAG=${CIRCLE_TAG/v/''}
-            docker tag $IMAGE_NAME:latest $IMAGE_NAME:$IMAGE_TAG
-            docker push $IMAGE_NAME:$IMAGE_TAG
+            docker buildx install
+            docker context create docker-multiarch
+            docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+            docker buildx create --name docker-multiarch --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x docker-multiarch
+            docker buildx inspect --builder docker-multiarch --bootstrap
+            docker buildx use docker-multiarch
+      - run:
+          name: Build base image
+          command: docker build -f Dockerfile.base -t $BASE_IMAGE_NAME:latest --load .
+      - run:
+          name: Login to Docker Hub
+          command: echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+      - run:
+          name: Publish base Docker Image to Docker Hub
+          command: docker push $BASE_IMAGE_NAME:latest
+      - run:
+          name: Build and push Docker image
+          command: docker buildx build -t $IMAGE_NAME:latest -t $IMAGE_NAME:${CIRCLE_TAG/v/''} --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x --push .
 
 workflows:
   version: 2
-  build-and-test:
+  all:
     jobs:
-      - build:
-          filters:
-            tags:
-              ignore: /^v.*/
+      - build
+      - lint:
+          requires:
+            - build
+      - test-server:
+          requires:
+            - build
+      - test-app:
+          requires:
+            - build
+      - types:
+          requires:
+            - build
+      - bundle-size:
+          requires:
+            - test-app
+            - test-server
+
   build-docker:
     jobs:
       - build-image:
           filters:
             tags:
               only: /^v.*/
-            branches:
-              ignore: /.*/
-      - publish-latest:
-          requires:
-            - build-image
-          filters:
-            tags:
-              only: /^v\d+\.\d+\.\d+$/
-            branches:
-              ignore: /.*/
-      - publish-tag:
-          requires:
-            - build-image
-          filters:
-            tags:
-              only: /^v\d+\.\d+\.\d+-.*$/
             branches:
               ignore: /.*/

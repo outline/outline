@@ -65,11 +65,18 @@ function Invite({ onSubmit }: Props) {
       setIsSaving(true);
 
       try {
-        await users.invite(invites);
+        const data = await users.invite(invites);
         onSubmit();
-        showToast(t("We sent out your invites!"), {
-          type: "success",
-        });
+
+        if (data.sent.length > 0) {
+          showToast(t("We sent out your invites!"), {
+            type: "success",
+          });
+        } else {
+          showToast(t("Those email addresses are already invited"), {
+            type: "success",
+          });
+        }
       } catch (err) {
         showToast(err.message, {
           type: "error",

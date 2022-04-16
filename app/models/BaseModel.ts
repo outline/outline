@@ -2,7 +2,7 @@ import { pick } from "lodash";
 import { set, observable } from "mobx";
 import { getFieldsForModel } from "./decorators/Field";
 
-export default class BaseModel {
+export default abstract class BaseModel {
   @observable
   id: string;
 
@@ -11,6 +11,10 @@ export default class BaseModel {
 
   @observable
   isNew: boolean;
+
+  createdAt: string;
+
+  updatedAt: string;
 
   store: any;
 

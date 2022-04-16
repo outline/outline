@@ -3,6 +3,7 @@ import winston from "winston";
 import env from "@server/env";
 import Metrics from "@server/logging/metrics";
 import Sentry from "@server/logging/sentry";
+import * as Tracing from "./tracing";
 
 const isProduction = env.NODE_ENV === "production";
 type LogCategory =
@@ -10,6 +11,8 @@ type LogCategory =
   | "hocuspocus"
   | "http"
   | "commands"
+  | "worker"
+  | "task"
   | "processor"
   | "email"
   | "queue"
@@ -18,7 +21,7 @@ type LogCategory =
 type Extra = Record<string, any>;
 
 class Logger {
-  output: any;
+  output: winston.Logger;
 
   constructor() {
     this.output = winston.createLogger();
@@ -97,6 +100,7 @@ class Logger {
    */
   error(message: string, error: Error, extra?: Extra) {
     Metrics.increment("logger.error");
+    Tracing.setError(error);
 
     if (process.env.SENTRY_DSN) {
       Sentry.withScope(function (scope) {

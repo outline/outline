@@ -9,8 +9,11 @@ import styled from "styled-components";
 import insertFiles from "@shared/editor/commands/insertFiles";
 import { CommandFactory } from "@shared/editor/lib/Extension";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
-import { EmbedDescriptor, MenuItem, ToastType } from "@shared/editor/types";
+import { EmbedDescriptor, MenuItem } from "@shared/editor/types";
+import { depths } from "@shared/styles";
+import { supportedImageMimeTypes } from "@shared/utils/files";
 import getDataTransferFiles from "@shared/utils/getDataTransferFiles";
+import Scrollable from "~/components/Scrollable";
 import { Dictionary } from "~/hooks/useDictionary";
 import Input from "./Input";
 
@@ -31,7 +34,7 @@ export type Props<T extends MenuItem = MenuItem> = {
   uploadFile?: (file: File) => Promise<string>;
   onFileUploadStart?: () => void;
   onFileUploadStop?: () => void;
-  onShowToast: (message: string, id: string) => void;
+  onShowToast: (message: string) => void;
   onLinkToolbarOpen?: () => void;
   onClose: () => void;
   onClearSearch: () => void;
@@ -179,7 +182,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
   insertItem = (item: any) => {
     switch (item.name) {
       case "image":
-        return this.triggerFilePick("image/*");
+        return this.triggerFilePick(supportedImageMimeTypes.join(", "));
       case "attachment":
         return this.triggerFilePick("*");
       case "embed":
@@ -216,10 +219,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
       const matches = this.state.insertItem.matcher(href);
 
       if (!matches) {
-        this.props.onShowToast(
-          this.props.dictionary.embedInvalidLink,
-          ToastType.Error
-        );
+        this.props.onShowToast(this.props.dictionary.embedInvalidLink);
         return;
       }
 
@@ -420,7 +420,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
       commands,
       filterable = true,
     } = this.props;
-    let items: (EmbedDescriptor | MenuItem)[] = this.props.items;
+    let items: (EmbedDescriptor | MenuItem)[] = [...this.props.items];
     const embedItems: EmbedDescriptor[] = [];
 
     for (const embed of embeds) {
@@ -433,10 +433,12 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
     }
 
     if (embedItems.length) {
-      items.push({
-        name: "separator",
-      });
-      items = items.concat(embedItems);
+      items = items.concat(
+        {
+          name: "separator",
+        },
+        embedItems
+      );
     }
 
     const filtered = items.filter((item) => {
@@ -487,6 +489,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
           id={this.props.id || "block-menu-container"}
           active={isActive}
           ref={this.menuRef}
+          hiddenScrollbars
           {...positioning}
         >
           {insertItem ? (
@@ -569,7 +572,7 @@ const LinkInputWrapper = styled.div`
 const LinkInput = styled(Input)`
   height: 36px;
   width: 100%;
-  color: ${(props) => props.theme.blockToolbarText};
+  color: ${(props) => props.theme.textSecondary};
 `;
 
 const List = styled.ol`
@@ -595,22 +598,22 @@ const Empty = styled.div`
   padding: 0 16px;
 `;
 
-export const Wrapper = styled.div<{
+export const Wrapper = styled(Scrollable)<{
   active: boolean;
   top?: number;
   bottom?: number;
   left?: number;
   isAbove: boolean;
 }>`
-  color: ${(props) => props.theme.text};
+  color: ${(props) => props.theme.textSecondary};
   font-family: ${(props) => props.theme.fontFamily};
   position: absolute;
-  z-index: ${(props) => props.theme.zIndex + 100};
+  z-index: ${depths.editorToolbar};
   ${(props) => props.top !== undefined && `top: ${props.top}px`};
   ${(props) => props.bottom !== undefined && `bottom: ${props.bottom}px`};
   left: ${(props) => props.left}px;
-  background-color: ${(props) => props.theme.blockToolbarBackground};
-  border-radius: 4px;
+  background: ${(props) => props.theme.menuBackground};
+  border-radius: 6px;
   box-shadow: rgba(0, 0, 0, 0.05) 0px 0px 0px 1px,
     rgba(0, 0, 0, 0.08) 0px 4px 8px, rgba(0, 0, 0, 0.08) 0px 2px 4px;
   opacity: 0;
@@ -623,9 +626,8 @@ export const Wrapper = styled.div<{
   pointer-events: none;
   white-space: nowrap;
   width: 300px;
+  height: auto;
   max-height: 324px;
-  overflow: hidden;
-  overflow-y: auto;
 
   * {
     box-sizing: border-box;
@@ -634,7 +636,7 @@ export const Wrapper = styled.div<{
   hr {
     border: 0;
     height: 0;
-    border-top: 1px solid ${(props) => props.theme.blockToolbarDivider};
+    border-top: 1px solid ${(props) => props.theme.divider};
   }
 
   ${({ active, isAbove }) =>

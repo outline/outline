@@ -19,6 +19,7 @@ export default function SettingsRoutes() {
       {/* old routes */}
       <Redirect from="/settings/import-export" to="/settings/export" />
       <Redirect from="/settings/people" to="/settings/members" />
+      <Redirect from="/settings/profile" to="/settings" />
     </Switch>
   );
 }
