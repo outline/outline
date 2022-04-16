@@ -14,16 +14,18 @@ export default function init(app: Koa, server: http.Server) {
   const wss = new WebSocket.Server({
     noServer: true,
   });
+
   const hocuspocus = Server.configure({
+    debounce: 3000,
+    maxDebounce: 10000,
     extensions: [
       new AuthenticationExtension(),
-      // @ts-expect-error ts-migrate(2322) FIXME: Type 'Persistence' is not assignable to type 'Exte... Remove this comment to see the full error message
       new PersistenceExtension(),
       new LoggerExtension(),
-      // @ts-expect-error ts-migrate(2322) FIXME: Type 'Persistence' is not assignable to type 'Exte... Remove this comment to see the full error message
       new TracingExtension(),
     ],
   });
+
   server.on("upgrade", function (req, socket, head) {
     if (req.url && req.url.indexOf(path) > -1) {
       const documentName = url.parse(req.url).pathname?.split("/").pop();
@@ -34,7 +36,8 @@ export default function init(app: Koa, server: http.Server) {
       });
     }
   });
+
   server.on("shutdown", () => {
-    hocuspocus.destroy();
+    return hocuspocus.destroy();
   });
 }

@@ -52,8 +52,8 @@
     "@dnd-kit/modifiers": "^4.0.0",
     "@dnd-kit/sortable": "^5.1.0",
     "@getoutline/y-prosemirror": "^1.0.16",
-    "@hocuspocus/provider": "^1.0.0-alpha.21",
-    "@hocuspocus/server": "^1.0.0-alpha.78",
+    "@hocuspocus/provider": "^1.0.0-alpha.36",
+    "@hocuspocus/server": "^1.0.0-alpha.102",
     "@outlinewiki/koa-passport": "^4.1.4",
     "@outlinewiki/passport-azure-ad-oauth2": "^0.1.0",
     "@renderlesskit/react": "^0.6.0",
@@ -200,7 +200,7 @@
     "winston": "^3.3.3",
     "ws": "^7.5.3",
     "y-indexeddb": "^9.0.6",
-    "yjs": "^13.5.12"
+    "yjs": "^13.5.34"
   },
   "devDependencies": {
     "@babel/cli": "^7.10.5",

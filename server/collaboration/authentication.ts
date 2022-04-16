@@ -1,10 +1,10 @@
-import { onAuthenticatePayload } from "@hocuspocus/server";
+import { onAuthenticatePayload, Extension } from "@hocuspocus/server";
 import Document from "@server/models/Document";
 import { can } from "@server/policies";
 import { getUserForJWT } from "@server/utils/jwt";
 import { AuthenticationError } from "../errors";
 
-export default class Authentication {
+export default class Authentication implements Extension {
   async onAuthenticate({
     connection,
     token,

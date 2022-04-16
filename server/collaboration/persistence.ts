@@ -1,15 +1,16 @@
-import { onChangePayload, onLoadDocumentPayload } from "@hocuspocus/server";
+import {
+  onStoreDocumentPayload,
+  onLoadDocumentPayload,
+  Extension,
+} from "@hocuspocus/server";
 import invariant from "invariant";
-import { debounce } from "lodash";
 import * as Y from "yjs";
 import Logger from "@server/logging/logger";
 import Document from "@server/models/Document";
 import documentUpdater from "../commands/documentUpdater";
 import markdownToYDoc from "./utils/markdownToYDoc";
 
-const DELAY = 3000;
-
-export default class Persistence {
+export default class Persistence implements Extension {
   async onLoadDocument({ documentName, ...data }: onLoadDocumentPayload) {
     const [, documentId] = documentName.split(".");
     const fieldName = "default";
@@ -51,27 +52,25 @@ export default class Persistence {
     return ydoc;
   }
 
-  onChange = debounce(
-    async ({ document, context, documentName }: onChangePayload) => {
-      const [, documentId] = documentName.split(".");
-      Logger.info("database", `Persisting ${documentId}`);
+  async onStoreDocument({
+    document,
+    context,
+    documentName,
+  }: onStoreDocumentPayload) {
+    const [, documentId] = documentName.split(".");
+    Logger.info("database", `Persisting ${documentId}`);
 
-      try {
-        await documentUpdater({
-          documentId,
-          ydoc: document,
-          userId: context.user?.id,
-        });
-      } catch (err) {
-        Logger.error("Unable to persist document", err, {
-          documentId,
-          userId: context.user?.id,
-        });
-      }
-    },
-    DELAY,
-    {
-      maxWait: DELAY * 3,
+    try {
+      await documentUpdater({
+        documentId,
+        ydoc: document,
+        userId: context.user?.id,
+      });
+    } catch (err) {
+      Logger.error("Unable to persist document", err, {
+        documentId,
+        userId: context.user?.id,
+      });
     }
-  );
+  }
 }
