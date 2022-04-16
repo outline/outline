@@ -4,7 +4,7 @@ import { EditorState, Plugin } from "prosemirror-state";
 import { AddMarkStep, RemoveMarkStep } from "prosemirror-transform";
 import { v4 as uuidv4 } from "uuid";
 import collapseSelection from "../commands/collapseSelection";
-import { CommandFactory } from "../lib/Extension";
+import { Command } from "../lib/Extension";
 import chainTransactions from "../lib/chainTransactions";
 import { Dispatch } from "../types";
 import Mark from "./Mark";
@@ -28,28 +28,32 @@ export default class Comment extends Mark {
     };
   }
 
-  keys({ type }: { type: MarkType }) {
-    return {
-      // TODO: Only create, don't toggle
-      "Mod-Alt-m": toggleMark(type, {
-        id: uuidv4(),
-        userId: this.options.userId,
-      }),
-    };
+  keys({ type }: { type: MarkType }): Record<string, Command> {
+    return this.options.onDraftComment
+      ? {
+          // TODO: Only create, don't toggle
+          "Mod-Alt-m": toggleMark(type, {
+            id: uuidv4(),
+            userId: this.options.userId,
+          }),
+        }
+      : {};
   }
 
-  commands({ type }: { type: MarkType; schema: Schema }): CommandFactory {
-    return () => (state: EditorState, dispatch: Dispatch) => {
-      chainTransactions(
-        toggleMark(type, {
-          id: uuidv4(),
-          userId: this.options.userId,
-        }),
-        collapseSelection()
-      )(state, dispatch);
+  commands({ type }: { type: MarkType; schema: Schema }) {
+    return this.options.onDraftComment
+      ? () => (state: EditorState, dispatch: Dispatch) => {
+          chainTransactions(
+            toggleMark(type, {
+              id: uuidv4(),
+              userId: this.options.userId,
+            }),
+            collapseSelection()
+          )(state, dispatch);
 
-      return true;
-    };
+          return true;
+        }
+      : undefined;
   }
 
   toMarkdown() {
@@ -81,12 +85,12 @@ export default class Comment extends Mark {
             );
 
             if (addCommentSteps.length > 0) {
-              this.options?.onDraftComment(
+              this.options?.onDraftComment?.(
                 (addCommentSteps[0] as any).mark.attrs.id
               );
             }
             if (removeCommentSteps.length > 0) {
-              this.options?.onRemoveComment(
+              this.options?.onRemoveComment?.(
                 (removeCommentSteps[0] as any).mark.attrs.id
               );
             }
@@ -100,12 +104,12 @@ export default class Comment extends Mark {
                 !(event.target instanceof HTMLSpanElement) ||
                 !event.target.classList.contains("comment")
               ) {
-                this.options?.onClickComment();
+                this.options?.onClickComment?.();
                 return false;
               }
 
               const commentId = event.target.id.replace("comment-", "");
-              this.options?.onClickComment(commentId);
+              this.options?.onClickComment?.(commentId);
 
               return false;
             },

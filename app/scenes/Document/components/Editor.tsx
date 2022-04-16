@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useRouteMatch } from "react-router-dom";
-import extensions from "@shared/editor/packages/fullWithComments";
+import fullWithCommentsPackage from "@shared/editor/packages/fullWithComments";
 import Comment from "~/models/Comment";
 import Document from "~/models/Document";
 import { RefHandle } from "~/components/ContentEditable";
@@ -42,7 +42,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   const { t } = useTranslation();
   const match = useRouteMatch();
   const { ui, comments, auth } = useStores();
-  const { user } = auth;
+  const { user, team } = auth;
   const history = useHistory();
   const {
     document,
@@ -153,11 +153,11 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         readOnly={readOnly}
         shareId={shareId}
         userId={user?.id}
-        extensions={extensions}
+        extensions={fullWithCommentsPackage}
         grow
-        onClickComment={handleClickComment}
-        onDraftComment={handleDraftComment}
-        onRemoveComment={handleRemoveComment}
+        onClickComment={team?.commenting ? handleClickComment : undefined}
+        onDraftComment={team?.commenting ? handleDraftComment : undefined}
+        onRemoveComment={team?.commenting ? handleRemoveComment : undefined}
         {...rest}
       />
       {children}

@@ -131,6 +131,7 @@ function CommentThreadItem({
             defaultValue={data}
             onChange={handleChange}
             onSave={handleSave}
+            autoFocus
           />
         </Body>
         <Menu comment={comment} onEdit={setEditing} />
