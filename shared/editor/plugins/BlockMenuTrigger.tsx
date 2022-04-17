@@ -116,28 +116,33 @@ export default class BlockMenuTrigger extends Extension {
               return;
             }
 
-            const decorations: Decoration[] = [];
-            const isEmpty = parent && parent.node.content.size === 0;
-            const isSlash = parent && parent.node.textContent === "/";
             const isTopLevel = state.selection.$from.depth === 1;
+            if (!isTopLevel) {
+              return;
+            }
 
-            if (isTopLevel) {
-              if (isEmpty) {
-                decorations.push(
-                  Decoration.widget(
-                    parent.pos,
-                    () => {
-                      button.addEventListener("click", () => {
-                        this.editor.events.emit(EventType.blockMenuOpen, "");
-                      });
-                      return button;
-                    },
-                    {
-                      key: "block-trigger",
-                    }
-                  )
-                );
+            const decorations: Decoration[] = [];
+            const isEmptyNode = parent && parent.node.content.size === 0;
+            const isSlash = parent && parent.node.textContent === "/";
 
+            if (isEmptyNode) {
+              decorations.push(
+                Decoration.widget(
+                  parent.pos,
+                  () => {
+                    button.addEventListener("click", () => {
+                      this.editor.events.emit(EventType.blockMenuOpen, "");
+                    });
+                    return button;
+                  },
+                  {
+                    key: "block-trigger",
+                  }
+                )
+              );
+
+              const isEmptyDoc = state.doc.textContent === "";
+              if (!isEmptyDoc) {
                 decorations.push(
                   Decoration.node(
                     parent.pos,
@@ -149,24 +154,16 @@ export default class BlockMenuTrigger extends Extension {
                   )
                 );
               }
-
-              if (isSlash) {
-                decorations.push(
-                  Decoration.node(
-                    parent.pos,
-                    parent.pos + parent.node.nodeSize,
-                    {
-                      class: "placeholder",
-                      "data-empty-text": `  ${this.options.dictionary.newLineWithSlash}`,
-                    }
-                  )
-                );
-              }
-
-              return DecorationSet.create(state.doc, decorations);
+            } else if (isSlash) {
+              decorations.push(
+                Decoration.node(parent.pos, parent.pos + parent.node.nodeSize, {
+                  class: "placeholder",
+                  "data-empty-text": `  ${this.options.dictionary.newLineWithSlash}`,
+                })
+              );
             }
 
-            return;
+            return DecorationSet.create(state.doc, decorations);
           },
         },
       }),
