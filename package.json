@@ -15,7 +15,7 @@
     "dev:watch": "nodemon --exec \"yarn build:server && yarn dev\" -e js,ts --ignore build/ --ignore app/ --ignore shared/editor",
     "lint": "eslint app server shared",
     "deploy": "git push heroku master",
-    "prepare": "yarn yarn-deduplicate yarn.lock",
+    "prepare": "husky install",
     "heroku-postbuild": "yarn build:webpack && yarn build:server && yarn copy:i18n && yarn db:migrate",
     "sequelize:migrate": "sequelize db:migrate",
     "db:create-migration": "sequelize migration:create",
