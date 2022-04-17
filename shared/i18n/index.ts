@@ -84,6 +84,7 @@ export const initI18n = () => {
     .use(backend)
     .use(initReactI18next)
     .init({
+      compatibilityJSON: "v3",
       backend: {
         // this must match the path defined in routes. It's the path that the
         // frontend UI code will hit to load missing translations.
