@@ -20,62 +20,40 @@ const STARRED_PAGINATION_LIMIT = 10;
 const STARRED = "STARRED";
 
 function Starred() {
-  const [isFetching, setIsFetching] = React.useState(false);
   const [fetchError, setFetchError] = React.useState();
   const [expanded, setExpanded] = React.useState(Storage.get(STARRED) ?? true);
-  const [show, setShow] = React.useState("Nothing");
-  const [offset, setOffset] = React.useState(0);
-  const [upperBound, setUpperBound] = React.useState(STARRED_PAGINATION_LIMIT);
+  const [displayedStarsCount, setDisplayedStarsCount] = React.useState(
+    STARRED_PAGINATION_LIMIT
+  );
   const { showToast } = useToasts();
   const { stars } = useStores();
   const { t } = useTranslation();
 
-  const fetchResults = React.useCallback(async () => {
-    try {
-      setIsFetching(true);
-      await stars.fetchPage({
-        limit: STARRED_PAGINATION_LIMIT,
-        offset,
-      });
-    } catch (error) {
-      showToast(t("Starred documents could not be loaded"), {
-        type: "error",
-      });
-      setFetchError(error);
-    } finally {
-      setIsFetching(false);
-    }
-  }, [stars, offset, showToast, t]);
+  const fetchResults = React.useCallback(
+    async (offset = 0) => {
+      try {
+        await stars.fetchPage({
+          limit: STARRED_PAGINATION_LIMIT + 1,
+          offset,
+        });
+      } catch (error) {
+        showToast(t("Starred documents could not be loaded"), {
+          type: "error",
+        });
+        setFetchError(error);
+      }
+    },
+    [stars, showToast, t]
+  );
 
   React.useEffect(() => {
-    setOffset(stars.orderedData.length);
-
-    if (stars.orderedData.length <= STARRED_PAGINATION_LIMIT) {
-      setShow("Nothing");
-    } else if (stars.orderedData.length >= upperBound) {
-      setShow("More");
-    } else if (stars.orderedData.length < upperBound) {
-      setShow("Less");
-    }
-  }, [stars.orderedData, upperBound]);
-
-  React.useEffect(() => {
-    if (offset === 0) {
-      fetchResults();
-    }
-  }, [fetchResults, offset]);
-
-  const handleShowMore = React.useCallback(async () => {
-    setUpperBound(
-      (previousUpperBound) => previousUpperBound + STARRED_PAGINATION_LIMIT
-    );
-    await fetchResults();
+    fetchResults();
   }, [fetchResults]);
 
-  const handleShowLess = React.useCallback(() => {
-    setUpperBound(STARRED_PAGINATION_LIMIT);
-    setShow("More");
-  }, []);
+  const handleShowMore = async () => {
+    await fetchResults(displayedStarsCount);
+    setDisplayedStarsCount((prev) => prev + STARRED_PAGINATION_LIMIT);
+  };
 
   const handleExpandClick = React.useCallback((ev) => {
     ev.preventDefault();
@@ -115,24 +93,18 @@ function Starred() {
               innerRef={dropToReorder}
               position="top"
             />
-            {stars.orderedData.slice(0, upperBound).map((star) => (
+            {stars.orderedData.slice(0, displayedStarsCount).map((star) => (
               <StarredLink key={star.id} star={star} />
             ))}
-            {show === "More" && !isFetching && (
+            {stars.orderedData.length > displayedStarsCount && (
               <SidebarLink
                 onClick={handleShowMore}
                 label={`${t("Show more")}…`}
+                disabled={stars.isFetching}
                 depth={0}
               />
             )}
-            {show === "Less" && !isFetching && (
-              <SidebarLink
-                onClick={handleShowLess}
-                label={`${t("Show less")}…`}
-                depth={0}
-              />
-            )}
-            {(isFetching || fetchError) && !stars.orderedData.length && (
+            {(stars.isFetching || fetchError) && !stars.orderedData.length && (
               <Flex column>
                 <PlaceholderCollections />
               </Flex>
