@@ -3,7 +3,6 @@
   "private": true,
   "license": "Business Source License 1.1",
   "main": "index.js",
-  "type": "module",
   "scripts": {
     "clean": "rimraf build",
     "copy:i18n": "mkdir -p ./build/shared/i18n && cp -R ./shared/i18n/locales ./build/shared/i18n",
