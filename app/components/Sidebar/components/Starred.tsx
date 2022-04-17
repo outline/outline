@@ -7,6 +7,7 @@ import Star from "~/models/Star";
 import Flex from "~/components/Flex";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
+import Storage from "~/utils/Storage";
 import DropCursor from "./DropCursor";
 import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
@@ -21,7 +22,7 @@ const STARRED = "STARRED";
 function Starred() {
   const [isFetching, setIsFetching] = React.useState(false);
   const [fetchError, setFetchError] = React.useState();
-  const [expanded, setExpanded] = React.useState(true);
+  const [expanded, setExpanded] = React.useState(Storage.get(STARRED) ?? true);
   const [show, setShow] = React.useState("Nothing");
   const [offset, setOffset] = React.useState(0);
   const [upperBound, setUpperBound] = React.useState(STARRED_PAGINATION_LIMIT);
@@ -45,22 +46,6 @@ function Starred() {
       setIsFetching(false);
     }
   }, [stars, offset, showToast, t]);
-
-  React.useEffect(() => {
-    let stateInLocal;
-
-    try {
-      stateInLocal = localStorage.getItem(STARRED);
-    } catch (_) {
-      // no-op Safari private mode
-    }
-
-    if (!stateInLocal) {
-      localStorage.setItem(STARRED, expanded ? "true" : "false");
-    } else {
-      setExpanded(stateInLocal === "true");
-    }
-  }, [expanded]);
 
   React.useEffect(() => {
     setOffset(stars.orderedData.length);
@@ -92,21 +77,15 @@ function Starred() {
     setShow("More");
   }, []);
 
-  const handleExpandClick = React.useCallback(
-    (ev) => {
-      ev.preventDefault();
-      ev.stopPropagation();
+  const handleExpandClick = React.useCallback((ev) => {
+    ev.preventDefault();
+    ev.stopPropagation();
 
-      try {
-        localStorage.setItem(STARRED, !expanded ? "true" : "false");
-      } catch (_) {
-        // no-op Safari private mode
-      }
-
-      setExpanded((prev) => !prev);
-    },
-    [expanded]
-  );
+    setExpanded((prev: boolean) => {
+      Storage.set(STARRED, !prev);
+      return !prev;
+    });
+  }, []);
 
   // Drop to reorder document
   const [{ isOverReorder }, dropToReorder] = useDrop({

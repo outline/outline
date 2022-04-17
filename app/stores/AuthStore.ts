@@ -8,6 +8,7 @@ import Team from "~/models/Team";
 import User from "~/models/User";
 import env from "~/env";
 import { client } from "~/utils/ApiClient";
+import Storage from "~/utils/Storage";
 import { getCookieDomain } from "~/utils/domains";
 
 const AUTH_STORE = "AUTH_STORE";
@@ -64,23 +65,13 @@ export default class AuthStore {
   constructor(rootStore: RootStore) {
     this.rootStore = rootStore;
     // attempt to load the previous state of this store from localstorage
-    let data: PersistedData = {};
-
-    try {
-      data = JSON.parse(localStorage.getItem(AUTH_STORE) || "{}");
-    } catch (err) {
-      Sentry.captureException(err);
-    }
+    const data: PersistedData = Storage.get(AUTH_STORE) || {};
 
     this.rehydrate(data);
 
     // persists this entire store to localstorage whenever any keys are changed
     autorun(() => {
-      try {
-        localStorage.setItem(AUTH_STORE, this.asJson);
-      } catch (err) {
-        Sentry.captureException(err);
-      }
+      Storage.set(AUTH_STORE, this.asJson);
     });
 
     // listen to the localstorage value changing in other tabs to react to
@@ -135,12 +126,12 @@ export default class AuthStore {
   }
 
   @computed
-  get asJson(): string {
-    return JSON.stringify({
+  get asJson() {
+    return {
       user: this.user,
       team: this.team,
       policies: this.policies,
-    });
+    };
   }
 
   @action
@@ -248,14 +239,11 @@ export default class AuthStore {
   @action
   logout = async (savePath = false) => {
     // remove user and team from localStorage
-    localStorage.setItem(
-      AUTH_STORE,
-      JSON.stringify({
-        user: null,
-        team: null,
-        policies: [],
-      })
-    );
+    Storage.set(AUTH_STORE, {
+      user: null,
+      team: null,
+      policies: [],
+    });
     this.token = null;
 
     // if this logout was forced from an authenticated route then
