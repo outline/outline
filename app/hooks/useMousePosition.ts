@@ -1,5 +1,6 @@
 import { throttle } from "lodash";
 import * as React from "react";
+import useEventListener from "./useEventListener";
 
 /**
  * Mouse position as a tuple of [x, y]
@@ -17,15 +18,15 @@ export const useMousePosition = () => {
     0,
   ]);
 
-  const updateMousePosition = throttle((ev: MouseEvent) => {
-    setMousePosition([ev.clientX, ev.clientY]);
-  }, 200);
+  const updateMousePosition = React.useMemo(
+    () =>
+      throttle((ev: MouseEvent) => {
+        setMousePosition([ev.clientX, ev.clientY]);
+      }, 200),
+    []
+  );
 
-  React.useEffect(() => {
-    window.addEventListener("mousemove", updateMousePosition);
-
-    return () => window.removeEventListener("mousemove", updateMousePosition);
-  }, []);
+  useEventListener("mousemove", updateMousePosition);
 
   return mousePosition;
 };

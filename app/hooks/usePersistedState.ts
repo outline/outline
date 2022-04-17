@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Primitive } from "utility-types";
 import Storage from "~/utils/Storage";
+import useEventListener from "./useEventListener";
 
 /**
  * A hook with the same API as `useState` that persists its value locally and
@@ -36,16 +37,11 @@ export default function usePersistedState(
   };
 
   // Listen to the key changing in other tabs so we can keep UI in sync
-  React.useEffect(() => {
-    const updateValue = (event: any) => {
-      if (event.key === key && event.newValue) {
-        setStoredValue(JSON.parse(event.newValue));
-      }
-    };
-
-    window.addEventListener("storage", updateValue);
-    return () => window.removeEventListener("storage", updateValue);
-  }, [key]);
+  useEventListener("storage", (event: StorageEvent) => {
+    if (event.key === key && event.newValue) {
+      setStoredValue(JSON.parse(event.newValue));
+    }
+  });
 
   return [storedValue, setValue];
 }
