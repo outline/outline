@@ -1,4 +1,5 @@
 import chalk from "chalk";
+import { isEmpty } from "lodash";
 import winston from "winston";
 import env from "@server/env";
 import Metrics from "@server/logging/metrics";
@@ -32,10 +33,10 @@ class Logger {
           : winston.format.combine(
               winston.format.colorize(),
               winston.format.printf(
-                ({ message, level, label }) =>
+                ({ message, level, label, ...extra }) =>
                   `${level}: ${
                     label ? chalk.bold("[" + label + "] ") : ""
-                  }${message}`
+                  }${message} ${isEmpty(extra) ? "" : JSON.stringify(extra)}`
               )
             ),
       })
