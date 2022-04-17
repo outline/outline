@@ -169,6 +169,7 @@ const Title = styled(ContentEditable)<TitleProps>`
   font-weight: 500;
   border: 0;
   padding: 0;
+  cursor: ${(props) => (props.readOnly ? "default" : "text")};
 
   > span {
     outline: none;
