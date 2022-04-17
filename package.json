@@ -159,7 +159,7 @@
     "react-dom": "^17.0.2",
     "react-dropzone": "^11.3.2",
     "react-helmet": "^6.1.0",
-    "react-i18next": "^11.13.0",
+    "react-i18next": "^11.16.6",
     "react-medium-image-zoom": "^3.1.3",
     "react-portal": "^4.2.0",
     "react-router-dom": "^5.2.0",
