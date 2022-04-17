@@ -42,7 +42,7 @@ function References({ document }: Props) {
         )}
         {showBacklinks && (
           <Tab to="#backlinks" isActive={() => isBacklinksTab}>
-            <Trans>Backlinks</Trans>
+            <Trans>sdsdfs</Trans>
           </Tab>
         )}
       </Tabs>
