@@ -14,7 +14,6 @@ import {
   ImportIcon,
   NewDocumentIcon,
   DownloadIcon,
-  BuildingBlocksIcon,
   RestoreIcon,
   CrossIcon,
 } from "outline-icons";
@@ -411,20 +410,6 @@ function DocumentMenu({
               icon: <CrossIcon />,
             },
             {
-              type: "button",
-              title: t("Enable embeds"),
-              onClick: document.enableEmbeds,
-              visible: !!showToggleEmbeds && document.embedsDisabled,
-              icon: <BuildingBlocksIcon />,
-            },
-            {
-              type: "button",
-              title: t("Disable embeds"),
-              onClick: document.disableEmbeds,
-              visible: !!showToggleEmbeds && !document.embedsDisabled,
-              icon: <BuildingBlocksIcon />,
-            },
-            {
               type: "separator",
             },
             {
@@ -452,21 +437,38 @@ function DocumentMenu({
             },
           ]}
         />
-        {showDisplayOptions && !isMobile && (
+        {(showDisplayOptions || showToggleEmbeds) && (
           <>
             <Separator />
-            <Style>
-              <ToggleMenuItem
-                width={26}
-                height={14}
-                label={t("Full width")}
-                checked={document.fullWidth}
-                onChange={(ev) => {
-                  document.fullWidth = ev.currentTarget.checked;
-                  document.save();
-                }}
-              />
-            </Style>
+            {showToggleEmbeds && (
+              <Style>
+                <ToggleMenuItem
+                  width={26}
+                  height={14}
+                  label={t("Enable embeds")}
+                  checked={!document.embedsDisabled}
+                  onChange={
+                    document.embedsDisabled
+                      ? document.enableEmbeds
+                      : document.disableEmbeds
+                  }
+                />
+              </Style>
+            )}
+            {showDisplayOptions && !isMobile && (
+              <Style>
+                <ToggleMenuItem
+                  width={26}
+                  height={14}
+                  label={t("Full width")}
+                  checked={document.fullWidth}
+                  onChange={(ev) => {
+                    document.fullWidth = ev.currentTarget.checked;
+                    document.save();
+                  }}
+                />
+              </Style>
+            )}
           </>
         )}
       </ContextMenu>
