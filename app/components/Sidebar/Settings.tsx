@@ -39,20 +39,21 @@ function SettingsSidebar() {
         <Scrollable shadow>
           {Object.keys(groupedConfig).map((header) => (
             <Section key={header}>
-              <Header>{header}</Header>
-              {groupedConfig[header].map((item) => (
-                <SidebarLink
-                  key={item.path}
-                  to={item.path}
-                  icon={<item.icon color="currentColor" />}
-                  label={item.name}
-                />
-              ))}
+              <Header title={header}>
+                {groupedConfig[header].map((item) => (
+                  <SidebarLink
+                    key={item.path}
+                    to={item.path}
+                    icon={<item.icon color="currentColor" />}
+                    label={item.name}
+                  />
+                ))}
+              </Header>
             </Section>
           ))}
           {!isHosted && (
             <Section>
-              <Header>{t("Installation")}</Header>
+              <Header title={t("Installation")} />
               <Version />
             </Section>
           )}

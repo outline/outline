@@ -7,7 +7,6 @@ import Star from "~/models/Star";
 import Flex from "~/components/Flex";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
-import Storage from "~/utils/Storage";
 import DropCursor from "./DropCursor";
 import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
@@ -17,11 +16,9 @@ import StarredContext from "./StarredContext";
 import StarredLink from "./StarredLink";
 
 const STARRED_PAGINATION_LIMIT = 10;
-const STARRED = "STARRED";
 
 function Starred() {
   const [fetchError, setFetchError] = React.useState();
-  const [expanded, setExpanded] = React.useState(Storage.get(STARRED) ?? true);
   const [displayedStarsCount, setDisplayedStarsCount] = React.useState(
     STARRED_PAGINATION_LIMIT
   );
@@ -55,24 +52,15 @@ function Starred() {
     setDisplayedStarsCount((prev) => prev + STARRED_PAGINATION_LIMIT);
   };
 
-  const handleExpandClick = React.useCallback((ev) => {
-    ev.preventDefault();
-    ev.stopPropagation();
-
-    setExpanded((prev: boolean) => {
-      Storage.set(STARRED, !prev);
-      return !prev;
-    });
-  }, []);
-
   // Drop to reorder document
-  const [{ isOverReorder }, dropToReorder] = useDrop({
+  const [{ isOverReorder, isDraggingAnyStar }, dropToReorder] = useDrop({
     accept: "star",
     drop: async (item: Star) => {
       item?.save({ index: fractionalIndex(null, stars.orderedData[0].index) });
     },
     collect: (monitor) => ({
       isOverReorder: !!monitor.isOver(),
+      isDraggingAnyStar: monitor.getItemType() === "star",
     }),
   });
 
@@ -83,16 +71,15 @@ function Starred() {
   return (
     <StarredContext.Provider value={true}>
       <Flex column>
-        <Header onClick={handleExpandClick} expanded={expanded}>
-          {t("Starred")}
-        </Header>
-        {expanded && (
+        <Header id="starred" title={t("Starred")}>
           <Relative>
-            <DropCursor
-              isActiveDrop={isOverReorder}
-              innerRef={dropToReorder}
-              position="top"
-            />
+            {isDraggingAnyStar && (
+              <DropCursor
+                isActiveDrop={isOverReorder}
+                innerRef={dropToReorder}
+                position="top"
+              />
+            )}
             {stars.orderedData.slice(0, displayedStarsCount).map((star) => (
               <StarredLink key={star.id} star={star} />
             ))}
@@ -110,7 +97,7 @@ function Starred() {
               </Flex>
             )}
           </Relative>
-        )}
+        </Header>
       </Flex>
     </StarredContext.Provider>
   );

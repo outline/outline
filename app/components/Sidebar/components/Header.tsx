@@ -1,24 +1,64 @@
 import { CollapsedIcon } from "outline-icons";
 import * as React from "react";
-import styled from "styled-components";
+import styled, { keyframes } from "styled-components";
+import usePersistedState from "~/hooks/usePersistedState";
 
 type Props = {
-  onClick?: React.MouseEventHandler;
-  expanded?: boolean;
+  /** Unique header id – if passed the header will become toggleable */
+  id?: string;
+  title: React.ReactNode;
 };
 
-export const Header: React.FC<Props> = ({ onClick, expanded, children }) => {
+/**
+ * Toggleable sidebar header
+ */
+export const Header: React.FC<Props> = ({ id, title, children }) => {
+  const [firstRender, setFirstRender] = React.useState(true);
+  const [expanded, setExpanded] = usePersistedState(
+    `sidebar-header-${id}`,
+    true
+  );
+
+  React.useEffect(() => {
+    if (!expanded) {
+      setFirstRender(false);
+    }
+  }, [expanded]);
+
+  const handleClick = React.useCallback(() => {
+    setExpanded(!expanded);
+  }, [expanded, setExpanded]);
+
   return (
-    <H3>
-      <Button onClick={onClick} disabled={!onClick}>
-        {children}
-        {onClick && (
-          <Disclosure expanded={expanded} color="currentColor" size={20} />
-        )}
-      </Button>
-    </H3>
+    <>
+      <H3>
+        <Button onClick={handleClick} disabled={!id}>
+          {title}
+          {id && (
+            <Disclosure expanded={expanded} color="currentColor" size={20} />
+          )}
+        </Button>
+      </H3>
+      {expanded && (firstRender ? children : <Fade>{children}</Fade>)}
+    </>
   );
 };
+
+export const fadeAndSlideDown = keyframes`
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0px);
+  }
+`;
+
+const Fade = styled.span`
+  animation: ${fadeAndSlideDown} 100ms ease-in-out;
+`;
 
 const Button = styled.button`
   display: inline-flex;
