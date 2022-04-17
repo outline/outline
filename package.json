@@ -296,6 +296,7 @@
     "eslint-plugin-react-hooks": "^4.1.0",
     "fetch-test-server": "^1.1.0",
     "html-webpack-plugin": "4.5.1",
+    "husky": "^7.0.4",
     "i18next-parser": "^4.7.0",
     "jest-cli": "^27.4.5",
     "jest-fetch-mock": "^3.0.3",
