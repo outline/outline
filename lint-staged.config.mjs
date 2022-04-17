@@ -3,7 +3,7 @@ export default {
   // TypeScript files
   "**/*.[tj]s?(x)": [
     (f) => (f.length > 20 ? `yarn lint --fix` : `eslint ${f.join(" ")} --fix`),
-    (f) => `i18next --silent ${f.map((n) => `"${n}"`).join(" ")}`,
+    () => `yarn build:i18n`,
     () => "git add shared/i18n/locales/en_US/translation.json",
   ],
 
