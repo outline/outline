@@ -44,14 +44,6 @@ export default class Embed extends Node {
             return {};
           },
         },
-        {
-          tag: "a.disabled-embed",
-          getAttrs: (dom: HTMLAnchorElement) => {
-            return {
-              href: dom.getAttribute("href") || "",
-            };
-          },
-        },
       ],
       toDOM: (node) => [
         "iframe",
