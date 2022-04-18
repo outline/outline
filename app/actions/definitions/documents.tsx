@@ -13,19 +13,12 @@ import {
   SearchIcon,
 } from "outline-icons";
 import * as React from "react";
-import { Trans } from "react-i18next";
 import getDataTransferFiles from "@shared/utils/getDataTransferFiles";
-import ConfirmationDialog from "~/components/ConfirmationDialog";
 import DocumentTemplatizeDialog from "~/components/DocumentTemplatizeDialog";
 import { createAction } from "~/actions";
 import { DocumentSection } from "~/actions/sections";
 import history from "~/utils/history";
-import {
-  documentUrl,
-  homePath,
-  newDocumentPath,
-  searchPath,
-} from "~/utils/routeHelpers";
+import { homePath, newDocumentPath, searchPath } from "~/utils/routeHelpers";
 
 export const openDocument = createAction({
   name: ({ t }) => t("Open document"),
