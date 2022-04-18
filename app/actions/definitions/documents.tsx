@@ -16,6 +16,7 @@ import * as React from "react";
 import { Trans } from "react-i18next";
 import getDataTransferFiles from "@shared/utils/getDataTransferFiles";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
+import DocumentTemplatizeDialog from "~/components/DocumentTemplatizeDialog";
 import { createAction } from "~/actions";
 import { DocumentSection } from "~/actions/sections";
 import history from "~/utils/history";
@@ -312,44 +313,13 @@ export const createTemplate = createAction({
     if (!activeDocumentId) {
       return;
     }
-    const document = stores.documents.get(activeDocumentId);
-    if (!document) {
-      return;
-    }
     event?.preventDefault();
     event?.stopPropagation();
 
     stores.dialogs.openModal({
       title: t("Create template"),
       isCentered: true,
-      content: (
-        <ConfirmationDialog
-          onSubmit={async () => {
-            const template = await document?.templatize();
-            if (template) {
-              history.push(documentUrl(template));
-              stores.toasts.showToast(
-                t("Template created, go ahead and customize it"),
-                {
-                  type: "info",
-                }
-              );
-            }
-          }}
-          submitText={t("Create template")}
-          savingText={`${t("Creating")}…`}
-        >
-          <Trans
-            defaults="Creating a template from <em>{{titleWithDefault}}</em> is a non-destructive action – we'll make a copy of the document and turn it into a template that can be used as a starting point for new documents."
-            values={{
-              titleWithDefault: document.titleWithDefault,
-            }}
-            components={{
-              em: <strong />,
-            }}
-          />
-        </ConfirmationDialog>
-      ),
+      content: <DocumentTemplatizeDialog documentId={activeDocumentId} />,
     });
   },
 });
