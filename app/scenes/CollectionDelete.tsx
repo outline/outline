@@ -51,7 +51,7 @@ function CollectionDelete({ collection, onSubmit }: Props) {
       <form onSubmit={handleSubmit}>
         <Text type="secondary">
           <Trans
-            defaults="Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however documents within will be moved to the trash."
+            defaults="Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however documents within will be moved to the trash."
             values={{
               collectionName: collection.name,
             }}

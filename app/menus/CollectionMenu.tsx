@@ -143,7 +143,7 @@ function CollectionMenu({
   const handleDelete = React.useCallback(() => {
     dialogs.openModal({
       isCentered: true,
-      title: t("Are you sure you want to delete this collection?"),
+      title: t("Delete collection"),
       content: (
         <CollectionDelete
           collection={collection}
