@@ -13,7 +13,6 @@ type Props = {
 };
 
 function DocumentTemplatizeDialog({ documentId }: Props) {
-  // const [isSaving, setIsSaving] = useState<boolean>();
   const history = useHistory();
   const { showToast } = useToasts();
   const { t } = useTranslation();
