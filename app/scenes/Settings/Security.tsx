@@ -4,6 +4,7 @@ import { PadlockIcon } from "outline-icons";
 import { useState } from "react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Heading from "~/components/Heading";
 import InputSelect from "~/components/InputSelect";
 import Scene from "~/components/Scene";
@@ -16,7 +17,7 @@ import useToasts from "~/hooks/useToasts";
 import SettingRow from "./components/SettingRow";
 
 function Security() {
-  const { auth } = useStores();
+  const { auth, dialogs } = useStores();
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const { showToast } = useToasts();
@@ -26,7 +27,10 @@ function Security() {
     guestSignin: team.guestSignin,
     defaultUserRole: team.defaultUserRole,
     memberCollectionCreate: team.memberCollectionCreate,
+    inviteRequired: team.inviteRequired,
   });
+
+  const authenticationMethods = team.signinMethods;
 
   const showSuccessMessage = React.useMemo(
     () =>
@@ -38,22 +42,72 @@ function Security() {
     [showToast, t]
   );
 
-  const handleChange = React.useCallback(
-    async (ev: React.ChangeEvent<HTMLInputElement>) => {
-      const newData = { ...data, [ev.target.id]: ev.target.checked };
-      setData(newData);
-      await auth.updateTeam(newData);
-      showSuccessMessage();
+  const saveData = React.useCallback(
+    async (newData) => {
+      try {
+        setData(newData);
+        await auth.updateTeam(newData);
+        showSuccessMessage();
+      } catch (err) {
+        showToast(err.message, {
+          type: "error",
+        });
+      }
     },
-    [auth, data, showSuccessMessage]
+    [auth, showSuccessMessage, showToast]
   );
 
-  const handleDefaultRoleChange = async (newDefaultRole: string) => {
-    const newData = { ...data, defaultUserRole: newDefaultRole };
-    setData(newData);
-    await auth.updateTeam(newData);
-    showSuccessMessage();
-  };
+  const handleChange = React.useCallback(
+    async (ev: React.ChangeEvent<HTMLInputElement>) => {
+      await saveData({ ...data, [ev.target.id]: ev.target.checked });
+    },
+    [data, saveData]
+  );
+
+  const handleDefaultRoleChange = React.useCallback(
+    async (newDefaultRole: string) => {
+      await saveData({ ...data, defaultUserRole: newDefaultRole });
+    },
+    [data, saveData]
+  );
+
+  const handleAllowSignupsChange = React.useCallback(
+    async (ev: React.ChangeEvent<HTMLInputElement>) => {
+      const inviteRequired = !ev.target.checked;
+      const newData = { ...data, inviteRequired };
+
+      if (inviteRequired) {
+        dialogs.openModal({
+          isCentered: true,
+          title: t("Are you sure you want to disable authorized signups?"),
+          content: (
+            <ConfirmationDialog
+              onSubmit={async () => {
+                await saveData(newData);
+              }}
+              submitText={t("I’m sure — Disable")}
+              savingText={`${t("Disabling")}…`}
+              danger
+            >
+              <Trans
+                defaults="New account creation using <em>{{ authenticationMethods }}</em> will be disabled. New users will need to be invited."
+                values={{
+                  authenticationMethods,
+                }}
+                components={{
+                  em: <strong />,
+                }}
+              />
+            </ConfirmationDialog>
+          ),
+        });
+        return;
+      }
+
+      await saveData(newData);
+    },
+    [data, saveData, t, dialogs, authenticationMethods]
+  );
 
   return (
     <Scene title={t("Security")} icon={<PadlockIcon color="currentColor" />}>
@@ -114,6 +168,28 @@ function Security() {
           id="memberCollectionCreate"
           checked={data.memberCollectionCreate}
           onChange={handleChange}
+        />
+      </SettingRow>
+
+      <SettingRow
+        label={t("Allow authorized signups")}
+        name="allowSignups"
+        description={
+          <Trans
+            defaults="Allow authorized <em>{{ authenticationMethods }}</em> users to create new accounts without first receiving an invite"
+            values={{
+              authenticationMethods,
+            }}
+            components={{
+              em: <strong />,
+            }}
+          />
+        }
+      >
+        <Switch
+          id="allowSignups"
+          checked={!data.inviteRequired}
+          onChange={handleAllowSignupsChange}
         />
       </SettingRow>
 

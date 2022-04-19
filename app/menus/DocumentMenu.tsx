@@ -9,7 +9,6 @@ import {
   MoveIcon,
   HistoryIcon,
   UnpublishIcon,
-  ShapesIcon,
   PrintIcon,
   ImportIcon,
   NewDocumentIcon,
@@ -29,7 +28,6 @@ import Document from "~/models/Document";
 import DocumentDelete from "~/scenes/DocumentDelete";
 import DocumentMove from "~/scenes/DocumentMove";
 import DocumentPermanentDelete from "~/scenes/DocumentPermanentDelete";
-import DocumentTemplatize from "~/scenes/DocumentTemplatize";
 import CollectionIcon from "~/components/CollectionIcon";
 import ContextMenu from "~/components/ContextMenu";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
@@ -39,7 +37,7 @@ import Flex from "~/components/Flex";
 import Modal from "~/components/Modal";
 import Switch from "~/components/Switch";
 import { actionToMenuItem } from "~/actions";
-import { pinDocument } from "~/actions/definitions/documents";
+import { pinDocument, createTemplate } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useMobile from "~/hooks/useMobile";
@@ -103,7 +101,6 @@ function DocumentMenu({
     setShowPermanentDeleteModal,
   ] = React.useState(false);
   const [showMoveModal, setShowMoveModal] = React.useState(false);
-  const [showTemplateModal, setShowTemplateModal] = React.useState(false);
   const file = React.useRef<HTMLInputElement>(null);
 
   const handleOpen = React.useCallback(() => {
@@ -330,6 +327,7 @@ function DocumentMenu({
               visible: !document.isStarred && !!can.star,
               icon: <StarredIcon />,
             },
+            // Pin document
             actionToMenuItem(pinDocument, context),
             {
               type: "separator",
@@ -357,14 +355,8 @@ function DocumentMenu({
               onClick: handleImportDocument,
               icon: <ImportIcon />,
             },
-            {
-              type: "button",
-              title: `${t("Create template")}…`,
-              onClick: () => setShowTemplateModal(true),
-              visible:
-                !!can.update && !document.isTemplate && !document.isDraft,
-              icon: <ShapesIcon />,
-            },
+            // Templatize document
+            actionToMenuItem(createTemplate, context),
             {
               type: "button",
               title: t("Duplicate"),
@@ -515,19 +507,6 @@ function DocumentMenu({
               <DocumentPermanentDelete
                 document={document}
                 onSubmit={() => setShowPermanentDeleteModal(false)}
-              />
-            </Modal>
-          )}
-          {can.update && (
-            <Modal
-              title={t("Create template")}
-              onRequestClose={() => setShowTemplateModal(false)}
-              isOpen={showTemplateModal}
-              isCentered
-            >
-              <DocumentTemplatize
-                documentId={document.id}
-                onSubmit={() => setShowTemplateModal(false)}
               />
             </Modal>
           )}
