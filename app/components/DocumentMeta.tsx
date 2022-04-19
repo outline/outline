@@ -73,6 +73,7 @@ const DocumentMeta: React.FC<Props> = ({
 
   const collection = collections.get(document.collectionId);
   const lastUpdatedByCurrentUser = user.id === updatedBy.id;
+  const userName = updatedBy.name;
   let content;
 
   if (deletedAt) {
