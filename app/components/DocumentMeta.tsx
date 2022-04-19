@@ -78,37 +78,55 @@ const DocumentMeta: React.FC<Props> = ({
   if (deletedAt) {
     content = (
       <span>
-        {lastUpdatedByCurrentUser ? t("You deleted") : t("{{ userName }} deleted", { userName })} <Time dateTime={deletedAt} addSuffix />
+        {lastUpdatedByCurrentUser
+          ? t("You deleted")
+          : t("{{ userName }} deleted", { userName })
+        } <Time dateTime={deletedAt} addSuffix />
       </span>
     );
   } else if (archivedAt) {
     content = (
       <span>
-        {lastUpdatedByCurrentUser ? t("You archived") : t("{{ userName }} archived", { userName })} <Time dateTime={archivedAt} addSuffix />
+        {lastUpdatedByCurrentUser
+          ? t("You archived")
+          : t("{{ userName }} archived", { userName })
+        } <Time dateTime={archivedAt} addSuffix />
       </span>
     );
   } else if (createdAt === updatedAt) {
     content = (
       <span>
-        {lastUpdatedByCurrentUser ? t("You created") : t("{{ userName }} created", { userName })} <Time dateTime={updatedAt} addSuffix />
+        {lastUpdatedByCurrentUser
+          ? t("You created")
+          : t("{{ userName }} created", { userName })
+        } <Time dateTime={updatedAt} addSuffix />
       </span>
     );
   } else if (publishedAt && (publishedAt === updatedAt || showPublished)) {
     content = (
       <span>
-        {lastUpdatedByCurrentUser ? t("You published") : t("{{ userName }} published", { userName })} <Time dateTime={publishedAt} addSuffix />
+        {lastUpdatedByCurrentUser
+          ? t("You published")
+          : t("{{ userName }} published", { userName })
+        } <Time dateTime={publishedAt} addSuffix />
       </span>
     );
   } else if (isDraft) {
     content = (
       <span>
-        {lastUpdatedByCurrentUser ? t("You saved") : t("{{ userName }} saved", { userName })} <Time dateTime={updatedAt} addSuffix />
+        {lastUpdatedByCurrentUser
+          ? t("You saved")
+          : t("{{ userName }} saved", { userName })
+        } <Time dateTime={updatedAt} addSuffix />
       </span>
     );
   } else {
     content = (
       <Modified highlight={modifiedSinceViewed && !lastUpdatedByCurrentUser}>
-        {lastUpdatedByCurrentUser ? t("You updated") : t("{{ userName }} updated", { userName })} <Time dateTime={updatedAt} addSuffix />
+        {lastUpdatedByCurrentUser
+          ? t("You updated")
+          : t("{{ userName }} updated", { userName })
+        } <Time dateTime={updatedAt} addSuffix />
       </Modified>
     );
   }
