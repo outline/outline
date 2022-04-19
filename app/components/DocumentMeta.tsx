@@ -80,8 +80,7 @@ const DocumentMeta: React.FC<Props> = ({
       <span>
         {lastUpdatedByCurrentUser
           ? t("You deleted")
-          : t("{{ userName }} deleted", { userName })
-        } <Time dateTime={deletedAt} addSuffix />
+          : t("{{ userName }} deleted", { userName })} <Time dateTime={deletedAt} addSuffix />
       </span>
     );
   } else if (archivedAt) {
@@ -89,8 +88,7 @@ const DocumentMeta: React.FC<Props> = ({
       <span>
         {lastUpdatedByCurrentUser
           ? t("You archived")
-          : t("{{ userName }} archived", { userName })
-        } <Time dateTime={archivedAt} addSuffix />
+          : t("{{ userName }} archived", { userName })} <Time dateTime={archivedAt} addSuffix />
       </span>
     );
   } else if (createdAt === updatedAt) {
@@ -98,8 +96,7 @@ const DocumentMeta: React.FC<Props> = ({
       <span>
         {lastUpdatedByCurrentUser
           ? t("You created")
-          : t("{{ userName }} created", { userName })
-        } <Time dateTime={updatedAt} addSuffix />
+          : t("{{ userName }} created", { userName })} <Time dateTime={updatedAt} addSuffix />
       </span>
     );
   } else if (publishedAt && (publishedAt === updatedAt || showPublished)) {
@@ -107,8 +104,7 @@ const DocumentMeta: React.FC<Props> = ({
       <span>
         {lastUpdatedByCurrentUser
           ? t("You published")
-          : t("{{ userName }} published", { userName })
-        } <Time dateTime={publishedAt} addSuffix />
+          : t("{{ userName }} published", { userName })} <Time dateTime={publishedAt} addSuffix />
       </span>
     );
   } else if (isDraft) {
@@ -116,8 +112,7 @@ const DocumentMeta: React.FC<Props> = ({
       <span>
         {lastUpdatedByCurrentUser
           ? t("You saved")
-          : t("{{ userName }} saved", { userName })
-        } <Time dateTime={updatedAt} addSuffix />
+          : t("{{ userName }} saved", { userName })} <Time dateTime={updatedAt} addSuffix />
       </span>
     );
   } else {
@@ -125,8 +120,7 @@ const DocumentMeta: React.FC<Props> = ({
       <Modified highlight={modifiedSinceViewed && !lastUpdatedByCurrentUser}>
         {lastUpdatedByCurrentUser
           ? t("You updated")
-          : t("{{ userName }} updated", { userName })
-        } <Time dateTime={updatedAt} addSuffix />
+          : t("{{ userName }} updated", { userName })} <Time dateTime={updatedAt} addSuffix />
       </Modified>
     );
   }
