@@ -1,9 +1,9 @@
 import { computed } from "mobx";
 import { bytesToHumanReadable } from "@shared/utils/files";
-import BaseModal from "./BaseModel";
+import BaseModel from "./BaseModel";
 import User from "./User";
 
-class FileOperation extends BaseModal {
+class FileOperation extends BaseModel {
   id: string;
 
   state: string;
