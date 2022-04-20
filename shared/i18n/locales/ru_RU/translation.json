@@ -617,7 +617,7 @@
   "You may delete your account at any time, note that this is unrecoverable": "Удалить аккаунт можно в любое время — но вернуть данные не получится",
   "Delete account": "Удалить аккаунт",
   "Are you sure you want to disable authorized signups?": "Are you sure you want to disable authorized signups?",
-  "I’m sure — Disable": "I’m sure — Disable",
+  "I’m sure — Disable": "Я уверен — Отключить",
   "Disabling": "Disabling",
   "New account creation using <em>{{ authenticationMethods }}</em> will be disabled. New users will need to be invited.": "New account creation using <em>{{ authenticationMethods }}</em> will be disabled. New users will need to be invited.",
   "Settings that impact the access, security, and content of your knowledge base.": "Настройки, влияющие на доступ, безопасность и содержимое вашей базы знаний.",
