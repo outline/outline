@@ -9,6 +9,14 @@ export enum TaskPriority {
 }
 
 export default abstract class BaseTask<T> {
+  protected props: T;
+
+  public constructor(props?: T) {
+    if (props) {
+      this.props = props;
+    }
+  }
+
   /**
    * Schedule this task type to be processed asyncronously by a worker.
    *

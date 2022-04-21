@@ -125,7 +125,7 @@ export default function init() {
 
       Logger.info("worker", `${name} running`, props);
 
-      const task = new TaskClass();
+      const task = new TaskClass(props);
 
       try {
         await task.perform(props);

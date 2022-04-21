@@ -1,4 +1,3 @@
-import fs from "fs";
 import path from "path";
 import { strikethrough, tables } from "joplin-turndown-plugin-gfm";
 import { truncate } from "lodash";
@@ -68,27 +67,21 @@ const importMapping: ImportableFile[] = [
   },
 ];
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'file' implicitly has an 'any' type.
-async function fileToMarkdown(file): Promise<string> {
-  return fs.promises.readFile(file.path, "utf8");
+async function fileToMarkdown(value: string): Promise<string> {
+  return value;
 }
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'file' implicitly has an 'any' type.
-async function docxToMarkdown(file): Promise<string> {
-  const { value } = await mammoth.convertToHtml(file);
+async function docxToMarkdown(value: string): Promise<string> {
+  const buffer = Buffer.from(value, "utf-8");
+  const { value: html } = await mammoth.convertToHtml({ buffer });
+  return turndownService.turndown(html);
+}
+
+async function htmlToMarkdown(value: string): Promise<string> {
   return turndownService.turndown(value);
 }
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'file' implicitly has an 'any' type.
-async function htmlToMarkdown(file): Promise<string> {
-  const value = await fs.promises.readFile(file.path, "utf8");
-  return turndownService.turndown(value);
-}
-
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'file' implicitly has an 'any' type.
-async function confluenceToMarkdown(file): Promise<string> {
-  let value = await fs.promises.readFile(file.path, "utf8");
-
+async function confluenceToMarkdown(value: string): Promise<string> {
   // We're only supporting the ridiculous output from Confluence here, regular
   // Word documents should call into the docxToMarkdown importer.
   // See: https://jira.atlassian.com/browse/CONFSERVER-38237
@@ -143,22 +136,26 @@ async function confluenceToMarkdown(file): Promise<string> {
 }
 
 async function documentImporter({
-  file,
+  mimeType,
+  fileName,
+  content,
   user,
   ip,
 }: {
   user: User;
-  file: File;
-  ip: string;
+  mimeType: string;
+  fileName: string;
+  content: Buffer | string;
+  ip?: string;
 }): Promise<{
   text: string;
   title: string;
 }> {
   const fileInfo = importMapping.filter((item) => {
-    if (item.type === file.type) {
+    if (item.type === mimeType) {
       if (
-        file.type === "application/octet-stream" &&
-        path.extname(file.name) !== ".docx"
+        mimeType === "application/octet-stream" &&
+        path.extname(fileName) !== ".docx"
       ) {
         return false;
       }
@@ -166,7 +163,7 @@ async function documentImporter({
       return true;
     }
 
-    if (item.type === "text/markdown" && path.extname(file.name) === ".md") {
+    if (item.type === "text/markdown" && path.extname(fileName) === ".md") {
       return true;
     }
 
@@ -174,11 +171,15 @@ async function documentImporter({
   })[0];
 
   if (!fileInfo) {
-    throw InvalidRequestError(`File type ${file.type} not supported`);
+    throw InvalidRequestError(`File type ${mimeType} not supported`);
   }
 
-  let title = deserializeFilename(file.name.replace(/\.[^/.]+$/, ""));
-  let text = await fileInfo.getMarkdown(file);
+  if (content instanceof Buffer) {
+    content = content.toString("utf8");
+  }
+
+  let title = deserializeFilename(fileName.replace(/\.[^/.]+$/, ""));
+  let text = await fileInfo.getMarkdown(content);
 
   // If the first line of the imported text looks like a markdown heading
   // then we can use this as the document title
