@@ -7,6 +7,7 @@ import documentCreator from "@server/commands/documentCreator";
 import documentImporter from "@server/commands/documentImporter";
 import documentMover from "@server/commands/documentMover";
 import documentPermanentDeleter from "@server/commands/documentPermanentDeleter";
+import documentUpdater from "@server/commands/documentUpdater";
 import { sequelize } from "@server/database/sequelize";
 import {
   NotFoundError,
@@ -1000,8 +1001,6 @@ router.post("documents.update", auth(), async (ctx) => {
     text,
     fullWidth,
     publish,
-    autosave,
-    done,
     lastRevision,
     templateId,
     append,
@@ -1013,18 +1012,12 @@ router.post("documents.update", auth(), async (ctx) => {
   }
   const { user } = ctx.state;
 
-  let document: Document | null | undefined;
   let collection: Collection | null | undefined;
 
-  // TODO: Move to command
-  await sequelize.transaction(async (transaction) => {
-    document = await Document.findByPk(id, {
+  const document = await sequelize.transaction(async (transaction) => {
+    const document = await Document.findByPk(id, {
       userId: user.id,
       transaction,
-      lock: {
-        level: transaction.LOCK.UPDATE,
-        of: Document,
-      },
     });
     authorize(user, "update", document);
 
@@ -1034,90 +1027,21 @@ router.post("documents.update", auth(), async (ctx) => {
       throw InvalidRequestError("Document has changed since last revision");
     }
 
-    const previousTitle = document.title;
-
-    // Update document
-    if (title !== undefined) {
-      document.title = title;
-    }
-    if (editorVersion) {
-      document.editorVersion = editorVersion;
-    }
-    if (templateId) {
-      document.templateId = templateId;
-    }
-    if (fullWidth !== undefined) {
-      document.fullWidth = fullWidth;
-    }
-
-    if (!user.team?.collaborativeEditing) {
-      if (append) {
-        document.text += text;
-      } else if (text !== undefined) {
-        document.text = text;
-      }
-    }
-
-    document.lastModifiedById = user.id;
-    const changed = document.changed();
-
-    if (publish) {
-      await document.publish(user.id, { transaction });
-    } else {
-      await document.save({ transaction });
-    }
-
-    if (publish) {
-      await Event.create(
-        {
-          name: "documents.publish",
-          documentId: document.id,
-          collectionId: document.collectionId,
-          teamId: document.teamId,
-          actorId: user.id,
-          data: {
-            title: document.title,
-          },
-          ip: ctx.request.ip,
-        },
-        { transaction }
-      );
-    } else if (changed) {
-      await Event.create(
-        {
-          name: "documents.update",
-          documentId: document.id,
-          collectionId: document.collectionId,
-          teamId: document.teamId,
-          actorId: user.id,
-          data: {
-            autosave,
-            done,
-            title: document.title,
-          },
-          ip: ctx.request.ip,
-        },
-        { transaction }
-      );
-    }
-
-    if (document.title !== previousTitle) {
-      Event.schedule({
-        name: "documents.title_change",
-        documentId: document.id,
-        collectionId: document.collectionId,
-        teamId: document.teamId,
-        actorId: user.id,
-        data: {
-          previousTitle,
-          title: document.title,
-        },
-        ip: ctx.request.ip,
-      });
-    }
+    return documentUpdater({
+      document,
+      user,
+      title,
+      text,
+      fullWidth,
+      publish,
+      append,
+      templateId,
+      editorVersion,
+      transaction,
+      ip: ctx.request.ip,
+    });
   });
 
-  invariant(document, "document not found");
   invariant(collection, "collection not found");
 
   document.updatedBy = user;
@@ -1364,10 +1288,8 @@ router.post("documents.import", auth(), async (ctx) => {
     });
   }
 
-  let document!: Document;
   const content = await fs.readFile(file.path, "utf8");
-
-  await sequelize.transaction(async (transaction) => {
+  const document = await sequelize.transaction(async (transaction) => {
     const { text, title } = await documentImporter({
       user,
       fileName: file.name,
@@ -1377,7 +1299,7 @@ router.post("documents.import", auth(), async (ctx) => {
       transaction,
     });
 
-    document = await documentCreator({
+    return documentCreator({
       source: "import",
       title,
       text,
@@ -1456,9 +1378,8 @@ router.post("documents.create", auth(), async (ctx) => {
     authorize(user, "read", templateDocument);
   }
 
-  let document!: Document;
-  await sequelize.transaction(async (transaction) => {
-    document = await documentCreator({
+  const document = await sequelize.transaction(async (transaction) => {
+    return documentCreator({
       title,
       text,
       publish,
