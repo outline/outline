@@ -142,7 +142,7 @@ router.post("collections.info", auth(), async (ctx) => {
 });
 
 router.post("collections.import", auth(), async (ctx) => {
-  const { attachmentId } = ctx.body;
+  const { attachmentId, format = FileOperationFormat.MarkdownZip } = ctx.body;
   assertUuid(attachmentId, "attachmentId is required");
 
   const { user } = ctx.state;
@@ -151,12 +151,14 @@ router.post("collections.import", auth(), async (ctx) => {
   const attachment = await Attachment.findByPk(attachmentId);
   authorize(user, "read", attachment);
 
+  assertIn(format, Object.values(FileOperationFormat), "Invalid format");
+
   await sequelize.transaction(async (transaction) => {
     const fileOperation = await FileOperation.create(
       {
         type: FileOperationType.Import,
         state: FileOperationState.Creating,
-        format: FileOperationFormat.MarkdownZip,
+        format,
         size: attachment.size,
         key: attachment.key,
         userId: user.id,

@@ -24,6 +24,7 @@ function Import() {
   const fileRef = React.useRef<HTMLInputElement>(null);
   const { collections, fileOperations } = useStores();
   const { showToast } = useToasts();
+  const [format, setFormat] = React.useState();
   const [isImporting, setImporting] = React.useState(false);
 
   const handleFilePicked = React.useCallback(
@@ -38,7 +39,7 @@ function Import() {
         const attachment = await uploadFile(file, {
           name: file.name,
         });
-        await collections.import(attachment.id);
+        await collections.import(attachment.id, format);
         showToast(
           t("Your import is being processed, you can safely leave this page"),
           {
@@ -56,12 +57,13 @@ function Import() {
         setImporting(false);
       }
     },
-    [t, collections, showToast]
+    [t, collections, format, showToast]
   );
 
   const handlePickFile = React.useCallback(
-    (ev) => {
+    (format) => (ev: React.MouseEvent) => {
       ev.preventDefault();
+      setFormat(format);
 
       if (fileRef.current) {
         fileRef.current.click();
@@ -100,22 +102,13 @@ function Import() {
           actions={
             <Button
               type="submit"
-              onClick={handlePickFile}
+              onClick={handlePickFile("outline-markdown")}
               disabled={isImporting}
               neutral
             >
-              {isImporting ? `${t("Uploading")}…` : t("Import")}
-            </Button>
-          }
-        />
-        <Item
-          border={false}
-          image={<img src={cdnPath("/images/confluence.png")} width={28} />}
-          title="Confluence"
-          subtitle={t("Import pages from a Confluence instance")}
-          actions={
-            <Button type="submit" onClick={handlePickFile} disabled neutral>
-              {t("Coming soon")}
+              {isImporting && format === "outline-markdown"
+                ? `${t("Uploading")}…`
+                : t("Import")}
             </Button>
           }
         />
@@ -124,6 +117,24 @@ function Import() {
           image={<img src={cdnPath("/images/notion.png")} width={28} />}
           title="Notion"
           subtitle={t("Import documents from Notion")}
+          actions={
+            <Button
+              type="submit"
+              onClick={handlePickFile("notion")}
+              disabled={isImporting}
+              neutral
+            >
+              {isImporting && format === "notion"
+                ? `${t("Uploading")}…`
+                : t("Import")}
+            </Button>
+          }
+        />
+        <Item
+          border={false}
+          image={<img src={cdnPath("/images/confluence.png")} width={28} />}
+          title="Confluence"
+          subtitle={t("Import pages from a Confluence instance")}
           actions={
             <Button type="submit" onClick={handlePickFile} disabled neutral>
               {t("Coming soon")}

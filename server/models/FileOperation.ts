@@ -21,6 +21,7 @@ export enum FileOperationType {
 
 export enum FileOperationFormat {
   MarkdownZip = "outline-markdown",
+  Notion = "notion",
 }
 
 export enum FileOperationState {
