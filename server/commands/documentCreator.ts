@@ -82,7 +82,7 @@ export default async function documentCreator({
   );
 
   if (publish) {
-    await document.publish(user.id);
+    await document.publish(user.id, { transaction });
     await Event.create(
       {
         name: "documents.publish",

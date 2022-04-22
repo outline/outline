@@ -1013,91 +1013,112 @@ router.post("documents.update", auth(), async (ctx) => {
   }
   const { user } = ctx.state;
 
-  const document = await Document.findByPk(id, {
-    userId: user.id,
-  });
-  authorize(user, "update", document);
+  let document: Document | null | undefined;
+  let collection: Collection | null | undefined;
 
-  if (lastRevision && lastRevision !== document.revisionCount) {
-    throw InvalidRequestError("Document has changed since last revision");
-  }
+  // TODO: Move to command
+  await sequelize.transaction(async (transaction) => {
+    document = await Document.findByPk(id, {
+      userId: user.id,
+      transaction,
+      lock: {
+        level: transaction.LOCK.UPDATE,
+        of: Document,
+      },
+    });
+    authorize(user, "update", document);
 
-  const previousTitle = document.title;
+    collection = document.collection;
 
-  // Update document
-  if (title !== undefined) {
-    document.title = title;
-  }
-  if (editorVersion) {
-    document.editorVersion = editorVersion;
-  }
-  if (templateId) {
-    document.templateId = templateId;
-  }
-  if (fullWidth !== undefined) {
-    document.fullWidth = fullWidth;
-  }
-
-  if (!user.team?.collaborativeEditing) {
-    if (append) {
-      document.text += text;
-    } else if (text !== undefined) {
-      document.text = text;
+    if (lastRevision && lastRevision !== document.revisionCount) {
+      throw InvalidRequestError("Document has changed since last revision");
     }
-  }
 
-  document.lastModifiedById = user.id;
-  const { collection } = document;
-  const changed = document.changed();
+    const previousTitle = document.title;
 
-  if (publish) {
-    await document.publish(user.id);
-  } else {
-    await document.save();
-  }
+    // Update document
+    if (title !== undefined) {
+      document.title = title;
+    }
+    if (editorVersion) {
+      document.editorVersion = editorVersion;
+    }
+    if (templateId) {
+      document.templateId = templateId;
+    }
+    if (fullWidth !== undefined) {
+      document.fullWidth = fullWidth;
+    }
 
-  if (publish) {
-    await Event.create({
-      name: "documents.publish",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      teamId: document.teamId,
-      actorId: user.id,
-      data: {
-        title: document.title,
-      },
-      ip: ctx.request.ip,
-    });
-  } else if (changed) {
-    await Event.create({
-      name: "documents.update",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      teamId: document.teamId,
-      actorId: user.id,
-      data: {
-        autosave,
-        done,
-        title: document.title,
-      },
-      ip: ctx.request.ip,
-    });
-  }
+    if (!user.team?.collaborativeEditing) {
+      if (append) {
+        document.text += text;
+      } else if (text !== undefined) {
+        document.text = text;
+      }
+    }
 
-  if (document.title !== previousTitle) {
-    Event.schedule({
-      name: "documents.title_change",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      teamId: document.teamId,
-      actorId: user.id,
-      data: {
-        previousTitle,
-        title: document.title,
-      },
-      ip: ctx.request.ip,
-    });
-  }
+    document.lastModifiedById = user.id;
+    const changed = document.changed();
+
+    if (publish) {
+      await document.publish(user.id, { transaction });
+    } else {
+      await document.save({ transaction });
+    }
+
+    if (publish) {
+      await Event.create(
+        {
+          name: "documents.publish",
+          documentId: document.id,
+          collectionId: document.collectionId,
+          teamId: document.teamId,
+          actorId: user.id,
+          data: {
+            title: document.title,
+          },
+          ip: ctx.request.ip,
+        },
+        { transaction }
+      );
+    } else if (changed) {
+      await Event.create(
+        {
+          name: "documents.update",
+          documentId: document.id,
+          collectionId: document.collectionId,
+          teamId: document.teamId,
+          actorId: user.id,
+          data: {
+            autosave,
+            done,
+            title: document.title,
+          },
+          ip: ctx.request.ip,
+        },
+        { transaction }
+      );
+    }
+
+    if (document.title !== previousTitle) {
+      Event.schedule({
+        name: "documents.title_change",
+        documentId: document.id,
+        collectionId: document.collectionId,
+        teamId: document.teamId,
+        actorId: user.id,
+        data: {
+          previousTitle,
+          title: document.title,
+        },
+        ip: ctx.request.ip,
+      });
+    }
+  });
+
+  invariant(document, "document not found");
+  invariant(collection, "collection not found");
 
   document.updatedBy = user;
   document.collection = collection;

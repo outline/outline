@@ -15,8 +15,7 @@ describe("documentImporter", () => {
     const user = await buildUser();
     const fileName = "images.docx";
     const content = await fs.readFile(
-      path.resolve(__dirname, "..", "test", "fixtures", fileName),
-      "utf8"
+      path.resolve(__dirname, "..", "test", "fixtures", fileName)
     );
     const response = await documentImporter({
       user,
@@ -37,8 +36,7 @@ describe("documentImporter", () => {
     const user = await buildUser();
     const fileName = "images.docx";
     const content = await fs.readFile(
-      path.resolve(__dirname, "..", "test", "fixtures", fileName),
-      "utf8"
+      path.resolve(__dirname, "..", "test", "fixtures", fileName)
     );
     const response = await documentImporter({
       user,
@@ -58,8 +56,7 @@ describe("documentImporter", () => {
     const user = await buildUser();
     const fileName = "normal.docx.txt";
     const content = await fs.readFile(
-      path.resolve(__dirname, "..", "test", "fixtures", fileName),
-      "utf8"
+      path.resolve(__dirname, "..", "test", "fixtures", fileName)
     );
     let error;
 
@@ -82,8 +79,7 @@ describe("documentImporter", () => {
     const user = await buildUser();
     const fileName = "images.docx";
     const content = await fs.readFile(
-      path.resolve(__dirname, "..", "test", "fixtures", fileName),
-      "utf8"
+      path.resolve(__dirname, "..", "test", "fixtures", fileName)
     );
     const response = await documentImporter({
       user,
@@ -121,8 +117,7 @@ describe("documentImporter", () => {
     const user = await buildUser();
     const fileName = "confluence.doc";
     const content = await fs.readFile(
-      path.resolve(__dirname, "..", "test", "fixtures", fileName),
-      "utf8"
+      path.resolve(__dirname, "..", "test", "fixtures", fileName)
     );
     const response = await documentImporter({
       user,
@@ -153,24 +148,6 @@ describe("documentImporter", () => {
     expect(response.title).toEqual("Heading 1");
   });
 
-  it("should handle encoded slashes", async () => {
-    const user = await buildUser();
-    const fileName = "this %2F and %2F this.md";
-    const content = await fs.readFile(
-      path.resolve(__dirname, "..", "test", "fixtures", fileName),
-      "utf8"
-    );
-    const response = await documentImporter({
-      user,
-      mimeType: "text/plain",
-      fileName,
-      content,
-      ip,
-    });
-    expect(response.text).toContain("");
-    expect(response.title).toEqual("this / and / this");
-  });
-
   it("should fallback to extension if mimetype unknown", async () => {
     const user = await buildUser();
     const fileName = "markdown.md";
@@ -191,10 +168,9 @@ describe("documentImporter", () => {
 
   it("should error with unknown file type", async () => {
     const user = await buildUser();
-    const fileName = "files.zip";
+    const fileName = "empty.zip";
     const content = await fs.readFile(
-      path.resolve(__dirname, "..", "test", "fixtures", fileName),
-      "utf8"
+      path.resolve(__dirname, "..", "test", "fixtures", fileName)
     );
     let error;
 

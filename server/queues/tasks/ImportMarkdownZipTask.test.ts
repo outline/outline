@@ -23,7 +23,7 @@ describe("ImportMarkdownZipTask", () => {
       fileOperationId: fileOperation.id,
     };
 
-    const task = new ImportMarkdownZipTask(props);
+    const task = new ImportMarkdownZipTask();
     const response = await task.perform(props);
 
     expect(response.collections.size).toEqual(1);
@@ -48,7 +48,7 @@ describe("ImportMarkdownZipTask", () => {
 
     let error;
     try {
-      const task = new ImportMarkdownZipTask(props);
+      const task = new ImportMarkdownZipTask();
       await task.perform(props);
     } catch (err) {
       error = err;
@@ -74,7 +74,7 @@ describe("ImportMarkdownZipTask", () => {
 
     let error;
     try {
-      const task = new ImportMarkdownZipTask(props);
+      const task = new ImportMarkdownZipTask();
       await task.perform(props);
     } catch (err) {
       error = err;

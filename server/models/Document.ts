@@ -9,6 +9,7 @@ import {
   FindOptions,
   ScopeOptions,
   WhereOptions,
+  SaveOptions,
 } from "sequelize";
 import {
   ForeignKey,
@@ -801,30 +802,28 @@ class Document extends ParanoidModel {
     return this.save(options);
   };
 
-  publish = async (userId: string) => {
+  publish = async (userId: string, { transaction }: SaveOptions<Document>) => {
     // If the document is already published then calling publish should act like
     // a regular save
     if (this.publishedAt) {
-      return this.save();
+      return this.save({ transaction });
     }
 
-    await this.sequelize.transaction(async (transaction: Transaction) => {
-      if (!this.template) {
-        const collection = await Collection.findByPk(this.collectionId, {
-          transaction,
-          lock: transaction.LOCK.UPDATE,
-        });
+    if (!this.template) {
+      const collection = await Collection.findByPk(this.collectionId, {
+        transaction,
+        lock: Transaction.LOCK.UPDATE,
+      });
 
-        if (collection) {
-          await collection.addDocumentToStructure(this, 0, { transaction });
-          this.collection = collection;
-        }
+      if (collection) {
+        await collection.addDocumentToStructure(this, 0, { transaction });
+        this.collection = collection;
       }
-    });
+    }
 
     this.lastModifiedById = userId;
     this.publishedAt = new Date();
-    return this.save();
+    return this.save({ transaction });
   };
 
   unpublish = async (userId: string) => {

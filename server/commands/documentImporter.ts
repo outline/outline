@@ -68,21 +68,34 @@ const importMapping: ImportableFile[] = [
   },
 ];
 
-async function fileToMarkdown(value: string): Promise<string> {
-  return value;
+async function fileToMarkdown(content: Buffer | string): Promise<string> {
+  if (content instanceof Buffer) {
+    content = content.toString("utf8");
+  }
+  return content;
 }
 
-async function docxToMarkdown(value: string): Promise<string> {
-  const buffer = Buffer.from(value, "utf-8");
-  const { value: html } = await mammoth.convertToHtml({ buffer });
-  return turndownService.turndown(html);
+async function docxToMarkdown(content: Buffer | string): Promise<string> {
+  if (content instanceof Buffer) {
+    const { value: html } = await mammoth.convertToHtml({ buffer: content });
+    return turndownService.turndown(html);
+  }
+
+  throw new Error("docxToMarkdown: content must be a Buffer");
 }
 
-async function htmlToMarkdown(value: string): Promise<string> {
-  return turndownService.turndown(value);
+async function htmlToMarkdown(content: Buffer | string): Promise<string> {
+  if (content instanceof Buffer) {
+    content = content.toString("utf8");
+  }
+  return turndownService.turndown(content);
 }
 
-async function confluenceToMarkdown(value: string): Promise<string> {
+async function confluenceToMarkdown(value: Buffer | string): Promise<string> {
+  if (value instanceof Buffer) {
+    value = value.toString("utf8");
+  }
+
   // We're only supporting the ridiculous output from Confluence here, regular
   // Word documents should call into the docxToMarkdown importer.
   // See: https://jira.atlassian.com/browse/CONFSERVER-38237
@@ -175,10 +188,6 @@ async function documentImporter({
 
   if (!fileInfo) {
     throw InvalidRequestError(`File type ${mimeType} not supported`);
-  }
-
-  if (content instanceof Buffer) {
-    content = content.toString("utf8");
   }
 
   let title = deserializeFilename(fileName.replace(/\.[^/.]+$/, ""));
