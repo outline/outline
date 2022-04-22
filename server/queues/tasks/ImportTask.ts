@@ -26,6 +26,7 @@ export type StructuredImportData = {
   collections: {
     id: string;
     name: string;
+    description?: string;
   }[];
   documents: {
     id: string;
@@ -173,6 +174,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
           },
           defaults: {
             id: item.id,
+            description: item.description,
             createdById: fileOperation.userId,
             permission: "read_write",
           },
@@ -190,6 +192,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
           collection = await Collection.create(
             {
               id: item.id,
+              description: item.description,
               teamId: fileOperation.teamId,
               createdById: fileOperation.userId,
               name,
@@ -266,7 +269,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
           collectionId: item.collectionId,
           createdAt: item.createdAt,
           updatedAt: item.updatedAt ?? item.createdAt,
-          publishedAt: item.updatedAt ?? item.createdAt,
+          publishedAt: item.updatedAt ?? item.createdAt ?? new Date(),
           parentDocumentId: item.parentDocumentId,
           user,
           ip,

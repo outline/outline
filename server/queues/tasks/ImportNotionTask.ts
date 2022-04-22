@@ -1,23 +1,11 @@
-import path from "path";
 import JSZip from "jszip";
-import { find } from "lodash";
 import mime from "mime-types";
 import { v4 as uuidv4 } from "uuid";
 import documentImporter from "@server/commands/documentImporter";
 import Logger from "@server/logging/logger";
 import { FileOperation, User } from "@server/models";
+import { zipAsFileTree, FileTreeNode } from "@server/utils/zip";
 import ImportTask, { StructuredImportData } from "./ImportTask";
-
-type FileTreeNode = {
-  /** The title, extracted from the file name */
-  title: string;
-  /** The file name including extension */
-  name: string;
-  /** The full path to within the zip file */
-  path: string;
-  /** The nested children */
-  children: FileTreeNode[];
-};
 
 export default class ImportNotionTask extends ImportTask {
   public async parseData(
@@ -25,13 +13,8 @@ export default class ImportNotionTask extends ImportTask {
     fileOperation: FileOperation
   ): Promise<StructuredImportData> {
     const zip = await JSZip.loadAsync(buffer);
-    const zipPaths = Object.keys(zip.files).map((filePath) => `/${filePath}`);
-    const tree = this.zipAsFileTree(zipPaths);
-
-    const output = await this.parseFileTree({ fileOperation, zip, tree });
-
-    console.log(output);
-    return output;
+    const tree = zipAsFileTree(zip);
+    return this.parseFileTree({ fileOperation, zip, tree });
   }
 
   /**
@@ -51,6 +34,10 @@ export default class ImportNotionTask extends ImportTask {
     tree: FileTreeNode[];
   }): Promise<StructuredImportData> {
     const user = await User.findByPk(fileOperation.userId);
+    if (!user) {
+      throw new Error("User not found");
+    }
+
     const output: StructuredImportData = {
       collections: [],
       documents: [],
@@ -125,74 +112,57 @@ export default class ImportNotionTask extends ImportTask {
       );
     }
 
-    // All nodes in the root level should be collections
+    // All nodes in the root level should become collections
     for (const node of tree) {
-      if (node.children.length > 0) {
-        const collectionId = uuidv4();
-        output.collections.push({
-          id: collectionId,
-          name: node.title.replace(/\s[0-9a-fA-F]{32}$/, ""),
+      const name = node.title
+        .replace(
+          /\s[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/,
+          ""
+        )
+        .replace(/\s[0-9a-fA-F]{32}$/, "");
+      const mimeType = mime.lookup(node.name);
+
+      const existingCollectionIndex = output.collections.findIndex(
+        (collection) => collection.name === name
+      );
+      const existingCollection = output.collections[existingCollectionIndex];
+      const collectionId = existingCollection?.id || uuidv4();
+      let description;
+
+      // Root level docs become collection descriptions
+      if (mimeType && node.name.endsWith(".md")) {
+        const zipObject = zip.files[node.path];
+        const { text } = await documentImporter({
+          mimeType: "text/markdown",
+          fileName: name,
+          content: await zipObject.async("string"),
+          user,
+          ip: user.lastActiveIp || undefined,
         });
+
+        description = text;
+      } else if (node.children.length > 0) {
         await parseNodeChildren(node.children, collectionId);
       } else {
-        // TODO root level docs should become collection descriptions
         Logger.debug("task", `Unhandled file in zip: ${node.path}`, {
           fileOperationId: fileOperation.id,
+        });
+        continue;
+      }
+
+      if (existingCollectionIndex !== -1) {
+        if (description) {
+          output.collections[existingCollectionIndex].description = description;
+        }
+      } else {
+        output.collections.push({
+          id: collectionId,
+          name,
+          description,
         });
       }
     }
 
     return output;
-  }
-
-  /**
-   * Converts the flat structure returned by JSZIP into a nested file structure
-   * for easier processing.
-   *
-   * @param paths An array of paths to files in the zip
-   * @returns
-   */
-  private zipAsFileTree(paths: string[]) {
-    const tree: FileTreeNode[] = [];
-
-    paths.forEach(function (filePath) {
-      if (filePath.startsWith("/__MACOSX")) {
-        return;
-      }
-
-      const pathParts = filePath.split("/");
-
-      // Remove first blank element from the parts array.
-      pathParts.shift();
-
-      let currentLevel = tree; // initialize currentLevel to root
-
-      pathParts.forEach(function (name) {
-        // check to see if the path already exists.
-        const existingPath = find(currentLevel, {
-          name,
-        });
-
-        if (existingPath) {
-          // The path to this item was already in the tree, so don't add again.
-          // Set the current level to this path's children
-          currentLevel = existingPath.children;
-        } else if (name.endsWith(".DS_Store") || !name) {
-          return;
-        } else {
-          const newPart = {
-            name,
-            path: filePath.replace(/^\//, ""),
-            title: path.basename(name),
-            children: [],
-          };
-
-          currentLevel.push(newPart);
-          currentLevel = newPart.children;
-        }
-      });
-    });
-
-    return tree;
   }
 }
