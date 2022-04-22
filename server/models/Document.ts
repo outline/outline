@@ -239,7 +239,10 @@ class Document extends ParanoidModel {
   // hooks
 
   @BeforeSave
-  static async updateTitleInCollectionStructure(model: Document) {
+  static async updateTitleInCollectionStructure(
+    model: Document,
+    { transaction }: SaveOptions<Document>
+  ) {
     // templates, drafts, and archived documents don't appear in the structure
     // and so never need to be updated when the title changes
     if (
@@ -251,18 +254,16 @@ class Document extends ParanoidModel {
       return;
     }
 
-    return this.sequelize!.transaction(async (transaction: Transaction) => {
-      const collection = await Collection.findByPk(model.collectionId, {
-        transaction,
-        lock: transaction.LOCK.UPDATE,
-      });
-      if (!collection) {
-        return;
-      }
-
-      await collection.updateDocument(model, { transaction });
-      model.collection = collection;
+    const collection = await Collection.findByPk(model.collectionId, {
+      transaction,
+      lock: Transaction.LOCK.UPDATE,
     });
+    if (!collection) {
+      return;
+    }
+
+    await collection.updateDocument(model, { transaction });
+    model.collection = collection;
   }
 
   @AfterCreate

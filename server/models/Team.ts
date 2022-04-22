@@ -20,7 +20,6 @@ import {
 } from "sequelize-typescript";
 import { v4 as uuidv4 } from "uuid";
 import { stripSubdomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
-import { sequelize } from "@server/database/sequelize";
 import env from "@server/env";
 import Logger from "@server/logging/logger";
 import { generateAvatarUrl } from "@server/utils/avatars";
@@ -174,8 +173,8 @@ class Team extends ParanoidModel {
     return subdomain;
   };
 
-  provisionFirstCollection = async function (userId: string) {
-    await sequelize.transaction(async (transaction) => {
+  provisionFirstCollection = async (userId: string) => {
+    await this.sequelize!.transaction(async (transaction) => {
       const collection = await Collection.create(
         {
           name: "Welcome",
