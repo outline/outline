@@ -104,8 +104,9 @@ function Login() {
             {t("Failed to load configuration.")}
             {!isHosted && (
               <p>
-                Check the network requests and server logs for full details of
-                the error.
+                {t(
+                  "Check the network requests and server logs for full details of the error."
+                )}
               </p>
             )}
           </NoticeAlert>

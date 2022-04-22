@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Text from "~/components/Text";
@@ -48,11 +49,12 @@ export default function Contents({ headings, isFullWidth }: Props) {
     Infinity
   );
   const headingAdjustment = minHeading - 1;
+  const { t } = useTranslation();
 
   return (
     <Wrapper isFullWidth={isFullWidth}>
       <Sticky>
-        <Heading>Contents</Heading>
+        <Heading>{t("Contents")}</Heading>
         {headings.length ? (
           <List>
             {headings.map((heading) => (
