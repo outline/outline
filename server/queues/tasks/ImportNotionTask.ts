@@ -1,3 +1,4 @@
+import path from "path";
 import JSZip from "jszip";
 import mime from "mime-types";
 import { v4 as uuidv4 } from "uuid";
@@ -104,6 +105,7 @@ export default class ImportNotionTask extends ImportTask {
               text,
               collectionId,
               parentDocumentId,
+              path: child.path,
             });
           }
 
@@ -160,6 +162,22 @@ export default class ImportNotionTask extends ImportTask {
           name,
           description,
         });
+      }
+    }
+
+    // Check all of the attachments we've created against urls in the text
+    // and replace them out with attachment redirect urls before continuing.
+    for (const document of output.documents) {
+      for (const attachment of output.attachments) {
+        // Pull the collection and subdirectory out of the path name, upload
+        // folders in an export are relative to the document itself
+        const folder = path.basename(document.path);
+        const attachmentName = encodeURIComponent(attachment.name);
+
+        const reference = `<<${attachment.id}>>`;
+        document.text = document.text
+          .replace(`${encodeURIComponent(folder)}/${attachmentName}`, reference)
+          .replace(`${folder}/${attachmentName}`, reference);
       }
     }
 

@@ -122,6 +122,7 @@ export default class ImportMarkdownZipTask extends ImportTask {
               createdAt,
               collectionId,
               parentDocumentId,
+              path: child.path,
             });
           }
 
@@ -143,6 +144,25 @@ export default class ImportMarkdownZipTask extends ImportTask {
         Logger.debug("task", `Unhandled file in zip: ${node.path}`, {
           fileOperationId: fileOperation.id,
         });
+      }
+    }
+
+    // Check all of the attachments we've created against urls in the text
+    // and replace them out with attachment redirect urls before continuing.
+    for (const document of output.documents) {
+      for (const attachment of output.attachments) {
+        // Pull the collection and subdirectory out of the path name, upload
+        // folders in an export are relative to the document itself
+        const normalizedAttachmentPath = attachment.path.replace(
+          /(.*)uploads\//,
+          "uploads/"
+        );
+
+        const reference = `<<${attachment.id}>>`;
+        document.text = document.text
+          .replace(attachment.path, reference)
+          .replace(normalizedAttachmentPath, reference)
+          .replace(`/${normalizedAttachmentPath}`, reference);
       }
     }
 

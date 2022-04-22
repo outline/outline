@@ -27,7 +27,7 @@ describe("ImportNotionTask", () => {
     const response = await task.perform(props);
 
     expect(response.collections.size).toEqual(2);
-    expect(response.documents.size).toEqual(13);
+    expect(response.documents.size).toEqual(6);
     expect(response.attachments.size).toEqual(1);
   });
 });

@@ -31,11 +31,17 @@ export type StructuredImportData = {
   documents: {
     id: string;
     title: string;
+    /**
+     * The document text. To reference an attachment or image use the special
+     * formatting <<attachmentId>>. It will be replaced with a reference to the
+     * actual attachment as part of persistData.
+     */
     text: string;
     collectionId: string;
     updatedAt?: Date;
     createdAt?: Date;
     parentDocumentId?: string;
+    path: string;
   }[];
   attachments: {
     id: string;
@@ -224,6 +230,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
       for (const item of data.attachments) {
         const attachment = await attachmentCreator({
           source: "import",
+          id: item.id,
           name: item.name,
           type: item.mimeType,
           buffer: item.buffer,
@@ -240,25 +247,12 @@ export default abstract class ImportTask extends BaseTask<Props> {
 
         // Check all of the attachments we've created against urls in the text
         // and replace them out with attachment redirect urls before saving.
-        for (const item of data.attachments) {
-          const attachment = attachments.get(item.id);
+        for (const aitem of data.attachments) {
+          const attachment = attachments.get(aitem.id);
           if (!attachment) {
             continue;
           }
-
-          // TODO: This is a bit specific to MarkdownZip import and could be
-          // made more generic on the next pass.
-          // Pull the collection and subdirectory out of the path name, upload
-          // folders in an export are relative to the document itself
-          const normalizedAttachmentPath = item.path.replace(
-            /(.*)uploads\//,
-            "uploads/"
-          );
-
-          text = text
-            .replace(item.path, attachment.redirectUrl)
-            .replace(normalizedAttachmentPath, attachment.redirectUrl)
-            .replace(`/${normalizedAttachmentPath}`, attachment.redirectUrl);
+          text = text.replace(`<<${attachment.id}>>`, attachment.redirectUrl);
         }
 
         const document = await documentCreator({
