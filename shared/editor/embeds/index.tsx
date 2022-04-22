@@ -321,7 +321,7 @@ const embeds: EmbedDescriptor[] = [
   {
     title: "Tldraw",
     keywords: "draw schematics diagrams",
-    icon: () => <Img src="/images/tldraw.png" alt="Spotify" />,
+    icon: () => <Img src="/images/tldraw.png" alt="Tldraw" />,
     component: Tldraw,
     matcher: matcher(Tldraw),
   },
