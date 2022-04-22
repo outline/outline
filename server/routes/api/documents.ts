@@ -1,3 +1,4 @@
+import fs from "fs-extra";
 import invariant from "invariant";
 import Router from "koa-router";
 import { Op, ScopeOptions, WhereOptions } from "sequelize";
@@ -1342,22 +1343,33 @@ router.post("documents.import", auth(), async (ctx) => {
     });
   }
 
-  const { text, title } = await documentImporter({
-    user,
-    file,
-    ip: ctx.request.ip,
+  let document!: Document;
+  const content = await fs.readFile(file.path, "utf8");
+
+  await sequelize.transaction(async (transaction) => {
+    const { text, title } = await documentImporter({
+      user,
+      fileName: file.name,
+      mimeType: file.type,
+      content,
+      ip: ctx.request.ip,
+      transaction,
+    });
+
+    document = await documentCreator({
+      source: "import",
+      title,
+      text,
+      publish,
+      collectionId,
+      parentDocumentId,
+      index,
+      user,
+      ip: ctx.request.ip,
+      transaction,
+    });
   });
-  const document = await documentCreator({
-    source: "import",
-    title,
-    text,
-    publish,
-    collectionId,
-    parentDocumentId,
-    index,
-    user,
-    ip: ctx.request.ip,
-  });
+
   document.collection = collection;
 
   return (ctx.body = {
@@ -1414,7 +1426,7 @@ router.post("documents.create", auth(), async (ctx) => {
     });
   }
 
-  let templateDocument;
+  let templateDocument: Document | null | undefined;
 
   if (templateId) {
     templateDocument = await Document.findByPk(templateId, {
@@ -1423,19 +1435,24 @@ router.post("documents.create", auth(), async (ctx) => {
     authorize(user, "read", templateDocument);
   }
 
-  const document = await documentCreator({
-    title,
-    text,
-    publish,
-    collectionId,
-    parentDocumentId,
-    templateDocument,
-    template,
-    index,
-    user,
-    editorVersion,
-    ip: ctx.request.ip,
+  let document!: Document;
+  await sequelize.transaction(async (transaction) => {
+    document = await documentCreator({
+      title,
+      text,
+      publish,
+      collectionId,
+      parentDocumentId,
+      templateDocument,
+      template,
+      index,
+      user,
+      editorVersion,
+      ip: ctx.request.ip,
+      transaction,
+    });
   });
+
   document.collection = collection;
 
   return (ctx.body = {

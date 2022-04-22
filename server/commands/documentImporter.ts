@@ -3,6 +3,7 @@ import { strikethrough, tables } from "joplin-turndown-plugin-gfm";
 import { truncate } from "lodash";
 import mammoth from "mammoth";
 import quotedPrintable from "quoted-printable";
+import { Transaction } from "sequelize";
 import TurndownService from "turndown";
 import utf8 from "utf8";
 import { MAX_TITLE_LENGTH } from "@shared/constants";
@@ -141,12 +142,14 @@ async function documentImporter({
   content,
   user,
   ip,
+  transaction,
 }: {
   user: User;
   mimeType: string;
   fileName: string;
   content: Buffer | string;
   ip?: string;
+  transaction?: Transaction;
 }): Promise<{
   text: string;
   title: string;
@@ -202,6 +205,7 @@ async function documentImporter({
       buffer,
       user,
       ip,
+      transaction,
     });
     text = text.replace(uri, attachment.redirectUrl);
   }

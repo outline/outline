@@ -1,5 +1,5 @@
 import path from "path";
-import File from "formidable/lib/file";
+import fs from "fs-extra";
 import Attachment from "@server/models/Attachment";
 import { buildUser } from "@server/test/factories";
 import { flushdb } from "@server/test/support";
@@ -13,16 +13,17 @@ describe("documentImporter", () => {
 
   it("should convert Word Document to markdown", async () => {
     const user = await buildUser();
-    const name = "images.docx";
-    const file = new File({
-      name,
-      type:
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-      path: path.resolve(__dirname, "..", "test", "fixtures", name),
-    });
+    const fileName = "images.docx";
+    const content = await fs.readFile(
+      path.resolve(__dirname, "..", "test", "fixtures", fileName),
+      "utf8"
+    );
     const response = await documentImporter({
       user,
-      file,
+      mimeType:
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      fileName,
+      content,
       ip,
     });
     const attachments = await Attachment.count();
@@ -34,15 +35,16 @@ describe("documentImporter", () => {
 
   it("should convert Word Document to markdown for application/octet-stream mimetype", async () => {
     const user = await buildUser();
-    const name = "images.docx";
-    const file = new File({
-      name,
-      type: "application/octet-stream",
-      path: path.resolve(__dirname, "..", "test", "fixtures", name),
-    });
+    const fileName = "images.docx";
+    const content = await fs.readFile(
+      path.resolve(__dirname, "..", "test", "fixtures", fileName),
+      "utf8"
+    );
     const response = await documentImporter({
       user,
-      file,
+      mimeType: "application/octet-stream",
+      fileName,
+      content,
       ip,
     });
     const attachments = await Attachment.count();
@@ -54,18 +56,19 @@ describe("documentImporter", () => {
 
   it("should error when a file with application/octet-stream mimetype doesn't have .docx extension", async () => {
     const user = await buildUser();
-    const name = "normal.docx.txt";
-    const file = new File({
-      name,
-      type: "application/octet-stream",
-      path: path.resolve(__dirname, "..", "test", "fixtures", name),
-    });
+    const fileName = "normal.docx.txt";
+    const content = await fs.readFile(
+      path.resolve(__dirname, "..", "test", "fixtures", fileName),
+      "utf8"
+    );
     let error;
 
     try {
       await documentImporter({
         user,
-        file,
+        mimeType: "application/octet-stream",
+        fileName,
+        content,
         ip,
       });
     } catch (err) {
@@ -77,15 +80,16 @@ describe("documentImporter", () => {
 
   it("should convert Word Document on Windows to markdown", async () => {
     const user = await buildUser();
-    const name = "images.docx";
-    const file = new File({
-      name,
-      type: "application/octet-stream",
-      path: path.resolve(__dirname, "..", "test", "fixtures", name),
-    });
+    const fileName = "images.docx";
+    const content = await fs.readFile(
+      path.resolve(__dirname, "..", "test", "fixtures", fileName),
+      "utf8"
+    );
     const response = await documentImporter({
       user,
-      file,
+      mimeType: "application/octet-stream",
+      fileName,
+      content,
       ip,
     });
     const attachments = await Attachment.count();
@@ -97,15 +101,16 @@ describe("documentImporter", () => {
 
   it("should convert HTML Document to markdown", async () => {
     const user = await buildUser();
-    const name = "webpage.html";
-    const file = new File({
-      name,
-      type: "text/html",
-      path: path.resolve(__dirname, "..", "test", "fixtures", name),
-    });
+    const fileName = "webpage.html";
+    const content = await fs.readFile(
+      path.resolve(__dirname, "..", "test", "fixtures", fileName),
+      "utf8"
+    );
     const response = await documentImporter({
       user,
-      file,
+      mimeType: "text/html",
+      fileName,
+      content,
       ip,
     });
     expect(response.text).toContain("Text paragraph");
@@ -114,15 +119,16 @@ describe("documentImporter", () => {
 
   it("should convert Confluence Word output to markdown", async () => {
     const user = await buildUser();
-    const name = "confluence.doc";
-    const file = new File({
-      name,
-      type: "application/msword",
-      path: path.resolve(__dirname, "..", "test", "fixtures", name),
-    });
+    const fileName = "confluence.doc";
+    const content = await fs.readFile(
+      path.resolve(__dirname, "..", "test", "fixtures", fileName),
+      "utf8"
+    );
     const response = await documentImporter({
       user,
-      file,
+      mimeType: "application/msword",
+      fileName,
+      content,
       ip,
     });
     expect(response.text).toContain("this is a test document");
@@ -131,15 +137,16 @@ describe("documentImporter", () => {
 
   it("should load markdown", async () => {
     const user = await buildUser();
-    const name = "markdown.md";
-    const file = new File({
-      name,
-      type: "text/plain",
-      path: path.resolve(__dirname, "..", "test", "fixtures", name),
-    });
+    const fileName = "markdown.md";
+    const content = await fs.readFile(
+      path.resolve(__dirname, "..", "test", "fixtures", fileName),
+      "utf8"
+    );
     const response = await documentImporter({
       user,
-      file,
+      mimeType: "text/plain",
+      fileName,
+      content,
       ip,
     });
     expect(response.text).toContain("This is a test paragraph");
@@ -148,15 +155,16 @@ describe("documentImporter", () => {
 
   it("should handle encoded slashes", async () => {
     const user = await buildUser();
-    const name = "this %2F and %2F this.md";
-    const file = new File({
-      name,
-      type: "text/plain",
-      path: path.resolve(__dirname, "..", "test", "fixtures", "empty.md"),
-    });
+    const fileName = "this %2F and %2F this.md";
+    const content = await fs.readFile(
+      path.resolve(__dirname, "..", "test", "fixtures", fileName),
+      "utf8"
+    );
     const response = await documentImporter({
       user,
-      file,
+      mimeType: "text/plain",
+      fileName,
+      content,
       ip,
     });
     expect(response.text).toContain("");
@@ -165,15 +173,16 @@ describe("documentImporter", () => {
 
   it("should fallback to extension if mimetype unknown", async () => {
     const user = await buildUser();
-    const name = "markdown.md";
-    const file = new File({
-      name,
-      type: "application/lol",
-      path: path.resolve(__dirname, "..", "test", "fixtures", name),
-    });
+    const fileName = "markdown.md";
+    const content = await fs.readFile(
+      path.resolve(__dirname, "..", "test", "fixtures", fileName),
+      "utf8"
+    );
     const response = await documentImporter({
       user,
-      file,
+      mimeType: "application/lol",
+      fileName,
+      content,
       ip,
     });
     expect(response.text).toContain("This is a test paragraph");
@@ -182,18 +191,19 @@ describe("documentImporter", () => {
 
   it("should error with unknown file type", async () => {
     const user = await buildUser();
-    const name = "files.zip";
-    const file = new File({
-      name,
-      type: "executable/zip",
-      path: path.resolve(__dirname, "..", "test", "fixtures", name),
-    });
+    const fileName = "files.zip";
+    const content = await fs.readFile(
+      path.resolve(__dirname, "..", "test", "fixtures", fileName),
+      "utf8"
+    );
     let error;
 
     try {
       await documentImporter({
         user,
-        file,
+        mimeType: "executable/zip",
+        fileName,
+        content,
         ip,
       });
     } catch (err) {

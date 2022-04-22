@@ -2,6 +2,7 @@ import invariant from "invariant";
 import attachmentCreator from "@server/commands/attachmentCreator";
 import documentCreator from "@server/commands/documentCreator";
 import { sequelize } from "@server/database/sequelize";
+import { ValidationError } from "@server/errors";
 import logger from "@server/logging/logger";
 import {
   User,
@@ -12,12 +13,15 @@ import {
   Attachment,
 } from "@server/models";
 import { FileOperationState } from "@server/models/FileOperation";
-import BaseTask from "./BaseTask";
+import BaseTask, { TaskPriority } from "./BaseTask";
 
 type Props = {
   fileOperationId: string;
 };
 
+/**
+ * Standardized format for data importing, to be used by all import tasks.
+ */
 export type StructuredImportData = {
   collections: {
     id: string;
@@ -58,13 +62,34 @@ export default abstract class ImportTask extends BaseTask<Props> {
       logger.info("task", `ImportTask parsing data for ${fileOperationId}`);
       const parsed = await this.parseData(data, fileOperation);
 
-      logger.info("task", `ImportTask persisting data for ${fileOperationId}`);
-      await this.persistData(parsed, fileOperation);
+      if (parsed.collections.length === 0) {
+        throw ValidationError(
+          "Uploaded file does not contain any collections. The root of the zip file must contain folders representing collections."
+        );
+      }
 
-      this.updateFileOperation(fileOperation, FileOperationState.Complete);
+      if (parsed.documents.length === 0) {
+        throw ValidationError(
+          "Uploaded file does not contain any importable documents"
+        );
+      }
+
+      logger.info("task", `ImportTask persisting data for ${fileOperationId}`);
+      const result = await this.persistData(parsed, fileOperation);
+
+      await this.updateFileOperation(
+        fileOperation,
+        FileOperationState.Complete
+      );
+
+      return result;
     } catch (error) {
-      logger.error(`ImportTask failed for ${fileOperationId}`, error);
-      this.updateFileOperation(fileOperation, FileOperationState.Error, error);
+      await this.updateFileOperation(
+        fileOperation,
+        FileOperationState.Error,
+        error
+      );
+      throw error;
     }
   }
 
@@ -121,7 +146,11 @@ export default abstract class ImportTask extends BaseTask<Props> {
   protected async persistData(
     data: StructuredImportData,
     fileOperation: FileOperation
-  ) {
+  ): Promise<{
+    collections: Map<string, Collection>;
+    documents: Map<string, Document>;
+    attachments: Map<string, Attachment>;
+  }> {
     const collections = new Map<string, Collection>();
     const documents = new Map<string, Document>();
     const attachments = new Map<string, Attachment>();
@@ -250,6 +279,13 @@ export default abstract class ImportTask extends BaseTask<Props> {
           await collection.addDocumentToStructure(document, 0, { transaction });
         }
       }
+
+      // Return value is only used for testing
+      return {
+        collections,
+        documents,
+        attachments,
+      };
     });
   }
 
@@ -258,5 +294,15 @@ export default abstract class ImportTask extends BaseTask<Props> {
    */
   protected async cleanupData() {
     // noop
+  }
+
+  /**
+   * Job options such as priority and retry strategy, as defined by Bull.
+   */
+  public get options() {
+    return {
+      priority: TaskPriority.Low,
+      attempts: 1,
+    };
   }
 }

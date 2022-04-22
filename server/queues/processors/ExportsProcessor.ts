@@ -4,6 +4,7 @@ import ExportFailureEmail from "@server/emails/templates/ExportFailureEmail";
 import ExportSuccessEmail from "@server/emails/templates/ExportSuccessEmail";
 import Logger from "@server/logging/logger";
 import { FileOperation, Collection, Event, Team, User } from "@server/models";
+import { FileOperationState } from "@server/models/FileOperation";
 import { Event as TEvent } from "@server/types";
 import { uploadToS3FromBuffer } from "@server/utils/s3";
 import { archiveCollections } from "@server/utils/zip";
@@ -41,7 +42,7 @@ export default class ExportsProcessor extends BaseProcessor {
         });
 
         this.updateFileOperation(fileOperation, actorId, teamId, {
-          state: "creating",
+          state: FileOperationState.Creating,
         });
         // heavy lifting of creating the zip file
         Logger.info(
@@ -50,7 +51,7 @@ export default class ExportsProcessor extends BaseProcessor {
         );
         const filePath = await archiveCollections(collections);
         let url;
-        let state: any = "creating";
+        let state = FileOperationState.Creating;
 
         try {
           // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
@@ -58,7 +59,7 @@ export default class ExportsProcessor extends BaseProcessor {
           // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
           const stat = await fs.promises.stat(filePath);
           this.updateFileOperation(fileOperation, actorId, teamId, {
-            state: "uploading",
+            state: FileOperationState.Uploading,
             size: stat.size,
           });
           Logger.info(
@@ -75,12 +76,12 @@ export default class ExportsProcessor extends BaseProcessor {
             "processor",
             `Upload complete for file operation ${fileOperation.id}`
           );
-          state = "complete";
+          state = FileOperationState.Complete;
         } catch (error) {
           Logger.error("Error exporting collection data", error, {
             fileOperationId: fileOperation.id,
           });
-          state = "error";
+          state = FileOperationState.Error;
           url = undefined;
         } finally {
           this.updateFileOperation(fileOperation, actorId, teamId, {
@@ -88,7 +89,7 @@ export default class ExportsProcessor extends BaseProcessor {
             url,
           });
 
-          if (state === "error") {
+          if (state === FileOperationState.Error) {
             await ExportFailureEmail.schedule({
               to: user.email,
               teamUrl: team.url,
