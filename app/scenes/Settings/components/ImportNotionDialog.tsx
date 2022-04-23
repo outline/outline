@@ -22,9 +22,7 @@ function ImportNotionDialog() {
       </Text>
       <HelpDisclosure title={<Trans>Where do I find the file?</Trans>}>
         <Trans
-          defaults="In Notion, click <em>Settings & Members</em> in the left sidebar and
-              open Settings. Look for the Export section, and click <em>Export all
-              workspace content</em>. Choose <em>HTML</em> as the format for the best data compatability."
+          defaults="In Notion, click <em>Settings & Members</em> in the left sidebar and open Settings. Look for the Export section, and click <em>Export all workspace content</em>. Choose <em>HTML</em> as the format for the best data compatability."
           components={{
             em: <strong />,
           }}
