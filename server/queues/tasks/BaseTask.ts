@@ -33,7 +33,7 @@ export default abstract class BaseTask<T> {
    * @param props Properties to be used by the task
    * @returns A promise that resolves once the task has completed.
    */
-  public abstract perform(props: T): Promise<void>;
+  public abstract perform(props: T): Promise<any>;
 
   /**
    * Job options such as priority and retry strategy, as defined by Bull.

@@ -1,3 +1,4 @@
+import { SaveOptions } from "sequelize";
 import {
   ForeignKey,
   AfterSave,
@@ -45,8 +46,12 @@ class Event extends BaseModel {
   }
 
   @AfterSave
-  static async enqueue(model: Event) {
-    globalEventQueue.add(model);
+  static async enqueue(model: Event, options: SaveOptions<Event>) {
+    if (options.transaction) {
+      options.transaction.afterCommit(() => void globalEventQueue.add(model));
+      return;
+    }
+    void globalEventQueue.add(model);
   }
 
   // associations
