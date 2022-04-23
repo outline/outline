@@ -1,8 +1,10 @@
 import { observer } from "mobx-react";
+import { NewDocumentIcon } from "outline-icons";
 import * as React from "react";
 import Dropzone from "react-dropzone";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import Flex from "~/components/Flex";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
@@ -67,27 +69,39 @@ function DropToImport({ disabled, onSubmit, children, format }: Props) {
   }
 
   return (
-    <Dropzone
-      accept="application/zip"
-      onDropAccepted={handleFiles}
-      onDropRejected={handleRejection}
-      disabled={isImporting}
-    >
-      {({ getRootProps, getInputProps, isDragActive }) => (
-        <DropzoneContainer
-          {...getRootProps()}
-          $disabled={isImporting}
-          $isDragActive={isDragActive}
-          tabIndex={-1}
-        >
-          <input {...getInputProps()} />
-          {isImporting && <LoadingIndicator />}
-          {children}
-        </DropzoneContainer>
-      )}
-    </Dropzone>
+    <>
+      {isImporting && <LoadingIndicator />}
+      <Dropzone
+        accept="application/zip"
+        onDropAccepted={handleFiles}
+        onDropRejected={handleRejection}
+        disabled={isImporting}
+      >
+        {({ getRootProps, getInputProps, isDragActive }) => (
+          <DropzoneContainer
+            {...getRootProps()}
+            $disabled={isImporting}
+            $isDragActive={isDragActive}
+            tabIndex={-1}
+          >
+            <input {...getInputProps()} />
+            <Flex align="center" gap={4} column>
+              <Icon size={32} color="#fff" />
+              {children}
+            </Flex>
+          </DropzoneContainer>
+        )}
+      </Dropzone>
+    </>
   );
 }
+
+const Icon = styled(NewDocumentIcon)`
+  padding: 4px;
+  border-radius: 50%;
+  background: ${(props) => props.theme.brand.blue};
+  color: white;
+`;
 
 const DropzoneContainer = styled.div<{
   $disabled: boolean;
@@ -99,7 +113,7 @@ const DropzoneContainer = styled.div<{
       : props.theme.background};
   border-radius: 8px;
   border: 1px dashed ${(props) => props.theme.divider};
-  padding: 52px 40px;
+  padding: 52px;
   text-align: center;
   font-size: 15px;
   cursor: pointer;

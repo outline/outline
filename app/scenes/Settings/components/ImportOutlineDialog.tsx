@@ -1,9 +1,6 @@
 import { observer } from "mobx-react";
-import { NewDocumentIcon } from "outline-icons";
 import * as React from "react";
 import { Trans } from "react-i18next";
-
-import { useTheme } from "styled-components";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
@@ -11,7 +8,6 @@ import DropToImport from "./DropToImport";
 import HelpDisclosure from "./HelpDisclosure";
 
 function ImportOutlineDialog() {
-  const theme = useTheme();
   const { dialogs } = useStores();
 
   return (
@@ -21,13 +17,10 @@ function ImportOutlineDialog() {
           onSubmit={dialogs.closeAllModals}
           format="outline-markdown"
         >
-          <Flex align="center" gap={4} column>
-            <NewDocumentIcon size={32} color={theme.brand.blue} />
-            <Trans>
-              Drag and drop the zip file from Outline's export option, or click
-              to upload
-            </Trans>
-          </Flex>
+          <Trans>
+            Drag and drop the zip file from Outline's export option, or click to
+            upload
+          </Trans>
         </DropToImport>
       </Text>
       <HelpDisclosure title={<Trans>How does this work?</Trans>}>
