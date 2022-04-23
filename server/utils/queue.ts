@@ -1,7 +1,7 @@
 import Queue from "bull";
 import { snakeCase } from "lodash";
 import Metrics from "@server/logging/metrics";
-import { client, subscriber, newRedisClient } from "../redis";
+import Redis from "../redis";
 
 export function createQueue(
   name: string,
@@ -12,13 +12,13 @@ export function createQueue(
     createClient(type) {
       switch (type) {
         case "client":
-          return client;
+          return Redis.Client;
 
         case "subscriber":
-          return subscriber;
+          return Redis.Subscriber;
 
         default:
-          return newRedisClient(process.env.REDIS_URL);
+          return new Redis(process.env.REDIS_URL);
       }
     },
 

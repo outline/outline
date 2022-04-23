@@ -20,25 +20,35 @@ const defaultOptions = {
       : undefined,
 };
 
-function newRedisClient(url: string | undefined): Redis.Redis {
-  if (!(url || "").startsWith("ioredis://")) {
-    return new Redis(process.env.REDIS_URL, defaultOptions);
+export default class RedisAdapter extends Redis {
+  constructor(url: string | undefined) {
+    if (!(url || "").startsWith("ioredis://")) {
+      super(process.env.REDIS_URL, defaultOptions);
+    } else {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const decodedString = Buffer.from(url!.slice(10), "base64").toString();
+      const customOptions = JSON.parse(decodedString);
+      const mergedOptions = defaults(defaultOptions, customOptions);
+
+      super(mergedOptions);
+    }
+
+    // More than the default of 10 listeners is expected for the amount of queues
+    // we're running. Increase the max here to prevent a warning in the console:
+    // https://github.com/OptimalBits/bull/issues/1192
+    this.setMaxListeners(100);
   }
 
-  const decodedString = Buffer.from(url!.slice(10), "base64").toString();
-  const customOptions = JSON.parse(decodedString);
-  const mergedOptions = defaults(defaultOptions, customOptions);
+  private static _client: RedisAdapter;
+  private static _subscriber: RedisAdapter;
 
-  return new Redis(mergedOptions);
+  public static get Client(): RedisAdapter {
+    return this._client || (this._client = new this(process.env.REDIS_URL));
+  }
+
+  public static get Subscriber(): RedisAdapter {
+    return (
+      this._subscriber || (this._subscriber = new this(process.env.REDIS_URL))
+    );
+  }
 }
-
-const client = newRedisClient(process.env.REDIS_URL);
-const subscriber = newRedisClient(process.env.REDIS_URL);
-
-// More than the default of 10 listeners is expected for the amount of queues
-// we're running. Increase the max here to prevent a warning in the console:
-// https://github.com/OptimalBits/bull/issues/1192
-client.setMaxListeners(100);
-subscriber.setMaxListeners(100);
-
-export { client, subscriber, newRedisClient };
