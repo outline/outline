@@ -42,7 +42,7 @@ module.exports = {
 
       await queryInterface.addIndex("team_domains", ["teamId", "name"], {
         transaction,
-        user: true,
+        unique: true,
       });
     });
   },
