@@ -26,6 +26,15 @@ export type StructuredImportData = {
   collections: {
     id: string;
     name: string;
+    /**
+     * The collection description. To reference an attachment or image use the
+     * special formatting <<attachmentId>>. It will be replaced with a reference
+     * to the actual attachment as part of persistData.
+     *
+     * To reference a document use <<documentId>>, it will be replaced with a
+     * link to the document as part of persistData once the document url is
+     * generated.
+     */
     description?: string;
     /** Optional id from import source, useful for mapping */
     sourceId?: string;
@@ -192,8 +201,51 @@ export default abstract class ImportTask extends BaseTask<Props> {
 
       const ip = user.lastActiveIp || undefined;
 
+      // Attachments
+      for (const item of data.attachments) {
+        const attachment = await attachmentCreator({
+          source: "import",
+          id: item.id,
+          name: item.name,
+          type: item.mimeType,
+          buffer: item.buffer,
+          user,
+          ip,
+          transaction,
+        });
+        attachments.set(item.id, attachment);
+      }
+
       // Collections
       for (const item of data.collections) {
+        let description = item.description;
+
+        if (description) {
+          // Check all of the attachments we've created against urls in the text
+          // and replace them out with attachment redirect urls before saving.
+          for (const aitem of data.attachments) {
+            const attachment = attachments.get(aitem.id);
+            if (!attachment) {
+              continue;
+            }
+            description = description.replace(
+              new RegExp(`<<${attachment.id}>>`, "g"),
+              attachment.redirectUrl
+            );
+          }
+
+          // Check all of the document we've created against urls in the text
+          // and replace them out with a valid internal link. Because we are doing
+          // this before saving, we can't use the document slug, but we can take
+          // advantage of the fact that the document id will redirect in the client
+          for (const ditem of data.documents) {
+            description = description.replace(
+              new RegExp(`<<${ditem.id}>>`, "g"),
+              `/doc/${ditem.id}`
+            );
+          }
+        }
+
         // check if collection with name exists
         const response = await Collection.findOrCreate({
           where: {
@@ -202,7 +254,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
           },
           defaults: {
             id: item.id,
-            description: item.description,
+            description,
             createdById: fileOperation.userId,
             permission: "read_write",
           },
@@ -220,7 +272,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
           collection = await Collection.create(
             {
               id: item.id,
-              description: item.description,
+              description,
               teamId: fileOperation.teamId,
               createdById: fileOperation.userId,
               name,
@@ -247,21 +299,6 @@ export default abstract class ImportTask extends BaseTask<Props> {
         );
 
         collections.set(item.id, collection);
-      }
-
-      // Attachments
-      for (const item of data.attachments) {
-        const attachment = await attachmentCreator({
-          source: "import",
-          id: item.id,
-          name: item.name,
-          type: item.mimeType,
-          buffer: item.buffer,
-          user,
-          ip,
-          transaction,
-        });
-        attachments.set(item.id, attachment);
       }
 
       // Documents

@@ -133,6 +133,54 @@ export default class ImportNotionTask extends ImportTask {
       );
     };
 
+    const replaceInternalLinksAndImages = (text: string) => {
+      // Find if there are any images in this document
+      const imagesInText = this.parseImages(text);
+
+      for (const image of imagesInText) {
+        const name = path.basename(image.src);
+        const attachment = output.attachments.find((att) => att.name === name);
+
+        if (!attachment) {
+          Logger.info(
+            "task",
+            `Could not find referenced attachment with name ${name} and src ${image.src}`
+          );
+        } else {
+          text = text.replace(
+            new RegExp(image.src, "g"),
+            `<<${attachment.id}>>`
+          );
+        }
+      }
+
+      // With Notion's HTML import, images sometimes come wrapped in anchor tags
+      // This isn't supported in Outline's editor, so we need to strip them.
+      text = text.replace(/\[!\[([^[]+)]/g, "![]");
+
+      // Find if there are any links in this document pointing to other documents
+      const internalLinksInText = this.parseInternalLinks(text);
+
+      // For each link update to the standardized format of <<documentId>>
+      // instead of a relative or absolute URL within the original zip file.
+      for (const link of internalLinksInText) {
+        const doc = output.documents.find(
+          (doc) => doc.sourceId === link.sourceId
+        );
+
+        if (!doc) {
+          Logger.info(
+            "task",
+            `Could not find referenced document with sourceId ${link.sourceId}`
+          );
+        } else {
+          text = text.replace(link.href, `<<${doc.id}>>`);
+        }
+      }
+
+      return text;
+    };
+
     // All nodes in the root level should become collections
     for (const node of tree) {
       const match = node.title.match(this.NotionUUIDRegex);
@@ -147,7 +195,7 @@ export default class ImportNotionTask extends ImportTask {
       const collectionId = existingCollection?.id || uuidv4();
       let description;
 
-      // Root level docs become collection descriptions
+      // Root level docs become the descriptions of collections
       if (
         mimeType === "text/markdown" ||
         mimeType === "text/plain" ||
@@ -187,41 +235,14 @@ export default class ImportNotionTask extends ImportTask {
     }
 
     for (const document of output.documents) {
-      // Check all of the attachments we've created against urls in the text
-      // and replace them out with attachment redirect urls before continuing.
-      for (const attachment of output.attachments) {
-        // Pull the collection and subdirectory out of the path name, upload
-        // folders in an export are relative to the document itself
-        const folder = path.parse(document.path).name;
-        const attachmentName = encodeURIComponent(attachment.name);
+      document.text = replaceInternalLinksAndImages(document.text);
+    }
 
-        const reference = `<<${attachment.id}>>`;
-        document.text = document.text
-          .replace(
-            new RegExp(`${encodeURIComponent(folder)}/${attachmentName}`, "g"),
-            reference
-          )
-          .replace(new RegExp(`${folder}/${attachmentName}`, "g"), reference);
-      }
-
-      // Find if there are any links in this document pointing to other documents
-      const internalLinksInText = this.parseInternalLinks(document.text);
-
-      // For each link update to the standardized format of <<documentId>>
-      // instead of a relative or absolute URL within the original zip file.
-      for (const link of internalLinksInText) {
-        const doc = output.documents.find(
-          (doc) => doc.sourceId === link.sourceId
+    for (const collection of output.collections) {
+      if (collection.description) {
+        collection.description = replaceInternalLinksAndImages(
+          collection.description
         );
-
-        if (!doc) {
-          Logger.info(
-            "task",
-            `Could not find referenced document with sourceId ${link.sourceId}`
-          );
-        } else {
-          document.text = document.text.replace(link.href, `<<${doc.id}>>`);
-        }
       }
     }
 
@@ -248,10 +269,30 @@ export default class ImportNotionTask extends ImportTask {
   }
 
   /**
+   * Extracts images from the markdown document
+   *
+   * @param text The markdown text to parse
+   * @returns An array of internal links
+   */
+  private parseImages(text: string): { alt: string; src: string }[] {
+    return compact(
+      [...text.matchAll(this.ImageRegex)].map((match) => ({
+        alt: match[1],
+        src: match[2],
+      }))
+    );
+  }
+
+  /**
+   * Regex to find markdown images of all types
+   */
+  private ImageRegex = /!\[(?<alt>[^\][]*?)]\((?<filename>[^\][]*?)(?=“|\))“?(?<title>[^\][”]+)?”?\)/g;
+
+  /**
    * Regex to find markdown links containing ID's that look like UUID's with the
    * "-"'s removed, Notion's sourceId format.
    */
-  private NotionLinkRegex = /\[([^[]+)]\((.*([0-9a-fA-F]{32})\..*)\)/g;
+  private NotionLinkRegex = /\[([^[]+)]\((.*?([0-9a-fA-F]{32})\..*?)\)/g;
 
   /**
    * Regex to find Notion document UUID's in the title of a document.
