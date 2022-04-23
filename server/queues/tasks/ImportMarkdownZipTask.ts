@@ -1,23 +1,11 @@
-import path from "path";
 import JSZip from "jszip";
-import { find } from "lodash";
 import mime from "mime-types";
 import { v4 as uuidv4 } from "uuid";
 import documentImporter from "@server/commands/documentImporter";
 import Logger from "@server/logging/logger";
 import { FileOperation, User } from "@server/models";
+import { zipAsFileTree, FileTreeNode } from "@server/utils/zip";
 import ImportTask, { StructuredImportData } from "./ImportTask";
-
-type FileTreeNode = {
-  /** The title, extracted from the file name */
-  title: string;
-  /** The file name including extension */
-  name: string;
-  /** The full path to within the zip file */
-  path: string;
-  /** The nested children */
-  children: FileTreeNode[];
-};
 
 export default class ImportMarkdownZipTask extends ImportTask {
   public async parseData(
@@ -25,8 +13,7 @@ export default class ImportMarkdownZipTask extends ImportTask {
     fileOperation: FileOperation
   ): Promise<StructuredImportData> {
     const zip = await JSZip.loadAsync(buffer);
-    const zipPaths = Object.keys(zip.files).map((filePath) => `/${filePath}`);
-    const tree = this.zipAsFileTree(zipPaths);
+    const tree = zipAsFileTree(zip);
 
     return this.parseFileTree({ fileOperation, zip, tree });
   }
@@ -135,6 +122,7 @@ export default class ImportMarkdownZipTask extends ImportTask {
               createdAt,
               collectionId,
               parentDocumentId,
+              path: child.path,
             });
           }
 
@@ -159,57 +147,25 @@ export default class ImportMarkdownZipTask extends ImportTask {
       }
     }
 
-    return output;
-  }
+    // Check all of the attachments we've created against urls in the text
+    // and replace them out with attachment redirect urls before continuing.
+    for (const document of output.documents) {
+      for (const attachment of output.attachments) {
+        // Pull the collection and subdirectory out of the path name, upload
+        // folders in an export are relative to the document itself
+        const normalizedAttachmentPath = attachment.path.replace(
+          /(.*)uploads\//,
+          "uploads/"
+        );
 
-  /**
-   * Converts the flat structure returned by JSZIP into a nested file structure
-   * for easier processing.
-   *
-   * @param paths An array of paths to files in the zip
-   * @returns
-   */
-  private zipAsFileTree(paths: string[]) {
-    const tree: FileTreeNode[] = [];
-
-    paths.forEach(function (filePath) {
-      if (filePath.startsWith("/__MACOSX")) {
-        return;
+        const reference = `<<${attachment.id}>>`;
+        document.text = document.text
+          .replace(new RegExp(attachment.path, "g"), reference)
+          .replace(new RegExp(normalizedAttachmentPath, "g"), reference)
+          .replace(new RegExp(`/${normalizedAttachmentPath}`, "g"), reference);
       }
+    }
 
-      const pathParts = filePath.split("/");
-
-      // Remove first blank element from the parts array.
-      pathParts.shift();
-
-      let currentLevel = tree; // initialize currentLevel to root
-
-      pathParts.forEach(function (name) {
-        // check to see if the path already exists.
-        const existingPath = find(currentLevel, {
-          name,
-        });
-
-        if (existingPath) {
-          // The path to this item was already in the tree, so don't add again.
-          // Set the current level to this path's children
-          currentLevel = existingPath.children;
-        } else if (name.endsWith(".DS_Store") || !name) {
-          return;
-        } else {
-          const newPart = {
-            name,
-            path: filePath.replace(/^\//, ""),
-            title: path.basename(name),
-            children: [],
-          };
-
-          currentLevel.push(newPart);
-          currentLevel = newPart.children;
-        }
-      });
-    });
-
-    return tree;
+    return output;
   }
 }

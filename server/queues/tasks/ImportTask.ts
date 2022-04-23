@@ -26,15 +26,39 @@ export type StructuredImportData = {
   collections: {
     id: string;
     name: string;
+    /**
+     * The collection description. To reference an attachment or image use the
+     * special formatting <<attachmentId>>. It will be replaced with a reference
+     * to the actual attachment as part of persistData.
+     *
+     * To reference a document use <<documentId>>, it will be replaced with a
+     * link to the document as part of persistData once the document url is
+     * generated.
+     */
+    description?: string;
+    /** Optional id from import source, useful for mapping */
+    sourceId?: string;
   }[];
   documents: {
     id: string;
     title: string;
+    /**
+     * The document text. To reference an attachment or image use the special
+     * formatting <<attachmentId>>. It will be replaced with a reference to the
+     * actual attachment as part of persistData.
+     *
+     * To reference another document use <<documentId>>, it will be replaced
+     * with a link to the document as part of persistData once the document url
+     * is generated.
+     */
     text: string;
     collectionId: string;
     updatedAt?: Date;
     createdAt?: Date;
     parentDocumentId?: string;
+    path: string;
+    /** Optional id from import source, useful for mapping */
+    sourceId?: string;
   }[];
   attachments: {
     id: string;
@@ -42,6 +66,8 @@ export type StructuredImportData = {
     path: string;
     mimeType: string;
     buffer: Buffer;
+    /** Optional id from import source, useful for mapping */
+    sourceId?: string;
   }[];
 };
 
@@ -70,12 +96,24 @@ export default abstract class ImportTask extends BaseTask<Props> {
 
       if (parsed.documents.length === 0) {
         throw ValidationError(
-          "Uploaded file does not contain any importable documents"
+          "Uploaded file does not contain any valid documents"
         );
       }
 
-      logger.info("task", `ImportTask persisting data for ${fileOperationId}`);
-      const result = await this.persistData(parsed, fileOperation);
+      let result;
+      try {
+        logger.info(
+          "task",
+          `ImportTask persisting data for ${fileOperationId}`
+        );
+        result = await this.persistData(parsed, fileOperation);
+      } catch (error) {
+        logger.error(
+          `ImportTask failed to persist data for ${fileOperationId}`,
+          error
+        );
+        throw new Error("Sorry, an internal error occurred during import");
+      }
 
       await this.updateFileOperation(
         fileOperation,
@@ -163,8 +201,51 @@ export default abstract class ImportTask extends BaseTask<Props> {
 
       const ip = user.lastActiveIp || undefined;
 
+      // Attachments
+      for (const item of data.attachments) {
+        const attachment = await attachmentCreator({
+          source: "import",
+          id: item.id,
+          name: item.name,
+          type: item.mimeType,
+          buffer: item.buffer,
+          user,
+          ip,
+          transaction,
+        });
+        attachments.set(item.id, attachment);
+      }
+
       // Collections
       for (const item of data.collections) {
+        let description = item.description;
+
+        if (description) {
+          // Check all of the attachments we've created against urls in the text
+          // and replace them out with attachment redirect urls before saving.
+          for (const aitem of data.attachments) {
+            const attachment = attachments.get(aitem.id);
+            if (!attachment) {
+              continue;
+            }
+            description = description.replace(
+              new RegExp(`<<${attachment.id}>>`, "g"),
+              attachment.redirectUrl
+            );
+          }
+
+          // Check all of the document we've created against urls in the text
+          // and replace them out with a valid internal link. Because we are doing
+          // this before saving, we can't use the document slug, but we can take
+          // advantage of the fact that the document id will redirect in the client
+          for (const ditem of data.documents) {
+            description = description.replace(
+              new RegExp(`<<${ditem.id}>>`, "g"),
+              `/doc/${ditem.id}`
+            );
+          }
+        }
+
         // check if collection with name exists
         const response = await Collection.findOrCreate({
           where: {
@@ -173,6 +254,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
           },
           defaults: {
             id: item.id,
+            description,
             createdById: fileOperation.userId,
             permission: "read_write",
           },
@@ -190,6 +272,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
           collection = await Collection.create(
             {
               id: item.id,
+              description,
               teamId: fileOperation.teamId,
               createdById: fileOperation.userId,
               name,
@@ -197,38 +280,25 @@ export default abstract class ImportTask extends BaseTask<Props> {
             },
             { transaction }
           );
-          await Event.create(
-            {
-              name: "collections.create",
-              collectionId: collection.id,
-              teamId: collection.teamId,
-              actorId: fileOperation.userId,
-              data: {
-                name,
-              },
-              ip,
-            },
-            {
-              transaction,
-            }
-          );
         }
 
-        collections.set(item.id, collection);
-      }
+        await Event.create(
+          {
+            name: "collections.create",
+            collectionId: collection.id,
+            teamId: collection.teamId,
+            actorId: fileOperation.userId,
+            data: {
+              name: collection.name,
+            },
+            ip,
+          },
+          {
+            transaction,
+          }
+        );
 
-      // Attachments
-      for (const item of data.attachments) {
-        const attachment = await attachmentCreator({
-          source: "import",
-          name: item.name,
-          type: item.mimeType,
-          buffer: item.buffer,
-          user,
-          ip,
-          transaction,
-        });
-        attachments.set(item.id, attachment);
+        collections.set(item.id, collection);
       }
 
       // Documents
@@ -237,25 +307,26 @@ export default abstract class ImportTask extends BaseTask<Props> {
 
         // Check all of the attachments we've created against urls in the text
         // and replace them out with attachment redirect urls before saving.
-        for (const item of data.attachments) {
-          const attachment = attachments.get(item.id);
+        for (const aitem of data.attachments) {
+          const attachment = attachments.get(aitem.id);
           if (!attachment) {
             continue;
           }
-
-          // TODO: This is a bit specific to MarkdownZip import and could be
-          // made more generic on the next pass.
-          // Pull the collection and subdirectory out of the path name, upload
-          // folders in an export are relative to the document itself
-          const normalizedAttachmentPath = item.path.replace(
-            /(.*)uploads\//,
-            "uploads/"
+          text = text.replace(
+            new RegExp(`<<${attachment.id}>>`, "g"),
+            attachment.redirectUrl
           );
+        }
 
-          text = text
-            .replace(item.path, attachment.redirectUrl)
-            .replace(normalizedAttachmentPath, attachment.redirectUrl)
-            .replace(`/${normalizedAttachmentPath}`, attachment.redirectUrl);
+        // Check all of the document we've created against urls in the text
+        // and replace them out with a valid internal link. Because we are doing
+        // this before saving, we can't use the document slug, but we can take
+        // advantage of the fact that the document id will redirect in the client
+        for (const ditem of data.documents) {
+          text = text.replace(
+            new RegExp(`<<${ditem.id}>>`, "g"),
+            `/doc/${ditem.id}`
+          );
         }
 
         const document = await documentCreator({
@@ -266,7 +337,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
           collectionId: item.collectionId,
           createdAt: item.createdAt,
           updatedAt: item.updatedAt ?? item.createdAt,
-          publishedAt: item.updatedAt ?? item.createdAt,
+          publishedAt: item.updatedAt ?? item.createdAt ?? new Date(),
           parentDocumentId: item.parentDocumentId,
           user,
           ip,

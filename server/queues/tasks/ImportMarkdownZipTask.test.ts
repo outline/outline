@@ -81,7 +81,7 @@ describe("ImportMarkdownZipTask", () => {
     }
 
     expect(error && error.message).toBe(
-      "Uploaded file does not contain any importable documents"
+      "Uploaded file does not contain any valid documents"
     );
   });
 });

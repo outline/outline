@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import JSZip, { JSZipObject } from "jszip";
+import { find } from "lodash";
 import tmp from "tmp";
 import Logger from "@server/logging/logger";
 import Attachment from "@server/models/Attachment";
@@ -172,4 +173,67 @@ export async function archiveCollections(collections: Collection[]) {
   }
 
   return archiveToPath(zip);
+}
+
+export type FileTreeNode = {
+  /** The title, extracted from the file name */
+  title: string;
+  /** The file name including extension */
+  name: string;
+  /** The full path to within the zip file */
+  path: string;
+  /** The nested children */
+  children: FileTreeNode[];
+};
+
+/**
+ * Converts the flat structure returned by JSZIP into a nested file structure
+ * for easier processing.
+ *
+ * @param paths An array of paths to files in the zip
+ * @returns
+ */
+export function zipAsFileTree(zip: JSZip) {
+  const paths = Object.keys(zip.files).map((filePath) => `/${filePath}`);
+  const tree: FileTreeNode[] = [];
+
+  paths.forEach(function (filePath) {
+    if (filePath.startsWith("/__MACOSX")) {
+      return;
+    }
+
+    const pathParts = filePath.split("/");
+
+    // Remove first blank element from the parts array.
+    pathParts.shift();
+
+    let currentLevel = tree; // initialize currentLevel to root
+
+    pathParts.forEach(function (name) {
+      // check to see if the path already exists.
+      const existingPath = find(currentLevel, {
+        name,
+      });
+
+      if (existingPath) {
+        // The path to this item was already in the tree, so don't add again.
+        // Set the current level to this path's children
+        currentLevel = existingPath.children;
+      } else if (name.endsWith(".DS_Store") || !name) {
+        return;
+      } else {
+        const newPart = {
+          name,
+          path: filePath.replace(/^\//, ""),
+          title: path.parse(path.basename(name)).name,
+          children: [],
+        };
+
+        currentLevel.push(newPart);
+        currentLevel = newPart.children;
+      }
+    });
+  });
+
+  return tree;
 }

@@ -6,6 +6,7 @@ import {
 } from "@server/models/FileOperation";
 import { Event as TEvent, FileOperationEvent } from "@server/types";
 import ImportMarkdownZipTask from "../tasks/ImportMarkdownZipTask";
+import ImportNotionTask from "../tasks/ImportNotionTask";
 import BaseProcessor from "./BaseProcessor";
 
 export default class FileOperationsProcessor extends BaseProcessor {
@@ -24,6 +25,11 @@ export default class FileOperationsProcessor extends BaseProcessor {
       switch (fileOperation.format) {
         case FileOperationFormat.MarkdownZip:
           await ImportMarkdownZipTask.schedule({
+            fileOperationId: event.modelId,
+          });
+          break;
+        case FileOperationFormat.Notion:
+          await ImportNotionTask.schedule({
             fileOperationId: event.modelId,
           });
           break;

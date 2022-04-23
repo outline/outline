@@ -1,4 +1,5 @@
 import path from "path";
+import emojiRegex from "emoji-regex";
 import { strikethrough, tables } from "joplin-turndown-plugin-gfm";
 import { truncate } from "lodash";
 import mammoth from "mammoth";
@@ -21,7 +22,7 @@ const turndownService = new TurndownService({
   hr: "---",
   bulletListMarker: "-",
   headingStyle: "atx",
-});
+}).remove(["script", "style", "title", "head"]);
 
 // Use the GitHub-flavored markdown plugin to parse
 // strikethoughs and tables
@@ -37,7 +38,7 @@ turndownService
 
 interface ImportableFile {
   type: string;
-  getMarkdown: (file: any) => Promise<string>;
+  getMarkdown: (content: Buffer | string) => Promise<string>;
 }
 
 const importMapping: ImportableFile[] = [
@@ -88,6 +89,7 @@ async function htmlToMarkdown(content: Buffer | string): Promise<string> {
   if (content instanceof Buffer) {
     content = content.toString("utf8");
   }
+
   return turndownService.turndown(content);
 }
 
@@ -192,13 +194,28 @@ async function documentImporter({
 
   let title = deserializeFilename(fileName.replace(/\.[^/.]+$/, ""));
   let text = await fileInfo.getMarkdown(content);
+  text = text.trim();
+
+  // find and extract first emoji, in the case of some imports it can be outside
+  // of the title, at the top of the document.
+  const regex = emojiRegex();
+  const matches = regex.exec(text);
+  const firstEmoji = matches ? matches[0] : undefined;
+  if (firstEmoji && text.startsWith(firstEmoji)) {
+    text = text.replace(firstEmoji, "").trim();
+  }
 
   // If the first line of the imported text looks like a markdown heading
   // then we can use this as the document title
-  if (text.trim().startsWith("# ")) {
+  if (text.startsWith("# ")) {
     const result = parseTitle(text);
     title = result.title;
     text = text.replace(`# ${title}\n`, "");
+  }
+
+  // If we parsed an emoji from _above_ the title then add it back at prefixing
+  if (firstEmoji) {
+    title = `${firstEmoji} ${title}`;
   }
 
   // find data urls, convert to blobs, upload and write attachments
