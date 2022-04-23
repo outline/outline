@@ -37,6 +37,10 @@ export type StructuredImportData = {
      * The document text. To reference an attachment or image use the special
      * formatting <<attachmentId>>. It will be replaced with a reference to the
      * actual attachment as part of persistData.
+     *
+     * To reference another document use <<documentId>>, it will be replaced
+     * with a link to the document as part of persistData once the document url
+     * is generated.
      */
     text: string;
     collectionId: string;
@@ -274,6 +278,17 @@ export default abstract class ImportTask extends BaseTask<Props> {
           text = text.replace(
             new RegExp(`<<${attachment.id}>>`, "g"),
             attachment.redirectUrl
+          );
+        }
+
+        // Check all of the document we've created against urls in the text
+        // and replace them out with a valid internal link. Because we are doing
+        // this before saving, we can't use the document slug, but we can take
+        // advantage of the fact that the document id will redirect in the client
+        for (const ditem of data.documents) {
+          text = text.replace(
+            new RegExp(`<<${ditem.id}>>`, "g"),
+            `/doc/${ditem.id}`
           );
         }
 
