@@ -512,6 +512,7 @@
   "Get started by choosing a sign-in method for your new team below…": "Get started by choosing a sign-in method for your new team below…",
   "Login to {{ authProviderName }}": "Login to {{ authProviderName }}",
   "You signed in with {{ authProviderName }} last time.": "You signed in with {{ authProviderName }} last time.",
+  "Or": "Or",
   "Already have an account? Go to <1>login</1>.": "Already have an account? Go to <1>login</1>.",
   "Sign In": "Sign In",
   "Continue with Email": "Continue with Email",

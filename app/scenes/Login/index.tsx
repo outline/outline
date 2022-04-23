@@ -193,7 +193,7 @@ function Login() {
                     authProviderName: defaultProvider.name,
                   })}
                 </Note>
-                <Or />
+                <Or data-text={t("Or")} />
               </>
             )}
           </React.Fragment>
@@ -280,7 +280,7 @@ const Or = styled.hr`
   width: 100%;
 
   &:after {
-    content: "Or";
+    content: attr(data-text);
     display: block;
     position: absolute;
     left: 50%;
