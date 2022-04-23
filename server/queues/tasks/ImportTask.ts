@@ -224,22 +224,23 @@ export default abstract class ImportTask extends BaseTask<Props> {
             },
             { transaction }
           );
-          await Event.create(
-            {
-              name: "collections.create",
-              collectionId: collection.id,
-              teamId: collection.teamId,
-              actorId: fileOperation.userId,
-              data: {
-                name,
-              },
-              ip,
-            },
-            {
-              transaction,
-            }
-          );
         }
+
+        await Event.create(
+          {
+            name: "collections.create",
+            collectionId: collection.id,
+            teamId: collection.teamId,
+            actorId: fileOperation.userId,
+            data: {
+              name: collection.name,
+            },
+            ip,
+          },
+          {
+            transaction,
+          }
+        );
 
         collections.set(item.id, collection);
       }
