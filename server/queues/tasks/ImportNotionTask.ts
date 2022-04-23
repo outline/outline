@@ -45,59 +45,75 @@ export default class ImportNotionTask extends ImportTask {
       attachments: [],
     };
 
-    async function parseNodeChildren(
+    const parseNodeChildren = async (
       children: FileTreeNode[],
       collectionId: string,
       parentDocumentId?: string
-    ): Promise<void> {
+    ): Promise<void> => {
       if (!user) {
         throw new Error("User not found");
       }
 
       await Promise.all(
         children.map(async (child) => {
-          const zipObject = zip.files[child.path];
-          const id = uuidv4();
-
-          // Ignore the CSV's for databases
+          // Ignore the CSV's for databases upfront
           if (child.path.endsWith(".csv")) {
             return;
           }
 
+          const zipObject = zip.files[child.path];
+          const id = uuidv4();
+          const match = child.title.match(this.NotionUUIDRegex);
+          const name = child.title.replace(this.NotionUUIDRegex, "");
+          const sourceId = match ? match[0] : undefined;
+
           // If it's not a text file we're going to treat it as an attachment.
           const mimeType = mime.lookup(child.name);
-          if (mimeType && !mimeType.startsWith("text")) {
+          const isDocument =
+            mimeType === "text/markdown" ||
+            mimeType === "text/plain" ||
+            mimeType === "text/html";
+
+          if (!isDocument && mimeType) {
             output.attachments.push({
               id,
               name: child.name,
               path: child.path,
               mimeType,
               buffer: await zipObject.async("nodebuffer"),
+              sourceId,
             });
             return;
           }
 
-          const fileName = child.title.replace(/\s[0-9a-fA-F]{32}$/, "");
+          Logger.debug("task", `Processing ${name} as ${mimeType}`);
+
           const { title, text } = await documentImporter({
-            mimeType: "text/markdown",
-            fileName,
+            mimeType: mimeType || "text/markdown",
+            fileName: name,
             content: await zipObject.async("string"),
             user,
             ip: user.lastActiveIp || undefined,
           });
 
-          const existingEmptyDocumentIndex = output.documents.findIndex(
-            (doc) =>
-              doc.title === title &&
-              doc.collectionId === collectionId &&
-              doc.parentDocumentId === parentDocumentId &&
-              doc.text === ""
+          const existingDocumentIndex = output.documents.findIndex(
+            (doc) => doc.sourceId === sourceId
           );
+
+          const existingDocument = output.documents[existingDocumentIndex];
 
           // When there is a file and a folder with the same name this handles
           // the case by combining the two into one document with nested children
-          if (existingEmptyDocumentIndex !== -1) {
-            output.documents[existingEmptyDocumentIndex].text = text;
+          if (existingDocument) {
+            if (existingDocument.text === "") {
+              output.documents[existingDocumentIndex].text = text;
+            }
+
+            await parseNodeChildren(
+              child.children,
+              collectionId,
+              existingDocument.id
+            );
           } else {
             output.documents.push({
               id,
@@ -106,36 +122,37 @@ export default class ImportNotionTask extends ImportTask {
               collectionId,
               parentDocumentId,
               path: child.path,
+              sourceId,
             });
+            await parseNodeChildren(child.children, collectionId, id);
           }
-
-          await parseNodeChildren(child.children, collectionId, id);
         })
       );
-    }
+    };
 
     // All nodes in the root level should become collections
     for (const node of tree) {
-      const name = node.title
-        .replace(
-          /\s[0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}$/,
-          ""
-        )
-        .replace(/\s[0-9a-fA-F]{32}$/, "");
+      const match = node.title.match(this.NotionUUIDRegex);
+      const name = node.title.replace(this.NotionUUIDRegex, "");
+      const sourceId = match ? match[0] : undefined;
       const mimeType = mime.lookup(node.name);
 
       const existingCollectionIndex = output.collections.findIndex(
-        (collection) => collection.name === name
+        (collection) => collection.sourceId === sourceId
       );
       const existingCollection = output.collections[existingCollectionIndex];
       const collectionId = existingCollection?.id || uuidv4();
       let description;
 
       // Root level docs become collection descriptions
-      if (mimeType && node.name.endsWith(".md")) {
+      if (
+        mimeType === "text/markdown" ||
+        mimeType === "text/plain" ||
+        mimeType === "text/html"
+      ) {
         const zipObject = zip.files[node.path];
         const { text } = await documentImporter({
-          mimeType: "text/markdown",
+          mimeType,
           fileName: name,
           content: await zipObject.async("string"),
           user,
@@ -161,6 +178,7 @@ export default class ImportNotionTask extends ImportTask {
           id: collectionId,
           name,
           description,
+          sourceId,
         });
       }
     }
@@ -171,16 +189,21 @@ export default class ImportNotionTask extends ImportTask {
       for (const attachment of output.attachments) {
         // Pull the collection and subdirectory out of the path name, upload
         // folders in an export are relative to the document itself
-        const folder = path.basename(document.path);
+        const folder = path.parse(document.path).name;
         const attachmentName = encodeURIComponent(attachment.name);
 
         const reference = `<<${attachment.id}>>`;
         document.text = document.text
-          .replace(`${encodeURIComponent(folder)}/${attachmentName}`, reference)
-          .replace(`${folder}/${attachmentName}`, reference);
+          .replace(
+            new RegExp(`${encodeURIComponent(folder)}/${attachmentName}`, "g"),
+            reference
+          )
+          .replace(new RegExp(`${folder}/${attachmentName}`, "g"), reference);
       }
     }
 
     return output;
   }
+
+  private NotionUUIDRegex = /\s([0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}|[0-9a-fA-F]{32})$/;
 }

@@ -27,6 +27,8 @@ export type StructuredImportData = {
     id: string;
     name: string;
     description?: string;
+    /** Optional id from import source, useful for mapping */
+    sourceId?: string;
   }[];
   documents: {
     id: string;
@@ -42,6 +44,8 @@ export type StructuredImportData = {
     createdAt?: Date;
     parentDocumentId?: string;
     path: string;
+    /** Optional id from import source, useful for mapping */
+    sourceId?: string;
   }[];
   attachments: {
     id: string;
@@ -49,6 +53,8 @@ export type StructuredImportData = {
     path: string;
     mimeType: string;
     buffer: Buffer;
+    /** Optional id from import source, useful for mapping */
+    sourceId?: string;
   }[];
 };
 
@@ -77,12 +83,24 @@ export default abstract class ImportTask extends BaseTask<Props> {
 
       if (parsed.documents.length === 0) {
         throw ValidationError(
-          "Uploaded file does not contain any importable documents"
+          "Uploaded file does not contain any valid documents"
         );
       }
 
-      logger.info("task", `ImportTask persisting data for ${fileOperationId}`);
-      const result = await this.persistData(parsed, fileOperation);
+      let result;
+      try {
+        logger.info(
+          "task",
+          `ImportTask persisting data for ${fileOperationId}`
+        );
+        result = await this.persistData(parsed, fileOperation);
+      } catch (error) {
+        logger.error(
+          `ImportTask failed to persist data for ${fileOperationId}`,
+          error
+        );
+        throw new Error("Sorry, an internal error occurred during import");
+      }
 
       await this.updateFileOperation(
         fileOperation,
@@ -252,7 +270,10 @@ export default abstract class ImportTask extends BaseTask<Props> {
           if (!attachment) {
             continue;
           }
-          text = text.replace(`<<${attachment.id}>>`, attachment.redirectUrl);
+          text = text.replace(
+            new RegExp(`<<${attachment.id}>>`, "g"),
+            attachment.redirectUrl
+          );
         }
 
         const document = await documentCreator({

@@ -160,9 +160,9 @@ export default class ImportMarkdownZipTask extends ImportTask {
 
         const reference = `<<${attachment.id}>>`;
         document.text = document.text
-          .replace(attachment.path, reference)
-          .replace(normalizedAttachmentPath, reference)
-          .replace(`/${normalizedAttachmentPath}`, reference);
+          .replace(new RegExp(attachment.path, "g"), reference)
+          .replace(new RegExp(normalizedAttachmentPath, "g"), reference)
+          .replace(new RegExp(`/${normalizedAttachmentPath}`, "g"), reference);
       }
     }
 
