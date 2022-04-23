@@ -29,6 +29,8 @@ type Props = {
   onGoToNextInput: (insertParagraph?: boolean) => void;
   /** Callback called when the user expects to save (CMD+S) */
   onSave?: (options: { publish?: boolean; done?: boolean }) => void;
+  /** Callback called when focus leaves the input */
+  onBlur?: React.FocusEventHandler<HTMLSpanElement>;
 };
 
 const lineHeight = "1.25";
@@ -43,6 +45,7 @@ const EditableTitle = React.forwardRef(
       onChange,
       onSave,
       onGoToNextInput,
+      onBlur,
       starrable,
       placeholder,
     }: Props,
@@ -123,6 +126,7 @@ const EditableTitle = React.forwardRef(
         onClick={handleClick}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
+        onBlur={onBlur}
         placeholder={placeholder}
         value={normalizedTitle}
         $emojiWidth={emojiWidth}
@@ -165,6 +169,7 @@ const Title = styled(ContentEditable)<TitleProps>`
   font-weight: 500;
   border: 0;
   padding: 0;
+  cursor: ${(props) => (props.readOnly ? "default" : "text")};
 
   > span {
     outline: none;

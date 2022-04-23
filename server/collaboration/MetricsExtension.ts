@@ -3,11 +3,12 @@ import {
   onConnectPayload,
   onDisconnectPayload,
   onLoadDocumentPayload,
+  Extension,
 } from "@hocuspocus/server";
 import Metrics from "@server/logging/metrics";
 
-export default class Tracing {
-  onLoadDocument({ documentName, instance }: onLoadDocumentPayload) {
+export default class MetricsExtension implements Extension {
+  async onLoadDocument({ documentName, instance }: onLoadDocumentPayload) {
     Metrics.increment("collaboration.load_document", {
       documentName,
     });
@@ -23,7 +24,7 @@ export default class Tracing {
     });
   }
 
-  onConnect({ documentName, instance }: onConnectPayload) {
+  async onConnect({ documentName, instance }: onConnectPayload) {
     Metrics.increment("collaboration.connect", {
       documentName,
     });
@@ -33,7 +34,7 @@ export default class Tracing {
     );
   }
 
-  onDisconnect({ documentName, instance }: onDisconnectPayload) {
+  async onDisconnect({ documentName, instance }: onDisconnectPayload) {
     Metrics.increment("collaboration.disconnect", {
       documentName,
     });
@@ -47,13 +48,13 @@ export default class Tracing {
     );
   }
 
-  onChange({ documentName }: onChangePayload) {
+  async onStoreDocument({ documentName }: onChangePayload) {
     Metrics.increment("collaboration.change", {
       documentName,
     });
   }
 
-  onDestroy() {
+  async onDestroy() {
     Metrics.gaugePerInstance("collaboration.connections_count", 0);
     Metrics.gaugePerInstance("collaboration.documents_count", 0);
   }

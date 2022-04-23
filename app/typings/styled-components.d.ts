@@ -4,6 +4,7 @@ import "styled-components";
 // and extend them!
 declare module "styled-components" {
   interface EditorTheme {
+    isDark: boolean;
     background: string;
     text: string;
     cursor: string;
@@ -47,17 +48,6 @@ declare module "styled-components" {
     codePlaceholder: string;
     codeInserted: string;
     codeImportant: string;
-    blockToolbarBackground: string;
-    blockToolbarTrigger: string;
-    blockToolbarTriggerIcon: string;
-    blockToolbarItem: string;
-    blockToolbarIcon: undefined;
-    blockToolbarIconSelected: string;
-    blockToolbarText: string;
-    blockToolbarTextSelected: string;
-    blockToolbarSelectedBackground: string;
-    blockToolbarHoverBackground: string;
-    blockToolbarDivider: string;
     noticeInfoBackground: string;
     noticeInfoText: string;
     noticeTipBackground: string;

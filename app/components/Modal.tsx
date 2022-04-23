@@ -4,7 +4,7 @@ import { transparentize } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Dialog, DialogBackdrop, useDialogState } from "reakit/Dialog";
-import styled from "styled-components";
+import styled, { DefaultTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { depths } from "@shared/styles";
 import Flex from "~/components/Flex";
@@ -82,9 +82,11 @@ const Modal: React.FC<Props> = ({
                           {title}
                         </Text>
                       )}
-                      <NudeButton onClick={onRequestClose}>
-                        <CloseIcon color="currentColor" />
-                      </NudeButton>
+                      <Text as="span" size="large">
+                        <NudeButton onClick={onRequestClose}>
+                          <CloseIcon color="currentColor" />
+                        </NudeButton>
+                      </Text>
                     </Header>
                     <SmallContent shadow>{children}</SmallContent>
                   </Centered>
@@ -143,7 +145,12 @@ const Backdrop = styled(Flex)<{ $isCentered?: boolean }>`
   }
 `;
 
-const Fullscreen = styled.div<{ $nested: boolean }>`
+type FullscreenProps = {
+  $nested: boolean;
+  theme: DefaultTheme;
+};
+
+const Fullscreen = styled.div<FullscreenProps>`
   animation: ${fadeAndScaleIn} 250ms ease;
 
   position: absolute;
@@ -160,7 +167,7 @@ const Fullscreen = styled.div<{ $nested: boolean }>`
   outline: none;
 
   ${breakpoint("tablet")`
-  ${(props: any) =>
+  ${(props: FullscreenProps) =>
     props.$nested &&
     `
       box-shadow: 0 -2px 10px ${props.theme.shadow};
@@ -256,6 +263,11 @@ const Small = styled.div`
     &[aria-expanded="true"] {
       background: ${(props) => props.theme.sidebarControlHoverBackground};
     }
+    vertical-align: middle;
+  }
+
+  ${Header} {
+    align-items: start;
   }
 `;
 

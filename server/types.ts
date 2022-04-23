@@ -174,9 +174,9 @@ export type CollectionEvent =
       collectionId: string;
       teamId: string;
       actorId: string;
+      modelId: string;
       data: {
         name: string;
-        groupId: string;
       };
       ip: string;
     }

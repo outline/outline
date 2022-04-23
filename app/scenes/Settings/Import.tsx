@@ -6,6 +6,7 @@ import { useTranslation, Trans } from "react-i18next";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import getDataTransferFiles from "@shared/utils/getDataTransferFiles";
 import { cdnPath } from "@shared/utils/urls";
+import FileOperation from "~/models/FileOperation";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
 import Item from "~/components/List/Item";
@@ -142,7 +143,7 @@ function Import() {
             <Trans>Recent imports</Trans>
           </h2>
         }
-        renderItem={(item) => (
+        renderItem={(item: FileOperation) => (
           <FileOperationListItem key={item.id} fileOperation={item} />
         )}
       />

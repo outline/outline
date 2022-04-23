@@ -44,6 +44,7 @@ export default async function documentUpdater({
       collaboratorIds,
     },
     {
+      silent: true,
       hooks: false,
       where: {
         id: documentId,

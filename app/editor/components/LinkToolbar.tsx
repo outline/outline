@@ -137,6 +137,7 @@ export default class LinkToolbar extends React.Component<Props> {
       <FloatingToolbar ref={this.menuRef} active={active} {...rest}>
         {active && (
           <LinkEditor
+            key={`${selection.from}-${selection.to}`}
             from={selection.from}
             to={selection.to}
             onCreateLink={onCreateLink ? this.handleOnCreateLink : undefined}

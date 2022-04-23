@@ -1,8 +1,9 @@
 import fs from "fs";
 import invariant from "invariant";
+import ExportFailureEmail from "@server/emails/templates/ExportFailureEmail";
+import ExportSuccessEmail from "@server/emails/templates/ExportSuccessEmail";
 import Logger from "@server/logging/logger";
 import { FileOperation, Collection, Event, Team, User } from "@server/models";
-import EmailTask from "@server/queues/tasks/EmailTask";
 import { Event as TEvent } from "@server/types";
 import { uploadToS3FromBuffer } from "@server/utils/s3";
 import { archiveCollections } from "@server/utils/zip";
@@ -88,21 +89,15 @@ export default class ExportsProcessor extends BaseProcessor {
           });
 
           if (state === "error") {
-            await EmailTask.schedule({
-              type: "exportFailure",
-              options: {
-                to: user.email,
-                teamUrl: team.url,
-              },
+            await ExportFailureEmail.schedule({
+              to: user.email,
+              teamUrl: team.url,
             });
           } else {
-            await EmailTask.schedule({
-              type: "exportSuccess",
-              options: {
-                to: user.email,
-                id: fileOperation.id,
-                teamUrl: team.url,
-              },
+            await ExportSuccessEmail.schedule({
+              to: user.email,
+              id: fileOperation.id,
+              teamUrl: team.url,
             });
           }
         }

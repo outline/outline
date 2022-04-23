@@ -1,10 +1,8 @@
-import { APM } from "@server/logging/tracing";
 import Document from "@server/models/Document";
 import { Event } from "@server/types";
 import { globalEventQueue } from "..";
 import BaseProcessor from "./BaseProcessor";
 
-@APM.trace()
 export default class DebounceProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = [
     "documents.update",

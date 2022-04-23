@@ -194,9 +194,9 @@ router.post("collections.add_group", auth(), async (ctx) => {
     collectionId: collection.id,
     teamId: collection.teamId,
     actorId: ctx.state.user.id,
+    modelId: groupId,
     data: {
       name: group.name,
-      groupId,
     },
     ip: ctx.request.ip,
   });
@@ -229,9 +229,9 @@ router.post("collections.remove_group", auth(), async (ctx) => {
     collectionId: collection.id,
     teamId: collection.teamId,
     actorId: ctx.state.user.id,
+    modelId: groupId,
     data: {
       name: group.name,
-      groupId,
     },
     ip: ctx.request.ip,
   });

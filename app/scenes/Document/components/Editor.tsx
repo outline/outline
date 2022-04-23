@@ -4,12 +4,10 @@ import { useTranslation } from "react-i18next";
 import { useRouteMatch } from "react-router-dom";
 import fullPackage from "@shared/editor/packages/full";
 import Document from "~/models/Document";
-import ClickablePadding from "~/components/ClickablePadding";
 import { RefHandle } from "~/components/ContentEditable";
 import DocumentMetaWithViews from "~/components/DocumentMetaWithViews";
 import Editor, { Props as EditorProps } from "~/components/Editor";
 import Flex from "~/components/Flex";
-import HoverPreview from "~/components/HoverPreview";
 import {
   documentHistoryUrl,
   documentUrl,
@@ -38,13 +36,20 @@ type Props = Omit<EditorProps, "extensions"> & {
  * and support for hover previews of internal links.
  */
 function DocumentEditor(props: Props, ref: React.RefObject<any>) {
-  const [
-    activeLinkEvent,
-    setActiveLinkEvent,
-  ] = React.useState<MouseEvent | null>(null);
   const titleRef = React.useRef<RefHandle>(null);
   const { t } = useTranslation();
   const match = useRouteMatch();
+  const {
+    document,
+    title,
+    onChangeTitle,
+    isDraft,
+    shareId,
+    readOnly,
+    children,
+    multiplayer,
+    ...rest
+  } = props;
 
   const focusAtStart = React.useCallback(() => {
     if (ref.current) {
@@ -52,20 +57,9 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     }
   }, [ref]);
 
-  const focusAtEnd = React.useCallback(() => {
-    if (ref.current) {
-      ref.current.focusAtEnd();
-    }
-  }, [ref]);
-
-  const handleLinkActive = React.useCallback((event: MouseEvent) => {
-    setActiveLinkEvent(event);
-    return false;
-  }, []);
-
-  const handleLinkInactive = React.useCallback(() => {
-    setActiveLinkEvent(null);
-  }, []);
+  const handleBlur = React.useCallback(() => {
+    props.onSave({ autosave: true });
+  }, [props]);
 
   const handleGoToNextInput = React.useCallback(
     (insertParagraph: boolean) => {
@@ -80,17 +74,6 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     [focusAtStart, ref]
   );
 
-  const {
-    document,
-    title,
-    onChangeTitle,
-    isDraft,
-    shareId,
-    readOnly,
-    children,
-    multiplayer,
-    ...rest
-  } = props;
   const EditorComponent = multiplayer ? MultiplayerEditor : Editor;
 
   return (
@@ -102,6 +85,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         document={document}
         onGoToNextInput={handleGoToNextInput}
         onChange={onChangeTitle}
+        onBlur={handleBlur}
         starrable={!shareId}
         placeholder={t("Untitled")}
       />
@@ -123,7 +107,6 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         ref={ref}
         autoFocus={!!title && !props.defaultValue}
         placeholder={t("Type '/' to insert, or start writing…")}
-        onHoverLink={handleLinkActive}
         scrollTo={window.location.hash}
         readOnly={readOnly}
         shareId={shareId}
@@ -131,14 +114,6 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         grow
         {...rest}
       />
-      {!readOnly && <ClickablePadding onClick={focusAtEnd} grow />}
-      {activeLinkEvent && !shareId && (
-        <HoverPreview
-          node={activeLinkEvent.target as HTMLAnchorElement}
-          event={activeLinkEvent}
-          onClose={handleLinkInactive}
-        />
-      )}
       {children}
     </Flex>
   );

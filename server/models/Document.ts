@@ -1,4 +1,5 @@
 import removeMarkdown from "@tommoor/remove-markdown";
+import invariant from "invariant";
 import { compact, find, map, uniq } from "lodash";
 import randomstring from "randomstring";
 import {
@@ -7,6 +8,7 @@ import {
   QueryTypes,
   FindOptions,
   ScopeOptions,
+  WhereOptions,
 } from "sequelize";
 import {
   ForeignKey,
@@ -38,6 +40,7 @@ import slugify from "@server/utils/slugify";
 import Backlink from "./Backlink";
 import Collection from "./Collection";
 import Revision from "./Revision";
+import Share from "./Share";
 import Star from "./Star";
 import Team from "./Team";
 import User from "./User";
@@ -45,7 +48,7 @@ import View from "./View";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
 
-type SearchResponse = {
+export type SearchResponse = {
   results: {
     ranking: number;
     context: string;
@@ -58,10 +61,13 @@ type SearchOptions = {
   limit?: number;
   offset?: number;
   collectionId?: string;
+  share?: Share;
   dateFilter?: DateFilter;
   collaboratorIds?: string[];
   includeArchived?: boolean;
   includeDrafts?: boolean;
+  snippetMinWords?: number;
+  snippetMaxWords?: number;
 };
 
 const serializer = new MarkdownSerializer();
@@ -436,12 +442,24 @@ class Document extends ParanoidModel {
     query: string,
     options: SearchOptions = {}
   ): Promise<SearchResponse> {
-    const limit = options.limit || 15;
-    const offset = options.offset || 0;
     const wildcardQuery = `${escape(query)}:*`;
-    const collectionIds = await team.collectionIds();
+    const {
+      snippetMinWords = 20,
+      snippetMaxWords = 30,
+      limit = 15,
+      offset = 0,
+    } = options;
 
-    // If the team has access no public collections then shortcircuit the rest of this
+    // restrict to specific collection if provided
+    // enables search in private collections if specified
+    let collectionIds;
+    if (options.collectionId) {
+      collectionIds = [options.collectionId];
+    } else {
+      collectionIds = await team.collectionIds();
+    }
+
+    // short circuit if no relevant collections
     if (!collectionIds.length) {
       return {
         results: [],
@@ -449,11 +467,29 @@ class Document extends ParanoidModel {
       };
     }
 
-    // Build the SQL query to get documentIds, ranking, and search term context
+    // restrict to documents in the tree of a shared document when one is provided
+    let documentIds;
+
+    if (options.share?.includeChildDocuments) {
+      const sharedDocument = await options.share.$get("document");
+      invariant(sharedDocument, "Cannot find document for share");
+
+      const childDocumentIds = await sharedDocument.getChildDocumentIds({
+        archivedAt: {
+          [Op.is]: null,
+        },
+      });
+      documentIds = [sharedDocument.id, ...childDocumentIds];
+    }
+
+    const documentClause = documentIds ? `"id" IN(:documentIds) AND` : "";
+
+    // Build the SQL query to get result documentIds, ranking, and search term context
     const whereClause = `
   "searchVector" @@ to_tsquery('english', :query) AND
     "teamId" = :teamId AND
     "collectionId" IN(:collectionIds) AND
+    ${documentClause}
     "deletedAt" IS NULL AND
     "publishedAt" IS NOT NULL
   `;
@@ -461,7 +497,7 @@ class Document extends ParanoidModel {
     SELECT
       id,
       ts_rank(documents."searchVector", to_tsquery('english', :query)) as "searchRanking",
-      ts_headline('english', "text", to_tsquery('english', :query), 'MaxFragments=1, MinWords=20, MaxWords=30') as "searchContext"
+      ts_headline('english', "text", to_tsquery('english', :query), 'MaxFragments=1, MinWords=:snippetMinWords, MaxWords=:snippetMaxWords') as "searchContext"
     FROM documents
     WHERE ${whereClause}
     ORDER BY
@@ -479,6 +515,9 @@ class Document extends ParanoidModel {
       teamId: team.id,
       query: wildcardQuery,
       collectionIds,
+      documentIds,
+      snippetMinWords,
+      snippetMaxWords,
     };
     const resultsQuery = this.sequelize!.query(selectSql, {
       type: QueryTypes.SELECT,
@@ -526,8 +565,12 @@ class Document extends ParanoidModel {
     query: string,
     options: SearchOptions = {}
   ): Promise<SearchResponse> {
-    const limit = options.limit || 15;
-    const offset = options.offset || 0;
+    const {
+      snippetMinWords = 20,
+      snippetMaxWords = 30,
+      limit = 15,
+      offset = 0,
+    } = options;
     const wildcardQuery = `${escape(query)}:*`;
 
     // Ensure we're filtering by the users accessible collections. If
@@ -580,7 +623,7 @@ class Document extends ParanoidModel {
   SELECT
     id,
     ts_rank(documents."searchVector", to_tsquery('english', :query)) as "searchRanking",
-    ts_headline('english', "text", to_tsquery('english', :query), 'MaxFragments=1, MinWords=20, MaxWords=30') as "searchContext"
+    ts_headline('english', "text", to_tsquery('english', :query), 'MaxFragments=1, MinWords=:snippetMinWords, MaxWords=:snippetMaxWords') as "searchContext"
   FROM documents
   WHERE ${whereClause}
   ORDER BY
@@ -601,6 +644,8 @@ class Document extends ParanoidModel {
       query: wildcardQuery,
       collectionIds,
       dateFilter,
+      snippetMinWords,
+      snippetMaxWords,
     };
     const resultsQuery = this.sequelize!.query(selectSql, {
       type: QueryTypes.SELECT,
@@ -697,6 +742,7 @@ class Document extends ParanoidModel {
    * @returns A promise that resolves to a list of document ids
    */
   getChildDocumentIds = async (
+    where?: Omit<WhereOptions<Document>, "parentDocumentId">,
     options?: FindOptions<Document>
   ): Promise<string[]> => {
     const getChildDocumentIds = async (
@@ -707,6 +753,7 @@ class Document extends ParanoidModel {
         attributes: ["id"],
         where: {
           parentDocumentId,
+          ...where,
         },
         ...options,
       });

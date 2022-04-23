@@ -1,12 +1,13 @@
 import { addDays, differenceInDays } from "date-fns";
 import { floor } from "lodash";
-import { action, computed, observable } from "mobx";
+import { action, autorun, computed, observable } from "mobx";
 import parseTitle from "@shared/utils/parseTitle";
 import unescape from "@shared/utils/unescape";
 import DocumentsStore from "~/stores/DocumentsStore";
-import BaseModel from "~/models/BaseModel";
 import User from "~/models/User";
 import { NavigationNode } from "~/types";
+import Storage from "~/utils/Storage";
+import ParanoidModel from "./ParanoidModel";
 import View from "./View";
 import Field from "./decorators/Field";
 
@@ -17,12 +18,29 @@ type SaveOptions = {
   lastRevision?: number;
 };
 
-export default class Document extends BaseModel {
+export default class Document extends ParanoidModel {
+  constructor(fields: Record<string, any>, store: DocumentsStore) {
+    super(fields, store);
+
+    if (this.isPersistedOnce && this.isFromTemplate) {
+      this.title = "";
+    }
+
+    this.embedsDisabled = Storage.get(`embedsDisabled-${this.id}`) ?? false;
+
+    autorun(() => {
+      Storage.set(
+        `embedsDisabled-${this.id}`,
+        this.embedsDisabled ? true : undefined
+      );
+    });
+  }
+
   @observable
   isSaving = false;
 
   @observable
-  embedsDisabled = false;
+  embedsDisabled: boolean;
 
   @observable
   lastViewedAt: string | undefined;
@@ -63,19 +81,13 @@ export default class Document extends BaseModel {
 
   collaboratorIds: string[];
 
-  createdAt: string;
-
   createdBy: User;
-
-  updatedAt: string;
 
   updatedBy: User;
 
   publishedAt: string | undefined;
 
   archivedAt: string;
-
-  deletedAt: string | undefined;
 
   url: string;
 
@@ -87,14 +99,6 @@ export default class Document extends BaseModel {
   };
 
   revision: number;
-
-  constructor(fields: Record<string, any>, store: DocumentsStore) {
-    super(fields, store);
-
-    if (this.isPersistedOnce && this.isFromTemplate) {
-      this.title = "";
-    }
-  }
 
   @computed
   get emoji() {

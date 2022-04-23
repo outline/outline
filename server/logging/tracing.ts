@@ -1,4 +1,4 @@
-import { init, tracer } from "@theo.gravity/datadog-apm";
+import { init, tracer, addTags, markAsError } from "@theo.gravity/datadog-apm";
 
 export * as APM from "@theo.gravity/datadog-apm";
 
@@ -10,12 +10,38 @@ if (process.env.DD_API_KEY) {
       // SOURCE_COMMIT is used by Docker Hub
       // SOURCE_VERSION is used by Heroku
       version: process.env.SOURCE_COMMIT || process.env.SOURCE_VERSION,
-      service: "outline",
+      service: process.env.DD_SERVICE || "outline",
     },
     {
       useMock: process.env.NODE_ENV === "test",
     }
   );
+}
+
+/**
+ * Change the resource of the active APM span. This method wraps addTags to allow
+ * safe use in environments where APM is disabled.
+ *
+ * @param name The name of the resource
+ */
+export function setResource(name: string) {
+  if (tracer) {
+    addTags({
+      "resource.name": `${name}`,
+    });
+  }
+}
+
+/**
+ * Mark the current active span as an error. This method wraps addTags to allow
+ * safe use in environments where APM is disabled.
+ *
+ * @param error The error to add
+ */
+export function setError(error: Error) {
+  if (tracer) {
+    markAsError(error);
+  }
 }
 
 export default tracer;

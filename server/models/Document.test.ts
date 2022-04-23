@@ -4,6 +4,7 @@ import {
   buildCollection,
   buildTeam,
   buildUser,
+  buildShare,
 } from "@server/test/factories";
 import { flushdb, seed } from "@server/test/support";
 import slugify from "@server/utils/slugify";
@@ -26,7 +27,7 @@ paragraph 2`,
     const document = await buildDocument({
       version: 0,
       text: `# Heading
-      
+
 *paragraph*`,
     });
     expect(document.getSummary()).toBe("paragraph");
@@ -174,7 +175,7 @@ describe("#searchForTeam", () => {
     expect(results[0].document?.id).toBe(document.id);
   });
 
-  test("should not return search results from private collections", async () => {
+  test("should not return results from private collections without providing collectionId", async () => {
     const team = await buildTeam();
     const collection = await buildCollection({
       permission: null,
@@ -187,6 +188,52 @@ describe("#searchForTeam", () => {
     });
     const { results } = await Document.searchForTeam(team, "test");
     expect(results.length).toBe(0);
+  });
+
+  test("should return results from private collections when collectionId is provided", async () => {
+    const team = await buildTeam();
+    const collection = await buildCollection({
+      permission: null,
+      teamId: team.id,
+    });
+    await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+      title: "test",
+    });
+    const { results } = await Document.searchForTeam(team, "test", {
+      collectionId: collection.id,
+    });
+    expect(results.length).toBe(1);
+  });
+
+  test("should return results from document tree of shared document", async () => {
+    const team = await buildTeam();
+    const collection = await buildCollection({
+      permission: null,
+      teamId: team.id,
+    });
+    const document = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+      title: "test 1",
+    });
+    await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+      title: "test 2",
+    });
+
+    const share = await buildShare({
+      documentId: document.id,
+      includeChildDocuments: true,
+    });
+
+    const { results } = await Document.searchForTeam(team, "test", {
+      collectionId: collection.id,
+      share,
+    });
+    expect(results.length).toBe(1);
   });
 
   test("should handle no collections", async () => {

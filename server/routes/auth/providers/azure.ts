@@ -40,7 +40,7 @@ if (AZURE_CLIENT_ID) {
       try {
         // see docs for what the fields in profile represent here:
         // https://docs.microsoft.com/en-us/azure/active-directory/develop/access-tokens
-        const profile = jwt.decode(params.id_token);
+        const profile = jwt.decode(params.id_token) as jwt.JwtPayload;
 
         // Load the users profile from the Microsoft Graph API
         // https://docs.microsoft.com/en-us/graph/api/resources/users?view=graph-rest-1.0
@@ -69,7 +69,6 @@ if (AZURE_CLIENT_ID) {
         }
 
         const organization = organizationResponse.value[0];
-        // @ts-expect-error ts-migrate(2531) FIXME: Object is possibly 'null'.
         const email = profile.email || profileResponse.mail;
 
         if (!email) {
@@ -89,19 +88,15 @@ if (AZURE_CLIENT_ID) {
             subdomain,
           },
           user: {
-            // @ts-expect-error ts-migrate(2531) FIXME: Object is possibly 'null'.
             name: profile.name,
             email,
-            // @ts-expect-error ts-migrate(2531) FIXME: Object is possibly 'null'.
             avatarUrl: profile.picture,
           },
           authenticationProvider: {
             name: providerName,
-            // @ts-expect-error ts-migrate(2531) FIXME: Object is possibly 'null'.
             providerId: profile.tid,
           },
           authentication: {
-            // @ts-expect-error ts-migrate(2531) FIXME: Object is possibly 'null'.
             providerId: profile.oid,
             accessToken,
             refreshToken,

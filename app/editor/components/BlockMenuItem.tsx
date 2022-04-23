@@ -1,6 +1,6 @@
 import * as React from "react";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
-import styled, { useTheme } from "styled-components";
+import styled from "styled-components";
 
 export type Props = {
   selected: boolean;
@@ -22,7 +22,6 @@ function BlockMenuItem({
   containerId = "block-menu-container",
 }: Props) {
   const Icon = icon;
-  const theme = useTheme();
 
   const ref = React.useCallback(
     (node) => {
@@ -50,11 +49,7 @@ function BlockMenuItem({
     >
       {Icon && (
         <>
-          <Icon
-            color={
-              selected ? theme.blockToolbarIconSelected : theme.blockToolbarIcon
-            }
-          />
+          <Icon color="currentColor" />
           &nbsp;&nbsp;
         </>
       )}
@@ -85,24 +80,14 @@ const MenuItem = styled.button<{
   border: none;
   opacity: ${(props) => (props.disabled ? ".5" : "1")};
   color: ${(props) =>
-    props.selected
-      ? props.theme.blockToolbarTextSelected
-      : props.theme.blockToolbarText};
-  background: ${(props) =>
-    props.selected
-      ? props.theme.blockToolbarSelectedBackground ||
-        props.theme.blockToolbarTrigger
-      : "none"};
+    props.selected ? props.theme.white : props.theme.textSecondary};
+  background: ${(props) => (props.selected ? props.theme.primary : "none")};
   padding: 0 16px;
   outline: none;
 
   &:active {
-    color: ${(props) => props.theme.blockToolbarTextSelected};
-    background: ${(props) =>
-      props.selected
-        ? props.theme.blockToolbarSelectedBackground ||
-          props.theme.blockToolbarTrigger
-        : props.theme.blockToolbarHoverBackground};
+    color: ${(props) => props.theme.white};
+    background: ${(props) => (props.selected ? props.theme.primary : "none")};
 
     ${Shortcut} {
       color: ${(props) => props.theme.textSecondary};

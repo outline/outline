@@ -1,9 +1,10 @@
 import invariant from "invariant";
 import { uniqBy } from "lodash";
 import { Role } from "@shared/types";
+import InviteEmail from "@server/emails/templates/InviteEmail";
 import Logger from "@server/logging/logger";
 import { User, Event, Team } from "@server/models";
-import EmailTask from "@server/queues/tasks/EmailTask";
+import { UserFlag } from "@server/models/User";
 
 type Invite = {
   name: string;
@@ -61,6 +62,10 @@ export default async function userInviter({
       service: null,
       isAdmin: invite.role === "admin",
       isViewer: invite.role === "viewer",
+      invitedById: user.id,
+      flags: {
+        [UserFlag.InviteSent]: 1,
+      },
     });
     users.push(newUser);
     await Event.create({
@@ -75,16 +80,13 @@ export default async function userInviter({
       ip,
     });
 
-    await EmailTask.schedule({
-      type: "invite",
-      options: {
-        to: invite.email,
-        name: invite.name,
-        actorName: user.name,
-        actorEmail: user.email,
-        teamName: team.name,
-        teamUrl: team.url,
-      },
+    await InviteEmail.schedule({
+      to: invite.email,
+      name: invite.name,
+      actorName: user.name,
+      actorEmail: user.email,
+      teamName: team.name,
+      teamUrl: team.url,
     });
 
     if (process.env.NODE_ENV === "development") {

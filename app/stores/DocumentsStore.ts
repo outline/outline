@@ -31,6 +31,7 @@ export type SearchParams = {
   includeDrafts?: boolean;
   collectionId?: string;
   userId?: string;
+  shareId?: string;
 };
 
 type ImportOptions = {
@@ -41,7 +42,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   sharedTreeCache: Map<string, NavigationNode | undefined> = new Map();
 
   @observable
-  searchCache: Map<string, SearchResult[]> = new Map();
+  searchCache: Map<string, SearchResult[] | undefined> = new Map();
 
   @observable
   backlinks: Map<string, string[]> = new Map();
@@ -170,8 +171,8 @@ export default class DocumentsStore extends BaseStore<Document> {
     return naturalSort(this.inCollection(collectionId), "title");
   }
 
-  searchResults(query: string): SearchResult[] {
-    return this.searchCache.get(query) || [];
+  searchResults(query: string): SearchResult[] | undefined {
+    return this.searchCache.get(query);
   }
 
   @computed
@@ -407,6 +408,7 @@ export default class DocumentsStore extends BaseStore<Document> {
           return null;
         }
         return {
+          id: document.id,
           ranking: result.ranking,
           context: result.context,
           document,

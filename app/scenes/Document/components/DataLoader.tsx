@@ -1,18 +1,13 @@
-import { formatDistanceToNow } from "date-fns";
 import invariant from "invariant";
-import { deburr, sortBy } from "lodash";
 import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { RouteComponentProps, StaticContext } from "react-router";
-import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
-import { isInternalUrl } from "@shared/utils/urls";
 import RootStore from "~/stores/RootStore";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
 import Error404 from "~/scenes/Error404";
 import ErrorOffline from "~/scenes/ErrorOffline";
-import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
 import withStores from "~/components/withStores";
 import { NavigationNode } from "~/types";
 import { NotFoundError, OfflineError } from "~/utils/errors";
@@ -99,55 +94,6 @@ class DataLoader extends React.Component<Props> {
   get isEditing() {
     return this.isEditRoute || this.props.auth?.team?.collaborativeEditing;
   }
-
-  onSearchLink = async (term: string) => {
-    if (isInternalUrl(term)) {
-      // search for exact internal document
-      const slug = parseDocumentSlug(term);
-      if (!slug) {
-        return;
-      }
-
-      try {
-        const document = await this.props.documents.fetch(slug);
-        const time = formatDistanceToNow(Date.parse(document.updatedAt), {
-          addSuffix: true,
-        });
-
-        return [
-          {
-            title: document.title,
-            subtitle: `Updated ${time}`,
-            url: document.url,
-          },
-        ];
-      } catch (error) {
-        // NotFoundError could not find document for slug
-        if (!(error instanceof NotFoundError)) {
-          throw error;
-        }
-      }
-    }
-
-    // default search for anything that doesn't look like a URL
-    const results = await this.props.documents.searchTitles(term);
-
-    return sortBy(
-      results.map((document: Document) => {
-        return {
-          title: document.title,
-          subtitle: <DocumentBreadcrumb document={document} onlyText />,
-          url: document.url,
-        };
-      }),
-      (document) =>
-        deburr(document.title)
-          .toLowerCase()
-          .startsWith(deburr(term).toLowerCase())
-          ? -1
-          : 1
-    );
-  };
 
   onCreateLink = async (title: string) => {
     const document = this.document;
@@ -277,7 +223,6 @@ class DataLoader extends React.Component<Props> {
             !abilities.update ||
             document.isArchived ||
             !!revisionId,
-          onSearchLink: this.onSearchLink,
           onCreateLink: this.onCreateLink,
           sharedTree: this.sharedTree,
         })}

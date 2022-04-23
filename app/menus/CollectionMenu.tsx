@@ -14,7 +14,7 @@ import {
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
-import { useMenuState, MenuButton } from "reakit/Menu";
+import { useMenuState, MenuButton, MenuButtonHTMLProps } from "reakit/Menu";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import getDataTransferFiles from "@shared/utils/getDataTransferFiles";
 import Collection from "~/models/Collection";
@@ -37,7 +37,7 @@ type Props = {
   collection: Collection;
   placement?: Placement;
   modal?: boolean;
-  label?: (arg0: any) => React.ReactNode;
+  label?: (props: MenuButtonHTMLProps) => React.ReactNode;
   onOpen?: () => void;
   onClose?: () => void;
 };

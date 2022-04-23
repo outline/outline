@@ -2,6 +2,7 @@ import { action, autorun, computed, observable } from "mobx";
 import { light as defaultTheme } from "@shared/styles/theme";
 import Document from "~/models/Document";
 import { ConnectionStatus } from "~/scenes/Document/components/MultiplayerEditor";
+import Storage from "~/utils/Storage";
 
 const UI_STORE = "UI_STORE";
 
@@ -67,13 +68,7 @@ class UiStore {
 
   constructor() {
     // Rehydrate
-    let data: Partial<UiStore> = {};
-
-    try {
-      data = JSON.parse(localStorage.getItem(UI_STORE) || "{}");
-    } catch (_) {
-      // no-op Safari private mode
-    }
+    const data: Partial<UiStore> = Storage.get(UI_STORE) || {};
 
     // system theme listeners
     if (window.matchMedia) {
@@ -100,21 +95,14 @@ class UiStore {
     this.theme = data.theme || Theme.System;
 
     autorun(() => {
-      try {
-        localStorage.setItem(UI_STORE, this.asJson);
-      } catch (_) {
-        // no-op Safari private mode
-      }
+      Storage.set(UI_STORE, this.asJson);
     });
   }
 
   @action
   setTheme = (theme: Theme) => {
     this.theme = theme;
-
-    if (window.localStorage) {
-      window.localStorage.setItem("theme", this.theme);
-    }
+    Storage.set("theme", this.theme);
   };
 
   @action
@@ -244,14 +232,14 @@ class UiStore {
   }
 
   @computed
-  get asJson(): string {
-    return JSON.stringify({
+  get asJson() {
+    return {
       tocVisible: this.tocVisible,
       sidebarCollapsed: this.sidebarCollapsed,
       sidebarWidth: this.sidebarWidth,
       languagePromptDismissed: this.languagePromptDismissed,
       theme: this.theme,
-    });
+    };
   }
 }
 

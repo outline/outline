@@ -22,7 +22,6 @@ function Collections() {
   const [fetchError, setFetchError] = React.useState();
   const { documents, collections } = useStores();
   const { showToast } = useToasts();
-  const [expanded, setExpanded] = React.useState(true);
   const isPreloaded = !!collections.orderedData.length;
   const { t } = useTranslation();
   const orderedCollections = collections.orderedData;
@@ -97,20 +96,18 @@ function Collections() {
   if (!collections.isLoaded || fetchError) {
     return (
       <Flex column>
-        <Header>{t("Collections")}</Header>
-        <PlaceholderCollections />
+        <Header id="collections" title={t("Collections")}>
+          <PlaceholderCollections />
+        </Header>
       </Flex>
     );
   }
 
   return (
     <Flex column>
-      <Header onClick={() => setExpanded((prev) => !prev)} expanded={expanded}>
-        {t("Collections")}
-      </Header>
-      {expanded && (
+      <Header id="collections" title={t("Collections")}>
         <Relative>{isPreloaded ? content : <Fade>{content}</Fade>}</Relative>
-      )}
+      </Header>
     </Flex>
   );
 }

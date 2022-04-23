@@ -4,6 +4,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import Document from "~/models/Document";
+import User from "~/models/User";
 import Avatar from "~/components/Avatar";
 import ListItem from "~/components/List/Item";
 import PaginatedList from "~/components/PaginatedList";
@@ -42,7 +43,7 @@ function DocumentViews({ document, isOpen }: Props) {
         <PaginatedList
           aria-label={t("Viewers")}
           items={users}
-          renderItem={(item) => {
+          renderItem={(item: User) => {
             const view = documentViews.find((v) => v.user.id === item.id);
             const isPresent = presentIds.includes(item.id);
             const isEditing = editingIds.includes(item.id);

@@ -433,7 +433,7 @@ describe("#documents.info", () => {
         id: document.id,
       },
     });
-    expect(res.status).toEqual(403);
+    expect(res.status).toEqual(401);
   });
 
   it("should require authorization with incorrect token", async () => {
@@ -633,7 +633,7 @@ describe("#documents.export", () => {
         id: document.id,
       },
     });
-    expect(res.status).toEqual(403);
+    expect(res.status).toEqual(401);
   });
 
   it("should require authorization with incorrect token", async () => {
@@ -942,6 +942,59 @@ describe("#documents.search", () => {
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
     expect(body.data[0].document.text).toEqual("# Much test support");
+  });
+
+  it("should return results using shareId", async () => {
+    const findableDocument = await buildDocument({
+      title: "search term",
+      text: "random text",
+    });
+
+    await buildDocument({
+      title: "search term",
+      text: "should not be found",
+      userId: findableDocument.createdById,
+      teamId: findableDocument.teamId,
+    });
+
+    const share = await buildShare({
+      includeChildDocuments: true,
+      documentId: findableDocument.id,
+      teamId: findableDocument.teamId,
+    });
+
+    const res = await server.post("/api/documents.search", {
+      body: {
+        query: "search term",
+        shareId: share.id,
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].document.id).toEqual(share.documentId);
+  });
+
+  it("should not allow search if child documents are not included", async () => {
+    const findableDocument = await buildDocument({
+      title: "search term",
+      text: "random text",
+    });
+
+    const share = await buildShare({
+      includeChildDocuments: false,
+      document: findableDocument,
+    });
+
+    const res = await server.post("/api/documents.search", {
+      body: {
+        query: "search term",
+        shareId: share.id,
+      },
+    });
+
+    expect(res.status).toEqual(400);
   });
 
   it("should return results in ranked order", async () => {
@@ -1287,7 +1340,11 @@ describe("#documents.search", () => {
   });
 
   it("should require authentication", async () => {
-    const res = await server.post("/api/documents.search");
+    const res = await server.post("/api/documents.search", {
+      body: {
+        query: "search term",
+      },
+    });
     const body = await res.json();
     expect(res.status).toEqual(401);
     expect(body).toMatchSnapshot();

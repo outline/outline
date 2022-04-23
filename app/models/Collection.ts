@@ -1,13 +1,13 @@
 import { trim } from "lodash";
 import { action, computed, observable } from "mobx";
 import CollectionsStore from "~/stores/CollectionsStore";
-import BaseModel from "~/models/BaseModel";
 import Document from "~/models/Document";
+import ParanoidModel from "~/models/ParanoidModel";
 import { NavigationNode } from "~/types";
 import { client } from "~/utils/ApiClient";
 import Field from "./decorators/Field";
 
-export default class Collection extends BaseModel {
+export default class Collection extends ParanoidModel {
   store: CollectionsStore;
 
   @observable
@@ -56,12 +56,6 @@ export default class Collection extends BaseModel {
   };
 
   documents: NavigationNode[];
-
-  createdAt: string;
-
-  updatedAt: string;
-
-  deletedAt: string | null | undefined;
 
   url: string;
 

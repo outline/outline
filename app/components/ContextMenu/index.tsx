@@ -2,9 +2,10 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Portal } from "react-portal";
 import { Menu } from "reakit/Menu";
-import styled from "styled-components";
+import styled, { DefaultTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { depths } from "@shared/styles";
+import Scrollable from "~/components/Scrollable";
 import useMenuContext from "~/hooks/useMenuContext";
 import useMenuHeight from "~/hooks/useMenuHeight";
 import usePrevious from "~/hooks/usePrevious";
@@ -116,6 +117,7 @@ const ContextMenu: React.FC<Props> = ({
                 topAnchor={topAnchor}
                 rightAnchor={rightAnchor}
                 ref={backgroundRef}
+                hiddenScrollbars
                 style={
                   maxHeight && topAnchor
                     ? {
@@ -160,8 +162,10 @@ export const Position = styled.div`
   position: absolute;
   z-index: ${depths.menu};
 
-  // overrides make mobile-first coding style challenging
-  // so we explicitly define mobile breakpoint here
+  /*
+   * overrides make mobile-first coding style challenging
+   * so we explicitly define mobile breakpoint here
+   */
   ${breakpoint("mobile", "tablet")`
     position: fixed !important;
     transform: none !important;
@@ -172,10 +176,13 @@ export const Position = styled.div`
   `};
 `;
 
-export const Background = styled.div<{
+type BackgroundProps = {
   topAnchor?: boolean;
   rightAnchor?: boolean;
-}>`
+  theme: DefaultTheme;
+};
+
+export const Background = styled(Scrollable)<BackgroundProps>`
   animation: ${mobileContextMenu} 200ms ease;
   transform-origin: 50% 100%;
   max-width: 100%;
@@ -184,8 +191,6 @@ export const Background = styled.div<{
   padding: 6px 0;
   min-width: 180px;
   min-height: 44px;
-  overflow: hidden;
-  overflow-y: auto;
   max-height: 75vh;
   pointer-events: all;
   font-weight: normal;
@@ -195,11 +200,12 @@ export const Background = styled.div<{
   }
 
   ${breakpoint("tablet")`
-    animation: ${(props: any) =>
+    animation: ${(props: BackgroundProps) =>
       props.topAnchor ? fadeAndSlideDown : fadeAndSlideUp} 200ms ease;
-    transform-origin: ${(props: any) => (props.rightAnchor ? "75%" : "25%")} 0;
+    transform-origin: ${(props: BackgroundProps) =>
+      props.rightAnchor ? "75%" : "25%"} 0;
     max-width: 276px;
-    background: ${(props: any) => props.theme.menuBackground};
-    box-shadow: ${(props: any) => props.theme.menuShadow};
+    background: ${(props: BackgroundProps) => props.theme.menuBackground};
+    box-shadow: ${(props: BackgroundProps) => props.theme.menuShadow};
   `};
 `;

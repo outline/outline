@@ -2,13 +2,14 @@ import {
   onConnectPayload,
   onDisconnectPayload,
   onLoadDocumentPayload,
+  Extension,
 } from "@hocuspocus/server";
 import Logger from "@server/logging/logger";
 
-export default class CollaborationLogger {
+export default class LoggerExtension implements Extension {
   async onLoadDocument(data: onLoadDocumentPayload) {
     Logger.info("hocuspocus", `Loaded document "${data.documentName}"`, {
-      userId: data.context.user.id,
+      userId: data.context.user?.id,
     });
   }
 
@@ -17,6 +18,8 @@ export default class CollaborationLogger {
   }
 
   async onDisconnect(data: onDisconnectPayload) {
-    Logger.info("hocuspocus", `Connection to "${data.documentName}" closed `);
+    Logger.info("hocuspocus", `Closed connection to "${data.documentName}"`, {
+      userId: data.context.user?.id,
+    });
   }
 }

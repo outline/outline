@@ -89,7 +89,7 @@ function Export() {
             <Trans>Recent exports</Trans>
           </h2>
         }
-        renderItem={(item) => (
+        renderItem={(item: FileOperation) => (
           <FileOperationListItem
             key={item.id}
             fileOperation={item}
