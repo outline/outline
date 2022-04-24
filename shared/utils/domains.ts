@@ -61,6 +61,10 @@ export function isHostedSubdomain(hostname: string) {
   return true;
 }
 
+export function isCustomDomain(hostname: string) {
+  return parseDomain(hostname)?.custom ?? false;
+}
+
 export function getCookieDomain(domain: string) {
   return env.SUBDOMAINS_ENABLED ? stripSubdomain(domain) : domain;
 }
