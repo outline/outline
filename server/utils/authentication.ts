@@ -2,9 +2,9 @@ import querystring from "querystring";
 import { addMonths } from "date-fns";
 import { Context } from "koa";
 import { pick } from "lodash";
+import { getCookieDomain } from "@shared/utils/domains";
 import Logger from "@server/logging/logger";
 import { User, Event, Team, Collection, View } from "@server/models";
-import { getCookieDomain } from "@server/utils/domains";
 
 export function getAllowedDomains(): string[] {
   // GOOGLE_ALLOWED_DOMAINS included here for backwards compatability

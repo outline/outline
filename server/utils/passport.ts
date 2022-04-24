@@ -2,8 +2,8 @@ import crypto from "crypto";
 import { addMinutes, subMinutes } from "date-fns";
 import fetch from "fetch-with-proxy";
 import { Context } from "koa";
+import { getCookieDomain } from "@shared/utils/domains";
 import { OAuthStateMismatchError } from "../errors";
-import { getCookieDomain } from "./domains";
 
 export class StateStore {
   key = "state";

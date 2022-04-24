@@ -1,68 +1,52 @@
+import invariant from "invariant";
 import { trim } from "lodash";
 
 type Domain = {
-  tld: string;
   subdomain: string;
   domain: string;
+  custom?: boolean;
 };
+
+// strips protocol and whitespace from input
+// then strips the path and query string
+function normalizeUrl(url: string) {
+  return trim(url.replace(/(https?:)?\/\//, "")).split(/[/:?]/)[0];
+}
 
 // we originally used the parse-domain npm module however this includes
 // a large list of possible TLD's which increase the size of the bundle
 // unnecessarily for our usecase of trusted input.
+
+// TODO: make this private
+// this only applies to internal domains (hosted domains)
 export function parseDomain(url?: string): Domain | null | undefined {
-  if (typeof url !== "string") {
-    return null;
-  }
-  if (url === "") {
+  if (!url) {
     return null;
   }
 
-  // strip extermeties and whitespace from input
-  const normalizedDomain = trim(url.replace(/(https?:)?\/\//, ""));
-  const parts = normalizedDomain.split(".");
+  invariant(process.env.URL, "process.env.URL is not defined");
 
-  // ensure the last part only includes something that looks like a TLD
-  function cleanTLD(tld = "") {
-    return tld.split(/[/:?]/)[0];
+  const normalBaseUrl = normalizeUrl(process.env.URL);
+  const normalUrl = normalizeUrl(url);
+
+  const baseUrlStart = normalUrl.indexOf(`.${normalBaseUrl}`);
+  if (baseUrlStart === -1) {
+    return { subdomain: "", domain: normalUrl, custom: true };
   }
 
-  // simplistic subdomain parse, we don't need to take into account subdomains
-  // with "." characters as these are not valid in Outline
-  if (parts.length >= 3) {
-    return {
-      subdomain: parts[0],
-      domain: parts[1],
-      tld: cleanTLD(parts.slice(2).join(".")),
-    };
-  }
+  // we consider anything in front of the base url to be the subdomain
+  const subdomain = normalUrl.substring(0, baseUrlStart);
 
-  if (parts.length === 2) {
-    return {
-      subdomain: "",
-      domain: parts[0],
-      tld: cleanTLD(parts.slice(1).join(".")),
-    };
-  }
+  // ... and anything after the subdomain is considered the domain
+  const domain = normalUrl.substring(subdomain.length).replace(/^\./, "");
 
-  // one-part domain handler for things like localhost
-  if (parts.length === 1) {
-    return {
-      subdomain: "",
-      domain: cleanTLD(parts.slice(0).join()),
-      tld: "",
-    };
-  }
-
-  return null;
+  return { subdomain, domain };
 }
 
 export function stripSubdomain(hostname: string) {
   const parsed = parseDomain(hostname);
   if (!parsed) {
     return hostname;
-  }
-  if (parsed.tld) {
-    return `${parsed.domain}.${parsed.tld}`;
   }
   return parsed.domain;
 }
@@ -80,6 +64,12 @@ export function isCustomSubdomain(hostname: string) {
   }
 
   return true;
+}
+
+export function getCookieDomain(domain: string) {
+  return process.env.SUBDOMAINS_ENABLED === "true"
+    ? stripSubdomain(domain)
+    : domain;
 }
 
 export const RESERVED_SUBDOMAINS = [

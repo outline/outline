@@ -9,7 +9,6 @@ import errorHandling from "@server/middlewares/errorHandling";
 import methodOverride from "@server/middlewares/methodOverride";
 import { User, Team } from "@server/models";
 import { signIn } from "@server/utils/authentication";
-import { isCustomDomain } from "@server/utils/domains";
 import { getUserForEmailSigninToken } from "@server/utils/jwt";
 import { assertEmail, assertPresent } from "@server/validation";
 
@@ -33,22 +32,19 @@ router.post("email", errorHandling(), async (ctx) => {
 
   if (users.length) {
     let team!: Team | null;
+    const domain = parseDomain(ctx.request.hostname);
 
-    if (isCustomDomain(ctx.request.hostname)) {
+    if (domain?.custom) {
       team = await Team.scope("withAuthenticationProviders").findOne({
         where: {
           domain: ctx.request.hostname,
         },
       });
-    }
-
-    if (
+    } else if (
       process.env.SUBDOMAINS_ENABLED === "true" &&
-      isCustomSubdomain(ctx.request.hostname) &&
-      !isCustomDomain(ctx.request.hostname)
+      isCustomSubdomain(ctx.request.hostname)
     ) {
-      const domain = parseDomain(ctx.request.hostname);
-      const subdomain = domain ? domain.subdomain : undefined;
+      const subdomain = domain?.subdomain;
       team = await Team.scope("withAuthenticationProviders").findOne({
         where: {
           subdomain,

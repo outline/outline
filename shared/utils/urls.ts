@@ -20,8 +20,7 @@ export function isInternalUrl(href: string) {
     parsed &&
     outline &&
     parsed.subdomain === outline.subdomain &&
-    parsed.domain === outline.domain &&
-    parsed.tld === outline.tld
+    parsed.domain === outline.domain
   ) {
     return true;
   }

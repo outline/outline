@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/react";
 import invariant from "invariant";
 import { observable, action, computed, autorun, runInAction } from "mobx";
 import { getCookie, setCookie, removeCookie } from "tiny-cookie";
+import { getCookieDomain } from "@shared/utils/domains";
 import RootStore from "~/stores/RootStore";
 import Policy from "~/models/Policy";
 import Team from "~/models/Team";
@@ -9,7 +10,6 @@ import User from "~/models/User";
 import env from "~/env";
 import { client } from "~/utils/ApiClient";
 import Storage from "~/utils/Storage";
-import { getCookieDomain } from "~/utils/domains";
 
 const AUTH_STORE = "AUTH_STORE";
 const NO_REDIRECT_PATHS = ["/", "/create", "/home"];

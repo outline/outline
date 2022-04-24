@@ -2,133 +2,149 @@ import { stripSubdomain, parseDomain, isCustomSubdomain } from "./domains";
 // test suite is based on subset of parse-domain module we want to support
 // https://github.com/peerigon/parse-domain/blob/master/test/parseDomain.test.js
 describe("#parseDomain", () => {
+  beforeEach(() => {
+    process.env.URL = "https://example.com";
+  });
+
   it("should remove the protocol", () => {
     expect(parseDomain("http://example.com")).toMatchObject({
       subdomain: "",
-      domain: "example",
-      tld: "com",
+      domain: "example.com",
     });
     expect(parseDomain("//example.com")).toMatchObject({
       subdomain: "",
-      domain: "example",
-      tld: "com",
+      domain: "example.com",
     });
     expect(parseDomain("https://example.com")).toMatchObject({
       subdomain: "",
-      domain: "example",
-      tld: "com",
+      domain: "example.com",
     });
   });
 
   it("should remove sub-domains", () => {
     expect(parseDomain("www.example.com")).toMatchObject({
       subdomain: "www",
-      domain: "example",
-      tld: "com",
+      domain: "example.com",
     });
   });
 
   it("should remove the path", () => {
     expect(parseDomain("example.com/some/path?and&query")).toMatchObject({
       subdomain: "",
-      domain: "example",
-      tld: "com",
+      domain: "example.com",
     });
     expect(parseDomain("example.com/")).toMatchObject({
       subdomain: "",
-      domain: "example",
-      tld: "com",
+      domain: "example.com",
     });
   });
 
   it("should remove the query string", () => {
     expect(parseDomain("example.com?and&query")).toMatchObject({
       subdomain: "",
-      domain: "example",
-      tld: "com",
+      domain: "example.com",
     });
   });
 
   it("should remove special characters", () => {
     expect(parseDomain("http://m.example.com\r")).toMatchObject({
       subdomain: "m",
-      domain: "example",
-      tld: "com",
+      domain: "example.com",
     });
   });
 
   it("should remove the port", () => {
     expect(parseDomain("example.com:8080")).toMatchObject({
       subdomain: "",
-      domain: "example",
-      tld: "com",
+      domain: "example.com",
     });
   });
 
   it("should allow @ characters in the path", () => {
     expect(parseDomain("https://medium.com/@username/")).toMatchObject({
       subdomain: "",
-      domain: "medium",
-      tld: "com",
-    });
-  });
-
-  it("should also work with three-level domains like .co.uk", () => {
-    expect(parseDomain("www.example.co.uk")).toMatchObject({
-      subdomain: "www",
-      domain: "example",
-      tld: "co.uk",
+      domain: "medium.com",
     });
   });
 
   it("should not include private domains like blogspot.com by default", () => {
     expect(parseDomain("foo.blogspot.com")).toMatchObject({
-      subdomain: "foo",
-      domain: "blogspot",
-      tld: "com",
+      subdomain: "",
+      domain: "foo.blogspot.com",
     });
   });
 
   it("should also work with the minimum", () => {
     expect(parseDomain("example.com")).toMatchObject({
       subdomain: "",
-      domain: "example",
-      tld: "com",
+      domain: "example.com",
     });
   });
 
-  it("should return null if the given value is not a string", () => {
+  it("should return null if the given value is not a valid string", () => {
     expect(parseDomain(undefined)).toBe(null);
     expect(parseDomain("")).toBe(null);
   });
 
+  it("should also work with three-level domains like .co.uk", () => {
+    process.env.URL = "https://example.co.uk";
+    expect(parseDomain("www.example.co.uk")).toMatchObject({
+      subdomain: "www",
+      domain: "example.co.uk",
+    });
+  });
+
   it("should work with custom top-level domains (eg .local)", () => {
+    process.env.URL = "mymachine.local";
     expect(parseDomain("mymachine.local")).toMatchObject({
       subdomain: "",
-      domain: "mymachine",
-      tld: "local",
+      domain: "mymachine.local",
+    });
+  });
+
+  it("should work with localhost", () => {
+    process.env.URL = "http://localhost:3000";
+    expect(parseDomain("https://localhost:3000")).toMatchObject({
+      subdomain: "",
+      domain: "localhost",
+    });
+  });
+
+  it("should work with localhost subdomains", () => {
+    process.env.URL = "http://localhost:3000";
+    expect(parseDomain("https://www.localhost:3000")).toMatchObject({
+      subdomain: "www",
+      domain: "localhost",
     });
   });
 });
+
 describe("#stripSubdomain", () => {
-  test("to work with localhost", () => {
-    expect(stripSubdomain("localhost")).toBe("localhost");
+  beforeEach(() => {
+    process.env.URL = "https://example.com";
   });
 
   test("to return domains without a subdomain", () => {
     expect(stripSubdomain("example")).toBe("example");
     expect(stripSubdomain("example.com")).toBe("example.com");
-    expect(stripSubdomain("example.org:3000")).toBe("example.org");
+    expect(stripSubdomain("example.com:3000")).toBe("example.com");
   });
 
   test("to remove subdomains", () => {
     expect(stripSubdomain("test.example.com")).toBe("example.com");
     expect(stripSubdomain("test.example.com:3000")).toBe("example.com");
   });
-});
-describe("#isCustomSubdomain", () => {
+
   test("to work with localhost", () => {
-    expect(isCustomSubdomain("localhost")).toBe(false);
+    process.env.URL = "http://localhost:3000";
+    expect(stripSubdomain("localhost")).toBe("localhost");
+    expect(stripSubdomain("foo.localhost")).toBe("localhost");
+  });
+});
+
+describe("#isCustomSubdomain", () => {
+  beforeEach(() => {
+    process.env.URL = "https://example.com";
   });
 
   test("to return false for domains without a subdomain", () => {
@@ -145,5 +161,11 @@ describe("#isCustomSubdomain", () => {
   test("to return true for subdomains", () => {
     expect(isCustomSubdomain("test.example.com")).toBe(true);
     expect(isCustomSubdomain("test.example.com:3000")).toBe(true);
+  });
+
+  test("to work with localhost", () => {
+    process.env.URL = "http://localhost:3000";
+    expect(isCustomSubdomain("localhost")).toBe(false);
+    expect(isCustomSubdomain("foo.localhost")).toBe(true);
   });
 });

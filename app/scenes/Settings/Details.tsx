@@ -3,6 +3,7 @@ import { TeamIcon } from "outline-icons";
 import { useRef, useState } from "react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import { parseDomain } from "@shared/utils/domains";
 import Button from "~/components/Button";
 import DefaultCollectionInputSelect from "~/components/DefaultCollectionInputSelect";
 import Heading from "~/components/Heading";
@@ -93,6 +94,8 @@ function Details() {
 
   const isValid = form.current?.checkValidity();
 
+  const domainStructure = parseDomain(env.URL);
+
   return (
     <Scene title={t("Details")} icon={<TeamIcon color="currentColor" />}>
       <Heading>{t("Details")}</Heading>
@@ -141,7 +144,9 @@ function Details() {
             subdomain ? (
               <>
                 <Trans>Your knowledge base will be accessible at</Trans>{" "}
-                <strong>{subdomain}.getoutline.com</strong>
+                <strong>
+                  {subdomain}.{domainStructure?.domain}
+                </strong>
               </>
             ) : (
               t("Choose a subdomain to enable a login page just for your team.")
