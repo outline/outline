@@ -1,4 +1,4 @@
-import { stripSubdomain, parseDomain, isCustomSubdomain } from "./domains";
+import { stripSubdomain, parseDomain, isHostedSubdomain } from "./domains";
 // test suite is based on subset of parse-domain module we want to support
 // https://github.com/peerigon/parse-domain/blob/master/test/parseDomain.test.js
 describe("#parseDomain", () => {
@@ -142,30 +142,30 @@ describe("#stripSubdomain", () => {
   });
 });
 
-describe("#isCustomSubdomain", () => {
+describe("#isHostedSubdomain", () => {
   beforeEach(() => {
     process.env.URL = "https://example.com";
   });
 
   test("to return false for domains without a subdomain", () => {
-    expect(isCustomSubdomain("example")).toBe(false);
-    expect(isCustomSubdomain("example.com")).toBe(false);
-    expect(isCustomSubdomain("example.org:3000")).toBe(false);
+    expect(isHostedSubdomain("example")).toBe(false);
+    expect(isHostedSubdomain("example.com")).toBe(false);
+    expect(isHostedSubdomain("example.org:3000")).toBe(false);
   });
 
   test("to return false for www", () => {
-    expect(isCustomSubdomain("www.example.com")).toBe(false);
-    expect(isCustomSubdomain("www.example.com:3000")).toBe(false);
+    expect(isHostedSubdomain("www.example.com")).toBe(false);
+    expect(isHostedSubdomain("www.example.com:3000")).toBe(false);
   });
 
   test("to return true for subdomains", () => {
-    expect(isCustomSubdomain("test.example.com")).toBe(true);
-    expect(isCustomSubdomain("test.example.com:3000")).toBe(true);
+    expect(isHostedSubdomain("test.example.com")).toBe(true);
+    expect(isHostedSubdomain("test.example.com:3000")).toBe(true);
   });
 
   test("to work with localhost", () => {
     process.env.URL = "http://localhost:3000";
-    expect(isCustomSubdomain("localhost")).toBe(false);
-    expect(isCustomSubdomain("foo.localhost")).toBe(true);
+    expect(isHostedSubdomain("localhost")).toBe(false);
+    expect(isHostedSubdomain("foo.localhost")).toBe(true);
   });
 });

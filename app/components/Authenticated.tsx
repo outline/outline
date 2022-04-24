@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Redirect } from "react-router-dom";
-import { isCustomSubdomain } from "@shared/utils/domains";
+import { isHostedSubdomain } from "@shared/utils/domains";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import env from "~/env";
 import useStores from "~/hooks/useStores";
@@ -41,7 +41,7 @@ const Authenticated = ({ children }: Props) => {
     } else if (
       env.SUBDOMAINS_ENABLED &&
       team.subdomain &&
-      isCustomSubdomain(hostname) &&
+      isHostedSubdomain(hostname) &&
       !hostname.startsWith(`${team.subdomain}.`)
     ) {
       window.location.href = `${team.url}${window.location.pathname}`;

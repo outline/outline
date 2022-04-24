@@ -2,7 +2,7 @@ import { trim } from "lodash";
 import env from "../env";
 
 type Domain = {
-  subdomain: string;
+  subdomain?: string;
   domain: string;
   custom?: boolean;
 };
@@ -46,7 +46,7 @@ export function stripSubdomain(hostname: string) {
   return parsed.domain;
 }
 
-export function isCustomSubdomain(hostname: string) {
+export function isHostedSubdomain(hostname: string) {
   const parsed = parseDomain(hostname);
 
   if (

@@ -1,7 +1,7 @@
 import { subMinutes } from "date-fns";
 import Router from "koa-router";
 import { find } from "lodash";
-import { parseDomain, isCustomSubdomain } from "@shared/utils/domains";
+import { parseDomain, isHostedSubdomain } from "@shared/utils/domains";
 import SigninEmail from "@server/emails/templates/SigninEmail";
 import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
 import { AuthorizationError } from "@server/errors";
@@ -42,7 +42,7 @@ router.post("email", errorHandling(), async (ctx) => {
       });
     } else if (
       process.env.SUBDOMAINS_ENABLED === "true" &&
-      isCustomSubdomain(ctx.request.hostname)
+      isHostedSubdomain(ctx.request.hostname)
     ) {
       const subdomain = domain?.subdomain;
       team = await Team.scope("withAuthenticationProviders").findOne({

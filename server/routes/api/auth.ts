@@ -1,7 +1,7 @@
 import invariant from "invariant";
 import Router from "koa-router";
 import { find } from "lodash";
-import { parseDomain, isCustomSubdomain } from "@shared/utils/domains";
+import { parseDomain, isHostedSubdomain } from "@shared/utils/domains";
 import auth from "@server/middlewares/authentication";
 import { Team } from "@server/models";
 import { presentUser, presentTeam, presentPolicies } from "@server/presenters";
@@ -78,7 +78,7 @@ router.post("auth.config", async (ctx) => {
   // for a custom screen showing only relevant signin options for that team.
   else if (
     process.env.SUBDOMAINS_ENABLED === "true" &&
-    isCustomSubdomain(ctx.request.hostname)
+    isHostedSubdomain(ctx.request.hostname)
   ) {
     const subdomain = domain?.subdomain;
     const team = await Team.scope("withAuthenticationProviders").findOne({
