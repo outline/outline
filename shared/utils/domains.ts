@@ -1,5 +1,6 @@
 import invariant from "invariant";
 import { trim } from "lodash";
+import env from "~/env";
 
 type Domain = {
   subdomain: string;
@@ -19,14 +20,14 @@ function normalizeUrl(url: string) {
 
 // TODO: make this private
 // this only applies to internal domains (hosted domains)
-export function parseDomain(url?: string): Domain | null | undefined {
+export function parseDomain(url: string): Domain | null | undefined {
   if (!url) {
     return null;
   }
 
-  invariant(process.env.URL, "process.env.URL is not defined");
+  invariant(env.URL, "env.URL is not defined");
 
-  const normalBaseUrl = normalizeUrl(process.env.URL);
+  const normalBaseUrl = normalizeUrl(env.URL);
   const normalUrl = normalizeUrl(url);
 
   const baseUrlStart = normalUrl.indexOf(`.${normalBaseUrl}`);
@@ -67,9 +68,7 @@ export function isCustomSubdomain(hostname: string) {
 }
 
 export function getCookieDomain(domain: string) {
-  return process.env.SUBDOMAINS_ENABLED === "true"
-    ? stripSubdomain(domain)
-    : domain;
+  return env.SUBDOMAINS_ENABLED ? stripSubdomain(domain) : domain;
 }
 
 export const RESERVED_SUBDOMAINS = [
