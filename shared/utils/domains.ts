@@ -2,7 +2,7 @@ import { trim } from "lodash";
 import env from "../env";
 
 type Domain = {
-  subdomain?: string;
+  subdomain: string;
   domain: string;
   custom: boolean;
 };

@@ -1,9 +1,11 @@
+import env from "@shared/env";
 import { stripSubdomain, parseDomain, isHostedSubdomain } from "./domains";
+
 // test suite is based on subset of parse-domain module we want to support
 // https://github.com/peerigon/parse-domain/blob/master/test/parseDomain.test.js
 describe("#parseDomain", () => {
   beforeEach(() => {
-    process.env.URL = "https://example.com";
+    env.URL = "https://example.com";
   });
 
   it("should remove the protocol", () => {
@@ -82,12 +84,11 @@ describe("#parseDomain", () => {
   });
 
   it("should return null if the given value is not a valid string", () => {
-    expect(parseDomain(undefined)).toBe(null);
     expect(parseDomain("")).toBe(null);
   });
 
   it("should also work with three-level domains like .co.uk", () => {
-    process.env.URL = "https://example.co.uk";
+    env.URL = "https://example.co.uk";
     expect(parseDomain("www.example.co.uk")).toMatchObject({
       subdomain: "www",
       domain: "example.co.uk",
@@ -95,7 +96,7 @@ describe("#parseDomain", () => {
   });
 
   it("should work with custom top-level domains (eg .local)", () => {
-    process.env.URL = "mymachine.local";
+    env.URL = "mymachine.local";
     expect(parseDomain("mymachine.local")).toMatchObject({
       subdomain: "",
       domain: "mymachine.local",
@@ -103,7 +104,7 @@ describe("#parseDomain", () => {
   });
 
   it("should work with localhost", () => {
-    process.env.URL = "http://localhost:3000";
+    env.URL = "http://localhost:3000";
     expect(parseDomain("https://localhost:3000")).toMatchObject({
       subdomain: "",
       domain: "localhost",
@@ -111,7 +112,7 @@ describe("#parseDomain", () => {
   });
 
   it("should work with localhost subdomains", () => {
-    process.env.URL = "http://localhost:3000";
+    env.URL = "http://localhost:3000";
     expect(parseDomain("https://www.localhost:3000")).toMatchObject({
       subdomain: "www",
       domain: "localhost",
@@ -121,7 +122,7 @@ describe("#parseDomain", () => {
 
 describe("#stripSubdomain", () => {
   beforeEach(() => {
-    process.env.URL = "https://example.com";
+    env.URL = "https://example.com";
   });
 
   test("to return domains without a subdomain", () => {
@@ -136,7 +137,7 @@ describe("#stripSubdomain", () => {
   });
 
   test("to work with localhost", () => {
-    process.env.URL = "http://localhost:3000";
+    env.URL = "http://localhost:3000";
     expect(stripSubdomain("localhost")).toBe("localhost");
     expect(stripSubdomain("foo.localhost")).toBe("localhost");
   });
@@ -144,7 +145,7 @@ describe("#stripSubdomain", () => {
 
 describe("#isHostedSubdomain", () => {
   beforeEach(() => {
-    process.env.URL = "https://example.com";
+    env.URL = "https://example.com";
   });
 
   test("to return false for domains without a subdomain", () => {
@@ -164,7 +165,7 @@ describe("#isHostedSubdomain", () => {
   });
 
   test("to work with localhost", () => {
-    process.env.URL = "http://localhost:3000";
+    env.URL = "http://localhost:3000";
     expect(isHostedSubdomain("localhost")).toBe(false);
     expect(isHostedSubdomain("foo.localhost")).toBe(true);
   });
