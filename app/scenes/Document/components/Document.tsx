@@ -14,7 +14,7 @@ import {
 } from "react-router";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { parseDomain } from "@shared/utils/domains";
+import { isCustomDomain } from "@shared/utils/domains";
 import getTasks from "@shared/utils/getTasks";
 import RootStore from "~/stores/RootStore";
 import Document from "~/models/Document";
@@ -446,8 +446,6 @@ class DocumentScene extends React.Component<Props> {
       ? this.props.match.url
       : updateDocumentUrl(this.props.match.url, document);
 
-    const isCustomDomain = parseDomain(window.location.origin)?.custom;
-
     return (
       <ErrorBoundary>
         {this.props.location.pathname !== canonicalUrl && (
@@ -613,7 +611,7 @@ class DocumentScene extends React.Component<Props> {
                 </Flex>
               </React.Suspense>
             </MaxWidth>
-            {isShare && !isCustomDomain && (
+            {isShare && !isCustomDomain(window.location.origin) && (
               <Branding href="//www.getoutline.com?ref=sharelink" />
             )}
           </Container>
