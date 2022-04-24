@@ -1,4 +1,3 @@
-import invariant from "invariant";
 import { trim } from "lodash";
 import env from "../env";
 
@@ -21,8 +20,6 @@ export function parseDomain(url: string): Domain | null | undefined {
   if (!url) {
     return null;
   }
-
-  invariant(env.URL, "env.URL is not defined");
 
   const normalBaseUrl = normalizeUrl(env.URL);
   const normalUrl = normalizeUrl(url);
