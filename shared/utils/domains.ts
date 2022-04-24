@@ -1,6 +1,6 @@
 import invariant from "invariant";
 import { trim } from "lodash";
-import env from "~/env";
+import env from "@shared/env";
 
 type Domain = {
   subdomain: string;
