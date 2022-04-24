@@ -205,7 +205,6 @@ function CollectionPermissions({ collection }: Props) {
       <InputSelectPermission
         onChange={handleChangePermission}
         value={collection.permission || ""}
-        nude
       />
       <PermissionExplainer size="small">
         {!collection.permission && (
