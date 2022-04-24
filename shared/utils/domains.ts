@@ -4,7 +4,7 @@ import env from "../env";
 type Domain = {
   subdomain?: string;
   domain: string;
-  custom?: boolean;
+  custom: boolean;
 };
 
 // strips protocol and whitespace from input
@@ -35,7 +35,7 @@ export function parseDomain(url: string): Domain | null | undefined {
   // ... and anything after the subdomain is considered the domain
   const domain = normalUrl.substring(subdomain.length).replace(/^\./, "");
 
-  return { subdomain, domain };
+  return { subdomain, domain, custom: false };
 }
 
 export function stripSubdomain(hostname: string) {
