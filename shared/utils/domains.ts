@@ -17,9 +17,6 @@ function normalizeUrl(url: string) {
 // we originally used the parse-domain npm module however this includes
 // a large list of possible TLD's which increase the size of the bundle
 // unnecessarily for our usecase of trusted input.
-
-// TODO: make this private
-// this only applies to internal domains (hosted domains)
 export function parseDomain(url: string): Domain | null | undefined {
   if (!url) {
     return null;
