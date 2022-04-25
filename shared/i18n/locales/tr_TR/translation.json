@@ -91,7 +91,7 @@
   "{{ userName }} updated": "{{ userName }} günceledi",
   "Never viewed": "Hiç görüntülenmedi",
   "Viewed": "Görüntülendi",
-  "in": "in",
+  "in": "içinde",
   "nested document": "iç içe belge",
   "nested document_plural": "iç içe belgeler",
   "Viewed by": "Görüntüleyen",
