@@ -532,6 +532,13 @@ describe("#findByPk", () => {
     const response = await Document.findByPk(id);
     expect(response?.id).toBe(document.id);
   });
+
+  test("should return document when urlId is given without the slug prefix", async () => {
+    const { document } = await seed();
+    const id = document.urlId;
+    const response = await Document.findByPk(id);
+    expect(response?.id).toBe(document.id);
+  });
 });
 
 describe("tasks", () => {
