@@ -36,7 +36,7 @@ import { DateFilter } from "@shared/types";
 import getTasks from "@shared/utils/getTasks";
 import parseTitle from "@shared/utils/parseTitle";
 import unescape from "@shared/utils/unescape";
-import { SLUG_URL_REGEX, URL_ID_REGEX } from "@shared/utils/urlHelpers";
+import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
 import slugify from "@server/utils/slugify";
 import Backlink from "./Backlink";
 import Collection from "./Collection";
@@ -431,16 +431,6 @@ class Document extends ParanoidModel {
       return scope.findOne({
         where: {
           urlId: urlMatch[1],
-        },
-        ...options,
-      });
-    }
-
-    const idMatch = id.match(URL_ID_REGEX);
-    if (idMatch) {
-      return scope.findOne({
-        where: {
-          urlId: idMatch[1],
         },
         ...options,
       });

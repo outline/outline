@@ -372,6 +372,13 @@ describe("#findByPk", () => {
     expect(response!.id).toBe(collection.id);
   });
 
+  test("should return collection when urlId is present, but missing slug", async () => {
+    const collection = await buildCollection();
+    const id = collection.urlId;
+    const response = await Collection.findByPk(id);
+    expect(response!.id).toBe(collection.id);
+  });
+
   test("should return undefined when incorrect uuid type", async () => {
     const collection = await buildCollection();
     const response = await Collection.findByPk(collection.id + "-incorrect");
