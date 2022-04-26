@@ -23,6 +23,7 @@ import RegisterKeyDown from "~/components/RegisterKeyDown";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import withStores from "~/components/withStores";
+import Logger from "~/utils/logger";
 import { searchPath } from "~/utils/routeHelpers";
 import { decodeURIComponentSafe } from "~/utils/urls";
 import CollectionFilter from "./components/CollectionFilter";
@@ -257,9 +258,9 @@ class Search extends React.Component<Props> {
         } else {
           this.offset += DEFAULT_PAGINATION_LIMIT;
         }
-      } catch (err) {
+      } catch (error) {
+        Logger.error("Search query failed", error);
         this.lastQuery = "";
-        throw err;
       } finally {
         this.isLoading = false;
       }

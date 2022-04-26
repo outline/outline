@@ -17,6 +17,7 @@ import Toasts from "~/components/Toasts";
 import env from "~/env";
 import Routes from "./routes";
 import history from "./utils/history";
+import Logger from "./utils/logger";
 import { initSentry } from "./utils/sentry";
 
 initI18n();
@@ -40,10 +41,14 @@ if ("serviceWorker" in window.navigator) {
     if (maybePromise?.then) {
       maybePromise
         .then((registration) => {
-          console.log("SW registered: ", registration);
+          Logger.debug("lifecycle", "SW registered: ", registration);
         })
         .catch((registrationError) => {
-          console.log("SW registration failed: ", registrationError);
+          Logger.debug(
+            "lifecycle",
+            "SW registration failed: ",
+            registrationError
+          );
         });
     }
   });

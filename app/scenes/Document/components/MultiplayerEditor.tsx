@@ -16,6 +16,7 @@ import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import MultiplayerExtension from "~/multiplayer/MultiplayerExtension";
 import { supportsPassiveListener } from "~/utils/browser";
+import Logger from "~/utils/logger";
 import { homePath } from "~/utils/routeHelpers";
 
 type Props = EditorProps & {
@@ -139,15 +140,21 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
 
     if (debug) {
       provider.on("status", (ev: ConnectionStatusEvent) =>
-        console.log("status", ev.status)
+        Logger.debug("collaboration", "status", ev)
       );
       provider.on("message", (ev: MessageEvent) =>
-        console.log("incoming", ev.message)
+        Logger.debug("collaboration", "incoming", {
+          message: ev.message,
+        })
       );
       provider.on("outgoingMessage", (ev: MessageEvent) =>
-        console.log("outgoing", ev.message)
+        Logger.debug("collaboration", "outgoing", {
+          message: ev.message,
+        })
       );
-      localProvider.on("synced", () => console.log("local synced"));
+      localProvider.on("synced", () =>
+        Logger.debug("collaboration", "local synced")
+      );
     }
 
     provider.on("status", (ev: ConnectionStatusEvent) =>
