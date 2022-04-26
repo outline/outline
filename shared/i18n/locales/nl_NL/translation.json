@@ -336,7 +336,7 @@
   "Exporting the collection <em>{{collectionName}}</em> may take a few seconds. Your documents will be a zip of folders with files in Markdown format. Please visit the Export section on settings to get the zip.": "Exporting the collection <em>{{collectionName}}</em> may take a few seconds. Your documents will be a zip of folders with files in Markdown format. Please visit the Export section on settings to get the zip.",
   "Exporting": "Exporteren",
   "Export Collection": "Collectie exporteren",
-  "Collections are for grouping your documents. They work best when organized around a topic or internal team — Product or Engineering for example.": "Collections are for grouping your documents. They work best when organized around a topic or internal team — Product or Engineering for example.",
+  "Collections are for grouping your documents. They work best when organized around a topic or internal team — Product or Engineering for example.": "Collecties stellen je in staat documenten te groeperen. Ze werken vaak het beste wanneer ze worden gemaakt voor bepaalde onderwerpen, thema's of teams. Bijvoorbeeld: \"Product\", \"Software\" of \"Klantenservice team\".",
   "This is the default level of access, you can give individual users or groups more access once the collection is created.": "This is the default level of access, you can give individual users or groups more access once the collection is created.",
   "Public document sharing": "Public document sharing",
   "When enabled any documents within this collection can be shared publicly on the internet.": "When enabled any documents within this collection can be shared publicly on the internet.",
