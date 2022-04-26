@@ -426,11 +426,11 @@ class Document extends ParanoidModel {
       });
     }
 
-    const urlMatch = id.match(SLUG_URL_REGEX);
-    if (urlMatch) {
+    const match = id.match(SLUG_URL_REGEX);
+    if (match) {
       return scope.findOne({
         where: {
-          urlId: urlMatch[1],
+          urlId: match[1],
         },
         ...options,
       });
