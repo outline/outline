@@ -1288,7 +1288,7 @@ router.post("documents.import", auth(), async (ctx) => {
     });
   }
 
-  const content = await fs.readFile(file.path, "utf8");
+  const content = await fs.readFile(file.path);
   const document = await sequelize.transaction(async (transaction) => {
     const { text, title } = await documentImporter({
       user,
