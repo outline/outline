@@ -144,6 +144,13 @@ class Team extends ParanoidModel {
     );
   }
 
+  get allowedDomains(): string[] {
+    // GOOGLE_ALLOWED_DOMAINS included here for backwards compatability
+    const env =
+      process.env.ALLOWED_DOMAINS || process.env.GOOGLE_ALLOWED_DOMAINS;
+    return env ? env.split(",") : [];
+  }
+
   // TODO: Move to command
   provisionSubdomain = async function (
     requestedSubdomain: string,
@@ -236,6 +243,12 @@ class Team extends ParanoidModel {
       paranoid,
     });
     return models.map((c) => c.id);
+  };
+
+  isDomainAllowed = function (domain: string) {
+    return (
+      this.allowedDomains.includes(domain) || this.allowedDomains.length === 0
+    );
   };
 
   // associations
