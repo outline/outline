@@ -488,7 +488,7 @@ class Document extends ParanoidModel {
 
     // Build the SQL query to get result documentIds, ranking, and search term context
     const whereClause = `
-  "searchVector" @@ websearch_to_tsquery('english', :query) AND
+  "searchVector" @@ to_tsquery('english', :query) AND
     "teamId" = :teamId AND
     "collectionId" IN(:collectionIds) AND
     ${documentClause}
@@ -498,8 +498,8 @@ class Document extends ParanoidModel {
     const selectSql = `
     SELECT
       id,
-      ts_rank(documents."searchVector", websearch_to_tsquery('english', :query)) as "searchRanking",
-      ts_headline('english', "text", websearch_to_tsquery('english', :query), 'MaxFragments=1, MinWords=:snippetMinWords, MaxWords=:snippetMaxWords') as "searchContext"
+      ts_rank(documents."searchVector", to_tsquery('english', :query)) as "searchRanking",
+      ts_headline('english', "text", to_tsquery('english', :query), 'MaxFragments=1, MinWords=:snippetMinWords, MaxWords=:snippetMaxWords') as "searchContext"
     FROM documents
     WHERE ${whereClause}
     ORDER BY
@@ -602,7 +602,7 @@ class Document extends ParanoidModel {
 
     // Build the SQL query to get documentIds, ranking, and search term context
     const whereClause = `
-  "searchVector" @@ websearch_to_tsquery('english', :query) AND
+  "searchVector" @@ to_tsquery('english', :query) AND
     "teamId" = :teamId AND
     "collectionId" IN(:collectionIds) AND
     ${
@@ -624,8 +624,8 @@ class Document extends ParanoidModel {
     const selectSql = `
   SELECT
     id,
-    ts_rank(documents."searchVector", websearch_to_tsquery('english', :query)) as "searchRanking",
-    ts_headline('english', "text", websearch_to_tsquery('english', :query), 'MaxFragments=1, MinWords=:snippetMinWords, MaxWords=:snippetMaxWords') as "searchContext"
+    ts_rank(documents."searchVector", to_tsquery('english', :query)) as "searchRanking",
+    ts_headline('english', "text", to_tsquery('english', :query), 'MaxFragments=1, MinWords=:snippetMinWords, MaxWords=:snippetMaxWords') as "searchContext"
   FROM documents
   WHERE ${whereClause}
   ORDER BY
