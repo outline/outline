@@ -66,7 +66,7 @@ export const languageOptions = [
     value: "vi_VN",
   },
   {
-    label: "Türkçe (Turkey)",
+    label: "Türkçe (Turkish)",
     value: "tr_TR",
   },
 ];
