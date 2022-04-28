@@ -290,7 +290,7 @@
   "Revoke link": "Отозвать ссылку",
   "Contents": "Содержимое",
   "Headings you add to the document will appear here": "Здесь появятся заголовки, которые вы добавляете в документ",
-  "Table of contents": "Содержание",
+  "Table of contents": "Оглавление",
   "By {{ author }}": "По {{ author }}",
   "Are you sure you want to make {{ userName }} an admin? Admins can modify team and billing information.": "Удаляем админа {{ userName }}? Админы могут настраивать команду и платежную информацию.",
   "Are you sure you want to make {{ userName }} a member?": "Делаем {{ userName }} участником?",
