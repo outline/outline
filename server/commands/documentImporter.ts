@@ -12,7 +12,6 @@ import parseTitle from "@shared/utils/parseTitle";
 import { APM } from "@server/logging/tracing";
 import { User } from "@server/models";
 import dataURItoBuffer from "@server/utils/dataURItoBuffer";
-import { deserializeFilename } from "@server/utils/fs";
 import parseImages from "@server/utils/parseImages";
 import { FileImportError, InvalidRequestError } from "../errors";
 import attachmentCreator from "./attachmentCreator";
@@ -192,7 +191,7 @@ async function documentImporter({
     throw InvalidRequestError(`File type ${mimeType} not supported`);
   }
 
-  let title = deserializeFilename(fileName.replace(/\.[^/.]+$/, ""));
+  let title = fileName.replace(/\.[^/.]+$/, "");
   let text = await fileInfo.getMarkdown(content);
   text = text.trim();
 

@@ -8,7 +8,7 @@ import Attachment from "@server/models/Attachment";
 import Collection from "@server/models/Collection";
 import Document from "@server/models/Document";
 import { NavigationNode } from "~/types";
-import { serializeFilename } from "./fs";
+import { deserializeFilename, serializeFilename } from "./fs";
 import parseAttachmentIds from "./parseAttachmentIds";
 import { getFileByKey } from "./s3";
 
@@ -164,7 +164,7 @@ export async function archiveCollections(collections: Collection[]) {
 
   for (const collection of collections) {
     if (collection.documentStructure) {
-      const folder = zip.folder(collection.name);
+      const folder = zip.folder(serializeFilename(collection.name));
 
       if (folder) {
         await addDocumentTreeToArchive(folder, collection.documentStructure);
@@ -225,7 +225,7 @@ export function zipAsFileTree(zip: JSZip) {
         const newPart = {
           name,
           path: filePath.replace(/^\//, ""),
-          title: path.parse(path.basename(name)).name,
+          title: deserializeFilename(path.parse(path.basename(name)).name),
           children: [],
         };
 
