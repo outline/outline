@@ -1,70 +1,128 @@
-import { yDocToProsemirrorJSON } from "@getoutline/y-prosemirror";
-import invariant from "invariant";
-import { uniq } from "lodash";
-import { Node } from "prosemirror-model";
-import * as Y from "yjs";
-import { schema, serializer } from "@server/editor";
-import { Document, Event } from "@server/models";
+import { Transaction } from "sequelize";
+import { Event, Document, User } from "@server/models";
 
+type Props = {
+  /** The user updating the document */
+  user: User;
+  /** The existing document */
+  document: Document;
+  /** The new title */
+  title?: string;
+  /** The new text content */
+  text?: string;
+  /** The version of the client editor that was used */
+  editorVersion?: string;
+  /** The ID of the template that was used */
+  templateId?: string;
+  /** If the document should be displayed full-width on the screen */
+  fullWidth?: boolean;
+  /** Whether the text be appended to the end instead of replace */
+  append?: boolean;
+  /** Whether the document should be published to the collection */
+  publish?: boolean;
+  /** The IP address of the user creating the document */
+  ip: string;
+  /** The database transaction to run within */
+  transaction: Transaction;
+};
+
+/**
+ * This command updates document properties. To update collaborative text state
+ * use documentCollaborativeUpdater.
+ *
+ * @param Props The properties of the document to update
+ * @returns Document The updated document
+ */
 export default async function documentUpdater({
-  documentId,
-  ydoc,
-  userId,
-}: {
-  documentId: string;
-  ydoc: Y.Doc;
-  userId?: string;
-}) {
-  const document = await Document.scope("withState").findByPk(documentId);
-  invariant(document, "document not found");
+  user,
+  document,
+  title,
+  text,
+  editorVersion,
+  templateId,
+  fullWidth,
+  append,
+  publish,
+  transaction,
+  ip,
+}: Props): Promise<Document> {
+  const previousTitle = document.title;
 
-  const state = Y.encodeStateAsUpdate(ydoc);
-  const node = Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
-  const text = serializer.serialize(node, undefined);
-  const isUnchanged = document.text === text;
-  const hasMultiplayerState = !!document.state;
-
-  if (isUnchanged && hasMultiplayerState) {
-    return;
+  if (title !== undefined) {
+    document.title = title;
   }
-
-  // extract collaborators from doc user data
-  const pud = new Y.PermanentUserData(ydoc);
-  const pudIds = Array.from(pud.clients.values());
-  const existingIds = document.collaboratorIds;
-  const collaboratorIds = uniq([...pudIds, ...existingIds]);
-
-  await Document.scope(["withDrafts", "withState"]).update(
-    {
-      text,
-      state: Buffer.from(state),
-      updatedAt: isUnchanged ? document.updatedAt : new Date(),
-      lastModifiedById:
-        isUnchanged || !userId ? document.lastModifiedById : userId,
-      collaboratorIds,
-    },
-    {
-      silent: true,
-      hooks: false,
-      where: {
-        id: documentId,
-      },
+  if (editorVersion) {
+    document.editorVersion = editorVersion;
+  }
+  if (templateId) {
+    document.templateId = templateId;
+  }
+  if (fullWidth !== undefined) {
+    document.fullWidth = fullWidth;
+  }
+  if (!user.team?.collaborativeEditing) {
+    if (append) {
+      document.text += text;
+    } else if (text !== undefined) {
+      document.text = text;
     }
-  );
-
-  if (isUnchanged) {
-    return;
   }
 
-  await Event.schedule({
-    name: "documents.update",
-    documentId: document.id,
-    collectionId: document.collectionId,
-    teamId: document.teamId,
-    actorId: userId,
-    data: {
-      multiplayer: true,
-      title: document.title,
-    },
-  });
+  document.lastModifiedById = user.id;
+  const changed = document.changed();
+
+  if (publish) {
+    await document.publish(user.id, { transaction });
+  } else {
+    await document.save({ transaction });
+  }
+
+  if (publish) {
+    await Event.create(
+      {
+        name: "documents.publish",
+        documentId: document.id,
+        collectionId: document.collectionId,
+        teamId: document.teamId,
+        actorId: user.id,
+        data: {
+          title: document.title,
+        },
+        ip,
+      },
+      { transaction }
+    );
+  } else if (changed) {
+    await Event.create(
+      {
+        name: "documents.update",
+        documentId: document.id,
+        collectionId: document.collectionId,
+        teamId: document.teamId,
+        actorId: user.id,
+        data: {
+          title: document.title,
+        },
+        ip,
+      },
+      { transaction }
+    );
+  }
+
+  if (document.title !== previousTitle) {
+    Event.schedule({
+      name: "documents.title_change",
+      documentId: document.id,
+      collectionId: document.collectionId,
+      teamId: document.teamId,
+      actorId: user.id,
+      data: {
+        previousTitle,
+        title: document.title,
+      },
+      ip,
+    });
+  }
+
+  return document;
 }

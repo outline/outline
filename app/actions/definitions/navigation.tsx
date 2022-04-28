@@ -91,6 +91,8 @@ export const navigateToSettings = createAction({
   section: NavigationSection,
   shortcut: ["g", "s"],
   icon: <SettingsIcon />,
+  visible: ({ stores }) =>
+    stores.policies.abilities(stores.auth.team?.id || "").update,
   perform: () => history.push(organizationSettingsPath()),
 });
 

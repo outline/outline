@@ -104,17 +104,6 @@ export type RevisionEvent = {
   teamId: string;
 };
 
-export type CollectionImportEvent = {
-  name: "collections.import";
-  modelId: string;
-  teamId: string;
-  actorId: string;
-  data: {
-    type: "outline";
-  };
-  ip: string;
-};
-
 export type CollectionExportEvent = {
   name: "collections.export";
   teamId: string;
@@ -268,7 +257,6 @@ export type Event =
   | PinEvent
   | StarEvent
   | CollectionEvent
-  | CollectionImportEvent
   | CollectionExportAllEvent
   | FileOperationEvent
   | IntegrationEvent

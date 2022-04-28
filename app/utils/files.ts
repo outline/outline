@@ -1,6 +1,6 @@
-import * as Sentry from "@sentry/react";
 import invariant from "invariant";
 import { client } from "./ApiClient";
+import Logger from "./logger";
 
 type UploadOptions = {
   /** The user facing name of the file */
@@ -45,7 +45,6 @@ export const uploadFile = async (
   }
 
   // Using XMLHttpRequest instead of fetch because fetch doesn't support progress
-  let error;
   const xhr = new XMLHttpRequest();
   const success = await new Promise((resolve) => {
     xhr.upload.addEventListener("progress", (event) => {
@@ -53,7 +52,12 @@ export const uploadFile = async (
         options.onProgress(event.loaded / event.total);
       }
     });
-    xhr.addEventListener("error", (err) => (error = err));
+    xhr.addEventListener("error", () => {
+      Logger.error(
+        "File upload failed",
+        new Error(`${xhr.status} ${xhr.statusText}`)
+      );
+    });
     xhr.addEventListener("loadend", () => {
       resolve(xhr.readyState === 4 && xhr.status >= 200 && xhr.status < 400);
     });
@@ -62,7 +66,6 @@ export const uploadFile = async (
   });
 
   if (!success) {
-    Sentry.captureException(error);
     throw new Error("Upload failed");
   }
 

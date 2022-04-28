@@ -1,6 +1,7 @@
 import * as React from "react";
 import { Primitive } from "utility-types";
 import Storage from "~/utils/Storage";
+import Logger from "~/utils/logger";
 import useEventListener from "./useEventListener";
 
 /**
@@ -32,7 +33,7 @@ export default function usePersistedState(
       Storage.set(key, valueToStore);
     } catch (error) {
       // A more advanced implementation would handle the error case
-      console.log(error);
+      Logger.debug("misc", "Failed to persist state", { error });
     }
   };
 
