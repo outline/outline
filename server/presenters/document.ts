@@ -1,4 +1,5 @@
 import { escapeRegExp } from "lodash";
+import { APM } from "@server/logging/tracing";
 import { Document } from "@server/models";
 import Attachment from "@server/models/Attachment";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
@@ -29,7 +30,7 @@ async function replaceImageAttachments(text: string) {
   return text;
 }
 
-export default async function present(
+async function present(
   document: Document,
   options: Options | null | undefined = {}
 ) {
@@ -81,3 +82,8 @@ export default async function present(
 
   return data;
 }
+
+export default APM.traceFunction({
+  serviceName: "presenter",
+  spanName: "document",
+})(present);
