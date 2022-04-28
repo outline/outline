@@ -27,6 +27,7 @@ import { publicS3Endpoint, uploadToS3FromUrl } from "@server/utils/s3";
 import AuthenticationProvider from "./AuthenticationProvider";
 import Collection from "./Collection";
 import Document from "./Document";
+import TeamDomain from "./TeamDomain";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
@@ -145,10 +146,7 @@ class Team extends ParanoidModel {
   }
 
   get allowedDomains(): string[] {
-    // GOOGLE_ALLOWED_DOMAINS included here for backwards compatability
-    const env =
-      process.env.ALLOWED_DOMAINS || process.env.GOOGLE_ALLOWED_DOMAINS;
-    return env ? env.split(",") : [];
+    return (this.teamDomains || []).map((teamDomain) => teamDomain.name);
   }
 
   // TODO: Move to command
@@ -265,8 +263,10 @@ class Team extends ParanoidModel {
   @HasMany(() => AuthenticationProvider)
   authenticationProviders: AuthenticationProvider[];
 
-  // hooks
+  @HasMany(() => TeamDomain)
+  teamDomains: TeamDomain[];
 
+  // hooks
   @BeforeSave
   static uploadAvatar = async (model: Team) => {
     const endpoint = publicS3Endpoint();

@@ -9,7 +9,6 @@ import {
   AuthenticationError,
 } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
-import { isDomainAllowed } from "@server/utils/authentication";
 import { StateStore, request } from "@server/utils/passport";
 
 const router = new Router();
@@ -63,10 +62,12 @@ if (OIDC_CLIENT_ID) {
       // Any claim supplied in response to the userinfo request will be
       // available on the `profile` parameter
       async function (
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         req: any,
         accessToken: string,
         refreshToken: string,
         profile: Record<string, string>,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         done: any
       ) {
         try {
@@ -81,12 +82,6 @@ if (OIDC_CLIENT_ID) {
 
           if (!domain) {
             throw OIDCMalformedUserInfoError();
-          }
-
-          if (!isDomainAllowed(domain)) {
-            throw AuthenticationError(
-              `Domain ${domain} is not on the whitelist`
-            );
           }
 
           const subdomain = domain.split(".")[0];

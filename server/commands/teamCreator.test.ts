@@ -1,3 +1,4 @@
+import TeamDomain from "@server/models/TeamDomain";
 import { buildTeam } from "@server/test/factories";
 import { flushdb } from "@server/test/support";
 import teamCreator from "./teamCreator";
@@ -48,6 +49,10 @@ describe("teamCreator", () => {
   it("should return existing team when within allowed domains", async () => {
     delete process.env.DEPLOYMENT;
     const existing = await buildTeam();
+    await TeamDomain.create({
+      teamId: existing.id,
+      name: "allowed-domain.com",
+    });
     const result = await teamCreator({
       name: "Updated name",
       subdomain: "example",
@@ -65,6 +70,32 @@ describe("teamCreator", () => {
     expect(isNewTeam).toEqual(false);
     const providers = await team.$get("authenticationProviders");
     expect(providers.length).toEqual(2);
+  });
+
+  it("should error when NOT within allowed domains", async () => {
+    delete process.env.DEPLOYMENT;
+    const existing = await buildTeam();
+    await TeamDomain.create({
+      teamId: existing.id,
+      name: "other-domain.com",
+    });
+
+    let error;
+    try {
+      await teamCreator({
+        name: "Updated name",
+        subdomain: "example",
+        domain: "allowed-domain.com",
+        authenticationProvider: {
+          name: "google",
+          providerId: "allowed-domain.com",
+        },
+      });
+    } catch (err) {
+      error = err;
+    }
+
+    expect(error).toBeTruthy();
   });
 
   it("should return exising team", async () => {
