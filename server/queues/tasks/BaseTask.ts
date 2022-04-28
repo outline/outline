@@ -1,4 +1,4 @@
-import { JobOptions } from "bull";
+import { Job, JobOptions } from "bull";
 import { taskQueue } from "../";
 
 export enum TaskPriority {
@@ -15,15 +15,16 @@ export default abstract class BaseTask<T> {
    * @param props Properties to be used by the task
    * @returns A promise that resolves once the job is placed on the task queue
    */
-  public static schedule<T>(props?: T) {
+  public static schedule<T>(props?: T, options?: JobOptions): Promise<Job> {
     // @ts-expect-error cannot create an instance of an abstract class, we wont
     const task = new this();
+
     return taskQueue.add(
       {
         name: this.name,
         props,
       },
-      task.options
+      { ...options, ...task.options }
     );
   }
 
