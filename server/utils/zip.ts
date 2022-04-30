@@ -1,13 +1,14 @@
 import fs from "fs";
 import path from "path";
 import JSZip, { JSZipObject } from "jszip";
+import { find } from "lodash";
 import tmp from "tmp";
 import Logger from "@server/logging/logger";
 import Attachment from "@server/models/Attachment";
 import Collection from "@server/models/Collection";
 import Document from "@server/models/Document";
 import { NavigationNode } from "~/types";
-import { serializeFilename } from "./fs";
+import { deserializeFilename, serializeFilename } from "./fs";
 import parseAttachmentIds from "./parseAttachmentIds";
 import { getFileByKey } from "./s3";
 
@@ -163,7 +164,7 @@ export async function archiveCollections(collections: Collection[]) {
 
   for (const collection of collections) {
     if (collection.documentStructure) {
-      const folder = zip.folder(collection.name);
+      const folder = zip.folder(serializeFilename(collection.name));
 
       if (folder) {
         await addDocumentTreeToArchive(folder, collection.documentStructure);
@@ -174,77 +175,65 @@ export async function archiveCollections(collections: Collection[]) {
   return archiveToPath(zip);
 }
 
-export async function parseOutlineExport(
-  input: File | Buffer
-): Promise<Item[]> {
-  const zip = await JSZip.loadAsync(input);
-  // this is so we can use async / await a little easier
-  const items: Item[] = [];
+export type FileTreeNode = {
+  /** The title, extracted from the file name */
+  title: string;
+  /** The file name including extension */
+  name: string;
+  /** The full path to within the zip file */
+  path: string;
+  /** The nested children */
+  children: FileTreeNode[];
+};
 
-  for (const rawPath in zip.files) {
-    const item = zip.files[rawPath];
+/**
+ * Converts the flat structure returned by JSZIP into a nested file structure
+ * for easier processing.
+ *
+ * @param paths An array of paths to files in the zip
+ * @returns
+ */
+export function zipAsFileTree(zip: JSZip) {
+  const paths = Object.keys(zip.files).map((filePath) => `/${filePath}`);
+  const tree: FileTreeNode[] = [];
 
-    if (!item) {
-      throw new Error(
-        `No item at ${rawPath} in zip file. This zip file might be corrupt.`
-      );
+  paths.forEach(function (filePath) {
+    if (filePath.startsWith("/__MACOSX")) {
+      return;
     }
 
-    const itemPath = rawPath.replace(/\/$/, "");
-    const dir = path.dirname(itemPath);
-    const name = path.basename(item.name);
-    const depth = itemPath.split("/").length - 1;
+    const pathParts = filePath.split("/");
 
-    // known skippable items
-    if (itemPath.startsWith("__MACOSX") || itemPath.endsWith(".DS_Store")) {
-      continue;
-    }
+    // Remove first blank element from the parts array.
+    pathParts.shift();
 
-    // attempt to parse extra metadata from zip comment
-    let metadata = {};
+    let currentLevel = tree; // initialize currentLevel to root
 
-    try {
-      metadata = item.comment ? JSON.parse(item.comment) : {};
-    } catch (err) {
-      console.log(
-        `ZIP comment found for ${item.name}, but could not be parsed as metadata: ${item.comment}`
-      );
-    }
+    pathParts.forEach(function (name) {
+      // check to see if the path already exists.
+      const existingPath = find(currentLevel, {
+        name,
+      });
 
-    if (depth === 0 && !item.dir) {
-      throw new Error(
-        "Root of zip file must only contain folders representing collections"
-      );
-    }
+      if (existingPath) {
+        // The path to this item was already in the tree, so don't add again.
+        // Set the current level to this path's children
+        currentLevel = existingPath.children;
+      } else if (name.endsWith(".DS_Store") || !name) {
+        return;
+      } else {
+        const newPart = {
+          name,
+          path: filePath.replace(/^\//, ""),
+          title: deserializeFilename(path.parse(path.basename(name)).name),
+          children: [],
+        };
 
-    let type: ItemType | undefined;
-
-    if (depth === 0 && item.dir && name) {
-      type = "collection";
-    }
-
-    if (depth > 0 && !item.dir && item.name.endsWith(".md")) {
-      type = "document";
-    }
-
-    if (depth > 0 && !item.dir && itemPath.includes("uploads")) {
-      type = "attachment";
-    }
-
-    if (!type) {
-      continue;
-    }
-
-    items.push({
-      path: itemPath,
-      dir,
-      name,
-      depth,
-      type,
-      metadata,
-      item,
+        currentLevel.push(newPart);
+        currentLevel = newPart.children;
+      }
     });
-  }
+  });
 
-  return items;
+  return tree;
 }

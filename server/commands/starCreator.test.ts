@@ -1,3 +1,4 @@
+import { sequelize } from "@server/database/sequelize";
 import { Star, Event } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
 import { flushdb } from "@server/test/support";
@@ -14,11 +15,14 @@ describe("starCreator", () => {
       teamId: user.teamId,
     });
 
-    const star = await starCreator({
-      documentId: document.id,
-      user,
-      ip,
-    });
+    const star = await sequelize.transaction(async (transaction) =>
+      starCreator({
+        documentId: document.id,
+        user,
+        ip,
+        transaction,
+      })
+    );
 
     const event = await Event.findOne();
     expect(star.documentId).toEqual(document.id);
@@ -43,11 +47,14 @@ describe("starCreator", () => {
       index: "P",
     });
 
-    const star = await starCreator({
-      documentId: document.id,
-      user,
-      ip,
-    });
+    const star = await sequelize.transaction(async (transaction) =>
+      starCreator({
+        documentId: document.id,
+        user,
+        ip,
+        transaction,
+      })
+    );
 
     const events = await Event.count();
     expect(star.documentId).toEqual(document.id);

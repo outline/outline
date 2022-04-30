@@ -30,15 +30,17 @@ import powershell from "refractor/lang/powershell";
 import python from "refractor/lang/python";
 import ruby from "refractor/lang/ruby";
 import rust from "refractor/lang/rust";
+import solidity from "refractor/lang/solidity";
 import sql from "refractor/lang/sql";
 import typescript from "refractor/lang/typescript";
 import yaml from "refractor/lang/yaml";
+import { Dictionary } from "~/hooks/useDictionary";
 
 import toggleBlockType from "../commands/toggleBlockType";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import Prism, { LANGUAGES } from "../plugins/Prism";
 import isInCode from "../queries/isInCode";
-import { ToastType } from "../types";
+import { Dispatch } from "../types";
 import Node from "./Node";
 
 const PERSISTENCE_KEY = "rme-code-language";
@@ -62,11 +64,19 @@ const DEFAULT_LANGUAGE = "javascript";
   ruby,
   rust,
   sql,
+  solidity,
   typescript,
   yaml,
 ].forEach(refractor.register);
 
 export default class CodeFence extends Node {
+  constructor(options: {
+    dictionary: Dictionary;
+    onShowToast: (message: string) => void;
+  }) {
+    super(options);
+  }
+
   get languageOptions() {
     return Object.entries(LANGUAGES);
   }
@@ -146,10 +156,7 @@ export default class CodeFence extends Node {
   keys({ type, schema }: { type: NodeType; schema: Schema }) {
     return {
       "Shift-Ctrl-\\": toggleBlockType(type, schema.nodes.paragraph),
-      "Shift-Enter": (
-        state: EditorState,
-        dispatch: (tr: Transaction) => void
-      ) => {
+      "Shift-Enter": (state: EditorState, dispatch: Dispatch) => {
         if (!isInCode(state)) {
           return false;
         }
@@ -172,7 +179,7 @@ export default class CodeFence extends Node {
         dispatch(tr.insertText(newText, selection.from, selection.to));
         return true;
       },
-      Tab: (state: EditorState, dispatch: (tr: Transaction) => void) => {
+      Tab: (state: EditorState, dispatch: Dispatch) => {
         if (!isInCode(state)) {
           return false;
         }
@@ -197,10 +204,7 @@ export default class CodeFence extends Node {
       const node = view.state.doc.nodeAt(result.pos);
       if (node) {
         copy(node.textContent);
-        this.options.onShowToast(
-          this.options.dictionary.codeCopied,
-          ToastType.Info
-        );
+        this.options.onShowToast(this.options.dictionary.codeCopied);
       }
     }
   };

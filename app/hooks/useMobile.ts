@@ -1,6 +1,6 @@
-import { base } from "@shared/theme";
+import { breakpoints } from "@shared/styles";
 import useMediaQuery from "~/hooks/useMediaQuery";
 
 export default function useMobile(): boolean {
-  return useMediaQuery(`(max-width: ${base.breakpoints.tablet - 1}px)`);
+  return useMediaQuery(`(max-width: ${breakpoints.tablet - 1}px)`);
 }

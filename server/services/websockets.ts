@@ -9,8 +9,8 @@ import Metrics from "@server/logging/metrics";
 import { Document, Collection, View } from "@server/models";
 import { can } from "@server/policies";
 import { getUserForJWT } from "@server/utils/jwt";
-import { websocketsQueue } from "../queues";
-import WebsocketsProcessor from "../queues/processors/websockets";
+import { websocketQueue } from "../queues";
+import WebsocketsProcessor from "../queues/processors/WebsocketsProcessor";
 import { client, subscriber } from "../redis";
 
 export default function init(app: Koa, server: http.Server) {
@@ -247,9 +247,9 @@ export default function init(app: Koa, server: http.Server) {
 
   // Handle events from event queue that should be sent to the clients down ws
   const websockets = new WebsocketsProcessor();
-  websocketsQueue.process(async function websocketEventsProcessor(job) {
+  websocketQueue.process(async function websocketEventsProcessor(job) {
     const event = job.data;
-    websockets.on(event, io).catch((error) => {
+    websockets.perform(event, io).catch((error) => {
       Logger.error("Error processing websocket event", error, {
         event,
       });

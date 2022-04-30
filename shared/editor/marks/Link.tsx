@@ -9,15 +9,24 @@ import {
   Node,
   Mark as ProsemirrorMark,
 } from "prosemirror-model";
-import { Transaction, EditorState, Plugin } from "prosemirror-state";
+import { EditorState, Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import * as React from "react";
 import ReactDOM from "react-dom";
-import { isInternalUrl } from "../../utils/urls";
+import { isExternalUrl } from "../../utils/urls";
 import findLinkNodes from "../queries/findLinkNodes";
+import { EventType, Dispatch } from "../types";
 import Mark from "./Mark";
 
 const LINK_INPUT_REGEX = /\[([^[]+)]\((\S+)\)$/;
+let icon: HTMLSpanElement;
+
+if (typeof window !== "undefined") {
+  const component = <OpenIcon color="currentColor" size={16} />;
+  icon = document.createElement("span");
+  icon.className = "external-link";
+  ReactDOM.render(component, icon);
+}
 
 function isPlainURL(
   link: ProsemirrorMark,
@@ -103,9 +112,9 @@ export default class Link extends Mark {
 
   keys({ type }: { type: MarkType }) {
     return {
-      "Mod-k": (state: EditorState, dispatch: (tr: Transaction) => void) => {
+      "Mod-k": (state: EditorState, dispatch: Dispatch) => {
         if (state.selection.empty) {
-          this.options.onKeyboardShortcut();
+          this.editor.events.emit(EventType.linkMenuOpen);
           return true;
         }
 
@@ -115,45 +124,40 @@ export default class Link extends Mark {
   }
 
   get plugins() {
-    const getLinkDecorations = (doc: Node) => {
+    const getLinkDecorations = (state: EditorState) => {
       const decorations: Decoration[] = [];
-      const links = findLinkNodes(doc);
+      const links = findLinkNodes(state.doc);
 
       links.forEach((nodeWithPos) => {
         const linkMark = nodeWithPos.node.marks.find(
           (mark) => mark.type.name === "link"
         );
-        if (linkMark && !isInternalUrl(linkMark.attrs.href)) {
+        if (linkMark && isExternalUrl(linkMark.attrs.href)) {
           decorations.push(
             Decoration.widget(
               // place the decoration at the end of the link
               nodeWithPos.pos + nodeWithPos.node.nodeSize,
-              () => {
-                const component = <OpenIcon color="currentColor" size={16} />;
-                const icon = document.createElement("span");
-                icon.className = "external-link";
-                ReactDOM.render(component, icon);
-                return icon;
-              },
+              () => icon.cloneNode(true),
               {
                 // position on the right side of the position
                 side: 1,
+                key: "external-link",
               }
             )
           );
         }
       });
 
-      return DecorationSet.create(doc, decorations);
+      return DecorationSet.create(state.doc, decorations);
     };
 
     const plugin: Plugin = new Plugin({
       state: {
         init: (config, state) => {
-          return getLinkDecorations(state.doc);
+          return getLinkDecorations(state);
         },
-        apply: (tr, oldState) => {
-          return tr.docChanged ? getLinkDecorations(tr.doc) : oldState;
+        apply: (tr, decorationSet, _oldState, newState) => {
+          return tr.docChanged ? getLinkDecorations(newState) : decorationSet;
         },
       },
       props: {

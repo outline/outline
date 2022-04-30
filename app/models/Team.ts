@@ -21,6 +21,10 @@ class Team extends BaseModel {
 
   @Field
   @observable
+  inviteRequired: boolean;
+
+  @Field
+  @observable
   collaborativeEditing: boolean;
 
   @Field
@@ -30,6 +34,10 @@ class Team extends BaseModel {
   @Field
   @observable
   defaultCollectionId: string | null;
+
+  @Field
+  @observable
+  memberCollectionCreate: boolean;
 
   @Field
   @observable

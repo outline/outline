@@ -16,7 +16,7 @@ import * as React from "react";
 import {
   developersUrl,
   changelogUrl,
-  mailToUrl,
+  feedbackUrl,
   githubIssuesUrl,
 } from "@shared/utils/urlHelpers";
 import stores from "~/stores";
@@ -91,6 +91,8 @@ export const navigateToSettings = createAction({
   section: NavigationSection,
   shortcut: ["g", "s"],
   icon: <SettingsIcon />,
+  visible: ({ stores }) =>
+    stores.policies.abilities(stores.auth.team?.id || "").update,
   perform: () => history.push(organizationSettingsPath()),
 });
 
@@ -115,7 +117,7 @@ export const openFeedbackUrl = createAction({
   section: NavigationSection,
   iconInContextMenu: false,
   icon: <EmailIcon />,
-  perform: () => window.open(mailToUrl()),
+  perform: () => window.open(feedbackUrl()),
 });
 
 export const openBugReportUrl = createAction({

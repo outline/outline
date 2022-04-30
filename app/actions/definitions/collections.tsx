@@ -1,4 +1,10 @@
-import { CollectionIcon, EditIcon, PlusIcon } from "outline-icons";
+import {
+  CollectionIcon,
+  EditIcon,
+  PlusIcon,
+  StarredIcon,
+  UnstarredIcon,
+} from "outline-icons";
 import * as React from "react";
 import stores from "~/stores";
 import Collection from "~/models/Collection";
@@ -73,4 +79,59 @@ export const editCollection = createAction({
   },
 });
 
-export const rootCollectionActions = [openCollection, createCollection];
+export const starCollection = createAction({
+  name: ({ t }) => t("Star"),
+  section: CollectionSection,
+  icon: <StarredIcon />,
+  keywords: "favorite bookmark",
+  visible: ({ activeCollectionId, stores }) => {
+    if (!activeCollectionId) {
+      return false;
+    }
+    const collection = stores.collections.get(activeCollectionId);
+    return (
+      !collection?.isStarred &&
+      stores.policies.abilities(activeCollectionId).star
+    );
+  },
+  perform: ({ activeCollectionId, stores }) => {
+    if (!activeCollectionId) {
+      return;
+    }
+
+    const collection = stores.collections.get(activeCollectionId);
+    collection?.star();
+  },
+});
+
+export const unstarCollection = createAction({
+  name: ({ t }) => t("Unstar"),
+  section: CollectionSection,
+  icon: <UnstarredIcon />,
+  keywords: "unfavorite unbookmark",
+  visible: ({ activeCollectionId, stores }) => {
+    if (!activeCollectionId) {
+      return false;
+    }
+    const collection = stores.collections.get(activeCollectionId);
+    return (
+      !!collection?.isStarred &&
+      stores.policies.abilities(activeCollectionId).unstar
+    );
+  },
+  perform: ({ activeCollectionId, stores }) => {
+    if (!activeCollectionId) {
+      return;
+    }
+
+    const collection = stores.collections.get(activeCollectionId);
+    collection?.unstar();
+  },
+});
+
+export const rootCollectionActions = [
+  openCollection,
+  createCollection,
+  starCollection,
+  unstarCollection,
+];

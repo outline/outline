@@ -1,9 +1,10 @@
 import retry from "fetch-retry";
 import invariant from "invariant";
-import { map, trim } from "lodash";
+import { trim } from "lodash";
+import queryString from "query-string";
 import EDITOR_VERSION from "@shared/editor/version";
 import stores from "~/stores";
-import env from "~/env";
+import isHosted from "~/utils/isHosted";
 import download from "./download";
 import {
   AuthorizationError,
@@ -20,8 +21,11 @@ type Options = {
   baseUrl?: string;
 };
 
+type FetchOptions = {
+  download?: boolean;
+};
+
 const fetchWithRetry = retry(fetch);
-const isHosted = env.DEPLOYMENT === "hosted";
 
 class ApiClient {
   baseUrl: string;
@@ -34,7 +38,7 @@ class ApiClient {
     path: string,
     method: string,
     data: Record<string, any> | FormData | undefined,
-    options: Record<string, any> = {}
+    options: FetchOptions = {}
   ) => {
     let body: string | FormData | undefined;
     let modifiedPath;
@@ -43,7 +47,7 @@ class ApiClient {
 
     if (method === "GET") {
       if (data) {
-        modifiedPath = `${path}?${data && this.constructQueryString(data)}`;
+        modifiedPath = `${path}?${data && queryString.stringify(data)}`;
       } else {
         modifiedPath = path;
       }
@@ -70,7 +74,7 @@ class ApiClient {
       urlToFetch = this.baseUrl + (modifiedPath || path);
     }
 
-    const headerOptions: any = {
+    const headerOptions: Record<string, string> = {
       Accept: "application/json",
       "cache-control": "no-cache",
       "x-editor-version": EDITOR_VERSION,
@@ -182,13 +186,13 @@ class ApiClient {
       throw new ServiceUnavailableError(error.message);
     }
 
-    throw new RequestError(error.message);
+    throw new RequestError(`Error ${error.statusCode}: ${error.message}`);
   };
 
   get = (
     path: string,
     data: Record<string, any> | undefined,
-    options?: Record<string, any>
+    options?: FetchOptions
   ) => {
     return this.fetch(path, "GET", data, options);
   };
@@ -196,16 +200,9 @@ class ApiClient {
   post = (
     path: string,
     data?: Record<string, any> | undefined,
-    options?: Record<string, any>
+    options?: FetchOptions
   ) => {
     return this.fetch(path, "POST", data, options);
-  };
-
-  private constructQueryString = (data: Record<string, any>) => {
-    return map(
-      data,
-      (v, k) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`
-    ).join("&");
   };
 }
 

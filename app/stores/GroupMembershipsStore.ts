@@ -15,18 +15,22 @@ export default class GroupMembershipsStore extends BaseStore<GroupMembership> {
   }
 
   @action
-  fetchPage = async (params: PaginationParams | undefined): Promise<any> => {
+  fetchPage = async (
+    params: PaginationParams | undefined
+  ): Promise<GroupMembership[]> => {
     this.isFetching = true;
 
     try {
       const res = await client.post(`/groups.memberships`, params);
-      invariant(res && res.data, "Data not available");
+      invariant(res?.data, "Data not available");
+
+      let models: GroupMembership[] = [];
       runInAction(`GroupMembershipsStore#fetchPage`, () => {
         res.data.users.forEach(this.rootStore.users.add);
-        res.data.groupMemberships.forEach(this.add);
+        models = res.data.groupMemberships.map(this.add);
         this.isLoaded = true;
       });
-      return res.data.users;
+      return models;
     } finally {
       this.isFetching = false;
     }
@@ -38,7 +42,7 @@ export default class GroupMembershipsStore extends BaseStore<GroupMembership> {
       id: groupId,
       userId,
     });
-    invariant(res && res.data, "Group Membership data should be available");
+    invariant(res?.data, "Group Membership data should be available");
     res.data.users.forEach(this.rootStore.users.add);
     res.data.groups.forEach(this.rootStore.groups.add);
 
@@ -52,7 +56,7 @@ export default class GroupMembershipsStore extends BaseStore<GroupMembership> {
       id: groupId,
       userId,
     });
-    invariant(res && res.data, "Group Membership data should be available");
+    invariant(res?.data, "Group Membership data should be available");
     this.remove(`${userId}-${groupId}`);
     runInAction(`GroupMembershipsStore#delete`, () => {
       res.data.groups.forEach(this.rootStore.groups.add);

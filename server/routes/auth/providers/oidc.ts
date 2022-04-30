@@ -76,7 +76,7 @@ if (OIDC_CLIENT_ID) {
             );
           }
 
-          const parts = profile.email.split("@");
+          const parts = profile.email.toLowerCase().split("@");
           const domain = parts.length && parts[1];
 
           if (!domain) {

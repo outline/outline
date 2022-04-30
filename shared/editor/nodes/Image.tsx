@@ -7,16 +7,16 @@ import {
   TextSelection,
   NodeSelection,
   EditorState,
-  Transaction,
 } from "prosemirror-state";
 import * as React from "react";
 import ImageZoom from "react-medium-image-zoom";
 import styled from "styled-components";
+import { supportedImageMimeTypes } from "../../utils/files";
 import getDataTransferFiles from "../../utils/getDataTransferFiles";
 import insertFiles, { Options } from "../commands/insertFiles";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import uploadPlaceholderPlugin from "../lib/uploadPlaceholder";
-import { ComponentProps } from "../types";
+import { ComponentProps, Dispatch } from "../types";
 import Node from "./Node";
 
 /**
@@ -366,17 +366,11 @@ export default class Image extends Node {
 
         return true;
       },
-      deleteImage: () => (
-        state: EditorState,
-        dispatch: (tr: Transaction) => void
-      ) => {
+      deleteImage: () => (state: EditorState, dispatch: Dispatch) => {
         dispatch(state.tr.deleteSelection());
         return true;
       },
-      alignRight: () => (
-        state: EditorState,
-        dispatch: (tr: Transaction) => void
-      ) => {
+      alignRight: () => (state: EditorState, dispatch: Dispatch) => {
         if (!(state.selection instanceof NodeSelection)) {
           return false;
         }
@@ -389,10 +383,7 @@ export default class Image extends Node {
         dispatch(state.tr.setNodeMarkup(selection.from, undefined, attrs));
         return true;
       },
-      alignLeft: () => (
-        state: EditorState,
-        dispatch: (tr: Transaction) => void
-      ) => {
+      alignLeft: () => (state: EditorState, dispatch: Dispatch) => {
         if (!(state.selection instanceof NodeSelection)) {
           return false;
         }
@@ -421,7 +412,7 @@ export default class Image extends Node {
         // create an input element and click to trigger picker
         const inputElement = document.createElement("input");
         inputElement.type = "file";
-        inputElement.accept = "image/*";
+        inputElement.accept = supportedImageMimeTypes.join(", ");
         inputElement.onchange = (event: Event) => {
           const files = getDataTransferFiles(event);
           insertFiles(view, event, state.selection.from, files, {
@@ -436,10 +427,7 @@ export default class Image extends Node {
         inputElement.click();
         return true;
       },
-      alignCenter: () => (
-        state: EditorState,
-        dispatch: (tr: Transaction) => void
-      ) => {
+      alignCenter: () => (state: EditorState, dispatch: Dispatch) => {
         if (!(state.selection instanceof NodeSelection)) {
           return false;
         }
@@ -450,7 +438,7 @@ export default class Image extends Node {
       },
       createImage: (attrs: Record<string, any>) => (
         state: EditorState,
-        dispatch: (tr: Transaction) => void
+        dispatch: Dispatch
       ) => {
         const { selection } = state;
         const position =

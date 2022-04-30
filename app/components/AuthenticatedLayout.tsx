@@ -34,10 +34,7 @@ const CommandBar = React.lazy(
     )
 );
 
-type Props = WithTranslation &
-  RootStore & {
-    children?: React.ReactNode;
-  };
+type Props = WithTranslation & RootStore;
 
 @observer
 class AuthenticatedLayout extends React.Component<Props> {
@@ -54,7 +51,11 @@ class AuthenticatedLayout extends React.Component<Props> {
     }
   };
 
-  goToNewDocument = () => {
+  goToNewDocument = (event: KeyboardEvent) => {
+    if (event.metaKey || event.altKey) {
+      return;
+    }
+
     const { activeCollectionId } = this.props.ui;
     if (!activeCollectionId) {
       return;

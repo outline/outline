@@ -1,6 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
+import { depths } from "@shared/styles";
 import Toast from "~/components/Toast";
 import useStores from "~/hooks/useStores";
 import { Toast as TToast } from "~/types";
@@ -27,7 +28,7 @@ const List = styled.ol`
   list-style: none;
   margin: 0;
   padding: 0;
-  z-index: ${(props) => props.theme.depths.toasts};
+  z-index: ${depths.toasts};
 `;
 
 export default observer(Toasts);

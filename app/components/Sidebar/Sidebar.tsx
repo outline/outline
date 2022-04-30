@@ -5,6 +5,7 @@ import { Portal } from "react-portal";
 import { useLocation } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { depths } from "@shared/styles";
 import Flex from "~/components/Flex";
 import useMenuContext from "~/hooks/useMenuContext";
 import usePrevious from "~/hooks/usePrevious";
@@ -13,7 +14,7 @@ import AccountMenu from "~/menus/AccountMenu";
 import { fadeIn } from "~/styles/animations";
 import Avatar from "../Avatar";
 import ResizeBorder from "./components/ResizeBorder";
-import SidebarButton from "./components/SidebarButton";
+import SidebarButton, { SidebarButtonProps } from "./components/SidebarButton";
 import Toggle, { ToggleButton, Positioner } from "./components/Toggle";
 
 const ANIMATION_MS = 250;
@@ -64,8 +65,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(
     const handleStopDrag = React.useCallback(() => {
       setResizing(false);
 
-      if (document.activeElement) {
-        // @ts-expect-error ts-migrate(2339) FIXME: Property 'blur' does not exist on type 'Element'.
+      if (document.activeElement instanceof HTMLElement) {
         document.activeElement.blur();
       }
 
@@ -170,13 +170,14 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(
 
           {user && (
             <AccountMenu>
-              {(props) => (
+              {(props: SidebarButtonProps) => (
                 <SidebarButton
                   {...props}
                   showMoreMenu
                   title={user.name}
                   image={
                     <StyledAvatar
+                      alt={user.name}
                       src={user.avatarUrl}
                       size={24}
                       showBorder={false}
@@ -223,16 +224,18 @@ const Backdrop = styled.a`
   bottom: 0;
   right: 0;
   cursor: default;
-  z-index: ${(props) => props.theme.depths.sidebar - 1};
+  z-index: ${depths.sidebar - 1};
   background: ${(props) => props.theme.backdrop};
 `;
 
-const Container = styled(Flex)<{
+type ContainerProps = {
   $mobileSidebarVisible: boolean;
   $isAnimating: boolean;
   $isSmallerThanMinimum: boolean;
   $collapsed: boolean;
-}>`
+};
+
+const Container = styled(Flex)<ContainerProps>`
   position: fixed;
   top: 0;
   bottom: 0;
@@ -240,12 +243,12 @@ const Container = styled(Flex)<{
   background: ${(props) => props.theme.sidebarBackground};
   transition: box-shadow 100ms ease-in-out, transform 100ms ease-out,
     ${(props) => props.theme.backgroundTransition}
-      ${(props: any) =>
+      ${(props: ContainerProps) =>
         props.$isAnimating ? `,width ${ANIMATION_MS}ms ease-out` : ""};
   transform: translateX(
     ${(props) => (props.$mobileSidebarVisible ? 0 : "-100%")}
   );
-  z-index: ${(props) => props.theme.depths.sidebar};
+  z-index: ${depths.sidebar};
   max-width: 70%;
   min-width: 280px;
 
@@ -261,13 +264,13 @@ const Container = styled(Flex)<{
   ${breakpoint("tablet")`
     margin: 0;
     min-width: 0;
-    transform: translateX(${(props: any) =>
+    transform: translateX(${(props: ContainerProps) =>
       props.$collapsed ? "calc(-100% + 16px)" : 0});
 
     &:hover,
     &:focus-within {
       transform: none;
-      box-shadow: ${(props: any) =>
+      box-shadow: ${(props: ContainerProps) =>
         props.$collapsed
           ? "rgba(0, 0, 0, 0.2) 1px 0 4px"
           : props.$isSmallerThanMinimum
@@ -284,7 +287,7 @@ const Container = styled(Flex)<{
     }
 
     &:not(:hover):not(:focus-within) > div {
-      opacity: ${(props: any) => (props.$collapsed ? "0" : "1")};
+      opacity: ${(props: ContainerProps) => (props.$collapsed ? "0" : "1")};
       transition: opacity 100ms ease-in-out;
     }
   `};

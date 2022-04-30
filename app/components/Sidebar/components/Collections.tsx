@@ -3,26 +3,25 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
-import styled from "styled-components";
 import Collection from "~/models/Collection";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import { createCollection } from "~/actions/definitions/collections";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
-import CollectionLink from "./CollectionLink";
+import DraggableCollectionLink from "./DraggableCollectionLink";
 import DropCursor from "./DropCursor";
 import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
+import Relative from "./Relative";
 import SidebarAction from "./SidebarAction";
 import { DragObject } from "./SidebarLink";
 
 function Collections() {
   const [isFetching, setFetching] = React.useState(false);
   const [fetchError, setFetchError] = React.useState();
-  const { policies, documents, collections } = useStores();
+  const { documents, collections } = useStores();
   const { showToast } = useToasts();
-  const [expanded, setExpanded] = React.useState(true);
   const isPreloaded = !!collections.orderedData.length;
   const { t } = useTranslation();
   const orderedCollections = collections.orderedData;
@@ -82,12 +81,11 @@ function Collections() {
         />
       )}
       {orderedCollections.map((collection: Collection, index: number) => (
-        <CollectionLink
+        <DraggableCollectionLink
           key={collection.id}
           collection={collection}
           activeDocument={documents.active}
           prefetchDocument={documents.prefetchDocument}
-          canUpdate={policies.abilities(collection.id).update}
           belowCollection={orderedCollections[index + 1]}
         />
       ))}
@@ -98,26 +96,20 @@ function Collections() {
   if (!collections.isLoaded || fetchError) {
     return (
       <Flex column>
-        <Header>{t("Collections")}</Header>
-        <PlaceholderCollections />
+        <Header id="collections" title={t("Collections")}>
+          <PlaceholderCollections />
+        </Header>
       </Flex>
     );
   }
 
   return (
     <Flex column>
-      <Header onClick={() => setExpanded((prev) => !prev)} expanded={expanded}>
-        {t("Collections")}
-      </Header>
-      {expanded && (
+      <Header id="collections" title={t("Collections")}>
         <Relative>{isPreloaded ? content : <Fade>{content}</Fade>}</Relative>
-      )}
+      </Header>
     </Flex>
   );
 }
-
-const Relative = styled.div`
-  position: relative;
-`;
 
 export default observer(Collections);

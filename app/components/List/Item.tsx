@@ -92,6 +92,7 @@ const Image = styled(Flex)`
   user-select: none;
   flex-shrink: 0;
   align-self: center;
+  color: ${(props) => props.theme.text};
 `;
 
 const Heading = styled.p<{ $small?: boolean }>`

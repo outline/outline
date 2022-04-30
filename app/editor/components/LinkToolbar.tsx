@@ -15,7 +15,7 @@ type Props = {
     href: string,
     event: React.MouseEvent<HTMLButtonElement>
   ) => void;
-  onShowToast: (msg: string, code: string) => void;
+  onShowToast: (message: string) => void;
   onClose: () => void;
 };
 
@@ -137,6 +137,7 @@ export default class LinkToolbar extends React.Component<Props> {
       <FloatingToolbar ref={this.menuRef} active={active} {...rest}>
         {active && (
           <LinkEditor
+            key={`${selection.from}-${selection.to}`}
             from={selection.from}
             to={selection.to}
             onCreateLink={onCreateLink ? this.handleOnCreateLink : undefined}

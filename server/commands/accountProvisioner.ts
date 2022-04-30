@@ -1,12 +1,12 @@
 import invariant from "invariant";
 import { UniqueConstraintError } from "sequelize";
+import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
 import {
   AuthenticationError,
   EmailAuthenticationRequiredError,
   AuthenticationProviderDisabledError,
 } from "@server/errors";
 import { APM } from "@server/logging/tracing";
-import mailer from "@server/mailer";
 import { Collection, Team, User } from "@server/models";
 import teamCreator from "./teamCreator";
 import userCreator from "./userCreator";
@@ -89,7 +89,7 @@ async function accountProvisioner({
     const { isNewUser, user } = result;
 
     if (isNewUser) {
-      await mailer.sendTemplate("welcome", {
+      await WelcomeEmail.schedule({
         to: user.email,
         teamUrl: team.url,
       });
@@ -144,4 +144,7 @@ async function accountProvisioner({
   }
 }
 
-export default APM.traceFunction({})(accountProvisioner);
+export default APM.traceFunction({
+  serviceName: "command",
+  spanName: "accountProvisioner",
+})(accountProvisioner);

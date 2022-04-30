@@ -6,7 +6,6 @@ const TeamLogo = styled.img<{ width?: number; height?: number; size?: string }>`
   height: ${(props) =>
     props.height ? `${props.height}px` : props.size || "38px"};
   border-radius: 4px;
-  background: white;
   border: 1px solid ${(props) => props.theme.divider};
   overflow: hidden;
   flex-shrink: 0;

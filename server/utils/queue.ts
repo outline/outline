@@ -4,7 +4,10 @@ import { snakeCase } from "lodash";
 import Metrics from "@server/logging/metrics";
 import { client, subscriber } from "../redis";
 
-export function createQueue(name: string) {
+export function createQueue(
+  name: string,
+  defaultJobOptions?: Partial<Queue.JobOptions>
+) {
   const prefix = `queue.${snakeCase(name)}`;
   const queue = new Queue(name, {
     createClient(type) {
@@ -23,6 +26,7 @@ export function createQueue(name: string) {
     defaultJobOptions: {
       removeOnComplete: true,
       removeOnFail: true,
+      ...defaultJobOptions,
     },
   });
   queue.on("stalled", () => {

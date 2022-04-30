@@ -16,6 +16,8 @@ import {
   InfoIcon,
   LinkIcon,
   AttachmentIcon,
+  ClockIcon,
+  CalendarIcon,
 } from "outline-icons";
 import { MenuItem } from "@shared/editor/types";
 import { Dictionary } from "~/hooks/useDictionary";
@@ -123,6 +125,24 @@ export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
       icon: PageBreakIcon,
       keywords: "page print break line",
       attrs: { markup: "***" },
+    },
+    {
+      name: "date",
+      title: dictionary.insertDate,
+      keywords: "clock",
+      icon: CalendarIcon,
+    },
+    {
+      name: "time",
+      title: dictionary.insertTime,
+      keywords: "clock",
+      icon: ClockIcon,
+    },
+    {
+      name: "datetime",
+      title: dictionary.insertDateTime,
+      keywords: "clock",
+      icon: CalendarIcon,
     },
     {
       name: "separator",

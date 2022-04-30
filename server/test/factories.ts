@@ -135,7 +135,8 @@ export async function buildUser(overrides: Partial<User> = {}) {
       name: `User ${count}`,
       username: `user${count}`,
       createdAt: new Date("2018-01-01T00:00:00.000Z"),
-      lastActiveAt: new Date("2018-01-01T00:00:00.000Z"),
+      updatedAt: new Date("2018-01-02T00:00:00.000Z"),
+      lastActiveAt: new Date("2018-01-03T00:00:00.000Z"),
       authentications: [
         {
           authenticationProviderId: authenticationProvider!.id,
@@ -160,12 +161,16 @@ export async function buildInvite(overrides: Partial<User> = {}) {
     overrides.teamId = team.id;
   }
 
+  const actor = await buildUser({ teamId: overrides.teamId });
+
   count++;
   return User.create({
     email: `user${count}@example.com`,
     name: `User ${count}`,
     createdAt: new Date("2018-01-01T00:00:00.000Z"),
+    invitedById: actor.id,
     ...overrides,
+    lastActiveAt: null,
   });
 }
 

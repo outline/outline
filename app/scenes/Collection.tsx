@@ -23,6 +23,7 @@ import PaginatedDocumentList from "~/components/PaginatedDocumentList";
 import PinnedDocuments from "~/components/PinnedDocuments";
 import PlaceholderText from "~/components/PlaceholderText";
 import Scene from "~/components/Scene";
+import Star, { AnimatedStar } from "~/components/Star";
 import Tab from "~/components/Tab";
 import Tabs from "~/components/Tabs";
 import Tooltip from "~/components/Tooltip";
@@ -54,15 +55,17 @@ function CollectionScene() {
       const canonicalUrl = updateCollectionUrl(match.url, collection);
 
       if (match.url !== canonicalUrl) {
-        history.replace(canonicalUrl);
+        history.replace(canonicalUrl, history.location.state);
       }
     }
   }, [collection, collection?.name, history, id, match.url]);
 
   React.useEffect(() => {
     if (collection) {
-      ui.setActiveCollection(collection);
+      ui.setActiveCollection(collection.id);
     }
+
+    return () => ui.setActiveCollection(undefined);
   }, [ui, collection]);
 
   React.useEffect(() => {
@@ -127,7 +130,7 @@ function CollectionScene() {
             <Empty collection={collection} />
           ) : (
             <>
-              <HeadingWithIcon>
+              <HeadingWithIcon $isStarred={collection.isStarred}>
                 <HeadingIcon collection={collection} size={40} expanded />
                 {collection.name}
                 {!collection.permission && (
@@ -140,6 +143,7 @@ function CollectionScene() {
                     <Badge>{t("Private")}</Badge>
                   </Tooltip>
                 )}
+                <StarButton collection={collection} size={32} />
               </HeadingWithIcon>
               <CollectionDescription collection={collection} />
 
@@ -247,9 +251,36 @@ function CollectionScene() {
   );
 }
 
-const HeadingWithIcon = styled(Heading)`
+const StarButton = styled(Star)`
+  position: relative;
+  top: 0;
+  left: 10px;
+  overflow: hidden;
+  width: 24px;
+
+  svg {
+    position: relative;
+    left: -4px;
+  }
+`;
+
+const HeadingWithIcon = styled(Heading)<{ $isStarred: boolean }>`
   display: flex;
   align-items: center;
+
+  ${AnimatedStar} {
+    opacity: ${(props) => (props.$isStarred ? "1 !important" : 0)};
+  }
+
+  &:hover {
+    ${AnimatedStar} {
+      opacity: 0.5;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
 
   ${breakpoint("tablet")`
     margin-left: -40px;

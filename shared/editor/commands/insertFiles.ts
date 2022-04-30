@@ -6,7 +6,6 @@ import uploadPlaceholderPlugin, {
   findPlaceholder,
 } from "../lib/uploadPlaceholder";
 import findAttachmentById from "../queries/findAttachmentById";
-import { ToastType } from "../types";
 
 export type Options = {
   dictionary: any;
@@ -17,12 +16,15 @@ export type Options = {
   uploadFile?: (file: File) => Promise<string>;
   onFileUploadStart?: () => void;
   onFileUploadStop?: () => void;
-  onShowToast: (message: string, code: string) => void;
+  onShowToast: (message: string) => void;
 };
 
 const insertFiles = function (
   view: EditorView,
-  event: Event | React.ChangeEvent<HTMLInputElement>,
+  event:
+    | Event
+    | React.ChangeEvent<HTMLInputElement>
+    | React.DragEvent<HTMLDivElement>,
   pos: number,
   files: File[],
   options: Options
@@ -81,7 +83,7 @@ const insertFiles = function (
           $pos.pos + ($pos.nodeAfter?.nodeSize || 0),
           schema.nodes.attachment.create({
             id,
-            title: file.name,
+            title: file.name ?? "Untitled",
             size: file.size,
           })
         )
@@ -147,7 +149,7 @@ const insertFiles = function (
               to || from,
               schema.nodes.attachment.create({
                 href: src,
-                title: file.name,
+                title: file.name ?? "Untitled",
                 size: file.size,
               })
             )
@@ -187,10 +189,7 @@ const insertFiles = function (
           view.dispatch(view.state.tr.deleteRange(from, to || from));
         }
 
-        onShowToast(
-          error.message || dictionary.fileUploadError,
-          ToastType.Error
-        );
+        onShowToast(error.message || dictionary.fileUploadError);
       })
       .finally(() => {
         complete++;

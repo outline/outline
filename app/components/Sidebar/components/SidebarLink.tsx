@@ -16,7 +16,7 @@ export type DragObject = NavigationNode & {
 type Props = Omit<NavLinkProps, "to"> & {
   to?: string | Record<string, any>;
   href?: string | Record<string, any>;
-  innerRef?: (arg0: HTMLElement | null | undefined) => void;
+  innerRef?: (ref: HTMLElement | null | undefined) => void;
   onClick?: React.MouseEventHandler<HTMLAnchorElement>;
   onMouseEnter?: React.MouseEventHandler<HTMLAnchorElement>;
   onDisclosureClick?: React.MouseEventHandler<HTMLButtonElement>;
@@ -24,6 +24,7 @@ type Props = Omit<NavLinkProps, "to"> & {
   label?: React.ReactNode;
   menu?: React.ReactNode;
   showActions?: boolean;
+  disabled?: boolean;
   active?: boolean;
   /* If set, a disclosure will be rendered to the left of any icon */
   expanded?: boolean;
@@ -55,6 +56,7 @@ function SidebarLink(
     className,
     expanded,
     onDisclosureClick,
+    disabled,
     ...rest
   }: Props,
   ref: React.RefObject<HTMLAnchorElement>
@@ -82,6 +84,7 @@ function SidebarLink(
       <Link
         $isActiveDrop={isActiveDrop}
         $isDraft={isDraft}
+        $disabled={disabled}
         activeStyle={isActiveDrop ? activeDropStyle : activeStyle}
         style={active ? activeStyle : style}
         onClick={onClick}
@@ -158,7 +161,11 @@ const Actions = styled(EventBoundary)<{ showActions?: boolean }>`
   }
 `;
 
-const Link = styled(NavLink)<{ $isActiveDrop?: boolean; $isDraft?: boolean }>`
+const Link = styled(NavLink)<{
+  $isActiveDrop?: boolean;
+  $isDraft?: boolean;
+  $disabled?: boolean;
+}>`
   display: flex;
   position: relative;
   text-overflow: ellipsis;
@@ -173,6 +180,13 @@ const Link = styled(NavLink)<{ $isActiveDrop?: boolean; $isDraft?: boolean }>`
   font-size: 16px;
   cursor: pointer;
   overflow: hidden;
+
+  ${(props) =>
+    props.$disabled &&
+    css`
+      pointer-events: none;
+      opacity: 0.75;
+    `}
 
   ${(props) =>
     props.$isDraft &&

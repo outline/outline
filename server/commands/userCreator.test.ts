@@ -184,15 +184,16 @@ describe("userCreator", () => {
   });
 
   it("should create a user from an invited user", async () => {
-    const team = await buildTeam();
+    const team = await buildTeam({ inviteRequired: true });
     const invite = await buildInvite({
       teamId: team.id,
+      email: "invite@example.com",
     });
     const authenticationProviders = await team.$get("authenticationProviders");
     const authenticationProvider = authenticationProviders[0];
     const result = await userCreator({
       name: invite.name,
-      email: invite.email!,
+      email: "invite@ExamPle.com",
       teamId: invite.teamId,
       ip,
       authentication: {
@@ -208,5 +209,34 @@ describe("userCreator", () => {
     expect(authentication.scopes[0]).toEqual("read");
     expect(user.email).toEqual(invite.email);
     expect(isNewUser).toEqual(true);
+  });
+
+  it("should reject an uninvited user when invites are required", async () => {
+    const team = await buildTeam({ inviteRequired: true });
+
+    const authenticationProviders = await team.$get("authenticationProviders");
+    const authenticationProvider = authenticationProviders[0];
+    let error;
+
+    try {
+      await userCreator({
+        name: "Uninvited User",
+        email: "invite@ExamPle.com",
+        teamId: team.id,
+        ip,
+        authentication: {
+          authenticationProviderId: authenticationProvider.id,
+          providerId: "fake-service-id",
+          accessToken: "123",
+          scopes: ["read"],
+        },
+      });
+    } catch (err) {
+      error = err;
+    }
+
+    expect(error && error.toString()).toContain(
+      "You need an invite to join this team"
+    );
   });
 });

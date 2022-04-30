@@ -1,6 +1,6 @@
 import md5 from "crypto-js/md5";
 import { darken } from "polished";
-import theme from "../theme";
+import theme from "../styles/theme";
 
 export const palette = [
   theme.brand.red,

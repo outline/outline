@@ -1,7 +1,8 @@
 import { sortNavigationNodes } from "@shared/utils/collections";
+import { APM } from "@server/logging/tracing";
 import Collection from "@server/models/Collection";
 
-export default function present(collection: Collection) {
+function present(collection: Collection) {
   const data = {
     id: collection.id,
     url: collection.url,
@@ -35,3 +36,8 @@ export default function present(collection: Collection) {
 
   return data;
 }
+
+export default APM.traceFunction({
+  serviceName: "presenter",
+  spanName: "collection",
+})(present);

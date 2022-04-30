@@ -141,6 +141,19 @@ class DocumentScene extends React.Component<Props> {
     }
   }
 
+  componentWillUnmount() {
+    if (
+      this.isEmpty &&
+      this.props.document.createdBy.id === this.props.auth.user?.id &&
+      this.props.document.isDraft &&
+      this.props.document.isActive &&
+      this.props.document.hasEmptyTitle &&
+      this.props.document.isPersistedOnce
+    ) {
+      this.props.document.delete();
+    }
+  }
+
   replaceDocument = (template: Document | Revision) => {
     const editorRef = this.editor.current;
 
@@ -162,8 +175,11 @@ class DocumentScene extends React.Component<Props> {
       this.props.document.templateId = template.id;
     }
 
-    this.title = template.title;
-    this.props.document.title = template.title;
+    if (!this.title) {
+      this.title = template.title;
+      this.props.document.title = template.title;
+    }
+
     this.props.document.text = template.text;
     this.updateIsDirty();
     this.onSave({
@@ -190,7 +206,7 @@ class DocumentScene extends React.Component<Props> {
     if (response) {
       this.replaceDocument(response.data);
       toasts.showToast(t("Document restored"));
-      history.replace(this.props.document.url);
+      history.replace(this.props.document.url, history.location.state);
     }
   };
 
@@ -344,7 +360,8 @@ class DocumentScene extends React.Component<Props> {
     this.isEditorDirty = editorText !== document.text.trim();
 
     // a single hash is a doc with just an empty title
-    this.isEmpty = (!editorText || editorText === "#") && !this.title;
+    this.isEmpty =
+      (!editorText || editorText === "#" || editorText === "\\") && !this.title;
   };
 
   updateIsDirtyDebounced = debounce(this.updateIsDirty, 500);
@@ -386,6 +403,7 @@ class DocumentScene extends React.Component<Props> {
   };
 
   onChangeTitle = action((value: string) => {
+    this.title = value;
     this.props.document.title = value;
     this.updateIsDirty();
     this.autosave();
@@ -440,7 +458,12 @@ class DocumentScene extends React.Component<Props> {
     return (
       <ErrorBoundary>
         {this.props.location.pathname !== canonicalUrl && (
-          <Redirect to={canonicalUrl} />
+          <Redirect
+            to={{
+              pathname: canonicalUrl,
+              state: this.props.location.state,
+            }}
+          />
         )}
         <RegisterKeyDown trigger="m" handler={this.goToMove} />
         <RegisterKeyDown trigger="e" handler={this.goToEdit} />
@@ -646,6 +669,7 @@ const MaxWidth = styled(Flex)<MaxWidthProps>`
   padding-bottom: 16px;
 
   ${breakpoint("tablet")`
+    padding: 0 44px;
     margin: 4px auto 12px;
     max-width: ${(props: MaxWidthProps) =>
       props.isFullWidth

@@ -98,9 +98,10 @@ export default class CollectionsStore extends BaseStore<Collection> {
   }
 
   @action
-  import = async (attachmentId: string) => {
+  import = async (attachmentId: string, format?: string) => {
     await client.post("/collections.import", {
       type: "outline",
+      format,
       attachmentId,
     });
   };
@@ -111,7 +112,7 @@ export default class CollectionsStore extends BaseStore<Collection> {
       id: collectionId,
       index,
     });
-    invariant(res && res.success, "Collection could not be moved");
+    invariant(res?.success, "Collection could not be moved");
     const collection = this.get(collectionId);
 
     if (collection) {
@@ -153,7 +154,7 @@ export default class CollectionsStore extends BaseStore<Collection> {
       const res = await client.post(`/collections.info`, {
         id,
       });
-      invariant(res && res.data, "Collection not available");
+      invariant(res?.data, "Collection not available");
       this.addPolicies(res.policies);
       return this.add(res.data);
     } catch (err) {
@@ -173,6 +174,19 @@ export default class CollectionsStore extends BaseStore<Collection> {
       ["read", "read_write"].includes(collection.permission || "")
     );
   }
+
+  star = async (collection: Collection) => {
+    await this.rootStore.stars.create({
+      collectionId: collection.id,
+    });
+  };
+
+  unstar = async (collection: Collection) => {
+    const star = this.rootStore.stars.orderedData.find(
+      (star) => star.collectionId === collection.id
+    );
+    await star?.delete();
+  };
 
   getPathForDocument(documentId: string): DocumentPath | undefined {
     return this.pathsToDocuments.find((path) => path.id === documentId);

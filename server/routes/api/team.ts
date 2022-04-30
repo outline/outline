@@ -16,9 +16,11 @@ router.post("team.update", auth(), async (ctx) => {
     sharing,
     guestSignin,
     documentEmbeds,
+    memberCollectionCreate,
     collaborativeEditing,
     defaultCollectionId,
     defaultUserRole,
+    inviteRequired,
   } = ctx.body;
 
   const { user } = ctx.state;
@@ -37,9 +39,11 @@ router.post("team.update", auth(), async (ctx) => {
       sharing,
       guestSignin,
       documentEmbeds,
+      memberCollectionCreate,
       collaborativeEditing,
       defaultCollectionId,
       defaultUserRole,
+      inviteRequired,
     },
     user,
     team,
