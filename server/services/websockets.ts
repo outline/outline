@@ -49,8 +49,8 @@ export default function init(app: Koa, server: http.Server) {
 
   io.adapter(
     socketRedisAdapter({
-      pubClient: Redis.Client,
-      subClient: Redis.Subscriber,
+      pubClient: Redis.defaultClient,
+      subClient: Redis.defaultSubscriber,
     })
   );
 
@@ -92,7 +92,7 @@ export default function init(app: Koa, server: http.Server) {
 
         // store the mapping between socket id and user id in redis
         // so that it is accessible across multiple server nodes
-        await Redis.Client.hset(socket.id, "userId", user.id);
+        await Redis.defaultClient.hset(socket.id, "userId", user.id);
         return callback(null, true);
       } catch (err) {
         return callback(err, false);
@@ -173,7 +173,10 @@ export default function init(app: Koa, server: http.Server) {
                 const userIds = new Map();
 
                 for (const socketId of sockets) {
-                  const userId = await Redis.Client.hget(socketId, "userId");
+                  const userId = await Redis.defaultClient.hget(
+                    socketId,
+                    "userId"
+                  );
                   userIds.set(userId, userId);
                 }
 

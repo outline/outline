@@ -51,11 +51,11 @@ export default class RedisAdapter extends Redis {
   private static _client: RedisAdapter;
   private static _subscriber: RedisAdapter;
 
-  public static get Client(): RedisAdapter {
+  public static get defaultClient(): RedisAdapter {
     return this._client || (this._client = new this(process.env.REDIS_URL));
   }
 
-  public static get Subscriber(): RedisAdapter {
+  public static get defaultSubscriber(): RedisAdapter {
     return (
       this._subscriber || (this._subscriber = new this(process.env.REDIS_URL))
     );

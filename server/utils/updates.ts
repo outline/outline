@@ -40,7 +40,7 @@ export async function checkUpdates() {
       documentCount,
     },
   });
-  await Redis.Client.del(UPDATES_KEY);
+  await Redis.defaultClient.del(UPDATES_KEY);
 
   try {
     const response = await fetch(UPDATES_URL, {
@@ -54,7 +54,7 @@ export async function checkUpdates() {
     const data = await response.json();
 
     if (data.severity) {
-      await Redis.Client.set(
+      await Redis.defaultClient.set(
         UPDATES_KEY,
         JSON.stringify({
           severity: data.severity,

@@ -12,10 +12,10 @@ export function createQueue(
     createClient(type) {
       switch (type) {
         case "client":
-          return Redis.Client;
+          return Redis.defaultClient;
 
         case "subscriber":
-          return Redis.Subscriber;
+          return Redis.defaultSubscriber;
 
         default:
           return new Redis(process.env.REDIS_URL);
