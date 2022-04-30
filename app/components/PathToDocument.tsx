@@ -14,7 +14,7 @@ type Props = {
   collection: Collection | null | undefined;
   onSuccess?: () => void;
   style?: React.CSSProperties;
-  ref?: (arg0: React.ElementRef<"div"> | null | undefined) => void;
+  ref?: (element: React.ElementRef<"div"> | null | undefined) => void;
 };
 
 @observer
