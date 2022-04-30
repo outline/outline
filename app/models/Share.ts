@@ -29,10 +29,6 @@ class Share extends BaseModel {
   url: string;
 
   createdBy: User;
-
-  createdAt: string;
-
-  updatedAt: string;
 }
 
 export default Share;

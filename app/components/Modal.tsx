@@ -4,34 +4,39 @@ import { transparentize } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Dialog, DialogBackdrop, useDialogState } from "reakit/Dialog";
-import styled from "styled-components";
+import styled, { DefaultTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { depths } from "@shared/styles";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
 import Scrollable from "~/components/Scrollable";
+import Text from "~/components/Text";
+import useMobile from "~/hooks/useMobile";
 import usePrevious from "~/hooks/usePrevious";
 import useUnmount from "~/hooks/useUnmount";
 import { fadeAndScaleIn } from "~/styles/animations";
 
 let openModals = 0;
 type Props = {
-  children?: React.ReactNode;
   isOpen: boolean;
+  isCentered?: boolean;
   title?: React.ReactNode;
   onRequestClose: () => void;
 };
 
-const Modal = ({
+const Modal: React.FC<Props> = ({
   children,
   isOpen,
+  isCentered,
   title = "Untitled",
   onRequestClose,
-}: Props) => {
+}) => {
   const dialog = useDialogState({
     animated: 250,
   });
   const [depth, setDepth] = React.useState(0);
   const wasOpen = usePrevious(isOpen);
+  const isMobile = useMobile();
   const { t } = useTranslation();
 
   React.useEffect(() => {
@@ -59,37 +64,61 @@ const Modal = ({
   return (
     <DialogBackdrop {...dialog}>
       {(props) => (
-        <Backdrop {...props}>
+        <Backdrop $isCentered={isCentered} {...props}>
           <Dialog
             {...dialog}
             preventBodyScroll
             hideOnEsc
-            hideOnClickOutside={false}
+            hideOnClickOutside={!!isCentered}
             hide={onRequestClose}
           >
-            {(props) => (
-              <Scene
-                $nested={!!depth}
-                style={{
-                  marginLeft: `${depth * 12}px`,
-                }}
-                {...props}
-              >
-                <Content>
+            {(props) =>
+              isCentered && !isMobile ? (
+                <Small {...props}>
                   <Centered onClick={(ev) => ev.stopPropagation()} column>
-                    {title && <h1>{title}</h1>}
-                    {children}
+                    <Header>
+                      {title && (
+                        <Text as="span" size="large">
+                          {title}
+                        </Text>
+                      )}
+                      <Text as="span" size="large">
+                        <NudeButton onClick={onRequestClose}>
+                          <CloseIcon color="currentColor" />
+                        </NudeButton>
+                      </Text>
+                    </Header>
+                    <SmallContent shadow>{children}</SmallContent>
                   </Centered>
-                </Content>
-                <Back onClick={onRequestClose}>
-                  <BackIcon size={32} color="currentColor" />
-                  <Text>{t("Back")}</Text>
-                </Back>
-                <Close onClick={onRequestClose}>
-                  <CloseIcon size={32} color="currentColor" />
-                </Close>
-              </Scene>
-            )}
+                </Small>
+              ) : (
+                <Fullscreen
+                  $nested={!!depth}
+                  style={
+                    isMobile
+                      ? undefined
+                      : {
+                          marginLeft: `${depth * 12}px`,
+                        }
+                  }
+                  {...props}
+                >
+                  <Content>
+                    <Centered onClick={(ev) => ev.stopPropagation()} column>
+                      {title && <h1>{title}</h1>}
+                      {children}
+                    </Centered>
+                  </Content>
+                  <Close onClick={onRequestClose}>
+                    <CloseIcon size={32} color="currentColor" />
+                  </Close>
+                  <Back onClick={onRequestClose}>
+                    <BackIcon size={32} color="currentColor" />
+                    <Text as="span">{t("Back")} </Text>
+                  </Back>
+                </Fullscreen>
+              )
+            }
           </Dialog>
         </Backdrop>
       )}
@@ -97,15 +126,17 @@ const Modal = ({
   );
 };
 
-const Backdrop = styled.div`
+const Backdrop = styled(Flex)<{ $isCentered?: boolean }>`
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   background-color: ${(props) =>
-    transparentize(0.25, props.theme.background)} !important;
-  z-index: ${(props) => props.theme.depths.modalOverlay};
+    props.$isCentered
+      ? props.theme.modalBackdrop
+      : transparentize(0.25, props.theme.background)} !important;
+  z-index: ${depths.modalOverlay};
   transition: opacity 50ms ease-in-out;
   opacity: 0;
 
@@ -114,7 +145,12 @@ const Backdrop = styled.div`
   }
 `;
 
-const Scene = styled.div<{ $nested: boolean }>`
+type FullscreenProps = {
+  $nested: boolean;
+  theme: DefaultTheme;
+};
+
+const Fullscreen = styled.div<FullscreenProps>`
   animation: ${fadeAndScaleIn} 250ms ease;
 
   position: absolute;
@@ -122,7 +158,7 @@ const Scene = styled.div<{ $nested: boolean }>`
   left: 0;
   right: 0;
   bottom: 0;
-  z-index: ${(props) => props.theme.depths.modal};
+  z-index: ${depths.modal};
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -131,7 +167,7 @@ const Scene = styled.div<{ $nested: boolean }>`
   outline: none;
 
   ${breakpoint("tablet")`
-  ${(props: any) =>
+  ${(props: FullscreenProps) =>
     props.$nested &&
     `
       box-shadow: 0 -2px 10px ${props.theme.shadow};
@@ -143,10 +179,10 @@ const Scene = styled.div<{ $nested: boolean }>`
 
 const Content = styled(Scrollable)`
   width: 100%;
-  padding: 8vh 2rem 2rem;
+  padding: 8vh 32px;
 
   ${breakpoint("tablet")`
-    padding-top: 13vh;
+    padding: 13vh 2rem 2rem;
   `};
 `;
 
@@ -155,13 +191,6 @@ const Centered = styled(Flex)`
   max-width: 100%;
   position: relative;
   margin: 0 auto;
-`;
-
-const Text = styled.span`
-  font-size: 16px;
-  font-weight: 500;
-  padding-right: 12px;
-  user-select: none;
 `;
 
 const Close = styled(NudeButton)`
@@ -192,6 +221,7 @@ const Back = styled(NudeButton)`
   left: 2rem;
   opacity: 0.75;
   color: ${(props) => props.theme.text};
+  font-weight: 500;
   width: auto;
   height: auto;
 
@@ -202,6 +232,47 @@ const Back = styled(NudeButton)`
   ${breakpoint("tablet")`
     display: flex;
   `};
+`;
+
+const Header = styled(Flex)`
+  color: ${(props) => props.theme.textSecondary};
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  padding: 24px 24px 4px;
+`;
+
+const Small = styled.div`
+  animation: ${fadeAndScaleIn} 250ms ease;
+
+  margin: auto auto;
+  min-width: 350px;
+  max-width: 30vw;
+  z-index: ${depths.modal};
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  background: ${(props) => props.theme.modalBackground};
+  transition: ${(props) => props.theme.backgroundTransition};
+  box-shadow: ${(props) => props.theme.modalShadow};
+  border-radius: 8px;
+  outline: none;
+
+  ${NudeButton} {
+    &:hover,
+    &[aria-expanded="true"] {
+      background: ${(props) => props.theme.sidebarControlHoverBackground};
+    }
+    vertical-align: middle;
+  }
+
+  ${Header} {
+    align-items: start;
+  }
+`;
+
+const SmallContent = styled(Scrollable)`
+  padding: 12px 24px 24px;
 `;
 
 export default observer(Modal);

@@ -2,7 +2,7 @@ import { SearchIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
-import Input, { Props as InputProps } from "./Input";
+import Input, { Props as InputProps } from "~/components/Input";
 
 type Props = InputProps & {
   placeholder?: string;
@@ -11,7 +11,10 @@ type Props = InputProps & {
   onKeyDown?: (event: React.KeyboardEvent<HTMLInputElement>) => unknown;
 };
 
-export default function InputSearch(props: Props) {
+function InputSearch(
+  props: Props,
+  ref: React.RefObject<HTMLInputElement | HTMLTextAreaElement>
+) {
   const { t } = useTranslation();
   const theme = useTheme();
   const [isFocused, setIsFocused] = React.useState(false);
@@ -39,7 +42,10 @@ export default function InputSearch(props: Props) {
       onBlur={handleBlur}
       margin={0}
       labelHidden
+      innerRef={ref}
       {...rest}
     />
   );
 }
+
+export default React.forwardRef(InputSearch);

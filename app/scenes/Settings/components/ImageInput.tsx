@@ -2,39 +2,30 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Flex from "~/components/Flex";
-import { LabelText } from "~/components/Input";
 import ImageUpload, { Props as ImageUploadProps } from "./ImageUpload";
 
 type Props = ImageUploadProps & {
-  label: string;
   src?: string;
 };
 
-export default function ImageInput({ label, src, ...rest }: Props) {
+export default function ImageInput({ src, ...rest }: Props) {
   const { t } = useTranslation();
 
   return (
-    <InputWrapper column>
-      <LabelText>{label}</LabelText>
-      <ImageBox>
-        <ImageUpload {...rest}>
-          <Avatar src={src} />
-          <Flex auto align="center" justify="center">
-            {t("Upload")}
-          </Flex>
-        </ImageUpload>
-      </ImageBox>
-    </InputWrapper>
+    <ImageBox>
+      <ImageUpload {...rest}>
+        <Avatar src={src} />
+        <Flex auto align="center" justify="center">
+          {t("Upload")}
+        </Flex>
+      </ImageUpload>
+    </ImageBox>
   );
 }
 
-const InputWrapper = styled(Flex)`
-  margin-bottom: 24px;
-`;
-
 const avatarStyles = `
-  width: 80px;
-  height: 80px;
+  width: 64px;
+  height: 64px;
 `;
 
 const Avatar = styled.img`

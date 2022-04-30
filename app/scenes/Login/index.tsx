@@ -11,6 +11,7 @@ import ButtonLarge from "~/components/ButtonLarge";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
+import NoticeAlert from "~/components/NoticeAlert";
 import OutlineLogo from "~/components/OutlineLogo";
 import PageTitle from "~/components/PageTitle";
 import TeamLogo from "~/components/TeamLogo";
@@ -19,14 +20,14 @@ import env from "~/env";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import { isCustomDomain } from "~/utils/domains";
+import isHosted from "~/utils/isHosted";
 import { changeLanguage, detectLanguage } from "~/utils/language";
 import Notices from "./Notices";
 import Provider from "./Provider";
 
-function Header({ config }: { config: Config }) {
+function Header({ config }: { config?: Config | undefined }) {
   const { t } = useTranslation();
-  const isHosted = env.DEPLOYMENT === "hosted";
-  const isSubdomain = !!config.hostname;
+  const isSubdomain = !!config?.hostname;
 
   if (!isHosted || isCustomDomain()) {
     return null;
@@ -53,6 +54,7 @@ function Login() {
   const { t, i18n } = useTranslation();
   const { auth } = useStores();
   const { config } = auth;
+  const [error, setError] = React.useState(null);
   const [emailLinkSentTo, setEmailLinkSentTo] = React.useState("");
   const isCreate = location.pathname === "/create";
   const handleReset = React.useCallback(() => {
@@ -63,7 +65,7 @@ function Login() {
   }, []);
 
   React.useEffect(() => {
-    auth.fetchConfig();
+    auth.fetchConfig().catch(setError);
   }, [auth]);
 
   // TODO: Persist detected language to new user
@@ -92,7 +94,27 @@ function Login() {
     return <Redirect to="/home" />;
   }
 
-  // we're counting on the config request being fast
+  if (error) {
+    return (
+      <Background>
+        <Header />
+        <Centered align="center" justify="center" column auto>
+          <PageTitle title={t("Login")} />
+          <NoticeAlert>
+            {t("Failed to load configuration.")}
+            {!isHosted && (
+              <p>
+                Check the network requests and server logs for full details of
+                the error.
+              </p>
+            )}
+          </NoticeAlert>
+        </Centered>
+      </Background>
+    );
+  }
+
+  // we're counting on the config request being fast, so display nothing while waiting
   if (!config) {
     return null;
   }
@@ -108,18 +130,14 @@ function Login() {
       <Background>
         <Header config={config} />
         <Centered align="center" justify="center" column auto>
-          <PageTitle title="Check your email" />
+          <PageTitle title={t("Check your email")} />
           <CheckEmailIcon size={38} color="currentColor" />
           <Heading centered>{t("Check your email")}</Heading>
           <Note>
             <Trans
-              defaults="A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em>, no password needed."
-              values={{
-                emailLinkSentTo: emailLinkSentTo,
-              }}
-              components={{
-                em: <em />,
-              }}
+              defaults="A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em> if an account exists."
+              values={{ emailLinkSentTo }}
+              components={{ em: <em /> }}
             />
           </Note>
           <br />
@@ -135,9 +153,9 @@ function Login() {
     <Background>
       <Header config={config} />
       <Centered align="center" justify="center" column auto>
-        <PageTitle title="Login" />
+        <PageTitle title={t("Login")} />
         <Logo>
-          {env.TEAM_LOGO && env.DEPLOYMENT !== "hosted" ? (
+          {env.TEAM_LOGO && !isHosted ? (
             <TeamLogo src={env.TEAM_LOGO} />
           ) : (
             <OutlineLogo size={38} fill="currentColor" />

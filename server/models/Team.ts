@@ -20,6 +20,7 @@ import {
 } from "sequelize-typescript";
 import { v4 as uuidv4 } from "uuid";
 import { stripSubdomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
+import env from "@server/env";
 import Logger from "@server/logging/logger";
 import { generateAvatarUrl } from "@server/utils/avatars";
 import { publicS3Endpoint, uploadToS3FromUrl } from "@server/utils/s3";
@@ -76,6 +77,10 @@ class Team extends ParanoidModel {
   @Column
   sharing: boolean;
 
+  @Default(false)
+  @Column
+  inviteRequired: boolean;
+
   @Default(true)
   @Column(DataType.JSONB)
   signupQueryParams: { [key: string]: string } | null;
@@ -88,7 +93,11 @@ class Team extends ParanoidModel {
   @Column
   documentEmbeds: boolean;
 
-  @Default(false)
+  @Default(true)
+  @Column
+  memberCollectionCreate: boolean;
+
+  @Default(true)
   @Column
   collaborativeEditing: boolean;
 
@@ -98,6 +107,18 @@ class Team extends ParanoidModel {
   defaultUserRole: string;
 
   // getters
+
+  /**
+   * Returns whether the team has email login enabled. For self-hosted installs
+   * this also considers whether SMTP connection details have been configured.
+   *
+   * @return {boolean} Whether to show email login options
+   */
+  get emailSigninEnabled(): boolean {
+    return (
+      this.guestSignin && (!!env.SMTP_HOST || env.NODE_ENV === "development")
+    );
+  }
 
   get url() {
     if (this.domain) {
@@ -152,45 +173,55 @@ class Team extends ParanoidModel {
     return subdomain;
   };
 
-  provisionFirstCollection = async function (userId: string) {
-    const collection = await Collection.create({
-      name: "Welcome",
-      description:
-        "This collection is a quick guide to what Outline is all about. Feel free to delete this collection once your team is up to speed with the basics!",
-      teamId: this.id,
-      createdById: userId,
-      sort: Collection.DEFAULT_SORT,
-      permission: "read_write",
-    });
-
-    // For the first collection we go ahead and create some intitial documents to get
-    // the team started. You can edit these in /server/onboarding/x.md
-    const onboardingDocs = [
-      "Integrations & API",
-      "Our Editor",
-      "Getting Started",
-      "What is Outline",
-    ];
-
-    for (const title of onboardingDocs) {
-      const text = await readFile(
-        path.join(process.cwd(), "server", "onboarding", `${title}.md`),
-        "utf8"
+  provisionFirstCollection = async (userId: string) => {
+    await this.sequelize!.transaction(async (transaction) => {
+      const collection = await Collection.create(
+        {
+          name: "Welcome",
+          description:
+            "This collection is a quick guide to what Outline is all about. Feel free to delete this collection once your team is up to speed with the basics!",
+          teamId: this.id,
+          createdById: userId,
+          sort: Collection.DEFAULT_SORT,
+          permission: "read_write",
+        },
+        {
+          transaction,
+        }
       );
-      const document = await Document.create({
-        version: 2,
-        isWelcome: true,
-        parentDocumentId: null,
-        collectionId: collection.id,
-        teamId: collection.teamId,
-        userId: collection.createdById,
-        lastModifiedById: collection.createdById,
-        createdById: collection.createdById,
-        title,
-        text,
-      });
-      await document.publish(collection.createdById);
-    }
+
+      // For the first collection we go ahead and create some intitial documents to get
+      // the team started. You can edit these in /server/onboarding/x.md
+      const onboardingDocs = [
+        "Integrations & API",
+        "Our Editor",
+        "Getting Started",
+        "What is Outline",
+      ];
+
+      for (const title of onboardingDocs) {
+        const text = await readFile(
+          path.join(process.cwd(), "server", "onboarding", `${title}.md`),
+          "utf8"
+        );
+        const document = await Document.create(
+          {
+            version: 2,
+            isWelcome: true,
+            parentDocumentId: null,
+            collectionId: collection.id,
+            teamId: collection.teamId,
+            userId: collection.createdById,
+            lastModifiedById: collection.createdById,
+            createdById: collection.createdById,
+            title,
+            text,
+          },
+          { transaction }
+        );
+        await document.publish(collection.createdById, { transaction });
+      }
+    });
   };
 
   collectionIds = async function (paranoid = true) {

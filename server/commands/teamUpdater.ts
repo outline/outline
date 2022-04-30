@@ -17,9 +17,11 @@ const teamUpdater = async ({ params, user, team, ip }: TeamUpdaterProps) => {
     sharing,
     guestSignin,
     documentEmbeds,
+    memberCollectionCreate,
     collaborativeEditing,
     defaultCollectionId,
     defaultUserRole,
+    inviteRequired,
   } = params;
 
   if (subdomain !== undefined && process.env.SUBDOMAINS_ENABLED === "true") {
@@ -41,6 +43,9 @@ const teamUpdater = async ({ params, user, team, ip }: TeamUpdaterProps) => {
   if (avatarUrl !== undefined) {
     team.avatarUrl = avatarUrl;
   }
+  if (memberCollectionCreate !== undefined) {
+    team.memberCollectionCreate = memberCollectionCreate;
+  }
   if (defaultCollectionId !== undefined) {
     team.defaultCollectionId = defaultCollectionId;
   }
@@ -49,6 +54,9 @@ const teamUpdater = async ({ params, user, team, ip }: TeamUpdaterProps) => {
   }
   if (defaultUserRole !== undefined) {
     team.defaultUserRole = defaultUserRole;
+  }
+  if (inviteRequired !== undefined) {
+    team.inviteRequired = inviteRequired;
   }
 
   const changes = team.changed();

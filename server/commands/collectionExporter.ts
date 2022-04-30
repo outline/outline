@@ -1,7 +1,8 @@
+import { APM } from "@server/logging/tracing";
 import { Collection, Event, Team, User, FileOperation } from "@server/models";
 import { getAWSKeyForFileOp } from "@server/utils/s3";
 
-export default async function collectionExporter({
+async function collectionExporter({
   collection,
   team,
   user,
@@ -43,3 +44,8 @@ export default async function collectionExporter({
 
   return fileOperation;
 }
+
+export default APM.traceFunction({
+  serviceName: "command",
+  spanName: "collectionExporter",
+})(collectionExporter);

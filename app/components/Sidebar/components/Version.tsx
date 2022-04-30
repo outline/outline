@@ -19,7 +19,9 @@ export default function Version() {
           .map((release) => release.tag_name)
           .findIndex((tagName) => tagName === `v${version}`);
 
-        setReleasesBehind(computedReleasesBehind);
+        if (computedReleasesBehind >= 0) {
+          setReleasesBehind(computedReleasesBehind);
+        }
       }
     }
 

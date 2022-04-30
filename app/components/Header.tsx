@@ -5,9 +5,11 @@ import { transparentize } from "polished";
 import * as React from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { depths } from "@shared/styles";
 import Button from "~/components/Button";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
+import useEventListener from "~/hooks/useEventListener";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 import { supportsPassiveListener } from "~/utils/browser";
@@ -28,19 +30,17 @@ function Header({ breadcrumb, title, actions, hasSidebar }: Props) {
   const passThrough = !actions && !breadcrumb && !title;
 
   const [isScrolled, setScrolled] = React.useState(false);
-  const handleScroll = React.useCallback(
-    throttle(() => setScrolled(window.scrollY > 75), 50),
+  const handleScroll = React.useMemo(
+    () => throttle(() => setScrolled(window.scrollY > 75), 50),
     []
   );
 
-  React.useEffect(() => {
-    window.addEventListener(
-      "scroll",
-      handleScroll,
-      supportsPassiveListener ? { passive: true } : false
-    );
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [handleScroll]);
+  useEventListener(
+    "scroll",
+    handleScroll,
+    window,
+    supportsPassiveListener ? { passive: true } : { capture: false }
+  );
 
   const handleClickTitle = React.useCallback(() => {
     window.scrollTo({
@@ -100,7 +100,7 @@ const Actions = styled(Flex)`
 
 const Wrapper = styled(Flex)<{ $passThrough?: boolean }>`
   top: 0;
-  z-index: ${(props) => props.theme.depths.header};
+  z-index: ${depths.header};
   position: sticky;
   background: ${(props) => props.theme.background};
 

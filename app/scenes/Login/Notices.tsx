@@ -71,6 +71,14 @@ export default function Notices() {
           admin.
         </NoticeAlert>
       )}
+      {notice === "invite-required" && (
+        <NoticeAlert>
+          The team you are trying to join requires an invite before you can
+          create an account.
+          <hr />
+          Please request an invite from your team admin and try again.
+        </NoticeAlert>
+      )}
     </>
   );
 }

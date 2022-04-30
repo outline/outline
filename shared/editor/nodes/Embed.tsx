@@ -1,11 +1,11 @@
 import Token from "markdown-it/lib/token";
 import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
-import { EditorState, Transaction } from "prosemirror-state";
+import { EditorState } from "prosemirror-state";
 import * as React from "react";
-import Simple from "../embeds/components/Simple";
+import DisabledEmbed from "../components/DisabledEmbed";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import embedsRule from "../rules/embeds";
-import { ComponentProps } from "../types";
+import { ComponentProps, Dispatch } from "../types";
 import Node from "./Node";
 
 const cache = {};
@@ -42,14 +42,6 @@ export default class Embed extends Node {
             }
 
             return {};
-          },
-        },
-        {
-          tag: "a.disabled-embed",
-          getAttrs: (dom: HTMLAnchorElement) => {
-            return {
-              href: dom.getAttribute("href") || "",
-            };
           },
         },
       ],
@@ -94,7 +86,7 @@ export default class Embed extends Node {
 
     if (embedsDisabled) {
       return (
-        <Simple
+        <DisabledEmbed
           attrs={{ href: node.attrs.href, matches }}
           embed={embed}
           isEditable={isEditable}
@@ -117,7 +109,7 @@ export default class Embed extends Node {
   commands({ type }: { type: NodeType }) {
     return (attrs: Record<string, any>) => (
       state: EditorState,
-      dispatch: (tr: Transaction) => void
+      dispatch: Dispatch
     ) => {
       dispatch(
         state.tr.replaceSelectionWith(type.create(attrs)).scrollIntoView()

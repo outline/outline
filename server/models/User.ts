@@ -22,9 +22,9 @@ import {
 } from "sequelize-typescript";
 import { v4 as uuidv4 } from "uuid";
 import { languages } from "@shared/i18n";
+import { stringToColor } from "@shared/utils/color";
 import Logger from "@server/logging/logger";
 import { DEFAULT_AVATAR_HOST } from "@server/utils/avatars";
-import { palette } from "@server/utils/color";
 import { publicS3Endpoint, uploadToS3FromUrl } from "@server/utils/s3";
 import { ValidationError } from "../errors";
 import ApiKey from "./ApiKey";
@@ -40,6 +40,14 @@ import Encrypted, {
 } from "./decorators/Encrypted";
 import Fix from "./decorators/Fix";
 
+/**
+ * Flags that are available for setting on the user.
+ */
+export enum UserFlag {
+  InviteSent = "inviteSent",
+  InviteReminderSent = "inviteReminderSent",
+}
+
 @Scopes(() => ({
   withAuthentications: {
     include: [
@@ -48,6 +56,31 @@ import Fix from "./decorators/Fix";
         as: "authentications",
       },
     ],
+  },
+  withTeam: {
+    include: [
+      {
+        model: Team,
+        as: "team",
+        required: true,
+      },
+    ],
+  },
+  withInvitedBy: {
+    include: [
+      {
+        model: User,
+        as: "invitedBy",
+        required: true,
+      },
+    ],
+  },
+  invited: {
+    where: {
+      lastActiveAt: {
+        [Op.is]: null,
+      },
+    },
   },
 }))
 @Table({ tableName: "users", modelName: "user" })
@@ -101,6 +134,9 @@ class User extends ParanoidModel {
   @Column
   suspendedAt: Date | null;
 
+  @Column(DataType.JSONB)
+  flags: { [key in UserFlag]?: number } | null;
+
   @Default(process.env.DEFAULT_LANGUAGE)
   @IsIn([languages])
   @Column
@@ -130,11 +166,18 @@ class User extends ParanoidModel {
   // associations
 
   @HasOne(() => User, "suspendedById")
-  suspendedBy: User;
+  suspendedBy: User | null;
 
   @ForeignKey(() => User)
   @Column(DataType.UUID)
-  suspendedById: string;
+  suspendedById: string | null;
+
+  @HasOne(() => User, "invitedById")
+  invitedBy: User | null;
+
+  @ForeignKey(() => User)
+  @Column(DataType.UUID)
+  invitedById: string | null;
 
   @BelongsTo(() => Team)
   team: Team;
@@ -157,12 +200,56 @@ class User extends ParanoidModel {
   }
 
   get color() {
-    const idAsHex = crypto.createHash("md5").update(this.id).digest("hex");
-    const idAsNumber = parseInt(idAsHex, 16);
-    return palette[idAsNumber % palette.length];
+    return stringToColor(this.id);
   }
 
   // instance methods
+
+  /**
+   * User flags are for storing information on a user record that is not visible
+   * to the user itself.
+   *
+   * @param flag The flag to set
+   * @param value Set the flag to true/false
+   * @returns The current user flags
+   */
+  public setFlag = (flag: UserFlag, value = true) => {
+    if (!this.flags) {
+      this.flags = {};
+    }
+    this.flags[flag] = value ? 1 : 0;
+    this.changed("flags", true);
+
+    return this.flags;
+  };
+
+  /**
+   * Returns the content of the given user flag.
+   *
+   * @param flag The flag to retrieve
+   * @returns The flag value
+   */
+  public getFlag = (flag: UserFlag) => {
+    return this.flags?.[flag] ?? 0;
+  };
+
+  /**
+   * User flags are for storing information on a user record that is not visible
+   * to the user itself.
+   *
+   * @param flag The flag to set
+   * @param value The amount to increment by, defaults to 1
+   * @returns The current user flags
+   */
+  public incrementFlag = (flag: UserFlag, value = 1) => {
+    if (!this.flags) {
+      this.flags = {};
+    }
+    this.flags[flag] = (this.flags[flag] ?? 0) + value;
+    this.changed("flags", true);
+
+    return this.flags;
+  };
 
   collectionIds = async (options = {}) => {
     const collectionStubs = await Collection.scope({

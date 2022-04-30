@@ -21,7 +21,7 @@ export default class ToastsStore {
     }
     const lastToast = this.toasts.get(this.lastToastId);
 
-    if (lastToast && lastToast.message === message) {
+    if (lastToast?.message === message) {
       this.toasts.set(this.lastToastId, {
         ...lastToast,
         reoccurring: lastToast.reoccurring ? ++lastToast.reoccurring : 1,

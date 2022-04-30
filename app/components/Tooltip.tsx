@@ -3,7 +3,7 @@ import { TFunctionResult } from "i18next";
 import * as React from "react";
 import styled from "styled-components";
 
-type Props = Omit<TippyProps, "content" | "theme"> & {
+export type Props = Omit<TippyProps, "content" | "theme"> & {
   tooltip: React.ReactChild | React.ReactChild[] | TFunctionResult;
   shortcut?: React.ReactNode;
 };

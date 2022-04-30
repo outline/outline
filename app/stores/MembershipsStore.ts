@@ -14,18 +14,22 @@ export default class MembershipsStore extends BaseStore<Membership> {
   }
 
   @action
-  fetchPage = async (params: PaginationParams | undefined): Promise<any> => {
+  fetchPage = async (
+    params: PaginationParams | undefined
+  ): Promise<Membership[]> => {
     this.isFetching = true;
 
     try {
       const res = await client.post(`/collections.memberships`, params);
-      invariant(res && res.data, "Data not available");
-      runInAction(`/collections.memberships`, () => {
+      invariant(res?.data, "Data not available");
+
+      let models: Membership[] = [];
+      runInAction(`MembershipsStore#fetchPage`, () => {
         res.data.users.forEach(this.rootStore.users.add);
-        res.data.memberships.forEach(this.add);
+        models = res.data.memberships.map(this.add);
         this.isLoaded = true;
       });
-      return res.data.users;
+      return models;
     } finally {
       this.isFetching = false;
     }
@@ -46,7 +50,7 @@ export default class MembershipsStore extends BaseStore<Membership> {
       userId,
       permission,
     });
-    invariant(res && res.data, "Membership data should be available");
+    invariant(res?.data, "Membership data should be available");
     res.data.users.forEach(this.rootStore.users.add);
 
     const memberships = res.data.memberships.map(this.add);

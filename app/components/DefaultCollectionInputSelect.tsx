@@ -1,6 +1,7 @@
 import { HomeIcon } from "outline-icons";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Optional } from "utility-types";
 import CollectionIcon from "~/components/CollectionIcon";
 import Flex from "~/components/Flex";
 import InputSelect from "~/components/InputSelect";
@@ -8,7 +9,9 @@ import { IconWrapper } from "~/components/Sidebar/components/SidebarLink";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 
-type DefaultCollectionInputSelectProps = {
+type DefaultCollectionInputSelectProps = Optional<
+  React.ComponentProps<typeof InputSelect>
+> & {
   onSelectCollection: (collection: string) => void;
   defaultCollectionId: string | null;
 };
@@ -16,6 +19,7 @@ type DefaultCollectionInputSelectProps = {
 const DefaultCollectionInputSelect = ({
   onSelectCollection,
   defaultCollectionId,
+  ...rest
 }: DefaultCollectionInputSelectProps) => {
   const { t } = useTranslation();
   const { collections } = useStores();
@@ -88,14 +92,11 @@ const DefaultCollectionInputSelect = ({
   return (
     <InputSelect
       value={defaultCollectionId ?? "home"}
-      label={t("Start view")}
       options={options}
       onChange={onSelectCollection}
       ariaLabel={t("Default collection")}
-      note={t(
-        "This is the screen that team members will first see when they sign in."
-      )}
       short
+      {...rest}
     />
   );
 };

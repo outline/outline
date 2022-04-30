@@ -13,7 +13,7 @@ const ErrorSuspended = () => {
     <CenteredContent>
       <PageTitle title={t("Your account has been suspended")} />
       <h1>
-        <span role="img" aria-label="Warning sign">
+        <span role="img" aria-label={t("Warning Sign")}>
           ⚠️
         </span>{" "}
         {t("Your account has been suspended")}

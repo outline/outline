@@ -20,6 +20,14 @@ export function AuthorizationError(
   });
 }
 
+export function InviteRequiredError(
+  message = "You need an invite to join this team"
+) {
+  return httpErrors(403, message, {
+    id: "invite_required",
+  });
+}
+
 export function AdminRequiredError(
   message = "An admin role is required to access this resource"
 ) {

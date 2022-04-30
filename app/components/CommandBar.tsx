@@ -6,10 +6,12 @@ import { useTranslation } from "react-i18next";
 import { Portal } from "react-portal";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { depths } from "@shared/styles";
 import CommandBarResults from "~/components/CommandBarResults";
 import SearchActions from "~/components/SearchActions";
 import rootActions from "~/actions/root";
 import useCommandBarActions from "~/hooks/useCommandBarActions";
+import useSettingsActions from "~/hooks/useSettingsAction";
 import useStores from "~/hooks/useStores";
 import { CommandBarAction } from "~/types";
 import { metaDisplay } from "~/utils/keyboard";
@@ -18,8 +20,13 @@ import Text from "./Text";
 function CommandBar() {
   const { t } = useTranslation();
   const { ui } = useStores();
+  const settingsActions = useSettingsActions();
+  const commandBarActions = React.useMemo(
+    () => [...rootActions, settingsActions],
+    [settingsActions]
+  );
 
-  useCommandBarActions(rootActions);
+  useCommandBarActions(commandBarActions);
 
   const { rootAction } = useKBar((state) => ({
     rootAction: state.currentRootActionId
@@ -42,9 +49,7 @@ function CommandBar() {
                 t("Type a command or search")
               }…`}
             />
-            <CommandBarResults
-              prioritizeSearchResults={ui.commandBarOpenedFromSidebar}
-            />
+            <CommandBarResults />
             {ui.commandBarOpenedFromSidebar && (
               <Hint size="small" type="tertiary">
                 <QuestionMarkIcon size={18} color="currentColor" />
@@ -63,7 +68,7 @@ function CommandBar() {
   );
 }
 
-function KBarPortal({ children }: { children: React.ReactNode }) {
+const KBarPortal: React.FC = ({ children }) => {
   const { showing } = useKBar((state) => ({
     showing: state.visualState !== "hidden",
   }));
@@ -73,7 +78,7 @@ function KBarPortal({ children }: { children: React.ReactNode }) {
   }
 
   return <Portal>{children}</Portal>;
-}
+};
 
 const Hint = styled(Text)`
   display: flex;
@@ -86,7 +91,7 @@ const Hint = styled(Text)`
 `;
 
 const Positioner = styled(KBarPositioner)`
-  z-index: ${(props) => props.theme.depths.commandBar};
+  z-index: ${depths.commandBar};
 `;
 
 const SearchInput = styled(KBarSearch)`

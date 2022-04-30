@@ -64,23 +64,22 @@ class EmojiMenu extends React.Component<
   };
 
   render() {
+    const containerId = "emoji-menu-container";
     return (
       <CommandMenu
         {...this.props}
-        id="emoji-menu-container"
+        id={containerId}
         filterable={false}
         onClearSearch={this.clearSearch}
-        renderMenuItem={(item, _index, options) => {
-          return (
-            <EmojiMenuItem
-              onClick={options.onClick}
-              selected={options.selected}
-              title={item.description}
-              emoji={item.emoji}
-              containerId="emoji-menu-container"
-            />
-          );
-        }}
+        renderMenuItem={(item, _index, options) => (
+          <EmojiMenuItem
+            onClick={options.onClick}
+            selected={options.selected}
+            title={item.description}
+            emoji={item.emoji}
+            containerId={containerId}
+          />
+        )}
         items={this.items}
       />
     );

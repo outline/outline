@@ -18,11 +18,7 @@ import usePrevious from "~/hooks/usePrevious";
 import useStores from "~/hooks/useStores";
 import separator from "~/menus/separator";
 
-type Props = {
-  children: (props: any) => React.ReactNode;
-};
-
-function AccountMenu(props: Props) {
+const AccountMenu: React.FC = ({ children }) => {
   const menu = useMenuState({
     placement: "bottom-end",
     modal: true,
@@ -55,12 +51,12 @@ function AccountMenu(props: Props) {
 
   return (
     <>
-      <MenuButton {...menu}>{props.children}</MenuButton>
+      <MenuButton {...menu}>{children}</MenuButton>
       <ContextMenu {...menu} aria-label={t("Account")}>
         <Template {...menu} items={undefined} actions={actions} />
       </ContextMenu>
     </>
   );
-}
+};
 
 export default observer(AccountMenu);

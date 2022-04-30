@@ -1,4 +1,5 @@
 import { Next } from "koa";
+import tracer, { APM } from "@server/logging/tracing";
 import { User, Team, ApiKey } from "@server/models";
 import { getUserForJWT } from "@server/utils/jwt";
 import { AuthenticationError, UserSuspendedError } from "../errors";
@@ -97,6 +98,17 @@ export default function auth(
       user.updateActiveAt(ctx.request.ip);
       ctx.state.token = String(token);
       ctx.state.user = user;
+
+      if (tracer) {
+        APM.addTags(
+          {
+            "request.userId": user.id,
+            "request.teamId": user.teamId,
+            "request.authType": ctx.state.authType,
+          },
+          APM.getRootSpanFromRequestContext(ctx)
+        );
+      }
     }
 
     return next();

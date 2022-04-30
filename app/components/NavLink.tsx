@@ -14,9 +14,11 @@ function NavLinkWithChildrenFunc(
 ) {
   return (
     <Route path={to} exact={exact}>
-      {({ match }) => (
+      {({ match, location }) => (
         <NavLink {...rest} to={to} exact={exact} ref={ref}>
-          {children ? children(match) : null}
+          {children
+            ? children(rest.isActive ? rest.isActive(match, location) : match)
+            : null}
         </NavLink>
       )}
     </Route>

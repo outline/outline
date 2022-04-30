@@ -48,7 +48,7 @@ export async function starIndexing(
   const documents = await Document.findAll({
     attributes: ["id", "updatedAt"],
     where: {
-      id: stars.map((star) => star.documentId),
+      id: stars.map((star) => star.documentId).filter(Boolean) as string[],
     },
     order: [["updatedAt", "DESC"]],
   });

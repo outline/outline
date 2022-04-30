@@ -15,7 +15,7 @@ export default class Underline extends Mark {
         { tag: "u" },
         {
           style: "text-decoration",
-          getAttrs: (value) => (value === "underline" ? {} : undefined),
+          getAttrs: (value) => (value === "underline" ? null : false),
         },
       ],
       toDOM: () => ["u", 0],

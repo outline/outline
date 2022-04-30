@@ -97,7 +97,7 @@ export const LabelText = styled.div`
   display: inline-block;
 `;
 
-export type Props = {
+export type Props = React.HTMLAttributes<HTMLInputElement> & {
   type?: "text" | "email" | "checkbox" | "search" | "textarea";
   value?: string;
   label?: string;
@@ -119,6 +119,7 @@ export type Props = {
   onChange?: (
     ev: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => unknown;
+  innerRef?: React.RefObject<HTMLInputElement | HTMLTextAreaElement>;
   onKeyDown?: (ev: React.KeyboardEvent<HTMLInputElement>) => unknown;
   onFocus?: (ev: React.SyntheticEvent) => unknown;
   onBlur?: (ev: React.SyntheticEvent) => unknown;
@@ -126,7 +127,7 @@ export type Props = {
 
 @observer
 class Input extends React.Component<Props> {
-  input = React.createRef<HTMLInputElement | HTMLTextAreaElement>();
+  input = this.props.innerRef;
 
   @observable
   focused = false;
@@ -146,10 +147,6 @@ class Input extends React.Component<Props> {
       this.props.onFocus(ev);
     }
   };
-
-  focus() {
-    this.input.current?.focus();
-  }
 
   render() {
     const {

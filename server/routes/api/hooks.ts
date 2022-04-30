@@ -57,7 +57,7 @@ router.post("hooks.unfurl", async (ctx) => {
   const unfurls = {};
 
   for (const link of event.links) {
-    const id = link.url.substr(link.url.lastIndexOf("/") + 1);
+    const id = link.url.slice(link.url.lastIndexOf("/") + 1);
     const doc = await Document.findByPk(id);
     if (!doc || doc.teamId !== user.teamId) {
       continue;

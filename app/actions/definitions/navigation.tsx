@@ -16,18 +16,14 @@ import * as React from "react";
 import {
   developersUrl,
   changelogUrl,
-  mailToUrl,
+  feedbackUrl,
   githubIssuesUrl,
 } from "@shared/utils/urlHelpers";
 import stores from "~/stores";
 import SearchQuery from "~/models/SearchQuery";
 import KeyboardShortcuts from "~/scenes/KeyboardShortcuts";
 import { createAction } from "~/actions";
-import {
-  NavigationSection,
-  SearchSection,
-  RecentSearchesSection,
-} from "~/actions/sections";
+import { NavigationSection, RecentSearchesSection } from "~/actions/sections";
 import history from "~/utils/history";
 import {
   organizationSettingsPath,
@@ -55,17 +51,6 @@ export const navigateToRecentSearchQuery = (searchQuery: SearchQuery) =>
     name: searchQuery.query,
     icon: <SearchIcon />,
     perform: () => history.push(searchPath(searchQuery.query)),
-  });
-
-export const navigateToSearchQuery = (searchQuery: string) =>
-  createAction({
-    id: "search",
-    section: SearchSection,
-    name: ({ t }) =>
-      t(`Search documents for "{{searchQuery}}"`, { searchQuery }),
-    icon: <SearchIcon />,
-    perform: () => history.push(searchPath(searchQuery)),
-    visible: ({ location }) => location.pathname !== searchPath(),
   });
 
 export const navigateToDrafts = createAction({
@@ -106,6 +91,8 @@ export const navigateToSettings = createAction({
   section: NavigationSection,
   shortcut: ["g", "s"],
   icon: <SettingsIcon />,
+  visible: ({ stores }) =>
+    stores.policies.abilities(stores.auth.team?.id || "").update,
   perform: () => history.push(organizationSettingsPath()),
 });
 
@@ -130,7 +117,7 @@ export const openFeedbackUrl = createAction({
   section: NavigationSection,
   iconInContextMenu: false,
   icon: <EmailIcon />,
-  perform: () => window.open(mailToUrl()),
+  perform: () => window.open(feedbackUrl()),
 });
 
 export const openBugReportUrl = createAction({
@@ -174,7 +161,6 @@ export const rootNavigationActions = [
   navigateToTemplates,
   navigateToArchive,
   navigateToTrash,
-  navigateToSettings,
   openAPIDocumentation,
   openFeedbackUrl,
   openBugReportUrl,

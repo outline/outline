@@ -72,6 +72,7 @@ function DocumentHistory() {
           </Header>
           <Scrollable topShadow>
             <PaginatedEventList
+              aria-label={t("History")}
               fetch={events.fetchPage}
               events={items}
               options={{

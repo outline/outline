@@ -10,14 +10,15 @@ import {
   ShapesIcon,
   ImportIcon,
   PinIcon,
+  SearchIcon,
 } from "outline-icons";
 import * as React from "react";
 import getDataTransferFiles from "@shared/utils/getDataTransferFiles";
-import DocumentTemplatize from "~/scenes/DocumentTemplatize";
+import DocumentTemplatizeDialog from "~/components/DocumentTemplatizeDialog";
 import { createAction } from "~/actions";
 import { DocumentSection } from "~/actions/sections";
 import history from "~/utils/history";
-import { homePath, newDocumentPath } from "~/utils/routeHelpers";
+import { homePath, newDocumentPath, searchPath } from "~/utils/routeHelpers";
 
 export const openDocument = createAction({
   name: ({ t }) => t("Open document"),
@@ -51,8 +52,11 @@ export const createDocument = createAction({
   visible: ({ activeCollectionId, stores }) =>
     !!activeCollectionId &&
     stores.policies.abilities(activeCollectionId).update,
-  perform: ({ activeCollectionId }) =>
-    activeCollectionId && history.push(newDocumentPath(activeCollectionId)),
+  perform: ({ activeCollectionId, inStarredSection }) =>
+    activeCollectionId &&
+    history.push(newDocumentPath(activeCollectionId), {
+      starred: inStarredSection,
+    }),
 });
 
 export const starDocument = createAction({
@@ -302,21 +306,27 @@ export const createTemplate = createAction({
     if (!activeDocumentId) {
       return;
     }
-
     event?.preventDefault();
     event?.stopPropagation();
 
     stores.dialogs.openModal({
       title: t("Create template"),
-      content: (
-        <DocumentTemplatize
-          documentId={activeDocumentId}
-          onSubmit={stores.dialogs.closeAllModals}
-        />
-      ),
+      isCentered: true,
+      content: <DocumentTemplatizeDialog documentId={activeDocumentId} />,
     });
   },
 });
+
+export const searchDocumentsForQuery = (searchQuery: string) =>
+  createAction({
+    id: "search",
+    section: DocumentSection,
+    name: ({ t }) =>
+      t(`Search documents for "{{searchQuery}}"`, { searchQuery }),
+    icon: <SearchIcon />,
+    perform: () => history.push(searchPath(searchQuery)),
+    visible: ({ location }) => location.pathname !== searchPath(),
+  });
 
 export const rootDocumentActions = [
   openDocument,

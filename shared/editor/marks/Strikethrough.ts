@@ -20,6 +20,10 @@ export default class Strikethrough extends Mark {
         {
           tag: "strike",
         },
+        {
+          style: "text-decoration",
+          getAttrs: (value) => (value === "line-through" ? null : false),
+        },
       ],
       toDOM: () => ["del", 0],
     };

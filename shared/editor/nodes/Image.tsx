@@ -7,16 +7,16 @@ import {
   TextSelection,
   NodeSelection,
   EditorState,
-  Transaction,
 } from "prosemirror-state";
 import * as React from "react";
 import ImageZoom from "react-medium-image-zoom";
 import styled from "styled-components";
+import { supportedImageMimeTypes } from "../../utils/files";
 import getDataTransferFiles from "../../utils/getDataTransferFiles";
 import insertFiles, { Options } from "../commands/insertFiles";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import uploadPlaceholderPlugin from "../lib/uploadPlaceholder";
-import { ComponentProps } from "../types";
+import { ComponentProps, Dispatch } from "../types";
 import Node from "./Node";
 
 /**
@@ -36,7 +36,7 @@ const uploadPlugin = (options: Options) =>
         paste(view, event: ClipboardEvent): boolean {
           if (
             (view.props.editable && !view.props.editable(view.state)) ||
-            !options.uploadImage
+            !options.uploadFile
           ) {
             return false;
           }
@@ -48,8 +48,9 @@ const uploadPlugin = (options: Options) =>
           // check if we actually pasted any files
           const files = Array.prototype.slice
             .call(event.clipboardData.items)
-            .map((dt: any) => dt.getAsFile())
-            .filter((file: File) => file);
+            .filter((dt: DataTransferItem) => dt.kind !== "string")
+            .map((dt: DataTransferItem) => dt.getAsFile())
+            .filter(Boolean);
 
           if (files.length === 0) {
             return false;
@@ -67,14 +68,14 @@ const uploadPlugin = (options: Options) =>
         drop(view, event: DragEvent): boolean {
           if (
             (view.props.editable && !view.props.editable(view.state)) ||
-            !options.uploadImage
+            !options.uploadFile
           ) {
             return false;
           }
 
           // filter to only include image files
-          const files = getDataTransferFiles(event).filter((file) =>
-            /image/i.test(file.type)
+          const files = getDataTransferFiles(event).filter(
+            (dt: any) => dt.kind !== "string"
           );
           if (files.length === 0) {
             return false;
@@ -294,35 +295,12 @@ export default class Image extends Node {
   };
 
   component = (props: ComponentProps) => {
-    const { theme, isSelected } = props;
-    const { alt, src, layoutClass } = props.node.attrs;
-    const className = layoutClass ? `image image-${layoutClass}` : "image";
-
     return (
-      <div contentEditable={false} className={className}>
-        <ImageWrapper
-          className={isSelected ? "ProseMirror-selectednode" : ""}
-          onClick={this.handleSelect(props)}
-        >
-          <Button>
-            <DownloadIcon
-              color="currentColor"
-              onClick={this.handleDownload(props)}
-            />
-          </Button>
-          <ImageZoom
-            image={{
-              src,
-              alt,
-            }}
-            defaultStyles={{
-              overlay: {
-                backgroundColor: theme.background,
-              },
-            }}
-            shouldRespectMaxDimension
-          />
-        </ImageWrapper>
+      <ImageComponent
+        {...props}
+        onClick={this.handleSelect(props)}
+        onDownload={this.handleDownload(props)}
+      >
         <Caption
           onKeyDown={this.handleKeyDown(props)}
           onBlur={this.handleBlur(props)}
@@ -334,9 +312,9 @@ export default class Image extends Node {
           suppressContentEditableWarning
           data-caption={this.options.dictionary.imageCaptionPlaceholder}
         >
-          {alt}
+          {props.node.attrs.alt}
         </Caption>
-      </div>
+      </ImageComponent>
     );
   };
 
@@ -345,7 +323,7 @@ export default class Image extends Node {
       " ![" +
       state.esc((node.attrs.alt || "").replace("\n", "") || "", false) +
       "](" +
-      state.esc(node.attrs.src, false);
+      state.esc(node.attrs.src || "", false);
     if (node.attrs.layoutClass) {
       markdown += ' "' + state.esc(node.attrs.layoutClass, false) + '"';
     } else if (node.attrs.title) {
@@ -388,17 +366,11 @@ export default class Image extends Node {
 
         return true;
       },
-      deleteImage: () => (
-        state: EditorState,
-        dispatch: (tr: Transaction) => void
-      ) => {
+      deleteImage: () => (state: EditorState, dispatch: Dispatch) => {
         dispatch(state.tr.deleteSelection());
         return true;
       },
-      alignRight: () => (
-        state: EditorState,
-        dispatch: (tr: Transaction) => void
-      ) => {
+      alignRight: () => (state: EditorState, dispatch: Dispatch) => {
         if (!(state.selection instanceof NodeSelection)) {
           return false;
         }
@@ -411,10 +383,7 @@ export default class Image extends Node {
         dispatch(state.tr.setNodeMarkup(selection.from, undefined, attrs));
         return true;
       },
-      alignLeft: () => (
-        state: EditorState,
-        dispatch: (tr: Transaction) => void
-      ) => {
+      alignLeft: () => (state: EditorState, dispatch: Dispatch) => {
         if (!(state.selection instanceof NodeSelection)) {
           return false;
         }
@@ -430,26 +399,26 @@ export default class Image extends Node {
       replaceImage: () => (state: EditorState) => {
         const { view } = this.editor;
         const {
-          uploadImage,
-          onImageUploadStart,
-          onImageUploadStop,
+          uploadFile,
+          onFileUploadStart,
+          onFileUploadStop,
           onShowToast,
         } = this.editor.props;
 
-        if (!uploadImage) {
-          throw new Error("uploadImage prop is required to replace images");
+        if (!uploadFile) {
+          throw new Error("uploadFile prop is required to replace images");
         }
 
         // create an input element and click to trigger picker
         const inputElement = document.createElement("input");
         inputElement.type = "file";
-        inputElement.accept = "image/*";
+        inputElement.accept = supportedImageMimeTypes.join(", ");
         inputElement.onchange = (event: Event) => {
           const files = getDataTransferFiles(event);
           insertFiles(view, event, state.selection.from, files, {
-            uploadImage,
-            onImageUploadStart,
-            onImageUploadStop,
+            uploadFile,
+            onFileUploadStart,
+            onFileUploadStop,
             onShowToast,
             dictionary: this.options.dictionary,
             replaceExisting: true,
@@ -458,10 +427,7 @@ export default class Image extends Node {
         inputElement.click();
         return true;
       },
-      alignCenter: () => (
-        state: EditorState,
-        dispatch: (tr: Transaction) => void
-      ) => {
+      alignCenter: () => (state: EditorState, dispatch: Dispatch) => {
         if (!(state.selection instanceof NodeSelection)) {
           return false;
         }
@@ -472,7 +438,7 @@ export default class Image extends Node {
       },
       createImage: (attrs: Record<string, any>) => (
         state: EditorState,
-        dispatch: (tr: Transaction) => void
+        dispatch: Dispatch
       ) => {
         const { selection } = state;
         const position =
@@ -518,6 +484,53 @@ export default class Image extends Node {
     return [uploadPlaceholderPlugin, uploadPlugin(this.options)];
   }
 }
+
+const ImageComponent = (
+  props: ComponentProps & {
+    onClick: (event: React.MouseEvent<HTMLDivElement>) => void;
+    onDownload: (event: React.MouseEvent<HTMLButtonElement>) => void;
+    children: React.ReactNode;
+  }
+) => {
+  const { theme, isSelected, node } = props;
+  const { alt, src, layoutClass } = node.attrs;
+  const className = layoutClass ? `image image-${layoutClass}` : "image";
+  const [width, setWidth] = React.useState(0);
+
+  return (
+    <div contentEditable={false} className={className}>
+      <ImageWrapper
+        className={isSelected ? "ProseMirror-selectednode" : ""}
+        onClick={props.onClick}
+        style={{ width }}
+      >
+        <Button onClick={props.onDownload}>
+          <DownloadIcon color="currentColor" />
+        </Button>
+        <ImageZoom
+          image={{
+            src,
+            alt,
+            // @ts-expect-error type is incorrect, allows spreading all img props
+            onLoad: (ev) => {
+              // For some SVG's Firefox does not provide the naturalWidth, in this
+              // rare case we need to provide a default so that the image can be
+              // seen and is not sized to 0px
+              setWidth(ev.target.naturalWidth || "50%");
+            },
+          }}
+          defaultStyles={{
+            overlay: {
+              backgroundColor: theme.background,
+            },
+          }}
+          shouldRespectMaxDimension
+        />
+      </ImageWrapper>
+      {props.children}
+    </div>
+  );
+};
 
 const Button = styled.button`
   position: absolute;
@@ -575,10 +588,12 @@ const Caption = styled.p`
   }
 `;
 
-const ImageWrapper = styled.span`
+const ImageWrapper = styled.div`
   line-height: 0;
-  display: inline-block;
   position: relative;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 100%;
 
   &:hover {
     ${Button} {

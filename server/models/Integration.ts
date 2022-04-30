@@ -4,6 +4,7 @@ import {
   Column,
   Table,
   DataType,
+  Scopes,
 } from "sequelize-typescript";
 import Collection from "./Collection";
 import IntegrationAuthentication from "./IntegrationAuthentication";
@@ -12,6 +13,17 @@ import User from "./User";
 import BaseModel from "./base/BaseModel";
 import Fix from "./decorators/Fix";
 
+@Scopes(() => ({
+  withAuthentication: {
+    include: [
+      {
+        model: IntegrationAuthentication,
+        as: "authentication",
+        required: true,
+      },
+    ],
+  },
+}))
 @Table({ tableName: "integrations", modelName: "integration" })
 @Fix
 class Integration extends BaseModel {

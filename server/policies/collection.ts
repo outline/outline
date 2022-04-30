@@ -8,7 +8,10 @@ allow(User, "createCollection", Team, (user, team) => {
   if (!team || user.isViewer || user.teamId !== team.id) {
     return false;
   }
-  return true;
+  if (user.isAdmin || team.memberCollectionCreate) {
+    return true;
+  }
+  return false;
 });
 
 allow(User, "importCollection", Team, (actor, team) => {
@@ -36,9 +39,12 @@ allow(User, "move", Collection, (user, collection) => {
   throw AdminRequiredError();
 });
 
-allow(User, "read", Collection, (user, collection) => {
+allow(User, ["read", "star", "unstar"], Collection, (user, collection) => {
   if (!collection || user.teamId !== collection.teamId) {
     return false;
+  }
+  if (user.isAdmin) {
+    return true;
   }
 
   if (!collection.permission) {
@@ -68,6 +74,9 @@ allow(User, "share", Collection, (user, collection) => {
   if (!collection.sharing) {
     return false;
   }
+  if (user.isAdmin) {
+    return true;
+  }
 
   if (collection.permission !== "read_write") {
     invariant(
@@ -92,6 +101,9 @@ allow(User, ["publish", "update"], Collection, (user, collection) => {
   }
   if (!collection || user.teamId !== collection.teamId) {
     return false;
+  }
+  if (user.isAdmin) {
+    return true;
   }
 
   if (collection.permission !== "read_write") {
@@ -118,6 +130,9 @@ allow(User, "delete", Collection, (user, collection) => {
   if (!collection || user.teamId !== collection.teamId) {
     return false;
   }
+  if (user.isAdmin) {
+    return true;
+  }
 
   if (collection.permission !== "read_write") {
     invariant(
@@ -133,9 +148,6 @@ allow(User, "delete", Collection, (user, collection) => {
     );
   }
 
-  if (user.isAdmin) {
-    return true;
-  }
   if (user.id === collection.createdById) {
     return true;
   }

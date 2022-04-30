@@ -16,7 +16,7 @@ const PageTitle = ({ title, favicon }: Props) => {
   return (
     <Helmet>
       <title>
-        {team && team.name ? `${title} - ${team.name}` : `${title} - Outline`}
+        {team?.name ? `${title} - ${team.name}` : `${title} - Outline`}
       </title>
       {favicon ? (
         <link rel="shortcut icon" href={favicon} />

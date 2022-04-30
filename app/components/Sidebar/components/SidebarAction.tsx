@@ -21,6 +21,10 @@ function SidebarAction({ action, ...rest }: Props) {
   const menuItem = actionToMenuItem(action, context);
   invariant(menuItem.type === "button", "passed action must be a button");
 
+  if (!menuItem.visible) {
+    return null;
+  }
+
   return (
     <SidebarLink
       onClick={menuItem.onClick}

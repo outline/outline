@@ -31,6 +31,7 @@ export type SearchParams = {
   includeDrafts?: boolean;
   collectionId?: string;
   userId?: string;
+  shareId?: string;
 };
 
 type ImportOptions = {
@@ -41,7 +42,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   sharedTreeCache: Map<string, NavigationNode | undefined> = new Map();
 
   @observable
-  searchCache: Map<string, SearchResult[]> = new Map();
+  searchCache: Map<string, SearchResult[] | undefined> = new Map();
 
   @observable
   backlinks: Map<string, string[]> = new Map();
@@ -170,8 +171,8 @@ export default class DocumentsStore extends BaseStore<Document> {
     return naturalSort(this.inCollection(collectionId), "title");
   }
 
-  searchResults(query: string): SearchResult[] {
-    return this.searchCache.get(query) || [];
+  searchResults(query: string): SearchResult[] | undefined {
+    return this.searchCache.get(query);
   }
 
   @computed
@@ -239,7 +240,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     const res = await client.post(`/documents.list`, {
       backlinkDocumentId: documentId,
     });
-    invariant(res && res.data, "Document list not available");
+    invariant(res?.data, "Document list not available");
     const { data } = res;
 
     runInAction("DocumentsStore#fetchBacklinks", () => {
@@ -271,7 +272,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     const res = await client.post(`/documents.list`, {
       parentDocumentId: documentId,
     });
-    invariant(res && res.data, "Document list not available");
+    invariant(res?.data, "Document list not available");
     const { data } = res;
 
     runInAction("DocumentsStore#fetchChildDocuments", () => {
@@ -289,7 +290,7 @@ export default class DocumentsStore extends BaseStore<Document> {
 
     try {
       const res = await client.post(`/documents.${request}`, options);
-      invariant(res && res.data, "Document list not available");
+      invariant(res?.data, "Document list not available");
       runInAction("DocumentsStore#fetchNamedPage", () => {
         res.data.forEach(this.add);
         this.addPolicies(res.policies);
@@ -375,7 +376,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     const res = await client.get("/documents.search_titles", {
       query,
     });
-    invariant(res && res.data, "Search response should be available");
+    invariant(res?.data, "Search response should be available");
     // add the documents and associated policies to the store
     res.data.forEach(this.add);
     this.addPolicies(res.policies);
@@ -392,7 +393,7 @@ export default class DocumentsStore extends BaseStore<Document> {
       ...compactedOptions,
       query,
     });
-    invariant(res && res.data, "Search response should be available");
+    invariant(res?.data, "Search response should be available");
 
     // add the documents and associated policies to the store
     res.data.forEach((result: SearchResult) => this.add(result.document));
@@ -407,6 +408,7 @@ export default class DocumentsStore extends BaseStore<Document> {
           return null;
         }
         return {
+          id: document.id,
           ranking: result.ranking,
           context: result.context,
           document,
@@ -443,7 +445,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     const res = await client.post("/documents.templatize", {
       id,
     });
-    invariant(res && res.data, "Document not available");
+    invariant(res?.data, "Document not available");
     this.addPolicies(res.policies);
     this.add(res.data);
     return this.data.get(res.data.id);
@@ -485,7 +487,7 @@ export default class DocumentsStore extends BaseStore<Document> {
         apiVersion: 2,
       });
 
-      invariant(res && res.data, "Document not available");
+      invariant(res?.data, "Document not available");
       this.addPolicies(res.policies);
       this.add(res.data.document);
 
@@ -524,7 +526,7 @@ export default class DocumentsStore extends BaseStore<Document> {
         parentDocumentId,
         index: index,
       });
-      invariant(res && res.data, "Data not available");
+      invariant(res?.data, "Data not available");
       res.data.documents.forEach(this.add);
       res.data.collections.forEach(this.rootStore.collections.add);
       this.addPolicies(res.policies);
@@ -547,7 +549,7 @@ export default class DocumentsStore extends BaseStore<Document> {
       )}${append}`,
       text: document.text,
     });
-    invariant(res && res.data, "Data should be available");
+    invariant(res?.data, "Data should be available");
     const collection = this.getCollectionForDocument(document);
     if (collection) {
       collection.refresh();
@@ -613,7 +615,7 @@ export default class DocumentsStore extends BaseStore<Document> {
       }
     });
     const res = await client.post("/documents.import", formData);
-    invariant(res && res.data, "Data should be available");
+    invariant(res?.data, "Data should be available");
     this.addPolicies(res.policies);
     return this.add(res.data);
   };
@@ -680,7 +682,7 @@ export default class DocumentsStore extends BaseStore<Document> {
       id: document.id,
     });
     runInAction("Document#archive", () => {
-      invariant(res && res.data, "Data should be available");
+      invariant(res?.data, "Data should be available");
       document.updateFromJson(res.data);
       this.addPolicies(res.policies);
     });
@@ -704,7 +706,7 @@ export default class DocumentsStore extends BaseStore<Document> {
       collectionId: options.collectionId,
     });
     runInAction("Document#restore", () => {
-      invariant(res && res.data, "Data should be available");
+      invariant(res?.data, "Data should be available");
       document.updateFromJson(res.data);
       this.addPolicies(res.policies);
     });
@@ -720,7 +722,7 @@ export default class DocumentsStore extends BaseStore<Document> {
       id: document.id,
     });
     runInAction("Document#unpublish", () => {
-      invariant(res && res.data, "Data should be available");
+      invariant(res?.data, "Data should be available");
       document.updateFromJson(res.data);
       this.addPolicies(res.policies);
     });
