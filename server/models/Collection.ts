@@ -184,7 +184,7 @@ class Collection extends ParanoidModel {
       },
     },
   })
-  sort: Sort | null;
+  sort: Sort;
 
   // getters
 
@@ -362,10 +362,6 @@ class Collection extends ParanoidModel {
     if (!this.documentStructure) {
       return null;
     }
-    const sort: Sort = this.sort || {
-      field: "title",
-      direction: "asc",
-    };
 
     let result!: NavigationNode | undefined;
 
@@ -399,7 +395,7 @@ class Collection extends ParanoidModel {
 
     return {
       ...result,
-      children: sortNavigationNodes(result.children, sort),
+      children: sortNavigationNodes(result.children, this.sort),
     };
   };
 
