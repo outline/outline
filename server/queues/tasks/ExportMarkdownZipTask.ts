@@ -8,7 +8,7 @@ import { Collection, Event, FileOperation, Team, User } from "@server/models";
 import { FileOperationState } from "@server/models/FileOperation";
 import { uploadToS3FromBuffer } from "@server/utils/s3";
 import { archiveCollections } from "@server/utils/zip";
-import BaseTask from "./BaseTask";
+import BaseTask, { TaskPriority } from "./BaseTask";
 
 type Props = {
   fileOperationId: string;
@@ -115,5 +115,15 @@ export default class ExportMarkdownZipTask extends BaseTask<Props> {
       teamId: fileOperation.teamId,
       actorId: fileOperation.userId,
     });
+  }
+
+  /**
+   * Job options such as priority and retry strategy, as defined by Bull.
+   */
+  public get options() {
+    return {
+      priority: TaskPriority.Background,
+      attempts: 2,
+    };
   }
 }
