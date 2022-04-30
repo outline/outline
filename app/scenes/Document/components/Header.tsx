@@ -43,6 +43,7 @@ type Props = {
   shareId: string | null | undefined;
   isDraft: boolean;
   isEditing: boolean;
+  isFocused: boolean;
   isRevision: boolean;
   isSaving: boolean;
   isPublishing: boolean;
@@ -69,6 +70,7 @@ function DocumentHeader({
   isDraft,
   isPublishing,
   isRevision,
+  isFocused,
   isSaving,
   savingIsDisabled,
   publishingIsDisabled,
@@ -83,7 +85,8 @@ function DocumentHeader({
   const { team } = auth;
   const isMobile = useMobile();
   const isMouseMoving = useMouseMove();
-  const hideHeader = isEditing && !isMouseMoving;
+  const hideHeader =
+    (!!ui.observingUserId || isEditing || isFocused) && !isMouseMoving;
 
   // We cache this value for as long as the component is mounted so that if you
   // apply a template there is still the option to replace it until the user
@@ -165,6 +168,35 @@ function DocumentHeader({
         />
       </Tooltip>
     </Action>
+  );
+
+  const DocumentMenuLabel = React.useCallback(
+    (props) => (
+      <Button
+        icon={<MoreIcon />}
+        iconColor="currentColor"
+        {...props}
+        borderOnHover
+        neutral
+      />
+    ),
+    []
+  );
+
+  const NewChildDocLabel = React.useCallback(
+    (props) => (
+      <Tooltip
+        tooltip={t("New document")}
+        shortcut="n"
+        delay={500}
+        placement="bottom"
+      >
+        <Button icon={<PlusIcon />} {...props} neutral>
+          {t("New doc")}
+        </Button>
+      </Tooltip>
+    ),
+    [t]
   );
 
   if (shareId) {
@@ -264,18 +296,7 @@ function DocumentHeader({
                 <Action>
                   <NewChildDocumentMenu
                     document={document}
-                    label={(props) => (
-                      <Tooltip
-                        tooltip={t("New document")}
-                        shortcut="n"
-                        delay={500}
-                        placement="bottom"
-                      >
-                        <Button icon={<PlusIcon />} {...props} neutral>
-                          {t("New doc")}
-                        </Button>
-                      </Tooltip>
-                    )}
+                    label={NewChildDocLabel}
                   />
                 </Action>
               )}
@@ -317,15 +338,7 @@ function DocumentHeader({
                     <DocumentMenu
                       document={document}
                       isRevision={isRevision}
-                      label={(props) => (
-                        <Button
-                          icon={<MoreIcon />}
-                          iconColor="currentColor"
-                          {...props}
-                          borderOnHover
-                          neutral
-                        />
-                      )}
+                      label={DocumentMenuLabel}
                       showToggleEmbeds={canToggleEmbeds}
                       showDisplayOptions
                     />
