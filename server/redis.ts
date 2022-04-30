@@ -25,12 +25,21 @@ export default class RedisAdapter extends Redis {
     if (!(url || "").startsWith("ioredis://")) {
       super(process.env.REDIS_URL, defaultOptions);
     } else {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const decodedString = Buffer.from(url!.slice(10), "base64").toString();
-      const customOptions = JSON.parse(decodedString);
-      const mergedOptions = defaults(defaultOptions, customOptions);
+      let customOptions = {};
+      try {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        const decodedString = Buffer.from(url!.slice(10), "base64").toString();
+        customOptions = JSON.parse(decodedString);
+      } catch (error) {
+        throw new Error(`Failed to decode redis adapter options: ${error}`);
+      }
 
-      super(mergedOptions);
+      try {
+        const mergedOptions = defaults(defaultOptions, customOptions);
+        super(mergedOptions);
+      } catch (error) {
+        throw new Error(`Failed to initialize redis client: ${error}`);
+      }
     }
 
     // More than the default of 10 listeners is expected for the amount of queues
