@@ -21,7 +21,7 @@ const searcher = new FuzzySearch<{
   sort: true,
 });
 
-class EmojiMenu extends React.Component<
+class EmojiMenu extends React.PureComponent<
   Omit<
     Props<Emoji>,
     | "renderMenuItem"

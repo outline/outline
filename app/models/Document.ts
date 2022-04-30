@@ -6,7 +6,7 @@ import unescape from "@shared/utils/unescape";
 import DocumentsStore from "~/stores/DocumentsStore";
 import BaseModel from "~/models/BaseModel";
 import User from "~/models/User";
-import { NavigationNode } from "~/types";
+import type { NavigationNode } from "~/types";
 import View from "./View";
 import Field from "./decorators/Field";
 

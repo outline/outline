@@ -740,6 +740,8 @@ export class Editor extends React.PureComponent<
     return headings;
   };
 
+  onEmojiClose = () => this.setState({ emojiMenuOpen: false });
+
   render() {
     const {
       dir,
@@ -804,7 +806,7 @@ export class Editor extends React.PureComponent<
               onShowToast={this.props.onShowToast}
               isActive={this.state.emojiMenuOpen}
               search={this.state.blockMenuSearch}
-              onClose={() => this.setState({ emojiMenuOpen: false })}
+              onClose={this.onEmojiClose}
             />
             <BlockMenu
               view={this.view}

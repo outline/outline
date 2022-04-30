@@ -28,8 +28,8 @@ function Header({ breadcrumb, title, actions, hasSidebar }: Props) {
   const passThrough = !actions && !breadcrumb && !title;
 
   const [isScrolled, setScrolled] = React.useState(false);
-  const handleScroll = React.useCallback(
-    throttle(() => setScrolled(window.scrollY > 75), 50),
+  const handleScroll = React.useMemo(
+    () => throttle(() => setScrolled(window.scrollY > 75), 50),
     []
   );
 
