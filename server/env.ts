@@ -33,7 +33,7 @@ export class Environment {
   /**
    * Allows waiting on the environment to be validated.
    *
-   * @returns A promise that resolves when the environment has been valided
+   * @returns A promise that resolves when the environment is validated.
    */
   public validate() {
     return this.validationPromise;
@@ -360,8 +360,9 @@ export class Environment {
    */
   @IsOptional()
   @IsBoolean()
-  @CannotUseWithout("SLACK_CLIENT_ID")
-  public SLACK_MESSAGE_ACTIONS = process.env.SLACK_MESSAGE_ACTIONS;
+  public SLACK_MESSAGE_ACTIONS = Boolean(
+    process.env.SLACK_MESSAGE_ACTIONS ?? "false"
+  );
 
   /**
    * Azure OAuth2 client credentials. To enable authentication with Azure.
