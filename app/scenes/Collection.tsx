@@ -230,7 +230,7 @@ function CollectionScene() {
                       collectionId: collection.id,
                       parentDocumentId: null,
                       sort: collection.sort.field,
-                      direction: "ASC",
+                      direction: collection.sort.direction,
                     }}
                     showParentDocuments
                   />
