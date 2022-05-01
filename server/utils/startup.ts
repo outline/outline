@@ -24,7 +24,17 @@ $ node ./build/server/scripts/20210226232041-migrate-authentication.js
 }
 
 export async function checkEnv() {
-  await env.isReady;
+  await env.validate().then((errors) => {
+    if (errors.length > 0) {
+      Logger.warn(
+        "Environment configuration is invalid, please check the following:\n\n"
+      );
+      for (const error of errors) {
+        Logger.warn("- " + Object.values(error.constraints ?? {}).join(", "));
+      }
+      process.exit(1);
+    }
+  });
 
   if (env.ENVIRONMENT === "production") {
     Logger.info(

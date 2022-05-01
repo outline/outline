@@ -1,5 +1,6 @@
 import { expect } from "@jest/globals";
 import { v4 as uuidv4 } from "uuid";
+import env from "@server/env";
 import parseAttachmentIds from "./parseAttachmentIds";
 
 it("should return an empty array with no matches", () => {
@@ -32,9 +33,8 @@ it("should parse attachment ID from markdown with additional query params", () =
 it("should parse attachment ID from markdown with fully qualified url", () => {
   const uuid = uuidv4();
   const results = parseAttachmentIds(
-    `![caption text](${process.env.URL}/api/attachments.redirect?id=${uuid})`
+    `![caption text](${env.URL}/api/attachments.redirect?id=${uuid})`
   );
-  expect(process.env.URL).toBeTruthy();
   expect(results.length).toBe(1);
   expect(results[0]).toBe(uuid);
 });
@@ -69,9 +69,8 @@ it("should parse attachment ID from html", () => {
 it("should parse attachment ID from html with fully qualified url", () => {
   const uuid = uuidv4();
   const results = parseAttachmentIds(
-    `<img src="${process.env.URL}/api/attachments.redirect?id=${uuid}" />`
+    `<img src="${env.URL}/api/attachments.redirect?id=${uuid}" />`
   );
-  expect(process.env.URL).toBeTruthy();
   expect(results.length).toBe(1);
   expect(results[0]).toBe(uuid);
 });

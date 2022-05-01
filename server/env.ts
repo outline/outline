@@ -25,31 +25,14 @@ export class Environment {
 
   constructor() {
     this.validationPromise = validate(this);
-
-    this.validationPromise.then((errors) => {
-      if (errors.length > 0) {
-        console.error(
-          "Environment configuration is invalid, please check the following:\n\n"
-        );
-        for (const error of errors) {
-          console.error(
-            "- ",
-            Object.values(error.constraints ?? {}).join(", ")
-          );
-        }
-
-        console.error("\n\n");
-        process.exit(1);
-      }
-    });
   }
 
   /**
    * Allows waiting on the environment to be validated.
    *
-   * @returns A promise that resolves to true if the environment is valid
+   * @returns A promise that resolves when the environment has been valided
    */
-  public isReady() {
+  public validate() {
     return this.validationPromise;
   }
 
