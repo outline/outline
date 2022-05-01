@@ -54,6 +54,7 @@ export default class PersistenceExtension implements Extension {
           state: Buffer.from(state),
         },
         {
+          silent: true,
           hooks: false,
           transaction,
         }
