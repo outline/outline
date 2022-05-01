@@ -13,7 +13,7 @@ const defaultOptions = {
 
   // support Heroku Redis, see:
   // https://devcenter.heroku.com/articles/heroku-redis#ioredis-module
-  tls: env.REDIS_URL.startsWith("rediss://")
+  tls: (env.REDIS_URL || "").startsWith("rediss://")
     ? {
         rejectUnauthorized: false,
       }
@@ -21,8 +21,8 @@ const defaultOptions = {
 };
 
 export default class RedisAdapter extends Redis {
-  constructor(url = "") {
-    if (!url.startsWith("ioredis://")) {
+  constructor(url: string | undefined) {
+    if (!url || !url.startsWith("ioredis://")) {
       super(env.REDIS_URL, defaultOptions);
     } else {
       let customOptions = {};

@@ -104,9 +104,10 @@ export class Environment {
   /**
    * The url of redis. Note that redis does not have a database after the port.
    */
+  @IsOptional()
   @IsNotEmpty()
   @IsUrl({ require_tld: false, protocols: ["redis", "rediss", "ioredis"] })
-  public REDIS_URL = `${process.env.REDIS_URL}`;
+  public REDIS_URL = process.env.REDIS_URL;
 
   /**
    * The fully qualified, external facing domain name of the server.
