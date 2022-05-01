@@ -1,3 +1,4 @@
+import env from "@server/env";
 import { User } from "@server/models";
 
 type Options = {
@@ -38,8 +39,7 @@ export default (
 
   if (options.includeDetails) {
     userData.email = user.email;
-    userData.language =
-      user.language || process.env.DEFAULT_LANGUAGE || "en_US";
+    userData.language = user.language || env.DEFAULT_LANGUAGE;
   }
 
   return userData;

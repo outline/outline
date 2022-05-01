@@ -1,4 +1,5 @@
 import Router from "koa-router";
+import env from "@server/env";
 import { AuthenticationError } from "@server/errors";
 import CleanupDeletedDocumentsTask from "@server/queues/tasks/CleanupDeletedDocumentsTask";
 import CleanupDeletedTeamsTask from "@server/queues/tasks/CleanupDeletedTeamsTask";
@@ -10,7 +11,7 @@ const router = new Router();
 router.post("utils.gc", async (ctx) => {
   const { token, limit = 500 } = ctx.body;
 
-  if (process.env.UTILS_SECRET !== token) {
+  if (env.UTILS_SECRET !== token) {
     throw AuthenticationError("Invalid secret token");
   }
 

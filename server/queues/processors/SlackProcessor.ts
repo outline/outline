@@ -1,5 +1,6 @@
 import fetch from "fetch-with-proxy";
 import { Op } from "sequelize";
+import env from "@server/env";
 import { Document, Integration, Collection, Team } from "@server/models";
 import { presentSlackAttachment } from "@server/presenters";
 import {
@@ -65,7 +66,7 @@ export default class SlackProcessor extends BaseProcessor {
           {
             color: collection.color,
             title: collection.name,
-            title_link: `${process.env.URL}${collection.url}`,
+            title_link: `${env.URL}${collection.url}`,
             text: collection.description,
           },
         ],

@@ -1,4 +1,5 @@
 import invariant from "invariant";
+import env from "@server/env";
 import Logger from "@server/logging/logger";
 import { APM } from "@server/logging/tracing";
 import { Team, AuthenticationProvider } from "@server/models";
@@ -54,7 +55,7 @@ async function teamCreator({
   // This team has never been seen before, if self hosted the logic is different
   // to the multi-tenant version, we want to restrict to a single team that MAY
   // have multiple authentication providers
-  if (process.env.DEPLOYMENT !== "hosted") {
+  if (env.DEPLOYMENT !== "hosted") {
     const teamCount = await Team.count();
 
     // If the self-hosted installation has a single team and the domain for the

@@ -1,6 +1,7 @@
 import invariant from "invariant";
 import Router from "koa-router";
 import { escapeRegExp } from "lodash";
+import env from "@server/env";
 import { AuthenticationError, InvalidRequestError } from "@server/errors";
 import {
   UserAuthentication,
@@ -25,7 +26,7 @@ router.post("hooks.unfurl", async (ctx) => {
     return (ctx.body = ctx.body.challenge);
   }
 
-  if (token !== process.env.SLACK_VERIFICATION_TOKEN) {
+  if (token !== env.SLACK_VERIFICATION_TOKEN) {
     throw AuthenticationError("Invalid token");
   }
 
@@ -88,7 +89,7 @@ router.post("hooks.interactive", async (ctx) => {
   assertPresent(token, "token is required");
   assertPresent(callback_id, "callback_id is required");
 
-  if (token !== process.env.SLACK_VERIFICATION_TOKEN) {
+  if (token !== env.SLACK_VERIFICATION_TOKEN) {
     throw AuthenticationError("Invalid verification token");
   }
 
@@ -126,7 +127,7 @@ router.post("hooks.slack", async (ctx) => {
   assertPresent(team_id, "team_id is required");
   assertPresent(user_id, "user_id is required");
 
-  if (token !== process.env.SLACK_VERIFICATION_TOKEN) {
+  if (token !== env.SLACK_VERIFICATION_TOKEN) {
     throw AuthenticationError("Invalid verification token");
   }
 
@@ -247,7 +248,7 @@ router.post("hooks.slack", async (ctx) => {
           result.document.collection,
           team,
           queryIsInTitle ? undefined : result.context,
-          process.env.SLACK_MESSAGE_ACTIONS
+          env.SLACK_MESSAGE_ACTIONS
             ? [
                 {
                   name: "post",

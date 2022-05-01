@@ -1,5 +1,6 @@
 import { Transaction } from "sequelize";
 import { sequelize } from "@server/database/sequelize";
+import env from "@server/env";
 import { Event, Team, User } from "@server/models";
 
 type TeamUpdaterProps = {
@@ -24,7 +25,7 @@ const teamUpdater = async ({ params, user, team, ip }: TeamUpdaterProps) => {
     inviteRequired,
   } = params;
 
-  if (subdomain !== undefined && process.env.SUBDOMAINS_ENABLED === "true") {
+  if (subdomain !== undefined && env.SUBDOMAINS_ENABLED) {
     team.subdomain = subdomain === "" ? null : subdomain;
   }
 

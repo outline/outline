@@ -116,7 +116,7 @@ class Team extends ParanoidModel {
    */
   get emailSigninEnabled(): boolean {
     return (
-      this.guestSignin && (!!env.SMTP_HOST || env.NODE_ENV === "development")
+      this.guestSignin && (!!env.SMTP_HOST || env.ENVIRONMENT === "development")
     );
   }
 
@@ -125,11 +125,11 @@ class Team extends ParanoidModel {
       return `https://${this.domain}`;
     }
 
-    if (!this.subdomain || process.env.SUBDOMAINS_ENABLED !== "true") {
-      return process.env.URL;
+    if (!this.subdomain || !env.SUBDOMAINS_ENABLED) {
+      return env.URL;
     }
 
-    const url = new URL(process.env.URL || "");
+    const url = new URL(env.URL);
     url.host = `${this.subdomain}.${stripSubdomain(url.host)}`;
     return url.href.replace(/\/$/, "");
   }

@@ -4,6 +4,7 @@ import { find } from "lodash";
 import { parseDomain, isCustomSubdomain } from "@shared/utils/domains";
 import SigninEmail from "@server/emails/templates/SigninEmail";
 import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
+import env from "@server/env";
 import { AuthorizationError } from "@server/errors";
 import errorHandling from "@server/middlewares/errorHandling";
 import methodOverride from "@server/middlewares/methodOverride";
@@ -43,7 +44,7 @@ router.post("email", errorHandling(), async (ctx) => {
     }
 
     if (
-      process.env.SUBDOMAINS_ENABLED === "true" &&
+      env.SUBDOMAINS_ENABLED &&
       isCustomSubdomain(ctx.request.hostname) &&
       !isCustomDomain(ctx.request.hostname)
     ) {
