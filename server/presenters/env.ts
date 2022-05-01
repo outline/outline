@@ -6,8 +6,8 @@ import { Environment } from "@server/env";
 export default function present(env: Environment): PublicEnv {
   return {
     URL: env.URL.replace(/\/$/, ""),
-    AWS_S3_UPLOAD_BUCKET_URL: env.AWS_S3_UPLOAD_BUCKET_URL,
-    AWS_S3_ACCELERATE_URL: env.AWS_S3_ACCELERATE_URL,
+    AWS_S3_UPLOAD_BUCKET_URL: process.env.AWS_S3_UPLOAD_BUCKET_URL || "",
+    AWS_S3_ACCELERATE_URL: process.env.AWS_S3_ACCELERATE_URL || "",
     CDN_URL: (env.CDN_URL || "").replace(/\/$/, ""),
     COLLABORATION_URL: (env.COLLABORATION_URL || env.URL)
       .replace(/\/$/, "")
@@ -23,6 +23,7 @@ export default function present(env: Environment): PublicEnv {
     DEFAULT_LANGUAGE: env.DEFAULT_LANGUAGE,
     EMAIL_ENABLED: !!env.SMTP_HOST || env.ENVIRONMENT === "development",
     GOOGLE_ANALYTICS_ID: env.GOOGLE_ANALYTICS_ID,
-    RELEASE: env.SOURCE_COMMIT || env.SOURCE_VERSION || undefined,
+    RELEASE:
+      process.env.SOURCE_COMMIT || process.env.SOURCE_VERSION || undefined,
   };
 }
