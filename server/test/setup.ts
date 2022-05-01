@@ -4,8 +4,10 @@ import env from "../env";
 env.SMTP_HOST = "smtp.example.com";
 env.ENVIRONMENT = "test";
 env.GOOGLE_CLIENT_ID = "123";
+env.GOOGLE_CLIENT_SECRET = "123";
 env.SLACK_CLIENT_ID = "123";
-env.DEPLOYMENT = "";
+env.SLACK_CLIENT_SECRET = "123";
+env.DEPLOYMENT = undefined;
 env.ALLOWED_DOMAINS = "allowed-domain.com";
 
 if (process.env.DATABASE_URL_TEST) {

@@ -163,7 +163,7 @@ const useAuthorizedSettingsConfig = () => {
         name: "Slack",
         path: "/settings/integrations/slack",
         component: Slack,
-        enabled: can.update && (!!env.SLACK_KEY || isHosted),
+        enabled: can.update && (!!env.SLACK_CLIENT_ID || isHosted),
         group: t("Integrations"),
         icon: SlackIcon,
       },

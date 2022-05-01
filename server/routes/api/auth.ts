@@ -11,7 +11,7 @@ import providers from "../auth/providers";
 
 const router = new Router();
 
-function filterProviders(team: Team) {
+function filterProviders(team?: Team) {
   return providers
     .sort((provider) => (provider.id === "email" ? 1 : -1))
     .filter((provider) => {
@@ -104,7 +104,6 @@ router.post("auth.config", async (ctx) => {
   // Otherwise, we're requesting from the standard root signin page
   ctx.body = {
     data: {
-      // @ts-expect-error ts-migrate(2554) FIXME: Expected 1 arguments, but got 0.
       providers: filterProviders(),
     },
   };

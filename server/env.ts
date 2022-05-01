@@ -361,9 +361,7 @@ export class Environment {
   @IsOptional()
   @IsBoolean()
   @CannotUseWithout("SLACK_CLIENT_ID")
-  public SLACK_MESSAGE_ACTIONS = Boolean(
-    process.env.SLACK_MESSAGE_ACTIONS ?? "false"
-  );
+  public SLACK_MESSAGE_ACTIONS = process.env.SLACK_MESSAGE_ACTIONS;
 
   /**
    * Azure OAuth2 client credentials. To enable authentication with Azure.
@@ -398,11 +396,11 @@ export class Environment {
 
   /**
    * The name of the OIDC provider, eg "GitLab" – this will be displayed on the
-   * sign-in button and other places in the UI.
+   * sign-in button and other places in the UI. The default value is:
+   * "OpenID Connect".
    */
-  @IsOptional()
   @MaxLength(50)
-  public OIDC_DISPLAY_NAME = process.env.OIDC_DISPLAY_NAME;
+  public OIDC_DISPLAY_NAME = process.env.OIDC_DISPLAY_NAME ?? "OpenID Connect";
 
   /**
    * The OIDC authorization endpoint.
@@ -426,9 +424,11 @@ export class Environment {
   public OIDC_USERINFO_URI = process.env.OIDC_USERINFO_URI;
 
   /**
-   * The OIDC profile field to use as the username, default is "username".
+   * The OIDC profile field to use as the username. The default value is
+   * "preferred_username".
    */
-  public OIDC_USERNAME_CLAIM = process.env.OIDC_USERNAME_CLAIM ?? "username";
+  public OIDC_USERNAME_CLAIM =
+    process.env.OIDC_USERNAME_CLAIM ?? "preferred_username";
 
   /**
    * A space separated list of OIDC scopes to request. Defaults to "openid

@@ -1,3 +1,5 @@
+import env from "../env";
+
 export function slackAuth(
   state: string,
   scopes: string[] = [
@@ -6,9 +8,8 @@ export function slackAuth(
     "identity.avatar",
     "identity.team",
   ],
-  // @ts-expect-error ts-migrate(2322) FIXME: Type 'string | undefined' is not assignable to typ... Remove this comment to see the full error message
-  clientId: string = process.env.SLACK_KEY,
-  redirectUri = `${process.env.URL}/auth/slack.callback`
+  clientId: string,
+  redirectUri = `${env.URL}/auth/slack.callback`
 ): string {
   const baseUrl = "https://slack.com/oauth/authorize";
   const params = {
@@ -48,7 +49,7 @@ export function changelogUrl(): string {
 }
 
 export function signin(service = "slack"): string {
-  return `${process.env.URL}/auth/${service}`;
+  return `${env.URL}/auth/${service}`;
 }
 
 export const SLUG_URL_REGEX = /^(?:[0-9a-zA-Z-_~]*-)?([a-zA-Z0-9]{10,15})$/;

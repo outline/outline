@@ -15,13 +15,18 @@ type Props = {
 function SlackButton({ state = "", scopes, redirectUri, label, icon }: Props) {
   const { t } = useTranslation();
 
-  const handleClick = () =>
-    (window.location.href = slackAuth(
+  const handleClick = () => {
+    if (!env.SLACK_CLIENT_ID) {
+      return;
+    }
+
+    window.location.href = slackAuth(
       state,
       scopes,
-      env.SLACK_KEY,
+      env.SLACK_CLIENT_ID,
       redirectUri
-    ));
+    );
+  };
 
   return (
     <Button onClick={handleClick} icon={icon} neutral>

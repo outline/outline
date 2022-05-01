@@ -5,7 +5,7 @@ import AuthenticationProvider from "@server/models/AuthenticationProvider";
 import Team from "@server/models/Team";
 
 export async function checkMigrations() {
-  if (process.env.DEPLOYMENT === "hosted") {
+  if (env.DEPLOYMENT === "hosted") {
     return;
   }
 
