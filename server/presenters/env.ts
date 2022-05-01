@@ -20,6 +20,7 @@ export default function present(env: Environment): PublicEnv {
     SLACK_APP_ID: env.SLACK_APP_ID,
     MAXIMUM_IMPORT_SIZE: env.MAXIMUM_IMPORT_SIZE,
     SUBDOMAINS_ENABLED: env.SUBDOMAINS_ENABLED,
+    DEFAULT_LANGUAGE: env.DEFAULT_LANGUAGE,
     EMAIL_ENABLED: !!env.SMTP_HOST || env.ENVIRONMENT === "development",
     GOOGLE_ANALYTICS_ID: env.GOOGLE_ANALYTICS_ID,
     RELEASE: env.SOURCE_COMMIT || env.SOURCE_VERSION || undefined,

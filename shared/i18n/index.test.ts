@@ -1,5 +1,4 @@
 import i18n from "i18next";
-import env from "@server/env";
 import de_DE from "./locales/de_DE/translation.json";
 import en_US from "./locales/en_US/translation.json";
 import pt_PT from "./locales/pt_PT/translation.json";
@@ -28,8 +27,7 @@ describe("i18n env is unset", () => {
 });
 describe("i18n env is en-US", () => {
   beforeEach(() => {
-    env.DEFAULT_LANGUAGE = "en-US";
-    initI18n()
+    initI18n("en-US")
       .addResources("en-US", "translation", en_US)
       .addResources("de-DE", "translation", de_DE)
       .addResources("pt-PT", "translation", pt_PT);
@@ -51,8 +49,7 @@ describe("i18n env is en-US", () => {
 
 describe("i18n env is de-DE", () => {
   beforeEach(() => {
-    env.DEFAULT_LANGUAGE = "de-DE";
-    initI18n()
+    initI18n("de-DE")
       .addResources("en-US", "translation", en_US)
       .addResources("de-DE", "translation", de_DE)
       .addResources("pt-PT", "translation", pt_PT);
@@ -74,8 +71,7 @@ describe("i18n env is de-DE", () => {
 
 describe("i18n env is pt-PT", () => {
   beforeEach(() => {
-    env.DEFAULT_LANGUAGE = "pt-PT";
-    initI18n()
+    initI18n("pt-PT")
       .addResources("en-US", "translation", en_US)
       .addResources("de-DE", "translation", de_DE)
       .addResources("pt-PT", "translation", pt_PT);

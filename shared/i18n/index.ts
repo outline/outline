@@ -1,7 +1,6 @@
 import i18n from "i18next";
 import backend from "i18next-http-backend";
 import { initReactI18next } from "react-i18next";
-import env from "@server/env";
 
 // Note: Updating the available languages? Make sure to also update the
 // locales array in app/utils/i18n.js to enable translation for timestamps.
@@ -80,8 +79,8 @@ const underscoreToDash = (text: string) => text.replace("_", "-");
 
 const dashToUnderscore = (text: string) => text.replace("-", "_");
 
-export const initI18n = () => {
-  const lng = underscoreToDash(env.DEFAULT_LANGUAGE);
+export const initI18n = (defaultLanguage = "en_US") => {
+  const lng = underscoreToDash(defaultLanguage);
   i18n
     .use(backend)
     .use(initReactI18next)
@@ -103,7 +102,6 @@ export const initI18n = () => {
       fallbackLng: lng,
       supportedLngs: languages.map(underscoreToDash),
       // Uncomment when debugging translation framework, otherwise it's noisy
-      // debug: env.ENVIRONMENT === "development",
       keySeparator: false,
     });
   return i18n;

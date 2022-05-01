@@ -8,8 +8,8 @@ export type PublicEnv = {
   COLLABORATION_URL: string;
   AWS_S3_UPLOAD_BUCKET_URL: string;
   AWS_S3_ACCELERATE_URL: string;
-  DEPLOYMENT: "hosted" | "";
-  ENVIRONMENT: "production" | "development";
+  DEPLOYMENT: string | undefined;
+  ENVIRONMENT: string;
   SENTRY_DSN: string | undefined;
   TEAM_LOGO: string | undefined;
   SLACK_KEY: string | undefined;
@@ -17,6 +17,7 @@ export type PublicEnv = {
   MAXIMUM_IMPORT_SIZE: number;
   SUBDOMAINS_ENABLED: boolean;
   EMAIL_ENABLED: boolean;
+  DEFAULT_LANGUAGE: string;
   GOOGLE_ANALYTICS_ID: string | undefined;
   RELEASE: string | undefined;
 };
