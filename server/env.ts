@@ -15,6 +15,9 @@ import {
   IsNumber,
   IsIn,
   IsBoolean,
+  IsEmail,
+  Contains,
+  MaxLength,
 } from "class-validator";
 import { languages } from "@shared/i18n";
 import { CannotUseWithout } from "@server/utils/validators";
@@ -89,8 +92,13 @@ export class Environment {
   );
 
   /**
-   * Set to "disable" to disable SSL connection to the database
+   * Set to "disable" to disable SSL connection to the database. This option is
+   * passed through to Postgres. See:
+   *
+   * https://www.postgresql.org/docs/current/libpq-connect.html#LIBPQ-CONNECT-SSLMODE
    */
+  @IsIn(["disable", "allow", "require", "prefer", "verify-ca", "verify-full"])
+  @IsOptional()
   public PGSSLMODE = process.env.PGSSLMODE;
 
   /**
@@ -203,13 +211,20 @@ export class Environment {
   );
 
   /**
-   * Have the installation send anonymized statistics to the maintainers.
+   * Should the installation send anonymized statistics to the maintainers.
+   * Defaults to true.
    */
   @IsBoolean()
   public TELEMETRY = Boolean(
     process.env.ENABLE_UPDATES ?? process.env.TELEMETRY ?? "true"
   );
 
+  /**
+   * Because imports can be much larger than regular file attachments and are
+   * deleted automatically we allow an optional separate limit on the size of
+   * imports.
+   */
+  @IsNumber()
   public MAXIMUM_IMPORT_SIZE =
     this.toOptionalNumber(process.env.MAXIMUM_IMPORT_SIZE) ?? 5120000;
 
@@ -221,20 +236,53 @@ export class Environment {
 
   // Third-party services
 
+  /**
+   * The host of your SMTP server for enabling emails.
+   */
   public SMTP_HOST = process.env.SMTP_HOST;
 
+  /**
+   * The port of your SMTP server.
+   */
   public SMTP_PORT = this.toOptionalNumber(process.env.SMTP_PORT);
 
+  /**
+   * The username of your SMTP server, if any.
+   */
   public SMTP_USERNAME = process.env.SMTP_USERNAME;
 
+  /**
+   * The password for the SMTP username, if any.
+   */
   public SMTP_PASSWORD = process.env.SMTP_PASSWORD;
 
+  /**
+   * The email address from which emails are sent.
+   */
+  @IsEmail()
+  @IsOptional()
   public SMTP_FROM_EMAIL = process.env.SMTP_FROM_EMAIL;
 
+  /**
+   * The reply-to address for emails sent from Outline. If unset the from
+   * address is used by default.
+   */
+  @IsEmail()
+  @IsOptional()
   public SMTP_REPLY_EMAIL = process.env.SMTP_REPLY_EMAIL;
 
+  /**
+   * Override the cipher used for SMTP SSL connections.
+   */
   public SMTP_TLS_CIPHERS = process.env.SMTP_TLS_CIPHERS;
 
+  /**
+   * If true (the default) the connection will use TLS when connecting to server.
+   * If false then TLS is used only if server supports the STARTTLS extension.
+   *
+   * Setting secure to false therefore does not mean that you would not use an
+   * encrypted connection.
+   */
   public SMTP_SECURE = Boolean(process.env.SMTP_SECURE ?? "true");
 
   /**
@@ -259,6 +307,8 @@ export class Environment {
   /**
    * A Google Analytics tracking ID, only v3 supported at this time.
    */
+  @Contains("UA-")
+  @IsOptional()
   public GOOGLE_ANALYTICS_ID = process.env.GOOGLE_ANALYTICS_ID;
 
   /**
@@ -289,14 +339,24 @@ export class Environment {
   public SLACK_CLIENT_SECRET =
     process.env.SLACK_CLIENT_SECRET ?? process.env.SLACK_SECRET;
 
+  /**
+   * This is injected into the HTML page headers for Slack.
+   */
   @IsOptional()
   @CannotUseWithout("SLACK_CLIENT_ID")
   public SLACK_VERIFICATION_TOKEN = process.env.SLACK_VERIFICATION_TOKEN;
 
+  /**
+   * This is injected into the slack-app-id header meta tag if provided.
+   */
   @IsOptional()
   @CannotUseWithout("SLACK_CLIENT_ID")
   public SLACK_APP_ID = process.env.SLACK_APP_ID;
 
+  /**
+   * If enabled a "Post to Channel" button will be added to search result
+   * messages inside of Slack. This also requires setup in Slack UI.
+   */
   @IsOptional()
   @IsBoolean()
   @CannotUseWithout("SLACK_CLIENT_ID")
@@ -335,16 +395,44 @@ export class Environment {
   @CannotUseWithout("OIDC_CLIENT_ID")
   public OIDC_CLIENT_SECRET = process.env.OIDC_CLIENT_SECRET;
 
+  /**
+   * The name of the OIDC provider, eg "GitLab" – this will be displayed on the
+   * sign-in button and other places in the UI.
+   */
+  @IsOptional()
+  @MaxLength(50)
   public OIDC_DISPLAY_NAME = process.env.OIDC_DISPLAY_NAME;
 
+  /**
+   * The OIDC authorization endpoint.
+   */
+  @IsOptional()
+  @IsUrl()
   public OIDC_AUTH_URI = process.env.OIDC_AUTH_URI;
 
+  /**
+   * The OIDC token endpoint.
+   */
+  @IsOptional()
+  @IsUrl()
   public OIDC_TOKEN_URI = process.env.OIDC_TOKEN_URI;
 
+  /**
+   * The OIDC userinfo endpoint.
+   */
+  @IsOptional()
+  @IsUrl()
   public OIDC_USERINFO_URI = process.env.OIDC_USERINFO_URI;
 
+  /**
+   * The OIDC profile field to use as the username, default is "username".
+   */
   public OIDC_USERNAME_CLAIM = process.env.OIDC_USERNAME_CLAIM ?? "username";
 
+  /**
+   * A space separated list of OIDC scopes to request. Defaults to "openid
+   * profile email".
+   */
   public OIDC_SCOPES = process.env.OIDC_SCOPES ?? "openid profile email";
 
   private toOptionalNumber(value: string | undefined) {
