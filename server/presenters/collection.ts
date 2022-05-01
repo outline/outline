@@ -17,7 +17,7 @@ function present(collection: Collection) {
     createdAt: collection.createdAt,
     updatedAt: collection.updatedAt,
     deletedAt: collection.deletedAt,
-    documents: collection.documentStructure,
+    documents: collection.documentStructure || [],
   };
 }
 
