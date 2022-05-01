@@ -18,7 +18,6 @@ import Badge from "~/components/Badge";
 import Button from "~/components/Button";
 import Collaborators from "~/components/Collaborators";
 import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
-import Flex from "~/components/Flex";
 import Header from "~/components/Header";
 import Tooltip from "~/components/Tooltip";
 import useMobile from "~/hooks/useMobile";
@@ -32,6 +31,7 @@ import TemplatesMenu from "~/menus/TemplatesMenu";
 import { NavigationNode } from "~/types";
 import { metaDisplay } from "~/utils/keyboard";
 import { newDocumentPath, editDocumentUrl } from "~/utils/routeHelpers";
+import FadeOut from "./FadeOut";
 import ObservingBanner from "./ObservingBanner";
 import PublicBreadcrumb from "./PublicBreadcrumb";
 import ShareButton from "./ShareButton";
@@ -43,7 +43,7 @@ type Props = {
   shareId: string | null | undefined;
   isDraft: boolean;
   isEditing: boolean;
-  isFocused: boolean;
+  isFocusing: boolean;
   isRevision: boolean;
   isSaving: boolean;
   isPublishing: boolean;
@@ -70,7 +70,7 @@ function DocumentHeader({
   isDraft,
   isPublishing,
   isRevision,
-  isFocused,
+  isFocusing,
   isSaving,
   savingIsDisabled,
   publishingIsDisabled,
@@ -85,8 +85,7 @@ function DocumentHeader({
   const { team } = auth;
   const isMobile = useMobile();
   const isMouseMoving = useMouseMove();
-  const hideHeader =
-    (!!ui.observingUserId || isEditing || isFocused) && !isMouseMoving;
+  const hideHeader = isFocusing && !isMouseMoving;
 
   // We cache this value for as long as the component is mounted so that if you
   // apply a template there is still the option to replace it until the user
@@ -357,12 +356,6 @@ const Status = styled(Action)`
   padding-left: 0;
   padding-right: 4px;
   color: ${(props) => props.theme.slate};
-`;
-
-const FadeOut = styled(Flex)<{ $fade: boolean }>`
-  opacity: ${(props) => (props.$fade ? 0 : 1)};
-  visibility: ${(props) => (props.$fade ? "hidden" : "visible")};
-  transition: opacity 400ms ease-in-out, visibility ease-in-out 400ms;
 `;
 
 export default observer(DocumentHeader);

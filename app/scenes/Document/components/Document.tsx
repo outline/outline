@@ -455,6 +455,9 @@ class DocumentScene extends React.Component<Props> {
       ? this.props.match.url
       : updateDocumentUrl(this.props.match.url, document);
 
+    const isFocusing =
+      !readOnly || this.isEditorFocused || !!ui.observingUserId;
+
     return (
       <ErrorBoundary>
         {this.props.location.pathname !== canonicalUrl && (
@@ -544,7 +547,7 @@ class DocumentScene extends React.Component<Props> {
               shareId={shareId}
               isRevision={!!revision}
               isDraft={document.isDraft}
-              isFocused={this.isEditorFocused}
+              isFocusing={isFocusing}
               isEditing={!readOnly && !team?.collaborativeEditing}
               isSaving={this.isSaving}
               isPublishing={this.isPublishing}
@@ -615,7 +618,10 @@ class DocumentScene extends React.Component<Props> {
                       <>
                         <MarkAsViewed document={document} />
                         <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
-                          <References document={document} />
+                          <References
+                            isFocusing={isFocusing}
+                            document={document}
+                          />
                         </ReferencesWrapper>
                       </>
                     )}
