@@ -20,7 +20,7 @@ import { languages } from "@shared/i18n";
 import { CannotUseWithout } from "@server/utils/validators";
 import Deprecated from "./models/decorators/Deprecated";
 
-class Environment {
+export class Environment {
   private validationPromise;
 
   constructor() {
