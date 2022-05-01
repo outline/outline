@@ -151,6 +151,7 @@
     "query-string": "^7.0.1",
     "quoted-printable": "^1.0.1",
     "randomstring": "1.1.5",
+    "raw-body": "2.5.1",
     "raw-loader": "^0.5.1",
     "react": "^17.0.2",
     "react-avatar-editor": "^11.1.0",
