@@ -1,5 +1,5 @@
 import TeamDomain from "@server/models/TeamDomain";
-import { buildTeam } from "@server/test/factories";
+import { buildTeam, buildUser } from "@server/test/factories";
 import { flushdb } from "@server/test/support";
 import teamCreator from "./teamCreator";
 
@@ -49,10 +49,15 @@ describe("teamCreator", () => {
   it("should return existing team when within allowed domains", async () => {
     delete process.env.DEPLOYMENT;
     const existing = await buildTeam();
+    const user = await buildUser({
+      teamId: existing.id,
+    });
     await TeamDomain.create({
       teamId: existing.id,
       name: "allowed-domain.com",
+      createdById: user.id,
     });
+
     const result = await teamCreator({
       name: "Updated name",
       subdomain: "example",
@@ -73,11 +78,13 @@ describe("teamCreator", () => {
   });
 
   it("should error when NOT within allowed domains", async () => {
+    const user = await buildUser();
     delete process.env.DEPLOYMENT;
     const existing = await buildTeam();
     await TeamDomain.create({
       teamId: existing.id,
       name: "other-domain.com",
+      createdById: user.id,
     });
 
     let error;

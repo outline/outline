@@ -145,9 +145,10 @@ class Team extends ParanoidModel {
     );
   }
 
-  get allowedDomains(): string[] {
-    return (this.teamDomains || []).map((teamDomain) => teamDomain.name);
-  }
+  getAllowedDomains = async function (): Promise<string[]> {
+    const teamDomains: TeamDomain[] = await this.getTeamDomains();
+    return (teamDomains || []).map((teamDomain) => teamDomain.name);
+  };
 
   // TODO: Move to command
   provisionSubdomain = async function (
@@ -243,10 +244,10 @@ class Team extends ParanoidModel {
     return models.map((c) => c.id);
   };
 
-  isDomainAllowed = function (domain: string) {
-    return (
-      this.allowedDomains.includes(domain) || this.allowedDomains.length === 0
-    );
+  isDomainAllowed = async function (domain: string) {
+    const allowedDomains = await this.getAllowedDomains();
+
+    return allowedDomains.includes(domain) || allowedDomains.length === 0;
   };
 
   // associations

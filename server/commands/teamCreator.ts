@@ -63,7 +63,7 @@ async function teamCreator({
       const team = await Team.findOne();
       invariant(team, "Team should exist");
 
-      if (team.isDomainAllowed(domain)) {
+      if (await team.isDomainAllowed(domain)) {
         authP = await team.$create<AuthenticationProvider>(
           "authenticationProvider",
           authenticationProvider
