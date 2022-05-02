@@ -104,21 +104,6 @@ export type RevisionEvent = {
   teamId: string;
 };
 
-export type CollectionExportEvent = {
-  name: "collections.export";
-  teamId: string;
-  actorId: string;
-  collectionId: string;
-  modelId: string;
-};
-
-export type CollectionExportAllEvent = {
-  name: "collections.export_all";
-  teamId: string;
-  actorId: string;
-  modelId: string;
-};
-
 export type FileOperationEvent = {
   name:
     | "fileOperations.create"
@@ -139,7 +124,7 @@ export type FileOperationEvent = {
 
 export type CollectionEvent =
   | {
-  name: "collections.create" // eslint-disable-line
+    name: "collections.create" // eslint-disable-line
         | "collections.update"
         | "collections.delete";
       collectionId: string;
@@ -189,8 +174,7 @@ export type CollectionEvent =
         sharingChanged: boolean;
       };
       ip: string;
-    }
-  | CollectionExportEvent;
+    };
 
 export type GroupEvent =
   | {
@@ -257,7 +241,6 @@ export type Event =
   | PinEvent
   | StarEvent
   | CollectionEvent
-  | CollectionExportAllEvent
   | FileOperationEvent
   | IntegrationEvent
   | GroupEvent
