@@ -245,6 +245,8 @@ export class Environment {
   /**
    * The port of your SMTP server.
    */
+  @IsNumber()
+  @IsOptional()
   public SMTP_PORT = this.toOptionalNumber(process.env.SMTP_PORT);
 
   /**
