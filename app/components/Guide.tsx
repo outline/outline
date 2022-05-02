@@ -1,4 +1,3 @@
-import { observer } from "mobx-react";
 import * as React from "react";
 import { Dialog, DialogBackdrop, useDialogState } from "reakit/Dialog";
 import styled from "styled-components";
@@ -112,4 +111,4 @@ const Content = styled(Scrollable)`
   padding: 16px;
 `;
 
-export default observer(Guide);
+export default Guide;

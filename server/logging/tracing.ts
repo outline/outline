@@ -10,7 +10,7 @@ if (process.env.DD_API_KEY) {
       // SOURCE_COMMIT is used by Docker Hub
       // SOURCE_VERSION is used by Heroku
       version: process.env.SOURCE_COMMIT || process.env.SOURCE_VERSION,
-      service: "outline",
+      service: process.env.DD_SERVICE || "outline",
     },
     {
       useMock: process.env.NODE_ENV === "test",

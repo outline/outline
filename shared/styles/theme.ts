@@ -92,6 +92,7 @@ export const base = {
 
 export const light = {
   ...base,
+  isDark: false,
   background: colors.white,
   secondaryBackground: colors.warmGrey,
   link: colors.primary,
@@ -149,6 +150,7 @@ export const light = {
 
 export const dark = {
   ...base,
+  isDark: true,
   background: colors.almostBlack,
   secondaryBackground: colors.black50,
   link: "#137FFB",

@@ -147,7 +147,7 @@ export default class DocumentsStore extends BaseStore<Document> {
 
     return compact([
       ...drafts,
-      ...collection.documents.map((node) => this.get(node.id)),
+      ...collection.sortedDocuments.map((node) => this.get(node.id)),
     ]);
   }
 
@@ -303,27 +303,31 @@ export default class DocumentsStore extends BaseStore<Document> {
   };
 
   @action
-  fetchArchived = async (options?: PaginationParams): Promise<any> => {
+  fetchArchived = async (options?: PaginationParams): Promise<Document[]> => {
     return this.fetchNamedPage("archived", options);
   };
 
   @action
-  fetchDeleted = async (options?: PaginationParams): Promise<any> => {
+  fetchDeleted = async (options?: PaginationParams): Promise<Document[]> => {
     return this.fetchNamedPage("deleted", options);
   };
 
   @action
-  fetchRecentlyUpdated = async (options?: PaginationParams): Promise<any> => {
+  fetchRecentlyUpdated = async (
+    options?: PaginationParams
+  ): Promise<Document[]> => {
     return this.fetchNamedPage("list", options);
   };
 
   @action
-  fetchTemplates = async (options?: PaginationParams): Promise<any> => {
+  fetchTemplates = async (options?: PaginationParams): Promise<Document[]> => {
     return this.fetchNamedPage("list", { ...options, template: true });
   };
 
   @action
-  fetchAlphabetical = async (options?: PaginationParams): Promise<any> => {
+  fetchAlphabetical = async (
+    options?: PaginationParams
+  ): Promise<Document[]> => {
     return this.fetchNamedPage("list", {
       sort: "title",
       direction: "ASC",
@@ -334,7 +338,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   @action
   fetchLeastRecentlyUpdated = async (
     options?: PaginationParams
-  ): Promise<any> => {
+  ): Promise<Document[]> => {
     return this.fetchNamedPage("list", {
       sort: "updatedAt",
       direction: "ASC",
@@ -343,7 +347,9 @@ export default class DocumentsStore extends BaseStore<Document> {
   };
 
   @action
-  fetchRecentlyPublished = async (options?: PaginationParams): Promise<any> => {
+  fetchRecentlyPublished = async (
+    options?: PaginationParams
+  ): Promise<Document[]> => {
     return this.fetchNamedPage("list", {
       sort: "publishedAt",
       direction: "DESC",
@@ -352,22 +358,24 @@ export default class DocumentsStore extends BaseStore<Document> {
   };
 
   @action
-  fetchRecentlyViewed = async (options?: PaginationParams): Promise<any> => {
+  fetchRecentlyViewed = async (
+    options?: PaginationParams
+  ): Promise<Document[]> => {
     return this.fetchNamedPage("viewed", options);
   };
 
   @action
-  fetchStarred = (options?: PaginationParams): Promise<any> => {
+  fetchStarred = (options?: PaginationParams): Promise<Document[]> => {
     return this.fetchNamedPage("starred", options);
   };
 
   @action
-  fetchDrafts = (options?: PaginationParams): Promise<any> => {
+  fetchDrafts = (options?: PaginationParams): Promise<Document[]> => {
     return this.fetchNamedPage("drafts", options);
   };
 
   @action
-  fetchOwned = (options?: PaginationParams): Promise<any> => {
+  fetchOwned = (options?: PaginationParams): Promise<Document[]> => {
     return this.fetchNamedPage("list", options);
   };
 

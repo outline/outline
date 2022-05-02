@@ -21,6 +21,10 @@ class Team extends BaseModel {
 
   @Field
   @observable
+  inviteRequired: boolean;
+
+  @Field
+  @observable
   collaborativeEditing: boolean;
 
   @Field

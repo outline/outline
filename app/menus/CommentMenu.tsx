@@ -7,8 +7,8 @@ import ContextMenu from "~/components/ContextMenu";
 import MenuItem from "~/components/ContextMenu/MenuItem";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
 import usePolicy from "~/hooks/usePolicy";
-import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
+// import useStores from "~/hooks/useStores";
+// import useToasts from "~/hooks/useToasts";
 
 type Props = {
   comment: Comment;
@@ -20,15 +20,15 @@ function CommentMenu({ comment, onEdit, className }: Props) {
   const menu = useMenuState({
     modal: true,
   });
-  const { comments } = useStores();
-  const { showToast } = useToasts();
+  // const { comments } = useStores();
+  // const { showToast } = useToasts();
   const { t } = useTranslation();
   const can = usePolicy(comment.id);
 
   const handleDelete = React.useCallback(() => {
     // TODO: Confirm
     comment.delete();
-  }, []);
+  }, [comment]);
 
   // TODO: Remove once copy link action is added
   if (!can.update) {

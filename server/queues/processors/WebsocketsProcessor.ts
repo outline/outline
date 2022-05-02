@@ -296,7 +296,7 @@ export default class WebsocketsProcessor {
       }
 
       case "collections.add_group": {
-        const group = await Group.findByPk(event.data.groupId);
+        const group = await Group.findByPk(event.modelId);
         if (!group) {
           return;
         }
@@ -322,7 +322,7 @@ export default class WebsocketsProcessor {
       }
 
       case "collections.remove_group": {
-        const group = await Group.findByPk(event.data.groupId);
+        const group = await Group.findByPk(event.modelId);
         if (!group) {
           return;
         }

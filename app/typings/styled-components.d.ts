@@ -4,6 +4,7 @@ import "styled-components";
 // and extend them!
 declare module "styled-components" {
   interface EditorTheme {
+    isDark: boolean;
     background: string;
     text: string;
     cursor: string;

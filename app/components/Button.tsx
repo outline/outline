@@ -111,7 +111,7 @@ const RealButton = styled.button<{
       }
 
       &:disabled {
-        background: none;
+        background: ${lighten(0.05, props.theme.danger)};
       }
 
       &.focus-visible {

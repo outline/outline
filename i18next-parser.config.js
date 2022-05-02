@@ -80,4 +80,8 @@ module.exports = {
   //   message: "${defaultValue}",
   //   description: "${maxLength}", // t('my-key', {maxLength: 150})
   // }
+
+  i18nextOptions: {
+    compatibilityJSON: "v3",
+  },
 };

@@ -21,6 +21,7 @@ router.post("team.update", auth(), async (ctx) => {
     collaborativeEditing,
     defaultCollectionId,
     defaultUserRole,
+    inviteRequired,
   } = ctx.body;
 
   const { user } = ctx.state;
@@ -44,6 +45,7 @@ router.post("team.update", auth(), async (ctx) => {
       collaborativeEditing,
       defaultCollectionId,
       defaultUserRole,
+      inviteRequired,
     },
     user,
     team,

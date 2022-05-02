@@ -82,9 +82,11 @@ const Modal: React.FC<Props> = ({
                           {title}
                         </Text>
                       )}
-                      <NudeButton onClick={onRequestClose}>
-                        <CloseIcon color="currentColor" />
-                      </NudeButton>
+                      <Text as="span" size="large">
+                        <NudeButton onClick={onRequestClose}>
+                          <CloseIcon color="currentColor" />
+                        </NudeButton>
+                      </Text>
                     </Header>
                     <SmallContent shadow>{children}</SmallContent>
                   </Centered>
@@ -261,6 +263,11 @@ const Small = styled.div`
     &[aria-expanded="true"] {
       background: ${(props) => props.theme.sidebarControlHoverBackground};
     }
+    vertical-align: middle;
+  }
+
+  ${Header} {
+    align-items: start;
   }
 `;
 

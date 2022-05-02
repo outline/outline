@@ -15,6 +15,10 @@ import {
   AuthenticationProvider,
   FileOperation,
 } from "@server/models";
+import {
+  FileOperationState,
+  FileOperationType,
+} from "@server/models/FileOperation";
 
 let count = 1;
 
@@ -319,11 +323,11 @@ export async function buildFileOperation(
   }
 
   return FileOperation.create({
-    state: "creating",
+    state: FileOperationState.Creating,
+    type: FileOperationType.Export,
     size: 0,
     key: "uploads/key/to/file.zip",
     collectionId: null,
-    type: "export",
     url: "https://www.urltos3file.com/file.zip",
     ...overrides,
   });

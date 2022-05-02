@@ -1,5 +1,9 @@
 import TestServer from "fetch-test-server";
 import { Collection, User, Event, FileOperation } from "@server/models";
+import {
+  FileOperationState,
+  FileOperationType,
+} from "@server/models/FileOperation";
 import webService from "@server/services/web";
 import {
   buildAdmin,
@@ -23,7 +27,7 @@ describe("#fileOperations.info", () => {
       teamId: team.id,
     });
     const exportData = await buildFileOperation({
-      type: "export",
+      type: FileOperationType.Export,
       teamId: team.id,
       userId: admin.id,
     });
@@ -31,7 +35,7 @@ describe("#fileOperations.info", () => {
       body: {
         id: exportData.id,
         token: admin.getJwtToken(),
-        type: "export",
+        type: FileOperationType.Export,
       },
     });
     const body = await res.json();
@@ -49,7 +53,7 @@ describe("#fileOperations.info", () => {
       teamId: team.id,
     });
     const exportData = await buildFileOperation({
-      type: "export",
+      type: FileOperationType.Export,
       teamId: team.id,
       userId: admin.id,
     });
@@ -57,7 +61,7 @@ describe("#fileOperations.info", () => {
       body: {
         id: exportData.id,
         token: user.getJwtToken(),
-        type: "export",
+        type: FileOperationType.Export,
       },
     });
     expect(res.status).toEqual(403);
@@ -71,14 +75,14 @@ describe("#fileOperations.list", () => {
       teamId: team.id,
     });
     const exportData = await buildFileOperation({
-      type: "export",
+      type: FileOperationType.Export,
       teamId: team.id,
       userId: admin.id,
     });
     const res = await server.post("/api/fileOperations.list", {
       body: {
         token: admin.getJwtToken(),
-        type: "export",
+        type: FileOperationType.Export,
       },
     });
     const body = await res.json();
@@ -100,7 +104,7 @@ describe("#fileOperations.list", () => {
       teamId: team.id,
     });
     const exportData = await buildFileOperation({
-      type: "export",
+      type: FileOperationType.Export,
       teamId: team.id,
       userId: admin.id,
       collectionId: collection.id,
@@ -108,7 +112,7 @@ describe("#fileOperations.list", () => {
     const res = await server.post("/api/fileOperations.list", {
       body: {
         token: admin.getJwtToken(),
-        type: "export",
+        type: FileOperationType.Export,
       },
     });
     const body = await res.json();
@@ -131,7 +135,7 @@ describe("#fileOperations.list", () => {
       teamId: team.id,
     });
     const exportData = await buildFileOperation({
-      type: "export",
+      type: FileOperationType.Export,
       teamId: team.id,
       userId: admin.id,
       collectionId: collection.id,
@@ -142,7 +146,7 @@ describe("#fileOperations.list", () => {
     const res = await server.post("/api/fileOperations.list", {
       body: {
         token: admin.getJwtToken(),
-        type: "export",
+        type: FileOperationType.Export,
       },
     });
     const body = await res.json();
@@ -168,7 +172,7 @@ describe("#fileOperations.list", () => {
       teamId: team.id,
     });
     const exportData = await buildFileOperation({
-      type: "export",
+      type: FileOperationType.Export,
       teamId: team.id,
       userId: admin.id,
       collectionId: collection.id,
@@ -179,7 +183,7 @@ describe("#fileOperations.list", () => {
     const res = await server.post("/api/fileOperations.list", {
       body: {
         token: admin2.getJwtToken(),
-        type: "export",
+        type: FileOperationType.Export,
       },
     });
     const body = await res.json();
@@ -197,7 +201,7 @@ describe("#fileOperations.list", () => {
     const res = await server.post("/api/fileOperations.list", {
       body: {
         token: user.getJwtToken(),
-        type: "export",
+        type: FileOperationType.Export,
       },
     });
     expect(res.status).toEqual(403);
@@ -211,7 +215,7 @@ describe("#fileOperations.redirect", () => {
       teamId: team.id,
     });
     const exportData = await buildFileOperation({
-      type: "export",
+      type: FileOperationType.Export,
       teamId: team.id,
       userId: admin.id,
     });
@@ -234,7 +238,7 @@ describe("#fileOperations.info", () => {
       teamId: team.id,
     });
     const exportData = await buildFileOperation({
-      type: "export",
+      type: FileOperationType.Export,
       teamId: team.id,
       userId: admin.id,
     });
@@ -259,7 +263,7 @@ describe("#fileOperations.info", () => {
       teamId: team.id,
     });
     const exportData = await buildFileOperation({
-      type: "export",
+      type: FileOperationType.Export,
       teamId: team.id,
       userId: admin.id,
     });
@@ -280,10 +284,10 @@ describe("#fileOperations.delete", () => {
       teamId: team.id,
     });
     const exportData = await buildFileOperation({
-      type: "export",
+      type: FileOperationType.Export,
       teamId: team.id,
       userId: admin.id,
-      state: "complete",
+      state: FileOperationState.Complete,
     });
     const deleteResponse = await server.post("/api/fileOperations.delete", {
       body: {

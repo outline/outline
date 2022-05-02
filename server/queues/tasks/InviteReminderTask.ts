@@ -2,14 +2,12 @@ import { subDays } from "date-fns";
 import { Op } from "sequelize";
 import { sequelize } from "@server/database/sequelize";
 import InviteReminderEmail from "@server/emails/templates/InviteReminderEmail";
-import { APM } from "@server/logging/tracing";
 import { User } from "@server/models";
 import { UserFlag } from "@server/models/User";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
 type Props = undefined;
 
-@APM.trace()
 export default class InviteReminderTask extends BaseTask<Props> {
   public async perform() {
     const users = await User.scope("invited").findAll({

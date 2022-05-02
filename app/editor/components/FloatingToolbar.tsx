@@ -6,6 +6,7 @@ import { Portal } from "react-portal";
 import styled from "styled-components";
 import { depths } from "@shared/styles";
 import useComponentSize from "~/hooks/useComponentSize";
+import useEventListener from "~/hooks/useEventListener";
 import useMediaQuery from "~/hooks/useMediaQuery";
 import useViewportHeight from "~/hooks/useViewportHeight";
 
@@ -164,25 +165,15 @@ const FloatingToolbar = React.forwardRef(
       props,
     });
 
-    React.useEffect(() => {
-      const handleMouseDown = () => {
-        if (!props.active) {
-          setSelectingText(true);
-        }
-      };
+    useEventListener("mouseup", () => {
+      setSelectingText(false);
+    });
 
-      const handleMouseUp = () => {
-        setSelectingText(false);
-      };
-
-      window.addEventListener("mousedown", handleMouseDown);
-      window.addEventListener("mouseup", handleMouseUp);
-
-      return () => {
-        window.removeEventListener("mousedown", handleMouseDown);
-        window.removeEventListener("mouseup", handleMouseUp);
-      };
-    }, [props.active]);
+    useEventListener("mousedown", () => {
+      if (!props.active) {
+        setSelectingText(true);
+      }
+    });
 
     return (
       <Portal>

@@ -14,7 +14,7 @@ import {
 } from "outline-icons";
 import * as React from "react";
 import getDataTransferFiles from "@shared/utils/getDataTransferFiles";
-import DocumentTemplatize from "~/scenes/DocumentTemplatize";
+import DocumentTemplatizeDialog from "~/components/DocumentTemplatizeDialog";
 import { createAction } from "~/actions";
 import { DocumentSection } from "~/actions/sections";
 import history from "~/utils/history";
@@ -306,18 +306,13 @@ export const createTemplate = createAction({
     if (!activeDocumentId) {
       return;
     }
-
     event?.preventDefault();
     event?.stopPropagation();
 
     stores.dialogs.openModal({
       title: t("Create template"),
-      content: (
-        <DocumentTemplatize
-          documentId={activeDocumentId}
-          onSubmit={stores.dialogs.closeAllModals}
-        />
-      ),
+      isCentered: true,
+      content: <DocumentTemplatizeDialog documentId={activeDocumentId} />,
     });
   },
 });

@@ -1,4 +1,5 @@
 import * as React from "react";
+import useEventListener from "./useEventListener";
 
 /**
  * Hook to return page visibility state.
@@ -8,13 +9,11 @@ import * as React from "react";
 export default function usePageVisibility(): boolean {
   const [visible, setVisible] = React.useState(true);
 
-  React.useEffect(() => {
-    const handleVisibilityChange = () => setVisible(!document.hidden);
+  useEventListener(
+    "visibilitychange",
+    () => setVisible(!document.hidden),
+    document
+  );
 
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-    };
-  }, []);
   return visible;
 }

@@ -1,8 +1,15 @@
 import * as React from "react";
-import { NavLink, Route } from "react-router-dom";
+import { match, NavLink, Route } from "react-router-dom";
 
 type Props = React.ComponentProps<typeof NavLink> & {
-  children?: (match: any) => React.ReactNode;
+  children?: (
+    match:
+      | match<{
+          [x: string]: string | undefined;
+        }>
+      | boolean
+      | null
+  ) => React.ReactNode;
   exact?: boolean;
   activeStyle?: React.CSSProperties;
   to: string;
@@ -14,9 +21,11 @@ function NavLinkWithChildrenFunc(
 ) {
   return (
     <Route path={to} exact={exact}>
-      {({ match }) => (
+      {({ match, location }) => (
         <NavLink {...rest} to={to} exact={exact} ref={ref}>
-          {children ? children(match) : null}
+          {children
+            ? children(rest.isActive ? rest.isActive(match, location) : match)
+            : null}
         </NavLink>
       )}
     </Route>

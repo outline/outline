@@ -98,9 +98,10 @@ export default class CollectionsStore extends BaseStore<Collection> {
   }
 
   @action
-  import = async (attachmentId: string) => {
+  import = async (attachmentId: string, format?: string) => {
     await client.post("/collections.import", {
       type: "outline",
+      format,
       attachmentId,
     });
   };

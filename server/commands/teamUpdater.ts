@@ -22,6 +22,7 @@ const teamUpdater = async ({ params, user, team, ip }: TeamUpdaterProps) => {
     collaborativeEditing,
     defaultCollectionId,
     defaultUserRole,
+    inviteRequired,
   } = params;
 
   if (subdomain !== undefined && process.env.SUBDOMAINS_ENABLED === "true") {
@@ -57,6 +58,9 @@ const teamUpdater = async ({ params, user, team, ip }: TeamUpdaterProps) => {
   }
   if (defaultUserRole !== undefined) {
     team.defaultUserRole = defaultUserRole;
+  }
+  if (inviteRequired !== undefined) {
+    team.inviteRequired = inviteRequired;
   }
 
   const changes = team.changed();
