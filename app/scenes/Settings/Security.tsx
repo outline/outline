@@ -121,7 +121,7 @@ function Security() {
     const newData = {
       ...data,
     };
-    newData.allowedDomains.splice(index, 1);
+    newData.allowedDomains && newData.allowedDomains.splice(index, 1);
 
     setData(newData);
     await auth.updateTeam(newData);
@@ -267,7 +267,7 @@ function Security() {
                   onChange={(ev) => {
                     const newData = { ...data };
 
-                    newData.allowedDomains[index] = ev.target.value;
+                    newData.allowedDomains![index] = ev.currentTarget.value;
                     setData(newData);
                   }}
                 />

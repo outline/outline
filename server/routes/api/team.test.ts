@@ -35,7 +35,9 @@ describe("#team.update", () => {
     expect(res.status).toEqual(200);
     expect(body.data.allowedDomains).toEqual(["example.com", "example.org"]);
 
-    const teamDomains: TeamDomain[] = await team.getTeamDomains();
+    const teamDomains: TeamDomain[] = await TeamDomain.findAll({
+      where: { teamId: team.id },
+    });
     expect(teamDomains.map((d) => d.name)).toEqual([
       "example.com",
       "example.org",
@@ -60,7 +62,9 @@ describe("#team.update", () => {
     expect(res.status).toEqual(200);
     expect(body.data.allowedDomains).toEqual([]);
 
-    const teamDomains: TeamDomain[] = await team.getTeamDomains();
+    const teamDomains: TeamDomain[] = await TeamDomain.findAll({
+      where: { teamId: team.id },
+    });
     expect(teamDomains.map((d) => d.name)).toEqual([]);
 
     expect(await TeamDomain.findByPk(existingTeamDomain.id)).toBeNull();
@@ -84,7 +88,9 @@ describe("#team.update", () => {
     expect(res.status).toEqual(200);
     expect(body.data.allowedDomains).toEqual(["example.org", "example.net"]);
 
-    const teamDomains: TeamDomain[] = await team.getTeamDomains();
+    const teamDomains: TeamDomain[] = await TeamDomain.findAll({
+      where: { teamId: team.id },
+    });
     expect(teamDomains.map((d) => d.name).sort()).toEqual(
       ["example.org", "example.net"].sort()
     );

@@ -3,7 +3,7 @@ import { sequelize } from "@server/database/sequelize";
 import { Event, Team, TeamDomain, User } from "@server/models";
 
 type TeamUpdaterProps = {
-  params: Partial<Team> & { allowedDomains: string[] };
+  params: Partial<Team> & { allowedDomains: string[] | undefined };
   ip?: string;
   user: User;
   team: Team;
