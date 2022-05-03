@@ -283,7 +283,7 @@ function Security() {
         </div>
 
         <Flex justify="space-between" gap={4}>
-          {data.allowedDomains?.length &&
+          {!data.allowedDomains?.length ||
           data.allowedDomains[data.allowedDomains.length - 1] !== "" ? (
             <Button type="button" onClick={handleAddDomain} neutral>
               <Trans>Add another</Trans>
