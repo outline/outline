@@ -1,7 +1,7 @@
 import Router from "koa-router";
 import teamUpdater from "@server/commands/teamUpdater";
 import auth from "@server/middlewares/authentication";
-import { Team } from "@server/models";
+import { Team, TeamDomain } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentTeam, presentPolicies } from "@server/presenters";
 import { assertUuid } from "@server/validation";
@@ -21,10 +21,13 @@ router.post("team.update", auth(), async (ctx) => {
     defaultCollectionId,
     defaultUserRole,
     inviteRequired,
+    allowedDomains,
   } = ctx.body;
 
   const { user } = ctx.state;
-  const team = await Team.findByPk(user.teamId);
+  const team = await Team.findByPk(user.teamId, {
+    include: [{ model: TeamDomain }],
+  });
   authorize(user, "update", team);
 
   if (defaultCollectionId !== undefined && defaultCollectionId !== null) {
@@ -44,6 +47,7 @@ router.post("team.update", auth(), async (ctx) => {
       defaultCollectionId,
       defaultUserRole,
       inviteRequired,
+      allowedDomains,
     },
     user,
     team,

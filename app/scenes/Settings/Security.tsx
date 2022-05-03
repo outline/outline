@@ -6,6 +6,7 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Heading from "~/components/Heading";
+import Input from "~/components/Input";
 import InputSelect from "~/components/InputSelect";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
@@ -29,6 +30,7 @@ function Security() {
     defaultUserRole: team.defaultUserRole,
     memberCollectionCreate: team.memberCollectionCreate,
     inviteRequired: team.inviteRequired,
+    allowedDomains: team.allowedDomains,
   });
 
   const authenticationMethods = team.signinMethods;
@@ -218,6 +220,23 @@ function Security() {
           onChange={handleDefaultRoleChange}
           ariaLabel={t("Default role")}
           short
+        />
+      </SettingRow>
+
+      <SettingRow
+        label={t("Allowed Domains")}
+        name="allowedDomains"
+        description={t(
+          "The domains which should be allowed to create accounts. This applies to both SSO and Email logins. Changing this setting does not affect existing user accounts."
+        )}
+      >
+        <Input
+          id="allowedDomains"
+          value={data.allowedDomains}
+          onChange={() => {
+            console.log("change");
+          }}
+          ariaLabel={t("Allowed Domains")}
         />
       </SettingRow>
     </Scene>

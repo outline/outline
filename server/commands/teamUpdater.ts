@@ -1,9 +1,9 @@
 import { Transaction } from "sequelize";
 import { sequelize } from "@server/database/sequelize";
-import { Event, Team, User } from "@server/models";
+import { Event, Team, TeamDomain, User } from "@server/models";
 
 type TeamUpdaterProps = {
-  params: Partial<Team>;
+  params: Partial<Team> & { allowedDomains: string[] };
   ip?: string;
   user: User;
   team: Team;
@@ -22,7 +22,10 @@ const teamUpdater = async ({ params, user, team, ip }: TeamUpdaterProps) => {
     defaultCollectionId,
     defaultUserRole,
     inviteRequired,
+    allowedDomains,
   } = params;
+
+  const transaction: Transaction = await sequelize.transaction();
 
   if (subdomain !== undefined && process.env.SUBDOMAINS_ENABLED === "true") {
     team.subdomain = subdomain === "" ? null : subdomain;
@@ -58,10 +61,48 @@ const teamUpdater = async ({ params, user, team, ip }: TeamUpdaterProps) => {
   if (inviteRequired !== undefined) {
     team.inviteRequired = inviteRequired;
   }
+  if (allowedDomains !== undefined) {
+    const existingTeamDomains = await TeamDomain.findAll({
+      where: { teamId: team.id },
+      transaction,
+    });
+
+    // Remove domains that are no longer allowed
+    const newTeamDomains = team.teamDomains.filter((x) =>
+      allowedDomains.includes(x.name)
+    );
+
+    // Add new domains
+    const existingDomains = team.teamDomains.map((x) => x.name);
+    const newDomains = allowedDomains.filter(
+      (x) => !existingDomains.includes(x)
+    );
+
+    for (const newDomain of newDomains) {
+      newTeamDomains.push(
+        await TeamDomain.create(
+          {
+            name: newDomain,
+            teamId: team.id,
+            createdById: user.id,
+          },
+          { transaction }
+        )
+      );
+    }
+
+    const deletedTeamDomains = existingTeamDomains.filter(
+      (x) => !allowedDomains.includes(x.name)
+    );
+
+    for (const deletedTeamDomain of deletedTeamDomains) {
+      deletedTeamDomain.destroy({ transaction });
+    }
+
+    team.teamDomains = newTeamDomains;
+  }
 
   const changes = team.changed();
-
-  const transaction: Transaction = await sequelize.transaction();
 
   try {
     const savedTeam = await team.save({
