@@ -131,7 +131,7 @@ function Security() {
   const handleAddDomain = () => {
     const newData = {
       ...data,
-      allowedDomains: [...(data.allowedDomains || []), "example.com"],
+      allowedDomains: [...(data.allowedDomains || []), ""],
     };
 
     setData(newData);
@@ -263,6 +263,7 @@ function Security() {
                   key={index}
                   id={`allowedDomains${index}`}
                   value={domain}
+                  placeholder="example.com"
                   onChange={(ev) => {
                     const newData = { ...data };
 
@@ -282,9 +283,14 @@ function Security() {
         </div>
 
         <Flex justify="space-between" gap={4}>
-          <Button type="button" onClick={handleAddDomain} neutral>
-            <Trans>Add another</Trans>
-          </Button>
+          {data.allowedDomains?.length &&
+          data.allowedDomains[data.allowedDomains.length - 1] !== "" ? (
+            <Button type="button" onClick={handleAddDomain} neutral>
+              <Trans>Add another</Trans>
+            </Button>
+          ) : (
+            <span />
+          )}
 
           <Button type="button" onClick={(ev) => handleChange(ev)}>
             <Trans>Save Domains</Trans>
