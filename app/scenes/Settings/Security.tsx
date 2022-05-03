@@ -5,6 +5,7 @@ import { useState } from "react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
+import Button from "~/components/Button";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
@@ -125,6 +126,15 @@ function Security() {
     setData(newData);
     await auth.updateTeam(newData);
     showSuccessMessage();
+  };
+
+  const handleAddDomain = () => {
+    const newData = {
+      ...data,
+      allowedDomains: [...(data.allowedDomains || []), "example.com"],
+    };
+
+    setData(newData);
   };
 
   return (
@@ -253,8 +263,11 @@ function Security() {
                   key={index}
                   id={`allowedDomains${index}`}
                   value={domain}
-                  onChange={() => {
-                    console.log("change");
+                  onChange={(ev) => {
+                    const newData = { ...data };
+
+                    newData.allowedDomains[index] = ev.target.value;
+                    setData(newData);
                   }}
                 />
                 <Remove>
@@ -267,6 +280,16 @@ function Security() {
               </Flex>
             ))}
         </div>
+
+        <Flex justify="space-between" gap={4}>
+          <Button type="button" onClick={handleAddDomain} neutral>
+            <Trans>Add another</Trans>
+          </Button>
+
+          <Button type="button" onClick={(ev) => handleChange(ev)}>
+            <Trans>Save Domains</Trans>
+          </Button>
+        </Flex>
       </SettingRow>
     </Scene>
   );
