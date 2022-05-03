@@ -67,15 +67,15 @@ const teamUpdater = async ({ params, user, team, ip }: TeamUpdaterProps) => {
       transaction,
     });
 
-    // Remove domains that are no longer allowed
-    const newTeamDomains = team.teamDomains.filter((x) =>
-      allowedDomains.includes(x.name)
+    // Only keep existing domains if they are still in the list of allowed domains
+    const newTeamDomains = team.teamDomains.filter((existingTeamDomain) =>
+      allowedDomains.includes(existingTeamDomain.name)
     );
 
     // Add new domains
     const existingDomains = team.teamDomains.map((x) => x.name);
     const newDomains = allowedDomains.filter(
-      (x) => !existingDomains.includes(x)
+      (newDomain) => newDomain !== "" && !existingDomains.includes(newDomain)
     );
 
     for (const newDomain of newDomains) {

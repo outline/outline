@@ -292,7 +292,7 @@ function Security() {
             <span />
           )}
 
-          <Button type="button" onClick={(ev) => handleChange(ev)}>
+          <Button type="button" onClick={handleChange}>
             <Trans>Save Domains</Trans>
           </Button>
         </Flex>

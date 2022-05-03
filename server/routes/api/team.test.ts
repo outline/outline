@@ -23,12 +23,12 @@ describe("#team.update", () => {
     expect(body.data.name).toEqual("New name");
   });
 
-  it("should add new allowed Domains", async () => {
+  it("should add new allowed Domains, removing empty string values", async () => {
     const { admin, team } = await seed();
     const res = await server.post("/api/team.update", {
       body: {
         token: admin.getJwtToken(),
-        allowedDomains: ["example.com", "example.org"],
+        allowedDomains: ["example.com", "", "example.org", "", ""],
       },
     });
     const body = await res.json();
