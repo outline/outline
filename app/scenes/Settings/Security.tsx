@@ -1,16 +1,20 @@
 import { debounce } from "lodash";
 import { observer } from "mobx-react";
-import { PadlockIcon } from "outline-icons";
+import { CloseIcon, PadlockIcon } from "outline-icons";
 import { useState } from "react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import styled from "styled-components";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
+import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import Input from "~/components/Input";
 import InputSelect from "~/components/InputSelect";
+import NudeButton from "~/components/NudeButton";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
+import Tooltip from "~/components/Tooltip";
 import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
@@ -111,6 +115,17 @@ function Security() {
     },
     [data, saveData, t, dialogs, authenticationMethods]
   );
+
+  const handleRemoveDomain = async (index: number) => {
+    const newData = {
+      ...data,
+    };
+    newData.allowedDomains.splice(index, 1);
+
+    setData(newData);
+    await auth.updateTeam(newData);
+    showSuccessMessage();
+  };
 
   return (
     <Scene title={t("Security")} icon={<PadlockIcon color="currentColor" />}>
@@ -230,17 +245,35 @@ function Security() {
           "The domains which should be allowed to create accounts. This applies to both SSO and Email logins. Changing this setting does not affect existing user accounts."
         )}
       >
-        <Input
-          id="allowedDomains"
-          value={data.allowedDomains}
-          onChange={() => {
-            console.log("change");
-          }}
-          ariaLabel={t("Allowed Domains")}
-        />
+        <div>
+          {data.allowedDomains &&
+            data.allowedDomains.map((domain, index) => (
+              <Flex key={index} gap={4}>
+                <Input
+                  key={index}
+                  id={`allowedDomains${index}`}
+                  value={domain}
+                  onChange={() => {
+                    console.log("change");
+                  }}
+                />
+                <Remove>
+                  <Tooltip tooltip={t("Remove Domain")} placement="top">
+                    <NudeButton onClick={() => handleRemoveDomain(index)}>
+                      <CloseIcon />
+                    </NudeButton>
+                  </Tooltip>
+                </Remove>
+              </Flex>
+            ))}
+        </div>
       </SettingRow>
     </Scene>
   );
 }
+
+const Remove = styled("div")`
+  margin-top: 6px;
+`;
 
 export default observer(Security);
