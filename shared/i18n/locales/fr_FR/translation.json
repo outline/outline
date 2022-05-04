@@ -408,7 +408,7 @@
   "Observing {{ userName }}": "Observation de {{ userName }}",
   "Nested documents": "Documents imbriqués",
   "Backlinks": "Rétroliens",
-  "Anyone with the link <1></1>can view this document": "Tous ceux avec le lien <1></1> peuvent voir ce document",
+  "Anyone with the link <1></1>can view this document": "Toute personne disposant du lien <1></1> peut voir ce document",
   "Share": "Partager",
   "Share this document": "Partager ce document",
   "This document is shared because the parent <em>{{ documentTitle }}</em> is publicly shared": "Ce document est partagé car le parent <em>{{ documentTitle }}</em> est partagé publiquement",
