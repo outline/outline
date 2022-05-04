@@ -38,7 +38,7 @@ const LocaleTime: React.FC<Props> = ({
   relative,
   tooltipDelay,
 }) => {
-  const userLocale: string = useUserLocale();
+  const userLocale: string = useUserLocale() || "en_US";
   const dateFormatLong = {
     en_US: "MMMM do, yyyy h:mm a",
     fr_FR: "'Le 'd MMMM yyyy 'à' H:mm",
