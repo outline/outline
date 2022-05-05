@@ -119,7 +119,7 @@ class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
     // of lazy rendering then show another page.
     const leftToRender = (this.props.items?.length ?? 0) - this.renderCount;
 
-    if (leftToRender > 1) {
+    if (leftToRender > 0) {
       this.renderCount += DEFAULT_PAGINATION_LIMIT;
     }
 
@@ -169,7 +169,6 @@ class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
         >
           {(composite: CompositeStateReturn) => {
             let previousHeading = "";
-
             return items.slice(0, this.renderCount).map((item, index) => {
               const children = this.props.renderItem(item, index, composite);
 
