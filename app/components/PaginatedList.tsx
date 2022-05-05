@@ -140,7 +140,6 @@ class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
       renderHeading,
       onEscape,
     } = this.props;
-    let previousHeading = "";
 
     const showLoading =
       this.isFetching &&
@@ -168,8 +167,10 @@ class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
           aria-label={this.props["aria-label"]}
           onEscape={onEscape}
         >
-          {(composite: CompositeStateReturn) =>
-            items.slice(0, this.renderCount).map((item, index) => {
+          {(composite: CompositeStateReturn) => {
+            let previousHeading = "";
+
+            return items.slice(0, this.renderCount).map((item, index) => {
               const children = this.props.renderItem(item, index, composite);
 
               // If there is no renderHeading method passed then no date
@@ -202,8 +203,8 @@ class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
               }
 
               return children;
-            })
-          }
+            });
+          }}
         </ArrowKeyNavigation>
         {this.allowLoadMore && (
           <Waypoint key={this.renderCount} onEnter={this.loadMoreResults} />
