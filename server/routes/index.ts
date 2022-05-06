@@ -151,7 +151,7 @@ router.get("/robots.txt", (ctx) => {
 router.get("/opensearch.xml", (ctx) => {
   ctx.type = "text/xml";
 
-  ctx.body = opensearchResponse();
+  ctx.body = opensearchResponse(ctx.request.URL.origin);
 });
 
 router.get("/share/:shareId", renderShare);

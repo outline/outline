@@ -19,7 +19,7 @@ type Props = RootStore & {
   membership?: CollectionGroupMembership;
   showFacepile?: boolean;
   showAvatar?: boolean;
-  renderActions: (arg0: { openMembersModal: () => void }) => React.ReactNode;
+  renderActions: (params: { openMembersModal: () => void }) => React.ReactNode;
 };
 
 @observer

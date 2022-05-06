@@ -1,9 +1,8 @@
-import { sortNavigationNodes } from "@shared/utils/collections";
 import { APM } from "@server/logging/tracing";
 import Collection from "@server/models/Collection";
 
 function present(collection: Collection) {
-  const data = {
+  return {
     id: collection.id,
     url: collection.url,
     urlId: collection.urlId,
@@ -18,23 +17,8 @@ function present(collection: Collection) {
     createdAt: collection.createdAt,
     updatedAt: collection.updatedAt,
     deletedAt: collection.deletedAt,
-    documents: collection.documentStructure,
+    documents: collection.documentStructure || [],
   };
-
-  // Handle the "sort" field being empty here for backwards compatability
-  if (!data.sort) {
-    data.sort = {
-      field: "title",
-      direction: "asc",
-    };
-  }
-
-  data.documents = sortNavigationNodes(
-    collection.documentStructure || [],
-    data.sort
-  );
-
-  return data;
 }
 
 export default APM.traceFunction({

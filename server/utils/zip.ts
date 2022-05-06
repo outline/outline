@@ -135,7 +135,7 @@ function safeAddFileToArchive(
  * @param zip JSZip object
  * @returns pathname of the temporary file where the zip was written to disk
  */
-async function archiveToPath(zip: JSZip) {
+async function archiveToPath(zip: JSZip): Promise<string> {
   return new Promise((resolve, reject) => {
     tmp.file(
       {

@@ -241,8 +241,8 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   // we must prevent the user from continuing to edit as their changes will not
   // be persisted. See: https://github.com/yjs/yjs/issues/303
   React.useEffect(() => {
-    function onUnhandledError(err: any) {
-      if (err.message.includes("URIError: URI malformed")) {
+    function onUnhandledError(event: ErrorEvent) {
+      if (event.message.includes("URIError: URI malformed")) {
         showToast(
           t(
             "Sorry, the last change could not be persisted – please reload the page"

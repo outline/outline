@@ -1,11 +1,11 @@
 import * as React from "react";
 
-export default function useDebouncedCallback(
-  callback: (arg0: any) => unknown,
+export default function useDebouncedCallback<T>(
+  callback: (...params: T[]) => unknown,
   wait: number
 ) {
   // track args & timeout handle between calls
-  const argsRef = React.useRef();
+  const argsRef = React.useRef<T[]>();
   const timeout = React.useRef<ReturnType<typeof setTimeout>>();
 
   function cleanup() {
@@ -16,12 +16,11 @@ export default function useDebouncedCallback(
 
   // make sure our timeout gets cleared if consuming component gets unmounted
   React.useEffect(() => cleanup, []);
-  return function (...args: any) {
+  return function (...args: T[]) {
     argsRef.current = args;
     cleanup();
     timeout.current = setTimeout(() => {
       if (argsRef.current) {
-        // @ts-expect-error ts-migrate(2556) FIXME: Expected 1 arguments, but got 0 or more.
         callback(...argsRef.current);
       }
     }, wait);

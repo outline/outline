@@ -12,19 +12,19 @@ export default function useCollectionDocuments(
       return [];
     }
 
-    if (
+    const insertDraftDocument =
       activeDocument?.isActive &&
       activeDocument?.isDraft &&
       activeDocument?.collectionId === collection.id &&
-      !activeDocument?.parentDocumentId
-    ) {
-      return sortNavigationNodes(
-        [activeDocument.asNavigationNode, ...collection.documents],
-        collection.sort
-      );
-    }
+      !activeDocument?.parentDocumentId;
 
-    return collection.documents;
+    return insertDraftDocument
+      ? sortNavigationNodes(
+          [activeDocument.asNavigationNode, ...collection.sortedDocuments],
+          collection.sort,
+          false
+        )
+      : collection.sortedDocuments;
   }, [
     activeDocument?.isActive,
     activeDocument?.isDraft,
@@ -32,7 +32,7 @@ export default function useCollectionDocuments(
     activeDocument?.parentDocumentId,
     activeDocument?.asNavigationNode,
     collection,
-    collection?.documents,
+    collection?.sortedDocuments,
     collection?.id,
     collection?.sort,
   ]);
