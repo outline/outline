@@ -21,6 +21,7 @@ import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
 import Header from "~/components/Header";
 import Tooltip from "~/components/Tooltip";
 import useMobile from "~/hooks/useMobile";
+import useMouseMove from "~/hooks/useMouseMove";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import DocumentMenu from "~/menus/DocumentMenu";
@@ -30,6 +31,7 @@ import TemplatesMenu from "~/menus/TemplatesMenu";
 import { NavigationNode } from "~/types";
 import { metaDisplay } from "~/utils/keyboard";
 import { newDocumentPath, editDocumentUrl } from "~/utils/routeHelpers";
+import FadeOut from "./FadeOut";
 import ObservingBanner from "./ObservingBanner";
 import PublicBreadcrumb from "./PublicBreadcrumb";
 import ShareButton from "./ShareButton";
@@ -41,6 +43,7 @@ type Props = {
   shareId: string | null | undefined;
   isDraft: boolean;
   isEditing: boolean;
+  isFocusing: boolean;
   isRevision: boolean;
   isSaving: boolean;
   isPublishing: boolean;
@@ -67,6 +70,7 @@ function DocumentHeader({
   isDraft,
   isPublishing,
   isRevision,
+  isFocusing,
   isSaving,
   savingIsDisabled,
   publishingIsDisabled,
@@ -80,6 +84,8 @@ function DocumentHeader({
   const { resolvedTheme } = ui;
   const { team } = auth;
   const isMobile = useMobile();
+  const isMouseMoving = useMouseMove();
+  const hideHeader = isFocusing && !isMouseMoving;
 
   // We cache this value for as long as the component is mounted so that if you
   // apply a template there is still the option to replace it until the user
@@ -163,6 +169,35 @@ function DocumentHeader({
     </Action>
   );
 
+  const DocumentMenuLabel = React.useCallback(
+    (props) => (
+      <Button
+        icon={<MoreIcon />}
+        iconColor="currentColor"
+        {...props}
+        borderOnHover
+        neutral
+      />
+    ),
+    []
+  );
+
+  const NewChildDocLabel = React.useCallback(
+    (props) => (
+      <Tooltip
+        tooltip={t("New document")}
+        shortcut="n"
+        delay={500}
+        placement="bottom"
+      >
+        <Button icon={<PlusIcon />} {...props} neutral>
+          {t("New doc")}
+        </Button>
+      </Tooltip>
+    ),
+    [t]
+  );
+
   if (shareId) {
     return (
       <Header
@@ -196,13 +231,15 @@ function DocumentHeader({
       <Header
         hasSidebar
         breadcrumb={
-          isMobile ? (
-            <TableOfContentsMenu headings={headings} />
-          ) : (
-            <DocumentBreadcrumb document={document}>
-              {!isEditing && toc}
-            </DocumentBreadcrumb>
-          )
+          <FadeOut $fade={hideHeader}>
+            {isMobile ? (
+              <TableOfContentsMenu headings={headings} />
+            ) : (
+              <DocumentBreadcrumb document={document}>
+                {!isEditing && toc}
+              </DocumentBreadcrumb>
+            )}
+          </FadeOut>
         }
         title={
           <>
@@ -213,117 +250,101 @@ function DocumentHeader({
         actions={
           <>
             <ObservingBanner />
-
-            {!isPublishing && isSaving && !team?.collaborativeEditing && (
-              <Status>{t("Saving")}…</Status>
-            )}
-            {!isDeleted && <Collaborators document={document} />}
-            {(isEditing || team?.collaborativeEditing) && !isTemplate && isNew && (
-              <Action>
-                <TemplatesMenu
-                  document={document}
-                  onSelectTemplate={onSelectTemplate}
-                />
-              </Action>
-            )}
-            {!isEditing && !isDeleted && (!isMobile || !isTemplate) && (
-              <Action>
-                <ShareButton document={document} />
-              </Action>
-            )}
-            {isEditing && (
-              <>
+            <FadeOut $fade={hideHeader}>
+              {!isPublishing && isSaving && !team?.collaborativeEditing && (
+                <Status>{t("Saving")}…</Status>
+              )}
+              {!isDeleted && <Collaborators document={document} />}
+              {(isEditing || team?.collaborativeEditing) &&
+                !isTemplate &&
+                isNew && (
+                  <Action>
+                    <TemplatesMenu
+                      document={document}
+                      onSelectTemplate={onSelectTemplate}
+                    />
+                  </Action>
+                )}
+              {!isEditing && !isDeleted && (!isMobile || !isTemplate) && (
+                <Action>
+                  <ShareButton document={document} />
+                </Action>
+              )}
+              {isEditing && (
+                <>
+                  <Action>
+                    <Tooltip
+                      tooltip={t("Save")}
+                      shortcut={`${metaDisplay}+enter`}
+                      delay={500}
+                      placement="bottom"
+                    >
+                      <Button
+                        onClick={handleSave}
+                        disabled={savingIsDisabled}
+                        neutral={isDraft}
+                      >
+                        {isDraft ? t("Save Draft") : t("Done Editing")}
+                      </Button>
+                    </Tooltip>
+                  </Action>
+                </>
+              )}
+              {canEdit && !team?.collaborativeEditing && editAction}
+              {canEdit && can.createChildDocument && !isMobile && (
+                <Action>
+                  <NewChildDocumentMenu
+                    document={document}
+                    label={NewChildDocLabel}
+                  />
+                </Action>
+              )}
+              {canEdit && isTemplate && !isDraft && !isRevision && (
+                <Action>
+                  <Button
+                    icon={<PlusIcon />}
+                    as={Link}
+                    to={newDocumentPath(document.collectionId, {
+                      templateId: document.id,
+                    })}
+                    primary
+                  >
+                    {t("New from template")}
+                  </Button>
+                </Action>
+              )}
+              {can.update && isDraft && !isRevision && (
                 <Action>
                   <Tooltip
-                    tooltip={t("Save")}
-                    shortcut={`${metaDisplay}+enter`}
+                    tooltip={t("Publish")}
+                    shortcut={`${metaDisplay}+shift+p`}
                     delay={500}
                     placement="bottom"
                   >
                     <Button
-                      onClick={handleSave}
-                      disabled={savingIsDisabled}
-                      neutral={isDraft}
+                      onClick={handlePublish}
+                      disabled={publishingIsDisabled}
                     >
-                      {isDraft ? t("Save Draft") : t("Done Editing")}
+                      {isPublishing ? `${t("Publishing")}…` : t("Publish")}
                     </Button>
                   </Tooltip>
                 </Action>
-              </>
-            )}
-            {canEdit && !team?.collaborativeEditing && editAction}
-            {canEdit && can.createChildDocument && !isMobile && (
-              <Action>
-                <NewChildDocumentMenu
-                  document={document}
-                  label={(props) => (
-                    <Tooltip
-                      tooltip={t("New document")}
-                      shortcut="n"
-                      delay={500}
-                      placement="bottom"
-                    >
-                      <Button icon={<PlusIcon />} {...props} neutral>
-                        {t("New doc")}
-                      </Button>
-                    </Tooltip>
-                  )}
-                />
-              </Action>
-            )}
-            {canEdit && isTemplate && !isDraft && !isRevision && (
-              <Action>
-                <Button
-                  icon={<PlusIcon />}
-                  as={Link}
-                  to={newDocumentPath(document.collectionId, {
-                    templateId: document.id,
-                  })}
-                  primary
-                >
-                  {t("New from template")}
-                </Button>
-              </Action>
-            )}
-            {can.update && isDraft && !isRevision && (
-              <Action>
-                <Tooltip
-                  tooltip={t("Publish")}
-                  shortcut={`${metaDisplay}+shift+p`}
-                  delay={500}
-                  placement="bottom"
-                >
-                  <Button
-                    onClick={handlePublish}
-                    disabled={publishingIsDisabled}
-                  >
-                    {isPublishing ? `${t("Publishing")}…` : t("Publish")}
-                  </Button>
-                </Tooltip>
-              </Action>
-            )}
-            {!isEditing && (
-              <>
-                {!isDeleted && <Separator />}
-                <Action>
-                  <DocumentMenu
-                    document={document}
-                    isRevision={isRevision}
-                    label={(props) => (
-                      <Button
-                        icon={<MoreIcon />}
-                        iconColor="currentColor"
-                        {...props}
-                        borderOnHover
-                        neutral
-                      />
-                    )}
-                    showToggleEmbeds={canToggleEmbeds}
-                    showDisplayOptions
-                  />
-                </Action>
-              </>
-            )}
+              )}
+              {!isEditing && (
+                <>
+                  {!isDeleted && <Separator />}
+                  <Action>
+                    <DocumentMenu
+                      document={document}
+                      isRevision={isRevision}
+                      label={DocumentMenuLabel}
+                      showToggleEmbeds={canToggleEmbeds}
+                      showDisplayOptions
+                    />
+                  </Action>
+                </>
+              )}
+            </FadeOut>
           </>
         }
       />
