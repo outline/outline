@@ -88,6 +88,9 @@ class DocumentScene extends React.Component<Props> {
   isEditorDirty = false;
 
   @observable
+  isEditorFocused = false;
+
+  @observable
   isEmpty = true;
 
   @observable
@@ -412,6 +415,9 @@ class DocumentScene extends React.Component<Props> {
     }
   };
 
+  onBlur = () => (this.isEditorFocused = false);
+  onFocus = () => (this.isEditorFocused = true);
+
   render() {
     const {
       document,
@@ -448,6 +454,9 @@ class DocumentScene extends React.Component<Props> {
     const canonicalUrl = shareId
       ? this.props.match.url
       : updateDocumentUrl(this.props.match.url, document);
+
+    const isFocusing =
+      !readOnly || this.isEditorFocused || !!ui.observingUserId;
 
     return (
       <ErrorBoundary>
@@ -538,6 +547,7 @@ class DocumentScene extends React.Component<Props> {
               shareId={shareId}
               isRevision={!!revision}
               isDraft={document.isDraft}
+              isFocusing={isFocusing}
               isEditing={!readOnly && !team?.collaborativeEditing}
               isSaving={this.isSaving}
               isPublishing={this.isPublishing}
@@ -579,6 +589,8 @@ class DocumentScene extends React.Component<Props> {
                     document={document}
                     value={readOnly ? value : undefined}
                     defaultValue={value}
+                    onBlur={this.onBlur}
+                    onFocus={this.onFocus}
                     embedsDisabled={embedsDisabled}
                     onSynced={this.onSynced}
                     onFileUploadStart={this.onFileUploadStart}
@@ -606,7 +618,10 @@ class DocumentScene extends React.Component<Props> {
                       <>
                         <MarkAsViewed document={document} />
                         <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
-                          <References document={document} />
+                          <References
+                            isFocusing={isFocusing}
+                            document={document}
+                          />
                         </ReferencesWrapper>
                       </>
                     )}
