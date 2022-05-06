@@ -7,21 +7,16 @@ import Document from "~/models/Document";
 import Fade from "~/components/Fade";
 import Tab from "~/components/Tab";
 import Tabs from "~/components/Tabs";
-import useMouseMove from "~/hooks/useMouseMove";
 import useStores from "~/hooks/useStores";
-import FadeOut from "./FadeOut";
 import ReferenceListItem from "./ReferenceListItem";
 
 type Props = {
   document: Document;
-  isFocusing: boolean;
 };
 
-function References({ document, isFocusing }: Props) {
+function References({ document }: Props) {
   const { collections, documents } = useStores();
   const location = useLocation();
-  const isMouseMoving = useMouseMove();
-  const hideHeader = isFocusing && !isMouseMoving;
 
   React.useEffect(() => {
     documents.fetchBacklinks(document.id);
@@ -38,54 +33,52 @@ function References({ document, isFocusing }: Props) {
   const height = Math.max(backlinks.length, children.length) * 40;
 
   return showBacklinks || showChildDocuments ? (
-    <FadeOut $fade={hideHeader}>
-      <Fade style={{ width: "100%" }}>
-        <Tabs>
-          {showChildDocuments && (
-            <Tab to="#children" isActive={() => !isBacklinksTab}>
-              <Trans>Nested documents</Trans>
-            </Tab>
-          )}
-          {showBacklinks && (
-            <Tab to="#backlinks" isActive={() => isBacklinksTab}>
-              <Trans>Backlinks</Trans>
-            </Tab>
-          )}
-        </Tabs>
-        <Content style={{ height }}>
-          {showBacklinks && (
-            <List $active={isBacklinksTab}>
-              {backlinks.map((backlinkedDocument) => (
+    <Fade>
+      <Tabs>
+        {showChildDocuments && (
+          <Tab to="#children" isActive={() => !isBacklinksTab}>
+            <Trans>Nested documents</Trans>
+          </Tab>
+        )}
+        {showBacklinks && (
+          <Tab to="#backlinks" isActive={() => isBacklinksTab}>
+            <Trans>Backlinks</Trans>
+          </Tab>
+        )}
+      </Tabs>
+      <Content style={{ height }}>
+        {showBacklinks && (
+          <List $active={isBacklinksTab}>
+            {backlinks.map((backlinkedDocument) => (
+              <ReferenceListItem
+                anchor={document.urlId}
+                key={backlinkedDocument.id}
+                document={backlinkedDocument}
+                showCollection={
+                  backlinkedDocument.collectionId !== document.collectionId
+                }
+              />
+            ))}
+          </List>
+        )}
+        {showChildDocuments && (
+          <List $active={!isBacklinksTab}>
+            {children.map((node) => {
+              // If we have the document in the store already then use it to get the extra
+              // contextual info, otherwise the collection node will do (only has title and id)
+              const document = documents.get(node.id);
+              return (
                 <ReferenceListItem
-                  anchor={document.urlId}
-                  key={backlinkedDocument.id}
-                  document={backlinkedDocument}
-                  showCollection={
-                    backlinkedDocument.collectionId !== document.collectionId
-                  }
+                  key={node.id}
+                  document={document || node}
+                  showCollection={false}
                 />
-              ))}
-            </List>
-          )}
-          {showChildDocuments && (
-            <List $active={!isBacklinksTab}>
-              {children.map((node) => {
-                // If we have the document in the store already then use it to get the extra
-                // contextual info, otherwise the collection node will do (only has title and id)
-                const document = documents.get(node.id);
-                return (
-                  <ReferenceListItem
-                    key={node.id}
-                    document={document || node}
-                    showCollection={false}
-                  />
-                );
-              })}
-            </List>
-          )}
-        </Content>
-      </Fade>
-    </FadeOut>
+              );
+            })}
+          </List>
+        )}
+      </Content>
+    </Fade>
   ) : null;
 }
 
