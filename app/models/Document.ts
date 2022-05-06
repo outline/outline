@@ -5,7 +5,7 @@ import parseTitle from "@shared/utils/parseTitle";
 import unescape from "@shared/utils/unescape";
 import DocumentsStore from "~/stores/DocumentsStore";
 import User from "~/models/User";
-import { NavigationNode } from "~/types";
+import type { NavigationNode } from "~/types";
 import Storage from "~/utils/Storage";
 import ParanoidModel from "./ParanoidModel";
 import View from "./View";
