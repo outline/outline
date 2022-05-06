@@ -1,6 +1,5 @@
 import invariant from "invariant";
 import { Document, Revision, User, Team } from "@server/models";
-import { NavigationNode } from "~/types";
 import { allow, _cannot as cannot } from "./cancan";
 
 allow(User, "createDocument", Team, (user, team) => {
@@ -327,18 +326,5 @@ allow(User, "unpublish", Document, (user, document) => {
   if (cannot(user, "update", document.collection)) {
     return false;
   }
-  const documentID = document.id;
-
-  const hasChild = (documents: NavigationNode[]): boolean =>
-    documents.some((doc) => {
-      if (doc.id === documentID) {
-        return doc.children.length > 0;
-      }
-      return hasChild(doc.children);
-    });
-
-  return (
-    !hasChild(document.collection.documentStructure || []) &&
-    user.teamId === document.teamId
-  );
+  return user.teamId === document.teamId;
 });
