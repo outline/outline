@@ -83,4 +83,4 @@ const Meta = styled(DocumentMeta)<{ rtl?: boolean }>`
   }
 `;
 
-export default React.memo(DocumentMetaWithViews);
+export default DocumentMetaWithViews;
