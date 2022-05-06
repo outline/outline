@@ -5029,9 +5029,9 @@ cancan@3.1.0:
     is-plain-obj "^1.1.0"
 
 caniuse-lite@^1.0.30001280:
-  version "1.0.30001335"
-  resolved "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001335.tgz"
-  integrity sha512-ddP1Tgm7z2iIxu6QTtbZUv6HJxSaV/PZeSrWFZtbY4JZ69tOeNhBCl3HyRQgeNZKE5AOn1kpV7fhljigy0Ty3w==
+  version "1.0.30001337"
+  resolved "https://registry.npmjs.org/caniuse-lite/-/caniuse-lite-1.0.30001337.tgz"
+  integrity sha512-HZRbZ0QgO1wvrbbnzljfpQ05sQB1rUkr9LguxQGCk3sgbTgIw8BajHLUMFwLpPQogdqTIZcpn7i6Sf2HoOFEbA==
 
 chalk@^1.1.3:
   version "1.1.3"
