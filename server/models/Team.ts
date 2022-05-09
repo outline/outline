@@ -145,11 +145,6 @@ class Team extends ParanoidModel {
     );
   }
 
-  getAllowedDomains = async function (): Promise<string[]> {
-    const teamDomains: TeamDomain[] = await this.getTeamDomains();
-    return (teamDomains || []).map((teamDomain) => teamDomain.name);
-  };
-
   // TODO: Move to command
   provisionSubdomain = async function (
     requestedSubdomain: string,
@@ -245,9 +240,12 @@ class Team extends ParanoidModel {
   };
 
   isDomainAllowed = async function (domain: string) {
-    const allowedDomains = await this.getAllowedDomains();
+    const allowedDomains = (await this.$get("allowedDomains")) || [];
 
-    return allowedDomains.includes(domain) || allowedDomains.length === 0;
+    return (
+      allowedDomains.length === 0 ||
+      allowedDomains.map((d: TeamDomain) => d.name).includes(domain)
+    );
   };
 
   // associations
@@ -265,7 +263,7 @@ class Team extends ParanoidModel {
   authenticationProviders: AuthenticationProvider[];
 
   @HasMany(() => TeamDomain)
-  teamDomains: TeamDomain[];
+  allowedDomains: TeamDomain[];
 
   // hooks
   @BeforeSave

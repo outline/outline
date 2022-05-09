@@ -28,6 +28,14 @@ export function InviteRequiredError(
   });
 }
 
+export function DomainNotAllowedError(
+  message = "The domain is not allowed for this team"
+) {
+  return httpErrors(403, message, {
+    id: "domain_not_allowed",
+  });
+}
+
 export function AdminRequiredError(
   message = "An admin role is required to access this resource"
 ) {

@@ -3,7 +3,7 @@ import { sequelize } from "@server/database/sequelize";
 import { Event, Team, TeamDomain, User } from "@server/models";
 
 type TeamUpdaterProps = {
-  params: Partial<Team> & { allowedDomains?: string[] };
+  params: Partial<Omit<Team, "allowedDomains">> & { allowedDomains?: string[] };
   ip?: string;
   user: User;
   team: Team;
@@ -62,23 +62,23 @@ const teamUpdater = async ({ params, user, team, ip }: TeamUpdaterProps) => {
     team.inviteRequired = inviteRequired;
   }
   if (allowedDomains !== undefined) {
-    const existingTeamDomains = await TeamDomain.findAll({
+    const existingAllowedDomains = await TeamDomain.findAll({
       where: { teamId: team.id },
       transaction,
     });
 
     // Only keep existing domains if they are still in the list of allowed domains
-    const newTeamDomains = team.teamDomains.filter((existingTeamDomain) =>
+    const newAllowedDomains = team.allowedDomains.filter((existingTeamDomain) =>
       allowedDomains.includes(existingTeamDomain.name)
     );
 
     // Add new domains
-    const existingDomains = team.teamDomains.map((x) => x.name);
+    const existingDomains = team.allowedDomains.map((x) => x.name);
     const newDomains = allowedDomains.filter(
       (newDomain) => newDomain !== "" && !existingDomains.includes(newDomain)
     );
     for (const newDomain of newDomains) {
-      newTeamDomains.push(
+      newAllowedDomains.push(
         await TeamDomain.create(
           {
             name: newDomain,
@@ -91,14 +91,14 @@ const teamUpdater = async ({ params, user, team, ip }: TeamUpdaterProps) => {
     }
 
     // Destroy the existing TeamDomains that were removed
-    const deletedTeamDomains = existingTeamDomains.filter(
+    const deletedDomains = existingAllowedDomains.filter(
       (x) => !allowedDomains.includes(x.name)
     );
-    for (const deletedTeamDomain of deletedTeamDomains) {
-      deletedTeamDomain.destroy({ transaction });
+    for (const deletedDomain of deletedDomains) {
+      deletedDomain.destroy({ transaction });
     }
 
-    team.teamDomains = newTeamDomains;
+    team.allowedDomains = newAllowedDomains;
   }
 
   const changes = team.changed();
