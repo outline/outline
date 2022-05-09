@@ -290,7 +290,7 @@ function Security() {
             </Flex>
           ))}
 
-        <Flex justify="space-between" gap={4}>
+        <Flex justify="space-between" gap={4} style={{ flexWrap: "wrap" }}>
           {!data.allowedDomains?.length ||
           data.allowedDomains[data.allowedDomains.length - 1] !== "" ? (
             <Button type="button" onClick={handleAddDomain} neutral>
