@@ -269,27 +269,26 @@ function Security() {
           "The domains which should be allowed to create accounts. This applies to both SSO and Email logins. Changing this setting does not affect existing user accounts."
         )}
       >
-        <div>
-          {data.allowedDomains &&
-            data.allowedDomains.map((domain, index) => (
-              <Flex key={index} gap={4}>
-                <Input
-                  key={index}
-                  id={`allowedDomains${index}`}
-                  value={domain}
-                  placeholder="example.com"
-                  onChange={createOnDomainChangedHandler(index)}
-                />
-                <Remove>
-                  <Tooltip tooltip={t("Remove domain")} placement="top">
-                    <NudeButton onClick={() => handleRemoveDomain(index)}>
-                      <CloseIcon />
-                    </NudeButton>
-                  </Tooltip>
-                </Remove>
-              </Flex>
-            ))}
-        </div>
+        {data.allowedDomains &&
+          data.allowedDomains.map((domain, index) => (
+            <Flex key={index} gap={4}>
+              <Input
+                key={index}
+                id={`allowedDomains${index}`}
+                value={domain}
+                placeholder="example.com"
+                flex={true}
+                onChange={createOnDomainChangedHandler(index)}
+              />
+              <Remove>
+                <Tooltip tooltip={t("Remove domain")} placement="top">
+                  <NudeButton onClick={() => handleRemoveDomain(index)}>
+                    <CloseIcon />
+                  </NudeButton>
+                </Tooltip>
+              </Remove>
+            </Flex>
+          ))}
 
         <Flex justify="space-between" gap={4}>
           {!data.allowedDomains?.length ||
