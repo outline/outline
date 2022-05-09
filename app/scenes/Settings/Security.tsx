@@ -50,6 +50,8 @@ function Security() {
     [showToast, t]
   );
 
+  const [domainsChanged, setDomainsChanged] = useState(false);
+
   const saveData = React.useCallback(
     async (newData) => {
       try {
@@ -60,6 +62,8 @@ function Security() {
         showToast(err.message, {
           type: "error",
         });
+      } finally {
+        setDomainsChanged(false);
       }
     },
     [auth, showSuccessMessage, showToast]
@@ -124,8 +128,7 @@ function Security() {
     newData.allowedDomains && newData.allowedDomains.splice(index, 1);
 
     setData(newData);
-    await auth.updateTeam(newData);
-    showSuccessMessage();
+    setDomainsChanged(true);
   };
 
   const handleAddDomain = () => {
@@ -135,6 +138,17 @@ function Security() {
     };
 
     setData(newData);
+    setDomainsChanged(true);
+  };
+
+  const createOnDomainChangedHandler = (index: number) => (
+    ev: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const newData = { ...data };
+
+    newData.allowedDomains![index] = ev.currentTarget.value;
+    setData(newData);
+    setDomainsChanged(true);
   };
 
   return (
@@ -264,15 +278,10 @@ function Security() {
                   id={`allowedDomains${index}`}
                   value={domain}
                   placeholder="example.com"
-                  onChange={(ev) => {
-                    const newData = { ...data };
-
-                    newData.allowedDomains![index] = ev.currentTarget.value;
-                    setData(newData);
-                  }}
+                  onChange={createOnDomainChangedHandler(index)}
                 />
                 <Remove>
-                  <Tooltip tooltip={t("Remove Domain")} placement="top">
+                  <Tooltip tooltip={t("Remove domain")} placement="top">
                     <NudeButton onClick={() => handleRemoveDomain(index)}>
                       <CloseIcon />
                     </NudeButton>
@@ -292,9 +301,15 @@ function Security() {
             <span />
           )}
 
-          <Button type="button" onClick={handleChange}>
-            <Trans>Save Domains</Trans>
-          </Button>
+          {domainsChanged && (
+            <Button
+              type="button"
+              onClick={handleChange}
+              disabled={auth.isSaving}
+            >
+              <Trans>Save changes</Trans>
+            </Button>
+          )}
         </Flex>
       </SettingRow>
     </Scene>
