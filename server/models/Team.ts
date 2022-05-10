@@ -19,7 +19,7 @@ import {
   DataType,
 } from "sequelize-typescript";
 import { v4 as uuidv4 } from "uuid";
-import { stripSubdomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
+import { RESERVED_SUBDOMAINS } from "@shared/utils/domains";
 import env from "@server/env";
 import Logger from "@server/logging/logger";
 import { generateAvatarUrl } from "@server/utils/avatars";
@@ -121,6 +121,7 @@ class Team extends ParanoidModel {
   }
 
   get url() {
+    // custom domain
     if (this.domain) {
       return `https://${this.domain}`;
     }
@@ -129,8 +130,8 @@ class Team extends ParanoidModel {
       return process.env.URL;
     }
 
-    const url = new URL(process.env.URL || "");
-    url.host = `${this.subdomain}.${stripSubdomain(url.host)}`;
+    const url = new URL(process.env.URL);
+    url.host = `${this.subdomain}.${url.host}`;
     return url.href.replace(/\/$/, "");
   }
 

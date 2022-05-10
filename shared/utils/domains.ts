@@ -2,8 +2,8 @@ import { trim } from "lodash";
 import env from "../env";
 
 type Domain = {
-  subdomain: string;
-  domain: string;
+  teamSubdomain: string;
+  host: string;
   custom: boolean;
 };
 
@@ -16,35 +16,41 @@ function normalizeUrl(url: string) {
 // we originally used the parse-domain npm module however this includes
 // a large list of possible TLD's which increase the size of the bundle
 // unnecessarily for our usecase of trusted input.
-export function parseDomain(url: string): Domain | null {
+export function parseDomain(url: string): Domain {
   if (!url) {
-    return null;
+    return {
+      teamSubdomain: "",
+      host: "",
+      custom: false,
+    };
   }
 
   const normalBaseUrl = normalizeUrl(env.URL);
-  const normalUrl = normalizeUrl(url);
+  const host = normalizeUrl(url);
 
-  const baseUrlStart = normalUrl.indexOf(`.${normalBaseUrl}`);
+  const baseUrlStart = host.indexOf(`.${normalBaseUrl}`);
   if (baseUrlStart === -1) {
-    return { subdomain: "", domain: normalUrl, custom: true };
+    return { teamSubdomain: "", host, custom: true };
   }
 
-  // we consider anything in front of the base url to be the subdomain
-  const subdomain = normalUrl.substring(0, baseUrlStart);
+  // we consider anything in front of the baseUrl to be the subdomain
+  const subdomain = host.substring(0, baseUrlStart);
+  const isReservedSubdomain = RESERVED_SUBDOMAINS.includes(subdomain);
 
-  // ... and anything after the subdomain is considered the domain
-  const domain = normalUrl.substring(subdomain.length).replace(/^\./, "");
-
-  return { subdomain, domain, custom: false };
+  return {
+    teamSubdomain: isReservedSubdomain ? "" : subdomain,
+    host,
+    custom: false,
+  };
 }
 
-export function stripSubdomain(hostname: string) {
-  const parsed = parseDomain(hostname);
-  if (!parsed) {
-    return hostname;
-  }
-  return parsed.domain;
-}
+// export function stripSubdomain(hostname: string) {
+//   const parsed = parseDomain(hostname);
+//   if (!parsed) {
+//     return hostname;
+//   }
+//   return parsed.domain;
+// }
 
 export function isHostedSubdomain(hostname: string) {
   const parsed = parseDomain(hostname);
