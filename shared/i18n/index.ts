@@ -65,6 +65,10 @@ export const languageOptions = [
     label: "Tiếng Việt (Vietnamese)",
     value: "vi_VN",
   },
+  {
+    label: "Türkçe (Turkish)",
+    value: "tr_TR",
+  },
 ];
 
 export const languages: string[] = languageOptions.map((i) => i.value);
@@ -77,8 +81,7 @@ const dashToUnderscore = (text: string) => text.replace("-", "_");
 
 export const initI18n = () => {
   const lng = underscoreToDash(
-    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string | undefined' is not assig... Remove this comment to see the full error message
-    "DEFAULT_LANGUAGE" in process.env ? process.env.DEFAULT_LANGUAGE : "en_US"
+    "DEFAULT_LANGUAGE" in process.env ? process.env.DEFAULT_LANGUAGE! : "en_US"
   );
   i18n
     .use(backend)

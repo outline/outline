@@ -1,8 +1,15 @@
 import * as React from "react";
-import { NavLink, Route } from "react-router-dom";
+import { match, NavLink, Route } from "react-router-dom";
 
 type Props = React.ComponentProps<typeof NavLink> & {
-  children?: (match: any) => React.ReactNode;
+  children?: (
+    match:
+      | match<{
+          [x: string]: string | undefined;
+        }>
+      | boolean
+      | null
+  ) => React.ReactNode;
   exact?: boolean;
   activeStyle?: React.CSSProperties;
   to: string;

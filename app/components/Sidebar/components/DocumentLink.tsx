@@ -258,19 +258,18 @@ function InnerDocumentLink(
   });
 
   const nodeChildren = React.useMemo(() => {
-    if (
-      collection &&
+    const insertDraftDocument =
       activeDocument?.isDraft &&
       activeDocument?.isActive &&
-      activeDocument?.parentDocumentId === node.id
-    ) {
-      return sortNavigationNodes(
-        [activeDocument?.asNavigationNode, ...node.children],
-        collection.sort
-      );
-    }
+      activeDocument?.parentDocumentId === node.id;
 
-    return node.children;
+    return collection && insertDraftDocument
+      ? sortNavigationNodes(
+          [activeDocument?.asNavigationNode, ...node.children],
+          collection.sort,
+          false
+        )
+      : node.children;
   }, [
     activeDocument?.isActive,
     activeDocument?.isDraft,

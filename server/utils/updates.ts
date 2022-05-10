@@ -6,7 +6,7 @@ import Document from "@server/models/Document";
 import Team from "@server/models/Team";
 import User from "@server/models/User";
 import packageInfo from "../../package.json";
-import { client } from "../redis";
+import Redis from "../redis";
 
 const UPDATES_URL = "https://updates.getoutline.com";
 const UPDATES_KEY = "UPDATES_KEY";
@@ -40,7 +40,7 @@ export async function checkUpdates() {
       documentCount,
     },
   });
-  await client.del(UPDATES_KEY);
+  await Redis.defaultClient.del(UPDATES_KEY);
 
   try {
     const response = await fetch(UPDATES_URL, {
@@ -54,7 +54,7 @@ export async function checkUpdates() {
     const data = await response.json();
 
     if (data.severity) {
-      await client.set(
+      await Redis.defaultClient.set(
         UPDATES_KEY,
         JSON.stringify({
           severity: data.severity,

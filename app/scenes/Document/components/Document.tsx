@@ -172,8 +172,11 @@ class DocumentScene extends React.Component<Props> {
       this.props.document.templateId = template.id;
     }
 
-    this.title = template.title;
-    this.props.document.title = template.title;
+    if (!this.title) {
+      this.title = template.title;
+      this.props.document.title = template.title;
+    }
+
     this.props.document.text = template.text;
     this.updateIsDirty();
     this.onSave({

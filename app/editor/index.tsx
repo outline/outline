@@ -28,6 +28,7 @@ import { EmbedDescriptor, EventType } from "@shared/editor/types";
 import EventEmitter from "@shared/utils/events";
 import Flex from "~/components/Flex";
 import { Dictionary } from "~/hooks/useDictionary";
+import Logger from "~/utils/logger";
 import BlockMenu from "./components/BlockMenu";
 import ComponentView from "./components/ComponentView";
 import EditorContext from "./components/EditorContext";
@@ -476,7 +477,7 @@ export class Editor extends React.PureComponent<
       // querySelector will throw an error if the hash begins with a number
       // or contains a period. This is protected against now by safeSlugify
       // however previous links may be in the wild.
-      console.warn(`Attempted to scroll to invalid hash: ${hash}`, err);
+      Logger.debug("editor", `Attempted to scroll to invalid hash: ${hash}`);
     }
   }
 

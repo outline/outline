@@ -5,7 +5,7 @@ type Props = {
   text: string;
   children?: React.ReactElement;
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
-  onCopy: () => void;
+  onCopy?: () => void;
 };
 
 class CopyToClipboard extends React.PureComponent<Props> {
@@ -17,9 +17,8 @@ class CopyToClipboard extends React.PureComponent<Props> {
       debug: process.env.NODE_ENV !== "production",
       format: "text/plain",
     });
-    if (onCopy) {
-      onCopy();
-    }
+
+    onCopy?.();
 
     if (elem && elem.props && typeof elem.props.onClick === "function") {
       elem.props.onClick(ev);

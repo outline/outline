@@ -14,8 +14,6 @@ import withStores from "~/components/withStores";
 import { compressImage } from "~/utils/compressImage";
 import { uploadFile, dataUrlToBlob } from "~/utils/files";
 
-const EMPTY_OBJECT = {};
-
 export type Props = {
   onSuccess: (url: string) => void | Promise<void>;
   onError: (error: string) => void;
@@ -84,7 +82,7 @@ class ImageUpload extends React.Component<RootStore & Props> {
     this.isCropping = false;
   };
 
-  handleZoom = (event: React.DragEvent<any>) => {
+  handleZoom = (event: React.ChangeEvent<HTMLInputElement>) => {
     const target = event.target;
 
     if (target instanceof HTMLInputElement) {
@@ -119,7 +117,6 @@ class ImageUpload extends React.Component<RootStore & Props> {
             max="2"
             step="0.01"
             defaultValue="1"
-            // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
             onChange={this.handleZoom}
           />
           <CropButton onClick={this.handleCrop} disabled={this.isUploading}>
@@ -139,9 +136,6 @@ class ImageUpload extends React.Component<RootStore & Props> {
       <Dropzone
         accept="image/png, image/jpeg"
         onDropAccepted={this.onDropAccepted}
-        // @ts-expect-error ts-migrate(2322) FIXME: Type '{ children: ({ getRootProps, getInputProps }... Remove this comment to see the full error message
-        style={EMPTY_OBJECT}
-        disablePreview
       >
         {({ getRootProps, getInputProps }) => (
           <div {...getRootProps()}>

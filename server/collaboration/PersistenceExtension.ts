@@ -9,7 +9,7 @@ import { sequelize } from "@server/database/sequelize";
 import Logger from "@server/logging/logger";
 import { APM } from "@server/logging/tracing";
 import Document from "@server/models/Document";
-import documentUpdater from "../commands/documentUpdater";
+import documentCollaborativeUpdater from "../commands/documentCollaborativeUpdater";
 import markdownToYDoc from "./utils/markdownToYDoc";
 
 @APM.trace({
@@ -54,6 +54,7 @@ export default class PersistenceExtension implements Extension {
           state: Buffer.from(state),
         },
         {
+          silent: true,
           hooks: false,
           transaction,
         }
@@ -71,7 +72,7 @@ export default class PersistenceExtension implements Extension {
     Logger.info("database", `Persisting ${documentId}`);
 
     try {
-      await documentUpdater({
+      await documentCollaborativeUpdater({
         documentId,
         ydoc: document,
         userId: context.user?.id,

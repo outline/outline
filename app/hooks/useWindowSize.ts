@@ -1,5 +1,5 @@
-import { debounce } from "lodash";
 import * as React from "react";
+import useDebouncedCallback from "./useDebouncedCallback";
 import useEventListener from "./useEventListener";
 
 /**
@@ -14,17 +14,17 @@ export default function useWindowSize() {
     height: window.innerHeight,
   });
 
-  const handleResize = React.useMemo(
-    () =>
-      debounce(() => {
-        // Set window width/height to state
-        setWindowSize({
-          width: window.innerWidth,
-          height: window.innerHeight,
-        });
-      }, 100),
-    []
-  );
+  const handleResize = useDebouncedCallback(() => {
+    if (
+      window.innerWidth !== windowSize.width ||
+      window.innerHeight !== windowSize.height
+    ) {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    }
+  }, 100);
 
   useEventListener("resize", handleResize);
 

@@ -223,7 +223,7 @@ function Invite({ onSubmit }: Props) {
             required={!!invite.email}
           />
           <InputSelectRole
-            onChange={(role: any) => handleRoleChange(role as Role, index)}
+            onChange={(role: Role) => handleRoleChange(role, index)}
             value={invite.role}
             labelHidden={index !== 0}
             short
