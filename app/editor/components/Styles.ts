@@ -786,6 +786,26 @@ const EditorStyles = styled.div<{
     button:active {
       display: inline;
     }
+
+    &[data-language="mermaidjs"] {
+      pre {
+        display: none;
+      }
+
+      pre.editor-visible {
+        display: block;
+      }
+    }
+
+    .mermaid-diagram {
+      display: none;
+      align-items: center;
+      justify-content: center;
+
+      &.diagram-visible {
+        display: flex;
+      }
+    }
   }
 
   pre {

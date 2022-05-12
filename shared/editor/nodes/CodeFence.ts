@@ -1,5 +1,6 @@
 import copy from "copy-to-clipboard";
 import Token from "markdown-it/lib/token";
+import mermaid from "mermaid";
 import { textblockTypeInputRule } from "prosemirror-inputrules";
 import {
   NodeSpec,
@@ -45,6 +46,7 @@ import Node from "./Node";
 
 const PERSISTENCE_KEY = "rme-code-language";
 const DEFAULT_LANGUAGE = "javascript";
+const DEFAULT_DIAGRAM_TOGGLE_STATE = true;
 
 [
   bash,
@@ -68,6 +70,7 @@ const DEFAULT_LANGUAGE = "javascript";
   typescript,
   yaml,
 ].forEach(refractor.register);
+mermaid.mermaidAPI.initialize({ startOnLoad: true });
 
 export default class CodeFence extends Node {
   constructor(options: {
@@ -90,6 +93,9 @@ export default class CodeFence extends Node {
       attrs: {
         language: {
           default: DEFAULT_LANGUAGE,
+        },
+        diagram: {
+          default: DEFAULT_DIAGRAM_TOGGLE_STATE,
         },
       },
       content: "text*",
@@ -134,13 +140,52 @@ export default class CodeFence extends Node {
           option.selected = node.attrs.language === value;
           select.appendChild(option);
         });
+        const codeClass = !node.attrs.diagram ? "editor-visible" : "";
 
-        return [
+        const dom = [
           "div",
-          { class: "code-block", "data-language": node.attrs.language },
+          {
+            class: "code-block",
+            "data-language": node.attrs.language,
+            "data-diagram": node.attrs.diagram,
+          },
           ["div", { contentEditable: "false" }, actions],
-          ["pre", ["code", { spellCheck: "false" }, 0]],
+          ["pre", { class: codeClass }, ["code", { spellCheck: "false" }, 0]],
         ];
+
+        if (node.attrs.language === "mermaidjs") {
+          const diagram = document.createElement("div");
+          diagram.classList.add("mermaid-diagram");
+          if (node.attrs.diagram) {
+            diagram.classList.add("diagram-visible");
+          }
+          diagram.setAttribute("contentEditable", "false");
+          try {
+            const id = "mmd" + Math.round(Math.random() * 10000);
+            mermaid.mermaidAPI.render(id, node.textContent, function (
+              svgCode: string
+            ) {
+              diagram.innerHTML = svgCode;
+            });
+          } catch (error) {
+            console.log(error);
+            diagram.innerHTML = "Diagram could not be rendered.";
+          }
+          dom.splice(2, 0, diagram);
+
+          const editButton = document.createElement("button");
+          if (node.attrs.diagram) {
+            editButton.innerText = "Show code";
+            editButton.setAttribute("data-shown", "");
+          } else {
+            editButton.innerText = "Show diagram";
+          }
+          editButton.type = "button";
+          editButton.addEventListener("click", this.handleDiagramEdit);
+          actions.appendChild(editButton);
+        }
+
+        return dom;
       },
     };
   }
@@ -231,6 +276,49 @@ export default class CodeFence extends Node {
       view.dispatch(transaction);
 
       localStorage?.setItem(PERSISTENCE_KEY, language);
+    }
+  };
+
+  handleDiagramEdit = (event: InputEvent) => {
+    const { view } = this.editor;
+    const { tr } = view.state;
+    const element = event.target;
+    if (!(element instanceof HTMLButtonElement)) {
+      return;
+    }
+    const { top, left } = element.getBoundingClientRect();
+    const result = view.posAtCoords({ top, left });
+
+    if (result) {
+      const node = view.state.doc.nodeAt(result.pos);
+      if (node) {
+        console.log(node);
+        const shown = element.hasAttribute("data-shown");
+
+        const container = element.closest(".code-block");
+        const diagram = container?.querySelector(".mermaid-diagram");
+        if (shown && diagram) {
+          try {
+            const id = "mmd" + Math.round(Math.random() * 10000);
+            mermaid.mermaidAPI.render(id, node.textContent, function (
+              svgCode: string
+            ) {
+              diagram.innerHTML = svgCode;
+            });
+          } catch (error) {
+            console.log(error);
+            diagram.innerHTML = "Diagram could not be rendered.";
+          }
+        }
+
+        const transaction = tr
+          .setSelection(Selection.near(view.state.doc.resolve(result.inside)))
+          .setNodeMarkup(result.inside, undefined, {
+            language: "mermaidjs",
+            diagram: !shown,
+          });
+        view.dispatch(transaction);
+      }
     }
   };
 

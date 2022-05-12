@@ -120,6 +120,7 @@
     "markdown-it": "^12.3.2",
     "markdown-it-container": "^3.0.0",
     "markdown-it-emoji": "^2.0.0",
+    "mermaid": "8.11",
     "mime-types": "^2.1.35",
     "mobx": "^4.15.4",
     "mobx-react": "^6.3.1",
