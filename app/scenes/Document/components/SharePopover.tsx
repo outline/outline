@@ -111,8 +111,8 @@ function SharePopover({
     }, 250);
   }, [t, onRequestClose, showToast]);
 
-  const userLocale: string = useUserLocale() || "";
-  const locale = dateLocale(userLocale);
+  const userLocale = useUserLocale();
+  const locale = userLocale ? dateLocale(userLocale) : undefined;
 
   return (
     <>
