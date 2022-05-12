@@ -161,7 +161,7 @@ function SharePopover({
                       Date.parse(share?.lastAccessedAt),
                       {
                         addSuffix: true,
-                        locale: locale,
+                        locale,
                       }
                     ),
                   })}
