@@ -68,7 +68,9 @@ export default function Contents({ headings, isFullWidth }: Props) {
             ))}
           </List>
         ) : (
-          <Empty>Headings you add to the document will appear here</Empty>
+          <Empty>
+            {t("Headings you add to the document will appear here")}
+          </Empty>
         )}
       </Sticky>
     </Wrapper>
