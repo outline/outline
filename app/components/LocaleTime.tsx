@@ -2,7 +2,7 @@ import { format as formatDate, formatDistanceToNow } from "date-fns";
 import * as React from "react";
 import Tooltip from "~/components/Tooltip";
 import useUserLocale from "~/hooks/useUserLocale";
-import { dateLocale } from "~/utils/i18n";
+import { dateLocale, locales } from "~/utils/i18n";
 
 let callbacks: (() => void)[] = [];
 
@@ -26,7 +26,7 @@ type Props = {
   addSuffix?: boolean;
   shorten?: boolean;
   relative?: boolean;
-  format?: Record<keyof dateLocale, string>;
+  format?: Record<keyof locales, string>;
 };
 
 const LocaleTime: React.FC<Props> = ({
