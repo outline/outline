@@ -142,32 +142,18 @@ export default class CodeFence extends Node {
         });
         const codeClass = !node.attrs.diagram ? "editor-visible" : "";
 
-        const dom = [
-          "div",
-          {
-            class: "code-block",
-            "data-language": node.attrs.language,
-            "data-diagram": node.attrs.diagram,
-          },
-          ["div", { contentEditable: "false" }, actions],
-          ["pre", { class: codeClass }, ["code", { spellCheck: "false" }, 0]],
-        ];
-
+        const diagram = document.createElement("div");
         if (node.attrs.language === "mermaidjs") {
-          // get empty diagram id
-          let diagramId = 0;
+          let id = 0;
           let existingDiagram = document.getElementById(
-            "mermaid-diagram-" + diagramId
+            "mermaid-diagram-" + id
           );
           while (existingDiagram) {
-            diagramId++;
-            existingDiagram = document.getElementById(
-              "mermaid-diagram-" + diagramId
-            );
+            id++;
+            existingDiagram = document.getElementById("mermaid-diagram-" + id);
           }
-          diagramId = "mermaid-diagram-" + (diagramId + 1);
+          const diagramId = "mermaid-diagram-" + (id + 1);
 
-          const diagram = document.createElement("div");
           diagram.classList.add("mermaid-diagram");
           if (node.attrs.diagram) {
             diagram.classList.add("diagram-visible");
@@ -182,9 +168,10 @@ export default class CodeFence extends Node {
           } catch (error) {
             console.log(error);
             const errorNode = document.getElementById("d" + diagramId);
-            diagram.appendChild(errorNode);
+            if (errorNode) {
+              diagram.appendChild(errorNode);
+            }
           }
-          dom.splice(2, 0, diagram);
 
           const editButton = document.createElement("button");
           if (node.attrs.diagram) {
@@ -199,7 +186,17 @@ export default class CodeFence extends Node {
           actions.appendChild(editButton);
         }
 
-        return dom;
+        return [
+          "div",
+          {
+            class: "code-block",
+            "data-language": node.attrs.language,
+            "data-diagram": node.attrs.diagram,
+          },
+          diagram,
+          ["div", { contentEditable: "false" }, actions],
+          ["pre", { class: codeClass }, ["code", { spellCheck: "false" }, 0]],
+        ];
       },
     };
   }
@@ -312,7 +309,7 @@ export default class CodeFence extends Node {
 
         const container = element.closest(".code-block");
         const diagram = container?.querySelector(".mermaid-diagram");
-        if (shown && diagram) {
+        if (shown && diagram && diagramId) {
           try {
             mermaid.mermaidAPI.render(diagramId, node.textContent, function (
               svgCode: string
@@ -322,7 +319,9 @@ export default class CodeFence extends Node {
           } catch (error) {
             console.log(error);
             const errorNode = document.getElementById("d" + diagramId);
-            diagram.appendChild(errorNode);
+            if (errorNode) {
+              diagram.appendChild(errorNode);
+            }
           }
         }
 
