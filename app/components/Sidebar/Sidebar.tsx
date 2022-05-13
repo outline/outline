@@ -65,8 +65,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(
     const handleStopDrag = React.useCallback(() => {
       setResizing(false);
 
-      if (document.activeElement) {
-        // @ts-expect-error ts-migrate(2339) FIXME: Property 'blur' does not exist on type 'Element'.
+      if (document.activeElement instanceof HTMLElement) {
         document.activeElement.blur();
       }
 

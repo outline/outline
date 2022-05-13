@@ -1,5 +1,6 @@
 import { trim } from "lodash";
 import { action, computed, observable } from "mobx";
+import { sortNavigationNodes } from "@shared/utils/collections";
 import CollectionsStore from "~/stores/CollectionsStore";
 import Document from "~/models/Document";
 import ParanoidModel from "~/models/ParanoidModel";
@@ -95,6 +96,11 @@ export default class Collection extends ParanoidModel {
     );
   }
 
+  @computed
+  get sortedDocuments() {
+    return sortNavigationNodes(this.documents, this.sort);
+  }
+
   @action
   updateDocument(document: Document) {
     const travelNodes = (nodes: NavigationNode[]) =>
@@ -130,7 +136,7 @@ export default class Collection extends ParanoidModel {
     };
 
     if (this.documents) {
-      travelNodes(this.documents);
+      travelNodes(this.sortedDocuments);
     }
 
     return result;

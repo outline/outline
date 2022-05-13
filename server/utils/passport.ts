@@ -1,17 +1,18 @@
 import crypto from "crypto";
 import { addMinutes, subMinutes } from "date-fns";
+import type { Request } from "express";
 import fetch from "fetch-with-proxy";
-import { Context } from "koa";
+import {
+  StateStoreStoreCallback,
+  StateStoreVerifyCallback,
+} from "passport-oauth2";
 import { OAuthStateMismatchError } from "../errors";
 import { getCookieDomain } from "./domains";
 
 export class StateStore {
   key = "state";
 
-  store = (
-    ctx: Context,
-    callback: (err: Error | null, state: string) => void
-  ) => {
+  store = (ctx: Request, callback: StateStoreStoreCallback) => {
     // Produce a random string as state
     const state = crypto.randomBytes(8).toString("hex");
 
@@ -25,15 +26,17 @@ export class StateStore {
   };
 
   verify = (
-    ctx: Context,
+    ctx: Request,
     providedState: string,
-    callback: (err: Error | null, success?: boolean) => void
+    callback: StateStoreVerifyCallback
   ) => {
     const state = ctx.cookies.get(this.key);
 
     if (!state) {
       return callback(
-        OAuthStateMismatchError("State not return in OAuth flow")
+        OAuthStateMismatchError("State not return in OAuth flow"),
+        false,
+        state
       );
     }
 
@@ -44,10 +47,11 @@ export class StateStore {
     });
 
     if (state !== providedState) {
-      return callback(OAuthStateMismatchError());
+      return callback(OAuthStateMismatchError(), false, state);
     }
 
-    callback(null, true);
+    // @ts-expect-error Type in library is wrong
+    callback(null, true, state);
   };
 }
 

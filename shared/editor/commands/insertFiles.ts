@@ -83,7 +83,7 @@ const insertFiles = function (
           $pos.pos + ($pos.nodeAfter?.nodeSize || 0),
           schema.nodes.attachment.create({
             id,
-            title: file.name,
+            title: file.name ?? "Untitled",
             size: file.size,
           })
         )
@@ -149,7 +149,7 @@ const insertFiles = function (
               to || from,
               schema.nodes.attachment.create({
                 href: src,
-                title: file.name,
+                title: file.name ?? "Untitled",
                 size: file.size,
               })
             )

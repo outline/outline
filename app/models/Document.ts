@@ -285,6 +285,8 @@ export default class Document extends ParanoidModel {
       return;
     }
 
+    this.lastViewedAt = new Date().toString();
+
     return this.store.rootStore.views.create({
       documentId: this.id,
     });

@@ -1,9 +1,10 @@
-import fs from "fs";
 import path from "path";
+import emojiRegex from "emoji-regex";
 import { strikethrough, tables } from "joplin-turndown-plugin-gfm";
 import { truncate } from "lodash";
 import mammoth from "mammoth";
 import quotedPrintable from "quoted-printable";
+import { Transaction } from "sequelize";
 import TurndownService from "turndown";
 import utf8 from "utf8";
 import { MAX_TITLE_LENGTH } from "@shared/constants";
@@ -11,7 +12,6 @@ import parseTitle from "@shared/utils/parseTitle";
 import { APM } from "@server/logging/tracing";
 import { User } from "@server/models";
 import dataURItoBuffer from "@server/utils/dataURItoBuffer";
-import { deserializeFilename } from "@server/utils/fs";
 import parseImages from "@server/utils/parseImages";
 import { FileImportError, InvalidRequestError } from "../errors";
 import attachmentCreator from "./attachmentCreator";
@@ -21,7 +21,7 @@ const turndownService = new TurndownService({
   hr: "---",
   bulletListMarker: "-",
   headingStyle: "atx",
-});
+}).remove(["script", "style", "title", "head"]);
 
 // Use the GitHub-flavored markdown plugin to parse
 // strikethoughs and tables
@@ -37,7 +37,7 @@ turndownService
 
 interface ImportableFile {
   type: string;
-  getMarkdown: (file: any) => Promise<string>;
+  getMarkdown: (content: Buffer | string) => Promise<string>;
 }
 
 const importMapping: ImportableFile[] = [
@@ -68,26 +68,34 @@ const importMapping: ImportableFile[] = [
   },
 ];
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'file' implicitly has an 'any' type.
-async function fileToMarkdown(file): Promise<string> {
-  return fs.promises.readFile(file.path, "utf8");
+async function fileToMarkdown(content: Buffer | string): Promise<string> {
+  if (content instanceof Buffer) {
+    content = content.toString("utf8");
+  }
+  return content;
 }
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'file' implicitly has an 'any' type.
-async function docxToMarkdown(file): Promise<string> {
-  const { value } = await mammoth.convertToHtml(file);
-  return turndownService.turndown(value);
+async function docxToMarkdown(content: Buffer | string): Promise<string> {
+  if (content instanceof Buffer) {
+    const { value: html } = await mammoth.convertToHtml({ buffer: content });
+    return turndownService.turndown(html);
+  }
+
+  throw new Error("docxToMarkdown: content must be a Buffer");
 }
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'file' implicitly has an 'any' type.
-async function htmlToMarkdown(file): Promise<string> {
-  const value = await fs.promises.readFile(file.path, "utf8");
-  return turndownService.turndown(value);
+async function htmlToMarkdown(content: Buffer | string): Promise<string> {
+  if (content instanceof Buffer) {
+    content = content.toString("utf8");
+  }
+
+  return turndownService.turndown(content);
 }
 
-// @ts-expect-error ts-migrate(7006) FIXME: Parameter 'file' implicitly has an 'any' type.
-async function confluenceToMarkdown(file): Promise<string> {
-  let value = await fs.promises.readFile(file.path, "utf8");
+async function confluenceToMarkdown(value: Buffer | string): Promise<string> {
+  if (value instanceof Buffer) {
+    value = value.toString("utf8");
+  }
 
   // We're only supporting the ridiculous output from Confluence here, regular
   // Word documents should call into the docxToMarkdown importer.
@@ -143,22 +151,28 @@ async function confluenceToMarkdown(file): Promise<string> {
 }
 
 async function documentImporter({
-  file,
+  mimeType,
+  fileName,
+  content,
   user,
   ip,
+  transaction,
 }: {
   user: User;
-  file: File;
-  ip: string;
+  mimeType: string;
+  fileName: string;
+  content: Buffer | string;
+  ip?: string;
+  transaction?: Transaction;
 }): Promise<{
   text: string;
   title: string;
 }> {
   const fileInfo = importMapping.filter((item) => {
-    if (item.type === file.type) {
+    if (item.type === mimeType) {
       if (
-        file.type === "application/octet-stream" &&
-        path.extname(file.name) !== ".docx"
+        mimeType === "application/octet-stream" &&
+        path.extname(fileName) !== ".docx"
       ) {
         return false;
       }
@@ -166,7 +180,7 @@ async function documentImporter({
       return true;
     }
 
-    if (item.type === "text/markdown" && path.extname(file.name) === ".md") {
+    if (item.type === "text/markdown" && path.extname(fileName) === ".md") {
       return true;
     }
 
@@ -174,18 +188,33 @@ async function documentImporter({
   })[0];
 
   if (!fileInfo) {
-    throw InvalidRequestError(`File type ${file.type} not supported`);
+    throw InvalidRequestError(`File type ${mimeType} not supported`);
   }
 
-  let title = deserializeFilename(file.name.replace(/\.[^/.]+$/, ""));
-  let text = await fileInfo.getMarkdown(file);
+  let title = fileName.replace(/\.[^/.]+$/, "");
+  let text = await fileInfo.getMarkdown(content);
+  text = text.trim();
+
+  // find and extract first emoji, in the case of some imports it can be outside
+  // of the title, at the top of the document.
+  const regex = emojiRegex();
+  const matches = regex.exec(text);
+  const firstEmoji = matches ? matches[0] : undefined;
+  if (firstEmoji && text.startsWith(firstEmoji)) {
+    text = text.replace(firstEmoji, "").trim();
+  }
 
   // If the first line of the imported text looks like a markdown heading
   // then we can use this as the document title
-  if (text.trim().startsWith("# ")) {
+  if (text.startsWith("# ")) {
     const result = parseTitle(text);
     title = result.title;
     text = text.replace(`# ${title}\n`, "");
+  }
+
+  // If we parsed an emoji from _above_ the title then add it back at prefixing
+  if (firstEmoji) {
+    title = `${firstEmoji} ${title}`;
   }
 
   // find data urls, convert to blobs, upload and write attachments
@@ -201,6 +230,7 @@ async function documentImporter({
       buffer,
       user,
       ip,
+      transaction,
     });
     text = text.replace(uri, attachment.redirectUrl);
   }

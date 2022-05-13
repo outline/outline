@@ -35,6 +35,7 @@ import Otter from "./Otter";
 import Pitch from "./Pitch";
 import Prezi from "./Prezi";
 import Spotify from "./Spotify";
+import Tldraw from "./Tldraw";
 import Trello from "./Trello";
 import Typeform from "./Typeform";
 import Vimeo from "./Vimeo";
@@ -316,6 +317,13 @@ const embeds: EmbedDescriptor[] = [
     icon: () => <Img src="/images/spotify.png" alt="Spotify" />,
     component: Spotify,
     matcher: matcher(Spotify),
+  },
+  {
+    title: "Tldraw",
+    keywords: "draw schematics diagrams",
+    icon: () => <Img src="/images/tldraw.png" alt="Tldraw" />,
+    component: Tldraw,
+    matcher: matcher(Tldraw),
   },
   {
     title: "Trello",

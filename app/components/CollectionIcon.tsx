@@ -5,6 +5,7 @@ import * as React from "react";
 import Collection from "~/models/Collection";
 import { icons } from "~/components/IconPicker";
 import useStores from "~/hooks/useStores";
+import Logger from "~/utils/logger";
 
 type Props = {
   collection: Collection;
@@ -36,7 +37,9 @@ function ResolvedCollectionIcon({
       const Component = icons[collection.icon].component;
       return <Component color={color} size={size} />;
     } catch (error) {
-      console.warn("Failed to render custom icon " + collection.icon);
+      Logger.warn("Failed to render custom icon", {
+        icon: collection.icon,
+      });
     }
   }
 

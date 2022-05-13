@@ -73,42 +73,61 @@ const DocumentMeta: React.FC<Props> = ({
 
   const collection = collections.get(document.collectionId);
   const lastUpdatedByCurrentUser = user.id === updatedBy.id;
+  const userName = updatedBy.name;
   let content;
 
   if (deletedAt) {
     content = (
       <span>
-        {t("deleted")} <Time dateTime={deletedAt} addSuffix />
+        {lastUpdatedByCurrentUser
+          ? t("You deleted")
+          : t("{{ userName }} deleted", { userName })}{" "}
+        <Time dateTime={deletedAt} addSuffix />
       </span>
     );
   } else if (archivedAt) {
     content = (
       <span>
-        {t("archived")} <Time dateTime={archivedAt} addSuffix />
+        {lastUpdatedByCurrentUser
+          ? t("You archived")
+          : t("{{ userName }} archived", { userName })}{" "}
+        <Time dateTime={archivedAt} addSuffix />
       </span>
     );
   } else if (createdAt === updatedAt) {
     content = (
       <span>
-        {t("created")} <Time dateTime={updatedAt} addSuffix />
+        {lastUpdatedByCurrentUser
+          ? t("You created")
+          : t("{{ userName }} created", { userName })}{" "}
+        <Time dateTime={updatedAt} addSuffix />
       </span>
     );
   } else if (publishedAt && (publishedAt === updatedAt || showPublished)) {
     content = (
       <span>
-        {t("published")} <Time dateTime={publishedAt} addSuffix />
+        {lastUpdatedByCurrentUser
+          ? t("You published")
+          : t("{{ userName }} published", { userName })}{" "}
+        <Time dateTime={publishedAt} addSuffix />
       </span>
     );
   } else if (isDraft) {
     content = (
       <span>
-        {t("saved")} <Time dateTime={updatedAt} addSuffix />
+        {lastUpdatedByCurrentUser
+          ? t("You saved")
+          : t("{{ userName }} saved", { userName })}{" "}
+        <Time dateTime={updatedAt} addSuffix />
       </span>
     );
   } else {
     content = (
       <Modified highlight={modifiedSinceViewed && !lastUpdatedByCurrentUser}>
-        {t("updated")} <Time dateTime={updatedAt} addSuffix />
+        {lastUpdatedByCurrentUser
+          ? t("You updated")
+          : t("{{ userName }} updated", { userName })}{" "}
+        <Time dateTime={updatedAt} addSuffix />
       </Modified>
     );
   }
@@ -143,7 +162,6 @@ const DocumentMeta: React.FC<Props> = ({
 
   return (
     <Container align="center" rtl={document.dir === "rtl"} {...rest} dir="ltr">
-      {lastUpdatedByCurrentUser ? t("You") : updatedBy.name}&nbsp;
       {to ? <Link to={to}>{content}</Link> : content}
       {showCollection && collection && (
         <span>

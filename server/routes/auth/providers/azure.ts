@@ -1,12 +1,16 @@
 import passport from "@outlinewiki/koa-passport";
-// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module '@out... Remove this comment to see the full error message
 import { Strategy as AzureStrategy } from "@outlinewiki/passport-azure-ad-oauth2";
 import jwt from "jsonwebtoken";
+import { Request } from "koa";
 import Router from "koa-router";
-import accountProvisioner from "@server/commands/accountProvisioner";
+import { Profile } from "passport";
+import accountProvisioner, {
+  AccountProvisionerResult,
+} from "@server/commands/accountProvisioner";
 import env from "@server/env";
 import { MicrosoftGraphError } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
+import { User } from "@server/models";
 import { StateStore, request } from "@server/utils/passport";
 
 const router = new Router();
@@ -14,15 +18,14 @@ const providerName = "azure";
 const AZURE_CLIENT_ID = process.env.AZURE_CLIENT_ID;
 const AZURE_CLIENT_SECRET = process.env.AZURE_CLIENT_SECRET;
 const AZURE_RESOURCE_APP_ID = process.env.AZURE_RESOURCE_APP_ID;
-// @ts-expect-error ts-migrate(7034) FIXME: Variable 'scopes' implicitly has type 'any[]' in s... Remove this comment to see the full error message
-const scopes = [];
+const scopes: string[] = [];
 
 export const config = {
   name: "Microsoft",
   enabled: !!AZURE_CLIENT_ID,
 };
 
-if (AZURE_CLIENT_ID) {
+if (AZURE_CLIENT_ID && AZURE_CLIENT_SECRET) {
   const strategy = new AzureStrategy(
     {
       clientID: AZURE_CLIENT_ID,
@@ -31,36 +34,41 @@ if (AZURE_CLIENT_ID) {
       useCommonEndpoint: true,
       passReqToCallback: true,
       resource: AZURE_RESOURCE_APP_ID,
+      // @ts-expect-error StateStore
       store: new StateStore(),
-      // @ts-expect-error ts-migrate(7005) FIXME: Variable 'scopes' implicitly has an 'any[]' type.
       scope: scopes,
     },
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'req' implicitly has an 'any' type.
-    async function (req, accessToken, refreshToken, params, _, done) {
+    async function (
+      req: Request,
+      accessToken: string,
+      refreshToken: string,
+      params: { id_token: string },
+      _profile: Profile,
+      done: (
+        err: Error | null,
+        user: User | null,
+        result?: AccountProvisionerResult
+      ) => void
+    ) {
       try {
         // see docs for what the fields in profile represent here:
         // https://docs.microsoft.com/en-us/azure/active-directory/develop/access-tokens
         const profile = jwt.decode(params.id_token) as jwt.JwtPayload;
 
-        // Load the users profile from the Microsoft Graph API
-        // https://docs.microsoft.com/en-us/graph/api/resources/users?view=graph-rest-1.0
-        const profileResponse = await request(
-          `https://graph.microsoft.com/v1.0/me`,
-          accessToken
-        );
+        const [profileResponse, organizationResponse] = await Promise.all([
+          // Load the users profile from the Microsoft Graph API
+          // https://docs.microsoft.com/en-us/graph/api/resources/users?view=graph-rest-1.0
+          request(`https://graph.microsoft.com/v1.0/me`, accessToken),
+          // Load the organization profile from the Microsoft Graph API
+          // https://docs.microsoft.com/en-us/graph/api/organization-get?view=graph-rest-1.0
+          request(`https://graph.microsoft.com/v1.0/organization`, accessToken),
+        ]);
 
         if (!profileResponse) {
           throw MicrosoftGraphError(
             "Unable to load user profile from Microsoft Graph API"
           );
         }
-
-        // Load the organization profile from the Microsoft Graph API
-        // https://docs.microsoft.com/en-us/graph/api/organization-get?view=graph-rest-1.0
-        const organizationResponse = await request(
-          `https://graph.microsoft.com/v1.0/organization`,
-          accessToken
-        );
 
         if (!organizationResponse) {
           throw MicrosoftGraphError(
@@ -100,7 +108,6 @@ if (AZURE_CLIENT_ID) {
             providerId: profile.oid,
             accessToken,
             refreshToken,
-            // @ts-expect-error ts-migrate(7005) FIXME: Variable 'scopes' implicitly has an 'any[]' type.
             scopes,
           },
         });

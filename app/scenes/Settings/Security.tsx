@@ -14,6 +14,7 @@ import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
+import isHosted from "~/utils/isHosted";
 import SettingRow from "./components/SettingRow";
 
 function Security() {
@@ -170,28 +171,29 @@ function Security() {
           onChange={handleChange}
         />
       </SettingRow>
-
-      <SettingRow
-        label={t("Allow authorized signups")}
-        name="allowSignups"
-        description={
-          <Trans
-            defaults="Allow authorized <em>{{ authenticationMethods }}</em> users to create new accounts without first receiving an invite"
-            values={{
-              authenticationMethods,
-            }}
-            components={{
-              em: <strong />,
-            }}
+      {isHosted && (
+        <SettingRow
+          label={t("Allow authorized signups")}
+          name="allowSignups"
+          description={
+            <Trans
+              defaults="Allow authorized <em>{{ authenticationMethods }}</em> users to create new accounts without first receiving an invite"
+              values={{
+                authenticationMethods,
+              }}
+              components={{
+                em: <strong />,
+              }}
+            />
+          }
+        >
+          <Switch
+            id="allowSignups"
+            checked={!data.inviteRequired}
+            onChange={handleAllowSignupsChange}
           />
-        }
-      >
-        <Switch
-          id="allowSignups"
-          checked={!data.inviteRequired}
-          onChange={handleAllowSignupsChange}
-        />
-      </SettingRow>
+        </SettingRow>
+      )}
 
       <SettingRow
         label={t("Default role")}
