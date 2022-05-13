@@ -144,17 +144,11 @@ export default class CodeFence extends Node {
 
         const diagram = document.createElement("div");
         if (node.attrs.language === "mermaidjs") {
-          let id = 0;
-          let existingDiagram = document.getElementById(
-            "mermaid-diagram-" + id
-          );
-          while (existingDiagram) {
-            id++;
-            existingDiagram = document.getElementById("mermaid-diagram-" + id);
-          }
-          const diagramId = "mermaid-diagram-" + (id + 1);
+          const id = Math.round(Math.random() * 100000);
+          const diagramId = "mermaid-diagram-" + id;
 
           diagram.classList.add("mermaid-diagram");
+          diagram.id = diagramId;
           if (node.attrs.diagram) {
             diagram.classList.add("diagram-visible");
           }
@@ -303,12 +297,11 @@ export default class CodeFence extends Node {
     if (result) {
       const node = view.state.doc.nodeAt(result.pos);
       if (node) {
-        console.log(node);
         const shown = element.hasAttribute("data-shown");
         const diagramId = element.dataset.diagramid;
 
         const container = element.closest(".code-block");
-        const diagram = container?.querySelector(".mermaid-diagram");
+        const diagram = container?.querySelector("#" + diagramId);
         if (shown && diagram && diagramId) {
           try {
             mermaid.mermaidAPI.render(diagramId, node.textContent, function (
