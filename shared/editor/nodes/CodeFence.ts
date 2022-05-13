@@ -154,6 +154,19 @@ export default class CodeFence extends Node {
         ];
 
         if (node.attrs.language === "mermaidjs") {
+          // get empty diagram id
+          let diagramId = 0;
+          let existingDiagram = document.getElementById(
+            "mermaid-diagram-" + diagramId
+          );
+          while (existingDiagram) {
+            diagramId++;
+            existingDiagram = document.getElementById(
+              "mermaid-diagram-" + diagramId
+            );
+          }
+          diagramId = "mermaid-diagram-" + (diagramId + 1);
+
           const diagram = document.createElement("div");
           diagram.classList.add("mermaid-diagram");
           if (node.attrs.diagram) {
@@ -161,15 +174,15 @@ export default class CodeFence extends Node {
           }
           diagram.setAttribute("contentEditable", "false");
           try {
-            const id = "mmd" + Math.round(Math.random() * 10000);
-            mermaid.mermaidAPI.render(id, node.textContent, function (
+            mermaid.mermaidAPI.render(diagramId, node.textContent, function (
               svgCode: string
             ) {
               diagram.innerHTML = svgCode;
             });
           } catch (error) {
             console.log(error);
-            diagram.innerHTML = "Diagram could not be rendered.";
+            const errorNode = document.getElementById("d" + diagramId);
+            diagram.appendChild(errorNode);
           }
           dom.splice(2, 0, diagram);
 
@@ -180,6 +193,7 @@ export default class CodeFence extends Node {
           } else {
             editButton.innerText = "Show diagram";
           }
+          editButton.setAttribute("data-diagramid", diagramId);
           editButton.type = "button";
           editButton.addEventListener("click", this.handleDiagramEdit);
           actions.appendChild(editButton);
@@ -294,20 +308,21 @@ export default class CodeFence extends Node {
       if (node) {
         console.log(node);
         const shown = element.hasAttribute("data-shown");
+        const diagramId = element.dataset.diagramid;
 
         const container = element.closest(".code-block");
         const diagram = container?.querySelector(".mermaid-diagram");
         if (shown && diagram) {
           try {
-            const id = "mmd" + Math.round(Math.random() * 10000);
-            mermaid.mermaidAPI.render(id, node.textContent, function (
+            mermaid.mermaidAPI.render(diagramId, node.textContent, function (
               svgCode: string
             ) {
               diagram.innerHTML = svgCode;
             });
           } catch (error) {
             console.log(error);
-            diagram.innerHTML = "Diagram could not be rendered.";
+            const errorNode = document.getElementById("d" + diagramId);
+            diagram.appendChild(errorNode);
           }
         }
 
