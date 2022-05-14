@@ -126,11 +126,14 @@ class Team extends ParanoidModel {
       return `https://${this.domain}`;
     }
 
-    if (!this.subdomain || process.env.SUBDOMAINS_ENABLED !== "true") {
-      return process.env.URL;
+    if (!this.subdomain || env.SUBDOMAINS_ENABLED !== "true") {
+      return env.URL;
     }
 
-    const url = new URL(process.env.URL);
+    // TODO: HACK: new URL("") will throw an exception
+    // this is just to make the typing work but reall we should
+    // guarantee the existence of env.URL
+    const url = new URL(env.URL || "");
     url.host = `${this.subdomain}.${url.host}`;
     return url.href.replace(/\/$/, "");
   }

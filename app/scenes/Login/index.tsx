@@ -6,7 +6,7 @@ import { Trans, useTranslation } from "react-i18next";
 import { useLocation, Link, Redirect } from "react-router-dom";
 import styled from "styled-components";
 import { setCookie } from "tiny-cookie";
-import { isCustomDomain } from "@shared/utils/domains";
+import { parseDomain } from "@shared/utils/domains";
 import { Config } from "~/stores/AuthStore";
 import ButtonLarge from "~/components/ButtonLarge";
 import Fade from "~/components/Fade";
@@ -29,7 +29,7 @@ function Header({ config }: { config?: Config | undefined }) {
   const { t } = useTranslation();
   const isSubdomain = !!config?.hostname;
 
-  if (!isHosted || isCustomDomain(window.location.origin)) {
+  if (!isHosted || parseDomain(window.location.origin).custom) {
     return null;
   }
 

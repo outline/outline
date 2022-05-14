@@ -14,7 +14,7 @@ import {
 } from "react-router";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { isCustomDomain } from "@shared/utils/domains";
+import { parseDomain } from "@shared/utils/domains";
 import getTasks from "@shared/utils/getTasks";
 import RootStore from "~/stores/RootStore";
 import Document from "~/models/Document";
@@ -614,7 +614,7 @@ class DocumentScene extends React.Component<Props> {
                 </Flex>
               </React.Suspense>
             </MaxWidth>
-            {isShare && !isCustomDomain(window.location.origin) && (
+            {isShare && !parseDomain(window.location.origin).custom && (
               <Branding href="//www.getoutline.com?ref=sharelink" />
             )}
           </Container>

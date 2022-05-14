@@ -18,16 +18,13 @@ function normalizeUrl(url: string) {
 // unnecessarily for our usecase of trusted input.
 export function parseDomain(url: string): Domain {
   if (!url) {
-    return {
-      teamSubdomain: "",
-      host: "",
-      custom: false,
-    };
+    throw new TypeError("a non-empty url is required");
   }
 
   const normalBaseUrl = normalizeUrl(env.URL);
   const host = normalizeUrl(url);
 
+  // if the url doesn't include the base url, then it must be a custom domain
   const baseUrlStart = host.indexOf(`.${normalBaseUrl}`);
   if (baseUrlStart === -1) {
     return { teamSubdomain: "", host, custom: true };
@@ -44,35 +41,22 @@ export function parseDomain(url: string): Domain {
   };
 }
 
-// export function stripSubdomain(hostname: string) {
-//   const parsed = parseDomain(hostname);
-//   if (!parsed) {
-//     return hostname;
-//   }
-//   return parsed.domain;
+// export function isCustomDomain(hostname: string) {
+//   return parseDomain(hostname)?.custom ?? false;
 // }
 
-export function isHostedSubdomain(hostname: string) {
-  const parsed = parseDomain(hostname);
+export function getCookieDomain(domain: string) {
+  // always use the base URL for cookies when in hosted mode
+  // and the domain is not custom
+  if (env.SUBDOMAINS_ENABLED) {
+    const parsed = parseDomain(domain);
 
-  if (
-    !parsed ||
-    !parsed.subdomain ||
-    parsed.subdomain === "app" ||
-    parsed.subdomain === "www"
-  ) {
-    return false;
+    if (!parsed.custom) {
+      return normalizeUrl(env.URL);
+    }
   }
 
-  return true;
-}
-
-export function isCustomDomain(hostname: string) {
-  return parseDomain(hostname)?.custom ?? false;
-}
-
-export function getCookieDomain(domain: string) {
-  return env.SUBDOMAINS_ENABLED ? stripSubdomain(domain) : domain;
+  return domain;
 }
 
 export const RESERVED_SUBDOMAINS = [

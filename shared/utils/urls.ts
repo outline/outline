@@ -5,29 +5,23 @@ export function cdnPath(path: string): string {
   return `${env.CDN_URL}${path}`;
 }
 
-// Note: if this is called server-side, it will always return false.
-// This is acceptable misbehavior, but a fully correct version of this
-// function should take the team's full domain as an input.
+// TODO: HACK: if this is called server-side, it will always return false.
+// - The only call sites to this function and isExternalUrl are on the client
+//   - The reason this is in a shared util is because it's used in an editor plugin
+//     which is also in the shared code
 export function isInternalUrl(href: string) {
+  // relative paths are always internal
   if (href[0] === "/") {
     return true;
   }
+
   const outline =
     typeof window !== "undefined"
       ? parseDomain(window.location.href)
       : undefined;
-  const parsed = parseDomain(href);
 
-  if (
-    parsed &&
-    outline &&
-    parsed.subdomain === outline.subdomain &&
-    parsed.domain === outline.domain
-  ) {
-    return true;
-  }
-
-  return false;
+  const domain = parseDomain(href);
+  return outline?.host === domain.host;
 }
 
 export function isExternalUrl(href: string) {
