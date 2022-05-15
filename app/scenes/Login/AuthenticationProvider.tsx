@@ -21,7 +21,7 @@ type State = {
   email: string;
 };
 
-class Provider extends React.Component<Props, State> {
+class AuthenticationProvider extends React.Component<Props, State> {
   state = {
     showEmailSignin: false,
     isSubmitting: false,
@@ -123,7 +123,6 @@ class Provider extends React.Component<Props, State> {
 }
 
 const Wrapper = styled.div`
-  margin-bottom: 1em;
   width: 100%;
 `;
 
@@ -133,4 +132,4 @@ const Form = styled.form`
   justify-content: space-between;
 `;
 
-export default withTranslation()(Provider);
+export default withTranslation()(AuthenticationProvider);
