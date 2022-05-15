@@ -57,7 +57,10 @@ class View extends BaseModel {
     return model;
   }
 
-  static async findByDocument(documentId: string) {
+  static async findByDocument(
+    documentId: string,
+    { includeSuspended }: { includeSuspended?: boolean }
+  ) {
     return this.findAll({
       where: {
         documentId,
@@ -67,6 +70,10 @@ class View extends BaseModel {
         {
           model: User,
           paranoid: false,
+          required: true,
+          ...(includeSuspended
+            ? {}
+            : { where: { suspendedAt: { [Op.is]: null } } }),
         },
       ],
     });
