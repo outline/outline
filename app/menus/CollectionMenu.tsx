@@ -18,10 +18,10 @@ import { useMenuState, MenuButton, MenuButtonHTMLProps } from "reakit/Menu";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import getDataTransferFiles from "@shared/utils/getDataTransferFiles";
 import Collection from "~/models/Collection";
-import CollectionDelete from "~/scenes/CollectionDelete";
 import CollectionEdit from "~/scenes/CollectionEdit";
 import CollectionExport from "~/scenes/CollectionExport";
 import CollectionPermissions from "~/scenes/CollectionPermissions";
+import CollectionDeleteDialog from "~/components/CollectionDeleteDialog";
 import ContextMenu, { Placement } from "~/components/ContextMenu";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
 import Template from "~/components/ContextMenu/Template";
@@ -160,7 +160,7 @@ function CollectionMenu({
       isCentered: true,
       title: t("Delete collection"),
       content: (
-        <CollectionDelete
+        <CollectionDeleteDialog
           collection={collection}
           onSubmit={dialogs.closeAllModals}
         />
