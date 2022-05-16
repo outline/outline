@@ -77,18 +77,20 @@ const teamUpdater = async ({ params, user, team, ip }: TeamUpdaterProps) => {
     const newDomains = allowedDomains.filter(
       (newDomain) => newDomain !== "" && !existingDomains.includes(newDomain)
     );
-    for (const newDomain of newDomains) {
-      newAllowedDomains.push(
-        await TeamDomain.create(
-          {
-            name: newDomain,
-            teamId: team.id,
-            createdById: user.id,
-          },
-          { transaction }
-        )
-      );
-    }
+    await Promise.all(
+      newDomains.map(async (newDomain) => {
+        newAllowedDomains.push(
+          await TeamDomain.create(
+            {
+              name: newDomain,
+              teamId: team.id,
+              createdById: user.id,
+            },
+            { transaction }
+          )
+        );
+      })
+    );
 
     // Destroy the existing TeamDomains that were removed
     const deletedDomains = existingAllowedDomains.filter(
