@@ -79,6 +79,12 @@ export default function Notices() {
           Please request an invite from your team admin and try again.
         </NoticeAlert>
       )}
+      {notice === "domain-not-allowed" && (
+        <NoticeAlert>
+          Sorry, your domain is not allowed. Please try again with an allowed
+          team domain.
+        </NoticeAlert>
+      )}
     </>
   );
 }
