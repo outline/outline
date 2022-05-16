@@ -135,7 +135,6 @@ export default class CodeFence extends Node {
           option.selected = node.attrs.language === value;
           select.appendChild(option);
         });
-        const codeClass = !node.attrs.diagram ? "editor-visible" : "";
 
         if (node.attrs.language === "mermaidjs") {
           const toggleDiagramButton = document.createElement("button");
@@ -155,7 +154,7 @@ export default class CodeFence extends Node {
             "data-language": node.attrs.language,
           },
           ["div", { contentEditable: "false" }, actions],
-          ["pre", { class: codeClass }, ["code", { spellCheck: "false" }, 0]],
+          ["pre", ["code", { spellCheck: "false" }, 0]],
         ];
       },
     };
