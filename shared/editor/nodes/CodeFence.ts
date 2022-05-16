@@ -1,6 +1,5 @@
 import copy from "copy-to-clipboard";
 import Token from "markdown-it/lib/token";
-import mermaid from "mermaid";
 import { textblockTypeInputRule } from "prosemirror-inputrules";
 import {
   NodeSpec,
@@ -39,6 +38,7 @@ import { Dictionary } from "~/hooks/useDictionary";
 
 import toggleBlockType from "../commands/toggleBlockType";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import Mermaid from "../plugins/Mermaid";
 import Prism, { LANGUAGES } from "../plugins/Prism";
 import isInCode from "../queries/isInCode";
 import { Dispatch } from "../types";
@@ -46,7 +46,6 @@ import Node from "./Node";
 
 const PERSISTENCE_KEY = "rme-code-language";
 const DEFAULT_LANGUAGE = "javascript";
-const DEFAULT_DIAGRAM_TOGGLE_STATE = true;
 
 [
   bash,
@@ -70,7 +69,6 @@ const DEFAULT_DIAGRAM_TOGGLE_STATE = true;
   typescript,
   yaml,
 ].forEach(refractor.register);
-mermaid.mermaidAPI.initialize({ startOnLoad: true });
 
 export default class CodeFence extends Node {
   constructor(options: {
@@ -93,9 +91,6 @@ export default class CodeFence extends Node {
       attrs: {
         language: {
           default: DEFAULT_LANGUAGE,
-        },
-        diagram: {
-          default: DEFAULT_DIAGRAM_TOGGLE_STATE,
         },
       },
       content: "text*",
@@ -120,7 +115,7 @@ export default class CodeFence extends Node {
       ],
       toDOM: (node) => {
         const button = document.createElement("button");
-        button.innerText = "Copy";
+        button.innerText = this.options.dictionary.copy;
         button.type = "button";
         button.addEventListener("click", this.handleCopyToClipboard);
 
@@ -142,42 +137,15 @@ export default class CodeFence extends Node {
         });
         const codeClass = !node.attrs.diagram ? "editor-visible" : "";
 
-        const diagram = document.createElement("div");
         if (node.attrs.language === "mermaidjs") {
-          const id = Math.round(Math.random() * 100000);
-          const diagramId = "mermaid-diagram-" + id;
-
-          diagram.classList.add("mermaid-diagram");
-          diagram.id = diagramId;
-          if (node.attrs.diagram) {
-            diagram.classList.add("diagram-visible");
-          }
-          diagram.setAttribute("contentEditable", "false");
-          try {
-            mermaid.mermaidAPI.render(diagramId, node.textContent, function (
-              svgCode: string
-            ) {
-              diagram.innerHTML = svgCode;
-            });
-          } catch (error) {
-            console.log(error);
-            const errorNode = document.getElementById("d" + diagramId);
-            if (errorNode) {
-              diagram.appendChild(errorNode);
-            }
-          }
-
-          const editButton = document.createElement("button");
-          if (node.attrs.diagram) {
-            editButton.innerText = "Show code";
-            editButton.setAttribute("data-shown", "");
-          } else {
-            editButton.innerText = "Show diagram";
-          }
-          editButton.setAttribute("data-diagramid", diagramId);
-          editButton.type = "button";
-          editButton.addEventListener("click", this.handleDiagramEdit);
-          actions.appendChild(editButton);
+          const toggleDiagramButton = document.createElement("button");
+          toggleDiagramButton.innerText = this.options.dictionary.toggleDiagramCode;
+          toggleDiagramButton.type = "button";
+          toggleDiagramButton.addEventListener(
+            "click",
+            this.handleToggleDiagram
+          );
+          actions.prepend(toggleDiagramButton);
         }
 
         return [
@@ -185,9 +153,7 @@ export default class CodeFence extends Node {
           {
             class: "code-block",
             "data-language": node.attrs.language,
-            "data-diagram": node.attrs.diagram,
           },
-          diagram,
           ["div", { contentEditable: "false" }, actions],
           ["pre", { class: codeClass }, ["code", { spellCheck: "false" }, 0]],
         ];
@@ -284,53 +250,37 @@ export default class CodeFence extends Node {
     }
   };
 
-  handleDiagramEdit = (event: InputEvent) => {
+  handleToggleDiagram = (event: InputEvent) => {
     const { view } = this.editor;
     const { tr } = view.state;
-    const element = event.target;
+    const element = event.currentTarget;
     if (!(element instanceof HTMLButtonElement)) {
       return;
     }
+
     const { top, left } = element.getBoundingClientRect();
     const result = view.posAtCoords({ top, left });
 
-    if (result) {
-      const node = view.state.doc.nodeAt(result.pos);
-      if (node) {
-        const shown = element.hasAttribute("data-shown");
-        const diagramId = element.dataset.diagramid;
-
-        const container = element.closest(".code-block");
-        const diagram = container?.querySelector("#" + diagramId);
-        if (shown && diagram && diagramId) {
-          try {
-            mermaid.mermaidAPI.render(diagramId, node.textContent, function (
-              svgCode: string
-            ) {
-              diagram.innerHTML = svgCode;
-            });
-          } catch (error) {
-            console.log(error);
-            const errorNode = document.getElementById("d" + diagramId);
-            if (errorNode) {
-              diagram.appendChild(errorNode);
-            }
-          }
-        }
-
-        const transaction = tr
-          .setSelection(Selection.near(view.state.doc.resolve(result.inside)))
-          .setNodeMarkup(result.inside, undefined, {
-            language: "mermaidjs",
-            diagram: !shown,
-          });
-        view.dispatch(transaction);
-      }
+    if (!result) {
+      return;
     }
+
+    const codeBlock = element.closest(".code-block");
+    const diagramIdString = codeBlock
+      ?.querySelector("pre > code > span[data-diagram-id]")
+      ?.getAttribute("data-diagram-id");
+
+    if (!diagramIdString) {
+      return;
+    }
+
+    const diagramId: number = +diagramIdString;
+    const transaction = tr.setMeta("mermaid", { toggleDiagram: diagramId });
+    view.dispatch(transaction);
   };
 
   get plugins() {
-    return [Prism({ name: this.name })];
+    return [Prism({ name: this.name }), Mermaid({ name: this.name })];
   }
 
   inputRules({ type }: { type: NodeType }) {
