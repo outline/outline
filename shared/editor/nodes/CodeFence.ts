@@ -264,9 +264,8 @@ export default class CodeFence extends Node {
       return;
     }
 
-    const codeBlock = element.closest(".code-block");
-    const diagramIdString = codeBlock
-      ?.querySelector("pre > code > span[data-diagram-id]")
+    const diagramIdString = element
+      .closest(".code-block")
       ?.getAttribute("data-diagram-id");
 
     if (!diagramIdString) {

@@ -74,7 +74,7 @@ function getNewState({
       return diagramWrapper;
     });
 
-    const _diagramIdDecoration = Decoration.inline(
+    const _diagramIdDecoration = Decoration.node(
       block.pos,
       block.pos + block.node.nodeSize,
       { "data-diagram-id": "" + diagramId }
