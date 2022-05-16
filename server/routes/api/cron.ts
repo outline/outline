@@ -1,3 +1,4 @@
+import { Context } from "koa";
 import Router from "koa-router";
 import { AuthenticationError } from "@server/errors";
 import CleanupDeletedDocumentsTask from "@server/queues/tasks/CleanupDeletedDocumentsTask";
@@ -7,8 +8,8 @@ import InviteReminderTask from "@server/queues/tasks/InviteReminderTask";
 
 const router = new Router();
 
-router.post("utils.gc", async (ctx) => {
-  const { token, limit = 500 } = ctx.body;
+const cronHandler = async (ctx: Context) => {
+  const { token, limit = 500 } = ctx.body as { token?: string; limit: number };
 
   if (process.env.UTILS_SECRET !== token) {
     throw AuthenticationError("Invalid secret token");
@@ -25,6 +26,11 @@ router.post("utils.gc", async (ctx) => {
   ctx.body = {
     success: true,
   };
-});
+};
+
+router.post("cron.:period", cronHandler);
+
+// For backwards compatibility
+router.post("utils.gc", cronHandler);
 
 export default router;
