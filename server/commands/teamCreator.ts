@@ -1,5 +1,5 @@
 import invariant from "invariant";
-import { AuthenticationError, MaximumTeamsError } from "@server/errors";
+import { DomainNotAllowedError, MaximumTeamsError } from "@server/errors";
 import Logger from "@server/logging/logger";
 import { APM } from "@server/logging/tracing";
 import { Team, AuthenticationProvider } from "@server/models";
@@ -74,7 +74,7 @@ async function teamCreator({
           isNewTeam: false,
         };
       } else {
-        throw AuthenticationError(`Domain ${domain} is not on the allow list`);
+        throw DomainNotAllowedError();
       }
     }
 
@@ -93,6 +93,7 @@ async function teamCreator({
     });
   }
 
+  // eslint-disable-next-line   @typescript-eslint/no-non-null-assertion
   const transaction = await Team.sequelize!.transaction();
   let team;
 
