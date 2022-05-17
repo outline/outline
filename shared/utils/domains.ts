@@ -24,8 +24,6 @@ export function parseDomain(url: string): Domain {
   const normalBaseUrl = normalizeUrl(env.URL);
   const host = normalizeUrl(url);
 
-  console.log({ normalBaseUrl, host });
-
   // if the url doesn't include the base url, then it must be a custom domain
   const baseUrlStart =
     host === normalBaseUrl ? 0 : host.indexOf(`.${normalBaseUrl}`);

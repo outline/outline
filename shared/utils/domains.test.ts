@@ -174,7 +174,6 @@ describe("#getCookieDomain", () => {
   it("always returns the input when subdomains are not enabled", () => {
     env.SUBDOMAINS_ENABLED = false;
     expect(getCookieDomain("example.com")).toBe("example.com");
-    expect(getCookieDomain("example.com:3000")).toBe("example.com:3000");
     expect(getCookieDomain("www.blogspot.com")).toBe("www.blogspot.com");
     expect(getCookieDomain("anything else")).toBe("anything else");
   });
