@@ -26,7 +26,7 @@ type Props = {
   addSuffix?: boolean;
   shorten?: boolean;
   relative?: boolean;
-  format?: Record<keyof typeof locales, string>;
+  format?: Partial<Record<keyof typeof locales, string>>;
 };
 
 const LocaleTime: React.FC<Props> = ({
