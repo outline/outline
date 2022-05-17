@@ -93,7 +93,6 @@ async function teamCreator({
     });
   }
 
-  // eslint-disable-next-line   @typescript-eslint/no-non-null-assertion
   const transaction = await Team.sequelize!.transaction();
   let team;
 

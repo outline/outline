@@ -62,12 +62,10 @@ if (OIDC_CLIENT_ID) {
       // Any claim supplied in response to the userinfo request will be
       // available on the `profile` parameter
       async function (
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         req: any,
         accessToken: string,
         refreshToken: string,
         profile: Record<string, string>,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         done: any
       ) {
         try {
