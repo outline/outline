@@ -42,7 +42,7 @@ export default function Version() {
               ? t("Up to date")
               : t(`{{ releasesBehind }} versions behind`, {
                   releasesBehind,
-                  total: releasesBehind, 
+                  count: releasesBehind,
                 })}
           </LilBadge>
         </>
