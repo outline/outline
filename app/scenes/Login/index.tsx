@@ -105,8 +105,9 @@ function Login() {
             {t("Failed to load configuration.")}
             {!isHosted && (
               <p>
-                Check the network requests and server logs for full details of
-                the error.
+                {t(
+                  "Check the network requests and server logs for full details of the error."
+                )}
               </p>
             )}
           </NoticeAlert>
@@ -194,7 +195,7 @@ function Login() {
                     authProviderName: defaultProvider.name,
                   })}
                 </Note>
-                <Or />
+                <Or data-text={t("Or")} />
               </>
             )}
           </React.Fragment>
@@ -284,7 +285,7 @@ const Or = styled.hr`
   width: 100%;
 
   &:after {
-    content: "Or";
+    content: attr(data-text);
     display: block;
     position: absolute;
     left: 50%;
