@@ -138,14 +138,6 @@ export function GoogleWorkspaceRequiredError(
   });
 }
 
-export function GoogleWorkspaceInvalidError(
-  message = "Google Workspace is invalid"
-) {
-  return httpErrors(400, message, {
-    id: "hd_not_allowed",
-  });
-}
-
 export function OIDCMalformedUserInfoError(
   message = "User profile information malformed"
 ) {

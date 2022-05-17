@@ -21,12 +21,6 @@ export default function Notices() {
           installation. Try another?
         </NoticeAlert>
       )}
-      {notice === "hd-not-allowed" && (
-        <NoticeAlert>
-          Sorry, your Google apps domain is not allowed. Please try again with
-          an allowed team domain.
-        </NoticeAlert>
-      )}
       {notice === "malformed_user_info" && (
         <NoticeAlert>
           We could not read the user info supplied by your identity provider.
