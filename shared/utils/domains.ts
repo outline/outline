@@ -43,10 +43,6 @@ export function parseDomain(url: string): Domain {
   };
 }
 
-// export function isCustomDomain(hostname: string) {
-//   return parseDomain(hostname)?.custom ?? false;
-// }
-
 export function getCookieDomain(domain: string) {
   // always use the base URL for cookies when in hosted mode
   // and the domain is not custom
