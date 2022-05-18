@@ -3,7 +3,7 @@ import Router from "koa-router";
 import { find } from "lodash";
 import { parseDomain } from "@shared/utils/domains";
 import auth from "@server/middlewares/authentication";
-import { Team } from "@server/models";
+import { Team, TeamDomain } from "@server/models";
 import { presentUser, presentTeam, presentPolicies } from "@server/presenters";
 import providers from "../auth/providers";
 
@@ -106,7 +106,9 @@ router.post("auth.config", async (ctx) => {
 
 router.post("auth.info", auth(), async (ctx) => {
   const { user } = ctx.state;
-  const team = await Team.findByPk(user.teamId);
+  const team = await Team.findByPk(user.teamId, {
+    include: [{ model: TeamDomain }],
+  });
   invariant(team, "Team not found");
 
   ctx.body = {

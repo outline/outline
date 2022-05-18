@@ -11,11 +11,19 @@ const Flex = styled.div<{
   align?: AlignValues;
   justify?: JustifyValues;
   shrink?: boolean;
+  reverse?: boolean;
   gap?: number;
 }>`
   display: flex;
   flex: ${({ auto }) => (auto ? "1 1 auto" : "initial")};
-  flex-direction: ${({ column }) => (column ? "column" : "row")};
+  flex-direction: ${({ column, reverse }) =>
+    reverse
+      ? column
+        ? "column-reverse"
+        : "row-reverse"
+      : column
+      ? "column"
+      : "row"};
   align-items: ${({ align }) => align};
   justify-content: ${({ justify }) => justify};
   flex-shrink: ${({ shrink }) => (shrink ? 1 : "initial")};

@@ -8,13 +8,9 @@ import accountProvisioner, {
   AccountProvisionerResult,
 } from "@server/commands/accountProvisioner";
 import env from "@server/env";
-import {
-  GoogleWorkspaceRequiredError,
-  GoogleWorkspaceInvalidError,
-} from "@server/errors";
+import { GoogleWorkspaceRequiredError } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
 import { User } from "@server/models";
-import { isDomainAllowed } from "@server/utils/authentication";
 import { StateStore } from "@server/utils/passport";
 
 const router = new Router();
@@ -67,10 +63,6 @@ if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
 
           if (!domain) {
             throw GoogleWorkspaceRequiredError();
-          }
-
-          if (!isDomainAllowed(domain)) {
-            throw GoogleWorkspaceInvalidError();
           }
 
           const subdomain = domain.split(".")[0];

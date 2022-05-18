@@ -6,17 +6,6 @@ import { getCookieDomain } from "@shared/utils/domains";
 import Logger from "@server/logging/logger";
 import { User, Event, Team, Collection, View } from "@server/models";
 
-export function getAllowedDomains(): string[] {
-  // GOOGLE_ALLOWED_DOMAINS included here for backwards compatability
-  const env = process.env.ALLOWED_DOMAINS || process.env.GOOGLE_ALLOWED_DOMAINS;
-  return env ? env.split(",") : [];
-}
-
-export function isDomainAllowed(domain: string): boolean {
-  const allowedDomains = getAllowedDomains();
-  return allowedDomains.includes(domain) || allowedDomains.length === 0;
-}
-
 export async function signIn(
   ctx: Context,
   user: User,

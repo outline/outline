@@ -98,11 +98,12 @@ export const DOCUMENT_VERSION = 2;
   },
 }))
 @Scopes(() => ({
-  withCollection: (userId: string, paranoid = true) => {
+  withCollectionPermissions: (userId: string, paranoid = true) => {
     if (userId) {
       return {
         include: [
           {
+            attributes: ["id", "permission", "sharing", "teamId", "deletedAt"],
             model: Collection.scope({
               method: ["withMembership", userId],
             }),
@@ -116,8 +117,10 @@ export const DOCUMENT_VERSION = 2;
     return {
       include: [
         {
+          attributes: ["id", "permission", "sharing", "teamId", "deletedAt"],
           model: Collection,
           as: "collection",
+          paranoid,
         },
       ],
     };
@@ -126,6 +129,14 @@ export const DOCUMENT_VERSION = 2;
     attributes: {
       exclude: ["state"],
     },
+  },
+  withCollection: {
+    include: [
+      {
+        model: Collection,
+        as: "collection",
+      },
+    ],
   },
   withState: {
     attributes: {
@@ -390,7 +401,7 @@ class Document extends ParanoidModel {
 
   static defaultScopeWithUser(userId: string) {
     const collectionScope: Readonly<ScopeOptions> = {
-      method: ["withCollection", userId],
+      method: ["withCollectionPermissions", userId],
     };
     const viewScope: Readonly<ScopeOptions> = {
       method: ["withViews", userId],
@@ -410,7 +421,7 @@ class Document extends ParanoidModel {
       "withoutState",
       "withDrafts",
       {
-        method: ["withCollection", options.userId, options.paranoid],
+        method: ["withCollectionPermissions", options.userId, options.paranoid],
       },
       {
         method: ["withViews", options.userId],
@@ -670,7 +681,7 @@ class Document extends ParanoidModel {
         method: ["withViews", user.id],
       },
       {
-        method: ["withCollection", user.id],
+        method: ["withCollectionPermissions", user.id],
       },
     ]).findAll({
       where: {

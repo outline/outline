@@ -17,7 +17,7 @@ router.post("shares.info", auth(), async (ctx) => {
   const { user } = ctx.state;
   const shares = [];
   const share = await Share.scope({
-    method: ["withCollection", user.id],
+    method: ["withCollectionPermissions", user.id],
   }).findOne({
     where: id
       ? {
@@ -58,13 +58,17 @@ router.post("shares.info", auth(), async (ctx) => {
   }
 
   if (documentId) {
-    const document = await Document.scope("withCollection").findByPk(
-      documentId
-    );
+    const document = await Document.unscoped()
+      .scope("withCollection")
+      .findOne({
+        where: {
+          id: documentId,
+        },
+      });
     const parentIds = document?.collection?.getDocumentParents(documentId);
     const parentShare = parentIds
       ? await Share.scope({
-          method: ["withCollection", user.id],
+          method: ["withCollectionPermissions", user.id],
         }).findOne({
           where: {
             documentId: parentIds,
@@ -177,7 +181,7 @@ router.post("shares.update", auth(), async (ctx) => {
 
   // fetch the share with document and collection.
   const share = await Share.scope({
-    method: ["withCollection", user.id],
+    method: ["withCollectionPermissions", user.id],
   }).findByPk(id);
 
   authorize(user, "update", share);

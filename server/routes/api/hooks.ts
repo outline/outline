@@ -2,6 +2,7 @@ import invariant from "invariant";
 import Router from "koa-router";
 import { escapeRegExp } from "lodash";
 import { AuthenticationError, InvalidRequestError } from "@server/errors";
+import Logger from "@server/logging/logger";
 import {
   UserAuthentication,
   AuthenticationProvider,
@@ -215,9 +216,50 @@ router.post("hooks.slack", async (ctx) => {
     return;
   }
 
+  // Try to find the user by matching the email address if it is confirmed on
+  // Slack's side. It's always trusted on our side as it is only updatable
+  // through the authentication provider.
+  if (!user) {
+    const auth = await IntegrationAuthentication.findOne({
+      where: {
+        service: "slack",
+        teamId: team.id,
+      },
+    });
+
+    if (auth) {
+      try {
+        const response = await Slack.request("users.info", {
+          token: auth.token,
+          user: user_id,
+        });
+
+        if (response.user.is_email_confirmed && response.user.profile.email) {
+          user = await User.findOne({
+            where: {
+              email: response.user.profile.email,
+              teamId: team.id,
+            },
+          });
+        }
+      } catch (err) {
+        // Old connections do not have the correct permissions to access user info
+        // so errors here are expected.
+        Logger.info(
+          "utils",
+          "Failed requesting users.info from Slack, the Slack integration should be reconnected.",
+          {
+            teamId: auth.teamId,
+          }
+        );
+      }
+    }
+  }
+
   const options = {
     limit: 5,
   };
+
   // If we were able to map the request to a user then we can use their permissions
   // to load more documents based on the collections they have access to. Otherwise
   // just a generic search against team-visible documents is allowed.
