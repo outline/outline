@@ -8,7 +8,6 @@ env.GOOGLE_CLIENT_SECRET = "123";
 env.SLACK_CLIENT_ID = "123";
 env.SLACK_CLIENT_SECRET = "123";
 env.DEPLOYMENT = undefined;
-env.ALLOWED_DOMAINS = "allowed-domain.com";
 
 if (process.env.DATABASE_URL_TEST) {
   env.DATABASE_URL = process.env.DATABASE_URL_TEST;

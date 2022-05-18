@@ -1,5 +1,5 @@
 import { Context } from "koa";
-import { User } from "./models";
+import { FileOperation, User } from "./models";
 
 export type ContextWithState = Context & {
   state: {
@@ -104,21 +104,6 @@ export type RevisionEvent = {
   teamId: string;
 };
 
-export type CollectionExportEvent = {
-  name: "collections.export";
-  teamId: string;
-  actorId: string;
-  collectionId: string;
-  modelId: string;
-};
-
-export type CollectionExportAllEvent = {
-  name: "collections.export_all";
-  teamId: string;
-  actorId: string;
-  modelId: string;
-};
-
 export type FileOperationEvent = {
   name:
     | "fileOperations.create"
@@ -127,19 +112,12 @@ export type FileOperationEvent = {
   teamId: string;
   actorId: string;
   modelId: string;
-  data: {
-    type: string;
-    state: string;
-    id: string;
-    size: number;
-    createdAt: string;
-    collectionId: string;
-  };
+  data: Partial<FileOperation>;
 };
 
 export type CollectionEvent =
   | {
-  name: "collections.create" // eslint-disable-line
+    name: "collections.create" // eslint-disable-line
         | "collections.update"
         | "collections.delete";
       collectionId: string;
@@ -189,8 +167,7 @@ export type CollectionEvent =
         sharingChanged: boolean;
       };
       ip: string;
-    }
-  | CollectionExportEvent;
+    };
 
 export type GroupEvent =
   | {
@@ -257,7 +234,6 @@ export type Event =
   | PinEvent
   | StarEvent
   | CollectionEvent
-  | CollectionExportAllEvent
   | FileOperationEvent
   | IntegrationEvent
   | GroupEvent

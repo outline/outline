@@ -91,8 +91,10 @@ class Event extends BaseModel {
   @Column(DataType.UUID)
   teamId: string;
 
-  // Schedule can be used to send events into the event system without recording
-  // them in the database or audit trail – consider using a task instead.
+  /*
+   * Schedule can be used to send events into the event system without recording
+   * them in the database or audit trail – consider using a task instead.
+   */
   static schedule(event: Partial<Event>) {
     const now = new Date();
     globalEventQueue.add(

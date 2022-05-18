@@ -92,7 +92,13 @@ function Slack() {
               </Button>
             ) : (
               <SlackButton
-                scopes={["commands", "links:read", "links:write"]}
+                scopes={[
+                  "commands",
+                  "links:read",
+                  "links:write",
+                  "users:read",
+                  "users:read.email",
+                ]}
                 redirectUri={`${env.URL}/auth/slack.commands`}
                 state={team.id}
                 icon={<SlackIcon color="currentColor" />}

@@ -4,7 +4,7 @@ import attachmentCreator from "@server/commands/attachmentCreator";
 import documentCreator from "@server/commands/documentCreator";
 import { sequelize } from "@server/database/sequelize";
 import { ValidationError } from "@server/errors";
-import logger from "@server/logging/logger";
+import Logger from "@server/logging/logger";
 import {
   User,
   Event,
@@ -83,10 +83,10 @@ export default abstract class ImportTask extends BaseTask<Props> {
     invariant(fileOperation, "fileOperation not found");
 
     try {
-      logger.info("task", `ImportTask fetching data for ${fileOperationId}`);
+      Logger.info("task", `ImportTask fetching data for ${fileOperationId}`);
       const data = await this.fetchData(fileOperation);
 
-      logger.info("task", `ImportTask parsing data for ${fileOperationId}`);
+      Logger.info("task", `ImportTask parsing data for ${fileOperationId}`);
       const parsed = await this.parseData(data, fileOperation);
 
       if (parsed.collections.length === 0) {
@@ -103,13 +103,13 @@ export default abstract class ImportTask extends BaseTask<Props> {
 
       let result;
       try {
-        logger.info(
+        Logger.info(
           "task",
           `ImportTask persisting data for ${fileOperationId}`
         );
         result = await this.persistData(parsed, fileOperation);
       } catch (error) {
-        logger.error(
+        Logger.error(
           `ImportTask failed to persist data for ${fileOperationId}`,
           error
         );

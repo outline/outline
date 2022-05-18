@@ -49,7 +49,7 @@ export type Props = Optional<
   onPublish?: (event: React.MouseEvent) => any;
 };
 
-function Editor(props: Props, ref: React.RefObject<SharedEditor>) {
+function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   const { id, shareId } = props;
   const { documents } = useStores();
   const { showToast } = useToasts();
@@ -165,7 +165,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor>) {
   );
 
   const focusAtEnd = React.useCallback(() => {
-    ref.current?.focusAtEnd();
+    ref?.current?.focusAtEnd();
   }, [ref]);
 
   const handleDrop = React.useCallback(
@@ -173,7 +173,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor>) {
       event.preventDefault();
       event.stopPropagation();
       const files = getDataTransferFiles(event);
-      const view = ref.current?.view;
+      const view = ref?.current?.view;
       if (!view) {
         return;
       }

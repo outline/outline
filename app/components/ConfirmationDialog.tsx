@@ -7,20 +7,23 @@ import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 
 type Props = {
-  onSubmit: () => void;
-  children: JSX.Element;
+  /** Callback when the dialog is submitted */
+  onSubmit: () => Promise<void> | void;
+  /** Text to display on the submit button */
   submitText?: string;
+  /** Text to display while the form is saving */
   savingText?: string;
+  /** If true, the submit button will be a dangerous red */
   danger?: boolean;
 };
 
-function ConfirmationDialog({
+const ConfirmationDialog: React.FC<Props> = ({
   onSubmit,
   children,
   submitText,
   savingText,
   danger,
-}: Props) {
+}) => {
   const [isSaving, setIsSaving] = React.useState(false);
   const { dialogs } = useStores();
   const { showToast } = useToasts();
@@ -53,6 +56,6 @@ function ConfirmationDialog({
       </form>
     </Flex>
   );
-}
+};
 
 export default observer(ConfirmationDialog);

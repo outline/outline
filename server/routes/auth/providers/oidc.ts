@@ -10,7 +10,6 @@ import {
   AuthenticationError,
 } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
-import { isDomainAllowed } from "@server/utils/authentication";
 import { StateStore, request } from "@server/utils/passport";
 
 const router = new Router();
@@ -76,12 +75,6 @@ if (env.OIDC_CLIENT_ID && env.OIDC_CLIENT_SECRET) {
 
           if (!domain) {
             throw OIDCMalformedUserInfoError();
-          }
-
-          if (!isDomainAllowed(domain)) {
-            throw AuthenticationError(
-              `Domain ${domain} is not on the whitelist`
-            );
           }
 
           const subdomain = domain.split(".")[0];

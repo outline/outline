@@ -16,5 +16,6 @@ export default function present(team: Team) {
     url: team.url,
     defaultUserRole: team.defaultUserRole,
     inviteRequired: team.inviteRequired,
+    allowedDomains: team.allowedDomains.map((d) => d.name),
   };
 }

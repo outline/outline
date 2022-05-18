@@ -7,15 +7,6 @@ import Logger from "@server/logging/logger";
 import { User, Event, Team, Collection, View } from "@server/models";
 import { getCookieDomain } from "@server/utils/domains";
 
-export function getAllowedDomains(): string[] {
-  return env.ALLOWED_DOMAINS ? env.ALLOWED_DOMAINS.split(",") : [];
-}
-
-export function isDomainAllowed(domain: string): boolean {
-  const allowedDomains = getAllowedDomains();
-  return allowedDomains.includes(domain) || allowedDomains.length === 0;
-}
-
 export async function signIn(
   ctx: Context,
   user: User,

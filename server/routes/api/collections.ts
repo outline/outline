@@ -495,11 +495,14 @@ router.post("collections.export", auth(), async (ctx) => {
   }).findByPk(id);
   authorize(user, "read", collection);
 
-  const fileOperation = await collectionExporter({
-    collection,
-    user,
-    team,
-    ip: ctx.request.ip,
+  const fileOperation = await sequelize.transaction(async (transaction) => {
+    return collectionExporter({
+      collection,
+      user,
+      team,
+      ip: ctx.request.ip,
+      transaction,
+    });
   });
 
   ctx.body = {
@@ -515,10 +518,13 @@ router.post("collections.export_all", auth(), async (ctx) => {
   const team = await Team.findByPk(user.teamId);
   authorize(user, "export", team);
 
-  const fileOperation = await collectionExporter({
-    user,
-    team,
-    ip: ctx.request.ip,
+  const fileOperation = await sequelize.transaction(async (transaction) => {
+    return collectionExporter({
+      user,
+      team,
+      ip: ctx.request.ip,
+      transaction,
+    });
   });
 
   ctx.body = {
