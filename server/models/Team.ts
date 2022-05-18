@@ -19,7 +19,7 @@ import {
   DataType,
 } from "sequelize-typescript";
 import { v4 as uuidv4 } from "uuid";
-import { RESERVED_SUBDOMAINS } from "@shared/utils/domains";
+import { getBaseDomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
 import env from "@server/env";
 import Logger from "@server/logging/logger";
 import { generateAvatarUrl } from "@server/utils/avatars";
@@ -135,7 +135,7 @@ class Team extends ParanoidModel {
     // this is just to make the typing work but reall we should
     // guarantee the existence of env.URL
     const url = new URL(env.URL || "");
-    url.host = `${this.subdomain}.${url.host}`;
+    url.host = `${this.subdomain}.${getBaseDomain()}`;
     return url.href.replace(/\/$/, "");
   }
 

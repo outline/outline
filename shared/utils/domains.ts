@@ -13,6 +13,19 @@ function normalizeUrl(url: string) {
   return trim(url.replace(/(https?:)?\/\//, "")).split(/[/:?]/)[0];
 }
 
+// The base domain is where root cookies are set in hosted mode
+// It's also appended to a team's hosted subdomain to form their app URL
+export function getBaseDomain() {
+  const normalEnvUrl = normalizeUrl(env.URL);
+  const tokens = normalEnvUrl.split(".");
+
+  // remove reserved subdomains like "app"
+  // from the env URL to form the base domain
+  return tokens.length > 1 && RESERVED_SUBDOMAINS.includes(tokens[0])
+    ? tokens.slice(1).join(".")
+    : normalEnvUrl;
+}
+
 // we originally used the parse-domain npm module however this includes
 // a large list of possible TLD's which increase the size of the bundle
 // unnecessarily for our usecase of trusted input.
@@ -21,12 +34,11 @@ export function parseDomain(url: string): Domain {
     throw new TypeError("a non-empty url is required");
   }
 
-  const normalBaseUrl = normalizeUrl(env.URL);
   const host = normalizeUrl(url);
+  const baseDomain = getBaseDomain();
 
   // if the url doesn't include the base url, then it must be a custom domain
-  const baseUrlStart =
-    host === normalBaseUrl ? 0 : host.indexOf(`.${normalBaseUrl}`);
+  const baseUrlStart = host === baseDomain ? 0 : host.indexOf(`.${baseDomain}`);
 
   if (baseUrlStart === -1) {
     return { teamSubdomain: "", host, custom: true };
@@ -50,7 +62,7 @@ export function getCookieDomain(domain: string) {
     const parsed = parseDomain(domain);
 
     if (!parsed.custom) {
-      return normalizeUrl(env.URL);
+      return getBaseDomain();
     }
   }
 

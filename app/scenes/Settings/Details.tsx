@@ -3,6 +3,7 @@ import { TeamIcon } from "outline-icons";
 import { useRef, useState } from "react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import { getBaseDomain } from "@shared/utils/domains";
 import Button from "~/components/Button";
 import DefaultCollectionInputSelect from "~/components/DefaultCollectionInputSelect";
 import Heading from "~/components/Heading";
@@ -142,7 +143,7 @@ function Details() {
               <>
                 <Trans>Your knowledge base will be accessible at</Trans>{" "}
                 <strong>
-                  {subdomain}.{new URL(env.URL).host}
+                  {subdomain}.{getBaseDomain()}
                 </strong>
               </>
             ) : (
