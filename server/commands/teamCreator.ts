@@ -1,10 +1,9 @@
 import invariant from "invariant";
+import { DomainNotAllowedError, MaximumTeamsError } from "@server/errors";
 import Logger from "@server/logging/logger";
 import { APM } from "@server/logging/tracing";
 import { Team, AuthenticationProvider } from "@server/models";
-import { isDomainAllowed } from "@server/utils/authentication";
 import { generateAvatarUrl } from "@server/utils/avatars";
-import { MaximumTeamsError } from "../errors";
 
 type TeamCreatorResult = {
   team: Team;
@@ -60,19 +59,23 @@ async function teamCreator({
     // If the self-hosted installation has a single team and the domain for the
     // new team is allowed then assign the authentication provider to the
     // existing team
-    if (teamCount === 1 && domain && isDomainAllowed(domain)) {
+    if (teamCount === 1 && domain) {
       const team = await Team.findOne();
       invariant(team, "Team should exist");
 
-      authP = await team.$create<AuthenticationProvider>(
-        "authenticationProvider",
-        authenticationProvider
-      );
-      return {
-        authenticationProvider: authP,
-        team,
-        isNewTeam: false,
-      };
+      if (await team.isDomainAllowed(domain)) {
+        authP = await team.$create<AuthenticationProvider>(
+          "authenticationProvider",
+          authenticationProvider
+        );
+        return {
+          authenticationProvider: authP,
+          team,
+          isNewTeam: false,
+        };
+      } else {
+        throw DomainNotAllowedError();
+      }
     }
 
     if (teamCount >= 1) {

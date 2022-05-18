@@ -27,6 +27,7 @@ import { publicS3Endpoint, uploadToS3FromUrl } from "@server/utils/s3";
 import AuthenticationProvider from "./AuthenticationProvider";
 import Collection from "./Collection";
 import Document from "./Document";
+import TeamDomain from "./TeamDomain";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
@@ -238,6 +239,15 @@ class Team extends ParanoidModel {
     return models.map((c) => c.id);
   };
 
+  isDomainAllowed = async function (domain: string) {
+    const allowedDomains = (await this.$get("allowedDomains")) || [];
+
+    return (
+      allowedDomains.length === 0 ||
+      allowedDomains.map((d: TeamDomain) => d.name).includes(domain)
+    );
+  };
+
   // associations
 
   @HasMany(() => Collection)
@@ -252,8 +262,10 @@ class Team extends ParanoidModel {
   @HasMany(() => AuthenticationProvider)
   authenticationProviders: AuthenticationProvider[];
 
-  // hooks
+  @HasMany(() => TeamDomain)
+  allowedDomains: TeamDomain[];
 
+  // hooks
   @BeforeSave
   static uploadAvatar = async (model: Team) => {
     const endpoint = publicS3Endpoint();

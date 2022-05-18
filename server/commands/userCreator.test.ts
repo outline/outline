@@ -1,5 +1,6 @@
+import { TeamDomain } from "@server/models";
 import { buildUser, buildTeam, buildInvite } from "@server/test/factories";
-import { flushdb } from "@server/test/support";
+import { flushdb, seed } from "@server/test/support";
 import userCreator from "./userCreator";
 
 beforeEach(() => flushdb());
@@ -237,6 +238,70 @@ describe("userCreator", () => {
 
     expect(error && error.toString()).toContain(
       "You need an invite to join this team"
+    );
+  });
+
+  it("should create a user from allowed Domain", async () => {
+    const { admin, team } = await seed();
+    await TeamDomain.create({
+      teamId: team.id,
+      name: "example.com",
+      createdById: admin.id,
+    });
+
+    const authenticationProviders = await team.$get("authenticationProviders");
+    const authenticationProvider = authenticationProviders[0];
+    const result = await userCreator({
+      name: "Test Name",
+      email: "user@example.com",
+      teamId: team.id,
+      ip,
+      authentication: {
+        authenticationProviderId: authenticationProvider.id,
+        providerId: "fake-service-id",
+        accessToken: "123",
+        scopes: ["read"],
+      },
+    });
+    const { user, authentication, isNewUser } = result;
+    expect(authentication.accessToken).toEqual("123");
+    expect(authentication.scopes.length).toEqual(1);
+    expect(authentication.scopes[0]).toEqual("read");
+    expect(user.email).toEqual("user@example.com");
+    expect(isNewUser).toEqual(true);
+  });
+
+  it("should reject an user when the domain is not allowed", async () => {
+    const { admin, team } = await seed();
+    await TeamDomain.create({
+      teamId: team.id,
+      name: "other.com",
+      createdById: admin.id,
+    });
+
+    const authenticationProviders = await team.$get("authenticationProviders");
+    const authenticationProvider = authenticationProviders[0];
+    let error;
+
+    try {
+      await userCreator({
+        name: "Bad Domain User",
+        email: "user@example.com",
+        teamId: team.id,
+        ip,
+        authentication: {
+          authenticationProviderId: authenticationProvider.id,
+          providerId: "fake-service-id",
+          accessToken: "123",
+          scopes: ["read"],
+        },
+      });
+    } catch (err) {
+      error = err;
+    }
+
+    expect(error && error.toString()).toContain(
+      "The domain is not allowed for this team"
     );
   });
 });

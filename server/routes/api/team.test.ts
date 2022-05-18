@@ -1,4 +1,5 @@
 import TestServer from "fetch-test-server";
+import { TeamDomain } from "@server/models";
 import webService from "@server/services/web";
 import { buildAdmin, buildCollection, buildTeam } from "@server/test/factories";
 import { flushdb, seed } from "@server/test/support";
@@ -20,6 +21,81 @@ describe("#team.update", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.name).toEqual("New name");
+  });
+
+  it("should add new allowed Domains, removing empty string values", async () => {
+    const { admin, team } = await seed();
+    const res = await server.post("/api/team.update", {
+      body: {
+        token: admin.getJwtToken(),
+        allowedDomains: ["example.com", "", "example.org", "", ""],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.allowedDomains).toEqual(["example.com", "example.org"]);
+
+    const teamDomains: TeamDomain[] = await TeamDomain.findAll({
+      where: { teamId: team.id },
+    });
+    expect(teamDomains.map((d) => d.name)).toEqual([
+      "example.com",
+      "example.org",
+    ]);
+  });
+
+  it("should remove old allowed Domains", async () => {
+    const { admin, team } = await seed();
+    const existingTeamDomain = await TeamDomain.create({
+      teamId: team.id,
+      name: "example.com",
+      createdById: admin.id,
+    });
+
+    const res = await server.post("/api/team.update", {
+      body: {
+        token: admin.getJwtToken(),
+        allowedDomains: [],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.allowedDomains).toEqual([]);
+
+    const teamDomains: TeamDomain[] = await TeamDomain.findAll({
+      where: { teamId: team.id },
+    });
+    expect(teamDomains.map((d) => d.name)).toEqual([]);
+
+    expect(await TeamDomain.findByPk(existingTeamDomain.id)).toBeNull();
+  });
+
+  it("should add new allowed domains and remove old ones", async () => {
+    const { admin, team } = await seed();
+    const existingTeamDomain = await TeamDomain.create({
+      teamId: team.id,
+      name: "example.com",
+      createdById: admin.id,
+    });
+
+    const res = await server.post("/api/team.update", {
+      body: {
+        token: admin.getJwtToken(),
+        allowedDomains: ["example.org", "example.net"],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.allowedDomains).toEqual(["example.org", "example.net"]);
+
+    const teamDomains: TeamDomain[] = await TeamDomain.findAll({
+      where: { teamId: team.id },
+    });
+    expect(teamDomains.map((d) => d.name).sort()).toEqual(
+      ["example.org", "example.net"].sort()
+    );
+
+    expect(await TeamDomain.findByPk(existingTeamDomain.id)).toBeNull();
   });
 
   it("should only allow member,viewer or admin as default role", async () => {

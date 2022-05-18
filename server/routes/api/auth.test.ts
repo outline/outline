@@ -23,6 +23,7 @@ describe("#auth.info", () => {
     expect(res.status).toEqual(200);
     expect(body.data.user.name).toBe(user.name);
     expect(body.data.team.name).toBe(team.name);
+    expect(body.data.team.allowedDomains).toEqual([]);
   });
 
   it("should require the team to not be deleted", async () => {
