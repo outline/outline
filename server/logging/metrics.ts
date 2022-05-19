@@ -1,7 +1,8 @@
 import ddMetrics from "datadog-metrics";
+import env from "@server/env";
 
 class Metrics {
-  enabled = !!process.env.DD_API_KEY;
+  enabled = !!env.DD_API_KEY;
 
   constructor() {
     if (!this.enabled) {
@@ -9,9 +10,9 @@ class Metrics {
     }
 
     ddMetrics.init({
-      apiKey: process.env.DD_API_KEY,
+      apiKey: env.DD_API_KEY,
       prefix: "outline.",
-      defaultTags: [`env:${process.env.DD_ENV || process.env.NODE_ENV}`],
+      defaultTags: [`env:${process.env.DD_ENV ?? env.ENVIRONMENT}`],
     });
   }
 

@@ -39,8 +39,6 @@ type SlackProfile = Profile & {
 
 const router = new Router();
 const providerName = "slack";
-const SLACK_CLIENT_ID = process.env.SLACK_KEY;
-const SLACK_CLIENT_SECRET = process.env.SLACK_SECRET;
 const scopes = [
   "identity.email",
   "identity.basic",
@@ -50,14 +48,14 @@ const scopes = [
 
 export const config = {
   name: "Slack",
-  enabled: !!SLACK_CLIENT_ID,
+  enabled: !!env.SLACK_CLIENT_ID,
 };
 
-if (SLACK_CLIENT_ID && SLACK_CLIENT_SECRET) {
+if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
   const strategy = new SlackStrategy(
     {
-      clientID: SLACK_CLIENT_ID,
-      clientSecret: SLACK_CLIENT_SECRET,
+      clientID: env.SLACK_CLIENT_ID,
+      clientSecret: env.SLACK_CLIENT_SECRET,
       callbackURL: `${env.URL}/auth/slack.callback`,
       passReqToCallback: true,
       // @ts-expect-error StateStore
@@ -151,7 +149,7 @@ if (SLACK_CLIENT_ID && SLACK_CLIENT_SECRET) {
         }
       }
 
-      const endpoint = `${process.env.URL || ""}/auth/slack.commands`;
+      const endpoint = `${env.URL}/auth/slack.commands`;
       // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string | string[] | undefined' i... Remove this comment to see the full error message
       const data = await Slack.oauthAccess(code, endpoint);
       const authentication = await IntegrationAuthentication.create({
@@ -210,7 +208,7 @@ if (SLACK_CLIENT_ID && SLACK_CLIENT_SECRET) {
         }
       }
 
-      const endpoint = `${process.env.URL || ""}/auth/slack.post`;
+      const endpoint = `${env.URL}/auth/slack.post`;
       const data = await Slack.oauthAccess(code as string, endpoint);
       const authentication = await IntegrationAuthentication.create({
         service: "slack",

@@ -15,8 +15,6 @@ import { StateStore } from "@server/utils/passport";
 
 const router = new Router();
 const providerName = "google";
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const scopes = [
   "https://www.googleapis.com/auth/userinfo.profile",
   "https://www.googleapis.com/auth/userinfo.email",
@@ -24,7 +22,7 @@ const scopes = [
 
 export const config = {
   name: "Google",
-  enabled: !!GOOGLE_CLIENT_ID,
+  enabled: !!env.GOOGLE_CLIENT_ID,
 };
 
 type GoogleProfile = Profile & {
@@ -35,12 +33,12 @@ type GoogleProfile = Profile & {
   };
 };
 
-if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
+if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
   passport.use(
     new GoogleStrategy(
       {
-        clientID: GOOGLE_CLIENT_ID,
-        clientSecret: GOOGLE_CLIENT_SECRET,
+        clientID: env.GOOGLE_CLIENT_ID,
+        clientSecret: env.GOOGLE_CLIENT_SECRET,
         callbackURL: `${env.URL}/auth/google.callback`,
         passReqToCallback: true,
         // @ts-expect-error StateStore

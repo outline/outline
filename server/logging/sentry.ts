@@ -27,7 +27,7 @@ export function requestErrorHandler(error: any, ctx: ContextWithState) {
     return;
   }
 
-  if (process.env.SENTRY_DSN) {
+  if (env.SENTRY_DSN) {
     Sentry.withScope(function (scope) {
       const requestId = ctx.headers["x-request-id"];
 

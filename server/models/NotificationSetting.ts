@@ -12,6 +12,7 @@ import {
   Default,
   DataType,
 } from "sequelize-typescript";
+import env from "@server/env";
 import Team from "./Team";
 import User from "./User";
 import Fix from "./decorators/Fix";
@@ -48,7 +49,7 @@ class NotificationSetting extends Model {
 
   get unsubscribeUrl() {
     const token = NotificationSetting.getUnsubscribeToken(this.userId);
-    return `${process.env.URL}/api/notificationSettings.unsubscribe?token=${token}&id=${this.id}`;
+    return `${env.URL}/api/notificationSettings.unsubscribe?token=${token}&id=${this.id}`;
   }
 
   get unsubscribeToken() {
@@ -73,7 +74,7 @@ class NotificationSetting extends Model {
 
   static getUnsubscribeToken = (userId: string) => {
     const hash = crypto.createHash("sha256");
-    hash.update(`${userId}-${process.env.SECRET_KEY}`);
+    hash.update(`${userId}-${env.SECRET_KEY}`);
     return hash.digest("hex");
   };
 }

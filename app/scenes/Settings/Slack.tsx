@@ -83,7 +83,7 @@ function Slack() {
           }}
         />
       </Text>
-      {env.SLACK_KEY ? (
+      {env.SLACK_CLIENT_ID ? (
         <>
           <p>
             {commandIntegration ? (

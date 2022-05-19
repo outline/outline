@@ -1,5 +1,6 @@
 import passport from "@outlinewiki/koa-passport";
 import { Context } from "koa";
+import env from "@server/env";
 import Logger from "@server/logging/logger";
 import { signIn } from "@server/utils/authentication";
 import { AccountProvisionerResult } from "../commands/accountProvisioner";
@@ -20,7 +21,7 @@ export default function createMiddleware(providerName: string) {
             return ctx.redirect(`${err.redirectUrl || "/"}?notice=${notice}`);
           }
 
-          if (process.env.NODE_ENV === "development") {
+          if (env.ENVIRONMENT === "development") {
             throw err;
           }
 

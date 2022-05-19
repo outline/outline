@@ -1,4 +1,5 @@
 import TestServer from "fetch-test-server";
+import env from "@server/env";
 import webService from "@server/services/web";
 import { buildUser, buildTeam } from "@server/test/factories";
 import { flushdb } from "@server/test/support";
@@ -57,7 +58,7 @@ describe("#auth.config", () => {
   });
 
   it("should return available providers for team subdomain", async () => {
-    process.env.URL = "http://localoutline.com";
+    env.URL = "http://localoutline.com";
     await buildTeam({
       guestSignin: false,
       subdomain: "example",
@@ -102,7 +103,7 @@ describe("#auth.config", () => {
   });
 
   it("should return email provider for team when guest signin enabled", async () => {
-    process.env.URL = "http://localoutline.com";
+    env.URL = "http://localoutline.com";
     await buildTeam({
       guestSignin: true,
       subdomain: "example",
@@ -126,7 +127,7 @@ describe("#auth.config", () => {
   });
 
   it("should not return provider when disabled", async () => {
-    process.env.URL = "http://localoutline.com";
+    env.URL = "http://localoutline.com";
     await buildTeam({
       guestSignin: false,
       subdomain: "example",
@@ -149,7 +150,7 @@ describe("#auth.config", () => {
   });
   describe("self hosted", () => {
     it("should return available providers for team", async () => {
-      process.env.DEPLOYMENT = "";
+      env.DEPLOYMENT = "";
       await buildTeam({
         guestSignin: false,
         authenticationProviders: [
@@ -166,7 +167,7 @@ describe("#auth.config", () => {
       expect(body.data.providers[0].name).toBe("Slack");
     });
     it("should return email provider for team when guest signin enabled", async () => {
-      process.env.DEPLOYMENT = "";
+      env.DEPLOYMENT = "";
       await buildTeam({
         guestSignin: true,
         authenticationProviders: [

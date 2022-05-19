@@ -16,8 +16,8 @@ import { robotsResponse } from "@server/utils/robots";
 import apexRedirect from "../middlewares/apexRedirect";
 import presentEnv from "../presenters/env";
 
-const isProduction = process.env.NODE_ENV === "production";
-const isTest = process.env.NODE_ENV === "test";
+const isProduction = env.ENVIRONMENT === "production";
+const isTest = env.ENVIRONMENT === "test";
 const koa = new Koa();
 const router = new Router();
 const readFile = util.promisify(fs.readFile);
@@ -62,7 +62,7 @@ const renderApp = async (ctx: Context, next: Next, title = "Outline") => {
     .replace(/\/\/inject-env\/\//g, environment)
     .replace(/\/\/inject-title\/\//g, title)
     .replace(/\/\/inject-prefetch\/\//g, shareId ? "" : prefetchTags)
-    .replace(/\/\/inject-slack-app-id\/\//g, process.env.SLACK_APP_ID || "");
+    .replace(/\/\/inject-slack-app-id\/\//g, env.SLACK_APP_ID || "");
 };
 
 const renderShare = async (ctx: Context, next: Next) => {
@@ -93,7 +93,7 @@ koa.use(
   })
 );
 
-if (process.env.NODE_ENV === "production") {
+if (isProduction) {
   router.get("/static/*", async (ctx) => {
     try {
       const pathname = ctx.path.substring(8);
@@ -135,9 +135,7 @@ router.get("/locales/:lng.json", async (ctx) => {
     setHeaders: (res) => {
       res.setHeader(
         "Cache-Control",
-        process.env.NODE_ENV === "production"
-          ? `max-age=${7 * 24 * 60 * 60}`
-          : "no-cache"
+        isProduction ? `max-age=${7 * 24 * 60 * 60}` : "no-cache"
       );
     },
     root: path.join(__dirname, "../../shared/i18n/locales"),
