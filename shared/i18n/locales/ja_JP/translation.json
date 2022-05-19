@@ -661,6 +661,7 @@
   "Allowed Domains": "Allowed Domains",
   "The domains which should be allowed to create accounts. This applies to both SSO and Email logins. Changing this setting does not affect existing user accounts.": "The domains which should be allowed to create accounts. This applies to both SSO and Email logins. Changing this setting does not affect existing user accounts.",
   "Remove domain": "Remove domain",
+  "Add a domain": "Add a domain",
   "Save changes": "Save changes",
   "Sharing is currently disabled.": "共有は現在無効になっています。",
   "You can globally enable and disable public document sharing in the <em>security settings</em>.": "<em>セキュリティ設定</em> で公開ドキュメントの共有をグローバルに有効/無効にすることができます。",
