@@ -130,7 +130,7 @@ export class Environment {
    * The fully qualified, external facing domain name of the collaboration
    * service, if different (unlikely)
    */
-  @IsUrl({ require_tld: false })
+  @IsUrl({ require_tld: false, protocols: ["http", "https", "ws", "wss"] })
   @IsOptional()
   public COLLABORATION_URL = process.env.COLLABORATION_URL;
 
