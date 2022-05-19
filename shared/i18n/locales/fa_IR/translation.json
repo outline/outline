@@ -661,6 +661,7 @@
   "Allowed Domains": "Allowed Domains",
   "The domains which should be allowed to create accounts. This applies to both SSO and Email logins. Changing this setting does not affect existing user accounts.": "The domains which should be allowed to create accounts. This applies to both SSO and Email logins. Changing this setting does not affect existing user accounts.",
   "Remove domain": "Remove domain",
+  "Add a domain": "Add a domain",
   "Save changes": "Save changes",
   "Sharing is currently disabled.": "اشتراک‌گذاری در حال حاضر غیرفعال است.",
   "You can globally enable and disable public document sharing in the <em>security settings</em>.": "از <em>تنظیمات امنیتی</em> می‌توانید امکان اشتراک‌گذاری عمومی سندها را در سطح کل سیستم فعال و غیرفعال کنید.",
