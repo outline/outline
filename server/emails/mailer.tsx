@@ -70,7 +70,7 @@ export class Mailer {
     try {
       Logger.info("email", `Sending email "${data.subject}" to ${data.to}`);
       const info = await transporter.sendMail({
-        from: env.SMTP_FROM_EMAIL,
+        from: `Outline <${env.SMTP_FROM_EMAIL}>`,
         replyTo: env.SMTP_REPLY_EMAIL ?? env.SMTP_FROM_EMAIL,
         to: data.to,
         subject: data.subject,
