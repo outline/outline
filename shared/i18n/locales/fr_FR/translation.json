@@ -661,7 +661,7 @@
   "Allowed Domains": "Domaines autorisés",
   "The domains which should be allowed to create accounts. This applies to both SSO and Email logins. Changing this setting does not affect existing user accounts.": "Domaines autorisés pour la création d'un compte. Cela s'applique à la fois aux connexions SSO et aux connexions par e-mail. La modification de ce paramètre n'affecte pas les comptes utilisateur existants.",
   "Remove domain": "Supprimer le domaine",
-  "Add a domain": "Add a domain",
+  "Add a domain": "Ajouter un domaine",
   "Save changes": "Enregistrer les modifications",
   "Sharing is currently disabled.": "Le partage est actuellement désactivé.",
   "You can globally enable and disable public document sharing in the <em>security settings</em>.": "Vous pouvez complètement activer et désactiver le partage de documents publics dans les <em>paramètres de sécurité</em>.",
