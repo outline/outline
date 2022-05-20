@@ -42,42 +42,50 @@ function getNewState({
       pluginState.diagramVisibility[diagramId] = true;
     }
 
-    const _diagramDecoration = Decoration.widget(block.pos, () => {
-      const diagramWrapper = document.createElement("div");
-      diagramWrapper.classList.add("mermaid-diagram-wrapper");
+    const _diagramDecoration = Decoration.widget(
+      block.pos + block.node.nodeSize,
+      () => {
+        const diagramWrapper = document.createElement("div");
+        diagramWrapper.classList.add("mermaid-diagram-wrapper");
 
-      if (pluginState.diagramVisibility[diagramId] === false) {
-        diagramWrapper.classList.add("diagram-hidden");
-      }
-
-      import("mermaid").then((module) => {
-        module.default.initialize({ startOnLoad: true });
-        try {
-          module.default.render(
-            "mermaid-diagram-" + diagramId,
-            block.node.textContent,
-            (svgCode) => {
-              diagramWrapper.innerHTML = svgCode;
-            }
-          );
-        } catch (error) {
-          console.log(error);
-          const errorNode = document.getElementById(
-            "d" + "mermaid-diagram-" + diagramId
-          );
-          if (errorNode) {
-            diagramWrapper.appendChild(errorNode);
-          }
+        if (pluginState.diagramVisibility[diagramId] === false) {
+          diagramWrapper.classList.add("diagram-hidden");
         }
-      });
 
-      return diagramWrapper;
-    });
+        import("mermaid").then((module) => {
+          module.default.initialize({ startOnLoad: true });
+          try {
+            module.default.render(
+              "mermaid-diagram-" + diagramId,
+              block.node.textContent,
+              (svgCode) => {
+                diagramWrapper.innerHTML = svgCode;
+              }
+            );
+          } catch (error) {
+            console.log(error);
+            const errorNode = document.getElementById(
+              "d" + "mermaid-diagram-" + diagramId
+            );
+            if (errorNode) {
+              diagramWrapper.appendChild(errorNode);
+            }
+          }
+        });
+
+        return diagramWrapper;
+      }
+    );
+
+    const codeBlockOptions = { "data-diagram-id": "" + diagramId };
+    if (pluginState.diagramVisibility[diagramId] !== false) {
+      codeBlockOptions["class"] = "code-hidden";
+    }
 
     const _diagramIdDecoration = Decoration.node(
       block.pos,
       block.pos + block.node.nodeSize,
-      { "data-diagram-id": "" + diagramId }
+      codeBlockOptions
     );
 
     decorations.push(_diagramDecoration);

@@ -770,7 +770,7 @@ const EditorStyles = styled.div<{
       padding: 2px 4px;
     }
 
-    &:hover {
+    &:hover, &:focus-within {
       select {
         display: ${(props) => (props.readOnly ? "none" : "inline")};
       }
@@ -786,6 +786,21 @@ const EditorStyles = styled.div<{
     button:active {
       display: inline;
     }
+
+    &.code-hidden { 
+      button, select {
+        display: none;
+      }
+      
+      button.diagram-toggle-button {
+        display: inline;
+      }
+
+      pre {
+        display: none;
+      }
+    }
+
   }
 
   .mermaid-diagram-wrapper {

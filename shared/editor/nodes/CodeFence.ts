@@ -140,6 +140,7 @@ export default class CodeFence extends Node {
           const toggleDiagramButton = document.createElement("button");
           toggleDiagramButton.innerText = this.options.dictionary.toggleDiagramCode;
           toggleDiagramButton.type = "button";
+          toggleDiagramButton.classList.add("diagram-toggle-button");
           toggleDiagramButton.addEventListener(
             "click",
             this.handleToggleDiagram
