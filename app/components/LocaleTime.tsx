@@ -43,7 +43,7 @@ const LocaleTime: React.FC<Props> = ({
     en_US: "MMMM do, yyyy h:mm a",
     fr_FR: "'Le 'd MMMM yyyy 'à' H:mm",
   };
-  const formatLocaleLong = dateFormatLong[userLocale];
+  const formatLocaleLong = dateFormatLong[userLocale] ?? "MMMM do, yyyy h:mm a";
   const formatLocale = format ? format[userLocale] : formatLocaleLong;
   const [_, setMinutesMounted] = React.useState(0); // eslint-disable-line @typescript-eslint/no-unused-vars
   const callback = React.useRef<() => void>();
