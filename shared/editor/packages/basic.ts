@@ -13,6 +13,7 @@ import Image from "../nodes/Image";
 import Node from "../nodes/Node";
 import Paragraph from "../nodes/Paragraph";
 import Text from "../nodes/Text";
+import ClipboardTextSerializer from "../plugins/ClipboardTextSerializer";
 import DateTime from "../plugins/DateTime";
 import History from "../plugins/History";
 import MaxLength from "../plugins/MaxLength";
@@ -41,6 +42,7 @@ const basicPackage: (typeof Node | typeof Mark | typeof Extension)[] = [
   Placeholder,
   MaxLength,
   DateTime,
+  ClipboardTextSerializer,
 ];
 
 export default basicPackage;

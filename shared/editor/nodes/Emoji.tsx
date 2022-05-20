@@ -59,6 +59,7 @@ export default class Emoji extends Node {
         const text = document.createTextNode(`:${node.attrs["data-name"]}:`);
         return ["span", { class: "emoji" }, text];
       },
+      toPlainText: (node) => nameToEmoji[node.attrs["data-name"]],
     };
   }
 
