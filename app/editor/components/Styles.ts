@@ -403,7 +403,9 @@ const EditorStyles = styled.div<{
     padding: 0;
 
     &.collapsed {
-      transform: rotate(${(props) => (props.rtl ? "90deg" : "-90deg")});
+      svg {
+        transform: rotate(${(props) => (props.rtl ? "90deg" : "-90deg")});
+      }
       transition-delay: 0.1s;
       opacity: 1;
     }
