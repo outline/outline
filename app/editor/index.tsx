@@ -471,7 +471,7 @@ export class Editor extends React.PureComponent<
     try {
       const element = document.querySelector(hash);
       if (element) {
-        element.scrollIntoView({ behavior: "smooth" });
+        setTimeout(() => element.scrollIntoView({ behavior: "smooth" }), 0);
       }
     } catch (err) {
       // querySelector will throw an error if the hash begins with a number

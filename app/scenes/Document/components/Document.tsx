@@ -456,6 +456,7 @@ class DocumentScene extends React.Component<Props> {
             to={{
               pathname: canonicalUrl,
               state: this.props.location.state,
+              hash: this.props.location.hash,
             }}
           />
         )}
