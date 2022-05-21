@@ -3,8 +3,9 @@ import { throttle } from "lodash";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
-import { IndexeddbPersistence } from "y-indexeddb";
 import * as Y from "yjs";
+import { IndexeddbPersistence } from "@shared/editor/lib/IndexeddbPersistence";
+import Multiplayer from "@shared/editor/plugins/Multiplayer";
 import Editor, { Props as EditorProps } from "~/components/Editor";
 import env from "~/env";
 import useCurrentToken from "~/hooks/useCurrentToken";
@@ -14,7 +15,6 @@ import useIsMounted from "~/hooks/useIsMounted";
 import usePageVisibility from "~/hooks/usePageVisibility";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
-import MultiplayerExtension from "~/multiplayer/MultiplayerExtension";
 import Logger from "~/utils/Logger";
 import { supportsPassiveListener } from "~/utils/browser";
 import { homePath } from "~/utils/routeHelpers";
@@ -200,7 +200,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
 
     return [
       ...(props.extensions || []),
-      new MultiplayerExtension({
+      new Multiplayer({
         user,
         provider: remoteProvider,
         document: ydoc,

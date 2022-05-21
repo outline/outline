@@ -39,7 +39,7 @@
     "url": "git+ssh://git@github.com/outline/outline.git"
   },
   "browserslist": [
-    "> 0.25%, not dead"  
+    "> 0.25%, not dead"
   ],
   "dependencies": {
     "@babel/core": "^7.16.0",
@@ -118,6 +118,7 @@
     "koa-send": "5.0.1",
     "koa-sslify": "2.1.2",
     "koa-static": "^4.0.1",
+    "lib0": "^0.2.35",
     "lodash": "^4.17.21",
     "mammoth": "^1.4.19",
     "markdown-it": "^12.3.2",
@@ -203,7 +204,6 @@
     "validator": "13.7.0",
     "winston": "^3.3.3",
     "ws": "^7.5.3",
-    "y-indexeddb": "^9.0.6",
     "yjs": "^13.5.34"
   },
   "devDependencies": {
