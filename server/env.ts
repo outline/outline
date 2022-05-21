@@ -14,6 +14,7 @@ import {
   Equals,
   IsNumber,
   IsIn,
+  IsEmail,
   IsBoolean,
   Contains,
   MaxLength,
@@ -261,6 +262,7 @@ export class Environment {
   /**
    * The email address from which emails are sent.
    */
+  @IsEmail({ allow_display_name: true, allow_ip_domain: true })
   @IsOptional()
   public SMTP_FROM_EMAIL = process.env.SMTP_FROM_EMAIL;
 
@@ -268,6 +270,7 @@ export class Environment {
    * The reply-to address for emails sent from Outline. If unset the from
    * address is used by default.
    */
+  @IsEmail({ allow_display_name: true, allow_ip_domain: true })
   @IsOptional()
   public SMTP_REPLY_EMAIL = process.env.SMTP_REPLY_EMAIL;
 
