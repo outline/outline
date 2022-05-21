@@ -38,7 +38,9 @@
     "type": "git",
     "url": "git+ssh://git@github.com/outline/outline.git"
   },
-  "browserslist": "> 0.25%, not dead",
+  "browserslist": [
+    "> 0.25%, not dead"  
+  ],
   "dependencies": {
     "@babel/core": "^7.16.0",
     "@babel/plugin-proposal-decorators": "^7.10.5",
