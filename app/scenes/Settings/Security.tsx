@@ -21,7 +21,7 @@ import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
-import isHosted from "~/utils/isHosted";
+import isCloudHosted from "~/utils/isCloudHosted";
 import SettingRow from "./components/SettingRow";
 
 function Security() {
@@ -212,7 +212,7 @@ function Security() {
           onChange={handleChange}
         />
       </SettingRow>
-      {isHosted && (
+      {isCloudHosted && (
         <SettingRow
           label={t("Allow authorized signups")}
           name="allowSignups"

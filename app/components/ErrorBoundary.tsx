@@ -9,7 +9,7 @@ import CenteredContent from "~/components/CenteredContent";
 import PageTitle from "~/components/PageTitle";
 import Text from "~/components/Text";
 import env from "~/env";
-import isHosted from "~/utils/isHosted";
+import isCloudHosted from "~/utils/isCloudHosted";
 import Logger from "~/utils/logger";
 
 type Props = WithTranslation & {
@@ -59,7 +59,7 @@ class ErrorBoundary extends React.Component<Props> {
 
     if (this.error) {
       const error = this.error;
-      const isReported = !!env.SENTRY_DSN && isHosted;
+      const isReported = !!env.SENTRY_DSN && isCloudHosted;
       const isChunkError = this.error.message.match(/chunk/);
 
       if (isChunkError) {
