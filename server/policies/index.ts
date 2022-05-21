@@ -21,6 +21,7 @@ import "./star";
 import "./user";
 import "./team";
 import "./group";
+import "./webhooks";
 
 type Policy = Record<string, boolean>;
 
