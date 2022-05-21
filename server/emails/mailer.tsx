@@ -2,7 +2,7 @@ import nodemailer, { Transporter } from "nodemailer";
 import Oy from "oy-vey";
 import * as React from "react";
 import env from "@server/env";
-import Logger from "@server/logging/logger";
+import Logger from "@server/logging/Logger";
 import { APM } from "@server/logging/tracing";
 import { baseStyles } from "./templates/components/EmailLayout";
 

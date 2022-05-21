@@ -4,7 +4,7 @@ import AWS from "aws-sdk";
 import { addHours, format } from "date-fns";
 import fetch from "fetch-with-proxy";
 import { v4 as uuidv4 } from "uuid";
-import Logger from "@server/logging/logger";
+import Logger from "@server/logging/Logger";
 
 const AWS_S3_ACCELERATE_URL = process.env.AWS_S3_ACCELERATE_URL;
 const AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;

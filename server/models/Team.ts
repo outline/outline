@@ -21,7 +21,7 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import { stripSubdomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
 import env from "@server/env";
-import Logger from "@server/logging/logger";
+import Logger from "@server/logging/Logger";
 import { generateAvatarUrl } from "@server/utils/avatars";
 import { publicS3Endpoint, uploadToS3FromUrl } from "@server/utils/s3";
 import AuthenticationProvider from "./AuthenticationProvider";

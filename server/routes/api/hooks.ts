@@ -3,7 +3,7 @@ import Router from "koa-router";
 import { escapeRegExp } from "lodash";
 import env from "@server/env";
 import { AuthenticationError, InvalidRequestError } from "@server/errors";
-import Logger from "@server/logging/logger";
+import Logger from "@server/logging/Logger";
 import {
   UserAuthentication,
   AuthenticationProvider,

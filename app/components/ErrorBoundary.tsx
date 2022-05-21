@@ -9,8 +9,8 @@ import CenteredContent from "~/components/CenteredContent";
 import PageTitle from "~/components/PageTitle";
 import Text from "~/components/Text";
 import env from "~/env";
+import Logger from "~/utils/Logger";
 import isCloudHosted from "~/utils/isCloudHosted";
-import Logger from "~/utils/logger";
 
 type Props = WithTranslation & {
   reloadOnChunkMissing?: boolean;

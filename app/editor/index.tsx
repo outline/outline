@@ -28,7 +28,7 @@ import { EmbedDescriptor, EventType } from "@shared/editor/types";
 import EventEmitter from "@shared/utils/events";
 import Flex from "~/components/Flex";
 import { Dictionary } from "~/hooks/useDictionary";
-import Logger from "~/utils/logger";
+import Logger from "~/utils/Logger";
 import BlockMenu from "./components/BlockMenu";
 import ComponentView from "./components/ComponentView";
 import EditorContext from "./components/EditorContext";

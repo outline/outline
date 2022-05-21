@@ -1,6 +1,6 @@
 import { Sequelize } from "sequelize-typescript";
 import env from "@server/env";
-import Logger from "../logging/logger";
+import Logger from "../logging/Logger";
 import * as models from "../models";
 
 const isProduction = env.ENVIRONMENT === "production";

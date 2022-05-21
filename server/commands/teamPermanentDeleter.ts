@@ -1,6 +1,6 @@
 import { Transaction } from "sequelize";
 import { sequelize } from "@server/database/sequelize";
-import Logger from "@server/logging/logger";
+import Logger from "@server/logging/Logger";
 import { APM } from "@server/logging/tracing";
 import {
   ApiKey,

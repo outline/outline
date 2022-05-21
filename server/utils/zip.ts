@@ -3,7 +3,7 @@ import path from "path";
 import JSZip, { JSZipObject } from "jszip";
 import { find } from "lodash";
 import tmp from "tmp";
-import Logger from "@server/logging/logger";
+import Logger from "@server/logging/Logger";
 import Attachment from "@server/models/Attachment";
 import Collection from "@server/models/Collection";
 import Document from "@server/models/Document";

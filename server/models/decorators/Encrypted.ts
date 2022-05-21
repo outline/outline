@@ -1,5 +1,5 @@
 import vaults from "@server/database/vaults";
-import Logger from "@server/logging/logger";
+import Logger from "@server/logging/Logger";
 
 const key = "sequelize:vault";
 

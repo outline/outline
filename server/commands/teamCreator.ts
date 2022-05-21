@@ -1,7 +1,7 @@
 import invariant from "invariant";
 import env from "@server/env";
 import { DomainNotAllowedError, MaximumTeamsError } from "@server/errors";
-import Logger from "@server/logging/logger";
+import Logger from "@server/logging/Logger";
 import { APM } from "@server/logging/tracing";
 import { Team, AuthenticationProvider } from "@server/models";
 import { generateAvatarUrl } from "@server/utils/avatars";

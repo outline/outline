@@ -7,7 +7,7 @@ import { sequelize } from "@server/database/sequelize";
 import InviteEmail from "@server/emails/templates/InviteEmail";
 import env from "@server/env";
 import { ValidationError } from "@server/errors";
-import logger from "@server/logging/logger";
+import logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import { Event, User, Team } from "@server/models";
 import { UserFlag } from "@server/models/User";

@@ -3,7 +3,7 @@ import { uniqBy } from "lodash";
 import { Role } from "@shared/types";
 import InviteEmail from "@server/emails/templates/InviteEmail";
 import env from "@server/env";
-import Logger from "@server/logging/logger";
+import Logger from "@server/logging/Logger";
 import { User, Event, Team } from "@server/models";
 import { UserFlag } from "@server/models/User";
 

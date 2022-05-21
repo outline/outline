@@ -8,7 +8,7 @@ import {
 import mount from "koa-mount";
 import enforceHttps from "koa-sslify";
 import env from "@server/env";
-import Logger from "@server/logging/logger";
+import Logger from "@server/logging/Logger";
 import routes from "../routes";
 import api from "../routes/api";
 import auth from "../routes/auth";

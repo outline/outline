@@ -15,7 +15,7 @@ import { uniq } from "lodash";
 import { AddressInfo } from "net";
 import stoppable from "stoppable";
 import throng from "throng";
-import Logger from "./logging/logger";
+import Logger from "./logging/Logger";
 import { requestErrorHandler } from "./logging/sentry";
 import services from "./services";
 import { getArg } from "./utils/args";

@@ -1,7 +1,7 @@
 import passport from "@outlinewiki/koa-passport";
 import { Context } from "koa";
 import env from "@server/env";
-import Logger from "@server/logging/logger";
+import Logger from "@server/logging/Logger";
 import { signIn } from "@server/utils/authentication";
 import { AccountProvisionerResult } from "../commands/accountProvisioner";
 

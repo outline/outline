@@ -3,7 +3,7 @@ import invariant from "invariant";
 import { truncate } from "lodash";
 import ExportFailureEmail from "@server/emails/templates/ExportFailureEmail";
 import ExportSuccessEmail from "@server/emails/templates/ExportSuccessEmail";
-import Logger from "@server/logging/logger";
+import Logger from "@server/logging/Logger";
 import { Collection, Event, FileOperation, Team, User } from "@server/models";
 import { FileOperationState } from "@server/models/FileOperation";
 import fileOperationPresenter from "@server/presenters/fileOperation";

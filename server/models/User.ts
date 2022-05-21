@@ -24,7 +24,7 @@ import { v4 as uuidv4 } from "uuid";
 import { languages } from "@shared/i18n";
 import { stringToColor } from "@shared/utils/color";
 import env from "@server/env";
-import Logger from "@server/logging/logger";
+import Logger from "@server/logging/Logger";
 import { publicS3Endpoint, uploadToS3FromUrl } from "@server/utils/s3";
 import { ValidationError } from "../errors";
 import ApiKey from "./ApiKey";

@@ -3,7 +3,7 @@ import { addMonths } from "date-fns";
 import { Context } from "koa";
 import { pick } from "lodash";
 import env from "@server/env";
-import Logger from "@server/logging/logger";
+import Logger from "@server/logging/Logger";
 import { User, Event, Team, Collection, View } from "@server/models";
 import { getCookieDomain } from "@server/utils/domains";
 

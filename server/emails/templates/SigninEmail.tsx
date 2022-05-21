@@ -1,6 +1,6 @@
 import * as React from "react";
 import env from "@server/env";
-import logger from "@server/logging/logger";
+import logger from "@server/logging/Logger";
 import BaseEmail from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";

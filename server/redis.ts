@@ -1,7 +1,7 @@
 import Redis from "ioredis";
 import { defaults } from "lodash";
 import env from "@server/env";
-import Logger from "./logging/logger";
+import Logger from "@server/logging/Logger";
 
 const defaultOptions = {
   maxRetriesPerRequest: 20,

@@ -15,8 +15,8 @@ import usePageVisibility from "~/hooks/usePageVisibility";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import MultiplayerExtension from "~/multiplayer/MultiplayerExtension";
+import Logger from "~/utils/Logger";
 import { supportsPassiveListener } from "~/utils/browser";
-import Logger from "~/utils/logger";
 import { homePath } from "~/utils/routeHelpers";
 
 type Props = EditorProps & {
