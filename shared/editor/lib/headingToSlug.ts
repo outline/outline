@@ -9,7 +9,7 @@ const cache = new Map<string, string>();
 // ID's that begin with a number or a period, for example).
 function safeSlugify(text: string) {
   if (cache.has(text)) {
-    return cache.get(text);
+    return cache.get(text) as string;
   }
 
   const slug = `h-${escape(
