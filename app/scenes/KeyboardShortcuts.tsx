@@ -445,4 +445,4 @@ const Label = styled.dd`
   color: ${(props) => props.theme.textSecondary};
 `;
 
-export default KeyboardShortcuts;
+export default React.memo(KeyboardShortcuts);

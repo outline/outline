@@ -139,9 +139,6 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     });
 
     if (debug) {
-      provider.on("status", (ev: ConnectionStatusEvent) =>
-        Logger.debug("collaboration", "status", ev)
-      );
       provider.on("message", (ev: MessageEvent) =>
         Logger.debug("collaboration", "incoming", {
           message: ev.message,

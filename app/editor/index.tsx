@@ -18,7 +18,8 @@ import * as React from "react";
 import { DefaultTheme, ThemeProps } from "styled-components";
 import Extension, { CommandFactory } from "@shared/editor/lib/Extension";
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
-import headingToSlug from "@shared/editor/lib/headingToSlug";
+import getHeadings from "@shared/editor/lib/getHeadings";
+import getTasks from "@shared/editor/lib/getTasks";
 import { MarkdownSerializer } from "@shared/editor/lib/markdown/serializer";
 import Mark from "@shared/editor/marks/Mark";
 import Node from "@shared/editor/nodes/Node";
@@ -575,34 +576,11 @@ export class Editor extends React.PureComponent<
   };
 
   public getHeadings = () => {
-    const headings: { title: string; level: number; id: string }[] = [];
-    const previouslySeen = {};
+    return getHeadings(this.view.state.doc);
+  };
 
-    this.view.state.doc.forEach((node) => {
-      if (node.type.name === "heading") {
-        // calculate the optimal slug
-        const slug = headingToSlug(node);
-        let id = slug;
-
-        // check if we've already used it, and if so how many times?
-        // Make the new id based on that number ensuring that we have
-        // unique ID's even when headings are identical
-        if (previouslySeen[slug] > 0) {
-          id = headingToSlug(node, previouslySeen[slug]);
-        }
-
-        // record that we've seen this slug for the next loop
-        previouslySeen[slug] =
-          previouslySeen[slug] !== undefined ? previouslySeen[slug] + 1 : 1;
-
-        headings.push({
-          title: node.textContent,
-          level: node.attrs.level,
-          id,
-        });
-      }
-    });
-    return headings;
+  public getTasks = () => {
+    return getTasks(this.view.state.doc);
   };
 
   public render() {
