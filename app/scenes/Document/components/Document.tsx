@@ -1,4 +1,4 @@
-import { debounce, isEqual } from "lodash";
+import { debounce } from "lodash";
 import { action, observable } from "mobx";
 import { observer } from "mobx-react";
 import { AllSelection } from "prosemirror-state";
@@ -381,7 +381,10 @@ class DocumentScene extends React.Component<Props> {
 
     // Keep headings in sync for table of contents
     const headings = this.editor.current?.getHeadings() ?? [];
-    if (!isEqual(headings, this.headings)) {
+    if (
+      headings.map((h) => h.level + h.title).join("") !==
+      this.headings.map((h) => h.level + h.title).join("")
+    ) {
       this.headings = headings;
     }
 
