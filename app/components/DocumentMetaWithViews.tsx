@@ -1,4 +1,4 @@
-import { useObserver } from "mobx-react";
+import { observer, useObserver } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
@@ -83,4 +83,4 @@ const Meta = styled(DocumentMeta)<{ rtl?: boolean }>`
   }
 `;
 
-export default DocumentMetaWithViews;
+export default observer(DocumentMetaWithViews);

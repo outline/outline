@@ -220,6 +220,13 @@ export default class Document extends ParanoidModel {
   }
 
   @action
+  updateTasks(total: number, completed: number) {
+    if (total !== this.tasks.total || completed !== this.tasks.completed) {
+      this.tasks = { total, completed };
+    }
+  }
+
+  @action
   share = async () => {
     return this.store.rootStore.shares.create({
       documentId: this.id,
