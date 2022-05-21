@@ -200,7 +200,7 @@ function Login() {
             )}
           </React.Fragment>
         )}
-        {config.providers.map((provider: any) => {
+        {config.providers.map((provider) => {
           if (defaultProvider && provider.id === defaultProvider.id) {
             return null;
           }
