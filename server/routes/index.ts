@@ -5,6 +5,7 @@ import Koa, { Context, Next } from "koa";
 import Router from "koa-router";
 import send from "koa-send";
 import serve from "koa-static";
+import { escape } from "lodash";
 import isUUID from "validator/lib/isUUID";
 import { languages } from "@shared/i18n";
 import env from "@server/env";
@@ -70,8 +71,8 @@ const renderApp = async (
   ctx.body = page
     .toString()
     .replace(/\/\/inject-env\/\//g, environment)
-    .replace(/\/\/inject-title\/\//g, title)
-    .replace(/\/\/inject-description\/\//g, description)
+    .replace(/\/\/inject-title\/\//g, escape(title))
+    .replace(/\/\/inject-description\/\//g, escape(description))
     .replace(/\/\/inject-canonical\/\//g, canonical)
     .replace(/\/\/inject-prefetch\/\//g, shareId ? "" : prefetchTags)
     .replace(/\/\/inject-slack-app-id\/\//g, env.SLACK_APP_ID || "");
