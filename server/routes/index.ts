@@ -47,7 +47,17 @@ const readIndexFile = async (ctx: Context): Promise<Buffer> => {
   });
 };
 
-const renderApp = async (ctx: Context, next: Next, title = "Outline") => {
+const renderApp = async (
+  ctx: Context,
+  next: Next,
+  options: { title?: string; description?: string; canonical?: string } = {}
+) => {
+  const {
+    title = "Outline",
+    description = "A modern team knowledge base for your internal documentation, product specs, support answers, meeting notes, onboarding, &amp; more…",
+    canonical = ctx.request.href,
+  } = options;
+
   if (ctx.request.path === "/realtime/") {
     return next();
   }
@@ -61,6 +71,8 @@ const renderApp = async (ctx: Context, next: Next, title = "Outline") => {
     .toString()
     .replace(/\/\/inject-env\/\//g, environment)
     .replace(/\/\/inject-title\/\//g, title)
+    .replace(/\/\/inject-description\/\//g, description)
+    .replace(/\/\/inject-canonical\/\//g, canonical)
     .replace(/\/\/inject-prefetch\/\//g, shareId ? "" : prefetchTags)
     .replace(/\/\/inject-slack-app-id\/\//g, env.SLACK_APP_ID || "");
 };
@@ -83,7 +95,15 @@ const renderShare = async (ctx: Context, next: Next) => {
 
   // Allow shares to be embedded in iframes on other websites
   ctx.remove("X-Frame-Options");
-  return renderApp(ctx, next, share?.document?.title);
+
+  // Inject share information in SSR HTML
+  return renderApp(ctx, next, {
+    title: share?.document?.title,
+    description: share?.document?.getSummary(),
+    canonical: share
+      ? ctx.request.href.replace(ctx.request.origin, share.team.url)
+      : undefined,
+  });
 };
 
 // serve static assets
