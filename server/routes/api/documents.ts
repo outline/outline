@@ -467,10 +467,16 @@ async function loadDocument({
       await share.update({
         lastAccessedAt: new Date(),
       });
+
+      // Cannot use document.collection here as it does not include the
+      // documentStructure by default through the relationship.
+      collection = await Collection.findByPk(document.collectionId);
+      invariant(collection, "collection not found");
+
       return {
         document,
         share,
-        collection: document.collection,
+        collection,
       };
     }
 
