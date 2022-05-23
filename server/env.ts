@@ -63,14 +63,22 @@ export class Environment {
    * The url of the database.
    */
   @IsNotEmpty()
-  @IsUrl({ require_tld: false, protocols: ["postgres"] })
+  @IsUrl({
+    require_tld: false,
+    allow_underscores: true,
+    protocols: ["postgres"],
+  })
   public DATABASE_URL = `${process.env.DATABASE_URL}`;
 
   /**
    * The url of the database pool.
    */
   @IsOptional()
-  @IsUrl({ require_tld: false, protocols: ["postgres"] })
+  @IsUrl({
+    require_tld: false,
+    allow_underscores: true,
+    protocols: ["postgres"],
+  })
   public DATABASE_CONNECTION_POOL_URL = `${process.env.DATABASE_CONNECTION_POOL_URL}`;
 
   /**
@@ -106,7 +114,11 @@ export class Environment {
    */
   @IsOptional()
   @IsNotEmpty()
-  @IsUrl({ require_tld: false, protocols: ["redis", "rediss", "ioredis"] })
+  @IsUrl({
+    require_tld: false,
+    allow_underscores: true,
+    protocols: ["redis", "rediss", "ioredis"],
+  })
   public REDIS_URL = process.env.REDIS_URL;
 
   /**
