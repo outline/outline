@@ -23,7 +23,7 @@ function filterProviders(team?: Team) {
 
       return (
         !team ||
-        process.env.DEPLOYMENT !== "hosted" ||
+        env.DEPLOYMENT !== "hosted" ||
         find(team.authenticationProviders, {
           name: provider.id,
           enabled: true,
