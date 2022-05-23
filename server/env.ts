@@ -79,7 +79,9 @@ export class Environment {
     allow_underscores: true,
     protocols: ["postgres"],
   })
-  public DATABASE_CONNECTION_POOL_URL = `${process.env.DATABASE_CONNECTION_POOL_URL}`;
+  public DATABASE_CONNECTION_POOL_URL = this.toOptionalString(
+    process.env.DATABASE_CONNECTION_POOL_URL
+  );
 
   /**
    * Database connection pool configuration.
@@ -136,7 +138,7 @@ export class Environment {
    */
   @IsOptional()
   @IsUrl()
-  public CDN_URL = process.env.CDN_URL;
+  public CDN_URL = this.toOptionalString(process.env.CDN_URL);
 
   /**
    * The fully qualified, external facing domain name of the collaboration
@@ -144,7 +146,9 @@ export class Environment {
    */
   @IsUrl({ require_tld: false, protocols: ["http", "https", "ws", "wss"] })
   @IsOptional()
-  public COLLABORATION_URL = process.env.COLLABORATION_URL;
+  public COLLABORATION_URL = this.toOptionalString(
+    process.env.COLLABORATION_URL
+  );
 
   /**
    * The port that the server will listen on, defaults to 3000.
@@ -171,21 +175,21 @@ export class Environment {
    */
   @IsOptional()
   @CannotUseWithout("SSL_CERT")
-  public SSL_KEY = process.env.SSL_KEY;
+  public SSL_KEY = this.toOptionalString(process.env.SSL_KEY);
 
   /**
    * Base64 encoded public certificate if Outline is to perform SSL termination.
    */
   @IsOptional()
   @CannotUseWithout("SSL_KEY")
-  public SSL_CERT = process.env.SSL_CERT;
+  public SSL_CERT = this.toOptionalString(process.env.SSL_CERT);
 
   /**
    * Should always be left unset in a self-hosted environment.
    */
   @Equals("hosted")
   @IsOptional()
-  public DEPLOYMENT = process.env.DEPLOYMENT;
+  public DEPLOYMENT = this.toOptionalString(process.env.DEPLOYMENT);
 
   /**
    * Custom company logo that displays on the authentication screen.
@@ -276,7 +280,7 @@ export class Environment {
    */
   @IsEmail({ allow_display_name: true, allow_ip_domain: true })
   @IsOptional()
-  public SMTP_FROM_EMAIL = process.env.SMTP_FROM_EMAIL;
+  public SMTP_FROM_EMAIL = this.toOptionalString(process.env.SMTP_FROM_EMAIL);
 
   /**
    * The reply-to address for emails sent from Outline. If unset the from
@@ -284,12 +288,12 @@ export class Environment {
    */
   @IsEmail({ allow_display_name: true, allow_ip_domain: true })
   @IsOptional()
-  public SMTP_REPLY_EMAIL = process.env.SMTP_REPLY_EMAIL;
+  public SMTP_REPLY_EMAIL = this.toOptionalString(process.env.SMTP_REPLY_EMAIL);
 
   /**
    * Override the cipher used for SMTP SSL connections.
    */
-  public SMTP_TLS_CIPHERS = process.env.SMTP_TLS_CIPHERS;
+  public SMTP_TLS_CIPHERS = this.toOptionalString(process.env.SMTP_TLS_CIPHERS);
 
   /**
    * If true (the default) the connection will use TLS when connecting to server.
@@ -305,12 +309,12 @@ export class Environment {
    */
   @IsUrl()
   @IsOptional()
-  public SENTRY_DSN = process.env.SENTRY_DSN;
+  public SENTRY_DSN = this.toOptionalString(process.env.SENTRY_DSN);
 
   /**
    * A release SHA or other identifier for Sentry.
    */
-  public RELEASE = process.env.RELEASE;
+  public RELEASE = this.toOptionalString(process.env.RELEASE);
 
   /**
    * An optional host from which to load default avatars.
@@ -324,7 +328,9 @@ export class Environment {
    */
   @Contains("UA-")
   @IsOptional()
-  public GOOGLE_ANALYTICS_ID = process.env.GOOGLE_ANALYTICS_ID;
+  public GOOGLE_ANALYTICS_ID = this.toOptionalString(
+    process.env.GOOGLE_ANALYTICS_ID
+  );
 
   /**
    * A DataDog API key for tracking server metrics.
@@ -336,37 +342,52 @@ export class Environment {
    */
   @IsOptional()
   @CannotUseWithout("GOOGLE_CLIENT_SECRET")
-  public GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
+  public GOOGLE_CLIENT_ID = this.toOptionalString(process.env.GOOGLE_CLIENT_ID);
 
   @IsOptional()
   @CannotUseWithout("GOOGLE_CLIENT_ID")
-  public GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+  public GOOGLE_CLIENT_SECRET = this.toOptionalString(
+    process.env.GOOGLE_CLIENT_SECRET
+  );
 
   /**
    * Slack OAuth2 client credentials. To enable authentication with Slack.
    */
   @IsOptional()
+  @Deprecated("Use SLACK_CLIENT_SECRET instead")
+  public SLACK_SECRET = this.toOptionalString(process.env.SLACK_SECRET);
+
+  @IsOptional()
+  @Deprecated("Use SLACK_CLIENT_ID instead")
+  public SLACK_KEY = this.toOptionalString(process.env.SLACK_KEY);
+
+  @IsOptional()
   @CannotUseWithout("SLACK_CLIENT_SECRET")
-  public SLACK_CLIENT_ID = process.env.SLACK_CLIENT_ID ?? process.env.SLACK_KEY;
+  public SLACK_CLIENT_ID = this.toOptionalString(
+    process.env.SLACK_CLIENT_ID ?? process.env.SLACK_KEY
+  );
 
   @IsOptional()
   @CannotUseWithout("SLACK_CLIENT_ID")
-  public SLACK_CLIENT_SECRET =
-    process.env.SLACK_CLIENT_SECRET ?? process.env.SLACK_SECRET;
+  public SLACK_CLIENT_SECRET = this.toOptionalString(
+    process.env.SLACK_CLIENT_SECRET ?? process.env.SLACK_SECRET
+  );
 
   /**
    * This is injected into the HTML page headers for Slack.
    */
   @IsOptional()
   @CannotUseWithout("SLACK_CLIENT_ID")
-  public SLACK_VERIFICATION_TOKEN = process.env.SLACK_VERIFICATION_TOKEN;
+  public SLACK_VERIFICATION_TOKEN = this.toOptionalString(
+    process.env.SLACK_VERIFICATION_TOKEN
+  );
 
   /**
    * This is injected into the slack-app-id header meta tag if provided.
    */
   @IsOptional()
   @CannotUseWithout("SLACK_CLIENT_ID")
-  public SLACK_APP_ID = process.env.SLACK_APP_ID;
+  public SLACK_APP_ID = this.toOptionalString(process.env.SLACK_APP_ID);
 
   /**
    * If enabled a "Post to Channel" button will be added to search result
@@ -383,15 +404,19 @@ export class Environment {
    */
   @IsOptional()
   @CannotUseWithout("AZURE_CLIENT_SECRET")
-  public AZURE_CLIENT_ID = process.env.AZURE_CLIENT_ID;
+  public AZURE_CLIENT_ID = this.toOptionalString(process.env.AZURE_CLIENT_ID);
 
   @IsOptional()
   @CannotUseWithout("AZURE_CLIENT_ID")
-  public AZURE_CLIENT_SECRET = process.env.AZURE_CLIENT_SECRET;
+  public AZURE_CLIENT_SECRET = this.toOptionalString(
+    process.env.AZURE_CLIENT_SECRET
+  );
 
   @IsOptional()
   @CannotUseWithout("AZURE_CLIENT_ID")
-  public AZURE_RESOURCE_APP_ID = process.env.AZURE_RESOURCE_APP_ID;
+  public AZURE_RESOURCE_APP_ID = this.toOptionalString(
+    process.env.AZURE_RESOURCE_APP_ID
+  );
 
   /**
    * OICD client credentials. To enable authentication with any
@@ -403,11 +428,13 @@ export class Environment {
   @CannotUseWithout("OIDC_TOKEN_URI")
   @CannotUseWithout("OIDC_USERINFO_URI")
   @CannotUseWithout("OIDC_DISPLAY_NAME")
-  public OIDC_CLIENT_ID = process.env.OIDC_CLIENT_ID;
+  public OIDC_CLIENT_ID = this.toOptionalString(process.env.OIDC_CLIENT_ID);
 
   @IsOptional()
   @CannotUseWithout("OIDC_CLIENT_ID")
-  public OIDC_CLIENT_SECRET = process.env.OIDC_CLIENT_SECRET;
+  public OIDC_CLIENT_SECRET = this.toOptionalString(
+    process.env.OIDC_CLIENT_SECRET
+  );
 
   /**
    * The name of the OIDC provider, eg "GitLab" – this will be displayed on the
@@ -422,21 +449,23 @@ export class Environment {
    */
   @IsOptional()
   @IsUrl()
-  public OIDC_AUTH_URI = process.env.OIDC_AUTH_URI;
+  public OIDC_AUTH_URI = this.toOptionalString(process.env.OIDC_AUTH_URI);
 
   /**
    * The OIDC token endpoint.
    */
   @IsOptional()
   @IsUrl()
-  public OIDC_TOKEN_URI = process.env.OIDC_TOKEN_URI;
+  public OIDC_TOKEN_URI = this.toOptionalString(process.env.OIDC_TOKEN_URI);
 
   /**
    * The OIDC userinfo endpoint.
    */
   @IsOptional()
   @IsUrl()
-  public OIDC_USERINFO_URI = process.env.OIDC_USERINFO_URI;
+  public OIDC_USERINFO_URI = this.toOptionalString(
+    process.env.OIDC_USERINFO_URI
+  );
 
   /**
    * The OIDC profile field to use as the username. The default value is
@@ -450,6 +479,10 @@ export class Environment {
    * profile email".
    */
   public OIDC_SCOPES = process.env.OIDC_SCOPES ?? "openid profile email";
+
+  private toOptionalString(value: string | undefined) {
+    return value ? value : undefined;
+  }
 
   private toOptionalNumber(value: string | undefined) {
     return value ? parseInt(value, 10) : undefined;
