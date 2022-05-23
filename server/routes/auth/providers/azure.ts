@@ -15,25 +15,22 @@ import { StateStore, request } from "@server/utils/passport";
 
 const router = new Router();
 const providerName = "azure";
-const AZURE_CLIENT_ID = process.env.AZURE_CLIENT_ID;
-const AZURE_CLIENT_SECRET = process.env.AZURE_CLIENT_SECRET;
-const AZURE_RESOURCE_APP_ID = process.env.AZURE_RESOURCE_APP_ID;
 const scopes: string[] = [];
 
 export const config = {
   name: "Microsoft",
-  enabled: !!AZURE_CLIENT_ID,
+  enabled: !!env.AZURE_CLIENT_ID,
 };
 
-if (AZURE_CLIENT_ID && AZURE_CLIENT_SECRET) {
+if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
   const strategy = new AzureStrategy(
     {
-      clientID: AZURE_CLIENT_ID,
-      clientSecret: AZURE_CLIENT_SECRET,
+      clientID: env.AZURE_CLIENT_ID,
+      clientSecret: env.AZURE_CLIENT_SECRET,
       callbackURL: `${env.URL}/auth/azure.callback`,
       useCommonEndpoint: true,
       passReqToCallback: true,
-      resource: AZURE_RESOURCE_APP_ID,
+      resource: env.AZURE_RESOURCE_APP_ID,
       // @ts-expect-error StateStore
       store: new StateStore(),
       scope: scopes,

@@ -68,16 +68,12 @@ export default async function documentUpdater({
     }
   }
 
-  document.lastModifiedById = user.id;
   const changed = document.changed();
 
   if (publish) {
+    document.lastModifiedById = user.id;
     await document.publish(user.id, { transaction });
-  } else {
-    await document.save({ transaction });
-  }
 
-  if (publish) {
     await Event.create(
       {
         name: "documents.publish",
@@ -93,6 +89,9 @@ export default async function documentUpdater({
       { transaction }
     );
   } else if (changed) {
+    document.lastModifiedById = user.id;
+    await document.save({ transaction });
+
     await Event.create(
       {
         name: "documents.update",

@@ -50,6 +50,7 @@ export default class Embed extends Node {
         { class: "embed", src: node.attrs.href, contentEditable: "false" },
         0,
       ],
+      toPlainText: (node) => node.attrs.href,
     };
   }
 

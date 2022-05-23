@@ -16,8 +16,8 @@ import Theme from "~/components/Theme";
 import Toasts from "~/components/Toasts";
 import env from "~/env";
 import Routes from "./routes";
+import Logger from "./utils/Logger";
 import history from "./utils/history";
-import Logger from "./utils/logger";
 import { initSentry } from "./utils/sentry";
 
 initI18n();

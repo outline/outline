@@ -18,6 +18,8 @@ import useKeyDown from "~/hooks/useKeyDown";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
+import useUserLocale from "~/hooks/useUserLocale";
+import { dateLocale } from "~/utils/i18n";
 
 type Props = {
   document: Document;
@@ -109,6 +111,9 @@ function SharePopover({
     }, 250);
   }, [t, onRequestClose, showToast]);
 
+  const userLocale = useUserLocale();
+  const locale = userLocale ? dateLocale(userLocale) : undefined;
+
   return (
     <>
       <Heading>
@@ -156,6 +161,7 @@ function SharePopover({
                       Date.parse(share?.lastAccessedAt),
                       {
                         addSuffix: true,
+                        locale,
                       }
                     ),
                   })}

@@ -2,7 +2,7 @@ import util from "util";
 import AWS from "aws-sdk";
 import fetch from "fetch-with-proxy";
 import { v4 as uuidv4 } from "uuid";
-import Logger from "@server/logging/logger";
+import Logger from "@server/logging/Logger";
 
 // backward compatibility
 function removeBucketName(url: string | undefined) {

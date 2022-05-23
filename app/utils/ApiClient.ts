@@ -4,7 +4,7 @@ import { trim } from "lodash";
 import queryString from "query-string";
 import EDITOR_VERSION from "@shared/editor/version";
 import stores from "~/stores";
-import isHosted from "~/utils/isHosted";
+import isCloudHosted from "~/utils/isCloudHosted";
 import download from "./download";
 import {
   AuthorizationError,
@@ -107,7 +107,7 @@ class ApiClient {
         // not needed for authentication this offers a performance increase.
         // For self-hosted we include them to support a wide variety of
         // authenticated proxies, e.g. Pomerium, Cloudflare Access etc.
-        credentials: isHosted ? "omit" : "same-origin",
+        credentials: isCloudHosted ? "omit" : "same-origin",
         cache: "no-cache",
       });
     } catch (err) {

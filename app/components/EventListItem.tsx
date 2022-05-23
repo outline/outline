@@ -113,7 +113,10 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
         <Time
           dateTime={event.createdAt}
           tooltipDelay={500}
-          format="MMM do, h:mm a"
+          format={{
+            en_US: "MMM do, h:mm a",
+            fr_FR: "'Le 'd MMMM 'à' H:mm",
+          }}
           relative={false}
           addSuffix
           onClick={handleTimeClick}

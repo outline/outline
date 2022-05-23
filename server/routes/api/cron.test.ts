@@ -8,9 +8,9 @@ const server = new TestServer(app.callback());
 beforeEach(() => flushdb());
 afterAll(() => server.close());
 
-describe("#utils.gc", () => {
+describe("#cron.daily", () => {
   it("should require authentication", async () => {
-    const res = await server.post("/api/utils.gc");
+    const res = await server.post("/api/cron.daily");
     expect(res.status).toEqual(401);
   });
 });

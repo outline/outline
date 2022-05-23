@@ -13,7 +13,7 @@ import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
-import isHosted from "~/utils/isHosted";
+import isCloudHosted from "~/utils/isCloudHosted";
 import ImageInput from "./components/ImageInput";
 import SettingRow from "./components/SettingRow";
 
@@ -134,7 +134,7 @@ function Details() {
           />
         </SettingRow>
         <SettingRow
-          visible={env.SUBDOMAINS_ENABLED && isHosted}
+          visible={env.SUBDOMAINS_ENABLED && isCloudHosted}
           label={t("Subdomain")}
           name="subdomain"
           description={

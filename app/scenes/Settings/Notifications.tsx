@@ -13,7 +13,7 @@ import env from "~/env";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
-import isHosted from "~/utils/isHosted";
+import isCloudHosted from "~/utils/isCloudHosted";
 import SettingRow from "./components/SettingRow";
 
 function Notifications() {
@@ -48,7 +48,7 @@ function Notifications() {
       separator: true,
     },
     {
-      visible: isHosted,
+      visible: isCloudHosted,
       event: "emails.onboarding",
       title: t("Getting started"),
       description: t(
@@ -56,7 +56,7 @@ function Notifications() {
       ),
     },
     {
-      visible: isHosted,
+      visible: isCloudHosted,
       event: "emails.features",
       title: t("New features"),
       description: t("Receive an email when new features of note are added"),

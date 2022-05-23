@@ -5189,6 +5189,14 @@ class-utils@^0.3.5:
     isobject "^3.0.0"
     static-extend "^0.1.1"
 
+class-validator@^0.13.2:
+  version "0.13.2"
+  resolved "https://registry.yarnpkg.com/class-validator/-/class-validator-0.13.2.tgz#64b031e9f3f81a1e1dcd04a5d604734608b24143"
+  integrity sha512-yBUcQy07FPlGzUjoLuUfIOXzgynnQPPruyK1Ge2B74k9ROwnle1E+NxLWnUv5OLU8hA/qL5leAE9XnXq3byaBw==
+  dependencies:
+    libphonenumber-js "^1.9.43"
+    validator "^13.7.0"
+
 clean-css@^4.0.12, clean-css@^4.2.3:
   version "4.2.4"
   resolved "https://registry.yarnpkg.com/clean-css/-/clean-css-4.2.4.tgz#733bf46eba4e607c6891ea57c24a989356831178"
@@ -10079,6 +10087,11 @@ lib0@^0.2.35, lib0@^0.2.42, lib0@^0.2.46, lib0@^0.2.47, lib0@^0.2.49:
   integrity sha512-ziwYLe/pmI9bjHsAehm4ApuVfZ+q+sbC+vO6Z5+KM+0Fe0MrTLwZSDkJ+cElnhFNQ0P6z/wVkRmc5+vTmImJ9A==
   dependencies:
     isomorphic.js "^0.2.4"
+
+libphonenumber-js@^1.9.43:
+  version "1.9.52"
+  resolved "https://registry.yarnpkg.com/libphonenumber-js/-/libphonenumber-js-1.9.52.tgz#662ea92dcb6761ceb2dc9a8cd036aadd355bc999"
+  integrity sha512-8k83chc+zMj+J/RkaBxi0PpSTAdzHmpqzCMqquSJVRfbZFr8DCp6vPC7ms2PIPGxeqajZLI6CBLW5nLCJCJrYg==
 
 lie@~3.3.0:
   version "3.3.0"
@@ -15002,7 +15015,7 @@ validate-npm-package-license@^3.0.1:
     spdx-correct "^3.0.0"
     spdx-expression-parse "^3.0.0"
 
-validator@13.7.0, validator@^13.6.0:
+validator@13.7.0, validator@^13.6.0, validator@^13.7.0:
   version "13.7.0"
   resolved "https://registry.yarnpkg.com/validator/-/validator-13.7.0.tgz#4f9658ba13ba8f3d82ee881d3516489ea85c0857"
   integrity sha512-nYXQLCBkpJ8X6ltALua9dRrZDHVYxjJ1wgskNt1lH9fzGjs3tgojGSCBjmEPwkWS1y29+DrizMTW19Pr9uB2nw==

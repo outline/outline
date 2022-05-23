@@ -175,7 +175,7 @@ router.post("documents.archived", auth(), pagination(), async (ctx) => {
   const { user } = ctx.state;
   const collectionIds = await user.collectionIds();
   const collectionScope: Readonly<ScopeOptions> = {
-    method: ["withCollection", user.id],
+    method: ["withCollectionPermissions", user.id],
   };
   const viewScope: Readonly<ScopeOptions> = {
     method: ["withViews", user.id],
@@ -221,7 +221,7 @@ router.post("documents.deleted", auth(), pagination(), async (ctx) => {
     paranoid: false,
   });
   const collectionScope: Readonly<ScopeOptions> = {
-    method: ["withCollection", user.id],
+    method: ["withCollectionPermissions", user.id],
   };
   const viewScope: Readonly<ScopeOptions> = {
     method: ["withViews", user.id],
@@ -359,7 +359,7 @@ router.post("documents.drafts", auth(), pagination(), async (ctx) => {
   }
 
   const collectionScope: Readonly<ScopeOptions> = {
-    method: ["withCollection", user.id],
+    method: ["withCollectionPermissions", user.id],
   };
   const documents = await Document.scope([
     "defaultScope",
@@ -467,10 +467,16 @@ async function loadDocument({
       await share.update({
         lastAccessedAt: new Date(),
       });
+
+      // Cannot use document.collection here as it does not include the
+      // documentStructure by default through the relationship.
+      collection = await Collection.findByPk(document.collectionId);
+      invariant(collection, "collection not found");
+
       return {
         document,
         share,
-        collection: document.collection,
+        collection,
       };
     }
 
@@ -710,7 +716,7 @@ router.post("documents.search_titles", auth(), pagination(), async (ctx) => {
       method: ["withViews", user.id],
     },
     {
-      method: ["withCollection", user.id],
+      method: ["withCollectionPermissions", user.id],
     },
   ]).findAll({
     where: {
@@ -1218,6 +1224,11 @@ router.post("documents.unpublish", auth(), async (ctx) => {
     userId: user.id,
   });
   authorize(user, "unpublish", document);
+
+  const childDocumentIds = await document.getChildDocumentIds();
+  if (childDocumentIds.length > 0) {
+    throw InvalidRequestError("Cannot unpublish document with child documents");
+  }
 
   await document.unpublish(user.id);
   await Event.create({

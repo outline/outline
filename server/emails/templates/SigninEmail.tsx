@@ -1,5 +1,6 @@
 import * as React from "react";
-import logger from "@server/logging/logger";
+import env from "@server/env";
+import logger from "@server/logging/Logger";
 import BaseEmail from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
@@ -39,7 +40,7 @@ signin page at: ${teamUrl}
   }
 
   protected render({ token, teamUrl }: Props) {
-    if (process.env.NODE_ENV === "development") {
+    if (env.ENVIRONMENT === "development") {
       logger.debug("email", `Sign-In link: ${this.signinLink(token)}`);
     }
 
@@ -67,6 +68,6 @@ signin page at: ${teamUrl}
   }
 
   private signinLink(token: string): string {
-    return `${process.env.URL}/auth/email.callback?token=${token}`;
+    return `${env.URL}/auth/email.callback?token=${token}`;
   }
 }

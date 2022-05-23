@@ -1,8 +1,6 @@
 import crypto from "crypto";
 import fetch from "fetch-with-proxy";
-
-export const DEFAULT_AVATAR_HOST =
-  process.env.DEFAULT_AVATAR_HOST || "https://tiley.herokuapp.com";
+import env from "@server/env";
 
 export async function generateAvatarUrl({
   id,
@@ -30,8 +28,8 @@ export async function generateAvatarUrl({
     }
   }
 
-  const tileyUrl = `${DEFAULT_AVATAR_HOST}/avatar/${hashedId}/${encodeURIComponent(
-    name[0]
-  )}.png`;
+  const tileyUrl = `${
+    env.DEFAULT_AVATAR_HOST
+  }/avatar/${hashedId}/${encodeURIComponent(name[0])}.png`;
   return cbUrl && cbResponse && cbResponse.status === 200 ? cbUrl : tileyUrl;
 }

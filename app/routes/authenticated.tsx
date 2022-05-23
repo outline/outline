@@ -1,11 +1,9 @@
 import * as React from "react";
 import { Switch, Redirect, RouteComponentProps } from "react-router-dom";
 import Archive from "~/scenes/Archive";
-import Collection from "~/scenes/Collection";
 import DocumentNew from "~/scenes/DocumentNew";
 import Drafts from "~/scenes/Drafts";
 import Error404 from "~/scenes/Error404";
-import Search from "~/scenes/Search";
 import Templates from "~/scenes/Templates";
 import Trash from "~/scenes/Trash";
 import Layout from "~/components/AuthenticatedLayout";
@@ -29,6 +27,13 @@ const Document = React.lazy(
       "~/scenes/Document"
     )
 );
+const Collection = React.lazy(
+  () =>
+    import(
+      /* webpackChunkName: "collection" */
+      "~/scenes/Collection"
+    )
+);
 const Home = React.lazy(
   () =>
     import(
@@ -36,8 +41,13 @@ const Home = React.lazy(
       "~/scenes/Home"
     )
 );
-
-const NotFound = () => <Search notFound />;
+const Search = React.lazy(
+  () =>
+    import(
+      /* webpackChunkName: "search" */
+      "~/scenes/Search"
+    )
+);
 
 const RedirectDocument = ({
   match,
@@ -86,7 +96,7 @@ export default function AuthenticatedRoutes() {
             <Route exact path="/search/:term" component={Search} />
             <Route path="/404" component={Error404} />
             <SettingsRoutes />
-            <Route component={NotFound} />
+            <Route component={Error404} />
           </Switch>
         </React.Suspense>
       </Layout>

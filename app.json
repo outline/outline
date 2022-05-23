@@ -43,10 +43,6 @@
       "value": "true",
       "required": true
     },
-    "ALLOWED_DOMAINS": {
-      "description": "Comma separated list of domains to be allowed (optional). If not set, all domains are allowed by default when using Google OAuth to signin. Consider putting {your app name}.herokuapp.com and any domain you are binding on in this list.",
-      "required": false
-    },
     "URL": {
       "description": "https://{your app name}.herokuapp.com, or the domain you are binding to",
       "required": true
@@ -106,11 +102,11 @@
       "value": "openid profile email",
       "required": false
     },
-    "SLACK_KEY": {
+    "SLACK_CLIENT_ID": {
       "description": "See https://api.slack.com/apps to create a new Slack app. You must configure at least one of Slack or Google to control login.",
       "required": false
     },
-    "SLACK_SECRET": {
+    "SLACK_CLIENT_SECRET": {
       "description": "Your Slack client secret - d2dc414f9953226bad0a356cXXXXYYYY",
       "required": false
     },

@@ -5,6 +5,7 @@ import Koa, { Context, Next } from "koa";
 import Router from "koa-router";
 import send from "koa-send";
 import serve from "koa-static";
+import { escape } from "lodash";
 import isUUID from "validator/lib/isUUID";
 import { languages } from "@shared/i18n";
 import env from "@server/env";
@@ -16,8 +17,8 @@ import { robotsResponse } from "@server/utils/robots";
 import apexRedirect from "../middlewares/apexRedirect";
 import presentEnv from "../presenters/env";
 
-const isProduction = process.env.NODE_ENV === "production";
-const isTest = process.env.NODE_ENV === "test";
+const isProduction = env.ENVIRONMENT === "production";
+const isTest = env.ENVIRONMENT === "test";
 const koa = new Koa();
 const router = new Router();
 const readFile = util.promisify(fs.readFile);
@@ -47,7 +48,17 @@ const readIndexFile = async (ctx: Context): Promise<Buffer> => {
   });
 };
 
-const renderApp = async (ctx: Context, next: Next, title = "Outline") => {
+const renderApp = async (
+  ctx: Context,
+  next: Next,
+  options: { title?: string; description?: string; canonical?: string } = {}
+) => {
+  const {
+    title = "Outline",
+    description = "A modern team knowledge base for your internal documentation, product specs, support answers, meeting notes, onboarding, &amp; more…",
+    canonical = ctx.request.href,
+  } = options;
+
   if (ctx.request.path === "/realtime/") {
     return next();
   }
@@ -60,9 +71,11 @@ const renderApp = async (ctx: Context, next: Next, title = "Outline") => {
   ctx.body = page
     .toString()
     .replace(/\/\/inject-env\/\//g, environment)
-    .replace(/\/\/inject-title\/\//g, title)
+    .replace(/\/\/inject-title\/\//g, escape(title))
+    .replace(/\/\/inject-description\/\//g, escape(description))
+    .replace(/\/\/inject-canonical\/\//g, canonical)
     .replace(/\/\/inject-prefetch\/\//g, shareId ? "" : prefetchTags)
-    .replace(/\/\/inject-slack-app-id\/\//g, process.env.SLACK_APP_ID || "");
+    .replace(/\/\/inject-slack-app-id\/\//g, env.SLACK_APP_ID || "");
 };
 
 const renderShare = async (ctx: Context, next: Next) => {
@@ -83,7 +96,15 @@ const renderShare = async (ctx: Context, next: Next) => {
 
   // Allow shares to be embedded in iframes on other websites
   ctx.remove("X-Frame-Options");
-  return renderApp(ctx, next, share?.document?.title);
+
+  // Inject share information in SSR HTML
+  return renderApp(ctx, next, {
+    title: share?.document?.title,
+    description: share?.document?.getSummary(),
+    canonical: share
+      ? ctx.request.href.replace(ctx.request.origin, share.team.url)
+      : undefined,
+  });
 };
 
 // serve static assets
@@ -93,7 +114,7 @@ koa.use(
   })
 );
 
-if (process.env.NODE_ENV === "production") {
+if (isProduction) {
   router.get("/static/*", async (ctx) => {
     try {
       const pathname = ctx.path.substring(8);
@@ -135,9 +156,7 @@ router.get("/locales/:lng.json", async (ctx) => {
     setHeaders: (res) => {
       res.setHeader(
         "Cache-Control",
-        process.env.NODE_ENV === "production"
-          ? `max-age=${7 * 24 * 60 * 60}`
-          : "no-cache"
+        isProduction ? `max-age=${7 * 24 * 60 * 60}` : "no-cache"
       );
     },
     root: path.join(__dirname, "../../shared/i18n/locales"),

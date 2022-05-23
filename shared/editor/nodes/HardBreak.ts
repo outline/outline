@@ -17,9 +17,8 @@ export default class HardBreak extends Node {
       group: "inline",
       selectable: false,
       parseDOM: [{ tag: "br" }],
-      toDOM() {
-        return ["br"];
-      },
+      toDOM: () => ["br"],
+      toPlainText: () => "\n",
     };
   }
 

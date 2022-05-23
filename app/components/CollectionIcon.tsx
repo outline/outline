@@ -5,7 +5,7 @@ import * as React from "react";
 import Collection from "~/models/Collection";
 import { icons } from "~/components/IconPicker";
 import useStores from "~/hooks/useStores";
-import Logger from "~/utils/logger";
+import Logger from "~/utils/Logger";
 
 type Props = {
   collection: Collection;

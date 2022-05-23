@@ -1,13 +1,17 @@
-import "../env";
+import env from "../env";
 
 // test environment variables
-process.env.SMTP_HOST = "smtp.example.com";
-process.env.DATABASE_URL = process.env.DATABASE_URL_TEST;
-process.env.NODE_ENV = "test";
-process.env.GOOGLE_CLIENT_ID = "123";
-process.env.SLACK_KEY = "123";
-process.env.DEPLOYMENT = "";
-process.env.ALLOWED_DOMAINS = "allowed-domain.com";
+env.SMTP_HOST = "smtp.example.com";
+env.ENVIRONMENT = "test";
+env.GOOGLE_CLIENT_ID = "123";
+env.GOOGLE_CLIENT_SECRET = "123";
+env.SLACK_CLIENT_ID = "123";
+env.SLACK_CLIENT_SECRET = "123";
+env.DEPLOYMENT = undefined;
+
+if (process.env.DATABASE_URL_TEST) {
+  env.DATABASE_URL = process.env.DATABASE_URL_TEST;
+}
 
 // NOTE: this require must come after the ENV var override above
 // so that sequelize uses the test config variables

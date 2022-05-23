@@ -1,6 +1,7 @@
 import Redis from "ioredis";
 import { defaults } from "lodash";
-import Logger from "./logging/logger";
+import env from "@server/env";
+import Logger from "@server/logging/Logger";
 
 const defaultOptions = {
   maxRetriesPerRequest: 20,
@@ -12,23 +13,21 @@ const defaultOptions = {
 
   // support Heroku Redis, see:
   // https://devcenter.heroku.com/articles/heroku-redis#ioredis-module
-  tls:
-    process.env.REDIS_URL && process.env.REDIS_URL.startsWith("rediss://")
-      ? {
-          rejectUnauthorized: false,
-        }
-      : undefined,
+  tls: (env.REDIS_URL || "").startsWith("rediss://")
+    ? {
+        rejectUnauthorized: false,
+      }
+    : undefined,
 };
 
 export default class RedisAdapter extends Redis {
   constructor(url: string | undefined) {
-    if (!(url || "").startsWith("ioredis://")) {
-      super(process.env.REDIS_URL, defaultOptions);
+    if (!url || !url.startsWith("ioredis://")) {
+      super(env.REDIS_URL, defaultOptions);
     } else {
       let customOptions = {};
       try {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        const decodedString = Buffer.from(url!.slice(10), "base64").toString();
+        const decodedString = Buffer.from(url.slice(10), "base64").toString();
         customOptions = JSON.parse(decodedString);
       } catch (error) {
         throw new Error(`Failed to decode redis adapter options: ${error}`);
@@ -52,12 +51,10 @@ export default class RedisAdapter extends Redis {
   private static _subscriber: RedisAdapter;
 
   public static get defaultClient(): RedisAdapter {
-    return this._client || (this._client = new this(process.env.REDIS_URL));
+    return this._client || (this._client = new this(env.REDIS_URL));
   }
 
   public static get defaultSubscriber(): RedisAdapter {
-    return (
-      this._subscriber || (this._subscriber = new this(process.env.REDIS_URL))
-    );
+    return this._subscriber || (this._subscriber = new this(env.REDIS_URL));
   }
 }

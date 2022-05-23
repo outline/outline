@@ -1,4 +1,6 @@
-import { buildTeam } from "@server/test/factories";
+import env from "@server/env";
+import TeamDomain from "@server/models/TeamDomain";
+import { buildTeam, buildUser } from "@server/test/factories";
 import { flushdb } from "@server/test/support";
 import teamCreator from "./teamCreator";
 
@@ -24,7 +26,7 @@ describe("teamCreator", () => {
   });
 
   it("should not allow creating multiple teams in installation", async () => {
-    delete process.env.DEPLOYMENT;
+    env.DEPLOYMENT = undefined;
     await buildTeam();
     let error;
 
@@ -46,8 +48,17 @@ describe("teamCreator", () => {
   });
 
   it("should return existing team when within allowed domains", async () => {
-    delete process.env.DEPLOYMENT;
+    env.DEPLOYMENT = undefined;
     const existing = await buildTeam();
+    const user = await buildUser({
+      teamId: existing.id,
+    });
+    await TeamDomain.create({
+      teamId: existing.id,
+      name: "allowed-domain.com",
+      createdById: user.id,
+    });
+
     const result = await teamCreator({
       name: "Updated name",
       subdomain: "example",
@@ -67,8 +78,36 @@ describe("teamCreator", () => {
     expect(providers.length).toEqual(2);
   });
 
-  it("should return exising team", async () => {
+  it("should error when NOT within allowed domains", async () => {
+    const user = await buildUser();
     delete process.env.DEPLOYMENT;
+    const existing = await buildTeam();
+    await TeamDomain.create({
+      teamId: existing.id,
+      name: "other-domain.com",
+      createdById: user.id,
+    });
+
+    let error;
+    try {
+      await teamCreator({
+        name: "Updated name",
+        subdomain: "example",
+        domain: "allowed-domain.com",
+        authenticationProvider: {
+          name: "google",
+          providerId: "allowed-domain.com",
+        },
+      });
+    } catch (err) {
+      error = err;
+    }
+
+    expect(error).toBeTruthy();
+  });
+
+  it("should return exising team", async () => {
+    env.DEPLOYMENT = undefined;
     const authenticationProvider = {
       name: "google",
       providerId: "example.com",

@@ -5,8 +5,9 @@ import userInviter from "@server/commands/userInviter";
 import userSuspender from "@server/commands/userSuspender";
 import { sequelize } from "@server/database/sequelize";
 import InviteEmail from "@server/emails/templates/InviteEmail";
+import env from "@server/env";
 import { ValidationError } from "@server/errors";
-import logger from "@server/logging/logger";
+import logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import { Event, User, Team } from "@server/models";
 import { UserFlag } from "@server/models/User";
@@ -338,11 +339,11 @@ router.post("users.resendInvite", auth(), async (ctx) => {
     user.incrementFlag(UserFlag.InviteSent);
     await user.save({ transaction });
 
-    if (process.env.NODE_ENV === "development") {
+    if (env.ENVIRONMENT === "development") {
       logger.info(
         "email",
         `Sign in immediately: ${
-          process.env.URL
+          env.URL
         }/auth/email.callback?token=${user.getEmailSigninToken()}`
       );
     }

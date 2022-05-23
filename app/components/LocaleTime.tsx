@@ -2,7 +2,7 @@ import { format as formatDate, formatDistanceToNow } from "date-fns";
 import * as React from "react";
 import Tooltip from "~/components/Tooltip";
 import useUserLocale from "~/hooks/useUserLocale";
-import { dateLocale } from "~/utils/i18n";
+import { dateLocale, locales } from "~/utils/i18n";
 
 let callbacks: (() => void)[] = [];
 
@@ -26,7 +26,7 @@ type Props = {
   addSuffix?: boolean;
   shorten?: boolean;
   relative?: boolean;
-  format?: string;
+  format?: Partial<Record<keyof typeof locales, string>>;
 };
 
 const LocaleTime: React.FC<Props> = ({
@@ -38,7 +38,13 @@ const LocaleTime: React.FC<Props> = ({
   relative,
   tooltipDelay,
 }) => {
-  const userLocale = useUserLocale();
+  const userLocale: string = useUserLocale() || "";
+  const dateFormatLong = {
+    en_US: "MMMM do, yyyy h:mm a",
+    fr_FR: "'Le 'd MMMM yyyy 'à' H:mm",
+  };
+  const formatLocaleLong = dateFormatLong[userLocale] ?? "MMMM do, yyyy h:mm a";
+  const formatLocale = format?.[userLocale] ?? formatLocaleLong;
   const [_, setMinutesMounted] = React.useState(0); // eslint-disable-line @typescript-eslint/no-unused-vars
   const callback = React.useRef<() => void>();
 
@@ -66,17 +72,13 @@ const LocaleTime: React.FC<Props> = ({
       .replace("minute", "min");
   }
 
-  const tooltipContent = formatDate(
-    Date.parse(dateTime),
-    "MMMM do, yyyy h:mm a",
-    {
-      locale,
-    }
-  );
+  const tooltipContent = formatDate(Date.parse(dateTime), formatLocaleLong, {
+    locale,
+  });
   const content =
     relative !== false
       ? relativeContent
-      : formatDate(Date.parse(dateTime), format || "MMMM do, yyyy h:mm a", {
+      : formatDate(Date.parse(dateTime), formatLocale, {
           locale,
         });
 

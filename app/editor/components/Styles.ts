@@ -1,5 +1,5 @@
 /* eslint-disable no-irregular-whitespace */
-import { lighten } from "polished";
+import { lighten, transparentize } from "polished";
 import styled from "styled-components";
 
 const EditorStyles = styled.div<{
@@ -403,7 +403,9 @@ const EditorStyles = styled.div<{
     padding: 0;
 
     &.collapsed {
-      transform: rotate(${(props) => (props.rtl ? "90deg" : "-90deg")});
+      svg {
+        transform: rotate(${(props) => (props.rtl ? "90deg" : "-90deg")});
+      }
       transition-delay: 0.1s;
       opacity: 1;
     }
@@ -429,10 +431,12 @@ const EditorStyles = styled.div<{
   .notice-block {
     display: flex;
     align-items: center;
-    background: ${(props) => props.theme.noticeInfoBackground};
+    background: ${(props) =>
+      transparentize(0.9, props.theme.noticeInfoBackground)};
+    border-left: 4px solid ${(props) => props.theme.noticeInfoBackground};
     color: ${(props) => props.theme.noticeInfoText};
     border-radius: 4px;
-    padding: 8px 16px;
+    padding: 8px 10px 8px 8px;
     margin: 8px 0;
 
     a {
@@ -462,11 +466,18 @@ const EditorStyles = styled.div<{
     height: 24px;
     align-self: flex-start;
     margin-${(props) => (props.rtl ? "left" : "right")}: 4px;
+    color: ${(props) => props.theme.noticeInfoBackground};
   }
 
   .notice-block.tip {
-    background: ${(props) => props.theme.noticeTipBackground};
+    background: ${(props) =>
+      transparentize(0.9, props.theme.noticeTipBackground)};
+    border-left: 4px solid ${(props) => props.theme.noticeTipBackground};
     color: ${(props) => props.theme.noticeTipText};
+
+    .icon {
+      color: ${(props) => props.theme.noticeTipBackground};
+    }
 
     a {
       color: ${(props) => props.theme.noticeTipText};
@@ -474,8 +485,14 @@ const EditorStyles = styled.div<{
   }
 
   .notice-block.warning {
-    background: ${(props) => props.theme.noticeWarningBackground};
+    background: ${(props) =>
+      transparentize(0.9, props.theme.noticeWarningBackground)};
+    border-left: 4px solid ${(props) => props.theme.noticeWarningBackground};
     color: ${(props) => props.theme.noticeWarningText};
+
+    .icon {
+      color: ${(props) => props.theme.noticeWarningBackground};
+    }
 
     a {
       color: ${(props) => props.theme.noticeWarningText};

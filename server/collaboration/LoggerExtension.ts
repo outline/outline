@@ -4,7 +4,7 @@ import {
   onLoadDocumentPayload,
   Extension,
 } from "@hocuspocus/server";
-import Logger from "@server/logging/logger";
+import Logger from "@server/logging/Logger";
 
 export default class LoggerExtension implements Extension {
   async onLoadDocument(data: onLoadDocumentPayload) {
