@@ -19,7 +19,7 @@ type Props = RootStore & {
   membership?: CollectionGroupMembership;
   showFacepile?: boolean;
   showAvatar?: boolean;
-  renderActions: (arg0: { openMembersModal: () => void }) => React.ReactNode;
+  renderActions: (params: { openMembersModal: () => void }) => React.ReactNode;
 };
 
 @observer
@@ -61,7 +61,7 @@ class GroupListItem extends React.Component<Props> {
             </>
           }
           actions={
-            <Flex align="center">
+            <Flex align="center" gap={8}>
               {showFacepile && (
                 <Facepile
                   onClick={this.handleMembersModalOpen}
@@ -69,7 +69,6 @@ class GroupListItem extends React.Component<Props> {
                   overflow={overflow}
                 />
               )}
-              &nbsp;
               {renderActions({
                 openMembersModal: this.handleMembersModalOpen,
               })}

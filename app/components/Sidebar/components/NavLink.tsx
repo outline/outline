@@ -70,7 +70,7 @@ const NavLink = ({
   const { pathname: path } = toLocation;
 
   // Regex taken from: https://github.com/pillarjs/path-to-regexp/blob/master/index.js#L202
-  const escapedPath = path && path.replace(/([.+*?=^!:${}()[\]|/\\])/g, "\\$1");
+  const escapedPath = path?.replace(/([.+*?=^!:${}()[\]|/\\])/g, "\\$1");
   const match = escapedPath
     ? matchPath(currentLocation.pathname, {
         path: escapedPath,

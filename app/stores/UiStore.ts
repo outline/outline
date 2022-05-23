@@ -1,8 +1,8 @@
 import { action, autorun, computed, observable } from "mobx";
-import { light as defaultTheme } from "@shared/theme";
-import Collection from "~/models/Collection";
+import { light as defaultTheme } from "@shared/styles/theme";
 import Document from "~/models/Document";
 import { ConnectionStatus } from "~/scenes/Document/components/MultiplayerEditor";
+import Storage from "~/utils/Storage";
 
 const UI_STORE = "UI_STORE";
 
@@ -40,6 +40,9 @@ class UiStore {
   observingUserId: string | undefined;
 
   @observable
+  commandBarOpenedFromSidebar = false;
+
+  @observable
   progressBarVisible = false;
 
   @observable
@@ -65,13 +68,7 @@ class UiStore {
 
   constructor() {
     // Rehydrate
-    let data: Partial<UiStore> = {};
-
-    try {
-      data = JSON.parse(localStorage.getItem(UI_STORE) || "{}");
-    } catch (_) {
-      // no-op Safari private mode
-    }
+    const data: Partial<UiStore> = Storage.get(UI_STORE) || {};
 
     // system theme listeners
     if (window.matchMedia) {
@@ -98,21 +95,14 @@ class UiStore {
     this.theme = data.theme || Theme.System;
 
     autorun(() => {
-      try {
-        localStorage.setItem(UI_STORE, this.asJson);
-      } catch (_) {
-        // no-op Safari private mode
-      }
+      Storage.set(UI_STORE, this.asJson);
     });
   }
 
   @action
   setTheme = (theme: Theme) => {
     this.theme = theme;
-
-    if (window.localStorage) {
-      window.localStorage.setItem("theme", this.theme);
-    }
+    Storage.set("theme", this.theme);
   };
 
   @action
@@ -121,7 +111,13 @@ class UiStore {
   };
 
   @action
-  setActiveDocument = (document: Document): void => {
+  setActiveDocument = (document: Document | string): void => {
+    if (typeof document === "string") {
+      this.activeDocumentId = document;
+      this.observingUserId = undefined;
+      return;
+    }
+
     this.activeDocumentId = document.id;
     this.observingUserId = undefined;
 
@@ -141,8 +137,8 @@ class UiStore {
   };
 
   @action
-  setActiveCollection = (collection: Collection): void => {
-    this.activeCollectionId = collection.id;
+  setActiveCollection = (collectionId: string | undefined): void => {
+    this.activeCollectionId = collectionId;
   };
 
   @action
@@ -212,6 +208,16 @@ class UiStore {
   };
 
   @action
+  commandBarOpened = () => {
+    this.commandBarOpenedFromSidebar = true;
+  };
+
+  @action
+  commandBarClosed = () => {
+    this.commandBarOpenedFromSidebar = false;
+  };
+
+  @action
   hideMobileSidebar = () => {
     this.mobileSidebarVisible = false;
   };
@@ -226,14 +232,14 @@ class UiStore {
   }
 
   @computed
-  get asJson(): string {
-    return JSON.stringify({
+  get asJson() {
+    return {
       tocVisible: this.tocVisible,
       sidebarCollapsed: this.sidebarCollapsed,
       sidebarWidth: this.sidebarWidth,
       languagePromptDismissed: this.languagePromptDismissed,
       theme: this.theme,
-    });
+    };
   }
 }
 

@@ -2,7 +2,7 @@ import { format as formatDate, formatDistanceToNow } from "date-fns";
 import * as React from "react";
 import Tooltip from "~/components/Tooltip";
 import useUserLocale from "~/hooks/useUserLocale";
-import { dateLocale } from "~/utils/i18n";
+import { dateLocale, locales } from "~/utils/i18n";
 
 let callbacks: (() => void)[] = [];
 
@@ -22,15 +22,14 @@ function eachMinute(fn: () => void) {
 
 type Props = {
   dateTime: string;
-  children?: React.ReactNode;
   tooltipDelay?: number;
   addSuffix?: boolean;
   shorten?: boolean;
   relative?: boolean;
-  format?: string;
+  format?: Partial<Record<keyof typeof locales, string>>;
 };
 
-function LocaleTime({
+const LocaleTime: React.FC<Props> = ({
   addSuffix,
   children,
   dateTime,
@@ -38,8 +37,14 @@ function LocaleTime({
   format,
   relative,
   tooltipDelay,
-}: Props) {
-  const userLocale = useUserLocale();
+}) => {
+  const userLocale: string = useUserLocale() || "";
+  const dateFormatLong = {
+    en_US: "MMMM do, yyyy h:mm a",
+    fr_FR: "'Le 'd MMMM yyyy 'à' H:mm",
+  };
+  const formatLocaleLong = dateFormatLong[userLocale] ?? "MMMM do, yyyy h:mm a";
+  const formatLocale = format?.[userLocale] ?? formatLocaleLong;
   const [_, setMinutesMounted] = React.useState(0); // eslint-disable-line @typescript-eslint/no-unused-vars
   const callback = React.useRef<() => void>();
 
@@ -67,21 +72,21 @@ function LocaleTime({
       .replace("minute", "min");
   }
 
-  const tooltipContent = formatDate(
-    Date.parse(dateTime),
-    format || "MMMM do, yyyy h:mm a",
-    {
-      locale,
-    }
-  );
+  const tooltipContent = formatDate(Date.parse(dateTime), formatLocaleLong, {
+    locale,
+  });
   const content =
-    children || relative !== false ? relativeContent : tooltipContent;
+    relative !== false
+      ? relativeContent
+      : formatDate(Date.parse(dateTime), formatLocale, {
+          locale,
+        });
 
   return (
     <Tooltip tooltip={tooltipContent} delay={tooltipDelay} placement="bottom">
-      <time dateTime={dateTime}>{content}</time>
+      <time dateTime={dateTime}>{children || content}</time>
     </Tooltip>
   );
-}
+};
 
 export default LocaleTime;

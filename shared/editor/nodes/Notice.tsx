@@ -41,7 +41,7 @@ export default class Notice extends Node {
         {
           tag: "div.notice-block",
           preserveWhitespace: "full",
-          contentElement: "div:last-child",
+          contentElement: "div.content",
           getAttrs: (dom: HTMLDivElement) => ({
             style: dom.className.includes("tip")
               ? "tip"
@@ -63,6 +63,10 @@ export default class Notice extends Node {
           select.appendChild(option);
         });
 
+        const actions = document.createElement("div");
+        actions.className = "notice-actions";
+        actions.appendChild(select);
+
         let component;
 
         if (node.attrs.style === "tip") {
@@ -81,7 +85,7 @@ export default class Notice extends Node {
           "div",
           { class: `notice-block ${node.attrs.style}` },
           icon,
-          ["div", { contentEditable: "false" }, select],
+          ["div", { contentEditable: "false" }, actions],
           ["div", { class: "content" }, 0],
         ];
       },

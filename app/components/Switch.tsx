@@ -1,20 +1,35 @@
 import * as React from "react";
 import styled from "styled-components";
 import { LabelText } from "~/components/Input";
+import Text from "~/components/Text";
 
-type Props = {
+type Props = React.HTMLAttributes<HTMLInputElement> & {
   width?: number;
   height?: number;
   label?: string;
+  name?: string;
+  note?: React.ReactNode;
   checked?: boolean;
   disabled?: boolean;
   onChange: (event: React.ChangeEvent<HTMLInputElement>) => unknown;
   id?: string;
 };
 
-function Switch({ width = 38, height = 20, label, disabled, ...props }: Props) {
+function Switch({
+  width = 32,
+  height = 18,
+  label,
+  disabled,
+  className,
+  note,
+  ...props
+}: Props) {
   const component = (
-    <Wrapper width={width} height={height}>
+    <Input
+      width={width}
+      height={height}
+      className={label ? undefined : className}
+    >
       <HiddenInput
         type="checkbox"
         width={width}
@@ -23,34 +38,50 @@ function Switch({ width = 38, height = 20, label, disabled, ...props }: Props) {
         {...props}
       />
       <Slider width={width} height={height} />
-    </Wrapper>
+    </Input>
   );
 
   if (label) {
     return (
-      <Label disabled={disabled} htmlFor={props.id}>
-        {component}
-        <LabelText>{label}</LabelText>
-      </Label>
+      <Wrapper>
+        <Label disabled={disabled} htmlFor={props.id} className={className}>
+          {component}
+          <InlineLabelText>{label}</InlineLabelText>
+        </Label>
+        {note && (
+          <Text type="secondary" size="small">
+            {note}
+          </Text>
+        )}
+      </Wrapper>
     );
   }
 
   return component;
 }
 
+const Wrapper = styled.div`
+  padding-bottom: 8px;
+`;
+
+const InlineLabelText = styled(LabelText)`
+  padding-bottom: 0;
+`;
+
 const Label = styled.label<{ disabled?: boolean }>`
   display: flex;
   align-items: center;
+  user-select: none;
   ${(props) => (props.disabled ? `opacity: 0.75;` : "")}
 `;
 
-const Wrapper = styled.label<{ width: number; height: number }>`
+const Input = styled.label<{ width: number; height: number }>`
   position: relative;
   display: inline-block;
   width: ${(props) => props.width}px;
   height: ${(props) => props.height}px;
-  margin-bottom: 4px;
   margin-right: 8px;
+  flex-shrink: 0;
 `;
 
 const Slider = styled.span<{ width: number; height: number }>`

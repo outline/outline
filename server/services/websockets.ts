@@ -4,14 +4,14 @@ import Koa from "koa";
 import IO from "socket.io";
 import socketRedisAdapter from "socket.io-redis";
 import SocketAuth from "socketio-auth";
-import Logger from "@server/logging/logger";
+import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/metrics";
 import { Document, Collection, View } from "@server/models";
 import { can } from "@server/policies";
 import { getUserForJWT } from "@server/utils/jwt";
-import { websocketsQueue } from "../queues";
-import WebsocketsProcessor from "../queues/processors/websockets";
-import { client, subscriber } from "../redis";
+import { websocketQueue } from "../queues";
+import WebsocketsProcessor from "../queues/processors/WebsocketsProcessor";
+import Redis from "../redis";
 
 export default function init(app: Koa, server: http.Server) {
   const path = "/realtime";
@@ -49,8 +49,8 @@ export default function init(app: Koa, server: http.Server) {
 
   io.adapter(
     socketRedisAdapter({
-      pubClient: client,
-      subClient: subscriber,
+      pubClient: Redis.defaultClient,
+      subClient: Redis.defaultSubscriber,
     })
   );
 
@@ -92,7 +92,7 @@ export default function init(app: Koa, server: http.Server) {
 
         // store the mapping between socket id and user id in redis
         // so that it is accessible across multiple server nodes
-        await client.hset(socket.id, "userId", user.id);
+        await Redis.defaultClient.hset(socket.id, "userId", user.id);
         return callback(null, true);
       } catch (err) {
         return callback(err, false);
@@ -173,7 +173,10 @@ export default function init(app: Koa, server: http.Server) {
                 const userIds = new Map();
 
                 for (const socketId of sockets) {
-                  const userId = await client.hget(socketId, "userId");
+                  const userId = await Redis.defaultClient.hget(
+                    socketId,
+                    "userId"
+                  );
                   userIds.set(userId, userId);
                 }
 
@@ -247,9 +250,9 @@ export default function init(app: Koa, server: http.Server) {
 
   // Handle events from event queue that should be sent to the clients down ws
   const websockets = new WebsocketsProcessor();
-  websocketsQueue.process(async function websocketEventsProcessor(job) {
+  websocketQueue.process(async function websocketEventsProcessor(job) {
     const event = job.data;
-    websockets.on(event, io).catch((error) => {
+    websockets.perform(event, io).catch((error) => {
       Logger.error("Error processing websocket event", error, {
         event,
       });

@@ -1,8 +1,8 @@
 import * as React from "react";
-import Frame from "./components/Frame";
+import Frame from "../components/Frame";
 import { EmbedProps as Props } from ".";
 
-const URL_REGEX = /(http|https)?:\/\/(www\.)?vimeo.com\/(?:channels\/(?:\w+\/)?|groups\/([^/]*)\/videos\/|)(\d\w+)(?:\/|\?)?(\d\w+)?/;
+const URL_REGEX = /(http|https)?:\/\/(www\.)?vimeo.com\/(?:channels\/(?:\w+\/)?|groups\/([^/]*)\/videos\/|)(\d+)(?:\/|\?)?([\d\w]+)?/;
 
 export default class Vimeo extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
@@ -21,6 +21,7 @@ export default class Vimeo extends React.Component<Props> {
         title={`Vimeo Embed (${videoId})`}
         height="412px"
         border={false}
+        referrerPolicy="origin"
       />
     );
   }

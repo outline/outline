@@ -2,14 +2,18 @@ import { capitalize } from "lodash";
 import { findDomRefAtPos, findParentNode } from "prosemirror-utils";
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
+import { Trans } from "react-i18next";
 import { Portal } from "react-portal";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
 import insertFiles from "@shared/editor/commands/insertFiles";
 import { CommandFactory } from "@shared/editor/lib/Extension";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
-import { EmbedDescriptor, MenuItem, ToastType } from "@shared/editor/types";
+import { EmbedDescriptor, MenuItem } from "@shared/editor/types";
+import { depths } from "@shared/styles";
+import { supportedImageMimeTypes } from "@shared/utils/files";
 import getDataTransferFiles from "@shared/utils/getDataTransferFiles";
+import Scrollable from "~/components/Scrollable";
 import { Dictionary } from "~/hooks/useDictionary";
 import Input from "./Input";
 
@@ -27,10 +31,10 @@ export type Props<T extends MenuItem = MenuItem> = {
   dictionary: Dictionary;
   view: EditorView;
   search: string;
-  uploadImage?: (file: File) => Promise<string>;
-  onImageUploadStart?: () => void;
-  onImageUploadStop?: () => void;
-  onShowToast?: (message: string, id: string) => void;
+  uploadFile?: (file: File) => Promise<string>;
+  onFileUploadStart?: () => void;
+  onFileUploadStop?: () => void;
+  onShowToast: (message: string) => void;
   onLinkToolbarOpen?: () => void;
   onClose: () => void;
   onClearSearch: () => void;
@@ -84,6 +88,11 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
 
   componentDidUpdate(prevProps: Props) {
     if (!prevProps.isActive && this.props.isActive) {
+      // reset scroll position to top when opening menu as the contents are
+      // hidden, not unrendered
+      if (this.menuRef.current) {
+        this.menuRef.current.scroll({ top: 0 });
+      }
       const position = this.calculatePosition(this.props);
 
       this.setState({
@@ -101,7 +110,9 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
   }
 
   handleKeyDown = (event: KeyboardEvent) => {
-    if (!this.props.isActive) return;
+    if (!this.props.isActive) {
+      return;
+    }
 
     if (event.key === "Enter") {
       event.preventDefault();
@@ -131,7 +142,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
         this.setState({
           selectedIndex: Math.max(
             0,
-            prev && prev.name === "separator" ? prevIndex - 1 : prevIndex
+            prev?.name === "separator" ? prevIndex - 1 : prevIndex
           ),
         });
       } else {
@@ -154,7 +165,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
 
         this.setState({
           selectedIndex: Math.min(
-            next && next.name === "separator" ? nextIndex + 1 : nextIndex,
+            next?.name === "separator" ? nextIndex + 1 : nextIndex,
             total
           ),
         });
@@ -171,7 +182,9 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
   insertItem = (item: any) => {
     switch (item.name) {
       case "image":
-        return this.triggerImagePick();
+        return this.triggerFilePick(supportedImageMimeTypes.join(", "));
+      case "attachment":
+        return this.triggerFilePick("*");
       case "embed":
         return this.triggerLinkInput(item);
       case "link": {
@@ -191,8 +204,12 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
   };
 
   handleLinkInputKeydown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!this.props.isActive) return;
-    if (!this.state.insertItem) return;
+    if (!this.props.isActive) {
+      return;
+    }
+    if (!this.state.insertItem) {
+      return;
+    }
 
     if (event.key === "Enter") {
       event.preventDefault();
@@ -201,11 +218,8 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
       const href = event.currentTarget.value;
       const matches = this.state.insertItem.matcher(href);
 
-      if (!matches && this.props.onShowToast) {
-        this.props.onShowToast(
-          this.props.dictionary.embedInvalidLink,
-          ToastType.Error
-        );
+      if (!matches) {
+        this.props.onShowToast(this.props.dictionary.embedInvalidLink);
         return;
       }
 
@@ -224,8 +238,12 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
   };
 
   handleLinkInputPaste = (event: React.ClipboardEvent<HTMLInputElement>) => {
-    if (!this.props.isActive) return;
-    if (!this.state.insertItem) return;
+    if (!this.props.isActive) {
+      return;
+    }
+    if (!this.state.insertItem) {
+      return;
+    }
 
     const href = event.clipboardData.getData("text/plain");
     const matches = this.state.insertItem.matcher(href);
@@ -243,8 +261,11 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
     }
   };
 
-  triggerImagePick = () => {
+  triggerFilePick = (accept: string) => {
     if (this.inputRef.current) {
+      if (accept) {
+        this.inputRef.current.accept = accept;
+      }
       this.inputRef.current.click();
     }
   };
@@ -253,14 +274,14 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
     this.setState({ insertItem: item });
   };
 
-  handleImagePicked = (event: React.ChangeEvent<HTMLInputElement>) => {
+  handleFilePicked = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = getDataTransferFiles(event);
 
     const {
       view,
-      uploadImage,
-      onImageUploadStart,
-      onImageUploadStop,
+      uploadFile,
+      onFileUploadStart,
+      onFileUploadStop,
       onShowToast,
     } = this.props;
     const { state } = view;
@@ -268,17 +289,18 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
 
     this.clearSearch();
 
-    if (!uploadImage) {
-      throw new Error("uploadImage prop is required to replace images");
+    if (!uploadFile) {
+      throw new Error("uploadFile prop is required to replace files");
     }
 
     if (parent) {
       insertFiles(view, event, parent.pos, files, {
-        uploadImage,
-        onImageUploadStart,
-        onImageUploadStop,
+        uploadFile,
+        onFileUploadStart,
+        onFileUploadStop,
         onShowToast,
         dictionary: this.props.dictionary,
+        isAttachment: this.inputRef.current?.accept === "*",
       });
     }
 
@@ -394,11 +416,11 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
     const {
       embeds = [],
       search = "",
-      uploadImage,
+      uploadFile,
       commands,
       filterable = true,
     } = this.props;
-    let items: (EmbedDescriptor | MenuItem)[] = this.props.items;
+    let items: (EmbedDescriptor | MenuItem)[] = [...this.props.items];
     const embedItems: EmbedDescriptor[] = [];
 
     for (const embed of embeds) {
@@ -411,14 +433,18 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
     }
 
     if (embedItems.length) {
-      items.push({
-        name: "separator",
-      });
-      items = items.concat(embedItems);
+      items = items.concat(
+        {
+          name: "separator",
+        },
+        embedItems
+      );
     }
 
     const filtered = items.filter((item) => {
-      if (item.name === "separator") return true;
+      if (item.name === "separator") {
+        return true;
+      }
 
       // Some extensions may be disabled, remove corresponding menu items
       if (
@@ -430,10 +456,14 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
       }
 
       // If no image upload callback has been passed, filter the image block out
-      if (!uploadImage && item.name === "image") return false;
+      if (!uploadFile && item.name === "image") {
+        return false;
+      }
 
       // some items (defaultHidden) are not visible until a search query exists
-      if (!search) return !item.defaultHidden;
+      if (!search) {
+        return !item.defaultHidden;
+      }
 
       const n = search.toLowerCase();
       if (!filterable) {
@@ -449,7 +479,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
   }
 
   render() {
-    const { dictionary, isActive, uploadImage } = this.props;
+    const { dictionary, isActive, uploadFile } = this.props;
     const items = this.filtered;
     const { insertItem, ...positioning } = this.state;
 
@@ -459,6 +489,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
           id={this.props.id || "block-menu-container"}
           active={isActive}
           ref={this.menuRef}
+          hiddenScrollbars
           {...positioning}
         >
           {insertItem ? (
@@ -485,16 +516,25 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
                     </ListItem>
                   );
                 }
-                const selected = index === this.state.selectedIndex && isActive;
 
                 if (!item.title) {
                   return null;
                 }
 
+                const handlePointer = () => {
+                  if (this.state.selectedIndex !== index) {
+                    this.setState({ selectedIndex: index });
+                  }
+                };
+
                 return (
-                  <ListItem key={index}>
+                  <ListItem
+                    key={index}
+                    onPointerMove={handlePointer}
+                    onPointerDown={handlePointer}
+                  >
                     {this.props.renderMenuItem(item as any, index, {
-                      selected,
+                      selected: index === this.state.selectedIndex,
                       onClick: () => this.insertItem(item),
                     })}
                   </ListItem>
@@ -507,14 +547,16 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
               )}
             </List>
           )}
-          {uploadImage && (
+          {uploadFile && (
             <VisuallyHidden>
-              <input
-                type="file"
-                ref={this.inputRef}
-                onChange={this.handleImagePicked}
-                accept="image/*"
-              />
+              <label>
+                <Trans>Import document</Trans>
+                <input
+                  type="file"
+                  ref={this.inputRef}
+                  onChange={this.handleFilePicked}
+                />
+              </label>
             </VisuallyHidden>
           )}
         </Wrapper>
@@ -530,7 +572,7 @@ const LinkInputWrapper = styled.div`
 const LinkInput = styled(Input)`
   height: 36px;
   width: 100%;
-  color: ${(props) => props.theme.blockToolbarText};
+  color: ${(props) => props.theme.textSecondary};
 `;
 
 const List = styled.ol`
@@ -556,22 +598,22 @@ const Empty = styled.div`
   padding: 0 16px;
 `;
 
-export const Wrapper = styled.div<{
+export const Wrapper = styled(Scrollable)<{
   active: boolean;
   top?: number;
   bottom?: number;
   left?: number;
   isAbove: boolean;
 }>`
-  color: ${(props) => props.theme.text};
+  color: ${(props) => props.theme.textSecondary};
   font-family: ${(props) => props.theme.fontFamily};
   position: absolute;
-  z-index: ${(props) => props.theme.zIndex + 100};
+  z-index: ${depths.editorToolbar};
   ${(props) => props.top !== undefined && `top: ${props.top}px`};
   ${(props) => props.bottom !== undefined && `bottom: ${props.bottom}px`};
   left: ${(props) => props.left}px;
-  background-color: ${(props) => props.theme.blockToolbarBackground};
-  border-radius: 4px;
+  background: ${(props) => props.theme.menuBackground};
+  border-radius: 6px;
   box-shadow: rgba(0, 0, 0, 0.05) 0px 0px 0px 1px,
     rgba(0, 0, 0, 0.08) 0px 4px 8px, rgba(0, 0, 0, 0.08) 0px 2px 4px;
   opacity: 0;
@@ -584,9 +626,8 @@ export const Wrapper = styled.div<{
   pointer-events: none;
   white-space: nowrap;
   width: 300px;
-  max-height: 224px;
-  overflow: hidden;
-  overflow-y: auto;
+  height: auto;
+  max-height: 324px;
 
   * {
     box-sizing: border-box;
@@ -595,7 +636,7 @@ export const Wrapper = styled.div<{
   hr {
     border: 0;
     height: 0;
-    border-top: 1px solid ${(props) => props.theme.blockToolbarDivider};
+    border-top: 1px solid ${(props) => props.theme.divider};
   }
 
   ${({ active, isAbove }) =>

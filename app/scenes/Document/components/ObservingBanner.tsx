@@ -3,6 +3,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { depths } from "@shared/styles";
 import useStores from "~/hooks/useStores";
 
 const transition = {
@@ -50,7 +51,7 @@ const Banner = styled(m.div)<{ $color: string }>`
   padding: 6px 6px 1px;
   font-size: 13px;
   font-weight: 500;
-  z-index: ${(props) => props.theme.depths.header + 1};
+  z-index: ${depths.header + 1};
   color: ${(props) => props.theme.white};
   background: ${(props) => props.$color};
   border-bottom-left-radius: 4px;

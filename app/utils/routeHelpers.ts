@@ -14,10 +14,6 @@ export function templatesPath(): string {
   return "/templates";
 }
 
-export function settingsPath(): string {
-  return "/settings";
-}
-
 export function archivePath(): string {
   return "/archive";
 }
@@ -26,12 +22,26 @@ export function trashPath(): string {
   return "/trash";
 }
 
+export function settingsPath(): string {
+  return "/settings";
+}
+
+export function organizationSettingsPath(): string {
+  return "/settings/details";
+}
+
+export function profileSettingsPath(): string {
+  return "/settings";
+}
+
 export function groupSettingsPath(): string {
   return "/settings/groups";
 }
 
 export function collectionUrl(url: string, section?: string): string {
-  if (section) return `${url}/${section}`;
+  if (section) {
+    return `${url}/${section}`;
+  }
   return url;
 }
 
@@ -60,7 +70,9 @@ export function documentMoveUrl(doc: Document): string {
 
 export function documentHistoryUrl(doc: Document, revisionId?: string): string {
   let base = `${doc.url}/history`;
-  if (revisionId) base += `/${revisionId}`;
+  if (revisionId) {
+    base += `/${revisionId}`;
+  }
   return base;
 }
 
@@ -87,7 +99,7 @@ export function newDocumentPath(
   return `/collection/${collectionId}/new?${queryString.stringify(params)}`;
 }
 
-export function searchUrl(
+export function searchPath(
   query?: string,
   params: {
     collectionId?: string;
@@ -113,3 +125,5 @@ export const matchDocumentSlug =
   ":documentSlug([0-9a-zA-Z-_~]*-[a-zA-z0-9]{10,15})";
 
 export const matchDocumentEdit = `/doc/${matchDocumentSlug}/edit`;
+
+export const matchDocumentHistory = `/doc/${matchDocumentSlug}/history/:revisionId?`;

@@ -33,7 +33,9 @@ router.post("revisions.info", auth(), async (ctx) => {
 router.post("revisions.list", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
   const { documentId, sort = "updatedAt" } = ctx.body;
-  if (direction !== "ASC") direction = "DESC";
+  if (direction !== "ASC") {
+    direction = "DESC";
+  }
   assertSort(sort, Revision);
   assertPresent(documentId, "documentId is required");
 

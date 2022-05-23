@@ -7,6 +7,7 @@ export type MenuItemButton = {
   type: "button";
   title: React.ReactNode;
   onClick: React.MouseEventHandler<HTMLButtonElement | HTMLAnchorElement>;
+  dangerous?: boolean;
   visible?: boolean;
   selected?: boolean;
   disabled?: boolean;
@@ -68,6 +69,8 @@ export type MenuItem =
 export type ActionContext = {
   isContextMenu: boolean;
   isCommandBar: boolean;
+  isButton: boolean;
+  inStarredSection?: boolean;
   activeCollectionId: string | undefined;
   activeDocumentId: string | undefined;
   currentUserId: string | undefined;
@@ -160,6 +163,7 @@ export type PaginationParams = {
 };
 
 export type SearchResult = {
+  id: string;
   ranking: number;
   context: string;
   document: Document;

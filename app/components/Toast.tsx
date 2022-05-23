@@ -17,7 +17,12 @@ function Toast({ closeAfterMs = 3000, onRequestClose, toast }: Props) {
   const { action, type = "info", reoccurring } = toast;
 
   React.useEffect(() => {
-    timeout.current = setTimeout(onRequestClose, toast.timeout || closeAfterMs);
+    if (toast.timeout !== 0) {
+      timeout.current = setTimeout(
+        onRequestClose,
+        toast.timeout || closeAfterMs
+      );
+    }
     return () => timeout.current && clearTimeout(timeout.current);
   }, [onRequestClose, toast, closeAfterMs]);
 
@@ -29,8 +34,27 @@ function Toast({ closeAfterMs = 3000, onRequestClose, toast }: Props) {
     }
   }, [reoccurring]);
 
+  const handlePause = React.useCallback(() => {
+    if (timeout.current) {
+      clearTimeout(timeout.current);
+    }
+  }, []);
+
+  const handleResume = React.useCallback(() => {
+    if (timeout.current && toast.timeout !== 0) {
+      timeout.current = setTimeout(
+        onRequestClose,
+        toast.timeout || closeAfterMs
+      );
+    }
+  }, [onRequestClose, toast, closeAfterMs]);
+
   return (
-    <ListItem $pulse={pulse}>
+    <ListItem
+      $pulse={pulse}
+      onMouseEnter={handlePause}
+      onMouseLeave={handleResume}
+    >
       <Container onClick={action ? undefined : onRequestClose}>
         {type === "info" && <InfoIcon color="currentColor" />}
         {type === "success" && <CheckboxIcon checked color="currentColor" />}
@@ -88,6 +112,7 @@ const Message = styled.div`
   display: inline-block;
   font-weight: 500;
   padding: 10px 4px;
+  user-select: none;
 `;
 
 export default Toast;

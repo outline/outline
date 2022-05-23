@@ -1,11 +1,13 @@
-const isMac = window.navigator.platform === "MacIntel";
+import { isMac } from "~/utils/browser";
 
-export const metaDisplay = isMac ? "⌘" : "Ctrl";
+export const altDisplay = isMac() ? "⌥" : "Alt";
 
-export const meta = isMac ? "cmd" : "ctrl";
+export const metaDisplay = isMac() ? "⌘" : "Ctrl";
+
+export const meta = isMac() ? "cmd" : "ctrl";
 
 export function isModKey(
   event: KeyboardEvent | MouseEvent | React.KeyboardEvent
 ) {
-  return isMac ? event.metaKey : event.ctrlKey;
+  return isMac() ? event.metaKey : event.ctrlKey;
 }

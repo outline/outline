@@ -1,26 +1,24 @@
 import { observer } from "mobx-react";
-import { MenuIcon } from "outline-icons";
 import * as React from "react";
 import { Helmet } from "react-helmet";
-import styled from "styled-components";
+import styled, { DefaultTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import { LoadingIndicatorBar } from "~/components/LoadingIndicator";
 import SkipNavContent from "~/components/SkipNavContent";
 import SkipNavLink from "~/components/SkipNavLink";
 import useKeyDown from "~/hooks/useKeyDown";
+import { MenuProvider } from "~/hooks/useMenuContext";
 import useStores from "~/hooks/useStores";
 import { isModKey } from "~/utils/keyboard";
 
 type Props = {
   title?: string;
-  children?: React.ReactNode;
   sidebar?: React.ReactNode;
   rightRail?: React.ReactNode;
 };
 
-function Layout({ title, children, sidebar, rightRail }: Props) {
+const Layout: React.FC<Props> = ({ title, children, sidebar, rightRail }) => {
   const { ui } = useStores();
   const sidebarCollapsed = !sidebar || ui.isEditing || ui.sidebarCollapsed;
 
@@ -41,17 +39,8 @@ function Layout({ title, children, sidebar, rightRail }: Props) {
 
       {ui.progressBarVisible && <LoadingIndicatorBar />}
 
-      {sidebar && (
-        <MobileMenuButton
-          onClick={ui.toggleMobileSidebar}
-          icon={<MenuIcon />}
-          iconColor="currentColor"
-          neutral
-        />
-      )}
-
       <Container auto>
-        {sidebar}
+        <MenuProvider>{sidebar}</MenuProvider>
 
         <SkipNavContent />
         <Content
@@ -75,7 +64,7 @@ function Layout({ title, children, sidebar, rightRail }: Props) {
       </Container>
     </Container>
   );
-}
+};
 
 const Container = styled(Flex)`
   background: ${(props) => props.theme.background};
@@ -85,26 +74,14 @@ const Container = styled(Flex)`
   min-height: 100%;
 `;
 
-const MobileMenuButton = styled(Button)`
-  position: fixed;
-  top: 12px;
-  left: 12px;
-  z-index: ${(props) => props.theme.depths.sidebar - 1};
-
-  ${breakpoint("tablet")`
-    display: none;
-  `};
-
-  @media print {
-    display: none;
-  }
-`;
-
-const Content = styled(Flex)<{
+type ContentProps = {
   $isResizing?: boolean;
   $sidebarCollapsed?: boolean;
   $hasSidebar?: boolean;
-}>`
+  theme: DefaultTheme;
+};
+
+const Content = styled(Flex)<ContentProps>`
   margin: 0;
   transition: ${(props) =>
     props.$isResizing ? "none" : `margin-left 100ms ease-out`};
@@ -118,7 +95,7 @@ const Content = styled(Flex)<{
   `}
 
   ${breakpoint("tablet")`
-    ${(props: any) =>
+    ${(props: ContentProps) =>
       props.$hasSidebar &&
       props.$sidebarCollapsed &&
       `margin-left: ${props.theme.sidebarCollapsedWidth}px;`}

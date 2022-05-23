@@ -3,8 +3,14 @@ import { Op, WhereOptions } from "sequelize";
 import userDestroyer from "@server/commands/userDestroyer";
 import userInviter from "@server/commands/userInviter";
 import userSuspender from "@server/commands/userSuspender";
+import { sequelize } from "@server/database/sequelize";
+import InviteEmail from "@server/emails/templates/InviteEmail";
+import env from "@server/env";
+import { ValidationError } from "@server/errors";
+import logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import { Event, User, Team } from "@server/models";
+import { UserFlag } from "@server/models/User";
 import { can, authorize } from "@server/policies";
 import { presentUser, presentPolicies } from "@server/presenters";
 import {
@@ -19,8 +25,10 @@ const router = new Router();
 
 router.post("users.list", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
-  const { sort = "createdAt", query, filter } = ctx.body;
-  if (direction !== "ASC") direction = "DESC";
+  const { sort = "createdAt", query, filter, ids } = ctx.body;
+  if (direction !== "ASC") {
+    direction = "DESC";
+  }
   assertSort(sort, User);
 
   if (filter) {
@@ -86,6 +94,14 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
     };
   }
 
+  if (ids) {
+    assertArray(ids, "ids must be an array of UUIDs");
+    where = {
+      ...where,
+      id: ids,
+    };
+  }
+
   const [users, total] = await Promise.all([
     User.findAll({
       where,
@@ -138,9 +154,15 @@ router.post("users.info", auth(), async (ctx) => {
 router.post("users.update", auth(), async (ctx) => {
   const { user } = ctx.state;
   const { name, avatarUrl, language } = ctx.body;
-  if (name) user.name = name;
-  if (avatarUrl) user.avatarUrl = avatarUrl;
-  if (language) user.language = language;
+  if (name) {
+    user.name = name;
+  }
+  if (avatarUrl) {
+    user.avatarUrl = avatarUrl;
+  }
+  if (language) {
+    user.language = language;
+  }
   await user.save();
   await Event.create({
     name: "users.update",
@@ -287,6 +309,48 @@ router.post("users.invite", auth(), async (ctx) => {
       sent: response.sent,
       users: response.users.map((user) => presentUser(user)),
     },
+  };
+});
+
+router.post("users.resendInvite", auth(), async (ctx) => {
+  const { id } = ctx.body;
+  const actor = ctx.state.user;
+
+  await sequelize.transaction(async (transaction) => {
+    const user = await User.findByPk(id, {
+      lock: transaction.LOCK.UPDATE,
+      transaction,
+    });
+    authorize(actor, "resendInvite", user);
+
+    if (user.getFlag(UserFlag.InviteSent) > 2) {
+      throw ValidationError("This invite has been sent too many times");
+    }
+
+    await InviteEmail.schedule({
+      to: user.email,
+      name: user.name,
+      actorName: actor.name,
+      actorEmail: actor.email,
+      teamName: actor.team.name,
+      teamUrl: actor.team.url,
+    });
+
+    user.incrementFlag(UserFlag.InviteSent);
+    await user.save({ transaction });
+
+    if (env.ENVIRONMENT === "development") {
+      logger.info(
+        "email",
+        `Sign in immediately: ${
+          env.URL
+        }/auth/email.callback?token=${user.getEmailSigninToken()}`
+      );
+    }
+  });
+
+  ctx.body = {
+    success: true,
   };
 });
 

@@ -1,3 +1,4 @@
+import { APM } from "@server/logging/tracing";
 import { Document, Collection, Team } from "@server/models";
 
 type Action = {
@@ -7,7 +8,7 @@ type Action = {
   value: string;
 };
 
-export default function present(
+function present(
   document: Document,
   collection: Collection,
   team: Team,
@@ -31,3 +32,8 @@ export default function present(
     actions,
   };
 }
+
+export default APM.traceFunction({
+  serviceName: "presenter",
+  spanName: "slackAttachment",
+})(present);

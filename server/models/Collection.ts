@@ -1,12 +1,6 @@
 import { find, findIndex, remove, uniq } from "lodash";
 import randomstring from "randomstring";
-import {
-  Identifier,
-  Transaction,
-  Op,
-  FindOptions,
-  SaveOptions,
-} from "sequelize";
+import { Identifier, Transaction, Op, FindOptions } from "sequelize";
 import {
   Sequelize,
   Table,
@@ -27,7 +21,7 @@ import {
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
 import { sortNavigationNodes } from "@shared/utils/collections";
-import { SLUG_URL_REGEX } from "@shared/utils/routeHelpers";
+import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
 import slugify from "@server/utils/slugify";
 import { NavigationNode, CollectionSort } from "~/types";
 import CollectionGroup from "./CollectionGroup";
@@ -79,6 +73,15 @@ type Sort = CollectionSort;
       },
     ],
   },
+  withUser: () => ({
+    include: [
+      {
+        model: User,
+        required: true,
+        as: "user",
+      },
+    ],
+  }),
   withMembership: (userId: string) => ({
     include: [
       {
@@ -158,6 +161,7 @@ class Collection extends ParanoidModel {
   @Column
   sharing: boolean;
 
+  @Default({ field: "title", direction: "asc" })
   @Column({
     type: DataType.JSONB,
     validate: {
@@ -181,12 +185,14 @@ class Collection extends ParanoidModel {
       },
     },
   })
-  sort: Sort | null;
+  sort: Sort;
 
   // getters
 
   get url(): string {
-    if (!this.name) return `/collection/untitled-${this.urlId}`;
+    if (!this.name) {
+      return `/collection/untitled-${this.urlId}`;
+    }
     return `/collection/${slugify(this.name)}-${this.urlId}`;
   }
 
@@ -354,11 +360,9 @@ class Collection extends ParanoidModel {
   }
 
   getDocumentTree = (documentId: string): NavigationNode | null => {
-    if (!this.documentStructure) return null;
-    const sort: Sort = this.sort || {
-      field: "title",
-      direction: "asc",
-    };
+    if (!this.documentStructure) {
+      return null;
+    }
 
     let result!: NavigationNode | undefined;
 
@@ -386,16 +390,18 @@ class Collection extends ParanoidModel {
     loopChildren(this.documentStructure);
 
     // if the document is a draft loopChildren will not find it in the structure
-    if (!result) return null;
+    if (!result) {
+      return null;
+    }
 
     return {
       ...result,
-      children: sortNavigationNodes(result.children, sort),
+      children: sortNavigationNodes(result.children, this.sort),
     };
   };
 
-  deleteDocument = async function (document: Document) {
-    await this.removeDocumentInStructure(document);
+  deleteDocument = async function (document: Document, options?: FindOptions) {
+    await this.removeDocumentInStructure(document, options);
 
     // Helper to destroy all child documents for a document
     const loopChildren = async (
@@ -413,13 +419,13 @@ class Collection extends ParanoidModel {
       });
     };
 
-    await loopChildren(document.id);
-    await document.destroy();
+    await loopChildren(document.id, options);
+    await document.destroy(options);
   };
 
   removeDocumentInStructure = async function (
     document: Document,
-    options?: SaveOptions<Collection> & {
+    options?: FindOptions & {
       save?: boolean;
     }
   ) {
@@ -428,66 +434,55 @@ class Collection extends ParanoidModel {
     }
 
     let result: [NavigationNode, number] | undefined;
-    let transaction;
 
-    try {
-      // documentStructure can only be updated by one request at the time
-      transaction = await this.sequelize.transaction();
+    const removeFromChildren = async (
+      children: NavigationNode[],
+      id: string
+    ) => {
+      children = await Promise.all(
+        children.map(async (childDocument) => {
+          return {
+            ...childDocument,
+            children: await removeFromChildren(childDocument.children, id),
+          };
+        })
+      );
+      const match = find(children, {
+        id,
+      });
 
-      const removeFromChildren = async (
-        children: NavigationNode[],
-        id: string
-      ) => {
-        children = await Promise.all(
-          children.map(async (childDocument) => {
-            return {
-              ...childDocument,
-              children: await removeFromChildren(childDocument.children, id),
-            };
-          })
-        );
-        const match = find(children, {
-          id,
-        });
-
-        if (match) {
-          if (!result) {
-            result = [
-              match,
-              findIndex(children, {
-                id,
-              }),
-            ];
-          }
-
-          remove(children, {
-            id,
-          });
+      if (match) {
+        if (!result) {
+          result = [
+            match,
+            findIndex(children, {
+              id,
+            }),
+          ];
         }
 
-        return children;
-      };
+        remove(children, {
+          id,
+        });
+      }
 
-      this.documentStructure = await removeFromChildren(
-        this.documentStructure,
-        document.id
-      );
+      return children;
+    };
 
-      // Sequelize doesn't seem to set the value with splice on JSONB field
-      // https://github.com/sequelize/sequelize/blob/e1446837196c07b8ff0c23359b958d68af40fd6d/src/model.js#L3937
-      this.changed("documentStructure", true);
+    this.documentStructure = await removeFromChildren(
+      this.documentStructure,
+      document.id
+    );
+
+    // Sequelize doesn't seem to set the value with splice on JSONB field
+    // https://github.com/sequelize/sequelize/blob/e1446837196c07b8ff0c23359b958d68af40fd6d/src/model.js#L3937
+    this.changed("documentStructure", true);
+
+    if (options?.save !== false) {
       await this.save({
         ...options,
         fields: ["documentStructure"],
-        transaction,
       });
-      await transaction.commit();
-    } catch (err) {
-      if (transaction) {
-        await transaction.rollback();
-      }
-
-      throw err;
     }
 
     return result;
@@ -517,76 +512,42 @@ class Collection extends ParanoidModel {
     return result;
   };
 
-  isChildDocument = function (
-    parentDocumentId?: string,
-    documentId?: string
-  ): boolean {
-    let result = false;
-
-    const loopChildren = (documents: NavigationNode[], input: string[]) => {
-      if (result) {
-        return;
-      }
-
-      documents.forEach((document) => {
-        const parents = [...input];
-
-        if (document.id === documentId && parentDocumentId) {
-          result = parents.includes(parentDocumentId);
-        } else {
-          parents.push(document.id);
-          loopChildren(document.children, parents);
-        }
-      });
-    };
-
-    loopChildren(this.documentStructure, []);
-    return result;
-  };
-
   /**
    * Update document's title and url in the documentStructure
    */
-  updateDocument = async function (updatedDocument: Document) {
-    if (!this.documentStructure) return;
-    let transaction;
-
-    try {
-      // documentStructure can only be updated by one request at the time
-      transaction = await this.sequelize.transaction();
-      const { id } = updatedDocument;
-
-      const updateChildren = (documents: NavigationNode[]) => {
-        return documents.map((document) => {
-          if (document.id === id) {
-            document = {
-              ...(updatedDocument.toJSON() as NavigationNode),
-              children: document.children,
-            };
-          } else {
-            document.children = updateChildren(document.children);
-          }
-
-          return document;
-        });
-      };
-
-      this.documentStructure = updateChildren(this.documentStructure);
-      // Sequelize doesn't seem to set the value with splice on JSONB field
-      // https://github.com/sequelize/sequelize/blob/e1446837196c07b8ff0c23359b958d68af40fd6d/src/model.js#L3937
-      this.changed("documentStructure", true);
-      await this.save({
-        fields: ["documentStructure"],
-        transaction,
-      });
-      await transaction.commit();
-    } catch (err) {
-      if (transaction) {
-        await transaction.rollback();
-      }
-
-      throw err;
+  updateDocument = async function (
+    updatedDocument: Document,
+    options?: { transaction?: Transaction | null }
+  ) {
+    if (!this.documentStructure) {
+      return;
     }
+
+    const { id } = updatedDocument;
+
+    const updateChildren = (documents: NavigationNode[]) => {
+      return documents.map((document) => {
+        if (document.id === id) {
+          document = {
+            ...(updatedDocument.toJSON() as NavigationNode),
+            children: document.children,
+          };
+        } else {
+          document.children = updateChildren(document.children);
+        }
+
+        return document;
+      });
+    };
+
+    this.documentStructure = updateChildren(this.documentStructure);
+    // Sequelize doesn't seem to set the value with splice on JSONB field
+    // https://github.com/sequelize/sequelize/blob/e1446837196c07b8ff0c23359b958d68af40fd6d/src/model.js#L3937
+    this.changed("documentStructure", true);
+    await this.save({
+      fields: ["documentStructure"],
+      ...options,
+    });
 
     return this;
   };
@@ -594,7 +555,7 @@ class Collection extends ParanoidModel {
   addDocumentToStructure = async function (
     document: Document,
     index?: number,
-    options: {
+    options: FindOptions & {
       save?: boolean;
       documentJson?: NavigationNode;
     } = {}
@@ -602,67 +563,48 @@ class Collection extends ParanoidModel {
     if (!this.documentStructure) {
       this.documentStructure = [];
     }
-    let transaction;
 
-    try {
-      // documentStructure can only be updated by one request at a time
-      if (options?.save !== false) {
-        transaction = await this.sequelize.transaction();
-      }
+    // If moving existing document with children, use existing structure
+    const documentJson = { ...document.toJSON(), ...options.documentJson };
 
-      // If moving existing document with children, use existing structure
-      const documentJson = { ...document.toJSON(), ...options.documentJson };
+    if (!document.parentDocumentId) {
+      // Note: Index is supported on DB level but it's being ignored
+      // by the API presentation until we build product support for it.
+      this.documentStructure.splice(
+        index !== undefined ? index : this.documentStructure.length,
+        0,
+        documentJson
+      );
+    } else {
+      // Recursively place document
+      const placeDocument = (documentList: NavigationNode[]) => {
+        return documentList.map((childDocument) => {
+          if (document.parentDocumentId === childDocument.id) {
+            childDocument.children.splice(
+              index !== undefined ? index : childDocument.children.length,
+              0,
+              documentJson
+            );
+          } else {
+            childDocument.children = placeDocument(childDocument.children);
+          }
 
-      if (!document.parentDocumentId) {
-        // Note: Index is supported on DB level but it's being ignored
-        // by the API presentation until we build product support for it.
-        this.documentStructure.splice(
-          index !== undefined ? index : this.documentStructure.length,
-          0,
-          documentJson
-        );
-      } else {
-        // Recursively place document
-        const placeDocument = (documentList: NavigationNode[]) => {
-          return documentList.map((childDocument) => {
-            if (document.parentDocumentId === childDocument.id) {
-              childDocument.children.splice(
-                index !== undefined ? index : childDocument.children.length,
-                0,
-                documentJson
-              );
-            } else {
-              childDocument.children = placeDocument(childDocument.children);
-            }
-
-            return childDocument;
-          });
-        };
-
-        this.documentStructure = placeDocument(this.documentStructure);
-      }
-
-      // Sequelize doesn't seem to set the value with splice on JSONB field
-      // https://github.com/sequelize/sequelize/blob/e1446837196c07b8ff0c23359b958d68af40fd6d/src/model.js#L3937
-      this.changed("documentStructure", true);
-
-      if (options?.save !== false) {
-        await this.save({
-          ...options,
-          fields: ["documentStructure"],
-          transaction,
+          return childDocument;
         });
+      };
 
-        if (transaction) {
-          await transaction.commit();
-        }
-      }
-    } catch (err) {
-      if (transaction) {
-        await transaction.rollback();
-      }
+      this.documentStructure = placeDocument(this.documentStructure);
+    }
 
-      throw err;
+    // Sequelize doesn't seem to set the value with splice on JSONB field
+    // https://github.com/sequelize/sequelize/blob/e1446837196c07b8ff0c23359b958d68af40fd6d/src/model.js#L3937
+    this.changed("documentStructure", true);
+
+    if (options?.save !== false) {
+      await this.save({
+        ...options,
+        fields: ["documentStructure"],
+      });
     }
 
     return this;

@@ -1,29 +1,46 @@
 import { throttle } from "lodash";
 import { observer } from "mobx-react";
+import { MenuIcon } from "outline-icons";
 import { transparentize } from "polished";
 import * as React from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { depths } from "@shared/styles";
+import Button from "~/components/Button";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
+import useEventListener from "~/hooks/useEventListener";
+import useMobile from "~/hooks/useMobile";
+import useStores from "~/hooks/useStores";
+import { supportsPassiveListener } from "~/utils/browser";
 
 type Props = {
   breadcrumb?: React.ReactNode;
   title: React.ReactNode;
   actions?: React.ReactNode;
+  hasSidebar?: boolean;
 };
 
-function Header({ breadcrumb, title, actions }: Props) {
+function Header({ breadcrumb, title, actions, hasSidebar }: Props) {
+  const { ui } = useStores();
+  const isMobile = useMobile();
+
+  const hasMobileSidebar = hasSidebar && isMobile;
+
+  const passThrough = !actions && !breadcrumb && !title;
+
   const [isScrolled, setScrolled] = React.useState(false);
-  const handleScroll = React.useCallback(
-    throttle(() => setScrolled(window.scrollY > 75), 50),
+  const handleScroll = React.useMemo(
+    () => throttle(() => setScrolled(window.scrollY > 75), 50),
     []
   );
 
-  React.useEffect(() => {
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, [handleScroll]);
+  useEventListener(
+    "scroll",
+    handleScroll,
+    window,
+    supportsPassiveListener ? { passive: true } : { capture: false }
+  );
 
   const handleClickTitle = React.useCallback(() => {
     window.scrollTo({
@@ -33,8 +50,21 @@ function Header({ breadcrumb, title, actions }: Props) {
   }, []);
 
   return (
-    <Wrapper align="center" shrink={false}>
-      {breadcrumb ? <Breadcrumbs>{breadcrumb}</Breadcrumbs> : null}
+    <Wrapper align="center" shrink={false} $passThrough={passThrough}>
+      {breadcrumb || hasMobileSidebar ? (
+        <Breadcrumbs>
+          {hasMobileSidebar && (
+            <MobileMenuButton
+              onClick={ui.toggleMobileSidebar}
+              icon={<MenuIcon />}
+              iconColor="currentColor"
+              neutral
+            />
+          )}
+          {breadcrumb}
+        </Breadcrumbs>
+      ) : null}
+
       {isScrolled ? (
         <Title onClick={handleClickTitle}>
           <Fade>{title}</Fade>
@@ -42,11 +72,9 @@ function Header({ breadcrumb, title, actions }: Props) {
       ) : (
         <div />
       )}
-      {actions && (
-        <Actions align="center" justify="flex-end">
-          {actions}
-        </Actions>
-      )}
+      <Actions align="center" justify="flex-end">
+        {actions}
+      </Actions>
     </Wrapper>
   );
 }
@@ -56,12 +84,7 @@ const Breadcrumbs = styled("div")`
   flex-basis: 0;
   align-items: center;
   padding-right: 8px;
-
-  /* Don't show breadcrumbs on mobile */
-  display: none;
-  ${breakpoint("tablet")`	
   display: flex;
-`};
 `;
 
 const Actions = styled(Flex)`
@@ -75,25 +98,41 @@ const Actions = styled(Flex)`
   `};
 `;
 
-const Wrapper = styled(Flex)`
-  position: sticky;
+const Wrapper = styled(Flex)<{ $passThrough?: boolean }>`
   top: 0;
-  z-index: ${(props) => props.theme.depths.header};
-  background: ${(props) => transparentize(0.2, props.theme.background)};
+  z-index: ${depths.header};
+  position: sticky;
+  background: ${(props) => props.theme.background};
+
+  ${(props) =>
+    props.$passThrough
+      ? `
+      background: transparent;
+      pointer-events: none;
+      `
+      : `
+      background: ${transparentize(0.2, props.theme.background)};
+      backdrop-filter: blur(20px);
+      `};
+
   padding: 12px;
   transition: all 100ms ease-out;
   transform: translate3d(0, 0, 0);
-  backdrop-filter: blur(20px);
-  min-height: 56px;
+  min-height: 64px;
   justify-content: flex-start;
+
+  @supports (backdrop-filter: blur(20px)) {
+    backdrop-filter: blur(20px);
+    background: ${(props) => transparentize(0.2, props.theme.background)};
+  }
 
   @media print {
     display: none;
   }
 
   ${breakpoint("tablet")`
-    padding: 16px 16px 0;
-    justify-content: "center";
+    padding: 16px;
+    justify-content: center;
   `};
 `;
 
@@ -107,7 +146,7 @@ const Title = styled("div")`
   cursor: pointer;
   min-width: 0;
 
-  ${breakpoint("tablet")`	
+  ${breakpoint("tablet")`
     padding-left: 0;
     display: block;
   `};
@@ -119,6 +158,15 @@ const Title = styled("div")`
   @media (display-mode: standalone) {
     overflow: hidden;
     flex-grow: 0 !important;
+  }
+`;
+
+const MobileMenuButton = styled(Button)`
+  margin-right: 8px;
+  pointer-events: auto;
+
+  @media print {
+    display: none;
   }
 `;
 

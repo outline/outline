@@ -1,6 +1,6 @@
 import { QueryTypes } from "sequelize";
 import { sequelize } from "@server/database/sequelize";
-import Logger from "@server/logging/logger";
+import Logger from "@server/logging/Logger";
 import { Document, Attachment } from "@server/models";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 
@@ -52,7 +52,7 @@ export default async function documentPermanentDeleter(documents: Document[]) {
     }
   }
 
-  return Document.scope("withUnpublished").destroy({
+  return Document.scope("withDrafts").destroy({
     where: {
       id: documents.map((document) => document.id),
     },

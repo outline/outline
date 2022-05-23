@@ -1,10 +1,15 @@
-const DISALLOW_ROBOTS = `User-agent: *
-Disallow: /`;
+import env from "@server/env";
 
 export const robotsResponse = () => {
-  if (process.env.DEPLOYMENT !== "hosted") {
-    return DISALLOW_ROBOTS;
+  if (env.DEPLOYMENT === "hosted") {
+    return `
+User-agent: *
+Allow: /
+`;
   }
 
-  return undefined;
+  return `
+User-agent: *
+Disallow: /
+`;
 };

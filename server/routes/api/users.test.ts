@@ -6,7 +6,14 @@ import { flushdb, seed } from "@server/test/support";
 const app = webService();
 const server = new TestServer(app.callback());
 beforeEach(() => flushdb());
-afterAll(() => server.close());
+
+beforeAll(() => {
+  jest.useFakeTimers().setSystemTime(new Date("2018-01-02T00:00:00.000Z"));
+});
+afterAll(() => {
+  jest.useRealTimers();
+  return server.close();
+});
 
 describe("#users.list", () => {
   it("should allow filtering by user name", async () => {
@@ -85,6 +92,20 @@ describe("#users.list", () => {
     expect(body.data.length).toEqual(2);
     expect(body.data[0].id).toEqual(user.id);
     expect(body.data[1].id).toEqual(admin.id);
+  });
+
+  it("should allow filtering by id", async () => {
+    const { admin, user } = await seed();
+    const res = await server.post("/api/users.list", {
+      body: {
+        token: admin.getJwtToken(),
+        ids: [user.id],
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(user.id);
   });
 
   it("should require admin for detailed info", async () => {

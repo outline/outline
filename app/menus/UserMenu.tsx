@@ -6,19 +6,22 @@ import User from "~/models/User";
 import ContextMenu from "~/components/ContextMenu";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
 import Template from "~/components/ContextMenu/Template";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
+import useToasts from "~/hooks/useToasts";
 
 type Props = {
   user: User;
 };
 
 function UserMenu({ user }: Props) {
-  const { users, policies } = useStores();
+  const { users } = useStores();
   const { t } = useTranslation();
   const menu = useMenuState({
     modal: true,
   });
-  const can = policies.abilities(user.id);
+  const can = usePolicy(user.id);
+  const { showToast } = useToasts();
 
   const handlePromote = React.useCallback(
     (ev: React.SyntheticEvent) => {
@@ -112,6 +115,25 @@ function UserMenu({ user }: Props) {
     [users, user]
   );
 
+  const handleResendInvite = React.useCallback(
+    async (ev: React.SyntheticEvent) => {
+      ev.preventDefault();
+
+      try {
+        await users.resendInvite(user);
+        showToast(t(`Invite was resent to ${user.name}`), { type: "success" });
+      } catch (err) {
+        showToast(
+          err.message ?? t(`An error occurred while sending the invite`),
+          {
+            type: "error",
+          }
+        );
+      }
+    },
+    [users, user, t, showToast]
+  );
+
   const handleActivate = React.useCallback(
     (ev: React.SyntheticEvent) => {
       ev.preventDefault();
@@ -152,11 +174,18 @@ function UserMenu({ user }: Props) {
               visible: can.promote && user.role !== "admin",
             },
             {
+              type: "button",
+              title: t("Resend invite"),
+              onClick: handleResendInvite,
+              visible: can.resendInvite,
+            },
+            {
               type: "separator",
             },
             {
               type: "button",
               title: `${t("Revoke invite")}…`,
+              dangerous: true,
               onClick: handleRevoke,
               visible: user.isInvited,
             },
@@ -169,6 +198,7 @@ function UserMenu({ user }: Props) {
             {
               type: "button",
               title: `${t("Suspend account")}…`,
+              dangerous: true,
               onClick: handleSuspend,
               visible: !user.isInvited && !user.isSuspended,
             },

@@ -36,16 +36,20 @@ type Props = {
     event: MouseEvent | React.MouseEvent<HTMLButtonElement>
   ) => void;
   onCreateLink?: (title: string) => Promise<string>;
-  onShowToast?: (msg: string, code: string) => void;
+  onShowToast: (message: string) => void;
   view: EditorView;
 };
 
 function isVisible(props: Props) {
   const { view } = props;
-  const { selection } = view.state;
+  const { selection, doc } = view.state;
 
-  if (!selection) return false;
-  if (selection.empty) return false;
+  if (isMarkActive(view.state.schema.marks.link)(view.state)) {
+    return true;
+  }
+  if (!selection || selection.empty) {
+    return false;
+  }
   if (selection instanceof NodeSelection && selection.node.type.name === "hr") {
     return true;
   }
@@ -56,6 +60,11 @@ function isVisible(props: Props) {
     return true;
   }
   if (selection instanceof NodeSelection) {
+    return false;
+  }
+
+  const selectionText = doc.cut(selection.from, selection.to).textContent;
+  if (selection instanceof TextSelection && !selectionText) {
     return false;
   }
 
@@ -187,9 +196,7 @@ export default class SelectionToolbar extends React.Component<Props> {
     const isTableSelection = colIndex !== undefined && rowIndex !== undefined;
     const link = isMarkActive(state.schema.marks.link)(state);
     const range = getMarkRange(selection.$from, state.schema.marks.link);
-    const isImageSelection =
-      selection.node && selection.node.type.name === "image";
-    let isTextSelection = false;
+    const isImageSelection = selection.node?.type?.name === "image";
 
     let items: MenuItem[] = [];
     if (isTableSelection) {
@@ -204,27 +211,21 @@ export default class SelectionToolbar extends React.Component<Props> {
       items = getDividerMenuItems(state, dictionary);
     } else {
       items = getFormattingMenuItems(state, isTemplate, dictionary);
-      isTextSelection = true;
     }
 
     // Some extensions may be disabled, remove corresponding items
     items = items.filter((item) => {
-      if (item.name === "separator") return true;
-      if (item.name && !this.props.commands[item.name]) return false;
+      if (item.name === "separator") {
+        return true;
+      }
+      if (item.name && !this.props.commands[item.name]) {
+        return false;
+      }
       return true;
     });
 
     items = filterExcessSeparators(items);
     if (!items.length) {
-      return null;
-    }
-
-    const selectionText = state.doc.cut(
-      state.selection.from,
-      state.selection.to
-    ).textContent;
-
-    if (isTextSelection && !selectionText) {
       return null;
     }
 
@@ -236,6 +237,7 @@ export default class SelectionToolbar extends React.Component<Props> {
       >
         {link && range ? (
           <LinkEditor
+            key={`${range.from}-${range.to}`}
             dictionary={dictionary}
             mark={range.mark}
             from={range.from}

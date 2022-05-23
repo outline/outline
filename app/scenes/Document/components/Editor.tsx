@@ -1,144 +1,122 @@
-import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { WithTranslation, withTranslation } from "react-i18next";
+import { useTranslation } from "react-i18next";
+import { useRouteMatch } from "react-router-dom";
+import fullPackage from "@shared/editor/packages/full";
 import Document from "~/models/Document";
-import ClickablePadding from "~/components/ClickablePadding";
+import { RefHandle } from "~/components/ContentEditable";
 import DocumentMetaWithViews from "~/components/DocumentMetaWithViews";
 import Editor, { Props as EditorProps } from "~/components/Editor";
 import Flex from "~/components/Flex";
-import HoverPreview from "~/components/HoverPreview";
-import { documentHistoryUrl } from "~/utils/routeHelpers";
+import {
+  documentHistoryUrl,
+  documentUrl,
+  matchDocumentHistory,
+} from "~/utils/routeHelpers";
 import MultiplayerEditor from "./AsyncMultiplayerEditor";
 import EditableTitle from "./EditableTitle";
 
-type Props = EditorProps &
-  WithTranslation & {
-    onChangeTitle: (text: string) => void;
-    title: string;
-    id: string;
-    document: Document;
-    isDraft: boolean;
-    multiplayer?: boolean;
-    onSave: (arg0: {
-      done?: boolean;
-      autosave?: boolean;
-      publish?: boolean;
-    }) => any;
-    innerRef: {
-      current: any;
-    };
-    children: React.ReactNode;
-  };
+type Props = Omit<EditorProps, "extensions"> & {
+  onChangeTitle: (text: string) => void;
+  title: string;
+  id: string;
+  document: Document;
+  isDraft: boolean;
+  multiplayer?: boolean;
+  onSave: (options: {
+    done?: boolean;
+    autosave?: boolean;
+    publish?: boolean;
+  }) => void;
+  children: React.ReactNode;
+};
 
-@observer
-class DocumentEditor extends React.Component<Props> {
-  @observable
-  activeLinkEvent: MouseEvent | null | undefined;
+/**
+ * The main document editor includes an editable title with metadata below it,
+ * and support for hover previews of internal links.
+ */
+function DocumentEditor(props: Props, ref: React.RefObject<any>) {
+  const titleRef = React.useRef<RefHandle>(null);
+  const { t } = useTranslation();
+  const match = useRouteMatch();
+  const {
+    document,
+    title,
+    onChangeTitle,
+    isDraft,
+    shareId,
+    readOnly,
+    children,
+    multiplayer,
+    ...rest
+  } = props;
 
-  ref = React.createRef<HTMLDivElement | HTMLInputElement>();
-  titleRef = React.createRef<HTMLSpanElement>();
-
-  focusAtStart = () => {
-    if (this.props.innerRef.current) {
-      this.props.innerRef.current.focusAtStart();
+  const focusAtStart = React.useCallback(() => {
+    if (ref.current) {
+      ref.current.focusAtStart();
     }
-  };
+  }, [ref]);
 
-  focusAtEnd = () => {
-    if (this.props.innerRef.current) {
-      this.props.innerRef.current.focusAtEnd();
-    }
-  };
+  const handleBlur = React.useCallback(() => {
+    props.onSave({ autosave: true });
+  }, [props]);
 
-  insertParagraph = () => {
-    if (this.props.innerRef.current) {
-      const { view } = this.props.innerRef.current;
-      const { dispatch, state } = view;
-      dispatch(state.tr.insert(0, state.schema.nodes.paragraph.create()));
-    }
-  };
+  const handleGoToNextInput = React.useCallback(
+    (insertParagraph: boolean) => {
+      if (insertParagraph && ref.current) {
+        const { view } = ref.current;
+        const { dispatch, state } = view;
+        dispatch(state.tr.insert(0, state.schema.nodes.paragraph.create()));
+      }
 
-  handleLinkActive = (event: MouseEvent) => {
-    this.activeLinkEvent = event;
-    return false;
-  };
+      focusAtStart();
+    },
+    [focusAtStart, ref]
+  );
 
-  handleLinkInactive = () => {
-    this.activeLinkEvent = null;
-  };
+  const EditorComponent = multiplayer ? MultiplayerEditor : Editor;
 
-  handleGoToNextInput = (insertParagraph: boolean) => {
-    if (insertParagraph) {
-      this.insertParagraph();
-    }
-
-    this.focusAtStart();
-  };
-
-  render() {
-    const {
-      document,
-      title,
-      onChangeTitle,
-      isDraft,
-      shareId,
-      readOnly,
-      innerRef,
-      children,
-      multiplayer,
-      t,
-      ...rest
-    } = this.props;
-    const EditorComponent = multiplayer ? MultiplayerEditor : Editor;
-
-    return (
-      <Flex auto column>
-        <EditableTitle
-          ref={this.titleRef}
-          value={title}
-          readOnly={readOnly}
+  return (
+    <Flex auto column>
+      <EditableTitle
+        ref={titleRef}
+        value={title}
+        readOnly={readOnly}
+        document={document}
+        onGoToNextInput={handleGoToNextInput}
+        onChange={onChangeTitle}
+        onBlur={handleBlur}
+        starrable={!shareId}
+        placeholder={t("Untitled")}
+      />
+      {!shareId && (
+        <DocumentMetaWithViews
+          isDraft={isDraft}
           document={document}
-          onGoToNextInput={this.handleGoToNextInput}
-          onChange={onChangeTitle}
-          starrable={!shareId}
+          to={
+            match.path === matchDocumentHistory
+              ? documentUrl(document)
+              : documentHistoryUrl(document)
+          }
+          rtl={
+            titleRef.current?.getComputedDirection() === "rtl" ? true : false
+          }
         />
-        {!shareId && (
-          <DocumentMetaWithViews
-            isDraft={isDraft}
-            document={document}
-            to={documentHistoryUrl(document)}
-            rtl={
-              this.titleRef.current
-                ? window.getComputedStyle(this.titleRef.current).direction ===
-                  "rtl"
-                : false
-            }
-          />
-        )}
-        <EditorComponent
-          ref={innerRef}
-          autoFocus={!!title && !this.props.defaultValue}
-          placeholder={t("…the rest is up to you")}
-          onHoverLink={this.handleLinkActive}
-          scrollTo={window.location.hash}
-          readOnly={readOnly}
-          shareId={shareId}
-          grow
-          {...rest}
-        />
-        {!readOnly && <ClickablePadding onClick={this.focusAtEnd} grow />}
-        {this.activeLinkEvent && !shareId && (
-          <HoverPreview
-            node={this.activeLinkEvent.target as HTMLAnchorElement}
-            event={this.activeLinkEvent}
-            onClose={this.handleLinkInactive}
-          />
-        )}
-        {children}
-      </Flex>
-    );
-  }
+      )}
+      <EditorComponent
+        ref={ref}
+        autoFocus={!!title && !props.defaultValue}
+        placeholder={t("Type '/' to insert, or start writing…")}
+        scrollTo={window.location.hash}
+        readOnly={readOnly}
+        shareId={shareId}
+        extensions={fullPackage}
+        grow
+        {...rest}
+      />
+      {children}
+    </Flex>
+  );
 }
 
-export default withTranslation()(DocumentEditor);
+export default observer(React.forwardRef(DocumentEditor));

@@ -11,6 +11,7 @@ import {
   pt,
   pl,
   ru,
+  tr,
   vi,
   zhCN,
   zhTW,
@@ -29,6 +30,7 @@ const locales = {
   pt_PT: pt,
   pl_PL: pl,
   ru_RU: ru,
+  tr_TR: tr,
   vi_VN: vi,
   zh_CN: zhCN,
   zh_TW: zhTW,
@@ -37,3 +39,5 @@ const locales = {
 export function dateLocale(userLocale: string | null | undefined) {
   return userLocale ? locales[userLocale] : undefined;
 }
+
+export { locales };

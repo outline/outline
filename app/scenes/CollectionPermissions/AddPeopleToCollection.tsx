@@ -10,10 +10,10 @@ import Invite from "~/scenes/Invite";
 import ButtonLink from "~/components/ButtonLink";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
-import HelpText from "~/components/HelpText";
 import Input from "~/components/Input";
 import Modal from "~/components/Modal";
 import PaginatedList from "~/components/PaginatedList";
+import Text from "~/components/Text";
 import withStores from "~/components/withStores";
 import MemberListItem from "./components/MemberListItem";
 
@@ -77,11 +77,13 @@ class AddPeopleToCollection extends React.Component<Props> {
   render() {
     const { users, collection, auth, t } = this.props;
     const { user, team } = auth;
-    if (!user || !team) return null;
+    if (!user || !team) {
+      return null;
+    }
 
     return (
       <Flex column>
-        <HelpText>
+        <Text type="secondary">
           {t("Need to add someone who’s not yet on the team yet?")}{" "}
           <ButtonLink onClick={this.handleInviteModalOpen}>
             {t("Invite people to {{ teamName }}", {
@@ -89,8 +91,7 @@ class AddPeopleToCollection extends React.Component<Props> {
             })}
           </ButtonLink>
           .
-        </HelpText>
-
+        </Text>
         <Input
           type="search"
           placeholder={`${t("Search by name")}…`}
@@ -111,7 +112,7 @@ class AddPeopleToCollection extends React.Component<Props> {
           }
           items={users.notInCollection(collection.id, this.query)}
           fetch={this.query ? undefined : users.fetchPage}
-          renderItem={(item) => (
+          renderItem={(item: User) => (
             <MemberListItem
               key={item.id}
               user={item}

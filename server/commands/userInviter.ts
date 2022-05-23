@@ -1,9 +1,11 @@
 import invariant from "invariant";
 import { uniqBy } from "lodash";
 import { Role } from "@shared/types";
-import Logger from "@server/logging/logger";
-import mailer from "@server/mailer";
+import InviteEmail from "@server/emails/templates/InviteEmail";
+import env from "@server/env";
+import Logger from "@server/logging/Logger";
 import { User, Event, Team } from "@server/models";
+import { UserFlag } from "@server/models/User";
 
 type Invite = {
   name: string;
@@ -61,6 +63,10 @@ export default async function userInviter({
       service: null,
       isAdmin: invite.role === "admin",
       isViewer: invite.role === "viewer",
+      invitedById: user.id,
+      flags: {
+        [UserFlag.InviteSent]: 1,
+      },
     });
     users.push(newUser);
     await Event.create({
@@ -74,7 +80,8 @@ export default async function userInviter({
       },
       ip,
     });
-    await mailer.sendTemplate("invite", {
+
+    await InviteEmail.schedule({
       to: invite.email,
       name: invite.name,
       actorName: user.name,
@@ -83,11 +90,11 @@ export default async function userInviter({
       teamUrl: team.url,
     });
 
-    if (process.env.NODE_ENV === "development") {
+    if (env.ENVIRONMENT === "development") {
       Logger.info(
         "email",
         `Sign in immediately: ${
-          process.env.URL
+          env.URL
         }/auth/email.callback?token=${newUser.getEmailSigninToken()}`
       );
     }

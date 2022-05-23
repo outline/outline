@@ -19,11 +19,7 @@ export enum RPCAction {
   Count = "count",
 }
 
-type FetchPageParams = PaginationParams & {
-  documentId?: string;
-  query?: string;
-  filter?: string;
-};
+type FetchPageParams = PaginationParams & Record<string, any>;
 
 function modelNameFromClassName(string: string) {
   return string.charAt(0).toLowerCase() + string.slice(1);
@@ -33,7 +29,7 @@ export const DEFAULT_PAGINATION_LIMIT = 25;
 
 export const PAGINATION_SYMBOL = Symbol.for("pagination");
 
-export default class BaseStore<T extends BaseModel> {
+export default abstract class BaseStore<T extends BaseModel> {
   @observable
   data: Map<string, T> = new Map();
 
@@ -111,7 +107,9 @@ export default class BaseStore<T extends BaseModel> {
   }
 
   save(params: Partial<T>): Promise<T> {
-    if (params.id) return this.update(params);
+    if (params.id) {
+      return this.update(params);
+    }
     return this.create(params);
   }
 
@@ -136,7 +134,7 @@ export default class BaseStore<T extends BaseModel> {
         ...options,
       });
 
-      invariant(res && res.data, "Data should be available");
+      invariant(res?.data, "Data should be available");
       this.addPolicies(res.policies);
       return this.add(res.data);
     } finally {
@@ -161,7 +159,7 @@ export default class BaseStore<T extends BaseModel> {
         ...options,
       });
 
-      invariant(res && res.data, "Data should be available");
+      invariant(res?.data, "Data should be available");
       this.addPolicies(res.policies);
       return this.add(res.data);
     } finally {
@@ -195,14 +193,16 @@ export default class BaseStore<T extends BaseModel> {
     }
 
     const item = this.data.get(id);
-    if (item && !options.force) return item;
+    if (item && !options.force) {
+      return item;
+    }
     this.isFetching = true;
 
     try {
       const res = await client.post(`/${this.apiEndpoint}.info`, {
         id,
       });
-      invariant(res && res.data, "Data should be available");
+      invariant(res?.data, "Data should be available");
       this.addPolicies(res.policies);
       return this.add(res.data);
     } catch (err) {
@@ -217,7 +217,7 @@ export default class BaseStore<T extends BaseModel> {
   }
 
   @action
-  fetchPage = async (params: FetchPageParams | undefined): Promise<any> => {
+  fetchPage = async (params: FetchPageParams | undefined): Promise<T[]> => {
     if (!this.actions.includes(RPCAction.List)) {
       throw new Error(`Cannot list ${this.modelName}`);
     }
@@ -226,7 +226,7 @@ export default class BaseStore<T extends BaseModel> {
 
     try {
       const res = await client.post(`/${this.apiEndpoint}.list`, params);
-      invariant(res && res.data, "Data not available");
+      invariant(res?.data, "Data not available");
 
       runInAction(`list#${this.modelName}`, () => {
         this.addPolicies(res.policies);

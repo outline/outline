@@ -16,6 +16,11 @@ import Loading from "./components/Loading";
 
 const EMPTY_OBJECT = {};
 
+type Response = {
+  document: DocumentModel;
+  sharedTree?: NavigationNode | undefined;
+};
+
 type Props = RouteComponentProps<{
   shareId: string;
   documentSlug: string;
@@ -23,22 +28,57 @@ type Props = RouteComponentProps<{
   location: Location<{ title?: string }>;
 };
 
+/**
+ * Find the document UUID from the slug given the sharedTree
+ *
+ * @param documentSlug The slug from the url
+ * @param response The response payload from the server
+ * @returns The document UUID, if found.
+ */
+function useDocumentId(documentSlug: string, response?: Response) {
+  let documentId;
+
+  function findInTree(node: NavigationNode) {
+    if (node.url.endsWith(documentSlug)) {
+      documentId = node.id;
+      return true;
+    }
+    if (node.children) {
+      for (const child of node.children) {
+        if (findInTree(child)) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  if (response?.sharedTree) {
+    findInTree(response.sharedTree);
+  }
+
+  return documentId;
+}
+
 function SharedDocumentScene(props: Props) {
   const { ui } = useStores();
-
   const theme = useTheme();
-  const [response, setResponse] = React.useState<{
-    document: DocumentModel;
-    sharedTree?: NavigationNode | undefined;
-  }>();
+  const [response, setResponse] = React.useState<Response>();
   const [error, setError] = React.useState<Error | null | undefined>();
   const { documents } = useStores();
   const { shareId, documentSlug } = props.match.params;
+  const documentId = useDocumentId(documentSlug, response);
 
   // ensure the wider page color always matches the theme
   React.useEffect(() => {
     window.document.body.style.background = theme.background;
   }, [theme]);
+
+  React.useEffect(() => {
+    if (documentId) {
+      ui.setActiveDocument(documentId);
+    }
+  }, [ui, documentId]);
 
   React.useEffect(() => {
     async function fetchData() {
@@ -47,7 +87,6 @@ function SharedDocumentScene(props: Props) {
           shareId,
         });
         setResponse(response);
-        ui.setActiveDocument(response.document);
       } catch (err) {
         setError(err);
       }

@@ -10,10 +10,10 @@ import Avatar from "~/components/Avatar";
 import Badge from "~/components/Badge";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
-import HelpText from "~/components/HelpText";
 import Modal from "~/components/Modal";
 import PaginatedDocumentList from "~/components/PaginatedDocumentList";
 import Subheading from "~/components/Subheading";
+import Text from "~/components/Text";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import { settingsPath } from "~/utils/routeHelpers";
@@ -30,7 +30,9 @@ function UserProfile(props: Props) {
   const currentUser = useCurrentUser();
   const history = useHistory();
   const { user, ...rest } = props;
-  if (!user) return null;
+  if (!user) {
+    return null;
+  }
   const isCurrentUser = currentUser.id === user.id;
 
   return (
@@ -77,11 +79,11 @@ function UserProfile(props: Props) {
           }}
           heading={<Subheading>{t("Recently updated")}</Subheading>}
           empty={
-            <HelpText>
+            <Text type="secondary">
               {t("{{ userName }} hasn’t updated any documents yet.", {
                 userName: user.name,
               })}
-            </HelpText>
+            </Text>
           }
           showCollection
         />
@@ -101,7 +103,7 @@ const StyledBadge = styled(Badge)`
   top: -2px;
 `;
 
-const Meta = styled(HelpText)`
+const Meta = styled(Text)`
   margin-top: -12px;
 `;
 

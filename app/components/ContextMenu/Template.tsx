@@ -21,6 +21,7 @@ import {
 } from "~/types";
 import Header from "./Header";
 import MenuItem, { MenuAnchor } from "./MenuItem";
+import MouseSafeArea from "./MouseSafeArea";
 import Separator from "./Separator";
 import ContextMenu from ".";
 
@@ -53,12 +54,13 @@ const Submenu = React.forwardRef(
       <>
         <MenuButton ref={ref} {...menu} {...rest}>
           {(props) => (
-            <MenuAnchor {...props}>
+            <MenuAnchor disclosure {...props}>
               {title} <Disclosure color={theme.textTertiary} />
             </MenuAnchor>
           )}
         </MenuButton>
         <ContextMenu {...menu} aria-label={t("Submenu")}>
+          <MouseSafeArea parentRef={menu.unstable_popoverRef} />
           <Template {...menu} items={templateItems} />
         </ContextMenu>
       </>
@@ -67,24 +69,27 @@ const Submenu = React.forwardRef(
 );
 
 export function filterTemplateItems(items: TMenuItem[]): TMenuItem[] {
-  let filtered = items.filter((item) => item.visible !== false);
-
-  // this block literally just trims unnecessary separators
-  filtered = filtered.reduce((acc, item, index) => {
-    // trim separators from start / end
-    if (item.type === "separator" && index === 0) return acc;
-    if (item.type === "separator" && index === filtered.length - 1) return acc;
-
-    // trim double separators looking ahead / behind
-    const prev = filtered[index - 1];
-    if (prev && prev.type === "separator" && item.type === "separator")
-      return acc;
-
-    // otherwise, continue
-    return [...acc, item];
-  }, []);
-
-  return filtered;
+  return items
+    .filter((item) => item.visible !== false)
+    .reduce((acc, item) => {
+      // trim separator if the previous item was a separator
+      if (
+        item.type === "separator" &&
+        acc[acc.length - 1]?.type === "separator"
+      ) {
+        return acc;
+      }
+      return [...acc, item];
+    }, [] as TMenuItem[])
+    .filter((item, index, arr) => {
+      if (
+        item.type === "separator" &&
+        (index === 0 || index === arr.length - 1)
+      ) {
+        return false;
+      }
+      return true;
+    });
 }
 
 function Template({ items, actions, context, ...menu }: Props) {
@@ -158,6 +163,7 @@ function Template({ items, actions, context, ...menu }: Props) {
               onClick={item.onClick}
               disabled={item.disabled}
               selected={item.selected}
+              dangerous={item.dangerous}
               key={index}
               icon={item.icon}
               {...menu}

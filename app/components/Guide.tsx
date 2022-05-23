@@ -1,24 +1,23 @@
-import { observer } from "mobx-react";
 import * as React from "react";
 import { Dialog, DialogBackdrop, useDialogState } from "reakit/Dialog";
 import styled from "styled-components";
+import { depths } from "@shared/styles";
 import Scrollable from "~/components/Scrollable";
 import usePrevious from "~/hooks/usePrevious";
 
 type Props = {
-  children?: React.ReactNode;
   isOpen: boolean;
   title?: string;
   onRequestClose: () => void;
 };
 
-const Guide = ({
+const Guide: React.FC<Props> = ({
   children,
   isOpen,
   title = "Untitled",
   onRequestClose,
   ...rest
-}: Props) => {
+}) => {
   const dialog = useDialogState({
     animated: 250,
   });
@@ -73,7 +72,7 @@ const Backdrop = styled.div`
   right: 0;
   bottom: 0;
   background-color: ${(props) => props.theme.backdrop} !important;
-  z-index: ${(props) => props.theme.depths.modalOverlay};
+  z-index: ${depths.modalOverlay};
   transition: opacity 200ms ease-in-out;
   opacity: 0;
 
@@ -88,7 +87,7 @@ const Scene = styled.div`
   right: 0;
   bottom: 0;
   margin: 12px;
-  z-index: ${(props) => props.theme.depths.modal};
+  z-index: ${depths.modal};
   display: flex;
   justify-content: center;
   align-items: flex-start;
@@ -112,4 +111,4 @@ const Content = styled(Scrollable)`
   padding: 16px;
 `;
 
-export default observer(Guide);
+export default Guide;

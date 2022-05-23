@@ -1,5 +1,5 @@
 import { Context } from "koa";
-import { User } from "./models";
+import { FileOperation, User } from "./models";
 
 export type ContextWithState = Context & {
   state: {
@@ -37,6 +37,7 @@ export type DocumentEvent =
   | {
   name: "documents.create" // eslint-disable-line
         | "documents.publish"
+        | "documents.unpublish"
         | "documents.delete"
         | "documents.permanent_delete"
         | "documents.archive"
@@ -103,49 +104,20 @@ export type RevisionEvent = {
   teamId: string;
 };
 
-export type CollectionImportEvent = {
-  name: "collections.import";
-  modelId: string;
-  teamId: string;
-  actorId: string;
-  data: {
-    type: "outline";
-  };
-  ip: string;
-};
-
-export type CollectionExportEvent = {
-  name: "collections.export";
-  teamId: string;
-  actorId: string;
-  collectionId: string;
-  modelId: string;
-};
-
-export type CollectionExportAllEvent = {
-  name: "collections.export_all";
-  teamId: string;
-  actorId: string;
-  modelId: string;
-};
-
 export type FileOperationEvent = {
-  name: "fileOperations.update" | "fileOperation.delete";
+  name:
+    | "fileOperations.create"
+    | "fileOperations.update"
+    | "fileOperation.delete";
   teamId: string;
   actorId: string;
-  data: {
-    type: string;
-    state: string;
-    id: string;
-    size: number;
-    createdAt: string;
-    collectionId: string;
-  };
+  modelId: string;
+  data: Partial<FileOperation>;
 };
 
 export type CollectionEvent =
   | {
-  name: "collections.create" // eslint-disable-line
+    name: "collections.create" // eslint-disable-line
         | "collections.update"
         | "collections.delete";
       collectionId: string;
@@ -169,9 +141,9 @@ export type CollectionEvent =
       collectionId: string;
       teamId: string;
       actorId: string;
+      modelId: string;
       data: {
         name: string;
-        groupId: string;
       };
       ip: string;
     }
@@ -195,8 +167,7 @@ export type CollectionEvent =
         sharingChanged: boolean;
       };
       ip: string;
-    }
-  | CollectionExportEvent;
+    };
 
 export type GroupEvent =
   | {
@@ -263,8 +234,6 @@ export type Event =
   | PinEvent
   | StarEvent
   | CollectionEvent
-  | CollectionImportEvent
-  | CollectionExportAllEvent
   | FileOperationEvent
   | IntegrationEvent
   | GroupEvent

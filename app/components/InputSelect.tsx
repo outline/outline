@@ -11,19 +11,21 @@ import { VisuallyHidden } from "reakit/VisuallyHidden";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled, { css } from "styled-components";
 import Button, { Inner } from "~/components/Button";
-import HelpText from "~/components/HelpText";
+import Text from "~/components/Text";
 import useMenuHeight from "~/hooks/useMenuHeight";
 import { Position, Background, Backdrop, Placement } from "./ContextMenu";
 import { MenuAnchorCSS } from "./ContextMenu/MenuItem";
 import { LabelText } from "./Input";
 
 export type Option = {
-  label: string;
+  label: string | JSX.Element;
   value: string;
 };
 
 export type Props = {
-  value?: string;
+  id?: string;
+  name?: string;
+  value?: string | null;
   label?: string;
   nude?: boolean;
   ariaLabel: string;
@@ -37,16 +39,13 @@ export type Props = {
   onChange: (value: string | null) => void;
 };
 
-const getOptionFromValue = (
-  options: Option[],
-  value: string | undefined | null
-) => {
+const getOptionFromValue = (options: Option[], value: string | null) => {
   return options.find((option) => option.value === value);
 };
 
 const InputSelect = (props: Props) => {
   const {
-    value,
+    value = null,
     label,
     className,
     labelHidden,
@@ -57,6 +56,7 @@ const InputSelect = (props: Props) => {
     disabled,
     note,
     icon,
+    ...rest
   } = props;
 
   const select = useSelectState({
@@ -72,7 +72,7 @@ const InputSelect = (props: Props) => {
     disabled,
   });
 
-  const previousValue = React.useRef<string | undefined | null>(value);
+  const previousValue = React.useRef<string | null>(value);
   const contentRef = React.useRef<HTMLDivElement>(null);
   const selectedRef = React.useRef<HTMLDivElement>(null);
   const buttonRef = React.useRef<HTMLButtonElement>(null);
@@ -82,9 +82,15 @@ const InputSelect = (props: Props) => {
     select.visible,
     select.unstable_disclosureRef
   );
+  const wrappedLabel = <LabelText>{label}</LabelText>;
+  const selectedValueIndex = options.findIndex(
+    (option) => option.value === select.selectedValue
+  );
 
   React.useEffect(() => {
-    if (previousValue.current === select.selectedValue) return;
+    if (previousValue.current === select.selectedValue) {
+      return;
+    }
     previousValue.current = select.selectedValue;
 
     async function load() {
@@ -93,10 +99,6 @@ const InputSelect = (props: Props) => {
 
     load();
   }, [onChange, select.selectedValue]);
-  const wrappedLabel = <LabelText>{label}</LabelText>;
-  const selectedValueIndex = options.findIndex(
-    (option) => option.value === select.selectedValue
-  );
 
   // Ensure selected option is visible when opening the input
   React.useEffect(() => {
@@ -129,7 +131,7 @@ const InputSelect = (props: Props) => {
             wrappedLabel
           ))}
 
-        <Select {...select} disabled={disabled} ref={buttonRef}>
+        <Select {...select} disabled={disabled} {...rest} ref={buttonRef}>
           {(props) => (
             <StyledButton
               neutral
@@ -180,30 +182,23 @@ const InputSelect = (props: Props) => {
                   }
                 >
                   {select.visible
-                    ? options.map((option) => (
-                        <StyledSelectOption
-                          {...select}
-                          value={option.value}
-                          key={option.value}
-                          ref={
-                            select.selectedValue === option.value
-                              ? selectedRef
-                              : undefined
-                          }
-                        >
-                          {select.selectedValue !== undefined && (
-                            <>
-                              {select.selectedValue === option.value ? (
-                                <CheckmarkIcon color="currentColor" />
-                              ) : (
-                                <Spacer />
-                              )}
-                              &nbsp;
-                            </>
-                          )}
-                          {option.label}
-                        </StyledSelectOption>
-                      ))
+                    ? options.map((option) => {
+                        const isSelected =
+                          select.selectedValue === option.value;
+                        const Icon = isSelected ? CheckmarkIcon : Spacer;
+                        return (
+                          <StyledSelectOption
+                            {...select}
+                            value={option.value}
+                            key={option.value}
+                            ref={isSelected ? selectedRef : undefined}
+                          >
+                            <Icon />
+                            &nbsp;
+                            {option.label}
+                          </StyledSelectOption>
+                        );
+                      })
                     : null}
                 </Background>
               </Positioner>
@@ -211,7 +206,11 @@ const InputSelect = (props: Props) => {
           }}
         </SelectPopover>
       </Wrapper>
-      {note && <HelpText small>{note}</HelpText>}
+      {note && (
+        <Text type="secondary" size="small">
+          {note}
+        </Text>
+      )}
       {select.visible && <Backdrop />}
     </>
   );
@@ -233,6 +232,7 @@ const StyledButton = styled(Button)<{ nude?: boolean }>`
   margin-bottom: 16px;
   display: block;
   width: 100%;
+  cursor: default;
 
   &:hover:not(:disabled) {
     background: ${(props) => props.theme.buttonNeutralBackground};
@@ -259,6 +259,10 @@ const StyledButton = styled(Button)<{ nude?: boolean }>`
 
 export const StyledSelectOption = styled(SelectOption)`
   ${MenuAnchorCSS}
+  /* overriding the styles from MenuAnchorCSS because we use &nbsp; here */
+  svg:not(:last-child) {
+    margin-right: 0px;
+  }
 `;
 
 const Wrapper = styled.label<{ short?: boolean }>`

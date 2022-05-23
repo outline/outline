@@ -1,46 +1,57 @@
+import { observer } from "mobx-react";
 import { StarredIcon, UnstarredIcon } from "outline-icons";
 import * as React from "react";
-import { useTranslation } from "react-i18next";
 import styled, { useTheme } from "styled-components";
+import Collection from "~/models/Collection";
 import Document from "~/models/Document";
+import {
+  starCollection,
+  unstarCollection,
+} from "~/actions/definitions/collections";
+import { starDocument, unstarDocument } from "~/actions/definitions/documents";
+import useActionContext from "~/hooks/useActionContext";
+import { hover } from "~/styles";
 import NudeButton from "./NudeButton";
 
 type Props = {
-  document: Document;
+  collection?: Collection;
+  document?: Document;
   size?: number;
 };
 
-function Star({ size, document, ...rest }: Props) {
-  const { t } = useTranslation();
+function Star({ size, document, collection, ...rest }: Props) {
   const theme = useTheme();
+  const context = useActionContext({
+    activeDocumentId: document?.id,
+    activeCollectionId: collection?.id,
+  });
 
-  const handleClick = React.useCallback(
-    (ev: React.MouseEvent<HTMLButtonElement>) => {
-      ev.preventDefault();
-      ev.stopPropagation();
+  const target = document || collection;
 
-      if (document.isStarred) {
-        document.unstar();
-      } else {
-        document.star();
-      }
-    },
-    [document]
-  );
-
-  if (!document) {
+  if (!target) {
     return null;
   }
 
   return (
     <NudeButton
-      onClick={handleClick}
+      context={context}
+      hideOnActionDisabled
+      action={
+        collection
+          ? collection.isStarred
+            ? unstarCollection
+            : starCollection
+          : document
+          ? document.isStarred
+            ? unstarDocument
+            : starDocument
+          : undefined
+      }
       size={size}
-      aria-label={document.isStarred ? t("Unstar") : t("Star")}
       {...rest}
     >
-      {document.isStarred ? (
-        <AnimatedStar size={size} color={theme.textSecondary} />
+      {target.isStarred ? (
+        <AnimatedStar size={size} color={theme.yellow} />
       ) : (
         <AnimatedStar
           size={size}
@@ -56,7 +67,7 @@ export const AnimatedStar = styled(StarredIcon)`
   flex-shrink: 0;
   transition: all 100ms ease-in-out;
 
-  &:hover {
+  &: ${hover} {
     transform: scale(1.1);
   }
   &:active {
@@ -68,4 +79,4 @@ export const AnimatedStar = styled(StarredIcon)`
   }
 `;
 
-export default Star;
+export default observer(Star);

@@ -1,17 +1,21 @@
 import * as React from "react";
 import styled from "styled-components";
 import { EmbedDescriptor } from "@shared/editor/types";
+import Image from "../components/Image";
 import Abstract from "./Abstract";
 import Airtable from "./Airtable";
+import Berrycast from "./Berrycast";
 import Bilibili from "./Bilibili";
 import Cawemo from "./Cawemo";
 import ClickUp from "./ClickUp";
 import Codepen from "./Codepen";
+import DBDiagram from "./DBDiagram";
 import Descript from "./Descript";
 import Diagrams from "./Diagrams";
 import Figma from "./Figma";
 import Framer from "./Framer";
 import Gist from "./Gist";
+import Gliffy from "./Gliffy";
 import GoogleCalendar from "./GoogleCalendar";
 import GoogleDataStudio from "./GoogleDataStudio";
 import GoogleDocs from "./GoogleDocs";
@@ -20,24 +24,29 @@ import GoogleDrive from "./GoogleDrive";
 import GoogleSheets from "./GoogleSheets";
 import GoogleSlides from "./GoogleSlides";
 import InVision from "./InVision";
+import JSFiddle from "./JSFiddle";
 import Loom from "./Loom";
 import Lucidchart from "./Lucidchart";
 import Marvel from "./Marvel";
 import Mindmeister from "./Mindmeister";
 import Miro from "./Miro";
 import ModeAnalytics from "./ModeAnalytics";
+import Otter from "./Otter";
 import Pitch from "./Pitch";
 import Prezi from "./Prezi";
+import Scribe from "./Scribe";
 import Spotify from "./Spotify";
+import Tldraw from "./Tldraw";
 import Trello from "./Trello";
 import Typeform from "./Typeform";
 import Vimeo from "./Vimeo";
 import Whimsical from "./Whimsical";
 import YouTube from "./YouTube";
-import Image from "./components/Image";
 
 export type EmbedProps = {
   isSelected: boolean;
+  isEditable: boolean;
+  embed: EmbedDescriptor;
   attrs: {
     href: string;
     matches: RegExpMatchArray;
@@ -84,6 +93,14 @@ const embeds: EmbedDescriptor[] = [
     matcher: matcher(Airtable),
   },
   {
+    title: "Berrycast",
+    keywords: "video",
+    defaultHidden: true,
+    icon: () => <Img src="/images/berrycast.png" alt="Berrycast" />,
+    component: Berrycast,
+    matcher: matcher(Berrycast),
+  },
+  {
     title: "Bilibili",
     keywords: "video",
     defaultHidden: true,
@@ -114,6 +131,13 @@ const embeds: EmbedDescriptor[] = [
     matcher: matcher(Codepen),
   },
   {
+    title: "DBDiagram",
+    keywords: "diagrams database",
+    icon: () => <Img src="/images/dbdiagram.png" alt="DBDiagram" />,
+    component: DBDiagram,
+    matcher: matcher(DBDiagram),
+  },
+  {
     title: "Descript",
     keywords: "audio",
     icon: () => <Img src="/images/descript.png" alt="Descript" />,
@@ -140,6 +164,13 @@ const embeds: EmbedDescriptor[] = [
     icon: () => <Img src="/images/github-gist.png" alt="GitHub" />,
     component: Gist,
     matcher: matcher(Gist),
+  },
+  {
+    title: "Gliffy",
+    keywords: "diagram",
+    icon: () => <Img src="/images/gliffy.png" alt="Gliffy" />,
+    component: Gliffy,
+    matcher: matcher(Gliffy),
   },
   {
     title: "Diagrams.net",
@@ -208,6 +239,14 @@ const embeds: EmbedDescriptor[] = [
     matcher: matcher(InVision),
   },
   {
+    title: "JSFiddle",
+    keywords: "code",
+    defaultHidden: true,
+    icon: () => <Img src="/images/jsfiddle.png" alt="JSFiddle" />,
+    component: JSFiddle,
+    matcher: matcher(JSFiddle),
+  },
+  {
     title: "Loom",
     keywords: "video screencast",
     icon: () => <Img src="/images/loom.png" alt="Loom" />,
@@ -251,6 +290,14 @@ const embeds: EmbedDescriptor[] = [
     matcher: matcher(ModeAnalytics),
   },
   {
+    title: "Otter.ai",
+    keywords: "audio transcription meeting notes",
+    defaultHidden: true,
+    icon: () => <Img src="/images/otter.png" alt="Otter.ai" />,
+    component: Otter,
+    matcher: matcher(Otter),
+  },
+  {
     title: "Pitch",
     keywords: "presentation",
     defaultHidden: true,
@@ -266,11 +313,25 @@ const embeds: EmbedDescriptor[] = [
     matcher: matcher(Prezi),
   },
   {
+    title: "Scribe",
+    keywords: "screencast",
+    icon: () => <Img src="/images/scribe.png" alt="Scribe" />,
+    component: Scribe,
+    matcher: matcher(Scribe),
+  },
+  {
     title: "Spotify",
     keywords: "music",
     icon: () => <Img src="/images/spotify.png" alt="Spotify" />,
     component: Spotify,
     matcher: matcher(Spotify),
+  },
+  {
+    title: "Tldraw",
+    keywords: "draw schematics diagrams",
+    icon: () => <Img src="/images/tldraw.png" alt="Tldraw" />,
+    component: Tldraw,
+    matcher: matcher(Tldraw),
   },
   {
     title: "Trello",

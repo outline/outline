@@ -1,28 +1,27 @@
 import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
-import { CollapsedIcon } from "outline-icons";
 import * as React from "react";
 import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
-import styled from "styled-components";
 import Collection from "~/models/Collection";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import { createCollection } from "~/actions/definitions/collections";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
-import CollectionLink from "./CollectionLink";
+import DraggableCollectionLink from "./DraggableCollectionLink";
 import DropCursor from "./DropCursor";
+import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
+import Relative from "./Relative";
 import SidebarAction from "./SidebarAction";
-import SidebarLink, { DragObject } from "./SidebarLink";
+import { DragObject } from "./SidebarLink";
 
 function Collections() {
   const [isFetching, setFetching] = React.useState(false);
   const [fetchError, setFetchError] = React.useState();
-  const { policies, documents, collections } = useStores();
+  const { documents, collections } = useStores();
   const { showToast } = useToasts();
-  const [expanded, setExpanded] = React.useState(true);
   const isPreloaded = !!collections.orderedData.length;
   const { t } = useTranslation();
   const orderedCollections = collections.orderedData;
@@ -52,7 +51,10 @@ function Collections() {
     load();
   }, [collections, isFetching, showToast, fetchError, t]);
 
-  const [{ isCollectionDropping }, dropToReorderCollection] = useDrop({
+  const [
+    { isCollectionDropping, isDraggingAnyCollection },
+    dropToReorderCollection,
+  ] = useDrop({
     accept: "collection",
     drop: async (item: DragObject) => {
       collections.move(
@@ -65,57 +67,49 @@ function Collections() {
     },
     collect: (monitor) => ({
       isCollectionDropping: monitor.isOver(),
+      isDraggingAnyCollection: monitor.getItemType() === "collection",
     }),
   });
 
   const content = (
     <>
-      <DropCursor
-        isActiveDrop={isCollectionDropping}
-        innerRef={dropToReorderCollection}
-        position="top"
-      />
+      {isDraggingAnyCollection && (
+        <DropCursor
+          isActiveDrop={isCollectionDropping}
+          innerRef={dropToReorderCollection}
+          position="top"
+        />
+      )}
       {orderedCollections.map((collection: Collection, index: number) => (
-        <CollectionLink
+        <DraggableCollectionLink
           key={collection.id}
           collection={collection}
           activeDocument={documents.active}
           prefetchDocument={documents.prefetchDocument}
-          canUpdate={policies.abilities(collection.id).update}
           belowCollection={orderedCollections[index + 1]}
         />
       ))}
-      <SidebarAction action={createCollection} depth={0.5} />
+      <SidebarAction action={createCollection} depth={0} />
     </>
   );
 
   if (!collections.isLoaded || fetchError) {
     return (
       <Flex column>
-        <SidebarLink
-          label={t("Collections")}
-          icon={<Disclosure expanded={expanded} color="currentColor" />}
-        />
-        <PlaceholderCollections />
+        <Header id="collections" title={t("Collections")}>
+          <PlaceholderCollections />
+        </Header>
       </Flex>
     );
   }
 
   return (
     <Flex column>
-      <SidebarLink
-        onClick={() => setExpanded((prev) => !prev)}
-        label={t("Collections")}
-        icon={<Disclosure expanded={expanded} color="currentColor" />}
-      />
-      {expanded && (isPreloaded ? content : <Fade>{content}</Fade>)}
+      <Header id="collections" title={t("Collections")}>
+        <Relative>{isPreloaded ? content : <Fade>{content}</Fade>}</Relative>
+      </Header>
     </Flex>
   );
 }
-
-const Disclosure = styled(CollapsedIcon)<{ expanded?: boolean }>`
-  transition: transform 100ms ease, fill 50ms !important;
-  ${({ expanded }) => !expanded && "transform: rotate(-90deg);"};
-`;
 
 export default observer(Collections);

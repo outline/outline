@@ -1,4 +1,5 @@
 import {
+  ArrowIcon,
   DocumentIcon,
   CloseIcon,
   PlusIcon,
@@ -11,8 +12,10 @@ import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import styled from "styled-components";
 import isUrl from "@shared/editor/lib/isUrl";
+import { isInternalUrl } from "@shared/utils/urls";
 import Flex from "~/components/Flex";
 import { Dictionary } from "~/hooks/useDictionary";
+import { ToastOptions } from "~/types";
 import Input from "./Input";
 import LinkSearchResult from "./LinkSearchResult";
 import ToolbarButton from "./ToolbarButton";
@@ -42,7 +45,7 @@ type Props = {
     href: string,
     event: React.MouseEvent<HTMLButtonElement>
   ) => void;
-  onShowToast?: (message: string, code: string) => void;
+  onShowToast: (message: string, options: ToastOptions) => void;
   view: EditorView;
 };
 
@@ -105,7 +108,9 @@ class LinkEditor extends React.Component<Props, State> {
   save = (href: string, title?: string): void => {
     href = href.trim();
 
-    if (href.length === 0) return;
+    if (href.length === 0) {
+      return;
+    }
 
     this.discardInputValue = true;
     const { from, to } = this.props;
@@ -163,7 +168,9 @@ class LinkEditor extends React.Component<Props, State> {
       }
 
       case "ArrowUp": {
-        if (event.shiftKey) return;
+        if (event.shiftKey) {
+          return;
+        }
         event.preventDefault();
         event.stopPropagation();
         const prevIndex = this.state.selectedIndex - 1;
@@ -176,7 +183,9 @@ class LinkEditor extends React.Component<Props, State> {
 
       case "ArrowDown":
       case "Tab": {
-        if (event.shiftKey) return;
+        if (event.shiftKey) {
+          return;
+        }
 
         event.preventDefault();
         event.stopPropagation();
@@ -239,9 +248,13 @@ class LinkEditor extends React.Component<Props, State> {
     const { onCreateLink } = this.props;
 
     value = value.trim();
-    if (value.length === 0) return;
+    if (value.length === 0) {
+      return;
+    }
 
-    if (onCreateLink) return onCreateLink(value);
+    if (onCreateLink) {
+      return onCreateLink(value);
+    }
   };
 
   handleRemoveLink = (): void => {
@@ -289,6 +302,7 @@ class LinkEditor extends React.Component<Props, State> {
 
     const looksLikeUrl = value.match(/^https?:\/\//i);
     const suggestedLinkTitle = this.suggestedLinkTitle;
+    const isInternal = isInternalUrl(value);
 
     const showCreateLink =
       !!this.props.onCreateLink &&
@@ -314,9 +328,15 @@ class LinkEditor extends React.Component<Props, State> {
           autoFocus={this.href === ""}
         />
 
-        <Tooltip tooltip={dictionary.openLink}>
+        <Tooltip
+          tooltip={isInternal ? dictionary.goToLink : dictionary.openLink}
+        >
           <ToolbarButton onClick={this.handleOpenLink} disabled={!value}>
-            <OpenIcon color="currentColor" />
+            {isInternal ? (
+              <ArrowIcon color="currentColor" />
+            ) : (
+              <OpenIcon color="currentColor" />
+            )}
           </ToolbarButton>
         </Tooltip>
         <Tooltip tooltip={dictionary.removeLink}>
@@ -337,7 +357,7 @@ class LinkEditor extends React.Component<Props, State> {
                 title={result.title}
                 subtitle={result.subtitle}
                 icon={<DocumentIcon color="currentColor" />}
-                onMouseOver={() => this.handleFocusLink(index)}
+                onPointerMove={() => this.handleFocusLink(index)}
                 onClick={this.handleSelectLink(result.url, result.title)}
                 selected={index === selectedIndex}
               />
@@ -349,7 +369,7 @@ class LinkEditor extends React.Component<Props, State> {
                 title={suggestedLinkTitle}
                 subtitle={dictionary.createNewDoc}
                 icon={<PlusIcon color="currentColor" />}
-                onMouseOver={() => this.handleFocusLink(results.length)}
+                onPointerMove={() => this.handleFocusLink(results.length)}
                 onClick={() => {
                   this.handleCreateLink(suggestedLinkTitle);
 
@@ -382,13 +402,14 @@ const SearchResults = styled.ol`
   width: 100%;
   height: auto;
   left: 0;
-  padding: 4px 8px 8px;
+  padding: 0;
   margin: 0;
   margin-top: -3px;
   margin-bottom: 0;
   border-radius: 0 0 4px 4px;
   overflow-y: auto;
-  max-height: 25vh;
+  overscroll-behavior: none;
+  max-height: 260px;
 
   @media (hover: none) and (pointer: coarse) {
     position: fixed;

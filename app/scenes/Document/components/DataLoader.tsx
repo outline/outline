@@ -1,11 +1,8 @@
-import { formatDistanceToNow } from "date-fns";
 import invariant from "invariant";
-import { deburr, sortBy } from "lodash";
 import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { RouteComponentProps, StaticContext } from "react-router";
-import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import RootStore from "~/stores/RootStore";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
@@ -16,7 +13,6 @@ import { NavigationNode } from "~/types";
 import { NotFoundError, OfflineError } from "~/utils/errors";
 import history from "~/utils/history";
 import { matchDocumentEdit } from "~/utils/routeHelpers";
-import { isInternalUrl } from "~/utils/urls";
 import HideSidebar from "./HideSidebar";
 import Loading from "./Loading";
 
@@ -91,65 +87,13 @@ class DataLoader extends React.Component<Props> {
     }
   }
 
-  get isEditing() {
-    return (
-      this.props.match.path === matchDocumentEdit ||
-      this.props.auth?.team?.collaborativeEditing
-    );
+  get isEditRoute() {
+    return this.props.match.path === matchDocumentEdit;
   }
 
-  onSearchLink = async (term: string) => {
-    if (isInternalUrl(term)) {
-      // search for exact internal document
-      const slug = parseDocumentSlug(term);
-      if (!slug) {
-        return;
-      }
-
-      try {
-        const document = await this.props.documents.fetch(slug);
-        const time = formatDistanceToNow(Date.parse(document.updatedAt), {
-          addSuffix: true,
-        });
-
-        return [
-          {
-            title: document.title,
-            subtitle: `Updated ${time}`,
-            url: document.url,
-          },
-        ];
-      } catch (error) {
-        // NotFoundError could not find document for slug
-        if (!(error instanceof NotFoundError)) {
-          throw error;
-        }
-      }
-    }
-
-    // default search for anything that doesn't look like a URL
-    const results = await this.props.documents.searchTitles(term);
-
-    return sortBy(
-      results.map((document: Document) => {
-        const time = formatDistanceToNow(Date.parse(document.updatedAt), {
-          addSuffix: true,
-        });
-
-        return {
-          title: document.title,
-          subtitle: `Updated ${time}`,
-          url: document.url,
-        };
-      }),
-      (document) =>
-        deburr(document.title)
-          .toLowerCase()
-          .startsWith(deburr(term).toLowerCase())
-          ? -1
-          : 1
-    );
-  };
+  get isEditing() {
+    return this.isEditRoute || this.props.auth?.team?.collaborativeEditing;
+  }
 
   onCreateLink = async (title: string) => {
     const document = this.document;
@@ -211,7 +155,7 @@ class DataLoader extends React.Component<Props> {
 
       // If we're attempting to update an archived, deleted, or otherwise
       // uneditable document then forward to the canonical read url.
-      if (!can.update && this.isEditing) {
+      if (!can.update && this.isEditRoute) {
         history.push(document.url);
         return;
       }
@@ -274,8 +218,11 @@ class DataLoader extends React.Component<Props> {
           revision,
           abilities,
           isEditing: this.isEditing,
-          readOnly: !this.isEditing || !abilities.update || document.isArchived,
-          onSearchLink: this.onSearchLink,
+          readOnly:
+            !this.isEditing ||
+            !abilities.update ||
+            document.isArchived ||
+            !!revisionId,
           onCreateLink: this.onCreateLink,
           sharedTree: this.sharedTree,
         })}

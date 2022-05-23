@@ -1,28 +1,32 @@
 import Queue from "bull";
-import Redis from "ioredis";
 import { snakeCase } from "lodash";
+import env from "@server/env";
 import Metrics from "@server/logging/metrics";
-import { client, subscriber } from "../redis";
+import Redis from "../redis";
 
-export function createQueue(name: string) {
+export function createQueue(
+  name: string,
+  defaultJobOptions?: Partial<Queue.JobOptions>
+) {
   const prefix = `queue.${snakeCase(name)}`;
   const queue = new Queue(name, {
     createClient(type) {
       switch (type) {
         case "client":
-          return client;
+          return Redis.defaultClient;
 
         case "subscriber":
-          return subscriber;
+          return Redis.defaultSubscriber;
 
         default:
-          return new Redis(process.env.REDIS_URL);
+          return new Redis(env.REDIS_URL);
       }
     },
 
     defaultJobOptions: {
       removeOnComplete: true,
       removeOnFail: true,
+      ...defaultJobOptions,
     },
   });
   queue.on("stalled", () => {

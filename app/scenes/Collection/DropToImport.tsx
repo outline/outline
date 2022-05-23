@@ -3,19 +3,23 @@ import * as React from "react";
 import Dropzone from "react-dropzone";
 import { useTranslation } from "react-i18next";
 import styled, { css } from "styled-components";
-import HelpText from "~/components/HelpText";
 import LoadingIndicator from "~/components/LoadingIndicator";
+import Text from "~/components/Text";
 import useImportDocument from "~/hooks/useImportDocument";
 import useToasts from "~/hooks/useToasts";
 
 type Props = {
-  children: React.ReactNode;
   disabled: boolean;
   accept: string;
   collectionId: string;
 };
 
-function DropToImport({ children, disabled, accept, collectionId }: Props) {
+const DropToImport: React.FC<Props> = ({
+  children,
+  disabled,
+  accept,
+  collectionId,
+}) => {
   const { handleFiles, isImporting } = useImportDocument(collectionId);
   const { showToast } = useToasts();
   const { t } = useTranslation();
@@ -53,9 +57,9 @@ function DropToImport({ children, disabled, accept, collectionId }: Props) {
       )}
     </Dropzone>
   );
-}
+};
 
-const DropMessage = styled(HelpText)`
+const DropMessage = styled(Text)`
   opacity: 0;
   pointer-events: none;
 `;

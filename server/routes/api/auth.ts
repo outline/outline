@@ -2,8 +2,9 @@ import invariant from "invariant";
 import Router from "koa-router";
 import { find } from "lodash";
 import { parseDomain, isCustomSubdomain } from "@shared/utils/domains";
+import env from "@server/env";
 import auth from "@server/middlewares/authentication";
-import { Team } from "@server/models";
+import { Team, TeamDomain } from "@server/models";
 import { presentUser, presentTeam, presentPolicies } from "@server/presenters";
 import { isCustomDomain } from "@server/utils/domains";
 import providers from "../auth/providers";
@@ -17,7 +18,7 @@ function filterProviders(team?: Team) {
       // guest sign-in is an exception as it does not have an authentication
       // provider using passport, instead it exists as a boolean option on the team
       if (provider.id === "email") {
-        return team?.guestSignin;
+        return team?.emailSigninEnabled;
       }
 
       return (
@@ -40,8 +41,8 @@ router.post("auth.config", async (ctx) => {
   // If self hosted AND there is only one team then that team becomes the
   // brand for the knowledge base and it's guest signin option is used for the
   // root login page.
-  if (process.env.DEPLOYMENT !== "hosted") {
-    const team = await Team.findOne();
+  if (env.DEPLOYMENT !== "hosted") {
+    const team = await Team.scope("withAuthenticationProviders").findOne();
 
     if (team) {
       ctx.body = {
@@ -76,7 +77,7 @@ router.post("auth.config", async (ctx) => {
   // If subdomain signin page then we return minimal team details to allow
   // for a custom screen showing only relevant signin options for that team.
   if (
-    process.env.SUBDOMAINS_ENABLED === "true" &&
+    env.SUBDOMAINS_ENABLED &&
     isCustomSubdomain(ctx.request.hostname) &&
     !isCustomDomain(ctx.request.hostname)
   ) {
@@ -110,7 +111,9 @@ router.post("auth.config", async (ctx) => {
 
 router.post("auth.info", auth(), async (ctx) => {
   const { user } = ctx.state;
-  const team = await Team.findByPk(user.teamId);
+  const team = await Team.findByPk(user.teamId, {
+    include: [{ model: TeamDomain }],
+  });
   invariant(team, "Team not found");
 
   ctx.body = {

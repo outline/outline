@@ -1,8 +1,9 @@
-import Logger from "@server/logging/logger";
+import env from "@server/env";
+import { DomainNotAllowedError, MaximumTeamsError } from "@server/errors";
+import Logger from "@server/logging/Logger";
+import { APM } from "@server/logging/tracing";
 import { Team, AuthenticationProvider } from "@server/models";
-import { isDomainAllowed } from "@server/utils/authentication";
 import { generateAvatarUrl } from "@server/utils/avatars";
-import { MaximumTeamsError } from "../errors";
 
 type TeamCreatorResult = {
   team: Team;
@@ -21,7 +22,7 @@ type Props = {
   };
 };
 
-export default async function teamCreator({
+async function teamCreator({
   name,
   domain,
   subdomain,
@@ -52,14 +53,14 @@ export default async function teamCreator({
   // This team has never been seen before, if self hosted the logic is different
   // to the multi-tenant version, we want to restrict to a single team that MAY
   // have multiple authentication providers
-  if (process.env.DEPLOYMENT !== "hosted") {
+  if (env.DEPLOYMENT !== "hosted") {
     const team = await Team.findOne();
 
-    if (team) {
-      // If the domain is allowed then we want to assign to the existing team,
-      // otherwise we prevent the creation of another team on self-hosted
-      // instances.
-      if (domain && isDomainAllowed(domain)) {
+    // If the self-hosted installation has a single team and the domain for the
+    // new team is allowed then assign the authentication provider to the
+    // existing team
+    if (team && domain) {
+      if (await team.isDomainAllowed(domain)) {
         authP = await team.$create<AuthenticationProvider>(
           "authenticationProvider",
           authenticationProvider
@@ -69,10 +70,12 @@ export default async function teamCreator({
           team,
           isNewTeam: false,
         };
+      } else {
+        throw DomainNotAllowedError();
       }
-
-      throw MaximumTeamsError();
     }
+
+    throw MaximumTeamsError();
   }
 
   // If the service did not provide a logo/avatar then we attempt to generate
@@ -121,3 +124,8 @@ export default async function teamCreator({
     isNewTeam: true,
   };
 }
+
+export default APM.traceFunction({
+  serviceName: "command",
+  spanName: "teamCreator",
+})(teamCreator);

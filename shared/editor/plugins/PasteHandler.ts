@@ -7,6 +7,12 @@ import isUrl from "../lib/isUrl";
 import selectionIsInCode from "../queries/isInCode";
 import { LANGUAGES } from "./Prism";
 
+function isDropboxPaper(html: string): boolean {
+  // The best we have to detect if a paste is likely coming from Paper
+  // In this case it's actually better to use the text version
+  return html?.includes("usually-unique-id");
+}
+
 /**
  * Add support for additional syntax that users paste even though it isn't
  * supported by the markdown parser directly by massaging the text content.
@@ -14,12 +20,15 @@ import { LANGUAGES } from "./Prism";
  * @param text The incoming pasted plain text
  */
 function normalizePastedMarkdown(text: string): string {
-  // find checkboxes not contained in a list and wrap them in list items
   const CHECKBOX_REGEX = /^\s?(\[(X|\s|_|-)\]\s(.*)?)/gim;
 
+  // find checkboxes not contained in a list and wrap them in list items
   while (text.match(CHECKBOX_REGEX)) {
     text = text.replace(CHECKBOX_REGEX, (match) => `- ${match.trim()}`);
   }
+
+  // find multiple newlines and insert a hard break to ensure they are respected
+  text = text.replace(/\n{2,}/g, "\n\n\\\n");
 
   return text;
 }
@@ -33,11 +42,20 @@ export default class PasteHandler extends Extension {
     return [
       new Plugin({
         props: {
+          transformPastedHTML(html: string) {
+            if (isDropboxPaper(html)) {
+              // Fixes double paragraphs when pasting from Dropbox Paper
+              html = html.replace(/<div><br><\/div>/gi, "<p></p>");
+            }
+            return html;
+          },
           handlePaste: (view, event: ClipboardEvent) => {
             if (view.props.editable && !view.props.editable(view.state)) {
               return false;
             }
-            if (!event.clipboardData) return false;
+            if (!event.clipboardData) {
+              return false;
+            }
 
             const text = event.clipboardData.getData("text/plain");
             const html = event.clipboardData.getData("text/html");
@@ -125,7 +143,7 @@ export default class PasteHandler extends Extension {
             // If the text on the clipboard looks like Markdown OR there is no
             // html on the clipboard then try to parse content as Markdown
             if (
-              isMarkdown(text) ||
+              (isMarkdown(text) && !isDropboxPaper(html)) ||
               html.length === 0 ||
               pasteCodeLanguage === "markdown"
             ) {

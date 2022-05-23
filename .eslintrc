@@ -16,6 +16,7 @@
     "plugin:prettier/recommended"
   ],
   "plugins": [
+    "es",
     "@typescript-eslint",
     "eslint-plugin-import",
     "eslint-plugin-node",
@@ -25,8 +26,10 @@
   ],
   "rules": {
     "eqeqeq": 2,
+    "curly": 2,
     "no-mixed-operators": "off",
     "no-useless-escape": "off",
+    "es/no-regexp-lookbehind-assertions": "error",
     "@typescript-eslint/no-unused-vars": [
       "error",
       {

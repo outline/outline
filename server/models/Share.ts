@@ -30,15 +30,22 @@ import Fix from "./decorators/Fix";
   ],
 }))
 @Scopes(() => ({
-  withCollection: (userId: string) => {
+  withCollectionPermissions: (userId: string) => {
     return {
       include: [
         {
-          model: Document.scope("withUnpublished"),
+          model: Document.scope("withDrafts"),
           paranoid: true,
           as: "document",
           include: [
             {
+              attributes: [
+                "id",
+                "permission",
+                "sharing",
+                "teamId",
+                "deletedAt",
+              ],
               model: Collection.scope({
                 method: ["withMembership", userId],
               }),

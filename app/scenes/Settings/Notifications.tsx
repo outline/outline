@@ -3,18 +3,18 @@ import { observer } from "mobx-react";
 import { EmailIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
-import styled from "styled-components";
 import Heading from "~/components/Heading";
-import HelpText from "~/components/HelpText";
 import Input from "~/components/Input";
 import Notice from "~/components/Notice";
 import Scene from "~/components/Scene";
-import Subheading from "~/components/Subheading";
+import Switch from "~/components/Switch";
+import Text from "~/components/Text";
 import env from "~/env";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
-import NotificationListItem from "./components/NotificationListItem";
+import isCloudHosted from "~/utils/isCloudHosted";
+import SettingRow from "./components/SettingRow";
 
 function Notifications() {
   const { notificationSettings } = useStores();
@@ -48,6 +48,7 @@ function Notifications() {
       separator: true,
     },
     {
+      visible: isCloudHosted,
       event: "emails.onboarding",
       title: t("Getting started"),
       description: t(
@@ -55,6 +56,7 @@ function Notifications() {
       ),
     },
     {
+      visible: isCloudHosted,
       event: "emails.features",
       title: t("New features"),
       description: t("Receive an email when new features of note are added"),
@@ -100,43 +102,50 @@ function Notifications() {
           </Trans>
         </Notice>
       )}
-      <HelpText>
-        <Trans>
-          Manage when and where you receive email notifications from Outline.
-          Your email address can be updated in your SSO provider.
-        </Trans>
-      </HelpText>
+      <Text type="secondary">
+        <Trans>Manage when and where you receive email notifications.</Trans>
+      </Text>
 
       {env.EMAIL_ENABLED ? (
         <>
-          <Input
-            type="email"
-            value={user.email}
+          <SettingRow
             label={t("Email address")}
-            readOnly
-            short
-          />
+            name="email"
+            description={t(
+              "Your email address should be updated in your SSO provider."
+            )}
+          >
+            <Input type="email" value={user.email} readOnly />
+          </SettingRow>
 
-          <Subheading>{t("Notifications")}</Subheading>
+          <h2>{t("Notifications")}</h2>
 
-          {options.map((option, index) => {
+          {options.map((option) => {
             if (option.separator || !option.event) {
-              return <Separator key={`separator-${index}`} />;
+              return <br />;
             }
 
             const setting = notificationSettings.getByEvent(option.event);
 
             return (
-              <NotificationListItem
-                key={option.event}
-                onChange={handleChange}
-                setting={setting}
-                disabled={
-                  (setting && setting.isSaving) ||
-                  notificationSettings.isFetching
-                }
-                {...option}
-              />
+              <SettingRow
+                visible={option.visible}
+                label={option.title}
+                name={option.event}
+                description={option.description}
+              >
+                <Switch
+                  key={option.event}
+                  id={option.event}
+                  name={option.event}
+                  checked={!!setting}
+                  onChange={handleChange}
+                  disabled={
+                    (setting && setting.isSaving) ||
+                    notificationSettings.isFetching
+                  }
+                />
+              </SettingRow>
             );
           })}
         </>
@@ -152,9 +161,5 @@ function Notifications() {
     </Scene>
   );
 }
-
-const Separator = styled.hr`
-  padding-bottom: 12px;
-`;
 
 export default observer(Notifications);

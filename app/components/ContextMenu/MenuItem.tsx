@@ -3,13 +3,14 @@ import * as React from "react";
 import { MenuItem as BaseMenuItem } from "reakit/Menu";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { hover } from "~/styles";
 import MenuIconWrapper from "../MenuIconWrapper";
 
 type Props = {
-  onClick?: (arg0: React.SyntheticEvent) => void | Promise<void>;
-  children?: React.ReactNode;
+  onClick?: (event: React.SyntheticEvent) => void | Promise<void>;
   selected?: boolean;
   disabled?: boolean;
+  dangerous?: boolean;
   to?: string;
   href?: string;
   target?: "_blank";
@@ -19,7 +20,7 @@ type Props = {
   icon?: React.ReactElement;
 };
 
-const MenuItem = ({
+const MenuItem: React.FC<Props> = ({
   onClick,
   children,
   selected,
@@ -28,7 +29,7 @@ const MenuItem = ({
   hide,
   icon,
   ...rest
-}: Props) => {
+}) => {
   const handleClick = React.useCallback(
     (ev) => {
       if (onClick) {
@@ -91,7 +92,14 @@ const Spacer = styled.svg`
   flex-shrink: 0;
 `;
 
-export const MenuAnchorCSS = css<{ level?: number; disabled?: boolean }>`
+type MenuAnchorProps = {
+  level?: number;
+  disabled?: boolean;
+  dangerous?: boolean;
+  disclosure?: boolean;
+};
+
+export const MenuAnchorCSS = css<MenuAnchorProps>`
   display: flex;
   margin: 0;
   border: 0;
@@ -108,6 +116,7 @@ export const MenuAnchorCSS = css<{ level?: number; disabled?: boolean }>`
   cursor: default;
   user-select: none;
   white-space: nowrap;
+  position: relative;
 
   svg:not(:last-child) {
     margin-right: 4px;
@@ -123,11 +132,11 @@ export const MenuAnchorCSS = css<{ level?: number; disabled?: boolean }>`
       ? "pointer-events: none;"
       : `
 
-  &:hover,  
+  &:${hover},
   &:focus,
   &.focus-visible {
     color: ${props.theme.white};
-    background: ${props.theme.primary};
+    background: ${props.dangerous ? props.theme.danger : props.theme.primary};
     box-shadow: none;
     cursor: pointer;
 
@@ -139,6 +148,8 @@ export const MenuAnchorCSS = css<{ level?: number; disabled?: boolean }>`
 
   ${breakpoint("tablet")`
     padding: 4px 12px;
+    padding-right: ${(props: MenuAnchorProps) =>
+      props.disclosure ? 32 : 12}px;
     font-size: 14px;
   `};
 `;

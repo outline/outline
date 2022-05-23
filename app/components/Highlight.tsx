@@ -1,3 +1,4 @@
+import { escapeRegExp } from "lodash";
 import * as React from "react";
 import replace from "string-replace-to-array";
 import styled from "styled-components";
@@ -23,7 +24,7 @@ function Highlight({
     regex = highlight;
   } else {
     regex = new RegExp(
-      (highlight || "").replace(/[-\\^$*+?.()|[\]{}]/g, "\\$&"),
+      escapeRegExp(highlight || ""),
       caseSensitive ? "g" : "gi"
     );
   }
@@ -41,10 +42,10 @@ function Highlight({
   );
 }
 
-const Mark = styled.mark`
+export const Mark = styled.mark`
   background: ${(props) => props.theme.searchHighlight};
   border-radius: 2px;
-  padding: 0 4px;
+  padding: 0 2px;
 `;
 
 export default Highlight;

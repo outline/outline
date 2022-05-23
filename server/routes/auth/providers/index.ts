@@ -1,6 +1,6 @@
 import Router from "koa-router";
 import { sortBy } from "lodash";
-import { signin } from "@shared/utils/routeHelpers";
+import { signin } from "@shared/utils/urlHelpers";
 import { requireDirectory } from "@server/utils/fs";
 
 interface AuthenicationProvider {

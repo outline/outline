@@ -1,3 +1,4 @@
+import env from "@server/env";
 import { User } from "@server/models";
 
 type Options = {
@@ -9,6 +10,7 @@ type UserPresentation = {
   name: string;
   avatarUrl: string | null | undefined;
   createdAt: Date;
+  updatedAt: Date;
   lastActiveAt: Date | null;
   color: string;
   isAdmin: boolean;
@@ -31,13 +33,13 @@ export default (
     isSuspended: user.isSuspended,
     isViewer: user.isViewer,
     createdAt: user.createdAt,
+    updatedAt: user.updatedAt,
     lastActiveAt: user.lastActiveAt,
   };
 
   if (options.includeDetails) {
     userData.email = user.email;
-    userData.language =
-      user.language || process.env.DEFAULT_LANGUAGE || "en_US";
+    userData.language = user.language || env.DEFAULT_LANGUAGE;
   }
 
   return userData;

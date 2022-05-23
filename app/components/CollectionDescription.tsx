@@ -1,3 +1,4 @@
+import debounce from "lodash/debounce";
 import { observer } from "mobx-react";
 import { transparentize } from "polished";
 import * as React from "react";
@@ -9,7 +10,7 @@ import ButtonLink from "~/components/ButtonLink";
 import Editor from "~/components/Editor";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import NudeButton from "~/components/NudeButton";
-import useDebouncedCallback from "~/hooks/useDebouncedCallback";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 
@@ -18,13 +19,13 @@ type Props = {
 };
 
 function CollectionDescription({ collection }: Props) {
-  const { collections, policies } = useStores();
+  const { collections } = useStores();
   const { showToast } = useToasts();
   const { t } = useTranslation();
   const [isExpanded, setExpanded] = React.useState(false);
   const [isEditing, setEditing] = React.useState(false);
   const [isDirty, setDirty] = React.useState(false);
-  const can = policies.abilities(collection.id);
+  const can = usePolicy(collection.id);
 
   const handleStartEditing = React.useCallback(() => {
     setEditing(true);
@@ -48,21 +49,25 @@ function CollectionDescription({ collection }: Props) {
     [isExpanded]
   );
 
-  const handleSave = useDebouncedCallback(async (getValue) => {
-    try {
-      await collection.save({
-        description: getValue(),
-      });
-      setDirty(false);
-    } catch (err) {
-      showToast(
-        t("Sorry, an error occurred saving the collection", {
-          type: "error",
-        })
-      );
-      throw err;
-    }
-  }, 1000);
+  const handleSave = React.useMemo(
+    () =>
+      debounce(async (getValue) => {
+        try {
+          await collection.save({
+            description: getValue(),
+          });
+          setDirty(false);
+        } catch (err) {
+          showToast(
+            t("Sorry, an error occurred saving the collection", {
+              type: "error",
+            })
+          );
+          throw err;
+        }
+      }, 1000),
+    [collection, showToast, t]
+  );
 
   const handleChange = React.useCallback(
     (getValue) => {
@@ -104,9 +109,8 @@ function CollectionDescription({ collection }: Props) {
                 autoFocus={isEditing}
                 onBlur={handleStopEditing}
                 maxLength={1000}
-                disableEmbeds
+                embedsDisabled
                 readOnlyWriteCheckboxes
-                grow
               />
             </React.Suspense>
           ) : (

@@ -1,8 +1,11 @@
 import passport from "@outlinewiki/koa-passport";
+import { Request } from "koa";
 import Router from "koa-router";
-// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'pass... Remove this comment to see the full error message
+import { Profile } from "passport";
 import { Strategy as SlackStrategy } from "passport-slack-oauth2";
-import accountProvisioner from "@server/commands/accountProvisioner";
+import accountProvisioner, {
+  AccountProvisionerResult,
+} from "@server/commands/accountProvisioner";
 import env from "@server/env";
 import auth from "@server/middlewares/authentication";
 import passportMiddleware from "@server/middlewares/passport";
@@ -11,15 +14,31 @@ import {
   Collection,
   Integration,
   Team,
+  User,
 } from "@server/models";
 import { StateStore } from "@server/utils/passport";
 import * as Slack from "@server/utils/slack";
 import { assertPresent, assertUuid } from "@server/validation";
 
+type SlackProfile = Profile & {
+  team: {
+    id: string;
+    name: string;
+    domain: string;
+    image_192: string;
+    image_230: string;
+  };
+  user: {
+    id: string;
+    name: string;
+    email: string;
+    image_192: string;
+    image_230: string;
+  };
+};
+
 const router = new Router();
 const providerName = "slack";
-const SLACK_CLIENT_ID = process.env.SLACK_KEY;
-const SLACK_CLIENT_SECRET = process.env.SLACK_SECRET;
 const scopes = [
   "identity.email",
   "identity.basic",
@@ -29,21 +48,31 @@ const scopes = [
 
 export const config = {
   name: "Slack",
-  enabled: !!SLACK_CLIENT_ID,
+  enabled: !!env.SLACK_CLIENT_ID,
 };
 
-if (SLACK_CLIENT_ID) {
+if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
   const strategy = new SlackStrategy(
     {
-      clientID: SLACK_CLIENT_ID,
-      clientSecret: SLACK_CLIENT_SECRET,
+      clientID: env.SLACK_CLIENT_ID,
+      clientSecret: env.SLACK_CLIENT_SECRET,
       callbackURL: `${env.URL}/auth/slack.callback`,
       passReqToCallback: true,
+      // @ts-expect-error StateStore
       store: new StateStore(),
       scope: scopes,
     },
-    // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'req' implicitly has an 'any' type.
-    async function (req, accessToken, refreshToken, profile, done) {
+    async function (
+      req: Request,
+      accessToken: string,
+      refreshToken: string,
+      profile: SlackProfile,
+      done: (
+        err: Error | null,
+        user: User | null,
+        result?: AccountProvisionerResult
+      ) => void
+    ) {
       try {
         const result = await accountProvisioner({
           ip: req.ip,
@@ -120,7 +149,7 @@ if (SLACK_CLIENT_ID) {
         }
       }
 
-      const endpoint = `${process.env.URL || ""}/auth/slack.commands`;
+      const endpoint = `${env.URL}/auth/slack.commands`;
       // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string | string[] | undefined' i... Remove this comment to see the full error message
       const data = await Slack.oauthAccess(code, endpoint);
       const authentication = await IntegrationAuthentication.create({
@@ -179,7 +208,7 @@ if (SLACK_CLIENT_ID) {
         }
       }
 
-      const endpoint = `${process.env.URL || ""}/auth/slack.post`;
+      const endpoint = `${env.URL}/auth/slack.post`;
       const data = await Slack.oauthAccess(code as string, endpoint);
       const authentication = await IntegrationAuthentication.create({
         service: "slack",

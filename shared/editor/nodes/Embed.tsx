@@ -1,10 +1,11 @@
 import Token from "markdown-it/lib/token";
 import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
-import { EditorState, Transaction } from "prosemirror-state";
+import { EditorState } from "prosemirror-state";
 import * as React from "react";
+import DisabledEmbed from "../components/DisabledEmbed";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import embedsRule from "../rules/embeds";
-import { ComponentProps } from "../types";
+import { ComponentProps, Dispatch } from "../types";
 import Node from "./Node";
 
 const cache = {};
@@ -24,7 +25,7 @@ export default class Embed extends Node {
       },
       parseDOM: [
         {
-          tag: "iframe[class=embed]",
+          tag: "iframe.embed",
           getAttrs: (dom: HTMLIFrameElement) => {
             const { embeds } = this.editor.props;
             const href = dom.getAttribute("src") || "";
@@ -49,6 +50,7 @@ export default class Embed extends Node {
         { class: "embed", src: node.attrs.href, contentEditable: "false" },
         0,
       ],
+      toPlainText: (node) => node.attrs.href,
     };
   }
 
@@ -57,28 +59,42 @@ export default class Embed extends Node {
   }
 
   component({ isEditable, isSelected, theme, node }: ComponentProps) {
-    const { embeds } = this.editor.props;
+    const { embeds, embedsDisabled } = this.editor.props;
 
     // matches are cached in module state to avoid re running loops and regex
-    // here. Unfortuantely this function is not compatible with React.memo or
+    // here. Unfortunately this function is not compatible with React.memo or
     // we would use that instead.
     const hit = cache[node.attrs.href];
     let Component = hit ? hit.Component : undefined;
     let matches = hit ? hit.matches : undefined;
+    let embed = hit ? hit.embed : undefined;
 
     if (!Component) {
-      for (const embed of embeds) {
-        const m = embed.matcher(node.attrs.href);
+      for (const e of embeds) {
+        const m = e.matcher(node.attrs.href);
         if (m) {
-          Component = embed.component;
+          Component = e.component;
           matches = m;
-          cache[node.attrs.href] = { Component, matches };
+          embed = e;
+          cache[node.attrs.href] = { Component, embed, matches };
         }
       }
     }
 
     if (!Component) {
       return null;
+    }
+
+    if (embedsDisabled) {
+      return (
+        <DisabledEmbed
+          attrs={{ href: node.attrs.href, matches }}
+          embed={embed}
+          isEditable={isEditable}
+          isSelected={isSelected}
+          theme={theme}
+        />
+      );
     }
 
     return (
@@ -94,7 +110,7 @@ export default class Embed extends Node {
   commands({ type }: { type: NodeType }) {
     return (attrs: Record<string, any>) => (
       state: EditorState,
-      dispatch: (tr: Transaction) => void
+      dispatch: Dispatch
     ) => {
       dispatch(
         state.tr.replaceSelectionWith(type.create(attrs)).scrollIntoView()

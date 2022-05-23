@@ -2,12 +2,16 @@ import { pick } from "lodash";
 import { set, computed, observable } from "mobx";
 import { getFieldsForModel } from "./decorators/Field";
 
-export default class BaseModel {
+export default abstract class BaseModel {
   @observable
   id: string;
 
   @observable
   isSaving: boolean;
+
+  createdAt: string;
+
+  updatedAt: string;
 
   store: any;
 
@@ -22,7 +26,7 @@ export default class BaseModel {
     try {
       // ensure that the id is passed if the document has one
       if (!params) {
-        params = this.toJS();
+        params = this.toAPI();
       }
 
       const model = await this.store.save({ ...params, id: this.id });
@@ -30,7 +34,7 @@ export default class BaseModel {
       // if saving is successful set the new values on the model itself
       set(this, { ...params, ...model });
 
-      this.persistedAttributes = this.toJS();
+      this.persistedAttributes = this.toAPI();
 
       return model;
     } finally {
@@ -40,7 +44,7 @@ export default class BaseModel {
 
   updateFromJson = (data: any) => {
     set(this, data);
-    this.persistedAttributes = this.toJS();
+    this.persistedAttributes = this.toAPI();
   };
 
   fetch = (options?: any) => {
@@ -64,14 +68,37 @@ export default class BaseModel {
   };
 
   /**
-   * Returns a plain object representation of the model
+   * Returns a plain object representation of fields on the model for
+   * persistence to the server API
    *
    * @returns {Record<string, any>}
    */
-  toJS = (): Record<string, any> => {
+  toAPI = (): Record<string, any> => {
     const fields = getFieldsForModel(this);
     return pick(this, fields) || [];
   };
+
+  /**
+   * Returns a plain object representation of all the properties on the model
+   * overrides the inbuilt toJSON method to avoid attempting to serialize store
+   *
+   * @returns {Record<string, any>}
+   */
+  toJSON() {
+    const output: Partial<typeof this> = {};
+
+    for (const property in this) {
+      if (
+        // eslint-disable-next-line no-prototype-builtins
+        this.hasOwnProperty(property) &&
+        !["persistedAttributes", "store", "isSaving"].includes(property)
+      ) {
+        output[property] = this[property];
+      }
+    }
+
+    return output;
+  }
 
   /**
    * Returns a boolean indicating if the model has changed since it was last
@@ -80,7 +107,7 @@ export default class BaseModel {
    * @returns boolean true if unsaved
    */
   isDirty(): boolean {
-    const attributes = this.toJS();
+    const attributes = this.toAPI();
 
     if (Object.keys(attributes).length === 0) {
       console.warn("Checking dirty on model with no @Field decorators");

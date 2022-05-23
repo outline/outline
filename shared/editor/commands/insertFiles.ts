@@ -1,103 +1,161 @@
+import * as Sentry from "@sentry/react";
 import { NodeSelection } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
+import { v4 as uuidv4 } from "uuid";
 import uploadPlaceholderPlugin, {
   findPlaceholder,
 } from "../lib/uploadPlaceholder";
-import { ToastType } from "../types";
-
-let uploadId = 0;
+import findAttachmentById from "../queries/findAttachmentById";
 
 export type Options = {
   dictionary: any;
+  /** Set to true to force images to become attachments */
+  isAttachment?: boolean;
+  /** Set to true to replace any existing image at the users selection */
   replaceExisting?: boolean;
-  uploadImage: (file: File) => Promise<string>;
-  onImageUploadStart?: () => void;
-  onImageUploadStop?: () => void;
-  onShowToast?: (message: string, code: string) => void;
+  uploadFile?: (file: File) => Promise<string>;
+  onFileUploadStart?: () => void;
+  onFileUploadStop?: () => void;
+  onShowToast: (message: string) => void;
 };
 
 const insertFiles = function (
   view: EditorView,
-  event: Event | React.ChangeEvent<HTMLInputElement>,
+  event:
+    | Event
+    | React.ChangeEvent<HTMLInputElement>
+    | React.DragEvent<HTMLDivElement>,
   pos: number,
   files: File[],
   options: Options
 ): void {
-  // filter to only include image files
-  const images = files.filter((file) => /image/i.test(file.type));
-  if (images.length === 0) return;
-
   const {
     dictionary,
-    uploadImage,
-    onImageUploadStart,
-    onImageUploadStop,
+    uploadFile,
+    onFileUploadStart,
+    onFileUploadStop,
     onShowToast,
   } = options;
 
-  if (!uploadImage) {
-    console.warn(
-      "uploadImage callback must be defined to handle image uploads."
-    );
+  if (!uploadFile) {
+    console.warn("uploadFile callback must be defined to handle uploads.");
     return;
   }
 
-  // okay, we have some dropped images and a handler – lets stop this
+  // okay, we have some dropped files and a handler – lets stop this
   // event going any further up the stack
   event.preventDefault();
 
-  // let the user know we're starting to process the images
-  if (onImageUploadStart) onImageUploadStart();
+  // let the user know we're starting to process the files
+  if (onFileUploadStart) {
+    onFileUploadStart();
+  }
 
   const { schema } = view.state;
 
-  // we'll use this to track of how many images have succeeded or failed
+  // we'll use this to track of how many files have succeeded or failed
   let complete = 0;
 
-  // the user might have dropped multiple images at once, we need to loop
-  for (const file of images) {
-    const id = `upload-${uploadId++}`;
-
+  // the user might have dropped multiple files at once, we need to loop
+  for (const file of files) {
+    const id = `upload-${uuidv4()}`;
+    const isImage = file.type.startsWith("image/") && !options.isAttachment;
     const { tr } = view.state;
 
-    // insert a placeholder at this position, or mark an existing image as being
-    // replaced
-    tr.setMeta(uploadPlaceholderPlugin, {
-      add: {
-        id,
-        file,
-        pos,
-        replaceExisting: options.replaceExisting,
-      },
-    });
-    view.dispatch(tr);
+    if (isImage) {
+      // insert a placeholder at this position, or mark an existing file as being
+      // replaced
+      tr.setMeta(uploadPlaceholderPlugin, {
+        add: {
+          id,
+          file,
+          pos,
+          isImage,
+          replaceExisting: options.replaceExisting,
+        },
+      });
+      view.dispatch(tr);
+    } else {
+      const $pos = tr.doc.resolve(pos);
+      view.dispatch(
+        view.state.tr.replaceWith(
+          $pos.pos,
+          $pos.pos + ($pos.nodeAfter?.nodeSize || 0),
+          schema.nodes.attachment.create({
+            id,
+            title: file.name ?? "Untitled",
+            size: file.size,
+          })
+        )
+      );
+    }
 
-    // start uploading the image file to the server. Using "then" syntax
+    // start uploading the file to the server. Using "then" syntax
     // to allow all placeholders to be entered at once with the uploads
     // happening in the background in parallel.
-    uploadImage(file)
+    uploadFile(file)
       .then((src) => {
-        // otherwise, insert it at the placeholder's position, and remove
-        // the placeholder itself
-        const newImg = new Image();
+        if (isImage) {
+          const newImg = new Image();
+          newImg.onload = () => {
+            const result = findPlaceholder(view.state, id);
 
-        newImg.onload = () => {
-          const result = findPlaceholder(view.state, id);
+            // if the content around the placeholder has been deleted
+            // then forget about inserting this file
+            if (result === null) {
+              return;
+            }
 
-          // if the content around the placeholder has been deleted
-          // then forget about inserting this image
+            const [from, to] = result;
+            view.dispatch(
+              view.state.tr
+                .replaceWith(
+                  from,
+                  to || from,
+                  schema.nodes.image.create({ src })
+                )
+                .setMeta(uploadPlaceholderPlugin, { remove: { id } })
+            );
+
+            // If the users selection is still at the file then make sure to select
+            // the entire node once done. Otherwise, if the selection has moved
+            // elsewhere then we don't want to modify it
+            if (view.state.selection.from === from) {
+              view.dispatch(
+                view.state.tr.setSelection(
+                  new NodeSelection(view.state.doc.resolve(from))
+                )
+              );
+            }
+          };
+
+          newImg.onerror = (error) => {
+            throw error;
+          };
+
+          newImg.src = src;
+        } else {
+          const result = findAttachmentById(view.state, id);
+
+          // if the attachment has been deleted then forget about updating it
           if (result === null) {
             return;
           }
 
           const [from, to] = result;
           view.dispatch(
-            view.state.tr
-              .replaceWith(from, to || from, schema.nodes.image.create({ src }))
-              .setMeta(uploadPlaceholderPlugin, { remove: { id } })
+            view.state.tr.replaceWith(
+              from,
+              to || from,
+              schema.nodes.attachment.create({
+                href: src,
+                title: file.name ?? "Untitled",
+                size: file.size,
+              })
+            )
           );
 
-          // If the users selection is still at the image then make sure to select
+          // If the users selection is still at the file then make sure to select
           // the entire node once done. Otherwise, if the selection has moved
           // elsewhere then we don't want to modify it
           if (view.state.selection.from === from) {
@@ -107,34 +165,38 @@ const insertFiles = function (
               )
             );
           }
-        };
-
-        newImg.onerror = (error) => {
-          throw error;
-        };
-
-        newImg.src = src;
+        }
       })
       .catch((error) => {
-        console.error(error);
+        Sentry.captureException(error);
 
         // cleanup the placeholder if there is a failure
-        const transaction = view.state.tr.setMeta(uploadPlaceholderPlugin, {
-          remove: { id },
-        });
-        view.dispatch(transaction);
+        if (isImage) {
+          view.dispatch(
+            view.state.tr.setMeta(uploadPlaceholderPlugin, {
+              remove: { id },
+            })
+          );
+        } else {
+          const result = findAttachmentById(view.state, id);
 
-        // let the user know
-        if (onShowToast) {
-          onShowToast(dictionary.imageUploadError, ToastType.Error);
+          // if the attachment has been deleted then forget about updating it
+          if (result === null) {
+            return;
+          }
+
+          const [from, to] = result;
+          view.dispatch(view.state.tr.deleteRange(from, to || from));
         }
+
+        onShowToast(error.message || dictionary.fileUploadError);
       })
       .finally(() => {
         complete++;
 
         // once everything is done, let the user know
-        if (complete === images.length && onImageUploadStop) {
-          onImageUploadStop();
+        if (complete === files.length && onFileUploadStop) {
+          onFileUploadStop();
         }
       });
   }

@@ -8,11 +8,10 @@ import Collection from "~/models/Collection";
 import CollectionPermissions from "~/scenes/CollectionPermissions";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
-import HelpText from "~/components/HelpText";
 import Modal from "~/components/Modal";
+import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
-import useCurrentTeam from "~/hooks/useCurrentTeam";
-import useStores from "~/hooks/useStores";
+import usePolicy from "~/hooks/usePolicy";
 import { newDocumentPath } from "~/utils/routeHelpers";
 
 type Props = {
@@ -20,10 +19,8 @@ type Props = {
 };
 
 function EmptyCollection({ collection }: Props) {
-  const { policies } = useStores();
   const { t } = useTranslation();
-  const team = useCurrentTeam();
-  const can = policies.abilities(team.id);
+  const can = usePolicy(collection.id);
   const collectionName = collection ? collection.name : "";
 
   const [
@@ -34,7 +31,7 @@ function EmptyCollection({ collection }: Props) {
 
   return (
     <Centered column>
-      <HelpText>
+      <Text type="secondary">
         <Trans
           defaults="<em>{{ collectionName }}</em> doesn’t contain any
                     documents yet."
@@ -46,23 +43,21 @@ function EmptyCollection({ collection }: Props) {
           }}
         />
         <br />
-        {can.createDocument && (
-          <Trans>Get started by creating a new one!</Trans>
-        )}
-      </HelpText>
-      <Empty>
-        {can.createDocument && (
+        {can.update && <Trans>Get started by creating a new one!</Trans>}
+      </Text>
+      {can.update && (
+        <Empty>
           <Link to={newDocumentPath(collection.id)}>
             <Button icon={<NewDocumentIcon color="currentColor" />}>
               {t("Create a document")}
             </Button>
           </Link>
-        )}
-        &nbsp;&nbsp;
-        <Button onClick={handlePermissionsModalOpen} neutral>
-          {t("Manage permissions")}…
-        </Button>
-      </Empty>
+          &nbsp;&nbsp;
+          <Button onClick={handlePermissionsModalOpen} neutral>
+            {t("Manage permissions")}…
+          </Button>
+        </Empty>
+      )}
       <Modal
         title={t("Collection permissions")}
         onRequestClose={handlePermissionsModalClose}

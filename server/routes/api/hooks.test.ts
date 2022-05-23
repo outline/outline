@@ -1,4 +1,5 @@
 import TestServer from "fetch-test-server";
+import env from "@server/env";
 import { IntegrationAuthentication, SearchQuery } from "@server/models";
 import webService from "@server/services/web";
 import { buildDocument, buildIntegration } from "@server/test/factories";
@@ -24,7 +25,7 @@ describe("#hooks.unfurl", () => {
     });
     const res = await server.post("/api/hooks.unfurl", {
       body: {
-        token: process.env.SLACK_VERIFICATION_TOKEN,
+        token: env.SLACK_VERIFICATION_TOKEN,
         team_id: "TXXXXXXXX",
         api_app_id: "AXXXXXXXXX",
         event: {
@@ -51,7 +52,7 @@ describe("#hooks.slack", () => {
     const { user, team } = await seed();
     const res = await server.post("/api/hooks.slack", {
       body: {
-        token: process.env.SLACK_VERIFICATION_TOKEN,
+        token: env.SLACK_VERIFICATION_TOKEN,
         user_id: user.authentications[0].providerId,
         team_id: team.authenticationProviders[0].providerId,
         text: "dsfkndfskndsfkn",
@@ -71,7 +72,7 @@ describe("#hooks.slack", () => {
     });
     const res = await server.post("/api/hooks.slack", {
       body: {
-        token: process.env.SLACK_VERIFICATION_TOKEN,
+        token: env.SLACK_VERIFICATION_TOKEN,
         user_id: user.authentications[0].providerId,
         team_id: team.authenticationProviders[0].providerId,
         text: "contains",
@@ -93,7 +94,7 @@ describe("#hooks.slack", () => {
     });
     const res = await server.post("/api/hooks.slack", {
       body: {
-        token: process.env.SLACK_VERIFICATION_TOKEN,
+        token: env.SLACK_VERIFICATION_TOKEN,
         user_id: user.authentications[0].providerId,
         team_id: team.authenticationProviders[0].providerId,
         text: "*contains",
@@ -113,7 +114,7 @@ describe("#hooks.slack", () => {
     });
     const res = await server.post("/api/hooks.slack", {
       body: {
-        token: process.env.SLACK_VERIFICATION_TOKEN,
+        token: env.SLACK_VERIFICATION_TOKEN,
         user_id: user.authentications[0].providerId,
         team_id: team.authenticationProviders[0].providerId,
         text: "contains",
@@ -132,7 +133,7 @@ describe("#hooks.slack", () => {
     const { user, team } = await seed();
     await server.post("/api/hooks.slack", {
       body: {
-        token: process.env.SLACK_VERIFICATION_TOKEN,
+        token: env.SLACK_VERIFICATION_TOKEN,
         user_id: user.authentications[0].providerId,
         team_id: team.authenticationProviders[0].providerId,
         text: "contains",
@@ -160,7 +161,7 @@ describe("#hooks.slack", () => {
     const { user, team } = await seed();
     const res = await server.post("/api/hooks.slack", {
       body: {
-        token: process.env.SLACK_VERIFICATION_TOKEN,
+        token: env.SLACK_VERIFICATION_TOKEN,
         user_id: user.authentications[0].providerId,
         team_id: team.authenticationProviders[0].providerId,
         text: "help",
@@ -175,7 +176,7 @@ describe("#hooks.slack", () => {
     const { user, team } = await seed();
     const res = await server.post("/api/hooks.slack", {
       body: {
-        token: process.env.SLACK_VERIFICATION_TOKEN,
+        token: env.SLACK_VERIFICATION_TOKEN,
         user_id: user.authentications[0].providerId,
         team_id: team.authenticationProviders[0].providerId,
         text: "",
@@ -202,7 +203,7 @@ describe("#hooks.slack", () => {
     });
     const res = await server.post("/api/hooks.slack", {
       body: {
-        token: process.env.SLACK_VERIFICATION_TOKEN,
+        token: env.SLACK_VERIFICATION_TOKEN,
         user_id: "unknown-slack-user-id",
         team_id: team.authenticationProviders[0].providerId,
         text: "contains",
@@ -234,7 +235,7 @@ describe("#hooks.slack", () => {
     });
     const res = await server.post("/api/hooks.slack", {
       body: {
-        token: process.env.SLACK_VERIFICATION_TOKEN,
+        token: env.SLACK_VERIFICATION_TOKEN,
         user_id: "unknown-slack-user-id",
         team_id: serviceTeamId,
         text: "contains",
@@ -273,7 +274,7 @@ describe("#hooks.interactive", () => {
       teamId: user.teamId,
     });
     const payload = JSON.stringify({
-      token: process.env.SLACK_VERIFICATION_TOKEN,
+      token: env.SLACK_VERIFICATION_TOKEN,
       user: {
         id: user.authentications[0].providerId,
       },
@@ -302,7 +303,7 @@ describe("#hooks.interactive", () => {
       teamId: user.teamId,
     });
     const payload = JSON.stringify({
-      token: process.env.SLACK_VERIFICATION_TOKEN,
+      token: env.SLACK_VERIFICATION_TOKEN,
       user: {
         id: "unknown-slack-user-id",
       },

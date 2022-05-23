@@ -3,6 +3,7 @@ import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
+import { CompositeStateReturn, CompositeItem } from "reakit/Composite";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Document from "~/models/Document";
@@ -12,13 +13,15 @@ import DocumentMeta from "~/components/DocumentMeta";
 import EventBoundary from "~/components/EventBoundary";
 import Flex from "~/components/Flex";
 import Highlight from "~/components/Highlight";
+import NudeButton from "~/components/NudeButton";
 import StarButton, { AnimatedStar } from "~/components/Star";
 import Tooltip from "~/components/Tooltip";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import useStores from "~/hooks/useStores";
+import usePolicy from "~/hooks/usePolicy";
 import DocumentMenu from "~/menus/DocumentMenu";
+import { hover } from "~/styles";
 import { newDocumentPath } from "~/utils/routeHelpers";
 
 type Props = {
@@ -31,7 +34,8 @@ type Props = {
   showPin?: boolean;
   showDraft?: boolean;
   showTemplate?: boolean;
-};
+} & CompositeStateReturn;
+
 const SEARCH_RESULT_REGEX = /<b\b[^>]*>(.*?)<\/b>/gi;
 
 function replaceResultMarks(tag: string) {
@@ -45,7 +49,6 @@ function DocumentListItem(
   ref: React.RefObject<HTMLAnchorElement>
 ) {
   const { t } = useTranslation();
-  const { policies } = useStores();
   const currentUser = useCurrentUser();
   const currentTeam = useCurrentTeam();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
@@ -60,19 +63,22 @@ function DocumentListItem(
     showTemplate,
     highlight,
     context,
+    ...rest
   } = props;
   const queryIsInTitle =
     !!highlight &&
     !!document.title.toLowerCase().includes(highlight.toLowerCase());
   const canStar =
     !document.isDraft && !document.isArchived && !document.isTemplate;
-  const can = policies.abilities(currentTeam.id);
-  const canCollection = policies.abilities(document.collectionId);
+  const can = usePolicy(currentTeam.id);
+  const canCollection = usePolicy(document.collectionId);
 
   return (
-    <DocumentLink
+    <CompositeItem
+      as={DocumentLink}
       ref={ref}
       dir={document.dir}
+      role="menuitem"
       $isStarred={document.isStarred}
       $menuOpen={menuOpen}
       to={{
@@ -81,6 +87,7 @@ function DocumentListItem(
           title: document.titleWithDefault,
         },
       }}
+      {...rest}
     >
       <Content>
         <Heading dir={document.dir}>
@@ -154,7 +161,7 @@ function DocumentListItem(
           modal={false}
         />
       </Actions>
-    </DocumentLink>
+    </CompositeItem>
   );
 }
 
@@ -170,6 +177,13 @@ const Actions = styled(EventBoundary)`
   margin: 8px;
   flex-shrink: 0;
   flex-grow: 0;
+
+  ${NudeButton} {
+    &:hover,
+    &[aria-expanded="true"] {
+      background: ${(props) => props.theme.sidebarControlHoverBackground};
+    }
+  }
 
   ${breakpoint("tablet")`
     display: flex;
@@ -188,6 +202,10 @@ const DocumentLink = styled(Link)<{
   max-height: 50vh;
   width: calc(100vw - 8px);
 
+  &:focus-visible {
+    outline: none;
+  }
+
   ${breakpoint("tablet")`
     width: auto;
   `};
@@ -200,7 +218,7 @@ const DocumentLink = styled(Link)<{
     opacity: ${(props) => (props.$isStarred ? "1 !important" : 0)};
   }
 
-  &:hover,
+  &:${hover},
   &:active,
   &:focus,
   &:focus-within {

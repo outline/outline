@@ -3,13 +3,12 @@ import { observer } from "mobx-react";
 import { useState } from "react";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
-import { useHistory } from "react-router-dom";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
-import HelpText from "~/components/HelpText";
 import IconPicker from "~/components/IconPicker";
 import Input from "~/components/Input";
 import InputSelect from "~/components/InputSelect";
+import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 
@@ -29,7 +28,6 @@ const CollectionEdit = ({ collectionId, onSubmit }: Props) => {
     field: string;
     direction: "asc" | "desc";
   }>(collection.sort);
-  const history = useHistory();
   const [isSaving, setIsSaving] = useState(false);
   const { showToast } = useToasts();
   const { t } = useTranslation();
@@ -46,7 +44,6 @@ const CollectionEdit = ({ collectionId, onSubmit }: Props) => {
           color,
           sort,
         });
-        history.push(collection.url);
         onSubmit();
         showToast(t("The collection was updated"), {
           type: "success",
@@ -59,7 +56,7 @@ const CollectionEdit = ({ collectionId, onSubmit }: Props) => {
         setIsSaving(false);
       }
     },
-    [collection, history, color, icon, name, onSubmit, showToast, sort, t]
+    [collection, color, icon, name, onSubmit, showToast, sort, t]
   );
 
   const handleSortChange = (value: string) => {
@@ -85,13 +82,13 @@ const CollectionEdit = ({ collectionId, onSubmit }: Props) => {
   return (
     <Flex column>
       <form onSubmit={handleSubmit}>
-        <HelpText>
+        <Text type="secondary">
           <Trans>
             You can edit the name and other details at any time, however doing
             so often might confuse your team mates.
           </Trans>
-        </HelpText>
-        <Flex>
+        </Text>
+        <Flex gap={8}>
           <Input
             type="text"
             label={t("Name")}
@@ -101,14 +98,13 @@ const CollectionEdit = ({ collectionId, onSubmit }: Props) => {
             autoFocus
             flex
           />
-          &nbsp;
           <IconPicker onChange={handleChange} color={color} icon={icon} />
         </Flex>
         <InputSelect
           label={t("Sort in sidebar")}
           options={[
             {
-              label: t("Alphabetical"),
+              label: t("Alphabetical sort"),
               value: "title.asc",
             },
             {

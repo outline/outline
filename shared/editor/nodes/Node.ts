@@ -1,8 +1,8 @@
 import { InputRule } from "prosemirror-inputrules";
 import { TokenConfig } from "prosemirror-markdown";
 import {
-  Node as ProsemirrorNode,
   NodeSpec,
+  Node as ProsemirrorNode,
   NodeType,
   Schema,
 } from "prosemirror-model";

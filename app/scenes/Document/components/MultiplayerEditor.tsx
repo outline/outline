@@ -15,6 +15,8 @@ import usePageVisibility from "~/hooks/usePageVisibility";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import MultiplayerExtension from "~/multiplayer/MultiplayerExtension";
+import Logger from "~/utils/Logger";
+import { supportsPassiveListener } from "~/utils/browser";
 import { homePath } from "~/utils/routeHelpers";
 
 type Props = EditorProps & {
@@ -76,7 +78,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
         "scrollY",
         window.scrollY / window.innerHeight
       );
-    }, 200);
+    }, 250);
 
     const finishObserving = () => {
       if (ui.observingUserId) {
@@ -86,7 +88,11 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
 
     window.addEventListener("click", finishObserving);
     window.addEventListener("wheel", finishObserving);
-    window.addEventListener("scroll", syncScrollPosition);
+    window.addEventListener(
+      "scroll",
+      syncScrollPosition,
+      supportsPassiveListener ? { passive: true } : false
+    );
 
     provider.on("authenticationFailed", () => {
       showToast(
@@ -133,16 +139,19 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     });
 
     if (debug) {
-      provider.on("status", (ev: ConnectionStatusEvent) =>
-        console.log("status", ev.status)
-      );
       provider.on("message", (ev: MessageEvent) =>
-        console.log("incoming", ev.message)
+        Logger.debug("collaboration", "incoming", {
+          message: ev.message,
+        })
       );
       provider.on("outgoingMessage", (ev: MessageEvent) =>
-        console.log("outgoing", ev.message)
+        Logger.debug("collaboration", "outgoing", {
+          message: ev.message,
+        })
       );
-      localProvider.on("synced", () => console.log("local synced"));
+      localProvider.on("synced", () =>
+        Logger.debug("collaboration", "local synced")
+      );
     }
 
     provider.on("status", (ev: ConnectionStatusEvent) =>
@@ -183,17 +192,18 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
 
   const extensions = React.useMemo(() => {
     if (!remoteProvider) {
-      return [];
+      return props.extensions;
     }
 
     return [
+      ...(props.extensions || []),
       new MultiplayerExtension({
         user,
         provider: remoteProvider,
         document: ydoc,
       }),
     ];
-  }, [remoteProvider, user, ydoc]);
+  }, [remoteProvider, user, ydoc, props.extensions]);
 
   React.useEffect(() => {
     if (isLocalSynced && isRemoteSynced) {
@@ -224,17 +234,45 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     }
   }, [remoteProvider, isIdle, isVisible]);
 
-  if (!extensions.length) {
+  // Certain emoji combinations trigger this error in YJS, while waiting for a fix
+  // we must prevent the user from continuing to edit as their changes will not
+  // be persisted. See: https://github.com/yjs/yjs/issues/303
+  React.useEffect(() => {
+    function onUnhandledError(event: ErrorEvent) {
+      if (event.message.includes("URIError: URI malformed")) {
+        showToast(
+          t(
+            "Sorry, the last change could not be persisted – please reload the page"
+          ),
+          {
+            type: "error",
+            timeout: 0,
+          }
+        );
+      }
+    }
+
+    window.addEventListener("error", onUnhandledError);
+    return () => window.removeEventListener("error", onUnhandledError);
+  }, [showToast, t]);
+
+  if (!remoteProvider) {
     return null;
   }
 
   // while the collaborative document is loading, we render a version of the
   // document from the last text cache in read-only mode if we have it.
   const showCache = !isLocalSynced && !isRemoteSynced;
+
   return (
     <>
       {showCache && (
-        <Editor defaultValue={props.defaultValue} readOnly ref={ref} />
+        <Editor
+          defaultValue={props.defaultValue}
+          extensions={props.extensions}
+          readOnly
+          ref={ref}
+        />
       )}
       <Editor
         {...props}

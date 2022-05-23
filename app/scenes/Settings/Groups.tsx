@@ -2,27 +2,29 @@ import { observer } from "mobx-react";
 import { PlusIcon, GroupIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import Group from "~/models/Group";
 import GroupNew from "~/scenes/GroupNew";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
 import Empty from "~/components/Empty";
 import GroupListItem from "~/components/GroupListItem";
 import Heading from "~/components/Heading";
-import HelpText from "~/components/HelpText";
 import Modal from "~/components/Modal";
 import PaginatedList from "~/components/PaginatedList";
 import Scene from "~/components/Scene";
 import Subheading from "~/components/Subheading";
+import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import GroupMenu from "~/menus/GroupMenu";
 
 function Groups() {
   const { t } = useTranslation();
-  const { policies, groups } = useStores();
+  const { groups } = useStores();
   const team = useCurrentTeam();
-  const can = policies.abilities(team.id);
+  const can = usePolicy(team.id);
   const [
     newGroupModalOpen,
     handleNewGroupModalOpen,
@@ -50,17 +52,17 @@ function Groups() {
       }
     >
       <Heading>{t("Groups")}</Heading>
-      <HelpText>
+      <Text type="secondary">
         <Trans>
           Groups can be used to organize and manage the people on your team.
         </Trans>
-      </HelpText>
+      </Text>
       <Subheading>{t("All groups")}</Subheading>
       <PaginatedList
         items={groups.orderedData}
         empty={<Empty>{t("No groups have been created yet")}</Empty>}
         fetch={groups.fetchPage}
-        renderItem={(item) => (
+        renderItem={(item: Group) => (
           <GroupListItem
             key={item.id}
             group={item}

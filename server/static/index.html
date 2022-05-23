@@ -5,9 +5,10 @@
     <meta name="theme-color" content="#FFF" />
     <meta name="slack-app-id" content="//inject-slack-app-id//" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="color-scheme" content="light dark">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="description" content="A modern team knowledge base for your internal documentation, product specs, support answers, meeting notes, onboarding, &amp; more…">
+    <meta name="color-scheme" content="light dark" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="description" content="//inject-description//" />
+    <link rel="canonical" href="//inject-canonical//" />
     //inject-prefetch//
     <link
       rel="shortcut icon"
@@ -54,10 +55,15 @@
       //inject-env//
     </script>
     <script>
-      if (window.localStorage && window.localStorage.getItem("theme") === "dark") {
+      if (
+        window.localStorage &&
+        window.localStorage.getItem("theme") === "dark"
+      ) {
         var color = "#111319";
         document.querySelector("#root").style.background = color;
-        document.querySelector('meta[name="theme-color"]').setAttribute("content", color);
+        document
+          .querySelector('meta[name="theme-color"]')
+          .setAttribute("content", color);
       }
     </script>
   </body>

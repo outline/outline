@@ -8,14 +8,14 @@ import {
 import mount from "koa-mount";
 import enforceHttps from "koa-sslify";
 import env from "@server/env";
-import Logger from "@server/logging/logger";
-import emails from "../emails";
+import Logger from "@server/logging/Logger";
 import routes from "../routes";
 import api from "../routes/api";
 import auth from "../routes/auth";
 
-const isProduction = env.NODE_ENV === "production";
-const isTest = env.NODE_ENV === "test";
+const isProduction = env.ENVIRONMENT === "production";
+const isTest = env.ENVIRONMENT === "test";
+
 // Construct scripts CSP based on services in use by this installation
 const defaultSrc = ["'self'"];
 const scriptSrc = [
@@ -37,7 +37,7 @@ if (env.CDN_URL) {
 export default function init(app: Koa = new Koa()): Koa {
   if (isProduction) {
     // Force redirect to HTTPS protocol unless explicitly disabled
-    if (process.env.FORCE_HTTPS !== "false") {
+    if (env.FORCE_HTTPS) {
       app.use(
         enforceHttps({
           // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ trustProtoHeader: boolean; }' ... Remove this comment to see the full error message
@@ -92,7 +92,6 @@ export default function init(app: Koa = new Koa()): Koa {
         })
       )
     );
-    app.use(mount("/emails", emails));
   }
 
   app.use(mount("/auth", auth));
@@ -100,10 +99,6 @@ export default function init(app: Koa = new Koa()): Koa {
   // Sets common security headers by default, such as no-sniff, hsts, hide powered
   // by etc, these are applied after auth and api so they are only returned on
   // standard non-XHR accessed routes
-  app.use(async (ctx, next) => {
-    ctx.set("Permissions-Policy", "interest-cohort=()");
-    await next();
-  });
   app.use(
     contentSecurityPolicy({
       directives: {

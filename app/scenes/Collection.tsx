@@ -9,6 +9,8 @@ import {
   useHistory,
   useRouteMatch,
 } from "react-router-dom";
+import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 import Collection from "~/models/Collection";
 import Search from "~/scenes/Search";
 import Badge from "~/components/Badge";
@@ -21,11 +23,13 @@ import PaginatedDocumentList from "~/components/PaginatedDocumentList";
 import PinnedDocuments from "~/components/PinnedDocuments";
 import PlaceholderText from "~/components/PlaceholderText";
 import Scene from "~/components/Scene";
+import Star, { AnimatedStar } from "~/components/Star";
 import Tab from "~/components/Tab";
 import Tabs from "~/components/Tabs";
 import Tooltip from "~/components/Tooltip";
 import { editCollection } from "~/actions/definitions/collections";
 import useCommandBarActions from "~/hooks/useCommandBarActions";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { collectionUrl, updateCollectionUrl } from "~/utils/routeHelpers";
 import Actions from "./Collection/Actions";
@@ -37,29 +41,31 @@ function CollectionScene() {
   const history = useHistory();
   const match = useRouteMatch();
   const { t } = useTranslation();
-  const { documents, pins, policies, collections, ui } = useStores();
+  const { documents, pins, collections, ui } = useStores();
   const [isFetching, setFetching] = React.useState(false);
   const [error, setError] = React.useState<Error | undefined>();
 
   const id = params.id || "";
   const collection: Collection | null | undefined =
     collections.getByUrl(id) || collections.get(id);
-  const can = policies.abilities(collection?.id || "");
+  const can = usePolicy(collection?.id || "");
 
   React.useEffect(() => {
-    if (collection) {
+    if (collection?.name) {
       const canonicalUrl = updateCollectionUrl(match.url, collection);
 
       if (match.url !== canonicalUrl) {
-        history.replace(canonicalUrl);
+        history.replace(canonicalUrl, history.location.state);
       }
     }
-  }, [collection, history, id, match.url]);
+  }, [collection, collection?.name, history, id, match.url]);
 
   React.useEffect(() => {
     if (collection) {
-      ui.setActiveCollection(collection);
+      ui.setActiveCollection(collection.id);
     }
+
+    return () => ui.setActiveCollection(undefined);
   }, [ui, collection]);
 
   React.useEffect(() => {
@@ -90,7 +96,10 @@ function CollectionScene() {
     load();
   }, [collections, isFetching, collection, error, id, can]);
 
-  useCommandBarActions([editCollection]);
+  useCommandBarActions(
+    [editCollection],
+    ui.activeCollectionId ? [ui.activeCollectionId] : undefined
+  );
 
   if (!collection && error) {
     return <Search notFound />;
@@ -98,13 +107,15 @@ function CollectionScene() {
 
   return collection ? (
     <Scene
+      // Forced mount prevents animation of pinned documents when navigating
+      // _between_ collections, speeds up perceived performance.
+      key={collection.id}
       centered={false}
       textTitle={collection.name}
       title={
         <>
           <CollectionIcon collection={collection} expanded />
-          &nbsp;
-          {collection.name}
+          &nbsp;{collection.name}
         </>
       }
       actions={<Actions collection={collection} />}
@@ -119,9 +130,9 @@ function CollectionScene() {
             <Empty collection={collection} />
           ) : (
             <>
-              <Heading>
-                <CollectionIcon collection={collection} size={40} expanded />{" "}
-                {collection.name}{" "}
+              <HeadingWithIcon $isStarred={collection.isStarred}>
+                <HeadingIcon collection={collection} size={40} expanded />
+                {collection.name}
                 {!collection.permission && (
                   <Tooltip
                     tooltip={t(
@@ -132,7 +143,8 @@ function CollectionScene() {
                     <Badge>{t("Private")}</Badge>
                   </Tooltip>
                 )}
-              </Heading>
+                <StarButton collection={collection} size={32} />
+              </HeadingWithIcon>
               <CollectionDescription collection={collection} />
 
               <PinnedDocuments
@@ -218,7 +230,7 @@ function CollectionScene() {
                       collectionId: collection.id,
                       parentDocumentId: null,
                       sort: collection.sort.field,
-                      direction: "ASC",
+                      direction: collection.sort.direction,
                     }}
                     showParentDocuments
                   />
@@ -238,5 +250,46 @@ function CollectionScene() {
     </CenteredContent>
   );
 }
+
+const StarButton = styled(Star)`
+  position: relative;
+  top: 0;
+  left: 10px;
+  overflow: hidden;
+  width: 24px;
+
+  svg {
+    position: relative;
+    left: -4px;
+  }
+`;
+
+const HeadingWithIcon = styled(Heading)<{ $isStarred: boolean }>`
+  display: flex;
+  align-items: center;
+
+  ${AnimatedStar} {
+    opacity: ${(props) => (props.$isStarred ? "1 !important" : 0)};
+  }
+
+  &:hover {
+    ${AnimatedStar} {
+      opacity: 0.5;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+  }
+
+  ${breakpoint("tablet")`
+    margin-left: -40px;
+  `};
+`;
+
+const HeadingIcon = styled(CollectionIcon)`
+  align-self: flex-start;
+  flex-shrink: 0;
+`;
 
 export default observer(CollectionScene);

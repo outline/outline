@@ -1,9 +1,10 @@
 import retry from "fetch-retry";
 import invariant from "invariant";
-import { map, trim } from "lodash";
-import { getCookie } from "tiny-cookie";
+import { trim } from "lodash";
+import queryString from "query-string";
 import EDITOR_VERSION from "@shared/editor/version";
 import stores from "~/stores";
+import isCloudHosted from "~/utils/isCloudHosted";
 import download from "./download";
 import {
   AuthorizationError,
@@ -19,28 +20,25 @@ import {
 type Options = {
   baseUrl?: string;
 };
-// authorization cookie set by a Cloudflare Access proxy
-const CF_AUTHORIZATION = getCookie("CF_Authorization");
 
-// if the cookie is set, we must pass it with all ApiClient requests
-const CREDENTIALS = CF_AUTHORIZATION ? "same-origin" : "omit";
+type FetchOptions = {
+  download?: boolean;
+};
+
 const fetchWithRetry = retry(fetch);
 
 class ApiClient {
   baseUrl: string;
 
-  userAgent: string;
-
   constructor(options: Options = {}) {
     this.baseUrl = options.baseUrl || "/api";
-    this.userAgent = "OutlineFrontend";
   }
 
   fetch = async (
     path: string,
     method: string,
     data: Record<string, any> | FormData | undefined,
-    options: Record<string, any> = {}
+    options: FetchOptions = {}
   ) => {
     let body: string | FormData | undefined;
     let modifiedPath;
@@ -49,7 +47,7 @@ class ApiClient {
 
     if (method === "GET") {
       if (data) {
-        modifiedPath = `${path}?${data && this.constructQueryString(data)}`;
+        modifiedPath = `${path}?${data && queryString.stringify(data)}`;
       } else {
         modifiedPath = path;
       }
@@ -76,7 +74,7 @@ class ApiClient {
       urlToFetch = this.baseUrl + (modifiedPath || path);
     }
 
-    const headerOptions: any = {
+    const headerOptions: Record<string, string> = {
       Accept: "application/json",
       "cache-control": "no-cache",
       "x-editor-version": EDITOR_VERSION,
@@ -105,7 +103,11 @@ class ApiClient {
         body,
         headers,
         redirect: "follow",
-        credentials: CREDENTIALS,
+        // For the hosted deployment we omit cookies on API requests as they are
+        // not needed for authentication this offers a performance increase.
+        // For self-hosted we include them to support a wide variety of
+        // authenticated proxies, e.g. Pomerium, Cloudflare Access etc.
+        credentials: isCloudHosted ? "omit" : "same-origin",
         cache: "no-cache",
       });
     } catch (err) {
@@ -184,13 +186,13 @@ class ApiClient {
       throw new ServiceUnavailableError(error.message);
     }
 
-    throw new RequestError(error.message);
+    throw new RequestError(`Error ${error.statusCode}: ${error.message}`);
   };
 
   get = (
     path: string,
     data: Record<string, any> | undefined,
-    options?: Record<string, any>
+    options?: FetchOptions
   ) => {
     return this.fetch(path, "GET", data, options);
   };
@@ -198,20 +200,10 @@ class ApiClient {
   post = (
     path: string,
     data?: Record<string, any> | undefined,
-    options?: Record<string, any>
+    options?: FetchOptions
   ) => {
     return this.fetch(path, "POST", data, options);
   };
-
-  // Helpers
-  constructQueryString = (data: Record<string, any>) => {
-    return map(
-      data,
-      (v, k) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`
-    ).join("&");
-  };
 }
-
-export default ApiClient; // In case you don't want to always initiate, just import with `import { client } ...`
 
 export const client = new ApiClient();

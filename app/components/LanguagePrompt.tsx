@@ -10,7 +10,7 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import { detectLanguage } from "~/utils/language";
 
-function Icon(props: any) {
+function Icon({ className }: { className?: string }) {
   return (
     <svg
       width="32"
@@ -18,7 +18,7 @@ function Icon(props: any) {
       viewBox="0 0 32 32"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      {...props}
+      className={className}
     >
       <path
         fill-rule="evenodd"

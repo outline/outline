@@ -1,11 +1,17 @@
 import { Node as ProsemirrorNode } from "prosemirror-model";
-import { EditorState } from "prosemirror-state";
+import { EditorState, Transaction } from "prosemirror-state";
 import * as React from "react";
 import { DefaultTheme } from "styled-components";
 
-export enum ToastType {
-  Error = "error",
-  Info = "info",
+export type PlainTextSerializer = (node: ProsemirrorNode) => string;
+
+export enum EventType {
+  blockMenuOpen = "blockMenuOpen",
+  blockMenuClose = "blockMenuClose",
+  emojiMenuOpen = "emojiMenuOpen",
+  emojiMenuClose = "emojiMenuClose",
+  linkMenuOpen = "linkMenuOpen",
+  linkMenuClose = "linkMenuClose",
 }
 
 export type MenuItem = {
@@ -22,6 +28,7 @@ export type MenuItem = {
 };
 
 export type EmbedDescriptor = MenuItem & {
+  icon: React.FC<any>;
   matcher: (url: string) => boolean | [] | RegExpMatchArray;
   component: typeof React.Component | React.FC<any>;
 };
@@ -33,3 +40,5 @@ export type ComponentProps = {
   isEditable: boolean;
   getPos: () => number;
 };
+
+export type Dispatch = (tr: Transaction) => void;

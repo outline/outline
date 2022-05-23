@@ -32,6 +32,7 @@ export default function useDictionary() {
       alignImageDefault: t("Center large"),
       em: t("Italic"),
       embedInvalidLink: t("Sorry, that link won’t work for this embed type"),
+      file: t("File attachment"),
       findOrCreateDoc: `${t("Find or create a doc")}…`,
       h1: t("Big heading"),
       h2: t("Medium heading"),
@@ -39,7 +40,7 @@ export default function useDictionary() {
       heading: t("Heading"),
       hr: t("Divider"),
       image: t("Image"),
-      imageUploadError: t("Sorry, an error occurred uploading the image"),
+      fileUploadError: t("Sorry, an error occurred uploading the file"),
       imageCaptionPlaceholder: t("Write a caption"),
       info: t("Info"),
       infoNotice: t("Info notice"),
@@ -50,6 +51,7 @@ export default function useDictionary() {
       newLineWithSlash: `${t("Keep typing to filter")}…`,
       noResults: t("No results"),
       openLink: t("Open link"),
+      goToLink: t("Go to link"),
       orderedList: t("Ordered list"),
       pageBreak: t("Page break"),
       pasteLink: `${t("Paste a link")}…`,
@@ -69,6 +71,9 @@ export default function useDictionary() {
       tipNotice: t("Tip notice"),
       warning: t("Warning"),
       warningNotice: t("Warning notice"),
+      insertDate: t("Current date"),
+      insertTime: t("Current time"),
+      insertDateTime: t("Current date and time"),
     };
   }, [t]);
 }

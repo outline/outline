@@ -4,7 +4,8 @@ import styled from "styled-components";
 import Flex from "~/components/Flex";
 import InputSearch from "~/components/InputSearch";
 import Key from "~/components/Key";
-import { metaDisplay } from "~/utils/keyboard";
+import { isMac } from "~/utils/browser";
+import { metaDisplay, altDisplay } from "~/utils/keyboard";
 
 function KeyboardShortcuts() {
   const { t } = useTranslation();
@@ -44,7 +45,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>Ctrl</Key> + <Key>Alt</Key> + <Key>h</Key>
+                <Key>Ctrl</Key> + <Key symbol>{altDisplay}</Key> + <Key>h</Key>
               </>
             ),
             label: t("Table of contents"),
@@ -52,7 +53,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>{metaDisplay}</Key> + <Key>.</Key>
+                <Key symbol>{metaDisplay}</Key> + <Key>.</Key>
               </>
             ),
             label: t("Toggle navigation"),
@@ -60,7 +61,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>{metaDisplay}</Key> + <Key>f</Key>
+                <Key symbol>{metaDisplay}</Key> + <Key>f</Key>
               </>
             ),
             label: t("Focus search input"),
@@ -72,7 +73,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>{metaDisplay}</Key> + <Key>Enter</Key>
+                <Key symbol>{metaDisplay}</Key> + <Key>Enter</Key>
               </>
             ),
             label: t("Save document and exit"),
@@ -80,7 +81,8 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>{metaDisplay}</Key> + <Key>⇧</Key> + <Key>p</Key>
+                <Key symbol>{metaDisplay}</Key> + <Key symbol>⇧</Key> +{" "}
+                <Key>p</Key>
               </>
             ),
             label: t("Publish document and exit"),
@@ -88,7 +90,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>{metaDisplay}</Key> + <Key>s</Key>
+                <Key symbol>{metaDisplay}</Key> + <Key>s</Key>
               </>
             ),
             label: t("Save document"),
@@ -96,7 +98,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>{metaDisplay}</Key> + <Key>Esc</Key>
+                <Key symbol>{isMac() ? metaDisplay : "⇧"}</Key> + <Key>Esc</Key>
               </>
             ),
             label: t("Cancel editing"),
@@ -109,7 +111,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>Ctrl</Key> + <Key>⇧</Key> + <Key>0</Key>
+                <Key>Ctrl</Key> + <Key symbol>⇧</Key> + <Key>0</Key>
               </>
             ),
             label: t("Paragraph"),
@@ -117,7 +119,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>Ctrl</Key> + <Key>⇧</Key> + <Key>1</Key>
+                <Key>Ctrl</Key> + <Key symbol>⇧</Key> + <Key>1</Key>
               </>
             ),
             label: t("Large header"),
@@ -125,7 +127,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>Ctrl</Key> + <Key>⇧</Key> + <Key>2</Key>
+                <Key>Ctrl</Key> + <Key symbol>⇧</Key> + <Key>2</Key>
               </>
             ),
             label: t("Medium header"),
@@ -133,7 +135,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>Ctrl</Key> + <Key>⇧</Key> + <Key>3</Key>
+                <Key>Ctrl</Key> + <Key symbol>⇧</Key> + <Key>3</Key>
               </>
             ),
             label: t("Small header"),
@@ -141,7 +143,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>Ctrl</Key> + <Key>⇧</Key> + <Key>\</Key>
+                <Key>Ctrl</Key> + <Key symbol>⇧</Key> + <Key>\</Key>
               </>
             ),
             label: t("Code block"),
@@ -149,7 +151,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>{metaDisplay}</Key> + <Key>b</Key>
+                <Key symbol>{metaDisplay}</Key> + <Key>b</Key>
               </>
             ),
             label: t("Bold"),
@@ -157,7 +159,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>{metaDisplay}</Key> + <Key>i</Key>
+                <Key symbol>{metaDisplay}</Key> + <Key>i</Key>
               </>
             ),
             label: t("Italic"),
@@ -165,7 +167,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>{metaDisplay}</Key> + <Key>u</Key>
+                <Key symbol>{metaDisplay}</Key> + <Key>u</Key>
               </>
             ),
             label: t("Underline"),
@@ -173,7 +175,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>{metaDisplay}</Key> + <Key>d</Key>
+                <Key symbol>{metaDisplay}</Key> + <Key>d</Key>
               </>
             ),
             label: t("Strikethrough"),
@@ -181,7 +183,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>{metaDisplay}</Key> + <Key>k</Key>
+                <Key symbol>{metaDisplay}</Key> + <Key>k</Key>
               </>
             ),
             label: t("Link"),
@@ -189,7 +191,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>{metaDisplay}</Key> + <Key>z</Key>
+                <Key symbol>{metaDisplay}</Key> + <Key>z</Key>
               </>
             ),
             label: t("Undo"),
@@ -197,7 +199,8 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>{metaDisplay}</Key> + <Key>⇧</Key> + <Key>z</Key>
+                <Key symbol>{metaDisplay}</Key> + <Key symbol>⇧</Key> +{" "}
+                <Key>z</Key>
               </>
             ),
             label: t("Redo"),
@@ -210,7 +213,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>Ctrl</Key> + <Key>⇧</Key> + <Key>7</Key>
+                <Key>Ctrl</Key> + <Key symbol>⇧</Key> + <Key>7</Key>
               </>
             ),
             label: t("Todo list"),
@@ -218,7 +221,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>Ctrl</Key> + <Key>⇧</Key> + <Key>8</Key>
+                <Key>Ctrl</Key> + <Key symbol>⇧</Key> + <Key>8</Key>
               </>
             ),
             label: t("Bulleted list"),
@@ -226,7 +229,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>Ctrl</Key> + <Key>⇧</Key> + <Key>9</Key>
+                <Key>Ctrl</Key> + <Key symbol>⇧</Key> + <Key>9</Key>
               </>
             ),
             label: t("Ordered list"),
@@ -238,7 +241,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>⇧</Key> + <Key>Tab</Key>
+                <Key symbol>⇧</Key> + <Key>Tab</Key>
               </>
             ),
             label: t("Outdent list item"),
@@ -246,7 +249,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>Alt</Key> + <Key>↑</Key>
+                <Key symbol>{altDisplay}</Key> + <Key symbol>↑</Key>
               </>
             ),
             label: t("Move list item up"),
@@ -254,7 +257,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>Alt</Key> + <Key>↓</Key>
+                <Key symbol>{altDisplay}</Key> + <Key symbol>↓</Key>
               </>
             ),
             label: t("Move list item down"),
@@ -442,4 +445,4 @@ const Label = styled.dd`
   color: ${(props) => props.theme.textSecondary};
 `;
 
-export default KeyboardShortcuts;
+export default React.memo(KeyboardShortcuts);

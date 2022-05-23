@@ -17,13 +17,9 @@ limitations under the License.
 // This file is based on the implementation found here:
 // https://bitbucket.org/atlassian/design-system-mirror/src/master/editor/editor-core/src/plugins/text-formatting/commands/text-formatting.ts
 
-import {
-  Selection,
-  EditorState,
-  Transaction,
-  TextSelection,
-} from "prosemirror-state";
+import { Selection, EditorState, TextSelection } from "prosemirror-state";
 import isMarkActive from "../queries/isMarkActive";
+import { Dispatch } from "../types";
 
 function hasCode(state: EditorState, pos: number) {
   const { code_inline } = state.schema.marks;
@@ -35,7 +31,7 @@ function hasCode(state: EditorState, pos: number) {
 }
 
 export default function moveLeft() {
-  return (state: EditorState, dispatch: (tr: Transaction) => void): boolean => {
+  return (state: EditorState, dispatch: Dispatch): boolean => {
     const { code_inline } = state.schema.marks;
     const { empty, $cursor } = state.selection as TextSelection;
     if (!empty || !$cursor) {

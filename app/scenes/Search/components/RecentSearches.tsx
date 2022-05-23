@@ -8,7 +8,8 @@ import Fade from "~/components/Fade";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
 import useStores from "~/hooks/useStores";
-import { searchUrl } from "~/utils/routeHelpers";
+import { hover } from "~/styles";
+import { searchPath } from "~/utils/routeHelpers";
 
 function RecentSearches() {
   const { searches } = useStores();
@@ -25,10 +26,11 @@ function RecentSearches() {
       <List>
         {searches.recent.map((searchQuery) => (
           <ListItem key={searchQuery.id}>
-            <RecentSearch to={searchUrl(searchQuery.query)}>
+            <RecentSearch to={searchPath(searchQuery.query)}>
               {searchQuery.query}
               <Tooltip tooltip={t("Remove search")} delay={150}>
                 <RemoveButton
+                  aria-label={t("Remove search")}
                   onClick={(ev) => {
                     ev.preventDefault();
                     searchQuery.delete();
@@ -90,7 +92,7 @@ const RecentSearch = styled(Link)`
   padding: 1px 4px;
   border-radius: 4px;
 
-  &:hover {
+  &: ${hover} {
     color: ${(props) => props.theme.text};
     background: ${(props) => props.theme.secondaryBackground};
 

@@ -18,13 +18,17 @@ function isLinkClose(token: Token) {
   return token.type === "link_close";
 }
 
-export default function (embeds: EmbedDescriptor[]) {
+export default function linksToEmbeds(embeds: EmbedDescriptor[]) {
   function isEmbed(token: Token, link: Token) {
     const href = link.attrs ? link.attrs[0][1] : "";
     const simpleLink = href === token.content;
 
-    if (!simpleLink) return false;
-    if (!embeds) return false;
+    if (!simpleLink) {
+      return false;
+    }
+    if (!embeds) {
+      return false;
+    }
 
     for (const embed of embeds) {
       const matches = embed.matcher(href);
@@ -51,7 +55,9 @@ export default function (embeds: EmbedDescriptor[]) {
 
           for (let j = 0; j < tokenChildren.length - 1; j++) {
             const current = tokenChildren[j];
-            if (!current) continue;
+            if (!current) {
+              continue;
+            }
 
             if (isLinkOpen(current)) {
               insideLink = current;
@@ -64,7 +70,7 @@ export default function (embeds: EmbedDescriptor[]) {
             }
 
             // of hey, we found a link – lets check to see if it should be
-            // considered to be an embed
+            // converted to an embed
             if (insideLink) {
               const result = isEmbed(current, insideLink);
               if (result) {
@@ -76,7 +82,6 @@ export default function (embeds: EmbedDescriptor[]) {
 
                 // delete the inline link – this makes the assumption that the
                 // embed is the only thing in the para.
-                // TODO: double check this
                 tokens.splice(i - 1, 3, token);
                 break;
               }

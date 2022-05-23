@@ -1,4 +1,5 @@
 import { observer } from "mobx-react";
+import { EditIcon, GroupIcon, TrashIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useMenuState } from "reakit/Menu";
@@ -9,7 +10,7 @@ import ContextMenu from "~/components/ContextMenu";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
 import Template from "~/components/ContextMenu/Template";
 import Modal from "~/components/Modal";
-import useStores from "~/hooks/useStores";
+import usePolicy from "~/hooks/usePolicy";
 
 type Props = {
   group: Group;
@@ -18,13 +19,12 @@ type Props = {
 
 function GroupMenu({ group, onMembers }: Props) {
   const { t } = useTranslation();
-  const { policies } = useStores();
   const menu = useMenuState({
     modal: true,
   });
   const [editModalOpen, setEditModalOpen] = React.useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
-  const can = policies.abilities(group.id);
+  const can = usePolicy(group.id);
 
   return (
     <>
@@ -39,6 +39,7 @@ function GroupMenu({ group, onMembers }: Props) {
         title={t("Delete group")}
         onRequestClose={() => setDeleteModalOpen(false)}
         isOpen={deleteModalOpen}
+        isCentered
       >
         <GroupDelete group={group} onSubmit={() => setDeleteModalOpen(false)} />
       </Modal>
@@ -50,6 +51,7 @@ function GroupMenu({ group, onMembers }: Props) {
             {
               type: "button",
               title: `${t("Members")}…`,
+              icon: <GroupIcon />,
               onClick: onMembers,
               visible: !!(group && can.read),
             },
@@ -59,12 +61,15 @@ function GroupMenu({ group, onMembers }: Props) {
             {
               type: "button",
               title: `${t("Edit")}…`,
+              icon: <EditIcon />,
               onClick: () => setEditModalOpen(true),
               visible: !!(group && can.update),
             },
             {
               type: "button",
               title: `${t("Delete")}…`,
+              icon: <TrashIcon />,
+              dangerous: true,
               onClick: () => setDeleteModalOpen(true),
               visible: !!(group && can.delete),
             },

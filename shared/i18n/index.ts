@@ -65,6 +65,10 @@ export const languageOptions = [
     label: "Tiếng Việt (Vietnamese)",
     value: "vi_VN",
   },
+  {
+    label: "Türkçe (Turkish)",
+    value: "tr_TR",
+  },
 ];
 
 export const languages: string[] = languageOptions.map((i) => i.value);
@@ -75,15 +79,13 @@ const underscoreToDash = (text: string) => text.replace("_", "-");
 
 const dashToUnderscore = (text: string) => text.replace("-", "_");
 
-export const initI18n = () => {
-  const lng = underscoreToDash(
-    // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string | undefined' is not assig... Remove this comment to see the full error message
-    "DEFAULT_LANGUAGE" in process.env ? process.env.DEFAULT_LANGUAGE : "en_US"
-  );
+export const initI18n = (defaultLanguage = "en_US") => {
+  const lng = underscoreToDash(defaultLanguage);
   i18n
     .use(backend)
     .use(initReactI18next)
     .init({
+      compatibilityJSON: "v3",
       backend: {
         // this must match the path defined in routes. It's the path that the
         // frontend UI code will hit to load missing translations.
@@ -100,7 +102,6 @@ export const initI18n = () => {
       fallbackLng: lng,
       supportedLngs: languages.map(underscoreToDash),
       // Uncomment when debugging translation framework, otherwise it's noisy
-      // debug: process.env.NODE_ENV === "development",
       keySeparator: false,
     });
   return i18n;

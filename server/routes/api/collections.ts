@@ -3,8 +3,11 @@ import invariant from "invariant";
 import Router from "koa-router";
 import { Sequelize, Op, WhereOptions } from "sequelize";
 import collectionExporter from "@server/commands/collectionExporter";
+import teamUpdater from "@server/commands/teamUpdater";
+import { sequelize } from "@server/database/sequelize";
 import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
+
 import {
   Collection,
   CollectionUser,
@@ -14,7 +17,13 @@ import {
   User,
   Group,
   Attachment,
+  FileOperation,
 } from "@server/models";
+import {
+  FileOperationFormat,
+  FileOperationState,
+  FileOperationType,
+} from "@server/models/FileOperation";
 import { authorize } from "@server/policies";
 import {
   presentCollection,
@@ -133,22 +142,47 @@ router.post("collections.info", auth(), async (ctx) => {
 });
 
 router.post("collections.import", auth(), async (ctx) => {
-  const { type, attachmentId } = ctx.body;
-  assertIn(type, ["outline"], "type must be one of 'outline'");
+  const { attachmentId, format = FileOperationFormat.MarkdownZip } = ctx.body;
   assertUuid(attachmentId, "attachmentId is required");
+
   const { user } = ctx.state;
   authorize(user, "importCollection", user.team);
+
   const attachment = await Attachment.findByPk(attachmentId);
   authorize(user, "read", attachment);
-  await Event.create({
-    name: "collections.import",
-    modelId: attachmentId,
-    teamId: user.teamId,
-    actorId: user.id,
-    data: {
-      type,
-    },
-    ip: ctx.request.ip,
+
+  assertIn(format, Object.values(FileOperationFormat), "Invalid format");
+
+  await sequelize.transaction(async (transaction) => {
+    const fileOperation = await FileOperation.create(
+      {
+        type: FileOperationType.Import,
+        state: FileOperationState.Creating,
+        format,
+        size: attachment.size,
+        key: attachment.key,
+        userId: user.id,
+        teamId: user.teamId,
+      },
+      {
+        transaction,
+      }
+    );
+
+    await Event.create(
+      {
+        name: "fileOperations.create",
+        teamId: user.teamId,
+        actorId: user.id,
+        modelId: fileOperation.id,
+        data: {
+          type: FileOperationType.Import,
+        },
+      },
+      {
+        transaction,
+      }
+    );
   });
 
   ctx.body = {
@@ -193,9 +227,9 @@ router.post("collections.add_group", auth(), async (ctx) => {
     collectionId: collection.id,
     teamId: collection.teamId,
     actorId: ctx.state.user.id,
+    modelId: groupId,
     data: {
       name: group.name,
-      groupId,
     },
     ip: ctx.request.ip,
   });
@@ -228,9 +262,9 @@ router.post("collections.remove_group", auth(), async (ctx) => {
     collectionId: collection.id,
     teamId: collection.teamId,
     actorId: ctx.state.user.id,
+    modelId: groupId,
     data: {
       name: group.name,
-      groupId,
     },
     ip: ctx.request.ip,
   });
@@ -461,11 +495,14 @@ router.post("collections.export", auth(), async (ctx) => {
   }).findByPk(id);
   authorize(user, "read", collection);
 
-  const fileOperation = await collectionExporter({
-    collection,
-    user,
-    team,
-    ip: ctx.request.ip,
+  const fileOperation = await sequelize.transaction(async (transaction) => {
+    return collectionExporter({
+      collection,
+      user,
+      team,
+      ip: ctx.request.ip,
+      transaction,
+    });
   });
 
   ctx.body = {
@@ -481,10 +518,13 @@ router.post("collections.export_all", auth(), async (ctx) => {
   const team = await Team.findByPk(user.teamId);
   authorize(user, "export", team);
 
-  const fileOperation = await collectionExporter({
-    user,
-    team,
-    ip: ctx.request.ip,
+  const fileOperation = await sequelize.transaction(async (transaction) => {
+    return collectionExporter({
+      user,
+      team,
+      ip: ctx.request.ip,
+      transaction,
+    });
   });
 
   ctx.body = {
@@ -601,6 +641,19 @@ router.post("collections.update", auth(), async (ctx) => {
   // if the privacy level has changed. Otherwise skip this query for speed.
   if (privacyChanged || sharingChanged) {
     await collection.reload();
+    const team = await Team.findByPk(user.teamId);
+
+    if (
+      collection.permission === null &&
+      team?.defaultCollectionId === collection.id
+    ) {
+      await teamUpdater({
+        params: { defaultCollectionId: null },
+        ip: ctx.request.ip,
+        user,
+        team,
+      });
+    }
   }
 
   ctx.body = {
@@ -612,17 +665,19 @@ router.post("collections.update", auth(), async (ctx) => {
 router.post("collections.list", auth(), pagination(), async (ctx) => {
   const { user } = ctx.state;
   const collectionIds = await user.collectionIds();
+  const where: WhereOptions<Collection> = {
+    teamId: user.teamId,
+    id: collectionIds,
+  };
   const collections = await Collection.scope({
     method: ["withMembership", user.id],
   }).findAll({
-    where: {
-      teamId: user.teamId,
-      id: collectionIds,
-    },
+    where,
     order: [["updatedAt", "DESC"]],
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,
   });
+
   const nullIndex = collections.findIndex(
     (collection) => collection.index === null
   );
@@ -649,12 +704,26 @@ router.post("collections.delete", auth(), async (ctx) => {
   const collection = await Collection.scope({
     method: ["withMembership", user.id],
   }).findByPk(id);
+  const team = await Team.findByPk(user.teamId);
+
   authorize(user, "delete", collection);
 
   const total = await Collection.count();
-  if (total === 1) throw ValidationError("Cannot delete last collection");
+  if (total === 1) {
+    throw ValidationError("Cannot delete last collection");
+  }
 
   await collection.destroy();
+
+  if (team && team.defaultCollectionId === collection.id) {
+    await teamUpdater({
+      params: { defaultCollectionId: null },
+      ip: ctx.request.ip,
+      user,
+      team,
+    });
+  }
+
   await Event.create({
     name: "collections.delete",
     collectionId: collection.id,

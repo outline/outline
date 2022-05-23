@@ -14,7 +14,6 @@ import toggleBlockType from "../commands/toggleBlockType";
 import { Command } from "../lib/Extension";
 import headingToSlug, { headingToPersistenceKey } from "../lib/headingToSlug";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
-import { ToastType } from "../types";
 import Node from "./Node";
 
 export default class Heading extends Node {
@@ -117,14 +116,14 @@ export default class Heading extends Node {
 
   handleFoldContent = (event: MouseEvent) => {
     event.preventDefault();
-    if (!(event.target instanceof HTMLButtonElement)) {
+    if (!(event.currentTarget instanceof HTMLButtonElement)) {
       return;
     }
 
     const { view } = this.editor;
     const hadFocus = view.hasFocus();
     const { tr } = view.state;
-    const { top, left } = event.target.getBoundingClientRect();
+    const { top, left } = event.currentTarget.getBoundingClientRect();
     const result = view.posAtCoords({ top, left });
 
     if (result) {
@@ -180,12 +179,7 @@ export default class Heading extends Node {
     const urlWithoutHash = window.location.href.split("#")[0];
     copy(urlWithoutHash + hash);
 
-    if (this.options.onShowToast) {
-      this.options.onShowToast(
-        this.options.dictionary.linkCopied,
-        ToastType.Info
-      );
-    }
+    this.options.onShowToast(this.options.dictionary.linkCopied);
   };
 
   keys({ type, schema }: { type: NodeType; schema: Schema }) {
@@ -216,7 +210,9 @@ export default class Heading extends Node {
       const previouslySeen = {};
 
       doc.descendants((node, pos) => {
-        if (node.type.name !== this.name) return;
+        if (node.type.name !== this.name) {
+          return;
+        }
 
         // calculate the optimal id
         const slug = headingToSlug(node);

@@ -6,15 +6,14 @@ import PageTitle from "~/components/PageTitle";
 
 type Props = {
   icon?: React.ReactNode;
-  title: React.ReactNode;
+  title?: React.ReactNode;
   textTitle?: string;
-  children: React.ReactNode;
   breadcrumb?: React.ReactNode;
   actions?: React.ReactNode;
   centered?: boolean;
 };
 
-function Scene({
+const Scene: React.FC<Props> = ({
   title,
   icon,
   textTitle,
@@ -22,11 +21,12 @@ function Scene({
   breadcrumb,
   children,
   centered,
-}: Props) {
+}) => {
   return (
     <FillWidth>
       <PageTitle title={textTitle || title} />
       <Header
+        hasSidebar
         title={
           icon ? (
             <>
@@ -46,7 +46,7 @@ function Scene({
       )}
     </FillWidth>
   );
-}
+};
 
 const FillWidth = styled.div`
   width: 100%;

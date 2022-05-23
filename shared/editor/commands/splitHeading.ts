@@ -1,22 +1,29 @@
 import { NodeType } from "prosemirror-model";
-import { EditorState, TextSelection, Transaction } from "prosemirror-state";
+import { EditorState, TextSelection } from "prosemirror-state";
 import { findBlockNodes } from "prosemirror-utils";
 import findCollapsedNodes from "../queries/findCollapsedNodes";
+import { Dispatch } from "../types";
 
 export default function splitHeading(type: NodeType) {
-  return (state: EditorState, dispatch: (tr: Transaction) => void): boolean => {
+  return (state: EditorState, dispatch: Dispatch): boolean => {
     const { $from, from, $to, to } = state.selection;
 
     // check we're in a matching heading node
-    if ($from.parent.type !== type) return false;
+    if ($from.parent.type !== type) {
+      return false;
+    }
 
     // check that the caret is at the end of the content, if it isn't then
     // standard node splitting behaviour applies
     const endPos = $to.after() - 1;
-    if (endPos !== to) return false;
+    if (endPos !== to) {
+      return false;
+    }
 
     // If the node isn't collapsed standard behavior applies
-    if (!$from.parent.attrs.collapsed) return false;
+    if (!$from.parent.attrs.collapsed) {
+      return false;
+    }
 
     // Find the next visible block after this one. It takes into account nested
     // collapsed headings and reaching the end of the document

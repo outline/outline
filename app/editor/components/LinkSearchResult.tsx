@@ -2,13 +2,11 @@ import * as React from "react";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled from "styled-components";
 
-type Props = {
-  onClick: (event: React.MouseEvent) => void;
-  onMouseOver: (event: React.MouseEvent) => void;
+type Props = React.HTMLAttributes<HTMLLIElement> & {
   icon: React.ReactNode;
   selected: boolean;
-  title: string;
-  subtitle?: string;
+  title: React.ReactNode;
+  subtitle?: React.ReactNode;
 };
 
 function LinkSearchResult({ title, subtitle, selected, icon, ...rest }: Props) {
@@ -55,7 +53,7 @@ const ListItem = styled.li<{
   display: flex;
   align-items: center;
   padding: 8px;
-  border-radius: 2px;
+  border-radius: 4px;
   color: ${(props) => props.theme.toolbarItem};
   background: ${(props) =>
     props.selected ? props.theme.toolbarHoverBackground : "transparent"};

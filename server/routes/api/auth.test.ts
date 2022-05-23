@@ -1,4 +1,5 @@
 import TestServer from "fetch-test-server";
+import env from "@server/env";
 import webService from "@server/services/web";
 import { buildUser, buildTeam } from "@server/test/factories";
 import { flushdb } from "@server/test/support";
@@ -23,6 +24,7 @@ describe("#auth.info", () => {
     expect(res.status).toEqual(200);
     expect(body.data.user.name).toBe(user.name);
     expect(body.data.team.name).toBe(team.name);
+    expect(body.data.team.allowedDomains).toEqual([]);
   });
 
   it("should require the team to not be deleted", async () => {
@@ -58,9 +60,9 @@ describe("#auth.config", () => {
   });
 
   it("should return available providers for team subdomain", async () => {
-    process.env.URL = "http://localoutline.com";
-    process.env.DEPLOYMENT = "hosted";
-    process.env.SUBDOMAINS_ENABLED = "true";
+    env.URL = "http://localoutline.com";
+    env.DEPLOYMENT = "hosted";
+    env.SUBDOMAINS_ENABLED = true;
 
     await buildTeam({
       guestSignin: false,
@@ -108,9 +110,7 @@ describe("#auth.config", () => {
   });
 
   it("should return email provider for team when guest signin enabled", async () => {
-    process.env.URL = "http://localoutline.com";
-    process.env.DEPLOYMENT = "hosted";
-
+    env.URL = "http://localoutline.com";
     await buildTeam({
       guestSignin: true,
       subdomain: "example",
@@ -134,9 +134,7 @@ describe("#auth.config", () => {
   });
 
   it("should not return provider when disabled", async () => {
-    process.env.URL = "http://localoutline.com";
-    process.env.DEPLOYMENT = "hosted";
-
+    env.URL = "http://localoutline.com";
     await buildTeam({
       guestSignin: false,
       subdomain: "example",
@@ -160,7 +158,7 @@ describe("#auth.config", () => {
 
   describe("self hosted", () => {
     it("should return all configured providers but respect email setting", async () => {
-      process.env.DEPLOYMENT = "";
+      env.DEPLOYMENT = "";
       await buildTeam({
         guestSignin: false,
         authenticationProviders: [
@@ -179,7 +177,7 @@ describe("#auth.config", () => {
     });
 
     it("should return email provider for team when guest signin enabled", async () => {
-      process.env.DEPLOYMENT = "";
+      env.DEPLOYMENT = "";
       await buildTeam({
         guestSignin: true,
         authenticationProviders: [

@@ -14,7 +14,7 @@ type Props = {
   collection: Collection | null | undefined;
   onSuccess?: () => void;
   style?: React.CSSProperties;
-  ref?: (arg0: React.ElementRef<"div"> | null | undefined) => void;
+  ref?: (element: React.ElementRef<"div"> | null | undefined) => void;
 };
 
 @observer
@@ -22,7 +22,9 @@ class PathToDocument extends React.Component<Props> {
   handleClick = async (ev: React.SyntheticEvent) => {
     ev.preventDefault();
     const { document, result, onSuccess } = this.props;
-    if (!document) return;
+    if (!document) {
+      return;
+    }
 
     if (result.type === "document") {
       await document.move(result.collectionId, result.id);
@@ -30,13 +32,17 @@ class PathToDocument extends React.Component<Props> {
       await document.move(result.collectionId);
     }
 
-    if (onSuccess) onSuccess();
+    if (onSuccess) {
+      onSuccess();
+    }
   };
 
   render() {
     const { result, collection, document, ref, style } = this.props;
     const Component = document ? ResultWrapperLink : ResultWrapper;
-    if (!result) return <div />;
+    if (!result) {
+      return <div />;
+    }
 
     return (
       // @ts-expect-error ts-migrate(2604) FIXME: JSX element type 'Component' does not have any con... Remove this comment to see the full error message

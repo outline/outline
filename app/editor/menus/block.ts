@@ -15,13 +15,13 @@ import {
   WarningIcon,
   InfoIcon,
   LinkIcon,
+  AttachmentIcon,
+  ClockIcon,
+  CalendarIcon,
 } from "outline-icons";
 import { MenuItem } from "@shared/editor/types";
 import { Dictionary } from "~/hooks/useDictionary";
-
-const SSR = typeof window === "undefined";
-const isMac = !SSR && window.navigator.platform === "MacIntel";
-const mod = isMac ? "⌘" : "ctrl";
+import { metaDisplay } from "~/utils/keyboard";
 
 export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
   return [
@@ -75,6 +75,25 @@ export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
       name: "separator",
     },
     {
+      name: "image",
+      title: dictionary.image,
+      icon: ImageIcon,
+      keywords: "picture photo",
+    },
+    {
+      name: "link",
+      title: dictionary.link,
+      icon: LinkIcon,
+      shortcut: `${metaDisplay} k`,
+      keywords: "link url uri href",
+    },
+    {
+      name: "attachment",
+      title: dictionary.file,
+      icon: AttachmentIcon,
+      keywords: "file upload attach",
+    },
+    {
       name: "table",
       title: dictionary.table,
       icon: TableIcon,
@@ -84,7 +103,7 @@ export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
       name: "blockquote",
       title: dictionary.quote,
       icon: BlockQuoteIcon,
-      shortcut: `${mod} ]`,
+      shortcut: `${metaDisplay} ]`,
     },
     {
       name: "code_block",
@@ -97,7 +116,7 @@ export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
       name: "hr",
       title: dictionary.hr,
       icon: HorizontalRuleIcon,
-      shortcut: `${mod} _`,
+      shortcut: `${metaDisplay} _`,
       keywords: "horizontal rule break line",
     },
     {
@@ -108,17 +127,22 @@ export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
       attrs: { markup: "***" },
     },
     {
-      name: "image",
-      title: dictionary.image,
-      icon: ImageIcon,
-      keywords: "picture photo",
+      name: "date",
+      title: dictionary.insertDate,
+      keywords: "clock",
+      icon: CalendarIcon,
     },
     {
-      name: "link",
-      title: dictionary.link,
-      icon: LinkIcon,
-      shortcut: `${mod} k`,
-      keywords: "link url uri href",
+      name: "time",
+      title: dictionary.insertTime,
+      keywords: "clock",
+      icon: ClockIcon,
+    },
+    {
+      name: "datetime",
+      title: dictionary.insertDateTime,
+      keywords: "clock",
+      icon: CalendarIcon,
     },
     {
       name: "separator",
@@ -127,21 +151,21 @@ export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
       name: "container_notice",
       title: dictionary.infoNotice,
       icon: InfoIcon,
-      keywords: "container_notice card information",
+      keywords: "notice card information",
       attrs: { style: "info" },
     },
     {
       name: "container_notice",
       title: dictionary.warningNotice,
       icon: WarningIcon,
-      keywords: "container_notice card error",
+      keywords: "notice card error",
       attrs: { style: "warning" },
     },
     {
       name: "container_notice",
       title: dictionary.tipNotice,
       icon: StarredIcon,
-      keywords: "container_notice card suggestion",
+      keywords: "notice card suggestion",
       attrs: { style: "tip" },
     },
   ];

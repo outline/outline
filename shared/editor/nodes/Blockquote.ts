@@ -1,9 +1,10 @@
 import { wrappingInputRule } from "prosemirror-inputrules";
 import { NodeSpec, Node as ProsemirrorNode, NodeType } from "prosemirror-model";
-import { EditorState, Transaction } from "prosemirror-state";
+import { EditorState } from "prosemirror-state";
 import toggleWrap from "../commands/toggleWrap";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import isNodeActive from "../queries/isNodeActive";
+import { Dispatch } from "../types";
 import Node from "./Node";
 
 export default class Blockquote extends Node {
@@ -16,7 +17,11 @@ export default class Blockquote extends Node {
       content: "block+",
       group: "block",
       defining: true,
-      parseDOM: [{ tag: "blockquote" }],
+      parseDOM: [
+        { tag: "blockquote" },
+        // Dropbox Paper parsing, yes their quotes are actually lists
+        { tag: "ul.listtype-quote", contentElement: "li" },
+      ],
       toDOM: () => ["blockquote", 0],
     };
   }
@@ -33,10 +38,7 @@ export default class Blockquote extends Node {
     return {
       "Ctrl->": toggleWrap(type),
       "Mod-]": toggleWrap(type),
-      "Shift-Enter": (
-        state: EditorState,
-        dispatch: (tr: Transaction) => void
-      ) => {
+      "Shift-Enter": (state: EditorState, dispatch: Dispatch) => {
         if (!isNodeActive(type)(state)) {
           return false;
         }

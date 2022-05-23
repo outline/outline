@@ -10,13 +10,9 @@ type BlockMenuProps = Omit<
 > &
   Required<Pick<Props, "onLinkToolbarOpen" | "embeds">>;
 
-class BlockMenu extends React.Component<BlockMenuProps> {
-  get items() {
-    return getMenuItems(this.props.dictionary);
-  }
-
-  clearSearch = () => {
-    const { state, dispatch } = this.props.view;
+function BlockMenu(props: BlockMenuProps) {
+  const clearSearch = () => {
+    const { state, dispatch } = props.view;
     const parent = findParentNode((node) => !!node)(state.selection);
 
     if (parent) {
@@ -24,27 +20,23 @@ class BlockMenu extends React.Component<BlockMenuProps> {
     }
   };
 
-  render() {
-    return (
-      <CommandMenu
-        {...this.props}
-        filterable={true}
-        onClearSearch={this.clearSearch}
-        renderMenuItem={(item, _index, options) => {
-          return (
-            <BlockMenuItem
-              onClick={options.onClick}
-              selected={options.selected}
-              icon={item.icon}
-              title={item.title}
-              shortcut={item.shortcut}
-            />
-          );
-        }}
-        items={this.items}
-      />
-    );
-  }
+  return (
+    <CommandMenu
+      {...props}
+      filterable={true}
+      onClearSearch={clearSearch}
+      renderMenuItem={(item, _index, options) => (
+        <BlockMenuItem
+          onClick={options.onClick}
+          selected={options.selected}
+          icon={item.icon}
+          title={item.title}
+          shortcut={item.shortcut}
+        />
+      )}
+      items={getMenuItems(props.dictionary)}
+    />
+  );
 }
 
 export default BlockMenu;

@@ -21,7 +21,9 @@ function HoverPreviewDocument({ url, children }: Props) {
   }
 
   const document = slug ? documents.getByUrl(slug) : undefined;
-  if (!document) return null;
+  if (!document) {
+    return null;
+  }
 
   return (
     <>
@@ -37,7 +39,7 @@ function HoverPreviewDocument({ url, children }: Props) {
             <Editor
               key={document.id}
               defaultValue={document.getSummary()}
-              disableEmbeds
+              embedsDisabled
               readOnly
             />
           </React.Suspense>

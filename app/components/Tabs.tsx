@@ -56,14 +56,16 @@ export const Separator = styled.span`
   margin-top: 6px;
 `;
 
-const Tabs = ({ children }: { children: React.ReactNode }) => {
+const Tabs: React.FC = ({ children }) => {
   const ref = React.useRef<any>();
   const [shadowVisible, setShadow] = React.useState(false);
   const { width } = useWindowSize();
 
   const updateShadows = React.useCallback(() => {
     const c = ref.current;
-    if (!c) return;
+    if (!c) {
+      return;
+    }
     const scrollLeft = c.scrollLeft;
     const wrapperWidth = c.scrollWidth - c.clientWidth;
     const fade = !!(wrapperWidth - scrollLeft !== 0);

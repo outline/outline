@@ -10,7 +10,7 @@ import {
   Table,
   DataType,
 } from "sequelize-typescript";
-import { deleteFromS3, getFileByKey } from "@server/utils/s3";
+import { publicS3Endpoint, deleteFromS3, getFileByKey } from "@server/utils/s3";
 import Document from "./Document";
 import Team from "./Team";
 import User from "./User";
@@ -55,6 +55,14 @@ class Attachment extends BaseModel {
     return getFileByKey(this.key);
   }
 
+  /**
+   * Use this instead of url which will be deleted soon, the column is unneccessary
+   * and was not updated with the migraiton to the new s3 bucket.
+   */
+  get canonicalUrl() {
+    return `${publicS3Endpoint()}/${this.key}`;
+  }
+
   // hooks
 
   @BeforeDestroy
@@ -92,8 +100,12 @@ class Attachment extends BaseModel {
       query: FindOptions<Attachment>
     ) => Promise<void>
   ) {
-    if (!query.offset) query.offset = 0;
-    if (!query.limit) query.limit = 10;
+    if (!query.offset) {
+      query.offset = 0;
+    }
+    if (!query.limit) {
+      query.limit = 10;
+    }
     let results;
 
     do {

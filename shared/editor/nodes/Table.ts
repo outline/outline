@@ -1,10 +1,5 @@
 import { NodeSpec, Node as ProsemirrorNode, Schema } from "prosemirror-model";
-import {
-  EditorState,
-  Plugin,
-  TextSelection,
-  Transaction,
-} from "prosemirror-state";
+import { EditorState, Plugin, TextSelection } from "prosemirror-state";
 import {
   addColumnAfter,
   addColumnBefore,
@@ -27,6 +22,7 @@ import {
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import tablesRule from "../rules/tables";
+import { Dispatch } from "../types";
 import Node from "./Node";
 
 export default class Table extends Node {
@@ -67,7 +63,7 @@ export default class Table extends Node {
       }: {
         rowsCount: number;
         colsCount: number;
-      }) => (state: EditorState, dispatch: (tr: Transaction) => void) => {
+      }) => (state: EditorState, dispatch: Dispatch) => {
         const offset = state.tr.selection.anchor + 1;
         const nodes = createTable(schema, rowsCount, colsCount);
         const tr = state.tr.replaceSelectionWith(nodes).scrollIntoView();
@@ -83,7 +79,7 @@ export default class Table extends Node {
       }: {
         index: number;
         alignment: string;
-      }) => (state: EditorState, dispatch: (tr: Transaction) => void) => {
+      }) => (state: EditorState, dispatch: Dispatch) => {
         const cells = getCellsInColumn(index)(state.selection) || [];
         let transaction = state.tr;
         cells.forEach(({ pos }) => {
@@ -99,7 +95,7 @@ export default class Table extends Node {
       deleteColumn: () => deleteColumn,
       addRowAfter: ({ index }: { index: number }) => (
         state: EditorState,
-        dispatch: (tr: Transaction) => void
+        dispatch: Dispatch
       ) => {
         if (index === 0) {
           // A little hack to avoid cloning the heading row by cloning the row
@@ -123,8 +119,10 @@ export default class Table extends Node {
     return {
       Tab: goToNextCell(1),
       "Shift-Tab": goToNextCell(-1),
-      Enter: (state: EditorState, dispatch: (tr: Transaction) => void) => {
-        if (!isInTable(state)) return false;
+      Enter: (state: EditorState, dispatch: Dispatch) => {
+        if (!isInTable(state)) {
+          return false;
+        }
 
         // TODO: Adding row at the end for now, can we find the current cell
         // row index and add the row below that?
@@ -156,11 +154,15 @@ export default class Table extends Node {
             let index = 0;
 
             doc.descendants((node, pos) => {
-              if (node.type.name !== this.name) return;
+              if (node.type.name !== this.name) {
+                return;
+              }
 
               const elements = document.getElementsByClassName("rme-table");
               const table = elements[index];
-              if (!table) return;
+              if (!table) {
+                return;
+              }
 
               const element = table.parentElement;
               const shadowRight = !!(
@@ -169,11 +171,17 @@ export default class Table extends Node {
 
               if (shadowRight) {
                 decorations.push(
-                  Decoration.widget(pos + 1, () => {
-                    const shadow = document.createElement("div");
-                    shadow.className = "scrollable-shadow right";
-                    return shadow;
-                  })
+                  Decoration.widget(
+                    pos + 1,
+                    () => {
+                      const shadow = document.createElement("div");
+                      shadow.className = "scrollable-shadow right";
+                      return shadow;
+                    },
+                    {
+                      key: "table-shadow-right",
+                    }
+                  )
                 );
               }
               index++;

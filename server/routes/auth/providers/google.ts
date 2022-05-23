@@ -1,22 +1,20 @@
 import passport from "@outlinewiki/koa-passport";
+import { Request } from "koa";
 import Router from "koa-router";
 import { capitalize } from "lodash";
-// @ts-expect-error ts-migrate(7016) FIXME: Could not find a declaration file for module 'pass... Remove this comment to see the full error message
+import { Profile } from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth2";
-import accountProvisioner from "@server/commands/accountProvisioner";
+import accountProvisioner, {
+  AccountProvisionerResult,
+} from "@server/commands/accountProvisioner";
 import env from "@server/env";
-import {
-  GoogleWorkspaceRequiredError,
-  GoogleWorkspaceInvalidError,
-} from "@server/errors";
+import { GoogleWorkspaceRequiredError } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
-import { isDomainAllowed } from "@server/utils/authentication";
+import { User } from "@server/models";
 import { StateStore } from "@server/utils/passport";
 
 const router = new Router();
 const providerName = "google";
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const scopes = [
   "https://www.googleapis.com/auth/userinfo.profile",
   "https://www.googleapis.com/auth/userinfo.email",
@@ -24,31 +22,45 @@ const scopes = [
 
 export const config = {
   name: "Google",
-  enabled: !!GOOGLE_CLIENT_ID,
+  enabled: !!env.GOOGLE_CLIENT_ID,
 };
 
-if (GOOGLE_CLIENT_ID) {
+type GoogleProfile = Profile & {
+  email: string;
+  picture: string;
+  _json: {
+    hd: string;
+  };
+};
+
+if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
   passport.use(
     new GoogleStrategy(
       {
-        clientID: GOOGLE_CLIENT_ID,
-        clientSecret: GOOGLE_CLIENT_SECRET,
+        clientID: env.GOOGLE_CLIENT_ID,
+        clientSecret: env.GOOGLE_CLIENT_SECRET,
         callbackURL: `${env.URL}/auth/google.callback`,
         passReqToCallback: true,
+        // @ts-expect-error StateStore
         store: new StateStore(),
         scope: scopes,
       },
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 'req' implicitly has an 'any' type.
-      async function (req, accessToken, refreshToken, profile, done) {
+      async function (
+        req: Request,
+        accessToken: string,
+        refreshToken: string,
+        profile: GoogleProfile,
+        done: (
+          err: Error | null,
+          user: User | null,
+          result?: AccountProvisionerResult
+        ) => void
+      ) {
         try {
           const domain = profile._json.hd;
 
           if (!domain) {
             throw GoogleWorkspaceRequiredError();
-          }
-
-          if (!isDomainAllowed(domain)) {
-            throw GoogleWorkspaceInvalidError();
           }
 
           const subdomain = domain.split(".")[0];
@@ -61,8 +73,8 @@ if (GOOGLE_CLIENT_ID) {
               subdomain,
             },
             user: {
-              name: profile.displayName,
               email: profile.email,
+              name: profile.displayName,
               avatarUrl: profile.picture,
             },
             authenticationProvider: {

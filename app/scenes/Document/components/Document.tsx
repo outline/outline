@@ -1,10 +1,9 @@
 import { debounce } from "lodash";
 import { action, observable } from "mobx";
 import { observer } from "mobx-react";
-import { InputIcon } from "outline-icons";
 import { AllSelection } from "prosemirror-state";
 import * as React from "react";
-import { WithTranslation, Trans, withTranslation } from "react-i18next";
+import { WithTranslation, withTranslation } from "react-i18next";
 import {
   Prompt,
   Route,
@@ -15,6 +14,7 @@ import {
 } from "react-router";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { Heading } from "@shared/editor/lib/getHeadings";
 import getTasks from "@shared/utils/getTasks";
 import RootStore from "~/stores/RootStore";
 import Document from "~/models/Document";
@@ -26,12 +26,11 @@ import ErrorBoundary from "~/components/ErrorBoundary";
 import Flex from "~/components/Flex";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import Modal from "~/components/Modal";
-import Notice from "~/components/Notice";
 import PageTitle from "~/components/PageTitle";
 import PlaceholderDocument from "~/components/PlaceholderDocument";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
-import Time from "~/components/Time";
 import withStores from "~/components/withStores";
+import type { Editor as TEditor } from "~/editor";
 import { NavigationNode } from "~/types";
 import { client } from "~/utils/ApiClient";
 import { isCustomDomain } from "~/utils/domains";
@@ -50,6 +49,7 @@ import Editor from "./Editor";
 import Header from "./Header";
 import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
 import MarkAsViewed from "./MarkAsViewed";
+import Notices from "./Notices";
 import PublicReferences from "./PublicReferences";
 import References from "./References";
 
@@ -75,7 +75,7 @@ type Props = WithTranslation &
 @observer
 class DocumentScene extends React.Component<Props> {
   @observable
-  editor = React.createRef<typeof Editor>();
+  editor = React.createRef<TEditor>();
 
   @observable
   isUploading = false;
@@ -97,6 +97,9 @@ class DocumentScene extends React.Component<Props> {
 
   @observable
   title: string = this.props.document.title;
+
+  @observable
+  headings: Heading[] = [];
 
   getEditorText: () => string = () => this.props.document.text;
 
@@ -140,6 +143,19 @@ class DocumentScene extends React.Component<Props> {
     }
   }
 
+  componentWillUnmount() {
+    if (
+      this.isEmpty &&
+      this.props.document.createdBy.id === this.props.auth.user?.id &&
+      this.props.document.isDraft &&
+      this.props.document.isActive &&
+      this.props.document.hasEmptyTitle &&
+      this.props.document.isPersistedOnce
+    ) {
+      this.props.document.delete();
+    }
+  }
+
   replaceDocument = (template: Document | Revision) => {
     const editorRef = this.editor.current;
 
@@ -147,7 +163,6 @@ class DocumentScene extends React.Component<Props> {
       return;
     }
 
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'view' does not exist on type 'unknown'.
     const { view, parser } = editorRef;
     view.dispatch(
       view.state.tr
@@ -161,8 +176,11 @@ class DocumentScene extends React.Component<Props> {
       this.props.document.templateId = template.id;
     }
 
-    this.title = template.title;
-    this.props.document.title = template.title;
+    if (!this.title) {
+      this.title = template.title;
+      this.props.document.title = template.title;
+    }
+
     this.props.document.text = template.text;
     this.updateIsDirty();
     this.onSave({
@@ -189,12 +207,14 @@ class DocumentScene extends React.Component<Props> {
     if (response) {
       this.replaceDocument(response.data);
       toasts.showToast(t("Document restored"));
-      history.replace(this.props.document.url);
+      history.replace(this.props.document.url, history.location.state);
     }
   };
 
   goToMove = (ev: KeyboardEvent) => {
-    if (!this.props.readOnly) return;
+    if (!this.props.readOnly) {
+      return;
+    }
     ev.preventDefault();
     const { document, abilities } = this.props;
 
@@ -204,7 +224,9 @@ class DocumentScene extends React.Component<Props> {
   };
 
   goToEdit = (ev: KeyboardEvent) => {
-    if (!this.props.readOnly) return;
+    if (!this.props.readOnly) {
+      return;
+    }
     ev.preventDefault();
     const { document, abilities } = this.props;
 
@@ -214,8 +236,12 @@ class DocumentScene extends React.Component<Props> {
   };
 
   goToHistory = (ev: KeyboardEvent) => {
-    if (!this.props.readOnly) return;
-    if (ev.ctrlKey) return;
+    if (!this.props.readOnly) {
+      return;
+    }
+    if (ev.ctrlKey) {
+      return;
+    }
     ev.preventDefault();
     const { document, location } = this.props;
 
@@ -229,7 +255,9 @@ class DocumentScene extends React.Component<Props> {
   onPublish = (ev: React.MouseEvent | KeyboardEvent) => {
     ev.preventDefault();
     const { document } = this.props;
-    if (document.publishedAt) return;
+    if (document.publishedAt) {
+      return;
+    }
     this.onSave({
       publish: true,
       done: true,
@@ -237,7 +265,9 @@ class DocumentScene extends React.Component<Props> {
   };
 
   onToggleTableOfContents = (ev: KeyboardEvent) => {
-    if (!this.props.readOnly) return;
+    if (!this.props.readOnly) {
+      return;
+    }
     ev.preventDefault();
     const { ui } = this.props;
 
@@ -257,13 +287,17 @@ class DocumentScene extends React.Component<Props> {
   ) => {
     const { document, auth } = this.props;
     // prevent saves when we are already saving
-    if (document.isSaving) return;
+    if (document.isSaving) {
+      return;
+    }
 
     // get the latest version of the editor text value
     const text = this.getEditorText ? this.getEditorText() : document.text;
 
     // prevent save before anything has been written (single hash is empty doc)
-    if (text.trim() === "" && document.title.trim() === "") return;
+    if (text.trim() === "" && document.title.trim() === "") {
+      return;
+    }
 
     document.text = text;
     document.tasks = getTasks(document.text);
@@ -327,16 +361,17 @@ class DocumentScene extends React.Component<Props> {
     this.isEditorDirty = editorText !== document.text.trim();
 
     // a single hash is a doc with just an empty title
-    this.isEmpty = (!editorText || editorText === "#") && !this.title;
+    this.isEmpty =
+      (!editorText || editorText === "#" || editorText === "\\") && !this.title;
   };
 
   updateIsDirtyDebounced = debounce(this.updateIsDirty, 500);
 
-  onImageUploadStart = () => {
+  onFileUploadStart = () => {
     this.isUploading = true;
   };
 
-  onImageUploadStop = () => {
+  onFileUploadStop = () => {
     this.isUploading = false;
   };
 
@@ -344,13 +379,24 @@ class DocumentScene extends React.Component<Props> {
     const { document, auth } = this.props;
     this.getEditorText = getEditorText;
 
-    // If the multiplayer editor is enabled then we still want to keep the local
-    // text value in sync as it is used as a cache.
+    // Keep headings in sync for table of contents
+    const headings = this.editor.current?.getHeadings() ?? [];
+    if (
+      headings.map((h) => h.level + h.title).join("") !==
+      this.headings.map((h) => h.level + h.title).join("")
+    ) {
+      this.headings = headings;
+    }
+
+    // Keep derived task list in sync
+    const tasks = this.editor.current?.getTasks();
+    const total = tasks?.length ?? 0;
+    const completed = tasks?.filter((t) => t.completed).length ?? 0;
+    document.updateTasks(total, completed);
+
+    // If the multiplayer editor is enabled we're done here as changes are saved
+    // through the persistence protocol. The rest of this method is legacy.
     if (auth.team?.collaborativeEditing) {
-      action(() => {
-        document.text = this.getEditorText();
-        document.tasks = getTasks(document.text);
-      })();
       return;
     }
 
@@ -369,13 +415,16 @@ class DocumentScene extends React.Component<Props> {
   };
 
   onChangeTitle = action((value: string) => {
+    this.title = value;
     this.props.document.title = value;
     this.updateIsDirty();
     this.autosave();
   });
 
   goBack = () => {
-    this.props.history.push(this.props.document.url);
+    if (!this.props.readOnly) {
+      this.props.history.push(this.props.document.url);
+    }
   };
 
   render() {
@@ -392,14 +441,13 @@ class DocumentScene extends React.Component<Props> {
     const team = auth.team;
     const isShare = !!shareId;
     const value = revision ? revision.text : document.text;
-    const disableEmbeds =
+    const embedsDisabled =
       (team && team.documentEmbeds === false) || document.embedsDisabled;
-    const headings = this.editor.current
-      ? // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
-        this.editor.current.getHeadings()
-      : [];
+
+    const hasHeadings = this.headings.length > 0;
     const showContents =
-      ui.tocVisible && (readOnly || team?.collaborativeEditing);
+      ui.tocVisible &&
+      ((readOnly && hasHeadings) || team?.collaborativeEditing);
     const collaborativeEditing =
       team?.collaborativeEditing &&
       !document.isArchived &&
@@ -414,7 +462,13 @@ class DocumentScene extends React.Component<Props> {
     return (
       <ErrorBoundary>
         {this.props.location.pathname !== canonicalUrl && (
-          <Redirect to={canonicalUrl} />
+          <Redirect
+            to={{
+              pathname: canonicalUrl,
+              state: this.props.location.state,
+              hash: this.props.location.hash,
+            }}
+          />
         )}
         <RegisterKeyDown trigger="m" handler={this.goToMove} />
         <RegisterKeyDown trigger="e" handler={this.goToEdit} />
@@ -491,6 +545,7 @@ class DocumentScene extends React.Component<Props> {
             )}
             <Header
               document={document}
+              documentHasHeadings={hasHeadings}
               shareId={shareId}
               isRevision={!!revision}
               isDraft={document.isDraft}
@@ -504,7 +559,7 @@ class DocumentScene extends React.Component<Props> {
               sharedTree={this.props.sharedTree}
               onSelectTemplate={this.replaceDocument}
               onSave={this.onSave}
-              headings={headings}
+              headings={this.headings}
             />
             <MaxWidth
               archived={document.isArchived}
@@ -514,64 +569,19 @@ class DocumentScene extends React.Component<Props> {
               column
               auto
             >
-              {document.isTemplate && !readOnly && (
-                <Notice>
-                  <Trans>
-                    You’re editing a template. Highlight some text and use the{" "}
-                    <PlaceholderIcon color="currentColor" /> control to add
-                    placeholders that can be filled out when creating new
-                    documents from this template.
-                  </Trans>
-                </Notice>
-              )}
-              {document.archivedAt && !document.deletedAt && (
-                <Notice>
-                  {t("Archived by {{userName}}", {
-                    userName: document.updatedBy.name,
-                  })}{" "}
-                  <Time dateTime={document.updatedAt} addSuffix />
-                </Notice>
-              )}
-              {document.deletedAt && (
-                <Notice>
-                  <strong>
-                    {t("Deleted by {{userName}}", {
-                      userName: document.updatedBy.name,
-                    })}{" "}
-                    <Time dateTime={document.deletedAt || ""} addSuffix />
-                  </strong>
-                  {document.permanentlyDeletedAt && (
-                    <>
-                      <br />
-                      {document.template ? (
-                        <Trans>
-                          This template will be permanently deleted in{" "}
-                          <Time dateTime={document.permanentlyDeletedAt} />{" "}
-                          unless restored.
-                        </Trans>
-                      ) : (
-                        <Trans>
-                          This document will be permanently deleted in{" "}
-                          <Time dateTime={document.permanentlyDeletedAt} />{" "}
-                          unless restored.
-                        </Trans>
-                      )}
-                    </>
-                  )}
-                </Notice>
-              )}
+              <Notices document={document} readOnly={readOnly} />
               <React.Suspense fallback={<PlaceholderDocument />}>
                 <Flex auto={!readOnly}>
                   {showContents && (
                     <Contents
-                      headings={headings}
+                      headings={this.headings}
                       isFullWidth={document.fullWidth}
                     />
                   )}
                   <Editor
                     id={document.id}
-                    key={disableEmbeds ? "disabled" : "enabled"}
-                    innerRef={this.editor}
+                    key={embedsDisabled ? "disabled" : "enabled"}
+                    ref={this.editor}
                     multiplayer={collaborativeEditing}
                     shareId={shareId}
                     isDraft={document.isDraft}
@@ -580,10 +590,10 @@ class DocumentScene extends React.Component<Props> {
                     document={document}
                     value={readOnly ? value : undefined}
                     defaultValue={value}
-                    disableEmbeds={disableEmbeds}
+                    embedsDisabled={embedsDisabled}
                     onSynced={this.onSynced}
-                    onImageUploadStart={this.onImageUploadStart}
-                    onImageUploadStop={this.onImageUploadStop}
+                    onFileUploadStart={this.onFileUploadStart}
+                    onFileUploadStop={this.onFileUploadStop}
                     onSearchLink={this.props.onSearchLink}
                     onCreateLink={this.props.onCreateLink}
                     onChangeTitle={this.onChangeTitle}
@@ -615,11 +625,11 @@ class DocumentScene extends React.Component<Props> {
                 </Flex>
               </React.Suspense>
             </MaxWidth>
+            {isShare && !isCustomDomain() && (
+              <Branding href="//www.getoutline.com?ref=sharelink" />
+            )}
           </Container>
         </Background>
-        {isShare && !isCustomDomain() && (
-          <Branding href="//www.getoutline.com?ref=sharelink" />
-        )}
         {!isShare && (
           <>
             <KeyboardShortcutsButton />
@@ -630,11 +640,6 @@ class DocumentScene extends React.Component<Props> {
     );
   }
 }
-
-const PlaceholderIcon = styled(InputIcon)`
-  position: relative;
-  top: 6px;
-`;
 
 const Background = styled(Container)`
   background: ${(props) => props.theme.background};
@@ -657,16 +662,16 @@ type MaxWidthProps = {
 };
 
 const MaxWidth = styled(Flex)<MaxWidthProps>`
-  ${(props) =>
-    props.archived && `* { color: ${props.theme.textSecondary} !important; } `};
-
   // Adds space to the gutter to make room for heading annotations
   padding: 0 32px;
   transition: padding 100ms;
   max-width: 100vw;
   width: 100%;
 
+  padding-bottom: 16px;
+
   ${breakpoint("tablet")`
+    padding: 0 44px;
     margin: 4px auto 12px;
     max-width: ${(props: MaxWidthProps) =>
       props.isFullWidth
