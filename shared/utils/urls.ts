@@ -10,6 +10,11 @@ export function cdnPath(path: string): string {
 //   - The reason this is in a shared util is because it's used in an editor plugin
 //     which is also in the shared code
 export function isInternalUrl(href: string) {
+  // empty strings are never internal
+  if (href === "") {
+    return false;
+  }
+
   // relative paths are always internal
   if (href[0] === "/") {
     return true;
