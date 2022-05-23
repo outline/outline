@@ -212,14 +212,14 @@ export class Environment {
    * loadbalancer.
    */
   @IsBoolean()
-  public FORCE_HTTPS = Boolean(process.env.FORCE_HTTPS ?? "true");
+  public FORCE_HTTPS = this.toBoolean(process.env.FORCE_HTTPS ?? "true");
 
   /**
    * Whether to support multiple subdomains in a single instance.
    */
   @IsBoolean()
   @Deprecated("The community edition of Outline does not support subdomains")
-  public SUBDOMAINS_ENABLED = Boolean(
+  public SUBDOMAINS_ENABLED = this.toBoolean(
     process.env.SUBDOMAINS_ENABLED ?? "false"
   );
 
@@ -228,7 +228,7 @@ export class Environment {
    * Defaults to true.
    */
   @IsBoolean()
-  public TELEMETRY = Boolean(
+  public TELEMETRY = this.toBoolean(
     process.env.ENABLE_UPDATES ?? process.env.TELEMETRY ?? "true"
   );
 
@@ -298,7 +298,7 @@ export class Environment {
    * Setting secure to false therefore does not mean that you would not use an
    * encrypted connection.
    */
-  public SMTP_SECURE = Boolean(process.env.SMTP_SECURE ?? "true");
+  public SMTP_SECURE = this.toBoolean(process.env.SMTP_SECURE ?? "true");
 
   /**
    * Sentry DSN for capturing errors and frontend performance.
@@ -374,7 +374,7 @@ export class Environment {
    */
   @IsOptional()
   @IsBoolean()
-  public SLACK_MESSAGE_ACTIONS = Boolean(
+  public SLACK_MESSAGE_ACTIONS = this.toBoolean(
     process.env.SLACK_MESSAGE_ACTIONS ?? "false"
   );
 
@@ -453,6 +453,21 @@ export class Environment {
 
   private toOptionalNumber(value: string | undefined) {
     return value ? parseInt(value, 10) : undefined;
+  }
+
+  /**
+   * Convert a string to a boolean. Supports the following:
+   *
+   * 0 = false
+   * 1 = true
+   * "true" = true
+   * "false" = false
+   *
+   * @param value The string to convert
+   * @returns A boolean
+   */
+  private toBoolean(value: string) {
+    return !!JSON.parse(value);
   }
 }
 
