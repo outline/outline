@@ -39,7 +39,7 @@
     "url": "git+ssh://git@github.com/outline/outline.git"
   },
   "browserslist": [
-    "> 0.25%, not dead"  
+    "> 0.25%, not dead"
   ],
   "dependencies": {
     "@babel/core": "^7.16.0",
@@ -329,5 +329,5 @@
     "dot-prop": "^5.2.0",
     "js-yaml": "^3.14.1"
   },
-  "version": "0.63.0"
+  "version": "0.64.0"
 }
