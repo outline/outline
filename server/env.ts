@@ -495,12 +495,13 @@ export class Environment {
    * 1 = true
    * "true" = true
    * "false" = false
+   * "" = false
    *
    * @param value The string to convert
    * @returns A boolean
    */
   private toBoolean(value: string) {
-    return !!JSON.parse(value);
+    return value ? !!JSON.parse(value) : false;
   }
 }
 
