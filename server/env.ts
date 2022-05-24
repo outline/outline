@@ -448,21 +448,30 @@ export class Environment {
    * The OIDC authorization endpoint.
    */
   @IsOptional()
-  @IsUrl()
+  @IsUrl({
+    require_tld: false,
+    allow_underscores: true,
+  })
   public OIDC_AUTH_URI = this.toOptionalString(process.env.OIDC_AUTH_URI);
 
   /**
    * The OIDC token endpoint.
    */
   @IsOptional()
-  @IsUrl()
+  @IsUrl({
+    require_tld: false,
+    allow_underscores: true,
+  })
   public OIDC_TOKEN_URI = this.toOptionalString(process.env.OIDC_TOKEN_URI);
 
   /**
    * The OIDC userinfo endpoint.
    */
   @IsOptional()
-  @IsUrl()
+  @IsUrl({
+    require_tld: false,
+    allow_underscores: true,
+  })
   public OIDC_USERINFO_URI = this.toOptionalString(
     process.env.OIDC_USERINFO_URI
   );
