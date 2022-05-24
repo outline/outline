@@ -241,7 +241,6 @@ class Team extends ParanoidModel {
 
   isDomainAllowed = async function (domain: string) {
     const allowedDomains = (await this.$get("allowedDomains")) || [];
-    console.log(allowedDomains);
 
     return (
       allowedDomains.length === 0 ||

@@ -1,4 +1,5 @@
 import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
+import env from "@server/env";
 import { TeamDomain } from "@server/models";
 import Collection from "@server/models/Collection";
 import UserAuthentication from "@server/models/UserAuthentication";
@@ -14,6 +15,8 @@ describe("accountProvisioner", () => {
   const ip = "127.0.0.1";
 
   it("should create a new user and team", async () => {
+    env.DEPLOYMENT = "hosted";
+
     const spy = jest.spyOn(WelcomeEmail, "schedule");
     const { user, team, isNewTeam, isNewUser } = await accountProvisioner({
       ip,
@@ -289,7 +292,7 @@ describe("accountProvisioner", () => {
 
   describe("self hosted", () => {
     it("should fail if existing team and domain not in allowed list", async () => {
-      process.env.DEPLOYMENT = "";
+      env.DEPLOYMENT = undefined;
       let error;
       const team = await buildTeam();
 
@@ -327,7 +330,7 @@ describe("accountProvisioner", () => {
     });
 
     it("should always use existing team if self-hosted", async () => {
-      process.env.DEPLOYMENT = "";
+      env.DEPLOYMENT = undefined;
 
       const team = await buildTeam();
       const { user, isNewUser } = await accountProvisioner({
