@@ -44,6 +44,9 @@ class UserAuthentication extends BaseModel {
   @Column
   providerId: string;
 
+  @Column(DataType.DATE)
+  expiresAt: Date;
+
   // associations
 
   @BelongsTo(() => User, "userId")

@@ -34,6 +34,7 @@ type Props = {
     scopes: string[];
     accessToken?: string;
     refreshToken?: string;
+    expiresIn?: number;
   };
 };
 
@@ -83,6 +84,9 @@ async function accountProvisioner({
       ip,
       authentication: {
         ...authenticationParams,
+        expiresAt: authenticationParams.expiresIn
+          ? new Date(Date.now() + authenticationParams.expiresIn * 1000)
+          : undefined,
         authenticationProviderId: authenticationProvider.id,
       },
     });
