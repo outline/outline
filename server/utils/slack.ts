@@ -1,5 +1,6 @@
 import querystring from "querystring";
 import fetch from "fetch-with-proxy";
+import env from "@server/env";
 import { InvalidRequestError } from "../errors";
 
 const SLACK_API_URL = "https://slack.com/api";
@@ -48,11 +49,11 @@ export async function request(endpoint: string, body: Record<string, any>) {
 
 export async function oauthAccess(
   code: string,
-  redirect_uri = `${process.env.URL || ""}/auth/slack.callback`
+  redirect_uri = `${env.URL}/auth/slack.callback`
 ) {
   return request("oauth.access", {
-    client_id: process.env.SLACK_KEY,
-    client_secret: process.env.SLACK_SECRET,
+    client_id: env.SLACK_CLIENT_ID,
+    client_secret: env.SLACK_CLIENT_SECRET,
     redirect_uri,
     code,
   });

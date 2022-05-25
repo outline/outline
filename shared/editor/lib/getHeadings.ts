@@ -1,11 +1,23 @@
-import { EditorView } from "prosemirror-view";
+import { Node } from "prosemirror-model";
 import headingToSlug from "./headingToSlug";
 
-export default function getHeadings(view: EditorView) {
-  const headings: { title: string; level: number; id: string }[] = [];
+export type Heading = {
+  title: string;
+  level: number;
+  id: string;
+};
+
+/**
+ * Iterates through the document to find all of the headings and their level.
+ *
+ * @param doc Prosemirror document node
+ * @returns Array<Heading>
+ */
+export default function getHeadings(doc: Node) {
+  const headings: Heading[] = [];
   const previouslySeen = {};
 
-  view.state.doc.forEach((node) => {
+  doc.forEach((node) => {
     if (node.type.name === "heading") {
       // calculate the optimal id
       const id = headingToSlug(node);

@@ -1,3 +1,4 @@
+import env from "@server/env";
 import TeamDomain from "@server/models/TeamDomain";
 import { buildTeam, buildUser } from "@server/test/factories";
 import { flushdb } from "@server/test/support";
@@ -25,7 +26,7 @@ describe("teamCreator", () => {
   });
 
   it("should not allow creating multiple teams in installation", async () => {
-    delete process.env.DEPLOYMENT;
+    env.DEPLOYMENT = undefined;
     await buildTeam();
     let error;
 
@@ -47,7 +48,7 @@ describe("teamCreator", () => {
   });
 
   it("should return existing team when within allowed domains", async () => {
-    delete process.env.DEPLOYMENT;
+    env.DEPLOYMENT = undefined;
     const existing = await buildTeam();
     const user = await buildUser({
       teamId: existing.id,
@@ -106,7 +107,7 @@ describe("teamCreator", () => {
   });
 
   it("should return exising team", async () => {
-    delete process.env.DEPLOYMENT;
+    env.DEPLOYMENT = undefined;
     const authenticationProvider = {
       name: "google",
       providerId: "example.com",

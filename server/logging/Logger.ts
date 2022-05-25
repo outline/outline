@@ -6,7 +6,8 @@ import Metrics from "@server/logging/metrics";
 import Sentry from "@server/logging/sentry";
 import * as Tracing from "./tracing";
 
-const isProduction = env.NODE_ENV === "production";
+const isProduction = env.ENVIRONMENT === "production";
+
 type LogCategory =
   | "lifecycle"
   | "hocuspocus"
@@ -72,7 +73,7 @@ class Logger {
   warn(message: string, extra?: Extra) {
     Metrics.increment("logger.warning");
 
-    if (process.env.SENTRY_DSN) {
+    if (env.SENTRY_DSN) {
       Sentry.withScope(function (scope) {
         scope.setLevel(Sentry.Severity.Warning);
 
@@ -104,7 +105,7 @@ class Logger {
     Metrics.increment("logger.error");
     Tracing.setError(error);
 
-    if (process.env.SENTRY_DSN) {
+    if (env.SENTRY_DSN) {
       Sentry.withScope(function (scope) {
         scope.setLevel(Sentry.Severity.Error);
 

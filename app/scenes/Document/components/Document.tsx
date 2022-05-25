@@ -14,6 +14,7 @@ import {
 } from "react-router";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { Heading } from "@shared/editor/lib/getHeadings";
 import { parseDomain } from "@shared/utils/domains";
 import getTasks from "@shared/utils/getTasks";
 import RootStore from "~/stores/RootStore";
@@ -30,6 +31,7 @@ import PageTitle from "~/components/PageTitle";
 import PlaceholderDocument from "~/components/PlaceholderDocument";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import withStores from "~/components/withStores";
+import type { Editor as TEditor } from "~/editor";
 import { NavigationNode } from "~/types";
 import { client } from "~/utils/ApiClient";
 import { emojiToUrl } from "~/utils/emoji";
@@ -73,7 +75,7 @@ type Props = WithTranslation &
 @observer
 class DocumentScene extends React.Component<Props> {
   @observable
-  editor = React.createRef<typeof Editor>();
+  editor: TEditor | null;
 
   @observable
   isUploading = false;
@@ -95,6 +97,9 @@ class DocumentScene extends React.Component<Props> {
 
   @observable
   title: string = this.props.document.title;
+
+  @observable
+  headings: Heading[] = [];
 
   getEditorText: () => string = () => this.props.document.text;
 
@@ -152,13 +157,12 @@ class DocumentScene extends React.Component<Props> {
   }
 
   replaceDocument = (template: Document | Revision) => {
-    const editorRef = this.editor.current;
+    const editorRef = this.editor;
 
     if (!editorRef) {
       return;
     }
 
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'view' does not exist on type 'unknown'.
     const { view, parser } = editorRef;
     view.dispatch(
       view.state.tr
@@ -190,7 +194,7 @@ class DocumentScene extends React.Component<Props> {
     const { toasts, history, location, t } = this.props;
     const restore = location.state?.restore;
     const revisionId = location.state?.revisionId;
-    const editorRef = this.editor.current;
+    const editorRef = this.editor;
 
     if (!editorRef || !restore) {
       return;
@@ -375,13 +379,24 @@ class DocumentScene extends React.Component<Props> {
     const { document, auth } = this.props;
     this.getEditorText = getEditorText;
 
-    // If the multiplayer editor is enabled then we still want to keep the local
-    // text value in sync as it is used as a cache.
+    // Keep headings in sync for table of contents
+    const headings = this.editor?.getHeadings() ?? [];
+    if (
+      headings.map((h) => h.level + h.title).join("") !==
+      this.headings.map((h) => h.level + h.title).join("")
+    ) {
+      this.headings = headings;
+    }
+
+    // Keep derived task list in sync
+    const tasks = this.editor?.getTasks();
+    const total = tasks?.length ?? 0;
+    const completed = tasks?.filter((t) => t.completed).length ?? 0;
+    document.updateTasks(total, completed);
+
+    // If the multiplayer editor is enabled we're done here as changes are saved
+    // through the persistence protocol. The rest of this method is legacy.
     if (auth.team?.collaborativeEditing) {
-      action(() => {
-        document.text = this.getEditorText();
-        document.tasks = getTasks(document.text);
-      })();
       return;
     }
 
@@ -412,6 +427,11 @@ class DocumentScene extends React.Component<Props> {
     }
   };
 
+  handleRef = (ref: TEditor | null) => {
+    this.editor = ref;
+    this.headings = this.editor?.getHeadings() ?? [];
+  };
+
   render() {
     const {
       document,
@@ -429,12 +449,7 @@ class DocumentScene extends React.Component<Props> {
     const embedsDisabled =
       (team && team.documentEmbeds === false) || document.embedsDisabled;
 
-    const headings = this.editor.current
-      ? // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
-        this.editor.current.getHeadings()
-      : [];
-
-    const hasHeadings = headings.length > 0;
+    const hasHeadings = this.headings.length > 0;
     const showContents =
       ui.tocVisible &&
       ((readOnly && hasHeadings) || team?.collaborativeEditing);
@@ -456,6 +471,7 @@ class DocumentScene extends React.Component<Props> {
             to={{
               pathname: canonicalUrl,
               state: this.props.location.state,
+              hash: this.props.location.hash,
             }}
           />
         )}
@@ -548,7 +564,7 @@ class DocumentScene extends React.Component<Props> {
               sharedTree={this.props.sharedTree}
               onSelectTemplate={this.replaceDocument}
               onSave={this.onSave}
-              headings={headings}
+              headings={this.headings}
             />
             <MaxWidth
               archived={document.isArchived}
@@ -563,14 +579,14 @@ class DocumentScene extends React.Component<Props> {
                 <Flex auto={!readOnly}>
                   {showContents && (
                     <Contents
-                      headings={headings}
+                      headings={this.headings}
                       isFullWidth={document.fullWidth}
                     />
                   )}
                   <Editor
                     id={document.id}
                     key={embedsDisabled ? "disabled" : "enabled"}
-                    ref={this.editor}
+                    ref={this.handleRef}
                     multiplayer={collaborativeEditing}
                     shareId={shareId}
                     isDraft={document.isDraft}

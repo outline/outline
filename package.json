@@ -38,7 +38,9 @@
     "type": "git",
     "url": "git+ssh://git@github.com/outline/outline.git"
   },
-  "browserslist": "> 0.25%, not dead",
+  "browserslist": [
+    "> 0.25%, not dead"
+  ],
   "dependencies": {
     "@babel/core": "^7.16.0",
     "@babel/plugin-proposal-decorators": "^7.10.5",
@@ -71,6 +73,7 @@
     "bull": "^3.29.0",
     "cancan": "3.1.0",
     "chalk": "^4.1.0",
+    "class-validator": "^0.13.2",
     "compressorjs": "^1.0.7",
     "copy-to-clipboard": "^3.3.1",
     "core-js": "^3.10.2",
@@ -326,5 +329,5 @@
     "dot-prop": "^5.2.0",
     "js-yaml": "^3.14.1"
   },
-  "version": "0.63.0"
+  "version": "0.64.3"
 }

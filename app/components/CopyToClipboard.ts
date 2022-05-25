@@ -1,5 +1,6 @@
 import copy from "copy-to-clipboard";
 import * as React from "react";
+import env from "~/env";
 
 type Props = {
   text: string;
@@ -14,7 +15,7 @@ class CopyToClipboard extends React.PureComponent<Props> {
     const elem = React.Children.only(children);
 
     copy(text, {
-      debug: process.env.NODE_ENV !== "production",
+      debug: env.ENVIRONMENT !== "production",
       format: "text/plain",
     });
 

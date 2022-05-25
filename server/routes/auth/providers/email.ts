@@ -4,6 +4,7 @@ import { find } from "lodash";
 import { parseDomain } from "@shared/utils/domains";
 import SigninEmail from "@server/emails/templates/SigninEmail";
 import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
+import env from "@server/env";
 import { AuthorizationError } from "@server/errors";
 import errorHandling from "@server/middlewares/errorHandling";
 import methodOverride from "@server/middlewares/methodOverride";
@@ -40,10 +41,7 @@ router.post("email", errorHandling(), async (ctx) => {
           domain: ctx.request.hostname,
         },
       });
-    } else if (
-      process.env.SUBDOMAINS_ENABLED === "true" &&
-      domain.teamSubdomain
-    ) {
+    } else if (env.SUBDOMAINS_ENABLED && domain.teamSubdomain) {
       team = await Team.scope("withAuthenticationProviders").findOne({
         where: {
           subdomain: domain.teamSubdomain,

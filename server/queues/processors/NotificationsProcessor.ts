@@ -1,7 +1,7 @@
 import { Op } from "sequelize";
 import CollectionNotificationEmail from "@server/emails/templates/CollectionNotificationEmail";
 import DocumentNotificationEmail from "@server/emails/templates/DocumentNotificationEmail";
-import Logger from "@server/logging/logger";
+import Logger from "@server/logging/Logger";
 import {
   View,
   Document,

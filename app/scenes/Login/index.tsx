@@ -21,7 +21,7 @@ import Text from "~/components/Text";
 import env from "~/env";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
-import isHosted from "~/utils/isHosted";
+import isCloudHosted from "~/utils/isCloudHosted";
 import { changeLanguage, detectLanguage } from "~/utils/language";
 import AuthenticationProvider from "./AuthenticationProvider";
 import Notices from "./Notices";
@@ -30,7 +30,7 @@ function Header({ config }: { config?: Config | undefined }) {
   const { t } = useTranslation();
   const isSubdomain = !!config?.hostname;
 
-  if (!isHosted || parseDomain(window.location.origin).custom) {
+  if (!isCloudHosted || parseDomain(window.location.origin).custom) {
     return null;
   }
 
@@ -103,7 +103,7 @@ function Login() {
           <PageTitle title={t("Login")} />
           <NoticeAlert>
             {t("Failed to load configuration.")}
-            {!isHosted && (
+            {!isCloudHosted && (
               <p>
                 {t(
                   "Check the network requests and server logs for full details of the error."
@@ -158,7 +158,7 @@ function Login() {
       <Centered align="center" justify="center" gap={12} column auto>
         <PageTitle title={t("Login")} />
         <Logo>
-          {env.TEAM_LOGO && !isHosted ? (
+          {env.TEAM_LOGO && !isCloudHosted ? (
             <TeamLogo src={env.TEAM_LOGO} />
           ) : (
             <OutlineLogo size={38} fill="currentColor" />
@@ -200,7 +200,7 @@ function Login() {
             )}
           </React.Fragment>
         )}
-        {config.providers.map((provider: any) => {
+        {config.providers.map((provider) => {
           if (defaultProvider && provider.id === defaultProvider.id) {
             return null;
           }

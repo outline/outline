@@ -1,7 +1,7 @@
 import { subDays } from "date-fns";
 import { Op } from "sequelize";
 import teamPermanentDeleter from "@server/commands/teamPermanentDeleter";
-import Logger from "@server/logging/logger";
+import Logger from "@server/logging/Logger";
 import { Team } from "@server/models";
 import BaseTask, { TaskPriority } from "./BaseTask";
 

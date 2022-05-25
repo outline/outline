@@ -1,4 +1,5 @@
 import Router from "koa-router";
+import env from "@server/env";
 import auth from "@server/middlewares/authentication";
 import { Team, NotificationSetting } from "@server/models";
 import { authorize } from "@server/policies";
@@ -75,7 +76,7 @@ router.post("notificationSettings.unsubscribe", async (ctx) => {
     return;
   }
 
-  ctx.redirect(`${process.env.URL}?notice=invalid-auth`);
+  ctx.redirect(`${env.URL}?notice=invalid-auth`);
 });
 
 export default router;

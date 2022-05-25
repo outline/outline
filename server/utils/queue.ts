@@ -1,5 +1,6 @@
 import Queue from "bull";
 import { snakeCase } from "lodash";
+import env from "@server/env";
 import Metrics from "@server/logging/metrics";
 import Redis from "../redis";
 
@@ -18,7 +19,7 @@ export function createQueue(
           return Redis.defaultSubscriber;
 
         default:
-          return new Redis(process.env.REDIS_URL);
+          return new Redis(env.REDIS_URL);
       }
     },
 

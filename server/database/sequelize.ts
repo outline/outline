@@ -1,14 +1,15 @@
 import { Sequelize } from "sequelize-typescript";
-import Logger from "../logging/logger";
+import env from "@server/env";
+import Logger from "../logging/Logger";
 import * as models from "../models";
 
-const isProduction = process.env.NODE_ENV === "production";
-const isSSLDisabled = process.env.PGSSLMODE === "disable";
-const poolMax = parseInt(process.env.DATABASE_CONNECTION_POOL_MAX || "5", 10);
-const poolMin = parseInt(process.env.DATABASE_CONNECTION_POOL_MIN || "0", 10);
+const isProduction = env.ENVIRONMENT === "production";
+const isSSLDisabled = env.PGSSLMODE === "disable";
+const poolMax = env.DATABASE_CONNECTION_POOL_MAX ?? 5;
+const poolMin = env.DATABASE_CONNECTION_POOL_MIN ?? 0;
 
 export const sequelize = new Sequelize(
-  process.env.DATABASE_URL || process.env.DATABASE_CONNECTION_POOL_URL || "",
+  env.DATABASE_URL ?? env.DATABASE_CONNECTION_POOL_URL ?? "",
   {
     logging: (msg) => Logger.debug("database", msg),
     typeValidation: true,

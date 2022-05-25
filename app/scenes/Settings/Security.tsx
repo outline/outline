@@ -7,6 +7,7 @@ import { useTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
 import Button from "~/components/Button";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
+import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import Input from "~/components/Input";
@@ -20,7 +21,7 @@ import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
-import isHosted from "~/utils/isHosted";
+import isCloudHosted from "~/utils/isCloudHosted";
 import SettingRow from "./components/SettingRow";
 
 function Security() {
@@ -138,7 +139,6 @@ function Security() {
     };
 
     setData(newData);
-    setDomainsChanged(true);
   };
 
   const createOnDomainChangedHandler = (index: number) => (
@@ -212,7 +212,7 @@ function Security() {
           onChange={handleChange}
         />
       </SettingRow>
-      {isHosted && (
+      {isCloudHosted && (
         <SettingRow
           label={t("Allow authorized signups")}
           name="allowSignups"
@@ -276,8 +276,10 @@ function Security() {
                 key={index}
                 id={`allowedDomains${index}`}
                 value={domain}
+                autoFocus={!domain}
                 placeholder="example.com"
-                flex={true}
+                required
+                flex
                 onChange={createOnDomainChangedHandler(index)}
               />
               <Remove>
@@ -293,21 +295,29 @@ function Security() {
         <Flex justify="space-between" gap={4} style={{ flexWrap: "wrap" }}>
           {!data.allowedDomains?.length ||
           data.allowedDomains[data.allowedDomains.length - 1] !== "" ? (
-            <Button type="button" onClick={handleAddDomain} neutral>
-              <Trans>Add another</Trans>
-            </Button>
+            <Fade>
+              <Button type="button" onClick={handleAddDomain} neutral>
+                {data.allowedDomains?.length ? (
+                  <Trans>Add another</Trans>
+                ) : (
+                  <Trans>Add a domain</Trans>
+                )}
+              </Button>
+            </Fade>
           ) : (
             <span />
           )}
 
           {domainsChanged && (
-            <Button
-              type="button"
-              onClick={handleChange}
-              disabled={auth.isSaving}
-            >
-              <Trans>Save changes</Trans>
-            </Button>
+            <Fade>
+              <Button
+                type="button"
+                onClick={handleChange}
+                disabled={auth.isSaving}
+              >
+                <Trans>Save changes</Trans>
+              </Button>
+            </Fade>
           )}
         </Flex>
       </SettingRow>

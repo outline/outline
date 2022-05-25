@@ -21,7 +21,7 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import { getBaseDomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
 import env from "@server/env";
-import Logger from "@server/logging/logger";
+import Logger from "@server/logging/Logger";
 import { generateAvatarUrl } from "@server/utils/avatars";
 import { publicS3Endpoint, uploadToS3FromUrl } from "@server/utils/s3";
 import AuthenticationProvider from "./AuthenticationProvider";
@@ -117,7 +117,7 @@ class Team extends ParanoidModel {
    */
   get emailSigninEnabled(): boolean {
     return (
-      this.guestSignin && (!!env.SMTP_HOST || env.NODE_ENV === "development")
+      this.guestSignin && (!!env.SMTP_HOST || env.ENVIRONMENT === "development")
     );
   }
 
@@ -127,14 +127,11 @@ class Team extends ParanoidModel {
       return `https://${this.domain}`;
     }
 
-    if (!this.subdomain || env.SUBDOMAINS_ENABLED !== "true") {
+    if (!this.subdomain || !env.SUBDOMAINS_ENABLED) {
       return env.URL;
     }
 
-    // TODO: HACK: new URL("") will throw an exception
-    // this is just to make the typing work but reall we should
-    // guarantee the existence of env.URL
-    const url = new URL(env.URL || "");
+    const url = new URL(env.URL);
     url.host = `${this.subdomain}.${getBaseDomain()}`;
     return url.href.replace(/\/$/, "");
   }

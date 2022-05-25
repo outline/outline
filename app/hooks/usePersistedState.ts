@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Primitive } from "utility-types";
+import Logger from "~/utils/Logger";
 import Storage from "~/utils/Storage";
-import Logger from "~/utils/logger";
 import useEventListener from "./useEventListener";
 
 /**

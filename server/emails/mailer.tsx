@@ -1,15 +1,17 @@
 import nodemailer, { Transporter } from "nodemailer";
 import Oy from "oy-vey";
 import * as React from "react";
-import Logger from "@server/logging/logger";
+import env from "@server/env";
+import Logger from "@server/logging/Logger";
 import { APM } from "@server/logging/tracing";
 import { baseStyles } from "./templates/components/EmailLayout";
 
 const useTestEmailService =
-  process.env.NODE_ENV === "development" && !process.env.SMTP_USERNAME;
+  env.ENVIRONMENT === "development" && !env.SMTP_USERNAME;
 
 type SendMailOptions = {
   to: string;
+  replyTo?: string;
   subject: string;
   previewText?: string;
   text: string;
@@ -27,7 +29,7 @@ export class Mailer {
   transporter: Transporter | undefined;
 
   constructor() {
-    if (process.env.SMTP_HOST) {
+    if (env.SMTP_HOST) {
       this.transporter = nodemailer.createTransport(this.getOptions());
     }
     if (useTestEmailService) {
@@ -69,8 +71,8 @@ export class Mailer {
     try {
       Logger.info("email", `Sending email "${data.subject}" to ${data.to}`);
       const info = await transporter.sendMail({
-        from: process.env.SMTP_FROM_EMAIL,
-        replyTo: process.env.SMTP_REPLY_EMAIL || process.env.SMTP_FROM_EMAIL,
+        from: env.SMTP_FROM_EMAIL,
+        replyTo: data.replyTo ?? env.SMTP_REPLY_EMAIL ?? env.SMTP_FROM_EMAIL,
         to: data.to,
         subject: data.subject,
         html,
@@ -91,24 +93,20 @@ export class Mailer {
 
   private getOptions() {
     return {
-      host: process.env.SMTP_HOST || "",
-      port: parseInt(process.env.SMTP_PORT || "", 10),
-      secure:
-        "SMTP_SECURE" in process.env
-          ? process.env.SMTP_SECURE === "true"
-          : process.env.NODE_ENV === "production",
-      auth: process.env.SMTP_USERNAME
+      host: env.SMTP_HOST,
+      port: env.SMTP_PORT,
+      secure: env.SMTP_SECURE ?? env.ENVIRONMENT === "production",
+      auth: env.SMTP_USERNAME
         ? {
-            user: process.env.SMTP_USERNAME || "",
-            pass: process.env.SMTP_PASSWORD,
+            user: env.SMTP_USERNAME,
+            pass: env.SMTP_PASSWORD,
           }
         : undefined,
-      tls:
-        "SMTP_TLS_CIPHERS" in process.env
-          ? {
-              ciphers: process.env.SMTP_TLS_CIPHERS,
-            }
-          : undefined,
+      tls: env.SMTP_TLS_CIPHERS
+        ? {
+            ciphers: env.SMTP_TLS_CIPHERS,
+          }
+        : undefined,
     };
   }
 
