@@ -2,8 +2,7 @@ import { observer } from "mobx-react";
 import { CodeIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
-import ApiKey from "~/models/ApiKey";
-import APITokenNew from "~/scenes/APITokenNew";
+import WebhookSubscription from "~/models/WebhookSubscription";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
@@ -16,12 +15,13 @@ import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import TokenListItem from "./components/TokenListItem";
+import WebhookSubscriptionNew from "../WebhookSubscriptionNew";
+import WebhookSubscriptionListItem from "./components/WebhookSubscriptionListItem";
 
 function Webhooks() {
   const team = useCurrentTeam();
   const { t } = useTranslation();
-  const { apiKeys } = useStores();
+  const { webhookSubscriptions } = useStores();
   const [newModalOpen, handleNewModalOpen, handleNewModalClose] = useBoolean();
   const can = usePolicy(team.id);
 
@@ -35,7 +35,7 @@ function Webhooks() {
             <Action>
               <Button
                 type="submit"
-                value={`${t("New token")}…`}
+                value={`${t("New webhook subscription")}…`}
                 onClick={handleNewModalOpen}
               />
             </Action>
@@ -43,24 +43,24 @@ function Webhooks() {
         </>
       }
     >
-      <Heading>{t("Webhook Subscriptions")}</Heading>
+      <Heading>{t("Webhooks")}</Heading>
       <Text type="secondary">
         <Trans defaults="WEBHOOKS are really cool" />
       </Text>
       <PaginatedList
-        fetch={apiKeys.fetchPage}
-        items={apiKeys.orderedData}
-        heading={<Subheading sticky>{t("Tokens")}</Subheading>}
-        renderItem={(token: ApiKey) => (
-          <TokenListItem key={token.id} token={token} />
+        fetch={webhookSubscriptions.fetchPage}
+        items={webhookSubscriptions.orderedData}
+        heading={<Subheading sticky>{t("Webhooks")}</Subheading>}
+        renderItem={(webhook: WebhookSubscription) => (
+          <WebhookSubscriptionListItem key={webhook.id} webhook={webhook} />
         )}
       />
       <Modal
-        title={t("Create a token")}
+        title={t("Create a webhook")}
         onRequestClose={handleNewModalClose}
         isOpen={newModalOpen}
       >
-        <APITokenNew onSubmit={handleNewModalClose} />
+        <WebhookSubscriptionNew onSubmit={handleNewModalClose} />
       </Modal>
     </Scene>
   );
