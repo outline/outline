@@ -1,8 +1,9 @@
 import * as React from "react";
+import { useForm } from "react-hook-form";
 import { useTranslation, Trans } from "react-i18next";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
-import Input from "~/components/Input";
+import { ReactHookWrappedInput } from "~/components/Input";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
@@ -11,21 +12,23 @@ type Props = {
   onSubmit: () => void;
 };
 
+interface FormData {
+  name: string;
+}
+
 function WebhookSubscriptionNew({ onSubmit }: Props) {
-  const [name, setName] = React.useState("");
-  const [isSaving, setIsSaving] = React.useState(false);
   const { webhookSubscriptions } = useStores();
   const { showToast } = useToasts();
   const { t } = useTranslation();
+  const { register, handleSubmit: formHandleSubmit, formState } = useForm<
+    FormData
+  >({ mode: "onChange" });
 
   const handleSubmit = React.useCallback(
-    async (ev: React.SyntheticEvent) => {
-      ev.preventDefault();
-      setIsSaving(true);
-
+    async (data: FormData) => {
       try {
         await webhookSubscriptions.create({
-          name,
+          name: data.name,
         });
         showToast(
           t("Webhook subscription created", {
@@ -37,35 +40,29 @@ function WebhookSubscriptionNew({ onSubmit }: Props) {
         showToast(err.message, {
           type: "error",
         });
-      } finally {
-        setIsSaving(false);
       }
     },
-    [t, showToast, name, onSubmit, webhookSubscriptions]
+    [t, showToast, onSubmit, webhookSubscriptions]
   );
 
-  const handleNameChange = React.useCallback((event) => {
-    setName(event.target.value);
-  }, []);
-
   return (
-    <form onSubmit={handleSubmit}>
+    <form onSubmit={formHandleSubmit(handleSubmit)}>
       <Text type="secondary">
         <Trans>Select the events you need and name this webhook</Trans>
       </Text>
       <Flex>
-        <Input
-          type="text"
-          label="Name"
-          onChange={handleNameChange}
-          value={name}
+        <ReactHookWrappedInput
           required
           autoFocus
           flex
+          {...register("name", { required: true })}
         />
       </Flex>
-      <Button type="submit" disabled={isSaving || !name}>
-        {isSaving ? "Creating…" : "Create"}
+      <Button
+        type="submit"
+        disabled={formState.isSubmitting || !formState.isValid}
+      >
+        {formState.isSubmitting ? "Creating…" : "Create"}
       </Button>
     </form>
   );
