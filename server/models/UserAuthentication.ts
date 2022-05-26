@@ -12,6 +12,7 @@ import {
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import GoogleClient from "@server/utils/google";
+import { AuthenticationError } from "../errors";
 import AuthenticationProvider from "./AuthenticationProvider";
 import User from "./User";
 import BaseModel from "./base/BaseModel";
@@ -98,7 +99,10 @@ class UserAuthentication extends BaseModel {
           await client.userInfo(this.accessToken);
           return true;
         } catch (error) {
-          return false;
+          if (error instanceof AuthenticationError) {
+            return false;
+          }
+          throw error;
         }
       }
       case "azure":
