@@ -22,9 +22,10 @@ export default abstract class OAuthClient {
 
     try {
       response = await fetch(this.endpoints.userinfo, {
-        method: "POST",
+        method: "GET",
         headers: {
           Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
         },
       });
       data = await response.json();
@@ -42,7 +43,11 @@ export default abstract class OAuthClient {
 
   rotateToken = async (
     refreshToken: string
-  ): Promise<{ accessToken: string; expiresAt: Date }> => {
+  ): Promise<{
+    accessToken: string;
+    refreshToken?: string;
+    expiresAt: Date;
+  }> => {
     let data;
     let response;
 
@@ -70,6 +75,7 @@ export default abstract class OAuthClient {
     }
 
     return {
+      refreshToken: data.refresh_token,
       accessToken: data.access_token,
       expiresAt: new Date(Date.now() + data.expires_in * 1000),
     };

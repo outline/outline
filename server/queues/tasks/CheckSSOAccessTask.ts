@@ -48,7 +48,7 @@ export default class CheckSSOAccessTask extends BaseTask<Props> {
 
   public get options() {
     return {
-      attempts: 1,
+      attempts: 2,
       priority: TaskPriority.Background,
     };
   }

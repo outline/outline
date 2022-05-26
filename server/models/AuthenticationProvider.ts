@@ -11,12 +11,23 @@ import {
   Model,
   IsUUID,
   PrimaryKey,
+  DefaultScope,
 } from "sequelize-typescript";
+import env from "@server/env";
+import AzureClient from "@server/utils/azure";
+import GoogleClient from "@server/utils/google";
 import { ValidationError } from "../errors";
 import Team from "./Team";
 import UserAuthentication from "./UserAuthentication";
 import Fix from "./decorators/Fix";
 
+@DefaultScope(() => ({
+  where: {
+    enabled: {
+      [Op.ne]: false,
+    },
+  },
+}))
 @Table({
   tableName: "authentication_providers",
   modelName: "authentication_provider",
@@ -56,6 +67,23 @@ class AuthenticationProvider extends Model {
   userAuthentications: UserAuthentication[];
 
   // instance methods
+
+  get oauthClient() {
+    switch (this.name) {
+      case "google":
+        return new GoogleClient(
+          env.GOOGLE_CLIENT_ID || "",
+          env.GOOGLE_CLIENT_SECRET || ""
+        );
+      case "azure":
+        return new AzureClient(
+          env.AZURE_CLIENT_ID || "",
+          env.AZURE_CLIENT_SECRET || ""
+        );
+      default:
+        return undefined;
+    }
+  }
 
   disable = async () => {
     const res = await (this

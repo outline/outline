@@ -9,9 +9,7 @@ import {
   Table,
   Unique,
 } from "sequelize-typescript";
-import env from "@server/env";
 import Logger from "@server/logging/Logger";
-import GoogleClient from "@server/utils/google";
 import { AuthenticationError } from "../errors";
 import AuthenticationProvider from "./AuthenticationProvider";
 import User from "./User";
@@ -84,32 +82,19 @@ class UserAuthentication extends BaseModel {
 
     await this.refreshAccessTokenIfNeeded(authenticationProvider, options);
 
-    switch (authenticationProvider.name) {
-      case "slack": {
-        // Token rotation not yet enabled
-        return true;
+    try {
+      const client = authenticationProvider.oauthClient;
+      if (client) {
+        await client.userInfo(this.accessToken);
       }
-      case "google": {
-        const client = new GoogleClient(
-          env.GOOGLE_CLIENT_ID || "",
-          env.GOOGLE_CLIENT_SECRET || ""
-        );
+      return true;
+    } catch (error) {
+      if (error instanceof AuthenticationError) {
+        return false;
+      }
 
-        try {
-          await client.userInfo(this.accessToken);
-          return true;
-        } catch (error) {
-          if (error instanceof AuthenticationError) {
-            return false;
-          }
-          throw error;
-        }
-      }
-      case "azure":
-        // TODO: refresh token
-        return true;
-      default:
-        return true;
+      // Throw unknown errors to trigger a retry of the task.
+      throw error;
     }
   }
 
@@ -134,29 +119,19 @@ class UserAuthentication extends BaseModel {
       userId: this.userId,
     });
 
-    switch (authenticationProvider.name) {
-      case "slack": {
-        // Token rotation not yet enabled
-        return false;
+    const client = authenticationProvider.oauthClient;
+    if (client) {
+      const response = await client.rotateToken(this.refreshToken);
+
+      // Not all OAuth providers return a new refreshToken.
+      if (response.refreshToken) {
+        this.refreshToken = response.refreshToken;
       }
-      case "google": {
-        const client = new GoogleClient(
-          env.GOOGLE_CLIENT_ID || "",
-          env.GOOGLE_CLIENT_SECRET || ""
-        );
-        const response = await client.rotateToken(this.refreshToken);
-        this.accessToken = response.accessToken;
-        this.expiresAt = response.expiresAt;
-        break;
-      }
-      case "azure":
-        // TODO: refresh token
-        return false;
-      default:
-        return false;
+      this.accessToken = response.accessToken;
+      this.expiresAt = response.expiresAt;
+      this.save(options);
     }
 
-    this.save(options);
     return true;
   }
 }
