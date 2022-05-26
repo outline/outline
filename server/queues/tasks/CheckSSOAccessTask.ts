@@ -15,26 +15,34 @@ export default class CheckSSOAccessTask extends BaseTask<Props> {
         transaction,
         lock: transaction.LOCK.UPDATE,
       });
-
-      for (const authentication of userAuthentications) {
-        const ok = await authentication.validateAccess({ transaction });
-        if (!ok) {
-          const user = await User.findByPk(userId, {
-            transaction,
-            lock: transaction.LOCK.UPDATE,
-          });
-
-          Logger.info(
-            "task",
-            `Authentication token no longer valid for ${user?.id}`
-          );
-          if (user) {
-            User.setRandomJwtSecret(user);
-            await user.save({ transaction });
-          }
-          break;
-        }
+      if (userAuthentications.length === 0) {
+        return;
       }
+
+      // Check the validity of all the user's authentications.
+      const valid = await Promise.all(
+        userAuthentications.map(async (authentication) =>
+          authentication.validateAccess({ transaction })
+        )
+      );
+
+      // If any are ok then we're done.
+      if (valid.includes(true)) {
+        return;
+      }
+
+      // If all are invalid then we need to revoke the users session.
+      const user = await User.findByPk(userId, {
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
+
+      Logger.info(
+        "task",
+        `Authentication token no longer valid for ${user?.id}`
+      );
+
+      await user?.rotateJwtSecret({ transaction });
     });
   }
 
