@@ -42,8 +42,8 @@ describe("email", () => {
   });
 
   it("should respond with redirect location when user is SSO enabled on another subdomain", async () => {
-    env.URL = "http://localoutline.com";
-    env.SUBDOMAINS_ENABLED = true;
+    env.URL = sharedEnv.URL = "http://localoutline.com";
+    env.SUBDOMAINS_ENABLED = sharedEnv.SUBDOMAINS_ENABLED = true;
     const user = await buildUser();
     const spy = jest.spyOn(WelcomeEmail, "schedule");
     await buildTeam({
