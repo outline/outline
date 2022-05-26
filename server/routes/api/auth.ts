@@ -6,6 +6,7 @@ import env from "@server/env";
 import auth from "@server/middlewares/authentication";
 import { Team, TeamDomain } from "@server/models";
 import { presentUser, presentTeam, presentPolicies } from "@server/presenters";
+import CheckSSOAccessTask from "@server/queues/tasks/CheckSSOAccessTask";
 import { isCustomDomain } from "@server/utils/domains";
 import providers from "../auth/providers";
 
@@ -115,6 +116,8 @@ router.post("auth.info", auth(), async (ctx) => {
     include: [{ model: TeamDomain }],
   });
   invariant(team, "Team not found");
+
+  await CheckSSOAccessTask.schedule({ userId: user.id });
 
   ctx.body = {
     data: {

@@ -44,6 +44,7 @@ export class Mailer {
             "email",
             "Couldn't generate a test account with ethereal.email at this time – emails will not be sent."
           );
+          return;
         }
 
         this.transporter = nodemailer.createTransport(options);
