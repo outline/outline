@@ -11,7 +11,7 @@ import {
   Model,
   IsUUID,
   PrimaryKey,
-  DefaultScope,
+  Scopes,
 } from "sequelize-typescript";
 import env from "@server/env";
 import AzureClient from "@server/utils/azure";
@@ -21,10 +21,12 @@ import Team from "./Team";
 import UserAuthentication from "./UserAuthentication";
 import Fix from "./decorators/Fix";
 
-@DefaultScope(() => ({
-  where: {
-    enabled: {
-      [Op.ne]: false,
+@Scopes(() => ({
+  withoutDisabled: {
+    where: {
+      enabled: {
+        [Op.ne]: false,
+      },
     },
   },
 }))
