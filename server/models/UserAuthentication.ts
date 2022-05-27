@@ -110,7 +110,7 @@ class UserAuthentication extends BaseModel {
     authenticationProvider: AuthenticationProvider,
     options: SaveOptions
   ): Promise<boolean> {
-    if (this.expiresAt > addMinutes(Date.now(), 5)) {
+    if (this.expiresAt > addMinutes(Date.now(), 5) || !this.refreshToken) {
       return false;
     }
 
@@ -123,7 +123,8 @@ class UserAuthentication extends BaseModel {
     if (client) {
       const response = await client.rotateToken(this.refreshToken);
 
-      // Not all OAuth providers return a new refreshToken.
+      // Not all OAuth providers return a new refreshToken so we need to guard
+      // against setting to an empty value.
       if (response.refreshToken) {
         this.refreshToken = response.refreshToken;
       }
