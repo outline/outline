@@ -6,9 +6,9 @@ export default abstract class OAuthClient {
   private clientSecret: string;
 
   protected endpoints = {
-    authorize: "/oauth2/v4/auth",
-    token: "/oauth2/v4/token",
-    userinfo: "/oauth2/v4/userinfo",
+    authorize: "",
+    token: "",
+    userinfo: "",
   };
 
   constructor(clientId: string, clientSecret: string) {

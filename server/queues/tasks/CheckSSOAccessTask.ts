@@ -19,19 +19,19 @@ export default class CheckSSOAccessTask extends BaseTask<Props> {
         return;
       }
 
-      // Check the validity of all the user's authentications.
+      // Check the validity of all the user's associated authentications.
       const valid = await Promise.all(
         userAuthentications.map(async (authentication) =>
           authentication.validateAccess({ transaction })
         )
       );
 
-      // If any are ok then we're done.
+      // If any are valid then we're done here.
       if (valid.includes(true)) {
         return;
       }
 
-      // If all are invalid then we need to revoke the users session.
+      // If all are invalid then we need to revoke the users Outline sessions.
       const user = await User.findByPk(userId, {
         transaction,
         lock: transaction.LOCK.UPDATE,

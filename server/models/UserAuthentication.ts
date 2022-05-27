@@ -71,6 +71,13 @@ class UserAuthentication extends BaseModel {
 
   // instance methods
 
+  /**
+   * Validates that the tokens within this authentication record are still
+   * valid. Will update the record with a new access token if it is expired.
+   *
+   * @param options SaveOptions
+   * @returns true if the accessToken or refreshToken is still valid
+   */
   public async validateAccess(options: SaveOptions): Promise<boolean> {
     const authenticationProvider = await this.$get("authenticationProvider", {
       transaction: options.transaction,
@@ -132,6 +139,11 @@ class UserAuthentication extends BaseModel {
       this.expiresAt = response.expiresAt;
       this.save(options);
     }
+
+    Logger.info("utils", "Successfully refreshed expired access token", {
+      id: this.id,
+      userId: this.userId,
+    });
 
     return true;
   }
