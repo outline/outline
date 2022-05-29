@@ -40,8 +40,7 @@ const Authenticated = ({ children }: Props) => {
       }
     } else if (
       env.SUBDOMAINS_ENABLED &&
-      team.subdomain &&
-      parseDomain(hostname).teamSubdomain !== team.subdomain
+      parseDomain(hostname).teamSubdomain !== (team.subdomain ?? "")
     ) {
       window.location.href = `${team.url}${window.location.pathname}`;
       return <LoadingIndicator />;
