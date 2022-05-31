@@ -6,7 +6,6 @@ import {
   NotEmpty,
   DataType,
 } from "sequelize-typescript";
-import Team from "./Team";
 import User from "./User";
 import BaseModel from "./base/BaseModel";
 import Encrypted, {
@@ -46,13 +45,6 @@ class WebhookSubscription extends BaseModel {
   }
 
   // associations
-
-  @BelongsTo(() => Team, "teamId")
-  team: Team;
-
-  @ForeignKey(() => Team)
-  @Column
-  teamId: string;
 
   @BelongsTo(() => User, "createdById")
   createdBy: User;

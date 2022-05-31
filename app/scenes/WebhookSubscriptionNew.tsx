@@ -1,5 +1,6 @@
 import * as React from "react";
-import { useForm, UseFormRegister } from "react-hook-form";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
 import { useTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
 import Button from "~/components/Button";
@@ -13,11 +14,12 @@ type Props = {
   onSubmit: () => void;
 };
 
-type EventString = "*" | "docs.read" | "docs.write";
+type EventString = "*" | "docs" | "docs.read" | "docs.write";
 
 interface FormData {
   name: string;
-  events: EventString[] | EventString;
+  url: string;
+  events: EventString[];
 }
 
 const EventCheckboxLabel = styled.label`
@@ -31,35 +33,6 @@ const EventCheckboxText = styled.span`
   margin-right: 0.5rem;
 `;
 
-function EventCheckbox({
-  label,
-  value,
-  onChange,
-  register,
-  disabled,
-}: {
-  label: string;
-  value: EventString;
-  onChange?: React.ChangeEventHandler;
-  register: UseFormRegister<FormData>;
-  disabled?: boolean;
-}) {
-  return (
-    <EventCheckboxLabel>
-      <EventCheckboxText>{label}</EventCheckboxText>
-      <input
-        type="checkbox"
-        value={value}
-        {...register("events", {
-          required: true,
-          disabled: disabled,
-          onChange,
-        })}
-      />
-    </EventCheckboxLabel>
-  );
-}
-
 function WebhookSubscriptionNew({ onSubmit }: Props) {
   const { webhookSubscriptions } = useStores();
   const { showToast } = useToasts();
@@ -70,14 +43,19 @@ function WebhookSubscriptionNew({ onSubmit }: Props) {
     formState,
     watch,
     setValue,
-  } = useForm<FormData>({ mode: "onChange" });
+  } = useForm<FormData>({ mode: "onTouched", defaultValues: { events: [] } });
 
   const handleSubmit = React.useCallback(
     async (data: FormData) => {
       try {
-        await webhookSubscriptions.create({
-          name: data.name,
-        });
+        const events = Array.isArray(data.events) ? data.events : [data.events];
+
+        const toSend = {
+          ...data,
+          events,
+        };
+
+        await webhookSubscriptions.create(toSend);
         showToast(
           t("Webhook subscription created", {
             type: "success",
@@ -85,7 +63,6 @@ function WebhookSubscriptionNew({ onSubmit }: Props) {
         );
         onSubmit();
       } catch (err) {
-        console.log(data, err);
         showToast(err.message, {
           type: "error",
         });
@@ -94,52 +71,75 @@ function WebhookSubscriptionNew({ onSubmit }: Props) {
     [t, showToast, onSubmit, webhookSubscriptions]
   );
 
-  const onAllEventsChange = React.useCallback(() => {
-    const eventsOrig = watch("events");
-    const events = Array.isArray(eventsOrig) ? eventsOrig : [eventsOrig];
+  const events = watch("events");
+  const isAllEventSelected = events && events.includes("*");
+  const isDocsRootSelected = events && events.includes("docs");
 
-    if (events.includes("*")) {
+  useEffect(() => {
+    if (isAllEventSelected) {
       setValue("events", ["*"]);
     }
-  }, [setValue, watch]);
+  }, [isAllEventSelected, setValue]);
 
-  const lastEventsOrig = watch("events");
-  const lastEvents = Array.isArray(lastEventsOrig)
-    ? lastEventsOrig
-    : [lastEventsOrig];
-  const isAllEventSelected = lastEvents.includes("*");
+  useEffect(() => {
+    if (isDocsRootSelected && events.some((e) => e.startsWith("docs."))) {
+      setValue(
+        "events",
+        events.filter((e) => !e.startsWith("docs."))
+      );
+    }
+  }, [isDocsRootSelected, setValue, events]);
+
+  function EventCheckbox({
+    label,
+    value,
+  }: {
+    label: string;
+    value: EventString;
+  }) {
+    return (
+      <EventCheckboxLabel>
+        <EventCheckboxText>{label}</EventCheckboxText>
+        <input
+          type="checkbox"
+          value={value}
+          {...register("events", {
+            required: true,
+          })}
+        />
+      </EventCheckboxLabel>
+    );
+  }
 
   return (
     <form onSubmit={formHandleSubmit(handleSubmit)}>
       <Text type="secondary">
         <Trans>Select the events you need and name this webhook</Trans>
       </Text>
-      <Flex>
+      <Flex column={true}>
         <ReactHookWrappedInput
           required
           autoFocus
           flex
+          label="Name"
           {...register("name", { required: true })}
         />
+        <ReactHookWrappedInput
+          required
+          autoFocus
+          flex
+          label="URL"
+          {...register("url", { required: true })}
+        />
       </Flex>
-      <EventCheckbox
-        label={t("All events")}
-        value="*"
-        onChange={onAllEventsChange}
-        register={register}
-      />
-      <EventCheckbox
-        label={t("Read docs")}
-        value="docs.read"
-        register={register}
-        disabled={isAllEventSelected}
-      />
-      <EventCheckbox
-        label={t("Write docs")}
-        value="docs.write"
-        register={register}
-        disabled={isAllEventSelected}
-      />
+      <EventCheckbox label={t("All events")} value="*" />
+      <fieldset disabled={isAllEventSelected}>
+        <EventCheckbox label={t("All docs")} value="docs" />
+        <fieldset disabled={isDocsRootSelected}>
+          <EventCheckbox label={t("Read docs")} value="docs.read" />
+          <EventCheckbox label={t("Write docs")} value="docs.write" />
+        </fieldset>
+      </fieldset>
       <Button
         type="submit"
         disabled={formState.isSubmitting || !formState.isValid}

@@ -1,4 +1,5 @@
-import { User, Team } from "@server/models";
+/* eslint-disable prettier/prettier */
+import { User, Team, WebhookSubscription } from "@server/models";
 import { allow } from "./cancan";
 
 allow(User, "createWebhookSubscription", Team, (user, team) => {
@@ -6,5 +7,14 @@ allow(User, "createWebhookSubscription", Team, (user, team) => {
     return false;
   }
 
-  return true;
+  return user.isAdmin;
 });
+
+allow(
+  User,
+  ["read", "update", "delete"],
+  WebhookSubscription,
+  (user, webhook): boolean => {
+    return !!user && !!webhook && user.id === webhook.createdById;
+  }
+);
