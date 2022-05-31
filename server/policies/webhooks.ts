@@ -1,4 +1,3 @@
-/* eslint-disable prettier/prettier */
 import { User, Team, WebhookSubscription } from "@server/models";
 import { allow } from "./cancan";
 
