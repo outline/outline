@@ -107,8 +107,7 @@ export type Props = React.InputHTMLAttributes<
   short?: boolean;
   margin?: string | number;
   icon?: React.ReactNode;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  innerRef?: React.RefObject<any> | React.Ref<any>;
+  innerRef?: React.Ref<any>;
   onFocus?: (ev: React.SyntheticEvent) => unknown;
   onBlur?: (ev: React.SyntheticEvent) => unknown;
 };
