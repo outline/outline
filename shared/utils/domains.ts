@@ -1,85 +1,72 @@
 import { trim } from "lodash";
+import env from "../env";
 
 type Domain = {
-  tld: string;
-  subdomain: string;
-  domain: string;
+  teamSubdomain: string;
+  host: string;
+  custom: boolean;
 };
+
+// strips protocol and whitespace from input
+// then strips the path and query string
+function normalizeUrl(url: string) {
+  return trim(url.replace(/(https?:)?\/\//, "")).split(/[/:?]/)[0];
+}
+
+// The base domain is where root cookies are set in hosted mode
+// It's also appended to a team's hosted subdomain to form their app URL
+export function getBaseDomain() {
+  const normalEnvUrl = normalizeUrl(env.URL);
+  const tokens = normalEnvUrl.split(".");
+
+  // remove reserved subdomains like "app"
+  // from the env URL to form the base domain
+  return tokens.length > 1 && RESERVED_SUBDOMAINS.includes(tokens[0])
+    ? tokens.slice(1).join(".")
+    : normalEnvUrl;
+}
 
 // we originally used the parse-domain npm module however this includes
 // a large list of possible TLD's which increase the size of the bundle
 // unnecessarily for our usecase of trusted input.
-export function parseDomain(url?: string): Domain | null | undefined {
-  if (typeof url !== "string") {
-    return null;
-  }
-  if (url === "") {
-    return null;
+export function parseDomain(url: string): Domain {
+  if (!url) {
+    throw new TypeError("a non-empty url is required");
   }
 
-  // strip extermeties and whitespace from input
-  const normalizedDomain = trim(url.replace(/(https?:)?\/\//, ""));
-  const parts = normalizedDomain.split(".");
+  const host = normalizeUrl(url);
+  const baseDomain = getBaseDomain();
 
-  // ensure the last part only includes something that looks like a TLD
-  function cleanTLD(tld = "") {
-    return tld.split(/[/:?]/)[0];
+  // if the url doesn't include the base url, then it must be a custom domain
+  const baseUrlStart = host === baseDomain ? 0 : host.indexOf(`.${baseDomain}`);
+
+  if (baseUrlStart === -1) {
+    return { teamSubdomain: "", host, custom: true };
   }
 
-  // simplistic subdomain parse, we don't need to take into account subdomains
-  // with "." characters as these are not valid in Outline
-  if (parts.length >= 3) {
-    return {
-      subdomain: parts[0],
-      domain: parts[1],
-      tld: cleanTLD(parts.slice(2).join(".")),
-    };
-  }
+  // we consider anything in front of the baseUrl to be the subdomain
+  const subdomain = host.substring(0, baseUrlStart);
+  const isReservedSubdomain = RESERVED_SUBDOMAINS.includes(subdomain);
 
-  if (parts.length === 2) {
-    return {
-      subdomain: "",
-      domain: parts[0],
-      tld: cleanTLD(parts.slice(1).join(".")),
-    };
-  }
-
-  // one-part domain handler for things like localhost
-  if (parts.length === 1) {
-    return {
-      subdomain: "",
-      domain: cleanTLD(parts.slice(0).join()),
-      tld: "",
-    };
-  }
-
-  return null;
+  return {
+    teamSubdomain: isReservedSubdomain ? "" : subdomain,
+    host,
+    custom: false,
+  };
 }
 
-export function stripSubdomain(hostname: string) {
-  const parsed = parseDomain(hostname);
-  if (!parsed) {
-    return hostname;
-  }
-  if (parsed.tld) {
-    return `${parsed.domain}.${parsed.tld}`;
-  }
-  return parsed.domain;
-}
+export function getCookieDomain(domain: string) {
+  // always use the base URL for cookies when in hosted mode
+  // and the domain is not custom
+  if (env.SUBDOMAINS_ENABLED) {
+    const parsed = parseDomain(domain);
 
-export function isCustomSubdomain(hostname: string) {
-  const parsed = parseDomain(hostname);
-
-  if (
-    !parsed ||
-    !parsed.subdomain ||
-    parsed.subdomain === "app" ||
-    parsed.subdomain === "www"
-  ) {
-    return false;
+    if (!parsed.custom) {
+      return getBaseDomain();
+    }
   }
 
-  return true;
+  return domain;
 }
 
 export const RESERVED_SUBDOMAINS = [

@@ -15,6 +15,7 @@ import {
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { Heading } from "@shared/editor/lib/getHeadings";
+import { parseDomain } from "@shared/utils/domains";
 import getTasks from "@shared/utils/getTasks";
 import RootStore from "~/stores/RootStore";
 import Document from "~/models/Document";
@@ -33,7 +34,6 @@ import withStores from "~/components/withStores";
 import type { Editor as TEditor } from "~/editor";
 import { NavigationNode } from "~/types";
 import { client } from "~/utils/ApiClient";
-import { isCustomDomain } from "~/utils/domains";
 import { emojiToUrl } from "~/utils/emoji";
 import { isModKey } from "~/utils/keyboard";
 import {
@@ -630,7 +630,7 @@ class DocumentScene extends React.Component<Props> {
                 </Flex>
               </React.Suspense>
             </MaxWidth>
-            {isShare && !isCustomDomain() && (
+            {isShare && !parseDomain(window.location.origin).custom && (
               <Branding href="//www.getoutline.com?ref=sharelink" />
             )}
           </Container>

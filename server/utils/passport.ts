@@ -6,8 +6,8 @@ import {
   StateStoreStoreCallback,
   StateStoreVerifyCallback,
 } from "passport-oauth2";
+import { getCookieDomain } from "@shared/utils/domains";
 import { OAuthStateMismatchError } from "../errors";
-import { getCookieDomain } from "./domains";
 
 export class StateStore {
   key = "state";
