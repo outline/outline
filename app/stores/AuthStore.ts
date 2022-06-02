@@ -200,9 +200,7 @@ export default class AuthStore {
 
   @action
   deleteUser = async () => {
-    await client.post(`/users.delete`, {
-      confirmation: true,
-    });
+    await client.post(`/users.delete`);
     runInAction("AuthStore#updateUser", () => {
       this.user = null;
       this.team = null;
