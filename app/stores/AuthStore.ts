@@ -2,7 +2,7 @@ import * as Sentry from "@sentry/react";
 import invariant from "invariant";
 import { observable, action, computed, autorun, runInAction } from "mobx";
 import { getCookie, setCookie, removeCookie } from "tiny-cookie";
-import { getCookieDomain } from "@shared/utils/domains";
+import { getCookieDomain, parseDomain } from "@shared/utils/domains";
 import RootStore from "~/stores/RootStore";
 import Policy from "~/models/Policy";
 import Team from "~/models/Team";
@@ -160,6 +160,23 @@ export default class AuthStore {
             scope.setExtra("team", team.name);
             scope.setExtra("teamId", team.id);
           });
+        }
+
+        // Redirect to the correct custom domain or team subdomain if needed
+        // Occurs when the (sub)domain is changed in admin and the user hits an old url
+        const { hostname, pathname } = window.location;
+
+        if (this.team.domain) {
+          if (this.team.domain !== hostname) {
+            window.location.href = `${team.url}${pathname}`;
+            return;
+          }
+        } else if (
+          env.SUBDOMAINS_ENABLED &&
+          parseDomain(hostname).teamSubdomain !== (team.subdomain ?? "")
+        ) {
+          window.location.href = `${team.url}${pathname}`;
+          return;
         }
 
         // If we came from a redirect then send the user immediately there
