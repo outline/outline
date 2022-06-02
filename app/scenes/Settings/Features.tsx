@@ -48,7 +48,9 @@ function Features() {
         label={t("Collaborative editing")}
         description={t(
           "When enabled multiple people can edit documents at the same time with shared presence and live cursors."
-        )}
+          ) + " " + t(
+          "WARNING: CANNOT BE DISABLED ONCE ENABLED."
+          )}
       >
         <Switch
           id="collaborativeEditing"
