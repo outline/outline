@@ -1,4 +1,5 @@
 import TestServer from "fetch-test-server";
+import sharedEnv from "@shared/env";
 import env from "@server/env";
 import webService from "@server/services/web";
 import { buildUser, buildTeam } from "@server/test/factories";
@@ -49,7 +50,7 @@ describe("#auth.info", () => {
 
 describe("#auth.config", () => {
   it("should return available SSO providers", async () => {
-    process.env.DEPLOYMENT = "hosted";
+    env.DEPLOYMENT = "hosted";
 
     const res = await server.post("/api/auth.config");
     const body = await res.json();
@@ -60,9 +61,9 @@ describe("#auth.config", () => {
   });
 
   it("should return available providers for team subdomain", async () => {
-    env.URL = "http://localoutline.com";
+    env.URL = sharedEnv.URL = "http://localoutline.com";
+    env.SUBDOMAINS_ENABLED = sharedEnv.SUBDOMAINS_ENABLED = true;
     env.DEPLOYMENT = "hosted";
-    env.SUBDOMAINS_ENABLED = true;
 
     await buildTeam({
       guestSignin: false,
@@ -86,7 +87,7 @@ describe("#auth.config", () => {
   });
 
   it("should return available providers for team custom domain", async () => {
-    process.env.DEPLOYMENT = "hosted";
+    env.DEPLOYMENT = "hosted";
 
     await buildTeam({
       guestSignin: false,
@@ -110,7 +111,9 @@ describe("#auth.config", () => {
   });
 
   it("should return email provider for team when guest signin enabled", async () => {
-    env.URL = "http://localoutline.com";
+    env.URL = sharedEnv.URL = "http://localoutline.com";
+    env.DEPLOYMENT = "hosted";
+
     await buildTeam({
       guestSignin: true,
       subdomain: "example",
@@ -134,7 +137,9 @@ describe("#auth.config", () => {
   });
 
   it("should not return provider when disabled", async () => {
-    env.URL = "http://localoutline.com";
+    env.URL = sharedEnv.URL = "http://localoutline.com";
+    env.DEPLOYMENT = "hosted";
+
     await buildTeam({
       guestSignin: false,
       subdomain: "example",
