@@ -1813,6 +1813,11 @@
     "@babel/runtime" "^7.7.2"
     regenerator-runtime "^0.13.3"
 
+"@joplin/turndown-plugin-gfm@^1.0.44":
+  version "1.0.44"
+  resolved "https://registry.yarnpkg.com/@joplin/turndown-plugin-gfm/-/turndown-plugin-gfm-1.0.44.tgz#028e4c56bf58e57a4d0d923bb7d10a21c30d5c7d"
+  integrity sha512-lpVI/fpj0CKzWzpsOxsmqwjWlIrw+IZlIEz3h8Vqoviz8dCYbqSSY/4VxpiUDmBpxX/3Xk73R5BfzqiAHBmYqA==
+
 "@lifeomic/attempt@^3.0.2":
   version "3.0.3"
   resolved "https://registry.yarnpkg.com/@lifeomic/attempt/-/attempt-3.0.3.tgz#e742a5b85eb673e2f1746b0f39cb932cbc6145bb"
@@ -9508,11 +9513,6 @@ jmespath@0.15.0:
   version "0.15.0"
   resolved "https://registry.yarnpkg.com/jmespath/-/jmespath-0.15.0.tgz#a3f222a9aae9f966f5d27c796510e28091764217"
   integrity sha1-o/Iiqarp+Wb10nx5ZRDigJF2Qhc=
-
-joplin-turndown-plugin-gfm@^1.0.12:
-  version "1.0.12"
-  resolved "https://registry.yarnpkg.com/joplin-turndown-plugin-gfm/-/joplin-turndown-plugin-gfm-1.0.12.tgz#f0774183177895c6fedeec951053cab6046dede8"
-  integrity sha512-qL4+1iycQjZ1fs8zk3jSRk7cg3ROBUHk7GKtiLAQLFzLPKErnILUvz5DLszSQvz3s1sTjPbywLDISVUtBY6HaA==
 
 jpeg-js@0.4.2:
   version "0.4.2"

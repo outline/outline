@@ -155,6 +155,7 @@ router.post("hooks.slack", async (ctx) => {
         where: {
           name: "slack",
           providerId: team_id,
+          enabled: true,
         },
         as: "authenticationProviders",
         model: AuthenticationProvider,

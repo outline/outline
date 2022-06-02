@@ -77,7 +77,7 @@ export class Environment {
   @IsUrl({
     require_tld: false,
     allow_underscores: true,
-    protocols: ["postgres"],
+    protocols: ["postgres", "postgresql"],
   })
   public DATABASE_CONNECTION_POOL_URL = this.toOptionalString(
     process.env.DATABASE_CONNECTION_POOL_URL
@@ -113,14 +113,10 @@ export class Environment {
 
   /**
    * The url of redis. Note that redis does not have a database after the port.
+   * Note: More extensive validation isn't included here due to our support for
+   * base64-encoded configuration.
    */
-  @IsOptional()
   @IsNotEmpty()
-  @IsUrl({
-    require_tld: false,
-    allow_underscores: true,
-    protocols: ["redis", "rediss", "ioredis"],
-  })
   public REDIS_URL = process.env.REDIS_URL;
 
   /**
@@ -448,21 +444,30 @@ export class Environment {
    * The OIDC authorization endpoint.
    */
   @IsOptional()
-  @IsUrl()
+  @IsUrl({
+    require_tld: false,
+    allow_underscores: true,
+  })
   public OIDC_AUTH_URI = this.toOptionalString(process.env.OIDC_AUTH_URI);
 
   /**
    * The OIDC token endpoint.
    */
   @IsOptional()
-  @IsUrl()
+  @IsUrl({
+    require_tld: false,
+    allow_underscores: true,
+  })
   public OIDC_TOKEN_URI = this.toOptionalString(process.env.OIDC_TOKEN_URI);
 
   /**
    * The OIDC userinfo endpoint.
    */
   @IsOptional()
-  @IsUrl()
+  @IsUrl({
+    require_tld: false,
+    allow_underscores: true,
+  })
   public OIDC_USERINFO_URI = this.toOptionalString(
     process.env.OIDC_USERINFO_URI
   );
@@ -495,12 +500,13 @@ export class Environment {
    * 1 = true
    * "true" = true
    * "false" = false
+   * "" = false
    *
    * @param value The string to convert
    * @returns A boolean
    */
   private toBoolean(value: string) {
-    return !!JSON.parse(value);
+    return value ? !!JSON.parse(value) : false;
   }
 }
 

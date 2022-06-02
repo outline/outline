@@ -15,6 +15,7 @@ import {
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { Heading } from "@shared/editor/lib/getHeadings";
+import { parseDomain } from "@shared/utils/domains";
 import getTasks from "@shared/utils/getTasks";
 import RootStore from "~/stores/RootStore";
 import Document from "~/models/Document";
@@ -33,7 +34,6 @@ import withStores from "~/components/withStores";
 import type { Editor as TEditor } from "~/editor";
 import { NavigationNode } from "~/types";
 import { client } from "~/utils/ApiClient";
-import { isCustomDomain } from "~/utils/domains";
 import { emojiToUrl } from "~/utils/emoji";
 import { isModKey } from "~/utils/keyboard";
 import {
@@ -75,7 +75,7 @@ type Props = WithTranslation &
 @observer
 class DocumentScene extends React.Component<Props> {
   @observable
-  editor = React.createRef<TEditor>();
+  editor: TEditor | null;
 
   @observable
   isUploading = false;
@@ -157,7 +157,7 @@ class DocumentScene extends React.Component<Props> {
   }
 
   replaceDocument = (template: Document | Revision) => {
-    const editorRef = this.editor.current;
+    const editorRef = this.editor;
 
     if (!editorRef) {
       return;
@@ -194,7 +194,7 @@ class DocumentScene extends React.Component<Props> {
     const { toasts, history, location, t } = this.props;
     const restore = location.state?.restore;
     const revisionId = location.state?.revisionId;
-    const editorRef = this.editor.current;
+    const editorRef = this.editor;
 
     if (!editorRef || !restore) {
       return;
@@ -380,7 +380,7 @@ class DocumentScene extends React.Component<Props> {
     this.getEditorText = getEditorText;
 
     // Keep headings in sync for table of contents
-    const headings = this.editor.current?.getHeadings() ?? [];
+    const headings = this.editor?.getHeadings() ?? [];
     if (
       headings.map((h) => h.level + h.title).join("") !==
       this.headings.map((h) => h.level + h.title).join("")
@@ -389,7 +389,7 @@ class DocumentScene extends React.Component<Props> {
     }
 
     // Keep derived task list in sync
-    const tasks = this.editor.current?.getTasks();
+    const tasks = this.editor?.getTasks();
     const total = tasks?.length ?? 0;
     const completed = tasks?.filter((t) => t.completed).length ?? 0;
     document.updateTasks(total, completed);
@@ -425,6 +425,11 @@ class DocumentScene extends React.Component<Props> {
     if (!this.props.readOnly) {
       this.props.history.push(this.props.document.url);
     }
+  };
+
+  handleRef = (ref: TEditor | null) => {
+    this.editor = ref;
+    this.headings = this.editor?.getHeadings() ?? [];
   };
 
   render() {
@@ -581,7 +586,7 @@ class DocumentScene extends React.Component<Props> {
                   <Editor
                     id={document.id}
                     key={embedsDisabled ? "disabled" : "enabled"}
-                    ref={this.editor}
+                    ref={this.handleRef}
                     multiplayer={collaborativeEditing}
                     shareId={shareId}
                     isDraft={document.isDraft}
@@ -625,7 +630,7 @@ class DocumentScene extends React.Component<Props> {
                 </Flex>
               </React.Suspense>
             </MaxWidth>
-            {isShare && !isCustomDomain() && (
+            {isShare && !parseDomain(window.location.origin).custom && (
               <Branding href="//www.getoutline.com?ref=sharelink" />
             )}
           </Container>
