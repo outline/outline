@@ -71,7 +71,7 @@ function Members() {
     };
 
     fetchData();
-  }, [query, sort, filter, page, direction, users]);
+  }, [query, sort, filter, page, direction, users, users.counts.all]);
 
   React.useEffect(() => {
     let filtered = users.orderedData;
