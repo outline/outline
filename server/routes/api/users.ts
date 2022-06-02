@@ -355,8 +355,7 @@ router.post("users.resendInvite", auth(), async (ctx) => {
 });
 
 router.post("users.delete", auth(), async (ctx) => {
-  const { confirmation, id } = ctx.body;
-  assertPresent(confirmation, "confirmation is required");
+  const { id } = ctx.body;
   const actor = ctx.state.user;
   let user = actor;
 
