@@ -101,7 +101,7 @@ const renderShare = async (ctx: Context, next: Next) => {
   return renderApp(ctx, next, {
     title: share?.document?.title,
     description: share?.document?.getSummary(),
-    canonical: share
+    canonical: share?.team
       ? ctx.request.href.replace(ctx.request.origin, share.team.url)
       : undefined,
   });
