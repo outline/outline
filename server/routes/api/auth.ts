@@ -22,6 +22,7 @@ function filterProviders(team?: Team) {
 
       return (
         !team ||
+        env.DEPLOYMENT !== "hosted" ||
         find(team.authenticationProviders, {
           name: provider.id,
           enabled: true,
@@ -40,10 +41,9 @@ router.post("auth.config", async (ctx) => {
   // brand for the knowledge base and it's guest signin option is used for the
   // root login page.
   if (env.DEPLOYMENT !== "hosted") {
-    const teams = await Team.scope("withAuthenticationProviders").findAll();
+    const team = await Team.scope("withAuthenticationProviders").findOne();
 
-    if (teams.length === 1) {
-      const team = teams[0];
+    if (team) {
       ctx.body = {
         data: {
           name: team.name,
