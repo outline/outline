@@ -176,6 +176,7 @@
     "reflect-metadata": "^0.1.13",
     "refractor": "^3.5.0",
     "regenerator-runtime": "^0.13.7",
+    "resize-observer-polyfill": "1.5.1",
     "semver": "^7.3.2",
     "sequelize": "^6.9.0",
     "sequelize-cli": "^6.3.0",
