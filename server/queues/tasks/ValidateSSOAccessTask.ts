@@ -7,7 +7,7 @@ type Props = {
   userId: string;
 };
 
-export default class CheckSSOAccessTask extends BaseTask<Props> {
+export default class ValidateSSOAccessTask extends BaseTask<Props> {
   public async perform({ userId }: Props) {
     await sequelize.transaction(async (transaction) => {
       const userAuthentications = await UserAuthentication.findAll({

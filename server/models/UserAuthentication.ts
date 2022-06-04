@@ -1,7 +1,8 @@
-import { addMinutes } from "date-fns";
+import { addMinutes, subMinutes } from "date-fns";
 import invariant from "invariant";
 import { SaveOptions } from "sequelize";
 import {
+  BeforeCreate,
   BelongsTo,
   Column,
   DataType,
@@ -52,6 +53,9 @@ class UserAuthentication extends BaseModel {
   @Column(DataType.DATE)
   expiresAt: Date;
 
+  @Column(DataType.DATE)
+  lastValidatedAt: Date;
+
   // associations
 
   @BelongsTo(() => User, "userId")
@@ -69,6 +73,11 @@ class UserAuthentication extends BaseModel {
   @Column(DataType.UUID)
   authenticationProviderId: string;
 
+  @BeforeCreate
+  static setValidated(model: UserAuthentication) {
+    model.lastValidatedAt = new Date();
+  }
+
   // instance methods
 
   /**
@@ -76,9 +85,18 @@ class UserAuthentication extends BaseModel {
    * valid. Will update the record with a new access token if it is expired.
    *
    * @param options SaveOptions
+   * @param force Force validation to occur with third party provider
    * @returns true if the accessToken or refreshToken is still valid
    */
-  public async validateAccess(options: SaveOptions): Promise<boolean> {
+  public async validateAccess(
+    options: SaveOptions,
+    force = false
+  ): Promise<boolean> {
+    // Check a maximum of once every 5 minutes
+    if (this.lastValidatedAt > subMinutes(Date.now(), 5) && !force) {
+      return true;
+    }
+
     const authenticationProvider = await this.$get("authenticationProvider", {
       transaction: options.transaction,
     });
@@ -94,6 +112,13 @@ class UserAuthentication extends BaseModel {
       if (client) {
         await client.userInfo(this.accessToken);
       }
+
+      // write to db when we last checked
+      this.lastValidatedAt = new Date();
+      await this.save({
+        transaction: options.transaction,
+      });
+
       return true;
     } catch (error) {
       if (error instanceof AuthenticationError) {
