@@ -1,13 +1,12 @@
 import invariant from "invariant";
 import Router from "koa-router";
 import { find } from "lodash";
-import { parseDomain, isCustomSubdomain } from "@shared/utils/domains";
+import { parseDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import auth from "@server/middlewares/authentication";
 import { Team, TeamDomain } from "@server/models";
 import { presentUser, presentTeam, presentPolicies } from "@server/presenters";
 import ValidateSSOAccessTask from "@server/queues/tasks/ValidateSSOAccessTask";
-import { isCustomDomain } from "@server/utils/domains";
 import providers from "../auth/providers";
 
 const router = new Router();
@@ -56,7 +55,9 @@ router.post("auth.config", async (ctx) => {
     }
   }
 
-  if (isCustomDomain(ctx.request.hostname)) {
+  const domain = parseDomain(ctx.request.hostname);
+
+  if (domain.custom) {
     const team = await Team.scope("withAuthenticationProviders").findOne({
       where: {
         domain: ctx.request.hostname,
@@ -77,16 +78,10 @@ router.post("auth.config", async (ctx) => {
 
   // If subdomain signin page then we return minimal team details to allow
   // for a custom screen showing only relevant signin options for that team.
-  if (
-    env.SUBDOMAINS_ENABLED &&
-    isCustomSubdomain(ctx.request.hostname) &&
-    !isCustomDomain(ctx.request.hostname)
-  ) {
-    const domain = parseDomain(ctx.request.hostname);
-    const subdomain = domain ? domain.subdomain : undefined;
+  else if (env.SUBDOMAINS_ENABLED && domain.teamSubdomain) {
     const team = await Team.scope("withAuthenticationProviders").findOne({
       where: {
-        subdomain,
+        subdomain: domain.teamSubdomain,
       },
     });
 

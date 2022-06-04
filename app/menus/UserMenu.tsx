@@ -108,9 +108,7 @@ function UserMenu({ user }: Props) {
   const handleRevoke = React.useCallback(
     (ev: React.SyntheticEvent) => {
       ev.preventDefault();
-      users.delete(user, {
-        confirmation: true,
-      });
+      users.delete(user);
     },
     [users, user]
   );

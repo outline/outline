@@ -77,7 +77,7 @@ export class Environment {
   @IsUrl({
     require_tld: false,
     allow_underscores: true,
-    protocols: ["postgres"],
+    protocols: ["postgres", "postgresql"],
   })
   public DATABASE_CONNECTION_POOL_URL = this.toOptionalString(
     process.env.DATABASE_CONNECTION_POOL_URL
@@ -113,14 +113,10 @@ export class Environment {
 
   /**
    * The url of redis. Note that redis does not have a database after the port.
+   * Note: More extensive validation isn't included here due to our support for
+   * base64-encoded configuration.
    */
-  @IsOptional()
   @IsNotEmpty()
-  @IsUrl({
-    require_tld: false,
-    allow_underscores: true,
-    protocols: ["redis", "rediss", "ioredis"],
-  })
   public REDIS_URL = process.env.REDIS_URL;
 
   /**

@@ -28,7 +28,7 @@ allow(User, "update", User, (actor, user) => {
     return true;
   }
 
-  throw AdminRequiredError();
+  return false;
 });
 
 allow(User, "delete", User, (actor, user) => {
@@ -38,7 +38,7 @@ allow(User, "delete", User, (actor, user) => {
   if (user.id === actor.id) {
     return true;
   }
-  if (actor.isAdmin && !user.lastActiveAt) {
+  if (actor.isAdmin) {
     return true;
   }
 
