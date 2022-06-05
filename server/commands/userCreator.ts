@@ -22,6 +22,7 @@ type Props = {
     scopes: string[];
     accessToken?: string;
     refreshToken?: string;
+    expiresAt?: Date;
   };
 };
 
@@ -36,6 +37,7 @@ export default async function userCreator({
   ip,
 }: Props): Promise<UserCreatorResult> {
   const { authenticationProviderId, providerId, ...rest } = authentication;
+
   const auth = await UserAuthentication.findOne({
     where: {
       providerId,
