@@ -7,12 +7,12 @@ import {
 } from "sequelize-typescript";
 import Team from "./Team";
 import User from "./User";
-import BaseModel from "./base/BaseModel";
+import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
 
 @Table({ tableName: "team_domains", modelName: "team_domain" })
 @Fix
-class TeamDomain extends BaseModel {
+class TeamDomain extends IdModel {
   @NotEmpty
   @Column
   name: string;
