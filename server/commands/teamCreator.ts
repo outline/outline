@@ -1,4 +1,3 @@
-import invariant from "invariant";
 import env from "@server/env";
 import { DomainNotAllowedError, MaximumTeamsError } from "@server/errors";
 import Logger from "@server/logging/Logger";
@@ -55,15 +54,12 @@ async function teamCreator({
   // to the multi-tenant version, we want to restrict to a single team that MAY
   // have multiple authentication providers
   if (env.DEPLOYMENT !== "hosted") {
-    const teamCount = await Team.count();
+    const team = await Team.findOne();
 
     // If the self-hosted installation has a single team and the domain for the
     // new team is allowed then assign the authentication provider to the
     // existing team
-    if (teamCount === 1 && domain) {
-      const team = await Team.findOne();
-      invariant(team, "Team should exist");
-
+    if (team && domain) {
       if (await team.isDomainAllowed(domain)) {
         authP = await team.$create<AuthenticationProvider>(
           "authenticationProvider",
@@ -79,9 +75,7 @@ async function teamCreator({
       }
     }
 
-    if (teamCount >= 1) {
-      throw MaximumTeamsError();
-    }
+    throw MaximumTeamsError();
   }
 
   // If the service did not provide a logo/avatar then we attempt to generate
