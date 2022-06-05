@@ -59,6 +59,10 @@ class Team extends BaseModel {
 
   url: string;
 
+  @Field
+  @observable
+  allowedDomains: string[] | null | undefined;
+
   @computed
   get signinMethods(): string {
     return "SSO";

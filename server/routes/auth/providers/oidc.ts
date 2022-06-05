@@ -1,4 +1,5 @@
 import passport from "@outlinewiki/koa-passport";
+import { Request } from "koa";
 import Router from "koa-router";
 import { get } from "lodash";
 import { Strategy } from "passport-oauth2";
@@ -9,26 +10,19 @@ import {
   AuthenticationError,
 } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
-import { isDomainAllowed } from "@server/utils/authentication";
 import { StateStore, request } from "@server/utils/passport";
 
 const router = new Router();
 const providerName = "oidc";
-const OIDC_DISPLAY_NAME = process.env.OIDC_DISPLAY_NAME || "OpenID Connect";
-const OIDC_CLIENT_ID = process.env.OIDC_CLIENT_ID || "";
-const OIDC_CLIENT_SECRET = process.env.OIDC_CLIENT_SECRET || "";
-const OIDC_AUTH_URI = process.env.OIDC_AUTH_URI || "";
-const OIDC_TOKEN_URI = process.env.OIDC_TOKEN_URI || "";
-const OIDC_USERINFO_URI = process.env.OIDC_USERINFO_URI || "";
-const OIDC_SCOPES = process.env.OIDC_SCOPES || "";
-const OIDC_USERNAME_CLAIM =
-  process.env.OIDC_USERNAME_CLAIM || "preferred_username";
+const OIDC_AUTH_URI = env.OIDC_AUTH_URI || "";
+const OIDC_TOKEN_URI = env.OIDC_TOKEN_URI || "";
+const OIDC_USERINFO_URI = env.OIDC_USERINFO_URI || "";
 
 export const config = {
-  name: OIDC_DISPLAY_NAME,
-  enabled: !!OIDC_CLIENT_ID,
+  name: env.OIDC_DISPLAY_NAME,
+  enabled: !!env.OIDC_CLIENT_ID,
 };
-const scopes = OIDC_SCOPES.split(" ");
+const scopes = env.OIDC_SCOPES.split(" ");
 
 Strategy.prototype.userProfile = async function (accessToken, done) {
   try {
@@ -39,18 +33,18 @@ Strategy.prototype.userProfile = async function (accessToken, done) {
   }
 };
 
-if (OIDC_CLIENT_ID) {
+if (env.OIDC_CLIENT_ID && env.OIDC_CLIENT_SECRET) {
   passport.use(
     providerName,
     new Strategy(
       {
         authorizationURL: OIDC_AUTH_URI,
         tokenURL: OIDC_TOKEN_URI,
-        clientID: OIDC_CLIENT_ID,
-        clientSecret: OIDC_CLIENT_SECRET,
+        clientID: env.OIDC_CLIENT_ID,
+        clientSecret: env.OIDC_CLIENT_SECRET,
         callbackURL: `${env.URL}/auth/${providerName}.callback`,
         passReqToCallback: true,
-        scope: OIDC_SCOPES,
+        scope: env.OIDC_SCOPES,
         // @ts-expect-error custom state store
         store: new StateStore(),
         state: true,
@@ -63,7 +57,7 @@ if (OIDC_CLIENT_ID) {
       // Any claim supplied in response to the userinfo request will be
       // available on the `profile` parameter
       async function (
-        req: any,
+        req: Request,
         accessToken: string,
         refreshToken: string,
         profile: Record<string, string>,
@@ -83,12 +77,6 @@ if (OIDC_CLIENT_ID) {
             throw OIDCMalformedUserInfoError();
           }
 
-          if (!isDomainAllowed(domain)) {
-            throw AuthenticationError(
-              `Domain ${domain} is not on the whitelist`
-            );
-          }
-
           const subdomain = domain.split(".")[0];
           const result = await accountProvisioner({
             ip: req.ip,
@@ -104,7 +92,7 @@ if (OIDC_CLIENT_ID) {
               avatarUrl: profile.picture,
               // Claim name can be overriden using an env variable.
               // Default is 'preferred_username' as per OIDC spec.
-              username: get(profile, OIDC_USERNAME_CLAIM),
+              username: get(profile, env.OIDC_USERNAME_CLAIM),
             },
             authenticationProvider: {
               name: providerName,

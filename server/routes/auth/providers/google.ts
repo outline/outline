@@ -8,19 +8,13 @@ import accountProvisioner, {
   AccountProvisionerResult,
 } from "@server/commands/accountProvisioner";
 import env from "@server/env";
-import {
-  GoogleWorkspaceRequiredError,
-  GoogleWorkspaceInvalidError,
-} from "@server/errors";
+import { GoogleWorkspaceRequiredError } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
 import { User } from "@server/models";
-import { isDomainAllowed } from "@server/utils/authentication";
 import { StateStore } from "@server/utils/passport";
 
 const router = new Router();
 const providerName = "google";
-const GOOGLE_CLIENT_ID = process.env.GOOGLE_CLIENT_ID;
-const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const scopes = [
   "https://www.googleapis.com/auth/userinfo.profile",
   "https://www.googleapis.com/auth/userinfo.email",
@@ -28,7 +22,7 @@ const scopes = [
 
 export const config = {
   name: "Google",
-  enabled: !!GOOGLE_CLIENT_ID,
+  enabled: !!env.GOOGLE_CLIENT_ID,
 };
 
 type GoogleProfile = Profile & {
@@ -39,12 +33,12 @@ type GoogleProfile = Profile & {
   };
 };
 
-if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
+if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
   passport.use(
     new GoogleStrategy(
       {
-        clientID: GOOGLE_CLIENT_ID,
-        clientSecret: GOOGLE_CLIENT_SECRET,
+        clientID: env.GOOGLE_CLIENT_ID,
+        clientSecret: env.GOOGLE_CLIENT_SECRET,
         callbackURL: `${env.URL}/auth/google.callback`,
         passReqToCallback: true,
         // @ts-expect-error StateStore
@@ -67,10 +61,6 @@ if (GOOGLE_CLIENT_ID && GOOGLE_CLIENT_SECRET) {
 
           if (!domain) {
             throw GoogleWorkspaceRequiredError();
-          }
-
-          if (!isDomainAllowed(domain)) {
-            throw GoogleWorkspaceInvalidError();
           }
 
           const subdomain = domain.split(".")[0];

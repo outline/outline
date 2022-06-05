@@ -29,7 +29,7 @@ import Zapier from "~/scenes/Settings/Zapier";
 import SlackIcon from "~/components/SlackIcon";
 import ZapierIcon from "~/components/ZapierIcon";
 import env from "~/env";
-import isHosted from "~/utils/isHosted";
+import isCloudHosted from "~/utils/isCloudHosted";
 import useCurrentTeam from "./useCurrentTeam";
 import usePolicy from "./usePolicy";
 
@@ -163,7 +163,7 @@ const useAuthorizedSettingsConfig = () => {
         name: "Slack",
         path: "/settings/integrations/slack",
         component: Slack,
-        enabled: can.update && (!!env.SLACK_KEY || isHosted),
+        enabled: can.update && (!!env.SLACK_CLIENT_ID || isCloudHosted),
         group: t("Integrations"),
         icon: SlackIcon,
       },
@@ -171,7 +171,7 @@ const useAuthorizedSettingsConfig = () => {
         name: "Zapier",
         path: "/settings/integrations/zapier",
         component: Zapier,
-        enabled: can.update && isHosted,
+        enabled: can.update && isCloudHosted,
         group: t("Integrations"),
         icon: ZapierIcon,
       },

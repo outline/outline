@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import { addMinutes, subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
-import { Transaction, QueryTypes, FindOptions, Op } from "sequelize";
+import { Transaction, QueryTypes, Op } from "sequelize";
 import {
   Table,
   Column,
@@ -23,8 +23,8 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import { languages } from "@shared/i18n";
 import { stringToColor } from "@shared/utils/color";
-import Logger from "@server/logging/logger";
-import { DEFAULT_AVATAR_HOST } from "@server/utils/avatars";
+import env from "@server/env";
+import Logger from "@server/logging/Logger";
 import { publicS3Endpoint, uploadToS3FromUrl } from "@server/utils/s3";
 import { ValidationError } from "../errors";
 import ApiKey from "./ApiKey";
@@ -137,7 +137,7 @@ class User extends ParanoidModel {
   @Column(DataType.JSONB)
   flags: { [key in UserFlag]?: number } | null;
 
-  @Default(process.env.DEFAULT_LANGUAGE)
+  @Default(env.DEFAULT_LANGUAGE)
   @IsIn([languages])
   @Column
   language: string;
@@ -156,7 +156,7 @@ class User extends ParanoidModel {
       .createHash("md5")
       .update(this.email || "")
       .digest("hex");
-    return `${DEFAULT_AVATAR_HOST}/avatar/${hash}/${initial}.png?c=${color}`;
+    return `${env.DEFAULT_AVATAR_HOST}/avatar/${hash}/${initial}.png?c=${color}`;
   }
 
   set avatarUrl(value: string | null) {
@@ -439,7 +439,7 @@ class User extends ParanoidModel {
       avatarUrl &&
       !avatarUrl.startsWith("/api") &&
       !avatarUrl.startsWith(endpoint) &&
-      !avatarUrl.startsWith(DEFAULT_AVATAR_HOST)
+      !avatarUrl.startsWith(env.DEFAULT_AVATAR_HOST)
     ) {
       try {
         const newUrl = await uploadToS3FromUrl(
@@ -536,25 +536,6 @@ class User extends ParanoidModel {
       suspended: parseInt(counts.suspendedCount),
     };
   };
-
-  static async findAllInBatches(
-    query: FindOptions<User>,
-    callback: (users: Array<User>, query: FindOptions<User>) => Promise<void>
-  ) {
-    if (!query.offset) {
-      query.offset = 0;
-    }
-    if (!query.limit) {
-      query.limit = 10;
-    }
-    let results;
-
-    do {
-      results = await this.findAll(query);
-      await callback(results, query);
-      query.offset += query.limit;
-    } while (results.length >= query.limit);
-  }
 }
 
 export default User;

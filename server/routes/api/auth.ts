@@ -1,16 +1,16 @@
 import invariant from "invariant";
 import Router from "koa-router";
 import { find } from "lodash";
-import { parseDomain, isCustomSubdomain } from "@shared/utils/domains";
+import { parseDomain } from "@shared/utils/domains";
+import env from "@server/env";
 import auth from "@server/middlewares/authentication";
-import { Team } from "@server/models";
+import { Team, TeamDomain } from "@server/models";
 import { presentUser, presentTeam, presentPolicies } from "@server/presenters";
-import { isCustomDomain } from "@server/utils/domains";
 import providers from "../auth/providers";
 
 const router = new Router();
 
-function filterProviders(team: Team) {
+function filterProviders(team?: Team) {
   return providers
     .sort((provider) => (provider.id === "email" ? 1 : -1))
     .filter((provider) => {
@@ -22,6 +22,7 @@ function filterProviders(team: Team) {
 
       return (
         !team ||
+        env.DEPLOYMENT !== "hosted" ||
         find(team.authenticationProviders, {
           name: provider.id,
           enabled: true,
@@ -39,11 +40,10 @@ router.post("auth.config", async (ctx) => {
   // If self hosted AND there is only one team then that team becomes the
   // brand for the knowledge base and it's guest signin option is used for the
   // root login page.
-  if (process.env.DEPLOYMENT !== "hosted") {
-    const teams = await Team.scope("withAuthenticationProviders").findAll();
+  if (env.DEPLOYMENT !== "hosted") {
+    const team = await Team.scope("withAuthenticationProviders").findOne();
 
-    if (teams.length === 1) {
-      const team = teams[0];
+    if (team) {
       ctx.body = {
         data: {
           name: team.name,
@@ -54,7 +54,9 @@ router.post("auth.config", async (ctx) => {
     }
   }
 
-  if (isCustomDomain(ctx.request.hostname)) {
+  const domain = parseDomain(ctx.request.hostname);
+
+  if (domain.custom) {
     const team = await Team.scope("withAuthenticationProviders").findOne({
       where: {
         domain: ctx.request.hostname,
@@ -75,16 +77,10 @@ router.post("auth.config", async (ctx) => {
 
   // If subdomain signin page then we return minimal team details to allow
   // for a custom screen showing only relevant signin options for that team.
-  if (
-    process.env.SUBDOMAINS_ENABLED === "true" &&
-    isCustomSubdomain(ctx.request.hostname) &&
-    !isCustomDomain(ctx.request.hostname)
-  ) {
-    const domain = parseDomain(ctx.request.hostname);
-    const subdomain = domain ? domain.subdomain : undefined;
+  else if (env.SUBDOMAINS_ENABLED && domain.teamSubdomain) {
     const team = await Team.scope("withAuthenticationProviders").findOne({
       where: {
-        subdomain,
+        subdomain: domain.teamSubdomain,
       },
     });
 
@@ -103,7 +99,6 @@ router.post("auth.config", async (ctx) => {
   // Otherwise, we're requesting from the standard root signin page
   ctx.body = {
     data: {
-      // @ts-expect-error ts-migrate(2554) FIXME: Expected 1 arguments, but got 0.
       providers: filterProviders(),
     },
   };
@@ -111,7 +106,9 @@ router.post("auth.config", async (ctx) => {
 
 router.post("auth.info", auth(), async (ctx) => {
   const { user } = ctx.state;
-  const team = await Team.findByPk(user.teamId);
+  const team = await Team.findByPk(user.teamId, {
+    include: [{ model: TeamDomain }],
+  });
   invariant(team, "Team not found");
 
   ctx.body = {

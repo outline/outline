@@ -10,6 +10,7 @@ import auth from "./auth";
 import authenticationProviders from "./authenticationProviders";
 import collections from "./collections";
 import comments from "./comments";
+import cron from "./cron";
 import documents from "./documents";
 import events from "./events";
 import fileOperationsRoute from "./fileOperations";
@@ -26,7 +27,6 @@ import shares from "./shares";
 import stars from "./stars";
 import team from "./team";
 import users from "./users";
-import utils from "./utils";
 import views from "./views";
 
 const api = new Koa();
@@ -66,7 +66,7 @@ router.use("/", team.routes());
 router.use("/", integrations.routes());
 router.use("/", notificationSettings.routes());
 router.use("/", attachments.routes());
-router.use("/", utils.routes());
+router.use("/", cron.routes());
 router.use("/", groups.routes());
 router.use("/", fileOperationsRoute.routes());
 

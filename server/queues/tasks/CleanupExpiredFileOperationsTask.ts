@@ -1,6 +1,6 @@
 import { subDays } from "date-fns";
 import { Op } from "sequelize";
-import Logger from "@server/logging/logger";
+import Logger from "@server/logging/Logger";
 import { FileOperation } from "@server/models";
 import {
   FileOperationState,

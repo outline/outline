@@ -8,7 +8,7 @@ import { assertUuid } from "@server/validation";
 const router = new Router();
 
 router.post("views.list", auth(), async (ctx) => {
-  const { documentId } = ctx.body;
+  const { documentId, includeSuspended = false } = ctx.body;
   assertUuid(documentId, "documentId is required");
 
   const { user } = ctx.state;
@@ -16,7 +16,7 @@ router.post("views.list", auth(), async (ctx) => {
     userId: user.id,
   });
   authorize(user, "read", document);
-  const views = await View.findByDocument(documentId);
+  const views = await View.findByDocument(documentId, { includeSuspended });
 
   ctx.body = {
     data: views.map(presentView),

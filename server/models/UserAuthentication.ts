@@ -8,7 +8,7 @@ import {
 } from "sequelize-typescript";
 import AuthenticationProvider from "./AuthenticationProvider";
 import User from "./User";
-import BaseModel from "./base/BaseModel";
+import IdModel from "./base/IdModel";
 import Encrypted, {
   getEncryptedColumn,
   setEncryptedColumn,
@@ -17,7 +17,7 @@ import Fix from "./decorators/Fix";
 
 @Table({ tableName: "user_authentications", modelName: "user_authentication" })
 @Fix
-class UserAuthentication extends BaseModel {
+class UserAuthentication extends IdModel {
   @Column(DataType.ARRAY(DataType.STRING))
   scopes: string[];
 

@@ -63,6 +63,7 @@ export default class Attachment extends Node {
           node.attrs.title,
         ];
       },
+      toPlainText: (node) => node.attrs.title,
     };
   }
 

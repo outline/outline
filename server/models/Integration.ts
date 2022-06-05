@@ -10,7 +10,7 @@ import Collection from "./Collection";
 import IntegrationAuthentication from "./IntegrationAuthentication";
 import Team from "./Team";
 import User from "./User";
-import BaseModel from "./base/BaseModel";
+import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
 
 @Scopes(() => ({
@@ -26,7 +26,7 @@ import Fix from "./decorators/Fix";
 }))
 @Table({ tableName: "integrations", modelName: "integration" })
 @Fix
-class Integration extends BaseModel {
+class Integration extends IdModel {
   @Column
   type: string;
 

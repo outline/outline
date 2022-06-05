@@ -172,7 +172,10 @@ export default class Link extends Mark {
             return false;
           },
           mousedown: (view, event: MouseEvent) => {
-            if (!(event.target instanceof HTMLAnchorElement)) {
+            if (
+              !(event.target instanceof HTMLAnchorElement) ||
+              event.button !== 0
+            ) {
               return false;
             }
 
@@ -207,7 +210,10 @@ export default class Link extends Mark {
             return false;
           },
           click: (view, event) => {
-            if (!(event.target instanceof HTMLAnchorElement)) {
+            if (
+              !(event.target instanceof HTMLAnchorElement) ||
+              event.button !== 0
+            ) {
               return false;
             }
 

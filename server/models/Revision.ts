@@ -10,7 +10,7 @@ import {
 import MarkdownSerializer from "slate-md-serializer";
 import Document from "./Document";
 import User from "./User";
-import BaseModel from "./base/BaseModel";
+import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
 
 const serializer = new MarkdownSerializer();
@@ -26,7 +26,7 @@ const serializer = new MarkdownSerializer();
 }))
 @Table({ tableName: "revisions", modelName: "revision" })
 @Fix
-class Revision extends BaseModel {
+class Revision extends IdModel {
   @Column(DataType.SMALLINT)
   version: number;
 

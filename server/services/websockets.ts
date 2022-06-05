@@ -4,7 +4,7 @@ import Koa from "koa";
 import IO from "socket.io";
 import socketRedisAdapter from "socket.io-redis";
 import SocketAuth from "socketio-auth";
-import Logger from "@server/logging/logger";
+import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/metrics";
 import { Document, Collection, View } from "@server/models";
 import { can } from "@server/policies";

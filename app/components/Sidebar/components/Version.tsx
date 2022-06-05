@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Badge from "~/components/Badge";
 import { version } from "../../../../package.json";
@@ -6,6 +7,7 @@ import SidebarLink from "./SidebarLink";
 
 export default function Version() {
   const [releasesBehind, setReleasesBehind] = React.useState(0);
+  const { t } = useTranslation();
 
   React.useEffect(() => {
     async function loadReleases() {
@@ -37,10 +39,11 @@ export default function Version() {
           <br />
           <LilBadge>
             {releasesBehind === 0
-              ? "Up to date"
-              : `${releasesBehind} version${
-                  releasesBehind === 1 ? "" : "s"
-                } behind`}
+              ? t("Up to date")
+              : t(`{{ releasesBehind }} versions behind`, {
+                  releasesBehind,
+                  count: releasesBehind,
+                })}
           </LilBadge>
         </>
       }

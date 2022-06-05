@@ -15,12 +15,12 @@ import Collection from "./Collection";
 import Document from "./Document";
 import Team from "./Team";
 import User from "./User";
-import BaseModel from "./base/BaseModel";
+import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
 
 @Table({ tableName: "events", modelName: "event" })
 @Fix
-class Event extends BaseModel {
+class Event extends IdModel {
   @IsUUID(4)
   @Column(DataType.UUID)
   modelId: string;
@@ -91,8 +91,10 @@ class Event extends BaseModel {
   @Column(DataType.UUID)
   teamId: string;
 
-  // Schedule can be used to send events into the event system without recording
-  // them in the database or audit trail – consider using a task instead.
+  /*
+   * Schedule can be used to send events into the event system without recording
+   * them in the database or audit trail – consider using a task instead.
+   */
   static schedule(event: Partial<Event>) {
     const now = new Date();
     globalEventQueue.add(

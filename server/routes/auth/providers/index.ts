@@ -1,4 +1,5 @@
 import Router from "koa-router";
+import { sortBy } from "lodash";
 import { signin } from "@shared/utils/urlHelpers";
 import { requireDirectory } from "@server/utils/fs";
 
@@ -43,4 +44,4 @@ requireDirectory(__dirname).forEach(([module, id]) => {
   }
 });
 
-export default providers;
+export default sortBy(providers, "id");

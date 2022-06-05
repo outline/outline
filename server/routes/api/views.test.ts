@@ -28,6 +28,26 @@ describe("#views.list", () => {
     expect(body.data[0].user.name).toBe(user.name);
   });
 
+  it("should not return views for suspended user by default", async () => {
+    const { user, admin, document } = await seed();
+    await View.incrementOrCreate({
+      documentId: document.id,
+      userId: user.id,
+    });
+
+    await user.update({ suspendedAt: new Date() });
+
+    const res = await server.post("/api/views.list", {
+      body: {
+        token: admin.getJwtToken(),
+        documentId: document.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toBe(0);
+  });
+
   it("should return views for a document in read-only collection", async () => {
     const { user, document, collection } = await seed();
     collection.permission = null;

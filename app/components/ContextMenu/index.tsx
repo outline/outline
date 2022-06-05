@@ -1,3 +1,4 @@
+import { disableBodyScroll, enableBodyScroll } from "body-scroll-lock";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Portal } from "react-portal";
@@ -92,6 +93,19 @@ const ContextMenu: React.FC<Props> = ({
     t,
   ]);
 
+  // We must manually manage scroll lock for iOS support so that the scrollable
+  // element can be passed into body-scroll-lock. See:
+  // https://github.com/ariakit/ariakit/issues/469
+  React.useEffect(() => {
+    const scrollElement = backgroundRef.current;
+    if (rest.visible && scrollElement) {
+      disableBodyScroll(scrollElement);
+    }
+    return () => {
+      scrollElement && enableBodyScroll(scrollElement);
+    };
+  }, [rest.visible]);
+
   // Perf win – don't render anything until the menu has been opened
   if (!rest.visible && !previousVisible) {
     return null;
@@ -101,7 +115,7 @@ const ContextMenu: React.FC<Props> = ({
   // trigger and the bottom of the window
   return (
     <>
-      <Menu hideOnClickOutside preventBodyScroll {...rest}>
+      <Menu hideOnClickOutside preventBodyScroll={false} {...rest}>
         {(props) => {
           // kind of hacky, but this is an effective way of telling which way
           // the menu will _actually_ be placed when taking into account screen

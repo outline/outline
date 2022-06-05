@@ -2,20 +2,10 @@ import querystring from "querystring";
 import { addMonths } from "date-fns";
 import { Context } from "koa";
 import { pick } from "lodash";
-import Logger from "@server/logging/logger";
+import { getCookieDomain } from "@shared/utils/domains";
+import env from "@server/env";
+import Logger from "@server/logging/Logger";
 import { User, Event, Team, Collection, View } from "@server/models";
-import { getCookieDomain } from "@server/utils/domains";
-
-export function getAllowedDomains(): string[] {
-  // GOOGLE_ALLOWED_DOMAINS included here for backwards compatability
-  const env = process.env.ALLOWED_DOMAINS || process.env.GOOGLE_ALLOWED_DOMAINS;
-  return env ? env.split(",") : [];
-}
-
-export function isDomainAllowed(domain: string): boolean {
-  const allowedDomains = getAllowedDomains();
-  return allowedDomains.includes(domain) || allowedDomains.length === 0;
-}
 
 export async function signIn(
   ctx: Context,
@@ -75,7 +65,7 @@ export async function signIn(
 
   // set a transfer cookie for the access token itself and redirect
   // to the teams subdomain if subdomains are enabled
-  if (process.env.SUBDOMAINS_ENABLED === "true" && team.subdomain) {
+  if (env.SUBDOMAINS_ENABLED && team.subdomain) {
     // get any existing sessions (teams signed in) and add this team
     const existing = JSON.parse(
       decodeURIComponent(ctx.cookies.get("sessions") || "") || "{}"

@@ -1,20 +1,27 @@
 import { debounce } from "lodash";
 import { observer } from "mobx-react";
-import { PadlockIcon } from "outline-icons";
+import { CloseIcon, PadlockIcon } from "outline-icons";
 import { useState } from "react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import styled from "styled-components";
+import Button from "~/components/Button";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
+import Fade from "~/components/Fade";
+import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
+import Input from "~/components/Input";
 import InputSelect from "~/components/InputSelect";
+import NudeButton from "~/components/NudeButton";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
+import Tooltip from "~/components/Tooltip";
 import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
-import isHosted from "~/utils/isHosted";
+import isCloudHosted from "~/utils/isCloudHosted";
 import SettingRow from "./components/SettingRow";
 
 function Security() {
@@ -29,6 +36,7 @@ function Security() {
     defaultUserRole: team.defaultUserRole,
     memberCollectionCreate: team.memberCollectionCreate,
     inviteRequired: team.inviteRequired,
+    allowedDomains: team.allowedDomains,
   });
 
   const authenticationMethods = team.signinMethods;
@@ -43,6 +51,8 @@ function Security() {
     [showToast, t]
   );
 
+  const [domainsChanged, setDomainsChanged] = useState(false);
+
   const saveData = React.useCallback(
     async (newData) => {
       try {
@@ -53,6 +63,8 @@ function Security() {
         showToast(err.message, {
           type: "error",
         });
+      } finally {
+        setDomainsChanged(false);
       }
     },
     [auth, showSuccessMessage, showToast]
@@ -109,6 +121,35 @@ function Security() {
     },
     [data, saveData, t, dialogs, authenticationMethods]
   );
+
+  const handleRemoveDomain = async (index: number) => {
+    const newData = {
+      ...data,
+    };
+    newData.allowedDomains && newData.allowedDomains.splice(index, 1);
+
+    setData(newData);
+    setDomainsChanged(true);
+  };
+
+  const handleAddDomain = () => {
+    const newData = {
+      ...data,
+      allowedDomains: [...(data.allowedDomains || []), ""],
+    };
+
+    setData(newData);
+  };
+
+  const createOnDomainChangedHandler = (index: number) => (
+    ev: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const newData = { ...data };
+
+    newData.allowedDomains![index] = ev.currentTarget.value;
+    setData(newData);
+    setDomainsChanged(true);
+  };
 
   return (
     <Scene title={t("Security")} icon={<PadlockIcon color="currentColor" />}>
@@ -171,7 +212,7 @@ function Security() {
           onChange={handleChange}
         />
       </SettingRow>
-      {isHosted && (
+      {isCloudHosted && (
         <SettingRow
           label={t("Allow authorized signups")}
           name="allowSignups"
@@ -220,8 +261,72 @@ function Security() {
           short
         />
       </SettingRow>
+
+      <SettingRow
+        label={t("Allowed Domains")}
+        name="allowedDomains"
+        description={t(
+          "The domains which should be allowed to create accounts. This applies to both SSO and Email logins. Changing this setting does not affect existing user accounts."
+        )}
+      >
+        {data.allowedDomains &&
+          data.allowedDomains.map((domain, index) => (
+            <Flex key={index} gap={4}>
+              <Input
+                key={index}
+                id={`allowedDomains${index}`}
+                value={domain}
+                autoFocus={!domain}
+                placeholder="example.com"
+                required
+                flex
+                onChange={createOnDomainChangedHandler(index)}
+              />
+              <Remove>
+                <Tooltip tooltip={t("Remove domain")} placement="top">
+                  <NudeButton onClick={() => handleRemoveDomain(index)}>
+                    <CloseIcon />
+                  </NudeButton>
+                </Tooltip>
+              </Remove>
+            </Flex>
+          ))}
+
+        <Flex justify="space-between" gap={4} style={{ flexWrap: "wrap" }}>
+          {!data.allowedDomains?.length ||
+          data.allowedDomains[data.allowedDomains.length - 1] !== "" ? (
+            <Fade>
+              <Button type="button" onClick={handleAddDomain} neutral>
+                {data.allowedDomains?.length ? (
+                  <Trans>Add another</Trans>
+                ) : (
+                  <Trans>Add a domain</Trans>
+                )}
+              </Button>
+            </Fade>
+          ) : (
+            <span />
+          )}
+
+          {domainsChanged && (
+            <Fade>
+              <Button
+                type="button"
+                onClick={handleChange}
+                disabled={auth.isSaving}
+              >
+                <Trans>Save changes</Trans>
+              </Button>
+            </Fade>
+          )}
+        </Flex>
+      </SettingRow>
     </Scene>
   );
 }
+
+const Remove = styled("div")`
+  margin-top: 6px;
+`;
 
 export default observer(Security);

@@ -1,4 +1,4 @@
-import { useObserver } from "mobx-react";
+import { observer, useObserver } from "mobx-react";
 import { CommentIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -103,4 +103,4 @@ const Meta = styled(DocumentMeta)<{ rtl?: boolean }>`
   }
 `;
 
-export default TitleDocumentMeta;
+export default observer(TitleDocumentMeta);
