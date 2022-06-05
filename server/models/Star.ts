@@ -8,12 +8,12 @@ import {
 import Collection from "./Collection";
 import Document from "./Document";
 import User from "./User";
-import BaseModel from "./base/BaseModel";
+import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
 
 @Table({ tableName: "stars", modelName: "star" })
 @Fix
-class Star extends BaseModel {
+class Star extends IdModel {
   @Column
   index: string | null;
 

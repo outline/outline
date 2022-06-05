@@ -642,6 +642,7 @@ router.post("collections.update", auth(), async (ctx) => {
   if (privacyChanged || sharingChanged) {
     await collection.reload();
     const team = await Team.findByPk(user.teamId);
+    invariant(team, "team not found");
 
     if (
       collection.permission === null &&

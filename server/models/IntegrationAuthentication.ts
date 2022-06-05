@@ -7,7 +7,7 @@ import {
 } from "sequelize-typescript";
 import Team from "./Team";
 import User from "./User";
-import BaseModel from "./base/BaseModel";
+import IdModel from "./base/IdModel";
 import Encrypted, {
   getEncryptedColumn,
   setEncryptedColumn,
@@ -16,7 +16,7 @@ import Fix from "./decorators/Fix";
 
 @Table({ tableName: "authentications", modelName: "authentication" })
 @Fix
-class IntegrationAuthentication extends BaseModel {
+class IntegrationAuthentication extends IdModel {
   @Column
   service: string;
 

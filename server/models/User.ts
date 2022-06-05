@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import { addMinutes, subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
-import { Transaction, QueryTypes, FindOptions, Op } from "sequelize";
+import { Transaction, QueryTypes, Op } from "sequelize";
 import {
   Table,
   Column,
@@ -536,25 +536,6 @@ class User extends ParanoidModel {
       suspended: parseInt(counts.suspendedCount),
     };
   };
-
-  static async findAllInBatches(
-    query: FindOptions<User>,
-    callback: (users: Array<User>, query: FindOptions<User>) => Promise<void>
-  ) {
-    if (!query.offset) {
-      query.offset = 0;
-    }
-    if (!query.limit) {
-      query.limit = 10;
-    }
-    let results;
-
-    do {
-      results = await this.findAll(query);
-      await callback(results, query);
-      query.offset += query.limit;
-    } while (results.length >= query.limit);
-  }
 }
 
 export default User;
