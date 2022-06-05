@@ -1,5 +1,5 @@
 import { DeletedAt } from "sequelize-typescript";
-import IdModel from "./BaseModel";
+import IdModel from "./IdModel";
 
 class ParanoidModel extends IdModel {
   @DeletedAt
