@@ -7,7 +7,7 @@ import {
   DataType,
 } from "sequelize-typescript";
 import User from "./User";
-import BaseModel from "./base/BaseModel";
+import IdModel from "./base/IdModel";
 import Encrypted, {
   getEncryptedColumn,
   setEncryptedColumn,
@@ -19,7 +19,7 @@ import Fix from "./decorators/Fix";
   modelName: "webhook_subscription",
 })
 @Fix
-class WebhookSubscription extends BaseModel {
+class WebhookSubscription extends IdModel {
   @NotEmpty
   @Column
   name: string;

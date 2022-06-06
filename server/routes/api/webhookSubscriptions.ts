@@ -12,6 +12,7 @@ const router = new Router();
 
 router.post("webhookSubscriptions.list", auth(), pagination(), async (ctx) => {
   const { user } = ctx.state;
+  authorize(user, "listWebhookSubscription", user.team);
   const webhooks = await WebhookSubscription.findAll({
     where: {
       createdById: user.id,
