@@ -14,7 +14,7 @@ type Props = {
   onSubmit: () => void;
 };
 
-type EventString = "*" | "docs" | "docs.read" | "docs.write";
+type EventString = "*" | "documents" | "documents.move" | "documents.delete";
 
 interface FormData {
   name: string;
@@ -73,7 +73,7 @@ function WebhookSubscriptionNew({ onSubmit }: Props) {
 
   const events = watch("events");
   const isAllEventSelected = events && events.includes("*");
-  const isDocsRootSelected = events && events.includes("docs");
+  const isDocsRootSelected = events && events.includes("documents");
 
   useEffect(() => {
     if (isAllEventSelected) {
@@ -82,10 +82,10 @@ function WebhookSubscriptionNew({ onSubmit }: Props) {
   }, [isAllEventSelected, setValue]);
 
   useEffect(() => {
-    if (isDocsRootSelected && events.some((e) => e.startsWith("docs."))) {
+    if (isDocsRootSelected && events.some((e) => e.startsWith("documents."))) {
       setValue(
         "events",
-        events.filter((e) => !e.startsWith("docs."))
+        events.filter((e) => !e.startsWith("documents."))
       );
     }
   }, [isDocsRootSelected, setValue, events]);
@@ -134,10 +134,13 @@ function WebhookSubscriptionNew({ onSubmit }: Props) {
       </Flex>
       <EventCheckbox label={t("All events")} value="*" />
       <fieldset disabled={isAllEventSelected}>
-        <EventCheckbox label={t("All docs")} value="docs" />
+        <EventCheckbox label={t("All Document Events")} value="documents" />
         <fieldset disabled={isDocsRootSelected}>
-          <EventCheckbox label={t("Read docs")} value="docs.read" />
-          <EventCheckbox label={t("Write docs")} value="docs.write" />
+          <EventCheckbox label={t("Documents Moved")} value="documents.move" />
+          <EventCheckbox
+            label={t("Documents Deleted")}
+            value="documents.delete"
+          />
         </fieldset>
       </fieldset>
       <Button
