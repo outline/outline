@@ -16,9 +16,11 @@ export default class WebhookProcessor extends BaseProcessor {
     });
 
     await Promise.all(
-      webhookSubscriptions.map((webhook: WebhookSubscription) =>
-        this.handleEvent(webhook, event)
-      )
+      webhookSubscriptions.map((webhook: WebhookSubscription) => {
+        if (webhook.validForEvent(event)) {
+          this.handleEvent(webhook, event);
+        }
+      })
     );
   }
 
@@ -34,7 +36,8 @@ export default class WebhookProcessor extends BaseProcessor {
       case "users.activate":
       case "users.delete":
       case "users.invite":
-        return this.handleUserEvent(webhookSubscription, event);
+        this.handleUserEvent(webhookSubscription, event);
+        return;
     }
     console.error(`Unhandled event: ${event.name}`);
   }

@@ -1,3 +1,4 @@
+import { bool } from "aws-sdk/clients/signer";
 import {
   Column,
   Table,
@@ -36,7 +37,7 @@ class WebhookSubscription extends IdModel {
   enabled: boolean;
 
   @Column(DataType.ARRAY(DataType.STRING))
-  events: Event["name"][];
+  events: string[];
 
   @Column(DataType.BLOB)
   @Encrypted
@@ -63,6 +64,21 @@ class WebhookSubscription extends IdModel {
   @ForeignKey(() => Team)
   @Column
   teamId: string;
+
+  // methods
+  validForEvent = (event: Event): bool => {
+    if (this.events === ["*"]) {
+      return true;
+    }
+
+    for (const e of this.events) {
+      if (e === event.name || event.name.startsWith(e + ".")) {
+        return true;
+      }
+    }
+
+    return false;
+  };
 }
 
 export default WebhookSubscription;
