@@ -2,7 +2,7 @@ import Router from "koa-router";
 import { compact } from "lodash";
 import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
-import { User, WebhookSubscription } from "@server/models";
+import { WebhookSubscription } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentWebhookSubscription } from "@server/presenters";
 import { assertArray, assertPresent, assertUuid } from "@server/validation";
@@ -51,6 +51,7 @@ router.post("webhookSubscriptions.create", auth(), async (ctx) => {
     name,
     events,
     createdById: user.id,
+    teamId: user.teamId,
     url,
     secret: "TODO:CHANGE ME",
     enabled: true,
@@ -65,9 +66,7 @@ router.post("webhookSubscriptions.delete", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertUuid(id, "id is required");
   const { user } = ctx.state;
-  const key = await WebhookSubscription.findByPk(id, {
-    include: [{ model: User }],
-  });
+  const key = await WebhookSubscription.findByPk(id);
 
   authorize(user, "delete", key);
 

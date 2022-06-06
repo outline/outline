@@ -1,4 +1,3 @@
-import invariant from "invariant";
 import { User, Team, WebhookSubscription } from "@server/models";
 import { allow } from "./cancan";
 
@@ -31,11 +30,6 @@ allow(
       return false;
     }
 
-    invariant(
-      webhook.createdBy,
-      "createdBy is missing, did you forget to include in the query scope?"
-    );
-
-    return user.teamId === webhook.createdBy.teamId;
+    return user.teamId === webhook.teamId;
   }
 );

@@ -10,6 +10,13 @@ module.exports = {
             allowNull: false,
             primaryKey: true,
           },
+          teamId: {
+            type: Sequelize.UUID,
+            allowNull: false,
+            references: {
+              model: "teams",
+            },
+          },
           createdById: {
             type: Sequelize.UUID,
             allowNull: false,

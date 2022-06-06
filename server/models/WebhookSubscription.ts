@@ -6,6 +6,7 @@ import {
   NotEmpty,
   DataType,
 } from "sequelize-typescript";
+import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
 import Encrypted, {
@@ -52,6 +53,13 @@ class WebhookSubscription extends IdModel {
   @ForeignKey(() => User)
   @Column
   createdById: string;
+
+  @BelongsTo(() => Team, "teamId")
+  team: Team;
+
+  @ForeignKey(() => Team)
+  @Column
+  teamId: string;
 }
 
 export default WebhookSubscription;
