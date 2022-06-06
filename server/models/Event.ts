@@ -15,12 +15,12 @@ import Collection from "./Collection";
 import Document from "./Document";
 import Team from "./Team";
 import User from "./User";
-import BaseModel from "./base/BaseModel";
+import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
 
 @Table({ tableName: "events", modelName: "event" })
 @Fix
-class Event extends BaseModel {
+class Event extends IdModel {
   @IsUUID(4)
   @Column(DataType.UUID)
   modelId: string;

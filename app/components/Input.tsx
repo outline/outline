@@ -38,6 +38,13 @@ const RealInput = styled.input<{ hasIcon?: boolean }>`
     color: ${(props) => props.theme.placeholder};
   }
 
+  &:-webkit-autofill,
+  &:-webkit-autofill:hover,
+  &:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0px 1000px ${(props) => props.theme.background}
+      inset;
+  }
+
   &::-webkit-search-cancel-button {
     -webkit-appearance: none;
   }

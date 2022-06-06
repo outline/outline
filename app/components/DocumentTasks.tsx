@@ -1,3 +1,4 @@
+import { observer } from "mobx-react";
 import { DoneIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, TFunction } from "react-i18next";
@@ -60,4 +61,4 @@ const Done = styled(DoneIcon)<{ $animated: boolean }>`
   transform-origin: center center;
 `;
 
-export default DocumentTasks;
+export default observer(DocumentTasks);

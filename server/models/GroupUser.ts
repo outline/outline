@@ -5,10 +5,10 @@ import {
   Column,
   Table,
   DataType,
-  Model,
 } from "sequelize-typescript";
 import Group from "./Group";
 import User from "./User";
+import BaseModel from "./base/BaseModel";
 import Fix from "./decorators/Fix";
 
 @DefaultScope(() => ({
@@ -20,7 +20,7 @@ import Fix from "./decorators/Fix";
 }))
 @Table({ tableName: "group_users", modelName: "group_user", paranoid: true })
 @Fix
-class GroupUser extends Model {
+class GroupUser extends BaseModel {
   @BelongsTo(() => User, "userId")
   user: User;
 

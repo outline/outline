@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import { addMinutes, subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
-import { Transaction, QueryTypes, FindOptions, Op } from "sequelize";
+import { Transaction, QueryTypes, SaveOptions, Op } from "sequelize";
 import {
   Table,
   Column,
@@ -299,8 +299,25 @@ class User extends ParanoidModel {
     });
   };
 
-  // Returns a session token that is used to make API requests and is stored
-  // in the client browser cookies to remain logged in.
+  /**
+   * Rotate's the users JWT secret. This has the effect of invalidating ALL
+   * previously issued tokens.
+   *
+   * @param options Save options
+   * @returns Promise that resolves when database persisted
+   */
+  rotateJwtSecret = (options: SaveOptions) => {
+    User.setRandomJwtSecret(this);
+    return this.save(options);
+  };
+
+  /**
+   * Returns a session token that is used to make API requests and is stored
+   * in the client browser cookies to remain logged in.
+   *
+   * @param expiresAt The time the token will expire at
+   * @returns The session token
+   */
   getJwtToken = (expiresAt?: Date) => {
     return JWT.sign(
       {
@@ -312,8 +329,13 @@ class User extends ParanoidModel {
     );
   };
 
-  // Returns a temporary token that is only used for transferring a session
-  // between subdomains or domains. It has a short expiry and can only be used once
+  /**
+   * Returns a temporary token that is only used for transferring a session
+   * between subdomains or domains. It has a short expiry and can only be used
+   * once.
+   *
+   * @returns The transfer token
+   */
   getTransferToken = () => {
     return JWT.sign(
       {
@@ -326,8 +348,12 @@ class User extends ParanoidModel {
     );
   };
 
-  // Returns a temporary token that is only used for logging in from an email
-  // It can only be used to sign in once and has a medium length expiry
+  /**
+   * Returns a temporary token that is only used for logging in from an email
+   * It can only be used to sign in once and has a medium length expiry
+   *
+   * @returns The email signin token
+   */
   getEmailSigninToken = () => {
     return JWT.sign(
       {
@@ -536,25 +562,6 @@ class User extends ParanoidModel {
       suspended: parseInt(counts.suspendedCount),
     };
   };
-
-  static async findAllInBatches(
-    query: FindOptions<User>,
-    callback: (users: Array<User>, query: FindOptions<User>) => Promise<void>
-  ) {
-    if (!query.offset) {
-      query.offset = 0;
-    }
-    if (!query.limit) {
-      query.limit = 10;
-    }
-    let results;
-
-    do {
-      results = await this.findAll(query);
-      await callback(results, query);
-      query.offset += query.limit;
-    } while (results.length >= query.limit);
-  }
 }
 
 export default User;

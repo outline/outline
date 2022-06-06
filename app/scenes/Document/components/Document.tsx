@@ -14,6 +14,8 @@ import {
 } from "react-router";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { Heading } from "@shared/editor/lib/getHeadings";
+import { parseDomain } from "@shared/utils/domains";
 import getTasks from "@shared/utils/getTasks";
 import RootStore from "~/stores/RootStore";
 import Document from "~/models/Document";
@@ -29,9 +31,9 @@ import PageTitle from "~/components/PageTitle";
 import PlaceholderDocument from "~/components/PlaceholderDocument";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import withStores from "~/components/withStores";
+import type { Editor as TEditor } from "~/editor";
 import { NavigationNode } from "~/types";
 import { client } from "~/utils/ApiClient";
-import { isCustomDomain } from "~/utils/domains";
 import { emojiToUrl } from "~/utils/emoji";
 import { isModKey } from "~/utils/keyboard";
 import {
@@ -73,7 +75,7 @@ type Props = WithTranslation &
 @observer
 class DocumentScene extends React.Component<Props> {
   @observable
-  editor = React.createRef<typeof Editor>();
+  editor = React.createRef<TEditor>();
 
   @observable
   isUploading = false;
@@ -95,6 +97,9 @@ class DocumentScene extends React.Component<Props> {
 
   @observable
   title: string = this.props.document.title;
+
+  @observable
+  headings: Heading[] = [];
 
   getEditorText: () => string = () => this.props.document.text;
 
@@ -158,7 +163,6 @@ class DocumentScene extends React.Component<Props> {
       return;
     }
 
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'view' does not exist on type 'unknown'.
     const { view, parser } = editorRef;
     view.dispatch(
       view.state.tr
@@ -375,13 +379,15 @@ class DocumentScene extends React.Component<Props> {
     const { document, auth } = this.props;
     this.getEditorText = getEditorText;
 
-    // If the multiplayer editor is enabled then we still want to keep the local
-    // text value in sync as it is used as a cache.
+    // Keep derived task list in sync
+    const tasks = this.editor.current?.getTasks();
+    const total = tasks?.length ?? 0;
+    const completed = tasks?.filter((t) => t.completed).length ?? 0;
+    document.updateTasks(total, completed);
+
+    // If the multiplayer editor is enabled we're done here as changes are saved
+    // through the persistence protocol. The rest of this method is legacy.
     if (auth.team?.collaborativeEditing) {
-      action(() => {
-        document.text = this.getEditorText();
-        document.tasks = getTasks(document.text);
-      })();
       return;
     }
 
@@ -397,6 +403,10 @@ class DocumentScene extends React.Component<Props> {
       this.updateIsDirtyDebounced();
       this.autosave();
     }
+  };
+
+  onHeadingsChange = (headings: Heading[]) => {
+    this.headings = headings;
   };
 
   onChangeTitle = action((value: string) => {
@@ -429,12 +439,7 @@ class DocumentScene extends React.Component<Props> {
     const embedsDisabled =
       (team && team.documentEmbeds === false) || document.embedsDisabled;
 
-    const headings = this.editor.current
-      ? // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
-        this.editor.current.getHeadings()
-      : [];
-
-    const hasHeadings = headings.length > 0;
+    const hasHeadings = this.headings.length > 0;
     const showContents =
       ui.tocVisible &&
       ((readOnly && hasHeadings) || team?.collaborativeEditing);
@@ -549,7 +554,7 @@ class DocumentScene extends React.Component<Props> {
               sharedTree={this.props.sharedTree}
               onSelectTemplate={this.replaceDocument}
               onSave={this.onSave}
-              headings={headings}
+              headings={this.headings}
             />
             <MaxWidth
               archived={document.isArchived}
@@ -564,7 +569,7 @@ class DocumentScene extends React.Component<Props> {
                 <Flex auto={!readOnly}>
                   {showContents && (
                     <Contents
-                      headings={headings}
+                      headings={this.headings}
                       isFullWidth={document.fullWidth}
                     />
                   )}
@@ -588,6 +593,7 @@ class DocumentScene extends React.Component<Props> {
                     onCreateLink={this.props.onCreateLink}
                     onChangeTitle={this.onChangeTitle}
                     onChange={this.onChange}
+                    onHeadingsChange={this.onHeadingsChange}
                     onSave={this.onSave}
                     onPublish={this.onPublish}
                     onCancel={this.goBack}
@@ -615,7 +621,7 @@ class DocumentScene extends React.Component<Props> {
                 </Flex>
               </React.Suspense>
             </MaxWidth>
-            {isShare && !isCustomDomain() && (
+            {isShare && !parseDomain(window.location.origin).custom && (
               <Branding href="//www.getoutline.com?ref=sharelink" />
             )}
           </Container>
