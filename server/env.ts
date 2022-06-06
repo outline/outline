@@ -66,7 +66,7 @@ export class Environment {
   @IsUrl({
     require_tld: false,
     allow_underscores: true,
-    protocols: ["postgres"],
+    protocols: ["postgres", "postgresql"],
   })
   public DATABASE_URL = `${process.env.DATABASE_URL}`;
 
