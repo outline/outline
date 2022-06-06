@@ -323,7 +323,7 @@
     "webpack-cli": "^3.3.12",
     "webpack-manifest-plugin": "^3.0.0",
     "webpack-pwa-manifest": "^4.3.0",
-    "workbox-webpack-plugin": "^6.3.0",
+    "workbox-webpack-plugin": "^6.5.3",
     "yarn-deduplicate": "^3.1.0"
   },
   "resolutions": {
