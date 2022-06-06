@@ -1,3 +1,4 @@
+import invariant from "invariant";
 import { User, Team, WebhookSubscription } from "@server/models";
 import { allow } from "./cancan";
 
@@ -22,6 +23,19 @@ allow(
   ["read", "update", "delete"],
   WebhookSubscription,
   (user, webhook): boolean => {
-    return !!user && !!webhook && user.id === webhook.createdById;
+    if (!user || !webhook) {
+      return false;
+    }
+
+    if (!user.isAdmin) {
+      return false;
+    }
+
+    invariant(
+      webhook.createdBy,
+      "createdBy is missing, did you forget to include in the query scope?"
+    );
+
+    return user.teamId === webhook.createdBy.teamId;
   }
 );

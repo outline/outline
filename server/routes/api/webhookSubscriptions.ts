@@ -2,7 +2,7 @@ import Router from "koa-router";
 import { compact } from "lodash";
 import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
-import { WebhookSubscription } from "@server/models";
+import { User, WebhookSubscription } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentWebhookSubscription } from "@server/presenters";
 import { assertArray, assertPresent, assertUuid } from "@server/validation";
@@ -65,7 +65,9 @@ router.post("webhookSubscriptions.delete", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertUuid(id, "id is required");
   const { user } = ctx.state;
-  const key = await WebhookSubscription.findByPk(id);
+  const key = await WebhookSubscription.findByPk(id, {
+    include: [{ model: User }],
+  });
 
   authorize(user, "delete", key);
 
