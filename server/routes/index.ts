@@ -56,7 +56,7 @@ const renderApp = async (
   const {
     title = "Outline",
     description = "A modern team knowledge base for your internal documentation, product specs, support answers, meeting notes, onboarding, &amp; more…",
-    canonical = ctx.request.href,
+    canonical = "",
   } = options;
 
   if (ctx.request.path === "/realtime/") {
