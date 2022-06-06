@@ -2,6 +2,7 @@ import removeMarkdown from "@tommoor/remove-markdown";
 import invariant from "invariant";
 import { compact, find, map, uniq } from "lodash";
 import randomstring from "randomstring";
+import type { SaveOptions } from "sequelize";
 import {
   Transaction,
   Op,
@@ -9,7 +10,6 @@ import {
   FindOptions,
   ScopeOptions,
   WhereOptions,
-  SaveOptions,
 } from "sequelize";
 import {
   ForeignKey,
@@ -414,7 +414,7 @@ class Document extends ParanoidModel {
     options: FindOptions<Document> & {
       userId?: string;
     } = {}
-  ) {
+  ): Promise<Document | null> {
     // allow default preloading of collection membership if `userId` is passed in find options
     // almost every endpoint needs the collection membership to determine policy permissions.
     const scope = this.scope([
@@ -447,7 +447,7 @@ class Document extends ParanoidModel {
       });
     }
 
-    return undefined;
+    return null;
   }
 
   static async searchForTeam(
@@ -510,7 +510,7 @@ class Document extends ParanoidModel {
     SELECT
       id,
       ts_rank(documents."searchVector", to_tsquery('english', :query)) as "searchRanking",
-      ts_headline('english', "text", to_tsquery('english', :query), 'MaxFragments=1, MinWords=:snippetMinWords, MaxWords=:snippetMaxWords') as "searchContext"
+      ts_headline('english', "text", to_tsquery('english', :query), :headlineOptions) as "searchContext"
     FROM documents
     WHERE ${whereClause}
     ORDER BY
@@ -529,8 +529,7 @@ class Document extends ParanoidModel {
       query: wildcardQuery,
       collectionIds,
       documentIds,
-      snippetMinWords,
-      snippetMaxWords,
+      headlineOptions: `MaxFragments=1, MinWords=${snippetMinWords}, MaxWords=${snippetMaxWords}`,
     };
     const resultsQuery = this.sequelize!.query(selectSql, {
       type: QueryTypes.SELECT,
@@ -636,7 +635,7 @@ class Document extends ParanoidModel {
   SELECT
     id,
     ts_rank(documents."searchVector", to_tsquery('english', :query)) as "searchRanking",
-    ts_headline('english', "text", to_tsquery('english', :query), 'MaxFragments=1, MinWords=:snippetMinWords, MaxWords=:snippetMaxWords') as "searchContext"
+    ts_headline('english', "text", to_tsquery('english', :query), :headlineOptions) as "searchContext"
   FROM documents
   WHERE ${whereClause}
   ORDER BY
@@ -657,8 +656,7 @@ class Document extends ParanoidModel {
       query: wildcardQuery,
       collectionIds,
       dateFilter,
-      snippetMinWords,
-      snippetMaxWords,
+      headlineOptions: `MaxFragments=1, MinWords=${snippetMinWords}, MaxWords=${snippetMaxWords}`,
     };
     const resultsQuery = this.sequelize!.query(selectSql, {
       type: QueryTypes.SELECT,
