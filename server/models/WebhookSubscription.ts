@@ -5,6 +5,7 @@ import {
   ForeignKey,
   NotEmpty,
   DataType,
+  IsUrl,
 } from "sequelize-typescript";
 import Team from "./Team";
 import User from "./User";
@@ -25,6 +26,7 @@ class WebhookSubscription extends IdModel {
   @Column
   name: string;
 
+  @IsUrl
   @NotEmpty
   @Column
   url: string;
