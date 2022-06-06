@@ -1,4 +1,4 @@
-import { SaveOptions } from "sequelize";
+import type { SaveOptions } from "sequelize";
 import {
   ForeignKey,
   AfterSave,
@@ -159,6 +159,7 @@ class Event extends IdModel {
     "users.create",
     "users.update",
     "users.signin",
+    "users.signout",
     "users.promote",
     "users.demote",
     "users.invite",

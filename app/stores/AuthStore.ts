@@ -253,6 +253,12 @@ export default class AuthStore {
 
   @action
   logout = async (savePath = false) => {
+    if (!this.token) {
+      return;
+    }
+
+    client.post(`/auth.delete`);
+
     // remove user and team from localStorage
     Storage.set(AUTH_STORE, {
       user: null,

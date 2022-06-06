@@ -2,9 +2,10 @@ import invariant from "invariant";
 import Router from "koa-router";
 import { find } from "lodash";
 import { parseDomain } from "@shared/utils/domains";
+import { sequelize } from "@server/database/sequelize";
 import env from "@server/env";
 import auth from "@server/middlewares/authentication";
-import { Team, TeamDomain } from "@server/models";
+import { Event, Team, TeamDomain } from "@server/models";
 import { presentUser, presentTeam, presentPolicies } from "@server/presenters";
 import ValidateSSOAccessTask from "@server/queues/tasks/ValidateSSOAccessTask";
 import providers from "../auth/providers";
@@ -122,6 +123,33 @@ router.post("auth.info", auth(), async (ctx) => {
       team: presentTeam(team),
     },
     policies: presentPolicies(user, [team]),
+  };
+});
+
+router.post("auth.delete", auth(), async (ctx) => {
+  const { user } = ctx.state;
+
+  await sequelize.transaction(async (transaction) => {
+    await user.rotateJwtSecret({ transaction });
+    await Event.create(
+      {
+        name: "users.signout",
+        actorId: user.id,
+        userId: user.id,
+        teamId: user.teamId,
+        data: {
+          name: user.name,
+        },
+        ip: ctx.request.ip,
+      },
+      {
+        transaction,
+      }
+    );
+  });
+
+  ctx.body = {
+    success: true,
   };
 });
 

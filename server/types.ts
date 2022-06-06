@@ -13,6 +13,7 @@ export type UserEvent =
   | {
   name: "users.create" // eslint-disable-line
         | "users.signin"
+        | "users.signout"
         | "users.update"
         | "users.suspend"
         | "users.activate"
