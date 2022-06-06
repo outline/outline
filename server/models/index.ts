@@ -51,3 +51,5 @@ export { default as UserAuthentication } from "./UserAuthentication";
 export { default as View } from "./View";
 
 export { default as WebhookSubscription } from "./WebhookSubscription";
+
+export { default as WebhookDelivery } from "./WebhookDelivery";

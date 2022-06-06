@@ -3,54 +3,47 @@ module.exports = {
   up: async (queryInterface, Sequelize) => {
     await queryInterface.sequelize.transaction(async (transaction) => {
       await queryInterface.createTable(
-        "webhook_subscriptions",
+        "webhook_deliveries",
         {
           id: {
             type: Sequelize.UUID,
             allowNull: false,
             primaryKey: true,
           },
-          teamId: {
+          webhookSubscriptionId: {
             type: Sequelize.UUID,
             allowNull: false,
             references: {
-              model: "teams",
+              model: "webhook_subscriptions",
             },
           },
-          createdById: {
-            type: Sequelize.UUID,
-            allowNull: false,
-            references: {
-              model: "users",
-            },
-          },
-          url: {
-            type: Sequelize.STRING,
+          statusCode: {
+            type: Sequelize.INTEGER,
             allowNull: false,
           },
-          enabled: {
-            type: Sequelize.BOOLEAN,
+          requestBody: {
+            type: Sequelize.JSONB,
             allowNull: false,
           },
-          name: {
-            type: Sequelize.STRING,
+          requestHeaders: {
+            type: Sequelize.JSONB,
             allowNull: false,
           },
-          secret: {
+          responseBody: {
             type: Sequelize.BLOB,
-            allowNull: false,
+            allowNull: true,
           },
-          events: {
-            type: Sequelize.ARRAY(Sequelize.STRING),
+          responseHeaders: {
+            type: Sequelize.JSONB,
             allowNull: false,
           },
           createdAt: {
-            allowNull: false,
             type: Sequelize.DATE,
+            allowNull: false,
           },
           updatedAt: {
-            allowNull: false,
             type: Sequelize.DATE,
+            allowNull: false,
           },
         },
         { transaction }
@@ -58,6 +51,7 @@ module.exports = {
     });
   },
   down: async (queryInterface, Sequelize) => {
-    return queryInterface.dropTable("webhook_subscriptions");
+    return queryInterface.dropTable("webhook_deliveries");
   },
 };
+

@@ -7,6 +7,7 @@ import {
   DataType,
   IsUrl,
 } from "sequelize-typescript";
+import { Event } from "@server/types";
 import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
@@ -35,7 +36,7 @@ class WebhookSubscription extends IdModel {
   enabled: boolean;
 
   @Column(DataType.ARRAY(DataType.STRING))
-  events: string[];
+  events: Event["name"][];
 
   @Column(DataType.BLOB)
   @Encrypted

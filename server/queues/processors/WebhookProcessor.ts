@@ -1,5 +1,5 @@
 import invariant from "invariant";
-import { User, WebhookSubscription } from "@server/models";
+import { User, WebhookDelivery, WebhookSubscription } from "@server/models";
 import { presentUser } from "@server/presenters";
 import { Event, UserEvent } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
@@ -49,15 +49,26 @@ export default class WebhookProcessor extends BaseProcessor {
 
     if (event.name === "users.invite") {
       const webhookUrl = webhookSubscription.url;
-      await fetch(webhookUrl, {
+      const body = {
+        event: event.name,
+        invitee: event.data,
+      };
+      const headers = {
+        "Content-Type": "application/json",
+      };
+      const response = await fetch(webhookUrl, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          event: event.name,
-          invitee: event.data,
-        }),
+        headers,
+        body: JSON.stringify(body),
+      });
+
+      await WebhookDelivery.create({
+        webhookSubscriptionId: webhookSubscription.id,
+        statusCode: response.status,
+        requestBody: body,
+        requestHeaders: headers,
+        responseBody: response.body,
+        responseHeaders: response.headers,
       });
     } else {
       const hydratedUser = await User.findByPk(event.userId);
@@ -65,15 +76,26 @@ export default class WebhookProcessor extends BaseProcessor {
       invariant(hydratedUser, "User not found");
 
       const webhookUrl = webhookSubscription.url;
-      await fetch(webhookUrl, {
+      const headers = {
+        "Content-Type": "application/json",
+      };
+      const body = {
+        event: event.name,
+        user: presentUser(hydratedUser),
+      };
+      const response = await fetch(webhookUrl, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          event: event.name,
-          user: presentUser(hydratedUser),
-        }),
+        headers,
+        body: JSON.stringify(body),
+      });
+
+      await WebhookDelivery.create({
+        webhookSubscriptionId: webhookSubscription.id,
+        statusCode: response.status,
+        requestBody: body,
+        requestHeaders: headers,
+        responseBody: response.body?.toString(),
+        responseHeaders: response.headers,
       });
     }
   }
