@@ -48,6 +48,30 @@ describe("#auth.info", () => {
   });
 });
 
+describe("#auth.delete", () => {
+  it("should make the access token unusable", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/auth.delete", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    expect(res.status).toEqual(200);
+
+    const res2 = await server.post("/api/auth.info", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    expect(res2.status).toEqual(401);
+  });
+
+  it("should require authentication", async () => {
+    const res = await server.post("/api/auth.delete");
+    expect(res.status).toEqual(401);
+  });
+});
+
 describe("#auth.config", () => {
   it("should return available SSO providers", async () => {
     env.DEPLOYMENT = "hosted";
