@@ -18,9 +18,7 @@ export default class WebhookProcessor extends BaseProcessor {
     await Promise.all(
       webhookSubscriptions
         .filter((webhook) => webhook.validForEvent(event))
-        .map((webhook: WebhookSubscription) => {
-          return this.handleEvent(webhook, event);
-        })
+        .map((webhook: WebhookSubscription) => this.handleEvent(webhook, event))
     );
   }
 
