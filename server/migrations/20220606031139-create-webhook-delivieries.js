@@ -17,17 +17,21 @@ module.exports = {
               model: "webhook_subscriptions",
             },
           },
+          status: {
+            type: Sequelize.STRING,
+            allowNull: false,
+          },
           statusCode: {
             type: Sequelize.INTEGER,
-            allowNull: false,
+            allowNull: true,
           },
           requestBody: {
             type: Sequelize.JSONB,
-            allowNull: false,
+            allowNull: true,
           },
           requestHeaders: {
             type: Sequelize.JSONB,
-            allowNull: false,
+            allowNull: true,
           },
           responseBody: {
             type: Sequelize.BLOB,
@@ -35,7 +39,7 @@ module.exports = {
           },
           responseHeaders: {
             type: Sequelize.JSONB,
-            allowNull: false,
+            allowNull: true,
           },
           createdAt: {
             type: Sequelize.DATE,
@@ -54,4 +58,3 @@ module.exports = {
     return queryInterface.dropTable("webhook_deliveries");
   },
 };
-

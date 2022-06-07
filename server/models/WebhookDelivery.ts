@@ -5,6 +5,7 @@ import {
   ForeignKey,
   NotEmpty,
   DataType,
+  IsIn,
 } from "sequelize-typescript";
 import User from "./User";
 import WebhookSubscription from "./WebhookSubscription";
@@ -19,22 +20,23 @@ import Fix from "./decorators/Fix";
 class WebhookDelivery extends IdModel {
   @NotEmpty
   @Column
+  @IsIn([["pending", "success", "failure"]])
+  status: number;
+
+  @Column
   statusCode: number;
 
-  @NotEmpty
   @Column(DataType.JSONB)
-  requestBody: any;
+  requestBody: unknown;
 
-  @NotEmpty
   @Column(DataType.JSONB)
-  requestHeaders: any;
+  requestHeaders: Record<string, string>;
 
   @Column(DataType.BLOB)
-  responseBody: any;
+  responseBody: unknown;
 
-  @NotEmpty
   @Column(DataType.JSONB)
-  responseHeaders: any;
+  responseHeaders: Record<string, string>;
 
   // associations
 

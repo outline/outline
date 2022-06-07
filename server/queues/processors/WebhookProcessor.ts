@@ -1,6 +1,6 @@
 import invariant from "invariant";
 import { User, WebhookDelivery, WebhookSubscription } from "@server/models";
-import { presentUser } from "@server/presenters";
+import { presentUser, presentWebhook } from "@server/presenters";
 import { Event, UserEvent } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
 
@@ -25,9 +25,13 @@ export default class WebhookProcessor extends BaseProcessor {
   }
 
   async handleEvent(
-    webhookSubscription: WebhookSubscription,
+    subscription: WebhookSubscription,
     event: Event
   ): Promise<void> {
+    console.debug(
+      `WebhookProcessor.handleEvent: ${event.name} for ${subscription.name}`
+    );
+
     switch (event.name) {
       case "users.create":
       case "users.signin":
@@ -36,70 +40,77 @@ export default class WebhookProcessor extends BaseProcessor {
       case "users.activate":
       case "users.delete":
       case "users.invite":
-        this.handleUserEvent(webhookSubscription, event);
+        this.handleUserEvent(subscription, event);
         return;
     }
     console.error(`Unhandled event: ${event.name}`);
   }
 
-  async handleUserEvent(
-    webhookSubscription: WebhookSubscription,
-    event: UserEvent
-  ) {
-    console.debug(
-      `WebhookProcessor.handleUserEvent: ${event.name} for ${webhookSubscription.name}`
-    );
-
+  async handleUserEvent(subscription: WebhookSubscription, event: UserEvent) {
     if (event.name === "users.invite") {
-      const webhookUrl = webhookSubscription.url;
-      const body = {
-        event: event.name,
-        invitee: event.data,
-      };
-      const headers = {
-        "Content-Type": "application/json",
-      };
-      const response = await fetch(webhookUrl, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(body),
-      });
+      const invite = event.data;
 
-      await WebhookDelivery.create({
-        webhookSubscriptionId: webhookSubscription.id,
-        statusCode: response.status,
-        requestBody: body,
-        requestHeaders: headers,
-        responseBody: response.body,
-        responseHeaders: response.headers,
+      await this.sendWebhook({
+        event,
+        subscription,
+        modelPayload: invite,
       });
     } else {
       const hydratedUser = await User.findByPk(event.userId);
 
       invariant(hydratedUser, "User not found");
 
-      const webhookUrl = webhookSubscription.url;
-      const headers = {
-        "Content-Type": "application/json",
-      };
-      const body = {
-        event: event.name,
-        user: presentUser(hydratedUser),
-      };
-      const response = await fetch(webhookUrl, {
-        method: "POST",
-        headers,
-        body: JSON.stringify(body),
-      });
-
-      await WebhookDelivery.create({
-        webhookSubscriptionId: webhookSubscription.id,
-        statusCode: response.status,
-        requestBody: body,
-        requestHeaders: headers,
-        responseBody: response.body?.toString(),
-        responseHeaders: response.headers,
+      await this.sendWebhook({
+        event,
+        subscription,
+        modelPayload: presentUser(hydratedUser),
       });
     }
+  }
+
+  async sendWebhook({
+    event,
+    subscription,
+    modelPayload,
+  }: {
+    event: Event;
+    subscription: WebhookSubscription;
+    modelPayload: unknown;
+  }): Promise<WebhookDelivery> {
+    const delivery = await WebhookDelivery.create({
+      webhookSubscriptionId: subscription.id,
+      status: "pending",
+    });
+
+    const jsonBody = presentWebhook({
+      event,
+      delivery,
+      subscription,
+      modelPayload,
+    });
+    const body = JSON.stringify(jsonBody);
+
+    const webhookUrl = subscription.url;
+    const headers = {
+      "Content-Type": "application/json",
+    };
+    const response = await fetch(webhookUrl, {
+      method: "POST",
+      headers,
+      body,
+    });
+
+    const newStatus = response.ok ? "success" : "failure";
+
+    await delivery.update({
+      status: newStatus,
+      statusCode: response.status,
+      requestBody: jsonBody,
+      requestHeaders: headers,
+      responseBody: response.body?.toString(),
+      responseHeaders: response.headers,
+    });
+
+    return delivery;
   }
 }
