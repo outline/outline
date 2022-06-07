@@ -16,11 +16,11 @@ export default class WebhookProcessor extends BaseProcessor {
     });
 
     await Promise.all(
-      webhookSubscriptions.map((webhook: WebhookSubscription) => {
-        if (webhook.validForEvent(event)) {
-          this.handleEvent(webhook, event);
-        }
-      })
+      webhookSubscriptions
+        .filter((webhook) => webhook.validForEvent(event))
+        .map((webhook: WebhookSubscription) => {
+          return this.handleEvent(webhook, event);
+        })
     );
   }
 
@@ -40,13 +40,16 @@ export default class WebhookProcessor extends BaseProcessor {
       case "users.activate":
       case "users.delete":
       case "users.invite":
-        this.handleUserEvent(subscription, event);
+        await this.handleUserEvent(subscription, event);
         return;
     }
     console.error(`Unhandled event: ${event.name}`);
   }
 
-  async handleUserEvent(subscription: WebhookSubscription, event: UserEvent) {
+  async handleUserEvent(
+    subscription: WebhookSubscription,
+    event: UserEvent
+  ): Promise<void> {
     if (event.name === "users.invite") {
       const invite = event.data;
 
@@ -77,6 +80,7 @@ export default class WebhookProcessor extends BaseProcessor {
     subscription: WebhookSubscription;
     modelPayload: unknown;
   }) {
+    console.debug("Starting send", subscription.name);
     const delivery = await WebhookDelivery.create({
       webhookSubscriptionId: subscription.id,
       status: "pending",
@@ -94,12 +98,14 @@ export default class WebhookProcessor extends BaseProcessor {
     const headers = {
       "Content-Type": "application/json",
     };
+    console.debug("About to Send", subscription.name);
     const response = await fetch(webhookUrl, {
       method: "POST",
       headers,
       body,
     });
 
+    console.debug("Just Sent", subscription.name);
     const newStatus = response.ok ? "success" : "failed";
 
     await delivery.update({

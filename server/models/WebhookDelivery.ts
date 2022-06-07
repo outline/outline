@@ -19,11 +19,11 @@ import Fix from "./decorators/Fix";
 @Fix
 class WebhookDelivery extends IdModel {
   @NotEmpty
-  @Column
   @IsIn([["pending", "success", "failed"]])
+  @Column(DataType.STRING)
   status: "pending" | "success" | "failed";
 
-  @Column
+  @Column(DataType.INTEGER)
   statusCode: number;
 
   @Column(DataType.JSONB)

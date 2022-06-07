@@ -67,7 +67,7 @@ class WebhookSubscription extends IdModel {
 
   // methods
   validForEvent = (event: Event): bool => {
-    if (this.events === ["*"]) {
+    if (this.events.length === 1 && this.events[0] === "*") {
       return true;
     }
 
