@@ -20,8 +20,8 @@ import Fix from "./decorators/Fix";
 class WebhookDelivery extends IdModel {
   @NotEmpty
   @Column
-  @IsIn([["pending", "success", "failure"]])
-  status: number;
+  @IsIn([["pending", "success", "failed"]])
+  status: "pending" | "success" | "failed";
 
   @Column
   statusCode: number;

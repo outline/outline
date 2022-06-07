@@ -76,7 +76,7 @@ export default class WebhookProcessor extends BaseProcessor {
     event: Event;
     subscription: WebhookSubscription;
     modelPayload: unknown;
-  }): Promise<WebhookDelivery> {
+  }) {
     const delivery = await WebhookDelivery.create({
       webhookSubscriptionId: subscription.id,
       status: "pending",
@@ -100,7 +100,7 @@ export default class WebhookProcessor extends BaseProcessor {
       body,
     });
 
-    const newStatus = response.ok ? "success" : "failure";
+    const newStatus = response.ok ? "success" : "failed";
 
     await delivery.update({
       status: newStatus,
@@ -111,6 +111,19 @@ export default class WebhookProcessor extends BaseProcessor {
       responseHeaders: response.headers,
     });
 
-    return delivery;
+    if (!response.ok) {
+      const recentDeliveries = await WebhookDelivery.findAll({
+        where: { webhookSubscriptionId: subscription.id },
+        order: [["createdAt", "DESC"]],
+      });
+
+      const allFailed = recentDeliveries.every(
+        (delivery) => delivery.status === "failed"
+      );
+
+      if (allFailed) {
+        await subscription.update({ enabled: false });
+      }
+    }
   }
 }
