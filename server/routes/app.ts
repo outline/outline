@@ -93,10 +93,8 @@ export const renderShare = async (ctx: Context, next: Next) => {
   return renderApp(ctx, next, {
     title: document?.title,
     description: document?.getSummary(),
-    canonical: share?.team
-      ? ctx.request.href
-          .replace(ctx.request.origin, share.team.url)
-          .replace(/\/$/, "")
+    canonical: share
+      ? `${share.canonicalUrl}${documentSlug && document ? document.url : ""}`
       : undefined,
   });
 };
