@@ -8,9 +8,9 @@ import serve from "koa-static";
 import { escape } from "lodash";
 import isUUID from "validator/lib/isUUID";
 import { languages } from "@shared/i18n";
+import documentLoader from "@server/commands/documentLoader";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
-import Share from "@server/models/Share";
 import { opensearchResponse } from "@server/utils/opensearch";
 import prefetchTags from "@server/utils/prefetchTags";
 import { robotsResponse } from "@server/utils/robots";
@@ -79,19 +79,23 @@ const renderApp = async (
 };
 
 const renderShare = async (ctx: Context, next: Next) => {
-  const { shareId } = ctx.params;
+  const { shareId, documentSlug } = ctx.params;
   // Find the share record if publicly published so that the document title
   // can be be returned in the server-rendered HTML. This allows it to appear in
   // unfurls with more reliablity
-  let share;
+  let share, document;
 
   if (isUUID(shareId)) {
-    share = await Share.findOne({
-      where: {
-        id: shareId,
-        published: true,
-      },
-    });
+    try {
+      const result = await documentLoader({
+        id: documentSlug,
+        shareId,
+      });
+      share = result.share;
+      document = result.document;
+    } catch (err) {
+      ctx.throw(err);
+    }
   }
 
   // Allow shares to be embedded in iframes on other websites
@@ -99,10 +103,12 @@ const renderShare = async (ctx: Context, next: Next) => {
 
   // Inject share information in SSR HTML
   return renderApp(ctx, next, {
-    title: share?.document?.title,
-    description: share?.document?.getSummary(),
+    title: document?.title,
+    description: document?.getSummary(),
     canonical: share?.team
-      ? ctx.request.href.replace(ctx.request.origin, share.team.url)
+      ? ctx.request.href
+          .replace(ctx.request.origin, share.team.url)
+          .replace(/\/$/, "")
       : undefined,
   });
 };
@@ -174,7 +180,7 @@ router.get("/opensearch.xml", (ctx) => {
 });
 
 router.get("/share/:shareId", renderShare);
-
+router.get("/share/:shareId/doc/:documentSlug", renderShare);
 router.get("/share/:shareId/*", renderShare);
 
 // catch all for application
