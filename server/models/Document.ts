@@ -1,3 +1,4 @@
+import { updateYFragment } from "@getoutline/y-prosemirror";
 import removeMarkdown from "@tommoor/remove-markdown";
 import invariant from "invariant";
 import { compact, find, map, uniq } from "lodash";
@@ -31,12 +32,14 @@ import {
 } from "sequelize-typescript";
 import MarkdownSerializer from "slate-md-serializer";
 import isUUID from "validator/lib/isUUID";
+import * as Y from "yjs";
 import { MAX_TITLE_LENGTH } from "@shared/constants";
 import { DateFilter } from "@shared/types";
 import getTasks from "@shared/utils/getTasks";
 import parseTitle from "@shared/utils/parseTitle";
 import unescape from "@shared/utils/unescape";
 import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
+import { parser } from "@server/editor";
 import slugify from "@server/utils/slugify";
 import Backlink from "./Backlink";
 import Collection from "./Collection";
@@ -413,12 +416,13 @@ class Document extends ParanoidModel {
     id: string,
     options: FindOptions<Document> & {
       userId?: string;
+      includeState?: boolean;
     } = {}
   ): Promise<Document | null> {
     // allow default preloading of collection membership if `userId` is passed in find options
     // almost every endpoint needs the collection membership to determine policy permissions.
     const scope = this.scope([
-      "withoutState",
+      ...(options.includeState ? [] : ["withoutState"]),
       "withDrafts",
       {
         method: ["withCollectionPermissions", options.userId, options.paranoid],
@@ -703,6 +707,28 @@ class Document extends ParanoidModel {
   }
 
   // instance methods
+
+  updateFromMarkdown = (text: string, append = false) => {
+    this.text = append ? this.text + text : text;
+
+    if (this.state) {
+      const ydoc = new Y.Doc();
+      Y.applyUpdate(ydoc, this.state);
+      const type = ydoc.get("default", Y.XmlFragment) as Y.XmlFragment;
+      const doc = parser.parse(this.text);
+
+      if (!type.doc) {
+        throw new Error("type.doc not found");
+      }
+
+      // apply new document to existing ydoc
+      updateYFragment(type.doc, type, doc, new Map());
+
+      const state = Y.encodeStateAsUpdate(ydoc);
+      this.state = Buffer.from(state);
+      this.changed("state", true);
+    }
+  };
 
   toMarkdown = () => {
     const text = unescape(this.text);
