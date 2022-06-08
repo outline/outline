@@ -86,16 +86,12 @@ const renderShare = async (ctx: Context, next: Next) => {
   let share, document;
 
   if (isUUID(shareId)) {
-    try {
-      const result = await documentLoader({
-        id: documentSlug,
-        shareId,
-      });
-      share = result.share;
-      document = result.document;
-    } catch (err) {
-      ctx.throw(err);
-    }
+    const result = await documentLoader({
+      id: documentSlug,
+      shareId,
+    });
+    share = result.share;
+    document = result.document;
   }
 
   // Allow shares to be embedded in iframes on other websites
