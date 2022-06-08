@@ -105,9 +105,9 @@ class UserAuthentication extends IdModel {
       "authenticationProvider must exist for user authentication"
     );
 
-    await this.refreshAccessTokenIfNeeded(authenticationProvider, options);
-
     try {
+      await this.refreshAccessTokenIfNeeded(authenticationProvider, options);
+
       const client = authenticationProvider.oauthClient;
       if (client) {
         await client.userInfo(this.accessToken);
