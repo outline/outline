@@ -85,6 +85,10 @@ class Share extends IdModel {
     return !!this.revokedAt;
   }
 
+  get canonicalUrl() {
+    return `${this.team.url}/share/${this.id}`;
+  }
+
   // associations
 
   @BelongsTo(() => User, "revokedById")
