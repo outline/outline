@@ -3,7 +3,6 @@ import path from "path";
 import util from "util";
 import { Context, Next } from "koa";
 import { escape } from "lodash";
-import isUUID from "validator/lib/isUUID";
 import documentLoader from "@server/commands/documentLoader";
 import env from "@server/env";
 import presentEnv from "@server/presenters/env";
@@ -75,13 +74,16 @@ export const renderShare = async (ctx: Context, next: Next) => {
   // unfurls with more reliablity
   let share, document;
 
-  if (isUUID(shareId)) {
+  try {
     const result = await documentLoader({
       id: documentSlug,
       shareId,
     });
     share = result.share;
     document = result.document;
+  } catch (err) {
+    // If the share or document does not exist, return a 404.
+    ctx.status = 404;
   }
 
   // Allow shares to be embedded in iframes on other websites
