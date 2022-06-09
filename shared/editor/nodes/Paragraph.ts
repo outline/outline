@@ -1,9 +1,6 @@
 import { setBlockType } from "prosemirror-commands";
 import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
-import { EditorState } from "prosemirror-state";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
-import isNodeActive from "../queries/isNodeActive";
-import { Dispatch } from "../types";
 import Node from "./Node";
 
 export default class Paragraph extends Node {
@@ -23,14 +20,6 @@ export default class Paragraph extends Node {
   keys({ type }: { type: NodeType }) {
     return {
       "Shift-Ctrl-0": setBlockType(type),
-      "Shift-Enter": (state: EditorState, dispatch: Dispatch) => {
-        if (!isNodeActive(type)(state)) {
-          return false;
-        }
-
-        dispatch(state.tr.insertText("\n"));
-        return true;
-      },
     };
   }
 
