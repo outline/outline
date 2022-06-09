@@ -74,7 +74,13 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
         }
 
         const organization = organizationResponse.value[0];
-        const email = profile.email || profileResponse.mail;
+
+        // Note: userPrincipalName is last here for backwards compatibility with
+        // previous versions of Outline that did not include it.
+        const email =
+          profile.email ||
+          profileResponse.mail ||
+          profileResponse.userPrincipalName;
 
         if (!email) {
           throw MicrosoftGraphError(
