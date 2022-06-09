@@ -129,6 +129,7 @@
   "{{userName}} deleted": "{{userName}} が削除しました",
   "{{userName}} moved from trash": "{{userName}} がゴミ箱から移動しました",
   "{{userName}} published": "{{userName}} が公開しました",
+  "{{userName}} unpublished": "{{userName}} unpublished",
   "{{userName}} moved": "{{userName}} が移動しました",
   "Icon": "アイコン",
   "Show menu": "メニューを表示",
