@@ -129,6 +129,7 @@
   "{{userName}} deleted": "已被 {{userName}} 删除",
   "{{userName}} moved from trash": "已被 {{userName}} 已从回收站移出",
   "{{userName}} published": "已被 {{userName}} 发布",
+  "{{userName}} unpublished": "{{userName}} unpublished",
   "{{userName}} moved": "已被 {{userName}} 移动",
   "Icon": "图标",
   "Show menu": "显示菜单",
