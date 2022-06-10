@@ -6,33 +6,41 @@ import {
   StateStoreStoreCallback,
   StateStoreVerifyCallback,
 } from "passport-oauth2";
-import { getCookieDomain } from "@shared/utils/domains";
-import { OAuthStateMismatchError } from "../errors";
+import { getCookieDomain, parseDomain } from "@shared/utils/domains";
+import { AuthRedirectError, OAuthStateMismatchError } from "../errors";
 
 export class StateStore {
   key = "state";
 
-  store = (ctx: Request, callback: StateStoreStoreCallback) => {
+  store = (req: Request, callback: StateStoreStoreCallback) => {
     // Produce a random string as state
-    const state = crypto.randomBytes(8).toString("hex");
+    console.log({ storeRequest: req, hostname: req.hostname });
 
-    ctx.cookies.set(this.key, state, {
+    // token is a short lived one-time pad to prevent replay attacks
+    // appDomain is the domain the user originated from when attempting auth
+    // we expect it to be a team subdomain, custom domain, or apex domain
+    const token = crypto.randomBytes(8).toString("hex");
+    const appDomain = parseDomain(req.hostname);
+    const state = `${appDomain.host}-${token}`;
+
+    req.cookies.set(this.key, state, {
       httpOnly: false,
       expires: addMinutes(new Date(), 10),
-      domain: getCookieDomain(ctx.hostname),
+      domain: getCookieDomain(req.hostname),
     });
 
-    callback(null, state);
+    callback(null, token);
   };
 
   verify = (
-    ctx: Request,
-    providedState: string,
+    req: Request,
+    providedToken: string,
     callback: StateStoreVerifyCallback
   ) => {
-    const state = ctx.cookies.get(this.key);
+    const state = req.cookies.get(this.key);
+    const { host, token } = parseState(state);
 
-    if (!state) {
+    if (!token) {
       return callback(
         OAuthStateMismatchError("State not return in OAuth flow"),
         false,
@@ -40,14 +48,36 @@ export class StateStore {
       );
     }
 
-    ctx.cookies.set(this.key, "", {
+    // Oauth callbacks are hard-coded to come to the apex domain, so we
+    // redirect to the original app domain before attempting authentication.
+    // If there is an error during auth, the user will end up on the same domain
+    // that they started from.
+    const appDomain = parseDomain(host);
+    if (appDomain.host !== parseDomain(req.hostname).host) {
+      const reqProtocol = req.protocol;
+      const requestHost = req.get("host");
+      const requestPath = req.originalUrl;
+      const requestUrl = `${reqProtocol}://${requestHost}${requestPath}`;
+      const url = new URL(requestUrl);
+
+      url.host = appDomain.host;
+
+      return callback(
+        AuthRedirectError(`redirect to: ${url.toString()}`, url.toString()),
+        false,
+        token
+      );
+    }
+
+    // Destroy the one-time pad token and ensure it matches
+    req.cookies.set(this.key, "", {
       httpOnly: false,
       expires: subMinutes(new Date(), 1),
-      domain: getCookieDomain(ctx.hostname),
+      domain: getCookieDomain(req.hostname),
     });
 
-    if (state !== providedState) {
-      return callback(OAuthStateMismatchError(), false, state);
+    if (token !== providedToken) {
+      return callback(OAuthStateMismatchError(), false, token);
     }
 
     // @ts-expect-error Type in library is wrong
@@ -65,4 +95,9 @@ export async function request(endpoint: string, accessToken: string) {
     },
   });
   return response.json();
+}
+
+export function parseState(state: string) {
+  const [host, token] = state.split("-");
+  return { host, token };
 }

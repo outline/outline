@@ -42,6 +42,13 @@ describe("#parseDomain", () => {
     });
   });
 
+  it("should return the same result when parsing the returned host", () => {
+    const customDomain = parseDomain("www.example.com");
+    const subDomain = parseDomain("myteam.example.com");
+    expect(parseDomain(customDomain.host)).toMatchObject(customDomain);
+    expect(parseDomain(subDomain.host)).toMatchObject(subDomain);
+  });
+
   it("should remove the path", () => {
     expect(parseDomain("example.com/some/path?and&query")).toMatchObject({
       teamSubdomain: "",

@@ -1,17 +1,18 @@
 import passport from "@outlinewiki/koa-passport";
-import { Request } from "koa";
+import type { Request } from "express";
 import Router from "koa-router";
 import { capitalize } from "lodash";
 import { Profile } from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth2";
+import { parseDomain } from "@shared/utils/domains";
 import accountProvisioner, {
   AccountProvisionerResult,
 } from "@server/commands/accountProvisioner";
 import env from "@server/env";
-import { GoogleWorkspaceRequiredError } from "@server/errors";
+import { InviteRequiredError, TeamDomainRequiredError } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
-import { User } from "@server/models";
-import { StateStore } from "@server/utils/passport";
+import { Team, User } from "@server/models";
+import { StateStore, parseState } from "@server/utils/passport";
 
 const router = new Router();
 const providerName = "google";
@@ -57,37 +58,74 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
         ) => void
       ) {
         try {
+          const state = req.cookies.get("state");
+          const host = state ? parseState(state).host : req.hostname;
+          const appDomain = parseDomain(host);
+
+          let result;
           const domain = profile._json.hd;
 
-          if (!domain) {
-            throw GoogleWorkspaceRequiredError();
+          // Existence of domain means this is a Google Workspaces account
+          // so we'll attempt to provision an account (team and user)
+          if (domain) {
+            const subdomain = domain.split(".")[0];
+            const teamName = capitalize(subdomain);
+
+            result = await accountProvisioner({
+              ip: req.ip,
+              team: {
+                name: teamName,
+                domain,
+                subdomain,
+              },
+              user: {
+                email: profile.email,
+                name: profile.displayName,
+                avatarUrl: profile.picture,
+              },
+              authenticationProvider: {
+                name: providerName,
+                providerId: domain,
+              },
+              authentication: {
+                providerId: profile.id,
+                accessToken,
+                refreshToken,
+                scopes,
+              },
+            });
+          } else {
+            // No domain means it's a personal Gmail account
+            // We only allow sign-in to existing invites here
+            let team;
+            if (appDomain.custom) {
+              team = await Team.findOne({ where: { domain: appDomain.host } });
+            } else if (env.SUBDOMAINS_ENABLED && appDomain.teamSubdomain) {
+              team = await Team.findOne({
+                where: { subdomain: appDomain.teamSubdomain },
+              });
+            }
+
+            if (!team) {
+              throw TeamDomainRequiredError();
+            }
+
+            const user = await User.findOne({
+              where: { teamId: team.id, email: profile.email },
+            });
+
+            if (!user) {
+              throw InviteRequiredError();
+            }
+
+            result = {
+              user,
+              team,
+              isNewUser: false,
+              isNewTeam: false,
+            };
           }
 
-          const subdomain = domain.split(".")[0];
-          const teamName = capitalize(subdomain);
-          const result = await accountProvisioner({
-            ip: req.ip,
-            team: {
-              name: teamName,
-              domain,
-              subdomain,
-            },
-            user: {
-              email: profile.email,
-              name: profile.displayName,
-              avatarUrl: profile.picture,
-            },
-            authenticationProvider: {
-              name: providerName,
-              providerId: domain,
-            },
-            authentication: {
-              providerId: profile.id,
-              accessToken,
-              refreshToken,
-              scopes,
-            },
-          });
           return done(null, result.user, result);
         } catch (err) {
           return done(err, null);
