@@ -807,6 +807,9 @@ const EditorStyles = styled.div<{
     display: flex;
     align-items: center;
     justify-content: center;
+    background: ${(props) => props.theme.codeBackground};
+    border-radius: 6px;
+    border: 1px solid ${(props) => props.theme.codeBorder};
 
     &.diagram-hidden {
       display: none;
