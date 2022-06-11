@@ -3,8 +3,6 @@ import { Plugin, PluginKey, Transaction } from "prosemirror-state";
 import { findBlockNodes } from "prosemirror-utils";
 import { Decoration, DecorationSet } from "prosemirror-view";
 
-const positionDiagramIdMap: Record<number, number> = {};
-
 type MermaidState = {
   lastDiagramIdGenerated: number;
   decorationSet: DecorationSet;
@@ -15,10 +13,12 @@ function getNewState({
   doc,
   name,
   pluginState,
+  newDiagramShowCode,
 }: {
   doc: Node;
   name: string;
   pluginState: MermaidState;
+  newDiagramShowCode: boolean;
 }) {
   const decorations: Decoration[] = [];
   const blocks: { node: Node; pos: number }[] = findBlockNodes(doc).filter(
@@ -31,11 +31,19 @@ function getNewState({
       return;
     }
 
-    let diagramId: number = positionDiagramIdMap[block.pos];
+    const diagramDecorationPos = block.pos + block.node.nodeSize;
+    const existingDecorations = pluginState.decorationSet.find(
+      block.pos,
+      diagramDecorationPos
+    );
+    let diagramId = existingDecorations[0]?.spec["diagramId"];
     if (diagramId === undefined) {
       diagramId = pluginState.lastDiagramIdGenerated + 1;
-      positionDiagramIdMap[block.pos] = diagramId;
       pluginState.lastDiagramIdGenerated += 1;
+
+      if (newDiagramShowCode) {
+        pluginState.diagramVisibility[diagramId] = false;
+      }
     }
 
     if (pluginState.diagramVisibility[diagramId] === undefined) {
@@ -77,6 +85,9 @@ function getNewState({
         });
 
         return diagramWrapper;
+      },
+      {
+        diagramId: diagramId,
       }
     );
 
@@ -88,7 +99,10 @@ function getNewState({
     const _diagramIdDecoration = Decoration.node(
       block.pos,
       block.pos + block.node.nodeSize,
-      codeBlockOptions
+      codeBlockOptions,
+      {
+        diagramId: diagramId,
+      }
     );
 
     decorations.push(_diagramDecoration);
@@ -130,13 +144,11 @@ export default function Mermaid({ name }: { name: string }) {
         const mermaidMeta = transaction.getMeta("mermaid");
         const diagramToggled =
           mermaidMeta !== undefined && mermaidMeta.toggleDiagram !== undefined;
+        const newDiagramShowCode =
+          mermaidMeta !== undefined &&
+          mermaidMeta.newDiagramShowCode !== undefined;
 
         if (diagramToggled) {
-          console.log(
-            mermaidMeta,
-            pluginState.diagramVisibility,
-            positionDiagramIdMap
-          );
           pluginState.diagramVisibility[
             mermaidMeta.toggleDiagram
           ] = !pluginState.diagramVisibility[mermaidMeta.toggleDiagram];
@@ -144,7 +156,12 @@ export default function Mermaid({ name }: { name: string }) {
 
         if (!diagramShown || codeBlockChanged || diagramToggled || ySyncEdit) {
           diagramShown = true;
-          return getNewState({ doc: transaction.doc, name, pluginState });
+          return getNewState({
+            doc: transaction.doc,
+            name,
+            pluginState,
+            newDiagramShowCode,
+          });
         }
 
         return {
