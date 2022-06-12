@@ -41,12 +41,6 @@ router.post("webhookSubscriptions.create", auth(), async (ctx) => {
     throw ValidationError("events are required");
   }
 
-  console.debug("Creating webhook subscription", {
-    name,
-    events,
-    url,
-    count: events.length,
-  });
   const webhookSubscription = await WebhookSubscription.create({
     name,
     events,

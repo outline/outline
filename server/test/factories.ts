@@ -15,6 +15,7 @@ import {
   AuthenticationProvider,
   FileOperation,
   WebhookSubscription,
+  WebhookDelivery,
 } from "@server/models";
 import {
   FileOperationState,
@@ -398,4 +399,27 @@ export async function buildWebhookSubscription(
   }
 
   return WebhookSubscription.create(overrides);
+}
+
+export async function buildWebhookDelivery(
+  overrides: Partial<WebhookDelivery> = {}
+): Promise<WebhookDelivery> {
+  if (!overrides.status) {
+    overrides.status = "success";
+  }
+  if (!overrides.statusCode) {
+    overrides.statusCode = 200;
+  }
+  if (!overrides.requestBody) {
+    overrides.requestBody = "{}";
+  }
+  if (!overrides.requestHeaders) {
+    overrides.requestHeaders = {};
+  }
+  if (!overrides.webhookSubscriptionId) {
+    const webhookSubscription = await buildWebhookSubscription();
+    overrides.webhookSubscriptionId = webhookSubscription.id;
+  }
+
+  return WebhookDelivery.create(overrides);
 }

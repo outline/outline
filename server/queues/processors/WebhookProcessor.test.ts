@@ -1,13 +1,17 @@
 import fetchMock from "jest-fetch-mock";
 import { WebhookDelivery } from "@server/models";
-import { buildUser, buildWebhookSubscription } from "@server/test/factories";
+import {
+  buildUser,
+  buildWebhookDelivery,
+  buildWebhookSubscription,
+} from "@server/test/factories";
 import { flushdb } from "@server/test/support";
 import WebhookProcessor from "./WebhookProcessor";
 
 beforeEach(() => flushdb());
 beforeEach(() => {
   jest.resetAllMocks();
-  (fetch as any).resetMocks();
+  fetchMock.resetMocks();
 });
 
 const ip = "127.0.0.1";
@@ -15,7 +19,7 @@ const ip = "127.0.0.1";
 fetchMock.enableMocks();
 
 describe("WebhookProcessor", () => {
-  test("hits the subscription url and records a delivery", async () => {
+  test("should hit the subscription url and record a delivery", async () => {
     const subscription = await buildWebhookSubscription({
       url: "http://example.com",
       events: ["*"],
@@ -30,8 +34,11 @@ describe("WebhookProcessor", () => {
       ip,
     });
 
-    expect(fetch).toHaveBeenCalledTimes(1);
-    expect(fetch).toHaveBeenCalledWith("http://example.com", expect.anything());
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://example.com",
+      expect.anything()
+    );
 
     const deliveries = await WebhookDelivery.findAll({
       where: { webhookSubscriptionId: subscription.id },
@@ -41,6 +48,70 @@ describe("WebhookProcessor", () => {
     const delivery = deliveries[0];
     expect(delivery.status).toBe("success");
     expect(delivery.statusCode).toBe(200);
+    expect(delivery.responseBody).toBeDefined();
+  });
+
+  test("should not hit the subscription url or records a delivery when not subscribed to event", async () => {
+    const subscription = await buildWebhookSubscription({
+      url: "http://example.com",
+      events: ["users.create"],
+    });
+    const signedInUser = await buildUser({ teamId: subscription.teamId });
+    const processor = new WebhookProcessor();
+    await processor.perform({
+      name: "users.signin",
+      userId: signedInUser.id,
+      teamId: subscription.teamId,
+      actorId: signedInUser.id,
+      ip,
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(0);
+
+    const deliveries = await WebhookDelivery.findAll({
+      where: { webhookSubscriptionId: subscription.id },
+    });
+    expect(deliveries.length).toBe(0);
+  });
+
+  test("should disable the subscription is past deliveries failed", async () => {
+    const subscription = await buildWebhookSubscription({
+      url: "http://example.com",
+      events: ["*"],
+    });
+    for (let i = 0; i < 25; i++) {
+      await buildWebhookDelivery({
+        webhookSubscriptionId: subscription.id,
+        status: "failed",
+      });
+    }
+
+    fetchMock.mockResponse("", { status: 500 });
+
+    const signedInUser = await buildUser({ teamId: subscription.teamId });
+    const processor = new WebhookProcessor();
+
+    await processor.perform({
+      name: "users.signin",
+      userId: signedInUser.id,
+      teamId: subscription.teamId,
+      actorId: signedInUser.id,
+      ip,
+    });
+
+    await subscription.reload();
+
+    expect(subscription.enabled).toBe(false);
+
+    const deliveries = await WebhookDelivery.findAll({
+      where: { webhookSubscriptionId: subscription.id },
+      order: [["createdAt", "DESC"]],
+    });
+    expect(deliveries.length).toBe(26);
+
+    const delivery = deliveries[0];
+    expect(delivery.status).toBe("failed");
+    expect(delivery.statusCode).toBe(500);
     expect(delivery.responseBody).toBeDefined();
   });
 });

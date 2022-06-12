@@ -41,7 +41,7 @@ class WebhookDelivery extends IdModel {
   // associations
 
   @BelongsTo(() => WebhookSubscription, "webhookSubscriptionId")
-  createdBy: User;
+  webhookSubscription: User;
 
   @ForeignKey(() => WebhookSubscription)
   @Column

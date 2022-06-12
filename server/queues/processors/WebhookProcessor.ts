@@ -1,4 +1,5 @@
 import invariant from "invariant";
+import Logger from "@server/logging/Logger";
 import { User, WebhookDelivery, WebhookSubscription } from "@server/models";
 import { presentUser, presentWebhook } from "@server/presenters";
 import { Event, UserEvent } from "@server/types";
@@ -26,7 +27,8 @@ export default class WebhookProcessor extends BaseProcessor {
     subscription: WebhookSubscription,
     event: Event
   ): Promise<void> {
-    console.debug(
+    Logger.info(
+      "processor",
       `WebhookProcessor.handleEvent: ${event.name} for ${subscription.name}`
     );
 
@@ -78,7 +80,6 @@ export default class WebhookProcessor extends BaseProcessor {
     subscription: WebhookSubscription;
     modelPayload: unknown;
   }) {
-    console.debug("Starting send", subscription.name);
     const delivery = await WebhookDelivery.create({
       webhookSubscriptionId: subscription.id,
       status: "pending",
@@ -96,14 +97,13 @@ export default class WebhookProcessor extends BaseProcessor {
     const headers = {
       "Content-Type": "application/json",
     };
-    console.debug("About to Send", subscription.name);
+
     const response = await fetch(webhookUrl, {
       method: "POST",
       headers,
       body,
     });
 
-    console.debug("Just Sent", subscription.name);
     const newStatus = response.ok ? "success" : "failed";
 
     await delivery.update({
@@ -119,6 +119,7 @@ export default class WebhookProcessor extends BaseProcessor {
       const recentDeliveries = await WebhookDelivery.findAll({
         where: { webhookSubscriptionId: subscription.id },
         order: [["createdAt", "DESC"]],
+        limit: 25,
       });
 
       const allFailed = recentDeliveries.every(
