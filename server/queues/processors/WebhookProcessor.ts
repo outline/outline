@@ -1,8 +1,17 @@
 import invariant from "invariant";
 import Logger from "@server/logging/Logger";
-import { User, WebhookDelivery, WebhookSubscription } from "@server/models";
-import { presentUser, presentWebhook } from "@server/presenters";
-import { Event, UserEvent } from "@server/types";
+import {
+  User,
+  WebhookDelivery,
+  WebhookSubscription,
+  Document,
+} from "@server/models";
+import {
+  presentDocument,
+  presentUser,
+  presentWebhook,
+} from "@server/presenters";
+import { DocumentEvent, Event, UserEvent } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
 
 export default class WebhookProcessor extends BaseProcessor {
@@ -42,8 +51,40 @@ export default class WebhookProcessor extends BaseProcessor {
       case "users.invite":
         await this.handleUserEvent(subscription, event);
         return;
+      case "documents.create":
+      case "documents.publish":
+      case "documents.unpublish":
+      case "documents.delete":
+      case "documents.permanent_delete":
+      case "documents.archive":
+      case "documents.unarchive":
+      case "documents.restore":
+      case "documents.star":
+      case "documents.unstar":
+      case "documents.move":
+      case "documents.update":
+      case "documents.update.delayed":
+      case "documents.update.debounced":
+      case "documents.title_change":
+        await this.handleDocumentEvent(subscription, event);
+        return;
     }
     console.error(`Unhandled event: ${event.name}`);
+  }
+
+  async handleDocumentEvent(
+    subscription: WebhookSubscription,
+    event: DocumentEvent
+  ): Promise<void> {
+    const hydratedDocument = await Document.findByPk(event.documentId);
+
+    invariant(hydratedDocument, "Document not found");
+
+    await this.sendWebhook({
+      event,
+      subscription,
+      modelPayload: presentDocument(hydratedDocument),
+    });
   }
 
   async handleUserEvent(
