@@ -13,15 +13,12 @@ export class StateStore {
   key = "state";
 
   store = (req: Request, callback: StateStoreStoreCallback) => {
-    // Produce a random string as state
-    console.log({ storeRequest: req, hostname: req.hostname });
-
     // token is a short lived one-time pad to prevent replay attacks
     // appDomain is the domain the user originated from when attempting auth
     // we expect it to be a team subdomain, custom domain, or apex domain
     const token = crypto.randomBytes(8).toString("hex");
     const appDomain = parseDomain(req.hostname);
-    const state = `${appDomain.host}-${token}`;
+    const state = buildState(appDomain.host, token);
 
     req.cookies.set(this.key, state, {
       httpOnly: false,
@@ -38,15 +35,16 @@ export class StateStore {
     callback: StateStoreVerifyCallback
   ) => {
     const state = req.cookies.get(this.key);
-    const { host, token } = parseState(state);
 
-    if (!token) {
+    if (!state) {
       return callback(
         OAuthStateMismatchError("State not return in OAuth flow"),
         false,
         state
       );
     }
+
+    const { host, token } = parseState(state);
 
     // Oauth callbacks are hard-coded to come to the apex domain, so we
     // redirect to the original app domain before attempting authentication.
@@ -76,7 +74,7 @@ export class StateStore {
       domain: getCookieDomain(req.hostname),
     });
 
-    if (token !== providedToken) {
+    if (!token || token !== providedToken) {
       return callback(OAuthStateMismatchError(), false, token);
     }
 
@@ -97,7 +95,11 @@ export async function request(endpoint: string, accessToken: string) {
   return response.json();
 }
 
+function buildState(host: string, token: string) {
+  return [host, token].join("|");
+}
+
 export function parseState(state: string) {
-  const [host, token] = state.split("-");
+  const [host, token] = state.split("|");
   return { host, token };
 }
