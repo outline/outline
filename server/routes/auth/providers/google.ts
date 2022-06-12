@@ -50,6 +50,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
         req: Request,
         accessToken: string,
         refreshToken: string,
+        params: { expires_in: number },
         profile: GoogleProfile,
         done: (
           err: Error | null,
@@ -92,6 +93,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
                 providerId: profile.id,
                 accessToken,
                 refreshToken,
+                expiresIn: params.expires_in,
                 scopes,
               },
             });

@@ -75,7 +75,7 @@ type Props = WithTranslation &
 @observer
 class DocumentScene extends React.Component<Props> {
   @observable
-  editor: TEditor | null;
+  editor = React.createRef<TEditor>();
 
   @observable
   isUploading = false;
@@ -157,7 +157,7 @@ class DocumentScene extends React.Component<Props> {
   }
 
   replaceDocument = (template: Document | Revision) => {
-    const editorRef = this.editor;
+    const editorRef = this.editor.current;
 
     if (!editorRef) {
       return;
@@ -194,7 +194,7 @@ class DocumentScene extends React.Component<Props> {
     const { toasts, history, location, t } = this.props;
     const restore = location.state?.restore;
     const revisionId = location.state?.revisionId;
-    const editorRef = this.editor;
+    const editorRef = this.editor.current;
 
     if (!editorRef || !restore) {
       return;
@@ -379,17 +379,8 @@ class DocumentScene extends React.Component<Props> {
     const { document, auth } = this.props;
     this.getEditorText = getEditorText;
 
-    // Keep headings in sync for table of contents
-    const headings = this.editor?.getHeadings() ?? [];
-    if (
-      headings.map((h) => h.level + h.title).join("") !==
-      this.headings.map((h) => h.level + h.title).join("")
-    ) {
-      this.headings = headings;
-    }
-
     // Keep derived task list in sync
-    const tasks = this.editor?.getTasks();
+    const tasks = this.editor.current?.getTasks();
     const total = tasks?.length ?? 0;
     const completed = tasks?.filter((t) => t.completed).length ?? 0;
     document.updateTasks(total, completed);
@@ -414,6 +405,10 @@ class DocumentScene extends React.Component<Props> {
     }
   };
 
+  onHeadingsChange = (headings: Heading[]) => {
+    this.headings = headings;
+  };
+
   onChangeTitle = action((value: string) => {
     this.title = value;
     this.props.document.title = value;
@@ -425,11 +420,6 @@ class DocumentScene extends React.Component<Props> {
     if (!this.props.readOnly) {
       this.props.history.push(this.props.document.url);
     }
-  };
-
-  handleRef = (ref: TEditor | null) => {
-    this.editor = ref;
-    this.headings = this.editor?.getHeadings() ?? [];
   };
 
   render() {
@@ -586,7 +576,7 @@ class DocumentScene extends React.Component<Props> {
                   <Editor
                     id={document.id}
                     key={embedsDisabled ? "disabled" : "enabled"}
-                    ref={this.handleRef}
+                    ref={this.editor}
                     multiplayer={collaborativeEditing}
                     shareId={shareId}
                     isDraft={document.isDraft}
@@ -603,6 +593,7 @@ class DocumentScene extends React.Component<Props> {
                     onCreateLink={this.props.onCreateLink}
                     onChangeTitle={this.onChangeTitle}
                     onChange={this.onChange}
+                    onHeadingsChange={this.onHeadingsChange}
                     onSave={this.onSave}
                     onPublish={this.onPublish}
                     onCancel={this.goBack}

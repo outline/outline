@@ -119,7 +119,10 @@ function SharedDocumentScene(props: Props) {
   return (
     <>
       <Helmet>
-        <link rel="canonical" href={canonicalOrigin + location.pathname} />
+        <link
+          rel="canonical"
+          href={canonicalOrigin + location.pathname.replace(/\/$/, "")}
+        />
       </Helmet>
       <Layout title={response.document.title} sidebar={sidebar}>
         <Document

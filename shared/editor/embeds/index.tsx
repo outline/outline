@@ -71,6 +71,9 @@ function matcher(Component: React.ComponentType<EmbedProps>) {
 }
 
 const Img = styled(Image)`
+  border-radius: 2px;
+  background: #fff;
+  box-shadow: 0 0 0 1px #fff;
   margin: 4px;
   width: 18px;
   height: 18px;

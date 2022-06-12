@@ -1,4 +1,4 @@
-import { SaveOptions } from "sequelize";
+import type { SaveOptions } from "sequelize";
 import {
   ForeignKey,
   AfterSave,
@@ -15,12 +15,12 @@ import Collection from "./Collection";
 import Document from "./Document";
 import Team from "./Team";
 import User from "./User";
-import BaseModel from "./base/BaseModel";
+import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
 
 @Table({ tableName: "events", modelName: "event" })
 @Fix
-class Event extends BaseModel {
+class Event extends IdModel {
   @IsUUID(4)
   @Column(DataType.UUID)
   modelId: string;
@@ -112,6 +112,7 @@ class Event extends BaseModel {
     "collections.move",
     "collections.permission_changed",
     "documents.publish",
+    "documents.unpublish",
     "documents.archive",
     "documents.unarchive",
     "documents.move",
@@ -159,6 +160,7 @@ class Event extends BaseModel {
     "users.create",
     "users.update",
     "users.signin",
+    "users.signout",
     "users.promote",
     "users.demote",
     "users.invite",

@@ -2296,7 +2296,6 @@ describe("#documents.delete", () => {
     const { user, document, collection } = await seed();
     // delete collection without hooks to trigger document deletion
     await collection.destroy({
-      // @ts-expect-error type is incorrect here
       hooks: false,
     });
     const res = await server.post("/api/documents.delete", {

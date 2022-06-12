@@ -45,14 +45,11 @@ function Notifications() {
       ),
     },
     {
-      separator: true,
-    },
-    {
       visible: isCloudHosted,
       event: "emails.onboarding",
       title: t("Getting started"),
       description: t(
-        "Tips on getting started with Outline`s features and functionality"
+        "Tips on getting started with Outline’s features and functionality"
       ),
     },
     {
@@ -121,10 +118,6 @@ function Notifications() {
           <h2>{t("Notifications")}</h2>
 
           {options.map((option) => {
-            if (option.separator || !option.event) {
-              return <br />;
-            }
-
             const setting = notificationSettings.getByEvent(option.event);
 
             return (

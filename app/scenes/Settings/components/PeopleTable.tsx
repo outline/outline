@@ -89,4 +89,4 @@ const Badges = styled.div`
   margin-left: -10px;
 `;
 
-export default PeopleTable;
+export default observer(PeopleTable);

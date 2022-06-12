@@ -200,9 +200,7 @@ export default class AuthStore {
 
   @action
   deleteUser = async () => {
-    await client.post(`/users.delete`, {
-      confirmation: true,
-    });
+    await client.post(`/users.delete`);
     runInAction("AuthStore#updateUser", () => {
       this.user = null;
       this.team = null;
@@ -255,6 +253,12 @@ export default class AuthStore {
 
   @action
   logout = async (savePath = false) => {
+    if (!this.token) {
+      return;
+    }
+
+    client.post(`/auth.delete`);
+
     // remove user and team from localStorage
     Storage.set(AUTH_STORE, {
       user: null,
