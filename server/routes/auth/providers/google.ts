@@ -60,6 +60,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
         try {
           const state = req.cookies.get("state");
           const host = state ? parseState(state).host : req.hostname;
+          // appDomain is the domain the user originated from when attempting auth
           const appDomain = parseDomain(host);
 
           let result;
