@@ -7,11 +7,21 @@ import {
   Document,
   FileOperation,
   Collection,
+  Group,
+  Integration,
+  Team,
+  Pin,
+  Star,
 } from "@server/models";
 import {
   presentCollection,
   presentDocument,
   presentFileOperation,
+  presentGroup,
+  presentIntegration,
+  presentPin,
+  presentStar,
+  presentTeam,
   presentUser,
   presentWebhook,
 } from "@server/presenters";
@@ -20,10 +30,19 @@ import {
   DocumentEvent,
   Event,
   FileOperationEvent,
+  GroupEvent,
+  IntegrationEvent,
+  PinEvent,
   RevisionEvent,
+  StarEvent,
+  TeamEvent,
   UserEvent,
 } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
+
+function assertUnreachable(_: never): never {
+  throw new Error("Didn't expect to get here");
+}
 
 export default class WebhookProcessor extends BaseProcessor {
   static applicableEvents: ["*"] = ["*"];
@@ -98,8 +117,108 @@ export default class WebhookProcessor extends BaseProcessor {
       case "collections.permission_changed":
         await this.handleCollectionEvent(subscription, event);
         return;
+      case "groups.create":
+      case "groups.update":
+      case "groups.delete":
+      case "groups.add_user":
+      case "groups.remove_user":
+        await this.handleGroupEvent(subscription, event);
+        return;
+      case "integrations.create":
+      case "integrations.update":
+        await this.handleIntegrationEvent(subscription, event);
+        return;
+      case "teams.update":
+        await this.handleTeamEvent(subscription, event);
+        return;
+      case "pins.create":
+      case "pins.update":
+      case "pins.delete":
+        await this.handlePinEvent(subscription, event);
+        return;
+      case "stars.create":
+      case "stars.update":
+      case "stars.delete":
+        await this.handleStarEvent(subscription, event);
+        return;
+      default:
+        assertUnreachable(event);
     }
-    console.error(`Unhandled event: ${event.name}`);
+  }
+
+  async handleStarEvent(
+    subscription: WebhookSubscription,
+    event: StarEvent
+  ): Promise<void> {
+    const hydratedModel = await Star.findByPk(event.modelId);
+
+    invariant(hydratedModel, "Star not found");
+
+    await this.sendWebhook({
+      event,
+      subscription,
+      modelPayload: presentStar(hydratedModel),
+    });
+  }
+
+  async handlePinEvent(
+    subscription: WebhookSubscription,
+    event: PinEvent
+  ): Promise<void> {
+    const hydratedModel = await Pin.findByPk(event.modelId);
+
+    invariant(hydratedModel, "Pin not found");
+
+    await this.sendWebhook({
+      event,
+      subscription,
+      modelPayload: presentPin(hydratedModel),
+    });
+  }
+
+  async handleTeamEvent(
+    subscription: WebhookSubscription,
+    event: TeamEvent
+  ): Promise<void> {
+    const hydratedModel = await Team.findByPk(event.teamId);
+
+    invariant(hydratedModel, "Team not found");
+
+    await this.sendWebhook({
+      event,
+      subscription,
+      modelPayload: presentTeam(hydratedModel),
+    });
+  }
+
+  async handleIntegrationEvent(
+    subscription: WebhookSubscription,
+    event: IntegrationEvent
+  ): Promise<void> {
+    const hydratedModel = await Integration.findByPk(event.modelId);
+
+    invariant(hydratedModel, "Integration not found");
+
+    await this.sendWebhook({
+      event,
+      subscription,
+      modelPayload: presentIntegration(hydratedModel),
+    });
+  }
+
+  async handleGroupEvent(
+    subscription: WebhookSubscription,
+    event: GroupEvent
+  ): Promise<void> {
+    const hydratedModel = await Group.findByPk(event.modelId);
+
+    invariant(hydratedModel, "Group not found");
+
+    await this.sendWebhook({
+      event,
+      subscription,
+      modelPayload: presentGroup(hydratedModel),
+    });
   }
 
   async handleCollectionEvent(
