@@ -5,13 +5,24 @@ import {
   WebhookDelivery,
   WebhookSubscription,
   Document,
+  FileOperation,
+  Collection,
 } from "@server/models";
 import {
+  presentCollection,
   presentDocument,
+  presentFileOperation,
   presentUser,
   presentWebhook,
 } from "@server/presenters";
-import { DocumentEvent, Event, UserEvent } from "@server/types";
+import {
+  CollectionEvent,
+  DocumentEvent,
+  Event,
+  FileOperationEvent,
+  RevisionEvent,
+  UserEvent,
+} from "@server/types";
 import BaseProcessor from "./BaseProcessor";
 
 export default class WebhookProcessor extends BaseProcessor {
@@ -68,8 +79,72 @@ export default class WebhookProcessor extends BaseProcessor {
       case "documents.title_change":
         await this.handleDocumentEvent(subscription, event);
         return;
+      case "revisions.create":
+        await this.handleRevisionEvent(subscription, event);
+        return;
+      case "fileOperations.create":
+      case "fileOperations.update":
+      case "fileOperation.delete":
+        await this.handleFileOperationEvent(subscription, event);
+        return;
+      case "collections.create":
+      case "collections.update":
+      case "collections.delete":
+      case "collections.add_user":
+      case "collections.remove_user":
+      case "collections.add_group":
+      case "collections.remove_group":
+      case "collections.move":
+      case "collections.permission_changed":
+        await this.handleCollectionEvent(subscription, event);
+        return;
     }
     console.error(`Unhandled event: ${event.name}`);
+  }
+
+  async handleCollectionEvent(
+    subscription: WebhookSubscription,
+    event: CollectionEvent
+  ): Promise<void> {
+    const hydratedModel = await Collection.findByPk(event.collectionId);
+
+    invariant(hydratedModel, "Collection not found");
+
+    await this.sendWebhook({
+      event,
+      subscription,
+      modelPayload: presentCollection(hydratedModel),
+    });
+  }
+
+  async handleFileOperationEvent(
+    subscription: WebhookSubscription,
+    event: FileOperationEvent
+  ): Promise<void> {
+    const hydratedFileOperation = await FileOperation.findByPk(event.modelId);
+
+    invariant(hydratedFileOperation, "File Operation not found");
+
+    await this.sendWebhook({
+      event,
+      subscription,
+      modelPayload: presentFileOperation(hydratedFileOperation),
+    });
+  }
+
+  async handleRevisionEvent(
+    subscription: WebhookSubscription,
+    event: RevisionEvent
+  ): Promise<void> {
+    const hydratedDocument = await Document.findByPk(event.documentId);
+
+    invariant(hydratedDocument, "Document not found");
+
+    await this.sendWebhook({
+      event,
+      subscription,
+      modelPayload: presentDocument(hydratedDocument),
+    });
   }
 
   async handleDocumentEvent(
