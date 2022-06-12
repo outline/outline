@@ -38,6 +38,9 @@ class WebhookDelivery extends IdModel {
   @Column(DataType.JSONB)
   responseHeaders: Record<string, string>;
 
+  @Column(DataType.DATE)
+  createdAt: Date;
+
   // associations
 
   @BelongsTo(() => WebhookSubscription, "webhookSubscriptionId")

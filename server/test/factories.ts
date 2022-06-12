@@ -420,6 +420,9 @@ export async function buildWebhookDelivery(
     const webhookSubscription = await buildWebhookSubscription();
     overrides.webhookSubscriptionId = webhookSubscription.id;
   }
+  if (!overrides.createdAt) {
+    overrides.createdAt = new Date();
+  }
 
   return WebhookDelivery.create(overrides);
 }
