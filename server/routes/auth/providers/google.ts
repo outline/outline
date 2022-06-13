@@ -123,6 +123,10 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
               throw InviteRequiredError();
             }
 
+            await user.update({
+              lastActiveAt: new Date(),
+            });
+
             result = {
               user,
               team,
