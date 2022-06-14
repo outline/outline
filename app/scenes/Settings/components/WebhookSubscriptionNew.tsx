@@ -11,38 +11,6 @@ import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 
-type Props = {
-  onSubmit: () => void;
-};
-
-interface FormData {
-  name: string;
-  url: string;
-  events: string[];
-}
-
-const EventCheckboxLabel = styled.label`
-  display: flex;
-  align-items: center;
-
-  padding: 0.5rem 0;
-
-  &.group-label {
-    font-weight: bold;
-    font-size: 1.2em;
-  }
-
-  &.all-label {
-    font-weight: bold;
-    font-size: 2em;
-    padding-bottom: 1em;
-  }
-`;
-
-const EventCheckboxText = styled.span`
-  margin-right: 0.5rem;
-`;
-
 const WEBHOOK_EVENTS = {
   users: [
     "users.create",
@@ -103,6 +71,28 @@ const WEBHOOK_EVENTS = {
   ],
 };
 
+const EventCheckboxLabel = styled.label`
+  display: flex;
+  align-items: center;
+
+  padding: 0.5rem 0;
+
+  &.group-label {
+    font-weight: bold;
+    font-size: 1.2em;
+  }
+
+  &.all-label {
+    font-weight: bold;
+    font-size: 2em;
+    padding-bottom: 1em;
+  }
+`;
+
+const EventCheckboxText = styled.span`
+  margin-right: 0.5rem;
+`;
+
 const FieldSet = styled.fieldset`
   padding-left: 0;
   border: none;
@@ -135,6 +125,16 @@ const TextFields = styled.div`
 
   margin-bottom: 2rem;
 `;
+
+type Props = {
+  onSubmit: () => void;
+};
+
+interface FormData {
+  name: string;
+  url: string;
+  events: string[];
+}
 
 function joinClasses(...classes: (string | boolean | undefined)[]) {
   return classes.filter(Boolean).join(" ");
