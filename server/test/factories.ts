@@ -394,9 +394,6 @@ export async function buildWebhookSubscription(
   if (!overrides.enabled) {
     overrides.enabled = true;
   }
-  if (!overrides.secret) {
-    overrides.secret = "secret";
-  }
 
   return WebhookSubscription.create(overrides);
 }
