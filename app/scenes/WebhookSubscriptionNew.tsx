@@ -1,10 +1,10 @@
+import { isEqual } from "lodash";
 import * as React from "react";
-import { useCallback, useEffect } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
 import Button from "~/components/Button";
-import Flex from "~/components/Flex";
 import { ReactHookWrappedInput } from "~/components/Input";
 import Text from "~/components/Text";
 import useMobile from "~/hooks/useMobile";
@@ -30,6 +30,12 @@ const EventCheckboxLabel = styled.label`
   &.group-label {
     font-weight: bold;
     font-size: 1.2em;
+  }
+
+  &.all-label {
+    font-weight: bold;
+    font-size: 2em;
+    padding-bottom: 1em;
   }
 `;
 
@@ -94,6 +100,7 @@ const WEBHOOK_EVENTS = {
 };
 
 const FieldSet = styled.fieldset`
+  padding-left: 0;
   border: none;
 
   &.disabled {
@@ -101,9 +108,7 @@ const FieldSet = styled.fieldset`
   }
 `;
 
-const AllFieldSet = styled(FieldSet)`
-  padding-left: 0;
-
+const GroupGrid = styled.div`
   display: grid;
   grid-template-columns: 1fr 1fr;
 
@@ -113,11 +118,18 @@ const AllFieldSet = styled(FieldSet)`
 `;
 
 const GroupWrapper = styled.div`
-  padding: 2rem 0;
+  padding-bottom: 2rem;
 
   &.mobile {
-    padding: 1rem 0;
+    padding-bottom: 1rem;
   }
+`;
+
+const TextFields = styled.div`
+  display: flex;
+  flex-direction: column;
+
+  margin-bottom: 2rem;
 `;
 
 function joinClasses(...classes: (string | boolean | undefined)[]) {
@@ -163,31 +175,48 @@ function WebhookSubscriptionNew({ onSubmit }: Props) {
   );
 
   const events = watch("events");
-  const isAllEventSelected = events && events.includes("*");
+  const selectedGroups = events.filter((e) => !e.includes("."));
+  const isAllEventSelected = events.includes("*");
+  const filteredEvents = events.filter((e) => {
+    const [beforePeriod] = e.split(".");
 
-  const isGroupAllSelected = useCallback(
-    (group: string) => events && events.includes(group),
-    [events]
-  );
+    return (
+      selectedGroups.length === 0 ||
+      e === beforePeriod ||
+      !selectedGroups.includes(beforePeriod)
+    );
+  });
 
   const isMobile = useMobile();
 
   useEffect(() => {
     if (isAllEventSelected) {
-      console.log("setting value to *");
       setValue("events", ["*"]);
     }
   }, [isAllEventSelected, setValue]);
 
+  useEffect(() => {
+    if (!isEqual(events, filteredEvents)) {
+      setValue("events", filteredEvents);
+    }
+  }, [events, filteredEvents, setValue]);
+
   function EventCheckbox({ label, value }: { label: string; value: string }) {
     return (
       <EventCheckboxLabel
-        className={
-          Object.keys(WEBHOOK_EVENTS).includes(value) ? "group-label" : ""
-        }
+        className={joinClasses(
+          value === "*" && "all-label",
+          value !== "*" &&
+            Object.keys(WEBHOOK_EVENTS).includes(value) &&
+            "group-label"
+        )}
       >
         <EventCheckboxText>{label}</EventCheckboxText>
-        <input type="checkbox" value={value} {...register("events", {})} />
+        <input
+          type="checkbox"
+          defaultValue={value}
+          {...register("events", {})}
+        />
       </EventCheckboxLabel>
     );
   }
@@ -195,9 +224,19 @@ function WebhookSubscriptionNew({ onSubmit }: Props) {
   return (
     <form onSubmit={formHandleSubmit(handleSubmit)}>
       <Text type="secondary">
-        <Trans>Select the events you need and name this webhook</Trans>
+        <Trans>
+          Provide a descriptive name for this webhook and provide the URL we
+          should send a POST request to when matching events come in.
+        </Trans>
       </Text>
-      <Flex column={true}>
+      <Text type="secondary">
+        <Trans>
+          You can subscribe to specific events with the checkboxes below. You
+          can subscribe to all events, subscribe to groups or individual event
+          types.
+        </Trans>
+      </Text>
+      <TextFields>
         <ReactHookWrappedInput
           required
           autoFocus
@@ -212,29 +251,30 @@ function WebhookSubscriptionNew({ onSubmit }: Props) {
           label="URL"
           {...register("url", { required: true })}
         />
-      </Flex>
+      </TextFields>
+
       <EventCheckbox label={t("All events")} value="*" />
-      <AllFieldSet
+
+      <FieldSet
         disabled={isAllEventSelected}
-        className={joinClasses(
-          isAllEventSelected && "disabled",
-          isMobile && "mobile"
-        )}
+        className={joinClasses(isAllEventSelected && "disabled")}
       >
-        {Object.entries(WEBHOOK_EVENTS).map(([group, events], i) => (
-          <GroupWrapper key={i} className={joinClasses(isMobile && "mobile")}>
-            <EventCheckbox label={t(`All ${group} Events`)} value={group} />
-            <FieldSet
-              className={isGroupAllSelected(group) ? "disabled" : ""}
-              disabled={isGroupAllSelected(group)}
-            >
-              {events.map((event) => (
-                <EventCheckbox label={event} value={event} />
-              ))}
-            </FieldSet>
-          </GroupWrapper>
-        ))}
-      </AllFieldSet>
+        <GroupGrid className={joinClasses(isMobile && "mobile")}>
+          {Object.entries(WEBHOOK_EVENTS).map(([group, events], i) => (
+            <GroupWrapper key={i} className={joinClasses(isMobile && "mobile")}>
+              <EventCheckbox label={t(`All ${group} Events`)} value={group} />
+              <FieldSet
+                className={selectedGroups.includes(group) ? "disabled" : ""}
+                disabled={selectedGroups.includes(group)}
+              >
+                {events.map((event, i) => (
+                  <EventCheckbox label={event} value={event} key={i} />
+                ))}
+              </FieldSet>
+            </GroupWrapper>
+          ))}
+        </GroupGrid>
+      </FieldSet>
       <Button
         type="submit"
         disabled={formState.isSubmitting || !formState.isValid}

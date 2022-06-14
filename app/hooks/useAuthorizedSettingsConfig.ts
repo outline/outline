@@ -10,6 +10,7 @@ import {
   TeamIcon,
   BeakerIcon,
   DownloadIcon,
+  GlobeIcon,
 } from "outline-icons";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -47,6 +48,7 @@ type SettingsPage =
   | "Shares"
   | "Import"
   | "Export"
+  | "Webhooks"
   | "Slack"
   | "Zapier";
 
@@ -165,7 +167,7 @@ const useAuthorizedSettingsConfig = () => {
         component: Webhooks,
         enabled: can.createWebhookSubscription,
         group: t("Team"),
-        icon: SlackIcon,
+        icon: GlobeIcon,
       },
       // Intergrations
       Slack: {
