@@ -1,7 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
-import MattermostLogo from "~/components/AuthLogo/MattermostLogo";
 import GoogleLogo from "./GoogleLogo";
+import MattermostLogo from "./MattermostLogo";
 import MicrosoftLogo from "./MicrosoftLogo";
 import SlackLogo from "./SlackLogo";
 
