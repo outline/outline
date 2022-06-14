@@ -22,8 +22,6 @@ class WebhookSubscription extends BaseModel {
   @Field
   @observable
   events: string[];
-
-  secret: string;
 }
 
 export default WebhookSubscription;

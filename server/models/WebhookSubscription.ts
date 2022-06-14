@@ -12,10 +12,6 @@ import { Event } from "@server/types";
 import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
-import Encrypted, {
-  getEncryptedColumn,
-  setEncryptedColumn,
-} from "./decorators/Encrypted";
 import Fix from "./decorators/Fix";
 
 @Table({
@@ -38,16 +34,6 @@ class WebhookSubscription extends IdModel {
 
   @Column(DataType.ARRAY(DataType.STRING))
   events: string[];
-
-  @Column(DataType.BLOB)
-  @Encrypted
-  get secret() {
-    return getEncryptedColumn(this, "secret");
-  }
-
-  set secret(value: string) {
-    setEncryptedColumn(this, "secret", value);
-  }
 
   // associations
 

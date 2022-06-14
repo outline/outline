@@ -36,10 +36,6 @@ module.exports = {
             type: Sequelize.STRING,
             allowNull: false,
           },
-          secret: {
-            type: Sequelize.BLOB,
-            allowNull: false,
-          },
           events: {
             type: Sequelize.ARRAY(Sequelize.STRING),
             allowNull: false,

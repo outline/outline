@@ -48,7 +48,6 @@ router.post("webhookSubscriptions.create", auth(), async (ctx) => {
     createdById: user.id,
     teamId: user.teamId,
     url,
-    secret: "TODO:CHANGE ME",
     enabled: true,
   });
 
