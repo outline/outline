@@ -7,7 +7,6 @@ import {
   DataType,
   IsIn,
 } from "sequelize-typescript";
-import User from "./User";
 import WebhookSubscription from "./WebhookSubscription";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
@@ -44,7 +43,7 @@ class WebhookDelivery extends IdModel {
   // associations
 
   @BelongsTo(() => WebhookSubscription, "webhookSubscriptionId")
-  webhookSubscription: User;
+  webhookSubscription: WebhookSubscription;
 
   @ForeignKey(() => WebhookSubscription)
   @Column
