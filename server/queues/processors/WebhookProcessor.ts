@@ -157,9 +157,10 @@ export default class WebhookProcessor extends BaseProcessor {
   ): Promise<void> {
     const hydratedModel = await WebhookSubscription.findByPk(event.modelId);
 
-    await this.sendWebhook({
+    await this.sendModelWebhook({
       event,
       subscription,
+      modelId: event.modelId,
       modelPayload: hydratedModel && presentWebhookSubscription(hydratedModel),
     });
   }
@@ -170,9 +171,10 @@ export default class WebhookProcessor extends BaseProcessor {
   ): Promise<void> {
     const hydratedModel = await Star.findByPk(event.modelId);
 
-    await this.sendWebhook({
+    await this.sendModelWebhook({
       event,
       subscription,
+      modelId: event.modelId,
       modelPayload: hydratedModel && presentStar(hydratedModel),
     });
   }
@@ -183,9 +185,10 @@ export default class WebhookProcessor extends BaseProcessor {
   ): Promise<void> {
     const hydratedModel = await Pin.findByPk(event.modelId);
 
-    await this.sendWebhook({
+    await this.sendModelWebhook({
       event,
       subscription,
+      modelId: event.modelId,
       modelPayload: hydratedModel && presentPin(hydratedModel),
     });
   }
@@ -196,9 +199,10 @@ export default class WebhookProcessor extends BaseProcessor {
   ): Promise<void> {
     const hydratedModel = await Team.findByPk(event.teamId);
 
-    await this.sendWebhook({
+    await this.sendModelWebhook({
       event,
       subscription,
+      modelId: event.teamId,
       modelPayload: hydratedModel && presentTeam(hydratedModel),
     });
   }
@@ -209,9 +213,10 @@ export default class WebhookProcessor extends BaseProcessor {
   ): Promise<void> {
     const hydratedModel = await Integration.findByPk(event.modelId);
 
-    await this.sendWebhook({
+    await this.sendModelWebhook({
       event,
       subscription,
+      modelId: event.modelId,
       modelPayload: hydratedModel && presentIntegration(hydratedModel),
     });
   }
@@ -222,9 +227,10 @@ export default class WebhookProcessor extends BaseProcessor {
   ): Promise<void> {
     const hydratedModel = await Group.findByPk(event.modelId);
 
-    await this.sendWebhook({
+    await this.sendModelWebhook({
       event,
       subscription,
+      modelId: event.modelId,
       modelPayload: hydratedModel && presentGroup(hydratedModel),
     });
   }
@@ -235,9 +241,10 @@ export default class WebhookProcessor extends BaseProcessor {
   ): Promise<void> {
     const hydratedModel = await Collection.findByPk(event.collectionId);
 
-    await this.sendWebhook({
+    await this.sendModelWebhook({
       event,
       subscription,
+      modelId: event.collectionId,
       modelPayload: hydratedModel && presentCollection(hydratedModel),
     });
   }
@@ -248,9 +255,10 @@ export default class WebhookProcessor extends BaseProcessor {
   ): Promise<void> {
     const hydratedFileOperation = await FileOperation.findByPk(event.modelId);
 
-    await this.sendWebhook({
+    await this.sendModelWebhook({
       event,
       subscription,
+      modelId: event.modelId,
       modelPayload:
         hydratedFileOperation && presentFileOperation(hydratedFileOperation),
     });
@@ -262,9 +270,10 @@ export default class WebhookProcessor extends BaseProcessor {
   ): Promise<void> {
     const hydratedDocument = await Document.findByPk(event.documentId);
 
-    await this.sendWebhook({
+    await this.sendModelWebhook({
       event,
       subscription,
+      modelId: event.documentId,
       modelPayload: hydratedDocument && presentDocument(hydratedDocument),
     });
   }
@@ -279,27 +288,46 @@ export default class WebhookProcessor extends BaseProcessor {
       await this.sendWebhook({
         event,
         subscription,
-        modelPayload: invite,
+        payload: { model: invite },
       });
     } else {
       const hydratedUser = await User.findByPk(event.userId);
 
-      await this.sendWebhook({
+      await this.sendModelWebhook({
         event,
         subscription,
+        modelId: event.userId,
         modelPayload: hydratedUser && presentUser(hydratedUser),
       });
     }
   }
 
-  async sendWebhook({
+  async sendModelWebhook({
     event,
     subscription,
     modelPayload,
+    modelId,
   }: {
     event: Event;
     subscription: WebhookSubscription;
     modelPayload: unknown;
+    modelId: string;
+  }) {
+    const payload = {
+      id: modelId,
+      model: modelPayload,
+    };
+    await this.sendWebhook({ event, subscription, payload });
+  }
+
+  async sendWebhook({
+    event,
+    subscription,
+    payload,
+  }: {
+    event: Event;
+    subscription: WebhookSubscription;
+    payload: { model: unknown; id?: string };
   }) {
     const delivery = await WebhookDelivery.create({
       webhookSubscriptionId: subscription.id,
@@ -310,7 +338,7 @@ export default class WebhookProcessor extends BaseProcessor {
       event,
       delivery,
       subscription,
-      modelPayload,
+      payload,
     });
     const body = JSON.stringify(jsonBody);
 

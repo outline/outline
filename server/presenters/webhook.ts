@@ -1,11 +1,11 @@
 import { WebhookDelivery, WebhookSubscription } from "@server/models";
 import { Event } from "@server/types";
 
-interface Props {
+interface WebhookProps {
   event: Event;
   delivery: WebhookDelivery;
   subscription: WebhookSubscription;
-  modelPayload: unknown;
+  payload: { model: unknown; id?: string };
 }
 
 export interface WebhookPresentation {
@@ -13,7 +13,7 @@ export interface WebhookPresentation {
   webhookSubscriptionId: string;
   teamId: string;
   event: string;
-  payload: { model: unknown };
+  payload: { model: unknown; id?: string };
   createdAt: Date;
 }
 
@@ -21,14 +21,14 @@ export default function present({
   event,
   delivery,
   subscription,
-  modelPayload,
-}: Props): WebhookPresentation {
+  payload,
+}: WebhookProps): WebhookPresentation {
   return {
     id: delivery.id,
     webhookSubscriptionId: subscription.id,
     createdAt: delivery.createdAt,
     teamId: subscription.teamId,
     event: event.name,
-    payload: { model: modelPayload },
+    payload: payload,
   };
 }

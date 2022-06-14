@@ -40,6 +40,14 @@ describe("WebhookProcessor", () => {
       "http://example.com",
       expect.anything()
     );
+    const parsedBody = JSON.parse(
+      fetchMock.mock.calls[0]![1]!.body!.toString()
+    );
+    expect(parsedBody.webhookSubscriptionId).toBe(subscription.id);
+    expect(parsedBody.event).toBe("users.signin");
+    expect(parsedBody.teamId).toBe(subscription.teamId);
+    expect(parsedBody.payload.id).toBe(signedInUser.id);
+    expect(parsedBody.payload.model).toBeDefined();
 
     const deliveries = await WebhookDelivery.findAll({
       where: { webhookSubscriptionId: subscription.id },
@@ -59,9 +67,10 @@ describe("WebhookProcessor", () => {
     });
     const signedInUser = await buildUser({ teamId: subscription.teamId });
     const processor = new WebhookProcessor();
+    const deletedUserId = uuidv4();
     await processor.perform({
       name: "users.delete",
-      userId: uuidv4(),
+      userId: deletedUserId,
       teamId: subscription.teamId,
       actorId: signedInUser.id,
       ip,
@@ -72,6 +81,13 @@ describe("WebhookProcessor", () => {
       "http://example.com",
       expect.anything()
     );
+    const parsedBody = JSON.parse(
+      fetchMock.mock.calls[0]![1]!.body!.toString()
+    );
+    expect(parsedBody.webhookSubscriptionId).toBe(subscription.id);
+    expect(parsedBody.event).toBe("users.delete");
+    expect(parsedBody.teamId).toBe(subscription.teamId);
+    expect(parsedBody.payload.id).toBe(deletedUserId);
 
     const deliveries = await WebhookDelivery.findAll({
       where: { webhookSubscriptionId: subscription.id },
