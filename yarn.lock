@@ -11232,6 +11232,13 @@ passport-google-oauth2@^0.2.0:
   dependencies:
     passport-oauth2 "^1.1.2"
 
+passport-mattermost-oauth2@^0.2.0:
+  version "0.2.0"
+  resolved "https://registry.npmjs.org/passport-mattermost-oauth2/-/passport-mattermost-oauth2-0.2.0.tgz"
+  integrity sha512-N1KAM+MUB8VUvwJmb7nGLnD2lgth8bFZrCstoAm+X5vA1Ybpq0/D3plBX6PbGqZzT5bGlqe0GS2EoT4bCKSs5A==
+  dependencies:
+    passport-oauth2 "^1.6.1"
+
 passport-oauth1@1.x.x:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/passport-oauth1/-/passport-oauth1-1.1.0.tgz#a7de988a211f9cf4687377130ea74df32730c918"

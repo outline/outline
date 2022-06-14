@@ -134,6 +134,7 @@
     "oy-vey": "^0.10.0",
     "passport": "^0.4.1",
     "passport-google-oauth2": "^0.2.0",
+    "passport-mattermost-oauth2": "^0.2.0",
     "passport-oauth2": "^1.6.1",
     "passport-slack-oauth2": "^1.1.0",
     "pg": "^8.5.1",
