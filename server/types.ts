@@ -228,6 +228,19 @@ export type StarEvent = {
   ip: string;
 };
 
+export type WebhookSubscriptionEvent = {
+  name: "webhook_subscriptions.create" | "webhook_subscriptions.delete";
+  teamId: string;
+  modelId: string;
+  actorId: string;
+  ip: string;
+  data: {
+    name: string;
+    url: string;
+    events: string[];
+  };
+};
+
 export type Event =
   | UserEvent
   | DocumentEvent
@@ -238,4 +251,5 @@ export type Event =
   | IntegrationEvent
   | GroupEvent
   | RevisionEvent
-  | TeamEvent;
+  | TeamEvent
+  | WebhookSubscriptionEvent;

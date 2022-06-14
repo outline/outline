@@ -24,6 +24,7 @@ import {
   presentTeam,
   presentUser,
   presentWebhook,
+  presentWebhookSubscription,
 } from "@server/presenters";
 import {
   CollectionEvent,
@@ -37,6 +38,7 @@ import {
   StarEvent,
   TeamEvent,
   UserEvent,
+  WebhookSubscriptionEvent,
 } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
 
@@ -141,9 +143,28 @@ export default class WebhookProcessor extends BaseProcessor {
       case "stars.delete":
         await this.handleStarEvent(subscription, event);
         return;
+      case "webhook_subscriptions.create":
+      case "webhook_subscriptions.delete":
+        await this.handleWebhookSubscriptionEvent(subscription, event);
+        return;
       default:
         assertUnreachable(event);
     }
+  }
+
+  async handleWebhookSubscriptionEvent(
+    subscription: WebhookSubscription,
+    event: WebhookSubscriptionEvent
+  ): Promise<void> {
+    const hydratedModel = await WebhookSubscription.findByPk(event.modelId);
+
+    invariant(hydratedModel, "WebhookSubscription not found");
+
+    await this.sendWebhook({
+      event,
+      subscription,
+      modelPayload: presentWebhookSubscription(hydratedModel),
+    });
   }
 
   async handleStarEvent(

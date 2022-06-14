@@ -2,9 +2,10 @@ import Router from "koa-router";
 import { compact } from "lodash";
 import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
-import { WebhookSubscription } from "@server/models";
+import { WebhookSubscription, Event } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentWebhookSubscription } from "@server/presenters";
+import { WebhookSubscriptionEvent } from "@server/types";
 import { assertArray, assertPresent, assertUuid } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
@@ -33,7 +34,7 @@ router.post("webhookSubscriptions.create", auth(), async (ctx) => {
   authorize(user, "createWebhookSubscription", user.team);
 
   const { name, url } = ctx.request.body;
-  const events = compact(ctx.request.body.events);
+  const events: string[] = compact(ctx.request.body.events);
   assertPresent(name, "name is required");
   assertPresent(url, "url is required");
   assertArray(events, "events is required");
@@ -51,6 +52,20 @@ router.post("webhookSubscriptions.create", auth(), async (ctx) => {
     enabled: true,
   });
 
+  const event: WebhookSubscriptionEvent = {
+    name: "webhook_subscriptions.create",
+    modelId: webhookSubscription.id,
+    teamId: user.teamId,
+    actorId: user.id,
+    data: {
+      name,
+      url,
+      events,
+    },
+    ip: ctx.request.ip,
+  };
+  await Event.create(event);
+
   ctx.body = {
     data: presentWebhookSubscription(webhookSubscription),
   };
@@ -60,11 +75,25 @@ router.post("webhookSubscriptions.delete", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertUuid(id, "id is required");
   const { user } = ctx.state;
-  const key = await WebhookSubscription.findByPk(id);
+  const webhookSubscription = await WebhookSubscription.findByPk(id);
 
-  authorize(user, "delete", key);
+  authorize(user, "delete", webhookSubscription);
 
-  await key.destroy();
+  await webhookSubscription.destroy();
+
+  const event: WebhookSubscriptionEvent = {
+    name: "webhook_subscriptions.delete",
+    modelId: webhookSubscription.id,
+    teamId: user.teamId,
+    actorId: user.id,
+    data: {
+      name: webhookSubscription.name,
+      url: webhookSubscription.url,
+      events: webhookSubscription.events,
+    },
+    ip: ctx.request.ip,
+  };
+  await Event.create(event);
 });
 
 export default router;

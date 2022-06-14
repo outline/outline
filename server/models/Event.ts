@@ -165,6 +165,8 @@ class Event extends IdModel {
     "users.suspend",
     "users.activate",
     "users.delete",
+    "webhook_subscriptions.create",
+    "webhook_subscriptions.delete",
   ];
 }
 
