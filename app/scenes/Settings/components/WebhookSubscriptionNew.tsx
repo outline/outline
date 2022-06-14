@@ -97,6 +97,10 @@ const WEBHOOK_EVENTS = {
   integrations: ["integrations.create", "integrations.update"],
   teams: ["teams.update"],
   pins: ["pins.create", "pins.update", "pins.delete"],
+  webhookSubscriptions: [
+    "webhook_subscriptions.create",
+    "webhook_subscriptions.delete",
+  ],
 };
 
 const FieldSet = styled.fieldset`

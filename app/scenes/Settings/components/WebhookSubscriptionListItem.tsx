@@ -27,10 +27,12 @@ const WebhookSubscriptionListItem = ({ webhook }: Props) => {
     });
   }, [t, dialogs, webhook]);
 
+  const postfix = webhook.enabled ? "" : " (disabled)";
+  const displayName = `${webhook.name}${postfix}`;
   return (
     <ListItem
       key={webhook.id}
-      title={webhook.name}
+      title={displayName}
       subtitle={
         <>
           Events: <code>{webhook.events.join(", ")}</code>

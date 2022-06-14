@@ -15,8 +15,8 @@ import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import WebhookSubscriptionNew from "../WebhookSubscriptionNew";
 import WebhookSubscriptionListItem from "./components/WebhookSubscriptionListItem";
+import WebhookSubscriptionNew from "./components/WebhookSubscriptionNew";
 
 function Webhooks() {
   const team = useCurrentTeam();
