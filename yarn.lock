@@ -11232,10 +11232,10 @@ passport-google-oauth2@^0.2.0:
   dependencies:
     passport-oauth2 "^1.1.2"
 
-passport-mattermost-oauth2@^0.2.0:
-  version "0.2.0"
-  resolved "https://registry.npmjs.org/passport-mattermost-oauth2/-/passport-mattermost-oauth2-0.2.0.tgz"
-  integrity sha512-N1KAM+MUB8VUvwJmb7nGLnD2lgth8bFZrCstoAm+X5vA1Ybpq0/D3plBX6PbGqZzT5bGlqe0GS2EoT4bCKSs5A==
+passport-mattermost-oauth2@^0.2.1:
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/passport-mattermost-oauth2/-/passport-mattermost-oauth2-0.2.1.tgz#a60d6cc11f5c9f45922ddcd205e991b73c9da30d"
+  integrity sha512-LapSS/f08VofMpRXITQf2dlBH2Frs+85vIhcWSfXII/u790dB3NkwyKc6I0l/WHIn3KebjXgt7YYIfbGPjZuvg==
   dependencies:
     passport-oauth2 "^1.6.1"
 
