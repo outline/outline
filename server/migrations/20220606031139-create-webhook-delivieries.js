@@ -13,6 +13,7 @@ module.exports = {
           webhookSubscriptionId: {
             type: Sequelize.UUID,
             allowNull: false,
+            onDelete: "cascade",
             references: {
               model: "webhook_subscriptions",
             },
