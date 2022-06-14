@@ -347,6 +347,29 @@ export class Environment {
   );
 
   /**
+   * Mattermost OAuth2 client credentials. To enable authentication with Mattermost.
+   */
+  @IsOptional()
+  @CannotUseWithout("MATTERMOST_CLIENT_SECRET")
+  public MATTERMOST_CLIENT_ID = this.toOptionalString(
+    process.env.MATTERMOST_CLIENT_ID
+  );
+
+  @IsOptional()
+  @CannotUseWithout("MATTERMOST_CLIENT_ID")
+  public MATTERMOST_CLIENT_SECRET = this.toOptionalString(
+    process.env.MATTERMOST_CLIENT_SECRET
+  );
+
+  @IsOptional()
+  @IsUrl()
+  @CannotUseWithout("MATTERMOST_CLIENT_ID")
+  @CannotUseWithout("MATTERMOST_CLIENT_SECRET")
+  public MATTERMOST_BACKEND_URL = this.toOptionalString(
+    process.env.MATTERMOST_BACKEND_URL
+  );
+
+  /**
    * Slack OAuth2 client credentials. To enable authentication with Slack.
    */
   @IsOptional()
