@@ -1,4 +1,3 @@
-import invariant from "invariant";
 import Logger from "@server/logging/Logger";
 import {
   User,
@@ -101,7 +100,7 @@ export default class WebhookProcessor extends BaseProcessor {
         await this.handleDocumentEvent(subscription, event);
         return;
       case "revisions.create":
-        await this.handleRevisionEvent(subscription, event);
+        await this.handleDocumentEvent(subscription, event);
         return;
       case "fileOperations.create":
       case "fileOperations.update":
@@ -158,12 +157,10 @@ export default class WebhookProcessor extends BaseProcessor {
   ): Promise<void> {
     const hydratedModel = await WebhookSubscription.findByPk(event.modelId);
 
-    invariant(hydratedModel, "WebhookSubscription not found");
-
     await this.sendWebhook({
       event,
       subscription,
-      modelPayload: presentWebhookSubscription(hydratedModel),
+      modelPayload: hydratedModel && presentWebhookSubscription(hydratedModel),
     });
   }
 
@@ -173,12 +170,10 @@ export default class WebhookProcessor extends BaseProcessor {
   ): Promise<void> {
     const hydratedModel = await Star.findByPk(event.modelId);
 
-    invariant(hydratedModel, "Star not found");
-
     await this.sendWebhook({
       event,
       subscription,
-      modelPayload: presentStar(hydratedModel),
+      modelPayload: hydratedModel && presentStar(hydratedModel),
     });
   }
 
@@ -188,12 +183,10 @@ export default class WebhookProcessor extends BaseProcessor {
   ): Promise<void> {
     const hydratedModel = await Pin.findByPk(event.modelId);
 
-    invariant(hydratedModel, "Pin not found");
-
     await this.sendWebhook({
       event,
       subscription,
-      modelPayload: presentPin(hydratedModel),
+      modelPayload: hydratedModel && presentPin(hydratedModel),
     });
   }
 
@@ -203,12 +196,10 @@ export default class WebhookProcessor extends BaseProcessor {
   ): Promise<void> {
     const hydratedModel = await Team.findByPk(event.teamId);
 
-    invariant(hydratedModel, "Team not found");
-
     await this.sendWebhook({
       event,
       subscription,
-      modelPayload: presentTeam(hydratedModel),
+      modelPayload: hydratedModel && presentTeam(hydratedModel),
     });
   }
 
@@ -218,12 +209,10 @@ export default class WebhookProcessor extends BaseProcessor {
   ): Promise<void> {
     const hydratedModel = await Integration.findByPk(event.modelId);
 
-    invariant(hydratedModel, "Integration not found");
-
     await this.sendWebhook({
       event,
       subscription,
-      modelPayload: presentIntegration(hydratedModel),
+      modelPayload: hydratedModel && presentIntegration(hydratedModel),
     });
   }
 
@@ -233,12 +222,10 @@ export default class WebhookProcessor extends BaseProcessor {
   ): Promise<void> {
     const hydratedModel = await Group.findByPk(event.modelId);
 
-    invariant(hydratedModel, "Group not found");
-
     await this.sendWebhook({
       event,
       subscription,
-      modelPayload: presentGroup(hydratedModel),
+      modelPayload: hydratedModel && presentGroup(hydratedModel),
     });
   }
 
@@ -248,12 +235,10 @@ export default class WebhookProcessor extends BaseProcessor {
   ): Promise<void> {
     const hydratedModel = await Collection.findByPk(event.collectionId);
 
-    invariant(hydratedModel, "Collection not found");
-
     await this.sendWebhook({
       event,
       subscription,
-      modelPayload: presentCollection(hydratedModel),
+      modelPayload: hydratedModel && presentCollection(hydratedModel),
     });
   }
 
@@ -263,42 +248,24 @@ export default class WebhookProcessor extends BaseProcessor {
   ): Promise<void> {
     const hydratedFileOperation = await FileOperation.findByPk(event.modelId);
 
-    invariant(hydratedFileOperation, "File Operation not found");
-
     await this.sendWebhook({
       event,
       subscription,
-      modelPayload: presentFileOperation(hydratedFileOperation),
-    });
-  }
-
-  async handleRevisionEvent(
-    subscription: WebhookSubscription,
-    event: RevisionEvent
-  ): Promise<void> {
-    const hydratedDocument = await Document.findByPk(event.documentId);
-
-    invariant(hydratedDocument, "Document not found");
-
-    await this.sendWebhook({
-      event,
-      subscription,
-      modelPayload: presentDocument(hydratedDocument),
+      modelPayload:
+        hydratedFileOperation && presentFileOperation(hydratedFileOperation),
     });
   }
 
   async handleDocumentEvent(
     subscription: WebhookSubscription,
-    event: DocumentEvent
+    event: DocumentEvent | RevisionEvent
   ): Promise<void> {
     const hydratedDocument = await Document.findByPk(event.documentId);
-
-    invariant(hydratedDocument, "Document not found");
 
     await this.sendWebhook({
       event,
       subscription,
-      modelPayload: presentDocument(hydratedDocument),
+      modelPayload: hydratedDocument && presentDocument(hydratedDocument),
     });
   }
 
@@ -317,12 +284,10 @@ export default class WebhookProcessor extends BaseProcessor {
     } else {
       const hydratedUser = await User.findByPk(event.userId);
 
-      invariant(hydratedUser, "User not found");
-
       await this.sendWebhook({
         event,
         subscription,
-        modelPayload: presentUser(hydratedUser),
+        modelPayload: hydratedUser && presentUser(hydratedUser),
       });
     }
   }
