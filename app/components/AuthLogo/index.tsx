@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+import MattermostLogo from "~/components/AuthLogo/MattermostLogo";
 import GoogleLogo from "./GoogleLogo";
 import MicrosoftLogo from "./MicrosoftLogo";
 import SlackLogo from "./SlackLogo";
@@ -22,6 +23,13 @@ function AuthLogo({ providerName, size = 16 }: Props) {
       return (
         <Logo>
           <GoogleLogo size={size} />
+        </Logo>
+      );
+
+    case "mattermost":
+      return (
+        <Logo>
+          <MattermostLogo size={size} />
         </Logo>
       );
 
