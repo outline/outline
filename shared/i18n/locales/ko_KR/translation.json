@@ -129,6 +129,7 @@
   "{{userName}} deleted": "{{userName}} 삭제됨",
   "{{userName}} moved from trash": "{{userName}} 휴지통에서 이동 됨",
   "{{userName}} published": "{{userName}} 게시됨",
+  "{{userName}} unpublished": "{{userName}} unpublished",
   "{{userName}} moved": "{{userName}} 이동 됨",
   "Icon": "아이콘",
   "Show menu": "메뉴 보기",
