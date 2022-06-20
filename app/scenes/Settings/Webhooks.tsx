@@ -45,7 +45,7 @@ function Webhooks() {
     >
       <Heading>{t("Webhooks")}</Heading>
       <Text type="secondary">
-        <Trans defaults="You can make an unlimited number of Webhooks. They are URLs that will be hit when events happen in Outline, and can be used to create custom integrations." />
+        <Trans defaults="Webhooks can be used to notify your application when events happen in Outline. Events are sent as a https request with a JSON payload in near real-time." />
       </Text>
       <PaginatedList
         fetch={webhookSubscriptions.fetchPage}
