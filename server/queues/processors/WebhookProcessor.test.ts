@@ -45,7 +45,6 @@ describe("WebhookProcessor", () => {
     );
     expect(parsedBody.webhookSubscriptionId).toBe(subscription.id);
     expect(parsedBody.event).toBe("users.signin");
-    expect(parsedBody.teamId).toBe(subscription.teamId);
     expect(parsedBody.payload.id).toBe(signedInUser.id);
     expect(parsedBody.payload.model).toBeDefined();
 
@@ -86,7 +85,6 @@ describe("WebhookProcessor", () => {
     );
     expect(parsedBody.webhookSubscriptionId).toBe(subscription.id);
     expect(parsedBody.event).toBe("users.delete");
-    expect(parsedBody.teamId).toBe(subscription.teamId);
     expect(parsedBody.payload.id).toBe(deletedUserId);
 
     const deliveries = await WebhookDelivery.findAll({
@@ -123,7 +121,41 @@ describe("WebhookProcessor", () => {
     expect(deliveries.length).toBe(0);
   });
 
-  test("should disable the subscription is past deliveries failed", async () => {
+  test("should mark delivery as failed if post fails", async () => {
+    const subscription = await buildWebhookSubscription({
+      url: "http://example.com",
+      events: ["*"],
+    });
+
+    fetchMock.mockResponse("", { status: 500 });
+
+    const signedInUser = await buildUser({ teamId: subscription.teamId });
+    const processor = new WebhookProcessor();
+
+    await processor.perform({
+      name: "users.signin",
+      userId: signedInUser.id,
+      teamId: subscription.teamId,
+      actorId: signedInUser.id,
+      ip,
+    });
+
+    await subscription.reload();
+
+    expect(subscription.enabled).toBe(true);
+
+    const deliveries = await WebhookDelivery.findAll({
+      where: { webhookSubscriptionId: subscription.id },
+    });
+    expect(deliveries.length).toBe(1);
+
+    const delivery = deliveries[0];
+    expect(delivery.status).toBe("failed");
+    expect(delivery.statusCode).toBe(500);
+    expect(delivery.responseBody).toBeDefined();
+  });
+
+  test("should disable the subscription if past deliveries failed", async () => {
     const subscription = await buildWebhookSubscription({
       url: "http://example.com",
       events: ["*"],

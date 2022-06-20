@@ -374,7 +374,7 @@ export default class WebhookProcessor extends BaseProcessor {
         (delivery) => delivery.status === "failed"
       );
 
-      if (allFailed) {
+      if (recentDeliveries.length === 25 && allFailed) {
         await subscription.update({ enabled: false });
       }
     }
