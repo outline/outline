@@ -76,30 +76,35 @@ const EventCheckboxLabel = styled.label`
   align-items: center;
 
   padding: 0.5rem 0;
+`;
 
-  &.group-label {
-    font-weight: bold;
-    font-size: 1.2em;
-  }
+const GroupEventCheckboxLabel = styled(EventCheckboxLabel)`
+  font-weight: bold;
+  font-size: 1.2em;
+`;
 
-  &.all-label {
-    font-weight: bold;
-    font-size: 2em;
-    padding-bottom: 1em;
-  }
+const AllEventCheckboxLabel = styled(EventCheckboxLabel)`
+  font-weight: bold;
+  font-size: 2em;
+  padding-bottom: 1em;
 `;
 
 const EventCheckboxText = styled.span`
-  margin-right: 0.5rem;
+  margin-left: 0.5rem;
 `;
 
-const FieldSet = styled.fieldset`
+interface FieldProps {
+  disabled?: boolean;
+}
+const FieldSet = styled.fieldset<FieldProps>`
   padding-left: 0;
   border: none;
 
-  &.disabled {
-    opacity: 50%;
-  }
+  ${({ disabled }) =>
+    disabled &&
+    `
+    opacity: 0.5;
+    `}
 `;
 
 const GroupGrid = styled.div`
@@ -134,10 +139,6 @@ interface FormData {
   name: string;
   url: string;
   events: string[];
-}
-
-function joinClasses(...classes: (string | boolean | undefined)[]) {
-  return classes.filter(Boolean).join(" ");
 }
 
 function WebhookSubscriptionNew({ onSubmit }: Props) {
@@ -206,22 +207,22 @@ function WebhookSubscriptionNew({ onSubmit }: Props) {
   }, [events, filteredEvents, setValue]);
 
   function EventCheckbox({ label, value }: { label: string; value: string }) {
+    const LabelComponent =
+      value === "*"
+        ? AllEventCheckboxLabel
+        : Object.keys(WEBHOOK_EVENTS).includes(value)
+        ? GroupEventCheckboxLabel
+        : EventCheckboxLabel;
+
     return (
-      <EventCheckboxLabel
-        className={joinClasses(
-          value === "*" && "all-label",
-          value !== "*" &&
-            Object.keys(WEBHOOK_EVENTS).includes(value) &&
-            "group-label"
-        )}
-      >
-        <EventCheckboxText>{label}</EventCheckboxText>
+      <LabelComponent>
         <input
           type="checkbox"
           defaultValue={value}
           {...register("events", {})}
         />
-      </EventCheckboxLabel>
+        <EventCheckboxText>{label}</EventCheckboxText>
+      </LabelComponent>
     );
   }
 
@@ -229,14 +230,15 @@ function WebhookSubscriptionNew({ onSubmit }: Props) {
     <form onSubmit={formHandleSubmit(handleSubmit)}>
       <Text type="secondary">
         <Trans>
-          Provide a descriptive name for this webhook and the URL we
-          should send a POST request to when matching events are created.
+          Provide a descriptive name for this webhook and the URL we should send
+          a POST request to when matching events are created.
         </Trans>
       </Text>
       <Text type="secondary">
         <Trans>
-          Subscribe to all events, groups, or individual events. We recommend only subscribing to
-          the minimum amount of events that your application needs to function.
+          Subscribe to all events, groups, or individual events. We recommend
+          only subscribing to the minimum amount of events that your application
+          needs to function.
         </Trans>
       </Text>
       <TextFields>
@@ -251,6 +253,8 @@ function WebhookSubscriptionNew({ onSubmit }: Props) {
           required
           autoFocus
           flex
+          pattern="https://.*"
+          placeholder="https://…"
           label="URL"
           {...register("url", { required: true })}
         />
@@ -260,18 +264,21 @@ function WebhookSubscriptionNew({ onSubmit }: Props) {
 
       <FieldSet
         disabled={isAllEventSelected}
-        className={joinClasses(isAllEventSelected && "disabled")}
+        className={isAllEventSelected ? "disabled" : ""}
       >
-        <GroupGrid className={joinClasses(isMobile && "mobile")}>
+        <GroupGrid className={isMobile ? "mobile" : ""}>
           {Object.entries(WEBHOOK_EVENTS).map(([group, events], i) => (
-            <GroupWrapper key={i} className={joinClasses(isMobile && "mobile")}>
-              <EventCheckbox label={t(`All ${group} Events`)} value={group} />
+            <GroupWrapper key={i} className={isMobile ? "mobile" : ""}>
+              <EventCheckbox
+                label={t(`All {{ groupName }} events`, { groupName: group })}
+                value={group}
+              />
               <FieldSet
                 className={selectedGroups.includes(group) ? "disabled" : ""}
                 disabled={selectedGroups.includes(group)}
               >
-                {events.map((event, i) => (
-                  <EventCheckbox label={event} value={event} key={i} />
+                {events.map((event) => (
+                  <EventCheckbox label={event} value={event} key={event} />
                 ))}
               </FieldSet>
             </GroupWrapper>

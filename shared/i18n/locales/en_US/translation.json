@@ -592,6 +592,7 @@
   "Provide a descriptive name for this webhook and the URL we should send a POST request to when matching events are created.": "Provide a descriptive name for this webhook and the URL we should send a POST request to when matching events are created.",
   "Subscribe to all events, groups, or individual events. We recommend only subscribing to the minimum amount of events that your application needs to function.": "Subscribe to all events, groups, or individual events. We recommend only subscribing to the minimum amount of events that your application needs to function.",
   "All events": "All events",
+  "All {{ groupName }} events": "All {{ groupName }} events",
   "Logo updated": "Logo updated",
   "Unable to upload new logo": "Unable to upload new logo",
   "These settings affect the way that your knowledge base appears to everyone on the team.": "These settings affect the way that your knowledge base appears to everyone on the team.",
