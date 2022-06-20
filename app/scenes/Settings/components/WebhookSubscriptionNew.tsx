@@ -229,15 +229,14 @@ function WebhookSubscriptionNew({ onSubmit }: Props) {
     <form onSubmit={formHandleSubmit(handleSubmit)}>
       <Text type="secondary">
         <Trans>
-          Provide a descriptive name for this webhook and provide the URL we
-          should send a POST request to when matching events come in.
+          Provide a descriptive name for this webhook and the URL we
+          should send a POST request to when matching events are created.
         </Trans>
       </Text>
       <Text type="secondary">
         <Trans>
-          You can subscribe to specific events with the checkboxes below. You
-          can subscribe to all events, subscribe to groups or individual event
-          types.
+          Subscribe to all events, groups, or individual events. We recommend only subscribing to
+          the minimum amount of events that your application needs to function.
         </Trans>
       </Text>
       <TextFields>
@@ -283,7 +282,7 @@ function WebhookSubscriptionNew({ onSubmit }: Props) {
         type="submit"
         disabled={formState.isSubmitting || !formState.isValid}
       >
-        {formState.isSubmitting ? "Creating…" : "Create"}
+        {formState.isSubmitting ? `t("Creating")…` : t("Create")}
       </Button>
     </form>
   );

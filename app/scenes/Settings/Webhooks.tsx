@@ -27,15 +27,15 @@ function Webhooks() {
 
   return (
     <Scene
-      title={t("Webhook Subscriptions")}
-      icon={<CodeIcon color="currentColor" />}
+      title={t("Webhooks")}
+      icon={<GlobeIcon color="currentColor" />}
       actions={
         <>
           {can.createWebhookSubscription && (
             <Action>
               <Button
                 type="submit"
-                value={`${t("New webhook subscription")}…`}
+                value={`${t("New webhook")}…`}
                 onClick={handleNewModalOpen}
               />
             </Action>

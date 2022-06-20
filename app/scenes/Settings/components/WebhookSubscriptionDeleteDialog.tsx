@@ -27,7 +27,7 @@ export default function WebhookSubscriptionRevokeDialog({
       danger
     >
       {t(
-        "Are you sure you want to delete the {{ name }} webhook subscription?",
+        "Are you sure you want to delete the {{ name }} webhook?",
         {
           name: webhook.name,
         }
