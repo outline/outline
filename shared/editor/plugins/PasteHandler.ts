@@ -52,11 +52,29 @@ export default class PasteHandler extends Extension {
             }
             return html;
           },
+          handleDOMEvents: {
+            keydown: (_, event) => {
+              if (event.key === "Shift") {
+                this.shiftKey = true;
+              }
+              return false;
+            },
+            keyup: (_, event) => {
+              if (event.key === "Shift") {
+                this.shiftKey = false;
+              }
+              return false;
+            },
+          },
           handlePaste: (view, event: ClipboardEvent) => {
+            // Do nothing if the document isn't currently editable
             if (view.props.editable && !view.props.editable(view.state)) {
               return false;
             }
-            if (!event.clipboardData) {
+
+            // Default behavior if there is nothing on the clipboard or were
+            // special pasting with no formatting (Shift held)
+            if (!event.clipboardData || this.shiftKey) {
               return false;
             }
 
@@ -170,4 +188,7 @@ export default class PasteHandler extends Extension {
       }),
     ];
   }
+
+  /** Tracks whether the Shift key is currently held down */
+  private shiftKey = false;
 }
