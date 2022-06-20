@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import WebhookSubscription from "~/models/WebhookSubscription";
+import Badge from "~/components/Badge";
 import Button from "~/components/Button";
 import ListItem from "~/components/List/Item";
 import useStores from "~/hooks/useStores";
@@ -27,20 +28,23 @@ const WebhookSubscriptionListItem = ({ webhook }: Props) => {
     });
   }, [t, dialogs, webhook]);
 
-  const postfix = webhook.enabled ? "" : " (disabled)";
-  const displayName = `${webhook.name}${postfix}`;
   return (
     <ListItem
       key={webhook.id}
-      title={displayName}
+      title={
+        <p>
+          {webhook.name}
+          {!webhook.enabled && <Badge yellow={true}>{t("disabled")}</Badge>}
+        </p>
+      }
       subtitle={
         <>
-         {t("Subscribed events")}: <code>{webhook.events.join(", ")}</code>
+          {t("Subscribed events")}: <code>{webhook.events.join(", ")}</code>
         </>
       }
       actions={
         <Button onClick={showDeletionConfirmation} neutral>
-         {t("Delete")}
+          {t("Delete")}
         </Button>
       }
     />
