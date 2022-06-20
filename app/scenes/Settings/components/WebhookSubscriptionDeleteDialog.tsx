@@ -26,12 +26,9 @@ export default function WebhookSubscriptionRevokeDialog({
       savingText={`${t("Deleting")}…`}
       danger
     >
-      {t(
-        "Are you sure you want to delete the {{ name }} webhook?",
-        {
-          name: webhook.name,
-        }
-      )}
+      {t("Are you sure you want to delete the {{ name }} webhook?", {
+        name: webhook.name,
+      })}
     </ConfirmationDialog>
   );
 }
