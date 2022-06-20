@@ -14,13 +14,10 @@ export default class WebhookProcessor extends BaseProcessor {
       },
     });
 
-    await Promise.all(
-      webhookSubscriptions
-        .filter((webhook) => webhook.validForEvent(event))
-        .map((subscription: WebhookSubscription) => {
-          const task = new DeliverWebhookTask();
-          return task.perform({ subscription, event });
-        })
-    );
+    for (const subscription of webhookSubscriptions.filter((webhook) =>
+      webhook.validForEvent(event)
+    )) {
+      DeliverWebhookTask.schedule({ event, subscription });
+    }
   }
 }
