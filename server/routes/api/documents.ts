@@ -853,6 +853,7 @@ router.post("documents.update", auth(), async (ctx) => {
   const document = await sequelize.transaction(async (transaction) => {
     const document = await Document.findByPk(id, {
       userId: user.id,
+      includeState: true,
       transaction,
     });
     authorize(user, "update", document);
