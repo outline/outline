@@ -129,6 +129,7 @@
   "{{userName}} deleted": "{{userName}} verwijderd",
   "{{userName}} moved from trash": "{{userName}} uit prullenbak verplaatst",
   "{{userName}} published": "{{userName}} gepubliceerd",
+  "{{userName}} unpublished": "{{userName}} unpublished",
   "{{userName}} moved": "{{userName}} verplaatst",
   "Icon": "Icoon",
   "Show menu": "Toon menu",

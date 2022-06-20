@@ -112,6 +112,7 @@ class Event extends IdModel {
     "collections.move",
     "collections.permission_changed",
     "documents.publish",
+    "documents.unpublish",
     "documents.archive",
     "documents.unarchive",
     "documents.move",

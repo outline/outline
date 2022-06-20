@@ -5,6 +5,7 @@ import {
   PublishIcon,
   MoveIcon,
   CheckboxIcon,
+  UnpublishIcon,
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -83,6 +84,11 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
     case "documents.publish":
       icon = <PublishIcon color="currentColor" size={16} />;
       meta = t("{{userName}} published", opts);
+      break;
+
+    case "documents.unpublish":
+      icon = <UnpublishIcon color="currentColor" size={16} />;
+      meta = t("{{userName}} unpublished", opts);
       break;
 
     case "documents.move":

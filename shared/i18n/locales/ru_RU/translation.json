@@ -129,6 +129,7 @@
   "{{userName}} deleted": "{{userName}} удален",
   "{{userName}} moved from trash": "{{userName}} перемещен из корзины",
   "{{userName}} published": "Опубликовано {{userName}}",
+  "{{userName}} unpublished": "{{userName}} unpublished",
   "{{userName}} moved": "Перемещено {{userName}}",
   "Icon": "Значок",
   "Show menu": "Показать меню",

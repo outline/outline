@@ -129,6 +129,7 @@
   "{{userName}} deleted": "{{userName}} 將其刪除",
   "{{userName}} moved from trash": "{{userName}} 從垃圾桶移出",
   "{{userName}} published": "{{userName}} 已將其發布",
+  "{{userName}} unpublished": "{{userName}} unpublished",
   "{{userName}} moved": "{{userName}} 將其移動",
   "Icon": "圖示",
   "Show menu": "顯示選單",

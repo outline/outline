@@ -129,6 +129,7 @@
   "{{userName}} deleted": "{{userName}} eliminado",
   "{{userName}} moved from trash": "{{userName}} movido de la papelera",
   "{{userName}} published": "{{userName}} publicado",
+  "{{userName}} unpublished": "{{userName}} unpublished",
   "{{userName}} moved": "{{userName}} movido",
   "Icon": "Ícono",
   "Show menu": "Mostrar menú",

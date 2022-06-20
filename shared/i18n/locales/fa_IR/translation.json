@@ -129,6 +129,7 @@
   "{{userName}} deleted": "{{userName}} حذف شد",
   "{{userName}} moved from trash": "{{userName}} از سطل زباله خارج شد",
   "{{userName}} published": "{{userName}} منتشر شد",
+  "{{userName}} unpublished": "{{userName}} unpublished",
   "{{userName}} moved": "{{userName}} منتقل شد",
   "Icon": "نماد",
   "Show menu": "نمایش منو",

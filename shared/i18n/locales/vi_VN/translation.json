@@ -129,6 +129,7 @@
   "{{userName}} deleted": "{{userName}} đã bị xóa",
   "{{userName}} moved from trash": "{{userName}} chuyển từ thùng rác",
   "{{userName}} published": "{{userName}} đã đăng tải",
+  "{{userName}} unpublished": "{{userName}} unpublished",
   "{{userName}} moved": "{{userName}} đã chuyển",
   "Icon": "Icon",
   "Show menu": "Hiện Menu",

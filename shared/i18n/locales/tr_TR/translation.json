@@ -129,6 +129,7 @@
   "{{userName}} deleted": "{{userName}} sildi",
   "{{userName}} moved from trash": "{{userName}} çöp kutusundan taşıdı",
   "{{userName}} published": "{{userName}} yayınladı",
+  "{{userName}} unpublished": "{{userName}} unpublished",
   "{{userName}} moved": "{{userName}} taşıdı",
   "Icon": "İkon",
   "Show menu": "Menüyü göster",
