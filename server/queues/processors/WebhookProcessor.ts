@@ -337,7 +337,6 @@ export default class WebhookProcessor extends BaseProcessor {
     const jsonBody = presentWebhook({
       event,
       delivery,
-      subscription,
       payload,
     });
     const body = JSON.stringify(jsonBody);
