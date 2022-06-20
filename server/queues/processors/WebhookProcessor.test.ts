@@ -27,6 +27,9 @@ describe("WebhookProcessor", () => {
     });
     const signedInUser = await buildUser({ teamId: subscription.teamId });
     const processor = new WebhookProcessor();
+
+    fetchMock.mockResponse("SUCCESS", { status: 200 });
+
     await processor.perform({
       name: "users.signin",
       userId: signedInUser.id,
@@ -56,7 +59,7 @@ describe("WebhookProcessor", () => {
     const delivery = deliveries[0];
     expect(delivery.status).toBe("success");
     expect(delivery.statusCode).toBe(200);
-    expect(delivery.responseBody).toBeDefined();
+    expect(delivery.responseBody).toEqual("SUCCESS");
   });
 
   test("should hit the subscription url when the eventing model doesn't exist", async () => {
@@ -127,7 +130,7 @@ describe("WebhookProcessor", () => {
       events: ["*"],
     });
 
-    fetchMock.mockResponse("", { status: 500 });
+    fetchMock.mockResponse("FAILED", { status: 500 });
 
     const signedInUser = await buildUser({ teamId: subscription.teamId });
     const processor = new WebhookProcessor();
@@ -153,6 +156,7 @@ describe("WebhookProcessor", () => {
     expect(delivery.status).toBe("failed");
     expect(delivery.statusCode).toBe(500);
     expect(delivery.responseBody).toBeDefined();
+    expect(delivery.responseBody).toEqual("FAILED");
   });
 
   test("should disable the subscription if past deliveries failed", async () => {
@@ -167,7 +171,9 @@ describe("WebhookProcessor", () => {
       });
     }
 
-    fetchMock.mockResponse("", { status: 500 });
+    fetchMock.mockResponse(JSON.stringify({ message: "Failure" }), {
+      status: 500,
+    });
 
     const signedInUser = await buildUser({ teamId: subscription.teamId });
     const processor = new WebhookProcessor();
@@ -193,6 +199,6 @@ describe("WebhookProcessor", () => {
     const delivery = deliveries[0];
     expect(delivery.status).toBe("failed");
     expect(delivery.statusCode).toBe(500);
-    expect(delivery.responseBody).toBeDefined();
+    expect(delivery.responseBody).toEqual('{"message":"Failure"}');
   });
 });

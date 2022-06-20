@@ -35,7 +35,7 @@ module.exports = {
             allowNull: true,
           },
           responseBody: {
-            type: Sequelize.BLOB,
+            type: Sequelize.TEXT,
             allowNull: true,
           },
           responseHeaders: {
