@@ -359,7 +359,7 @@ export default class WebhookProcessor extends BaseProcessor {
       statusCode: response.status,
       requestBody: jsonBody,
       requestHeaders: headers,
-      responseBody: response.body?.toString(),
+      responseBody: await response.text(),
       responseHeaders: response.headers,
     });
 

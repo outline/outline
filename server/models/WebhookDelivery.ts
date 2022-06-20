@@ -31,8 +31,8 @@ class WebhookDelivery extends IdModel {
   @Column(DataType.JSONB)
   requestHeaders: Record<string, string>;
 
-  @Column(DataType.BLOB)
-  responseBody: unknown;
+  @Column(DataType.TEXT)
+  responseBody: string;
 
   @Column(DataType.JSONB)
   responseHeaders: Record<string, string>;
