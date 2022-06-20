@@ -9,10 +9,13 @@ export default function Notices() {
 
   return (
     <>
-      {notice === "google-hd" && (
+      {notice === "domain-required" && (
         <NoticeAlert>
-          Sorry, Google sign in cannot be used with a personal email. Please try
-          signing in with your Google Workspace account.
+          Unable to sign-in. Please navigate to your team's custom URL, then try
+          to sign-in again.
+          <hr />
+          If you were invited to a team, you will find a link to it in the
+          invite email.
         </NoticeAlert>
       )}
       {notice === "maximum-teams" && (
@@ -21,7 +24,7 @@ export default function Notices() {
           installation. Try another?
         </NoticeAlert>
       )}
-      {notice === "malformed_user_info" && (
+      {notice === "malformed-user-info" && (
         <NoticeAlert>
           We could not read the user info supplied by your identity provider.
         </NoticeAlert>
@@ -38,7 +41,7 @@ export default function Notices() {
           try again in a few minutes.
         </NoticeAlert>
       )}
-      {notice === "auth-error" &&
+      {(notice === "auth-error" || notice === "state-mismatch") &&
         (description ? (
           <NoticeAlert>{description}</NoticeAlert>
         ) : (
