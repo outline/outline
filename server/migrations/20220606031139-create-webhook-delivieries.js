@@ -53,6 +53,18 @@ module.exports = {
         },
         { transaction }
       );
+      await queryInterface.addIndex(
+        "webhook_deliveries",
+        ["webhookSubscriptionId"],
+        {
+          name: "webhook_deliveries_webhook_subscription_id",
+          transaction,
+        }
+      );
+      await queryInterface.addIndex("webhook_deliveries", ["createdAt"], {
+        name: "webhook_deliveries_createdAt",
+        transaction,
+      });
     });
   },
   down: async (queryInterface, Sequelize) => {

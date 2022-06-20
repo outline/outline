@@ -51,6 +51,15 @@ module.exports = {
         },
         { transaction }
       );
+
+      await queryInterface.addIndex(
+        "webhook_subscriptions",
+        ["teamId", "enabled"],
+        {
+          name: "webhook_subscriptions_team_id_enabled",
+          transaction,
+        }
+      );
     });
   },
   down: async (queryInterface, Sequelize) => {
