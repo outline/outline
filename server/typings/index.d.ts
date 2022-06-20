@@ -12,6 +12,11 @@ declare module "oy-vey";
 
 declare module "fetch-test-server";
 
+declare module "email-providers" {
+  const list: string[];
+  export default list;
+}
+
 declare module "@joplin/turndown-plugin-gfm" {
   import { Plugin } from "turndown";
 

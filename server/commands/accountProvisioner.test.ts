@@ -22,7 +22,7 @@ describe("accountProvisioner", () => {
       ip,
       user: {
         name: "Jenny Tester",
-        email: "jenny@example.com",
+        email: "jenny@example-company.com",
         avatarUrl: "https://example.com/avatar.png",
         username: "jtester",
       },
@@ -33,7 +33,7 @@ describe("accountProvisioner", () => {
       },
       authenticationProvider: {
         name: "google",
-        providerId: "example.com",
+        providerId: "example-company.com",
       },
       authentication: {
         providerId: "123456789",
@@ -47,7 +47,7 @@ describe("accountProvisioner", () => {
     expect(auth.scopes.length).toEqual(1);
     expect(auth.scopes[0]).toEqual("read");
     expect(team.name).toEqual("New team");
-    expect(user.email).toEqual("jenny@example.com");
+    expect(user.email).toEqual("jenny@example-company.com");
     expect(user.username).toEqual("jtester");
     expect(isNewUser).toEqual(true);
     expect(isNewTeam).toEqual(true);
@@ -68,7 +68,7 @@ describe("accountProvisioner", () => {
     });
     const authentications = await existing.$get("authentications");
     const authentication = authentications[0];
-    const newEmail = "test@example.com";
+    const newEmail = "test@example-company.com";
     const newUsername = "tname";
     const { user, isNewUser, isNewTeam } = await accountProvisioner({
       ip,
@@ -170,7 +170,7 @@ describe("accountProvisioner", () => {
         ip,
         user: {
           name: "Jenny Tester",
-          email: "jenny@example.com",
+          email: "jenny@example-company.com",
           avatarUrl: "https://example.com/avatar.png",
           username: "jtester",
         },
@@ -203,7 +203,7 @@ describe("accountProvisioner", () => {
     const authenticationProvider = authenticationProviders[0];
     await TeamDomain.create({
       teamId: team.id,
-      name: "example.com",
+      name: "example-company.com",
       createdById: admin.id,
     });
 
@@ -211,7 +211,7 @@ describe("accountProvisioner", () => {
       ip,
       user: {
         name: "Jenny Tester",
-        email: "jenny@example.com",
+        email: "jenny@example-company.com",
         avatarUrl: "https://example.com/avatar.png",
         username: "jtester",
       },
@@ -235,7 +235,7 @@ describe("accountProvisioner", () => {
     expect(auth.accessToken).toEqual("123");
     expect(auth.scopes.length).toEqual(1);
     expect(auth.scopes[0]).toEqual("read");
-    expect(user.email).toEqual("jenny@example.com");
+    expect(user.email).toEqual("jenny@example-company.com");
     expect(user.username).toEqual("jtester");
     expect(isNewUser).toEqual(true);
     expect(spy).toHaveBeenCalled();
@@ -255,7 +255,7 @@ describe("accountProvisioner", () => {
       ip,
       user: {
         name: "Jenny Tester",
-        email: "jenny@example.com",
+        email: "jenny@example-company.com",
         avatarUrl: "https://example.com/avatar.png",
         username: "jtester",
       },
@@ -279,7 +279,7 @@ describe("accountProvisioner", () => {
     expect(auth.accessToken).toEqual("123");
     expect(auth.scopes.length).toEqual(1);
     expect(auth.scopes[0]).toEqual("read");
-    expect(user.email).toEqual("jenny@example.com");
+    expect(user.email).toEqual("jenny@example-company.com");
     expect(user.username).toEqual("jtester");
     expect(isNewUser).toEqual(true);
     expect(spy).toHaveBeenCalled();
@@ -301,7 +301,7 @@ describe("accountProvisioner", () => {
           ip,
           user: {
             name: "Jenny Tester",
-            email: "jenny@example.com",
+            email: "jenny@example-company.com",
             avatarUrl: "https://example.com/avatar.png",
             username: "jtester",
           },
@@ -312,7 +312,7 @@ describe("accountProvisioner", () => {
           },
           authenticationProvider: {
             name: "google",
-            providerId: "example.com",
+            providerId: "example-company.com",
           },
           authentication: {
             providerId: "123456789",
@@ -337,7 +337,7 @@ describe("accountProvisioner", () => {
         ip,
         user: {
           name: "Jenny Tester",
-          email: "jenny@example.com",
+          email: "jenny@example-company.com",
           avatarUrl: "https://example.com/avatar.png",
           username: "jtester",
         },
