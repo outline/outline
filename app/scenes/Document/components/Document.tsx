@@ -285,7 +285,7 @@ class DocumentScene extends React.Component<Props> {
       autosave?: boolean;
     } = {}
   ) => {
-    const { document, auth } = this.props;
+    const { document } = this.props;
     // prevent saves when we are already saving
     if (document.isSaving) {
       return;
@@ -311,22 +311,10 @@ class DocumentScene extends React.Component<Props> {
     this.isPublishing = !!options.publish;
 
     try {
-      let savedDocument = document;
-
-      if (auth.team?.collaborativeEditing) {
-        // update does not send "text" field to the API, this is a workaround
-        // while the multiplayer editor is toggleable. Once it's finalized
-        // this can be cleaned up to single code path
-        savedDocument = await document.update({
-          ...options,
-          lastRevision: this.lastRevision,
-        });
-      } else {
-        savedDocument = await document.save({
-          ...options,
-          lastRevision: this.lastRevision,
-        });
-      }
+      const savedDocument = await document.save({
+        ...options,
+        lastRevision: this.lastRevision,
+      });
 
       this.isEditorDirty = false;
       this.lastRevision = savedDocument.revision;

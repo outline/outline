@@ -1,11 +1,11 @@
 import { addDays, differenceInDays } from "date-fns";
 import { floor } from "lodash";
-import { action, autorun, computed, observable } from "mobx";
+import { action, autorun, computed, observable, set } from "mobx";
 import parseTitle from "@shared/utils/parseTitle";
 import unescape from "@shared/utils/unescape";
 import DocumentsStore from "~/stores/DocumentsStore";
 import User from "~/models/User";
-import { NavigationNode } from "~/types";
+import type { NavigationNode } from "~/types";
 import Storage from "~/utils/Storage";
 import ParanoidModel from "./ParanoidModel";
 import View from "./View";
@@ -63,7 +63,6 @@ export default class Document extends ParanoidModel {
   @observable
   title: string;
 
-  @Field
   @observable
   template: boolean;
 
@@ -310,79 +309,32 @@ export default class Document extends ParanoidModel {
   };
 
   @action
-  update = async (
-    options: SaveOptions & {
-      title?: string;
-      lastRevision?: number;
-    }
-  ) => {
-    if (this.isSaving) {
-      return this;
-    }
-    this.isSaving = true;
-
-    try {
-      if (options.lastRevision) {
-        return await this.store.update(
-          {
-            id: this.id,
-            title: options.title || this.title,
-            fullWidth: this.fullWidth,
-          },
-          {
-            lastRevision: options.lastRevision,
-            publish: options?.publish,
-            done: options?.done,
-          }
-        );
-      }
-
-      throw new Error("Attempting to update without a lastRevision");
-    } finally {
-      this.isSaving = false;
-    }
-  };
-
-  @action
   save = async (options?: SaveOptions | undefined) => {
-    if (this.isSaving) {
-      return this;
+    const params = this.toAPI();
+    const collaborativeEditing = this.store.rootStore.auth.team
+      ?.collaborativeEditing;
+
+    if (collaborativeEditing) {
+      delete params.text;
     }
-    const isCreating = !this.id;
+
     this.isSaving = true;
 
     try {
-      if (isCreating) {
-        return await this.store.create(
-          {
-            parentDocumentId: this.parentDocumentId,
-            collectionId: this.collectionId,
-            title: this.title,
-            text: this.text,
-          },
-          {
-            publish: options?.publish,
-            done: options?.done,
-            autosave: options?.autosave,
-          }
-        );
-      }
-
-      return await this.store.update(
-        {
-          id: this.id,
-          title: this.title,
-          text: this.text,
-          fullWidth: this.fullWidth,
-          templateId: this.templateId,
-        },
+      const model = await this.store.save(
+        { ...params, id: this.id },
         {
           lastRevision: options?.lastRevision || this.revision,
-          publish: options?.publish,
-          done: options?.done,
-          autosave: options?.autosave,
+          ...options,
         }
       );
+
+      // if saving is successful set the new values on the model itself
+      set(this, { ...params, ...model });
+
+      this.persistedAttributes = this.toAPI();
+
+      return model;
     } finally {
       this.isSaving = false;
     }
