@@ -841,6 +841,10 @@ const EditorStyles = styled.div<{
     user-select: none;
     cursor: default;
 
+    * {
+      font-family: ${(props) => props.theme.fontFamily};
+    }
+
     &.diagram-hidden {
       display: none;
     }
