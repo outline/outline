@@ -58,7 +58,12 @@ function getNewState({
         import("mermaid").then((module) => {
           module.default.initialize({
             startOnLoad: true,
-            themeVariables: { fontFamily: "inherit" },
+            flowchart: {
+              htmlLabels: false,
+            },
+            themeVariables: {
+              fontFamily: "inherit",
+            },
           });
           try {
             module.default.render(
