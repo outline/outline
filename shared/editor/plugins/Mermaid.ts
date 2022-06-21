@@ -13,12 +13,10 @@ function getNewState({
   doc,
   name,
   pluginState,
-  newDiagramShowCode,
 }: {
   doc: Node;
   name: string;
   pluginState: MermaidState;
-  newDiagramShowCode: boolean;
 }) {
   const decorations: Decoration[] = [];
 
@@ -42,9 +40,9 @@ function getNewState({
       diagramId = uuidv4();
     }
 
-    // Make the diagram visible by default, unless explicitly set to false
+    // Make the diagram visible by default if it contains source code
     if (pluginState.diagramVisibility[diagramId] === undefined) {
-      pluginState.diagramVisibility[diagramId] = newDiagramShowCode ?? true;
+      pluginState.diagramVisibility[diagramId] = !!block.node.textContent;
     }
 
     const diagramDecoration = Decoration.widget(
@@ -138,8 +136,6 @@ export default function Mermaid({ name }: { name: string }) {
         const ySyncEdit = !!transaction.getMeta("y-sync$");
         const mermaidMeta = transaction.getMeta("mermaid");
         const diagramToggled = mermaidMeta?.toggleDiagram !== undefined;
-        const newDiagramShowCode =
-          mermaidMeta?.newDiagramShowCode !== undefined;
 
         if (diagramToggled) {
           pluginState.diagramVisibility[
@@ -153,7 +149,6 @@ export default function Mermaid({ name }: { name: string }) {
             doc: transaction.doc,
             name,
             pluginState,
-            newDiagramShowCode,
           });
         }
 

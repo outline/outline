@@ -244,18 +244,11 @@ export default class CodeFence extends Node {
 
     if (result) {
       const language = element.value;
-
-      let transaction = tr
+      const transaction = tr
         .setSelection(Selection.near(view.state.doc.resolve(result.inside)))
         .setNodeMarkup(result.inside, undefined, {
           language,
         });
-
-      if (language === "mermaidjs") {
-        transaction = transaction.setMeta("mermaid", {
-          newDiagramShowCode: true,
-        });
-      }
 
       view.dispatch(transaction);
 
