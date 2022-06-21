@@ -787,7 +787,8 @@ const EditorStyles = styled.div<{
       padding: 2px 4px;
     }
 
-    &:hover, &:focus-within {
+    &:hover,
+    &:focus-within {
       select {
         display: ${(props) => (props.readOnly ? "none" : "inline")};
       }
@@ -804,12 +805,22 @@ const EditorStyles = styled.div<{
       display: inline;
     }
 
+    button.show-source-button {
+      display: none;
+    }
+
+    button.show-diagram-button {
+      display: inline;
+    }
+
     &.code-hidden { 
-      button, select {
+      button,
+      select,
+      button.show-diagram-button {
         display: none;
       }
-      
-      button.diagram-toggle-button {
+
+      button.show-source-button {
         display: inline;
       }
 
@@ -827,6 +838,8 @@ const EditorStyles = styled.div<{
     background: ${(props) => props.theme.codeBackground};
     border-radius: 6px;
     border: 1px solid ${(props) => props.theme.codeBorder};
+    user-select: none;
+    cursor: default;
 
     &.diagram-hidden {
       display: none;

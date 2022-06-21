@@ -2,9 +2,9 @@ import { Node } from "prosemirror-model";
 import { Plugin, PluginKey, Transaction } from "prosemirror-state";
 import { findBlockNodes } from "prosemirror-utils";
 import { Decoration, DecorationSet } from "prosemirror-view";
+import { v4 as uuidv4 } from "uuid";
 
 type MermaidState = {
-  lastDiagramIdGenerated: number;
   decorationSet: DecorationSet;
   diagramVisibility: Record<number, boolean>;
 };
@@ -21,36 +21,33 @@ function getNewState({
   newDiagramShowCode: boolean;
 }) {
   const decorations: Decoration[] = [];
+
+  // Find all blocks that represent Mermaid diagrams
   const blocks: { node: Node; pos: number }[] = findBlockNodes(doc).filter(
-    (item) => item.node.type.name === name
+    (item) =>
+      item.node.type.name === name && item.node.attrs.language === "mermaidjs"
   );
 
   blocks.forEach((block) => {
-    const language = block.node.attrs.language;
-    if (!language || language !== "mermaidjs") {
-      return;
-    }
-
     const diagramDecorationPos = block.pos + block.node.nodeSize;
     const existingDecorations = pluginState.decorationSet.find(
       block.pos,
       diagramDecorationPos
     );
+
+    // Attempt to find the existing diagramId from the decoration, or assign
+    // a new one if none exists yet.
     let diagramId = existingDecorations[0]?.spec["diagramId"];
     if (diagramId === undefined) {
-      diagramId = pluginState.lastDiagramIdGenerated + 1;
-      pluginState.lastDiagramIdGenerated += 1;
-
-      if (newDiagramShowCode) {
-        pluginState.diagramVisibility[diagramId] = false;
-      }
+      diagramId = uuidv4();
     }
 
+    // Make the diagram visible by default, unless explicitly set to false
     if (pluginState.diagramVisibility[diagramId] === undefined) {
-      pluginState.diagramVisibility[diagramId] = true;
+      pluginState.diagramVisibility[diagramId] = newDiagramShowCode ?? true;
     }
 
-    const _diagramDecoration = Decoration.widget(
+    const diagramDecoration = Decoration.widget(
       block.pos + block.node.nodeSize,
       () => {
         const diagramWrapper = document.createElement("div");
@@ -87,30 +84,29 @@ function getNewState({
         return diagramWrapper;
       },
       {
-        diagramId: diagramId,
+        diagramId,
       }
     );
 
-    const codeBlockOptions = { "data-diagram-id": "" + diagramId };
+    const attributes = { "data-diagram-id": "" + diagramId };
     if (pluginState.diagramVisibility[diagramId] !== false) {
-      codeBlockOptions["class"] = "code-hidden";
+      attributes["class"] = "code-hidden";
     }
 
-    const _diagramIdDecoration = Decoration.node(
+    const diagramIdDecoration = Decoration.node(
       block.pos,
       block.pos + block.node.nodeSize,
-      codeBlockOptions,
+      attributes,
       {
-        diagramId: diagramId,
+        diagramId,
       }
     );
 
-    decorations.push(_diagramDecoration);
-    decorations.push(_diagramIdDecoration);
+    decorations.push(diagramDecoration);
+    decorations.push(diagramIdDecoration);
   });
 
   return {
-    lastDiagramIdGenerated: pluginState.lastDiagramIdGenerated,
     decorationSet: DecorationSet.create(doc, decorations),
     diagramVisibility: pluginState.diagramVisibility,
   };
@@ -124,7 +120,6 @@ export default function Mermaid({ name }: { name: string }) {
     state: {
       init: (_: Plugin, { doc }) => {
         const pluginState: MermaidState = {
-          lastDiagramIdGenerated: 0,
           decorationSet: DecorationSet.create(doc, []),
           diagramVisibility: {},
         };
@@ -142,11 +137,9 @@ export default function Mermaid({ name }: { name: string }) {
           transaction.docChanged && [nodeName, previousNodeName].includes(name);
         const ySyncEdit = !!transaction.getMeta("y-sync$");
         const mermaidMeta = transaction.getMeta("mermaid");
-        const diagramToggled =
-          mermaidMeta !== undefined && mermaidMeta.toggleDiagram !== undefined;
+        const diagramToggled = mermaidMeta?.toggleDiagram !== undefined;
         const newDiagramShowCode =
-          mermaidMeta !== undefined &&
-          mermaidMeta.newDiagramShowCode !== undefined;
+          mermaidMeta?.newDiagramShowCode !== undefined;
 
         if (diagramToggled) {
           pluginState.diagramVisibility[
@@ -165,7 +158,6 @@ export default function Mermaid({ name }: { name: string }) {
         }
 
         return {
-          lastDiagramIdGenerated: pluginState.lastDiagramIdGenerated,
           decorationSet: pluginState.decorationSet.map(
             transaction.mapping,
             transaction.doc

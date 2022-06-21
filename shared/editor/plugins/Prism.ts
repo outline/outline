@@ -7,7 +7,6 @@ import refractor from "refractor/core";
 
 export const LANGUAGES = {
   none: "None", // additional entry to disable highlighting
-  mermaidjs: "Mermaid Diagram",
   bash: "Bash",
   css: "CSS",
   clike: "C",
@@ -18,6 +17,7 @@ export const LANGUAGES = {
   java: "Java",
   javascript: "JavaScript",
   json: "JSON",
+  mermaidjs: "Mermaid Diagram",
   perl: "Perl",
   php: "PHP",
   powershell: "Powershell",

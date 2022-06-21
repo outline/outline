@@ -136,16 +136,22 @@ export default class CodeFence extends Node {
           select.appendChild(option);
         });
 
+        // For the Mermaid language we add an extra button to toggle between
+        // source code and a rendered diagram view.
         if (node.attrs.language === "mermaidjs") {
-          const toggleDiagramButton = document.createElement("button");
-          toggleDiagramButton.innerText = this.options.dictionary.toggleDiagramCode;
-          toggleDiagramButton.type = "button";
-          toggleDiagramButton.classList.add("diagram-toggle-button");
-          toggleDiagramButton.addEventListener(
-            "click",
-            this.handleToggleDiagram
-          );
-          actions.prepend(toggleDiagramButton);
+          const showSourceButton = document.createElement("button");
+          showSourceButton.innerText = this.options.dictionary.showSource;
+          showSourceButton.type = "button";
+          showSourceButton.classList.add("show-source-button");
+          showSourceButton.addEventListener("click", this.handleToggleDiagram);
+          actions.prepend(showSourceButton);
+
+          const showDiagramButton = document.createElement("button");
+          showDiagramButton.innerText = this.options.dictionary.showDiagram;
+          showDiagramButton.type = "button";
+          showDiagramButton.classList.add("show-digram-button");
+          showDiagramButton.addEventListener("click", this.handleToggleDiagram);
+          actions.prepend(showDiagramButton);
         }
 
         return [
@@ -272,15 +278,13 @@ export default class CodeFence extends Node {
       return;
     }
 
-    const diagramIdString = element
+    const diagramId = element
       .closest(".code-block")
       ?.getAttribute("data-diagram-id");
-
-    if (!diagramIdString) {
+    if (!diagramId) {
       return;
     }
 
-    const diagramId: number = +diagramIdString;
     const transaction = tr.setMeta("mermaid", { toggleDiagram: diagramId });
     view.dispatch(transaction);
   };
