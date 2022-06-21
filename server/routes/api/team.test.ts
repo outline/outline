@@ -28,19 +28,28 @@ describe("#team.update", () => {
     const res = await server.post("/api/team.update", {
       body: {
         token: admin.getJwtToken(),
-        allowedDomains: ["example.com", "", "example.org", "", ""],
+        allowedDomains: [
+          "example-company.com",
+          "",
+          "example-company.org",
+          "",
+          "",
+        ],
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.allowedDomains).toEqual(["example.com", "example.org"]);
+    expect(body.data.allowedDomains).toEqual([
+      "example-company.com",
+      "example-company.org",
+    ]);
 
     const teamDomains: TeamDomain[] = await TeamDomain.findAll({
       where: { teamId: team.id },
     });
     expect(teamDomains.map((d) => d.name)).toEqual([
-      "example.com",
-      "example.org",
+      "example-company.com",
+      "example-company.org",
     ]);
   });
 
@@ -48,7 +57,7 @@ describe("#team.update", () => {
     const { admin, team } = await seed();
     const existingTeamDomain = await TeamDomain.create({
       teamId: team.id,
-      name: "example.com",
+      name: "example-company.com",
       createdById: admin.id,
     });
 
@@ -74,25 +83,28 @@ describe("#team.update", () => {
     const { admin, team } = await seed();
     const existingTeamDomain = await TeamDomain.create({
       teamId: team.id,
-      name: "example.com",
+      name: "example-company.com",
       createdById: admin.id,
     });
 
     const res = await server.post("/api/team.update", {
       body: {
         token: admin.getJwtToken(),
-        allowedDomains: ["example.org", "example.net"],
+        allowedDomains: ["example-company.org", "example-company.net"],
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.allowedDomains).toEqual(["example.org", "example.net"]);
+    expect(body.data.allowedDomains).toEqual([
+      "example-company.org",
+      "example-company.net",
+    ]);
 
     const teamDomains: TeamDomain[] = await TeamDomain.findAll({
       where: { teamId: team.id },
     });
     expect(teamDomains.map((d) => d.name).sort()).toEqual(
-      ["example.org", "example.net"].sort()
+      ["example-company.org", "example-company.net"].sort()
     );
 
     expect(await TeamDomain.findByPk(existingTeamDomain.id)).toBeNull();

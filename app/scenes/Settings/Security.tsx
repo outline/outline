@@ -59,12 +59,12 @@ function Security() {
         setData(newData);
         await auth.updateTeam(newData);
         showSuccessMessage();
+        setDomainsChanged(false);
       } catch (err) {
+        setDomainsChanged(true);
         showToast(err.message, {
           type: "error",
         });
-      } finally {
-        setDomainsChanged(false);
       }
     },
     [auth, showSuccessMessage, showToast]

@@ -245,7 +245,7 @@ describe("userCreator", () => {
     const { admin, team } = await seed();
     await TeamDomain.create({
       teamId: team.id,
-      name: "example.com",
+      name: "example-company.com",
       createdById: admin.id,
     });
 
@@ -253,7 +253,7 @@ describe("userCreator", () => {
     const authenticationProvider = authenticationProviders[0];
     const result = await userCreator({
       name: "Test Name",
-      email: "user@example.com",
+      email: "user@example-company.com",
       teamId: team.id,
       ip,
       authentication: {
@@ -267,7 +267,7 @@ describe("userCreator", () => {
     expect(authentication.accessToken).toEqual("123");
     expect(authentication.scopes.length).toEqual(1);
     expect(authentication.scopes[0]).toEqual("read");
-    expect(user.email).toEqual("user@example.com");
+    expect(user.email).toEqual("user@example-company.com");
     expect(isNewUser).toEqual(true);
   });
 
