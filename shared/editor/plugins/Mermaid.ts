@@ -55,7 +55,10 @@ function getNewState({
           diagramWrapper.classList.add("diagram-hidden");
         }
 
-        import("mermaid").then((module) => {
+        import(
+          /* webpackChunkName: "mermaid" */
+          "mermaid"
+        ).then((module) => {
           module.default.initialize({
             startOnLoad: true,
             flowchart: {
