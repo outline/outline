@@ -3,6 +3,7 @@ import { TeamIcon } from "outline-icons";
 import { useRef, useState } from "react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import { getBaseDomain } from "@shared/utils/domains";
 import Button from "~/components/Button";
 import DefaultCollectionInputSelect from "~/components/DefaultCollectionInputSelect";
 import Heading from "~/components/Heading";
@@ -13,7 +14,7 @@ import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
-import isHosted from "~/utils/isHosted";
+import isCloudHosted from "~/utils/isCloudHosted";
 import ImageInput from "./components/ImageInput";
 import SettingRow from "./components/SettingRow";
 
@@ -134,14 +135,16 @@ function Details() {
           />
         </SettingRow>
         <SettingRow
-          visible={env.SUBDOMAINS_ENABLED && isHosted}
+          visible={env.SUBDOMAINS_ENABLED && isCloudHosted}
           label={t("Subdomain")}
           name="subdomain"
           description={
             subdomain ? (
               <>
                 <Trans>Your knowledge base will be accessible at</Trans>{" "}
-                <strong>{subdomain}.getoutline.com</strong>
+                <strong>
+                  {subdomain}.{getBaseDomain()}
+                </strong>
               </>
             ) : (
               t("Choose a subdomain to enable a login page just for your team.")

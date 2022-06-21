@@ -1,6 +1,6 @@
 import invariant from "invariant";
 import { client } from "./ApiClient";
-import Logger from "./logger";
+import Logger from "./Logger";
 
 type UploadOptions = {
   /** The user facing name of the file */

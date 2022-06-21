@@ -23,7 +23,7 @@ import RegisterKeyDown from "~/components/RegisterKeyDown";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import withStores from "~/components/withStores";
-import Logger from "~/utils/logger";
+import Logger from "~/utils/Logger";
 import { searchPath } from "~/utils/routeHelpers";
 import { decodeURIComponentSafe } from "~/utils/urls";
 import CollectionFilter from "./components/CollectionFilter";

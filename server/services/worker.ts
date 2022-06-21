@@ -1,4 +1,4 @@
-import Logger from "@server/logging/logger";
+import Logger from "@server/logging/Logger";
 import * as Tracing from "@server/logging/tracing";
 import { APM } from "@server/logging/tracing";
 import {

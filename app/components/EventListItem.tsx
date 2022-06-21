@@ -5,6 +5,7 @@ import {
   PublishIcon,
   MoveIcon,
   CheckboxIcon,
+  UnpublishIcon,
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -85,6 +86,11 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
       meta = t("{{userName}} published", opts);
       break;
 
+    case "documents.unpublish":
+      icon = <UnpublishIcon color="currentColor" size={16} />;
+      meta = t("{{userName}} unpublished", opts);
+      break;
+
     case "documents.move":
       icon = <MoveIcon color="currentColor" size={16} />;
       meta = t("{{userName}} moved", opts);
@@ -113,7 +119,10 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
         <Time
           dateTime={event.createdAt}
           tooltipDelay={500}
-          format="MMM do, h:mm a"
+          format={{
+            en_US: "MMM do, h:mm a",
+            fr_FR: "'Le 'd MMMM 'à' H:mm",
+          }}
           relative={false}
           addSuffix
           onClick={handleTimeClick}

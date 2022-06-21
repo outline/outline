@@ -1,6 +1,6 @@
 import { QueryTypes } from "sequelize";
 import { sequelize } from "@server/database/sequelize";
-import Logger from "@server/logging/logger";
+import Logger from "@server/logging/Logger";
 import { Document, Attachment } from "@server/models";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 

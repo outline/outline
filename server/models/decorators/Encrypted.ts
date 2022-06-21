@@ -1,4 +1,6 @@
+import { isNil } from "lodash";
 import vaults from "@server/database/vaults";
+import Logger from "@server/logging/Logger";
 
 const key = "sequelize:vault";
 
@@ -15,7 +17,22 @@ export default function Encrypted(target: any, propertyKey: string) {
  * Get the value of an encrypted column given the target and the property key.
  */
 export function getEncryptedColumn(target: any, propertyKey: string): string {
-  return Reflect.getMetadata(key, target, propertyKey).get.call(target);
+  try {
+    return Reflect.getMetadata(key, target, propertyKey).get.call(target);
+  } catch (err) {
+    if (err.message.includes("Unexpected end of JSON input")) {
+      return "";
+    }
+    if (err.message.includes("bad decrypt")) {
+      Logger.error(
+        `Failed to decrypt database column (${propertyKey}). The SECRET_KEY environment variable may have changed since installation.`,
+        err
+      );
+      process.exit(1);
+    }
+
+    throw err;
+  }
 }
 
 /**
@@ -26,5 +43,9 @@ export function setEncryptedColumn(
   propertyKey: string,
   value: string
 ) {
-  Reflect.getMetadata(key, target, propertyKey).set.call(target, value);
+  if (isNil(value)) {
+    target.setDataValue(propertyKey, value);
+  } else {
+    Reflect.getMetadata(key, target, propertyKey).set.call(target, value);
+  }
 }

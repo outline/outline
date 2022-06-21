@@ -41,6 +41,10 @@ const Column = styled.div`
     min-width: 60%;
   }
 
+  &:last-child {
+    min-width: 0;
+  }
+
   ${breakpoint("tablet")`
     p {
       margin-bottom: 0;

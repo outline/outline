@@ -38,6 +38,13 @@ const RealInput = styled.input<{ hasIcon?: boolean }>`
     color: ${(props) => props.theme.placeholder};
   }
 
+  &:-webkit-autofill,
+  &:-webkit-autofill:hover,
+  &:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0px 1000px ${(props) => props.theme.background}
+      inset;
+  }
+
   &::-webkit-search-cancel-button {
     -webkit-appearance: none;
   }
@@ -97,7 +104,7 @@ export const LabelText = styled.div`
   display: inline-block;
 `;
 
-export type Props = React.HTMLAttributes<HTMLInputElement> & {
+export type Props = Omit<React.HTMLAttributes<HTMLInputElement>, "onChange"> & {
   type?: "text" | "email" | "checkbox" | "search" | "textarea";
   value?: string;
   label?: string;
@@ -108,6 +115,7 @@ export type Props = React.HTMLAttributes<HTMLInputElement> & {
   margin?: string | number;
   icon?: React.ReactNode;
   name?: string;
+  pattern?: string;
   minLength?: number;
   maxLength?: number;
   autoFocus?: boolean;

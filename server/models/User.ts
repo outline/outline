@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import { addMinutes, subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
-import { Transaction, QueryTypes, FindOptions, Op } from "sequelize";
+import { Transaction, QueryTypes, SaveOptions, Op } from "sequelize";
 import {
   Table,
   Column,
@@ -23,8 +23,8 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import { languages } from "@shared/i18n";
 import { stringToColor } from "@shared/utils/color";
-import Logger from "@server/logging/logger";
-import { DEFAULT_AVATAR_HOST } from "@server/utils/avatars";
+import env from "@server/env";
+import Logger from "@server/logging/Logger";
 import { publicS3Endpoint, uploadToS3FromUrl } from "@server/utils/s3";
 import { ValidationError } from "../errors";
 import ApiKey from "./ApiKey";
@@ -137,7 +137,7 @@ class User extends ParanoidModel {
   @Column(DataType.JSONB)
   flags: { [key in UserFlag]?: number } | null;
 
-  @Default(process.env.DEFAULT_LANGUAGE)
+  @Default(env.DEFAULT_LANGUAGE)
   @IsIn([languages])
   @Column
   language: string;
@@ -156,7 +156,7 @@ class User extends ParanoidModel {
       .createHash("md5")
       .update(this.email || "")
       .digest("hex");
-    return `${DEFAULT_AVATAR_HOST}/avatar/${hash}/${initial}.png?c=${color}`;
+    return `${env.DEFAULT_AVATAR_HOST}/avatar/${hash}/${initial}.png?c=${color}`;
   }
 
   set avatarUrl(value: string | null) {
@@ -299,8 +299,25 @@ class User extends ParanoidModel {
     });
   };
 
-  // Returns a session token that is used to make API requests and is stored
-  // in the client browser cookies to remain logged in.
+  /**
+   * Rotate's the users JWT secret. This has the effect of invalidating ALL
+   * previously issued tokens.
+   *
+   * @param options Save options
+   * @returns Promise that resolves when database persisted
+   */
+  rotateJwtSecret = (options: SaveOptions) => {
+    User.setRandomJwtSecret(this);
+    return this.save(options);
+  };
+
+  /**
+   * Returns a session token that is used to make API requests and is stored
+   * in the client browser cookies to remain logged in.
+   *
+   * @param expiresAt The time the token will expire at
+   * @returns The session token
+   */
   getJwtToken = (expiresAt?: Date) => {
     return JWT.sign(
       {
@@ -312,8 +329,13 @@ class User extends ParanoidModel {
     );
   };
 
-  // Returns a temporary token that is only used for transferring a session
-  // between subdomains or domains. It has a short expiry and can only be used once
+  /**
+   * Returns a temporary token that is only used for transferring a session
+   * between subdomains or domains. It has a short expiry and can only be used
+   * once.
+   *
+   * @returns The transfer token
+   */
   getTransferToken = () => {
     return JWT.sign(
       {
@@ -326,8 +348,12 @@ class User extends ParanoidModel {
     );
   };
 
-  // Returns a temporary token that is only used for logging in from an email
-  // It can only be used to sign in once and has a medium length expiry
+  /**
+   * Returns a temporary token that is only used for logging in from an email
+   * It can only be used to sign in once and has a medium length expiry
+   *
+   * @returns The email signin token
+   */
   getEmailSigninToken = () => {
     return JWT.sign(
       {
@@ -439,7 +465,7 @@ class User extends ParanoidModel {
       avatarUrl &&
       !avatarUrl.startsWith("/api") &&
       !avatarUrl.startsWith(endpoint) &&
-      !avatarUrl.startsWith(DEFAULT_AVATAR_HOST)
+      !avatarUrl.startsWith(env.DEFAULT_AVATAR_HOST)
     ) {
       try {
         const newUrl = await uploadToS3FromUrl(
@@ -536,25 +562,6 @@ class User extends ParanoidModel {
       suspended: parseInt(counts.suspendedCount),
     };
   };
-
-  static async findAllInBatches(
-    query: FindOptions<User>,
-    callback: (users: Array<User>, query: FindOptions<User>) => Promise<void>
-  ) {
-    if (!query.offset) {
-      query.offset = 0;
-    }
-    if (!query.limit) {
-      query.limit = 10;
-    }
-    let results;
-
-    do {
-      results = await this.findAll(query);
-      await callback(results, query);
-      query.offset += query.limit;
-    } while (results.length >= query.limit);
-  }
 }
 
 export default User;

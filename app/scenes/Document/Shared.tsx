@@ -1,7 +1,8 @@
 import { Location } from "history";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { RouteComponentProps } from "react-router-dom";
+import { Helmet } from "react-helmet";
+import { RouteComponentProps, useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
 import DocumentModel from "~/models/Document";
 import Error404 from "~/scenes/Error404";
@@ -27,6 +28,14 @@ type Props = RouteComponentProps<{
 }> & {
   location: Location<{ title?: string }>;
 };
+
+// Parse the canonical origin from the SSR HTML, only needs to be done once.
+const canonicalUrl = document
+  .querySelector("link[rel=canonical]")
+  ?.getAttribute("href");
+const canonicalOrigin = canonicalUrl
+  ? new URL(canonicalUrl).origin
+  : window.location.origin;
 
 /**
  * Find the document UUID from the slug given the sharedTree
@@ -63,6 +72,7 @@ function useDocumentId(documentSlug: string, response?: Response) {
 function SharedDocumentScene(props: Props) {
   const { ui } = useStores();
   const theme = useTheme();
+  const location = useLocation();
   const [response, setResponse] = React.useState<Response>();
   const [error, setError] = React.useState<Error | null | undefined>();
   const { documents } = useStores();
@@ -107,15 +117,23 @@ function SharedDocumentScene(props: Props) {
   ) : undefined;
 
   return (
-    <Layout title={response.document.title} sidebar={sidebar}>
-      <Document
-        abilities={EMPTY_OBJECT}
-        document={response.document}
-        sharedTree={response.sharedTree}
-        shareId={shareId}
-        readOnly
-      />
-    </Layout>
+    <>
+      <Helmet>
+        <link
+          rel="canonical"
+          href={canonicalOrigin + location.pathname.replace(/\/$/, "")}
+        />
+      </Helmet>
+      <Layout title={response.document.title} sidebar={sidebar}>
+        <Document
+          abilities={EMPTY_OBJECT}
+          document={response.document}
+          sharedTree={response.sharedTree}
+          shareId={shareId}
+          readOnly
+        />
+      </Layout>
+    </>
   );
 }
 

@@ -83,7 +83,7 @@ function Slack() {
           }}
         />
       </Text>
-      {env.SLACK_KEY ? (
+      {env.SLACK_CLIENT_ID ? (
         <>
           <p>
             {commandIntegration ? (
@@ -92,7 +92,14 @@ function Slack() {
               </Button>
             ) : (
               <SlackButton
-                scopes={["commands", "links:read", "links:write"]}
+                scopes={[
+                  "commands",
+                  "links:read",
+                  "links:write",
+                  // TODO: Wait forever for Slack to approve these scopes.
+                  //"users:read",
+                  //"users:read.email",
+                ]}
                 redirectUri={`${env.URL}/auth/slack.commands`}
                 state={team.id}
                 icon={<SlackIcon color="currentColor" />}

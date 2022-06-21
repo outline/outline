@@ -3,6 +3,8 @@ import { EditorState, Transaction } from "prosemirror-state";
 import * as React from "react";
 import { DefaultTheme } from "styled-components";
 
+export type PlainTextSerializer = (node: ProsemirrorNode) => string;
+
 export enum EventType {
   blockMenuOpen = "blockMenuOpen",
   blockMenuClose = "blockMenuClose",

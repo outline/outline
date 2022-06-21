@@ -5,12 +5,14 @@ import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { useLocation, Link, Redirect } from "react-router-dom";
 import styled from "styled-components";
-import { setCookie } from "tiny-cookie";
+import { getCookie, setCookie } from "tiny-cookie";
+import { parseDomain } from "@shared/utils/domains";
 import { Config } from "~/stores/AuthStore";
 import ButtonLarge from "~/components/ButtonLarge";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
+import LoadingIndicator from "~/components/LoadingIndicator";
 import NoticeAlert from "~/components/NoticeAlert";
 import OutlineLogo from "~/components/OutlineLogo";
 import PageTitle from "~/components/PageTitle";
@@ -19,17 +21,16 @@ import Text from "~/components/Text";
 import env from "~/env";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
-import { isCustomDomain } from "~/utils/domains";
-import isHosted from "~/utils/isHosted";
+import isCloudHosted from "~/utils/isCloudHosted";
 import { changeLanguage, detectLanguage } from "~/utils/language";
+import AuthenticationProvider from "./AuthenticationProvider";
 import Notices from "./Notices";
-import Provider from "./Provider";
 
 function Header({ config }: { config?: Config | undefined }) {
   const { t } = useTranslation();
   const isSubdomain = !!config?.hostname;
 
-  if (!isHosted || isCustomDomain()) {
+  if (!isCloudHosted || parseDomain(window.location.origin).custom) {
     return null;
   }
 
@@ -77,11 +78,11 @@ function Login() {
 
   React.useEffect(() => {
     const entries = Object.fromEntries(query.entries());
+    const existing = getCookie("signupQueryParams");
 
-    // We don't want to override this cookie if we're viewing an error notice
-    // sent back from the server via query string (notice=), or if there are no
-    // query params at all.
-    if (Object.keys(entries).length && !query.get("notice")) {
+    // We don't want to set this cookie if we're viewing an error notice via
+    // query string(notice =), if there are no query params, or it's already set
+    if (Object.keys(entries).length && !query.get("notice") && !existing) {
       setCookie("signupQueryParams", JSON.stringify(entries));
     }
   }, [query]);
@@ -102,10 +103,11 @@ function Login() {
           <PageTitle title={t("Login")} />
           <NoticeAlert>
             {t("Failed to load configuration.")}
-            {!isHosted && (
+            {!isCloudHosted && (
               <p>
-                Check the network requests and server logs for full details of
-                the error.
+                {t(
+                  "Check the network requests and server logs for full details of the error."
+                )}
               </p>
             )}
           </NoticeAlert>
@@ -114,9 +116,10 @@ function Login() {
     );
   }
 
-  // we're counting on the config request being fast, so display nothing while waiting
+  // we're counting on the config request being fast, so just a simple loading
+  // indicator here that's delayed by 250ms
   if (!config) {
-    return null;
+    return <LoadingIndicator />;
   }
 
   const hasMultipleProviders = config.providers.length > 1;
@@ -152,10 +155,10 @@ function Login() {
   return (
     <Background>
       <Header config={config} />
-      <Centered align="center" justify="center" column auto>
+      <Centered align="center" justify="center" gap={12} column auto>
         <PageTitle title={t("Login")} />
         <Logo>
-          {env.TEAM_LOGO && !isHosted ? (
+          {env.TEAM_LOGO && !isCloudHosted ? (
             <TeamLogo src={env.TEAM_LOGO} />
           ) : (
             <OutlineLogo size={38} fill="currentColor" />
@@ -163,7 +166,7 @@ function Login() {
         </Logo>
         {isCreate ? (
           <>
-            <Heading centered>{t("Create an account")}</Heading>
+            <StyledHeading centered>{t("Create an account")}</StyledHeading>
             <GetStarted>
               {t(
                 "Get started by choosing a sign-in method for your new team below…"
@@ -171,16 +174,16 @@ function Login() {
             </GetStarted>
           </>
         ) : (
-          <Heading centered>
+          <StyledHeading centered>
             {t("Login to {{ authProviderName }}", {
               authProviderName: config.name || "Outline",
             })}
-          </Heading>
+          </StyledHeading>
         )}
         <Notices />
         {defaultProvider && (
           <React.Fragment key={defaultProvider.id}>
-            <Provider
+            <AuthenticationProvider
               isCreate={isCreate}
               onEmailSuccess={handleEmailSuccess}
               {...defaultProvider}
@@ -192,18 +195,18 @@ function Login() {
                     authProviderName: defaultProvider.name,
                   })}
                 </Note>
-                <Or />
+                <Or data-text={t("Or")} />
               </>
             )}
           </React.Fragment>
         )}
-        {config.providers.map((provider: any) => {
+        {config.providers.map((provider) => {
           if (defaultProvider && provider.id === defaultProvider.id) {
             return null;
           }
 
           return (
-            <Provider
+            <AuthenticationProvider
               key={provider.id}
               isCreate={isCreate}
               onEmailSuccess={handleEmailSuccess}
@@ -223,6 +226,10 @@ function Login() {
   );
 }
 
+const StyledHeading = styled(Heading)`
+  margin: 0;
+`;
+
 const CheckEmailIcon = styled(EmailIcon)`
   margin-bottom: -1.5em;
 `;
@@ -235,7 +242,6 @@ const Background = styled(Fade)`
 `;
 
 const Logo = styled.div`
-  margin-bottom: -1.5em;
   height: 38px;
 `;
 
@@ -279,7 +285,7 @@ const Or = styled.hr`
   width: 100%;
 
   &:after {
-    content: "Or";
+    content: attr(data-text);
     display: block;
     position: absolute;
     left: 50%;

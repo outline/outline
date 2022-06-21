@@ -1,6 +1,6 @@
 import { Transaction } from "sequelize";
 import { sequelize } from "@server/database/sequelize";
-import Logger from "@server/logging/logger";
+import Logger from "@server/logging/Logger";
 import { APM } from "@server/logging/tracing";
 import {
   ApiKey,
@@ -37,7 +37,7 @@ async function teamPermanentDeleter(team: Team) {
 
   try {
     transaction = await sequelize.transaction();
-    await Attachment.findAllInBatches(
+    await Attachment.findAllInBatches<Attachment>(
       {
         where: {
           teamId,
@@ -62,7 +62,7 @@ async function teamPermanentDeleter(team: Team) {
       }
     );
     // Destroy user-relation models
-    await User.findAllInBatches(
+    await User.findAllInBatches<User>(
       {
         attributes: ["id"],
         where: {

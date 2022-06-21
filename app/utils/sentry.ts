@@ -13,7 +13,7 @@ export function initSentry(history: History) {
         routingInstrumentation: Sentry.reactRouterV5Instrumentation(history),
       }),
     ],
-    tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1,
+    tracesSampleRate: env.ENVIRONMENT === "production" ? 0.1 : 1,
     ignoreErrors: [
       "ResizeObserver loop completed with undelivered notifications",
       "ResizeObserver loop limit exceeded",

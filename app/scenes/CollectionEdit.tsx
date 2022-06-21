@@ -104,7 +104,7 @@ const CollectionEdit = ({ collectionId, onSubmit }: Props) => {
           label={t("Sort in sidebar")}
           options={[
             {
-              label: t("Alphabetical"),
+              label: t("Alphabetical sort"),
               value: "title.asc",
             },
             {

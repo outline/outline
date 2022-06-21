@@ -4,7 +4,7 @@ import attachmentCreator from "@server/commands/attachmentCreator";
 import documentCreator from "@server/commands/documentCreator";
 import { sequelize } from "@server/database/sequelize";
 import { ValidationError } from "@server/errors";
-import Logger from "@server/logging/logger";
+import Logger from "@server/logging/Logger";
 import {
   User,
   Event,

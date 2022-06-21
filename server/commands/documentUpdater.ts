@@ -60,24 +60,22 @@ export default async function documentUpdater({
   if (fullWidth !== undefined) {
     document.fullWidth = fullWidth;
   }
-  if (!user.team?.collaborativeEditing) {
-    if (append) {
+  if (text !== undefined) {
+    if (user.team?.collaborativeEditing) {
+      document.updateFromMarkdown(text, append);
+    } else if (append) {
       document.text += text;
-    } else if (text !== undefined) {
+    } else {
       document.text = text;
     }
   }
 
-  document.lastModifiedById = user.id;
   const changed = document.changed();
 
   if (publish) {
+    document.lastModifiedById = user.id;
     await document.publish(user.id, { transaction });
-  } else {
-    await document.save({ transaction });
-  }
 
-  if (publish) {
     await Event.create(
       {
         name: "documents.publish",
@@ -93,6 +91,9 @@ export default async function documentUpdater({
       { transaction }
     );
   } else if (changed) {
+    document.lastModifiedById = user.id;
+    await document.save({ transaction });
+
     await Event.create(
       {
         name: "documents.update",

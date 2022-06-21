@@ -42,8 +42,9 @@ function Collaborators(props: Props) {
         filter(
           users.orderedData,
           (user) =>
-            presentIds.includes(user.id) ||
-            document.collaboratorIds.includes(user.id)
+            (presentIds.includes(user.id) ||
+              document.collaboratorIds.includes(user.id)) &&
+            !user.isSuspended
         ),
         (user) => presentIds.includes(user.id)
       ),

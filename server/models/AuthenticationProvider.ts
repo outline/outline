@@ -12,6 +12,10 @@ import {
   IsUUID,
   PrimaryKey,
 } from "sequelize-typescript";
+import env from "@server/env";
+import AzureClient from "@server/utils/azure";
+import GoogleClient from "@server/utils/google";
+import OIDCClient from "@server/utils/oidc";
 import { ValidationError } from "../errors";
 import Team from "./Team";
 import UserAuthentication from "./UserAuthentication";
@@ -56,6 +60,33 @@ class AuthenticationProvider extends Model {
   userAuthentications: UserAuthentication[];
 
   // instance methods
+
+  /**
+   * Create an OAuthClient for this provider, if possible.
+   *
+   * @returns A configured OAuthClient instance
+   */
+  get oauthClient() {
+    switch (this.name) {
+      case "google":
+        return new GoogleClient(
+          env.GOOGLE_CLIENT_ID || "",
+          env.GOOGLE_CLIENT_SECRET || ""
+        );
+      case "azure":
+        return new AzureClient(
+          env.AZURE_CLIENT_ID || "",
+          env.AZURE_CLIENT_SECRET || ""
+        );
+      case "oidc":
+        return new OIDCClient(
+          env.OIDC_CLIENT_ID || "",
+          env.OIDC_CLIENT_SECRET || ""
+        );
+      default:
+        return undefined;
+    }
+  }
 
   disable = async () => {
     const res = await (this

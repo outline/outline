@@ -2,6 +2,7 @@ import { NodeSpec, NodeType } from "prosemirror-model";
 import { EditorState } from "prosemirror-state";
 import { isInTable } from "prosemirror-tables";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import isNodeActive from "../queries/isNodeActive";
 import breakRule from "../rules/breaks";
 import { Dispatch } from "../types";
 import Node from "./Node";
@@ -17,9 +18,8 @@ export default class HardBreak extends Node {
       group: "inline",
       selectable: false,
       parseDOM: [{ tag: "br" }],
-      toDOM() {
-        return ["br"];
-      },
+      toDOM: () => ["br"],
+      toPlainText: () => "\n",
     };
   }
 
@@ -37,7 +37,10 @@ export default class HardBreak extends Node {
   keys({ type }: { type: NodeType }) {
     return {
       "Shift-Enter": (state: EditorState, dispatch: Dispatch) => {
-        if (!isInTable(state)) {
+        if (
+          !isInTable(state) &&
+          !isNodeActive(state.schema.nodes.paragraph)(state)
+        ) {
           return false;
         }
         dispatch(state.tr.replaceSelectionWith(type.create()).scrollIntoView());

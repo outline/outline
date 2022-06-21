@@ -8,7 +8,7 @@ import styled from "styled-components";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
 import useAuthorizedSettingsConfig from "~/hooks/useAuthorizedSettingsConfig";
-import isHosted from "~/utils/isHosted";
+import isCloudHosted from "~/utils/isCloudHosted";
 import Sidebar from "./Sidebar";
 import Header from "./components/Header";
 import Section from "./components/Section";
@@ -51,7 +51,7 @@ function SettingsSidebar() {
               </Header>
             </Section>
           ))}
-          {!isHosted && (
+          {!isCloudHosted && (
             <Section>
               <Header title={t("Installation")} />
               <Version />

@@ -9,10 +9,13 @@ export default function Notices() {
 
   return (
     <>
-      {notice === "google-hd" && (
+      {notice === "domain-required" && (
         <NoticeAlert>
-          Sorry, Google sign in cannot be used with a personal email. Please try
-          signing in with your Google Workspace account.
+          Unable to sign-in. Please navigate to your team's custom URL, then try
+          to sign-in again.
+          <hr />
+          If you were invited to a team, you will find a link to it in the
+          invite email.
         </NoticeAlert>
       )}
       {notice === "maximum-teams" && (
@@ -21,13 +24,7 @@ export default function Notices() {
           installation. Try another?
         </NoticeAlert>
       )}
-      {notice === "hd-not-allowed" && (
-        <NoticeAlert>
-          Sorry, your Google apps domain is not allowed. Please try again with
-          an allowed team domain.
-        </NoticeAlert>
-      )}
-      {notice === "malformed_user_info" && (
+      {notice === "malformed-user-info" && (
         <NoticeAlert>
           We could not read the user info supplied by your identity provider.
         </NoticeAlert>
@@ -44,7 +41,7 @@ export default function Notices() {
           try again in a few minutes.
         </NoticeAlert>
       )}
-      {notice === "auth-error" &&
+      {(notice === "auth-error" || notice === "state-mismatch") &&
         (description ? (
           <NoticeAlert>{description}</NoticeAlert>
         ) : (
@@ -77,6 +74,12 @@ export default function Notices() {
           create an account.
           <hr />
           Please request an invite from your team admin and try again.
+        </NoticeAlert>
+      )}
+      {notice === "domain-not-allowed" && (
+        <NoticeAlert>
+          Sorry, your domain is not allowed. Please try again with an allowed
+          team domain.
         </NoticeAlert>
       )}
     </>

@@ -19,14 +19,15 @@ import {
   DataType,
 } from "sequelize-typescript";
 import { v4 as uuidv4 } from "uuid";
-import { stripSubdomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
+import { getBaseDomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
 import env from "@server/env";
-import Logger from "@server/logging/logger";
+import Logger from "@server/logging/Logger";
 import { generateAvatarUrl } from "@server/utils/avatars";
 import { publicS3Endpoint, uploadToS3FromUrl } from "@server/utils/s3";
 import AuthenticationProvider from "./AuthenticationProvider";
 import Collection from "./Collection";
 import Document from "./Document";
+import TeamDomain from "./TeamDomain";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
@@ -116,21 +117,22 @@ class Team extends ParanoidModel {
    */
   get emailSigninEnabled(): boolean {
     return (
-      this.guestSignin && (!!env.SMTP_HOST || env.NODE_ENV === "development")
+      this.guestSignin && (!!env.SMTP_HOST || env.ENVIRONMENT === "development")
     );
   }
 
   get url() {
+    // custom domain
     if (this.domain) {
       return `https://${this.domain}`;
     }
 
-    if (!this.subdomain || process.env.SUBDOMAINS_ENABLED !== "true") {
-      return process.env.URL;
+    if (!this.subdomain || !env.SUBDOMAINS_ENABLED) {
+      return env.URL;
     }
 
-    const url = new URL(process.env.URL || "");
-    url.host = `${this.subdomain}.${stripSubdomain(url.host)}`;
+    const url = new URL(env.URL);
+    url.host = `${this.subdomain}.${getBaseDomain()}`;
     return url.href.replace(/\/$/, "");
   }
 
@@ -238,6 +240,15 @@ class Team extends ParanoidModel {
     return models.map((c) => c.id);
   };
 
+  isDomainAllowed = async function (domain: string) {
+    const allowedDomains = (await this.$get("allowedDomains")) || [];
+
+    return (
+      allowedDomains.length === 0 ||
+      allowedDomains.map((d: TeamDomain) => d.name).includes(domain)
+    );
+  };
+
   // associations
 
   @HasMany(() => Collection)
@@ -252,8 +263,10 @@ class Team extends ParanoidModel {
   @HasMany(() => AuthenticationProvider)
   authenticationProviders: AuthenticationProvider[];
 
-  // hooks
+  @HasMany(() => TeamDomain)
+  allowedDomains: TeamDomain[];
 
+  // hooks
   @BeforeSave
   static uploadAvatar = async (model: Team) => {
     const endpoint = publicS3Endpoint();

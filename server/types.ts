@@ -1,5 +1,5 @@
 import { Context } from "koa";
-import { User } from "./models";
+import { FileOperation, User } from "./models";
 
 export type ContextWithState = Context & {
   state: {
@@ -13,6 +13,7 @@ export type UserEvent =
   | {
   name: "users.create" // eslint-disable-line
         | "users.signin"
+        | "users.signout"
         | "users.update"
         | "users.suspend"
         | "users.activate"
@@ -112,14 +113,7 @@ export type FileOperationEvent = {
   teamId: string;
   actorId: string;
   modelId: string;
-  data: {
-    type: string;
-    state: string;
-    id: string;
-    size: number;
-    createdAt: string;
-    collectionId: string;
-  };
+  data: Partial<FileOperation>;
 };
 
 export type CollectionEvent =
