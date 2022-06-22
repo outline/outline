@@ -1,3 +1,4 @@
+import { sequelize } from "@server/database/sequelize";
 import env from "@server/env";
 import { DomainNotAllowedError, MaximumTeamsError } from "@server/errors";
 import Logger from "@server/logging/Logger";
@@ -88,11 +89,8 @@ async function teamCreator({
     });
   }
 
-  const transaction = await Team.sequelize!.transaction();
-  let team;
-
-  try {
-    team = await Team.create(
+  const team = await sequelize.transaction(async (transaction) => {
+    return Team.create(
       {
         name,
         avatarUrl,
@@ -103,14 +101,13 @@ async function teamCreator({
         transaction,
       }
     );
-    await transaction.commit();
-  } catch (err) {
-    await transaction.rollback();
-    throw err;
-  }
+  });
 
+  // Note provisioning the subdomain is done outside of the transaction as
+  // it is allowed to fail and the team can still be created, it also requires
+  // failed queries as part of iteration
   try {
-    await team.provisionSubdomain(subdomain);
+    await provisionSubdomain(team, subdomain);
   } catch (err) {
     Logger.error("Provisioning subdomain failed", err, {
       teamId: team.id,
@@ -123,6 +120,28 @@ async function teamCreator({
     authenticationProvider: team.authenticationProviders[0],
     isNewTeam: true,
   };
+}
+
+async function provisionSubdomain(team: Team, requestedSubdomain: string) {
+  if (team.subdomain) {
+    return team.subdomain;
+  }
+  let subdomain = requestedSubdomain;
+  let append = 0;
+
+  for (;;) {
+    try {
+      await team.update({
+        subdomain,
+      });
+      break;
+    } catch (err) {
+      // subdomain was invalid or already used, try again
+      subdomain = `${requestedSubdomain}${++append}`;
+    }
+  }
+
+  return subdomain;
 }
 
 export default APM.traceFunction({

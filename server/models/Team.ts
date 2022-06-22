@@ -146,35 +146,6 @@ class Team extends ParanoidModel {
     );
   }
 
-  // TODO: Move to command
-  provisionSubdomain = async function (
-    requestedSubdomain: string,
-    options = {}
-  ) {
-    if (this.subdomain) {
-      return this.subdomain;
-    }
-    let subdomain = requestedSubdomain;
-    let append = 0;
-
-    for (;;) {
-      try {
-        await this.update(
-          {
-            subdomain,
-          },
-          options
-        );
-        break;
-      } catch (err) {
-        // subdomain was invalid or already used, try again
-        subdomain = `${requestedSubdomain}${++append}`;
-      }
-    }
-
-    return subdomain;
-  };
-
   provisionFirstCollection = async (userId: string) => {
     await this.sequelize!.transaction(async (transaction) => {
       const collection = await Collection.create(
