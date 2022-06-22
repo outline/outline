@@ -2,7 +2,8 @@ import { observer } from "mobx-react";
 import { BeakerIcon } from "outline-icons";
 import { useState } from "react";
 import * as React from "react";
-import { useTranslation, Trans } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
+import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Heading from "~/components/Heading";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
@@ -10,10 +11,11 @@ import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
+import isCloudHosted from "~/utils/isCloudHosted";
 import SettingRow from "./components/SettingRow";
 
 function Features() {
-  const { auth } = useStores();
+  const { auth, dialogs } = useStores();
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const { showToast } = useToasts();
@@ -21,18 +23,35 @@ function Features() {
     collaborativeEditing: team.collaborativeEditing,
   });
 
-  const handleChange = React.useCallback(
-    async (ev: React.ChangeEvent<HTMLInputElement>) => {
-      const newData = { ...data, [ev.target.name]: ev.target.checked };
-      setData(newData);
+  const handleChange = async (ev: React.ChangeEvent<HTMLInputElement>) => {
+    const newData = { ...data, [ev.target.name]: ev.target.checked };
+    setData(newData);
 
-      await auth.updateTeam(newData);
-      showToast(t("Settings saved"), {
-        type: "success",
-      });
-    },
-    [auth, data, showToast, t]
-  );
+    await auth.updateTeam(newData);
+    showToast(t("Settings saved"), {
+      type: "success",
+    });
+  };
+
+  const handleCollabDisable = async () => {
+    const newData = { ...data, collaborativeEditing: false };
+    setData(newData);
+
+    await auth.updateTeam(newData);
+    showToast(t("Settings saved"), {
+      type: "success",
+    });
+  };
+
+  const handleCollabDisableConfirm = () => {
+    dialogs.openModal({
+      isCentered: true,
+      title: t("Are you sure you want to disable collaborative editing?"),
+      content: (
+        <DisableCollaborativeEditingDialog onSubmit={handleCollabDisable} />
+      ),
+    });
+  };
 
   return (
     <Scene title={t("Features")} icon={<BeakerIcon color="currentColor" />}>
@@ -54,11 +73,41 @@ function Features() {
           id="collaborativeEditing"
           name="collaborativeEditing"
           checked={data.collaborativeEditing}
-          disabled={data.collaborativeEditing}
-          onChange={handleChange}
+          disabled={data.collaborativeEditing && isCloudHosted}
+          onChange={
+            data.collaborativeEditing
+              ? handleCollabDisableConfirm
+              : handleChange
+          }
         />
       </SettingRow>
     </Scene>
+  );
+}
+
+function DisableCollaborativeEditingDialog({
+  onSubmit,
+}: {
+  onSubmit: () => void;
+}) {
+  const { t } = useTranslation();
+
+  return (
+    <ConfirmationDialog
+      onSubmit={onSubmit}
+      submitText={t("I’m sure – Disable")}
+      danger
+    >
+      <>
+        <Text type="secondary">
+          <Trans>
+            Enabling collaborative editing again in the future may cause some
+            documents to revert to this point in time. It is not advised to
+            disable this feature.
+          </Trans>
+        </Text>
+      </>
+    </ConfirmationDialog>
   );
 }
 
