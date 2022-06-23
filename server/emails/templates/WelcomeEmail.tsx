@@ -59,7 +59,9 @@ ${teamUrl}/home
           </p>
           <EmptySpace height={10} />
           <p>
-            <Button href={`${teamUrl}/home`}>View my dashboard</Button>
+            <Button href={`${teamUrl}/home?ref=welcome-email`}>
+              View my dashboard
+            </Button>
           </p>
         </Body>
 

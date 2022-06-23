@@ -67,6 +67,7 @@ export default abstract class BaseEmail<T extends EmailProps, S = any> {
         previewText: this.preview(data),
         component: this.render(data),
         text: this.renderAsText(data),
+        headCSS: this.headCSS ? this.headCSS(data) : undefined,
       });
       Metrics.increment("email.sent", {
         templateName,
@@ -113,6 +114,14 @@ export default abstract class BaseEmail<T extends EmailProps, S = any> {
    * @returns A JSX element
    */
   protected abstract render(props: S & T): JSX.Element;
+
+  /**
+   * Allows injecting additional CSS into the head of the email.
+   *
+   * @param props Props in email constructor
+   * @returns A string of CSS
+   */
+  protected headCSS?(props: T): string;
 
   /**
    * beforeSend hook allows async loading additional data that was not passed

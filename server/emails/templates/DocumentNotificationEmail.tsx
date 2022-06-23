@@ -4,11 +4,13 @@ import { Document } from "@server/models";
 import BaseEmail from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
+import Diff from "./components/Diff";
 import EmailTemplate from "./components/EmailLayout";
 import EmptySpace from "./components/EmptySpace";
 import Footer from "./components/Footer";
 import Header from "./components/Header";
 import Heading from "./components/Heading";
+import { css } from "./components/css";
 
 type InputProps = {
   to: string;
@@ -18,6 +20,7 @@ type InputProps = {
   eventName: string;
   teamUrl: string;
   unsubscribeUrl: string;
+  content: string;
 };
 
 type BeforeSend = {
@@ -45,7 +48,11 @@ export default class DocumentNotificationEmail extends BaseEmail<
   }
 
   protected preview({ actorName, eventName }: Props): string {
-    return `${actorName} ${eventName} a new document`;
+    return `${actorName} ${eventName} a document`;
+  }
+
+  protected headCSS(): string {
+    return css;
   }
 
   protected renderAsText({
@@ -71,7 +78,10 @@ Open Document: ${teamUrl}${document.url}
     eventName = "published",
     teamUrl,
     unsubscribeUrl,
+    content,
   }: Props) {
+    const link = `${teamUrl}${document.url}?ref=notification-email`;
+
     return (
       <EmailTemplate>
         <Header />
@@ -84,12 +94,17 @@ Open Document: ${teamUrl}${document.url}
             {actorName} {eventName} the document "{document.title}", in the{" "}
             {collectionName} collection.
           </p>
-          <hr />
-          <EmptySpace height={10} />
-          <p>{document.getSummary()}</p>
-          <EmptySpace height={10} />
+          {content && (
+            <>
+              <EmptySpace height={20} />
+              <Diff href={link}>
+                <div dangerouslySetInnerHTML={{ __html: content }} />
+              </Diff>
+              <EmptySpace height={20} />
+            </>
+          )}
           <p>
-            <Button href={`${teamUrl}${document.url}`}>Open Document</Button>
+            <Button href={link}>Open Document</Button>
           </p>
         </Body>
 

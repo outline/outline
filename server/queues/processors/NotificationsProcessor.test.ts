@@ -1,5 +1,5 @@
 import DocumentNotificationEmail from "@server/emails/templates/DocumentNotificationEmail";
-import { View, NotificationSetting } from "@server/models";
+import { View, NotificationSetting, Revision } from "@server/models";
 import {
   buildDocument,
   buildCollection,
@@ -102,6 +102,7 @@ describe("documents.publish", () => {
 describe("revisions.create", () => {
   test("should send a notification to other collaborators", async () => {
     const document = await buildDocument();
+    const revision = await Revision.createFromDocument(document);
     const collaborator = await buildUser({
       teamId: document.teamId,
     });
@@ -118,12 +119,14 @@ describe("revisions.create", () => {
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
+      modelId: revision.id,
     });
     expect(DocumentNotificationEmail.schedule).toHaveBeenCalled();
   });
 
   test("should not send a notification if viewed since update", async () => {
     const document = await buildDocument();
+    const revision = await Revision.createFromDocument(document);
     const collaborator = await buildUser({
       teamId: document.teamId,
     });
@@ -142,16 +145,18 @@ describe("revisions.create", () => {
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
+      modelId: revision.id,
     });
     expect(DocumentNotificationEmail.schedule).not.toHaveBeenCalled();
   });
 
-  test("should not send a notification to last editor", async () => {
+  test("should not send a notification to last user that modified", async () => {
     const user = await buildUser();
     const document = await buildDocument({
       teamId: user.teamId,
       lastModifiedById: user.id,
     });
+    const revision = await Revision.createFromDocument(document);
     await NotificationSetting.create({
       userId: user.id,
       teamId: user.teamId,
@@ -163,6 +168,7 @@ describe("revisions.create", () => {
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
+      modelId: revision.id,
     });
     expect(DocumentNotificationEmail.schedule).not.toHaveBeenCalled();
   });

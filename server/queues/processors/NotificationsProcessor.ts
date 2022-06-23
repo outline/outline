@@ -9,6 +9,8 @@ import {
   Collection,
   User,
   NotificationSetting,
+  Revision,
+  Attachment,
 } from "@server/models";
 import {
   DocumentEvent,
@@ -16,7 +18,26 @@ import {
   RevisionEvent,
   Event,
 } from "@server/types";
+import markdownDiff from "@server/utils/markdownDiff";
+import parseAttachmentIds from "@server/utils/parseAttachmentIds";
+import { getSignedUrl } from "@server/utils/s3";
 import BaseProcessor from "./BaseProcessor";
+
+async function replaceImageAttachments(text: string) {
+  const attachmentIds = parseAttachmentIds(text);
+
+  await Promise.all(
+    attachmentIds.map(async (id) => {
+      const attachment = await Attachment.findByPk(id);
+      if (attachment) {
+        const accessUrl = await getSignedUrl(attachment.key, 86400 * 4);
+        text = text.replace(attachment.redirectUrl, accessUrl);
+      }
+    })
+  );
+
+  return text;
+}
 
 export default class NotificationsProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = [
@@ -26,11 +47,17 @@ export default class NotificationsProcessor extends BaseProcessor {
   ];
 
   async perform(event: Event) {
+    // never send notifications when batch importing documents
+    // @ts-expect-error More granular typing of events needed here
+    if (event.data?.source === "import") {
+      return;
+    }
+
     switch (event.name) {
       case "documents.publish":
+        return this.documentPublished(event);
       case "revisions.create":
-        return this.documentUpdated(event);
-
+        return this.revisionCreated(event);
       case "collections.create":
         return this.collectionCreated(event);
 
@@ -38,12 +65,7 @@ export default class NotificationsProcessor extends BaseProcessor {
     }
   }
 
-  async documentUpdated(event: DocumentEvent | RevisionEvent) {
-    // never send notifications when batch importing documents
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'data' does not exist on type 'DocumentEv... Remove this comment to see the full error message
-    if (event.data?.source === "import") {
-      return;
-    }
+  async documentPublished(event: DocumentEvent) {
     const [document, team] = await Promise.all([
       Document.findByPk(event.documentId),
       Team.findByPk(event.teamId),
@@ -58,10 +80,7 @@ export default class NotificationsProcessor extends BaseProcessor {
           [Op.ne]: document.lastModifiedById,
         },
         teamId: document.teamId,
-        event:
-          event.name === "documents.publish"
-            ? "documents.publish"
-            : "documents.update",
+        event: "documents.publish",
       },
       include: [
         {
@@ -71,22 +90,10 @@ export default class NotificationsProcessor extends BaseProcessor {
         },
       ],
     });
-    const eventName =
-      event.name === "documents.publish" ? "published" : "updated";
 
     for (const setting of notificationSettings) {
       // Suppress notifications for suspended users
-      if (setting.user.isSuspended) {
-        continue;
-      }
-
-      // For document updates we only want to send notifications if
-      // the document has been edited by the user with this notification setting
-      // This could be replaced with ability to "follow" in the future
-      if (
-        eventName === "updated" &&
-        !document.collaboratorIds.includes(setting.userId)
-      ) {
+      if (setting.user.isSuspended || !setting.user.email) {
         continue;
       }
 
@@ -118,18 +125,111 @@ export default class NotificationsProcessor extends BaseProcessor {
         continue;
       }
 
-      if (!setting.user.email) {
-        continue;
-      }
+      const content = await replaceImageAttachments(document.getSummary());
 
       await DocumentNotificationEmail.schedule({
         to: setting.user.email,
-        eventName,
+        eventName: "published",
         documentId: document.id,
         teamUrl: team.url,
         actorName: document.updatedBy.name,
         collectionName: collection.name,
         unsubscribeUrl: setting.unsubscribeUrl,
+        content,
+      });
+    }
+  }
+
+  async revisionCreated(event: RevisionEvent) {
+    const [document, team, revision] = await Promise.all([
+      Document.findByPk(event.documentId),
+      Team.findByPk(event.teamId),
+      Revision.findByPk(event.modelId),
+    ]);
+    if (!document || !revision || !team || !document.collection) {
+      return;
+    }
+    const { collection } = document;
+    const notificationSettings = await NotificationSetting.findAll({
+      where: {
+        userId: {
+          [Op.ne]: revision.userId,
+        },
+        teamId: document.teamId,
+        event: "documents.update",
+      },
+      include: [
+        {
+          model: User,
+          required: true,
+          as: "user",
+        },
+      ],
+    });
+
+    for (const setting of notificationSettings) {
+      // Suppress notifications for suspended users
+      if (setting.user.isSuspended || !setting.user.email) {
+        continue;
+      }
+
+      // For document updates we only want to send notifications if
+      // the document has been edited by the user with this notification setting
+      // This could be replaced with ability to "follow" in the future
+      if (!document.collaboratorIds.includes(setting.userId)) {
+        continue;
+      }
+
+      // Check the user has access to the collection this document is in. Just
+      // because they were a collaborator once doesn't mean they still are.
+      const collectionIds = await setting.user.collectionIds();
+
+      if (!collectionIds.includes(document.collectionId)) {
+        continue;
+      }
+
+      // If this user has viewed the document since the last update was made
+      // then we can avoid sending them a useless notification, yay.
+      const view = await View.findOne({
+        where: {
+          userId: setting.userId,
+          documentId: event.documentId,
+          updatedAt: {
+            [Op.gt]: revision.createdAt,
+          },
+        },
+      });
+
+      if (view) {
+        Logger.info(
+          "processor",
+          `suppressing notification to ${setting.userId} because update viewed`
+        );
+        continue;
+      }
+
+      const previous = await Revision.findOne({
+        where: {
+          documentId: document.id,
+          createdAt: {
+            [Op.lt]: revision.createdAt,
+          },
+        },
+        order: [["createdAt", "DESC"]],
+      });
+
+      let content = markdownDiff(previous ? previous.text : "", revision.text);
+      content = await replaceImageAttachments(content);
+
+      await DocumentNotificationEmail.schedule({
+        to: setting.user.email,
+        eventName: "updated",
+        documentId: document.id,
+        teamUrl: team.url,
+        actorName: document.updatedBy.name,
+        collectionName: collection.name,
+        unsubscribeUrl: setting.unsubscribeUrl,
+        content,
       });
     }
   }
