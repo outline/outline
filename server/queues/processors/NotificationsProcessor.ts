@@ -66,14 +66,14 @@ export default class NotificationsProcessor extends BaseProcessor {
   }
 
   async documentPublished(event: DocumentEvent) {
-    const [document, team] = await Promise.all([
+    const [collection, document, team] = await Promise.all([
+      Collection.findByPk(event.collectionId),
       Document.findByPk(event.documentId),
       Team.findByPk(event.teamId),
     ]);
-    if (!document || !team || !document.collection) {
+    if (!document || !team || !collection) {
       return;
     }
-    const { collection } = document;
     const notificationSettings = await NotificationSetting.findAll({
       where: {
         userId: {
@@ -141,15 +141,15 @@ export default class NotificationsProcessor extends BaseProcessor {
   }
 
   async revisionCreated(event: RevisionEvent) {
-    const [document, team, revision] = await Promise.all([
+    const [collection, document, team, revision] = await Promise.all([
+      Collection.findByPk(event.collectionId),
       Document.findByPk(event.documentId),
       Team.findByPk(event.teamId),
       Revision.findByPk(event.modelId),
     ]);
-    if (!document || !revision || !team || !document.collection) {
+    if (!document || !revision || !team || !collection) {
       return;
     }
-    const { collection } = document;
     const notificationSettings = await NotificationSetting.findAll({
       where: {
         userId: {

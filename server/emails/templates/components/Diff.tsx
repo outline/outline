@@ -18,7 +18,7 @@ export default ({ children, ...rest }: Props) => {
   };
 
   return (
-    <a style={style} {...rest}>
+    <a style={style} className="content-diff" {...rest}>
       {children}
     </a>
   );
