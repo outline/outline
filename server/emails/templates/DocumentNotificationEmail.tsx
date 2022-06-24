@@ -45,7 +45,7 @@ export default class DocumentNotificationEmail extends BaseEmail<
   }
 
   protected preview({ actorName, eventName }: Props): string {
-    return `${actorName} ${eventName} a new document`;
+    return `${actorName} ${eventName} a document`;
   }
 
   protected renderAsText({
