@@ -1,6 +1,7 @@
 import Router from "koa-router";
 import { v4 as uuidv4 } from "uuid";
 import { bytesToHumanReadable } from "@shared/utils/files";
+import { sequelize } from "@server/database/sequelize";
 import {
   AuthorizationError,
   NotFoundError,
@@ -42,13 +43,10 @@ router.post("attachments.create", auth(), async (ctx) => {
     );
   }
 
+  const isPublic = ctx.body.public;
   const s3Key = uuidv4();
   const acl =
-    ctx.body.public === undefined
-      ? AWS_S3_ACL
-      : ctx.body.public
-      ? "public-read"
-      : "private";
+    isPublic === undefined ? AWS_S3_ACL : isPublic ? "public-read" : "private";
   const bucket = acl === "public-read" ? "public" : "uploads";
   const key = `${bucket}/${user.id}/${s3Key}/${name}`;
   const presignedPost = await getPresignedPost(key, acl, contentType);
@@ -62,24 +60,34 @@ router.post("attachments.create", auth(), async (ctx) => {
     authorize(user, "update", document);
   }
 
-  const attachment = await Attachment.create({
-    key,
-    acl,
-    size,
-    url,
-    contentType,
-    documentId,
-    teamId: user.teamId,
-    userId: user.id,
-  });
-  await Event.create({
-    name: "attachments.create",
-    data: {
-      name,
-    },
-    teamId: user.teamId,
-    userId: user.id,
-    ip: ctx.request.ip,
+  const attachment = await sequelize.transaction(async (transaction) => {
+    const attachment = await Attachment.create(
+      {
+        key,
+        acl,
+        size,
+        url,
+        contentType,
+        documentId,
+        teamId: user.teamId,
+        userId: user.id,
+      },
+      { transaction }
+    );
+    await Event.create(
+      {
+        name: "attachments.create",
+        data: {
+          name,
+        },
+        teamId: user.teamId,
+        userId: user.id,
+        ip: ctx.request.ip,
+      },
+      { transaction }
+    );
+
+    return attachment;
   });
 
   ctx.body = {
@@ -96,7 +104,7 @@ router.post("attachments.create", auth(), async (ctx) => {
         contentType,
         name,
         id: attachment.id,
-        url: attachment.redirectUrl,
+        url: isPublic ? url : attachment.redirectUrl,
         size,
       },
     },
