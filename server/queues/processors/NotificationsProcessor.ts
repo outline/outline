@@ -219,6 +219,10 @@ export default class NotificationsProcessor extends BaseProcessor {
       });
 
       let content = markdownDiff(previous ? previous.text : "", revision.text);
+      if (!content) {
+        continue;
+      }
+
       content = await replaceImageAttachments(content);
 
       await DocumentNotificationEmail.schedule({

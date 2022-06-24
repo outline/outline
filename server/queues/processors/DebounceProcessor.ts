@@ -16,8 +16,8 @@ export default class DebounceProcessor extends BaseProcessor {
         globalEventQueue.add(
           { ...event, name: "documents.update.delayed" },
           {
-            // Revision creation time is lowered to one minute in development
-            delay: (env.ENVIRONMENT === "production" ? 5 : 1) * 60 * 1000,
+            // Revision creation time is lowered to half a minute in development
+            delay: (env.ENVIRONMENT === "production" ? 5 : 0.5) * 60 * 1000,
           }
         );
         break;
