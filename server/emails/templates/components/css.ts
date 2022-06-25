@@ -1,3 +1,4 @@
+import { transparentize } from "polished";
 import theme from "@shared/styles/theme";
 
 export const css = `
@@ -44,18 +45,21 @@ export const css = `
   .notice {
     display: flex;
     align-items: center;
-    background: ${theme.noticeInfoBackground};
+    background: ${transparentize(0.9, theme.noticeInfoBackground)};
+    border-left: 4px solid ${theme.noticeInfoBackground};
     color: ${theme.noticeInfoText};
     border-radius: 4px;
-    padding: 8px 16px;
+    padding: 8px 10px 8px 8px;
     margin: 8px 0;
   }
   .notice-tip {
-    background: ${theme.noticeTipBackground};
+    background: ${transparentize(0.9, theme.noticeTipBackground)};
+    border-left: 4px solid ${theme.noticeTipBackground};
     color: ${theme.noticeTipText};
   }
   .notice-warning {
-    background: ${theme.noticeWarningBackground};
+    background: ${transparentize(0.9, theme.noticeWarningBackground)};
+    border-left: 4px solid ${theme.noticeWarningBackground};
     color: ${theme.noticeWarningText};
   }
   b,
@@ -164,6 +168,25 @@ export const css = `
     background: none;
     padding: 0;
     border: 0;
+  }
+
+  blockquote {
+    margin: 0;
+    padding-left: 1.5em;
+    font-style: italic;
+    overflow: hidden;
+    position: relative;
+  }
+
+  blockquote:before {
+    content: "";
+    display: inline-block;
+    width: 2px;
+    border-radius: 1px;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    background: ${theme.quote};
   }
 
   .content-diff table {
