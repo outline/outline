@@ -32,7 +32,7 @@ function WebhookSubscriptionEdit({ onSubmit, webhookSubscription }: Props) {
         await webhookSubscription.save(toSend);
 
         showToast(
-          t("Webhook subscription updated", {
+          t("Webhook updated", {
             type: "success",
           })
         );

@@ -31,7 +31,7 @@ function WebhookSubscriptionNew({ onSubmit }: Props) {
 
         await webhookSubscriptions.create(toSend);
         showToast(
-          t("Webhook subscription created", {
+          t("Webhook created", {
             type: "success",
           })
         );

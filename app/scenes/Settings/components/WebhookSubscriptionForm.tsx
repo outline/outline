@@ -107,21 +107,28 @@ const FieldSet = styled.fieldset<FieldProps>`
     `}
 `;
 
-const GroupGrid = styled.div`
+interface MobileProps {
+  isMobile?: boolean;
+}
+const GroupGrid = styled.div<MobileProps>`
   display: grid;
   grid-template-columns: 1fr 1fr;
 
-  &.mobile {
+  ${({ isMobile }) =>
+    isMobile &&
+    `
     grid-template-columns: 1fr;
-  }
+    `}
 `;
 
-const GroupWrapper = styled.div`
+const GroupWrapper = styled.div<MobileProps>`
   padding-bottom: 2rem;
 
-  &.mobile {
+  ${({ isMobile }) =>
+    isMobile &&
+    `
     padding-bottom: 1rem;
-  }
+    `}
 `;
 
 const TextFields = styled.div`
@@ -229,7 +236,7 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
           required
           autoFocus
           flex
-          label="Name"
+          label={t("Name")}
           {...register("name", {
             required: true,
           })}
@@ -240,28 +247,22 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
           flex
           pattern="https://.*"
           placeholder="https://…"
-          label="URL"
+          label={t("URL")}
           {...register("url", { required: true })}
         />
       </TextFields>
 
       <EventCheckbox label={t("All events")} value="*" />
 
-      <FieldSet
-        disabled={isAllEventSelected}
-        className={isAllEventSelected ? "disabled" : ""}
-      >
-        <GroupGrid className={isMobile ? "mobile" : ""}>
+      <FieldSet disabled={isAllEventSelected}>
+        <GroupGrid isMobile={isMobile}>
           {Object.entries(WEBHOOK_EVENTS).map(([group, events], i) => (
-            <GroupWrapper key={i} className={isMobile ? "mobile" : ""}>
+            <GroupWrapper key={i} isMobile={isMobile}>
               <EventCheckbox
                 label={t(`All {{ groupName }} events`, { groupName: group })}
                 value={group}
               />
-              <FieldSet
-                className={selectedGroups.includes(group) ? "disabled" : ""}
-                disabled={selectedGroups.includes(group)}
-              >
+              <FieldSet disabled={selectedGroups.includes(group)}>
                 {events.map((event) => (
                   <EventCheckbox label={event} value={event} key={event} />
                 ))}
