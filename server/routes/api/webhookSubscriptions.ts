@@ -95,4 +95,43 @@ router.post("webhookSubscriptions.delete", auth(), async (ctx) => {
   await Event.create(event);
 });
 
+router.post("webhookSubscriptions.update", auth(), async (ctx) => {
+  const { id } = ctx.body;
+  assertUuid(id, "id is required");
+  const { user } = ctx.state;
+
+  const { name, url } = ctx.request.body;
+  const events: string[] = compact(ctx.request.body.events);
+  assertPresent(name, "name is required");
+  assertPresent(url, "url is required");
+  assertArray(events, "events is required");
+  if (events.length === 0) {
+    throw ValidationError("events are required");
+  }
+
+  const webhookSubscription = await WebhookSubscription.findByPk(id);
+
+  authorize(user, "update", webhookSubscription);
+
+  await webhookSubscription.update({ name, url, events });
+
+  const event: WebhookSubscriptionEvent = {
+    name: "webhook_subscriptions.update",
+    modelId: webhookSubscription.id,
+    teamId: user.teamId,
+    actorId: user.id,
+    data: {
+      name: webhookSubscription.name,
+      url: webhookSubscription.url,
+      events: webhookSubscription.events,
+    },
+    ip: ctx.request.ip,
+  };
+  await Event.create(event);
+
+  ctx.body = {
+    data: presentWebhookSubscription(webhookSubscription),
+  };
+});
+
 export default router;

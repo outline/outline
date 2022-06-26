@@ -229,7 +229,10 @@ export type StarEvent = {
 };
 
 export type WebhookSubscriptionEvent = {
-  name: "webhook_subscriptions.create" | "webhook_subscriptions.delete";
+  name:
+    | "webhook_subscriptions.create"
+    | "webhook_subscriptions.delete"
+    | "webhook_subscriptions.update";
   teamId: string;
   modelId: string;
   actorId: string;

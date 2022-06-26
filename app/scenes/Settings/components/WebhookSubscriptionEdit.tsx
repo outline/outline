@@ -1,11 +1,12 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import useStores from "~/hooks/useStores";
+import WebhookSubscription from "~/models/WebhookSubscription";
 import useToasts from "~/hooks/useToasts";
 import WebhookSubscriptionModal from "./WebhookSubscriptionModal";
 
 type Props = {
   onSubmit: () => void;
+  webhookSubscription: WebhookSubscription;
 };
 
 interface FormData {
@@ -14,8 +15,7 @@ interface FormData {
   events: string[];
 }
 
-function WebhookSubscriptionNew({ onSubmit }: Props) {
-  const { webhookSubscriptions } = useStores();
+function WebhookSubscriptionEdit({ onSubmit, webhookSubscription }: Props) {
   const { showToast } = useToasts();
   const { t } = useTranslation();
 
@@ -29,9 +29,10 @@ function WebhookSubscriptionNew({ onSubmit }: Props) {
           events,
         };
 
-        await webhookSubscriptions.create(toSend);
+        await webhookSubscription.save(toSend);
+
         showToast(
-          t("Webhook subscription created", {
+          t("Webhook subscription updated", {
             type: "success",
           })
         );
@@ -42,10 +43,15 @@ function WebhookSubscriptionNew({ onSubmit }: Props) {
         });
       }
     },
-    [t, showToast, onSubmit, webhookSubscriptions]
+    [t, showToast, onSubmit, webhookSubscription]
   );
 
-  return <WebhookSubscriptionModal handleSubmit={handleSubmit} />;
+  return (
+    <WebhookSubscriptionModal
+      handleSubmit={handleSubmit}
+      webhookSubscription={webhookSubscription}
+    />
+  );
 }
 
-export default WebhookSubscriptionNew;
+export default WebhookSubscriptionEdit;

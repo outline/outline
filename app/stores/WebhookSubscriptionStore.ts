@@ -5,7 +5,12 @@ import RootStore from "./RootStore";
 export default class WebhookSubscriptionsStore extends BaseStore<
   WebhookSubscription
 > {
-  actions = [RPCAction.List, RPCAction.Create, RPCAction.Delete];
+  actions = [
+    RPCAction.List,
+    RPCAction.Create,
+    RPCAction.Delete,
+    RPCAction.Update,
+  ];
 
   constructor(rootStore: RootStore) {
     super(rootStore, WebhookSubscription);
