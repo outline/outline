@@ -586,6 +586,8 @@
   "Admins": "Admins",
   "Are you sure you want to delete the {{ name }} webhook?": "Are you sure you want to delete the {{ name }} webhook?",
   "Webhook subscription updated": "Webhook subscription updated",
+  "Update": "Update",
+  "Updating": "Updating",
   "Provide a descriptive name for this webhook and the URL we should send a POST request to when matching events are created.": "Provide a descriptive name for this webhook and the URL we should send a POST request to when matching events are created.",
   "Subscribe to all events, groups, or individual events. We recommend only subscribing to the minimum amount of events that your application needs to function.": "Subscribe to all events, groups, or individual events. We recommend only subscribing to the minimum amount of events that your application needs to function.",
   "All events": "All events",

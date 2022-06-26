@@ -186,8 +186,8 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
     }
   }, [events, filteredEvents, setValue]);
 
-  const verb = webhookSubscription ? "Update" : "Create";
-  const inProgressVerb = webhookSubscription ? "Updating" : "Creating";
+  const verb = webhookSubscription ? t("Update") : t("Create");
+  const inProgressVerb = webhookSubscription ? t("Updating") : t("Creating");
 
   function EventCheckbox({ label, value }: { label: string; value: string }) {
     const LabelComponent =
@@ -274,7 +274,7 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
         type="submit"
         disabled={formState.isSubmitting || !formState.isValid}
       >
-        {formState.isSubmitting ? `${t(inProgressVerb)}…` : t(verb)}
+        {formState.isSubmitting ? `${inProgressVerb}…` : verb}
       </Button>
     </form>
   );
