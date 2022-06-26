@@ -67,6 +67,7 @@ const WEBHOOK_EVENTS = {
   webhookSubscriptions: [
     "webhook_subscriptions.create",
     "webhook_subscriptions.delete",
+    "webhook_subscriptions.update",
   ],
 };
 

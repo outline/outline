@@ -129,6 +129,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
         return;
       case "webhook_subscriptions.create":
       case "webhook_subscriptions.delete":
+      case "webhook_subscriptions.update":
         await this.handleWebhookSubscriptionEvent(subscription, event);
         return;
       default:

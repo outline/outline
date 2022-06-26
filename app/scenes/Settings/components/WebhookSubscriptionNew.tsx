@@ -2,7 +2,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
-import WebhookSubscriptionModal from "./WebhookSubscriptionModal";
+import WebhookSubscriptionForm from "./WebhookSubscriptionForm";
 
 type Props = {
   onSubmit: () => void;
@@ -45,7 +45,7 @@ function WebhookSubscriptionNew({ onSubmit }: Props) {
     [t, showToast, onSubmit, webhookSubscriptions]
   );
 
-  return <WebhookSubscriptionModal handleSubmit={handleSubmit} />;
+  return <WebhookSubscriptionForm handleSubmit={handleSubmit} />;
 }
 
 export default WebhookSubscriptionNew;
