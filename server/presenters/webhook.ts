@@ -9,6 +9,7 @@ interface WebhookProps {
 
 export interface WebhookPresentation {
   id: string;
+  actorId: string;
   webhookSubscriptionId: string;
   event: string;
   payload: { model: unknown; id?: string };
@@ -22,6 +23,7 @@ export default function present({
 }: WebhookProps): WebhookPresentation {
   return {
     id: delivery.id,
+    actorId: event.actorId,
     webhookSubscriptionId: delivery.webhookSubscriptionId,
     createdAt: delivery.createdAt,
     event: event.name,

@@ -83,10 +83,12 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       case "documents.unstar":
       case "documents.move":
       case "documents.update":
-      case "documents.update.delayed":
-      case "documents.update.debounced":
       case "documents.title_change":
         await this.handleDocumentEvent(subscription, event);
+        return;
+      case "documents.update.delayed":
+      case "documents.update.debounced":
+        // Internal
         return;
       case "revisions.create":
         await this.handleRevisionEvent(subscription, event);

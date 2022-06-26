@@ -118,6 +118,8 @@ describe("revisions.create", () => {
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
+      actorId: collaborator.id,
+      modelId: document.id,
     });
     expect(DocumentNotificationEmail.schedule).toHaveBeenCalled();
   });
@@ -142,6 +144,8 @@ describe("revisions.create", () => {
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
+      actorId: collaborator.id,
+      modelId: document.id,
     });
     expect(DocumentNotificationEmail.schedule).not.toHaveBeenCalled();
   });
@@ -163,6 +167,8 @@ describe("revisions.create", () => {
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
+      actorId: user.id,
+      modelId: document.id,
     });
     expect(DocumentNotificationEmail.schedule).not.toHaveBeenCalled();
   });

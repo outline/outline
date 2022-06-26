@@ -102,6 +102,7 @@ export type RevisionEvent = {
   name: "revisions.create";
   documentId: string;
   collectionId: string;
+  actorId: string;
   modelId: string;
   teamId: string;
 };
