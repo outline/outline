@@ -1,3 +1,4 @@
+import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import {
   Collection,
@@ -11,10 +12,12 @@ import {
   WebhookSubscription,
   Document,
   User,
+  Revision,
 } from "@server/models";
 import {
   presentCollection,
   presentDocument,
+  presentRevision,
   presentFileOperation,
   presentGroup,
   presentIntegration,
@@ -86,7 +89,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
         await this.handleDocumentEvent(subscription, event);
         return;
       case "revisions.create":
-        await this.handleDocumentEvent(subscription, event);
+        await this.handleRevisionEvent(subscription, event);
         return;
       case "fileOperations.create":
       case "fileOperations.update":
@@ -253,7 +256,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
 
   async handleDocumentEvent(
     subscription: WebhookSubscription,
-    event: DocumentEvent | RevisionEvent
+    event: DocumentEvent
   ): Promise<void> {
     const hydratedDocument = await Document.findByPk(event.documentId);
 
@@ -263,6 +266,21 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       modelId: event.documentId,
       modelPayload:
         hydratedDocument && (await presentDocument(hydratedDocument)),
+    });
+  }
+
+  async handleRevisionEvent(
+    subscription: WebhookSubscription,
+    event: RevisionEvent
+  ): Promise<void> {
+    const hydratedRevision = await Revision.findByPk(event.modelId);
+
+    await this.sendModelWebhook({
+      event,
+      subscription,
+      modelId: event.modelId,
+      modelPayload:
+        hydratedRevision && (await presentRevision(hydratedRevision)),
     });
   }
 
@@ -332,6 +350,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     const webhookUrl = subscription.url;
     const headers = {
       "Content-Type": "application/json",
+      "user-agent": `Outline-Webhooks/${env.VERSION}`,
     };
 
     const response = await fetch(webhookUrl, {
