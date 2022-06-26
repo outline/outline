@@ -13,6 +13,7 @@ const AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
 const AWS_REGION = process.env.AWS_REGION || "";
 const AWS_S3_UPLOAD_BUCKET_NAME = process.env.AWS_S3_UPLOAD_BUCKET_NAME || "";
 const AWS_S3_FORCE_PATH_STYLE = process.env.AWS_S3_FORCE_PATH_STYLE !== "false";
+const AWS_S3_TLS = process.env.AWS_S3_TLS !== "false" || true;
 
 const s3 = new AWS.S3({
   s3BucketEndpoint: AWS_S3_ACCELERATE_URL ? true : undefined,
@@ -23,9 +24,10 @@ const s3 = new AWS.S3({
   endpoint: AWS_S3_ACCELERATE_URL
     ? AWS_S3_ACCELERATE_URL
     : AWS_S3_UPLOAD_BUCKET_URL.includes(AWS_S3_UPLOAD_BUCKET_NAME)
-    ? undefined
-    : new AWS.Endpoint(AWS_S3_UPLOAD_BUCKET_URL),
+      ? undefined
+      : new AWS.Endpoint(AWS_S3_UPLOAD_BUCKET_URL),
   signatureVersion: "v4",
+  tls: AWS_S3_TLS,
 });
 
 const createPresignedPost = util.promisify(s3.createPresignedPost).bind(s3);
@@ -144,9 +146,8 @@ export const publicS3Endpoint = (isServerUpload?: boolean) => {
     return host;
   }
 
-  return `${host}/${
-    isServerUpload && isDocker ? "s3/" : ""
-  }${AWS_S3_UPLOAD_BUCKET_NAME}`;
+  return `${host}/${isServerUpload && isDocker ? "s3/" : ""
+    }${AWS_S3_UPLOAD_BUCKET_NAME}`;
 };
 
 export const uploadToS3FromBuffer = async (
