@@ -27,6 +27,7 @@ import stars from "./stars";
 import team from "./team";
 import users from "./users";
 import views from "./views";
+import webhookSubscriptions from "./webhookSubscriptions";
 
 const api = new Koa();
 const router = new Router();
@@ -67,6 +68,7 @@ router.use("/", attachments.routes());
 router.use("/", utils.routes());
 router.use("/", groups.routes());
 router.use("/", fileOperationsRoute.routes());
+router.use("/", webhookSubscriptions.routes());
 
 router.post("*", (ctx) => {
   ctx.throw(NotFoundError("Endpoint not found"));
