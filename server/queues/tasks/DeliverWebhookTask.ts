@@ -350,7 +350,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     const webhookUrl = subscription.url;
     const headers = {
       "Content-Type": "application/json",
-      "user-agent": `Outline-Webhooks/${env.VERSION}`,
+      "user-agent": `Outline-Webhooks${env.VERSION ? `/${env.VERSION}` : ""}`,
     };
 
     const response = await fetch(webhookUrl, {

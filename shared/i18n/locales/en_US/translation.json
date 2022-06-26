@@ -595,7 +595,7 @@
   "All events": "All events",
   "All {{ groupName }} events": "All {{ groupName }} events",
   "Delete webhook": "Delete webhook",
-  "disabled": "disabled",
+  "Disabled": "Disabled",
   "Subscribed events": "Subscribed events",
   "Edit webhook": "Edit webhook",
   "Webhook created": "Webhook created",

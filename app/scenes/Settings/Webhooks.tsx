@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { GlobeIcon } from "outline-icons";
+import { WebhooksIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import WebhookSubscription from "~/models/WebhookSubscription";
@@ -28,7 +28,7 @@ function Webhooks() {
   return (
     <Scene
       title={t("Webhooks")}
-      icon={<GlobeIcon color="currentColor" />}
+      icon={<WebhooksIcon color="currentColor" />}
       actions={
         <>
           {can.createWebhookSubscription && (

@@ -41,10 +41,10 @@ const WebhookSubscriptionListItem = ({ webhook }: Props) => {
     <ListItem
       key={webhook.id}
       title={
-        <p>
+        <>
           {webhook.name}
-          {!webhook.enabled && <Badge yellow={true}>{t("disabled")}</Badge>}
-        </p>
+          {!webhook.enabled && <Badge yellow={true}>{t("Disabled")}</Badge>}
+        </>
       }
       subtitle={
         <>
@@ -60,7 +60,7 @@ const WebhookSubscriptionListItem = ({ webhook }: Props) => {
           >
             {t("Delete")}
           </Button>
-          <Button icon={<EditIcon />} onClick={handleEditModalOpen}>
+          <Button icon={<EditIcon />} onClick={handleEditModalOpen} neutral>
             {t("Edit")}
           </Button>
           <Modal

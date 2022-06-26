@@ -10,7 +10,7 @@ import {
   TeamIcon,
   BeakerIcon,
   DownloadIcon,
-  GlobeIcon,
+  WebhooksIcon,
 } from "outline-icons";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -161,15 +161,15 @@ const useAuthorizedSettingsConfig = () => {
         group: t("Team"),
         icon: DownloadIcon,
       },
+      // Integrations
       Webhooks: {
         name: t("Webhooks"),
         path: "/settings/webhooks",
         component: Webhooks,
         enabled: can.createWebhookSubscription,
-        group: t("Team"),
-        icon: GlobeIcon,
+        group: t("Integrations"),
+        icon: WebhooksIcon,
       },
-      // Intergrations
       Slack: {
         name: "Slack",
         path: "/settings/integrations/slack",
@@ -187,7 +187,14 @@ const useAuthorizedSettingsConfig = () => {
         icon: ZapierIcon,
       },
     }),
-    [can.createApiKey, can.export, can.manage, can.update, t]
+    [
+      can.createApiKey,
+      can.createWebhookSubscription,
+      can.export,
+      can.manage,
+      can.update,
+      t,
+    ]
   );
 
   const enabledConfigs = React.useMemo(
