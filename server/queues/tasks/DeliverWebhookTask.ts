@@ -60,6 +60,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     switch (event.name) {
       case "users.create":
       case "users.signin":
+      case "users.signout":
       case "users.update":
       case "users.suspend":
       case "users.activate":
@@ -260,7 +261,8 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       event,
       subscription,
       modelId: event.documentId,
-      modelPayload: hydratedDocument && presentDocument(hydratedDocument),
+      modelPayload:
+        hydratedDocument && (await presentDocument(hydratedDocument)),
     });
   }
 
