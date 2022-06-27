@@ -1,6 +1,7 @@
 import { EditIcon, TrashIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import styled from "styled-components";
 import WebhookSubscription from "~/models/WebhookSubscription";
 import Badge from "~/components/Badge";
 import Button from "~/components/Button";
@@ -43,7 +44,9 @@ const WebhookSubscriptionListItem = ({ webhook }: Props) => {
       title={
         <>
           {webhook.name}
-          {!webhook.enabled && <Badge yellow={true}>{t("Disabled")}</Badge>}
+          {!webhook.enabled && (
+            <StyledBadge yellow={true}>{t("Disabled")}</StyledBadge>
+          )}
         </>
       }
       subtitle={
@@ -78,5 +81,9 @@ const WebhookSubscriptionListItem = ({ webhook }: Props) => {
     />
   );
 };
+
+const StyledBadge = styled(Badge)`
+  position: absolute;
+`;
 
 export default WebhookSubscriptionListItem;

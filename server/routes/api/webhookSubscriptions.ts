@@ -113,7 +113,7 @@ router.post("webhookSubscriptions.update", auth(), async (ctx) => {
 
   authorize(user, "update", webhookSubscription);
 
-  await webhookSubscription.update({ name, url, events });
+  await webhookSubscription.update({ name, url, events, enabled: true });
 
   const event: WebhookSubscriptionEvent = {
     name: "webhook_subscriptions.update",
