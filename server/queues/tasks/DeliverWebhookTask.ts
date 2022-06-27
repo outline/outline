@@ -15,6 +15,7 @@ import {
   User,
   Revision,
   View,
+  Share,
 } from "@server/models";
 import {
   presentCollection,
@@ -30,6 +31,7 @@ import {
   presentWebhook,
   presentWebhookSubscription,
   presentView,
+  presentShare,
 } from "@server/presenters";
 import {
   CollectionEvent,
@@ -40,6 +42,7 @@ import {
   IntegrationEvent,
   PinEvent,
   RevisionEvent,
+  ShareEvent,
   StarEvent,
   TeamEvent,
   UserEvent,
@@ -144,6 +147,11 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       case "stars.delete":
         await this.handleStarEvent(subscription, event);
         return;
+      case "shares.create":
+      case "shares.update":
+      case "shares.revoke":
+        await this.handleShareEvent(subscription, event);
+        return;
       case "webhook_subscriptions.create":
       case "webhook_subscriptions.delete":
       case "webhook_subscriptions.update":
@@ -196,6 +204,20 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       subscription,
       modelId: event.modelId,
       modelPayload: hydratedModel && presentStar(hydratedModel),
+    });
+  }
+
+  async handleShareEvent(
+    subscription: WebhookSubscription,
+    event: ShareEvent
+  ): Promise<void> {
+    const hydratedModel = await Share.findByPk(event.modelId);
+
+    await this.sendModelWebhook({
+      event,
+      subscription,
+      modelId: event.modelId,
+      modelPayload: hydratedModel && presentShare(hydratedModel),
     });
   }
 
