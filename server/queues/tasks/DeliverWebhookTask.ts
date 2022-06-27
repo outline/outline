@@ -392,6 +392,11 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     });
 
     const newStatus = response.ok ? "success" : "failed";
+    const responseHeaders = {};
+
+    for (const [key, value] of response.headers.entries()) {
+      responseHeaders[key] = value;
+    }
 
     await delivery.update({
       status: newStatus,
@@ -399,7 +404,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       requestBody: jsonBody,
       requestHeaders: headers,
       responseBody: await response.text(),
-      responseHeaders: response.headers,
+      responseHeaders,
     });
 
     if (!response.ok) {
