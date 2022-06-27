@@ -372,42 +372,39 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       status: "pending",
     });
 
-    const jsonBody = presentWebhook({
-      event,
-      delivery,
-      payload,
-    });
-    const body = JSON.stringify(jsonBody);
-
-    const webhookUrl = subscription.url;
-    const headers = {
-      "Content-Type": "application/json",
-      "user-agent": `Outline-Webhooks${env.VERSION ? `/${env.VERSION}` : ""}`,
-    };
-
-    const response = await fetch(webhookUrl, {
-      method: "POST",
-      headers,
-      body,
-    });
-
-    const newStatus = response.ok ? "success" : "failed";
-    const responseHeaders = {};
-
-    for (const [key, value] of response.headers.entries()) {
-      responseHeaders[key] = value;
+    let response, requestBody, requestHeaders, status;
+    try {
+      requestBody = presentWebhook({
+        event,
+        delivery,
+        payload,
+      });
+      requestHeaders = {
+        "Content-Type": "application/json",
+        "user-agent": `Outline-Webhooks${env.VERSION ? `/${env.VERSION}` : ""}`,
+      };
+      response = await fetch(subscription.url, {
+        method: "POST",
+        headers: requestHeaders,
+        body: JSON.stringify(requestBody),
+      });
+      status = response.ok ? "success" : "failed";
+    } catch (err) {
+      status = "failed";
     }
 
     await delivery.update({
-      status: newStatus,
-      statusCode: response.status,
-      requestBody: jsonBody,
-      requestHeaders: headers,
-      responseBody: await response.text(),
-      responseHeaders,
+      status,
+      statusCode: response ? response.status : null,
+      requestBody,
+      requestHeaders,
+      responseBody: response ? await response.text() : "",
+      responseHeaders: response
+        ? Object.fromEntries(response.headers.entries())
+        : {},
     });
 
-    if (!response.ok) {
+    if (response && !response.ok) {
       const recentDeliveries = await WebhookDelivery.findAll({
         where: {
           webhookSubscriptionId: subscription.id,
