@@ -1042,20 +1042,20 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@bull-board/api@3.11.1", "@bull-board/api@^3.11.1":
-  version "3.11.1"
-  resolved "https://registry.yarnpkg.com/@bull-board/api/-/api-3.11.1.tgz#98b2c9556f643718bb5bde4a1306e6706af8192e"
-  integrity sha512-ElwX7sM+Ng4ZL9KUsbDubRE+r2hu/gss85OsROeE9bmyfkW14jOJkgr5MKUyjTTgPEeMs1Mw55TgQs2vxoWBiA==
+"@bull-board/api@4.0.0", "@bull-board/api@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@bull-board/api/-/api-4.0.0.tgz#63931cbee56ff3b1525f8771d9b8a6df12838962"
+  integrity sha512-4STXOhQv07/8d/Ei6LA38D3aaYtMuOHJMejkkF2CTAW3gAzEtwhDHmrKlk7tG01Gq2jnPNIcYxbd4WIbtP/+fQ==
   dependencies:
     redis-info "^3.0.8"
 
-"@bull-board/koa@^3.11.1":
-  version "3.11.1"
-  resolved "https://registry.yarnpkg.com/@bull-board/koa/-/koa-3.11.1.tgz#1872aba2c65d116d1183b3003e4a2cb2c1e2fbbf"
-  integrity sha512-F/thrTuC1JWpdBO7DPdKD/wr8c+d7MJGu0sr5ARsT1WXhng7sU7OqBEP/5Y7HhByurjDFXDxcgk/mc78Tmeb/Q==
+"@bull-board/koa@^4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@bull-board/koa/-/koa-4.0.0.tgz#e9d39f166abdc942c0d9e045bbc23941e9e47db1"
+  integrity sha512-8UN8h0NKkpND2w47YmvacG3TZPp0GHjw2By/fuX/MqoLG2Wtu58GCzhmKij8DHW5nfAr5c/0azWwyKJZ6jR5wA==
   dependencies:
-    "@bull-board/api" "3.11.1"
-    "@bull-board/ui" "3.11.1"
+    "@bull-board/api" "4.0.0"
+    "@bull-board/ui" "4.0.0"
     ejs "^3.1.7"
     koa "^2.13.1"
     koa-mount "^4.0.0"
@@ -1063,12 +1063,12 @@
     koa-static "^5.0.0"
     koa-views "^7.0.1"
 
-"@bull-board/ui@3.11.1":
-  version "3.11.1"
-  resolved "https://registry.yarnpkg.com/@bull-board/ui/-/ui-3.11.1.tgz#17a2af5573f31811a543105b9a96249c95e93ce7"
-  integrity sha512-SRrfvxHF/WaBICiAFuWAoAlTvoBYUBmX94oRbSKzVILRFZMe3gs0hN071BFohrn4yOTFHAkWPN7cjMbaqHwCag==
+"@bull-board/ui@4.0.0":
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/@bull-board/ui/-/ui-4.0.0.tgz#6702d2fa286ba54d3f18a0af2e2344c3fe21d836"
+  integrity sha512-sesp3n3e/Zkw7oFxrihB/AGsPWRzLywTXlcc3N6ttGLE1U5ow5yRSg6F/1LFe9OpHsYko0VsYJMcTAeZk7AJ+w==
   dependencies:
-    "@bull-board/api" "3.11.1"
+    "@bull-board/api" "4.0.0"
 
 "@bundle-stats/plugin-webpack-filter@^3.1.3":
   version "3.2.0"
