@@ -62,6 +62,7 @@ const WEBHOOK_EVENTS = {
     "groups.remove_user",
   ],
   integration: ["integrations.create", "integrations.update"],
+  share: ["shares.create", "shares.update", "shares.revoke"],
   team: ["teams.update"],
   pin: ["pins.create", "pins.update", "pins.delete"],
   webhookSubscription: [
