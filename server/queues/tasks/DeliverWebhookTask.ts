@@ -1,3 +1,4 @@
+import invariant from "invariant";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import {
@@ -47,17 +48,20 @@ import {
 } from "@server/types";
 import BaseTask from "./BaseTask";
 
-function assertUnreachable(_: never): never {
-  throw new Error("Didn't expect to get here");
+function assertUnreachable(event: never) {
+  Logger.warn(`DeliverWebhookTask did not handle ${(event as any).name}`);
 }
 
 type Props = {
-  subscription: WebhookSubscription;
+  subscriptionId: string;
   event: Event;
 };
 
 export default class DeliverWebhookTask extends BaseTask<Props> {
-  public async perform({ subscription, event }: Props) {
+  public async perform({ subscriptionId, event }: Props) {
+    const subscription = await WebhookSubscription.findByPk(subscriptionId);
+    invariant(subscription, "Subscription not found");
+
     Logger.info(
       "task",
       `DeliverWebhookTask: ${event.name} for ${subscription.name}`
@@ -400,7 +404,9 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
 
     if (!response.ok) {
       const recentDeliveries = await WebhookDelivery.findAll({
-        where: { webhookSubscriptionId: subscription.id },
+        where: {
+          webhookSubscriptionId: subscription.id,
+        },
         order: [["createdAt", "DESC"]],
         limit: 25,
       });

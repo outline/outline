@@ -35,9 +35,7 @@ describe("WebhookProcessor", () => {
     expect(DeliverWebhookTask.schedule).toHaveBeenCalled();
     expect(DeliverWebhookTask.schedule).toHaveBeenCalledWith({
       event,
-      subscription: expect.objectContaining({
-        id: subscription.id,
-      }),
+      subscriptionId: subscription.id,
     });
   });
 
@@ -88,15 +86,11 @@ describe("WebhookProcessor", () => {
     expect(DeliverWebhookTask.schedule).toHaveBeenCalledTimes(2);
     expect(DeliverWebhookTask.schedule).toHaveBeenCalledWith({
       event,
-      subscription: expect.objectContaining({
-        id: subscription.id,
-      }),
+      subscriptionId: subscription.id,
     });
     expect(DeliverWebhookTask.schedule).toHaveBeenCalledWith({
       event,
-      subscription: expect.objectContaining({
-        id: subscriptionTwo.id,
-      }),
+      subscriptionId: subscriptionTwo.id,
     });
   });
 });

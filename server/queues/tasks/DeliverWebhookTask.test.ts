@@ -39,7 +39,7 @@ describe("DeliverWebhookTask", () => {
       ip,
     };
     await processor.perform({
-      subscription,
+      subscriptionId: subscription.id,
       event,
     });
 
@@ -86,7 +86,7 @@ describe("DeliverWebhookTask", () => {
 
     await task.perform({
       event,
-      subscription,
+      subscriptionId: subscription.id,
     });
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
@@ -133,7 +133,7 @@ describe("DeliverWebhookTask", () => {
 
     await task.perform({
       event,
-      subscription,
+      subscriptionId: subscription.id,
     });
 
     await subscription.reload();
@@ -181,7 +181,7 @@ describe("DeliverWebhookTask", () => {
 
     await task.perform({
       event,
-      subscription,
+      subscriptionId: subscription.id,
     });
 
     await subscription.reload();
