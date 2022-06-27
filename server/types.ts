@@ -37,6 +37,7 @@ export type UserEvent =
     }
   | {
       name: "users.invite";
+      userId: string;
       teamId: string;
       actorId: string;
       data: {

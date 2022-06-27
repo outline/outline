@@ -73,6 +73,7 @@ export default async function userInviter({
       name: "users.invite",
       actorId: user.id,
       teamId: user.teamId,
+      userId: newUser.id,
       data: {
         email: invite.email,
         name: invite.name,

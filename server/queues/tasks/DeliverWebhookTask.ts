@@ -320,24 +320,14 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     subscription: WebhookSubscription,
     event: UserEvent
   ): Promise<void> {
-    if (event.name === "users.invite") {
-      const invite = event.data;
+    const hydratedUser = await User.findByPk(event.userId);
 
-      await this.sendWebhook({
-        event,
-        subscription,
-        payload: { model: invite },
-      });
-    } else {
-      const hydratedUser = await User.findByPk(event.userId);
-
-      await this.sendModelWebhook({
-        event,
-        subscription,
-        modelId: event.userId,
-        modelPayload: hydratedUser && presentUser(hydratedUser),
-      });
-    }
+    await this.sendModelWebhook({
+      event,
+      subscription,
+      modelId: event.userId,
+      modelPayload: hydratedUser && presentUser(hydratedUser),
+    });
   }
 
   async sendModelWebhook({
