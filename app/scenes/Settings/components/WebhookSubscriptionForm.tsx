@@ -11,7 +11,7 @@ import Text from "~/components/Text";
 import useMobile from "~/hooks/useMobile";
 
 const WEBHOOK_EVENTS = {
-  users: [
+  user: [
     "users.create",
     "users.signin",
     "users.update",
@@ -20,7 +20,7 @@ const WEBHOOK_EVENTS = {
     "users.delete",
     "users.invite",
   ],
-  documents: [
+  document: [
     "documents.create",
     "documents.publish",
     "documents.unpublish",
@@ -37,13 +37,13 @@ const WEBHOOK_EVENTS = {
     "documents.update.debounced",
     "documents.title_change",
   ],
-  revisions: ["revisions.create"],
-  fileOperations: [
+  revision: ["revisions.create"],
+  fileOperation: [
     "file_operations.create",
     "file_operations.update",
     "file_operations.delete",
   ],
-  collections: [
+  collection: [
     "collections.create",
     "collections.update",
     "collections.delete",
@@ -54,39 +54,38 @@ const WEBHOOK_EVENTS = {
     "collections.move",
     "collections.permission_changed",
   ],
-  groups: [
+  group: [
     "groups.create",
     "groups.update",
     "groups.delete",
     "groups.add_user",
     "groups.remove_user",
   ],
-  integrations: ["integrations.create", "integrations.update"],
-  teams: ["teams.update"],
-  pins: ["pins.create", "pins.update", "pins.delete"],
-  webhookSubscriptions: [
+  integration: ["integrations.create", "integrations.update"],
+  team: ["teams.update"],
+  pin: ["pins.create", "pins.update", "pins.delete"],
+  webhookSubscription: [
     "webhook_subscriptions.create",
     "webhook_subscriptions.delete",
     "webhook_subscriptions.update",
   ],
+  view: ["views.create"],
 };
 
 const EventCheckboxLabel = styled.label`
   display: flex;
   align-items: center;
-
-  padding: 0.5rem 0;
+  font-size: 15px;
+  padding: 0.2em 0;
 `;
 
 const GroupEventCheckboxLabel = styled(EventCheckboxLabel)`
-  font-weight: bold;
+  font-weight: 500;
   font-size: 1.2em;
 `;
 
-const AllEventCheckboxLabel = styled(EventCheckboxLabel)`
-  font-weight: bold;
-  font-size: 2em;
-  padding-bottom: 1em;
+const AllEventCheckboxLabel = styled(GroupEventCheckboxLabel)`
+  font-size: 1.4em;
 `;
 
 const EventCheckboxText = styled.span`
@@ -97,7 +96,8 @@ interface FieldProps {
   disabled?: boolean;
 }
 const FieldSet = styled.fieldset<FieldProps>`
-  padding-left: 0;
+  padding: 0;
+  margin: 0;
   border: none;
 
   ${({ disabled }) =>
@@ -134,8 +134,7 @@ const GroupWrapper = styled.div<MobileProps>`
 const TextFields = styled.div`
   display: flex;
   flex-direction: column;
-
-  margin-bottom: 2rem;
+  margin-bottom: 1em;
 `;
 
 type Props = {

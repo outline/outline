@@ -171,7 +171,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     subscription: WebhookSubscription,
     event: ViewEvent
   ): Promise<void> {
-    const hydratedModel = await View.findByPk(event.modelId);
+    const hydratedModel = await View.scope("withUser").findByPk(event.modelId);
 
     await this.sendModelWebhook({
       event,
@@ -213,7 +213,9 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     subscription: WebhookSubscription,
     event: TeamEvent
   ): Promise<void> {
-    const hydratedModel = await Team.findByPk(event.teamId);
+    const hydratedModel = await Team.scope("withDomains").findByPk(
+      event.teamId
+    );
 
     await this.sendModelWebhook({
       event,
