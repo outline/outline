@@ -13,6 +13,7 @@ import {
   Document,
   User,
   Revision,
+  View,
 } from "@server/models";
 import {
   presentCollection,
@@ -27,6 +28,7 @@ import {
   presentUser,
   presentWebhook,
   presentWebhookSubscription,
+  presentView,
 } from "@server/presenters";
 import {
   CollectionEvent,
@@ -40,6 +42,7 @@ import {
   StarEvent,
   TeamEvent,
   UserEvent,
+  ViewEvent,
   WebhookSubscriptionEvent,
 } from "@server/types";
 import BaseTask from "./BaseTask";
@@ -61,6 +64,10 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     );
 
     switch (event.name) {
+      case "api_keys.create":
+      case "api_keys.delete":
+        // Ignored
+        return;
       case "users.create":
       case "users.signin":
       case "users.signout":
@@ -88,7 +95,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
         return;
       case "documents.update.delayed":
       case "documents.update.debounced":
-        // Internal
+        // Ignored
         return;
       case "revisions.create":
         await this.handleRevisionEvent(subscription, event);
@@ -138,6 +145,9 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       case "webhook_subscriptions.update":
         await this.handleWebhookSubscriptionEvent(subscription, event);
         return;
+      case "views.create":
+        await this.handleViewEvent(subscription, event);
+        return;
       default:
         assertUnreachable(event);
     }
@@ -154,6 +164,20 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       subscription,
       modelId: event.modelId,
       modelPayload: hydratedModel && presentWebhookSubscription(hydratedModel),
+    });
+  }
+
+  async handleViewEvent(
+    subscription: WebhookSubscription,
+    event: ViewEvent
+  ): Promise<void> {
+    const hydratedModel = await View.findByPk(event.modelId);
+
+    await this.sendModelWebhook({
+      event,
+      subscription,
+      modelId: event.modelId,
+      modelPayload: hydratedModel && presentView(hydratedModel),
     });
   }
 

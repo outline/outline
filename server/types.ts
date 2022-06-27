@@ -9,6 +9,18 @@ export type ContextWithState = Context & {
   };
 };
 
+export type ApiKeyEvent = {
+  name: "api_keys.create" // eslint-disable-line
+    | "api_keys.delete";
+  modelId: string;
+  teamId: string;
+  actorId: string;
+  ip: string;
+  data: {
+    name: string;
+  };
+};
+
 export type UserEvent =
   | {
   name: "users.create" // eslint-disable-line
@@ -231,6 +243,19 @@ export type StarEvent = {
   ip: string;
 };
 
+export type ViewEvent = {
+  name: "views.create";
+  documentId: string;
+  collectionId: string;
+  modelId: string;
+  teamId: string;
+  actorId: string;
+  ip: string;
+  data: {
+    title: string;
+  };
+};
+
 export type WebhookSubscriptionEvent = {
   name:
     | "webhook_subscriptions.create"
@@ -248,6 +273,7 @@ export type WebhookSubscriptionEvent = {
 };
 
 export type Event =
+  | ApiKeyEvent
   | UserEvent
   | DocumentEvent
   | PinEvent
@@ -258,4 +284,5 @@ export type Event =
   | GroupEvent
   | RevisionEvent
   | TeamEvent
+  | ViewEvent
   | WebhookSubscriptionEvent;
