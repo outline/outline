@@ -169,9 +169,11 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     subscription: WebhookSubscription,
     event: WebhookSubscriptionEvent
   ): Promise<void> {
-    const hydratedModel = await WebhookSubscription.findByPk(event.modelId);
+    const hydratedModel = await WebhookSubscription.findByPk(event.modelId, {
+      paranoid: false,
+    });
 
-    await this.sendModelWebhook({
+    await this.sendWebhook({
       event,
       subscription,
       modelId: event.modelId,
@@ -183,9 +185,11 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     subscription: WebhookSubscription,
     event: ViewEvent
   ): Promise<void> {
-    const hydratedModel = await View.scope("withUser").findByPk(event.modelId);
+    const hydratedModel = await View.scope("withUser").findByPk(event.modelId, {
+      paranoid: false,
+    });
 
-    await this.sendModelWebhook({
+    await this.sendWebhook({
       event,
       subscription,
       modelId: event.modelId,
@@ -197,9 +201,11 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     subscription: WebhookSubscription,
     event: StarEvent
   ): Promise<void> {
-    const hydratedModel = await Star.findByPk(event.modelId);
+    const hydratedModel = await Star.findByPk(event.modelId, {
+      paranoid: false,
+    });
 
-    await this.sendModelWebhook({
+    await this.sendWebhook({
       event,
       subscription,
       modelId: event.modelId,
@@ -211,9 +217,11 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     subscription: WebhookSubscription,
     event: ShareEvent
   ): Promise<void> {
-    const hydratedModel = await Share.findByPk(event.modelId);
+    const hydratedModel = await Share.findByPk(event.modelId, {
+      paranoid: false,
+    });
 
-    await this.sendModelWebhook({
+    await this.sendWebhook({
       event,
       subscription,
       modelId: event.modelId,
@@ -225,9 +233,11 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     subscription: WebhookSubscription,
     event: PinEvent
   ): Promise<void> {
-    const hydratedModel = await Pin.findByPk(event.modelId);
+    const hydratedModel = await Pin.findByPk(event.modelId, {
+      paranoid: false,
+    });
 
-    await this.sendModelWebhook({
+    await this.sendWebhook({
       event,
       subscription,
       modelId: event.modelId,
@@ -240,10 +250,13 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     event: TeamEvent
   ): Promise<void> {
     const hydratedModel = await Team.scope("withDomains").findByPk(
-      event.teamId
+      event.teamId,
+      {
+        paranoid: false,
+      }
     );
 
-    await this.sendModelWebhook({
+    await this.sendWebhook({
       event,
       subscription,
       modelId: event.teamId,
@@ -255,9 +268,11 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     subscription: WebhookSubscription,
     event: IntegrationEvent
   ): Promise<void> {
-    const hydratedModel = await Integration.findByPk(event.modelId);
+    const hydratedModel = await Integration.findByPk(event.modelId, {
+      paranoid: false,
+    });
 
-    await this.sendModelWebhook({
+    await this.sendWebhook({
       event,
       subscription,
       modelId: event.modelId,
@@ -269,9 +284,11 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     subscription: WebhookSubscription,
     event: GroupEvent
   ): Promise<void> {
-    const hydratedModel = await Group.findByPk(event.modelId);
+    const hydratedModel = await Group.findByPk(event.modelId, {
+      paranoid: false,
+    });
 
-    await this.sendModelWebhook({
+    await this.sendWebhook({
       event,
       subscription,
       modelId: event.modelId,
@@ -283,9 +300,11 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     subscription: WebhookSubscription,
     event: CollectionEvent
   ): Promise<void> {
-    const hydratedModel = await Collection.findByPk(event.collectionId);
+    const hydratedModel = await Collection.findByPk(event.collectionId, {
+      paranoid: false,
+    });
 
-    await this.sendModelWebhook({
+    await this.sendWebhook({
       event,
       subscription,
       modelId: event.collectionId,
@@ -297,9 +316,11 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     subscription: WebhookSubscription,
     event: FileOperationEvent
   ): Promise<void> {
-    const hydratedFileOperation = await FileOperation.findByPk(event.modelId);
+    const hydratedFileOperation = await FileOperation.findByPk(event.modelId, {
+      paranoid: false,
+    });
 
-    await this.sendModelWebhook({
+    await this.sendWebhook({
       event,
       subscription,
       modelId: event.modelId,
@@ -312,9 +333,11 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     subscription: WebhookSubscription,
     event: DocumentEvent
   ): Promise<void> {
-    const hydratedDocument = await Document.findByPk(event.documentId);
+    const hydratedDocument = await Document.findByPk(event.documentId, {
+      paranoid: false,
+    });
 
-    await this.sendModelWebhook({
+    await this.sendWebhook({
       event,
       subscription,
       modelId: event.documentId,
@@ -327,9 +350,11 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     subscription: WebhookSubscription,
     event: RevisionEvent
   ): Promise<void> {
-    const hydratedRevision = await Revision.findByPk(event.modelId);
+    const hydratedRevision = await Revision.findByPk(event.modelId, {
+      paranoid: false,
+    });
 
-    await this.sendModelWebhook({
+    await this.sendWebhook({
       event,
       subscription,
       modelId: event.modelId,
@@ -342,9 +367,11 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     subscription: WebhookSubscription,
     event: UserEvent
   ): Promise<void> {
-    const hydratedUser = await User.findByPk(event.userId);
+    const hydratedUser = await User.findByPk(event.userId, {
+      paranoid: false,
+    });
 
-    await this.sendModelWebhook({
+    await this.sendWebhook({
       event,
       subscription,
       modelId: event.userId,
@@ -352,7 +379,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     });
   }
 
-  async sendModelWebhook({
+  async sendWebhook({
     event,
     subscription,
     modelPayload,
@@ -363,26 +390,14 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     modelPayload: unknown;
     modelId: string;
   }) {
-    const payload = {
-      id: modelId,
-      model: modelPayload,
-    };
-    await this.sendWebhook({ event, subscription, payload });
-  }
-
-  async sendWebhook({
-    event,
-    subscription,
-    payload,
-  }: {
-    event: Event;
-    subscription: WebhookSubscription;
-    payload: { model: unknown; id?: string };
-  }) {
     const delivery = await WebhookDelivery.create({
       webhookSubscriptionId: subscription.id,
       status: "pending",
     });
+    const payload = {
+      id: modelId,
+      model: modelPayload,
+    };
 
     let response, requestBody, requestHeaders, status;
     try {

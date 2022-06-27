@@ -24,7 +24,7 @@ describe("CleanupWebookDeliveriesTask", () => {
     });
 
     const task = new CleanupWebhookDeliveriesTask();
-    await task.perform({ limit: 100 });
+    await task.perform();
 
     expect(await deliveryExists(brandNewWebhookDelivery)).toBe(true);
     expect(await deliveryExists(newishWebhookDelivery)).toBe(true);

@@ -4,25 +4,19 @@ import Logger from "@server/logging/Logger";
 import { WebhookDelivery } from "@server/models";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
-type Props = {
-  limit: number;
-};
+type Props = void;
 
 export default class CleanupWebhookDeliveriesTask extends BaseTask<Props> {
-  public async perform({ limit }: Props) {
+  public async perform(_: Props) {
     Logger.info("task", `Deleting WebhookDeliveries older than one week…`);
-    const deliveries = await WebhookDelivery.unscoped().findAll({
+    const count = await WebhookDelivery.unscoped().destroy({
       where: {
         createdAt: {
           [Op.lt]: subDays(new Date(), 7),
         },
       },
-      limit,
     });
-    await Promise.all(
-      deliveries.map((fileOperation) => fileOperation.destroy())
-    );
-    Logger.info("task", `${deliveries.length} old WebhookDeliveries deleted.`);
+    Logger.info("task", `${count} old WebhookDeliveries deleted.`);
   }
 
   public get options() {
