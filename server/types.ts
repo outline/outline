@@ -118,27 +118,31 @@ export type FileOperationEvent = BaseEvent & {
   data: Partial<FileOperation>;
 };
 
+export type CollectionUserEvent = BaseEvent & {
+  name: "collections.add_user" | "collections.remove_user";
+  userId: string;
+  collectionId: string;
+};
+
+export type CollectionGroupEvent = BaseEvent & {
+  name: "collections.add_group" | "collections.remove_group";
+  collectionId: string;
+  modelId: string;
+  data: {
+    name: string;
+  };
+};
+
 export type CollectionEvent = BaseEvent &
   (
+    | CollectionUserEvent
+    | CollectionGroupEvent
     | {
         name:
           | "collections.create"
           | "collections.update"
           | "collections.delete";
         collectionId: string;
-        data: {
-          name: string;
-        };
-      }
-    | {
-        name: "collections.add_user" | "collections.remove_user";
-        userId: string;
-        collectionId: string;
-      }
-    | {
-        name: "collections.add_group" | "collections.remove_group";
-        collectionId: string;
-        modelId: string;
         data: {
           name: string;
         };
@@ -160,18 +164,20 @@ export type CollectionEvent = BaseEvent &
       }
   );
 
+export type GroupUserEvent = BaseEvent & {
+  name: "groups.add_user" | "groups.remove_user";
+  userId: string;
+  modelId: string;
+  data: {
+    name: string;
+  };
+};
+
 export type GroupEvent = BaseEvent &
   (
+    | GroupUserEvent
     | {
         name: "groups.create" | "groups.delete" | "groups.update";
-        modelId: string;
-        data: {
-          name: string;
-        };
-      }
-    | {
-        name: "groups.add_user" | "groups.remove_user";
-        userId: string;
         modelId: string;
         data: {
           name: string;

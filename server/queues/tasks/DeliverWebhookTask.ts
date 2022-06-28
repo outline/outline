@@ -16,6 +16,9 @@ import {
   Revision,
   View,
   Share,
+  CollectionUser,
+  CollectionGroup,
+  GroupUser,
 } from "@server/models";
 import {
   presentCollection,
@@ -32,13 +35,20 @@ import {
   presentWebhookSubscription,
   presentView,
   presentShare,
+  presentMembership,
+  presentGroupMembership,
+  presentCollectionGroupMembership,
 } from "@server/presenters";
+import { WebhookPayload } from "@server/presenters/webhook";
 import {
   CollectionEvent,
+  CollectionGroupEvent,
+  CollectionUserEvent,
   DocumentEvent,
   Event,
   FileOperationEvent,
   GroupEvent,
+  GroupUserEvent,
   IntegrationEvent,
   PinEvent,
   RevisionEvent,
@@ -115,20 +125,26 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       case "collections.create":
       case "collections.update":
       case "collections.delete":
-      case "collections.add_user":
-      case "collections.remove_user":
-      case "collections.add_group":
-      case "collections.remove_group":
       case "collections.move":
       case "collections.permission_changed":
         await this.handleCollectionEvent(subscription, event);
         return;
+      case "collections.add_user":
+      case "collections.remove_user":
+        await this.handleCollectionUserEvent(subscription, event);
+        return;
+      case "collections.add_group":
+      case "collections.remove_group":
+        await this.handleCollectionGroupEvent(subscription, event);
+        return;
       case "groups.create":
       case "groups.update":
       case "groups.delete":
+        await this.handleGroupEvent(subscription, event);
+        return;
       case "groups.add_user":
       case "groups.remove_user":
-        await this.handleGroupEvent(subscription, event);
+        await this.handleGroupUserEvent(subscription, event);
         return;
       case "integrations.create":
       case "integrations.update":
@@ -165,239 +181,331 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     }
   }
 
-  async handleWebhookSubscriptionEvent(
+  private async handleWebhookSubscriptionEvent(
     subscription: WebhookSubscription,
     event: WebhookSubscriptionEvent
   ): Promise<void> {
-    const hydratedModel = await WebhookSubscription.findByPk(event.modelId, {
+    const model = await WebhookSubscription.findByPk(event.modelId, {
       paranoid: false,
     });
 
     await this.sendWebhook({
       event,
       subscription,
-      modelId: event.modelId,
-      modelPayload: hydratedModel && presentWebhookSubscription(hydratedModel),
+      payload: {
+        id: event.modelId,
+        model: model && presentWebhookSubscription(model),
+      },
     });
   }
 
-  async handleViewEvent(
+  private async handleViewEvent(
     subscription: WebhookSubscription,
     event: ViewEvent
   ): Promise<void> {
-    const hydratedModel = await View.scope("withUser").findByPk(event.modelId, {
+    const model = await View.scope("withUser").findByPk(event.modelId, {
       paranoid: false,
     });
 
     await this.sendWebhook({
       event,
       subscription,
-      modelId: event.modelId,
-      modelPayload: hydratedModel && presentView(hydratedModel),
+      payload: {
+        id: event.modelId,
+        model: model && presentView(model),
+      },
     });
   }
 
-  async handleStarEvent(
+  private async handleStarEvent(
     subscription: WebhookSubscription,
     event: StarEvent
   ): Promise<void> {
-    const hydratedModel = await Star.findByPk(event.modelId, {
+    const model = await Star.findByPk(event.modelId, {
       paranoid: false,
     });
 
     await this.sendWebhook({
       event,
       subscription,
-      modelId: event.modelId,
-      modelPayload: hydratedModel && presentStar(hydratedModel),
+      payload: {
+        id: event.modelId,
+        model: model && presentStar(model),
+      },
     });
   }
 
-  async handleShareEvent(
+  private async handleShareEvent(
     subscription: WebhookSubscription,
     event: ShareEvent
   ): Promise<void> {
-    const hydratedModel = await Share.findByPk(event.modelId, {
+    const model = await Share.findByPk(event.modelId, {
       paranoid: false,
     });
 
     await this.sendWebhook({
       event,
       subscription,
-      modelId: event.modelId,
-      modelPayload: hydratedModel && presentShare(hydratedModel),
+      payload: {
+        id: event.modelId,
+        model: model && presentShare(model),
+      },
     });
   }
 
-  async handlePinEvent(
+  private async handlePinEvent(
     subscription: WebhookSubscription,
     event: PinEvent
   ): Promise<void> {
-    const hydratedModel = await Pin.findByPk(event.modelId, {
+    const model = await Pin.findByPk(event.modelId, {
       paranoid: false,
     });
 
     await this.sendWebhook({
       event,
       subscription,
-      modelId: event.modelId,
-      modelPayload: hydratedModel && presentPin(hydratedModel),
+      payload: {
+        id: event.modelId,
+        model: model && presentPin(model),
+      },
     });
   }
 
-  async handleTeamEvent(
+  private async handleTeamEvent(
     subscription: WebhookSubscription,
     event: TeamEvent
   ): Promise<void> {
-    const hydratedModel = await Team.scope("withDomains").findByPk(
-      event.teamId,
-      {
-        paranoid: false,
-      }
-    );
+    const model = await Team.scope("withDomains").findByPk(event.teamId, {
+      paranoid: false,
+    });
 
     await this.sendWebhook({
       event,
       subscription,
-      modelId: event.teamId,
-      modelPayload: hydratedModel && presentTeam(hydratedModel),
+      payload: {
+        id: event.teamId,
+        model: model && presentTeam(model),
+      },
     });
   }
 
-  async handleIntegrationEvent(
+  private async handleIntegrationEvent(
     subscription: WebhookSubscription,
     event: IntegrationEvent
   ): Promise<void> {
-    const hydratedModel = await Integration.findByPk(event.modelId, {
+    const model = await Integration.findByPk(event.modelId, {
       paranoid: false,
     });
 
     await this.sendWebhook({
       event,
       subscription,
-      modelId: event.modelId,
-      modelPayload: hydratedModel && presentIntegration(hydratedModel),
+      payload: {
+        id: event.modelId,
+        model: model && presentIntegration(model),
+      },
     });
   }
 
-  async handleGroupEvent(
+  private async handleGroupEvent(
     subscription: WebhookSubscription,
     event: GroupEvent
   ): Promise<void> {
-    const hydratedModel = await Group.findByPk(event.modelId, {
+    const model = await Group.findByPk(event.modelId, {
       paranoid: false,
     });
 
     await this.sendWebhook({
       event,
       subscription,
-      modelId: event.modelId,
-      modelPayload: hydratedModel && presentGroup(hydratedModel),
+      payload: {
+        id: event.modelId,
+        model: model && presentGroup(model),
+      },
     });
   }
 
-  async handleCollectionEvent(
+  private async handleGroupUserEvent(
+    subscription: WebhookSubscription,
+    event: GroupUserEvent
+  ): Promise<void> {
+    const model = await GroupUser.scope(["withUser", "withGroup"]).findOne({
+      where: {
+        groupId: event.modelId,
+        userId: event.userId,
+      },
+      paranoid: false,
+    });
+
+    await this.sendWebhook({
+      event,
+      subscription,
+      payload: {
+        id: `${event.userId}-${event.modelId}`,
+        model: model && presentGroupMembership(model),
+        group: model && presentGroup(model.group),
+        user: model && presentUser(model.user),
+      },
+    });
+  }
+
+  private async handleCollectionEvent(
     subscription: WebhookSubscription,
     event: CollectionEvent
   ): Promise<void> {
-    const hydratedModel = await Collection.findByPk(event.collectionId, {
+    const model = await Collection.findByPk(event.collectionId, {
       paranoid: false,
     });
 
     await this.sendWebhook({
       event,
       subscription,
-      modelId: event.collectionId,
-      modelPayload: hydratedModel && presentCollection(hydratedModel),
+      payload: {
+        id: event.collectionId,
+        model: model && presentCollection(model),
+      },
     });
   }
 
-  async handleFileOperationEvent(
+  private async handleCollectionUserEvent(
+    subscription: WebhookSubscription,
+    event: CollectionUserEvent
+  ): Promise<void> {
+    const model = await CollectionUser.scope([
+      "withUser",
+      "withCollection",
+    ]).findOne({
+      where: {
+        collectionId: event.collectionId,
+        userId: event.userId,
+      },
+      paranoid: false,
+    });
+
+    await this.sendWebhook({
+      event,
+      subscription,
+      payload: {
+        id: `${event.userId}-${event.collectionId}`,
+        model: model && presentMembership(model),
+        collection: model && presentCollection(model.collection),
+        user: model && presentUser(model.user),
+      },
+    });
+  }
+
+  private async handleCollectionGroupEvent(
+    subscription: WebhookSubscription,
+    event: CollectionGroupEvent
+  ): Promise<void> {
+    const model = await CollectionGroup.scope([
+      "withGroup",
+      "withCollection",
+    ]).findOne({
+      where: {
+        collectionId: event.collectionId,
+        groupId: event.modelId,
+      },
+      paranoid: false,
+    });
+
+    await this.sendWebhook({
+      event,
+      subscription,
+      payload: {
+        id: `${event.modelId}-${event.collectionId}`,
+        model: model && presentCollectionGroupMembership(model),
+        collection: model && presentCollection(model.collection),
+        group: model && presentGroup(model.group),
+      },
+    });
+  }
+
+  private async handleFileOperationEvent(
     subscription: WebhookSubscription,
     event: FileOperationEvent
   ): Promise<void> {
-    const hydratedFileOperation = await FileOperation.findByPk(event.modelId, {
+    const model = await FileOperation.findByPk(event.modelId, {
       paranoid: false,
     });
 
     await this.sendWebhook({
       event,
       subscription,
-      modelId: event.modelId,
-      modelPayload:
-        hydratedFileOperation && presentFileOperation(hydratedFileOperation),
+      payload: {
+        id: event.modelId,
+        model: model && presentFileOperation(model),
+      },
     });
   }
 
-  async handleDocumentEvent(
+  private async handleDocumentEvent(
     subscription: WebhookSubscription,
     event: DocumentEvent
   ): Promise<void> {
-    const hydratedDocument = await Document.findByPk(event.documentId, {
+    const model = await Document.findByPk(event.documentId, {
       paranoid: false,
     });
 
     await this.sendWebhook({
       event,
       subscription,
-      modelId: event.documentId,
-      modelPayload:
-        hydratedDocument && (await presentDocument(hydratedDocument)),
+      payload: {
+        id: event.documentId,
+        model: model && (await presentDocument(model)),
+      },
     });
   }
 
-  async handleRevisionEvent(
+  private async handleRevisionEvent(
     subscription: WebhookSubscription,
     event: RevisionEvent
   ): Promise<void> {
-    const hydratedRevision = await Revision.findByPk(event.modelId, {
+    const model = await Revision.findByPk(event.modelId, {
       paranoid: false,
     });
 
     await this.sendWebhook({
       event,
       subscription,
-      modelId: event.modelId,
-      modelPayload:
-        hydratedRevision && (await presentRevision(hydratedRevision)),
+      payload: {
+        id: event.modelId,
+        model: model && (await presentRevision(model)),
+      },
     });
   }
 
-  async handleUserEvent(
+  private async handleUserEvent(
     subscription: WebhookSubscription,
     event: UserEvent
   ): Promise<void> {
-    const hydratedUser = await User.findByPk(event.userId, {
+    const model = await User.findByPk(event.userId, {
       paranoid: false,
     });
 
     await this.sendWebhook({
       event,
       subscription,
-      modelId: event.userId,
-      modelPayload: hydratedUser && presentUser(hydratedUser),
+      payload: {
+        id: event.userId,
+        model: model && presentUser(model),
+      },
     });
   }
 
-  async sendWebhook({
+  private async sendWebhook({
     event,
     subscription,
-    modelPayload,
-    modelId,
+    payload,
   }: {
     event: Event;
     subscription: WebhookSubscription;
-    modelPayload: unknown;
-    modelId: string;
+    payload: WebhookPayload;
   }) {
     const delivery = await WebhookDelivery.create({
       webhookSubscriptionId: subscription.id,
       status: "pending",
     });
-    const payload = {
-      id: modelId,
-      model: modelPayload,
-    };
 
     let response, requestBody, requestHeaders, status;
     try {

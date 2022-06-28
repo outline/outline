@@ -1,10 +1,16 @@
 import { WebhookDelivery } from "@server/models";
 import { Event } from "@server/types";
 
+export interface WebhookPayload {
+  model: Record<string, unknown> | null;
+  id: string;
+  [key: string]: unknown;
+}
+
 interface WebhookProps {
   event: Event;
   delivery: WebhookDelivery;
-  payload: { model: unknown; id?: string };
+  payload: WebhookPayload;
 }
 
 export interface WebhookPresentation {
@@ -12,7 +18,7 @@ export interface WebhookPresentation {
   actorId: string;
   webhookSubscriptionId: string;
   event: string;
-  payload: { model: unknown; id?: string };
+  payload: WebhookPayload;
   createdAt: Date;
 }
 

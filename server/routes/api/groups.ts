@@ -45,7 +45,9 @@ router.post("groups.list", auth(), pagination(), async (ctx) => {
             .slice(0, MAX_AVATAR_DISPLAY)
         )
         .flat()
-        .map(presentGroupMembership),
+        .map((membership) =>
+          presentGroupMembership(membership, { includeUser: true })
+        ),
     },
     policies: presentPolicies(user, groups),
   };
@@ -191,7 +193,9 @@ router.post("groups.memberships", auth(), pagination(), async (ctx) => {
   ctx.body = {
     pagination: ctx.state.pagination,
     data: {
-      groupMemberships: memberships.map(presentGroupMembership),
+      groupMemberships: memberships.map((membership) =>
+        presentGroupMembership(membership, { includeUser: true })
+      ),
       users: memberships.map((membership) => presentUser(membership.user)),
     },
   };
@@ -250,7 +254,9 @@ router.post("groups.add_user", auth(), async (ctx) => {
   ctx.body = {
     data: {
       users: [presentUser(user)],
-      groupMemberships: [presentGroupMembership(membership)],
+      groupMemberships: [
+        presentGroupMembership(membership, { includeUser: true }),
+      ],
       groups: [presentGroup(group)],
     },
   };
