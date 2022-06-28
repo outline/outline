@@ -2,9 +2,11 @@ import { EmailIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { parseDomain } from "@shared/utils/domains";
 import AuthLogo from "~/components/AuthLogo";
 import ButtonLarge from "~/components/ButtonLarge";
 import InputLarge from "~/components/InputLarge";
+import env from "~/env";
 import { client } from "~/utils/ApiClient";
 
 type Props = {
@@ -87,10 +89,16 @@ function AuthenticationProvider(props: Props) {
     );
   }
 
+  // If we're on a custom domain then the auth must point to the root
+  // app.getoutline.com for authentication so that the state cookie can be set
+  // and read.
+  const isCustomDomain = parseDomain(window.location.origin).custom;
+  const href = `${isCustomDomain ? env.URL : ""}${authUrl}`;
+
   return (
     <Wrapper>
       <ButtonLarge
-        onClick={() => (window.location.href = authUrl)}
+        onClick={() => (window.location.href = href)}
         icon={<AuthLogo providerName={id} />}
         fullwidth
       >

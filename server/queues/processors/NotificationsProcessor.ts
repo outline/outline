@@ -44,14 +44,14 @@ export default class NotificationsProcessor extends BaseProcessor {
     if (event.data?.source === "import") {
       return;
     }
-    const [document, team] = await Promise.all([
+    const [collection, document, team] = await Promise.all([
+      Collection.findByPk(event.collectionId),
       Document.findByPk(event.documentId),
       Team.findByPk(event.teamId),
     ]);
-    if (!document || !team || !document.collection) {
+    if (!document || !team || !collection) {
       return;
     }
-    const { collection } = document;
     const notificationSettings = await NotificationSetting.findAll({
       where: {
         userId: {

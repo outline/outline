@@ -21,6 +21,7 @@ export default async function revisionCreator({
       {
         name: "revisions.create",
         documentId: document.id,
+        collectionId: document.collectionId,
         modelId: revision.id,
         teamId: document.teamId,
         actorId: user.id,

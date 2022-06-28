@@ -48,8 +48,8 @@
     "@babel/plugin-transform-regenerator": "^7.10.4",
     "@babel/preset-env": "^7.16.0",
     "@babel/preset-react": "^7.16.0",
-    "@bull-board/api": "^3.11.1",
-    "@bull-board/koa": "^3.11.1",
+    "@bull-board/api": "^4.0.0",
+    "@bull-board/koa": "^4.0.0",
     "@dnd-kit/core": "^4.0.3",
     "@dnd-kit/modifiers": "^4.0.0",
     "@dnd-kit/sortable": "^5.1.0",
@@ -315,7 +315,7 @@
     "koa-webpack-dev-middleware": "^1.4.5",
     "koa-webpack-hot-middleware": "^1.0.3",
     "lint-staged": "^12.3.8",
-    "nodemon": "^2.0.15",
+    "nodemon": "^2.0.18",
     "prettier": "^2.0.5",
     "react-refresh": "^0.9.0",
     "rimraf": "^2.5.4",
@@ -335,7 +335,8 @@
     "socket.io-parser": "^3.4.0",
     "prosemirror-transform": "1.2.5",
     "dot-prop": "^5.2.0",
-    "js-yaml": "^3.14.1"
+    "js-yaml": "^3.14.1",
+    "jpeg-js": "0.4.4"
   },
   "version": "0.64.3"
 }

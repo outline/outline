@@ -26,6 +26,47 @@ describe("teamCreator", () => {
     expect(isNewTeam).toEqual(true);
   });
 
+  it("should set subdomain append if unavailable", async () => {
+    env.DEPLOYMENT = "hosted";
+
+    await buildTeam({
+      subdomain: "myteam",
+    });
+    const result = await teamCreator({
+      name: "Test team",
+      subdomain: "myteam",
+      avatarUrl: "http://example.com/logo.png",
+      authenticationProvider: {
+        name: "google",
+        providerId: "example.com",
+      },
+    });
+
+    expect(result.team.subdomain).toEqual("myteam1");
+  });
+
+  it("should increment subdomain append if unavailable", async () => {
+    env.DEPLOYMENT = "hosted";
+
+    await buildTeam({
+      subdomain: "myteam",
+    });
+    await buildTeam({
+      subdomain: "myteam1",
+    });
+    const result = await teamCreator({
+      name: "Test team",
+      subdomain: "myteam",
+      avatarUrl: "http://example.com/logo.png",
+      authenticationProvider: {
+        name: "google",
+        providerId: "example.com",
+      },
+    });
+
+    expect(result.team.subdomain).toEqual("myteam2");
+  });
+
   describe("self hosted", () => {
     it("should not allow creating multiple teams in installation", async () => {
       env.DEPLOYMENT = undefined;
