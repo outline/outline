@@ -36,8 +36,11 @@ function Security() {
     defaultUserRole: team.defaultUserRole,
     memberCollectionCreate: team.memberCollectionCreate,
     inviteRequired: team.inviteRequired,
-    allowedDomains: team.allowedDomains,
   });
+
+  const [allowedDomains, setAllowedDomains] = useState([
+    ...(team.allowedDomains ?? []),
+  ]);
 
   const authenticationMethods = team.signinMethods;
 
@@ -59,9 +62,7 @@ function Security() {
         setData(newData);
         await auth.updateTeam(newData);
         showSuccessMessage();
-        setDomainsChanged(false);
       } catch (err) {
-        setDomainsChanged(true);
         showToast(err.message, {
           type: "error",
         });
@@ -76,6 +77,21 @@ function Security() {
     },
     [data, saveData]
   );
+
+  const handleSaveDomains = React.useCallback(async () => {
+    try {
+      await auth.updateTeam({
+        allowedDomains,
+      });
+      showSuccessMessage();
+      setDomainsChanged(false);
+    } catch (err) {
+      setDomainsChanged(true);
+      showToast(err.message, {
+        type: "error",
+      });
+    }
+  }, [auth, allowedDomains, showSuccessMessage, showToast]);
 
   const handleDefaultRoleChange = React.useCallback(
     async (newDefaultRole: string) => {
@@ -123,31 +139,26 @@ function Security() {
   );
 
   const handleRemoveDomain = async (index: number) => {
-    const newData = {
-      ...data,
-    };
-    newData.allowedDomains && newData.allowedDomains.splice(index, 1);
+    const newDomains = allowedDomains.filter((_, i) => index !== i);
 
-    setData(newData);
+    setAllowedDomains(newDomains);
     setDomainsChanged(true);
   };
 
   const handleAddDomain = () => {
-    const newData = {
-      ...data,
-      allowedDomains: [...(data.allowedDomains || []), ""],
-    };
+    const newDomains = [...allowedDomains, ""];
 
-    setData(newData);
+    setAllowedDomains(newDomains);
+    setDomainsChanged(true);
   };
 
   const createOnDomainChangedHandler = (index: number) => (
     ev: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const newData = { ...data };
+    const newDomains = allowedDomains.slice();
 
-    newData.allowedDomains![index] = ev.currentTarget.value;
-    setData(newData);
+    newDomains[index] = ev.currentTarget.value;
+    setAllowedDomains(newDomains);
     setDomainsChanged(true);
   };
 
@@ -269,35 +280,34 @@ function Security() {
           "The domains which should be allowed to create accounts. This applies to both SSO and Email logins. Changing this setting does not affect existing user accounts."
         )}
       >
-        {data.allowedDomains &&
-          data.allowedDomains.map((domain, index) => (
-            <Flex key={index} gap={4}>
-              <Input
-                key={index}
-                id={`allowedDomains${index}`}
-                value={domain}
-                autoFocus={!domain}
-                placeholder="example.com"
-                required
-                flex
-                onChange={createOnDomainChangedHandler(index)}
-              />
-              <Remove>
-                <Tooltip tooltip={t("Remove domain")} placement="top">
-                  <NudeButton onClick={() => handleRemoveDomain(index)}>
-                    <CloseIcon />
-                  </NudeButton>
-                </Tooltip>
-              </Remove>
-            </Flex>
-          ))}
+        {allowedDomains.map((domain, index) => (
+          <Flex key={index} gap={4}>
+            <Input
+              key={index}
+              id={`allowedDomains${index}`}
+              value={domain}
+              autoFocus={!domain}
+              placeholder="example.com"
+              required
+              flex
+              onChange={createOnDomainChangedHandler(index)}
+            />
+            <Remove>
+              <Tooltip tooltip={t("Remove domain")} placement="top">
+                <NudeButton onClick={() => handleRemoveDomain(index)}>
+                  <CloseIcon />
+                </NudeButton>
+              </Tooltip>
+            </Remove>
+          </Flex>
+        ))}
 
         <Flex justify="space-between" gap={4} style={{ flexWrap: "wrap" }}>
-          {!data.allowedDomains?.length ||
-          data.allowedDomains[data.allowedDomains.length - 1] !== "" ? (
+          {!allowedDomains.length ||
+          allowedDomains[allowedDomains.length - 1] !== "" ? (
             <Fade>
               <Button type="button" onClick={handleAddDomain} neutral>
-                {data.allowedDomains?.length ? (
+                {allowedDomains.length ? (
                   <Trans>Add another</Trans>
                 ) : (
                   <Trans>Add a domain</Trans>
@@ -312,7 +322,7 @@ function Security() {
             <Fade>
               <Button
                 type="button"
-                onClick={handleChange}
+                onClick={handleSaveDomains}
                 disabled={auth.isSaving}
               >
                 <Trans>Save changes</Trans>
