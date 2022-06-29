@@ -44,6 +44,7 @@ router.post("views.create", auth(), async (ctx) => {
     documentId: document.id,
     collectionId: document.collectionId,
     teamId: user.teamId,
+    modelId: view.id,
     data: {
       title: document.title,
     },

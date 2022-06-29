@@ -485,6 +485,16 @@ export class Environment {
    */
   public OIDC_SCOPES = process.env.OIDC_SCOPES ?? "openid profile email";
 
+  /**
+   * A string representing the version of the software.
+   *
+   * SOURCE_COMMIT is used by Docker Hub
+   * SOURCE_VERSION is used by Heroku
+   */
+  public VERSION = this.toOptionalString(
+    process.env.SOURCE_COMMIT || process.env.SOURCE_VERSION
+  );
+
   private toOptionalString(value: string | undefined) {
     return value ? value : undefined;
   }

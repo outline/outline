@@ -8,9 +8,7 @@ export * as APM from "@theo.gravity/datadog-apm";
 if (env.DD_API_KEY) {
   init(
     {
-      // SOURCE_COMMIT is used by Docker Hub
-      // SOURCE_VERSION is used by Heroku
-      version: process.env.SOURCE_COMMIT || process.env.SOURCE_VERSION,
+      version: env.VERSION,
       service: process.env.DD_SERVICE || "outline",
     },
     {

@@ -5,6 +5,7 @@ import {
   Column,
   Table,
   DataType,
+  Scopes,
 } from "sequelize-typescript";
 import Group from "./Group";
 import User from "./User";
@@ -17,6 +18,22 @@ import Fix from "./decorators/Fix";
       association: "user",
     },
   ],
+}))
+@Scopes(() => ({
+  withGroup: {
+    include: [
+      {
+        association: "group",
+      },
+    ],
+  },
+  withUser: {
+    include: [
+      {
+        association: "user",
+      },
+    ],
+  },
 }))
 @Table({ tableName: "group_users", modelName: "group_user", paranoid: true })
 @Fix

@@ -35,6 +35,9 @@ import Fix from "./decorators/Fix";
 const readFile = util.promisify(fs.readFile);
 
 @Scopes(() => ({
+  withDomains: {
+    include: [{ model: TeamDomain }],
+  },
   withAuthenticationProviders: {
     include: [
       {
