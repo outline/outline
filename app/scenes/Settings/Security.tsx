@@ -41,6 +41,16 @@ function Security() {
   const [allowedDomains, setAllowedDomains] = useState([
     ...(team.allowedDomains ?? []),
   ]);
+  const [lastKnownDomainCount, updateLastKnownDomainCount] = useState(
+    allowedDomains.length
+  );
+
+  const [existingDomainsTouched, setExistingDomainsTouched] = useState(false);
+
+  const showSaveDomainsButton = React.useCallback(() => {
+    const validDomains = allowedDomains.filter((value) => value !== "");
+    return existingDomainsTouched || validDomains.length > lastKnownDomainCount;
+  }, [existingDomainsTouched, allowedDomains, lastKnownDomainCount]);
 
   const authenticationMethods = team.signinMethods;
 
@@ -53,8 +63,6 @@ function Security() {
       }, 250),
     [showToast, t]
   );
-
-  const [domainsChanged, setDomainsChanged] = useState(false);
 
   const saveData = React.useCallback(
     async (newData) => {
@@ -84,9 +92,9 @@ function Security() {
         allowedDomains,
       });
       showSuccessMessage();
-      setDomainsChanged(false);
+      setExistingDomainsTouched(false);
+      updateLastKnownDomainCount(allowedDomains.length);
     } catch (err) {
-      setDomainsChanged(true);
       showToast(err.message, {
         type: "error",
       });
@@ -142,14 +150,17 @@ function Security() {
     const newDomains = allowedDomains.filter((_, i) => index !== i);
 
     setAllowedDomains(newDomains);
-    setDomainsChanged(true);
+
+    const touchedExistingDomain = index < lastKnownDomainCount;
+    if (touchedExistingDomain) {
+      setExistingDomainsTouched(true);
+    }
   };
 
   const handleAddDomain = () => {
     const newDomains = [...allowedDomains, ""];
 
     setAllowedDomains(newDomains);
-    setDomainsChanged(true);
   };
 
   const createOnDomainChangedHandler = (index: number) => (
@@ -159,7 +170,11 @@ function Security() {
 
     newDomains[index] = ev.currentTarget.value;
     setAllowedDomains(newDomains);
-    setDomainsChanged(true);
+
+    const touchedExistingDomain = index < lastKnownDomainCount;
+    if (touchedExistingDomain) {
+      setExistingDomainsTouched(true);
+    }
   };
 
   return (
@@ -318,7 +333,7 @@ function Security() {
             <span />
           )}
 
-          {domainsChanged && (
+          {showSaveDomainsButton() && (
             <Fade>
               <Button
                 type="button"
