@@ -1,5 +1,5 @@
 /* eslint-disable no-irregular-whitespace */
-import { lighten, transparentize } from "polished";
+import { darken, lighten, transparentize } from "polished";
 import styled from "styled-components";
 
 const EditorStyles = styled.div<{
@@ -773,20 +773,45 @@ const EditorStyles = styled.div<{
 
     select,
     button {
-      background: ${(props) => props.theme.background};
-      color: ${(props) => props.theme.text};
-      border-width: 1px;
-      font-size: 13px;
-      display: none;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      background: ${(props) => props.theme.buttonNeutralBackground};
+      color: ${(props) => props.theme.buttonNeutralText};
+      box-shadow: rgba(0, 0, 0, 0.07) 0px 1px 2px, ${(props) =>
+        props.theme.buttonNeutralBorder} 0 0 0 1px inset;
       border-radius: 4px;
-      padding: 2px 4px;
-      height: 18px;
+      font-size: 13px;
+      font-weight: 500;
+      text-decoration: none;
+      flex-shrink: 0;
+      cursor: pointer;
+      user-select: none;
+      appearance: none !important;
+      padding: 6px 8px;
+      display: none;
+
+      &::-moz-focus-inner {
+        padding: 0;
+        border: 0;
+      }
+
+      &:hover:not(:disabled) {
+        background-color: ${(props) =>
+          darken(0.05, props.theme.buttonNeutralBackground)};
+        box-shadow: rgba(0, 0, 0, 0.07) 0px 1px 2px, ${(props) =>
+          props.theme.buttonNeutralBorder} 0 0 0 1px inset;
+      }
     }
 
-    button {
-      padding: 2px 4px;
+    select {
+      background-image: url('data:image/svg+xml;utf8,<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"> <path fill-rule="evenodd" clip-rule="evenodd" d="M9.03087 9C8.20119 9 7.73238 9.95209 8.23824 10.6097L11.2074 14.4696C11.6077 14.99 12.3923 14.99 12.7926 14.4696L15.7618 10.6097C16.2676 9.95209 15.7988 9 14.9691 9L9.03087 9Z" fill="currentColor"/> </svg>');
+      background-repeat: no-repeat;
+      background-position: center right;
+      padding-right: 20px;
     }
 
+    &:focus-within,
     &:hover {
       select {
         display: ${(props) => (props.readOnly ? "none" : "inline")};
@@ -802,6 +827,49 @@ const EditorStyles = styled.div<{
     button:focus,
     button:active {
       display: inline;
+    }
+
+    button.show-source-button {
+      display: none;
+    }
+    button.show-diagram-button {
+      display: inline;
+    }
+
+    &.code-hidden { 
+      button,
+      select,
+      button.show-diagram-button {
+        display: none;
+      }
+
+      button.show-source-button {
+        display: inline;
+      }
+
+      pre {
+        display: none;
+      }
+    }
+  }
+
+  .mermaid-diagram-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: ${(props) => props.theme.codeBackground};
+    border-radius: 6px;
+    border: 1px solid ${(props) => props.theme.codeBorder};
+    padding: 8px;
+    user-select: none;
+    cursor: default;
+
+    * {
+      font-family: ${(props) => props.theme.fontFamily};
+    }
+
+    &.diagram-hidden {
+      display: none;
     }
   }
 

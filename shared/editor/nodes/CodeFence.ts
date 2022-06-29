@@ -38,6 +38,7 @@ import { Dictionary } from "~/hooks/useDictionary";
 
 import toggleBlockType from "../commands/toggleBlockType";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import Mermaid from "../plugins/Mermaid";
 import Prism, { LANGUAGES } from "../plugins/Prism";
 import isInCode from "../queries/isInCode";
 import { Dispatch } from "../types";
@@ -114,7 +115,7 @@ export default class CodeFence extends Node {
       ],
       toDOM: (node) => {
         const button = document.createElement("button");
-        button.innerText = "Copy";
+        button.innerText = this.options.dictionary.copy;
         button.type = "button";
         button.addEventListener("click", this.handleCopyToClipboard);
 
@@ -135,9 +136,30 @@ export default class CodeFence extends Node {
           select.appendChild(option);
         });
 
+        // For the Mermaid language we add an extra button to toggle between
+        // source code and a rendered diagram view.
+        if (node.attrs.language === "mermaidjs") {
+          const showSourceButton = document.createElement("button");
+          showSourceButton.innerText = this.options.dictionary.showSource;
+          showSourceButton.type = "button";
+          showSourceButton.classList.add("show-source-button");
+          showSourceButton.addEventListener("click", this.handleToggleDiagram);
+          actions.prepend(showSourceButton);
+
+          const showDiagramButton = document.createElement("button");
+          showDiagramButton.innerText = this.options.dictionary.showDiagram;
+          showDiagramButton.type = "button";
+          showDiagramButton.classList.add("show-digram-button");
+          showDiagramButton.addEventListener("click", this.handleToggleDiagram);
+          actions.prepend(showDiagramButton);
+        }
+
         return [
           "div",
-          { class: "code-block", "data-language": node.attrs.language },
+          {
+            class: "code-block",
+            "data-language": node.attrs.language,
+          },
           ["div", { contentEditable: "false" }, actions],
           ["pre", ["code", { spellCheck: "false" }, 0]],
         ];
@@ -222,20 +244,46 @@ export default class CodeFence extends Node {
 
     if (result) {
       const language = element.value;
-
       const transaction = tr
         .setSelection(Selection.near(view.state.doc.resolve(result.inside)))
         .setNodeMarkup(result.inside, undefined, {
           language,
         });
+
       view.dispatch(transaction);
 
       localStorage?.setItem(PERSISTENCE_KEY, language);
     }
   };
 
+  handleToggleDiagram = (event: InputEvent) => {
+    const { view } = this.editor;
+    const { tr } = view.state;
+    const element = event.currentTarget;
+    if (!(element instanceof HTMLButtonElement)) {
+      return;
+    }
+
+    const { top, left } = element.getBoundingClientRect();
+    const result = view.posAtCoords({ top, left });
+
+    if (!result) {
+      return;
+    }
+
+    const diagramId = element
+      .closest(".code-block")
+      ?.getAttribute("data-diagram-id");
+    if (!diagramId) {
+      return;
+    }
+
+    const transaction = tr.setMeta("mermaid", { toggleDiagram: diagramId });
+    view.dispatch(transaction);
+  };
+
   get plugins() {
-    return [Prism({ name: this.name })];
+    return [Prism({ name: this.name }), Mermaid({ name: this.name })];
   }
 
   inputRules({ type }: { type: NodeType }) {

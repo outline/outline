@@ -8,7 +8,10 @@ export async function loadPolyfills() {
 
   if (!supportsResizeObserver()) {
     polyfills.push(
-      import("@juggle/resize-observer").then((module) => {
+      import(
+        /* webpackChunkName: "resize-observer" */
+        "@juggle/resize-observer"
+      ).then((module) => {
         window.ResizeObserver = module.ResizeObserver;
       })
     );
