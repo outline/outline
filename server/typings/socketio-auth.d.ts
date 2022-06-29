@@ -1,9 +1,10 @@
 declare module "socketio-auth" {
   import IO from "socket.io";
+  import { User } from "@server/models";
 
   type AuthenticatedSocket = IO.Socket & {
-    client: IO.Client & {
-      user: any;
+    client: IO.Socket["client"] & {
+      user: User;
     };
   };
 

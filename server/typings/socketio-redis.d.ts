@@ -1,12 +1,12 @@
-declare module "socket.io-redis" {
-  import { Redis } from "ioredis";
+// declare module "socket.io-redis" {
+//   import { Redis } from "ioredis";
 
-  type Config = {
-    pubClient: Redis;
-    subClient: Redis;
-  };
+//   type Config = {
+//     pubClient: Redis;
+//     subClient: Redis;
+//   };
 
-  const socketRedisAdapter: (config: Config) => void;
+//   const socketRedisAdapter: (config: Config) => void;
 
-  export = socketRedisAdapter;
-}
+//   export = socketRedisAdapter;
+// }

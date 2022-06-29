@@ -1,8 +1,8 @@
 import http from "http";
 import invariant from "invariant";
 import Koa from "koa";
-import IO from "socket.io";
-import socketRedisAdapter from "socket.io-redis";
+import { Server } from "socket.io";
+import { createAdapter } from "socket.io-redis";
 import SocketAuth from "socketio-auth";
 import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/metrics";
@@ -17,10 +17,15 @@ export default function init(app: Koa, server: http.Server) {
   const path = "/realtime";
 
   // Websockets for events and non-collaborative documents
-  const io = IO(server, {
+  const io = new Server(server, {
     path,
+    allowEIO3: true,
     serveClient: false,
     cookie: false,
+    cors: {
+      origin: "*",
+      methods: ["GET", "POST"],
+    },
   });
 
   // Remove the upgrade handler that we just added when registering the IO engine
@@ -48,15 +53,11 @@ export default function init(app: Koa, server: http.Server) {
   });
 
   io.adapter(
-    socketRedisAdapter({
+    createAdapter({
       pubClient: Redis.defaultClient,
       subClient: Redis.defaultSubscriber,
     })
   );
-
-  io.origins((_req, callback) => {
-    callback(null, true);
-  });
 
   io.of("/").adapter.on("error", (err: Error) => {
     if (err.name === "MaxRetriesPerRequestError") {
@@ -116,7 +117,7 @@ export default function init(app: Koa, server: http.Server) {
       );
 
       // join all of the rooms at once
-      socket.join(rooms);
+      await socket.join(rooms);
 
       // allow the client to request to join rooms
       socket.on("join", async (event) => {
@@ -128,9 +129,8 @@ export default function init(app: Koa, server: http.Server) {
           }).findByPk(event.collectionId);
 
           if (can(user, "read", collection)) {
-            socket.join(`collection-${event.collectionId}`, () => {
-              Metrics.increment("websockets.collections.join");
-            });
+            await socket.join(`collection-${event.collectionId}`);
+            Metrics.increment("websockets.collections.join");
           }
         }
 
@@ -148,74 +148,69 @@ export default function init(app: Koa, server: http.Server) {
               event.documentId
             );
 
-            socket.join(room, () => {
-              Metrics.increment("websockets.documents.join");
+            await socket.join(room);
+            Metrics.increment("websockets.documents.join");
 
-              // let everyone else in the room know that a new user joined
-              io.to(room).emit("user.join", {
-                userId: user.id,
-                documentId: event.documentId,
-                isEditing: event.isEditing,
-              });
-
-              // let this user know who else is already present in the room
-              io.in(room).clients(async (err: Error, sockets: string[]) => {
-                if (err) {
-                  Logger.error("Error getting clients for room", err, {
-                    sockets,
-                  });
-                  return;
-                }
-
-                // because a single user can have multiple socket connections we
-                // need to make sure that only unique userIds are returned. A Map
-                // makes this easy.
-                const userIds = new Map();
-
-                for (const socketId of sockets) {
-                  const userId = await Redis.defaultClient.hget(
-                    socketId,
-                    "userId"
-                  );
-                  userIds.set(userId, userId);
-                }
-
-                socket.emit("document.presence", {
-                  documentId: event.documentId,
-                  userIds: Array.from(userIds.keys()),
-                  editingIds: editing.map((view) => view.userId),
-                });
-              });
+            // let everyone else in the room know that a new user joined
+            io.to(room).emit("user.join", {
+              userId: user.id,
+              documentId: event.documentId,
+              isEditing: event.isEditing,
             });
+
+            // let this user know who else is already present in the room
+            try {
+              const socketIds = await io.in(room).allSockets();
+
+              // because a single user can have multiple socket connections we
+              // need to make sure that only unique userIds are returned. A Map
+              // makes this easy.
+              const userIds = new Map();
+
+              for (const socketId of socketIds) {
+                const userId = await Redis.defaultClient.hget(
+                  socketId,
+                  "userId"
+                );
+                userIds.set(userId, userId);
+              }
+
+              socket.emit("document.presence", {
+                documentId: event.documentId,
+                userIds: Array.from(userIds.keys()),
+                editingIds: editing.map((view) => view.userId),
+              });
+            } catch (err) {
+              if (err) {
+                Logger.error("Error getting clients for room", err);
+                return;
+              }
+            }
           }
         }
       });
 
       // allow the client to request to leave rooms
-      socket.on("leave", (event) => {
+      socket.on("leave", async (event) => {
         if (event.collectionId) {
-          socket.leave(`collection-${event.collectionId}`, () => {
-            Metrics.increment("websockets.collections.leave");
-          });
+          await socket.leave(`collection-${event.collectionId}`);
+          Metrics.increment("websockets.collections.leave");
         }
 
         if (event.documentId) {
           const room = `document-${event.documentId}`;
 
-          socket.leave(room, () => {
-            Metrics.increment("websockets.documents.leave");
-            io.to(room).emit("user.leave", {
-              userId: user.id,
-              documentId: event.documentId,
-            });
+          await socket.leave(room);
+          Metrics.increment("websockets.documents.leave");
+          io.to(room).emit("user.leave", {
+            userId: user.id,
+            documentId: event.documentId,
           });
         }
       });
 
       socket.on("disconnecting", () => {
-        const rooms = Object.keys(socket.rooms);
-
-        rooms.forEach((room) => {
+        socket.rooms.forEach((room) => {
           if (room.startsWith("document-")) {
             const documentId = room.replace("document-", "");
             io.to(room).emit("user.leave", {
@@ -230,7 +225,7 @@ export default function init(app: Koa, server: http.Server) {
         Metrics.increment("websockets.presence");
         const room = `document-${event.documentId}`;
 
-        if (event.documentId && socket.rooms[room]) {
+        if (event.documentId && socket.rooms.has(room)) {
           const view = await View.touch(
             event.documentId,
             user.id,
