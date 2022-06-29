@@ -1,3 +1,4 @@
+import fetch from "fetch-with-proxy";
 import invariant from "invariant";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
@@ -516,7 +517,9 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       });
       requestHeaders = {
         "Content-Type": "application/json",
-        "user-agent": `Outline-Webhooks${env.VERSION ? `/${env.VERSION}` : ""}`,
+        "user-agent": `Outline-Webhooks${
+          env.VERSION ? `/${env.VERSION.slice(0, 7)}` : ""
+        }`,
       };
       response = await fetch(subscription.url, {
         method: "POST",
@@ -525,6 +528,10 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       });
       status = response.ok ? "success" : "failed";
     } catch (err) {
+      Logger.error("Failed to send webhook", err, {
+        event,
+        deliveryId: delivery.id,
+      });
       status = "failed";
     }
 
