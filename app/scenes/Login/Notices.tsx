@@ -20,7 +20,7 @@ export default function Notices() {
       )}
       {notice === "gmail-account-creation" && (
         <NoticeAlert>
-          Sorry, accounts cannot be created using a personal Gmail address.
+          Sorry, a new account cannot be created with a personal Gmail address.
           <hr />
           Please use a Google Workspaces account instead.
         </NoticeAlert>

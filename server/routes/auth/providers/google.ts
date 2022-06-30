@@ -105,14 +105,6 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
             // No domain means it's a personal Gmail account
             // We only allow sign-in to existing user accounts
 
-            const isExistingUser = await User.count({
-              where: { email: profile.email.toLowerCase() },
-            });
-
-            if (!isExistingUser) {
-              throw GmailAccountCreationError();
-            }
-
             let team;
             if (appDomain.custom) {
               team = await Team.findOne({ where: { domain: appDomain.host } });
@@ -125,6 +117,17 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
             }
 
             if (!team) {
+              // No team usually means this is the apex domain
+              // Throw different errors depending on whether we think the user is
+              // trying to create a new account, or log-in to an existing one
+              const userExists = await User.count({
+                where: { email: profile.email.toLowerCase() },
+              });
+
+              if (!userExists) {
+                throw GmailAccountCreationError();
+              }
+
               throw TeamDomainRequiredError();
             }
 
