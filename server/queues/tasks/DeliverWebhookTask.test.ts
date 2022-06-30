@@ -14,11 +14,10 @@ beforeEach(() => flushdb());
 beforeEach(() => {
   jest.resetAllMocks();
   fetchMock.resetMocks();
+  fetchMock.doMock();
 });
 
 const ip = "127.0.0.1";
-
-fetchMock.enableMocks();
 
 describe("DeliverWebhookTask", () => {
   test("should hit the subscription url and record a delivery", async () => {
