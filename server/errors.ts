@@ -136,6 +136,14 @@ export function TeamDomainRequiredError(
   });
 }
 
+export function GmailAccountCreationError(
+  message = "Cannot create account using personal gmail address"
+) {
+  return httpErrors(400, message, {
+    id: "gmail_account_creation",
+  });
+}
+
 export function AuthRedirectError(
   message = "Redirect to the correct domain after authentication",
   redirectUrl: string
