@@ -84,6 +84,8 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     switch (event.name) {
       case "api_keys.create":
       case "api_keys.delete":
+      case "attachments.create":
+      case "attachments.delete":
         // Ignored
         return;
       case "users.create":

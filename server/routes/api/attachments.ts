@@ -81,7 +81,7 @@ router.post("attachments.create", auth(), async (ctx) => {
           name,
         },
         teamId: user.teamId,
-        userId: user.id,
+        actorId: user.id,
         ip: ctx.request.ip,
       },
       { transaction }
@@ -133,7 +133,7 @@ router.post("attachments.delete", auth(), async (ctx) => {
   await Event.create({
     name: "attachments.delete",
     teamId: user.teamId,
-    userId: user.id,
+    actorId: user.id,
     ip: ctx.request.ip,
   });
 

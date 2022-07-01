@@ -23,6 +23,25 @@ export type ApiKeyEvent = BaseEvent & {
   };
 };
 
+export type AttachmentEvent = BaseEvent &
+  (
+    | {
+        name: "attachments.create";
+        modelId: string;
+        data: {
+          name: string;
+          source: string;
+        };
+      }
+    | {
+        name: "attachments.delete";
+        modelId: string;
+        data: {
+          name: string;
+        };
+      }
+  );
+
 export type UserEvent = BaseEvent &
   (
     | {
@@ -244,6 +263,7 @@ export type WebhookSubscriptionEvent = BaseEvent & {
 
 export type Event =
   | ApiKeyEvent
+  | AttachmentEvent
   | UserEvent
   | DocumentEvent
   | PinEvent
