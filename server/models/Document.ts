@@ -17,7 +17,6 @@ import {
   BelongsTo,
   Column,
   Default,
-  Length,
   PrimaryKey,
   Table,
   BeforeValidate,
@@ -51,6 +50,7 @@ import User from "./User";
 import View from "./View";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
+import { Length } from "./decorators/Length";
 
 export type SearchResponse = {
   results: {
