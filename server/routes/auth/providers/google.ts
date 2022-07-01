@@ -9,7 +9,11 @@ import accountProvisioner, {
   AccountProvisionerResult,
 } from "@server/commands/accountProvisioner";
 import env from "@server/env";
-import { InviteRequiredError, TeamDomainRequiredError } from "@server/errors";
+import {
+  GmailAccountCreationError,
+  InviteRequiredError,
+  TeamDomainRequiredError,
+} from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
 import { Team, User } from "@server/models";
 import { StateStore, parseState } from "@server/utils/passport";
@@ -99,7 +103,8 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
             });
           } else {
             // No domain means it's a personal Gmail account
-            // We only allow sign-in to existing invites here
+            // We only allow sign-in to existing user accounts
+
             let team;
             if (appDomain.custom) {
               team = await Team.findOne({ where: { domain: appDomain.host } });
@@ -112,6 +117,17 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
             }
 
             if (!team) {
+              // No team usually means this is the apex domain
+              // Throw different errors depending on whether we think the user is
+              // trying to create a new account, or log-in to an existing one
+              const userExists = await User.count({
+                where: { email: profile.email.toLowerCase() },
+              });
+
+              if (!userExists) {
+                throw GmailAccountCreationError();
+              }
+
               throw TeamDomainRequiredError();
             }
 
