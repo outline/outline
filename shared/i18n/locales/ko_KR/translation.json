@@ -641,6 +641,8 @@
   "Receive a notification when a document you created is edited": "작성한 문서가 수정되면 알림을 받습니다",
   "Collection created": "컬렉션 생성됨",
   "Receive a notification whenever a new collection is created": "새 컬렉션이 생성될 때마다 알림을 받습니다",
+  "Invite accepted": "Invite accepted",
+  "Receive a notification when someone you invited creates an account": "Receive a notification when someone you invited creates an account",
   "Getting started": "시작하기",
   "Tips on getting started with Outline’s features and functionality": "Tips on getting started with Outline’s features and functionality",
   "New features": "새로운 기능",
