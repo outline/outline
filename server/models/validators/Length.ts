@@ -2,10 +2,10 @@ import { size } from "lodash";
 import { addAttributeOptions } from "sequelize-typescript";
 
 /**
- * A decorator that calculates size of the string based on lodash's size function.
- * particularly useful for strings with unicode characters of variable lengths.
+ * A decorator that validates the size of a string based on lodash's size.
+ * function. Useful for strings with unicode characters of variable lengths.
  */
-export function Length({
+export default function Length({
   msg,
   min,
   max,

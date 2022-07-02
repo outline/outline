@@ -50,7 +50,7 @@ import User from "./User";
 import View from "./View";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
-import { Length } from "./decorators/Length";
+import Length from "./validators/Length";
 
 export type SearchResponse = {
   results: {
