@@ -19,6 +19,8 @@ const WEBHOOK_EVENTS = {
     "users.activate",
     "users.delete",
     "users.invite",
+    "users.promote",
+    "users.demote",
   ],
   document: [
     "documents.create",
