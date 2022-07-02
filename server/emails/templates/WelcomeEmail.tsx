@@ -32,7 +32,7 @@ Welcome to Outline!
 
 Outline is a place for your team to build and share knowledge.
 
-To get started, head to your dashboard and try creating a collection to help document your workflow, create playbooks or help with team onboarding.
+To get started, head to the home screen and try creating a collection to help document your processes, create playbooks, or plan your teams work.
 
 You can also import existing Markdown documents by dragging and dropping them to your collections.
 
@@ -49,9 +49,9 @@ ${teamUrl}/home
           <Heading>Welcome to Outline!</Heading>
           <p>Outline is a place for your team to build and share knowledge.</p>
           <p>
-            To get started, head to your dashboard and try creating a collection
-            to help document your workflow, create playbooks or help with team
-            onboarding.
+            To get started, head to the home screen and try creating a
+            collection to help document your processes, create playbooks, or
+            plan your teams work.
           </p>
           <p>
             You can also import existing Markdown documents by dragging and
@@ -59,7 +59,7 @@ ${teamUrl}/home
           </p>
           <EmptySpace height={10} />
           <p>
-            <Button href={`${teamUrl}/home`}>View my dashboard</Button>
+            <Button href={`${teamUrl}/home`}>Open Outline</Button>
           </p>
         </Body>
 

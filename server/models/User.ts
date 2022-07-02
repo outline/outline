@@ -7,7 +7,6 @@ import {
   Column,
   IsIP,
   IsEmail,
-  HasOne,
   Default,
   IsIn,
   BeforeDestroy,
@@ -164,15 +163,14 @@ class User extends ParanoidModel {
   }
 
   // associations
-
-  @HasOne(() => User, "suspendedById")
+  @BelongsTo(() => User, "suspendedById")
   suspendedBy: User | null;
 
   @ForeignKey(() => User)
   @Column(DataType.UUID)
   suspendedById: string | null;
 
-  @HasOne(() => User, "invitedById")
+  @BelongsTo(() => User, "invitedById")
   invitedBy: User | null;
 
   @ForeignKey(() => User)
@@ -292,11 +290,12 @@ class User extends ParanoidModel {
   };
 
   updateSignedIn = (ip: string) => {
-    this.lastSignedInAt = new Date();
+    const now = new Date();
+    this.lastActiveAt = now;
+    this.lastActiveIp = ip;
+    this.lastSignedInAt = now;
     this.lastSignedInIp = ip;
-    return this.save({
-      hooks: false,
-    });
+    return this.save({ hooks: false });
   };
 
   /**
@@ -518,6 +517,14 @@ class User extends ParanoidModel {
           userId: model.id,
           teamId: model.teamId,
           event: "emails.features",
+        },
+        transaction: options.transaction,
+      }),
+      NotificationSetting.findOrCreate({
+        where: {
+          userId: model.id,
+          teamId: model.teamId,
+          event: "emails.invite_accepted",
         },
         transaction: options.transaction,
       }),

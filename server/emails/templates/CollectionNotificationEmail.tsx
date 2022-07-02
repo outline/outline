@@ -1,4 +1,3 @@
-import invariant from "invariant";
 import * as React from "react";
 import env from "@server/env";
 import { Collection } from "@server/models";
@@ -37,7 +36,10 @@ export default class CollectionNotificationEmail extends BaseEmail<
     const collection = await Collection.scope("withUser").findByPk(
       collectionId
     );
-    invariant(collection, "Collection not found");
+    if (!collection) {
+      return false;
+    }
+
     return { collection };
   }
 
