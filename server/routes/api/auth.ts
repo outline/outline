@@ -1,4 +1,3 @@
-import invariant from "invariant";
 import Router from "koa-router";
 import { find } from "lodash";
 import { parseDomain } from "@shared/utils/domains";
@@ -108,8 +107,9 @@ router.post("auth.config", async (ctx) => {
 
 router.post("auth.info", auth(), async (ctx) => {
   const { user } = ctx.state;
-  const team = await Team.scope("withDomains").findByPk(user.teamId);
-  invariant(team, "Team not found");
+  const team = await Team.scope("withDomains").findByPk(user.teamId, {
+    rejectOnEmpty: true,
+  });
 
   await ValidateSSOAccessTask.schedule({ userId: user.id });
 

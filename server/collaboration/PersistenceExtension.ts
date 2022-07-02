@@ -3,7 +3,6 @@ import {
   onLoadDocumentPayload,
   Extension,
 } from "@hocuspocus/server";
-import invariant from "invariant";
 import * as Y from "yjs";
 import { sequelize } from "@server/database/sequelize";
 import Logger from "@server/logging/Logger";
@@ -30,11 +29,11 @@ export default class PersistenceExtension implements Extension {
       const document = await Document.scope("withState").findOne({
         transaction,
         lock: transaction.LOCK.UPDATE,
+        rejectOnEmpty: true,
         where: {
           id: documentId,
         },
       });
-      invariant(document, "Document not found");
 
       if (document.state) {
         const ydoc = new Y.Doc();

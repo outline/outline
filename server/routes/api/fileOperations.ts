@@ -1,4 +1,3 @@
-import invariant from "invariant";
 import Router from "koa-router";
 import { WhereOptions } from "sequelize/types";
 import fileOperationDeleter from "@server/commands/fileOperationDeleter";
@@ -18,8 +17,9 @@ router.post("fileOperations.info", auth(), async (ctx) => {
   assertUuid(id, "id is required");
   const { user } = ctx.state;
   const team = await Team.findByPk(user.teamId);
-  const fileOperation = await FileOperation.findByPk(id);
-  invariant(fileOperation, "File operation not found");
+  const fileOperation = await FileOperation.findByPk(id, {
+    rejectOnEmpty: true,
+  });
 
   authorize(user, fileOperation.type, team);
 

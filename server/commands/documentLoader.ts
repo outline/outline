@@ -149,8 +149,7 @@ export default async function loadDocument({
     }
 
     // It is possible to disable sharing at the team level so we must check
-    const team = await Team.findByPk(document.teamId);
-    invariant(team, "team not found");
+    const team = await Team.findByPk(document.teamId, { rejectOnEmpty: true });
 
     if (!team.sharing) {
       throw AuthorizationError();
