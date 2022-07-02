@@ -1,5 +1,7 @@
 import fetch from "fetch-with-proxy";
 import invariant from "invariant";
+import { Op } from "sequelize";
+import WebhookDisabledEmail from "@server/emails/templates/WebhookDisabledEmail";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import {
@@ -548,21 +550,52 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
         : {},
     });
 
-    if (response && !response.ok) {
-      const recentDeliveries = await WebhookDelivery.findAll({
-        where: {
-          webhookSubscriptionId: subscription.id,
-        },
-        order: [["createdAt", "DESC"]],
-        limit: 25,
-      });
+    if (status === "failed") {
+      try {
+        await this.checkAndDisableSubscription(subscription);
+      } catch (err) {
+        Logger.error("Failed to check and disable recent deliveries", err, {
+          event,
+          deliveryId: delivery.id,
+        });
+      }
+    }
+  }
 
-      const allFailed = recentDeliveries.every(
-        (delivery) => delivery.status === "failed"
-      );
+  private async checkAndDisableSubscription(subscription: WebhookSubscription) {
+    const recentDeliveries = await WebhookDelivery.findAll({
+      where: {
+        webhookSubscriptionId: subscription.id,
+      },
+      order: [["createdAt", "DESC"]],
+      limit: 25,
+    });
 
-      if (recentDeliveries.length === 25 && allFailed) {
-        await subscription.update({ enabled: false });
+    const allFailed = recentDeliveries.every(
+      (delivery) => delivery.status === "failed"
+    );
+
+    if (recentDeliveries.length === 25 && allFailed) {
+      // If the last 25 deliveries failed, disable the subscription
+      await subscription.update({ enabled: false });
+
+      // Send an email to the creator of the webhook to let them know
+      const [createdBy, team] = await Promise.all([
+        User.findOne({
+          where: {
+            id: subscription.createdById,
+            suspendedAt: { [Op.is]: null },
+          },
+        }),
+        subscription.$get("team"),
+      ]);
+
+      if (createdBy && team) {
+        await WebhookDisabledEmail.schedule({
+          to: createdBy.email,
+          teamUrl: team.url,
+          webhookName: subscription.name,
+        });
       }
     }
   }
