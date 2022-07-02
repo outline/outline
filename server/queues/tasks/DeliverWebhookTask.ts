@@ -1,5 +1,4 @@
 import fetch from "fetch-with-proxy";
-import invariant from "invariant";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import {
@@ -73,8 +72,9 @@ type Props = {
 
 export default class DeliverWebhookTask extends BaseTask<Props> {
   public async perform({ subscriptionId, event }: Props) {
-    const subscription = await WebhookSubscription.findByPk(subscriptionId);
-    invariant(subscription, "Subscription not found");
+    const subscription = await WebhookSubscription.findByPk(subscriptionId, {
+      rejectOnEmpty: true,
+    });
 
     Logger.info(
       "task",

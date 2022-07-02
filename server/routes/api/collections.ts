@@ -641,8 +641,7 @@ router.post("collections.update", auth(), async (ctx) => {
   // if the privacy level has changed. Otherwise skip this query for speed.
   if (privacyChanged || sharingChanged) {
     await collection.reload();
-    const team = await Team.findByPk(user.teamId);
-    invariant(team, "team not found");
+    const team = await Team.findByPk(user.teamId, { rejectOnEmpty: true });
 
     if (
       collection.permission === null &&
