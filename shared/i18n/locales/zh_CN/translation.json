@@ -641,6 +641,8 @@
   "Receive a notification when a document you created is edited": "每当您创建的文档被编辑时收到通知",
   "Collection created": "已创建文档集",
   "Receive a notification whenever a new collection is created": "每当创建新文档集时收到通知",
+  "Invite accepted": "Invite accepted",
+  "Receive a notification when someone you invited creates an account": "Receive a notification when someone you invited creates an account",
   "Getting started": "新手指南",
   "Tips on getting started with Outline’s features and functionality": "开始使用 Outline 的特性和功能的提示",
   "New features": "新特性",
