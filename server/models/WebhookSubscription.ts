@@ -11,7 +11,7 @@ import {
 import { Event } from "@server/types";
 import Team from "./Team";
 import User from "./User";
-import IdModel from "./base/IdModel";
+import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
 
 @Table({
@@ -19,7 +19,7 @@ import Fix from "./decorators/Fix";
   modelName: "webhook_subscription",
 })
 @Fix
-class WebhookSubscription extends IdModel {
+class WebhookSubscription extends ParanoidModel {
   @NotEmpty
   @Column
   name: string;
