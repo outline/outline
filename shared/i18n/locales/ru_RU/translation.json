@@ -641,6 +641,8 @@
   "Receive a notification when a document you created is edited": "Получать уведомление, когда созданный вами документ редактируется",
   "Collection created": "Коллекция создана",
   "Receive a notification whenever a new collection is created": "Получать уведомление каждый раз, когда создана новая коллекция",
+  "Invite accepted": "Invite accepted",
+  "Receive a notification when someone you invited creates an account": "Receive a notification when someone you invited creates an account",
   "Getting started": "Начало работы",
   "Tips on getting started with Outline’s features and functionality": "Tips on getting started with Outline’s features and functionality",
   "New features": "Новые возможности",
