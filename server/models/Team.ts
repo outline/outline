@@ -14,7 +14,6 @@ import {
   BeforeSave,
   HasMany,
   Scopes,
-  Length,
   Is,
   DataType,
 } from "sequelize-typescript";
@@ -31,6 +30,8 @@ import TeamDomain from "./TeamDomain";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
+import Length from "./validators/Length";
+import NotContainsUrl from "./validators/NotContainsUrl";
 
 const readFile = util.promisify(fs.readFile);
 
@@ -50,6 +51,7 @@ const readFile = util.promisify(fs.readFile);
 @Table({ tableName: "teams", modelName: "team" })
 @Fix
 class Team extends ParanoidModel {
+  @NotContainsUrl
   @Column
   name: string;
 
@@ -74,6 +76,7 @@ class Team extends ParanoidModel {
   @Column(DataType.UUID)
   defaultCollectionId: string | null;
 
+  @Length({ min: 0, max: 255, msg: "Must be less than 255 characters" })
   @Column
   avatarUrl: string | null;
 

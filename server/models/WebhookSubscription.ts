@@ -13,6 +13,7 @@ import Team from "./Team";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
+import Length from "./validators/Length";
 
 @Table({
   tableName: "webhook_subscriptions",
@@ -21,11 +22,13 @@ import Fix from "./decorators/Fix";
 @Fix
 class WebhookSubscription extends ParanoidModel {
   @NotEmpty
+  @Length({ min: 0, max: 255, msg: "Must be less than 255 characters" })
   @Column
   name: string;
 
   @IsUrl
   @NotEmpty
+  @Length({ min: 0, max: 255, msg: "Must be less than 255 characters" })
   @Column
   url: string;
 

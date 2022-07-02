@@ -33,6 +33,7 @@ import Team from "./Team";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
+import NotContainsUrl from "./validators/NotContainsUrl";
 
 // without this indirection, the app crashes on starup
 type Sort = CollectionSort;
@@ -131,6 +132,7 @@ class Collection extends ParanoidModel {
   @Column
   urlId: string;
 
+  @NotContainsUrl
   @Column
   name: string;
 
