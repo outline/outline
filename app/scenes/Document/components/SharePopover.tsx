@@ -14,6 +14,7 @@ import Input from "~/components/Input";
 import Notice from "~/components/Notice";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useKeyDown from "~/hooks/useKeyDown";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -36,8 +37,9 @@ function SharePopover({
   onRequestClose,
   visible,
 }: Props) {
+  const team = useCurrentTeam();
   const { t } = useTranslation();
-  const { shares, auth } = useStores();
+  const { shares } = useStores();
   const { showToast } = useToasts();
   const [isCopied, setIsCopied] = React.useState(false);
   const timeout = React.useRef<ReturnType<typeof setTimeout>>();
@@ -47,22 +49,23 @@ function SharePopover({
   const canPublish =
     can.update &&
     !document.isTemplate &&
-    auth.team?.sharing &&
+    team.sharing &&
     documentAbilities.share;
   const isPubliclyShared =
-    (share && share.published) ||
-    (sharedParent && sharedParent.published && !document.isDraft);
+    team.sharing &&
+    ((share && share.published) ||
+      (sharedParent && sharedParent.published && !document.isDraft));
 
   useKeyDown("Escape", onRequestClose);
 
   React.useEffect(() => {
-    if (visible) {
+    if (visible && team.sharing) {
       document.share();
       buttonRef.current?.focus();
     }
 
     return () => (timeout.current ? clearTimeout(timeout.current) : undefined);
-  }, [document, visible]);
+  }, [document, visible, team.sharing]);
 
   const handlePublishedChange = React.useCallback(
     async (event) => {
@@ -113,6 +116,9 @@ function SharePopover({
 
   const userLocale = useUserLocale();
   const locale = userLocale ? dateLocale(userLocale) : undefined;
+  const shareUrl = team.sharing
+    ? share?.url ?? ""
+    : `${team.url}${document.url}`;
 
   return (
     <>
@@ -199,14 +205,14 @@ function SharePopover({
           type="text"
           label={t("Link")}
           placeholder={`${t("Loading")}…`}
-          value={share ? share.url : ""}
+          value={shareUrl}
           labelHidden
           readOnly
         />
-        <CopyToClipboard text={share ? share.url : ""} onCopy={handleCopied}>
+        <CopyToClipboard text={shareUrl} onCopy={handleCopied}>
           <Button
             type="submit"
-            disabled={isCopied || !share}
+            disabled={isCopied || (!share && team.sharing)}
             ref={buttonRef}
             primary
           >
