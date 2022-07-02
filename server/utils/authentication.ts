@@ -40,7 +40,8 @@ export async function signIn(
   }
 
   // update the database when the user last signed in
-  user.updateSignedIn(ctx.request.ip);
+  await user.updateSignedIn(ctx.request.ip);
+
   // don't await event creation for a faster sign-in
   Event.create({
     name: "users.signin",

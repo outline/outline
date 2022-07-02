@@ -1,6 +1,14 @@
 import { Op } from "sequelize";
+import { sequelize } from "@server/database/sequelize";
+import InviteAcceptedEmail from "@server/emails/templates/InviteAcceptedEmail";
 import { DomainNotAllowedError, InviteRequiredError } from "@server/errors";
-import { Event, Team, User, UserAuthentication } from "@server/models";
+import {
+  Event,
+  NotificationSetting,
+  Team,
+  User,
+  UserAuthentication,
+} from "@server/models";
 
 type UserCreatorResult = {
   user: User;
@@ -87,7 +95,7 @@ export default async function userCreator({
   // A `user` record might exist in the form of an invite even if there is no
   // existing authentication record that matches. In Outline an invite is a
   // shell user record.
-  const invite = await User.findOne({
+  const invite = await User.scope(["withAuthentications", "withTeam"]).findOne({
     where: {
       // Email from auth providers may be capitalized and we should respect that
       // however any existing invites will always be lowercased.
@@ -97,22 +105,12 @@ export default async function userCreator({
         [Op.is]: null,
       },
     },
-    include: [
-      {
-        model: UserAuthentication,
-        as: "authentications",
-        required: false,
-      },
-    ],
   });
 
   // We have an existing invite for his user, so we need to update it with our
   // new details and link up the authentication method
   if (invite && !invite.authentications.length) {
-    const transaction = await User.sequelize!.transaction();
-    let auth;
-
-    try {
+    const auth = await sequelize.transaction(async (transaction) => {
       await invite.update(
         {
           name,
@@ -122,17 +120,32 @@ export default async function userCreator({
           transaction,
         }
       );
-      auth = await invite.$create<UserAuthentication>(
+      return await invite.$create<UserAuthentication>(
         "authentication",
         authentication,
         {
           transaction,
         }
       );
-      await transaction.commit();
-    } catch (err) {
-      await transaction.rollback();
-      throw err;
+    });
+
+    const inviter = await invite.$get("invitedBy");
+    if (inviter) {
+      const notificationSetting = await NotificationSetting.findOne({
+        where: {
+          userId: inviter.id,
+          teamId: inviter.teamId,
+          event: "emails.invite_accepted",
+        },
+      });
+      if (notificationSetting) {
+        await InviteAcceptedEmail.schedule({
+          to: inviter.email,
+          inviteName: invite.name,
+          teamUrl: invite.team.url,
+          unsubscribeUrl: notificationSetting.unsubscribeUrl,
+        });
+      }
     }
 
     return {

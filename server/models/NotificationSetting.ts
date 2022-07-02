@@ -38,6 +38,7 @@ class NotificationSetting extends Model {
       "documents.publish",
       "documents.update",
       "collections.create",
+      "emails.invite_accepted",
       "emails.onboarding",
       "emails.features",
     ],
@@ -48,12 +49,13 @@ class NotificationSetting extends Model {
   // getters
 
   get unsubscribeUrl() {
-    const token = NotificationSetting.getUnsubscribeToken(this.userId);
-    return `${env.URL}/api/notificationSettings.unsubscribe?token=${token}&id=${this.id}`;
+    return `${env.URL}/api/notificationSettings.unsubscribe?token=${this.unsubscribeToken}&id=${this.id}`;
   }
 
   get unsubscribeToken() {
-    return NotificationSetting.getUnsubscribeToken(this.userId);
+    const hash = crypto.createHash("sha256");
+    hash.update(`${this.userId}-${env.SECRET_KEY}`);
+    return hash.digest("hex");
   }
 
   // associations
@@ -71,12 +73,6 @@ class NotificationSetting extends Model {
   @ForeignKey(() => Team)
   @Column(DataType.UUID)
   teamId: string;
-
-  static getUnsubscribeToken = (userId: string) => {
-    const hash = crypto.createHash("sha256");
-    hash.update(`${userId}-${env.SECRET_KEY}`);
-    return hash.digest("hex");
-  };
 }
 
 export default NotificationSetting;
