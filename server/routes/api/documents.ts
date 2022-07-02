@@ -26,7 +26,6 @@ import {
   Star,
   User,
   View,
-  Team,
 } from "@server/models";
 import { authorize, cannot } from "@server/policies";
 import {
@@ -626,7 +625,7 @@ router.post(
       }
 
       teamId = share.teamId;
-      const team = await Team.findByPk(teamId);
+      const team = await share.$get("team");
       invariant(team, "Share must belong to a team");
 
       response = await Document.searchForTeam(team, query, {

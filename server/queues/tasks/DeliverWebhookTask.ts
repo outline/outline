@@ -1,5 +1,4 @@
 import fetch from "fetch-with-proxy";
-import invariant from "invariant";
 import { Op } from "sequelize";
 import WebhookDisabledEmail from "@server/emails/templates/WebhookDisabledEmail";
 import env from "@server/env";
@@ -75,8 +74,9 @@ type Props = {
 
 export default class DeliverWebhookTask extends BaseTask<Props> {
   public async perform({ subscriptionId, event }: Props) {
-    const subscription = await WebhookSubscription.findByPk(subscriptionId);
-    invariant(subscription, "Subscription not found");
+    const subscription = await WebhookSubscription.findByPk(subscriptionId, {
+      rejectOnEmpty: true,
+    });
 
     Logger.info(
       "task",
@@ -98,6 +98,8 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       case "users.activate":
       case "users.delete":
       case "users.invite":
+      case "users.promote":
+      case "users.demote":
         await this.handleUserEvent(subscription, event);
         return;
       case "documents.create":

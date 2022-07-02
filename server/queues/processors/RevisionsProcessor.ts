@@ -32,8 +32,8 @@ export default class RevisionsProcessor extends BaseProcessor {
 
         const user = await User.findByPk(event.actorId, {
           paranoid: false,
+          rejectOnEmpty: true,
         });
-        invariant(user, "User should exist");
         await revisionCreator({
           user,
           document,

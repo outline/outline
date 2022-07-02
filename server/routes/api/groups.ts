@@ -1,4 +1,3 @@
-import invariant from "invariant";
 import Router from "koa-router";
 import { Op } from "sequelize";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
@@ -80,8 +79,7 @@ router.post("groups.create", auth(), async (ctx) => {
   });
 
   // reload to get default scope
-  const group = await Group.findByPk(g.id);
-  invariant(group, "group not found");
+  const group = await Group.findByPk(g.id, { rejectOnEmpty: true });
 
   await Event.create({
     name: "groups.create",
@@ -231,12 +229,11 @@ router.post("groups.add_user", auth(), async (ctx) => {
         groupId: id,
         userId,
       },
+      rejectOnEmpty: true,
     });
-    invariant(membership, "membership not found");
 
     // reload to get default scope
-    group = await Group.findByPk(id);
-    invariant(group, "group not found");
+    group = await Group.findByPk(id, { rejectOnEmpty: true });
 
     await Event.create({
       name: "groups.add_user",
@@ -287,8 +284,7 @@ router.post("groups.remove_user", auth(), async (ctx) => {
   });
 
   // reload to get default scope
-  group = await Group.findByPk(id);
-  invariant(group, "group not found");
+  group = await Group.findByPk(id, { rejectOnEmpty: true });
 
   ctx.body = {
     data: {
