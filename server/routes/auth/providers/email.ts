@@ -9,7 +9,7 @@ import env from "@server/env";
 import { AuthorizationError } from "@server/errors";
 import errorHandling from "@server/middlewares/errorHandling";
 import methodOverride from "@server/middlewares/methodOverride";
-import { User, Team, NotificationSetting } from "@server/models";
+import { User, Team } from "@server/models";
 import { signIn } from "@server/utils/authentication";
 import { getUserForEmailSigninToken } from "@server/utils/jwt";
 import { assertEmail, assertPresent } from "@server/validation";
@@ -149,21 +149,12 @@ router.get("email.callback", async (ctx) => {
 
     const inviter = await user.$get("invitedBy");
     if (inviter) {
-      const notificationSetting = await NotificationSetting.findOne({
-        where: {
-          userId: inviter.id,
-          teamId: inviter.teamId,
-          event: "emails.invite_accepted",
-        },
+      await InviteAcceptedEmail.schedule({
+        to: inviter.email,
+        inviterId: inviter.id,
+        invitedName: user.name,
+        teamUrl: user.team.url,
       });
-      if (notificationSetting) {
-        await InviteAcceptedEmail.schedule({
-          to: inviter.email,
-          inviteName: user.name,
-          teamUrl: user.team.url,
-          unsubscribeUrl: notificationSetting.unsubscribeUrl,
-        });
-      }
     }
   }
 

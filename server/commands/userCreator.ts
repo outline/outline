@@ -2,13 +2,7 @@ import { Op } from "sequelize";
 import { sequelize } from "@server/database/sequelize";
 import InviteAcceptedEmail from "@server/emails/templates/InviteAcceptedEmail";
 import { DomainNotAllowedError, InviteRequiredError } from "@server/errors";
-import {
-  Event,
-  NotificationSetting,
-  Team,
-  User,
-  UserAuthentication,
-} from "@server/models";
+import { Event, Team, User, UserAuthentication } from "@server/models";
 
 type UserCreatorResult = {
   user: User;
@@ -131,21 +125,12 @@ export default async function userCreator({
 
     const inviter = await invite.$get("invitedBy");
     if (inviter) {
-      const notificationSetting = await NotificationSetting.findOne({
-        where: {
-          userId: inviter.id,
-          teamId: inviter.teamId,
-          event: "emails.invite_accepted",
-        },
+      await InviteAcceptedEmail.schedule({
+        to: inviter.email,
+        inviterId: inviter.id,
+        invitedName: invite.name,
+        teamUrl: invite.team.url,
       });
-      if (notificationSetting) {
-        await InviteAcceptedEmail.schedule({
-          to: inviter.email,
-          inviteName: invite.name,
-          teamUrl: invite.team.url,
-          unsubscribeUrl: notificationSetting.unsubscribeUrl,
-        });
-      }
     }
 
     return {

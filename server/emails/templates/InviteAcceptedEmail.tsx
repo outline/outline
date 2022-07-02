@@ -1,4 +1,5 @@
 import * as React from "react";
+import { NotificationSetting } from "@server/models";
 import BaseEmail from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
@@ -10,8 +11,12 @@ import Heading from "./components/Heading";
 
 type Props = {
   to: string;
-  inviteName: string;
+  inviterId: string;
+  invitedName: string;
   teamUrl: string;
+};
+
+type BeforeSendProps = {
   unsubscribeUrl: string;
 };
 
@@ -19,31 +24,49 @@ type Props = {
  * Email sent to a user when someone they invited successfully signs up.
  */
 export default class InviteAcceptedEmail extends BaseEmail<Props> {
-  protected subject({ inviteName }: Props) {
-    return `${inviteName} has joined your Outline team`;
+  protected async beforeSend({ inviterId }: Props) {
+    const notificationSetting = await NotificationSetting.findOne({
+      where: {
+        userId: inviterId,
+        event: "emails.invite_accepted",
+      },
+    });
+    if (!notificationSetting) {
+      return false;
+    }
+
+    return { unsubscribeUrl: notificationSetting.unsubscribeUrl };
   }
 
-  protected preview({ inviteName }: Props) {
-    return `Great news, ${inviteName}, accepted your invitation`;
+  protected subject({ invitedName }: Props) {
+    return `${invitedName} has joined your Outline team`;
   }
 
-  protected renderAsText({ inviteName, teamUrl }: Props): string {
+  protected preview({ invitedName }: Props) {
+    return `Great news, ${invitedName}, accepted your invitation`;
+  }
+
+  protected renderAsText({ invitedName, teamUrl }: Props): string {
     return `
-Great news, ${inviteName} just accepted your invitation and has created an account. You can now start collaborating on documents.
+Great news, ${invitedName} just accepted your invitation and has created an account. You can now start collaborating on documents.
 
 Open Outline: ${teamUrl}
 `;
   }
 
-  protected render({ inviteName, teamUrl, unsubscribeUrl }: Props) {
+  protected render({
+    invitedName,
+    teamUrl,
+    unsubscribeUrl,
+  }: Props & BeforeSendProps) {
     return (
       <EmailTemplate>
         <Header />
 
         <Body>
-          <Heading>{inviteName} has joined your team</Heading>
+          <Heading>{invitedName} has joined your team</Heading>
           <p>
-            Great news, {inviteName} just accepted your invitation and has
+            Great news, {invitedName} just accepted your invitation and has
             created an account. You can now start collaborating on documents.
           </p>
           <EmptySpace height={10} />
