@@ -64,7 +64,7 @@ export default async function loadDocument({
       ],
     });
 
-    if (!share || share.document.archivedAt) {
+    if (!share || share.document?.archivedAt) {
       throw InvalidRequestError("Document could not be found for shareId");
     }
 
@@ -133,16 +133,18 @@ export default async function loadDocument({
     // If we're attempting to load a document that isn't the document originally
     // shared then includeChildDocuments must be enabled and the document must
     // still be active and nested within the shared document
-    if (share.document.id !== document.id) {
+    if (share.documentId !== document.id) {
       if (!share.includeChildDocuments) {
         throw AuthorizationError();
       }
 
-      const childDocumentIds = await share.document.getChildDocumentIds({
-        archivedAt: {
-          [Op.is]: null,
-        },
-      });
+      const childDocumentIds =
+        (await share.document?.getChildDocumentIds({
+          archivedAt: {
+            [Op.is]: null,
+          },
+        })) ?? [];
+
       if (!childDocumentIds.includes(document.id)) {
         throw AuthorizationError();
       }
