@@ -56,6 +56,13 @@ export type UserEvent = BaseEvent &
         userId: string;
       }
     | {
+        name: "users.promote" | "users.demote";
+        userId: string;
+        data: {
+          name: string;
+        };
+      }
+    | {
         name: "users.invite";
         userId: string;
         data: {
@@ -264,7 +271,6 @@ export type WebhookSubscriptionEvent = BaseEvent & {
 export type Event =
   | ApiKeyEvent
   | AttachmentEvent
-  | UserEvent
   | DocumentEvent
   | PinEvent
   | StarEvent
@@ -275,5 +281,6 @@ export type Event =
   | RevisionEvent
   | ShareEvent
   | TeamEvent
+  | UserEvent
   | ViewEvent
   | WebhookSubscriptionEvent;

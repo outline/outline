@@ -96,6 +96,8 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       case "users.activate":
       case "users.delete":
       case "users.invite":
+      case "users.promote":
+      case "users.demote":
         await this.handleUserEvent(subscription, event);
         return;
       case "documents.create":
