@@ -7,6 +7,8 @@ import teamCreator from "./teamCreator";
 beforeEach(() => flushdb());
 
 describe("teamCreator", () => {
+  const ip = "127.0.0.1";
+
   it("should create team and authentication provider", async () => {
     env.DEPLOYMENT = "hosted";
     const result = await teamCreator({
@@ -17,6 +19,7 @@ describe("teamCreator", () => {
         name: "google",
         providerId: "example.com",
       },
+      ip,
     });
     const { team, authenticationProvider, isNewTeam } = result;
     expect(authenticationProvider.name).toEqual("google");
@@ -40,6 +43,7 @@ describe("teamCreator", () => {
         name: "google",
         providerId: "example.com",
       },
+      ip,
     });
 
     expect(result.team.subdomain).toEqual("myteam1");
@@ -62,6 +66,7 @@ describe("teamCreator", () => {
         name: "google",
         providerId: "example.com",
       },
+      ip,
     });
 
     expect(result.team.subdomain).toEqual("myteam2");
@@ -82,6 +87,7 @@ describe("teamCreator", () => {
             name: "google",
             providerId: "example.com",
           },
+          ip,
         });
       } catch (err) {
         error = err;
@@ -109,6 +115,7 @@ describe("teamCreator", () => {
           name: "google",
           providerId: "allowed-domain.com",
         },
+        ip,
       });
       const { team, authenticationProvider, isNewTeam } = result;
       expect(team.id).toEqual(existing.id);
@@ -142,6 +149,7 @@ describe("teamCreator", () => {
             name: "google",
             providerId: "other-domain.com",
           },
+          ip,
         });
       } catch (err) {
         error = err;
@@ -164,6 +172,7 @@ describe("teamCreator", () => {
         name: "Updated name",
         subdomain: "example",
         authenticationProvider,
+        ip,
       });
       const { team, isNewTeam } = result;
       expect(team.id).toEqual(existing.id);

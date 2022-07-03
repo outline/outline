@@ -216,7 +216,7 @@ export type IntegrationEvent = BaseEvent & {
 };
 
 export type TeamEvent = BaseEvent & {
-  name: "teams.update";
+  name: "teams.create" | "teams.update";
   data: Partial<Team>;
 };
 

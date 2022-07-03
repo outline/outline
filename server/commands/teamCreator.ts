@@ -3,7 +3,7 @@ import env from "@server/env";
 import { DomainNotAllowedError, MaximumTeamsError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { APM } from "@server/logging/tracing";
-import { Team, AuthenticationProvider } from "@server/models";
+import { Team, AuthenticationProvider, Event } from "@server/models";
 import { generateAvatarUrl } from "@server/utils/avatars";
 
 type TeamCreatorResult = {
@@ -21,6 +21,7 @@ type Props = {
     name: string;
     providerId: string;
   };
+  ip: string;
 };
 
 async function teamCreator({
@@ -29,6 +30,7 @@ async function teamCreator({
   subdomain,
   avatarUrl,
   authenticationProvider,
+  ip,
 }: Props): Promise<TeamCreatorResult> {
   let authP = await AuthenticationProvider.findOne({
     where: authenticationProvider,
@@ -90,7 +92,7 @@ async function teamCreator({
   }
 
   const team = await sequelize.transaction(async (transaction) => {
-    return Team.create(
+    const team = await Team.create(
       {
         name,
         avatarUrl,
@@ -101,6 +103,19 @@ async function teamCreator({
         transaction,
       }
     );
+
+    await Event.create(
+      {
+        name: "teams.create",
+        teamId: team.id,
+        ip,
+      },
+      {
+        transaction,
+      }
+    );
+
+    return team;
   });
 
   // Note provisioning the subdomain is done outside of the transaction as
