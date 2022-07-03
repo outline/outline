@@ -46,7 +46,6 @@ export type UserEvent = BaseEvent &
   (
     | {
         name:
-          | "users.create"
           | "users.signin"
           | "users.signout"
           | "users.update"
@@ -56,7 +55,7 @@ export type UserEvent = BaseEvent &
         userId: string;
       }
     | {
-        name: "users.promote" | "users.demote";
+        name: "users.create" | "users.promote" | "users.demote";
         userId: string;
         data: {
           name: string;
