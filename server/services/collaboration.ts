@@ -2,7 +2,6 @@ import http, { IncomingMessage } from "http";
 import { Duplex } from "stream";
 import url from "url";
 import { Server } from "@hocuspocus/server";
-import invariant from "invariant";
 import Koa from "koa";
 import WebSocket from "ws";
 import Logger from "@server/logging/Logger";
@@ -35,12 +34,16 @@ export default function init(app: Koa, server: http.Server) {
     head: Buffer
   ) {
     if (req.url?.startsWith(path)) {
-      const documentName = url
+      // parse document id and close connection if not present in request
+      const documentId = url
         .parse(req.url)
         .pathname?.replace(path, "")
         .split("/")
         .pop();
-      invariant(documentName, "Document name must be provided");
+      if (!documentId) {
+        socket.end(`HTTP/1.1 400 Bad Request\r\n`);
+        return;
+      }
 
       wss.handleUpgrade(req, socket, head, (client) => {
         // Handle websocket connection errors as soon as the client is upgraded
@@ -49,13 +52,13 @@ export default function init(app: Koa, server: http.Server) {
             `Websocket error`,
             error,
             {
-              documentName,
+              documentId,
             },
             req
           );
         });
 
-        hocuspocus.handleConnection(client, req, documentName);
+        hocuspocus.handleConnection(client, req, documentId);
       });
     }
   });
