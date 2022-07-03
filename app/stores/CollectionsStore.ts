@@ -4,6 +4,7 @@ import { computed, action } from "mobx";
 import Collection from "~/models/Collection";
 import { NavigationNode } from "~/types";
 import { client } from "~/utils/ApiClient";
+import { AuthorizationError, NotFoundError } from "~/utils/errors";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
 
@@ -158,7 +159,7 @@ export default class CollectionsStore extends BaseStore<Collection> {
       this.addPolicies(res.policies);
       return this.add(res.data);
     } catch (err) {
-      if (err.statusCode === 403) {
+      if (err instanceof AuthorizationError || err instanceof NotFoundError) {
         this.remove(id);
       }
 
