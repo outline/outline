@@ -204,6 +204,7 @@ export default class AuthStore {
     runInAction("AuthStore#updateUser", () => {
       this.user = null;
       this.team = null;
+      this.policies = [];
       this.token = null;
     });
   };
@@ -282,7 +283,6 @@ export default class AuthStore {
       setCookie("sessions", JSON.stringify(sessions), {
         domain: getCookieDomain(window.location.hostname),
       });
-      this.team = null;
     }
 
     // clear all credentials from cache (and local storage via autorun)
