@@ -4,6 +4,7 @@ import AWS from "aws-sdk";
 import { addHours, format } from "date-fns";
 import fetch from "fetch-with-proxy";
 import { v4 as uuidv4 } from "uuid";
+import env from "@server/env";
 import Logger from "@server/logging/Logger";
 
 const AWS_S3_ACCELERATE_URL = process.env.AWS_S3_ACCELERATE_URL;
@@ -169,15 +170,23 @@ export const uploadToS3FromBuffer = async (
   return `${endpoint}/${key}`;
 };
 
-// @ts-expect-error ts-migrate(7030) FIXME: Not all code paths return a value.
 export const uploadToS3FromUrl = async (
   url: string,
   key: string,
   acl: string
 ) => {
+  const endpoint = publicS3Endpoint(true);
+  if (
+    url.startsWith("/api") ||
+    url.startsWith(endpoint) ||
+    url.startsWith(env.DEFAULT_AVATAR_HOST)
+  ) {
+    return;
+  }
+
   try {
     const res = await fetch(url);
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'buffer' does not exist on type 'Response... Remove this comment to see the full error message
+    // @ts-expect-error buffer exists, need updated typings
     const buffer = await res.buffer();
     await s3
       .putObject({
@@ -189,7 +198,6 @@ export const uploadToS3FromUrl = async (
         Body: buffer,
       })
       .promise();
-    const endpoint = publicS3Endpoint(true);
     return `${endpoint}/${key}`;
   } catch (err) {
     Logger.error("Error uploading to S3 from URL", err, {
@@ -197,6 +205,7 @@ export const uploadToS3FromUrl = async (
       key,
       acl,
     });
+    return;
   }
 };
 
