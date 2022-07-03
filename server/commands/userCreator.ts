@@ -102,13 +102,29 @@ export default async function userCreator({
   });
 
   // We have an existing invite for his user, so we need to update it with our
-  // new details and link up the authentication method
+  // new details, link up the authentication method, and count this as a new
+  // user creation.
   if (invite && !invite.authentications.length) {
     const auth = await sequelize.transaction(async (transaction) => {
       await invite.update(
         {
           name,
           avatarUrl,
+        },
+        {
+          transaction,
+        }
+      );
+      await Event.create(
+        {
+          name: "users.create",
+          actorId: invite.id,
+          userId: invite.id,
+          teamId: invite.teamId,
+          data: {
+            name,
+          },
+          ip,
         },
         {
           transaction,

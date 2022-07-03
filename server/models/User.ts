@@ -10,7 +10,6 @@ import {
   Default,
   IsIn,
   BeforeDestroy,
-  BeforeSave,
   BeforeCreate,
   AfterCreate,
   BelongsTo,
@@ -19,12 +18,9 @@ import {
   HasMany,
   Scopes,
 } from "sequelize-typescript";
-import { v4 as uuidv4 } from "uuid";
 import { languages } from "@shared/i18n";
 import { stringToColor } from "@shared/utils/color";
 import env from "@server/env";
-import Logger from "@server/logging/Logger";
-import { publicS3Endpoint, uploadToS3FromUrl } from "@server/utils/s3";
 import { ValidationError } from "../errors";
 import ApiKey from "./ApiKey";
 import Collection from "./Collection";
@@ -461,34 +457,6 @@ class User extends ParanoidModel {
       hooks: false,
       transaction: options.transaction,
     });
-  };
-
-  @BeforeSave
-  static uploadAvatar = async (model: User) => {
-    const endpoint = publicS3Endpoint();
-    const { avatarUrl } = model;
-
-    if (
-      avatarUrl &&
-      !avatarUrl.startsWith("/api") &&
-      !avatarUrl.startsWith(endpoint) &&
-      !avatarUrl.startsWith(env.DEFAULT_AVATAR_HOST)
-    ) {
-      try {
-        const newUrl = await uploadToS3FromUrl(
-          avatarUrl,
-          `avatars/${model.id}/${uuidv4()}`,
-          "public-read"
-        );
-        if (newUrl) {
-          model.avatarUrl = newUrl;
-        }
-      } catch (err) {
-        Logger.error("Couldn't upload user avatar image to S3", err, {
-          url: avatarUrl,
-        });
-      }
-    }
   };
 
   @BeforeCreate
