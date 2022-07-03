@@ -156,7 +156,6 @@ class Event extends IdModel {
     "shares.create",
     "shares.update",
     "shares.revoke",
-    "teams.create",
     "teams.update",
     "users.create",
     "users.update",
