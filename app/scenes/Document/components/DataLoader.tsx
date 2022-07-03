@@ -14,8 +14,16 @@ import { matchDocumentEdit } from "~/utils/routeHelpers";
 import HideSidebar from "./HideSidebar";
 import Loading from "./Loading";
 
+type Params = {
+  documentSlug: string;
+  revisionId?: string;
+  shareId?: string;
+};
+
 type LocationState = {
   title?: string;
+  restore?: boolean;
+  revisionId?: string;
 };
 
 type Children = (options: {
@@ -24,19 +32,11 @@ type Children = (options: {
   abilities: Record<string, boolean>;
   isEditing: boolean;
   readOnly: boolean;
-  onCreateLink: (title: string) => Promise<string | undefined>;
+  onCreateLink: (title: string) => Promise<string>;
   sharedTree: NavigationNode | undefined;
 }) => React.ReactNode;
 
-type Props = RouteComponentProps<
-  {
-    documentSlug: string;
-    revisionId?: string;
-    shareId?: string;
-    title?: string;
-  },
-  StaticContext
-> & {
+type Props = RouteComponentProps<Params, StaticContext, LocationState> & {
   children: Children;
 };
 
@@ -84,7 +84,7 @@ function DataLoader({ match, children }: Props) {
   const onCreateLink = React.useCallback(
     async (title: string) => {
       if (!document) {
-        return;
+        throw new Error("Document not loaded yet");
       }
 
       const newDocument = await documents.create({
