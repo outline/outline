@@ -7,13 +7,21 @@ import DataLoader from "./components/DataLoader";
 import Document from "./components/Document";
 import SocketPresence from "./components/SocketPresence";
 
-export default function DocumentScene(
-  props: RouteComponentProps<
-    { documentSlug: string; revisionId: string },
-    StaticContext,
-    { title?: string }
-  >
-) {
+type Params = {
+  documentSlug: string;
+  revisionId?: string;
+  shareId?: string;
+};
+
+type LocationState = {
+  title?: string;
+  restore?: boolean;
+  revisionId?: string;
+};
+
+type Props = RouteComponentProps<Params, StaticContext, LocationState>;
+
+export default function DocumentScene(props: Props) {
   const { ui } = useStores();
   const team = useCurrentTeam();
   const { documentSlug, revisionId } = props.match.params;
@@ -47,12 +55,12 @@ export default function DocumentScene(
         if (isActive && !isMultiplayer) {
           return (
             <SocketPresence documentId={document.id} isEditing={isEditing}>
-              <Document document={document} match={props.match} {...rest} />
+              <Document document={document} {...rest} />
             </SocketPresence>
           );
         }
 
-        return <Document document={document} match={props.match} {...rest} />;
+        return <Document document={document} {...rest} />;
       }}
     </DataLoader>
   );

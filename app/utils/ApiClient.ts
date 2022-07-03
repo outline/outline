@@ -141,15 +141,10 @@ class ApiClient {
 
     // Handle failed responses
     const error: {
-      statusCode?: number;
-      response?: Response;
       message?: string;
       error?: string;
       data?: Record<string, any>;
     } = {};
-
-    error.statusCode = response.status;
-    error.response = response;
 
     try {
       const parsed = await response.json();
@@ -186,7 +181,7 @@ class ApiClient {
       throw new ServiceUnavailableError(error.message);
     }
 
-    throw new RequestError(`Error ${error.statusCode}: ${error.message}`);
+    throw new RequestError(`Error ${response.status}: ${error.message}`);
   };
 
   get = (

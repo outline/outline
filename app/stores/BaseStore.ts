@@ -7,6 +7,7 @@ import BaseModel from "~/models/BaseModel";
 import Policy from "~/models/Policy";
 import { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
+import { AuthorizationError, NotFoundError } from "~/utils/errors";
 
 type PartialWithId<T> = Partial<T> & { id: string };
 
@@ -209,7 +210,7 @@ export default abstract class BaseStore<T extends BaseModel> {
       this.addPolicies(res.policies);
       return this.add(res.data);
     } catch (err) {
-      if (err.statusCode === 403) {
+      if (err instanceof AuthorizationError || err instanceof NotFoundError) {
         this.remove(id);
       }
 
