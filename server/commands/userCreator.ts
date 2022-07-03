@@ -1,4 +1,3 @@
-import { Op } from "sequelize";
 import { sequelize } from "@server/database/sequelize";
 import InviteAcceptedEmail from "@server/emails/templates/InviteAcceptedEmail";
 import { DomainNotAllowedError, InviteRequiredError } from "@server/errors";
@@ -89,24 +88,54 @@ export default async function userCreator({
   // A `user` record might exist in the form of an invite even if there is no
   // existing authentication record that matches. In Outline an invite is a
   // shell user record.
-  const invite = await User.scope(["withAuthentications", "withTeam"]).findOne({
+  const existingUser = await User.scope([
+    "withAuthentications",
+    "withTeam",
+  ]).findOne({
     where: {
       // Email from auth providers may be capitalized and we should respect that
       // however any existing invites will always be lowercased.
       email: email.toLowerCase(),
       teamId,
-      lastActiveAt: {
-        [Op.is]: null,
-      },
+      // lastActiveAt: {
+      //   [Op.is]: null,
+      // },
     },
   });
 
   // We have an existing invite for his user, so we need to update it with our
   // new details, link up the authentication method, and count this as a new
   // user creation.
-  if (invite && !invite.authentications.length) {
+  if (existingUser) {
+    // A `user` record might exist in the form of an invite.
+    // In Outline an invite is a shell user record with no authentication method
+    // that's never been active before.
+    const isInvite =
+      !existingUser.lastActiveAt && !existingUser.authentications.length;
+
     const auth = await sequelize.transaction(async (transaction) => {
-      await invite.update(
+      if (isInvite) {
+        await Event.create(
+          {
+            name: "users.create",
+            actorId: existingUser.id,
+            userId: existingUser.id,
+            teamId: existingUser.teamId,
+            data: {
+              name,
+            },
+            ip,
+          },
+          {
+            transaction,
+          }
+        );
+      }
+
+      // Regardless, create a new authentication record
+      // against the existing user (user can auth with multiple SSO providers)
+      // Update user's name and avatar based on the most recently added provider
+      await existingUser.update(
         {
           name,
           avatarUrl,
@@ -115,22 +144,8 @@ export default async function userCreator({
           transaction,
         }
       );
-      await Event.create(
-        {
-          name: "users.create",
-          actorId: invite.id,
-          userId: invite.id,
-          teamId: invite.teamId,
-          data: {
-            name,
-          },
-          ip,
-        },
-        {
-          transaction,
-        }
-      );
-      return await invite.$create<UserAuthentication>(
+
+      return await existingUser.$create<UserAuthentication>(
         "authentication",
         authentication,
         {
@@ -139,20 +154,22 @@ export default async function userCreator({
       );
     });
 
-    const inviter = await invite.$get("invitedBy");
-    if (inviter) {
-      await InviteAcceptedEmail.schedule({
-        to: inviter.email,
-        inviterId: inviter.id,
-        invitedName: invite.name,
-        teamUrl: invite.team.url,
-      });
+    if (isInvite) {
+      const inviter = await existingUser.$get("invitedBy");
+      if (inviter) {
+        await InviteAcceptedEmail.schedule({
+          to: inviter.email,
+          inviterId: inviter.id,
+          invitedName: existingUser.name,
+          teamUrl: existingUser.team.url,
+        });
+      }
     }
 
     return {
-      user: invite,
+      user: existingUser,
       authentication: auth,
-      isNewUser: true,
+      isNewUser: isInvite,
     };
   }
 
@@ -165,9 +182,9 @@ export default async function userCreator({
       transaction,
     });
 
-    // If the team settings are set to require invites, and the user is not already invited,
+    // If the team settings are set to require invites, and there's no existing user record,
     // throw an error and fail user creation.
-    if (team?.inviteRequired && !invite) {
+    if (team?.inviteRequired) {
       throw InviteRequiredError();
     }
 
