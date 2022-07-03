@@ -22,7 +22,7 @@ export const assertIn = (
   message?: string
 ) => {
   if (!options.includes(value)) {
-    throw ValidationError(message);
+    throw ValidationError(message ?? `Must be one of ${options.join(", ")}`);
   }
 };
 

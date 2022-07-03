@@ -149,7 +149,7 @@ const useAuthorizedSettingsConfig = () => {
         name: t("Import"),
         path: "/settings/import",
         component: Import,
-        enabled: can.manage,
+        enabled: can.createImport,
         group: t("Team"),
         icon: NewDocumentIcon,
       },
@@ -157,7 +157,7 @@ const useAuthorizedSettingsConfig = () => {
         name: t("Export"),
         path: "/settings/export",
         component: Export,
-        enabled: can.export,
+        enabled: can.createExport,
         group: t("Team"),
         icon: DownloadIcon,
       },
@@ -190,8 +190,8 @@ const useAuthorizedSettingsConfig = () => {
     [
       can.createApiKey,
       can.createWebhookSubscription,
-      can.export,
-      can.manage,
+      can.createExport,
+      can.createImport,
       can.update,
       t,
     ]
