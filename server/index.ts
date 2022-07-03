@@ -101,7 +101,7 @@ async function start(id: number, disconnect: () => void) {
 
     Logger.info("lifecycle", `Starting ${name} service`);
     const init = services[name];
-    await init(app, server);
+    await init(app, server, serviceNames);
   }
 
   server.on("error", (err) => {

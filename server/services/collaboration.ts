@@ -10,7 +10,11 @@ import LoggerExtension from "../collaboration/LoggerExtension";
 import MetricsExtension from "../collaboration/MetricsExtension";
 import PersistenceExtension from "../collaboration/PersistenceExtension";
 
-export default function init(app: Koa, server: http.Server) {
+export default function init(
+  app: Koa,
+  server: http.Server,
+  serviceNames: string[]
+) {
   const path = "/collaboration";
   const wss = new WebSocket.Server({
     noServer: true,
@@ -40,27 +44,37 @@ export default function init(app: Koa, server: http.Server) {
         .pathname?.replace(path, "")
         .split("/")
         .pop();
-      if (!documentId) {
-        socket.end(`HTTP/1.1 400 Bad Request\r\n`);
+
+      if (documentId) {
+        wss.handleUpgrade(req, socket, head, (client) => {
+          // Handle websocket connection errors as soon as the client is upgraded
+          client.on("error", (error) => {
+            Logger.error(
+              `Websocket error`,
+              error,
+              {
+                documentId,
+              },
+              req
+            );
+          });
+
+          hocuspocus.handleConnection(client, req, documentId);
+        });
         return;
       }
-
-      wss.handleUpgrade(req, socket, head, (client) => {
-        // Handle websocket connection errors as soon as the client is upgraded
-        client.on("error", (error) => {
-          Logger.error(
-            `Websocket error`,
-            error,
-            {
-              documentId,
-            },
-            req
-          );
-        });
-
-        hocuspocus.handleConnection(client, req, documentId);
-      });
     }
+
+    if (
+      req.url?.startsWith("/realtime") &&
+      serviceNames.includes("websockets")
+    ) {
+      // Nothing to do, the websockets service will handle this request
+      return;
+    }
+
+    // If the collaboration service is running it will close the connection
+    socket.end(`HTTP/1.1 400 Bad Request\r\n`);
   });
 
   server.on("shutdown", () => {
