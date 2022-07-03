@@ -42,6 +42,14 @@ export type AttachmentEvent = BaseEvent &
       }
   );
 
+export type AuthenticationProviderEvent = BaseEvent & {
+  name: "authenticationProviders.update";
+  modelId: string;
+  data: {
+    enabled: boolean;
+  };
+};
+
 export type UserEvent = BaseEvent &
   (
     | {
@@ -138,7 +146,7 @@ export type FileOperationEvent = BaseEvent & {
   name:
     | "fileOperations.create"
     | "fileOperations.update"
-    | "fileOperation.delete";
+    | "fileOperations.delete";
   modelId: string;
   data: Partial<FileOperation>;
 };
@@ -270,6 +278,7 @@ export type WebhookSubscriptionEvent = BaseEvent & {
 export type Event =
   | ApiKeyEvent
   | AttachmentEvent
+  | AuthenticationProviderEvent
   | DocumentEvent
   | PinEvent
   | StarEvent

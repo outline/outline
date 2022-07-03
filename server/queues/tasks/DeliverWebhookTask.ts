@@ -88,6 +88,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       case "api_keys.delete":
       case "attachments.create":
       case "attachments.delete":
+      case "authenticationProviders.update":
         // Ignored
         return;
       case "users.create":
@@ -126,7 +127,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
         return;
       case "fileOperations.create":
       case "fileOperations.update":
-      case "fileOperation.delete":
+      case "fileOperations.delete":
         await this.handleFileOperationEvent(subscription, event);
         return;
       case "collections.create":

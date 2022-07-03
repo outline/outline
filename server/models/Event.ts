@@ -11,6 +11,7 @@ import {
   DataType,
 } from "sequelize-typescript";
 import { globalEventQueue } from "../queues";
+import { Event as TEvent } from "../types";
 import Collection from "./Collection";
 import Document from "./Document";
 import Team from "./Team";
@@ -106,7 +107,7 @@ class Event extends IdModel {
     );
   }
 
-  static ACTIVITY_EVENTS = [
+  static ACTIVITY_EVENTS: TEvent["name"][] = [
     "collections.create",
     "collections.delete",
     "collections.move",
@@ -123,7 +124,7 @@ class Event extends IdModel {
     "users.create",
   ];
 
-  static AUDIT_EVENTS = [
+  static AUDIT_EVENTS: TEvent["name"][] = [
     "api_keys.create",
     "api_keys.delete",
     "authenticationProviders.update",
@@ -136,7 +137,6 @@ class Event extends IdModel {
     "collections.add_group",
     "collections.remove_group",
     "collections.delete",
-    "collections.export_all",
     "documents.create",
     "documents.publish",
     "documents.update",
