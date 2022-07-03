@@ -77,6 +77,10 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
             const subdomain = domain.split(".")[0];
             const teamName = capitalize(subdomain);
 
+            // Request a larger size profile picture than the default by tweaking
+            // the query parameter.
+            const avatarUrl = profile.picture.replace("=s96-c", "=s128-c");
+
             result = await accountProvisioner({
               ip: req.ip,
               team: {
@@ -87,7 +91,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
               user: {
                 email: profile.email,
                 name: profile.displayName,
-                avatarUrl: profile.picture,
+                avatarUrl,
               },
               authenticationProvider: {
                 name: providerName,

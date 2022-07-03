@@ -1,3 +1,4 @@
+import { Team, User } from "@server/models";
 import { Event, TeamEvent, UserEvent } from "@server/types";
 import UploadTeamAvatarTask from "../tasks/UploadTeamAvatarTask";
 import UploadUserAvatarTask from "../tasks/UploadUserAvatarTask";
@@ -11,15 +12,29 @@ export default class AvatarProcessor extends BaseProcessor {
     // case of failures as it involves network calls to third party services.
 
     if (event.name === "users.create") {
-      await UploadUserAvatarTask.schedule({
-        userId: event.userId,
+      const user = await User.findByPk(event.userId, {
+        rejectOnEmpty: true,
       });
+
+      if (user.avatarUrl) {
+        await UploadUserAvatarTask.schedule({
+          userId: event.userId,
+          avatarUrl: user.avatarUrl,
+        });
+      }
     }
 
     if (event.name === "teams.create") {
-      await UploadTeamAvatarTask.schedule({
-        teamId: event.teamId,
+      const team = await Team.findByPk(event.teamId, {
+        rejectOnEmpty: true,
       });
+
+      if (team.avatarUrl) {
+        await UploadTeamAvatarTask.schedule({
+          teamId: event.teamId,
+          avatarUrl: team.avatarUrl,
+        });
+      }
     }
   }
 }
