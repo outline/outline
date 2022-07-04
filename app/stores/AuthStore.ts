@@ -204,6 +204,7 @@ export default class AuthStore {
     runInAction("AuthStore#updateUser", () => {
       this.user = null;
       this.team = null;
+      this.policies = [];
       this.token = null;
     });
   };
@@ -259,14 +260,6 @@ export default class AuthStore {
 
     client.post(`/auth.delete`);
 
-    // remove user and team from localStorage
-    Storage.set(AUTH_STORE, {
-      user: null,
-      team: null,
-      policies: [],
-    });
-    this.token = null;
-
     // if this logout was forced from an authenticated route then
     // save the current path so we can go back there once signed in
     if (savePath) {
@@ -290,7 +283,12 @@ export default class AuthStore {
       setCookie("sessions", JSON.stringify(sessions), {
         domain: getCookieDomain(window.location.hostname),
       });
-      this.team = null;
     }
+
+    // clear all credentials from cache (and local storage via autorun)
+    this.user = null;
+    this.team = null;
+    this.policies = [];
+    this.token = null;
   };
 }
