@@ -11,8 +11,7 @@ import { setTextSelection } from "prosemirror-utils";
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import styled from "styled-components";
-import isUrl from "@shared/editor/lib/isUrl";
-import { isInternalUrl } from "@shared/utils/urls";
+import { isInternalUrl, sanitizeHref } from "@shared/utils/urls";
 import Flex from "~/components/Flex";
 import { Dictionary } from "~/hooks/useDictionary";
 import { ToastOptions } from "~/types";
@@ -114,17 +113,7 @@ class LinkEditor extends React.Component<Props, State> {
 
     this.discardInputValue = true;
     const { from, to } = this.props;
-
-    // Make sure a protocol is added to the beginning of the input if it's
-    // likely an absolute URL that was entered without one.
-    if (
-      !isUrl(href) &&
-      !href.startsWith("/") &&
-      !href.startsWith("#") &&
-      !href.startsWith("mailto:")
-    ) {
-      href = `https://${href}`;
-    }
+    href = sanitizeHref(href);
 
     this.props.onSelectLink({ href, title, from, to });
   };
