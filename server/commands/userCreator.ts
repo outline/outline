@@ -97,9 +97,6 @@ export default async function userCreator({
       // however any existing invites will always be lowercased.
       email: email.toLowerCase(),
       teamId,
-      // lastActiveAt: {
-      //   [Op.is]: null,
-      // },
     },
   });
 
