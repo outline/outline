@@ -8,7 +8,7 @@ import pagination from "./middlewares/pagination";
 
 const router = new Router();
 
-router.post("apiKeys.create", auth(), async (ctx) => {
+router.post("apiKeys.create", auth({ member: true }), async (ctx) => {
   const { name } = ctx.body;
   assertPresent(name, "name is required");
   const { user } = ctx.state;
@@ -35,24 +35,29 @@ router.post("apiKeys.create", auth(), async (ctx) => {
   };
 });
 
-router.post("apiKeys.list", auth(), pagination(), async (ctx) => {
-  const { user } = ctx.state;
-  const keys = await ApiKey.findAll({
-    where: {
-      userId: user.id,
-    },
-    order: [["createdAt", "DESC"]],
-    offset: ctx.state.pagination.offset,
-    limit: ctx.state.pagination.limit,
-  });
+router.post(
+  "apiKeys.list",
+  auth({ member: true }),
+  pagination(),
+  async (ctx) => {
+    const { user } = ctx.state;
+    const keys = await ApiKey.findAll({
+      where: {
+        userId: user.id,
+      },
+      order: [["createdAt", "DESC"]],
+      offset: ctx.state.pagination.offset,
+      limit: ctx.state.pagination.limit,
+    });
 
-  ctx.body = {
-    pagination: ctx.state.pagination,
-    data: keys.map(presentApiKey),
-  };
-});
+    ctx.body = {
+      pagination: ctx.state.pagination,
+      data: keys.map(presentApiKey),
+    };
+  }
+);
 
-router.post("apiKeys.delete", auth(), async (ctx) => {
+router.post("apiKeys.delete", auth({ member: true }), async (ctx) => {
   const { id } = ctx.body;
   assertUuid(id, "id is required");
   const { user } = ctx.state;

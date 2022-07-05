@@ -11,127 +11,144 @@ import pagination from "./middlewares/pagination";
 
 const router = new Router();
 
-router.post("webhookSubscriptions.list", auth(), pagination(), async (ctx) => {
-  const { user } = ctx.state;
-  authorize(user, "listWebhookSubscription", user.team);
-  const webhooks = await WebhookSubscription.findAll({
-    where: {
-      teamId: user.teamId,
-    },
-    order: [["createdAt", "DESC"]],
-    offset: ctx.state.pagination.offset,
-    limit: ctx.state.pagination.limit,
-  });
+router.post(
+  "webhookSubscriptions.list",
+  auth({ admin: true }),
+  pagination(),
+  async (ctx) => {
+    const { user } = ctx.state;
+    authorize(user, "listWebhookSubscription", user.team);
+    const webhooks = await WebhookSubscription.findAll({
+      where: {
+        teamId: user.teamId,
+      },
+      order: [["createdAt", "DESC"]],
+      offset: ctx.state.pagination.offset,
+      limit: ctx.state.pagination.limit,
+    });
 
-  ctx.body = {
-    pagination: ctx.state.pagination,
-    data: webhooks.map(presentWebhookSubscription),
-  };
-});
-
-router.post("webhookSubscriptions.create", auth(), async (ctx) => {
-  const { user } = ctx.state;
-  authorize(user, "createWebhookSubscription", user.team);
-
-  const { name, url } = ctx.request.body;
-  const events: string[] = compact(ctx.request.body.events);
-  assertPresent(name, "name is required");
-  assertPresent(url, "url is required");
-  assertArray(events, "events is required");
-  if (events.length === 0) {
-    throw ValidationError("events are required");
+    ctx.body = {
+      pagination: ctx.state.pagination,
+      data: webhooks.map(presentWebhookSubscription),
+    };
   }
+);
 
-  const webhookSubscription = await WebhookSubscription.create({
-    name,
-    events,
-    createdById: user.id,
-    teamId: user.teamId,
-    url,
-    enabled: true,
-  });
+router.post(
+  "webhookSubscriptions.create",
+  auth({ admin: true }),
+  async (ctx) => {
+    const { user } = ctx.state;
+    authorize(user, "createWebhookSubscription", user.team);
 
-  const event: WebhookSubscriptionEvent = {
-    name: "webhook_subscriptions.create",
-    modelId: webhookSubscription.id,
-    teamId: user.teamId,
-    actorId: user.id,
-    data: {
+    const { name, url } = ctx.request.body;
+    const events: string[] = compact(ctx.request.body.events);
+    assertPresent(name, "name is required");
+    assertPresent(url, "url is required");
+    assertArray(events, "events is required");
+    if (events.length === 0) {
+      throw ValidationError("events are required");
+    }
+
+    const webhookSubscription = await WebhookSubscription.create({
       name,
-      url,
       events,
-    },
-    ip: ctx.request.ip,
-  };
-  await Event.create(event);
+      createdById: user.id,
+      teamId: user.teamId,
+      url,
+      enabled: true,
+    });
 
-  ctx.body = {
-    data: presentWebhookSubscription(webhookSubscription),
-  };
-});
+    const event: WebhookSubscriptionEvent = {
+      name: "webhook_subscriptions.create",
+      modelId: webhookSubscription.id,
+      teamId: user.teamId,
+      actorId: user.id,
+      data: {
+        name,
+        url,
+        events,
+      },
+      ip: ctx.request.ip,
+    };
+    await Event.create(event);
 
-router.post("webhookSubscriptions.delete", auth(), async (ctx) => {
-  const { id } = ctx.body;
-  assertUuid(id, "id is required");
-  const { user } = ctx.state;
-  const webhookSubscription = await WebhookSubscription.findByPk(id);
-
-  authorize(user, "delete", webhookSubscription);
-
-  await webhookSubscription.destroy();
-
-  const event: WebhookSubscriptionEvent = {
-    name: "webhook_subscriptions.delete",
-    modelId: webhookSubscription.id,
-    teamId: user.teamId,
-    actorId: user.id,
-    data: {
-      name: webhookSubscription.name,
-      url: webhookSubscription.url,
-      events: webhookSubscription.events,
-    },
-    ip: ctx.request.ip,
-  };
-  await Event.create(event);
-});
-
-router.post("webhookSubscriptions.update", auth(), async (ctx) => {
-  const { id } = ctx.body;
-  assertUuid(id, "id is required");
-  const { user } = ctx.state;
-
-  const { name, url } = ctx.request.body;
-  const events: string[] = compact(ctx.request.body.events);
-  assertPresent(name, "name is required");
-  assertPresent(url, "url is required");
-  assertArray(events, "events is required");
-  if (events.length === 0) {
-    throw ValidationError("events are required");
+    ctx.body = {
+      data: presentWebhookSubscription(webhookSubscription),
+    };
   }
+);
 
-  const webhookSubscription = await WebhookSubscription.findByPk(id);
+router.post(
+  "webhookSubscriptions.delete",
+  auth({ admin: true }),
+  async (ctx) => {
+    const { id } = ctx.body;
+    assertUuid(id, "id is required");
+    const { user } = ctx.state;
+    const webhookSubscription = await WebhookSubscription.findByPk(id);
 
-  authorize(user, "update", webhookSubscription);
+    authorize(user, "delete", webhookSubscription);
 
-  await webhookSubscription.update({ name, url, events, enabled: true });
+    await webhookSubscription.destroy();
 
-  const event: WebhookSubscriptionEvent = {
-    name: "webhook_subscriptions.update",
-    modelId: webhookSubscription.id,
-    teamId: user.teamId,
-    actorId: user.id,
-    data: {
-      name: webhookSubscription.name,
-      url: webhookSubscription.url,
-      events: webhookSubscription.events,
-    },
-    ip: ctx.request.ip,
-  };
-  await Event.create(event);
+    const event: WebhookSubscriptionEvent = {
+      name: "webhook_subscriptions.delete",
+      modelId: webhookSubscription.id,
+      teamId: user.teamId,
+      actorId: user.id,
+      data: {
+        name: webhookSubscription.name,
+        url: webhookSubscription.url,
+        events: webhookSubscription.events,
+      },
+      ip: ctx.request.ip,
+    };
+    await Event.create(event);
+  }
+);
 
-  ctx.body = {
-    data: presentWebhookSubscription(webhookSubscription),
-  };
-});
+router.post(
+  "webhookSubscriptions.update",
+  auth({ admin: true }),
+  async (ctx) => {
+    const { id } = ctx.body;
+    assertUuid(id, "id is required");
+    const { user } = ctx.state;
+
+    const { name, url } = ctx.request.body;
+    const events: string[] = compact(ctx.request.body.events);
+    assertPresent(name, "name is required");
+    assertPresent(url, "url is required");
+    assertArray(events, "events is required");
+    if (events.length === 0) {
+      throw ValidationError("events are required");
+    }
+
+    const webhookSubscription = await WebhookSubscription.findByPk(id);
+
+    authorize(user, "update", webhookSubscription);
+
+    await webhookSubscription.update({ name, url, events, enabled: true });
+
+    const event: WebhookSubscriptionEvent = {
+      name: "webhook_subscriptions.update",
+      modelId: webhookSubscription.id,
+      teamId: user.teamId,
+      actorId: user.id,
+      data: {
+        name: webhookSubscription.name,
+        url: webhookSubscription.url,
+        events: webhookSubscription.events,
+      },
+      ip: ctx.request.ip,
+    };
+    await Event.create(event);
+
+    ctx.body = {
+      data: presentWebhookSubscription(webhookSubscription),
+    };
+  }
+);
 
 export default router;

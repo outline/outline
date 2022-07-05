@@ -13,7 +13,7 @@ import pagination from "./middlewares/pagination";
 
 const router = new Router();
 
-router.post("fileOperations.info", auth(), async (ctx) => {
+router.post("fileOperations.info", auth({ admin: true }), async (ctx) => {
   const { id } = ctx.body;
   assertUuid(id, "id is required");
   const { user } = ctx.state;
@@ -28,42 +28,47 @@ router.post("fileOperations.info", auth(), async (ctx) => {
   };
 });
 
-router.post("fileOperations.list", auth(), pagination(), async (ctx) => {
-  let { direction } = ctx.body;
-  const { sort = "createdAt", type } = ctx.body;
-  assertIn(type, Object.values(FileOperationType));
-  assertSort(sort, FileOperation);
+router.post(
+  "fileOperations.list",
+  auth({ admin: true }),
+  pagination(),
+  async (ctx) => {
+    let { direction } = ctx.body;
+    const { sort = "createdAt", type } = ctx.body;
+    assertIn(type, Object.values(FileOperationType));
+    assertSort(sort, FileOperation);
 
-  if (direction !== "ASC") {
-    direction = "DESC";
+    if (direction !== "ASC") {
+      direction = "DESC";
+    }
+    const { user } = ctx.state;
+    const where: WhereOptions<FileOperation> = {
+      teamId: user.teamId,
+      type,
+    };
+    const team = await Team.findByPk(user.teamId);
+    authorize(user, "manage", team);
+
+    const [exports, total] = await Promise.all([
+      await FileOperation.findAll({
+        where,
+        order: [[sort, direction]],
+        offset: ctx.state.pagination.offset,
+        limit: ctx.state.pagination.limit,
+      }),
+      await FileOperation.count({
+        where,
+      }),
+    ]);
+
+    ctx.body = {
+      pagination: { ...ctx.state.pagination, total },
+      data: exports.map(presentFileOperation),
+    };
   }
-  const { user } = ctx.state;
-  const where: WhereOptions<FileOperation> = {
-    teamId: user.teamId,
-    type,
-  };
-  const team = await Team.findByPk(user.teamId);
-  authorize(user, "manage", team);
+);
 
-  const [exports, total] = await Promise.all([
-    await FileOperation.findAll({
-      where,
-      order: [[sort, direction]],
-      offset: ctx.state.pagination.offset,
-      limit: ctx.state.pagination.limit,
-    }),
-    await FileOperation.count({
-      where,
-    }),
-  ]);
-
-  ctx.body = {
-    pagination: { ...ctx.state.pagination, total },
-    data: exports.map(presentFileOperation),
-  };
-});
-
-router.post("fileOperations.redirect", auth(), async (ctx) => {
+router.post("fileOperations.redirect", auth({ admin: true }), async (ctx) => {
   const { id } = ctx.body;
   assertUuid(id, "id is required");
 
@@ -81,7 +86,7 @@ router.post("fileOperations.redirect", auth(), async (ctx) => {
   ctx.redirect(accessUrl);
 });
 
-router.post("fileOperations.delete", auth(), async (ctx) => {
+router.post("fileOperations.delete", auth({ admin: true }), async (ctx) => {
   const { id } = ctx.body;
   assertUuid(id, "id is required");
 

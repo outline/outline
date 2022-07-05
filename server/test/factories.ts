@@ -161,6 +161,10 @@ export async function buildAdmin(overrides: Partial<User> = {}) {
   return buildUser({ ...overrides, isAdmin: true });
 }
 
+export async function buildViewer(overrides: Partial<User> = {}) {
+  return buildUser({ ...overrides, isViewer: true });
+}
+
 export async function buildInvite(overrides: Partial<User> = {}) {
   if (!overrides.teamId) {
     const team = await buildTeam();
