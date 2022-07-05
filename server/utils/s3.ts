@@ -3,6 +3,7 @@ import util from "util";
 import AWS from "aws-sdk";
 import { addHours, format } from "date-fns";
 import fetch from "fetch-with-proxy";
+import { useAgent } from "request-filtering-agent";
 import { v4 as uuidv4 } from "uuid";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
@@ -185,8 +186,9 @@ export const uploadToS3FromUrl = async (
   }
 
   try {
-    const res = await fetch(url);
-    // @ts-expect-error buffer exists, need updated typings
+    const res = await fetch(url, {
+      agent: useAgent(url),
+    });
     const buffer = await res.buffer();
     await s3
       .putObject({

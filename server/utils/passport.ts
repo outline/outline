@@ -82,7 +82,6 @@ export class StateStore {
 export async function request(endpoint: string, accessToken: string) {
   const response = await fetch(endpoint, {
     method: "GET",
-    credentials: "same-origin",
     headers: {
       Authorization: `Bearer ${accessToken}`,
       "Content-Type": "application/json",

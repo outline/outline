@@ -2809,6 +2809,14 @@
   resolved "https://registry.yarnpkg.com/@types/natural-sort/-/natural-sort-0.0.21.tgz#5583cfcd250f72e45af8611ef515d4e881f49556"
   integrity sha512-WYMWhAQLuBym+6qQ2Ojptm6qIACnkkYYs08sj+PVgRCrB6b7k1QpTRk0yMmxhlpPn5MbXcSfd6sHOYlzaokU3w==
 
+"@types/node-fetch@^2.6.2":
+  version "2.6.2"
+  resolved "https://registry.yarnpkg.com/@types/node-fetch/-/node-fetch-2.6.2.tgz#d1a9c5fd049d9415dce61571557104dec3ec81da"
+  integrity sha512-DHqhlq5jeESLy19TYhLakJ07kNumXWjcDdxXsLUMJZ6ue8VZJj4kLPQVE/2mdHh3xZziNF1xppu5lwmS53HR+A==
+  dependencies:
+    "@types/node" "*"
+    form-data "^3.0.0"
+
 "@types/node@*", "@types/node@>=12", "@types/node@>=13.7.0":
   version "17.0.38"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-17.0.38.tgz#f8bb07c371ccb1903f3752872c89f44006132947"
@@ -8610,6 +8618,11 @@ ioredis@^4.27.0, ioredis@^4.28.0:
     redis-parser "^3.0.0"
     standard-as-callback "^2.1.0"
 
+ipaddr.js@^2.0.0:
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/ipaddr.js/-/ipaddr.js-2.0.1.tgz#eca256a7a877e917aeb368b0a7497ddf42ef81c0"
+  integrity sha512-1qTgH9NG+IIJ4yfKs2e6Pp1bZg8wbDbKHT21HrLIeYBTRLgMYKnMTPAuI3Lcs61nfx5h1xlXnbJtH1kX5/d/ng==
+
 is-absolute@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/is-absolute/-/is-absolute-1.0.0.tgz#395e1ae84b11f26ad1795e73c17378e48a301576"
@@ -12923,6 +12936,13 @@ replace-ext@^1.0.0:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/replace-ext/-/replace-ext-1.0.1.tgz#2d6d996d04a15855d967443631dd5f77825b016a"
   integrity sha512-yD5BHCe7quCgBph4rMQ+0KkIRKwWCrHDOX1p1Gp6HwjPM5kVoCdKGNhN7ydqqsX6lJEnQDKZ/tFMiEdQ1dvPEw==
+
+request-filtering-agent@^1.1.2:
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/request-filtering-agent/-/request-filtering-agent-1.1.2.tgz#327deaff55dfee0b32efa0025ff9b8e6e121f2f4"
+  integrity sha512-v6uYIoey6rhe+nQXB5rlYEWJI+5SrnvM72XGeLUsykzu2omOEPoW4QmzEH+8/sheK4M/hwQ85L7aPj1cTJfPLg==
+  dependencies:
+    ipaddr.js "^2.0.0"
 
 require-directory@^2.1.1:
   version "2.1.1"
