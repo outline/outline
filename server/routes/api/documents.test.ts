@@ -15,6 +15,7 @@ import {
   buildCollection,
   buildUser,
   buildDocument,
+  buildViewer,
 } from "@server/test/factories";
 import { flushdb, seed } from "@server/test/support";
 
@@ -1432,8 +1433,72 @@ describe("#documents.archived", () => {
     expect(body.data.length).toEqual(0);
   });
 
+  it("should require member", async () => {
+    const viewer = await buildViewer();
+    const res = await server.post("/api/documents.archived", {
+      body: {
+        token: viewer.getJwtToken(),
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/documents.archived");
+    expect(res.status).toEqual(401);
+  });
+});
+
+describe("#documents.deleted", () => {
+  it("should return deleted documents", async () => {
+    const { user } = await seed();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    await document.delete(user.id);
+    const res = await server.post("/api/documents.deleted", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+  });
+
+  it("should not return documents in private collections not a member of", async () => {
+    const { user } = await seed();
+    const collection = await buildCollection({
+      permission: null,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      collectionId: collection.id,
+    });
+    await document.delete(user.id);
+    const res = await server.post("/api/documents.deleted", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
+  });
+
+  it("should require member", async () => {
+    const viewer = await buildViewer();
+    const res = await server.post("/api/documents.deleted", {
+      body: {
+        token: viewer.getJwtToken(),
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should require authentication", async () => {
+    const res = await server.post("/api/documents.deleted");
     expect(res.status).toEqual(401);
   });
 });

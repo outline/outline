@@ -276,7 +276,7 @@ class User extends ParanoidModel {
       .map((c) => c.id);
   };
 
-  updateActiveAt = (ip: string, force = false) => {
+  updateActiveAt = async (ip: string, force = false) => {
     const fiveMinutesAgo = subMinutes(new Date(), 5);
 
     // ensure this is updated only every few minutes otherwise
