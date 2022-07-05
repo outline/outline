@@ -42,7 +42,11 @@ export default function auth(options: AuthenticationOptions = {}) {
           `Bad Authorization header format. Format is "Authorization: Bearer <token>"`
         );
       }
-    } else if (ctx.body && typeof ctx.body === "object") {
+    } else if (
+      ctx.body &&
+      typeof ctx.body === "object" &&
+      "token" in ctx.body
+    ) {
       // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
       token = ctx.body.token;
     } else if (ctx.request.query.token) {
