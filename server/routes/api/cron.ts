@@ -5,6 +5,7 @@ import { AuthenticationError } from "@server/errors";
 import CleanupDeletedDocumentsTask from "@server/queues/tasks/CleanupDeletedDocumentsTask";
 import CleanupDeletedTeamsTask from "@server/queues/tasks/CleanupDeletedTeamsTask";
 import CleanupExpiredFileOperationsTask from "@server/queues/tasks/CleanupExpiredFileOperationsTask";
+import CleanupWebhookDeliveriesTask from "@server/queues/tasks/CleanupWebhookDeliveriesTask";
 import InviteReminderTask from "@server/queues/tasks/InviteReminderTask";
 
 const router = new Router();
@@ -21,6 +22,8 @@ const cronHandler = async (ctx: Context) => {
   await CleanupExpiredFileOperationsTask.schedule({ limit });
 
   await CleanupDeletedTeamsTask.schedule({ limit });
+
+  await CleanupWebhookDeliveriesTask.schedule({ limit });
 
   await InviteReminderTask.schedule();
 

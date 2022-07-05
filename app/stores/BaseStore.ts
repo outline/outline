@@ -7,6 +7,7 @@ import BaseModel from "~/models/BaseModel";
 import Policy from "~/models/Policy";
 import { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
+import { AuthorizationError, NotFoundError } from "~/utils/errors";
 
 type PartialWithId<T> = Partial<T> & { id: string };
 
@@ -106,11 +107,14 @@ export default abstract class BaseStore<T extends BaseModel> {
     this.data.delete(id);
   }
 
-  save(params: Partial<T>): Promise<T> {
+  save(
+    params: Partial<T>,
+    options?: Record<string, string | boolean | number | undefined>
+  ): Promise<T> {
     if (params.id) {
-      return this.update(params);
+      return this.update(params, options);
     }
-    return this.create(params);
+    return this.create(params, options);
   }
 
   get(id: string): T | undefined {
@@ -206,7 +210,7 @@ export default abstract class BaseStore<T extends BaseModel> {
       this.addPolicies(res.policies);
       return this.add(res.data);
     } catch (err) {
-      if (err.statusCode === 403) {
+      if (err instanceof AuthorizationError || err instanceof NotFoundError) {
         this.remove(id);
       }
 

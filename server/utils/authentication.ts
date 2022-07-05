@@ -2,10 +2,10 @@ import querystring from "querystring";
 import { addMonths } from "date-fns";
 import { Context } from "koa";
 import { pick } from "lodash";
+import { getCookieDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { User, Event, Team, Collection, View } from "@server/models";
-import { getCookieDomain } from "@server/utils/domains";
 
 export async function signIn(
   ctx: Context,
@@ -40,7 +40,8 @@ export async function signIn(
   }
 
   // update the database when the user last signed in
-  user.updateSignedIn(ctx.request.ip);
+  await user.updateSignedIn(ctx.request.ip);
+
   // don't await event creation for a faster sign-in
   Event.create({
     name: "users.signin",

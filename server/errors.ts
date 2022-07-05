@@ -128,11 +128,29 @@ export function MicrosoftGraphError(
   });
 }
 
-export function GoogleWorkspaceRequiredError(
-  message = "Google Workspace is required to authenticate"
+export function TeamDomainRequiredError(
+  message = "Unable to determine team from current domain or subdomain"
 ) {
   return httpErrors(400, message, {
-    id: "google_hd",
+    id: "domain_required",
+  });
+}
+
+export function GmailAccountCreationError(
+  message = "Cannot create account using personal gmail address"
+) {
+  return httpErrors(400, message, {
+    id: "gmail_account_creation",
+  });
+}
+
+export function AuthRedirectError(
+  message = "Redirect to the correct domain after authentication",
+  redirectUrl: string
+) {
+  return httpErrors(400, message, {
+    id: "auth_redirect",
+    redirectUrl,
   });
 }
 

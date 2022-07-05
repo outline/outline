@@ -18,7 +18,13 @@ export default function createMiddleware(providerName: string) {
 
           if (err.id) {
             const notice = err.id.replace(/_/g, "-");
-            return ctx.redirect(`${err.redirectUrl || "/"}?notice=${notice}`);
+            const hasQueryString = err.redirectUrl?.includes("?");
+
+            return ctx.redirect(
+              `${err.redirectUrl || "/"}${
+                hasQueryString ? "&" : "?"
+              }notice=${notice}`
+            );
           }
 
           if (env.ENVIRONMENT === "development") {

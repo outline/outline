@@ -488,7 +488,7 @@ router.post("collections.export", auth(), async (ctx) => {
   assertUuid(id, "id is required");
   const { user } = ctx.state;
   const team = await Team.findByPk(user.teamId);
-  authorize(user, "export", team);
+  authorize(user, "createExport", team);
 
   const collection = await Collection.scope({
     method: ["withMembership", user.id],
@@ -516,7 +516,7 @@ router.post("collections.export", auth(), async (ctx) => {
 router.post("collections.export_all", auth(), async (ctx) => {
   const { user } = ctx.state;
   const team = await Team.findByPk(user.teamId);
-  authorize(user, "export", team);
+  authorize(user, "createExport", team);
 
   const fileOperation = await sequelize.transaction(async (transaction) => {
     return collectionExporter({
@@ -641,7 +641,7 @@ router.post("collections.update", auth(), async (ctx) => {
   // if the privacy level has changed. Otherwise skip this query for speed.
   if (privacyChanged || sharingChanged) {
     await collection.reload();
-    const team = await Team.findByPk(user.teamId);
+    const team = await Team.findByPk(user.teamId, { rejectOnEmpty: true });
 
     if (
       collection.permission === null &&

@@ -1,5 +1,6 @@
 import {
   Attachment,
+  FileOperation,
   Team,
   User,
   Collection,
@@ -12,6 +13,7 @@ import "./attachment";
 import "./authenticationProvider";
 import "./collection";
 import "./document";
+import "./fileOperation";
 import "./integration";
 import "./notificationSetting";
 import "./pins";
@@ -21,6 +23,7 @@ import "./star";
 import "./user";
 import "./team";
 import "./group";
+import "./webhookSubscription";
 
 type Policy = Record<string, boolean>;
 
@@ -41,7 +44,15 @@ export const abilities = _abilities;
  */
 export function serialize(
   model: User,
-  target: Attachment | Team | Collection | Document | User | Group | null
+  target:
+    | Attachment
+    | FileOperation
+    | Team
+    | Collection
+    | Document
+    | User
+    | Group
+    | null
 ): Policy {
   const output = {};
   abilities.forEach((ability) => {

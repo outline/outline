@@ -9,20 +9,20 @@ beforeEach(() => flushdb());
 afterAll(() => server.close());
 
 describe("/share/:id", () => {
-  it("should return standard title in html when loading share", async () => {
+  it("should return standard title in html when loading unpublished share", async () => {
     const share = await buildShare({
       published: false,
     });
     const res = await server.get(`/share/${share.id}`);
     const body = await res.text();
-    expect(res.status).toEqual(200);
+    expect(res.status).toEqual(404);
     expect(body).toContain("<title>Outline</title>");
   });
 
   it("should return standard title in html when share does not exist", async () => {
     const res = await server.get(`/share/junk`);
     const body = await res.text();
-    expect(res.status).toEqual(200);
+    expect(res.status).toEqual(404);
     expect(body).toContain("<title>Outline</title>");
   });
 
@@ -30,11 +30,12 @@ describe("/share/:id", () => {
     const document = await buildDocument();
     const share = await buildShare({
       documentId: document.id,
+      teamId: document.teamId,
     });
     await document.destroy();
     const res = await server.get(`/share/${share.id}`);
     const body = await res.text();
-    expect(res.status).toEqual(200);
+    expect(res.status).toEqual(404);
     expect(body).toContain("<title>Outline</title>");
   });
 
@@ -42,6 +43,7 @@ describe("/share/:id", () => {
     const document = await buildDocument();
     const share = await buildShare({
       documentId: document.id,
+      teamId: document.teamId,
     });
     const res = await server.get(`/share/${share.id}`);
     const body = await res.text();
@@ -53,8 +55,9 @@ describe("/share/:id", () => {
     const document = await buildDocument();
     const share = await buildShare({
       documentId: document.id,
+      teamId: document.teamId,
     });
-    const res = await server.get(`/share/${share.id}/doc/test-Cl6g1AgPYn`);
+    const res = await server.get(`/share/${share.id}/doc/${document.urlId}`);
     const body = await res.text();
     expect(res.status).toEqual(200);
     expect(body).toContain(`<title>${document.title}</title>`);

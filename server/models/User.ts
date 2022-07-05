@@ -1,17 +1,15 @@
 import crypto from "crypto";
 import { addMinutes, subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
-import { Transaction, QueryTypes, FindOptions, Op } from "sequelize";
+import { Transaction, QueryTypes, SaveOptions, Op } from "sequelize";
 import {
   Table,
   Column,
   IsIP,
   IsEmail,
-  HasOne,
   Default,
   IsIn,
   BeforeDestroy,
-  BeforeSave,
   BeforeCreate,
   AfterCreate,
   BelongsTo,
@@ -20,12 +18,9 @@ import {
   HasMany,
   Scopes,
 } from "sequelize-typescript";
-import { v4 as uuidv4 } from "uuid";
 import { languages } from "@shared/i18n";
 import { stringToColor } from "@shared/utils/color";
 import env from "@server/env";
-import Logger from "@server/logging/Logger";
-import { publicS3Endpoint, uploadToS3FromUrl } from "@server/utils/s3";
 import { ValidationError } from "../errors";
 import ApiKey from "./ApiKey";
 import Collection from "./Collection";
@@ -39,6 +34,8 @@ import Encrypted, {
   getEncryptedColumn,
 } from "./decorators/Encrypted";
 import Fix from "./decorators/Fix";
+import Length from "./validators/Length";
+import NotContainsUrl from "./validators/NotContainsUrl";
 
 /**
  * Flags that are available for setting on the user.
@@ -87,12 +84,17 @@ export enum UserFlag {
 @Fix
 class User extends ParanoidModel {
   @IsEmail
+  @Length({ min: 0, max: 255, msg: "Must be less than 255 characters" })
   @Column
   email: string | null;
 
+  @NotContainsUrl
+  @Length({ min: 0, max: 255, msg: "Must be less than 255 characters" })
   @Column
   username: string | null;
 
+  @NotContainsUrl
+  @Length({ min: 0, max: 255, msg: "Must be less than 255 characters" })
   @Column
   name: string;
 
@@ -142,6 +144,7 @@ class User extends ParanoidModel {
   @Column
   language: string;
 
+  @Length({ min: 0, max: 255, msg: "Must be less than 255 characters" })
   @Column(DataType.STRING)
   get avatarUrl() {
     const original = this.getDataValue("avatarUrl");
@@ -164,15 +167,14 @@ class User extends ParanoidModel {
   }
 
   // associations
-
-  @HasOne(() => User, "suspendedById")
+  @BelongsTo(() => User, "suspendedById")
   suspendedBy: User | null;
 
   @ForeignKey(() => User)
   @Column(DataType.UUID)
   suspendedById: string | null;
 
-  @HasOne(() => User, "invitedById")
+  @BelongsTo(() => User, "invitedById")
   invitedBy: User | null;
 
   @ForeignKey(() => User)
@@ -292,15 +294,33 @@ class User extends ParanoidModel {
   };
 
   updateSignedIn = (ip: string) => {
-    this.lastSignedInAt = new Date();
+    const now = new Date();
+    this.lastActiveAt = now;
+    this.lastActiveIp = ip;
+    this.lastSignedInAt = now;
     this.lastSignedInIp = ip;
-    return this.save({
-      hooks: false,
-    });
+    return this.save({ hooks: false });
   };
 
-  // Returns a session token that is used to make API requests and is stored
-  // in the client browser cookies to remain logged in.
+  /**
+   * Rotate's the users JWT secret. This has the effect of invalidating ALL
+   * previously issued tokens.
+   *
+   * @param options Save options
+   * @returns Promise that resolves when database persisted
+   */
+  rotateJwtSecret = (options: SaveOptions) => {
+    User.setRandomJwtSecret(this);
+    return this.save(options);
+  };
+
+  /**
+   * Returns a session token that is used to make API requests and is stored
+   * in the client browser cookies to remain logged in.
+   *
+   * @param expiresAt The time the token will expire at
+   * @returns The session token
+   */
   getJwtToken = (expiresAt?: Date) => {
     return JWT.sign(
       {
@@ -312,8 +332,13 @@ class User extends ParanoidModel {
     );
   };
 
-  // Returns a temporary token that is only used for transferring a session
-  // between subdomains or domains. It has a short expiry and can only be used once
+  /**
+   * Returns a temporary token that is only used for transferring a session
+   * between subdomains or domains. It has a short expiry and can only be used
+   * once.
+   *
+   * @returns The transfer token
+   */
   getTransferToken = () => {
     return JWT.sign(
       {
@@ -326,8 +351,12 @@ class User extends ParanoidModel {
     );
   };
 
-  // Returns a temporary token that is only used for logging in from an email
-  // It can only be used to sign in once and has a medium length expiry
+  /**
+   * Returns a temporary token that is only used for logging in from an email
+   * It can only be used to sign in once and has a medium length expiry
+   *
+   * @returns The email signin token
+   */
   getEmailSigninToken = () => {
     return JWT.sign(
       {
@@ -430,34 +459,6 @@ class User extends ParanoidModel {
     });
   };
 
-  @BeforeSave
-  static uploadAvatar = async (model: User) => {
-    const endpoint = publicS3Endpoint();
-    const { avatarUrl } = model;
-
-    if (
-      avatarUrl &&
-      !avatarUrl.startsWith("/api") &&
-      !avatarUrl.startsWith(endpoint) &&
-      !avatarUrl.startsWith(env.DEFAULT_AVATAR_HOST)
-    ) {
-      try {
-        const newUrl = await uploadToS3FromUrl(
-          avatarUrl,
-          `avatars/${model.id}/${uuidv4()}`,
-          "public-read"
-        );
-        if (newUrl) {
-          model.avatarUrl = newUrl;
-        }
-      } catch (err) {
-        Logger.error("Couldn't upload user avatar image to S3", err, {
-          url: avatarUrl,
-        });
-      }
-    }
-  };
-
   @BeforeCreate
   static setRandomJwtSecret = (model: User) => {
     model.jwtSecret = crypto.randomBytes(64).toString("hex");
@@ -492,6 +493,14 @@ class User extends ParanoidModel {
           userId: model.id,
           teamId: model.teamId,
           event: "emails.features",
+        },
+        transaction: options.transaction,
+      }),
+      NotificationSetting.findOrCreate({
+        where: {
+          userId: model.id,
+          teamId: model.teamId,
+          event: "emails.invite_accepted",
         },
         transaction: options.transaction,
       }),
@@ -536,25 +545,6 @@ class User extends ParanoidModel {
       suspended: parseInt(counts.suspendedCount),
     };
   };
-
-  static async findAllInBatches(
-    query: FindOptions<User>,
-    callback: (users: Array<User>, query: FindOptions<User>) => Promise<void>
-  ) {
-    if (!query.offset) {
-      query.offset = 0;
-    }
-    if (!query.limit) {
-      query.limit = 10;
-    }
-    let results;
-
-    do {
-      results = await this.findAll(query);
-      await callback(results, query);
-      query.offset += query.limit;
-    } while (results.length >= query.limit);
-  }
 }
 
 export default User;

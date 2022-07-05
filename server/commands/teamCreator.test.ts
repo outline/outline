@@ -7,7 +7,10 @@ import teamCreator from "./teamCreator";
 beforeEach(() => flushdb());
 
 describe("teamCreator", () => {
+  const ip = "127.0.0.1";
+
   it("should create team and authentication provider", async () => {
+    env.DEPLOYMENT = "hosted";
     const result = await teamCreator({
       name: "Test team",
       subdomain: "example",
@@ -16,6 +19,7 @@ describe("teamCreator", () => {
         name: "google",
         providerId: "example.com",
       },
+      ip,
     });
     const { team, authenticationProvider, isNewTeam } = result;
     expect(authenticationProvider.name).toEqual("google");
@@ -25,72 +29,85 @@ describe("teamCreator", () => {
     expect(isNewTeam).toEqual(true);
   });
 
-  it("should not allow creating multiple teams in installation", async () => {
-    env.DEPLOYMENT = undefined;
-    await buildTeam();
-    let error;
+  it("should set subdomain append if unavailable", async () => {
+    env.DEPLOYMENT = "hosted";
 
-    try {
-      await teamCreator({
-        name: "Test team",
-        subdomain: "example",
-        avatarUrl: "http://example.com/logo.png",
-        authenticationProvider: {
-          name: "google",
-          providerId: "example.com",
-        },
-      });
-    } catch (err) {
-      error = err;
-    }
-
-    expect(error).toBeTruthy();
-  });
-
-  it("should return existing team when within allowed domains", async () => {
-    env.DEPLOYMENT = undefined;
-    const existing = await buildTeam();
-    const user = await buildUser({
-      teamId: existing.id,
+    await buildTeam({
+      subdomain: "myteam",
     });
-    await TeamDomain.create({
-      teamId: existing.id,
-      name: "allowed-domain.com",
-      createdById: user.id,
-    });
-
     const result = await teamCreator({
-      name: "Updated name",
-      subdomain: "example",
-      domain: "allowed-domain.com",
+      name: "Test team",
+      subdomain: "myteam",
+      avatarUrl: "http://example.com/logo.png",
       authenticationProvider: {
         name: "google",
-        providerId: "allowed-domain.com",
+        providerId: "example.com",
       },
+      ip,
     });
-    const { team, authenticationProvider, isNewTeam } = result;
-    expect(team.id).toEqual(existing.id);
-    expect(team.name).toEqual(existing.name);
-    expect(authenticationProvider.name).toEqual("google");
-    expect(authenticationProvider.providerId).toEqual("allowed-domain.com");
-    expect(isNewTeam).toEqual(false);
-    const providers = await team.$get("authenticationProviders");
-    expect(providers.length).toEqual(2);
+
+    expect(result.team.subdomain).toEqual("myteam1");
   });
 
-  it("should error when NOT within allowed domains", async () => {
-    const user = await buildUser();
-    delete process.env.DEPLOYMENT;
-    const existing = await buildTeam();
-    await TeamDomain.create({
-      teamId: existing.id,
-      name: "other-domain.com",
-      createdById: user.id,
+  it("should increment subdomain append if unavailable", async () => {
+    env.DEPLOYMENT = "hosted";
+
+    await buildTeam({
+      subdomain: "myteam",
+    });
+    await buildTeam({
+      subdomain: "myteam1",
+    });
+    const result = await teamCreator({
+      name: "Test team",
+      subdomain: "myteam",
+      avatarUrl: "http://example.com/logo.png",
+      authenticationProvider: {
+        name: "google",
+        providerId: "example.com",
+      },
+      ip,
     });
 
-    let error;
-    try {
-      await teamCreator({
+    expect(result.team.subdomain).toEqual("myteam2");
+  });
+
+  describe("self hosted", () => {
+    it("should not allow creating multiple teams in installation", async () => {
+      env.DEPLOYMENT = undefined;
+      await buildTeam();
+      let error;
+
+      try {
+        await teamCreator({
+          name: "Test team",
+          subdomain: "example",
+          avatarUrl: "http://example.com/logo.png",
+          authenticationProvider: {
+            name: "google",
+            providerId: "example.com",
+          },
+          ip,
+        });
+      } catch (err) {
+        error = err;
+      }
+
+      expect(error).toBeTruthy();
+    });
+
+    it("should return existing team when within allowed domains", async () => {
+      env.DEPLOYMENT = undefined;
+      const existing = await buildTeam();
+      const user = await buildUser({
+        teamId: existing.id,
+      });
+      await TeamDomain.create({
+        teamId: existing.id,
+        name: "allowed-domain.com",
+        createdById: user.id,
+      });
+      const result = await teamCreator({
         name: "Updated name",
         subdomain: "example",
         domain: "allowed-domain.com",
@@ -98,33 +115,70 @@ describe("teamCreator", () => {
           name: "google",
           providerId: "allowed-domain.com",
         },
+        ip,
       });
-    } catch (err) {
-      error = err;
-    }
-
-    expect(error).toBeTruthy();
-  });
-
-  it("should return exising team", async () => {
-    env.DEPLOYMENT = undefined;
-    const authenticationProvider = {
-      name: "google",
-      providerId: "example.com",
-    };
-    const existing = await buildTeam({
-      subdomain: "example",
-      authenticationProviders: [authenticationProvider],
+      const { team, authenticationProvider, isNewTeam } = result;
+      expect(team.id).toEqual(existing.id);
+      expect(team.name).toEqual(existing.name);
+      expect(authenticationProvider.name).toEqual("google");
+      expect(authenticationProvider.providerId).toEqual("allowed-domain.com");
+      expect(isNewTeam).toEqual(false);
+      const providers = await team.$get("authenticationProviders");
+      expect(providers.length).toEqual(2);
     });
-    const result = await teamCreator({
-      name: "Updated name",
-      subdomain: "example",
-      authenticationProvider,
+
+    it("should error when NOT within allowed domains", async () => {
+      env.DEPLOYMENT = undefined;
+      const existing = await buildTeam();
+      const user = await buildUser({
+        teamId: existing.id,
+      });
+      await TeamDomain.create({
+        teamId: existing.id,
+        name: "allowed-domain.com",
+        createdById: user.id,
+      });
+
+      let error;
+      try {
+        await teamCreator({
+          name: "Updated name",
+          subdomain: "example",
+          domain: "other-domain.com",
+          authenticationProvider: {
+            name: "google",
+            providerId: "other-domain.com",
+          },
+          ip,
+        });
+      } catch (err) {
+        error = err;
+      }
+
+      expect(error).toBeTruthy();
     });
-    const { team, isNewTeam } = result;
-    expect(team.id).toEqual(existing.id);
-    expect(team.name).toEqual(existing.name);
-    expect(team.subdomain).toEqual("example");
-    expect(isNewTeam).toEqual(false);
+
+    it("should return exising team", async () => {
+      env.DEPLOYMENT = undefined;
+      const authenticationProvider = {
+        name: "google",
+        providerId: "example.com",
+      };
+      const existing = await buildTeam({
+        subdomain: "example",
+        authenticationProviders: [authenticationProvider],
+      });
+      const result = await teamCreator({
+        name: "Updated name",
+        subdomain: "example",
+        authenticationProvider,
+        ip,
+      });
+      const { team, isNewTeam } = result;
+      expect(team.id).toEqual(existing.id);
+      expect(team.name).toEqual(existing.name);
+      expect(team.subdomain).toEqual("example");
+      expect(isNewTeam).toEqual(false);
+    });
   });
 });

@@ -1,9 +1,9 @@
-import invariant from "invariant";
+import { sequelize } from "@server/database/sequelize";
 import env from "@server/env";
 import { DomainNotAllowedError, MaximumTeamsError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { APM } from "@server/logging/tracing";
-import { Team, AuthenticationProvider } from "@server/models";
+import { Team, AuthenticationProvider, Event } from "@server/models";
 import { generateAvatarUrl } from "@server/utils/avatars";
 
 type TeamCreatorResult = {
@@ -21,6 +21,7 @@ type Props = {
     name: string;
     providerId: string;
   };
+  ip: string;
 };
 
 async function teamCreator({
@@ -29,6 +30,7 @@ async function teamCreator({
   subdomain,
   avatarUrl,
   authenticationProvider,
+  ip,
 }: Props): Promise<TeamCreatorResult> {
   let authP = await AuthenticationProvider.findOne({
     where: authenticationProvider,
@@ -55,15 +57,12 @@ async function teamCreator({
   // to the multi-tenant version, we want to restrict to a single team that MAY
   // have multiple authentication providers
   if (env.DEPLOYMENT !== "hosted") {
-    const teamCount = await Team.count();
+    const team = await Team.findOne();
 
     // If the self-hosted installation has a single team and the domain for the
     // new team is allowed then assign the authentication provider to the
     // existing team
-    if (teamCount === 1 && domain) {
-      const team = await Team.findOne();
-      invariant(team, "Team should exist");
-
+    if (team && domain) {
       if (await team.isDomainAllowed(domain)) {
         authP = await team.$create<AuthenticationProvider>(
           "authenticationProvider",
@@ -79,9 +78,7 @@ async function teamCreator({
       }
     }
 
-    if (teamCount >= 1) {
-      throw MaximumTeamsError();
-    }
+    throw MaximumTeamsError();
   }
 
   // If the service did not provide a logo/avatar then we attempt to generate
@@ -94,11 +91,8 @@ async function teamCreator({
     });
   }
 
-  const transaction = await Team.sequelize!.transaction();
-  let team;
-
-  try {
-    team = await Team.create(
+  const team = await sequelize.transaction(async (transaction) => {
+    const team = await Team.create(
       {
         name,
         avatarUrl,
@@ -109,14 +103,26 @@ async function teamCreator({
         transaction,
       }
     );
-    await transaction.commit();
-  } catch (err) {
-    await transaction.rollback();
-    throw err;
-  }
 
+    await Event.create(
+      {
+        name: "teams.create",
+        teamId: team.id,
+        ip,
+      },
+      {
+        transaction,
+      }
+    );
+
+    return team;
+  });
+
+  // Note provisioning the subdomain is done outside of the transaction as
+  // it is allowed to fail and the team can still be created, it also requires
+  // failed queries as part of iteration
   try {
-    await team.provisionSubdomain(subdomain);
+    await provisionSubdomain(team, subdomain);
   } catch (err) {
     Logger.error("Provisioning subdomain failed", err, {
       teamId: team.id,
@@ -129,6 +135,28 @@ async function teamCreator({
     authenticationProvider: team.authenticationProviders[0],
     isNewTeam: true,
   };
+}
+
+async function provisionSubdomain(team: Team, requestedSubdomain: string) {
+  if (team.subdomain) {
+    return team.subdomain;
+  }
+  let subdomain = requestedSubdomain;
+  let append = 0;
+
+  for (;;) {
+    try {
+      await team.update({
+        subdomain,
+      });
+      break;
+    } catch (err) {
+      // subdomain was invalid or already used, try again
+      subdomain = `${requestedSubdomain}${++append}`;
+    }
+  }
+
+  return subdomain;
 }
 
 export default APM.traceFunction({

@@ -37,7 +37,7 @@ function CollectionLinkChildren({
   const [{ isOverReorder, isDraggingAnyDocument }, dropToReorder] = useDrop({
     accept: "document",
     drop: (item: DragObject) => {
-      if (!manualSort) {
+      if (!manualSort && item.collectionId === collection?.id) {
         showToast(
           t(
             "You can't reorder documents in an alphabetically sorted collection"

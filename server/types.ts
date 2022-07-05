@@ -1,5 +1,5 @@
 import { Context } from "koa";
-import { FileOperation, User } from "./models";
+import { FileOperation, Team, User } from "./models";
 
 export type ContextWithState = Context & {
   state: {
@@ -9,227 +9,276 @@ export type ContextWithState = Context & {
   };
 };
 
-export type UserEvent =
-  | {
-  name: "users.create" // eslint-disable-line
-        | "users.signin"
-        | "users.update"
-        | "users.suspend"
-        | "users.activate"
-        | "users.delete";
-      userId: string;
-      teamId: string;
-      actorId: string;
-      ip: string;
-    }
-  | {
-      name: "users.invite";
-      teamId: string;
-      actorId: string;
-      data: {
-        email: string;
-        name: string;
-      };
-      ip: string;
-    };
+type BaseEvent = {
+  teamId: string;
+  actorId: string;
+  ip: string;
+};
 
-export type DocumentEvent =
-  | {
-  name: "documents.create" // eslint-disable-line
-        | "documents.publish"
-        | "documents.unpublish"
-        | "documents.delete"
-        | "documents.permanent_delete"
-        | "documents.archive"
-        | "documents.unarchive"
-        | "documents.restore"
-        | "documents.star"
-        | "documents.unstar";
-      documentId: string;
-      collectionId: string;
-      teamId: string;
-      actorId: string;
-      ip: string;
-      data: {
-        title: string;
-        source?: "import";
-      };
-    }
-  | {
-      name: "documents.move";
-      documentId: string;
-      collectionId: string;
-      teamId: string;
-      actorId: string;
-      data: {
-        collectionIds: string[];
-        documentIds: string[];
-      };
-      ip: string;
-    }
-  | {
-  name: "documents.update" // eslint-disable-line
-        | "documents.update.delayed"
-        | "documents.update.debounced";
-      documentId: string;
-      collectionId: string;
-      createdAt: string;
-      teamId: string;
-      actorId: string;
-      data: {
-        title: string;
-        autosave: boolean;
-        done: boolean;
-      };
-      ip: string;
-    }
-  | {
-      name: "documents.title_change";
-      documentId: string;
-      collectionId: string;
-      createdAt: string;
-      teamId: string;
-      actorId: string;
-      data: {
-        title: string;
-        previousTitle: string;
-      };
-      ip: string;
-    };
+export type ApiKeyEvent = BaseEvent & {
+  name: "api_keys.create" | "api_keys.delete";
+  modelId: string;
+  data: {
+    name: string;
+  };
+};
 
-export type RevisionEvent = {
+export type AttachmentEvent = BaseEvent &
+  (
+    | {
+        name: "attachments.create";
+        modelId: string;
+        data: {
+          name: string;
+          source: string;
+        };
+      }
+    | {
+        name: "attachments.delete";
+        modelId: string;
+        data: {
+          name: string;
+        };
+      }
+  );
+
+export type AuthenticationProviderEvent = BaseEvent & {
+  name: "authenticationProviders.update";
+  modelId: string;
+  data: {
+    enabled: boolean;
+  };
+};
+
+export type UserEvent = BaseEvent &
+  (
+    | {
+        name:
+          | "users.signin"
+          | "users.signout"
+          | "users.update"
+          | "users.suspend"
+          | "users.activate"
+          | "users.delete";
+        userId: string;
+      }
+    | {
+        name: "users.create" | "users.promote" | "users.demote";
+        userId: string;
+        data: {
+          name: string;
+        };
+      }
+    | {
+        name: "users.invite";
+        userId: string;
+        data: {
+          email: string;
+          name: string;
+        };
+      }
+  );
+
+export type DocumentEvent = BaseEvent &
+  (
+    | {
+        name:
+          | "documents.create"
+          | "documents.publish"
+          | "documents.unpublish"
+          | "documents.delete"
+          | "documents.permanent_delete"
+          | "documents.archive"
+          | "documents.unarchive"
+          | "documents.restore"
+          | "documents.star"
+          | "documents.unstar";
+        documentId: string;
+        collectionId: string;
+        data: {
+          title: string;
+          source?: "import";
+        };
+      }
+    | {
+        name: "documents.move";
+        documentId: string;
+        collectionId: string;
+        data: {
+          collectionIds: string[];
+          documentIds: string[];
+        };
+      }
+    | {
+        name:
+          | "documents.update"
+          | "documents.update.delayed"
+          | "documents.update.debounced";
+        documentId: string;
+        collectionId: string;
+        createdAt: string;
+        data: {
+          title: string;
+          autosave: boolean;
+          done: boolean;
+        };
+      }
+    | {
+        name: "documents.title_change";
+        documentId: string;
+        collectionId: string;
+        createdAt: string;
+        data: {
+          title: string;
+          previousTitle: string;
+        };
+      }
+  );
+
+export type RevisionEvent = BaseEvent & {
   name: "revisions.create";
   documentId: string;
   collectionId: string;
-  teamId: string;
+  modelId: string;
 };
 
-export type FileOperationEvent = {
+export type FileOperationEvent = BaseEvent & {
   name:
     | "fileOperations.create"
     | "fileOperations.update"
-    | "fileOperation.delete";
-  teamId: string;
-  actorId: string;
+    | "fileOperations.delete";
   modelId: string;
   data: Partial<FileOperation>;
 };
 
-export type CollectionEvent =
-  | {
-    name: "collections.create" // eslint-disable-line
-        | "collections.update"
-        | "collections.delete";
-      collectionId: string;
-      teamId: string;
-      actorId: string;
-      data: {
-        name: string;
-      };
-      ip: string;
-    }
-  | {
-      name: "collections.add_user" | "collections.remove_user";
-      userId: string;
-      collectionId: string;
-      teamId: string;
-      actorId: string;
-      ip: string;
-    }
-  | {
-      name: "collections.add_group" | "collections.remove_group";
-      collectionId: string;
-      teamId: string;
-      actorId: string;
-      modelId: string;
-      data: {
-        name: string;
-      };
-      ip: string;
-    }
-  | {
-      name: "collections.move";
-      collectionId: string;
-      teamId: string;
-      actorId: string;
-      data: {
-        index: string;
-      };
-      ip: string;
-    }
-  | {
-      name: "collections.permission_changed";
-      collectionId: string;
-      teamId: string;
-      actorId: string;
-      data: {
-        privacyChanged: boolean;
-        sharingChanged: boolean;
-      };
-      ip: string;
-    };
+export type CollectionUserEvent = BaseEvent & {
+  name: "collections.add_user" | "collections.remove_user";
+  userId: string;
+  collectionId: string;
+};
 
-export type GroupEvent =
-  | {
-      name: "groups.create" | "groups.delete" | "groups.update";
-      actorId: string;
-      modelId: string;
-      teamId: string;
-      data: {
-        name: string;
-      };
-      ip: string;
-    }
-  | {
-      name: "groups.add_user" | "groups.remove_user";
-      actorId: string;
-      userId: string;
-      modelId: string;
-      teamId: string;
-      data: {
-        name: string;
-      };
-      ip: string;
-    };
+export type CollectionGroupEvent = BaseEvent & {
+  name: "collections.add_group" | "collections.remove_group";
+  collectionId: string;
+  modelId: string;
+  data: {
+    name: string;
+  };
+};
 
-export type IntegrationEvent = {
+export type CollectionEvent = BaseEvent &
+  (
+    | CollectionUserEvent
+    | CollectionGroupEvent
+    | {
+        name:
+          | "collections.create"
+          | "collections.update"
+          | "collections.delete";
+        collectionId: string;
+        data: {
+          name: string;
+        };
+      }
+    | {
+        name: "collections.move";
+        collectionId: string;
+        data: {
+          index: string;
+        };
+      }
+    | {
+        name: "collections.permission_changed";
+        collectionId: string;
+        data: {
+          privacyChanged: boolean;
+          sharingChanged: boolean;
+        };
+      }
+  );
+
+export type GroupUserEvent = BaseEvent & {
+  name: "groups.add_user" | "groups.remove_user";
+  userId: string;
+  modelId: string;
+  data: {
+    name: string;
+  };
+};
+
+export type GroupEvent = BaseEvent &
+  (
+    | GroupUserEvent
+    | {
+        name: "groups.create" | "groups.delete" | "groups.update";
+        modelId: string;
+        data: {
+          name: string;
+        };
+      }
+  );
+
+export type IntegrationEvent = BaseEvent & {
   name: "integrations.create" | "integrations.update";
   modelId: string;
-  teamId: string;
-  actorId: string;
-  ip: string;
 };
 
-export type TeamEvent = {
-  name: "teams.update";
-  teamId: string;
-  actorId: string;
-  data: Record<string, any>;
-  ip: string;
+export type TeamEvent = BaseEvent & {
+  name: "teams.create" | "teams.update";
+  data: Partial<Team>;
 };
 
-export type PinEvent = {
+export type PinEvent = BaseEvent & {
   name: "pins.create" | "pins.update" | "pins.delete";
-  teamId: string;
   modelId: string;
   documentId: string;
   collectionId?: string;
-  actorId: string;
-  ip: string;
 };
 
-export type StarEvent = {
+export type StarEvent = BaseEvent & {
   name: "stars.create" | "stars.update" | "stars.delete";
-  teamId: string;
   modelId: string;
   documentId: string;
   userId: string;
-  actorId: string;
-  ip: string;
+};
+
+export type ShareEvent = BaseEvent & {
+  name: "shares.create" | "shares.update" | "shares.revoke";
+  modelId: string;
+  documentId: string;
+  collectionId?: string;
+  data: {
+    name: string;
+  };
+};
+
+export type ViewEvent = BaseEvent & {
+  name: "views.create";
+  documentId: string;
+  collectionId: string;
+  modelId: string;
+  data: {
+    title: string;
+  };
+};
+
+export type WebhookSubscriptionEvent = BaseEvent & {
+  name:
+    | "webhook_subscriptions.create"
+    | "webhook_subscriptions.delete"
+    | "webhook_subscriptions.update";
+  modelId: string;
+  data: {
+    name: string;
+    url: string;
+    events: string[];
+  };
 };
 
 export type Event =
-  | UserEvent
+  | ApiKeyEvent
+  | AttachmentEvent
+  | AuthenticationProviderEvent
   | DocumentEvent
   | PinEvent
   | StarEvent
@@ -238,4 +287,8 @@ export type Event =
   | IntegrationEvent
   | GroupEvent
   | RevisionEvent
-  | TeamEvent;
+  | ShareEvent
+  | TeamEvent
+  | UserEvent
+  | ViewEvent
+  | WebhookSubscriptionEvent;

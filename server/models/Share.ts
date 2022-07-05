@@ -11,7 +11,7 @@ import Collection from "./Collection";
 import Document from "./Document";
 import Team from "./Team";
 import User from "./User";
-import BaseModel from "./base/BaseModel";
+import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
 
 @DefaultScope(() => ({
@@ -66,7 +66,7 @@ import Fix from "./decorators/Fix";
 }))
 @Table({ tableName: "shares", modelName: "share" })
 @Fix
-class Share extends BaseModel {
+class Share extends IdModel {
   @Column
   published: boolean;
 
@@ -83,6 +83,10 @@ class Share extends BaseModel {
 
   get isRevoked() {
     return !!this.revokedAt;
+  }
+
+  get canonicalUrl() {
+    return `${this.team.url}/share/${this.id}`;
   }
 
   // associations
@@ -109,7 +113,7 @@ class Share extends BaseModel {
   teamId: string;
 
   @BelongsTo(() => Document, "documentId")
-  document: Document;
+  document: Document | null;
 
   @ForeignKey(() => Document)
   @Column(DataType.UUID)

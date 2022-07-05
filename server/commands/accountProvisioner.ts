@@ -34,6 +34,7 @@ type Props = {
     scopes: string[];
     accessToken?: string;
     refreshToken?: string;
+    expiresIn?: number;
   };
 };
 
@@ -60,6 +61,7 @@ async function accountProvisioner({
       subdomain: teamParams.subdomain,
       avatarUrl: teamParams.avatarUrl,
       authenticationProvider: authenticationProviderParams,
+      ip,
     });
   } catch (err) {
     throw AuthenticationError(err.message);
@@ -83,6 +85,9 @@ async function accountProvisioner({
       ip,
       authentication: {
         ...authenticationParams,
+        expiresAt: authenticationParams.expiresIn
+          ? new Date(Date.now() + authenticationParams.expiresIn * 1000)
+          : undefined,
         authenticationProviderId: authenticationProvider.id,
       },
     });

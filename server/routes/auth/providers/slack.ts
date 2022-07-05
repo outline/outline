@@ -66,6 +66,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
       req: Request,
       accessToken: string,
       refreshToken: string,
+      params: { expires_in: number },
       profile: SlackProfile,
       done: (
         err: Error | null,
@@ -94,6 +95,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
             providerId: profile.user.id,
             accessToken,
             refreshToken,
+            expiresIn: params.expires_in,
             scopes,
           },
         });

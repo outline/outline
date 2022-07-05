@@ -9,11 +9,19 @@ if (env.SENTRY_DSN) {
     release: env.RELEASE,
     maxBreadcrumbs: 0,
     ignoreErrors: [
-      // emitted by Koa when bots attempt to snoop on paths such as wp-admin
-      // or the user client submits a bad request. These are expected in normal
-      // running of the application and don't need to be reported.
+      // These errors are expected in normal running of the application and
+      // don't need to be reported.
+      // Validation
       "BadRequestError",
+      "SequelizeValidationError",
+      "ValidationError",
+
+      // Authentication
       "UnauthorizedError",
+      "TeamDomainRequiredError",
+      "GmailAccountCreationError",
+      "AuthRedirectError",
+      "UserSuspendedError",
     ],
   });
 }

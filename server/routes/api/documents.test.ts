@@ -1883,6 +1883,25 @@ describe("#documents.create", () => {
     expect(res.status).toEqual(400);
   });
 
+  // The length of UTF-8 "🛡" is 2 according to "🛡".length in node,
+  // so the length of the title totals to be 101.
+  // This test should not pass but does because length of the character
+  // calculated by lodash's size function is _.size('🛡') == 1.
+  // So the sentence's length comes out to be exactly 100.
+  it("should count variable length unicode character using lodash's size function", async () => {
+    const { user, collection } = await seed();
+    const res = await server.post("/api/documents.create", {
+      body: {
+        token: user.getJwtToken(),
+        collectionId: collection.id,
+        title:
+          "This text would be exactly 100 chars long if the following unicode character was counted as 1 char 🛡",
+        text: " ",
+      },
+    });
+    expect(res.status).toEqual(200);
+  });
+
   it("should create as a child and add to collection if published", async () => {
     const { user, document, collection } = await seed();
     const res = await server.post("/api/documents.create", {
@@ -2296,7 +2315,6 @@ describe("#documents.delete", () => {
     const { user, document, collection } = await seed();
     // delete collection without hooks to trigger document deletion
     await collection.destroy({
-      // @ts-expect-error type is incorrect here
       hooks: false,
     });
     const res = await server.post("/api/documents.delete", {

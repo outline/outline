@@ -3,13 +3,16 @@ import { Request } from "koa";
 import Router from "koa-router";
 import { get } from "lodash";
 import { Strategy } from "passport-oauth2";
-import accountProvisioner from "@server/commands/accountProvisioner";
+import accountProvisioner, {
+  AccountProvisionerResult,
+} from "@server/commands/accountProvisioner";
 import env from "@server/env";
 import {
   OIDCMalformedUserInfoError,
   AuthenticationError,
 } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
+import { User } from "@server/models";
 import { StateStore, request } from "@server/utils/passport";
 
 const router = new Router();
@@ -60,8 +63,13 @@ if (env.OIDC_CLIENT_ID && env.OIDC_CLIENT_SECRET) {
         req: Request,
         accessToken: string,
         refreshToken: string,
+        params: { expires_in: number },
         profile: Record<string, string>,
-        done: any
+        done: (
+          err: Error | null,
+          user: User | null,
+          result?: AccountProvisionerResult
+        ) => void
       ) {
         try {
           if (!profile.email) {
@@ -102,6 +110,7 @@ if (env.OIDC_CLIENT_ID && env.OIDC_CLIENT_SECRET) {
               providerId: profile.sub,
               accessToken,
               refreshToken,
+              expiresIn: params.expires_in,
               scopes,
             },
           });

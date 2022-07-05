@@ -1,4 +1,3 @@
-import invariant from "invariant";
 import { uniqBy } from "lodash";
 import { Role } from "@shared/types";
 import InviteEmail from "@server/emails/templates/InviteEmail";
@@ -25,8 +24,7 @@ export default async function userInviter({
   sent: Invite[];
   users: User[];
 }> {
-  const team = await Team.findByPk(user.teamId);
-  invariant(team, "team not found");
+  const team = await Team.findByPk(user.teamId, { rejectOnEmpty: true });
 
   // filter out empties and obvious non-emails
   const compactedInvites = invites.filter(
@@ -73,6 +71,7 @@ export default async function userInviter({
       name: "users.invite",
       actorId: user.id,
       teamId: user.teamId,
+      userId: newUser.id,
       data: {
         email: invite.email,
         name: invite.name,

@@ -1,14 +1,14 @@
-import invariant from "invariant";
 import Router from "koa-router";
 import { WhereOptions } from "sequelize/types";
 import fileOperationDeleter from "@server/commands/fileOperationDeleter";
-import { NotFoundError, ValidationError } from "@server/errors";
+import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { FileOperation, Team } from "@server/models";
+import { FileOperationType } from "@server/models/FileOperation";
 import { authorize } from "@server/policies";
 import { presentFileOperation } from "@server/presenters";
 import { getSignedUrl } from "@server/utils/s3";
-import { assertPresent, assertIn, assertUuid } from "@server/validation";
+import { assertIn, assertSort, assertUuid } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
 const router = new Router();
@@ -17,15 +17,11 @@ router.post("fileOperations.info", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertUuid(id, "id is required");
   const { user } = ctx.state;
-  const team = await Team.findByPk(user.teamId);
-  const fileOperation = await FileOperation.findByPk(id);
-  invariant(fileOperation, "File operation not found");
+  const fileOperation = await FileOperation.findByPk(id, {
+    rejectOnEmpty: true,
+  });
 
-  authorize(user, fileOperation.type, team);
-
-  if (!fileOperation) {
-    throw NotFoundError();
-  }
+  authorize(user, "read", fileOperation);
 
   ctx.body = {
     data: presentFileOperation(fileOperation),
@@ -35,12 +31,8 @@ router.post("fileOperations.info", auth(), async (ctx) => {
 router.post("fileOperations.list", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
   const { sort = "createdAt", type } = ctx.body;
-  assertPresent(type, "type is required");
-  assertIn(
-    type,
-    ["import", "export"],
-    "type must be one of 'import' or 'export'"
-  );
+  assertIn(type, Object.values(FileOperationType));
+  assertSort(sort, FileOperation);
 
   if (direction !== "ASC") {
     direction = "DESC";
@@ -51,7 +43,7 @@ router.post("fileOperations.list", auth(), pagination(), async (ctx) => {
     type,
   };
   const team = await Team.findByPk(user.teamId);
-  authorize(user, type, team);
+  authorize(user, "manage", team);
 
   const [exports, total] = await Promise.all([
     await FileOperation.findAll({
@@ -76,20 +68,16 @@ router.post("fileOperations.redirect", auth(), async (ctx) => {
   assertUuid(id, "id is required");
 
   const { user } = ctx.state;
-  const team = await Team.findByPk(user.teamId);
-  const fileOp = await FileOperation.unscoped().findByPk(id);
+  const fileOperation = await FileOperation.unscoped().findByPk(id, {
+    rejectOnEmpty: true,
+  });
+  authorize(user, "read", fileOperation);
 
-  if (!fileOp) {
-    throw NotFoundError();
+  if (fileOperation.state !== "complete") {
+    throw ValidationError(`${fileOperation.type} is not complete yet`);
   }
 
-  authorize(user, fileOp.type, team);
-
-  if (fileOp.state !== "complete") {
-    throw ValidationError(`${fileOp.type} is not complete yet`);
-  }
-
-  const accessUrl = await getSignedUrl(fileOp.key);
+  const accessUrl = await getSignedUrl(fileOperation.key);
   ctx.redirect(accessUrl);
 });
 
@@ -98,15 +86,12 @@ router.post("fileOperations.delete", auth(), async (ctx) => {
   assertUuid(id, "id is required");
 
   const { user } = ctx.state;
-  const team = await Team.findByPk(user.teamId);
-  const fileOp = await FileOperation.findByPk(id);
+  const fileOperation = await FileOperation.unscoped().findByPk(id, {
+    rejectOnEmpty: true,
+  });
+  authorize(user, "delete", fileOperation);
 
-  if (!fileOp) {
-    throw NotFoundError();
-  }
-
-  authorize(user, fileOp.type, team);
-  await fileOperationDeleter(fileOp, user, ctx.request.ip);
+  await fileOperationDeleter(fileOperation, user, ctx.request.ip);
 
   ctx.body = {
     success: true,

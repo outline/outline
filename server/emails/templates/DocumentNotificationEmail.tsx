@@ -1,4 +1,3 @@
-import invariant from "invariant";
 import * as React from "react";
 import { Document } from "@server/models";
 import BaseEmail from "./BaseEmail";
@@ -36,7 +35,10 @@ export default class DocumentNotificationEmail extends BaseEmail<
 > {
   protected async beforeSend({ documentId }: InputProps) {
     const document = await Document.unscoped().findByPk(documentId);
-    invariant(document, "Document not found");
+    if (!document) {
+      return false;
+    }
+
     return { document };
   }
 
@@ -45,7 +47,7 @@ export default class DocumentNotificationEmail extends BaseEmail<
   }
 
   protected preview({ actorName, eventName }: Props): string {
-    return `${actorName} ${eventName} a new document`;
+    return `${actorName} ${eventName} a document`;
   }
 
   protected renderAsText({

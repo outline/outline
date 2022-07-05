@@ -6,15 +6,32 @@ import {
   IsIn,
   Table,
   DataType,
-  Model,
+  Scopes,
 } from "sequelize-typescript";
 import Collection from "./Collection";
 import User from "./User";
+import BaseModel from "./base/BaseModel";
 import Fix from "./decorators/Fix";
 
+@Scopes(() => ({
+  withUser: {
+    include: [
+      {
+        association: "user",
+      },
+    ],
+  },
+  withCollection: {
+    include: [
+      {
+        association: "collection",
+      },
+    ],
+  },
+}))
 @Table({ tableName: "collection_users", modelName: "collection_user" })
 @Fix
-class CollectionUser extends Model {
+class CollectionUser extends BaseModel {
   @Default("read_write")
   @IsIn([["read", "read_write", "maintainer"]])
   @Column

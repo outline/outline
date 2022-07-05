@@ -5,14 +5,17 @@ type GroupMembership = {
   id: string;
   userId: string;
   groupId: string;
-  user: ReturnType<typeof presentUser>;
+  user?: ReturnType<typeof presentUser>;
 };
 
-export default (membership: GroupUser): GroupMembership => {
+export default (
+  membership: GroupUser,
+  options?: { includeUser: boolean }
+): GroupMembership => {
   return {
     id: `${membership.userId}-${membership.groupId}`,
     userId: membership.userId,
     groupId: membership.groupId,
-    user: presentUser(membership.user),
+    user: options?.includeUser ? presentUser(membership.user) : undefined,
   };
 };

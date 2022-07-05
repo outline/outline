@@ -1,4 +1,4 @@
-import { SaveOptions } from "sequelize";
+import type { SaveOptions } from "sequelize";
 import {
   ForeignKey,
   AfterSave,
@@ -11,16 +11,17 @@ import {
   DataType,
 } from "sequelize-typescript";
 import { globalEventQueue } from "../queues";
+import { Event as TEvent } from "../types";
 import Collection from "./Collection";
 import Document from "./Document";
 import Team from "./Team";
 import User from "./User";
-import BaseModel from "./base/BaseModel";
+import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
 
 @Table({ tableName: "events", modelName: "event" })
 @Fix
-class Event extends BaseModel {
+class Event extends IdModel {
   @IsUUID(4)
   @Column(DataType.UUID)
   modelId: string;
@@ -106,12 +107,13 @@ class Event extends BaseModel {
     );
   }
 
-  static ACTIVITY_EVENTS = [
+  static ACTIVITY_EVENTS: TEvent["name"][] = [
     "collections.create",
     "collections.delete",
     "collections.move",
     "collections.permission_changed",
     "documents.publish",
+    "documents.unpublish",
     "documents.archive",
     "documents.unarchive",
     "documents.move",
@@ -122,7 +124,7 @@ class Event extends BaseModel {
     "users.create",
   ];
 
-  static AUDIT_EVENTS = [
+  static AUDIT_EVENTS: TEvent["name"][] = [
     "api_keys.create",
     "api_keys.delete",
     "authenticationProviders.update",
@@ -135,7 +137,6 @@ class Event extends BaseModel {
     "collections.add_group",
     "collections.remove_group",
     "collections.delete",
-    "collections.export_all",
     "documents.create",
     "documents.publish",
     "documents.update",
@@ -159,12 +160,15 @@ class Event extends BaseModel {
     "users.create",
     "users.update",
     "users.signin",
+    "users.signout",
     "users.promote",
     "users.demote",
     "users.invite",
     "users.suspend",
     "users.activate",
     "users.delete",
+    "webhook_subscriptions.create",
+    "webhook_subscriptions.delete",
   ];
 }
 

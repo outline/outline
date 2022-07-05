@@ -1,4 +1,5 @@
-import http from "http";
+import http, { IncomingMessage } from "http";
+import { Duplex } from "stream";
 import invariant from "invariant";
 import Koa from "koa";
 import IO from "socket.io";
@@ -13,7 +14,11 @@ import { websocketQueue } from "../queues";
 import WebsocketsProcessor from "../queues/processors/WebsocketsProcessor";
 import Redis from "../redis";
 
-export default function init(app: Koa, server: http.Server) {
+export default function init(
+  app: Koa,
+  server: http.Server,
+  serviceNames: string[]
+) {
   const path = "/realtime";
 
   // Websockets for events and non-collaborative documents
@@ -36,11 +41,24 @@ export default function init(app: Koa, server: http.Server) {
     );
   }
 
-  server.on("upgrade", function (req, socket, head) {
-    if (req.url && req.url.indexOf(path) > -1) {
+  server.on("upgrade", function (
+    req: IncomingMessage,
+    socket: Duplex,
+    head: Buffer
+  ) {
+    if (req.url?.startsWith(path)) {
       invariant(ioHandleUpgrade, "Existing upgrade handler must exist");
       ioHandleUpgrade(req, socket, head);
+      return;
     }
+
+    if (serviceNames.includes("collaboration")) {
+      // Nothing to do, the collaboration service will handle this request
+      return;
+    }
+
+    // If the collaboration service isn't running then we need to close the connection
+    socket.end(`HTTP/1.1 400 Bad Request\r\n`);
   });
 
   server.on("shutdown", () => {

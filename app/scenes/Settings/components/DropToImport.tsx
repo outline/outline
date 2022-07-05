@@ -72,7 +72,7 @@ function DropToImport({ disabled, onSubmit, children, format }: Props) {
     <>
       {isImporting && <LoadingIndicator />}
       <Dropzone
-        accept="application/zip"
+        accept="application/zip, application/x-zip-compressed"
         onDropAccepted={handleFiles}
         onDropRejected={handleRejection}
         disabled={isImporting}

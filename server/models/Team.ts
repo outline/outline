@@ -11,19 +11,14 @@ import {
   Table,
   Unique,
   IsIn,
-  BeforeSave,
   HasMany,
   Scopes,
-  Length,
   Is,
   DataType,
 } from "sequelize-typescript";
-import { v4 as uuidv4 } from "uuid";
-import { stripSubdomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
+import { getBaseDomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
 import env from "@server/env";
-import Logger from "@server/logging/Logger";
 import { generateAvatarUrl } from "@server/utils/avatars";
-import { publicS3Endpoint, uploadToS3FromUrl } from "@server/utils/s3";
 import AuthenticationProvider from "./AuthenticationProvider";
 import Collection from "./Collection";
 import Document from "./Document";
@@ -31,10 +26,15 @@ import TeamDomain from "./TeamDomain";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
+import Length from "./validators/Length";
+import NotContainsUrl from "./validators/NotContainsUrl";
 
 const readFile = util.promisify(fs.readFile);
 
 @Scopes(() => ({
+  withDomains: {
+    include: [{ model: TeamDomain }],
+  },
   withAuthenticationProviders: {
     include: [
       {
@@ -47,6 +47,7 @@ const readFile = util.promisify(fs.readFile);
 @Table({ tableName: "teams", modelName: "team" })
 @Fix
 class Team extends ParanoidModel {
+  @NotContainsUrl
   @Column
   name: string;
 
@@ -71,6 +72,7 @@ class Team extends ParanoidModel {
   @Column(DataType.UUID)
   defaultCollectionId: string | null;
 
+  @Length({ min: 0, max: 255, msg: "Must be less than 255 characters" })
   @Column
   avatarUrl: string | null;
 
@@ -122,6 +124,7 @@ class Team extends ParanoidModel {
   }
 
   get url() {
+    // custom domain
     if (this.domain) {
       return `https://${this.domain}`;
     }
@@ -131,7 +134,7 @@ class Team extends ParanoidModel {
     }
 
     const url = new URL(env.URL);
-    url.host = `${this.subdomain}.${stripSubdomain(url.host)}`;
+    url.host = `${this.subdomain}.${getBaseDomain()}`;
     return url.href.replace(/\/$/, "");
   }
 
@@ -144,35 +147,6 @@ class Team extends ParanoidModel {
       })
     );
   }
-
-  // TODO: Move to command
-  provisionSubdomain = async function (
-    requestedSubdomain: string,
-    options = {}
-  ) {
-    if (this.subdomain) {
-      return this.subdomain;
-    }
-    let subdomain = requestedSubdomain;
-    let append = 0;
-
-    for (;;) {
-      try {
-        await this.update(
-          {
-            subdomain,
-          },
-          options
-        );
-        break;
-      } catch (err) {
-        // subdomain was invalid or already used, try again
-        subdomain = `${requestedSubdomain}${++append}`;
-      }
-    }
-
-    return subdomain;
-  };
 
   provisionFirstCollection = async (userId: string) => {
     await this.sequelize!.transaction(async (transaction) => {
@@ -264,34 +238,6 @@ class Team extends ParanoidModel {
 
   @HasMany(() => TeamDomain)
   allowedDomains: TeamDomain[];
-
-  // hooks
-  @BeforeSave
-  static uploadAvatar = async (model: Team) => {
-    const endpoint = publicS3Endpoint();
-    const { avatarUrl } = model;
-
-    if (
-      avatarUrl &&
-      !avatarUrl.startsWith("/api") &&
-      !avatarUrl.startsWith(endpoint)
-    ) {
-      try {
-        const newUrl = await uploadToS3FromUrl(
-          avatarUrl,
-          `avatars/${model.id}/${uuidv4()}`,
-          "public-read"
-        );
-        if (newUrl) {
-          model.avatarUrl = newUrl;
-        }
-      } catch (err) {
-        Logger.error("Error uploading avatar to S3", err, {
-          url: avatarUrl,
-        });
-      }
-    }
-  };
 }
 
 export default Team;

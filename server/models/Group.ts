@@ -16,6 +16,8 @@ import Team from "./Team";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
+import Length from "./validators/Length";
+import NotContainsUrl from "./validators/NotContainsUrl";
 
 @DefaultScope(() => ({
   include: [
@@ -24,7 +26,6 @@ import Fix from "./decorators/Fix";
       required: false,
     },
   ],
-  order: [["name", "ASC"]],
 }))
 @Table({
   tableName: "groups",
@@ -51,6 +52,8 @@ import Fix from "./decorators/Fix";
 })
 @Fix
 class Group extends ParanoidModel {
+  @Length({ min: 0, max: 255, msg: "Must be less than 255 characters" })
+  @NotContainsUrl
   @Column
   name: string;
 

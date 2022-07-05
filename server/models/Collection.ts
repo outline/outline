@@ -33,6 +33,7 @@ import Team from "./Team";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
+import NotContainsUrl from "./validators/NotContainsUrl";
 
 // without this indirection, the app crashes on starup
 type Sort = CollectionSort;
@@ -131,6 +132,7 @@ class Collection extends ParanoidModel {
   @Column
   urlId: string;
 
+  @NotContainsUrl
   @Column
   name: string;
 
@@ -312,9 +314,12 @@ class Collection extends ParanoidModel {
    * @param id uuid or urlId
    * @returns collection instance
    */
-  static async findByPk(id: Identifier, options: FindOptions<Collection> = {}) {
+  static async findByPk(
+    id: Identifier,
+    options: FindOptions<Collection> = {}
+  ): Promise<Collection | null> {
     if (typeof id !== "string") {
-      return undefined;
+      return null;
     }
 
     if (isUUID(id)) {
@@ -336,7 +341,7 @@ class Collection extends ParanoidModel {
       });
     }
 
-    return undefined;
+    return null;
   }
 
   /**

@@ -9,6 +9,10 @@
 export default function Fix(target: any): void {
   return class extends target {
     constructor(...args: any[]) {
+      // suppresses warning from here which is not applicable in our typescript
+      // environment: https://github.com/sequelize/sequelize/blob/00ced18c2cb2a8b99ae0ebf5669c124abb4c673d/src/model.js#L99
+      target._overwrittenAttributesChecked = true;
+
       super(...args);
 
       const rawAttributes = Object.keys(new.target.rawAttributes);

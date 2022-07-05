@@ -10,6 +10,7 @@ import {
   TeamIcon,
   BeakerIcon,
   DownloadIcon,
+  WebhooksIcon,
 } from "outline-icons";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -25,6 +26,7 @@ import Security from "~/scenes/Settings/Security";
 import Shares from "~/scenes/Settings/Shares";
 import Slack from "~/scenes/Settings/Slack";
 import Tokens from "~/scenes/Settings/Tokens";
+import Webhooks from "~/scenes/Settings/Webhooks";
 import Zapier from "~/scenes/Settings/Zapier";
 import SlackIcon from "~/components/SlackIcon";
 import ZapierIcon from "~/components/ZapierIcon";
@@ -46,6 +48,7 @@ type SettingsPage =
   | "Shares"
   | "Import"
   | "Export"
+  | "Webhooks"
   | "Slack"
   | "Zapier";
 
@@ -146,7 +149,7 @@ const useAuthorizedSettingsConfig = () => {
         name: t("Import"),
         path: "/settings/import",
         component: Import,
-        enabled: can.manage,
+        enabled: can.createImport,
         group: t("Team"),
         icon: NewDocumentIcon,
       },
@@ -154,11 +157,19 @@ const useAuthorizedSettingsConfig = () => {
         name: t("Export"),
         path: "/settings/export",
         component: Export,
-        enabled: can.export,
+        enabled: can.createExport,
         group: t("Team"),
         icon: DownloadIcon,
       },
-      // Intergrations
+      // Integrations
+      Webhooks: {
+        name: t("Webhooks"),
+        path: "/settings/webhooks",
+        component: Webhooks,
+        enabled: can.createWebhookSubscription,
+        group: t("Integrations"),
+        icon: WebhooksIcon,
+      },
       Slack: {
         name: "Slack",
         path: "/settings/integrations/slack",
@@ -176,7 +187,14 @@ const useAuthorizedSettingsConfig = () => {
         icon: ZapierIcon,
       },
     }),
-    [can.createApiKey, can.export, can.manage, can.update, t]
+    [
+      can.createApiKey,
+      can.createWebhookSubscription,
+      can.createExport,
+      can.createImport,
+      can.update,
+      t,
+    ]
   );
 
   const enabledConfigs = React.useMemo(

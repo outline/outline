@@ -24,5 +24,19 @@
       }
     ],
     "tsconfig-paths-module-resolver"
-  ]
+  ],
+  "env": {
+    "production": {
+      "ignore": [
+        "**/__mocks__",
+        "**/*.test.ts"
+      ]
+    },
+    "development": {
+      "ignore": [
+        "**/__mocks__",
+        "**/*.test.ts"
+      ]
+    }
+  }
 }

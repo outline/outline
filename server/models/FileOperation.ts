@@ -11,7 +11,7 @@ import { deleteFromS3, getFileByKey } from "@server/utils/s3";
 import Collection from "./Collection";
 import Team from "./Team";
 import User from "./User";
-import BaseModel from "./base/BaseModel";
+import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
 
 export enum FileOperationType {
@@ -48,7 +48,7 @@ export enum FileOperationState {
 }))
 @Table({ tableName: "file_operations", modelName: "file_operation" })
 @Fix
-class FileOperation extends BaseModel {
+class FileOperation extends IdModel {
   @Column(DataType.ENUM("import", "export"))
   type: FileOperationType;
 

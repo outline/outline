@@ -9,12 +9,12 @@ import Collection from "./Collection";
 import Document from "./Document";
 import Team from "./Team";
 import User from "./User";
-import BaseModel from "./base/BaseModel";
+import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
 
 @Table({ tableName: "pins", modelName: "pin" })
 @Fix
-class Pin extends BaseModel {
+class Pin extends IdModel {
   @Column
   index: string | null;
 
