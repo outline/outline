@@ -40,7 +40,6 @@ export default async function userCreator({
 }: Props): Promise<UserCreatorResult> {
   const { authenticationProviderId, providerId, ...rest } = authentication;
 
-  // TODO: this needs otr be scoped to the righ tteam!!!!
   const auth = await UserAuthentication.findOne({
     where: {
       providerId,
@@ -49,6 +48,8 @@ export default async function userCreator({
       {
         model: User,
         as: "user",
+        where: { teamId },
+        required: true,
       },
     ],
   });
