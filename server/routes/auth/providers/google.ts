@@ -63,27 +63,48 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
         ) => void
       ) {
         try {
+          // "appDomain" is the domain the user came from when attempting auth
+          // we use it to infer the team they intend on signing into
           const state = req.cookies.get("state");
           const host = state ? parseState(state).host : req.hostname;
-          // appDomain is the domain the user originated from when attempting auth
           const appDomain = parseDomain(host);
 
+          let team;
+          if (env.DEPLOYMENT !== "hosted") {
+            team = await Team.findOne();
+          } else if (appDomain.custom) {
+            team = await Team.findOne({ where: { domain: appDomain.host } });
+          } else if (env.SUBDOMAINS_ENABLED && appDomain.teamSubdomain) {
+            team = await Team.findOne({
+              where: { subdomain: appDomain.teamSubdomain },
+            });
+          }
+
           let result;
+
+          // "domain" is the Google Workspaces domain
           const domain = profile._json.hd;
 
           // Existence of domain means this is a Google Workspaces account
           // so we'll attempt to provision an account (team and user)
           if (domain) {
-            const subdomain = domain.split(".")[0];
+            // remove the TLD and form a subdomain from the remaining
+            // subdomains of the form "foo.bar.com" are allowed as primary Google Workspaces domains
+            // see https://support.google.com/nonprofits/thread/19685140/using-a-subdomain-as-a-primary-domain
+            const subdomain = domain.split(".").slice(0, -1).join("-");
             const teamName = capitalize(subdomain);
 
             // Request a larger size profile picture than the default by tweaking
             // the query parameter.
             const avatarUrl = profile.picture.replace("=s96-c", "=s128-c");
 
+            // if a team can be inferred, we assume the user is only interested in signing into
+            // that team in particular; otherwise, we will do a best effort at finding their account
+            // or provisioning a new one (within AccountProvisioner)
             result = await accountProvisioner({
               ip: req.ip,
               team: {
+                id: team?.id,
                 name: teamName,
                 domain,
                 subdomain,
@@ -107,19 +128,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
             });
           } else {
             // No domain means it's a personal Gmail account
-            // We only allow sign-in to existing user accounts
-
-            let team;
-            if (appDomain.custom) {
-              team = await Team.findOne({ where: { domain: appDomain.host } });
-            } else if (env.SUBDOMAINS_ENABLED && appDomain.teamSubdomain) {
-              team = await Team.findOne({
-                where: { subdomain: appDomain.teamSubdomain },
-              });
-            } else if (env.DEPLOYMENT !== "hosted") {
-              team = await Team.findOne();
-            }
-
+            // We only allow sign-in to existing user accounts with these
             if (!team) {
               // No team usually means this is the apex domain
               // Throw different errors depending on whether we think the user is

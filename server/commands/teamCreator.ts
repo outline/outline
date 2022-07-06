@@ -13,6 +13,7 @@ type TeamCreatorResult = {
 };
 
 type Props = {
+  id?: string;
   name: string;
   domain?: string;
   subdomain: string;
@@ -25,6 +26,7 @@ type Props = {
 };
 
 async function teamCreator({
+  id,
   name,
   domain,
   subdomain,
@@ -33,7 +35,9 @@ async function teamCreator({
   ip,
 }: Props): Promise<TeamCreatorResult> {
   let authP = await AuthenticationProvider.findOne({
-    where: authenticationProvider,
+    where: id
+      ? { ...authenticationProvider, teamId: id }
+      : authenticationProvider,
     include: [
       {
         model: Team,

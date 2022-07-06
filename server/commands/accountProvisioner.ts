@@ -20,6 +20,7 @@ type Props = {
     username?: string;
   };
   team: {
+    id?: string;
     name: string;
     domain?: string;
     subdomain: string;
@@ -56,10 +57,7 @@ async function accountProvisioner({
 
   try {
     result = await teamCreator({
-      name: teamParams.name,
-      domain: teamParams.domain,
-      subdomain: teamParams.subdomain,
-      avatarUrl: teamParams.avatarUrl,
+      ...teamParams,
       authenticationProvider: authenticationProviderParams,
       ip,
     });
