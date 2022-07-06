@@ -38,7 +38,7 @@ describe("userCreator", () => {
     expect(isNewUser).toEqual(false);
   });
 
-  it("should add authentication provider to existing user", async () => {
+  it("should add authentication provider to existing users", async () => {
     const team = await buildTeam({ inviteRequired: true });
     const teamAuthProviders = await team.$get("authenticationProviders");
     const authenticationProvider = teamAuthProviders[0];
@@ -47,8 +47,42 @@ describe("userCreator", () => {
     const existing = await buildUser({
       email,
       teamId: team.id,
-      lastActiveAt: null,
       authentications: [],
+    });
+
+    const result = await userCreator({
+      name: existing.name,
+      email,
+      username: "new-username",
+      avatarUrl: existing.avatarUrl,
+      teamId: existing.teamId,
+      ip,
+      authentication: {
+        authenticationProviderId: authenticationProvider.id,
+        providerId: uuidv4(),
+        accessToken: "123",
+        scopes: ["read"],
+      },
+    });
+    const { user, authentication, isNewUser } = result;
+    expect(authentication.accessToken).toEqual("123");
+    expect(authentication.scopes.length).toEqual(1);
+    expect(authentication.scopes[0]).toEqual("read");
+
+    const authentications = await user.$get("authentications");
+    expect(authentications.length).toEqual(1);
+    expect(isNewUser).toEqual(false);
+  });
+
+  it("should add authentication provider to invited users", async () => {
+    const team = await buildTeam({ inviteRequired: true });
+    const teamAuthProviders = await team.$get("authenticationProviders");
+    const authenticationProvider = teamAuthProviders[0];
+
+    const email = "mynam@email.com";
+    const existing = await buildInvite({
+      email,
+      teamId: team.id,
     });
 
     const result = await userCreator({

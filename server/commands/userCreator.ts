@@ -107,8 +107,7 @@ export default async function userCreator({
     // A `user` record might exist in the form of an invite.
     // In Outline an invite is a shell user record with no authentication method
     // that's never been active before.
-    const isInvite =
-      !existingUser.lastActiveAt && !existingUser.authentications.length;
+    const isInvite = existingUser.isInvited;
 
     const auth = await sequelize.transaction(async (transaction) => {
       if (isInvite) {
@@ -136,6 +135,8 @@ export default async function userCreator({
         {
           name,
           avatarUrl,
+          lastActiveAt: new Date(),
+          lastActiveIp: ip,
         },
         {
           transaction,

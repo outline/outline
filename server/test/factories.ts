@@ -179,6 +179,7 @@ export async function buildInvite(overrides: Partial<User> = {}) {
     name: `User ${count}`,
     createdAt: new Date("2018-01-01T00:00:00.000Z"),
     invitedById: actor.id,
+    authentications: [],
     ...overrides,
     lastActiveAt: null,
   });
