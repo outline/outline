@@ -1,5 +1,5 @@
 import passport from "@outlinewiki/koa-passport";
-import { Request } from "koa";
+import type { Request } from "express";
 import Router from "koa-router";
 import { get } from "lodash";
 import { Strategy } from "passport-oauth2";
@@ -13,7 +13,11 @@ import {
 } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
 import { User } from "@server/models";
-import { StateStore, request } from "@server/utils/passport";
+import {
+  StateStore,
+  request,
+  getTeamFromRequest,
+} from "@server/utils/passport";
 
 const router = new Router();
 const providerName = "oidc";
@@ -77,6 +81,7 @@ if (env.OIDC_CLIENT_ID && env.OIDC_CLIENT_SECRET) {
               `An email field was not returned in the profile parameter, but is required.`
             );
           }
+          const team = await getTeamFromRequest(req);
 
           const parts = profile.email.toLowerCase().split("@");
           const domain = parts.length && parts[1];
@@ -91,6 +96,7 @@ if (env.OIDC_CLIENT_ID && env.OIDC_CLIENT_SECRET) {
           const result = await accountProvisioner({
             ip: req.ip,
             team: {
+              id: team?.id,
               // https://github.com/outline/outline/pull/2388#discussion_r681120223
               name: "Wiki",
               domain,
