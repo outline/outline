@@ -23,7 +23,7 @@ export function checkPendingMigrations() {
         .join("\n")
     );
     Logger.warn(
-      "Please run `yarn sequelize db:migrate` to run all pending migrations"
+      "Please run `yarn db:migrate` or `yarn db:migrate --env production-ssl-disabled` to run all pending migrations"
     );
 
     process.exit(1);
