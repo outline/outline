@@ -47,11 +47,6 @@ function Security() {
 
   const [existingDomainsTouched, setExistingDomainsTouched] = useState(false);
 
-  const showSaveDomainsButton = React.useCallback(() => {
-    const validDomains = allowedDomains.filter((value) => value !== "");
-    return existingDomainsTouched || validDomains.length > lastKnownDomainCount;
-  }, [existingDomainsTouched, allowedDomains, lastKnownDomainCount]);
-
   const authenticationMethods = team.signinMethods;
 
   const showSuccessMessage = React.useMemo(
@@ -176,6 +171,8 @@ function Security() {
       setExistingDomainsTouched(true);
     }
   };
+
+  const excludeEmpty = (value: unknown) => value !== "";
 
   return (
     <Scene title={t("Security")} icon={<PadlockIcon color="currentColor" />}>
@@ -333,7 +330,9 @@ function Security() {
             <span />
           )}
 
-          {showSaveDomainsButton() && (
+          {(existingDomainsTouched ||
+            allowedDomains.filter(excludeEmpty).length > // New domains were added
+              lastKnownDomainCount) && (
             <Fade>
               <Button
                 type="button"
