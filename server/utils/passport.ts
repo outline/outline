@@ -7,6 +7,8 @@ import {
   StateStoreVerifyCallback,
 } from "passport-oauth2";
 import { getCookieDomain, parseDomain } from "@shared/utils/domains";
+import env from "@server/env";
+import { Team } from "@server/models";
 import { AuthRedirectError, OAuthStateMismatchError } from "../errors";
 
 export class StateStore {
@@ -97,4 +99,25 @@ function buildState(host: string, token: string) {
 export function parseState(state: string) {
   const [host, token] = state.split("|");
   return { host, token };
+}
+
+export async function getTeamFromRequest(req: Request) {
+  // "domain" is the domain the user came from when attempting auth
+  // we use it to infer the team they intend on signing into
+  const state = req.cookies.get("state");
+  const host = state ? parseState(state).host : req.hostname;
+  const domain = parseDomain(host);
+
+  let team;
+  if (env.DEPLOYMENT !== "hosted") {
+    team = await Team.findOne();
+  } else if (domain.custom) {
+    team = await Team.findOne({ where: { domain: domain.host } });
+  } else if (env.SUBDOMAINS_ENABLED && domain.teamSubdomain) {
+    team = await Team.findOne({
+      where: { subdomain: domain.teamSubdomain },
+    });
+  }
+
+  return team;
 }

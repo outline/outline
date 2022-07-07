@@ -1,7 +1,7 @@
 import passport from "@outlinewiki/koa-passport";
 import { Strategy as AzureStrategy } from "@outlinewiki/passport-azure-ad-oauth2";
+import type { Request } from "express";
 import jwt from "jsonwebtoken";
-import { Request } from "koa";
 import Router from "koa-router";
 import { Profile } from "passport";
 import accountProvisioner, {
@@ -11,7 +11,11 @@ import env from "@server/env";
 import { MicrosoftGraphError } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
 import { User } from "@server/models";
-import { StateStore, request } from "@server/utils/passport";
+import {
+  StateStore,
+  request,
+  getTeamFromRequest,
+} from "@server/utils/passport";
 
 const router = new Router();
 const providerName = "azure";
@@ -88,12 +92,15 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
           );
         }
 
+        const team = await getTeamFromRequest(req);
+
         const domain = email.split("@")[1];
         const subdomain = domain.split(".")[0];
         const teamName = organization.displayName;
         const result = await accountProvisioner({
           ip: req.ip,
           team: {
+            id: team?.id,
             name: teamName,
             domain,
             subdomain,

@@ -4,7 +4,6 @@ import Router from "koa-router";
 import { capitalize } from "lodash";
 import { Profile } from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth2";
-import { parseDomain } from "@shared/utils/domains";
 import accountProvisioner, {
   AccountProvisionerResult,
 } from "@server/commands/accountProvisioner";
@@ -15,8 +14,8 @@ import {
   TeamDomainRequiredError,
 } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
-import { Team, User } from "@server/models";
-import { StateStore, parseState } from "@server/utils/passport";
+import { User } from "@server/models";
+import { StateStore, getTeamFromRequest } from "@server/utils/passport";
 
 const router = new Router();
 const providerName = "google";
@@ -63,27 +62,11 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
         ) => void
       ) {
         try {
-          // "appDomain" is the domain the user came from when attempting auth
-          // we use it to infer the team they intend on signing into
-          const state = req.cookies.get("state");
-          const host = state ? parseState(state).host : req.hostname;
-          const appDomain = parseDomain(host);
-
-          let team;
-          if (env.DEPLOYMENT !== "hosted") {
-            team = await Team.findOne();
-          } else if (appDomain.custom) {
-            team = await Team.findOne({ where: { domain: appDomain.host } });
-          } else if (env.SUBDOMAINS_ENABLED && appDomain.teamSubdomain) {
-            team = await Team.findOne({
-              where: { subdomain: appDomain.teamSubdomain },
-            });
-          }
-
           let result;
 
           // "domain" is the Google Workspaces domain
           const domain = profile._json.hd;
+          const team = await getTeamFromRequest(req);
 
           // Existence of domain means this is a Google Workspaces account
           // so we'll attempt to provision an account (team and user)

@@ -85,7 +85,9 @@ if (env.OIDC_CLIENT_ID && env.OIDC_CLIENT_SECRET) {
             throw OIDCMalformedUserInfoError();
           }
 
-          const subdomain = domain.split(".")[0];
+          // remove the TLD and form a subdomain from the remaining
+          const subdomain = domain.split(".").slice(0, -1).join("-");
+
           const result = await accountProvisioner({
             ip: req.ip,
             team: {
