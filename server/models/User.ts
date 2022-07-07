@@ -148,12 +148,12 @@ class User extends ParanoidModel {
   @Column
   language: string;
 
-  @Column(DataType.STRING)
   @Length({
     min: 0,
     max: 1000,
     msg: "avatarUrl must be less than 1000 characters",
   })
+  @Column(DataType.STRING)
   get avatarUrl() {
     const original = this.getDataValue("avatarUrl");
 
