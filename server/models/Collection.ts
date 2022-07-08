@@ -145,7 +145,7 @@ class Collection extends ParanoidModel {
 
   @Length({
     max: 1000,
-    msg: `Collection descrition must be less than 1000 characters`,
+    msg: `Collection description must be less than 1000 characters`,
   })
   @Column
   description: string;
