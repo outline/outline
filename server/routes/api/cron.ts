@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { Context } from "koa";
 import Router from "koa-router";
 import env from "@server/env";
@@ -13,7 +14,12 @@ const router = new Router();
 const cronHandler = async (ctx: Context) => {
   const { token, limit = 500 } = ctx.body as { token?: string; limit: number };
 
-  if (env.UTILS_SECRET !== token) {
+  if (
+    !crypto.timingSafeEqual(
+      Buffer.from(env.UTILS_SECRET),
+      Buffer.from(String(token))
+    )
+  ) {
     throw AuthenticationError("Invalid secret token");
   }
 
