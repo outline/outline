@@ -84,26 +84,26 @@ function Security() {
     [data, saveData]
   );
 
-  const handleAllowSignupsChange = React.useCallback(
+  const handleInviteRequiredChange = React.useCallback(
     async (ev: React.ChangeEvent<HTMLInputElement>) => {
-      const inviteRequired = !ev.target.checked;
+      const inviteRequired = ev.target.checked;
       const newData = { ...data, inviteRequired };
 
       if (inviteRequired) {
         dialogs.openModal({
           isCentered: true,
-          title: t("Are you sure you want to disable authorized signups?"),
+          title: t("Are you sure you want to require invites?"),
           content: (
             <ConfirmationDialog
               onSubmit={async () => {
                 await saveData(newData);
               }}
-              submitText={t("I’m sure — Disable")}
-              savingText={`${t("Disabling")}…`}
+              submitText={t("I’m sure")}
+              savingText={`${t("Saving")}…`}
               danger
             >
               <Trans
-                defaults="New account creation using <em>{{ authenticationMethods }}</em> will be disabled. New users will need to be invited."
+                defaults="New users will first need to be invited to create an account using <em>{{ authenticationMethods }}</em>. <em>Default role</em> and <em>Allowed domains</em> will no longer apply."
                 values={{
                   authenticationMethods,
                 }}
@@ -214,113 +214,109 @@ function Security() {
       </SettingRow>
       {isCloudHosted && (
         <SettingRow
-          label={t("Allow authorized signups")}
-          name="allowSignups"
-          description={
-            <Trans
-              defaults="Allow authorized <em>{{ authenticationMethods }}</em> users to create new accounts without first receiving an invite"
-              values={{
-                authenticationMethods,
-              }}
-              components={{
-                em: <strong />,
-              }}
-            />
-          }
+          label={t("Require invites")}
+          name="inviteRequired"
+          description={t(
+            "Require members to be invited to the team before they can create an account."
+          )}
         >
           <Switch
-            id="allowSignups"
-            checked={!data.inviteRequired}
-            onChange={handleAllowSignupsChange}
+            id="inviteRequired"
+            checked={data.inviteRequired}
+            onChange={handleInviteRequiredChange}
           />
         </SettingRow>
       )}
 
-      <SettingRow
-        label={t("Default role")}
-        name="defaultUserRole"
-        description={t(
-          "The default user role for new accounts. Changing this setting does not affect existing user accounts."
-        )}
-      >
-        <InputSelect
-          id="defaultUserRole"
-          value={data.defaultUserRole}
-          options={[
-            {
-              label: t("Member"),
-              value: "member",
-            },
-            {
-              label: t("Viewer"),
-              value: "viewer",
-            },
-          ]}
-          onChange={handleDefaultRoleChange}
-          ariaLabel={t("Default role")}
-          short
-        />
-      </SettingRow>
-
-      <SettingRow
-        label={t("Allowed Domains")}
-        name="allowedDomains"
-        description={t(
-          "The domains which should be allowed to create accounts. This applies to both SSO and Email logins. Changing this setting does not affect existing user accounts."
-        )}
-      >
-        {data.allowedDomains &&
-          data.allowedDomains.map((domain, index) => (
-            <Flex key={index} gap={4}>
-              <Input
-                key={index}
-                id={`allowedDomains${index}`}
-                value={domain}
-                autoFocus={!domain}
-                placeholder="example.com"
-                required
-                flex
-                onChange={createOnDomainChangedHandler(index)}
-              />
-              <Remove>
-                <Tooltip tooltip={t("Remove domain")} placement="top">
-                  <NudeButton onClick={() => handleRemoveDomain(index)}>
-                    <CloseIcon />
-                  </NudeButton>
-                </Tooltip>
-              </Remove>
-            </Flex>
-          ))}
-
-        <Flex justify="space-between" gap={4} style={{ flexWrap: "wrap" }}>
-          {!data.allowedDomains?.length ||
-          data.allowedDomains[data.allowedDomains.length - 1] !== "" ? (
-            <Fade>
-              <Button type="button" onClick={handleAddDomain} neutral>
-                {data.allowedDomains?.length ? (
-                  <Trans>Add another</Trans>
-                ) : (
-                  <Trans>Add a domain</Trans>
-                )}
-              </Button>
-            </Fade>
-          ) : (
-            <span />
+      {!data.inviteRequired && (
+        <SettingRow
+          label={t("Default role")}
+          name="defaultUserRole"
+          description={t(
+            "The default user role for new accounts. Changing this setting does not affect existing user accounts."
           )}
+        >
+          <InputSelect
+            id="defaultUserRole"
+            value={data.defaultUserRole}
+            options={[
+              {
+                label: t("Member"),
+                value: "member",
+              },
+              {
+                label: t("Viewer"),
+                value: "viewer",
+              },
+            ]}
+            onChange={handleDefaultRoleChange}
+            ariaLabel={t("Default role")}
+            short
+          />
+        </SettingRow>
+      )}
 
-          {domainsChanged && (
-            <Fade>
-              <Button
-                type="button"
-                onClick={handleChange}
-                disabled={auth.isSaving}
-              >
-                <Trans>Save changes</Trans>
-              </Button>
-            </Fade>
+      {!data.inviteRequired && (
+        <SettingRow
+          label={t("Allowed domains")}
+          name="allowedDomains"
+          description={t(
+            "The domains which should be allowed to create accounts. This applies to both SSO and Email logins. Changing this setting does not affect existing user accounts."
           )}
-        </Flex>
-      </SettingRow>
+        >
+          {data.allowedDomains &&
+            data.allowedDomains.map((domain, index) => (
+              <Flex key={index} gap={4}>
+                <Input
+                  key={index}
+                  id={`allowedDomains${index}`}
+                  value={domain}
+                  autoFocus={!domain}
+                  placeholder="example.com"
+                  required
+                  flex
+                  onChange={createOnDomainChangedHandler(index)}
+                />
+                <Remove>
+                  <Tooltip tooltip={t("Remove domain")} placement="top">
+                    <NudeButton onClick={() => handleRemoveDomain(index)}>
+                      <CloseIcon />
+                    </NudeButton>
+                  </Tooltip>
+                </Remove>
+              </Flex>
+            ))}
+
+          <Flex justify="space-between" gap={4} style={{ flexWrap: "wrap" }}>
+            {!data.allowedDomains?.length ||
+            data.allowedDomains[data.allowedDomains.length - 1] !== "" ? (
+              <Fade>
+                <Button type="button" onClick={handleAddDomain} neutral>
+                  {data.allowedDomains?.length ? (
+                    <Trans>Add another</Trans>
+                  ) : (
+                    <Trans>Add a domain</Trans>
+                  )}
+                </Button>
+              </Fade>
+            ) : (
+              <span />
+            )}
+
+            {domainsChanged && (
+              <Fade>
+                <Button
+                  type="button"
+                  onClick={handleChange}
+                  disabled={auth.isSaving}
+                >
+                  <Trans>Save changes</Trans>
+                </Button>
+              </Fade>
+            )}
+          </Flex>
+        </SettingRow>
+      )}
     </Scene>
   );
 }
