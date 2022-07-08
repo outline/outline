@@ -84,13 +84,15 @@ export enum UserFlag {
 @Fix
 class User extends ParanoidModel {
   @IsEmail
-  @Length({ min: 0, max: 255, msg: "email must be less than 255 characters" })
+  @Length({
+    max: 255,
+    msg: "User email must be less than 255 characters",
+  })
   @Column
   email: string | null;
 
   @NotContainsUrl
   @Length({
-    min: 0,
     max: 255,
     msg: "username must be less than 255 characters",
   })
@@ -98,7 +100,10 @@ class User extends ParanoidModel {
   username: string | null;
 
   @NotContainsUrl
-  @Length({ min: 0, max: 255, msg: "name must be less than 255 characters" })
+  @Length({
+    max: 255,
+    msg: "User name must be less than 255 characters",
+  })
   @Column
   name: string;
 
