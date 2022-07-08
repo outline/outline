@@ -217,7 +217,7 @@ function Security() {
           label={t("Require invites")}
           name="inviteRequired"
           description={t(
-            "Require members to be invited to the team before they can create an account."
+            "Require members to be invited to the team before they can create an account using SSO."
           )}
         >
           <Switch
@@ -261,7 +261,7 @@ function Security() {
           label={t("Allowed domains")}
           name="allowedDomains"
           description={t(
-            "The domains which should be allowed to create accounts. This applies to both SSO and Email logins. Changing this setting does not affect existing user accounts."
+            "The domains which should be allowed to create new accounts using SSO. Changing this setting does not affect existing user accounts."
           )}
         >
           {data.allowedDomains &&
