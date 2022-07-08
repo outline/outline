@@ -103,7 +103,7 @@ function Security() {
               danger
             >
               <Trans
-                defaults="New users will first need to be invited to create an account using <em>{{ authenticationMethods }}</em>. <em>Default role</em> and <em>Allowed domains</em> will no longer apply."
+                defaults="New users will first need to be invited to create an account. <em>Default role</em> and <em>Allowed domains</em> will no longer apply."
                 values={{
                   authenticationMethods,
                 }}
