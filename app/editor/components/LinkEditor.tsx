@@ -113,7 +113,7 @@ class LinkEditor extends React.Component<Props, State> {
 
     this.discardInputValue = true;
     const { from, to } = this.props;
-    href = sanitizeHref(href);
+    href = sanitizeHref(href) ?? "";
 
     this.props.onSelectLink({ href, title, from, to });
   };
