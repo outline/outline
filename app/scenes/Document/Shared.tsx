@@ -2,7 +2,7 @@ import { Location } from "history";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { Helmet } from "react-helmet";
-import { RouteComponentProps, useLocation } from "react-router-dom";
+import { Redirect, RouteComponentProps, useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
 import DocumentModel from "~/models/Document";
 import Error404 from "~/scenes/Error404";
@@ -11,7 +11,7 @@ import Layout from "~/components/Layout";
 import Sidebar from "~/components/Sidebar/Shared";
 import useStores from "~/hooks/useStores";
 import { NavigationNode } from "~/types";
-import { OfflineError } from "~/utils/errors";
+import { AuthorizationError, OfflineError } from "~/utils/errors";
 import Document from "./components/Document";
 import Loading from "./components/Loading";
 
@@ -105,7 +105,13 @@ function SharedDocumentScene(props: Props) {
   }, [documents, documentSlug, shareId, ui]);
 
   if (error) {
-    return error instanceof OfflineError ? <ErrorOffline /> : <Error404 />;
+    if (error instanceof OfflineError) {
+      return <ErrorOffline />;
+    } else if (error instanceof AuthorizationError) {
+      return <Redirect to="/" />;
+    } else {
+      return <Error404 />;
+    }
   }
 
   if (!response) {
