@@ -84,17 +84,21 @@ export enum UserFlag {
 @Fix
 class User extends ParanoidModel {
   @IsEmail
-  @Length({ min: 0, max: 255, msg: "Must be less than 255 characters" })
+  @Length({ min: 0, max: 255, msg: "email must be less than 255 characters" })
   @Column
   email: string | null;
 
   @NotContainsUrl
-  @Length({ min: 0, max: 255, msg: "Must be less than 255 characters" })
+  @Length({
+    min: 0,
+    max: 255,
+    msg: "username must be less than 255 characters",
+  })
   @Column
   username: string | null;
 
   @NotContainsUrl
-  @Length({ min: 0, max: 255, msg: "Must be less than 255 characters" })
+  @Length({ min: 0, max: 255, msg: "name must be less than 255 characters" })
   @Column
   name: string;
 
@@ -144,7 +148,11 @@ class User extends ParanoidModel {
   @Column
   language: string;
 
-  @Length({ min: 0, max: 255, msg: "Must be less than 255 characters" })
+  @Length({
+    min: 0,
+    max: 1000,
+    msg: "avatarUrl must be less than 1000 characters",
+  })
   @Column(DataType.STRING)
   get avatarUrl() {
     const original = this.getDataValue("avatarUrl");
