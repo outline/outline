@@ -7,11 +7,11 @@ import { addAttributeOptions } from "sequelize-typescript";
  */
 export default function Length({
   msg,
-  min,
+  min = 0,
   max,
 }: {
   msg?: string;
-  min: number;
+  min?: number;
   max: number;
 }): (target: any, propertyName: string) => void {
   return (target: any, propertyName: string) =>

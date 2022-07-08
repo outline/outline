@@ -188,7 +188,6 @@ class Document extends ParanoidModel {
   urlId: string;
 
   @Length({
-    min: 0,
     max: MAX_TITLE_LENGTH,
     msg: `Document title must be less than ${MAX_TITLE_LENGTH} characters`,
   })

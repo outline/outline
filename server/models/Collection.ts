@@ -20,6 +20,7 @@ import {
   DataType,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
+import { MAX_TITLE_LENGTH } from "@shared/constants";
 import { sortNavigationNodes } from "@shared/utils/collections";
 import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
 import slugify from "@server/utils/slugify";
@@ -33,6 +34,8 @@ import Team from "./Team";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
+import IsHexColor from "./validators/IsHexColor";
+import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
 
 // without this indirection, the app crashes on starup
@@ -133,18 +136,35 @@ class Collection extends ParanoidModel {
   urlId: string;
 
   @NotContainsUrl
+  @Length({
+    max: MAX_TITLE_LENGTH,
+    msg: `Collection name must be less than ${MAX_TITLE_LENGTH} characters`,
+  })
   @Column
   name: string;
 
+  @Length({
+    max: 1000,
+    msg: `Collection description must be less than 1000 characters`,
+  })
   @Column
   description: string;
 
+  @Length({
+    max: 50,
+    msg: `Collection icon must be less than 50 characters`,
+  })
   @Column
   icon: string | null;
 
+  @IsHexColor
   @Column
   color: string | null;
 
+  @Length({
+    max: 50,
+    msg: `Collection index must be less than 50 characters`,
+  })
   @Column
   index: string | null;
 
