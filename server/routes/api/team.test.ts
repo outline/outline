@@ -95,9 +95,9 @@ describe("#team.update", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.allowedDomains).toEqual([
-      "example-company.org",
+    expect(body.data.allowedDomains.sort()).toEqual([
       "example-company.net",
+      "example-company.org",
     ]);
 
     const teamDomains: TeamDomain[] = await TeamDomain.findAll({
