@@ -2,7 +2,7 @@ import { Location } from "history";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { Helmet } from "react-helmet";
-import { Redirect, RouteComponentProps, useLocation } from "react-router-dom";
+import { RouteComponentProps, useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
 import { setCookie } from "tiny-cookie";
 import DocumentModel from "~/models/Document";
@@ -13,6 +13,7 @@ import Sidebar from "~/components/Sidebar/Shared";
 import useStores from "~/hooks/useStores";
 import { NavigationNode } from "~/types";
 import { AuthorizationError, OfflineError } from "~/utils/errors";
+import Login from "../Login";
 import Document from "./components/Document";
 import Loading from "./components/Loading";
 
@@ -110,7 +111,7 @@ function SharedDocumentScene(props: Props) {
       return <ErrorOffline />;
     } else if (error instanceof AuthorizationError) {
       setCookie("postLoginRedirectPath", props.location.pathname);
-      return <Redirect to="/?notice=email-auth-ratelimit" />;
+      return <Login />;
     } else {
       return <Error404 />;
     }
