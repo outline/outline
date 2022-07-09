@@ -20,6 +20,7 @@ import { ValidationError } from "../errors";
 import Team from "./Team";
 import UserAuthentication from "./UserAuthentication";
 import Fix from "./decorators/Fix";
+import Length from "./validators/Length";
 
 @Table({
   tableName: "authentication_providers",
@@ -34,6 +35,10 @@ class AuthenticationProvider extends Model {
   @Column(DataType.UUID)
   id: string;
 
+  @Length({
+    max: 255,
+    msg: "name must be 255 characters or less",
+  })
   @Column
   name: string;
 
@@ -41,6 +46,10 @@ class AuthenticationProvider extends Model {
   @Column
   enabled: boolean;
 
+  @Length({
+    max: 255,
+    msg: "providerId must be 255 characters or less",
+  })
   @Column
   providerId: string;
 

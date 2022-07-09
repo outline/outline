@@ -18,6 +18,7 @@ import {
   ForeignKey,
   Scopes,
   DataType,
+  Length as SimpleLength,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
 import { MAX_TITLE_LENGTH } from "@shared/constants";
@@ -131,6 +132,11 @@ type Sort = CollectionSort;
 @Table({ tableName: "collections", modelName: "collection" })
 @Fix
 class Collection extends ParanoidModel {
+  @SimpleLength({
+    min: 10,
+    max: 10,
+    msg: `urlId must be 10 characters`,
+  })
   @Unique
   @Column
   urlId: string;
@@ -138,21 +144,21 @@ class Collection extends ParanoidModel {
   @NotContainsUrl
   @Length({
     max: MAX_TITLE_LENGTH,
-    msg: `Collection name must be less than ${MAX_TITLE_LENGTH} characters`,
+    msg: `name must be ${MAX_TITLE_LENGTH} characters or less`,
   })
   @Column
   name: string;
 
   @Length({
     max: 1000,
-    msg: `Collection description must be less than 1000 characters`,
+    msg: `description must be 1000 characters or less`,
   })
   @Column
   description: string;
 
   @Length({
     max: 50,
-    msg: `Collection icon must be less than 50 characters`,
+    msg: `icon must be 50 characters or less`,
   })
   @Column
   icon: string | null;
@@ -163,7 +169,7 @@ class Collection extends ParanoidModel {
 
   @Length({
     max: 50,
-    msg: `Collection index must be less than 50 characters`,
+    msg: `index must 50 characters or less`,
   })
   @Column
   index: string | null;
