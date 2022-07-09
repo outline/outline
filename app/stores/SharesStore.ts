@@ -59,7 +59,6 @@ export default class SharesStore extends BaseStore<Share> {
     try {
       const res = await client.post(`/${this.modelName}s.info`, {
         documentId,
-        apiVersion: 2,
       });
 
       if (isUndefined(res)) {
