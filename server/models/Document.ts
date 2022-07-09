@@ -31,7 +31,6 @@ import {
   Length as SimpleLength,
   IsNumeric,
   IsDate,
-  IsUUID,
 } from "sequelize-typescript";
 import MarkdownSerializer from "slate-md-serializer";
 import isUUID from "validator/lib/isUUID";
@@ -249,7 +248,6 @@ class Document extends ParanoidModel {
   @Column
   publishedAt: Date | null;
 
-  @IsUUID(4)
   @Column(DataType.ARRAY(DataType.UUID))
   collaboratorIds: string[] = [];
 
