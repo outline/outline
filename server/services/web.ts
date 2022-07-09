@@ -40,7 +40,6 @@ export default function init(app: Koa = new Koa()): Koa {
     if (env.FORCE_HTTPS) {
       app.use(
         enforceHttps({
-          // @ts-expect-error ts-migrate(2345) FIXME: Argument of type '{ trustProtoHeader: boolean; }' ... Remove this comment to see the full error message
           trustProtoHeader: true,
         })
       );
