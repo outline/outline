@@ -4,6 +4,7 @@ import * as React from "react";
 import { Helmet } from "react-helmet";
 import { Redirect, RouteComponentProps, useLocation } from "react-router-dom";
 import { useTheme } from "styled-components";
+import { setCookie } from "tiny-cookie";
 import DocumentModel from "~/models/Document";
 import Error404 from "~/scenes/Error404";
 import ErrorOffline from "~/scenes/ErrorOffline";
@@ -108,7 +109,8 @@ function SharedDocumentScene(props: Props) {
     if (error instanceof OfflineError) {
       return <ErrorOffline />;
     } else if (error instanceof AuthorizationError) {
-      return <Redirect to="/" />;
+      setCookie("postLoginRedirectPath", props.location.pathname);
+      return <Redirect to="/?notice=email-auth-ratelimit" />;
     } else {
       return <Error404 />;
     }
