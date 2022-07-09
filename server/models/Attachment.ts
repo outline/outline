@@ -8,7 +8,6 @@ import {
   IsIn,
   Table,
   DataType,
-  IsUrl,
   IsNumeric,
 } from "sequelize-typescript";
 import { publicS3Endpoint, deleteFromS3, getFileByKey } from "@server/utils/s3";
@@ -29,7 +28,6 @@ class Attachment extends IdModel {
   @Column
   key: string;
 
-  @IsUrl
   @Length({
     max: 4096,
     msg: "url must be 4096 characters or less",
