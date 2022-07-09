@@ -9,6 +9,7 @@ import {
   IsUUID,
   Table,
   DataType,
+  Length,
 } from "sequelize-typescript";
 import { globalEventQueue } from "../queues";
 import { Event as TEvent } from "../types";
@@ -26,6 +27,10 @@ class Event extends IdModel {
   @Column(DataType.UUID)
   modelId: string;
 
+  @Length({
+    max: 255,
+    msg: "name must be 255 characters or less",
+  })
   @Column
   name: string;
 

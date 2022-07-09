@@ -6,12 +6,16 @@ import {
   DefaultScope,
   ForeignKey,
   Table,
+  IsNumeric,
+  Length as SimpleLength,
 } from "sequelize-typescript";
 import MarkdownSerializer from "slate-md-serializer";
+import { MAX_TITLE_LENGTH } from "@shared/constants";
 import Document from "./Document";
 import User from "./User";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
+import Length from "./validators/Length";
 
 const serializer = new MarkdownSerializer();
 
@@ -27,12 +31,21 @@ const serializer = new MarkdownSerializer();
 @Table({ tableName: "revisions", modelName: "revision" })
 @Fix
 class Revision extends IdModel {
+  @IsNumeric
   @Column(DataType.SMALLINT)
   version: number;
 
+  @SimpleLength({
+    max: 255,
+    msg: `editorVersion must be 255 characters or less`,
+  })
   @Column
   editorVersion: string;
 
+  @Length({
+    max: MAX_TITLE_LENGTH,
+    msg: `Revision title must be ${MAX_TITLE_LENGTH} characters or less`,
+  })
   @Column
   title: string;
 

@@ -8,6 +8,8 @@ import {
   IsIn,
   Table,
   DataType,
+  IsUrl,
+  IsNumeric,
 } from "sequelize-typescript";
 import { publicS3Endpoint, deleteFromS3, getFileByKey } from "@server/utils/s3";
 import Document from "./Document";
@@ -15,19 +17,34 @@ import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
+import Length from "./validators/Length";
 
 @Table({ tableName: "attachments", modelName: "attachment" })
 @Fix
 class Attachment extends IdModel {
+  @Length({
+    max: 4096,
+    msg: "key must be 4096 characters or less",
+  })
   @Column
   key: string;
 
+  @IsUrl
+  @Length({
+    max: 4096,
+    msg: "url must be 4096 characters or less",
+  })
   @Column
   url: string;
 
+  @Length({
+    max: 255,
+    msg: "contentType must be 255 characters or less",
+  })
   @Column
   contentType: string;
 
+  @IsNumeric
   @Column(DataType.BIGINT)
   size: number;
 
