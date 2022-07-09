@@ -15,6 +15,8 @@ const cronHandler = async (ctx: Context) => {
   const { token, limit = 500 } = ctx.body as { token?: string; limit: number };
 
   if (
+    !token ||
+    token.length !== env.UTILS_SECRET.length ||
     !crypto.timingSafeEqual(
       Buffer.from(env.UTILS_SECRET),
       Buffer.from(String(token))

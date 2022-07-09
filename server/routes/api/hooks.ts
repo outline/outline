@@ -28,6 +28,7 @@ function verifySlackToken(token: string) {
   }
 
   if (
+    token.length !== env.SLACK_VERIFICATION_TOKEN.length ||
     !crypto.timingSafeEqual(
       Buffer.from(env.SLACK_VERIFICATION_TOKEN),
       Buffer.from(token)
