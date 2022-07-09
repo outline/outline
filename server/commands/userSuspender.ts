@@ -1,6 +1,7 @@
 import { Transaction } from "sequelize";
 import { sequelize } from "@server/database/sequelize";
 import { User, Event, GroupUser } from "@server/models";
+import CleanupSuspendedUserTask from "@server/queues/tasks/CleanupSuspendedUserTask";
 import { ValidationError } from "../errors";
 
 type Props = {
@@ -49,5 +50,7 @@ export default async function userSuspender({
         transaction,
       }
     );
+
+    await CleanupSuspendedUserTask.schedule({ userId: user.id });
   });
 }
