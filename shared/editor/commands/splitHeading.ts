@@ -13,49 +13,83 @@ export default function splitHeading(type: NodeType) {
       return false;
     }
 
-    // check that the caret is at the end of the content, if it isn't then
-    // standard node splitting behaviour applies
-    const endPos = $to.after() - 1;
-    if (endPos !== to) {
+    // is the selection at the beginning of the node
+    const startPos = $from.before() + 1;
+    if (startPos === from) {
+      const collapsedNodes = findCollapsedNodes(state.doc);
+      const allBlocks = findBlockNodes(state.doc);
+      const previousBlock = allBlocks
+        .filter((a) => a.pos + a.node.nodeSize < startPos)
+        .pop();
+      const previousBlockIsCollapsed = !!collapsedNodes.find(
+        (a) => a.pos === previousBlock?.pos
+      );
+
+      if (previousBlockIsCollapsed) {
+        // Insert a new heading directly before this one
+        const transaction = state.tr.insert(
+          $from.before(),
+          type.create({ ...$from.parent.attrs, collapsed: false })
+        );
+
+        // Move the selection into the new heading node and make sure it's on screen
+        dispatch(
+          transaction
+            .setSelection(
+              TextSelection.near(transaction.doc.resolve($from.before()))
+            )
+            .scrollIntoView()
+        );
+
+        return true;
+      }
+
       return false;
     }
 
-    // If the node isn't collapsed standard behavior applies
+    // If the heading isn't collapsed standard behavior applies
     if (!$from.parent.attrs.collapsed) {
       return false;
     }
 
-    // Find the next visible block after this one. It takes into account nested
-    // collapsed headings and reaching the end of the document
-    const allBlocks = findBlockNodes(state.doc);
-    const collapsedBlocks = findCollapsedNodes(state.doc);
-    const visibleBlocks = allBlocks.filter(
-      (a) => !collapsedBlocks.find((b) => b.pos === a.pos)
-    );
-    const nextVisibleBlock = visibleBlocks.find((a) => a.pos > from);
-    const pos = nextVisibleBlock
-      ? nextVisibleBlock.pos
-      : state.doc.content.size;
+    // is the selection at the end of the node. If not standard node-splitting
+    // behavior applies
+    const endPos = $to.after() - 1;
+    if (endPos === to) {
+      // Find the next visible block after this one. It takes into account nested
+      // collapsed headings and reaching the end of the document
+      const collapsedNodes = findCollapsedNodes(state.doc);
+      const allBlocks = findBlockNodes(state.doc);
+      const visibleBlocks = allBlocks.filter(
+        (a) => !collapsedNodes.find((b) => b.pos === a.pos)
+      );
+      const nextVisibleBlock = visibleBlocks.find((a) => a.pos > from);
+      const pos = nextVisibleBlock
+        ? nextVisibleBlock.pos
+        : state.doc.content.size;
 
-    // Insert our new heading directly before the next visible block
-    const transaction = state.tr.insert(
-      pos,
-      type.create({ ...$from.parent.attrs, collapsed: false })
-    );
+      // Insert a new heading directly before the next visible block
+      const transaction = state.tr.insert(
+        pos,
+        type.create({ ...$from.parent.attrs, collapsed: false })
+      );
 
-    // Move the selection into the new heading node and make sure it's on screen
-    dispatch(
-      transaction
-        .setSelection(
-          TextSelection.near(
-            transaction.doc.resolve(
-              Math.min(pos + 1, transaction.doc.content.size)
+      // Move the selection into the new heading node and make sure it's on screen
+      dispatch(
+        transaction
+          .setSelection(
+            TextSelection.near(
+              transaction.doc.resolve(
+                Math.min(pos + 1, transaction.doc.content.size)
+              )
             )
           )
-        )
-        .scrollIntoView()
-    );
+          .scrollIntoView()
+      );
 
-    return true;
+      return true;
+    }
+
+    return false;
   };
 }

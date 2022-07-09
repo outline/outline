@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import Router from "koa-router";
 import { escapeRegExp } from "lodash";
 import env from "@server/env";
@@ -19,6 +20,24 @@ import { assertPresent } from "@server/validation";
 
 const router = new Router();
 
+function verifySlackToken(token: string) {
+  if (!env.SLACK_VERIFICATION_TOKEN) {
+    throw AuthenticationError(
+      "SLACK_VERIFICATION_TOKEN is not present in environment"
+    );
+  }
+
+  if (
+    token.length !== env.SLACK_VERIFICATION_TOKEN.length ||
+    !crypto.timingSafeEqual(
+      Buffer.from(env.SLACK_VERIFICATION_TOKEN),
+      Buffer.from(token)
+    )
+  ) {
+    throw AuthenticationError("Invalid token");
+  }
+}
+
 // triggered by a user posting a getoutline.com link in Slack
 router.post("hooks.unfurl", async (ctx) => {
   const { challenge, token, event } = ctx.body;
@@ -26,9 +45,8 @@ router.post("hooks.unfurl", async (ctx) => {
     return (ctx.body = ctx.body.challenge);
   }
 
-  if (token !== env.SLACK_VERIFICATION_TOKEN) {
-    throw AuthenticationError("Invalid token");
-  }
+  assertPresent(token, "token is required");
+  verifySlackToken(token);
 
   const user = await User.findOne({
     include: [
@@ -88,10 +106,7 @@ router.post("hooks.interactive", async (ctx) => {
 
   assertPresent(token, "token is required");
   assertPresent(callback_id, "callback_id is required");
-
-  if (token !== env.SLACK_VERIFICATION_TOKEN) {
-    throw AuthenticationError("Invalid verification token");
-  }
+  verifySlackToken(token);
 
   // we find the document based on the users teamId to ensure access
   const document = await Document.scope("withCollection").findByPk(
@@ -125,10 +140,7 @@ router.post("hooks.slack", async (ctx) => {
   assertPresent(token, "token is required");
   assertPresent(team_id, "team_id is required");
   assertPresent(user_id, "user_id is required");
-
-  if (token !== env.SLACK_VERIFICATION_TOKEN) {
-    throw AuthenticationError("Invalid verification token");
-  }
+  verifySlackToken(token);
 
   // Handle "help" command or no input
   if (text.trim() === "help" || !text.trim()) {

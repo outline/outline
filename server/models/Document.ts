@@ -28,6 +28,9 @@ import {
   AfterCreate,
   Scopes,
   DataType,
+  Length as SimpleLength,
+  IsNumeric,
+  IsDate,
 } from "sequelize-typescript";
 import MarkdownSerializer from "slate-md-serializer";
 import isUUID from "validator/lib/isUUID";
@@ -183,14 +186,18 @@ export const DOCUMENT_VERSION = 2;
 @Table({ tableName: "documents", modelName: "document" })
 @Fix
 class Document extends ParanoidModel {
+  @SimpleLength({
+    min: 10,
+    max: 10,
+    msg: `urlId must be 10 characters`,
+  })
   @PrimaryKey
   @Column
   urlId: string;
 
   @Length({
-    min: 0,
     max: MAX_TITLE_LENGTH,
-    msg: `Document title must be less than ${MAX_TITLE_LENGTH} characters`,
+    msg: `Document title must be ${MAX_TITLE_LENGTH} characters or less`,
   })
   @Column
   title: string;
@@ -198,6 +205,7 @@ class Document extends ParanoidModel {
   @Column(DataType.ARRAY(DataType.STRING))
   previousTitles: string[] = [];
 
+  @IsNumeric
   @Column(DataType.SMALLINT)
   version: number;
 
@@ -207,6 +215,10 @@ class Document extends ParanoidModel {
   @Column
   fullWidth: boolean;
 
+  @SimpleLength({
+    max: 255,
+    msg: `editorVersion must be 255 characters or less`,
+  })
   @Column
   editorVersion: string;
 
@@ -223,13 +235,16 @@ class Document extends ParanoidModel {
   @Column
   isWelcome: boolean;
 
+  @IsNumeric
   @Default(0)
   @Column(DataType.INTEGER)
   revisionCount: number;
 
+  @IsDate
   @Column
   archivedAt: Date | null;
 
+  @IsDate
   @Column
   publishedAt: Date | null;
 

@@ -22,13 +22,13 @@ import Length from "./validators/Length";
 @Fix
 class WebhookSubscription extends ParanoidModel {
   @NotEmpty
-  @Length({ min: 0, max: 255, msg: "Must be less than 255 characters" })
+  @Length({ max: 255, msg: "Webhook name be less than 255 characters" })
   @Column
   name: string;
 
   @IsUrl
   @NotEmpty
-  @Length({ min: 0, max: 255, msg: "Must be less than 255 characters" })
+  @Length({ max: 255, msg: "Webhook url be less than 255 characters" })
   @Column
   url: string;
 

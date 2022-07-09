@@ -77,7 +77,11 @@ export function isExternalUrl(url: string) {
  * @param href The href to sanitize
  * @returns The sanitized href
  */
-export function sanitizeHref(href: string) {
+export function sanitizeHref(href: string | null | undefined) {
+  if (!href) {
+    return undefined;
+  }
+
   if (
     !isUrl(href) &&
     !href.startsWith("/") &&

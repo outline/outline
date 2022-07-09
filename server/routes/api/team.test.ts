@@ -39,7 +39,7 @@ describe("#team.update", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.allowedDomains).toEqual([
+    expect(body.data.allowedDomains.sort()).toEqual([
       "example-company.com",
       "example-company.org",
     ]);
@@ -47,7 +47,7 @@ describe("#team.update", () => {
     const teamDomains: TeamDomain[] = await TeamDomain.findAll({
       where: { teamId: team.id },
     });
-    expect(teamDomains.map((d) => d.name)).toEqual([
+    expect(teamDomains.map((d) => d.name).sort()).toEqual([
       "example-company.com",
       "example-company.org",
     ]);
@@ -95,9 +95,9 @@ describe("#team.update", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.allowedDomains).toEqual([
-      "example-company.org",
+    expect(body.data.allowedDomains.sort()).toEqual([
       "example-company.net",
+      "example-company.org",
     ]);
 
     const teamDomains: TeamDomain[] = await TeamDomain.findAll({

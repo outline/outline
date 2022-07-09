@@ -179,6 +179,7 @@ export async function buildInvite(overrides: Partial<User> = {}) {
     name: `User ${count}`,
     createdAt: new Date("2018-01-01T00:00:00.000Z"),
     invitedById: actor.id,
+    authentications: [],
     ...overrides,
     lastActiveAt: null,
   });
@@ -363,7 +364,7 @@ export async function buildAttachment(overrides: Partial<Attachment> = {}) {
   count++;
   return Attachment.create({
     key: `uploads/key/to/file ${count}.png`,
-    url: `https://redirect.url.com/uploads/key/to/file ${count}.png`,
+    url: `https://redirect.url.com/uploads/key/to/file${count}.png`,
     contentType: "image/png",
     size: 100,
     acl: "public-read",

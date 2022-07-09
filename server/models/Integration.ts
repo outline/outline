@@ -34,7 +34,7 @@ class Integration extends IdModel {
   service: string;
 
   @Column(DataType.JSONB)
-  settings: any;
+  settings: Record<string, any>;
 
   @Column(DataType.ARRAY(DataType.STRING))
   events: string[];

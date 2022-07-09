@@ -52,7 +52,7 @@ import NotContainsUrl from "./validators/NotContainsUrl";
 })
 @Fix
 class Group extends ParanoidModel {
-  @Length({ min: 0, max: 255, msg: "Must be less than 255 characters" })
+  @Length({ min: 0, max: 255, msg: "name must be be 255 characters or less" })
   @NotContainsUrl
   @Column
   name: string;
