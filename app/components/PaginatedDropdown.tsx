@@ -82,8 +82,6 @@ const PaginatedDropdown = ({
     setFilteredData(options);
   }, [options, selectedLabel]);
 
-  const handleOnFocus = () => {};
-
   return (
     <Wrapper>
       <MenuButton {...menu}>
@@ -94,7 +92,7 @@ const PaginatedDropdown = ({
         )}
       </MenuButton>
       <ContextMenu aria-label={defaultLabel} {...menu}>
-        <StyledInputSearch onChange={handleFilter} onFocus={handleOnFocus} />
+        <StyledInputSearch onChange={handleFilter} />
         <br />
         {/* A bit hacky but this creates just enough space for search box.
             Now absolute position works without first element getting stuck behind it.
