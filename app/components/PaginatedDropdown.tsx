@@ -1,6 +1,8 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { useMenuState, MenuButton } from "reakit/Menu";
 import styled from "styled-components";
+import User from "~/models/User";
 import Button, { Inner } from "~/components/Button";
 import ContextMenu from "~/components/ContextMenu";
 import MenuItem from "~/components/ContextMenu/MenuItem";
@@ -30,9 +32,24 @@ const PaginatedDropdown = ({
   className,
   onSelect,
 }: Props) => {
+  const { t } = useTranslation();
   const menu = useMenuState({
     modal: true,
   });
+  const options = React.useMemo(() => {
+    const userOptions = users.all.map((user: User) => ({
+      key: user.id,
+      label: user.name,
+    }));
+    return [
+      {
+        key: "",
+        label: t("Any author"),
+      },
+      ...userOptions,
+    ];
+  }, [users, t]);
+
   const selected =
     options.find((option) => option.key === activeKey) || options[0];
 
