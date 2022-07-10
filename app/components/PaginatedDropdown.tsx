@@ -14,7 +14,7 @@ type TFilterOption = {
 };
 
 type Props = {
-  options: TFilterOption[];
+  users: any;
   activeKey: string | null | undefined;
   defaultLabel?: string;
   selectedPrefix?: string;
@@ -23,7 +23,7 @@ type Props = {
 };
 
 const PaginatedDropdown = ({
-  options,
+  users,
   activeKey = "",
   defaultLabel = "Filter options",
   selectedPrefix = "",
