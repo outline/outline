@@ -1,5 +1,4 @@
 import * as React from "react";
-import { useTranslation } from "react-i18next";
 import { useMenuState, MenuButton } from "reakit/Menu";
 import styled from "styled-components";
 import User from "~/models/User";
@@ -20,6 +19,7 @@ type Props = {
   users: any;
   activeKey: string | null | undefined;
   defaultLabel?: string;
+  defaultOption: TFilterOption;
   selectedPrefix?: string;
   className?: string;
   onSelect: (key: string | null | undefined) => void;
@@ -29,12 +29,11 @@ const PaginatedDropdown = ({
   users,
   activeKey = "",
   defaultLabel = "Filter options",
+  defaultOption,
   selectedPrefix = "",
   className,
   onSelect,
 }: Props) => {
-  const { t } = useTranslation();
-
   const menu = useMenuState({
     modal: true,
   });
@@ -46,12 +45,12 @@ const PaginatedDropdown = ({
     }));
     return [
       {
-        id: "",
-        label: t("Any author"),
+        id: defaultOption.id,
+        label: defaultOption.label,
       },
       ...userOptions,
     ];
-  }, [users, t]);
+  }, [users]);
 
   const selected =
     options.find((option) => option.key === activeKey) || options[0];
