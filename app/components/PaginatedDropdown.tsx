@@ -34,9 +34,11 @@ const PaginatedDropdown = ({
   onSelect,
 }: Props) => {
   const { t } = useTranslation();
+
   const menu = useMenuState({
     modal: true,
   });
+
   const options = React.useMemo(() => {
     const userOptions = users.all.map((user: User) => ({
       id: user.id,
@@ -54,7 +56,11 @@ const PaginatedDropdown = ({
   const selected =
     options.find((option) => option.key === activeKey) || options[0];
 
-  const selectedLabel = selected ? `${selectedPrefix} ${selected.label}` : "";
+  const [selectedLabel, setSelectedLabel] = React.useState("");
+
+  React.useEffect(() => {
+    setSelectedLabel(selected ? `${selectedPrefix} ${selected.label}` : "");
+  }, [selected]);
 
   const [filteredData, setFilteredData] = React.useState<TFilterOption[]>([]);
 
@@ -104,6 +110,7 @@ const PaginatedDropdown = ({
             <MenuItem
               key={user.id}
               onClick={() => {
+                setSelectedLabel(user.label);
                 onSelect(user.id);
                 menu.hide();
               }}
