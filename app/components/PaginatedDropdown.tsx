@@ -38,8 +38,33 @@ const PaginatedDropdown = ({
 
   const selectedLabel = selected ? `${selectedPrefix} ${selected.label}` : "";
 
-    const handleOnChange = () => {};
-    const handleOnFocus = () => {};
+  const [filteredData, setFilteredData] = React.useState<TFilterOption[]>([]);
+
+  // Simple case-insensitive filter to
+  // check if text appears in any author's name.
+  const handleFilter = React.useCallback(
+    (event) => {
+      const { value } = event.target;
+      if (value) {
+        const filteredData = options.filter((user) =>
+          user.label.toLowerCase().includes(value.toLowerCase())
+        );
+        setFilteredData(filteredData);
+      }
+    },
+    [options]
+  );
+
+  // Setting `filteredData` on component mount.
+  // `selectedLabel` as dependency will make sure
+  // user sees a full list on clicking menu,
+  // otherwise they may see partially filtered results
+  // from previous query.
+  React.useEffect(() => {
+    setFilteredData(options);
+  }, [options, selectedLabel]);
+
+  const handleOnFocus = () => {};
 
   return (
     <Wrapper>
@@ -51,12 +76,12 @@ const PaginatedDropdown = ({
         )}
       </MenuButton>
       <ContextMenu aria-label={defaultLabel} {...menu}>
-        <StyledInputSearch onChange={handleOnChange} onFocus={handleOnFocus} />
-        <br/>
+        <StyledInputSearch onChange={handleFilter} onFocus={handleOnFocus} />
+        <br />
         {/* A bit hacky but this creates just enough space for search box.
             Now absolute position works without first element getting stuck behind it.
           */}
-        {options.map((option) => (
+        {filteredData.map((option) => (
           <MenuItem
             key={option.key}
             onClick={() => {
