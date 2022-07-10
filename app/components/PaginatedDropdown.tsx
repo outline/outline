@@ -8,6 +8,7 @@ import ContextMenu from "~/components/ContextMenu";
 import MenuItem from "~/components/ContextMenu/MenuItem";
 import Text from "~/components/Text";
 import InputSearch from "./InputSearch";
+import PaginatedList from "./PaginatedList";
 
 type TFilterOption = {
   key: string;
@@ -98,26 +99,30 @@ const PaginatedDropdown = ({
         {/* A bit hacky but this creates just enough space for search box.
             Now absolute position works without first element getting stuck behind it.
           */}
-        {filteredData.map((option) => (
-          <MenuItem
-            key={option.key}
-            onClick={() => {
-              onSelect(option.key);
-              menu.hide();
-            }}
-            selected={option.key === activeKey}
-            {...menu}
-          >
-            {option.note ? (
-              <LabelWithNote>
-                {option.label}
-                <Note>{option.note}</Note>
-              </LabelWithNote>
-            ) : (
-              option.label
-            )}
-          </MenuItem>
-        ))}
+        <PaginatedList
+          items={filteredData}
+          fetch={users.fetchPage}
+          renderItem={(user: TFilterOption) => (
+            <MenuItem
+              key={user.key}
+              onClick={() => {
+                onSelect(user.key);
+                menu.hide();
+              }}
+              selected={user.key === activeKey}
+              {...menu}
+            >
+              {user.note ? (
+                <LabelWithNote>
+                  {user.label}
+                  <Note>{user.note}</Note>
+                </LabelWithNote>
+              ) : (
+                user.label
+              )}
+            </MenuItem>
+          )}
+        />
       </ContextMenu>
     </Wrapper>
   );
