@@ -20,6 +20,7 @@ function UserFilter(props: Props) {
       onSelect={onSelect}
       users={users}
       defaultLabel={t("Any author")}
+      defaultOption={{ id: "", label: t("Any author") }}
       selectedPrefix={`${t("Author")}:`}
     />
   );
