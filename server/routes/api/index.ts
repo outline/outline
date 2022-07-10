@@ -1,6 +1,7 @@
 import Koa from "koa";
 import bodyParser from "koa-body";
 import Router from "koa-router";
+import env from "@server/env";
 import { NotFoundError } from "@server/errors";
 import errorHandling from "@server/middlewares/errorHandling";
 import methodOverride from "@server/middlewares/methodOverride";
@@ -10,6 +11,7 @@ import auth from "./auth";
 import authenticationProviders from "./authenticationProviders";
 import collections from "./collections";
 import utils from "./cron";
+import developer from "./developer";
 import documents from "./documents";
 import events from "./events";
 import fileOperationsRoute from "./fileOperations";
@@ -69,6 +71,10 @@ router.use("/", utils.routes());
 router.use("/", groups.routes());
 router.use("/", fileOperationsRoute.routes());
 router.use("/", webhookSubscriptions.routes());
+
+if (env.ENVIRONMENT === "development") {
+  router.use("/", developer.routes());
+}
 
 router.post("*", (ctx) => {
   ctx.throw(NotFoundError("Endpoint not found"));
