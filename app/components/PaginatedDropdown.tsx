@@ -8,10 +8,10 @@ import ContextMenu from "~/components/ContextMenu";
 import MenuItem from "~/components/ContextMenu/MenuItem";
 import Text from "~/components/Text";
 import InputSearch from "./InputSearch";
-import PaginatedList from "./PaginatedList";
+import PaginatedList, { PaginatedItem } from "./PaginatedList";
 
-type TFilterOption = {
-  key: string;
+type TFilterOption = PaginatedItem & {
+  id: string;
   label: string;
   note?: string;
 };
@@ -39,12 +39,12 @@ const PaginatedDropdown = ({
   });
   const options = React.useMemo(() => {
     const userOptions = users.all.map((user: User) => ({
-      key: user.id,
+      id: user.id,
       label: user.name,
     }));
     return [
       {
-        key: "",
+        id: "",
         label: t("Any author"),
       },
       ...userOptions,
@@ -102,12 +102,12 @@ const PaginatedDropdown = ({
           fetch={users.fetchPage}
           renderItem={(user: TFilterOption) => (
             <MenuItem
-              key={user.key}
+              key={user.id}
               onClick={() => {
-                onSelect(user.key);
+                onSelect(user.id);
                 menu.hide();
               }}
-              selected={user.key === activeKey}
+              selected={user.id === activeKey}
               {...menu}
             >
               {user.note ? (
