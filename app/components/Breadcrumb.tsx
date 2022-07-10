@@ -37,7 +37,7 @@ function Breadcrumb({
   return (
     <Flex justify="flex-start" align="center">
       {topLevelItems.map((item, index) => (
-        <React.Fragment key={item.to || index}>
+        <React.Fragment key={String(item.to) || index}>
           {item.icon}
           {item.to ? (
             <Item

@@ -1,3 +1,4 @@
+import { LocationDescriptor } from "history";
 import { observer, useObserver } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -12,7 +13,7 @@ import useStores from "~/hooks/useStores";
 type Props = {
   document: Document;
   isDraft: boolean;
-  to?: string;
+  to?: LocationDescriptor;
   rtl?: boolean;
 };
 

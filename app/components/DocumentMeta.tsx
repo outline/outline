@@ -1,3 +1,4 @@
+import { LocationDescriptor } from "history";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -35,7 +36,7 @@ type Props = {
   showLastViewed?: boolean;
   showParentDocuments?: boolean;
   document: Document;
-  to?: string;
+  to?: LocationDescriptor;
 };
 
 const DocumentMeta: React.FC<Props> = ({

@@ -1,17 +1,14 @@
 import { m } from "framer-motion";
 import * as React from "react";
 import styled, { useTheme } from "styled-components";
-import NavLinkWithChildrenFunc from "~/components/NavLink";
+import NavLink from "~/components/NavLink";
 
-type Props = Omit<
-  React.ComponentProps<typeof NavLinkWithChildrenFunc>,
-  "children"
-> & {
+type Props = Omit<React.ComponentProps<typeof NavLink>, "children"> & {
   to: string;
   exact?: boolean;
 };
 
-const TabLink = styled(NavLinkWithChildrenFunc)`
+const TabLink = styled(NavLink)`
   position: relative;
   display: inline-flex;
   align-items: center;
