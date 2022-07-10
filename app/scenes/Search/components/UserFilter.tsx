@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import FilterOptions from "~/components/FilterOptions";
+import PaginatedDropdown from "~/components/PaginatedDropdown";
 import useStores from "~/hooks/useStores";
 
 type Props = {
@@ -35,7 +35,7 @@ function UserFilter(props: Props) {
   }, [users.all, t]);
 
   return (
-    <FilterOptions
+    <PaginatedDropdown
       options={options}
       activeKey={userId}
       onSelect={onSelect}
