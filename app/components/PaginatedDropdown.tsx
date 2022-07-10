@@ -51,7 +51,11 @@ const PaginatedDropdown = ({
         )}
       </MenuButton>
       <ContextMenu aria-label={defaultLabel} {...menu}>
-        <InputSearch onChange={handleOnChange} onFocus={handleOnFocus} />
+        <StyledInputSearch onChange={handleOnChange} onFocus={handleOnFocus} />
+        <br/>
+        {/* A bit hacky but this creates just enough space for search box.
+            Now absolute position works without first element getting stuck behind it.
+          */}
         {options.map((option) => (
           <MenuItem
             key={option.key}
@@ -109,6 +113,14 @@ const StyledButton = styled(Button)`
     line-height: 24px;
     min-height: auto;
   }
+`;
+
+// `position: sticky` leaves a bit of space above the search box,
+// which shows author names moving past behind it.
+const StyledInputSearch = styled(InputSearch)`
+  position: absolute;
+  top: 0;
+  z-index: 1;
 `;
 
 const Wrapper = styled.div`
