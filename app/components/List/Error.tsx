@@ -13,7 +13,7 @@ type Props = {
   retry: () => void;
 };
 
-export default function LoadingError({ error, retry }: Props) {
+export default function LoadingError({ error, retry, ...rest }: Props) {
   const { t } = useTranslation();
   useEventListener("online", retry);
 
@@ -29,7 +29,7 @@ export default function LoadingError({ error, retry }: Props) {
     );
 
   return (
-    <Content>
+    <Content {...rest}>
       <Flex align="center" gap={4}>
         {message}{" "}
         <ButtonLink onClick={() => retry()}>{t("Click to retry")}…</ButtonLink>
@@ -40,6 +40,7 @@ export default function LoadingError({ error, retry }: Props) {
 
 const Content = styled(Empty)`
   padding: 8px 0;
+  white-space: nowrap;
 
   ${ButtonLink} {
     color: ${(props) => props.theme.textTertiary};
