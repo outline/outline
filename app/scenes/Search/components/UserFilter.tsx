@@ -23,11 +23,13 @@ function UserFilter(props: Props) {
   const options = React.useMemo(() => {
     const userOptions = users.all.map((user) => ({
       key: user.id,
+      id: user.id,
       label: user.name,
     }));
     return [
       {
         key: "",
+        id: "",
         label: t("Any author"),
       },
       ...userOptions,
