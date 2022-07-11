@@ -15,8 +15,8 @@ type TFilterOption = PaginatedItem & {
   note?: string;
 };
 
-type Props = {
-  options: TFilterOption[];
+type Props<T> = {
+  options: T[];
   activeKey: string | null | undefined;
   defaultLabel?: string;
   selectedPrefix?: string;
@@ -28,7 +28,7 @@ type Props = {
   ) => Promise<PaginatedItem[] | undefined>;
 };
 
-const FilterOptions = ({
+const FilterOptions = <T extends TFilterOption>({
   options,
   activeKey = "",
   defaultLabel = "Filter options",
@@ -37,7 +37,7 @@ const FilterOptions = ({
   onSelect,
   searchable,
   paginateFetch,
-}: Props) => {
+}: Props<T>) => {
   const menu = useMenuState({
     modal: true,
   });
