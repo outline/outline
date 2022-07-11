@@ -22,7 +22,7 @@ type Props = {
   selectedPrefix?: string;
   className?: string;
   onSelect: (key: string | null | undefined) => void;
-  searchable: boolean;
+  searchable?: boolean;
   paginateFetch?: (options: any) => Promise<any[] | undefined>;
 };
 
