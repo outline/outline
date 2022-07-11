@@ -46,6 +46,10 @@ const FilterOptions = ({
 
   const [filteredData, setFilteredData] = React.useState<TFilterOption[]>([]);
 
+  const clearFilter = React.useCallback(() => {
+    setFilteredData(options);
+  }, [options]);
+
   // Simple case-insensitive filter to
   // check if text appears in any author's name.
   const handleFilter = React.useCallback(
@@ -60,12 +64,8 @@ const FilterOptions = ({
         clearFilter();
       }
     },
-    [options]
+    [clearFilter, options]
   );
-
-  const clearFilter = React.useCallback(() => {
-    setFilteredData(options);
-  }, [options]);
 
   React.useEffect(() => {
     setFilteredData(options);
