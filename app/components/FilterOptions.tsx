@@ -60,9 +60,13 @@ const FilterOptions = ({
     },
     [options]
   );
+
+  const clearFilter = React.useCallback(() => {
+    setFilteredData(options);
+  }, [options]);
   return (
     <Wrapper>
-      <MenuButton {...menu}>
+      <MenuButton {...menu} onClick={clearFilter}>
         {(props) => (
           <StyledButton {...props} className={className} neutral disclosure>
             {activeKey ? selectedLabel : defaultLabel}
