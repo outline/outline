@@ -9,7 +9,7 @@ import { Outline } from "./Input";
 import InputSearch from "./InputSearch";
 import PaginatedList, { PaginatedItem } from "./PaginatedList";
 
-type TFilterOption = {
+type TFilterOption = PaginatedItem & {
   key: string;
   label: string;
   note?: string;
