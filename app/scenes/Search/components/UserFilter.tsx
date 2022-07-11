@@ -16,7 +16,7 @@ function UserFilter(props: Props) {
 
   React.useEffect(() => {
     users.fetchPage({
-      limit: 100,
+      limit: 20,
     });
   }, [users]);
 
