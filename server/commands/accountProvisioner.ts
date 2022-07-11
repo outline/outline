@@ -3,6 +3,7 @@ import { UniqueConstraintError } from "sequelize";
 import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
 import {
   AuthenticationError,
+  InvalidAuthenticationError,
   EmailAuthenticationRequiredError,
   AuthenticationProviderDisabledError,
 } from "@server/errors";
@@ -62,7 +63,7 @@ async function accountProvisioner({
       ip,
     });
   } catch (err) {
-    throw AuthenticationError(err.message);
+    throw InvalidAuthenticationError(err.message);
   }
 
   invariant(result, "Team creator result must exist");
