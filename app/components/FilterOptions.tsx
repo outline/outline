@@ -56,6 +56,8 @@ const FilterOptions = ({
           option.label.toLowerCase().includes(value.toLowerCase())
         );
         setFilteredData(filteredData);
+      } else {
+        clearFilter();
       }
     },
     [options]
