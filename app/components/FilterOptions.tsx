@@ -41,12 +41,12 @@ const FilterOptions = <T extends TFilterOption>({
   const menu = useMenuState({
     modal: true,
   });
+  const [filteredData, setFilteredData] = React.useState<T[]>([]);
+
   const selected =
     options.find((option) => option.key === activeKey) || options[0];
 
   const selectedLabel = selected ? `${selectedPrefix} ${selected.label}` : "";
-
-  const [filteredData, setFilteredData] = React.useState<TFilterOption[]>([]);
 
   const clearFilter = React.useCallback(() => {
     setFilteredData(options);
