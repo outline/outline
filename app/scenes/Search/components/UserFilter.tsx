@@ -38,12 +38,13 @@ function UserFilter(props: Props) {
 
   return (
     <FilterOptions
+      options={options}
       activeKey={userId}
       onSelect={onSelect}
-      users={users}
       defaultLabel={t("Any author")}
-      defaultOption={{ id: "", label: t("Any author") }}
       selectedPrefix={`${t("Author")}:`}
+      searchable
+      paginateFetch={users.fetchPage}
     />
   );
 }
