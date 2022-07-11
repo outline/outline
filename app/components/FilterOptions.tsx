@@ -22,6 +22,8 @@ type Props = {
   selectedPrefix?: string;
   className?: string;
   onSelect: (key: string | null | undefined) => void;
+  searchable: boolean;
+  paginateFetch?: (options: any) => Promise<any[] | undefined>;
 };
 
 const FilterOptions = ({
@@ -31,6 +33,8 @@ const FilterOptions = ({
   selectedPrefix = "",
   className,
   onSelect,
+  searchable,
+  paginateFetch,
 }: Props) => {
   const menu = useMenuState({
     modal: true,
