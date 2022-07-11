@@ -1,7 +1,7 @@
 import passport from "@outlinewiki/koa-passport";
 import { Strategy as AzureStrategy } from "@outlinewiki/passport-azure-ad-oauth2";
-import type { Request } from "express";
 import jwt from "jsonwebtoken";
+import type { Context } from "koa";
 import Router from "koa-router";
 import { Profile } from "passport";
 import accountProvisioner, {
@@ -40,7 +40,7 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
       scope: scopes,
     },
     async function (
-      req: Request,
+      req: Context,
       accessToken: string,
       refreshToken: string,
       params: { expires_in: number; id_token: string },

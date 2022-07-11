@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import { addMinutes, subMinutes } from "date-fns";
-import type { Request } from "express";
 import fetch from "fetch-with-proxy";
+import type { Context } from "koa";
 import {
   StateStoreStoreCallback,
   StateStoreVerifyCallback,
@@ -14,7 +14,7 @@ import { AuthRedirectError, OAuthStateMismatchError } from "../errors";
 export class StateStore {
   key = "state";
 
-  store = (req: Request, callback: StateStoreStoreCallback) => {
+  store = (req: Context, callback: StateStoreStoreCallback) => {
     // token is a short lived one-time pad to prevent replay attacks
     // appDomain is the domain the user originated from when attempting auth
     // we expect it to be a team subdomain, custom domain, or apex domain
@@ -32,7 +32,7 @@ export class StateStore {
   };
 
   verify = (
-    req: Request,
+    req: Context,
     providedToken: string,
     callback: StateStoreVerifyCallback
   ) => {
@@ -101,7 +101,7 @@ export function parseState(state: string) {
   return { host, token };
 }
 
-export async function getTeamFromRequest(req: Request) {
+export async function getTeamFromRequest(req: Context) {
   // "domain" is the domain the user came from when attempting auth
   // we use it to infer the team they intend on signing into
   const state = req.cookies.get("state");

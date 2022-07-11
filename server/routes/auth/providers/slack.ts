@@ -1,5 +1,5 @@
 import passport from "@outlinewiki/koa-passport";
-import type { Request } from "express";
+import type { Context } from "koa";
 import Router from "koa-router";
 import { Profile } from "passport";
 import { Strategy as SlackStrategy } from "passport-slack-oauth2";
@@ -63,7 +63,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
       scope: scopes,
     },
     async function (
-      req: Request,
+      req: Context,
       accessToken: string,
       refreshToken: string,
       params: { expires_in: number },

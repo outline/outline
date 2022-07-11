@@ -1,9 +1,10 @@
 import passport from "@outlinewiki/koa-passport";
-import type { Request } from "express";
+import type { Context } from "koa";
 import Router from "koa-router";
 import { capitalize } from "lodash";
 import { Profile } from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth2";
+import { slugifyDomain } from "@shared/utils/domains";
 import accountProvisioner, {
   AccountProvisionerResult,
 } from "@server/commands/accountProvisioner";
@@ -50,7 +51,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
         scope: scopes,
       },
       async function (
-        req: Request,
+        req: Context,
         accessToken: string,
         refreshToken: string,
         params: { expires_in: number },
@@ -68,13 +69,15 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
           const domain = profile._json.hd;
           const team = await getTeamFromRequest(req);
 
+          console.log("TEAM------------------>>", { team });
+
           // Existence of domain means this is a Google Workspaces account
           // so we'll attempt to provision an account (team and user)
           if (domain) {
             // remove the TLD and form a subdomain from the remaining
             // subdomains of the form "foo.bar.com" are allowed as primary Google Workspaces domains
             // see https://support.google.com/nonprofits/thread/19685140/using-a-subdomain-as-a-primary-domain
-            const subdomain = domain.split(".").slice(0, -1).join("-");
+            const subdomain = slugifyDomain(domain);
             const teamName = capitalize(subdomain);
 
             // Request a larger size profile picture than the default by tweaking

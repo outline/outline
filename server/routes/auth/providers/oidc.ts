@@ -1,8 +1,9 @@
 import passport from "@outlinewiki/koa-passport";
-import type { Request } from "express";
+import type { Context } from "koa";
 import Router from "koa-router";
 import { get } from "lodash";
 import { Strategy } from "passport-oauth2";
+import { slugifyDomain } from "@shared/utils/domains";
 import accountProvisioner, {
   AccountProvisionerResult,
 } from "@server/commands/accountProvisioner";
@@ -64,7 +65,7 @@ if (env.OIDC_CLIENT_ID && env.OIDC_CLIENT_SECRET) {
       // Any claim supplied in response to the userinfo request will be
       // available on the `profile` parameter
       async function (
-        req: Request,
+        req: Context,
         accessToken: string,
         refreshToken: string,
         params: { expires_in: number },
@@ -91,7 +92,7 @@ if (env.OIDC_CLIENT_ID && env.OIDC_CLIENT_SECRET) {
           }
 
           // remove the TLD and form a subdomain from the remaining
-          const subdomain = domain.split(".").slice(0, -1).join("-");
+          const subdomain = slugifyDomain(domain);
 
           const result = await accountProvisioner({
             ip: req.ip,
