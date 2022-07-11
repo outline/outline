@@ -23,7 +23,9 @@ type Props = {
   className?: string;
   onSelect: (key: string | null | undefined) => void;
   searchable?: boolean;
-  paginateFetch?: (options: any) => Promise<any[] | undefined>;
+  paginateFetch?: (
+    options: PaginatedItem
+  ) => Promise<PaginatedItem[] | undefined>;
 };
 
 const FilterOptions = ({
