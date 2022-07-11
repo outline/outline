@@ -2,12 +2,22 @@ import httpErrors from "http-errors";
 import env from "./env";
 
 export function AuthenticationError(
-  message = "Invalid authentication",
-  redirectUrl = env.URL
+  message = "Authentication required",
+  redirectUrl = "/"
 ) {
   return httpErrors(401, message, {
     redirectUrl,
     id: "authentication_required",
+  });
+}
+
+export function InvalidAuthenticationError(
+  message = "Invalid authentication",
+  redirectUrl = "/"
+) {
+  return httpErrors(401, message, {
+    redirectUrl,
+    id: "invalid_authentication",
   });
 }
 
