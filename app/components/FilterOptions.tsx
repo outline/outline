@@ -5,6 +5,9 @@ import Button, { Inner } from "~/components/Button";
 import ContextMenu from "~/components/ContextMenu";
 import MenuItem from "~/components/ContextMenu/MenuItem";
 import Text from "~/components/Text";
+import { Outline } from "./Input";
+import InputSearch from "./InputSearch";
+import PaginatedList, { PaginatedItem } from "./PaginatedList";
 
 type TFilterOption = {
   key: string;
@@ -47,26 +50,32 @@ const FilterOptions = ({
         )}
       </MenuButton>
       <ContextMenu aria-label={defaultLabel} {...menu}>
-        {options.map((option) => (
-          <MenuItem
-            key={option.key}
-            onClick={() => {
-              onSelect(option.key);
-              menu.hide();
-            }}
-            selected={option.key === activeKey}
-            {...menu}
-          >
-            {option.note ? (
-              <LabelWithNote>
-                {option.label}
-                <Note>{option.note}</Note>
-              </LabelWithNote>
-            ) : (
-              option.label
-            )}
-          </MenuItem>
-        ))}
+        {searchable && <StyledInputSearch onChange={handleFilter} />}
+        {searchable && <br />}
+        <PaginatedList
+          items={filteredData}
+          fetch={paginateFetch}
+          renderItem={(option: TFilterOption) => (
+            <MenuItem
+              key={option.key}
+              onClick={() => {
+                onSelect(option.key);
+                menu.hide();
+              }}
+              selected={option.key === activeKey}
+              {...menu}
+            >
+              {option.note ? (
+                <LabelWithNote>
+                  {option.label}
+                  <Note>{option.note}</Note>
+                </LabelWithNote>
+              ) : (
+                option.label
+              )}
+            </MenuItem>
+          )}
+        />
       </ContextMenu>
     </Wrapper>
   );
