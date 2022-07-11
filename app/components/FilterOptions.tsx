@@ -40,6 +40,22 @@ const FilterOptions = ({
 
   const selectedLabel = selected ? `${selectedPrefix} ${selected.label}` : "";
 
+  const [filteredData, setFilteredData] = React.useState<TFilterOption[]>([]);
+
+  // Simple case-insensitive filter to
+  // check if text appears in any author's name.
+  const handleFilter = React.useCallback(
+    (event) => {
+      const { value } = event.target;
+      if (value) {
+        const filteredData = options.filter((option) =>
+          option.label.toLowerCase().includes(value.toLowerCase())
+        );
+        setFilteredData(filteredData);
+      }
+    },
+    [options]
+  );
   return (
     <Wrapper>
       <MenuButton {...menu}>
