@@ -110,4 +110,23 @@ const Wrapper = styled.div`
   margin-right: 8px;
 `;
 
+// `position: sticky` leaves a bit of space above the search box,
+// which shows author names moving past behind it.
+const StyledInputSearch = styled(InputSearch)`
+  position: absolute;
+  border: none;
+  top: 0;
+  z-index: 1;
+  ${Outline} {
+    border-top-style: unset;
+    border-right-style: unset;
+    border-left-style: unset;
+    border-radius: unset;
+    font-size: 14px;
+    input {
+      margin-left: 8px;
+    }
+  }
+`;
+
 export default FilterOptions;
