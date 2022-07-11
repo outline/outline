@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import PaginatedDropdown from "~/components/PaginatedDropdown";
+import FilterOptions from "~/components/FilterOptions";
 import useStores from "~/hooks/useStores";
 
 type Props = {
@@ -14,8 +14,28 @@ function UserFilter(props: Props) {
   const { t } = useTranslation();
   const { users } = useStores();
 
+  React.useEffect(() => {
+    users.fetchPage({
+      limit: 100,
+    });
+  }, [users]);
+
+  const options = React.useMemo(() => {
+    const userOptions = users.all.map((user) => ({
+      key: user.id,
+      label: user.name,
+    }));
+    return [
+      {
+        key: "",
+        label: t("Any author"),
+      },
+      ...userOptions,
+    ];
+  }, [users.all, t]);
+
   return (
-    <PaginatedDropdown
+    <FilterOptions
       activeKey={userId}
       onSelect={onSelect}
       users={users}
