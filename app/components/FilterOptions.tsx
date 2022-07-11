@@ -64,6 +64,11 @@ const FilterOptions = ({
   const clearFilter = React.useCallback(() => {
     setFilteredData(options);
   }, [options]);
+
+  React.useEffect(() => {
+    setFilteredData(options);
+  }, [options]);
+
   return (
     <Wrapper>
       <MenuButton {...menu} onClick={clearFilter}>
