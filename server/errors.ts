@@ -1,5 +1,4 @@
 import httpErrors from "http-errors";
-import env from "./env";
 
 export function AuthenticationError(
   message = "Authentication required",
@@ -122,7 +121,7 @@ export function MaximumTeamsError(
 
 export function EmailAuthenticationRequiredError(
   message = "User must authenticate with email",
-  redirectUrl = env.URL
+  redirectUrl = "/"
 ) {
   return httpErrors(400, message, {
     redirectUrl,
@@ -174,7 +173,7 @@ export function OIDCMalformedUserInfoError(
 
 export function AuthenticationProviderDisabledError(
   message = "Authentication method has been disabled by an admin",
-  redirectUrl = env.URL
+  redirectUrl = "/"
 ) {
   return httpErrors(400, message, {
     redirectUrl,
