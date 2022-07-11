@@ -69,8 +69,6 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
           const domain = profile._json.hd;
           const team = await getTeamFromRequest(req);
 
-          console.log("TEAM------------------>>", { team });
-
           // Existence of domain means this is a Google Workspaces account
           // so we'll attempt to provision an account (team and user)
           if (domain) {
