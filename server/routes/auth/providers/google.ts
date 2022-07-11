@@ -16,7 +16,7 @@ import {
 } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
 import { User } from "@server/models";
-import { StateStore, getTeamFromRequest } from "@server/utils/passport";
+import { StateStore, getTeamFromContext } from "@server/utils/passport";
 
 const router = new Router();
 const providerName = "google";
@@ -51,7 +51,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
         scope: scopes,
       },
       async function (
-        req: Context,
+        ctx: Context,
         accessToken: string,
         refreshToken: string,
         params: { expires_in: number },
@@ -67,7 +67,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
 
           // "domain" is the Google Workspaces domain
           const domain = profile._json.hd;
-          const team = await getTeamFromRequest(req);
+          const team = await getTeamFromContext(ctx);
 
           // Existence of domain means this is a Google Workspaces account
           // so we'll attempt to provision an account (team and user)
@@ -86,7 +86,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
             // that team in particular; otherwise, we will do a best effort at finding their account
             // or provisioning a new one (within AccountProvisioner)
             result = await accountProvisioner({
-              ip: req.ip,
+              ip: ctx.ip,
               team: {
                 id: team?.id,
                 name: teamName,

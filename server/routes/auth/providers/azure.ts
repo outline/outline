@@ -14,7 +14,7 @@ import { User } from "@server/models";
 import {
   StateStore,
   request,
-  getTeamFromRequest,
+  getTeamFromContext,
 } from "@server/utils/passport";
 
 const router = new Router();
@@ -40,7 +40,7 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
       scope: scopes,
     },
     async function (
-      req: Context,
+      ctx: Context,
       accessToken: string,
       refreshToken: string,
       params: { expires_in: number; id_token: string },
@@ -92,13 +92,13 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
           );
         }
 
-        const team = await getTeamFromRequest(req);
+        const team = await getTeamFromContext(ctx);
 
         const domain = email.split("@")[1];
         const subdomain = domain.split(".")[0];
         const teamName = organization.displayName;
         const result = await accountProvisioner({
-          ip: req.ip,
+          ip: ctx.ip,
           team: {
             id: team?.id,
             name: teamName,

@@ -17,7 +17,7 @@ import { User } from "@server/models";
 import {
   StateStore,
   request,
-  getTeamFromRequest,
+  getTeamFromContext,
 } from "@server/utils/passport";
 
 const router = new Router();
@@ -65,7 +65,7 @@ if (env.OIDC_CLIENT_ID && env.OIDC_CLIENT_SECRET) {
       // Any claim supplied in response to the userinfo request will be
       // available on the `profile` parameter
       async function (
-        req: Context,
+        ctx: Context,
         accessToken: string,
         refreshToken: string,
         params: { expires_in: number },
@@ -82,7 +82,7 @@ if (env.OIDC_CLIENT_ID && env.OIDC_CLIENT_SECRET) {
               `An email field was not returned in the profile parameter, but is required.`
             );
           }
-          const team = await getTeamFromRequest(req);
+          const team = await getTeamFromContext(ctx);
 
           const parts = profile.email.toLowerCase().split("@");
           const domain = parts.length && parts[1];
@@ -95,7 +95,7 @@ if (env.OIDC_CLIENT_ID && env.OIDC_CLIENT_SECRET) {
           const subdomain = slugifyDomain(domain);
 
           const result = await accountProvisioner({
-            ip: req.ip,
+            ip: ctx.ip,
             team: {
               id: team?.id,
               // https://github.com/outline/outline/pull/2388#discussion_r681120223

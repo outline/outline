@@ -14,29 +14,29 @@ import { AuthRedirectError, OAuthStateMismatchError } from "../errors";
 export class StateStore {
   key = "state";
 
-  store = (req: Context, callback: StateStoreStoreCallback) => {
+  store = (ctx: Context, callback: StateStoreStoreCallback) => {
     // token is a short lived one-time pad to prevent replay attacks
     // appDomain is the domain the user originated from when attempting auth
     // we expect it to be a team subdomain, custom domain, or apex domain
     const token = crypto.randomBytes(8).toString("hex");
-    const appDomain = parseDomain(req.hostname);
+    const appDomain = parseDomain(ctx.hostname);
     const state = buildState(appDomain.host, token);
 
-    req.cookies.set(this.key, state, {
+    ctx.cookies.set(this.key, state, {
       httpOnly: false,
       expires: addMinutes(new Date(), 10),
-      domain: getCookieDomain(req.hostname),
+      domain: getCookieDomain(ctx.hostname),
     });
 
     callback(null, token);
   };
 
   verify = (
-    req: Context,
+    ctx: Context,
     providedToken: string,
     callback: StateStoreVerifyCallback
   ) => {
-    const state = req.cookies.get(this.key);
+    const state = ctx.cookies.get(this.key);
 
     if (!state) {
       return callback(
@@ -53,10 +53,10 @@ export class StateStore {
     // If there is an error during auth, the user will end up on the same domain
     // that they started from.
     const appDomain = parseDomain(host);
-    if (appDomain.host !== parseDomain(req.hostname).host) {
-      const reqProtocol = req.protocol;
-      const requestHost = req.get("host");
-      const requestPath = req.originalUrl;
+    if (appDomain.host !== parseDomain(ctx.hostname).host) {
+      const reqProtocol = ctx.protocol;
+      const requestHost = ctx.get("host");
+      const requestPath = ctx.originalUrl;
       const requestUrl = `${reqProtocol}://${requestHost}${requestPath}`;
       const url = new URL(requestUrl);
 
@@ -66,10 +66,10 @@ export class StateStore {
     }
 
     // Destroy the one-time pad token and ensure it matches
-    req.cookies.set(this.key, "", {
+    ctx.cookies.set(this.key, "", {
       httpOnly: false,
       expires: subMinutes(new Date(), 1),
-      domain: getCookieDomain(req.hostname),
+      domain: getCookieDomain(ctx.hostname),
     });
 
     if (!token || token !== providedToken) {
@@ -101,11 +101,11 @@ export function parseState(state: string) {
   return { host, token };
 }
 
-export async function getTeamFromRequest(req: Context) {
+export async function getTeamFromContext(ctx: Context) {
   // "domain" is the domain the user came from when attempting auth
   // we use it to infer the team they intend on signing into
-  const state = req.cookies.get("state");
-  const host = state ? parseState(state).host : req.hostname;
+  const state = ctx.cookies.get("state");
+  const host = state ? parseState(state).host : ctx.hostname;
   const domain = parseDomain(host);
 
   let team;

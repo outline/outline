@@ -16,7 +16,7 @@ import {
   Team,
   User,
 } from "@server/models";
-import { getTeamFromRequest, StateStore } from "@server/utils/passport";
+import { getTeamFromContext, StateStore } from "@server/utils/passport";
 import * as Slack from "@server/utils/slack";
 import { assertPresent, assertUuid } from "@server/validation";
 
@@ -63,7 +63,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
       scope: scopes,
     },
     async function (
-      req: Context,
+      ctx: Context,
       accessToken: string,
       refreshToken: string,
       params: { expires_in: number },
@@ -75,9 +75,9 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
       ) => void
     ) {
       try {
-        const team = await getTeamFromRequest(req);
+        const team = await getTeamFromContext(ctx);
         const result = await accountProvisioner({
-          ip: req.ip,
+          ip: ctx.ip,
           team: {
             id: team?.id,
             name: profile.team.name,
