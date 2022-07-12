@@ -2523,10 +2523,10 @@
     "@types/events" "*"
     "@types/node" "*"
 
-"@types/formidable@^2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@types/formidable/-/formidable-2.0.0.tgz#7100d6121871c6300e16c89cf4002f3b66157359"
-  integrity sha512-oqgX7AxK7R+NxI2kEGHV2ZqKHJ2MgGOSp2rZxpq2DMrX59h5FVkEJpUhscvqMktDCY3CQ1uqIdC+heVmJ0xTbg==
+"@types/formidable@^2.0.5":
+  version "2.0.5"
+  resolved "https://registry.yarnpkg.com/@types/formidable/-/formidable-2.0.5.tgz#e54e31d242ef750ac2d05aa163fa0274c8e6ef9c"
+  integrity sha512-uvMcdn/KK3maPOaVUAc3HEYbCEhjaGFwww4EsX6IJfWIJ1tzHtDHczuImH3GKdusPnAAmzB07St90uabZeCKPA==
   dependencies:
     "@types/node" "*"
 
@@ -9791,14 +9791,6 @@ koa-compress@^5.1.0:
     http-errors "^1.8.0"
     koa-is-json "^1.0.0"
     statuses "^2.0.1"
-
-koa-convert@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/koa-convert/-/koa-convert-1.2.0.tgz#da40875df49de0539098d1700b50820cebcd21d0"
-  integrity sha1-2kCHXfSd4FOQmNFwC1CCDOvNIdA=
-  dependencies:
-    co "^4.6.0"
-    koa-compose "^3.0.0"
 
 koa-convert@^2.0.0:
   version "2.0.0"
