@@ -36,7 +36,7 @@ export default class CleanupDemotedUserTask extends BaseTask<Props> {
         );
       }
 
-      if (user.isSuspended) {
+      if (user.isSuspended || user.isViewer) {
         const apiKeys = await ApiKey.findAll({
           where: {
             userId: props.userId,
