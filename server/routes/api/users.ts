@@ -44,6 +44,16 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
     teamId: actor.teamId,
   };
 
+  // Filter out suspended users if we're not an admin
+  if (!actor.isAdmin) {
+    where = {
+      ...where,
+      suspendedAt: {
+        [Op.eq]: null,
+      },
+    };
+  }
+
   switch (filter) {
     case "invited": {
       where = { ...where, lastActiveAt: null };
