@@ -467,7 +467,7 @@ describe("#users.demote", () => {
     expect(body).toMatchSnapshot();
   });
 
-  it("should not demote admins if only one available", async () => {
+  it("should not allow demoting self", async () => {
     const admin = await buildAdmin();
     const res = await server.post("/api/users.demote", {
       body: {
