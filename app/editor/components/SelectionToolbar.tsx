@@ -182,10 +182,13 @@ export default class SelectionToolbar extends React.Component<Props> {
     const { state } = view;
     const { selection }: { selection: any } = state;
     const isCodeSelection = isNodeActive(state.schema.nodes.code_block)(state);
+    const isCodeInlineSelection = isMarkActive(state.schema.marks.code_inline)(
+      state
+    );
     const isDividerSelection = isNodeActive(state.schema.nodes.hr)(state);
 
     // toolbar is disabled in code blocks, no bold / italic etc
-    if (isCodeSelection) {
+    if (isCodeSelection || isCodeInlineSelection) {
       return null;
     }
 
