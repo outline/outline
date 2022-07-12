@@ -157,6 +157,7 @@ const Wrapper = styled.div`
 // which shows author names moving past behind it.
 const StyledInputSearch = styled(InputSearch)`
   position: absolute;
+  width: 100%;
   border: none;
   top: 0;
   z-index: 1;
