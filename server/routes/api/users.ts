@@ -61,12 +61,14 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
     }
 
     case "suspended": {
-      where = {
-        ...where,
-        suspendedAt: {
-          [Op.ne]: null,
-        },
-      };
+      if (actor.isAdmin) {
+        where = {
+          ...where,
+          suspendedAt: {
+            [Op.ne]: null,
+          },
+        };
+      }
       break;
     }
 
