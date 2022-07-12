@@ -9,6 +9,7 @@ import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
 import getColumnIndex from "@shared/editor/queries/getColumnIndex";
 import getMarkRange from "@shared/editor/queries/getMarkRange";
 import getRowIndex from "@shared/editor/queries/getRowIndex";
+import isInCode from "@shared/editor/queries/isInCode";
 import isMarkActive from "@shared/editor/queries/isMarkActive";
 import isNodeActive from "@shared/editor/queries/isNodeActive";
 import { MenuItem } from "@shared/editor/types";
@@ -181,14 +182,10 @@ export default class SelectionToolbar extends React.Component<Props> {
     const { view } = rest;
     const { state } = view;
     const { selection }: { selection: any } = state;
-    const isCodeSelection = isNodeActive(state.schema.nodes.code_block)(state);
-    const isCodeInlineSelection = isMarkActive(state.schema.marks.code_inline)(
-      state
-    );
     const isDividerSelection = isNodeActive(state.schema.nodes.hr)(state);
 
     // toolbar is disabled in code blocks, no bold / italic etc
-    if (isCodeSelection || isCodeInlineSelection) {
+    if (isInCode(state)) {
       return null;
     }
 
