@@ -9,14 +9,15 @@ import { Outline } from "./Input";
 import InputSearch from "./InputSearch";
 import PaginatedList, { PaginatedItem } from "./PaginatedList";
 
-type TFilterOption = PaginatedItem & {
+type TFilterOption = {
+  id: string;
   key: string;
   label: string;
   note?: string;
 };
 
-type Props<T> = {
-  options: T[];
+type Props = {
+  options: TFilterOption[];
   activeKey: string | null | undefined;
   defaultLabel?: string;
   selectedPrefix?: string;
@@ -25,10 +26,10 @@ type Props<T> = {
   searchable?: boolean;
   paginateFetch?: (
     options: PaginatedItem
-  ) => Promise<PaginatedItem[] | undefined>;
+  ) => Promise<TFilterOption[] | undefined>;
 };
 
-const FilterOptions = <T extends TFilterOption>({
+const FilterOptions = ({
   options,
   activeKey = "",
   defaultLabel = "Filter options",
@@ -37,11 +38,11 @@ const FilterOptions = <T extends TFilterOption>({
   onSelect,
   searchable,
   paginateFetch,
-}: Props<T>) => {
+}: Props) => {
   const menu = useMenuState({
     modal: true,
   });
-  const [filteredData, setFilteredData] = React.useState<T[]>([]);
+  const [filteredData, setFilteredData] = React.useState<TFilterOption[]>([]);
 
   const selected =
     options.find((option) => option.key === activeKey) || options[0];
