@@ -339,7 +339,7 @@
   "Name": "名前",
   "Sort": "並べ替え",
   "Saving": "保存",
-  "Save": "セーブ",
+  "Save": "保存",
   "Export started, you will receive an email when it’s complete.": "エクスポートが開始されました。完了するとメールが届きます。",
   "Exporting the collection <em>{{collectionName}}</em> may take a few seconds. Your documents will be a zip of folders with files in Markdown format. Please visit the Export section on settings to get the zip.": "Exporting the collection <em>{{collectionName}}</em> may take a few seconds. Your documents will be a zip of folders with files in Markdown format. Please visit the Export section on settings to get the zip.",
   "Exporting": "エクスポート中",
