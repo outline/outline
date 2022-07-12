@@ -119,7 +119,7 @@ const downloadImageNode = async (node: ProsemirrorNode) => {
   const image = await fetch(node.attrs.src);
   const imageBlob = await image.blob();
   const imageURL = URL.createObjectURL(imageBlob);
-  const extension = imageBlob.type.split("/")[1];
+  const extension = imageBlob.type.split("/")[1].split("+")[0];
   const potentialName = node.attrs.alt || "image";
 
   // create a temporary link node and click it with our image data
