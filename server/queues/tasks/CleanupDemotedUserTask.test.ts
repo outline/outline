@@ -6,22 +6,11 @@ import {
   buildWebhookSubscription,
 } from "@server/test/factories";
 import { flushdb } from "@server/test/support";
-import CleanupSuspendedUserTask from "./CleanupSuspendedUserTask";
+import CleanupDemotedUserTask from "./CleanupDemotedUserTask";
 
 beforeEach(() => flushdb());
 
-describe("CleanupSuspendedUserTask", () => {
-  it("should do nothing if user is no longer suspended", async () => {
-    const user = await buildUser();
-    const apiKey = await buildApiKey({
-      userId: user.id,
-    });
-
-    const task = new CleanupSuspendedUserTask();
-    await task.perform({ userId: user.id });
-    expect(await ApiKey.findByPk(apiKey.id)).toBeTruthy();
-  });
-
+describe("CleanupDemotedUserTask", () => {
   it("should delete api keys for suspended user", async () => {
     const admin = await buildAdmin();
     const user = await buildUser({
@@ -33,7 +22,7 @@ describe("CleanupSuspendedUserTask", () => {
       userId: user.id,
     });
 
-    const task = new CleanupSuspendedUserTask();
+    const task = new CleanupDemotedUserTask();
     await task.perform({ userId: user.id });
     expect(await ApiKey.findByPk(apiKey.id)).toBeNull();
   });
@@ -50,7 +39,7 @@ describe("CleanupSuspendedUserTask", () => {
       createdById: user.id,
     });
 
-    const task = new CleanupSuspendedUserTask();
+    const task = new CleanupDemotedUserTask();
     await task.perform({ userId: user.id });
 
     await webhook.reload();
