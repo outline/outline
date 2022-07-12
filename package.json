@@ -226,7 +226,7 @@
     "@types/emoji-regex": "^9.2.0",
     "@types/enzyme": "^3.10.10",
     "@types/enzyme-adapter-react-16": "^1.0.6",
-    "@types/formidable": "^2.0.0",
+    "@types/formidable": "^2.0.5",
     "@types/fs-extra": "^9.0.13",
     "@types/fuzzy-search": "^2.1.2",
     "@types/google.analytics": "^0.0.42",
