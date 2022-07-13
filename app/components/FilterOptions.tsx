@@ -42,10 +42,12 @@ const FilterOptions = ({
   const menu = useMenuState({
     modal: true,
   });
-  const [filteredData, setFilteredData] = React.useState<TFilterOption[]>([]);
+  const [filteredOptions, setFilteredOptions] = React.useState<TFilterOption[]>(
+    []
+  );
 
   React.useEffect(() => {
-    setFilteredData(options);
+    setFilteredOptions(options);
   }, [options]);
 
   const selected =
@@ -54,7 +56,7 @@ const FilterOptions = ({
   const selectedLabel = selected ? `${selectedPrefix} ${selected.label}` : "";
 
   const clearFilter = React.useCallback(() => {
-    setFilteredData(options);
+    setFilteredOptions(options);
   }, [options]);
 
   // Simple case-insensitive filter to
@@ -63,10 +65,10 @@ const FilterOptions = ({
     (event) => {
       const { value } = event.target;
       if (value) {
-        const filteredData = options.filter((option) =>
+        const filteredOptions = options.filter((option) =>
           option.label.toLowerCase().includes(value.toLowerCase())
         );
-        setFilteredData(filteredData);
+        setFilteredOptions(filteredOptions);
       } else {
         clearFilter();
       }
@@ -87,7 +89,7 @@ const FilterOptions = ({
         {searchable && <StyledInputSearch onChange={handleFilter} />}
         {searchable && <br />}
         <PaginatedList
-          items={filteredData}
+          items={filteredOptions}
           fetch={paginateFetch}
           renderItem={(option: TFilterOption) => (
             <MenuItem
