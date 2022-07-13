@@ -1,6 +1,9 @@
+import { compact } from "lodash";
+import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import FilterOptions from "~/components/FilterOptions";
+import useCurrentUser from "~/hooks/useCurrentUser";
 
 type Props = {
   activeKey: string;
@@ -9,34 +12,41 @@ type Props = {
 
 const UserStatusFilter = ({ activeKey, onSelect, ...rest }: Props) => {
   const { t } = useTranslation();
+  const user = useCurrentUser();
+
   const options = React.useMemo(
-    () => [
-      {
-        key: "",
-        label: t("Active"),
-      },
-      {
-        key: "all",
-        label: t("Everyone"),
-      },
-      {
-        key: "admins",
-        label: t("Admins"),
-      },
-      {
-        key: "suspended",
-        label: t("Suspended"),
-      },
-      {
-        key: "invited",
-        label: t("Invited"),
-      },
-      {
-        key: "viewers",
-        label: t("Viewers"),
-      },
-    ],
-    [t]
+    () =>
+      compact([
+        {
+          key: "",
+          label: t("Active"),
+        },
+        {
+          key: "all",
+          label: t("Everyone"),
+        },
+        {
+          key: "admins",
+          label: t("Admins"),
+        },
+        ...(user.isAdmin
+          ? [
+              {
+                key: "suspended",
+                label: t("Suspended"),
+              },
+            ]
+          : []),
+        {
+          key: "invited",
+          label: t("Invited"),
+        },
+        {
+          key: "viewers",
+          label: t("Viewers"),
+        },
+      ]),
+    [t, user.isAdmin]
   );
 
   return (
@@ -50,4 +60,4 @@ const UserStatusFilter = ({ activeKey, onSelect, ...rest }: Props) => {
   );
 };
 
-export default UserStatusFilter;
+export default observer(UserStatusFilter);
