@@ -1,9 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import User from "~/models/User";
 import FilterOptions from "~/components/FilterOptions";
-import { PaginatedItem } from "~/components/PaginatedList";
 import useStores from "~/hooks/useStores";
 
 type Props = {
@@ -38,18 +36,6 @@ function UserFilter(props: Props) {
     ];
   }, [users.all, t]);
 
-  const paginateFetch = React.useCallback(
-    async (options: PaginatedItem) => {
-      const list = await users.fetchPage(options);
-      return list.map((user: User) => ({
-        key: user.id,
-        id: user.id,
-        label: user.name,
-      }));
-    },
-    [users]
-  );
-
   return (
     <FilterOptions
       options={options}
@@ -58,7 +44,7 @@ function UserFilter(props: Props) {
       defaultLabel={t("Any author")}
       selectedPrefix={`${t("Author")}:`}
       searchable
-      paginateFetch={paginateFetch}
+      paginateFetch={users.fetchPage}
     />
   );
 }
