@@ -1,4 +1,5 @@
 import { some } from "lodash";
+import CodeIcon from "outline-icons/lib/components/CodeIcon";
 import { NodeSelection, TextSelection } from "prosemirror-state";
 import { CellSelection } from "prosemirror-tables";
 import { EditorView } from "prosemirror-view";
@@ -9,7 +10,6 @@ import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
 import getColumnIndex from "@shared/editor/queries/getColumnIndex";
 import getMarkRange from "@shared/editor/queries/getMarkRange";
 import getRowIndex from "@shared/editor/queries/getRowIndex";
-import isInCode from "@shared/editor/queries/isInCode";
 import isMarkActive from "@shared/editor/queries/isMarkActive";
 import isNodeActive from "@shared/editor/queries/isNodeActive";
 import { MenuItem } from "@shared/editor/types";
@@ -182,10 +182,14 @@ export default class SelectionToolbar extends React.Component<Props> {
     const { view } = rest;
     const { state } = view;
     const { selection }: { selection: any } = state;
+    const isCodeSelection = isNodeActive(state.schema.nodes.code_block)(state);
+    const isCodeInlineSelection = isMarkActive(state.schema.marks.code_inline)(
+      state
+    );
     const isDividerSelection = isNodeActive(state.schema.nodes.hr)(state);
 
     // toolbar is disabled in code blocks, no bold / italic etc
-    if (isInCode(state)) {
+    if (isCodeSelection) {
       return null;
     }
 
@@ -199,7 +203,17 @@ export default class SelectionToolbar extends React.Component<Props> {
     const isImageSelection = selection.node?.type?.name === "image";
 
     let items: MenuItem[] = [];
-    if (isTableSelection) {
+    if (isCodeInlineSelection) {
+      const { schema } = state;
+      items = [
+        {
+          name: "code_inline",
+          tooltip: dictionary.codeInline,
+          icon: CodeIcon,
+          active: isMarkActive(schema.marks.code_inline),
+        },
+      ];
+    } else if (isTableSelection) {
       items = getTableMenuItems(dictionary);
     } else if (colIndex !== undefined) {
       items = getTableColMenuItems(state, colIndex, rtl, dictionary);
