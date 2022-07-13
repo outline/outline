@@ -197,9 +197,6 @@ export default class SelectionToolbar extends React.Component<Props> {
     const link = isMarkActive(state.schema.marks.link)(state);
     const range = getMarkRange(selection.$from, state.schema.marks.link);
     const isImageSelection = selection.node?.type?.name === "image";
-    const isCodeInlineSelection = isMarkActive(state.schema.marks.code_inline)(
-      state
-    );
 
     let items: MenuItem[] = [];
     if (isTableSelection) {
@@ -230,12 +227,6 @@ export default class SelectionToolbar extends React.Component<Props> {
     items = filterExcessSeparators(items);
     if (!items.length) {
       return null;
-    }
-
-    // Only "code_inline" option should be visible if
-    // it's an inline code selection.
-    if (isCodeInlineSelection) {
-      items.map((item) => (item.visible = item.name === "code_inline"));
     }
 
     return (
