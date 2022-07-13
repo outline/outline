@@ -26,7 +26,7 @@ type Props = {
   searchable?: boolean;
   paginateFetch?: (
     options: PaginatedItem
-  ) => Promise<TFilterOption[] | undefined>;
+  ) => Promise<PaginatedItem[] | undefined>;
 };
 
 const FilterOptions = ({
