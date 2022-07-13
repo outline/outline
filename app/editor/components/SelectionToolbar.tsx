@@ -1,5 +1,4 @@
 import { some } from "lodash";
-import CodeIcon from "outline-icons/lib/components/CodeIcon";
 import { NodeSelection, TextSelection } from "prosemirror-state";
 import { CellSelection } from "prosemirror-tables";
 import { EditorView } from "prosemirror-view";
@@ -183,9 +182,6 @@ export default class SelectionToolbar extends React.Component<Props> {
     const { state } = view;
     const { selection }: { selection: any } = state;
     const isCodeSelection = isNodeActive(state.schema.nodes.code_block)(state);
-    const isCodeInlineSelection = isMarkActive(state.schema.marks.code_inline)(
-      state
-    );
     const isDividerSelection = isNodeActive(state.schema.nodes.hr)(state);
 
     // toolbar is disabled in code blocks, no bold / italic etc
@@ -201,19 +197,12 @@ export default class SelectionToolbar extends React.Component<Props> {
     const link = isMarkActive(state.schema.marks.link)(state);
     const range = getMarkRange(selection.$from, state.schema.marks.link);
     const isImageSelection = selection.node?.type?.name === "image";
+    const isCodeInlineSelection = isMarkActive(state.schema.marks.code_inline)(
+      state
+    );
 
     let items: MenuItem[] = [];
-    if (isCodeInlineSelection) {
-      const { schema } = state;
-      items = [
-        {
-          name: "code_inline",
-          tooltip: dictionary.codeInline,
-          icon: CodeIcon,
-          active: isMarkActive(schema.marks.code_inline),
-        },
-      ];
-    } else if (isTableSelection) {
+    if (isTableSelection) {
       items = getTableMenuItems(dictionary);
     } else if (colIndex !== undefined) {
       items = getTableColMenuItems(state, colIndex, rtl, dictionary);
@@ -241,6 +230,12 @@ export default class SelectionToolbar extends React.Component<Props> {
     items = filterExcessSeparators(items);
     if (!items.length) {
       return null;
+    }
+
+    // Only "code_inline" option should be visible if
+    // it's an inline code selection.
+    if (isCodeInlineSelection) {
+      items.map((item) => (item.visible = item.name === "code_inline"));
     }
 
     return (
