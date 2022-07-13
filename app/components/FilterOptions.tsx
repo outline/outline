@@ -44,6 +44,10 @@ const FilterOptions = ({
   });
   const [filteredData, setFilteredData] = React.useState<TFilterOption[]>([]);
 
+  React.useEffect(() => {
+    setFilteredData(options);
+  }, [options]);
+
   const selected =
     options.find((option) => option.key === activeKey) || options[0];
 
@@ -69,10 +73,6 @@ const FilterOptions = ({
     },
     [clearFilter, options]
   );
-
-  React.useEffect(() => {
-    setFilteredData(options);
-  }, [options]);
 
   return (
     <Wrapper>
