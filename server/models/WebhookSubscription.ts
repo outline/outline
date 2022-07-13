@@ -8,6 +8,7 @@ import {
   DataType,
   IsUrl,
 } from "sequelize-typescript";
+import { SaveOptions } from "sequelize/types";
 import { Event } from "@server/types";
 import Team from "./Team";
 import User from "./User";
@@ -55,7 +56,18 @@ class WebhookSubscription extends ParanoidModel {
   teamId: string;
 
   // methods
-  validForEvent = (event: Event): bool => {
+
+  /**
+   * Disables the webhook subscription
+   *
+   * @param options Save options
+   * @returns Promise<void>
+   */
+  public async disable(options?: SaveOptions<WebhookSubscription>) {
+    return this.update({ enabled: false }, options);
+  }
+
+  public validForEvent = (event: Event): bool => {
     if (this.events.length === 1 && this.events[0] === "*") {
       return true;
     }

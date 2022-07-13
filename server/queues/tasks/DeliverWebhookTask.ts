@@ -586,7 +586,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
 
     if (recentDeliveries.length === 25 && allFailed) {
       // If the last 25 deliveries failed, disable the subscription
-      await subscription.update({ enabled: false });
+      await subscription.disable();
 
       // Send an email to the creator of the webhook to let them know
       const [createdBy, team] = await Promise.all([
