@@ -46,6 +46,11 @@ export enum UserFlag {
   InviteReminderSent = "inviteReminderSent",
 }
 
+export enum UserRole {
+  Member = "member",
+  Viewer = "viewer",
+}
+
 @Scopes(() => ({
   withAuthentications: {
     include: [
@@ -373,10 +378,10 @@ class User extends ParanoidModel {
     );
   };
 
-  demote = async (teamId: string, to: "member" | "viewer") => {
+  demote = async (to: UserRole, options?: SaveOptions<User>) => {
     const res = await (this.constructor as typeof User).findAndCountAll({
       where: {
-        teamId,
+        teamId: this.teamId,
         isAdmin: true,
         id: {
           [Op.ne]: this.id,
@@ -387,15 +392,21 @@ class User extends ParanoidModel {
 
     if (res.count >= 1) {
       if (to === "member") {
-        return this.update({
-          isAdmin: false,
-          isViewer: false,
-        });
+        return this.update(
+          {
+            isAdmin: false,
+            isViewer: false,
+          },
+          options
+        );
       } else if (to === "viewer") {
-        return this.update({
-          isAdmin: false,
-          isViewer: true,
-        });
+        return this.update(
+          {
+            isAdmin: false,
+            isViewer: true,
+          },
+          options
+        );
       }
 
       return undefined;

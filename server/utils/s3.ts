@@ -226,6 +226,7 @@ export const getSignedUrl = async (key: string, expiresInMs = 60) => {
     Bucket: AWS_S3_UPLOAD_BUCKET_NAME,
     Key: key,
     Expires: expiresInMs,
+    ResponseContentDisposition: "attachment",
   };
 
   const url = isDocker

@@ -1,5 +1,6 @@
 import Router from "koa-router";
 import { Op, WhereOptions } from "sequelize";
+import userDemoter from "@server/commands/userDemoter";
 import userDestroyer from "@server/commands/userDestroyer";
 import userInviter from "@server/commands/userInviter";
 import userSuspender from "@server/commands/userSuspender";
@@ -10,7 +11,7 @@ import { ValidationError } from "@server/errors";
 import logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import { Event, User, Team } from "@server/models";
-import { UserFlag } from "@server/models/User";
+import { UserFlag, UserRole } from "@server/models/User";
 import { can, authorize } from "@server/policies";
 import { presentUser, presentPolicies } from "@server/presenters";
 import {
@@ -44,6 +45,16 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
     teamId: actor.teamId,
   };
 
+  // Filter out suspended users if we're not an admin
+  if (!actor.isAdmin) {
+    where = {
+      ...where,
+      suspendedAt: {
+        [Op.eq]: null,
+      },
+    };
+  }
+
   switch (filter) {
     case "invited": {
       where = { ...where, lastActiveAt: null };
@@ -61,12 +72,14 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
     }
 
     case "suspended": {
-      where = {
-        ...where,
-        suspendedAt: {
-          [Op.ne]: null,
-        },
-      };
+      if (actor.isAdmin) {
+        where = {
+          ...where,
+          suspendedAt: {
+            [Op.ne]: null,
+          },
+        };
+      }
       break;
     }
 
@@ -211,23 +224,21 @@ router.post("users.promote", auth(), async (ctx) => {
 
 router.post("users.demote", auth(), async (ctx) => {
   const userId = ctx.body.id;
-  const teamId = ctx.state.user.teamId;
   let { to } = ctx.body;
-  const actor = ctx.state.user;
+  const actor = ctx.state.user as User;
   assertPresent(userId, "id is required");
-  to = to === "viewer" ? "viewer" : "member";
-  const user = await User.findByPk(userId);
+
+  to = (to === "viewer" ? "viewer" : "member") as UserRole;
+
+  const user = await User.findByPk(userId, {
+    rejectOnEmpty: true,
+  });
   authorize(actor, "demote", user);
 
-  await user.demote(teamId, to);
-  await Event.create({
-    name: "users.demote",
+  await userDemoter({
+    to,
+    user,
     actorId: actor.id,
-    userId,
-    teamId,
-    data: {
-      name: user.name,
-    },
     ip: ctx.request.ip,
   });
   const includeDetails = can(actor, "readDetails", user);
@@ -244,7 +255,9 @@ router.post("users.suspend", auth(), async (ctx) => {
   const userId = ctx.body.id;
   const actor = ctx.state.user;
   assertPresent(userId, "id is required");
-  const user = await User.findByPk(userId);
+  const user = await User.findByPk(userId, {
+    rejectOnEmpty: true,
+  });
   authorize(actor, "suspend", user);
 
   await userSuspender({

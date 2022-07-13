@@ -16,6 +16,7 @@ import {
   FileOperation,
   WebhookSubscription,
   WebhookDelivery,
+  ApiKey,
 } from "@server/models";
 import {
   FileOperationState,
@@ -23,6 +24,18 @@ import {
 } from "@server/models/FileOperation";
 
 let count = 1;
+
+export async function buildApiKey(overrides: Partial<ApiKey> = {}) {
+  if (!overrides.userId) {
+    const user = await buildUser();
+    overrides.userId = user.id;
+  }
+
+  return ApiKey.create({
+    name: "My API Key",
+    ...overrides,
+  });
+}
 
 export async function buildShare(overrides: Partial<Share> = {}) {
   if (!overrides.teamId) {
