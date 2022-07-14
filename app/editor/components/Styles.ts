@@ -329,10 +329,10 @@ const EditorStyles = styled.div<{
    * to inlined content if they are a leaf node.
    * It makes sure empty paragraphs take up space and
    * solves some edge case cursor positioning issues
-   * at the end of a block that in a break or non-editable node.
+   * at the end of a block, especially in a break or non-editable node.
    * In this case that works adversarially because of
    * the way span elements take up space.
-   * This fixes this problem by essentially
+   * This fixes the problem by essentially
    * 'emulating' a 'span' with a 'div' element.
    */
   .emoji {
