@@ -325,6 +325,20 @@ const EditorStyles = styled.div<{
     }
   }
 
+  /* Prosmirror adds a 'br' tag with class 'ProseMirror-trailingBreak'
+   * to inlined content if they are a leaf node.
+   * It makes sure empty paragraphs take up space and
+   * solves some edge case cursor positioning issues
+   * at the end of a block that in a break or non-editable node.
+   * In this case that works adversarially because of
+   * the way span elements take up space.
+   * This fixes this problem by essentially
+   * 'emulating' a 'span' with a 'div' element.
+   */
+  .emoji {
+    display: inline-block;
+  }
+
   .with-emoji {
     margin-${(props) => (props.rtl ? "right" : "left")}: -1em;
   }

@@ -22,7 +22,7 @@ export default class Emoji extends Node {
     return {
       attrs: {
         style: {
-          default: "display: inline-block",
+          default: "",
         },
         "data-name": {
           default: undefined,
@@ -39,7 +39,6 @@ export default class Emoji extends Node {
           preserveWhitespace: "full",
           getAttrs: (dom: HTMLDivElement) => ({
             "data-name": dom.dataset.name,
-            style: "display: inline-block",
           }),
         },
       ],
@@ -53,7 +52,6 @@ export default class Emoji extends Node {
             {
               class: `emoji ${node.attrs["data-name"]}`,
               "data-name": node.attrs["data-name"],
-              style: "display: inline-block",
             },
             text,
           ];
