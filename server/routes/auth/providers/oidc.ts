@@ -25,6 +25,7 @@ const providerName = "oidc";
 const OIDC_AUTH_URI = env.OIDC_AUTH_URI || "";
 const OIDC_TOKEN_URI = env.OIDC_TOKEN_URI || "";
 const OIDC_USERINFO_URI = env.OIDC_USERINFO_URI || "";
+const OIDC_GROUPS_CLAIM = env.OIDC_GROUPS_CLAIM;
 
 export const config = {
   name: env.OIDC_DISPLAY_NAME,
@@ -94,6 +95,16 @@ if (env.OIDC_CLIENT_ID && env.OIDC_CLIENT_SECRET) {
           // remove the TLD and form a subdomain from the remaining
           const subdomain = slugifyDomain(domain);
 
+          let groups: undefined | string[];
+          if (OIDC_GROUPS_CLAIM && profile[OIDC_GROUPS_CLAIM]) {
+            if (!Array.isArray(profile[OIDC_GROUPS_CLAIM])) {
+              throw AuthenticationError(
+                "The groups claim in the profile parameter that was returned must be an array."
+              );
+            }
+            groups = (profile[OIDC_GROUPS_CLAIM] as unknown) as string[];
+          }
+
           const result = await accountProvisioner({
             ip: ctx.ip,
             team: {
@@ -115,6 +126,7 @@ if (env.OIDC_CLIENT_ID && env.OIDC_CLIENT_SECRET) {
               name: providerName,
               providerId: domain,
             },
+            groups,
             authentication: {
               providerId: profile.sub,
               accessToken,

@@ -11,6 +11,7 @@ import { APM } from "@server/logging/tracing";
 import { Collection, Team, User } from "@server/models";
 import teamCreator from "./teamCreator";
 import userCreator from "./userCreator";
+import userGroupsUpdater from "./userGroupUpdater.js";
 
 type Props = {
   ip: string;
@@ -27,6 +28,7 @@ type Props = {
     subdomain: string;
     avatarUrl?: string | null;
   };
+  groups: string[] | undefined;
   authenticationProvider: {
     name: string;
     providerId: string;
@@ -51,6 +53,7 @@ async function accountProvisioner({
   ip,
   user: userParams,
   team: teamParams,
+  groups: groupsParam,
   authenticationProvider: authenticationProviderParams,
   authentication: authenticationParams,
 }: Props): Promise<AccountProvisionerResult> {
@@ -117,6 +120,10 @@ async function accountProvisioner({
       if (provision) {
         await team.provisionFirstCollection(user.id);
       }
+    }
+
+    if (groupsParam) {
+      await userGroupsUpdater(user, groupsParam);
     }
 
     return {
