@@ -6,26 +6,25 @@ export default async function userGroupsUpdater(
   user: User,
   groupNames: string[]
 ) {
+  groupNames = Array.from(new Set(groupNames));
   const groups = [];
   for (const groupName of groupNames) {
-    const group = await Group.findOne({
+    let group = await Group.findOne({
       where: {
         name: groupName,
       },
     });
-    if (group) {
-      groups.push(group);
-    } else {
-      const group = await Group.create({
+    if (!group) {
+      group = await Group.create({
         name: groupName,
         // TODO: Who should be the group's creator?
         teamId: user.teamId,
         createdById: user.id,
       });
-      groups.push(group);
     }
+    groups.push(group);
   }
-  const groupIds = groups.map((group) => group.id);
+  const nextGroupIds = groups.map((group) => group.id);
 
   const oldGroupUsers = await GroupUser.findAll({
     where: {
@@ -36,12 +35,12 @@ export default async function userGroupsUpdater(
   const oldGroupIds = oldGroupUsers.map((groupUser) => groupUser.groupId);
 
   for (const groupUser of oldGroupUsers) {
-    if (groupIds.indexOf(groupUser.groupId) === -1) {
+    if (!nextGroupIds.includes(groupUser.groupId)) {
       await groupUser.destroy();
     }
   }
-  for (const groupId of groupIds) {
-    if (oldGroupIds.indexOf(groupId) === -1) {
+  for (const groupId of nextGroupIds) {
+    if (!oldGroupIds.includes(groupId)) {
       await GroupUser.create({
         groupId,
         userId: user.id,
