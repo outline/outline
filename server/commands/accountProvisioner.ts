@@ -28,7 +28,7 @@ type Props = {
     subdomain: string;
     avatarUrl?: string | null;
   };
-  groups: string[] | undefined;
+  groups?: string[];
   authenticationProvider: {
     name: string;
     providerId: string;
