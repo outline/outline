@@ -22,7 +22,7 @@ export default class Emoji extends Node {
     return {
       attrs: {
         style: {
-          default: "",
+          default: "display: inline-block",
         },
         "data-name": {
           default: undefined,
@@ -35,10 +35,11 @@ export default class Emoji extends Node {
       selectable: false,
       parseDOM: [
         {
-          tag: "span.emoji",
+          tag: "div.emoji",
           preserveWhitespace: "full",
           getAttrs: (dom: HTMLDivElement) => ({
             "data-name": dom.dataset.name,
+            style: "display: inline-block",
           }),
         },
       ],
@@ -48,16 +49,17 @@ export default class Emoji extends Node {
             nameToEmoji[node.attrs["data-name"]]
           );
           return [
-            "span",
+            "div",
             {
               class: `emoji ${node.attrs["data-name"]}`,
               "data-name": node.attrs["data-name"],
+              style: "display: inline-block",
             },
             text,
           ];
         }
         const text = document.createTextNode(`:${node.attrs["data-name"]}:`);
-        return ["span", { class: "emoji" }, text];
+        return ["div", { class: "emoji" }, text];
       },
       toPlainText: (node) => nameToEmoji[node.attrs["data-name"]],
     };
