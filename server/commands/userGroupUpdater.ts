@@ -30,7 +30,6 @@ export default async function userGroupsUpdater(
   const oldGroupUsers = await GroupUser.findAll({
     where: {
       userId: user.id,
-      createdById: user.id,
     },
   });
 
