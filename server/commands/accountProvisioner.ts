@@ -11,7 +11,7 @@ import { APM } from "@server/logging/tracing";
 import { Collection, Team, User } from "@server/models";
 import teamCreator from "./teamCreator";
 import userCreator from "./userCreator";
-import userGroupsUpdater from "./userGroupUpdater.js";
+import userGroupsUpdater from "./userGroupUpdater";
 
 type Props = {
   ip: string;
