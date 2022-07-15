@@ -36,8 +36,16 @@ function Security() {
     defaultUserRole: team.defaultUserRole,
     memberCollectionCreate: team.memberCollectionCreate,
     inviteRequired: team.inviteRequired,
-    allowedDomains: team.allowedDomains,
   });
+
+  const [allowedDomains, setAllowedDomains] = useState([
+    ...(team.allowedDomains ?? []),
+  ]);
+  const [lastKnownDomainCount, updateLastKnownDomainCount] = useState(
+    allowedDomains.length
+  );
+
+  const [existingDomainsTouched, setExistingDomainsTouched] = useState(false);
 
   const authenticationMethods = team.signinMethods;
 
@@ -51,17 +59,13 @@ function Security() {
     [showToast, t]
   );
 
-  const [domainsChanged, setDomainsChanged] = useState(false);
-
   const saveData = React.useCallback(
     async (newData) => {
       try {
         setData(newData);
         await auth.updateTeam(newData);
         showSuccessMessage();
-        setDomainsChanged(false);
       } catch (err) {
-        setDomainsChanged(true);
         showToast(err.message, {
           type: "error",
         });
@@ -76,6 +80,21 @@ function Security() {
     },
     [data, saveData]
   );
+
+  const handleSaveDomains = React.useCallback(async () => {
+    try {
+      await auth.updateTeam({
+        allowedDomains,
+      });
+      showSuccessMessage();
+      setExistingDomainsTouched(false);
+      updateLastKnownDomainCount(allowedDomains.length);
+    } catch (err) {
+      showToast(err.message, {
+        type: "error",
+      });
+    }
+  }, [auth, allowedDomains, showSuccessMessage, showToast]);
 
   const handleDefaultRoleChange = React.useCallback(
     async (newDefaultRole: string) => {
@@ -123,33 +142,40 @@ function Security() {
   );
 
   const handleRemoveDomain = async (index: number) => {
-    const newData = {
-      ...data,
-    };
-    newData.allowedDomains && newData.allowedDomains.splice(index, 1);
+    const newDomains = allowedDomains.filter((_, i) => index !== i);
 
-    setData(newData);
-    setDomainsChanged(true);
+    setAllowedDomains(newDomains);
+
+    const touchedExistingDomain = index < lastKnownDomainCount;
+    if (touchedExistingDomain) {
+      setExistingDomainsTouched(true);
+    }
   };
 
   const handleAddDomain = () => {
-    const newData = {
-      ...data,
-      allowedDomains: [...(data.allowedDomains || []), ""],
-    };
+    const newDomains = [...allowedDomains, ""];
 
-    setData(newData);
+    setAllowedDomains(newDomains);
   };
 
   const createOnDomainChangedHandler = (index: number) => (
     ev: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const newData = { ...data };
+    const newDomains = allowedDomains.slice();
 
-    newData.allowedDomains![index] = ev.currentTarget.value;
-    setData(newData);
-    setDomainsChanged(true);
+    newDomains[index] = ev.currentTarget.value;
+    setAllowedDomains(newDomains);
+
+    const touchedExistingDomain = index < lastKnownDomainCount;
+    if (touchedExistingDomain) {
+      setExistingDomainsTouched(true);
+    }
   };
+
+  const showSaveChanges =
+    existingDomainsTouched ||
+    allowedDomains.filter((value: string) => value !== "").length > // New domains were added
+      lastKnownDomainCount;
 
   return (
     <Scene title={t("Security")} icon={<PadlockIcon color="currentColor" />}>
@@ -264,35 +290,34 @@ function Security() {
             "The domains which should be allowed to create new accounts using SSO. Changing this setting does not affect existing user accounts."
           )}
         >
-          {data.allowedDomains &&
-            data.allowedDomains.map((domain, index) => (
-              <Flex key={index} gap={4}>
-                <Input
-                  key={index}
-                  id={`allowedDomains${index}`}
-                  value={domain}
-                  autoFocus={!domain}
-                  placeholder="example.com"
-                  required
-                  flex
-                  onChange={createOnDomainChangedHandler(index)}
-                />
-                <Remove>
-                  <Tooltip tooltip={t("Remove domain")} placement="top">
-                    <NudeButton onClick={() => handleRemoveDomain(index)}>
-                      <CloseIcon />
-                    </NudeButton>
-                  </Tooltip>
-                </Remove>
-              </Flex>
-            ))}
+          {allowedDomains.map((domain, index) => (
+            <Flex key={index} gap={4}>
+              <Input
+                key={index}
+                id={`allowedDomains${index}`}
+                value={domain}
+                autoFocus={!domain}
+                placeholder="example.com"
+                required
+                flex
+                onChange={createOnDomainChangedHandler(index)}
+              />
+              <Remove>
+                <Tooltip tooltip={t("Remove domain")} placement="top">
+                  <NudeButton onClick={() => handleRemoveDomain(index)}>
+                    <CloseIcon />
+                  </NudeButton>
+                </Tooltip>
+              </Remove>
+            </Flex>
+          ))}
 
           <Flex justify="space-between" gap={4} style={{ flexWrap: "wrap" }}>
-            {!data.allowedDomains?.length ||
-            data.allowedDomains[data.allowedDomains.length - 1] !== "" ? (
+            {!allowedDomains.length ||
+            allowedDomains[allowedDomains.length - 1] !== "" ? (
               <Fade>
                 <Button type="button" onClick={handleAddDomain} neutral>
-                  {data.allowedDomains?.length ? (
+                  {allowedDomains.length ? (
                     <Trans>Add another</Trans>
                   ) : (
                     <Trans>Add a domain</Trans>
@@ -303,11 +328,11 @@ function Security() {
               <span />
             )}
 
-            {domainsChanged && (
+            {showSaveChanges && (
               <Fade>
                 <Button
                   type="button"
-                  onClick={handleChange}
+                  onClick={handleSaveDomains}
                   disabled={auth.isSaving}
                 >
                   <Trans>Save changes</Trans>
