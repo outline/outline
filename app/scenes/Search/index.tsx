@@ -262,6 +262,14 @@ function Search(props: Props) {
   const results = documents.searchResults(query);
   const showEmpty = !isLoading && query && results?.length === 0;
 
+  // Set `InputSearch` box value when
+  // `term` changes.
+  React.useEffect(() => {
+    if (searchInputRef.current) {
+      searchInputRef.current.value = term;
+    }
+  }, [term]);
+
   return (
     <Scene textTitle={title}>
       <RegisterKeyDown trigger="Escape" handler={goBack} />
