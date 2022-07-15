@@ -21,7 +21,7 @@ function UserFilter(props: Props) {
   }, [users]);
 
   const options = React.useMemo(() => {
-    const userOptions = users.all.map((user) => ({
+    const userOptions = users.unorderedData.map((user) => ({
       key: user.id,
       id: user.id,
       label: user.name,

@@ -68,7 +68,12 @@ export default class UsersStore extends BaseStore<User> {
 
   @computed
   get orderedData(): User[] {
-    return orderBy(Array.from(this.data.values()), "name", "asc");
+    return orderBy(this.unorderedData, "name", "asc");
+  }
+
+  @computed
+  get unorderedData(): User[] {
+    return Array.from(this.data.values());
   }
 
   @action
