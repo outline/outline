@@ -15,6 +15,7 @@ export default function useDictionary() {
       alignRight: t("Align right"),
       bulletList: t("Bulleted list"),
       checkboxList: t("Todo list"),
+      clear: t("Clear"),
       codeBlock: t("Code block"),
       codeCopied: t("Copied to clipboard"),
       codeInline: t("Code"),

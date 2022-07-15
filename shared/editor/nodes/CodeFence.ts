@@ -114,10 +114,15 @@ export default class CodeFence extends Node {
         },
       ],
       toDOM: (node) => {
-        const button = document.createElement("button");
-        button.innerText = this.options.dictionary.copy;
-        button.type = "button";
-        button.addEventListener("click", this.handleCopyToClipboard);
+        const copyButton = document.createElement("button");
+        copyButton.innerText = this.options.dictionary.copy;
+        copyButton.type = "button";
+        copyButton.addEventListener("click", this.handleCopyToClipboard);
+
+        const removeButton = document.createElement("button");
+        removeButton.innerText = this.options.dictionary.clear;
+        removeButton.type = "button";
+        removeButton.addEventListener("click", this.handleClearFormatting);
 
         const select = document.createElement("select");
         select.addEventListener("change", this.handleLanguageChange);
@@ -125,7 +130,8 @@ export default class CodeFence extends Node {
         const actions = document.createElement("div");
         actions.className = "code-actions";
         actions.appendChild(select);
-        actions.appendChild(button);
+        actions.appendChild(copyButton);
+        actions.appendChild(removeButton);
 
         this.languageOptions.forEach(([key, label]) => {
           const option = document.createElement("option");
@@ -227,6 +233,32 @@ export default class CodeFence extends Node {
       if (node) {
         copy(node.textContent);
         this.options.onShowToast(this.options.dictionary.codeCopied);
+      }
+    }
+  };
+
+  handleClearFormatting = (event: MouseEvent) => {
+    const element = event.currentTarget;
+    if (!(element instanceof HTMLButtonElement)) {
+      return;
+    }
+
+    const { view } = this.editor;
+    const { top, left } = element.getBoundingClientRect();
+    const { tr } = view.state;
+
+    const result = view.posAtCoords({ top, left });
+
+    if (result) {
+      const node = view.state.doc.nodeAt(result.pos);
+      if (node) {
+        const starting = view.state.doc.resolve(result.inside);
+        const transaction = tr.setBlockType(
+          starting.pos,
+          starting.pos + node.nodeSize,
+          view.state.schema.nodes.paragraph
+        );
+        view.dispatch(transaction);
       }
     }
   };
