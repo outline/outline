@@ -22,7 +22,7 @@ type Props = {
   selectedPrefix?: string;
   className?: string;
   onSelect: (key: string | null | undefined) => void;
-  searchable?: boolean;
+  search?: (query: string) => Promise<TFilterOption[]>;
   paginateFetch?: (
     options: PaginatedItem
   ) => Promise<PaginatedItem[] | undefined>;
@@ -35,7 +35,7 @@ const FilterOptions = ({
   selectedPrefix = "",
   className,
   onSelect,
-  searchable,
+  search,
   paginateFetch,
 }: Props) => {
   const menu = useMenuState({
@@ -62,14 +62,22 @@ const FilterOptions = ({
   // Simple case-insensitive filter to
   // check if text appears in any author's name.
   const handleFilter = React.useCallback(
-    (event) => {
+    async (event) => {
       const { value } = event.target;
       if (value) {
-        const search = options.filter((option) =>
+        const res = options.filter((option) =>
           option.label.toLowerCase().includes(value.toLowerCase())
         );
 
-        setFilteredOptions(search);
+        if (search) {
+          const more = await search(value);
+          const missing = more.filter(
+            (item) => !res.map((r) => r.key).includes(item.key)
+          );
+          setFilteredOptions([...missing, ...res]);
+        } else {
+          setFilteredOptions(res);
+        }
       } else {
         // Clears filter options cache.
         // This part fires off when search term is "".
@@ -79,7 +87,7 @@ const FilterOptions = ({
         clearFilter();
       }
     },
-    [clearFilter, options]
+    [clearFilter, options, search]
   );
 
   return (
@@ -92,8 +100,8 @@ const FilterOptions = ({
         )}
       </MenuButton>
       <ContextMenu aria-label={defaultLabel} {...menu}>
-        {searchable && <StyledInputSearch onChange={handleFilter} />}
-        {searchable && <br />}
+        {search && <StyledInputSearch onChange={handleFilter} />}
+        {search && <br />}
         <PaginatedList
           items={filteredOptions}
           fetch={paginateFetch}

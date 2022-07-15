@@ -34,7 +34,19 @@ function UserFilter(props: Props) {
       },
       ...userOptions,
     ];
-  }, [users.all, t]);
+  }, [users.unorderedData, t]);
+
+  const search = React.useCallback(
+    async (query: string) => {
+      const res = await users.find(query);
+      return res.map((user) => ({
+        key: user.id,
+        id: user.id,
+        label: user.name,
+      }));
+    },
+    [users]
+  );
 
   return (
     <FilterOptions
@@ -43,7 +55,7 @@ function UserFilter(props: Props) {
       onSelect={onSelect}
       defaultLabel={t("Any author")}
       selectedPrefix={`${t("Author")}:`}
-      searchable
+      search={search}
       paginateFetch={users.fetchPage}
     />
   );
