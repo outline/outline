@@ -158,6 +158,14 @@ export default class UsersStore extends BaseStore<User> {
   };
 
   @action
+  async find(name: string): Promise<User[]> {
+    const res = await client.post(`/users.list`, {
+      query: name,
+    });
+    return res.data;
+  }
+
+  @action
   async delete(user: User, options: Record<string, any> = {}) {
     super.delete(user, options);
 
