@@ -73,7 +73,7 @@ const FilterOptions = ({
       } else {
         // Clears filter options cache.
         // This part fires off when search term is "".
-        // Either by user clearing at entirely or
+        // Either by user clearing it entirely or
         // by deleting one character at a time,
         // gradually decreasing relevance.
         clearFilter();
