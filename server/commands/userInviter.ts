@@ -6,7 +6,7 @@ import Logger from "@server/logging/Logger";
 import { User, Event, Team } from "@server/models";
 import { UserFlag } from "@server/models/User";
 
-type Invite = {
+export type Invite = {
   name: string;
   email: string;
   role: Role;
