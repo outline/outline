@@ -42,6 +42,7 @@ const FilterOptions = ({
   const menu = useMenuState({
     modal: true,
   });
+
   const [filteredOptions, setFilteredOptions] = React.useState<TFilterOption[]>(
     []
   );
@@ -65,11 +66,17 @@ const FilterOptions = ({
     (event) => {
       const { value } = event.target;
       if (value) {
-        const filteredOptions = options.filter((option) =>
+        const search = options.filter((option) =>
           option.label.toLowerCase().includes(value.toLowerCase())
         );
-        setFilteredOptions(filteredOptions);
+
+        setFilteredOptions(search);
       } else {
+        // Clears filter options cache.
+        // This part fires off when search term is "".
+        // Either by user clearing at entirely or
+        // by deleting one character at a time,
+        // gradually decreasing relevance.
         clearFilter();
       }
     },
