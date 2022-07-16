@@ -117,7 +117,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
   router.get(
     "slack.commands",
     auth({
-      required: false,
+      optional: true,
     }),
     async (ctx) => {
       const { code, state, error } = ctx.request.query;
@@ -135,9 +135,11 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
       if (!user) {
         if (state) {
           try {
-            const team = await Team.findByPk(state as string);
+            const team = await Team.findByPk(String(state), {
+              rejectOnEmpty: true,
+            });
             return ctx.redirect(
-              `${team!.url}/auth${ctx.request.path}?${ctx.request.querystring}`
+              `${team.url}/auth${ctx.request.path}?${ctx.request.querystring}`
             );
           } catch (err) {
             return ctx.redirect(
@@ -152,8 +154,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
       }
 
       const endpoint = `${env.URL}/auth/slack.commands`;
-      // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string | string[] | undefined' i... Remove this comment to see the full error message
-      const data = await Slack.oauthAccess(code, endpoint);
+      const data = await Slack.oauthAccess(String(code), endpoint);
       const authentication = await IntegrationAuthentication.create({
         service: "slack",
         userId: user.id,
@@ -178,7 +179,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
   router.get(
     "slack.post",
     auth({
-      required: false,
+      optional: true,
     }),
     async (ctx) => {
       const { code, error, state } = ctx.request.query;
@@ -198,10 +199,17 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
       // appropriate subdomain to complete the oauth flow
       if (!user) {
         try {
-          const collection = await Collection.findByPk(state as string);
-          const team = await Team.findByPk(collection!.teamId);
+          const collection = await Collection.findOne({
+            where: {
+              id: String(state),
+            },
+            rejectOnEmpty: true,
+          });
+          const team = await Team.findByPk(collection.teamId, {
+            rejectOnEmpty: true,
+          });
           return ctx.redirect(
-            `${team!.url}/auth${ctx.request.path}?${ctx.request.querystring}`
+            `${team.url}/auth${ctx.request.path}?${ctx.request.querystring}`
           );
         } catch (err) {
           return ctx.redirect(

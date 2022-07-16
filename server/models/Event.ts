@@ -9,8 +9,10 @@ import {
   IsUUID,
   Table,
   DataType,
+  Length,
 } from "sequelize-typescript";
 import { globalEventQueue } from "../queues";
+import { Event as TEvent } from "../types";
 import Collection from "./Collection";
 import Document from "./Document";
 import Team from "./Team";
@@ -25,6 +27,10 @@ class Event extends IdModel {
   @Column(DataType.UUID)
   modelId: string;
 
+  @Length({
+    max: 255,
+    msg: "name must be 255 characters or less",
+  })
   @Column
   name: string;
 
@@ -106,7 +112,7 @@ class Event extends IdModel {
     );
   }
 
-  static ACTIVITY_EVENTS = [
+  static ACTIVITY_EVENTS: TEvent["name"][] = [
     "collections.create",
     "collections.delete",
     "collections.move",
@@ -123,7 +129,7 @@ class Event extends IdModel {
     "users.create",
   ];
 
-  static AUDIT_EVENTS = [
+  static AUDIT_EVENTS: TEvent["name"][] = [
     "api_keys.create",
     "api_keys.delete",
     "authenticationProviders.update",
@@ -136,7 +142,6 @@ class Event extends IdModel {
     "collections.add_group",
     "collections.remove_group",
     "collections.delete",
-    "collections.export_all",
     "documents.create",
     "documents.publish",
     "documents.update",
@@ -167,6 +172,8 @@ class Event extends IdModel {
     "users.suspend",
     "users.activate",
     "users.delete",
+    "webhook_subscriptions.create",
+    "webhook_subscriptions.delete",
   ];
 }
 

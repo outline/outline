@@ -1,11 +1,10 @@
-import invariant from "invariant";
 import Router from "koa-router";
 import { find } from "lodash";
 import { parseDomain } from "@shared/utils/domains";
 import { sequelize } from "@server/database/sequelize";
 import env from "@server/env";
 import auth from "@server/middlewares/authentication";
-import { Event, Team, TeamDomain } from "@server/models";
+import { Event, Team } from "@server/models";
 import { presentUser, presentTeam, presentPolicies } from "@server/presenters";
 import ValidateSSOAccessTask from "@server/queues/tasks/ValidateSSOAccessTask";
 import providers from "../auth/providers";
@@ -108,10 +107,9 @@ router.post("auth.config", async (ctx) => {
 
 router.post("auth.info", auth(), async (ctx) => {
   const { user } = ctx.state;
-  const team = await Team.findByPk(user.teamId, {
-    include: [{ model: TeamDomain }],
+  const team = await Team.scope("withDomains").findByPk(user.teamId, {
+    rejectOnEmpty: true,
   });
-  invariant(team, "Team not found");
 
   await ValidateSSOAccessTask.schedule({ userId: user.id });
 

@@ -12,7 +12,6 @@
     "plugin:@typescript-eslint/recommended",
     "plugin:import/recommended",
     "plugin:import/typescript",
-    "plugin:react-hooks/recommended",
     "plugin:prettier/recommended"
   ],
   "plugins": [
@@ -21,7 +20,6 @@
     "eslint-plugin-import",
     "eslint-plugin-node",
     "eslint-plugin-react",
-    "eslint-plugin-react-hooks",
     "import"
   ],
   "rules": {

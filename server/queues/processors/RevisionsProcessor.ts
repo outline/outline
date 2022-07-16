@@ -14,7 +14,9 @@ export default class RevisionsProcessor extends BaseProcessor {
     switch (event.name) {
       case "documents.publish":
       case "documents.update.debounced": {
-        const document = await Document.findByPk(event.documentId);
+        const document = await Document.findByPk(event.documentId, {
+          paranoid: false,
+        });
         invariant(document, "Document should exist");
         const previous = await Revision.findLatest(document.id);
 
@@ -28,8 +30,10 @@ export default class RevisionsProcessor extends BaseProcessor {
           return;
         }
 
-        const user = await User.findByPk(event.actorId);
-        invariant(user, "User should exist");
+        const user = await User.findByPk(event.actorId, {
+          paranoid: false,
+          rejectOnEmpty: true,
+        });
         await revisionCreator({
           user,
           document,

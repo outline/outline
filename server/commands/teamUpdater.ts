@@ -97,9 +97,7 @@ const teamUpdater = async ({ params, user, team, ip }: TeamUpdaterProps) => {
     const deletedDomains = existingAllowedDomains.filter(
       (x) => !allowedDomains.includes(x.name)
     );
-    for (const deletedDomain of deletedDomains) {
-      deletedDomain.destroy({ transaction });
-    }
+    await Promise.all(deletedDomains.map((x) => x.destroy({ transaction })));
 
     team.allowedDomains = newAllowedDomains;
   }

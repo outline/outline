@@ -7,11 +7,9 @@ import {
   Column,
   IsIP,
   IsEmail,
-  HasOne,
   Default,
   IsIn,
   BeforeDestroy,
-  BeforeSave,
   BeforeCreate,
   AfterCreate,
   BelongsTo,
@@ -19,13 +17,11 @@ import {
   DataType,
   HasMany,
   Scopes,
+  IsDate,
 } from "sequelize-typescript";
-import { v4 as uuidv4 } from "uuid";
 import { languages } from "@shared/i18n";
 import { stringToColor } from "@shared/utils/color";
 import env from "@server/env";
-import Logger from "@server/logging/Logger";
-import { publicS3Endpoint, uploadToS3FromUrl } from "@server/utils/s3";
 import { ValidationError } from "../errors";
 import ApiKey from "./ApiKey";
 import Collection from "./Collection";
@@ -39,6 +35,8 @@ import Encrypted, {
   getEncryptedColumn,
 } from "./decorators/Encrypted";
 import Fix from "./decorators/Fix";
+import Length from "./validators/Length";
+import NotContainsUrl from "./validators/NotContainsUrl";
 
 /**
  * Flags that are available for setting on the user.
@@ -46,6 +44,11 @@ import Fix from "./decorators/Fix";
 export enum UserFlag {
   InviteSent = "inviteSent",
   InviteReminderSent = "inviteReminderSent",
+}
+
+export enum UserRole {
+  Member = "member",
+  Viewer = "viewer",
 }
 
 @Scopes(() => ({
@@ -87,12 +90,17 @@ export enum UserFlag {
 @Fix
 class User extends ParanoidModel {
   @IsEmail
+  @Length({ max: 255, msg: "User email must be 255 characters or less" })
   @Column
   email: string | null;
 
+  @NotContainsUrl
+  @Length({ max: 255, msg: "User username must be 255 characters or less" })
   @Column
   username: string | null;
 
+  @NotContainsUrl
+  @Length({ max: 255, msg: "User name must be 255 characters or less" })
   @Column
   name: string;
 
@@ -114,6 +122,7 @@ class User extends ParanoidModel {
     setEncryptedColumn(this, "jwtSecret", value);
   }
 
+  @IsDate
   @Column
   lastActiveAt: Date | null;
 
@@ -121,6 +130,7 @@ class User extends ParanoidModel {
   @Column
   lastActiveIp: string | null;
 
+  @IsDate
   @Column
   lastSignedInAt: Date | null;
 
@@ -128,9 +138,11 @@ class User extends ParanoidModel {
   @Column
   lastSignedInIp: string | null;
 
+  @IsDate
   @Column
   lastSigninEmailSentAt: Date | null;
 
+  @IsDate
   @Column
   suspendedAt: Date | null;
 
@@ -142,6 +154,7 @@ class User extends ParanoidModel {
   @Column
   language: string;
 
+  @Length({ max: 1000, msg: "avatarUrl must be less than 1000 characters" })
   @Column(DataType.STRING)
   get avatarUrl() {
     const original = this.getDataValue("avatarUrl");
@@ -164,15 +177,14 @@ class User extends ParanoidModel {
   }
 
   // associations
-
-  @HasOne(() => User, "suspendedById")
+  @BelongsTo(() => User, "suspendedById")
   suspendedBy: User | null;
 
   @ForeignKey(() => User)
   @Column(DataType.UUID)
   suspendedById: string | null;
 
-  @HasOne(() => User, "invitedById")
+  @BelongsTo(() => User, "invitedById")
   invitedBy: User | null;
 
   @ForeignKey(() => User)
@@ -274,7 +286,7 @@ class User extends ParanoidModel {
       .map((c) => c.id);
   };
 
-  updateActiveAt = (ip: string, force = false) => {
+  updateActiveAt = async (ip: string, force = false) => {
     const fiveMinutesAgo = subMinutes(new Date(), 5);
 
     // ensure this is updated only every few minutes otherwise
@@ -292,11 +304,12 @@ class User extends ParanoidModel {
   };
 
   updateSignedIn = (ip: string) => {
-    this.lastSignedInAt = new Date();
+    const now = new Date();
+    this.lastActiveAt = now;
+    this.lastActiveIp = ip;
+    this.lastSignedInAt = now;
     this.lastSignedInIp = ip;
-    return this.save({
-      hooks: false,
-    });
+    return this.save({ hooks: false });
   };
 
   /**
@@ -365,10 +378,10 @@ class User extends ParanoidModel {
     );
   };
 
-  demote = async (teamId: string, to: "member" | "viewer") => {
+  demote = async (to: UserRole, options?: SaveOptions<User>) => {
     const res = await (this.constructor as typeof User).findAndCountAll({
       where: {
-        teamId,
+        teamId: this.teamId,
         isAdmin: true,
         id: {
           [Op.ne]: this.id,
@@ -379,15 +392,21 @@ class User extends ParanoidModel {
 
     if (res.count >= 1) {
       if (to === "member") {
-        return this.update({
-          isAdmin: false,
-          isViewer: false,
-        });
+        return this.update(
+          {
+            isAdmin: false,
+            isViewer: false,
+          },
+          options
+        );
       } else if (to === "viewer") {
-        return this.update({
-          isAdmin: false,
-          isViewer: true,
-        });
+        return this.update(
+          {
+            isAdmin: false,
+            isViewer: true,
+          },
+          options
+        );
       }
 
       return undefined;
@@ -456,34 +475,6 @@ class User extends ParanoidModel {
     });
   };
 
-  @BeforeSave
-  static uploadAvatar = async (model: User) => {
-    const endpoint = publicS3Endpoint();
-    const { avatarUrl } = model;
-
-    if (
-      avatarUrl &&
-      !avatarUrl.startsWith("/api") &&
-      !avatarUrl.startsWith(endpoint) &&
-      !avatarUrl.startsWith(env.DEFAULT_AVATAR_HOST)
-    ) {
-      try {
-        const newUrl = await uploadToS3FromUrl(
-          avatarUrl,
-          `avatars/${model.id}/${uuidv4()}`,
-          "public-read"
-        );
-        if (newUrl) {
-          model.avatarUrl = newUrl;
-        }
-      } catch (err) {
-        Logger.error("Couldn't upload user avatar image to S3", err, {
-          url: avatarUrl,
-        });
-      }
-    }
-  };
-
   @BeforeCreate
   static setRandomJwtSecret = (model: User) => {
     model.jwtSecret = crypto.randomBytes(64).toString("hex");
@@ -518,6 +509,14 @@ class User extends ParanoidModel {
           userId: model.id,
           teamId: model.teamId,
           event: "emails.features",
+        },
+        transaction: options.transaction,
+      }),
+      NotificationSetting.findOrCreate({
+        where: {
+          userId: model.id,
+          teamId: model.teamId,
+          event: "emails.invite_accepted",
         },
         transaction: options.transaction,
       }),

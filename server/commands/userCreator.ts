@@ -1,4 +1,5 @@
-import { Op } from "sequelize";
+import { sequelize } from "@server/database/sequelize";
+import InviteAcceptedEmail from "@server/emails/templates/InviteAcceptedEmail";
 import { DomainNotAllowedError, InviteRequiredError } from "@server/errors";
 import { Event, Team, User, UserAuthentication } from "@server/models";
 
@@ -87,58 +88,86 @@ export default async function userCreator({
   // A `user` record might exist in the form of an invite even if there is no
   // existing authentication record that matches. In Outline an invite is a
   // shell user record.
-  const invite = await User.findOne({
+  const existingUser = await User.scope([
+    "withAuthentications",
+    "withTeam",
+  ]).findOne({
     where: {
       // Email from auth providers may be capitalized and we should respect that
       // however any existing invites will always be lowercased.
       email: email.toLowerCase(),
       teamId,
-      lastActiveAt: {
-        [Op.is]: null,
-      },
     },
-    include: [
-      {
-        model: UserAuthentication,
-        as: "authentications",
-        required: false,
-      },
-    ],
   });
 
   // We have an existing invite for his user, so we need to update it with our
-  // new details and link up the authentication method
-  if (invite && !invite.authentications.length) {
-    const transaction = await User.sequelize!.transaction();
-    let auth;
+  // new details, link up the authentication method, and count this as a new
+  // user creation.
+  if (existingUser) {
+    // A `user` record might exist in the form of an invite.
+    // In Outline an invite is a shell user record with no authentication method
+    // that's never been active before.
+    const isInvite = existingUser.isInvited;
 
-    try {
-      await invite.update(
+    const auth = await sequelize.transaction(async (transaction) => {
+      if (isInvite) {
+        await Event.create(
+          {
+            name: "users.create",
+            actorId: existingUser.id,
+            userId: existingUser.id,
+            teamId: existingUser.teamId,
+            data: {
+              name,
+            },
+            ip,
+          },
+          {
+            transaction,
+          }
+        );
+      }
+
+      // Regardless, create a new authentication record
+      // against the existing user (user can auth with multiple SSO providers)
+      // Update user's name and avatar based on the most recently added provider
+      await existingUser.update(
         {
           name,
           avatarUrl,
+          lastActiveAt: new Date(),
+          lastActiveIp: ip,
         },
         {
           transaction,
         }
       );
-      auth = await invite.$create<UserAuthentication>(
+
+      return await existingUser.$create<UserAuthentication>(
         "authentication",
         authentication,
         {
           transaction,
         }
       );
-      await transaction.commit();
-    } catch (err) {
-      await transaction.rollback();
-      throw err;
+    });
+
+    if (isInvite) {
+      const inviter = await existingUser.$get("invitedBy");
+      if (inviter) {
+        await InviteAcceptedEmail.schedule({
+          to: inviter.email,
+          inviterId: inviter.id,
+          invitedName: existingUser.name,
+          teamUrl: existingUser.team.url,
+        });
+      }
     }
 
     return {
-      user: invite,
+      user: existingUser,
       authentication: auth,
-      isNewUser: true,
+      isNewUser: isInvite,
     };
   }
 
@@ -151,9 +180,9 @@ export default async function userCreator({
       transaction,
     });
 
-    // If the team settings are set to require invites, and the user is not already invited,
+    // If the team settings are set to require invites, and there's no existing user record,
     // throw an error and fail user creation.
-    if (team?.inviteRequired && !invite) {
+    if (team?.inviteRequired) {
       throw InviteRequiredError();
     }
 

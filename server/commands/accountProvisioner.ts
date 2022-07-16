@@ -61,6 +61,7 @@ async function accountProvisioner({
       subdomain: teamParams.subdomain,
       avatarUrl: teamParams.avatarUrl,
       authenticationProvider: authenticationProviderParams,
+      ip,
     });
   } catch (err) {
     throw AuthenticationError(err.message);

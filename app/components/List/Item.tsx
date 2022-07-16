@@ -69,7 +69,11 @@ const ListItem = (
   );
 };
 
-const Wrapper = styled.a<{ $small?: boolean; $border?: boolean; to?: string }>`
+const Wrapper = styled.a<{
+  $small?: boolean;
+  $border?: boolean;
+  to?: string;
+}>`
   display: flex;
   padding: ${(props) => (props.$border === false ? 0 : "8px 0")};
   margin: ${(props) =>

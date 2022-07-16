@@ -1,3 +1,4 @@
+import { LocationDescriptor } from "history";
 import { CheckmarkIcon } from "outline-icons";
 import * as React from "react";
 import { MenuItem as BaseMenuItem } from "reakit/Menu";
@@ -10,7 +11,7 @@ type Props = {
   selected?: boolean;
   disabled?: boolean;
   dangerous?: boolean;
-  to?: string;
+  to?: LocationDescriptor;
   href?: string;
   target?: "_blank";
   as?: string | React.ComponentType<any>;

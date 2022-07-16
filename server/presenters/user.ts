@@ -20,10 +20,7 @@ type UserPresentation = {
   language?: string;
 };
 
-export default (
-  user: User,
-  options: Options = {}
-): UserPresentation | null | undefined => {
+export default (user: User, options: Options = {}): UserPresentation => {
   const userData: UserPresentation = {
     id: user.id,
     name: user.name,

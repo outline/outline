@@ -1,4 +1,3 @@
-import invariant from "invariant";
 import Router from "koa-router";
 import { Op } from "sequelize";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
@@ -45,7 +44,9 @@ router.post("groups.list", auth(), pagination(), async (ctx) => {
             .slice(0, MAX_AVATAR_DISPLAY)
         )
         .flat()
-        .map(presentGroupMembership),
+        .map((membership) =>
+          presentGroupMembership(membership, { includeUser: true })
+        ),
     },
     policies: presentPolicies(user, groups),
   };
@@ -78,8 +79,7 @@ router.post("groups.create", auth(), async (ctx) => {
   });
 
   // reload to get default scope
-  const group = await Group.findByPk(g.id);
-  invariant(group, "group not found");
+  const group = await Group.findByPk(g.id, { rejectOnEmpty: true });
 
   await Event.create({
     name: "groups.create",
@@ -191,7 +191,9 @@ router.post("groups.memberships", auth(), pagination(), async (ctx) => {
   ctx.body = {
     pagination: ctx.state.pagination,
     data: {
-      groupMemberships: memberships.map(presentGroupMembership),
+      groupMemberships: memberships.map((membership) =>
+        presentGroupMembership(membership, { includeUser: true })
+      ),
       users: memberships.map((membership) => presentUser(membership.user)),
     },
   };
@@ -227,12 +229,11 @@ router.post("groups.add_user", auth(), async (ctx) => {
         groupId: id,
         userId,
       },
+      rejectOnEmpty: true,
     });
-    invariant(membership, "membership not found");
 
     // reload to get default scope
-    group = await Group.findByPk(id);
-    invariant(group, "group not found");
+    group = await Group.findByPk(id, { rejectOnEmpty: true });
 
     await Event.create({
       name: "groups.add_user",
@@ -250,7 +251,9 @@ router.post("groups.add_user", auth(), async (ctx) => {
   ctx.body = {
     data: {
       users: [presentUser(user)],
-      groupMemberships: [presentGroupMembership(membership)],
+      groupMemberships: [
+        presentGroupMembership(membership, { includeUser: true }),
+      ],
       groups: [presentGroup(group)],
     },
   };
@@ -281,8 +284,7 @@ router.post("groups.remove_user", auth(), async (ctx) => {
   });
 
   // reload to get default scope
-  group = await Group.findByPk(id);
-  invariant(group, "group not found");
+  group = await Group.findByPk(id, { rejectOnEmpty: true });
 
   ctx.body = {
     data: {

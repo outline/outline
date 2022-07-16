@@ -1,8 +1,34 @@
+import { execSync } from "child_process";
 import chalk from "chalk";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import AuthenticationProvider from "@server/models/AuthenticationProvider";
 import Team from "@server/models/Team";
+
+export function checkPendingMigrations() {
+  const commandResult = execSync("yarn sequelize db:migrate:status");
+  const commandResultArray = Buffer.from(commandResult)
+    .toString("utf-8")
+    .split("\n");
+
+  const pendingMigrations = commandResultArray.filter((line) =>
+    line.startsWith("down")
+  );
+
+  if (pendingMigrations.length) {
+    Logger.warn("You have pending migrations");
+    Logger.warn(
+      pendingMigrations
+        .map((line, i) => `${i + 1}. ${line.replace("down ", "")}`)
+        .join("\n")
+    );
+    Logger.warn(
+      "Please run `yarn db:migrate` or `yarn db:migrate --env production-ssl-disabled` to run all pending migrations"
+    );
+
+    process.exit(1);
+  }
+}
 
 export async function checkMigrations() {
   if (env.DEPLOYMENT === "hosted") {

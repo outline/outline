@@ -55,13 +55,21 @@ import References from "./References";
 
 const AUTOSAVE_DELAY = 3000;
 
+type Params = {
+  documentSlug: string;
+  revisionId?: string;
+  shareId?: string;
+};
+
+type LocationState = {
+  title?: string;
+  restore?: boolean;
+  revisionId?: string;
+};
+
 type Props = WithTranslation &
   RootStore &
-  RouteComponentProps<
-    Record<string, string>,
-    StaticContext,
-    { restore?: boolean; revisionId?: string }
-  > & {
+  RouteComponentProps<Params, StaticContext, LocationState> & {
     sharedTree?: NavigationNode;
     abilities: Record<string, any>;
     document: Document;

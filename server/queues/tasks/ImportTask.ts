@@ -1,4 +1,3 @@
-import invariant from "invariant";
 import { truncate } from "lodash";
 import attachmentCreator from "@server/commands/attachmentCreator";
 import documentCreator from "@server/commands/documentCreator";
@@ -79,8 +78,9 @@ export default abstract class ImportTask extends BaseTask<Props> {
    * @param props The props
    */
   public async perform({ fileOperationId }: Props) {
-    const fileOperation = await FileOperation.findByPk(fileOperationId);
-    invariant(fileOperation, "fileOperation not found");
+    const fileOperation = await FileOperation.findByPk(fileOperationId, {
+      rejectOnEmpty: true,
+    });
 
     try {
       Logger.info("task", `ImportTask fetching data for ${fileOperationId}`);
@@ -200,8 +200,8 @@ export default abstract class ImportTask extends BaseTask<Props> {
     return sequelize.transaction(async (transaction) => {
       const user = await User.findByPk(fileOperation.userId, {
         transaction,
+        rejectOnEmpty: true,
       });
-      invariant(user, "User not found");
 
       const ip = user.lastActiveIp || undefined;
 

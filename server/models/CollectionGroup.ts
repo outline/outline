@@ -6,6 +6,7 @@ import {
   IsIn,
   Table,
   DataType,
+  Scopes,
 } from "sequelize-typescript";
 import Collection from "./Collection";
 import Group from "./Group";
@@ -13,6 +14,22 @@ import User from "./User";
 import BaseModel from "./base/BaseModel";
 import Fix from "./decorators/Fix";
 
+@Scopes(() => ({
+  withGroup: {
+    include: [
+      {
+        association: "group",
+      },
+    ],
+  },
+  withCollection: {
+    include: [
+      {
+        association: "collection",
+      },
+    ],
+  },
+}))
 @Table({ tableName: "collection_groups", modelName: "collection_group" })
 @Fix
 class CollectionGroup extends BaseModel {

@@ -11,8 +11,14 @@ import pagination from "./middlewares/pagination";
 const router = new Router();
 
 router.post("shares.info", auth(), async (ctx) => {
-  const { id, documentId, apiVersion } = ctx.body;
-  assertUuid(id || documentId, "id or documentId is required");
+  const { id, documentId } = ctx.body;
+  assertPresent(id || documentId, "id or documentId is required");
+  if (id) {
+    assertUuid(id, "id is must be a uuid");
+  }
+  if (documentId) {
+    assertUuid(documentId, "documentId is must be a uuid");
+  }
 
   const { user } = ctx.state;
   const shares = [];
@@ -35,37 +41,21 @@ router.post("shares.info", auth(), async (ctx) => {
         },
   });
 
-  // Deprecated API response returns just the share for the current documentId
-  if (apiVersion !== 2) {
-    if (!share || !share.document) {
-      ctx.response.status = 204;
-      return;
-    }
-
-    authorize(user, "read", share);
-    ctx.body = {
-      data: presentShare(share, user.isAdmin),
-      policies: presentPolicies(user, [share]),
-    };
-    return;
-  }
-
-  // API version 2 returns the response for the current documentId and any
-  // parent documents that are publicly shared and accessible to the user
+  // We return the response for the current documentId and any parent documents
+  // that are publicly shared and accessible to the user
   if (share && share.document) {
     authorize(user, "read", share);
     shares.push(share);
   }
 
   if (documentId) {
-    const document = await Document.unscoped()
-      .scope("withCollection")
-      .findOne({
-        where: {
-          id: documentId,
-        },
-      });
-    const parentIds = document?.collection?.getDocumentParents(documentId);
+    const document = await Document.findByPk(documentId, {
+      userId: user.id,
+    });
+    authorize(user, "read", document);
+
+    const collection = await document.$get("collection");
+    const parentIds = collection?.getDocumentParents(documentId);
     const parentShare = parentIds
       ? await Share.scope({
           method: ["withCollectionPermissions", user.id],

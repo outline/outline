@@ -13,7 +13,7 @@ import { EditorState, Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import * as React from "react";
 import ReactDOM from "react-dom";
-import { isExternalUrl } from "../../utils/urls";
+import { isExternalUrl, sanitizeHref } from "../../utils/urls";
 import findLinkNodes from "../queries/findLinkNodes";
 import { EventType, Dispatch } from "../types";
 import Mark from "./Mark";
@@ -80,6 +80,7 @@ export default class Link extends Mark {
         "a",
         {
           ...node.attrs,
+          href: sanitizeHref(node.attrs.href),
           rel: "noopener noreferrer nofollow",
         },
         0,
@@ -196,18 +197,25 @@ export default class Link extends Mark {
                   ? event.target.parentNode.href
                   : "");
 
-              const isHashtag = href.startsWith("#");
-              if (isHashtag && this.options.onClickHashtag) {
-                event.stopPropagation();
-                event.preventDefault();
-                this.options.onClickHashtag(href, event);
+              try {
+                const isHashtag = href.startsWith("#");
+                if (isHashtag && this.options.onClickHashtag) {
+                  event.stopPropagation();
+                  event.preventDefault();
+                  this.options.onClickHashtag(href, event);
+                }
+
+                if (this.options.onClickLink) {
+                  event.stopPropagation();
+                  event.preventDefault();
+                  this.options.onClickLink(href, event);
+                }
+              } catch (err) {
+                this.editor.props.onShowToast(
+                  this.options.dictionary.openLinkError
+                );
               }
 
-              if (this.options.onClickLink) {
-                event.stopPropagation();
-                event.preventDefault();
-                this.options.onClickLink(href, event);
-              }
               return true;
             }
 

@@ -6,6 +6,7 @@ import * as React from "react";
 import { io, Socket } from "socket.io-client";
 import RootStore from "~/stores/RootStore";
 import withStores from "~/components/withStores";
+import { AuthorizationError, NotFoundError } from "~/utils/errors";
 import { getVisibilityListener, getPageVisible } from "~/utils/pageVisibility";
 
 type SocketWithAuthentication = Socket & {
@@ -148,7 +149,10 @@ class SocketProvider extends React.Component<Props> {
               force: true,
             });
           } catch (err) {
-            if (err.statusCode === 404 || err.statusCode === 403) {
+            if (
+              err instanceof AuthorizationError ||
+              err instanceof NotFoundError
+            ) {
               documents.remove(documentId);
               return;
             }
@@ -210,7 +214,10 @@ class SocketProvider extends React.Component<Props> {
               force: true,
             });
           } catch (err) {
-            if (err.statusCode === 404 || err.statusCode === 403) {
+            if (
+              err instanceof AuthorizationError ||
+              err instanceof NotFoundError
+            ) {
               documents.removeCollectionDocuments(collectionId);
               memberships.removeCollectionMemberships(collectionId);
               collections.remove(collectionId);
@@ -239,7 +246,10 @@ class SocketProvider extends React.Component<Props> {
               force: true,
             });
           } catch (err) {
-            if (err.statusCode === 404 || err.statusCode === 403) {
+            if (
+              err instanceof AuthorizationError ||
+              err instanceof NotFoundError
+            ) {
               groups.remove(groupId);
             }
           }

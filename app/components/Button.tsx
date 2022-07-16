@@ -1,3 +1,4 @@
+import { LocationDescriptor } from "history";
 import { ExpandedIcon } from "outline-icons";
 import { darken, lighten } from "polished";
 import * as React from "react";
@@ -155,7 +156,7 @@ export type Props<T> = {
   primary?: boolean;
   fullwidth?: boolean;
   as?: T;
-  to?: string;
+  to?: LocationDescriptor;
   borderOnHover?: boolean;
   href?: string;
   "data-on"?: string;
