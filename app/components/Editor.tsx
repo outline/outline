@@ -177,8 +177,9 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
       event.preventDefault();
       event.stopPropagation();
       const files = getDataTransferFiles(event);
+
       const view = ref?.current?.view;
-      if (!view) {
+      if (!view || files.length === 0) {
         return;
       }
 

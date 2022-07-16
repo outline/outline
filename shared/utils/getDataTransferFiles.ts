@@ -1,28 +1,31 @@
 export default function getDataTransferFiles(
-  event:
-    | Event
-    | React.FormEvent<HTMLInputElement>
-    | React.DragEvent<HTMLElement>
+  event: React.DragEvent<HTMLElement> | DragEvent
 ): File[] {
-  let dataTransferItemsList!: FileList | DataTransferItemList;
+  const dt = event.dataTransfer;
 
-  if ("dataTransfer" in event) {
-    const dt = event.dataTransfer;
-
-    if (dt.files && dt.files.length) {
-      dataTransferItemsList = dt.files;
-    } else if (dt.items && dt.items.length) {
-      // During the drag even the dataTransfer.files is null
-      // but Chrome implements some drag store, which is accesible via dataTransfer.items
-      dataTransferItemsList = dt.items;
+  if (dt) {
+    if ("files" in dt && dt.files.length) {
+      return dt.files ? Array.prototype.slice.call(dt.files) : [];
     }
-  } else if (event.target && "files" in event.target) {
-    // @ts-expect-error fallback
-    dataTransferItemsList = event.target.files;
+
+    if ("items" in dt && dt.items.length) {
+      return dt.items
+        ? Array.prototype.slice
+            .call(dt.items)
+            .filter((dt: DataTransferItem) => dt.kind !== "string")
+            .map((dt: DataTransferItem) => dt.getAsFile())
+            .filter(Boolean)
+        : [];
+    }
   }
 
-  // Convert from DataTransferItemsList to the native Array
-  return dataTransferItemsList
-    ? Array.prototype.slice.call(dataTransferItemsList)
+  return [];
+}
+
+export function getEventFiles(
+  event: React.ChangeEvent<HTMLInputElement> | Event
+): File[] {
+  return event.target && "files" in event.target
+    ? Array.prototype.slice.call(event.target.files)
     : [];
 }

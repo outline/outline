@@ -12,7 +12,7 @@ import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
 import { EmbedDescriptor, MenuItem } from "@shared/editor/types";
 import { depths } from "@shared/styles";
 import { supportedImageMimeTypes } from "@shared/utils/files";
-import getDataTransferFiles from "@shared/utils/getDataTransferFiles";
+import { getEventFiles } from "@shared/utils/getDataTransferFiles";
 import Scrollable from "~/components/Scrollable";
 import { Dictionary } from "~/hooks/useDictionary";
 import Input from "./Input";
@@ -275,7 +275,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
   };
 
   handleFilePicked = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = getDataTransferFiles(event);
+    const files = getEventFiles(event);
 
     const {
       view,
@@ -424,7 +424,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
     const embedItems: EmbedDescriptor[] = [];
 
     for (const embed of embeds) {
-      if (embed.title && embed.icon) {
+      if (embed.title) {
         embedItems.push({
           ...embed,
           name: "embed",
