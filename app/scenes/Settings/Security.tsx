@@ -36,8 +36,16 @@ function Security() {
     defaultUserRole: team.defaultUserRole,
     memberCollectionCreate: team.memberCollectionCreate,
     inviteRequired: team.inviteRequired,
-    allowedDomains: team.allowedDomains,
   });
+
+  const [allowedDomains, setAllowedDomains] = useState([
+    ...(team.allowedDomains ?? []),
+  ]);
+  const [lastKnownDomainCount, updateLastKnownDomainCount] = useState(
+    allowedDomains.length
+  );
+
+  const [existingDomainsTouched, setExistingDomainsTouched] = useState(false);
 
   const authenticationMethods = team.signinMethods;
 
@@ -51,17 +59,13 @@ function Security() {
     [showToast, t]
   );
 
-  const [domainsChanged, setDomainsChanged] = useState(false);
-
   const saveData = React.useCallback(
     async (newData) => {
       try {
         setData(newData);
         await auth.updateTeam(newData);
         showSuccessMessage();
-        setDomainsChanged(false);
       } catch (err) {
-        setDomainsChanged(true);
         showToast(err.message, {
           type: "error",
         });
@@ -77,6 +81,21 @@ function Security() {
     [data, saveData]
   );
 
+  const handleSaveDomains = React.useCallback(async () => {
+    try {
+      await auth.updateTeam({
+        allowedDomains,
+      });
+      showSuccessMessage();
+      setExistingDomainsTouched(false);
+      updateLastKnownDomainCount(allowedDomains.length);
+    } catch (err) {
+      showToast(err.message, {
+        type: "error",
+      });
+    }
+  }, [auth, allowedDomains, showSuccessMessage, showToast]);
+
   const handleDefaultRoleChange = React.useCallback(
     async (newDefaultRole: string) => {
       await saveData({ ...data, defaultUserRole: newDefaultRole });
@@ -84,26 +103,26 @@ function Security() {
     [data, saveData]
   );
 
-  const handleAllowSignupsChange = React.useCallback(
+  const handleInviteRequiredChange = React.useCallback(
     async (ev: React.ChangeEvent<HTMLInputElement>) => {
-      const inviteRequired = !ev.target.checked;
+      const inviteRequired = ev.target.checked;
       const newData = { ...data, inviteRequired };
 
       if (inviteRequired) {
         dialogs.openModal({
           isCentered: true,
-          title: t("Are you sure you want to disable authorized signups?"),
+          title: t("Are you sure you want to require invites?"),
           content: (
             <ConfirmationDialog
               onSubmit={async () => {
                 await saveData(newData);
               }}
-              submitText={t("I’m sure — Disable")}
-              savingText={`${t("Disabling")}…`}
+              submitText={t("I’m sure")}
+              savingText={`${t("Saving")}…`}
               danger
             >
               <Trans
-                defaults="New account creation using <em>{{ authenticationMethods }}</em> will be disabled. New users will need to be invited."
+                defaults="New users will first need to be invited to create an account. <em>Default role</em> and <em>Allowed domains</em> will no longer apply."
                 values={{
                   authenticationMethods,
                 }}
@@ -123,33 +142,40 @@ function Security() {
   );
 
   const handleRemoveDomain = async (index: number) => {
-    const newData = {
-      ...data,
-    };
-    newData.allowedDomains && newData.allowedDomains.splice(index, 1);
+    const newDomains = allowedDomains.filter((_, i) => index !== i);
 
-    setData(newData);
-    setDomainsChanged(true);
+    setAllowedDomains(newDomains);
+
+    const touchedExistingDomain = index < lastKnownDomainCount;
+    if (touchedExistingDomain) {
+      setExistingDomainsTouched(true);
+    }
   };
 
   const handleAddDomain = () => {
-    const newData = {
-      ...data,
-      allowedDomains: [...(data.allowedDomains || []), ""],
-    };
+    const newDomains = [...allowedDomains, ""];
 
-    setData(newData);
+    setAllowedDomains(newDomains);
   };
 
   const createOnDomainChangedHandler = (index: number) => (
     ev: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const newData = { ...data };
+    const newDomains = allowedDomains.slice();
 
-    newData.allowedDomains![index] = ev.currentTarget.value;
-    setData(newData);
-    setDomainsChanged(true);
+    newDomains[index] = ev.currentTarget.value;
+    setAllowedDomains(newDomains);
+
+    const touchedExistingDomain = index < lastKnownDomainCount;
+    if (touchedExistingDomain) {
+      setExistingDomainsTouched(true);
+    }
   };
+
+  const showSaveChanges =
+    existingDomainsTouched ||
+    allowedDomains.filter((value: string) => value !== "").length > // New domains were added
+      lastKnownDomainCount;
 
   return (
     <Scene title={t("Security")} icon={<PadlockIcon color="currentColor" />}>
@@ -214,63 +240,57 @@ function Security() {
       </SettingRow>
       {isCloudHosted && (
         <SettingRow
-          label={t("Allow authorized signups")}
-          name="allowSignups"
-          description={
-            <Trans
-              defaults="Allow authorized <em>{{ authenticationMethods }}</em> users to create new accounts without first receiving an invite"
-              values={{
-                authenticationMethods,
-              }}
-              components={{
-                em: <strong />,
-              }}
-            />
-          }
+          label={t("Require invites")}
+          name="inviteRequired"
+          description={t(
+            "Require members to be invited to the team before they can create an account using SSO."
+          )}
         >
           <Switch
-            id="allowSignups"
-            checked={!data.inviteRequired}
-            onChange={handleAllowSignupsChange}
+            id="inviteRequired"
+            checked={data.inviteRequired}
+            onChange={handleInviteRequiredChange}
           />
         </SettingRow>
       )}
 
-      <SettingRow
-        label={t("Default role")}
-        name="defaultUserRole"
-        description={t(
-          "The default user role for new accounts. Changing this setting does not affect existing user accounts."
-        )}
-      >
-        <InputSelect
-          id="defaultUserRole"
-          value={data.defaultUserRole}
-          options={[
-            {
-              label: t("Member"),
-              value: "member",
-            },
-            {
-              label: t("Viewer"),
-              value: "viewer",
-            },
-          ]}
-          onChange={handleDefaultRoleChange}
-          ariaLabel={t("Default role")}
-          short
-        />
-      </SettingRow>
+      {!data.inviteRequired && (
+        <SettingRow
+          label={t("Default role")}
+          name="defaultUserRole"
+          description={t(
+            "The default user role for new accounts. Changing this setting does not affect existing user accounts."
+          )}
+        >
+          <InputSelect
+            id="defaultUserRole"
+            value={data.defaultUserRole}
+            options={[
+              {
+                label: t("Member"),
+                value: "member",
+              },
+              {
+                label: t("Viewer"),
+                value: "viewer",
+              },
+            ]}
+            onChange={handleDefaultRoleChange}
+            ariaLabel={t("Default role")}
+            short
+          />
+        </SettingRow>
+      )}
 
-      <SettingRow
-        label={t("Allowed Domains")}
-        name="allowedDomains"
-        description={t(
-          "The domains which should be allowed to create accounts. This applies to both SSO and Email logins. Changing this setting does not affect existing user accounts."
-        )}
-      >
-        {data.allowedDomains &&
-          data.allowedDomains.map((domain, index) => (
+      {!data.inviteRequired && (
+        <SettingRow
+          label={t("Allowed domains")}
+          name="allowedDomains"
+          description={t(
+            "The domains which should be allowed to create new accounts using SSO. Changing this setting does not affect existing user accounts."
+          )}
+        >
+          {allowedDomains.map((domain, index) => (
             <Flex key={index} gap={4}>
               <Input
                 key={index}
@@ -292,35 +312,36 @@ function Security() {
             </Flex>
           ))}
 
-        <Flex justify="space-between" gap={4} style={{ flexWrap: "wrap" }}>
-          {!data.allowedDomains?.length ||
-          data.allowedDomains[data.allowedDomains.length - 1] !== "" ? (
-            <Fade>
-              <Button type="button" onClick={handleAddDomain} neutral>
-                {data.allowedDomains?.length ? (
-                  <Trans>Add another</Trans>
-                ) : (
-                  <Trans>Add a domain</Trans>
-                )}
-              </Button>
-            </Fade>
-          ) : (
-            <span />
-          )}
+          <Flex justify="space-between" gap={4} style={{ flexWrap: "wrap" }}>
+            {!allowedDomains.length ||
+            allowedDomains[allowedDomains.length - 1] !== "" ? (
+              <Fade>
+                <Button type="button" onClick={handleAddDomain} neutral>
+                  {allowedDomains.length ? (
+                    <Trans>Add another</Trans>
+                  ) : (
+                    <Trans>Add a domain</Trans>
+                  )}
+                </Button>
+              </Fade>
+            ) : (
+              <span />
+            )}
 
-          {domainsChanged && (
-            <Fade>
-              <Button
-                type="button"
-                onClick={handleChange}
-                disabled={auth.isSaving}
-              >
-                <Trans>Save changes</Trans>
-              </Button>
-            </Fade>
-          )}
-        </Flex>
-      </SettingRow>
+            {showSaveChanges && (
+              <Fade>
+                <Button
+                  type="button"
+                  onClick={handleSaveDomains}
+                  disabled={auth.isSaving}
+                >
+                  <Trans>Save changes</Trans>
+                </Button>
+              </Fade>
+            )}
+          </Flex>
+        </SettingRow>
+      )}
     </Scene>
   );
 }

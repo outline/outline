@@ -2,6 +2,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import Document from "~/models/Document";
 import DocumentListItem from "~/components/DocumentListItem";
+import Error from "~/components/List/Error";
 import PaginatedList from "~/components/PaginatedList";
 
 type Props = {
@@ -40,6 +41,7 @@ const PaginatedDocumentList = React.memo<Props>(function PaginatedDocumentList({
       heading={heading}
       fetch={fetch}
       options={options}
+      renderError={(props) => <Error {...props} />}
       renderItem={(item: Document, _index, compositeProps) => (
         <DocumentListItem
           key={item.id}
