@@ -3,7 +3,12 @@ import { observer } from "mobx-react";
 import queryString from "query-string";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
-import { RouteComponentProps, StaticContext, withRouter } from "react-router";
+import {
+  RouteComponentProps,
+  StaticContext,
+  useLocation,
+  withRouter,
+} from "react-router";
 import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -41,6 +46,7 @@ type Props = RouteComponentProps<
 function Search(props: Props) {
   const { t } = useTranslation();
   const { documents, searches } = useStores();
+  const location = useLocation();
 
   const term = decodeURIComponentSafe(props.match.params.term || "");
 
@@ -55,7 +61,7 @@ function Search(props: Props) {
   // const [searchParams, setSearchParams] = useSearchParams();
   // with React Router v6
   const [params, setParams] = React.useState(
-    new URLSearchParams(props.location.search)
+    new URLSearchParams(location.search)
   );
 
   const includeArchived = mightExist(params.get("includeArchived")) === "true";
@@ -136,20 +142,20 @@ function Search(props: Props) {
     (query: string) => {
       props.history.replace({
         pathname: searchPath(query),
-        search: props.location.search,
+        search: location.search,
       });
     },
-    [props.history, props.location.search]
+    [props.history, location.search]
   );
 
   const handleQueryChange = React.useCallback(() => {
-    setParams(new URLSearchParams(props.location.search));
+    setParams(new URLSearchParams(location.search));
     setOffset(0);
     setAllowLoadMore(true);
     // To prevent "no results" showing before debounce kicks in
     setIsLoading(true);
     fetchResults();
-  }, [fetchResults, props.location.search]);
+  }, [fetchResults, location.search]);
 
   const handleTermChange = React.useCallback(() => {
     const potentialQuery = decodeURIComponentSafe(
@@ -165,7 +171,7 @@ function Search(props: Props) {
 
   React.useEffect(() => {
     handleQueryChange();
-  }, [handleQueryChange, props.location.search]);
+  }, [handleQueryChange, location.search]);
 
   React.useEffect(() => {
     handleTermChange();
@@ -232,16 +238,16 @@ function Search(props: Props) {
       includeArchived?: boolean | undefined;
     }) => {
       props.history.replace({
-        pathname: props.location.pathname,
+        pathname: location.pathname,
         search: queryString.stringify(
-          { ...queryString.parse(props.location.search), ...search },
+          { ...queryString.parse(location.search), ...search },
           {
             skipEmptyString: true,
           }
         ),
       });
     },
-    [props.history, props.location.pathname, props.location.search]
+    [props.history, location.pathname, location.search]
   );
 
   const loadMoreResults = React.useCallback(async () => {
