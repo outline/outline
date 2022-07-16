@@ -196,7 +196,6 @@
     "smooth-scroll-into-view-if-needed": "^1.1.32",
     "socket.io": "^2.4.0",
     "socket.io-redis": "^5.4.0",
-    "socketio-auth": "^0.1.1",
     "stoppable": "^1.1.0",
     "string-replace-to-array": "^1.0.3",
     "styled-components": "^5.2.3",
