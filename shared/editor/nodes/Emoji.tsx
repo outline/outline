@@ -37,7 +37,7 @@ export default class Emoji extends Node {
         {
           tag: "strong.emoji",
           preserveWhitespace: "full",
-          getAttrs: (dom: HTMLStrongElement) => ({
+          getAttrs: (dom: HTMLElement) => ({
             "data-name": dom.dataset.name,
           }),
         },
