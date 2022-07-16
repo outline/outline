@@ -296,6 +296,9 @@ export default class CodeFence extends Node {
               const {
                 selection: { $from, $to },
               } = view.state;
+              if (!isInCode(view.state)) {
+                return false;
+              }
               return $from.sameParent($to) && event.detail === 3;
             },
           },
