@@ -2,7 +2,7 @@ import { isEqual } from "lodash";
 import { observer } from "mobx-react";
 import queryString from "query-string";
 import * as React from "react";
-import { WithTranslation, withTranslation, Trans } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import { RouteComponentProps, StaticContext, withRouter } from "react-router";
 import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
@@ -10,7 +10,6 @@ import breakpoint from "styled-components-breakpoint";
 import { v4 as uuidV4 } from "uuid";
 import { DateFilter as TDateFilter } from "@shared/types";
 import { DEFAULT_PAGINATION_LIMIT } from "~/stores/BaseStore";
-import RootStore from "~/stores/RootStore";
 import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
 import DocumentListItem from "~/components/DocumentListItem";
 import Empty from "~/components/Empty";
@@ -20,7 +19,7 @@ import LoadingIndicator from "~/components/LoadingIndicator";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
-import withStores from "~/components/withStores";
+import useStores from "~/hooks/useStores";
 import Logger from "~/utils/Logger";
 import { searchPath } from "~/utils/routeHelpers";
 import { decodeURIComponentSafe } from "~/utils/urls";
@@ -35,18 +34,19 @@ type Props = RouteComponentProps<
   { term: string },
   StaticContext,
   { search: string; fromMenu?: boolean }
-> &
-  WithTranslation &
-  RootStore & {
-    notFound?: boolean;
-  };
+> & {
+  notFound?: boolean;
+};
 
 function Search(props: Props) {
+  const { t } = useTranslation();
+  const { documents, searches } = useStores();
+
   const term = decodeURIComponentSafe(props.match.params.term || "");
 
   const [query, setQuery] = React.useState(term);
 
-  const title = query ? `${query} – ${props.t("Search")}` : props.t("Search");
+  const title = query ? `${query} – ${t("Search")}` : t("Search");
 
   const compositeRef = React.useRef<HTMLDivElement | null>(null);
   const searchInputRef = React.useRef<HTMLInputElement | null>(null);
@@ -94,11 +94,11 @@ function Search(props: Props) {
       setLastParams(params);
 
       try {
-        const results = await props.documents.search(query, params);
+        const results = await documents.search(query, params);
 
         // Add to the searches store so this search can immediately appear in
         // the recent searches list without a flash of load
-        props.searches.add({
+        searches.add({
           id: uuidV4(),
           query: query,
           createdAt: new Date().toISOString(),
@@ -126,8 +126,8 @@ function Search(props: Props) {
     lastParams,
     cachedQuery,
     offset,
-    props.documents,
-    props.searches,
+    documents,
+    searches,
     query,
     userId,
   ]);
@@ -258,7 +258,7 @@ function Search(props: Props) {
     searchInputRef?.current?.focus();
   }, [searchInputRef]);
 
-  const { documents, notFound, t } = props;
+  const { notFound } = props;
   const results = documents.searchResults(query);
   const showEmpty = !isLoading && query && results?.length === 0;
 
@@ -416,4 +416,4 @@ const Filters = styled(Flex)`
   }
 `;
 
-export default withTranslation()(withStores(withRouter(observer(Search))));
+export default withRouter(observer(Search));
