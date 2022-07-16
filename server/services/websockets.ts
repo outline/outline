@@ -2,9 +2,8 @@ import http, { IncomingMessage } from "http";
 import { Duplex } from "stream";
 import invariant from "invariant";
 import Koa from "koa";
-import { each, find } from "lodash";
-import IO, { Client } from "socket.io";
-import socketRedisAdapter from "socket.io-redis";
+import IO from "socket.io";
+import { createAdapter } from "socket.io-redis";
 import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/metrics";
 import { Document, Collection, View, User } from "@server/models";
@@ -15,8 +14,7 @@ import WebsocketsProcessor from "../queues/processors/WebsocketsProcessor";
 import Redis from "../redis";
 
 type SocketWithAuth = IO.Socket & {
-  auth: boolean;
-  client: Client & {
+  client: IO.Socket["client"] & {
     user?: User;
   };
 };
@@ -29,10 +27,15 @@ export default function init(
   const path = "/realtime";
 
   // Websockets for events and non-collaborative documents
-  const io = IO(server, {
+  const io = new IO.Server(server, {
     path,
+    allowEIO3: true,
     serveClient: false,
     cookie: false,
+    cors: {
+      origin: "*",
+      methods: ["GET", "POST"],
+    },
   });
 
   // Remove the upgrade handler that we just added when registering the IO engine
@@ -72,19 +75,12 @@ export default function init(
     Metrics.gaugePerInstance("websockets.count", 0);
   });
 
-  // Forbid all unauthenticated connections
-  each(io.nsps, forbidConnections);
-
   io.adapter(
-    socketRedisAdapter({
+    createAdapter({
       pubClient: Redis.defaultClient,
       subClient: Redis.defaultSubscriber,
     })
   );
-
-  io.origins((_req, callback) => {
-    callback(null, true);
-  });
 
   io.of("/").adapter.on("error", (err: Error) => {
     if (err.name === "MaxRetriesPerRequestError") {
@@ -102,19 +98,12 @@ export default function init(
       socket.client.conn.server.clientsCount
     );
 
-    socket.auth = false;
-
     socket.on("authentication", async function (data) {
       try {
         await authenticate(socket, data);
-
         Logger.debug("websockets", `Authenticated socket ${socket.id}`);
-        socket.auth = true;
 
-        each(io.nsps, function (nsp) {
-          restoreConnection(nsp, socket);
-        });
-
+        socket.emit("authenticated", true);
         void authenticated(io, socket);
       } catch (err) {
         Logger.error(`Authentication error socket ${socket.id}`, err);
@@ -135,7 +124,7 @@ export default function init(
 
     setTimeout(function () {
       // If the socket didn't authenticate after connection, disconnect it
-      if (!socket.auth) {
+      if (!socket.client.user) {
         Logger.debug("websockets", `Disconnecting socket ${socket.id}`);
 
         // @ts-expect-error should be boolean
@@ -188,9 +177,8 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
       }).findByPk(event.collectionId);
 
       if (can(user, "read", collection)) {
-        socket.join(`collection-${event.collectionId}`, () => {
-          Metrics.increment("websockets.collections.join");
-        });
+        await socket.join(`collection-${event.collectionId}`);
+        Metrics.increment("websockets.collections.join");
       }
     }
 
@@ -208,71 +196,66 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
           event.documentId
         );
 
-        socket.join(room, () => {
-          Metrics.increment("websockets.documents.join");
+        await socket.join(room);
+        Metrics.increment("websockets.documents.join");
 
-          // let everyone else in the room know that a new user joined
-          io.to(room).emit("user.join", {
-            userId: user.id,
-            documentId: event.documentId,
-            isEditing: event.isEditing,
-          });
-
-          // let this user know who else is already present in the room
-          io.in(room).clients(async (err: Error, sockets: string[]) => {
-            if (err) {
-              Logger.error("Error getting clients for room", err, {
-                sockets,
-              });
-              return;
-            }
-
-            // because a single user can have multiple socket connections we
-            // need to make sure that only unique userIds are returned. A Map
-            // makes this easy.
-            const userIds = new Map();
-
-            for (const socketId of sockets) {
-              const userId = await Redis.defaultClient.hget(socketId, "userId");
-              userIds.set(userId, userId);
-            }
-
-            socket.emit("document.presence", {
-              documentId: event.documentId,
-              userIds: Array.from(userIds.keys()),
-              editingIds: editing.map((view) => view.userId),
-            });
-          });
+        // let everyone else in the room know that a new user joined
+        io.to(room).emit("user.join", {
+          userId: user.id,
+          documentId: event.documentId,
+          isEditing: event.isEditing,
         });
+
+        // let this user know who else is already present in the room
+        try {
+          const socketIds = await io.in(room).allSockets();
+
+          // because a single user can have multiple socket connections we
+          // need to make sure that only unique userIds are returned. A Map
+          // makes this easy.
+          const userIds = new Map();
+
+          for (const socketId of socketIds) {
+            const userId = await Redis.defaultClient.hget(socketId, "userId");
+            userIds.set(userId, userId);
+          }
+
+          socket.emit("document.presence", {
+            documentId: event.documentId,
+            userIds: Array.from(userIds.keys()),
+            editingIds: editing.map((view) => view.userId),
+          });
+        } catch (err) {
+          if (err) {
+            Logger.error("Error getting clients for room", err);
+            return;
+          }
+        }
       }
     }
   });
 
   // allow the client to request to leave rooms
-  socket.on("leave", (event) => {
+  socket.on("leave", async (event) => {
     if (event.collectionId) {
-      socket.leave(`collection-${event.collectionId}`, () => {
-        Metrics.increment("websockets.collections.leave");
-      });
+      await socket.leave(`collection-${event.collectionId}`);
+      Metrics.increment("websockets.collections.leave");
     }
 
     if (event.documentId) {
       const room = `document-${event.documentId}`;
 
-      socket.leave(room, () => {
-        Metrics.increment("websockets.documents.leave");
-        io.to(room).emit("user.leave", {
-          userId: user.id,
-          documentId: event.documentId,
-        });
+      await socket.leave(room);
+      Metrics.increment("websockets.documents.leave");
+      io.to(room).emit("user.leave", {
+        userId: user.id,
+        documentId: event.documentId,
       });
     }
   });
 
   socket.on("disconnecting", () => {
-    const rooms = Object.keys(socket.rooms);
-
-    rooms.forEach((room) => {
+    socket.rooms.forEach((room) => {
       if (room.startsWith("document-")) {
         const documentId = room.replace("document-", "");
         io.to(room).emit("user.leave", {
@@ -287,7 +270,7 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
     Metrics.increment("websockets.presence");
     const room = `document-${event.documentId}`;
 
-    if (event.documentId && socket.rooms[room]) {
+    if (event.documentId && socket.rooms.has(room)) {
       const view = await View.touch(event.documentId, user.id, event.isEditing);
 
       view.user = user;
@@ -313,28 +296,4 @@ async function authenticate(socket: SocketWithAuth, data: { token: string }) {
   // store the mapping between socket id and user id in redis so that it is
   // accessible across multiple websocket servers
   await Redis.defaultClient.hset(socket.id, "userId", user.id);
-}
-
-/**
- * Set a listener so connections from unauthenticated sockets are not
- * considered when emitting to the namespace. The connections will be
- * restored after authentication succeeds.
- */
-function forbidConnections(nsp: IO.Namespace) {
-  nsp.on("connect", function (socket: SocketWithAuth) {
-    if (!socket.auth) {
-      Logger.debug("websockets", `removing socket from ${nsp.name}`);
-      delete nsp.connected[socket.id];
-    }
-  });
-}
-
-/**
- * If the socket attempted a connection before authentication, restore it.
- */
-function restoreConnection(nsp: IO.Namespace, socket: IO.Socket) {
-  if (find(nsp.sockets, { id: socket.id })) {
-    Logger.debug("websockets", `restoring socket to ${nsp.name}`);
-    nsp.connected[socket.id] = socket;
-  }
 }
