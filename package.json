@@ -16,6 +16,7 @@
     "lint": "eslint app server shared",
     "deploy": "git push heroku master",
     "prepare": "husky install",
+    "postinstall": "rimraf node_modules/prosemirror-view/dist/index.d.ts",
     "heroku-postbuild": "yarn build:webpack && yarn build:server && yarn copy:i18n && yarn db:migrate",
     "sequelize:migrate": "sequelize db:migrate",
     "db:create-migration": "sequelize migration:create",
@@ -42,7 +43,7 @@
     "> 0.25%, not dead"
   ],
   "dependencies": {
-    "@babel/core": "^7.16.0",
+    "@babel/core": "^7.18.6",
     "@babel/plugin-proposal-decorators": "^7.10.5",
     "@babel/plugin-transform-destructuring": "^7.10.4",
     "@babel/plugin-transform-regenerator": "^7.10.4",
@@ -155,7 +156,7 @@
     "prosemirror-tables": "^1.1.1",
     "prosemirror-transform": "1.2.5",
     "prosemirror-utils": "^0.9.6",
-    "prosemirror-view": "1.23.6",
+    "prosemirror-view": "1.26.5",
     "query-string": "^7.0.1",
     "quoted-printable": "^1.0.1",
     "randomstring": "1.1.5",
