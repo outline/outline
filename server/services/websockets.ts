@@ -103,6 +103,7 @@ export default function init(
         await authenticate(socket, data);
         Logger.debug("websockets", `Authenticated socket ${socket.id}`);
 
+        socket.emit("authenticated", true);
         void authenticated(io, socket);
       } catch (err) {
         Logger.error(`Authentication error socket ${socket.id}`, err);
