@@ -13,7 +13,7 @@ type SocketWithAuthentication = Socket & {
   authenticated?: boolean;
 };
 
-export const SocketContext: any = React.createContext<SocketWithAuthentication | null>(
+export const SocketContext = React.createContext<SocketWithAuthentication | null>(
   null
 );
 
