@@ -1,4 +1,3 @@
-import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useMenuState, MenuButton } from "reakit/Menu";
@@ -209,4 +208,4 @@ const StyledInputSearch = styled(InputSearch)`
   }
 `;
 
-export default observer(FilterOptions);
+export default FilterOptions;
