@@ -1,5 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import User from "~/models/User";
 import Avatar from "~/components/Avatar";
@@ -14,6 +15,8 @@ type Props = {
 };
 
 const UserListItem = ({ user, showMenu }: Props) => {
+  const { t } = useTranslation();
+
   return (
     <ListItem
       title={<Title>{user.name}</Title>}
@@ -26,7 +29,7 @@ const UserListItem = ({ user, showMenu }: Props) => {
               Active <Time dateTime={user.lastActiveAt} /> ago
             </>
           ) : (
-            "Invited"
+            t("Invited")
           )}
           {user.isAdmin && <Badge primary={user.isAdmin}>Admin</Badge>}
           {user.isSuspended && <Badge>Suspended</Badge>}
