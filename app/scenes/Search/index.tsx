@@ -46,7 +46,7 @@ type Props = RouteComponentProps<
 function Search(props: Props) {
   const { t } = useTranslation();
   const { documents, searches } = useStores();
-  const location = useLocation();
+  const { pathname, search } = useLocation();
 
   const term = decodeURIComponentSafe(props.match.params.term || "");
 
@@ -60,9 +60,7 @@ function Search(props: Props) {
   // Possibly
   // const [searchParams, setSearchParams] = useSearchParams();
   // with React Router v6
-  const [params, setParams] = React.useState(
-    new URLSearchParams(location.search)
-  );
+  const [params, setParams] = React.useState(new URLSearchParams(search));
 
   const includeArchived = mightExist(params.get("includeArchived")) === "true";
   const dateFilter = mightExist(params.get("dateFilter")) as TDateFilter;
@@ -142,20 +140,20 @@ function Search(props: Props) {
     (query: string) => {
       props.history.replace({
         pathname: searchPath(query),
-        search: location.search,
+        search: search,
       });
     },
-    [props.history, location.search]
+    [props.history, search]
   );
 
   const handleQueryChange = React.useCallback(() => {
-    setParams(new URLSearchParams(location.search));
+    setParams(new URLSearchParams(search));
     setOffset(0);
     setAllowLoadMore(true);
     // To prevent "no results" showing before debounce kicks in
     setIsLoading(true);
     fetchResults();
-  }, [fetchResults, location.search]);
+  }, [fetchResults, search]);
 
   const handleTermChange = React.useCallback(() => {
     const potentialQuery = decodeURIComponentSafe(
@@ -171,7 +169,7 @@ function Search(props: Props) {
 
   React.useEffect(() => {
     handleQueryChange();
-  }, [handleQueryChange, location.search]);
+  }, [handleQueryChange, search]);
 
   React.useEffect(() => {
     handleTermChange();
@@ -231,23 +229,23 @@ function Search(props: Props) {
   );
 
   const handleFilterChange = React.useCallback(
-    (search: {
+    (updateSearch: {
       collectionId?: string | undefined;
       userId?: string | undefined;
       dateFilter?: TDateFilter;
       includeArchived?: boolean | undefined;
     }) => {
       props.history.replace({
-        pathname: location.pathname,
+        pathname: pathname,
         search: queryString.stringify(
-          { ...queryString.parse(location.search), ...search },
+          { ...queryString.parse(search), ...updateSearch },
           {
             skipEmptyString: true,
           }
         ),
       });
     },
-    [props.history, location.pathname, location.search]
+    [props.history, pathname, search]
   );
 
   const loadMoreResults = React.useCallback(async () => {
