@@ -94,6 +94,30 @@ const FilterOptions = ({
     [clearFilter, options, search]
   );
 
+  const renderItem = React.useCallback(
+    (option: TFilterOption) => (
+      <MenuItem
+        key={option.key}
+        onClick={() => {
+          onSelect(option.key);
+          menu.hide();
+        }}
+        selected={option.key === activeKey}
+        {...menu}
+      >
+        {option.note ? (
+          <LabelWithNote>
+            {option.label}
+            <Note>{option.note}</Note>
+          </LabelWithNote>
+        ) : (
+          option.label
+        )}
+      </MenuItem>
+    ),
+    [activeKey, activeKey, onSelect]
+  );
+
   return (
     <Wrapper>
       <MenuButton {...menu} onClick={clearFilter}>
@@ -103,44 +127,22 @@ const FilterOptions = ({
           </StyledButton>
         )}
       </MenuButton>
-      <StyledContextMenu
-        $hasSearch={!!search}
-        aria-label={tDefaultLabel}
-        {...menu}
-      >
-        {search && <StyledInputSearch onChange={handleFilter} autoFocus />}
+      <ContextMenu aria-label={tDefaultLabel} {...menu}>
+        {search && (
+          <>
+            <StyledInputSearch onChange={handleFilter} autoFocus />
+            <br />
+          </>
+        )}
         <PaginatedList
           items={filteredOptions}
           fetch={paginateFetch}
-          renderItem={(option: TFilterOption) => (
-            <MenuItem
-              key={option.key}
-              onClick={() => {
-                onSelect(option.key);
-                menu.hide();
-              }}
-              selected={option.key === activeKey}
-              {...menu}
-            >
-              {option.note ? (
-                <LabelWithNote>
-                  {option.label}
-                  <Note>{option.note}</Note>
-                </LabelWithNote>
-              ) : (
-                option.label
-              )}
-            </MenuItem>
-          )}
+          renderItem={renderItem}
         />
-      </StyledContextMenu>
+      </ContextMenu>
     </Wrapper>
   );
 };
-
-const StyledContextMenu = styled(ContextMenu)<{ $hasSearch: boolean }>`
-  ${(props) => (props.$hasSearch ? "padding-top: 40px" : "")};
-`;
 
 const Note = styled(Text)`
   margin-top: 2px;
@@ -198,6 +200,7 @@ const StyledInputSearch = styled(InputSearch)`
     border-left-style: unset;
     border-radius: unset;
     border-bottom: 1px solid ${(props) => props.theme.divider};
+    background: ${(props) => props.theme.menuBackground};
     font-size: 14px;
 
     input {
