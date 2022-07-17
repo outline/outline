@@ -35,6 +35,34 @@ describe("team domain model", () => {
       expect(error).toBeDefined();
     });
 
+    it("should not allow duplicate domains", async () => {
+      const team = await buildTeam();
+      const user = await buildAdmin({ teamId: team.id });
+
+      let error;
+      try {
+        await TeamDomain.create({
+          teamId: team.id,
+          name: "getoutline.com",
+          createdById: user.id,
+        });
+        await TeamDomain.create({
+          teamId: team.id,
+          name: "www.getoutline.com",
+          createdById: user.id,
+        });
+        await TeamDomain.create({
+          teamId: team.id,
+          name: "https://www.getoutline.com",
+          createdById: user.id,
+        });
+      } catch (err) {
+        error = err;
+      }
+      expect(error.name).toBe("SequelizeUniqueConstraintError");
+      expect(error).toBeDefined();
+    });
+
     it("should not allow creation of domains within restricted list", async () => {
       const team = await buildTeam();
       const user = await buildAdmin({ teamId: team.id });

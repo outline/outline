@@ -11,6 +11,7 @@ import {
 } from "sequelize-typescript";
 import { MAX_TEAM_DOMAINS } from "@shared/constants";
 import { ValidationError } from "@server/errors";
+import { normalizeURL } from "@server/utils/normalizeURL";
 import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
@@ -51,7 +52,7 @@ class TeamDomain extends IdModel {
 
   @BeforeValidate
   static async cleanupDomain(model: TeamDomain) {
-    model.name = model.name.toLowerCase().trim();
+    model.name = normalizeURL(model.name.toLowerCase().trim());
   }
 
   @BeforeCreate
