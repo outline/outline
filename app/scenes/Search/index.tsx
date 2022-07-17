@@ -1,4 +1,3 @@
-import { isEqual } from "lodash";
 import { observer } from "mobx-react";
 import queryString from "query-string";
 import * as React from "react";
@@ -50,9 +49,6 @@ function Search(props: Props) {
   const compositeRef = React.useRef<HTMLDivElement | null>(null);
   const searchInputRef = React.useRef<HTMLInputElement | null>(null);
 
-  // Possibly
-  // const [searchParams, setSearchParams] = useSearchParams();
-  // with React Router v6
   const [params, setParams] = React.useState(new URLSearchParams(search));
 
   const includeArchived = mightExist(params.get("includeArchived")) === "true";
@@ -64,7 +60,6 @@ function Search(props: Props) {
   // without changing search term.
   const [cachedQuery, setCachedQuery] = React.useState("");
   const [offset, setOffset] = React.useState(0);
-  const [lastParams, setLastParams] = React.useState({});
   const [isLoading, setIsLoading] = React.useState(false);
   const [allowLoadMore, setAllowLoadMore] = React.useState(true);
 
@@ -80,15 +75,16 @@ function Search(props: Props) {
         userId: userId,
       };
 
-      // we just requested this thing – no need to try again
-      if (cachedQuery === query && isEqual(params, lastParams)) {
+      // We just requested this thing – no need to try again.
+      // Change in params will be handled with `useCallback`'s
+      // dependency array.
+      if (cachedQuery === query) {
         setIsLoading(false);
         return;
       }
 
       setIsLoading(true);
       setCachedQuery(query);
-      setLastParams(params);
 
       try {
         const results = await documents.search(query, params);
@@ -120,7 +116,6 @@ function Search(props: Props) {
     collectionId,
     dateFilter,
     includeArchived,
-    lastParams,
     cachedQuery,
     offset,
     documents,
