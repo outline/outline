@@ -2,11 +2,7 @@ import Router from "koa-router";
 import { v4 as uuidv4 } from "uuid";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import { sequelize } from "@server/database/sequelize";
-import {
-  AuthorizationError,
-  NotFoundError,
-  ValidationError,
-} from "@server/errors";
+import { AuthorizationError, ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { Attachment, Document, Event } from "@server/models";
 import { authorize } from "@server/policies";
@@ -15,7 +11,7 @@ import {
   publicS3Endpoint,
   getSignedUrl,
 } from "@server/utils/s3";
-import { assertPresent } from "@server/validation";
+import { assertPresent, assertUuid } from "@server/validation";
 
 const router = new Router();
 const AWS_S3_ACL = process.env.AWS_S3_ACL || "private";
@@ -113,13 +109,11 @@ router.post("attachments.create", auth(), async (ctx) => {
 
 router.post("attachments.delete", auth(), async (ctx) => {
   const { id } = ctx.body;
-  assertPresent(id, "id is required");
+  assertUuid(id, "id is required");
   const { user } = ctx.state;
-  const attachment = await Attachment.findByPk(id);
-
-  if (!attachment) {
-    throw NotFoundError();
-  }
+  const attachment = await Attachment.findByPk(id, {
+    rejectOnEmpty: true,
+  });
 
   if (attachment.documentId) {
     const document = await Document.findByPk(attachment.documentId, {
@@ -144,13 +138,11 @@ router.post("attachments.delete", auth(), async (ctx) => {
 
 router.post("attachments.redirect", auth(), async (ctx) => {
   const { id } = ctx.body;
-  assertPresent(id, "id is required");
+  assertUuid(id, "id is required");
   const { user } = ctx.state;
-  const attachment = await Attachment.findByPk(id);
-
-  if (!attachment) {
-    throw NotFoundError();
-  }
+  const attachment = await Attachment.findByPk(id, {
+    rejectOnEmpty: true,
+  });
 
   if (attachment.isPrivate) {
     if (attachment.teamId !== user.teamId) {

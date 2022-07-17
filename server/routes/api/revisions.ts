@@ -1,23 +1,20 @@
 import Router from "koa-router";
-import { NotFoundError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { Document, Revision } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentRevision } from "@server/presenters";
-import { assertPresent, assertSort } from "@server/validation";
+import { assertPresent, assertSort, assertUuid } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
 const router = new Router();
 
 router.post("revisions.info", auth(), async (ctx) => {
   const { id } = ctx.body;
-  assertPresent(id, "id is required");
+  assertUuid(id, "id is required");
   const { user } = ctx.state;
-  const revision = await Revision.findByPk(id);
-
-  if (!revision) {
-    throw NotFoundError();
-  }
+  const revision = await Revision.findByPk(id, {
+    rejectOnEmpty: true,
+  });
 
   const document = await Document.findByPk(revision.documentId, {
     userId: user.id,
