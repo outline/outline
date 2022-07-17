@@ -13,7 +13,7 @@ import {
   SearchIcon,
 } from "outline-icons";
 import * as React from "react";
-import getDataTransferFiles from "@shared/utils/getDataTransferFiles";
+import { getEventFiles } from "@shared/utils/files";
 import DocumentTemplatizeDialog from "~/components/DocumentTemplatizeDialog";
 import { createAction } from "~/actions";
 import { DocumentSection } from "~/actions/sections";
@@ -260,8 +260,8 @@ export const importDocument = createAction({
     input.type = "file";
     input.accept = documents.importFileTypes.join(", ");
 
-    input.onchange = async (ev: Event) => {
-      const files = getDataTransferFiles(ev);
+    input.onchange = async (ev) => {
+      const files = getEventFiles(ev);
 
       try {
         const file = files[0];

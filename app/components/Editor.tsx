@@ -1,5 +1,6 @@
 import { formatDistanceToNow } from "date-fns";
 import { deburr, sortBy } from "lodash";
+import { DOMParser as ProsemirrorDOMParser } from "prosemirror-model";
 import { TextSelection } from "prosemirror-state";
 import * as React from "react";
 import mergeRefs from "react-merge-refs";
@@ -7,8 +8,10 @@ import { Optional } from "utility-types";
 import insertFiles from "@shared/editor/commands/insertFiles";
 import embeds from "@shared/editor/embeds";
 import { Heading } from "@shared/editor/lib/getHeadings";
-import { supportedImageMimeTypes } from "@shared/utils/files";
-import getDataTransferFiles from "@shared/utils/getDataTransferFiles";
+import {
+  getDataTransferFiles,
+  supportedImageMimeTypes,
+} from "@shared/utils/files";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { isInternalUrl } from "@shared/utils/urls";
 import Document from "~/models/Document";
@@ -177,8 +180,33 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
       event.preventDefault();
       event.stopPropagation();
       const files = getDataTransferFiles(event);
+
       const view = ref?.current?.view;
       if (!view) {
+        return;
+      }
+
+      // Find a valid position at the end of the document to insert our content
+      const pos = TextSelection.near(
+        view.state.doc.resolve(view.state.doc.nodeSize - 2)
+      ).from;
+
+      // If there are no files in the drop event attempt to parse the html
+      // as a fragment and insert it at the end of the document
+      if (files.length === 0) {
+        const text =
+          event.dataTransfer.getData("text/html") ||
+          event.dataTransfer.getData("text/plain");
+
+        const dom = new DOMParser().parseFromString(text, "text/html");
+
+        view.dispatch(
+          view.state.tr.insert(
+            pos,
+            ProsemirrorDOMParser.fromSchema(view.state.schema).parse(dom)
+          )
+        );
+
         return;
       }
 
@@ -186,11 +214,6 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
       const isAttachment = files.some(
         (file) => !supportedImageMimeTypes.includes(file.type)
       );
-
-      // Find a valid position at the end of the document
-      const pos = TextSelection.near(
-        view.state.doc.resolve(view.state.doc.nodeSize - 2)
-      ).from;
 
       insertFiles(view, event, pos, files, {
         uploadFile: onUploadFile,
