@@ -22,6 +22,20 @@ export default function getDataTransferFiles(
   return [];
 }
 
+export function getDataTransferItems(
+  event: React.DragEvent<HTMLElement> | DragEvent
+): DataTransferItem[] {
+  const dt = event.dataTransfer;
+
+  if (dt) {
+    if ("items" in dt && dt.items.length) {
+      return dt.items ? Array.prototype.slice.call(dt.items) : [];
+    }
+  }
+
+  return [];
+}
+
 export function getEventFiles(
   event: React.ChangeEvent<HTMLInputElement> | Event
 ): File[] {
