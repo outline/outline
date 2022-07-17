@@ -13,7 +13,7 @@ import {
   SearchIcon,
 } from "outline-icons";
 import * as React from "react";
-import { getEventFiles } from "@shared/utils/getDataTransferFiles";
+import { getEventFiles } from "@shared/utils/files";
 import DocumentTemplatizeDialog from "~/components/DocumentTemplatizeDialog";
 import { createAction } from "~/actions";
 import { DocumentSection } from "~/actions/sections";

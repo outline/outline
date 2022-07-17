@@ -8,8 +8,10 @@ import { Optional } from "utility-types";
 import insertFiles from "@shared/editor/commands/insertFiles";
 import embeds from "@shared/editor/embeds";
 import { Heading } from "@shared/editor/lib/getHeadings";
-import { supportedImageMimeTypes } from "@shared/utils/files";
-import getDataTransferFiles from "@shared/utils/getDataTransferFiles";
+import {
+  getDataTransferFiles,
+  supportedImageMimeTypes,
+} from "@shared/utils/files";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { isInternalUrl } from "@shared/utils/urls";
 import Document from "~/models/Document";

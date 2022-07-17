@@ -11,10 +11,11 @@ import {
 import * as React from "react";
 import ImageZoom from "react-medium-image-zoom";
 import styled from "styled-components";
-import { supportedImageMimeTypes } from "../../utils/files";
-import getDataTransferFiles, {
+import {
+  getDataTransferFiles,
+  supportedImageMimeTypes,
   getEventFiles,
-} from "../../utils/getDataTransferFiles";
+} from "../../utils/files";
 import insertFiles, { Options } from "../commands/insertFiles";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import uploadPlaceholderPlugin from "../lib/uploadPlaceholder";
