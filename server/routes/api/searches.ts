@@ -2,7 +2,7 @@ import Router from "koa-router";
 import auth from "@server/middlewares/authentication";
 import { SearchQuery } from "@server/models";
 import { presentSearchQuery } from "@server/presenters";
-import { assertPresent } from "@server/validation";
+import { assertPresent, assertUuid } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
 const router = new Router();
@@ -28,6 +28,9 @@ router.post("searches.list", auth(), pagination(), async (ctx) => {
 router.post("searches.delete", auth(), async (ctx) => {
   const { id, query } = ctx.body;
   assertPresent(id || query, "id or query is required");
+  if (id) {
+    assertUuid(id, "id is must be a uuid");
+  }
 
   const { user } = ctx.state;
   await SearchQuery.destroy({
