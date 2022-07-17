@@ -7,6 +7,7 @@ import { bytesToHumanReadable } from "../../utils/files";
 import { sanitizeHref } from "../../utils/urls";
 import toggleWrap from "../commands/toggleWrap";
 import FileExtension from "../components/FileExtension";
+import Video from "../components/Video";
 import Widget from "../components/Widget";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import attachmentsRule from "../rules/attachments";
@@ -69,6 +70,17 @@ export default class Attachment extends Node {
   }
 
   component({ isSelected, theme, node }: ComponentProps) {
+    if (node.attrs.title.includes(".mov")) {
+      return (
+        <Video
+          href={node.attrs.href}
+          title={node.attrs.title}
+          isSelected={isSelected}
+          theme={theme}
+        />
+      );
+    }
+
     return (
       <Widget
         icon={<FileExtension title={node.attrs.title} />}
