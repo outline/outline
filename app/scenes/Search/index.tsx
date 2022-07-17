@@ -49,6 +49,7 @@ function Search(props: Props) {
   const { documents, searches } = useStores();
   const { pathname, search } = useLocation();
   const pathParam = useParams<{ term?: string }>();
+  const history = useHistory();
 
   const term = decodeURIComponentSafe(pathParam.term || "");
 
@@ -140,12 +141,12 @@ function Search(props: Props) {
 
   const updateLocation = React.useCallback(
     (query: string) => {
-      props.history.replace({
+      history.replace({
         pathname: searchPath(query),
         search: search,
       });
     },
-    [props.history, search]
+    [history, search]
   );
 
   const handleQueryChange = React.useCallback(() => {
@@ -176,8 +177,8 @@ function Search(props: Props) {
   }, [handleTermChange, term]);
 
   const goBack = React.useCallback(() => {
-    props.history.goBack();
-  }, [props.history]);
+    history.goBack();
+  }, [history]);
 
   const handleKeyDown = React.useCallback(
     (ev: React.KeyboardEvent<HTMLInputElement>) => {
@@ -235,7 +236,7 @@ function Search(props: Props) {
       dateFilter?: TDateFilter;
       includeArchived?: boolean | undefined;
     }) => {
-      props.history.replace({
+      history.replace({
         pathname: pathname,
         search: queryString.stringify(
           { ...queryString.parse(search), ...updateSearch },
@@ -245,7 +246,7 @@ function Search(props: Props) {
         ),
       });
     },
-    [props.history, pathname, search]
+    [history, pathname, search]
   );
 
   const loadMoreResults = React.useCallback(async () => {
@@ -420,4 +421,4 @@ const Filters = styled(Flex)`
   }
 `;
 
-export default withRouter(observer(Search));
+export default observer(Search);
