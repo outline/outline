@@ -13,34 +13,29 @@ type Props = {
   showMenu: boolean;
 };
 
-@observer
-class UserListItem extends React.Component<Props> {
-  render() {
-    const { user, showMenu } = this.props;
-
-    return (
-      <ListItem
-        title={<Title>{user.name}</Title>}
-        image={<Avatar src={user.avatarUrl} size={32} />}
-        subtitle={
-          <>
-            {user.email ? `${user.email} · ` : undefined}
-            {user.lastActiveAt ? (
-              <>
-                Active <Time dateTime={user.lastActiveAt} /> ago
-              </>
-            ) : (
-              "Invited"
-            )}
-            {user.isAdmin && <Badge primary={user.isAdmin}>Admin</Badge>}
-            {user.isSuspended && <Badge>Suspended</Badge>}
-          </>
-        }
-        actions={showMenu ? <UserMenu user={user} /> : undefined}
-      />
-    );
-  }
-}
+const UserListItem = ({ user, showMenu }: Props) => {
+  return (
+    <ListItem
+      title={<Title>{user.name}</Title>}
+      image={<Avatar src={user.avatarUrl} size={32} />}
+      subtitle={
+        <>
+          {user.email ? `${user.email} · ` : undefined}
+          {user.lastActiveAt ? (
+            <>
+              Active <Time dateTime={user.lastActiveAt} /> ago
+            </>
+          ) : (
+            "Invited"
+          )}
+          {user.isAdmin && <Badge primary={user.isAdmin}>Admin</Badge>}
+          {user.isSuspended && <Badge>Suspended</Badge>}
+        </>
+      }
+      actions={showMenu ? <UserMenu user={user} /> : undefined}
+    />
+  );
+};
 
 const Title = styled.span`
   &:hover {
@@ -49,4 +44,4 @@ const Title = styled.span`
   }
 `;
 
-export default UserListItem;
+export default observer(UserListItem);
