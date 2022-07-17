@@ -41,6 +41,7 @@ type Props = {
   visible?: boolean;
   placement?: Placement;
   animating?: boolean;
+  className?: string;
   unstable_disclosureRef?: React.RefObject<HTMLElement | null>;
   onOpen?: () => void;
   onClose?: () => void;
@@ -51,6 +52,7 @@ const ContextMenu: React.FC<Props> = ({
   children,
   onOpen,
   onClose,
+  className,
   ...rest
 }) => {
   const previousVisible = usePrevious(rest.visible);
@@ -131,6 +133,7 @@ const ContextMenu: React.FC<Props> = ({
                 topAnchor={topAnchor}
                 rightAnchor={rightAnchor}
                 ref={backgroundRef}
+                className={className}
                 hiddenScrollbars
                 style={
                   maxHeight && topAnchor

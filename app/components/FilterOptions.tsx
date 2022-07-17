@@ -1,4 +1,6 @@
+import { observer } from "mobx-react";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { useMenuState, MenuButton } from "reakit/Menu";
 import styled from "styled-components";
 import Button, { Inner } from "~/components/Button";
@@ -31,13 +33,15 @@ type Props = {
 const FilterOptions = ({
   options,
   activeKey = "",
-  defaultLabel = "Filter options",
+  defaultLabel,
   selectedPrefix = "",
   className,
   onSelect,
   search,
   paginateFetch,
 }: Props) => {
+  const { t } = useTranslation();
+  const tDefaultLabel: string = defaultLabel ?? t("Filter options");
   const menu = useMenuState({
     modal: true,
   });
@@ -95,13 +99,16 @@ const FilterOptions = ({
       <MenuButton {...menu} onClick={clearFilter}>
         {(props) => (
           <StyledButton {...props} className={className} neutral disclosure>
-            {activeKey ? selectedLabel : defaultLabel}
+            {activeKey ? selectedLabel : tDefaultLabel}
           </StyledButton>
         )}
       </MenuButton>
-      <ContextMenu aria-label={defaultLabel} {...menu}>
-        {search && <StyledInputSearch onChange={handleFilter} />}
-        {search && <br />}
+      <StyledContextMenu
+        $hasSearch={!!search}
+        aria-label={tDefaultLabel}
+        {...menu}
+      >
+        {search && <StyledInputSearch onChange={handleFilter} autoFocus />}
         <PaginatedList
           items={filteredOptions}
           fetch={paginateFetch}
@@ -126,10 +133,14 @@ const FilterOptions = ({
             </MenuItem>
           )}
         />
-      </ContextMenu>
+      </StyledContextMenu>
     </Wrapper>
   );
 };
+
+const StyledContextMenu = styled(ContextMenu)<{ $hasSearch: boolean }>`
+  ${(props) => (props.$hasSearch ? "padding-top: 40px" : "")};
+`;
 
 const Note = styled(Text)`
   margin-top: 2px;
@@ -175,18 +186,24 @@ const StyledInputSearch = styled(InputSearch)`
   position: absolute;
   width: 100%;
   border: none;
+  border-top-left-radius: 6px;
+  border-top-right-radius: 6px;
+  overflow: hidden;
   top: 0;
   z-index: 1;
+
   ${Outline} {
     border-top-style: unset;
     border-right-style: unset;
     border-left-style: unset;
     border-radius: unset;
+    border-bottom: 1px solid ${(props) => props.theme.divider};
     font-size: 14px;
+
     input {
       margin-left: 8px;
     }
   }
 `;
 
-export default FilterOptions;
+export default observer(FilterOptions);

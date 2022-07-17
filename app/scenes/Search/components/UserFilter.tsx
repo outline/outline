@@ -1,7 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { DEFAULT_PAGINATION_LIMIT } from "~/stores/BaseStore";
 import FilterOptions from "~/components/FilterOptions";
 import useStores from "~/hooks/useStores";
 
@@ -14,12 +13,6 @@ function UserFilter(props: Props) {
   const { onSelect, userId } = props;
   const { t } = useTranslation();
   const { users } = useStores();
-
-  React.useEffect(() => {
-    users.fetchPage({
-      limit: DEFAULT_PAGINATION_LIMIT,
-    });
-  }, [users]);
 
   const options = React.useMemo(() => {
     const userOptions = users.unorderedData.map((user) => ({
