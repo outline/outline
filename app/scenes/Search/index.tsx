@@ -3,13 +3,7 @@ import { observer } from "mobx-react";
 import queryString from "query-string";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
-import {
-  RouteComponentProps,
-  StaticContext,
-  useLocation,
-  useParams,
-  withRouter,
-} from "react-router";
+import { useHistory, useLocation, useParams } from "react-router";
 import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -36,11 +30,7 @@ import SearchInput from "./components/SearchInput";
 import StatusFilter from "./components/StatusFilter";
 import UserFilter from "./components/UserFilter";
 
-type Props = RouteComponentProps<
-  { term: string },
-  StaticContext,
-  { search: string; fromMenu?: boolean }
-> & {
+type Props = {
   notFound?: boolean;
 };
 
