@@ -7,6 +7,7 @@ import {
   RouteComponentProps,
   StaticContext,
   useLocation,
+  useParams,
   withRouter,
 } from "react-router";
 import { Waypoint } from "react-waypoint";
@@ -47,8 +48,9 @@ function Search(props: Props) {
   const { t } = useTranslation();
   const { documents, searches } = useStores();
   const { pathname, search } = useLocation();
+  const pathParam = useParams<{ term?: string }>();
 
-  const term = decodeURIComponentSafe(props.match.params.term || "");
+  const term = decodeURIComponentSafe(pathParam.term || "");
 
   const [query, setQuery] = React.useState(term);
 
@@ -156,16 +158,14 @@ function Search(props: Props) {
   }, [fetchResults, search]);
 
   const handleTermChange = React.useCallback(() => {
-    const potentialQuery = decodeURIComponentSafe(
-      props.match.params.term || ""
-    );
+    const potentialQuery = decodeURIComponentSafe(term);
     setQuery(potentialQuery ? potentialQuery : "");
     setOffset(0);
     setAllowLoadMore(true);
     // To prevent "no results" showing before debounce kicks in
     setIsLoading(true);
     fetchResults();
-  }, [fetchResults, props.match.params.term]);
+  }, [fetchResults, term]);
 
   React.useEffect(() => {
     handleQueryChange();
@@ -173,7 +173,7 @@ function Search(props: Props) {
 
   React.useEffect(() => {
     handleTermChange();
-  }, [handleTermChange, props.match.params.term]);
+  }, [handleTermChange, term]);
 
   const goBack = React.useCallback(() => {
     props.history.goBack();
