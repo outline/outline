@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import User from "~/models/User";
 import Avatar from "~/components/Avatar";
@@ -25,14 +25,14 @@ const UserListItem = ({ user, showMenu }: Props) => {
         <>
           {user.email ? `${user.email} · ` : undefined}
           {user.lastActiveAt ? (
-            <>
+            <Trans>
               Active <Time dateTime={user.lastActiveAt} /> ago
-            </>
+            </Trans>
           ) : (
             t("Invited")
           )}
-          {user.isAdmin && <Badge primary={user.isAdmin}>Admin</Badge>}
-          {user.isSuspended && <Badge>Suspended</Badge>}
+          {user.isAdmin && <Badge primary={user.isAdmin}>t("Admin")</Badge>}
+          {user.isSuspended && <Badge>t("Suspended")</Badge>}
         </>
       }
       actions={showMenu ? <UserMenu user={user} /> : undefined}
