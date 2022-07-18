@@ -299,7 +299,7 @@
     "enzyme": "^3.11.0",
     "enzyme-adapter-react-16": "^1.15.6",
     "eslint": "^7.6.0",
-    "eslint-config-prettier": "^8.3.0",
+    "eslint-config-prettier": "^8.5.0",
     "eslint-import-resolver-typescript": "^2.5.0",
     "eslint-plugin-es": "^4.1.0",
     "eslint-plugin-import": "^2.25.3",
