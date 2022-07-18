@@ -1906,12 +1906,12 @@
   dependencies:
     mkdirp "^1.0.4"
 
-"@outlinewiki/koa-passport@^4.1.4":
-  version "4.1.4"
-  resolved "https://registry.yarnpkg.com/@outlinewiki/koa-passport/-/koa-passport-4.1.4.tgz#f7536b81860b28065227c0521e9c9fddb532968a"
-  integrity sha512-CgBAGLQU52rMy3WqsW/VSChSVJkMg4iT7P0ITvPigOedvmd0HNDuAmuOf2IBKsv2vpe4qYoVb7uBFjah7dA31A==
+"@outlinewiki/koa-passport@^4.2.1":
+  version "4.2.1"
+  resolved "https://registry.yarnpkg.com/@outlinewiki/koa-passport/-/koa-passport-4.2.1.tgz#4798f9f67cddc1b52ce4201f1032d455b493025c"
+  integrity sha512-+l4O34Cx+zkWi2u6Me2HHL4739dzSMWeZDE5oeyPdS5bOtgeXbi6WgXtBJ0rELmqzYnKH49gdGH3HpyAOOVCVg==
   dependencies:
-    passport "^0.4.0"
+    passport "^0.6.0"
 
 "@outlinewiki/passport-azure-ad-oauth2@^0.1.0":
   version "0.1.0"
@@ -11475,10 +11475,10 @@ passport-oauth@1.0.x:
     passport-oauth1 "1.x.x"
     passport-oauth2 "1.x.x"
 
-passport-slack-oauth2@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/passport-slack-oauth2/-/passport-slack-oauth2-1.1.0.tgz#4a153b3d0d5a9e1a5041b61599d2b41a4b9486f1"
-  integrity sha512-rd0V5lWhtNMTmDWuIIk1eXj+ANgP74fD9h28XEp6AtgtQgWPa577qfeM9YLkl7oUNn8gIQeghsvtW6ziWt52dQ==
+passport-slack-oauth2@^1.1.1:
+  version "1.1.1"
+  resolved "https://registry.yarnpkg.com/passport-slack-oauth2/-/passport-slack-oauth2-1.1.1.tgz#d831ffc3f1e968fcc3622e6ecf41643c8d8f9cbc"
+  integrity sha512-xC+yMKFXximP5TzSNt4lr9TP78MMos5B+acC7bJNCxBAVNyL9e02AEpVpVtyMIqHv4nNZnv1vyoOb50J8VCcZQ==
   dependencies:
     passport-oauth2 "^1.5.0"
     pkginfo "^0.4.1"
@@ -11488,13 +11488,14 @@ passport-strategy@1.x.x:
   resolved "https://registry.yarnpkg.com/passport-strategy/-/passport-strategy-1.0.0.tgz#b5539aa8fc225a3d1ad179476ddf236b440f52e4"
   integrity sha1-tVOaqPwiWj0a0XlHbd8ja0QPUuQ=
 
-passport@^0.4.0, passport@^0.4.1:
-  version "0.4.1"
-  resolved "https://registry.yarnpkg.com/passport/-/passport-0.4.1.tgz#941446a21cb92fc688d97a0861c38ce9f738f270"
-  integrity sha512-IxXgZZs8d7uFSt3eqNjM9NQ3g3uQCW5avD8mRNoXV99Yig50vjuaez6dQK2qC0kVWPRTujxY0dWgGfT09adjYg==
+passport@^0.6.0:
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/passport/-/passport-0.6.0.tgz#e869579fab465b5c0b291e841e6cc95c005fac9d"
+  integrity sha512-0fe+p3ZnrWRW74fe8+SvCyf4a3Pb2/h7gFkQ8yTJpAO50gDzlfjZUZTO1k5Eg9kUct22OxHLqDZoKUWRHOh9ug==
   dependencies:
     passport-strategy "1.x.x"
     pause "0.0.1"
+    utils-merge "^1.0.1"
 
 passthrough-counter@^1.0.0:
   version "1.0.0"
@@ -14065,11 +14066,6 @@ supports-hyperlinks@^2.0.0:
     has-flag "^4.0.0"
     supports-color "^7.0.0"
 
-symbol-observable@^1.2.0:
-  version "1.2.0"
-  resolved "https://registry.yarnpkg.com/symbol-observable/-/symbol-observable-1.2.0.tgz#c22688aed4eab3cdc2dfeacbb561660560a00804"
-  integrity sha512-e900nM8RRtGhlV36KGEU9k65K3mPb1WV70OdjfxlG2EAuM1noi/E/BaW/uMhL7bPEssK8QV57vN3esixjUvcXQ==
-
 symbol-tree@^3.2.4:
   version "3.2.4"
   resolved "https://registry.yarnpkg.com/symbol-tree/-/symbol-tree-3.2.4.tgz#430637d248ba77e078883951fb9aa0eed7c63fa2"
@@ -14870,7 +14866,7 @@ utility-types@^3.10.0:
   resolved "https://registry.yarnpkg.com/utility-types/-/utility-types-3.10.0.tgz#ea4148f9a741015f05ed74fd615e1d20e6bed82b"
   integrity sha512-O11mqxmi7wMKCo6HKFt5AhO4BwY3VV68YU07tgxfz8zJTIxr4BpsezN49Ffwy9j3ZpwwJp4fkRwjRzq3uWE6Rg==
 
-utils-merge@1.x.x:
+utils-merge@1.x.x, utils-merge@^1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/utils-merge/-/utils-merge-1.0.1.tgz#9f95710f50a267947b2ccc124741c1028427e713"
   integrity sha1-n5VxD1CiZ5R7LMwSR0HBAoQn5xM=
