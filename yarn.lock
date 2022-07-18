@@ -3177,10 +3177,10 @@
     "@types/mime" "^1"
     "@types/node" "*"
 
-"@types/slug@^5.0.2":
-  version "5.0.2"
-  resolved "https://registry.yarnpkg.com/@types/slug/-/slug-5.0.2.tgz#1461545e8c23484fbded34ae6ff647c55cc09f28"
-  integrity sha512-HFyrrOlpdLESwF4iuuoM0v66uo3Wm7R5rD6iZ5Odeej0dhcp1Crx0WaOzhmr19JtzUBr5NPH2JBTwxW4XUlkkg==
+"@types/slug@^5.0.3":
+  version "5.0.3"
+  resolved "https://registry.yarnpkg.com/@types/slug/-/slug-5.0.3.tgz#6186849366580a99cdd6f1b50e2b863a62105c95"
+  integrity sha512-yPX0bb1SvrpaGlHuSiz6EicgRI4VBE+LO7IANlZagQwtaoKjLLcZc8y6s13vKp41mYvMCSzjtObxvU7/0JRPaA==
 
 "@types/source-list-map@*":
   version "0.1.2"
@@ -13445,10 +13445,10 @@ slice-ansi@^5.0.0:
     ansi-styles "^6.0.0"
     is-fullwidth-code-point "^4.0.0"
 
-slug@^4.0.4:
-  version "4.0.4"
-  resolved "https://registry.yarnpkg.com/slug/-/slug-4.0.4.tgz#87138f22e2f5062e6522995dc4e8c5df63841b1f"
-  integrity sha512-GwSsWjX2rcIAtbKWGaxnzASWljWraPQry0RmCnRkji2pEggVjgb5HjXdqN0Gb6JOPg19rsC3hHUYXbOnHXKv2Q==
+slug@^5.3.0:
+  version "5.3.0"
+  resolved "https://registry.yarnpkg.com/slug/-/slug-5.3.0.tgz#d63d3a5a88d5508c1adcf2b8aeeb045c3f43760b"
+  integrity sha512-h7yD2UDVyMcQRv/WLSjq7HDH6ToO/22MB381zfx6/ebtdWUlGcyxpJNVHl6WFvKjIMHf5ZxANFp/srsy4mfT/w==
 
 slugify@^1.6.5:
   version "1.6.5"
