@@ -11,7 +11,6 @@ import accountProvisioner, {
 import env from "@server/env";
 import {
   GmailAccountCreationError,
-  InviteRequiredError,
   TeamDomainRequiredError,
 } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
@@ -63,86 +62,66 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
         ) => void
       ) {
         try {
-          let result;
-
           // "domain" is the Google Workspaces domain
           const domain = profile._json.hd;
           const team = await getTeamFromContext(ctx);
 
-          // Existence of domain means this is a Google Workspaces account
-          // so we'll attempt to provision an account (team and user)
-          if (domain) {
-            // remove the TLD and form a subdomain from the remaining
-            // subdomains of the form "foo.bar.com" are allowed as primary Google Workspaces domains
-            // see https://support.google.com/nonprofits/thread/19685140/using-a-subdomain-as-a-primary-domain
-            const subdomain = slugifyDomain(domain);
-            const teamName = capitalize(subdomain);
+          console.log("Google sign-in", { domain, profile });
 
-            // Request a larger size profile picture than the default by tweaking
-            // the query parameter.
-            const avatarUrl = profile.picture.replace("=s96-c", "=s128-c");
-
-            // if a team can be inferred, we assume the user is only interested in signing into
-            // that team in particular; otherwise, we will do a best effort at finding their account
-            // or provisioning a new one (within AccountProvisioner)
-            result = await accountProvisioner({
-              ip: ctx.ip,
-              team: {
-                id: team?.id,
-                name: teamName,
-                domain,
-                subdomain,
-              },
-              user: {
-                email: profile.email,
-                name: profile.displayName,
-                avatarUrl,
-              },
-              authenticationProvider: {
-                name: providerName,
-                providerId: domain,
-              },
-              authentication: {
-                providerId: profile.id,
-                accessToken,
-                refreshToken,
-                expiresIn: params.expires_in,
-                scopes,
-              },
-            });
-          } else {
-            // No domain means it's a personal Gmail account
-            // We only allow sign-in to existing user accounts with these
-            if (!team) {
-              // No team usually means this is the apex domain
-              // Throw different errors depending on whether we think the user is
-              // trying to create a new account, or log-in to an existing one
-              const userExists = await User.count({
-                where: { email: profile.email.toLowerCase() },
-              });
-
-              if (!userExists) {
-                throw GmailAccountCreationError();
-              }
-
-              throw TeamDomainRequiredError();
-            }
-
-            const user = await User.findOne({
-              where: { teamId: team.id, email: profile.email.toLowerCase() },
+          // Special handling for peronsal gmail accounts coming
+          // from the apex domain, which we don't allow.
+          // 1. Users cannot create a team with personal emails.
+          // 2. To log-in, users must specify a team subdomain.
+          if (!domain && !team) {
+            const userExists = await User.count({
+              where: { email: profile.email.toLowerCase() },
             });
 
-            if (!user) {
-              throw InviteRequiredError();
+            if (!userExists) {
+              throw GmailAccountCreationError();
             }
 
-            result = {
-              user,
-              team,
-              isNewUser: false,
-              isNewTeam: false,
-            };
+            throw TeamDomainRequiredError();
           }
+
+          // remove the TLD and form a subdomain from the remaining
+          // subdomains of the form "foo.bar.com" are allowed as primary Google Workspaces domains
+          // see https://support.google.com/nonprofits/thread/19685140/using-a-subdomain-as-a-primary-domain
+          const subdomain = slugifyDomain(domain);
+          const teamName = capitalize(subdomain);
+
+          // Request a larger size profile picture than the default by tweaking
+          // the query parameter.
+          const avatarUrl = profile.picture.replace("=s96-c", "=s128-c");
+
+          // if a team can be inferred, we assume the user is only interested in signing into
+          // that team in particular; otherwise, we will do a best effort at finding their account
+          // or provisioning a new one (within AccountProvisioner)
+          const result = await accountProvisioner({
+            ip: ctx.ip,
+            team: {
+              id: team?.id,
+              name: teamName,
+              domain,
+              subdomain,
+            },
+            user: {
+              email: profile.email,
+              name: profile.displayName,
+              avatarUrl,
+            },
+            authenticationProvider: {
+              name: providerName,
+              providerId: domain,
+            },
+            authentication: {
+              providerId: profile.id,
+              accessToken,
+              refreshToken,
+              expiresIn: params.expires_in,
+              scopes,
+            },
+          });
 
           return done(null, result.user, result);
         } catch (err) {

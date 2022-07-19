@@ -6,7 +6,7 @@ import { Event, Team, User, UserAuthentication } from "@server/models";
 type UserCreatorResult = {
   user: User;
   isNewUser: boolean;
-  authentication: UserAuthentication;
+  authentication: UserAuthentication | null;
 };
 
 type Props = {
@@ -17,7 +17,7 @@ type Props = {
   avatarUrl?: string | null;
   teamId: string;
   ip: string;
-  authentication: {
+  authentication?: {
     authenticationProviderId: string;
     providerId: string;
     scopes: string[];
@@ -37,54 +37,56 @@ export default async function userCreator({
   authentication,
   ip,
 }: Props): Promise<UserCreatorResult> {
-  const { authenticationProviderId, providerId, ...rest } = authentication;
+  if (authentication) {
+    const { authenticationProviderId, providerId, ...rest } = authentication;
 
-  const auth = await UserAuthentication.findOne({
-    where: {
-      providerId,
-    },
-    include: [
-      {
-        model: User,
-        as: "user",
-        where: { teamId },
-        required: true,
+    const auth = await UserAuthentication.findOne({
+      where: {
+        providerId,
       },
-    ],
-  });
+      include: [
+        {
+          model: User,
+          as: "user",
+          where: { teamId },
+          required: true,
+        },
+      ],
+    });
 
-  // Someone has signed in with this authentication before, we just
-  // want to update the details instead of creating a new record
-  if (auth) {
-    const { user } = auth;
+    // Someone has signed in with this authentication before, we just
+    // want to update the details instead of creating a new record
+    if (auth) {
+      const { user } = auth;
 
-    // We found an authentication record that matches the user id, but it's
-    // associated with a different authentication provider, (eg a different
-    // hosted google domain). This is possible in Google Auth when moving domains.
-    // In the future we may auto-migrate these.
-    if (auth.authenticationProviderId !== authenticationProviderId) {
-      throw new Error(
-        `User authentication ${providerId} already exists for ${auth.authenticationProviderId}, tried to assign to ${authenticationProviderId}`
-      );
+      // We found an authentication record that matches the user id, but it's
+      // associated with a different authentication provider, (eg a different
+      // hosted google domain). This is possible in Google Auth when moving domains.
+      // In the future we may auto-migrate these.
+      if (auth.authenticationProviderId !== authenticationProviderId) {
+        throw new Error(
+          `User authentication ${providerId} already exists for ${auth.authenticationProviderId}, tried to assign to ${authenticationProviderId}`
+        );
+      }
+
+      if (user) {
+        await user.update({
+          email,
+          username,
+        });
+        await auth.update(rest);
+        return {
+          user,
+          authentication: auth,
+          isNewUser: false,
+        };
+      }
+
+      // We found an authentication record, but the associated user was deleted or
+      // otherwise didn't exist. Cleanup the auth record and proceed with creating
+      // a new user. See: https://github.com/outline/outline/issues/2022
+      await auth.destroy();
     }
-
-    if (user) {
-      await user.update({
-        email,
-        username,
-      });
-      await auth.update(rest);
-      return {
-        user,
-        authentication: auth,
-        isNewUser: false,
-      };
-    }
-
-    // We found an authentication record, but the associated user was deleted or
-    // otherwise didn't exist. Cleanup the auth record and proceed with creating
-    // a new user. See: https://github.com/outline/outline/issues/2022
-    await auth.destroy();
   }
 
   // A `user` record might exist in the form of an invite even if there is no
@@ -145,13 +147,19 @@ export default async function userCreator({
         }
       );
 
-      return await existingUser.$create<UserAuthentication>(
-        "authentication",
-        authentication,
-        {
-          transaction,
-        }
-      );
+      // user is internal to the authentication provider of the team
+      if (authentication) {
+        return await existingUser.$create<UserAuthentication>(
+          "authentication",
+          authentication,
+          {
+            transaction,
+          }
+        );
+      } else {
+        // user is external to the auth provider for the team
+        return null;
+      }
     });
 
     if (isInvite) {

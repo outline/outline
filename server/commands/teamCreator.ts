@@ -4,6 +4,7 @@ import {
   InvalidAuthenticationError,
   DomainNotAllowedError,
   MaximumTeamsError,
+  AuthenticationProviderDisabledError,
 } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { APM } from "@server/logging/tracing";
@@ -12,7 +13,7 @@ import { generateAvatarUrl } from "@server/utils/avatars";
 
 type TeamCreatorResult = {
   team: Team;
-  authenticationProvider: AuthenticationProvider;
+  authenticationProvider: AuthenticationProvider | null;
   isNewTeam: boolean;
 };
 
@@ -24,7 +25,7 @@ type Props = {
   avatarUrl?: string | null;
   authenticationProvider: {
     name: string;
-    providerId: string;
+    providerId: string; // external id
   };
   ip: string;
 };
@@ -54,16 +55,33 @@ async function teamCreator({
   // This authentication provider already exists which means we have a team and
   // there is nothing left to do but return the existing credentials
   if (authP) {
+    if (!authP.enabled) {
+      throw AuthenticationProviderDisabledError();
+    }
+
     return {
       authenticationProvider: authP,
       team: authP.team,
       isNewTeam: false,
     };
   }
+
   // A team id was provided but no auth provider was found matching those credentials
-  // The user is attempting to log into a team with an incorrect SSO - fail the login
+  // The user is attempting to log into a team with an external or personal SSO
   else if (id) {
-    throw InvalidAuthenticationError("incorrect authentication credentials");
+    const team = await Team.findOne({ where: { id } });
+
+    if (!team) {
+      throw InvalidAuthenticationError("incorrect authentication credentials");
+    }
+
+    // null authenticationProvider signals caller to either perform a basic email check
+    // or fail the auth if no invite or existing account is found
+    return {
+      authenticationProvider: null,
+      team,
+      isNewTeam: false,
+    };
   }
 
   // This team has never been seen before, if self hosted the logic is different
