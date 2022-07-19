@@ -29,6 +29,31 @@ allow(User, "createSubscription", Document, (user, document) => {
   return true;
 });
 
+// Is `user` list all subscriptions on `document`?
+allow(User, "listSubscription", Document, (user, document) => {
+  // Sanity check.
+  if (!document) {
+    return false;
+  }
+
+  // REVIEW: Show admin be allowed to prescribe
+  // a document to user?
+  if (user.isAdmin) {
+    return true;
+  }
+
+  // If `user` isn't allowed to read `document`,
+  // they shouldn't be able to list any
+  // subscriptions on `document`.
+  if (cannot(user, "read", document)) {
+    return false;
+  }
+
+  // Otherwise `user` is free to list
+  // all public subscriptions on `document`.
+  return true;
+});
+
 // Is `user` allowed to `read`
 // subscription statuses on `document`?
 allow(User, "read", Subscription, (user, subscription) => {
