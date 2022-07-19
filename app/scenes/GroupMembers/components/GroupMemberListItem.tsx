@@ -1,4 +1,6 @@
+import { observer } from "mobx-react";
 import * as React from "react";
+import { Trans, useTranslation } from "react-i18next";
 import User from "~/models/User";
 import Avatar from "~/components/Avatar";
 import Badge from "~/components/Badge";
@@ -15,20 +17,22 @@ type Props = {
 };
 
 const GroupMemberListItem = ({ user, onRemove, onAdd }: Props) => {
+  const { t } = useTranslation();
+
   return (
     <ListItem
       title={user.name}
       subtitle={
         <>
           {user.lastActiveAt ? (
-            <>
+            <Trans>
               Active <Time dateTime={user.lastActiveAt} /> ago
-            </>
+            </Trans>
           ) : (
-            "Never signed in"
+            t("Never signed in")
           )}
-          {user.isInvited && <Badge>Invited</Badge>}
-          {user.isAdmin && <Badge primary={user.isAdmin}>Admin</Badge>}
+          {user.isInvited && <Badge>{t("Invited")}</Badge>}
+          {user.isAdmin && <Badge primary={user.isAdmin}>{t("Admin")}</Badge>}
         </>
       }
       image={<Avatar src={user.avatarUrl} size={32} />}
@@ -37,7 +41,7 @@ const GroupMemberListItem = ({ user, onRemove, onAdd }: Props) => {
           {onRemove && <GroupMemberMenu onRemove={onRemove} />}
           {onAdd && (
             <Button onClick={onAdd} neutral>
-              Add
+              {t("Add")}
             </Button>
           )}
         </Flex>
@@ -46,4 +50,4 @@ const GroupMemberListItem = ({ user, onRemove, onAdd }: Props) => {
   );
 };
 
-export default GroupMemberListItem;
+export default observer(GroupMemberListItem);

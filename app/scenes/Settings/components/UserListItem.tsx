@@ -31,8 +31,8 @@ const UserListItem = ({ user, showMenu }: Props) => {
           ) : (
             t("Invited")
           )}
-          {user.isAdmin && <Badge primary={user.isAdmin}>t("Admin")</Badge>}
-          {user.isSuspended && <Badge>t("Suspended")</Badge>}
+          {user.isAdmin && <Badge primary={user.isAdmin}>{t("Admin")}</Badge>}
+          {user.isSuspended && <Badge>{t("Suspended")}</Badge>}
         </>
       }
       actions={showMenu ? <UserMenu user={user} /> : undefined}
