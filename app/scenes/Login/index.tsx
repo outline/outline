@@ -49,7 +49,11 @@ function Header({ config }: { config?: Config | undefined }) {
   );
 }
 
-function Login() {
+type Props = {
+  children?: (config?: Config) => React.ReactNode;
+};
+
+function Login({ children }: Props) {
   const location = useLocation();
   const query = useQuery();
   const { t, i18n } = useTranslation();
@@ -174,11 +178,14 @@ function Login() {
             </GetStarted>
           </>
         ) : (
-          <StyledHeading centered>
-            {t("Login to {{ authProviderName }}", {
-              authProviderName: config.name || "Outline",
-            })}
-          </StyledHeading>
+          <>
+            <StyledHeading centered>
+              {t("Login to {{ authProviderName }}", {
+                authProviderName: config.name || "Outline",
+              })}
+            </StyledHeading>
+            {children?.(config)}
+          </>
         )}
         <Notices />
         {defaultProvider && (
