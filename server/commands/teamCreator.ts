@@ -1,7 +1,7 @@
+import invariant from "invariant";
 import { sequelize } from "@server/database/sequelize";
 import env from "@server/env";
 import {
-  InvalidAuthenticationError,
   DomainNotAllowedError,
   MaximumTeamsError,
   AuthenticationProviderDisabledError,
@@ -70,10 +70,7 @@ async function teamCreator({
   // The user is attempting to log into a team with an external or personal SSO
   else if (id) {
     const team = await Team.findOne({ where: { id } });
-
-    if (!team) {
-      throw InvalidAuthenticationError("incorrect authentication credentials");
-    }
+    invariant(team, "team must exist");
 
     // null authenticationProvider signals caller to either perform a basic email check
     // or fail the auth if no invite or existing account is found
