@@ -6,25 +6,42 @@ import AuthenticationProvider from "@server/models/AuthenticationProvider";
 import Team from "@server/models/Team";
 
 export function checkPendingMigrations() {
-  const commandResult = execSync("yarn sequelize db:migrate:status");
-  const commandResultArray = Buffer.from(commandResult)
-    .toString("utf-8")
-    .split("\n");
-
-  const pendingMigrations = commandResultArray.filter((line) =>
-    line.startsWith("down")
-  );
-
-  if (pendingMigrations.length) {
-    Logger.warn("You have pending migrations");
-    Logger.warn(
-      pendingMigrations
-        .map((line, i) => `${i + 1}. ${line.replace("down ", "")}`)
-        .join("\n")
+  try {
+    const commandResult = execSync(
+      `yarn sequelize db:migrate:status${
+        env.PGSSLMODE === "disable" ? " --env=production-ssl-disabled" : ""
+      }`
     );
-    Logger.warn(
-      "Please run `yarn db:migrate` or `yarn db:migrate --env production-ssl-disabled` to run all pending migrations"
+    const commandResultArray = Buffer.from(commandResult)
+      .toString("utf-8")
+      .split("\n");
+
+    const pendingMigrations = commandResultArray.filter((line) =>
+      line.startsWith("down")
     );
+
+    if (pendingMigrations.length) {
+      Logger.warn("You have pending migrations");
+      Logger.warn(
+        pendingMigrations
+          .map((line, i) => `${i + 1}. ${line.replace("down ", "")}`)
+          .join("\n")
+      );
+      Logger.warn(
+        "Please run `yarn db:migrate` or `yarn db:migrate --env production-ssl-disabled` to run all pending migrations"
+      );
+
+      process.exit(1);
+    }
+  } catch (err) {
+    if (err.message.includes("ECONNREFUSED")) {
+      Logger.warn(
+        `Could not connect to the database. Please check your connection settings.`
+      );
+      process.exit(1);
+    } else {
+      Logger.warn(err.message);
+    }
 
     process.exit(1);
   }
