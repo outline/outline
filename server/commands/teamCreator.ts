@@ -1,6 +1,10 @@
 import { sequelize } from "@server/database/sequelize";
 import env from "@server/env";
-import { DomainNotAllowedError, MaximumTeamsError } from "@server/errors";
+import {
+  InvalidAuthenticationError,
+  DomainNotAllowedError,
+  MaximumTeamsError,
+} from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { APM } from "@server/logging/tracing";
 import { Team, AuthenticationProvider, Event } from "@server/models";
@@ -13,6 +17,7 @@ type TeamCreatorResult = {
 };
 
 type Props = {
+  id?: string;
   name: string;
   domain?: string;
   subdomain: string;
@@ -25,6 +30,7 @@ type Props = {
 };
 
 async function teamCreator({
+  id,
   name,
   domain,
   subdomain,
@@ -33,7 +39,9 @@ async function teamCreator({
   ip,
 }: Props): Promise<TeamCreatorResult> {
   let authP = await AuthenticationProvider.findOne({
-    where: authenticationProvider,
+    where: id
+      ? { ...authenticationProvider, teamId: id }
+      : authenticationProvider,
     include: [
       {
         model: Team,
@@ -51,6 +59,11 @@ async function teamCreator({
       team: authP.team,
       isNewTeam: false,
     };
+  }
+  // A team id was provided but no auth provider was found matching those credentials
+  // The user is attempting to log into a team with an incorrect SSO - fail the login
+  else if (id) {
+    throw InvalidAuthenticationError("incorrect authentication credentials");
   }
 
   // This team has never been seen before, if self hosted the logic is different

@@ -1,5 +1,5 @@
 import env from "@shared/env";
-import { parseDomain, getCookieDomain } from "./domains";
+import { parseDomain, getCookieDomain, slugifyDomain } from "./domains";
 
 // test suite is based on subset of parse-domain module we want to support
 // https://github.com/peerigon/parse-domain/blob/master/test/parseDomain.test.js
@@ -155,6 +155,14 @@ describe("#parseDomain", () => {
       host: "myteam.localhost",
       custom: false,
     });
+  });
+});
+
+describe("#slugifyDomain", () => {
+  it("strips the last . delineated segment from strings", () => {
+    expect(slugifyDomain("foo.co")).toBe("foo");
+    expect(slugifyDomain("foo.co.uk")).toBe("foo-co");
+    expect(slugifyDomain("www.foo.co.uk")).toBe("www-foo-co");
   });
 });
 
