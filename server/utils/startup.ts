@@ -38,11 +38,9 @@ export function checkPendingMigrations() {
       Logger.warn(
         `Could not connect to the database. Please check your connection settings.`
       );
-      process.exit(1);
     } else {
       Logger.warn(err.message);
     }
-
     process.exit(1);
   }
 }
