@@ -68,19 +68,19 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
 
           console.log("Google sign-in", { domain, profile });
 
-          // Special handling for peronsal gmail accounts coming
-          // from the apex domain, which we don't allow.
-          // 1. Users cannot create a team with personal emails.
-          // 2. To log-in, users must specify a team subdomain.
+          // No profile domain means personal gmail account
+          // No team implies the request came from the apex domain
           if (!domain && !team) {
             const userExists = await User.count({
               where: { email: profile.email.toLowerCase() },
             });
 
+            // Users cannot create a team with personal gmail accounts
             if (!userExists) {
               throw GmailAccountCreationError();
             }
 
+            // To log-in with a personal account, users must specify a team subdomain
             throw TeamDomainRequiredError();
           }
 
