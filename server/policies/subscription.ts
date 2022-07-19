@@ -88,7 +88,7 @@ allow(User, "update", Subscription, (user, subscription) => {
 
   // Otherwise `user` should be able to update
   // only their own set subscriptions.
-  return user.id === subscription.id;
+  return user.id === subscription.userId;
 });
 
 // Is `user` allowed to `delete` subscription on `document`?
@@ -105,5 +105,5 @@ allow(User, "delete", Subscription, (user, subscription) => {
 
   // Otherwise `user` should be able to update
   // only their own set subscriptions.
-  return user.id === subscription.id;
+  return user.id === subscription.userId;
 });
