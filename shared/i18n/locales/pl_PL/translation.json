@@ -430,6 +430,7 @@
   "Share nested documents": "Udostępnij zagnieżdżone dokumenty",
   "Nested documents are publicly available": "Zagnieżdżone dokumenty są publicznie dostępne",
   "Nested documents are not shared": "Zagnieżdżone dokumenty nie są udostępniane",
+  "{{ teamName }} is using Outline to share documents, please login to continue.": "{{ teamName }} is using Outline to share documents, please login to continue.",
   "Are you sure you want to delete the <em>{{ documentTitle }}</em> template?": "Czy na pewno chcesz usunąć szablon <em>{{ documentTitle }}</em>?",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history and any nested documents.": "Jesteś pewien? Usunięcie dokumentu <em>{{ documentTitle }}</em> spowoduje usunięcie całej jego historii i wszelkich zagnieżdżonych dokumentów.",
   "If you’d like the option of referencing or restoring the {{noun}} in the future, consider archiving it instead.": "Jeśli chciałbyś skorzystać z opcji odwoływania lub przywracania {{noun}} w przyszłości, rozważ archiwizację.",
