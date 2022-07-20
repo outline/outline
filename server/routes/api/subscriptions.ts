@@ -48,7 +48,7 @@ router.post(
 
     ctx.body = {
       pagination: ctx.state.pagination,
-      subscriptions: subscriptions.map(presentSubscription),
+      data: subscriptions.map(presentSubscription),
     };
   }
 );
@@ -89,7 +89,7 @@ router.post(
     await Event.create(event);
 
     ctx.body = {
-      subscription: presentSubscription(subscription),
+      data: presentSubscription(subscription),
     };
   }
 );
@@ -131,7 +131,7 @@ router.post(
     await Event.create(event);
 
     ctx.body = {
-      subscription: presentSubscription(subscription),
+      data: presentSubscription(subscription),
     };
   }
 );

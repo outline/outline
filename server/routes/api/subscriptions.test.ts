@@ -36,10 +36,10 @@ describe("#subscriptions.create", () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.subscription.id).toBeDefined();
-    expect(body.subscription.userId).toEqual(user.id);
-    expect(body.subscription.documentId).toEqual(document.id);
-    expect(body.subscription.enabled).toEqual(true);
+    expect(body.data.id).toBeDefined();
+    expect(body.data.userId).toEqual(user.id);
+    expect(body.data.documentId).toEqual(document.id);
+    expect(body.data.enabled).toEqual(true);
   });
 
   it("should not create duplicate subscriptions", async () => {
@@ -83,10 +83,10 @@ describe("#subscriptions.create", () => {
 
     expect(res.status).toEqual(200);
     // Database should only have 1 subscription registered.
-    expect(body.subscriptions.length).toEqual(1);
-    expect(body.subscriptions[0].userId).toEqual(user.id);
-    expect(body.subscriptions[0].documentId).toEqual(document.id);
-    expect(body.subscriptions[0].enabled).toEqual(true);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].userId).toEqual(user.id);
+    expect(body.data[0].documentId).toEqual(document.id);
+    expect(body.data[0].enabled).toEqual(true);
   });
 });
 
@@ -117,11 +117,11 @@ describe("#subscriptions.list", () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.subscriptions.length).toEqual(1);
-    expect(body.subscriptions[0].id).toEqual(subscription.id);
-    expect(body.subscriptions[0].userId).toEqual(user.id);
-    expect(body.subscriptions[0].documentId).toEqual(document.id);
-    expect(body.subscriptions[0].enabled).toEqual(true);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(subscription.id);
+    expect(body.data[0].userId).toEqual(user.id);
+    expect(body.data[0].documentId).toEqual(document.id);
+    expect(body.data[0].enabled).toEqual(true);
   });
 
   it("user should be able to list subscriptions on document", async () => {
@@ -172,15 +172,15 @@ describe("#subscriptions.list", () => {
 
     expect(res.status).toEqual(200);
     // `document` should have two subscribers.
-    expect(body.subscriptions.length).toEqual(2);
+    expect(body.data.length).toEqual(2);
     // `subscriber1` subscribed after `subscriber0`
-    expect(body.subscriptions[0].userId).toEqual(subscriber1.id);
+    expect(body.data[0].userId).toEqual(subscriber1.id);
     // Both subscribers subscribed to same `document`.
-    expect(body.subscriptions[0].documentId).toEqual(document.id);
-    expect(body.subscriptions[1].userId).toEqual(subscriber0.id);
-    expect(body.subscriptions[1].documentId).toEqual(document.id);
-    expect(body.subscriptions[0].enabled).toEqual(true);
-    expect(body.subscriptions[1].enabled).toEqual(true);
+    expect(body.data[0].documentId).toEqual(document.id);
+    expect(body.data[1].userId).toEqual(subscriber0.id);
+    expect(body.data[1].documentId).toEqual(document.id);
+    expect(body.data[0].enabled).toEqual(true);
+    expect(body.data[1].enabled).toEqual(true);
   });
 
   it("user outside of the team should not be able to list subscriptions on internal document", async () => {
@@ -264,10 +264,10 @@ describe("#subscriptions.update", () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.subscription.id).toEqual(subscription.id);
-    expect(body.subscription.userId).toEqual(user.id);
-    expect(body.subscription.documentId).toEqual(document.id);
-    expect(body.subscription.enabled).toEqual(false);
+    expect(body.data.id).toEqual(subscription.id);
+    expect(body.data.userId).toEqual(user.id);
+    expect(body.data.documentId).toEqual(document.id);
+    expect(body.data.enabled).toEqual(false);
   });
 
   it("users should not be able to update other's subscriptions on document", async () => {
@@ -304,7 +304,7 @@ describe("#subscriptions.update", () => {
     });
 
     const subscription1 = await resp.json();
-    const subscription1Id = subscription1.subscription.id;
+    const subscription1Id = subscription1.data.id;
 
     // `subscriber0` wants to change `subscriber1`'s
     // subscription for this document.
@@ -396,7 +396,7 @@ describe("#subscriptions.delete", () => {
     });
 
     const subscription1 = await resp.json();
-    const subscription1Id = subscription1.subscription.id;
+    const subscription1Id = subscription1.data.id;
 
     // `subscriber0` wants to change `subscriber1`'s
     // subscription for this document.
