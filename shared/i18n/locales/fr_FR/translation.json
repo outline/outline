@@ -430,6 +430,7 @@
   "Share nested documents": "Partager des documents imbriqués",
   "Nested documents are publicly available": "Les documents imbriqués sont disponibles publiquement",
   "Nested documents are not shared": "Les documents imbriqués ne sont pas partagés",
+  "{{ teamName }} is using Outline to share documents, please login to continue.": "{{ teamName }} is using Outline to share documents, please login to continue.",
   "Are you sure you want to delete the <em>{{ documentTitle }}</em> template?": "Voulez-vous vraiment supprimer le modèle <em>{{ documentTitle }}</em>?",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history and any nested documents.": "Êtes-vous sûr de cela? La suppression de <em>{{ documentTitle }}</em> supprimera tout son historique et tous les documents imbriqués.",
   "If you’d like the option of referencing or restoring the {{noun}} in the future, consider archiving it instead.": "Si vous souhaitez avoir la possibilité de référencer ou de restaurer le {{noun}} à l'avenir, envisagez plutôt de l'archiver.",
