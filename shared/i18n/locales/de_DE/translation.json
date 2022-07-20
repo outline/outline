@@ -430,6 +430,7 @@
   "Share nested documents": "Teile untergeordnete Dokumente",
   "Nested documents are publicly available": "Untergeordnete Dokumente sind öffentlich verfügbar",
   "Nested documents are not shared": "Untergeordnete Dokumente werden nicht geteilt",
+  "{{ teamName }} is using Outline to share documents, please login to continue.": "{{ teamName }} is using Outline to share documents, please login to continue.",
   "Are you sure you want to delete the <em>{{ documentTitle }}</em> template?": "Möchten Sie die Vorlage <em>{{ documentTitle }}</em> wirklich löschen?",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history and any nested documents.": "Bist du dir sicher? Durch Löschen des Dokuments <em>{{ documentTitle }}</em>, werden der gesamte Verlauf und alle Unterdokumente gelöscht.",
   "If you’d like the option of referencing or restoring the {{noun}} in the future, consider archiving it instead.": "Wenn du {{noun}} in Zukunft noch referenzieren oder wiederherstellen möchtest, solltest du es stattdessen archivieren.",
