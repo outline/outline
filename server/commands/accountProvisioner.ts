@@ -82,9 +82,9 @@ async function accountProvisioner({
       avatarUrl: userParams.avatarUrl,
       teamId: team.id,
       isExternalTeam,
-      authenticationProviderId: authenticationProvider.id,
       ip,
       authentication: {
+        authenticationProviderId: authenticationProvider.id,
         ...authenticationParams,
         expiresAt: authenticationParams.expiresIn
           ? new Date(Date.now() + authenticationParams.expiresIn * 1000)

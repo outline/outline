@@ -17,9 +17,9 @@ type Props = {
   avatarUrl?: string | null;
   teamId: string;
   isExternalTeam?: boolean;
-  authenticationProviderId: string;
   ip: string;
   authentication: {
+    authenticationProviderId: string;
     providerId: string;
     scopes: string[];
     accessToken?: string;
@@ -37,10 +37,9 @@ export default async function userCreator({
   avatarUrl,
   teamId,
   authentication,
-  authenticationProviderId,
   ip,
 }: Props): Promise<UserCreatorResult> {
-  const { providerId, ...rest } = authentication;
+  const { providerId, authenticationProviderId, ...rest } = authentication;
 
   const auth = await UserAuthentication.findOne({
     where: {
@@ -154,7 +153,7 @@ export default async function userCreator({
 
       return await existingUser.$create<UserAuthentication>(
         "authentication",
-        { ...authentication, authenticationProviderId },
+        authentication,
         {
           transaction,
         }
@@ -214,7 +213,7 @@ export default async function userCreator({
         teamId,
         avatarUrl,
         service: null,
-        authentications: [{ ...authentication, authenticationProviderId }],
+        authentications: [authentication],
       },
       {
         include: "authentications",

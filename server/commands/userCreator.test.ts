@@ -21,9 +21,9 @@ describe("userCreator", () => {
       username: newUsername,
       avatarUrl: existing.avatarUrl,
       teamId: existing.teamId,
-      authenticationProviderId: existingAuth.authenticationProviderId,
       ip,
       authentication: {
+        authenticationProviderId: existingAuth.authenticationProviderId,
         providerId: existingAuth.providerId,
         accessToken: "123",
         scopes: ["read"],
@@ -57,10 +57,9 @@ describe("userCreator", () => {
       username: "new-username",
       avatarUrl: existing.avatarUrl,
       teamId: existing.teamId,
-      authenticationProviderId: authenticationProvider.id,
-
       ip,
       authentication: {
+        authenticationProviderId: authenticationProvider.id,
         providerId: uuidv4(),
         accessToken: "123",
         scopes: ["read"],
@@ -94,9 +93,9 @@ describe("userCreator", () => {
       username: "new-username",
       avatarUrl: existing.avatarUrl,
       teamId: existing.teamId,
-      authenticationProviderId: authenticationProvider.id,
       ip,
       authentication: {
+        authenticationProviderId: authenticationProvider.id,
         providerId: uuidv4(),
         accessToken: "123",
         scopes: ["read"],
@@ -123,10 +122,9 @@ describe("userCreator", () => {
       name: "Test Name",
       email: "test@example.com",
       teamId: existing.teamId,
-      authenticationProviderId: existingAuth.authenticationProviderId,
-
       ip,
       authentication: {
+        authenticationProviderId: existingAuth.authenticationProviderId,
         providerId: existingAuth.providerId,
         accessToken: "123",
         scopes: ["read"],
@@ -152,9 +150,9 @@ describe("userCreator", () => {
         name: "Test Name",
         email: "test@example.com",
         teamId: existing.teamId,
-        authenticationProviderId: uuidv4(),
         ip,
         authentication: {
+          authenticationProviderId: uuidv4(),
           providerId: existingAuth.providerId,
           accessToken: "123",
           scopes: ["read"],
@@ -176,9 +174,9 @@ describe("userCreator", () => {
       email: "test@example.com",
       username: "tname",
       teamId: team.id,
-      authenticationProviderId: authenticationProvider.id,
       ip,
       authentication: {
+        authenticationProviderId: authenticationProvider.id,
         providerId: "fake-service-id",
         accessToken: "123",
         scopes: ["read"],
@@ -207,10 +205,10 @@ describe("userCreator", () => {
       email: "test@example.com",
       username: "tname",
       teamId: team.id,
-      authenticationProviderId: authenticationProvider.id,
       isAdmin: true,
       ip,
       authentication: {
+        authenticationProviderId: authenticationProvider.id,
         providerId: "fake-service-id",
         accessToken: "123",
         scopes: ["read"],
@@ -231,9 +229,9 @@ describe("userCreator", () => {
       email: "test@example.com",
       username: "tname",
       teamId: team.id,
-      authenticationProviderId: authenticationProvider.id,
       ip,
       authentication: {
+        authenticationProviderId: authenticationProvider.id,
         providerId: "fake-service-id",
         accessToken: "123",
         scopes: ["read"],
@@ -248,11 +246,10 @@ describe("userCreator", () => {
       email: "tes2@example.com",
       username: "tname2",
       teamId: team.id,
-      authenticationProviderId: authenticationProvider.id,
-
       isAdmin: false,
       ip,
       authentication: {
+        authenticationProviderId: authenticationProvider.id,
         providerId: "fake-service-id",
         accessToken: "123",
         scopes: ["read"],
@@ -276,9 +273,9 @@ describe("userCreator", () => {
       name: invite.name,
       email: "invite@ExamPle.com",
       teamId: invite.teamId,
-      authenticationProviderId: authenticationProvider.id,
       ip,
       authentication: {
+        authenticationProviderId: authenticationProvider.id,
         providerId: "fake-service-id",
         accessToken: "123",
         scopes: ["read"],
@@ -305,9 +302,9 @@ describe("userCreator", () => {
         name: "Uninvited User",
         email: "invite@ExamPle.com",
         teamId: team.id,
-        authenticationProviderId: authenticationProvider.id,
         ip,
         authentication: {
+          authenticationProviderId: authenticationProvider.id,
           providerId: "fake-service-id",
           accessToken: "123",
           scopes: ["read"],
@@ -336,9 +333,9 @@ describe("userCreator", () => {
       name: "Test Name",
       email: "user@example-company.com",
       teamId: team.id,
-      authenticationProviderId: authenticationProvider.id,
       ip,
       authentication: {
+        authenticationProviderId: authenticationProvider.id,
         providerId: "fake-service-id",
         accessToken: "123",
         scopes: ["read"],
@@ -370,9 +367,9 @@ describe("userCreator", () => {
         name: "Bad Domain User",
         email: "user@example.com",
         teamId: team.id,
-        authenticationProviderId: authenticationProvider.id,
         ip,
         authentication: {
+          authenticationProviderId: authenticationProvider.id,
           providerId: "fake-service-id",
           accessToken: "123",
           scopes: ["read"],
