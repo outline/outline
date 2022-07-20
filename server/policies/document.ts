@@ -9,7 +9,7 @@ allow(User, "createDocument", Team, (user, team) => {
   return true;
 });
 
-allow(User, ["read", "download"], Document, (user, document) => {
+allow(User, ["read", "download", "subscribe"], Document, (user, document) => {
   if (!document) {
     return false;
   }
