@@ -361,4 +361,60 @@ describe("#subscriptions.delete", () => {
     expect(body.id).toEqual(subscription.id);
     expect(body.userId).toEqual(user.id);
   });
+
+  it("users should not be able to delete other's subscriptions on document", async () => {
+    const subscriber0 = await buildUser();
+    // `subscriber1` belongs to `subscriber0`'s team.
+    const subscriber1 = await buildUser({ teamId: subscriber0.teamId });
+
+    // `subscriber0` created a document.
+    const document = await buildDocument({
+      userId: subscriber0.id,
+      teamId: subscriber0.teamId,
+    });
+
+    // `subscriber0` wants to be notified about
+    // changes on this document.
+    await server.post("/api/subscriptions.create", {
+      body: {
+        token: subscriber0.getJwtToken(),
+        userId: subscriber0.id,
+        documentId: document.id,
+        enabled: true,
+      },
+    });
+
+    // `subscriber1` wants to be notified about
+    // changes on this document.
+    const resp = await server.post("/api/subscriptions.create", {
+      body: {
+        token: subscriber1.getJwtToken(),
+        userId: subscriber1.id,
+        documentId: document.id,
+        enabled: true,
+      },
+    });
+
+    const subscription1 = await resp.json();
+    const subscription1Id = subscription1.subscription.id;
+
+    // `subscriber0` wants to change `subscriber1`'s
+    // subscription for this document.
+    const res = await server.post("/api/subscriptions.delete", {
+      body: {
+        // `subscriber0`
+        userId: subscriber0.id,
+        // subscription id of `subscriber1`
+        id: subscription1Id,
+        // REVIEW: Should it require `subscription.id`?
+        // There can be only one subscription
+        // for `userId` + `documentId`.
+        // id: subscription.id,
+        token: subscriber0.getJwtToken(),
+      },
+    });
+
+    // `subscriber0` should be unauthorized.
+    expect(res.status).toEqual(403);
+  });
 });
