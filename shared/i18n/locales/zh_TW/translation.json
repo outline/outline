@@ -430,6 +430,7 @@
   "Share nested documents": "所有的子文件也一併分享",
   "Nested documents are publicly available": "子文件將可以被公開存取",
   "Nested documents are not shared": "子文件將不會被分享",
+  "{{ teamName }} is using Outline to share documents, please login to continue.": "{{ teamName }} is using Outline to share documents, please login to continue.",
   "Are you sure you want to delete the <em>{{ documentTitle }}</em> template?": "您確定要刪除 <em>{{ documentTitle }}</em> 範本嗎？",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history and any nested documents.": "您確定要這麼做嗎？將文件 <em>{{ documentTitle }}</em> 刪除同時也會刪除所有它的歷史編輯紀錄以及任何其所屬的子文件。",
   "If you’d like the option of referencing or restoring the {{noun}} in the future, consider archiving it instead.": "如果您希望將來可以引用或還原 {{noun}}，請考慮改將其封存。",
