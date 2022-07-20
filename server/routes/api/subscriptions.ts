@@ -146,7 +146,7 @@ router.post(
     await subscription.update({ user, subscription, enabled });
 
     const event: SubscriptionEvent = {
-      name: "subscriptions.create",
+      name: "subscriptions.update",
       modelId: subscription.id,
       actorId: user.id,
       teamId: user.teamId,
@@ -187,7 +187,7 @@ router.post(
     await subscription.destroy();
 
     const event: SubscriptionEvent = {
-      name: "subscriptions.create",
+      name: "subscriptions.delete",
       modelId: subscription.id,
       actorId: user.id,
       teamId: user.teamId,
