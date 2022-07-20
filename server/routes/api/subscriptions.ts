@@ -75,21 +75,6 @@ router.post(
 
     authorize(user, "read", subscription);
 
-    const event: SubscriptionEvent = {
-      name: "subscriptions.info",
-      modelId: subscription.id,
-      actorId: user.id,
-      // REVIEW: Should `teamId` be required?
-      // Set via `SubscriptionEvent` type.
-      teamId: user.teamId,
-      userId: user.userId,
-      documentId: document.id,
-      enabled: subscription.enabled,
-      ip: ctx.request.ip,
-    };
-
-    await Event.create(event);
-
     ctx.body = {
       data: presentSubscription(subscription),
     };
