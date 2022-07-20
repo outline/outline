@@ -430,6 +430,7 @@
   "Share nested documents": "하위 문서 공유",
   "Nested documents are publicly available": "하위 문서도 공개됩니다",
   "Nested documents are not shared": "하위 문서는 공유되지 않습니다",
+  "{{ teamName }} is using Outline to share documents, please login to continue.": "{{ teamName }} is using Outline to share documents, please login to continue.",
   "Are you sure you want to delete the <em>{{ documentTitle }}</em> template?": "템플릿 <em>{{ documentTitle }}</em> 을 정말 삭제하시겠습니까?",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history and any nested documents.": "정말 <em>{{ documentTitle }}</em> 문서를 삭제하시겠습니까? 문서를 삭제하면 모든 이력과 하위 문서들이 삭제됩니다.",
   "If you’d like the option of referencing or restoring the {{noun}} in the future, consider archiving it instead.": "나중에 {{noun}} 을 참조하거나 복원하는 옵션을 원한다면, 보관하는 것을 고려해보세요.",
