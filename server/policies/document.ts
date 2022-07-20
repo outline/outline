@@ -9,7 +9,7 @@ allow(User, "createDocument", Team, (user, team) => {
   return true;
 });
 
-allow(User, ["read", "download", "subscribe"], Document, (user, document) => {
+allow(User, ["read", "download"], Document, (user, document) => {
   if (!document) {
     return false;
   }
@@ -175,6 +175,45 @@ allow(User, ["pin", "unpin"], Document, (user, document) => {
     return false;
   }
   return user.teamId === document.teamId;
+});
+
+allow(User, ["subscribe", "unsubscribe"], Document, (user, document) => {
+  // Sanity check.
+  if (!document) {
+    return false;
+  }
+
+  // Subscribing to archived document doesn't make sense.
+  // Unarchiving it should resume subscriptions on change.
+  if (document.archivedAt) {
+    return false;
+  }
+
+  if (document.deletedAt) {
+    return false;
+  }
+
+  if (document.template) {
+    return false;
+  }
+
+  if (!document.publishedAt) {
+    return false;
+  }
+
+  // Sanity check.
+  invariant(
+    document.collection,
+    "Collection is missing, did you forget to include in the query scope?"
+  );
+
+  if (cannot(user, "update", document.collection)) {
+    return false;
+  }
+
+  // REVIEW: subscribe outside of the team?
+  // return user.teamId === document.teamId;
+  return true;
 });
 
 allow(User, ["pinToHome"], Document, (user, document) => {
