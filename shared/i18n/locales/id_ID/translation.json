@@ -430,6 +430,7 @@
   "Share nested documents": "Share nested documents",
   "Nested documents are publicly available": "Nested documents are publicly available",
   "Nested documents are not shared": "Nested documents are not shared",
+  "{{ teamName }} is using Outline to share documents, please login to continue.": "{{ teamName }} is using Outline to share documents, please login to continue.",
   "Are you sure you want to delete the <em>{{ documentTitle }}</em> template?": "Are you sure you want to delete the <em>{{ documentTitle }}</em> template?",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history and any nested documents.": "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history and any nested documents.",
   "If you’d like the option of referencing or restoring the {{noun}} in the future, consider archiving it instead.": "If you’d like the option of referencing or restoring the {{noun}} in the future, consider archiving it instead.",
