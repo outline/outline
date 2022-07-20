@@ -430,6 +430,7 @@
   "Share nested documents": "İç içe belgeleri paylaşın",
   "Nested documents are publicly available": "İç içe geçmiş belgeler herkese açık",
   "Nested documents are not shared": "İç içe belgeler paylaşılmadı",
+  "{{ teamName }} is using Outline to share documents, please login to continue.": "{{ teamName }} is using Outline to share documents, please login to continue.",
   "Are you sure you want to delete the <em>{{ documentTitle }}</em> template?": "<em>{{ documentTitle }}</em> şablonunu silmek istediğinizden emin misiniz?",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history and any nested documents.": "Bundan emin misiniz? <em>{{ documentTitle }}</em> belgesinin silinmesi, tüm geçmişini ve tüm iç içe olan belgeleri siler.",
   "If you’d like the option of referencing or restoring the {{noun}} in the future, consider archiving it instead.": "Gelecekte {{noun}}'a referans gösterme veya geri yükleme seçeneğini istiyorsanız, bunun yerine onu arşivlemeyi düşünün.",
