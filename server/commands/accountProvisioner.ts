@@ -5,6 +5,7 @@ import {
   AuthenticationError,
   InvalidAuthenticationError,
   EmailAuthenticationRequiredError,
+  AuthenticationProviderDisabledError,
 } from "@server/errors";
 import { APM } from "@server/logging/tracing";
 import { Collection, Team, User } from "@server/models";
@@ -68,6 +69,10 @@ async function accountProvisioner({
   invariant(result, "Team creator result must exist");
   const { authenticationProvider, team, isNewTeam } = result;
 
+  if (!authenticationProvider.enabled) {
+    throw AuthenticationProviderDisabledError();
+  }
+
   try {
     const result = await userCreator({
       name: userParams.name,
@@ -77,15 +82,13 @@ async function accountProvisioner({
       avatarUrl: userParams.avatarUrl,
       teamId: team.id,
       ip,
-      authentication: authenticationProvider
-        ? {
-            ...authenticationParams,
-            expiresAt: authenticationParams.expiresIn
-              ? new Date(Date.now() + authenticationParams.expiresIn * 1000)
-              : undefined,
-            authenticationProviderId: authenticationProvider.id,
-          }
-        : undefined,
+      authentication: {
+        ...authenticationParams,
+        expiresAt: authenticationParams.expiresIn
+          ? new Date(Date.now() + authenticationParams.expiresIn * 1000)
+          : undefined,
+      },
+      authenticationProvider,
     });
     const { isNewUser, user } = result;
 

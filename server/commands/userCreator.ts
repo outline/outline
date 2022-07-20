@@ -1,7 +1,13 @@
 import { sequelize } from "@server/database/sequelize";
 import InviteAcceptedEmail from "@server/emails/templates/InviteAcceptedEmail";
 import { DomainNotAllowedError, InviteRequiredError } from "@server/errors";
-import { Event, Team, User, UserAuthentication } from "@server/models";
+import {
+  Event,
+  Team,
+  User,
+  UserAuthentication,
+  AuthenticationProvider,
+} from "@server/models";
 
 type UserCreatorResult = {
   user: User;
@@ -17,14 +23,14 @@ type Props = {
   avatarUrl?: string | null;
   teamId: string;
   ip: string;
-  authentication?: {
-    authenticationProviderId: string;
+  authentication: {
     providerId: string;
     scopes: string[];
     accessToken?: string;
     refreshToken?: string;
     expiresAt?: Date;
   };
+  authenticationProvider: AuthenticationProvider;
 };
 
 export default async function userCreator({
@@ -35,58 +41,57 @@ export default async function userCreator({
   avatarUrl,
   teamId,
   authentication,
+  authenticationProvider,
   ip,
 }: Props): Promise<UserCreatorResult> {
-  if (authentication) {
-    const { authenticationProviderId, providerId, ...rest } = authentication;
+  const { providerId, ...rest } = authentication;
 
-    const auth = await UserAuthentication.findOne({
-      where: {
-        providerId,
+  const auth = await UserAuthentication.findOne({
+    where: {
+      providerId,
+    },
+    include: [
+      {
+        model: User,
+        as: "user",
+        where: { teamId },
+        required: true,
       },
-      include: [
-        {
-          model: User,
-          as: "user",
-          where: { teamId },
-          required: true,
-        },
-      ],
-    });
+    ],
+  });
 
-    // Someone has signed in with this authentication before, we just
-    // want to update the details instead of creating a new record
-    if (auth) {
-      const { user } = auth;
+  // Someone has signed in with this authentication before, we just
+  // want to update the details instead of creating a new record
+  if (auth) {
+    const { user } = auth;
 
-      // We found an authentication record that matches the user id, but it's
-      // associated with a different authentication provider, (eg a different
-      // hosted google domain). This is possible in Google Auth when moving domains.
-      // In the future we may auto-migrate these.
-      if (auth.authenticationProviderId !== authenticationProviderId) {
-        throw new Error(
-          `User authentication ${providerId} already exists for ${auth.authenticationProviderId}, tried to assign to ${authenticationProviderId}`
-        );
-      }
-
-      if (user) {
-        await user.update({
-          email,
-          username,
-        });
-        await auth.update(rest);
-        return {
-          user,
-          authentication: auth,
-          isNewUser: false,
-        };
-      }
-
-      // We found an authentication record, but the associated user was deleted or
-      // otherwise didn't exist. Cleanup the auth record and proceed with creating
-      // a new user. See: https://github.com/outline/outline/issues/2022
-      await auth.destroy();
+    // We found an authentication record that matches the user id, but it's
+    // associated with a different authentication provider, (eg a different
+    // hosted google domain). This is possible in Google Auth when moving domains.
+    // In the future we may auto-migrate these.
+    if (auth.authenticationProviderId !== authenticationProvider.id) {
+      throw new Error(
+        `User authentication ${providerId} already exists for ${auth.authenticationProviderId}, tried to assign to ${authenticationProvider.id}`
+      );
     }
+
+    if (user) {
+      await user.update({
+        email,
+        username,
+      });
+      await auth.update(rest);
+      return {
+        user,
+        authentication: auth,
+        isNewUser: false,
+      };
+    }
+
+    // We found an authentication record, but the associated user was deleted or
+    // otherwise didn't exist. Cleanup the auth record and proceed with creating
+    // a new user. See: https://github.com/outline/outline/issues/2022
+    await auth.destroy();
   }
 
   // A `user` record might exist in the form of an invite even if there is no
@@ -147,8 +152,9 @@ export default async function userCreator({
         }
       );
 
-      // user is internal to the authentication provider of the team
-      if (authentication) {
+      // if the user's authentication is internal to the authentication provider of the team
+      // then create a new UserAuthentication record for it
+      if (authenticationProvider.providerId === authentication.providerId) {
         return await existingUser.$create<UserAuthentication>(
           "authentication",
           authentication,

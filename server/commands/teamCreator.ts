@@ -1,11 +1,7 @@
 import invariant from "invariant";
 import { sequelize } from "@server/database/sequelize";
 import env from "@server/env";
-import {
-  DomainNotAllowedError,
-  MaximumTeamsError,
-  AuthenticationProviderDisabledError,
-} from "@server/errors";
+import { DomainNotAllowedError, MaximumTeamsError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { APM } from "@server/logging/tracing";
 import { Team, AuthenticationProvider, Event } from "@server/models";
@@ -13,7 +9,7 @@ import { generateAvatarUrl } from "@server/utils/avatars";
 
 type TeamCreatorResult = {
   team: Team;
-  authenticationProvider: AuthenticationProvider | null;
+  authenticationProvider: AuthenticationProvider;
   isNewTeam: boolean;
 };
 
@@ -31,7 +27,7 @@ type Props = {
 };
 
 async function teamCreator({
-  id,
+  id: teamId,
   name,
   domain,
   subdomain,
@@ -40,8 +36,8 @@ async function teamCreator({
   ip,
 }: Props): Promise<TeamCreatorResult> {
   let authP = await AuthenticationProvider.findOne({
-    where: id
-      ? { ...authenticationProvider, teamId: id }
+    where: teamId
+      ? { ...authenticationProvider, teamId }
       : authenticationProvider,
     include: [
       {
@@ -55,28 +51,32 @@ async function teamCreator({
   // This authentication provider already exists which means we have a team and
   // there is nothing left to do but return the existing credentials
   if (authP) {
-    if (!authP.enabled) {
-      throw AuthenticationProviderDisabledError();
-    }
-
     return {
       authenticationProvider: authP,
       team: authP.team,
       isNewTeam: false,
     };
-  }
+  } else if (teamId) {
+    // A team id was provided but no auth provider was found matching those credentials
+    // The user is attempting to log into a team with an external or personal SSO
 
-  // A team id was provided but no auth provider was found matching those credentials
-  // The user is attempting to log into a team with an external or personal SSO
-  else if (id) {
-    const team = await Team.findOne({ where: { id } });
-    invariant(team, "team must exist");
+    // Find an AuthenticationProvider that matches the SSO type (google, slack, etc)
+    authP = await AuthenticationProvider.findOne({
+      where: { name: authenticationProvider.name, teamId },
+      include: [
+        {
+          model: Team,
+          as: "team",
+          required: true,
+        },
+      ],
+    });
 
-    // null authenticationProvider signals caller to either perform a basic email check
-    // or fail the auth if no invite or existing account is found
+    invariant(authP, "authentication provider type must exist on team");
+
     return {
-      authenticationProvider: null,
-      team,
+      authenticationProvider: authP,
+      team: authP.team,
       isNewTeam: false,
     };
   }
