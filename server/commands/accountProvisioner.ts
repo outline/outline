@@ -56,8 +56,6 @@ async function accountProvisioner({
 }: Props): Promise<AccountProvisionerResult> {
   let result;
 
-  // TODO put the google specific check here
-
   try {
     result = await teamCreator({
       ...teamParams,

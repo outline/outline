@@ -21,13 +21,13 @@ describe("userCreator", () => {
       username: newUsername,
       avatarUrl: existing.avatarUrl,
       teamId: existing.teamId,
+      authenticationProviderId: existingAuth.authenticationProviderId,
       ip,
       authentication: {
         providerId: existingAuth.providerId,
         accessToken: "123",
         scopes: ["read"],
       },
-      authenticationProvider: existingAuth.authenticationProvider,
     });
     const { user, authentication, isNewUser } = result;
     expect(authentication).toBeDefined();
@@ -57,13 +57,14 @@ describe("userCreator", () => {
       username: "new-username",
       avatarUrl: existing.avatarUrl,
       teamId: existing.teamId,
+      authenticationProviderId: authenticationProvider.id,
+
       ip,
       authentication: {
         providerId: uuidv4(),
         accessToken: "123",
         scopes: ["read"],
       },
-      authenticationProvider,
     });
     const { user, authentication, isNewUser } = result;
     expect(authentication).toBeDefined();
@@ -93,13 +94,13 @@ describe("userCreator", () => {
       username: "new-username",
       avatarUrl: existing.avatarUrl,
       teamId: existing.teamId,
+      authenticationProviderId: authenticationProvider.id,
       ip,
       authentication: {
         providerId: uuidv4(),
         accessToken: "123",
         scopes: ["read"],
       },
-      authenticationProvider,
     });
     const { user, authentication, isNewUser } = result;
     expect(authentication).toBeDefined();
@@ -122,13 +123,14 @@ describe("userCreator", () => {
       name: "Test Name",
       email: "test@example.com",
       teamId: existing.teamId,
+      authenticationProviderId: existingAuth.authenticationProviderId,
+
       ip,
       authentication: {
         providerId: existingAuth.providerId,
         accessToken: "123",
         scopes: ["read"],
       },
-      authenticationProvider: existingAuth.authenticationProvider,
     });
     const { user, authentication, isNewUser } = result;
     expect(authentication).toBeDefined();
@@ -151,9 +153,9 @@ describe("userCreator", () => {
         name: "Test Name",
         email: "test@example.com",
         teamId: existing.teamId,
+        authenticationProviderId: uuidv4(),
         ip,
         authentication: {
-          authenticationProviderId: "example.org",
           providerId: existingAuth.providerId,
           accessToken: "123",
           scopes: ["read"],
@@ -175,13 +177,13 @@ describe("userCreator", () => {
       email: "test@example.com",
       username: "tname",
       teamId: team.id,
+      authenticationProviderId: authenticationProvider.id,
       ip,
       authentication: {
         providerId: "fake-service-id",
         accessToken: "123",
         scopes: ["read"],
       },
-      authenticationProvider,
     });
     const { user, authentication, isNewUser } = result;
     expect(authentication).toBeDefined();
@@ -206,6 +208,7 @@ describe("userCreator", () => {
       email: "test@example.com",
       username: "tname",
       teamId: team.id,
+      authenticationProviderId: authenticationProvider.id,
       isAdmin: true,
       ip,
       authentication: {
@@ -213,7 +216,6 @@ describe("userCreator", () => {
         accessToken: "123",
         scopes: ["read"],
       },
-      authenticationProvider,
     });
     const { user } = result;
     expect(user.isAdmin).toEqual(true);
@@ -230,13 +232,13 @@ describe("userCreator", () => {
       email: "test@example.com",
       username: "tname",
       teamId: team.id,
+      authenticationProviderId: authenticationProvider.id,
       ip,
       authentication: {
         providerId: "fake-service-id",
         accessToken: "123",
         scopes: ["read"],
       },
-      authenticationProvider,
     });
     const { user: tname } = result;
     expect(tname.username).toEqual("tname");
@@ -247,6 +249,8 @@ describe("userCreator", () => {
       email: "tes2@example.com",
       username: "tname2",
       teamId: team.id,
+      authenticationProviderId: authenticationProvider.id,
+
       isAdmin: false,
       ip,
       authentication: {
@@ -254,7 +258,6 @@ describe("userCreator", () => {
         accessToken: "123",
         scopes: ["read"],
       },
-      authenticationProvider,
     });
     const { user: tname2 } = tname2Result;
     expect(tname2.username).toEqual("tname2");
@@ -274,13 +277,13 @@ describe("userCreator", () => {
       name: invite.name,
       email: "invite@ExamPle.com",
       teamId: invite.teamId,
+      authenticationProviderId: authenticationProvider.id,
       ip,
       authentication: {
         providerId: "fake-service-id",
         accessToken: "123",
         scopes: ["read"],
       },
-      authenticationProvider,
     });
     const { user, authentication, isNewUser } = result;
     expect(authentication).toBeDefined();
@@ -303,13 +306,13 @@ describe("userCreator", () => {
         name: "Uninvited User",
         email: "invite@ExamPle.com",
         teamId: team.id,
+        authenticationProviderId: authenticationProvider.id,
         ip,
         authentication: {
           providerId: "fake-service-id",
           accessToken: "123",
           scopes: ["read"],
         },
-        authenticationProvider,
       });
     } catch (err) {
       error = err;
@@ -334,13 +337,13 @@ describe("userCreator", () => {
       name: "Test Name",
       email: "user@example-company.com",
       teamId: team.id,
+      authenticationProviderId: authenticationProvider.id,
       ip,
       authentication: {
         providerId: "fake-service-id",
         accessToken: "123",
         scopes: ["read"],
       },
-      authenticationProvider,
     });
     const { user, authentication, isNewUser } = result;
     expect(authentication).toBeDefined();
@@ -368,13 +371,13 @@ describe("userCreator", () => {
         name: "Bad Domain User",
         email: "user@example.com",
         teamId: team.id,
+        authenticationProviderId: authenticationProvider.id,
         ip,
         authentication: {
           providerId: "fake-service-id",
           accessToken: "123",
           scopes: ["read"],
         },
-        authenticationProvider,
       });
     } catch (err) {
       error = err;
