@@ -753,6 +753,20 @@ export default class DocumentsStore extends BaseStore<Document> {
     await star?.delete();
   };
 
+  subscribe = async (document: Document) => {
+    await this.rootStore.subscriptions.create({
+      documentId: document.id,
+    });
+  };
+
+  unsubscribe = async (document: Document) => {
+    const subscription = this.rootStore.subscriptions.orderedData.find(
+      (subscription) => subscription.documentId === document.id
+    );
+
+    await subscription?.delete();
+  };
+
   getByUrl = (url = ""): Document | null | undefined => {
     return find(this.orderedData, (doc) => url.endsWith(doc.urlId));
   };

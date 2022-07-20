@@ -156,6 +156,13 @@ export default class Document extends ParanoidModel {
   }
 
   @computed
+  get isSubscribed(): boolean {
+    return !!this.store.rootStore.subscriptions.orderedData.find(
+      (subscription) => subscription.documentId === this.id
+    );
+  }
+
+  @computed
   get isArchived(): boolean {
     return !!this.archivedAt;
   }
@@ -282,6 +289,16 @@ export default class Document extends ParanoidModel {
   @action
   unstar = async () => {
     return this.store.unstar(this);
+  };
+
+  @action
+  subscribe = async () => {
+    return this.store.subscribe(this);
+  };
+
+  @action
+  unsubscribe = async () => {
+    return this.store.unsubscribe(this);
   };
 
   @action
