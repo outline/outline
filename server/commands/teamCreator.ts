@@ -78,7 +78,9 @@ async function teamCreator({
       }
     }
 
-    throw MaximumTeamsError();
+    if (team) {
+      throw MaximumTeamsError();
+    }
   }
 
   // If the service did not provide a logo/avatar then we attempt to generate
