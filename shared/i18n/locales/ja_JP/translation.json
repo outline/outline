@@ -95,7 +95,7 @@
   "{{ userName }} updated": "{{ userName }}が更新しました",
   "Never viewed": "未閲覧",
   "Viewed": "見た",
-  "in": "に",
+  "in": "•",
   "nested document": "ネストされたドキュメント",
   "nested document_plural": "ネストされたドキュメント",
   "Viewed by": "閲覧者",
