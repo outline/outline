@@ -137,7 +137,7 @@ router.post(
 );
 
 router.post(
-  "Subscriptions.delete",
+  "subscriptions.delete",
 
   auth(),
 
