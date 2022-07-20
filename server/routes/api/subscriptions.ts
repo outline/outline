@@ -100,13 +100,13 @@ router.post(
   auth(),
 
   async (ctx) => {
-    const { subscriptionId, enabled } = ctx.body;
+    const { id, enabled } = ctx.body;
 
-    assertUuid(subscriptionId, "subscriptionId is required");
+    assertUuid(id, "id is required");
 
     const { user } = ctx.state;
 
-    const subscription = await Subscription.findByPk(subscriptionId);
+    const subscription = await Subscription.findByPk(id);
 
     authorize(user, "update", subscription);
 
@@ -142,12 +142,12 @@ router.post(
   auth(),
 
   async (ctx) => {
-    const { subscriptionId } = ctx.body;
+    const { id } = ctx.body;
 
-    assertUuid(subscriptionId, "subscriptionId is required");
+    assertUuid(id, "id is required");
 
     const { user } = ctx.state;
-    const subscription = await Subscription.findByPk(subscriptionId);
+    const subscription = await Subscription.findByPk(id);
 
     authorize(user, "delete", subscription);
 
