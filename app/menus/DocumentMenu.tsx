@@ -15,6 +15,8 @@ import {
   DownloadIcon,
   RestoreIcon,
   CrossIcon,
+  BookmarkIcon,
+  BookmarkedIcon,
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -168,6 +170,24 @@ function DocumentMenu({
       ev.preventDefault();
       ev.stopPropagation();
       document.unstar();
+    },
+    [document]
+  );
+
+  const handleSubscribe = React.useCallback(
+    (ev: React.SyntheticEvent) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      document.subscribe();
+    },
+    [document]
+  );
+
+  const handleUnsubscribe = React.useCallback(
+    (ev: React.SyntheticEvent) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      document.unsubscribe();
     },
     [document]
   );
@@ -326,6 +346,22 @@ function DocumentMenu({
               onClick: handleStar,
               visible: !document.isStarred && !!can.star,
               icon: <StarredIcon />,
+            },
+            {
+              type: "button",
+              title: t("Unsubscribe"),
+              onClick: handleUnsubscribe,
+              visible: document.isSubscribed && !!can.unsubscribe,
+              // TODO: Use better icon
+              icon: <BookmarkIcon />,
+            },
+            {
+              type: "button",
+              title: t("Subscribe"),
+              onClick: handleSubscribe,
+              visible: !document.isSubscribed && !!can.subscribe,
+              // TODO: Use better icon
+              icon: <BookmarkedIcon />,
             },
             // Pin document
             actionToMenuItem(pinDocument, context),
