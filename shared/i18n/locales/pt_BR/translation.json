@@ -430,6 +430,7 @@
   "Share nested documents": "Compartilhar documentos aninhados",
   "Nested documents are publicly available": "Documentos aninhados estão disponíveis publicamente",
   "Nested documents are not shared": "Documentos aninhados não são compartilhados",
+  "{{ teamName }} is using Outline to share documents, please login to continue.": "{{ teamName }} is using Outline to share documents, please login to continue.",
   "Are you sure you want to delete the <em>{{ documentTitle }}</em> template?": "Tem certeza de que deseja excluir o modelo <em>{{ documentTitle }}</em>?",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history and any nested documents.": "Você tem certeza sobre isso? Excluir o documento <em>{{ documentTitle }}</em> excluirá todo o seu histórico e todos os documentos aninhados.",
   "If you’d like the option of referencing or restoring the {{noun}} in the future, consider archiving it instead.": "Se você quiser a opção de fazer referência ou restaurar o {{noun}} no futuro, considere arquivá-lo.",
