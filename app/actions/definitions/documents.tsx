@@ -11,6 +11,8 @@ import {
   ImportIcon,
   PinIcon,
   SearchIcon,
+  BookmarkIcon,
+  BookmarkedIcon,
 } from "outline-icons";
 import * as React from "react";
 import { getEventFiles } from "@shared/utils/files";
@@ -105,6 +107,63 @@ export const unstarDocument = createAction({
 
     const document = stores.documents.get(activeDocumentId);
     document?.unstar();
+  },
+});
+
+export const subscribeDocument = createAction({
+  name: ({ t }) => t("Subscribe"),
+  section: DocumentSection,
+  // TODO: Use other icon.
+  icon: <BookmarkedIcon />,
+  keywords: "subscribe",
+  visible: ({ activeDocumentId, stores }) => {
+    if (!activeDocumentId) {
+      return false;
+    }
+
+    const document = stores.documents.get(activeDocumentId);
+
+    return (
+      !document?.isSubscribed &&
+      stores.policies.abilities(activeDocumentId).subscribe
+    );
+  },
+  perform: ({ activeDocumentId, stores }) => {
+    if (!activeDocumentId) {
+      return;
+    }
+
+    const document = stores.documents.get(activeDocumentId);
+
+    document?.subscribe();
+  },
+});
+
+export const unsubscribeDocument = createAction({
+  name: ({ t }) => t("Unsubscribe"),
+  section: DocumentSection,
+  // TODO: Use other icon.
+  icon: <BookmarkIcon />,
+  keywords: "unsubscribe",
+  visible: ({ activeDocumentId, stores }) => {
+    if (!activeDocumentId) {
+      return false;
+    }
+
+    const document = stores.documents.get(activeDocumentId);
+
+    return (
+      !!document?.isSubscribed &&
+      stores.policies.abilities(activeDocumentId).unsubscribe
+    );
+  },
+  perform: ({ activeDocumentId, stores }) => {
+    if (!activeDocumentId) {
+      return;
+    }
+
+    const document = stores.documents.get(activeDocumentId);
+    document?.unsubscribe();
   },
 });
 
@@ -336,6 +395,8 @@ export const rootDocumentActions = [
   downloadDocument,
   starDocument,
   unstarDocument,
+  subscribeDocument,
+  unsubscribeDocument,
   duplicateDocument,
   printDocument,
   pinDocumentToCollection,
