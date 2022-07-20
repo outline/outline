@@ -89,7 +89,7 @@ router.post(
     await Event.create(event);
 
     ctx.body = {
-      subscriptions: presentSubscription(subscription),
+      subscription: presentSubscription(subscription),
     };
   }
 );
@@ -131,7 +131,7 @@ router.post(
     await Event.create(event);
 
     ctx.body = {
-      subscriptions: presentSubscription(subscription),
+      subscription: presentSubscription(subscription),
     };
   }
 );
