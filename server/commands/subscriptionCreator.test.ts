@@ -19,7 +19,7 @@ describe("subscriptionCreator", () => {
 
     const subscription = await sequelize.transaction(async (transaction) =>
       subscriptionCreator({
-        userId: user.id,
+        user: user,
         documentId: document.id,
         enabled,
         ip,
@@ -52,7 +52,7 @@ describe("subscriptionCreator", () => {
 
     const subscription2 = await sequelize.transaction(async (transaction) =>
       subscriptionCreator({
-        userId: user.id,
+        user: user,
         documentId: document.id,
         enabled,
         ip,
@@ -80,7 +80,7 @@ describe("subscriptionCreator", () => {
 
     const subscription = await sequelize.transaction(async (transaction) =>
       subscriptionCreator({
-        userId: user.id,
+        user: user,
         documentId: document.id,
         enabled,
         ip,

@@ -1,9 +1,9 @@
 import { Transaction } from "sequelize";
-import { Subscription, Event } from "@server/models";
+import { Subscription, Event, User } from "@server/models";
 
 type Props = {
   /** The user updateing the subscription */
-  userId: string;
+  user: User;
   /** The existing subscription */
   subscription: Subscription;
   /** Status of a subscription */
@@ -21,7 +21,7 @@ type Props = {
  * @returns Subscription The subscription that was updated
  */
 export default async function subscriptionUpdater({
-  userId,
+  user,
   // `userId` + `subscription` should be enough infomation.
   subscription,
   enabled,
@@ -40,8 +40,8 @@ export default async function subscriptionUpdater({
       {
         name: "subscriptions.update",
         modelId: subscription.id,
-        actorId: userId,
-        userId,
+        actorId: user.id,
+        userId: user.id,
         documentId: subscription.documentId,
         enabled,
         ip,

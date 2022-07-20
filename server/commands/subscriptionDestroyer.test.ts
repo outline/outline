@@ -30,7 +30,7 @@ describe("subscriptionDestroyer", () => {
     await sequelize.transaction(
       async (transaction) =>
         await subscriptionDestroyer({
-          userId: user.id,
+          user: user,
           subscription,
           ip,
           transaction,

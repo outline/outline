@@ -29,7 +29,7 @@ describe("subscriptionUpdater", () => {
     const subscriptionUpdated = await sequelize.transaction(
       async (transaction) =>
         await subscriptionUpdater({
-          userId: user.id,
+          user: user,
           subscription,
           enabled: false,
           ip,

@@ -115,7 +115,7 @@ router.post(
       "Subscription must have an associated document"
     );
 
-    await subscription.update({ userId: user.id, subscription, enabled });
+    await subscription.update({ user, subscription, enabled });
 
     const event: SubscriptionEvent = {
       name: "subscriptions.create",

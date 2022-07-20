@@ -1,9 +1,9 @@
 import { Transaction } from "sequelize";
-import { Subscription, Event } from "@server/models";
+import { Subscription, Event, User } from "@server/models";
 
 type Props = {
   /** The user creating the subscription */
-  userId: string;
+  user: User;
   /** The document to subscription */
   documentId?: string;
   /** Status of a subscription */
@@ -21,10 +21,10 @@ type Props = {
  * @returns Subscription The subscription that was created
  */
 export default async function subscriptionCreator({
-  userId,
+  user,
   documentId,
-  // Sane default state of a subscription
-  enabled = false,
+  // Sane default state when creating a subscription.
+  enabled = true,
   ip,
   transaction,
 }: Props): Promise<Subscription> {
@@ -36,7 +36,7 @@ export default async function subscriptionCreator({
   // or already existed.
   const [subscription, created] = await Subscription.findOrCreate({
     where: {
-      userId,
+      userId: user.id,
       documentId,
       enabled,
     },
@@ -53,8 +53,8 @@ export default async function subscriptionCreator({
       {
         name: "subscriptions.create",
         modelId: subscription.id,
-        actorId: userId,
-        userId,
+        actorId: user.id,
+        userId: user.id,
         documentId,
         ip,
       },

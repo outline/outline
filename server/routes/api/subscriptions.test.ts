@@ -27,7 +27,6 @@ describe("#subscriptions.create", () => {
     const res = await server.post("/api/subscriptions.create", {
       body: {
         token: user.getJwtToken(),
-        userId: user.id,
         documentId: document.id,
         enabled: true,
       },
@@ -54,7 +53,6 @@ describe("#subscriptions.create", () => {
     await server.post("/api/subscriptions.create", {
       body: {
         token: user.getJwtToken(),
-        userId: user.id,
         documentId: document.id,
         enabled: true,
       },
@@ -64,7 +62,6 @@ describe("#subscriptions.create", () => {
     await server.post("/api/subscriptions.create", {
       body: {
         token: user.getJwtToken(),
-        userId: user.id,
         documentId: document.id,
         enabled: true,
       },
@@ -142,7 +139,6 @@ describe("#subscriptions.list", () => {
     await server.post("/api/subscriptions.create", {
       body: {
         token: subscriber0.getJwtToken(),
-        userId: subscriber0.id,
         documentId: document.id,
         enabled: true,
       },
@@ -153,7 +149,6 @@ describe("#subscriptions.list", () => {
     await server.post("/api/subscriptions.create", {
       body: {
         token: subscriber1.getJwtToken(),
-        userId: subscriber1.id,
         documentId: document.id,
         enabled: true,
       },
@@ -201,7 +196,6 @@ describe("#subscriptions.list", () => {
     await server.post("/api/subscriptions.create", {
       body: {
         token: subscriber0.getJwtToken(),
-        userId: subscriber0.id,
         documentId: document.id,
         enabled: true,
       },
@@ -212,7 +206,6 @@ describe("#subscriptions.list", () => {
     await server.post("/api/subscriptions.create", {
       body: {
         token: subscriber1.getJwtToken(),
-        userId: subscriber1.id,
         documentId: document.id,
         enabled: true,
       },
@@ -250,7 +243,6 @@ describe("#subscriptions.update", () => {
 
     const res = await server.post("/api/subscriptions.update", {
       body: {
-        userId: user.id,
         id: subscription.id,
         enabled: false,
         // REVIEW: Should it require `subscription.id`?
@@ -297,7 +289,6 @@ describe("#subscriptions.update", () => {
     const resp = await server.post("/api/subscriptions.create", {
       body: {
         token: subscriber1.getJwtToken(),
-        userId: subscriber1.id,
         documentId: document.id,
         enabled: true,
       },
@@ -310,8 +301,6 @@ describe("#subscriptions.update", () => {
     // subscription for this document.
     const res = await server.post("/api/subscriptions.update", {
       body: {
-        // `subscriber0`
-        userId: subscriber0.id,
         // subscription id of `subscriber1`
         id: subscription1Id,
         enabled: false,
@@ -378,7 +367,6 @@ describe("#subscriptions.delete", () => {
     await server.post("/api/subscriptions.create", {
       body: {
         token: subscriber0.getJwtToken(),
-        userId: subscriber0.id,
         documentId: document.id,
         enabled: true,
       },
@@ -389,7 +377,6 @@ describe("#subscriptions.delete", () => {
     const resp = await server.post("/api/subscriptions.create", {
       body: {
         token: subscriber1.getJwtToken(),
-        userId: subscriber1.id,
         documentId: document.id,
         enabled: true,
       },

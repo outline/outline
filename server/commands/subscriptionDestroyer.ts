@@ -1,9 +1,9 @@
 import { Transaction } from "sequelize";
-import { Event, Subscription } from "@server/models";
+import { Event, Subscription, User } from "@server/models";
 
 type Props = {
   /** The user destroying the subscription */
-  userId: string;
+  user: User;
   /** The subscription to destroy */
   subscription: Subscription;
   /** The IP address of the user creating the subscription */
@@ -21,7 +21,7 @@ type Props = {
  * @returns void
  */
 export default async function subscriptionDestroyer({
-  userId,
+  user,
   subscription,
   ip,
   transaction,
@@ -30,8 +30,8 @@ export default async function subscriptionDestroyer({
     {
       name: "subscriptions.delete",
       modelId: subscription.id,
-      actorId: userId,
-      userId,
+      actorId: user.id,
+      userId: user.id,
       documentId: subscription.documentId,
       ip,
     },
