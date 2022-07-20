@@ -21,12 +21,13 @@ describe("teamCreator", () => {
       },
       ip,
     });
-    const { team, authenticationProvider, isNewTeam } = result;
+    const { team, authenticationProvider, isNewTeam, isExternalTeam } = result;
     expect(authenticationProvider.name).toEqual("google");
     expect(authenticationProvider.providerId).toEqual("example.com");
     expect(team.name).toEqual("Test team");
     expect(team.subdomain).toEqual("example");
     expect(isNewTeam).toEqual(true);
+    expect(isExternalTeam).toBeFalsy();
   });
 
   it("should set subdomain append if unavailable", async () => {
@@ -70,6 +71,31 @@ describe("teamCreator", () => {
     });
 
     expect(result.team.subdomain).toEqual("myteam2");
+  });
+
+  // TODO add external team case
+  it("should return existing team", async () => {
+    env.DEPLOYMENT = "hosted";
+    const authenticationProvider = {
+      name: "google",
+      providerId: "example.com",
+    };
+    const existing = await buildTeam({
+      subdomain: "example",
+      authenticationProviders: [authenticationProvider],
+    });
+    const result = await teamCreator({
+      name: "Updated name",
+      subdomain: "example",
+      authenticationProvider,
+      ip,
+    });
+    const { team, isNewTeam, isExternalTeam } = result;
+    expect(team.id).toEqual(existing.id);
+    expect(team.name).toEqual(existing.name);
+    expect(team.subdomain).toEqual("example");
+    expect(isNewTeam).toEqual(false);
+    expect(isExternalTeam).toBeFalsy();
   });
 
   describe("self hosted", () => {
@@ -117,12 +143,18 @@ describe("teamCreator", () => {
         },
         ip,
       });
-      const { team, authenticationProvider, isNewTeam } = result;
+      const {
+        team,
+        authenticationProvider,
+        isNewTeam,
+        isExternalTeam,
+      } = result;
       expect(team.id).toEqual(existing.id);
       expect(team.name).toEqual(existing.name);
       expect(authenticationProvider.name).toEqual("google");
       expect(authenticationProvider.providerId).toEqual("allowed-domain.com");
       expect(isNewTeam).toEqual(false);
+      expect(isExternalTeam).toBeFalsy();
       const providers = await team.$get("authenticationProviders");
       expect(providers.length).toEqual(2);
     });
@@ -158,7 +190,7 @@ describe("teamCreator", () => {
       expect(error).toBeTruthy();
     });
 
-    it("should return exising team", async () => {
+    it("should return existing team", async () => {
       env.DEPLOYMENT = undefined;
       const authenticationProvider = {
         name: "google",
@@ -174,11 +206,12 @@ describe("teamCreator", () => {
         authenticationProvider,
         ip,
       });
-      const { team, isNewTeam } = result;
+      const { team, isNewTeam, isExternalTeam } = result;
       expect(team.id).toEqual(existing.id);
       expect(team.name).toEqual(existing.name);
       expect(team.subdomain).toEqual("example");
       expect(isNewTeam).toEqual(false);
+      expect(isExternalTeam).toBeFalsy();
     });
   });
 });

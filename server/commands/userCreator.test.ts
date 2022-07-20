@@ -9,7 +9,7 @@ beforeEach(() => flushdb());
 describe("userCreator", () => {
   const ip = "127.0.0.1";
 
-  it("should update exising user and authentication", async () => {
+  it("should update existing user and authentication", async () => {
     const existing = await buildUser();
     const authentications = await existing.$get("authentications");
     const existingAuth = authentications[0];
@@ -141,7 +141,6 @@ describe("userCreator", () => {
     expect(isNewUser).toEqual(true);
   });
 
-  // TODO: I dont know what this is testing
   it("should handle duplicate providerId for different iDP", async () => {
     const existing = await buildUser();
     const authentications = await existing.$get("authentications");

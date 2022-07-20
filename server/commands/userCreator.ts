@@ -146,20 +146,19 @@ export default async function userCreator({
         }
       );
 
-      // if the user's authentication is internal to the authentication provider of the team
-      // then create a new UserAuthentication record for it
-      if (!isExternalTeam) {
-        return await existingUser.$create<UserAuthentication>(
-          "authentication",
-          authentication,
-          {
-            transaction,
-          }
-        );
-      } else {
-        // user is external to the auth provider for the team
+      // We don't want to permanently associate the user auth with the auth provider
+      // if it's external to the team, so early return without creating a record
+      if (isExternalTeam) {
         return null;
       }
+
+      return await existingUser.$create<UserAuthentication>(
+        "authentication",
+        { ...authentication, authenticationProviderId },
+        {
+          transaction,
+        }
+      );
     });
 
     if (isInvite) {
@@ -215,7 +214,7 @@ export default async function userCreator({
         teamId,
         avatarUrl,
         service: null,
-        authentications: [authentication],
+        authentications: [{ ...authentication, authenticationProviderId }],
       },
       {
         include: "authentications",
