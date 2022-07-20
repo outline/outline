@@ -23,16 +23,17 @@ describe("userCreator", () => {
       teamId: existing.teamId,
       ip,
       authentication: {
-        authenticationProviderId: existingAuth.authenticationProviderId,
         providerId: existingAuth.providerId,
         accessToken: "123",
         scopes: ["read"],
       },
+      authenticationProvider: existingAuth.authenticationProvider,
     });
     const { user, authentication, isNewUser } = result;
-    expect(authentication.accessToken).toEqual("123");
-    expect(authentication.scopes.length).toEqual(1);
-    expect(authentication.scopes[0]).toEqual("read");
+    expect(authentication).toBeDefined();
+    expect(authentication?.accessToken).toEqual("123");
+    expect(authentication?.scopes.length).toEqual(1);
+    expect(authentication?.scopes[0]).toEqual("read");
     expect(user.email).toEqual(newEmail);
     expect(user.username).toEqual(newUsername);
     expect(isNewUser).toEqual(false);
@@ -58,16 +59,17 @@ describe("userCreator", () => {
       teamId: existing.teamId,
       ip,
       authentication: {
-        authenticationProviderId: authenticationProvider.id,
         providerId: uuidv4(),
         accessToken: "123",
         scopes: ["read"],
       },
+      authenticationProvider,
     });
     const { user, authentication, isNewUser } = result;
-    expect(authentication.accessToken).toEqual("123");
-    expect(authentication.scopes.length).toEqual(1);
-    expect(authentication.scopes[0]).toEqual("read");
+    expect(authentication).toBeDefined();
+    expect(authentication?.accessToken).toEqual("123");
+    expect(authentication?.scopes.length).toEqual(1);
+    expect(authentication?.scopes[0]).toEqual("read");
 
     const authentications = await user.$get("authentications");
     expect(authentications.length).toEqual(1);
@@ -93,16 +95,17 @@ describe("userCreator", () => {
       teamId: existing.teamId,
       ip,
       authentication: {
-        authenticationProviderId: authenticationProvider.id,
         providerId: uuidv4(),
         accessToken: "123",
         scopes: ["read"],
       },
+      authenticationProvider,
     });
     const { user, authentication, isNewUser } = result;
-    expect(authentication.accessToken).toEqual("123");
-    expect(authentication.scopes.length).toEqual(1);
-    expect(authentication.scopes[0]).toEqual("read");
+    expect(authentication).toBeDefined();
+    expect(authentication?.accessToken).toEqual("123");
+    expect(authentication?.scopes.length).toEqual(1);
+    expect(authentication?.scopes[0]).toEqual("read");
 
     const authentications = await user.$get("authentications");
     expect(authentications.length).toEqual(1);
@@ -121,20 +124,22 @@ describe("userCreator", () => {
       teamId: existing.teamId,
       ip,
       authentication: {
-        authenticationProviderId: existingAuth.authenticationProviderId,
         providerId: existingAuth.providerId,
         accessToken: "123",
         scopes: ["read"],
       },
+      authenticationProvider: existingAuth.authenticationProvider,
     });
     const { user, authentication, isNewUser } = result;
-    expect(authentication.accessToken).toEqual("123");
-    expect(authentication.scopes.length).toEqual(1);
-    expect(authentication.scopes[0]).toEqual("read");
+    expect(authentication).toBeDefined();
+    expect(authentication?.accessToken).toEqual("123");
+    expect(authentication?.scopes.length).toEqual(1);
+    expect(authentication?.scopes[0]).toEqual("read");
     expect(user.email).toEqual(newEmail);
     expect(isNewUser).toEqual(true);
   });
 
+  // TODO: I dont know what this is testing
   it("should handle duplicate providerId for different iDP", async () => {
     const existing = await buildUser();
     const authentications = await existing.$get("authentications");
@@ -172,16 +177,17 @@ describe("userCreator", () => {
       teamId: team.id,
       ip,
       authentication: {
-        authenticationProviderId: authenticationProvider.id,
         providerId: "fake-service-id",
         accessToken: "123",
         scopes: ["read"],
       },
+      authenticationProvider,
     });
     const { user, authentication, isNewUser } = result;
-    expect(authentication.accessToken).toEqual("123");
-    expect(authentication.scopes.length).toEqual(1);
-    expect(authentication.scopes[0]).toEqual("read");
+    expect(authentication).toBeDefined();
+    expect(authentication?.accessToken).toEqual("123");
+    expect(authentication?.scopes.length).toEqual(1);
+    expect(authentication?.scopes[0]).toEqual("read");
     expect(user.email).toEqual("test@example.com");
     expect(user.username).toEqual("tname");
     expect(user.isAdmin).toEqual(false);
@@ -203,11 +209,11 @@ describe("userCreator", () => {
       isAdmin: true,
       ip,
       authentication: {
-        authenticationProviderId: authenticationProvider.id,
         providerId: "fake-service-id",
         accessToken: "123",
         scopes: ["read"],
       },
+      authenticationProvider,
     });
     const { user } = result;
     expect(user.isAdmin).toEqual(true);
@@ -226,11 +232,11 @@ describe("userCreator", () => {
       teamId: team.id,
       ip,
       authentication: {
-        authenticationProviderId: authenticationProvider.id,
         providerId: "fake-service-id",
         accessToken: "123",
         scopes: ["read"],
       },
+      authenticationProvider,
     });
     const { user: tname } = result;
     expect(tname.username).toEqual("tname");
@@ -244,11 +250,11 @@ describe("userCreator", () => {
       isAdmin: false,
       ip,
       authentication: {
-        authenticationProviderId: authenticationProvider.id,
         providerId: "fake-service-id",
         accessToken: "123",
         scopes: ["read"],
       },
+      authenticationProvider,
     });
     const { user: tname2 } = tname2Result;
     expect(tname2.username).toEqual("tname2");
@@ -270,16 +276,17 @@ describe("userCreator", () => {
       teamId: invite.teamId,
       ip,
       authentication: {
-        authenticationProviderId: authenticationProvider.id,
         providerId: "fake-service-id",
         accessToken: "123",
         scopes: ["read"],
       },
+      authenticationProvider,
     });
     const { user, authentication, isNewUser } = result;
-    expect(authentication.accessToken).toEqual("123");
-    expect(authentication.scopes.length).toEqual(1);
-    expect(authentication.scopes[0]).toEqual("read");
+    expect(authentication).toBeDefined();
+    expect(authentication?.accessToken).toEqual("123");
+    expect(authentication?.scopes.length).toEqual(1);
+    expect(authentication?.scopes[0]).toEqual("read");
     expect(user.email).toEqual(invite.email);
     expect(isNewUser).toEqual(true);
   });
@@ -298,11 +305,11 @@ describe("userCreator", () => {
         teamId: team.id,
         ip,
         authentication: {
-          authenticationProviderId: authenticationProvider.id,
           providerId: "fake-service-id",
           accessToken: "123",
           scopes: ["read"],
         },
+        authenticationProvider,
       });
     } catch (err) {
       error = err;
@@ -329,16 +336,17 @@ describe("userCreator", () => {
       teamId: team.id,
       ip,
       authentication: {
-        authenticationProviderId: authenticationProvider.id,
         providerId: "fake-service-id",
         accessToken: "123",
         scopes: ["read"],
       },
+      authenticationProvider,
     });
     const { user, authentication, isNewUser } = result;
-    expect(authentication.accessToken).toEqual("123");
-    expect(authentication.scopes.length).toEqual(1);
-    expect(authentication.scopes[0]).toEqual("read");
+    expect(authentication).toBeDefined();
+    expect(authentication?.accessToken).toEqual("123");
+    expect(authentication?.scopes.length).toEqual(1);
+    expect(authentication?.scopes[0]).toEqual("read");
     expect(user.email).toEqual("user@example-company.com");
     expect(isNewUser).toEqual(true);
   });
@@ -362,11 +370,11 @@ describe("userCreator", () => {
         teamId: team.id,
         ip,
         authentication: {
-          authenticationProviderId: authenticationProvider.id,
           providerId: "fake-service-id",
           accessToken: "123",
           scopes: ["read"],
         },
+        authenticationProvider,
       });
     } catch (err) {
       error = err;
