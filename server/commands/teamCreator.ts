@@ -11,10 +11,11 @@ type TeamCreatorResult = {
   team: Team;
   authenticationProvider: AuthenticationProvider;
   isNewTeam: boolean;
+  isExternalTeam?: boolean;
 };
 
 type Props = {
-  id?: string;
+  teamId?: string;
   name: string;
   domain?: string;
   subdomain: string;
@@ -27,7 +28,7 @@ type Props = {
 };
 
 async function teamCreator({
-  id: teamId,
+  teamId,
   name,
   domain,
   subdomain,
@@ -60,7 +61,7 @@ async function teamCreator({
     // A team id was provided but no auth provider was found matching those credentials
     // The user is attempting to log into a team with an external or personal SSO
 
-    // Find an AuthenticationProvider that matches the SSO type (google, slack, etc)
+    // Get the AuthenticationProvider for the team that matches the SSO name (google, slack, etc)
     authP = await AuthenticationProvider.findOne({
       where: { name: authenticationProvider.name, teamId },
       include: [
@@ -78,6 +79,7 @@ async function teamCreator({
       authenticationProvider: authP,
       team: authP.team,
       isNewTeam: false,
+      isExternalTeam: true,
     };
   }
 

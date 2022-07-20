@@ -29,10 +29,10 @@ type Props = {
   };
   authenticationProvider: {
     name: string;
-    providerId: string;
+    providerId: string; // external id of the auth provider
   };
   authentication: {
-    providerId: string;
+    providerId: string; // external id of the user auth
     scopes: string[];
     accessToken?: string;
     refreshToken?: string;
@@ -56,6 +56,8 @@ async function accountProvisioner({
 }: Props): Promise<AccountProvisionerResult> {
   let result;
 
+  // TODO put the google specific check here
+
   try {
     result = await teamCreator({
       ...teamParams,
@@ -67,7 +69,7 @@ async function accountProvisioner({
   }
 
   invariant(result, "Team creator result must exist");
-  const { authenticationProvider, team, isNewTeam } = result;
+  const { authenticationProvider, team, isNewTeam, isExternalTeam } = result;
 
   if (!authenticationProvider.enabled) {
     throw AuthenticationProviderDisabledError();
@@ -81,6 +83,8 @@ async function accountProvisioner({
       isAdmin: isNewTeam || undefined,
       avatarUrl: userParams.avatarUrl,
       teamId: team.id,
+      isExternalTeam,
+      authenticationProviderId: authenticationProvider.id,
       ip,
       authentication: {
         ...authenticationParams,
@@ -88,7 +92,6 @@ async function accountProvisioner({
           ? new Date(Date.now() + authenticationParams.expiresIn * 1000)
           : undefined,
       },
-      authenticationProvider,
     });
     const { isNewUser, user } = result;
 

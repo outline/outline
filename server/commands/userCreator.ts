@@ -1,13 +1,7 @@
 import { sequelize } from "@server/database/sequelize";
 import InviteAcceptedEmail from "@server/emails/templates/InviteAcceptedEmail";
 import { DomainNotAllowedError, InviteRequiredError } from "@server/errors";
-import {
-  Event,
-  Team,
-  User,
-  UserAuthentication,
-  AuthenticationProvider,
-} from "@server/models";
+import { Event, Team, User, UserAuthentication } from "@server/models";
 
 type UserCreatorResult = {
   user: User;
@@ -22,6 +16,8 @@ type Props = {
   isAdmin?: boolean;
   avatarUrl?: string | null;
   teamId: string;
+  isExternalTeam?: boolean;
+  authenticationProviderId: string;
   ip: string;
   authentication: {
     providerId: string;
@@ -30,7 +26,6 @@ type Props = {
     refreshToken?: string;
     expiresAt?: Date;
   };
-  authenticationProvider: AuthenticationProvider;
 };
 
 export default async function userCreator({
@@ -38,10 +33,11 @@ export default async function userCreator({
   email,
   username,
   isAdmin,
+  isExternalTeam,
   avatarUrl,
   teamId,
   authentication,
-  authenticationProvider,
+  authenticationProviderId,
   ip,
 }: Props): Promise<UserCreatorResult> {
   const { providerId, ...rest } = authentication;
@@ -69,9 +65,9 @@ export default async function userCreator({
     // associated with a different authentication provider, (eg a different
     // hosted google domain). This is possible in Google Auth when moving domains.
     // In the future we may auto-migrate these.
-    if (auth.authenticationProviderId !== authenticationProvider.id) {
+    if (auth.authenticationProviderId !== authenticationProviderId) {
       throw new Error(
-        `User authentication ${providerId} already exists for ${auth.authenticationProviderId}, tried to assign to ${authenticationProvider.id}`
+        `User authentication ${providerId} already exists for ${auth.authenticationProviderId}, tried to assign to ${authenticationProviderId}`
       );
     }
 
@@ -94,9 +90,8 @@ export default async function userCreator({
     await auth.destroy();
   }
 
-  // A `user` record might exist in the form of an invite even if there is no
-  // existing authentication record that matches. In Outline an invite is a
-  // shell user record.
+  // A `user` record may exist even if there is no existing authentication record.
+  // This is either an invite or a user that's external to the team
   const existingUser = await User.scope([
     "withAuthentications",
     "withTeam",
@@ -109,12 +104,11 @@ export default async function userCreator({
     },
   });
 
-  // We have an existing invite for his user, so we need to update it with our
-  // new details, link up the authentication method, and count this as a new
-  // user creation.
+  // We have an existing user, so we need to update it with our
+  // new details and count this as a new user creation.
   if (existingUser) {
     // A `user` record might exist in the form of an invite.
-    // In Outline an invite is a shell user record with no authentication method
+    // An invite is a shell user record with no authentication method
     // that's never been active before.
     const isInvite = existingUser.isInvited;
 
@@ -154,7 +148,7 @@ export default async function userCreator({
 
       // if the user's authentication is internal to the authentication provider of the team
       // then create a new UserAuthentication record for it
-      if (authenticationProvider.providerId === authentication.providerId) {
+      if (!isExternalTeam) {
         return await existingUser.$create<UserAuthentication>(
           "authentication",
           authentication,
