@@ -5,7 +5,7 @@ import { Subscription, Event, Document } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentSubscription } from "@server/presenters";
 import { SubscriptionEvent } from "@server/types";
-import { assertUuid } from "@server/validation";
+import { assertPresent, assertUuid } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
 /** Typical workflow involves
@@ -38,17 +38,60 @@ router.post(
       where: {
         documentId: document.id,
       },
-
       order: [["createdAt", "DESC"]],
-
       offset: ctx.state.pagination.offset,
-
       limit: ctx.state.pagination.limit,
     });
 
     ctx.body = {
       pagination: ctx.state.pagination,
       data: subscriptions.map(presentSubscription),
+    };
+  }
+);
+
+router.post(
+  "subscriptions.info",
+  auth({
+    optional: true,
+  }),
+  async (ctx) => {
+    const { documentId } = ctx.body;
+
+    const document = await Document.findByPk(documentId);
+
+    assertPresent(documentId, "documentId is required");
+
+    const { user } = ctx.state;
+
+    authorize(user, "read", document);
+
+    const subscription = await Subscription.findOne({
+      where: {
+        documentId: document.id,
+        userId: user.id,
+      },
+    });
+
+    authorize(user, "read", subscription);
+
+    const event: SubscriptionEvent = {
+      name: "subscriptions.info",
+      modelId: subscription.id,
+      actorId: user.id,
+      // REVIEW: Should `teamId` be required?
+      // Set via `SubscriptionEvent` type.
+      teamId: user.teamId,
+      userId: user.userId,
+      documentId: document.id,
+      enabled: subscription.enabled,
+      ip: ctx.request.ip,
+    };
+
+    await Event.create(event);
+
+    ctx.body = {
+      data: presentSubscription(subscription),
     };
   }
 );

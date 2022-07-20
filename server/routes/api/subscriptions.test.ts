@@ -87,6 +87,146 @@ describe("#subscriptions.create", () => {
   });
 });
 
+describe("#subscriptions.info", () => {
+  it("should provide info about a subscription", async () => {
+    const creator = await buildUser();
+    const subscriber = await buildUser({ teamId: creator.teamId });
+
+    // `creator` creates two documents
+    const document0 = await buildDocument({
+      userId: creator.id,
+      teamId: creator.teamId,
+    });
+
+    const document1 = await buildDocument({
+      userId: creator.id,
+      teamId: creator.teamId,
+    });
+
+    // `subscriber` subscribes to `document0`.
+    await server.post("/api/subscriptions.create", {
+      body: {
+        token: subscriber.getJwtToken(),
+        documentId: document0.id,
+        enabled: true,
+      },
+    });
+
+    // `subscriber` subscribes to `document1`.
+    await server.post("/api/subscriptions.create", {
+      body: {
+        token: subscriber.getJwtToken(),
+        documentId: document1.id,
+        enabled: true,
+      },
+    });
+
+    // `subscriber` wants info about
+    // their subscription on `document0`.
+    const subscription0 = await server.post("/api/subscriptions.info", {
+      body: {
+        token: subscriber.getJwtToken(),
+        documentId: document0.id,
+      },
+    });
+
+    const response0 = await subscription0.json();
+
+    expect(subscription0.status).toEqual(200);
+    expect(response0.data.id).toBeDefined();
+    expect(response0.data.userId).toEqual(subscriber.id);
+    expect(response0.data.documentId).toEqual(document0.id);
+    expect(response0.data.enabled).toEqual(true);
+
+    // `subscriber` wants info about
+    // their subscription on `document1`.
+    const subscription1 = await server.post("/api/subscriptions.info", {
+      body: {
+        token: subscriber.getJwtToken(),
+        documentId: document1.id,
+      },
+    });
+
+    const response1 = await subscription1.json();
+
+    expect(subscription1.status).toEqual(200);
+    expect(response1.data.id).toBeDefined();
+    expect(response1.data.userId).toEqual(subscriber.id);
+    expect(response1.data.documentId).toEqual(document1.id);
+    expect(response1.data.enabled).toEqual(true);
+  });
+
+  it("should not allow outsiders to gain info about a subscription", async () => {
+    const creator = await buildUser();
+    const subscriber = await buildUser({ teamId: creator.teamId });
+    // `viewer` is not a part of `creator`'s team.
+    const viewer = await buildUser();
+
+    // `creator` creates two documents
+    const document0 = await buildDocument({
+      userId: creator.id,
+      teamId: creator.teamId,
+    });
+
+    const document1 = await buildDocument({
+      userId: creator.id,
+      teamId: creator.teamId,
+    });
+
+    // `subscriber` subscribes to `document0`.
+    await server.post("/api/subscriptions.create", {
+      body: {
+        token: subscriber.getJwtToken(),
+        documentId: document0.id,
+        enabled: true,
+      },
+    });
+
+    // `subscriber` subscribes to `document1`.
+    await server.post("/api/subscriptions.create", {
+      body: {
+        token: subscriber.getJwtToken(),
+        documentId: document1.id,
+        enabled: true,
+      },
+    });
+
+    // `viewer` wants info about `subscriber`'s
+    // subscription on `document0`.
+    const subscription0 = await server.post("/api/subscriptions.info", {
+      body: {
+        token: viewer.getJwtToken(),
+        documentId: document0.id,
+      },
+    });
+
+    const response0 = await subscription0.json();
+
+    // `viewer` should be unauthorized.
+    expect(subscription0.status).toEqual(403);
+    expect(response0.ok).toEqual(false);
+    expect(response0.error).toEqual("authorization_error");
+    expect(response0.message).toEqual("Authorization error");
+
+    // `viewer` wants info about `subscriber`'s
+    // subscription on `document0`.
+    const subscription1 = await server.post("/api/subscriptions.info", {
+      body: {
+        token: viewer.getJwtToken(),
+        documentId: document1.id,
+      },
+    });
+
+    const response1 = await subscription1.json();
+
+    // `viewer` should be unauthorized.
+    expect(subscription1.status).toEqual(403);
+    expect(response1.ok).toEqual(false);
+    expect(response1.error).toEqual("authorization_error");
+    expect(response1.message).toEqual("Authorization error");
+  });
+});
+
 describe("#subscriptions.list", () => {
   it("should list user subscriptions", async () => {
     const user = await buildUser();
@@ -220,9 +360,14 @@ describe("#subscriptions.list", () => {
       },
     });
 
+    const body = await res.json();
+
     // `viewer` should not be authorized
     // to view subscriptions on this document.
     expect(res.status).toEqual(403);
+    expect(body.ok).toEqual(false);
+    expect(body.error).toEqual("authorization_error");
+    expect(body.message).toEqual("Authorization error");
   });
 });
 
@@ -312,8 +457,13 @@ describe("#subscriptions.update", () => {
       },
     });
 
+    const body = await res.json();
+
     // `subscriber0` should be unauthorized.
     expect(res.status).toEqual(403);
+    expect(body.ok).toEqual(false);
+    expect(body.error).toEqual("authorization_error");
+    expect(body.message).toEqual("Authorization error");
   });
 });
 
@@ -401,7 +551,12 @@ describe("#subscriptions.delete", () => {
       },
     });
 
+    const body = await res.json();
+
     // `subscriber0` should be unauthorized.
     expect(res.status).toEqual(403);
+    expect(body.ok).toEqual(false);
+    expect(body.error).toEqual("authorization_error");
+    expect(body.message).toEqual("Authorization error");
   });
 });

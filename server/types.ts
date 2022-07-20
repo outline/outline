@@ -260,6 +260,7 @@ export type ShareEvent = BaseEvent & {
 export type SubscriptionEvent = BaseEvent & {
   name:
     | "subscriptions.list"
+    | "subscriptions.info"
     | "subscriptions.create"
     | "subscriptions.update"
     | "subscriptions.delete";
