@@ -33,7 +33,7 @@ type GoogleProfile = Profile & {
   email: string;
   picture: string;
   _json: {
-    hd: string;
+    hd?: string;
   };
 };
 
@@ -66,10 +66,9 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
           const domain = profile._json.hd;
           const team = await getTeamFromContext(ctx);
 
-          console.log("Google sign-in", { domain, profile });
-
           // No profile domain means personal gmail account
           // No team implies the request came from the apex domain
+          // This combination is always an error
           if (!domain && !team) {
             const userExists = await User.count({
               where: { email: profile.email.toLowerCase() },
@@ -87,7 +86,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
           // remove the TLD and form a subdomain from the remaining
           // subdomains of the form "foo.bar.com" are allowed as primary Google Workspaces domains
           // see https://support.google.com/nonprofits/thread/19685140/using-a-subdomain-as-a-primary-domain
-          const subdomain = slugifyDomain(domain);
+          const subdomain = domain ? slugifyDomain(domain) : "";
           const teamName = capitalize(subdomain);
 
           // Request a larger size profile picture than the default by tweaking
@@ -112,7 +111,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
             },
             authenticationProvider: {
               name: GOOGLE,
-              providerId: domain,
+              providerId: domain ?? "",
             },
             authentication: {
               providerId: profile.id,
