@@ -89,6 +89,35 @@ describe("#subscriptions.create", () => {
     expect(body.data[0].documentId).toEqual(document.id);
     expect(body.data[0].enabled).toEqual(true);
   });
+
+  it("should not create a subscription on invalid events", async () => {
+    const user = await buildUser();
+
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/subscriptions.create", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: document.id,
+        // Subscription on event
+        // that cannot be subscribed to.
+        event: "documents.publish",
+        enabled: true,
+      },
+    });
+
+    const body = await res.json();
+
+    expect(res.status).toEqual(400);
+    expect(body.ok).toEqual(false);
+    expect(body.error).toEqual("validation_error");
+    expect(body.message).toEqual(
+      `Event documents.publish is not subscribable for documentId ${document.id}`
+    );
+  });
 });
 
 describe("#subscriptions.info", () => {
