@@ -266,6 +266,84 @@ describe("#subscriptions.info", () => {
     expect(response1.error).toEqual("authorization_error");
     expect(response1.message).toEqual("Authorization error");
   });
+
+  it("should not provide infomation on invalid events", async () => {
+    const creator = await buildUser();
+    const subscriber = await buildUser({ teamId: creator.teamId });
+    // `viewer` is a part of `creator`'s team.
+    const viewer = await buildUser({ teamId: creator.teamId });
+
+    // `creator` creates two documents
+    const document0 = await buildDocument({
+      userId: creator.id,
+      teamId: creator.teamId,
+    });
+
+    const document1 = await buildDocument({
+      userId: creator.id,
+      teamId: creator.teamId,
+    });
+
+    // `subscriber` subscribes to `document0`.
+    await server.post("/api/subscriptions.create", {
+      body: {
+        token: subscriber.getJwtToken(),
+        documentId: document0.id,
+        event: "documents.update",
+        enabled: true,
+      },
+    });
+
+    // `subscriber` subscribes to `document1`.
+    await server.post("/api/subscriptions.create", {
+      body: {
+        token: subscriber.getJwtToken(),
+        documentId: document1.id,
+        event: "documents.update",
+        enabled: true,
+      },
+    });
+
+    // `viewer` wants info about `subscriber`'s
+    // subscription on `document0`.
+    // They have requested an invalid event.
+    const subscription0 = await server.post("/api/subscriptions.info", {
+      body: {
+        token: viewer.getJwtToken(),
+        documentId: document0.id,
+        event: "documents.changed",
+      },
+    });
+
+    const response0 = await subscription0.json();
+
+    expect(subscription0.status).toEqual(400);
+    expect(response0.ok).toEqual(false);
+    expect(response0.error).toEqual("validation_error");
+    expect(response0.message).toEqual(
+      `Event documents.changed is not subscribable for documentId ${document0.id}`
+    );
+
+    // `viewer` wants info about `subscriber`'s
+    // subscription on `document0`.
+    // They have requested an invalid event.
+    const subscription1 = await server.post("/api/subscriptions.info", {
+      body: {
+        token: viewer.getJwtToken(),
+        documentId: document1.id,
+        event: "doc.affected",
+      },
+    });
+
+    const response1 = await subscription1.json();
+
+    expect(subscription1.status).toEqual(400);
+    expect(response1.ok).toEqual(false);
+    expect(response1.error).toEqual("validation_error");
+    expect(response1.message).toEqual(
+      `Event doc.affected is not subscribable for documentId ${document1.id}`
+    );
+  });
 });
 
 describe("#subscriptions.list", () => {
@@ -362,6 +440,61 @@ describe("#subscriptions.list", () => {
     expect(body.data[1].documentId).toEqual(document.id);
     expect(body.data[0].enabled).toEqual(true);
     expect(body.data[1].enabled).toEqual(true);
+  });
+
+  it("user should not be able to list invalid subscriptions", async () => {
+    const subscriber0 = await buildUser();
+    // `subscriber1` belongs to `subscriber0`'s team.
+    const subscriber1 = await buildUser({ teamId: subscriber0.teamId });
+    // `viewer` belongs to `subscriber0`'s team.
+    const viewer = await buildUser({ teamId: subscriber0.teamId });
+
+    // `subscriber0` created a document.
+    const document = await buildDocument({
+      userId: subscriber0.id,
+      teamId: subscriber0.teamId,
+    });
+
+    // `subscriber0` wants to be notified about
+    // changes on this document.
+    await server.post("/api/subscriptions.create", {
+      body: {
+        token: subscriber0.getJwtToken(),
+        documentId: document.id,
+        event: "documents.update",
+        enabled: true,
+      },
+    });
+
+    // `subscriber1` wants to be notified about
+    // changes on this document.
+    await server.post("/api/subscriptions.create", {
+      body: {
+        token: subscriber1.getJwtToken(),
+        documentId: document.id,
+        event: "documents.update",
+        enabled: true,
+      },
+    });
+
+    // `viewer` just wants to know the subscribers
+    // for this document.
+    const res = await server.post("/api/subscriptions.list", {
+      body: {
+        token: viewer.getJwtToken(),
+        documentId: document.id,
+        event: "changes.on.documents",
+      },
+    });
+
+    const body = await res.json();
+
+    expect(res.status).toEqual(400);
+    expect(body.ok).toEqual(false);
+    expect(body.error).toEqual("validation_error");
+    expect(body.message).toEqual(
+      `Event changes.on.documents is not subscribable for documentId ${document.id}`
+    );
   });
 
   it("user outside of the team should not be able to list subscriptions on internal document", async () => {
