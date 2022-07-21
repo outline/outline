@@ -6,6 +6,8 @@ type Props = {
   user: User;
   /** The document to subscription */
   documentId?: string;
+  /** Event to subscribe */
+  event: string;
   /** Status of a subscription */
   enabled: boolean;
   /** The IP address of the user creating the subscription */
@@ -23,6 +25,7 @@ type Props = {
 export default async function subscriptionCreator({
   user,
   documentId,
+  event,
   // Sane default state when creating a subscription.
   enabled = true,
   ip,
@@ -38,6 +41,7 @@ export default async function subscriptionCreator({
     where: {
       userId: user.id,
       documentId,
+      event,
       enabled,
     },
   });

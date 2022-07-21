@@ -28,6 +28,9 @@ describe("#subscriptions.create", () => {
       body: {
         token: user.getJwtToken(),
         documentId: document.id,
+        // NOTE: Dummy event, not being tested.
+        // Tests for these are in `NotificationsProcessor`.
+        event: "documents.update",
         enabled: true,
       },
     });
@@ -54,6 +57,9 @@ describe("#subscriptions.create", () => {
       body: {
         token: user.getJwtToken(),
         documentId: document.id,
+        // NOTE: Dummy event, not being tested.
+        // Tests for these are in `NotificationsProcessor`.
+        event: "documents.update",
         enabled: true,
       },
     });
@@ -63,6 +69,9 @@ describe("#subscriptions.create", () => {
       body: {
         token: user.getJwtToken(),
         documentId: document.id,
+        // NOTE: Dummy event, not being tested.
+        // Tests for these are in `NotificationsProcessor`.
+        event: "documents.update",
         enabled: true,
       },
     });
@@ -73,6 +82,7 @@ describe("#subscriptions.create", () => {
       body: {
         token: user.getJwtToken(),
         documentId: document.id,
+        event: "documents.update",
       },
     });
 
@@ -108,6 +118,9 @@ describe("#subscriptions.info", () => {
       body: {
         token: subscriber.getJwtToken(),
         documentId: document0.id,
+        // NOTE: Dummy event, not being tested.
+        // Tests for these are in `NotificationsProcessor`.
+        event: "documents.update",
         enabled: true,
       },
     });
@@ -117,6 +130,9 @@ describe("#subscriptions.info", () => {
       body: {
         token: subscriber.getJwtToken(),
         documentId: document1.id,
+        // NOTE: Dummy event, not being tested.
+        // Tests for these are in `NotificationsProcessor`.
+        event: "documents.update",
         enabled: true,
       },
     });
@@ -127,6 +143,7 @@ describe("#subscriptions.info", () => {
       body: {
         token: subscriber.getJwtToken(),
         documentId: document0.id,
+        event: "documents.update",
       },
     });
 
@@ -144,6 +161,7 @@ describe("#subscriptions.info", () => {
       body: {
         token: subscriber.getJwtToken(),
         documentId: document1.id,
+        event: "documents.update",
       },
     });
 
@@ -178,6 +196,9 @@ describe("#subscriptions.info", () => {
       body: {
         token: subscriber.getJwtToken(),
         documentId: document0.id,
+        // NOTE: Dummy event, not being tested.
+        // Tests for these are in `NotificationsProcessor`.
+        event: "documents.update",
         enabled: true,
       },
     });
@@ -187,6 +208,7 @@ describe("#subscriptions.info", () => {
       body: {
         token: subscriber.getJwtToken(),
         documentId: document1.id,
+        event: "documents.update",
         enabled: true,
       },
     });
@@ -241,6 +263,9 @@ describe("#subscriptions.list", () => {
     const subscription = await buildSubscription({
       userId: user.id,
       documentId: document.id,
+      // NOTE: Dummy event, not being tested.
+      // Tests for these are in `NotificationsProcessor`.
+      event: "documents.update",
       enabled: true,
     });
 
@@ -248,6 +273,7 @@ describe("#subscriptions.list", () => {
       body: {
         token: user.getJwtToken(),
         documentId: document.id,
+        event: "documents.update",
       },
     });
 
@@ -280,6 +306,9 @@ describe("#subscriptions.list", () => {
       body: {
         token: subscriber0.getJwtToken(),
         documentId: document.id,
+        // NOTE: Dummy event, not being tested.
+        // Tests for these are in `NotificationsProcessor`.
+        event: "documents.update",
         enabled: true,
       },
     });
@@ -290,6 +319,9 @@ describe("#subscriptions.list", () => {
       body: {
         token: subscriber1.getJwtToken(),
         documentId: document.id,
+        // NOTE: Dummy event, not being tested.
+        // Tests for these are in `NotificationsProcessor`.
+        event: "documents.update",
         enabled: true,
       },
     });
@@ -300,6 +332,7 @@ describe("#subscriptions.list", () => {
       body: {
         token: viewer.getJwtToken(),
         documentId: document.id,
+        event: "documents.update",
       },
     });
 
@@ -337,6 +370,7 @@ describe("#subscriptions.list", () => {
       body: {
         token: subscriber0.getJwtToken(),
         documentId: document.id,
+        event: "documents.update",
         enabled: true,
       },
     });
@@ -347,6 +381,9 @@ describe("#subscriptions.list", () => {
       body: {
         token: subscriber1.getJwtToken(),
         documentId: document.id,
+        // NOTE: Dummy event, not being tested.
+        // Tests for these are in `NotificationsProcessor`.
+        event: "documents.update",
         enabled: true,
       },
     });
@@ -383,6 +420,9 @@ describe("#subscriptions.update", () => {
     const subscription = await buildSubscription({
       userId: user.id,
       documentId: document.id,
+      // NOTE: Dummy event, not being tested.
+      // Tests for these are in `NotificationsProcessor`.
+      event: "documents.update",
       enabled: true,
     });
 
@@ -425,6 +465,9 @@ describe("#subscriptions.update", () => {
         token: subscriber0.getJwtToken(),
         userId: subscriber0.id,
         documentId: document.id,
+        // NOTE: Dummy event, not being tested.
+        // Tests for these are in `NotificationsProcessor`.
+        event: "documents.update",
         enabled: true,
       },
     });
@@ -435,6 +478,9 @@ describe("#subscriptions.update", () => {
       body: {
         token: subscriber1.getJwtToken(),
         documentId: document.id,
+        // NOTE: Dummy event, not being tested.
+        // Tests for these are in `NotificationsProcessor`.
+        event: "documents.update",
         enabled: true,
       },
     });
@@ -448,6 +494,9 @@ describe("#subscriptions.update", () => {
       body: {
         // subscription id of `subscriber1`
         id: subscription1Id,
+        // NOTE: Dummy event, not being tested.
+        // Tests for these are in `NotificationsProcessor`.
+        event: "documents.update",
         enabled: false,
         // REVIEW: Should it require `subscription.id`?
         // There can be only one subscription
@@ -479,6 +528,9 @@ describe("#subscriptions.delete", () => {
     const subscription = await buildSubscription({
       userId: user.id,
       documentId: document.id,
+      // NOTE: Dummy event, not being tested.
+      // Tests for these are in `NotificationsProcessor`.
+      event: "documents.update",
       enabled: true,
     });
 
@@ -518,6 +570,9 @@ describe("#subscriptions.delete", () => {
       body: {
         token: subscriber0.getJwtToken(),
         documentId: document.id,
+        // NOTE: Dummy event, not being tested.
+        // Tests for these are in `NotificationsProcessor`.
+        event: "documents.update",
         enabled: true,
       },
     });
@@ -528,6 +583,9 @@ describe("#subscriptions.delete", () => {
       body: {
         token: subscriber1.getJwtToken(),
         documentId: document.id,
+        // NOTE: Dummy event, not being tested.
+        // Tests for these are in `NotificationsProcessor`.
+        event: "documents.update",
         enabled: true,
       },
     });

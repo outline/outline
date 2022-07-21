@@ -9,6 +9,7 @@ beforeEach(() => flushdb());
 describe("subscriptionCreator", () => {
   const ip = "127.0.0.1";
   const enabled = true;
+  const subscribedEvent = "documents.update";
 
   it("should create subscription", async () => {
     const user = await buildUser();
@@ -21,6 +22,7 @@ describe("subscriptionCreator", () => {
       subscriptionCreator({
         user: user,
         documentId: document.id,
+        event: subscribedEvent,
         enabled,
         ip,
         transaction,
@@ -28,6 +30,7 @@ describe("subscriptionCreator", () => {
     );
 
     const event = await Event.findOne();
+
     expect(subscription.documentId).toEqual(document.id);
     expect(subscription.userId).toEqual(user.id);
     expect(event?.name).toEqual("subscriptions.create");
@@ -47,6 +50,7 @@ describe("subscriptionCreator", () => {
     const subscription1 = await Subscription.create({
       userId: user.id,
       documentId: document.id,
+      event: subscribedEvent,
       enabled,
     });
 
@@ -54,6 +58,7 @@ describe("subscriptionCreator", () => {
       subscriptionCreator({
         user: user,
         documentId: document.id,
+        event: subscribedEvent,
         enabled,
         ip,
         transaction,
@@ -75,6 +80,7 @@ describe("subscriptionCreator", () => {
     await Subscription.create({
       userId: user.id,
       documentId: document.id,
+      event: subscribedEvent,
       enabled,
     });
 
@@ -82,6 +88,7 @@ describe("subscriptionCreator", () => {
       subscriptionCreator({
         user: user,
         documentId: document.id,
+        event: subscribedEvent,
         enabled,
         ip,
         transaction,

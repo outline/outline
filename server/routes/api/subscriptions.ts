@@ -28,7 +28,7 @@ router.post(
 
   async (ctx) => {
     const { user } = ctx.state;
-    const { documentId } = ctx.body;
+    const { documentId, event } = ctx.body;
 
     const document = await Document.findByPk(documentId);
 
@@ -37,6 +37,7 @@ router.post(
     const subscriptions = await Subscription.findAll({
       where: {
         documentId: document.id,
+        event,
       },
       order: [["createdAt", "DESC"]],
       offset: ctx.state.pagination.offset,
@@ -56,7 +57,7 @@ router.post(
     optional: true,
   }),
   async (ctx) => {
-    const { documentId } = ctx.body;
+    const { documentId, event } = ctx.body;
 
     const document = await Document.findByPk(documentId);
 
@@ -70,6 +71,7 @@ router.post(
       where: {
         documentId: document.id,
         userId: user.id,
+        event,
       },
     });
 
@@ -88,7 +90,7 @@ router.post(
 
   async (ctx) => {
     const { user } = ctx.state;
-    const { documentId } = ctx.body;
+    const { documentId, event } = ctx.body;
 
     const document = await Document.findByPk(documentId);
 
@@ -97,11 +99,12 @@ router.post(
     const subscription = await Subscription.create({
       userId: user.id,
       documentId: document.id,
+      event,
       // Doesn't make sense to create a disabled subscription.
       enabled: true,
     });
 
-    const event: SubscriptionEvent = {
+    const subscriptionEvent: SubscriptionEvent = {
       name: "subscriptions.create",
       modelId: subscription.id,
       actorId: user.id,
@@ -114,7 +117,7 @@ router.post(
       ip: ctx.request.ip,
     };
 
-    await Event.create(event);
+    await Event.create(subscriptionEvent);
 
     ctx.body = {
       data: presentSubscription(subscription),
@@ -128,6 +131,8 @@ router.post(
   auth(),
 
   async (ctx) => {
+    // body should not include `event` like other routes above.
+    // That would imply move on a subscription model.
     const { id, enabled } = ctx.body;
 
     assertUuid(id, "id is required");

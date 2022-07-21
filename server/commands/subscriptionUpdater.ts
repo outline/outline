@@ -1,3 +1,4 @@
+import assert from "assert";
 import { Transaction } from "sequelize";
 import { Subscription, Event, User } from "@server/models";
 
@@ -6,6 +7,8 @@ type Props = {
   user: User;
   /** The existing subscription */
   subscription: Subscription;
+  /** Event to subscribe */
+  event: string;
   /** Status of a subscription */
   enabled: boolean;
   /** The IP address of the user updateing the subscription */
@@ -24,10 +27,15 @@ export default async function subscriptionUpdater({
   user,
   // `userId` + `subscription` should be enough infomation.
   subscription,
+  event,
   enabled,
   ip,
   transaction,
 }: Props): Promise<Subscription> {
+  // Subscription shouldn't be allowed to move.
+  // REVIEW: Is this alright?
+  assert(event === subscription.event);
+
   // An existing subscription can be toggled.
   subscription.enabled = enabled;
 

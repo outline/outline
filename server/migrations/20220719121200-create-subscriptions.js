@@ -27,6 +27,10 @@ module.exports = {
               model: "documents",
             },
           },
+          event: {
+            type: Sequelize.STRING,
+            allowNull: false,
+          },
           enabled: {
             type: Sequelize.BOOLEAN,
             allowNull: false,
@@ -43,8 +47,8 @@ module.exports = {
         { transaction }
       );
 
-      await queryInterface.addIndex("subscriptions", ["userId", "documentId"], {
-        name: "subscriptions_user_id_document_id",
+      await queryInterface.addIndex("subscriptions", ["userId", "documentId", "event"], {
+        name: "subscriptions_user_id_document_id_event",
         type: "UNIQUE",
         transaction,
       });
@@ -52,7 +56,7 @@ module.exports = {
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.removeIndex("subscriptions", ["userId", "documentId"]);
+    await queryInterface.removeIndex("subscriptions", ["userId", "documentId", "event"]);
     return queryInterface.dropTable("subscriptions");
   },
 };
