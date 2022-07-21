@@ -1,8 +1,9 @@
 import crypto from "crypto";
 import util from "util";
-import AWS from "aws-sdk";
+import AWS, { S3 } from "aws-sdk";
 import { addHours, format } from "date-fns";
 import fetch from "fetch-with-proxy";
+import { compact } from "lodash";
 import { useAgent } from "request-filtering-agent";
 import { v4 as uuidv4 } from "uuid";
 import env from "@server/env";
@@ -30,7 +31,11 @@ const s3 = new AWS.S3({
   signatureVersion: "v4",
 });
 
-const createPresignedPost = util.promisify(s3.createPresignedPost).bind(s3);
+const createPresignedPost: (
+  params: S3.PresignedPost.Params
+) => Promise<S3.PresignedPost> = util
+  .promisify(s3.createPresignedPost)
+  .bind(s3);
 
 const hmac = (
   key: string | Buffer,
@@ -107,14 +112,15 @@ export const getPresignedPost = (
 ) => {
   const params = {
     Bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME,
-    Conditions: [
+    Conditions: compact([
       process.env.AWS_S3_UPLOAD_MAX_SIZE
         ? ["content-length-range", 0, +process.env.AWS_S3_UPLOAD_MAX_SIZE]
         : undefined,
       ["starts-with", "$Content-Type", contentType],
       ["starts-with", "$Cache-Control", ""],
-    ].filter(Boolean),
+    ]),
     Fields: {
+      "Content-Disposition": "attachment",
       key,
       acl,
     },
@@ -164,6 +170,7 @@ export const uploadToS3FromBuffer = async (
       Key: key,
       ContentType: contentType,
       ContentLength: buffer.length,
+      ContentDisposition: "attachment",
       Body: buffer,
     })
     .promise();
@@ -197,6 +204,7 @@ export const uploadToS3FromUrl = async (
         Key: key,
         ContentType: res.headers["content-type"],
         ContentLength: res.headers["content-length"],
+        ContentDisposition: "attachment",
         Body: buffer,
       })
       .promise();

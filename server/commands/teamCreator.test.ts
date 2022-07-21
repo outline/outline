@@ -73,6 +73,23 @@ describe("teamCreator", () => {
   });
 
   describe("self hosted", () => {
+    it("should allow creating first team", async () => {
+      env.DEPLOYMENT = undefined;
+      const { team, isNewTeam } = await teamCreator({
+        name: "Test team",
+        subdomain: "example",
+        avatarUrl: "http://example.com/logo.png",
+        authenticationProvider: {
+          name: "google",
+          providerId: "example.com",
+        },
+        ip,
+      });
+
+      expect(isNewTeam).toBeTruthy();
+      expect(team.name).toEqual("Test team");
+    });
+
     it("should not allow creating multiple teams in installation", async () => {
       env.DEPLOYMENT = undefined;
       await buildTeam();

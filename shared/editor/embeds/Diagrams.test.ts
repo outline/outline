@@ -11,6 +11,12 @@ describe("Diagrams", () => {
     ).toBeTruthy();
   });
 
+  test("to not be enabled on the proxy path", () => {
+    expect("https://app.diagrams.net/proxy?url=malicious".match(match)).toBe(
+      null
+    );
+  });
+
   test("to not be enabled elsewhere", () => {
     expect("https://app.diagrams.net/#ABCDefgh_A12345-6789".match(match)).toBe(
       null

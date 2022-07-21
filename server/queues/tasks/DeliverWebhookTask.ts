@@ -537,6 +537,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
         headers: requestHeaders,
         body: JSON.stringify(requestBody),
         redirect: "error",
+        timeout: 5000,
         agent: useAgent(subscription.url),
       });
       status = response.ok ? "success" : "failed";

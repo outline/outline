@@ -3,6 +3,7 @@ import { UniqueConstraintError } from "sequelize";
 import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
 import {
   AuthenticationError,
+  InvalidAuthenticationError,
   EmailAuthenticationRequiredError,
   AuthenticationProviderDisabledError,
 } from "@server/errors";
@@ -20,6 +21,7 @@ type Props = {
     username?: string;
   };
   team: {
+    id?: string;
     name: string;
     domain?: string;
     subdomain: string;
@@ -56,15 +58,12 @@ async function accountProvisioner({
 
   try {
     result = await teamCreator({
-      name: teamParams.name,
-      domain: teamParams.domain,
-      subdomain: teamParams.subdomain,
-      avatarUrl: teamParams.avatarUrl,
+      ...teamParams,
       authenticationProvider: authenticationProviderParams,
       ip,
     });
   } catch (err) {
-    throw AuthenticationError(err.message);
+    throw InvalidAuthenticationError(err.message);
   }
 
   invariant(result, "Team creator result must exist");
