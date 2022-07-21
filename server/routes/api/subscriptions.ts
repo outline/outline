@@ -1,5 +1,6 @@
 import invariant from "invariant";
 import Router from "koa-router";
+import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { Subscription, Event, Document } from "@server/models";
 import { authorize } from "@server/policies";
@@ -36,7 +37,7 @@ router.post(
     // with valid subsribable events.
     if (documentId) {
       if (!subscribableEventsDocument.includes(event)) {
-        throw new Error(
+        throw ValidationError(
           `Event ${event} is not subscribable for documentId ${documentId}`
         );
       }
@@ -75,7 +76,7 @@ router.post(
     // with valid subsribable events.
     if (documentId) {
       if (!subscribableEventsDocument.includes(event)) {
-        throw new Error(
+        throw ValidationError(
           `Event ${event} is not subscribable for documentId ${documentId}`
         );
       }
@@ -118,7 +119,7 @@ router.post(
     // with valid subsribable events.
     if (documentId) {
       if (!subscribableEventsDocument.includes(event)) {
-        throw new Error(
+        throw ValidationError(
           `Event ${event} is not subscribable for documentId ${documentId}`
         );
       }
