@@ -114,15 +114,15 @@ function Search(props: Props) {
       setCachedQuery(query);
     }
   }, [
+    cachedQuery,
     collectionId,
     dateFilter,
+    documents,
     includeArchived,
     lastParams,
-    cachedQuery,
     offset,
-    documents,
-    searches,
     query,
+    searches,
     userId,
   ]);
 
@@ -157,11 +157,11 @@ function Search(props: Props) {
 
   React.useEffect(() => {
     handleQueryChange();
-  }, [handleQueryChange, search]);
+  }, [handleQueryChange]);
 
   React.useEffect(() => {
     handleTermChange();
-  }, [handleTermChange, term]);
+  }, [handleTermChange]);
 
   const goBack = React.useCallback(() => {
     history.goBack();
@@ -244,11 +244,11 @@ function Search(props: Props) {
 
     // Fetch more results
     await fetchResults();
-  }, [allowLoadMore, isLoading, fetchResults]);
+  }, [allowLoadMore, fetchResults, isLoading]);
 
   const handleEscape = React.useCallback(() => {
     searchInputRef?.current?.focus();
-  }, [searchInputRef]);
+  }, []);
 
   const { notFound } = props;
   const results = documents.searchResults(query);
