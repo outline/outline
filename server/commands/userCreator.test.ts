@@ -290,6 +290,38 @@ describe("userCreator", () => {
     expect(isNewUser).toEqual(true);
   });
 
+  it.only("should create a user from an invited user who is external to the team", async () => {
+    const externalUser = await buildUser({
+      email: "external@example.com",
+    });
+
+    const team = await buildTeam({ inviteRequired: true });
+    const invite = await buildInvite({
+      teamId: team.id,
+      email: externalUser.email,
+    });
+
+    const authenticationProviders = await team.$get("authenticationProviders");
+    const authenticationProvider = authenticationProviders[0];
+    const result = await userCreator({
+      name: invite.name,
+      email: "external@ExamPle.com", // ensure that email is case insensistive
+      teamId: invite.teamId,
+      isExternalTeam: true,
+      ip,
+      authentication: {
+        authenticationProviderId: authenticationProvider.id,
+        providerId: "whatever",
+        accessToken: "123",
+        scopes: ["read"],
+      },
+    });
+    const { user, authentication, isNewUser } = result;
+    expect(authentication).toEqual(null);
+    expect(user.id).toEqual(invite.id);
+    expect(isNewUser).toEqual(true);
+  });
+
   it("should reject an uninvited user when invites are required", async () => {
     const team = await buildTeam({ inviteRequired: true });
 
