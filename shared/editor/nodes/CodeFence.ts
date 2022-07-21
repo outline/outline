@@ -308,7 +308,11 @@ export default class CodeFence extends Node {
   }
 
   inputRules({ type }: { type: NodeType }) {
-    return [textblockTypeInputRule(/^```$/, type)];
+    return [
+      textblockTypeInputRule(/^```$/, type, () => ({
+        language: localStorage?.getItem(PERSISTENCE_KEY) || DEFAULT_LANGUAGE,
+      })),
+    ];
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
