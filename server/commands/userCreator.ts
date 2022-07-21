@@ -1,6 +1,10 @@
 import { sequelize } from "@server/database/sequelize";
 import InviteAcceptedEmail from "@server/emails/templates/InviteAcceptedEmail";
-import { DomainNotAllowedError, InviteRequiredError } from "@server/errors";
+import {
+  DomainNotAllowedError,
+  InvalidAuthenticationError,
+  InviteRequiredError,
+} from "@server/errors";
 import { Event, Team, User, UserAuthentication } from "@server/models";
 
 type UserCreatorResult = {
@@ -177,9 +181,16 @@ export default async function userCreator({
       authentication: auth,
       isNewUser: isInvite,
     };
+  } else if (isExternalTeam) {
+    // There's no existing invite or user that matches the external auth email
+    // This is simply unauthorized
+    throw InvalidAuthenticationError();
   }
 
+  //
   // No auth, no user – this is an entirely new sign in.
+  //
+
   const transaction = await User.sequelize!.transaction();
 
   try {

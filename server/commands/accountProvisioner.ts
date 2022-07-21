@@ -21,7 +21,7 @@ type Props = {
     username?: string;
   };
   team: {
-    id?: string;
+    teamId?: string;
     name: string;
     domain?: string;
     subdomain: string;

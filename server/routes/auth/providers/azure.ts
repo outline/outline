@@ -102,7 +102,7 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
         const result = await accountProvisioner({
           ip: ctx.ip,
           team: {
-            id: team?.id,
+            teamId: team?.id,
             name: teamName,
             domain,
             subdomain,

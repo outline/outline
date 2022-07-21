@@ -18,7 +18,7 @@ import { User } from "@server/models";
 import { StateStore, getTeamFromContext } from "@server/utils/passport";
 
 const router = new Router();
-const providerName = "google";
+const GOOGLE = "google";
 const scopes = [
   "https://www.googleapis.com/auth/userinfo.profile",
   "https://www.googleapis.com/auth/userinfo.email",
@@ -100,7 +100,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
           const result = await accountProvisioner({
             ip: ctx.ip,
             team: {
-              id: team?.id,
+              teamId: team?.id,
               name: teamName,
               domain,
               subdomain,
@@ -111,7 +111,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
               avatarUrl,
             },
             authenticationProvider: {
-              name: providerName,
+              name: GOOGLE,
               providerId: domain,
             },
             authentication: {
@@ -133,13 +133,13 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
 
   router.get(
     "google",
-    passport.authenticate(providerName, {
+    passport.authenticate(GOOGLE, {
       accessType: "offline",
       prompt: "select_account consent",
     })
   );
 
-  router.get("google.callback", passportMiddleware(providerName));
+  router.get("google.callback", passportMiddleware(GOOGLE));
 }
 
 export default router;

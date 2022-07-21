@@ -79,7 +79,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
         const result = await accountProvisioner({
           ip: ctx.ip,
           team: {
-            id: team?.id,
+            teamId: team?.id,
             name: profile.team.name,
             subdomain: profile.team.domain,
             avatarUrl: profile.team.image_230,
