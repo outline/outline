@@ -20,6 +20,8 @@ import pagination from "./middlewares/pagination";
 
 const router = new Router();
 
+const subscribableEventsDocument = ["documents.update"];
+
 router.post(
   "subscriptions.list",
 
@@ -29,6 +31,16 @@ router.post(
   async (ctx) => {
     const { user } = ctx.state;
     const { documentId, event } = ctx.body;
+
+    // Make sure `documentId` is accompanied
+    // with valid subsribable events.
+    if (documentId) {
+      if (!subscribableEventsDocument.includes(event)) {
+        throw new Error(
+          `Event ${event} is not subscribable for documentId ${documentId}`
+        );
+      }
+    }
 
     const document = await Document.findByPk(documentId);
 
@@ -58,6 +70,16 @@ router.post(
   }),
   async (ctx) => {
     const { documentId, event } = ctx.body;
+
+    // Make sure `documentId` is accompanied
+    // with valid subsribable events.
+    if (documentId) {
+      if (!subscribableEventsDocument.includes(event)) {
+        throw new Error(
+          `Event ${event} is not subscribable for documentId ${documentId}`
+        );
+      }
+    }
 
     const document = await Document.findByPk(documentId);
 
@@ -91,6 +113,16 @@ router.post(
   async (ctx) => {
     const { user } = ctx.state;
     const { documentId, event } = ctx.body;
+
+    // Make sure `documentId` is accompanied
+    // with valid subsribable events.
+    if (documentId) {
+      if (!subscribableEventsDocument.includes(event)) {
+        throw new Error(
+          `Event ${event} is not subscribable for documentId ${documentId}`
+        );
+      }
+    }
 
     const document = await Document.findByPk(documentId);
 
