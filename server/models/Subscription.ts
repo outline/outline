@@ -4,6 +4,7 @@ import {
   BelongsTo,
   ForeignKey,
   Table,
+  Default,
 } from "sequelize-typescript";
 import Document from "./Document";
 import User from "./User";
@@ -31,6 +32,7 @@ class Subscription extends IdModel {
   event: string;
 
   @Column
+  @Default(true)
   enabled: boolean;
 }
 

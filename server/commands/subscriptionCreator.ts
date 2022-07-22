@@ -26,8 +26,7 @@ export default async function subscriptionCreator({
   user,
   documentId,
   event,
-  // Sane default state when creating a subscription.
-  enabled = true,
+  enabled,
   ip,
   transaction,
 }: Props): Promise<Subscription> {
