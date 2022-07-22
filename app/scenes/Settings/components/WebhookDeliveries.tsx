@@ -1,4 +1,4 @@
-import { BugIcon, SmileyIcon } from "outline-icons";
+import { SmileyIcon, WarningIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import WebhookDelivery from "~/models/WebhookDelivery";
@@ -45,7 +45,7 @@ const WebhookDeliveries = ({ webhook }: Props) => {
             accessor: "status",
             Cell: ({ value }: CellProps<string>) => (
               <Flex align="center" gap={5}>
-                {value === "failed" ? <BugIcon /> : <SmileyIcon />}
+                {value === "failed" ? <WarningIcon /> : <SmileyIcon />}
                 <span>{value}</span>
               </Flex>
             ),
