@@ -174,24 +174,6 @@ function DocumentMenu({
     [document]
   );
 
-  const handleSubscribe = React.useCallback(
-    (ev: React.SyntheticEvent) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-      document.subscribe();
-    },
-    [document]
-  );
-
-  const handleUnsubscribe = React.useCallback(
-    (ev: React.SyntheticEvent) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-      document.unsubscribe();
-    },
-    [document]
-  );
-
   const collection = collections.get(document.collectionId);
   const can = usePolicy(document.id);
   const canViewHistory = can.read && !can.restore;
