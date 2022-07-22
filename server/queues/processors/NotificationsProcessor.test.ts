@@ -1,5 +1,5 @@
 import DocumentNotificationEmail from "@server/emails/templates/DocumentNotificationEmail";
-import { View, NotificationSetting } from "@server/models";
+import { View, NotificationSetting, Subscription } from "@server/models";
 import {
   buildDocument,
   buildCollection,
@@ -122,6 +122,50 @@ describe("revisions.create", () => {
       modelId: document.id,
       ip,
     });
+    expect(DocumentNotificationEmail.schedule).toHaveBeenCalled();
+  });
+
+  test("should send a notification for subscriptions", async () => {
+    const document = await buildDocument();
+
+    const collaborator = await buildUser({
+      teamId: document.teamId,
+    });
+
+    // `subscriber` belongs to `collaborator`'s team.
+    const subscriber = await buildUser({ teamId: collaborator.teamId });
+
+    document.collaboratorIds = [collaborator.id];
+
+    await document.save();
+
+    await NotificationSetting.create({
+      userId: collaborator.id,
+      teamId: collaborator.teamId,
+      event: "documents.update",
+    });
+
+    // `subscriber` subscribes to `document`'s changes.
+    // Specifically "documents.update" event.
+    await Subscription.create({
+      userId: subscriber.id,
+      documentId: document.id,
+      event: "documents.update",
+      enabled: true,
+    });
+
+    const processor = new NotificationsProcessor();
+
+    await processor.perform({
+      name: "revisions.create",
+      documentId: document.id,
+      collectionId: document.collectionId,
+      teamId: document.teamId,
+      actorId: collaborator.id,
+      modelId: document.id,
+      ip,
+    });
+
     expect(DocumentNotificationEmail.schedule).toHaveBeenCalled();
   });
 
