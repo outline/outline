@@ -15,8 +15,6 @@ import {
   DownloadIcon,
   RestoreIcon,
   CrossIcon,
-  BookmarkIcon,
-  BookmarkedIcon,
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -39,7 +37,12 @@ import Flex from "~/components/Flex";
 import Modal from "~/components/Modal";
 import Switch from "~/components/Switch";
 import { actionToMenuItem } from "~/actions";
-import { pinDocument, createTemplate } from "~/actions/definitions/documents";
+import {
+  pinDocument,
+  createTemplate,
+  subscribeDocument,
+  unsubscribeDocument,
+} from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useMobile from "~/hooks/useMobile";
