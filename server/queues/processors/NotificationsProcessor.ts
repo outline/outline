@@ -30,6 +30,7 @@ export default class NotificationsProcessor extends BaseProcessor {
     switch (event.name) {
       case "documents.publish":
         return this.documentPublished(event);
+
       case "revisions.create":
         return this.documentUpdated(event);
 
@@ -128,12 +129,7 @@ export default class NotificationsProcessor extends BaseProcessor {
       ],
     });
 
-    const recipients = subscriptions.map((s) => ({
-      ...s,
-      unsubscribeUrl: s.document?.url,
-    }));
-
-    for (const recipient of recipients) {
+    for (const recipient of subscriptions) {
       const notify = await shouldNotify({
         user: recipient.user,
         userId: recipient.userId,
@@ -151,7 +147,7 @@ export default class NotificationsProcessor extends BaseProcessor {
           teamUrl: team.url,
           actorName: document.updatedBy.name,
           collectionName: collection.name,
-          unsubscribeUrl: recipient.unsubscribeUrl,
+          unsubscribeUrl: recipient.document?.url,
         });
       }
     }
