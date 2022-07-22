@@ -11,8 +11,12 @@ class Subscription extends BaseModel {
 
   documentId: string;
 
+  @Field
+  @observable
   event: string;
 
+  @Field
+  @observable
   enabled: boolean;
 
   createdAt: string;
