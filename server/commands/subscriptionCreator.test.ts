@@ -8,7 +8,6 @@ beforeEach(() => flushdb());
 
 describe("subscriptionCreator", () => {
   const ip = "127.0.0.1";
-  const enabled = true;
   const subscribedEvent = "documents.update";
 
   it("should create subscription", async () => {
@@ -23,7 +22,6 @@ describe("subscriptionCreator", () => {
         user: user,
         documentId: document.id,
         event: subscribedEvent,
-        enabled,
         ip,
         transaction,
       })
@@ -51,7 +49,6 @@ describe("subscriptionCreator", () => {
       userId: user.id,
       documentId: document.id,
       event: subscribedEvent,
-      enabled,
     });
 
     const subscription2 = await sequelize.transaction(async (transaction) =>
@@ -59,7 +56,6 @@ describe("subscriptionCreator", () => {
         user: user,
         documentId: document.id,
         event: subscribedEvent,
-        enabled,
         ip,
         transaction,
       })
@@ -81,7 +77,6 @@ describe("subscriptionCreator", () => {
       userId: user.id,
       documentId: document.id,
       event: subscribedEvent,
-      enabled,
     });
 
     const subscription = await sequelize.transaction(async (transaction) =>
@@ -89,7 +84,6 @@ describe("subscriptionCreator", () => {
         user: user,
         documentId: document.id,
         event: subscribedEvent,
-        enabled,
         ip,
         transaction,
       })

@@ -29,7 +29,6 @@ describe("#subscriptions.create", () => {
         token: user.getJwtToken(),
         documentId: document.id,
         event: "documents.update",
-        enabled: true,
       },
     });
 
@@ -56,7 +55,6 @@ describe("#subscriptions.create", () => {
         token: user.getJwtToken(),
         documentId: document.id,
         event: "documents.update",
-        enabled: true,
       },
     });
 
@@ -66,7 +64,6 @@ describe("#subscriptions.create", () => {
         token: user.getJwtToken(),
         documentId: document.id,
         event: "documents.update",
-        enabled: true,
       },
     });
 
@@ -105,7 +102,6 @@ describe("#subscriptions.create", () => {
         // Subscription on event
         // that cannot be subscribed to.
         event: "documents.publish",
-        enabled: true,
       },
     });
 
@@ -142,7 +138,6 @@ describe("#subscriptions.info", () => {
         token: subscriber.getJwtToken(),
         documentId: document0.id,
         event: "documents.update",
-        enabled: true,
       },
     });
 
@@ -152,7 +147,6 @@ describe("#subscriptions.info", () => {
         token: subscriber.getJwtToken(),
         documentId: document1.id,
         event: "documents.update",
-        enabled: true,
       },
     });
 
@@ -216,7 +210,6 @@ describe("#subscriptions.info", () => {
         token: subscriber.getJwtToken(),
         documentId: document0.id,
         event: "documents.update",
-        enabled: true,
       },
     });
 
@@ -226,7 +219,6 @@ describe("#subscriptions.info", () => {
         token: subscriber.getJwtToken(),
         documentId: document1.id,
         event: "documents.update",
-        enabled: true,
       },
     });
 
@@ -290,7 +282,6 @@ describe("#subscriptions.info", () => {
         token: subscriber.getJwtToken(),
         documentId: document0.id,
         event: "documents.update",
-        enabled: true,
       },
     });
 
@@ -300,7 +291,6 @@ describe("#subscriptions.info", () => {
         token: subscriber.getJwtToken(),
         documentId: document1.id,
         event: "documents.update",
-        enabled: true,
       },
     });
 
@@ -361,7 +351,6 @@ describe("#subscriptions.list", () => {
       userId: user.id,
       documentId: document.id,
       event: "documents.update",
-      enabled: true,
     });
 
     const res = await server.post("/api/subscriptions.list", {
@@ -402,7 +391,6 @@ describe("#subscriptions.list", () => {
         token: subscriber0.getJwtToken(),
         documentId: document.id,
         event: "documents.update",
-        enabled: true,
       },
     });
 
@@ -413,7 +401,6 @@ describe("#subscriptions.list", () => {
         token: subscriber1.getJwtToken(),
         documentId: document.id,
         event: "documents.update",
-        enabled: true,
       },
     });
 
@@ -462,7 +449,6 @@ describe("#subscriptions.list", () => {
         token: subscriber0.getJwtToken(),
         documentId: document.id,
         event: "documents.update",
-        enabled: true,
       },
     });
 
@@ -473,7 +459,6 @@ describe("#subscriptions.list", () => {
         token: subscriber1.getJwtToken(),
         documentId: document.id,
         event: "documents.update",
-        enabled: true,
       },
     });
 
@@ -517,7 +502,6 @@ describe("#subscriptions.list", () => {
         token: subscriber0.getJwtToken(),
         documentId: document.id,
         event: "documents.update",
-        enabled: true,
       },
     });
 
@@ -528,7 +512,6 @@ describe("#subscriptions.list", () => {
         token: subscriber1.getJwtToken(),
         documentId: document.id,
         event: "documents.update",
-        enabled: true,
       },
     });
 
@@ -566,7 +549,6 @@ describe("#subscriptions.update", () => {
       userId: user.id,
       documentId: document.id,
       event: "documents.update",
-      enabled: true,
     });
 
     const res = await server.post("/api/subscriptions.update", {
@@ -609,7 +591,6 @@ describe("#subscriptions.update", () => {
         userId: subscriber0.id,
         documentId: document.id,
         event: "documents.update",
-        enabled: true,
       },
     });
 
@@ -620,7 +601,6 @@ describe("#subscriptions.update", () => {
         token: subscriber1.getJwtToken(),
         documentId: document.id,
         event: "documents.update",
-        enabled: true,
       },
     });
 
@@ -666,7 +646,6 @@ describe("#subscriptions.delete", () => {
       userId: user.id,
       documentId: document.id,
       event: "documents.update",
-      enabled: true,
     });
 
     const res = await server.post("/api/subscriptions.delete", {
@@ -706,7 +685,6 @@ describe("#subscriptions.delete", () => {
         token: subscriber0.getJwtToken(),
         documentId: document.id,
         event: "documents.update",
-        enabled: true,
       },
     });
 
@@ -717,7 +695,6 @@ describe("#subscriptions.delete", () => {
         token: subscriber1.getJwtToken(),
         documentId: document.id,
         event: "documents.update",
-        enabled: true,
       },
     });
 

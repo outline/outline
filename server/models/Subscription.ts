@@ -31,8 +31,8 @@ class Subscription extends IdModel {
   @Column(DataType.STRING)
   event: string;
 
-  @Column
   @Default(true)
+  @Column(DataType.BOOLEAN)
   enabled: boolean;
 }
 

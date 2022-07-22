@@ -4,12 +4,10 @@ import { Subscription, Event, User } from "@server/models";
 type Props = {
   /** The user creating the subscription */
   user: User;
-  /** The document to subscription */
+  /** The document to subscribe to */
   documentId?: string;
   /** Event to subscribe */
   event: string;
-  /** Status of a subscription */
-  enabled: boolean;
   /** The IP address of the user creating the subscription */
   ip: string;
   transaction: Transaction;
@@ -26,22 +24,14 @@ export default async function subscriptionCreator({
   user,
   documentId,
   event,
-  enabled,
   ip,
   transaction,
 }: Props): Promise<Subscription> {
-  // If a subscription already exists, fetch it,
-  // otherwise create a subscription and return it.
-  // `created` is a boolean value
-  // that indicates  whether
-  // that subscription was created
-  // or already existed.
   const [subscription, created] = await Subscription.findOrCreate({
     where: {
       userId: user.id,
       documentId,
       event,
-      enabled,
     },
   });
 
