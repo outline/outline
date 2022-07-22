@@ -66,9 +66,9 @@ router.post(
 
 router.post(
   "subscriptions.info",
-  auth({
-    optional: true,
-  }),
+
+  auth(),
+
   async (ctx) => {
     const { documentId, event } = ctx.body;
 
