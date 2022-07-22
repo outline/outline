@@ -98,35 +98,8 @@ describe("subscriptionCreator", () => {
     expect(subscription0.enabled).toEqual(subscription1.enabled);
     expect(subscription0.enabled).toEqual(false);
     expect(subscription1.enabled).toEqual(false);
-  });
-
-  it("should not record event if the subscription already exists", async () => {
-    const user = await buildUser();
-
-    const document = await buildDocument({
-      userId: user.id,
-      teamId: user.teamId,
-    });
-
-    await Subscription.create({
-      userId: user.id,
-      documentId: document.id,
-      event: subscribedEvent,
-    });
-
-    const subscription = await sequelize.transaction(async (transaction) =>
-      subscriptionCreator({
-        user: user,
-        documentId: document.id,
-        event: subscribedEvent,
-        ip,
-        transaction,
-      })
-    );
 
     const events = await Event.count();
-    expect(subscription.documentId).toEqual(document.id);
-    expect(subscription.userId).toEqual(user.id);
     expect(events).toEqual(0);
   });
 });
