@@ -217,10 +217,8 @@ const shouldNotify = async (subject: Notifiable): Promise<boolean> => {
     return false;
   }
 
-  // Check the user has access to the
-  // collection this document is in.
-  // Just because they were a collaborator once
-  // doesn't mean they still are.
+  // Check the user has access to the collection this document is in.
+  // Just because they were a collaborator once doesn't mean they still are.
   const collectionIds = await subject.user.collectionIds();
   if (!collectionIds.includes(subject.document.collectionId)) {
     return false;
