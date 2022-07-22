@@ -7,6 +7,16 @@ type Domain = {
   custom: boolean;
 };
 
+/**
+ * Removes the the top level domain from the argument and slugifies it
+ *
+ * @param domain Domain string to slugify
+ * @returns String with only non top-level domains
+ */
+export function slugifyDomain(domain: string) {
+  return domain.split(".").slice(0, -1).join("-");
+}
+
 // strips protocol and whitespace from input
 // then strips the path and query string
 function normalizeUrl(url: string) {

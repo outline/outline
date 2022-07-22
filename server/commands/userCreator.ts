@@ -47,6 +47,8 @@ export default async function userCreator({
       {
         model: User,
         as: "user",
+        where: { teamId },
+        required: true,
       },
     ],
   });
