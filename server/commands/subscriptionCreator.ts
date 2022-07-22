@@ -48,10 +48,6 @@ export default async function subscriptionCreator({
 
   // Don't emit an event if a new subscription
   // wasn't created.
-  //
-  // `findOrCreate` is primarily used as an
-  // infallible function for valid
-  // arguments.
   if (created) {
     await Event.create(
       {
