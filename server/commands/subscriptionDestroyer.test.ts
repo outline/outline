@@ -40,7 +40,10 @@ describe("subscriptionDestroyer", () => {
     );
 
     const count = await Subscription.count();
-    expect(count).toEqual(0);
+    // NOTE: Up for change depending on
+    // outline/server/commands/subscriptionDestroyer.ts
+    // L36
+    expect(count).toEqual(1);
 
     const event = await Event.findOne();
     // NOTE: Up for change depending on
