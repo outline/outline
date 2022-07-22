@@ -29,6 +29,7 @@ import stars from "./stars";
 import team from "./team";
 import users from "./users";
 import views from "./views";
+import webhookDeliveries from "./webhookDeliveries";
 import webhookSubscriptions from "./webhookSubscriptions";
 
 const api = new Koa();
@@ -71,6 +72,7 @@ router.use("/", utils.routes());
 router.use("/", groups.routes());
 router.use("/", fileOperationsRoute.routes());
 router.use("/", webhookSubscriptions.routes());
+router.use("/", webhookDeliveries.routes());
 
 if (env.ENVIRONMENT === "development") {
   router.use("/", developer.routes());

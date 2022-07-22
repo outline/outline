@@ -22,6 +22,7 @@ import ToastsStore from "./ToastsStore";
 import UiStore from "./UiStore";
 import UsersStore from "./UsersStore";
 import ViewsStore from "./ViewsStore";
+import WebhookDeliveriesStore from "./WebhookDeliveriesStore";
 import WebhookSubscriptionsStore from "./WebhookSubscriptionStore";
 
 export default class RootStore {
@@ -50,6 +51,7 @@ export default class RootStore {
   toasts: ToastsStore;
   fileOperations: FileOperationsStore;
   webhookSubscriptions: WebhookSubscriptionsStore;
+  webhookDeliveries: WebhookDeliveriesStore;
 
   constructor() {
     // PoliciesStore must be initialized before AuthStore
@@ -78,6 +80,7 @@ export default class RootStore {
     this.fileOperations = new FileOperationsStore(this);
     this.toasts = new ToastsStore();
     this.webhookSubscriptions = new WebhookSubscriptionsStore(this);
+    this.webhookDeliveries = new WebhookDeliveriesStore(this);
   }
 
   logout() {
@@ -104,5 +107,6 @@ export default class RootStore {
     this.users.clear();
     this.views.clear();
     this.webhookSubscriptions.clear();
+    this.webhookDeliveries.clear();
   }
 }

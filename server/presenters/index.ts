@@ -21,6 +21,7 @@ import presentTeam from "./team";
 import presentUser from "./user";
 import presentView from "./view";
 import presentWebhook from "./webhook";
+import presentWebhookDelivery from "./webhookDelivery";
 import presentWebhookSubscription from "./webhookSubscription";
 
 export {
@@ -48,4 +49,5 @@ export {
   presentCollectionGroupMembership,
   presentWebhook,
   presentWebhookSubscription,
+  presentWebhookDelivery,
 };

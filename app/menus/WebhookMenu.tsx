@@ -2,6 +2,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useMenuState } from "reakit/Menu";
 import WebhookSubscription from "~/models/WebhookSubscription";
+import WebhookDeliveries from "~/scenes/Settings/components/WebhookDeliveries";
 import WebhookSubscriptionRevokeDialog from "~/scenes/Settings/components/WebhookSubscriptionDeleteDialog";
 import WebhookSubscriptionEdit from "~/scenes/Settings/components/WebhookSubscriptionEdit";
 import ContextMenu from "~/components/ContextMenu";
@@ -39,28 +40,8 @@ function WebhookMenu({ webhook }: Props) {
     handleEditModalClose,
   ] = useBoolean();
 
-  return (
-    <>
-      <OverflowMenuButton aria-label={t("Show menu")} {...menu} />
-      <ContextMenu {...menu} aria-label={t("Member options")}>
-        <Template
-          {...menu}
-          items={[
-            {
-              type: "button",
-              title: t("Delete"),
-              dangerous: true,
-              onClick: showDeletionConfirmation,
-            },
-            {
-              type: "button",
-              title: t("Edit"),
-              dangerous: false,
-              onClick: handleEditModalOpen,
-            },
-          ]}
-        />
-      </ContextMenu>
+  const renderEditModal = React.useCallback(
+    () => (
       <Modal
         title={t("Edit webhook")}
         onRequestClose={handleEditModalClose}
@@ -71,6 +52,58 @@ function WebhookMenu({ webhook }: Props) {
           webhookSubscription={webhook}
         />
       </Modal>
+    ),
+    [t, handleEditModalClose, editModalOpen, webhook]
+  );
+
+  const [
+    viewModalOpen,
+    handleViewModalOpen,
+    handleViewModalClose,
+  ] = useBoolean();
+
+  const renderViewModal = React.useCallback(
+    () => (
+      <Modal
+        title={t("Webhook Deliveries")}
+        onRequestClose={handleViewModalClose}
+        isOpen={viewModalOpen}
+      >
+        <WebhookDeliveries webhook={webhook} />
+      </Modal>
+    ),
+    [t, handleViewModalClose, viewModalOpen]
+  );
+
+  return (
+    <>
+      <OverflowMenuButton aria-label={t("Show menu")} {...menu} />
+      <ContextMenu {...menu} aria-label={t("Member options")}>
+        <Template
+          {...menu}
+          items={[
+            {
+              type: "button",
+              title: t("View Deliveries"),
+              onClick: handleViewModalOpen,
+            },
+            {
+              type: "button",
+              title: t("Edit"),
+              dangerous: false,
+              onClick: handleEditModalOpen,
+            },
+            {
+              type: "button",
+              title: t("Delete"),
+              dangerous: true,
+              onClick: showDeletionConfirmation,
+            },
+          ]}
+        />
+      </ContextMenu>
+      {renderEditModal()}
+      {renderViewModal()}
     </>
   );
 }
