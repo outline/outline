@@ -9,6 +9,7 @@ beforeEach(() => flushdb());
 describe("subscriptionDestroyer", () => {
   const ip = "127.0.0.1";
   const enabled = true;
+  const subscribedEvent = "documents.update";
 
   it("should destroy existing subscription", async () => {
     const user = await buildUser();
@@ -23,6 +24,7 @@ describe("subscriptionDestroyer", () => {
           userId: user.id,
           documentId: document.id,
           enabled,
+          subscribedEvent,
           transaction,
         })
     );
