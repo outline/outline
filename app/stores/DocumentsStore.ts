@@ -756,6 +756,9 @@ export default class DocumentsStore extends BaseStore<Document> {
   subscribe = async (document: Document) => {
     await this.rootStore.subscriptions.create({
       documentId: document.id,
+      // REVIEW: Seems like a good location
+      // to describe event for now.
+      event: "documents.update",
     });
   };
 

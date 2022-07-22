@@ -11,6 +11,8 @@ class Subscription extends BaseModel {
 
   documentId: string;
 
+  event: string;
+
   enabled: boolean;
 
   createdAt: string;
