@@ -84,27 +84,29 @@ export type UserEvent = BaseEvent &
       }
   );
 
+export type DocumentActionEvent = BaseEvent & {
+  name:
+    | "documents.create"
+    | "documents.publish"
+    | "documents.unpublish"
+    | "documents.delete"
+    | "documents.permanent_delete"
+    | "documents.archive"
+    | "documents.unarchive"
+    | "documents.restore"
+    | "documents.star"
+    | "documents.unstar";
+  documentId: string;
+  collectionId: string;
+  data: {
+    title: string;
+    source?: "import";
+  };
+};
+
 export type DocumentEvent = BaseEvent &
   (
-    | {
-        name:
-          | "documents.create"
-          | "documents.publish"
-          | "documents.unpublish"
-          | "documents.delete"
-          | "documents.permanent_delete"
-          | "documents.archive"
-          | "documents.unarchive"
-          | "documents.restore"
-          | "documents.star"
-          | "documents.unstar";
-        documentId: string;
-        collectionId: string;
-        data: {
-          title: string;
-          source?: "import";
-        };
-      }
+    | DocumentActionEvent
     | {
         name: "documents.move";
         documentId: string;

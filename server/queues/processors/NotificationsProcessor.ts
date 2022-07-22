@@ -9,12 +9,13 @@ import {
   Collection,
   User,
   NotificationSetting,
+  Subscription,
 } from "@server/models";
 import {
-  DocumentEvent,
   CollectionEvent,
   RevisionEvent,
   Event,
+  DocumentActionEvent,
 } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
 
@@ -28,6 +29,7 @@ export default class NotificationsProcessor extends BaseProcessor {
   async perform(event: Event) {
     switch (event.name) {
       case "documents.publish":
+        return this.documentPublished(event);
       case "revisions.create":
         return this.documentUpdated(event);
 
@@ -38,30 +40,30 @@ export default class NotificationsProcessor extends BaseProcessor {
     }
   }
 
-  async documentUpdated(event: DocumentEvent | RevisionEvent) {
+  async documentPublished(event: DocumentActionEvent) {
     // never send notifications when batch importing documents
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'data' does not exist on type 'DocumentEv... Remove this comment to see the full error message
     if (event.data?.source === "import") {
       return;
     }
+
     const [collection, document, team] = await Promise.all([
       Collection.findByPk(event.collectionId),
       Document.findByPk(event.documentId),
       Team.findByPk(event.teamId),
     ]);
+
     if (!document || !team || !collection) {
       return;
     }
-    const notificationSettings = await NotificationSetting.findAll({
+
+    // Publish notifications
+    const recipients = await NotificationSetting.findAll({
       where: {
         userId: {
           [Op.ne]: document.lastModifiedById,
         },
         teamId: document.teamId,
-        event:
-          event.name === "documents.publish"
-            ? "documents.publish"
-            : "documents.update",
+        event: "documents.publish",
       },
       include: [
         {
@@ -71,66 +73,87 @@ export default class NotificationsProcessor extends BaseProcessor {
         },
       ],
     });
-    const eventName =
-      event.name === "documents.publish" ? "published" : "updated";
 
-    for (const setting of notificationSettings) {
-      // Suppress notifications for suspended users
-      if (setting.user.isSuspended) {
-        continue;
+    for (const recipient of recipients) {
+      const notify = await shouldNotify({
+        user: recipient.user,
+        userId: recipient.userId,
+        document: document,
+        documentId: event.documentId,
+        event: event,
+        eventName: "published",
+      });
+
+      if (notify) {
+        await DocumentNotificationEmail.schedule({
+          to: recipient.user.email,
+          eventName: "published",
+          documentId: document.id,
+          teamUrl: team.url,
+          actorName: document.updatedBy.name,
+          collectionName: collection.name,
+          unsubscribeUrl: recipient.unsubscribeUrl,
+        });
       }
+    }
+  }
 
-      // For document updates we only want to send notifications if
-      // the document has been edited by the user with this notification setting
-      // This could be replaced with ability to "follow" in the future
-      if (
-        eventName === "updated" &&
-        !document.collaboratorIds.includes(setting.userId)
-      ) {
-        continue;
-      }
+  async documentUpdated(event: RevisionEvent) {
+    const [collection, document, team] = await Promise.all([
+      Collection.findByPk(event.collectionId),
+      Document.findByPk(event.documentId),
+      Team.findByPk(event.teamId),
+    ]);
 
-      // Check the user has access to the collection this document is in. Just
-      // because they were a collaborator once doesn't mean they still are.
-      const collectionIds = await setting.user.collectionIds();
+    if (!document || !team || !collection) {
+      return;
+    }
 
-      if (!collectionIds.includes(document.collectionId)) {
-        continue;
-      }
-
-      // If this user has viewed the document since the last update was made
-      // then we can avoid sending them a useless notification, yay.
-      const view = await View.findOne({
-        where: {
-          userId: setting.userId,
-          documentId: event.documentId,
-          updatedAt: {
-            [Op.gt]: document.updatedAt,
-          },
+    // Document update notifications
+    // Should be similar to notifications.
+    const subscriptions = await Subscription.findAll({
+      where: {
+        userId: {
+          [Op.ne]: document.lastModifiedById,
         },
-      });
-
-      if (view) {
-        Logger.info(
-          "processor",
-          `suppressing notification to ${setting.userId} because update viewed`
-        );
-        continue;
-      }
-
-      if (!setting.user.email) {
-        continue;
-      }
-
-      await DocumentNotificationEmail.schedule({
-        to: setting.user.email,
-        eventName,
         documentId: document.id,
-        teamUrl: team.url,
-        actorName: document.updatedBy.name,
-        collectionName: collection.name,
-        unsubscribeUrl: setting.unsubscribeUrl,
+        event: "documents.update",
+      },
+      include: [
+        {
+          model: User,
+          required: true,
+          as: "user",
+        },
+      ],
+    });
+
+    const recipients = subscriptions.map((s) => ({
+      ...s,
+      unsubscribeUrl: s.document?.url,
+    }));
+
+    for (const recipient of recipients) {
+      const notify = await shouldNotify({
+        user: recipient.user,
+        userId: recipient.userId,
+        document: document,
+        documentId: event.documentId,
+        event: event,
+        eventName: "updated",
       });
+
+      if (notify) {
+        await DocumentNotificationEmail.schedule({
+          to: recipient.user.email,
+          eventName: "updated",
+          documentId: document.id,
+          teamUrl: team.url,
+          actorName: document.updatedBy.name,
+          collectionName: collection.name,
+          unsubscribeUrl: recipient.unsubscribeUrl,
+        });
+      }
     }
   }
 
@@ -182,3 +205,54 @@ export default class NotificationsProcessor extends BaseProcessor {
     }
   }
 }
+
+type Notifiable = {
+  user: User;
+  userId: string;
+  document: Document;
+  documentId: string;
+  event: DocumentActionEvent | RevisionEvent;
+  eventName: string;
+};
+
+const shouldNotify = async (subject: Notifiable): Promise<boolean> => {
+  // Suppress notifications for suspended users
+  if (subject.user.isSuspended) {
+    return false;
+  }
+
+  // Check the user has access to the
+  // collection this document is in.
+  // Just because they were a collaborator once
+  // doesn't mean they still are.
+  const collectionIds = await subject.user.collectionIds();
+  if (!collectionIds.includes(subject.document.collectionId)) {
+    return false;
+  }
+
+  // If this user has viewed the document since the last update was made
+  // then we can avoid sending them a useless notification, yay.
+  const view = await View.findOne({
+    where: {
+      userId: subject.userId,
+      documentId: subject.event.documentId,
+      updatedAt: {
+        [Op.gt]: subject.document.updatedAt,
+      },
+    },
+  });
+
+  if (view) {
+    Logger.info(
+      "processor",
+      `suppressing notification to ${subject.userId} because update viewed`
+    );
+    return false;
+  }
+
+  if (!subject.user.email) {
+    return false;
+  }
+
+  return true;
+};
