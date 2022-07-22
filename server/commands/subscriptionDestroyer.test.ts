@@ -1,6 +1,10 @@
 import { sequelize } from "@server/database/sequelize";
 import { Subscription, Event } from "@server/models";
-import { buildDocument, buildUser } from "@server/test/factories";
+import {
+  buildDocument,
+  buildSubscription,
+  buildUser,
+} from "@server/test/factories";
 import { flushdb } from "@server/test/support";
 import subscriptionDestroyer from "./subscriptionDestroyer";
 
@@ -8,26 +12,19 @@ beforeEach(() => flushdb());
 
 describe("subscriptionDestroyer", () => {
   const ip = "127.0.0.1";
-  const enabled = true;
-  const subscribedEvent = "documents.update";
 
   it("should destroy existing subscription", async () => {
     const user = await buildUser();
+
     const document = await buildDocument({
       userId: user.id,
       teamId: user.teamId,
     });
 
-    const subscription = await sequelize.transaction(
-      async (transaction) =>
-        await Subscription.create({
-          userId: user.id,
-          documentId: document.id,
-          event: subscribedEvent,
-          enabled,
-          transaction,
-        })
-    );
+    const subscription = await buildSubscription({
+      userId: user.id,
+      documentId: document.id,
+    });
 
     await sequelize.transaction(
       async (transaction) =>
