@@ -23,8 +23,8 @@ describe("subscriptionDestroyer", () => {
         await Subscription.create({
           userId: user.id,
           documentId: document.id,
+          event: subscribedEvent,
           enabled,
-          subscribedEvent,
           transaction,
         })
     );

@@ -23,7 +23,7 @@ describe("subscriptionUpdater", () => {
         await Subscription.create({
           userId: user.id,
           documentId: document.id,
-          subscribedEvent,
+          event: subscribedEvent,
           enabled,
           transaction,
         })
@@ -34,7 +34,7 @@ describe("subscriptionUpdater", () => {
         await subscriptionUpdater({
           user: user,
           subscription,
-          subscribedEvent,
+          event: subscribedEvent,
           enabled,
           ip,
           transaction,
