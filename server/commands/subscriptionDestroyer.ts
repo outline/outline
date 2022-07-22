@@ -1,3 +1,4 @@
+import assert from "assert";
 import { Transaction } from "sequelize";
 import { Event, Subscription, User } from "@server/models";
 
@@ -27,6 +28,8 @@ export default async function subscriptionDestroyer({
   transaction,
 }: Props): Promise<Subscription> {
   subscription.enabled = false;
+
+  assert(subscription.userId === user.id);
 
   const changed = subscription.changed();
 
