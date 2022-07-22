@@ -762,9 +762,11 @@ export default class DocumentsStore extends BaseStore<Document> {
     });
   };
 
-  unsubscribe = async (document: Document) => {
+  unsubscribe = async (userId: string, document: Document) => {
     const subscription = this.rootStore.subscriptions.orderedData.find(
-      (subscription) => subscription.documentId === document.id
+      (subscription) =>
+        subscription.documentId === document.id &&
+        subscription.userId === userId
     );
 
     await subscription?.delete();

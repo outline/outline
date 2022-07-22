@@ -155,13 +155,18 @@ export const unsubscribeDocument = createAction({
       stores.policies.abilities(activeDocumentId).unsubscribe
     );
   },
-  perform: ({ activeDocumentId, stores }) => {
+  perform: ({ activeDocumentId, stores, currentUserId }) => {
     if (!activeDocumentId) {
       return;
     }
 
+    if (!currentUserId) {
+      return;
+    }
+
     const document = stores.documents.get(activeDocumentId);
-    document?.unsubscribe();
+
+    document?.unsubscribe(currentUserId);
   },
 });
 

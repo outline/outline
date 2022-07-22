@@ -297,8 +297,8 @@ export default class Document extends ParanoidModel {
   };
 
   @action
-  unsubscribe = async () => {
-    return this.store.unsubscribe(this);
+  unsubscribe = async (userId: string) => {
+    return this.store.unsubscribe(userId, this);
   };
 
   @action
