@@ -2,9 +2,10 @@ import invariant from "invariant";
 import Router from "koa-router";
 import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
-import { Subscription, Document } from "@server/models";
+import { Subscription, Event, Document } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentSubscription } from "@server/presenters";
+import { SubscriptionEvent } from "@server/types";
 import { assertPresent, assertUuid } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
@@ -136,6 +137,19 @@ router.post(
       enabled: true,
     });
 
+    const subscriptionEvent: SubscriptionEvent = {
+      teamId: user.teamId,
+      actorId: user.id,
+      ip: ctx.request.ip,
+      name: "subscriptions.create",
+      modelId: subscription.id,
+      userId: user.userId,
+      documentId: document.id,
+      data: { enabled: subscription.enabled },
+    };
+
+    await Event.create(subscriptionEvent);
+
     ctx.body = {
       data: presentSubscription(subscription),
     };
@@ -167,6 +181,19 @@ router.post(
 
     await subscription.update({ user, subscription, enabled });
 
+    const subscriptionEvent: SubscriptionEvent = {
+      teamId: user.teamId,
+      actorId: user.id,
+      ip: ctx.request.ip,
+      name: "subscriptions.update",
+      modelId: subscription.id,
+      userId: user.userId,
+      documentId: subscription.documentId,
+      data: { enabled: subscription.enabled },
+    };
+
+    await Event.create(subscriptionEvent);
+
     ctx.body = {
       data: presentSubscription(subscription),
     };
@@ -194,6 +221,19 @@ router.post(
     );
 
     await subscription.destroy();
+
+    const subscriptionEvent: SubscriptionEvent = {
+      teamId: user.teamId,
+      actorId: user.id,
+      ip: ctx.request.ip,
+      name: "subscriptions.delete",
+      modelId: subscription.id,
+      userId: user.userId,
+      documentId: subscription.documentId,
+      data: { enabled: subscription.enabled },
+    };
+
+    await Event.create(subscriptionEvent);
   }
 );
 

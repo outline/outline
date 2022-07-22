@@ -263,11 +263,9 @@ export type SubscriptionEvent = BaseEvent & {
     | "subscriptions.update"
     | "subscriptions.delete";
   modelId: string;
-  actorId: string;
   userId: string;
   documentId: string;
-  enabled: boolean;
-  ip: string;
+  data: { enabled: boolean };
 };
 
 export type ViewEvent = BaseEvent & {
