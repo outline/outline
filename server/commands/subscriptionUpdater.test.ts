@@ -8,7 +8,6 @@ beforeEach(() => flushdb());
 
 describe("subscriptionUpdater", () => {
   const ip = "127.0.0.1";
-  const enabled = true;
   const subscribedEvent = "documents.update";
 
   it("should toggle an existing subscription", async () => {
@@ -24,7 +23,7 @@ describe("subscriptionUpdater", () => {
           userId: user.id,
           documentId: document.id,
           event: subscribedEvent,
-          enabled,
+          enabled: true,
           transaction,
         })
     );
@@ -35,7 +34,7 @@ describe("subscriptionUpdater", () => {
           user: user,
           subscription,
           event: subscribedEvent,
-          enabled,
+          enabled: false,
           ip,
           transaction,
         })
