@@ -12,6 +12,7 @@ describe("subscriptionCreator", () => {
 
   it("should create subscription", async () => {
     const user = await buildUser();
+
     const document = await buildDocument({
       userId: user.id,
       teamId: user.teamId,
@@ -38,8 +39,9 @@ describe("subscriptionCreator", () => {
     expect(event?.documentId).toEqual(subscription.documentId);
   });
 
-  it("should not create anther subscription if one already exists", async () => {
+  it("should not create another subscription if one already exists", async () => {
     const user = await buildUser();
+
     const document = await buildDocument({
       userId: user.id,
       teamId: user.teamId,
@@ -66,8 +68,41 @@ describe("subscriptionCreator", () => {
     expect(subscription1.enabled).toEqual(subscription2.enabled);
   });
 
+  it("should not enable subscription by overriding one that already exists in disabled state", async () => {
+    const user = await buildUser();
+
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const subscription0 = await Subscription.create({
+      userId: user.id,
+      documentId: document.id,
+      event: subscribedEvent,
+      enabled: false,
+    });
+
+    const subscription1 = await sequelize.transaction(async (transaction) =>
+      subscriptionCreator({
+        user: user,
+        documentId: document.id,
+        event: subscribedEvent,
+        ip,
+        transaction,
+      })
+    );
+
+    expect(subscription0.userId).toEqual(subscription1.userId);
+    expect(subscription0.documentId).toEqual(subscription1.documentId);
+    expect(subscription0.enabled).toEqual(subscription1.enabled);
+    expect(subscription0.enabled).toEqual(false);
+    expect(subscription1.enabled).toEqual(false);
+  });
+
   it("should not record event if the subscription already exists", async () => {
     const user = await buildUser();
+
     const document = await buildDocument({
       userId: user.id,
       teamId: user.teamId,
