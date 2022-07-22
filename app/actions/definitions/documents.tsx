@@ -115,7 +115,6 @@ export const subscribeDocument = createAction({
   section: DocumentSection,
   // TODO: Use other icon.
   icon: <BookmarkedIcon />,
-  keywords: "subscribe",
   visible: ({ activeDocumentId, stores }) => {
     if (!activeDocumentId) {
       return false;
@@ -144,7 +143,6 @@ export const unsubscribeDocument = createAction({
   section: DocumentSection,
   // TODO: Use other icon.
   icon: <BookmarkIcon />,
-  keywords: "unsubscribe",
   visible: ({ activeDocumentId, stores }) => {
     if (!activeDocumentId) {
       return false;
