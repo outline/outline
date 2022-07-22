@@ -2,10 +2,9 @@ import invariant from "invariant";
 import Router from "koa-router";
 import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
-import { Subscription, Event, Document } from "@server/models";
+import { Subscription, Document } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentSubscription } from "@server/presenters";
-import { SubscriptionEvent } from "@server/types";
 import { assertPresent, assertUuid } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
@@ -137,21 +136,6 @@ router.post(
       enabled: true,
     });
 
-    const subscriptionEvent: SubscriptionEvent = {
-      name: "subscriptions.create",
-      modelId: subscription.id,
-      actorId: user.id,
-      // REVIEW: Should `teamId` be required?
-      // Set via `SubscriptionEvent` type.
-      teamId: user.teamId,
-      userId: user.userId,
-      documentId: document.id,
-      enabled: subscription.enabled,
-      ip: ctx.request.ip,
-    };
-
-    await Event.create(subscriptionEvent);
-
     ctx.body = {
       data: presentSubscription(subscription),
     };
@@ -183,19 +167,6 @@ router.post(
 
     await subscription.update({ user, subscription, enabled });
 
-    const event: SubscriptionEvent = {
-      name: "subscriptions.update",
-      modelId: subscription.id,
-      actorId: user.id,
-      teamId: user.teamId,
-      userId: user.userId,
-      documentId: subscription.documentId,
-      enabled: subscription.enabled,
-      ip: ctx.request.ip,
-    };
-
-    await Event.create(event);
-
     ctx.body = {
       data: presentSubscription(subscription),
     };
@@ -223,18 +194,6 @@ router.post(
     );
 
     await subscription.destroy();
-
-    const event: SubscriptionEvent = {
-      name: "subscriptions.delete",
-      modelId: subscription.id,
-      actorId: user.id,
-      teamId: user.teamId,
-      userId: user.userId,
-      documentId: subscription.documentId,
-      enabled: subscription.enabled,
-      ip: ctx.request.ip,
-    };
-    await Event.create(event);
   }
 );
 

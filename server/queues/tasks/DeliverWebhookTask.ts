@@ -22,7 +22,6 @@ import {
   CollectionUser,
   CollectionGroup,
   GroupUser,
-  Subscription,
 } from "@server/models";
 import {
   presentCollection,
@@ -42,7 +41,6 @@ import {
   presentMembership,
   presentGroupMembership,
   presentCollectionGroupMembership,
-  presentSubscription,
 } from "@server/presenters";
 import { WebhookPayload } from "@server/presenters/webhook";
 import {
@@ -59,7 +57,6 @@ import {
   RevisionEvent,
   ShareEvent,
   StarEvent,
-  SubscriptionEvent,
   TeamEvent,
   UserEvent,
   ViewEvent,
@@ -182,11 +179,6 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       case "shares.update":
       case "shares.revoke":
         await this.handleShareEvent(subscription, event);
-        return;
-      case "subscriptions.create":
-      case "subscriptions.update":
-      case "subscriptions.delete":
-        await this.handleSubscriptionEvent(subscription, event);
         return;
       case "webhook_subscriptions.create":
       case "webhook_subscriptions.delete":
@@ -509,24 +501,6 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       payload: {
         id: event.userId,
         model: model && presentUser(model),
-      },
-    });
-  }
-
-  private async handleSubscriptionEvent(
-    subscription: WebhookSubscription,
-    event: SubscriptionEvent
-  ): Promise<void> {
-    const model = await Subscription.findByPk(event.modelId, {
-      paranoid: false,
-    });
-
-    await this.sendWebhook({
-      event,
-      subscription,
-      payload: {
-        id: event.modelId,
-        model: model && presentSubscription(model),
       },
     });
   }
