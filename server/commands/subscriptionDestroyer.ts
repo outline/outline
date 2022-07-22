@@ -26,19 +26,27 @@ export default async function subscriptionDestroyer({
   ip,
   transaction,
 }: Props): Promise<Subscription> {
-  await Event.create(
-    {
-      name: "subscriptions.delete",
-      modelId: subscription.id,
-      actorId: user.id,
-      userId: user.id,
-      documentId: subscription.documentId,
-      ip,
-    },
-    { transaction }
-  );
+  subscription.enabled = false;
 
-  await subscription.destroy({ transaction });
+  const changed = subscription.changed();
+
+  // Don't emit an event if a subscription
+  // wasn't updated.
+  if (changed) {
+    await Event.create(
+      {
+        // REVIEW: Should this emit "subscriptions.delete"?
+        name: "subscriptions.update",
+        modelId: subscription.id,
+        actorId: user.id,
+        userId: user.id,
+        documentId: subscription.documentId,
+        enabled: false,
+        ip,
+      },
+      { transaction }
+    );
+  }
 
   return subscription;
 }
