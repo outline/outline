@@ -347,22 +347,8 @@ function DocumentMenu({
               visible: !document.isStarred && !!can.star,
               icon: <StarredIcon />,
             },
-            {
-              type: "button",
-              title: t("Unsubscribe"),
-              onClick: handleUnsubscribe,
-              visible: document.isSubscribed && !!can.unsubscribe,
-              // TODO: Use better icon
-              icon: <BookmarkIcon />,
-            },
-            {
-              type: "button",
-              title: t("Subscribe"),
-              onClick: handleSubscribe,
-              visible: !document.isSubscribed && !!can.subscribe,
-              // TODO: Use better icon
-              icon: <BookmarkedIcon />,
-            },
+            actionToMenuItem(subscribeDocument, context),
+            actionToMenuItem(unsubscribeDocument, context),
             // Pin document
             actionToMenuItem(pinDocument, context),
             {
