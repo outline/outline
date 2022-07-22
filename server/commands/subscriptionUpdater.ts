@@ -36,6 +36,8 @@ export default async function subscriptionUpdater({
   // REVIEW: Is this alright?
   assert(event === subscription.event);
 
+  assert(subscription.userId === user.id);
+
   // An existing subscription can be toggled.
   subscription.enabled = enabled;
 
