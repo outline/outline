@@ -1,8 +1,11 @@
+import { BugIcon, SmileyIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { WebhookDelivery } from "@server/models";
+import WebhookDelivery from "~/models/WebhookDelivery";
 import WebhookSubscription from "~/models/WebhookSubscription";
+import Flex from "~/components/Flex";
 import TableFromParams from "~/components/TableFromParams";
+import Time from "~/components/Time";
 import useStores from "~/hooks/useStores";
 
 type Props = {
@@ -19,25 +22,48 @@ const WebhookDeliveries = ({ webhook }: Props) => {
 
   const { webhookDeliveries } = useStores();
 
+  const [deliveries, setDeliveries] = React.useState<WebhookDelivery[]>([]);
+
   React.useEffect(() => {
-    webhookDeliveries.fetchPage({ webhookSubscriptionId: webhook.id });
+    async function fetch() {
+      const resp = await webhookDeliveries.fetchPage({
+        webhookSubscriptionId: webhook.id,
+      });
+
+      setDeliveries(resp);
+    }
+    fetch();
   }, [webhookDeliveries, webhook]);
 
   return (
     <div>
-      <h1>{webhook.name}</h1>
-      <p>This is a list of webhook deliveries.</p>
-
       <TableFromParams
         columns={[
+          {
+            id: "status",
+            Header: t("Status"),
+            accessor: "status",
+            Cell: ({ value }: CellProps<string>) => (
+              <Flex align="center" gap={5}>
+                {value === "failed" ? <BugIcon /> : <SmileyIcon />}
+                <span>{value}</span>
+              </Flex>
+            ),
+          },
           {
             id: "id",
             Header: t("ID"),
             accessor: "id",
             Cell: ({ value }: CellProps<string>) => value,
           },
+          {
+            id: "createdAt",
+            Header: "",
+            accessor: "createdAt",
+            Cell: ({ value }: CellProps<string>) => <Time dateTime={value} />,
+          },
         ]}
-        data={webhookDeliveries.orderedData}
+        data={deliveries}
         isLoading={false}
         page={0}
         defaultSortDirection="DESC"

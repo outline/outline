@@ -596,6 +596,7 @@
   "Active": "Active",
   "Everyone": "Everyone",
   "Admins": "Admins",
+  "Status": "Status",
   "ID": "ID",
   "Are you sure you want to delete the {{ name }} webhook?": "Are you sure you want to delete the {{ name }} webhook?",
   "Webhook updated": "Webhook updated",

@@ -6,6 +6,10 @@ class WebhookDelivery extends BaseModel {
   @Field
   @observable
   id: string;
+
+  @Field
+  @observable
+  status: string;
 }
 
 export default WebhookDelivery;
