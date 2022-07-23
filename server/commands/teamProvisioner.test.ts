@@ -170,18 +170,12 @@ describe("teamProvisioner", () => {
         },
         ip,
       });
-      const {
-        team,
-        authenticationProvider,
-        isNewTeam,
-        isExternalTeam,
-      } = result;
+      const { team, authenticationProvider, isNewTeam } = result;
       expect(team.id).toEqual(existing.id);
       expect(team.name).toEqual(existing.name);
       expect(authenticationProvider.name).toEqual("google");
       expect(authenticationProvider.providerId).toEqual("allowed-domain.com");
       expect(isNewTeam).toEqual(false);
-      expect(isExternalTeam).toBeFalsy();
       const providers = await team.$get("authenticationProviders");
       expect(providers.length).toEqual(2);
     });
@@ -233,12 +227,11 @@ describe("teamProvisioner", () => {
         authenticationProvider,
         ip,
       });
-      const { team, isNewTeam, isExternalTeam } = result;
+      const { team, isNewTeam } = result;
       expect(team.id).toEqual(existing.id);
       expect(team.name).toEqual(existing.name);
       expect(team.subdomain).toEqual("example");
       expect(isNewTeam).toEqual(false);
-      expect(isExternalTeam).toBeFalsy();
     });
   });
 });

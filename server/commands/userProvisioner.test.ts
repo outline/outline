@@ -290,7 +290,7 @@ describe("userProvisioner", () => {
     expect(isNewUser).toEqual(true);
   });
 
-  it.only("should create a user from an invited user who is external to the team", async () => {
+  it.only("should create a user from an invited user using email match", async () => {
     const externalUser = await buildUser({
       email: "external@example.com",
     });
@@ -307,7 +307,7 @@ describe("userProvisioner", () => {
       name: invite.name,
       email: "external@ExamPle.com", // ensure that email is case insensistive
       teamId: invite.teamId,
-      isExternalTeam: true,
+      emailMatchOnly: true,
       ip,
       authentication: {
         authenticationProviderId: authenticationProvider.id,

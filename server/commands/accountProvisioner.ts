@@ -29,10 +29,12 @@ type Props = {
   };
   authenticationProvider: {
     name: string;
-    providerId: string; // external id of the auth provider
+    /* The external ID of the SSO provider */
+    providerId: string;
   };
   authentication: {
-    providerId: string; // external id of the user auth
+    /* The external ID of the user SSO record */
+    providerId: string;
     scopes: string[];
     accessToken?: string;
     refreshToken?: string;
