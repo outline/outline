@@ -5,6 +5,7 @@ import {
   ForeignKey,
   Table,
   Default,
+  IsIn,
 } from "sequelize-typescript";
 import Document from "./Document";
 import User from "./User";
@@ -28,6 +29,7 @@ class Subscription extends IdModel {
   @Column(DataType.UUID)
   documentId: string | null;
 
+  @IsIn([["documents.update"]])
   @Column(DataType.STRING)
   event: string;
 
