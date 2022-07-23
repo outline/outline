@@ -108,7 +108,7 @@
     "is-printable-key-event": "^1.0.0",
     "json-loader": "0.5.4",
     "jsonwebtoken": "^8.5.0",
-    "jszip": "^3.7.1",
+    "jszip": "^3.10.0",
     "kbar": "0.1.0-beta.28",
     "koa": "^2.13.4",
     "koa-body": "^4.2.0",
