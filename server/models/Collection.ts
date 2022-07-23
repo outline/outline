@@ -24,6 +24,7 @@ import isUUID from "validator/lib/isUUID";
 import { MAX_TITLE_LENGTH } from "@shared/constants";
 import { sortNavigationNodes } from "@shared/utils/collections";
 import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
+import { CollectionValidation } from "@shared/validations";
 import slugify from "@server/utils/slugify";
 import { NavigationNode, CollectionSort } from "~/types";
 import CollectionGroup from "./CollectionGroup";
@@ -150,8 +151,8 @@ class Collection extends ParanoidModel {
   name: string;
 
   @Length({
-    max: 1000,
-    msg: `description must be 1000 characters or less`,
+    max: CollectionValidation.maxDescriptionLength,
+    msg: `description must be ${CollectionValidation.maxDescriptionLength} characters or less`,
   })
   @Column
   description: string;

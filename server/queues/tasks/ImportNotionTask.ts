@@ -142,10 +142,12 @@ export default class ImportNotionTask extends ImportTask {
         const attachment = output.attachments.find((att) => att.name === name);
 
         if (!attachment) {
-          Logger.info(
-            "task",
-            `Could not find referenced attachment with name ${name} and src ${image.src}`
-          );
+          if (!image.src.startsWith("http")) {
+            Logger.info(
+              "task",
+              `Could not find referenced attachment with name ${name} and src ${image.src}`
+            );
+          }
         } else {
           text = text.replace(
             new RegExp(escapeRegExp(image.src), "g"),
