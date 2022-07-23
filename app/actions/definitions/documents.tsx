@@ -11,8 +11,8 @@ import {
   ImportIcon,
   PinIcon,
   SearchIcon,
-  BookmarkIcon,
-  BookmarkedIcon,
+  UnsubscribeIcon,
+  SubscribeIcon,
 } from "outline-icons";
 import * as React from "react";
 import { getEventFiles } from "@shared/utils/files";
@@ -114,7 +114,7 @@ export const subscribeDocument = createAction({
   name: ({ t }) => t("Subscribe"),
   section: DocumentSection,
   // TODO: Use other icon.
-  icon: <BookmarkedIcon />,
+  icon: <SubscribeIcon />,
   visible: ({ activeDocumentId, stores }) => {
     if (!activeDocumentId) {
       return false;
@@ -141,8 +141,7 @@ export const subscribeDocument = createAction({
 export const unsubscribeDocument = createAction({
   name: ({ t }) => t("Unsubscribe"),
   section: DocumentSection,
-  // TODO: Use other icon.
-  icon: <BookmarkIcon />,
+  icon: <UnsubscribeIcon />,
   visible: ({ activeDocumentId, stores }) => {
     if (!activeDocumentId) {
       return false;
