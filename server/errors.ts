@@ -28,6 +28,14 @@ export function AuthorizationError(
   });
 }
 
+export function RateLimitExceededError(
+  message = "Rate limit exceeded for this operation"
+) {
+  return httpErrors(429, message, {
+    id: "rate_limit_exceeded",
+  });
+}
+
 export function InviteRequiredError(
   message = "You need an invite to join this team"
 ) {
