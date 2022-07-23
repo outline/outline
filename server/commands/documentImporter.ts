@@ -190,7 +190,7 @@ async function documentImporter({
   if (text.startsWith("# ")) {
     const result = parseTitle(text);
     title = result.title;
-    text = text.replace(`# ${title}\n`, "");
+    text = text.replace(`# ${title}`, "").trimStart();
   }
 
   // If we parsed an emoji from _above_ the title then add it back at prefixing
