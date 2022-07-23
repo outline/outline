@@ -111,7 +111,7 @@ describe("#subscriptions.create", () => {
     expect(body.ok).toEqual(false);
     expect(body.error).toEqual("validation_error");
     expect(body.message).toEqual(
-      `Event documents.publish is not subscribable for documentId ${document.id}`
+      `documents.publish is not a valid subscription event for documents`
     );
   });
 });
@@ -311,7 +311,7 @@ describe("#subscriptions.info", () => {
     expect(response0.ok).toEqual(false);
     expect(response0.error).toEqual("validation_error");
     expect(response0.message).toEqual(
-      `Event documents.changed is not subscribable for documentId ${document0.id}`
+      `documents.changed is not a valid subscription event for documents`
     );
 
     // `viewer` wants info about `subscriber`'s
@@ -331,7 +331,7 @@ describe("#subscriptions.info", () => {
     expect(response1.ok).toEqual(false);
     expect(response1.error).toEqual("validation_error");
     expect(response1.message).toEqual(
-      `Event doc.affected is not subscribable for documentId ${document1.id}`
+      `doc.affected is not a valid subscription event for documents`
     );
   });
 });
@@ -478,7 +478,7 @@ describe("#subscriptions.list", () => {
     expect(body.ok).toEqual(false);
     expect(body.error).toEqual("validation_error");
     expect(body.message).toEqual(
-      `Event changes.on.documents is not subscribable for documentId ${document.id}`
+      `changes.on.documents is not a valid subscription event for documents`
     );
   });
 
