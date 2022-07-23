@@ -44,7 +44,7 @@ type Props = {
     href: string,
     event: React.MouseEvent<HTMLButtonElement>
   ) => void;
-  onShowToast: (message: string, options: ToastOptions) => void;
+  onShowToast: (message: string, options?: ToastOptions) => void;
   view: EditorView;
 };
 
@@ -70,7 +70,7 @@ class LinkEditor extends React.Component<Props, State> {
   };
 
   get href(): string {
-    return this.props.mark ? this.props.mark.attrs.href : "";
+    return sanitizeHref(this.props.mark?.attrs.href) ?? "";
   }
 
   get suggestedLinkTitle(): string {
@@ -229,7 +229,12 @@ class LinkEditor extends React.Component<Props, State> {
 
   handleOpenLink = (event: React.MouseEvent<HTMLButtonElement>): void => {
     event.preventDefault();
-    this.props.onClickLink(this.href, event);
+
+    try {
+      this.props.onClickLink(this.href, event);
+    } catch (err) {
+      this.props.onShowToast(this.props.dictionary.openLinkError);
+    }
   };
 
   handleCreateLink = async (value: string) => {

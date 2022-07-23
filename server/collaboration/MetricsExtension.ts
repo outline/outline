@@ -30,7 +30,11 @@ export default class MetricsExtension implements Extension {
     });
     Metrics.gaugePerInstance(
       "collaboration.connections_count",
-      instance.getConnectionsCount()
+      instance.getConnectionsCount() + 1
+    );
+    Metrics.gaugePerInstance(
+      "collaboration.documents_count",
+      instance.getDocumentsCount()
     );
   }
 
@@ -43,8 +47,8 @@ export default class MetricsExtension implements Extension {
       instance.getConnectionsCount()
     );
     Metrics.gaugePerInstance(
-      "collaboration.documents_count", // -1 adjustment because hook is called before document is removed
-      instance.getDocumentsCount() - 1
+      "collaboration.documents_count",
+      instance.getDocumentsCount()
     );
   }
 
