@@ -290,7 +290,7 @@ describe("userProvisioner", () => {
     expect(isNewUser).toEqual(true);
   });
 
-  it.only("should create a user from an invited user using email match", async () => {
+  it("should create a user from an invited user using email match", async () => {
     const externalUser = await buildUser({
       email: "external@example.com",
     });
