@@ -108,7 +108,7 @@ describe("accountProvisioner", () => {
     spy.mockRestore();
   });
 
-  it.only("should allow authentication by email matching", async () => {
+  it("should allow authentication by email matching", async () => {
     const existingTeam = await buildTeam();
     const providers = await existingTeam.$get("authenticationProviders");
     const authenticationProvider = providers[0];
