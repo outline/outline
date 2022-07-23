@@ -47,8 +47,6 @@ describe("subscriptionUpdater", () => {
     expect(subscriptionUpdated.documentId).toEqual(document.id);
 
     // Both should be disabled after transaction.
-    expect(subscription.enabled).toEqual(false);
-    expect(subscriptionUpdated.enabled).toEqual(false);
 
     expect(event?.name).toEqual("subscriptions.update");
     expect(event?.modelId).toEqual(subscription.id);

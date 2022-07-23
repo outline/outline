@@ -267,7 +267,6 @@ export type SubscriptionEvent = BaseEvent & {
   modelId: string;
   userId: string;
   documentId: string;
-  data: { enabled: boolean };
 };
 
 export type ViewEvent = BaseEvent & {

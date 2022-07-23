@@ -126,26 +126,27 @@ router.post(
 
     authorize(user, "createSubscription", document);
 
-    const subscription = await Subscription.create({
-      userId: user.id,
-      documentId: document.id,
-      event,
-      // Doesn't make sense to create a disabled subscription.
-      enabled: true,
+    const [subscription, created] = await Subscription.findOrCreate({
+      where: {
+        userId: user.id,
+        documentId: document.id,
+        event,
+      },
     });
 
-    const subscriptionEvent: SubscriptionEvent = {
-      teamId: user.teamId,
-      actorId: user.id,
-      ip: ctx.request.ip,
-      name: "subscriptions.create",
-      modelId: subscription.id,
-      userId: user.userId,
-      documentId: document.id,
-      data: { enabled: subscription.enabled },
-    };
+    if (created) {
+      const subscriptionEvent: SubscriptionEvent = {
+        teamId: user.teamId,
+        actorId: user.id,
+        ip: ctx.request.ip,
+        name: "subscriptions.create",
+        modelId: subscription.id,
+        userId: user.userId,
+        documentId: document.id,
+      };
 
-    await Event.create(subscriptionEvent);
+      await Event.create(subscriptionEvent);
+    }
 
     ctx.body = {
       data: presentSubscription(subscription),
@@ -159,7 +160,7 @@ router.post(
   auth(),
 
   async (ctx) => {
-    // body should not include `event` like other routes above.
+    // Body should not include `event` like other routes above.
     // That would imply move on a subscription model.
     const { id, enabled } = ctx.body;
 
@@ -178,18 +179,19 @@ router.post(
 
     await subscription.update({ user, subscription, enabled });
 
-    const subscriptionEvent: SubscriptionEvent = {
-      teamId: user.teamId,
-      actorId: user.id,
-      ip: ctx.request.ip,
-      name: "subscriptions.update",
-      modelId: subscription.id,
-      userId: user.userId,
-      documentId: subscription.documentId,
-      data: { enabled: subscription.enabled },
-    };
+    if (subscription.changed()) {
+      const subscriptionEvent: SubscriptionEvent = {
+        teamId: user.teamId,
+        actorId: user.id,
+        ip: ctx.request.ip,
+        name: "subscriptions.update",
+        modelId: subscription.id,
+        userId: user.userId,
+        documentId: subscription.documentId,
+      };
 
-    await Event.create(subscriptionEvent);
+      await Event.create(subscriptionEvent);
+    }
 
     ctx.body = {
       data: presentSubscription(subscription),
@@ -234,7 +236,6 @@ router.post(
       modelId: subscription.id,
       userId: user.userId,
       documentId: subscription.documentId,
-      data: { enabled: subscription.enabled },
     };
 
     await Event.create(subscriptionEvent);

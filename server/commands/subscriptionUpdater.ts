@@ -33,19 +33,14 @@ export default async function subscriptionUpdater({
   transaction,
 }: Props): Promise<Subscription> {
   // Subscription shouldn't be allowed to move.
-  // REVIEW: Is this alright?
   assert(event === subscription.event);
 
   assert(subscription.userId === user.id);
 
-  // An existing subscription can be toggled.
-  subscription.enabled = enabled;
+  // An existing subscription can be destroyed.
+  if (!enabled) {
+    subscription.destroy();
 
-  const changed = subscription.changed();
-
-  // Don't emit an event if a subscription
-  // wasn't updated.
-  if (changed) {
     await Event.create(
       {
         name: "subscriptions.update",
@@ -58,7 +53,9 @@ export default async function subscriptionUpdater({
       },
       { transaction }
     );
-  }
 
-  return subscription;
+    return subscription;
+  } else {
+    return subscription;
+  }
 }

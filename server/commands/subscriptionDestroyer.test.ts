@@ -37,16 +37,12 @@ describe("subscriptionDestroyer", () => {
     );
 
     const count = await Subscription.count();
-    // NOTE: Up for change depending on
-    // outline/server/commands/subscriptionDestroyer.ts
-    // L36
-    expect(count).toEqual(1);
+
+    expect(count).toEqual(0);
 
     const event = await Event.findOne();
-    // NOTE: Up for change depending on
-    // outline/server/commands/subscriptionDestroyer.ts
-    // L36
-    expect(event?.name).toEqual("subscriptions.update");
+
+    expect(event?.name).toEqual("subscriptions.delete");
     expect(event?.modelId).toEqual(subscription.id);
     expect(event?.actorId).toEqual(subscription.userId);
     expect(event?.userId).toEqual(subscription.userId);

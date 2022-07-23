@@ -15,10 +15,6 @@ class Subscription extends BaseModel {
   @observable
   event: string;
 
-  @Field
-  @observable
-  enabled: boolean;
-
   createdAt: string;
 
   updatedAt: string;

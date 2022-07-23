@@ -65,7 +65,6 @@ describe("subscriptionCreator", () => {
 
     expect(subscription1.userId).toEqual(subscription2.userId);
     expect(subscription1.documentId).toEqual(subscription2.documentId);
-    expect(subscription1.enabled).toEqual(subscription2.enabled);
   });
 
   it("should not enable subscription by overriding one that already exists in disabled state", async () => {
@@ -95,9 +94,6 @@ describe("subscriptionCreator", () => {
 
     expect(subscription0.userId).toEqual(subscription1.userId);
     expect(subscription0.documentId).toEqual(subscription1.documentId);
-    expect(subscription0.enabled).toEqual(subscription1.enabled);
-    expect(subscription0.enabled).toEqual(false);
-    expect(subscription1.enabled).toEqual(false);
 
     const events = await Event.count();
     expect(events).toEqual(0);

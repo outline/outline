@@ -38,7 +38,6 @@ describe("#subscriptions.create", () => {
     expect(body.data.id).toBeDefined();
     expect(body.data.userId).toEqual(user.id);
     expect(body.data.documentId).toEqual(document.id);
-    expect(body.data.enabled).toEqual(true);
   });
 
   it("should not create duplicate subscriptions", async () => {
@@ -67,6 +66,15 @@ describe("#subscriptions.create", () => {
       },
     });
 
+    // Third `subscriptions.create` request.
+    await server.post("/api/subscriptions.create", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: document.id,
+        event: "documents.update",
+      },
+    });
+
     // List subscriptions associated with
     // `document.id`
     const res = await server.post("/api/subscriptions.list", {
@@ -80,11 +88,10 @@ describe("#subscriptions.create", () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    // Database should only have 1 subscription registered.
+    // Database should only have 1 "enabled" subscription registered.
     expect(body.data.length).toEqual(1);
     expect(body.data[0].userId).toEqual(user.id);
     expect(body.data[0].documentId).toEqual(document.id);
-    expect(body.data[0].enabled).toEqual(true);
   });
 
   it("should not create a subscription on invalid events", async () => {
@@ -166,7 +173,6 @@ describe("#subscriptions.info", () => {
     expect(response0.data.id).toBeDefined();
     expect(response0.data.userId).toEqual(subscriber.id);
     expect(response0.data.documentId).toEqual(document0.id);
-    expect(response0.data.enabled).toEqual(true);
 
     // `subscriber` wants info about
     // their subscription on `document1`.
@@ -184,7 +190,6 @@ describe("#subscriptions.info", () => {
     expect(response1.data.id).toBeDefined();
     expect(response1.data.userId).toEqual(subscriber.id);
     expect(response1.data.documentId).toEqual(document1.id);
-    expect(response1.data.enabled).toEqual(true);
   });
 
   it("should not allow outsiders to gain info about a subscription", async () => {
@@ -368,7 +373,6 @@ describe("#subscriptions.list", () => {
     expect(body.data[0].id).toEqual(subscription.id);
     expect(body.data[0].userId).toEqual(user.id);
     expect(body.data[0].documentId).toEqual(document.id);
-    expect(body.data[0].enabled).toEqual(true);
   });
 
   it("user should be able to list subscriptions on document", async () => {
@@ -425,8 +429,6 @@ describe("#subscriptions.list", () => {
     expect(body.data[0].documentId).toEqual(document.id);
     expect(body.data[1].userId).toEqual(subscriber0.id);
     expect(body.data[1].documentId).toEqual(document.id);
-    expect(body.data[0].enabled).toEqual(true);
-    expect(body.data[1].enabled).toEqual(true);
   });
 
   it("user should not be able to list invalid subscriptions", async () => {
@@ -569,7 +571,6 @@ describe("#subscriptions.update", () => {
     expect(body.data.id).toEqual(subscription.id);
     expect(body.data.userId).toEqual(user.id);
     expect(body.data.documentId).toEqual(document.id);
-    expect(body.data.enabled).toEqual(false);
   });
 
   it("users should not be able to update other's subscriptions on document", async () => {

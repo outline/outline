@@ -31,10 +31,6 @@ module.exports = {
             type: Sequelize.STRING,
             allowNull: false,
           },
-          enabled: {
-            type: Sequelize.BOOLEAN,
-            allowNull: false,
-          },
           createdAt: {
             allowNull: false,
             type: Sequelize.DATE,
@@ -43,20 +39,33 @@ module.exports = {
             allowNull: false,
             type: Sequelize.DATE,
           },
+          deletedAt: {
+            type: Sequelize.DATE,
+            allowNull: true,
+          },
         },
         { transaction }
       );
 
-      await queryInterface.addIndex("subscriptions", ["userId", "documentId", "event"], {
-        name: "subscriptions_user_id_document_id_event",
-        type: "UNIQUE",
-        transaction,
-      });
+      await queryInterface.addIndex(
+        "subscriptions",
+        ["userId", "documentId", "event", "deletedAt"],
+        {
+          name: "subscriptions_user_id_document_id_event",
+          type: "UNIQUE",
+          transaction,
+        }
+      );
     });
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.removeIndex("subscriptions", ["userId", "documentId", "event"]);
+    await queryInterface.removeIndex("subscriptions", [
+      "userId",
+      "documentId",
+      "event",
+      "deletedAt",
+    ]);
     return queryInterface.dropTable("subscriptions");
   },
 };

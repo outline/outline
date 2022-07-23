@@ -4,17 +4,16 @@ import {
   BelongsTo,
   ForeignKey,
   Table,
-  Default,
   IsIn,
 } from "sequelize-typescript";
 import Document from "./Document";
 import User from "./User";
-import IdModel from "./base/IdModel";
+import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
 
 @Table({ tableName: "subscriptions", modelName: "subscription" })
 @Fix
-class Subscription extends IdModel {
+class Subscription extends ParanoidModel {
   @BelongsTo(() => User, "userId")
   user: User;
 
@@ -32,10 +31,6 @@ class Subscription extends IdModel {
   @IsIn([["documents.update"]])
   @Column(DataType.STRING)
   event: string;
-
-  @Default(true)
-  @Column(DataType.BOOLEAN)
-  enabled: boolean;
 }
 
 export default Subscription;
