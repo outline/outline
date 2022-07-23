@@ -1,12 +1,11 @@
 import invariant from "invariant";
 import Router from "koa-router";
-import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { Subscription, Event, Document } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentSubscription } from "@server/presenters";
 import { SubscriptionEvent } from "@server/types";
-import { assertPresent, assertUuid } from "@server/validation";
+import { assertIn, assertPresent, assertUuid } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
 /** Typical workflow involves
@@ -21,8 +20,6 @@ import pagination from "./middlewares/pagination";
 
 const router = new Router();
 
-const subscribableEventsDocument = ["documents.update"];
-
 router.post(
   "subscriptions.list",
 
@@ -31,17 +28,18 @@ router.post(
 
   async (ctx) => {
     const { user } = ctx.state;
+
     const { documentId, event } = ctx.body;
+
+    assertPresent(documentId, "documentId is required");
 
     // Make sure `documentId` is accompanied
     // with valid subsribable events.
-    if (documentId) {
-      if (!subscribableEventsDocument.includes(event)) {
-        throw ValidationError(
-          `Event ${event} is not subscribable for documentId ${documentId}`
-        );
-      }
-    }
+    assertIn(
+      event,
+      ["documents.update"],
+      `${event} is not a valid subscription event for documents`
+    );
 
     const document = await Document.findByPk(documentId);
 
@@ -72,19 +70,17 @@ router.post(
   async (ctx) => {
     const { documentId, event } = ctx.body;
 
+    assertPresent(documentId, "documentId is required");
+
     // Make sure `documentId` is accompanied
     // with valid subsribable events.
-    if (documentId) {
-      if (!subscribableEventsDocument.includes(event)) {
-        throw ValidationError(
-          `Event ${event} is not subscribable for documentId ${documentId}`
-        );
-      }
-    }
+    assertIn(
+      event,
+      ["documents.update"],
+      `${event} is not a valid subscription event for documents`
+    );
 
     const document = await Document.findByPk(documentId);
-
-    assertPresent(documentId, "documentId is required");
 
     const { user } = ctx.state;
 
@@ -113,17 +109,18 @@ router.post(
 
   async (ctx) => {
     const { user } = ctx.state;
+
     const { documentId, event } = ctx.body;
+
+    assertPresent(documentId, "documentId is required");
 
     // Make sure `documentId` is accompanied
     // with valid subsribable events.
-    if (documentId) {
-      if (!subscribableEventsDocument.includes(event)) {
-        throw ValidationError(
-          `Event ${event} is not subscribable for documentId ${documentId}`
-        );
-      }
-    }
+    assertIn(
+      event,
+      ["documents.update"],
+      `${event} is not a valid subscription event for documents`
+    );
 
     const document = await Document.findByPk(documentId);
 
@@ -211,6 +208,7 @@ router.post(
     assertUuid(id, "id is required");
 
     const { user } = ctx.state;
+
     const subscription = await Subscription.findByPk(id);
 
     authorize(user, "delete", subscription);
@@ -218,6 +216,12 @@ router.post(
     invariant(
       subscription.documentId,
       "Subscription must have an associated document"
+    );
+
+    assertIn(
+      subscription.event,
+      ["documents.update"],
+      `${subscription.event} is not a valid subscription event`
     );
 
     await subscription.destroy();
