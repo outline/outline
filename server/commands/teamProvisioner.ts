@@ -24,7 +24,7 @@ type Props = {
   avatarUrl?: string | null;
   authenticationProvider: {
     name: string;
-    providerId: string; // external id
+    providerId: string;
   };
   ip: string;
 };

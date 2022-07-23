@@ -29,11 +29,9 @@ type Props = {
   };
   authenticationProvider: {
     name: string;
-    /* The external ID of the SSO provider */
     providerId: string;
   };
   authentication: {
-    /* The external ID of the user SSO record */
     providerId: string;
     scopes: string[];
     accessToken?: string;
