@@ -139,7 +139,11 @@ export default class ImportNotionTask extends ImportTask {
 
       for (const image of imagesInText) {
         const name = path.basename(image.src);
-        const attachment = output.attachments.find((att) => att.name === name);
+        const attachment = output.attachments.find(
+          (att) =>
+            att.path.endsWith(image.src) ||
+            encodeURI(att.path).endsWith(image.src)
+        );
 
         if (!attachment) {
           if (!image.src.startsWith("http")) {
