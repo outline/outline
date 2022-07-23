@@ -10,7 +10,7 @@ import { APM } from "@server/logging/tracing";
 import { Team, AuthenticationProvider, Event } from "@server/models";
 import { generateAvatarUrl } from "@server/utils/avatars";
 
-type TeamCreatorResult = {
+type TeamProvisionerResult = {
   team: Team;
   authenticationProvider: AuthenticationProvider;
   isNewTeam: boolean;
@@ -29,7 +29,7 @@ type Props = {
   ip: string;
 };
 
-async function teamCreator({
+async function teamProvisioner({
   teamId,
   name,
   domain,
@@ -37,7 +37,7 @@ async function teamCreator({
   avatarUrl,
   authenticationProvider,
   ip,
-}: Props): Promise<TeamCreatorResult> {
+}: Props): Promise<TeamProvisionerResult> {
   let authP = await AuthenticationProvider.findOne({
     where: teamId
       ? { ...authenticationProvider, teamId }
@@ -172,5 +172,5 @@ async function provisionSubdomain(team: Team, requestedSubdomain: string) {
 
 export default APM.traceFunction({
   serviceName: "command",
-  spanName: "teamCreator",
-})(teamCreator);
+  spanName: "teamProvisioner",
+})(teamProvisioner);

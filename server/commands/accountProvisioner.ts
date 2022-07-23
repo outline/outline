@@ -9,7 +9,7 @@ import {
 } from "@server/errors";
 import { APM } from "@server/logging/tracing";
 import { AuthenticationProvider, Collection, Team, User } from "@server/models";
-import teamCreator from "./teamCreator";
+import teamProvisioner from "./teamProvisioner";
 import userProvisioner from "./userProvisioner";
 
 type Props = {
@@ -58,7 +58,7 @@ async function accountProvisioner({
   let emailMatchOnly;
 
   try {
-    result = await teamCreator({
+    result = await teamProvisioner({
       ...teamParams,
       authenticationProvider: authenticationProviderParams,
       ip,

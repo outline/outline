@@ -2,16 +2,16 @@ import env from "@server/env";
 import TeamDomain from "@server/models/TeamDomain";
 import { buildTeam, buildUser } from "@server/test/factories";
 import { flushdb } from "@server/test/support";
-import teamCreator from "./teamCreator";
+import teamProvisioner from "./teamProvisioner";
 
 beforeEach(() => flushdb());
 
-describe("teamCreator", () => {
+describe("teamProvisioner", () => {
   const ip = "127.0.0.1";
 
   it("should create team and authentication provider", async () => {
     env.DEPLOYMENT = "hosted";
-    const result = await teamCreator({
+    const result = await teamProvisioner({
       name: "Test team",
       subdomain: "example",
       avatarUrl: "http://example.com/logo.png",
@@ -35,7 +35,7 @@ describe("teamCreator", () => {
     await buildTeam({
       subdomain: "myteam",
     });
-    const result = await teamCreator({
+    const result = await teamProvisioner({
       name: "Test team",
       subdomain: "myteam",
       avatarUrl: "http://example.com/logo.png",
@@ -58,7 +58,7 @@ describe("teamCreator", () => {
     await buildTeam({
       subdomain: "myteam1",
     });
-    const result = await teamCreator({
+    const result = await teamProvisioner({
       name: "Test team",
       subdomain: "myteam",
       avatarUrl: "http://example.com/logo.png",
@@ -82,7 +82,7 @@ describe("teamCreator", () => {
       subdomain: "example",
       authenticationProviders: [authenticationProvider],
     });
-    const result = await teamCreator({
+    const result = await teamProvisioner({
       name: "Updated name",
       subdomain: "example",
       authenticationProvider,
@@ -109,7 +109,7 @@ describe("teamCreator", () => {
 
     let error;
     try {
-      await teamCreator({
+      await teamProvisioner({
         teamId: exampleTeam.id,
         name: "name",
         subdomain: "other",
@@ -132,7 +132,7 @@ describe("teamCreator", () => {
       let error;
 
       try {
-        await teamCreator({
+        await teamProvisioner({
           name: "Test team",
           subdomain: "example",
           avatarUrl: "http://example.com/logo.png",
@@ -160,7 +160,7 @@ describe("teamCreator", () => {
         name: "allowed-domain.com",
         createdById: user.id,
       });
-      const result = await teamCreator({
+      const result = await teamProvisioner({
         name: "Updated name",
         subdomain: "example",
         domain: "allowed-domain.com",
@@ -200,7 +200,7 @@ describe("teamCreator", () => {
 
       let error;
       try {
-        await teamCreator({
+        await teamProvisioner({
           name: "Updated name",
           subdomain: "example",
           domain: "other-domain.com",
@@ -227,7 +227,7 @@ describe("teamCreator", () => {
         subdomain: "example",
         authenticationProviders: [authenticationProvider],
       });
-      const result = await teamCreator({
+      const result = await teamProvisioner({
         name: "Updated name",
         subdomain: "example",
         authenticationProvider,

@@ -6,7 +6,7 @@ import userProvisioner from "./userProvisioner";
 
 beforeEach(() => flushdb());
 
-describe("userCreator", () => {
+describe("userProvisioner", () => {
   const ip = "127.0.0.1";
 
   it("should update existing user and authentication", async () => {
