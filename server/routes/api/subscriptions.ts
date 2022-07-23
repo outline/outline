@@ -134,6 +134,10 @@ router.post(
       },
     });
 
+    // `findOrCreate` can return existing subscription.
+    // It'd be best to make sure user has permissions to read it.
+    authorize(user, "read", subscription);
+
     if (created) {
       const subscriptionEvent: SubscriptionEvent = {
         teamId: user.teamId,
