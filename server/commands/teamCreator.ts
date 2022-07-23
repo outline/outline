@@ -1,7 +1,10 @@
-import invariant from "invariant";
 import { sequelize } from "@server/database/sequelize";
 import env from "@server/env";
-import { DomainNotAllowedError, MaximumTeamsError } from "@server/errors";
+import {
+  DomainNotAllowedError,
+  InvalidAuthenticationError,
+  MaximumTeamsError,
+} from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { APM } from "@server/logging/tracing";
 import { Team, AuthenticationProvider, Event } from "@server/models";
@@ -11,7 +14,6 @@ type TeamCreatorResult = {
   team: Team;
   authenticationProvider: AuthenticationProvider;
   isNewTeam: boolean;
-  isExternalTeam?: boolean;
 };
 
 type Props = {
@@ -58,29 +60,8 @@ async function teamCreator({
       isNewTeam: false,
     };
   } else if (teamId) {
-    // A team id was provided but no auth provider was found matching those credentials
-    // The user is attempting to log into a team with an external or personal SSO
-
-    // Get the AuthenticationProvider for the team that matches the SSO name (google, slack, etc)
-    authP = await AuthenticationProvider.findOne({
-      where: { name: authenticationProvider.name, teamId },
-      include: [
-        {
-          model: Team,
-          as: "team",
-          required: true,
-        },
-      ],
-    });
-
-    invariant(authP, "authentication provider type must exist on team");
-
-    return {
-      authenticationProvider: authP,
-      team: authP.team,
-      isNewTeam: false,
-      isExternalTeam: true,
-    };
+    // The user is attempting to log into a team with an unfamiliar SSO provider
+    throw InvalidAuthenticationError();
   }
 
   // This team has never been seen before, if self hosted the logic is different

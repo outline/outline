@@ -21,13 +21,12 @@ describe("teamCreator", () => {
       },
       ip,
     });
-    const { team, authenticationProvider, isNewTeam, isExternalTeam } = result;
+    const { team, authenticationProvider, isNewTeam } = result;
     expect(authenticationProvider.name).toEqual("google");
     expect(authenticationProvider.providerId).toEqual("example.com");
     expect(team.name).toEqual("Test team");
     expect(team.subdomain).toEqual("example");
     expect(isNewTeam).toEqual(true);
-    expect(isExternalTeam).toBeFalsy();
   });
 
   it("should set subdomain append if unavailable", async () => {
@@ -89,17 +88,16 @@ describe("teamCreator", () => {
       authenticationProvider,
       ip,
     });
-    const { team, isNewTeam, isExternalTeam } = result;
+    const { team, isNewTeam } = result;
     expect(team.id).toEqual(existing.id);
     expect(team.name).toEqual(existing.name);
     expect(team.subdomain).toEqual("example");
     expect(isNewTeam).toEqual(false);
-    expect(isExternalTeam).toBeFalsy();
   });
 
-  it("should return external team", async () => {
+  it("should error on mismatched team and authentication provider", async () => {
     env.DEPLOYMENT = "hosted";
-    const existing = await buildTeam({
+    const exampleTeam = await buildTeam({
       subdomain: "example",
       authenticationProviders: [
         {
@@ -108,22 +106,23 @@ describe("teamCreator", () => {
         },
       ],
     });
-    const result = await teamCreator({
-      teamId: existing.id,
-      name: "Updated name",
-      subdomain: "external",
-      authenticationProvider: {
-        name: "google",
-        providerId: "external.com",
-      },
-      ip,
-    });
-    const { team, isNewTeam, isExternalTeam } = result;
-    expect(team.id).toEqual(existing.id);
-    expect(team.name).toEqual(existing.name);
-    expect(team.subdomain).toEqual("example");
-    expect(isNewTeam).toEqual(false);
-    expect(isExternalTeam).toEqual(true);
+
+    let error;
+    try {
+      await teamCreator({
+        teamId: exampleTeam.id,
+        name: "name",
+        subdomain: "other",
+        authenticationProvider: {
+          name: "google",
+          providerId: "other.com",
+        },
+        ip,
+      });
+    } catch (e) {
+      error = e;
+    }
+    expect(error.id).toEqual("invalid_authentication");
   });
 
   describe("self hosted", () => {

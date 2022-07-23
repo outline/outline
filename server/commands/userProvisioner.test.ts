@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 import { TeamDomain } from "@server/models";
 import { buildUser, buildTeam, buildInvite } from "@server/test/factories";
 import { flushdb, seed } from "@server/test/support";
-import userCreator from "./userCreator";
+import userProvisioner from "./userProvisioner";
 
 beforeEach(() => flushdb());
 
@@ -15,7 +15,7 @@ describe("userCreator", () => {
     const existingAuth = authentications[0];
     const newEmail = "test@example.com";
     const newUsername = "tname";
-    const result = await userCreator({
+    const result = await userProvisioner({
       name: existing.name,
       email: newEmail,
       username: newUsername,
@@ -51,7 +51,7 @@ describe("userCreator", () => {
       authentications: [],
     });
 
-    const result = await userCreator({
+    const result = await userProvisioner({
       name: existing.name,
       email,
       username: "new-username",
@@ -87,7 +87,7 @@ describe("userCreator", () => {
       teamId: team.id,
     });
 
-    const result = await userCreator({
+    const result = await userProvisioner({
       name: existing.name,
       email,
       username: "new-username",
@@ -118,7 +118,7 @@ describe("userCreator", () => {
     const existingAuth = authentications[0];
     const newEmail = "test@example.com";
     await existing.destroy();
-    const result = await userCreator({
+    const result = await userProvisioner({
       name: "Test Name",
       email: "test@example.com",
       teamId: existing.teamId,
@@ -146,7 +146,7 @@ describe("userCreator", () => {
     let error;
 
     try {
-      await userCreator({
+      await userProvisioner({
         name: "Test Name",
         email: "test@example.com",
         teamId: existing.teamId,
@@ -169,7 +169,7 @@ describe("userCreator", () => {
     const team = await buildTeam();
     const authenticationProviders = await team.$get("authenticationProviders");
     const authenticationProvider = authenticationProviders[0];
-    const result = await userCreator({
+    const result = await userProvisioner({
       name: "Test Name",
       email: "test@example.com",
       username: "tname",
@@ -200,7 +200,7 @@ describe("userCreator", () => {
     });
     const authenticationProviders = await team.$get("authenticationProviders");
     const authenticationProvider = authenticationProviders[0];
-    const result = await userCreator({
+    const result = await userProvisioner({
       name: "Test Name",
       email: "test@example.com",
       username: "tname",
@@ -224,7 +224,7 @@ describe("userCreator", () => {
     });
     const authenticationProviders = await team.$get("authenticationProviders");
     const authenticationProvider = authenticationProviders[0];
-    const result = await userCreator({
+    const result = await userProvisioner({
       name: "Test Name",
       email: "test@example.com",
       username: "tname",
@@ -241,7 +241,7 @@ describe("userCreator", () => {
     expect(tname.username).toEqual("tname");
     expect(tname.isAdmin).toEqual(false);
     expect(tname.isViewer).toEqual(true);
-    const tname2Result = await userCreator({
+    const tname2Result = await userProvisioner({
       name: "Test2 Name",
       email: "tes2@example.com",
       username: "tname2",
@@ -269,7 +269,7 @@ describe("userCreator", () => {
     });
     const authenticationProviders = await team.$get("authenticationProviders");
     const authenticationProvider = authenticationProviders[0];
-    const result = await userCreator({
+    const result = await userProvisioner({
       name: invite.name,
       email: "invite@ExamPle.com",
       teamId: invite.teamId,
@@ -303,7 +303,7 @@ describe("userCreator", () => {
 
     const authenticationProviders = await team.$get("authenticationProviders");
     const authenticationProvider = authenticationProviders[0];
-    const result = await userCreator({
+    const result = await userProvisioner({
       name: invite.name,
       email: "external@ExamPle.com", // ensure that email is case insensistive
       teamId: invite.teamId,
@@ -330,7 +330,7 @@ describe("userCreator", () => {
     let error;
 
     try {
-      await userCreator({
+      await userProvisioner({
         name: "Uninvited User",
         email: "invite@ExamPle.com",
         teamId: team.id,
@@ -361,7 +361,7 @@ describe("userCreator", () => {
 
     const authenticationProviders = await team.$get("authenticationProviders");
     const authenticationProvider = authenticationProviders[0];
-    const result = await userCreator({
+    const result = await userProvisioner({
       name: "Test Name",
       email: "user@example-company.com",
       teamId: team.id,
@@ -395,7 +395,7 @@ describe("userCreator", () => {
     let error;
 
     try {
-      await userCreator({
+      await userProvisioner({
         name: "Bad Domain User",
         email: "user@example.com",
         teamId: team.id,

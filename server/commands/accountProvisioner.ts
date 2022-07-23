@@ -8,9 +8,9 @@ import {
   AuthenticationProviderDisabledError,
 } from "@server/errors";
 import { APM } from "@server/logging/tracing";
-import { Collection, Team, User } from "@server/models";
+import { AuthenticationProvider, Collection, Team, User } from "@server/models";
 import teamCreator from "./teamCreator";
-import userCreator from "./userCreator";
+import userProvisioner from "./userProvisioner";
 
 type Props = {
   ip: string;
@@ -55,6 +55,7 @@ async function accountProvisioner({
   authentication: authenticationParams,
 }: Props): Promise<AccountProvisionerResult> {
   let result;
+  let emailMatchOnly;
 
   try {
     result = await teamCreator({
@@ -63,25 +64,54 @@ async function accountProvisioner({
       ip,
     });
   } catch (err) {
-    throw InvalidAuthenticationError(err.message);
+    // The account could not be provisioned for the provided teamId
+    // check to see if we can try authentication using email matching only
+    if (err.id === "invalid_authentication") {
+      const authenticationProvider = await AuthenticationProvider.findOne({
+        where: {
+          name: authenticationProviderParams.name, // example: "google"
+          teamId: teamParams.teamId,
+        },
+        include: [
+          {
+            model: Team,
+            as: "team",
+            required: true,
+          },
+        ],
+      });
+
+      if (authenticationProvider) {
+        emailMatchOnly = true;
+        result = {
+          authenticationProvider,
+          team: authenticationProvider.team,
+          isNewTeam: false,
+        };
+      }
+    }
+
+    if (!result) {
+      throw InvalidAuthenticationError(err.message);
+    }
   }
 
   invariant(result, "Team creator result must exist");
-  const { authenticationProvider, team, isNewTeam, isExternalTeam } = result;
+  const { authenticationProvider, team, isNewTeam } = result;
 
   if (!authenticationProvider.enabled) {
     throw AuthenticationProviderDisabledError();
   }
 
   try {
-    const result = await userCreator({
+    const result = await userProvisioner({
       name: userParams.name,
       email: userParams.email,
       username: userParams.username,
       isAdmin: isNewTeam || undefined,
       avatarUrl: userParams.avatarUrl,
       teamId: team.id,
-      isExternalTeam,
+      emailMatchOnly,
       ip,
       authentication: {
         authenticationProviderId: authenticationProvider.id,

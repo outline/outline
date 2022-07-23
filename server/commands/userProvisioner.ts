@@ -7,7 +7,7 @@ import {
 } from "@server/errors";
 import { Event, Team, User, UserAuthentication } from "@server/models";
 
-type UserCreatorResult = {
+type UserProvisionerResult = {
   user: User;
   isNewUser: boolean;
   authentication: UserAuthentication | null;
@@ -20,7 +20,7 @@ type Props = {
   isAdmin?: boolean;
   avatarUrl?: string | null;
   teamId: string;
-  isExternalTeam?: boolean;
+  emailMatchOnly?: boolean;
   ip: string;
   authentication: {
     authenticationProviderId: string;
@@ -32,17 +32,17 @@ type Props = {
   };
 };
 
-export default async function userCreator({
+export default async function userProvisioner({
   name,
   email,
   username,
   isAdmin,
-  isExternalTeam,
+  emailMatchOnly,
   avatarUrl,
   teamId,
   authentication,
   ip,
-}: Props): Promise<UserCreatorResult> {
+}: Props): Promise<UserProvisionerResult> {
   const { providerId, authenticationProviderId, ...rest } = authentication;
 
   const auth = await UserAuthentication.findOne({
@@ -149,9 +149,9 @@ export default async function userCreator({
         }
       );
 
-      // We don't want to permanently associate the user auth with the auth provider
-      // if it's external to the team, so early return without creating a record
-      if (isExternalTeam) {
+      // We don't want to associate a user auth with the auth provider
+      // if we're doing a simple email match, so early return here
+      if (emailMatchOnly) {
         return null;
       }
 
@@ -181,7 +181,7 @@ export default async function userCreator({
       authentication: auth,
       isNewUser: isInvite,
     };
-  } else if (isExternalTeam) {
+  } else if (emailMatchOnly) {
     // There's no existing invite or user that matches the external auth email
     // This is simply unauthorized
     throw InvalidAuthenticationError();
