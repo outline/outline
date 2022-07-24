@@ -9,7 +9,7 @@ type Props = {
   /** Event to subscribe */
   event: string;
   /**  Fetch soft deleted rows? */
-  paranoid: boolean;
+  paranoid?: boolean;
   /** The IP address of the user creating the subscription */
   ip: string;
   transaction: Transaction;
