@@ -66,7 +66,7 @@ export type StructuredImportData = {
     name: string;
     path: string;
     mimeType: string;
-    buffer: Buffer;
+    buffer: () => Promise<Buffer>;
     /** Optional id from import source, useful for mapping */
     sourceId?: string;
   }[];
@@ -215,7 +215,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
             id: item.id,
             name: item.name,
             type: item.mimeType,
-            buffer: item.buffer,
+            buffer: await item.buffer(),
             user,
             ip,
             transaction,

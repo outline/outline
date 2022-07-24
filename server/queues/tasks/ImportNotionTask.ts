@@ -82,7 +82,7 @@ export default class ImportNotionTask extends ImportTask {
               name: child.name,
               path: child.path,
               mimeType,
-              buffer: await zipObject.async("nodebuffer"),
+              buffer: () => zipObject.async("nodebuffer"),
               sourceId,
             });
             return;
