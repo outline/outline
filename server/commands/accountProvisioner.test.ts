@@ -108,6 +108,44 @@ describe("accountProvisioner", () => {
     spy.mockRestore();
   });
 
+  it("should allow authentication by email matching", async () => {
+    const existingTeam = await buildTeam();
+    const providers = await existingTeam.$get("authenticationProviders");
+    const authenticationProvider = providers[0];
+    const userWithoutAuth = await buildUser({
+      email: "email@example.com",
+      teamId: existingTeam.id,
+      authentications: [],
+    });
+
+    const { user, isNewUser, isNewTeam } = await accountProvisioner({
+      ip,
+      user: {
+        name: userWithoutAuth.name,
+        email: "email@example.com",
+        avatarUrl: userWithoutAuth.avatarUrl,
+      },
+      team: {
+        name: existingTeam.name,
+        avatarUrl: existingTeam.avatarUrl,
+        subdomain: "example",
+      },
+      authenticationProvider: {
+        name: authenticationProvider.name,
+        providerId: authenticationProvider.providerId,
+      },
+      authentication: {
+        providerId: "anything",
+        accessToken: "123",
+        scopes: ["read"],
+      },
+    });
+    expect(user.id).toEqual(userWithoutAuth.id);
+    expect(isNewTeam).toEqual(false);
+    expect(isNewUser).toEqual(false);
+    expect(user.authentications.length).toEqual(0);
+  });
+
   it("should throw an error when authentication provider is disabled", async () => {
     const existingTeam = await buildTeam();
     const providers = await existingTeam.$get("authenticationProviders");

@@ -1,8 +1,8 @@
 import { sequelize } from "@server/database/sequelize";
 import env from "@server/env";
 import {
-  InvalidAuthenticationError,
   DomainNotAllowedError,
+  InvalidAuthenticationError,
   MaximumTeamsError,
 } from "@server/errors";
 import Logger from "@server/logging/Logger";
@@ -10,14 +10,14 @@ import { APM } from "@server/logging/tracing";
 import { Team, AuthenticationProvider, Event } from "@server/models";
 import { generateAvatarUrl } from "@server/utils/avatars";
 
-type TeamCreatorResult = {
+type TeamProvisionerResult = {
   team: Team;
   authenticationProvider: AuthenticationProvider;
   isNewTeam: boolean;
 };
 
 type Props = {
-  id?: string;
+  teamId?: string;
   name: string;
   domain?: string;
   subdomain: string;
@@ -29,18 +29,18 @@ type Props = {
   ip: string;
 };
 
-async function teamCreator({
-  id,
+async function teamProvisioner({
+  teamId,
   name,
   domain,
   subdomain,
   avatarUrl,
   authenticationProvider,
   ip,
-}: Props): Promise<TeamCreatorResult> {
+}: Props): Promise<TeamProvisionerResult> {
   let authP = await AuthenticationProvider.findOne({
-    where: id
-      ? { ...authenticationProvider, teamId: id }
+    where: teamId
+      ? { ...authenticationProvider, teamId }
       : authenticationProvider,
     include: [
       {
@@ -59,11 +59,9 @@ async function teamCreator({
       team: authP.team,
       isNewTeam: false,
     };
-  }
-  // A team id was provided but no auth provider was found matching those credentials
-  // The user is attempting to log into a team with an incorrect SSO - fail the login
-  else if (id) {
-    throw InvalidAuthenticationError("incorrect authentication credentials");
+  } else if (teamId) {
+    // The user is attempting to log into a team with an unfamiliar SSO provider
+    throw InvalidAuthenticationError();
   }
 
   // This team has never been seen before, if self hosted the logic is different
@@ -176,5 +174,5 @@ async function provisionSubdomain(team: Team, requestedSubdomain: string) {
 
 export default APM.traceFunction({
   serviceName: "command",
-  spanName: "teamCreator",
-})(teamCreator);
+  spanName: "teamProvisioner",
+})(teamProvisioner);
