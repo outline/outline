@@ -1,4 +1,6 @@
 import { Op } from "sequelize";
+import subscriptionCreator from "@server/commands/subscriptionCreator";
+import { sequelize } from "@server/database/sequelize";
 import CollectionNotificationEmail from "@server/emails/templates/CollectionNotificationEmail";
 import DocumentNotificationEmail from "@server/emails/templates/DocumentNotificationEmail";
 import Logger from "@server/logging/Logger";
@@ -11,16 +13,19 @@ import {
   NotificationSetting,
   Subscription,
 } from "@server/models";
+import { can } from "@server/policies";
 import {
   CollectionEvent,
   RevisionEvent,
   Event,
   DocumentActionEvent,
+  DocumentEvent,
 } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
 
 export default class NotificationsProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = [
+    "documents.update",
     "documents.publish",
     "revisions.create",
     "collections.create",
@@ -31,13 +36,51 @@ export default class NotificationsProcessor extends BaseProcessor {
       case "documents.publish":
         return this.documentPublished(event);
 
-      case "revisions.create":
+      case "documents.update":
         return this.documentUpdated(event);
+
+      case "revisions.create":
+        return this.revisionCreated(event);
 
       case "collections.create":
         return this.collectionCreated(event);
 
       default:
+    }
+  }
+
+  // Create subscriptions when document is updated.
+  async documentUpdated(event: DocumentEvent) {
+    const document = await Document.findByPk(event.documentId);
+
+    // `event.name` will be `documents.update`
+    if (!document || event.name !== "documents.update") {
+      return;
+    }
+
+    const collaborators = document.collaboratorIds;
+
+    for (const collaborator of collaborators) {
+      // Use single transaction for both finds.
+      await sequelize.transaction(async (transaction) => {
+        const user = await User.findByPk(collaborator, { transaction });
+
+        if (user) {
+          // `user` has to have `createSubscription` permission on `document`.
+          if (can(user, "createSubscription", document)) {
+            await subscriptionCreator({
+              user: user,
+              documentId: document.id,
+              event: event.name,
+              // Avoid creating new subscription if user
+              // has already unsubscribed before.
+              paranoid: false,
+              transaction,
+              ip: event.ip,
+            });
+          }
+        }
+      });
     }
   }
 
@@ -99,7 +142,7 @@ export default class NotificationsProcessor extends BaseProcessor {
     }
   }
 
-  async documentUpdated(event: RevisionEvent) {
+  async revisionCreated(event: RevisionEvent) {
     const [collection, document, team] = await Promise.all([
       Collection.findByPk(event.collectionId),
       Document.findByPk(event.documentId),
