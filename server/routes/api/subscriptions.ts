@@ -1,5 +1,7 @@
 import invariant from "invariant";
 import Router from "koa-router";
+import subscriptionCreator from "@server/commands/subscriptionCreator";
+import { sequelize } from "@server/database/sequelize";
 import auth from "@server/middlewares/authentication";
 import { Subscription, Event, Document } from "@server/models";
 import { authorize } from "@server/policies";
@@ -41,18 +43,21 @@ router.post(
       `${event} is not a valid subscription event for documents`
     );
 
-    const document = await Document.findByPk(documentId);
+    const subscriptions = await sequelize.transaction(async (transaction) => {
+      const document = await Document.findByPk(documentId, { transaction });
 
-    authorize(user, "listSubscription", document);
+      authorize(user, "listSubscription", document);
 
-    const subscriptions = await Subscription.findAll({
-      where: {
-        documentId: document.id,
-        event,
-      },
-      order: [["createdAt", "DESC"]],
-      offset: ctx.state.pagination.offset,
-      limit: ctx.state.pagination.limit,
+      return Subscription.findAll({
+        where: {
+          documentId: document.id,
+          event,
+        },
+        order: [["createdAt", "DESC"]],
+        offset: ctx.state.pagination.offset,
+        limit: ctx.state.pagination.limit,
+        transaction,
+      });
     });
 
     ctx.body = {
@@ -70,6 +75,8 @@ router.post(
   async (ctx) => {
     const { documentId, event } = ctx.body;
 
+    const { user } = ctx.state;
+
     assertPresent(documentId, "documentId is required");
 
     // Make sure `documentId` is accompanied
@@ -80,21 +87,23 @@ router.post(
       `${event} is not a valid subscription event for documents`
     );
 
-    const document = await Document.findByPk(documentId);
+    const subscription = await sequelize.transaction(async (transaction) => {
+      const document = await Document.findByPk(documentId, { transaction });
 
-    const { user } = ctx.state;
+      authorize(user, "read", document);
 
-    authorize(user, "read", document);
+      const subscription = await Subscription.findOne({
+        where: {
+          documentId: document.id,
+          userId: user.id,
+          event,
+        },
+      });
 
-    const subscription = await Subscription.findOne({
-      where: {
-        documentId: document.id,
-        userId: user.id,
-        event,
-      },
+      authorize(user, "read", subscription);
+
+      return subscription;
     });
-
-    authorize(user, "read", subscription);
 
     ctx.body = {
       data: presentSubscription(subscription),
@@ -122,35 +131,19 @@ router.post(
       `${event} is not a valid subscription event for documents`
     );
 
-    const document = await Document.findByPk(documentId);
+    const subscription = await sequelize.transaction(async (transaction) => {
+      const document = await Document.findByPk(documentId, { transaction });
 
-    authorize(user, "createSubscription", document);
+      authorize(user, "createSubscription", document);
 
-    const [subscription, created] = await Subscription.findOrCreate({
-      where: {
-        userId: user.id,
+      return subscriptionCreator({
+        user: user,
         documentId: document.id,
         event,
-      },
-    });
-
-    // `findOrCreate` can return existing subscription.
-    // It'd be best to make sure user has permissions to read it.
-    authorize(user, "read", subscription);
-
-    if (created) {
-      const subscriptionEvent: SubscriptionEvent = {
-        teamId: user.teamId,
-        actorId: user.id,
         ip: ctx.request.ip,
-        name: "subscriptions.create",
-        modelId: subscription.id,
-        userId: user.userId,
-        documentId: document.id,
-      };
-
-      await Event.create(subscriptionEvent);
-    }
+        transaction,
+      });
+    });
 
     ctx.body = {
       data: presentSubscription(subscription),
