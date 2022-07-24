@@ -14,20 +14,36 @@ type UserProvisionerResult = {
 };
 
 type Props = {
+  /** The displayed name of the user */
   name: string;
+  /** The email address of the user */
   email: string;
+  /** The username of the user */
   username?: string;
+  /** Provision the new user as an administrator */
   isAdmin?: boolean;
+  /** The public url of an image representing the user */
   avatarUrl?: string | null;
+  /**
+   * The internal ID of the team that is being logged into based on the
+   * subdomain that the request came from, if any.
+   */
   teamId: string;
+  /** Only match against existing user accounts using email, do not create a new account */
   emailMatchOnly?: boolean;
+  /** The IP address of the incoming request */
   ip: string;
   authentication: {
     authenticationProviderId: string;
+    /** External identifier of the user in the authentication provider  */
     providerId: string;
+    /** The scopes granted by the access token */
     scopes: string[];
+    /** The token provided by the authentication provider */
     accessToken?: string;
+    /** The refresh token provided by the authentication provider */
     refreshToken?: string;
+    /** The timestamp when the access token expires */
     expiresAt?: Date;
   };
 };

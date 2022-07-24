@@ -17,15 +17,27 @@ type TeamProvisionerResult = {
 };
 
 type Props = {
+  /**
+   * The internal ID of the team that is being logged into based on the
+   * subdomain that the request came from, if any.
+   */
   teamId?: string;
+  /** The displayed name of the team */
   name: string;
+  /** The domain name from the email of the user logging in */
   domain?: string;
+  /** The preferred subdomain to provision for the team if not yet created */
   subdomain: string;
+  /** The public url of an image representing the team */
   avatarUrl?: string | null;
+  /** Details of the authentication provider being used */
   authenticationProvider: {
+    /** The name of the authentication provider, eg "google" */
     name: string;
+    /** External identifier of the authentication provider */
     providerId: string;
   };
+  /** The IP address of the incoming request */
   ip: string;
 };
 

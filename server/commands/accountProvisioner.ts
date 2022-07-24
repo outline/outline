@@ -13,29 +13,53 @@ import teamProvisioner from "./teamProvisioner";
 import userProvisioner from "./userProvisioner";
 
 type Props = {
+  /** The IP address of the incoming request */
   ip: string;
+  /** Details of the user logging in from SSO provider */
   user: {
+    /** The displayed name of the user */
     name: string;
+    /** The email address of the user */
     email: string;
+    /** The public url of an image representing the user */
     avatarUrl?: string | null;
+    /** The username of the user */
     username?: string;
   };
+  /** Details of the team the user is logging into */
   team: {
+    /**
+     * The internal ID of the team that is being logged into based on the
+     * subdomain that the request came from, if any.
+     */
     teamId?: string;
+    /** The displayed name of the team */
     name: string;
+    /** The domain name from the email of the user logging in */
     domain?: string;
+    /** The preferred subdomain to provision for the team if not yet created */
     subdomain: string;
+    /** The public url of an image representing the team */
     avatarUrl?: string | null;
   };
+  /** Details of the authentication provider being used */
   authenticationProvider: {
+    /** The name of the authentication provider, eg "google" */
     name: string;
+    /** External identifier of the authentication provider */
     providerId: string;
   };
+  /** Details of the authentication from SSO provider */
   authentication: {
+    /** External identifier of the user in the authentication provider  */
     providerId: string;
+    /** The scopes granted by the access token */
     scopes: string[];
+    /** The token provided by the authentication provider */
     accessToken?: string;
+    /** The refresh token provided by the authentication provider */
     refreshToken?: string;
+    /** A number of seconds that the given access token expires in */
     expiresIn?: number;
   };
 };
