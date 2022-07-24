@@ -168,13 +168,13 @@ router.post(
 
     if (subscription.changed()) {
       const subscriptionEvent: SubscriptionEvent = {
-        teamId: user.teamId,
-        actorId: user.id,
-        ip: ctx.request.ip,
         name: "subscriptions.update",
-        modelId: subscription.id,
+        actorId: user.id,
         userId: user.userId,
         documentId: subscription.documentId,
+        teamId: user.teamId,
+        modelId: subscription.id,
+        ip: ctx.request.ip,
       };
 
       await Event.create(subscriptionEvent);
@@ -200,12 +200,17 @@ router.post(
 
     const subscription = await Subscription.findByPk(id);
 
-    authorize(user, "delete", subscription);
+    assertPresent(
+      subscription,
+      "subscription is required, make sure subscription id is correct"
+    );
 
     invariant(
-      subscription.documentId,
+      subscription?.documentId,
       "Subscription must have an associated document"
     );
+
+    authorize(user, "delete", subscription);
 
     assertIn(
       subscription.event,
