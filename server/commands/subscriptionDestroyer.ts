@@ -29,6 +29,8 @@ export default async function subscriptionDestroyer({
 }: Props): Promise<Subscription> {
   assert(subscription.userId === user.id);
 
+  await subscription.destroy({ transaction });
+
   await Event.create(
     {
       name: "subscriptions.delete",
@@ -40,8 +42,6 @@ export default async function subscriptionDestroyer({
     },
     { transaction }
   );
-
-  await subscription.destroy({ transaction });
 
   return subscription;
 }
