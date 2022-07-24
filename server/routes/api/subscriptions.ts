@@ -10,16 +10,6 @@ import { SubscriptionEvent } from "@server/types";
 import { assertIn, assertPresent, assertUuid } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
-/** Typical workflow involves
- * 1. Declaring required states.
- * 2. Deserializing request body.
- * 3. CRUD fetch for required data model.
- * 4. Checking authorization of actor on subject.
- * 5. CRUD operation by actor on subject.
- * 6. Ordering and pagination.
- * 7. Setting response body.
- */
-
 const router = new Router();
 
 router.post(
