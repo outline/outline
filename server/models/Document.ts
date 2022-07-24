@@ -35,12 +35,12 @@ import {
 import MarkdownSerializer from "slate-md-serializer";
 import isUUID from "validator/lib/isUUID";
 import * as Y from "yjs";
-import { MAX_TITLE_LENGTH } from "@shared/constants";
 import { DateFilter } from "@shared/types";
 import getTasks from "@shared/utils/getTasks";
 import parseTitle from "@shared/utils/parseTitle";
 import unescape from "@shared/utils/unescape";
 import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
+import { DocumentValidation } from "@shared/validations";
 import { parser } from "@server/editor";
 import slugify from "@server/utils/slugify";
 import Backlink from "./Backlink";
@@ -196,8 +196,8 @@ class Document extends ParanoidModel {
   urlId: string;
 
   @Length({
-    max: MAX_TITLE_LENGTH,
-    msg: `Document title must be ${MAX_TITLE_LENGTH} characters or less`,
+    max: DocumentValidation.maxTitleLength,
+    msg: `Document title must be ${DocumentValidation.maxTitleLength} characters or less`,
   })
   @Column
   title: string;

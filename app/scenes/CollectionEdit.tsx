@@ -3,7 +3,7 @@ import { observer } from "mobx-react";
 import { useState } from "react";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
-import { MAX_TITLE_LENGTH } from "@shared/constants";
+import { CollectionValidation } from "@shared/validations";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import IconPicker from "~/components/IconPicker";
@@ -94,7 +94,7 @@ const CollectionEdit = ({ collectionId, onSubmit }: Props) => {
             type="text"
             label={t("Name")}
             onChange={handleNameChange}
-            maxLength={MAX_TITLE_LENGTH}
+            maxLength={CollectionValidation.maxNameLength}
             value={name}
             required
             autoFocus

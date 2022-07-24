@@ -10,7 +10,7 @@ import {
   Length as SimpleLength,
 } from "sequelize-typescript";
 import MarkdownSerializer from "slate-md-serializer";
-import { MAX_TITLE_LENGTH } from "@shared/constants";
+import { DocumentValidation } from "@shared/validations";
 import Document from "./Document";
 import User from "./User";
 import IdModel from "./base/IdModel";
@@ -43,8 +43,8 @@ class Revision extends IdModel {
   editorVersion: string;
 
   @Length({
-    max: MAX_TITLE_LENGTH,
-    msg: `Revision title must be ${MAX_TITLE_LENGTH} characters or less`,
+    max: DocumentValidation.maxTitleLength,
+    msg: `Revision title must be ${DocumentValidation.maxTitleLength} characters or less`,
   })
   @Column
   title: string;
