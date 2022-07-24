@@ -29,15 +29,14 @@ allow(User, "createSubscription", Document, (user, document) => {
   return true;
 });
 
-// Is `user` list all subscriptions on `document`?
+// Is `user` allowed to list all subscriptions on `document`?
 allow(User, "listSubscription", Document, (user, document) => {
   // Sanity check.
   if (!document) {
     return false;
   }
 
-  // REVIEW: Show admin be allowed to prescribe
-  // a document to user?
+  // Admin should be able to list any subscriptions.
   if (user.isAdmin) {
     return true;
   }
@@ -103,7 +102,7 @@ allow(User, "delete", Subscription, (user, subscription) => {
     return true;
   }
 
-  // Otherwise `user` should be able to update
+  // Otherwise `user` should be able to delete
   // only their own set subscriptions.
   return user.id === subscription.userId;
 });
