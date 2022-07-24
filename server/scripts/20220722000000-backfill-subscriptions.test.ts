@@ -49,6 +49,9 @@ describe("#work", () => {
       expect(event.name).toEqual("subscriptions.create");
     });
 
+    // 5 documents, 3 collaborators each = 15.
+    expect(events.length).toEqual(15);
+
     expect(events[0].documentId).toEqual(document4.id);
     expect(events[1].documentId).toEqual(document4.id);
     expect(events[2].documentId).toEqual(document4.id);
@@ -98,6 +101,41 @@ describe("#work", () => {
     expect(events[12].actorId).toEqual(collaborator1.id);
     expect(events[13].actorId).toEqual(collaborator2.id);
     expect(events[14].actorId).toEqual(collaborator0.id);
+  });
+
+  it("should not create subscriptions and events for non-collaborators", async () => {
+    const admin = await buildUser();
+
+    // 2 collaborators.
+    const collaborator0 = await buildUser({ teamId: admin.teamId });
+    const collaborator1 = await buildUser({ teamId: admin.teamId });
+
+    // 1 viewer from the same team.
+    const viewer = await buildUser({ teamId: admin.teamId });
+
+    const document0 = await buildDocument({
+      userId: collaborator0.id,
+      collaboratorIds: [collaborator1.id],
+    });
+
+    await script();
+
+    const events = await Event.findAll();
+
+    events.forEach((event) => {
+      expect(event.name).toEqual("subscriptions.create");
+    });
+
+    expect(events.filter((event) => event.userId === viewer.id).length).toEqual(
+      0
+    );
+
+    expect(events[0].documentId).toEqual(document0.id);
+    expect(events[1].documentId).toEqual(document0.id);
+    expect(events[0].userId).toEqual(collaborator1.id);
+    expect(events[1].userId).toEqual(collaborator0.id);
+    expect(events[0].actorId).toEqual(collaborator1.id);
+    expect(events[1].actorId).toEqual(collaborator0.id);
   });
 
   it("should be idempotent", async () => {
