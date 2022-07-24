@@ -23,7 +23,6 @@ describe("subscriptionUpdater", () => {
           userId: user.id,
           documentId: document.id,
           event: subscribedEvent,
-          enabled: true,
           transaction,
         })
     );
@@ -34,6 +33,7 @@ describe("subscriptionUpdater", () => {
           user: user,
           subscription,
           event: subscribedEvent,
+          enabled: false,
           ip,
           transaction,
         })
@@ -44,9 +44,6 @@ describe("subscriptionUpdater", () => {
     expect(subscription.documentId).toEqual(document.id);
     expect(subscriptionUpdated.userId).toEqual(user.id);
     expect(subscriptionUpdated.documentId).toEqual(document.id);
-
-    // Both should be disabled after transaction.
-
     expect(event?.name).toEqual("subscriptions.update");
     expect(event?.modelId).toEqual(subscription.id);
   });
