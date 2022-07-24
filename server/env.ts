@@ -495,6 +495,49 @@ export class Environment {
     process.env.SOURCE_COMMIT || process.env.SOURCE_VERSION
   );
 
+  /**
+   * A boolean switch to toggle the rate limiter
+   * at application web server.
+   */
+  @IsOptional()
+  @IsBoolean()
+  public RATE_LIMITER_ENABLED = this.toBoolean(
+    process.env.RATE_LIMITER_ENABLED ?? "false"
+  );
+
+  /**
+   * Set max allowed requests in a given duration for
+   * default rate limiter to trigger throttling.
+   */
+  @IsOptional()
+  @IsNumber()
+  @CannotUseWithout("RATE_LIMITER_ENABLED")
+  public RATE_LIMITER_REQUESTS = this.toOptionalNumber(
+    process.env.RATE_LIMITER_REQUESTS ?? "5000"
+  );
+
+  /**
+   * Set fixed duration window(in secs) for
+   * default rate limiter, elapsing which the request
+   * quota is reset(the bucket is refilled with tokens).
+   */
+  @IsOptional()
+  @IsNumber()
+  @CannotUseWithout("RATE_LIMITER_ENABLED")
+  public RATE_LIMITER_DURATION_WINDOW = this.toOptionalNumber(
+    process.env.RATE_LIMITER_DURATION_WINDOW ?? "1"
+  );
+
+  /**
+   * Key prefix for redis keys which track request count
+   * for the default rate limiter
+   */
+  @IsOptional()
+  @CannotUseWithout("RATE_LIMITER_ENABLED")
+  public RATE_LIMITER_REDIS_KEY_PREFIX = this.toOptionalString(
+    process.env.RATE_LIMITER_REDIS_KEY_PREFIX || "rl"
+  );
+
   private toOptionalString(value: string | undefined) {
     return value ? value : undefined;
   }
