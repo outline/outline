@@ -79,7 +79,6 @@ describe("subscriptionCreator", () => {
       userId: user.id,
       documentId: document.id,
       event: subscribedEvent,
-      enabled: false,
     });
 
     const subscription1 = await sequelize.transaction(async (transaction) =>

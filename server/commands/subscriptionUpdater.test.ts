@@ -34,7 +34,6 @@ describe("subscriptionUpdater", () => {
           user: user,
           subscription,
           event: subscribedEvent,
-          enabled: false,
           ip,
           transaction,
         })
