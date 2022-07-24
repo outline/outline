@@ -47,13 +47,13 @@ describe("subscriptionCreator", () => {
       teamId: user.teamId,
     });
 
-    const subscription1 = await Subscription.create({
+    const subscription0 = await Subscription.create({
       userId: user.id,
       documentId: document.id,
       event: subscribedEvent,
     });
 
-    const subscription2 = await sequelize.transaction(async (transaction) =>
+    const subscription1 = await sequelize.transaction(async (transaction) =>
       subscriptionCreator({
         user: user,
         documentId: document.id,
@@ -62,9 +62,12 @@ describe("subscriptionCreator", () => {
         transaction,
       })
     );
-
-    expect(subscription1.userId).toEqual(subscription2.userId);
-    expect(subscription1.documentId).toEqual(subscription2.documentId);
+    expect(subscription0.documentId).toEqual(document.id);
+    expect(subscription0.userId).toEqual(user.id);
+    expect(subscription1.documentId).toEqual(document.id);
+    expect(subscription1.userId).toEqual(user.id);
+    expect(subscription0.userId).toEqual(subscription1.userId);
+    expect(subscription0.documentId).toEqual(subscription1.documentId);
   });
 
   it("should not enable subscription by overriding one that already exists in disabled state", async () => {
@@ -91,10 +94,86 @@ describe("subscriptionCreator", () => {
       })
     );
 
-    expect(subscription0.userId).toEqual(subscription1.userId);
-    expect(subscription0.documentId).toEqual(subscription1.documentId);
-
+    // Should not emit an event.
     const events = await Event.count();
     expect(events).toEqual(0);
+
+    expect(subscription0.documentId).toEqual(document.id);
+    expect(subscription0.userId).toEqual(user.id);
+    expect(subscription1.documentId).toEqual(document.id);
+    expect(subscription1.userId).toEqual(user.id);
+    expect(subscription0.id).toEqual(subscription1.id);
+    expect(subscription0.userId).toEqual(subscription1.userId);
+    expect(subscription0.documentId).toEqual(subscription1.documentId);
+  });
+
+  it("should fetch already enabled subscription on create request", async () => {
+    const user = await buildUser();
+
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const subscription0 = await sequelize.transaction(async (transaction) =>
+      subscriptionCreator({
+        user: user,
+        documentId: document.id,
+        event: subscribedEvent,
+        ip,
+        transaction,
+      })
+    );
+
+    const subscription1 = await sequelize.transaction(async (transaction) =>
+      subscriptionCreator({
+        user: user,
+        documentId: document.id,
+        event: subscribedEvent,
+        ip,
+        transaction,
+      })
+    );
+
+    // Should emit 1 event instead of 2.
+    const events = await Event.count();
+    expect(events).toEqual(1);
+
+    expect(subscription0.documentId).toEqual(document.id);
+    expect(subscription0.userId).toEqual(user.id);
+    expect(subscription1.documentId).toEqual(document.id);
+    expect(subscription1.userId).toEqual(user.id);
+    expect(subscription0.id).toEqual(subscription1.id);
+    expect(subscription0.userId).toEqual(subscription1.userId);
+    expect(subscription0.documentId).toEqual(subscription1.documentId);
+  });
+
+  it("should fetch deletedAt column with paranoid option", async () => {
+    const user = await buildUser();
+
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const subscription0 = await sequelize.transaction(async (transaction) =>
+      subscriptionCreator({
+        user: user,
+        documentId: document.id,
+        event: subscribedEvent,
+        paranoid: true,
+        ip,
+        transaction,
+      })
+    );
+
+    const events = await Event.count();
+    expect(events).toEqual(1);
+
+    expect(subscription0.documentId).toEqual(document.id);
+    expect(subscription0.userId).toEqual(user.id);
+    expect(subscription0.userId).toEqual(user.id);
+    expect(subscription0.documentId).toEqual(document.id);
+    expect(subscription0.deletedAt).toEqual(null);
   });
 });
