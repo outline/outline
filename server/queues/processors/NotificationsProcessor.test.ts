@@ -97,6 +97,82 @@ describe("documents.publish", () => {
     });
     expect(DocumentNotificationEmail.schedule).not.toHaveBeenCalled();
   });
+
+  test("should create a new subscription upon publishing new documents", async () => {
+    const user = await buildUser();
+
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    await NotificationSetting.create({
+      userId: user.id,
+      teamId: user.teamId,
+      event: "documents.publish",
+    });
+
+    const processor = new NotificationsProcessor();
+
+    await processor.perform({
+      name: "documents.publish",
+      documentId: document.id,
+      collectionId: document.collectionId,
+      teamId: document.teamId,
+      actorId: document.createdById,
+      data: {
+        title: document.title,
+      },
+      ip,
+    });
+
+    const events = await Event.findAll();
+
+    // Should emit 1 `subscriptions.create` events.
+    expect(events.length).toEqual(1);
+    expect(events[0].name).toEqual("subscriptions.create");
+    expect(events[0].documentId).toEqual(document.id);
+    expect(events[0].userId).toEqual(user.id);
+
+    expect(DocumentNotificationEmail.schedule).not.toHaveBeenCalled();
+  });
+
+  test("should not create new subscription if user doesn't have read access to published document", async () => {
+    const user = await buildUser();
+
+    const document = await buildDocument({ teamId: user.teamId });
+
+    await NotificationSetting.create({
+      userId: user.id,
+      teamId: user.teamId,
+      event: "documents.publish",
+    });
+
+    const processor = new NotificationsProcessor();
+
+    await processor.perform({
+      name: "documents.publish",
+      documentId: document.id,
+      collectionId: document.collectionId,
+      teamId: document.teamId,
+      actorId: document.createdById,
+      data: {
+        title: document.title,
+      },
+      ip,
+    });
+
+    const events = await Event.findAll();
+
+    // Should not emit `subscriptions.create` events.
+    expect(events.length).toEqual(0);
+
+    // Although notifications can be sent if team members
+    // have published a new document.
+    // REVIEW: Should notifications not be sent
+    //         if user doesn't have read access on document?
+    expect(DocumentNotificationEmail.schedule).toHaveBeenCalled();
+  });
 });
 
 describe("revisions.create", () => {

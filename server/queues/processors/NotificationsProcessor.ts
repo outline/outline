@@ -58,30 +58,8 @@ export default class NotificationsProcessor extends BaseProcessor {
       return;
     }
 
-    const collaborators = document.collaboratorIds;
-
-    for (const collaborator of collaborators) {
-      // Use single transaction for both finds.
-      await sequelize.transaction(async (transaction) => {
-        const user = await User.findByPk(collaborator, { transaction });
-
-        if (user) {
-          // `user` has to have `createSubscription` permission on `document`.
-          if (can(user, "createSubscription", document)) {
-            await subscriptionCreator({
-              user: user,
-              documentId: document.id,
-              event: event.name,
-              // Avoid creating new subscription if user
-              // has already unsubscribed before.
-              paranoid: false,
-              transaction,
-              ip: event.ip,
-            });
-          }
-        }
-      });
-    }
+    // Create subscriptions for newly updated document.
+    await createSubscriptions(document, event);
   }
 
   async documentPublished(event: DocumentActionEvent) {
@@ -99,6 +77,9 @@ export default class NotificationsProcessor extends BaseProcessor {
     if (!document || !team || !collection) {
       return;
     }
+
+    // Create subscriptions for newly published document.
+    await createSubscriptions(document, event);
 
     // Publish notifications
     const recipients = await NotificationSetting.findAll({
@@ -292,4 +273,37 @@ const shouldNotify = async (subject: Notifiable): Promise<boolean> => {
   }
 
   return true;
+};
+
+const createSubscriptions = async (
+  document: Document,
+  event: DocumentEvent
+): Promise<void> => {
+  const collaboratorIds = document.collaboratorIds;
+
+  for (const collaboratorId of collaboratorIds) {
+    // Use single transaction for both finds.
+    await sequelize.transaction(async (transaction) => {
+      const user = await User.findByPk(collaboratorId, { transaction });
+
+      if (user) {
+        // `user` has to have `createSubscription` permission on `document`.
+        if (can(user, "createSubscription", document)) {
+          // `subscriptionCreator` uses `findOrCreate`.
+          // A duplicate won't be created if a subscription
+          // exists already.
+          await subscriptionCreator({
+            user: user,
+            documentId: document.id,
+            event: "documents.update",
+            // Avoid creating new subscription if user
+            // has already unsubscribed before.
+            paranoid: false,
+            transaction,
+            ip: event.ip,
+          });
+        }
+      }
+    });
+  }
 };
