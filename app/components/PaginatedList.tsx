@@ -153,7 +153,6 @@ class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
       renderHeading,
       renderError,
       onEscape,
-      children,
     } = this.props;
 
     const showLoading =
@@ -224,7 +223,6 @@ class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
             });
           }}
         </ArrowKeyNavigation>
-        {children}
         {this.allowLoadMore && (
           <Waypoint key={this.renderCount} onEnter={this.loadMoreResults} />
         )}

@@ -3,7 +3,7 @@ import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { withTranslation, Trans, WithTranslation } from "react-i18next";
-import { MAX_TITLE_LENGTH } from "@shared/constants";
+import { CollectionValidation } from "@shared/validations";
 import RootStore from "~/stores/RootStore";
 import Collection from "~/models/Collection";
 import Button from "~/components/Button";
@@ -128,7 +128,7 @@ class CollectionNew extends React.Component<Props> {
             type="text"
             label={t("Name")}
             onChange={this.handleNameChange}
-            maxLength={MAX_TITLE_LENGTH}
+            maxLength={CollectionValidation.maxNameLength}
             value={this.name}
             required
             autoFocus

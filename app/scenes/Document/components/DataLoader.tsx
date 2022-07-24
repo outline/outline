@@ -45,7 +45,12 @@ function DataLoader({ match, children }: Props) {
   const { team } = auth;
   const [error, setError] = React.useState<Error | null>(null);
   const { revisionId, shareId, documentSlug } = match.params;
-  const document = documents.getByUrl(match.params.documentSlug);
+
+  // Allows loading by /doc/slug-<urlId> or /doc/<id>
+  const document =
+    documents.getByUrl(match.params.documentSlug) ??
+    documents.get(match.params.documentSlug);
+
   const revision = revisionId ? revisions.get(revisionId) : undefined;
   const sharedTree = document
     ? documents.getSharedTree(document.id)

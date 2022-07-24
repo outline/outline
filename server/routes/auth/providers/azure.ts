@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import type { Context } from "koa";
 import Router from "koa-router";
 import { Profile } from "passport";
+import { slugifyDomain } from "@shared/utils/domains";
 import accountProvisioner, {
   AccountProvisionerResult,
 } from "@server/commands/accountProvisioner";
@@ -95,12 +96,13 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
         const team = await getTeamFromContext(ctx);
 
         const domain = email.split("@")[1];
-        const subdomain = domain.split(".")[0];
+        const subdomain = slugifyDomain(domain);
+
         const teamName = organization.displayName;
         const result = await accountProvisioner({
           ip: ctx.ip,
           team: {
-            id: team?.id,
+            teamId: team?.id,
             name: teamName,
             domain,
             subdomain,

@@ -148,6 +148,21 @@ describe("documentImporter", () => {
     expect(response.title).toEqual("Heading 1");
   });
 
+  it("should handle only title", async () => {
+    const user = await buildUser();
+    const fileName = "markdown.md";
+    const content = `# Title`;
+    const response = await documentImporter({
+      user,
+      mimeType: "text/plain",
+      fileName,
+      content,
+      ip,
+    });
+    expect(response.text).toEqual("");
+    expect(response.title).toEqual("Title");
+  });
+
   it("should fallback to extension if mimetype unknown", async () => {
     const user = await buildUser();
     const fileName = "markdown.md";

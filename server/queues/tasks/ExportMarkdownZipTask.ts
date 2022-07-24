@@ -120,7 +120,7 @@ export default class ExportMarkdownZipTask extends BaseTask<Props> {
   public get options() {
     return {
       priority: TaskPriority.Background,
-      attempts: 2,
+      attempts: 1,
     };
   }
 }
