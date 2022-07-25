@@ -230,8 +230,8 @@ export default class NotificationsProcessor extends BaseProcessor {
         const user = await User.findByPk(collaboratorId, { transaction });
 
         if (user) {
-          // `user` has to have `createSubscription` permission on `document`.
-          if (can(user, "createSubscription", document)) {
+          // `user` has to have `subscribe` permission on `document`.
+          if (can(user, "subscribe", document)) {
             // `subscriptionCreator` uses `findOrCreate`.
             // A duplicate won't be created if a subscription
             // exists already.
