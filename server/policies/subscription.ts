@@ -66,11 +66,9 @@ allow(User, "read", Subscription, (user, subscription) => {
     return true;
   }
 
-  // Otherwise `user` should be able
-  // to read any subscriptions
-  // REVIEW: Constrain?
-  // return user.id === subscription.id;
-  return true;
+  // REVIEW: Should user be able to read any subscription?
+  // return true;
+  return user.id === subscription.userId;
 });
 
 // Is `user` allowed to `update` subscription on `document`?
