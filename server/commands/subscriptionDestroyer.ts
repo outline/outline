@@ -1,4 +1,3 @@
-import assert from "assert";
 import { Transaction } from "sequelize";
 import { Event, Subscription, User } from "@server/models";
 
@@ -27,8 +26,6 @@ export default async function subscriptionDestroyer({
   ip,
   transaction,
 }: Props): Promise<Subscription> {
-  assert(subscription.userId === user.id);
-
   await subscription.destroy({ transaction });
 
   await Event.create(
