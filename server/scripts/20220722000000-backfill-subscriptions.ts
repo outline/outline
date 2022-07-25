@@ -11,26 +11,23 @@ export default async function main(exit = false) {
 
     // Retrieve all documents within set limit.
     const documents = await Document.findAll({
+      attributes: ["collaboratorIds", "id"],
       limit,
       offset: page * limit,
-      order: [["createdAt", "DESC"]],
+      order: [["createdAt", "ASC"]],
     });
 
     for (const document of documents) {
       try {
-        const collaborators = document.collaboratorIds;
-
-        for (const collaborator of collaborators) {
-          const [
-            collaboratorSubscription,
-            created,
-          ] = await Subscription.findOrCreate({
+        await Promise.all(document.collaboratorIds, (collaboratorId) => 
+          Subscription.findOrCreate({
             where: {
-              userId: collaborator,
+              userId: collaboratorId,
               documentId: document.id,
               event: "documents.update",
             },
-          });
+          })
+        })
 
         }
       } catch (err) {
