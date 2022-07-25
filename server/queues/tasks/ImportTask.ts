@@ -198,38 +198,126 @@ export default abstract class ImportTask extends BaseTask<Props> {
     const documents = new Map<string, Document>();
     const attachments = new Map<string, Attachment>();
 
-    return sequelize.transaction(async (transaction) => {
-      const user = await User.findByPk(fileOperation.userId, {
-        transaction,
-        rejectOnEmpty: true,
-      });
+    try {
+      return await sequelize.transaction(async (transaction) => {
+        const user = await User.findByPk(fileOperation.userId, {
+          transaction,
+          rejectOnEmpty: true,
+        });
 
-      const ip = user.lastActiveIp || undefined;
+        const ip = user.lastActiveIp || undefined;
 
-      // Attachments
-      await Promise.all(
-        data.attachments.map(async (item) => {
-          Logger.debug("task", `ImportTask persisting attachment ${item.id}`);
-          const attachment = await attachmentCreator({
-            source: "import",
-            id: item.id,
-            name: item.name,
-            type: item.mimeType,
-            buffer: await item.buffer(),
-            user,
-            ip,
+        // Attachments
+        await Promise.all(
+          data.attachments.map(async (item) => {
+            Logger.debug("task", `ImportTask persisting attachment ${item.id}`);
+            const attachment = await attachmentCreator({
+              source: "import",
+              id: item.id,
+              name: item.name,
+              type: item.mimeType,
+              buffer: await item.buffer(),
+              user,
+              ip,
+              transaction,
+            });
+            attachments.set(item.id, attachment);
+          })
+        );
+
+        // Collections
+        for (const item of data.collections) {
+          Logger.debug("task", `ImportTask persisting collection ${item.id}`);
+          let description = item.description;
+
+          if (description) {
+            // Check all of the attachments we've created against urls in the text
+            // and replace them out with attachment redirect urls before saving.
+            for (const aitem of data.attachments) {
+              const attachment = attachments.get(aitem.id);
+              if (!attachment) {
+                continue;
+              }
+              description = description.replace(
+                new RegExp(`<<${attachment.id}>>`, "g"),
+                attachment.redirectUrl
+              );
+            }
+
+            // Check all of the document we've created against urls in the text
+            // and replace them out with a valid internal link. Because we are doing
+            // this before saving, we can't use the document slug, but we can take
+            // advantage of the fact that the document id will redirect in the client
+            for (const ditem of data.documents) {
+              description = description.replace(
+                new RegExp(`<<${ditem.id}>>`, "g"),
+                `/doc/${ditem.id}`
+              );
+            }
+          }
+
+          // check if collection with name exists
+          const response = await Collection.findOrCreate({
+            where: {
+              teamId: fileOperation.teamId,
+              name: item.name,
+            },
+            defaults: {
+              id: item.id,
+              description: truncate(description, {
+                length: CollectionValidation.maxDescriptionLength,
+              }),
+              createdById: fileOperation.userId,
+              permission: "read_write",
+            },
             transaction,
           });
-          attachments.set(item.id, attachment);
-        })
-      );
 
-      // Collections
-      for (const item of data.collections) {
-        Logger.debug("task", `ImportTask persisting collection ${item.id}`);
-        let description = item.description;
+          let collection = response[0];
+          const isCreated = response[1];
 
-        if (description) {
+          // create new collection if name already exists, yes it's possible that
+          // there is also a "Name (Imported)" but this is a case not worth dealing
+          // with right now
+          if (!isCreated) {
+            const name = `${item.name} (Imported)`;
+            collection = await Collection.create(
+              {
+                id: item.id,
+                description,
+                teamId: fileOperation.teamId,
+                createdById: fileOperation.userId,
+                name,
+                permission: "read_write",
+              },
+              { transaction }
+            );
+          }
+
+          await Event.create(
+            {
+              name: "collections.create",
+              collectionId: collection.id,
+              teamId: collection.teamId,
+              actorId: fileOperation.userId,
+              data: {
+                name: collection.name,
+              },
+              ip,
+            },
+            {
+              transaction,
+            }
+          );
+
+          collections.set(item.id, collection);
+        }
+
+        // Documents
+        for (const item of data.documents) {
+          Logger.debug("task", `ImportTask persisting document ${item.id}`);
+          let text = item.text;
+
           // Check all of the attachments we've created against urls in the text
           // and replace them out with attachment redirect urls before saving.
           for (const aitem of data.attachments) {
@@ -237,7 +325,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
             if (!attachment) {
               continue;
             }
-            description = description.replace(
+            text = text.replace(
               new RegExp(`<<${attachment.id}>>`, "g"),
               attachment.redirectUrl
             );
@@ -248,135 +336,56 @@ export default abstract class ImportTask extends BaseTask<Props> {
           // this before saving, we can't use the document slug, but we can take
           // advantage of the fact that the document id will redirect in the client
           for (const ditem of data.documents) {
-            description = description.replace(
+            text = text.replace(
               new RegExp(`<<${ditem.id}>>`, "g"),
               `/doc/${ditem.id}`
             );
           }
-        }
 
-        // check if collection with name exists
-        const response = await Collection.findOrCreate({
-          where: {
-            teamId: fileOperation.teamId,
-            name: item.name,
-          },
-          defaults: {
+          const document = await documentCreator({
+            source: "import",
             id: item.id,
-            description: truncate(description, {
-              length: CollectionValidation.maxDescriptionLength,
-            }),
-            createdById: fileOperation.userId,
-            permission: "read_write",
-          },
-          transaction,
-        });
-
-        let collection = response[0];
-        const isCreated = response[1];
-
-        // create new collection if name already exists, yes it's possible that
-        // there is also a "Name (Imported)" but this is a case not worth dealing
-        // with right now
-        if (!isCreated) {
-          const name = `${item.name} (Imported)`;
-          collection = await Collection.create(
-            {
-              id: item.id,
-              description,
-              teamId: fileOperation.teamId,
-              createdById: fileOperation.userId,
-              name,
-              permission: "read_write",
-            },
-            { transaction }
-          );
-        }
-
-        await Event.create(
-          {
-            name: "collections.create",
-            collectionId: collection.id,
-            teamId: collection.teamId,
-            actorId: fileOperation.userId,
-            data: {
-              name: collection.name,
-            },
+            title: item.title,
+            text,
+            collectionId: item.collectionId,
+            createdAt: item.createdAt,
+            updatedAt: item.updatedAt ?? item.createdAt,
+            publishedAt: item.updatedAt ?? item.createdAt ?? new Date(),
+            parentDocumentId: item.parentDocumentId,
+            user,
             ip,
-          },
-          {
             transaction,
+          });
+          documents.set(item.id, document);
+
+          const collection = collections.get(item.collectionId);
+          if (collection) {
+            await collection.addDocumentToStructure(document, 0, {
+              transaction,
+            });
           }
-        );
-
-        collections.set(item.id, collection);
-      }
-
-      // Documents
-      for (const item of data.documents) {
-        Logger.debug("task", `ImportTask persisting document ${item.id}`);
-        let text = item.text;
-
-        // Check all of the attachments we've created against urls in the text
-        // and replace them out with attachment redirect urls before saving.
-        for (const aitem of data.attachments) {
-          const attachment = attachments.get(aitem.id);
-          if (!attachment) {
-            continue;
-          }
-          text = text.replace(
-            new RegExp(`<<${attachment.id}>>`, "g"),
-            attachment.redirectUrl
-          );
         }
 
-        // Check all of the document we've created against urls in the text
-        // and replace them out with a valid internal link. Because we are doing
-        // this before saving, we can't use the document slug, but we can take
-        // advantage of the fact that the document id will redirect in the client
-        for (const ditem of data.documents) {
-          text = text.replace(
-            new RegExp(`<<${ditem.id}>>`, "g"),
-            `/doc/${ditem.id}`
-          );
-        }
+        // Return value is only used for testing
+        return {
+          collections,
+          documents,
+          attachments,
+        };
+      });
+    } catch (err) {
+      Logger.info(
+        "task",
+        `Removing ${attachments.size} attachments on failure`
+      );
 
-        const document = await documentCreator({
-          source: "import",
-          id: item.id,
-          title: item.title,
-          text,
-          collectionId: item.collectionId,
-          createdAt: item.createdAt,
-          updatedAt: item.updatedAt ?? item.createdAt,
-          publishedAt: item.updatedAt ?? item.createdAt ?? new Date(),
-          parentDocumentId: item.parentDocumentId,
-          user,
-          ip,
-          transaction,
-        });
-        documents.set(item.id, document);
-
-        const collection = collections.get(item.collectionId);
-        if (collection) {
-          await collection.addDocumentToStructure(document, 0, { transaction });
-        }
-      }
-
-      // Return value is only used for testing
-      return {
-        collections,
-        documents,
-        attachments,
-      };
-    });
-  }
-
-  /**
-   * Optional hook to remove any temporary files that were created
-   */
-  protected async cleanupData() {
-    // noop
+      await Promise.all(
+        Array.from(attachments.values()).map((model) =>
+          Attachment.deleteAttachmentFromS3(model)
+        )
+      );
+      throw err;
+    }
   }
 
   /**
