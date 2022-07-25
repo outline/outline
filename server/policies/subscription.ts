@@ -8,13 +8,6 @@ allow(User, "createSubscription", Document, (user, document) => {
     return false;
   }
 
-
-  // REVIEW: Show admin be allowed to prescribe
-  // a document to user?
-  if (user.isAdmin) {
-    return true;
-  }
-
   // If `user` isn't allowed to read `document`,
   // they shouldn't be able to subscribe to its changes.
   if (cannot(user, "read", document)) {
