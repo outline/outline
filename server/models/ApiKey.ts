@@ -10,10 +10,16 @@ import {
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
+import Length from "./validators/Length";
 
 @Table({ tableName: "apiKeys", modelName: "apiKey" })
 @Fix
 class ApiKey extends ParanoidModel {
+  @Length({
+    min: 3,
+    max: 255,
+    msg: "Name must be between 3 and 255 characters",
+  })
   @Column
   name: string;
 

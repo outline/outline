@@ -1,6 +1,7 @@
 /* eslint-disable no-irregular-whitespace */
 import { darken, lighten, transparentize } from "polished";
 import styled from "styled-components";
+import { depths } from "@shared/styles";
 
 const EditorStyles = styled.div<{
   rtl: boolean;
@@ -359,6 +360,7 @@ const EditorStyles = styled.div<{
 
   .heading-actions {
     opacity: 0;
+    z-index: ${depths.editorHeadingActions};
     background: ${(props) => props.theme.background};
     margin-${(props) => (props.rtl ? "right" : "left")}: -26px;
     flex-direction: ${(props) => (props.rtl ? "row-reverse" : "row")};
@@ -405,6 +407,7 @@ const EditorStyles = styled.div<{
     &.collapsed {
       svg {
         transform: rotate(${(props) => (props.rtl ? "90deg" : "-90deg")});
+        pointer-events: none;
       }
       transition-delay: 0.1s;
       opacity: 1;

@@ -53,6 +53,7 @@ export default function useDictionary() {
       noResults: t("No results"),
       openLink: t("Open link"),
       goToLink: t("Go to link"),
+      openLinkError: t("Sorry, that type of link is not supported"),
       orderedList: t("Ordered list"),
       pageBreak: t("Page break"),
       pasteLink: `${t("Paste a link")}…`,

@@ -166,10 +166,10 @@ Object {
 }
 `;
 
-exports[`#users.demote should not demote admins if only one available 1`] = `
+exports[`#users.demote should not allow demoting self 1`] = `
 Object {
   "error": "validation_error",
-  "message": "At least one admin is required",
+  "message": "Unable to demote the current user",
   "ok": false,
   "status": 400,
 }

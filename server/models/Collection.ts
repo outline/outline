@@ -18,10 +18,12 @@ import {
   ForeignKey,
   Scopes,
   DataType,
+  Length as SimpleLength,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
 import { sortNavigationNodes } from "@shared/utils/collections";
 import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
+import { CollectionValidation } from "@shared/validations";
 import slugify from "@server/utils/slugify";
 import { NavigationNode, CollectionSort } from "~/types";
 import CollectionGroup from "./CollectionGroup";
@@ -33,6 +35,8 @@ import Team from "./Team";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
+import IsHexColor from "./validators/IsHexColor";
+import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
 
 // without this indirection, the app crashes on starup
@@ -128,23 +132,45 @@ type Sort = CollectionSort;
 @Table({ tableName: "collections", modelName: "collection" })
 @Fix
 class Collection extends ParanoidModel {
+  @SimpleLength({
+    min: 10,
+    max: 10,
+    msg: `urlId must be 10 characters`,
+  })
   @Unique
   @Column
   urlId: string;
 
   @NotContainsUrl
+  @Length({
+    max: CollectionValidation.maxNameLength,
+    msg: `name must be ${CollectionValidation.maxNameLength} characters or less`,
+  })
   @Column
   name: string;
 
+  @Length({
+    max: CollectionValidation.maxDescriptionLength,
+    msg: `description must be ${CollectionValidation.maxDescriptionLength} characters or less`,
+  })
   @Column
   description: string;
 
+  @Length({
+    max: 50,
+    msg: `icon must be 50 characters or less`,
+  })
   @Column
   icon: string | null;
 
+  @IsHexColor
   @Column
   color: string | null;
 
+  @Length({
+    max: 50,
+    msg: `index must 50 characters or less`,
+  })
   @Column
   index: string | null;
 

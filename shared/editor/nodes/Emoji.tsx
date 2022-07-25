@@ -35,9 +35,9 @@ export default class Emoji extends Node {
       selectable: false,
       parseDOM: [
         {
-          tag: "span.emoji",
+          tag: "strong.emoji",
           preserveWhitespace: "full",
-          getAttrs: (dom: HTMLDivElement) => ({
+          getAttrs: (dom: HTMLElement) => ({
             "data-name": dom.dataset.name,
           }),
         },
@@ -48,7 +48,7 @@ export default class Emoji extends Node {
             nameToEmoji[node.attrs["data-name"]]
           );
           return [
-            "span",
+            "strong",
             {
               class: `emoji ${node.attrs["data-name"]}`,
               "data-name": node.attrs["data-name"],
@@ -57,7 +57,7 @@ export default class Emoji extends Node {
           ];
         }
         const text = document.createTextNode(`:${node.attrs["data-name"]}:`);
-        return ["span", { class: "emoji" }, text];
+        return ["strong", { class: "emoji" }, text];
       },
       toPlainText: (node) => nameToEmoji[node.attrs["data-name"]],
     };

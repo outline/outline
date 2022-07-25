@@ -237,6 +237,7 @@ export default class AuthStore {
     collaborativeEditing?: boolean;
     defaultCollectionId?: string | null;
     subdomain?: string | null | undefined;
+    allowedDomains?: string[] | null | undefined;
   }) => {
     this.isSaving = true;
 

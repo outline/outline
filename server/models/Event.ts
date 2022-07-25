@@ -9,6 +9,7 @@ import {
   IsUUID,
   Table,
   DataType,
+  Length,
 } from "sequelize-typescript";
 import { globalEventQueue } from "../queues";
 import { Event as TEvent } from "../types";
@@ -19,13 +20,17 @@ import User from "./User";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
 
-@Table({ tableName: "events", modelName: "event" })
+@Table({ tableName: "events", modelName: "event", updatedAt: false })
 @Fix
 class Event extends IdModel {
   @IsUUID(4)
   @Column(DataType.UUID)
   modelId: string;
 
+  @Length({
+    max: 255,
+    msg: "name must be 255 characters or less",
+  })
   @Column
   name: string;
 
@@ -101,7 +106,6 @@ class Event extends IdModel {
     globalEventQueue.add(
       this.build({
         createdAt: now,
-        updatedAt: now,
         ...event,
       })
     );

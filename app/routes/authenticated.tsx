@@ -1,3 +1,4 @@
+import { observer } from "mobx-react";
 import * as React from "react";
 import { Switch, Redirect, RouteComponentProps } from "react-router-dom";
 import Archive from "~/scenes/Archive";
@@ -11,6 +12,8 @@ import CenteredContent from "~/components/CenteredContent";
 import PlaceholderDocument from "~/components/PlaceholderDocument";
 import Route from "~/components/ProfiledRoute";
 import SocketProvider from "~/components/SocketProvider";
+import useCurrentTeam from "~/hooks/useCurrentTeam";
+import usePolicy from "~/hooks/usePolicy";
 import { matchDocumentSlug as slug } from "~/utils/routeHelpers";
 
 const SettingsRoutes = React.lazy(
@@ -59,7 +62,10 @@ const RedirectDocument = ({
   />
 );
 
-export default function AuthenticatedRoutes() {
+function AuthenticatedRoutes() {
+  const team = useCurrentTeam();
+  const can = usePolicy(team.id);
+
   return (
     <SocketProvider>
       <Layout>
@@ -71,14 +77,24 @@ export default function AuthenticatedRoutes() {
           }
         >
           <Switch>
+            {can.createDocument && (
+              <Route exact path="/templates" component={Templates} />
+            )}
+            {can.createDocument && (
+              <Route exact path="/templates/:sort" component={Templates} />
+            )}
+            {can.createDocument && (
+              <Route exact path="/drafts" component={Drafts} />
+            )}
+            {can.createDocument && (
+              <Route exact path="/archive" component={Archive} />
+            )}
+            {can.createDocument && (
+              <Route exact path="/trash" component={Trash} />
+            )}
             <Redirect from="/dashboard" to="/home" />
             <Route path="/home/:tab" component={Home} />
             <Route path="/home" component={Home} />
-            <Route exact path="/templates" component={Templates} />
-            <Route exact path="/templates/:sort" component={Templates} />
-            <Route exact path="/drafts" component={Drafts} />
-            <Route exact path="/archive" component={Archive} />
-            <Route exact path="/trash" component={Trash} />
             <Redirect exact from="/starred" to="/home" />
             <Redirect exact from="/collections/*" to="/collection/*" />
             <Route exact path="/collection/:id/new" component={DocumentNew} />
@@ -103,3 +119,5 @@ export default function AuthenticatedRoutes() {
     </SocketProvider>
   );
 }
+
+export default observer(AuthenticatedRoutes);

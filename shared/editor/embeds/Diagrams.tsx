@@ -3,7 +3,7 @@ import Frame from "../components/Frame";
 import Image from "../components/Image";
 import { EmbedProps as Props } from ".";
 
-const URL_REGEX = /^https:\/\/viewer\.diagrams\.net\/.*(title=\\w+)?/;
+const URL_REGEX = /^https:\/\/viewer\.diagrams\.net\/(?!proxy).*(title=\\w+)?/;
 
 export default class Diagrams extends React.Component<Props> {
   static ENABLED = [URL_REGEX];

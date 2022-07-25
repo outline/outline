@@ -1,11 +1,16 @@
 import { Context } from "koa";
 import { FileOperation, Team, User } from "./models";
 
+export enum AuthenticationTypes {
+  API = "api",
+  APP = "app",
+}
+
 export type ContextWithState = Context & {
   state: {
     user: User;
     token: string;
-    authType: "app" | "api";
+    authType: AuthenticationTypes;
   };
 };
 

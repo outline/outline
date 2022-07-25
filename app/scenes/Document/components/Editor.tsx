@@ -57,8 +57,10 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     }
   }, [ref]);
 
+  // Save document when blurring title, but delay so that if clicking on a
+  // button this is allowed to execute first.
   const handleBlur = React.useCallback(() => {
-    props.onSave({ autosave: true });
+    setTimeout(() => props.onSave({ autosave: true }), 250);
   }, [props]);
 
   const handleGoToNextInput = React.useCallback(

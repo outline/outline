@@ -1,9 +1,9 @@
 import { toggleMark } from "prosemirror-commands";
 import { Plugin } from "prosemirror-state";
 import { isInTable } from "prosemirror-tables";
+import { isUrl } from "../../utils/urls";
 import Extension from "../lib/Extension";
 import isMarkdown from "../lib/isMarkdown";
-import isUrl from "../lib/isUrl";
 import selectionIsInCode from "../queries/isInCode";
 import { LANGUAGES } from "./Prism";
 

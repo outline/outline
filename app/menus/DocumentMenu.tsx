@@ -23,7 +23,7 @@ import { useMenuState, MenuButton, MenuButtonHTMLProps } from "reakit/Menu";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import getDataTransferFiles from "@shared/utils/getDataTransferFiles";
+import { getEventFiles } from "@shared/utils/files";
 import Document from "~/models/Document";
 import DocumentDelete from "~/scenes/DocumentDelete";
 import DocumentMove from "~/scenes/DocumentMove";
@@ -219,8 +219,8 @@ function DocumentMenu({
   );
 
   const handleFilePicked = React.useCallback(
-    async (ev: React.FormEvent<HTMLInputElement>) => {
-      const files = getDataTransferFiles(ev);
+    async (ev: React.ChangeEvent<HTMLInputElement>) => {
+      const files = getEventFiles(ev);
 
       // Because this is the onChange handler it's possible for the change to be
       // from previously selecting a file to not selecting a file – aka empty

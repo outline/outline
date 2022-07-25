@@ -17,6 +17,7 @@ import {
   DataType,
   HasMany,
   Scopes,
+  IsDate,
 } from "sequelize-typescript";
 import { languages } from "@shared/i18n";
 import { stringToColor } from "@shared/utils/color";
@@ -43,6 +44,11 @@ import NotContainsUrl from "./validators/NotContainsUrl";
 export enum UserFlag {
   InviteSent = "inviteSent",
   InviteReminderSent = "inviteReminderSent",
+}
+
+export enum UserRole {
+  Member = "member",
+  Viewer = "viewer",
 }
 
 @Scopes(() => ({
@@ -84,17 +90,17 @@ export enum UserFlag {
 @Fix
 class User extends ParanoidModel {
   @IsEmail
-  @Length({ min: 0, max: 255, msg: "Must be less than 255 characters" })
+  @Length({ max: 255, msg: "User email must be 255 characters or less" })
   @Column
   email: string | null;
 
   @NotContainsUrl
-  @Length({ min: 0, max: 255, msg: "Must be less than 255 characters" })
+  @Length({ max: 255, msg: "User username must be 255 characters or less" })
   @Column
   username: string | null;
 
   @NotContainsUrl
-  @Length({ min: 0, max: 255, msg: "Must be less than 255 characters" })
+  @Length({ max: 255, msg: "User name must be 255 characters or less" })
   @Column
   name: string;
 
@@ -116,6 +122,7 @@ class User extends ParanoidModel {
     setEncryptedColumn(this, "jwtSecret", value);
   }
 
+  @IsDate
   @Column
   lastActiveAt: Date | null;
 
@@ -123,6 +130,7 @@ class User extends ParanoidModel {
   @Column
   lastActiveIp: string | null;
 
+  @IsDate
   @Column
   lastSignedInAt: Date | null;
 
@@ -130,9 +138,11 @@ class User extends ParanoidModel {
   @Column
   lastSignedInIp: string | null;
 
+  @IsDate
   @Column
   lastSigninEmailSentAt: Date | null;
 
+  @IsDate
   @Column
   suspendedAt: Date | null;
 
@@ -144,7 +154,7 @@ class User extends ParanoidModel {
   @Column
   language: string;
 
-  @Length({ min: 0, max: 255, msg: "Must be less than 255 characters" })
+  @Length({ max: 1000, msg: "avatarUrl must be less than 1000 characters" })
   @Column(DataType.STRING)
   get avatarUrl() {
     const original = this.getDataValue("avatarUrl");
@@ -276,7 +286,7 @@ class User extends ParanoidModel {
       .map((c) => c.id);
   };
 
-  updateActiveAt = (ip: string, force = false) => {
+  updateActiveAt = async (ip: string, force = false) => {
     const fiveMinutesAgo = subMinutes(new Date(), 5);
 
     // ensure this is updated only every few minutes otherwise
@@ -368,10 +378,10 @@ class User extends ParanoidModel {
     );
   };
 
-  demote = async (teamId: string, to: "member" | "viewer") => {
+  demote = async (to: UserRole, options?: SaveOptions<User>) => {
     const res = await (this.constructor as typeof User).findAndCountAll({
       where: {
-        teamId,
+        teamId: this.teamId,
         isAdmin: true,
         id: {
           [Op.ne]: this.id,
@@ -382,15 +392,21 @@ class User extends ParanoidModel {
 
     if (res.count >= 1) {
       if (to === "member") {
-        return this.update({
-          isAdmin: false,
-          isViewer: false,
-        });
+        return this.update(
+          {
+            isAdmin: false,
+            isViewer: false,
+          },
+          options
+        );
       } else if (to === "viewer") {
-        return this.update({
-          isAdmin: false,
-          isViewer: true,
-        });
+        return this.update(
+          {
+            isAdmin: false,
+            isViewer: true,
+          },
+          options
+        );
       }
 
       return undefined;

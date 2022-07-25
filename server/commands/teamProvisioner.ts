@@ -1,39 +1,59 @@
 import { sequelize } from "@server/database/sequelize";
 import env from "@server/env";
-import { DomainNotAllowedError, MaximumTeamsError } from "@server/errors";
+import {
+  DomainNotAllowedError,
+  InvalidAuthenticationError,
+  MaximumTeamsError,
+} from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { APM } from "@server/logging/tracing";
 import { Team, AuthenticationProvider, Event } from "@server/models";
 import { generateAvatarUrl } from "@server/utils/avatars";
 
-type TeamCreatorResult = {
+type TeamProvisionerResult = {
   team: Team;
   authenticationProvider: AuthenticationProvider;
   isNewTeam: boolean;
 };
 
 type Props = {
+  /**
+   * The internal ID of the team that is being logged into based on the
+   * subdomain that the request came from, if any.
+   */
+  teamId?: string;
+  /** The displayed name of the team */
   name: string;
+  /** The domain name from the email of the user logging in */
   domain?: string;
+  /** The preferred subdomain to provision for the team if not yet created */
   subdomain: string;
+  /** The public url of an image representing the team */
   avatarUrl?: string | null;
+  /** Details of the authentication provider being used */
   authenticationProvider: {
+    /** The name of the authentication provider, eg "google" */
     name: string;
+    /** External identifier of the authentication provider */
     providerId: string;
   };
+  /** The IP address of the incoming request */
   ip: string;
 };
 
-async function teamCreator({
+async function teamProvisioner({
+  teamId,
   name,
   domain,
   subdomain,
   avatarUrl,
   authenticationProvider,
   ip,
-}: Props): Promise<TeamCreatorResult> {
+}: Props): Promise<TeamProvisionerResult> {
   let authP = await AuthenticationProvider.findOne({
-    where: authenticationProvider,
+    where: teamId
+      ? { ...authenticationProvider, teamId }
+      : authenticationProvider,
     include: [
       {
         model: Team,
@@ -51,6 +71,9 @@ async function teamCreator({
       team: authP.team,
       isNewTeam: false,
     };
+  } else if (teamId) {
+    // The user is attempting to log into a team with an unfamiliar SSO provider
+    throw InvalidAuthenticationError();
   }
 
   // This team has never been seen before, if self hosted the logic is different
@@ -78,7 +101,9 @@ async function teamCreator({
       }
     }
 
-    throw MaximumTeamsError();
+    if (team) {
+      throw MaximumTeamsError();
+    }
   }
 
   // If the service did not provide a logo/avatar then we attempt to generate
@@ -161,5 +186,5 @@ async function provisionSubdomain(team: Team, requestedSubdomain: string) {
 
 export default APM.traceFunction({
   serviceName: "command",
-  spanName: "teamCreator",
-})(teamCreator);
+  spanName: "teamProvisioner",
+})(teamProvisioner);

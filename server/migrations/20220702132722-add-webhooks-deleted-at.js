@@ -7,7 +7,7 @@ module.exports = {
       allowNull: true
     });
   },
-  down: async () => {
+  down: async (queryInterface) => {
     await queryInterface.removeColumn("webhook_subscriptions", "deletedAt");
   },
 };

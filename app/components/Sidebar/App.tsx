@@ -10,6 +10,7 @@ import Scrollable from "~/components/Scrollable";
 import Text from "~/components/Text";
 import { inviteUser } from "~/actions/definitions/users";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import OrganizationMenu from "~/menus/OrganizationMenu";
@@ -34,12 +35,15 @@ function AppSidebar() {
   const { t } = useTranslation();
   const { documents } = useStores();
   const team = useCurrentTeam();
+  const user = useCurrentUser();
   const can = usePolicy(team.id);
 
   React.useEffect(() => {
-    documents.fetchDrafts();
-    documents.fetchTemplates();
-  }, [documents]);
+    if (!user.isViewer) {
+      documents.fetchDrafts();
+      documents.fetchTemplates();
+    }
+  }, [documents, user.isViewer]);
 
   const [dndArea, setDndArea] = React.useState();
   const handleSidebarRef = React.useCallback((node) => setDndArea(node), []);

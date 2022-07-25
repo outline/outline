@@ -1,6 +1,10 @@
 {
   "extends": [
-    "../.eslintrc"
+    "../.eslintrc",
+    "plugin:react-hooks/recommended",
+  ],
+  "plugins": [
+    "eslint-plugin-react-hooks",
   ],
   "env": {
     "jest": true,

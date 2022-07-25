@@ -5,8 +5,8 @@ import mammoth from "mammoth";
 import quotedPrintable from "quoted-printable";
 import { Transaction } from "sequelize";
 import utf8 from "utf8";
-import { MAX_TITLE_LENGTH } from "@shared/constants";
 import parseTitle from "@shared/utils/parseTitle";
+import { DocumentValidation } from "@shared/validations";
 import { APM } from "@server/logging/tracing";
 import { User } from "@server/models";
 import dataURItoBuffer from "@server/utils/dataURItoBuffer";
@@ -190,7 +190,7 @@ async function documentImporter({
   if (text.startsWith("# ")) {
     const result = parseTitle(text);
     title = result.title;
-    text = text.replace(`# ${title}\n`, "");
+    text = text.replace(`# ${title}`, "").trimStart();
   }
 
   // If we parsed an emoji from _above_ the title then add it back at prefixing
@@ -221,7 +221,7 @@ async function documentImporter({
   }
 
   // It's better to truncate particularly long titles than fail the import
-  title = truncate(title, { length: MAX_TITLE_LENGTH });
+  title = truncate(title, { length: DocumentValidation.maxTitleLength });
 
   return {
     text,

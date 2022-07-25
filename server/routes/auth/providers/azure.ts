@@ -1,9 +1,10 @@
 import passport from "@outlinewiki/koa-passport";
 import { Strategy as AzureStrategy } from "@outlinewiki/passport-azure-ad-oauth2";
 import jwt from "jsonwebtoken";
-import { Request } from "koa";
+import type { Context } from "koa";
 import Router from "koa-router";
 import { Profile } from "passport";
+import { slugifyDomain } from "@shared/utils/domains";
 import accountProvisioner, {
   AccountProvisionerResult,
 } from "@server/commands/accountProvisioner";
@@ -11,7 +12,11 @@ import env from "@server/env";
 import { MicrosoftGraphError } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
 import { User } from "@server/models";
-import { StateStore, request } from "@server/utils/passport";
+import {
+  StateStore,
+  request,
+  getTeamFromContext,
+} from "@server/utils/passport";
 
 const router = new Router();
 const providerName = "azure";
@@ -36,7 +41,7 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
       scope: scopes,
     },
     async function (
-      req: Request,
+      ctx: Context,
       accessToken: string,
       refreshToken: string,
       params: { expires_in: number; id_token: string },
@@ -88,12 +93,16 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
           );
         }
 
+        const team = await getTeamFromContext(ctx);
+
         const domain = email.split("@")[1];
-        const subdomain = domain.split(".")[0];
+        const subdomain = slugifyDomain(domain);
+
         const teamName = organization.displayName;
         const result = await accountProvisioner({
-          ip: req.ip,
+          ip: ctx.ip,
           team: {
+            teamId: team?.id,
             name: teamName,
             domain,
             subdomain,

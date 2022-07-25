@@ -57,6 +57,15 @@ export default function Notices() {
             Please try again.
           </NoticeAlert>
         ))}
+      {notice === "invalid-authentication" &&
+        (description ? (
+          <NoticeAlert>{description}</NoticeAlert>
+        ) : (
+          <NoticeAlert>
+            Authentication failed – you do not have permission to access this
+            team.
+          </NoticeAlert>
+        ))}
       {notice === "expired-token" && (
         <NoticeAlert>
           Sorry, it looks like that sign-in link is no longer valid, please try

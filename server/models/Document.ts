@@ -28,16 +28,19 @@ import {
   AfterCreate,
   Scopes,
   DataType,
+  Length as SimpleLength,
+  IsNumeric,
+  IsDate,
 } from "sequelize-typescript";
 import MarkdownSerializer from "slate-md-serializer";
 import isUUID from "validator/lib/isUUID";
 import * as Y from "yjs";
-import { MAX_TITLE_LENGTH } from "@shared/constants";
 import { DateFilter } from "@shared/types";
 import getTasks from "@shared/utils/getTasks";
 import parseTitle from "@shared/utils/parseTitle";
 import unescape from "@shared/utils/unescape";
 import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
+import { DocumentValidation } from "@shared/validations";
 import { parser } from "@server/editor";
 import slugify from "@server/utils/slugify";
 import Backlink from "./Backlink";
@@ -183,14 +186,18 @@ export const DOCUMENT_VERSION = 2;
 @Table({ tableName: "documents", modelName: "document" })
 @Fix
 class Document extends ParanoidModel {
+  @SimpleLength({
+    min: 10,
+    max: 10,
+    msg: `urlId must be 10 characters`,
+  })
   @PrimaryKey
   @Column
   urlId: string;
 
   @Length({
-    min: 0,
-    max: MAX_TITLE_LENGTH,
-    msg: `Document title must be less than ${MAX_TITLE_LENGTH} characters`,
+    max: DocumentValidation.maxTitleLength,
+    msg: `Document title must be ${DocumentValidation.maxTitleLength} characters or less`,
   })
   @Column
   title: string;
@@ -198,6 +205,7 @@ class Document extends ParanoidModel {
   @Column(DataType.ARRAY(DataType.STRING))
   previousTitles: string[] = [];
 
+  @IsNumeric
   @Column(DataType.SMALLINT)
   version: number;
 
@@ -207,6 +215,10 @@ class Document extends ParanoidModel {
   @Column
   fullWidth: boolean;
 
+  @SimpleLength({
+    max: 255,
+    msg: `editorVersion must be 255 characters or less`,
+  })
   @Column
   editorVersion: string;
 
@@ -223,13 +235,16 @@ class Document extends ParanoidModel {
   @Column
   isWelcome: boolean;
 
+  @IsNumeric
   @Default(0)
   @Column(DataType.INTEGER)
   revisionCount: number;
 
+  @IsDate
   @Column
   archivedAt: Date | null;
 
+  @IsDate
   @Column
   publishedAt: Date | null;
 

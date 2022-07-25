@@ -2,7 +2,7 @@
 // This file is pulled almost 100% from react-router with the addition of one
 // thing, automatic scroll to the active link. It's worth the copy paste because
 // it avoids recalculating the link match again.
-import { Location, createLocation } from "history";
+import { Location, createLocation, LocationDescriptor } from "history";
 import * as React from "react";
 import {
   __RouterContext as RouterContext,
@@ -13,12 +13,12 @@ import { Link } from "react-router-dom";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
 
 const resolveToLocation = (
-  to: string | Record<string, any>,
+  to: LocationDescriptor | ((location: Location) => LocationDescriptor),
   currentLocation: Location
 ) => (typeof to === "function" ? to(currentLocation) : to);
 
 const normalizeToLocation = (
-  to: string | Record<string, any>,
+  to: LocationDescriptor,
   currentLocation: Location
 ) => {
   return typeof to === "string"
@@ -30,17 +30,15 @@ const joinClassnames = (...classnames: (string | undefined)[]) => {
   return classnames.filter((i) => i).join(" ");
 };
 
-export type Props = React.HTMLAttributes<HTMLAnchorElement> & {
+export type Props = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
   activeClassName?: string;
   activeStyle?: React.CSSProperties;
-  className?: string;
   scrollIntoViewIfNeeded?: boolean;
   exact?: boolean;
   isActive?: (match: match | null, location: Location) => boolean;
   location?: Location;
   strict?: boolean;
-  style?: React.CSSProperties;
-  to: string | Record<string, any>;
+  to: LocationDescriptor;
 };
 
 /**

@@ -2,10 +2,10 @@ import path from "path";
 import invariant from "invariant";
 import { find, orderBy, filter, compact, omitBy } from "lodash";
 import { observable, action, computed, runInAction } from "mobx";
-import { MAX_TITLE_LENGTH } from "@shared/constants";
 import { DateFilter } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import naturalSort from "@shared/utils/naturalSort";
+import { DocumentValidation } from "@shared/validations";
 import BaseStore from "~/stores/BaseStore";
 import RootStore from "~/stores/RootStore";
 import Document from "~/models/Document";
@@ -553,7 +553,7 @@ export default class DocumentsStore extends BaseStore<Document> {
       template: document.template,
       title: `${document.title.slice(
         0,
-        MAX_TITLE_LENGTH - append.length
+        DocumentValidation.maxTitleLength - append.length
       )}${append}`,
       text: document.text,
     });

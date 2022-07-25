@@ -12,6 +12,8 @@ import {
   Selection,
   TextSelection,
   Transaction,
+  Plugin,
+  PluginKey,
 } from "prosemirror-state";
 import refractor from "refractor/core";
 import bash from "refractor/lang/bash";
@@ -283,11 +285,34 @@ export default class CodeFence extends Node {
   };
 
   get plugins() {
-    return [Prism({ name: this.name }), Mermaid({ name: this.name })];
+    return [
+      Prism({ name: this.name }),
+      Mermaid({ name: this.name }),
+      new Plugin({
+        key: new PluginKey("triple-click"),
+        props: {
+          handleDOMEvents: {
+            mousedown(view, event) {
+              const {
+                selection: { $from, $to },
+              } = view.state;
+              if (!isInCode(view.state)) {
+                return false;
+              }
+              return $from.sameParent($to) && event.detail === 3;
+            },
+          },
+        },
+      }),
+    ];
   }
 
   inputRules({ type }: { type: NodeType }) {
-    return [textblockTypeInputRule(/^```$/, type)];
+    return [
+      textblockTypeInputRule(/^```$/, type, () => ({
+        language: localStorage?.getItem(PERSISTENCE_KEY) || DEFAULT_LANGUAGE,
+      })),
+    ];
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {

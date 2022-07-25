@@ -1,4 +1,5 @@
 import { truncate } from "lodash";
+import { CollectionValidation } from "@shared/validations";
 import attachmentCreator from "@server/commands/attachmentCreator";
 import documentCreator from "@server/commands/documentCreator";
 import { sequelize } from "@server/database/sequelize";
@@ -65,7 +66,7 @@ export type StructuredImportData = {
     name: string;
     path: string;
     mimeType: string;
-    buffer: Buffer;
+    buffer: () => Promise<Buffer>;
     /** Optional id from import source, useful for mapping */
     sourceId?: string;
   }[];
@@ -206,22 +207,26 @@ export default abstract class ImportTask extends BaseTask<Props> {
       const ip = user.lastActiveIp || undefined;
 
       // Attachments
-      for (const item of data.attachments) {
-        const attachment = await attachmentCreator({
-          source: "import",
-          id: item.id,
-          name: item.name,
-          type: item.mimeType,
-          buffer: item.buffer,
-          user,
-          ip,
-          transaction,
-        });
-        attachments.set(item.id, attachment);
-      }
+      await Promise.all(
+        data.attachments.map(async (item) => {
+          Logger.debug("task", `ImportTask persisting attachment ${item.id}`);
+          const attachment = await attachmentCreator({
+            source: "import",
+            id: item.id,
+            name: item.name,
+            type: item.mimeType,
+            buffer: await item.buffer(),
+            user,
+            ip,
+            transaction,
+          });
+          attachments.set(item.id, attachment);
+        })
+      );
 
       // Collections
       for (const item of data.collections) {
+        Logger.debug("task", `ImportTask persisting collection ${item.id}`);
         let description = item.description;
 
         if (description) {
@@ -258,7 +263,9 @@ export default abstract class ImportTask extends BaseTask<Props> {
           },
           defaults: {
             id: item.id,
-            description,
+            description: truncate(description, {
+              length: CollectionValidation.maxDescriptionLength,
+            }),
             createdById: fileOperation.userId,
             permission: "read_write",
           },
@@ -307,6 +314,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
 
       // Documents
       for (const item of data.documents) {
+        Logger.debug("task", `ImportTask persisting document ${item.id}`);
         let text = item.text;
 
         // Check all of the attachments we've created against urls in the text

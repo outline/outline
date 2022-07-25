@@ -16,7 +16,7 @@ import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import { useMenuState, MenuButton, MenuButtonHTMLProps } from "reakit/Menu";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
-import getDataTransferFiles from "@shared/utils/getDataTransferFiles";
+import { getEventFiles } from "@shared/utils/files";
 import Collection from "~/models/Collection";
 import CollectionEdit from "~/scenes/CollectionEdit";
 import CollectionExport from "~/scenes/CollectionExport";
@@ -117,8 +117,8 @@ function CollectionMenu({
   );
 
   const handleFilePicked = React.useCallback(
-    async (ev: React.FormEvent<HTMLInputElement>) => {
-      const files = getDataTransferFiles(ev);
+    async (ev: React.ChangeEvent<HTMLInputElement>) => {
+      const files = getEventFiles(ev);
 
       // Because this is the onChange handler it's possible for the change to be
       // from previously selecting a file to not selecting a file – aka empty
@@ -266,7 +266,7 @@ function CollectionMenu({
       {
         type: "button",
         title: `${t("Export")}…`,
-        visible: !!(collection && canUserInTeam.export),
+        visible: !!(collection && canUserInTeam.createExport),
         onClick: handleExport,
         icon: <ExportIcon />,
       },
@@ -296,7 +296,7 @@ function CollectionMenu({
       alphabeticalSort,
       handleEdit,
       handlePermissions,
-      canUserInTeam.export,
+      canUserInTeam.createExport,
       handleExport,
       handleDelete,
       handleChangeSort,

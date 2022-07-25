@@ -1,6 +1,8 @@
 import util from "util";
 import AWS from "aws-sdk";
 import fetch from "fetch-with-proxy";
+import { compact } from "lodash";
+import { useAgent } from "request-filtering-agent";
 import { v4 as uuidv4 } from "uuid";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
@@ -71,7 +73,9 @@ const s3 = new AWS.S3(s3config);
 s3config.endpoint = AWS_S3_PUBLIC_ENDPOINT;
 const s3public = new AWS.S3(s3config); // used only for signing public urls
 
-const getPresignedPostPromise = util
+const getPresignedPostPromise: (
+  params: AWS.S3.PresignedPost.Params
+) => Promise<AWS.S3.PresignedPost> = util
   .promisify(s3public.createPresignedPost)
   .bind(s3public);
 
@@ -82,14 +86,15 @@ export const getPresignedPost = async (
 ) => {
   const params = {
     Bucket: process.env.AWS_S3_BUCKET_NAME,
-    Conditions: [
+    Conditions: compact([
       process.env.AWS_S3_UPLOAD_MAX_SIZE
         ? ["content-length-range", 0, +process.env.AWS_S3_UPLOAD_MAX_SIZE]
         : undefined,
       ["starts-with", "$Content-Type", contentType],
       ["starts-with", "$Cache-Control", ""],
-    ].filter(Boolean),
+    ]),
     Fields: {
+      "Content-Disposition": "attachment",
       key,
       acl,
     },
@@ -124,6 +129,7 @@ export const uploadToS3FromBuffer = async (
       Key: key,
       ContentType: contentType,
       ContentLength: buffer.length,
+      ContentDisposition: "attachment",
       Body: buffer,
     })
     .promise();
@@ -146,8 +152,9 @@ export const uploadToS3FromUrl = async (
   }
 
   try {
-    const res = await fetch(url);
-    // @ts-expect-error buffer exists, need updated typings
+    const res = await fetch(url, {
+      agent: useAgent(url),
+    });
     const buffer = await res.buffer();
     await s3
       .putObject({
@@ -156,6 +163,7 @@ export const uploadToS3FromUrl = async (
         Key: key,
         ContentType: res.headers["content-type"],
         ContentLength: res.headers["content-length"],
+        ContentDisposition: "attachment",
         Body: buffer,
       })
       .promise();
@@ -184,6 +192,7 @@ export const getSignedUrl = async (key: string, expiresInMs = 60) => {
     Bucket: AWS_S3_BUCKET_NAME,
     Key: key,
     Expires: expiresInMs,
+    ResponseContentDisposition: "attachment",
   };
 
   return await s3public.getSignedUrlPromise("getObject", params);

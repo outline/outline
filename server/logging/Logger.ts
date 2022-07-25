@@ -19,6 +19,7 @@ type LogCategory =
   | "processor"
   | "email"
   | "queue"
+  | "websockets"
   | "database"
   | "utils";
 type Extra = Record<string, any>;

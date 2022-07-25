@@ -1,4 +1,5 @@
 import fetch from "fetch-with-proxy";
+import { useAgent } from "request-filtering-agent";
 import { Op } from "sequelize";
 import WebhookDisabledEmail from "@server/emails/templates/WebhookDisabledEmail";
 import env from "@server/env";
@@ -535,6 +536,9 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
         method: "POST",
         headers: requestHeaders,
         body: JSON.stringify(requestBody),
+        redirect: "error",
+        timeout: 5000,
+        agent: useAgent(subscription.url),
       });
       status = response.ok ? "success" : "failed";
     } catch (err) {
@@ -583,7 +587,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
 
     if (recentDeliveries.length === 25 && allFailed) {
       // If the last 25 deliveries failed, disable the subscription
-      await subscription.update({ enabled: false });
+      await subscription.disable();
 
       // Send an email to the creator of the webhook to let them know
       const [createdBy, team] = await Promise.all([

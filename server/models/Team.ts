@@ -15,6 +15,7 @@ import {
   Scopes,
   Is,
   DataType,
+  IsUUID,
 } from "sequelize-typescript";
 import { getBaseDomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
 import env from "@server/env";
@@ -26,6 +27,7 @@ import TeamDomain from "./TeamDomain";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
+import IsFQDN from "./validators/IsFQDN";
 import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
 
@@ -48,12 +50,17 @@ const readFile = util.promisify(fs.readFile);
 @Fix
 class Team extends ParanoidModel {
   @NotContainsUrl
+  @Length({ max: 255, msg: "name must be 255 characters or less" })
   @Column
   name: string;
 
   @IsLowercase
   @Unique
-  @Length({ min: 4, max: 32, msg: "Must be between 4 and 32 characters" })
+  @Length({
+    min: 4,
+    max: 32,
+    msg: "subdomain must be between 4 and 32 characters",
+  })
   @Is({
     args: [/^[a-z\d-]+$/, "i"],
     msg: "Must be only alphanumeric and dashes",
@@ -66,13 +73,16 @@ class Team extends ParanoidModel {
   subdomain: string | null;
 
   @Unique
+  @Length({ max: 255, msg: "domain must be 255 characters or less" })
+  @IsFQDN
   @Column
   domain: string | null;
 
+  @IsUUID(4)
   @Column(DataType.UUID)
   defaultCollectionId: string | null;
 
-  @Length({ min: 0, max: 255, msg: "Must be less than 255 characters" })
+  @Length({ max: 255, msg: "avatarUrl must be 255 characters or less" })
   @Column
   avatarUrl: string | null;
 
