@@ -16,6 +16,7 @@ router.post(
   "subscriptions.list",
 
   auth(),
+
   pagination(),
 
   async (ctx) => {
@@ -62,19 +63,23 @@ router.post(
 
   auth(),
 
-  async (ctx) => {
-    const { id } = ctx.body;
+  pagination(),
 
+  async (ctx) => {
     const { user } = ctx.state;
 
-    assertPresent(id, "id is required");
-
-    const subscription = await Subscription.findByPk(id);
-
-    authorize(user, "read", subscription);
+    const subscriptions = await Subscription.findAll({
+      where: {
+        userId: user.id,
+      },
+      order: [["createdAt", "DESC"]],
+      offset: ctx.state.pagination.offset,
+      limit: ctx.state.pagination.limit,
+    });
 
     ctx.body = {
-      data: presentSubscription(subscription),
+      pagination: ctx.state.pagination,
+      data: subscriptions.map(presentSubscription),
     };
   }
 );

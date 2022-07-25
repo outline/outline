@@ -124,7 +124,7 @@ describe("#subscriptions.create", () => {
 });
 
 describe("#subscriptions.info", () => {
-  it("should provide info about a subscription", async () => {
+  it("should provide info to user about their subscription", async () => {
     const creator = await buildUser();
 
     const subscriber = await buildUser({ teamId: creator.teamId });
@@ -174,39 +174,27 @@ describe("#subscriptions.info", () => {
     expect(response1.data.userId).toEqual(subscriber.id);
     expect(response1.data.documentId).toEqual(document1.id);
 
-    // `subscriber` wants info about
-    // subscription0.
-    const subscription0Info = await server.post("/api/subscriptions.info", {
+    // `subscriber` wants info about their subscriptions.
+    const subscriptionInfo = await server.post("/api/subscriptions.info", {
       body: {
-        id: response0.data.id,
         token: subscriber.getJwtToken(),
       },
     });
 
-    expect(subscription0Info.status).toEqual(200);
+    expect(subscriptionInfo.status).toEqual(200);
 
-    const response0Info = await subscription0Info.json();
+    const responseInfo = await subscriptionInfo.json();
 
-    expect(response0Info.data.id).toBeDefined();
-    expect(response0Info.data.userId).toEqual(subscriber.id);
-    expect(response0Info.data.documentId).toEqual(document0.id);
+    expect(responseInfo.data.length).toEqual(2);
 
-    // `subscriber` wants info about
-    // their subscription on `document1`.
-    const subscription1Info = await server.post("/api/subscriptions.info", {
-      body: {
-        token: subscriber.getJwtToken(),
-        id: response1.data.id,
-      },
-    });
+    expect(responseInfo.data[0].id).toBeDefined();
+    expect(responseInfo.data[0].userId).toEqual(subscriber.id);
+    // `document1` subscription is latest.
+    expect(responseInfo.data[0].documentId).toEqual(document1.id);
 
-    expect(subscription1Info.status).toEqual(200);
-
-    const response1Info = await subscription1Info.json();
-
-    expect(response1Info.data.id).toBeDefined();
-    expect(response1Info.data.userId).toEqual(subscriber.id);
-    expect(response1Info.data.documentId).toEqual(document1.id);
+    expect(responseInfo.data[1].id).toBeDefined();
+    expect(responseInfo.data[1].userId).toEqual(subscriber.id);
+    expect(responseInfo.data[1].documentId).toEqual(document0.id);
   });
 
   it("should not allow outsiders to gain info about a subscription", async () => {
@@ -239,25 +227,20 @@ describe("#subscriptions.info", () => {
 
     expect(subscription0.status).toEqual(200);
 
-    const response0 = await subscription0.json();
-
     // `viewer` wants info about `subscriber`'s
     // subscription on `document0`.
     const subscription0Info = await server.post("/api/subscriptions.info", {
       body: {
         token: viewer.getJwtToken(),
-        id: response0.data.id,
       },
     });
 
-    expect(subscription0Info.status).toEqual(403);
+    expect(subscription0Info.status).toEqual(200);
 
     const response0Info = await subscription0Info.json();
 
-    // `viewer` should be unauthorized.
-    expect(response0Info.ok).toEqual(false);
-    expect(response0Info.error).toEqual("authorization_error");
-    expect(response0Info.message).toEqual("Authorization error");
+    // `viewer` should be have no subscriptions.
+    expect(response0Info.data.length).toEqual(0);
 
     // `subscriber` subscribes to `document1`.
     const subscription1 = await server.post("/api/subscriptions.create", {
@@ -270,72 +253,27 @@ describe("#subscriptions.info", () => {
 
     expect(subscription1.status).toEqual(200);
 
-    const response1 = await subscription1.json();
-
-    // `viewer` wants info about `subscriber`'s
-    // subscription on `document1`.
+    // `subscriber` wants info about their subscriptions on `document1`.
     const subscription1Info = await server.post("/api/subscriptions.info", {
       body: {
-        token: viewer.getJwtToken(),
-        id: response1.data.id,
+        token: subscriber.getJwtToken(),
       },
     });
 
-    expect(subscription1Info.status).toEqual(403);
+    expect(subscription1Info.status).toEqual(200);
 
     const response1Info = await subscription1Info.json();
 
-    // `viewer` should be unauthorized.
-    expect(response1Info.ok).toEqual(false);
-    expect(response1Info.error).toEqual("authorization_error");
-    expect(response1Info.message).toEqual("Authorization error");
-  });
+    expect(response1Info.data.length).toEqual(2);
 
-  it("should not allow invalid subscription id", async () => {
-    const creator = await buildUser();
+    expect(response1Info.data[0].id).toBeDefined();
+    expect(response1Info.data[0].userId).toEqual(subscriber.id);
+    // `document1` subscription is latest.
+    expect(response1Info.data[0].documentId).toEqual(document1.id);
 
-    const subscriber = await buildUser({ teamId: creator.teamId });
-
-    // `creator` creates a document.
-    const document0 = await buildDocument({
-      userId: creator.id,
-      teamId: creator.teamId,
-    });
-
-    // `subscriber` subscribes to `document0`.
-    const subscription0 = await server.post("/api/subscriptions.create", {
-      body: {
-        token: subscriber.getJwtToken(),
-        documentId: document0.id,
-        event: "documents.update",
-      },
-    });
-
-    expect(subscription0.status).toEqual(200);
-
-    const response0 = await subscription0.json();
-
-    expect(response0.data.id).toBeDefined();
-    expect(response0.data.userId).toEqual(subscriber.id);
-    expect(response0.data.documentId).toEqual(document0.id);
-
-    // `subscriber` wants info about subscription0.
-    // But they have provided incorrect subscription id.
-    const subscription0Info = await server.post("/api/subscriptions.info", {
-      body: {
-        id: "test incorrect id",
-        token: subscriber.getJwtToken(),
-      },
-    });
-
-    expect(subscription0Info.status).toEqual(400);
-
-    const response0Info = await subscription0Info.json();
-
-    expect(response0Info.ok).toEqual(false);
-    expect(response0Info.message).toEqual(
-      '"test incorrect id" is not a valid uuid (id)'
-    );
+    expect(response1Info.data[1].id).toBeDefined();
+    expect(response1Info.data[1].userId).toEqual(subscriber.id);
+    expect(response1Info.data[1].documentId).toEqual(document0.id);
   });
 });
 
