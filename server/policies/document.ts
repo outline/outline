@@ -207,13 +207,11 @@ allow(User, ["subscribe", "unsubscribe"], Document, (user, document) => {
     "Collection is missing, did you forget to include in the query scope?"
   );
 
-  if (cannot(user, "update", document.collection)) {
+  if (cannot(user, "read", document.collection)) {
     return false;
   }
 
-  // REVIEW: subscribe outside of the team?
-  // return user.teamId === document.teamId;
-  return true;
+  return user.teamId === document.teamId;
 });
 
 allow(User, ["pinToHome"], Document, (user, document) => {
