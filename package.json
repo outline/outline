@@ -235,7 +235,7 @@
     "@types/invariant": "^2.2.35",
     "@types/ioredis": "^4.28.1",
     "@types/jest": "^27.0.2",
-    "@types/jsonwebtoken": "^8.5.5",
+    "@types/jsonwebtoken": "^8.5.8",
     "@types/koa": "^2.13.4",
     "@types/koa-compress": "^4.0.3",
     "@types/koa-helmet": "^6.0.4",
