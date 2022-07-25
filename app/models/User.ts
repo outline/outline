@@ -1,5 +1,5 @@
 import { computed, observable } from "mobx";
-import { Role } from "@shared/types";
+import type { Role } from "@shared/types";
 import ParanoidModel from "./ParanoidModel";
 import Field from "./decorators/Field";
 
