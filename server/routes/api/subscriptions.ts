@@ -26,12 +26,10 @@ router.post(
 
     assertPresent(documentId, "documentId is required");
 
-    // Make sure `documentId` is accompanied
-    // with valid subsribable events.
     assertIn(
       event,
       ["documents.update"],
-      `${event} is not a valid subscription event for documents`
+      `Not a valid subscription event for documents`
     );
 
     const subscriptions = await sequelize.transaction(async (transaction) => {
@@ -96,8 +94,6 @@ router.post(
 
     assertPresent(documentId, "documentId is required");
 
-    // Make sure `documentId` is accompanied
-    // with valid subsribable events.
     assertIn(
       event,
       ["documents.update"],
@@ -110,7 +106,7 @@ router.post(
       authorize(user, "createSubscription", document);
 
       return subscriptionCreator({
-        user: user,
+        user,
         documentId: document.id,
         event,
         ip: ctx.request.ip,
@@ -181,25 +177,13 @@ router.post(
 
     const { user } = ctx.state;
 
-    const subscription = await Subscription.findByPk(id);
+    const subscription = await Subscription.findByPk(id, {
+      rejectOnEmpty: true
+    });
 
-    assertPresent(
-      subscription,
-      "subscription is required, make sure subscription id is correct"
-    );
-
-    invariant(
-      subscription?.documentId,
-      "Subscription must have an associated document"
-    );
 
     authorize(user, "delete", subscription);
 
-    assertIn(
-      subscription.event,
-      ["documents.update"],
-      `${subscription.event} is not a valid subscription event`
-    );
 
     await subscription.destroy();
 

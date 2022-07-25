@@ -32,17 +32,6 @@ export default async function main(exit = false) {
             },
           });
 
-          if (created) {
-            await Event.findOrCreate({
-              where: {
-                name: "subscriptions.create",
-                userId: collaborator,
-                modelId: collaboratorSubscription.id,
-                documentId: collaboratorSubscription.documentId,
-                actorId: collaboratorSubscription.userId,
-              },
-            });
-          }
         }
       } catch (err) {
         console.error(`Failed at ${document.id}:`, err);

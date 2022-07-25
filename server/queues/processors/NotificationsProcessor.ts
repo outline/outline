@@ -282,7 +282,6 @@ const createSubscriptions = async (
   const collaboratorIds = document.collaboratorIds;
 
   for (const collaboratorId of collaboratorIds) {
-    // Use single transaction for both finds.
     await sequelize.transaction(async (transaction) => {
       const user = await User.findByPk(collaboratorId, { transaction });
 

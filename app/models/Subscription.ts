@@ -19,15 +19,6 @@ class Subscription extends BaseModel {
 
   updatedAt: string;
 
-  next(): Subscription | undefined {
-    const index = this.store.orderedData.indexOf(this);
-    return this.store.orderedData[index + 1];
-  }
-
-  previous(): Subscription | undefined {
-    const index = this.store.orderedData.indexOf(this);
-    return this.store.orderedData[index + 1];
-  }
 }
 
 export default Subscription;

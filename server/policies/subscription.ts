@@ -8,10 +8,6 @@ allow(User, "createSubscription", Document, (user, document) => {
     return false;
   }
 
-  // REVIEW: Are viewers allowed to subscribe?
-  if (user.isViewer) {
-    return false;
-  }
 
   // REVIEW: Show admin be allowed to prescribe
   // a document to user?

@@ -113,7 +113,6 @@ export const unstarDocument = createAction({
 export const subscribeDocument = createAction({
   name: ({ t }) => t("Subscribe"),
   section: DocumentSection,
-  // TODO: Use other icon.
   icon: <SubscribeIcon />,
   visible: ({ activeDocumentId, stores }) => {
     if (!activeDocumentId) {
@@ -155,11 +154,7 @@ export const unsubscribeDocument = createAction({
     );
   },
   perform: ({ activeDocumentId, stores, currentUserId }) => {
-    if (!activeDocumentId) {
-      return;
-    }
-
-    if (!currentUserId) {
+    if (!activeDocumentId || !currentUserId) {
       return;
     }
 
