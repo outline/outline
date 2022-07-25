@@ -1,23 +1,6 @@
 import { Subscription, User, Document } from "@server/models";
 import { allow, _cannot as cannot } from "./cancan";
 
-// Is `user` allowed to subscribe to `document`?
-allow(User, "createSubscription", Document, (user, document) => {
-  // Sanity check.
-  if (!document) {
-    return false;
-  }
-
-  // If `user` isn't allowed to read `document`,
-  // they shouldn't be able to subscribe to its changes.
-  if (cannot(user, "read", document)) {
-    return false;
-  }
-
-  // Otherwise `user` is free to subscribe to any documents.
-  return true;
-});
-
 // Is `user` allowed to list all subscriptions on `document`?
 allow(User, "listSubscription", Document, (user, document) => {
   // Sanity check.

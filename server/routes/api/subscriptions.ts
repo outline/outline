@@ -99,7 +99,7 @@ router.post("subscriptions.create", auth(), async (ctx) => {
   const subscription = await sequelize.transaction(async (transaction) => {
     const document = await Document.findByPk(documentId, { transaction });
 
-    authorize(user, "createSubscription", document);
+    authorize(user, "subscribe", document);
 
     return subscriptionCreator({
       user,
