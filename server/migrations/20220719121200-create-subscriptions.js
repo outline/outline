@@ -49,7 +49,7 @@ module.exports = {
 
       await queryInterface.addIndex(
         "subscriptions",
-        ["userId", "documentId", "event", "deletedAt"],
+        ["userId", "documentId", "event"],
         {
           name: "subscriptions_user_id_document_id_event",
           type: "UNIQUE",
@@ -64,7 +64,6 @@ module.exports = {
       "userId",
       "documentId",
       "event",
-      "deletedAt",
     ]);
     return queryInterface.dropTable("subscriptions");
   },
