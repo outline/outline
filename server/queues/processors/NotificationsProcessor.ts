@@ -235,13 +235,22 @@ export default class NotificationsProcessor extends BaseProcessor {
             // `subscriptionCreator` uses `findOrCreate`.
             // A duplicate won't be created if a subscription
             // exists already.
-            await subscriptionCreator({
-              user: user,
-              documentId: document.id,
-              event: "documents.update",
+            const exists = await Subscription.findOne({
+              where: { userId: user.id, documentId: document.id },
               transaction,
-              ip: event.ip,
             });
+
+            // Avoid recreating subscription if user has
+            // manually unsubscribed before.
+            if (!exists) {
+              await subscriptionCreator({
+                user: user,
+                documentId: document.id,
+                event: "documents.update",
+                transaction,
+                ip: event.ip,
+              });
+            }
           }
         }
       });
