@@ -8,8 +8,6 @@ type Props = {
   documentId?: string;
   /** Event to subscribe */
   event: string;
-  /**  Fetch soft deleted rows? */
-  paranoid?: boolean;
   /** The IP address of the user creating the subscription */
   ip: string;
   transaction: Transaction;
@@ -26,7 +24,6 @@ export default async function subscriptionCreator({
   user,
   documentId,
   event,
-  paranoid = true,
   ip,
   transaction,
 }: Props): Promise<Subscription> {
@@ -36,7 +33,7 @@ export default async function subscriptionCreator({
       documentId,
       event,
     },
-    paranoid,
+    paranoid: false,
   });
 
   // Don't emit an event if a new subscription
