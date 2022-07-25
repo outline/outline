@@ -1,5 +1,5 @@
 import "./bootstrap";
-import { Subscription, Document, Event } from "@server/models";
+import { Subscription, Document } from "@server/models";
 
 const limit = 100;
 let page = parseInt(process.argv[2], 10);
@@ -19,17 +19,17 @@ export default async function main(exit = false) {
 
     for (const document of documents) {
       try {
-        await Promise.all(document.collaboratorIds, (collaboratorId) => 
-          Subscription.findOrCreate({
-            where: {
-              userId: collaboratorId,
-              documentId: document.id,
-              event: "documents.update",
-            },
+        await Promise.all(
+          document.collaboratorIds.map((collaboratorId) => {
+            Subscription.findOrCreate({
+              where: {
+                userId: collaboratorId,
+                documentId: document.id,
+                event: "documents.update",
+              },
+            });
           })
-        })
-
-        }
+        );
       } catch (err) {
         console.error(`Failed at ${document.id}:`, err);
 
