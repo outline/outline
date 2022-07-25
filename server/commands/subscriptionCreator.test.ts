@@ -3,6 +3,7 @@ import { Subscription, Event } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
 import { flushdb } from "@server/test/support";
 import subscriptionCreator from "./subscriptionCreator";
+import subscriptionDestroyer from "./subscriptionDestroyer";
 
 beforeEach(() => flushdb());
 
@@ -62,6 +63,8 @@ describe("subscriptionCreator", () => {
         transaction,
       })
     );
+
+    expect(subscription0.id).toEqual(subscription1.id);
     expect(subscription0.documentId).toEqual(document.id);
     expect(subscription0.userId).toEqual(user.id);
     expect(subscription1.documentId).toEqual(document.id);
@@ -70,7 +73,7 @@ describe("subscriptionCreator", () => {
     expect(subscription0.documentId).toEqual(subscription1.documentId);
   });
 
-  it("should not enable subscription by overriding one that already exists in disabled state", async () => {
+  it("should enable subscription by overriding one that exists in disabled state", async () => {
     const user = await buildUser();
 
     const document = await buildDocument({
@@ -78,11 +81,29 @@ describe("subscriptionCreator", () => {
       teamId: user.teamId,
     });
 
-    const subscription0 = await Subscription.create({
-      userId: user.id,
-      documentId: document.id,
-      event: subscribedEvent,
-    });
+    const subscription0 = await sequelize.transaction(async (transaction) =>
+      subscriptionCreator({
+        user: user,
+        documentId: document.id,
+        event: subscribedEvent,
+        ip,
+        transaction,
+      })
+    );
+
+    await sequelize.transaction(async (transaction) =>
+      subscriptionDestroyer({
+        user: user,
+        subscription: subscription0,
+        ip,
+        transaction,
+      })
+    );
+
+    expect(subscription0.id).toBeDefined();
+    expect(subscription0.userId).toEqual(user.id);
+    expect(subscription0.documentId).toEqual(document.id);
+    expect(subscription0.deletedAt).toBeDefined();
 
     const subscription1 = await sequelize.transaction(async (transaction) =>
       subscriptionCreator({
@@ -94,10 +115,11 @@ describe("subscriptionCreator", () => {
       })
     );
 
-    // Should not emit an event.
     const events = await Event.count();
-    expect(events).toEqual(0);
 
+    expect(events).toEqual(2);
+
+    expect(subscription0.id).toEqual(subscription1.id);
     expect(subscription0.documentId).toEqual(document.id);
     expect(subscription0.userId).toEqual(user.id);
     expect(subscription1.documentId).toEqual(document.id);
