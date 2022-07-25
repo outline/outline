@@ -600,8 +600,8 @@ describe("#subscriptions.delete", () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    expect(body.id).toEqual(subscription.id);
-    expect(body.userId).toEqual(user.id);
+    expect(body.ok).toEqual(true);
+    expect(body.success).toEqual(true);
   });
 
   it("users should not be able to delete other's subscriptions on document", async () => {
