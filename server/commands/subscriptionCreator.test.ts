@@ -161,7 +161,6 @@ describe("subscriptionCreator", () => {
         user: user,
         documentId: document.id,
         event: subscribedEvent,
-        paranoid: true,
         ip,
         transaction,
       })

@@ -118,7 +118,7 @@ describe("#subscriptions.create", () => {
     expect(body.ok).toEqual(false);
     expect(body.error).toEqual("validation_error");
     expect(body.message).toEqual(
-      `documents.publish is not a valid subscription event for documents`
+      "Not a valid subscription event for documents"
     );
   });
 });
@@ -416,7 +416,7 @@ describe("#subscriptions.list", () => {
     expect(body.ok).toEqual(false);
     expect(body.error).toEqual("validation_error");
     expect(body.message).toEqual(
-      `changes.on.documents is not a valid subscription event for documents`
+      "Not a valid subscription event for documents"
     );
   });
 
