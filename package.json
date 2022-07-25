@@ -155,7 +155,7 @@
     "prosemirror-schema-list": "1.1.4",
     "prosemirror-state": "1.3.4",
     "prosemirror-tables": "^1.1.1",
-    "prosemirror-transform": "1.2.5",
+    "prosemirror-transform": "1.6.0",
     "prosemirror-utils": "^0.9.6",
     "prosemirror-view": "1.26.5",
     "query-string": "^7.0.1",
@@ -335,7 +335,7 @@
   "resolutions": {
     "d3": "^7.0.0",
     "node-fetch": "^2.6.7",
-    "prosemirror-transform": "1.2.5",
+    "prosemirror-transform": "1.6.0",
     "dot-prop": "^5.2.0",
     "js-yaml": "^3.14.1",
     "jpeg-js": "0.4.4"
