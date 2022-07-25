@@ -12,193 +12,157 @@ import pagination from "./middlewares/pagination";
 
 const router = new Router();
 
-router.post(
-  "subscriptions.list",
+router.post("subscriptions.list", auth(), pagination(), async (ctx) => {
+  const { user } = ctx.state;
 
-  auth(),
+  const { documentId, event } = ctx.body;
 
-  pagination(),
+  assertPresent(documentId, "documentId is required");
 
-  async (ctx) => {
-    const { user } = ctx.state;
+  assertIn(
+    event,
+    ["documents.update"],
+    `Not a valid subscription event for documents`
+  );
 
-    const { documentId, event } = ctx.body;
+  const subscriptions = await sequelize.transaction(async (transaction) => {
+    const document = await Document.findByPk(documentId, { transaction });
 
-    assertPresent(documentId, "documentId is required");
+    authorize(user, "listSubscription", document);
 
-    assertIn(
-      event,
-      ["documents.update"],
-      `Not a valid subscription event for documents`
-    );
-
-    const subscriptions = await sequelize.transaction(async (transaction) => {
-      const document = await Document.findByPk(documentId, { transaction });
-
-      authorize(user, "listSubscription", document);
-
-      return Subscription.findAll({
-        where: {
-          documentId: document.id,
-          event,
-        },
-        order: [["createdAt", "DESC"]],
-        offset: ctx.state.pagination.offset,
-        limit: ctx.state.pagination.limit,
-        transaction,
-      });
-    });
-
-    ctx.body = {
-      pagination: ctx.state.pagination,
-      data: subscriptions.map(presentSubscription),
-    };
-  }
-);
-
-router.post(
-  "subscriptions.info",
-
-  auth(),
-
-  pagination(),
-
-  async (ctx) => {
-    const { user } = ctx.state;
-
-    const subscriptions = await Subscription.findAll({
+    return Subscription.findAll({
       where: {
-        userId: user.id,
+        documentId: document.id,
+        event,
       },
       order: [["createdAt", "DESC"]],
       offset: ctx.state.pagination.offset,
       limit: ctx.state.pagination.limit,
+      transaction,
     });
+  });
 
-    ctx.body = {
-      pagination: ctx.state.pagination,
-      data: subscriptions.map(presentSubscription),
-    };
-  }
-);
+  ctx.body = {
+    pagination: ctx.state.pagination,
+    data: subscriptions.map(presentSubscription),
+  };
+});
 
-router.post(
-  "subscriptions.create",
+router.post("subscriptions.info", auth(), pagination(), async (ctx) => {
+  const { user } = ctx.state;
 
-  auth(),
+  const subscriptions = await Subscription.findAll({
+    where: {
+      userId: user.id,
+    },
+    order: [["createdAt", "DESC"]],
+    offset: ctx.state.pagination.offset,
+    limit: ctx.state.pagination.limit,
+  });
 
-  async (ctx) => {
-    const { user } = ctx.state;
+  ctx.body = {
+    pagination: ctx.state.pagination,
+    data: subscriptions.map(presentSubscription),
+  };
+});
 
-    const { documentId, event } = ctx.body;
+router.post("subscriptions.create", auth(), async (ctx) => {
+  const { user } = ctx.state;
 
-    assertPresent(documentId, "documentId is required");
+  const { documentId, event } = ctx.body;
 
-    assertIn(
+  assertPresent(documentId, "documentId is required");
+
+  assertIn(
+    event,
+    ["documents.update"],
+    `${event} is not a valid subscription event for documents`
+  );
+
+  const subscription = await sequelize.transaction(async (transaction) => {
+    const document = await Document.findByPk(documentId, { transaction });
+
+    authorize(user, "createSubscription", document);
+
+    return subscriptionCreator({
+      user,
+      documentId: document.id,
       event,
-      ["documents.update"],
-      `${event} is not a valid subscription event for documents`
-    );
-
-    const subscription = await sequelize.transaction(async (transaction) => {
-      const document = await Document.findByPk(documentId, { transaction });
-
-      authorize(user, "createSubscription", document);
-
-      return subscriptionCreator({
-        user,
-        documentId: document.id,
-        event,
-        ip: ctx.request.ip,
-        transaction,
-      });
-    });
-
-    ctx.body = {
-      data: presentSubscription(subscription),
-    };
-  }
-);
-
-router.post(
-  "subscriptions.update",
-
-  auth(),
-
-  async (ctx) => {
-    // Body should not include `event` like other routes above.
-    // That would imply move on a subscription model.
-    const { id, enabled } = ctx.body;
-
-    assertUuid(id, "id is required");
-
-    const { user } = ctx.state;
-
-    const subscription = await Subscription.findByPk(id);
-
-    authorize(user, "update", subscription);
-
-    invariant(
-      subscription.documentId,
-      "Subscription must have an associated document"
-    );
-
-    await subscription.update({ user, subscription, enabled });
-
-    if (subscription.changed()) {
-      const subscriptionEvent: SubscriptionEvent = {
-        name: "subscriptions.update",
-        actorId: user.id,
-        userId: user.userId,
-        documentId: subscription.documentId,
-        teamId: user.teamId,
-        modelId: subscription.id,
-        ip: ctx.request.ip,
-      };
-
-      await Event.create(subscriptionEvent);
-    }
-
-    ctx.body = {
-      data: presentSubscription(subscription),
-    };
-  }
-);
-
-router.post(
-  "subscriptions.delete",
-
-  auth(),
-
-  async (ctx) => {
-    const { id } = ctx.body;
-
-    assertUuid(id, "id is required");
-
-    const { user } = ctx.state;
-
-    const subscription = await Subscription.findByPk(id, {
-      rejectOnEmpty: true
-    });
-
-
-    authorize(user, "delete", subscription);
-
-
-    await subscription.destroy();
-
-    const subscriptionEvent: SubscriptionEvent = {
-      teamId: user.teamId,
-      actorId: user.id,
       ip: ctx.request.ip,
-      name: "subscriptions.delete",
-      modelId: subscription.id,
+      transaction,
+    });
+  });
+
+  ctx.body = {
+    data: presentSubscription(subscription),
+  };
+});
+
+router.post("subscriptions.update", auth(), async (ctx) => {
+  // Body should not include `event` like other routes above.
+  // That would imply move on a subscription model.
+  const { id, enabled } = ctx.body;
+
+  assertUuid(id, "id is required");
+
+  const { user } = ctx.state;
+
+  const subscription = await Subscription.findByPk(id);
+
+  authorize(user, "update", subscription);
+
+  invariant(
+    subscription.documentId,
+    "Subscription must have an associated document"
+  );
+
+  await subscription.update({ user, subscription, enabled });
+
+  if (subscription.changed()) {
+    const subscriptionEvent: SubscriptionEvent = {
+      name: "subscriptions.update",
+      actorId: user.id,
       userId: user.userId,
       documentId: subscription.documentId,
+      teamId: user.teamId,
+      modelId: subscription.id,
+      ip: ctx.request.ip,
     };
 
     await Event.create(subscriptionEvent);
   }
-);
+
+  ctx.body = {
+    data: presentSubscription(subscription),
+  };
+});
+
+router.post("subscriptions.delete", auth(), async (ctx) => {
+  const { id } = ctx.body;
+
+  assertUuid(id, "id is required");
+
+  const { user } = ctx.state;
+
+  const subscription = await Subscription.findByPk(id, {
+    rejectOnEmpty: true,
+  });
+
+  authorize(user, "delete", subscription);
+
+  await subscription.destroy();
+
+  const subscriptionEvent: SubscriptionEvent = {
+    teamId: user.teamId,
+    actorId: user.id,
+    ip: ctx.request.ip,
+    name: "subscriptions.delete",
+    modelId: subscription.id,
+    userId: user.userId,
+    documentId: subscription.documentId,
+  };
+
+  await Event.create(subscriptionEvent);
+});
 
 export default router;
