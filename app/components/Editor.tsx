@@ -8,12 +8,10 @@ import { Optional } from "utility-types";
 import insertFiles from "@shared/editor/commands/insertFiles";
 import embeds from "@shared/editor/embeds";
 import { Heading } from "@shared/editor/lib/getHeadings";
-import {
-  getDataTransferFiles,
-  supportedImageMimeTypes,
-} from "@shared/utils/files";
+import { getDataTransferFiles } from "@shared/utils/files";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { isInternalUrl } from "@shared/utils/urls";
+import { AttachmentValidation } from "@shared/validations";
 import Document from "~/models/Document";
 import ClickablePadding from "~/components/ClickablePadding";
 import ErrorBoundary from "~/components/ErrorBoundary";
@@ -212,7 +210,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
 
       // Insert all files as attachments if any of the files are not images.
       const isAttachment = files.some(
-        (file) => !supportedImageMimeTypes.includes(file.type)
+        (file) => !AttachmentValidation.imageContentTypes.includes(file.type)
       );
 
       insertFiles(view, event, pos, files, {

@@ -5,6 +5,7 @@ import * as React from "react";
 import AvatarEditor from "react-avatar-editor";
 import Dropzone from "react-dropzone";
 import styled from "styled-components";
+import { AttachmentValidation } from "@shared/validations";
 import RootStore from "~/stores/RootStore";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
@@ -134,7 +135,7 @@ class ImageUpload extends React.Component<RootStore & Props> {
 
     return (
       <Dropzone
-        accept="image/png, image/jpeg"
+        accept={AttachmentValidation.avatarContentTypes.join(", ")}
         onDropAccepted={this.onDropAccepted}
       >
         {({ getRootProps, getInputProps }) => (
