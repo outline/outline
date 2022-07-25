@@ -49,20 +49,36 @@ router.post("subscriptions.list", auth(), pagination(), async (ctx) => {
   };
 });
 
-router.post("subscriptions.info", auth(), pagination(), async (ctx) => {
+router.post("subscriptions.info", auth(), async (ctx) => {
   const { user } = ctx.state;
 
-  const subscriptions = await Subscription.findAll({
-    where: {
-      userId: user.id,
-    },
-    order: [["createdAt", "DESC"]],
-    offset: ctx.state.pagination.offset,
-    limit: ctx.state.pagination.limit,
+  const { documentId, event } = ctx.body;
+
+  assertUuid(documentId, "documentId is required");
+
+  assertIn(
+    event,
+    ["documents.update"],
+    "Not a valid subscription event for documents"
+  );
+
+  const subscriptions = await sequelize.transaction(async (transaction) => {
+    const document = await Document.findByPk(documentId, { transaction });
+
+    authorize(user, "read", document);
+
+    return Subscription.findAll({
+      where: {
+        userId: user.id,
+        documentId: document.id,
+        event,
+      },
+      order: [["createdAt", "DESC"]],
+      transaction,
+    });
   });
 
   ctx.body = {
-    pagination: ctx.state.pagination,
     data: subscriptions.map(presentSubscription),
   };
 });
