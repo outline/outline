@@ -59,7 +59,7 @@ export default class NotificationsProcessor extends BaseProcessor {
     }
 
     // Create subscriptions for newly updated document.
-    await createSubscriptions(document, event);
+    await this.createSubscriptions(document, event);
   }
 
   async documentPublished(event: DocumentActionEvent) {
@@ -79,7 +79,7 @@ export default class NotificationsProcessor extends BaseProcessor {
     }
 
     // Create subscriptions for newly published document.
-    await createSubscriptions(document, event);
+    await this.createSubscriptions(document, event);
 
     // Publish notifications
     const recipients = await NotificationSetting.findAll({
@@ -100,13 +100,10 @@ export default class NotificationsProcessor extends BaseProcessor {
     });
 
     for (const recipient of recipients) {
-      const notify = await shouldNotify({
+      const notify = await this.shouldNotify({
         user: recipient.user,
-        userId: recipient.userId,
         document: document,
-        documentId: event.documentId,
         event: event,
-        eventName: "published",
       });
 
       if (notify) {
@@ -154,13 +151,10 @@ export default class NotificationsProcessor extends BaseProcessor {
     });
 
     for (const recipient of subscriptions) {
-      const notify = await shouldNotify({
+      const notify = await this.shouldNotify({
         user: recipient.user,
-        userId: recipient.userId,
         document: document,
-        documentId: event.documentId,
         event: event,
-        eventName: "updated",
       });
 
       if (notify) {
@@ -224,85 +218,77 @@ export default class NotificationsProcessor extends BaseProcessor {
       });
     }
   }
-}
 
-type Notifiable = {
-  user: User;
-  userId: string;
-  document: Document;
-  documentId: string;
-  event: DocumentActionEvent | RevisionEvent;
-  eventName: string;
-};
+  private createSubscriptions = async (
+    document: Document,
+    event: DocumentEvent
+  ): Promise<void> => {
+    const collaboratorIds = document.collaboratorIds;
 
-const shouldNotify = async (subject: Notifiable): Promise<boolean> => {
-  // Suppress notifications for suspended users
-  if (subject.user.isSuspended) {
-    return false;
-  }
+    for (const collaboratorId of collaboratorIds) {
+      await sequelize.transaction(async (transaction) => {
+        const user = await User.findByPk(collaboratorId, { transaction });
 
-  // Check the user has access to the collection this document is in.
-  // Just because they were a collaborator once doesn't mean they still are.
-  const collectionIds = await subject.user.collectionIds();
-  if (!collectionIds.includes(subject.document.collectionId)) {
-    return false;
-  }
-
-  // If this user has viewed the document since the last update was made
-  // then we can avoid sending them a useless notification, yay.
-  const view = await View.findOne({
-    where: {
-      userId: subject.userId,
-      documentId: subject.event.documentId,
-      updatedAt: {
-        [Op.gt]: subject.document.updatedAt,
-      },
-    },
-  });
-
-  if (view) {
-    Logger.info(
-      "processor",
-      `suppressing notification to ${subject.userId} because update viewed`
-    );
-    return false;
-  }
-
-  if (!subject.user.email) {
-    return false;
-  }
-
-  return true;
-};
-
-const createSubscriptions = async (
-  document: Document,
-  event: DocumentEvent
-): Promise<void> => {
-  const collaboratorIds = document.collaboratorIds;
-
-  for (const collaboratorId of collaboratorIds) {
-    await sequelize.transaction(async (transaction) => {
-      const user = await User.findByPk(collaboratorId, { transaction });
-
-      if (user) {
-        // `user` has to have `createSubscription` permission on `document`.
-        if (can(user, "createSubscription", document)) {
-          // `subscriptionCreator` uses `findOrCreate`.
-          // A duplicate won't be created if a subscription
-          // exists already.
-          await subscriptionCreator({
-            user: user,
-            documentId: document.id,
-            event: "documents.update",
-            // Avoid creating new subscription if user
-            // has already unsubscribed before.
-            paranoid: false,
-            transaction,
-            ip: event.ip,
-          });
+        if (user) {
+          // `user` has to have `createSubscription` permission on `document`.
+          if (can(user, "createSubscription", document)) {
+            // `subscriptionCreator` uses `findOrCreate`.
+            // A duplicate won't be created if a subscription
+            // exists already.
+            await subscriptionCreator({
+              user: user,
+              documentId: document.id,
+              event: "documents.update",
+              transaction,
+              ip: event.ip,
+            });
+          }
         }
-      }
+      });
+    }
+  };
+
+  private shouldNotify = async (subject: {
+    user: User;
+    document: Document;
+    event: DocumentActionEvent | RevisionEvent;
+  }): Promise<boolean> => {
+    // Suppress notifications for suspended users
+    if (subject.user.isSuspended) {
+      return false;
+    }
+
+    // Check the user has access to the collection this document is in.
+    // Just because they were a collaborator once doesn't mean they still are.
+    const collectionIds = await subject.user.collectionIds();
+    if (!collectionIds.includes(subject.document.collectionId)) {
+      return false;
+    }
+
+    // If this user has viewed the document since the last update was made
+    // then we can avoid sending them a useless notification, yay.
+    const view = await View.findOne({
+      where: {
+        userId: subject.user.id,
+        documentId: subject.event.documentId,
+        updatedAt: {
+          [Op.gt]: subject.document.updatedAt,
+        },
+      },
     });
-  }
-};
+
+    if (view) {
+      Logger.info(
+        "processor",
+        `suppressing notification to ${subject.user.id} because update viewed`
+      );
+      return false;
+    }
+
+    if (!subject.user.email) {
+      return false;
+    }
+
+    return true;
+  };
+}
