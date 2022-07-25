@@ -290,6 +290,53 @@ describe("#subscriptions.info", () => {
     expect(response1Info.error).toEqual("authorization_error");
     expect(response1Info.message).toEqual("Authorization error");
   });
+
+  it("should not allow invalid subscription id", async () => {
+    const creator = await buildUser();
+
+    const subscriber = await buildUser({ teamId: creator.teamId });
+
+    // `creator` creates a document.
+    const document0 = await buildDocument({
+      userId: creator.id,
+      teamId: creator.teamId,
+    });
+
+    // `subscriber` subscribes to `document0`.
+    const subscription0 = await server.post("/api/subscriptions.create", {
+      body: {
+        token: subscriber.getJwtToken(),
+        documentId: document0.id,
+        event: "documents.update",
+      },
+    });
+
+    expect(subscription0.status).toEqual(200);
+
+    const response0 = await subscription0.json();
+
+    expect(response0.data.id).toBeDefined();
+    expect(response0.data.userId).toEqual(subscriber.id);
+    expect(response0.data.documentId).toEqual(document0.id);
+
+    // `subscriber` wants info about subscription0.
+    // But they have provided incorrect subscription id.
+    const subscription0Info = await server.post("/api/subscriptions.info", {
+      body: {
+        id: "test incorrect id",
+        token: subscriber.getJwtToken(),
+      },
+    });
+
+    expect(subscription0Info.status).toEqual(400);
+
+    const response0Info = await subscription0Info.json();
+
+    expect(response0Info.ok).toEqual(false);
+    expect(response0Info.message).toEqual(
+      '"test incorrect id" is not a valid uuid (id)'
+    );
+  });
 });
 
 describe("#subscriptions.list", () => {
