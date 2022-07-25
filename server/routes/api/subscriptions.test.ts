@@ -126,6 +126,7 @@ describe("#subscriptions.create", () => {
 describe("#subscriptions.info", () => {
   it("should provide info about a subscription", async () => {
     const creator = await buildUser();
+
     const subscriber = await buildUser({ teamId: creator.teamId });
 
     // `creator` creates two documents
@@ -140,7 +141,7 @@ describe("#subscriptions.info", () => {
     });
 
     // `subscriber` subscribes to `document0`.
-    await server.post("/api/subscriptions.create", {
+    const subscription0 = await server.post("/api/subscriptions.create", {
       body: {
         token: subscriber.getJwtToken(),
         documentId: document0.id,
@@ -148,35 +149,16 @@ describe("#subscriptions.info", () => {
       },
     });
 
-    // `subscriber` subscribes to `document1`.
-    await server.post("/api/subscriptions.create", {
-      body: {
-        token: subscriber.getJwtToken(),
-        documentId: document1.id,
-        event: "documents.update",
-      },
-    });
-
-    // `subscriber` wants info about
-    // their subscription on `document0`.
-    const subscription0 = await server.post("/api/subscriptions.info", {
-      body: {
-        token: subscriber.getJwtToken(),
-        documentId: document0.id,
-        event: "documents.update",
-      },
-    });
+    expect(subscription0.status).toEqual(200);
 
     const response0 = await subscription0.json();
 
-    expect(subscription0.status).toEqual(200);
     expect(response0.data.id).toBeDefined();
     expect(response0.data.userId).toEqual(subscriber.id);
     expect(response0.data.documentId).toEqual(document0.id);
 
-    // `subscriber` wants info about
-    // their subscription on `document1`.
-    const subscription1 = await server.post("/api/subscriptions.info", {
+    // `subscriber` subscribes to `document1`.
+    const subscription1 = await server.post("/api/subscriptions.create", {
       body: {
         token: subscriber.getJwtToken(),
         documentId: document1.id,
@@ -184,17 +166,54 @@ describe("#subscriptions.info", () => {
       },
     });
 
+    expect(subscription1.status).toEqual(200);
+
     const response1 = await subscription1.json();
 
-    expect(subscription1.status).toEqual(200);
     expect(response1.data.id).toBeDefined();
     expect(response1.data.userId).toEqual(subscriber.id);
     expect(response1.data.documentId).toEqual(document1.id);
+
+    // `subscriber` wants info about
+    // subscription0.
+    const subscription0Info = await server.post("/api/subscriptions.info", {
+      body: {
+        id: response0.data.id,
+        token: subscriber.getJwtToken(),
+      },
+    });
+
+    expect(subscription0Info.status).toEqual(200);
+
+    const response0Info = await subscription0Info.json();
+
+    expect(response0Info.data.id).toBeDefined();
+    expect(response0Info.data.userId).toEqual(subscriber.id);
+    expect(response0Info.data.documentId).toEqual(document0.id);
+
+    // `subscriber` wants info about
+    // their subscription on `document1`.
+    const subscription1Info = await server.post("/api/subscriptions.info", {
+      body: {
+        token: subscriber.getJwtToken(),
+        id: response1.data.id,
+      },
+    });
+
+    expect(subscription1Info.status).toEqual(200);
+
+    const response1Info = await subscription1Info.json();
+
+    expect(response1Info.data.id).toBeDefined();
+    expect(response1Info.data.userId).toEqual(subscriber.id);
+    expect(response1Info.data.documentId).toEqual(document1.id);
   });
 
   it("should not allow outsiders to gain info about a subscription", async () => {
     const creator = await buildUser();
+
     const subscriber = await buildUser({ teamId: creator.teamId });
+
     // `viewer` is not a part of `creator`'s team.
     const viewer = await buildUser();
 
@@ -210,7 +229,7 @@ describe("#subscriptions.info", () => {
     });
 
     // `subscriber` subscribes to `document0`.
-    await server.post("/api/subscriptions.create", {
+    const subscription0 = await server.post("/api/subscriptions.create", {
       body: {
         token: subscriber.getJwtToken(),
         documentId: document0.id,
@@ -218,80 +237,30 @@ describe("#subscriptions.info", () => {
       },
     });
 
-    // `subscriber` subscribes to `document1`.
-    await server.post("/api/subscriptions.create", {
-      body: {
-        token: subscriber.getJwtToken(),
-        documentId: document1.id,
-        event: "documents.update",
-      },
-    });
-
-    // `viewer` wants info about `subscriber`'s
-    // subscription on `document0`.
-    const subscription0 = await server.post("/api/subscriptions.info", {
-      body: {
-        token: viewer.getJwtToken(),
-        documentId: document0.id,
-        event: "documents.update",
-      },
-    });
+    expect(subscription0.status).toEqual(200);
 
     const response0 = await subscription0.json();
 
-    // `viewer` should be unauthorized.
-    expect(subscription0.status).toEqual(403);
-    expect(response0.ok).toEqual(false);
-    expect(response0.error).toEqual("authorization_error");
-    expect(response0.message).toEqual("Authorization error");
-
     // `viewer` wants info about `subscriber`'s
     // subscription on `document0`.
-    const subscription1 = await server.post("/api/subscriptions.info", {
+    const subscription0Info = await server.post("/api/subscriptions.info", {
       body: {
         token: viewer.getJwtToken(),
-        documentId: document1.id,
-        event: "documents.update",
+        id: response0.data.id,
       },
     });
 
-    const response1 = await subscription1.json();
+    expect(subscription0Info.status).toEqual(403);
+
+    const response0Info = await subscription0Info.json();
 
     // `viewer` should be unauthorized.
-    expect(subscription1.status).toEqual(403);
-    expect(response1.ok).toEqual(false);
-    expect(response1.error).toEqual("authorization_error");
-    expect(response1.message).toEqual("Authorization error");
-  });
-
-  it("should not provide infomation on invalid events", async () => {
-    const creator = await buildUser();
-    const subscriber = await buildUser({ teamId: creator.teamId });
-    // `viewer` is a part of `creator`'s team.
-    const viewer = await buildUser({ teamId: creator.teamId });
-
-    // `creator` creates two documents
-    const document0 = await buildDocument({
-      userId: creator.id,
-      teamId: creator.teamId,
-    });
-
-    const document1 = await buildDocument({
-      userId: creator.id,
-      teamId: creator.teamId,
-    });
-
-    // `subscriber` subscribes to `document0`.
-    await server.post("/api/subscriptions.create", {
-      body: {
-        token: subscriber.getJwtToken(),
-        documentId: document0.id,
-        event: "documents.update",
-      },
-    });
+    expect(response0Info.ok).toEqual(false);
+    expect(response0Info.error).toEqual("authorization_error");
+    expect(response0Info.message).toEqual("Authorization error");
 
     // `subscriber` subscribes to `document1`.
-    await server.post("/api/subscriptions.create", {
+    const subscription1 = await server.post("/api/subscriptions.create", {
       body: {
         token: subscriber.getJwtToken(),
         documentId: document1.id,
@@ -299,45 +268,27 @@ describe("#subscriptions.info", () => {
       },
     });
 
-    // `viewer` wants info about `subscriber`'s
-    // subscription on `document0`.
-    // They have requested an invalid event.
-    const subscription0 = await server.post("/api/subscriptions.info", {
-      body: {
-        token: viewer.getJwtToken(),
-        documentId: document0.id,
-        event: "documents.changed",
-      },
-    });
-
-    const response0 = await subscription0.json();
-
-    expect(subscription0.status).toEqual(400);
-    expect(response0.ok).toEqual(false);
-    expect(response0.error).toEqual("validation_error");
-    expect(response0.message).toEqual(
-      `documents.changed is not a valid subscription event for documents`
-    );
-
-    // `viewer` wants info about `subscriber`'s
-    // subscription on `document0`.
-    // They have requested an invalid event.
-    const subscription1 = await server.post("/api/subscriptions.info", {
-      body: {
-        token: viewer.getJwtToken(),
-        documentId: document1.id,
-        event: "doc.affected",
-      },
-    });
+    expect(subscription1.status).toEqual(200);
 
     const response1 = await subscription1.json();
 
-    expect(subscription1.status).toEqual(400);
-    expect(response1.ok).toEqual(false);
-    expect(response1.error).toEqual("validation_error");
-    expect(response1.message).toEqual(
-      `doc.affected is not a valid subscription event for documents`
-    );
+    // `viewer` wants info about `subscriber`'s
+    // subscription on `document1`.
+    const subscription1Info = await server.post("/api/subscriptions.info", {
+      body: {
+        token: viewer.getJwtToken(),
+        id: response1.data.id,
+      },
+    });
+
+    expect(subscription1Info.status).toEqual(403);
+
+    const response1Info = await subscription1Info.json();
+
+    // `viewer` should be unauthorized.
+    expect(response1Info.ok).toEqual(false);
+    expect(response1Info.error).toEqual("authorization_error");
+    expect(response1Info.message).toEqual("Authorization error");
   });
 });
 

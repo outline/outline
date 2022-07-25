@@ -63,37 +63,15 @@ router.post(
   auth(),
 
   async (ctx) => {
-    const { documentId, event } = ctx.body;
+    const { id } = ctx.body;
 
     const { user } = ctx.state;
 
-    assertPresent(documentId, "documentId is required");
+    assertPresent(id, "id is required");
 
-    // Make sure `documentId` is accompanied
-    // with valid subsribable events.
-    assertIn(
-      event,
-      ["documents.update"],
-      `${event} is not a valid subscription event for documents`
-    );
+    const subscription = await Subscription.findByPk(id);
 
-    const subscription = await sequelize.transaction(async (transaction) => {
-      const document = await Document.findByPk(documentId, { transaction });
-
-      authorize(user, "read", document);
-
-      const subscription = await Subscription.findOne({
-        where: {
-          documentId: document.id,
-          userId: user.id,
-          event,
-        },
-      });
-
-      authorize(user, "read", subscription);
-
-      return subscription;
-    });
+    authorize(user, "read", subscription);
 
     ctx.body = {
       data: presentSubscription(subscription),
