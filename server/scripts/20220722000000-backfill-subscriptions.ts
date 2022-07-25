@@ -20,15 +20,15 @@ export default async function main(exit = false) {
     for (const document of documents) {
       try {
         await Promise.all(
-          document.collaboratorIds.map((collaboratorId) => {
+          document.collaboratorIds.map((collaboratorId) =>
             Subscription.findOrCreate({
               where: {
                 userId: collaboratorId,
                 documentId: document.id,
                 event: "documents.update",
               },
-            });
-          })
+            })
+          )
         );
       } catch (err) {
         console.error(`Failed at ${document.id}:`, err);
