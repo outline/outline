@@ -41,7 +41,7 @@ type Props = RouteComponentProps<Params, StaticContext, LocationState> & {
 };
 
 function DataLoader({ match, children }: Props) {
-  const { ui, shares, documents, auth, revisions } = useStores();
+  const { ui, shares, documents, auth, revisions, subscriptions } = useStores();
   const { team } = auth;
   const [error, setError] = React.useState<Error | null>(null);
   const { revisionId, shareId, documentSlug } = match.params;
@@ -85,6 +85,23 @@ function DataLoader({ match, children }: Props) {
     }
     fetchRevision();
   }, [revisions, revisionId]);
+
+  React.useEffect(() => {
+    async function fetchSubscription() {
+      if (document && document.id) {
+        try {
+          await subscriptions.fetchSubscriptions({
+            documentId: document.id,
+            // Only `documents.update` event is relavent for documents.
+            event: "documents.update",
+          });
+        } catch (err) {
+          setError(err);
+        }
+      }
+    }
+    fetchSubscription();
+  }, [subscriptions]);
 
   const onCreateLink = React.useCallback(
     async (title: string) => {
