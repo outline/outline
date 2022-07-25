@@ -36,9 +36,9 @@ export default class InviteEmail extends BaseEmail<Props> {
     teamUrl,
   }: Props): string {
     return `
-Join ${teamName} on Outline
+Join ${teamName} Wiki
 
-${actorName} (${actorEmail}) has invited you to join Outline, a place for your team to build and share knowledge.
+${actorName} (${actorEmail}) has invited you to join {teamName} Wiki, a place for your team to build and share knowledge.
 
 Join now: ${teamUrl}
 `;
@@ -52,8 +52,8 @@ Join now: ${teamUrl}
         <Body>
           <Heading>Join {teamName} on Outline</Heading>
           <p>
-            {actorName} ({actorEmail}) has invited you to join Outline, a place
-            for your team to build and share knowledge.
+            {actorName} ({actorEmail}) has invited you to join {teamName} Wiki,
+            a place for your team to build and share knowledge.
           </p>
           <EmptySpace height={10} />
           <p>
