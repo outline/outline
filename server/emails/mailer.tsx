@@ -103,11 +103,15 @@ export class Mailer {
             pass: env.SMTP_PASSWORD,
           }
         : undefined,
-      tls: env.SMTP_TLS_CIPHERS
-        ? {
-            ciphers: env.SMTP_TLS_CIPHERS,
-          }
-        : undefined,
+      tls: env.SMTP_SECURE
+        ? env.SMTP_TLS_CIPHERS
+          ? {
+              ciphers: env.SMTP_TLS_CIPHERS,
+            }
+          : undefined
+        : {
+            rejectUnauthorized: false,
+          },
     };
   }
 
