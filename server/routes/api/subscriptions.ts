@@ -1,13 +1,14 @@
 import invariant from "invariant";
 import Router from "koa-router";
 import subscriptionCreator from "@server/commands/subscriptionCreator";
+import subscriptionDestroyer from "@server/commands/subscriptionDestroyer";
 import { sequelize } from "@server/database/sequelize";
 import auth from "@server/middlewares/authentication";
 import { Subscription, Event, Document } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentSubscription } from "@server/presenters";
 import { SubscriptionEvent } from "@server/types";
-import { assertIn, assertPresent, assertUuid } from "@server/validation";
+import { assertIn, assertUuid } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
 const router = new Router();
@@ -17,7 +18,7 @@ router.post("subscriptions.list", auth(), pagination(), async (ctx) => {
 
   const { documentId, event } = ctx.body;
 
-  assertPresent(documentId, "documentId is required");
+  assertUuid(documentId, "documentId is required");
 
   assertIn(
     event,
@@ -71,12 +72,12 @@ router.post("subscriptions.create", auth(), async (ctx) => {
 
   const { documentId, event } = ctx.body;
 
-  assertPresent(documentId, "documentId is required");
+  assertUuid(documentId, "documentId is required");
 
   assertIn(
     event,
     ["documents.update"],
-    `${event} is not a valid subscription event for documents`
+    "Not a valid subscription event for documents"
   );
 
   const subscription = await sequelize.transaction(async (transaction) => {
@@ -144,25 +145,39 @@ router.post("subscriptions.delete", auth(), async (ctx) => {
 
   const { user } = ctx.state;
 
-  const subscription = await Subscription.findByPk(id, {
-    rejectOnEmpty: true,
+  await sequelize.transaction(async (transaction) => {
+    const subscription = await Subscription.findByPk(id, {
+      rejectOnEmpty: true,
+      transaction,
+    });
+
+    authorize(user, "delete", subscription);
+
+    const subscriptionEvent: SubscriptionEvent = {
+      teamId: user.teamId,
+      actorId: user.id,
+      ip: ctx.request.ip,
+      name: "subscriptions.delete",
+      modelId: subscription.id,
+      userId: user.userId,
+      documentId: subscription.documentId,
+    };
+
+    await subscriptionDestroyer({
+      user,
+      subscription,
+      ip: ctx.ip,
+      transaction,
+    });
+
+    await Event.create(subscriptionEvent);
+
+    return subscription;
   });
 
-  authorize(user, "delete", subscription);
-
-  await subscription.destroy();
-
-  const subscriptionEvent: SubscriptionEvent = {
-    teamId: user.teamId,
-    actorId: user.id,
-    ip: ctx.request.ip,
-    name: "subscriptions.delete",
-    modelId: subscription.id,
-    userId: user.userId,
-    documentId: subscription.documentId,
+  ctx.body = {
+    success: true,
   };
-
-  await Event.create(subscriptionEvent);
 });
 
 export default router;
