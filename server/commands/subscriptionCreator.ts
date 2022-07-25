@@ -36,6 +36,11 @@ export default async function subscriptionCreator({
     paranoid: false,
   });
 
+  // Fetched an already deleted subscription.
+  if (subscription.deletedAt) {
+    subscription.update({ deletedAt: null });
+  }
+
   // Don't emit an event if a new subscription
   // wasn't created.
   if (created) {
