@@ -18,7 +18,6 @@ class Subscription extends BaseModel {
   createdAt: string;
 
   updatedAt: string;
-
 }
 
 export default Subscription;

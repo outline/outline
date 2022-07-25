@@ -266,7 +266,7 @@ export type SubscriptionEvent = BaseEvent & {
     | "subscriptions.delete";
   modelId: string;
   userId: string;
-  documentId: string;
+  documentId: string | null;
 };
 
 export type ViewEvent = BaseEvent & {
