@@ -1,29 +1,5 @@
-import { Subscription, User, Document } from "@server/models";
-import { allow, _cannot as cannot } from "./cancan";
-
-// Is `user` allowed to list all subscriptions on `document`?
-allow(User, "listSubscription", Document, (user, document) => {
-  // Sanity check.
-  if (!document) {
-    return false;
-  }
-
-  // Admin should be able to list any subscriptions.
-  if (user.isAdmin) {
-    return true;
-  }
-
-  // If `user` isn't allowed to read `document`,
-  // they shouldn't be able to list any
-  // subscriptions on `document`.
-  if (cannot(user, "read", document)) {
-    return false;
-  }
-
-  // Otherwise `user` is free to list
-  // their own subscriptions on `document`.
-  return true;
-});
+import { Subscription, User } from "@server/models";
+import { allow } from "./cancan";
 
 // Is `user` allowed to `read`
 // subscription statuses on `document`?

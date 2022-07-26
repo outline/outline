@@ -532,7 +532,7 @@ describe("#subscriptions.list", () => {
 
     // `viewer` wants to know the subscribers
     // for this internal document.
-    const res = await server.post("/api/subscriptions.list", {
+    const res = await server.post("/api/subscriptions.info", {
       body: {
         token: viewer.getJwtToken(),
         documentId: document.id,
