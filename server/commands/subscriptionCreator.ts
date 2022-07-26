@@ -39,9 +39,20 @@ export default async function subscriptionCreator({
   // Fetched an already deleted subscription.
   if (subscription.deletedAt) {
     subscription.update({ deletedAt: null });
+
+    await Event.create(
+      {
+        name: "subscriptions.create",
+        modelId: subscription.id,
+        actorId: user.id,
+        userId: user.id,
+        documentId,
+        ip,
+      },
+      { transaction }
+    );
   }
 
-  // Don't emit an event if a new subscription wasn't created.
   if (created) {
     await Event.create(
       {
