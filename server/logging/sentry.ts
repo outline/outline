@@ -16,6 +16,7 @@ if (env.SENTRY_DSN) {
       "SequelizeValidationError",
       "SequelizeEmptyResultError",
       "ValidationError",
+      "ForbiddenError",
 
       // Authentication
       "UnauthorizedError",
