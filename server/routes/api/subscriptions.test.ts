@@ -171,9 +171,9 @@ describe("#subscriptions.info", () => {
     const response0 = await subscription0.json();
 
     expect(subscription0.status).toEqual(200);
-    expect(response0.data[0].id).toBeDefined();
-    expect(response0.data[0].userId).toEqual(subscriber.id);
-    expect(response0.data[0].documentId).toEqual(document0.id);
+    expect(response0.data.id).toBeDefined();
+    expect(response0.data.userId).toEqual(subscriber.id);
+    expect(response0.data.documentId).toEqual(document0.id);
   });
 
   it("should not allow outsiders to gain info about a subscription", async () => {

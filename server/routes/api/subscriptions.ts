@@ -61,24 +61,25 @@ router.post("subscriptions.info", auth(), async (ctx) => {
     "Not a valid subscription event for documents"
   );
 
-  const subscriptions = await sequelize.transaction(async (transaction) => {
+  const subscription = await sequelize.transaction(async (transaction) => {
     const document = await Document.findByPk(documentId, { transaction });
 
     authorize(user, "read", document);
 
-    return Subscription.findAll({
+    // There can be only one subscription with these props.
+    return Subscription.findOne({
       where: {
         userId: user.id,
         documentId: document.id,
         event,
       },
-      order: [["createdAt", "DESC"]],
       transaction,
+      rejectOnEmpty: true,
     });
   });
 
   ctx.body = {
-    data: subscriptions.map(presentSubscription),
+    data: presentSubscription(subscription),
   };
 });
 
