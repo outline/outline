@@ -4,6 +4,7 @@ import { trim } from "lodash";
 import queryString from "query-string";
 import EDITOR_VERSION from "@shared/editor/version";
 import stores from "~/stores";
+import env from "~/env";
 import isCloudHosted from "~/utils/isCloudHosted";
 import Logger from "./Logger";
 import download from "./download";
@@ -223,4 +224,6 @@ class ApiClient {
   };
 }
 
-export const client = new ApiClient();
+export const client = new ApiClient({
+  baseUrl: `${env.URL}/api`,
+});

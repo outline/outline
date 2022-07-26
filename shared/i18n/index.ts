@@ -1,6 +1,7 @@
 import i18n from "i18next";
 import backend from "i18next-http-backend";
 import { initReactI18next } from "react-i18next";
+import env from "../env";
 
 // Note: Updating the available languages? Make sure to also update the
 // locales array in app/utils/i18n.js to enable translation for timestamps.
@@ -90,7 +91,7 @@ export const initI18n = (defaultLanguage = "en_US") => {
         // this must match the path defined in routes. It's the path that the
         // frontend UI code will hit to load missing translations.
         loadPath: (languages: string[]) =>
-          `/locales/${dashToUnderscore(languages[0])}.json`,
+          `${env.URL}/locales/${dashToUnderscore(languages[0])}.json`,
       },
       interpolation: {
         escapeValue: false,
