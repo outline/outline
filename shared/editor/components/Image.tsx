@@ -1,5 +1,5 @@
 import * as React from "react";
-import { cdnPath } from "../../utils/urls";
+import { publicPath } from "../../utils/urls";
 
 type Props = {
   alt: string;
@@ -10,5 +10,5 @@ type Props = {
 };
 
 export default function Image({ src, alt, ...rest }: Props) {
-  return <img src={cdnPath(src)} alt={alt} {...rest} />;
+  return <img src={publicPath(src)} alt={alt} {...rest} />;
 }

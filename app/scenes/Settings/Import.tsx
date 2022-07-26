@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import { NewDocumentIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
-import { cdnPath } from "@shared/utils/urls";
+import { publicPath } from "@shared/utils/urls";
 import FileOperation from "~/models/FileOperation";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
@@ -57,7 +57,7 @@ function Import() {
         />
         <Item
           border={false}
-          image={<img src={cdnPath("/images/notion.png")} width={28} />}
+          image={<img src={publicPath("/images/notion.png")} width={28} />}
           title="Notion"
           subtitle={t("Import pages exported from Notion")}
           actions={
@@ -78,7 +78,7 @@ function Import() {
         />
         <Item
           border={false}
-          image={<img src={cdnPath("/images/confluence.png")} width={28} />}
+          image={<img src={publicPath("/images/confluence.png")} width={28} />}
           title="Confluence"
           subtitle={t("Import pages from a Confluence instance")}
           actions={

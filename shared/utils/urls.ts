@@ -8,8 +8,8 @@ import { parseDomain } from "./domains";
  * @param path The path to prepend the CDN url to.
  * @returns The path with the CDN url prepended.
  */
-export function cdnPath(path: string): string {
-  return `${env.CDN_URL}${path}`;
+export function publicPath(path: string): string {
+  return `${env.CDN_URL || env.URL}${path}`;
 }
 
 /**

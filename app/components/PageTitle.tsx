@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { Helmet } from "react-helmet";
-import { cdnPath } from "@shared/utils/urls";
+import { publicPath } from "@shared/utils/urls";
 import useStores from "~/hooks/useStores";
 
 type Props = {
@@ -24,7 +24,7 @@ const PageTitle = ({ title, favicon }: Props) => {
         <link
           rel="shortcut icon"
           type="image/png"
-          href={cdnPath("/favicon-32.png")}
+          href={publicPath("/favicon-32.png")}
           sizes="32x32"
         />
       )}
