@@ -4,7 +4,7 @@ import subscriptionDestroyer from "@server/commands/subscriptionDestroyer";
 import { sequelize } from "@server/database/sequelize";
 import auth from "@server/middlewares/authentication";
 import { Subscription, Event, Document } from "@server/models";
-import { authorize } from "@server/policies";
+import { authorize, can } from "@server/policies";
 import { presentSubscription } from "@server/presenters";
 import { SubscriptionEvent } from "@server/types";
 import { assertIn, assertUuid } from "@server/validation";
@@ -33,6 +33,7 @@ router.post("subscriptions.list", auth(), pagination(), async (ctx) => {
     return Subscription.findAll({
       where: {
         documentId: document.id,
+        userId: user.id,
         event,
       },
       order: [["createdAt", "DESC"]],
@@ -44,7 +45,9 @@ router.post("subscriptions.list", auth(), pagination(), async (ctx) => {
 
   ctx.body = {
     pagination: ctx.state.pagination,
-    data: subscriptions.map(presentSubscription),
+    data: subscriptions
+      .filter((subscription) => can(user, "read", subscription))
+      .map(presentSubscription),
   };
 });
 

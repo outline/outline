@@ -90,7 +90,7 @@ function DataLoader({ match, children }: Props) {
     async function fetchSubscription() {
       if (document && document.id) {
         try {
-          await subscriptions.fetchSubscriptions({
+          await subscriptions.fetchPage({
             documentId: document.id,
             event: "documents.update",
           });

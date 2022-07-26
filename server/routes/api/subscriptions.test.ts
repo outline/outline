@@ -406,14 +406,42 @@ describe("#subscriptions.list", () => {
     const body = await res.json();
 
     expect(res.status).toEqual(200);
-    // `document` should have two subscribers.
-    expect(body.data.length).toEqual(2);
+    // `viewer` doesn't have any subscriptions on `document`.
+    expect(body.data.length).toEqual(0);
+
+    // `subscriber0` wants to know the subscribers
+    // for this document.
+    const res0 = await server.post("/api/subscriptions.list", {
+      body: {
+        token: subscriber0.getJwtToken(),
+        documentId: document.id,
+        event: "documents.update",
+      },
+    });
+
+    const body0 = await res0.json();
+
     // `subscriber1` subscribed after `subscriber0`
-    expect(body.data[0].userId).toEqual(subscriber1.id);
+    expect(body0.data[0].userId).toEqual(subscriber0.id);
     // Both subscribers subscribed to same `document`.
-    expect(body.data[0].documentId).toEqual(document.id);
-    expect(body.data[1].userId).toEqual(subscriber0.id);
-    expect(body.data[1].documentId).toEqual(document.id);
+    expect(body0.data[0].documentId).toEqual(document.id);
+
+    // `subscriber1` wants to know the subscribers
+    // for this document.
+    const res1 = await server.post("/api/subscriptions.list", {
+      body: {
+        token: subscriber1.getJwtToken(),
+        documentId: document.id,
+        event: "documents.update",
+      },
+    });
+
+    const body1 = await res1.json();
+
+    // `subscriber1` subscribed after `subscriber1`
+    expect(body1.data[0].userId).toEqual(subscriber1.id);
+    // Both subscribers subscribed to same `document`.
+    expect(body1.data[0].documentId).toEqual(document.id);
   });
 
   it("user should not be able to list invalid subscriptions", async () => {
