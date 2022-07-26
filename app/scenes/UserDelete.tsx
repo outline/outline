@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { useTranslation, Trans } from "react-i18next";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
-import Input from "~/components/Input";
+import { ReactHookWrappedInput as Input } from "~/components/Input";
 import Modal from "~/components/Modal";
 import Text from "~/components/Text";
 import env from "~/env";
@@ -86,6 +86,7 @@ function UserDelete({ onRequestClose }: Props) {
               <Input
                 placeholder="CODE"
                 autoComplete="off"
+                autoFocus
                 maxLength={8}
                 required
                 {...inputProps}

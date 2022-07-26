@@ -387,16 +387,18 @@ router.post("users.requestDelete", auth(), async (ctx) => {
 });
 
 router.post("users.delete", auth(), async (ctx) => {
-  const { code } = ctx.body;
+  const { code = "" } = ctx.body;
   const { user } = ctx.state;
   authorize(user, "delete", user);
 
+  const deleteConfirmationCode = user.deleteConfirmationCode;
+
   if (
     emailEnabled &&
-    (!code ||
+    (code.length !== deleteConfirmationCode.length ||
       !crypto.timingSafeEqual(
         Buffer.from(code),
-        Buffer.from(user.deleteConfirmationCode)
+        Buffer.from(deleteConfirmationCode)
       ))
   ) {
     throw ValidationError("The confirmation code was incorrect");
