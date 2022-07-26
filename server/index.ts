@@ -68,6 +68,7 @@ async function start(id: number, disconnect: () => void) {
 
   // If a --port flag is passed then it takes priority over the env variable
   const normalizedPortFlag = getArg("port", "p");
+  const prefix = new URL(env.URL).pathname;
   const app = new Koa();
   const server = stoppable(
     useHTTPS
@@ -80,6 +81,17 @@ async function start(id: number, disconnect: () => void) {
   if (env.DEBUG.includes("http")) {
     app.use(logger((str) => Logger.info("http", str)));
   }
+
+  server.prependListener("upgrade", (req: http.IncomingMessage) => {
+    if (req.url?.startsWith(prefix)) {
+      req.url = req.url.substring(prefix.length) || "/";
+    }
+  });
+  server.prependListener("request", (req: http.IncomingMessage) => {
+    if (req.url?.startsWith(prefix)) {
+      req.url = req.url.substring(prefix.length) || "/";
+    }
+  });
 
   app.use(compress());
   app.use(helmet());
