@@ -54,7 +54,7 @@ export default async function starCreator({
     index = fractionalIndex(null, stars.length ? stars[0].index : null);
   }
 
-  const response = await Star.findOrCreate({
+  const [star, isCreated] = await Star.findOrCreate({
     where: documentId
       ? {
           userId: user.id,
@@ -69,12 +69,12 @@ export default async function starCreator({
     },
     transaction,
   });
-  const star = response[0];
 
-  if (response[1]) {
+  if (isCreated) {
     await Event.create(
       {
         name: "stars.create",
+        teamId: user.teamId,
         modelId: star.id,
         userId: user.id,
         actorId: user.id,

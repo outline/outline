@@ -1,6 +1,7 @@
 import Koa from "koa";
 import bodyParser from "koa-body";
 import Router from "koa-router";
+import env from "@server/env";
 import { NotFoundError } from "@server/errors";
 import errorHandling from "@server/middlewares/errorHandling";
 import methodOverride from "@server/middlewares/methodOverride";
@@ -11,6 +12,7 @@ import authenticationProviders from "./authenticationProviders";
 import collections from "./collections";
 import comments from "./comments";
 import cron from "./cron";
+import developer from "./developer";
 import documents from "./documents";
 import events from "./events";
 import fileOperationsRoute from "./fileOperations";
@@ -28,6 +30,7 @@ import stars from "./stars";
 import team from "./team";
 import users from "./users";
 import views from "./views";
+import webhookSubscriptions from "./webhookSubscriptions";
 
 const api = new Koa();
 const router = new Router();
@@ -69,6 +72,11 @@ router.use("/", attachments.routes());
 router.use("/", cron.routes());
 router.use("/", groups.routes());
 router.use("/", fileOperationsRoute.routes());
+router.use("/", webhookSubscriptions.routes());
+
+if (env.ENVIRONMENT === "development") {
+  router.use("/", developer.routes());
+}
 
 router.post("*", (ctx) => {
   ctx.throw(NotFoundError("Endpoint not found"));

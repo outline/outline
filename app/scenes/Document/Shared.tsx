@@ -2,16 +2,21 @@ import { Location } from "history";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { Helmet } from "react-helmet";
+import { useTranslation } from "react-i18next";
 import { RouteComponentProps, useLocation } from "react-router-dom";
-import { useTheme } from "styled-components";
+import styled, { useTheme } from "styled-components";
+import { setCookie } from "tiny-cookie";
 import DocumentModel from "~/models/Document";
 import Error404 from "~/scenes/Error404";
 import ErrorOffline from "~/scenes/ErrorOffline";
 import Layout from "~/components/Layout";
 import Sidebar from "~/components/Sidebar/Shared";
+import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import { NavigationNode } from "~/types";
-import { OfflineError } from "~/utils/errors";
+import { AuthorizationError, OfflineError } from "~/utils/errors";
+import isCloudHosted from "~/utils/isCloudHosted";
+import Login from "../Login";
 import Document from "./components/Document";
 import Loading from "./components/Loading";
 
@@ -73,6 +78,7 @@ function SharedDocumentScene(props: Props) {
   const { ui } = useStores();
   const theme = useTheme();
   const location = useLocation();
+  const { t } = useTranslation();
   const [response, setResponse] = React.useState<Response>();
   const [error, setError] = React.useState<Error | null | undefined>();
   const { documents } = useStores();
@@ -105,7 +111,29 @@ function SharedDocumentScene(props: Props) {
   }, [documents, documentSlug, shareId, ui]);
 
   if (error) {
-    return error instanceof OfflineError ? <ErrorOffline /> : <Error404 />;
+    if (error instanceof OfflineError) {
+      return <ErrorOffline />;
+    } else if (error instanceof AuthorizationError) {
+      setCookie("postLoginRedirectPath", props.location.pathname);
+      return (
+        <Login>
+          {(config) =>
+            config?.name && isCloudHosted ? (
+              <GetStarted>
+                {t(
+                  "{{ teamName }} is using Outline to share documents, please login to continue.",
+                  {
+                    teamName: config.name,
+                  }
+                )}
+              </GetStarted>
+            ) : null
+          }
+        </Login>
+      );
+    } else {
+      return <Error404 />;
+    }
   }
 
   if (!response) {
@@ -119,7 +147,10 @@ function SharedDocumentScene(props: Props) {
   return (
     <>
       <Helmet>
-        <link rel="canonical" href={canonicalOrigin + location.pathname} />
+        <link
+          rel="canonical"
+          href={canonicalOrigin + location.pathname.replace(/\/$/, "")}
+        />
       </Helmet>
       <Layout title={response.document.title} sidebar={sidebar}>
         <Document
@@ -133,5 +164,10 @@ function SharedDocumentScene(props: Props) {
     </>
   );
 }
+
+const GetStarted = styled(Text)`
+  text-align: center;
+  margin-top: -8px;
+`;
 
 export default observer(SharedDocumentScene);

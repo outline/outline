@@ -11,8 +11,8 @@ import {
 import * as React from "react";
 import ImageZoom from "react-medium-image-zoom";
 import styled from "styled-components";
-import { supportedImageMimeTypes } from "../../utils/files";
-import getDataTransferFiles from "../../utils/getDataTransferFiles";
+import { getDataTransferFiles, getEventFiles } from "../../utils/files";
+import { AttachmentValidation } from "../../validations";
 import insertFiles, { Options } from "../commands/insertFiles";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import uploadPlaceholderPlugin from "../lib/uploadPlaceholder";
@@ -74,9 +74,7 @@ const uploadPlugin = (options: Options) =>
           }
 
           // filter to only include image files
-          const files = getDataTransferFiles(event).filter(
-            (dt: any) => dt.kind !== "string"
-          );
+          const files = getDataTransferFiles(event);
           if (files.length === 0) {
             return false;
           }
@@ -119,7 +117,7 @@ const downloadImageNode = async (node: ProsemirrorNode) => {
   const image = await fetch(node.attrs.src);
   const imageBlob = await image.blob();
   const imageURL = URL.createObjectURL(imageBlob);
-  const extension = imageBlob.type.split("/")[1];
+  const extension = imageBlob.type.split(/\/|\+/g)[1];
   const potentialName = node.attrs.alt || "image";
 
   // create a temporary link node and click it with our image data
@@ -412,9 +410,9 @@ export default class Image extends Node {
         // create an input element and click to trigger picker
         const inputElement = document.createElement("input");
         inputElement.type = "file";
-        inputElement.accept = supportedImageMimeTypes.join(", ");
-        inputElement.onchange = (event: Event) => {
-          const files = getDataTransferFiles(event);
+        inputElement.accept = AttachmentValidation.imageContentTypes.join(", ");
+        inputElement.onchange = (event) => {
+          const files = getEventFiles(event);
           insertFiles(view, event, state.selection.from, files, {
             uploadFile,
             onFileUploadStart,

@@ -1,41 +1,66 @@
-import { Op } from "sequelize";
-import { DomainNotAllowedError, InviteRequiredError } from "@server/errors";
+import { sequelize } from "@server/database/sequelize";
+import InviteAcceptedEmail from "@server/emails/templates/InviteAcceptedEmail";
+import {
+  DomainNotAllowedError,
+  InvalidAuthenticationError,
+  InviteRequiredError,
+} from "@server/errors";
 import { Event, Team, User, UserAuthentication } from "@server/models";
 
-type UserCreatorResult = {
+type UserProvisionerResult = {
   user: User;
   isNewUser: boolean;
-  authentication: UserAuthentication;
+  authentication: UserAuthentication | null;
 };
 
 type Props = {
+  /** The displayed name of the user */
   name: string;
+  /** The email address of the user */
   email: string;
+  /** The username of the user */
   username?: string;
+  /** Provision the new user as an administrator */
   isAdmin?: boolean;
+  /** The public url of an image representing the user */
   avatarUrl?: string | null;
+  /**
+   * The internal ID of the team that is being logged into based on the
+   * subdomain that the request came from, if any.
+   */
   teamId: string;
+  /** Only match against existing user accounts using email, do not create a new account */
+  emailMatchOnly?: boolean;
+  /** The IP address of the incoming request */
   ip: string;
   authentication: {
     authenticationProviderId: string;
+    /** External identifier of the user in the authentication provider  */
     providerId: string;
+    /** The scopes granted by the access token */
     scopes: string[];
+    /** The token provided by the authentication provider */
     accessToken?: string;
+    /** The refresh token provided by the authentication provider */
     refreshToken?: string;
+    /** The timestamp when the access token expires */
+    expiresAt?: Date;
   };
 };
 
-export default async function userCreator({
+export default async function userProvisioner({
   name,
   email,
   username,
   isAdmin,
+  emailMatchOnly,
   avatarUrl,
   teamId,
   authentication,
   ip,
-}: Props): Promise<UserCreatorResult> {
-  const { authenticationProviderId, providerId, ...rest } = authentication;
+}: Props): Promise<UserProvisionerResult> {
+  const { providerId, authenticationProviderId, ...rest } = authentication;
+
   const auth = await UserAuthentication.findOne({
     where: {
       providerId,
@@ -44,6 +69,8 @@ export default async function userCreator({
       {
         model: User,
         as: "user",
+        where: { teamId },
+        required: true,
       },
     ],
   });
@@ -82,65 +109,104 @@ export default async function userCreator({
     await auth.destroy();
   }
 
-  // A `user` record might exist in the form of an invite even if there is no
-  // existing authentication record that matches. In Outline an invite is a
-  // shell user record.
-  const invite = await User.findOne({
+  // A `user` record may exist even if there is no existing authentication record.
+  // This is either an invite or a user that's external to the team
+  const existingUser = await User.scope([
+    "withAuthentications",
+    "withTeam",
+  ]).findOne({
     where: {
       // Email from auth providers may be capitalized and we should respect that
       // however any existing invites will always be lowercased.
       email: email.toLowerCase(),
       teamId,
-      lastActiveAt: {
-        [Op.is]: null,
-      },
     },
-    include: [
-      {
-        model: UserAuthentication,
-        as: "authentications",
-        required: false,
-      },
-    ],
   });
 
-  // We have an existing invite for his user, so we need to update it with our
-  // new details and link up the authentication method
-  if (invite && !invite.authentications.length) {
-    const transaction = await User.sequelize!.transaction();
-    let auth;
+  // We have an existing user, so we need to update it with our
+  // new details and count this as a new user creation.
+  if (existingUser) {
+    // A `user` record might exist in the form of an invite.
+    // An invite is a shell user record with no authentication method
+    // that's never been active before.
+    const isInvite = existingUser.isInvited;
 
-    try {
-      await invite.update(
+    const auth = await sequelize.transaction(async (transaction) => {
+      if (isInvite) {
+        await Event.create(
+          {
+            name: "users.create",
+            actorId: existingUser.id,
+            userId: existingUser.id,
+            teamId: existingUser.teamId,
+            data: {
+              name,
+            },
+            ip,
+          },
+          {
+            transaction,
+          }
+        );
+      }
+
+      // Regardless, create a new authentication record
+      // against the existing user (user can auth with multiple SSO providers)
+      // Update user's name and avatar based on the most recently added provider
+      await existingUser.update(
         {
           name,
           avatarUrl,
+          lastActiveAt: new Date(),
+          lastActiveIp: ip,
         },
         {
           transaction,
         }
       );
-      auth = await invite.$create<UserAuthentication>(
+
+      // We don't want to associate a user auth with the auth provider
+      // if we're doing a simple email match, so early return here
+      if (emailMatchOnly) {
+        return null;
+      }
+
+      return await existingUser.$create<UserAuthentication>(
         "authentication",
         authentication,
         {
           transaction,
         }
       );
-      await transaction.commit();
-    } catch (err) {
-      await transaction.rollback();
-      throw err;
+    });
+
+    if (isInvite) {
+      const inviter = await existingUser.$get("invitedBy");
+      if (inviter) {
+        await InviteAcceptedEmail.schedule({
+          to: inviter.email,
+          inviterId: inviter.id,
+          invitedName: existingUser.name,
+          teamUrl: existingUser.team.url,
+        });
+      }
     }
 
     return {
-      user: invite,
+      user: existingUser,
       authentication: auth,
-      isNewUser: true,
+      isNewUser: isInvite,
     };
+  } else if (emailMatchOnly) {
+    // There's no existing invite or user that matches the external auth email
+    // This is simply unauthorized
+    throw InvalidAuthenticationError();
   }
 
+  //
   // No auth, no user – this is an entirely new sign in.
+  //
+
   const transaction = await User.sequelize!.transaction();
 
   try {
@@ -149,9 +215,9 @@ export default async function userCreator({
       transaction,
     });
 
-    // If the team settings are set to require invites, and the user is not already invited,
+    // If the team settings are set to require invites, and there's no existing user record,
     // throw an error and fail user creation.
-    if (team?.inviteRequired && !invite) {
+    if (team?.inviteRequired) {
       throw InviteRequiredError();
     }
 

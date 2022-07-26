@@ -6,8 +6,8 @@ import { useDrag, useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import { MAX_TITLE_LENGTH } from "@shared/constants";
 import { sortNavigationNodes } from "@shared/utils/collections";
+import { DocumentValidation } from "@shared/validations";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import Fade from "~/components/Fade";
@@ -319,7 +319,7 @@ function InnerDocumentLink(
                     onSubmit={handleTitleChange}
                     onEditing={handleTitleEditing}
                     canUpdate={canUpdate}
-                    maxLength={MAX_TITLE_LENGTH}
+                    maxLength={DocumentValidation.maxTitleLength}
                   />
                 }
                 isActive={(match, location: Location<{ starred?: boolean }>) =>

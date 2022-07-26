@@ -15,6 +15,7 @@ import {
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
 import { isInTable } from "prosemirror-tables";
+import isInCode from "@shared/editor/queries/isInCode";
 import isInList from "@shared/editor/queries/isInList";
 import isMarkActive from "@shared/editor/queries/isMarkActive";
 import isNodeActive from "@shared/editor/queries/isNodeActive";
@@ -29,6 +30,7 @@ export default function formattingMenuItems(
   const { schema } = state;
   const isTable = isInTable(state);
   const isList = isInList(state);
+  const isCode = isInCode(state);
   const allowBlocks = !isTable && !isList;
 
   return [
@@ -48,19 +50,21 @@ export default function formattingMenuItems(
       tooltip: dictionary.strong,
       icon: BoldIcon,
       active: isMarkActive(schema.marks.strong),
+      visible: !isCode,
     },
     {
       name: "strikethrough",
       tooltip: dictionary.strikethrough,
       icon: StrikethroughIcon,
       active: isMarkActive(schema.marks.strikethrough),
+      visible: !isCode,
     },
     {
       name: "highlight",
       tooltip: dictionary.mark,
       icon: HighlightIcon,
       active: isMarkActive(schema.marks.highlight),
-      visible: !isTemplate,
+      visible: !isTemplate && !isCode,
     },
     {
       name: "code_inline",
@@ -70,7 +74,7 @@ export default function formattingMenuItems(
     },
     {
       name: "separator",
-      visible: allowBlocks,
+      visible: allowBlocks && !isCode,
     },
     {
       name: "heading",
@@ -78,7 +82,7 @@ export default function formattingMenuItems(
       icon: Heading1Icon,
       active: isNodeActive(schema.nodes.heading, { level: 1 }),
       attrs: { level: 1 },
-      visible: allowBlocks,
+      visible: allowBlocks && !isCode,
     },
     {
       name: "heading",
@@ -86,7 +90,7 @@ export default function formattingMenuItems(
       icon: Heading2Icon,
       active: isNodeActive(schema.nodes.heading, { level: 2 }),
       attrs: { level: 2 },
-      visible: allowBlocks,
+      visible: allowBlocks && !isCode,
     },
     {
       name: "blockquote",
@@ -94,11 +98,11 @@ export default function formattingMenuItems(
       icon: BlockQuoteIcon,
       active: isNodeActive(schema.nodes.blockquote),
       attrs: { level: 2 },
-      visible: allowBlocks,
+      visible: allowBlocks && !isCode,
     },
     {
       name: "separator",
-      visible: allowBlocks || isList,
+      visible: (allowBlocks || isList) && !isCode,
     },
     {
       name: "checkbox_list",
@@ -106,24 +110,25 @@ export default function formattingMenuItems(
       icon: TodoListIcon,
       keywords: "checklist checkbox task",
       active: isNodeActive(schema.nodes.checkbox_list),
-      visible: allowBlocks || isList,
+      visible: (allowBlocks || isList) && !isCode,
     },
     {
       name: "bullet_list",
       tooltip: dictionary.bulletList,
       icon: BulletedListIcon,
       active: isNodeActive(schema.nodes.bullet_list),
-      visible: allowBlocks || isList,
+      visible: (allowBlocks || isList) && !isCode,
     },
     {
       name: "ordered_list",
       tooltip: dictionary.orderedList,
       icon: OrderedListIcon,
       active: isNodeActive(schema.nodes.ordered_list),
-      visible: allowBlocks || isList,
+      visible: (allowBlocks || isList) && !isCode,
     },
     {
       name: "separator",
+      visible: !isCode,
     },
     {
       name: "link",
@@ -131,6 +136,7 @@ export default function formattingMenuItems(
       icon: LinkIcon,
       active: isMarkActive(schema.marks.link),
       attrs: { href: "" },
+      visible: !isCode,
     },
     {
       name: "comment",

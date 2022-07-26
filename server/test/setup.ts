@@ -33,3 +33,5 @@ jest.mock("aws-sdk", () => {
     Endpoint: jest.fn(),
   };
 });
+
+jest.mock("@getoutline/y-prosemirror", () => ({}));

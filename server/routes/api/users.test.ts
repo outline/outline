@@ -39,9 +39,26 @@ describe("#users.list", () => {
   });
 
   it("should allow filtering to suspended users", async () => {
-    const user = await buildUser({
+    const admin = await buildAdmin();
+    await buildUser({
       name: "Tester",
+      teamId: admin.teamId,
+      suspendedAt: new Date(),
     });
+    const res = await server.post("/api/users.list", {
+      body: {
+        query: "test",
+        filter: "suspended",
+        token: admin.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+  });
+
+  it("should not allow members to view suspended users", async () => {
+    const user = await buildUser();
     await buildUser({
       name: "Tester",
       teamId: user.teamId,
@@ -50,13 +67,12 @@ describe("#users.list", () => {
     const res = await server.post("/api/users.list", {
       body: {
         query: "test",
-        filter: "suspended",
         token: user.getJwtToken(),
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.length).toEqual(1);
+    expect(body.data.length).toEqual(0);
   });
 
   it("should allow filtering to invited", async () => {
@@ -467,7 +483,7 @@ describe("#users.demote", () => {
     expect(body).toMatchSnapshot();
   });
 
-  it("should not demote admins if only one available", async () => {
+  it("should not allow demoting self", async () => {
     const admin = await buildAdmin();
     const res = await server.post("/api/users.demote", {
       body: {

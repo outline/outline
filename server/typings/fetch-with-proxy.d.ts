@@ -1,3 +1,5 @@
 declare module "fetch-with-proxy" {
-  export = fetch;
+  import nodeFetch from "node-fetch";
+
+  export = nodeFetch;
 }

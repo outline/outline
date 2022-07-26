@@ -1,10 +1,9 @@
 import fractionalIndex from "fractional-index";
 import { Sequelize, Op, WhereOptions } from "sequelize";
+import { PinValidation } from "@shared/validations";
 import { sequelize } from "@server/database/sequelize";
 import { ValidationError } from "@server/errors";
 import { Pin, User, Event } from "@server/models";
-
-const MAX_PINS = 8;
 
 type Props = {
   /** The user creating the pin */
@@ -40,8 +39,10 @@ export default async function pinCreator({
   };
 
   const count = await Pin.count({ where });
-  if (count >= MAX_PINS) {
-    throw ValidationError(`You cannot pin more than ${MAX_PINS} documents`);
+  if (count >= PinValidation.max) {
+    throw ValidationError(
+      `You cannot pin more than ${PinValidation.max} documents`
+    );
   }
 
   if (!index) {

@@ -3,19 +3,14 @@ import { find } from "lodash";
 import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
-import io from "socket.io-client";
+import { io, Socket } from "socket.io-client";
 import RootStore from "~/stores/RootStore";
 import withStores from "~/components/withStores";
+import { AuthorizationError, NotFoundError } from "~/utils/errors";
 import { getVisibilityListener, getPageVisible } from "~/utils/pageVisibility";
 
-type SocketWithAuthentication = {
+type SocketWithAuthentication = Socket & {
   authenticated?: boolean;
-  disconnected: boolean;
-  disconnect: () => void;
-  close: () => void;
-  on: (event: string, callback: (data: any) => void) => void;
-  emit: (event: string, data: any) => void;
-  io: any;
 };
 
 export const SocketContext = React.createContext<SocketWithAuthentication | null>(
@@ -99,7 +94,7 @@ class SocketProvider extends React.Component<Props> {
 
     // on reconnection, reset the transports option, as the Websocket
     // connection may have failed (caused by proxy, firewall, browser, ...)
-    this.socket.on("reconnect_attempt", () => {
+    this.socket.io.on("reconnect_attempt", () => {
       if (this.socket) {
         this.socket.io.opts.transports = auth?.team?.domain
           ? ["websocket"]
@@ -155,7 +150,10 @@ class SocketProvider extends React.Component<Props> {
               force: true,
             });
           } catch (err) {
-            if (err.statusCode === 404 || err.statusCode === 403) {
+            if (
+              err instanceof AuthorizationError ||
+              err instanceof NotFoundError
+            ) {
               documents.remove(documentId);
               return;
             }
@@ -217,7 +215,10 @@ class SocketProvider extends React.Component<Props> {
               force: true,
             });
           } catch (err) {
-            if (err.statusCode === 404 || err.statusCode === 403) {
+            if (
+              err instanceof AuthorizationError ||
+              err instanceof NotFoundError
+            ) {
               documents.removeCollectionDocuments(collectionId);
               memberships.removeCollectionMemberships(collectionId);
               collections.remove(collectionId);
@@ -246,7 +247,10 @@ class SocketProvider extends React.Component<Props> {
               force: true,
             });
           } catch (err) {
-            if (err.statusCode === 404 || err.statusCode === 403) {
+            if (
+              err instanceof AuthorizationError ||
+              err instanceof NotFoundError
+            ) {
               groups.remove(groupId);
             }
           }

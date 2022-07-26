@@ -45,6 +45,13 @@ function Notifications() {
       ),
     },
     {
+      event: "emails.invite_accepted",
+      title: t("Invite accepted"),
+      description: t(
+        "Receive a notification when someone you invited creates an account"
+      ),
+    },
+    {
       visible: isCloudHosted,
       event: "emails.onboarding",
       title: t("Getting started"),

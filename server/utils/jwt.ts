@@ -82,14 +82,7 @@ export async function getUserForEmailSigninToken(token: string): Promise<User> {
     }
   }
 
-  const user = await User.findByPk(payload.id, {
-    include: [
-      {
-        model: Team,
-        required: true,
-      },
-    ],
-  });
+  const user = await User.scope("withTeam").findByPk(payload.id);
   invariant(user, "User not found");
 
   try {

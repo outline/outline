@@ -11,8 +11,8 @@ import { CommandFactory } from "@shared/editor/lib/Extension";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
 import { EmbedDescriptor, MenuItem } from "@shared/editor/types";
 import { depths } from "@shared/styles";
-import { supportedImageMimeTypes } from "@shared/utils/files";
-import getDataTransferFiles from "@shared/utils/getDataTransferFiles";
+import { getEventFiles } from "@shared/utils/files";
+import { AttachmentValidation } from "@shared/validations";
 import Scrollable from "~/components/Scrollable";
 import { Dictionary } from "~/hooks/useDictionary";
 import Input from "./Input";
@@ -182,7 +182,9 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
   insertItem = (item: any) => {
     switch (item.name) {
       case "image":
-        return this.triggerFilePick(supportedImageMimeTypes.join(", "));
+        return this.triggerFilePick(
+          AttachmentValidation.imageContentTypes.join(", ")
+        );
       case "attachment":
         return this.triggerFilePick("*");
       case "embed":
@@ -275,7 +277,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
   };
 
   handleFilePicked = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = getDataTransferFiles(event);
+    const files = getEventFiles(event);
 
     const {
       view,
@@ -424,7 +426,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
     const embedItems: EmbedDescriptor[] = [];
 
     for (const embed of embeds) {
-      if (embed.title && embed.icon) {
+      if (embed.title) {
         embedItems.push({
           ...embed,
           name: "embed",

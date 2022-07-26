@@ -71,7 +71,7 @@ export default class ImportMarkdownZipTask extends ImportTask {
               name: child.name,
               path: child.path,
               mimeType: mime.lookup(child.path) || "application/octet-stream",
-              buffer: await zipObject.async("nodebuffer"),
+              buffer: () => zipObject.async("nodebuffer"),
             });
             return;
           }

@@ -1,3 +1,4 @@
+import { LocationDescriptor } from "history";
 import { observer, useObserver } from "mobx-react";
 import { CommentIcon } from "outline-icons";
 import * as React from "react";
@@ -13,7 +14,7 @@ import useStores from "~/hooks/useStores";
 type Props = {
   document: Document;
   isDraft: boolean;
-  to?: string;
+  to?: LocationDescriptor;
   rtl?: boolean;
 };
 

@@ -44,7 +44,7 @@ export default abstract class Mark extends Extension {
   }: {
     type: MarkType;
     schema: Schema;
-  }): CommandFactory | undefined {
+  }): Record<string, CommandFactory> | CommandFactory | undefined {
     return (attrs) => toggleMark(type, attrs);
   }
 }

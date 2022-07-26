@@ -60,10 +60,12 @@ export default async function documentUpdater({
   if (fullWidth !== undefined) {
     document.fullWidth = fullWidth;
   }
-  if (!user.team?.collaborativeEditing) {
-    if (append) {
+  if (text !== undefined) {
+    if (user.team?.collaborativeEditing) {
+      document.updateFromMarkdown(text, append);
+    } else if (append) {
       document.text += text;
-    } else if (text !== undefined) {
+    } else {
       document.text = text;
     }
   }

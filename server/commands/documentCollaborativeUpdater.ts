@@ -1,5 +1,4 @@
 import { yDocToProsemirrorJSON } from "@getoutline/y-prosemirror";
-import invariant from "invariant";
 import { uniq } from "lodash";
 import { Node } from "prosemirror-model";
 import * as Y from "yjs";
@@ -25,9 +24,9 @@ export default async function documentCollaborativeUpdater({
           of: Document,
           level: transaction.LOCK.UPDATE,
         },
+        rejectOnEmpty: true,
         paranoid: false,
       });
-    invariant(document, "document not found");
 
     const state = Y.encodeStateAsUpdate(ydoc);
     const node = Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));

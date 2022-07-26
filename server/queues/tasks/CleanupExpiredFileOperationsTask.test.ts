@@ -11,11 +11,11 @@ import CleanupExpiredFileOperationsTask from "./CleanupExpiredFileOperationsTask
 beforeEach(() => flushdb());
 
 describe("CleanupExpiredFileOperationsTask", () => {
-  it("should expire exports older than 30 days ago", async () => {
+  it("should expire exports older than 15 days ago", async () => {
     await buildFileOperation({
       type: FileOperationType.Export,
       state: FileOperationState.Complete,
-      createdAt: subDays(new Date(), 30),
+      createdAt: subDays(new Date(), 15),
     });
     await buildFileOperation({
       type: FileOperationType.Export,
@@ -35,11 +35,11 @@ describe("CleanupExpiredFileOperationsTask", () => {
     expect(data).toEqual(1);
   });
 
-  it("should not expire exports made less than 30 days ago", async () => {
+  it("should not expire exports made less than 15 days ago", async () => {
     await buildFileOperation({
       type: FileOperationType.Export,
       state: FileOperationState.Complete,
-      createdAt: subDays(new Date(), 29),
+      createdAt: subDays(new Date(), 14),
     });
     await buildFileOperation({
       type: FileOperationType.Export,

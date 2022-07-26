@@ -44,6 +44,7 @@ export class Mailer {
             "email",
             "Couldn't generate a test account with ethereal.email at this time – emails will not be sent."
           );
+          return;
         }
 
         this.transporter = nodemailer.createTransport(options);
@@ -102,11 +103,15 @@ export class Mailer {
             pass: env.SMTP_PASSWORD,
           }
         : undefined,
-      tls: env.SMTP_TLS_CIPHERS
-        ? {
-            ciphers: env.SMTP_TLS_CIPHERS,
-          }
-        : undefined,
+      tls: env.SMTP_SECURE
+        ? env.SMTP_TLS_CIPHERS
+          ? {
+              ciphers: env.SMTP_TLS_CIPHERS,
+            }
+          : undefined
+        : {
+            rejectUnauthorized: false,
+          },
     };
   }
 

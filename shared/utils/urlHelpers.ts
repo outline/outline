@@ -49,7 +49,7 @@ export function changelogUrl(): string {
 }
 
 export function signin(service = "slack"): string {
-  return `${env.URL}/auth/${service}`;
+  return `/auth/${service}`;
 }
 
 export const SLUG_URL_REGEX = /^(?:[0-9a-zA-Z-_~]*-)?([a-zA-Z0-9]{10,15})$/;

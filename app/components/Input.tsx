@@ -104,33 +104,19 @@ export const LabelText = styled.div`
   display: inline-block;
 `;
 
-export type Props = Omit<React.HTMLAttributes<HTMLInputElement>, "onChange"> & {
+export type Props = React.InputHTMLAttributes<
+  HTMLInputElement | HTMLTextAreaElement
+> & {
   type?: "text" | "email" | "checkbox" | "search" | "textarea";
-  value?: string;
-  label?: string;
-  className?: string;
   labelHidden?: boolean;
+  label?: string;
   flex?: boolean;
   short?: boolean;
   margin?: string | number;
   icon?: React.ReactNode;
-  name?: string;
-  pattern?: string;
-  minLength?: number;
-  maxLength?: number;
-  autoFocus?: boolean;
-  autoComplete?: boolean | string;
-  readOnly?: boolean;
-  required?: boolean;
-  disabled?: boolean;
-  placeholder?: string;
+  innerRef?: React.Ref<any>;
   /* Callback is triggered with the CMD+Enter keyboard combo */
   onRequestSubmit?: (ev: React.KeyboardEvent<HTMLInputElement>) => unknown;
-  onChange?: (
-    ev: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => unknown;
-  innerRef?: React.RefObject<HTMLInputElement | HTMLTextAreaElement>;
-  onKeyDown?: (ev: React.KeyboardEvent<HTMLInputElement>) => unknown;
   onFocus?: (ev: React.SyntheticEvent) => unknown;
   onBlur?: (ev: React.SyntheticEvent) => unknown;
 };
@@ -196,8 +182,6 @@ class Input extends React.Component<Props> {
       ...rest
     } = this.props;
 
-    const InputComponent: React.ComponentType =
-      type === "textarea" ? RealTextarea : RealInput;
     const wrappedLabel = <LabelText>{label}</LabelText>;
 
     return (
@@ -211,21 +195,36 @@ class Input extends React.Component<Props> {
             ))}
           <Outline focused={this.focused} margin={margin}>
             {icon && <IconWrapper>{icon}</IconWrapper>}
-            <InputComponent
-              // @ts-expect-error no idea why this is not working
-              ref={this.input}
-              onBlur={this.handleBlur}
-              onFocus={this.handleFocus}
-              onKeyDown={this.handleKeyDown}
-              hasIcon={!!icon}
-              type={type === "textarea" ? undefined : type}
-              {...rest}
-            />
+            {type === "textarea" ? (
+              <RealTextarea
+                ref={this.props.innerRef}
+                onBlur={this.props.onBlur}
+                onFocus={this.handleFocus}
+                hasIcon={!!icon}
+                {...rest}
+              />
+            ) : (
+              <RealInput
+                ref={this.props.innerRef}
+                onBlur={this.props.onBlur}
+                onFocus={this.handleFocus}
+                onKeyDown={this.handleKeyDown}
+                hasIcon={!!icon}
+                type={type}
+                {...rest}
+              />
+            )}
           </Outline>
         </label>
       </Wrapper>
     );
   }
 }
+
+export const ReactHookWrappedInput = React.forwardRef(
+  (props: Omit<Props, "innerRef">, ref: React.Ref<any>) => {
+    return <Input {...{ ...props, innerRef: ref }} />;
+  }
+);
 
 export default Input;

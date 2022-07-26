@@ -379,17 +379,17 @@ describe("#findByPk", () => {
     expect(response!.id).toBe(collection.id);
   });
 
-  test("should return undefined when incorrect uuid type", async () => {
+  test("should return null when incorrect uuid type", async () => {
     const collection = await buildCollection();
     const response = await Collection.findByPk(collection.id + "-incorrect");
-    expect(response).toBe(undefined);
+    expect(response).toBe(null);
   });
 
-  test("should return undefined when incorrect urlId length", async () => {
+  test("should return null when incorrect urlId length", async () => {
     const collection = await buildCollection();
     const id = `${slugify(collection.name)}-${collection.urlId}incorrect`;
     const response = await Collection.findByPk(id);
-    expect(response).toBe(undefined);
+    expect(response).toBe(null);
   });
 
   test("should return null when no collection is found with uuid", async () => {

@@ -1,15 +1,28 @@
 import { Next } from "koa";
+import Logger from "@server/logging/Logger";
 import tracer, { APM } from "@server/logging/tracing";
 import { User, Team, ApiKey } from "@server/models";
 import { getUserForJWT } from "@server/utils/jwt";
-import { AuthenticationError, UserSuspendedError } from "../errors";
-import { ContextWithState } from "../types";
+import {
+  AuthenticationError,
+  AuthorizationError,
+  UserSuspendedError,
+} from "../errors";
+import { ContextWithState, AuthenticationTypes } from "../types";
 
-export default function auth(
-  options: {
-    required?: boolean;
-  } = {}
-) {
+type AuthenticationOptions = {
+  /* An admin user role is required to access the route */
+  admin?: boolean;
+  /* A member or admin user role is required to access the route */
+  member?: boolean;
+  /**
+   * Authentication is parsed, but optional. Note that if a token is provided
+   * in the request it must be valid or the requst will be rejected.
+   */
+  optional?: boolean;
+};
+
+export default function auth(options: AuthenticationOptions = {}) {
   return async function authMiddleware(ctx: ContextWithState, next: Next) {
     let token;
     const authorizationHeader = ctx.request.get("authorization");
@@ -29,8 +42,11 @@ export default function auth(
           `Bad Authorization header format. Format is "Authorization: Bearer <token>"`
         );
       }
-      // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
-    } else if (ctx.body && ctx.body.token) {
+    } else if (
+      ctx.body &&
+      typeof ctx.body === "object" &&
+      "token" in ctx.body
+    ) {
       // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
       token = ctx.body.token;
     } else if (ctx.request.query.token) {
@@ -39,15 +55,15 @@ export default function auth(
       token = ctx.cookies.get("accessToken");
     }
 
-    if (!token && options.required !== false) {
+    if (!token && options.optional !== true) {
       throw AuthenticationError("Authentication required");
     }
 
-    let user;
+    let user: User | null | undefined;
 
     if (token) {
       if (String(token).match(/^[\w]{38}$/)) {
-        ctx.state.authType = "api";
+        ctx.state.authType = AuthenticationTypes.API;
         let apiKey;
 
         try {
@@ -78,7 +94,7 @@ export default function auth(
           throw AuthenticationError("Invalid API key");
         }
       } else {
-        ctx.state.authType = "app";
+        ctx.state.authType = AuthenticationTypes.APP;
         user = await getUserForJWT(String(token));
       }
 
@@ -94,8 +110,23 @@ export default function auth(
         });
       }
 
+      if (options.admin) {
+        if (!user.isAdmin) {
+          throw AuthorizationError("Admin role required");
+        }
+      }
+
+      if (options.member) {
+        if (user.isViewer) {
+          throw AuthorizationError("Member role required");
+        }
+      }
+
       // not awaiting the promise here so that the request is not blocked
-      user.updateActiveAt(ctx.request.ip);
+      user.updateActiveAt(ctx.request.ip).catch((err) => {
+        Logger.error("Failed to update user activeAt", err);
+      });
+
       ctx.state.token = String(token);
       ctx.state.user = user;
 

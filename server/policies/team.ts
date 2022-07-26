@@ -10,7 +10,7 @@ allow(User, "share", Team, (user, team) => {
   return team.sharing;
 });
 
-allow(User, ["update", "export", "manage"], Team, (user, team) => {
+allow(User, ["update", "manage"], Team, (user, team) => {
   if (!team || user.isViewer || user.teamId !== team.id) {
     return false;
   }

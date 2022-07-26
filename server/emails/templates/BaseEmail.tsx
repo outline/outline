@@ -1,4 +1,5 @@
 import mailer from "@server/emails/mailer";
+import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/metrics";
 import { taskQueue } from "@server/queues";
 import { TaskPriority } from "@server/queues/tasks/BaseTask";
@@ -54,11 +55,19 @@ export default abstract class BaseEmail<T extends EmailProps, S = any> {
    * @returns A promise that resolves once the email has been successfully sent.
    */
   public async send() {
-    const bsResponse = this.beforeSend
-      ? await this.beforeSend(this.props)
-      : ({} as S);
-    const data = { ...this.props, ...bsResponse };
     const templateName = this.constructor.name;
+    const bsResponse = await this.beforeSend?.(this.props);
+
+    if (bsResponse === false) {
+      Logger.info(
+        "email",
+        `Email ${templateName} not sent due to beforeSend hook`,
+        this.props
+      );
+      return;
+    }
+
+    const data = { ...this.props, ...(bsResponse ?? ({} as S)) };
 
     try {
       await mailer.sendMail({
@@ -116,10 +125,11 @@ export default abstract class BaseEmail<T extends EmailProps, S = any> {
 
   /**
    * beforeSend hook allows async loading additional data that was not passed
-   * through the serialized worker props.
+   * through the serialized worker props. If false is returned then the email
+   * send is aborted.
    *
    * @param props Props in email constructor
    * @returns A promise resolving to additional data
    */
-  protected beforeSend?(props: T): Promise<S>;
+  protected beforeSend?(props: T): Promise<S | false>;
 }

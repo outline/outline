@@ -24,7 +24,10 @@ export default abstract class BaseModel {
     this.isNew = !this.id;
   }
 
-  save = async (params?: Record<string, any>) => {
+  save = async (
+    params?: Record<string, any>,
+    options?: Record<string, string | boolean | number | undefined>
+  ) => {
     this.isSaving = true;
 
     try {
@@ -33,11 +36,14 @@ export default abstract class BaseModel {
         params = this.toAPI();
       }
 
-      const model = await this.store.save({
-        ...params,
-        id: this.id,
-        isNew: this.isNew,
-      });
+      const model = await this.store.save(
+        {
+          ...params,
+          id: this.id,
+          isNew: this.isNew,
+        },
+        options
+      );
 
       // if saving is successful set the new values on the model itself
       set(this, { ...params, ...model, isNew: false });

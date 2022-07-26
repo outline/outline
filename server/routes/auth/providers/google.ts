@@ -1,20 +1,24 @@
 import passport from "@outlinewiki/koa-passport";
-import { Request } from "koa";
+import type { Context } from "koa";
 import Router from "koa-router";
 import { capitalize } from "lodash";
 import { Profile } from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth2";
+import { slugifyDomain } from "@shared/utils/domains";
 import accountProvisioner, {
   AccountProvisionerResult,
 } from "@server/commands/accountProvisioner";
 import env from "@server/env";
-import { GoogleWorkspaceRequiredError } from "@server/errors";
+import {
+  GmailAccountCreationError,
+  TeamDomainRequiredError,
+} from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
 import { User } from "@server/models";
-import { StateStore } from "@server/utils/passport";
+import { StateStore, getTeamFromContext } from "@server/utils/passport";
 
 const router = new Router();
-const providerName = "google";
+const GOOGLE = "google";
 const scopes = [
   "https://www.googleapis.com/auth/userinfo.profile",
   "https://www.googleapis.com/auth/userinfo.email",
@@ -29,7 +33,7 @@ type GoogleProfile = Profile & {
   email: string;
   picture: string;
   _json: {
-    hd: string;
+    hd?: string;
   };
 };
 
@@ -46,9 +50,10 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
         scope: scopes,
       },
       async function (
-        req: Request,
+        ctx: Context,
         accessToken: string,
         refreshToken: string,
+        params: { expires_in: number },
         profile: GoogleProfile,
         done: (
           err: Error | null,
@@ -57,17 +62,44 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
         ) => void
       ) {
         try {
+          // "domain" is the Google Workspaces domain
           const domain = profile._json.hd;
+          const team = await getTeamFromContext(ctx);
 
-          if (!domain) {
-            throw GoogleWorkspaceRequiredError();
+          // No profile domain means personal gmail account
+          // No team implies the request came from the apex domain
+          // This combination is always an error
+          if (!domain && !team) {
+            const userExists = await User.count({
+              where: { email: profile.email.toLowerCase() },
+            });
+
+            // Users cannot create a team with personal gmail accounts
+            if (!userExists) {
+              throw GmailAccountCreationError();
+            }
+
+            // To log-in with a personal account, users must specify a team subdomain
+            throw TeamDomainRequiredError();
           }
 
-          const subdomain = domain.split(".")[0];
+          // remove the TLD and form a subdomain from the remaining
+          // subdomains of the form "foo.bar.com" are allowed as primary Google Workspaces domains
+          // see https://support.google.com/nonprofits/thread/19685140/using-a-subdomain-as-a-primary-domain
+          const subdomain = domain ? slugifyDomain(domain) : "";
           const teamName = capitalize(subdomain);
+
+          // Request a larger size profile picture than the default by tweaking
+          // the query parameter.
+          const avatarUrl = profile.picture.replace("=s96-c", "=s128-c");
+
+          // if a team can be inferred, we assume the user is only interested in signing into
+          // that team in particular; otherwise, we will do a best effort at finding their account
+          // or provisioning a new one (within AccountProvisioner)
           const result = await accountProvisioner({
-            ip: req.ip,
+            ip: ctx.ip,
             team: {
+              teamId: team?.id,
               name: teamName,
               domain,
               subdomain,
@@ -75,19 +107,21 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
             user: {
               email: profile.email,
               name: profile.displayName,
-              avatarUrl: profile.picture,
+              avatarUrl,
             },
             authenticationProvider: {
-              name: providerName,
-              providerId: domain,
+              name: GOOGLE,
+              providerId: domain ?? "",
             },
             authentication: {
               providerId: profile.id,
               accessToken,
               refreshToken,
+              expiresIn: params.expires_in,
               scopes,
             },
           });
+
           return done(null, result.user, result);
         } catch (err) {
           return done(err, null);
@@ -98,13 +132,13 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
 
   router.get(
     "google",
-    passport.authenticate(providerName, {
+    passport.authenticate(GOOGLE, {
       accessType: "offline",
       prompt: "select_account consent",
     })
   );
 
-  router.get("google.callback", passportMiddleware(providerName));
+  router.get("google.callback", passportMiddleware(GOOGLE));
 }
 
 export default router;

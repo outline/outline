@@ -1,4 +1,4 @@
-import { SaveOptions } from "sequelize";
+import type { SaveOptions } from "sequelize";
 import {
   ForeignKey,
   AfterSave,
@@ -9,8 +9,10 @@ import {
   IsUUID,
   Table,
   DataType,
+  Length,
 } from "sequelize-typescript";
 import { globalEventQueue } from "../queues";
+import { Event as TEvent } from "../types";
 import Collection from "./Collection";
 import Document from "./Document";
 import Team from "./Team";
@@ -18,13 +20,17 @@ import User from "./User";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
 
-@Table({ tableName: "events", modelName: "event" })
+@Table({ tableName: "events", modelName: "event", updatedAt: false })
 @Fix
 class Event extends IdModel {
   @IsUUID(4)
   @Column(DataType.UUID)
   modelId: string;
 
+  @Length({
+    max: 255,
+    msg: "name must be 255 characters or less",
+  })
   @Column
   name: string;
 
@@ -100,18 +106,18 @@ class Event extends IdModel {
     globalEventQueue.add(
       this.build({
         createdAt: now,
-        updatedAt: now,
         ...event,
       })
     );
   }
 
-  static ACTIVITY_EVENTS = [
+  static ACTIVITY_EVENTS: TEvent["name"][] = [
     "collections.create",
     "collections.delete",
     "collections.move",
     "collections.permission_changed",
     "documents.publish",
+    "documents.unpublish",
     "documents.archive",
     "documents.unarchive",
     "documents.move",
@@ -122,7 +128,7 @@ class Event extends IdModel {
     "users.create",
   ];
 
-  static AUDIT_EVENTS = [
+  static AUDIT_EVENTS: TEvent["name"][] = [
     "api_keys.create",
     "api_keys.delete",
     "authenticationProviders.update",
@@ -135,7 +141,6 @@ class Event extends IdModel {
     "collections.add_group",
     "collections.remove_group",
     "collections.delete",
-    "collections.export_all",
     "documents.create",
     "documents.publish",
     "documents.update",
@@ -159,12 +164,15 @@ class Event extends IdModel {
     "users.create",
     "users.update",
     "users.signin",
+    "users.signout",
     "users.promote",
     "users.demote",
     "users.invite",
     "users.suspend",
     "users.activate",
     "users.delete",
+    "webhook_subscriptions.create",
+    "webhook_subscriptions.delete",
   ];
 }
 

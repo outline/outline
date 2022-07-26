@@ -1,3 +1,4 @@
+import { observer } from "mobx-react";
 import * as React from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
@@ -72,4 +73,4 @@ const TableFromParams = (
   );
 };
 
-export default TableFromParams;
+export default observer(TableFromParams);

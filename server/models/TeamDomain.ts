@@ -1,19 +1,33 @@
+import emailProviders from "email-providers";
 import {
   Column,
   Table,
   BelongsTo,
   ForeignKey,
   NotEmpty,
+  NotIn,
+  BeforeValidate,
+  BeforeCreate,
 } from "sequelize-typescript";
+import { TeamValidation } from "@shared/validations";
+import { ValidationError } from "@server/errors";
 import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
+import IsFQDN from "./validators/IsFQDN";
+import Length from "./validators/Length";
 
 @Table({ tableName: "team_domains", modelName: "team_domain" })
 @Fix
 class TeamDomain extends IdModel {
+  @NotIn({
+    args: [emailProviders],
+    msg: "You chose a restricted domain, please try another.",
+  })
   @NotEmpty
+  @Length({ max: 255, msg: "name must be 255 characters or less" })
+  @IsFQDN
   @Column
   name: string;
 
@@ -32,6 +46,25 @@ class TeamDomain extends IdModel {
   @ForeignKey(() => User)
   @Column
   createdById: string;
+
+  // hooks
+
+  @BeforeValidate
+  static async cleanupDomain(model: TeamDomain) {
+    model.name = model.name.toLowerCase().trim();
+  }
+
+  @BeforeCreate
+  static async checkLimit(model: TeamDomain) {
+    const count = await this.count({
+      where: { teamId: model.teamId },
+    });
+    if (count >= TeamValidation.maxDomains) {
+      throw ValidationError(
+        `You have reached the limit of ${TeamValidation.maxDomains} domains`
+      );
+    }
+  }
 }
 
 export default TeamDomain;

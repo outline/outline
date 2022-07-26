@@ -35,6 +35,14 @@
             "displayName": false
           }
         ]
+      ],
+      "ignore": [
+        "**/*.test.ts"
+      ]
+    },
+    "development": {
+      "ignore": [
+        "**/*.test.ts"
       ]
     }
   }

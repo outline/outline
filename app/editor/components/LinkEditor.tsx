@@ -11,8 +11,7 @@ import { setTextSelection } from "prosemirror-utils";
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import styled from "styled-components";
-import isUrl from "@shared/editor/lib/isUrl";
-import { isInternalUrl } from "@shared/utils/urls";
+import { isInternalUrl, sanitizeHref } from "@shared/utils/urls";
 import Flex from "~/components/Flex";
 import { Dictionary } from "~/hooks/useDictionary";
 import { ToastOptions } from "~/types";
@@ -45,7 +44,7 @@ type Props = {
     href: string,
     event: React.MouseEvent<HTMLButtonElement>
   ) => void;
-  onShowToast: (message: string, options: ToastOptions) => void;
+  onShowToast: (message: string, options?: ToastOptions) => void;
   view: EditorView;
 };
 
@@ -71,7 +70,7 @@ class LinkEditor extends React.Component<Props, State> {
   };
 
   get href(): string {
-    return this.props.mark ? this.props.mark.attrs.href : "";
+    return sanitizeHref(this.props.mark?.attrs.href) ?? "";
   }
 
   get suggestedLinkTitle(): string {
@@ -114,17 +113,7 @@ class LinkEditor extends React.Component<Props, State> {
 
     this.discardInputValue = true;
     const { from, to } = this.props;
-
-    // Make sure a protocol is added to the beginning of the input if it's
-    // likely an absolute URL that was entered without one.
-    if (
-      !isUrl(href) &&
-      !href.startsWith("/") &&
-      !href.startsWith("#") &&
-      !href.startsWith("mailto:")
-    ) {
-      href = `https://${href}`;
-    }
+    href = sanitizeHref(href) ?? "";
 
     this.props.onSelectLink({ href, title, from, to });
   };
@@ -240,7 +229,12 @@ class LinkEditor extends React.Component<Props, State> {
 
   handleOpenLink = (event: React.MouseEvent<HTMLButtonElement>): void => {
     event.preventDefault();
-    this.props.onClickLink(this.href, event);
+
+    try {
+      this.props.onClickLink(this.href, event);
+    } catch (err) {
+      this.props.onShowToast(this.props.dictionary.openLinkError);
+    }
   };
 
   handleCreateLink = async (value: string) => {

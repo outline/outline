@@ -17,6 +17,8 @@ import { flushdb } from "@server/test/support";
 const app = webService();
 const server = new TestServer(app.callback());
 
+jest.mock("@server/utils/s3");
+
 beforeEach(() => flushdb());
 afterAll(() => server.close());
 
@@ -35,7 +37,6 @@ describe("#fileOperations.info", () => {
       body: {
         id: exportData.id,
         token: admin.getJwtToken(),
-        type: FileOperationType.Export,
       },
     });
     const body = await res.json();
@@ -61,7 +62,26 @@ describe("#fileOperations.info", () => {
       body: {
         id: exportData.id,
         token: user.getJwtToken(),
-        type: FileOperationType.Export,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should require authorization", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin();
+    await buildUser({
+      teamId: team.id,
+    });
+    const exportData = await buildFileOperation({
+      type: FileOperationType.Export,
+      teamId: team.id,
+      userId: admin.id,
+    });
+    const res = await server.post("/api/fileOperations.info", {
+      body: {
+        id: exportData.id,
+        token: admin.getJwtToken(),
       },
     });
     expect(res.status).toEqual(403);
@@ -196,7 +216,7 @@ describe("#fileOperations.list", () => {
     expect(data.user.id).toBe(admin.id);
   });
 
-  it("should require authorization", async () => {
+  it("should require admin", async () => {
     const user = await buildUser();
     const res = await server.post("/api/fileOperations.list", {
       body: {
@@ -229,51 +249,26 @@ describe("#fileOperations.redirect", () => {
     expect(res.status).toEqual(400);
     expect(body.message).toEqual("export is not complete yet");
   });
-});
 
-describe("#fileOperations.info", () => {
-  it("should return file operation", async () => {
+  it("should require authorization", async () => {
     const team = await buildTeam();
-    const admin = await buildAdmin({
+    const user = await buildUser({
       teamId: team.id,
     });
+    const admin = await buildAdmin();
     const exportData = await buildFileOperation({
+      state: FileOperationState.Complete,
       type: FileOperationType.Export,
       teamId: team.id,
-      userId: admin.id,
+      userId: user.id,
     });
-    const res = await server.post("/api/fileOperations.info", {
+    const res = await server.post("/api/fileOperations.redirect", {
       body: {
         token: admin.getJwtToken(),
         id: exportData.id,
       },
     });
-    const body = await res.json();
-    expect(res.status).toBe(200);
-    expect(body.data.id).toBe(exportData.id);
-    expect(body.data.user.id).toBe(admin.id);
-  });
-
-  it("should require authorization", async () => {
-    const team = await buildTeam();
-    const admin = await buildAdmin({
-      teamId: team.id,
-    });
-    const user = await buildUser({
-      teamId: team.id,
-    });
-    const exportData = await buildFileOperation({
-      type: FileOperationType.Export,
-      teamId: team.id,
-      userId: admin.id,
-    });
-    const res = await server.post("/api/fileOperations.info", {
-      body: {
-        token: user.getJwtToken(),
-        id: exportData.id,
-      },
-    });
-    expect(res.status).toBe(403);
+    expect(res.status).toEqual(403);
   });
 });
 
@@ -298,5 +293,25 @@ describe("#fileOperations.delete", () => {
     expect(deleteResponse.status).toBe(200);
     expect(await Event.count()).toBe(1);
     expect(await FileOperation.count()).toBe(0);
+  });
+
+  it("should require authorization", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({
+      teamId: team.id,
+    });
+    const admin = await buildAdmin();
+    const exportData = await buildFileOperation({
+      type: FileOperationType.Export,
+      teamId: team.id,
+      userId: user.id,
+    });
+    const res = await server.post("/api/fileOperations.delete", {
+      body: {
+        token: admin.getJwtToken(),
+        id: exportData.id,
+      },
+    });
+    expect(res.status).toEqual(403);
   });
 });

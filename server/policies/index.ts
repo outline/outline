@@ -1,5 +1,6 @@
 import {
   Attachment,
+  FileOperation,
   Team,
   User,
   Collection,
@@ -14,6 +15,7 @@ import "./authenticationProvider";
 import "./collection";
 import "./comment";
 import "./document";
+import "./fileOperation";
 import "./integration";
 import "./notificationSetting";
 import "./pins";
@@ -23,6 +25,7 @@ import "./star";
 import "./user";
 import "./team";
 import "./group";
+import "./webhookSubscription";
 
 type Policy = Record<string, boolean>;
 
@@ -45,9 +48,10 @@ export function serialize(
   model: User,
   target:
     | Attachment
-    | Team
     | Collection
     | Comment
+    | FileOperation
+    | Team
     | Document
     | User
     | Group

@@ -1,3 +1,5 @@
+import { subHours } from "date-fns";
+import { Op, WhereOptions } from "sequelize";
 import {
   ForeignKey,
   DefaultScope,
@@ -6,7 +8,9 @@ import {
   BelongsTo,
   Table,
   DataType,
+  AfterValidate,
 } from "sequelize-typescript";
+import { RateLimitExceededError } from "@server/errors";
 import { deleteFromS3, getFileByKey } from "@server/utils/s3";
 import Collection from "./Collection";
 import Team from "./Team";
@@ -89,6 +93,21 @@ class FileOperation extends IdModel {
     await deleteFromS3(model.key);
   }
 
+  @AfterValidate
+  static async checkRateLimit(model: FileOperation) {
+    const count = await this.countExportsAfterDateTime(
+      model.teamId,
+      subHours(new Date(), 12),
+      {
+        type: model.type,
+      }
+    );
+
+    if (count >= 12) {
+      throw RateLimitExceededError();
+    }
+  }
+
   // associations
 
   @BelongsTo(() => User, "userId")
@@ -111,6 +130,30 @@ class FileOperation extends IdModel {
   @ForeignKey(() => Collection)
   @Column(DataType.UUID)
   collectionId: string;
+
+  /**
+   * Count the number of export file operations for a given team after a point
+   * in time.
+   *
+   * @param teamId The team id
+   * @param startDate The start time
+   * @returns The number of file operations
+   */
+  static async countExportsAfterDateTime(
+    teamId: string,
+    startDate: Date,
+    where: WhereOptions<FileOperation> = {}
+  ): Promise<number> {
+    return this.count({
+      where: {
+        teamId,
+        createdAt: {
+          [Op.gt]: startDate,
+        },
+        ...where,
+      },
+    });
+  }
 }
 
 export default FileOperation;

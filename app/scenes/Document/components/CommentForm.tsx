@@ -1,6 +1,6 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { MAX_COMMENT_LENGTH } from "@shared/constants";
+import { CommentValidation } from "@shared/validations";
 import Comment from "~/models/Comment";
 import Avatar from "~/components/Avatar";
 import Flex from "~/components/Flex";
@@ -86,7 +86,7 @@ function CommentForm({ documentId, thread, onTyping }: Props) {
           key={`${forceRender}`}
           onChange={handleChange}
           onSave={handleSave}
-          maxLength={MAX_COMMENT_LENGTH}
+          maxLength={CommentValidation.maxLength}
           autoFocus={thread.isNew}
           placeholder={
             thread.isNew ? `${t("Add a comment")}…` : `${t("Add a reply")}…`
