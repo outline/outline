@@ -27,9 +27,10 @@ export function isInternalUrl(href: string) {
   if (href === "") {
     return false;
   }
+  const path = new URL(env.URL).pathname;
 
   // relative paths are always internal
-  if (href[0] === "/") {
+  if (href.startsWith(path)) {
     return true;
   }
 
@@ -39,7 +40,10 @@ export function isInternalUrl(href: string) {
       : undefined;
 
   const domain = parseDomain(href);
-  return outline?.host === domain.host;
+  if (outline?.host !== domain.host) {
+    return false;
+  }
+  return new URL(href).pathname.startsWith(path);
 }
 
 /**
