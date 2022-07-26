@@ -237,6 +237,7 @@ export default class NotificationsProcessor extends BaseProcessor {
             // exists already.
             const exists = await Subscription.findOne({
               where: { userId: user.id, documentId: document.id },
+              paranoid: false,
               transaction,
             });
 
