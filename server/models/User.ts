@@ -215,6 +215,22 @@ class User extends ParanoidModel {
     return stringToColor(this.id);
   }
 
+  /**
+   * Returns a code that can be used to delete this user account. The code will
+   * be rotated when the user signs out.
+   *
+   * @returns The deletion code.
+   */
+  get deleteConfirmationCode() {
+    return crypto
+      .createHash("md5")
+      .update(this.jwtSecret)
+      .digest("hex")
+      .replace(/[l1IoO0]/gi, "")
+      .slice(0, 8)
+      .toUpperCase();
+  }
+
   // instance methods
 
   /**
@@ -550,7 +566,7 @@ class User extends ParanoidModel {
       suspendedCount: string;
       viewerCount: string;
       count: string;
-    } = results as any;
+    } = results;
 
     return {
       active: parseInt(counts.activeCount),
