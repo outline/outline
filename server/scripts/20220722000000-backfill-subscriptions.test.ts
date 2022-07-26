@@ -57,41 +57,71 @@ describe("#work", () => {
     expect(subscriptions[1].documentId).toEqual(document0.id);
     expect(subscriptions[2].documentId).toEqual(document0.id);
 
-    expect(subscriptions[0].userId).toEqual(collaborator1.id);
-    expect(subscriptions[1].userId).toEqual(collaborator2.id);
-    expect(subscriptions[2].userId).toEqual(collaborator0.id);
+    const s0 = [
+      subscriptions[0].userId,
+      subscriptions[1].userId,
+      subscriptions[2].userId,
+    ];
+
+    expect(s0.some((s) => s.includes(collaborator0.id))).toBe(true);
+    expect(s0.some((s) => s.includes(collaborator1.id))).toBe(true);
+    expect(s0.some((s) => s.includes(collaborator2.id))).toBe(true);
 
     expect(subscriptions[3].documentId).toEqual(document1.id);
     expect(subscriptions[4].documentId).toEqual(document1.id);
     expect(subscriptions[5].documentId).toEqual(document1.id);
 
-    expect(subscriptions[3].userId).toEqual(collaborator2.id);
-    expect(subscriptions[4].userId).toEqual(collaborator3.id);
-    expect(subscriptions[5].userId).toEqual(collaborator1.id);
+    const s1 = [
+      subscriptions[3].userId,
+      subscriptions[4].userId,
+      subscriptions[5].userId,
+    ];
+
+    expect(s1.some((s) => s.includes(collaborator1.id))).toBe(true);
+    expect(s1.some((s) => s.includes(collaborator2.id))).toBe(true);
+    expect(s1.some((s) => s.includes(collaborator3.id))).toBe(true);
 
     expect(subscriptions[6].documentId).toEqual(document2.id);
     expect(subscriptions[7].documentId).toEqual(document2.id);
     expect(subscriptions[8].documentId).toEqual(document2.id);
 
-    expect(subscriptions[6].userId).toEqual(collaborator3.id);
-    expect(subscriptions[7].userId).toEqual(collaborator4.id);
-    expect(subscriptions[8].userId).toEqual(collaborator2.id);
+    const s2 = [
+      subscriptions[6].userId,
+      subscriptions[7].userId,
+      subscriptions[8].userId,
+    ];
+
+    expect(s2.some((s) => s.includes(collaborator2.id))).toBe(true);
+    expect(s2.some((s) => s.includes(collaborator3.id))).toBe(true);
+    expect(s2.some((s) => s.includes(collaborator4.id))).toBe(true);
 
     expect(subscriptions[9].documentId).toEqual(document3.id);
     expect(subscriptions[10].documentId).toEqual(document3.id);
     expect(subscriptions[11].documentId).toEqual(document3.id);
 
-    expect(subscriptions[9].userId).toEqual(collaborator4.id);
-    expect(subscriptions[10].userId).toEqual(collaborator0.id);
-    expect(subscriptions[11].userId).toEqual(collaborator3.id);
+    const s3 = [
+      subscriptions[9].userId,
+      subscriptions[10].userId,
+      subscriptions[11].userId,
+    ];
+
+    expect(s3.some((s) => s.includes(collaborator0.id))).toBe(true);
+    expect(s3.some((s) => s.includes(collaborator3.id))).toBe(true);
+    expect(s3.some((s) => s.includes(collaborator4.id))).toBe(true);
 
     expect(subscriptions[12].documentId).toEqual(document4.id);
     expect(subscriptions[13].documentId).toEqual(document4.id);
     expect(subscriptions[14].documentId).toEqual(document4.id);
 
-    expect(subscriptions[12].userId).toEqual(collaborator0.id);
-    expect(subscriptions[13].userId).toEqual(collaborator1.id);
-    expect(subscriptions[14].userId).toEqual(collaborator4.id);
+    const s4 = [
+      subscriptions[12].userId,
+      subscriptions[13].userId,
+      subscriptions[14].userId,
+    ];
+
+    expect(s4.some((s) => s.includes(collaborator0.id))).toBe(true);
+    expect(s4.some((s) => s.includes(collaborator1.id))).toBe(true);
+    expect(s4.some((s) => s.includes(collaborator4.id))).toBe(true);
   });
 
   it("should not create subscriptions and subscriptions for non-collaborators", async () => {
