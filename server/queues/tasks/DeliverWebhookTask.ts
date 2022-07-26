@@ -90,7 +90,6 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       case "attachments.create":
       case "attachments.delete":
       case "subscriptions.create":
-      case "subscriptions.update":
       case "subscriptions.delete":
       case "authenticationProviders.update":
         // Ignored

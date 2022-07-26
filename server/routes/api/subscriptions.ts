@@ -1,4 +1,3 @@
-import invariant from "invariant";
 import Router from "koa-router";
 import subscriptionCreator from "@server/commands/subscriptionCreator";
 import subscriptionDestroyer from "@server/commands/subscriptionDestroyer";
@@ -109,45 +108,6 @@ router.post("subscriptions.create", auth(), async (ctx) => {
       transaction,
     });
   });
-
-  ctx.body = {
-    data: presentSubscription(subscription),
-  };
-});
-
-router.post("subscriptions.update", auth(), async (ctx) => {
-  // Body should not include `event` like other routes above.
-  // That would imply move on a subscription model.
-  const { id, enabled } = ctx.body;
-
-  assertUuid(id, "id is required");
-
-  const { user } = ctx.state;
-
-  const subscription = await Subscription.findByPk(id);
-
-  authorize(user, "update", subscription);
-
-  invariant(
-    subscription.documentId,
-    "Subscription must have an associated document"
-  );
-
-  await subscription.update({ user, subscription, enabled });
-
-  if (subscription.changed()) {
-    const subscriptionEvent: SubscriptionEvent = {
-      name: "subscriptions.update",
-      actorId: user.id,
-      userId: user.userId,
-      documentId: subscription.documentId,
-      teamId: user.teamId,
-      modelId: subscription.id,
-      ip: ctx.request.ip,
-    };
-
-    await Event.create(subscriptionEvent);
-  }
 
   ctx.body = {
     data: presentSubscription(subscription),

@@ -15,7 +15,6 @@ export default class SubscriptionsStore extends BaseStore<Subscription> {
     RPCAction.Info,
     RPCAction.Create,
     RPCAction.Delete,
-    RPCAction.Update,
   ];
 
   constructor(rootStore: RootStore) {
