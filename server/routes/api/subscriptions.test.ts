@@ -542,10 +542,6 @@ describe("#subscriptions.update", () => {
       body: {
         id: subscription.id,
         enabled: false,
-        // REVIEW: Should it require `subscription.id`?
-        // There can be only one subscription
-        // for `userId` + `documentId`.
-        // id: subscription.id,
         token: user.getJwtToken(),
       },
     });
@@ -601,10 +597,6 @@ describe("#subscriptions.update", () => {
         id: subscription1Id,
         event: "documents.update",
         enabled: false,
-        // REVIEW: Should it require `subscription.id`?
-        // There can be only one subscription
-        // for `userId` + `documentId`.
-        // id: subscription.id,
         token: subscriber0.getJwtToken(),
       },
     });
@@ -638,10 +630,6 @@ describe("#subscriptions.delete", () => {
       body: {
         userId: user.id,
         id: subscription.id,
-        // REVIEW: Should it require `subscription.id`?
-        // There can be only one subscription
-        // for `userId` + `documentId`.
-        // id: subscription.id,
         token: user.getJwtToken(),
       },
     });
@@ -695,10 +683,6 @@ describe("#subscriptions.delete", () => {
         userId: subscriber0.id,
         // subscription id of `subscriber1`
         id: subscription1Id,
-        // REVIEW: Should it require `subscription.id`?
-        // There can be only one subscription
-        // for `userId` + `documentId`.
-        // id: subscription.id,
         token: subscriber0.getJwtToken(),
       },
     });

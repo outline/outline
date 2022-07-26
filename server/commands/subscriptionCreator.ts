@@ -41,8 +41,7 @@ export default async function subscriptionCreator({
     subscription.update({ deletedAt: null });
   }
 
-  // Don't emit an event if a new subscription
-  // wasn't created.
+  // Don't emit an event if a new subscription wasn't created.
   if (created) {
     await Event.create(
       {

@@ -21,7 +21,7 @@ allow(User, "listSubscription", Document, (user, document) => {
   }
 
   // Otherwise `user` is free to list
-  // all public subscriptions on `document`.
+  // their own subscriptions on `document`.
   return true;
 });
 
@@ -38,8 +38,7 @@ allow(User, "read", Subscription, (user, subscription) => {
     return true;
   }
 
-  // REVIEW: Should user be able to read any subscription?
-  // return true;
+  // Otherwise user should be able to read their subscriptions.
   return user.id === subscription.userId;
 });
 

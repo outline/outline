@@ -13,8 +13,6 @@ export type Props = {
 export default class SubscriptionsStore extends BaseStore<Subscription> {
   actions = [
     RPCAction.Info,
-    // list is disabled.
-    // RPCAction.List
     RPCAction.Create,
     RPCAction.Delete,
     RPCAction.Update,

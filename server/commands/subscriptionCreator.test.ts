@@ -11,7 +11,7 @@ describe("subscriptionCreator", () => {
   const ip = "127.0.0.1";
   const subscribedEvent = "documents.update";
 
-  it("should create subscription", async () => {
+  it("should create a subscription", async () => {
     const user = await buildUser();
 
     const document = await buildDocument({
@@ -64,11 +64,19 @@ describe("subscriptionCreator", () => {
       })
     );
 
-    expect(subscription0.id).toEqual(subscription1.id);
-    expect(subscription0.documentId).toEqual(document.id);
+    expect(subscription0.event).toEqual(subscribedEvent);
+    expect(subscription1.event).toEqual(subscribedEvent);
+
     expect(subscription0.userId).toEqual(user.id);
-    expect(subscription1.documentId).toEqual(document.id);
     expect(subscription1.userId).toEqual(user.id);
+
+    // Primary concern
+    expect(subscription0.id).toEqual(subscription1.id);
+
+    // Edge cases
+    expect(subscription0.documentId).toEqual(document.id);
+    expect(subscription1.documentId).toEqual(document.id);
+
     expect(subscription0.userId).toEqual(subscription1.userId);
     expect(subscription0.documentId).toEqual(subscription1.documentId);
   });

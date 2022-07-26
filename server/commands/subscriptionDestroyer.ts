@@ -18,7 +18,7 @@ type Props = {
  * Does not touch the target document.
  *
  * @param Props The subscription to destroy
- * @returns void
+ * @returns The subscription that was destroyed
  */
 export default async function subscriptionDestroyer({
   user,

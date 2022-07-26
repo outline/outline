@@ -92,7 +92,6 @@ function DataLoader({ match, children }: Props) {
         try {
           await subscriptions.fetchSubscriptions({
             documentId: document.id,
-            // Only `documents.update` event is relavent for documents.
             event: "documents.update",
           });
         } catch (err) {
