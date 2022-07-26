@@ -311,6 +311,77 @@ describe("revisions.create", () => {
     expect(DocumentNotificationEmail.schedule).not.toHaveBeenCalled();
   });
 
+  test("should not send multiple emails", async () => {
+    const document = await buildDocument();
+
+    const collaborator0 = await buildUser({
+      teamId: document.teamId,
+    });
+
+    const collaborator1 = await buildUser({
+      teamId: document.teamId,
+    });
+
+    const collaborator2 = await buildUser({
+      teamId: document.teamId,
+    });
+
+    document.collaboratorIds = [
+      collaborator0.id,
+      collaborator1.id,
+      collaborator2.id,
+    ];
+
+    await document.save();
+
+    const processor = new NotificationsProcessor();
+
+    // Changing document will emit a `documents.update` event.
+    await processor.perform({
+      name: "documents.update",
+      documentId: document.id,
+      collectionId: document.collectionId,
+      createdAt: document.updatedAt.toString(),
+      teamId: document.teamId,
+      data: { title: document.title, autosave: false, done: true },
+      actorId: collaborator2.id,
+      ip,
+    });
+
+    // Those changes will also emit a `revisions.create` event.
+    await processor.perform({
+      name: "revisions.create",
+      documentId: document.id,
+      collectionId: document.collectionId,
+      teamId: document.teamId,
+      actorId: collaborator0.id,
+      modelId: document.id,
+      ip,
+    });
+
+    const events = await Event.findAll();
+
+    // Should emit 3 `subscriptions.create` events.
+    expect(events.length).toEqual(3);
+    expect(events[0].name).toEqual("subscriptions.create");
+    expect(events[1].name).toEqual("subscriptions.create");
+    expect(events[2].name).toEqual("subscriptions.create");
+
+    // Each event should point to same document.
+    expect(events[0].documentId).toEqual(document.id);
+    expect(events[1].documentId).toEqual(document.id);
+    expect(events[2].documentId).toEqual(document.id);
+
+    // Events should mention correct `userId`.
+    expect(events[0].userId).toEqual(collaborator0.id);
+    expect(events[1].userId).toEqual(collaborator1.id);
+    expect(events[2].userId).toEqual(collaborator2.id);
+
+    // This should send out 3 emails, one for each collaborator,
+    // and not 6, for both `documents.update` and `revisions.create`.
+    expect(DocumentNotificationEmail.schedule).toHaveBeenCalledTimes(3);
+  });
+
   test("should not create subscriptions if previously unsubscribed", async () => {
     const document = await buildDocument();
 
