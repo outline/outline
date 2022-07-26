@@ -14,6 +14,7 @@ if (env.SENTRY_DSN) {
       // Validation
       "BadRequestError",
       "SequelizeValidationError",
+      "SequelizeEmptyResultError",
       "ValidationError",
 
       // Authentication
