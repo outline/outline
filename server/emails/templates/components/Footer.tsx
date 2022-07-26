@@ -36,12 +36,12 @@ export default ({ unsubscribeUrl }: Props) => {
       <TBody>
         <TR>
           <TD style={footerStyle}>
-            <a href={env.URL} style={linkStyle}>
+            {/* <a href={env.URL} style={linkStyle}>
               Outline
-            </a>
-            <a href={twitterUrl()} style={externalLinkStyle}>
+            </a> */}
+            {/* <a href={twitterUrl()} style={externalLinkStyle}>
               Twitter
-            </a>
+            </a> */}
           </TD>
         </TR>
         {unsubscribeUrl && (
