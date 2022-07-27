@@ -3,11 +3,12 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useMenuState } from "reakit/Menu";
 import Comment from "~/models/Comment";
+import CommentDeleteDialog from "~/components/CommentDeleteDialog";
 import ContextMenu from "~/components/ContextMenu";
 import MenuItem from "~/components/ContextMenu/MenuItem";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
 import usePolicy from "~/hooks/usePolicy";
-// import useStores from "~/hooks/useStores";
+import useStores from "~/hooks/useStores";
 // import useToasts from "~/hooks/useToasts";
 
 type Props = {
@@ -20,15 +21,17 @@ function CommentMenu({ comment, onEdit, className }: Props) {
   const menu = useMenuState({
     modal: true,
   });
-  // const { comments } = useStores();
-  // const { showToast } = useToasts();
+  const { dialogs } = useStores();
   const { t } = useTranslation();
   const can = usePolicy(comment.id);
 
   const handleDelete = React.useCallback(() => {
-    // TODO: Confirm
-    comment.delete();
-  }, [comment]);
+    dialogs.openModal({
+      title: t("Delete comment"),
+      isCentered: true,
+      content: <CommentDeleteDialog comment={comment} />,
+    });
+  }, [dialogs, comment, t]);
 
   // TODO: Remove once copy link action is added
   if (!can.update) {
