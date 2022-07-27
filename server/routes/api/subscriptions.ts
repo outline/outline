@@ -26,12 +26,8 @@ router.post("subscriptions.list", auth(), pagination(), async (ctx) => {
   );
 
   const subscriptions = await sequelize.transaction(async (transaction) => {
-    const document = await Document.findOne({
-      where: { id: documentId },
-      attributes: ["id"],
-      rejectOnEmpty: true,
-      transaction,
-    });
+    const document = await Document.findByPk(documentId, { userId: user.id, transaction });
+    authorize(user, "read", document);
 
     return Subscription.findAll({
       where: {
@@ -48,9 +44,7 @@ router.post("subscriptions.list", auth(), pagination(), async (ctx) => {
 
   ctx.body = {
     pagination: ctx.state.pagination,
-    data: subscriptions
-      .filter((subscription) => can(user, "read", subscription))
-      .map(presentSubscription),
+    data: subscriptions.map(presentSubscription),
   };
 });
 

@@ -38,7 +38,7 @@ export default async function subscriptionCreator({
 
   // Fetched an already deleted subscription.
   if (subscription.deletedAt) {
-    subscription.update({ deletedAt: null });
+    subscription.update({ deletedAt: null }, { transaction });
 
     await Event.create(
       {

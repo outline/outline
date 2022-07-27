@@ -88,7 +88,7 @@ function DataLoader({ match, children }: Props) {
 
   React.useEffect(() => {
     async function fetchSubscription() {
-      if (document && document.id) {
+      if (document?.id) {
         try {
           await subscriptions.fetchPage({
             documentId: document.id,
