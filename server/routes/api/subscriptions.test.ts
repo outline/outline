@@ -1,4 +1,5 @@
 import TestServer from "fetch-test-server";
+import { Event } from "@server/models";
 import webService from "@server/services/web";
 import {
   buildUser,
@@ -38,6 +39,35 @@ describe("#subscriptions.create", () => {
     expect(body.data.id).toBeDefined();
     expect(body.data.userId).toEqual(user.id);
     expect(body.data.documentId).toEqual(document.id);
+  });
+
+  it("should emit event", async () => {
+    const user = await buildUser();
+
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const res = await server.post("/api/subscriptions.create", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: document.id,
+        event: "documents.update",
+      },
+    });
+
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.ok).toEqual(true);
+
+    const events = await Event.findAll();
+
+    expect(events.length).toEqual(1);
+    expect(events[0].name).toEqual("subscriptions.create");
+    expect(events[0].actorId).toEqual(user.id);
+    expect(events[0].documentId).toEqual(document.id);
   });
 
   it("should not create duplicate subscriptions", async () => {
@@ -573,6 +603,43 @@ describe("#subscriptions.delete", () => {
         token: user.getJwtToken(),
       },
     });
+
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.ok).toEqual(true);
+    expect(body.success).toEqual(true);
+  });
+
+  it("should emit event", async () => {
+    const user = await buildUser();
+
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+
+    const subscription = await buildSubscription({
+      userId: user.id,
+      documentId: document.id,
+      event: "documents.update",
+    });
+
+    const res = await server.post("/api/subscriptions.delete", {
+      body: {
+        userId: user.id,
+        id: subscription.id,
+        token: user.getJwtToken(),
+      },
+    });
+
+    const events = await Event.findAll();
+
+    expect(events.length).toEqual(1);
+    expect(events[0].name).toEqual("subscriptions.delete");
+    expect(events[0].modelId).toEqual(subscription.id);
+    expect(events[0].actorId).toEqual(user.id);
+    expect(events[0].documentId).toEqual(document.id);
 
     const body = await res.json();
 
