@@ -4,7 +4,7 @@ import subscriptionDestroyer from "@server/commands/subscriptionDestroyer";
 import { sequelize } from "@server/database/sequelize";
 import auth from "@server/middlewares/authentication";
 import { Subscription, Event, Document } from "@server/models";
-import { authorize, can } from "@server/policies";
+import { authorize } from "@server/policies";
 import { presentSubscription } from "@server/presenters";
 import { SubscriptionEvent } from "@server/types";
 import { assertIn, assertUuid } from "@server/validation";
@@ -25,21 +25,19 @@ router.post("subscriptions.list", auth(), pagination(), async (ctx) => {
     `Not a valid subscription event for documents`
   );
 
-  const subscriptions = await sequelize.transaction(async (transaction) => {
-    const document = await Document.findByPk(documentId, { userId: user.id, transaction });
-    authorize(user, "read", document);
+  const document = await Document.findByPk(documentId, { userId: user.id });
 
-    return Subscription.findAll({
-      where: {
-        documentId: document.id,
-        userId: user.id,
-        event,
-      },
-      order: [["createdAt", "DESC"]],
-      offset: ctx.state.pagination.offset,
-      limit: ctx.state.pagination.limit,
-      transaction,
-    });
+  authorize(user, "read", document);
+
+  const subscriptions = await Subscription.findAll({
+    where: {
+      documentId: document.id,
+      userId: user.id,
+      event,
+    },
+    order: [["createdAt", "DESC"]],
+    offset: ctx.state.pagination.offset,
+    limit: ctx.state.pagination.limit,
   });
 
   ctx.body = {
@@ -61,21 +59,18 @@ router.post("subscriptions.info", auth(), async (ctx) => {
     "Not a valid subscription event for documents"
   );
 
-  const subscription = await sequelize.transaction(async (transaction) => {
-    const document = await Document.findByPk(documentId, { transaction });
+  const document = await Document.findByPk(documentId, { userId: user.id });
 
-    authorize(user, "read", document);
+  authorize(user, "read", document);
 
-    // There can be only one subscription with these props.
-    return Subscription.findOne({
-      where: {
-        userId: user.id,
-        documentId: document.id,
-        event,
-      },
-      transaction,
-      rejectOnEmpty: true,
-    });
+  // There can be only one subscription with these props.
+  const subscription = await Subscription.findOne({
+    where: {
+      userId: user.id,
+      documentId: document.id,
+      event,
+    },
+    rejectOnEmpty: true,
   });
 
   ctx.body = {
@@ -97,7 +92,10 @@ router.post("subscriptions.create", auth(), async (ctx) => {
   );
 
   const subscription = await sequelize.transaction(async (transaction) => {
-    const document = await Document.findByPk(documentId, { transaction });
+    const document = await Document.findByPk(documentId, {
+      userId: user.id,
+      transaction,
+    });
 
     authorize(user, "subscribe", document);
 
