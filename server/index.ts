@@ -122,7 +122,18 @@ async function start(id: number, disconnect: () => void) {
       }`
     );
   });
-  server.listen(normalizedPortFlag || env.PORT || "3000");
+  server.listen((() => {
+    const LPID = !!process.env.LISTEN_PID && parseInt(process.env.LISTEN_PID);
+    const LFDS = !!process.env.LISTEN_FDS && parseInt(process.env.LISTEN_FDS);
+    if ((!!LPID && !!LFDS) || (LPID !== process.pid)) {
+      return normalizedPortFlag || env.PORT || "3000";
+    }
+    if (LFDS > 1) {
+      Logger.warn("More than one socket passed to outline, taking the first one");
+    }
+    Logger.info("lifecycle", "detected LISTEN_FDS, listening on systemd provided socket");
+    return { fd: 3 };
+  })());
   process.once("SIGTERM", shutdown);
   process.once("SIGINT", shutdown);
 
