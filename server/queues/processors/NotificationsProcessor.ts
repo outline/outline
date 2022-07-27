@@ -232,11 +232,12 @@ export default class NotificationsProcessor extends BaseProcessor {
         if (user) {
           // `user` has to have `subscribe` permission on `document`.
           if (can(user, "subscribe", document)) {
-            // `subscriptionCreator` uses `findOrCreate`.
-            // A duplicate won't be created if a subscription
-            // exists already.
             const exists = await Subscription.findOne({
-              where: { userId: user.id, documentId: document.id, event: "documents.update" },
+              where: {
+                userId: user.id,
+                documentId: document.id,
+                event: "documents.update",
+              },
               paranoid: false,
               transaction,
             });
