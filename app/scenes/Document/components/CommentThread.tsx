@@ -1,7 +1,7 @@
 import { throttle } from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { useHistory } from "react-router-dom";
+import { useHistory, useLocation } from "react-router-dom";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled from "styled-components";
 import Comment from "~/models/Comment";
@@ -11,7 +11,6 @@ import Flex from "~/components/Flex";
 import { SocketContext } from "~/components/SocketProvider";
 import Typing from "~/components/Typing";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import CommentForm from "./CommentForm";
 import CommentThreadItem from "./CommentThreadItem";
@@ -45,7 +44,7 @@ function CommentThread({ comment: thread, document }: Props) {
   const { comments } = useStores();
   const topRef = React.useRef<HTMLDivElement>(null);
   const user = useCurrentUser();
-  const params = useQuery();
+  const location = useLocation<{ commentId?: string }>();
   const history = useHistory();
   const [, setIsTyping] = useTypingIndicator({
     document,
@@ -53,12 +52,12 @@ function CommentThread({ comment: thread, document }: Props) {
   });
 
   const commentsInThread = comments.inThread(thread.id);
-  const highlighted = params.get("commentId") === thread.id;
+  const highlighted = location.state?.commentId === thread.id;
 
   const handleClickThread = () => {
     history.replace({
       pathname: window.location.pathname.replace(/\/history$/, ""),
-      search: `?commentId=${thread.id}`,
+      state: { commentId: thread.id },
     });
   };
 

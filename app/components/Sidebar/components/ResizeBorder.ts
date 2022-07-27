@@ -6,7 +6,7 @@ const ResizeBorder = styled.div<{ dir?: "left" | "right" }>`
   bottom: 0;
   right: ${(props) => (props.dir !== "right" ? "-1px" : "auto")};
   left: ${(props) => (props.dir === "right" ? "-1px" : "auto")};
-  width: 22px;
+  width: 2px;
   cursor: col-resize;
 
   &:hover {

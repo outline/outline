@@ -87,7 +87,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         ui.expandComments();
         history.replace({
           pathname: window.location.pathname.replace(/\/history$/, ""),
-          search: `?commentId=${commentId}`,
+          state: { commentId },
         });
       } else {
         history.replace({
