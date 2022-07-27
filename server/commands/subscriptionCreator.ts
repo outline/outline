@@ -33,6 +33,7 @@ export default async function subscriptionCreator({
       documentId,
       event,
     },
+    transaction,
     paranoid: false,
   });
 
