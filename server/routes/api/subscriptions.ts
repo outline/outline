@@ -3,10 +3,9 @@ import subscriptionCreator from "@server/commands/subscriptionCreator";
 import subscriptionDestroyer from "@server/commands/subscriptionDestroyer";
 import { sequelize } from "@server/database/sequelize";
 import auth from "@server/middlewares/authentication";
-import { Subscription, Event, Document } from "@server/models";
+import { Subscription, Document } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentSubscription } from "@server/presenters";
-import { SubscriptionEvent } from "@server/types";
 import { assertIn, assertUuid } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
@@ -128,24 +127,12 @@ router.post("subscriptions.delete", auth(), async (ctx) => {
 
     authorize(user, "delete", subscription);
 
-    const subscriptionEvent: SubscriptionEvent = {
-      teamId: user.teamId,
-      actorId: user.id,
-      ip: ctx.request.ip,
-      name: "subscriptions.delete",
-      modelId: subscription.id,
-      userId: user.userId,
-      documentId: subscription.documentId,
-    };
-
     await subscriptionDestroyer({
       user,
       subscription,
       ip: ctx.ip,
       transaction,
     });
-
-    await Event.create(subscriptionEvent);
 
     return subscription;
   });
