@@ -236,7 +236,7 @@ export default class NotificationsProcessor extends BaseProcessor {
             // A duplicate won't be created if a subscription
             // exists already.
             const exists = await Subscription.findOne({
-              where: { userId: user.id, documentId: document.id },
+              where: { userId: user.id, documentId: document.id, event: "documents.update" },
               paranoid: false,
               transaction,
             });
