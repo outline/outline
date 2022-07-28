@@ -559,7 +559,7 @@
   "Expired": "期限切れ",
   "Failed": "Failed",
   "All collections": "全てのコレクション",
-  "{{userName}} requested": "{{userName}} requested",
+  "{{userName}} requested": "{{userName}}が要求しました",
   "Upload": "アップロード",
   "Drag and drop the zip file from Notion's HTML export option, or click to upload": "Drag and drop the zip file from Notion's HTML export option, or click to upload",
   "Where do I find the file?": "Where do I find the file?",
