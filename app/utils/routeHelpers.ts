@@ -1,5 +1,6 @@
 import queryString from "query-string";
 import Collection from "~/models/Collection";
+import Comment from "~/models/Comment";
 import Document from "~/models/Document";
 
 export function homePath(): string {
@@ -36,6 +37,10 @@ export function profileSettingsPath(): string {
 
 export function groupSettingsPath(): string {
   return "/settings/groups";
+}
+
+export function commentPath(docPath: string, comment: Comment): string {
+  return `${docPath}?commentId=${comment.id}`;
 }
 
 export function collectionUrl(url: string, section?: string): string {

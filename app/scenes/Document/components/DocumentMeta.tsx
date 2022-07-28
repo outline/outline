@@ -35,7 +35,7 @@ function TitleDocumentMeta({ to, isDraft, document, ...rest }: Props) {
   }, [views, document.id, document.isDeleted]);
 
   const handleClickComments = () => {
-    ui.expandComments();
+    ui.toggleComments();
   };
 
   const popover = usePopoverState({
@@ -93,6 +93,7 @@ const Meta = styled(DocumentMeta)<{ rtl?: boolean }>`
   margin: -12px 0 2em 0;
   font-size: 14px;
   position: relative;
+  user-select: none;
   z-index: 1;
 
   a {

@@ -186,6 +186,11 @@ class UiStore {
   };
 
   @action
+  toggleComments = () => {
+    this.commentsCollapsed = !this.commentsCollapsed;
+  };
+
+  @action
   toggleCollapsedSidebar = () => {
     this.sidebarCollapsed = !this.sidebarCollapsed;
   };

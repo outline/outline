@@ -20,6 +20,7 @@ export default class Comment extends Mark {
         id: {},
         userId: {},
       },
+      inclusive: false,
       parseDOM: [{ tag: "span.comment" }],
       toDOM: (node) => [
         "span",
