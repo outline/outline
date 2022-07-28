@@ -19,7 +19,7 @@ type Props = {
 };
 
 function TitleDocumentMeta({ to, isDraft, document, ...rest }: Props) {
-  const { auth, views, ui } = useStores();
+  const { auth, views, comments, ui } = useStores();
   const { t } = useTranslation();
   const { team } = auth;
   const documentViews = useObserver(() => views.inDocument(document.id));
@@ -43,6 +43,8 @@ function TitleDocumentMeta({ to, isDraft, document, ...rest }: Props) {
     placement: "bottom",
     modal: true,
   });
+
+  const commentsCount = comments.inDocument(document.id).length;
 
   return (
     <Meta document={document} to={to} {...rest}>
@@ -71,7 +73,9 @@ function TitleDocumentMeta({ to, isDraft, document, ...rest }: Props) {
           &nbsp;•&nbsp;
           <Link onClick={handleClickComments}>
             <CommentIcon color="currentColor" size={18} />
-            {t("Comment")}
+            {commentsCount
+              ? t("{{ count }} comment", { count: commentsCount })
+              : t("Comment")}
           </Link>
         </>
       )}
