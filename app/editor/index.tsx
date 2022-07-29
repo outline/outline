@@ -554,7 +554,14 @@ export class Editor extends React.PureComponent<
     this.setState({ blockMenuOpen: true, blockMenuSearch: search });
   };
 
-  private handleCloseBlockMenu = () => {
+  private handleCloseBlockMenu = (insertNewLine?: boolean) => {
+    if (insertNewLine) {
+      const transaction = this.view.state.tr.split(
+        this.view.state.selection.to
+      );
+      this.view.dispatch(transaction);
+      this.view.focus();
+    }
     if (!this.state.blockMenuOpen) {
       return;
     }
