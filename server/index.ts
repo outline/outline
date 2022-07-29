@@ -113,20 +113,18 @@ async function start(id: number, disconnect: () => void) {
     throw err;
   });
   server.on("listening", () => {
-    const address = server.address();
+    const address = server.address() as AddressInfo;
 
     Logger.info(
       "lifecycle",
-      `Listening on ${useHTTPS ? "https" : "http"}://localhost:${
-        (address as AddressInfo).port
-      }`
+      `Listening on ${useHTTPS ? "https" : "http"}://${address.address}:${address.port}`
     );
   });
   server.listen(
     (function get_listen_handler() {
       const LPID = !!process.env.LISTEN_PID && parseInt(process.env.LISTEN_PID);
       const LFDS = !!process.env.LISTEN_FDS && parseInt(process.env.LISTEN_FDS);
-      if ((!!LPID && !!LFDS) || LPID !== process.pid) {
+      if ((!LPID || !LFDS) || LPID !== process.ppid) { // throne creates new process
         return normalizedPortFlag || env.PORT || "3000";
       }
       if (LFDS > 1) {
