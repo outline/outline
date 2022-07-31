@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import Router from "koa-router";
 import { Op, WhereOptions } from "sequelize";
 import userDemoter from "@server/commands/userDemoter";
@@ -5,6 +6,7 @@ import userDestroyer from "@server/commands/userDestroyer";
 import userInviter from "@server/commands/userInviter";
 import userSuspender from "@server/commands/userSuspender";
 import { sequelize } from "@server/database/sequelize";
+import ConfirmUserDeleteEmail from "@server/emails/templates/ConfirmUserDeleteEmail";
 import InviteEmail from "@server/emails/templates/InviteEmail";
 import env from "@server/env";
 import { ValidationError } from "@server/errors";
@@ -23,6 +25,7 @@ import {
 import pagination from "./middlewares/pagination";
 
 const router = new Router();
+const emailEnabled = !!(env.SMTP_HOST || env.ENVIRONMENT === "development");
 
 router.post("users.list", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.body;
@@ -367,19 +370,43 @@ router.post("users.resendInvite", auth(), async (ctx) => {
   };
 });
 
-router.post("users.delete", auth(), async (ctx) => {
-  const { id } = ctx.body;
-  const actor = ctx.state.user;
-  let user = actor;
+router.post("users.requestDelete", auth(), async (ctx) => {
+  const { user } = ctx.state;
+  authorize(user, "delete", user);
 
-  if (id) {
-    user = await User.findByPk(id);
+  if (emailEnabled) {
+    await ConfirmUserDeleteEmail.schedule({
+      to: user.email,
+      deleteConfirmationCode: user.deleteConfirmationCode,
+    });
   }
 
-  authorize(actor, "delete", user);
+  ctx.body = {
+    success: true,
+  };
+});
+
+router.post("users.delete", auth(), async (ctx) => {
+  const { code = "" } = ctx.body;
+  const { user } = ctx.state;
+  authorize(user, "delete", user);
+
+  const deleteConfirmationCode = user.deleteConfirmationCode;
+
+  if (
+    emailEnabled &&
+    (code.length !== deleteConfirmationCode.length ||
+      !crypto.timingSafeEqual(
+        Buffer.from(code),
+        Buffer.from(deleteConfirmationCode)
+      ))
+  ) {
+    throw ValidationError("The confirmation code was incorrect");
+  }
+
   await userDestroyer({
     user,
-    actor,
+    actor: user,
     ip: ctx.request.ip,
   });
 
