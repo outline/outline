@@ -1,7 +1,7 @@
 import * as React from "react";
 import Frame from "../components/Frame";
 
-const URL_REGEX = new RegExp("https?://open.spotify.com/(.*)$");
+const URL_REGEX = new RegExp("https?://open\\.spotify\\.com/(.*)$");
 import { EmbedProps as Props } from ".";
 
 export default class Spotify extends React.Component<Props> {
