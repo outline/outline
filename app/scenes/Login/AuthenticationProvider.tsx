@@ -89,11 +89,15 @@ function AuthenticationProvider(props: Props) {
     );
   }
 
-  // If we're on a custom domain then the auth must point to the root
-  // app.getoutline.com for authentication so that the state cookie can be set
-  // and read.
-  const isCustomDomain = parseDomain(window.location.origin).custom;
-  const href = `${isCustomDomain ? env.URL : ""}${authUrl}`;
+  // If we're on a custom domain or a subdomain then the auth must point to the
+  // apex (env.URL) for authentication so that the state cookie can be set and read.
+  // We pass the host into the auth URL so that the server can redirect on error
+  // and keep the user on the same page.
+  const { custom, teamSubdomain, host } = parseDomain(window.location.origin);
+  const needsRedirect = custom || teamSubdomain;
+  const href = needsRedirect
+    ? `${env.URL}${authUrl}?host=${encodeURI(host)}`
+    : authUrl;
 
   return (
     <Wrapper>

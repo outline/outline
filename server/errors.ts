@@ -161,16 +161,6 @@ export function GmailAccountCreationError(
   });
 }
 
-export function AuthRedirectError(
-  message = "Redirect to the correct domain after authentication",
-  redirectUrl: string
-) {
-  return httpErrors(400, message, {
-    id: "auth_redirect",
-    redirectUrl,
-  });
-}
-
 export function OIDCMalformedUserInfoError(
   message = "User profile information malformed"
 ) {
