@@ -58,6 +58,10 @@ function EmptyTrashMenu() {
     [documents, history, showToast, t, trashed]
   );
 
+  if (!trashed.length) {
+    return <></>;
+  }
+
   return (
     <>
       <Button icon={<TrashIcon />} onClick={() => setShowModal(true)}>
@@ -70,34 +74,21 @@ function EmptyTrashMenu() {
           onRequestClose={() => setShowModal(false)}
           isCentered
         >
-          {trashed.length ? (
-            <Flex column>
-              <form onSubmit={handleSubmit}>
-                <Text type="secondary">
-                  <Trans
-                    defaults="Are you sure you want to permanently delete all documents in the trash? This action cannot be undone."
-                    components={{
-                      em: <strong />,
-                    }}
-                  />
-                </Text>
-                <Button type="submit" danger>
-                  {isDeleting ? `${t("Deleting")}…` : t("I’m sure – Delete")}
-                </Button>
-              </form>
-            </Flex>
-          ) : (
-            <Flex column>
+          <Flex column>
+            <form onSubmit={handleSubmit}>
               <Text type="secondary">
                 <Trans
-                  defaults="Trash is already empty."
+                  defaults="Are you sure you want to permanently delete all documents in the trash? This action cannot be undone."
                   components={{
                     em: <strong />,
                   }}
                 />
               </Text>
-            </Flex>
-          )}
+              <Button type="submit" danger>
+                {isDeleting ? `${t("Deleting")}…` : t("I’m sure – Delete")}
+              </Button>
+            </form>
+          </Flex>
         </Modal>
       )}
     </>
