@@ -1,4 +1,5 @@
 import TestServer from "fetch-test-server";
+import { colorPalette } from "@shared/utils/collections";
 import { Document, CollectionUser, CollectionGroup } from "@server/models";
 import webService from "@server/services/web";
 import {
@@ -1054,6 +1055,7 @@ describe("#collections.create", () => {
     expect(body.data.name).toBe("Test");
     expect(body.data.sort.field).toBe("index");
     expect(body.data.sort.direction).toBe("asc");
+    expect(colorPalette.includes(body.data.color)).toBeTruthy();
     expect(body.policies.length).toBe(1);
     expect(body.policies[0].abilities.read).toBeTruthy();
   });
