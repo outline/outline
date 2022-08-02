@@ -60,11 +60,7 @@ function EmptyTrashMenu() {
 
   return (
     <>
-      <Button
-        icon={<TrashIcon />}
-        danger={true}
-        onClick={() => setShowModal(true)}
-      >
+      <Button icon={<TrashIcon />} onClick={() => setShowModal(true)}>
         {t("Empty trash")}
       </Button>
       {showModal && (
