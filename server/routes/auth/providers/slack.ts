@@ -16,7 +16,11 @@ import {
   Team,
   User,
 } from "@server/models";
-import { getTeamFromContext, StateStore } from "@server/utils/passport";
+import {
+  getTeamFromContext,
+  PassportError,
+  StateStore,
+} from "@server/utils/passport";
 import * as Slack from "@server/utils/slack";
 import { assertPresent, assertUuid } from "@server/validation";
 
@@ -103,7 +107,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
         });
         return done(null, result.user, result);
       } catch (err) {
-        return done(err, null);
+        return done(PassportError(err, ctx), null);
       }
     }
   );

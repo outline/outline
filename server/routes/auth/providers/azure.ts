@@ -16,6 +16,7 @@ import {
   StateStore,
   request,
   getTeamFromContext,
+  PassportError,
 } from "@server/utils/passport";
 
 const router = new Router();
@@ -126,7 +127,7 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
         });
         return done(null, result.user, result);
       } catch (err) {
-        return done(err, null);
+        return done(PassportError(err, ctx), null);
       }
     }
   );
