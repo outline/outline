@@ -2,7 +2,7 @@ import * as React from "react";
 import Frame from "../components/Frame";
 import { EmbedProps as Props } from ".";
 
-const URL_REGEX = /^https:\/\/trello.com\/(c|b)\/([^/]*)(.*)?$/;
+const URL_REGEX = /^https:\/\/trello\.com\/(c|b)\/([^/]*)(.*)?$/;
 
 export default class Trello extends React.Component<Props> {
   static ENABLED = [URL_REGEX];

@@ -42,5 +42,17 @@ describe("Mindmeister", () => {
   test("to not be enabled elsewhere", () => {
     expect("https://mindmeister.com".match(match)).toBe(null);
     expect("https://www.mindmeister.com/pricing".match(match)).toBe(null);
+    expect("https://www.mmttt/326377934".match(match)).toBe(null);
+    expect(
+      "https://www.mindmeisterrcom/maps/public_map_shell/326377934/paper-digital-or-online-mind-mapping".match(
+        match
+      )
+    ).toBe(null);
+    expect("https://wwwwmm.tt/326377934".match(match)).toBe(null);
+    expect(
+      "https://wwwwmindmeister.com/maps/public_map_shell/326377934/paper-digital-or-online-mind-mapping".match(
+        match
+      )
+    ).toBe(null);
   });
 });

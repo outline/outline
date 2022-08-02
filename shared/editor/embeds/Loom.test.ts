@@ -28,5 +28,8 @@ describe("Loom", () => {
   test("to not be enabled elsewhere", () => {
     expect("https://www.useloom.com".match(match)).toBe(null);
     expect("https://www.useloom.com/features".match(match)).toBe(null);
+    expect(
+      "https://www.loommcom/share/55327cbb265743f39c2c442c029277e0".match(match)
+    ).toBe(null);
   });
 });

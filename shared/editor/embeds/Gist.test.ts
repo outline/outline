@@ -22,6 +22,16 @@ describe("Gist", () => {
   });
 
   test("to not be enabled elsewhere", () => {
+    expect(
+      "https://gistigithub.com/n3n/eb51ada6308b539d388c8ff97711adfa".match(
+        match
+      )
+    ).toBe(null);
+    expect(
+      "https://gist.githubbcom/n3n/eb51ada6308b539d388c8ff97711adfa".match(
+        match
+      )
+    ).toBe(null);
     expect("https://gist.github.com/tommoor".match(match)).toBe(null);
   });
 });

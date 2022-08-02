@@ -2,13 +2,13 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { MAX_TITLE_LENGTH } from "@shared/constants";
 import { light } from "@shared/styles/theme";
 import {
   getCurrentDateAsString,
   getCurrentDateTimeAsString,
   getCurrentTimeAsString,
 } from "@shared/utils/date";
+import { DocumentValidation } from "@shared/validations";
 import Document from "~/models/Document";
 import ContentEditable, { RefHandle } from "~/components/ContentEditable";
 import Star, { AnimatedStar } from "~/components/Star";
@@ -132,7 +132,7 @@ const EditableTitle = React.forwardRef(
         $emojiWidth={emojiWidth}
         $isStarred={document.isStarred}
         autoFocus={!value}
-        maxLength={MAX_TITLE_LENGTH}
+        maxLength={DocumentValidation.maxTitleLength}
         readOnly={readOnly}
         dir="auto"
         ref={ref}

@@ -1,7 +1,7 @@
 import { action, autorun, computed, observable } from "mobx";
 import { light as defaultTheme } from "@shared/styles/theme";
 import Document from "~/models/Document";
-import { ConnectionStatus } from "~/scenes/Document/components/MultiplayerEditor";
+import type { ConnectionStatus } from "~/scenes/Document/components/MultiplayerEditor";
 import Storage from "~/utils/Storage";
 
 const UI_STORE = "UI_STORE";

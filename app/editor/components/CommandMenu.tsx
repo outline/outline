@@ -11,7 +11,8 @@ import { CommandFactory } from "@shared/editor/lib/Extension";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
 import { EmbedDescriptor, MenuItem } from "@shared/editor/types";
 import { depths } from "@shared/styles";
-import { supportedImageMimeTypes, getEventFiles } from "@shared/utils/files";
+import { getEventFiles } from "@shared/utils/files";
+import { AttachmentValidation } from "@shared/validations";
 import Scrollable from "~/components/Scrollable";
 import { Dictionary } from "~/hooks/useDictionary";
 import Input from "./Input";
@@ -35,7 +36,7 @@ export type Props<T extends MenuItem = MenuItem> = {
   onFileUploadStop?: () => void;
   onShowToast: (message: string) => void;
   onLinkToolbarOpen?: () => void;
-  onClose: () => void;
+  onClose: (insertNewLine?: boolean) => void;
   onClearSearch: () => void;
   embeds?: EmbedDescriptor[];
   renderMenuItem: (
@@ -122,7 +123,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
       if (item) {
         this.insertItem(item);
       } else {
-        this.props.onClose();
+        this.props.onClose(true);
       }
     }
 
@@ -181,7 +182,9 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
   insertItem = (item: any) => {
     switch (item.name) {
       case "image":
-        return this.triggerFilePick(supportedImageMimeTypes.join(", "));
+        return this.triggerFilePick(
+          AttachmentValidation.imageContentTypes.join(", ")
+        );
       case "attachment":
         return this.triggerFilePick("*");
       case "embed":

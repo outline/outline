@@ -20,10 +20,12 @@ import bash from "refractor/lang/bash";
 import clike from "refractor/lang/clike";
 import csharp from "refractor/lang/csharp";
 import css from "refractor/lang/css";
+import elixir from "refractor/lang/elixir";
 import go from "refractor/lang/go";
 import java from "refractor/lang/java";
 import javascript from "refractor/lang/javascript";
 import json from "refractor/lang/json";
+import kotlin from "refractor/lang/kotlin";
 import markup from "refractor/lang/markup";
 import objectivec from "refractor/lang/objectivec";
 import perl from "refractor/lang/perl";
@@ -34,6 +36,7 @@ import ruby from "refractor/lang/ruby";
 import rust from "refractor/lang/rust";
 import solidity from "refractor/lang/solidity";
 import sql from "refractor/lang/sql";
+import swift from "refractor/lang/swift";
 import typescript from "refractor/lang/typescript";
 import yaml from "refractor/lang/yaml";
 import { Dictionary } from "~/hooks/useDictionary";
@@ -54,10 +57,12 @@ const DEFAULT_LANGUAGE = "javascript";
   css,
   clike,
   csharp,
+  elixir,
   go,
   java,
   javascript,
   json,
+  kotlin,
   markup,
   objectivec,
   perl,
@@ -68,6 +73,7 @@ const DEFAULT_LANGUAGE = "javascript";
   rust,
   sql,
   solidity,
+  swift,
   typescript,
   yaml,
 ].forEach(refractor.register);

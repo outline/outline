@@ -3,7 +3,7 @@ import Frame from "../components/Frame";
 import { EmbedProps as Props } from ".";
 
 const URL_REGEX = new RegExp(
-  "^https://([w.-]+.)?modeanalytics.com/(.*)/reports/(.*)$"
+  "^https://([w.-]+\\.)?modeanalytics\\.com/(.*)/reports/(.*)$"
 );
 
 export default class ModeAnalytics extends React.Component<Props> {

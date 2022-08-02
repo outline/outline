@@ -11,6 +11,8 @@ describe("ClickUp", () => {
 
   test("to not be enabled elsewhere", () => {
     expect("https://share.clickup.com".match(match)).toBe(null);
+    expect("https://sharedclickup.com/a/b/c/d".match(match)).toBe(null);
+    expect("https://share.clickupdcom/a/b/c/d".match(match)).toBe(null);
     expect("https://clickup.com/".match(match)).toBe(null);
     expect("https://clickup.com/features".match(match)).toBe(null);
   });

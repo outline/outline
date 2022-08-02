@@ -4,7 +4,7 @@ import Image from "../components/Image";
 import { EmbedProps as Props } from ".";
 
 const URL_REGEX = new RegExp(
-  "^https?://datastudio.google.com/(embed|u/0)/reporting/(.*)/page/(.*)(/edit)?$"
+  "^https?://datastudio\\.google\\.com/(embed|u/0)/reporting/(.*)/page/(.*)(/edit)?$"
 );
 
 export default class GoogleDataStudio extends React.Component<Props> {

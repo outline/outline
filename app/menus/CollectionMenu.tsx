@@ -266,7 +266,7 @@ function CollectionMenu({
       {
         type: "button",
         title: `${t("Export")}…`,
-        visible: !!(collection && canUserInTeam.export),
+        visible: !!(collection && canUserInTeam.createExport),
         onClick: handleExport,
         icon: <ExportIcon />,
       },
@@ -296,7 +296,7 @@ function CollectionMenu({
       alphabeticalSort,
       handleEdit,
       handlePermissions,
-      canUserInTeam.export,
+      canUserInTeam.createExport,
       handleExport,
       handleDelete,
       handleChangeSort,

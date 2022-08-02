@@ -9,7 +9,7 @@ import {
   BeforeValidate,
   BeforeCreate,
 } from "sequelize-typescript";
-import { MAX_TEAM_DOMAINS } from "@shared/constants";
+import { TeamValidation } from "@shared/validations";
 import { ValidationError } from "@server/errors";
 import Team from "./Team";
 import User from "./User";
@@ -59,9 +59,9 @@ class TeamDomain extends IdModel {
     const count = await this.count({
       where: { teamId: model.teamId },
     });
-    if (count >= MAX_TEAM_DOMAINS) {
+    if (count >= TeamValidation.maxDomains) {
       throw ValidationError(
-        `You have reached the limit of ${MAX_TEAM_DOMAINS} domains`
+        `You have reached the limit of ${TeamValidation.maxDomains} domains`
       );
     }
   }
