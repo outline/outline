@@ -18,5 +18,11 @@ describe("Figma", () => {
   test("to not be enabled elsewhere", () => {
     expect("https://www.figma.com".match(match)).toBe(null);
     expect("https://www.figma.com/features".match(match)).toBe(null);
+    expect(
+      "https://wwww.figmaacom/file/LKQ4FJ4bTnCSjedbRpk931".match(match)
+    ).toBe(null);
+    expect(
+      "https://wwwwfigma.com/file/LKQ4FJ4bTnCSjedbRpk931".match(match)
+    ).toBe(null);
   });
 });

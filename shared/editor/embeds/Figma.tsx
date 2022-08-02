@@ -3,7 +3,7 @@ import Frame from "../components/Frame";
 import { EmbedProps as Props } from ".";
 
 const URL_REGEX = new RegExp(
-  "https://([w.-]+.)?figma.com/(file|proto)/([0-9a-zA-Z]{22,128})(?:/.*)?$"
+  "https://([w.-]+\\.)?figma\\.com/(file|proto)/([0-9a-zA-Z]{22,128})(?:/.*)?$"
 );
 
 export default class Figma extends React.Component<Props> {

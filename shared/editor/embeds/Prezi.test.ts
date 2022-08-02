@@ -18,5 +18,8 @@ describe("Prezi", () => {
   test("to not be enabled elsewhere", () => {
     expect("https://prezi.com".match(match)).toBe(null);
     expect("https://prezi.com/pricing".match(match)).toBe(null);
+    expect("https://preziicom/view/39mn8Rn1ZkoeEKQCgk5C".match(match)).toBe(
+      null
+    );
   });
 });

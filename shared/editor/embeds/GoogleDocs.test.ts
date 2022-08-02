@@ -30,5 +30,15 @@ describe("GoogleDocs", () => {
     expect("https://docs.google.com/document".match(match)).toBe(null);
     expect("https://docs.google.com".match(match)).toBe(null);
     expect("https://www.google.com".match(match)).toBe(null);
+    expect(
+      "https://docssgoogle.com/document/d/e/2PACX-1vTdddHPoZ5M_47wmSHCoigRIt2cj_Pd-kgtaNQY6H0Jzn0_CVGbxC1GcK5IoNzU615lzguexFwxasAW/pubhtml".match(
+        match
+      )
+    ).toBe(null);
+    expect(
+      "https://docs.googleecom/document/d/e/2PACX-1vTdddHPoZ5M_47wmSHCoigRIt2cj_Pd-kgtaNQY6H0Jzn0_CVGbxC1GcK5IoNzU615lzguexFwxasAW/pubhtml".match(
+        match
+      )
+    ).toBe(null);
   });
 });

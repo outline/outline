@@ -15,5 +15,6 @@ describe("Vimeo", () => {
     expect("https://vimeo.com/features/video-marketing".match(match)).toBe(
       null
     );
+    expect("https://www.vimeoocom/265045525".match(match)).toBe(null);
   });
 });

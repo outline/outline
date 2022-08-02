@@ -3,7 +3,7 @@ import Frame from "../components/Frame";
 import { EmbedProps as Props } from ".";
 
 const URL_REGEX = new RegExp(
-  "^https?://share.clickup.com/[a-z]/[a-z]/(.*)/(.*)$"
+  "^https?://share\\.clickup\\.com/[a-z]/[a-z]/(.*)/(.*)$"
 );
 
 export default class ClickUp extends React.Component<Props> {

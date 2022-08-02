@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { EmbedProps as Props } from ".";
 
 const URL_REGEX = new RegExp(
-  "^https://gist.github.com/([a-zA-Z\\d](?:[a-zA-Z\\d]|-(?=[a-zA-Z\\d])){0,38})/(.*)$"
+  "^https://gist\\.github\\.com/([a-zA-Z\\d](?:[a-zA-Z\\d]|-(?=[a-zA-Z\\d])){0,38})/(.*)$"
 );
 
 class Gist extends React.Component<Props> {
