@@ -15,11 +15,7 @@ import {
 } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
 import { User } from "@server/models";
-import {
-  StateStore,
-  getTeamFromContext,
-  PassportError,
-} from "@server/utils/passport";
+import { StateStore, getTeamFromContext } from "@server/utils/passport";
 
 const router = new Router();
 const GOOGLE = "google";
@@ -128,7 +124,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
 
           return done(null, result.user, result);
         } catch (err) {
-          return done(PassportError(err, ctx), null);
+          return done(err, null);
         }
       }
     )

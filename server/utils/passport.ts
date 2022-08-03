@@ -65,26 +65,6 @@ export class StateStore {
   };
 }
 
-// Every authentication action is routed through the apex domain.
-// But when there is an error, we want to redirect the user on the
-// same domain or subdomain that they originated from (found in state).
-export function PassportError(err: any, ctx: Context) {
-  // get original host
-  const state = ctx.cookies.get("state");
-  const host = state ? parseState(state).host : ctx.hostname;
-
-  // form a URL object with the err.redirectUrl and replace the host
-  const reqProtocol = ctx.protocol;
-  const requestHost = ctx.get("host");
-  const url = new URL(
-    `${reqProtocol}://${requestHost}${err.redirectUrl ?? "/"}`
-  );
-
-  url.host = host;
-  err.redirectUrl = url.toString();
-  return err;
-}
-
 export async function request(endpoint: string, accessToken: string) {
   const response = await fetch(endpoint, {
     method: "GET",
