@@ -18,6 +18,7 @@ import * as React from "react";
 import { DefaultTheme, ThemeProps } from "styled-components";
 import Extension, { CommandFactory } from "@shared/editor/lib/Extension";
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
+import getComments from "@shared/editor/lib/getComments";
 import getHeadings from "@shared/editor/lib/getHeadings";
 import getTasks from "@shared/editor/lib/getTasks";
 import { MarkdownSerializer } from "@shared/editor/lib/markdown/serializer";
@@ -86,11 +87,11 @@ export type Props = {
   /** Callback when user changes editor content */
   onChange?: (value: () => any) => void;
   /** Callback when a comment mark is clicked */
-  onClickComment?: (commentId: string) => void;
+  onClickCommentMark?: (commentId: string) => void;
   /** Callback when a comment mark is created */
-  onDraftComment?: (commentId: string) => void;
+  onCreateCommentMark?: (commentId: string) => void;
   /** Callback when a comment mark is removed */
-  onRemoveComment?: (commentId: string) => void;
+  onDeleteCommentMark?: (commentId: string) => void;
   /** Callback when a file upload begins */
   onFileUploadStart?: () => void;
   /** Callback when a file upload ends */
@@ -596,6 +597,10 @@ export class Editor extends React.PureComponent<
 
   public getTasks = () => {
     return getTasks(this.view.state.doc);
+  };
+
+  public getComments = () => {
+    return getComments(this.view.state.doc);
   };
 
   public render() {

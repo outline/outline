@@ -177,6 +177,10 @@ export default abstract class BaseStore<T extends BaseModel> {
       throw new Error(`Cannot delete ${this.modelName}`);
     }
 
+    if (item.isNew) {
+      return this.remove(item.id);
+    }
+
     this.isSaving = true;
 
     try {

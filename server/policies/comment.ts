@@ -15,5 +15,5 @@ allow(User, ["read", "update", "delete"], Comment, (user, comment) => {
   if (user.isViewer) {
     return false;
   }
-  return user && user.id === comment.createdById;
+  return user?.id === comment.createdById;
 });

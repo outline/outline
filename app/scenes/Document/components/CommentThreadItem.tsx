@@ -96,6 +96,10 @@ function CommentThreadItem({
     }
   };
 
+  const handleDelete = () => {
+    // comment should be removed as mark.
+  };
+
   React.useEffect(() => {
     setData(toJS(comment.data));
     setForceRender((s) => ++s);
@@ -134,7 +138,7 @@ function CommentThreadItem({
             autoFocus
           />
         </Body>
-        <Menu comment={comment} onEdit={setEditing} />
+        <Menu comment={comment} onEdit={setEditing} onDelete={handleDelete} />
       </Bubble>
     </Flex>
   );

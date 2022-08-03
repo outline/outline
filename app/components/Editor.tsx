@@ -1,5 +1,5 @@
 import { formatDistanceToNow } from "date-fns";
-import { deburr, sortBy } from "lodash";
+import { deburr, difference, sortBy } from "lodash";
 import { DOMParser as ProsemirrorDOMParser } from "prosemirror-model";
 import { TextSelection } from "prosemirror-state";
 import * as React from "react";
@@ -54,7 +54,14 @@ export type Props = Optional<
 };
 
 function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
-  const { id, shareId, onChange, onHeadingsChange } = props;
+  const {
+    id,
+    shareId,
+    onChange,
+    onHeadingsChange,
+    onCreateCommentMark,
+    onDeleteCommentMark,
+  } = props;
   const { documents } = useStores();
   const { showToast } = useToasts();
   const dictionary = useDictionary();
@@ -63,7 +70,8 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     activeLinkEvent,
     setActiveLinkEvent,
   ] = React.useState<MouseEvent | null>(null);
-  const previousHeadings = React.useRef<Heading[] | null>(null);
+  const previousHeadings = React.useRef<Heading[]>();
+  const previousComments = React.useRef<string[]>();
 
   const handleLinkActive = React.useCallback((event: MouseEvent) => {
     setActiveLinkEvent(event);
@@ -257,21 +265,49 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     }
   }, [ref, onHeadingsChange]);
 
+  const updateComments = React.useCallback(() => {
+    if (onCreateCommentMark && onDeleteCommentMark) {
+      const comments = ref?.current?.getComments();
+      const commentIds = comments?.map((c) => c.id);
+      const newCommentIds = difference(
+        commentIds,
+        previousComments.current ?? []
+      );
+
+      newCommentIds.forEach((commentId) => {
+        onCreateCommentMark(commentId);
+      });
+
+      const removedCommentIds = difference(
+        previousComments.current ?? [],
+        commentIds ?? []
+      );
+
+      removedCommentIds.forEach((commentId) => {
+        onDeleteCommentMark(commentId);
+      });
+
+      previousComments.current = commentIds;
+    }
+  }, [ref, onCreateCommentMark, onDeleteCommentMark]);
+
   const handleChange = React.useCallback(
     (event) => {
       onChange?.(event);
       updateHeadings();
+      updateComments();
     },
-    [onChange, updateHeadings]
+    [onChange, updateComments, updateHeadings]
   );
 
   const handleRefChanged = React.useCallback(
     (node: SharedEditor | null) => {
       if (node && !previousHeadings.current) {
         updateHeadings();
+        updateComments();
       }
     },
-    [updateHeadings]
+    [updateComments, updateHeadings]
   );
 
   return (

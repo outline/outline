@@ -35,7 +35,7 @@ type Props = Omit<EditorProps, "extensions"> & {
 
 /**
  * The main document editor includes an editable title with metadata below it,
- * and support for hover previews of internal links.
+ * and support for commenting.
  */
 function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   const titleRef = React.useRef<RefHandle>(null);
@@ -98,6 +98,8 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     [ui, history]
   );
 
+  // Create a Comment model in local store when a comment mark is created, this
+  // acts as a local draft before submission.
   const handleDraftComment = React.useCallback(
     (commentId: string) => {
       ui.expandComments();
@@ -114,9 +116,15 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     [comments, props.id, ui]
   );
 
-  const handleRemoveComment = React.useCallback((commentId: string) => {
-    console.log({ commentId });
-  }, []);
+  // Soft delete the Comment model when associated mark is totally removed.
+  const handleRemoveComment = React.useCallback(
+    async (commentId: string) => {
+      console.log("handleRemoveComment", commentId);
+      const comment = comments.get(commentId);
+      await comment?.delete();
+    },
+    [comments]
+  );
 
   const EditorComponent = multiplayer ? MultiplayerEditor : Editor;
 
@@ -157,9 +165,9 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         userId={user?.id}
         extensions={fullWithCommentsPackage}
         grow
-        onClickComment={handleClickComment}
-        onDraftComment={team?.commenting ? handleDraftComment : undefined}
-        onRemoveComment={team?.commenting ? handleRemoveComment : undefined}
+        onClickCommentMark={handleClickComment}
+        onCreateCommentMark={team?.commenting ? handleDraftComment : undefined}
+        onDeleteCommentMark={team?.commenting ? handleRemoveComment : undefined}
         {...rest}
       />
       {children}

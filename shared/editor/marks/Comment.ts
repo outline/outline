@@ -1,7 +1,6 @@
 import { toggleMark } from "prosemirror-commands";
 import { MarkSpec, MarkType, Schema } from "prosemirror-model";
 import { EditorState, Plugin } from "prosemirror-state";
-import { AddMarkStep, RemoveMarkStep } from "prosemirror-transform";
 import { v4 as uuidv4 } from "uuid";
 import collapseSelection from "../commands/collapseSelection";
 import { Command } from "../lib/Extension";
@@ -30,7 +29,7 @@ export default class Comment extends Mark {
   }
 
   keys({ type }: { type: MarkType }): Record<string, Command> {
-    return this.options.onDraftComment
+    return this.options.onCreateCommentMark
       ? {
           // TODO: Only create, don't toggle
           "Mod-Alt-m": toggleMark(type, {
@@ -42,7 +41,7 @@ export default class Comment extends Mark {
   }
 
   commands({ type }: { type: MarkType; schema: Schema }) {
-    return this.options.onDraftComment
+    return this.options.onCreateCommentMark
       ? () => (state: EditorState, dispatch: Dispatch) => {
           chainTransactions(
             toggleMark(type, {
@@ -69,35 +68,6 @@ export default class Comment extends Mark {
   get plugins(): Plugin[] {
     return [
       new Plugin({
-        filterTransaction: (tr) => {
-          if (tr.docChanged) {
-            const localCommentSteps = tr.steps.filter(
-              (step) =>
-                (step as any).mark?.type === this.editor.schema.marks.comment &&
-                (step as any).mark?.attrs.userId === this.options.userId
-            );
-
-            // transform is adding or removing comments trigger callbacks
-            const addCommentSteps = localCommentSteps.filter(
-              (step) => step instanceof AddMarkStep
-            );
-            const removeCommentSteps = localCommentSteps.filter(
-              (step) => step instanceof RemoveMarkStep
-            );
-
-            if (addCommentSteps.length > 0) {
-              this.options?.onDraftComment?.(
-                (addCommentSteps[0] as any).mark.attrs.id
-              );
-            }
-            if (removeCommentSteps.length > 0) {
-              this.options?.onRemoveComment?.(
-                (removeCommentSteps[0] as any).mark.attrs.id
-              );
-            }
-          }
-          return true;
-        },
         props: {
           handleDOMEvents: {
             mousedown: (view, event: MouseEvent) => {
@@ -105,12 +75,12 @@ export default class Comment extends Mark {
                 !(event.target instanceof HTMLSpanElement) ||
                 !event.target.classList.contains("comment")
               ) {
-                this.options?.onClickComment?.();
+                this.options?.onClickCommentMark?.();
                 return false;
               }
 
               const commentId = event.target.id.replace("comment-", "");
-              this.options?.onClickComment?.(commentId);
+              this.options?.onClickCommentMark?.(commentId);
 
               return false;
             },
