@@ -1069,7 +1069,7 @@ router.post("documents.empty_trash", auth({ admin: true }), async (ctx) => {
 
   const deleted: { documentId: string; collectionId: string }[] = [];
 
-  await Document.findAllInBatches<Document>(
+  await Document.unscoped().findAllInBatches<Document>(
     {
       where: {
         teamId: user.teamId,
