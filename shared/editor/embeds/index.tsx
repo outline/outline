@@ -23,6 +23,7 @@ import GoogleDrawings from "./GoogleDrawings";
 import GoogleDrive from "./GoogleDrive";
 import GoogleSheets from "./GoogleSheets";
 import GoogleSlides from "./GoogleSlides";
+import Grist from "./Grist";
 import InVision from "./InVision";
 import JSFiddle from "./JSFiddle";
 import Loom from "./Loom";
@@ -232,6 +233,13 @@ const embeds: EmbedDescriptor[] = [
     ),
     component: GoogleDataStudio,
     matcher: matcher(GoogleDataStudio),
+  },
+  {
+    title: "Grist",
+    keywords: "project",
+    icon: () => <Img src="/images/grist.png" alt="Grist" />,
+    component: Grist,
+    matcher: matcher(Grist),
   },
   {
     title: "InVision",
