@@ -685,6 +685,33 @@ export default class DocumentsStore extends BaseStore<Document> {
   }
 
   @action
+  async emptyTrash() {
+    const res = await client.post("/documents.empty_trash");
+    invariant(res?.data, "Data should be available");
+    res.data.forEach(
+      ({
+        documentId,
+        collectionId,
+      }: {
+        documentId: string;
+        collectionId: string;
+      }) => {
+        this.remove(documentId);
+
+        const share = this.rootStore.shares.getByDocumentId(documentId);
+        if (share) {
+          this.rootStore.shares.remove(share.id);
+        }
+
+        const collection = this.rootStore.collections.data.get(collectionId);
+        if (collection) {
+          collection.refresh();
+        }
+      }
+    );
+  }
+
+  @action
   archive = async (document: Document) => {
     const res = await client.post("/documents.archive", {
       id: document.id,
@@ -718,7 +745,10 @@ export default class DocumentsStore extends BaseStore<Document> {
       document.updateFromJson(res.data);
       this.addPolicies(res.policies);
     });
-    const collection = this.getCollectionForDocument(document);
+
+    const collection = this.rootStore.collections.data.get(
+      document.collectionId
+    );
     if (collection) {
       collection.refresh();
     }

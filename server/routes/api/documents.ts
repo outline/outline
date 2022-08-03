@@ -3,6 +3,7 @@ import invariant from "invariant";
 import Router from "koa-router";
 import { Op, ScopeOptions, WhereOptions } from "sequelize";
 import { subtractDate } from "@shared/utils/date";
+import { DocumentValidation } from "@shared/validations";
 import documentCreator from "@server/commands/documentCreator";
 import documentImporter from "@server/commands/documentImporter";
 import documentLoader from "@server/commands/documentLoader";
@@ -1060,6 +1061,64 @@ router.post("documents.delete", auth({ member: true }), async (ctx) => {
 
   ctx.body = {
     success: true,
+  };
+});
+
+router.post("documents.empty_trash", auth({ admin: true }), async (ctx) => {
+  const { user } = ctx.state;
+
+  const deleted: { documentId: string; collectionId: string }[] = [];
+
+  await Document.findAllInBatches<Document>(
+    {
+      where: {
+        teamId: user.teamId,
+        deletedAt: {
+          [Op.ne]: null,
+        },
+      },
+      paranoid: false,
+      limit: DocumentValidation.emptyTrash,
+    },
+    async (documents) => {
+      for (const document of documents) {
+        authorize(user, "permanentDelete", document);
+
+        deleted.push({
+          documentId: document.id,
+          collectionId: document.collectionId,
+        });
+
+        await Document.update(
+          {
+            parentDocumentId: null,
+          },
+          {
+            where: {
+              parentDocumentId: document.id,
+            },
+            paranoid: false,
+          }
+        );
+        await documentPermanentDeleter([document]);
+        await Event.create({
+          name: "documents.permanent_delete",
+          documentId: document.id,
+          collectionId: document.collectionId,
+          teamId: document.teamId,
+          actorId: user.id,
+          data: {
+            title: document.title,
+          },
+          ip: ctx.request.ip,
+        });
+      }
+    }
+  );
+
+  ctx.body = {
+    success: true,
+    data: deleted,
   };
 });
 

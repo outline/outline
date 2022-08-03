@@ -2492,3 +2492,66 @@ describe("#documents.unpublish", () => {
     expect(res.status).toEqual(401);
   });
 });
+
+describe("#documents.empty_trash", () => {
+  it("should require admin", async () => {
+    const viewer = await buildViewer();
+    const res = await server.post("/api/documents.empty_trash", {
+      body: {
+        token: viewer.getJwtToken(),
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should require authentication", async () => {
+    const res = await server.post("/api/documents.empty_trash");
+    expect(res.status).toEqual(401);
+  });
+
+  it("should permenantly delete trashed documents", async () => {
+    const { admin } = await seed();
+    const document = await buildDocument({
+      userId: admin.id,
+      teamId: admin.teamId,
+    });
+    await document.delete(admin.id);
+
+    const res0 = await server.post("/api/documents.deleted", {
+      body: {
+        token: admin.getJwtToken(),
+      },
+    });
+    const body0 = await res0.json();
+    expect(res0.status).toEqual(200);
+    expect(body0.data.length).toEqual(1);
+
+    const res1 = await server.post("/api/documents.empty_trash", {
+      body: {
+        token: admin.getJwtToken(),
+      },
+    });
+    const body1 = await res1.json();
+    expect(res1.status).toEqual(200);
+    expect(body1.data.length).toEqual(1);
+
+    const res2 = await server.post("/api/documents.deleted", {
+      body: {
+        token: admin.getJwtToken(),
+      },
+    });
+    const body2 = await res2.json();
+    expect(res2.status).toEqual(200);
+    expect(body2.data.length).toEqual(0);
+
+    const events = await Event.findAll();
+
+    expect(events.length).toEqual(1);
+    expect(events[0].name).toEqual("documents.permanent_delete");
+    expect(events[0].documentId).toEqual(document.id);
+    expect(events[0].collectionId).toEqual(document.collectionId);
+    expect(events[0].teamId).toEqual(document.teamId);
+    expect(events[0].actorId).toEqual(admin.id);
+    expect(events[0].data.title).toEqual(document.title);
+  });
+});

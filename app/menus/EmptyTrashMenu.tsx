@@ -35,12 +35,11 @@ function EmptyTrashMenu() {
 
       try {
         setIsDeleting(true);
-        trashed.forEach(
-          async (doc) =>
-            await documents.delete(doc, {
-              permanent: true,
-            })
-        );
+        await documents.emptyTrash();
+        // If all trashed documents were not removed.
+        // E.g. More trashed docs than `emptyTrash` limit.
+        const trashedDocs = await documents.fetchDeleted();
+        setTrashed(trashedDocs);
         showToast(t("Trash permanently deleted"), {
           type: "success",
         });
@@ -55,7 +54,7 @@ function EmptyTrashMenu() {
         setTrashed([]);
       }
     },
-    [documents, history, showToast, t, trashed]
+    [documents, history, showToast, t]
   );
 
   if (!trashed.length) {

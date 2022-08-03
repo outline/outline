@@ -30,6 +30,9 @@ export const CollectionValidation = {
 export const DocumentValidation = {
   /** The maximum length of the document title */
   maxTitleLength: 100,
+
+  /** The maximum number of documents allowed to be permanently deleted in one batch */
+  emptyTrash: 100,
 };
 
 export const PinValidation = {
