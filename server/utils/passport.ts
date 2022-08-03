@@ -24,7 +24,7 @@ export class StateStore {
 
     ctx.cookies.set(this.key, state, {
       httpOnly: false,
-      expires: addMinutes(new Date(), 10),
+      maxAge: 1000 * 60 * 10, // 10 minutes in milliseconds
       domain: getCookieDomain(ctx.hostname),
     });
 
