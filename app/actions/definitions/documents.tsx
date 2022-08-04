@@ -299,7 +299,8 @@ export const createTemplate = createAction({
     return (
       !!activeCollectionId &&
       stores.policies.abilities(activeCollectionId).update &&
-      !document?.isTemplate
+      !document?.isTemplate &&
+      !document?.isDeleted
     );
   },
   perform: ({ activeDocumentId, stores, t, event }) => {
