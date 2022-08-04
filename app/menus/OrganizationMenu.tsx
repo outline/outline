@@ -2,11 +2,10 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { MenuButton, useMenuState } from "reakit/Menu";
-import styled from "styled-components";
 import ContextMenu from "~/components/ContextMenu";
 import Template from "~/components/ContextMenu/Template";
-import { createAction } from "~/actions";
 import { navigateToSettings, logout } from "~/actions/definitions/navigation";
+import { changeTeam } from "~/actions/definitions/teams";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePrevious from "~/hooks/usePrevious";
 import useSessions from "~/hooks/useSessions";
@@ -32,32 +31,12 @@ const OrganizationMenu: React.FC = ({ children }) => {
     }
   }, [menu, theme, previousTheme]);
 
+  // NOTE: it's useful to memoize on the team id and session because the action
+  // menu is not cached at all.
   const actions = React.useMemo(() => {
-    const otherSessions = sessions.filter(
-      (session) => session.teamId !== team.id && session.url !== team.url
-    );
-
-    return [
-      navigateToSettings,
-      separator(),
-      ...(otherSessions.length
-        ? [
-            createAction({
-              name: t("Switch team"),
-              section: "account",
-              children: otherSessions.map((session) => ({
-                id: session.url,
-                name: session.name,
-                section: "account",
-                icon: <Logo alt={session.name} src={session.logoUrl} />,
-                perform: () => (window.location.href = session.url),
-              })),
-            }),
-          ]
-        : []),
-      logout,
-    ];
-  }, [team.id, team.url, sessions, t]);
+    console.log("MEMO BREAK");
+    return [navigateToSettings, separator(), changeTeam, logout];
+  }, [team.id, sessions]);
 
   return (
     <>
@@ -68,11 +47,5 @@ const OrganizationMenu: React.FC = ({ children }) => {
     </>
   );
 };
-
-const Logo = styled("img")`
-  border-radius: 2px;
-  width: 24px;
-  height: 24px;
-`;
 
 export default observer(OrganizationMenu);
