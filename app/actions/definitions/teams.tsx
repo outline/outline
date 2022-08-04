@@ -7,7 +7,7 @@ export const changeTeam = createAction({
   name: ({ t }) => t("Switch team"),
   placeholder: ({ t }) => t("Select a team"),
   keywords: "switch workspace organization",
-  section: "account",
+  section: "Account",
   visible: ({ currentTeamId }) => {
     const sessions = loadSessionsFromCookie();
     const otherSessions = sessions.filter(
@@ -24,7 +24,7 @@ export const changeTeam = createAction({
     return otherSessions.map((session) => ({
       id: session.url,
       name: session.name,
-      section: "account",
+      section: "Account",
       icon: <Logo alt={session.name} src={session.logoUrl} />,
       perform: () => (window.location.href = session.url),
     }));
