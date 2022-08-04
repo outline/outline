@@ -17,9 +17,9 @@ export const changeTeam = createAction({
   },
   children: ({ currentTeamId }) => {
     const sessions = loadSessionsFromCookie();
-    const otherSessions = sessions.filter((session) => {
-      return session.teamId !== currentTeamId;
-    });
+    const otherSessions = sessions.filter(
+      (session) => session.teamId !== currentTeamId
+    );
 
     return otherSessions.map((session) => ({
       id: session.url,
