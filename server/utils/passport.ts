@@ -9,18 +9,19 @@ import {
 import { getCookieDomain, parseDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import { Team } from "@server/models";
-import { AuthRedirectError, OAuthStateMismatchError } from "../errors";
+import { OAuthStateMismatchError } from "../errors";
 
 export class StateStore {
   key = "state";
 
   store = (ctx: Context, callback: StateStoreStoreCallback) => {
     // token is a short lived one-time pad to prevent replay attacks
-    // appDomain is the domain the user originated from when attempting auth
-    // we expect it to be a team subdomain, custom domain, or apex domain
     const token = crypto.randomBytes(8).toString("hex");
-    const appDomain = parseDomain(ctx.hostname);
-    const state = buildState(appDomain.host, token);
+
+    // We expect host to be a team subdomain, custom domain, or apex domain
+    // that is passed via query param from the auth provider component.
+    const host = ctx.query.host?.toString() || parseDomain(ctx.hostname).host;
+    const state = buildState(host, token);
 
     ctx.cookies.set(this.key, state, {
       httpOnly: false,
@@ -46,24 +47,7 @@ export class StateStore {
       );
     }
 
-    const { host, token } = parseState(state);
-
-    // Oauth callbacks are hard-coded to come to the apex domain, so we
-    // redirect to the original app domain before attempting authentication.
-    // If there is an error during auth, the user will end up on the same domain
-    // that they started from.
-    const appDomain = parseDomain(host);
-    if (appDomain.host !== parseDomain(ctx.hostname).host) {
-      const reqProtocol = ctx.protocol;
-      const requestHost = ctx.get("host");
-      const requestPath = ctx.originalUrl;
-      const requestUrl = `${reqProtocol}://${requestHost}${requestPath}`;
-      const url = new URL(requestUrl);
-
-      url.host = appDomain.host;
-
-      return callback(AuthRedirectError(``, url.toString()), false, token);
-    }
+    const { token } = parseState(state);
 
     // Destroy the one-time pad token and ensure it matches
     ctx.cookies.set(this.key, "", {
@@ -106,6 +90,7 @@ export async function getTeamFromContext(ctx: Context) {
   // we use it to infer the team they intend on signing into
   const state = ctx.cookies.get("state");
   const host = state ? parseState(state).host : ctx.hostname;
+
   const domain = parseDomain(host);
 
   let team;
