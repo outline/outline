@@ -34,7 +34,7 @@ const OrganizationMenu: React.FC = ({ children }) => {
   // NOTE: it's useful to memoize on the team id and session because the action
   // menu is not cached at all.
   const actions = React.useMemo(() => {
-    return [navigateToSettings, separator(), changeTeam, logout];
+    return [navigateToSettings, changeTeam, separator(), logout];
   }, [team.id, sessions]);
 
   return (
