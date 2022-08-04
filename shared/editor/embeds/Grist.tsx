@@ -3,7 +3,7 @@ import Frame from "../components/Frame";
 import { EmbedProps as Props } from ".";
 
 const URL_REGEX = new RegExp(
-  "^https?://.*/p/([0-9][0-9]*)\\?embed=true$" // Ensure its a page URL
+  "^https?://([a-z.-]+\\.)?getgrist\\.com/(.*)/p/([0-9][0-9]*)\\?embed=true$"
 );
 
 export default class Grist extends React.Component<Props> {
