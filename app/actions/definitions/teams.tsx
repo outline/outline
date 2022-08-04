@@ -6,7 +6,7 @@ import { loadSessionsFromCookie } from "~/hooks/useSessions";
 export const changeTeam = createAction({
   name: ({ t }) => t("Switch team"),
   placeholder: ({ t }) => t("Select a team"),
-  keywords: "switch workspace organization",
+  keywords: "change workspace organization",
   section: "Account",
   visible: ({ currentTeamId }) => {
     const sessions = loadSessionsFromCookie();
