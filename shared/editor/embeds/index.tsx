@@ -236,7 +236,7 @@ const embeds: EmbedDescriptor[] = [
   },
   {
     title: "Grist",
-    keywords: "project",
+    keywords: "spreadsheet",
     icon: () => <Img src="/images/grist.png" alt="Grist" />,
     component: Grist,
     matcher: matcher(Grist),
