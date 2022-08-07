@@ -343,7 +343,7 @@
   "Sort": "Sort",
   "Saving": "Saving",
   "Save": "Save",
-  "Export started, you will receive an email when it’s complete.": "Export started, you will receive an email when it’s complete.",
+  "Export started. If you have notifications enabled, you will receive an email when it's complete.": "Export started. If you have notifications enabled, you will receive an email when it's complete.",
   "Exporting the collection <em>{{collectionName}}</em> may take a few seconds. Your documents will be a zip of folders with files in Markdown format. Please visit the Export section on settings to get the zip.": "Exporting the collection <em>{{collectionName}}</em> may take a few seconds. Your documents will be a zip of folders with files in Markdown format. Please visit the Export section on settings to get the zip.",
   "Exporting": "Exporting",
   "Export Collection": "Export Collection",

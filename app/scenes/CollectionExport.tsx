@@ -25,7 +25,9 @@ function CollectionExport({ collection, onSubmit }: Props) {
 
       setIsLoading(false);
       showToast(
-        t("Export started, you will receive an email when it’s complete.")
+        t(
+          "Export started. If you have notifications enabled, you will receive an email when it's complete."
+        )
       );
       onSubmit();
     },
