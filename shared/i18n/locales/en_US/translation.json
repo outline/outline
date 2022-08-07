@@ -650,6 +650,8 @@
   "Receive a notification whenever a new collection is created": "Receive a notification whenever a new collection is created",
   "Invite accepted": "Invite accepted",
   "Receive a notification when someone you invited creates an account": "Receive a notification when someone you invited creates an account",
+  "Export completed": "Export completed",
+  "Receive a notification when an export you requested has been completed": "Receive a notification when an export you requested has been completed",
   "Getting started": "Getting started",
   "Tips on getting started with Outline’s features and functionality": "Tips on getting started with Outline’s features and functionality",
   "New features": "New features",
