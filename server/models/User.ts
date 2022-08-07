@@ -497,7 +497,8 @@ class User extends ParanoidModel {
   };
 
   // By default when a user signs up we subscribe them to email notifications
-  // when documents they created are edited by other team members and onboarding
+  // when documents they created are edited by other team members, onboarding
+  // and when an export they requested has been completed.
   @AfterCreate
   static subscribeToNotifications = async (
     model: User,
@@ -533,6 +534,14 @@ class User extends ParanoidModel {
           userId: model.id,
           teamId: model.teamId,
           event: "emails.invite_accepted",
+        },
+        transaction: options.transaction,
+      }),
+      NotificationSetting.findOrCreate({
+        where: {
+          userId: model.id,
+          teamId: model.teamId,
+          event: "emails.export_completed",
         },
         transaction: options.transaction,
       }),
