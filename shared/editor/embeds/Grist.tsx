@@ -4,10 +4,12 @@ import Image from "../components/Image";
 import { EmbedProps as Props } from ".";
 
 function Grist(props: Props) {
+  const { matches } = props.attrs;
+  const sheetURL = matches[1];
   return (
     <Frame
       {...props}
-      src={props.attrs.href}
+      src={`${sheetURL}?embed=true`}
       icon={
         <Image
           src="/images/grist.png"
@@ -24,7 +26,7 @@ function Grist(props: Props) {
 
 Grist.ENABLED = [
   new RegExp(
-    "^https?://([a-z.-]+\\.)?getgrist\\.com/(.*)/p/([0-9]+)\\?embed=true$"
+    "^(https?://[a-z.-]+\\.?getgrist\\.com/.*/p/[0-9]+)(\\?embed=true)?$"
   ),
 ];
 
