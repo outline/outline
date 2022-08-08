@@ -41,3 +41,8 @@ export const TeamValidation = {
   /** The maximum number of domains per team */
   maxDomains: 10,
 };
+
+export const WebhookSubscriptionValidation = {
+  /** The maximum number of webhooks per team */
+  maxSubscriptions: 10,
+};

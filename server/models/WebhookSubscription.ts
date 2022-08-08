@@ -7,8 +7,11 @@ import {
   NotEmpty,
   DataType,
   IsUrl,
+  BeforeCreate,
 } from "sequelize-typescript";
 import { SaveOptions } from "sequelize/types";
+import { WebhookSubscriptionValidation } from "@shared/validations";
+import { ValidationError } from "@server/errors";
 import { Event } from "@server/types";
 import Team from "./Team";
 import User from "./User";
@@ -54,6 +57,20 @@ class WebhookSubscription extends ParanoidModel {
   @ForeignKey(() => Team)
   @Column
   teamId: string;
+
+  // hooks
+
+  @BeforeCreate
+  static async checkLimit(model: WebhookSubscription) {
+    const count = await this.count({
+      where: { teamId: model.teamId },
+    });
+    if (count >= WebhookSubscriptionValidation.maxSubscriptions) {
+      throw ValidationError(
+        `You have reached the limit of ${WebhookSubscriptionValidation.maxSubscriptions} webhooks`
+      );
+    }
+  }
 
   // methods
 
