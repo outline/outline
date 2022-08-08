@@ -4,8 +4,6 @@ import Image from "../components/Image";
 import { EmbedProps as Props } from ".";
 
 function Grist(props: Props) {
-  const { matches } = props.attrs;
-  const sheetURL = matches[1];
   return (
     <Frame
       {...props}
