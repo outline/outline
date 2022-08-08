@@ -512,9 +512,8 @@ export class Environment {
   @IsOptional()
   @IsNumber()
   @CannotUseWithout("RATE_LIMITER_ENABLED")
-  public RATE_LIMITER_REQUESTS = this.toOptionalNumber(
-    process.env.RATE_LIMITER_REQUESTS ?? "5000"
-  );
+  public RATE_LIMITER_REQUESTS =
+    this.toOptionalNumber(process.env.RATE_LIMITER_REQUESTS) ?? 5000;
 
   /**
    * Set fixed duration window(in secs) for
@@ -524,9 +523,8 @@ export class Environment {
   @IsOptional()
   @IsNumber()
   @CannotUseWithout("RATE_LIMITER_ENABLED")
-  public RATE_LIMITER_DURATION_WINDOW = this.toOptionalNumber(
-    process.env.RATE_LIMITER_DURATION_WINDOW ?? "60"
-  );
+  public RATE_LIMITER_DURATION_WINDOW =
+    this.toOptionalNumber(process.env.RATE_LIMITER_DURATION_WINDOW) ?? 60;
 
   private toOptionalString(value: string | undefined) {
     return value ? value : undefined;
