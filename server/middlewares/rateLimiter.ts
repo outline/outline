@@ -3,7 +3,6 @@ import { defaults } from "lodash";
 import RateLimiter from "@server/RateLimiter";
 import env from "@server/env";
 import { RateLimitExceededError } from "@server/errors";
-import Logger from "@server/logging/Logger";
 import Redis from "@server/redis";
 import { RateLimiterConfig } from "@server/types";
 
@@ -13,10 +12,13 @@ export function rateLimiter() {
       return next();
     }
 
+    const key = RateLimiter.hasRateLimiter(ctx.path)
+      ? `${ctx.path}:${ctx.ip}`
+      : `${ctx.ip}`;
     const limiter = RateLimiter.getRateLimiter(ctx.path);
 
     try {
-      await limiter.consume(`${ctx.path}:${ctx.ip}`);
+      await limiter.consume(key);
     } catch (rateLimiterRes) {
       ctx.set("Retry-After", `${rateLimiterRes.msBeforeNext / 1000}`);
       ctx.set("RateLimit-Limit", `${limiter.points}`);
@@ -43,21 +45,15 @@ export function registerRateLimiter(config: RateLimiterConfig) {
     }
 
     if (!RateLimiter.hasRateLimiter(ctx.path)) {
-      // kill the default rate limiter for this path first
-      try {
-        await RateLimiter.killDefaultRateLimiter(ctx.path);
-      } catch (err) {
-        Logger.error(`Default rate limiter kill aborted for ${ctx.path}`, err);
-      }
-
       RateLimiter.setRateLimiter(
         ctx.path,
         defaults(config, {
-          keyPrefix: env.RATE_LIMITER_REDIS_KEY_PREFIX,
+          keyPrefix: RateLimiter.RATE_LIMITER_REDIS_KEY_PREFIX,
           storeClient: Redis.defaultClient,
         })
       );
     }
+
     return next();
   };
 }

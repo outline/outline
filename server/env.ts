@@ -528,16 +528,6 @@ export class Environment {
     process.env.RATE_LIMITER_DURATION_WINDOW ?? "1"
   );
 
-  /**
-   * Key prefix for redis keys which track request count
-   * for the default rate limiter
-   */
-  @IsOptional()
-  @CannotUseWithout("RATE_LIMITER_ENABLED")
-  public RATE_LIMITER_REDIS_KEY_PREFIX = this.toOptionalString(
-    process.env.RATE_LIMITER_REDIS_KEY_PREFIX || "rl"
-  );
-
   private toOptionalString(value: string | undefined) {
     return value ? value : undefined;
   }

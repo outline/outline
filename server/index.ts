@@ -26,7 +26,6 @@ import {
   checkPendingMigrations,
 } from "./utils/startup";
 import { checkUpdates } from "./utils/updates";
-import RateLimiter from "@server/RateLimiter";
 
 // If a services flag is passed it takes priority over the environment variable
 // for example: --services=web,worker
@@ -123,8 +122,6 @@ async function start(id: number, disconnect: () => void) {
       }`
     );
   });
-
-  server.on("shutdown", () => RateLimiter.shutdownHandler());
 
   server.listen(normalizedPortFlag || env.PORT || "3000");
   process.once("SIGTERM", shutdown);
