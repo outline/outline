@@ -9,7 +9,7 @@ function Grist(props: Props) {
   return (
     <Frame
       {...props}
-      src={`${sheetURL}?embed=true`}
+      src={props.attrs.href.replace(/(\?embed=true)?$/, "?embed=true")}
       icon={
         <Image
           src="/images/grist.png"
