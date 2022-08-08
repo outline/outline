@@ -26,7 +26,7 @@ function Grist(props: Props) {
 
 Grist.ENABLED = [
   new RegExp(
-    "^(https?://[a-z.-]+\\.?getgrist\\.com/.*/p/[0-9]+)(\\?embed=true)?$"
+    "^https?://([a-z.-]+\\.)?getgrist\\.com/doc/(.+)$"
   ),
 ];
 
