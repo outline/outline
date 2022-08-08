@@ -88,6 +88,7 @@ export type Action = {
   section: ((context: ActionContext) => string) | string;
   shortcut?: string[];
   keywords?: string;
+  dangerous?: boolean;
   iconInContextMenu?: boolean;
   icon?: React.ReactElement | React.FC;
   placeholder?: ((context: ActionContext) => string) | string;
