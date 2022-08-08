@@ -48,6 +48,7 @@ export function registerRateLimiter(config: RateLimiterConfig) {
       RateLimiter.setRateLimiter(
         ctx.path,
         defaults(config, {
+          duration: env.RATE_LIMITER_DURATION_WINDOW,
           keyPrefix: RateLimiter.RATE_LIMITER_REDIS_KEY_PREFIX,
           storeClient: Redis.defaultClient,
         })

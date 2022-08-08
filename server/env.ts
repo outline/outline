@@ -525,7 +525,7 @@ export class Environment {
   @IsNumber()
   @CannotUseWithout("RATE_LIMITER_ENABLED")
   public RATE_LIMITER_DURATION_WINDOW = this.toOptionalNumber(
-    process.env.RATE_LIMITER_DURATION_WINDOW ?? "1"
+    process.env.RATE_LIMITER_DURATION_WINDOW ?? "60"
   );
 
   private toOptionalString(value: string | undefined) {
