@@ -17,6 +17,8 @@ if (process.env.DATABASE_URL_TEST) {
 // so that sequelize uses the test config variables
 require("@server/database/sequelize");
 
+jest.mock("bull");
+
 // This is needed for the relative manual mock to be picked up
 jest.mock("../queues");
 

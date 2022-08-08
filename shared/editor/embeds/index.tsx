@@ -21,6 +21,7 @@ import GoogleDataStudio from "./GoogleDataStudio";
 import GoogleDocs from "./GoogleDocs";
 import GoogleDrawings from "./GoogleDrawings";
 import GoogleDrive from "./GoogleDrive";
+import GoogleForms from "./GoogleForms";
 import GoogleSheets from "./GoogleSheets";
 import GoogleSlides from "./GoogleSlides";
 import Grist from "./Grist";
@@ -233,6 +234,13 @@ const embeds: EmbedDescriptor[] = [
     ),
     component: GoogleDataStudio,
     matcher: matcher(GoogleDataStudio),
+  },
+  {
+    title: "Google Forms",
+    keywords: "form survey",
+    icon: () => <Img src="/images/google-forms.png" alt="Google Forms" />,
+    component: GoogleForms,
+    matcher: matcher(GoogleForms),
   },
   {
     title: "Grist",

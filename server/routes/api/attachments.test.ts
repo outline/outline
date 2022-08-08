@@ -1,6 +1,4 @@
-import TestServer from "fetch-test-server";
 import Attachment from "@server/models/Attachment";
-import webService from "@server/services/web";
 import {
   buildUser,
   buildAdmin,
@@ -8,15 +6,13 @@ import {
   buildAttachment,
   buildDocument,
 } from "@server/test/factories";
-import { flushdb } from "@server/test/support";
+import { flushdb, getTestServer } from "@server/test/support";
 
-const app = webService();
-const server = new TestServer(app.callback());
+const server = getTestServer();
 
 jest.mock("@server/utils/s3");
 
 beforeEach(() => flushdb());
-afterAll(() => server.close());
 
 describe("#attachments.create", () => {
   it("should require authentication", async () => {

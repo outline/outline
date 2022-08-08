@@ -1,12 +1,8 @@
-import TestServer from "fetch-test-server";
-import webService from "@server/services/web";
 import { buildUser, buildStar, buildDocument } from "@server/test/factories";
-import { flushdb } from "@server/test/support";
+import { flushdb, getTestServer } from "@server/test/support";
 
-const app = webService();
-const server = new TestServer(app.callback());
+const server = getTestServer();
 beforeEach(() => flushdb());
-afterAll(() => server.close());
 
 describe("#stars.create", () => {
   it("should create a star", async () => {

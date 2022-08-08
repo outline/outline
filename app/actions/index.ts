@@ -56,6 +56,7 @@ export function actionToMenuItem(
     title,
     icon,
     visible,
+    dangerous: action.dangerous,
     onClick: () => action.perform && action.perform(context),
     selected: action.selected ? action.selected(context) : undefined,
   };
