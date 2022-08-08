@@ -80,7 +80,7 @@
     "cancan": "3.1.0",
     "chalk": "^4.1.0",
     "class-validator": "^0.13.2",
-    "compressorjs": "^1.0.7",
+    "compressorjs": "^1.1.1",
     "copy-to-clipboard": "^3.3.1",
     "core-js": "^3.10.2",
     "crypto-js": "^4.1.1",
