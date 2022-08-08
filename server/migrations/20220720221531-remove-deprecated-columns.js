@@ -5,6 +5,7 @@ module.exports = {
     await queryInterface.sequelize.transaction(async (transaction) => {
       await queryInterface.removeColumn("attachments", "url", { transaction });
       await queryInterface.removeColumn("users", "service", { transaction });
+      await queryInterface.removeColumn("users", "serviceId", { transaction });
       await queryInterface.removeColumn("teams", "slackId", { transaction });
       await queryInterface.removeColumn("teams", "googleId", { transaction });
     });
@@ -18,6 +19,11 @@ module.exports = {
         transaction
       });
       await queryInterface.addColumn("user", "service", {
+        type: Sequelize.STRING,
+        allowNull: true,
+        transaction
+      });
+      await queryInterface.addColumn("user", "serviceId", {
         type: Sequelize.STRING,
         allowNull: true,
         transaction
