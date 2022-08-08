@@ -8,6 +8,7 @@ import {
   DataType,
   IsUrl,
   BeforeCreate,
+  DefaultScope,
 } from "sequelize-typescript";
 import { SaveOptions } from "sequelize/types";
 import { WebhookSubscriptionValidation } from "@shared/validations";
@@ -19,6 +20,14 @@ import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
 import Length from "./validators/Length";
 
+@DefaultScope(() => ({
+  include: [
+    {
+      association: "team",
+      required: true,
+    },
+  ],
+}))
 @Table({
   tableName: "webhook_subscriptions",
   modelName: "webhook_subscription",
