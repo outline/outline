@@ -16,24 +16,25 @@ module.exports = {
       await queryInterface.addColumn("attachments", "url", {
         type: Sequelize.STRING(4096),
         allowNull: false,
+        defaultValue: "",
         transaction
       });
-      await queryInterface.addColumn("user", "service", {
+      await queryInterface.addColumn("users", "service", {
         type: Sequelize.STRING,
         allowNull: true,
         transaction
       });
-      await queryInterface.addColumn("user", "serviceId", {
+      await queryInterface.addColumn("users", "serviceId", {
         type: Sequelize.STRING,
         allowNull: true,
         transaction
       });
-      await queryInterface.addColumn("team", "slackId", {
+      await queryInterface.addColumn("teams", "slackId", {
         type: Sequelize.STRING,
         allowNull: true,
         transaction
       });
-      await queryInterface.addColumn("team", "googleId", {
+      await queryInterface.addColumn("teams", "googleId", {
         type: Sequelize.STRING,
         allowNull: true,
         transaction
