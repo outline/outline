@@ -1,12 +1,8 @@
-import TestServer from "fetch-test-server";
 import { buildShare, buildDocument } from "@server/test/factories";
-import { flushdb } from "@server/test/support";
-import webService from "../services/web";
+import { flushdb, getTestServer } from "@server/test/support";
 
-const app = webService();
-const server = new TestServer(app.callback());
+const server = getTestServer();
 beforeEach(() => flushdb());
-afterAll(() => server.close());
 
 describe("/share/:id", () => {
   it("should return standard title in html when loading unpublished share", async () => {

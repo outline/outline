@@ -1,14 +1,10 @@
-import TestServer from "fetch-test-server";
 import sharedEnv from "@shared/env";
 import env from "@server/env";
-import webService from "@server/services/web";
 import { buildUser, buildTeam } from "@server/test/factories";
-import { flushdb } from "@server/test/support";
+import { flushdb, getTestServer } from "@server/test/support";
 
-const app = webService();
-const server = new TestServer(app.callback());
+const server = getTestServer();
 beforeEach(() => flushdb());
-afterAll(() => server.close());
 
 describe("#auth.info", () => {
   it("should return current authentication", async () => {
