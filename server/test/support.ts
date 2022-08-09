@@ -17,6 +17,10 @@ export function flushdb() {
   return sequelize.query(flushQuery);
 }
 
+export function disconnectdb() {
+  return sequelize.close();
+}
+
 export const seed = async () => {
   return sequelize.transaction(async (transaction) => {
     const team = await Team.create(

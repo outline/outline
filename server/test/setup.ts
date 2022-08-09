@@ -18,6 +18,7 @@ if (process.env.DATABASE_URL_TEST) {
 require("@server/database/sequelize");
 
 jest.mock("bull");
+jest.mock("i18next-http-backend");
 
 // This is needed for the relative manual mock to be picked up
 jest.mock("../queues");

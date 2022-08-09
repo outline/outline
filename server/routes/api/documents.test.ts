@@ -15,9 +15,15 @@ import {
   buildDocument,
   buildViewer,
 } from "@server/test/factories";
-import { flushdb, seed, getTestServer } from "@server/test/support";
+import {
+  flushdb,
+  seed,
+  getTestServer,
+  disconnectdb,
+} from "@server/test/support";
 
 const server = getTestServer();
+afterAll(() => disconnectdb().then(() => server.close()));
 beforeEach(() => flushdb());
 
 describe("#documents.info", () => {

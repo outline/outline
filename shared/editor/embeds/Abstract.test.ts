@@ -1,8 +1,8 @@
-import Abstract from "./Abstract";
+import { URL_REGEX } from "./Abstract";
 
 describe("Abstract", () => {
-  const match = Abstract.ENABLED[0];
-  const match2 = Abstract.ENABLED[1];
+  const match = URL_REGEX[0];
+  const match2 = URL_REGEX[1];
 
   test("to be enabled on share subdomain link", () => {
     expect(
