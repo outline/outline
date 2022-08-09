@@ -15,6 +15,7 @@ import {
 import React from "react";
 import { useTranslation } from "react-i18next";
 import Details from "~/scenes/Settings/Details";
+import Diagrams from "~/scenes/Settings/Diagrams";
 import Export from "~/scenes/Settings/Export";
 import Features from "~/scenes/Settings/Features";
 import Groups from "~/scenes/Settings/Groups";
@@ -167,6 +168,14 @@ const useAuthorizedSettingsConfig = () => {
         path: "/settings/webhooks",
         component: Webhooks,
         enabled: can.createWebhookSubscription,
+        group: t("Integrations"),
+        icon: WebhooksIcon,
+      },
+      Diagrams: {
+        name: t("Diagrams"),
+        path: "/settings/integrations/diagrams",
+        component: Diagrams,
+        enabled: can.update,
         group: t("Integrations"),
         icon: WebhooksIcon,
       },

@@ -1,10 +1,17 @@
 import Router from "koa-router";
 import auth from "@server/middlewares/authentication";
 import { Event } from "@server/models";
-import Integration from "@server/models/Integration";
+import Integration, {
+  UserCreatableIntegrationService,
+} from "@server/models/Integration";
 import { authorize } from "@server/policies";
 import { presentIntegration } from "@server/presenters";
-import { assertSort, assertUuid, assertArray } from "@server/validation";
+import {
+  assertSort,
+  assertUuid,
+  assertArray,
+  assertIn,
+} from "@server/validation";
 import pagination from "./middlewares/pagination";
 
 const router = new Router();
@@ -33,7 +40,26 @@ router.post("integrations.list", auth(), pagination(), async (ctx) => {
   };
 });
 
-router.post("integrations.update", auth(), async (ctx) => {
+router.post("integrations.create", auth({ admin: true }), async (ctx) => {
+  const { service, settings } = ctx.body;
+  const { user } = ctx.state;
+  authorize(user, "createIntegration", user.team);
+
+  assertIn(service, Object.values(UserCreatableIntegrationService));
+
+  const integration = await Integration.create({
+    service,
+    userId: user.id,
+    teamId: user.teamId,
+    settings,
+  });
+
+  ctx.body = {
+    data: presentIntegration(integration),
+  };
+});
+
+router.post("integrations.update", auth({ admin: true }), async (ctx) => {
   const { id, events } = ctx.body;
   assertUuid(id, "id is required");
 
@@ -56,7 +82,7 @@ router.post("integrations.update", auth(), async (ctx) => {
   };
 });
 
-router.post("integrations.delete", auth(), async (ctx) => {
+router.post("integrations.delete", auth({ admin: true }), async (ctx) => {
   const { id } = ctx.body;
   assertUuid(id, "id is required");
 
