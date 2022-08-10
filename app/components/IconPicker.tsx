@@ -40,6 +40,7 @@ import { useTranslation } from "react-i18next";
 import { useMenuState, MenuButton, MenuItem } from "reakit/Menu";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { colorPalette } from "@shared/utils/collections";
 import ContextMenu from "~/components/ContextMenu";
 import Flex from "~/components/Flex";
 import { LabelText } from "~/components/Input";
@@ -200,18 +201,7 @@ export const icons = {
     keywords: "warning alert error",
   },
 };
-const colors = [
-  "#4E5C6E",
-  "#0366d6",
-  "#9E5CF7",
-  "#FF825C",
-  "#FF5C80",
-  "#FFBE0B",
-  "#42DED1",
-  "#00D084",
-  "#FF4DFA",
-  "#2F362F",
-];
+
 type Props = {
   onOpen?: () => void;
   onClose?: () => void;
@@ -272,7 +262,7 @@ function IconPicker({ onOpen, onClose, icon, color, onChange }: Props) {
             <ColorPicker
               color={color}
               onChange={(color) => onChange(color.hex, icon)}
-              colors={colors}
+              colors={colorPalette}
               triangle="hide"
               styles={{
                 default: {

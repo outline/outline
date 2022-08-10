@@ -79,10 +79,18 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       rejectOnEmpty: true,
     });
 
-    Logger.info(
-      "task",
-      `DeliverWebhookTask: ${event.name} for ${subscription.name}`
-    );
+    if (!subscription.enabled) {
+      Logger.info("task", `WebhookSubscription was disabled before delivery`, {
+        event: event.name,
+        subscriptionId: subscription.id,
+      });
+      return;
+    }
+
+    Logger.info("task", `DeliverWebhookTask: ${event.name}`, {
+      event: event.name,
+      subscriptionId: subscription.id,
+    });
 
     switch (event.name) {
       case "api_keys.create":

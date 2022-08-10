@@ -83,21 +83,3 @@ export function getEventFiles(
     ? Array.prototype.slice.call(event.target.files)
     : [];
 }
-
-/**
- * An array of image mimetypes commonly supported by modern browsers
- */
-export const supportedImageMimeTypes = [
-  "image/jpg",
-  "image/jpeg",
-  "image/pjpeg",
-  "image/png",
-  "image/apng",
-  "image/avif",
-  "image/gif",
-  "image/webp",
-  "image/svg",
-  "image/svg+xml",
-  "image/bmp",
-  "image/tiff",
-];

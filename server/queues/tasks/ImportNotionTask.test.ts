@@ -74,7 +74,11 @@ describe("ImportNotionTask", () => {
 
     // Check that the image url was replaced in the text with a redirect
     const attachments = Array.from(response.attachments.values());
+    const attachment = attachments.find((att) =>
+      att.key.endsWith("Screen_Shot_2022-04-21_at_2.23.26_PM.png")
+    );
+
     const documents = Array.from(response.documents.values());
-    expect(documents[1].text).toContain(attachments[1].redirectUrl);
+    expect(documents[1].text).toContain(attachment?.redirectUrl);
   });
 });

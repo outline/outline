@@ -44,6 +44,10 @@ describe("Abstract", () => {
   });
 
   test("to not be enabled elsewhere", () => {
+    expect("https://sharedgoabstract.com/f473".match(match)).toBe(null);
+    expect("https://share.goabstractacom/f473".match(match)).toBe(null);
+    expect("https://app1goabstract.com/share/f473".match(match2)).toBe(null);
+    expect("https://app.goabstractacom/share/f473".match(match2)).toBe(null);
     expect("https://abstract.com".match(match)).toBe(null);
     expect("https://goabstract.com".match(match)).toBe(null);
     expect("https://app.goabstract.com".match(match)).toBe(null);

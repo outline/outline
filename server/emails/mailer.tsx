@@ -1,6 +1,5 @@
 import nodemailer, { Transporter } from "nodemailer";
 import Oy from "oy-vey";
-import * as React from "react";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { APM } from "@server/logging/tracing";
@@ -15,7 +14,7 @@ type SendMailOptions = {
   subject: string;
   previewText?: string;
   text: string;
-  component: React.ReactNode;
+  component: JSX.Element;
   headCSS?: string;
 };
 
@@ -66,7 +65,7 @@ export class Mailer {
     const html = Oy.renderTemplate(data.component, {
       title: data.subject,
       headCSS: [baseStyles, data.headCSS].join(" "),
-      previewText: data.previewText,
+      previewText: data.previewText ?? "",
     });
 
     try {
@@ -103,11 +102,15 @@ export class Mailer {
             pass: env.SMTP_PASSWORD,
           }
         : undefined,
-      tls: env.SMTP_TLS_CIPHERS
-        ? {
-            ciphers: env.SMTP_TLS_CIPHERS,
-          }
-        : undefined,
+      tls: env.SMTP_SECURE
+        ? env.SMTP_TLS_CIPHERS
+          ? {
+              ciphers: env.SMTP_TLS_CIPHERS,
+            }
+          : undefined
+        : {
+            rejectUnauthorized: false,
+          },
     };
   }
 

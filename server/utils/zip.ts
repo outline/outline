@@ -3,6 +3,7 @@ import path from "path";
 import JSZip, { JSZipObject } from "jszip";
 import { find } from "lodash";
 import tmp from "tmp";
+import { ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import Attachment from "@server/models/Attachment";
 import Collection from "@server/models/Collection";
@@ -193,8 +194,19 @@ export type FileTreeNode = {
  * @param paths An array of paths to files in the zip
  * @returns
  */
-export function zipAsFileTree(zip: JSZip) {
-  const paths = Object.keys(zip.files).map((filePath) => `/${filePath}`);
+export function zipAsFileTree(
+  zip: JSZip,
+  /** The maximum number of files to unzip */
+  maxFiles = 10000
+) {
+  let fileCount = 0;
+  const paths = Object.keys(zip.files).map((filePath) => {
+    if (++fileCount > maxFiles) {
+      throw ValidationError("Too many files in zip");
+    }
+
+    return `/${filePath}`;
+  });
   const tree: FileTreeNode[] = [];
 
   paths.forEach(function (filePath) {

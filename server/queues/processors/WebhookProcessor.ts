@@ -7,6 +7,10 @@ export default class WebhookProcessor extends BaseProcessor {
   static applicableEvents: ["*"] = ["*"];
 
   async perform(event: Event) {
+    if (!event.teamId) {
+      return;
+    }
+
     const webhookSubscriptions = await WebhookSubscription.findAll({
       where: {
         enabled: true,

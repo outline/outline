@@ -25,5 +25,15 @@ describe("GoogleSlides", () => {
     expect("https://docs.google.com/presentation".match(match)).toBe(null);
     expect("https://docs.google.com".match(match)).toBe(null);
     expect("https://www.google.com".match(match)).toBe(null);
+    expect(
+      "https://docssgoogle.com/presentation/d/e/2PACX-1vTdddHPoZ5M_47wmSHCoigRIt2cj_Pd-kgtaNQY6H0Jzn0_CVGbxC1GcK5IoNzU615lzguexFwxasAW/pub?start=false&loop=false&delayms=3000".match(
+        match
+      )
+    ).toBe(null);
+    expect(
+      "https://docs.googleecom/presentation/d/e/2PACX-1vTdddHPoZ5M_47wmSHCoigRIt2cj_Pd-kgtaNQY6H0Jzn0_CVGbxC1GcK5IoNzU615lzguexFwxasAW/pub?start=false&loop=false&delayms=3000".match(
+        match
+      )
+    ).toBe(null);
   });
 });

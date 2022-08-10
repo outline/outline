@@ -1,13 +1,9 @@
-import TestServer from "fetch-test-server";
 import { Revision } from "@server/models";
-import webService from "@server/services/web";
 import { buildDocument, buildUser } from "@server/test/factories";
-import { flushdb, seed } from "@server/test/support";
+import { flushdb, seed, getTestServer } from "@server/test/support";
 
-const app = webService();
-const server = new TestServer(app.callback());
+const server = getTestServer();
 beforeEach(() => flushdb());
-afterAll(() => server.close());
 
 describe("#revisions.info", () => {
   it("should return a document revision", async () => {

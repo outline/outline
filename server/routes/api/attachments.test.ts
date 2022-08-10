@@ -1,6 +1,4 @@
-import TestServer from "fetch-test-server";
 import Attachment from "@server/models/Attachment";
-import webService from "@server/services/web";
 import {
   buildUser,
   buildAdmin,
@@ -8,13 +6,48 @@ import {
   buildAttachment,
   buildDocument,
 } from "@server/test/factories";
-import { flushdb } from "@server/test/support";
+import { flushdb, getTestServer } from "@server/test/support";
 
-const app = webService();
-const server = new TestServer(app.callback());
+const server = getTestServer();
+
+jest.mock("@server/utils/s3");
 
 beforeEach(() => flushdb());
-afterAll(() => server.close());
+
+describe("#attachments.create", () => {
+  it("should require authentication", async () => {
+    const res = await server.post("/api/attachments.create");
+    expect(res.status).toEqual(401);
+  });
+
+  it("should allow simple image upload for public attachments", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/attachments.create", {
+      body: {
+        name: "test.png",
+        contentType: "image/png",
+        size: 1000,
+        public: true,
+        token: user.getJwtToken(),
+      },
+    });
+    expect(res.status).toEqual(200);
+  });
+
+  it("should not allow file upload for public attachments", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/attachments.create", {
+      body: {
+        name: "test.pdf",
+        contentType: "application/pdf",
+        size: 1000,
+        public: true,
+        token: user.getJwtToken(),
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+});
 
 describe("#attachments.delete", () => {
   it("should require authentication", async () => {

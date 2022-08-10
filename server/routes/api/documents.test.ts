@@ -1,4 +1,3 @@
-import TestServer from "fetch-test-server";
 import {
   Document,
   View,
@@ -9,7 +8,6 @@ import {
   SearchQuery,
   Event,
 } from "@server/models";
-import webService from "@server/services/web";
 import {
   buildShare,
   buildCollection,
@@ -17,12 +15,10 @@ import {
   buildDocument,
   buildViewer,
 } from "@server/test/factories";
-import { flushdb, seed } from "@server/test/support";
+import { flushdb, seed, getTestServer } from "@server/test/support";
 
-const app = webService();
-const server = new TestServer(app.callback());
+const server = getTestServer();
 beforeEach(() => flushdb());
-afterAll(() => server.close());
 
 describe("#documents.info", () => {
   it("should return published document", async () => {

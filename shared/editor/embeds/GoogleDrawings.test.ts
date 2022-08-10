@@ -25,5 +25,15 @@ describe("GoogleDrawings", () => {
     expect("https://docs.google.com/drawings".match(match)).toBe(null);
     expect("https://docs.google.com".match(match)).toBe(null);
     expect("https://www.google.com".match(match)).toBe(null);
+    expect(
+      "https://docssgoogle.com/drawings/d/1zDLtJ4HSCnjGCGSoCgqGe3F8p6o7R8Vjk8MDR6dKf-U/edit".match(
+        match
+      )
+    ).toBe(null);
+    expect(
+      "https://docs.googleecom/drawings/d/1zDLtJ4HSCnjGCGSoCgqGe3F8p6o7R8Vjk8MDR6dKf-U/edit".match(
+        match
+      )
+    ).toBe(null);
   });
 });

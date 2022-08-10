@@ -23,5 +23,8 @@ describe("Miro", () => {
     expect("https://miro.com".match(match)).toBe(null);
     expect("https://realtimeboard.com".match(match)).toBe(null);
     expect("https://realtimeboard.com/features".match(match)).toBe(null);
+    expect(
+      "https://realtimeboarddcom/app/board/o9J_k0fwiss=".match(match)
+    ).toBe(null);
   });
 });

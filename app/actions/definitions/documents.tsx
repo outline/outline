@@ -13,9 +13,16 @@ import {
   SearchIcon,
   UnsubscribeIcon,
   SubscribeIcon,
+  MoveIcon,
+  TrashIcon,
+  CrossIcon,
+  ArchiveIcon,
 } from "outline-icons";
 import * as React from "react";
 import { getEventFiles } from "@shared/utils/files";
+import DocumentDelete from "~/scenes/DocumentDelete";
+import DocumentMove from "~/scenes/DocumentMove";
+import DocumentPermanentDelete from "~/scenes/DocumentPermanentDelete";
 import DocumentTemplatizeDialog from "~/components/DocumentTemplatizeDialog";
 import { createAction } from "~/actions";
 import { DocumentSection } from "~/actions/sections";
@@ -352,10 +359,11 @@ export const createTemplate = createAction({
       return false;
     }
     const document = stores.documents.get(activeDocumentId);
-    return (
+    return !!(
       !!activeCollectionId &&
       stores.policies.abilities(activeCollectionId).update &&
-      !document?.isTemplate
+      !document?.isTemplate &&
+      !document?.isDeleted
     );
   },
   perform: ({ activeDocumentId, stores, t, event }) => {
@@ -384,10 +392,137 @@ export const searchDocumentsForQuery = (searchQuery: string) =>
     visible: ({ location }) => location.pathname !== searchPath(),
   });
 
+export const moveDocument = createAction({
+  name: ({ t }) => t("Move"),
+  section: DocumentSection,
+  icon: <MoveIcon />,
+  visible: ({ activeDocumentId, stores }) => {
+    if (!activeDocumentId) {
+      return false;
+    }
+    return !!stores.policies.abilities(activeDocumentId).move;
+  },
+  perform: ({ activeDocumentId, stores, t }) => {
+    if (activeDocumentId) {
+      const document = stores.documents.get(activeDocumentId);
+      if (!document) {
+        return;
+      }
+
+      stores.dialogs.openModal({
+        title: t("Move {{ documentName }}", {
+          documentName: document.noun,
+        }),
+        content: (
+          <DocumentMove
+            document={document}
+            onRequestClose={stores.dialogs.closeAllModals}
+          />
+        ),
+      });
+    }
+  },
+});
+
+export const archiveDocument = createAction({
+  name: ({ t }) => t("Archive"),
+  section: DocumentSection,
+  icon: <ArchiveIcon />,
+  visible: ({ activeDocumentId, stores }) => {
+    if (!activeDocumentId) {
+      return false;
+    }
+    return !!stores.policies.abilities(activeDocumentId).archive;
+  },
+  perform: async ({ activeDocumentId, stores, t }) => {
+    if (activeDocumentId) {
+      const document = stores.documents.get(activeDocumentId);
+      if (!document) {
+        return;
+      }
+
+      await document.archive();
+      stores.toasts.showToast(t("Document archived"), {
+        type: "success",
+      });
+    }
+  },
+});
+
+export const deleteDocument = createAction({
+  name: ({ t }) => t("Delete"),
+  section: DocumentSection,
+  icon: <TrashIcon />,
+  dangerous: true,
+  visible: ({ activeDocumentId, stores }) => {
+    if (!activeDocumentId) {
+      return false;
+    }
+    return !!stores.policies.abilities(activeDocumentId).delete;
+  },
+  perform: ({ activeDocumentId, stores, t }) => {
+    if (activeDocumentId) {
+      const document = stores.documents.get(activeDocumentId);
+      if (!document) {
+        return;
+      }
+
+      stores.dialogs.openModal({
+        title: t("Delete {{ documentName }}", {
+          documentName: document.noun,
+        }),
+        isCentered: true,
+        content: (
+          <DocumentDelete
+            document={document}
+            onSubmit={stores.dialogs.closeAllModals}
+          />
+        ),
+      });
+    }
+  },
+});
+
+export const permanentlyDeleteDocument = createAction({
+  name: ({ t }) => t("Permanently delete"),
+  section: DocumentSection,
+  icon: <CrossIcon />,
+  dangerous: true,
+  visible: ({ activeDocumentId, stores }) => {
+    if (!activeDocumentId) {
+      return false;
+    }
+    return !!stores.policies.abilities(activeDocumentId).permanentDelete;
+  },
+  perform: ({ activeDocumentId, stores, t }) => {
+    if (activeDocumentId) {
+      const document = stores.documents.get(activeDocumentId);
+      if (!document) {
+        return;
+      }
+
+      stores.dialogs.openModal({
+        title: t("Permanently delete {{ documentName }}", {
+          documentName: document.noun,
+        }),
+        isCentered: true,
+        content: (
+          <DocumentPermanentDelete
+            document={document}
+            onSubmit={stores.dialogs.closeAllModals}
+          />
+        ),
+      });
+    }
+  },
+});
+
 export const rootDocumentActions = [
   openDocument,
+  archiveDocument,
   createDocument,
   createTemplate,
+  deleteDocument,
   importDocument,
   downloadDocument,
   starDocument,
@@ -395,6 +530,8 @@ export const rootDocumentActions = [
   subscribeDocument,
   unsubscribeDocument,
   duplicateDocument,
+  moveDocument,
+  permanentlyDeleteDocument,
   printDocument,
   pinDocumentToCollection,
   pinDocumentToHome,
