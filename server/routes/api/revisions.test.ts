@@ -1,9 +1,13 @@
 import { Revision } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
-import { flushdb, seed, getTestServer } from "@server/test/support";
+import { seed, getTestDatabase, getTestServer } from "@server/test/support";
 
+const db = getTestDatabase();
 const server = getTestServer();
-beforeEach(() => flushdb());
+
+afterAll(server.disconnect);
+
+beforeEach(db.flush);
 
 describe("#revisions.info", () => {
   it("should return a document revision", async () => {

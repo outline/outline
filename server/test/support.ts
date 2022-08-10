@@ -1,28 +1,27 @@
 import TestServer from "fetch-test-server";
 import { v4 as uuidv4 } from "uuid";
-import { sequelize } from "@server/database/sequelize";
+import { sequelize as db } from "@server/database/sequelize";
 import { User, Document, Collection, Team } from "@server/models";
 import webService from "@server/services/web";
 
-const sql = sequelize.getQueryInterface();
-const tables = Object.keys(sequelize.models).map((model) => {
-  const n = sequelize.models[model].getTableName();
-  return (sql.queryGenerator as any).quoteTable(
-    typeof n === "string" ? n : n.tableName
-  );
-});
-const flushQuery = `TRUNCATE ${tables.join(", ")} CASCADE`;
-
 export function flushdb() {
-  return sequelize.query(flushQuery);
+  const sql = db.getQueryInterface();
+  const tables = Object.keys(db.models).map((model) => {
+    const n = db.models[model].getTableName();
+    return (sql.queryGenerator as any).quoteTable(
+      typeof n === "string" ? n : n.tableName
+    );
+  });
+  const flushQuery = `TRUNCATE ${tables.join(", ")} CASCADE`;
+  return db.query(flushQuery);
 }
 
 export function disconnectdb() {
-  return sequelize.close();
+  return db.close();
 }
 
 export const seed = async () => {
-  return sequelize.transaction(async (transaction) => {
+  return db.transaction(async (transaction) => {
     const team = await Team.create(
       {
         name: "Team",
@@ -116,14 +115,35 @@ export const seed = async () => {
   });
 };
 
-let testServer: typeof TestServer | undefined;
-
 export function getTestServer() {
-  if (testServer) {
-    return testServer;
-  }
-
   const app = webService();
-  testServer = new TestServer(app.callback());
-  return testServer;
+  const server = new TestServer(app.callback());
+
+  server.disconnect = async () => {
+    await db.close();
+    server.close();
+  };
+
+  return server;
+}
+
+export function getTestDatabase() {
+  const flush = async () => {
+    const sql = db.getQueryInterface();
+    const tables = Object.keys(db.models).map((model) => {
+      const n = db.models[model].getTableName();
+      return (sql.queryGenerator as any).quoteTable(
+        typeof n === "string" ? n : n.tableName
+      );
+    });
+    const flushQuery = `TRUNCATE ${tables.join(", ")} CASCADE`;
+
+    await db.query(flushQuery);
+  };
+
+  const disconnect = async () => {
+    await db.close();
+  };
+
+  return { flush, disconnect };
 }

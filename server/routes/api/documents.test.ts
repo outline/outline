@@ -15,16 +15,14 @@ import {
   buildDocument,
   buildViewer,
 } from "@server/test/factories";
-import {
-  flushdb,
-  seed,
-  getTestServer,
-  disconnectdb,
-} from "@server/test/support";
+import { seed, getTestDatabase, getTestServer } from "@server/test/support";
 
+const db = getTestDatabase();
 const server = getTestServer();
-afterAll(() => disconnectdb().then(() => server.close()));
-beforeEach(() => flushdb());
+
+afterAll(server.disconnect);
+
+beforeEach(db.flush);
 
 describe("#documents.info", () => {
   it("should return published document", async () => {
