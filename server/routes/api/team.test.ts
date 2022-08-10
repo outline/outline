@@ -1,13 +1,9 @@
-import TestServer from "fetch-test-server";
 import { TeamDomain } from "@server/models";
-import webService from "@server/services/web";
 import { buildAdmin, buildCollection, buildTeam } from "@server/test/factories";
-import { flushdb, seed } from "@server/test/support";
+import { flushdb, seed, getTestServer } from "@server/test/support";
 
-const app = webService();
-const server = new TestServer(app.callback());
+const server = getTestServer();
 beforeEach(() => flushdb());
-afterAll(() => server.close());
 
 describe("#team.update", () => {
   it("should update team details", async () => {

@@ -1,6 +1,8 @@
+import TestServer from "fetch-test-server";
 import { v4 as uuidv4 } from "uuid";
 import { sequelize } from "@server/database/sequelize";
 import { User, Document, Collection, Team } from "@server/models";
+import webService from "@server/services/web";
 
 const sql = sequelize.getQueryInterface();
 const tables = Object.keys(sequelize.models).map((model) => {
@@ -109,3 +111,15 @@ export const seed = async () => {
     };
   });
 };
+
+let testServer: typeof TestServer | undefined;
+
+export function getTestServer() {
+  if (testServer) {
+    return testServer;
+  }
+
+  const app = webService();
+  testServer = new TestServer(app.callback());
+  return testServer;
+}

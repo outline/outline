@@ -8,6 +8,6 @@ function Gliffy(props: Props) {
   );
 }
 
-Gliffy.ENABLED = [new RegExp("https?://go.gliffy.com/go/share/(.*)$")];
+Gliffy.ENABLED = [new RegExp("https?://go\\.gliffy\\.com/go/share/(.*)$")];
 
 export default Gliffy;

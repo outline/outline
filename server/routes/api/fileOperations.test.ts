@@ -1,10 +1,8 @@
-import TestServer from "fetch-test-server";
 import { Collection, User, Event, FileOperation } from "@server/models";
 import {
   FileOperationState,
   FileOperationType,
 } from "@server/models/FileOperation";
-import webService from "@server/services/web";
 import {
   buildAdmin,
   buildCollection,
@@ -12,15 +10,13 @@ import {
   buildTeam,
   buildUser,
 } from "@server/test/factories";
-import { flushdb } from "@server/test/support";
+import { flushdb, getTestServer } from "@server/test/support";
 
-const app = webService();
-const server = new TestServer(app.callback());
+const server = getTestServer();
 
 jest.mock("@server/utils/s3");
 
 beforeEach(() => flushdb());
-afterAll(() => server.close());
 
 describe("#fileOperations.info", () => {
   it("should return fileOperation", async () => {

@@ -11,11 +11,9 @@ import {
 import * as React from "react";
 import ImageZoom from "react-medium-image-zoom";
 import styled from "styled-components";
-import {
-  getDataTransferFiles,
-  supportedImageMimeTypes,
-  getEventFiles,
-} from "../../utils/files";
+import { getDataTransferFiles, getEventFiles } from "../../utils/files";
+import { sanitizeUrl } from "../../utils/urls";
+import { AttachmentValidation } from "../../validations";
 import insertFiles, { Options } from "../commands/insertFiles";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import uploadPlaceholderPlugin from "../lib/uploadPlaceholder";
@@ -200,7 +198,14 @@ export default class Image extends Node {
           {
             class: className,
           },
-          ["img", { ...node.attrs, contentEditable: "false" }],
+          [
+            "img",
+            {
+              ...node.attrs,
+              src: sanitizeUrl(node.attrs.src),
+              contentEditable: "false",
+            },
+          ],
           ["p", { class: "caption" }, 0],
         ];
       },
@@ -413,7 +418,7 @@ export default class Image extends Node {
         // create an input element and click to trigger picker
         const inputElement = document.createElement("input");
         inputElement.type = "file";
-        inputElement.accept = supportedImageMimeTypes.join(", ");
+        inputElement.accept = AttachmentValidation.imageContentTypes.join(", ");
         inputElement.onchange = (event) => {
           const files = getEventFiles(event);
           insertFiles(view, event, state.selection.from, files, {
@@ -510,7 +515,7 @@ const ImageComponent = (
         </Button>
         <ImageZoom
           image={{
-            src,
+            src: sanitizeUrl(src) ?? "",
             alt,
             // @ts-expect-error type is incorrect, allows spreading all img props
             onLoad: (ev) => {

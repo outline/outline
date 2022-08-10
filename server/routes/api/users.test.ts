@@ -329,46 +329,33 @@ describe("#users.delete", () => {
     expect(res.status).toEqual(400);
   });
 
-  it("should allow deleting user account", async () => {
+  it("should require correct code", async () => {
+    const user = await buildAdmin();
+    await buildUser({
+      teamId: user.teamId,
+      isAdmin: false,
+    });
+    const res = await server.post("/api/users.delete", {
+      body: {
+        code: "123",
+        token: user.getJwtToken(),
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should allow deleting user account with correct code", async () => {
     const user = await buildUser();
     await buildUser({
       teamId: user.teamId,
     });
     const res = await server.post("/api/users.delete", {
       body: {
+        code: user.deleteConfirmationCode,
         token: user.getJwtToken(),
       },
     });
     expect(res.status).toEqual(200);
-  });
-
-  it("should allow deleting user account with admin", async () => {
-    const admin = await buildAdmin();
-    const user = await buildUser({
-      teamId: admin.teamId,
-      lastActiveAt: null,
-    });
-    const res = await server.post("/api/users.delete", {
-      body: {
-        token: admin.getJwtToken(),
-        id: user.id,
-      },
-    });
-    expect(res.status).toEqual(200);
-  });
-
-  it("should not allow deleting another user account", async () => {
-    const user = await buildUser();
-    const user2 = await buildUser({
-      teamId: user.teamId,
-    });
-    const res = await server.post("/api/users.delete", {
-      body: {
-        token: user.getJwtToken(),
-        id: user2.id,
-      },
-    });
-    expect(res.status).toEqual(403);
   });
 
   it("should require authentication", async () => {

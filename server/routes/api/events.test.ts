@@ -1,12 +1,8 @@
-import TestServer from "fetch-test-server";
-import webService from "@server/services/web";
 import { buildEvent, buildUser } from "@server/test/factories";
-import { flushdb, seed } from "@server/test/support";
+import { flushdb, seed, getTestServer } from "@server/test/support";
 
-const app = webService();
-const server = new TestServer(app.callback());
+const server = getTestServer();
 beforeEach(() => flushdb());
-afterAll(() => server.close());
 
 describe("#events.list", () => {
   it("should only return activity events", async () => {

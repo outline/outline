@@ -24,6 +24,9 @@ function DocumentDelete({ document, onSubmit }: Props) {
   const { showToast } = useToasts();
   const canArchive = !document.isDraft && !document.isArchived;
   const collection = collections.get(document.collectionId);
+  const nestedDocumentsCount = collection
+    ? collection.getDocumentChildren(document.id).length
+    : 0;
   const handleSubmit = React.useCallback(
     async (ev: React.SyntheticEvent) => {
       ev.preventDefault();
@@ -94,11 +97,23 @@ function DocumentDelete({ document, onSubmit }: Props) {
                 em: <strong />,
               }}
             />
-          ) : (
+          ) : nestedDocumentsCount < 1 ? (
             <Trans
-              defaults="Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history and any nested documents."
+              defaults="Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history</em>."
               values={{
                 documentTitle: document.titleWithDefault,
+              }}
+              components={{
+                em: <strong />,
+              }}
+            />
+          ) : (
+            <Trans
+              count={nestedDocumentsCount}
+              defaults="Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history and <em>{{ any }} nested document</em>."
+              values={{
+                documentTitle: document.titleWithDefault,
+                any: nestedDocumentsCount,
               }}
               components={{
                 em: <strong />,

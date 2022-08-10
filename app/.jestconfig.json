@@ -1,5 +1,4 @@
 {
-  "testURL": "http://localhost",
   "verbose": false,
   "rootDir": "..",
   "roots": [
@@ -9,7 +8,8 @@
   "moduleNameMapper": {
     "^~/(.*)$": "<rootDir>/app/$1",
     "^@shared/(.*)$": "<rootDir>/shared/$1",
-    "^.*[.](gif|ttf|eot|svg)$": "<rootDir>/__test__/fileMock.js"
+    "^.*[.](gif|ttf|eot|svg)$": "<rootDir>/__test__/fileMock.js",
+    "^uuid$": "<rootDir>/node_modules/uuid/dist/index.js"
   },
   "moduleDirectories": [
     "node_modules"
@@ -23,5 +23,8 @@
   "setupFilesAfterEnv": [
     "./app/test/setup.ts"
   ],
-  "testEnvironment": "jsdom"
+  "testEnvironment": "jsdom",
+  "testEnvironmentOptions": {
+    "url": "http://localhost"
+  }
 }

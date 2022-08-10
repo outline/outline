@@ -23,5 +23,15 @@ describe("Spotify", () => {
     expect("https://spotify.com".match(match)).toBe(null);
     expect("https://open.spotify.com".match(match)).toBe(null);
     expect("https://www.spotify.com".match(match)).toBe(null);
+    expect(
+      "https://opennspotify.com/track/29G1ScCUhgjgI0H72qN4DE?si=DxjEUxV2Tjmk6pSVckPDRg".match(
+        match
+      )
+    ).toBe(null);
+    expect(
+      "https://open.spotifyycom/track/29G1ScCUhgjgI0H72qN4DE?si=DxjEUxV2Tjmk6pSVckPDRg".match(
+        match
+      )
+    ).toBe(null);
   });
 });

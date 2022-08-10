@@ -3,7 +3,7 @@ import Frame from "../components/Frame";
 import Image from "../components/Image";
 import { EmbedProps as Props } from ".";
 
-const URL_REGEX = new RegExp("^https?://docs.google.com/document/(.*)$");
+const URL_REGEX = new RegExp("^https?://docs\\.google\\.com/document/(.*)$");
 
 export default class GoogleDocs extends React.Component<Props> {
   static ENABLED = [URL_REGEX];

@@ -2,7 +2,7 @@ import * as React from "react";
 import Frame from "../components/Frame";
 import { EmbedProps as Props } from ".";
 
-const URL_REGEX = /^https?:\/\/whimsical.com\/[0-9a-zA-Z-_~]*-([a-zA-Z0-9]+)\/?$/;
+const URL_REGEX = /^https?:\/\/whimsical\.com\/[0-9a-zA-Z-_~]*-([a-zA-Z0-9]+)\/?$/;
 
 export default class Whimsical extends React.Component<Props> {
   static ENABLED = [URL_REGEX];
