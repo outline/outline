@@ -1,5 +1,5 @@
 import DocumentNotificationEmail from "@server/emails/templates/DocumentNotificationEmail";
-import { Event, View, NotificationSetting, Subscription } from "@server/models";
+import { View, NotificationSetting, Subscription, Event } from "@server/models";
 import {
   buildDocument,
   buildCollection,
@@ -97,104 +97,22 @@ describe("documents.publish", () => {
     });
     expect(DocumentNotificationEmail.schedule).not.toHaveBeenCalled();
   });
-
-  test("should create a new subscription upon publishing new documents", async () => {
-    const user = await buildUser();
-
-    const document = await buildDocument({
-      userId: user.id,
-      teamId: user.teamId,
-    });
-
-    await NotificationSetting.create({
-      userId: user.id,
-      teamId: user.teamId,
-      event: "documents.publish",
-    });
-
-    const processor = new NotificationsProcessor();
-
-    await processor.perform({
-      name: "documents.publish",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      teamId: document.teamId,
-      actorId: document.createdById,
-      data: {
-        title: document.title,
-      },
-      ip,
-    });
-
-    const events = await Event.findAll();
-
-    // Should emit 1 `subscriptions.create` events.
-    expect(events.length).toEqual(1);
-    expect(events[0].name).toEqual("subscriptions.create");
-    expect(events[0].documentId).toEqual(document.id);
-    expect(events[0].userId).toEqual(user.id);
-
-    expect(DocumentNotificationEmail.schedule).not.toHaveBeenCalled();
-  });
-
-  test("should not create new subscription if user doesn't have read access to published document", async () => {
-    const user = await buildUser();
-
-    const document = await buildDocument({ teamId: user.teamId });
-
-    await NotificationSetting.create({
-      userId: user.id,
-      teamId: user.teamId,
-      event: "documents.publish",
-    });
-
-    const processor = new NotificationsProcessor();
-
-    await processor.perform({
-      name: "documents.publish",
-      documentId: document.id,
-      collectionId: document.collectionId,
-      teamId: document.teamId,
-      actorId: document.createdById,
-      data: {
-        title: document.title,
-      },
-      ip,
-    });
-
-    const events = await Event.findAll();
-
-    // Should not emit `subscriptions.create` events.
-    expect(events.length).toEqual(0);
-
-    // Although notifications can be sent if team members
-    // have published a new document.
-    // REVIEW: Should notifications not be sent
-    //         if user doesn't have read access on document?
-    expect(DocumentNotificationEmail.schedule).toHaveBeenCalled();
-  });
 });
 
 describe("revisions.create", () => {
-  test("should not send notification to other collaborators if unsubscribed", async () => {
+  test("should send a notification to other collaborators", async () => {
     const document = await buildDocument();
-
     const collaborator = await buildUser({
       teamId: document.teamId,
     });
-
     document.collaboratorIds = [collaborator.id];
-
     await document.save();
-
     await NotificationSetting.create({
       userId: collaborator.id,
       teamId: collaborator.teamId,
       event: "documents.update",
     });
-
     const processor = new NotificationsProcessor();
-
     await processor.perform({
       name: "revisions.create",
       documentId: document.id,
@@ -204,7 +122,57 @@ describe("revisions.create", () => {
       modelId: document.id,
       ip,
     });
+    expect(DocumentNotificationEmail.schedule).toHaveBeenCalled();
+  });
 
+  test("should not send a notification if viewed since update", async () => {
+    const document = await buildDocument();
+    const collaborator = await buildUser({
+      teamId: document.teamId,
+    });
+    document.collaboratorIds = [collaborator.id];
+    await document.save();
+    await NotificationSetting.create({
+      userId: collaborator.id,
+      teamId: collaborator.teamId,
+      event: "documents.update",
+    });
+    await View.touch(document.id, collaborator.id, true);
+
+    const processor = new NotificationsProcessor();
+    await processor.perform({
+      name: "revisions.create",
+      documentId: document.id,
+      collectionId: document.collectionId,
+      teamId: document.teamId,
+      actorId: collaborator.id,
+      modelId: document.id,
+      ip,
+    });
+    expect(DocumentNotificationEmail.schedule).not.toHaveBeenCalled();
+  });
+
+  test("should not send a notification to last editor", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      teamId: user.teamId,
+      lastModifiedById: user.id,
+    });
+    await NotificationSetting.create({
+      userId: user.id,
+      teamId: user.teamId,
+      event: "documents.update",
+    });
+    const processor = new NotificationsProcessor();
+    await processor.perform({
+      name: "revisions.create",
+      documentId: document.id,
+      collectionId: document.collectionId,
+      teamId: document.teamId,
+      actorId: user.id,
+      modelId: document.id,
+      ip,
+    });
     expect(DocumentNotificationEmail.schedule).not.toHaveBeenCalled();
   });
 
@@ -278,13 +246,12 @@ describe("revisions.create", () => {
     const processor = new NotificationsProcessor();
 
     await processor.perform({
-      name: "documents.update",
+      name: "revisions.create",
       documentId: document.id,
       collectionId: document.collectionId,
-      createdAt: document.updatedAt.toString(),
       teamId: document.teamId,
-      data: { title: document.title, autosave: false, done: true },
-      actorId: collaborator2.id,
+      actorId: collaborator0.id,
+      modelId: document.id,
       ip,
     });
 
@@ -306,9 +273,8 @@ describe("revisions.create", () => {
     expect(events[1].userId).toEqual(collaborator1.id);
     expect(events[2].userId).toEqual(collaborator2.id);
 
-    // Should not send email notification just yet.
-    // That should be done by `revisions.create` event handler.
-    expect(DocumentNotificationEmail.schedule).not.toHaveBeenCalled();
+    // Should send email notification.
+    expect(DocumentNotificationEmail.schedule).toHaveBeenCalledTimes(3);
   });
 
   test("should not send multiple emails", async () => {
@@ -418,13 +384,12 @@ describe("revisions.create", () => {
     const processor = new NotificationsProcessor();
 
     await processor.perform({
-      name: "documents.update",
+      name: "revisions.create",
       documentId: document.id,
       collectionId: document.collectionId,
-      createdAt: document.updatedAt.toString(),
       teamId: document.teamId,
-      data: { title: document.title, autosave: false, done: true },
-      actorId: collaborator2.id,
+      actorId: collaborator0.id,
+      modelId: document.id,
       ip,
     });
 
@@ -443,9 +408,7 @@ describe("revisions.create", () => {
     expect(events[0].userId).toEqual(collaborator0.id);
     expect(events[1].userId).toEqual(collaborator1.id);
 
-    // Should not send email notification just yet.
-    // That should be done by `revisions.create` event handler.
-    expect(DocumentNotificationEmail.schedule).not.toHaveBeenCalled();
+    expect(DocumentNotificationEmail.schedule).toHaveBeenCalledTimes(2);
   });
 
   test("should send a notification for subscriptions to non-collaborators", async () => {
@@ -542,7 +505,8 @@ describe("revisions.create", () => {
       ip,
     });
 
-    expect(DocumentNotificationEmail.schedule).not.toHaveBeenCalled();
+    // Should send notification to `collaborator` and not `subscriber`.
+    expect(DocumentNotificationEmail.schedule).toHaveBeenCalledTimes(1);
   });
 
   test("should not send a notification for subscriptions to members outside of the team", async () => {
@@ -556,7 +520,7 @@ describe("revisions.create", () => {
     // to `collaborator`'s team,
     const subscriber = await buildUser();
 
-    // `subscriber`  hasn't collaborated on `document`.
+    // `subscriber` hasn't collaborated on `document`.
     document.collaboratorIds = [collaborator.id];
 
     await document.save();
@@ -590,8 +554,8 @@ describe("revisions.create", () => {
       ip,
     });
 
-    // Email should not have been sent.
-    expect(DocumentNotificationEmail.schedule).not.toHaveBeenCalled();
+    // Should send notification to `collaborator` and not `subscriber`.
+    expect(DocumentNotificationEmail.schedule).toHaveBeenCalledTimes(1);
   });
 
   test("should not send a notification if viewed since update", async () => {
@@ -609,6 +573,7 @@ describe("revisions.create", () => {
     await View.touch(document.id, collaborator.id, true);
 
     const processor = new NotificationsProcessor();
+
     await processor.perform({
       name: "revisions.create",
       documentId: document.id,

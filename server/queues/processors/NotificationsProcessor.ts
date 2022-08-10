@@ -19,13 +19,17 @@ import {
   RevisionEvent,
   Event,
   DocumentActionEvent,
-  DocumentEvent,
 } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
 
+type EmailRequirements = {
+  user: User;
+  document: Document;
+  unsubscribeUrl: string;
+};
+
 export default class NotificationsProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = [
-    "documents.update",
     "documents.publish",
     "revisions.create",
     "collections.create",
@@ -34,13 +38,8 @@ export default class NotificationsProcessor extends BaseProcessor {
   async perform(event: Event) {
     switch (event.name) {
       case "documents.publish":
-        return this.documentPublished(event);
-
-      case "documents.update":
-        return this.documentUpdated(event);
-
       case "revisions.create":
-        return this.revisionCreated(event);
+        return this.documentUpdated(event);
 
       case "collections.create":
         return this.collectionCreated(event);
@@ -49,21 +48,9 @@ export default class NotificationsProcessor extends BaseProcessor {
     }
   }
 
-  // Create subscriptions when document is updated.
-  async documentUpdated(event: DocumentEvent) {
-    const document = await Document.findByPk(event.documentId);
-
-    // `event.name` will be `documents.update`
-    if (!document || event.name !== "documents.update") {
-      return;
-    }
-
-    // Create subscriptions for newly updated document.
-    await this.createSubscriptions(document, event);
-  }
-
-  async documentPublished(event: DocumentActionEvent) {
+  async documentUpdated(event: DocumentActionEvent | RevisionEvent) {
     // never send notifications when batch importing documents
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'data' does not exist on type 'DocumentEv... Remove this comment to see the full error message
     if (event.data?.source === "import") {
       return;
     }
@@ -78,94 +65,24 @@ export default class NotificationsProcessor extends BaseProcessor {
       return;
     }
 
-    // Create subscriptions for newly published document.
+    // Create event if document is updated.
+    // Relies on `revisions.create` event to auto-create `documents.update` subscriptions.
     await this.createSubscriptions(document, event);
 
-    // Publish notifications
-    const recipients = await NotificationSetting.findAll({
-      where: {
-        userId: {
-          [Op.ne]: document.lastModifiedById,
-        },
-        teamId: document.teamId,
-        event: "documents.publish",
-      },
-      include: [
-        {
-          model: User,
-          required: true,
-          as: "user",
-        },
-      ],
-    });
+    const recipients = await this.getRecipients(document, event);
 
     for (const recipient of recipients) {
-      const notify = await this.shouldNotify({
-        user: recipient.user,
-        document: document,
-        event: event,
-      });
+      const notify = await this.shouldNotify(event, recipient.user, document);
 
       if (notify) {
         await DocumentNotificationEmail.schedule({
           to: recipient.user.email,
-          eventName: "published",
+          eventName: this.notificationEventName(event.name),
           documentId: document.id,
           teamUrl: team.url,
           actorName: document.updatedBy.name,
           collectionName: collection.name,
           unsubscribeUrl: recipient.unsubscribeUrl,
-        });
-      }
-    }
-  }
-
-  async revisionCreated(event: RevisionEvent) {
-    const [collection, document, team] = await Promise.all([
-      Collection.findByPk(event.collectionId),
-      Document.findByPk(event.documentId),
-      Team.findByPk(event.teamId),
-    ]);
-
-    if (!document || !team || !collection) {
-      return;
-    }
-
-    // Document update notifications
-    // Should be similar to notifications.
-    const subscriptions = await Subscription.findAll({
-      where: {
-        userId: {
-          [Op.ne]: document.lastModifiedById,
-        },
-        documentId: document.id,
-        event: "documents.update",
-      },
-      include: [
-        {
-          model: User,
-          required: true,
-          as: "user",
-        },
-      ],
-    });
-
-    for (const recipient of subscriptions) {
-      const notify = await this.shouldNotify({
-        user: recipient.user,
-        document: document,
-        event: event,
-      });
-
-      if (notify) {
-        await DocumentNotificationEmail.schedule({
-          to: recipient.user.email,
-          eventName: "updated",
-          documentId: document.id,
-          teamUrl: team.url,
-          actorName: document.updatedBy.name,
-          collectionName: collection.name,
-          unsubscribeUrl: recipient.document?.url,
         });
       }
     }
@@ -221,7 +138,7 @@ export default class NotificationsProcessor extends BaseProcessor {
 
   private createSubscriptions = async (
     document: Document,
-    event: DocumentEvent
+    event: DocumentActionEvent | RevisionEvent
   ): Promise<void> => {
     const collaboratorIds = document.collaboratorIds;
 
@@ -259,31 +176,113 @@ export default class NotificationsProcessor extends BaseProcessor {
     }
   };
 
-  private shouldNotify = async (subject: {
-    user: User;
-    document: Document;
-    event: DocumentActionEvent | RevisionEvent;
-  }): Promise<boolean> => {
-    // Suppress notifications for suspended users
-    if (subject.user.isSuspended) {
+  private getRecipients = async (
+    document: Document,
+    event: DocumentActionEvent | RevisionEvent
+  ): Promise<EmailRequirements[]> => {
+    const allSubscriptions = await Subscription.findAll({
+      where: {
+        userId: {
+          [Op.ne]: document.lastModifiedById,
+        },
+        documentId: document.id,
+        event: "documents.update",
+      },
+      paranoid: false,
+      include: [
+        {
+          model: User,
+          required: true,
+          as: "user",
+        },
+      ],
+    });
+
+    const subscriptions = allSubscriptions.filter(
+      (subscription) => subscription.deletedAt === null
+    );
+
+    const subscriptionRecipients: EmailRequirements[] = subscriptions.map(
+      (subscription) => ({
+        user: subscription.user,
+        document: document,
+        unsubscribeUrl: document.url,
+      })
+    );
+
+    let notificationRecipients: EmailRequirements[] = [];
+
+    if (event.name === "documents.publish") {
+      const notificationSettings = await NotificationSetting.findAll({
+        where: {
+          userId: {
+            [Op.ne]: document.lastModifiedById,
+          },
+          teamId: document.teamId,
+          event: "documents.publish",
+        },
+        include: [
+          {
+            model: User,
+            required: true,
+            as: "user",
+          },
+        ],
+      });
+
+      notificationRecipients = notificationSettings.map((setting) => ({
+        user: setting.user,
+        document: document,
+        unsubscribeUrl: setting.unsubscribeUrl,
+      }));
+    }
+
+    const unsubscribed = allSubscriptions
+      .filter((subscription) => subscription.deletedAt !== null)
+      .map((subscription) => subscription.userId);
+
+    // Don't send notifications to users who have unsubscribed before,
+    // event if they appear in `NotificationSettings`.
+    //
+    // NOTE: This will need to be deduped if events overlap.
+    const recipients = [
+      ...subscriptionRecipients,
+      ...notificationRecipients,
+    ].filter((recipient) => !unsubscribed.includes(recipient.user.id));
+
+    return recipients;
+  };
+
+  private notificationEventName = (eventName: string): string => {
+    return eventName === "documents.publish" ? "published" : "updated";
+  };
+
+  private shouldNotify = async (
+    event: DocumentActionEvent | RevisionEvent,
+    recipient: User,
+    document: Document
+  ): Promise<boolean> => {
+    // Suppress notifications for suspended recipients
+    if (recipient.isSuspended) {
       return false;
     }
 
-    // Check the user has access to the collection this document is in.
-    // Just because they were a collaborator once doesn't mean they still are.
-    const collectionIds = await subject.user.collectionIds();
-    if (!collectionIds.includes(subject.document.collectionId)) {
+    // Check the recipient has access to the collection this document is in. Just
+    // because they were a collaborator once doesn't mean they still are.
+    const collectionIds = await recipient.collectionIds();
+
+    if (!collectionIds.includes(document.collectionId)) {
       return false;
     }
 
-    // If this user has viewed the document since the last update was made
+    // If this recipient has viewed the document since the last update was made
     // then we can avoid sending them a useless notification, yay.
     const view = await View.findOne({
       where: {
-        userId: subject.user.id,
-        documentId: subject.event.documentId,
+        userId: recipient.id,
+        documentId: event.documentId,
         updatedAt: {
-          [Op.gt]: subject.document.updatedAt,
+          [Op.gt]: document.updatedAt,
         },
       },
     });
@@ -291,12 +290,12 @@ export default class NotificationsProcessor extends BaseProcessor {
     if (view) {
       Logger.info(
         "processor",
-        `suppressing notification to ${subject.user.id} because update viewed`
+        `suppressing notification to ${recipient.id} because update viewed`
       );
       return false;
     }
 
-    if (!subject.user.email) {
+    if (!recipient.email) {
       return false;
     }
 
