@@ -24,8 +24,9 @@
     "db:rollback": "sequelize db:migrate:undo",
     "db:reset": "sequelize db:drop && sequelize db:create && sequelize db:migrate",
     "upgrade": "git fetch && git pull && yarn install && yarn heroku-postbuild",
-    "test": "yarn test:app && yarn test:server",
+    "test": "yarn test:app && yarn test:server && yarn test:shared",
     "test:app": "jest --config=app/.jestconfig.json --runInBand --forceExit",
+    "test:shared": "jest --config=shared/.jestconfig.json",
     "test:server": "jest --config=server/.jestconfig.json --runInBand --forceExit",
     "test:watch": "jest --config=server/.jestconfig.json --runInBand --forceExit --watchAll"
   },

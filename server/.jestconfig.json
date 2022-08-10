@@ -2,8 +2,7 @@
   "verbose": false,
   "rootDir": "..",
   "roots": [
-    "<rootDir>/server",
-    "<rootDir>/shared"
+    "<rootDir>/server"
   ],
   "moduleNameMapper": {
     "^@server/(.*)$": "<rootDir>/server/$1",

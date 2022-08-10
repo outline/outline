@@ -2,8 +2,7 @@
   "verbose": false,
   "rootDir": "..",
   "roots": [
-    "<rootDir>/app",
-    "<rootDir>/shared"
+    "<rootDir>/app"
   ],
   "moduleNameMapper": {
     "^~/(.*)$": "<rootDir>/app/$1",
