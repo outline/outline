@@ -2,13 +2,11 @@ import * as React from "react";
 import Frame from "../components/Frame";
 import { EmbedProps as Props } from ".";
 
-export const URL_REGEX = [
-  new RegExp("https?://share\\.(?:go)?abstract\\.com/(.*)$"),
-  new RegExp("https?://app\\.(?:go)?abstract\\.com/(?:share|embed)/(.*)$"),
-];
-
 export default class Abstract extends React.Component<Props> {
-  static ENABLED = URL_REGEX;
+  static ENABLED = [
+    new RegExp("https?://share\\.(?:go)?abstract\\.com/(.*)$"),
+    new RegExp("https?://app\\.(?:go)?abstract\\.com/(?:share|embed)/(.*)$"),
+  ];
 
   render() {
     const { matches } = this.props.attrs;
