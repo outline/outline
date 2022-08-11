@@ -1,4 +1,5 @@
 import * as React from "react";
+import { NotificationSetting } from "@server/models";
 import BaseEmail from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
@@ -10,13 +11,27 @@ import Heading from "./components/Heading";
 
 type Props = {
   to: string;
+  userId: string;
   teamUrl: string;
+  teamId: string;
 };
 
 /**
  * Email sent to a user when their data export has failed for some reason.
  */
 export default class ExportFailureEmail extends BaseEmail<Props> {
+  protected async beforeSend({ userId, teamId }: Props) {
+    const notificationSetting = await NotificationSetting.findOne({
+      where: {
+        userId,
+        teamId,
+        event: "emails.export_completed",
+      },
+    });
+
+    return notificationSetting !== null;
+  }
+
   protected subject() {
     return "Your requested export";
   }
