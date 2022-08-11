@@ -1,12 +1,18 @@
 import { Backlink } from "@server/models";
 import { buildDocument } from "@server/test/factories";
-import { flushdb } from "@server/test/support";
+import { getTestDatabase } from "@server/test/support";
 import BacklinksProcessor from "./BacklinksProcessor";
 
 const ip = "127.0.0.1";
 
-beforeEach(() => flushdb());
-beforeEach(jest.resetAllMocks);
+const db = getTestDatabase();
+
+afterAll(db.disconnect);
+
+beforeEach(async () => {
+  await db.flush();
+  jest.resetAllMocks();
+});
 
 describe("documents.publish", () => {
   test("should create new backlink records", async () => {
@@ -161,7 +167,7 @@ describe("documents.update", () => {
       ip,
     });
     document.text = `First link is gone
-    
+
 [this is a another link](${yetAnotherDocument.url})`;
     await document.save();
 

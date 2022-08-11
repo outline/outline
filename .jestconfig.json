@@ -15,7 +15,8 @@
         "<rootDir>/server/test/setup.ts"
       ],
       "testEnvironment": "node",
-      "runner": "@getoutline/jest-runner-serial"
+      "runner": "@getoutline/jest-runner-serial",
+      "detectLeaks": true
     },
     {
       "displayName": "app",
@@ -55,6 +56,9 @@
       },
       "setupFiles": [
         "<rootDir>/__mocks__/console.js"
+      ],
+      "setupFilesAfterEnv": [
+        "<rootDir>/shared/test/setup.ts"
       ],
       "testEnvironment": "node"
     },

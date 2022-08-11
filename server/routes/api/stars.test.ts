@@ -1,8 +1,12 @@
 import { buildUser, buildStar, buildDocument } from "@server/test/factories";
-import { flushdb, getTestServer } from "@server/test/support";
+import { getTestDatabase, getTestServer } from "@server/test/support";
 
+const db = getTestDatabase();
 const server = getTestServer();
-beforeEach(() => flushdb());
+
+afterAll(server.disconnect);
+
+beforeEach(db.flush);
 
 describe("#stars.create", () => {
   it("should create a star", async () => {

@@ -1,15 +1,19 @@
 import env from "@server/env";
 import { IntegrationAuthentication, SearchQuery } from "@server/models";
 import { buildDocument, buildIntegration } from "@server/test/factories";
-import { flushdb, seed, getTestServer } from "@server/test/support";
+import { seed, getTestDatabase, getTestServer } from "@server/test/support";
 import * as Slack from "@server/utils/slack";
-
-const server = getTestServer();
-beforeEach(() => flushdb());
 
 jest.mock("../../utils/slack", () => ({
   post: jest.fn(),
 }));
+
+const db = getTestDatabase();
+const server = getTestServer();
+
+afterAll(server.disconnect);
+
+beforeEach(db.flush);
 
 describe("#hooks.unfurl", () => {
   it("should return documents", async () => {

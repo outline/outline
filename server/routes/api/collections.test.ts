@@ -7,10 +7,14 @@ import {
   buildCollection,
   buildDocument,
 } from "@server/test/factories";
-import { flushdb, seed, getTestServer } from "@server/test/support";
+import { seed, getTestDatabase, getTestServer } from "@server/test/support";
 
+const db = getTestDatabase();
 const server = getTestServer();
-beforeEach(() => flushdb());
+
+afterAll(server.disconnect);
+
+beforeEach(db.flush);
 
 describe("#collections.list", () => {
   it("should require authentication", async () => {

@@ -5,10 +5,14 @@ import {
   FileOperationType,
 } from "@server/models/FileOperation";
 import { buildFileOperation } from "@server/test/factories";
-import { flushdb } from "@server/test/support";
+import { getTestDatabase } from "@server/test/support";
 import CleanupExpiredFileOperationsTask from "./CleanupExpiredFileOperationsTask";
 
-beforeEach(() => flushdb());
+const db = getTestDatabase();
+
+afterAll(db.disconnect);
+
+beforeEach(db.flush);
 
 describe("CleanupExpiredFileOperationsTask", () => {
   it("should expire exports older than 15 days ago", async () => {

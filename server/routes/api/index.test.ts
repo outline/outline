@@ -1,8 +1,8 @@
-import { flushdb, getTestServer } from "@server/test/support";
+import { getTestServer } from "@server/test/support";
 
 const server = getTestServer();
 
-beforeEach(() => flushdb());
+afterAll(server.disconnect);
 
 describe("POST unknown endpoint", () => {
   it("should be not found", async () => {

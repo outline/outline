@@ -1,10 +1,14 @@
 import { v4 as uuidv4 } from "uuid";
 import { TeamDomain } from "@server/models";
 import { buildUser, buildTeam, buildInvite } from "@server/test/factories";
-import { flushdb, seed } from "@server/test/support";
+import { getTestDatabase, seed } from "@server/test/support";
 import userProvisioner from "./userProvisioner";
 
-beforeEach(() => flushdb());
+const db = getTestDatabase();
+
+afterAll(db.disconnect);
+
+beforeEach(db.flush);
 
 describe("userProvisioner", () => {
   const ip = "127.0.0.1";
