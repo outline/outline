@@ -6,10 +6,14 @@ import {
   buildTeam,
   buildDocument,
 } from "@server/test/factories";
-import { flushdb } from "@server/test/support";
+import { getTestDatabase } from "@server/test/support";
 import teamPermanentDeleter from "./teamPermanentDeleter";
 
-beforeEach(() => flushdb());
+const db = getTestDatabase();
+
+afterAll(db.disconnect);
+
+beforeEach(db.flush);
 
 describe("teamPermanentDeleter", () => {
   it("should destroy related data", async () => {
