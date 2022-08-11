@@ -57,6 +57,9 @@
       "setupFiles": [
         "<rootDir>/__mocks__/console.js"
       ],
+      "setupFilesAfterEnv": [
+        "<rootDir>/shared/test/setup.ts"
+      ],
       "testEnvironment": "node"
     },
     {
