@@ -5,8 +5,8 @@ const db = getTestDatabase();
 
 afterAll(db.disconnect);
 
-beforeEach(() => {
-  db.flush();
+beforeEach(async () => {
+  await db.flush();
   jest.resetAllMocks();
 });
 
