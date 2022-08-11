@@ -38,7 +38,7 @@ function CommentForm({ documentId, thread, onTyping }: Props) {
 
       try {
         await comment.save({
-          documentId: documentId,
+          documentId,
           data,
         });
       } catch (error) {
@@ -56,7 +56,7 @@ function CommentForm({ documentId, thread, onTyping }: Props) {
     try {
       await comments.save({
         parentCommentId: thread?.id,
-        documentId: documentId,
+        documentId,
         data,
       });
     } catch (error) {

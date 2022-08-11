@@ -13,5 +13,7 @@ describe("Typeform", () => {
     expect("https://www.typeform.com".match(match)).toBe(null);
     expect("https://typeform.com/to/zvlr4L".match(match)).toBe(null);
     expect("https://typeform.com/features".match(match)).toBe(null);
+    expect("https://beardymanntypeform.com/to/zvlr4L".match(match)).toBe(null);
+    expect("https://beardyman.typeformmcom/to/zvlr4L".match(match)).toBe(null);
   });
 });

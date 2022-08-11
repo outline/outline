@@ -10,5 +10,6 @@ describe("Marvel", () => {
   test("to not be enabled elsewhere", () => {
     expect("https://marvelapp.com".match(match)).toBe(null);
     expect("https://marvelapp.com/features".match(match)).toBe(null);
+    expect("https://marvelapppcom/75hj91".match(match)).toBe(null);
   });
 });

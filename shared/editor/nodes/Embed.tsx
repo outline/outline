@@ -2,7 +2,7 @@ import Token from "markdown-it/lib/token";
 import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
 import { EditorState } from "prosemirror-state";
 import * as React from "react";
-import { sanitizeHref } from "../../utils/urls";
+import { sanitizeUrl } from "../../utils/urls";
 import DisabledEmbed from "../components/DisabledEmbed";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import embedsRule from "../rules/embeds";
@@ -50,7 +50,7 @@ export default class Embed extends Node {
         "iframe",
         {
           class: "embed",
-          src: sanitizeHref(node.attrs.href),
+          src: sanitizeUrl(node.attrs.href),
           contentEditable: "false",
         },
         0,

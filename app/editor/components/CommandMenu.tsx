@@ -36,7 +36,7 @@ export type Props<T extends MenuItem = MenuItem> = {
   onFileUploadStop?: () => void;
   onShowToast: (message: string) => void;
   onLinkToolbarOpen?: () => void;
-  onClose: () => void;
+  onClose: (insertNewLine?: boolean) => void;
   onClearSearch: () => void;
   embeds?: EmbedDescriptor[];
   renderMenuItem: (
@@ -123,7 +123,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
       if (item) {
         this.insertItem(item);
       } else {
-        this.props.onClose();
+        this.props.onClose(true);
       }
     }
 

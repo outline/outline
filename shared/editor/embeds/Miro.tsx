@@ -2,7 +2,7 @@ import * as React from "react";
 import Frame from "../components/Frame";
 import { EmbedProps as Props } from ".";
 
-const URL_REGEX = /^https:\/\/(realtimeboard|miro).com\/app\/board\/(.*)$/;
+const URL_REGEX = /^https:\/\/(realtimeboard|miro)\.com\/app\/board\/(.*)$/;
 
 export default class RealtimeBoard extends React.Component<Props> {
   static ENABLED = [URL_REGEX];

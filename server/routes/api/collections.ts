@@ -2,6 +2,8 @@ import fractionalIndex from "fractional-index";
 import invariant from "invariant";
 import Router from "koa-router";
 import { Sequelize, Op, WhereOptions } from "sequelize";
+import { randomElement } from "@shared/random";
+import { colorPalette } from "@shared/utils/collections";
 import collectionExporter from "@server/commands/collectionExporter";
 import teamUpdater from "@server/commands/teamUpdater";
 import { sequelize } from "@server/database/sequelize";
@@ -50,7 +52,7 @@ const router = new Router();
 router.post("collections.create", auth(), async (ctx) => {
   const {
     name,
-    color,
+    color = randomElement(colorPalette),
     description,
     permission,
     sharing,

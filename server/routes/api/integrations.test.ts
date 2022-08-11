@@ -1,18 +1,14 @@
-import TestServer from "fetch-test-server";
-import webService from "@server/services/web";
 import {
   buildAdmin,
   buildTeam,
   buildUser,
   buildIntegration,
 } from "@server/test/factories";
-import { flushdb } from "@server/test/support";
+import { flushdb, getTestServer } from "@server/test/support";
 
-const app = webService();
-const server = new TestServer(app.callback());
+const server = getTestServer();
 
 beforeEach(() => flushdb());
-afterAll(() => server.close());
 
 describe("#integrations.update", () => {
   it("should allow updating integration events", async () => {

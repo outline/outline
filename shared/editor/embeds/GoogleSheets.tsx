@@ -3,7 +3,9 @@ import Frame from "../components/Frame";
 import Image from "../components/Image";
 import { EmbedProps as Props } from ".";
 
-const URL_REGEX = new RegExp("^https?://docs.google.com/spreadsheets/d/(.*)$");
+const URL_REGEX = new RegExp(
+  "^https?://docs\\.google\\.com/spreadsheets/d/(.*)$"
+);
 
 export default class GoogleSheets extends React.Component<Props> {
   static ENABLED = [URL_REGEX];

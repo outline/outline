@@ -7,8 +7,12 @@ import {
   NotEmpty,
   DataType,
   IsUrl,
+  BeforeCreate,
+  DefaultScope,
 } from "sequelize-typescript";
 import { SaveOptions } from "sequelize/types";
+import { WebhookSubscriptionValidation } from "@shared/validations";
+import { ValidationError } from "@server/errors";
 import { Event } from "@server/types";
 import Team from "./Team";
 import User from "./User";
@@ -16,6 +20,14 @@ import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
 import Length from "./validators/Length";
 
+@DefaultScope(() => ({
+  include: [
+    {
+      association: "team",
+      required: true,
+    },
+  ],
+}))
 @Table({
   tableName: "webhook_subscriptions",
   modelName: "webhook_subscription",
@@ -54,6 +66,20 @@ class WebhookSubscription extends ParanoidModel {
   @ForeignKey(() => Team)
   @Column
   teamId: string;
+
+  // hooks
+
+  @BeforeCreate
+  static async checkLimit(model: WebhookSubscription) {
+    const count = await this.count({
+      where: { teamId: model.teamId },
+    });
+    if (count >= WebhookSubscriptionValidation.maxSubscriptions) {
+      throw ValidationError(
+        `You have reached the limit of ${WebhookSubscriptionValidation.maxSubscriptions} webhooks`
+      );
+    }
+  }
 
   // methods
 

@@ -3,7 +3,7 @@ import Frame from "../components/Frame";
 import { EmbedProps as Props } from ".";
 
 const URL_REGEX = new RegExp(
-  "^https?://calendar.google.com/calendar/embed\\?src=(.*)$"
+  "^https?://calendar\\.google\\.com/calendar/embed\\?src=(.*)$"
 );
 
 export default class GoogleCalendar extends React.Component<Props> {

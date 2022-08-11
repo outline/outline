@@ -1,13 +1,9 @@
-import TestServer from "fetch-test-server";
 import { View, CollectionUser } from "@server/models";
-import webService from "@server/services/web";
 import { buildUser } from "@server/test/factories";
-import { flushdb, seed } from "@server/test/support";
+import { flushdb, seed, getTestServer } from "@server/test/support";
 
-const app = webService();
-const server = new TestServer(app.callback());
+const server = getTestServer();
 beforeEach(() => flushdb());
-afterAll(() => server.close());
 
 describe("#views.list", () => {
   it("should return views for a document", async () => {

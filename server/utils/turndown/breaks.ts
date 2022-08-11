@@ -8,7 +8,7 @@ import TurndownService from "turndown";
 export default function breaks(turndownService: TurndownService) {
   turndownService.addRule("breaks", {
     filter: ["br"],
-    replacement: function () {
+    replacement() {
       return "\n";
     },
   });

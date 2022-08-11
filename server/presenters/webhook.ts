@@ -33,6 +33,6 @@ export default function present({
     webhookSubscriptionId: delivery.webhookSubscriptionId,
     createdAt: delivery.createdAt,
     event: event.name,
-    payload: payload,
+    payload,
   };
 }

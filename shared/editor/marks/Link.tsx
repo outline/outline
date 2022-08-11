@@ -13,7 +13,7 @@ import { EditorState, Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import * as React from "react";
 import ReactDOM from "react-dom";
-import { isExternalUrl, sanitizeHref } from "../../utils/urls";
+import { isExternalUrl, sanitizeUrl } from "../../utils/urls";
 import findLinkNodes from "../queries/findLinkNodes";
 import { EventType, Dispatch } from "../types";
 import Mark from "./Mark";
@@ -80,7 +80,7 @@ export default class Link extends Mark {
         "a",
         {
           ...node.attrs,
-          href: sanitizeHref(node.attrs.href),
+          href: sanitizeUrl(node.attrs.href),
           rel: "noopener noreferrer nofollow",
         },
         0,

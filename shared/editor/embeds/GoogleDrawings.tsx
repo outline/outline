@@ -4,7 +4,7 @@ import Image from "../components/Image";
 import { EmbedProps as Props } from ".";
 
 const URL_REGEX = new RegExp(
-  "^https://docs.google.com/drawings/d/(.*)/(edit|preview)(.*)$"
+  "^https://docs\\.google\\.com/drawings/d/(.*)/(edit|preview)(.*)$"
 );
 
 export default class GoogleDrawings extends React.Component<Props> {

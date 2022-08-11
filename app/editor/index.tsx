@@ -444,7 +444,7 @@ export class Editor extends React.PureComponent<
       state: this.createState(this.props.value),
       editable: () => !this.props.readOnly,
       nodeViews: this.nodeViews,
-      dispatchTransaction: function (transaction) {
+      dispatchTransaction(transaction) {
         // callback is bound to have the view instance as its this binding
         const { state, transactions } = this.state.applyTransaction(
           transaction
@@ -570,7 +570,14 @@ export class Editor extends React.PureComponent<
     this.setState({ blockMenuOpen: true, blockMenuSearch: search });
   };
 
-  private handleCloseBlockMenu = () => {
+  private handleCloseBlockMenu = (insertNewLine?: boolean) => {
+    if (insertNewLine) {
+      const transaction = this.view.state.tr.split(
+        this.view.state.selection.to
+      );
+      this.view.dispatch(transaction);
+      this.view.focus();
+    }
     if (!this.state.blockMenuOpen) {
       return;
     }

@@ -1,6 +1,5 @@
-import TestServer from "fetch-test-server";
+import { colorPalette } from "@shared/utils/collections";
 import { Document, CollectionUser, CollectionGroup } from "@server/models";
-import webService from "@server/services/web";
 import {
   buildUser,
   buildAdmin,
@@ -8,12 +7,10 @@ import {
   buildCollection,
   buildDocument,
 } from "@server/test/factories";
-import { flushdb, seed } from "@server/test/support";
+import { flushdb, seed, getTestServer } from "@server/test/support";
 
-const app = webService();
-const server = new TestServer(app.callback());
+const server = getTestServer();
 beforeEach(() => flushdb());
-afterAll(() => server.close());
 
 describe("#collections.list", () => {
   it("should require authentication", async () => {
@@ -1054,6 +1051,7 @@ describe("#collections.create", () => {
     expect(body.data.name).toBe("Test");
     expect(body.data.sort.field).toBe("index");
     expect(body.data.sort.direction).toBe("asc");
+    expect(colorPalette.includes(body.data.color)).toBeTruthy();
     expect(body.policies.length).toBe(1);
     expect(body.policies[0].abilities.read).toBeTruthy();
   });

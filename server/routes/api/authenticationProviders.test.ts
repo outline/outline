@@ -1,14 +1,10 @@
-import TestServer from "fetch-test-server";
 import { v4 as uuidv4 } from "uuid";
-import webService from "@server/services/web";
 import { buildUser, buildAdmin, buildTeam } from "@server/test/factories";
-import { flushdb } from "@server/test/support";
+import { flushdb, getTestServer } from "@server/test/support";
 
-const app = webService();
-const server = new TestServer(app.callback());
+const server = getTestServer();
 
 beforeEach(() => flushdb());
-afterAll(() => server.close());
 
 describe("#authenticationProviders.info", () => {
   it("should return auth provider", async () => {

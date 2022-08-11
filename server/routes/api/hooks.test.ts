@@ -1,15 +1,12 @@
-import TestServer from "fetch-test-server";
 import env from "@server/env";
 import { IntegrationAuthentication, SearchQuery } from "@server/models";
-import webService from "@server/services/web";
 import { buildDocument, buildIntegration } from "@server/test/factories";
-import { flushdb, seed } from "@server/test/support";
+import { flushdb, seed, getTestServer } from "@server/test/support";
 import * as Slack from "@server/utils/slack";
 
-const app = webService();
-const server = new TestServer(app.callback());
+const server = getTestServer();
 beforeEach(() => flushdb());
-afterAll(() => server.close());
+
 jest.mock("../../utils/slack", () => ({
   post: jest.fn(),
 }));

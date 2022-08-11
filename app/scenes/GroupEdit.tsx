@@ -25,7 +25,7 @@ function GroupEdit({ group, onSubmit }: Props) {
 
       try {
         await group.save({
-          name: name,
+          name,
         });
         onSubmit();
       } catch (err) {
