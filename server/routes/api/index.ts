@@ -5,6 +5,7 @@ import env from "@server/env";
 import { NotFoundError } from "@server/errors";
 import errorHandling from "@server/middlewares/errorHandling";
 import methodOverride from "@server/middlewares/methodOverride";
+import { rateLimiter } from "@server/middlewares/rateLimiter";
 import apiKeys from "./apiKeys";
 import attachments from "./attachments";
 import auth from "./auth";
@@ -79,6 +80,8 @@ if (env.ENVIRONMENT === "development") {
 router.post("*", (ctx) => {
   ctx.throw(NotFoundError("Endpoint not found"));
 });
+
+api.use(rateLimiter());
 
 // Router is embedded in a Koa application wrapper, because koa-router does not
 // allow middleware to catch any routes which were not explicitly defined.
