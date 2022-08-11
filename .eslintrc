@@ -25,6 +25,7 @@
   "rules": {
     "eqeqeq": 2,
     "curly": 2,
+    "object-shorthand": "error",
     "no-mixed-operators": "off",
     "no-useless-escape": "off",
     "es/no-regexp-lookbehind-assertions": "error",

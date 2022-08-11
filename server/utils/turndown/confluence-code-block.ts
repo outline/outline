@@ -10,7 +10,7 @@ const highlightRegExp = /brush: ([a-z0-9]+);/;
  */
 export default function confluenceCodeBlock(turndownService: TurndownService) {
   turndownService.addRule("fencedConfluenceHighlightedCodeBlock", {
-    filter: function (node) {
+    filter(node) {
       const firstChild = node.firstChild;
       return (
         node.nodeName === "DIV" &&
@@ -19,7 +19,7 @@ export default function confluenceCodeBlock(turndownService: TurndownService) {
         firstChild.className === "syntaxhighlighter-pre"
       );
     },
-    replacement: function (content, node) {
+    replacement(content, node) {
       const dataSyntaxhighlighterParams =
         // @ts-expect-error getAttribute exists
         node.firstChild?.getAttribute("data-syntaxhighlighter-params") ?? "";

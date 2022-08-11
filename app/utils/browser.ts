@@ -20,7 +20,7 @@ let supportsPassive = false;
 
 try {
   const opts = Object.defineProperty({}, "passive", {
-    get: function () {
+    get() {
       supportsPassive = true;
     },
   });
