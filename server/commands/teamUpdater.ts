@@ -119,7 +119,7 @@ const teamUpdater = async ({ params, user, team, ip }: TeamUpdaterProps) => {
           actorId: user.id,
           teamId: user.teamId,
           data,
-          ip: ip,
+          ip,
         },
         {
           transaction,

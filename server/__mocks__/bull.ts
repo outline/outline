@@ -35,7 +35,7 @@ export default class Queue {
 
   createJob = function (data: any) {
     return {
-      data: data,
+      data,
     };
   };
 }
