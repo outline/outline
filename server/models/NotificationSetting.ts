@@ -41,6 +41,7 @@ class NotificationSetting extends Model {
       "emails.invite_accepted",
       "emails.onboarding",
       "emails.features",
+      "emails.export_completed",
     ],
   ])
   @Column(DataType.STRING)
