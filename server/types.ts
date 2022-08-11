@@ -1,4 +1,5 @@
 import { Context } from "koa";
+import Redis from "@server/redis";
 import { FileOperation, Team, User } from "./models";
 
 export enum AuthenticationTypes {
@@ -297,3 +298,9 @@ export type Event =
   | UserEvent
   | ViewEvent
   | WebhookSubscriptionEvent;
+
+export type RateLimiterConfig = {
+  points: number;
+  duration: number;
+  storeClient: Redis;
+};

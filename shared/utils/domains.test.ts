@@ -1,4 +1,4 @@
-import env from "@shared/env";
+import env from "../env";
 import { parseDomain, getCookieDomain, slugifyDomain } from "./domains";
 
 // test suite is based on subset of parse-domain module we want to support

@@ -19,9 +19,7 @@ export default class Queue {
     const job = this.createJob(data);
 
     if (!this.handler) {
-      throw Error(
-        "Mocking version requires handler to be set before first add()"
-      );
+      return;
     }
 
     this.handler(job, this.done);
@@ -37,7 +35,7 @@ export default class Queue {
 
   createJob = function (data: any) {
     return {
-      data: data,
+      data,
     };
   };
 }

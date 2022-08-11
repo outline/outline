@@ -70,6 +70,15 @@ jobs:
       - run:
           name: test
           command: yarn test:app
+  test-shared:
+    <<: *defaults
+    steps:
+      - checkout
+      - restore_cache:
+          key: dependency-cache-{{ checksum "package.json" }}
+      - run:
+          name: test
+          command: yarn test:shared
   test-server:
     <<: *defaults
     steps:
@@ -81,7 +90,7 @@ jobs:
           command: ./node_modules/.bin/sequelize db:migrate --url $DATABASE_URL_TEST
       - run:
           name: test
-          command: yarn test:server
+          command: yarn test:server --forceExit
   bundle-size:
     <<: *defaults
     steps:
@@ -140,6 +149,9 @@ workflows:
       - test-server:
           requires:
             - build
+      - test-shared:
+          requires:
+            - build
       - test-app:
           requires:
             - build
@@ -149,6 +161,7 @@ workflows:
       - bundle-size:
           requires:
             - test-app
+            - test-shared
             - test-server
 
   build-docker:

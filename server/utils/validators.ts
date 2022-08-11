@@ -13,7 +13,7 @@ export function CannotUseWithout(
     registerDecorator({
       name: "cannotUseWithout",
       target: object.constructor,
-      propertyName: propertyName,
+      propertyName,
       constraints: [property],
       options: validationOptions,
       validator: {

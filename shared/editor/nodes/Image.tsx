@@ -12,6 +12,7 @@ import * as React from "react";
 import ImageZoom from "react-medium-image-zoom";
 import styled from "styled-components";
 import { getDataTransferFiles, getEventFiles } from "../../utils/files";
+import { sanitizeUrl } from "../../utils/urls";
 import { AttachmentValidation } from "../../validations";
 import insertFiles, { Options } from "../commands/insertFiles";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
@@ -173,7 +174,7 @@ export default class Image extends Node {
               src: img?.getAttribute("src"),
               alt: img?.getAttribute("alt"),
               title: img?.getAttribute("title"),
-              layoutClass: layoutClass,
+              layoutClass,
             };
           },
         },
@@ -197,7 +198,14 @@ export default class Image extends Node {
           {
             class: className,
           },
-          ["img", { ...node.attrs, contentEditable: "false" }],
+          [
+            "img",
+            {
+              ...node.attrs,
+              src: sanitizeUrl(node.attrs.src),
+              contentEditable: "false",
+            },
+          ],
           ["p", { class: "caption" }, 0],
         ];
       },
@@ -507,7 +515,7 @@ const ImageComponent = (
         </Button>
         <ImageZoom
           image={{
-            src,
+            src: sanitizeUrl(src) ?? "",
             alt,
             // @ts-expect-error type is incorrect, allows spreading all img props
             onLoad: (ev) => {
