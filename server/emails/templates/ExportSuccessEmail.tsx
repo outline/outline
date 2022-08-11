@@ -25,8 +25,8 @@ export default class ExportSuccessEmail extends BaseEmail<Props> {
   protected async beforeSend({ userId, teamId }: Props) {
     const notificationSetting = await NotificationSetting.findOne({
       where: {
-        userId: userId,
-        teamId: teamId,
+        userId,
+        teamId,
         event: "emails.export_completed",
       },
     });
