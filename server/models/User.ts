@@ -497,8 +497,9 @@ class User extends ParanoidModel {
   };
 
   // By default when a user signs up we subscribe them to email notifications
-  // when documents they created are edited by other team members, onboarding
-  // and when an export they requested has been completed.
+  // when documents they created are edited by other team members and onboarding.
+  // If the user is an admin, they will also be subscribed to export_completed
+  // notifications.
   @AfterCreate
   static subscribeToNotifications = async (
     model: User,
@@ -537,15 +538,18 @@ class User extends ParanoidModel {
         },
         transaction: options.transaction,
       }),
-      NotificationSetting.findOrCreate({
+    ]);
+
+    if (model.isAdmin) {
+      await NotificationSetting.findOrCreate({
         where: {
           userId: model.id,
           teamId: model.teamId,
           event: "emails.export_completed",
         },
         transaction: options.transaction,
-      }),
-    ]);
+      });
+    }
   };
 
   static getCounts = async function (teamId: string) {
