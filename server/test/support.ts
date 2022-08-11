@@ -4,22 +4,6 @@ import { sequelize as db } from "@server/database/sequelize";
 import { User, Document, Collection, Team } from "@server/models";
 import webService from "@server/services/web";
 
-export function flushdb() {
-  const sql = db.getQueryInterface();
-  const tables = Object.keys(db.models).map((model) => {
-    const n = db.models[model].getTableName();
-    return (sql.queryGenerator as any).quoteTable(
-      typeof n === "string" ? n : n.tableName
-    );
-  });
-  const flushQuery = `TRUNCATE ${tables.join(", ")} CASCADE`;
-  return db.query(flushQuery);
-}
-
-export function disconnectdb() {
-  return db.close();
-}
-
 export const seed = async () => {
   return db.transaction(async (transaction) => {
     const team = await Team.create(
