@@ -9,6 +9,7 @@ import {
   LinkIcon,
   TeamIcon,
   BeakerIcon,
+  BuildingBlocksIcon,
   DownloadIcon,
   WebhooksIcon,
 } from "outline-icons";
@@ -172,12 +173,12 @@ const useAuthorizedSettingsConfig = () => {
         icon: WebhooksIcon,
       },
       Diagrams: {
-        name: t("Diagrams"),
+        name: t("Draw.io"),
         path: "/settings/integrations/diagrams",
         component: Diagrams,
         enabled: can.update,
         group: t("Integrations"),
-        icon: WebhooksIcon,
+        icon: BuildingBlocksIcon,
       },
       Slack: {
         name: "Slack",

@@ -8,7 +8,7 @@ type Settings = {
   channelId: string;
 };
 
-class Integration extends BaseModel {
+class Integration<S = Settings> extends BaseModel {
   id: string;
 
   type: string;
@@ -21,7 +21,7 @@ class Integration extends BaseModel {
   @observable
   events: string[];
 
-  settings: Settings;
+  settings: S;
 }
 
 export default Integration;
