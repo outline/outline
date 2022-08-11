@@ -22,10 +22,6 @@ function Grist(props: Props) {
   );
 }
 
-Grist.ENABLED = [
-  new RegExp(
-    "^https?://([a-z.-]+\\.)?getgrist\\.com/doc/(.+)$"
-  ),
-];
+Grist.ENABLED = [new RegExp("^https?://([a-z.-]+\\.)?getgrist\\.com/(.+)$")];
 
 export default Grist;

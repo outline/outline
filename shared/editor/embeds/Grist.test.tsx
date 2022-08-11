@@ -14,6 +14,9 @@ describe("Grist", () => {
         match
       )
     ).toBeTruthy();
+    expect(
+      "https://templates.getgrist.com/doc/afterschool-program".match(match)
+    ).toBeTruthy();
   });
 
   test("to not be enabled elsewhere", () => {
@@ -24,17 +27,7 @@ describe("Grist", () => {
       )
     ).toBe(null);
     expect(
-      "https://templates.getgrist.com/doc/afterschool-program".match(match)
-    ).toBe(null);
-    expect(
-      "https://templates.getgrist.com/doc/afterschool-program?embed=true".match(
-        match
-      )
-    ).toBe(null);
-    expect(
-      "https://templates.getgrist.com/doc/afterschool-program/p/?embed=true".match(
-        match
-      )
+      "https://my.get.grist.com/doc/afterschool-program?embed=true".match(match)
     ).toBe(null);
   });
 });
