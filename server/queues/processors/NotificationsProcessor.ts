@@ -1,3 +1,4 @@
+import { uniqBy } from "lodash";
 import { Op } from "sequelize";
 import subscriptionCreator from "@server/commands/subscriptionCreator";
 import { sequelize } from "@server/database/sequelize";
@@ -21,12 +22,6 @@ import {
   DocumentActionEvent,
 } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
-
-type EmailRequirements = {
-  user: User;
-  document: Document;
-  unsubscribeUrl: string;
-};
 
 export default class NotificationsProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = [
@@ -71,7 +66,12 @@ export default class NotificationsProcessor extends BaseProcessor {
     // until a revision is created.
     await this.createSubscriptions(document, event);
 
-    const recipients = await this.getRecipients(document, event);
+    const recipients = await this.getRecipients(
+      document,
+      event.name === "documents.publish"
+        ? "documents.publish"
+        : "documents.update"
+    );
 
     for (const recipient of recipients) {
       const notify = await this.shouldNotify(event, recipient.user, document);
@@ -162,67 +162,42 @@ export default class NotificationsProcessor extends BaseProcessor {
 
   private getRecipients = async (
     document: Document,
-    event: DocumentActionEvent | RevisionEvent
-  ): Promise<EmailRequirements[]> => {
-    const allSubscriptions = await Subscription.scope("withUser").findAll({
+    eventName: string
+  ): Promise<NotificationSetting[]> => {
+    // First find all the users that have notifications enabled for this event
+    // type at all and aren't the one that performed the action.
+    let recipients = await NotificationSetting.scope("withUser").findAll({
       where: {
         userId: {
           [Op.ne]: document.lastModifiedById,
         },
-        documentId: document.id,
-        event: "documents.update",
+        teamId: document.teamId,
+        event: eventName,
       },
-      paranoid: false,
     });
 
-    const subscriptions = allSubscriptions.filter(
-      (subscription) => subscription.deletedAt === null
-    );
-
-    const subscriptionRecipients: EmailRequirements[] = subscriptions.map(
-      (subscription) => ({
-        user: subscription.user,
-        document: document,
-        unsubscribeUrl: document.url,
-      })
-    );
-
-    let notificationRecipients: EmailRequirements[] = [];
-
-    if (event.name === "documents.publish") {
-      const notificationSettings = await NotificationSetting.scope(
-        "withUser"
-      ).findAll({
+    // If the event is a revision creation we can filter further by those that
+    // have a subscription to the document…
+    if (eventName === "documents.update") {
+      const subscriptions = await Subscription.findAll({
+        attributes: ["userId"],
         where: {
-          userId: {
-            [Op.ne]: document.lastModifiedById,
-          },
-          teamId: document.teamId,
-          event: "documents.publish",
+          userId: recipients.map((recipient) => recipient.user.id),
+          documentId: document.id,
+          event: eventName,
         },
       });
 
-      notificationRecipients = notificationSettings.map((setting) => ({
-        user: setting.user,
-        document: document,
-        unsubscribeUrl: setting.unsubscribeUrl,
-      }));
+      const subscribedUserIds = subscriptions.map(
+        (subscription) => subscription.userId
+      );
+
+      recipients = recipients.filter((recipient) =>
+        subscribedUserIds.includes(recipient.user.id)
+      );
     }
 
-    const unsubscribed = allSubscriptions
-      .filter((subscription) => subscription.deletedAt !== null)
-      .map((subscription) => subscription.userId);
-
-    // Don't send notifications to users who have unsubscribed before,
-    // event if they appear in `NotificationSettings`.
-    //
-    // NOTE: This will need to be deduped if events overlap.
-    const recipients = [
-      ...subscriptionRecipients,
-      ...notificationRecipients,
-    ].filter((recipient) => !unsubscribed.includes(recipient.user.id));
-
-    return recipients;
+    return uniqBy(recipients, "userId");
   };
 
   private notificationEventName = (eventName: string): string => {

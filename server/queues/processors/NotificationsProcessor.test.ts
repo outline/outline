@@ -102,9 +102,7 @@ describe("documents.publish", () => {
 describe("revisions.create", () => {
   test("should send a notification to other collaborators", async () => {
     const document = await buildDocument();
-    const collaborator = await buildUser({
-      teamId: document.teamId,
-    });
+    const collaborator = await buildUser({ teamId: document.teamId });
     document.collaboratorIds = [collaborator.id];
     await document.save();
     await NotificationSetting.create({
@@ -127,9 +125,7 @@ describe("revisions.create", () => {
 
   test("should not send a notification if viewed since update", async () => {
     const document = await buildDocument();
-    const collaborator = await buildUser({
-      teamId: document.teamId,
-    });
+    const collaborator = await buildUser({ teamId: document.teamId });
     document.collaboratorIds = [collaborator.id];
     await document.save();
     await NotificationSetting.create({
@@ -178,13 +174,8 @@ describe("revisions.create", () => {
 
   test("should send a notification for subscriptions, even to collaborator", async () => {
     const document = await buildDocument();
-
-    const collaborator = await buildUser({
-      teamId: document.teamId,
-    });
-
-    // `subscriber` belongs to `collaborator`'s team.
-    const subscriber = await buildUser({ teamId: collaborator.teamId });
+    const collaborator = await buildUser({ teamId: document.teamId });
+    const subscriber = await buildUser({ teamId: document.teamId });
 
     document.collaboratorIds = [collaborator.id, subscriber.id];
 
@@ -222,18 +213,9 @@ describe("revisions.create", () => {
 
   test("should create subscriptions for collaborator", async () => {
     const document = await buildDocument();
-
-    const collaborator0 = await buildUser({
-      teamId: document.teamId,
-    });
-
-    const collaborator1 = await buildUser({
-      teamId: document.teamId,
-    });
-
-    const collaborator2 = await buildUser({
-      teamId: document.teamId,
-    });
+    const collaborator0 = await buildUser({ teamId: document.teamId });
+    const collaborator1 = await buildUser({ teamId: document.teamId });
+    const collaborator2 = await buildUser({ teamId: document.teamId });
 
     document.collaboratorIds = [
       collaborator0.id,
@@ -279,18 +261,9 @@ describe("revisions.create", () => {
 
   test("should not send multiple emails", async () => {
     const document = await buildDocument();
-
-    const collaborator0 = await buildUser({
-      teamId: document.teamId,
-    });
-
-    const collaborator1 = await buildUser({
-      teamId: document.teamId,
-    });
-
-    const collaborator2 = await buildUser({
-      teamId: document.teamId,
-    });
+    const collaborator0 = await buildUser({ teamId: document.teamId });
+    const collaborator1 = await buildUser({ teamId: document.teamId });
+    const collaborator2 = await buildUser({ teamId: document.teamId });
 
     document.collaboratorIds = [
       collaborator0.id,
@@ -350,18 +323,9 @@ describe("revisions.create", () => {
 
   test("should not create subscriptions if previously unsubscribed", async () => {
     const document = await buildDocument();
-
-    const collaborator0 = await buildUser({
-      teamId: document.teamId,
-    });
-
-    const collaborator1 = await buildUser({
-      teamId: document.teamId,
-    });
-
-    const collaborator2 = await buildUser({
-      teamId: document.teamId,
-    });
+    const collaborator0 = await buildUser({ teamId: document.teamId });
+    const collaborator1 = await buildUser({ teamId: document.teamId });
+    const collaborator2 = await buildUser({ teamId: document.teamId });
 
     document.collaboratorIds = [
       collaborator0.id,
@@ -413,15 +377,8 @@ describe("revisions.create", () => {
 
   test("should send a notification for subscriptions to non-collaborators", async () => {
     const document = await buildDocument();
-
-    const collaborator = await buildUser({
-      teamId: document.teamId,
-    });
-
-    // `subscriber` belongs to `collaborator`'s team,
-    const subscriber = await buildUser({
-      teamId: document.teamId,
-    });
+    const collaborator = await buildUser({ teamId: document.teamId });
+    const subscriber = await buildUser({ teamId: document.teamId });
 
     // `subscriber` hasn't collaborated on `document`.
     document.collaboratorIds = [collaborator.id];
@@ -460,15 +417,8 @@ describe("revisions.create", () => {
 
   test("should not send a notification for subscriptions to collaborators if un-subscribed", async () => {
     const document = await buildDocument();
-
-    const collaborator = await buildUser({
-      teamId: document.teamId,
-    });
-
-    // `subscriber` belongs to `collaborator`'s team,
-    const subscriber = await buildUser({
-      teamId: document.teamId,
-    });
+    const collaborator = await buildUser({ teamId: document.teamId });
+    const subscriber = await buildUser({ teamId: document.teamId });
 
     // `subscriber` has collaborated on `document`.
     document.collaboratorIds = [collaborator.id, subscriber.id];
@@ -490,7 +440,6 @@ describe("revisions.create", () => {
       enabled: true,
     });
 
-    // `subscriber` proptly unsubscribes.
     subscription.destroy();
 
     const processor = new NotificationsProcessor();
@@ -511,10 +460,7 @@ describe("revisions.create", () => {
 
   test("should not send a notification for subscriptions to members outside of the team", async () => {
     const document = await buildDocument();
-
-    const collaborator = await buildUser({
-      teamId: document.teamId,
-    });
+    const collaborator = await buildUser({ teamId: document.teamId });
 
     // `subscriber` *does not* belong
     // to `collaborator`'s team,
@@ -560,9 +506,7 @@ describe("revisions.create", () => {
 
   test("should not send a notification if viewed since update", async () => {
     const document = await buildDocument();
-    const collaborator = await buildUser({
-      teamId: document.teamId,
-    });
+    const collaborator = await buildUser({ teamId: document.teamId });
     document.collaboratorIds = [collaborator.id];
     await document.save();
     await NotificationSetting.create({
