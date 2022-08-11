@@ -7,7 +7,7 @@ import TurndownService from "turndown";
  */
 export default function confluenceTaskList(turndownService: TurndownService) {
   turndownService.addRule("confluenceTaskList", {
-    filter: function (node) {
+    filter(node) {
       return (
         node.nodeName === "LI" &&
         node.parentNode?.nodeName === "UL" &&
@@ -15,7 +15,7 @@ export default function confluenceTaskList(turndownService: TurndownService) {
         node.parentNode?.className.includes("inline-task-list")
       );
     },
-    replacement: function (content, node) {
+    replacement(content, node) {
       return (
         // @ts-expect-error className exists
         (node.className === "checked" ? "- [x]" : "- [ ]") + ` ${content} \n`

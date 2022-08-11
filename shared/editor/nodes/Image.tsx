@@ -174,7 +174,7 @@ export default class Image extends Node {
               src: img?.getAttribute("src"),
               alt: img?.getAttribute("alt"),
               title: img?.getAttribute("title"),
-              layoutClass: layoutClass,
+              layoutClass,
             };
           },
         },
