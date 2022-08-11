@@ -3,14 +3,7 @@ import { truncate } from "lodash";
 import ExportFailureEmail from "@server/emails/templates/ExportFailureEmail";
 import ExportSuccessEmail from "@server/emails/templates/ExportSuccessEmail";
 import Logger from "@server/logging/Logger";
-import {
-  Collection,
-  Event,
-  FileOperation,
-  Team,
-  User,
-  NotificationSetting,
-} from "@server/models";
+import { Collection, Event, FileOperation, Team, User } from "@server/models";
 import { FileOperationState } from "@server/models/FileOperation";
 import fileOperationPresenter from "@server/presenters/fileOperation";
 import { uploadToS3FromBuffer } from "@server/utils/s3";
@@ -36,16 +29,6 @@ export default class ExportMarkdownZipTask extends BaseTask<Props> {
       Team.findByPk(fileOperation.teamId, { rejectOnEmpty: true }),
       User.findByPk(fileOperation.userId, { rejectOnEmpty: true }),
     ]);
-
-    const notificationSetting = await NotificationSetting.findOne({
-      where: {
-        userId: fileOperation.userId,
-        teamId: fileOperation.teamId,
-        event: "emails.export_completed",
-      },
-    });
-
-    const sendEmail = notificationSetting !== null;
 
     const collectionIds = fileOperation.collectionId
       ? [fileOperation.collectionId]
@@ -87,24 +70,24 @@ export default class ExportMarkdownZipTask extends BaseTask<Props> {
         url,
       });
 
-      if (sendEmail) {
-        await ExportSuccessEmail.schedule({
-          to: user.email,
-          id: fileOperation.id,
-          teamUrl: team.url,
-        });
-      }
+      await ExportSuccessEmail.schedule({
+        to: user.email,
+        userId: user.id,
+        id: fileOperation.id,
+        teamUrl: team.url,
+        teamId: team.id,
+      });
     } catch (error) {
       await this.updateFileOperation(fileOperation, {
         state: FileOperationState.Error,
         error,
       });
-      if (sendEmail) {
-        await ExportFailureEmail.schedule({
-          to: user.email,
-          teamUrl: team.url,
-        });
-      }
+      await ExportFailureEmail.schedule({
+        to: user.email,
+        userId: user.id,
+        teamUrl: team.url,
+        teamId: team.id,
+      });
       throw error;
     }
   }
