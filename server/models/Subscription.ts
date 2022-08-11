@@ -5,12 +5,22 @@ import {
   ForeignKey,
   Table,
   IsIn,
+  Scopes,
 } from "sequelize-typescript";
 import Document from "./Document";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
 
+@Scopes(() => ({
+  withUser: {
+    include: [
+      {
+        association: "user",
+      },
+    ],
+  },
+}))
 @Table({ tableName: "subscriptions", modelName: "subscription" })
 @Fix
 class Subscription extends ParanoidModel {

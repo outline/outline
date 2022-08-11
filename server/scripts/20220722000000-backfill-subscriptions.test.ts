@@ -154,8 +154,8 @@ describe("#work", () => {
 
     expect(subscriptions[0].documentId).toEqual(document0.id);
     expect(subscriptions[1].documentId).toEqual(document0.id);
-    expect(subscriptions[0].userId).toEqual(collaborator1.id);
-    expect(subscriptions[1].userId).toEqual(collaborator0.id);
+    expect(subscriptions.map((s) => s.userId)).toContain(collaborator1.id);
+    expect(subscriptions.map((s) => s.userId)).toContain(collaborator0.id);
     expect(subscriptions[0].event).toEqual("documents.update");
     expect(subscriptions[1].event).toEqual("documents.update");
   });

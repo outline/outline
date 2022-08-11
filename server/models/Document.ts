@@ -723,6 +723,14 @@ class Document extends ParanoidModel {
 
   // instance methods
 
+  collaborators = (options?: FindOptions<User>) => {
+    return Promise.all(
+      this.collaboratorIds.map((collaboratorId) =>
+        User.findByPk(collaboratorId, options)
+      )
+    );
+  };
+
   updateFromMarkdown = (text: string, append = false) => {
     this.text = append ? this.text + text : text;
 

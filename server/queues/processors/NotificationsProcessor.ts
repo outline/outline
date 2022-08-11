@@ -65,8 +65,10 @@ export default class NotificationsProcessor extends BaseProcessor {
       return;
     }
 
-    // Create event if document is updated.
-    // Relies on `revisions.create` event to auto-create `documents.update` subscriptions.
+    // Create any new subscriptions that might be missing for collaborators to
+    // the document on publish and revision creation. This does mean that there
+    // is a short period of time where the user is not subscribed after editing
+    // until a revision is created.
     await this.createSubscriptions(document, event);
 
     const recipients = await this.getRecipients(document, event);
@@ -140,47 +142,29 @@ export default class NotificationsProcessor extends BaseProcessor {
     document: Document,
     event: DocumentActionEvent | RevisionEvent
   ): Promise<void> => {
-    const collaboratorIds = document.collaboratorIds;
+    await sequelize.transaction(async (transaction) => {
+      const users = await document.collaborators({ transaction });
 
-    for (const collaboratorId of collaboratorIds) {
-      await sequelize.transaction(async (transaction) => {
-        const user = await User.findByPk(collaboratorId, { transaction });
-
-        if (user) {
-          // `user` has to have `subscribe` permission on `document`.
-          if (can(user, "subscribe", document)) {
-            const exists = await Subscription.findOne({
-              where: {
-                userId: user.id,
-                documentId: document.id,
-                event: "documents.update",
-              },
-              paranoid: false,
-              transaction,
-            });
-
-            // Avoid recreating subscription if user has
-            // manually unsubscribed before.
-            if (!exists) {
-              await subscriptionCreator({
-                user: user,
-                documentId: document.id,
-                event: "documents.update",
-                transaction,
-                ip: event.ip,
-              });
-            }
-          }
+      for (const user of users) {
+        if (user && can(user, "subscribe", document)) {
+          await subscriptionCreator({
+            user: user,
+            documentId: document.id,
+            event: "documents.update",
+            resubscribe: false,
+            transaction,
+            ip: event.ip,
+          });
         }
-      });
-    }
+      }
+    });
   };
 
   private getRecipients = async (
     document: Document,
     event: DocumentActionEvent | RevisionEvent
   ): Promise<EmailRequirements[]> => {
-    const allSubscriptions = await Subscription.findAll({
+    const allSubscriptions = await Subscription.scope("withUser").findAll({
       where: {
         userId: {
           [Op.ne]: document.lastModifiedById,
@@ -189,13 +173,6 @@ export default class NotificationsProcessor extends BaseProcessor {
         event: "documents.update",
       },
       paranoid: false,
-      include: [
-        {
-          model: User,
-          required: true,
-          as: "user",
-        },
-      ],
     });
 
     const subscriptions = allSubscriptions.filter(
@@ -213,7 +190,9 @@ export default class NotificationsProcessor extends BaseProcessor {
     let notificationRecipients: EmailRequirements[] = [];
 
     if (event.name === "documents.publish") {
-      const notificationSettings = await NotificationSetting.findAll({
+      const notificationSettings = await NotificationSetting.scope(
+        "withUser"
+      ).findAll({
         where: {
           userId: {
             [Op.ne]: document.lastModifiedById,
@@ -221,13 +200,6 @@ export default class NotificationsProcessor extends BaseProcessor {
           teamId: document.teamId,
           event: "documents.publish",
         },
-        include: [
-          {
-            model: User,
-            required: true,
-            as: "user",
-          },
-        ],
       });
 
       notificationRecipients = notificationSettings.map((setting) => ({
@@ -259,17 +231,17 @@ export default class NotificationsProcessor extends BaseProcessor {
 
   private shouldNotify = async (
     event: DocumentActionEvent | RevisionEvent,
-    recipient: User,
+    user: User,
     document: Document
   ): Promise<boolean> => {
     // Suppress notifications for suspended recipients
-    if (recipient.isSuspended) {
+    if (user.isSuspended) {
       return false;
     }
 
     // Check the recipient has access to the collection this document is in. Just
     // because they were a collaborator once doesn't mean they still are.
-    const collectionIds = await recipient.collectionIds();
+    const collectionIds = await user.collectionIds();
 
     if (!collectionIds.includes(document.collectionId)) {
       return false;
@@ -279,7 +251,7 @@ export default class NotificationsProcessor extends BaseProcessor {
     // then we can avoid sending them a useless notification, yay.
     const view = await View.findOne({
       where: {
-        userId: recipient.id,
+        userId: user.id,
         documentId: event.documentId,
         updatedAt: {
           [Op.gt]: document.updatedAt,
@@ -290,12 +262,12 @@ export default class NotificationsProcessor extends BaseProcessor {
     if (view) {
       Logger.info(
         "processor",
-        `suppressing notification to ${recipient.id} because update viewed`
+        `suppressing notification to ${user.id} because update viewed`
       );
       return false;
     }
 
-    if (!recipient.email) {
+    if (!user.email) {
       return false;
     }
 

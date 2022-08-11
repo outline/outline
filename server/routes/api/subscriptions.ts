@@ -13,7 +13,6 @@ const router = new Router();
 
 router.post("subscriptions.list", auth(), pagination(), async (ctx) => {
   const { user } = ctx.state;
-
   const { documentId, event } = ctx.body;
 
   assertUuid(documentId, "documentId is required");
@@ -47,7 +46,6 @@ router.post("subscriptions.list", auth(), pagination(), async (ctx) => {
 
 router.post("subscriptions.info", auth(), async (ctx) => {
   const { user } = ctx.state;
-
   const { documentId, event } = ctx.body;
 
   assertUuid(documentId, "documentId is required");
@@ -79,7 +77,6 @@ router.post("subscriptions.info", auth(), async (ctx) => {
 
 router.post("subscriptions.create", auth(), async (ctx) => {
   const { user } = ctx.state;
-
   const { documentId, event } = ctx.body;
 
   assertUuid(documentId, "documentId is required");
@@ -113,11 +110,10 @@ router.post("subscriptions.create", auth(), async (ctx) => {
 });
 
 router.post("subscriptions.delete", auth(), async (ctx) => {
+  const { user } = ctx.state;
   const { id } = ctx.body;
 
   assertUuid(id, "id is required");
-
-  const { user } = ctx.state;
 
   await sequelize.transaction(async (transaction) => {
     const subscription = await Subscription.findByPk(id, {
@@ -130,7 +126,7 @@ router.post("subscriptions.delete", auth(), async (ctx) => {
     await subscriptionDestroyer({
       user,
       subscription,
-      ip: ctx.ip,
+      ip: ctx.request.ip,
       transaction,
     });
 

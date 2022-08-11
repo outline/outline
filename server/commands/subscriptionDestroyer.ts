@@ -6,18 +6,15 @@ type Props = {
   user: User;
   /** The subscription to destroy */
   subscription: Subscription;
-  /** The IP address of the user creating the subscription */
+  /** The IP address of the incoming request */
   ip: string;
   transaction: Transaction;
 };
 
 /**
- * This command destroys a document subscription.
+ * This command destroys a user subscription to a document so they will no
+ * longer receive notifications.
  *
- * This just removes the subscription.
- * Does not touch the target document.
- *
- * @param Props The subscription to destroy
  * @returns The subscription that was destroyed
  */
 export default async function subscriptionDestroyer({

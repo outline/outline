@@ -6,25 +6,26 @@ type Props = {
   user: User;
   /** The document to subscribe to */
   documentId?: string;
-  /** Event to subscribe */
+  /** Event to subscribe to */
   event: string;
-  /** The IP address of the user creating the subscription */
+  /** The IP address of the incoming request */
   ip: string;
+  /** Whether the subscription should be restored if it exists in a deleted state  */
+  resubscribe?: boolean;
   transaction: Transaction;
 };
 
 /**
- * This command creates a "subscription" on
- * a document via the subscription relation.
+ * This command creates a subscription of a user to a document.
  *
- * @param Props The properties of the subscription to create
- * @returns Subscription The subscription that was created
+ * @returns The subscription that was created
  */
 export default async function subscriptionCreator({
   user,
   documentId,
   event,
   ip,
+  resubscribe = true,
   transaction,
 }: Props): Promise<Subscription> {
   const [subscription, created] = await Subscription.findOrCreate({
@@ -34,11 +35,12 @@ export default async function subscriptionCreator({
       event,
     },
     transaction,
+    // Previous subscriptions are soft-deleted, we want to know about them here
     paranoid: false,
   });
 
-  // Fetched an already deleted subscription.
-  if (subscription.deletedAt) {
+  // If the subscription was deleted, then just restore the existing row.
+  if (subscription.deletedAt && resubscribe) {
     subscription.update({ deletedAt: null }, { transaction });
 
     await Event.create(

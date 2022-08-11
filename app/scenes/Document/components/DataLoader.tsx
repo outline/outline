@@ -8,6 +8,7 @@ import ErrorOffline from "~/scenes/ErrorOffline";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { NavigationNode } from "~/types";
+import Logger from "~/utils/Logger";
 import { NotFoundError, OfflineError } from "~/utils/errors";
 import history from "~/utils/history";
 import { matchDocumentEdit } from "~/utils/routeHelpers";
@@ -95,12 +96,12 @@ function DataLoader({ match, children }: Props) {
             event: "documents.update",
           });
         } catch (err) {
-          setError(err);
+          Logger.error("Failed to fetch subscriptions", err);
         }
       }
     }
     fetchSubscription();
-  }, [subscriptions]);
+  }, [document?.id, subscriptions]);
 
   const onCreateLink = React.useCallback(
     async (title: string) => {

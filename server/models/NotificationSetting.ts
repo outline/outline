@@ -11,12 +11,22 @@ import {
   IsIn,
   Default,
   DataType,
+  Scopes,
 } from "sequelize-typescript";
 import env from "@server/env";
 import Team from "./Team";
 import User from "./User";
 import Fix from "./decorators/Fix";
 
+@Scopes(() => ({
+  withUser: {
+    include: [
+      {
+        association: "user",
+      },
+    ],
+  },
+}))
 @Table({
   tableName: "notification_settings",
   modelName: "notification_setting",

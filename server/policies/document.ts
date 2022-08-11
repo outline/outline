@@ -151,68 +151,36 @@ allow(User, "move", Document, (user, document) => {
   return user.teamId === document.teamId;
 });
 
-allow(User, ["pin", "unpin"], Document, (user, document) => {
-  if (!document) {
-    return false;
+allow(
+  User,
+  ["pin", "unpin", "subscribe", "unsubscribe"],
+  Document,
+  (user, document) => {
+    if (!document) {
+      return false;
+    }
+    if (document.archivedAt) {
+      return false;
+    }
+    if (document.deletedAt) {
+      return false;
+    }
+    if (document.template) {
+      return false;
+    }
+    if (!document.publishedAt) {
+      return false;
+    }
+    invariant(
+      document.collection,
+      "collection is missing, did you forget to include in the query scope?"
+    );
+    if (cannot(user, "update", document.collection)) {
+      return false;
+    }
+    return user.teamId === document.teamId;
   }
-  if (document.archivedAt) {
-    return false;
-  }
-  if (document.deletedAt) {
-    return false;
-  }
-  if (document.template) {
-    return false;
-  }
-  if (!document.publishedAt) {
-    return false;
-  }
-  invariant(
-    document.collection,
-    "collection is missing, did you forget to include in the query scope?"
-  );
-  if (cannot(user, "update", document.collection)) {
-    return false;
-  }
-  return user.teamId === document.teamId;
-});
-
-allow(User, ["subscribe", "unsubscribe"], Document, (user, document) => {
-  // Sanity check.
-  if (!document) {
-    return false;
-  }
-
-  // Subscribing to archived document doesn't make sense.
-  // Unarchiving it should resume subscriptions on change.
-  if (document.archivedAt) {
-    return false;
-  }
-
-  if (document.deletedAt) {
-    return false;
-  }
-
-  if (document.template) {
-    return false;
-  }
-
-  if (!document.publishedAt) {
-    return false;
-  }
-
-  // Sanity check.
-  invariant(
-    document.collection,
-    "Collection is missing, did you forget to include in the query scope?"
-  );
-
-  if (cannot(user, "read", document.collection)) {
-    return false;
-  }
-
-  return user.teamId === document.teamId;
-});
+);
 
 allow(User, ["pinToHome"], Document, (user, document) => {
   if (!document) {
