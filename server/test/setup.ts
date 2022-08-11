@@ -22,6 +22,9 @@ jest.mock("bull");
 // This is needed for the relative manual mock to be picked up
 jest.mock("../queues");
 
+// Avoid "Yjs was already imported" errors in the test environment
+jest.mock("yjs");
+
 // We never want to make real S3 requests in test environment
 jest.mock("aws-sdk", () => {
   const mS3 = {
