@@ -1,9 +1,12 @@
 import { Subscription } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
-import { flushdb } from "@server/test/support";
+import { getTestDatabase } from "@server/test/support";
 import script from "./20220722000000-backfill-subscriptions";
 
-beforeEach(() => flushdb());
+const db = getTestDatabase();
+
+beforeEach(db.flush);
+afterAll(db.disconnect);
 
 describe("#work", () => {
   it("should create subscriptions and subscriptions for document creator and collaborators", async () => {

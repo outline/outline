@@ -5,10 +5,13 @@ import {
   buildSubscription,
   buildUser,
 } from "@server/test/factories";
-import { flushdb } from "@server/test/support";
+import { getTestDatabase } from "@server/test/support";
 import subscriptionDestroyer from "./subscriptionDestroyer";
 
-beforeEach(() => flushdb());
+const db = getTestDatabase();
+
+beforeEach(db.flush);
+afterAll(db.disconnect);
 
 describe("subscriptionDestroyer", () => {
   const ip = "127.0.0.1";
@@ -29,7 +32,7 @@ describe("subscriptionDestroyer", () => {
     await sequelize.transaction(
       async (transaction) =>
         await subscriptionDestroyer({
-          user: user,
+          user,
           subscription,
           ip,
           transaction,
@@ -65,7 +68,7 @@ describe("subscriptionDestroyer", () => {
     await sequelize.transaction(
       async (transaction) =>
         await subscriptionDestroyer({
-          user: user,
+          user,
           subscription,
           ip,
           transaction,

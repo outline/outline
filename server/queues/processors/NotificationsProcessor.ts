@@ -135,7 +135,7 @@ export default class NotificationsProcessor extends BaseProcessor {
       for (const user of users) {
         if (user && can(user, "subscribe", document)) {
           await subscriptionCreator({
-            user: user,
+            user,
             documentId: document.id,
             event: "documents.update",
             resubscribe: false,

@@ -1,11 +1,14 @@
 import { sequelize } from "@server/database/sequelize";
 import { Subscription, Event } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
-import { flushdb } from "@server/test/support";
+import { getTestDatabase } from "@server/test/support";
 import subscriptionCreator from "./subscriptionCreator";
 import subscriptionDestroyer from "./subscriptionDestroyer";
 
-beforeEach(() => flushdb());
+const db = getTestDatabase();
+
+beforeEach(db.flush);
+afterAll(db.disconnect);
 
 describe("subscriptionCreator", () => {
   const ip = "127.0.0.1";
@@ -21,7 +24,7 @@ describe("subscriptionCreator", () => {
 
     const subscription = await sequelize.transaction(async (transaction) =>
       subscriptionCreator({
-        user: user,
+        user,
         documentId: document.id,
         event: subscribedEvent,
         ip,
@@ -56,7 +59,7 @@ describe("subscriptionCreator", () => {
 
     const subscription1 = await sequelize.transaction(async (transaction) =>
       subscriptionCreator({
-        user: user,
+        user,
         documentId: document.id,
         event: subscribedEvent,
         ip,
@@ -91,7 +94,7 @@ describe("subscriptionCreator", () => {
 
     const subscription0 = await sequelize.transaction(async (transaction) =>
       subscriptionCreator({
-        user: user,
+        user,
         documentId: document.id,
         event: subscribedEvent,
         ip,
@@ -101,7 +104,7 @@ describe("subscriptionCreator", () => {
 
     await sequelize.transaction(async (transaction) =>
       subscriptionDestroyer({
-        user: user,
+        user,
         subscription: subscription0,
         ip,
         transaction,
@@ -115,7 +118,7 @@ describe("subscriptionCreator", () => {
 
     const subscription1 = await sequelize.transaction(async (transaction) =>
       subscriptionCreator({
-        user: user,
+        user,
         documentId: document.id,
         event: subscribedEvent,
         ip,
@@ -148,7 +151,7 @@ describe("subscriptionCreator", () => {
 
     const subscription0 = await sequelize.transaction(async (transaction) =>
       subscriptionCreator({
-        user: user,
+        user,
         documentId: document.id,
         event: subscribedEvent,
         ip,
@@ -158,7 +161,7 @@ describe("subscriptionCreator", () => {
 
     const subscription1 = await sequelize.transaction(async (transaction) =>
       subscriptionCreator({
-        user: user,
+        user,
         documentId: document.id,
         event: subscribedEvent,
         ip,
@@ -189,7 +192,7 @@ describe("subscriptionCreator", () => {
 
     const subscription0 = await sequelize.transaction(async (transaction) =>
       subscriptionCreator({
-        user: user,
+        user,
         documentId: document.id,
         event: subscribedEvent,
         ip,
@@ -199,7 +202,7 @@ describe("subscriptionCreator", () => {
 
     await sequelize.transaction(async (transaction) =>
       subscriptionDestroyer({
-        user: user,
+        user,
         subscription: subscription0,
         ip,
         transaction,
@@ -213,7 +216,7 @@ describe("subscriptionCreator", () => {
 
     const subscription1 = await sequelize.transaction(async (transaction) =>
       subscriptionCreator({
-        user: user,
+        user,
         documentId: document.id,
         event: subscribedEvent,
         ip,
@@ -252,7 +255,7 @@ describe("subscriptionCreator", () => {
 
     const subscription0 = await sequelize.transaction(async (transaction) =>
       subscriptionCreator({
-        user: user,
+        user,
         documentId: document.id,
         event: subscribedEvent,
         ip,
