@@ -1,10 +1,16 @@
 import { buildUser, buildGroup, buildCollection } from "@server/test/factories";
-import { flushdb } from "@server/test/support";
+import { getTestDatabase } from "@server/test/support";
 import CollectionGroup from "./CollectionGroup";
 import GroupUser from "./GroupUser";
 
-beforeEach(() => flushdb());
-beforeEach(jest.resetAllMocks);
+const db = getTestDatabase();
+
+afterAll(db.disconnect);
+
+beforeEach(async () => {
+  await db.flush();
+  jest.resetAllMocks();
+});
 
 describe("afterDestroy hook", () => {
   test("should destroy associated group and collection join relations", async () => {

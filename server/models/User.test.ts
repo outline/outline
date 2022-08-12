@@ -1,15 +1,20 @@
 import { buildUser, buildTeam, buildCollection } from "@server/test/factories";
-import { flushdb } from "@server/test/support";
+import { getTestDatabase } from "@server/test/support";
 import CollectionUser from "./CollectionUser";
 import UserAuthentication from "./UserAuthentication";
 
-beforeEach(() => flushdb());
+const db = getTestDatabase();
+
 beforeAll(() => {
   jest.useFakeTimers().setSystemTime(new Date("2018-01-02T00:00:00.000Z"));
 });
+
 afterAll(() => {
   jest.useRealTimers();
+  db.disconnect();
 });
+
+beforeEach(db.flush);
 
 describe("user model", () => {
   describe("destroy", () => {

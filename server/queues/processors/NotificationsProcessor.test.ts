@@ -5,14 +5,20 @@ import {
   buildCollection,
   buildUser,
 } from "@server/test/factories";
-import { flushdb } from "@server/test/support";
+import { getTestDatabase } from "@server/test/support";
 import NotificationsProcessor from "./NotificationsProcessor";
 
 jest.mock("@server/emails/templates/DocumentNotificationEmail");
 const ip = "127.0.0.1";
 
-beforeEach(() => flushdb());
-beforeEach(jest.resetAllMocks);
+const db = getTestDatabase();
+
+afterAll(db.disconnect);
+
+beforeEach(async () => {
+  await db.flush();
+  jest.resetAllMocks();
+});
 
 describe("documents.publish", () => {
   test("should not send a notification to author", async () => {

@@ -6,10 +6,14 @@ import {
   buildWebhookSubscription,
   buildViewer,
 } from "@server/test/factories";
-import { flushdb } from "@server/test/support";
+import { getTestDatabase } from "@server/test/support";
 import CleanupDemotedUserTask from "./CleanupDemotedUserTask";
 
-beforeEach(() => flushdb());
+const db = getTestDatabase();
+
+afterAll(db.disconnect);
+
+beforeEach(db.flush);
 
 describe("CleanupDemotedUserTask", () => {
   it("should delete api keys for suspended user", async () => {

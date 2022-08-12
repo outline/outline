@@ -29,7 +29,7 @@ function GroupNew({ onSubmit }: Props) {
 
     const group = new Group(
       {
-        name: name,
+        name,
       },
       groups
     );

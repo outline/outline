@@ -1,9 +1,13 @@
 import { CollectionUser, Collection } from "@server/models";
 import { buildUser, buildTeam, buildCollection } from "@server/test/factories";
-import { flushdb } from "@server/test/support";
+import { getTestDatabase } from "@server/test/support";
 import { serialize } from "./index";
 
-beforeEach(() => flushdb());
+const db = getTestDatabase();
+
+afterAll(db.disconnect);
+
+beforeEach(db.flush);
 
 describe("read_write permission", () => {
   it("should allow read write permissions for team member", async () => {

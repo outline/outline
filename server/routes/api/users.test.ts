@@ -1,19 +1,18 @@
-import TestServer from "fetch-test-server";
-import webService from "@server/services/web";
 import { buildTeam, buildAdmin, buildUser } from "@server/test/factories";
-import { flushdb, seed } from "@server/test/support";
+import { seed, getTestDatabase, getTestServer } from "@server/test/support";
 
-const app = webService();
-const server = new TestServer(app.callback());
-beforeEach(() => flushdb());
+const db = getTestDatabase();
+const server = getTestServer();
 
 beforeAll(() => {
   jest.useFakeTimers().setSystemTime(new Date("2018-01-02T00:00:00.000Z"));
 });
 afterAll(() => {
   jest.useRealTimers();
-  return server.close();
+  server.disconnect();
 });
+
+beforeEach(db.flush);
 
 describe("#users.list", () => {
   it("should allow filtering by user name", async () => {
