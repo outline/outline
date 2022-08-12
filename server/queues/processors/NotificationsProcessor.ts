@@ -19,7 +19,7 @@ import {
   CollectionEvent,
   RevisionEvent,
   Event,
-  DocumentActionEvent,
+  DocumentEvent,
 } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
 
@@ -43,7 +43,7 @@ export default class NotificationsProcessor extends BaseProcessor {
     }
   }
 
-  async documentUpdated(event: DocumentActionEvent | RevisionEvent) {
+  async documentUpdated(event: DocumentEvent | RevisionEvent) {
     // never send notifications when batch importing documents
     // @ts-expect-error ts-migrate(2339) FIXME: Property 'data' does not exist on type 'DocumentEv... Remove this comment to see the full error message
     if (event.data?.source === "import") {
@@ -127,7 +127,7 @@ export default class NotificationsProcessor extends BaseProcessor {
    */
   private createDocumentSubscriptions = async (
     document: Document,
-    event: DocumentActionEvent | RevisionEvent
+    event: DocumentEvent | RevisionEvent
   ): Promise<void> => {
     await sequelize.transaction(async (transaction) => {
       const users = await document.collaborators({ transaction });

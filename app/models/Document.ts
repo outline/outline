@@ -155,6 +155,12 @@ export default class Document extends ParanoidModel {
     );
   }
 
+  /**
+   * Returns whether there is a subscription for this document in the store.
+   * Does not consider remote state.
+   *
+   * @returns True if there is a subscription, false otherwise.
+   */
   @computed
   get isSubscribed(): boolean {
     return !!this.store.rootStore.subscriptions.orderedData.find(
@@ -262,15 +268,15 @@ export default class Document extends ParanoidModel {
   };
 
   @action
-  pin = async (collectionId?: string) => {
-    await this.store.rootStore.pins.create({
+  pin = (collectionId?: string) => {
+    return this.store.rootStore.pins.create({
       documentId: this.id,
       ...(collectionId ? { collectionId } : {}),
     });
   };
 
   @action
-  unpin = async (collectionId?: string) => {
+  unpin = (collectionId?: string) => {
     const pin = this.store.rootStore.pins.orderedData.find(
       (pin) =>
         pin.documentId === this.id &&
@@ -278,26 +284,36 @@ export default class Document extends ParanoidModel {
           (!collectionId && !pin.collectionId))
     );
 
-    await pin?.delete();
+    return pin?.delete();
   };
 
   @action
-  star = async () => {
+  star = () => {
     return this.store.star(this);
   };
 
   @action
-  unstar = async () => {
+  unstar = () => {
     return this.store.unstar(this);
   };
 
+  /**
+   * Subscribes the current user to this document.
+   *
+   * @returns A promise that resolves when the subscription is created.
+   */
   @action
-  subscribe = async () => {
+  subscribe = () => {
     return this.store.subscribe(this);
   };
 
+  /**
+   * Unsubscribes the current user to this document.
+   *
+   * @returns A promise that resolves when the subscription is destroyed.
+   */
   @action
-  unsubscribe = async (userId: string) => {
+  unsubscribe = (userId: string) => {
     return this.store.unsubscribe(userId, this);
   };
 
@@ -321,7 +337,7 @@ export default class Document extends ParanoidModel {
   };
 
   @action
-  templatize = async () => {
+  templatize = () => {
     return this.store.templatize(this.id);
   };
 
