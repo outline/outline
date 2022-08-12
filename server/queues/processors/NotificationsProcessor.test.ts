@@ -187,8 +187,6 @@ describe("revisions.create", () => {
       event: "documents.update",
     });
 
-    // `subscriber` subscribes to `document`'s changes.
-    // Specifically "documents.update" event.
     await Subscription.create({
       userId: subscriber.id,
       documentId: document.id,
@@ -415,7 +413,7 @@ describe("revisions.create", () => {
     expect(DocumentNotificationEmail.schedule).toHaveBeenCalled();
   });
 
-  test("should not send a notification for subscriptions to collaborators if un-subscribed", async () => {
+  test("should not send a notification for subscriptions to collaborators if unsubscribed", async () => {
     const document = await buildDocument();
     const collaborator = await buildUser({ teamId: document.teamId });
     const subscriber = await buildUser({ teamId: document.teamId });

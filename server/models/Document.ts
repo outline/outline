@@ -723,14 +723,6 @@ class Document extends ParanoidModel {
 
   // instance methods
 
-  collaborators = (options?: FindOptions<User>) => {
-    return Promise.all(
-      this.collaboratorIds.map((collaboratorId) =>
-        User.findByPk(collaboratorId, options)
-      )
-    );
-  };
-
   updateFromMarkdown = (text: string, append = false) => {
     this.text = append ? this.text + text : text;
 
@@ -795,9 +787,26 @@ class Document extends ParanoidModel {
   };
 
   /**
+   * Get a list of users that have collaborated on this document
+   *
+   * @param options FindOptions
+   * @returns A promise that resolve to a list of users
+   */
+  collaborators = async (options?: FindOptions<User>): Promise<User[]> => {
+    const users = await Promise.all(
+      this.collaboratorIds.map((collaboratorId) =>
+        User.findByPk(collaboratorId, options)
+      )
+    );
+
+    return compact(users);
+  };
+
+  /**
    * Calculate all of the document ids that are children of this document by
    * iterating through parentDocumentId references in the most efficient way.
    *
+   * @param where query options to further filter the documents
    * @param options FindOptions
    * @returns A promise that resolves to a list of document ids
    */

@@ -60,13 +60,9 @@ export default class NotificationsProcessor extends BaseProcessor {
       return;
     }
 
-    // Create any new subscriptions that might be missing for collaborators to
-    // the document on publish and revision creation. This does mean that there
-    // is a short period of time where the user is not subscribed after editing
-    // until a revision is created.
-    await this.createSubscriptions(document, event);
+    await this.createDocumentSubscriptions(document, event);
 
-    const recipients = await this.getRecipients(
+    const recipients = await this.getDocumentNotificationRecipients(
       document,
       event.name === "documents.publish"
         ? "documents.publish"
@@ -74,12 +70,13 @@ export default class NotificationsProcessor extends BaseProcessor {
     );
 
     for (const recipient of recipients) {
-      const notify = await this.shouldNotify(event, recipient.user, document);
+      const notify = await this.shouldNotify(document, recipient.user);
 
       if (notify) {
         await DocumentNotificationEmail.schedule({
           to: recipient.user.email,
-          eventName: this.notificationEventName(event.name),
+          eventName:
+            event.name === "documents.publish" ? "published" : "updated",
           documentId: document.id,
           teamUrl: team.url,
           actorName: document.updatedBy.name,
@@ -91,54 +88,44 @@ export default class NotificationsProcessor extends BaseProcessor {
   }
 
   async collectionCreated(event: CollectionEvent) {
-    const collection = await Collection.findByPk(event.collectionId, {
-      include: [
-        {
-          model: User,
-          required: true,
-          as: "user",
-        },
-      ],
-    });
-    if (!collection) {
-      return;
-    }
-    if (!collection.permission) {
-      return;
-    }
-    const notificationSettings = await NotificationSetting.findAll({
-      where: {
-        userId: {
-          [Op.ne]: collection.createdById,
-        },
-        teamId: collection.teamId,
-        event: event.name,
-      },
-      include: [
-        {
-          model: User,
-          required: true,
-          as: "user",
-        },
-      ],
-    });
+    const collection = await Collection.scope("withUser").findByPk(
+      event.collectionId
+    );
 
-    for (const setting of notificationSettings) {
+    if (!collection || !collection.permission) {
+      return;
+    }
+
+    const recipients = await this.getCollectionNotificationRecipients(
+      collection,
+      event.name
+    );
+
+    for (const recipient of recipients) {
       // Suppress notifications for suspended users
-      if (setting.user.isSuspended || !setting.user.email) {
+      if (recipient.user.isSuspended || !recipient.user.email) {
         continue;
       }
 
       await CollectionNotificationEmail.schedule({
-        to: setting.user.email,
+        to: recipient.user.email,
         eventName: "created",
         collectionId: collection.id,
-        unsubscribeUrl: setting.unsubscribeUrl,
+        unsubscribeUrl: recipient.unsubscribeUrl,
       });
     }
   }
 
-  private createSubscriptions = async (
+  /**
+   * Create any new subscriptions that might be missing for collaborators in the
+   * document on publish and revision creation. This does mean that there is a
+   * short period of time where the user is not subscribed after editing until a
+   * revision is created.
+   *
+   * @param document The document to create subscriptions for
+   * @param event The event that triggered the subscription creation
+   */
+  private createDocumentSubscriptions = async (
     document: Document,
     event: DocumentActionEvent | RevisionEvent
   ): Promise<void> => {
@@ -160,7 +147,41 @@ export default class NotificationsProcessor extends BaseProcessor {
     });
   };
 
-  private getRecipients = async (
+  /**
+   * Get the recipients of a notification for a collection event.
+   *
+   * @param collection The collection to get recipients for
+   * @param eventName The event name
+   * @returns A list of recipients
+   */
+  private getCollectionNotificationRecipients = async (
+    collection: Collection,
+    eventName: string
+  ): Promise<NotificationSetting[]> => {
+    // First find all the users that have notifications enabled for this event
+    // type at all and aren't the one that performed the action.
+    const recipients = await NotificationSetting.scope("withUser").findAll({
+      where: {
+        userId: {
+          [Op.ne]: collection.createdById,
+        },
+        teamId: collection.teamId,
+        event: eventName,
+      },
+    });
+
+    // Ensure we only have one recipient per user as a safety measure
+    return uniqBy(recipients, "userId");
+  };
+
+  /**
+   * Get the recipients of a notification for a document event.
+   *
+   * @param document The document to get recipients for
+   * @param eventName The event name
+   * @returns A list of recipients
+   */
+  private getDocumentNotificationRecipients = async (
     document: Document,
     eventName: string
   ): Promise<NotificationSetting[]> => {
@@ -176,8 +197,8 @@ export default class NotificationsProcessor extends BaseProcessor {
       },
     });
 
-    // If the event is a revision creation we can filter further by those that
-    // have a subscription to the document…
+    // If the event is a revision creation we can filter further to only those
+    // that have a subscription to the document…
     if (eventName === "documents.update") {
       const subscriptions = await Subscription.findAll({
         attributes: ["userId"],
@@ -197,25 +218,22 @@ export default class NotificationsProcessor extends BaseProcessor {
       );
     }
 
+    // Ensure we only have one recipient per user as a safety measure
     return uniqBy(recipients, "userId");
   };
 
-  private notificationEventName = (eventName: string): string => {
-    return eventName === "documents.publish" ? "published" : "updated";
-  };
-
   private shouldNotify = async (
-    event: DocumentActionEvent | RevisionEvent,
-    user: User,
-    document: Document
+    document: Document,
+    user: User
   ): Promise<boolean> => {
-    // Suppress notifications for suspended recipients
-    if (user.isSuspended) {
+    // Suppress notifications for suspended and users with no email address
+    if (user.isSuspended || !user.email) {
       return false;
     }
 
     // Check the recipient has access to the collection this document is in. Just
-    // because they were a collaborator once doesn't mean they still are.
+    // because they are subscribed doesn't meant they still have access to read
+    // the document.
     const collectionIds = await user.collectionIds();
 
     if (!collectionIds.includes(document.collectionId)) {
@@ -227,7 +245,7 @@ export default class NotificationsProcessor extends BaseProcessor {
     const view = await View.findOne({
       where: {
         userId: user.id,
-        documentId: event.documentId,
+        documentId: document.id,
         updatedAt: {
           [Op.gt]: document.updatedAt,
         },
@@ -239,10 +257,6 @@ export default class NotificationsProcessor extends BaseProcessor {
         "processor",
         `suppressing notification to ${user.id} because update viewed`
       );
-      return false;
-    }
-
-    if (!user.email) {
       return false;
     }
 
