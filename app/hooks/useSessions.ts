@@ -8,7 +8,7 @@ type Session = {
   teamId: string;
 };
 
-function loadSessionsFromCookie(): Session[] {
+export function loadSessionsFromCookie(): Session[] {
   const sessions = JSON.parse(getCookie("sessions") || "{}");
   return Object.keys(sessions).map((teamId) => ({
     teamId,
