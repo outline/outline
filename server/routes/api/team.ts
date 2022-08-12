@@ -1,10 +1,12 @@
+import invariant from "invariant";
 import Router from "koa-router";
+import teamCreator from "@server/commands/teamCreator";
 import teamUpdater from "@server/commands/teamUpdater";
 import auth from "@server/middlewares/authentication";
-import { Team, TeamDomain } from "@server/models";
+import { Team, TeamDomain, User } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentTeam, presentPolicies } from "@server/presenters";
-import { assertUuid } from "@server/validation";
+import { assertLength, assertUuid } from "@server/validation";
 
 const router = new Router();
 
@@ -57,6 +59,58 @@ router.post("team.update", auth(), async (ctx) => {
   ctx.body = {
     data: presentTeam(updatedTeam),
     policies: presentPolicies(user, [updatedTeam]),
+  };
+});
+
+router.post("team.create", auth(), async (ctx) => {
+  const { user } = ctx.state;
+  const { name } = ctx.body;
+  assertLength(name, 2, "Name must be 2 or more characters");
+
+  const existingTeam = await Team.scope("withAuthenticationProviders").findByPk(
+    user.teamId
+  );
+
+  const authenticationProviders = existingTeam?.authenticationProviders.map(
+    (provider) => {
+      return {
+        name: provider.name,
+        providerId: provider.providerId,
+      };
+    }
+  );
+
+  invariant(
+    authenticationProviders?.length,
+    "authentication provideers must exist"
+  );
+
+  console.log("creating team with auth providers", { authenticationProviders });
+
+  const team = await teamCreator({
+    name,
+    subdomain: name,
+    authenticationProviders,
+    ip: ctx.ip,
+  });
+
+  await User.create({
+    teamId: team.id,
+    name: user.name,
+    email: user.email,
+    service: null,
+    isAdmin: true,
+    avatarUrl: user.avatarUrl,
+    invitedById: user.id,
+  });
+
+  // make an event here?
+
+  ctx.body = {
+    success: true,
+    data: {
+      team: presentTeam(team),
+    },
   };
 });
 

@@ -44,6 +44,18 @@ export const assertNotEmpty = (value: unknown, message: string) => {
   }
 };
 
+export const assertLength = (
+  value: string,
+  minLength: number,
+  message: string
+) => {
+  assertPresent(value, message);
+
+  if (value.trim().length < minLength) {
+    throw ValidationError(message);
+  }
+};
+
 export const assertEmail = (value = "", message?: string) => {
   if (!validator.isEmail(value)) {
     throw ValidationError(message);

@@ -1,19 +1,20 @@
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
+import TeamNew from "~/scenes/TeamNew";
 import { createAction } from "~/actions";
 import { loadSessionsFromCookie } from "~/hooks/useSessions";
 
 export const changeTeam = createAction({
   name: ({ t, isContextMenu }) =>
-    isContextMenu ? t("Switch team") : t("Switch team"),
+    isContextMenu ? t("Teams") : t("Switch team"),
   placeholder: ({ t }) => t("Select a team"),
   keywords: "change workspace organization",
   section: "Team",
-  visible: ({ currentTeamId }) => {
-    return getOtherSessions(currentTeamId).length > 0;
+  visible: ({ currentTeamId, isContextMenu }) => {
+    return isContextMenu || getOtherSessions(currentTeamId).length > 0;
   },
-  children: ({ currentTeamId }) => {
+  children: ({ currentTeamId, isContextMenu }) => {
     return [
       ...getOtherSessions(currentTeamId).map((session) => ({
         id: session.url,
@@ -22,20 +23,26 @@ export const changeTeam = createAction({
         icon: <Logo alt={session.name} src={session.logoUrl} />,
         perform: () => (window.location.href = session.url),
       })),
-      createTeam,
+      ...(isContextMenu ? [createTeam] : []),
     ];
   },
 });
 
 const createTeam = createAction({
   name: ({ t }) => t("New team..."),
-  keywords: "change workspace organization",
+  keywords: "change switch create workspace organization",
   section: "Team",
-  visible: ({ currentTeamId }) => {
-    return getOtherSessions(currentTeamId).length > 0;
-  },
   icon: <PlusIcon />,
-  perform: ({ stores }) => alert(stores.auth.user?.name),
+  perform: ({ t, event, stores }) => {
+    event?.preventDefault();
+    event?.stopPropagation();
+    const { user } = stores.auth;
+    user &&
+      stores.dialogs.openModal({
+        title: t("Create a team"),
+        content: <TeamNew user={user} />,
+      });
+  },
 });
 
 function getOtherSessions(currentTeamId = "") {
