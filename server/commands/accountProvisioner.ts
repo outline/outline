@@ -179,7 +179,6 @@ async function accountProvisioner({
       isNewTeam,
     };
   } catch (err) {
-    console.log({ err });
     throw AuthenticationError(err.message);
   }
 }

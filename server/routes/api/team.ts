@@ -85,8 +85,6 @@ router.post("team.create", auth(), async (ctx) => {
     "authentication provideers must exist"
   );
 
-  console.log("creating team with auth providers", { authenticationProviders });
-
   const team = await teamCreator({
     name,
     subdomain: name,
