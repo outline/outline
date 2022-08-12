@@ -133,7 +133,7 @@ export const subscribeDocument = createAction({
       stores.policies.abilities(activeDocumentId).subscribe
     );
   },
-  perform: ({ activeDocumentId, stores }) => {
+  perform: ({ activeDocumentId, stores, t }) => {
     if (!activeDocumentId) {
       return;
     }
@@ -141,6 +141,10 @@ export const subscribeDocument = createAction({
     const document = stores.documents.get(activeDocumentId);
 
     document?.subscribe();
+
+    stores.toasts.showToast(t("Subscribed to document notifications"), {
+      type: "success",
+    });
   },
 });
 
@@ -160,7 +164,7 @@ export const unsubscribeDocument = createAction({
       stores.policies.abilities(activeDocumentId).unsubscribe
     );
   },
-  perform: ({ activeDocumentId, stores, currentUserId }) => {
+  perform: ({ activeDocumentId, stores, currentUserId, t }) => {
     if (!activeDocumentId || !currentUserId) {
       return;
     }
@@ -168,6 +172,10 @@ export const unsubscribeDocument = createAction({
     const document = stores.documents.get(activeDocumentId);
 
     document?.unsubscribe(currentUserId);
+
+    stores.toasts.showToast(t("Unsubscribed from document notifications"), {
+      type: "success",
+    });
   },
 });
 

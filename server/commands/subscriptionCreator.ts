@@ -41,7 +41,7 @@ export default async function subscriptionCreator({
 
   // If the subscription was deleted, then just restore the existing row.
   if (subscription.deletedAt && resubscribe) {
-    subscription.update({ deletedAt: null }, { transaction });
+    subscription.restore({ transaction });
 
     await Event.create(
       {
