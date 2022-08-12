@@ -1,8 +1,12 @@
 import { buildUser, buildAdmin } from "@server/test/factories";
-import { flushdb } from "@server/test/support";
+import { getTestDatabase } from "@server/test/support";
 import userDestroyer from "./userDestroyer";
 
-beforeEach(() => flushdb());
+const db = getTestDatabase();
+
+afterAll(db.disconnect);
+
+beforeEach(db.flush);
 
 describe("userDestroyer", () => {
   const ip = "127.0.0.1";

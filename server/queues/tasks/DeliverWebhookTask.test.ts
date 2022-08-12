@@ -6,12 +6,16 @@ import {
   buildWebhookDelivery,
   buildWebhookSubscription,
 } from "@server/test/factories";
-import { flushdb } from "@server/test/support";
+import { getTestDatabase } from "@server/test/support";
 import { UserEvent } from "@server/types";
 import DeliverWebhookTask from "./DeliverWebhookTask";
 
-beforeEach(() => flushdb());
-beforeEach(() => {
+const db = getTestDatabase();
+
+afterAll(db.disconnect);
+
+beforeEach(async () => {
+  await db.flush();
   jest.resetAllMocks();
   fetchMock.resetMocks();
   fetchMock.doMock();

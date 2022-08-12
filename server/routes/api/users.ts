@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import Router from "koa-router";
 import { Op, WhereOptions } from "sequelize";
+import { UserValidation } from "@shared/validations";
 import userDemoter from "@server/commands/userDemoter";
 import userDestroyer from "@server/commands/userDestroyer";
 import userInviter from "@server/commands/userInviter";
@@ -316,7 +317,7 @@ router.post("users.invite", auth(), async (ctx) => {
 
   const response = await userInviter({
     user,
-    invites,
+    invites: invites.slice(0, UserValidation.maxInvitesPerRequest),
     ip: ctx.request.ip,
   });
 

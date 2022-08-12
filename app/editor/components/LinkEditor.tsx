@@ -11,7 +11,7 @@ import { setTextSelection } from "prosemirror-utils";
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import styled from "styled-components";
-import { isInternalUrl, sanitizeHref } from "@shared/utils/urls";
+import { isInternalUrl, sanitizeUrl } from "@shared/utils/urls";
 import Flex from "~/components/Flex";
 import { Dictionary } from "~/hooks/useDictionary";
 import { ToastOptions } from "~/types";
@@ -70,7 +70,7 @@ class LinkEditor extends React.Component<Props, State> {
   };
 
   get href(): string {
-    return sanitizeHref(this.props.mark?.attrs.href) ?? "";
+    return sanitizeUrl(this.props.mark?.attrs.href) ?? "";
   }
 
   get suggestedLinkTitle(): string {
@@ -113,7 +113,7 @@ class LinkEditor extends React.Component<Props, State> {
 
     this.discardInputValue = true;
     const { from, to } = this.props;
-    href = sanitizeHref(href) ?? "";
+    href = sanitizeUrl(href) ?? "";
 
     this.props.onSelectLink({ href, title, from, to });
   };

@@ -532,7 +532,7 @@ export default class DocumentsStore extends BaseStore<Document> {
         id: documentId,
         collectionId,
         parentDocumentId,
-        index: index,
+        index,
       });
       invariant(res?.data, "Data not available");
       res.data.documents.forEach(this.add);

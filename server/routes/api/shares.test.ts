@@ -1,6 +1,4 @@
-import TestServer from "fetch-test-server";
 import { CollectionUser } from "@server/models";
-import webService from "@server/services/web";
 import {
   buildUser,
   buildDocument,
@@ -8,12 +6,15 @@ import {
   buildAdmin,
   buildCollection,
 } from "@server/test/factories";
-import { flushdb, seed } from "@server/test/support";
 
-const app = webService();
-const server = new TestServer(app.callback());
-beforeEach(() => flushdb());
-afterAll(() => server.close());
+import { seed, getTestDatabase, getTestServer } from "@server/test/support";
+
+const db = getTestDatabase();
+const server = getTestServer();
+
+afterAll(server.disconnect);
+
+beforeEach(db.flush);
 
 describe("#shares.list", () => {
   it("should only return shares created by user", async () => {

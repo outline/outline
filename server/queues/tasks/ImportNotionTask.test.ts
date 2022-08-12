@@ -2,10 +2,14 @@ import fs from "fs";
 import path from "path";
 import { FileOperation } from "@server/models";
 import { buildFileOperation } from "@server/test/factories";
-import { flushdb } from "@server/test/support";
+import { getTestDatabase } from "@server/test/support";
 import ImportNotionTask from "./ImportNotionTask";
 
-beforeEach(() => flushdb());
+const db = getTestDatabase();
+
+afterAll(db.disconnect);
+
+beforeEach(db.flush);
 
 describe("ImportNotionTask", () => {
   it("should import successfully from a Markdown export", async () => {

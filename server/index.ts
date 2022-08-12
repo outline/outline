@@ -122,6 +122,7 @@ async function start(id: number, disconnect: () => void) {
       }`
     );
   });
+
   server.listen(normalizedPortFlag || env.PORT || "3000");
   process.once("SIGTERM", shutdown);
   process.once("SIGINT", shutdown);

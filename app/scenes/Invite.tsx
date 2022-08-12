@@ -5,6 +5,7 @@ import { useTranslation, Trans } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { Role } from "@shared/types";
+import { UserValidation } from "@shared/validations";
 import Button from "~/components/Button";
 import CopyToClipboard from "~/components/CopyToClipboard";
 import Flex from "~/components/Flex";
@@ -18,8 +19,6 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
-
-const MAX_INVITES = 20;
 
 type Props = {
   onSubmit: () => void;
@@ -97,10 +96,10 @@ function Invite({ onSubmit }: Props) {
   }, []);
 
   const handleAdd = React.useCallback(() => {
-    if (invites.length >= MAX_INVITES) {
+    if (invites.length >= UserValidation.maxInvitesPerRequest) {
       showToast(
         t("Sorry, you can only send {{MAX_INVITES}} invites at a time", {
-          MAX_INVITES,
+          MAX_INVITES: UserValidation.maxInvitesPerRequest,
         }),
         {
           type: "warning",
@@ -241,7 +240,7 @@ function Invite({ onSubmit }: Props) {
       ))}
 
       <Flex justify="space-between">
-        {invites.length <= MAX_INVITES ? (
+        {invites.length <= UserValidation.maxInvitesPerRequest ? (
           <Button type="button" onClick={handleAdd} neutral>
             <Trans>Add another</Trans>…
           </Button>

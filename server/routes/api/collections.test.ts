@@ -1,7 +1,5 @@
-import TestServer from "fetch-test-server";
 import { colorPalette } from "@shared/utils/collections";
 import { Document, CollectionUser, CollectionGroup } from "@server/models";
-import webService from "@server/services/web";
 import {
   buildUser,
   buildAdmin,
@@ -9,12 +7,14 @@ import {
   buildCollection,
   buildDocument,
 } from "@server/test/factories";
-import { flushdb, seed } from "@server/test/support";
+import { seed, getTestDatabase, getTestServer } from "@server/test/support";
 
-const app = webService();
-const server = new TestServer(app.callback());
-beforeEach(() => flushdb());
-afterAll(() => server.close());
+const db = getTestDatabase();
+const server = getTestServer();
+
+afterAll(server.disconnect);
+
+beforeEach(db.flush);
 
 describe("#collections.list", () => {
   it("should require authentication", async () => {

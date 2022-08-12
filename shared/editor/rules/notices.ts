@@ -6,7 +6,7 @@ export default function notice(md: MarkdownIt): void {
   return customFence(md, "notice", {
     marker: ":",
     validate: () => true,
-    render: function (tokens: Token[], idx: number) {
+    render(tokens: Token[], idx: number) {
       const { info } = tokens[idx];
 
       if (tokens[idx].nesting === 1) {
