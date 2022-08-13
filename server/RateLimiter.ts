@@ -1,7 +1,9 @@
-import { RateLimiterRedis } from "rate-limiter-flexible";
+import {
+  IRateLimiterStoreOptions,
+  RateLimiterRedis,
+} from "rate-limiter-flexible";
 import env from "@server/env";
 import Redis from "@server/redis";
-import { RateLimiterConfig } from "@server/types";
 
 export default class RateLimiter {
   constructor() {
@@ -22,7 +24,7 @@ export default class RateLimiter {
     return this.rateLimiterMap.get(path) || this.defaultRateLimiter;
   }
 
-  static setRateLimiter(path: string, config: RateLimiterConfig): void {
+  static setRateLimiter(path: string, config: IRateLimiterStoreOptions): void {
     const rateLimiter = new RateLimiterRedis(config);
     this.rateLimiterMap.set(path, rateLimiter);
   }

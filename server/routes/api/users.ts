@@ -13,6 +13,7 @@ import env from "@server/env";
 import { ValidationError } from "@server/errors";
 import logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
+import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { Event, User, Team } from "@server/models";
 import { UserFlag, UserRole } from "@server/models/User";
 import { can, authorize } from "@server/policies";
@@ -308,112 +309,140 @@ router.post("users.activate", auth(), async (ctx) => {
   };
 });
 
-router.post("users.invite", auth(), async (ctx) => {
-  const { invites } = ctx.body;
-  assertArray(invites, "invites must be an array");
-  const { user } = ctx.state;
-  const team = await Team.findByPk(user.teamId);
-  authorize(user, "inviteUser", team);
+router.post(
+  "users.invite",
+  auth(),
+  rateLimiter({
+    requests: 10,
+  }),
+  async (ctx) => {
+    const { invites } = ctx.body;
+    assertArray(invites, "invites must be an array");
+    const { user } = ctx.state;
+    const team = await Team.findByPk(user.teamId);
+    authorize(user, "inviteUser", team);
 
-  const response = await userInviter({
-    user,
-    invites: invites.slice(0, UserValidation.maxInvitesPerRequest),
-    ip: ctx.request.ip,
-  });
-
-  ctx.body = {
-    data: {
-      sent: response.sent,
-      users: response.users.map((user) => presentUser(user)),
-    },
-  };
-});
-
-router.post("users.resendInvite", auth(), async (ctx) => {
-  const { id } = ctx.body;
-  const actor = ctx.state.user;
-
-  await sequelize.transaction(async (transaction) => {
-    const user = await User.findByPk(id, {
-      lock: transaction.LOCK.UPDATE,
-      transaction,
+    const response = await userInviter({
+      user,
+      invites: invites.slice(0, UserValidation.maxInvitesPerRequest),
+      ip: ctx.request.ip,
     });
-    authorize(actor, "resendInvite", user);
 
-    if (user.getFlag(UserFlag.InviteSent) > 2) {
-      throw ValidationError("This invite has been sent too many times");
+    ctx.body = {
+      data: {
+        sent: response.sent,
+        users: response.users.map((user) => presentUser(user)),
+      },
+    };
+  }
+);
+
+router.post(
+  "users.resendInvite",
+  auth(),
+  rateLimiter({
+    requests: 10,
+  }),
+  async (ctx) => {
+    const { id } = ctx.body;
+    const actor = ctx.state.user;
+
+    await sequelize.transaction(async (transaction) => {
+      const user = await User.findByPk(id, {
+        lock: transaction.LOCK.UPDATE,
+        transaction,
+      });
+      authorize(actor, "resendInvite", user);
+
+      if (user.getFlag(UserFlag.InviteSent) > 2) {
+        throw ValidationError("This invite has been sent too many times");
+      }
+
+      await InviteEmail.schedule({
+        to: user.email,
+        name: user.name,
+        actorName: actor.name,
+        actorEmail: actor.email,
+        teamName: actor.team.name,
+        teamUrl: actor.team.url,
+      });
+
+      user.incrementFlag(UserFlag.InviteSent);
+      await user.save({ transaction });
+
+      if (env.ENVIRONMENT === "development") {
+        logger.info(
+          "email",
+          `Sign in immediately: ${
+            env.URL
+          }/auth/email.callback?token=${user.getEmailSigninToken()}`
+        );
+      }
+    });
+
+    ctx.body = {
+      success: true,
+    };
+  }
+);
+
+router.post(
+  "users.requestDelete",
+  auth(),
+  rateLimiter({
+    requests: 1,
+  }),
+  async (ctx) => {
+    const { user } = ctx.state;
+    authorize(user, "delete", user);
+
+    if (emailEnabled) {
+      await ConfirmUserDeleteEmail.schedule({
+        to: user.email,
+        deleteConfirmationCode: user.deleteConfirmationCode,
+      });
     }
 
-    await InviteEmail.schedule({
-      to: user.email,
-      name: user.name,
-      actorName: actor.name,
-      actorEmail: actor.email,
-      teamName: actor.team.name,
-      teamUrl: actor.team.url,
-    });
+    ctx.body = {
+      success: true,
+    };
+  }
+);
 
-    user.incrementFlag(UserFlag.InviteSent);
-    await user.save({ transaction });
+router.post(
+  "users.delete",
+  auth(),
+  rateLimiter({
+    requests: 5,
+  }),
+  async (ctx) => {
+    const { code = "" } = ctx.body;
+    const { user } = ctx.state;
+    authorize(user, "delete", user);
 
-    if (env.ENVIRONMENT === "development") {
-      logger.info(
-        "email",
-        `Sign in immediately: ${
-          env.URL
-        }/auth/email.callback?token=${user.getEmailSigninToken()}`
-      );
+    const deleteConfirmationCode = user.deleteConfirmationCode;
+
+    if (
+      emailEnabled &&
+      (code.length !== deleteConfirmationCode.length ||
+        !crypto.timingSafeEqual(
+          Buffer.from(code),
+          Buffer.from(deleteConfirmationCode)
+        ))
+    ) {
+      throw ValidationError("The confirmation code was incorrect");
     }
-  });
 
-  ctx.body = {
-    success: true,
-  };
-});
-
-router.post("users.requestDelete", auth(), async (ctx) => {
-  const { user } = ctx.state;
-  authorize(user, "delete", user);
-
-  if (emailEnabled) {
-    await ConfirmUserDeleteEmail.schedule({
-      to: user.email,
-      deleteConfirmationCode: user.deleteConfirmationCode,
+    await userDestroyer({
+      user,
+      actor: user,
+      ip: ctx.request.ip,
     });
+
+    ctx.body = {
+      success: true,
+    };
   }
-
-  ctx.body = {
-    success: true,
-  };
-});
-
-router.post("users.delete", auth(), async (ctx) => {
-  const { code = "" } = ctx.body;
-  const { user } = ctx.state;
-  authorize(user, "delete", user);
-
-  const deleteConfirmationCode = user.deleteConfirmationCode;
-
-  if (
-    emailEnabled &&
-    (code.length !== deleteConfirmationCode.length ||
-      !crypto.timingSafeEqual(
-        Buffer.from(code),
-        Buffer.from(deleteConfirmationCode)
-      ))
-  ) {
-    throw ValidationError("The confirmation code was incorrect");
-  }
-
-  await userDestroyer({
-    user,
-    actor: user,
-    ip: ctx.request.ip,
-  });
-
-  ctx.body = {
-    success: true,
-  };
-});
+);
 
 export default router;
