@@ -45,7 +45,7 @@ type RateLimiterConfig = {
   /** The window for which this rate limiter is considered (defaults to 60s) */
   duration?: number;
   /** The number of requests per IP address that are allowed within the window */
-  requests?: number;
+  requests: number;
 };
 
 /**
