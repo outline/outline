@@ -9,7 +9,7 @@ import teamUpdater from "@server/commands/teamUpdater";
 import { sequelize } from "@server/database/sequelize";
 import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
-
+import { rateLimiter } from "@server/middlewares/rateLimiter";
 import {
   Collection,
   CollectionUser,
@@ -485,57 +485,71 @@ router.post("collections.memberships", auth(), pagination(), async (ctx) => {
   };
 });
 
-router.post("collections.export", auth(), async (ctx) => {
-  const { id } = ctx.body;
-  assertUuid(id, "id is required");
-  const { user } = ctx.state;
-  const team = await Team.findByPk(user.teamId);
-  authorize(user, "createExport", team);
+router.post(
+  "collections.export",
+  auth(),
+  rateLimiter({
+    requests: 1,
+  }),
+  async (ctx) => {
+    const { id } = ctx.body;
+    assertUuid(id, "id is required");
+    const { user } = ctx.state;
+    const team = await Team.findByPk(user.teamId);
+    authorize(user, "createExport", team);
 
-  const collection = await Collection.scope({
-    method: ["withMembership", user.id],
-  }).findByPk(id);
-  authorize(user, "read", collection);
+    const collection = await Collection.scope({
+      method: ["withMembership", user.id],
+    }).findByPk(id);
+    authorize(user, "read", collection);
 
-  const fileOperation = await sequelize.transaction(async (transaction) => {
-    return collectionExporter({
-      collection,
-      user,
-      team,
-      ip: ctx.request.ip,
-      transaction,
+    const fileOperation = await sequelize.transaction(async (transaction) => {
+      return collectionExporter({
+        collection,
+        user,
+        team,
+        ip: ctx.request.ip,
+        transaction,
+      });
     });
-  });
 
-  ctx.body = {
-    success: true,
-    data: {
-      fileOperation: presentFileOperation(fileOperation),
-    },
-  };
-});
+    ctx.body = {
+      success: true,
+      data: {
+        fileOperation: presentFileOperation(fileOperation),
+      },
+    };
+  }
+);
 
-router.post("collections.export_all", auth(), async (ctx) => {
-  const { user } = ctx.state;
-  const team = await Team.findByPk(user.teamId);
-  authorize(user, "createExport", team);
+router.post(
+  "collections.export_all",
+  auth(),
+  rateLimiter({
+    requests: 1,
+  }),
+  async (ctx) => {
+    const { user } = ctx.state;
+    const team = await Team.findByPk(user.teamId);
+    authorize(user, "createExport", team);
 
-  const fileOperation = await sequelize.transaction(async (transaction) => {
-    return collectionExporter({
-      user,
-      team,
-      ip: ctx.request.ip,
-      transaction,
+    const fileOperation = await sequelize.transaction(async (transaction) => {
+      return collectionExporter({
+        user,
+        team,
+        ip: ctx.request.ip,
+        transaction,
+      });
     });
-  });
 
-  ctx.body = {
-    success: true,
-    data: {
-      fileOperation: presentFileOperation(fileOperation),
-    },
-  };
-});
+    ctx.body = {
+      success: true,
+      data: {
+        fileOperation: presentFileOperation(fileOperation),
+      },
+    };
+  }
+);
 
 router.post("collections.update", auth(), async (ctx) => {
   const {

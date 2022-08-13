@@ -12,6 +12,7 @@ import {
   NetworkError,
   NotFoundError,
   OfflineError,
+  RateLimitExceededError,
   RequestError,
   ServiceUnavailableError,
   UpdateRequiredError,
@@ -179,6 +180,12 @@ class ApiClient {
 
     if (response.status === 503) {
       throw new ServiceUnavailableError(error.message);
+    }
+
+    if (response.status === 429) {
+      throw new RateLimitExceededError(
+        `Too many requests, try again in a minute.`
+      );
     }
 
     throw new RequestError(`Error ${response.status}: ${error.message}`);
