@@ -2510,58 +2510,18 @@ describe("#documents.empty_trash", () => {
   });
 
   it("should permenantly delete trashed documents", async () => {
-    const { admin } = await seed();
-    const document = await buildDocument({
-      userId: admin.id,
-      teamId: admin.teamId,
-    });
-    await document.delete(admin.id);
-
-    const res0 = await server.post("/api/documents.deleted", {
-      body: {
-        token: admin.getJwtToken(),
-      },
-    });
-    const body0 = await res0.json();
-    expect(res0.status).toEqual(200);
-    expect(body0.data.length).toEqual(1);
-
-    const res1 = await server.post("/api/documents.empty_trash", {
-      body: {
-        token: admin.getJwtToken(),
-      },
-    });
-    const body1 = await res1.json();
-    expect(res1.status).toEqual(200);
-    expect(body1.data.length).toEqual(1);
-
-    const res2 = await server.post("/api/documents.deleted", {
-      body: {
-        token: admin.getJwtToken(),
-      },
-    });
-    const body2 = await res2.json();
-    expect(res2.status).toEqual(200);
-    expect(body2.data.length).toEqual(0);
-
-    const events = await Event.findAll();
-
-    expect(events.length).toEqual(1);
-    expect(events[0].name).toEqual("documents.permanent_delete");
-    expect(events[0].documentId).toEqual(document.id);
-    expect(events[0].collectionId).toEqual(document.collectionId);
-    expect(events[0].teamId).toEqual(document.teamId);
-    expect(events[0].actorId).toEqual(admin.id);
-    expect(events[0].data.title).toEqual(document.title);
-  });
-
-  it("should permenantly delete trashed drafts", async () => {
     const { admin, document } = await seed();
-
+    // To simulate deleting draft
     document.publishedAt = null;
     await document.save();
     await document.delete(admin.id);
 
+    const publishedDoc = await buildDocument({
+      userId: admin.id,
+      teamId: admin.teamId,
+    });
+    await publishedDoc.delete(admin.id);
+
     const res0 = await server.post("/api/documents.deleted", {
       body: {
         token: admin.getJwtToken(),
@@ -2569,7 +2529,7 @@ describe("#documents.empty_trash", () => {
     });
     const body0 = await res0.json();
     expect(res0.status).toEqual(200);
-    expect(body0.data.length).toEqual(1);
+    expect(body0.data.length).toEqual(2);
 
     const res1 = await server.post("/api/documents.empty_trash", {
       body: {
@@ -2578,7 +2538,13 @@ describe("#documents.empty_trash", () => {
     });
     const body1 = await res1.json();
     expect(res1.status).toEqual(200);
-    expect(body1.data.length).toEqual(1);
+    expect(body1.data.length).toEqual(2);
+
+    expect(body1.data[0].documentId).toEqual(document.id);
+    expect(body1.data[0].collectionId).toEqual(document.collectionId);
+
+    expect(body1.data[1].documentId).toEqual(publishedDoc.id);
+    expect(body1.data[1].collectionId).toEqual(publishedDoc.collectionId);
 
     const res2 = await server.post("/api/documents.deleted", {
       body: {
@@ -2590,12 +2556,20 @@ describe("#documents.empty_trash", () => {
     expect(body2.data.length).toEqual(0);
 
     const events = await Event.findAll();
-    expect(events.length).toEqual(1);
+    expect(events.length).toEqual(2);
+
     expect(events[0].name).toEqual("documents.permanent_delete");
     expect(events[0].documentId).toEqual(document.id);
     expect(events[0].collectionId).toEqual(document.collectionId);
     expect(events[0].teamId).toEqual(document.teamId);
     expect(events[0].actorId).toEqual(admin.id);
     expect(events[0].data.title).toEqual(document.title);
+
+    expect(events[1].name).toEqual("documents.permanent_delete");
+    expect(events[1].documentId).toEqual(publishedDoc.id);
+    expect(events[1].collectionId).toEqual(publishedDoc.collectionId);
+    expect(events[1].teamId).toEqual(publishedDoc.teamId);
+    expect(events[1].actorId).toEqual(admin.id);
+    expect(events[1].data.title).toEqual(publishedDoc.title);
   });
 });
