@@ -44,3 +44,13 @@ export const TeamValidation = {
   /** The maximum number of domains per team */
   maxDomains: 10,
 };
+
+export const UserValidation = {
+  /** The maximum number of invites per request */
+  maxInvitesPerRequest: 20,
+};
+
+export const WebhookSubscriptionValidation = {
+  /** The maximum number of webhooks per team */
+  maxSubscriptions: 10,
+};

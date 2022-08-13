@@ -1,10 +1,14 @@
 import randomstring from "randomstring";
 import ApiKey from "@server/models/ApiKey";
 import { buildUser, buildTeam } from "@server/test/factories";
-import { flushdb } from "@server/test/support";
+import { getTestDatabase } from "@server/test/support";
 import auth from "./authentication";
 
-beforeEach(() => flushdb());
+const db = getTestDatabase();
+
+afterAll(db.disconnect);
+
+beforeEach(db.flush);
 
 describe("Authentication middleware", () => {
   describe("with JWT", () => {

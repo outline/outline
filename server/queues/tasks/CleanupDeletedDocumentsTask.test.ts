@@ -1,10 +1,14 @@
 import { subDays } from "date-fns";
 import { Document } from "@server/models";
 import { buildDocument } from "@server/test/factories";
-import { flushdb } from "@server/test/support";
+import { getTestDatabase } from "@server/test/support";
 import CleanupDeletedDocumentsTask from "./CleanupDeletedDocumentsTask";
 
-beforeEach(() => flushdb());
+const db = getTestDatabase();
+
+afterAll(db.disconnect);
+
+beforeEach(db.flush);
 
 describe("CleanupDeletedDocumentsTask", () => {
   it("should not destroy documents not deleted", async () => {

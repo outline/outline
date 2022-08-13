@@ -1,10 +1,14 @@
 import { subDays } from "date-fns";
 import InviteReminderEmail from "@server/emails/templates/InviteReminderEmail";
 import { buildInvite } from "@server/test/factories";
-import { flushdb } from "@server/test/support";
+import { getTestDatabase } from "@server/test/support";
 import InviteReminderTask from "./InviteReminderTask";
 
-beforeEach(() => flushdb());
+const db = getTestDatabase();
+
+afterAll(db.disconnect);
+
+beforeEach(db.flush);
 
 describe("InviteReminderTask", () => {
   it("should not destroy documents not deleted", async () => {

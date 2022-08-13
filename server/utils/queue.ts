@@ -41,9 +41,13 @@ export function createQueue(
   queue.on("failed", () => {
     Metrics.increment(`${prefix}.jobs.failed`);
   });
-  setInterval(async () => {
-    Metrics.gauge(`${prefix}.count`, await queue.count());
-    Metrics.gauge(`${prefix}.delayed_count`, await queue.getDelayedCount());
-  }, 5 * 1000);
+
+  if (env.ENVIRONMENT !== "test") {
+    setInterval(async () => {
+      Metrics.gauge(`${prefix}.count`, await queue.count());
+      Metrics.gauge(`${prefix}.delayed_count`, await queue.getDelayedCount());
+    }, 5 * 1000);
+  }
+
   return queue;
 }

@@ -1,11 +1,8 @@
-import TestServer from "fetch-test-server";
-import webService from "@server/services/web";
-import { flushdb } from "@server/test/support";
+import { getTestServer } from "@server/test/support";
 
-const app = webService();
-const server = new TestServer(app.callback());
-beforeEach(() => flushdb());
-afterAll(() => server.close());
+const server = getTestServer();
+
+afterAll(server.disconnect);
 
 describe("POST unknown endpoint", () => {
   it("should be not found", async () => {

@@ -1,19 +1,16 @@
-import TestServer from "fetch-test-server";
 import sharedEnv from "@shared/env";
 import SigninEmail from "@server/emails/templates/SigninEmail";
 import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
 import env from "@server/env";
-import webService from "@server/services/web";
 import { buildUser, buildGuestUser, buildTeam } from "@server/test/factories";
-import { flushdb } from "@server/test/support";
+import { getTestDatabase, getTestServer } from "@server/test/support";
 
-const app = webService();
-const server = new TestServer(app.callback());
+const db = getTestDatabase();
+const server = getTestServer();
 
-beforeEach(async () => {
-  await flushdb();
-});
-afterAll(() => server.close());
+afterAll(server.disconnect);
+
+beforeEach(db.flush);
 
 describe("email", () => {
   it("should require email param", async () => {
