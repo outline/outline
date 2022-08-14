@@ -11,8 +11,11 @@ export const changeTeam = createAction({
   placeholder: ({ t }) => t("Select a team"),
   keywords: "change workspace organization",
   section: "Team",
-  visible: ({ currentTeamId, isContextMenu }) => {
-    return isContextMenu || getOtherSessions(currentTeamId).length > 0;
+  visible: ({ stores, currentTeamId, isContextMenu }) => {
+    const canCreate = stores.policies.abilities(currentTeamId ?? "").create;
+    return (
+      (isContextMenu && canCreate) || getOtherSessions(currentTeamId).length > 0
+    );
   },
   children: ({ currentTeamId, isContextMenu }) => {
     return [
@@ -33,6 +36,9 @@ const createTeam = createAction({
   keywords: "change switch create workspace organization",
   section: "Team",
   icon: <PlusIcon />,
+  visible: ({ stores, currentTeamId }) => {
+    return stores.policies.abilities(currentTeamId ?? "").create;
+  },
   perform: ({ t, event, stores }) => {
     event?.preventDefault();
     event?.stopPropagation();
