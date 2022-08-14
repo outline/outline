@@ -37,7 +37,6 @@ const createTeam = createAction({
   section: "Team",
   icon: <PlusIcon />,
   visible: ({ stores, currentTeamId }) => {
-    console.log(stores.policies.abilities(currentTeamId ?? ""));
     return stores.policies.abilities(currentTeamId ?? "").createTeam;
   },
   perform: ({ t, event, stores }) => {

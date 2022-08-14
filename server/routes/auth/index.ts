@@ -77,8 +77,6 @@ router.get("/transfer", auth(), async (ctx) => {
   const toTeam = await Team.findByPk(teamId?.toString());
   invariant(toTeam, "must transfer to existing team");
 
-  console.log("signing into team", teamId, "with user", user.email);
-
   const toUser = await User.findOne({
     where: {
       teamId,

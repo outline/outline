@@ -123,7 +123,6 @@ router.post("auth.info", auth(), async (ctx) => {
     policies: presentPolicies(user, [team]),
   };
 
-  console.log(presentPolicies(user, [team]));
   ctx.body = body;
 });
 
