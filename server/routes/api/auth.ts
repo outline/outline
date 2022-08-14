@@ -113,7 +113,7 @@ router.post("auth.info", auth(), async (ctx) => {
 
   await ValidateSSOAccessTask.schedule({ userId: user.id });
 
-  ctx.body = {
+  const body = {
     data: {
       user: presentUser(user, {
         includeDetails: true,
@@ -122,6 +122,9 @@ router.post("auth.info", auth(), async (ctx) => {
     },
     policies: presentPolicies(user, [team]),
   };
+
+  console.log(presentPolicies(user, [team]));
+  ctx.body = body;
 });
 
 router.post("auth.delete", auth(), async (ctx) => {

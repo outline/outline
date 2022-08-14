@@ -12,7 +12,7 @@ export const changeTeam = createAction({
   keywords: "change workspace organization",
   section: "Team",
   visible: ({ stores, currentTeamId, isContextMenu }) => {
-    const canCreate = stores.policies.abilities(currentTeamId ?? "").create;
+    const canCreate = stores.policies.abilities(currentTeamId ?? "").createTeam;
     return (
       (isContextMenu && canCreate) || getOtherSessions(currentTeamId).length > 0
     );
@@ -37,7 +37,8 @@ const createTeam = createAction({
   section: "Team",
   icon: <PlusIcon />,
   visible: ({ stores, currentTeamId }) => {
-    return stores.policies.abilities(currentTeamId ?? "").create;
+    console.log(stores.policies.abilities(currentTeamId ?? ""));
+    return stores.policies.abilities(currentTeamId ?? "").createTeam;
   },
   perform: ({ t, event, stores }) => {
     event?.preventDefault();

@@ -10,7 +10,14 @@ allow(User, "share", Team, (user, team) => {
   return team.sharing;
 });
 
-allow(User, ["update", "manage", "create"], Team, (user, team) => {
+allow(User, "createTeam", Team, () => {
+  return false;
+  // if (cannot(user, "update", document.collection)) {
+  //   return false;
+  // }
+});
+
+allow(User, ["update", "manage"], Team, (user, team) => {
   if (!team || user.isViewer || user.teamId !== team.id) {
     return false;
   }

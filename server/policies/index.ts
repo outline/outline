@@ -65,6 +65,8 @@ export function serialize(
         response = false;
       }
 
+      console.log(ability.action, response);
+
       output[ability.action] = response;
     }
   });
