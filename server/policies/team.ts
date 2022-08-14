@@ -1,3 +1,4 @@
+import env from "@server/env";
 import { Team, User } from "@server/models";
 import { allow } from "./cancan";
 
@@ -11,10 +12,9 @@ allow(User, "share", Team, (user, team) => {
 });
 
 allow(User, "createTeam", Team, () => {
-  return false;
-  // if (cannot(user, "update", document.collection)) {
-  //   return false;
-  // }
+  if (env.DEPLOYMENT !== "hosted") {
+    throw "createTeam only available on cloud";
+  }
 });
 
 allow(User, ["update", "manage"], Team, (user, team) => {
