@@ -15,8 +15,7 @@
         "<rootDir>/server/test/setup.ts"
       ],
       "testEnvironment": "node",
-      "runner": "@getoutline/jest-runner-serial",
-      "detectLeaks": true
+      "runner": "@getoutline/jest-runner-serial"
     },
     {
       "displayName": "app",

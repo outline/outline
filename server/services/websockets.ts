@@ -294,6 +294,8 @@ async function authenticate(socket: SocketWithAuth, data: { token: string }) {
   socket.client.user = user;
 
   // store the mapping between socket id and user id in redis so that it is
-  // accessible across multiple websocket servers
+  // accessible across multiple websocket servers. Lasts 24 hours, if they have
+  // a websocket connection that lasts this long then well done.
   await Redis.defaultClient.hset(socket.id, "userId", user.id);
+  await Redis.defaultClient.expire(socket.id, 3600 * 24);
 }
