@@ -5,12 +5,15 @@ import bodyParser from "koa-body";
 import Router from "koa-router";
 import { AuthenticationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
+import { defaultRateLimiter } from "@server/middlewares/rateLimiter";
 import { Collection, Team, View } from "@server/models";
 import providers from "./providers";
 
 const app = new Koa();
 const router = new Router();
+
 router.use(passport.initialize());
+router.use(defaultRateLimiter());
 
 // dynamically load available authentication provider routes
 providers.forEach((provider) => {
