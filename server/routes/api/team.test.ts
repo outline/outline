@@ -1,3 +1,4 @@
+import env from "@server/env";
 import { TeamDomain } from "@server/models";
 import { buildAdmin, buildCollection, buildTeam } from "@server/test/factories";
 import { seed, getTestDatabase, getTestServer } from "@server/test/support";
@@ -8,6 +9,37 @@ const server = getTestServer();
 afterAll(server.disconnect);
 
 beforeEach(db.flush);
+
+describe("team.create", () => {
+  it("creates a team", async () => {
+    env.DEPLOYMENT = "hosted";
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+    const res = await server.post("/api/team.create", {
+      body: {
+        token: user.getJwtToken(),
+        name: "new team",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.team.name).toEqual("new team");
+    expect(body.data.team.subdomain).toEqual("new-team");
+  });
+
+  it("requires a cloud hosted deployment", async () => {
+    env.DEPLOYMENT = "self-hosted";
+    const team = await buildTeam();
+    const user = await buildAdmin({ teamId: team.id });
+    const res = await server.post("/api/team.create", {
+      body: {
+        token: user.getJwtToken(),
+        name: "new team",
+      },
+    });
+    expect(res.status).toEqual(500);
+  });
+});
 
 describe("#team.update", () => {
   it("should update team details", async () => {

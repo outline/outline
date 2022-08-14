@@ -71,6 +71,8 @@ router.post("team.create", auth(), async (ctx) => {
     user.teamId
   );
 
+  authorize(user, "createTeam", existingTeam);
+
   const authenticationProviders = existingTeam?.authenticationProviders.map(
     (provider) => {
       return {
