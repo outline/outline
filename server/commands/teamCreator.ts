@@ -89,7 +89,10 @@ async function teamCreator({
 async function provisionSubdomain(team: Team, requestedSubdomain: string) {
   // filter subdomain to only valid characters
   // if there are less than the minimum length, use a default subdomain
-  let subdomain = slugify(requestedSubdomain, { lower: true, strict: true });
+  let subdomain = slugify(requestedSubdomain, {
+    lower: true,
+    strict: true,
+  });
   subdomain =
     subdomain.length < 3 || RESERVED_SUBDOMAINS.includes(subdomain)
       ? "team"
