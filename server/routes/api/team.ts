@@ -3,7 +3,7 @@ import Router from "koa-router";
 import teamCreator from "@server/commands/teamCreator";
 import teamUpdater from "@server/commands/teamUpdater";
 import auth from "@server/middlewares/authentication";
-import { Team, TeamDomain, User } from "@server/models";
+import { Event, Team, TeamDomain, User } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentTeam, presentPolicies } from "@server/presenters";
 import { assertLength, assertUuid } from "@server/validation";
@@ -92,7 +92,7 @@ router.post("team.create", auth(), async (ctx) => {
     ip: ctx.ip,
   });
 
-  await User.create({
+  const newUser = await User.create({
     teamId: team.id,
     name: user.name,
     email: user.email,
@@ -102,7 +102,16 @@ router.post("team.create", auth(), async (ctx) => {
     invitedById: user.id,
   });
 
-  // make an event here?
+  Event.create({
+    name: "users.create",
+    actorId: user.id,
+    userId: newUser.id,
+    teamId: newUser.teamId,
+    data: {
+      name: newUser.name,
+    },
+    ip: ctx.ip,
+  });
 
   ctx.body = {
     success: true,
