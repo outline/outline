@@ -14,3 +14,15 @@ export default class MockRateLimiter {
     return false;
   }
 }
+
+export const RateLimiterStrategy = new Proxy(
+  {},
+  {
+    get() {
+      return {
+        duration: 60,
+        requests: 10,
+      };
+    },
+  }
+);
