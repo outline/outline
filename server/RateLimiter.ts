@@ -33,3 +33,29 @@ export default class RateLimiter {
     return this.rateLimiterMap.has(path);
   }
 }
+
+/**
+ * Re-useable configuration for rate limiter middleware.
+ */
+export const RateLimiterStrategy = {
+  /** Allows five requests per minute, per IP address */
+  FivePerMinute: {
+    duration: 60,
+    requests: 5,
+  },
+  /** Allows ten requests per minute, per IP address */
+  TenPerMinute: {
+    duration: 60,
+    requests: 10,
+  },
+  /** Allows ten requests per hour, per IP address */
+  TenPerHour: {
+    duration: 3600,
+    requests: 10,
+  },
+  /** Allows five requests per hour, per IP address */
+  FivePerHour: {
+    duration: 3600,
+    requests: 5,
+  },
+};

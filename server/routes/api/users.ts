@@ -2,6 +2,7 @@ import crypto from "crypto";
 import Router from "koa-router";
 import { Op, WhereOptions } from "sequelize";
 import { UserValidation } from "@shared/validations";
+import { RateLimiterStrategy } from "@server/RateLimiter";
 import userDemoter from "@server/commands/userDemoter";
 import userDestroyer from "@server/commands/userDestroyer";
 import userInviter from "@server/commands/userInviter";
@@ -312,9 +313,7 @@ router.post("users.activate", auth(), async (ctx) => {
 router.post(
   "users.invite",
   auth(),
-  rateLimiter({
-    requests: 10,
-  }),
+  rateLimiter(RateLimiterStrategy.TenPerHour),
   async (ctx) => {
     const { invites } = ctx.body;
     assertArray(invites, "invites must be an array");
@@ -337,61 +336,52 @@ router.post(
   }
 );
 
-router.post(
-  "users.resendInvite",
-  auth(),
-  rateLimiter({
-    requests: 10,
-  }),
-  async (ctx) => {
-    const { id } = ctx.body;
-    const actor = ctx.state.user;
+router.post("users.resendInvite", auth(), async (ctx) => {
+  const { id } = ctx.body;
+  const actor = ctx.state.user;
 
-    await sequelize.transaction(async (transaction) => {
-      const user = await User.findByPk(id, {
-        lock: transaction.LOCK.UPDATE,
-        transaction,
-      });
-      authorize(actor, "resendInvite", user);
+  await sequelize.transaction(async (transaction) => {
+    const user = await User.findByPk(id, {
+      lock: transaction.LOCK.UPDATE,
+      transaction,
+    });
+    authorize(actor, "resendInvite", user);
 
-      if (user.getFlag(UserFlag.InviteSent) > 2) {
-        throw ValidationError("This invite has been sent too many times");
-      }
+    if (user.getFlag(UserFlag.InviteSent) > 2) {
+      throw ValidationError("This invite has been sent too many times");
+    }
 
-      await InviteEmail.schedule({
-        to: user.email,
-        name: user.name,
-        actorName: actor.name,
-        actorEmail: actor.email,
-        teamName: actor.team.name,
-        teamUrl: actor.team.url,
-      });
-
-      user.incrementFlag(UserFlag.InviteSent);
-      await user.save({ transaction });
-
-      if (env.ENVIRONMENT === "development") {
-        logger.info(
-          "email",
-          `Sign in immediately: ${
-            env.URL
-          }/auth/email.callback?token=${user.getEmailSigninToken()}`
-        );
-      }
+    await InviteEmail.schedule({
+      to: user.email,
+      name: user.name,
+      actorName: actor.name,
+      actorEmail: actor.email,
+      teamName: actor.team.name,
+      teamUrl: actor.team.url,
     });
 
-    ctx.body = {
-      success: true,
-    };
-  }
-);
+    user.incrementFlag(UserFlag.InviteSent);
+    await user.save({ transaction });
+
+    if (env.ENVIRONMENT === "development") {
+      logger.info(
+        "email",
+        `Sign in immediately: ${
+          env.URL
+        }/auth/email.callback?token=${user.getEmailSigninToken()}`
+      );
+    }
+  });
+
+  ctx.body = {
+    success: true,
+  };
+});
 
 router.post(
   "users.requestDelete",
   auth(),
-  rateLimiter({
-    requests: 1,
-  }),
+  rateLimiter(RateLimiterStrategy.FivePerHour),
   async (ctx) => {
     const { user } = ctx.state;
     authorize(user, "delete", user);
@@ -412,9 +402,7 @@ router.post(
 router.post(
   "users.delete",
   auth(),
-  rateLimiter({
-    requests: 5,
-  }),
+  rateLimiter(RateLimiterStrategy.FivePerHour),
   async (ctx) => {
     const { code = "" } = ctx.body;
     const { user } = ctx.state;

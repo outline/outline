@@ -1,6 +1,7 @@
 import Router from "koa-router";
 import { find } from "lodash";
 import { parseDomain } from "@shared/utils/domains";
+import { RateLimiterStrategy } from "@server/RateLimiter";
 import InviteAcceptedEmail from "@server/emails/templates/InviteAcceptedEmail";
 import SigninEmail from "@server/emails/templates/SigninEmail";
 import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
@@ -26,7 +27,7 @@ router.use(methodOverride());
 router.post(
   "email",
   errorHandling(),
-  rateLimiter({ requests: 1 }),
+  rateLimiter(RateLimiterStrategy.TenPerHour),
   async (ctx) => {
     const { email } = ctx.body;
     assertEmail(email, "email is required");

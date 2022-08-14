@@ -4,6 +4,7 @@ import Router from "koa-router";
 import { Sequelize, Op, WhereOptions } from "sequelize";
 import { randomElement } from "@shared/random";
 import { colorPalette } from "@shared/utils/collections";
+import { RateLimiterStrategy } from "@server/RateLimiter";
 import collectionExporter from "@server/commands/collectionExporter";
 import teamUpdater from "@server/commands/teamUpdater";
 import { sequelize } from "@server/database/sequelize";
@@ -143,54 +144,59 @@ router.post("collections.info", auth(), async (ctx) => {
   };
 });
 
-router.post("collections.import", auth(), async (ctx) => {
-  const { attachmentId, format = FileOperationFormat.MarkdownZip } = ctx.body;
-  assertUuid(attachmentId, "attachmentId is required");
+router.post(
+  "collections.import",
+  auth(),
+  rateLimiter(RateLimiterStrategy.TenPerHour),
+  async (ctx) => {
+    const { attachmentId, format = FileOperationFormat.MarkdownZip } = ctx.body;
+    assertUuid(attachmentId, "attachmentId is required");
 
-  const { user } = ctx.state;
-  authorize(user, "importCollection", user.team);
+    const { user } = ctx.state;
+    authorize(user, "importCollection", user.team);
 
-  const attachment = await Attachment.findByPk(attachmentId);
-  authorize(user, "read", attachment);
+    const attachment = await Attachment.findByPk(attachmentId);
+    authorize(user, "read", attachment);
 
-  assertIn(format, Object.values(FileOperationFormat), "Invalid format");
+    assertIn(format, Object.values(FileOperationFormat), "Invalid format");
 
-  await sequelize.transaction(async (transaction) => {
-    const fileOperation = await FileOperation.create(
-      {
-        type: FileOperationType.Import,
-        state: FileOperationState.Creating,
-        format,
-        size: attachment.size,
-        key: attachment.key,
-        userId: user.id,
-        teamId: user.teamId,
-      },
-      {
-        transaction,
-      }
-    );
-
-    await Event.create(
-      {
-        name: "fileOperations.create",
-        teamId: user.teamId,
-        actorId: user.id,
-        modelId: fileOperation.id,
-        data: {
+    await sequelize.transaction(async (transaction) => {
+      const fileOperation = await FileOperation.create(
+        {
           type: FileOperationType.Import,
+          state: FileOperationState.Creating,
+          format,
+          size: attachment.size,
+          key: attachment.key,
+          userId: user.id,
+          teamId: user.teamId,
         },
-      },
-      {
-        transaction,
-      }
-    );
-  });
+        {
+          transaction,
+        }
+      );
 
-  ctx.body = {
-    success: true,
-  };
-});
+      await Event.create(
+        {
+          name: "fileOperations.create",
+          teamId: user.teamId,
+          actorId: user.id,
+          modelId: fileOperation.id,
+          data: {
+            type: FileOperationType.Import,
+          },
+        },
+        {
+          transaction,
+        }
+      );
+    });
+
+    ctx.body = {
+      success: true,
+    };
+  }
+);
 
 router.post("collections.add_group", auth(), async (ctx) => {
   const { id, groupId, permission = "read_write" } = ctx.body;
@@ -488,9 +494,7 @@ router.post("collections.memberships", auth(), pagination(), async (ctx) => {
 router.post(
   "collections.export",
   auth(),
-  rateLimiter({
-    requests: 1,
-  }),
+  rateLimiter(RateLimiterStrategy.TenPerHour),
   async (ctx) => {
     const { id } = ctx.body;
     assertUuid(id, "id is required");
@@ -525,9 +529,7 @@ router.post(
 router.post(
   "collections.export_all",
   auth(),
-  rateLimiter({
-    requests: 1,
-  }),
+  rateLimiter(RateLimiterStrategy.TenPerHour),
   async (ctx) => {
     const { user } = ctx.state;
     const team = await Team.findByPk(user.teamId);
