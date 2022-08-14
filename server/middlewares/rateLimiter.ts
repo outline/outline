@@ -3,6 +3,7 @@ import { defaults } from "lodash";
 import RateLimiter from "@server/RateLimiter";
 import env from "@server/env";
 import { RateLimitExceededError } from "@server/errors";
+import Metrics from "@server/logging/metrics";
 import Redis from "@server/redis";
 
 /**
@@ -33,6 +34,10 @@ export function defaultRateLimiter() {
         "RateLimit-Reset",
         `${new Date(Date.now() + rateLimiterRes.msBeforeNext)}`
       );
+
+      Metrics.increment("rate_limit.exceeded", {
+        path: ctx.path,
+      });
 
       throw RateLimitExceededError();
     }
