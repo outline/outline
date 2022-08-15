@@ -58,7 +58,7 @@ export default function Contents({ headings, isFullWidth }: Props) {
         {headings.length ? (
           <List>
             {headings
-              .filter((heading) => heading.level >= 4)
+              .filter((heading) => heading.level < 4)
               .map((heading) => (
                 <ListItem
                   key={heading.id}
