@@ -1,9 +1,13 @@
 import { View, CollectionUser } from "@server/models";
 import { buildUser } from "@server/test/factories";
-import { flushdb, seed, getTestServer } from "@server/test/support";
+import { seed, getTestDatabase, getTestServer } from "@server/test/support";
 
+const db = getTestDatabase();
 const server = getTestServer();
-beforeEach(() => flushdb());
+
+afterAll(server.disconnect);
+
+beforeEach(db.flush);
 
 describe("#views.list", () => {
   it("should return views for a document", async () => {

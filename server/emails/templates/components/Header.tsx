@@ -4,6 +4,7 @@ import env from "@server/env";
 import EmptySpace from "./EmptySpace";
 
 const url = env.CDN_URL ?? env.URL;
+const isCloudHosted = env.DEPLOYMENT === "hosted";
 
 export default () => {
   return (
@@ -14,7 +15,11 @@ export default () => {
             <EmptySpace height={40} />
             <img
               alt="Outline"
-              src={`${url}/email/header-logo.png`}
+              src={
+                isCloudHosted
+                  ? `${url}/email/header-logo.png`
+                  : "cid:header-image"
+              }
               height="48"
               width="48"
             />

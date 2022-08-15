@@ -1,8 +1,12 @@
 import { buildShare, buildDocument } from "@server/test/factories";
-import { flushdb, getTestServer } from "@server/test/support";
+import { getTestDatabase, getTestServer } from "@server/test/support";
 
+const db = getTestDatabase();
 const server = getTestServer();
-beforeEach(() => flushdb());
+
+afterAll(server.disconnect);
+
+beforeEach(db.flush);
 
 describe("/share/:id", () => {
   it("should return standard title in html when loading unpublished share", async () => {

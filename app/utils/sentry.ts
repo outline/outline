@@ -22,6 +22,7 @@ export function initSentry(history: History) {
       "NetworkError",
       "NotFoundError",
       "OfflineError",
+      "RateLimitExceededError",
       "ServiceUnavailableError",
       "UpdateRequiredError",
       "ChunkLoadError",

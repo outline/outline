@@ -3,10 +3,17 @@ import { defaults } from "lodash";
 import RateLimiter from "@server/RateLimiter";
 import env from "@server/env";
 import { RateLimitExceededError } from "@server/errors";
+import Metrics from "@server/logging/metrics";
 import Redis from "@server/redis";
-import { RateLimiterConfig } from "@server/types";
 
-export function rateLimiter() {
+/**
+ * Middleware that limits the number of requests per IP address that are allowed
+ * within a window. Should only be applied once to a server – do not use on
+ * individual routes.
+ *
+ * @returns The middleware function.
+ */
+export function defaultRateLimiter() {
   return async function rateLimiterMiddleware(ctx: Context, next: Next) {
     if (!env.RATE_LIMITER_ENABLED) {
       return next();
@@ -28,6 +35,10 @@ export function rateLimiter() {
         `${new Date(Date.now() + rateLimiterRes.msBeforeNext)}`
       );
 
+      Metrics.increment("rate_limit.exceeded", {
+        path: ctx.path,
+      });
+
       throw RateLimitExceededError();
     }
 
@@ -35,7 +46,20 @@ export function rateLimiter() {
   };
 }
 
-export function registerRateLimiter(config: RateLimiterConfig) {
+type RateLimiterConfig = {
+  /** The window for which this rate limiter is considered (defaults to 60s) */
+  duration?: number;
+  /** The number of requests per IP address that are allowed within the window */
+  requests: number;
+};
+
+/**
+ * Middleware that limits the number of requests per IP address that are allowed
+ * within a window, overrides default middleware when used on a route.
+ *
+ * @returns The middleware function.
+ */
+export function rateLimiter(config: RateLimiterConfig) {
   return async function registerRateLimiterMiddleware(
     ctx: Context,
     next: Next
@@ -47,11 +71,18 @@ export function registerRateLimiter(config: RateLimiterConfig) {
     if (!RateLimiter.hasRateLimiter(ctx.path)) {
       RateLimiter.setRateLimiter(
         ctx.path,
-        defaults(config, {
-          duration: env.RATE_LIMITER_DURATION_WINDOW,
-          keyPrefix: RateLimiter.RATE_LIMITER_REDIS_KEY_PREFIX,
-          storeClient: Redis.defaultClient,
-        })
+        defaults(
+          {
+            ...config,
+            points: config.requests,
+          },
+          {
+            duration: 60,
+            points: env.RATE_LIMITER_REQUESTS,
+            keyPrefix: RateLimiter.RATE_LIMITER_REDIS_KEY_PREFIX,
+            storeClient: Redis.defaultClient,
+          }
+        )
       );
     }
 
