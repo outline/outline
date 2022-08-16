@@ -13,8 +13,14 @@ beforeEach(db.flush);
 describe("#auth.info", () => {
   it("should return current authentication", async () => {
     const team = await buildTeam();
+    const team2 = await buildTeam();
     const user = await buildUser({
       teamId: team.id,
+    });
+    await buildUser();
+    await buildUser({
+      teamId: team2.id,
+      email: user.email,
     });
     const res = await server.post("/api/auth.info", {
       body: {
@@ -22,7 +28,12 @@ describe("#auth.info", () => {
       },
     });
     const body = await res.json();
+    const availableTeamIds = body.data.availableTeams.map((t: any) => t.id);
+
     expect(res.status).toEqual(200);
+    expect(availableTeamIds.length).toEqual(2);
+    expect(availableTeamIds).toContain(team.id);
+    expect(availableTeamIds).toContain(team2.id);
     expect(body.data.user.name).toBe(user.name);
     expect(body.data.team.name).toBe(team.name);
     expect(body.data.team.allowedDomains).toEqual([]);
