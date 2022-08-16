@@ -1,25 +1,10 @@
-import env from "../env";
+import Redis from "@server/redis";
 
-// test environment variables
-env.SMTP_HOST = "smtp.example.com";
-env.ENVIRONMENT = "test";
-env.GOOGLE_CLIENT_ID = "123";
-env.GOOGLE_CLIENT_SECRET = "123";
-env.SLACK_CLIENT_ID = "123";
-env.SLACK_CLIENT_SECRET = "123";
-env.DEPLOYMENT = undefined;
-
-if (process.env.DATABASE_URL_TEST) {
-  env.DATABASE_URL = process.env.DATABASE_URL_TEST;
-}
-
-// NOTE: this require must come after the ENV var override above
+// NOTE: this require must come after the ENV var override
 // so that sequelize uses the test config variables
 require("@server/database/sequelize");
 
 jest.mock("bull");
-jest.mock("rate-limiter-flexible");
-jest.mock("../RateLimiter");
 
 // This is needed for the relative manual mock to be picked up
 jest.mock("../queues");
@@ -42,3 +27,5 @@ jest.mock("aws-sdk", () => {
 });
 
 jest.mock("@getoutline/y-prosemirror", () => ({}));
+
+afterAll(() => Redis.defaultClient.disconnect());
