@@ -30,6 +30,9 @@ export const CollectionValidation = {
 export const DocumentValidation = {
   /** The maximum length of the document title */
   maxTitleLength: 100,
+
+  /** The maximum size of the collaborative document state */
+  maxStateLength: 1000000,
 };
 
 export const PinValidation = {

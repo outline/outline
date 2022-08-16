@@ -228,6 +228,10 @@ class Document extends ParanoidModel {
   @Column(DataType.TEXT)
   text: string;
 
+  @Length({
+    max: DocumentValidation.maxStateLength,
+    msg: `Document collaborative state is too large, you must create a new document`,
+  })
   @Column(DataType.BLOB)
   state: Uint8Array;
 
