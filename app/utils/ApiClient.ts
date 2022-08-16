@@ -5,6 +5,7 @@ import queryString from "query-string";
 import EDITOR_VERSION from "@shared/editor/version";
 import stores from "~/stores";
 import isCloudHosted from "~/utils/isCloudHosted";
+import Logger from "./Logger";
 import download from "./download";
 import {
   AuthorizationError,
@@ -188,7 +189,14 @@ class ApiClient {
       );
     }
 
-    throw new RequestError(`Error ${response.status}: ${error.message}`);
+    const err = new RequestError(`Error ${response.status}`);
+    Logger.error("Request failed", err, {
+      ...error,
+      url: urlToFetch,
+    });
+
+    // Still need to throw to trigger retry
+    throw err;
   };
 
   get = (
