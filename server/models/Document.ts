@@ -222,13 +222,17 @@ class Document extends ParanoidModel {
   @Column
   editorVersion: string;
 
+  @Length({
+    max: 1,
+    msg: `Emoji must be a single character`,
+  })
   @Column
   emoji: string | null;
 
   @Column(DataType.TEXT)
   text: string;
 
-  @Length({
+  @SimpleLength({
     max: DocumentValidation.maxStateLength,
     msg: `Document collaborative state is too large, you must create a new document`,
   })
@@ -335,7 +339,7 @@ class Document extends ParanoidModel {
 
   @BeforeUpdate
   static processUpdate(model: Document) {
-    const { emoji } = parseTitle(model.text);
+    const { emoji } = parseTitle(model.title);
     // emoji in the title is split out for easier display
     model.emoji = emoji || null;
 
