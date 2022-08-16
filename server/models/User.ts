@@ -405,6 +405,23 @@ class User extends ParanoidModel {
     );
   };
 
+  /**
+   * Returns a list of teams that have a user matching this user's email.
+   *
+   * @returns A promise resolving to a list of teams
+   */
+  availableTeams = async () => {
+    const res = await (this.constructor as typeof User)
+      .scope("withTeam")
+      .findAll({
+        where: {
+          email: this.email,
+        },
+      });
+
+    return res.map((user) => user.team);
+  };
+
   demote = async (to: UserRole, options?: SaveOptions<User>) => {
     const res = await (this.constructor as typeof User).findAndCountAll({
       where: {

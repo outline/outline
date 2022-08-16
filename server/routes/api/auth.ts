@@ -107,9 +107,12 @@ router.post("auth.config", async (ctx) => {
 
 router.post("auth.info", auth(), async (ctx) => {
   const { user } = ctx.state;
-  const team = await Team.scope("withDomains").findByPk(user.teamId, {
-    rejectOnEmpty: true,
-  });
+  const [team, availableTeams] = await Promise.all([
+    Team.scope("withDomains").findByPk(user.teamId, {
+      rejectOnEmpty: true,
+    }),
+    user.availableTeams(),
+  ]);
 
   await ValidateSSOAccessTask.schedule({ userId: user.id });
 
@@ -119,6 +122,7 @@ router.post("auth.info", auth(), async (ctx) => {
         includeDetails: true,
       }),
       team: presentTeam(team),
+      availableTeams: availableTeams.map(presentTeam),
     },
     policies: presentPolicies(user, [team]),
   };
