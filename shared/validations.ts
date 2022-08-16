@@ -32,7 +32,7 @@ export const DocumentValidation = {
   maxTitleLength: 100,
 
   /** The maximum size of the collaborative document state */
-  maxStateLength: 1000000,
+  maxStateLength: 1500 * 1024,
 };
 
 export const PinValidation = {

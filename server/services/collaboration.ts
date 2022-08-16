@@ -4,6 +4,7 @@ import url from "url";
 import { Server } from "@hocuspocus/server";
 import Koa from "koa";
 import WebSocket from "ws";
+import { DocumentValidation } from "@shared/validations";
 import Logger from "@server/logging/Logger";
 import AuthenticationExtension from "../collaboration/AuthenticationExtension";
 import LoggerExtension from "../collaboration/LoggerExtension";
@@ -18,6 +19,7 @@ export default function init(
   const path = "/collaboration";
   const wss = new WebSocket.Server({
     noServer: true,
+    maxPayload: DocumentValidation.maxStateLength,
   });
 
   const hocuspocus = Server.configure({
