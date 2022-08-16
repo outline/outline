@@ -24,6 +24,7 @@ import GoogleDrive from "./GoogleDrive";
 import GoogleForms from "./GoogleForms";
 import GoogleSheets from "./GoogleSheets";
 import GoogleSlides from "./GoogleSlides";
+import Grist from "./Grist";
 import InVision from "./InVision";
 import JSFiddle from "./JSFiddle";
 import Loom from "./Loom";
@@ -240,6 +241,13 @@ const embeds: EmbedDescriptor[] = [
     icon: () => <Img src="/images/google-forms.png" alt="Google Forms" />,
     component: GoogleForms,
     matcher: matcher(GoogleForms),
+  },
+  {
+    title: "Grist",
+    keywords: "spreadsheet",
+    icon: () => <Img src="/images/grist.png" alt="Grist" />,
+    component: Grist,
+    matcher: matcher(Grist),
   },
   {
     title: "InVision",
