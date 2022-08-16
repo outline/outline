@@ -13,6 +13,7 @@ export default class RateLimiter {
   static readonly RATE_LIMITER_REDIS_KEY_PREFIX = "rl";
 
   static readonly rateLimiterMap = new Map<string, RateLimiterRedis>();
+
   static readonly defaultRateLimiter = new RateLimiterRedis({
     storeClient: Redis.defaultClient,
     points: env.RATE_LIMITER_REQUESTS,

@@ -7,9 +7,9 @@ import Metrics from "@server/logging/metrics";
 import Redis from "@server/redis";
 
 /**
- * Middleware that limits the number of requests per IP address that are allowed
- * within a window. Should only be applied once to a server – do not use on
- * individual routes.
+ * Middleware that limits the number of requests that are allowed within a given
+ * window. Should only be applied once to a server – do not use on individual
+ * routes.
  *
  * @returns The middleware function.
  */

@@ -496,8 +496,7 @@ export class Environment {
   );
 
   /**
-   * A boolean switch to toggle the rate limiter
-   * at application web server.
+   * A boolean switch to toggle the rate limiter at application web server.
    */
   @IsOptional()
   @IsBoolean()
@@ -506,19 +505,18 @@ export class Environment {
   );
 
   /**
-   * Set max allowed requests in a given duration for
-   * default rate limiter to trigger throttling.
+   * Set max allowed requests in a given duration for default rate limiter to
+   * trigger throttling, per IP address.
    */
   @IsOptional()
   @IsNumber()
   @CannotUseWithout("RATE_LIMITER_ENABLED")
   public RATE_LIMITER_REQUESTS =
-    this.toOptionalNumber(process.env.RATE_LIMITER_REQUESTS) ?? 5000;
+    this.toOptionalNumber(process.env.RATE_LIMITER_REQUESTS) ?? 1000;
 
   /**
-   * Set fixed duration window(in secs) for
-   * default rate limiter, elapsing which the request
-   * quota is reset(the bucket is refilled with tokens).
+   * Set fixed duration window(in secs) for default rate limiter, elapsing which
+   * the request quota is reset (the bucket is refilled with tokens).
    */
   @IsOptional()
   @IsNumber()
