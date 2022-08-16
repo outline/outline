@@ -5,7 +5,12 @@ import { sequelize } from "@server/database/sequelize";
 import env from "@server/env";
 import auth from "@server/middlewares/authentication";
 import { Event, Team } from "@server/models";
-import { presentUser, presentTeam, presentPolicies } from "@server/presenters";
+import {
+  presentUser,
+  presentTeam,
+  presentPolicies,
+  presentAvailableTeam,
+} from "@server/presenters";
 import ValidateSSOAccessTask from "@server/queues/tasks/ValidateSSOAccessTask";
 import providers from "../auth/providers";
 
@@ -122,7 +127,7 @@ router.post("auth.info", auth(), async (ctx) => {
         includeDetails: true,
       }),
       team: presentTeam(team),
-      availableTeams: availableTeams.map(presentTeam),
+      availableTeams: availableTeams.map(presentAvailableTeam),
     },
     policies: presentPolicies(user, [team]),
   };
