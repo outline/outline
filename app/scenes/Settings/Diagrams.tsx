@@ -4,13 +4,13 @@ import { BuildingBlocksIcon } from "outline-icons";
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation, Trans } from "react-i18next";
+import { IntegrationType } from "@shared/types";
 import Integration from "~/models/Integration";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
 import { ReactHookWrappedInput as Input } from "~/components/Input";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
-import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 
 type FormData = {
@@ -18,7 +18,6 @@ type FormData = {
 };
 
 function Diagrams() {
-  const user = useCurrentUser();
   const { integrations } = useStores();
   const { t } = useTranslation();
 
@@ -31,7 +30,7 @@ function Diagrams() {
   const integration = find(
     integrations.orderedData,
     (i) => i.service === "diagrams"
-  ) as Integration<{ hostname: string }> | undefined;
+  ) as Integration<IntegrationType.Embed> | undefined;
 
   const { register, handleSubmit: formHandleSubmit, formState } = useForm<
     FormData
@@ -44,7 +43,6 @@ function Diagrams() {
 
   const handleSubmit = React.useCallback(
     async (data: FormData) => {
-      console.log(data);
       if (integration) {
         await integration.save({
           settings: {
@@ -53,6 +51,7 @@ function Diagrams() {
         });
       } else {
         await integrations.create({
+          type: IntegrationType.Embed,
           service: "diagrams",
           settings: {
             hostname: data.hostname,

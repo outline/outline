@@ -1,17 +1,12 @@
 import { observable } from "mobx";
+import type { IntegrationSettings } from "@shared/types";
 import BaseModel from "~/models/BaseModel";
 import Field from "./decorators/Field";
 
-type Settings = {
-  url: string;
-  channel: string;
-  channelId: string;
-};
-
-class Integration<S = Settings> extends BaseModel {
+class Integration<T> extends BaseModel {
   id: string;
 
-  type: string;
+  type: T;
 
   service: string;
 
@@ -21,7 +16,7 @@ class Integration<S = Settings> extends BaseModel {
   @observable
   events: string[];
 
-  settings: S;
+  settings: IntegrationSettings<T>;
 }
 
 export default Integration;

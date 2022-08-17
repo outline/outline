@@ -7,17 +7,14 @@ import {
   Scopes,
   IsIn,
 } from "sequelize-typescript";
+import { IntegrationType } from "@shared/types";
+import type { IntegrationSettings } from "@shared/types";
 import Collection from "./Collection";
 import IntegrationAuthentication from "./IntegrationAuthentication";
 import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
-
-export enum IntegrationType {
-  Post = "post",
-  Command = "command",
-}
 
 export enum IntegrationService {
   Diagrams = "diagrams",
@@ -27,19 +24,6 @@ export enum IntegrationService {
 export enum UserCreatableIntegrationService {
   Diagrams = "diagrams",
 }
-
-export type IntegrationSettings =
-  | {
-      hostname: string;
-    }
-  | {
-      url: string;
-      channel: string;
-      channelId: string;
-    }
-  | {
-      serviceTeamId: string;
-    };
 
 @Scopes(() => ({
   withAuthentication: {
@@ -54,17 +38,17 @@ export type IntegrationSettings =
 }))
 @Table({ tableName: "integrations", modelName: "integration" })
 @Fix
-class Integration extends IdModel {
+class Integration<T> extends IdModel {
   @IsIn([Object.values(IntegrationType)])
-  @Column
-  type: string;
+  @Column(DataType.STRING)
+  type: T;
 
   @IsIn([Object.values(IntegrationService)])
   @Column
   service: string;
 
   @Column(DataType.JSONB)
-  settings: IntegrationSettings;
+  settings: IntegrationSettings<T>;
 
   @IsIn([["documents.update", "documents.publish"]])
   @Column(DataType.ARRAY(DataType.STRING))

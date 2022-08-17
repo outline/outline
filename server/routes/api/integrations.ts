@@ -1,4 +1,5 @@
 import Router from "koa-router";
+import { IntegrationType } from "@shared/types";
 import auth from "@server/middlewares/authentication";
 import { Event } from "@server/models";
 import Integration, {
@@ -41,17 +42,21 @@ router.post("integrations.list", auth(), pagination(), async (ctx) => {
 });
 
 router.post("integrations.create", auth({ admin: true }), async (ctx) => {
-  const { service, settings } = ctx.body;
+  const { type, service, settings } = ctx.body;
+
+  assertIn(type, Object.values(IntegrationType));
+
   const { user } = ctx.state;
   authorize(user, "createIntegration", user.team);
 
   assertIn(service, Object.values(UserCreatableIntegrationService));
 
   const integration = await Integration.create({
-    service,
     userId: user.id,
     teamId: user.teamId,
+    service,
     settings,
+    type,
   });
 
   ctx.body = {
@@ -60,7 +65,7 @@ router.post("integrations.create", auth({ admin: true }), async (ctx) => {
 });
 
 router.post("integrations.update", auth({ admin: true }), async (ctx) => {
-  const { id, events } = ctx.body;
+  const { id, events = [], settings } = ctx.body;
   assertUuid(id, "id is required");
 
   const { user } = ctx.state;
@@ -70,10 +75,16 @@ router.post("integrations.update", auth({ admin: true }), async (ctx) => {
   assertArray(events, "events must be an array");
 
   if (integration.type === "post") {
-    integration.events = events.filter((event: string) =>
-      ["documents.update", "documents.publish"].includes(event)
-    );
+    integration.set({
+      events: events.filter((event: string) =>
+        ["documents.update", "documents.publish"].includes(event)
+      ),
+    });
   }
+
+  integration.set({
+    settings,
+  });
 
   await integration.save();
 
