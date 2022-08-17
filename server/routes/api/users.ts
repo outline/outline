@@ -24,6 +24,7 @@ import {
   assertSort,
   assertPresent,
   assertArray,
+  assertUuid,
 } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
@@ -402,23 +403,36 @@ router.post(
 router.post(
   "users.delete",
   auth(),
-  rateLimiter(RateLimiterStrategy.FivePerHour),
+  rateLimiter(RateLimiterStrategy.TenPerHour),
   async (ctx) => {
-    const { code = "" } = ctx.body;
-    const { user } = ctx.state;
+    const { id, code = "" } = ctx.body;
+    let user: User;
+
+    if (id) {
+      assertUuid(id, "id must be a UUID");
+      user = await User.findByPk(id, {
+        rejectOnEmpty: true,
+      });
+    } else {
+      user = ctx.state.user;
+    }
     authorize(user, "delete", user);
 
-    const deleteConfirmationCode = user.deleteConfirmationCode;
+    // If we're attempting to delete our own account then a confirmation code
+    // is required. This acts as CSRF protection.
+    if (!id || id === ctx.state.user.id) {
+      const deleteConfirmationCode = user.deleteConfirmationCode;
 
-    if (
-      emailEnabled &&
-      (code.length !== deleteConfirmationCode.length ||
-        !crypto.timingSafeEqual(
-          Buffer.from(code),
-          Buffer.from(deleteConfirmationCode)
-        ))
-    ) {
-      throw ValidationError("The confirmation code was incorrect");
+      if (
+        emailEnabled &&
+        (code.length !== deleteConfirmationCode.length ||
+          !crypto.timingSafeEqual(
+            Buffer.from(code),
+            Buffer.from(deleteConfirmationCode)
+          ))
+      ) {
+        throw ValidationError("The confirmation code was incorrect");
+      }
     }
 
     await userDestroyer({

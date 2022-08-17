@@ -328,7 +328,7 @@ describe("#users.delete", () => {
     expect(res.status).toEqual(400);
   });
 
-  it("should require correct code", async () => {
+  it("should require correct code when no id passed", async () => {
     const user = await buildAdmin();
     await buildUser({
       teamId: user.teamId,
@@ -352,6 +352,20 @@ describe("#users.delete", () => {
       body: {
         code: user.deleteConfirmationCode,
         token: user.getJwtToken(),
+      },
+    });
+    expect(res.status).toEqual(200);
+  });
+
+  it("should allow deleting user account as admin", async () => {
+    const admin = await buildAdmin();
+    const user = await buildUser({
+      teamId: admin.teamId,
+    });
+    const res = await server.post("/api/users.delete", {
+      body: {
+        id: user.id,
+        token: admin.getJwtToken(),
       },
     });
     expect(res.status).toEqual(200);
