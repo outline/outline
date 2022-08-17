@@ -22,6 +22,7 @@ import {
 import { languages } from "@shared/i18n";
 import { CannotUseWithout } from "@server/utils/validators";
 import Deprecated from "./models/decorators/Deprecated";
+import { getArg } from "./utils/args";
 
 export class Environment {
   private validationPromise;
@@ -202,9 +203,14 @@ export class Environment {
   /**
    * A comma separated list of which services should be enabled on this
    * instance – defaults to all.
+   *
+   * If a services flag is passed it takes priority over the environment variable
+   * for example: --services=web,worker
    */
   public SERVICES =
-    process.env.SERVICES ?? "collaboration,websockets,worker,web";
+    getArg("services") ??
+    process.env.SERVICES ??
+    "collaboration,websockets,worker,web";
 
   /**
    * Auto-redirect to https in production. The default is true but you may set

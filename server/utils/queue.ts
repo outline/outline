@@ -9,6 +9,9 @@ export function createQueue(
   defaultJobOptions?: Partial<Queue.JobOptions>
 ) {
   const prefix = `queue.${snakeCase(name)}`;
+
+  // Notes on reusing Redis connections for Bull:
+  // https://github.com/OptimalBits/bull/blob/b6d530f72a774be0fd4936ddb4ad9df3b183f4b6/PATTERNS.md#reusing-redis-connections
   const queue = new Queue(name, {
     createClient(type) {
       switch (type) {
@@ -18,11 +21,16 @@ export function createQueue(
         case "subscriber":
           return Redis.defaultSubscriber;
 
+        case "bclient":
+          return new Redis(env.REDIS_URL, {
+            maxRetriesPerRequest: null,
+            connectionNameSuffix: "bull",
+          });
+
         default:
-          return new Redis(env.REDIS_URL);
+          throw new Error(`Unexpected connection type: ${type}`);
       }
     },
-
     defaultJobOptions: {
       removeOnComplete: true,
       removeOnFail: true,
