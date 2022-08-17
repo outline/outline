@@ -25,6 +25,7 @@ type Options = {
 
 type FetchOptions = {
   download?: boolean;
+  credentials?: "omit" | "same-origin" | "include";
 };
 
 const fetchWithRetry = retry(fetch);
@@ -109,7 +110,11 @@ class ApiClient {
         // not needed for authentication this offers a performance increase.
         // For self-hosted we include them to support a wide variety of
         // authenticated proxies, e.g. Pomerium, Cloudflare Access etc.
-        credentials: isCloudHosted ? "omit" : "same-origin",
+        credentials: options.credentials
+          ? options.credentials
+          : isCloudHosted
+          ? "omit"
+          : "same-origin",
         cache: "no-cache",
       });
     } catch (err) {

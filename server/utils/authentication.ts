@@ -7,6 +7,20 @@ import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { User, Event, Team, Collection, View } from "@server/models";
 
+/**
+ * Parse and return the details from the "sessions" cookie in the request, if
+ * any. The cookie is on the apex domain and includes session details for
+ * other subdomains.
+ *
+ * @param ctx The Koa context
+ * @returns The session details
+ */
+export function getSessionsInCookie(ctx: Context) {
+  return JSON.parse(
+    decodeURIComponent(ctx.cookies.get("sessions") || "") || "{}"
+  );
+}
+
 export async function signIn(
   ctx: Context,
   user: User,
@@ -68,9 +82,7 @@ export async function signIn(
   // to the teams subdomain if subdomains are enabled
   if (env.SUBDOMAINS_ENABLED && team.subdomain) {
     // get any existing sessions (teams signed in) and add this team
-    const existing = JSON.parse(
-      decodeURIComponent(ctx.cookies.get("sessions") || "") || "{}"
-    );
+    const existing = getSessionsInCookie(ctx);
     const sessions = encodeURIComponent(
       JSON.stringify({
         ...existing,

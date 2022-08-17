@@ -144,7 +144,9 @@ export default class AuthStore {
   @action
   fetch = async () => {
     try {
-      const res = await client.post("/auth.info");
+      const res = await client.post("/auth.info", undefined, {
+        credentials: "same-origin",
+      });
       invariant(res?.data, "Auth not available");
       runInAction("AuthStore#fetch", () => {
         this.addPolicies(res.policies);
