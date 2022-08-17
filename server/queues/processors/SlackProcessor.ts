@@ -1,8 +1,8 @@
 import fetch from "fetch-with-proxy";
 import { Op } from "sequelize";
+import { IntegrationType } from "@shared/types";
 import env from "@server/env";
 import { Document, Integration, Collection, Team } from "@server/models";
-import { IntegrationType } from "@server/models/Integration";
 import { presentSlackAttachment } from "@server/presenters";
 import {
   DocumentEvent,

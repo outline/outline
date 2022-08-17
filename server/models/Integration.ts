@@ -38,10 +38,10 @@ export enum UserCreatableIntegrationService {
 }))
 @Table({ tableName: "integrations", modelName: "integration" })
 @Fix
-class Integration<T> extends IdModel {
+class Integration<T = unknown> extends IdModel {
   @IsIn([Object.values(IntegrationType)])
-  @Column(DataType.STRING)
-  type: T;
+  @Column
+  type: string;
 
   @IsIn([Object.values(IntegrationService)])
   @Column

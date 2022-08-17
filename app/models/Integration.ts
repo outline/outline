@@ -3,7 +3,7 @@ import type { IntegrationSettings } from "@shared/types";
 import BaseModel from "~/models/BaseModel";
 import Field from "./decorators/Field";
 
-class Integration<T> extends BaseModel {
+class Integration<T = unknown> extends BaseModel {
   id: string;
 
   type: T;

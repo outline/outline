@@ -32,4 +32,9 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
   ? { hostname: string }
   : T extends IntegrationType.Post
   ? { url: string; channel: string; channelId: string }
-  : { serviceTeamId: string };
+  : T extends IntegrationType.Post
+  ? { serviceTeamId: string }
+  :
+      | { hostname: string }
+      | { url: string; channel: string; channelId: string }
+      | { serviceTeamId: string };
