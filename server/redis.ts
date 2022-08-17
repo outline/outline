@@ -10,6 +10,7 @@ type RedisAdapterOptions = Redis.RedisOptions & {
 
 const defaultOptions: Redis.RedisOptions = {
   maxRetriesPerRequest: 20,
+  enableReadyCheck: false,
 
   retryStrategy(times: number) {
     Logger.warn(`Retrying redis connection: attempt ${times}`);
@@ -41,7 +42,7 @@ export default class RedisAdapter extends Redis {
     if (!url || !url.startsWith("ioredis://")) {
       super(
         env.REDIS_URL,
-        defaults(defaultOptions, { connectionName }, options)
+        defaults(options, { connectionName }, defaultOptions)
       );
     } else {
       let customOptions = {};
@@ -54,7 +55,7 @@ export default class RedisAdapter extends Redis {
 
       try {
         super(
-          defaults(defaultOptions, { connectionName }, customOptions, options)
+          defaults(options, customOptions, { connectionName }, defaultOptions)
         );
       } catch (error) {
         throw new Error(`Failed to initialize redis client: ${error}`);
@@ -83,6 +84,7 @@ export default class RedisAdapter extends Redis {
     return (
       this.subscriber ||
       (this.subscriber = new this(env.REDIS_URL, {
+        maxRetriesPerRequest: null,
         connectionNameSuffix: "subscriber",
       }))
     );
