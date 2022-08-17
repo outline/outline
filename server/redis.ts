@@ -35,8 +35,10 @@ export default class RedisAdapter extends Redis {
      * For debugging. The connection name is based on the services running in
      * this process. Note that this does not need to be unique.
      */
+    const connectionNamePrefix =
+      env.ENVIRONMENT === "development" ? process.pid : "outline";
     const connectionName =
-      `outline:${env.SERVICES.replace(/,/g, "-")}` +
+      `${connectionNamePrefix}:${env.SERVICES.replace(/,/g, "-")}` +
       (connectionNameSuffix ? `:${connectionNameSuffix}` : "");
 
     if (!url || !url.startsWith("ioredis://")) {
@@ -55,7 +57,7 @@ export default class RedisAdapter extends Redis {
 
       try {
         super(
-          defaults(options, customOptions, { connectionName }, defaultOptions)
+          defaults(options, { connectionName }, customOptions, defaultOptions)
         );
       } catch (error) {
         throw new Error(`Failed to initialize redis client: ${error}`);
