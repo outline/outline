@@ -19,7 +19,9 @@ export function createQueue(
           return Redis.defaultSubscriber;
 
         default:
-          return new Redis(env.REDIS_URL);
+          return new Redis(env.REDIS_URL, {
+            connectionNameSuffix: type,
+          });
       }
     },
 
