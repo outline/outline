@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useLocation, RouteComponentProps, StaticContext } from "react-router";
 import Document from "~/models/Document";
+import Integration from "~/models/Integration";
 import Revision from "~/models/Revision";
 import Error404 from "~/scenes/Error404";
 import ErrorOffline from "~/scenes/ErrorOffline";
@@ -34,6 +35,7 @@ type Children = (options: {
   readOnly: boolean;
   onCreateLink: (title: string) => Promise<string>;
   sharedTree: NavigationNode | undefined;
+  integrations?: Integration[];
 }) => React.ReactNode;
 
 type Props = RouteComponentProps<Params, StaticContext, LocationState> & {
@@ -41,7 +43,7 @@ type Props = RouteComponentProps<Params, StaticContext, LocationState> & {
 };
 
 function DataLoader({ match, children }: Props) {
-  const { ui, shares, documents, auth, revisions } = useStores();
+  const { ui, shares, documents, auth, revisions, integrations } = useStores();
   const { team } = auth;
   const [error, setError] = React.useState<Error | null>(null);
   const { revisionId, shareId, documentSlug } = match.params;
@@ -72,6 +74,19 @@ function DataLoader({ match, children }: Props) {
     }
     fetchDocument();
   }, [ui, documents, document, shareId, documentSlug]);
+
+  React.useEffect(() => {
+    async function fetchIntegrations() {
+      try {
+        integrations.fetchPage({
+          limit: 100,
+        });
+      } catch (err) {
+        setError(err);
+      }
+    }
+    fetchIntegrations();
+  }, [integrations]);
 
   React.useEffect(() => {
     async function fetchRevision() {
@@ -161,6 +176,7 @@ function DataLoader({ match, children }: Props) {
           !isEditing || !can.update || document.isArchived || !!revisionId,
         onCreateLink,
         sharedTree,
+        integrations: integrations.orderedData,
       })}
     </React.Fragment>
   );

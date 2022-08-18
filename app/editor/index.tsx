@@ -27,6 +27,7 @@ import ReactNode from "@shared/editor/nodes/ReactNode";
 import fullExtensionsPackage from "@shared/editor/packages/full";
 import { EmbedDescriptor, EventType } from "@shared/editor/types";
 import EventEmitter from "@shared/utils/events";
+import Integration from "~/models/Integration";
 import Flex from "~/components/Flex";
 import { Dictionary } from "~/hooks/useDictionary";
 import Logger from "~/utils/Logger";
@@ -110,6 +111,8 @@ export type Props = {
   onShowToast: (message: string) => void;
   className?: string;
   style?: React.CSSProperties;
+
+  integrations?: Integration[];
 };
 
 type State = {
