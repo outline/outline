@@ -7,6 +7,7 @@ import userDemoter from "@server/commands/userDemoter";
 import userDestroyer from "@server/commands/userDestroyer";
 import userInviter from "@server/commands/userInviter";
 import userSuspender from "@server/commands/userSuspender";
+import userUnsuspender from "@server/commands/userUnsuspender";
 import { sequelize } from "@server/database/sequelize";
 import ConfirmUserDeleteEmail from "@server/emails/templates/ConfirmUserDeleteEmail";
 import InviteEmail from "@server/emails/templates/InviteEmail";
@@ -284,21 +285,16 @@ router.post("users.suspend", auth(), async (ctx) => {
 
 router.post("users.activate", auth(), async (ctx) => {
   const userId = ctx.body.id;
-  const teamId = ctx.state.user.teamId;
   const actor = ctx.state.user;
   assertPresent(userId, "id is required");
-  const user = await User.findByPk(userId);
+  const user = await User.findByPk(userId, {
+    rejectOnEmpty: true,
+  });
   authorize(actor, "activate", user);
 
-  await user.activate();
-  await Event.create({
-    name: "users.activate",
+  await userUnsuspender({
+    user,
     actorId: actor.id,
-    userId,
-    teamId,
-    data: {
-      name: user.name,
-    },
     ip: ctx.request.ip,
   });
   const includeDetails = can(actor, "readDetails", user);

@@ -438,13 +438,6 @@ class User extends ParanoidModel {
     });
   };
 
-  activate = () => {
-    return this.update({
-      suspendedById: null,
-      suspendedAt: null,
-    });
-  };
-
   // hooks
 
   @BeforeDestroy

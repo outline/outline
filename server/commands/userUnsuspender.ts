@@ -1,7 +1,6 @@
 import { Transaction } from "sequelize";
 import { sequelize } from "@server/database/sequelize";
-import { User, Event, GroupUser } from "@server/models";
-import CleanupDemotedUserTask from "@server/queues/tasks/CleanupDemotedUserTask";
+import { User, Event } from "@server/models";
 import { ValidationError } from "../errors";
 
 type Props = {
@@ -11,37 +10,29 @@ type Props = {
 };
 
 /**
- * This command suspends an active user, this will cause them to lose access to
- * the team.
+ * This command unsuspends a previously suspended user, allowing access to the
+ * team again.
  */
-export default async function userSuspender({
+export default async function userUnsuspender({
   user,
   actorId,
   ip,
 }: Props): Promise<void> {
   if (user.id === actorId) {
-    throw ValidationError("Unable to suspend the current user");
+    throw ValidationError("Unable to unsuspend the current user");
   }
 
   await sequelize.transaction(async (transaction: Transaction) => {
     await user.update(
       {
-        suspendedById: actorId,
-        suspendedAt: new Date(),
+        suspendedById: null,
+        suspendedAt: null,
       },
-      {
-        transaction,
-      }
+      { transaction }
     );
-    await GroupUser.destroy({
-      where: {
-        userId: user.id,
-      },
-      transaction,
-    });
     await Event.create(
       {
-        name: "users.suspend",
+        name: "users.activate",
         actorId,
         userId: user.id,
         teamId: user.teamId,
@@ -54,7 +45,5 @@ export default async function userSuspender({
         transaction,
       }
     );
-
-    await CleanupDemotedUserTask.schedule({ userId: user.id });
   });
 }
