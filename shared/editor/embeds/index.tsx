@@ -53,7 +53,7 @@ export type EmbedProps = {
     href: string;
     matches: RegExpMatchArray;
   };
-  integrations?: any;
+  embedIntegrations?: any;
 };
 
 function matcher(Component: React.ComponentType<EmbedProps>) {

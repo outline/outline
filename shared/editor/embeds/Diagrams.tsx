@@ -12,7 +12,7 @@ function Diagrams(props: Props) {
     : "Diagrams.net";
 
   const integration = find(
-    props.integrations.orderedData,
+    props.embedIntegrations,
     (i) => i.service === "diagrams"
   );
 

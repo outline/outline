@@ -1,6 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useLocation, RouteComponentProps, StaticContext } from "react-router";
+import { IntegrationType } from "@shared/types";
 import Document from "~/models/Document";
 import Integration from "~/models/Integration";
 import Revision from "~/models/Revision";
@@ -35,7 +36,7 @@ type Children = (options: {
   readOnly: boolean;
   onCreateLink: (title: string) => Promise<string>;
   sharedTree: NavigationNode | undefined;
-  integrations?: Integration[];
+  embedIntegrations?: Integration<IntegrationType.Embed>[];
 }) => React.ReactNode;
 
 type Props = RouteComponentProps<Params, StaticContext, LocationState> & {
@@ -76,16 +77,17 @@ function DataLoader({ match, children }: Props) {
   }, [ui, documents, document, shareId, documentSlug]);
 
   React.useEffect(() => {
-    async function fetchIntegrations() {
+    async function fetchEmbedIntegrations() {
       try {
         integrations.fetchPage({
           limit: 100,
+          type: IntegrationType.Embed,
         });
       } catch (err) {
         setError(err);
       }
     }
-    !integrations.isLoaded && fetchIntegrations();
+    !integrations.isLoaded && fetchEmbedIntegrations();
   }, [integrations]);
 
   React.useEffect(() => {
@@ -176,7 +178,9 @@ function DataLoader({ match, children }: Props) {
           !isEditing || !can.update || document.isArchived || !!revisionId,
         onCreateLink,
         sharedTree,
-        integrations: integrations.orderedData,
+        embedIntegrations: integrations.isLoaded
+          ? (integrations.orderedData as Integration<IntegrationType.Embed>[])
+          : undefined,
       })}
     </React.Fragment>
   );

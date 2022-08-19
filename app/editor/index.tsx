@@ -26,6 +26,7 @@ import Node from "@shared/editor/nodes/Node";
 import ReactNode from "@shared/editor/nodes/ReactNode";
 import fullExtensionsPackage from "@shared/editor/packages/full";
 import { EmbedDescriptor, EventType } from "@shared/editor/types";
+import { IntegrationType } from "@shared/types";
 import EventEmitter from "@shared/utils/events";
 import Integration from "~/models/Integration";
 import Flex from "~/components/Flex";
@@ -112,7 +113,7 @@ export type Props = {
   className?: string;
   style?: React.CSSProperties;
 
-  integrations?: Integration[];
+  embedIntegrations?: Integration<IntegrationType.Embed>[];
 };
 
 type State = {
