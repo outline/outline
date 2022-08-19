@@ -85,7 +85,7 @@ function DataLoader({ match, children }: Props) {
         setError(err);
       }
     }
-    fetchIntegrations();
+    !integrations.isLoaded && fetchIntegrations();
   }, [integrations]);
 
   React.useEffect(() => {
