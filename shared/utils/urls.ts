@@ -67,7 +67,11 @@ export function isUrl(text: string) {
  * @returns True if the url is external, false otherwise.
  */
 export function isExternalUrl(url: string) {
-  return !isInternalUrl(url);
+  if (url) {
+    return !isInternalUrl(url);
+  }
+
+  return false;
 }
 
 /**
@@ -86,7 +90,8 @@ export function sanitizeUrl(url: string | null | undefined) {
     !isUrl(url) &&
     !url.startsWith("/") &&
     !url.startsWith("#") &&
-    !url.startsWith("mailto:")
+    !url.startsWith("mailto:") &&
+    !url.includes("://")
   ) {
     return `https://${url}`;
   }
