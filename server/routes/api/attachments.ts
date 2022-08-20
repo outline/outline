@@ -56,7 +56,8 @@ router.post("attachments.create", auth(), async (ctx) => {
   const endpoint = publicS3Endpoint();
   const url = `${endpoint}/${key}`;
 
-  if (documentId) {
+  if (documentId !== undefined) {
+    assertUuid(documentId, "documentId must be a uuid");
     const document = await Document.findByPk(documentId, {
       userId: user.id,
     });
