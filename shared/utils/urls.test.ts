@@ -67,4 +67,15 @@ describe("sanitizeUrl Method", () => {
       );
     });
   });
+
+  describe("Blocked protocols", () => {
+    it("should be sanitized", () => {
+      expect(urlsUtils.sanitizeUrl("file://localhost/outline.txt")).toEqual(
+        "https://file://localhost/outline.txt"
+      );
+      expect(urlsUtils.sanitizeUrl("javascript://whatever")).toEqual(
+        "https://javascript://whatever"
+      );
+    });
+  });
 });

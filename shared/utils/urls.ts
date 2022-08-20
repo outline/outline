@@ -1,3 +1,4 @@
+import { blockedProtocols } from "../constants";
 import env from "../env";
 import { parseDomain } from "./domains";
 
@@ -86,12 +87,14 @@ export function sanitizeUrl(url: string | null | undefined) {
     return undefined;
   }
 
+  const protocol = url.match(/(\w+):\/\//);
+
   if (
-    !isUrl(url) &&
-    !url.startsWith("/") &&
-    !url.startsWith("#") &&
-    !url.startsWith("mailto:") &&
-    !url.includes("://")
+    (!isUrl(url) &&
+      !url.startsWith("/") &&
+      !url.startsWith("#") &&
+      !url.startsWith("mailto:")) ||
+    (protocol && blockedProtocols.includes(protocol[0]))
   ) {
     return `https://${url}`;
   }
