@@ -1,3 +1,4 @@
+import { find } from "lodash";
 import Token from "markdown-it/lib/token";
 import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
 import { EditorState } from "prosemirror-state";
@@ -28,12 +29,16 @@ export default class Embed extends Node {
         {
           tag: "iframe.embed",
           getAttrs: (dom: HTMLIFrameElement) => {
-            const { embeds } = this.editor.props;
+            const { embeds, embedIntegrations } = this.editor.props;
             const href = dom.getAttribute("src") || "";
 
             if (embeds) {
               for (const embed of embeds) {
-                const matches = embed.matcher(href);
+                const embedConf = find(
+                  embedIntegrations,
+                  (i) => i.service === embed.component.name.toLowerCase()
+                );
+                const matches = embed.matcher(href, embedConf);
                 if (matches) {
                   return {
                     href,
@@ -60,7 +65,9 @@ export default class Embed extends Node {
   }
 
   get rulePlugins() {
-    return [embedsRule(this.options.embeds)];
+    const { embeds } = this.options;
+    const { embedIntegrations } = this.editor.props;
+    return [embedsRule(embeds, embedIntegrations as any[])];
   }
 
   component({ isEditable, isSelected, theme, node }: ComponentProps) {
@@ -76,7 +83,11 @@ export default class Embed extends Node {
 
     if (!Component) {
       for (const e of embeds) {
-        const m = e.matcher(node.attrs.href);
+        const embedConf = find(
+          embedIntegrations,
+          (i) => i.service === e.component.name.toLowerCase()
+        );
+        const m = e.matcher(node.attrs.href, embedConf);
         if (m) {
           Component = e.component;
           matches = m;

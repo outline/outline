@@ -53,13 +53,31 @@ export type EmbedProps = {
     href: string;
     matches: RegExpMatchArray;
   };
-  embedIntegrations?: any;
+  embedIntegrations?: any[];
 };
 
 function matcher(Component: React.ComponentType<EmbedProps>) {
-  return (url: string): boolean | [] | RegExpMatchArray => {
+  return (url: string, embedConfig?: any): boolean | [] | RegExpMatchArray => {
     // @ts-expect-error not aware of static
-    const regexes = Component.ENABLED;
+    let regexes = Component.ENABLED;
+
+    if (embedConfig) {
+      const hostname = embedConfig?.settings.hostname;
+
+      try {
+        const url = new URL(hostname);
+        regexes = [
+          new RegExp(
+            `^${url.protocol}//${url.host.replace(
+              /\./g,
+              "\\."
+            )}/(?!proxy).*(title=\\\\w+)?`
+          ),
+        ];
+      } catch (err) {
+        // no-op
+      }
+    }
 
     for (const regex of regexes) {
       const result = url.match(regex);

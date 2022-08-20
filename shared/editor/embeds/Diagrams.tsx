@@ -1,4 +1,3 @@
-import { find } from "lodash";
 import * as React from "react";
 import Frame from "../components/Frame";
 import Image from "../components/Image";
@@ -10,16 +9,6 @@ function Diagrams(props: Props) {
   const title = params.get("title")
     ? `Diagrams.net (${params.get("title")})`
     : "Diagrams.net";
-
-  const integration = find(
-    props.embedIntegrations,
-    (i) => i.service === "diagrams"
-  );
-
-  // TODO: This is just for initial debugging
-  // to ensure proper data flow. It'll be removed
-  // once further work is done.
-  console.log(integration);
 
   return (
     <Frame

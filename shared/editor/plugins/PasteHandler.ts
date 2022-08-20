@@ -1,3 +1,4 @@
+import { find } from "lodash";
 import { toggleMark } from "prosemirror-commands";
 import { Plugin } from "prosemirror-state";
 import { isInTable } from "prosemirror-tables";
@@ -96,11 +97,15 @@ export default class PasteHandler extends Extension {
               }
 
               // Is this link embeddable? Create an embed!
-              const { embeds } = this.editor.props;
+              const { embeds, embedIntegrations } = this.editor.props;
 
               if (embeds && !isInTable(state)) {
                 for (const embed of embeds) {
-                  const matches = embed.matcher(text);
+                  const embedConf = find(
+                    embedIntegrations,
+                    (i) => i.service === embed.component.name.toLowerCase()
+                  );
+                  const matches = embed.matcher(text, embedConf);
                   if (matches) {
                     this.editor.commands.embed({
                       href: text,
