@@ -1,4 +1,3 @@
-import { find } from "lodash";
 import MarkdownIt from "markdown-it";
 import Token from "markdown-it/lib/token";
 import { EmbedDescriptor } from "../types";
@@ -19,10 +18,7 @@ function isLinkClose(token: Token) {
   return token.type === "link_close";
 }
 
-export default function linksToEmbeds(
-  embeds: EmbedDescriptor[],
-  embedIntegrations: any[]
-) {
+export default function linksToEmbeds(embeds: EmbedDescriptor[]) {
   function isEmbed(token: Token, link: Token) {
     const href = link.attrs ? link.attrs[0][1] : "";
     const simpleLink = href === token.content;
@@ -35,13 +31,7 @@ export default function linksToEmbeds(
     }
 
     for (const embed of embeds) {
-      const matches = embed.matcher(
-        href,
-        find(
-          embedIntegrations,
-          (i) => i.service === embed.component.name.toLowerCase()
-        )
-      );
+      const matches = embed.matcher(href);
       if (matches) {
         return {
           ...embed,
