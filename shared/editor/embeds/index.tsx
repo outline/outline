@@ -1,6 +1,7 @@
 import { EditorState } from "prosemirror-state";
 import * as React from "react";
 import styled from "styled-components";
+import { urlRegex } from "../../utils/urls";
 import Image from "../components/Image";
 import Abstract from "./Abstract";
 import Airtable from "./Airtable";
@@ -94,22 +95,15 @@ export class EmbedDescriptor {
   }
 
   matcher(url: string): boolean | [] | RegExpMatchArray {
-    // @ts-expect-error not aware of static
-    let regexes = this.component.ENABLED;
+    const regex = urlRegex(this.host);
 
-    try {
-      const urlObj = new URL(this.host as string | URL);
-      regexes = [
-        new RegExp(
-          `^${urlObj.protocol}//${urlObj.host.replace(/\./g, "\\.")}${
-            // @ts-expect-error not aware of static
-            this.component.URL_PATH_REGEX
-          }`
-        ),
-      ];
-    } catch (err) {
-      // no-op
-    }
+    const regexes = regex
+      ? [
+          // @ts-expect-error not aware of static
+          new RegExp(`${regex.source}${this.component.URL_PATH_REGEX.source}`),
+        ]
+      : // @ts-expect-error not aware of static
+        this.component.ENABLED;
 
     for (const regex of regexes) {
       const result = url.match(regex);

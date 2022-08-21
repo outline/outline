@@ -92,3 +92,17 @@ export function sanitizeUrl(url: string | null | undefined) {
   }
   return url;
 }
+
+export function urlRegex(url: string | null | undefined): RegExp | undefined {
+  if (!url || !isUrl(url)) {
+    return;
+  }
+
+  const urlObj = new URL(url);
+
+  return new RegExp(
+    `^${urlObj.protocol}//${urlObj.host
+      .replace(/\//g, "\\/")
+      .replace(/\./g, "\\.")}`
+  );
+}

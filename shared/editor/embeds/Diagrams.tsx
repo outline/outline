@@ -33,6 +33,6 @@ Diagrams.ENABLED = [
   /^https:\/\/viewer\.diagrams\.net\/(?!proxy).*(title=\\w+)?/,
 ];
 
-Diagrams.URL_PATH_REGEX = "/(?!proxy).*(title=\\\\w+)?";
+Diagrams.URL_PATH_REGEX = /\/(?!proxy).*(title=\\w+)?/;
 
 export default Diagrams;
