@@ -1,12 +1,12 @@
 import { formatDistanceToNow } from "date-fns";
-import { deburr, sortBy } from "lodash";
+import { deburr, sortBy, find } from "lodash";
 import { DOMParser as ProsemirrorDOMParser } from "prosemirror-model";
 import { TextSelection } from "prosemirror-state";
 import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
 import { Optional } from "utility-types";
 import insertFiles from "@shared/editor/commands/insertFiles";
-import embeds from "@shared/editor/embeds";
+import embeds, { EmbedDescriptor } from "@shared/editor/embeds";
 import { Heading } from "@shared/editor/lib/getHeadings";
 import { getDataTransferFiles } from "@shared/utils/files";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
@@ -280,7 +280,16 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
           ref={mergeRefs([ref, handleRefChanged])}
           uploadFile={onUploadFile}
           onShowToast={showToast}
-          embeds={embeds}
+          embeds={embeds.map((e) => {
+            const em = find(
+              props.embedIntegrations,
+              (i) => i.service === e.component.name.toLowerCase()
+            );
+            return new EmbedDescriptor({
+              ...e,
+              host: em?.settings.hostname,
+            });
+          })}
           dictionary={dictionary}
           {...props}
           onHoverLink={handleLinkActive}
