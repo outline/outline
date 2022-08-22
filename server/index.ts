@@ -118,6 +118,8 @@ async function start(id: number, disconnect: () => void) {
   });
 
   server.listen(normalizedPortFlag || env.PORT || "3000");
+  server.setTimeout(env.REQUEST_TIMEOUT);
+
   process.once("SIGTERM", shutdown);
   process.once("SIGINT", shutdown);
 

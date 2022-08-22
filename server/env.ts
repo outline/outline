@@ -168,6 +168,15 @@ export class Environment {
   public WEB_CONCURRENCY = this.toOptionalNumber(process.env.WEB_CONCURRENCY);
 
   /**
+   * How long a request should be processed before giving up and returning an
+   * error response to the client, defaults to 10s
+   */
+  @IsNumber()
+  @IsOptional()
+  public REQUEST_TIMEOUT =
+    this.toOptionalNumber(process.env.REQUEST_TIMEOUT) ?? 10 * 1000;
+
+  /**
    * Base64 encoded private key if Outline is to perform SSL termination.
    */
   @IsOptional()
