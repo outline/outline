@@ -58,7 +58,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   const { documents } = useStores();
   const { showToast } = useToasts();
   const dictionary = useDictionary();
-  const embedsWithUrls = React.useMemo(
+  const embedsWithSetings = React.useMemo(
     () =>
       embeds.map((e) => {
         const em = find(
@@ -294,7 +294,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
           ref={mergeRefs([ref, handleRefChanged])}
           uploadFile={onUploadFile}
           onShowToast={showToast}
-          embeds={embedsWithUrls}
+          embeds={embedsWithSetings}
           dictionary={dictionary}
           {...props}
           onHoverLink={handleLinkActive}
