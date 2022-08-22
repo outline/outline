@@ -54,10 +54,24 @@ export type Props = Optional<
 };
 
 function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
-  const { id, shareId, onChange, onHeadingsChange } = props;
+  const { id, shareId, onChange, onHeadingsChange, embedIntegrations } = props;
   const { documents } = useStores();
   const { showToast } = useToasts();
   const dictionary = useDictionary();
+  const embedsWithUrls = React.useMemo(
+    () =>
+      embeds.map((e) => {
+        const em = find(
+          embedIntegrations,
+          (i) => i.service === e.component.name.toLowerCase()
+        );
+        return new EmbedDescriptor({
+          ...e,
+          host: em?.settings.hostname,
+        });
+      }),
+    [embedIntegrations]
+  );
   const [
     activeLinkEvent,
     setActiveLinkEvent,
@@ -280,16 +294,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
           ref={mergeRefs([ref, handleRefChanged])}
           uploadFile={onUploadFile}
           onShowToast={showToast}
-          embeds={embeds.map((e) => {
-            const em = find(
-              props.embedIntegrations,
-              (i) => i.service === e.component.name.toLowerCase()
-            );
-            return new EmbedDescriptor({
-              ...e,
-              host: em?.settings.hostname,
-            });
-          })}
+          embeds={embedsWithUrls}
           dictionary={dictionary}
           {...props}
           onHoverLink={handleLinkActive}
