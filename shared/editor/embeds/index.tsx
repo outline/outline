@@ -99,15 +99,16 @@ export class EmbedDescriptor {
   matcher(url: string): boolean | [] | RegExpMatchArray {
     const regex = urlRegex(this.settings?.url);
 
-    const regexes = regex
-      ? [
-          new RegExp(
-            // @ts-expect-error not aware of static
-            `^${regex.source}${this.component.URL_PATH_REGEX.source}$`
-          ),
-        ]
-      : // @ts-expect-error not aware of static
-        this.component.ENABLED;
+    // @ts-expect-error not aware of static
+    const regexes = this.component.ENABLED;
+
+    regex &&
+      regexes.unshift(
+        new RegExp(
+          // @ts-expect-error not aware of static
+          `^${regex.source}${this.component.URL_PATH_REGEX.source}$`
+        )
+      );
 
     for (const regex of regexes) {
       const result = url.match(regex);
