@@ -91,8 +91,8 @@ export function sanitizeUrl(url: string | null | undefined) {
       !url.startsWith("/") &&
       !url.startsWith("#") &&
       !url.startsWith("mailto:")) ||
-    url.startsWith("javascript://") ||
-    url.startsWith("file://")
+    url.startsWith("javascript:") ||
+    url.startsWith("file:")
   ) {
     return `https://${url}`;
   }
