@@ -1,4 +1,5 @@
 import Router from "koa-router";
+import { has } from "lodash";
 import { IntegrationType } from "@shared/types";
 import auth from "@server/middlewares/authentication";
 import { Event } from "@server/models";
@@ -12,6 +13,7 @@ import {
   assertUuid,
   assertArray,
   assertIn,
+  assertUrl,
 } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
@@ -51,6 +53,10 @@ router.post("integrations.create", auth({ admin: true }), async (ctx) => {
 
   assertIn(service, Object.values(UserCreatableIntegrationService));
 
+  if (has(settings, "url")) {
+    assertUrl(settings.url);
+  }
+
   const integration = await Integration.create({
     userId: user.id,
     teamId: user.teamId,
@@ -74,7 +80,11 @@ router.post("integrations.update", auth({ admin: true }), async (ctx) => {
 
   assertArray(events, "events must be an array");
 
-  if (integration.type === "post") {
+  if (has(settings, "url")) {
+    assertUrl(settings.url);
+  }
+
+  if (integration.type === IntegrationType.Post) {
     integration.set({
       events: events.filter((event: string) =>
         ["documents.update", "documents.publish"].includes(event)
