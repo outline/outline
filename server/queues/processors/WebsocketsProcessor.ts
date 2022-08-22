@@ -93,7 +93,7 @@ export default class WebsocketsProcessor {
         return socketio
           .to(`collection-${event.collectionId}`)
           .emit(event.name, {
-            documentId: event.documentId,
+            modelId: event.documentId,
           });
       }
 

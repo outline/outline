@@ -5,7 +5,17 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { io, Socket } from "socket.io-client";
 import RootStore from "~/stores/RootStore";
+import FileOperation from "~/models/FileOperation";
+import Pin from "~/models/Pin";
+import Star from "~/models/Star";
 import withStores from "~/components/withStores";
+import {
+  PartialWithId,
+  WebsocketCollectionUpdateIndexEvent,
+  WebsocketCollectionUserEvent,
+  WebsocketEntitiesEvent,
+  WebsocketEntityDeletedEvent,
+} from "~/types";
 import { AuthorizationError, NotFoundError } from "~/utils/errors";
 import { getVisibilityListener, getPageVisible } from "~/utils/pageVisibility";
 
@@ -117,7 +127,7 @@ class SocketProvider extends React.Component<Props> {
       throw err;
     });
 
-    this.socket.on("entities", async (event: any) => {
+    this.socket.on("entities", async (event: WebsocketEntitiesEvent) => {
       if (event.documentIds) {
         for (const documentDescriptor of event.documentIds) {
           const documentId = documentDescriptor.id;
@@ -254,83 +264,95 @@ class SocketProvider extends React.Component<Props> {
       }
     });
 
-    this.socket.on("pins.create", (event: any) => {
+    this.socket.on("pins.create", (event: PartialWithId<Pin>) => {
       pins.add(event);
     });
 
-    this.socket.on("pins.update", (event: any) => {
+    this.socket.on("pins.update", (event: PartialWithId<Pin>) => {
       pins.add(event);
     });
 
-    this.socket.on("pins.delete", (event: any) => {
+    this.socket.on("pins.delete", (event: WebsocketEntityDeletedEvent) => {
       pins.remove(event.modelId);
     });
 
-    this.socket.on("stars.create", (event: any) => {
+    this.socket.on("stars.create", (event: PartialWithId<Star>) => {
       stars.add(event);
     });
 
-    this.socket.on("stars.update", (event: any) => {
+    this.socket.on("stars.update", (event: PartialWithId<Star>) => {
       stars.add(event);
     });
 
-    this.socket.on("stars.delete", (event: any) => {
+    this.socket.on("stars.delete", (event: WebsocketEntityDeletedEvent) => {
       stars.remove(event.modelId);
     });
 
-    this.socket.on("documents.permanent_delete", (event: any) => {
-      documents.remove(event.documentId);
-    });
+    this.socket.on(
+      "documents.permanent_delete",
+      (event: WebsocketEntityDeletedEvent) => {
+        documents.remove(event.modelId);
+      }
+    );
 
     // received when a user is given access to a collection
     // if the user is us then we go ahead and load the collection from API.
-    this.socket.on("collections.add_user", (event: any) => {
-      if (auth.user && event.userId === auth.user.id) {
-        collections.fetch(event.collectionId, {
-          force: true,
+    this.socket.on(
+      "collections.add_user",
+      (event: WebsocketCollectionUserEvent) => {
+        if (auth.user && event.userId === auth.user.id) {
+          collections.fetch(event.collectionId, {
+            force: true,
+          });
+        }
+
+        // Document policies might need updating as the permission changes
+        documents.inCollection(event.collectionId).forEach((document) => {
+          policies.remove(document.id);
         });
       }
-
-      // Document policies might need updating as the permission changes
-      documents.inCollection(event.collectionId).forEach((document) => {
-        policies.remove(document.id);
-      });
-    });
+    );
 
     // received when a user is removed from having access to a collection
     // to keep state in sync we must update our UI if the user is us,
     // or otherwise just remove any membership state we have for that user.
-    this.socket.on("collections.remove_user", (event: any) => {
-      if (auth.user && event.userId === auth.user.id) {
-        collections.remove(event.collectionId);
-        memberships.removeCollectionMemberships(event.collectionId);
-        documents.removeCollectionDocuments(event.collectionId);
-      } else {
-        memberships.remove(`${event.userId}-${event.collectionId}`);
+    this.socket.on(
+      "collections.remove_user",
+      (event: WebsocketCollectionUserEvent) => {
+        if (auth.user && event.userId === auth.user.id) {
+          collections.remove(event.collectionId);
+          memberships.removeCollectionMemberships(event.collectionId);
+          documents.removeCollectionDocuments(event.collectionId);
+        } else {
+          memberships.remove(`${event.userId}-${event.collectionId}`);
+        }
       }
-    });
+    );
 
-    this.socket.on("collections.update_index", (event: any) => {
-      const collection = collections.get(event.collectionId);
+    this.socket.on(
+      "collections.update_index",
+      (event: WebsocketCollectionUpdateIndexEvent) => {
+        const collection = collections.get(event.collectionId);
 
-      if (collection) {
-        collection.updateIndex(event.index);
+        if (collection) {
+          collection.updateIndex(event.index);
+        }
       }
-    });
+    );
 
-    this.socket.on("fileOperations.create", async (event: any) => {
-      const user = auth.user;
-      if (user) {
-        fileOperations.add({ ...event, user });
+    this.socket.on(
+      "fileOperations.create",
+      (event: PartialWithId<FileOperation>) => {
+        fileOperations.add(event);
       }
-    });
+    );
 
-    this.socket.on("fileOperations.update", async (event: any) => {
-      const user = auth.user;
-      if (user) {
-        fileOperations.add({ ...event, user });
+    this.socket.on(
+      "fileOperations.update",
+      (event: PartialWithId<FileOperation>) => {
+        fileOperations.add(event);
       }
-    });
+    );
 
     // received a message from the API server that we should request
     // to join a specific room. Forward that to the ws server.

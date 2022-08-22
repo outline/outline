@@ -5,11 +5,9 @@ import { Class } from "utility-types";
 import RootStore from "~/stores/RootStore";
 import BaseModel from "~/models/BaseModel";
 import Policy from "~/models/Policy";
-import { PaginationParams } from "~/types";
+import { PaginationParams, PartialWithId } from "~/types";
 import { client } from "~/utils/ApiClient";
 import { AuthorizationError, NotFoundError } from "~/utils/errors";
-
-type PartialWithId<T> = Partial<T> & { id: string };
 
 export enum RPCAction {
   Info = "info",
