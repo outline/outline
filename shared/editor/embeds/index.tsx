@@ -99,8 +99,10 @@ export class EmbedDescriptor {
 
     const regexes = regex
       ? [
-          // @ts-expect-error not aware of static
-          new RegExp(`${regex.source}${this.component.URL_PATH_REGEX.source}`),
+          new RegExp(
+            // @ts-expect-error not aware of static
+            `^${regex.source}${this.component.URL_PATH_REGEX.source}$`
+          ),
         ]
       : // @ts-expect-error not aware of static
         this.component.ENABLED;

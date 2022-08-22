@@ -9,6 +9,6 @@ describe("#urlRegex", () => {
 
   it("should return corresponding regex otherwise", () => {
     const regex = urlRegex("https://docs.google.com");
-    expect(regex?.source).toBe(/^https:\/\/docs\.google\.com/.source);
+    expect(regex?.source).toBe(/https:\/\/docs\.google\.com/.source);
   });
 });

@@ -1,5 +1,6 @@
 import env from "../env";
 import { parseDomain } from "./domains";
+import { escapeRegExp } from "./escape";
 
 /**
  * Prepends the CDN url to the given path (If a CDN is configured).
@@ -100,9 +101,5 @@ export function urlRegex(url: string | null | undefined): RegExp | undefined {
 
   const urlObj = new URL(url);
 
-  return new RegExp(
-    `^${urlObj.protocol}//${urlObj.host
-      .replace(/\//g, "\\/")
-      .replace(/\./g, "\\.")}`
-  );
+  return new RegExp(escapeRegExp(`${urlObj.protocol}//${urlObj.host}`));
 }
