@@ -32,7 +32,7 @@ export const changeTeam = createAction({
 });
 
 const createTeam = createAction({
-  name: ({ t }) => t("New team..."),
+  name: ({ t }) => `${t("New team")}…`,
   keywords: "change switch create workspace organization",
   section: "Team",
   icon: <PlusIcon />,
