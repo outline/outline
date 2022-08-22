@@ -16,7 +16,7 @@ import {
 import React from "react";
 import { useTranslation } from "react-i18next";
 import Details from "~/scenes/Settings/Details";
-import Diagrams from "~/scenes/Settings/Diagrams";
+import Drawio from "~/scenes/Settings/Drawio";
 import Export from "~/scenes/Settings/Export";
 import Features from "~/scenes/Settings/Features";
 import Groups from "~/scenes/Settings/Groups";
@@ -172,10 +172,10 @@ const useAuthorizedSettingsConfig = () => {
         group: t("Integrations"),
         icon: WebhooksIcon,
       },
-      Diagrams: {
+      Drawio: {
         name: t("Draw.io"),
-        path: "/settings/integrations/diagrams",
-        component: Diagrams,
+        path: "/settings/integrations/drawio",
+        component: Drawio,
         enabled: can.update,
         group: t("Integrations"),
         icon: BuildingBlocksIcon,

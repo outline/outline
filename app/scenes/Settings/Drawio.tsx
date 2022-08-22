@@ -17,7 +17,7 @@ type FormData = {
   url: string;
 };
 
-function Diagrams() {
+function Drawio() {
   const { integrations } = useStores();
   const { t } = useTranslation();
 
@@ -95,4 +95,4 @@ function Diagrams() {
   );
 }
 
-export default observer(Diagrams);
+export default observer(Drawio);
