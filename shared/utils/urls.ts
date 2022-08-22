@@ -1,6 +1,6 @@
+import { escapeRegExp } from "lodash";
 import env from "../env";
 import { parseDomain } from "./domains";
-import { escapeRegExp } from "./escape";
 
 /**
  * Prepends the CDN url to the given path (If a CDN is configured).
