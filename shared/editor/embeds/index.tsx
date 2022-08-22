@@ -1,6 +1,8 @@
 import { EditorState } from "prosemirror-state";
 import * as React from "react";
 import styled from "styled-components";
+import { IntegrationType } from "../../types";
+import type { IntegrationSettings } from "../../types";
 import { urlRegex } from "../../utils/urls";
 import Image from "../components/Image";
 import Abstract from "./Abstract";
@@ -77,7 +79,7 @@ export class EmbedDescriptor {
   visible?: boolean;
   active?: (state: EditorState) => boolean;
   component: typeof React.Component | React.FC<any>;
-  host?: string;
+  settings?: IntegrationSettings<IntegrationType.Embed>;
 
   constructor(options: Omit<EmbedDescriptor, "matcher">) {
     this.icon = options.icon;
@@ -91,11 +93,11 @@ export class EmbedDescriptor {
     this.visible = options.visible;
     this.active = options.active;
     this.component = options.component;
-    this.host = options.host;
+    this.settings = options.settings;
   }
 
   matcher(url: string): boolean | [] | RegExpMatchArray {
-    const regex = urlRegex(this.host);
+    const regex = urlRegex(this.settings?.url);
 
     const regexes = regex
       ? [

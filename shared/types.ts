@@ -29,12 +29,12 @@ export enum IntegrationType {
 }
 
 export type IntegrationSettings<T> = T extends IntegrationType.Embed
-  ? { hostname: string }
+  ? { url: string }
   : T extends IntegrationType.Post
   ? { url: string; channel: string; channelId: string }
   : T extends IntegrationType.Post
   ? { serviceTeamId: string }
   :
-      | { hostname: string }
+      | { url: string }
       | { url: string; channel: string; channelId: string }
       | { serviceTeamId: string };

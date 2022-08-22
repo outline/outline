@@ -14,7 +14,7 @@ import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 
 type FormData = {
-  hostname: string;
+  url: string;
 };
 
 function Diagrams() {
@@ -37,7 +37,7 @@ function Diagrams() {
   >({
     mode: "all",
     defaultValues: {
-      hostname: integration?.settings.hostname,
+      url: integration?.settings.url,
     },
   });
 
@@ -46,7 +46,7 @@ function Diagrams() {
       if (integration) {
         await integration.save({
           settings: {
-            hostname: data.hostname,
+            url: data.url,
           },
         });
       } else {
@@ -54,7 +54,7 @@ function Diagrams() {
           type: IntegrationType.Embed,
           service: "diagrams",
           settings: {
-            hostname: data.hostname,
+            url: data.url,
           },
         });
       }
@@ -81,7 +81,7 @@ function Diagrams() {
               label={t("Draw.io Deployment")}
               placeholder={"https://app.diagrams.net/"}
               pattern="https://.*"
-              {...register("hostname", {
+              {...register("url", {
                 required: true,
               })}
             />

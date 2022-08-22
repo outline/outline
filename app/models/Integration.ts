@@ -6,7 +6,7 @@ import Field from "./decorators/Field";
 class Integration<T = unknown> extends BaseModel {
   id: string;
 
-  type: T;
+  type: string;
 
   service: string;
 

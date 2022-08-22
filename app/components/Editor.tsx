@@ -67,7 +67,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
         );
         return new EmbedDescriptor({
           ...e,
-          host: em?.settings.hostname,
+          settings: em?.settings,
         });
       }),
     [embedIntegrations]
