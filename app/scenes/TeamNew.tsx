@@ -61,7 +61,7 @@ function TeamNew({ user }: Props) {
         <Flex>
           <Input
             type="text"
-            label="Team Name"
+            label={t("Team name")}
             onChange={handleNameChange}
             value={name}
             required
