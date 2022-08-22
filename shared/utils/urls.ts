@@ -96,10 +96,10 @@ export function sanitizeUrl(url: string | null | undefined) {
 
 export function urlRegex(url: string | null | undefined): RegExp | undefined {
   if (!url || !isUrl(url)) {
-    return;
+    return undefined;
   }
 
-  const urlObj = new URL(url);
+  const urlObj = new URL(sanitizeUrl(url) as string);
 
   return new RegExp(escapeRegExp(`${urlObj.protocol}//${urlObj.host}`));
 }
