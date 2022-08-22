@@ -121,7 +121,8 @@ class SocketProvider extends React.Component<Props> {
       if (event.documentIds) {
         for (const documentDescriptor of event.documentIds) {
           const documentId = documentDescriptor.id;
-          let document = documents.get(documentId) || {};
+          let document = documents.get(documentId);
+          const previousTitle = document?.title;
 
           if (event.event === "documents.delete") {
             const document = documents.get(documentId);
@@ -136,10 +137,7 @@ class SocketProvider extends React.Component<Props> {
 
           // if we already have the latest version (it was us that performed
           // the change) then we don't need to update anything either.
-          // @ts-expect-error ts-migrate(2339) FIXME: Property 'title' does not exist on type '{}'.
-          const { title, updatedAt } = document;
-
-          if (updatedAt === documentDescriptor.updatedAt) {
+          if (document?.updatedAt === documentDescriptor.updatedAt) {
             continue;
           }
 
@@ -159,20 +157,17 @@ class SocketProvider extends React.Component<Props> {
           }
 
           // if the title changed then we need to update the collection also
-          // @ts-expect-error ts-migrate(2339) FIXME: Property 'title' does not exist on type '{}'.
-          if (title !== document.title) {
+          if (document && previousTitle !== document.title) {
             if (!event.collectionIds) {
               event.collectionIds = [];
             }
 
             const existing = find(event.collectionIds, {
-              // @ts-expect-error ts-migrate(2339) FIXME: Property 'collectionId' does not exist on type '{}... Remove this comment to see the full error message
               id: document.collectionId,
             });
 
             if (!existing) {
               event.collectionIds.push({
-                // @ts-expect-error ts-migrate(2339) FIXME: Property 'collectionId' does not exist on type '{}... Remove this comment to see the full error message
                 id: document.collectionId,
               });
             }
@@ -231,13 +226,11 @@ class SocketProvider extends React.Component<Props> {
       if (event.groupIds) {
         for (const groupDescriptor of event.groupIds) {
           const groupId = groupDescriptor.id;
-          const group = groups.get(groupId) || {};
+          const group = groups.get(groupId);
+
           // if we already have the latest version (it was us that performed
           // the change) then we don't need to update anything either.
-          // @ts-expect-error ts-migrate(2339) FIXME: Property 'updatedAt' does not exist on type '{}'.
-          const { updatedAt } = group;
-
-          if (updatedAt === groupDescriptor.updatedAt) {
+          if (group?.updatedAt === groupDescriptor.updatedAt) {
             continue;
           }
 
