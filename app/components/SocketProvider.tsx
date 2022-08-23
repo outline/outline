@@ -246,6 +246,10 @@ class SocketProvider extends React.Component<Props> {
       }
     });
 
+    this.socket.on("groups.delete", (event: WebsocketEntityDeletedEvent) => {
+      groups.remove(event.modelId);
+    });
+
     this.socket.on(
       "collections.delete",
       (event: WebsocketEntityDeletedEvent) => {

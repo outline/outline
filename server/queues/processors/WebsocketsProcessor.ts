@@ -525,25 +525,14 @@ export default class WebsocketsProcessor {
       }
 
       case "groups.delete": {
-        const group = await Group.findByPk(event.modelId, {
-          paranoid: false,
+        socketio.to(`team-${event.teamId}`).emit(event.name, {
+          modelId: event.modelId,
         });
-        if (!group) {
-          return;
-        }
 
-        socketio.to(`team-${group.teamId}`).emit("entities", {
-          event: event.name,
-          groupIds: [
-            {
-              id: group.id,
-              updatedAt: group.updatedAt,
-            },
-          ],
-        });
-        // we the users and collection relations that were just severed as a result of the group deletion
-        // since there are cascading deletes, we approximate this by looking for the recently deleted
-        // items in the GroupUser and CollectionGroup tables
+        // we get users and collection relations that were just severed as a
+        // result of the group deletion since there are cascading deletes, we
+        // approximate this by looking for the recently deleted items in the
+        // GroupUser and CollectionGroup tables
         const groupUsers = await GroupUser.findAll({
           paranoid: false,
           where: {
