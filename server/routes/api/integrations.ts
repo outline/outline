@@ -85,16 +85,12 @@ router.post("integrations.update", auth({ admin: true }), async (ctx) => {
   }
 
   if (integration.type === IntegrationType.Post) {
-    integration.set({
-      events: events.filter((event: string) =>
-        ["documents.update", "documents.publish"].includes(event)
-      ),
-    });
+    integration.events = events.filter((event: string) =>
+      ["documents.update", "documents.publish"].includes(event)
+    );
   }
 
-  integration.set({
-    settings,
-  });
+  integration.settings = settings;
 
   await integration.save();
 

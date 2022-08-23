@@ -4,11 +4,13 @@ import Image from "../components/Image";
 import { EmbedProps as Props } from ".";
 
 function Diagrams(props: Props) {
+  const { embed } = props;
   const embedUrl = props.attrs.matches[0];
   const params = new URL(embedUrl).searchParams;
+  const titlePrefix = embed.settings?.url ? "Draw.io" : "Diagrams.net";
   const title = params.get("title")
-    ? `Diagrams.net (${params.get("title")})`
-    : "Diagrams.net";
+    ? `${titlePrefix} (${params.get("title")})`
+    : titlePrefix;
 
   return (
     <Frame
