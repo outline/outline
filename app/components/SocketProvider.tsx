@@ -190,26 +190,8 @@ class SocketProvider extends React.Component<Props> {
           const collectionId = collectionDescriptor.id;
           const collection = collections.get(collectionId);
 
-          if (event.event === "collections.delete") {
-            if (collection) {
-              collection.deletedAt = collectionDescriptor.updatedAt;
-            }
-
-            const deletedDocuments = documents.inCollection(collectionId);
-            deletedDocuments.forEach((doc) => {
-              doc.deletedAt = collectionDescriptor.updatedAt;
-              policies.remove(doc.id);
-            });
-            documents.removeCollectionDocuments(collectionId);
-            memberships.removeCollectionMemberships(collectionId);
-            collections.remove(collectionId);
-            policies.remove(collectionId);
-            continue;
-          }
-
           // if we already have the latest version (it was us that performed
           // the change) then we don't need to update anything either.
-
           if (collection?.updatedAt === collectionDescriptor.updatedAt) {
             continue;
           }
@@ -263,6 +245,24 @@ class SocketProvider extends React.Component<Props> {
         await auth.fetch();
       }
     });
+
+    this.socket.on(
+      "collections.delete",
+      (event: WebsocketEntityDeletedEvent) => {
+        const collectionId = event.modelId;
+        const deletedAt = new Date().toISOString();
+
+        const deletedDocuments = documents.inCollection(collectionId);
+        deletedDocuments.forEach((doc) => {
+          doc.deletedAt = deletedAt;
+          policies.remove(doc.id);
+        });
+        documents.removeCollectionDocuments(collectionId);
+        memberships.removeCollectionMemberships(collectionId);
+        collections.remove(collectionId);
+        policies.remove(collectionId);
+      }
+    );
 
     this.socket.on("pins.create", (event: PartialWithId<Pin>) => {
       pins.add(event);

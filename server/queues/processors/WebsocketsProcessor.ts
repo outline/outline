@@ -211,8 +211,7 @@ export default class WebsocketsProcessor {
           });
       }
 
-      case "collections.update":
-      case "collections.delete": {
+      case "collections.update": {
         const collection = await Collection.findByPk(event.collectionId, {
           paranoid: false,
         });
@@ -228,6 +227,14 @@ export default class WebsocketsProcessor {
             },
           ],
         });
+      }
+
+      case "collections.delete": {
+        return socketio
+          .to(`collection-${event.collectionId}`)
+          .emit(event.name, {
+            modelId: event.collectionId,
+          });
       }
 
       case "collections.move": {
