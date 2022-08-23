@@ -8,6 +8,7 @@ import RootStore from "~/stores/RootStore";
 import FileOperation from "~/models/FileOperation";
 import Pin from "~/models/Pin";
 import Star from "~/models/Star";
+import Team from "~/models/Team";
 import withStores from "~/components/withStores";
 import {
   PartialWithId,
@@ -229,10 +230,6 @@ class SocketProvider extends React.Component<Props> {
           }
         }
       }
-
-      if (event.teamIds) {
-        await auth.fetch();
-      }
     });
 
     this.socket.on("documents.delete", (event: WebsocketEntityDeletedEvent) => {
@@ -244,6 +241,13 @@ class SocketProvider extends React.Component<Props> {
 
       policies.remove(event.modelId);
     });
+
+    this.socket.on(
+      "documents.permanent_delete",
+      (event: WebsocketEntityDeletedEvent) => {
+        documents.remove(event.modelId);
+      }
+    );
 
     this.socket.on("groups.delete", (event: WebsocketEntityDeletedEvent) => {
       groups.remove(event.modelId);
@@ -266,6 +270,10 @@ class SocketProvider extends React.Component<Props> {
         policies.remove(collectionId);
       }
     );
+
+    this.socket.on("teams.update", (event: PartialWithId<Team>) => {
+      auth.updateTeam(event);
+    });
 
     this.socket.on("pins.create", (event: PartialWithId<Pin>) => {
       pins.add(event);
@@ -290,13 +298,6 @@ class SocketProvider extends React.Component<Props> {
     this.socket.on("stars.delete", (event: WebsocketEntityDeletedEvent) => {
       stars.remove(event.modelId);
     });
-
-    this.socket.on(
-      "documents.permanent_delete",
-      (event: WebsocketEntityDeletedEvent) => {
-        documents.remove(event.modelId);
-      }
-    );
 
     // received when a user is given access to a collection
     // if the user is us then we go ahead and load the collection from API.

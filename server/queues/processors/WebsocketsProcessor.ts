@@ -10,11 +10,13 @@ import {
   GroupUser,
   Pin,
   Star,
+  Team,
 } from "@server/models";
 import {
   presentFileOperation,
   presentPin,
   presentStar,
+  presentTeam,
 } from "@server/presenters";
 import { Event } from "../../types";
 
@@ -582,14 +584,13 @@ export default class WebsocketsProcessor {
       }
 
       case "teams.update": {
-        return socketio.to(`team-${event.teamId}`).emit("entities", {
-          event: event.name,
-          teamIds: [
-            {
-              id: event.teamId,
-            },
-          ],
-        });
+        const team = await Team.scope("withDomains").findByPk(event.teamId);
+        if (!team) {
+          return;
+        }
+        return socketio
+          .to(`team-${event.teamId}`)
+          .emit(event.name, presentTeam(team));
       }
 
       default:
