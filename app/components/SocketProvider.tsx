@@ -134,17 +134,6 @@ class SocketProvider extends React.Component<Props> {
           let document = documents.get(documentId);
           const previousTitle = document?.title;
 
-          if (event.event === "documents.delete") {
-            const document = documents.get(documentId);
-
-            if (document) {
-              document.deletedAt = documentDescriptor.updatedAt;
-            }
-
-            policies.remove(documentId);
-            continue;
-          }
-
           // if we already have the latest version (it was us that performed
           // the change) then we don't need to update anything either.
           if (document?.updatedAt === documentDescriptor.updatedAt) {
@@ -244,6 +233,16 @@ class SocketProvider extends React.Component<Props> {
       if (event.teamIds) {
         await auth.fetch();
       }
+    });
+
+    this.socket.on("documents.delete", (event: WebsocketEntityDeletedEvent) => {
+      const document = documents.get(event.modelId);
+
+      if (document) {
+        document.deletedAt = new Date().toISOString();
+      }
+
+      policies.remove(event.modelId);
     });
 
     this.socket.on("groups.delete", (event: WebsocketEntityDeletedEvent) => {

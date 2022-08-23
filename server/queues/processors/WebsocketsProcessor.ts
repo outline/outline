@@ -59,28 +59,20 @@ export default class WebsocketsProcessor {
           return;
         }
 
-        if (!document.publishedAt) {
-          return socketio.to(`user-${document.createdById}`).emit("entities", {
-            event: event.name,
-            documentIds: [
-              {
-                id: document.id,
-                updatedAt: document.updatedAt,
-              },
-            ],
+        socketio
+          .to(
+            document.publishedAt
+              ? `collection-${document.collectionId}`
+              : `user-${document.createdById}`
+          )
+          .emit(event.name, {
+            modelId: event.documentId,
           });
-        }
 
         return socketio
           .to(`collection-${document.collectionId}`)
           .emit("entities", {
             event: event.name,
-            documentIds: [
-              {
-                id: document.id,
-                updatedAt: document.updatedAt,
-              },
-            ],
             collectionIds: [
               {
                 id: document.collectionId,
