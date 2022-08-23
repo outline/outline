@@ -1,9 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useLocation, RouteComponentProps, StaticContext } from "react-router";
-import { IntegrationType } from "@shared/types";
 import Document from "~/models/Document";
-import Integration from "~/models/Integration";
 import Revision from "~/models/Revision";
 import Error404 from "~/scenes/Error404";
 import ErrorOffline from "~/scenes/ErrorOffline";
@@ -36,7 +34,6 @@ type Children = (options: {
   readOnly: boolean;
   onCreateLink: (title: string) => Promise<string>;
   sharedTree: NavigationNode | undefined;
-  embedIntegrations?: Integration<IntegrationType.Embed>[];
 }) => React.ReactNode;
 
 type Props = RouteComponentProps<Params, StaticContext, LocationState> & {
@@ -44,7 +41,7 @@ type Props = RouteComponentProps<Params, StaticContext, LocationState> & {
 };
 
 function DataLoader({ match, children }: Props) {
-  const { ui, shares, documents, auth, revisions, integrations } = useStores();
+  const { ui, shares, documents, auth, revisions } = useStores();
   const { team } = auth;
   const [error, setError] = React.useState<Error | null>(null);
   const { revisionId, shareId, documentSlug } = match.params;
@@ -75,20 +72,6 @@ function DataLoader({ match, children }: Props) {
     }
     fetchDocument();
   }, [ui, documents, document, shareId, documentSlug]);
-
-  React.useEffect(() => {
-    async function fetchEmbedIntegrations() {
-      try {
-        integrations.fetchPage({
-          limit: 100,
-          type: IntegrationType.Embed,
-        });
-      } catch (err) {
-        setError(err);
-      }
-    }
-    !integrations.isLoaded && fetchEmbedIntegrations();
-  }, [integrations]);
 
   React.useEffect(() => {
     async function fetchRevision() {
@@ -178,9 +161,6 @@ function DataLoader({ match, children }: Props) {
           !isEditing || !can.update || document.isArchived || !!revisionId,
         onCreateLink,
         sharedTree,
-        embedIntegrations: integrations.isLoaded
-          ? (integrations.orderedData as Integration<IntegrationType.Embed>[])
-          : undefined,
       })}
     </React.Fragment>
   );

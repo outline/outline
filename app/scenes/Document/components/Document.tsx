@@ -15,12 +15,10 @@ import {
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { Heading } from "@shared/editor/lib/getHeadings";
-import { IntegrationType } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
 import getTasks from "@shared/utils/getTasks";
 import RootStore from "~/stores/RootStore";
 import Document from "~/models/Document";
-import Integration from "~/models/Integration";
 import Revision from "~/models/Revision";
 import DocumentMove from "~/scenes/DocumentMove";
 import Branding from "~/components/Branding";
@@ -76,7 +74,6 @@ type Props = WithTranslation &
     abilities: Record<string, any>;
     document: Document;
     revision?: Revision;
-    embedIntegrations?: Integration<IntegrationType.Embed>[];
     readOnly: boolean;
     shareId?: string;
     onCreateLink?: (title: string) => Promise<string>;
@@ -431,7 +428,6 @@ class DocumentScene extends React.Component<Props> {
       ui,
       shareId,
       t,
-      embedIntegrations,
     } = this.props;
     const team = auth.team;
     const isShare = !!shareId;
@@ -599,7 +595,6 @@ class DocumentScene extends React.Component<Props> {
                     onCancel={this.goBack}
                     readOnly={readOnly}
                     readOnlyWriteCheckboxes={readOnly && abilities.update}
-                    embedIntegrations={embedIntegrations}
                   >
                     {shareId && (
                       <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>

@@ -18,6 +18,7 @@ import ErrorBoundary from "~/components/ErrorBoundary";
 import HoverPreview from "~/components/HoverPreview";
 import type { Props as EditorProps, Editor as SharedEditor } from "~/editor";
 import useDictionary from "~/hooks/useDictionary";
+import useEmbedIntegrations from "~/hooks/useEmbedIntegrations";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import { NotFoundError } from "~/utils/errors";
@@ -54,11 +55,12 @@ export type Props = Optional<
 };
 
 function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
-  const { id, shareId, onChange, onHeadingsChange, embedIntegrations } = props;
+  const { id, shareId, onChange, onHeadingsChange } = props;
   const { documents } = useStores();
   const { showToast } = useToasts();
   const dictionary = useDictionary();
-  const embedsWithSetings = React.useMemo(
+  const embedIntegrations = useEmbedIntegrations();
+  const embedsWithSettings = React.useMemo(
     () =>
       embeds.map((e) => {
         const em = find(
@@ -294,7 +296,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
           ref={mergeRefs([ref, handleRefChanged])}
           uploadFile={onUploadFile}
           onShowToast={showToast}
-          embeds={embedsWithSetings}
+          embeds={embedsWithSettings}
           dictionary={dictionary}
           {...props}
           onHoverLink={handleLinkActive}
