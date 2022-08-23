@@ -2,12 +2,13 @@ import * as React from "react";
 import Frame from "../components/Frame";
 import { EmbedProps as Props } from ".";
 
-const URL_REGEX = new RegExp(
-  "^https?://share\\.clickup\\.com/[a-z]/[a-z]/(.*)/(.*)$"
-);
-
 export default class ClickUp extends React.Component<Props> {
-  static ENABLED = [URL_REGEX];
+  static ENABLED = [
+    new RegExp("^https?://share\\.clickup\\.com/[a-z]/[a-z]/(.*)/(.*)$"),
+    new RegExp(
+      "^https?://sharing\\.clickup\\.com/[0-9]+/[a-z]/[a-z]/(.*)/(.*)$"
+    ),
+  ];
 
   render() {
     return (
