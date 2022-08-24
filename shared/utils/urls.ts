@@ -67,11 +67,7 @@ export function isUrl(text: string) {
  * @returns True if the url is external, false otherwise.
  */
 export function isExternalUrl(url: string) {
-  if (url) {
-    return !isInternalUrl(url);
-  }
-
-  return false;
+  return !!url && !isInternalUrl(url);
 }
 
 /**
