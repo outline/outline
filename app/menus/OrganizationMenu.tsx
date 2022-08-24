@@ -5,7 +5,7 @@ import { MenuButton, useMenuState } from "reakit/Menu";
 import ContextMenu from "~/components/ContextMenu";
 import Template from "~/components/ContextMenu/Template";
 import { navigateToSettings, logout } from "~/actions/definitions/navigation";
-import { changeTeam } from "~/actions/definitions/teams";
+import { createTeam, switchTeamList } from "~/actions/definitions/teams";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePrevious from "~/hooks/usePrevious";
 import useSessions from "~/hooks/useSessions";
@@ -34,7 +34,13 @@ const OrganizationMenu: React.FC = ({ children }) => {
   // NOTE: it's useful to memoize on the team id and session because the action
   // menu is not cached at all.
   const actions = React.useMemo(() => {
-    return [changeTeam, separator(), navigateToSettings, logout];
+    return [
+      ...switchTeamList,
+      createTeam,
+      separator(),
+      navigateToSettings,
+      logout,
+    ];
   }, [team.id, sessions]);
 
   return (
