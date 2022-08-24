@@ -537,7 +537,7 @@
   "Get started by choosing a sign-in method for your new team below…": "Zacznij od wybrania metody logowania dla swojego nowego zespołu poniżej…",
   "Login to {{ authProviderName }}": "Zaloguj się do {{ authProviderName }}",
   "You signed in with {{ authProviderName }} last time.": "Zalogowałeś się za pomocą {{ authProviderName }} ostatnim razem.",
-  "Or": "Or",
+  "Or": "Lub",
   "Already have an account? Go to <1>login</1>.": "Masz już konto? <1>Zaloguj się</1>.",
   "Any collection": "Dowolna kolekcja",
   "Any time": "W dowolnym czasie",
