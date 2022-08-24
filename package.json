@@ -20,6 +20,7 @@
     "heroku-postbuild": "yarn build:webpack && yarn build:server && yarn copy:i18n && yarn db:migrate",
     "sequelize:migrate": "sequelize db:migrate",
     "db:create-migration": "sequelize migration:create",
+    "db:create": "sequelize db:create",
     "db:migrate": "sequelize db:migrate",
     "db:rollback": "sequelize db:migrate:undo",
     "db:reset": "sequelize db:drop && sequelize db:create && sequelize db:migrate",
