@@ -102,7 +102,7 @@ export default class Collection extends ParanoidModel {
   }
 
   @action
-  updateDocument(document: Document) {
+  updateDocument(document: Pick<Document, "id" | "title" | "url">) {
     const travelNodes = (nodes: NavigationNode[]) =>
       nodes.forEach((node) => {
         if (node.id === document.id) {

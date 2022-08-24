@@ -5,6 +5,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { io, Socket } from "socket.io-client";
 import RootStore from "~/stores/RootStore";
+import Document from "~/models/Document";
 import FileOperation from "~/models/FileOperation";
 import Pin from "~/models/Pin";
 import Star from "~/models/Star";
@@ -231,6 +232,19 @@ class SocketProvider extends React.Component<Props> {
         }
       }
     });
+
+    this.socket.on(
+      "documents.update",
+      (event: PartialWithId<Document> & { title: string; url: string }) => {
+        const document = documents.get(event.id);
+        document?.updateFromJson(event);
+
+        if (event.collectionId) {
+          const collection = collections.get(event.collectionId);
+          collection?.updateDocument(event);
+        }
+      }
+    );
 
     this.socket.on("documents.delete", (event: WebsocketEntityDeletedEvent) => {
       const document = documents.get(event.modelId);

@@ -13,6 +13,7 @@ import {
   Team,
 } from "@server/models";
 import {
+  presentDocument,
   presentFileOperation,
   presentPin,
   presentStar,
@@ -101,15 +102,9 @@ export default class WebsocketsProcessor {
         const channel = document.publishedAt
           ? `collection-${document.collectionId}`
           : `user-${event.actorId}`;
-        return socketio.to(channel).emit("entities", {
-          event: event.name,
-          documentIds: [
-            {
-              id: document.id,
-              updatedAt: document.updatedAt,
-            },
-          ],
-        });
+
+        const data = await presentDocument(document);
+        return socketio.to(channel).emit(event.name, data);
       }
 
       case "documents.create": {
