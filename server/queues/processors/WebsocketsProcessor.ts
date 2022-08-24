@@ -13,6 +13,7 @@ import {
   Team,
 } from "@server/models";
 import {
+  presentCollection,
   presentDocument,
   presentFileOperation,
   presentPin,
@@ -177,22 +178,15 @@ export default class WebsocketsProcessor {
           .to(
             collection.permission
               ? `team-${collection.teamId}`
-              : `collection-${collection.id}`
+              : `user-${collection.createdById}`
           )
-          .emit("entities", {
-            event: event.name,
-            collectionIds: [
-              {
-                id: collection.id,
-                updatedAt: collection.updatedAt,
-              },
-            ],
-          });
+          .emit(event.name, presentCollection(collection));
+
         return socketio
           .to(
             collection.permission
               ? `team-${collection.teamId}`
-              : `collection-${collection.id}`
+              : `user-${collection.createdById}`
           )
           .emit("join", {
             event: event.name,

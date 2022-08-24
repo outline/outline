@@ -5,6 +5,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { io, Socket } from "socket.io-client";
 import RootStore from "~/stores/RootStore";
+import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import FileOperation from "~/models/FileOperation";
 import Pin from "~/models/Pin";
@@ -265,6 +266,10 @@ class SocketProvider extends React.Component<Props> {
 
     this.socket.on("groups.delete", (event: WebsocketEntityDeletedEvent) => {
       groups.remove(event.modelId);
+    });
+
+    this.socket.on("collections.create", (event: PartialWithId<Collection>) => {
+      collections.add(event);
     });
 
     this.socket.on(
