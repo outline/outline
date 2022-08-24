@@ -57,16 +57,16 @@ function Drawio() {
           },
         });
 
-        showToast("Settings saved", {
+        showToast(t("Settings saved"), {
           type: "success",
         });
       } catch (err) {
-        showToast("Failed to save!", {
+        showToast(err.message, {
           type: "error",
         });
       }
     },
-    [integrations, integration, showToast]
+    [integrations, integration, t, showToast]
   );
 
   return (
