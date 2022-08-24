@@ -76,6 +76,15 @@ describe("sanitizeUrl Method", () => {
       expect(urlsUtils.sanitizeUrl("javascript:whatever")).toEqual(
         "https://javascript:whatever"
       );
+      expect(
+        urlsUtils.sanitizeUrl("data:text/html,<script>alert('hi');</script>")
+      ).toEqual("https://data:text/html,<script>alert('hi');</script>");
+      expect(
+        urlsUtils.sanitizeUrl("data:text/html,<script>alert('hi');</script>")
+      ).toEqual("https://data:text/html,<script>alert('hi');</script>");
+      expect(urlsUtils.sanitizeUrl("vbscript:whatever")).toEqual(
+        "https://vbscript:whatever"
+      );
     });
   });
 });
