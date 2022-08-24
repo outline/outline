@@ -34,8 +34,8 @@ describe("isExternalUrl Method", () => {
 describe("sanitizeUrl Method", () => {
   it("should return undefined if not url", () => {
     expect(urlsUtils.sanitizeUrl(undefined)).toBeUndefined();
-    expect(urlsUtils.sanitizeUrl(null)).toEqual(undefined);
-    expect(urlsUtils.sanitizeUrl("")).toEqual(undefined);
+    expect(urlsUtils.sanitizeUrl(null)).toBeUndefined();
+    expect(urlsUtils.sanitizeUrl("")).toBeUndefined();
   });
 
   it("should append https:// to non-special urls", () => {
