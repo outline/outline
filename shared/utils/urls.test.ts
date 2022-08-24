@@ -3,17 +3,17 @@ import * as urlsUtils from "./urls";
 describe("IsUrl Method", () => {
   describe("invalid urls", () => {
     it("should return false", () => {
-      expect(urlsUtils.isUrl("")).toEqual(false);
-      expect(urlsUtils.isUrl("#invalidurl")).toEqual(false);
-      expect(urlsUtils.isUrl("mailto:")).toEqual(false);
-      expect(urlsUtils.isUrl("://")).toEqual(false);
+      expect(urlsUtils.isUrl("")).toBe(false);
+      expect(urlsUtils.isUrl("#invalidurl")).toBe(false);
+      expect(urlsUtils.isUrl("mailto:")).toBe(false);
+      expect(urlsUtils.isUrl("://")).toBe(false);
     });
   });
 });
 
 describe("isInternalUrl Method", () => {
   it("should return false if empty string", () => {
-    expect(urlsUtils.isInternalUrl("")).toEqual(false);
+    expect(urlsUtils.isInternalUrl("")).toBe(false);
   });
 
   it("should return true if starting with relative path", () => {
@@ -23,11 +23,11 @@ describe("isInternalUrl Method", () => {
 
 describe("isExternalUrl Method", () => {
   it("should return false if empty url", () => {
-    expect(urlsUtils.isExternalUrl("")).toEqual(false);
+    expect(urlsUtils.isExternalUrl("")).toBe(false);
   });
 
   it("should return false if internal url", () => {
-    expect(urlsUtils.isExternalUrl("/drafts")).toEqual(false);
+    expect(urlsUtils.isExternalUrl("/drafts")).toBe(false);
   });
 });
 
