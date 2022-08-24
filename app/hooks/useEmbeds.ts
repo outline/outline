@@ -1,4 +1,6 @@
+import { find } from "lodash";
 import * as React from "react";
+import embeds, { EmbedDescriptor } from "@shared/editor/embeds";
 import { IntegrationType } from "@shared/types";
 import Integration from "~/models/Integration";
 import Logger from "~/utils/Logger";
@@ -22,5 +24,18 @@ export default function useEmbedIntegrations() {
     !integrations.isLoaded && fetchEmbedIntegrations();
   }, [integrations]);
 
-  return integrations.orderedData as Integration<IntegrationType.Embed>[];
+  return React.useMemo(
+    () =>
+      embeds.map((e) => {
+        const em: Integration<IntegrationType.Embed> | undefined = find(
+          integrations.orderedData,
+          (i) => i.service === e.component.name.toLowerCase()
+        );
+        return new EmbedDescriptor({
+          ...e,
+          settings: em?.settings,
+        });
+      }),
+    [integrations.orderedData]
+  );
 }
