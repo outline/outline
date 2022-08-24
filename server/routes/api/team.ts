@@ -98,7 +98,6 @@ router.post("team.create", auth(), async (ctx) => {
     teamId: team.id,
     name: user.name,
     email: user.email,
-    service: null,
     isAdmin: true,
     avatarUrl: user.avatarUrl,
     invitedById: user.id,
