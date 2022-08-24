@@ -12,5 +12,7 @@ export const NavigationSection = ({ t }: ActionContext) => t("Navigation");
 
 export const UserSection = ({ t }: ActionContext) => t("People");
 
+export const TeamSection = ({ t }: ActionContext) => t("Team");
+
 export const RecentSearchesSection = ({ t }: ActionContext) =>
   t("Recent searches");

@@ -4,11 +4,12 @@ import styled from "styled-components";
 import TeamNew from "~/scenes/TeamNew";
 import { createAction } from "~/actions";
 import { loadSessionsFromCookie } from "~/hooks/useSessions";
+import { TeamSection } from "../sections";
 
 export const switchTeamList = getSessions().map((session) => {
   return createAction({
     name: session.name,
-    section: "Switch Team",
+    section: TeamSection,
     keywords: "change switch workspace organization team",
     icon: () => <Logo alt={session.name} src={session.logoUrl} />,
     visible: ({ currentTeamId }) => currentTeamId !== session.teamId,
@@ -17,11 +18,10 @@ export const switchTeamList = getSessions().map((session) => {
 });
 
 const switchTeam = createAction({
-  name: ({ t, isContextMenu }) =>
-    isContextMenu ? t("Teams") : t("Switch team"),
+  name: ({ t }) => t("Switch team"),
   placeholder: ({ t }) => t("Select a team"),
   keywords: "change switch workspace organization team",
-  section: "Team",
+  section: TeamSection,
   visible: ({ currentTeamId }) =>
     getSessions({ exclude: currentTeamId }).length > 0,
   children: switchTeamList,
@@ -30,7 +30,7 @@ const switchTeam = createAction({
 export const createTeam = createAction({
   name: ({ t }) => `${t("New team")}…`,
   keywords: "create change switch workspace organization team",
-  section: "New Team",
+  section: TeamSection,
   icon: <PlusIcon />,
   visible: ({ stores, currentTeamId }) => {
     return stores.policies.abilities(currentTeamId ?? "").createTeam;
