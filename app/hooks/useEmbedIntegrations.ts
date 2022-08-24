@@ -6,9 +6,6 @@ import useStores from "./useStores";
 
 export default function useEmbedIntegrations() {
   const { integrations } = useStores();
-  const [embedIntegrations, setEmbedIntegrations] = React.useState<
-    Integration<IntegrationType.Embed>[] | undefined
-  >();
 
   React.useEffect(() => {
     async function fetchEmbedIntegrations() {
@@ -17,16 +14,13 @@ export default function useEmbedIntegrations() {
           limit: 100,
           type: IntegrationType.Embed,
         });
-        setEmbedIntegrations(integrations.orderedData);
       } catch (err) {
         Logger.error("Failed to fetch embed integrations", err);
       }
     }
 
-    integrations.isLoaded
-      ? setEmbedIntegrations(integrations.orderedData)
-      : fetchEmbedIntegrations();
+    !integrations.isLoaded && fetchEmbedIntegrations();
   }, [integrations]);
 
-  return embedIntegrations;
+  return integrations.orderedData as Integration<IntegrationType.Embed>[];
 }

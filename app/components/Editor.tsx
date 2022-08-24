@@ -1,5 +1,6 @@
 import { formatDistanceToNow } from "date-fns";
 import { deburr, sortBy, find } from "lodash";
+import { observer } from "mobx-react";
 import { DOMParser as ProsemirrorDOMParser } from "prosemirror-model";
 import { TextSelection } from "prosemirror-state";
 import * as React from "react";
@@ -326,4 +327,4 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   );
 }
 
-export default React.forwardRef(Editor);
+export default observer(React.forwardRef(Editor));
