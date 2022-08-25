@@ -377,7 +377,6 @@ export async function buildAttachment(overrides: Partial<Attachment> = {}) {
   count++;
   return Attachment.create({
     key: `uploads/key/to/file ${count}.png`,
-    url: `https://redirect.url.com/uploads/key/to/file${count}.png`,
     contentType: "image/png",
     size: 100,
     acl: "public-read",
