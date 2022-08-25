@@ -11,7 +11,7 @@ import Layout from "~/components/AuthenticatedLayout";
 import CenteredContent from "~/components/CenteredContent";
 import PlaceholderDocument from "~/components/PlaceholderDocument";
 import Route from "~/components/ProfiledRoute";
-import SocketProvider from "~/components/SocketProvider";
+import WebsocketProvider from "~/components/WebsocketProvider";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import { matchDocumentSlug as slug } from "~/utils/routeHelpers";
@@ -67,7 +67,7 @@ function AuthenticatedRoutes() {
   const can = usePolicy(team);
 
   return (
-    <SocketProvider>
+    <WebsocketProvider>
       <Layout>
         <React.Suspense
           fallback={
@@ -116,7 +116,7 @@ function AuthenticatedRoutes() {
           </Switch>
         </React.Suspense>
       </Layout>
-    </SocketProvider>
+    </WebsocketProvider>
   );
 }
 

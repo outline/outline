@@ -17,7 +17,6 @@ import {
   PartialWithId,
   WebsocketCollectionUpdateIndexEvent,
   WebsocketCollectionUserEvent,
-  WebsocketDocumentDeletedEvent,
   WebsocketEntitiesEvent,
   WebsocketEntityDeletedEvent,
 } from "~/types";
@@ -28,14 +27,14 @@ type SocketWithAuthentication = Socket & {
   authenticated?: boolean;
 };
 
-export const SocketContext = React.createContext<SocketWithAuthentication | null>(
+export const WebsocketContext = React.createContext<SocketWithAuthentication | null>(
   null
 );
 
 type Props = RootStore;
 
 @observer
-class SocketProvider extends React.Component<Props> {
+class WebsocketProvider extends React.Component<Props> {
   @observable
   socket: SocketWithAuthentication | null;
 
@@ -242,19 +241,14 @@ class SocketProvider extends React.Component<Props> {
 
     this.socket.on(
       "documents.delete",
-      action((event: WebsocketDocumentDeletedEvent) => {
-        const document = documents.get(event.modelId);
+      action((event: PartialWithId<Document>) => {
+        documents.add(event);
+        policies.remove(event.id);
 
         if (event.collectionId) {
           const collection = collections.get(event.collectionId);
-          collection?.removeDocument(event.modelId);
+          collection?.removeDocument(event.id);
         }
-
-        if (document) {
-          document.deletedAt = new Date().toISOString();
-        }
-
-        policies.remove(event.modelId);
       })
     );
 
@@ -428,11 +422,11 @@ class SocketProvider extends React.Component<Props> {
 
   render() {
     return (
-      <SocketContext.Provider value={this.socket}>
+      <WebsocketContext.Provider value={this.socket}>
         {this.props.children}
-      </SocketContext.Provider>
+      </WebsocketContext.Provider>
     );
   }
 }
 
-export default withStores(SocketProvider);
+export default withStores(WebsocketProvider);

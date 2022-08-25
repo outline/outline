@@ -188,11 +188,6 @@ export type WebsocketEntityDeletedEvent = {
   modelId: string;
 };
 
-export type WebsocketDocumentDeletedEvent = WebsocketEntityDeletedEvent & {
-  modelId: string;
-  collectionId: string;
-};
-
 export type WebsocketEntitiesEvent = {
   documentIds: { id: string; updatedAt?: string }[];
   collectionIds: { id: string; updatedAt?: string }[];

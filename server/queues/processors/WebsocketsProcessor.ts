@@ -55,26 +55,6 @@ export default class WebsocketsProcessor {
         });
       }
 
-      case "documents.delete": {
-        const document = await Document.findByPk(event.documentId, {
-          paranoid: false,
-        });
-        if (!document) {
-          return;
-        }
-
-        return socketio
-          .to(
-            document.publishedAt
-              ? `collection-${document.collectionId}`
-              : `user-${document.createdById}`
-          )
-          .emit(event.name, {
-            modelId: event.documentId,
-            collectionId: event.collectionId,
-          });
-      }
-
       case "documents.permanent_delete": {
         return socketio
           .to(`collection-${event.collectionId}`)
@@ -84,6 +64,7 @@ export default class WebsocketsProcessor {
       }
 
       case "documents.archive":
+      case "documents.delete":
       case "documents.update": {
         const document = await Document.findByPk(event.documentId, {
           paranoid: false,
