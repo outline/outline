@@ -113,8 +113,8 @@ export default abstract class BaseStore<T extends BaseModel> {
   };
 
   @action
-  remove(id: string): boolean {
-    return this.data.delete(id);
+  remove(id: string): void {
+    this.data.delete(id);
   }
 
   save(

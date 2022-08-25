@@ -17,6 +17,7 @@ import {
   PartialWithId,
   WebsocketCollectionUpdateIndexEvent,
   WebsocketCollectionUserEvent,
+  WebsocketDocumentDeletedEvent,
   WebsocketEntitiesEvent,
   WebsocketEntityDeletedEvent,
 } from "~/types";
@@ -247,15 +248,23 @@ class SocketProvider extends React.Component<Props> {
       }
     );
 
-    this.socket.on("documents.delete", (event: WebsocketEntityDeletedEvent) => {
-      const document = documents.get(event.modelId);
+    this.socket.on(
+      "documents.delete",
+      (event: WebsocketDocumentDeletedEvent) => {
+        const document = documents.get(event.modelId);
+        const collection = collections.get(event.collectionId);
 
-      if (document) {
-        document.deletedAt = new Date().toISOString();
+        if (collection) {
+          collection.removeDocument(event.modelId);
+        }
+
+        if (document) {
+          document.deletedAt = new Date().toISOString();
+        }
+
+        policies.remove(event.modelId);
       }
-
-      policies.remove(event.modelId);
-    });
+    );
 
     this.socket.on(
       "documents.permanent_delete",

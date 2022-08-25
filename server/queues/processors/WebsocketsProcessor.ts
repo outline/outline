@@ -64,7 +64,7 @@ export default class WebsocketsProcessor {
           return;
         }
 
-        socketio
+        return socketio
           .to(
             document.publishedAt
               ? `collection-${document.collectionId}`
@@ -72,17 +72,7 @@ export default class WebsocketsProcessor {
           )
           .emit(event.name, {
             modelId: event.documentId,
-          });
-
-        return socketio
-          .to(`collection-${document.collectionId}`)
-          .emit("entities", {
-            event: event.name,
-            collectionIds: [
-              {
-                id: document.collectionId,
-              },
-            ],
+            collectionId: event.collectionId,
           });
       }
 
