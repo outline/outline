@@ -84,7 +84,7 @@ router.post("teams.create", auth(), async (ctx) => {
 
   invariant(
     authenticationProviders?.length,
-    "authentication provideers must exist"
+    "authentication providers must exist"
   );
 
   const team = await teamCreator({
