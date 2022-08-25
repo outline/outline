@@ -101,18 +101,6 @@ export default abstract class BaseStore<T extends BaseModel> {
   };
 
   @action
-  patch = (item: PartialWithId<T> | T): T | undefined => {
-    const existingModel = this.data.get(item.id);
-
-    if (existingModel) {
-      existingModel.updateFromJson(item);
-      return existingModel;
-    }
-
-    return;
-  };
-
-  @action
   remove(id: string): void {
     this.data.delete(id);
   }

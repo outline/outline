@@ -1,6 +1,6 @@
 import invariant from "invariant";
 import { find } from "lodash";
-import { observable } from "mobx";
+import { action, observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { io, Socket } from "socket.io-client";
@@ -132,130 +132,122 @@ class SocketProvider extends React.Component<Props> {
       throw err;
     });
 
-    this.socket.on("entities", async (event: WebsocketEntitiesEvent) => {
-      if (event.documentIds) {
-        for (const documentDescriptor of event.documentIds) {
-          const documentId = documentDescriptor.id;
-          let document = documents.get(documentId);
-          const previousTitle = document?.title;
+    this.socket.on(
+      "entities",
+      action(async (event: WebsocketEntitiesEvent) => {
+        if (event.documentIds) {
+          for (const documentDescriptor of event.documentIds) {
+            const documentId = documentDescriptor.id;
+            let document = documents.get(documentId);
+            const previousTitle = document?.title;
 
-          // if we already have the latest version (it was us that performed
-          // the change) then we don't need to update anything either.
-          if (document?.updatedAt === documentDescriptor.updatedAt) {
-            continue;
-          }
-
-          // otherwise, grab the latest version of the document
-          try {
-            document = await documents.fetch(documentId, {
-              force: true,
-            });
-          } catch (err) {
-            if (
-              err instanceof AuthorizationError ||
-              err instanceof NotFoundError
-            ) {
-              documents.remove(documentId);
-              return;
-            }
-          }
-
-          // if the title changed then we need to update the collection also
-          if (document && previousTitle !== document.title) {
-            if (!event.collectionIds) {
-              event.collectionIds = [];
+            // if we already have the latest version (it was us that performed
+            // the change) then we don't need to update anything either.
+            if (document?.updatedAt === documentDescriptor.updatedAt) {
+              continue;
             }
 
-            const existing = find(event.collectionIds, {
-              id: document.collectionId,
-            });
+            // otherwise, grab the latest version of the document
+            try {
+              document = await documents.fetch(documentId, {
+                force: true,
+              });
+            } catch (err) {
+              if (
+                err instanceof AuthorizationError ||
+                err instanceof NotFoundError
+              ) {
+                documents.remove(documentId);
+                return;
+              }
+            }
 
-            if (!existing) {
-              event.collectionIds.push({
+            // if the title changed then we need to update the collection also
+            if (document && previousTitle !== document.title) {
+              if (!event.collectionIds) {
+                event.collectionIds = [];
+              }
+
+              const existing = find(event.collectionIds, {
                 id: document.collectionId,
               });
+
+              if (!existing) {
+                event.collectionIds.push({
+                  id: document.collectionId,
+                });
+              }
             }
           }
         }
-      }
 
-      if (event.collectionIds) {
-        for (const collectionDescriptor of event.collectionIds) {
-          const collectionId = collectionDescriptor.id;
-          const collection = collections.get(collectionId);
+        if (event.collectionIds) {
+          for (const collectionDescriptor of event.collectionIds) {
+            const collectionId = collectionDescriptor.id;
+            const collection = collections.get(collectionId);
 
-          // if we already have the latest version (it was us that performed
-          // the change) then we don't need to update anything either.
-          if (collection?.updatedAt === collectionDescriptor.updatedAt) {
-            continue;
-          }
+            // if we already have the latest version (it was us that performed
+            // the change) then we don't need to update anything either.
+            if (collection?.updatedAt === collectionDescriptor.updatedAt) {
+              continue;
+            }
 
-          try {
-            await collections.fetch(collectionId, {
-              force: true,
-            });
-          } catch (err) {
-            if (
-              err instanceof AuthorizationError ||
-              err instanceof NotFoundError
-            ) {
-              documents.removeCollectionDocuments(collectionId);
-              memberships.removeCollectionMemberships(collectionId);
-              collections.remove(collectionId);
-              policies.remove(collectionId);
-              return;
+            try {
+              await collections.fetch(collectionId, {
+                force: true,
+              });
+            } catch (err) {
+              if (
+                err instanceof AuthorizationError ||
+                err instanceof NotFoundError
+              ) {
+                documents.removeCollectionDocuments(collectionId);
+                memberships.removeCollectionMemberships(collectionId);
+                collections.remove(collectionId);
+                policies.remove(collectionId);
+                return;
+              }
             }
           }
         }
-      }
-
-      if (event.groupIds) {
-        for (const groupDescriptor of event.groupIds) {
-          const groupId = groupDescriptor.id;
-          const group = groups.get(groupId);
-
-          // if we already have the latest version (it was us that performed
-          // the change) then we don't need to update anything either.
-          if (group?.updatedAt === groupDescriptor.updatedAt) {
-            continue;
-          }
-
-          try {
-            await groups.fetch(groupId, {
-              force: true,
-            });
-          } catch (err) {
-            if (
-              err instanceof AuthorizationError ||
-              err instanceof NotFoundError
-            ) {
-              groups.remove(groupId);
-            }
-          }
-        }
-      }
-    });
+      })
+    );
 
     this.socket.on(
       "documents.update",
-      (event: PartialWithId<Document> & { title: string; url: string }) => {
-        documents.patch(event);
+      action(
+        (event: PartialWithId<Document> & { title: string; url: string }) => {
+          documents.add(event);
+
+          if (event.collectionId) {
+            const collection = collections.get(event.collectionId);
+            collection?.updateDocument(event);
+          }
+        }
+      )
+    );
+
+    this.socket.on(
+      "documents.archive",
+      action((event: PartialWithId<Document>) => {
+        documents.add(event);
+        policies.remove(event.id);
 
         if (event.collectionId) {
           const collection = collections.get(event.collectionId);
-          collection?.updateDocument(event);
+          collection?.removeDocument(event.id);
         }
-      }
+      })
     );
 
     this.socket.on(
       "documents.delete",
-      (event: WebsocketDocumentDeletedEvent) => {
+      action((event: WebsocketDocumentDeletedEvent) => {
         const document = documents.get(event.modelId);
-        const collection = collections.get(event.collectionId);
 
-        if (collection) {
-          collection.removeDocument(event.modelId);
+        if (event.collectionId) {
+          const collection = collections.get(event.collectionId);
+          collection?.removeDocument(event.modelId);
         }
 
         if (document) {
@@ -263,7 +255,7 @@ class SocketProvider extends React.Component<Props> {
         }
 
         policies.remove(event.modelId);
-      }
+      })
     );
 
     this.socket.on(
@@ -278,7 +270,7 @@ class SocketProvider extends React.Component<Props> {
     });
 
     this.socket.on("groups.update", (event: PartialWithId<Group>) => {
-      groups.patch(event);
+      groups.add(event);
     });
 
     this.socket.on("groups.delete", (event: WebsocketEntityDeletedEvent) => {
@@ -291,7 +283,7 @@ class SocketProvider extends React.Component<Props> {
 
     this.socket.on(
       "collections.delete",
-      (event: WebsocketEntityDeletedEvent) => {
+      action((event: WebsocketEntityDeletedEvent) => {
         const collectionId = event.modelId;
         const deletedAt = new Date().toISOString();
 
@@ -304,7 +296,7 @@ class SocketProvider extends React.Component<Props> {
         memberships.removeCollectionMemberships(collectionId);
         collections.remove(collectionId);
         policies.remove(collectionId);
-      }
+      })
     );
 
     this.socket.on("teams.update", (event: PartialWithId<Team>) => {
@@ -316,7 +308,7 @@ class SocketProvider extends React.Component<Props> {
     });
 
     this.socket.on("pins.update", (event: PartialWithId<Pin>) => {
-      pins.patch(event);
+      pins.add(event);
     });
 
     this.socket.on("pins.delete", (event: WebsocketEntityDeletedEvent) => {
@@ -328,7 +320,7 @@ class SocketProvider extends React.Component<Props> {
     });
 
     this.socket.on("stars.update", (event: PartialWithId<Star>) => {
-      stars.patch(event);
+      stars.add(event);
     });
 
     this.socket.on("stars.delete", (event: WebsocketEntityDeletedEvent) => {
@@ -339,7 +331,7 @@ class SocketProvider extends React.Component<Props> {
     // if the user is us then we go ahead and load the collection from API.
     this.socket.on(
       "collections.add_user",
-      (event: WebsocketCollectionUserEvent) => {
+      action((event: WebsocketCollectionUserEvent) => {
         if (auth.user && event.userId === auth.user.id) {
           collections.fetch(event.collectionId, {
             force: true,
@@ -350,7 +342,7 @@ class SocketProvider extends React.Component<Props> {
         documents.inCollection(event.collectionId).forEach((document) => {
           policies.remove(document.id);
         });
-      }
+      })
     );
 
     // received when a user is removed from having access to a collection
@@ -358,7 +350,7 @@ class SocketProvider extends React.Component<Props> {
     // or otherwise just remove any membership state we have for that user.
     this.socket.on(
       "collections.remove_user",
-      (event: WebsocketCollectionUserEvent) => {
+      action((event: WebsocketCollectionUserEvent) => {
         if (auth.user && event.userId === auth.user.id) {
           collections.remove(event.collectionId);
           memberships.removeCollectionMemberships(event.collectionId);
@@ -366,18 +358,18 @@ class SocketProvider extends React.Component<Props> {
         } else {
           memberships.remove(`${event.userId}-${event.collectionId}`);
         }
-      }
+      })
     );
 
     this.socket.on(
       "collections.update_index",
-      (event: WebsocketCollectionUpdateIndexEvent) => {
+      action((event: WebsocketCollectionUpdateIndexEvent) => {
         const collection = collections.get(event.collectionId);
 
         if (collection) {
           collection.updateIndex(event.index);
         }
-      }
+      })
     );
 
     this.socket.on(

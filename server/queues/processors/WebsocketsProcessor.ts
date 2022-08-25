@@ -28,7 +28,6 @@ export default class WebsocketsProcessor {
     switch (event.name) {
       case "documents.publish":
       case "documents.restore":
-      case "documents.archive":
       case "documents.unarchive": {
         const document = await Document.findByPk(event.documentId, {
           paranoid: false,
@@ -84,6 +83,7 @@ export default class WebsocketsProcessor {
           });
       }
 
+      case "documents.archive":
       case "documents.update": {
         const document = await Document.findByPk(event.documentId, {
           paranoid: false,
