@@ -24,7 +24,7 @@ function GroupMenu({ group, onMembers }: Props) {
   });
   const [editModalOpen, setEditModalOpen] = React.useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = React.useState(false);
-  const can = usePolicy(group.id);
+  const can = usePolicy(group);
 
   return (
     <>

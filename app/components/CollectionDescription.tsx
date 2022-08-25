@@ -25,7 +25,7 @@ function CollectionDescription({ collection }: Props) {
   const [isExpanded, setExpanded] = React.useState(false);
   const [isEditing, setEditing] = React.useState(false);
   const [isDirty, setDirty] = React.useState(false);
-  const can = usePolicy(collection.id);
+  const can = usePolicy(collection);
 
   const handleStartEditing = React.useCallback(() => {
     setEditing(true);

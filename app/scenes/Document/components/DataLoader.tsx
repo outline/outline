@@ -57,7 +57,7 @@ function DataLoader({ match, children }: Props) {
     : undefined;
   const isEditRoute = match.path === matchDocumentEdit;
   const isEditing = isEditRoute || !!auth.team?.collaborativeEditing;
-  const can = usePolicy(document ? document.id : "");
+  const can = usePolicy(document);
   const location = useLocation<LocationState>();
 
   React.useEffect(() => {

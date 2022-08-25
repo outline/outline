@@ -187,8 +187,8 @@ function CollectionMenu({
   );
 
   const alphabeticalSort = collection.sort.field === "title";
-  const can = usePolicy(collection.id);
-  const canUserInTeam = usePolicy(team.id);
+  const can = usePolicy(collection);
+  const canUserInTeam = usePolicy(team);
   const items: MenuItem[] = React.useMemo(
     () => [
       {

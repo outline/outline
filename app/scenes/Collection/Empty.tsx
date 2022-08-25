@@ -20,7 +20,7 @@ type Props = {
 
 function EmptyCollection({ collection }: Props) {
   const { t } = useTranslation();
-  const can = usePolicy(collection.id);
+  const can = usePolicy(collection);
   const collectionName = collection ? collection.name : "";
 
   const [

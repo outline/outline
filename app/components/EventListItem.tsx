@@ -33,7 +33,7 @@ type Props = {
 const EventListItem = ({ event, latest, document, ...rest }: Props) => {
   const { t } = useTranslation();
   const location = useLocation();
-  const can = usePolicy(document.id);
+  const can = usePolicy(document);
   const opts = {
     userName: event.actor.name,
   };

@@ -64,7 +64,7 @@ const RedirectDocument = ({
 
 function AuthenticatedRoutes() {
   const team = useCurrentTeam();
-  const can = usePolicy(team.id);
+  const can = usePolicy(team);
 
   return (
     <SocketProvider>

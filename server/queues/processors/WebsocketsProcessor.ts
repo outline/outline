@@ -16,6 +16,7 @@ import {
   presentCollection,
   presentDocument,
   presentFileOperation,
+  presentGroup,
   presentPin,
   presentStar,
   presentTeam,
@@ -356,8 +357,9 @@ export default class WebsocketsProcessor {
         if (!fileOperation) {
           return;
         }
-        const data = await presentFileOperation(fileOperation);
-        return socketio.to(`user-${event.actorId}`).emit(event.name, data);
+        return socketio
+          .to(`user-${event.actorId}`)
+          .emit(event.name, presentFileOperation(fileOperation));
       }
 
       case "pins.create":
@@ -412,15 +414,9 @@ export default class WebsocketsProcessor {
         if (!group) {
           return;
         }
-        return socketio.to(`team-${group.teamId}`).emit("entities", {
-          event: event.name,
-          groupIds: [
-            {
-              id: group.id,
-              updatedAt: group.updatedAt,
-            },
-          ],
-        });
+        return socketio
+          .to(`team-${group.teamId}`)
+          .emit(event.name, presentGroup(group));
       }
 
       case "groups.add_user": {

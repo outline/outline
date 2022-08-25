@@ -8,6 +8,7 @@ import RootStore from "~/stores/RootStore";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import FileOperation from "~/models/FileOperation";
+import Group from "~/models/Group";
 import Pin from "~/models/Pin";
 import Star from "~/models/Star";
 import Team from "~/models/Team";
@@ -237,8 +238,7 @@ class SocketProvider extends React.Component<Props> {
     this.socket.on(
       "documents.update",
       (event: PartialWithId<Document> & { title: string; url: string }) => {
-        const document = documents.get(event.id);
-        document?.updateFromJson(event);
+        documents.patch(event);
 
         if (event.collectionId) {
           const collection = collections.get(event.collectionId);
@@ -263,6 +263,14 @@ class SocketProvider extends React.Component<Props> {
         documents.remove(event.modelId);
       }
     );
+
+    this.socket.on("groups.create", (event: PartialWithId<Group>) => {
+      groups.add(event);
+    });
+
+    this.socket.on("groups.update", (event: PartialWithId<Group>) => {
+      groups.patch(event);
+    });
 
     this.socket.on("groups.delete", (event: WebsocketEntityDeletedEvent) => {
       groups.remove(event.modelId);
@@ -299,7 +307,7 @@ class SocketProvider extends React.Component<Props> {
     });
 
     this.socket.on("pins.update", (event: PartialWithId<Pin>) => {
-      pins.add(event);
+      pins.patch(event);
     });
 
     this.socket.on("pins.delete", (event: WebsocketEntityDeletedEvent) => {
@@ -311,7 +319,7 @@ class SocketProvider extends React.Component<Props> {
     });
 
     this.socket.on("stars.update", (event: PartialWithId<Star>) => {
-      stars.add(event);
+      stars.patch(event);
     });
 
     this.socket.on("stars.delete", (event: WebsocketEntityDeletedEvent) => {

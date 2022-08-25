@@ -22,7 +22,7 @@ function NewTemplateMenu() {
   const { t } = useTranslation();
   const team = useCurrentTeam();
   const { collections, policies } = useStores();
-  const can = usePolicy(team.id);
+  const can = usePolicy(team);
 
   const items = React.useMemo(
     () =>
