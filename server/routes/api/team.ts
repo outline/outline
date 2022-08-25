@@ -62,7 +62,7 @@ router.post("team.update", auth(), async (ctx) => {
   };
 });
 
-router.post("team.create", auth(), async (ctx) => {
+router.post("teams.create", auth(), async (ctx) => {
   const { user } = ctx.state;
   const { name } = ctx.body;
   assertLength(name, 2, "Name must be 2 or more characters");

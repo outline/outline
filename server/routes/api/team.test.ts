@@ -10,12 +10,12 @@ afterAll(server.disconnect);
 
 beforeEach(db.flush);
 
-describe("team.create", () => {
+describe("teams.create", () => {
   it("creates a team", async () => {
     env.DEPLOYMENT = "hosted";
     const team = await buildTeam();
     const user = await buildAdmin({ teamId: team.id });
-    const res = await server.post("/api/team.create", {
+    const res = await server.post("/api/teams.create", {
       body: {
         token: user.getJwtToken(),
         name: "new team",
@@ -31,7 +31,7 @@ describe("team.create", () => {
     env.DEPLOYMENT = "self-hosted";
     const team = await buildTeam();
     const user = await buildAdmin({ teamId: team.id });
-    const res = await server.post("/api/team.create", {
+    const res = await server.post("/api/teams.create", {
       body: {
         token: user.getJwtToken(),
         name: "new team",
