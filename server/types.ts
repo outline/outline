@@ -95,9 +95,7 @@ export type DocumentEvent = BaseEvent &
           | "documents.permanent_delete"
           | "documents.archive"
           | "documents.unarchive"
-          | "documents.restore"
-          | "documents.star"
-          | "documents.unstar";
+          | "documents.restore";
         documentId: string;
         collectionId: string;
         data: {

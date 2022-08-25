@@ -101,13 +101,6 @@ export default class WebsocketsProcessor {
         });
       }
 
-      case "documents.star":
-      case "documents.unstar": {
-        return socketio.to(`user-${event.actorId}`).emit(event.name, {
-          documentId: event.documentId,
-        });
-      }
-
       case "documents.move": {
         const documents = await Document.findAll({
           where: {

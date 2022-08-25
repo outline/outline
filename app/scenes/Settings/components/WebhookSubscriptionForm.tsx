@@ -31,8 +31,6 @@ const WEBHOOK_EVENTS = {
     "documents.archive",
     "documents.unarchive",
     "documents.restore",
-    "documents.star",
-    "documents.unstar",
     "documents.move",
     "documents.update",
     "documents.update.delayed",
