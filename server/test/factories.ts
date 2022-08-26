@@ -17,6 +17,7 @@ import {
   WebhookSubscription,
   WebhookDelivery,
   ApiKey,
+  Subscription,
 } from "@server/models";
 import {
   FileOperationState,
@@ -84,6 +85,31 @@ export async function buildStar(overrides: Partial<Star> = {}) {
 
   return Star.create({
     index: "h",
+    ...overrides,
+  });
+}
+
+export async function buildSubscription(overrides: Partial<Subscription> = {}) {
+  let user;
+
+  if (overrides.userId) {
+    user = await User.findByPk(overrides.userId);
+  } else {
+    user = await buildUser();
+    overrides.userId = user.id;
+  }
+
+  if (!overrides.documentId) {
+    const document = await buildDocument({
+      createdById: overrides.userId,
+      teamId: user?.teamId,
+    });
+    overrides.documentId = document.id;
+  }
+
+  return Subscription.create({
+    enabled: true,
+    event: "documents.update",
     ...overrides,
   });
 }
@@ -377,7 +403,6 @@ export async function buildAttachment(overrides: Partial<Attachment> = {}) {
   count++;
   return Attachment.create({
     key: `uploads/key/to/file ${count}.png`,
-    url: `https://redirect.url.com/uploads/key/to/file${count}.png`,
     contentType: "image/png",
     size: 100,
     acl: "public-read",

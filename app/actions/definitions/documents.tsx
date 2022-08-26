@@ -11,6 +11,8 @@ import {
   ImportIcon,
   PinIcon,
   SearchIcon,
+  UnsubscribeIcon,
+  SubscribeIcon,
   MoveIcon,
   TrashIcon,
   CrossIcon,
@@ -112,6 +114,68 @@ export const unstarDocument = createAction({
 
     const document = stores.documents.get(activeDocumentId);
     document?.unstar();
+  },
+});
+
+export const subscribeDocument = createAction({
+  name: ({ t }) => t("Subscribe"),
+  section: DocumentSection,
+  icon: <SubscribeIcon />,
+  visible: ({ activeDocumentId, stores }) => {
+    if (!activeDocumentId) {
+      return false;
+    }
+
+    const document = stores.documents.get(activeDocumentId);
+
+    return (
+      !document?.isSubscribed &&
+      stores.policies.abilities(activeDocumentId).subscribe
+    );
+  },
+  perform: ({ activeDocumentId, stores, t }) => {
+    if (!activeDocumentId) {
+      return;
+    }
+
+    const document = stores.documents.get(activeDocumentId);
+
+    document?.subscribe();
+
+    stores.toasts.showToast(t("Subscribed to document notifications"), {
+      type: "success",
+    });
+  },
+});
+
+export const unsubscribeDocument = createAction({
+  name: ({ t }) => t("Unsubscribe"),
+  section: DocumentSection,
+  icon: <UnsubscribeIcon />,
+  visible: ({ activeDocumentId, stores }) => {
+    if (!activeDocumentId) {
+      return false;
+    }
+
+    const document = stores.documents.get(activeDocumentId);
+
+    return (
+      !!document?.isSubscribed &&
+      stores.policies.abilities(activeDocumentId).unsubscribe
+    );
+  },
+  perform: ({ activeDocumentId, stores, currentUserId, t }) => {
+    if (!activeDocumentId || !currentUserId) {
+      return;
+    }
+
+    const document = stores.documents.get(activeDocumentId);
+
+    document?.unsubscribe(currentUserId);
+
+    stores.toasts.showToast(t("Unsubscribed from document notifications"), {
+      type: "success",
+    });
   },
 });
 
@@ -471,6 +535,8 @@ export const rootDocumentActions = [
   downloadDocument,
   starDocument,
   unstarDocument,
+  subscribeDocument,
+  unsubscribeDocument,
   duplicateDocument,
   moveDocument,
   permanentlyDeleteDocument,

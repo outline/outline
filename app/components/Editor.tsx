@@ -1,12 +1,12 @@
 import { formatDistanceToNow } from "date-fns";
 import { deburr, sortBy } from "lodash";
+import { observer } from "mobx-react";
 import { DOMParser as ProsemirrorDOMParser } from "prosemirror-model";
 import { TextSelection } from "prosemirror-state";
 import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
 import { Optional } from "utility-types";
 import insertFiles from "@shared/editor/commands/insertFiles";
-import embeds from "@shared/editor/embeds";
 import { Heading } from "@shared/editor/lib/getHeadings";
 import { getDataTransferFiles } from "@shared/utils/files";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
@@ -18,6 +18,7 @@ import ErrorBoundary from "~/components/ErrorBoundary";
 import HoverPreview from "~/components/HoverPreview";
 import type { Props as EditorProps, Editor as SharedEditor } from "~/editor";
 import useDictionary from "~/hooks/useDictionary";
+import useEmbeds from "~/hooks/useEmbeds";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import { NotFoundError } from "~/utils/errors";
@@ -58,6 +59,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   const { documents } = useStores();
   const { showToast } = useToasts();
   const dictionary = useDictionary();
+  const embeds = useEmbeds();
   const [
     activeLinkEvent,
     setActiveLinkEvent,
@@ -310,4 +312,4 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   );
 }
 
-export default React.forwardRef(Editor);
+export default observer(React.forwardRef(Editor));
