@@ -257,6 +257,13 @@ export type ShareEvent = BaseEvent & {
   };
 };
 
+export type SubscriptionEvent = BaseEvent & {
+  name: "subscriptions.create" | "subscriptions.delete";
+  modelId: string;
+  userId: string;
+  documentId: string | null;
+};
+
 export type ViewEvent = BaseEvent & {
   name: "views.create";
   documentId: string;
@@ -293,6 +300,7 @@ export type Event =
   | GroupEvent
   | RevisionEvent
   | ShareEvent
+  | SubscriptionEvent
   | TeamEvent
   | UserEvent
   | ViewEvent

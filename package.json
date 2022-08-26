@@ -136,7 +136,7 @@
     "natural-sort": "^1.0.0",
     "node-fetch": "2.6.7",
     "nodemailer": "^6.6.1",
-    "outline-icons": "^1.43.1",
+    "outline-icons": "^1.44.0",
     "oy-vey": "^0.11.2",
     "passport": "^0.6.0",
     "passport-google-oauth2": "^0.2.0",

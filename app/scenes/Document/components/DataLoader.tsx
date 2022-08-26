@@ -8,6 +8,7 @@ import ErrorOffline from "~/scenes/ErrorOffline";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { NavigationNode } from "~/types";
+import Logger from "~/utils/Logger";
 import { NotFoundError, OfflineError } from "~/utils/errors";
 import history from "~/utils/history";
 import { matchDocumentEdit } from "~/utils/routeHelpers";
@@ -41,7 +42,7 @@ type Props = RouteComponentProps<Params, StaticContext, LocationState> & {
 };
 
 function DataLoader({ match, children }: Props) {
-  const { ui, shares, documents, auth, revisions } = useStores();
+  const { ui, shares, documents, auth, revisions, subscriptions } = useStores();
   const { team } = auth;
   const [error, setError] = React.useState<Error | null>(null);
   const { revisionId, shareId, documentSlug } = match.params;
@@ -85,6 +86,22 @@ function DataLoader({ match, children }: Props) {
     }
     fetchRevision();
   }, [revisions, revisionId]);
+
+  React.useEffect(() => {
+    async function fetchSubscription() {
+      if (document?.id) {
+        try {
+          await subscriptions.fetchPage({
+            documentId: document.id,
+            event: "documents.update",
+          });
+        } catch (err) {
+          Logger.error("Failed to fetch subscriptions", err);
+        }
+      }
+    }
+    fetchSubscription();
+  }, [document?.id, subscriptions]);
 
   const onCreateLink = React.useCallback(
     async (title: string) => {
