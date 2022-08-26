@@ -7,9 +7,10 @@ import { Portal } from "react-portal";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
 import insertFiles from "@shared/editor/commands/insertFiles";
+import { EmbedDescriptor } from "@shared/editor/embeds";
 import { CommandFactory } from "@shared/editor/lib/Extension";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
-import { EmbedDescriptor, MenuItem } from "@shared/editor/types";
+import { MenuItem } from "@shared/editor/types";
 import { depths } from "@shared/styles";
 import { getEventFiles } from "@shared/utils/files";
 import { AttachmentValidation } from "@shared/validations";
@@ -427,10 +428,12 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
 
     for (const embed of embeds) {
       if (embed.title) {
-        embedItems.push({
-          ...embed,
-          name: "embed",
-        });
+        embedItems.push(
+          new EmbedDescriptor({
+            ...embed,
+            name: "embed",
+          })
+        );
       }
     }
 

@@ -50,6 +50,17 @@ export const assertEmail = (value = "", message?: string) => {
   }
 };
 
+export const assertUrl = (value = "", message?: string) => {
+  if (
+    !validator.isURL(value, {
+      protocols: ["http", "https"],
+      require_valid_protocol: true,
+    })
+  ) {
+    throw ValidationError(message ?? `${value} is an invalid url!`);
+  }
+};
+
 export const assertUuid = (value: unknown, message?: string) => {
   if (typeof value !== "string") {
     throw ValidationError(message);

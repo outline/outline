@@ -9,12 +9,14 @@ import {
   LinkIcon,
   TeamIcon,
   BeakerIcon,
+  BuildingBlocksIcon,
   DownloadIcon,
   WebhooksIcon,
 } from "outline-icons";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import Details from "~/scenes/Settings/Details";
+import Drawio from "~/scenes/Settings/Drawio";
 import Export from "~/scenes/Settings/Export";
 import Features from "~/scenes/Settings/Features";
 import Groups from "~/scenes/Settings/Groups";
@@ -169,6 +171,14 @@ const useAuthorizedSettingsConfig = () => {
         enabled: can.createWebhookSubscription,
         group: t("Integrations"),
         icon: WebhooksIcon,
+      },
+      Drawio: {
+        name: t("Draw.io"),
+        path: "/settings/integrations/drawio",
+        component: Drawio,
+        enabled: can.update,
+        group: t("Integrations"),
+        icon: BuildingBlocksIcon,
       },
       Slack: {
         name: "Slack",

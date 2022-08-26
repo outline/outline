@@ -107,6 +107,7 @@ export default class Embed extends Node {
         attrs={{ ...node.attrs, matches }}
         isEditable={isEditable}
         isSelected={isSelected}
+        embed={embed}
         theme={theme}
       />
     );
