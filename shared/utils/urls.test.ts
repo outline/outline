@@ -70,15 +70,12 @@ describe("sanitizeUrl Method", () => {
 
   describe("Blocked protocols", () => {
     it("should be sanitized", () => {
-      expect(urlsUtils.sanitizeUrl("file://localhost/outline.txt")).toEqual(
-        "https://file://localhost/outline.txt"
+      expect(urlsUtils.sanitizeUrl("file://localhost.com/outline.txt")).toEqual(
+        "https://file://localhost.com/outline.txt"
       );
       expect(urlsUtils.sanitizeUrl("javascript:whatever")).toEqual(
         "https://javascript:whatever"
       );
-      expect(
-        urlsUtils.sanitizeUrl("data:text/html,<script>alert('hi');</script>")
-      ).toEqual("https://data:text/html,<script>alert('hi');</script>");
       expect(
         urlsUtils.sanitizeUrl("data:text/html,<script>alert('hi');</script>")
       ).toEqual("https://data:text/html,<script>alert('hi');</script>");

@@ -1,3 +1,4 @@
+import { blacklist_protocols } from "../constants";
 import env from "../env";
 import { parseDomain } from "./domains";
 
@@ -54,7 +55,7 @@ export function isUrl(text: string) {
 
   try {
     const url = new URL(text);
-    return url.hostname !== "";
+    return url.hostname !== "" && !blacklist_protocols.includes(url.protocol);
   } catch (err) {
     return false;
   }
@@ -83,14 +84,10 @@ export function sanitizeUrl(url: string | null | undefined) {
   }
 
   if (
-    (!isUrl(url) &&
-      !url.startsWith("/") &&
-      !url.startsWith("#") &&
-      !url.startsWith("mailto:")) ||
-    url.startsWith("javascript:") ||
-    url.startsWith("file:") ||
-    url.startsWith("vbscript:") ||
-    url.startsWith("data:")
+    !isUrl(url) &&
+    !url.startsWith("/") &&
+    !url.startsWith("#") &&
+    !url.startsWith("mailto:")
   ) {
     return `https://${url}`;
   }
