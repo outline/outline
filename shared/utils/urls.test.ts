@@ -62,6 +62,14 @@ describe("sanitizeUrl Method", () => {
         "mailto:outline@getoutline.com"
       );
     });
+    it("should return the url as it's if it's sms:, fax:, tel:", () => {
+      expect(urlsUtils.sanitizeUrl("mailto:outline@getoutline.com")).toEqual(
+        "mailto:outline@getoutline.com"
+      );
+      expect(urlsUtils.sanitizeUrl("tel:0123456789")).toEqual("tel:0123456789");
+      expect(urlsUtils.sanitizeUrl("fax:0123456789")).toEqual("fax:0123456789");
+      expect(urlsUtils.sanitizeUrl("sms:0123456789")).toEqual("sms:0123456789");
+    });
     it("should return the url as it's if it's a special domain", () => {
       expect(urlsUtils.sanitizeUrl("mqtt://getoutline.com")).toEqual(
         "mqtt://getoutline.com"

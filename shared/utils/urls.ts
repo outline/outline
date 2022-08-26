@@ -1,5 +1,5 @@
 import { escapeRegExp } from "lodash";
-import { blacklist_protocols } from "../constants";
+import { BLACKLIST_PROTOCOLS } from "../constants";
 import env from "../env";
 import { parseDomain } from "./domains";
 
@@ -56,7 +56,7 @@ export function isUrl(text: string) {
 
   try {
     const url = new URL(text);
-    return url.hostname !== "" && !blacklist_protocols.includes(url.protocol);
+    return url.hostname !== "" && !BLACKLIST_PROTOCOLS.includes(url.protocol);
   } catch (err) {
     return false;
   }
@@ -88,7 +88,10 @@ export function sanitizeUrl(url: string | null | undefined) {
     !isUrl(url) &&
     !url.startsWith("/") &&
     !url.startsWith("#") &&
-    !url.startsWith("mailto:")
+    !url.startsWith("mailto:") &&
+    !url.startsWith("sms:") &&
+    !url.startsWith("fax:") &&
+    !url.startsWith("tel:")
   ) {
     return `https://${url}`;
   }
