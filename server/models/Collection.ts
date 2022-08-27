@@ -24,8 +24,9 @@ import isUUID from "validator/lib/isUUID";
 import { sortNavigationNodes } from "@shared/utils/collections";
 import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
 import { CollectionValidation } from "@shared/validations";
+import { CollectionPermission } from "@server/types";
 import slugify from "@server/utils/slugify";
-import { NavigationNode, CollectionSort } from "~/types";
+import type { NavigationNode, CollectionSort } from "~/types";
 import CollectionGroup from "./CollectionGroup";
 import CollectionUser from "./CollectionUser";
 import Document from "./Document";
@@ -38,9 +39,6 @@ import Fix from "./decorators/Fix";
 import IsHexColor from "./validators/IsHexColor";
 import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
-
-// without this indirection, the app crashes on starup
-type Sort = CollectionSort;
 
 @Scopes(() => ({
   withAllMemberships: {
@@ -174,9 +172,9 @@ class Collection extends ParanoidModel {
   @Column
   index: string | null;
 
-  @IsIn([["read", "read_write"]])
-  @Column
-  permission: "read" | "read_write" | null;
+  @IsIn([Object.values(CollectionPermission)])
+  @Column(DataType.STRING)
+  permission: CollectionPermission | null;
 
   @Default(false)
   @Column
@@ -193,7 +191,7 @@ class Collection extends ParanoidModel {
   @Column({
     type: DataType.JSONB,
     validate: {
-      isSort(value: Sort) {
+      isSort(value: CollectionSort) {
         if (
           typeof value !== "object" ||
           !value.direction ||
@@ -213,7 +211,7 @@ class Collection extends ParanoidModel {
       },
     },
   })
-  sort: Sort;
+  sort: CollectionSort;
 
   // getters
 
@@ -255,14 +253,14 @@ class Collection extends ParanoidModel {
     model: Collection,
     options: { transaction: Transaction }
   ) {
-    if (model.permission !== "read_write") {
+    if (model.permission !== CollectionPermission.ReadWrite) {
       return CollectionUser.findOrCreate({
         where: {
           collectionId: model.id,
           userId: model.createdById,
         },
         defaults: {
-          permission: "read_write",
+          permission: CollectionPermission.ReadWrite,
           createdById: model.createdById,
         },
         transaction: options.transaction,

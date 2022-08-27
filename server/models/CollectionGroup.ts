@@ -8,6 +8,7 @@ import {
   DataType,
   Scopes,
 } from "sequelize-typescript";
+import { CollectionPermission } from "@server/types";
 import Collection from "./Collection";
 import Group from "./Group";
 import User from "./User";
@@ -33,10 +34,10 @@ import Fix from "./decorators/Fix";
 @Table({ tableName: "collection_groups", modelName: "collection_group" })
 @Fix
 class CollectionGroup extends BaseModel {
-  @Default("read_write")
-  @IsIn([["read", "read_write", "maintainer"]])
-  @Column
-  permission: string;
+  @Default(CollectionPermission.Read)
+  @IsIn([Object.values(CollectionPermission)])
+  @Column(DataType.STRING)
+  permission: CollectionPermission;
 
   // associations
 

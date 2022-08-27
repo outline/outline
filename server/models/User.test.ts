@@ -1,5 +1,6 @@
 import { buildUser, buildTeam, buildCollection } from "@server/test/factories";
 import { getTestDatabase } from "@server/test/support";
+import { CollectionPermission } from "@server/types";
 import CollectionUser from "./CollectionUser";
 import UserAuthentication from "./UserAuthentication";
 
@@ -39,7 +40,7 @@ describe("user model", () => {
       });
       const collection = await buildCollection({
         teamId: team.id,
-        permission: "read_write",
+        permission: CollectionPermission.ReadWrite,
       });
       const response = await user.collectionIds();
       expect(response.length).toEqual(1);
@@ -52,7 +53,7 @@ describe("user model", () => {
       });
       const collection = await buildCollection({
         teamId: team.id,
-        permission: "read",
+        permission: CollectionPermission.Read,
       });
       const response = await user.collectionIds();
       expect(response.length).toEqual(1);
@@ -83,7 +84,7 @@ describe("user model", () => {
         createdById: user.id,
         collectionId: collection.id,
         userId: user.id,
-        permission: "read",
+        permission: CollectionPermission.Read,
       });
       const response = await user.collectionIds();
       expect(response.length).toEqual(1);

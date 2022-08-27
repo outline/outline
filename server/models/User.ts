@@ -22,6 +22,7 @@ import {
 import { languages } from "@shared/i18n";
 import { stringToColor } from "@shared/utils/color";
 import env from "@server/env";
+import { CollectionPermission } from "@server/types";
 import { ValidationError } from "../errors";
 import ApiKey from "./ApiKey";
 import Collection from "./Collection";
@@ -294,8 +295,8 @@ class User extends ParanoidModel {
     return collectionStubs
       .filter(
         (c) =>
-          c.permission === "read" ||
-          c.permission === "read_write" ||
+          c.permission === CollectionPermission.Read ||
+          c.permission === CollectionPermission.ReadWrite ||
           c.memberships.length > 0 ||
           c.collectionGroupMemberships.length > 0
       )

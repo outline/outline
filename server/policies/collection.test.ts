@@ -1,6 +1,7 @@
 import { CollectionUser, Collection } from "@server/models";
 import { buildUser, buildTeam, buildCollection } from "@server/test/factories";
 import { getTestDatabase } from "@server/test/support";
+import { CollectionPermission } from "@server/types";
 import { serialize } from "./index";
 
 const db = getTestDatabase();
@@ -17,7 +18,7 @@ describe("read_write permission", () => {
     });
     const collection = await buildCollection({
       teamId: team.id,
-      permission: "read_write",
+      permission: CollectionPermission.ReadWrite,
     });
     const abilities = serialize(user, collection);
     expect(abilities.read).toEqual(true);
@@ -32,13 +33,13 @@ describe("read_write permission", () => {
     });
     const collection = await buildCollection({
       teamId: team.id,
-      permission: "read_write",
+      permission: CollectionPermission.ReadWrite,
     });
     await CollectionUser.create({
       createdById: user.id,
       collectionId: collection.id,
       userId: user.id,
-      permission: "read",
+      permission: CollectionPermission.Read,
     });
     // reload to get membership
     const reloaded = await Collection.scope({
@@ -59,7 +60,7 @@ describe("read permission", () => {
     });
     const collection = await buildCollection({
       teamId: team.id,
-      permission: "read",
+      permission: CollectionPermission.Read,
     });
     const abilities = serialize(user, collection);
     expect(abilities.read).toEqual(true);
@@ -74,13 +75,13 @@ describe("read permission", () => {
     });
     const collection = await buildCollection({
       teamId: team.id,
-      permission: "read",
+      permission: CollectionPermission.Read,
     });
     await CollectionUser.create({
       createdById: user.id,
       collectionId: collection.id,
       userId: user.id,
-      permission: "read_write",
+      permission: CollectionPermission.ReadWrite,
     });
     // reload to get membership
     const reloaded = await Collection.scope({
@@ -122,7 +123,7 @@ describe("no permission", () => {
       createdById: user.id,
       collectionId: collection.id,
       userId: user.id,
-      permission: "read_write",
+      permission: CollectionPermission.ReadWrite,
     });
     // reload to get membership
     const reloaded = await Collection.scope({

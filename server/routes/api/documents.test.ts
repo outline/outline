@@ -15,6 +15,7 @@ import {
   buildViewer,
 } from "@server/test/factories";
 import { seed, getTestDatabase, getTestServer } from "@server/test/support";
+import { CollectionPermission } from "@server/types";
 
 const db = getTestDatabase();
 const server = getTestServer();
@@ -2133,7 +2134,7 @@ describe("#documents.update", () => {
 
   it("does not allow editing in read-only collection", async () => {
     const { user, document, collection } = await seed();
-    collection.permission = "read";
+    collection.permission = CollectionPermission.Read;
     await collection.save();
     const res = await server.post("/api/documents.update", {
       body: {

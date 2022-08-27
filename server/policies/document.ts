@@ -209,9 +209,6 @@ allow(User, "delete", Document, (user, document) => {
   if (document.deletedAt) {
     return false;
   }
-  if (user.isViewer) {
-    return false;
-  }
 
   // allow deleting document without a collection
   if (document.collection && cannot(user, "update", document.collection)) {
@@ -237,9 +234,6 @@ allow(User, "permanentDelete", Document, (user, document) => {
   if (!document.deletedAt) {
     return false;
   }
-  if (user.isViewer) {
-    return false;
-  }
 
   // allow deleting document without a collection
   if (document.collection && cannot(user, "update", document.collection)) {
@@ -254,9 +248,6 @@ allow(User, "restore", Document, (user, document) => {
     return false;
   }
   if (!document.deletedAt) {
-    return false;
-  }
-  if (user.isViewer) {
     return false;
   }
 
