@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
+import { CollectionPermission } from "@shared/types";
 import {
   Share,
   Team,
@@ -271,7 +272,7 @@ export async function buildCollection(
     name: `Test Collection ${count}`,
     description: "Test collection description",
     createdById: overrides.userId,
-    permission: "read_write",
+    permission: CollectionPermission.ReadWrite,
     ...overrides,
   });
 }

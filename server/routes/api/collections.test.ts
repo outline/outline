@@ -1,3 +1,4 @@
+import { CollectionPermission } from "@shared/types";
 import { colorPalette } from "@shared/utils/collections";
 import { Document, CollectionUser, CollectionGroup } from "@server/models";
 import {
@@ -101,7 +102,7 @@ describe("#collections.list", () => {
     });
     await collection.$add("group", group, {
       through: {
-        permission: "read",
+        permission: CollectionPermission.Read,
         createdById: user.id,
       },
     });
@@ -293,7 +294,7 @@ describe("#collections.export", () => {
       createdById: admin.id,
       collectionId: collection.id,
       userId: admin.id,
-      permission: "read_write",
+      permission: CollectionPermission.ReadWrite,
     });
     const res = await server.post("/api/collections.export", {
       body: {
@@ -320,7 +321,7 @@ describe("#collections.export", () => {
     });
     await collection.$add("group", group, {
       through: {
-        permission: "read_write",
+        permission: CollectionPermission.ReadWrite,
         createdById: admin.id,
       },
     });
@@ -685,13 +686,13 @@ describe("#collections.group_memberships", () => {
       createdById: user.id,
       collectionId: collection.id,
       userId: user.id,
-      permission: "read_write",
+      permission: CollectionPermission.ReadWrite,
     });
     await CollectionGroup.create({
       createdById: user.id,
       collectionId: collection.id,
       groupId: group.id,
-      permission: "read_write",
+      permission: CollectionPermission.ReadWrite,
     });
     const res = await server.post("/api/collections.group_memberships", {
       body: {
@@ -705,7 +706,7 @@ describe("#collections.group_memberships", () => {
     expect(body.data.groups[0].id).toEqual(group.id);
     expect(body.data.collectionGroupMemberships.length).toEqual(1);
     expect(body.data.collectionGroupMemberships[0].permission).toEqual(
-      "read_write"
+      CollectionPermission.ReadWrite
     );
   });
 
@@ -727,19 +728,19 @@ describe("#collections.group_memberships", () => {
       createdById: user.id,
       collectionId: collection.id,
       userId: user.id,
-      permission: "read_write",
+      permission: CollectionPermission.ReadWrite,
     });
     await CollectionGroup.create({
       createdById: user.id,
       collectionId: collection.id,
       groupId: group.id,
-      permission: "read_write",
+      permission: CollectionPermission.ReadWrite,
     });
     await CollectionGroup.create({
       createdById: user.id,
       collectionId: collection.id,
       groupId: group2.id,
-      permission: "read_write",
+      permission: CollectionPermission.ReadWrite,
     });
     const res = await server.post("/api/collections.group_memberships", {
       body: {
@@ -770,25 +771,25 @@ describe("#collections.group_memberships", () => {
       createdById: user.id,
       collectionId: collection.id,
       userId: user.id,
-      permission: "read_write",
+      permission: CollectionPermission.ReadWrite,
     });
     await CollectionGroup.create({
       createdById: user.id,
       collectionId: collection.id,
       groupId: group.id,
-      permission: "read_write",
+      permission: CollectionPermission.ReadWrite,
     });
     await CollectionGroup.create({
       createdById: user.id,
       collectionId: collection.id,
       groupId: group2.id,
-      permission: "maintainer",
+      permission: CollectionPermission.Read,
     });
     const res = await server.post("/api/collections.group_memberships", {
       body: {
         token: user.getJwtToken(),
         id: collection.id,
-        permission: "maintainer",
+        permission: CollectionPermission.Read,
       },
     });
     const body = await res.json();
@@ -829,7 +830,7 @@ describe("#collections.memberships", () => {
       createdById: user.id,
       collectionId: collection.id,
       userId: user.id,
-      permission: "read_write",
+      permission: CollectionPermission.ReadWrite,
     });
     const res = await server.post("/api/collections.memberships", {
       body: {
@@ -842,7 +843,9 @@ describe("#collections.memberships", () => {
     expect(body.data.users.length).toEqual(1);
     expect(body.data.users[0].id).toEqual(user.id);
     expect(body.data.memberships.length).toEqual(1);
-    expect(body.data.memberships[0].permission).toEqual("read_write");
+    expect(body.data.memberships[0].permission).toEqual(
+      CollectionPermission.ReadWrite
+    );
   });
 
   it("should allow filtering members in collection by name", async () => {
@@ -854,13 +857,13 @@ describe("#collections.memberships", () => {
       createdById: user.id,
       collectionId: collection.id,
       userId: user.id,
-      permission: "read_write",
+      permission: CollectionPermission.ReadWrite,
     });
     await CollectionUser.create({
       createdById: user2.id,
       collectionId: collection.id,
       userId: user2.id,
-      permission: "read_write",
+      permission: CollectionPermission.ReadWrite,
     });
     const res = await server.post("/api/collections.memberships", {
       body: {
@@ -882,19 +885,19 @@ describe("#collections.memberships", () => {
       createdById: user.id,
       collectionId: collection.id,
       userId: user.id,
-      permission: "read_write",
+      permission: CollectionPermission.ReadWrite,
     });
     await CollectionUser.create({
       createdById: user2.id,
       collectionId: collection.id,
       userId: user2.id,
-      permission: "maintainer",
+      permission: CollectionPermission.Read,
     });
     const res = await server.post("/api/collections.memberships", {
       body: {
         token: user.getJwtToken(),
         id: collection.id,
-        permission: "maintainer",
+        permission: CollectionPermission.Read,
       },
     });
     const body = await res.json();
@@ -958,7 +961,7 @@ describe("#collections.info", () => {
       collectionId: collection.id,
       userId: user.id,
       createdById: user.id,
-      permission: "read",
+      permission: CollectionPermission.Read,
     });
     const res = await server.post("/api/collections.info", {
       body: {
@@ -1240,20 +1243,20 @@ describe("#collections.update", () => {
       collectionId: collection.id,
       userId: user.id,
       createdById: user.id,
-      permission: "read_write",
+      permission: CollectionPermission.ReadWrite,
     });
     const res = await server.post("/api/collections.update", {
       body: {
         token: user.getJwtToken(),
         id: collection.id,
-        permission: "read_write",
+        permission: CollectionPermission.ReadWrite,
         name: "Test",
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.name).toBe("Test");
-    expect(body.data.permission).toBe("read_write");
+    expect(body.data.permission).toBe(CollectionPermission.ReadWrite);
     // ensure we return with a write level policy
     expect(body.policies.length).toBe(1);
     expect(body.policies[0].abilities.update).toBe(true);
@@ -1267,7 +1270,7 @@ describe("#collections.update", () => {
       collectionId: collection.id,
       userId: user.id,
       createdById: user.id,
-      permission: "read_write",
+      permission: CollectionPermission.ReadWrite,
     });
     const res = await server.post("/api/collections.update", {
       body: {
@@ -1298,7 +1301,7 @@ describe("#collections.update", () => {
     });
     await collection.$add("group", group, {
       through: {
-        permission: "read_write",
+        permission: CollectionPermission.ReadWrite,
         createdById: user.id,
       },
     });
@@ -1323,7 +1326,7 @@ describe("#collections.update", () => {
       collectionId: collection.id,
       userId: user.id,
       createdById: user.id,
-      permission: "read",
+      permission: CollectionPermission.Read,
     });
     const res = await server.post("/api/collections.update", {
       body: {
@@ -1466,7 +1469,7 @@ describe("#collections.delete", () => {
     });
     await collection.$add("group", group, {
       through: {
-        permission: "read_write",
+        permission: CollectionPermission.ReadWrite,
         createdById: user.id,
       },
     });

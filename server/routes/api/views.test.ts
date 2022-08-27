@@ -1,3 +1,4 @@
+import { CollectionPermission } from "@shared/types";
 import { View, CollectionUser } from "@server/models";
 import { buildUser } from "@server/test/factories";
 import { seed, getTestDatabase, getTestServer } from "@server/test/support";
@@ -56,7 +57,7 @@ describe("#views.list", () => {
       createdById: user.id,
       collectionId: collection.id,
       userId: user.id,
-      permission: "read",
+      permission: CollectionPermission.Read,
     });
     await View.incrementOrCreate({
       documentId: document.id,
@@ -121,7 +122,7 @@ describe("#views.create", () => {
       createdById: user.id,
       collectionId: collection.id,
       userId: user.id,
-      permission: "read",
+      permission: CollectionPermission.Read,
     });
     const res = await server.post("/api/views.create", {
       body: {

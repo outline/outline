@@ -76,7 +76,10 @@ allow(User, "share", Collection, (user, collection) => {
     return true;
   }
 
-  if (collection.permission !== "read_write" || user.isViewer) {
+  if (
+    collection.permission !== CollectionPermission.ReadWrite ||
+    user.isViewer
+  ) {
     invariant(
       collection.memberships,
       "membership should be preloaded, did you forget withMembership scope?"
@@ -85,8 +88,9 @@ allow(User, "share", Collection, (user, collection) => {
       ...collection.memberships,
       ...collection.collectionGroupMemberships,
     ];
-    return some(allMemberships, (m) =>
-      ["read_write", "maintainer"].includes(m.permission)
+    return some(
+      allMemberships,
+      (m) => m.permission === CollectionPermission.ReadWrite
     );
   }
 
@@ -101,7 +105,10 @@ allow(User, ["publish", "update"], Collection, (user, collection) => {
     return true;
   }
 
-  if (collection.permission !== "read_write" || user.isViewer) {
+  if (
+    collection.permission !== CollectionPermission.ReadWrite ||
+    user.isViewer
+  ) {
     invariant(
       collection.memberships,
       "membership should be preloaded, did you forget withMembership scope?"
@@ -110,8 +117,9 @@ allow(User, ["publish", "update"], Collection, (user, collection) => {
       ...collection.memberships,
       ...collection.collectionGroupMemberships,
     ];
-    return some(allMemberships, (m) =>
-      ["read_write", "maintainer"].includes(m.permission)
+    return some(
+      allMemberships,
+      (m) => m.permission === CollectionPermission.ReadWrite
     );
   }
 
@@ -126,7 +134,10 @@ allow(User, "delete", Collection, (user, collection) => {
     return true;
   }
 
-  if (collection.permission !== "read_write" || user.isViewer) {
+  if (
+    collection.permission !== CollectionPermission.ReadWrite ||
+    user.isViewer
+  ) {
     invariant(
       collection.memberships,
       "membership should be preloaded, did you forget withMembership scope?"
@@ -135,8 +146,9 @@ allow(User, "delete", Collection, (user, collection) => {
       ...collection.memberships,
       ...collection.collectionGroupMemberships,
     ];
-    return some(allMemberships, (m) =>
-      ["read_write", "maintainer"].includes(m.permission)
+    return some(
+      allMemberships,
+      (m) => m.permission === CollectionPermission.ReadWrite
     );
   }
 
