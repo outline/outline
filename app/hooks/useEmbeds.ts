@@ -6,7 +6,14 @@ import Integration from "~/models/Integration";
 import Logger from "~/utils/Logger";
 import useStores from "./useStores";
 
-export default function useEmbedIntegrations() {
+/**
+ * Hook to get all embed configuration for the current team
+ *
+ * @param loadIfMissing Should we load integration settings if they are not
+ * locally available
+ * @returns A list of embed descriptors
+ */
+export default function useEmbeds(loadIfMissing = false) {
   const { integrations } = useStores();
 
   React.useEffect(() => {
@@ -21,8 +28,8 @@ export default function useEmbedIntegrations() {
       }
     }
 
-    !integrations.isLoaded && fetchEmbedIntegrations();
-  }, [integrations]);
+    !integrations.isLoaded && loadIfMissing && fetchEmbedIntegrations();
+  }, [integrations, loadIfMissing]);
 
   return React.useMemo(
     () =>

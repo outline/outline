@@ -100,7 +100,7 @@ function DocumentHeader({
   }, [onSave]);
 
   const { isDeleted, isTemplate } = document;
-  const can = usePolicy(document);
+  const can = usePolicy(document?.id);
   const canToggleEmbeds = team?.documentEmbeds;
   const canEdit = can.update && !isEditing;
   const toc = (

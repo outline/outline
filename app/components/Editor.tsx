@@ -59,7 +59,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   const { documents } = useStores();
   const { showToast } = useToasts();
   const dictionary = useDictionary();
-  const embeds = useEmbeds();
+  const embeds = useEmbeds(!shareId);
   const [
     activeLinkEvent,
     setActiveLinkEvent,
