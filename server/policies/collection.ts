@@ -1,7 +1,7 @@
 import invariant from "invariant";
 import { some } from "lodash";
+import { CollectionPermission } from "@shared/types";
 import { Collection, User, Team } from "@server/models";
-import { CollectionPermission } from "@server/types";
 import { AdminRequiredError } from "../errors";
 import { allow } from "./cancan";
 

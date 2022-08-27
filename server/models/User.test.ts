@@ -1,6 +1,6 @@
+import { CollectionPermission } from "@shared/types";
 import { buildUser, buildTeam, buildCollection } from "@server/test/factories";
 import { getTestDatabase } from "@server/test/support";
-import { CollectionPermission } from "@server/types";
 import CollectionUser from "./CollectionUser";
 import UserAuthentication from "./UserAuthentication";
 

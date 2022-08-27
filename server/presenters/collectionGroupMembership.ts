@@ -1,5 +1,5 @@
+import { CollectionPermission } from "@shared/types";
 import { CollectionGroup } from "@server/models";
-import { CollectionPermission } from "@server/types";
 
 type Membership = {
   id: string;

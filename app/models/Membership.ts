@@ -1,4 +1,5 @@
 import { computed } from "mobx";
+import { CollectionPermission } from "@shared/types";
 import BaseModel from "./BaseModel";
 
 class Membership extends BaseModel {
@@ -8,16 +9,11 @@ class Membership extends BaseModel {
 
   collectionId: string;
 
-  permission: string;
+  permission: CollectionPermission;
 
   @computed
   get isEditor(): boolean {
-    return this.permission === "read_write";
-  }
-
-  @computed
-  get isMaintainer(): boolean {
-    return this.permission === "maintainer";
+    return this.permission === CollectionPermission.ReadWrite;
   }
 }
 

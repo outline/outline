@@ -1,3 +1,4 @@
+import { CollectionPermission } from "@shared/types";
 import {
   Document,
   View,
@@ -15,7 +16,6 @@ import {
   buildViewer,
 } from "@server/test/factories";
 import { seed, getTestDatabase, getTestServer } from "@server/test/support";
-import { CollectionPermission } from "@server/types";
 
 const db = getTestDatabase();
 const server = getTestServer();

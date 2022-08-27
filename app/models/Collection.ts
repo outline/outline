@@ -1,5 +1,6 @@
 import { trim } from "lodash";
 import { action, computed, observable } from "mobx";
+import { CollectionPermission } from "@shared/types";
 import { sortNavigationNodes } from "@shared/utils/collections";
 import CollectionsStore from "~/stores/CollectionsStore";
 import Document from "~/models/Document";
@@ -39,7 +40,7 @@ export default class Collection extends ParanoidModel {
 
   @Field
   @observable
-  permission: "read" | "read_write" | void;
+  permission: CollectionPermission | void;
 
   @Field
   @observable

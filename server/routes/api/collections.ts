@@ -3,6 +3,7 @@ import invariant from "invariant";
 import Router from "koa-router";
 import { Sequelize, Op, WhereOptions } from "sequelize";
 import { randomElement } from "@shared/random";
+import { CollectionPermission } from "@shared/types";
 import { colorPalette } from "@shared/utils/collections";
 import { RateLimiterStrategy } from "@server/RateLimiter";
 import collectionExporter from "@server/commands/collectionExporter";
@@ -45,6 +46,7 @@ import {
   assertPresent,
   assertHexColor,
   assertIndexCharacters,
+  assertCollectionPermission,
 } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
@@ -199,9 +201,10 @@ router.post(
 );
 
 router.post("collections.add_group", auth(), async (ctx) => {
-  const { id, groupId, permission = "read_write" } = ctx.body;
+  const { id, groupId, permission = CollectionPermission.ReadWrite } = ctx.body;
   assertUuid(id, "id is required");
   assertUuid(groupId, "groupId is required");
+  assertCollectionPermission(permission);
 
   const collection = await Collection.scope({
     method: ["withMembership", ctx.state.user.id],
@@ -340,7 +343,7 @@ router.post(
 );
 
 router.post("collections.add_user", auth(), async (ctx) => {
-  const { id, userId, permission = "read_write" } = ctx.body;
+  const { id, userId, permission } = ctx.body;
   assertUuid(id, "id is required");
   assertUuid(userId, "userId is required");
 
@@ -359,11 +362,15 @@ router.post("collections.add_user", auth(), async (ctx) => {
     },
   });
 
+  if (permission) {
+    assertCollectionPermission(permission);
+  }
+
   if (!membership) {
     membership = await CollectionUser.create({
       collectionId: id,
       userId,
-      permission,
+      permission: permission || user.defaultCollectionPermission,
       createdById: ctx.state.user.id,
     });
   } else if (permission) {
@@ -422,24 +429,6 @@ router.post("collections.remove_user", auth(), async (ctx) => {
   };
 });
 
-// DEPRECATED: Use collection.memberships which has pagination, filtering and permissions
-router.post("collections.users", auth(), async (ctx) => {
-  const { id } = ctx.body;
-  assertUuid(id, "id is required");
-  const { user } = ctx.state;
-
-  const collection = await Collection.scope({
-    method: ["withMembership", user.id],
-  }).findByPk(id);
-  authorize(user, "read", collection);
-
-  const users = await collection.$get("users");
-
-  ctx.body = {
-    data: users.map((user) => presentUser(user)),
-  };
-});
-
 router.post("collections.memberships", auth(), pagination(), async (ctx) => {
   const { id, query, permission } = ctx.body;
   assertUuid(id, "id is required");
@@ -464,6 +453,7 @@ router.post("collections.memberships", auth(), pagination(), async (ctx) => {
   }
 
   if (permission) {
+    assertCollectionPermission(permission);
     where = { ...where, permission };
   }
 
@@ -575,16 +565,19 @@ router.post("collections.update", auth(), async (ctx) => {
   }).findByPk(id);
   authorize(user, "update", collection);
 
-  // we're making this collection have no default access, ensure that the current
-  // user has a read-write membership so that at least they can edit it
-  if (permission !== "read_write" && collection.permission === "read_write") {
+  // we're making this collection have no default access, ensure that the
+  // current user has a read-write membership so that at least they can edit it
+  if (
+    permission !== CollectionPermission.ReadWrite &&
+    collection.permission === CollectionPermission.ReadWrite
+  ) {
     await CollectionUser.findOrCreate({
       where: {
         collectionId: collection.id,
         userId: user.id,
       },
       defaults: {
-        permission: "read_write",
+        permission: CollectionPermission.ReadWrite,
         createdById: user.id,
       },
     });
@@ -610,12 +603,9 @@ router.post("collections.update", auth(), async (ctx) => {
   }
 
   if (permission !== undefined) {
-    // frontend sends empty string
-    assertIn(
-      permission,
-      ["read_write", "read", "", null],
-      "Invalid permission"
-    );
+    if (permission) {
+      assertCollectionPermission(permission);
+    }
     privacyChanged = permission !== collection.permission;
     collection.permission = permission ? permission : null;
   }

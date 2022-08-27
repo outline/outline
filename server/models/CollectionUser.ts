@@ -8,7 +8,7 @@ import {
   DataType,
   Scopes,
 } from "sequelize-typescript";
-import { CollectionPermission } from "@server/types";
+import { CollectionPermission } from "@shared/types";
 import Collection from "./Collection";
 import User from "./User";
 import BaseModel from "./base/BaseModel";

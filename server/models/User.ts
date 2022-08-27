@@ -20,9 +20,9 @@ import {
   IsDate,
 } from "sequelize-typescript";
 import { languages } from "@shared/i18n";
+import { CollectionPermission } from "@shared/types";
 import { stringToColor } from "@shared/utils/color";
 import env from "@server/env";
-import { CollectionPermission } from "@server/types";
 import { ValidationError } from "../errors";
 import ApiKey from "./ApiKey";
 import Collection from "./Collection";
@@ -214,6 +214,12 @@ class User extends ParanoidModel {
 
   get color() {
     return stringToColor(this.id);
+  }
+
+  get defaultCollectionPermission(): CollectionPermission {
+    return this.isViewer
+      ? CollectionPermission.Read
+      : CollectionPermission.ReadWrite;
   }
 
   /**

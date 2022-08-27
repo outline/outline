@@ -6,11 +6,6 @@ export enum AuthenticationType {
   APP = "app",
 }
 
-export enum CollectionPermission {
-  Read = "read",
-  ReadWrite = "read_write",
-}
-
 export type ContextWithState = Context & {
   state: {
     user: User;

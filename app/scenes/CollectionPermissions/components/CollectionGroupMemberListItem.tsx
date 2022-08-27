@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { CollectionPermission } from "@shared/types";
 import CollectionGroupMembership from "~/models/CollectionGroupMembership";
 import Group from "~/models/Group";
 import GroupListItem from "~/components/GroupListItem";
@@ -10,7 +11,7 @@ import CollectionGroupMemberMenu from "~/menus/CollectionGroupMemberMenu";
 type Props = {
   group: Group;
   collectionGroupMembership: CollectionGroupMembership | null | undefined;
-  onUpdate: (permission: string) => void;
+  onUpdate: (permission: CollectionPermission) => void;
   onRemove: () => void;
 };
 
@@ -21,19 +22,6 @@ const CollectionGroupMemberListItem = ({
   onRemove,
 }: Props) => {
   const { t } = useTranslation();
-  const PERMISSIONS = React.useMemo(
-    () => [
-      {
-        label: t("View only"),
-        value: "read",
-      },
-      {
-        label: t("View and edit"),
-        value: "read_write",
-      },
-    ],
-    [t]
-  );
 
   return (
     <GroupListItem
@@ -43,7 +31,16 @@ const CollectionGroupMemberListItem = ({
         <>
           <Select
             label={t("Permissions")}
-            options={PERMISSIONS}
+            options={[
+              {
+                label: t("View only"),
+                value: CollectionPermission.Read,
+              },
+              {
+                label: t("View and edit"),
+                value: CollectionPermission.ReadWrite,
+              },
+            ]}
             value={
               collectionGroupMembership
                 ? collectionGroupMembership.permission

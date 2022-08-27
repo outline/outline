@@ -1,7 +1,7 @@
+import { CollectionPermission } from "@shared/types";
 import { CollectionUser, Collection } from "@server/models";
 import { buildUser, buildTeam, buildCollection } from "@server/test/factories";
 import { getTestDatabase } from "@server/test/support";
-import { CollectionPermission } from "@server/types";
 import { serialize } from "./index";
 
 const db = getTestDatabase();

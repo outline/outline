@@ -671,48 +671,6 @@ describe("#collections.remove_user", () => {
   });
 });
 
-describe("#collections.users", () => {
-  it("should return users in private collection", async () => {
-    const { collection, user } = await seed();
-    collection.permission = null;
-    await collection.save();
-    await CollectionUser.create({
-      createdById: user.id,
-      collectionId: collection.id,
-      userId: user.id,
-      permission: "read",
-    });
-    const res = await server.post("/api/collections.users", {
-      body: {
-        token: user.getJwtToken(),
-        id: collection.id,
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.length).toEqual(1);
-  });
-
-  it("should require authentication", async () => {
-    const res = await server.post("/api/collections.users");
-    const body = await res.json();
-    expect(res.status).toEqual(401);
-    expect(body).toMatchSnapshot();
-  });
-
-  it("should require authorization", async () => {
-    const { collection } = await seed();
-    const user = await buildUser();
-    const res = await server.post("/api/collections.users", {
-      body: {
-        token: user.getJwtToken(),
-        id: collection.id,
-      },
-    });
-    expect(res.status).toEqual(403);
-  });
-});
-
 describe("#collections.group_memberships", () => {
   it("should return groups in private collection", async () => {
     const user = await buildUser();

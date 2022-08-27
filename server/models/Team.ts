@@ -17,9 +17,9 @@ import {
   DataType,
   IsUUID,
 } from "sequelize-typescript";
+import { CollectionPermission } from "@shared/types";
 import { getBaseDomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
 import env from "@server/env";
-import { CollectionPermission } from "@server/types";
 import { generateAvatarUrl } from "@server/utils/avatars";
 import AuthenticationProvider from "./AuthenticationProvider";
 import Collection from "./Collection";

@@ -1,5 +1,6 @@
 import invariant from "invariant";
 import { action, runInAction } from "mobx";
+import { CollectionPermission } from "@shared/types";
 import CollectionGroupMembership from "~/models/CollectionGroupMembership";
 import { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -45,7 +46,7 @@ export default class CollectionGroupMembershipsStore extends BaseStore<
   }: {
     collectionId: string;
     groupId: string;
-    permission: string;
+    permission?: CollectionPermission;
   }) {
     const res = await client.post("/collections.add_group", {
       id: collectionId,
