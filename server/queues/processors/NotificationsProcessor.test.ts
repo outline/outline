@@ -216,18 +216,14 @@ describe("revisions.create", () => {
   });
 
   test("should create subscriptions for collaborator", async () => {
-    const document = await buildDocument();
-    const collaborator0 = await buildUser({ teamId: document.teamId });
-    const collaborator1 = await buildUser({ teamId: document.teamId });
-    const collaborator2 = await buildUser({ teamId: document.teamId });
+    const collaborator0 = await buildUser();
+    const collaborator1 = await buildUser({ teamId: collaborator0.teamId });
+    const collaborator2 = await buildUser({ teamId: collaborator0.teamId });
+    const document = await buildDocument({ userId: collaborator0.id });
 
-    document.collaboratorIds = [
-      collaborator0.id,
-      collaborator1.id,
-      collaborator2.id,
-    ];
-
-    await document.save();
+    await document.update({
+      collaboratorIds: [collaborator0.id, collaborator1.id, collaborator2.id],
+    });
 
     const processor = new NotificationsProcessor();
 
@@ -258,24 +254,20 @@ describe("revisions.create", () => {
     expect(events[0].userId).toEqual(collaborator0.id);
     expect(events[1].userId).toEqual(collaborator1.id);
     expect(events[2].userId).toEqual(collaborator2.id);
-
-    // Should send email notification.
-    expect(DocumentNotificationEmail.schedule).toHaveBeenCalledTimes(3);
   });
 
   test("should not send multiple emails", async () => {
-    const document = await buildDocument();
-    const collaborator0 = await buildUser({ teamId: document.teamId });
-    const collaborator1 = await buildUser({ teamId: document.teamId });
-    const collaborator2 = await buildUser({ teamId: document.teamId });
+    const collaborator0 = await buildUser();
+    const collaborator1 = await buildUser({ teamId: collaborator0.teamId });
+    const collaborator2 = await buildUser({ teamId: collaborator0.teamId });
+    const document = await buildDocument({
+      teamId: collaborator0.teamId,
+      userId: collaborator0.id,
+    });
 
-    document.collaboratorIds = [
-      collaborator0.id,
-      collaborator1.id,
-      collaborator2.id,
-    ];
-
-    await document.save();
+    await document.update({
+      collaboratorIds: [collaborator0.id, collaborator1.id, collaborator2.id],
+    });
 
     const processor = new NotificationsProcessor();
 
@@ -302,42 +294,23 @@ describe("revisions.create", () => {
       ip,
     });
 
-    const events = await Event.findAll();
-
-    // Should emit 3 `subscriptions.create` events.
-    expect(events.length).toEqual(3);
-    expect(events[0].name).toEqual("subscriptions.create");
-    expect(events[1].name).toEqual("subscriptions.create");
-    expect(events[2].name).toEqual("subscriptions.create");
-
-    // Each event should point to same document.
-    expect(events[0].documentId).toEqual(document.id);
-    expect(events[1].documentId).toEqual(document.id);
-    expect(events[2].documentId).toEqual(document.id);
-
-    // Events should mention correct `userId`.
-    expect(events[0].userId).toEqual(collaborator0.id);
-    expect(events[1].userId).toEqual(collaborator1.id);
-    expect(events[2].userId).toEqual(collaborator2.id);
-
-    // This should send out 3 emails, one for each collaborator,
-    // and not 6, for both `documents.update` and `revisions.create`.
-    expect(DocumentNotificationEmail.schedule).toHaveBeenCalledTimes(3);
+    // This should send out 2 emails, one for each collaborator that did not
+    // participate in the edit
+    expect(DocumentNotificationEmail.schedule).toHaveBeenCalledTimes(2);
   });
 
   test("should not create subscriptions if previously unsubscribed", async () => {
-    const document = await buildDocument();
-    const collaborator0 = await buildUser({ teamId: document.teamId });
-    const collaborator1 = await buildUser({ teamId: document.teamId });
-    const collaborator2 = await buildUser({ teamId: document.teamId });
+    const collaborator0 = await buildUser();
+    const collaborator1 = await buildUser({ teamId: collaborator0.teamId });
+    const collaborator2 = await buildUser({ teamId: collaborator0.teamId });
+    const document = await buildDocument({
+      teamId: collaborator0.teamId,
+      userId: collaborator0.id,
+    });
 
-    document.collaboratorIds = [
-      collaborator0.id,
-      collaborator1.id,
-      collaborator2.id,
-    ];
-
-    await document.save();
+    await document.update({
+      collaboratorIds: [collaborator0.id, collaborator1.id, collaborator2.id],
+    });
 
     // `collaborator2` created a subscription.
     const subscription2 = await Subscription.create({
@@ -376,7 +349,9 @@ describe("revisions.create", () => {
     expect(events[0].userId).toEqual(collaborator0.id);
     expect(events[1].userId).toEqual(collaborator1.id);
 
-    expect(DocumentNotificationEmail.schedule).toHaveBeenCalledTimes(2);
+    // One notification as one collaborator performed edit and the other is
+    // unsubscribed
+    expect(DocumentNotificationEmail.schedule).toHaveBeenCalledTimes(1);
   });
 
   test("should send a notification for subscriptions to non-collaborators", async () => {
