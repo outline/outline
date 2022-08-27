@@ -11,6 +11,7 @@ import FileOperation from "~/models/FileOperation";
 import Group from "~/models/Group";
 import Pin from "~/models/Pin";
 import Star from "~/models/Star";
+import Subscription from "~/models/Subscription";
 import Team from "~/models/Team";
 import withStores from "~/components/withStores";
 import {
@@ -84,6 +85,7 @@ class WebsocketProvider extends React.Component<Props> {
       policies,
       presence,
       views,
+      subscriptions,
       fileOperations,
     } = this.props;
     if (!auth.token) {
@@ -377,6 +379,20 @@ class WebsocketProvider extends React.Component<Props> {
       "fileOperations.update",
       (event: PartialWithId<FileOperation>) => {
         fileOperations.add(event);
+      }
+    );
+
+    this.socket.on(
+      "subscriptions.create",
+      (event: PartialWithId<Subscription>) => {
+        subscriptions.add(event);
+      }
+    );
+
+    this.socket.on(
+      "subscriptions.delete",
+      (event: WebsocketEntityDeletedEvent) => {
+        subscriptions.remove(event.modelId);
       }
     );
 

@@ -11,6 +11,7 @@ import {
   Pin,
   Star,
   Team,
+  Subscription,
 } from "@server/models";
 import {
   presentCollection,
@@ -19,6 +20,7 @@ import {
   presentGroup,
   presentPin,
   presentStar,
+  presentSubscription,
   presentTeam,
 } from "@server/presenters";
 import { Event } from "../../types";
@@ -530,6 +532,22 @@ export default class WebsocketsProcessor {
         }
 
         return;
+      }
+
+      case "subscriptions.create": {
+        const subscription = await Subscription.findByPk(event.modelId);
+        if (!subscription) {
+          return;
+        }
+        return socketio
+          .to(`user-${event.userId}`)
+          .emit(event.name, presentSubscription(subscription));
+      }
+
+      case "subscriptions.delete": {
+        return socketio.to(`user-${event.userId}`).emit(event.name, {
+          modelId: event.modelId,
+        });
       }
 
       case "teams.update": {
