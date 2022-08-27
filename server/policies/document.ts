@@ -1,6 +1,13 @@
 import invariant from "invariant";
-import { Document, Revision, User } from "@server/models";
+import { Document, Revision, User, Team } from "@server/models";
 import { allow, _cannot as cannot } from "./cancan";
+
+allow(User, "createDocument", Team, (user, team) => {
+  if (!team || user.isViewer || user.teamId !== team.id) {
+    return false;
+  }
+  return true;
+});
 
 allow(User, ["read", "download"], Document, (user, document) => {
   if (!document) {
