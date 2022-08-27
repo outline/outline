@@ -49,8 +49,8 @@ function DocumentListItem(
   ref: React.RefObject<HTMLAnchorElement>
 ) {
   const { t } = useTranslation();
-  const currentUser = useCurrentUser();
-  const currentTeam = useCurrentTeam();
+  const user = useCurrentUser();
+  const team = useCurrentTeam();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
 
   const {
@@ -70,7 +70,7 @@ function DocumentListItem(
     !!document.title.toLowerCase().includes(highlight.toLowerCase());
   const canStar =
     !document.isDraft && !document.isArchived && !document.isTemplate;
-  const can = usePolicy(currentTeam.id);
+  const can = usePolicy(team);
   const canCollection = usePolicy(document.collectionId);
 
   return (
@@ -96,7 +96,7 @@ function DocumentListItem(
             highlight={highlight}
             dir={document.dir}
           />
-          {document.isBadgedNew && document.createdBy.id !== currentUser.id && (
+          {document.isBadgedNew && document.createdBy.id !== user.id && (
             <Badge yellow>{t("New")}</Badge>
           )}
           {canStar && (

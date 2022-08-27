@@ -45,7 +45,7 @@ function SharePopover({
   const timeout = React.useRef<ReturnType<typeof setTimeout>>();
   const buttonRef = React.useRef<HTMLButtonElement>(null);
   const can = usePolicy(share ? share.id : "");
-  const documentAbilities = usePolicy(document.id);
+  const documentAbilities = usePolicy(document);
   const canPublish =
     can.update &&
     !document.isTemplate &&

@@ -23,7 +23,6 @@ import {
   Event,
   Revision,
   SearchQuery,
-  Star,
   User,
   View,
 } from "@server/models";
@@ -730,75 +729,6 @@ router.post(
     };
   }
 );
-
-// Deprecated – use stars.create instead
-router.post("documents.star", auth(), async (ctx) => {
-  const { id } = ctx.body;
-  assertPresent(id, "id is required");
-  const { user } = ctx.state;
-
-  const document = await Document.findByPk(id, {
-    userId: user.id,
-  });
-  authorize(user, "read", document);
-
-  await Star.findOrCreate({
-    where: {
-      documentId: document.id,
-      userId: user.id,
-    },
-  });
-
-  await Event.create({
-    name: "documents.star",
-    documentId: document.id,
-    collectionId: document.collectionId,
-    teamId: document.teamId,
-    actorId: user.id,
-    data: {
-      title: document.title,
-    },
-    ip: ctx.request.ip,
-  });
-
-  ctx.body = {
-    success: true,
-  };
-});
-
-// Deprecated – use stars.delete instead
-router.post("documents.unstar", auth(), async (ctx) => {
-  const { id } = ctx.body;
-  assertPresent(id, "id is required");
-  const { user } = ctx.state;
-
-  const document = await Document.findByPk(id, {
-    userId: user.id,
-  });
-  authorize(user, "read", document);
-
-  await Star.destroy({
-    where: {
-      documentId: document.id,
-      userId: user.id,
-    },
-  });
-  await Event.create({
-    name: "documents.unstar",
-    documentId: document.id,
-    collectionId: document.collectionId,
-    teamId: document.teamId,
-    actorId: user.id,
-    data: {
-      title: document.title,
-    },
-    ip: ctx.request.ip,
-  });
-
-  ctx.body = {
-    success: true,
-  };
-});
 
 router.post("documents.templatize", auth({ member: true }), async (ctx) => {
   const { id } = ctx.body;

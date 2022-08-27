@@ -23,7 +23,7 @@ function Tokens() {
   const { t } = useTranslation();
   const { apiKeys } = useStores();
   const [newModalOpen, handleNewModalOpen, handleNewModalClose] = useBoolean();
-  const can = usePolicy(team.id);
+  const can = usePolicy(team);
 
   return (
     <Scene

@@ -1,7 +1,6 @@
 import {
   Document,
   View,
-  Star,
   Revision,
   Backlink,
   CollectionUser,
@@ -1813,79 +1812,6 @@ describe("#documents.restore", () => {
         token: user.getJwtToken(),
         id: document.id,
         revisionId,
-      },
-    });
-    expect(res.status).toEqual(403);
-  });
-});
-
-describe("#documents.star", () => {
-  it("should star the document", async () => {
-    const { user, document } = await seed();
-    const res = await server.post("/api/documents.star", {
-      body: {
-        token: user.getJwtToken(),
-        id: document.id,
-      },
-    });
-    const stars = await Star.findAll();
-    expect(res.status).toEqual(200);
-    expect(stars.length).toEqual(1);
-    expect(stars[0].documentId).toEqual(document.id);
-  });
-
-  it("should require authentication", async () => {
-    const res = await server.post("/api/documents.star");
-    const body = await res.json();
-    expect(res.status).toEqual(401);
-    expect(body).toMatchSnapshot();
-  });
-
-  it("should require authorization", async () => {
-    const { document } = await seed();
-    const user = await buildUser();
-    const res = await server.post("/api/documents.star", {
-      body: {
-        token: user.getJwtToken(),
-        id: document.id,
-      },
-    });
-    expect(res.status).toEqual(403);
-  });
-});
-
-describe("#documents.unstar", () => {
-  it("should unstar the document", async () => {
-    const { user, document } = await seed();
-    await Star.create({
-      documentId: document.id,
-      userId: user.id,
-    });
-    const res = await server.post("/api/documents.unstar", {
-      body: {
-        token: user.getJwtToken(),
-        id: document.id,
-      },
-    });
-    const stars = await Star.findAll();
-    expect(res.status).toEqual(200);
-    expect(stars.length).toEqual(0);
-  });
-
-  it("should require authentication", async () => {
-    const res = await server.post("/api/documents.star");
-    const body = await res.json();
-    expect(res.status).toEqual(401);
-    expect(body).toMatchSnapshot();
-  });
-
-  it("should require authorization", async () => {
-    const { document } = await seed();
-    const user = await buildUser();
-    const res = await server.post("/api/documents.unstar", {
-      body: {
-        token: user.getJwtToken(),
-        id: document.id,
       },
     });
     expect(res.status).toEqual(403);

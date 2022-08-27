@@ -69,7 +69,7 @@ type ConfigType = {
 
 const useAuthorizedSettingsConfig = () => {
   const team = useCurrentTeam();
-  const can = usePolicy(team.id);
+  const can = usePolicy(team);
   const { t } = useTranslation();
 
   const config: ConfigType = React.useMemo(

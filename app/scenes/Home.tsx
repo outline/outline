@@ -30,7 +30,7 @@ function Home() {
     pins.fetchPage();
   }, [pins]);
 
-  const canManageTeam = usePolicy(team.id).manage;
+  const canManageTeam = usePolicy(team).manage;
 
   return (
     <Scene

@@ -101,8 +101,14 @@ export default class Collection extends ParanoidModel {
     return sortNavigationNodes(this.documents, this.sort);
   }
 
+  /**
+   * Updates the document identified by the given id in the collection in memory.
+   * Does not update the document in the database.
+   *
+   * @param document The document properties stored in the collection
+   */
   @action
-  updateDocument(document: Document) {
+  updateDocument(document: Pick<Document, "id" | "title" | "url">) {
     const travelNodes = (nodes: NavigationNode[]) =>
       nodes.forEach((node) => {
         if (node.id === document.id) {
@@ -114,6 +120,27 @@ export default class Collection extends ParanoidModel {
       });
 
     travelNodes(this.documents);
+  }
+
+  /**
+   * Removes the document identified by the given id from the collection in
+   * memory. Does not remove the document from the database.
+   *
+   * @param documentId The id of the document to remove.
+   */
+  @action
+  removeDocument(documentId: string) {
+    this.documents = this.documents.filter(function f(node): boolean {
+      if (node.id === documentId) {
+        return false;
+      }
+
+      if (node.children) {
+        node.children = node.children.filter(f);
+      }
+
+      return true;
+    });
   }
 
   @action

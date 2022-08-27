@@ -125,7 +125,7 @@ function DocumentMenu({
   }, [menu]);
 
   const collection = collections.get(document.collectionId);
-  const can = usePolicy(document.id);
+  const can = usePolicy(document);
   const canViewHistory = can.read && !can.restore;
   const restoreItems = React.useMemo(
     () => [

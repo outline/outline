@@ -23,7 +23,7 @@ function Webhooks() {
   const { t } = useTranslation();
   const { webhookSubscriptions } = useStores();
   const [newModalOpen, handleNewModalOpen, handleNewModalClose] = useBoolean();
-  const can = usePolicy(team.id);
+  const can = usePolicy(team);
 
   return (
     <Scene
