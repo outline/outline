@@ -34,7 +34,7 @@ import Fix from "./decorators/Fix";
 @Table({ tableName: "collection_groups", modelName: "collection_group" })
 @Fix
 class CollectionGroup extends BaseModel {
-  @Default(CollectionPermission.Read)
+  @Default(CollectionPermission.ReadWrite)
   @IsIn([Object.values(CollectionPermission)])
   @Column(DataType.STRING)
   permission: CollectionPermission;
