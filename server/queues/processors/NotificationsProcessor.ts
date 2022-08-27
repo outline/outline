@@ -14,7 +14,6 @@ import {
   NotificationSetting,
   Subscription,
 } from "@server/models";
-import { can } from "@server/policies";
 import {
   CollectionEvent,
   RevisionEvent,
@@ -133,16 +132,14 @@ export default class NotificationsProcessor extends BaseProcessor {
       const users = await document.collaborators({ transaction });
 
       for (const user of users) {
-        if (user && can(user, "subscribe", document)) {
-          await subscriptionCreator({
-            user,
-            documentId: document.id,
-            event: "documents.update",
-            resubscribe: false,
-            transaction,
-            ip: event.ip,
-          });
-        }
+        await subscriptionCreator({
+          user,
+          documentId: document.id,
+          event: "documents.update",
+          resubscribe: false,
+          transaction,
+          ip: event.ip,
+        });
       }
     });
   };
