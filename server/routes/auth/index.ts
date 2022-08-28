@@ -1,14 +1,11 @@
 import passport from "@outlinewiki/koa-passport";
 import { addMonths } from "date-fns";
-import invariant from "invariant";
 import Koa from "koa";
 import bodyParser from "koa-body";
 import Router from "koa-router";
-import { getCookie } from "tiny-cookie";
 import { AuthenticationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
-import { Collection, Team, User, View } from "@server/models";
-import { signIn } from "@server/utils/authentication";
+import { Collection, Team, View } from "@server/models";
 import providers from "./providers";
 
 const app = new Koa();
@@ -69,28 +66,6 @@ router.get("/redirect", auth(), async (ctx) => {
       ? `${team?.url}${collection.url}`
       : `${team?.url}/home`
   );
-});
-
-router.get("/transfer", auth(), async (ctx) => {
-  const { user } = ctx.state;
-  const { teamId } = ctx.query;
-  const service = getCookie("lastSignedIn") || "transfer";
-
-  const toTeam = await Team.findByPk(teamId?.toString());
-  invariant(toTeam, "must transfer to existing team");
-
-  const toUser = await User.findOne({
-    where: {
-      teamId,
-      email: user.email,
-    },
-  });
-
-  if (toUser) {
-    await signIn(ctx, toUser, toTeam, service, false, false);
-  } else {
-    throw AuthenticationError("Could not authenticate transfer");
-  }
 });
 
 app.use(bodyParser());

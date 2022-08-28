@@ -266,7 +266,7 @@ export default class AuthStore {
       const res = await client.post(`/teams.create`, params);
       invariant(res?.success, "Unable to create team");
 
-      window.location.href = `/auth/transfer?teamId=${res.data.team.id}`;
+      window.location.href = res.data.transferUrl;
     } finally {
       this.isSaving = false;
     }

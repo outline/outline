@@ -120,10 +120,17 @@ router.post("teams.create", auth(), async (ctx) => {
     },
   });
 
+  const newUser = await User.findOne({
+    where: { email: user.email, teamId: team.id },
+  });
+
   ctx.body = {
     success: true,
     data: {
       team: presentTeam(team),
+      transferUrl: `${
+        team.url
+      }/auth/redirect?token=${newUser?.getTransferToken()}`,
     },
   };
 });
