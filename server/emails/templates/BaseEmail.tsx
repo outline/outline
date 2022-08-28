@@ -1,6 +1,7 @@
 import mailer from "@server/emails/mailer";
 import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/metrics";
+import Notification from "@server/models/Notification";
 import { taskQueue } from "@server/queues";
 import { TaskPriority } from "@server/queues/tasks/BaseTask";
 
@@ -80,6 +81,21 @@ export default abstract class BaseEmail<T extends EmailProps, S = any> {
       Metrics.increment("email.sent", {
         templateName,
       });
+
+      // @ts-expect-error does not exist on type T & S
+      if (data.notificationId) {
+        await Notification.update(
+          {
+            emailedAt: new Date(),
+          },
+          {
+            where: {
+              // @ts-expect-error does not exist on type T & S
+              id: data.notificationId,
+            },
+          }
+        );
+      }
     } catch (err) {
       Metrics.increment("email.sending_failed", {
         templateName,

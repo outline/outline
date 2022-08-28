@@ -1,3 +1,4 @@
+import { subHours } from "date-fns";
 import { uniqBy } from "lodash";
 import { Op } from "sequelize";
 import subscriptionCreator from "@server/commands/subscriptionCreator";
@@ -13,6 +14,7 @@ import {
   User,
   NotificationSetting,
   Subscription,
+  Notification,
 } from "@server/models";
 import {
   CollectionEvent,
@@ -72,6 +74,13 @@ export default class NotificationsProcessor extends BaseProcessor {
       const notify = await this.shouldNotify(document, recipient.user);
 
       if (notify) {
+        const notification = await Notification.create({
+          event: event.name,
+          userId: recipient.user.id,
+          actorId: document.updatedBy.id,
+          teamId: team.id,
+          documentId: document.id,
+        });
         await DocumentNotificationEmail.schedule({
           to: recipient.user.email,
           eventName:
@@ -81,6 +90,7 @@ export default class NotificationsProcessor extends BaseProcessor {
           actorName: document.updatedBy.name,
           collectionName: collection.name,
           unsubscribeUrl: recipient.unsubscribeUrl,
+          notificationId: notification.id,
         });
       }
     }
@@ -234,6 +244,23 @@ export default class NotificationsProcessor extends BaseProcessor {
     const collectionIds = await user.collectionIds();
 
     if (!collectionIds.includes(document.collectionId)) {
+      return false;
+    }
+
+    // Deliver only a single notification in a 12 hour window
+    const notification = await Notification.findOne({
+      order: [["createdAt", "DESC"]],
+      where: {
+        userId: user.id,
+        documentId: document.id,
+        emailedAt: {
+          [Op.not]: null,
+          [Op.gte]: subHours(new Date(), 12),
+        },
+      },
+    });
+
+    if (notification) {
       return false;
     }
 
