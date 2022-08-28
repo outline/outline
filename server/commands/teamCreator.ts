@@ -1,3 +1,4 @@
+import { Transaction } from "sequelize";
 import slugify from "slugify";
 import { RESERVED_SUBDOMAINS } from "@shared/utils/domains";
 import { sequelize } from "@server/database/sequelize";
@@ -24,6 +25,8 @@ type Props = {
   }[];
   /** The IP address of the incoming request */
   ip: string;
+  /** Optional callback after team is created */
+  onSuccess?: (team: Team, transaction: Transaction) => Promise<void>;
 };
 
 async function teamCreator({
@@ -33,6 +36,7 @@ async function teamCreator({
   avatarUrl,
   authenticationProviders,
   ip,
+  onSuccess,
 }: Props): Promise<Team> {
   // If the service did not provide a logo/avatar then we attempt to generate
   // one via ClearBit, or fallback to colored initials in worst case scenario
@@ -67,6 +71,10 @@ async function teamCreator({
         transaction,
       }
     );
+
+    if (onSuccess) {
+      await onSuccess(team, transaction);
+    }
 
     return team;
   });

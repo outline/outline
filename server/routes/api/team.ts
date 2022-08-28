@@ -92,26 +92,32 @@ router.post("teams.create", auth(), async (ctx) => {
     subdomain: name,
     authenticationProviders,
     ip: ctx.ip,
-  });
+    onSuccess: async (team, transaction) => {
+      const newUser = await User.create(
+        {
+          teamId: team.id,
+          name: user.name,
+          email: user.email,
+          isAdmin: true,
+          avatarUrl: user.avatarUrl,
+        },
+        { transaction }
+      );
 
-  const newUser = await User.create({
-    teamId: team.id,
-    name: user.name,
-    email: user.email,
-    isAdmin: true,
-    avatarUrl: user.avatarUrl,
-    invitedById: user.id,
-  });
-
-  Event.create({
-    name: "users.create",
-    actorId: user.id,
-    userId: newUser.id,
-    teamId: newUser.teamId,
-    data: {
-      name: newUser.name,
+      Event.create(
+        {
+          name: "users.create",
+          actorId: user.id,
+          userId: newUser.id,
+          teamId: newUser.teamId,
+          data: {
+            name: newUser.name,
+          },
+          ip: ctx.ip,
+        },
+        { transaction }
+      );
     },
-    ip: ctx.ip,
   });
 
   ctx.body = {
