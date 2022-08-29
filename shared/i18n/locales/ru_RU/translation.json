@@ -724,7 +724,7 @@
   "There are no templates just yet.": "Шаблоны пока что отсутствуют.",
   "You can create templates to help your team create consistent and accurate documentation.": "Вы можете создать шаблоны, чтобы помочь своей команде привести документацию к одному виду.",
   "Trash is empty at the moment.": "Корзина пуста.",
-  "A confirmation code has been sent to your email address, please enter the code below to permanantly destroy your account.": "A confirmation code has been sent to your email address, please enter the code below to permanantly destroy your account.",
+  "A confirmation code has been sent to your email address, please enter the code below to permanantly destroy your account.": "Код подтверждения был отправлен на ваш адрес электронной почты, пожалуйста, введите код ниже, чтобы навсегда уничтожить ваш аккаунт.",
   "<em>Note:</em> Signing back in will cause a new account to be automatically reprovisioned.": "<em>Примечание:</em> При повторном входе в систему будет создана новая учетная запись.",
   "Are you sure? Deleting your account will destroy identifying data associated with your user and cannot be undone. You will be immediately logged out of Outline and all your API tokens will be revoked.": "Вы уверены? Удаление вашего аккаунта приведет к уничтожению идентификационных данных связанных с вашим пользователем. Незамедлительно будет выполнен выход из учетной записи, а все ваши API токены будут отозваны.",
   "Delete My Account": "Удалить Мой Аккаунт",
