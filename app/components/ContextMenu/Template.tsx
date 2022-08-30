@@ -1,3 +1,4 @@
+import { isFunction } from "lodash";
 import { ExpandedIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -7,11 +8,13 @@ import {
   MenuButton,
   MenuItem as BaseMenuItem,
 } from "reakit/Menu";
+import { Portal } from "reakit/Portal";
 import styled, { useTheme } from "styled-components";
 import Flex from "~/components/Flex";
 import MenuIconWrapper from "~/components/MenuIconWrapper";
 import { actionToMenuItem } from "~/actions";
 import useActionContext from "~/hooks/useActionContext";
+import useMobile from "~/hooks/useMobile";
 import {
   Action,
   ActionContext,
@@ -29,6 +32,7 @@ type Props = {
   actions?: (Action | MenuSeparator | MenuHeading)[];
   context?: Partial<ActionContext>;
   items?: TMenuItem[];
+  hideParentMenu?: () => void;
 };
 
 const Disclosure = styled(ExpandedIcon)`
@@ -42,13 +46,25 @@ const Submenu = React.forwardRef(
     {
       templateItems,
       title,
+      hideParentMenu,
       ...rest
-    }: { templateItems: TMenuItem[]; title: React.ReactNode },
+    }: {
+      templateItems: TMenuItem[];
+      title: React.ReactNode;
+      hideParentMenu?: () => void;
+    },
     ref: React.LegacyRef<HTMLButtonElement>
   ) => {
     const { t } = useTranslation();
     const theme = useTheme();
     const menu = useMenuState();
+    const isMobile = useMobile();
+
+    React.useEffect(() => {
+      if (isMobile && menu.visible) {
+        isFunction(hideParentMenu) && hideParentMenu();
+      }
+    }, [isMobile, menu.visible, hideParentMenu]);
 
     return (
       <>
@@ -59,10 +75,12 @@ const Submenu = React.forwardRef(
             </MenuAnchor>
           )}
         </MenuButton>
-        <ContextMenu {...menu} aria-label={t("Submenu")}>
-          <MouseSafeArea parentRef={menu.unstable_popoverRef} />
-          <Template {...menu} items={templateItems} />
-        </ContextMenu>
+        <Portal>
+          <ContextMenu {...menu} aria-label={t("Submenu")}>
+            <MouseSafeArea parentRef={menu.unstable_popoverRef} />
+            <Template {...menu} items={templateItems} />
+          </ContextMenu>
+        </Portal>
       </>
     );
   }
@@ -92,7 +110,7 @@ export function filterTemplateItems(items: TMenuItem[]): TMenuItem[] {
     });
 }
 
-function Template({ items, actions, context, ...menu }: Props) {
+function Template({ items, actions, context, hideParentMenu, ...menu }: Props) {
   const ctx = useActionContext({
     isContextMenu: true,
   });
@@ -180,6 +198,7 @@ function Template({ items, actions, context, ...menu }: Props) {
               as={Submenu}
               templateItems={item.items}
               title={<Title title={item.title} icon={item.icon} />}
+              hideParentMenu={hideParentMenu}
               {...menu}
             />
           );

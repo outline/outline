@@ -146,7 +146,7 @@ const ContextMenu: React.FC<Props> = ({
           );
         }}
       </Menu>
-      {(rest.visible || rest.animating) && (
+      {(rest.visible || rest.animating) && rest["aria-label"] !== t("Submenu") && (
         <Portal>
           <Backdrop onClick={rest.hide} />
         </Portal>

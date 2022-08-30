@@ -34,6 +34,13 @@ const AccountMenu: React.FC = ({ children }) => {
     }
   }, [menu, theme, previousTheme]);
 
+  const hideMenu = React.useCallback(() => {
+    const elem = document.getElementById(menu.baseId);
+    if (elem) {
+      elem.style.display = "none";
+    }
+  }, [menu]);
+
   const actions = React.useMemo(() => {
     return [
       openKeyboardShortcuts,
@@ -53,7 +60,12 @@ const AccountMenu: React.FC = ({ children }) => {
     <>
       <MenuButton {...menu}>{children}</MenuButton>
       <ContextMenu {...menu} aria-label={t("Account")}>
-        <Template {...menu} items={undefined} actions={actions} />
+        <Template
+          {...menu}
+          items={undefined}
+          actions={actions}
+          hideParentMenu={hideMenu}
+        />
       </ContextMenu>
     </>
   );
