@@ -34,13 +34,6 @@ const AccountMenu: React.FC = ({ children }) => {
     }
   }, [menu, theme, previousTheme]);
 
-  const hideMenu = React.useCallback(() => {
-    const elem = document.getElementById(menu.baseId);
-    if (elem) {
-      elem.style.display = "none";
-    }
-  }, [menu]);
-
   const actions = React.useMemo(() => {
     return [
       openKeyboardShortcuts,
@@ -64,7 +57,7 @@ const AccountMenu: React.FC = ({ children }) => {
           {...menu}
           items={undefined}
           actions={actions}
-          hideParentMenu={hideMenu}
+          menuDomId={menu.baseId}
         />
       </ContextMenu>
     </>

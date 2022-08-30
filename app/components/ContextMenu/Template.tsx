@@ -32,7 +32,7 @@ type Props = {
   actions?: (Action | MenuSeparator | MenuHeading)[];
   context?: Partial<ActionContext>;
   items?: TMenuItem[];
-  hideParentMenu?: () => void;
+  menuDomId?: string;
 };
 
 const Disclosure = styled(ExpandedIcon)`
@@ -110,7 +110,7 @@ export function filterTemplateItems(items: TMenuItem[]): TMenuItem[] {
     });
 }
 
-function Template({ items, actions, context, hideParentMenu, ...menu }: Props) {
+function Template({ items, actions, context, menuDomId, ...menu }: Props) {
   const ctx = useActionContext({
     isContextMenu: true,
   });
@@ -129,6 +129,13 @@ function Template({ items, actions, context, hideParentMenu, ...menu }: Props) {
     (item) =>
       item.type !== "separator" && item.type !== "heading" && !!item.icon
   );
+
+  const hideMenu = () => {
+    const elem = menuDomId ? document.getElementById(menuDomId) : undefined;
+    if (elem) {
+      elem.style.display = "none";
+    }
+  };
 
   return (
     <>
@@ -198,7 +205,7 @@ function Template({ items, actions, context, hideParentMenu, ...menu }: Props) {
               as={Submenu}
               templateItems={item.items}
               title={<Title title={item.title} icon={item.icon} />}
-              hideParentMenu={hideParentMenu}
+              hideParentMenu={hideMenu}
               {...menu}
             />
           );
