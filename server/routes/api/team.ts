@@ -104,7 +104,7 @@ router.post("teams.create", auth(), async (ctx) => {
         { transaction }
       );
 
-      Event.create(
+      await Event.create(
         {
           name: "users.create",
           actorId: user.id,
