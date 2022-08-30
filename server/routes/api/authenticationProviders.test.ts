@@ -73,7 +73,7 @@ describe("#authenticationProviders.update", () => {
     expect(res.status).toEqual(400);
   });
 
-  it.only("should allow admins to disable", async () => {
+  it("should allow admins to disable", async () => {
     const team = await buildTeam();
     const user = await buildAdmin({
       teamId: team.id,
