@@ -16,6 +16,8 @@ import {
   Is,
   DataType,
   IsUUID,
+  IsUrl,
+  AllowNull,
 } from "sequelize-typescript";
 import { getBaseDomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
 import env from "@server/env";
@@ -82,6 +84,8 @@ class Team extends ParanoidModel {
   @Column(DataType.UUID)
   defaultCollectionId: string | null;
 
+  @AllowNull
+  @IsUrl
   @Length({ max: 255, msg: "avatarUrl must be 255 characters or less" })
   @Column
   avatarUrl: string | null;

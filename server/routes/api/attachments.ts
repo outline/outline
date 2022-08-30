@@ -51,10 +51,11 @@ router.post("attachments.create", auth(), async (ctx) => {
   const acl =
     isPublic === undefined ? AWS_S3_ACL : isPublic ? "public-read" : "private";
   const bucket = acl === "public-read" ? "public" : "uploads";
-  const key = `${bucket}/${user.id}/${s3Key}/${name}`;
+  const keyPrefix = `${bucket}/${user.id}/${s3Key}`;
+  const key = `${keyPrefix}/${name}`;
   const presignedPost = await getPresignedPost(key, acl, contentType);
   const endpoint = publicS3Endpoint();
-  const url = `${endpoint}/${key}`;
+  const url = `${endpoint}/${keyPrefix}/${encodeURIComponent(name)}`;
 
   if (documentId !== undefined) {
     assertUuid(documentId, "documentId must be a uuid");

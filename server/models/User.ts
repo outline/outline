@@ -18,6 +18,8 @@ import {
   HasMany,
   Scopes,
   IsDate,
+  IsUrl,
+  AllowNull,
 } from "sequelize-typescript";
 import { languages } from "@shared/i18n";
 import { stringToColor } from "@shared/utils/color";
@@ -154,6 +156,8 @@ class User extends ParanoidModel {
   @Column
   language: string;
 
+  @AllowNull
+  @IsUrl
   @Length({ max: 1000, msg: "avatarUrl must be less than 1000 characters" })
   @Column(DataType.STRING)
   get avatarUrl() {
