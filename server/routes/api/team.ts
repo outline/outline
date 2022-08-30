@@ -6,7 +6,7 @@ import auth from "@server/middlewares/authentication";
 import { Event, Team, TeamDomain, User } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentTeam, presentPolicies } from "@server/presenters";
-import { assertLength, assertUuid } from "@server/validation";
+import { assertUuid } from "@server/validation";
 
 const router = new Router();
 
@@ -65,7 +65,6 @@ router.post("team.update", auth(), async (ctx) => {
 router.post("teams.create", auth(), async (ctx) => {
   const { user } = ctx.state;
   const { name } = ctx.body;
-  assertLength(name, 2, "Name must be 2 or more characters");
 
   const existingTeam = await Team.scope("withAuthenticationProviders").findByPk(
     user.teamId
