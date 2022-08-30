@@ -3,6 +3,7 @@ import path from "path";
 import util from "util";
 import { Context, Next } from "koa";
 import { escape } from "lodash";
+import { Sequelize } from "sequelize";
 import documentLoader from "@server/commands/documentLoader";
 import env from "@server/env";
 import presentEnv from "@server/presenters/env";
@@ -81,6 +82,13 @@ export const renderShare = async (ctx: Context, next: Next) => {
     });
     share = result.share;
     document = result.document;
+
+    if (share) {
+      await share.update({
+        lastAccessedAt: new Date(),
+        views: Sequelize.literal("views + 1"),
+      });
+    }
   } catch (err) {
     // If the share or document does not exist, return a 404.
     ctx.status = 404;
