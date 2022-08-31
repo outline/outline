@@ -80,6 +80,7 @@ class Share extends IdModel {
   @Column
   lastAccessedAt: Date | null;
 
+  /** Total count of times the shared link has been accessed */
   @Default(0)
   @Column
   views: number;
