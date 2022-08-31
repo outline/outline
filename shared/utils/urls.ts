@@ -56,7 +56,14 @@ export function isUrl(text: string) {
 
   try {
     const url = new URL(text);
-    return url.hostname !== "" && !BLACKLIST_PROTOCOLS.includes(url.protocol);
+    const blockedProtocols = [
+      "javascript:",
+      "file:",
+      "vbscript:",
+      "data:",
+    ]
+
+    return url.hostname !== "" && !blockedProtocols.includes(url.protocol);
   } catch (err) {
     return false;
   }
