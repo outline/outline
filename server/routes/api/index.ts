@@ -1,4 +1,4 @@
-import Koa from "koa";
+import Koa, { DefaultContext, DefaultState } from "koa";
 import bodyParser from "koa-body";
 import Router from "koa-router";
 import env from "@server/env";
@@ -6,6 +6,7 @@ import { NotFoundError } from "@server/errors";
 import errorHandling from "@server/middlewares/errorHandling";
 import methodOverride from "@server/middlewares/methodOverride";
 import { defaultRateLimiter } from "@server/middlewares/rateLimiter";
+import { AuthenticatedState } from "@server/types";
 import apiKeys from "./apiKeys";
 import attachments from "./attachments";
 import auth from "./auth";
@@ -33,7 +34,10 @@ import users from "./users";
 import views from "./views";
 import webhookSubscriptions from "./webhookSubscriptions";
 
-const api = new Koa();
+const api = new Koa<
+  DefaultState & AuthenticatedState,
+  DefaultContext & { body: Record<string, any> }
+>();
 const router = new Router();
 
 // middlewares
@@ -83,10 +87,15 @@ router.post("*", (ctx) => {
   ctx.throw(NotFoundError("Endpoint not found"));
 });
 
+router.get("*", (ctx) => {
+  ctx.throw(NotFoundError("Endpoint not found"));
+});
+
 api.use(defaultRateLimiter());
 
 // Router is embedded in a Koa application wrapper, because koa-router does not
 // allow middleware to catch any routes which were not explicitly defined.
 api.use(router.routes());
+api.use(router.allowedMethods());
 
 export default api;

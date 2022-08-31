@@ -6,12 +6,14 @@ export enum AuthenticationType {
   APP = "app",
 }
 
+export type AuthenticatedState = {
+  user: User;
+  token: string;
+  authType: AuthenticationType;
+};
+
 export type ContextWithState = Context & {
-  state: {
-    user: User;
-    token: string;
-    authType: AuthenticationType;
-  };
+  state: AuthenticatedState;
 };
 
 type BaseEvent = {
