@@ -2601,6 +2601,13 @@
     "@types/qs" "*"
     "@types/range-parser" "*"
 
+"@types/express-useragent@^1.0.2":
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/@types/express-useragent/-/express-useragent-1.0.2.tgz#c129f2aae983fb7b646dbcd254973936f745c12f"
+  integrity sha512-eUVCqMsmEO7adMJSxuAARPUxbEJLYQJATiB86bx3MGeyUOTgKNnLTfAMaF+z84DftcH6NBbFFwiRomIcsFVdUQ==
+  dependencies:
+    "@types/express" "*"
+
 "@types/express@*":
   version "4.17.13"
   resolved "https://registry.yarnpkg.com/@types/express/-/express-4.17.13.tgz#a76e2995728999bab51a33fabce1d705a3709034"
@@ -2820,6 +2827,13 @@
   dependencies:
     "@types/koa" "*"
     "@types/koa-send" "*"
+
+"@types/koa-useragent@^2.1.2":
+  version "2.1.2"
+  resolved "https://registry.yarnpkg.com/@types/koa-useragent/-/koa-useragent-2.1.2.tgz#7c75fe55c742e559c4643d65b34c6ce5945f853f"
+  integrity sha512-vpOSl6Rw6aCJr+kyWb27kGOdFiQD5WQeLOOOQgwMY9Lrqwbocm/td5paP5uE8bOy58ik/rZUly8zoVZACwZXUA==
+  dependencies:
+    koa-useragent "*"
 
 "@types/koa@*", "@types/koa@^2.13.1", "@types/koa@^2.13.4":
   version "2.13.4"
@@ -7204,6 +7218,11 @@ exports-loader@^0.6.4:
     loader-utils "^1.0.2"
     source-map "0.5.x"
 
+express-useragent@^1.0.15:
+  version "1.0.15"
+  resolved "https://registry.yarnpkg.com/express-useragent/-/express-useragent-1.0.15.tgz#cefda5fa4904345d51d3368b117a8dd4124985d9"
+  integrity sha512-eq5xMiYCYwFPoekffMjvEIk+NWdlQY9Y38OsTyl13IvA728vKT+q/CSERYWzcw93HGBJcIqMIsZC5CZGARPVdg==
+
 ext@^1.1.2:
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/ext/-/ext-1.4.0.tgz#89ae7a07158f79d35517882904324077e4379244"
@@ -9968,6 +9987,13 @@ koa-static@^5.0.0:
   dependencies:
     debug "^3.1.0"
     koa-send "^5.0.0"
+
+koa-useragent@*, koa-useragent@^4.1.0:
+  version "4.1.0"
+  resolved "https://registry.yarnpkg.com/koa-useragent/-/koa-useragent-4.1.0.tgz#d3f128b552c6da3e5e9e9e9c887b2922b16e4468"
+  integrity sha512-x/HUDZ1zAmNNh5hA9hHbPm9p3UVg2prlpHzxCXQCzbibrNS0kmj7MkCResCbAbG7ZT6FVxNSMjR94ZGamdMwxA==
+  dependencies:
+    express-useragent "^1.0.15"
 
 koa-views@^7.0.1:
   version "7.0.1"

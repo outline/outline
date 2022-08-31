@@ -102,8 +102,6 @@ describe("#documents.info", () => {
     expect(body.data.id).toEqual(document.id);
     expect(body.data.createdBy).toEqual(undefined);
     expect(body.data.updatedBy).toEqual(undefined);
-    await share.reload();
-    expect(share.lastAccessedAt).toBeTruthy();
   });
 
   it("should not return document of a deleted collection, when the user was absent in the collection", async () => {
@@ -192,8 +190,6 @@ describe("#documents.info", () => {
       expect(body.data.document.createdBy).toEqual(undefined);
       expect(body.data.document.updatedBy).toEqual(undefined);
       expect(body.data.sharedTree).toEqual(collection.documentStructure?.[0]);
-      await share.reload();
-      expect(share.lastAccessedAt).toBeTruthy();
     });
     it("should return sharedTree from shareId with id of nested document", async () => {
       const { document, user } = await seed();
@@ -215,8 +211,6 @@ describe("#documents.info", () => {
       expect(body.data.document.createdBy).toEqual(undefined);
       expect(body.data.document.updatedBy).toEqual(undefined);
       expect(body.data.sharedTree).toEqual(document.toJSON());
-      await share.reload();
-      expect(share.lastAccessedAt).toBeTruthy();
     });
     it("should not return sharedTree if child documents not shared", async () => {
       const { document, user } = await seed();
@@ -238,8 +232,6 @@ describe("#documents.info", () => {
       expect(body.data.document.createdBy).toEqual(undefined);
       expect(body.data.document.updatedBy).toEqual(undefined);
       expect(body.data.sharedTree).toEqual(undefined);
-      await share.reload();
-      expect(share.lastAccessedAt).toBeTruthy();
     });
     it("should not return details for nested documents", async () => {
       const { document, collection, user } = await seed();

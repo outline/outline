@@ -6,6 +6,7 @@ import {
   Table,
   Scopes,
   DataType,
+  Default,
 } from "sequelize-typescript";
 import Collection from "./Collection";
 import Document from "./Document";
@@ -78,6 +79,11 @@ class Share extends IdModel {
 
   @Column
   lastAccessedAt: Date | null;
+
+  /** Total count of times the shared link has been accessed */
+  @Default(0)
+  @Column
+  views: number;
 
   // getters
 
