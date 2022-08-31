@@ -28,6 +28,11 @@ export enum IntegrationType {
   Embed = "embed",
 }
 
+export enum CollectionPermission {
+  Read = "read",
+  ReadWrite = "read_write",
+}
+
 export type IntegrationSettings<T> = T extends IntegrationType.Embed
   ? { url: string }
   : T extends IntegrationType.Post

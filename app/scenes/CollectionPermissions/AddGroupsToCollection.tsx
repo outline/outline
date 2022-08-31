@@ -59,7 +59,6 @@ class AddGroupsToCollection extends React.Component<Props> {
       this.props.collectionGroupMemberships.create({
         collectionId: this.props.collection.id,
         groupId: group.id,
-        permission: "read_write",
       });
       this.props.toasts.showToast(
         t("{{ groupName }} was added to the collection", {

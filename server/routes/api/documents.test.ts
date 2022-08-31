@@ -1,3 +1,4 @@
+import { CollectionPermission } from "@shared/types";
 import {
   Document,
   View,
@@ -800,7 +801,7 @@ describe("#documents.list", () => {
       createdById: user.id,
       collectionId: collection.id,
       userId: user.id,
-      permission: "read",
+      permission: CollectionPermission.Read,
     });
     const res = await server.post("/api/documents.list", {
       body: {
@@ -1244,7 +1245,7 @@ describe("#documents.search", () => {
       createdById: user.id,
       collectionId: collection.id,
       userId: user.id,
-      permission: "read",
+      permission: CollectionPermission.Read,
     });
     const document = await buildDocument({
       title: "search term",
@@ -2005,7 +2006,7 @@ describe("#documents.update", () => {
       createdById: user.id,
       collectionId: collection.id,
       userId: user.id,
-      permission: "read_write",
+      permission: CollectionPermission.ReadWrite,
     });
     const res = await server.post("/api/documents.update", {
       body: {
@@ -2094,7 +2095,7 @@ describe("#documents.update", () => {
       collectionId: collection.id,
       userId: admin.id,
       createdById: admin.id,
-      permission: "read_write",
+      permission: CollectionPermission.ReadWrite,
     });
     const res = await server.post("/api/documents.update", {
       body: {
@@ -2118,7 +2119,7 @@ describe("#documents.update", () => {
       collectionId: collection.id,
       userId: user.id,
       createdById: user.id,
-      permission: "read",
+      permission: CollectionPermission.Read,
     });
     const res = await server.post("/api/documents.update", {
       body: {
@@ -2133,7 +2134,7 @@ describe("#documents.update", () => {
 
   it("does not allow editing in read-only collection", async () => {
     const { user, document, collection } = await seed();
-    collection.permission = "read";
+    collection.permission = CollectionPermission.Read;
     await collection.save();
     const res = await server.post("/api/documents.update", {
       body: {

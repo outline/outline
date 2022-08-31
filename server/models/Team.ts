@@ -19,6 +19,7 @@ import {
   IsUrl,
   AllowNull,
 } from "sequelize-typescript";
+import { CollectionPermission } from "@shared/types";
 import { getBaseDomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
 import env from "@server/env";
 import { generateAvatarUrl } from "@server/utils/avatars";
@@ -172,7 +173,7 @@ class Team extends ParanoidModel {
           teamId: this.id,
           createdById: userId,
           sort: Collection.DEFAULT_SORT,
-          permission: "read_write",
+          permission: CollectionPermission.ReadWrite,
         },
         {
           transaction,

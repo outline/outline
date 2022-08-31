@@ -1,5 +1,6 @@
 import { isArrayLike } from "lodash";
 import validator from "validator";
+import { CollectionPermission } from "../shared/types";
 import { validateColorHex } from "../shared/utils/color";
 import { validateIndexCharacters } from "../shared/utils/indexCharacters";
 import { ParamRequiredError, ValidationError } from "./errors";
@@ -103,4 +104,11 @@ export const assertIndexCharacters = (
   if (!validateIndexCharacters(value)) {
     throw ValidationError(message);
   }
+};
+
+export const assertCollectionPermission = (
+  value: string,
+  message = "Invalid permission"
+) => {
+  assertIn(value, [...Object.values(CollectionPermission), null], message);
 };

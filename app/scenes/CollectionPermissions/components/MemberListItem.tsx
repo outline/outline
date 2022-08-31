@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { CollectionPermission } from "@shared/types";
 import Membership from "~/models/Membership";
 import User from "~/models/User";
 import Avatar from "~/components/Avatar";
@@ -19,7 +20,7 @@ type Props = {
   canEdit: boolean;
   onAdd?: () => void;
   onRemove?: () => void;
-  onUpdate?: (permission: string) => void;
+  onUpdate?: (permission: CollectionPermission) => void;
 };
 
 const MemberListItem = ({
@@ -31,19 +32,6 @@ const MemberListItem = ({
   canEdit,
 }: Props) => {
   const { t } = useTranslation();
-  const PERMISSIONS = React.useMemo(
-    () => [
-      {
-        label: t("View only"),
-        value: "read",
-      },
-      {
-        label: t("View and edit"),
-        value: "read_write",
-      },
-    ],
-    [t]
-  );
 
   return (
     <ListItem
@@ -67,7 +55,16 @@ const MemberListItem = ({
           {onUpdate && (
             <Select
               label={t("Permissions")}
-              options={PERMISSIONS}
+              options={[
+                {
+                  label: t("View only"),
+                  value: CollectionPermission.Read,
+                },
+                {
+                  label: t("View and edit"),
+                  value: CollectionPermission.ReadWrite,
+                },
+              ]}
               value={membership ? membership.permission : undefined}
               onChange={onUpdate}
               disabled={!canEdit}
