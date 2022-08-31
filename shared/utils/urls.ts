@@ -1,5 +1,4 @@
 import { escapeRegExp } from "lodash";
-import { BLACKLIST_PROTOCOLS } from "../constants";
 import env from "../env";
 import { parseDomain } from "./domains";
 
@@ -56,12 +55,7 @@ export function isUrl(text: string) {
 
   try {
     const url = new URL(text);
-    const blockedProtocols = [
-      "javascript:",
-      "file:",
-      "vbscript:",
-      "data:",
-    ]
+    const blockedProtocols = ["javascript:", "file:", "vbscript:", "data:"];
 
     return url.hostname !== "" && !blockedProtocols.includes(url.protocol);
   } catch (err) {
