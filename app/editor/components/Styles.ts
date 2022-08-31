@@ -1287,6 +1287,10 @@ const EditorStyles = styled.div<{
     .page-break {
       opacity: 0;
     }
+    
+    button.show-source-button {
+      display: none;
+    }
 
     em,
     blockquote {
