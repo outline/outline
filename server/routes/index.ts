@@ -1,8 +1,9 @@
 import path from "path";
-import Koa from "koa";
+import Koa, { BaseContext } from "koa";
 import Router from "koa-router";
 import send from "koa-send";
 import serve from "koa-static";
+import userAgent, { UserAgentContext } from "koa-useragent";
 import { languages } from "@shared/i18n";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
@@ -21,6 +22,8 @@ koa.use(
     maxage: 60 * 60 * 24 * 30 * 1000,
   })
 );
+
+koa.use<BaseContext, UserAgentContext>(userAgent);
 
 if (isProduction) {
   router.get("/static/*", async (ctx) => {

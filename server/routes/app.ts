@@ -83,7 +83,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
     share = result.share;
     document = result.document;
 
-    if (share) {
+    if (share && !ctx.userAgent.isBot) {
       await share.update({
         lastAccessedAt: new Date(),
         views: Sequelize.literal("views + 1"),
