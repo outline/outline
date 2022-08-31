@@ -1,4 +1,3 @@
-import { isFunction } from "lodash";
 import { ExpandedIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -28,11 +27,10 @@ import MouseSafeArea from "./MouseSafeArea";
 import Separator from "./Separator";
 import ContextMenu from ".";
 
-type Props = {
+type Props = Pick<ReturnType<typeof useMenuState>, "baseId"> & {
   actions?: (Action | MenuSeparator | MenuHeading)[];
   context?: Partial<ActionContext>;
   items?: TMenuItem[];
-  menuDomId?: string;
 };
 
 const Disclosure = styled(ExpandedIcon)`
@@ -46,12 +44,12 @@ const Submenu = React.forwardRef(
     {
       templateItems,
       title,
-      hideParentMenu,
+      parentMenuId,
       ...rest
     }: {
       templateItems: TMenuItem[];
       title: React.ReactNode;
-      hideParentMenu?: () => void;
+      parentMenuId: string;
     },
     ref: React.LegacyRef<HTMLButtonElement>
   ) => {
@@ -60,11 +58,12 @@ const Submenu = React.forwardRef(
     const menu = useMenuState();
     const isMobile = useMobile();
 
-    React.useEffect(() => {
+    const hideParentMenu = React.useCallback(() => {
       if (isMobile && menu.visible) {
-        isFunction(hideParentMenu) && hideParentMenu();
+        const parentMenu = document.getElementById(parentMenuId);
+        parentMenu && (parentMenu.style.display = "none");
       }
-    }, [isMobile, menu.visible, hideParentMenu]);
+    }, [isMobile, menu.visible, parentMenuId]);
 
     return (
       <>
@@ -76,7 +75,11 @@ const Submenu = React.forwardRef(
           )}
         </MenuButton>
         <Portal>
-          <ContextMenu {...menu} aria-label={t("Submenu")}>
+          <ContextMenu
+            {...menu}
+            onOpen={hideParentMenu}
+            aria-label={t("Submenu")}
+          >
             <MouseSafeArea parentRef={menu.unstable_popoverRef} />
             <Template {...menu} items={templateItems} />
           </ContextMenu>
@@ -110,7 +113,7 @@ export function filterTemplateItems(items: TMenuItem[]): TMenuItem[] {
     });
 }
 
-function Template({ items, actions, context, menuDomId, ...menu }: Props) {
+function Template({ items, actions, context, ...menu }: Props) {
   const ctx = useActionContext({
     isContextMenu: true,
   });
@@ -129,13 +132,6 @@ function Template({ items, actions, context, menuDomId, ...menu }: Props) {
     (item) =>
       item.type !== "separator" && item.type !== "heading" && !!item.icon
   );
-
-  const hideMenu = () => {
-    const elem = menuDomId ? document.getElementById(menuDomId) : undefined;
-    if (elem) {
-      elem.style.display = "none";
-    }
-  };
 
   return (
     <>
@@ -205,7 +201,7 @@ function Template({ items, actions, context, menuDomId, ...menu }: Props) {
               as={Submenu}
               templateItems={item.items}
               title={<Title title={item.title} icon={item.icon} />}
-              hideParentMenu={hideMenu}
+              parentMenuId={menu.baseId}
               {...menu}
             />
           );

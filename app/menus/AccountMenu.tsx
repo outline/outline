@@ -53,12 +53,7 @@ const AccountMenu: React.FC = ({ children }) => {
     <>
       <MenuButton {...menu}>{children}</MenuButton>
       <ContextMenu {...menu} aria-label={t("Account")}>
-        <Template
-          {...menu}
-          items={undefined}
-          actions={actions}
-          menuDomId={menu.baseId}
-        />
+        <Template {...menu} items={undefined} actions={actions} />
       </ContextMenu>
     </>
   );
