@@ -50,7 +50,6 @@ class Integration<T = unknown> extends IdModel {
   @Column(DataType.JSONB)
   settings: IntegrationSettings<T>;
 
-  @IsIn([["documents.update", "documents.publish"]])
   @Column(DataType.ARRAY(DataType.STRING))
   events: string[];
 

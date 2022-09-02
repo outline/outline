@@ -244,6 +244,7 @@ export async function buildIntegration(overrides: Partial<Integration> = {}) {
   return Integration.create({
     type: "post",
     service: "slack",
+    events: ["documents.update", "documents.publish"],
     settings: {
       serviceTeamId: "slack_team_id",
     },
