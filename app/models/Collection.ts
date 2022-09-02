@@ -216,7 +216,7 @@ export default class Collection extends ParanoidModel {
   };
 
   export = () => {
-    return client.get("/collections.export", {
+    return client.post("/collections.export", {
       id: this.id,
     });
   };

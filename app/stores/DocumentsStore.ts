@@ -381,7 +381,7 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   @action
   searchTitles = async (query: string) => {
-    const res = await client.get("/documents.search_titles", {
+    const res = await client.post("/documents.search_titles", {
       query,
     });
     invariant(res?.data, "Search response should be available");
@@ -397,7 +397,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     options: SearchParams
   ): Promise<SearchResult[]> => {
     const compactedOptions = omitBy(options, (o) => !o);
-    const res = await client.get("/documents.search", {
+    const res = await client.post("/documents.search", {
       ...compactedOptions,
       query,
     });
