@@ -1,3 +1,4 @@
+import { Optional } from "utility-types";
 import mailer from "@server/emails/mailer";
 import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/metrics";
@@ -9,7 +10,10 @@ interface EmailProps {
   to: string;
 }
 
-export default abstract class BaseEmail<T extends EmailProps, S = any> {
+export default abstract class BaseEmail<
+  T extends EmailProps & Optional<{ notificationId: string }>,
+  S = Optional<{ notificationId: string }>
+> {
   private props: T;
 
   /**
@@ -81,26 +85,31 @@ export default abstract class BaseEmail<T extends EmailProps, S = any> {
       Metrics.increment("email.sent", {
         templateName,
       });
+    } catch (err) {
+      Metrics.increment("email.sending_failed", {
+        templateName,
+      });
+      throw err;
+    }
 
-      // @ts-expect-error does not exist on type T & S
-      if (data.notificationId) {
+    if (data.notificationId) {
+      try {
         await Notification.update(
           {
             emailedAt: new Date(),
           },
           {
             where: {
-              // @ts-expect-error does not exist on type T & S
               id: data.notificationId,
             },
           }
         );
+      } catch (err) {
+        Logger.error(
+          `Failed to update notification(id=${data.notificationId})`,
+          err
+        );
       }
-    } catch (err) {
-      Metrics.increment("email.sending_failed", {
-        templateName,
-      });
-      throw err;
     }
   }
 
