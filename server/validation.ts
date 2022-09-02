@@ -1,21 +1,27 @@
 import { isArrayLike } from "lodash";
+import { Primitive } from "utility-types";
 import validator from "validator";
 import { CollectionPermission } from "../shared/types";
 import { validateColorHex } from "../shared/utils/color";
 import { validateIndexCharacters } from "../shared/utils/indexCharacters";
 import { ParamRequiredError, ValidationError } from "./errors";
 
-export const assertPresent = (value: unknown, message: string) => {
+type IncomingValue = Primitive | string[];
+
+export const assertPresent = (value: IncomingValue, message: string) => {
   if (value === undefined || value === null || value === "") {
     throw ParamRequiredError(message);
   }
 };
 
-export const assertArray = (value: unknown, message?: string) => {
+export function assertArray(
+  value: IncomingValue,
+  message?: string
+): asserts value {
   if (!isArrayLike(value)) {
     throw ValidationError(message);
   }
-};
+}
 
 export const assertIn = (
   value: string,
@@ -37,41 +43,57 @@ export const assertSort = (
   }
 };
 
-export const assertNotEmpty = (value: unknown, message: string) => {
+export function assertNotEmpty(
+  value: IncomingValue,
+  message: string
+): asserts value {
   assertPresent(value, message);
 
   if (typeof value === "string" && value.trim() === "") {
     throw ValidationError(message);
   }
-};
+}
 
-export const assertEmail = (value = "", message?: string) => {
-  if (!validator.isEmail(value)) {
+export function assertEmail(
+  value: IncomingValue = "",
+  message?: string
+): asserts value {
+  if (typeof value !== "string" || !validator.isEmail(value)) {
     throw ValidationError(message);
   }
-};
+}
 
-export const assertUrl = (value = "", message?: string) => {
+export function assertUrl(
+  value: IncomingValue = "",
+  message?: string
+): asserts value {
   if (
+    typeof value !== "string" ||
     !validator.isURL(value, {
       protocols: ["http", "https"],
       require_valid_protocol: true,
     })
   ) {
-    throw ValidationError(message ?? `${value} is an invalid url!`);
+    throw ValidationError(message ?? `${String(value)} is an invalid url!`);
   }
-};
+}
 
-export const assertUuid = (value: unknown, message?: string) => {
+export function assertUuid(
+  value: IncomingValue,
+  message?: string
+): asserts value {
   if (typeof value !== "string") {
     throw ValidationError(message);
   }
   if (!validator.isUUID(value)) {
     throw ValidationError(message);
   }
-};
+}
 
-export const assertPositiveInteger = (value: unknown, message?: string) => {
+export const assertPositiveInteger = (
+  value: IncomingValue,
+  message?: string
+) => {
   if (
     !validator.isInt(String(value), {
       min: 0,

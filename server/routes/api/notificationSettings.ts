@@ -4,6 +4,7 @@ import auth from "@server/middlewares/authentication";
 import { Team, NotificationSetting } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentNotificationSetting } from "@server/presenters";
+import { ContextWithState } from "@server/types";
 import { assertPresent, assertUuid } from "@server/validation";
 
 const router = new Router();
@@ -55,8 +56,8 @@ router.post("notificationSettings.delete", auth(), async (ctx) => {
   };
 });
 
-router.post("notificationSettings.unsubscribe", async (ctx) => {
-  const { id, token } = ctx.body;
+const handleUnsubscribe = async (ctx: ContextWithState) => {
+  const { id, token } = ctx.body as { id?: string; token?: string };
   assertUuid(id, "id is required");
   assertPresent(token, "token is required");
 
@@ -77,6 +78,9 @@ router.post("notificationSettings.unsubscribe", async (ctx) => {
   }
 
   ctx.redirect(`${env.URL}?notice=invalid-auth`);
-});
+};
+
+router.get("notificationSettings.unsubscribe", handleUnsubscribe);
+router.post("notificationSettings.unsubscribe", handleUnsubscribe);
 
 export default router;

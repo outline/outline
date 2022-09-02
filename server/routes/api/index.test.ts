@@ -17,3 +17,10 @@ describe("GET unknown endpoint", () => {
     expect(res.status).toEqual(404);
   });
 });
+
+describe("PATCH unknown endpoint", () => {
+  it("should be method not allowed", async () => {
+    const res = await server.patch("/api/blah");
+    expect(res.status).toEqual(405);
+  });
+});

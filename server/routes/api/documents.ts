@@ -14,6 +14,7 @@ import {
   NotFoundError,
   InvalidRequestError,
   AuthenticationError,
+  ValidationError,
 } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import {
@@ -478,8 +479,10 @@ router.post("documents.restore", auth({ member: true }), async (ctx) => {
   // be caught as a 403 on the authorize call below. Otherwise we're checking here
   // that the original collection still exists and advising to pass collectionId
   // if not.
-  if (!collectionId) {
-    assertPresent(collection, "collectionId is required");
+  if (!collectionId && !collection) {
+    throw ValidationError(
+      "Unable to restore to original collection, it may have been deleted"
+    );
   }
 
   authorize(user, "update", collection);

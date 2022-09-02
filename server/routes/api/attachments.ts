@@ -7,6 +7,7 @@ import { AuthorizationError, ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { Attachment, Document, Event } from "@server/models";
 import { authorize } from "@server/policies";
+import { ContextWithState } from "@server/types";
 import {
   getPresignedPost,
   publicS3Endpoint,
@@ -145,9 +146,10 @@ router.post("attachments.delete", auth(), async (ctx) => {
   };
 });
 
-router.post("attachments.redirect", auth(), async (ctx) => {
-  const { id } = ctx.body;
+const handleAttachmentsRedirect = async (ctx: ContextWithState) => {
+  const { id } = ctx.body as { id?: string };
   assertUuid(id, "id is required");
+
   const { user } = ctx.state;
   const attachment = await Attachment.findByPk(id, {
     rejectOnEmpty: true,
@@ -163,6 +165,9 @@ router.post("attachments.redirect", auth(), async (ctx) => {
   } else {
     ctx.redirect(attachment.canonicalUrl);
   }
-});
+};
+
+router.get("attachments.redirect", auth(), handleAttachmentsRedirect);
+router.post("attachments.redirect", auth(), handleAttachmentsRedirect);
 
 export default router;
