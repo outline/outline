@@ -1275,6 +1275,7 @@ const EditorStyles = styled.div<{
     .placeholder:before,
     .block-menu-trigger,
     .heading-actions,
+    button.show-source-button,
     h1:not(.placeholder):before,
     h2:not(.placeholder):before,
     h3:not(.placeholder):before,
