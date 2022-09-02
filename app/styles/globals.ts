@@ -15,6 +15,8 @@ export default createGlobalStyle`
     min-height: 100vh;
     margin: 0;
     padding: 0;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
 
   body,
