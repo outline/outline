@@ -1,4 +1,3 @@
-import { Optional } from "utility-types";
 import mailer from "@server/emails/mailer";
 import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/metrics";
@@ -8,12 +7,10 @@ import { TaskPriority } from "@server/queues/tasks/BaseTask";
 
 interface EmailProps {
   to: string;
+  metadata?: Required<{ notificationId: string }>;
 }
 
-export default abstract class BaseEmail<
-  T extends EmailProps & Optional<{ notificationId: string }>,
-  S = Optional<{ notificationId: string }>
-> {
+export default abstract class BaseEmail<T extends EmailProps, S = unknown> {
   private props: T;
 
   /**
@@ -92,7 +89,9 @@ export default abstract class BaseEmail<
       throw err;
     }
 
-    if (data.notificationId) {
+    const { metadata } = { ...this.props };
+
+    if (metadata?.notificationId) {
       try {
         await Notification.update(
           {
@@ -100,13 +99,13 @@ export default abstract class BaseEmail<
           },
           {
             where: {
-              id: data.notificationId,
+              id: metadata.notificationId,
             },
           }
         );
       } catch (err) {
         Logger.error(
-          `Failed to update notification(id=${data.notificationId})`,
+          `Failed to update notification(id=${metadata.notificationId})`,
           err
         );
       }

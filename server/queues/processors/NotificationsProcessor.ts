@@ -90,7 +90,9 @@ export default class NotificationsProcessor extends BaseProcessor {
           actorName: document.updatedBy.name,
           collectionName: collection.name,
           unsubscribeUrl: recipient.unsubscribeUrl,
-          notificationId: notification.id,
+          metadata: {
+            notificationId: notification.id,
+          },
         });
       }
     }

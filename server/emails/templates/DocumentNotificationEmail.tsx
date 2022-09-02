@@ -17,7 +17,7 @@ type InputProps = {
   eventName: string;
   teamUrl: string;
   unsubscribeUrl: string;
-  notificationId: string;
+  metadata: Required<{ notificationId: string }>;
 };
 
 type BeforeSend = {
