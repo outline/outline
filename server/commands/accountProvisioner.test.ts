@@ -29,7 +29,7 @@ describe("accountProvisioner", () => {
         username: "jtester",
       },
       team: {
-        name: "New team",
+        name: "New workspace",
         avatarUrl: "https://example.com/avatar.png",
         subdomain: "example",
       },
@@ -48,7 +48,7 @@ describe("accountProvisioner", () => {
     expect(auth.accessToken).toEqual("123");
     expect(auth.scopes.length).toEqual(1);
     expect(auth.scopes[0]).toEqual("read");
-    expect(team.name).toEqual("New team");
+    expect(team.name).toEqual("New workspace");
     expect(user.email).toEqual("jenny@example-company.com");
     expect(user.username).toEqual("jtester");
     expect(isNewUser).toEqual(true);

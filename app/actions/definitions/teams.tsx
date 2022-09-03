@@ -18,8 +18,8 @@ export const switchTeamList = getSessions().map((session) => {
 });
 
 const switchTeam = createAction({
-  name: ({ t }) => t("Switch team"),
-  placeholder: ({ t }) => t("Select a team"),
+  name: ({ t }) => t("Switch workspace"),
+  placeholder: ({ t }) => t("Select a workspace"),
   keywords: "change switch workspace organization team",
   section: TeamSection,
   visible: ({ currentTeamId }) =>
@@ -28,7 +28,7 @@ const switchTeam = createAction({
 });
 
 export const createTeam = createAction({
-  name: ({ t }) => `${t("New team")}…`,
+  name: ({ t }) => `${t("New workspace")}…`,
   keywords: "create change switch workspace organization team",
   section: TeamSection,
   icon: <PlusIcon />,
@@ -41,7 +41,7 @@ export const createTeam = createAction({
     const { user } = stores.auth;
     user &&
       stores.dialogs.openModal({
-        title: t("Create a team"),
+        title: t("Create a workspace"),
         content: <TeamNew user={user} />,
       });
   },

@@ -48,7 +48,7 @@ function TeamNew({ user }: Props) {
       <form onSubmit={handleSubmit}>
         <Text type="secondary">
           <Trans
-            defaults="Your are creating a new team using your current membership — <em>{{email}}</em>"
+            defaults="Your are creating a new workspace using your current account — <em>{{email}}</em>"
             values={{
               email: user.email,
             }}
@@ -61,7 +61,7 @@ function TeamNew({ user }: Props) {
         <Flex>
           <Input
             type="text"
-            label={t("Team name")}
+            label={t("Workspace name")}
             onChange={handleNameChange}
             value={name}
             required
@@ -71,9 +71,9 @@ function TeamNew({ user }: Props) {
         </Flex>
         <Text type="secondary">
           <Trans>
-            When your new team is created, you will be the admin, meaning you
-            will have the highest level of permissions on the team and the
-            ability to invite others.
+            When your new workspace is created, you will be the admin, meaning
+            you will have the highest level of permissions and the ability to
+            invite others.
           </Trans>
         </Text>
 

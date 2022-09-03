@@ -123,7 +123,7 @@ function Details() {
           label={t("Name")}
           name="name"
           description={t(
-            "The team name, usually the same as your company name."
+            "The workspace name, usually the same as your company name."
           )}
         >
           <Input

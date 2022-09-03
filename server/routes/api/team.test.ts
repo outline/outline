@@ -18,13 +18,13 @@ describe("teams.create", () => {
     const res = await server.post("/api/teams.create", {
       body: {
         token: user.getJwtToken(),
-        name: "new team",
+        name: "new workspace",
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.team.name).toEqual("new team");
-    expect(body.data.team.subdomain).toEqual("new-team");
+    expect(body.data.team.name).toEqual("new workspace");
+    expect(body.data.team.subdomain).toEqual("new-workspace");
   });
 
   it("requires a cloud hosted deployment", async () => {
@@ -34,7 +34,7 @@ describe("teams.create", () => {
     const res = await server.post("/api/teams.create", {
       body: {
         token: user.getJwtToken(),
-        name: "new team",
+        name: "new workspace",
       },
     });
     expect(res.status).toEqual(500);
