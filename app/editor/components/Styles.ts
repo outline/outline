@@ -1289,6 +1289,11 @@ const EditorStyles = styled.div<{
       opacity: 0;
     }
 
+    pre {
+      overflow-x: hidden;
+      white-space: pre-wrap;
+    }
+
     em,
     blockquote {
       font-family: "SF Pro Text", ${(props) => props.theme.fontFamily};
