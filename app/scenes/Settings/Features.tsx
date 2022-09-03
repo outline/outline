@@ -59,7 +59,7 @@ function Features() {
       <Text type="secondary">
         <Trans>
           Manage optional and beta features. Changing these settings will affect
-          the experience for all team members.
+          the experience for all members of the workspace.
         </Trans>
       </Text>
       <SettingRow

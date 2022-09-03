@@ -84,7 +84,7 @@ class AddPeopleToGroup extends React.Component<Props> {
       <Flex column>
         <Text type="secondary">
           {t(
-            "Add team members below to give them access to the group. Need to add someone who’s not yet on the team yet?"
+            "Add members below to give them access to the group. Need to add someone who’s not yet a member?"
           )}{" "}
           <ButtonLink onClick={this.handleInviteModalOpen}>
             {t("Invite them to {{teamName}}", {

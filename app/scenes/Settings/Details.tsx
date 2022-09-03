@@ -165,7 +165,7 @@ function Details() {
           label={t("Start view")}
           name="defaultCollectionId"
           description={t(
-            "This is the screen that team members will first see when they sign in."
+            "This is the screen that workspace members will first see when they sign in."
           )}
         >
           <DefaultCollectionInputSelect

@@ -207,7 +207,7 @@ function Security() {
         label={t("Public document sharing")}
         name="sharing"
         description={t(
-          "When enabled, documents can be shared publicly on the internet by any team member"
+          "When enabled, documents can be shared publicly on the internet by any member of the workspace"
         )}
       >
         <Switch id="sharing" checked={data.sharing} onChange={handleChange} />
