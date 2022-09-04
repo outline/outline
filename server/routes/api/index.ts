@@ -1,11 +1,12 @@
-import Koa from "koa";
+import Koa, { DefaultContext, DefaultState } from "koa";
 import bodyParser from "koa-body";
 import Router from "koa-router";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
 import errorHandling from "@server/middlewares/errorHandling";
 import methodOverride from "@server/middlewares/methodOverride";
-import { rateLimiter } from "@server/middlewares/rateLimiter";
+import { defaultRateLimiter } from "@server/middlewares/rateLimiter";
+import { AuthenticatedState } from "@server/types";
 import apiKeys from "./apiKeys";
 import attachments from "./attachments";
 import auth from "./auth";
@@ -27,12 +28,16 @@ import revisions from "./revisions";
 import searches from "./searches";
 import shares from "./shares";
 import stars from "./stars";
+import subscriptions from "./subscriptions";
 import team from "./team";
 import users from "./users";
 import views from "./views";
 import webhookSubscriptions from "./webhookSubscriptions";
 
-const api = new Koa();
+const api = new Koa<
+  DefaultState & AuthenticatedState,
+  DefaultContext & { body: Record<string, any> }
+>();
 const router = new Router();
 
 // middlewares
@@ -64,6 +69,7 @@ router.use("/", apiKeys.routes());
 router.use("/", searches.routes());
 router.use("/", shares.routes());
 router.use("/", stars.routes());
+router.use("/", subscriptions.routes());
 router.use("/", team.routes());
 router.use("/", integrations.routes());
 router.use("/", notificationSettings.routes());
@@ -81,10 +87,15 @@ router.post("*", (ctx) => {
   ctx.throw(NotFoundError("Endpoint not found"));
 });
 
-api.use(rateLimiter());
+router.get("*", (ctx) => {
+  ctx.throw(NotFoundError("Endpoint not found"));
+});
+
+api.use(defaultRateLimiter());
 
 // Router is embedded in a Koa application wrapper, because koa-router does not
 // allow middleware to catch any routes which were not explicitly defined.
 api.use(router.routes());
+api.use(router.allowedMethods());
 
 export default api;

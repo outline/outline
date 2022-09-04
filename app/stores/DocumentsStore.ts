@@ -381,7 +381,7 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   @action
   searchTitles = async (query: string) => {
-    const res = await client.get("/documents.search_titles", {
+    const res = await client.post("/documents.search_titles", {
       query,
     });
     invariant(res?.data, "Search response should be available");
@@ -397,7 +397,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     options: SearchParams
   ): Promise<SearchResult[]> => {
     const compactedOptions = omitBy(options, (o) => !o);
-    const res = await client.get("/documents.search", {
+    const res = await client.post("/documents.search", {
       ...compactedOptions,
       query,
     });
@@ -740,20 +740,37 @@ export default class DocumentsStore extends BaseStore<Document> {
     }
   };
 
-  star = async (document: Document) => {
-    await this.rootStore.stars.create({
+  star = (document: Document) => {
+    return this.rootStore.stars.create({
       documentId: document.id,
     });
   };
 
-  unstar = async (document: Document) => {
+  unstar = (document: Document) => {
     const star = this.rootStore.stars.orderedData.find(
       (star) => star.documentId === document.id
     );
-    await star?.delete();
+    return star?.delete();
   };
 
-  getByUrl = (url = ""): Document | null | undefined => {
+  subscribe = (document: Document) => {
+    return this.rootStore.subscriptions.create({
+      documentId: document.id,
+      event: "documents.update",
+    });
+  };
+
+  unsubscribe = (userId: string, document: Document) => {
+    const subscription = this.rootStore.subscriptions.orderedData.find(
+      (subscription) =>
+        subscription.documentId === document.id &&
+        subscription.userId === userId
+    );
+
+    return subscription?.delete();
+  };
+
+  getByUrl = (url = ""): Document | undefined => {
     return find(this.orderedData, (doc) => url.endsWith(doc.urlId));
   };
 

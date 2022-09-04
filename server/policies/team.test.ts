@@ -24,6 +24,7 @@ it("should allow reading only", async () => {
   expect(abilities.createGroup).toEqual(false);
   expect(abilities.createIntegration).toEqual(false);
 });
+
 it("should allow admins to manage", async () => {
   const team = await buildTeam();
   const admin = await buildAdmin({

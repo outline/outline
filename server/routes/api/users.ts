@@ -2,10 +2,12 @@ import crypto from "crypto";
 import Router from "koa-router";
 import { Op, WhereOptions } from "sequelize";
 import { UserValidation } from "@shared/validations";
+import { RateLimiterStrategy } from "@server/RateLimiter";
 import userDemoter from "@server/commands/userDemoter";
 import userDestroyer from "@server/commands/userDestroyer";
 import userInviter from "@server/commands/userInviter";
 import userSuspender from "@server/commands/userSuspender";
+import userUnsuspender from "@server/commands/userUnsuspender";
 import { sequelize } from "@server/database/sequelize";
 import ConfirmUserDeleteEmail from "@server/emails/templates/ConfirmUserDeleteEmail";
 import InviteEmail from "@server/emails/templates/InviteEmail";
@@ -13,6 +15,7 @@ import env from "@server/env";
 import { ValidationError } from "@server/errors";
 import logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
+import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { Event, User, Team } from "@server/models";
 import { UserFlag, UserRole } from "@server/models/User";
 import { can, authorize } from "@server/policies";
@@ -22,6 +25,7 @@ import {
   assertSort,
   assertPresent,
   assertArray,
+  assertUuid,
 } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
@@ -281,21 +285,16 @@ router.post("users.suspend", auth(), async (ctx) => {
 
 router.post("users.activate", auth(), async (ctx) => {
   const userId = ctx.body.id;
-  const teamId = ctx.state.user.teamId;
   const actor = ctx.state.user;
   assertPresent(userId, "id is required");
-  const user = await User.findByPk(userId);
+  const user = await User.findByPk(userId, {
+    rejectOnEmpty: true,
+  });
   authorize(actor, "activate", user);
 
-  await user.activate();
-  await Event.create({
-    name: "users.activate",
+  await userUnsuspender({
+    user,
     actorId: actor.id,
-    userId,
-    teamId,
-    data: {
-      name: user.name,
-    },
     ip: ctx.request.ip,
   });
   const includeDetails = can(actor, "readDetails", user);
@@ -308,26 +307,31 @@ router.post("users.activate", auth(), async (ctx) => {
   };
 });
 
-router.post("users.invite", auth(), async (ctx) => {
-  const { invites } = ctx.body;
-  assertArray(invites, "invites must be an array");
-  const { user } = ctx.state;
-  const team = await Team.findByPk(user.teamId);
-  authorize(user, "inviteUser", team);
+router.post(
+  "users.invite",
+  auth(),
+  rateLimiter(RateLimiterStrategy.TenPerHour),
+  async (ctx) => {
+    const { invites } = ctx.body;
+    assertArray(invites, "invites must be an array");
+    const { user } = ctx.state;
+    const team = await Team.findByPk(user.teamId);
+    authorize(user, "inviteUser", team);
 
-  const response = await userInviter({
-    user,
-    invites: invites.slice(0, UserValidation.maxInvitesPerRequest),
-    ip: ctx.request.ip,
-  });
+    const response = await userInviter({
+      user,
+      invites: invites.slice(0, UserValidation.maxInvitesPerRequest),
+      ip: ctx.request.ip,
+    });
 
-  ctx.body = {
-    data: {
-      sent: response.sent,
-      users: response.users.map((user) => presentUser(user)),
-    },
-  };
-});
+    ctx.body = {
+      data: {
+        sent: response.sent,
+        users: response.users.map((user) => presentUser(user)),
+      },
+    };
+  }
+);
 
 router.post("users.resendInvite", auth(), async (ctx) => {
   const { id } = ctx.body;
@@ -371,49 +375,72 @@ router.post("users.resendInvite", auth(), async (ctx) => {
   };
 });
 
-router.post("users.requestDelete", auth(), async (ctx) => {
-  const { user } = ctx.state;
-  authorize(user, "delete", user);
+router.post(
+  "users.requestDelete",
+  auth(),
+  rateLimiter(RateLimiterStrategy.FivePerHour),
+  async (ctx) => {
+    const { user } = ctx.state;
+    authorize(user, "delete", user);
 
-  if (emailEnabled) {
-    await ConfirmUserDeleteEmail.schedule({
-      to: user.email,
-      deleteConfirmationCode: user.deleteConfirmationCode,
+    if (emailEnabled) {
+      await ConfirmUserDeleteEmail.schedule({
+        to: user.email,
+        deleteConfirmationCode: user.deleteConfirmationCode,
+      });
+    }
+
+    ctx.body = {
+      success: true,
+    };
+  }
+);
+
+router.post(
+  "users.delete",
+  auth(),
+  rateLimiter(RateLimiterStrategy.TenPerHour),
+  async (ctx) => {
+    const { id, code = "" } = ctx.body;
+    let user: User;
+
+    if (id) {
+      assertUuid(id, "id must be a UUID");
+      user = await User.findByPk(id, {
+        rejectOnEmpty: true,
+      });
+    } else {
+      user = ctx.state.user;
+    }
+    authorize(user, "delete", user);
+
+    // If we're attempting to delete our own account then a confirmation code
+    // is required. This acts as CSRF protection.
+    if (!id || id === ctx.state.user.id) {
+      const deleteConfirmationCode = user.deleteConfirmationCode;
+
+      if (
+        emailEnabled &&
+        (code.length !== deleteConfirmationCode.length ||
+          !crypto.timingSafeEqual(
+            Buffer.from(code),
+            Buffer.from(deleteConfirmationCode)
+          ))
+      ) {
+        throw ValidationError("The confirmation code was incorrect");
+      }
+    }
+
+    await userDestroyer({
+      user,
+      actor: user,
+      ip: ctx.request.ip,
     });
+
+    ctx.body = {
+      success: true,
+    };
   }
-
-  ctx.body = {
-    success: true,
-  };
-});
-
-router.post("users.delete", auth(), async (ctx) => {
-  const { code = "" } = ctx.body;
-  const { user } = ctx.state;
-  authorize(user, "delete", user);
-
-  const deleteConfirmationCode = user.deleteConfirmationCode;
-
-  if (
-    emailEnabled &&
-    (code.length !== deleteConfirmationCode.length ||
-      !crypto.timingSafeEqual(
-        Buffer.from(code),
-        Buffer.from(deleteConfirmationCode)
-      ))
-  ) {
-    throw ValidationError("The confirmation code was incorrect");
-  }
-
-  await userDestroyer({
-    user,
-    actor: user,
-    ip: ctx.request.ip,
-  });
-
-  ctx.body = {
-    success: true,
-  };
-});
+);
 
 export default router;

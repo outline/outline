@@ -27,7 +27,7 @@ function NewDocumentMenu() {
   const { t } = useTranslation();
   const team = useCurrentTeam();
   const { collections, policies } = useStores();
-  const can = usePolicy(team.id);
+  const can = usePolicy(team);
   const items = React.useMemo(
     () =>
       collections.orderedData.reduce<MenuItem[]>((filtered, collection) => {

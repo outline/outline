@@ -5,6 +5,7 @@ import Logger from "@server/logging/Logger";
 import { APM } from "@server/logging/tracing";
 import { baseStyles } from "./templates/components/EmailLayout";
 
+const isCloudHosted = env.DEPLOYMENT === "hosted";
 const useTestEmailService =
   env.ENVIRONMENT === "development" && !env.SMTP_USERNAME;
 
@@ -77,6 +78,15 @@ export class Mailer {
         subject: data.subject,
         html,
         text: data.text,
+        attachments: isCloudHosted
+          ? undefined
+          : [
+              {
+                filename: "header-logo.png",
+                path: process.cwd() + "/public/email/header-logo.png",
+                cid: "header-image",
+              },
+            ],
       });
 
       if (useTestEmailService) {

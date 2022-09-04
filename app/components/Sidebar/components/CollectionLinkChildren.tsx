@@ -25,7 +25,7 @@ function CollectionLinkChildren({
   expanded,
   prefetchDocument,
 }: Props) {
-  const can = usePolicy(collection.id);
+  const can = usePolicy(collection);
   const { showToast } = useToasts();
   const manualSort = collection.sort.field === "index";
   const { documents } = useStores();

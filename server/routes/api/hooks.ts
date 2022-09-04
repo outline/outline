@@ -57,6 +57,7 @@ router.post("hooks.unfurl", async (ctx) => {
         model: UserAuthentication,
         as: "authentications",
         required: true,
+        separate: true,
       },
     ],
   });

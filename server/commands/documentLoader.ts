@@ -97,10 +97,6 @@ export default async function loadDocument({
     const canReadDocument = user && can(user, "read", document);
 
     if (canReadDocument) {
-      await share.update({
-        lastAccessedAt: new Date(),
-      });
-
       // Cannot use document.collection here as it does not include the
       // documentStructure by default through the relationship.
       collection = await Collection.findByPk(document.collectionId);
@@ -156,10 +152,6 @@ export default async function loadDocument({
     if (!team.sharing) {
       throw AuthorizationError();
     }
-
-    await share.update({
-      lastAccessedAt: new Date(),
-    });
   } else {
     document = await Document.findByPk(id as string, {
       userId: user ? user.id : undefined,

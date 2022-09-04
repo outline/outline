@@ -18,8 +18,11 @@ import {
   HasMany,
   Scopes,
   IsDate,
+  IsUrl,
+  AllowNull,
 } from "sequelize-typescript";
 import { languages } from "@shared/i18n";
+import { CollectionPermission } from "@shared/types";
 import { stringToColor } from "@shared/utils/color";
 import env from "@server/env";
 import { ValidationError } from "../errors";
@@ -154,6 +157,8 @@ class User extends ParanoidModel {
   @Column
   language: string;
 
+  @AllowNull
+  @IsUrl
   @Length({ max: 1000, msg: "avatarUrl must be less than 1000 characters" })
   @Column(DataType.STRING)
   get avatarUrl() {
@@ -213,6 +218,12 @@ class User extends ParanoidModel {
 
   get color() {
     return stringToColor(this.id);
+  }
+
+  get defaultCollectionPermission(): CollectionPermission {
+    return this.isViewer
+      ? CollectionPermission.Read
+      : CollectionPermission.ReadWrite;
   }
 
   /**
@@ -294,8 +305,8 @@ class User extends ParanoidModel {
     return collectionStubs
       .filter(
         (c) =>
-          c.permission === "read" ||
-          c.permission === "read_write" ||
+          c.permission === CollectionPermission.Read ||
+          c.permission === CollectionPermission.ReadWrite ||
           c.memberships.length > 0 ||
           c.collectionGroupMemberships.length > 0
       )
@@ -435,13 +446,6 @@ class User extends ParanoidModel {
     return this.update({
       isAdmin: true,
       isViewer: false,
-    });
-  };
-
-  activate = () => {
-    return this.update({
-      suspendedById: null,
-      suspendedAt: null,
     });
   };
 

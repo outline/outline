@@ -1,5 +1,6 @@
 import TestServer from "fetch-test-server";
 import { v4 as uuidv4 } from "uuid";
+import { CollectionPermission } from "@shared/types";
 import { sequelize as db } from "@server/database/sequelize";
 import { User, Document, Collection, Team } from "@server/models";
 import webService from "@server/services/web";
@@ -68,7 +69,7 @@ export const seed = async () => {
         urlId: "collection",
         teamId: team.id,
         createdById: user.id,
-        permission: "read_write",
+        permission: CollectionPermission.ReadWrite,
       },
       {
         transaction,

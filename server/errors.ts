@@ -1,5 +1,11 @@
 import httpErrors from "http-errors";
 
+export function InternalError(message = "Internal error") {
+  return httpErrors(500, message, {
+    id: "internal_error",
+  });
+}
+
 export function AuthenticationError(
   message = "Authentication required",
   redirectUrl = "/"

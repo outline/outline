@@ -1,6 +1,7 @@
 import invariant from "invariant";
 import { concat, find, last } from "lodash";
 import { computed, action } from "mobx";
+import { CollectionPermission } from "@shared/types";
 import Collection from "~/models/Collection";
 import { NavigationNode } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -171,8 +172,10 @@ export default class CollectionsStore extends BaseStore<Collection> {
 
   @computed
   get publicCollections() {
-    return this.orderedData.filter((collection) =>
-      ["read", "read_write"].includes(collection.permission || "")
+    return this.orderedData.filter(
+      (collection) =>
+        collection.permission &&
+        Object.values(CollectionPermission).includes(collection.permission)
     );
   }
 

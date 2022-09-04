@@ -222,12 +222,20 @@ class Document extends ParanoidModel {
   @Column
   editorVersion: string;
 
+  @Length({
+    max: 1,
+    msg: `Emoji must be a single character`,
+  })
   @Column
   emoji: string | null;
 
   @Column(DataType.TEXT)
   text: string;
 
+  @SimpleLength({
+    max: DocumentValidation.maxStateLength,
+    msg: `Document collaborative state is too large, you must create a new document`,
+  })
   @Column(DataType.BLOB)
   state: Uint8Array;
 
@@ -331,7 +339,7 @@ class Document extends ParanoidModel {
 
   @BeforeUpdate
   static processUpdate(model: Document) {
-    const { emoji } = parseTitle(model.text);
+    const { emoji } = parseTitle(model.title);
     // emoji in the title is split out for easier display
     model.emoji = emoji || null;
 
@@ -787,9 +795,26 @@ class Document extends ParanoidModel {
   };
 
   /**
+   * Get a list of users that have collaborated on this document
+   *
+   * @param options FindOptions
+   * @returns A promise that resolve to a list of users
+   */
+  collaborators = async (options?: FindOptions<User>): Promise<User[]> => {
+    const users = await Promise.all(
+      this.collaboratorIds.map((collaboratorId) =>
+        User.findByPk(collaboratorId, options)
+      )
+    );
+
+    return compact(users);
+  };
+
+  /**
    * Calculate all of the document ids that are children of this document by
    * iterating through parentDocumentId references in the most efficient way.
    *
+   * @param where query options to further filter the documents
    * @param options FindOptions
    * @returns A promise that resolves to a list of document ids
    */

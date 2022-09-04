@@ -274,12 +274,6 @@ export default class AuthStore {
 
   @action
   logout = async (savePath = false) => {
-    if (!this.token) {
-      return;
-    }
-
-    client.post(`/auth.delete`);
-
     // if this logout was forced from an authenticated route then
     // save the current path so we can go back there once signed in
     if (savePath) {
@@ -290,10 +284,19 @@ export default class AuthStore {
       }
     }
 
+    // If there is no auth token stored there is nothing else to do
+    if (!this.token) {
+      return;
+    }
+
+    // invalidate authentication token on server
+    client.post(`/auth.delete`);
+
     // remove authentication token itself
     removeCookie("accessToken", {
       path: "/",
     });
+
     // remove session record on apex cookie
     const team = this.team;
 

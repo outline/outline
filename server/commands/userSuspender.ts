@@ -10,6 +10,10 @@ type Props = {
   ip: string;
 };
 
+/**
+ * This command suspends an active user, this will cause them to lose access to
+ * the team.
+ */
 export default async function userSuspender({
   user,
   actorId,

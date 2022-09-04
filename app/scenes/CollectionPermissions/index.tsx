@@ -3,6 +3,7 @@ import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
+import { CollectionPermission } from "@shared/types";
 import Collection from "~/models/Collection";
 import Group from "~/models/Group";
 import User from "~/models/User";
@@ -151,7 +152,7 @@ function CollectionPermissions({ collection }: Props) {
   );
 
   const handleChangePermission = React.useCallback(
-    async (permission: string) => {
+    async (permission: CollectionPermission) => {
       try {
         await collection.save({
           permission,
@@ -218,9 +219,9 @@ function CollectionPermissions({ collection }: Props) {
             }}
           />
         )}
-        {collection.permission === "read" && (
+        {collection.permission === CollectionPermission.ReadWrite && (
           <Trans
-            defaults="Workspace members can view documents in the <em>{{ collectionName }}</em> collection by default."
+            defaults="Workspace members can view and edit documents in the <em>{{ collectionName }}</em> collection by default."
             values={{
               collectionName,
             }}
@@ -229,9 +230,9 @@ function CollectionPermissions({ collection }: Props) {
             }}
           />
         )}
-        {collection.permission === "read_write" && (
+        {collection.permission === CollectionPermission.Read && (
           <Trans
-            defaults="Workspace members can view and edit documents in the <em>{{ collectionName }}</em> collection by
+            defaults="Workspace members can view documents in the <em>{{ collectionName }}</em> collection by
           default."
             values={{
               collectionName,

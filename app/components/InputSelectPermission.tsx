@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { $Diff } from "utility-types";
+import { CollectionPermission } from "@shared/types";
 import InputSelect, { Props, Option } from "./InputSelect";
 
 export default function InputSelectPermission(
@@ -31,11 +32,11 @@ export default function InputSelectPermission(
       options={[
         {
           label: t("View and edit"),
-          value: "read_write",
+          value: CollectionPermission.ReadWrite,
         },
         {
           label: t("View only"),
-          value: "read",
+          value: CollectionPermission.Read,
         },
         {
           label: t("No access"),

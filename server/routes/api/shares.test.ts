@@ -1,3 +1,4 @@
+import { CollectionPermission } from "@shared/types";
 import { CollectionUser } from "@server/models";
 import {
   buildUser,
@@ -164,7 +165,7 @@ describe("#shares.create", () => {
       createdById: user.id,
       collectionId: collection.id,
       userId: user.id,
-      permission: "read",
+      permission: CollectionPermission.Read,
     });
     const res = await server.post("/api/shares.create", {
       body: {

@@ -5,6 +5,7 @@ import queryString from "query-string";
 import EDITOR_VERSION from "@shared/editor/version";
 import stores from "~/stores";
 import isCloudHosted from "~/utils/isCloudHosted";
+import Logger from "./Logger";
 import download from "./download";
 import {
   AuthorizationError,
@@ -12,6 +13,7 @@ import {
   NetworkError,
   NotFoundError,
   OfflineError,
+  RateLimitExceededError,
   RequestError,
   ServiceUnavailableError,
   UpdateRequiredError,
@@ -181,7 +183,20 @@ class ApiClient {
       throw new ServiceUnavailableError(error.message);
     }
 
-    throw new RequestError(`Error ${response.status}: ${error.message}`);
+    if (response.status === 429) {
+      throw new RateLimitExceededError(
+        `Too many requests, try again in a minute.`
+      );
+    }
+
+    const err = new RequestError(`Error ${response.status}`);
+    Logger.error("Request failed", err, {
+      ...error,
+      url: urlToFetch,
+    });
+
+    // Still need to throw to trigger retry
+    throw err;
   };
 
   get = (

@@ -27,6 +27,8 @@ import { actionToMenuItem } from "~/actions";
 import {
   pinDocument,
   createTemplate,
+  subscribeDocument,
+  unsubscribeDocument,
   moveDocument,
   deleteDocument,
   permanentlyDeleteDocument,
@@ -123,7 +125,7 @@ function DocumentMenu({
   }, [menu]);
 
   const collection = collections.get(document.collectionId);
-  const can = usePolicy(document.id);
+  const can = usePolicy(document);
   const canViewHistory = can.read && !can.restore;
   const restoreItems = React.useMemo(
     () => [
@@ -250,9 +252,10 @@ function DocumentMenu({
                 ...restoreItems,
               ],
             },
-            actionToMenuItem(unstarDocument, context),
             actionToMenuItem(starDocument, context),
-            actionToMenuItem(pinDocument, context),
+            actionToMenuItem(unstarDocument, context),
+            actionToMenuItem(subscribeDocument, context),
+            actionToMenuItem(unsubscribeDocument, context),
             {
               type: "separator",
             },
@@ -284,6 +287,10 @@ function DocumentMenu({
             },
             actionToMenuItem(archiveDocument, context),
             actionToMenuItem(moveDocument, context),
+            actionToMenuItem(pinDocument, context),
+            {
+              type: "separator",
+            },
             actionToMenuItem(deleteDocument, context),
             actionToMenuItem(permanentlyDeleteDocument, context),
             {

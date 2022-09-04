@@ -57,15 +57,17 @@ export default function Contents({ headings, isFullWidth }: Props) {
         <Heading>{t("Contents")}</Heading>
         {headings.length ? (
           <List>
-            {headings.map((heading) => (
-              <ListItem
-                key={heading.id}
-                level={heading.level - headingAdjustment}
-                active={activeSlug === heading.id}
-              >
-                <Link href={`#${heading.id}`}>{heading.title}</Link>
-              </ListItem>
-            ))}
+            {headings
+              .filter((heading) => heading.level < 4)
+              .map((heading) => (
+                <ListItem
+                  key={heading.id}
+                  level={heading.level - headingAdjustment}
+                  active={activeSlug === heading.id}
+                >
+                  <Link href={`#${heading.id}`}>{heading.title}</Link>
+                </ListItem>
+              ))}
           </List>
         ) : (
           <Empty>

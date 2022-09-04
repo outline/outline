@@ -1,3 +1,4 @@
+import { escapeRegExp } from "lodash";
 import env from "../env";
 import { parseDomain } from "./domains";
 
@@ -91,4 +92,14 @@ export function sanitizeUrl(url: string | null | undefined) {
     return `https://${url}`;
   }
   return url;
+}
+
+export function urlRegex(url: string | null | undefined): RegExp | undefined {
+  if (!url || !isUrl(url)) {
+    return undefined;
+  }
+
+  const urlObj = new URL(sanitizeUrl(url) as string);
+
+  return new RegExp(escapeRegExp(`${urlObj.protocol}//${urlObj.host}`));
 }

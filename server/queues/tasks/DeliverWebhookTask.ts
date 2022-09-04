@@ -97,6 +97,8 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       case "api_keys.delete":
       case "attachments.create":
       case "attachments.delete":
+      case "subscriptions.create":
+      case "subscriptions.delete":
       case "authenticationProviders.update":
         // Ignored
         return;
@@ -120,8 +122,6 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       case "documents.archive":
       case "documents.unarchive":
       case "documents.restore":
-      case "documents.star":
-      case "documents.unstar":
       case "documents.move":
       case "documents.update":
       case "documents.title_change":

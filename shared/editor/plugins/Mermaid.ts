@@ -53,6 +53,7 @@ function getNewState({
 
         if (pluginState.diagramVisibility[diagramId] === false) {
           diagramWrapper.classList.add("diagram-hidden");
+          return diagramWrapper;
         }
 
         import(
