@@ -455,19 +455,15 @@ router.post(
     let contentType;
     let content;
 
-    switch (accept) {
-      case "text/html":
-        contentType = "text/html";
-        content = document.toHTML();
-        break;
-      case "text/markdown":
-        contentType = "text/markdown";
-        content = document.toMarkdown();
-        break;
-      default:
-        contentType = "application/json";
-        content = document.toMarkdown();
-        break;
+    if (accept?.includes("text/html")) {
+      contentType = "text/html";
+      content = document.toHTML();
+    } else if (accept?.includes("text/markdown")) {
+      contentType = "text/markdown";
+      content = document.toMarkdown();
+    } else {
+      contentType = "application/json";
+      content = document.toMarkdown();
     }
 
     if (contentType !== "application/json") {

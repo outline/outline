@@ -67,7 +67,6 @@ export default function download(
     if ("download" in a) {
       a.href = url;
       a.setAttribute("download", fn);
-      a.innerHTML = "downloading…";
       D.body && D.body.appendChild(a);
       setTimeout(function () {
         a.click();

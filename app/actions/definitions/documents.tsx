@@ -179,12 +179,12 @@ export const unsubscribeDocument = createAction({
   },
 });
 
-export const downloadDocument = createAction({
-  name: ({ t, isContextMenu }) =>
-    isContextMenu ? t("Download") : t("Download document"),
+export const downloadDocumentAsHTML = createAction({
+  name: ({ t }) => t("HTML"),
   section: DocumentSection,
+  keywords: "html export",
   icon: <DownloadIcon />,
-  keywords: "export",
+  iconInContextMenu: false,
   visible: ({ activeDocumentId, stores }) =>
     !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
   perform: ({ activeDocumentId, stores }) => {
@@ -193,8 +193,35 @@ export const downloadDocument = createAction({
     }
 
     const document = stores.documents.get(activeDocumentId);
-    document?.download();
+    document?.download("text/html");
   },
+});
+
+export const downloadDocumentAsMarkdown = createAction({
+  name: ({ t }) => t("Markdown"),
+  section: DocumentSection,
+  keywords: "md markdown export",
+  icon: <DownloadIcon />,
+  iconInContextMenu: false,
+  visible: ({ activeDocumentId, stores }) =>
+    !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
+  perform: ({ activeDocumentId, stores }) => {
+    if (!activeDocumentId) {
+      return;
+    }
+
+    const document = stores.documents.get(activeDocumentId);
+    document?.download("text/markdown");
+  },
+});
+
+export const downloadDocument = createAction({
+  name: ({ t, isContextMenu }) =>
+    isContextMenu ? t("Download") : t("Download document"),
+  section: DocumentSection,
+  icon: <DownloadIcon />,
+  keywords: "export",
+  children: [downloadDocumentAsHTML, downloadDocumentAsMarkdown],
 });
 
 export const duplicateDocument = createAction({
