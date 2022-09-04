@@ -60,7 +60,7 @@ function GroupMembers({ group }: Props) {
           <Text type="secondary">
             <Trans
               // TODO this string can use improvement
-              defaults="Add and remove members to the <em>{{groupName}}</em> group. Adding people to the group will give them access to any collections this group has been added to."
+              defaults="Add and remove members to the <em>{{groupName}}</em> group. Members of the group will have access to any collections this group has been added to."
               values={{
                 groupName: group.name,
               }}
