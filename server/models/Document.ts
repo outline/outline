@@ -759,21 +759,28 @@ class Document extends ParanoidModel {
   };
 
   /**
-   * Returns the document as plain HTML. This is a lossy conversion and should
-   * only be used for export. This method uses the collaborative state if
-   * available, otherwise it falls back to Markdown -> HTML.
+   * Returns the document as a Prosemirror Node. This method uses the
+   * collaborative state if available, otherwise it falls back to Markdown->HTML.
    *
-   * @returns The document content as a HTML string
+   * @returns The document content as a Prosemirror Node
    */
-  toHTML = () => {
-    let node;
+  toProsemirror = () => {
     if (this.state) {
       const ydoc = new Y.Doc();
       Y.applyUpdate(ydoc, this.state);
-      node = Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
-    } else {
-      node = parser.parse(this.text);
+      return Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
     }
+    return parser.parse(this.text);
+  };
+
+  /**
+   * Returns the document as plain HTML. This is a lossy conversion and should
+   * only be used for export.
+   *
+   * @returns The document title and content as a HTML string
+   */
+  toHTML = () => {
+    const node = this.toProsemirror();
 
     const dom = new JSDOM(
       `<!DOCTYPE html><body><h1>${escape(
@@ -795,6 +802,12 @@ class Document extends ParanoidModel {
     return doc.getElementsByTagName("body")[0]?.innerHTML;
   };
 
+  /**
+   * Returns the document as Markdown. This is a lossy conversion and should
+   * only be used for export.
+   *
+   * @returns The document title and content as a Markdown string
+   */
   toMarkdown = () => {
     const text = unescape(this.text);
 
