@@ -81,19 +81,19 @@ export default class NotificationsProcessor extends BaseProcessor {
           teamId: team.id,
           documentId: document.id,
         });
-        await DocumentNotificationEmail.schedule({
-          to: recipient.user.email,
-          eventName:
-            event.name === "documents.publish" ? "published" : "updated",
-          documentId: document.id,
-          teamUrl: team.url,
-          actorName: document.updatedBy.name,
-          collectionName: collection.name,
-          unsubscribeUrl: recipient.unsubscribeUrl,
-          metadata: {
-            notificationId: notification.id,
+        await DocumentNotificationEmail.schedule(
+          {
+            to: recipient.user.email,
+            eventName:
+              event.name === "documents.publish" ? "published" : "updated",
+            documentId: document.id,
+            teamUrl: team.url,
+            actorName: document.updatedBy.name,
+            collectionName: collection.name,
+            unsubscribeUrl: recipient.unsubscribeUrl,
           },
-        });
+          { notificationId: notification.id }
+        );
       }
     }
   }

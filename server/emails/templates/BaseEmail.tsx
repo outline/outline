@@ -4,14 +4,15 @@ import Metrics from "@server/logging/metrics";
 import Notification from "@server/models/Notification";
 import { taskQueue } from "@server/queues";
 import { TaskPriority } from "@server/queues/tasks/BaseTask";
+import { NotificationMetadata } from "@server/types";
 
 interface EmailProps {
   to: string;
-  metadata?: Required<{ notificationId: string }>;
 }
 
 export default abstract class BaseEmail<T extends EmailProps, S = unknown> {
   private props: T;
+  private metadata?: NotificationMetadata;
 
   /**
    * Schedule this email type to be sent asyncronously by a worker.
@@ -19,7 +20,7 @@ export default abstract class BaseEmail<T extends EmailProps, S = unknown> {
    * @param props Properties to be used in the email template
    * @returns A promise that resolves once the email is placed on the task queue
    */
-  public static schedule<T>(props: T) {
+  public static schedule<T>(props: T, metadata?: NotificationMetadata) {
     const templateName = this.name;
 
     Metrics.increment("email.scheduled", {
@@ -33,6 +34,7 @@ export default abstract class BaseEmail<T extends EmailProps, S = unknown> {
         name: "EmailTask",
         props: {
           templateName,
+          ...metadata,
           props,
         },
       },
@@ -47,8 +49,9 @@ export default abstract class BaseEmail<T extends EmailProps, S = unknown> {
     );
   }
 
-  constructor(props: T) {
+  constructor(props: T, metadata?: NotificationMetadata) {
     this.props = props;
+    this.metadata = metadata;
   }
 
   /**
@@ -89,9 +92,7 @@ export default abstract class BaseEmail<T extends EmailProps, S = unknown> {
       throw err;
     }
 
-    const { metadata } = { ...this.props };
-
-    if (metadata?.notificationId) {
+    if (this.metadata?.notificationId) {
       try {
         await Notification.update(
           {
@@ -99,15 +100,12 @@ export default abstract class BaseEmail<T extends EmailProps, S = unknown> {
           },
           {
             where: {
-              id: metadata.notificationId,
+              id: this.metadata.notificationId,
             },
           }
         );
       } catch (err) {
-        Logger.error(
-          `Failed to update notification(id=${metadata.notificationId})`,
-          err
-        );
+        Logger.error(`Failed to update notification`, err, this.metadata);
       }
     }
   }

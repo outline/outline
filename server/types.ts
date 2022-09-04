@@ -303,3 +303,7 @@ export type Event =
   | UserEvent
   | ViewEvent
   | WebhookSubscriptionEvent;
+
+export type NotificationMetadata = {
+  notificationId?: string;
+};
