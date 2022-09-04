@@ -33,29 +33,15 @@ export default class CheckboxItem extends Node {
         },
       ],
       toDOM: (node) => {
+        const checked = node.attrs.checked.toString();
+        let input;
         if (typeof document !== "undefined") {
-          const input = document.createElement("span");
+          input = document.createElement("span");
           input.tabIndex = -1;
           input.className = "checkbox";
-          input.setAttribute("aria-checked", node.attrs.checked.toString());
+          input.setAttribute("aria-checked", checked);
           input.setAttribute("role", "checkbox");
           input.addEventListener("click", this.handleClick);
-
-          return [
-            "li",
-            {
-              "data-type": this.name,
-              class: node.attrs.checked ? "checked" : undefined,
-            },
-            [
-              "span",
-              {
-                contentEditable: "false",
-              },
-              ...(input ? [input] : []),
-            ],
-            ["div", 0],
-          ];
         }
 
         return [
@@ -65,11 +51,13 @@ export default class CheckboxItem extends Node {
             class: node.attrs.checked ? "checked" : undefined,
           },
           [
-            "input",
+            "span",
             {
-              type: "checkbox",
-              checked: node.attrs.checked ? "checked" : undefined,
+              contentEditable: "false",
             },
+            ...(input
+              ? [input]
+              : [["span", { class: "checkbox", "aria-checked": checked }]]),
           ],
           ["div", 0],
         ];

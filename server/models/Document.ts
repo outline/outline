@@ -1,12 +1,6 @@
-import {
-  updateYFragment,
-  yDocToProsemirrorJSON,
-} from "@getoutline/y-prosemirror";
 import removeMarkdown from "@tommoor/remove-markdown";
 import invariant from "invariant";
-import { JSDOM } from "jsdom";
-import { escape, compact, find, map, uniq } from "lodash";
-import { Node, DOMSerializer } from "prosemirror-model";
+import { compact, find, map, uniq } from "lodash";
 import randomstring from "randomstring";
 import type { SaveOptions } from "sequelize";
 import {
@@ -39,14 +33,12 @@ import {
 } from "sequelize-typescript";
 import MarkdownSerializer from "slate-md-serializer";
 import isUUID from "validator/lib/isUUID";
-import * as Y from "yjs";
 import { DateFilter } from "@shared/types";
 import getTasks from "@shared/utils/getTasks";
 import parseTitle from "@shared/utils/parseTitle";
 import unescape from "@shared/utils/unescape";
 import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
 import { DocumentValidation } from "@shared/validations";
-import { parser, schema } from "@server/editor";
 import slugify from "@server/utils/slugify";
 import Backlink from "./Backlink";
 import Collection from "./Collection";
@@ -735,88 +727,6 @@ class Document extends ParanoidModel {
   }
 
   // instance methods
-
-  updateFromMarkdown = (text: string, append = false) => {
-    this.text = append ? this.text + text : text;
-
-    if (this.state) {
-      const ydoc = new Y.Doc();
-      Y.applyUpdate(ydoc, this.state);
-      const type = ydoc.get("default", Y.XmlFragment) as Y.XmlFragment;
-      const doc = parser.parse(this.text);
-
-      if (!type.doc) {
-        throw new Error("type.doc not found");
-      }
-
-      // apply new document to existing ydoc
-      updateYFragment(type.doc, type, doc, new Map());
-
-      const state = Y.encodeStateAsUpdate(ydoc);
-      this.state = Buffer.from(state);
-      this.changed("state", true);
-    }
-  };
-
-  /**
-   * Returns the document as a Prosemirror Node. This method uses the
-   * collaborative state if available, otherwise it falls back to Markdown->HTML.
-   *
-   * @returns The document content as a Prosemirror Node
-   */
-  toProsemirror = () => {
-    if (this.state) {
-      const ydoc = new Y.Doc();
-      Y.applyUpdate(ydoc, this.state);
-      return Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
-    }
-    return parser.parse(this.text);
-  };
-
-  /**
-   * Returns the document as plain HTML. This is a lossy conversion and should
-   * only be used for export.
-   *
-   * @returns The document title and content as a HTML string
-   */
-  toHTML = () => {
-    const node = this.toProsemirror();
-
-    const dom = new JSDOM(
-      `<!DOCTYPE html><body><h1>${escape(
-        this.title
-      )}</h1><div id="content"></body></div>`
-    );
-    const doc = dom.window.document;
-    const target = doc.querySelector("div");
-
-    DOMSerializer.fromSchema(schema).serializeFragment(
-      node.content,
-      {
-        document: doc,
-      },
-      // @ts-expect-error incorrect type, third argument is target node
-      target
-    );
-
-    return doc.getElementsByTagName("body")[0]?.innerHTML;
-  };
-
-  /**
-   * Returns the document as Markdown. This is a lossy conversion and should
-   * only be used for export.
-   *
-   * @returns The document title and content as a Markdown string
-   */
-  toMarkdown = () => {
-    const text = unescape(this.text);
-
-    if (this.version) {
-      return `# ${this.title}\n\n${text}`;
-    }
-
-    return text;
-  };
 
   migrateVersion = () => {
     let migrated = false;

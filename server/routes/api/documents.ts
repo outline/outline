@@ -28,6 +28,7 @@ import {
   User,
   View,
 } from "@server/models";
+import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import { authorize, cannot } from "@server/policies";
 import {
   presentCollection,
@@ -457,13 +458,13 @@ router.post(
 
     if (accept?.includes("text/html")) {
       contentType = "text/html";
-      content = document.toHTML();
+      content = DocumentHelper.toHTML(document);
     } else if (accept?.includes("text/markdown")) {
       contentType = "text/markdown";
-      content = document.toMarkdown();
+      content = DocumentHelper.toMarkdown(document);
     } else {
       contentType = "application/json";
-      content = document.toMarkdown();
+      content = DocumentHelper.toMarkdown(document);
     }
 
     if (contentType !== "application/json") {
