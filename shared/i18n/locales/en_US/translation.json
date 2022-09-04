@@ -470,7 +470,7 @@
   "Add members below to give them access to the group. Need to add someone who’s not yet a member?": "Add members below to give them access to the group. Need to add someone who’s not yet a member?",
   "Invite them to {{teamName}}": "Invite them to {{teamName}}",
   "{{userName}} was removed from the group": "{{userName}} was removed from the group",
-  "Add and remove members to the <em>{{groupName}}</em> group. Adding people to the group will give them access to any collections this group has been added to.": "Add and remove members to the <em>{{groupName}}</em> group. Adding people to the group will give them access to any collections this group has been added to.",
+  "Add and remove members to the <em>{{groupName}}</em> group. Members of the group will have access to any collections this group has been added to.": "Add and remove members to the <em>{{groupName}}</em> group. Members of the group will have access to any collections this group has been added to.",
   "Listing members of the <em>{{groupName}}</em> group.": "Listing members of the <em>{{groupName}}</em> group.",
   "This group has no members.": "This group has no members.",
   "Add people to {{groupName}}": "Add people to {{groupName}}",
