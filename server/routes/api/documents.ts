@@ -1,6 +1,7 @@
 import fs from "fs-extra";
 import invariant from "invariant";
 import Router from "koa-router";
+import mime from "mime-types";
 import { Op, ScopeOptions, WhereOptions } from "sequelize";
 import { subtractDate } from "@shared/utils/date";
 import documentCreator from "@server/commands/documentCreator";
@@ -439,14 +440,48 @@ router.post(
   async (ctx) => {
     const { id, shareId } = ctx.body;
     assertPresent(id || shareId, "id or shareId is required");
+
     const { user } = ctx.state;
+    const accept = ctx.request.headers["accept"];
+
     const { document } = await documentLoader({
       id,
       shareId,
       user,
+      // We need the collaborative state to generate HTML.
+      includeState: accept === "text/html",
     });
+
+    let contentType;
+    let content;
+
+    switch (accept) {
+      case "text/html":
+        contentType = "text/html";
+        content = document.toHTML();
+        break;
+      case "text/markdown":
+        contentType = "text/markdown";
+        content = document.toMarkdown();
+        break;
+      default:
+        contentType = "application/json";
+        content = document.toMarkdown();
+        break;
+    }
+
+    if (accept && accept !== "application/json") {
+      ctx.set("Content-Type", contentType);
+      ctx.set(
+        "Content-Disposition",
+        `attachment; filename="${document.title}.${mime.extension(accept)}"`
+      );
+      ctx.body = content;
+      return;
+    }
+
     ctx.body = {
-      data: document.toMarkdown(),
+      data: content,
     };
   }
 );

@@ -1,7 +1,12 @@
-import { updateYFragment } from "@getoutline/y-prosemirror";
+import {
+  updateYFragment,
+  yDocToProsemirrorJSON,
+} from "@getoutline/y-prosemirror";
 import removeMarkdown from "@tommoor/remove-markdown";
 import invariant from "invariant";
+import { JSDOM } from "jsdom";
 import { compact, find, map, uniq } from "lodash";
+import { Node, DOMSerializer } from "prosemirror-model";
 import randomstring from "randomstring";
 import type { SaveOptions } from "sequelize";
 import {
@@ -41,7 +46,7 @@ import parseTitle from "@shared/utils/parseTitle";
 import unescape from "@shared/utils/unescape";
 import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
 import { DocumentValidation } from "@shared/validations";
-import { parser } from "@server/editor";
+import { parser, schema } from "@server/editor";
 import slugify from "@server/utils/slugify";
 import Backlink from "./Backlink";
 import Collection from "./Collection";
@@ -751,6 +756,27 @@ class Document extends ParanoidModel {
       this.state = Buffer.from(state);
       this.changed("state", true);
     }
+  };
+
+  toHTML = () => {
+    const ydoc = new Y.Doc();
+    Y.applyUpdate(ydoc, this.state);
+    const node = Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
+
+    const dom = new JSDOM('<!DOCTYPE html><div id="content"></div>');
+    const doc = dom.window.document;
+    const target = doc.querySelector("div");
+
+    DOMSerializer.fromSchema(schema).serializeFragment(
+      node.content,
+      {
+        document: doc,
+      },
+      // @ts-expect-error incorrect type, third argument is target node
+      target
+    );
+
+    return doc.getElementById("content")?.innerHTML;
   };
 
   toMarkdown = () => {

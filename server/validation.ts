@@ -25,7 +25,7 @@ export function assertArray(
 
 export const assertIn = (
   value: string,
-  options: (string | undefined | null)[],
+  options: Primitive[],
   message?: string
 ) => {
   if (!options.includes(value)) {
