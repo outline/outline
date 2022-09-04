@@ -243,7 +243,7 @@ const CheckEmailIcon = styled(EmailIcon)`
 
 const Background = styled(Fade)`
   width: 100vw;
-  height: 100vh;
+  height: 100%;
   background: ${(props) => props.theme.background};
   display: flex;
 `;
