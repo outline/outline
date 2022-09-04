@@ -766,9 +766,14 @@ class Document extends ParanoidModel {
    * @returns The document content as a HTML string
    */
   toHTML = () => {
-    const ydoc = new Y.Doc();
-    Y.applyUpdate(ydoc, this.state);
-    const node = Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
+    let node;
+    if (this.state) {
+      const ydoc = new Y.Doc();
+      Y.applyUpdate(ydoc, this.state);
+      node = Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
+    } else {
+      node = parser.parse(this.text);
+    }
 
     const dom = new JSDOM(
       `<!DOCTYPE html><body><h1>${escape(
