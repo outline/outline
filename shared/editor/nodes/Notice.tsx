@@ -52,40 +52,43 @@ export default class Notice extends Node {
         },
       ],
       toDOM: (node) => {
-        const select = document.createElement("select");
-        select.addEventListener("change", this.handleStyleChange);
+        let icon, actions;
+        if (typeof document !== "undefined") {
+          const select = document.createElement("select");
+          select.addEventListener("change", this.handleStyleChange);
 
-        this.styleOptions.forEach(([key, label]) => {
-          const option = document.createElement("option");
-          option.value = key;
-          option.innerText = label;
-          option.selected = node.attrs.style === key;
-          select.appendChild(option);
-        });
+          this.styleOptions.forEach(([key, label]) => {
+            const option = document.createElement("option");
+            option.value = key;
+            option.innerText = label;
+            option.selected = node.attrs.style === key;
+            select.appendChild(option);
+          });
 
-        const actions = document.createElement("div");
-        actions.className = "notice-actions";
-        actions.appendChild(select);
+          actions = document.createElement("div");
+          actions.className = "notice-actions";
+          actions.appendChild(select);
 
-        let component;
+          let component;
 
-        if (node.attrs.style === "tip") {
-          component = <StarredIcon color="currentColor" />;
-        } else if (node.attrs.style === "warning") {
-          component = <WarningIcon color="currentColor" />;
-        } else {
-          component = <InfoIcon color="currentColor" />;
+          if (node.attrs.style === "tip") {
+            component = <StarredIcon color="currentColor" />;
+          } else if (node.attrs.style === "warning") {
+            component = <WarningIcon color="currentColor" />;
+          } else {
+            component = <InfoIcon color="currentColor" />;
+          }
+
+          icon = document.createElement("div");
+          icon.className = "icon";
+          ReactDOM.render(component, icon);
         }
-
-        const icon = document.createElement("div");
-        icon.className = "icon";
-        ReactDOM.render(component, icon);
 
         return [
           "div",
           { class: `notice-block ${node.attrs.style}` },
-          icon,
-          ["div", { contentEditable: "false" }, actions],
+          ...(icon ? [icon] : []),
+          ["div", { contentEditable: "false" }, ...(actions ? [actions] : [])],
           ["div", { class: "content" }, 0],
         ];
       },

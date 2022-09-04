@@ -122,7 +122,7 @@ export default class CodeFence extends Node {
         },
       ],
       toDOM: (node) => {
-        // Controls are only rendered in the client-side editor
+        let actions;
         if (typeof document !== "undefined") {
           const button = document.createElement("button");
           button.innerText = this.options.dictionary.copy;
@@ -132,7 +132,7 @@ export default class CodeFence extends Node {
           const select = document.createElement("select");
           select.addEventListener("change", this.handleLanguageChange);
 
-          const actions = document.createElement("div");
+          actions = document.createElement("div");
           actions.className = "code-actions";
           actions.appendChild(select);
           actions.appendChild(button);
@@ -169,16 +169,6 @@ export default class CodeFence extends Node {
             );
             actions.prepend(showDiagramButton);
           }
-
-          return [
-            "div",
-            {
-              class: "code-block",
-              "data-language": node.attrs.language,
-            },
-            ["div", { contentEditable: "false" }, actions],
-            ["pre", ["code", { spellCheck: "false" }, 0]],
-          ];
         }
 
         return [
@@ -187,7 +177,8 @@ export default class CodeFence extends Node {
             class: "code-block",
             "data-language": node.attrs.language,
           },
-          ["pre", ["code", 0]],
+          ...(actions ? [["div", { contentEditable: "false" }, actions]] : []),
+          ["pre", ["code", { spellCheck: "false" }, 0]],
         ];
       },
     };
