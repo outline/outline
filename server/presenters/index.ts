@@ -46,6 +46,7 @@ export {
   presentShare,
   presentSlackAttachment,
   presentStar,
+  presentSubscription,
   presentTeam,
   presentUser,
   presentView,
