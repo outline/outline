@@ -3,6 +3,16 @@ import env from "@server/env";
 import { buildUser, buildTeam } from "@server/test/factories";
 import { getTestDatabase, getTestServer } from "@server/test/support";
 
+const mockTeamInSessionId = "1e023d05-951c-41c6-9012-c9fa0402e1c3";
+
+jest.mock("@server/utils/authentication", () => {
+  return {
+    getSessionsInCookie() {
+      return { [mockTeamInSessionId]: {} };
+    },
+  };
+});
+
 const db = getTestDatabase();
 const server = getTestServer();
 
@@ -14,6 +24,10 @@ describe("#auth.info", () => {
   it("should return current authentication", async () => {
     const team = await buildTeam();
     const team2 = await buildTeam();
+    const team3 = await buildTeam({
+      id: mockTeamInSessionId,
+    });
+
     const user = await buildUser({
       teamId: team.id,
     });
@@ -31,9 +45,10 @@ describe("#auth.info", () => {
     const availableTeamIds = body.data.availableTeams.map((t: any) => t.id);
 
     expect(res.status).toEqual(200);
-    expect(availableTeamIds.length).toEqual(2);
+    expect(availableTeamIds.length).toEqual(3);
     expect(availableTeamIds).toContain(team.id);
     expect(availableTeamIds).toContain(team2.id);
+    expect(availableTeamIds).toContain(team3.id);
     expect(body.data.user.name).toBe(user.name);
     expect(body.data.team.name).toBe(team.name);
     expect(body.data.team.allowedDomains).toEqual([]);
