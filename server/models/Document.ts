@@ -5,7 +5,7 @@ import {
 import removeMarkdown from "@tommoor/remove-markdown";
 import invariant from "invariant";
 import { JSDOM } from "jsdom";
-import { compact, find, map, uniq } from "lodash";
+import { escape, compact, find, map, uniq } from "lodash";
 import { Node, DOMSerializer } from "prosemirror-model";
 import randomstring from "randomstring";
 import type { SaveOptions } from "sequelize";
@@ -487,7 +487,7 @@ class Document extends ParanoidModel {
     query: string,
     options: SearchOptions = {}
   ): Promise<SearchResponse> {
-    const wildcardQuery = `${escape(query)}:*`;
+    const wildcardQuery = `${escapeQuery(query)}:*`;
     const {
       snippetMinWords = 20,
       snippetMaxWords = 30,
@@ -615,7 +615,7 @@ class Document extends ParanoidModel {
       limit = 15,
       offset = 0,
     } = options;
-    const wildcardQuery = `${escape(query)}:*`;
+    const wildcardQuery = `${escapeQuery(query)}:*`;
 
     // Ensure we're filtering by the users accessible collections. If
     // collectionId is passed as an option it is assumed that the authorization
@@ -758,12 +758,23 @@ class Document extends ParanoidModel {
     }
   };
 
+  /**
+   * Returns the document as plain HTML. This is a lossy conversion and should
+   * only be used for export. This method uses the collaborative state if
+   * available, otherwise it falls back to Markdown -> HTML.
+   *
+   * @returns The document content as a HTML string
+   */
   toHTML = () => {
     const ydoc = new Y.Doc();
     Y.applyUpdate(ydoc, this.state);
     const node = Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
 
-    const dom = new JSDOM('<!DOCTYPE html><div id="content"></div>');
+    const dom = new JSDOM(
+      `<!DOCTYPE html><body><h1>${escape(
+        this.title
+      )}</h1><div id="content"></body></div>`
+    );
     const doc = dom.window.document;
     const target = doc.querySelector("div");
 
@@ -776,7 +787,7 @@ class Document extends ParanoidModel {
       target
     );
 
-    return doc.getElementById("content")?.innerHTML;
+    return doc.getElementsByTagName("body")[0]?.innerHTML;
   };
 
   toMarkdown = () => {
@@ -1080,7 +1091,7 @@ class Document extends ParanoidModel {
   };
 }
 
-function escape(query: string): string {
+function escapeQuery(query: string): string {
   // replace "\" with escaped "\\" because sequelize.escape doesn't do it
   // https://github.com/sequelize/sequelize/issues/2950
   return Document.sequelize!.escape(query).replace(/\\/g, "\\\\");

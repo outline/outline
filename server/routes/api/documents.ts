@@ -470,11 +470,13 @@ router.post(
         break;
     }
 
-    if (accept && accept !== "application/json") {
+    if (contentType !== "application/json") {
       ctx.set("Content-Type", contentType);
       ctx.set(
         "Content-Disposition",
-        `attachment; filename="${document.title}.${mime.extension(accept)}"`
+        `attachment; filename="${document.title}.${mime.extension(
+          contentType
+        )}"`
       );
       ctx.body = content;
       return;
