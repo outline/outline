@@ -1,12 +1,7 @@
-import Tippy, { TippyProps } from "@tippy.js/react";
-import { TFunctionResult } from "i18next";
+import Tippy from "@tippy.js/react";
 import * as React from "react";
 import styled from "styled-components";
-
-export type Props = Omit<TippyProps, "content" | "theme"> & {
-  tooltip: React.ReactChild | React.ReactChild[] | TFunctionResult;
-  shortcut?: React.ReactNode;
-};
+import { Props } from ".";
 
 function Tooltip({ shortcut, tooltip, delay = 50, ...rest }: Props) {
   let content = <>{tooltip}</>;
