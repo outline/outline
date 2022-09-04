@@ -86,7 +86,6 @@ describe("#auth.config", () => {
 
   it("should return available providers for team subdomain", async () => {
     env.URL = sharedEnv.URL = "http://localoutline.com";
-    env.SUBDOMAINS_ENABLED = sharedEnv.SUBDOMAINS_ENABLED = true;
     env.DEPLOYMENT = "hosted";
 
     await buildTeam({
@@ -187,7 +186,7 @@ describe("#auth.config", () => {
 
   describe("self hosted", () => {
     it("should return all configured providers but respect email setting", async () => {
-      env.DEPLOYMENT = "";
+      env.DEPLOYMENT = undefined;
       await buildTeam({
         guestSignin: false,
         authenticationProviders: [
@@ -206,7 +205,7 @@ describe("#auth.config", () => {
     });
 
     it("should return email provider for team when guest signin enabled", async () => {
-      env.DEPLOYMENT = "";
+      env.DEPLOYMENT = undefined;
       await buildTeam({
         guestSignin: true,
         authenticationProviders: [

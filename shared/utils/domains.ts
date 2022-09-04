@@ -68,7 +68,7 @@ export function parseDomain(url: string): Domain {
 export function getCookieDomain(domain: string) {
   // always use the base URL for cookies when in hosted mode
   // and the domain is not custom
-  if (env.SUBDOMAINS_ENABLED) {
+  if (env.DEPLOYMENT === "hosted") {
     const parsed = parseDomain(domain);
 
     if (!parsed.custom) {
@@ -94,6 +94,7 @@ export const RESERVED_SUBDOMAINS = [
   "cache",
   "cdn",
   "code",
+  "collaboration",
   "community",
   "dashboard",
   "developer",

@@ -1,5 +1,4 @@
 import { sequelize } from "@server/database/sequelize";
-import env from "@server/env";
 import {
   DomainNotAllowedError,
   InvalidAuthenticationError,
@@ -9,6 +8,7 @@ import Logger from "@server/logging/Logger";
 import { APM } from "@server/logging/tracing";
 import { Team, AuthenticationProvider, Event } from "@server/models";
 import { generateAvatarUrl } from "@server/utils/avatars";
+import isCloudHosted from "@server/utils/isCloudHosted";
 
 type TeamProvisionerResult = {
   team: Team;
@@ -79,7 +79,7 @@ async function teamProvisioner({
   // This team has never been seen before, if self hosted the logic is different
   // to the multi-tenant version, we want to restrict to a single team that MAY
   // have multiple authentication providers
-  if (env.DEPLOYMENT !== "hosted") {
+  if (!isCloudHosted) {
     const team = await Team.findOne();
 
     // If the self-hosted installation has a single team and the domain for the

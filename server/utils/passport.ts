@@ -7,9 +7,9 @@ import {
   StateStoreVerifyCallback,
 } from "passport-oauth2";
 import { getCookieDomain, parseDomain } from "@shared/utils/domains";
-import env from "@server/env";
 import { Team } from "@server/models";
 import { OAuthStateMismatchError } from "../errors";
+import isCloudHosted from "./isCloudHosted";
 
 export class StateStore {
   key = "state";
@@ -94,11 +94,11 @@ export async function getTeamFromContext(ctx: Context) {
   const domain = parseDomain(host);
 
   let team;
-  if (env.DEPLOYMENT !== "hosted") {
+  if (!isCloudHosted) {
     team = await Team.findOne();
   } else if (domain.custom) {
     team = await Team.findOne({ where: { domain: domain.host } });
-  } else if (env.SUBDOMAINS_ENABLED && domain.teamSubdomain) {
+  } else if (domain.teamSubdomain) {
     team = await Team.findOne({
       where: { subdomain: domain.teamSubdomain },
     });

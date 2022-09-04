@@ -5,7 +5,6 @@ import { RateLimiterStrategy } from "@server/RateLimiter";
 import InviteAcceptedEmail from "@server/emails/templates/InviteAcceptedEmail";
 import SigninEmail from "@server/emails/templates/SigninEmail";
 import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
-import env from "@server/env";
 import { AuthorizationError } from "@server/errors";
 import errorHandling from "@server/middlewares/errorHandling";
 import methodOverride from "@server/middlewares/methodOverride";
@@ -47,7 +46,7 @@ router.post(
             domain: ctx.request.hostname,
           },
         });
-      } else if (env.SUBDOMAINS_ENABLED && domain.teamSubdomain) {
+      } else if (domain.teamSubdomain) {
         team = await Team.scope("withAuthenticationProviders").findOne({
           where: {
             subdomain: domain.teamSubdomain,

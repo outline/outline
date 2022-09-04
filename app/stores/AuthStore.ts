@@ -10,6 +10,7 @@ import User from "~/models/User";
 import env from "~/env";
 import { client } from "~/utils/ApiClient";
 import Storage from "~/utils/Storage";
+import isCloudHosted from "~/utils/isCloudHosted";
 
 const AUTH_STORE = "AUTH_STORE";
 const NO_REDIRECT_PATHS = ["/", "/create", "/home"];
@@ -172,7 +173,7 @@ export default class AuthStore {
             return;
           }
         } else if (
-          env.SUBDOMAINS_ENABLED &&
+          isCloudHosted &&
           parseDomain(hostname).teamSubdomain !== (team.subdomain ?? "")
         ) {
           window.location.href = `${team.url}${pathname}`;

@@ -3,9 +3,9 @@ import { addMonths } from "date-fns";
 import { Context } from "koa";
 import { pick } from "lodash";
 import { getCookieDomain } from "@shared/utils/domains";
-import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { User, Event, Team, Collection, View } from "@server/models";
+import isCloudHosted from "./isCloudHosted";
 
 export async function signIn(
   ctx: Context,
@@ -66,7 +66,7 @@ export async function signIn(
 
   // set a transfer cookie for the access token itself and redirect
   // to the teams subdomain if subdomains are enabled
-  if (env.SUBDOMAINS_ENABLED && team.subdomain) {
+  if (isCloudHosted && team.subdomain) {
     // get any existing sessions (teams signed in) and add this team
     const existing = JSON.parse(
       decodeURIComponent(ctx.cookies.get("sessions") || "") || "{}"

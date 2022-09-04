@@ -230,15 +230,6 @@ export class Environment {
   public FORCE_HTTPS = this.toBoolean(process.env.FORCE_HTTPS ?? "true");
 
   /**
-   * Whether to support multiple subdomains in a single instance.
-   */
-  @IsBoolean()
-  @Deprecated("The community edition of Outline does not support subdomains")
-  public SUBDOMAINS_ENABLED = this.toBoolean(
-    process.env.SUBDOMAINS_ENABLED ?? "false"
-  );
-
-  /**
    * Should the installation send anonymized statistics to the maintainers.
    * Defaults to true.
    */

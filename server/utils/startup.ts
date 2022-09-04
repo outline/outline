@@ -4,6 +4,7 @@ import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import AuthenticationProvider from "@server/models/AuthenticationProvider";
 import Team from "@server/models/Team";
+import isCloudHosted from "./isCloudHosted";
 
 export function checkPendingMigrations() {
   try {
@@ -46,7 +47,7 @@ export function checkPendingMigrations() {
 }
 
 export async function checkMigrations() {
-  if (env.DEPLOYMENT === "hosted") {
+  if (isCloudHosted) {
     return;
   }
 

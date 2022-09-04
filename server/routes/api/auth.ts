@@ -2,11 +2,11 @@ import Router from "koa-router";
 import { find } from "lodash";
 import { parseDomain } from "@shared/utils/domains";
 import { sequelize } from "@server/database/sequelize";
-import env from "@server/env";
 import auth from "@server/middlewares/authentication";
 import { Event, Team } from "@server/models";
 import { presentUser, presentTeam, presentPolicies } from "@server/presenters";
 import ValidateSSOAccessTask from "@server/queues/tasks/ValidateSSOAccessTask";
+import isCloudHosted from "@server/utils/isCloudHosted";
 import providers from "../auth/providers";
 
 const router = new Router();
@@ -23,7 +23,7 @@ function filterProviders(team?: Team) {
 
       return (
         !team ||
-        env.DEPLOYMENT !== "hosted" ||
+        !isCloudHosted ||
         find(team.authenticationProviders, {
           name: provider.id,
           enabled: true,
@@ -41,7 +41,7 @@ router.post("auth.config", async (ctx) => {
   // If self hosted AND there is only one team then that team becomes the
   // brand for the knowledge base and it's guest signin option is used for the
   // root login page.
-  if (env.DEPLOYMENT !== "hosted") {
+  if (!isCloudHosted) {
     const team = await Team.scope("withAuthenticationProviders").findOne();
 
     if (team) {
@@ -78,7 +78,7 @@ router.post("auth.config", async (ctx) => {
 
   // If subdomain signin page then we return minimal team details to allow
   // for a custom screen showing only relevant signin options for that team.
-  else if (env.SUBDOMAINS_ENABLED && domain.teamSubdomain) {
+  else if (domain.teamSubdomain) {
     const team = await Team.scope("withAuthenticationProviders").findOne({
       where: {
         subdomain: domain.teamSubdomain,

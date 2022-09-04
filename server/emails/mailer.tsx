@@ -3,9 +3,9 @@ import Oy from "oy-vey";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { APM } from "@server/logging/tracing";
+import isCloudHosted from "@server/utils/isCloudHosted";
 import { baseStyles } from "./templates/components/EmailLayout";
 
-const isCloudHosted = env.DEPLOYMENT === "hosted";
 const useTestEmailService =
   env.ENVIRONMENT === "development" && !env.SMTP_USERNAME;
 

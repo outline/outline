@@ -40,7 +40,6 @@ describe("email", () => {
 
   it("should respond with redirect location when user is SSO enabled on another subdomain", async () => {
     env.URL = sharedEnv.URL = "http://localoutline.com";
-    env.SUBDOMAINS_ENABLED = sharedEnv.SUBDOMAINS_ENABLED = true;
     const user = await buildUser();
     const spy = jest.spyOn(WelcomeEmail, "schedule");
     await buildTeam({
@@ -93,7 +92,6 @@ describe("email", () => {
     it("should default to current subdomain with SSO", async () => {
       const spy = jest.spyOn(SigninEmail, "schedule");
       env.URL = sharedEnv.URL = "http://localoutline.com";
-      env.SUBDOMAINS_ENABLED = sharedEnv.SUBDOMAINS_ENABLED = true;
       const email = "sso-user@example.org";
       const team = await buildTeam({
         subdomain: "example",
@@ -123,7 +121,8 @@ describe("email", () => {
     it("should default to current subdomain with guest email", async () => {
       const spy = jest.spyOn(SigninEmail, "schedule");
       env.URL = sharedEnv.URL = "http://localoutline.com";
-      env.SUBDOMAINS_ENABLED = sharedEnv.SUBDOMAINS_ENABLED = true;
+      env.DEPLOYMENT = sharedEnv.DEPLOYMENT = "hosted";
+
       const email = "guest-user@example.org";
       const team = await buildTeam({
         subdomain: "example",

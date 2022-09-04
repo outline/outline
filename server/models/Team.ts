@@ -144,7 +144,7 @@ class Team extends ParanoidModel {
       return `https://${this.domain}`;
     }
 
-    if (!this.subdomain || !env.SUBDOMAINS_ENABLED) {
+    if (!this.subdomain) {
       return env.URL;
     }
 

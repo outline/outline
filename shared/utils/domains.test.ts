@@ -169,7 +169,7 @@ describe("#slugifyDomain", () => {
 describe("#getCookieDomain", () => {
   beforeEach(() => {
     env.URL = "https://example.com";
-    env.SUBDOMAINS_ENABLED = true;
+    env.DEPLOYMENT = "hosted";
   });
 
   it("returns the normalized app host when on the host domain", () => {
@@ -187,7 +187,7 @@ describe("#getCookieDomain", () => {
   });
 
   it("always returns the input when subdomains are not enabled", () => {
-    env.SUBDOMAINS_ENABLED = false;
+    env.DEPLOYMENT = undefined;
     expect(getCookieDomain("example.com")).toBe("example.com");
     expect(getCookieDomain("www.blogspot.com")).toBe("www.blogspot.com");
     expect(getCookieDomain("anything else")).toBe("anything else");

@@ -1,7 +1,7 @@
-import env from "@server/env";
+import isCloudHosted from "./isCloudHosted";
 
 export const robotsResponse = () => {
-  if (env.DEPLOYMENT === "hosted") {
+  if (isCloudHosted) {
     return `
 User-agent: *
 Allow: /

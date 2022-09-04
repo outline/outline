@@ -15,7 +15,6 @@ export type PublicEnv = {
   SLACK_CLIENT_ID: string | undefined;
   SLACK_APP_ID: string | undefined;
   MAXIMUM_IMPORT_SIZE: number;
-  SUBDOMAINS_ENABLED: boolean;
   EMAIL_ENABLED: boolean;
   DEFAULT_LANGUAGE: string;
   GOOGLE_ANALYTICS_ID: string | undefined;
