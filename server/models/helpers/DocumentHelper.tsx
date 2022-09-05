@@ -122,7 +122,11 @@ export default class DocumentHelper {
    * @param after The after document
    * @returns The diff as a HTML string
    */
-  static diff(before: Document | Revision, after: Revision) {
+  static diff(before: Document | Revision | null, after: Revision) {
+    if (!before) {
+      return DocumentHelper.toHTML(after);
+    }
+
     const beforeHTML = DocumentHelper.toHTML(before);
     const afterHTML = DocumentHelper.toHTML(after);
     const beforeDOM = new JSDOM(beforeHTML);

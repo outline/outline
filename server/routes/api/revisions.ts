@@ -1,4 +1,6 @@
 import Router from "koa-router";
+import { Op } from "sequelize";
+import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { Document, Revision } from "@server/models";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
@@ -28,8 +30,9 @@ router.post("revisions.info", auth(), async (ctx) => {
 });
 
 router.post("revisions.diff", auth(), async (ctx) => {
-  const { id } = ctx.body;
+  const { id, compareToId } = ctx.body;
   assertUuid(id, "id is required");
+
   const { user } = ctx.state;
   const revision = await Revision.findByPk(id, {
     rejectOnEmpty: true,
@@ -39,11 +42,29 @@ router.post("revisions.diff", auth(), async (ctx) => {
   });
   authorize(user, "read", document);
 
-  const before = await revision.previous();
+  let before;
+  if (compareToId) {
+    assertUuid(compareToId, "compareToId must be a UUID");
+    before = await Revision.findOne({
+      where: {
+        id: compareToId,
+        documentId: revision.documentId,
+        createdAt: {
+          [Op.lt]: revision.createdAt,
+        },
+      },
+    });
+    if (!before) {
+      throw ValidationError(
+        "Revision could not be found, compareToId must be a revision of the same document before the provided revision"
+      );
+    }
+  } else {
+    before = await revision.previous();
+  }
+
   const accept = ctx.request.headers["accept"];
-  const content = before
-    ? DocumentHelper.diff(before, revision)
-    : DocumentHelper.toHTML(revision);
+  const content = DocumentHelper.diff(before, revision);
 
   if (accept?.includes("text/html")) {
     ctx.set("Content-Type", "text/html");
