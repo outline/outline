@@ -55,10 +55,10 @@ export default function Routes() {
         <Route exact path="/create" component={Login} />
         <Route exact path="/logout" component={Logout} />
 
-        <Route exact path="/share/:shareId" component={SharedDocument} />
+        <Route exact path="/s/:shareId" component={SharedDocument} />
         <Route
           exact
-          path={`/share/:shareId/doc/${slug}`}
+          path={`/s/:shareId/doc/${slug}`}
           component={SharedDocument}
         />
 

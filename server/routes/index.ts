@@ -25,6 +25,14 @@ koa.use(
 
 koa.use<BaseContext, UserAgentContext>(userAgent);
 
+router.use(
+  ["/share/:shareId", "/share/:shareId/doc/:documentSlug", "/share/:shareId/*"],
+  (ctx) => {
+    ctx.redirect(ctx.path.replace(/^\/share/, "/s"));
+    ctx.status = 301;
+  }
+);
+
 if (isProduction) {
   router.get("/static/*", async (ctx) => {
     try {
@@ -84,9 +92,9 @@ router.get("/opensearch.xml", (ctx) => {
   ctx.body = opensearchResponse(ctx.request.URL.origin);
 });
 
-router.get("/share/:shareId", renderShare);
-router.get("/share/:shareId/doc/:documentSlug", renderShare);
-router.get("/share/:shareId/*", renderShare);
+router.get("/s/:shareId", renderShare);
+router.get("/s/:shareId/doc/:documentSlug", renderShare);
+router.get("/s/:shareId/*", renderShare);
 
 // catch all for application
 router.get("*", renderApp);

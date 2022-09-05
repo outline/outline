@@ -92,7 +92,7 @@ class Share extends IdModel {
   }
 
   get canonicalUrl() {
-    return `${this.team.url}/share/${this.id}`;
+    return `${this.team.url}/s/${this.id}`;
   }
 
   // associations
