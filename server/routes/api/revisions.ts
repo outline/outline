@@ -1,6 +1,7 @@
 import Router from "koa-router";
 import auth from "@server/middlewares/authentication";
 import { Document, Revision } from "@server/models";
+import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import { authorize } from "@server/policies";
 import { presentRevision } from "@server/presenters";
 import { assertPresent, assertSort, assertUuid } from "@server/validation";
@@ -22,8 +23,40 @@ router.post("revisions.info", auth(), async (ctx) => {
   authorize(user, "read", document);
 
   ctx.body = {
-    pagination: ctx.state.pagination,
     data: await presentRevision(revision),
+  };
+});
+
+router.post("revisions.diff", auth(), async (ctx) => {
+  const { id } = ctx.body;
+  assertUuid(id, "id is required");
+  const { user } = ctx.state;
+  const revision = await Revision.findByPk(id, {
+    rejectOnEmpty: true,
+  });
+  const document = await Document.findByPk(revision.documentId, {
+    userId: user.id,
+  });
+  authorize(user, "read", document);
+
+  const before = await revision.previous();
+  const accept = ctx.request.headers["accept"];
+  const content = before
+    ? DocumentHelper.diff(before, revision)
+    : DocumentHelper.toHTML(revision);
+
+  if (accept?.includes("text/html")) {
+    ctx.set("Content-Type", "text/html");
+    ctx.set(
+      "Content-Disposition",
+      `attachment; filename="${document.title}.html"`
+    );
+    ctx.body = content;
+    return;
+  }
+
+  ctx.body = {
+    data: content,
   };
 });
 

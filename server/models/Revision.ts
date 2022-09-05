@@ -1,4 +1,4 @@
-import { FindOptions } from "sequelize";
+import { FindOptions, Op } from "sequelize";
 import {
   DataType,
   BelongsTo,
@@ -95,6 +95,20 @@ class Revision extends IdModel {
       },
       options
     );
+  }
+
+  // instance methods
+
+  previous(): Promise<Revision | null> {
+    return (this.constructor as typeof Revision).findOne({
+      where: {
+        documentId: this.documentId,
+        createdAt: {
+          [Op.lt]: this.createdAt,
+        },
+      },
+      order: [["createdAt", "DESC"]],
+    });
   }
 
   migrateVersion = function () {

@@ -1271,6 +1271,16 @@ table {
   display: block;
 }
 
+ins {
+  background-color: #128a2929;
+  text-decoration: none;
+}
+del {
+  background-color: ${props.theme.slateLight};
+  color: ${props.theme.slate};
+  text-decoration: strikethrough;
+}
+
 @media print {
   .placeholder:before,
   .block-menu-trigger,

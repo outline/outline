@@ -3,6 +3,7 @@ import {
   yDocToProsemirrorJSON,
 } from "@getoutline/y-prosemirror";
 import { JSDOM } from "jsdom";
+import diff from "node-htmldiff";
 import { Node, DOMSerializer } from "prosemirror-model";
 import * as React from "react";
 import { renderToString } from "react-dom/server";
@@ -112,6 +113,34 @@ export default class DocumentHelper {
     );
 
     return dom.serialize();
+  }
+
+  /**
+   * Generates a HTML diff between after documents or revisions.
+   *
+   * @param before The before document
+   * @param after The after document
+   * @returns The diff as a HTML string
+   */
+  static diff(before: Document | Revision, after: Revision) {
+    const beforeHTML = DocumentHelper.toHTML(before);
+    const afterHTML = DocumentHelper.toHTML(after);
+    const beforeDOM = new JSDOM(beforeHTML);
+    const afterDOM = new JSDOM(afterHTML);
+
+    // Extract the content from the article tag and diff the HTML, we don't
+    // care about the surrounding layout and stylesheets.
+    const diffedContentAsHTML = diff(
+      beforeDOM.window.document.getElementsByTagName("article")[0].innerHTML,
+      afterDOM.window.document.getElementsByTagName("article")[0].innerHTML
+    );
+
+    // Inject the diffed content into the original document with styling and
+    // serialize back to a string.
+    beforeDOM.window.document.getElementsByTagName(
+      "article"
+    )[0].innerHTML = diffedContentAsHTML;
+    return beforeDOM.serialize();
   }
 
   /**
