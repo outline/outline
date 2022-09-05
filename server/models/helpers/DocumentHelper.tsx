@@ -62,7 +62,7 @@ export default class DocumentHelper {
     const sheet = new ServerStyleSheet();
     let html, styleTags;
 
-    const Centered = styled.div`
+    const Centered = styled.article`
       max-width: 46em;
       margin: 0 auto;
       padding: 0 1em;
