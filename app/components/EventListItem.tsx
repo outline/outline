@@ -20,7 +20,6 @@ import CompositeItem, {
 } from "~/components/List/CompositeItem";
 import Item, { Actions } from "~/components/List/Item";
 import Time from "~/components/Time";
-import usePolicy from "~/hooks/usePolicy";
 import RevisionMenu from "~/menus/RevisionMenu";
 import { documentHistoryUrl } from "~/utils/routeHelpers";
 
@@ -33,7 +32,6 @@ type Props = {
 const EventListItem = ({ event, latest, document, ...rest }: Props) => {
   const { t } = useTranslation();
   const location = useLocation();
-  const can = usePolicy(document);
   const opts = {
     userName: event.actor.name,
   };
@@ -49,19 +47,16 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
 
   switch (event.name) {
     case "revisions.create":
-    case "documents.latest_version": {
-      if (latest) {
-        icon = <CheckboxIcon color="currentColor" size={16} checked />;
-        meta = t("Latest version");
-        to = documentHistoryUrl(document);
-        break;
-      } else {
-        icon = <EditIcon color="currentColor" size={16} />;
-        meta = t("{{userName}} edited", opts);
-        to = documentHistoryUrl(document, event.modelId || "");
-        break;
-      }
-    }
+      icon = <EditIcon color="currentColor" size={16} />;
+      meta = t("{{userName}} edited", opts);
+      to = documentHistoryUrl(document, event.modelId || "");
+      break;
+
+    case "documents.latest_version":
+      icon = <CheckboxIcon color="currentColor" size={16} checked />;
+      meta = t("Latest version");
+      to = documentHistoryUrl(document);
+      break;
 
     case "documents.archive":
       icon = <ArchiveIcon color="currentColor" size={16} />;
@@ -136,7 +131,7 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
         </Subtitle>
       }
       actions={
-        isRevision && isActive && event.modelId && can.update ? (
+        isRevision && isActive && event.modelId ? (
           <RevisionMenu document={document} revisionId={event.modelId} />
         ) : undefined
       }

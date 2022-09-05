@@ -550,6 +550,7 @@ strong {
 
 p {
   margin: 0;
+  min-height: 1.6em;
 
   span:first-child + br:last-child {
     display: none;

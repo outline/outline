@@ -24,8 +24,13 @@ router.post("revisions.info", auth(), async (ctx) => {
   });
   authorize(user, "read", document);
 
+  const before = await revision.previous();
+
   ctx.body = {
-    data: await presentRevision(revision),
+    data: await presentRevision(
+      revision,
+      DocumentHelper.diff(before, revision, { includeTitle: false })
+    ),
   };
 });
 

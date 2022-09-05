@@ -18,6 +18,11 @@ import Logger from "@server/logging/Logger";
 import type Document from "@server/models/Document";
 import type Revision from "@server/models/Revision";
 
+type HTMLOptions = {
+  /** Whether to include the document title in the generated HTML (defaults to true) */
+  includeTitle?: boolean;
+};
+
 export default class DocumentHelper {
   /**
    * Returns the document as a Prosemirror Node. This method uses the
@@ -57,9 +62,10 @@ export default class DocumentHelper {
    * only be used for export.
    *
    * @param document The document or revision to convert
+   * @param options Options for the HTML output
    * @returns The document title and content as a HTML string
    */
-  static toHTML(document: Document | Revision) {
+  static toHTML(document: Document | Revision, options?: HTMLOptions) {
     const node = DocumentHelper.toProsemirror(document);
     const sheet = new ServerStyleSheet();
     let html, styleTags;
@@ -70,6 +76,13 @@ export default class DocumentHelper {
       padding: 0 1em;
     `;
 
+    // TODO: Detect and support RTL content here
+    const children = (
+      <EditorContainer rtl={false}>
+        <div id="content" className="ProseMirror"></div>
+      </EditorContainer>
+    );
+
     // First render the containing document which has all the editor styles,
     // global styles, layout and title.
     try {
@@ -78,12 +91,14 @@ export default class DocumentHelper {
           <ThemeProvider theme={light}>
             <>
               <GlobalStyles />
-              <Centered>
-                <h1>{document.title}</h1>
-                <EditorContainer rtl={false}>
-                  <div id="content" className="ProseMirror"></div>
-                </EditorContainer>
-              </Centered>
+              {options?.includeTitle === false ? (
+                <article>{children}</article>
+              ) : (
+                <Centered>
+                  <h1>{document.title}</h1>
+                  {children}
+                </Centered>
+              )}
             </>
           </ThemeProvider>
         )
@@ -120,15 +135,20 @@ export default class DocumentHelper {
    *
    * @param before The before document
    * @param after The after document
+   * @param options Options passed to HTML generation
    * @returns The diff as a HTML string
    */
-  static diff(before: Document | Revision | null, after: Revision) {
+  static diff(
+    before: Document | Revision | null,
+    after: Revision,
+    options?: HTMLOptions
+  ) {
     if (!before) {
-      return DocumentHelper.toHTML(after);
+      return DocumentHelper.toHTML(after, options);
     }
 
-    const beforeHTML = DocumentHelper.toHTML(before);
-    const afterHTML = DocumentHelper.toHTML(after);
+    const beforeHTML = DocumentHelper.toHTML(before, options);
+    const afterHTML = DocumentHelper.toHTML(after, options);
     const beforeDOM = new JSDOM(beforeHTML);
     const afterDOM = new JSDOM(afterHTML);
 

@@ -1,24 +1,18 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useRouteMatch } from "react-router-dom";
 import fullPackage from "@shared/editor/packages/full";
 import Document from "~/models/Document";
 import { RefHandle } from "~/components/ContentEditable";
 import DocumentMetaWithViews from "~/components/DocumentMetaWithViews";
 import Editor, { Props as EditorProps } from "~/components/Editor";
 import Flex from "~/components/Flex";
-import {
-  documentHistoryUrl,
-  documentUrl,
-  matchDocumentHistory,
-} from "~/utils/routeHelpers";
+import { documentHistoryUrl } from "~/utils/routeHelpers";
 import MultiplayerEditor from "./AsyncMultiplayerEditor";
 import EditableTitle from "./EditableTitle";
 
 type Props = Omit<EditorProps, "extensions"> & {
   onChangeTitle: (text: string) => void;
-  title: string;
   id: string;
   document: Document;
   isDraft: boolean;
@@ -38,10 +32,8 @@ type Props = Omit<EditorProps, "extensions"> & {
 function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   const titleRef = React.useRef<RefHandle>(null);
   const { t } = useTranslation();
-  const match = useRouteMatch();
   const {
     document,
-    title,
     onChangeTitle,
     isDraft,
     shareId,
@@ -82,7 +74,6 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     <Flex auto column>
       <EditableTitle
         ref={titleRef}
-        value={title}
         readOnly={readOnly}
         document={document}
         onGoToNextInput={handleGoToNextInput}
@@ -95,11 +86,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         <DocumentMetaWithViews
           isDraft={isDraft}
           document={document}
-          to={
-            match.path === matchDocumentHistory
-              ? documentUrl(document)
-              : documentHistoryUrl(document)
-          }
+          to={documentHistoryUrl(document)}
           rtl={
             titleRef.current?.getComputedDirection() === "rtl" ? true : false
           }
@@ -107,7 +94,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
       )}
       <EditorComponent
         ref={ref}
-        autoFocus={!!title && !props.defaultValue}
+        autoFocus={!!document.title && !props.defaultValue}
         placeholder={t("Type '/' to insert, or start writing…")}
         scrollTo={window.location.hash}
         readOnly={readOnly}

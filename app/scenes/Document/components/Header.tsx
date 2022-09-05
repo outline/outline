@@ -6,6 +6,7 @@ import {
   MoonIcon,
   MoreIcon,
   SunIcon,
+  RestoreIcon,
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -98,6 +99,10 @@ function DocumentHeader({
       publish: true,
     });
   }, [onSave]);
+
+  const handleRestore = React.useCallback(() => {
+    //
+  }, []);
 
   const { isDeleted, isTemplate } = document;
   const can = usePolicy(document?.id);
@@ -226,11 +231,14 @@ function DocumentHeader({
                 />
               </Action>
             )}
-            {!isEditing && !isDeleted && (!isMobile || !isTemplate) && (
-              <Action>
-                <ShareButton document={document} />
-              </Action>
-            )}
+            {!isEditing &&
+              !isDeleted &&
+              !isRevision &&
+              (!isMobile || !isTemplate) && (
+                <Action>
+                  <ShareButton document={document} />
+                </Action>
+              )}
             {isEditing && (
               <>
                 <Action>
@@ -251,8 +259,11 @@ function DocumentHeader({
                 </Action>
               </>
             )}
-            {canEdit && !team?.collaborativeEditing && editAction}
-            {canEdit && can.createChildDocument && !isMobile && (
+            {canEdit &&
+              !team?.collaborativeEditing &&
+              !isRevision &&
+              editAction}
+            {canEdit && can.createChildDocument && !isRevision && !isMobile && (
               <Action>
                 <NewChildDocumentMenu
                   document={document}
@@ -283,6 +294,23 @@ function DocumentHeader({
                 >
                   {t("New from template")}
                 </Button>
+              </Action>
+            )}
+            {isRevision && (
+              <Action>
+                <Tooltip
+                  tooltip={t("Restore version")}
+                  delay={500}
+                  placement="bottom"
+                >
+                  <Button
+                    icon={<RestoreIcon />}
+                    onClick={handleRestore}
+                    neutral
+                  >
+                    {t("Restore")}
+                  </Button>
+                </Tooltip>
               </Action>
             )}
             {can.update && isDraft && !isRevision && (
