@@ -7,6 +7,7 @@ import { FileOperation, Team } from "@server/models";
 import { FileOperationType } from "@server/models/FileOperation";
 import { authorize } from "@server/policies";
 import { presentFileOperation } from "@server/presenters";
+import { ContextWithState } from "@server/types";
 import { getSignedUrl } from "@server/utils/s3";
 import { assertIn, assertSort, assertUuid } from "@server/validation";
 import pagination from "./middlewares/pagination";
@@ -68,8 +69,8 @@ router.post(
   }
 );
 
-router.post("fileOperations.redirect", auth({ admin: true }), async (ctx) => {
-  const { id } = ctx.body;
+const handleFileOperationsRedirect = async (ctx: ContextWithState) => {
+  const { id } = ctx.body as { id?: string };
   assertUuid(id, "id is required");
 
   const { user } = ctx.state;
@@ -84,7 +85,18 @@ router.post("fileOperations.redirect", auth({ admin: true }), async (ctx) => {
 
   const accessUrl = await getSignedUrl(fileOperation.key);
   ctx.redirect(accessUrl);
-});
+};
+
+router.get(
+  "fileOperations.redirect",
+  auth({ admin: true }),
+  handleFileOperationsRedirect
+);
+router.post(
+  "fileOperations.redirect",
+  auth({ admin: true }),
+  handleFileOperationsRedirect
+);
 
 router.post("fileOperations.delete", auth({ admin: true }), async (ctx) => {
   const { id } = ctx.body;
