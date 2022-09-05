@@ -411,15 +411,15 @@ class User extends ParanoidModel {
    * @returns A promise resolving to a list of teams
    */
   availableTeams = async () => {
-    const res = await (this.constructor as typeof User)
-      .scope("withTeam")
-      .findAll({
-        where: {
-          email: this.email,
+    return Team.findAll({
+      include: [
+        {
+          model: this.constructor as typeof User,
+          required: true,
+          where: { email: this.email },
         },
-      });
-
-    return res.map((user) => user.team);
+      ],
+    });
   };
 
   demote = async (to: UserRole, options?: SaveOptions<User>) => {

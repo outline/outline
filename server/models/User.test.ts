@@ -26,12 +26,26 @@ describe("user model", () => {
       expect(await UserAuthentication.count()).toBe(0);
     });
   });
+
   describe("getJwtToken", () => {
     it("should set JWT secret", async () => {
       const user = await buildUser();
       expect(user.getJwtToken()).toBeTruthy();
     });
   });
+
+  describe("availableTeams", () => {
+    it("should return teams where another user with the same email exists", async () => {
+      const user = await buildUser();
+      const anotherUser = await buildUser({ email: user.email });
+
+      const response = await user.availableTeams();
+      expect(response.length).toEqual(2);
+      expect(response[0].id).toEqual(user.teamId);
+      expect(response[1].id).toEqual(anotherUser.teamId);
+    });
+  });
+
   describe("collectionIds", () => {
     it("should return read_write collections", async () => {
       const team = await buildTeam();
