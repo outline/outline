@@ -10,7 +10,7 @@ const useMenuHeight = (
   const isMobile = useMobile();
   const { height: windowHeight } = useWindowSize();
 
-  React.useLayoutEffect(() => {
+  React.useEffect(() => {
     const padding = 8;
 
     if (visible && !isMobile) {
