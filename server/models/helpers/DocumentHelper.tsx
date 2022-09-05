@@ -15,17 +15,18 @@ import unescape from "@shared/utils/unescape";
 import { parser, schema } from "@server/editor";
 import Logger from "@server/logging/Logger";
 import type Document from "@server/models/Document";
+import type Revision from "@server/models/Revision";
 
 export default class DocumentHelper {
   /**
    * Returns the document as a Prosemirror Node. This method uses the
    * collaborative state if available, otherwise it falls back to Markdown->HTML.
    *
-   * @param document The document to convert
+   * @param document The document or revision to convert
    * @returns The document content as a Prosemirror Node
    */
-  static toProsemirror(document: Document) {
-    if (document.state) {
+  static toProsemirror(document: Document | Revision) {
+    if ("state" in document && document.state) {
       const ydoc = new Y.Doc();
       Y.applyUpdate(ydoc, document.state);
       return Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
@@ -37,10 +38,10 @@ export default class DocumentHelper {
    * Returns the document as Markdown. This is a lossy conversion and should
    * only be used for export.
    *
-   * @param document The document to convert
+   * @param document The document or revision to convert
    * @returns The document title and content as a Markdown string
    */
-  static toMarkdown(document: Document) {
+  static toMarkdown(document: Document | Revision) {
     const text = unescape(document.text);
 
     if (document.version) {
@@ -54,10 +55,10 @@ export default class DocumentHelper {
    * Returns the document as plain HTML. This is a lossy conversion and should
    * only be used for export.
    *
-   * @param document The document to convert
+   * @param document The document or revision to convert
    * @returns The document title and content as a HTML string
    */
-  static toHTML(document: Document) {
+  static toHTML(document: Document | Revision) {
     const node = DocumentHelper.toProsemirror(document);
     const sheet = new ServerStyleSheet();
     let html, styleTags;
