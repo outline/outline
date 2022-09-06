@@ -12,10 +12,11 @@ import * as Y from "yjs";
 import EditorContainer from "@shared/editor/components/Styles";
 import GlobalStyles from "@shared/styles/globals";
 import light from "@shared/styles/theme";
+import { isRTL } from "@shared/utils/rtl";
 import unescape from "@shared/utils/unescape";
 import { parser, schema } from "@server/editor";
 import Logger from "@server/logging/Logger";
-import type Document from "@server/models/Document";
+import Document from "@server/models/Document";
 import type Revision from "@server/models/Revision";
 
 type HTMLOptions = {
@@ -78,11 +79,13 @@ export default class DocumentHelper {
       padding: 0 1em;
     `;
 
-    // TODO: Detect and support RTL content here
+    const rtl = isRTL(document.title);
     const children = (
       <>
-        {options?.includeTitle !== false && <h1>{document.title}</h1>}
-        <EditorContainer rtl={false}>
+        {options?.includeTitle !== false && (
+          <h1 dir={rtl ? "rtl" : "ltr"}>{document.title}</h1>
+        )}
+        <EditorContainer dir={rtl ? "rtl" : "ltr"} rtl={rtl}>
           <div id="content" className="ProseMirror"></div>
         </EditorContainer>
       </>
