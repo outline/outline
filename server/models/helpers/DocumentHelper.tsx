@@ -119,7 +119,9 @@ export default class DocumentHelper {
     // Render the Prosemirror document using virtual DOM and serialize the
     // result to a string
     const dom = new JSDOM(
-      `<!DOCTYPE html>${options?.includeStyles ? styleTags : ""}${html}`
+      `<!DOCTYPE html>${
+        options?.includeStyles === false ? "" : styleTags
+      }${html}`
     );
     const doc = dom.window.document;
     const target = doc.getElementById("content");
