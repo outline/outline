@@ -37,7 +37,10 @@ function RevisionViewer(props: Props) {
           }
         />
       )}
-      <EditorContainer dangerouslySetInnerHTML={{ __html: revision.html }} />
+      <EditorContainer
+        dangerouslySetInnerHTML={{ __html: revision.html }}
+        rtl={false}
+      />
       {children}
     </Flex>
   );

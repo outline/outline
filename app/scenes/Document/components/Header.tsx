@@ -6,7 +6,6 @@ import {
   MoonIcon,
   MoreIcon,
   SunIcon,
-  RestoreIcon,
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -21,6 +20,8 @@ import Collaborators from "~/components/Collaborators";
 import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
 import Header from "~/components/Header";
 import Tooltip from "~/components/Tooltip";
+import { restoreRevision } from "~/actions/definitions/revisions";
+import useActionContext from "~/hooks/useActionContext";
 import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -100,9 +101,9 @@ function DocumentHeader({
     });
   }, [onSave]);
 
-  const handleRestore = React.useCallback(() => {
-    //
-  }, []);
+  const context = useActionContext({
+    activeDocumentId: document?.id,
+  });
 
   const { isDeleted, isTemplate } = document;
   const can = usePolicy(document?.id);
@@ -304,9 +305,10 @@ function DocumentHeader({
                   placement="bottom"
                 >
                   <Button
-                    icon={<RestoreIcon />}
-                    onClick={handleRestore}
+                    action={restoreRevision}
+                    context={context}
                     neutral
+                    hideOnActionDisabled
                   >
                     {t("Restore")}
                   </Button>
