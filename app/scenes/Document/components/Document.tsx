@@ -563,12 +563,6 @@ class DocumentScene extends React.Component<Props> {
               <Notices document={document} readOnly={readOnly} />
               <React.Suspense fallback={<PlaceholderDocument />}>
                 <Flex auto={!readOnly}>
-                  {showContents && (
-                    <Contents
-                      headings={this.headings}
-                      isFullWidth={document.fullWidth}
-                    />
-                  )}
                   {revision ? (
                     <RevisionViewer
                       isDraft={document.isDraft}
@@ -578,6 +572,12 @@ class DocumentScene extends React.Component<Props> {
                     />
                   ) : (
                     <>
+                      {showContents && (
+                        <Contents
+                          headings={this.headings}
+                          isFullWidth={document.fullWidth}
+                        />
+                      )}
                       <Editor
                         id={document.id}
                         key={embedsDisabled ? "disabled" : "enabled"}

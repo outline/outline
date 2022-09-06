@@ -21,6 +21,8 @@ import type Revision from "@server/models/Revision";
 type HTMLOptions = {
   /** Whether to include the document title in the generated HTML (defaults to true) */
   includeTitle?: boolean;
+  /** Whether to include style tags in the generated HTML (defaults to true) */
+  includeStyles?: boolean;
 };
 
 export default class DocumentHelper {
@@ -78,9 +80,12 @@ export default class DocumentHelper {
 
     // TODO: Detect and support RTL content here
     const children = (
-      <EditorContainer rtl={false}>
-        <div id="content" className="ProseMirror"></div>
-      </EditorContainer>
+      <>
+        {options?.includeTitle !== false && <h1>{document.title}</h1>}
+        <EditorContainer rtl={false}>
+          <div id="content" className="ProseMirror"></div>
+        </EditorContainer>
+      </>
     );
 
     // First render the containing document which has all the editor styles,
@@ -90,14 +95,13 @@ export default class DocumentHelper {
         sheet.collectStyles(
           <ThemeProvider theme={light}>
             <>
-              <GlobalStyles />
-              {options?.includeTitle === false ? (
+              {options?.includeStyles === false ? (
                 <article>{children}</article>
               ) : (
-                <Centered>
-                  <h1>{document.title}</h1>
-                  {children}
-                </Centered>
+                <>
+                  <GlobalStyles />
+                  <Centered>{children}</Centered>
+                </>
               )}
             </>
           </ThemeProvider>
@@ -114,7 +118,9 @@ export default class DocumentHelper {
 
     // Render the Prosemirror document using virtual DOM and serialize the
     // result to a string
-    const dom = new JSDOM(`<!DOCTYPE html>${styleTags}${html}`);
+    const dom = new JSDOM(
+      `<!DOCTYPE html>${options?.includeStyles ? styleTags : ""}${html}`
+    );
     const doc = dom.window.document;
     const target = doc.getElementById("content");
 

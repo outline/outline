@@ -29,7 +29,10 @@ router.post("revisions.info", auth(), async (ctx) => {
   ctx.body = {
     data: await presentRevision(
       revision,
-      DocumentHelper.diff(before, revision, { includeTitle: false })
+      DocumentHelper.diff(before, revision, {
+        includeTitle: false,
+        includeStyles: false,
+      })
     ),
   };
 });

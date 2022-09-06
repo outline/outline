@@ -1,5 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
+import EditorContainer from "@shared/editor/components/Styles";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
 import { RefHandle } from "~/components/ContentEditable";
@@ -36,7 +37,7 @@ function RevisionViewer(props: Props) {
           }
         />
       )}
-      <div dangerouslySetInnerHTML={{ __html: revision.html }} />
+      <EditorContainer dangerouslySetInnerHTML={{ __html: revision.html }} />
       {children}
     </Flex>
   );
