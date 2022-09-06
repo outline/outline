@@ -92,7 +92,7 @@ const Wrapper = styled.div<{
 
     return "none";
   }};
-  transition: all 100ms ease-in-out;
+  transition: box-shadow 100ms ease-in-out;
 
   ${(props) =>
     props.$hiddenScrollbars &&
