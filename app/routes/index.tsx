@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Switch } from "react-router-dom";
+import { Switch, Redirect } from "react-router-dom";
 import DelayedMount from "~/components/DelayedMount";
 import FullscreenLoading from "~/components/FullscreenLoading";
 import Route from "~/components/ProfiledRoute";
@@ -55,7 +55,25 @@ export default function Routes() {
         <Route exact path="/create" component={Login} />
         <Route exact path="/logout" component={Logout} />
 
+        <Route
+          exact
+          path="/share/:shareId"
+          render={(props) => (
+            <Redirect exact to={`/s/${props.match.params.shareId}`} />
+          )}
+        />
+
+        <Route
+          exact
+          path={`/share/:shareId/doc/${slug}`}
+          render={(props) => {
+            const { shareId, documentSlug } = props.match.params;
+            return <Redirect exact to={`/s/${shareId}/doc/${documentSlug}`} />;
+          }}
+        />
+
         <Route exact path="/s/:shareId" component={SharedDocument} />
+
         <Route
           exact
           path={`/s/:shareId/doc/${slug}`}
