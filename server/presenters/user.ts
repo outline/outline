@@ -1,5 +1,6 @@
 import env from "@server/env";
 import { User } from "@server/models";
+import { UserPreferences } from "@server/models/User";
 
 type Options = {
   includeDetails?: boolean;
@@ -18,6 +19,7 @@ type UserPresentation = {
   isViewer: boolean;
   email?: string | null;
   language?: string;
+  preferences?: UserPreferences;
 };
 
 export default (user: User, options: Options = {}): UserPresentation => {
@@ -37,6 +39,7 @@ export default (user: User, options: Options = {}): UserPresentation => {
   if (options.includeDetails) {
     userData.email = user.email;
     userData.language = user.language || env.DEFAULT_LANGUAGE;
+    userData.preferences = user.preferences || {};
   }
 
   return userData;
