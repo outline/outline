@@ -36,6 +36,8 @@ import NotContainsUrl from "./validators/NotContainsUrl";
 
 const readFile = util.promisify(fs.readFile);
 
+export type TeamPreferences = Record<string, unknown>;
+
 @Scopes(() => ({
   withDomains: {
     include: [{ model: TeamDomain }],
@@ -123,6 +125,10 @@ class Team extends ParanoidModel {
   @IsIn([["viewer", "member"]])
   @Column
   defaultUserRole: string;
+
+  @AllowNull
+  @Column(DataType.JSONB)
+  preferences: TeamPreferences;
 
   // getters
 
