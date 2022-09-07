@@ -8,6 +8,7 @@ import {
   SearchQuery,
   Event,
 } from "@server/models";
+import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import {
   buildShare,
   buildCollection,
@@ -462,7 +463,22 @@ describe("#documents.export", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data).toEqual(document.toMarkdown());
+    expect(body.data).toEqual(DocumentHelper.toMarkdown(document));
+  });
+
+  it("should return document text with accept=text/markdown", async () => {
+    const { user, document } = await seed();
+    const res = await server.post("/api/documents.export", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+      },
+      headers: {
+        accept: "text/markdown",
+      },
+    });
+    const body = await res.text();
+    expect(body).toEqual(DocumentHelper.toMarkdown(document));
   });
 
   it("should return archived document", async () => {
@@ -476,7 +492,7 @@ describe("#documents.export", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data).toEqual(document.toMarkdown());
+    expect(body.data).toEqual(DocumentHelper.toMarkdown(document));
   });
 
   it("should not return published document in collection not a member of", async () => {
@@ -509,7 +525,7 @@ describe("#documents.export", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data).toEqual(document.toMarkdown());
+    expect(body.data).toEqual(DocumentHelper.toMarkdown(document));
   });
 
   it("should return document from shareId without token", async () => {
@@ -526,7 +542,7 @@ describe("#documents.export", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data).toEqual(document.toMarkdown());
+    expect(body.data).toEqual(DocumentHelper.toMarkdown(document));
   });
 
   it("should not return document from revoked shareId", async () => {
@@ -576,7 +592,7 @@ describe("#documents.export", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data).toEqual(document.toMarkdown());
+    expect(body.data).toEqual(DocumentHelper.toMarkdown(document));
   });
 
   it("should return draft document from shareId with token", async () => {
@@ -596,7 +612,7 @@ describe("#documents.export", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data).toEqual(document.toMarkdown());
+    expect(body.data).toEqual(DocumentHelper.toMarkdown(document));
   });
 
   it("should return document from shareId in collection not a member of", async () => {
@@ -616,7 +632,7 @@ describe("#documents.export", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data).toEqual(document.toMarkdown());
+    expect(body.data).toEqual(DocumentHelper.toMarkdown(document));
   });
 
   it("should require authorization without token", async () => {
