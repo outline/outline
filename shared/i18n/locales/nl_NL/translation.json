@@ -31,6 +31,7 @@
   "Import document": "Importeer document",
   "Templatize": "Sjabloon maken",
   "Create template": "Sjabloon maken",
+  "Open random document": "Open random document",
   "Search documents for \"{{searchQuery}}\"": "Zoek documenten voor \"{{searchQuery}}\"",
   "Move": "Verplaatsen",
   "Move {{ documentName }}": "Verplaats {{ documentName }}",
