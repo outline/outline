@@ -31,6 +31,7 @@
   "Import document": "문서 가져 오기",
   "Templatize": "템플릿화",
   "Create template": "템플릿 만들기",
+  "Open random document": "Open random document",
   "Search documents for \"{{searchQuery}}\"": "\"{{searchQuery}}\" 에 대한 문서 검색",
   "Move": "이동",
   "Move {{ documentName }}": "{{ documentName }} 문서 이동",
