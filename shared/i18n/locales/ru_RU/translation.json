@@ -31,6 +31,7 @@
   "Import document": "Импорт документа",
   "Templatize": "Шаблон",
   "Create template": "Создать шаблон",
+  "Open random document": "Open random document",
   "Search documents for \"{{searchQuery}}\"": "Поиск документов для \"{{searchQuery}}\"",
   "Move": "Переместить",
   "Move {{ documentName }}": "Переместить {{ documentName }}",
