@@ -1,3 +1,4 @@
+import { observer } from "mobx-react";
 import {
   TrashIcon,
   ArchiveIcon,
@@ -20,6 +21,7 @@ import CompositeItem, {
 } from "~/components/List/CompositeItem";
 import Item, { Actions } from "~/components/List/Item";
 import Time from "~/components/Time";
+import useStores from "~/hooks/useStores";
 import RevisionMenu from "~/menus/RevisionMenu";
 import { documentHistoryUrl } from "~/utils/routeHelpers";
 
@@ -31,6 +33,7 @@ type Props = {
 
 const EventListItem = ({ event, latest, document, ...rest }: Props) => {
   const { t } = useTranslation();
+  const { revisions } = useStores();
   const location = useLocation();
   const opts = {
     userName: event.actor.name,
@@ -41,9 +44,15 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
   const ref = React.useRef<HTMLAnchorElement>(null);
   // the time component tends to steal focus when clicked
   // ...so forward the focus back to the parent item
-  const handleTimeClick = React.useCallback(() => {
+  const handleTimeClick = () => {
     ref.current?.focus();
-  }, [ref]);
+  };
+
+  const prefetchRevision = () => {
+    if (event.name === "revisions.create" && event.modelId) {
+      revisions.fetch(event.modelId);
+    }
+  };
 
   switch (event.name) {
     case "revisions.create":
@@ -135,6 +144,7 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
           <RevisionMenu document={document} revisionId={event.modelId} />
         ) : undefined
       }
+      onMouseEnter={prefetchRevision}
       ref={ref}
       {...rest}
     />
@@ -212,4 +222,4 @@ const CompositeListItem = styled(CompositeItem)`
   ${ItemStyle}
 `;
 
-export default EventListItem;
+export default observer(EventListItem);
