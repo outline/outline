@@ -39,7 +39,7 @@ export default (user: User, options: Options = {}): UserPresentation => {
   if (options.includeDetails) {
     userData.email = user.email;
     userData.language = user.language || env.DEFAULT_LANGUAGE;
-    userData.preferences = user.preferences || {};
+    userData.preferences = user.preferences;
   }
 
   return userData;
