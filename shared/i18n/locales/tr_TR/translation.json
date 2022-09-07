@@ -31,6 +31,7 @@
   "Import document": "Belgeyi içeri aktar",
   "Templatize": "Şablona dönüştür",
   "Create template": "Şablon oluştur",
+  "Open random document": "Open random document",
   "Search documents for \"{{searchQuery}}\"": "\"{{searchQuery}}\" için arama sonuçları",
   "Move": "Taşı",
   "Move {{ documentName }}": "{{ documentName }} taşı",
