@@ -31,6 +31,7 @@
   "Import document": "Importuj dokument",
   "Templatize": "Konwertuj na szablon",
   "Create template": "Utwórz szablon",
+  "Open random document": "Open random document",
   "Search documents for \"{{searchQuery}}\"": "Wyszukaj dokumenty dla „{{searchQuery}}”",
   "Move": "Przenieś",
   "Move {{ documentName }}": "Przenieś {{ documentName }}",
