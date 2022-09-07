@@ -31,6 +31,7 @@
   "Import document": "นำเข้าเอกสาร",
   "Templatize": "ทำเป็นเทมเพลต",
   "Create template": "สร้างเทมเพลต",
+  "Open random document": "Open random document",
   "Search documents for \"{{searchQuery}}\"": "ค้นหาเอกสารสำหรับ \"{{searchQuery}}\"",
   "Move": "ย้าย",
   "Move {{ documentName }}": "ย้าย {{ documentName }}",
