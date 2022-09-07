@@ -54,6 +54,8 @@ export enum UserRole {
   Viewer = "viewer",
 }
 
+export type UserPreferences = Record<string, unknown>;
+
 @Scopes(() => ({
   withAuthentications: {
     include: [
@@ -151,6 +153,10 @@ class User extends ParanoidModel {
 
   @Column(DataType.JSONB)
   flags: { [key in UserFlag]?: number } | null;
+
+  @AllowNull
+  @Column(DataType.JSONB)
+  preferences: UserPreferences;
 
   @Default(env.DEFAULT_LANGUAGE)
   @IsIn([languages])
@@ -558,7 +564,7 @@ class User extends ParanoidModel {
 
   static getCounts = async function (teamId: string) {
     const countSql = `
-      SELECT 
+      SELECT
         COUNT(CASE WHEN "suspendedAt" IS NOT NULL THEN 1 END) as "suspendedCount",
         COUNT(CASE WHEN "isAdmin" = true THEN 1 END) as "adminCount",
         COUNT(CASE WHEN "isViewer" = true THEN 1 END) as "viewerCount",
