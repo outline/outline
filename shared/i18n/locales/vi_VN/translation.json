@@ -31,6 +31,7 @@
   "Import document": "Nhập tài liệu",
   "Templatize": "Mẫu",
   "Create template": "Tạo mẫu",
+  "Open random document": "Open random document",
   "Search documents for \"{{searchQuery}}\"": "Tìm kiếm tài liệu cho \"{{searchQuery}}\"",
   "Move": "Di chuyển",
   "Move {{ documentName }}": "Di chuyển {{ documentName }}",
