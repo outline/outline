@@ -35,6 +35,7 @@ import {
   presentDocument,
   presentPolicies,
 } from "@server/presenters";
+import slugify from "@server/utils/slugify";
 import {
   assertUuid,
   assertSort,
@@ -471,7 +472,7 @@ router.post(
       ctx.set("Content-Type", contentType);
       ctx.set(
         "Content-Disposition",
-        `attachment; filename="${document.title}.${mime.extension(
+        `attachment; filename="${slugify(document.title)}.${mime.extension(
           contentType
         )}"`
       );

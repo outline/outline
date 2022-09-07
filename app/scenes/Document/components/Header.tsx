@@ -223,7 +223,7 @@ function DocumentHeader({
             {!isPublishing && isSaving && !team?.collaborativeEditing && (
               <Status>{t("Saving")}…</Status>
             )}
-            {!isDeleted && <Collaborators document={document} />}
+            {!isDeleted && !isRevision && <Collaborators document={document} />}
             {(isEditing || team?.collaborativeEditing) && !isTemplate && isNew && (
               <Action>
                 <TemplatesMenu

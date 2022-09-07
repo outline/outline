@@ -6,6 +6,7 @@ import { Document, Revision } from "@server/models";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import { authorize } from "@server/policies";
 import { presentRevision } from "@server/presenters";
+import slugify from "@server/utils/slugify";
 import { assertPresent, assertSort, assertUuid } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
@@ -78,7 +79,7 @@ router.post("revisions.diff", auth(), async (ctx) => {
     ctx.set("Content-Type", "text/html");
     ctx.set(
       "Content-Disposition",
-      `attachment; filename="${document.title}.html"`
+      `attachment; filename="${slugify(document.title)}.html"`
     );
     ctx.body = content;
     return;
