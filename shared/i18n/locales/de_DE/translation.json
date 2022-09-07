@@ -31,6 +31,7 @@
   "Import document": "Dokument importieren",
   "Templatize": "Vorlage erstellen",
   "Create template": "Vorlage erstellen",
+  "Open random document": "Open random document",
   "Search documents for \"{{searchQuery}}\"": "Suche dokumente für \"{{searchQuery}}\"",
   "Move": "Verschieben",
   "Move {{ documentName }}": "Verschiebe {{ documentName }}",
