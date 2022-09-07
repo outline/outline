@@ -1,9 +1,10 @@
+import { m } from "framer-motion";
 import { observer } from "mobx-react";
 import { CloseIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useRouteMatch } from "react-router-dom";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Event from "~/models/Event";
 import Button from "~/components/Button";
@@ -21,6 +22,7 @@ function DocumentHistory() {
   const { t } = useTranslation();
   const match = useRouteMatch<{ documentSlug: string }>();
   const history = useHistory();
+  const theme = useTheme();
   const document = documents.getByUrl(match.params.documentSlug);
 
   const eventsInDocument = document
@@ -44,6 +46,7 @@ function DocumentHistory() {
       eventsInDocument.unshift(
         new Event(
           {
+            id: "latest",
             name: "documents.latest_version",
             documentId: document.id,
             createdAt: document.updatedAt,
@@ -58,7 +61,22 @@ function DocumentHistory() {
   }, [eventsInDocument, events, document]);
 
   return (
-    <Sidebar>
+    <Sidebar
+      initial={{
+        width: 0,
+      }}
+      animate={{
+        transition: {
+          type: "spring",
+          bounce: 0.2,
+          duration: 0.6,
+        },
+        width: theme.sidebarWidth,
+      }}
+      exit={{
+        width: 0,
+      }}
+    >
       {document ? (
         <Position column>
           <Header>
@@ -95,7 +113,7 @@ const Position = styled(Flex)`
   width: ${(props) => props.theme.sidebarWidth}px;
 `;
 
-const Sidebar = styled(Flex)`
+const Sidebar = styled(m.div)`
   display: none;
   position: relative;
   flex-shrink: 0;
