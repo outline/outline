@@ -55,25 +55,14 @@ export default function Routes() {
         <Route exact path="/create" component={Login} />
         <Route exact path="/logout" component={Logout} />
 
-        <Route
-          exact
-          path="/share/:shareId"
-          render={(props) => (
-            <Redirect exact to={`/s/${props.match.params.shareId}`} />
-          )}
-        />
-
-        <Route
-          exact
-          path={`/share/:shareId/doc/${slug}`}
-          render={(props) => {
-            const { shareId, documentSlug } = props.match.params;
-            return <Redirect exact to={`/s/${shareId}/doc/${documentSlug}`} />;
-          }}
-        />
-
+        <Redirect exact from="/share/:shareId" to="/s/:shareId" />
         <Route exact path="/s/:shareId" component={SharedDocument} />
 
+        <Redirect
+          exact
+          from={`/share/:shareId/doc/${slug}`}
+          to={`/s/:shareId/doc/${slug}`}
+        />
         <Route
           exact
           path={`/s/:shareId/doc/${slug}`}
