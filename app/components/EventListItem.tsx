@@ -1,3 +1,4 @@
+import { LocationDescriptor } from "history";
 import { observer } from "mobx-react";
 import {
   TrashIcon,
@@ -39,7 +40,7 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
     userName: event.actor.name,
   };
   const isRevision = event.name === "revisions.create";
-  let meta, icon, to;
+  let meta, icon, to: LocationDescriptor | undefined;
 
   const ref = React.useRef<HTMLAnchorElement>(null);
   // the time component tends to steal focus when clicked
@@ -58,13 +59,19 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
     case "revisions.create":
       icon = <EditIcon color="currentColor" size={16} />;
       meta = t("{{userName}} edited", opts);
-      to = documentHistoryUrl(document, event.modelId || "");
+      to = {
+        pathname: documentHistoryUrl(document, event.modelId || ""),
+        state: { retainScrollPosition: true },
+      };
       break;
 
     case "documents.live_editing":
       icon = <LightningIcon color="currentColor" size={16} />;
-      meta = t("Live editing");
-      to = documentHistoryUrl(document);
+      meta = t("Latest");
+      to = {
+        pathname: documentHistoryUrl(document),
+        state: { retainScrollPosition: true },
+      };
       break;
 
     case "documents.archive":
@@ -108,7 +115,10 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
     return null;
   }
 
-  const isActive = location.pathname === to;
+  const isActive =
+    typeof to === "string"
+      ? location.pathname === to
+      : location.pathname === to?.pathname;
 
   if (document.isDeleted) {
     to = undefined;

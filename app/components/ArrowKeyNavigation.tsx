@@ -6,7 +6,7 @@ import {
   CompositeStateReturn,
 } from "reakit/Composite";
 
-type Props = {
+type Props = React.HTMLAttributes<HTMLDivElement> & {
   children: (composite: CompositeStateReturn) => React.ReactNode;
   onEscape?: (ev: React.KeyboardEvent<HTMLDivElement>) => void;
 };
