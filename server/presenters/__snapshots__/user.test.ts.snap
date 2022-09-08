@@ -11,6 +11,7 @@ Object {
   "isViewer": false,
   "lastActiveAt": undefined,
   "name": "Test User",
+  "preferences": undefined,
   "updatedAt": undefined,
 }
 `;
@@ -26,6 +27,7 @@ Object {
   "isViewer": false,
   "lastActiveAt": undefined,
   "name": "Test User",
+  "preferences": undefined,
   "updatedAt": undefined,
 }
 `;
