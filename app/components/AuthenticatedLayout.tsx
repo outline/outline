@@ -1,7 +1,7 @@
 import { AnimatePresence } from "framer-motion";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { Switch, Route, useLocation } from "react-router-dom";
+import { Switch, Route, useLocation, matchPath } from "react-router-dom";
 import ErrorSuspended from "~/scenes/ErrorSuspended";
 import Layout from "~/components/Layout";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
@@ -15,6 +15,7 @@ import {
   matchDocumentSlug as slug,
   newDocumentPath,
   settingsPath,
+  matchDocumentHistory,
 } from "~/utils/routeHelpers";
 import Fade from "./Fade";
 
@@ -76,7 +77,16 @@ const AuthenticatedLayout: React.FC = ({ children }) => {
   const sidebarRight = (
     <React.Suspense fallback={null}>
       <AnimatePresence>
-        <Switch location={location} key={location.key}>
+        <Switch
+          location={location}
+          key={
+            matchPath(location.pathname, {
+              path: matchDocumentHistory,
+            })
+              ? "history"
+              : ""
+          }
+        >
           <Route
             key="document-history"
             path={`/doc/${slug}/history/:revisionId?`}
@@ -86,8 +96,6 @@ const AuthenticatedLayout: React.FC = ({ children }) => {
       </AnimatePresence>
     </React.Suspense>
   );
-
-  console.log({ location });
 
   return (
     <Layout title={team?.name} sidebar={sidebar} sidebarRight={sidebarRight}>

@@ -1,11 +1,12 @@
-import { RestoreIcon } from "outline-icons";
+import copy from "copy-to-clipboard";
+import { LinkIcon, RestoreIcon } from "outline-icons";
 import * as React from "react";
 import { matchPath } from "react-router-dom";
 import stores from "~/stores";
 import { createAction } from "~/actions";
 import { RevisionSection } from "~/actions/sections";
 import history from "~/utils/history";
-import { matchDocumentHistory } from "~/utils/routeHelpers";
+import { documentHistoryUrl, matchDocumentHistory } from "~/utils/routeHelpers";
 
 export const restoreRevision = createAction({
   name: ({ t }) => t("Restore revision"),
@@ -47,4 +48,39 @@ export const restoreRevision = createAction({
   },
 });
 
-export const rootRevisionActions = [restoreRevision];
+export const copyLinkToRevision = createAction({
+  name: ({ t }) => t("Copy link"),
+  icon: <LinkIcon />,
+  section: RevisionSection,
+  perform: async ({ activeDocumentId, stores, t }) => {
+    event?.preventDefault();
+    if (!activeDocumentId) {
+      return;
+    }
+
+    const match = matchPath<{ revisionId: string }>(location.pathname, {
+      path: matchDocumentHistory,
+    });
+    const revisionId = match?.params.revisionId;
+    const document = stores.documents.get(activeDocumentId);
+    if (!document) {
+      return;
+    }
+
+    const url = `${window.location.origin}${documentHistoryUrl(
+      document,
+      revisionId
+    )}`;
+
+    copy(url, {
+      format: "text/plain",
+      onCopy: () => {
+        stores.toasts.showToast(t("Link copied"), {
+          type: "info",
+        });
+      },
+    });
+  },
+});
+
+export const rootRevisionActions = [];
