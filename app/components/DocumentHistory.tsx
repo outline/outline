@@ -12,6 +12,7 @@ import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
 import PaginatedEventList from "~/components/PaginatedEventList";
 import Scrollable from "~/components/Scrollable";
+import useKeyDown from "~/hooks/useKeyDown";
 import useStores from "~/hooks/useStores";
 import { documentUrl } from "~/utils/routeHelpers";
 
@@ -59,6 +60,8 @@ function DocumentHistory() {
 
     return eventsInDocument;
   }, [eventsInDocument, events, document]);
+
+  useKeyDown("Escape", onCloseHistory);
 
   return (
     <Sidebar
