@@ -53,7 +53,6 @@ export const copyLinkToRevision = createAction({
   icon: <LinkIcon />,
   section: RevisionSection,
   perform: async ({ activeDocumentId, stores, t }) => {
-    event?.preventDefault();
     if (!activeDocumentId) {
       return;
     }

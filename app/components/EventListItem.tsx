@@ -5,8 +5,8 @@ import {
   EditIcon,
   PublishIcon,
   MoveIcon,
-  CheckboxIcon,
   UnpublishIcon,
+  LightningIcon,
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -61,9 +61,9 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
       to = documentHistoryUrl(document, event.modelId || "");
       break;
 
-    case "documents.latest_version":
-      icon = <CheckboxIcon color="currentColor" size={16} checked />;
-      meta = t("Latest version");
+    case "documents.live_editing":
+      icon = <LightningIcon color="currentColor" size={16} />;
+      meta = t("Live editing");
       to = documentHistoryUrl(document);
       break;
 

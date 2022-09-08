@@ -46,8 +46,8 @@ function DocumentHistory() {
       eventsInDocument.unshift(
         new Event(
           {
-            id: "latest",
-            name: "documents.latest_version",
+            id: "live",
+            name: "documents.live_editing",
             documentId: document.id,
             createdAt: document.updatedAt,
             actor: document.updatedBy,
