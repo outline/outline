@@ -17,6 +17,7 @@ import {
   TrashIcon,
   CrossIcon,
   ArchiveIcon,
+  ShuffleIcon,
 } from "outline-icons";
 import * as React from "react";
 import { getEventFiles } from "@shared/utils/files";
@@ -416,6 +417,24 @@ export const createTemplate = createAction({
   },
 });
 
+export const openRandomDocument = createAction({
+  id: "random",
+  section: DocumentSection,
+  name: ({ t }) => t(`Open random document`),
+  icon: <ShuffleIcon />,
+  perform: ({ stores, activeDocumentId }) => {
+    const documentPaths = stores.collections.pathsToDocuments.filter(
+      (path) => path.type === "document" && path.id !== activeDocumentId
+    );
+    const documentPath =
+      documentPaths[Math.round(Math.random() * documentPaths.length)];
+
+    if (documentPath) {
+      history.push(documentPath.url);
+    }
+  },
+});
+
 export const searchDocumentsForQuery = (searchQuery: string) =>
   createAction({
     id: "search",
@@ -566,6 +585,7 @@ export const rootDocumentActions = [
   unsubscribeDocument,
   duplicateDocument,
   moveDocument,
+  openRandomDocument,
   permanentlyDeleteDocument,
   printDocument,
   pinDocumentToCollection,

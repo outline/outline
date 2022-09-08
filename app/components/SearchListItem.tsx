@@ -7,6 +7,7 @@ import breakpoint from "styled-components-breakpoint";
 import Document from "~/models/Document";
 import Highlight, { Mark } from "~/components/Highlight";
 import { hover } from "~/styles";
+import { sharedDocumentPath } from "~/utils/routeHelpers";
 
 type Props = {
   document: Document;
@@ -38,7 +39,9 @@ function DocumentListItem(
       ref={ref}
       dir={document.dir}
       to={{
-        pathname: shareId ? `/share/${shareId}${document.url}` : document.url,
+        pathname: shareId
+          ? sharedDocumentPath(shareId, document.url)
+          : document.url,
         state: {
           title: document.titleWithDefault,
         },
