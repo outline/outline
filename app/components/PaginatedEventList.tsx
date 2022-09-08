@@ -13,6 +13,7 @@ type Props = {
   heading?: React.ReactNode;
   empty?: React.ReactNode;
 };
+
 const PaginatedEventList = React.memo<Props>(function PaginatedEventList({
   empty,
   heading,
@@ -23,7 +24,7 @@ const PaginatedEventList = React.memo<Props>(function PaginatedEventList({
   ...rest
 }: Props) {
   return (
-    <PaginatedList
+    <StyledPaginatedList
       items={events}
       empty={empty}
       heading={heading}
@@ -44,9 +45,13 @@ const PaginatedEventList = React.memo<Props>(function PaginatedEventList({
   );
 });
 
+const StyledPaginatedList = styled(PaginatedList)`
+  padding: 0 8px;
+`;
+
 const Heading = styled("h3")`
   font-size: 14px;
-  padding: 0 12px;
+  padding: 0 4px;
 `;
 
 export default PaginatedEventList;

@@ -97,7 +97,7 @@ function DocumentHistory() {
                 documentId: document.id,
               }}
               document={document}
-              empty={<Empty>{t("Oh weird, there's nothing here")}</Empty>}
+              empty={<Empty>{t("No history yet")}</Empty>}
             />
           </Scrollable>
         </Position>

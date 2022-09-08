@@ -171,7 +171,7 @@ const Subtitle = styled.span`
 const ItemStyle = css`
   border: 0;
   position: relative;
-  margin: 8px;
+  margin: 8px 0;
   padding: 8px;
   border-radius: 8px;
 
