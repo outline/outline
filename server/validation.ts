@@ -93,6 +93,28 @@ export function assertUrl(
   }
 }
 
+/**
+ * Asserts that the passed value is a valid url path
+ *
+ * @param value The value to check for assertion
+ * @param [message] The error message to show
+ * @throws {ValidationError}
+ */
+export function assertUrlPath(
+  value: IncomingValue,
+  message?: string
+): asserts value {
+  if (
+    typeof value !== "string" ||
+    validator.isURL(value, { require_protocol: true, require_host: true }) ||
+    !validator.isURL(value, { require_protocol: false, require_host: false })
+  ) {
+    throw ValidationError(
+      message ?? `${String(value)} is an invalid url path!`
+    );
+  }
+}
+
 export function assertUuid(
   value: IncomingValue,
   message?: string

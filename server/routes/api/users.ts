@@ -27,7 +27,7 @@ import {
   assertArray,
   assertUuid,
   assertKeysIn,
-  assertUrl,
+  assertUrlPath,
 } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
@@ -188,11 +188,11 @@ router.post("users.update", auth(), async (ctx) => {
   }
   if (preferences) {
     assertKeysIn(preferences, UserPreference);
-    if (preferences.lastVisitedUrl) {
-      assertUrl(preferences.lastVisitedUrl);
+    if (preferences.lastVisitedPath) {
+      assertUrlPath(preferences.lastVisitedPath);
       user.setPreference(
-        UserPreference.LastVisitedUrl,
-        preferences.lastVisitedUrl
+        UserPreference.LastVisitedPath,
+        preferences.lastVisitedPath
       );
     }
   }

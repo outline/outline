@@ -411,28 +411,26 @@ describe("#users.update", () => {
       body: {
         token: user.getJwtToken(),
         name: "New name",
-        preferences: { lastVisitedUrl: "invalidUrl" },
+        preferences: { lastVisitedPath: "invalidPath" },
       },
     });
     expect(res.status).toEqual(400);
   });
 
-  it("should update lastVisitedUrl user preference", async () => {
+  it("should update lastVisitedPath user preference", async () => {
     const { user } = await seed();
     const res = await server.post("/api/users.update", {
       body: {
         token: user.getJwtToken(),
         name: "New name",
         preferences: {
-          lastVisitedUrl: "https://myoutline.com/doc/test-DjDlkBi77t",
+          lastVisitedPath: "/doc/test-DjDlkBi77t",
         },
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.preferences.lastVisitedUrl).toBe(
-      "https://myoutline.com/doc/test-DjDlkBi77t"
-    );
+    expect(body.data.preferences.lastVisitedPath).toBe("/doc/test-DjDlkBi77t");
   });
 
   it("should require authentication", async () => {

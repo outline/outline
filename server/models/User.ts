@@ -55,7 +55,7 @@ export enum UserRole {
 }
 
 export enum UserPreference {
-  LastVisitedUrl = "lastVisitedUrl",
+  LastVisitedPath = "lastVisitedPath",
 }
 
 export type UserPreferences = { [key in UserPreference]?: string };
