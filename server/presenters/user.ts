@@ -19,7 +19,7 @@ type UserPresentation = {
   isViewer: boolean;
   email?: string | null;
   language?: string;
-  preferences: UserPreferences | null;
+  preferences?: UserPreferences | null;
 };
 
 export default (user: User, options: Options = {}): UserPresentation => {
@@ -34,12 +34,12 @@ export default (user: User, options: Options = {}): UserPresentation => {
     createdAt: user.createdAt,
     updatedAt: user.updatedAt,
     lastActiveAt: user.lastActiveAt,
-    preferences: user.preferences,
   };
 
   if (options.includeDetails) {
     userData.email = user.email;
     userData.language = user.language || env.DEFAULT_LANGUAGE;
+    userData.preferences = user.preferences;
   }
 
   return userData;
