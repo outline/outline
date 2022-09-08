@@ -117,6 +117,10 @@ export function searchPath(
   return `${route}${search}`;
 }
 
+export function sharedDocumentPath(shareId: string, docPath?: string) {
+  return docPath ? `/s/${shareId}${docPath}` : `/s/${shareId}`;
+}
+
 export function notFoundUrl(): string {
   return "/404";
 }

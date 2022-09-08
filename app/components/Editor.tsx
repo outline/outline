@@ -25,6 +25,7 @@ import { NotFoundError } from "~/utils/errors";
 import { uploadFile } from "~/utils/files";
 import history from "~/utils/history";
 import { isModKey } from "~/utils/keyboard";
+import { sharedDocumentPath } from "~/utils/routeHelpers";
 import { isHash } from "~/utils/urls";
 import DocumentBreadcrumb from "./DocumentBreadcrumb";
 
@@ -160,7 +161,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
         }
 
         if (shareId) {
-          navigateTo = `/share/${shareId}${navigateTo}`;
+          navigateTo = sharedDocumentPath(shareId, navigateTo);
         }
 
         history.push(navigateTo);
