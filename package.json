@@ -137,6 +137,7 @@
     "mobx-react": "^6.3.1",
     "natural-sort": "^1.0.0",
     "node-fetch": "2.6.7",
+    "node-htmldiff": "^0.9.4",
     "nodemailer": "^6.6.1",
     "outline-icons": "^1.45.1",
     "oy-vey": "^0.11.2",

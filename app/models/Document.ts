@@ -2,6 +2,7 @@ import { addDays, differenceInDays } from "date-fns";
 import { floor } from "lodash";
 import { action, autorun, computed, observable, set } from "mobx";
 import parseTitle from "@shared/utils/parseTitle";
+import { isRTL } from "@shared/utils/rtl";
 import DocumentsStore from "~/stores/DocumentsStore";
 import User from "~/models/User";
 import type { NavigationNode } from "~/types";
@@ -106,23 +107,19 @@ export default class Document extends ParanoidModel {
   }
 
   /**
-   * Best-guess the text direction of the document based on the language the
-   * title is written in. Note: wrapping as a computed getter means that it will
-   * only be called directly when the title changes.
+   * Returns the direction of the document text, either "rtl" or "ltr"
    */
   @computed
   get dir(): "rtl" | "ltr" {
-    const element = document.createElement("p");
-    element.innerText = this.title;
-    element.style.visibility = "hidden";
-    element.dir = "auto";
+    return this.rtl ? "rtl" : "ltr";
+  }
 
-    // element must appear in body for direction to be computed
-    document.body?.appendChild(element);
-    const direction = window.getComputedStyle(element).direction;
-    document.body?.removeChild(element);
-
-    return direction === "rtl" ? "rtl" : "ltr";
+  /**
+   * Returns true if the document text is right-to-left
+   */
+  @computed
+  get rtl() {
+    return isRTL(this.title);
   }
 
   @computed

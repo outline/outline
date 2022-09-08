@@ -42,7 +42,15 @@ type Props = RouteComponentProps<Params, StaticContext, LocationState> & {
 };
 
 function DataLoader({ match, children }: Props) {
-  const { ui, shares, documents, auth, revisions, subscriptions } = useStores();
+  const {
+    ui,
+    views,
+    shares,
+    documents,
+    auth,
+    revisions,
+    subscriptions,
+  } = useStores();
   const { team } = auth;
   const [error, setError] = React.useState<Error | null>(null);
   const { revisionId, shareId, documentSlug } = match.params;
@@ -89,7 +97,7 @@ function DataLoader({ match, children }: Props) {
 
   React.useEffect(() => {
     async function fetchSubscription() {
-      if (document?.id) {
+      if (document?.id && !revisionId) {
         try {
           await subscriptions.fetchPage({
             documentId: document.id,
@@ -101,7 +109,22 @@ function DataLoader({ match, children }: Props) {
       }
     }
     fetchSubscription();
-  }, [document?.id, subscriptions]);
+  }, [document?.id, subscriptions, revisionId]);
+
+  React.useEffect(() => {
+    async function fetchViews() {
+      if (document?.id && !document?.isDeleted && !revisionId) {
+        try {
+          await views.fetchPage({
+            documentId: document.id,
+          });
+        } catch (err) {
+          Logger.error("Failed to fetch views", err);
+        }
+      }
+    }
+    fetchViews();
+  }, [document?.id, document?.isDeleted, revisionId, views]);
 
   const onCreateLink = React.useCallback(
     async (title: string) => {

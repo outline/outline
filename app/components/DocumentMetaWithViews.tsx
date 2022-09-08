@@ -24,14 +24,6 @@ function DocumentMetaWithViews({ to, isDraft, document, ...rest }: Props) {
   const totalViewers = documentViews.length;
   const onlyYou = totalViewers === 1 && documentViews[0].user.id;
 
-  React.useEffect(() => {
-    if (!document.isDeleted) {
-      views.fetchPage({
-        documentId: document.id,
-      });
-    }
-  }, [views, document.id, document.isDeleted]);
-
   const popover = usePopoverState({
     gutter: 8,
     placement: "bottom",

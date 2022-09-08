@@ -3,7 +3,7 @@ import styled, { useTheme } from "styled-components";
 import Flex from "~/components/Flex";
 import NavLink from "~/components/NavLink";
 
-export type Props = {
+export type Props = Omit<React.HTMLAttributes<HTMLAnchorElement>, "title"> & {
   image?: React.ReactNode;
   to?: string;
   exact?: boolean;

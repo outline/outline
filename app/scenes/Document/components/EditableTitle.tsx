@@ -16,9 +16,9 @@ import useEmojiWidth from "~/hooks/useEmojiWidth";
 import { isModKey } from "~/utils/keyboard";
 
 type Props = {
-  value: string;
-  placeholder: string;
   document: Document;
+  /** Placeholder to display when the document has no title */
+  placeholder: string;
   /** Should the title be editable, policies will also be considered separately */
   readOnly?: boolean;
   /** Whether the title show the option to star, policies will also be considered separately (defaults to true) */
@@ -39,7 +39,6 @@ const fontSize = "2.25em";
 const EditableTitle = React.forwardRef(
   (
     {
-      value,
       document,
       readOnly,
       onChange,
@@ -51,9 +50,6 @@ const EditableTitle = React.forwardRef(
     }: Props,
     ref: React.RefObject<RefHandle>
   ) => {
-    const normalizedTitle =
-      !value && readOnly ? document.titleWithDefault : value;
-
     const handleClick = React.useCallback(() => {
       ref.current?.focus();
     }, [ref]);
@@ -128,10 +124,10 @@ const EditableTitle = React.forwardRef(
         onKeyDown={handleKeyDown}
         onBlur={onBlur}
         placeholder={placeholder}
-        value={normalizedTitle}
+        value={document.titleWithDefault}
         $emojiWidth={emojiWidth}
         $isStarred={document.isStarred}
-        autoFocus={!value}
+        autoFocus={!document.title}
         maxLength={DocumentValidation.maxTitleLength}
         readOnly={readOnly}
         dir="auto"
