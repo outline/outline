@@ -54,7 +54,11 @@ export enum UserRole {
   Viewer = "viewer",
 }
 
-export type UserPreferences = Record<string, unknown>;
+export enum UserPreference {
+  LastVisitedUrl = "lastVisitedUrl",
+}
+
+export type UserPreferences = { [key in UserPreference]?: string };
 
 @Scopes(() => ({
   withAuthentications: {
@@ -156,7 +160,7 @@ class User extends ParanoidModel {
 
   @AllowNull
   @Column(DataType.JSONB)
-  preferences: UserPreferences;
+  preferences: UserPreferences | null;
 
   @Default(env.DEFAULT_LANGUAGE)
   @IsIn([languages])
@@ -294,6 +298,37 @@ class User extends ParanoidModel {
     this.changed("flags", true);
 
     return this.flags;
+  };
+
+  /**
+   * User preferences store user's preferences, for example,
+   * last visited url by the user etc. The method
+   * sets a particular preference
+   *
+   * @param preference The user preference to set
+   * @param value Set the preference value
+   * @returns The current user preferences
+   */
+  public setPreference = (preference: UserPreference, value: string) => {
+    if (!this.preferences) {
+      this.preferences = {};
+    }
+    this.preferences[preference] = value;
+    this.changed("preferences", true);
+
+    return this.preferences;
+  };
+
+  /**
+   * Returns the passed preference value
+   *
+   * @param preference The user preference to retrieve
+   * @returns The preference value if set, else undefined
+   */
+  public getPreference = (preference: UserPreference) => {
+    return !!this.preferences && this.preferences[preference]
+      ? this.preferences[preference]
+      : undefined;
   };
 
   collectionIds = async (options = {}) => {

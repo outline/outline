@@ -17,7 +17,7 @@ import logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { Event, User, Team } from "@server/models";
-import { UserFlag, UserRole } from "@server/models/User";
+import { UserFlag, UserRole, UserPreference } from "@server/models/User";
 import { can, authorize } from "@server/policies";
 import { presentUser, presentPolicies } from "@server/presenters";
 import {
@@ -26,6 +26,8 @@ import {
   assertPresent,
   assertArray,
   assertUuid,
+  assertKeysIn,
+  assertUrl,
 } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
@@ -174,7 +176,7 @@ router.post("users.info", auth(), async (ctx) => {
 
 router.post("users.update", auth(), async (ctx) => {
   const { user } = ctx.state;
-  const { name, avatarUrl, language } = ctx.body;
+  const { name, avatarUrl, language, preferences } = ctx.body;
   if (name) {
     user.name = name;
   }
@@ -183,6 +185,16 @@ router.post("users.update", auth(), async (ctx) => {
   }
   if (language) {
     user.language = language;
+  }
+  if (preferences) {
+    assertKeysIn(preferences, UserPreference);
+    if (preferences.lastVisitedUrl) {
+      assertUrl(preferences.lastVisitedUrl);
+      user.setPreference(
+        UserPreference.LastVisitedUrl,
+        preferences.lastVisitedUrl
+      );
+    }
   }
   await user.save();
   await Event.create({

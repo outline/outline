@@ -393,6 +393,48 @@ describe("#users.update", () => {
     expect(body.data.name).toEqual("New name");
   });
 
+  it("should fail upon sending invalid user preference", async () => {
+    const { user } = await seed();
+    const res = await server.post("/api/users.update", {
+      body: {
+        token: user.getJwtToken(),
+        name: "New name",
+        preferences: { invalidPreference: "invalidValue" },
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should fail upon sending invalid user preference value", async () => {
+    const { user } = await seed();
+    const res = await server.post("/api/users.update", {
+      body: {
+        token: user.getJwtToken(),
+        name: "New name",
+        preferences: { lastVisitedUrl: "invalidUrl" },
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should update lastVisitedUrl user preference", async () => {
+    const { user } = await seed();
+    const res = await server.post("/api/users.update", {
+      body: {
+        token: user.getJwtToken(),
+        name: "New name",
+        preferences: {
+          lastVisitedUrl: "https://myoutline.com/doc/test-DjDlkBi77t",
+        },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.preferences.lastVisitedUrl).toBe(
+      "https://myoutline.com/doc/test-DjDlkBi77t"
+    );
+  });
+
   it("should require authentication", async () => {
     const res = await server.post("/api/users.update");
     const body = await res.json();

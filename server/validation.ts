@@ -33,6 +33,21 @@ export const assertIn = (
   }
 };
 
+/**
+ * Asserts that an object contains no other keys than specified
+ * by a type
+ *
+ * @param obj The object to check for assertion
+ * @param type The type to check against
+ * @throws {ValidationError}
+ */
+export function assertKeysIn(
+  obj: Record<string, unknown>,
+  type: { [key: string]: number | string }
+) {
+  Object.keys(obj).forEach((key) => assertIn(key, Object.values(type)));
+}
+
 export const assertSort = (
   value: string,
   model: any,

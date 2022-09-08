@@ -128,7 +128,7 @@ class Team extends ParanoidModel {
 
   @AllowNull
   @Column(DataType.JSONB)
-  preferences: TeamPreferences;
+  preferences: TeamPreferences | null;
 
   // getters
 
