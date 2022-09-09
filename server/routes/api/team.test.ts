@@ -223,6 +223,21 @@ describe("#team.update", () => {
     );
   });
 
+  it("should update allowEditWithCollaborativeEditing user preference", async () => {
+    const team = await buildTeam();
+    const admin = await buildAdmin({ teamId: team.id });
+
+    const res = await server.post("/api/team.update", {
+      body: {
+        token: admin.getJwtToken(),
+        preferences: { allowEditWithCollaborativeEditing: true },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.preferences.allowEditWithCollaborativeEditing).toBe(true);
+  });
+
   it("should default to home if default collection is deleted", async () => {
     const team = await buildTeam();
     const admin = await buildAdmin({ teamId: team.id });
