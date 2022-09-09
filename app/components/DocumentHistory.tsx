@@ -100,7 +100,7 @@ function DocumentHistory() {
                 documentId: document.id,
               }}
               document={document}
-              empty={<Empty>{t("No history yet")}</Empty>}
+              empty={<EmptyHistory>{t("No history yet")}</EmptyHistory>}
             />
           </Scrollable>
         </Position>
@@ -108,6 +108,10 @@ function DocumentHistory() {
     </Sidebar>
   );
 }
+
+const EmptyHistory = styled(Empty)`
+  padding: 0 12px;
+`;
 
 const Position = styled(Flex)`
   position: fixed;
