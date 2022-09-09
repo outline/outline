@@ -2,6 +2,7 @@ import { Transaction } from "sequelize";
 import { sequelize } from "@server/database/sequelize";
 import env from "@server/env";
 import { Event, Team, TeamDomain, User } from "@server/models";
+import { TeamPreference } from "@server/models/Team";
 
 type TeamUpdaterProps = {
   params: Partial<Omit<Team, "allowedDomains">> & { allowedDomains?: string[] };
@@ -24,6 +25,7 @@ const teamUpdater = async ({ params, user, team, ip }: TeamUpdaterProps) => {
     defaultUserRole,
     inviteRequired,
     allowedDomains,
+    preferences,
   } = params;
 
   const transaction: Transaction = await sequelize.transaction();
@@ -100,6 +102,15 @@ const teamUpdater = async ({ params, user, team, ip }: TeamUpdaterProps) => {
     await Promise.all(deletedDomains.map((x) => x.destroy({ transaction })));
 
     team.allowedDomains = newAllowedDomains;
+  }
+
+  if (preferences) {
+    if (preferences.defaultDocumentStatus) {
+      team.setPreference(
+        TeamPreference.DefaultDocumentStatus,
+        preferences.defaultDocumentStatus
+      );
+    }
   }
 
   const changes = team.changed();

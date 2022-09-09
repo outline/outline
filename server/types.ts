@@ -309,3 +309,8 @@ export type Event =
 export type NotificationMetadata = {
   notificationId?: string;
 };
+
+export enum DocumentStatus {
+  Draft = "draft",
+  Published = "published",
+}
