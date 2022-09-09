@@ -76,7 +76,7 @@ const AuthenticatedLayout: React.FC = ({ children }) => {
 
   const sidebarRight = (
     <React.Suspense fallback={null}>
-      <AnimatePresence>
+      <AnimatePresence key={ui.activeDocumentId}>
         <Switch
           location={location}
           key={
