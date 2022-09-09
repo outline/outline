@@ -23,6 +23,7 @@ import Fix from "./decorators/Fix";
     include: [
       {
         association: "user",
+        required: true,
       },
     ],
   },

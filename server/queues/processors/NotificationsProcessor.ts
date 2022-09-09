@@ -201,7 +201,6 @@ export default class NotificationsProcessor extends BaseProcessor {
         userId: {
           [Op.ne]: document.lastModifiedById,
         },
-        required: true,
         teamId: document.teamId,
         event: eventName,
       },
