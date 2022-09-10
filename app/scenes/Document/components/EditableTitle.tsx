@@ -117,6 +117,9 @@ const EditableTitle = React.forwardRef(
       lineHeight,
     });
 
+    const value =
+      !document.title && readOnly ? document.titleWithDefault : document.title;
+
     return (
       <Title
         onClick={handleClick}
@@ -124,7 +127,7 @@ const EditableTitle = React.forwardRef(
         onKeyDown={handleKeyDown}
         onBlur={onBlur}
         placeholder={placeholder}
-        value={document.titleWithDefault}
+        value={value}
         $emojiWidth={emojiWidth}
         $isStarred={document.isStarred}
         autoFocus={!document.title}
