@@ -38,10 +38,9 @@ const readFile = util.promisify(fs.readFile);
 
 export enum TeamPreference {
   DefaultDocumentStatus = "defaultDocumentStatus",
-  AllowEditWithCollaborativeEditing = "allowEditWithCollaborativeEditing",
 }
 
-export type TeamPreferences = { [key in TeamPreference]?: string | boolean };
+export type TeamPreferences = { [key in TeamPreference]?: string };
 
 @Scopes(() => ({
   withDomains: {
@@ -183,10 +182,7 @@ class Team extends ParanoidModel {
    * @param value The preference value
    * @returns The current team preferences
    */
-  public setPreference = (
-    preference: TeamPreference,
-    value: string | boolean
-  ) => {
+  public setPreference = (preference: TeamPreference, value: string) => {
     if (!this.preferences) {
       this.preferences = {};
     }

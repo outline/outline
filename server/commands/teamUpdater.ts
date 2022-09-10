@@ -1,4 +1,3 @@
-import { isNil } from "lodash";
 import { Transaction } from "sequelize";
 import { sequelize } from "@server/database/sequelize";
 import env from "@server/env";
@@ -110,13 +109,6 @@ const teamUpdater = async ({ params, user, team, ip }: TeamUpdaterProps) => {
       team.setPreference(
         TeamPreference.DefaultDocumentStatus,
         preferences.defaultDocumentStatus
-      );
-    }
-
-    if (!isNil(preferences.allowEditWithCollaborativeEditing)) {
-      team.setPreference(
-        TeamPreference.AllowEditWithCollaborativeEditing,
-        preferences.allowEditWithCollaborativeEditing
       );
     }
   }

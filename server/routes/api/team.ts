@@ -1,5 +1,4 @@
 import Router from "koa-router";
-import { isNil } from "lodash";
 import teamUpdater from "@server/commands/teamUpdater";
 import auth from "@server/middlewares/authentication";
 import { Team, TeamDomain } from "@server/models";
@@ -7,12 +6,7 @@ import { TeamPreference } from "@server/models/Team";
 import { authorize } from "@server/policies";
 import { presentTeam, presentPolicies } from "@server/presenters";
 import { DocumentStatus } from "@server/types";
-import {
-  assertUuid,
-  assertKeysIn,
-  assertIn,
-  assertBoolean,
-} from "@server/validation";
+import { assertUuid, assertKeysIn, assertIn } from "@server/validation";
 
 const router = new Router();
 
@@ -46,10 +40,6 @@ router.post("team.update", auth(), async (ctx) => {
         preferences.defaultDocumentStatus,
         Object.values(DocumentStatus)
       );
-    }
-
-    if (!isNil(preferences.allowEditWithCollaborativeEditing)) {
-      assertBoolean(preferences.allowEditWithCollaborativeEditing);
     }
   }
 

@@ -115,24 +115,6 @@ export function assertUrlPath(
   }
 }
 
-/**
- * Asserts that the passed value is a valid boolean
- *
- * @param value The value to check for assertion
- * @param [message] The error message to show
- * @throws {ValidationError}
- */
-export function assertBoolean(
-  value: IncomingValue,
-  message?: string
-): asserts value {
-  if (typeof value !== "boolean") {
-    throw ValidationError(
-      message ?? `${String(value)} is a ${typeof value}, not a boolean!`
-    );
-  }
-}
-
 export function assertUuid(
   value: IncomingValue,
   message?: string
