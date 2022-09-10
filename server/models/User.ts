@@ -55,10 +55,10 @@ export enum UserRole {
 }
 
 export enum UserPreference {
-  LastVisitedPath = "lastVisitedPath",
+  RememberLastPath = "rememberLastPath",
 }
 
-export type UserPreferences = { [key in UserPreference]?: string };
+export type UserPreferences = { [key in UserPreference]?: boolean };
 
 @Scopes(() => ({
   withAuthentications: {
@@ -301,15 +301,13 @@ class User extends ParanoidModel {
   };
 
   /**
-   * User preferences store user's preferences, for example,
-   * last visited url by the user etc. The method
-   * sets a particular preference
+   * Preferences set by the user that decide application behavior and ui.
    *
    * @param preference The user preference to set
-   * @param value Set the preference value
+   * @param value Sets the preference value
    * @returns The current user preferences
    */
-  public setPreference = (preference: UserPreference, value: string) => {
+  public setPreference = (preference: UserPreference, value: boolean) => {
     if (!this.preferences) {
       this.preferences = {};
     }
