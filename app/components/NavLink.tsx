@@ -1,3 +1,4 @@
+import { LocationDescriptor } from "history";
 import * as React from "react";
 import { match, NavLink, Route } from "react-router-dom";
 
@@ -12,7 +13,7 @@ type Props = React.ComponentProps<typeof NavLink> & {
   ) => React.ReactNode;
   exact?: boolean;
   activeStyle?: React.CSSProperties;
-  to: string;
+  to: LocationDescriptor;
 };
 
 function NavLinkWithChildrenFunc(
@@ -20,7 +21,7 @@ function NavLinkWithChildrenFunc(
   ref?: React.Ref<HTMLAnchorElement>
 ) {
   return (
-    <Route path={to} exact={exact}>
+    <Route path={typeof to === "string" ? to : to?.pathname} exact={exact}>
       {({ match, location }) => (
         <NavLink {...rest} to={to} exact={exact} ref={ref}>
           {children

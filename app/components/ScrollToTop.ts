@@ -8,11 +8,14 @@ type Props = {
 };
 
 export default function ScrollToTop({ children }: Props) {
-  const location = useLocation();
+  const location = useLocation<{ retainScrollPosition?: boolean }>();
   const previousLocationPathname = usePrevious(location.pathname);
 
   React.useEffect(() => {
-    if (location.pathname === previousLocationPathname) {
+    if (
+      location.pathname === previousLocationPathname ||
+      location.state?.retainScrollPosition
+    ) {
       return;
     }
     // exception for when entering or exiting document edit, scroll position should not reset
@@ -23,7 +26,11 @@ export default function ScrollToTop({ children }: Props) {
       return;
     }
     window.scrollTo(0, 0);
-  }, [location.pathname, previousLocationPathname]);
+  }, [
+    location.pathname,
+    previousLocationPathname,
+    location.state?.retainScrollPosition,
+  ]);
 
   return children;
 }

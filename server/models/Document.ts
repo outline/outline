@@ -1,4 +1,3 @@
-import { updateYFragment } from "@getoutline/y-prosemirror";
 import removeMarkdown from "@tommoor/remove-markdown";
 import invariant from "invariant";
 import { compact, find, map, uniq } from "lodash";
@@ -34,14 +33,12 @@ import {
 } from "sequelize-typescript";
 import MarkdownSerializer from "slate-md-serializer";
 import isUUID from "validator/lib/isUUID";
-import * as Y from "yjs";
 import { DateFilter } from "@shared/types";
 import getTasks from "@shared/utils/getTasks";
 import parseTitle from "@shared/utils/parseTitle";
 import unescape from "@shared/utils/unescape";
 import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
 import { DocumentValidation } from "@shared/validations";
-import { parser } from "@server/editor";
 import slugify from "@server/utils/slugify";
 import Backlink from "./Backlink";
 import Collection from "./Collection";
@@ -482,7 +479,7 @@ class Document extends ParanoidModel {
     query: string,
     options: SearchOptions = {}
   ): Promise<SearchResponse> {
-    const wildcardQuery = `${escape(query)}:*`;
+    const wildcardQuery = `${escapeQuery(query)}:*`;
     const {
       snippetMinWords = 20,
       snippetMaxWords = 30,
@@ -610,7 +607,7 @@ class Document extends ParanoidModel {
       limit = 15,
       offset = 0,
     } = options;
-    const wildcardQuery = `${escape(query)}:*`;
+    const wildcardQuery = `${escapeQuery(query)}:*`;
 
     // Ensure we're filtering by the users accessible collections. If
     // collectionId is passed as an option it is assumed that the authorization
@@ -730,38 +727,6 @@ class Document extends ParanoidModel {
   }
 
   // instance methods
-
-  updateFromMarkdown = (text: string, append = false) => {
-    this.text = append ? this.text + text : text;
-
-    if (this.state) {
-      const ydoc = new Y.Doc();
-      Y.applyUpdate(ydoc, this.state);
-      const type = ydoc.get("default", Y.XmlFragment) as Y.XmlFragment;
-      const doc = parser.parse(this.text);
-
-      if (!type.doc) {
-        throw new Error("type.doc not found");
-      }
-
-      // apply new document to existing ydoc
-      updateYFragment(type.doc, type, doc, new Map());
-
-      const state = Y.encodeStateAsUpdate(ydoc);
-      this.state = Buffer.from(state);
-      this.changed("state", true);
-    }
-  };
-
-  toMarkdown = () => {
-    const text = unescape(this.text);
-
-    if (this.version) {
-      return `# ${this.title}\n\n${text}`;
-    }
-
-    return text;
-  };
 
   migrateVersion = () => {
     let migrated = false;
@@ -1054,7 +1019,7 @@ class Document extends ParanoidModel {
   };
 }
 
-function escape(query: string): string {
+function escapeQuery(query: string): string {
   // replace "\" with escaped "\\" because sequelize.escape doesn't do it
   // https://github.com/sequelize/sequelize/issues/2950
   return Document.sequelize!.escape(query).replace(/\\/g, "\\\\");

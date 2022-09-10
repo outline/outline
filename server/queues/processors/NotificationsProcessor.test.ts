@@ -1,5 +1,11 @@
 import DocumentNotificationEmail from "@server/emails/templates/DocumentNotificationEmail";
-import { View, NotificationSetting, Subscription, Event } from "@server/models";
+import {
+  View,
+  NotificationSetting,
+  Subscription,
+  Event,
+  Notification,
+} from "@server/models";
 import {
   buildDocument,
   buildCollection,
@@ -72,6 +78,48 @@ describe("documents.publish", () => {
       ip,
     });
     expect(DocumentNotificationEmail.schedule).toHaveBeenCalled();
+  });
+
+  test("should send only one notification in a 12-hour window", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      teamId: user.teamId,
+      createdById: user.id,
+      lastModifiedById: user.id,
+    });
+
+    const recipient = await buildUser({
+      teamId: user.teamId,
+    });
+
+    await NotificationSetting.create({
+      userId: recipient.id,
+      teamId: recipient.teamId,
+      event: "documents.publish",
+    });
+
+    await Notification.create({
+      actorId: user.id,
+      userId: recipient.id,
+      documentId: document.id,
+      teamId: recipient.teamId,
+      event: "documents.publish",
+      emailedAt: new Date(),
+    });
+
+    const processor = new NotificationsProcessor();
+    await processor.perform({
+      name: "documents.publish",
+      documentId: document.id,
+      collectionId: document.collectionId,
+      teamId: document.teamId,
+      actorId: document.createdById,
+      data: {
+        title: document.title,
+      },
+      ip,
+    });
+    expect(DocumentNotificationEmail.schedule).not.toHaveBeenCalled();
   });
 
   test("should not send a notification to users without collection access", async () => {

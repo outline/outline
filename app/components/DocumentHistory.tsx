@@ -1,9 +1,10 @@
+import { m } from "framer-motion";
 import { observer } from "mobx-react";
 import { CloseIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useRouteMatch } from "react-router-dom";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Event from "~/models/Event";
 import Button from "~/components/Button";
@@ -11,6 +12,7 @@ import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
 import PaginatedEventList from "~/components/PaginatedEventList";
 import Scrollable from "~/components/Scrollable";
+import useKeyDown from "~/hooks/useKeyDown";
 import useStores from "~/hooks/useStores";
 import { documentUrl } from "~/utils/routeHelpers";
 
@@ -21,6 +23,7 @@ function DocumentHistory() {
   const { t } = useTranslation();
   const match = useRouteMatch<{ documentSlug: string }>();
   const history = useHistory();
+  const theme = useTheme();
   const document = documents.getByUrl(match.params.documentSlug);
 
   const eventsInDocument = document
@@ -44,7 +47,8 @@ function DocumentHistory() {
       eventsInDocument.unshift(
         new Event(
           {
-            name: "documents.latest_version",
+            id: "live",
+            name: "documents.live_editing",
             documentId: document.id,
             createdAt: document.updatedAt,
             actor: document.updatedBy,
@@ -57,8 +61,25 @@ function DocumentHistory() {
     return eventsInDocument;
   }, [eventsInDocument, events, document]);
 
+  useKeyDown("Escape", onCloseHistory);
+
   return (
-    <Sidebar>
+    <Sidebar
+      initial={{
+        width: 0,
+      }}
+      animate={{
+        transition: {
+          type: "spring",
+          bounce: 0.2,
+          duration: 0.6,
+        },
+        width: theme.sidebarWidth,
+      }}
+      exit={{
+        width: 0,
+      }}
+    >
       {document ? (
         <Position column>
           <Header>
@@ -79,7 +100,7 @@ function DocumentHistory() {
                 documentId: document.id,
               }}
               document={document}
-              empty={<Empty>{t("Oh weird, there's nothing here")}</Empty>}
+              empty={<EmptyHistory>{t("No history yet")}</EmptyHistory>}
             />
           </Scrollable>
         </Position>
@@ -88,6 +109,10 @@ function DocumentHistory() {
   );
 }
 
+const EmptyHistory = styled(Empty)`
+  padding: 0 12px;
+`;
+
 const Position = styled(Flex)`
   position: fixed;
   top: 0;
@@ -95,7 +120,7 @@ const Position = styled(Flex)`
   width: ${(props) => props.theme.sidebarWidth}px;
 `;
 
-const Sidebar = styled(Flex)`
+const Sidebar = styled(m.div)`
   display: none;
   position: relative;
   flex-shrink: 0;
@@ -125,7 +150,7 @@ const Title = styled(Flex)`
 const Header = styled(Flex)`
   align-items: center;
   position: relative;
-  padding: 12px;
+  padding: 16px 12px;
   color: ${(props) => props.theme.text};
   flex-shrink: 0;
 `;

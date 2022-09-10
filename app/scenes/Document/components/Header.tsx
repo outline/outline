@@ -20,6 +20,8 @@ import Collaborators from "~/components/Collaborators";
 import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
 import Header from "~/components/Header";
 import Tooltip from "~/components/Tooltip";
+import { restoreRevision } from "~/actions/definitions/revisions";
+import useActionContext from "~/hooks/useActionContext";
 import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -98,6 +100,10 @@ function DocumentHeader({
       publish: true,
     });
   }, [onSave]);
+
+  const context = useActionContext({
+    activeDocumentId: document?.id,
+  });
 
   const { isDeleted, isTemplate } = document;
   const can = usePolicy(document?.id);
@@ -217,7 +223,7 @@ function DocumentHeader({
             {!isPublishing && isSaving && !team?.collaborativeEditing && (
               <Status>{t("Saving")}…</Status>
             )}
-            {!isDeleted && <Collaborators document={document} />}
+            {!isDeleted && !isRevision && <Collaborators document={document} />}
             {(isEditing || team?.collaborativeEditing) && !isTemplate && isNew && (
               <Action>
                 <TemplatesMenu
@@ -226,11 +232,14 @@ function DocumentHeader({
                 />
               </Action>
             )}
-            {!isEditing && !isDeleted && (!isMobile || !isTemplate) && (
-              <Action>
-                <ShareButton document={document} />
-              </Action>
-            )}
+            {!isEditing &&
+              !isDeleted &&
+              !isRevision &&
+              (!isMobile || !isTemplate) && (
+                <Action>
+                  <ShareButton document={document} />
+                </Action>
+              )}
             {isEditing && (
               <>
                 <Action>
@@ -251,8 +260,11 @@ function DocumentHeader({
                 </Action>
               </>
             )}
-            {canEdit && !team?.collaborativeEditing && editAction}
-            {canEdit && can.createChildDocument && !isMobile && (
+            {canEdit &&
+              !team?.collaborativeEditing &&
+              !isRevision &&
+              editAction}
+            {canEdit && can.createChildDocument && !isRevision && !isMobile && (
               <Action>
                 <NewChildDocumentMenu
                   document={document}
@@ -283,6 +295,24 @@ function DocumentHeader({
                 >
                   {t("New from template")}
                 </Button>
+              </Action>
+            )}
+            {isRevision && (
+              <Action>
+                <Tooltip
+                  tooltip={t("Restore version")}
+                  delay={500}
+                  placement="bottom"
+                >
+                  <Button
+                    action={restoreRevision}
+                    context={context}
+                    neutral
+                    hideOnActionDisabled
+                  >
+                    {t("Restore")}
+                  </Button>
+                </Tooltip>
               </Action>
             )}
             {can.update && isDraft && !isRevision && (

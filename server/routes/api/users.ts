@@ -416,16 +416,16 @@ router.post(
 
     // If we're attempting to delete our own account then a confirmation code
     // is required. This acts as CSRF protection.
-    if (!id || id === ctx.state.user.id) {
+    if ((!id || id === ctx.state.user.id) && emailEnabled) {
       const deleteConfirmationCode = user.deleteConfirmationCode;
 
       if (
-        emailEnabled &&
-        (code.length !== deleteConfirmationCode.length ||
-          !crypto.timingSafeEqual(
-            Buffer.from(code),
-            Buffer.from(deleteConfirmationCode)
-          ))
+        !code ||
+        code.length !== deleteConfirmationCode.length ||
+        !crypto.timingSafeEqual(
+          Buffer.from(code),
+          Buffer.from(deleteConfirmationCode)
+        )
       ) {
         throw ValidationError("The confirmation code was incorrect");
       }

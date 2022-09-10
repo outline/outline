@@ -7,7 +7,7 @@ type Props = {
 };
 
 export default class EmailTask extends BaseTask<Props> {
-  public async perform({ templateName, props }: Props) {
+  public async perform({ templateName, props, ...metadata }: Props) {
     const EmailClass = emails[templateName];
     if (!EmailClass) {
       throw new Error(
@@ -15,7 +15,7 @@ export default class EmailTask extends BaseTask<Props> {
       );
     }
 
-    const email = new EmailClass(props);
+    const email = new EmailClass(props, metadata);
     return email.send();
   }
 }

@@ -43,6 +43,10 @@ function Collections() {
     }),
   });
 
+  React.useEffect(() => {
+    collections.fetchPage({ limit: 100 });
+  }, [collections]);
+
   return (
     <Flex column>
       <Header id="collections" title={t("Collections")}>
@@ -50,8 +54,6 @@ function Collections() {
           <PaginatedList
             aria-label={t("Collections")}
             items={collections.orderedData}
-            fetch={collections.fetchPage}
-            options={{ limit: 100 }}
             loading={<PlaceholderCollections />}
             heading={
               isDraggingAnyCollection ? (

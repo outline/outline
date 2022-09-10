@@ -13,6 +13,7 @@ type Props = {
   heading?: React.ReactNode;
   empty?: React.ReactNode;
 };
+
 const PaginatedEventList = React.memo<Props>(function PaginatedEventList({
   empty,
   heading,
@@ -23,32 +24,34 @@ const PaginatedEventList = React.memo<Props>(function PaginatedEventList({
   ...rest
 }: Props) {
   return (
-    <PaginatedList
+    <StyledPaginatedList
       items={events}
       empty={empty}
       heading={heading}
       fetch={fetch}
       options={options}
-      renderItem={(item: Event, index, compositeProps) => {
-        return (
-          <EventListItem
-            key={item.id}
-            event={item}
-            document={document}
-            latest={index === 0}
-            {...compositeProps}
-          />
-        );
-      }}
+      renderItem={(item: Event, index, compositeProps) => (
+        <EventListItem
+          key={item.id}
+          event={item}
+          document={document}
+          latest={index === 0}
+          {...compositeProps}
+        />
+      )}
       renderHeading={(name) => <Heading>{name}</Heading>}
       {...rest}
     />
   );
 });
 
+const StyledPaginatedList = styled(PaginatedList)`
+  padding: 0 8px;
+`;
+
 const Heading = styled("h3")`
   font-size: 14px;
-  padding: 0 12px;
+  padding: 0 4px;
 `;
 
 export default PaginatedEventList;

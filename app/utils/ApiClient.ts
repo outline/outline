@@ -26,6 +26,7 @@ type Options = {
 type FetchOptions = {
   download?: boolean;
   credentials?: "omit" | "same-origin" | "include";
+  headers?: Record<string, string>;
 };
 
 const fetchWithRetry = retry(fetch);
@@ -82,6 +83,7 @@ class ApiClient {
       "cache-control": "no-cache",
       "x-editor-version": EDITOR_VERSION,
       pragma: "no-cache",
+      ...options?.headers,
     };
 
     // for multipart forms or other non JSON requests fetch

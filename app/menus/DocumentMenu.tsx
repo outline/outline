@@ -296,6 +296,7 @@ function DocumentMenu({
             {
               type: "separator",
             },
+            actionToMenuItem(downloadDocument, context),
             {
               type: "route",
               title: t("History"),
@@ -305,7 +306,6 @@ function DocumentMenu({
               visible: canViewHistory,
               icon: <HistoryIcon />,
             },
-            actionToMenuItem(downloadDocument, context),
             {
               type: "button",
               title: t("Print"),

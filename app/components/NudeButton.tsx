@@ -10,7 +10,7 @@ type Props = ActionButtonProps & {
   type?: "button" | "submit" | "reset";
 };
 
-const StyledNudeButton = styled(ActionButton).attrs((props: Props) => ({
+const NudeButton = styled(ActionButton).attrs((props: Props) => ({
   type: "type" in props ? props.type : "button",
 }))<Props>`
   width: ${(props) => props.width || props.size || 24}px;
@@ -26,4 +26,4 @@ const StyledNudeButton = styled(ActionButton).attrs((props: Props) => ({
   color: inherit;
 `;
 
-export default StyledNudeButton;
+export default NudeButton;
