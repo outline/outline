@@ -13,7 +13,6 @@ import Flex from "~/components/Flex";
 import MenuIconWrapper from "~/components/MenuIconWrapper";
 import { actionToMenuItem } from "~/actions";
 import useActionContext from "~/hooks/useActionContext";
-import useBoolean from "~/hooks/useBoolean";
 import useMobile from "~/hooks/useMobile";
 import {
   Action,
@@ -46,35 +45,41 @@ const Submenu = React.forwardRef(
       templateItems,
       title,
       parentMenuId,
-      submenuOpen,
-      onClose,
       ...rest
     }: {
       templateItems: TMenuItem[];
       title: React.ReactNode;
       parentMenuId: string;
-      submenuOpen?: boolean;
-      onClose?: () => void;
     },
     ref: React.LegacyRef<HTMLButtonElement>
   ) => {
     const { t } = useTranslation();
     const theme = useTheme();
     const menu = useMenuState();
+    const isMobile = useMobile();
+
+    const hideParentMenu = React.useCallback(() => {
+      if (isMobile && menu.visible) {
+        const parentMenu = document.getElementById(parentMenuId);
+        parentMenu && (parentMenu.style.display = "none");
+      }
+    }, [isMobile, menu.visible, parentMenuId]);
 
     return (
       <>
-        {submenuOpen && (
-          <MenuButton ref={ref} {...menu} {...rest}>
-            {(props) => (
-              <MenuAnchor disclosure {...props}>
-                {title} <Disclosure color={theme.textTertiary} />
-              </MenuAnchor>
-            )}
-          </MenuButton>
-        )}
+        <MenuButton ref={ref} {...menu} {...rest}>
+          {(props) => (
+            <MenuAnchor disclosure {...props}>
+              {title} <Disclosure color={theme.textTertiary} />
+            </MenuAnchor>
+          )}
+        </MenuButton>
         <Portal>
-          <ContextMenu {...menu} onClose={onClose} aria-label={t("Submenu")}>
+          <ContextMenu
+            {...menu}
+            onOpen={hideParentMenu}
+            aria-label={t("Submenu")}
+          >
             <MouseSafeArea parentRef={menu.unstable_popoverRef} />
             <Template {...menu} items={templateItems} />
           </ContextMenu>
@@ -112,14 +117,6 @@ function Template({ items, actions, context, ...menu }: Props) {
   const ctx = useActionContext({
     isContextMenu: true,
   });
-
-  const [submenuOpen, openSubmenu, closeSubmenu] = useBoolean();
-  const isMobile = useMobile();
-  const theme = useTheme();
-
-  React.useEffect(() => {
-    console.log(submenuOpen);
-  }, [submenuOpen]);
 
   const templateItems = actions
     ? actions.map((item) =>
@@ -198,30 +195,6 @@ function Template({ items, actions, context, ...menu }: Props) {
         }
 
         if (item.type === "submenu") {
-          if (isMobile) {
-            return submenuOpen ? (
-              <Submenu
-                templateItems={item.items}
-                title={<Title title={item.title} icon={item.icon} />}
-                parentMenuId={menu.baseId}
-                submenuOpen={submenuOpen}
-                onClose={closeSubmenu}
-                {...menu}
-              />
-            ) : (
-              <MenuItem
-                key={index}
-                onClick={() => {
-                  openSubmenu();
-                  console.log(submenuOpen);
-                }}
-                {...menu}
-              >
-                <Title title={item.title} icon={item.icon} />
-                <Disclosure color={theme.textTertiary} />
-              </MenuItem>
-            );
-          }
           return (
             <BaseMenuItem
               key={index}
