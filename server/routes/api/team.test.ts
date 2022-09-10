@@ -1,7 +1,6 @@
 import { TeamDomain } from "@server/models";
 import { buildAdmin, buildCollection, buildTeam } from "@server/test/factories";
 import { seed, getTestDatabase, getTestServer } from "@server/test/support";
-import { DocumentStatus } from "@server/types";
 
 const db = getTestDatabase();
 const server = getTestServer();
@@ -178,49 +177,6 @@ describe("#team.update", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.defaultCollectionId).toEqual(collection.id);
-  });
-
-  it("should fail upon sending invalid team preference", async () => {
-    const team = await buildTeam();
-    const admin = await buildAdmin({ teamId: team.id });
-
-    const res = await server.post("/api/team.update", {
-      body: {
-        token: admin.getJwtToken(),
-        preferences: { invalidPreference: "invalidValue" },
-      },
-    });
-    expect(res.status).toEqual(400);
-  });
-
-  it("should fail upon sending invalid team preference value", async () => {
-    const team = await buildTeam();
-    const admin = await buildAdmin({ teamId: team.id });
-
-    const res = await server.post("/api/team.update", {
-      body: {
-        token: admin.getJwtToken(),
-        preferences: { defaultDocumentStatus: "invalidValue" },
-      },
-    });
-    expect(res.status).toEqual(400);
-  });
-
-  it("should update defaultDocumentStatus user preference", async () => {
-    const team = await buildTeam();
-    const admin = await buildAdmin({ teamId: team.id });
-
-    const res = await server.post("/api/team.update", {
-      body: {
-        token: admin.getJwtToken(),
-        preferences: { defaultDocumentStatus: "published" },
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.preferences.defaultDocumentStatus).toBe(
-      DocumentStatus.Published
-    );
   });
 
   it("should default to home if default collection is deleted", async () => {

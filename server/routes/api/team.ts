@@ -2,11 +2,9 @@ import Router from "koa-router";
 import teamUpdater from "@server/commands/teamUpdater";
 import auth from "@server/middlewares/authentication";
 import { Team, TeamDomain } from "@server/models";
-import { TeamPreference } from "@server/models/Team";
 import { authorize } from "@server/policies";
 import { presentTeam, presentPolicies } from "@server/presenters";
-import { DocumentStatus } from "@server/types";
-import { assertUuid, assertKeysIn, assertIn } from "@server/validation";
+import { assertUuid } from "@server/validation";
 
 const router = new Router();
 
@@ -24,7 +22,6 @@ router.post("team.update", auth(), async (ctx) => {
     defaultUserRole,
     inviteRequired,
     allowedDomains,
-    preferences,
   } = ctx.body;
 
   const { user } = ctx.state;
@@ -32,16 +29,6 @@ router.post("team.update", auth(), async (ctx) => {
     include: [{ model: TeamDomain }],
   });
   authorize(user, "update", team);
-
-  if (preferences) {
-    assertKeysIn(preferences, TeamPreference);
-    if (preferences.defaultDocumentStatus) {
-      assertIn(
-        preferences.defaultDocumentStatus,
-        Object.values(DocumentStatus)
-      );
-    }
-  }
 
   if (defaultCollectionId !== undefined && defaultCollectionId !== null) {
     assertUuid(defaultCollectionId, "defaultCollectionId must be uuid");
@@ -61,7 +48,6 @@ router.post("team.update", auth(), async (ctx) => {
       defaultUserRole,
       inviteRequired,
       allowedDomains,
-      preferences,
     },
     user,
     team,

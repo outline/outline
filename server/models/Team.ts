@@ -36,11 +36,7 @@ import NotContainsUrl from "./validators/NotContainsUrl";
 
 const readFile = util.promisify(fs.readFile);
 
-export enum TeamPreference {
-  DefaultDocumentStatus = "defaultDocumentStatus",
-}
-
-export type TeamPreferences = { [key in TeamPreference]?: string };
+export type TeamPreferences = Record<string, unknown>;
 
 @Scopes(() => ({
   withDomains: {
@@ -172,37 +168,6 @@ class Team extends ParanoidModel {
       })
     );
   }
-
-  /**
-   * Team preferences store team's preferences, for example,
-   * default document status while importing docs from other services.
-   * The method sets a particular preference
-   *
-   * @param preference The team preference to set
-   * @param value The preference value
-   * @returns The current team preferences
-   */
-  public setPreference = (preference: TeamPreference, value: string) => {
-    if (!this.preferences) {
-      this.preferences = {};
-    }
-    this.preferences[preference] = value;
-    this.changed("preferences", true);
-
-    return this.preferences;
-  };
-
-  /**
-   * Returns the passed preference value
-   *
-   * @param preference The team preference to retrieve
-   * @returns The preference value if set, else undefined
-   */
-  public getPreference = (preference: TeamPreference) => {
-    return !!this.preferences && this.preferences[preference]
-      ? this.preferences[preference]
-      : undefined;
-  };
 
   provisionFirstCollection = async (userId: string) => {
     await this.sequelize!.transaction(async (transaction) => {
