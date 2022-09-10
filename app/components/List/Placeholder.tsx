@@ -14,7 +14,7 @@ type Props = {
   body?: PlaceholderTextProps;
 };
 
-const ListPlaceHolder = ({ count, className, header, body }: Props) => {
+const Placeholder = ({ count, className, header, body }: Props) => {
   return (
     <Fade>
       {times(count || 2, (index) => (
@@ -31,4 +31,4 @@ const Item = styled(Flex)`
   padding: 10px 0;
 `;
 
-export default ListPlaceHolder;
+export default Placeholder;

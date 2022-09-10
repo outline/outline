@@ -165,7 +165,9 @@ class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
       return (
         this.props.loading || (
           <DelayedMount>
-            <PlaceholderList count={5} />
+            <div className={this.props.className}>
+              <PlaceholderList count={5} />
+            </div>
           </DelayedMount>
         )
       );
