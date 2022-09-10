@@ -6,7 +6,6 @@ import { Link } from "react-router-dom";
 import Collection from "~/models/Collection";
 import { Action, Separator } from "~/components/Actions";
 import Button from "~/components/Button";
-import InputSearchPage from "~/components/InputSearchPage";
 import Tooltip from "~/components/Tooltip";
 import usePolicy from "~/hooks/usePolicy";
 import CollectionMenu from "~/menus/CollectionMenu";
@@ -24,14 +23,6 @@ function Actions({ collection }: Props) {
     <>
       {!collection.isEmpty && (
         <>
-          <Action>
-            <InputSearchPage
-              source="collection"
-              placeholder={`${t("Search in collection")}…`}
-              label={`${t("Search in collection")}…`}
-              collectionId={collection.id}
-            />
-          </Action>
           {can.update && (
             <>
               <Action>

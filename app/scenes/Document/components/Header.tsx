@@ -174,7 +174,7 @@ function DocumentHeader({
       <Header
         title={document.title}
         hasSidebar={!!sharedTree}
-        breadcrumb={
+        left={
           isMobile ? (
             <TableOfContentsMenu headings={headings} />
           ) : (
@@ -201,7 +201,7 @@ function DocumentHeader({
     <>
       <Header
         hasSidebar
-        breadcrumb={
+        left={
           isMobile ? (
             <TableOfContentsMenu headings={headings} />
           ) : (

@@ -4,6 +4,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
 import Document from "~/models/Document";
+import User from "~/models/User";
 import { AvatarWithPresence } from "~/components/Avatar";
 import DocumentViews from "~/components/DocumentViews";
 import Facepile from "~/components/Facepile";
@@ -75,7 +76,7 @@ function Collaborators(props: Props) {
           <NudeButton width={collaborators.length * 32} height={32} {...props}>
             <Facepile
               users={collaborators}
-              renderAvatar={(collaborator) => {
+              renderAvatar={(collaborator: User) => {
                 const isPresent = presentIds.includes(collaborator.id);
                 const isEditing = editingIds.includes(collaborator.id);
                 const isObserving = ui.observingUserId === collaborator.id;

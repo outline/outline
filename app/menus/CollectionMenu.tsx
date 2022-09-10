@@ -226,6 +226,20 @@ function CollectionMenu({
         type: "separator",
       },
       {
+        type: "button",
+        title: `${t("Edit")}…`,
+        visible: can.update,
+        onClick: handleEdit,
+        icon: <EditIcon />,
+      },
+      {
+        type: "button",
+        title: `${t("Permissions")}…`,
+        visible: can.update,
+        onClick: handlePermissions,
+        icon: <PadlockIcon />,
+      },
+      {
         type: "submenu",
         title: t("Sort in sidebar"),
         visible: can.update,
@@ -248,20 +262,6 @@ function CollectionMenu({
             selected: !alphabeticalSort,
           },
         ],
-      },
-      {
-        type: "button",
-        title: `${t("Edit")}…`,
-        visible: can.update,
-        onClick: handleEdit,
-        icon: <EditIcon />,
-      },
-      {
-        type: "button",
-        title: `${t("Permissions")}…`,
-        visible: can.update,
-        onClick: handlePermissions,
-        icon: <PadlockIcon />,
       },
       {
         type: "button",

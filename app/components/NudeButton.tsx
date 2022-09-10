@@ -4,8 +4,8 @@ import ActionButton, {
 } from "~/components/ActionButton";
 
 type Props = ActionButtonProps & {
-  width?: number;
-  height?: number;
+  width?: number | string;
+  height?: number | string;
   size?: number;
   type?: "button" | "submit" | "reset";
 };
@@ -13,8 +13,14 @@ type Props = ActionButtonProps & {
 const NudeButton = styled(ActionButton).attrs((props: Props) => ({
   type: "type" in props ? props.type : "button",
 }))<Props>`
-  width: ${(props) => props.width || props.size || 24}px;
-  height: ${(props) => props.height || props.size || 24}px;
+  width: ${(props) =>
+    typeof props.width === "string"
+      ? props.width
+      : `${props.width || props.size || 24}px`};
+  height: ${(props) =>
+    typeof props.height === "string"
+      ? props.height
+      : `${props.width || props.size || 24}px`};
   background: none;
   border-radius: 4px;
   display: inline-block;

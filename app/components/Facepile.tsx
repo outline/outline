@@ -1,22 +1,26 @@
 import { observer } from "mobx-react";
+import { GroupIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
+import Group from "~/models/Group";
 import User from "~/models/User";
 import Avatar from "~/components/Avatar";
 import Flex from "~/components/Flex";
 
 type Props = {
-  users: User[];
+  users: (User | Group)[];
   size?: number;
   overflow?: number;
+  limit?: number;
   onClick?: React.MouseEventHandler<HTMLDivElement>;
-  renderAvatar?: (user: User) => React.ReactNode;
+  renderAvatar?: (user: User | Group) => React.ReactNode;
 };
 
 function Facepile({
   users,
   overflow = 0,
   size = 32,
+  limit = 8,
   renderAvatar = DefaultAvatar,
   ...rest
 }: Props) {
@@ -24,18 +28,25 @@ function Facepile({
     <Avatars {...rest}>
       {overflow > 0 && (
         <More size={size}>
-          <span>+{overflow}</span>
+          <span>
+            {users.length ? "+" : ""}
+            {overflow}
+          </span>
         </More>
       )}
-      {users.map((user) => (
+      {users.slice(0, limit).map((user) => (
         <AvatarWrapper key={user.id}>{renderAvatar(user)}</AvatarWrapper>
       ))}
     </Avatars>
   );
 }
 
-function DefaultAvatar(user: User) {
-  return <Avatar user={user} src={user.avatarUrl} size={32} />;
+function DefaultAvatar(user: User | Group) {
+  return "avatarUrl" in user ? (
+    <Avatar user={user} src={user.avatarUrl} size={32} />
+  ) : (
+    <GroupIcon size={32} />
+  );
 }
 
 const AvatarWrapper = styled.div`
