@@ -429,7 +429,6 @@
   "Archived by {{userName}}": "{{userName}} 에 의해 보관됨",
   "Deleted by {{userName}}": "{{userName}} 에 의해 삭제됨",
   "Observing {{ userName }}": "Observing {{ userName }}",
-  "Nested documents": "하위 문서들",
   "Backlinks": "Backlinks",
   "Anyone with the link <1></1>can view this document": "링크 <1></1> 가 있는 모든 사용자는 이 문서를 볼 수 있습니다",
   "Share": "공유하기",
