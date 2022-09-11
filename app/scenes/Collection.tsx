@@ -119,7 +119,7 @@ function CollectionScene() {
           <InputSearchPage
             source="collection"
             placeholder={`${t("Search in collection")}…`}
-            label={`${t("Search in collection")}…`}
+            label={t("Search in collection")}
             collectionId={collection.id}
           />
         )

@@ -1,19 +1,16 @@
 import { observer } from "mobx-react";
-import { GroupIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
-import Group from "~/models/Group";
 import User from "~/models/User";
 import Avatar from "~/components/Avatar";
 import Flex from "~/components/Flex";
 
 type Props = {
-  users: (User | Group)[];
+  users: User[];
   size?: number;
   overflow?: number;
   limit?: number;
-  onClick?: React.MouseEventHandler<HTMLDivElement>;
-  renderAvatar?: (user: User | Group) => React.ReactNode;
+  renderAvatar?: (user: User) => React.ReactNode;
 };
 
 function Facepile({
@@ -41,12 +38,8 @@ function Facepile({
   );
 }
 
-function DefaultAvatar(user: User | Group) {
-  return "avatarUrl" in user ? (
-    <Avatar user={user} src={user.avatarUrl} size={32} />
-  ) : (
-    <GroupIcon size={32} />
-  );
+function DefaultAvatar(user: User) {
+  return <Avatar user={user} src={user.avatarUrl} size={32} />;
 }
 
 const AvatarWrapper = styled.div`
