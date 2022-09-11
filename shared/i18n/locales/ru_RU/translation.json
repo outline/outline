@@ -429,7 +429,6 @@
   "Archived by {{userName}}": "Архивировано {{userName}}",
   "Deleted by {{userName}}": "Удалено {{userName}}",
   "Observing {{ userName }}": "Наблюдение за {{ userName }}",
-  "Nested documents": "Вложенные документы",
   "Backlinks": "Обратные ссылки",
   "Anyone with the link <1></1>can view this document": "Все, у кого есть ссылка <1></1> смогут просмотреть этот документ",
   "Share": "Поделиться",
