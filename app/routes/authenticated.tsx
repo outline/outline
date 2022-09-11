@@ -26,7 +26,7 @@ const SettingsRoutes = React.lazy(
 const Document = React.lazy(
   () =>
     import(
-      /* webpackChunkName: "document" */
+      /* webpackChunkName: "preload-document" */
       "~/scenes/Document"
     )
 );

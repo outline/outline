@@ -8,14 +8,14 @@ import { matchDocumentSlug as slug } from "~/utils/routeHelpers";
 const Authenticated = React.lazy(
   () =>
     import(
-      /* webpackChunkName: "authenticated" */
+      /* webpackChunkName: "preload-authenticated" */
       "~/components/Authenticated"
     )
 );
 const AuthenticatedRoutes = React.lazy(
   () =>
     import(
-      /* webpackChunkName: "authenticated-routes" */
+      /* webpackChunkName: "preload-authenticated-routes" */
       "./authenticated"
     )
 );

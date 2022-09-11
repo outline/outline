@@ -32,7 +32,7 @@ import DocumentBreadcrumb from "./DocumentBreadcrumb";
 const LazyLoadedEditor = React.lazy(
   () =>
     import(
-      /* webpackChunkName: "shared-editor" */
+      /* webpackChunkName: "preload-shared-editor" */
       "~/editor"
     )
 );

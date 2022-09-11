@@ -28,7 +28,6 @@ try {
   // no-op
 }
 
-let index = 0;
 Object.values(manifestData).forEach((filename) => {
   if (typeof filename !== "string") {
     return;
@@ -43,18 +42,11 @@ Object.values(manifestData).forEach((filename) => {
     const shouldPreload =
       filename.includes("/main") ||
       filename.includes("/runtime") ||
-      filename.includes("/vendors");
-    // only prefetch the first few javascript chunks or it gets out of hand fast
-    const shouldPrefetch = ++index <= 6;
+      filename.includes("preload-");
 
-    if (shouldPreload || shouldPrefetch) {
+    if (shouldPreload) {
       prefetchTags.push(
-        <link
-          rel={shouldPreload ? "preload" : "prefetch"}
-          href={filename}
-          key={filename}
-          as="script"
-        />
+        <link rel="preload" href={filename} key={filename} as="script" />
       );
     }
   } else if (filename.endsWith(".css")) {
