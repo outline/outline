@@ -65,6 +65,7 @@ function CollectionMenu({
   const handleExport = React.useCallback(() => {
     dialogs.openModal({
       title: t("Export collection"),
+      isCentered: true,
       content: (
         <CollectionExport
           collection={collection}
