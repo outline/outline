@@ -429,7 +429,6 @@
   "Archived by {{userName}}": "{{userName}} tarafından arşivlendi",
   "Deleted by {{userName}}": "{{userName}} tarafından silindi",
   "Observing {{ userName }}": "{{ userName }} gözlemliyor",
-  "Nested documents": "İç içe belgeler",
   "Backlinks": "Geri bağlantılar",
   "Anyone with the link <1></1>can view this document": "<1></1> bağlantısına sahip olan herkes bu belgeyi görüntüleyebilir",
   "Share": "Paylaş",
