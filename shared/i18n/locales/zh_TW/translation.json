@@ -429,7 +429,6 @@
   "Archived by {{userName}}": "已由 {{userName}} 封存",
   "Deleted by {{userName}}": "已由 {{userName}} 刪除",
   "Observing {{ userName }}": "Observing {{ userName }}",
-  "Nested documents": "子文件",
   "Backlinks": "Backlinks",
   "Anyone with the link <1></1>can view this document": "任何人只要擁有此連結 <1></1> 都可以檢視這份文件",
   "Share": "分享",
