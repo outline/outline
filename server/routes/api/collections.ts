@@ -316,21 +316,25 @@ router.post(
       where = { ...where, permission };
     }
 
+    const options = {
+      where,
+      include: [
+        {
+          model: Group,
+          as: "group",
+          where: groupWhere,
+          required: true,
+        },
+      ],
+    };
+
     const [total, memberships] = await Promise.all([
-      CollectionGroup.count({ where }),
+      CollectionGroup.count(options),
       CollectionGroup.findAll({
-        where,
+        ...options,
         order: [["createdAt", "DESC"]],
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
-        include: [
-          {
-            model: Group,
-            as: "group",
-            where: groupWhere,
-            required: true,
-          },
-        ],
       }),
     ]);
 
@@ -461,21 +465,25 @@ router.post("collections.memberships", auth(), pagination(), async (ctx) => {
     where = { ...where, permission };
   }
 
+  const options = {
+    where,
+    include: [
+      {
+        model: User,
+        as: "user",
+        where: userWhere,
+        required: true,
+      },
+    ],
+  };
+
   const [total, memberships] = await Promise.all([
-    CollectionUser.count({ where }),
+    CollectionUser.count(options),
     CollectionUser.findAll({
-      where,
+      ...options,
       order: [["createdAt", "DESC"]],
       offset: ctx.state.pagination.offset,
       limit: ctx.state.pagination.limit,
-      include: [
-        {
-          model: User,
-          as: "user",
-          where: userWhere,
-          required: true,
-        },
-      ],
     }),
   ]);
 

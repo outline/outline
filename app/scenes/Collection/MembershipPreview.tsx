@@ -12,9 +12,10 @@ import useStores from "~/hooks/useStores";
 
 type Props = {
   collection: Collection;
+  limit?: number;
 };
 
-const MembershipPreview = ({ collection }: Props) => {
+const MembershipPreview = ({ collection, limit = 8 }: Props) => {
   const [isLoading, setIsLoading] = React.useState(false);
   const [totalMemberships, setTotalMemberships] = React.useState(0);
   const { t } = useTranslation();
@@ -32,7 +33,7 @@ const MembershipPreview = ({ collection }: Props) => {
       try {
         const options = {
           id: collection.id,
-          limit: 8,
+          limit,
         };
         const [users, groups] = await Promise.all([
           memberships.fetchPage(options),
@@ -52,6 +53,7 @@ const MembershipPreview = ({ collection }: Props) => {
     collection.id,
     collectionGroupMemberships,
     memberships,
+    limit,
   ]);
 
   if (isLoading || collection.permission) {
@@ -72,7 +74,7 @@ const MembershipPreview = ({ collection }: Props) => {
       height="auto"
     >
       <Fade>
-        <Facepile users={collectionUsers} overflow={overflow} />
+        <Facepile users={collectionUsers} overflow={overflow} limit={limit} />
       </Fade>
     </NudeButton>
   );
