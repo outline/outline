@@ -316,22 +316,26 @@ router.post(
       where = { ...where, permission };
     }
 
-    const memberships = await CollectionGroup.findAll({
-      where,
-      order: [["createdAt", "DESC"]],
-      offset: ctx.state.pagination.offset,
-      limit: ctx.state.pagination.limit,
-      include: [
-        {
-          model: Group,
-          as: "group",
-          where: groupWhere,
-          required: true,
-        },
-      ],
-    });
+    const [total, memberships] = await Promise.all([
+      CollectionGroup.count({ where }),
+      CollectionGroup.findAll({
+        where,
+        order: [["createdAt", "DESC"]],
+        offset: ctx.state.pagination.offset,
+        limit: ctx.state.pagination.limit,
+        include: [
+          {
+            model: Group,
+            as: "group",
+            where: groupWhere,
+            required: true,
+          },
+        ],
+      }),
+    ]);
+
     ctx.body = {
-      pagination: ctx.state.pagination,
+      pagination: { ...ctx.state.pagination, total },
       data: {
         collectionGroupMemberships: memberships.map(
           presentCollectionGroupMembership
@@ -457,23 +461,26 @@ router.post("collections.memberships", auth(), pagination(), async (ctx) => {
     where = { ...where, permission };
   }
 
-  const memberships = await CollectionUser.findAll({
-    where,
-    order: [["createdAt", "DESC"]],
-    offset: ctx.state.pagination.offset,
-    limit: ctx.state.pagination.limit,
-    include: [
-      {
-        model: User,
-        as: "user",
-        where: userWhere,
-        required: true,
-      },
-    ],
-  });
+  const [total, memberships] = await Promise.all([
+    CollectionUser.count({ where }),
+    CollectionUser.findAll({
+      where,
+      order: [["createdAt", "DESC"]],
+      offset: ctx.state.pagination.offset,
+      limit: ctx.state.pagination.limit,
+      include: [
+        {
+          model: User,
+          as: "user",
+          where: userWhere,
+          required: true,
+        },
+      ],
+    }),
+  ]);
 
   ctx.body = {
-    pagination: ctx.state.pagination,
+    pagination: { ...ctx.state.pagination, total },
     data: {
       memberships: memberships.map(presentMembership),
       users: memberships.map((membership) => presentUser(membership.user)),

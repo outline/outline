@@ -18,6 +18,7 @@ import CenteredContent from "~/components/CenteredContent";
 import CollectionDescription from "~/components/CollectionDescription";
 import CollectionIcon from "~/components/CollectionIcon";
 import Heading from "~/components/Heading";
+import InputSearchPage from "~/components/InputSearchPage";
 import PlaceholderList from "~/components/List/Placeholder";
 import PaginatedDocumentList from "~/components/PaginatedDocumentList";
 import PinnedDocuments from "~/components/PinnedDocuments";
@@ -35,6 +36,7 @@ import { collectionUrl, updateCollectionUrl } from "~/utils/routeHelpers";
 import Actions from "./Collection/Actions";
 import DropToImport from "./Collection/DropToImport";
 import Empty from "./Collection/Empty";
+import MembershipPreview from "./Collection/MembershipPreview";
 
 function CollectionScene() {
   const params = useParams<{ id?: string }>();
@@ -112,13 +114,28 @@ function CollectionScene() {
       key={collection.id}
       centered={false}
       textTitle={collection.name}
+      left={
+        collection.isEmpty ? undefined : (
+          <InputSearchPage
+            source="collection"
+            placeholder={`${t("Search in collection")}…`}
+            label={t("Search in collection")}
+            collectionId={collection.id}
+          />
+        )
+      }
       title={
         <>
           <CollectionIcon collection={collection} expanded />
           &nbsp;{collection.name}
         </>
       }
-      actions={<Actions collection={collection} />}
+      actions={
+        <>
+          <MembershipPreview collection={collection} />
+          <Actions collection={collection} />
+        </>
+      }
     >
       <DropToImport
         accept={documents.importFileTypes.join(", ")}

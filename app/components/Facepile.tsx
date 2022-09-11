@@ -9,7 +9,7 @@ type Props = {
   users: User[];
   size?: number;
   overflow?: number;
-  onClick?: React.MouseEventHandler<HTMLDivElement>;
+  limit?: number;
   renderAvatar?: (user: User) => React.ReactNode;
 };
 
@@ -17,6 +17,7 @@ function Facepile({
   users,
   overflow = 0,
   size = 32,
+  limit = 8,
   renderAvatar = DefaultAvatar,
   ...rest
 }: Props) {
@@ -24,10 +25,13 @@ function Facepile({
     <Avatars {...rest}>
       {overflow > 0 && (
         <More size={size}>
-          <span>+{overflow}</span>
+          <span>
+            {users.length ? "+" : ""}
+            {overflow}
+          </span>
         </More>
       )}
-      {users.map((user) => (
+      {users.slice(0, limit).map((user) => (
         <AvatarWrapper key={user.id}>{renderAvatar(user)}</AvatarWrapper>
       ))}
     </Avatars>

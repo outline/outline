@@ -8,7 +8,7 @@ type Props = {
   icon?: React.ReactNode;
   title?: React.ReactNode;
   textTitle?: string;
-  breadcrumb?: React.ReactNode;
+  left?: React.ReactNode;
   actions?: React.ReactNode;
   centered?: boolean;
 };
@@ -18,7 +18,7 @@ const Scene: React.FC<Props> = ({
   icon,
   textTitle,
   actions,
-  breadcrumb,
+  left,
   children,
   centered,
 }) => {
@@ -37,7 +37,7 @@ const Scene: React.FC<Props> = ({
           )
         }
         actions={actions}
-        breadcrumb={breadcrumb}
+        left={left}
       />
       {centered !== false ? (
         <CenteredContent withStickyHeader>{children}</CenteredContent>
