@@ -50,7 +50,7 @@ function PublicReferences(props: Props) {
 
   return (
     <>
-      <Subheading>{t("Nested documents")}</Subheading>
+      <Subheading>{t("Documents")}</Subheading>
       {children.map((node) => (
         <ReferenceListItem key={node.id} document={node} shareId={shareId} />
       ))}

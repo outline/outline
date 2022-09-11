@@ -37,7 +37,7 @@ function References({ document }: Props) {
       <Tabs>
         {showChildDocuments && (
           <Tab to="#children" isActive={() => !isBacklinksTab}>
-            <Trans>Nested documents</Trans>
+            <Trans>Documents</Trans>
           </Tab>
         )}
         {showBacklinks && (
