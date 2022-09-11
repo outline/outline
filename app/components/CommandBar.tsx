@@ -38,10 +38,10 @@ function CommandBar() {
 
   return (
     <>
-      <SearchActions />
       <KBarPortal>
         <Positioner>
           <Animator>
+            <SearchActions />
             <SearchInput
               placeholder={`${
                 rootAction?.placeholder ||
