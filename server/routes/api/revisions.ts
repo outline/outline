@@ -79,7 +79,9 @@ router.post("revisions.diff", auth(), async (ctx) => {
     ctx.set("Content-Type", "text/html");
     ctx.set(
       "Content-Disposition",
-      `attachment; filename="${slugify(document.title)}.html"`
+      `attachment; filename="${slugify(document.titleWithDefault)}-${
+        revision.id
+      }.html"`
     );
     ctx.body = content;
     return;

@@ -472,9 +472,9 @@ router.post(
       ctx.set("Content-Type", contentType);
       ctx.set(
         "Content-Disposition",
-        `attachment; filename="${slugify(document.title)}.${mime.extension(
-          contentType
-        )}"`
+        `attachment; filename="${slugify(
+          document.titleWithDefault
+        )}.${mime.extension(contentType)}"`
       );
       ctx.body = content;
       return;

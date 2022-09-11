@@ -759,6 +759,10 @@ class Document extends ParanoidModel {
     return undefined;
   };
 
+  get titleWithDefault(): string {
+    return this.title || "Untitled";
+  }
+
   /**
    * Get a list of users that have collaborated on this document
    *
