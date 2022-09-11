@@ -20,7 +20,7 @@ const NudeButton = styled(ActionButton).attrs((props: Props) => ({
   height: ${(props) =>
     typeof props.height === "string"
       ? props.height
-      : `${props.width || props.size || 24}px`};
+      : `${props.height || props.size || 24}px`};
   background: none;
   border-radius: 4px;
   display: inline-block;
