@@ -55,7 +55,7 @@ function CollectionExport({ collection, onSubmit }: Props) {
           </Trans>
         </Text>
         <Button type="submit" disabled={isLoading} primary>
-          {isLoading ? `${t("Exporting")}…` : t("Export Collection")}
+          {isLoading ? `${t("Exporting")}…` : t("Export collection")}
         </Button>
       </form>
     </Flex>
