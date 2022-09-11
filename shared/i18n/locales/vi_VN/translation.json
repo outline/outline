@@ -429,7 +429,6 @@
   "Archived by {{userName}}": "Được lưu trữ bởi {{userName}}",
   "Deleted by {{userName}}": "Đã xóa bởi {{userName}}",
   "Observing {{ userName }}": "Quan sát {{ userName }}",
-  "Nested documents": "Tài liệu lồng nhau",
   "Backlinks": "Liên kết ngược",
   "Anyone with the link <1></1>can view this document": "Bất kỳ ai có liên kết <1></1> có thể xem tài liệu này",
   "Share": "Chia sẻ",
