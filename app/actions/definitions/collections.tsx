@@ -1,6 +1,7 @@
 import {
   CollectionIcon,
   EditIcon,
+  PadlockIcon,
   PlusIcon,
   StarredIcon,
   UnstarredIcon,
@@ -10,6 +11,7 @@ import stores from "~/stores";
 import Collection from "~/models/Collection";
 import CollectionEdit from "~/scenes/CollectionEdit";
 import CollectionNew from "~/scenes/CollectionNew";
+import CollectionPermissions from "~/scenes/CollectionPermissions";
 import DynamicCollectionIcon from "~/components/CollectionIcon";
 import { createAction } from "~/actions";
 import { CollectionSection } from "~/actions/sections";
@@ -56,7 +58,8 @@ export const createCollection = createAction({
 });
 
 export const editCollection = createAction({
-  name: ({ t }) => t("Edit collection"),
+  name: ({ t, isContextMenu }) =>
+    isContextMenu ? `${t("Edit")}…` : t("Edit collection"),
   section: CollectionSection,
   icon: <EditIcon />,
   visible: ({ stores, activeCollectionId }) =>
@@ -75,6 +78,26 @@ export const editCollection = createAction({
           collectionId={activeCollectionId}
         />
       ),
+    });
+  },
+});
+
+export const editCollectionPermissions = createAction({
+  name: ({ t, isContextMenu }) =>
+    isContextMenu ? `${t("Permissions")}…` : t("Collection permissions"),
+  section: CollectionSection,
+  icon: <PadlockIcon />,
+  visible: ({ stores, activeCollectionId }) =>
+    !!activeCollectionId &&
+    stores.policies.abilities(activeCollectionId).update,
+  perform: ({ t, activeCollectionId }) => {
+    if (!activeCollectionId) {
+      return;
+    }
+
+    stores.dialogs.openModal({
+      title: t("Collection permissions"),
+      content: <CollectionPermissions collectionId={activeCollectionId} />,
     });
   },
 });

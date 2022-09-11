@@ -21,30 +21,26 @@ function Actions({ collection }: Props) {
 
   return (
     <>
-      {!collection.isEmpty && (
+      {can.update && (
         <>
-          {can.update && (
-            <>
-              <Action>
-                <Tooltip
-                  tooltip={t("New document")}
-                  shortcut="n"
-                  delay={500}
-                  placement="bottom"
-                >
-                  <Button
-                    as={Link}
-                    to={collection ? newDocumentPath(collection.id) : ""}
-                    disabled={!collection}
-                    icon={<PlusIcon />}
-                  >
-                    {t("New doc")}
-                  </Button>
-                </Tooltip>
-              </Action>
-              <Separator />
-            </>
-          )}
+          <Action>
+            <Tooltip
+              tooltip={t("New document")}
+              shortcut="n"
+              delay={500}
+              placement="bottom"
+            >
+              <Button
+                as={Link}
+                to={collection ? newDocumentPath(collection.id) : ""}
+                disabled={!collection}
+                icon={<PlusIcon />}
+              >
+                {t("New doc")}
+              </Button>
+            </Tooltip>
+          </Action>
+          <Separator />
         </>
       )}
       <Action>

@@ -6,9 +6,9 @@ import Collection from "~/models/Collection";
 import Facepile from "~/components/Facepile";
 import Fade from "~/components/Fade";
 import NudeButton from "~/components/NudeButton";
-import Tooltip from "~/components/Tooltip";
+import { editCollectionPermissions } from "~/actions/definitions/collections";
+import useActionContext from "~/hooks/useActionContext";
 import useStores from "~/hooks/useStores";
-import CollectionPermissions from "../CollectionPermissions";
 
 type Props = {
   collection: Collection;
@@ -18,20 +18,9 @@ const MembershipPreview = ({ collection }: Props) => {
   const [isLoading, setIsLoading] = React.useState(false);
   const [totalMemberships, setTotalMemberships] = React.useState(0);
   const { t } = useTranslation();
-  const {
-    memberships,
-    collectionGroupMemberships,
-    users,
-    dialogs,
-  } = useStores();
+  const { memberships, collectionGroupMemberships, users } = useStores();
   const collectionUsers = users.inCollection(collection.id);
-
-  const handlePermissions = React.useCallback(() => {
-    dialogs.openModal({
-      title: t("Collection permissions"),
-      content: <CollectionPermissions collection={collection} />,
-    });
-  }, [collection, dialogs, t]);
+  const context = useActionContext();
 
   React.useEffect(() => {
     const fetchData = async () => {
@@ -72,13 +61,20 @@ const MembershipPreview = ({ collection }: Props) => {
   const overflow = totalMemberships - collectionUsers.length;
 
   return (
-    <Tooltip tooltip={t("Users and groups with access")} delay={250}>
-      <NudeButton onClick={handlePermissions} width="auto" height="auto">
-        <Fade>
-          <Facepile users={collectionUsers} overflow={overflow} />
-        </Fade>
-      </NudeButton>
-    </Tooltip>
+    <NudeButton
+      context={context}
+      action={editCollectionPermissions}
+      tooltip={{
+        tooltip: t("Users and groups with access"),
+        delay: 250,
+      }}
+      width="auto"
+      height="auto"
+    >
+      <Fade>
+        <Facepile users={collectionUsers} overflow={overflow} />
+      </Fade>
+    </NudeButton>
   );
 };
 
