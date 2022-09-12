@@ -12219,10 +12219,10 @@ property-information@^5.0.0:
   dependencies:
     xtend "^4.0.0"
 
-prosemirror-commands@1.2.2:
-  version "1.2.2"
-  resolved "https://registry.yarnpkg.com/prosemirror-commands/-/prosemirror-commands-1.2.2.tgz#1bd167372ee20abf488aca9cece63c43fab182c9"
-  integrity sha512-TX+KpWudMon06frryfpO/u7hsQv2hu8L4VSVbCpi3/7wXHBgl+35mV85qfa3RpT8xD2f3MdeoTqH0vy5JdbXPg==
+prosemirror-commands@1.3.1:
+  version "1.3.1"
+  resolved "https://registry.yarnpkg.com/prosemirror-commands/-/prosemirror-commands-1.3.1.tgz#926c88801eebaa50363d4658850b41406d375a31"
+  integrity sha512-XTporPgoECkOQACVw0JTe3RZGi+fls3/byqt+tXwGTkD7qLuB4KdVrJamDMJf4kfKga3uB8hZ+kUUyZ5oWpnfg==
   dependencies:
     prosemirror-model "^1.0.0"
     prosemirror-state "^1.0.0"
