@@ -31,7 +31,7 @@ function DocumentMetaWithViews({ to, isDraft, document, ...rest }: Props) {
   });
 
   return (
-    <Meta document={document} to={to} {...rest}>
+    <Meta document={document} to={to} replace {...rest}>
       {totalViewers && !isDraft ? (
         <PopoverDisclosure {...popover}>
           {(props) => (

@@ -18,6 +18,7 @@ type Props = {
   showLastViewed?: boolean;
   showParentDocuments?: boolean;
   document: Document;
+  replace?: boolean;
   to?: LocationDescriptor;
 };
 
@@ -28,6 +29,7 @@ const DocumentMeta: React.FC<Props> = ({
   showParentDocuments,
   document,
   children,
+  replace,
   to,
   ...rest
 }) => {
@@ -145,7 +147,13 @@ const DocumentMeta: React.FC<Props> = ({
 
   return (
     <Container align="center" rtl={document.dir === "rtl"} {...rest} dir="ltr">
-      {to ? <Link to={to}>{content}</Link> : content}
+      {to ? (
+        <Link to={to} replace={replace}>
+          {content}
+        </Link>
+      ) : (
+        content
+      )}
       {showCollection && collection && (
         <span>
           &nbsp;{t("in")}&nbsp;
