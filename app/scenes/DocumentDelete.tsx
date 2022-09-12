@@ -44,16 +44,13 @@ function DocumentDelete({ document, onSubmit }: Props) {
 
             if (parent) {
               history.push(documentUrl(parent));
-            }
-            else {
-              // if it is not available in the store then redirect to the collection
-              history.push(collectionUrl(collection?.url || "/"));
+              onSubmit();
+              return;
             }
           }
-          else {
-            // If it has no parent then redirect to the collection home
-            history.push(collectionUrl(collection?.url || "/"));
-          }
+
+          // otherwise, redirect to the collection home
+          history.push(collectionUrl(collection?.url || "/"));
         }
 
         onSubmit();
