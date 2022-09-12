@@ -15,6 +15,14 @@ function KeyboardShortcuts() {
         title: t("Navigation"),
         items: [
           {
+            shortcut: (
+              <>
+                <Key symbol>{metaDisplay}</Key> + <Key>k</Key>
+              </>
+            ),
+            label: t("Open command menu"),
+          },
+          {
             shortcut: <Key>n</Key>,
             label: t("New document"),
           },
