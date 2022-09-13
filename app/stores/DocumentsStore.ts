@@ -4,6 +4,7 @@ import { find, orderBy, filter, compact, omitBy } from "lodash";
 import { observable, action, computed, runInAction } from "mobx";
 import { DateFilter } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
+import { bytesToHumanReadable } from "@shared/utils/files";
 import naturalSort from "@shared/utils/naturalSort";
 import { DocumentValidation } from "@shared/validations";
 import BaseStore from "~/stores/BaseStore";
@@ -583,7 +584,11 @@ export default class DocumentsStore extends BaseStore<Document> {
     }
 
     if (file.size > env.MAXIMUM_IMPORT_SIZE) {
-      throw new Error("The selected file was too large to import");
+      throw new Error(
+        `The selected file was larger than the ${bytesToHumanReadable(
+          env.MAXIMUM_IMPORT_SIZE
+        )} maximum size`
+      );
     }
 
     const title = file.name.replace(/\.[^/.]+$/, "");
