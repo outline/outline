@@ -135,6 +135,7 @@
     "mime-types": "^2.1.35",
     "mobx": "^4.15.4",
     "mobx-react": "^6.3.1",
+    "mobx-utils": "^6.0.5",
     "natural-sort": "^1.0.0",
     "node-fetch": "2.6.7",
     "node-htmldiff": "^0.9.4",
