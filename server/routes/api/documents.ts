@@ -4,6 +4,7 @@ import Router from "koa-router";
 import mime from "mime-types";
 import { Op, ScopeOptions, WhereOptions } from "sequelize";
 import { subtractDate } from "@shared/utils/date";
+import { bytesToHumanReadable } from "@shared/utils/files";
 import documentCreator from "@server/commands/documentCreator";
 import documentImporter from "@server/commands/documentImporter";
 import documentLoader from "@server/commands/documentLoader";
@@ -1068,11 +1069,15 @@ router.post("documents.import", auth(), async (ctx) => {
   }
 
   // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-  const file: any = Object.values(ctx.request.files)[0];
+  const file = Object.values(ctx.request.files)[0];
   assertPresent(file, "file is required");
 
   if (env.MAXIMUM_IMPORT_SIZE && file.size > env.MAXIMUM_IMPORT_SIZE) {
-    throw InvalidRequestError("The selected file was too large to import");
+    throw InvalidRequestError(
+      `The selected file was larger than the ${bytesToHumanReadable(
+        env.MAXIMUM_IMPORT_SIZE
+      )} maximum size`
+    );
   }
 
   assertUuid(collectionId, "collectionId must be an uuid");
