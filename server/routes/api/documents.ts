@@ -1068,9 +1068,12 @@ router.post("documents.import", auth(), async (ctx) => {
     throw InvalidRequestError("Request type must be multipart/form-data");
   }
 
-  // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-  const file = Object.values(ctx.request.files)[0];
-  assertPresent(file, "file is required");
+  const file = ctx.request.files
+    ? Object.values(ctx.request.files)[0]
+    : undefined;
+  if (!file) {
+    throw InvalidRequestError("Request must include a file parameter");
+  }
 
   if (env.MAXIMUM_IMPORT_SIZE && file.size > env.MAXIMUM_IMPORT_SIZE) {
     throw InvalidRequestError(
