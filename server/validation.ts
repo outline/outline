@@ -33,6 +33,21 @@ export const assertIn = (
   }
 };
 
+/**
+ * Asserts that an object contains no other keys than specified
+ * by a type
+ *
+ * @param obj The object to check for assertion
+ * @param type The type to check against
+ * @throws {ValidationError}
+ */
+export function assertKeysIn(
+  obj: Record<string, unknown>,
+  type: { [key: string]: number | string }
+) {
+  Object.keys(obj).forEach((key) => assertIn(key, Object.values(type)));
+}
+
 export const assertSort = (
   value: string,
   model: any,
@@ -75,6 +90,24 @@ export function assertUrl(
     })
   ) {
     throw ValidationError(message ?? `${String(value)} is an invalid url!`);
+  }
+}
+
+/**
+ * Asserts that the passed value is a valid boolean
+ *
+ * @param value The value to check for assertion
+ * @param [message] The error message to show
+ * @throws {ValidationError}
+ */
+export function assertBoolean(
+  value: IncomingValue,
+  message?: string
+): asserts value {
+  if (typeof value !== "boolean") {
+    throw ValidationError(
+      message ?? `${String(value)} is a ${typeof value}, not a boolean!`
+    );
   }
 }
 

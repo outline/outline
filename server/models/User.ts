@@ -54,6 +54,12 @@ export enum UserRole {
   Viewer = "viewer",
 }
 
+export enum UserPreference {
+  RememberLastPath = "rememberLastPath",
+}
+
+export type UserPreferences = { [key in UserPreference]?: boolean };
+
 @Scopes(() => ({
   withAuthentications: {
     include: [
@@ -151,6 +157,10 @@ class User extends ParanoidModel {
 
   @Column(DataType.JSONB)
   flags: { [key in UserFlag]?: number } | null;
+
+  @AllowNull
+  @Column(DataType.JSONB)
+  preferences: UserPreferences | null;
 
   @Default(env.DEFAULT_LANGUAGE)
   @IsIn([languages])
@@ -288,6 +298,35 @@ class User extends ParanoidModel {
     this.changed("flags", true);
 
     return this.flags;
+  };
+
+  /**
+   * Preferences set by the user that decide application behavior and ui.
+   *
+   * @param preference The user preference to set
+   * @param value Sets the preference value
+   * @returns The current user preferences
+   */
+  public setPreference = (preference: UserPreference, value: boolean) => {
+    if (!this.preferences) {
+      this.preferences = {};
+    }
+    this.preferences[preference] = value;
+    this.changed("preferences", true);
+
+    return this.preferences;
+  };
+
+  /**
+   * Returns the passed preference value
+   *
+   * @param preference The user preference to retrieve
+   * @returns The preference value if set, else undefined
+   */
+  public getPreference = (preference: UserPreference) => {
+    return !!this.preferences && this.preferences[preference]
+      ? this.preferences[preference]
+      : undefined;
   };
 
   collectionIds = async (options = {}) => {
@@ -575,7 +614,7 @@ class User extends ParanoidModel {
 
   static getCounts = async function (teamId: string) {
     const countSql = `
-      SELECT 
+      SELECT
         COUNT(CASE WHEN "suspendedAt" IS NOT NULL THEN 1 END) as "suspendedCount",
         COUNT(CASE WHEN "isAdmin" = true THEN 1 END) as "adminCount",
         COUNT(CASE WHEN "isViewer" = true THEN 1 END) as "viewerCount",
