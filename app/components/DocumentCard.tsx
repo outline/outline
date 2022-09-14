@@ -198,8 +198,6 @@ const Reorderable = styled.div<{ $isDragging: boolean }>`
 
   // move above other cards when dragging
   z-index: ${(props) => (props.$isDragging ? 1 : "inherit")};
-  box-shadow: ${(props) =>
-    props.$isDragging ? "0 0 20px rgba(0,0,0,0.3);" : "0 0 0 rgba(0,0,0,0)"};
 
   &:hover ${Actions} {
     opacity: 1;
@@ -233,7 +231,6 @@ const DocumentLink = styled(Link)<{
   border: 1px solid ${(props) => props.theme.inputBorder};
   border-bottom-width: 2px;
   border-right-width: 2px;
-  pointer-events: ${(props) => (props.$isDragging ? "none" : "auto")};
 
   ${Actions} {
     opacity: 0;
@@ -243,7 +240,12 @@ const DocumentLink = styled(Link)<{
   &:active,
   &:focus,
   &:focus-within {
-    transform: scale(1.09) rotate(-2deg);
+    transform: ${(props) => (props.$isDragging ? "scale(1.1)" : "scale(1.08)")}
+      rotate(-2deg);
+    box-shadow: ${(props) =>
+      props.$isDragging
+        ? "0 0 20px rgba(0,0,0,0.2);"
+        : "0 0 10px rgba(0,0,0,0.1)"};
     z-index: 1;
 
     ${Fold} {
