@@ -12,6 +12,7 @@ import {
   BuildingBlocksIcon,
   DownloadIcon,
   WebhooksIcon,
+  SettingsIcon,
 } from "outline-icons";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -81,6 +82,14 @@ const useAuthorizedSettingsConfig = () => {
         enabled: true,
         group: t("Account"),
         icon: ProfileIcon,
+      },
+      Preferences: {
+        name: t("Preferences"),
+        path: "/settings/preferences",
+        component: null,
+        enabled: true,
+        group: t("Account"),
+        icon: SettingsIcon,
       },
       Notifications: {
         name: t("Notifications"),
