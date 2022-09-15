@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import Router from "koa-router";
+import { has } from "lodash";
 import { Op, WhereOptions } from "sequelize";
 import { UserValidation } from "@shared/validations";
 import { RateLimiterStrategy } from "@server/RateLimiter";
@@ -188,7 +189,7 @@ router.post("users.update", auth(), async (ctx) => {
   }
   if (preferences) {
     assertKeysIn(preferences, UserPreference);
-    if (preferences.rememberLastPath) {
+    if (has(preferences, UserPreference.RememberLastPath)) {
       assertBoolean(preferences.rememberLastPath);
       user.setPreference(
         UserPreference.RememberLastPath,

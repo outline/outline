@@ -24,6 +24,7 @@ import Groups from "~/scenes/Settings/Groups";
 import Import from "~/scenes/Settings/Import";
 import Members from "~/scenes/Settings/Members";
 import Notifications from "~/scenes/Settings/Notifications";
+import Preferences from "~/scenes/Settings/Preferences";
 import Profile from "~/scenes/Settings/Profile";
 import Security from "~/scenes/Settings/Security";
 import Shares from "~/scenes/Settings/Shares";
@@ -86,7 +87,7 @@ const useAuthorizedSettingsConfig = () => {
       Preferences: {
         name: t("Preferences"),
         path: "/settings/preferences",
-        component: null,
+        component: Preferences,
         enabled: true,
         group: t("Account"),
         icon: SettingsIcon,

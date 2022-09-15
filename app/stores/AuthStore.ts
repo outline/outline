@@ -221,6 +221,7 @@ export default class AuthStore {
     name?: string;
     avatarUrl?: string | null;
     language?: string;
+    preferences?: Record<string, boolean>;
   }) => {
     this.isSaving = true;
 

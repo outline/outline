@@ -26,6 +26,8 @@ class User extends ParanoidModel {
   @observable
   language: string;
 
+  preferences: Record<string, boolean>;
+
   email: string;
 
   isAdmin: boolean;
