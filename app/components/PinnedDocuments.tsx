@@ -42,7 +42,12 @@ function PinnedDocuments({ limit, pins, canUpdate, ...rest }: Props) {
   }, [pins]);
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        delay: 150,
+        tolerance: 5,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -122,7 +127,7 @@ const List = styled.div`
   display: grid;
   column-gap: 8px;
   row-gap: 8px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   padding: 0;
   list-style: none;
   margin: 16px 0 32px;
@@ -132,10 +137,6 @@ const List = styled.div`
   }
 
   ${breakpoint("tablet")`
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  `};
-
-  ${breakpoint("desktop")`
     grid-template-columns: repeat(4, minmax(0, 1fr));
   `};
 `;
