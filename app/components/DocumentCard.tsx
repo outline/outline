@@ -125,7 +125,7 @@ function DocumentCard(props: Props) {
                   : document.titleWithDefault}
               </Heading>
               <DocumentMeta size="xsmall">
-                <ClockIcon color="currentColor" size={18} />{" "}
+                <Clock color="currentColor" size={18} />
                 <Time
                   dateTime={document.updatedAt}
                   tooltipDelay={500}
@@ -151,6 +151,10 @@ function DocumentCard(props: Props) {
     </Reorderable>
   );
 }
+
+const Clock = styled(ClockIcon)`
+  flex-shrink: 0;
+`;
 
 const AnimatePresence = styled(m.div)`
   width: 100%;
@@ -215,6 +219,9 @@ const DocumentMeta = styled(Text)`
   gap: 2px;
   color: ${(props) => props.theme.textTertiary};
   margin: 0 0 0 -2px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 `;
 
 const DocumentLink = styled(Link)<{
