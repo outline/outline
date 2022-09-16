@@ -12,6 +12,7 @@ import Fade from "~/components/Fade";
 import NudeButton from "~/components/NudeButton";
 import { editCollectionPermissions } from "~/actions/definitions/collections";
 import useActionContext from "~/hooks/useActionContext";
+import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 
 type Props = {
@@ -27,10 +28,11 @@ const MembershipPreview = ({ collection, limit = 8 }: Props) => {
   const { memberships, collectionGroupMemberships, users } = useStores();
   const collectionUsers = users.inCollection(collection.id);
   const context = useActionContext();
+  const isMobile = useMobile();
 
   React.useEffect(() => {
     const fetchData = async () => {
-      if (collection.permission) {
+      if (collection.permission || isMobile) {
         return;
       }
       setIsLoading(true);
@@ -53,6 +55,7 @@ const MembershipPreview = ({ collection, limit = 8 }: Props) => {
 
     fetchData();
   }, [
+    isMobile,
     collection.permission,
     collection.id,
     collectionGroupMemberships,
@@ -60,7 +63,7 @@ const MembershipPreview = ({ collection, limit = 8 }: Props) => {
     limit,
   ]);
 
-  if (isLoading || collection.permission) {
+  if (isLoading || collection.permission || isMobile) {
     return null;
   }
 
