@@ -95,11 +95,12 @@ function DocumentCard(props: Props) {
           <Content justify="space-between" column>
             <Fold
               width="20"
-              height="20"
-              viewBox="0 0 20 20"
+              height="21"
+              viewBox="0 0 20 21"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
             >
+              <path d="M19.5 20.5H6C2.96243 20.5 0.5 18.0376 0.5 15V0.5H0.792893L19.5 19.2071V20.5Z" />
               <path d="M19.5 19.5H6C2.96243 19.5 0.5 17.0376 0.5 14V0.5H0.792893L19.5 19.2071V19.5Z" />
             </Fold>
 
