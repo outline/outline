@@ -2,7 +2,7 @@ import * as React from "react";
 import Tooltip, { Props as TooltipProps } from "~/components/Tooltip";
 import { Action, ActionContext } from "~/types";
 
-export type Props = {
+export type Props = React.HTMLAttributes<HTMLButtonElement> & {
   /** Show the button in a disabled state */
   disabled?: boolean;
   /** Hide the button entirely if action is not applicable */

@@ -104,6 +104,7 @@ function SidebarLink(
               expanded={expanded}
               onClick={onDisclosureClick}
               root={depth === 0}
+              tabIndex={-1}
             />
           )}
           {icon && <IconWrapper>{icon}</IconWrapper>}
