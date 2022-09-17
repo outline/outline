@@ -42,6 +42,7 @@ function SharePopover({
   const { shares } = useStores();
   const { showToast } = useToasts();
   const [isCopied, setIsCopied] = React.useState(false);
+  const [isEditMode, setIsEditMode] = React.useState(false);
   const timeout = React.useRef<ReturnType<typeof setTimeout>>();
   const buttonRef = React.useRef<HTMLButtonElement>(null);
   const can = usePolicy(share ? share.id : "");
@@ -116,9 +117,10 @@ function SharePopover({
 
   const userLocale = useUserLocale();
   const locale = userLocale ? dateLocale(userLocale) : undefined;
-  const shareUrl = team.sharing
-    ? share?.url ?? ""
-    : `${team.url}${document.url}`;
+  let shareUrl = team.sharing ? share?.url ?? "" : `${team.url}${document.url}`;
+  if (isEditMode) {
+    shareUrl += "?edit=true";
+  }
 
   return (
     <>
@@ -200,6 +202,26 @@ function SharePopover({
           </SwitchLabel>
         </SwitchWrapper>
       )}
+
+      <SwitchWrapper>
+        <Switch
+          id="enableEditMode"
+          label={t("Enable edit mode")}
+          onChange={({ currentTarget: { checked } }) => setIsEditMode(checked)}
+          checked={isEditMode}
+          disabled={!share}
+        />
+        <SwitchLabel>
+          <SwitchText>
+            {isEditMode
+              ? t(
+                  "Users with sufficient permissions will open the document in edit mode"
+                )
+              : t("Default shared document view")}
+          </SwitchText>
+        </SwitchLabel>
+      </SwitchWrapper>
+
       <Flex>
         <InputLink
           type="text"
