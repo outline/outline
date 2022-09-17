@@ -686,7 +686,7 @@
   "The email integration is currently disabled. Please set the associated environment variables and restart the server to enable notifications.": "The email integration is currently disabled. Please set the associated environment variables and restart the server to enable notifications.",
   "Preferences saved": "Preferences saved",
   "Remember previous location": "Remember previous location",
-  "When enabled, user's previous location will be remembered and they'll be redirected to that location upon next visit.": "When enabled, user's previous location will be remembered and they'll be redirected to that location upon next visit.",
+  "Automatically return to the document you were last viewing when the app is re-opened": "Automatically return to the document you were last viewing when the app is re-opened",
   "Profile saved": "Profile saved",
   "Profile picture updated": "Profile picture updated",
   "Unable to upload new profile picture": "Unable to upload new profile picture",

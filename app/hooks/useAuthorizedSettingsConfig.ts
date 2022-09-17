@@ -36,6 +36,7 @@ import SlackIcon from "~/components/SlackIcon";
 import ZapierIcon from "~/components/ZapierIcon";
 import env from "~/env";
 import isCloudHosted from "~/utils/isCloudHosted";
+import { accountPreferencesPath } from "~/utils/routeHelpers";
 import useCurrentTeam from "./useCurrentTeam";
 import usePolicy from "./usePolicy";
 
@@ -86,7 +87,7 @@ const useAuthorizedSettingsConfig = () => {
       },
       Preferences: {
         name: t("Preferences"),
-        path: "/settings/preferences",
+        path: accountPreferencesPath(),
         component: Preferences,
         enabled: true,
         group: t("Account"),

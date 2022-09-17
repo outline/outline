@@ -2,6 +2,7 @@ import crypto from "crypto";
 import Router from "koa-router";
 import { has } from "lodash";
 import { Op, WhereOptions } from "sequelize";
+import { UserPreference } from "@shared/types";
 import { UserValidation } from "@shared/validations";
 import { RateLimiterStrategy } from "@server/RateLimiter";
 import userDemoter from "@server/commands/userDemoter";
@@ -18,7 +19,7 @@ import logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { Event, User, Team } from "@server/models";
-import { UserFlag, UserRole, UserPreference } from "@server/models/User";
+import { UserFlag, UserRole } from "@server/models/User";
 import { can, authorize } from "@server/policies";
 import { presentUser, presentPolicies } from "@server/presenters";
 import {

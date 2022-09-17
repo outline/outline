@@ -40,13 +40,13 @@ function Preferences() {
         name="rememberLastPath"
         label={t("Remember previous location")}
         description={t(
-          "When enabled, user's previous location will be remembered and they'll be redirected to that location upon next visit."
+          "Automatically return to the document you were last viewing when the app is re-opened"
         )}
       >
         <Switch
           id="rememberLastPath"
           name="rememberLastPath"
-          checked={!!user.preferences && user.preferences.rememberLastPath}
+          checked={!!user.preferences?.rememberLastPath}
           onChange={handleChange}
         />
       </SettingRow>

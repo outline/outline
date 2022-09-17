@@ -63,8 +63,7 @@ function Login({ children }: Props) {
   const [error, setError] = React.useState(null);
   const [emailLinkSentTo, setEmailLinkSentTo] = React.useState("");
   const isCreate = location.pathname === "/create";
-  const rememberLastPath =
-    !!auth.user?.preferences && auth.user.preferences.rememberLastPath;
+  const rememberLastPath = !!auth.user?.preferences?.rememberLastPath;
   const [lastVisitedPath] = useLastVisitedPath();
 
   const handleReset = React.useCallback(() => {
