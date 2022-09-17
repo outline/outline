@@ -69,6 +69,7 @@ function DocumentCard(props: Props) {
       $isDragging={isDragging}
       {...attributes}
       {...listeners}
+      tabIndex={-1}
     >
       <AnimatePresence
         initial={{ opacity: 0, scale: 0.95 }}
@@ -203,6 +204,7 @@ const Reorderable = styled.div<{ $isDragging: boolean }>`
 
   // move above other cards when dragging
   z-index: ${(props) => (props.$isDragging ? 1 : "inherit")};
+  pointer-events: ${(props) => (props.$isDragging ? "none" : "inherit")};
 
   &:hover ${Actions} {
     opacity: 1;

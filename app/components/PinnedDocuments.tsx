@@ -44,7 +44,7 @@ function PinnedDocuments({ limit, pins, canUpdate, ...rest }: Props) {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        delay: 150,
+        delay: 100,
         tolerance: 5,
       },
     }),
@@ -59,8 +59,8 @@ function PinnedDocuments({ limit, pins, canUpdate, ...rest }: Props) {
 
       if (over && active.id !== over.id) {
         setItems((items) => {
-          const activePos = items.indexOf(active.id);
-          const overPos = items.indexOf(over.id);
+          const activePos = items.indexOf(active.id as string);
+          const overPos = items.indexOf(over.id as string);
 
           const overIndex = pins[overPos]?.index || null;
           const nextIndex = pins[overPos + 1]?.index || null;
