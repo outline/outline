@@ -11,6 +11,7 @@ import {
 } from "sequelize-typescript";
 import { TeamValidation } from "@shared/validations";
 import { ValidationError } from "@server/errors";
+import isCloudHosted from "~/utils/isCloudHosted";
 import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
@@ -22,7 +23,7 @@ import Length from "./validators/Length";
 @Fix
 class TeamDomain extends IdModel {
   @NotIn({
-    args: [emailProviders],
+    args: isCloudHosted ? [emailProviders] : [],
     msg: "You chose a restricted domain, please try another.",
   })
   @NotEmpty
