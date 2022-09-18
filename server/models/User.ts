@@ -22,7 +22,11 @@ import {
   AllowNull,
 } from "sequelize-typescript";
 import { languages } from "@shared/i18n";
-import { CollectionPermission } from "@shared/types";
+import {
+  CollectionPermission,
+  UserPreference,
+  UserPreferences,
+} from "@shared/types";
 import { stringToColor } from "@shared/utils/color";
 import env from "@server/env";
 import { ValidationError } from "../errors";
@@ -53,12 +57,6 @@ export enum UserRole {
   Member = "member",
   Viewer = "viewer",
 }
-
-export enum UserPreference {
-  RememberLastPath = "rememberLastPath",
-}
-
-export type UserPreferences = { [key in UserPreference]?: boolean };
 
 @Scopes(() => ({
   withAuthentications: {

@@ -34,6 +34,10 @@ export function profileSettingsPath(): string {
   return "/settings";
 }
 
+export function accountPreferencesPath(): string {
+  return "/settings/preferences";
+}
+
 export function groupSettingsPath(): string {
   return "/settings/groups";
 }

@@ -1,7 +1,7 @@
 import { subMinutes } from "date-fns";
 import { computed, observable } from "mobx";
 import { now } from "mobx-utils";
-import type { Role } from "@shared/types";
+import type { Role, UserPreferences } from "@shared/types";
 import ParanoidModel from "./ParanoidModel";
 import Field from "./decorators/Field";
 
@@ -25,6 +25,8 @@ class User extends ParanoidModel {
   @Field
   @observable
   language: string;
+
+  preferences: UserPreferences | null | undefined;
 
   email: string;
 

@@ -1,6 +1,6 @@
+import { UserPreferences } from "@shared/types";
 import env from "@server/env";
 import { User } from "@server/models";
-import { UserPreferences } from "@server/models/User";
 
 type Options = {
   includeDetails?: boolean;

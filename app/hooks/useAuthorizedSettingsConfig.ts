@@ -12,6 +12,7 @@ import {
   BuildingBlocksIcon,
   DownloadIcon,
   WebhooksIcon,
+  SettingsIcon,
 } from "outline-icons";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -23,6 +24,7 @@ import Groups from "~/scenes/Settings/Groups";
 import Import from "~/scenes/Settings/Import";
 import Members from "~/scenes/Settings/Members";
 import Notifications from "~/scenes/Settings/Notifications";
+import Preferences from "~/scenes/Settings/Preferences";
 import Profile from "~/scenes/Settings/Profile";
 import Security from "~/scenes/Settings/Security";
 import Shares from "~/scenes/Settings/Shares";
@@ -34,6 +36,7 @@ import SlackIcon from "~/components/SlackIcon";
 import ZapierIcon from "~/components/ZapierIcon";
 import env from "~/env";
 import isCloudHosted from "~/utils/isCloudHosted";
+import { accountPreferencesPath } from "~/utils/routeHelpers";
 import useCurrentTeam from "./useCurrentTeam";
 import usePolicy from "./usePolicy";
 
@@ -81,6 +84,14 @@ const useAuthorizedSettingsConfig = () => {
         enabled: true,
         group: t("Account"),
         icon: ProfileIcon,
+      },
+      Preferences: {
+        name: t("Preferences"),
+        path: accountPreferencesPath(),
+        component: Preferences,
+        enabled: true,
+        group: t("Account"),
+        icon: SettingsIcon,
       },
       Notifications: {
         name: t("Notifications"),

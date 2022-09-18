@@ -43,3 +43,9 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
       | { url: string }
       | { url: string; channel: string; channelId: string }
       | { serviceTeamId: string };
+
+export enum UserPreference {
+  RememberLastPath = "rememberLastPath",
+}
+
+export type UserPreferences = { [key in UserPreference]?: boolean };
