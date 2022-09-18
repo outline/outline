@@ -368,10 +368,10 @@ class User extends ParanoidModel {
     }
 
     // Track the clients each user is using
-    if (ctx.userAgent.isMobile) {
+    if (ctx.userAgent?.isMobile) {
       this.setFlag(UserFlag.MobileWeb);
     }
-    if (ctx.userAgent.isDesktop) {
+    if (ctx.userAgent?.isDesktop) {
       this.setFlag(UserFlag.DesktopWeb);
     }
 
