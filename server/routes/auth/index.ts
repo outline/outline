@@ -31,7 +31,8 @@ router.get("/redirect", auth(), async (ctx) => {
   }
 
   // ensure that the lastActiveAt on user is updated to prevent replay requests
-  await user.updateActiveAt(ctx.request.ip, true);
+  await user.updateActiveAt(ctx, true);
+
   ctx.cookies.set("accessToken", jwtToken, {
     httpOnly: false,
     expires: addMonths(new Date(), 3),

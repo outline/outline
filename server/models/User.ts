@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import { addMinutes, subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
+import { Context } from "koa";
 import { Transaction, QueryTypes, SaveOptions, Op } from "sequelize";
 import {
   Table,
@@ -51,6 +52,8 @@ import NotContainsUrl from "./validators/NotContainsUrl";
 export enum UserFlag {
   InviteSent = "inviteSent",
   InviteReminderSent = "inviteReminderSent",
+  DesktopWeb = "desktopWeb",
+  MobileWeb = "mobileWeb",
 }
 
 export enum UserRole {
@@ -264,8 +267,11 @@ class User extends ParanoidModel {
     if (!this.flags) {
       this.flags = {};
     }
-    this.flags[flag] = value ? 1 : 0;
-    this.changed("flags", true);
+    const binary = value ? 1 : 0;
+    if (this.flags[flag] !== binary) {
+      this.flags[flag] = binary;
+      this.changed("flags", true);
+    }
 
     return this.flags;
   };
@@ -350,7 +356,8 @@ class User extends ParanoidModel {
       .map((c) => c.id);
   };
 
-  updateActiveAt = async (ip: string, force = false) => {
+  updateActiveAt = async (ctx: Context, force = false) => {
+    const { ip } = ctx.request;
     const fiveMinutesAgo = subMinutes(new Date(), 5);
 
     // ensure this is updated only every few minutes otherwise
@@ -358,13 +365,20 @@ class User extends ParanoidModel {
     if (!this.lastActiveAt || this.lastActiveAt < fiveMinutesAgo || force) {
       this.lastActiveAt = new Date();
       this.lastActiveIp = ip;
-
-      return this.save({
-        hooks: false,
-      });
     }
 
-    return this;
+    // Track the clients each user is using
+    if (ctx.userAgent.isMobile) {
+      this.setFlag(UserFlag.MobileWeb);
+    }
+    if (ctx.userAgent.isDesktop) {
+      this.setFlag(UserFlag.DesktopWeb);
+    }
+
+    // Save only writes to the database if there are changes
+    return this.save({
+      hooks: false,
+    });
   };
 
   updateSignedIn = (ip: string) => {
