@@ -197,7 +197,7 @@ export type FileTreeNode = {
 export function zipAsFileTree(
   zip: JSZip,
   /** The maximum number of files to unzip */
-  maxFiles = 10000
+  maxFiles = 100000000
 ) {
   let fileCount = 0;
   const paths = Object.keys(zip.files).map((filePath) => {
