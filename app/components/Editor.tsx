@@ -160,7 +160,9 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
           }
         }
 
-        if (shareId) {
+        // If we're navigating to an internal document link then prepend the
+        // share route to the URL so that the document is loaded in context
+        if (shareId && navigateTo.includes("/doc/")) {
           navigateTo = sharedDocumentPath(shareId, navigateTo);
         }
 
