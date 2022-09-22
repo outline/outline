@@ -106,7 +106,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         ref={ref}
         autoFocus={!!document.title && !props.defaultValue}
         placeholder={t("Type '/' to insert, or start writing…")}
-        scrollTo={window.location.hash}
+        scrollTo={decodeURIComponent(window.location.hash)}
         readOnly={readOnly}
         shareId={shareId}
         extensions={fullPackage}
