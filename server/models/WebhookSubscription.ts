@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { bool } from "aws-sdk/clients/signer";
+import { isEmpty } from "lodash";
 import {
   Column,
   Table,
@@ -10,6 +11,7 @@ import {
   IsUrl,
   BeforeCreate,
   DefaultScope,
+  AllowNull,
 } from "sequelize-typescript";
 import { SaveOptions } from "sequelize/types";
 import { WebhookSubscriptionValidation } from "@shared/validations";
@@ -56,10 +58,15 @@ class WebhookSubscription extends ParanoidModel {
   @Column(DataType.ARRAY(DataType.STRING))
   events: string[];
 
-  @Column(DataType.BLOB)
+  @AllowNull
   @Encrypted
+  @Column(DataType.BLOB)
   get secret() {
-    return getEncryptedColumn(this, "secret");
+    const val = getEncryptedColumn(this, "secret");
+    // Turns out that `val` evals to `{}` instead
+    // of `null` even if secret's value in db is `null`.
+    // https://github.com/defunctzombie/sequelize-encrypted/blob/c3854e76ae4b80318c8f10f94e6c898c67659ca6/index.js#L30-L33 explains it possibly.
+    return isEmpty(val) ? "" : val;
   }
 
   set secret(value: string) {
@@ -123,7 +130,7 @@ class WebhookSubscription extends ParanoidModel {
   };
 
   public signature = (data: string) => {
-    if (!this.secret) {
+    if (isEmpty(this.secret)) {
       return;
     }
 
