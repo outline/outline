@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import { bool } from "aws-sdk/clients/signer";
 import {
   Column,
@@ -17,6 +18,10 @@ import { Event } from "@server/types";
 import Team from "./Team";
 import User from "./User";
 import ParanoidModel from "./base/ParanoidModel";
+import Encrypted, {
+  setEncryptedColumn,
+  getEncryptedColumn,
+} from "./decorators/Encrypted";
 import Fix from "./decorators/Fix";
 import Length from "./validators/Length";
 
@@ -50,6 +55,16 @@ class WebhookSubscription extends ParanoidModel {
 
   @Column(DataType.ARRAY(DataType.STRING))
   events: string[];
+
+  @Column(DataType.BLOB)
+  @Encrypted
+  get secret() {
+    return getEncryptedColumn(this, "secret");
+  }
+
+  set secret(value: string) {
+    setEncryptedColumn(this, "secret", value);
+  }
 
   // associations
 
@@ -105,6 +120,21 @@ class WebhookSubscription extends ParanoidModel {
     }
 
     return false;
+  };
+
+  public signature = (data: string) => {
+    if (!this.secret) {
+      return;
+    }
+
+    const signTimestamp = Date.now();
+
+    const signature = crypto
+      .createHmac("sha256", this.secret)
+      .update(`${signTimestamp}.${data}`)
+      .digest("hex");
+
+    return `t=${signTimestamp},s=${signature}`;
   };
 }
 
