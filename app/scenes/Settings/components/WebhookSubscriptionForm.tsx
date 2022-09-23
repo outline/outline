@@ -146,6 +146,7 @@ type Props = {
 interface FormData {
   name: string;
   url: string;
+  secret: string;
   events: string[];
 }
 
@@ -163,6 +164,7 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
       events: webhookSubscription ? [...webhookSubscription.events] : [],
       name: webhookSubscription?.name,
       url: webhookSubscription?.url,
+      secret: webhookSubscription?.secret,
     },
   });
 
@@ -249,6 +251,13 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
           placeholder="https://…"
           label={t("URL")}
           {...register("url", { required: true })}
+        />
+        <ReactHookWrappedInput
+          flex
+          label={t("Secret")}
+          {...register("secret", {
+            required: false,
+          })}
         />
       </TextFields>
 
