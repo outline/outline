@@ -101,8 +101,6 @@ export type Props = {
   ) => void;
   /** Callback when user hovers on any link in the document */
   onHoverLink?: (event: MouseEvent) => boolean;
-  /** Callback when user clicks on any hashtag in the document */
-  onClickHashtag?: (tag: string, event: MouseEvent) => void;
   /** Callback when user presses any key with document focused */
   onKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>) => void;
   /** Collection of embed types to render in the document */

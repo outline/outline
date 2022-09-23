@@ -84,7 +84,7 @@ function KeyboardShortcuts() {
                 <Key symbol>{metaDisplay}</Key> + <Key>Enter</Key>
               </>
             ),
-            label: t("Save document and exit"),
+            label: t("Go to link"),
           },
           {
             shortcut: (
