@@ -90,7 +90,6 @@ function Collaborators(props: Props) {
                     isEditing={isEditing}
                     isObserving={isObserving}
                     isCurrentUser={currentUserId === collaborator.id}
-                    profileOnClick={false}
                     onClick={
                       isObservable
                         ? (ev) => {
