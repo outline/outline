@@ -539,13 +539,16 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
         "user-agent": `Outline-Webhooks${
           env.VERSION ? `/${env.VERSION.slice(0, 7)}` : ""
         }`,
-        "Outline-Signature": subscription.signature(
-          JSON.stringify(requestBody)
-        ),
       };
+
+      const signature = subscription.signature(JSON.stringify(requestBody));
+      if (signature) {
+        requestHeaders["Outline-Signature"] = signature;
+      }
+
       response = await fetch(subscription.url, {
         method: "POST",
-        headers: requestHeaders as any,
+        headers: requestHeaders,
         body: JSON.stringify(requestBody),
         redirect: "error",
         timeout: 5000,
