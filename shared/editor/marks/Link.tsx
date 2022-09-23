@@ -160,7 +160,23 @@ export default class Link extends Mark {
             Decoration.widget(
               // place the decoration at the end of the link
               nodeWithPos.pos + nodeWithPos.node.nodeSize,
-              () => icon.cloneNode(true),
+              () => {
+                const cloned = icon.cloneNode(true);
+                cloned.addEventListener("click", (event) => {
+                  try {
+                    if (this.options.onClickLink) {
+                      event.stopPropagation();
+                      event.preventDefault();
+                      this.options.onClickLink(linkMark.attrs.href, event);
+                    }
+                  } catch (err) {
+                    this.editor.props.onShowToast(
+                      this.options.dictionary.openLinkError
+                    );
+                  }
+                });
+                return cloned;
+              },
               {
                 // position on the right side of the position
                 side: 1,

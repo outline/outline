@@ -755,6 +755,7 @@ mark {
 }
 
 .external-link {
+  cursor: pointer;
   display: inline-block;
   position: relative;
   top: 2px;
