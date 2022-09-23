@@ -164,7 +164,7 @@ export const dark = {
   sidebarControlHoverBackground: colors.white10,
   sidebarDraftBorder: darken("0.35", colors.slate),
   sidebarText: colors.slate,
-  backdrop: "rgba(255, 255, 255, 0.3)",
+  backdrop: "rgba(0, 0, 0, 0.5)",
   shadow: "rgba(0, 0, 0, 0.6)",
 
   modalBackdrop: colors.black50,
