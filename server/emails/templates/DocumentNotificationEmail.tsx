@@ -89,10 +89,8 @@ Open Document: ${teamUrl}${document.url}
           </Heading>
           <p>
             {actorName} {eventName} the document{" "}
-            <a href={link} target="_blank">
-              {document.title}
-            </a>
-            , in the {collectionName} collection.
+            <a href={link}>{document.title}</a>, in the {collectionName}{" "}
+            collection.
           </p>
           {content && (
             <>
