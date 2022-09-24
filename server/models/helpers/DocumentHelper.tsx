@@ -142,7 +142,7 @@ export default class DocumentHelper {
   }
 
   /**
-   * Generates a HTML diff between after documents or revisions.
+   * Generates a HTML diff between documents or revisions.
    *
    * @param before The before document
    * @param after The after document
@@ -172,10 +172,91 @@ export default class DocumentHelper {
 
     // Inject the diffed content into the original document with styling and
     // serialize back to a string.
-    beforeDOM.window.document.getElementsByTagName(
-      "article"
-    )[0].innerHTML = diffedContentAsHTML;
+    const article = beforeDOM.window.document.querySelector("article");
+    if (article) {
+      article.innerHTML = diffedContentAsHTML;
+    }
     return beforeDOM.serialize();
+  }
+
+  /**
+   * Generates a compact HTML diff between documents or revisions, the
+   * diff is reduced up to show only the parts of the document that changed and
+   * the immediate context. Breaks in the diff are denoted with
+   * "div.diff-context-break" nodes.
+   *
+   * @param before The before document
+   * @param after The after document
+   * @param options Options passed to HTML generation
+   * @returns The diff as a HTML string
+   */
+  static diffCompact(
+    before: Document | Revision | null,
+    after: Revision,
+    options?: HTMLOptions
+  ) {
+    if (!before) {
+      return "";
+    }
+
+    const html = DocumentHelper.diff(before, after, options);
+    const dom = new JSDOM(html);
+    const doc = dom.window.document;
+
+    const containsDiffElement = (node: Element | null) => {
+      return node && node.innerHTML.includes("data-operation-index");
+    };
+
+    // We use querySelectorAll to get a static NodeList as we'll be modifying
+    // it as we iterate, rather than getting content.childNodes.
+    const contents = doc.querySelectorAll("#content > *");
+    let previousNodeRemoved = false;
+    let previousDiffClipped = false;
+
+    const br = doc.createElement("div");
+    br.innerHTML = "…";
+    br.className = "diff-context-break";
+
+    for (const childNode of contents) {
+      // If the block node contains a diff tag then we want to keep it
+      if (containsDiffElement(childNode as Element)) {
+        if (previousNodeRemoved && previousDiffClipped) {
+          childNode.parentElement?.insertBefore(br.cloneNode(true), childNode);
+        }
+        previousNodeRemoved = false;
+        previousDiffClipped = true;
+
+        // If the block node does not contain a diff tag and the previous
+        // block node did not contain a diff tag then remove the previous.
+      } else {
+        if (
+          childNode.nodeName === "P" &&
+          childNode.nextElementSibling?.nodeName === "P" &&
+          containsDiffElement(childNode.nextElementSibling)
+        ) {
+          if (previousDiffClipped) {
+            childNode.parentElement?.insertBefore(
+              br.cloneNode(true),
+              childNode
+            );
+          }
+          previousNodeRemoved = false;
+          continue;
+        }
+        if (
+          childNode.nodeName === "P" &&
+          childNode.previousElementSibling?.nodeName === "P" &&
+          containsDiffElement(childNode.previousElementSibling)
+        ) {
+          previousNodeRemoved = false;
+          continue;
+        }
+        previousNodeRemoved = true;
+        childNode.remove();
+      }
+    }
+
+    return dom.serialize();
   }
 
   /**
