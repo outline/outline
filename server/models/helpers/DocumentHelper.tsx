@@ -3,6 +3,7 @@ import {
   yDocToProsemirrorJSON,
 } from "@getoutline/y-prosemirror";
 import { JSDOM } from "jsdom";
+import { escapeRegExp } from "lodash";
 import diff from "node-htmldiff";
 import { Node, DOMSerializer } from "prosemirror-model";
 import * as React from "react";
@@ -18,6 +19,9 @@ import { parser, schema } from "@server/editor";
 import Logger from "@server/logging/Logger";
 import Document from "@server/models/Document";
 import type Revision from "@server/models/Revision";
+import parseAttachmentIds from "@server/utils/parseAttachmentIds";
+import { getSignedUrl } from "@server/utils/s3";
+import Attachment from "../Attachment";
 
 type HTMLOptions = {
   /** Whether to include the document title in the generated HTML (defaults to true) */
@@ -235,6 +239,7 @@ export default class DocumentHelper {
       } else {
         if (
           childNode.nodeName === "P" &&
+          childNode.textContent &&
           childNode.nextElementSibling?.nodeName === "P" &&
           containsDiffElement(childNode.nextElementSibling)
         ) {
@@ -249,6 +254,7 @@ export default class DocumentHelper {
         }
         if (
           childNode.nodeName === "P" &&
+          childNode.textContent &&
           childNode.previousElementSibling?.nodeName === "P" &&
           containsDiffElement(childNode.previousElementSibling)
         ) {
@@ -263,6 +269,42 @@ export default class DocumentHelper {
     const head = doc.querySelector("head");
     const body = doc.querySelector("body");
     return `${head?.innerHTML} ${body?.innerHTML}`;
+  }
+
+  /**
+   * Converts attachment urls in documents to signed equivalents that allow
+   * direct access without a session cookie
+   *
+   * @param text The text either html or markdown which contains urls to be converted
+   * @param teamId The team context
+   * @param expiresIn The time that signed urls should expire in (ms)
+   * @returns The replaced text
+   */
+  static async attachmentsToSignedUrls(
+    text: string,
+    teamId: string,
+    expiresIn = 3000
+  ) {
+    const attachmentIds = parseAttachmentIds(text);
+    await Promise.all(
+      attachmentIds.map(async (id) => {
+        const attachment = await Attachment.findOne({
+          where: {
+            id,
+            teamId,
+          },
+        });
+
+        if (attachment) {
+          const signedUrl = await getSignedUrl(attachment.key, expiresIn);
+          text = text.replace(
+            new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
+            signedUrl
+          );
+        }
+      })
+    );
+    return text;
   }
 
   /**

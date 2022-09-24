@@ -1284,6 +1284,10 @@ del {
   text-decoration: strikethrough;
 }
 
+del img {
+  opacity: .5;
+}
+
 @media print {
   .placeholder:before,
   .block-menu-trigger,

@@ -16,7 +16,6 @@ import {
   NotificationSetting,
   Subscription,
   Notification,
-  Attachment,
   Revision,
 } from "@server/models";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
@@ -26,25 +25,7 @@ import {
   Event,
   DocumentEvent,
 } from "@server/types";
-import parseAttachmentIds from "@server/utils/parseAttachmentIds";
-import { getSignedUrl } from "@server/utils/s3";
 import BaseProcessor from "./BaseProcessor";
-
-async function replaceImageAttachments(text: string) {
-  const attachmentIds = parseAttachmentIds(text);
-
-  await Promise.all(
-    attachmentIds.map(async (id) => {
-      const attachment = await Attachment.findByPk(id);
-      if (attachment) {
-        const accessUrl = await getSignedUrl(attachment.key, 86400 * 4);
-        text = text.replace(attachment.redirectUrl, accessUrl);
-      }
-    })
-  );
-
-  return text;
-}
 
 export default class NotificationsProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = [
@@ -145,7 +126,11 @@ export default class NotificationsProcessor extends BaseProcessor {
       includeTitle: false,
       centered: false,
     });
-    content = await replaceImageAttachments(content);
+    content = await DocumentHelper.attachmentsToSignedUrls(
+      content,
+      event.teamId,
+      86400 * 4
+    );
 
     for (const recipient of recipients) {
       const notify = await this.shouldNotify(document, recipient.user);
