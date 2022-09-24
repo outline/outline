@@ -1035,7 +1035,7 @@ table {
   }
 
   th {
-    background: ${props.theme.tableHeaderBackground};
+    background: transparent;
   }
 
   td,
