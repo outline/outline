@@ -5,6 +5,7 @@ import {
   Subscription,
   Event,
   Notification,
+  Revision,
 } from "@server/models";
 import {
   buildDocument,
@@ -156,6 +157,7 @@ describe("documents.publish", () => {
 describe("revisions.create", () => {
   test("should send a notification to other collaborators", async () => {
     const document = await buildDocument();
+    const revision = await Revision.createFromDocument(document);
     const collaborator = await buildUser({ teamId: document.teamId });
     document.collaboratorIds = [collaborator.id];
     await document.save();
@@ -171,7 +173,7 @@ describe("revisions.create", () => {
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: collaborator.id,
-      modelId: document.id,
+      modelId: revision.id,
       ip,
     });
     expect(DocumentNotificationEmail.schedule).toHaveBeenCalled();
@@ -179,6 +181,7 @@ describe("revisions.create", () => {
 
   test("should not send a notification if viewed since update", async () => {
     const document = await buildDocument();
+    const revision = await Revision.createFromDocument(document);
     const collaborator = await buildUser({ teamId: document.teamId });
     document.collaboratorIds = [collaborator.id];
     await document.save();
@@ -196,7 +199,7 @@ describe("revisions.create", () => {
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: collaborator.id,
-      modelId: document.id,
+      modelId: revision.id,
       ip,
     });
     expect(DocumentNotificationEmail.schedule).not.toHaveBeenCalled();
@@ -208,6 +211,7 @@ describe("revisions.create", () => {
       teamId: user.teamId,
       lastModifiedById: user.id,
     });
+    const revision = await Revision.createFromDocument(document);
     await NotificationSetting.create({
       userId: user.id,
       teamId: user.teamId,
@@ -220,7 +224,7 @@ describe("revisions.create", () => {
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: user.id,
-      modelId: document.id,
+      modelId: revision.id,
       ip,
     });
     expect(DocumentNotificationEmail.schedule).not.toHaveBeenCalled();
@@ -228,6 +232,7 @@ describe("revisions.create", () => {
 
   test("should send a notification for subscriptions, even to collaborator", async () => {
     const document = await buildDocument();
+    const revision = await Revision.createFromDocument(document);
     const collaborator = await buildUser({ teamId: document.teamId });
     const subscriber = await buildUser({ teamId: document.teamId });
 
@@ -256,7 +261,7 @@ describe("revisions.create", () => {
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: collaborator.id,
-      modelId: document.id,
+      modelId: revision.id,
       ip,
     });
 
@@ -268,6 +273,7 @@ describe("revisions.create", () => {
     const collaborator1 = await buildUser({ teamId: collaborator0.teamId });
     const collaborator2 = await buildUser({ teamId: collaborator0.teamId });
     const document = await buildDocument({ userId: collaborator0.id });
+    const revision = await Revision.createFromDocument(document);
 
     await document.update({
       collaboratorIds: [collaborator0.id, collaborator1.id, collaborator2.id],
@@ -281,7 +287,7 @@ describe("revisions.create", () => {
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: collaborator0.id,
-      modelId: document.id,
+      modelId: revision.id,
       ip,
     });
 
@@ -312,6 +318,7 @@ describe("revisions.create", () => {
       teamId: collaborator0.teamId,
       userId: collaborator0.id,
     });
+    const revision = await Revision.createFromDocument(document);
 
     await document.update({
       collaboratorIds: [collaborator0.id, collaborator1.id, collaborator2.id],
@@ -338,7 +345,7 @@ describe("revisions.create", () => {
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: collaborator0.id,
-      modelId: document.id,
+      modelId: revision.id,
       ip,
     });
 
@@ -355,6 +362,7 @@ describe("revisions.create", () => {
       teamId: collaborator0.teamId,
       userId: collaborator0.id,
     });
+    const revision = await Revision.createFromDocument(document);
 
     await document.update({
       collaboratorIds: [collaborator0.id, collaborator1.id, collaborator2.id],
@@ -378,7 +386,7 @@ describe("revisions.create", () => {
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: collaborator0.id,
-      modelId: document.id,
+      modelId: revision.id,
       ip,
     });
 
@@ -406,6 +414,7 @@ describe("revisions.create", () => {
     const document = await buildDocument();
     const collaborator = await buildUser({ teamId: document.teamId });
     const subscriber = await buildUser({ teamId: document.teamId });
+    const revision = await Revision.createFromDocument(document);
 
     // `subscriber` hasn't collaborated on `document`.
     document.collaboratorIds = [collaborator.id];
@@ -435,7 +444,7 @@ describe("revisions.create", () => {
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: collaborator.id,
-      modelId: document.id,
+      modelId: revision.id,
       ip,
     });
 
@@ -444,6 +453,7 @@ describe("revisions.create", () => {
 
   test("should not send a notification for subscriptions to collaborators if unsubscribed", async () => {
     const document = await buildDocument();
+    const revision = await Revision.createFromDocument(document);
     const collaborator = await buildUser({ teamId: document.teamId });
     const subscriber = await buildUser({ teamId: document.teamId });
 
@@ -477,7 +487,7 @@ describe("revisions.create", () => {
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: collaborator.id,
-      modelId: document.id,
+      modelId: revision.id,
       ip,
     });
 
@@ -487,6 +497,7 @@ describe("revisions.create", () => {
 
   test("should not send a notification for subscriptions to members outside of the team", async () => {
     const document = await buildDocument();
+    const revision = await Revision.createFromDocument(document);
     const collaborator = await buildUser({ teamId: document.teamId });
 
     // `subscriber` *does not* belong
@@ -523,7 +534,7 @@ describe("revisions.create", () => {
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: collaborator.id,
-      modelId: document.id,
+      modelId: revision.id,
       ip,
     });
 
@@ -533,6 +544,7 @@ describe("revisions.create", () => {
 
   test("should not send a notification if viewed since update", async () => {
     const document = await buildDocument();
+    const revision = await Revision.createFromDocument(document);
     const collaborator = await buildUser({ teamId: document.teamId });
     document.collaboratorIds = [collaborator.id];
     await document.save();
@@ -551,7 +563,7 @@ describe("revisions.create", () => {
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: collaborator.id,
-      modelId: document.id,
+      modelId: revision.id,
       ip,
     });
     expect(DocumentNotificationEmail.schedule).not.toHaveBeenCalled();
@@ -563,6 +575,8 @@ describe("revisions.create", () => {
       teamId: user.teamId,
       lastModifiedById: user.id,
     });
+    const revision = await Revision.createFromDocument(document);
+
     await NotificationSetting.create({
       userId: user.id,
       teamId: user.teamId,
@@ -575,7 +589,7 @@ describe("revisions.create", () => {
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: user.id,
-      modelId: document.id,
+      modelId: revision.id,
       ip,
     });
     expect(DocumentNotificationEmail.schedule).not.toHaveBeenCalled();

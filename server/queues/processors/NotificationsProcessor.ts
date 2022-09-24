@@ -5,6 +5,7 @@ import subscriptionCreator from "@server/commands/subscriptionCreator";
 import { sequelize } from "@server/database/sequelize";
 import CollectionNotificationEmail from "@server/emails/templates/CollectionNotificationEmail";
 import DocumentNotificationEmail from "@server/emails/templates/DocumentNotificationEmail";
+import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import {
   View,
@@ -15,7 +16,9 @@ import {
   NotificationSetting,
   Subscription,
   Notification,
+  Revision,
 } from "@server/models";
+import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import {
   CollectionEvent,
   RevisionEvent,
@@ -34,9 +37,9 @@ export default class NotificationsProcessor extends BaseProcessor {
   async perform(event: Event) {
     switch (event.name) {
       case "documents.publish":
+        return this.documentPublished(event);
       case "revisions.create":
-        return this.documentUpdated(event);
-
+        return this.revisionCreated(event);
       case "collections.create":
         return this.collectionCreated(event);
 
@@ -44,10 +47,13 @@ export default class NotificationsProcessor extends BaseProcessor {
     }
   }
 
-  async documentUpdated(event: DocumentEvent | RevisionEvent) {
+  async documentPublished(event: DocumentEvent) {
     // never send notifications when batch importing documents
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'data' does not exist on type 'DocumentEv... Remove this comment to see the full error message
-    if (event.data?.source === "import") {
+    if (
+      "data" in event &&
+      "source" in event.data &&
+      event.data.source === "import"
+    ) {
       return;
     }
 
@@ -65,9 +71,7 @@ export default class NotificationsProcessor extends BaseProcessor {
 
     const recipients = await this.getDocumentNotificationRecipients(
       document,
-      event.name === "documents.publish"
-        ? "documents.publish"
-        : "documents.update"
+      "documents.publish"
     );
 
     for (const recipient of recipients) {
@@ -84,13 +88,72 @@ export default class NotificationsProcessor extends BaseProcessor {
         await DocumentNotificationEmail.schedule(
           {
             to: recipient.user.email,
-            eventName:
-              event.name === "documents.publish" ? "published" : "updated",
+            eventName: "published",
             documentId: document.id,
             teamUrl: team.url,
             actorName: document.updatedBy.name,
             collectionName: collection.name,
             unsubscribeUrl: recipient.unsubscribeUrl,
+          },
+          { notificationId: notification.id }
+        );
+      }
+    }
+  }
+
+  async revisionCreated(event: RevisionEvent) {
+    const [collection, document, revision, team] = await Promise.all([
+      Collection.findByPk(event.collectionId),
+      Document.findByPk(event.documentId),
+      Revision.findByPk(event.modelId),
+      Team.findByPk(event.teamId),
+    ]);
+
+    if (!document || !team || !revision || !collection) {
+      return;
+    }
+
+    await this.createDocumentSubscriptions(document, event);
+
+    const recipients = await this.getDocumentNotificationRecipients(
+      document,
+      "documents.update"
+    );
+
+    // generate the diff html for the email
+    const before = await revision.previous();
+    let content = DocumentHelper.toEmailDiff(before, revision, {
+      includeTitle: false,
+      centered: false,
+    });
+    content = await DocumentHelper.attachmentsToSignedUrls(
+      content,
+      event.teamId,
+      86400 * 4
+    );
+
+    for (const recipient of recipients) {
+      const notify = await this.shouldNotify(document, recipient.user);
+
+      if (notify) {
+        const notification = await Notification.create({
+          event: event.name,
+          userId: recipient.user.id,
+          actorId: document.updatedBy.id,
+          teamId: team.id,
+          documentId: document.id,
+        });
+
+        await DocumentNotificationEmail.schedule(
+          {
+            to: recipient.user.email,
+            eventName: "updated",
+            documentId: document.id,
+            teamUrl: team.url,
+            actorName: document.updatedBy.name,
+            collectionName: collection.name,
+            unsubscribeUrl: recipient.unsubscribeUrl,
+            content,
           },
           { notificationId: notification.id }
         );
@@ -263,7 +326,18 @@ export default class NotificationsProcessor extends BaseProcessor {
     });
 
     if (notification) {
-      return false;
+      if (env.ENVIRONMENT === "development") {
+        Logger.info(
+          "processor",
+          `would have suppressed notification to ${user.id}, but not in development`
+        );
+      } else {
+        Logger.info(
+          "processor",
+          `suppressing notification to ${user.id} as recently notified`
+        );
+        return false;
+      }
     }
 
     // If this recipient has viewed the document since the last update was made
