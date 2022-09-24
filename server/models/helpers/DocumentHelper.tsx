@@ -24,6 +24,8 @@ type HTMLOptions = {
   includeTitle?: boolean;
   /** Whether to include style tags in the generated HTML (defaults to true) */
   includeStyles?: boolean;
+  /** Whether to include styles to center diff (defaults to true) */
+  centered?: boolean;
 };
 
 export default class DocumentHelper {
@@ -73,11 +75,13 @@ export default class DocumentHelper {
     const sheet = new ServerStyleSheet();
     let html, styleTags;
 
-    const Centered = styled.article`
-      max-width: 46em;
-      margin: 0 auto;
-      padding: 0 1em;
-    `;
+    const Centered = options?.centered
+      ? styled.article`
+          max-width: 46em;
+          margin: 0 auto;
+          padding: 0 1em;
+        `
+      : "article";
 
     const rtl = isRTL(document.title);
     const children = (
@@ -190,7 +194,7 @@ export default class DocumentHelper {
    * @param options Options passed to HTML generation
    * @returns The diff as a HTML string
    */
-  static diffCompact(
+  static toEmailDiff(
     before: Document | Revision | null,
     after: Revision,
     options?: HTMLOptions
@@ -256,7 +260,9 @@ export default class DocumentHelper {
       }
     }
 
-    return dom.serialize();
+    const head = doc.querySelector("head");
+    const body = doc.querySelector("body");
+    return `${head?.innerHTML} ${body?.innerHTML}`;
   }
 
   /**
