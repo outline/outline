@@ -239,6 +239,7 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
           autoFocus
           flex
           label={t("Name")}
+          placeholder={t("A memorable identifer")}
           {...register("name", {
             required: true,
           })}
@@ -254,7 +255,8 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
         />
         <ReactHookWrappedInput
           flex
-          label={t("Secret")}
+          label={t("Secret") + ` (${t("Optional")})`}
+          placeholder={t("Used to sign payload")}
           {...register("secret", {
             required: false,
           })}

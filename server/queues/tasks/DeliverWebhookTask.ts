@@ -209,12 +209,20 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       paranoid: false,
     });
 
+    let data = null;
+    if (model) {
+      data = {
+        ...presentWebhookSubscription(model),
+        secret: undefined,
+      };
+    }
+
     await this.sendWebhook({
       event,
       subscription,
       payload: {
         id: event.modelId,
-        model: model && presentWebhookSubscription(model),
+        model: data,
       },
     });
   }

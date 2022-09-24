@@ -109,12 +109,19 @@ class WebhookSubscription extends ParanoidModel {
    * Disables the webhook subscription
    *
    * @param options Save options
-   * @returns Promise<void>
+   * @returns Promise<WebhookSubscription>
    */
   public async disable(options?: SaveOptions<WebhookSubscription>) {
     return this.update({ enabled: false }, options);
   }
 
+  /**
+   * Determines if an event should be processed for this webhook subscription
+   * based on the event configuration.
+   *
+   * @param event Event to ceck
+   * @returns true if event is valid
+   */
   public validForEvent = (event: Event): bool => {
     if (this.events.length === 1 && this.events[0] === "*") {
       return true;
@@ -129,7 +136,14 @@ class WebhookSubscription extends ParanoidModel {
     return false;
   };
 
-  public signature = (data: string) => {
+  /**
+   * Calculates the signature for a webhook payload if the webhook subscription
+   * has an associated secret stored.
+   *
+   * @param payload The text payload of a webhook delivery
+   * @returns the signature as a string
+   */
+  public signature = (payload: string) => {
     if (isEmpty(this.secret)) {
       return;
     }
@@ -138,7 +152,7 @@ class WebhookSubscription extends ParanoidModel {
 
     const signature = crypto
       .createHmac("sha256", this.secret)
-      .update(`${signTimestamp}.${data}`)
+      .update(`${signTimestamp}.${payload}`)
       .digest("hex");
 
     return `t=${signTimestamp},s=${signature}`;
