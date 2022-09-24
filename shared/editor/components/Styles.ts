@@ -1035,7 +1035,7 @@ table {
   }
 
   th {
-    background: ${props.theme.tableHeaderBackground};
+    background: transparent;
   }
 
   td,
@@ -1282,6 +1282,10 @@ del {
   background-color: ${props.theme.slateLight};
   color: ${props.theme.slate};
   text-decoration: strikethrough;
+}
+
+del img {
+  opacity: .5;
 }
 
 @media print {

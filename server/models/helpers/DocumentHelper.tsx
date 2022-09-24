@@ -3,6 +3,7 @@ import {
   yDocToProsemirrorJSON,
 } from "@getoutline/y-prosemirror";
 import { JSDOM } from "jsdom";
+import { escapeRegExp } from "lodash";
 import diff from "node-htmldiff";
 import { Node, DOMSerializer } from "prosemirror-model";
 import * as React from "react";
@@ -18,12 +19,17 @@ import { parser, schema } from "@server/editor";
 import Logger from "@server/logging/Logger";
 import Document from "@server/models/Document";
 import type Revision from "@server/models/Revision";
+import parseAttachmentIds from "@server/utils/parseAttachmentIds";
+import { getSignedUrl } from "@server/utils/s3";
+import Attachment from "../Attachment";
 
 type HTMLOptions = {
   /** Whether to include the document title in the generated HTML (defaults to true) */
   includeTitle?: boolean;
   /** Whether to include style tags in the generated HTML (defaults to true) */
   includeStyles?: boolean;
+  /** Whether to include styles to center diff (defaults to true) */
+  centered?: boolean;
 };
 
 export default class DocumentHelper {
@@ -73,11 +79,13 @@ export default class DocumentHelper {
     const sheet = new ServerStyleSheet();
     let html, styleTags;
 
-    const Centered = styled.article`
-      max-width: 46em;
-      margin: 0 auto;
-      padding: 0 1em;
-    `;
+    const Centered = options?.centered
+      ? styled.article`
+          max-width: 46em;
+          margin: 0 auto;
+          padding: 0 1em;
+        `
+      : "article";
 
     const rtl = isRTL(document.title);
     const children = (
@@ -142,7 +150,7 @@ export default class DocumentHelper {
   }
 
   /**
-   * Generates a HTML diff between after documents or revisions.
+   * Generates a HTML diff between documents or revisions.
    *
    * @param before The before document
    * @param after The after document
@@ -172,10 +180,131 @@ export default class DocumentHelper {
 
     // Inject the diffed content into the original document with styling and
     // serialize back to a string.
-    beforeDOM.window.document.getElementsByTagName(
-      "article"
-    )[0].innerHTML = diffedContentAsHTML;
+    const article = beforeDOM.window.document.querySelector("article");
+    if (article) {
+      article.innerHTML = diffedContentAsHTML;
+    }
     return beforeDOM.serialize();
+  }
+
+  /**
+   * Generates a compact HTML diff between documents or revisions, the
+   * diff is reduced up to show only the parts of the document that changed and
+   * the immediate context. Breaks in the diff are denoted with
+   * "div.diff-context-break" nodes.
+   *
+   * @param before The before document
+   * @param after The after document
+   * @param options Options passed to HTML generation
+   * @returns The diff as a HTML string
+   */
+  static toEmailDiff(
+    before: Document | Revision | null,
+    after: Revision,
+    options?: HTMLOptions
+  ) {
+    if (!before) {
+      return "";
+    }
+
+    const html = DocumentHelper.diff(before, after, options);
+    const dom = new JSDOM(html);
+    const doc = dom.window.document;
+
+    const containsDiffElement = (node: Element | null) => {
+      return node && node.innerHTML.includes("data-operation-index");
+    };
+
+    // We use querySelectorAll to get a static NodeList as we'll be modifying
+    // it as we iterate, rather than getting content.childNodes.
+    const contents = doc.querySelectorAll("#content > *");
+    let previousNodeRemoved = false;
+    let previousDiffClipped = false;
+
+    const br = doc.createElement("div");
+    br.innerHTML = "…";
+    br.className = "diff-context-break";
+
+    for (const childNode of contents) {
+      // If the block node contains a diff tag then we want to keep it
+      if (containsDiffElement(childNode as Element)) {
+        if (previousNodeRemoved && previousDiffClipped) {
+          childNode.parentElement?.insertBefore(br.cloneNode(true), childNode);
+        }
+        previousNodeRemoved = false;
+        previousDiffClipped = true;
+
+        // If the block node does not contain a diff tag and the previous
+        // block node did not contain a diff tag then remove the previous.
+      } else {
+        if (
+          childNode.nodeName === "P" &&
+          childNode.textContent &&
+          childNode.nextElementSibling?.nodeName === "P" &&
+          containsDiffElement(childNode.nextElementSibling)
+        ) {
+          if (previousDiffClipped) {
+            childNode.parentElement?.insertBefore(
+              br.cloneNode(true),
+              childNode
+            );
+          }
+          previousNodeRemoved = false;
+          continue;
+        }
+        if (
+          childNode.nodeName === "P" &&
+          childNode.textContent &&
+          childNode.previousElementSibling?.nodeName === "P" &&
+          containsDiffElement(childNode.previousElementSibling)
+        ) {
+          previousNodeRemoved = false;
+          continue;
+        }
+        previousNodeRemoved = true;
+        childNode.remove();
+      }
+    }
+
+    const head = doc.querySelector("head");
+    const body = doc.querySelector("body");
+    return `${head?.innerHTML} ${body?.innerHTML}`;
+  }
+
+  /**
+   * Converts attachment urls in documents to signed equivalents that allow
+   * direct access without a session cookie
+   *
+   * @param text The text either html or markdown which contains urls to be converted
+   * @param teamId The team context
+   * @param expiresIn The time that signed urls should expire in (ms)
+   * @returns The replaced text
+   */
+  static async attachmentsToSignedUrls(
+    text: string,
+    teamId: string,
+    expiresIn = 3000
+  ) {
+    const attachmentIds = parseAttachmentIds(text);
+    await Promise.all(
+      attachmentIds.map(async (id) => {
+        const attachment = await Attachment.findOne({
+          where: {
+            id,
+            teamId,
+          },
+        });
+
+        if (attachment) {
+          const signedUrl = await getSignedUrl(attachment.key, expiresIn);
+          text = text.replace(
+            new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
+            signedUrl
+          );
+        }
+      })
+    );
+    return text;
   }
 
   /**

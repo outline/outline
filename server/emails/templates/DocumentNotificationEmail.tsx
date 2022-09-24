@@ -3,6 +3,7 @@ import { Document } from "@server/models";
 import BaseEmail from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
+import Diff from "./components/Diff";
 import EmailTemplate from "./components/EmailLayout";
 import EmptySpace from "./components/EmptySpace";
 import Footer from "./components/Footer";
@@ -17,6 +18,7 @@ type InputProps = {
   eventName: string;
   teamUrl: string;
   unsubscribeUrl: string;
+  content: string;
 };
 
 type BeforeSend = {
@@ -73,25 +75,34 @@ Open Document: ${teamUrl}${document.url}
     eventName = "published",
     teamUrl,
     unsubscribeUrl,
+    content,
   }: Props) {
+    const link = `${teamUrl}${document.url}?ref=notification-email`;
+
     return (
       <EmailTemplate>
         <Header />
 
         <Body>
           <Heading>
-            "{document.title}" {eventName}
+            “{document.title}” {eventName}
           </Heading>
           <p>
-            {actorName} {eventName} the document "{document.title}", in the{" "}
-            {collectionName} collection.
+            {actorName} {eventName} the document{" "}
+            <a href={link}>{document.title}</a>, in the {collectionName}{" "}
+            collection.
           </p>
-          <hr />
-          <EmptySpace height={10} />
-          <p>{document.getSummary()}</p>
-          <EmptySpace height={10} />
+          {content && (
+            <>
+              <EmptySpace height={20} />
+              <Diff>
+                <div dangerouslySetInnerHTML={{ __html: content }} />
+              </Diff>
+              <EmptySpace height={20} />
+            </>
+          )}
           <p>
-            <Button href={`${teamUrl}${document.url}`}>Open Document</Button>
+            <Button href={link}>Open Document</Button>
           </p>
         </Body>
 
