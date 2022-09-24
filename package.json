@@ -335,7 +335,7 @@
     "rimraf": "^2.5.4",
     "terser-webpack-plugin": "^4.1.0",
     "typescript": "^4.7.4",
-    "url-loader": "^0.6.2",
+    "url-loader": "^4.1.1",
     "webpack": "4.44.1",
     "webpack-cli": "^4.10.0",
     "webpack-manifest-plugin": "^3.0.0",
