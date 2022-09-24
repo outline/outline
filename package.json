@@ -163,7 +163,7 @@
     "prosemirror-transform": "1.2.5",
     "prosemirror-utils": "^0.9.6",
     "prosemirror-view": "1.26.5",
-    "query-string": "^7.0.1",
+    "query-string": "^7.1.1",
     "quoted-printable": "^1.0.1",
     "randomstring": "1.1.5",
     "rate-limiter-flexible": "^2.3.7",
