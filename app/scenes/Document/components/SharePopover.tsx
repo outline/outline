@@ -1,7 +1,7 @@
 import { formatDistanceToNow } from "date-fns";
 import invariant from "invariant";
 import { observer } from "mobx-react";
-import { GlobeIcon, PadlockIcon } from "outline-icons";
+import { ExpandedIcon, GlobeIcon, PadlockIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
@@ -42,6 +42,7 @@ function SharePopover({
   const { shares } = useStores();
   const { showToast } = useToasts();
   const [isCopied, setIsCopied] = React.useState(false);
+  const [expandedOptions, setExpandedOptions] = React.useState(false);
   const [isEditMode, setIsEditMode] = React.useState(false);
   const timeout = React.useRef<ReturnType<typeof setTimeout>>();
   const buttonRef = React.useRef<HTMLButtonElement>(null);
@@ -57,6 +58,11 @@ function SharePopover({
     ((share && share.published) ||
       (sharedParent && sharedParent.published && !document.isDraft));
 
+  React.useEffect(() => {
+    if (!visible && expandedOptions) {
+      setExpandedOptions(false);
+    }
+  }, [visible]); // eslint-disable-line react-hooks/exhaustive-deps
   useKeyDown("Escape", onRequestClose);
 
   React.useEffect(() => {
@@ -203,25 +209,6 @@ function SharePopover({
         </SwitchWrapper>
       )}
 
-      <SwitchWrapper>
-        <Switch
-          id="enableEditMode"
-          label={t("Enable edit mode")}
-          onChange={({ currentTarget: { checked } }) => setIsEditMode(checked)}
-          checked={isEditMode}
-          disabled={!share}
-        />
-        <SwitchLabel>
-          <SwitchText>
-            {isEditMode
-              ? t(
-                  "Users with sufficient permissions will open the document in edit mode"
-                )
-              : t("Default shared document view")}
-          </SwitchText>
-        </SwitchLabel>
-      </SwitchWrapper>
-
       <Flex>
         <InputLink
           type="text"
@@ -242,6 +229,44 @@ function SharePopover({
           </Button>
         </CopyToClipboard>
       </Flex>
+
+      {expandedOptions ? (
+        <>
+          <Separator />
+          <SwitchWrapper>
+            <Switch
+              id="enableEditMode"
+              label={t("Automatically redirect to the editor")}
+              onChange={({ currentTarget: { checked } }) =>
+                setIsEditMode(checked)
+              }
+              checked={isEditMode}
+              disabled={!share}
+            />
+            <SwitchLabel>
+              <SwitchText>
+                {isEditMode
+                  ? t(
+                      "Users with enough permissions will be redirected to the editor"
+                    )
+                  : `${t("Shared view mode")}: ${t(
+                      "page has Edit button that redirects to the editor"
+                    )}`}
+              </SwitchText>
+            </SwitchLabel>
+          </SwitchWrapper>
+        </>
+      ) : (
+        <Flex justify="center">
+          <MoreOptionsButton
+            onClick={() => setExpandedOptions(true)}
+            title={t("More Options")}
+            aria-label={t("More Options")}
+          >
+            <ExpandedIcon size={36} />
+          </MoreOptionsButton>
+        </Flex>
+      )}
     </>
   );
 }
@@ -255,6 +280,25 @@ const Heading = styled.h2`
 
 const SwitchWrapper = styled.div`
   margin: 20px 0;
+`;
+
+export const MoreOptionsButton = styled.button`
+  background: none;
+  border: 0;
+  transition: opacity 100ms ease-in-out;
+  opacity: 0.5;
+  color: ${(props) => props.theme.divider};
+  cursor: pointer;
+
+  &:hover {
+    opacity: 1;
+  }
+`;
+
+const Separator = styled.div`
+  height: 1px;
+  width: 100%;
+  background-color: ${(props) => props.theme.divider};
 `;
 
 const InputLink = styled(Input)`
