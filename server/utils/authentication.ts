@@ -74,6 +74,7 @@ export async function signIn(
   // only used to display a UI hint for the user for next time
   ctx.cookies.set("lastSignedIn", service, {
     httpOnly: false,
+    sameSite: true,
     expires: new Date("2100"),
     domain,
   });
@@ -101,6 +102,7 @@ export async function signIn(
     ctx.redirect(`${team.url}/auth/redirect?token=${user.getTransferToken()}`);
   } else {
     ctx.cookies.set("accessToken", user.getJwtToken(), {
+      sameSite: true,
       httpOnly: false,
       expires,
     });
