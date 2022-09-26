@@ -1,3 +1,4 @@
+import { JSDOM } from "jsdom";
 import * as React from "react";
 import { Document } from "@server/models";
 import BaseEmail from "./BaseEmail";
@@ -23,6 +24,8 @@ type InputProps = {
 
 type BeforeSend = {
   document: Document;
+  css: string | undefined;
+  body: string | undefined;
 };
 
 type Props = InputProps & BeforeSend;
@@ -35,13 +38,27 @@ export default class DocumentNotificationEmail extends BaseEmail<
   InputProps,
   BeforeSend
 > {
-  protected async beforeSend({ documentId }: InputProps) {
+  protected async beforeSend({ documentId, content }: InputProps) {
     const document = await Document.unscoped().findByPk(documentId);
     if (!document) {
       return false;
     }
 
-    return { document };
+    // extract the css styles so they can be injected into the head of email
+    // for best compatability
+    let css, body;
+    if (content) {
+      const dom = new JSDOM(content);
+      const styles = dom.window.document.querySelectorAll("style");
+      css = Array.from(styles)
+        .map((style) => style.innerHTML)
+        .join(" ");
+
+      styles.forEach((style) => style.remove());
+      body = dom.window.document.body.innerHTML;
+    }
+
+    return { document, body, css };
   }
 
   protected subject({ document, eventName }: Props) {
@@ -68,6 +85,10 @@ Open Document: ${teamUrl}${document.url}
 `;
   }
 
+  protected headCSS(props: Props) {
+    return props.css;
+  }
+
   protected render({
     document,
     actorName,
@@ -75,7 +96,7 @@ Open Document: ${teamUrl}${document.url}
     eventName = "published",
     teamUrl,
     unsubscribeUrl,
-    content,
+    body,
   }: Props) {
     const link = `${teamUrl}${document.url}?ref=notification-email`;
 
@@ -92,11 +113,11 @@ Open Document: ${teamUrl}${document.url}
             <a href={link}>{document.title}</a>, in the {collectionName}{" "}
             collection.
           </p>
-          {content && (
+          {body && (
             <>
               <EmptySpace height={20} />
               <Diff>
-                <div dangerouslySetInnerHTML={{ __html: content }} />
+                <div dangerouslySetInnerHTML={{ __html: body }} />
               </Diff>
               <EmptySpace height={20} />
             </>
