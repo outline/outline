@@ -152,7 +152,7 @@ export default abstract class BaseEmail<T extends EmailProps, S = unknown> {
    * @param props Props in email constructor
    * @returns A string of CSS
    */
-  protected abstract headCSS?(props: T): string | undefined;
+  protected headCSS?(props: T): string | undefined;
 
   /**
    * beforeSend hook allows async loading additional data that was not passed
