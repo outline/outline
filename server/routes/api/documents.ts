@@ -424,7 +424,7 @@ router.post(
             document: serializedDocument,
             sharedTree:
               share && share.includeChildDocuments
-                ? collection.getDocumentTree(share.documentId)
+                ? collection?.getDocumentTree(share.documentId)
                 : undefined,
           }
         : serializedDocument;
@@ -1162,7 +1162,17 @@ router.post("documents.create", auth(), async (ctx) => {
     index,
   } = ctx.body;
   const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
-  assertUuid(collectionId, "collectionId must be an uuid");
+
+  if (parentDocumentId || template) {
+    assertPresent(
+      collectionId,
+      "collectionId is required to create a nested doc or a template"
+    );
+  }
+
+  if (collectionId) {
+    assertUuid(collectionId, "collectionId must be an uuid");
+  }
 
   if (parentDocumentId) {
     assertUuid(parentDocumentId, "parentDocumentId must be an uuid");
@@ -1173,15 +1183,19 @@ router.post("documents.create", auth(), async (ctx) => {
   }
   const { user } = ctx.state;
 
-  const collection = await Collection.scope({
-    method: ["withMembership", user.id],
-  }).findOne({
-    where: {
-      id: collectionId,
-      teamId: user.teamId,
-    },
-  });
-  authorize(user, "publish", collection);
+  let collection;
+
+  if (collectionId) {
+    collection = await Collection.scope({
+      method: ["withMembership", user.id],
+    }).findOne({
+      where: {
+        id: collectionId,
+        teamId: user.teamId,
+      },
+    });
+    authorize(user, "publish", collection);
+  }
 
   let parentDocument;
 
@@ -1189,7 +1203,7 @@ router.post("documents.create", auth(), async (ctx) => {
     parentDocument = await Document.findOne({
       where: {
         id: parentDocumentId,
-        collectionId: collection.id,
+        collectionId: collection?.id,
       },
     });
     authorize(user, "read", parentDocument, {

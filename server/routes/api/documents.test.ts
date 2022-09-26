@@ -15,6 +15,7 @@ import {
   buildUser,
   buildDocument,
   buildViewer,
+  buildTeam,
 } from "@server/test/factories";
 import { seed, getTestDatabase, getTestServer } from "@server/test/support";
 
@@ -1867,6 +1868,62 @@ describe("#documents.create", () => {
     expect(newDocument!.parentDocumentId).toBe(null);
     expect(newDocument!.collectionId).toBe(collection.id);
     expect(body.policies[0].abilities.update).toEqual(true);
+  });
+
+  it("should create a draft document not belonging to any collection", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const res = await server.post("/api/documents.create", {
+      body: {
+        token: user.getJwtToken(),
+        title: "draft document",
+        text: "draft document without collection",
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toEqual(200);
+    expect(body.data.title).toBe("draft document");
+    expect(body.data.text).toBe("draft document without collection");
+    expect(body.data.collectionId).toBeNull();
+  });
+
+  it("should not allow creating a template without a collection", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const res = await server.post("/api/documents.create", {
+      body: {
+        template: true,
+        token: user.getJwtToken(),
+        title: "template",
+        text: "template without collection",
+      },
+    });
+    const body = await res.json();
+
+    expect(body.message).toBe(
+      "collectionId is required to create a nested doc or a template"
+    );
+    expect(res.status).toEqual(400);
+  });
+
+  it("should not allow creating a nested doc without a collection", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const res = await server.post("/api/documents.create", {
+      body: {
+        token: user.getJwtToken(),
+        parentDocumentId: "d7a4eb73-fac1-4028-af45-d7e34d54db8e",
+        title: "nested doc",
+        text: "nested doc without collection",
+      },
+    });
+    const body = await res.json();
+
+    expect(body.message).toBe(
+      "collectionId is required to create a nested doc or a template"
+    );
+    expect(res.status).toEqual(400);
   });
 
   it("should not allow very long titles", async () => {

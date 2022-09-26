@@ -404,7 +404,7 @@ class Document extends ParanoidModel {
   teamId: string;
 
   @BelongsTo(() => Collection, "collectionId")
-  collection: Collection;
+  collection: Collection | undefined;
 
   @ForeignKey(() => Collection)
   @Column(DataType.UUID)
