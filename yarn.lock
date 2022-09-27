@@ -3285,10 +3285,10 @@
   resolved "https://registry.yarnpkg.com/@types/range-parser/-/range-parser-1.2.4.tgz#cd667bcfdd025213aafb7ca5915a932590acdcdc"
   integrity sha512-EEhsLsD6UsDM1yFhAvy0Cjr6VwmpMWqFBCb9w07wVugF7w9nfajxLuVmngTIpgS6svCnm6Vaw+MZhoDCKnOfsw==
 
-"@types/react-avatar-editor@^10.3.6":
-  version "10.3.6"
-  resolved "https://registry.yarnpkg.com/@types/react-avatar-editor/-/react-avatar-editor-10.3.6.tgz#f902a91b336eac7e3d141ec931eeae9a082e8125"
-  integrity sha512-2r9+WYriqXIyjOTxy/DSiCUhr2TBiYD4Gzbyych1WUEwdPboNj0JRz9B5868TwiGgKD61jdWYyKy/OutHs7L6A==
+"@types/react-avatar-editor@^13.0.0":
+  version "13.0.0"
+  resolved "https://registry.yarnpkg.com/@types/react-avatar-editor/-/react-avatar-editor-13.0.0.tgz#5963e16c931746c47e478d669dd72d388b427393"
+  integrity sha512-5ymOayy6mfT35xTqzni7UjXvCNEg8/pH4pI5RenITp9PBc02KGTYjSV1WboXiQDYSh5KomLT0ngBLEAIhV1QoQ==
   dependencies:
     "@types/react" "*"
 
@@ -12859,10 +12859,10 @@ rc@^1.2.8:
     minimist "^1.2.0"
     strip-json-comments "~2.0.1"
 
-react-avatar-editor@^11.1.0:
-  version "11.1.0"
-  resolved "https://registry.yarnpkg.com/react-avatar-editor/-/react-avatar-editor-11.1.0.tgz#0eaec7970b1fbbd90d42a1955be440ea27f598ea"
-  integrity sha512-Z89qLKS3skld2Ov80EvCCzZKz87eLiEEhwJRYsGG6k2OM0Bo+V0dFrM2i0yAPeGjyagmTkoOSkQgDUfM+zc1vw==
+react-avatar-editor@^13.0.0:
+  version "13.0.0"
+  resolved "https://registry.yarnpkg.com/react-avatar-editor/-/react-avatar-editor-13.0.0.tgz#55013625ee9ae715c1fe2dc553b8079994d8a5f2"
+  integrity sha512-0xw63MbRRQdDy7YI1IXU9+7tTFxYEFLV8CABvryYOGjZmXRTH2/UA0mafe57ns62uaEFX181kA4XlGlxCaeXKA==
   dependencies:
     "@babel/plugin-transform-runtime" "^7.12.1"
     "@babel/runtime" "^7.12.5"
