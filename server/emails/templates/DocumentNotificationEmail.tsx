@@ -1,5 +1,6 @@
-import { JSDOM } from "jsdom";
+import inlineCss from "inline-css";
 import * as React from "react";
+import env from "@server/env";
 import { Document } from "@server/models";
 import BaseEmail from "./BaseEmail";
 import Body from "./components/Body";
@@ -24,7 +25,6 @@ type InputProps = {
 
 type BeforeSend = {
   document: Document;
-  css: string | undefined;
   body: string | undefined;
 };
 
@@ -44,21 +44,18 @@ export default class DocumentNotificationEmail extends BaseEmail<
       return false;
     }
 
-    // extract the css styles so they can be injected into the head of email
-    // for best compatability
-    let css, body;
+    // inline all css so that it works in as many email providers as possible.
+    let body;
     if (content) {
-      const dom = new JSDOM(content);
-      const styles = dom.window.document.querySelectorAll("style");
-      css = Array.from(styles)
-        .map((style) => style.innerHTML)
-        .join(" ");
-
-      styles.forEach((style) => style.remove());
-      body = dom.window.document.body.innerHTML;
+      body = await inlineCss(content, {
+        url: env.URL,
+        applyStyleTags: true,
+        applyLinkTags: false,
+        removeStyleTags: true,
+      });
     }
 
-    return { document, body, css };
+    return { document, body };
   }
 
   protected subject({ document, eventName }: Props) {
@@ -83,10 +80,6 @@ ${actorName} ${eventName} the document "${document.title}", in the ${collectionN
 
 Open Document: ${teamUrl}${document.url}
 `;
-  }
-
-  protected headCSS(props: Props) {
-    return props.css;
   }
 
   protected render({
