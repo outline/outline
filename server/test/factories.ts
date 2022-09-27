@@ -324,7 +324,11 @@ export async function buildGroupUser(
 }
 
 export async function buildDocument(
-  overrides: Partial<Document> & { userId?: string } = {}
+  overrides: Partial<Document> & { userId?: string } = {},
+  // Okay, this is a workaround to avoid making current changes
+  // in a lot of other tests. Should eventually be refactored
+  // separately
+  draft = false
 ) {
   if (!overrides.teamId) {
     const team = await buildTeam();
@@ -336,7 +340,7 @@ export async function buildDocument(
     overrides.userId = user.id;
   }
 
-  if (!overrides.collectionId) {
+  if (!draft && !overrides.collectionId) {
     const collection = await buildCollection({
       teamId: overrides.teamId,
       userId: overrides.userId,
@@ -348,7 +352,7 @@ export async function buildDocument(
   return Document.create({
     title: `Document ${count}`,
     text: "This is the text in an example document",
-    publishedAt: new Date(),
+    publishedAt: !draft ? new Date() : null,
     lastModifiedById: overrides.userId,
     createdById: overrides.userId,
     ...overrides,

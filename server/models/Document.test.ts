@@ -608,3 +608,38 @@ describe("tasks", () => {
     expect(newTasks.total).toBe(3);
   });
 });
+
+describe("#isDraftWithoutCollection()", () => {
+  it("should return true if a draft document doesn't belong to any collection", async () => {
+    const document = await buildDocument({ title: "some doc" }, true);
+    expect(document.isDraftWithoutCollection).toBe(true);
+    expect(document.collectionId).toBeNull();
+    expect(document.publishedAt).toBeNull();
+  });
+
+  it("should return false if a draft document belongs to a collection", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({
+      teamId: team.id,
+    });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: collection.id,
+      title: "test",
+    });
+    expect(document.isDraftWithoutCollection).toBe(false);
+  });
+
+  it("should return false if document is published", async () => {
+    const document = await buildDocument({
+      title: "some doc",
+      publishedAt: new Date(),
+    });
+    expect(document.isDraftWithoutCollection).toBe(false);
+  });
+});
