@@ -33,8 +33,6 @@ const WEBHOOK_EVENTS = {
     "documents.restore",
     "documents.move",
     "documents.update",
-    "documents.update.delayed",
-    "documents.update.debounced",
     "documents.title_change",
   ],
   revision: ["revisions.create"],
