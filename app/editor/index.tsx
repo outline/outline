@@ -15,6 +15,7 @@ import {
 import { EditorState, Selection, Plugin, Transaction } from "prosemirror-state";
 import { Decoration, EditorView } from "prosemirror-view";
 import * as React from "react";
+import { useHistory } from "react-router-dom";
 import { DefaultTheme, ThemeProps } from "styled-components";
 import EditorContainer from "@shared/editor/components/Styles";
 import { EmbedDescriptor } from "@shared/editor/embeds";
@@ -113,6 +114,7 @@ export type Props = {
   style?: React.CSSProperties;
 
   embedIntegrations?: Integration<IntegrationType.Embed>[];
+  history?: ReturnType<typeof useHistory>;
 };
 
 type State = {
@@ -685,9 +687,12 @@ export class Editor extends React.PureComponent<
 
 const LazyLoadedEditor = React.forwardRef<Editor, Props>(
   (props: Props, ref) => {
+    const history = useHistory();
     return (
       <WithTheme>
-        {(theme) => <Editor theme={theme} {...props} ref={ref} />}
+        {(theme) => (
+          <Editor theme={theme} history={history} {...props} ref={ref} />
+        )}
       </WithTheme>
     );
   }

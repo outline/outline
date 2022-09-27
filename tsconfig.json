@@ -9,7 +9,7 @@
     "isolatedModules": true,
     "baseUrl": ".",
     "jsx": "react",
-    "lib": ["dom", "es2020", "dom.iterable", "esnext.asynciterable"],
+    "lib": ["dom", "es2020", "es2021", "dom.iterable", "esnext.asynciterable"],
     "module": "esnext",
     "moduleResolution": "node",
     "noImplicitAny": true,

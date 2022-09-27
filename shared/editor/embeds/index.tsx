@@ -36,6 +36,7 @@ import Marvel from "./Marvel";
 import Mindmeister from "./Mindmeister";
 import Miro from "./Miro";
 import ModeAnalytics from "./ModeAnalytics";
+import NocoDb from "./NocoDb";
 import Otter from "./Otter";
 import Pitch from "./Pitch";
 import Prezi from "./Prezi";
@@ -56,6 +57,7 @@ export type EmbedProps = {
     href: string;
     matches: RegExpMatchArray;
   };
+  navigate: (path: string) => void;
 };
 
 const Img = styled(Image)`
@@ -317,6 +319,12 @@ const embeds: EmbedDescriptor[] = [
     defaultHidden: true,
     icon: () => <Img src="/images/mode-analytics.png" alt="Mode" />,
     component: ModeAnalytics,
+  }),
+  new EmbedDescriptor({
+    title: "NocoDB",
+    keywords: "self-hosted AirTable alternative",
+    icon: () => <Img src="/images/nocodb.png" alt="NocoDB" />,
+    component: NocoDb,
   }),
   new EmbedDescriptor({
     title: "Otter.ai",

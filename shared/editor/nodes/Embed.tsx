@@ -90,6 +90,8 @@ export default class Embed extends Node {
       return null;
     }
 
+    const navigate = (path: string) =>
+      (this.editor.props as any).history.push(path);
     if (embedsDisabled) {
       return (
         <DisabledEmbed
@@ -98,6 +100,7 @@ export default class Embed extends Node {
           isEditable={isEditable}
           isSelected={isSelected}
           theme={theme}
+          navigate={navigate}
         />
       );
     }
@@ -109,6 +112,7 @@ export default class Embed extends Node {
         isSelected={isSelected}
         embed={embed}
         theme={theme}
+        navigate={navigate}
       />
     );
   }
