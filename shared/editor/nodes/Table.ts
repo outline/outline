@@ -22,7 +22,7 @@ import {
 } from "prosemirror-utils";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
-import getRowIndex from "../queries/getRowIndex";
+import { getRowIndexFromText } from "../queries/getRowIndex";
 import tablesRule from "../rules/tables";
 import { Dispatch } from "../types";
 import Node from "./Node";
@@ -125,7 +125,7 @@ export default class Table extends Node {
         if (!isInTable(state)) {
           return false;
         }
-        const index = getRowIndex(
+        const index = getRowIndexFromText(
           (state.selection as unknown) as CellSelection
         );
         if (index === 0) {
