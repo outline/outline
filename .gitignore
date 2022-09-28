@@ -12,3 +12,5 @@ fakes3/*
 *.pem
 *.key
 *.cert
+docker-compose.yml
+yarn-error.log

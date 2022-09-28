@@ -12,6 +12,7 @@ import {
   toggleHeaderCell,
   toggleHeaderColumn,
   toggleHeaderRow,
+  CellSelection,
 } from "prosemirror-tables";
 import {
   addRowAt,
@@ -21,6 +22,7 @@ import {
 } from "prosemirror-utils";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import getRowIndex from "../queries/getRowIndex";
 import tablesRule from "../rules/tables";
 import { Dispatch } from "../types";
 import Node from "./Node";
@@ -123,12 +125,15 @@ export default class Table extends Node {
         if (!isInTable(state)) {
           return false;
         }
-
-        // TODO: Adding row at the end for now, can we find the current cell
-        // row index and add the row below that?
-        const cells = getCellsInColumn(0)(state.selection) || [];
-
-        dispatch(addRowAt(cells.length, true)(state.tr));
+        const index = Number(
+          getRowIndex((state.selection as unknown) as CellSelection)
+        );
+        if (index === 0) {
+          const tr = addRowAt(index + 2, true)(state.tr);
+          dispatch(moveRow(index + 2, index + 1)(tr));
+        } else {
+          dispatch(addRowAt(index + 1, true)(state.tr));
+        }
         return true;
       },
     };
