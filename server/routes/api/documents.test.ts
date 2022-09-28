@@ -871,6 +871,33 @@ describe("#documents.drafts", () => {
     expect(body.data.length).toEqual(1);
   });
 
+  it("should return drafts, including ones without collectionIds", async () => {
+    const drafts = [];
+    const { user, document } = await seed();
+    document.publishedAt = null;
+    await document.save();
+    drafts.push(document);
+    const draftWithoutCollection = await buildDocument(
+      {
+        title: "draft title",
+        text: "draft text",
+        createdById: user.id,
+        teamId: user.teamId,
+      },
+      true
+    );
+    drafts.push(draftWithoutCollection);
+
+    const res = await server.post("/api/documents.drafts", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(drafts.length);
+  });
+
   it("should not return documents in private collections not a member of", async () => {
     const { user, document, collection } = await seed();
     document.publishedAt = null;

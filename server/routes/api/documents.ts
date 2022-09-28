@@ -352,9 +352,11 @@ router.post("documents.drafts", auth(), pagination(), async (ctx) => {
   const collectionIds = collectionId
     ? [collectionId]
     : await user.collectionIds();
-  const where: WhereOptions<Document> = {
+  const where: WhereOptions = {
     createdById: user.id,
-    collectionId: collectionIds,
+    collectionId: {
+      [Op.or]: [{ [Op.in]: collectionIds }, { [Op.is]: null }],
+    },
     publishedAt: {
       [Op.is]: null,
     },
