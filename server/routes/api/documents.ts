@@ -820,6 +820,7 @@ router.post("documents.update", auth(), async (ctx) => {
     publish,
     lastRevision,
     templateId,
+    collectionId,
     append,
   } = ctx.body;
   const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
@@ -827,24 +828,39 @@ router.post("documents.update", auth(), async (ctx) => {
   if (append) {
     assertPresent(text, "Text is required while appending");
   }
+
+  if (collectionId) {
+    assertUuid(collectionId, "collectionId must be an uuid");
+  }
+
   const { user } = ctx.state;
 
   let collection: Collection | null | undefined;
 
-  const document = await sequelize.transaction(async (transaction) => {
-    const document = await Document.findByPk(id, {
-      userId: user.id,
-      includeState: true,
-      transaction,
-    });
-    authorize(user, "update", document);
+  const document = await Document.findByPk(id, {
+    userId: user.id,
+    includeState: true,
+  });
+  authorize(user, "update", document);
 
-    collection = document.collection;
-
-    if (lastRevision && lastRevision !== document.revisionCount) {
-      throw InvalidRequestError("Document has changed since last revision");
+  if (publish) {
+    if (document.isDraftWithoutCollection) {
+      assertPresent(
+        collectionId,
+        "collectionId is required to publish a draft without collection"
+      );
+      collection = await Collection.findByPk(collectionId);
+    } else {
+      collection = document.collection;
     }
+    authorize(user, "publish", collection);
+  }
 
+  if (lastRevision && lastRevision !== document.revisionCount) {
+    throw InvalidRequestError("Document has changed since last revision");
+  }
+
+  const updatedDocument = await sequelize.transaction(async (transaction) => {
     return documentUpdater({
       document,
       user,
@@ -852,6 +868,7 @@ router.post("documents.update", auth(), async (ctx) => {
       text,
       fullWidth,
       publish,
+      collectionId,
       append,
       templateId,
       editorVersion,
@@ -860,14 +877,12 @@ router.post("documents.update", auth(), async (ctx) => {
     });
   });
 
-  invariant(collection, "collection not found");
-
-  document.updatedBy = user;
-  document.collection = collection;
+  updatedDocument.updatedBy = user;
+  updatedDocument.collection = collection;
 
   ctx.body = {
-    data: await presentDocument(document),
-    policies: presentPolicies(user, [document]),
+    data: await presentDocument(updatedDocument),
+    policies: presentPolicies(user, [updatedDocument]),
   };
 });
 
@@ -1163,10 +1178,12 @@ router.post("documents.create", auth(), async (ctx) => {
   } = ctx.body;
   const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
 
-  if (parentDocumentId || template) {
+  if (parentDocumentId || template || publish) {
     assertPresent(
       collectionId,
-      "collectionId is required to create a nested doc or a template"
+      publish
+        ? "collectionId is required to publish a draft without collection"
+        : "collectionId is required to create a nested doc or a template"
     );
   }
 

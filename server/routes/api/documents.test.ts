@@ -1907,6 +1907,25 @@ describe("#documents.create", () => {
     expect(res.status).toEqual(400);
   });
 
+  it("should not allow publishing without specifying the collection", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({ teamId: team.id });
+    const res = await server.post("/api/documents.create", {
+      body: {
+        token: user.getJwtToken(),
+        title: "title",
+        text: "text",
+        publish: true,
+      },
+    });
+    const body = await res.json();
+
+    expect(body.message).toBe(
+      "collectionId is required to publish a draft without collection"
+    );
+    expect(res.status).toEqual(400);
+  });
+
   it("should not allow creating a nested doc without a collection", async () => {
     const team = await buildTeam();
     const user = await buildUser({ teamId: team.id });
@@ -2029,6 +2048,79 @@ describe("#documents.update", () => {
     expect(body.data.text).toBe("Updated text");
     const events = await Event.findAll();
     expect(events.length).toEqual(1);
+  });
+
+  it("should not allow publishing a draft without specifying the collection", async () => {
+    const { user, team } = await seed();
+    const document = await buildDocument(
+      {
+        teamId: team.id,
+      },
+      true
+    );
+    const res = await server.post("/api/documents.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        title: "Updated title",
+        text: "Updated text",
+        lastRevision: document.revisionCount,
+        publish: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toBe(
+      "collectionId is required to publish a draft without collection"
+    );
+  });
+
+  it("should successfully publish a draft", async () => {
+    const { user, team, collection } = await seed();
+    const document = await buildDocument(
+      {
+        title: "title",
+        text: "text",
+        teamId: team.id,
+      },
+      true
+    );
+
+    const res = await server.post("/api/documents.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        title: "Updated title",
+        text: "Updated text",
+        lastRevision: document.revisionCount,
+        collectionId: collection.id,
+        publish: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.collectionId).toBe(collection.id);
+    expect(body.data.title).toBe("Updated title");
+    expect(body.data.text).toBe("Updated text");
+  });
+
+  it("should not allow publishing by another collection's user", async () => {
+    const { user, document, collection } = await seed();
+    const anotherTeam = await buildTeam();
+    user.teamId = anotherTeam.id;
+    await user.save();
+    const res = await server.post("/api/documents.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        title: "Updated title",
+        text: "Updated text",
+        lastRevision: document.revisionCount,
+        collectionId: collection.id,
+        publish: true,
+      },
+    });
+    expect(res.status).toEqual(403);
   });
 
   it("should not add template to collection structure when publishing", async () => {

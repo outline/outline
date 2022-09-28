@@ -11,7 +11,7 @@ type Action = {
 function present(
   document: Document,
   team: Team,
-  collection?: Collection,
+  collection?: Collection | null,
   context?: string,
   actions?: Action[]
 ) {
