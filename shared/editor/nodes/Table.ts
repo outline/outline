@@ -125,8 +125,8 @@ export default class Table extends Node {
         if (!isInTable(state)) {
           return false;
         }
-        const index = Number(
-          getRowIndex((state.selection as unknown) as CellSelection)
+        const index = getRowIndex(
+          (state.selection as unknown) as CellSelection
         );
         if (index === 0) {
           const tr = addRowAt(index + 2, true)(state.tr);

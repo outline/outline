@@ -8,9 +8,8 @@ export default function getRowIndex(selection: CellSelection) {
   } else {
     const fromStr = selection.$from.toString();
     if (fromStr.includes("table")) {
-      return fromStr.substring(
-        fromStr.indexOf("tr_") + 3,
-        fromStr.indexOf("/td_")
+      return Number(
+        fromStr.substring(fromStr.indexOf("tr_") + 3, fromStr.indexOf("/td_"))
       );
     } else {
       return undefined;
