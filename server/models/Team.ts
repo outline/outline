@@ -89,7 +89,7 @@ class Team extends ParanoidModel {
 
   @AllowNull
   @IsUrl
-  @Length({ max: 255, msg: "avatarUrl must be 255 characters or less" })
+  @Length({ max: 4096, msg: "avatarUrl must be 4096 characters or less" })
   @Column
   avatarUrl: string | null;
 

@@ -170,7 +170,7 @@ class User extends ParanoidModel {
 
   @AllowNull
   @IsUrl
-  @Length({ max: 1000, msg: "avatarUrl must be less than 1000 characters" })
+  @Length({ max: 4096, msg: "avatarUrl must be less than 4096 characters" })
   @Column(DataType.STRING)
   get avatarUrl() {
     const original = this.getDataValue("avatarUrl");
