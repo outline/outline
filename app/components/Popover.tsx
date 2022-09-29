@@ -46,7 +46,7 @@ const Contents = styled.div<{ $shrink?: boolean; $width?: number }>`
   border-radius: 6px;
   padding: ${(props) => (props.$shrink ? "6px 0" : "12px 24px")};
   max-height: 50vh;
-  overflow-y: scroll;
+  overflow-y: auto;
   box-shadow: ${(props) => props.theme.menuShadow};
   width: ${(props) => props.$width}px;
 

@@ -10,7 +10,6 @@ import Share from "~/models/Share";
 import Button from "~/components/Button";
 import CopyToClipboard from "~/components/CopyToClipboard";
 import Flex from "~/components/Flex";
-import Input from "~/components/Input";
 import Notice from "~/components/Notice";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
@@ -135,8 +134,8 @@ function SharePopover({
           <GlobeIcon size={28} color="currentColor" />
         ) : (
           <PadlockIcon size={28} color="currentColor" />
-        )}{" "}
-        {t("Share this document")}
+        )}
+        <span>{t("Share this document")}</span>
       </Heading>
 
       {sharedParent && !document.isDraft && (
@@ -204,33 +203,13 @@ function SharePopover({
               {share.includeChildDocuments
                 ? t("Nested documents are publicly available")
                 : t("Nested documents are not shared")}
+              .
             </SwitchText>
           </SwitchLabel>
         </SwitchWrapper>
       )}
 
-      <Flex>
-        <InputLink
-          type="text"
-          label={t("Link")}
-          placeholder={`${t("Loading")}…`}
-          value={shareUrl}
-          labelHidden
-          readOnly
-        />
-        <CopyToClipboard text={shareUrl} onCopy={handleCopied}>
-          <Button
-            type="submit"
-            disabled={isCopied || (!share && team.sharing)}
-            ref={buttonRef}
-            primary
-          >
-            {t("Copy link")}
-          </Button>
-        </CopyToClipboard>
-      </Flex>
-
-      {expandedOptions ? (
+      {expandedOptions && (
         <>
           <Separator />
           <SwitchWrapper>
@@ -247,26 +226,40 @@ function SharePopover({
               <SwitchText>
                 {isEditMode
                   ? t(
-                      "Users with enough permissions will be redirected to the editor"
+                      "Users with edit permission will be redirected to the main app"
                     )
-                  : `${t("Shared view mode")}: ${t(
-                      "page has Edit button that redirects to the editor"
-                    )}`}
+                  : t("All users see the same publicly shared view")}
+                .
               </SwitchText>
             </SwitchLabel>
           </SwitchWrapper>
         </>
-      ) : (
-        <Flex justify="center">
-          <MoreOptionsButton
-            onClick={() => setExpandedOptions(true)}
-            title={t("More Options")}
-            aria-label={t("More Options")}
-          >
-            <ExpandedIcon size={36} />
-          </MoreOptionsButton>
-        </Flex>
       )}
+
+      <Flex justify="space-between" style={{ marginBottom: 8 }}>
+        {expandedOptions ? (
+          <span />
+        ) : (
+          <MoreOptionsButton
+            icon={<ExpandedIcon />}
+            onClick={() => setExpandedOptions(true)}
+            neutral
+            borderOnHover
+          >
+            {t("More options")}
+          </MoreOptionsButton>
+        )}
+        <CopyToClipboard text={shareUrl} onCopy={handleCopied}>
+          <Button
+            type="submit"
+            disabled={isCopied || (!share && team.sharing)}
+            ref={buttonRef}
+            primary
+          >
+            {t("Copy link")}
+          </Button>
+        </CopyToClipboard>
+      </Flex>
     </>
   );
 }
@@ -275,6 +268,9 @@ const Heading = styled.h2`
   display: flex;
   align-items: center;
   margin-top: 12px;
+  gap: 8px;
+
+  /* accounts for icon padding */
   margin-left: -4px;
 `;
 
@@ -282,28 +278,17 @@ const SwitchWrapper = styled.div`
   margin: 20px 0;
 `;
 
-export const MoreOptionsButton = styled.button`
+const MoreOptionsButton = styled(Button)`
   background: none;
-  border: 0;
-  transition: opacity 100ms ease-in-out;
-  opacity: 0.5;
-  color: ${(props) => props.theme.divider};
-  cursor: pointer;
-
-  &:hover {
-    opacity: 1;
-  }
+  font-size: 14px;
+  color: ${(props) => props.theme.textSecondary};
+  margin-left: -8px;
 `;
 
 const Separator = styled.div`
   height: 1px;
   width: 100%;
   background-color: ${(props) => props.theme.divider};
-`;
-
-const InputLink = styled(Input)`
-  flex-grow: 1;
-  margin-right: 8px;
 `;
 
 const SwitchLabel = styled(Flex)`
