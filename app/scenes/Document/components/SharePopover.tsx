@@ -237,11 +237,11 @@ function SharePopover({
       )}
 
       <Flex justify="space-between" style={{ marginBottom: 8 }}>
-        {expandedOptions ? (
+        {expandedOptions || !canPublish ? (
           <span />
         ) : (
           <MoreOptionsButton
-            icon={<ExpandedIcon />}
+            icon={<ExpandedIcon color="currentColor" />}
             onClick={() => setExpandedOptions(true)}
             neutral
             borderOnHover
@@ -281,7 +281,7 @@ const SwitchWrapper = styled.div`
 const MoreOptionsButton = styled(Button)`
   background: none;
   font-size: 14px;
-  color: ${(props) => props.theme.textSecondary};
+  color: ${(props) => props.theme.textTertiary};
   margin-left: -8px;
 `;
 
