@@ -2463,6 +2463,34 @@ describe("#documents.delete", () => {
     expect(body.success).toEqual(true);
   });
 
+  it("should delete a draft without collection", async () => {
+    const { user } = await seed();
+    const document = await buildDocument(
+      {
+        teamId: user.teamId,
+        deletedAt: null,
+      },
+      true
+    );
+    const res = await server.post("/api/documents.delete", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.success).toEqual(true);
+
+    const deletedDoc = await Document.findByPk(document.id, {
+      paranoid: false,
+    });
+    expect(deletedDoc).toBeDefined();
+    expect(deletedDoc).not.toBeNull();
+    expect(deletedDoc?.deletedAt).toBeTruthy();
+  });
+
   it("should allow permanently deleting a document", async () => {
     const user = await buildUser();
     const document = await buildDocument({

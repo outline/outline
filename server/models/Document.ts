@@ -972,7 +972,11 @@ class Document extends ParanoidModel {
   // Delete a document, archived or otherwise.
   delete = (userId: string) => {
     return this.sequelize.transaction(async (transaction: Transaction) => {
-      if (!this.archivedAt && !this.template) {
+      if (
+        !this.archivedAt &&
+        !this.template &&
+        !this.isDraftWithoutCollection
+      ) {
         // delete any children and remove from the document structure
         const collection = await Collection.findByPk(this.collectionId, {
           transaction,
