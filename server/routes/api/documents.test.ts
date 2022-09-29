@@ -1503,6 +1503,33 @@ describe("#documents.deleted", () => {
     expect(body.data.length).toEqual(1);
   });
 
+  it("should return deleted documents, including drafts without collection", async () => {
+    const { user } = await seed();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
+    const draftWithoutCollection = await buildDocument(
+      {
+        userId: user.id,
+        teamId: user.teamId,
+      },
+      true
+    );
+    await Promise.all([
+      document.delete(user.id),
+      draftWithoutCollection.delete(user.id),
+    ]);
+    const res = await server.post("/api/documents.deleted", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(2);
+  });
+
   it("should not return documents in private collections not a member of", async () => {
     const { user } = await seed();
     const collection = await buildCollection({

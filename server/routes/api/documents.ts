@@ -243,7 +243,9 @@ router.post(
     ]).findAll({
       where: {
         teamId: user.teamId,
-        collectionId: collectionIds,
+        collectionId: {
+          [Op.or]: [{ [Op.in]: collectionIds }, { [Op.is]: null }],
+        },
         deletedAt: {
           [Op.ne]: null,
         },
