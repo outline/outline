@@ -128,9 +128,17 @@ export default class Table extends Node {
         const index = getRowIndexFromText(
           (state.selection as unknown) as CellSelection
         );
+
         if (index === 0) {
+          const cells = getCellsInColumn(0)(state.selection);
+          if (!cells) {
+            return false;
+          }
+
           const tr = addRowAt(index + 2, true)(state.tr);
-          dispatch(moveRow(index + 2, index + 1)(tr));
+          dispatch(
+            setTextSelection(cells[1].pos)(moveRow(index + 2, index + 1)(tr))
+          );
         } else {
           dispatch(addRowAt(index + 1, true)(state.tr));
         }
