@@ -1706,6 +1706,27 @@ describe("#documents.restore", () => {
     expect(body.data.deletedAt).toEqual(null);
   });
 
+  it("should allow restore of trashed drafts without collection", async () => {
+    const { user } = await seed();
+    const document = await buildDocument(
+      {
+        userId: user.id,
+        teamId: user.teamId,
+      },
+      true
+    );
+    await document.delete(user.id);
+    const res = await server.post("/api/documents.restore", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.deletedAt).toEqual(null);
+  });
+
   it("should allow restore of trashed documents with collectionId", async () => {
     const { user, document } = await seed();
     const collection = await buildCollection({
