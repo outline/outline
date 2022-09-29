@@ -19,6 +19,7 @@ import {
   createTable,
   getCellsInColumn,
   moveRow,
+  setTextSelection,
 } from "prosemirror-utils";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
