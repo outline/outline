@@ -527,8 +527,8 @@ class Document extends ParanoidModel {
     "teamId" = :teamId AND
     "collectionId" IN(:collectionIds) AND
     ${documentClause}
-    "deletedAt" IS NULL AND
-    "publishedAt" IS NOT NULL
+    ${!options.includeDrafts ? '"publishedAt" IS NOT NULL AND' : ""}
+    "deletedAt" IS NULL
   `;
     const selectSql = `
     SELECT
@@ -569,7 +569,7 @@ class Document extends ParanoidModel {
     ]);
 
     // Final query to get associated document data
-    const documents = await this.findAll({
+    const documents = await this.scope(["withoutState", "withDrafts"]).findAll({
       where: {
         id: map(results, "id"),
         teamId: team.id,
@@ -620,14 +620,6 @@ class Document extends ParanoidModel {
       collectionIds = await user.collectionIds();
     }
 
-    // If the user has access to no collections then shortcircuit the rest of this
-    if (!collectionIds.length) {
-      return {
-        results: [],
-        totalCount: 0,
-      };
-    }
-
     let dateFilter;
 
     if (options.dateFilter) {
@@ -638,7 +630,15 @@ class Document extends ParanoidModel {
     const whereClause = `
   "searchVector" @@ to_tsquery('english', :query) AND
     "teamId" = :teamId AND
-    "collectionId" IN(:collectionIds) AND
+    ${
+      options.includeDrafts
+        ? collectionIds.length
+          ? '("collectionId" IN(:collectionIds) OR "collectionId" IS NULL) AND'
+          : '"collectionId" IS NULL AND'
+        : collectionIds.length
+        ? '"collectionId" IN(:collectionIds) AND'
+        : ""
+    }
     ${
       options.dateFilter ? '"updatedAt" > now() - interval :dateFilter AND' : ""
     }

@@ -44,6 +44,7 @@ import {
   assertPresent,
   assertPositiveInteger,
   assertNotEmpty,
+  assertBoolean,
 } from "@server/validation";
 import env from "../../env";
 import pagination from "./middlewares/pagination";
@@ -660,6 +661,14 @@ router.post(
     } = ctx.body;
     assertNotEmpty(query, "query is required");
 
+    if (includeDrafts) {
+      assertBoolean(includeDrafts);
+    }
+
+    if (includeArchived) {
+      assertBoolean(includeArchived);
+    }
+
     const { offset, limit } = ctx.state.pagination;
     const snippetMinWords = parseInt(ctx.body.snippetMinWords || 20, 10);
     const snippetMaxWords = parseInt(ctx.body.snippetMaxWords || 30, 10);
@@ -686,8 +695,8 @@ router.post(
       invariant(team, "Share must belong to a team");
 
       response = await Document.searchForTeam(team, query, {
-        includeArchived: includeArchived === "true",
-        includeDrafts: includeDrafts === "true",
+        includeArchived,
+        includeDrafts,
         collectionId: document.collectionId,
         share,
         dateFilter,
@@ -727,8 +736,8 @@ router.post(
       }
 
       response = await Document.searchForUser(user, query, {
-        includeArchived: includeArchived === "true",
-        includeDrafts: includeDrafts === "true",
+        includeArchived,
+        includeDrafts,
         collaboratorIds,
         collectionId,
         dateFilter,

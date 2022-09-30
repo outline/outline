@@ -1013,6 +1013,29 @@ describe("#documents.search", () => {
     expect(body.data[0].document.id).toEqual(share.documentId);
   });
 
+  it("should return drafts too using shareId", async () => {
+    const { user, document } = await seed();
+    document.publishedAt = null;
+    await document.save();
+    const share = await buildShare({
+      documentId: document.id,
+      includeChildDocuments: true,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const res = await server.post("/api/documents.search", {
+      body: {
+        token: user.getJwtToken(),
+        shareId: share.id,
+        includeDrafts: true,
+        query: "test",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+  });
+
   it("should not allow search if child documents are not included", async () => {
     const findableDocument = await buildDocument({
       title: "search term",
@@ -1173,13 +1196,37 @@ describe("#documents.search", () => {
       body: {
         token: user.getJwtToken(),
         query: "search term",
-        includeDrafts: "true",
+        includeDrafts: true,
       },
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(1);
     expect(body.data[0].document.id).toEqual(document.id);
+  });
+
+  it("should return drafts without collection too", async () => {
+    const user = await buildUser();
+    await buildDocument(
+      {
+        title: "some title",
+        text: "some text",
+        createdById: user.id,
+        userId: user.id,
+        teamId: user.teamId,
+      },
+      true
+    );
+    const res = await server.post("/api/documents.search", {
+      body: {
+        token: user.getJwtToken(),
+        includeDrafts: true,
+        query: "text",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
   });
 
   it("should not return draft documents created by other users", async () => {
@@ -1194,7 +1241,7 @@ describe("#documents.search", () => {
       body: {
         token: user.getJwtToken(),
         query: "search term",
-        includeDrafts: "true",
+        includeDrafts: true,
       },
     });
     const body = await res.json();
@@ -1233,7 +1280,7 @@ describe("#documents.search", () => {
       body: {
         token: user.getJwtToken(),
         query: "search term",
-        includeArchived: "true",
+        includeArchived: true,
       },
     });
     const body = await res.json();
