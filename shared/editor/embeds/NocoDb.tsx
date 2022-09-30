@@ -4,13 +4,11 @@ import { useTheme } from "styled-components";
 import Frame from "../components/Frame";
 import { EmbedProps as Props } from ".";
 
-const HOSTNAME_REGEX =
-  "(([a-zA-Z0-9]|[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]).)*([A-Za-z0-9]|[A-Za-z0-9][A-Za-z0-9-]*[A-Za-z0-9])";
 const UUID_REGEX =
   "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}";
 
-const URL_REGEX = new RegExp(
-  `^https?://${HOSTNAME_REGEX}/dashboard/#/nc/view/(?<viewId>${UUID_REGEX})(\\?.*)?$`
+const URL_PATH_REGEX = new RegExp(
+  `/dashboard/#/nc/view/(?<viewId>${UUID_REGEX})(\\?.*)?$`
 );
 
 let triggeredNavigation = false; // used to block duplicate navigation attempts
@@ -73,5 +71,6 @@ const NocoDb: React.FC<Props> = (props) => {
 };
 
 export default Object.assign(NocoDb, {
-  ENABLED: [URL_REGEX],
+  ENABLED: [],
+  URL_PATH_REGEX,
 });

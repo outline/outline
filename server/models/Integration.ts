@@ -18,11 +18,13 @@ import Fix from "./decorators/Fix";
 
 export enum IntegrationService {
   Diagrams = "diagrams",
+  NocoDB = "nocodb",
   Slack = "slack",
 }
 
 export enum UserCreatableIntegrationService {
   Diagrams = "diagrams",
+  NocoDB = "nocodb",
 }
 
 @Scopes(() => ({

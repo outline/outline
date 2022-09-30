@@ -10,6 +10,7 @@ import {
   TeamIcon,
   BeakerIcon,
   BuildingBlocksIcon,
+  TableIcon,
   DownloadIcon,
   WebhooksIcon,
   SettingsIcon,
@@ -23,6 +24,7 @@ import Features from "~/scenes/Settings/Features";
 import Groups from "~/scenes/Settings/Groups";
 import Import from "~/scenes/Settings/Import";
 import Members from "~/scenes/Settings/Members";
+import NocoDb from "~/scenes/Settings/NocoDb";
 import Notifications from "~/scenes/Settings/Notifications";
 import Preferences from "~/scenes/Settings/Preferences";
 import Profile from "~/scenes/Settings/Profile";
@@ -190,6 +192,14 @@ const useAuthorizedSettingsConfig = () => {
         enabled: can.update,
         group: t("Integrations"),
         icon: BuildingBlocksIcon,
+      },
+      NocoDb: {
+        name: t("NocoDB"),
+        path: "/settings/integrations/nocodb",
+        component: NocoDb,
+        enabled: can.update,
+        group: t("Integrations"),
+        icon: TableIcon,
       },
       Slack: {
         name: "Slack",
