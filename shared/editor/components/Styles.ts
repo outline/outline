@@ -1279,7 +1279,7 @@ ins {
 }
 
 del {
-  background-color: ${props.theme.slateLight};
+  background-color: ${props.theme.delTextBackground};
   color: ${props.theme.slate};
   text-decoration: strikethrough;
 }
