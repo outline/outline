@@ -47,7 +47,7 @@ export const ToggleButton = styled.button<{ $direction?: "left" | "right" }>`
 
   ${breakpoint("tablet")`
     pointer-events: all;
-    cursor: pointer;
+    cursor: var(--pointer);
   `}
 
   @media (hover: none) {

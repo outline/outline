@@ -46,6 +46,7 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
 
 export enum UserPreference {
   RememberLastPath = "rememberLastPath",
+  UseCursorPointer = "useCursorPointer",
 }
 
 export type UserPreferences = { [key in UserPreference]?: boolean };

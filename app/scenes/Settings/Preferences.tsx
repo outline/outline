@@ -84,6 +84,20 @@ function Preferences() {
         />
       </SettingRow>
       <SettingRow
+        name="useCursorPointer"
+        label={t("Use pointer cursor")}
+        description={t(
+          "Show a hand cursor when hovering over interactive elements."
+        )}
+      >
+        <Switch
+          id="useCursorPointer"
+          name="useCursorPointer"
+          checked={user.preferences?.useCursorPointer !== false}
+          onChange={handlePreferenceChange}
+        />
+      </SettingRow>
+      <SettingRow
         border={false}
         name="rememberLastPath"
         label={t("Remember previous location")}

@@ -179,7 +179,7 @@ const Link = styled(NavLink)<{
   color: ${(props) =>
     props.$isActiveDrop ? props.theme.white : props.theme.sidebarText};
   font-size: 16px;
-  cursor: pointer;
+  cursor: var(--pointer);
   overflow: hidden;
 
   ${(props) =>

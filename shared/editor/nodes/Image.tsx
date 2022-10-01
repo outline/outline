@@ -551,7 +551,7 @@ const Button = styled.button`
   width: 24px;
   height: 24px;
   display: inline-block;
-  cursor: pointer;
+  cursor: var(--pointer);
   opacity: 0;
   transition: opacity 100ms ease-in-out;
 

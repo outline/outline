@@ -7,7 +7,7 @@ export default styled.button<Props>`
   flex: 0;
   width: 24px;
   height: 24px;
-  cursor: pointer;
+  cursor: var(--pointer);
   border: none;
   background: none;
   transition: opacity 100ms ease-in-out;

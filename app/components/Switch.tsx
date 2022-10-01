@@ -86,7 +86,7 @@ const Input = styled.label<{ width: number; height: number }>`
 
 const Slider = styled.span<{ width: number; height: number }>`
   position: absolute;
-  cursor: pointer;
+  cursor: var(--pointer);
   top: 0;
   left: 0;
   right: 0;

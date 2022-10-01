@@ -30,7 +30,7 @@ const RealButton = styled(ActionButton)<RealProps>`
   height: 32px;
   text-decoration: none;
   flex-shrink: 0;
-  cursor: pointer;
+  cursor: var(--pointer);
   user-select: none;
   appearance: none !important;
 

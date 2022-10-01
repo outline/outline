@@ -67,6 +67,7 @@ const Item = styled(Link)<{ $highlight: boolean; $withIcon: boolean }>`
   display: flex;
   flex-shrink: 1;
   min-width: 0;
+  cursor: var(--pointer);
   color: ${(props) => props.theme.text};
   font-size: 15px;
   height: 24px;

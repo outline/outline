@@ -201,6 +201,7 @@ const DocumentLink = styled(Link)<{
   border-radius: 8px;
   max-height: 50vh;
   width: calc(100vw - 8px);
+  cursor: var(--pointer);
 
   &:focus-visible {
     outline: none;

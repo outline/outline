@@ -49,7 +49,7 @@ const ImageBox = styled(Flex)`
     bottom: 0;
     left: 0;
     opacity: 0;
-    cursor: pointer;
+    cursor: var(--pointer);
     transition: all 250ms;
   }
 

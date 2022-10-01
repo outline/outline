@@ -68,7 +68,7 @@ const Wrapper = styled(Flex)<{ minHeight: number }>`
   text-align: left;
   overflow: hidden;
   user-select: none;
-  cursor: pointer;
+  cursor: var(--pointer);
 
   &:active,
   &:hover,

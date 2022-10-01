@@ -69,7 +69,7 @@ const More = styled.div<{ size: number }>`
 const Avatars = styled(Flex)`
   align-items: center;
   flex-direction: row-reverse;
-  cursor: pointer;
+  cursor: var(--pointer);
 `;
 
 export default observer(Facepile);

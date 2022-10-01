@@ -26,7 +26,9 @@ class User extends ParanoidModel {
   @observable
   language: string;
 
-  preferences: UserPreferences | null | undefined;
+  @Field
+  @observable
+  preferences: UserPreferences | null;
 
   email: string;
 

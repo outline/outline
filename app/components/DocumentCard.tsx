@@ -236,6 +236,7 @@ const DocumentLink = styled(Link)<{
   width: 100%;
   height: 100%;
   border-radius: 8px;
+  cursor: var(--pointer);
   background: ${(props) => props.theme.background};
   transition: transform 50ms ease-in-out;
   border: 1px solid ${(props) => props.theme.inputBorder};
