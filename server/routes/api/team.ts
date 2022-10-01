@@ -22,6 +22,7 @@ router.post("team.update", auth(), async (ctx) => {
     defaultUserRole,
     inviteRequired,
     allowedDomains,
+    preferences,
   } = ctx.body;
 
   const { user } = ctx.state;
@@ -48,6 +49,7 @@ router.post("team.update", auth(), async (ctx) => {
       defaultUserRole,
       inviteRequired,
       allowedDomains,
+      preferences,
     },
     user,
     team,

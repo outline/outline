@@ -50,3 +50,9 @@ export enum UserPreference {
 }
 
 export type UserPreferences = { [key in UserPreference]?: boolean };
+
+export enum TeamPreference {
+  SeparateEdit = "separateEdit",
+}
+
+export type TeamPreferences = { [key in TeamPreference]?: boolean };
