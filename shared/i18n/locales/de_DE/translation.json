@@ -696,6 +696,8 @@
   "Delete account": "Konto löschen",
   "Language": "Sprache",
   "Choose the interface language. Community translations are accepted though our <2>translation portal</2>.": "Choose the interface language. Community translations are accepted though our <2>translation portal</2>.",
+  "Use pointer cursor": "Use pointer cursor",
+  "Show a hand cursor when hovering over interactive elements.": "Show a hand cursor when hovering over interactive elements.",
   "Remember previous location": "Remember previous location",
   "Automatically return to the document you were last viewing when the app is re-opened.": "Automatically return to the document you were last viewing when the app is re-opened.",
   "You may delete your account at any time, note that this is unrecoverable": "Sie können Ihren Account jederzeit löschen, beachten Sie, dass dies nicht wiederhergestellt werden kann",
