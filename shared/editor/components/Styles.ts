@@ -347,7 +347,7 @@ h6:not(.placeholder):before {
   display: inline-block;
   color: ${props.theme.text};
   opacity: .75;
-  cursor: pointer;
+  cursor: var(--pointer);
   background: none;
   outline: none;
   border: 0;
@@ -673,7 +673,7 @@ ul.checkbox_list li::before {
 
 ul.checkbox_list li .checkbox {
   display: inline-block;
-  cursor: pointer;
+  cursor: var(--pointer);
   pointer-events: ${
     props.readOnly && !props.readOnlyWriteCheckboxes ? "none" : "initial"
   };
@@ -797,7 +797,7 @@ mark {
     font-weight: 500;
     text-decoration: none;
     flex-shrink: 0;
-    cursor: pointer;
+    cursor: var(--pointer);
     user-select: none;
     appearance: none !important;
     padding: 6px 8px;
@@ -1230,7 +1230,7 @@ table {
 
   &:hover,
   &:focus {
-    cursor: pointer;
+    cursor: var(--pointer);
     color: ${props.theme.text};
     background: ${props.theme.secondaryBackground};
   }

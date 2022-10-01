@@ -288,7 +288,7 @@ const Positioner = styled(Position)`
         color: ${(props) => props.theme.white};
         background: ${(props) => props.theme.primary};
         box-shadow: none;
-        cursor: pointer;
+        cursor: var(--pointer);
 
         svg {
           fill: ${(props) => props.theme.white};

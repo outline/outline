@@ -55,6 +55,7 @@ function Preferences() {
     >
       <Heading>{t("Preferences")}</Heading>
 
+      <h2>{t("Appearance")}</h2>
       <SettingRow
         label={t("Language")}
         name="language"
@@ -85,6 +86,23 @@ function Preferences() {
       </SettingRow>
       <SettingRow
         border={false}
+        name="useCursorPointer"
+        label={t("Use pointer cursor")}
+        description={t(
+          "Show a hand cursor when hovering over interactive elements"
+        )}
+      >
+        <Switch
+          id="useCursorPointer"
+          name="useCursorPointer"
+          checked={user.preferences?.useCursorPointer !== false}
+          onChange={handlePreferenceChange}
+        />
+      </SettingRow>
+
+      <h2>{t("Behavior")}</h2>
+
+      <SettingRow
         name="rememberLastPath"
         label={t("Remember previous location")}
         description={t(

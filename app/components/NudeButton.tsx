@@ -27,7 +27,7 @@ const NudeButton = styled(ActionButton).attrs((props: Props) => ({
   line-height: 0;
   border: 0;
   padding: 0;
-  cursor: pointer;
+  cursor: var(--pointer);
   user-select: none;
   color: inherit;
 `;

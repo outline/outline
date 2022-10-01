@@ -87,7 +87,7 @@ const Wrapper = styled.a<{
     border-bottom: 0;
   }
 
-  cursor: ${({ to }) => (to ? "pointer" : "default")};
+  cursor: ${({ to }) => (to ? "var(--pointer)" : "default")};
 `;
 
 const Image = styled(Flex)`

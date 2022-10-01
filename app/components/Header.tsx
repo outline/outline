@@ -143,7 +143,7 @@ const Title = styled("div")`
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
-  cursor: pointer;
+  cursor: var(--pointer);
   min-width: 0;
 
   ${breakpoint("tablet")`

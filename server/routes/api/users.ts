@@ -190,12 +190,12 @@ router.post("users.update", auth(), async (ctx) => {
   }
   if (preferences) {
     assertKeysIn(preferences, UserPreference);
-    if (has(preferences, UserPreference.RememberLastPath)) {
-      assertBoolean(preferences.rememberLastPath);
-      user.setPreference(
-        UserPreference.RememberLastPath,
-        preferences.rememberLastPath
-      );
+
+    for (const value of Object.values(UserPreference)) {
+      if (has(preferences, value)) {
+        assertBoolean(preferences[value]);
+        user.setPreference(value, preferences[value]);
+      }
     }
   }
   await user.save();

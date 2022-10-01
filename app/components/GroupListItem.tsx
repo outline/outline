@@ -102,7 +102,7 @@ const Image = styled(Flex)`
 const Title = styled.span`
   &:hover {
     text-decoration: underline;
-    cursor: pointer;
+    cursor: var(--pointer);
   }
 `;
 

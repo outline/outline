@@ -116,7 +116,7 @@ const DropzoneContainer = styled.div<{
   padding: 52px;
   text-align: center;
   font-size: 15px;
-  cursor: pointer;
+  cursor: var(--pointer);
   opacity: ${(props) => (props.$disabled ? 0.5 : 1)};
 
   &:hover {

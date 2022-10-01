@@ -80,7 +80,7 @@ const Button = styled.button`
   &:not(:disabled):hover,
   &:not(:disabled):active {
     color: ${(props) => props.theme.textSecondary};
-    cursor: pointer;
+    cursor: var(--pointer);
   }
 `;
 

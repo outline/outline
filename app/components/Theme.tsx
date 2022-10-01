@@ -8,7 +8,7 @@ import useMediaQuery from "~/hooks/useMediaQuery";
 import useStores from "~/hooks/useStores";
 
 const Theme: React.FC = ({ children }) => {
-  const { ui } = useStores();
+  const { auth, ui } = useStores();
   const resolvedTheme = ui.resolvedTheme === "dark" ? dark : light;
   const resolvedMobileTheme =
     ui.resolvedTheme === "dark" ? darkMobile : lightMobile;
@@ -27,7 +27,9 @@ const Theme: React.FC = ({ children }) => {
   return (
     <ThemeProvider theme={theme}>
       <>
-        <GlobalStyles />
+        <GlobalStyles
+          useCursorPointer={auth.user?.preferences?.useCursorPointer !== false}
+        />
         {children}
       </>
     </ThemeProvider>

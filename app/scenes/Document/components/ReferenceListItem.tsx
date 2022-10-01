@@ -27,6 +27,7 @@ const DocumentLink = styled(Link)`
   min-width: 100%;
   overflow: hidden;
   position: relative;
+  cursor: var(--pointer);
 
   &:${hover},
   &:active,

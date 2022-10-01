@@ -83,6 +83,7 @@ const DocumentLink = styled(Link)<{
   align-items: center;
   padding: 6px 12px;
   max-height: 50vh;
+  cursor: var(--pointer);
 
   &:not(:last-child) {
     margin-bottom: 4px;
