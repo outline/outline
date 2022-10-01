@@ -145,6 +145,7 @@ export const light = {
   progressBarBackground: colors.slateLight,
   scrollbarBackground: colors.smoke,
   scrollbarThumb: darken(0.15, colors.smokeDark),
+  delTextBackground: colors.slateLight,
 };
 
 export const dark = {
@@ -207,6 +208,7 @@ export const dark = {
   progressBarBackground: colors.slate,
   scrollbarBackground: colors.black,
   scrollbarThumb: colors.lightBlack,
+  delTextBackground: colors.slateDark,
 };
 
 export const lightMobile = light;
