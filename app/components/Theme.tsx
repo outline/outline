@@ -4,6 +4,7 @@ import { ThemeProvider } from "styled-components";
 import { breakpoints } from "@shared/styles";
 import GlobalStyles from "@shared/styles/globals";
 import { dark, light, lightMobile, darkMobile } from "@shared/styles/theme";
+import { UserPreference } from "@shared/types";
 import useMediaQuery from "~/hooks/useMediaQuery";
 import useStores from "~/hooks/useStores";
 
@@ -28,7 +29,10 @@ const Theme: React.FC = ({ children }) => {
     <ThemeProvider theme={theme}>
       <>
         <GlobalStyles
-          useCursorPointer={auth.user?.preferences?.useCursorPointer !== false}
+          useCursorPointer={auth.user?.getPreference(
+            UserPreference.UseCursorPointer,
+            true
+          )}
         />
         {children}
       </>
