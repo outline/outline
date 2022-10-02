@@ -130,7 +130,7 @@ const useAuthorizedSettingsConfig = () => {
         name: t("Features"),
         path: "/settings/features",
         component: Features,
-        enabled: can.update,
+        enabled: can.update && team.collaborativeEditing,
         group: t("Team"),
         icon: BeakerIcon,
       },

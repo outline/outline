@@ -46,7 +46,7 @@ function Features() {
           name="seamlessEdit"
           label={t("Seamless editing")}
           description={t(
-            "When enabled, documents are always editable for team members that have permissions without extra clicks."
+            `When enabled documents are always editable for team members that have permission. When disabled there is a separate editing view.`
           )}
         >
           <Switch
