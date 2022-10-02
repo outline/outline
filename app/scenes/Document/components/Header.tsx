@@ -220,11 +220,11 @@ function DocumentHeader({
           <>
             <ObservingBanner />
 
-            {!isPublishing && isSaving && team?.editingIsSeparate && (
+            {!isPublishing && isSaving && !team?.seamlessEditing && (
               <Status>{t("Saving")}…</Status>
             )}
             {!isDeleted && !isRevision && <Collaborators document={document} />}
-            {(isEditing || !team?.editingIsSeparate) && !isTemplate && isNew && (
+            {(isEditing || team?.seamlessEditing) && !isTemplate && isNew && (
               <Action>
                 <TemplatesMenu
                   document={document}
@@ -260,7 +260,7 @@ function DocumentHeader({
                 </Action>
               </>
             )}
-            {canEdit && team?.editingIsSeparate && !isRevision && editAction}
+            {canEdit && !team?.seamlessEditing && !isRevision && editAction}
             {canEdit && can.createChildDocument && !isRevision && !isMobile && (
               <Action>
                 <NewChildDocumentMenu

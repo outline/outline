@@ -263,7 +263,7 @@ function DocumentMenu({
               type: "route",
               title: t("Edit"),
               to: editDocumentUrl(document),
-              visible: !!can.update && team.editingIsSeparate,
+              visible: !!can.update && !team.seamlessEditing,
               icon: <EditIcon />,
             },
             {

@@ -64,7 +64,7 @@ function DataLoader({ match, children }: Props) {
     ? documents.getSharedTree(document.id)
     : undefined;
   const isEditRoute = match.path === matchDocumentEdit;
-  const isEditing = isEditRoute || !auth.team?.editingIsSeparate;
+  const isEditing = isEditRoute || !!auth.team?.seamlessEditing;
   const can = usePolicy(document?.id);
   const location = useLocation<LocationState>();
 

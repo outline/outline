@@ -73,13 +73,13 @@ class Team extends BaseModel {
    * Returns whether this team is using a separate editing mode behind an "Edit"
    * button rather than seamless always-editing.
    *
-   * @returns True if editing mode is separate
+   * @returns True if editing mode is seamless (no button)
    */
   @computed
-  get editingIsSeparate(): boolean {
+  get seamlessEditing(): boolean {
     return (
-      !this.collaborativeEditing ||
-      !this.getPreference(TeamPreference.SeamlessEdit, true)
+      this.collaborativeEditing &&
+      this.getPreference(TeamPreference.SeamlessEdit, true)
     );
   }
 
