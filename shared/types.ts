@@ -55,7 +55,7 @@ export type UserPreferences = { [key in UserPreference]?: boolean };
 
 export enum TeamPreference {
   /** Whether documents have a separate edit mode instead of seamless editing. */
-  SeparateEdit = "separateEdit",
+  SeamlessEdit = "seamlessEdit",
 }
 
 export type TeamPreferences = { [key in TeamPreference]?: boolean };

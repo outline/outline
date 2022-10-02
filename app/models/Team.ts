@@ -78,8 +78,8 @@ class Team extends BaseModel {
   @computed
   get editingIsSeparate(): boolean {
     return (
-      this.collaborativeEditing ||
-      this.getPreference(TeamPreference.SeparateEdit, false)
+      !this.collaborativeEditing ||
+      !this.getPreference(TeamPreference.SeamlessEdit, true)
     );
   }
 
