@@ -44,7 +44,6 @@ export default function DocumentScene(props: Props) {
   const urlParts = documentSlug ? documentSlug.split("-") : [];
   const urlId = urlParts.length ? urlParts[urlParts.length - 1] : undefined;
   const key = [urlId, revisionId].join("/");
-  const isMultiplayer = team.collaborativeEditing;
 
   return (
     <DataLoader
@@ -59,7 +58,7 @@ export default function DocumentScene(props: Props) {
 
         // TODO: Remove once multiplayer is 100% rollout, SocketPresence will
         // no longer be required
-        if (isActive && !isMultiplayer) {
+        if (isActive && !team.collaborativeEditing) {
           return (
             <SocketPresence documentId={document.id} isEditing={isEditing}>
               <Document document={document} {...rest} />

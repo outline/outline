@@ -45,13 +45,16 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
       | { serviceTeamId: string };
 
 export enum UserPreference {
+  /** Whether reopening the app should redirect to the last viewed document. */
   RememberLastPath = "rememberLastPath",
+  /** If web-style hand pointer should be used on interactive elements. */
   UseCursorPointer = "useCursorPointer",
 }
 
 export type UserPreferences = { [key in UserPreference]?: boolean };
 
 export enum TeamPreference {
+  /** Whether documents have a separate edit mode instead of seamless editing. */
   SeparateEdit = "separateEdit",
 }
 
