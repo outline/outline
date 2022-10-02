@@ -1,4 +1,5 @@
 import { computed, observable } from "mobx";
+import { TeamPreference, TeamPreferences } from "@shared/types";
 import BaseModel from "./BaseModel";
 import Field from "./decorators/Field";
 
@@ -51,6 +52,10 @@ class Team extends BaseModel {
   @observable
   defaultUserRole: string;
 
+  @Field
+  @observable
+  preferences: TeamPreferences | null;
+
   domain: string | null | undefined;
 
   url: string;
@@ -62,6 +67,45 @@ class Team extends BaseModel {
   @computed
   get signinMethods(): string {
     return "SSO";
+  }
+
+  /**
+   * Returns whether this team is using a separate editing mode behind an "Edit"
+   * button rather than seamless always-editing.
+   *
+   * @returns True if editing mode is seamless (no button)
+   */
+  @computed
+  get seamlessEditing(): boolean {
+    return (
+      this.collaborativeEditing &&
+      this.getPreference(TeamPreference.SeamlessEdit, true)
+    );
+  }
+
+  /**
+   * Get the value for a specific preference key, or return the fallback if
+   * none is set.
+   *
+   * @param key The TeamPreference key to retrieve
+   * @param fallback An optional fallback value, defaults to false.
+   * @returns The value
+   */
+  getPreference(key: TeamPreference, fallback = false): boolean {
+    return this.preferences?.[key] ?? fallback;
+  }
+
+  /**
+   * Set the value for a specific preference key.
+   *
+   * @param key The TeamPreference key to retrieve
+   * @param value The value to set
+   */
+  setPreference(key: TeamPreference, value: boolean) {
+    this.preferences = {
+      ...this.preferences,
+      [key]: value,
+    };
   }
 }
 

@@ -3,6 +3,7 @@ import { SettingsIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { languageOptions } from "@shared/i18n";
+import { UserPreference } from "@shared/types";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
 import InputSelect from "~/components/InputSelect";
@@ -93,7 +94,7 @@ function Preferences() {
         <Switch
           id="useCursorPointer"
           name="useCursorPointer"
-          checked={user.preferences?.useCursorPointer !== false}
+          checked={user.getPreference(UserPreference.UseCursorPointer, true)}
           onChange={handlePreferenceChange}
         />
       </SettingRow>

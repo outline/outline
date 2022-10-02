@@ -296,7 +296,7 @@ class WebsocketProvider extends React.Component<Props> {
     );
 
     this.socket.on("teams.update", (event: PartialWithId<Team>) => {
-      auth.updateTeam(event);
+      auth.team?.updateFromJson(event);
     });
 
     this.socket.on("pins.create", (event: PartialWithId<Pin>) => {

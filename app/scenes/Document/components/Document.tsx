@@ -540,7 +540,7 @@ class DocumentScene extends React.Component<Props> {
               shareId={shareId}
               isRevision={!!revision}
               isDraft={document.isDraft}
-              isEditing={!readOnly && !team?.collaborativeEditing}
+              isEditing={!readOnly && !team?.seamlessEditing}
               isSaving={this.isSaving}
               isPublishing={this.isPublishing}
               publishingIsDisabled={

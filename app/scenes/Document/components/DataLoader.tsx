@@ -12,7 +12,6 @@ import Logger from "~/utils/Logger";
 import { NotFoundError, OfflineError } from "~/utils/errors";
 import history from "~/utils/history";
 import { matchDocumentEdit } from "~/utils/routeHelpers";
-import HideSidebar from "./HideSidebar";
 import Loading from "./Loading";
 
 type Params = {
@@ -65,7 +64,7 @@ function DataLoader({ match, children }: Props) {
     ? documents.getSharedTree(document.id)
     : undefined;
   const isEditRoute = match.path === matchDocumentEdit;
-  const isEditing = isEditRoute || !!auth.team?.collaborativeEditing;
+  const isEditing = isEditRoute || !!auth.team?.seamlessEditing;
   const can = usePolicy(document?.id);
   const location = useLocation<LocationState>();
 
@@ -176,7 +175,6 @@ function DataLoader({ match, children }: Props) {
     return (
       <>
         <Loading location={location} />
-        {isEditing && !team?.collaborativeEditing && <HideSidebar ui={ui} />}
       </>
     );
   }
@@ -191,7 +189,6 @@ function DataLoader({ match, children }: Props) {
 
   return (
     <React.Fragment key={key}>
-      {isEditing && !team.collaborativeEditing && <HideSidebar ui={ui} />}
       {children({
         document,
         revision,
