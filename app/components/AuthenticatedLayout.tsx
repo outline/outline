@@ -6,16 +6,17 @@ import ErrorSuspended from "~/scenes/ErrorSuspended";
 import Layout from "~/components/Layout";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import Sidebar from "~/components/Sidebar";
+import RightSidebar from "~/components/Sidebar/Right";
 import SettingsSidebar from "~/components/Sidebar/Settings";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import history from "~/utils/history";
 import {
   searchPath,
-  matchDocumentSlug as slug,
   newDocumentPath,
   settingsPath,
   matchDocumentHistory,
+  matchDocumentSlug as slug,
 } from "~/utils/routeHelpers";
 import Fade from "./Fade";
 
@@ -81,28 +82,22 @@ const AuthenticatedLayout: React.FC = ({ children }) => {
     </Fade>
   ) : undefined;
 
+  const showHistory = !!matchPath(location.pathname, {
+    path: matchDocumentHistory,
+  });
+  const showComments = !showHistory && !ui.commentsCollapsed;
+
   const sidebarRight = (
     <React.Suspense fallback={null}>
       <AnimatePresence key={ui.activeDocumentId}>
-        <Switch
-          location={location}
-          key={
-            matchPath(location.pathname, {
-              path: matchDocumentHistory,
-            })
-              ? "history"
-              : ""
-          }
-        >
-          <Route
-            key="document-history"
-            path={`/doc/${slug}/history/:revisionId?`}
-            component={DocumentHistory}
-          />
-          {ui.commentsCollapsed ? null : (
-            <Route path={`/doc/${slug}`} component={DocumentComments} />
-          )}
-        </Switch>
+        {(showHistory || showComments) && (
+          <Route path={`/doc/${slug}`}>
+            <RightSidebar>
+              {showHistory && <DocumentHistory />}
+              {showComments && <DocumentComments />}
+            </RightSidebar>
+          </Route>
+        )}
       </AnimatePresence>
     </React.Suspense>
   );

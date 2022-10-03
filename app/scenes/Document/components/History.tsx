@@ -1,11 +1,9 @@
-import { m } from "framer-motion";
 import { observer } from "mobx-react";
 import { CloseIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useRouteMatch } from "react-router-dom";
-import styled, { useTheme } from "styled-components";
-import breakpoint from "styled-components-breakpoint";
+import styled from "styled-components";
 import Event from "~/models/Event";
 import Button from "~/components/Button";
 import Empty from "~/components/Empty";
@@ -23,8 +21,8 @@ function DocumentHistory() {
   const { t } = useTranslation();
   const match = useRouteMatch<{ documentSlug: string }>();
   const history = useHistory();
-  const theme = useTheme();
   const document = documents.getByUrl(match.params.documentSlug);
+  console.log({ match, document });
 
   const eventsInDocument = document
     ? events.inDocument(document.id)
@@ -63,75 +61,35 @@ function DocumentHistory() {
 
   useKeyDown("Escape", onCloseHistory);
 
-  return (
-    <Sidebar
-      initial={{
-        width: 0,
-      }}
-      animate={{
-        transition: {
-          type: "spring",
-          bounce: 0.2,
-          duration: 0.6,
-        },
-        width: theme.sidebarWidth,
-      }}
-      exit={{
-        width: 0,
-      }}
-    >
-      {document ? (
-        <Position column>
-          <Header>
-            <Title>{t("History")}</Title>
-            <Button
-              icon={<CloseIcon />}
-              onClick={onCloseHistory}
-              borderOnHover
-              neutral
-            />
-          </Header>
-          <Scrollable topShadow>
-            <PaginatedEventList
-              aria-label={t("History")}
-              fetch={events.fetchPage}
-              events={items}
-              options={{
-                documentId: document.id,
-              }}
-              document={document}
-              empty={<EmptyHistory>{t("No history yet")}</EmptyHistory>}
-            />
-          </Scrollable>
-        </Position>
-      ) : null}
-    </Sidebar>
-  );
+  return document ? (
+    <>
+      <Header>
+        <Title>{t("History")}</Title>
+        <Button
+          icon={<CloseIcon />}
+          onClick={onCloseHistory}
+          borderOnHover
+          neutral
+        />
+      </Header>
+      <Scrollable topShadow>
+        <PaginatedEventList
+          aria-label={t("History")}
+          fetch={events.fetchPage}
+          events={items}
+          options={{
+            documentId: document.id,
+          }}
+          document={document}
+          empty={<EmptyHistory>{t("No history yet")}</EmptyHistory>}
+        />
+      </Scrollable>
+    </>
+  ) : null;
 }
 
 const EmptyHistory = styled(Empty)`
   padding: 0 12px;
-`;
-
-const Position = styled(Flex)`
-  position: fixed;
-  top: 0;
-  bottom: 0;
-  width: ${(props) => props.theme.sidebarWidth}px;
-`;
-
-const Sidebar = styled(m.div)`
-  display: none;
-  position: relative;
-  flex-shrink: 0;
-  background: ${(props) => props.theme.background};
-  width: ${(props) => props.theme.sidebarWidth}px;
-  border-left: 1px solid ${(props) => props.theme.divider};
-  z-index: 1;
-
-  ${breakpoint("tablet")`
-    display: flex;
-  `};
 `;
 
 const Title = styled(Flex)`
