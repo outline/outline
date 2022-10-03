@@ -4,6 +4,7 @@ import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
 import styled from "styled-components";
+import { IntegrationType } from "@shared/types";
 import Collection from "~/models/Collection";
 import Integration from "~/models/Integration";
 import Button from "~/components/Button";
@@ -17,7 +18,7 @@ import Text from "~/components/Text";
 import useToasts from "~/hooks/useToasts";
 
 type Props = {
-  integration: Integration;
+  integration: Integration<IntegrationType.Post>;
   collection: Collection;
 };
 

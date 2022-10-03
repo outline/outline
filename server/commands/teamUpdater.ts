@@ -1,4 +1,6 @@
+import { has } from "lodash";
 import { Transaction } from "sequelize";
+import { TeamPreference } from "@shared/types";
 import { sequelize } from "@server/database/sequelize";
 import env from "@server/env";
 import { Event, Team, TeamDomain, User } from "@server/models";
@@ -25,6 +27,7 @@ const teamUpdater = async ({ params, user, team, ip }: TeamUpdaterProps) => {
     defaultUserRole,
     inviteRequired,
     allowedDomains,
+    preferences,
   } = params;
 
   const transaction: Transaction = await sequelize.transaction();
@@ -104,6 +107,13 @@ const teamUpdater = async ({ params, user, team, ip }: TeamUpdaterProps) => {
     await Promise.all(deletedDomains.map((x) => x.destroy({ transaction })));
 
     team.allowedDomains = newAllowedDomains;
+  }
+  if (preferences) {
+    for (const value of Object.values(TeamPreference)) {
+      if (has(preferences, value)) {
+        team.setPreference(value, Boolean(preferences[value]));
+      }
+    }
   }
 
   const changes = team.changed();

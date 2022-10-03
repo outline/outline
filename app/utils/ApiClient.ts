@@ -5,6 +5,7 @@ import queryString from "query-string";
 import EDITOR_VERSION from "@shared/editor/version";
 import stores from "~/stores";
 import isCloudHosted from "~/utils/isCloudHosted";
+import Logger from "./Logger";
 import download from "./download";
 import {
   AuthorizationError,
@@ -12,6 +13,7 @@ import {
   NetworkError,
   NotFoundError,
   OfflineError,
+  RateLimitExceededError,
   RequestError,
   ServiceUnavailableError,
   UpdateRequiredError,
@@ -23,6 +25,8 @@ type Options = {
 
 type FetchOptions = {
   download?: boolean;
+  credentials?: "omit" | "same-origin" | "include";
+  headers?: Record<string, string>;
 };
 
 const fetchWithRetry = retry(fetch);
@@ -79,6 +83,7 @@ class ApiClient {
       "cache-control": "no-cache",
       "x-editor-version": EDITOR_VERSION,
       pragma: "no-cache",
+      ...options?.headers,
     };
 
     // for multipart forms or other non JSON requests fetch
@@ -107,7 +112,11 @@ class ApiClient {
         // not needed for authentication this offers a performance increase.
         // For self-hosted we include them to support a wide variety of
         // authenticated proxies, e.g. Pomerium, Cloudflare Access etc.
-        credentials: isCloudHosted ? "omit" : "same-origin",
+        credentials: options.credentials
+          ? options.credentials
+          : isCloudHosted
+          ? "omit"
+          : "same-origin",
         cache: "no-cache",
       });
     } catch (err) {
@@ -181,7 +190,20 @@ class ApiClient {
       throw new ServiceUnavailableError(error.message);
     }
 
-    throw new RequestError(`Error ${response.status}: ${error.message}`);
+    if (response.status === 429) {
+      throw new RateLimitExceededError(
+        `Too many requests, try again in a minute.`
+      );
+    }
+
+    const err = new RequestError(`Error ${response.status}`);
+    Logger.error("Request failed", err, {
+      ...error,
+      url: urlToFetch,
+    });
+
+    // Still need to throw to trigger retry
+    throw err;
   };
 
   get = (

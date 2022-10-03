@@ -35,6 +35,9 @@ export const CommentValidation = {
 export const DocumentValidation = {
   /** The maximum length of the document title */
   maxTitleLength: 100,
+
+  /** The maximum size of the collaborative document state */
+  maxStateLength: 1500 * 1024,
 };
 
 export const PinValidation = {

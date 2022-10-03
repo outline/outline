@@ -3,8 +3,14 @@ import { defaults } from "lodash";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 
-const defaultOptions = {
+type RedisAdapterOptions = Redis.RedisOptions & {
+  /** Suffix to append to the connection name that will be displayed in Redis */
+  connectionNameSuffix?: string;
+};
+
+const defaultOptions: Redis.RedisOptions = {
   maxRetriesPerRequest: 20,
+  enableReadyCheck: false,
 
   retryStrategy(times: number) {
     Logger.warn(`Retrying redis connection: attempt ${times}`);
@@ -21,9 +27,25 @@ const defaultOptions = {
 };
 
 export default class RedisAdapter extends Redis {
-  constructor(url: string | undefined) {
+  constructor(
+    url: string | undefined,
+    { connectionNameSuffix, ...options }: RedisAdapterOptions = {}
+  ) {
+    /**
+     * For debugging. The connection name is based on the services running in
+     * this process. Note that this does not need to be unique.
+     */
+    const connectionNamePrefix =
+      env.ENVIRONMENT === "development" ? process.pid : "outline";
+    const connectionName =
+      `${connectionNamePrefix}:${env.SERVICES.replace(/,/g, "-")}` +
+      (connectionNameSuffix ? `:${connectionNameSuffix}` : "");
+
     if (!url || !url.startsWith("ioredis://")) {
-      super(env.REDIS_URL, defaultOptions);
+      super(
+        env.REDIS_URL,
+        defaults(options, { connectionName }, defaultOptions)
+      );
     } else {
       let customOptions = {};
       try {
@@ -34,8 +56,9 @@ export default class RedisAdapter extends Redis {
       }
 
       try {
-        const mergedOptions = defaults(defaultOptions, customOptions);
-        super(mergedOptions);
+        super(
+          defaults(options, { connectionName }, customOptions, defaultOptions)
+        );
       } catch (error) {
         throw new Error(`Failed to initialize redis client: ${error}`);
       }
@@ -47,14 +70,25 @@ export default class RedisAdapter extends Redis {
     this.setMaxListeners(100);
   }
 
-  private static _client: RedisAdapter;
-  private static _subscriber: RedisAdapter;
+  private static client: RedisAdapter;
+  private static subscriber: RedisAdapter;
 
   public static get defaultClient(): RedisAdapter {
-    return this._client || (this._client = new this(env.REDIS_URL));
+    return (
+      this.client ||
+      (this.client = new this(env.REDIS_URL, {
+        connectionNameSuffix: "client",
+      }))
+    );
   }
 
   public static get defaultSubscriber(): RedisAdapter {
-    return this._subscriber || (this._subscriber = new this(env.REDIS_URL));
+    return (
+      this.subscriber ||
+      (this.subscriber = new this(env.REDIS_URL, {
+        maxRetriesPerRequest: null,
+        connectionNameSuffix: "subscriber",
+      }))
+    );
   }
 }

@@ -25,7 +25,9 @@ function CollectionExport({ collection, onSubmit }: Props) {
 
       setIsLoading(false);
       showToast(
-        t("Export started, you will receive an email when it’s complete.")
+        t(
+          "Export started. If you have notifications enabled, you will receive an email when it's complete."
+        )
       );
       onSubmit();
     },
@@ -37,7 +39,7 @@ function CollectionExport({ collection, onSubmit }: Props) {
       <form onSubmit={handleSubmit}>
         <Text type="secondary">
           <Trans
-            defaults="Exporting the collection <em>{{collectionName}}</em> may take a few seconds. Your documents will be a zip of folders with files in Markdown format. Please visit the Export section on settings to get the zip."
+            defaults="Exporting the collection <em>{{collectionName}}</em> may take some time."
             values={{
               collectionName: collection.name,
             }}
@@ -46,8 +48,14 @@ function CollectionExport({ collection, onSubmit }: Props) {
             }}
           />
         </Text>
+        <Text type="secondary">
+          <Trans>
+            Your documents will be a zip of folders with files in Markdown
+            format. Please visit the Export section in Settings to get the zip.
+          </Trans>
+        </Text>
         <Button type="submit" disabled={isLoading} primary>
-          {isLoading ? `${t("Exporting")}…` : t("Export Collection")}
+          {isLoading ? `${t("Exporting")}…` : t("Export collection")}
         </Button>
       </form>
     </Flex>

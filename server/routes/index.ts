@@ -1,8 +1,9 @@
 import path from "path";
-import Koa from "koa";
+import Koa, { BaseContext } from "koa";
 import Router from "koa-router";
 import send from "koa-send";
 import serve from "koa-static";
+import userAgent, { UserAgentContext } from "koa-useragent";
 import { languages } from "@shared/i18n";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
@@ -20,6 +21,16 @@ koa.use(
   serve(path.resolve(__dirname, "../../../public"), {
     maxage: 60 * 60 * 24 * 30 * 1000,
   })
+);
+
+koa.use<BaseContext, UserAgentContext>(userAgent);
+
+router.use(
+  ["/share/:shareId", "/share/:shareId/doc/:documentSlug", "/share/:shareId/*"],
+  (ctx) => {
+    ctx.redirect(ctx.path.replace(/^\/share/, "/s"));
+    ctx.status = 301;
+  }
 );
 
 if (isProduction) {
@@ -81,9 +92,9 @@ router.get("/opensearch.xml", (ctx) => {
   ctx.body = opensearchResponse(ctx.request.URL.origin);
 });
 
-router.get("/share/:shareId", renderShare);
-router.get("/share/:shareId/doc/:documentSlug", renderShare);
-router.get("/share/:shareId/*", renderShare);
+router.get("/s/:shareId", renderShare);
+router.get("/s/:shareId/doc/:documentSlug", renderShare);
+router.get("/s/:shareId/*", renderShare);
 
 // catch all for application
 router.get("*", renderApp);

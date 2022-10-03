@@ -1,11 +1,12 @@
+import { LocationDescriptor } from "history";
 import * as React from "react";
 import styled, { useTheme } from "styled-components";
 import Flex from "~/components/Flex";
 import NavLink from "~/components/NavLink";
 
-export type Props = {
+export type Props = Omit<React.HTMLAttributes<HTMLAnchorElement>, "title"> & {
   image?: React.ReactNode;
-  to?: string;
+  to?: LocationDescriptor;
   exact?: boolean;
   title: React.ReactNode;
   subtitle?: React.ReactNode;
@@ -72,7 +73,7 @@ const ListItem = (
 const Wrapper = styled.a<{
   $small?: boolean;
   $border?: boolean;
-  to?: string;
+  to?: LocationDescriptor;
 }>`
   display: flex;
   padding: ${(props) => (props.$border === false ? 0 : "8px 0")};
@@ -86,7 +87,7 @@ const Wrapper = styled.a<{
     border-bottom: 0;
   }
 
-  cursor: ${({ to }) => (to ? "pointer" : "default")};
+  cursor: ${({ to }) => (to ? "var(--pointer)" : "default")};
 `;
 
 const Image = styled(Flex)`

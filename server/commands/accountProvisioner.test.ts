@@ -4,12 +4,14 @@ import { TeamDomain } from "@server/models";
 import Collection from "@server/models/Collection";
 import UserAuthentication from "@server/models/UserAuthentication";
 import { buildUser, buildTeam } from "@server/test/factories";
-import { flushdb, seed } from "@server/test/support";
+import { getTestDatabase, seed } from "@server/test/support";
 import accountProvisioner from "./accountProvisioner";
 
-beforeEach(() => {
-  return flushdb();
-});
+const db = getTestDatabase();
+
+afterAll(db.disconnect);
+
+beforeEach(db.flush);
 
 describe("accountProvisioner", () => {
   const ip = "127.0.0.1";

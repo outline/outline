@@ -15,6 +15,8 @@ import * as React from "react";
 import ReactDOM from "react-dom";
 import { isExternalUrl, sanitizeUrl } from "../../utils/urls";
 import findLinkNodes from "../queries/findLinkNodes";
+import getMarkRange from "../queries/getMarkRange";
+import isMarkActive from "../queries/isMarkActive";
 import { EventType, Dispatch } from "../types";
 import Mark from "./Mark";
 
@@ -117,6 +119,26 @@ export default class Link extends Mark {
 
         return toggleMark(type, { href: "" })(state, dispatch);
       },
+      "Mod-Enter": (state: EditorState) => {
+        if (isMarkActive(type)(state)) {
+          const range = getMarkRange(
+            state.selection.$from,
+            state.schema.marks.link
+          );
+          if (range && range.mark && this.options.onClickLink) {
+            try {
+              const event = new KeyboardEvent("keydown", { metaKey: false });
+              this.options.onClickLink(range.mark.attrs.href, event);
+            } catch (err) {
+              this.editor.props.onShowToast(
+                this.options.dictionary.openLinkError
+              );
+            }
+            return true;
+          }
+        }
+        return false;
+      },
     };
   }
 
@@ -134,7 +156,23 @@ export default class Link extends Mark {
             Decoration.widget(
               // place the decoration at the end of the link
               nodeWithPos.pos + nodeWithPos.node.nodeSize,
-              () => icon.cloneNode(true),
+              () => {
+                const cloned = icon.cloneNode(true);
+                cloned.addEventListener("click", (event) => {
+                  try {
+                    if (this.options.onClickLink) {
+                      event.stopPropagation();
+                      event.preventDefault();
+                      this.options.onClickLink(linkMark.attrs.href, event);
+                    }
+                  } catch (err) {
+                    this.editor.props.onShowToast(
+                      this.options.dictionary.openLinkError
+                    );
+                  }
+                });
+                return cloned;
+              },
               {
                 // position on the right side of the position
                 side: 1,
@@ -194,13 +232,6 @@ export default class Link extends Mark {
                   : "");
 
               try {
-                const isHashtag = href.startsWith("#");
-                if (isHashtag && this.options.onClickHashtag) {
-                  event.stopPropagation();
-                  event.preventDefault();
-                  this.options.onClickHashtag(href, event);
-                }
-
                 if (this.options.onClickLink) {
                   event.stopPropagation();
                   event.preventDefault();

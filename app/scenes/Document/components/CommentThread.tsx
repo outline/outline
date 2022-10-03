@@ -8,8 +8,8 @@ import Comment from "~/models/Comment";
 import Document from "~/models/Document";
 import Avatar from "~/components/Avatar";
 import Flex from "~/components/Flex";
-import { SocketContext } from "~/components/SocketProvider";
 import Typing from "~/components/Typing";
+import { WebsocketContext } from "~/components/WebsocketProvider";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import CommentForm from "./CommentForm";
@@ -24,7 +24,7 @@ function useTypingIndicator({
   document,
   comment,
 }: Props): [undefined, () => void] {
-  const socket = React.useContext(SocketContext);
+  const socket = React.useContext(WebsocketContext);
 
   const setIsTyping = React.useMemo(
     () =>

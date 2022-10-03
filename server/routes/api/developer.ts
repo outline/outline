@@ -45,7 +45,7 @@ router.post("developer.create_test_users", dev(), auth(), async (ctx) => {
 
   // Convert from invites to active users by marking as active
   await Promise.all(
-    response.users.map((user) => user.updateActiveAt(ctx.request.ip, true))
+    response.users.map((user) => user.updateActiveAt(ctx, true))
   );
 
   ctx.body = {

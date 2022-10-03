@@ -1,6 +1,7 @@
 import * as React from "react";
 import Breadcrumb from "~/components/Breadcrumb";
 import { MenuInternalLink, NavigationNode } from "~/types";
+import { sharedDocumentPath } from "~/utils/routeHelpers";
 
 type Props = {
   documentId: string;
@@ -48,7 +49,11 @@ const PublicBreadcrumb: React.FC<Props> = ({
       pathToDocument(sharedTree, documentId)
         .slice(0, -1)
         .map((item) => {
-          return { ...item, type: "route", to: `/share/${shareId}${item.url}` };
+          return {
+            ...item,
+            type: "route",
+            to: sharedDocumentPath(shareId, item.url),
+          };
         }),
     [sharedTree, shareId, documentId]
   );

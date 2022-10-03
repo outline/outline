@@ -1,5 +1,6 @@
 import { formatDistanceToNow } from "date-fns";
 import { deburr, difference, sortBy } from "lodash";
+import { observer } from "mobx-react";
 import { DOMParser as ProsemirrorDOMParser } from "prosemirror-model";
 import { TextSelection } from "prosemirror-state";
 import * as React from "react";
@@ -7,7 +8,6 @@ import { mergeRefs } from "react-merge-refs";
 import { useHistory } from "react-router-dom";
 import { Optional } from "utility-types";
 import insertFiles from "@shared/editor/commands/insertFiles";
-import embeds from "@shared/editor/embeds";
 import { Heading } from "@shared/editor/lib/getHeadings";
 import { getDataTransferFiles } from "@shared/utils/files";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
@@ -19,18 +19,20 @@ import ErrorBoundary from "~/components/ErrorBoundary";
 import HoverPreview from "~/components/HoverPreview";
 import type { Props as EditorProps, Editor as SharedEditor } from "~/editor";
 import useDictionary from "~/hooks/useDictionary";
+import useEmbeds from "~/hooks/useEmbeds";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import { NotFoundError } from "~/utils/errors";
 import { uploadFile } from "~/utils/files";
 import { isModKey } from "~/utils/keyboard";
+import { sharedDocumentPath } from "~/utils/routeHelpers";
 import { isHash } from "~/utils/urls";
 import DocumentBreadcrumb from "./DocumentBreadcrumb";
 
 const LazyLoadedEditor = React.lazy(
   () =>
     import(
-      /* webpackChunkName: "shared-editor" */
+      /* webpackChunkName: "preload-shared-editor" */
       "~/editor"
     )
 );
@@ -65,6 +67,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   const { documents } = useStores();
   const { showToast } = useToasts();
   const dictionary = useDictionary();
+  const embeds = useEmbeds(!shareId);
   const history = useHistory();
   const [
     activeLinkEvent,
@@ -166,8 +169,10 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
           }
         }
 
-        if (shareId) {
-          navigateTo = `/share/${shareId}${navigateTo}`;
+        // If we're navigating to an internal document link then prepend the
+        // share route to the URL so that the document is loaded in context
+        if (shareId && navigateTo.includes("/doc/")) {
+          navigateTo = sharedDocumentPath(shareId, navigateTo);
         }
 
         history.push(navigateTo);
@@ -347,4 +352,4 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   );
 }
 
-export default React.forwardRef(Editor);
+export default observer(React.forwardRef(Editor));

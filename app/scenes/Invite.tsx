@@ -56,7 +56,7 @@ function Invite({ onSubmit }: Props) {
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const predictedDomain = user.email.split("@")[1];
-  const can = usePolicy(team.id);
+  const can = usePolicy(team);
 
   const handleSubmit = React.useCallback(
     async (ev: React.SyntheticEvent) => {

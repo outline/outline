@@ -98,7 +98,7 @@ const Item = styled.div<{ active?: boolean }>`
   display: flex;
   align-items: center;
   justify-content: space-between;
-  cursor: pointer;
+  cursor: var(--pointer);
 
   text-overflow: ellipsis;
   white-space: nowrap;

@@ -198,7 +198,7 @@ class Input extends React.Component<Props> {
             {type === "textarea" ? (
               <RealTextarea
                 ref={this.props.innerRef}
-                onBlur={this.props.onBlur}
+                onBlur={this.handleBlur}
                 onFocus={this.handleFocus}
                 hasIcon={!!icon}
                 {...rest}
@@ -206,7 +206,7 @@ class Input extends React.Component<Props> {
             ) : (
               <RealInput
                 ref={this.props.innerRef}
-                onBlur={this.props.onBlur}
+                onBlur={this.handleBlur}
                 onFocus={this.handleFocus}
                 onKeyDown={this.handleKeyDown}
                 hasIcon={!!icon}

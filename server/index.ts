@@ -27,16 +27,10 @@ import {
 } from "./utils/startup";
 import { checkUpdates } from "./utils/updates";
 
-// If a services flag is passed it takes priority over the environment variable
-// for example: --services=web,worker
-const normalizedServiceFlag = getArg("services");
-
 // The default is to run all services to make development and OSS installations
 // easier to deal with. Separate services are only needed at scale.
 const serviceNames = uniq(
-  (normalizedServiceFlag || env.SERVICES)
-    .split(",")
-    .map((service) => service.trim())
+  env.SERVICES.split(",").map((service) => service.trim())
 );
 
 // The number of processes to run, defaults to the number of CPU's available
@@ -124,6 +118,8 @@ async function start(id: number, disconnect: () => void) {
   });
 
   server.listen(normalizedPortFlag || env.PORT || "3000");
+  server.setTimeout(env.REQUEST_TIMEOUT);
+
   process.once("SIGTERM", shutdown);
   process.once("SIGINT", shutdown);
 

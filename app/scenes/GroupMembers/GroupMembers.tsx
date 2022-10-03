@@ -26,7 +26,7 @@ function GroupMembers({ group }: Props) {
   const { users, groupMemberships } = useStores();
   const { showToast } = useToasts();
   const { t } = useTranslation();
-  const can = usePolicy(group.id);
+  const can = usePolicy(group);
 
   const handleAddModal = (state: boolean) => {
     setAddModalOpen(state);

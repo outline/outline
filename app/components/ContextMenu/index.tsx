@@ -1,7 +1,6 @@
 import { disableBodyScroll, enableBodyScroll } from "body-scroll-lock";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Portal } from "react-portal";
 import { Menu } from "reakit/Menu";
 import styled, { DefaultTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -9,6 +8,7 @@ import { depths } from "@shared/styles";
 import Scrollable from "~/components/Scrollable";
 import useMenuContext from "~/hooks/useMenuContext";
 import useMenuHeight from "~/hooks/useMenuHeight";
+import useMobile from "~/hooks/useMobile";
 import usePrevious from "~/hooks/usePrevious";
 import useStores from "~/hooks/useStores";
 import useUnmount from "~/hooks/useUnmount";
@@ -59,6 +59,7 @@ const ContextMenu: React.FC<Props> = ({
   const { ui } = useStores();
   const { t } = useTranslation();
   const { setIsMenuOpen } = useMenuContext();
+  const isMobile = useMobile();
 
   useUnmount(() => {
     setIsMenuOpen(false);
@@ -115,7 +116,7 @@ const ContextMenu: React.FC<Props> = ({
   // trigger and the bottom of the window
   return (
     <>
-      <Menu hideOnClickOutside preventBodyScroll={false} {...rest}>
+      <Menu hideOnClickOutside={!isMobile} preventBodyScroll={false} {...rest}>
         {(props) => {
           // kind of hacky, but this is an effective way of telling which way
           // the menu will _actually_ be placed when taking into account screen
@@ -125,32 +126,38 @@ const ContextMenu: React.FC<Props> = ({
           const rightAnchor = props.placement === "bottom-end";
 
           return (
-            <Position {...props}>
-              <Background
-                dir="auto"
-                topAnchor={topAnchor}
-                rightAnchor={rightAnchor}
-                ref={backgroundRef}
-                hiddenScrollbars
-                style={
-                  maxHeight && topAnchor
-                    ? {
-                        maxHeight,
-                      }
-                    : undefined
-                }
-              >
-                {rest.visible || rest.animating ? children : null}
-              </Background>
-            </Position>
+            <>
+              {isMobile && (
+                <Backdrop
+                  onClick={(ev) => {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    rest.hide?.();
+                  }}
+                />
+              )}
+              <Position {...props}>
+                <Background
+                  dir="auto"
+                  topAnchor={topAnchor}
+                  rightAnchor={rightAnchor}
+                  ref={backgroundRef}
+                  hiddenScrollbars
+                  style={
+                    maxHeight && topAnchor
+                      ? {
+                          maxHeight,
+                        }
+                      : undefined
+                  }
+                >
+                  {rest.visible || rest.animating ? children : null}
+                </Background>
+              </Position>
+            </>
           );
         }}
       </Menu>
-      {(rest.visible || rest.animating) && (
-        <Portal>
-          <Backdrop onClick={rest.hide} />
-        </Portal>
-      )}
     </>
   );
 };
@@ -166,10 +173,6 @@ export const Backdrop = styled.div`
   bottom: 0;
   background: ${(props) => props.theme.backdrop};
   z-index: ${depths.menu - 1};
-
-  ${breakpoint("tablet")`
-    display: none;
-  `};
 `;
 
 export const Position = styled.div`

@@ -1,9 +1,8 @@
 import { Schema } from "prosemirror-model";
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
-import extensionsPackage from "@shared/editor/packages/fullWithComments";
-import render from "./renderToHtml";
+import fullPackage from "@shared/editor/packages/full";
 
-const extensions = new ExtensionManager(extensionsPackage);
+const extensions = new ExtensionManager(fullPackage);
 
 export const schema = new Schema({
   nodes: extensions.nodes,
@@ -16,6 +15,3 @@ export const parser = extensions.parser({
 });
 
 export const serializer = extensions.serializer();
-
-export const renderToHtml = (markdown: string): string =>
-  render(markdown, extensions.rulePlugins);

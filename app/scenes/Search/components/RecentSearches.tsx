@@ -89,6 +89,7 @@ const RecentSearch = styled(Link)`
   display: flex;
   justify-content: space-between;
   color: ${(props) => props.theme.textSecondary};
+  cursor: var(--pointer);
   padding: 1px 4px;
   border-radius: 4px;
 

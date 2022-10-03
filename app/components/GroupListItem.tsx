@@ -13,6 +13,7 @@ import Flex from "~/components/Flex";
 import ListItem from "~/components/List/Item";
 import Modal from "~/components/Modal";
 import withStores from "~/components/withStores";
+import NudeButton from "./NudeButton";
 
 type Props = RootStore & {
   group: Group;
@@ -63,11 +64,13 @@ class GroupListItem extends React.Component<Props> {
           actions={
             <Flex align="center" gap={8}>
               {showFacepile && (
-                <Facepile
+                <NudeButton
+                  width="auto"
+                  height="auto"
                   onClick={this.handleMembersModalOpen}
-                  users={users}
-                  overflow={overflow}
-                />
+                >
+                  <Facepile users={users} overflow={overflow} />
+                </NudeButton>
               )}
               {renderActions({
                 openMembersModal: this.handleMembersModalOpen,
@@ -99,7 +102,7 @@ const Image = styled(Flex)`
 const Title = styled.span`
   &:hover {
     text-decoration: underline;
-    cursor: pointer;
+    cursor: var(--pointer);
   }
 `;
 

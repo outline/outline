@@ -7,11 +7,11 @@ import Drafts from "~/scenes/Drafts";
 import Error404 from "~/scenes/Error404";
 import Templates from "~/scenes/Templates";
 import Trash from "~/scenes/Trash";
-import Layout from "~/components/AuthenticatedLayout";
+import AuthenticatedLayout from "~/components/AuthenticatedLayout";
 import CenteredContent from "~/components/CenteredContent";
 import PlaceholderDocument from "~/components/PlaceholderDocument";
 import Route from "~/components/ProfiledRoute";
-import SocketProvider from "~/components/SocketProvider";
+import WebsocketProvider from "~/components/WebsocketProvider";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import { matchDocumentSlug as slug } from "~/utils/routeHelpers";
@@ -26,7 +26,7 @@ const SettingsRoutes = React.lazy(
 const Document = React.lazy(
   () =>
     import(
-      /* webpackChunkName: "document" */
+      /* webpackChunkName: "preload-document" */
       "~/scenes/Document"
     )
 );
@@ -64,11 +64,11 @@ const RedirectDocument = ({
 
 function AuthenticatedRoutes() {
   const team = useCurrentTeam();
-  const can = usePolicy(team.id);
+  const can = usePolicy(team);
 
   return (
-    <SocketProvider>
-      <Layout>
+    <WebsocketProvider>
+      <AuthenticatedLayout>
         <React.Suspense
           fallback={
             <CenteredContent>
@@ -115,8 +115,8 @@ function AuthenticatedRoutes() {
             <Route component={Error404} />
           </Switch>
         </React.Suspense>
-      </Layout>
-    </SocketProvider>
+      </AuthenticatedLayout>
+    </WebsocketProvider>
   );
 }
 

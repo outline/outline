@@ -47,7 +47,7 @@ function HoverPreviewDocument({ url, children }: Props) {
 }
 
 const Content = styled(Link)`
-  cursor: pointer;
+  cursor: var(--pointer);
 `;
 
 const Heading = styled.h2`

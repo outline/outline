@@ -1,10 +1,11 @@
+import { CollectionPermission } from "@shared/types";
 import { CollectionUser } from "@server/models";
 
 type Membership = {
   id: string;
   userId: string;
   collectionId: string;
-  permission: string;
+  permission: CollectionPermission;
 };
 
 export default (membership: CollectionUser): Membership => {

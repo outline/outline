@@ -6,7 +6,6 @@ import { Link } from "react-router-dom";
 import Collection from "~/models/Collection";
 import { Action, Separator } from "~/components/Actions";
 import Button from "~/components/Button";
-import InputSearchPage from "~/components/InputSearchPage";
 import Tooltip from "~/components/Tooltip";
 import usePolicy from "~/hooks/usePolicy";
 import CollectionMenu from "~/menus/CollectionMenu";
@@ -18,42 +17,30 @@ type Props = {
 
 function Actions({ collection }: Props) {
   const { t } = useTranslation();
-  const can = usePolicy(collection.id);
+  const can = usePolicy(collection);
 
   return (
     <>
-      {!collection.isEmpty && (
+      {can.update && (
         <>
           <Action>
-            <InputSearchPage
-              source="collection"
-              placeholder={`${t("Search in collection")}…`}
-              label={`${t("Search in collection")}…`}
-              collectionId={collection.id}
-            />
+            <Tooltip
+              tooltip={t("New document")}
+              shortcut="n"
+              delay={500}
+              placement="bottom"
+            >
+              <Button
+                as={Link}
+                to={collection ? newDocumentPath(collection.id) : ""}
+                disabled={!collection}
+                icon={<PlusIcon />}
+              >
+                {t("New doc")}
+              </Button>
+            </Tooltip>
           </Action>
-          {can.update && (
-            <>
-              <Action>
-                <Tooltip
-                  tooltip={t("New document")}
-                  shortcut="n"
-                  delay={500}
-                  placement="bottom"
-                >
-                  <Button
-                    as={Link}
-                    to={collection ? newDocumentPath(collection.id) : ""}
-                    disabled={!collection}
-                    icon={<PlusIcon />}
-                  >
-                    {t("New doc")}
-                  </Button>
-                </Tooltip>
-              </Action>
-              <Separator />
-            </>
-          )}
+          <Separator />
         </>
       )}
       <Action>

@@ -1,10 +1,15 @@
 import { Pin, Event } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
-import { flushdb } from "@server/test/support";
+import { getTestDatabase } from "@server/test/support";
 import pinDestroyer from "./pinDestroyer";
 
-beforeEach(() => flushdb());
-describe("pinDestroyer", () => {
+const db = getTestDatabase();
+
+afterAll(db.disconnect);
+
+beforeEach(db.flush);
+
+describe("pinCreator", () => {
   const ip = "127.0.0.1";
 
   it("should destroy existing pin", async () => {

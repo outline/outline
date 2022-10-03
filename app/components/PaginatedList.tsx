@@ -29,6 +29,7 @@ type Props<T> = WithTranslation &
     empty?: React.ReactNode;
     loading?: React.ReactElement;
     items?: T[];
+    className?: string;
     renderItem: (
       item: T,
       index: number,
@@ -164,7 +165,9 @@ class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
       return (
         this.props.loading || (
           <DelayedMount>
-            <PlaceholderList count={5} />
+            <div className={this.props.className}>
+              <PlaceholderList count={5} />
+            </div>
           </DelayedMount>
         )
       );
@@ -184,6 +187,7 @@ class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
         <ArrowKeyNavigation
           aria-label={this.props["aria-label"]}
           onEscape={onEscape}
+          className={this.props.className}
         >
           {(composite: CompositeStateReturn) => {
             let previousHeading = "";

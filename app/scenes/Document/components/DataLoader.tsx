@@ -8,10 +8,10 @@ import ErrorOffline from "~/scenes/ErrorOffline";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { NavigationNode } from "~/types";
+import Logger from "~/utils/Logger";
 import { NotFoundError, OfflineError } from "~/utils/errors";
 import history from "~/utils/history";
 import { matchDocumentEdit } from "~/utils/routeHelpers";
-import HideSidebar from "./HideSidebar";
 import Loading from "./Loading";
 
 type Params = {
@@ -41,7 +41,16 @@ type Props = RouteComponentProps<Params, StaticContext, LocationState> & {
 };
 
 function DataLoader({ match, children }: Props) {
-  const { ui, shares, comments, documents, auth, revisions } = useStores();
+  const {
+    ui,
+    views,
+    shares,
+    comments,
+    documents,
+    auth,
+    revisions,
+    subscriptions,
+  } = useStores();
   const { team } = auth;
   const [error, setError] = React.useState<Error | null>(null);
   const { revisionId, shareId, documentSlug } = match.params;
@@ -56,8 +65,8 @@ function DataLoader({ match, children }: Props) {
     ? documents.getSharedTree(document.id)
     : undefined;
   const isEditRoute = match.path === matchDocumentEdit;
-  const isEditing = isEditRoute || !!auth.team?.collaborativeEditing;
-  const can = usePolicy(document ? document.id : "");
+  const isEditing = isEditRoute || !!auth.team?.seamlessEditing;
+  const can = usePolicy(document?.id);
   const location = useLocation<LocationState>();
 
   React.useEffect(() => {
@@ -85,6 +94,37 @@ function DataLoader({ match, children }: Props) {
     }
     fetchRevision();
   }, [revisions, revisionId]);
+
+  React.useEffect(() => {
+    async function fetchSubscription() {
+      if (document?.id && !revisionId) {
+        try {
+          await subscriptions.fetchPage({
+            documentId: document.id,
+            event: "documents.update",
+          });
+        } catch (err) {
+          Logger.error("Failed to fetch subscriptions", err);
+        }
+      }
+    }
+    fetchSubscription();
+  }, [document?.id, subscriptions, revisionId]);
+
+  React.useEffect(() => {
+    async function fetchViews() {
+      if (document?.id && !document?.isDeleted && !revisionId) {
+        try {
+          await views.fetchPage({
+            documentId: document.id,
+          });
+        } catch (err) {
+          Logger.error("Failed to fetch views", err);
+        }
+      }
+    }
+    fetchViews();
+  }, [document?.id, document?.isDeleted, revisionId, views]);
 
   const onCreateLink = React.useCallback(
     async (title: string) => {
@@ -142,7 +182,6 @@ function DataLoader({ match, children }: Props) {
     return (
       <>
         <Loading location={location} />
-        {isEditing && !team?.collaborativeEditing && <HideSidebar ui={ui} />}
       </>
     );
   }
@@ -157,7 +196,6 @@ function DataLoader({ match, children }: Props) {
 
   return (
     <React.Fragment key={key}>
-      {isEditing && !team.collaborativeEditing && <HideSidebar ui={ui} />}
       {children({
         document,
         revision,

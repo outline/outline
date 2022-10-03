@@ -1,10 +1,14 @@
 import env from "@server/env";
 import TeamDomain from "@server/models/TeamDomain";
 import { buildTeam, buildUser } from "@server/test/factories";
-import { flushdb } from "@server/test/support";
+import { getTestDatabase } from "@server/test/support";
 import teamProvisioner from "./teamProvisioner";
 
-beforeEach(() => flushdb());
+const db = getTestDatabase();
+
+afterAll(db.disconnect);
+
+beforeEach(db.flush);
 
 describe("teamProvisioner", () => {
   const ip = "127.0.0.1";

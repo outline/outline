@@ -18,23 +18,19 @@ export const languageOptions = [
     value: "zh_TW",
   },
   {
-    label: "Deutsch (Deutschland)",
+    label: "Deutsch (German)",
     value: "de_DE",
   },
   {
-    label: "Español (España)",
+    label: "Español (Spanish)",
     value: "es_ES",
   },
   {
-    label: "فارسی (Persian)",
-    value: "fa_IR",
-  },
-  {
-    label: "Français (France)",
+    label: "Français (French)",
     value: "fr_FR",
   },
   {
-    label: "Italiano (Italia)",
+    label: "Italiano (Italian)",
     value: "it_IT",
   },
   {
@@ -46,28 +42,36 @@ export const languageOptions = [
     value: "ko_KR",
   },
   {
-    label: "Português (Brazil)",
+    label: "Nederland (Dutch, Netherlands)",
+    value: "nl_NL",
+  },
+  {
+    label: "Português (Portuguese, Brazil)",
     value: "pt_BR",
   },
   {
-    label: "Português (Portugal)",
+    label: "Português (Portuguese, Portugal)",
     value: "pt_PT",
   },
   {
-    label: "Pусский (Россия)",
-    value: "ru_RU",
-  },
-  {
-    label: "Polskie (Polska)",
+    label: "Polskie (Polish)",
     value: "pl_PL",
   },
   {
-    label: "Tiếng Việt (Vietnamese)",
-    value: "vi_VN",
+    label: "فارسی (Persian)",
+    value: "fa_IR",
+  },
+  {
+    label: "Pусский (Russian)",
+    value: "ru_RU",
   },
   {
     label: "Türkçe (Turkish)",
     value: "tr_TR",
+  },
+  {
+    label: "Tiếng Việt (Vietnamese)",
+    value: "vi_VN",
   },
 ];
 

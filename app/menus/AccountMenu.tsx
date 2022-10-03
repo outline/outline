@@ -6,6 +6,7 @@ import ContextMenu from "~/components/ContextMenu";
 import Template from "~/components/ContextMenu/Template";
 import {
   navigateToProfileSettings,
+  navigateToAccountPreferences,
   openKeyboardShortcuts,
   openChangelog,
   openAPIDocumentation,
@@ -44,6 +45,7 @@ const AccountMenu: React.FC = ({ children }) => {
       openBugReportUrl,
       changeTheme,
       navigateToProfileSettings,
+      navigateToAccountPreferences,
       separator(),
       logout,
     ];

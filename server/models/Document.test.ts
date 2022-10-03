@@ -6,11 +6,17 @@ import {
   buildUser,
   buildShare,
 } from "@server/test/factories";
-import { flushdb, seed } from "@server/test/support";
+import { getTestDatabase, seed } from "@server/test/support";
 import slugify from "@server/utils/slugify";
 
-beforeEach(() => flushdb());
-beforeEach(jest.resetAllMocks);
+const db = getTestDatabase();
+
+afterAll(db.disconnect);
+
+beforeEach(async () => {
+  await db.flush();
+  jest.resetAllMocks();
+});
 
 describe("#getSummary", () => {
   test("should strip markdown", async () => {

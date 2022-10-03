@@ -5,7 +5,6 @@ import { useTranslation, Trans } from "react-i18next";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import { ReactHookWrappedInput as Input } from "~/components/Input";
-import Modal from "~/components/Modal";
 import Text from "~/components/Text";
 import env from "~/env";
 import useStores from "~/hooks/useStores";
@@ -15,11 +14,7 @@ type FormData = {
   code: string;
 };
 
-type Props = {
-  onRequestClose: () => void;
-};
-
-function UserDelete({ onRequestClose }: Props) {
+function UserDelete() {
   const [isWaitingCode, setWaitingCode] = React.useState(false);
   const { auth } = useStores();
   const { showToast } = useToasts();
@@ -63,61 +58,58 @@ function UserDelete({ onRequestClose }: Props) {
   });
 
   return (
-    <Modal isOpen title={t("Delete Account")} onRequestClose={onRequestClose}>
-      <Flex column>
-        <form onSubmit={formHandleSubmit(handleSubmit)}>
-          {isWaitingCode ? (
-            <>
-              <Text type="secondary">
-                <Trans>
-                  A confirmation code has been sent to your email address,
-                  please enter the code below to permanantly destroy your
-                  account.
-                </Trans>
-              </Text>
-              <Text type="secondary">
-                <Trans
-                  defaults="<em>Note:</em> Signing back in will cause a new account to be automatically reprovisioned."
-                  components={{
-                    em: <strong />,
-                  }}
-                />
-              </Text>
-              <Input
-                placeholder="CODE"
-                autoComplete="off"
-                autoFocus
-                maxLength={8}
-                required
-                {...inputProps}
+    <Flex column>
+      <form onSubmit={formHandleSubmit(handleSubmit)}>
+        {isWaitingCode ? (
+          <>
+            <Text type="secondary">
+              <Trans>
+                A confirmation code has been sent to your email address, please
+                enter the code below to permanantly destroy your account.
+              </Trans>
+            </Text>
+            <Text type="secondary">
+              <Trans
+                defaults="<em>Note:</em> Signing back in will cause a new account to be automatically reprovisioned."
+                components={{
+                  em: <strong />,
+                }}
               />
-            </>
-          ) : (
-            <>
-              <Text type="secondary">
-                <Trans>
-                  Are you sure? Deleting your account will destroy identifying
-                  data associated with your user and cannot be undone. You will
-                  be immediately logged out of Outline and all your API tokens
-                  will be revoked.
-                </Trans>
-              </Text>
-            </>
-          )}
-          {env.EMAIL_ENABLED && !isWaitingCode ? (
-            <Button type="submit" onClick={handleRequestDelete} neutral>
-              {t("Continue")}…
-            </Button>
-          ) : (
-            <Button type="submit" disabled={formState.isSubmitting} danger>
-              {formState.isSubmitting
-                ? `${t("Deleting")}…`
-                : t("Delete My Account")}
-            </Button>
-          )}
-        </form>
-      </Flex>
-    </Modal>
+            </Text>
+            <Input
+              placeholder="CODE"
+              autoComplete="off"
+              autoFocus
+              maxLength={8}
+              required
+              {...inputProps}
+            />
+          </>
+        ) : (
+          <>
+            <Text type="secondary">
+              <Trans>
+                Are you sure? Deleting your account will destroy identifying
+                data associated with your user and cannot be undone. You will be
+                immediately logged out of Outline and all your API tokens will
+                be revoked.
+              </Trans>
+            </Text>
+          </>
+        )}
+        {env.EMAIL_ENABLED && !isWaitingCode ? (
+          <Button type="submit" onClick={handleRequestDelete} neutral>
+            {t("Continue")}…
+          </Button>
+        ) : (
+          <Button type="submit" disabled={formState.isSubmitting} danger>
+            {formState.isSubmitting
+              ? `${t("Deleting")}…`
+              : t("Delete My Account")}
+          </Button>
+        )}
+      </form>
+    </Flex>
   );
 }
 

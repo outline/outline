@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Switch } from "react-router-dom";
+import { Switch, Redirect } from "react-router-dom";
 import DelayedMount from "~/components/DelayedMount";
 import FullscreenLoading from "~/components/FullscreenLoading";
 import Route from "~/components/ProfiledRoute";
@@ -8,14 +8,14 @@ import { matchDocumentSlug as slug } from "~/utils/routeHelpers";
 const Authenticated = React.lazy(
   () =>
     import(
-      /* webpackChunkName: "authenticated" */
+      /* webpackChunkName: "preload-authenticated" */
       "~/components/Authenticated"
     )
 );
 const AuthenticatedRoutes = React.lazy(
   () =>
     import(
-      /* webpackChunkName: "authenticated-routes" */
+      /* webpackChunkName: "preload-authenticated-routes" */
       "./authenticated"
     )
 );
@@ -55,10 +55,17 @@ export default function Routes() {
         <Route exact path="/create" component={Login} />
         <Route exact path="/logout" component={Logout} />
 
-        <Route exact path="/share/:shareId" component={SharedDocument} />
+        <Redirect exact from="/share/:shareId" to="/s/:shareId" />
+        <Route exact path="/s/:shareId" component={SharedDocument} />
+
+        <Redirect
+          exact
+          from={`/share/:shareId/doc/${slug}`}
+          to={`/s/:shareId/doc/${slug}`}
+        />
         <Route
           exact
-          path={`/share/:shareId/doc/${slug}`}
+          path={`/s/:shareId/doc/${slug}`}
           component={SharedDocument}
         />
 

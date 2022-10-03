@@ -9,7 +9,10 @@ import {
   BelongsTo,
   DataType,
   Default,
+  AllowNull,
 } from "sequelize-typescript";
+import Document from "./Document";
+import Team from "./Team";
 import User from "./User";
 import Fix from "./decorators/Fix";
 
@@ -26,14 +29,19 @@ class Notification extends Model {
   @Column(DataType.UUID)
   id: string;
 
+  @AllowNull
+  @Column
+  emailedAt: Date;
+
+  @AllowNull
+  @Column
+  viewedAt: Date;
+
   @CreatedAt
   createdAt: Date;
 
   @Column
   event: string;
-
-  @Column
-  email: boolean;
 
   // associations
 
@@ -47,9 +55,25 @@ class Notification extends Model {
   @BelongsTo(() => User, "actorId")
   actor: User;
 
+  @AllowNull
   @ForeignKey(() => User)
   @Column(DataType.UUID)
   actorId: string;
+
+  @BelongsTo(() => Document, "documentId")
+  document: Document;
+
+  @AllowNull
+  @ForeignKey(() => Document)
+  @Column(DataType.UUID)
+  documentId: string;
+
+  @BelongsTo(() => Team, "teamId")
+  team: Team;
+
+  @ForeignKey(() => Team)
+  @Column(DataType.UUID)
+  teamId: string;
 }
 
 export default Notification;

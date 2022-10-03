@@ -15,14 +15,14 @@ import { isModKey } from "~/utils/keyboard";
 type Props = {
   title?: string;
   sidebar?: React.ReactNode;
-  rightSidebar?: React.ReactNode;
+  sidebarRight?: React.ReactNode;
 };
 
 const Layout: React.FC<Props> = ({
   title,
   children,
   sidebar,
-  rightSidebar,
+  sidebarRight,
 }) => {
   const { ui } = useStores();
   const sidebarCollapsed = !sidebar || ui.isEditing || ui.sidebarCollapsed;
@@ -65,7 +65,7 @@ const Layout: React.FC<Props> = ({
           {children}
         </Content>
 
-        {rightSidebar}
+        {sidebarRight}
       </Container>
     </Container>
   );

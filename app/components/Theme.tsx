@@ -2,13 +2,14 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { ThemeProvider } from "styled-components";
 import { breakpoints } from "@shared/styles";
+import GlobalStyles from "@shared/styles/globals";
 import { dark, light, lightMobile, darkMobile } from "@shared/styles/theme";
+import { UserPreference } from "@shared/types";
 import useMediaQuery from "~/hooks/useMediaQuery";
 import useStores from "~/hooks/useStores";
-import GlobalStyles from "~/styles/globals";
 
 const Theme: React.FC = ({ children }) => {
-  const { ui } = useStores();
+  const { auth, ui } = useStores();
   const resolvedTheme = ui.resolvedTheme === "dark" ? dark : light;
   const resolvedMobileTheme =
     ui.resolvedTheme === "dark" ? darkMobile : lightMobile;
@@ -27,7 +28,12 @@ const Theme: React.FC = ({ children }) => {
   return (
     <ThemeProvider theme={theme}>
       <>
-        <GlobalStyles />
+        <GlobalStyles
+          useCursorPointer={auth.user?.getPreference(
+            UserPreference.UseCursorPointer,
+            true
+          )}
+        />
         {children}
       </>
     </ThemeProvider>

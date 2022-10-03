@@ -2,6 +2,7 @@ import * as Sentry from "@sentry/react";
 import invariant from "invariant";
 import { observable, action, computed, autorun, runInAction } from "mobx";
 import { getCookie, setCookie, removeCookie } from "tiny-cookie";
+import { TeamPreferences, UserPreferences } from "@shared/types";
 import { getCookieDomain, parseDomain } from "@shared/utils/domains";
 import RootStore from "~/stores/RootStore";
 import Policy from "~/models/Policy";
@@ -144,7 +145,9 @@ export default class AuthStore {
   @action
   fetch = async () => {
     try {
-      const res = await client.post("/auth.info");
+      const res = await client.post("/auth.info", undefined, {
+        credentials: "same-origin",
+      });
       invariant(res?.data, "Auth not available");
       runInAction("AuthStore#fetch", () => {
         this.addPolicies(res.policies);
@@ -219,6 +222,7 @@ export default class AuthStore {
     name?: string;
     avatarUrl?: string | null;
     language?: string;
+    preferences?: UserPreferences;
   }) => {
     this.isSaving = true;
 
@@ -243,6 +247,7 @@ export default class AuthStore {
     defaultCollectionId?: string | null;
     subdomain?: string | null | undefined;
     allowedDomains?: string[] | null | undefined;
+    preferences?: TeamPreferences;
   }) => {
     this.isSaving = true;
 
@@ -260,12 +265,6 @@ export default class AuthStore {
 
   @action
   logout = async (savePath = false) => {
-    if (!this.token) {
-      return;
-    }
-
-    client.post(`/auth.delete`);
-
     // if this logout was forced from an authenticated route then
     // save the current path so we can go back there once signed in
     if (savePath) {
@@ -276,10 +275,19 @@ export default class AuthStore {
       }
     }
 
+    // If there is no auth token stored there is nothing else to do
+    if (!this.token) {
+      return;
+    }
+
+    // invalidate authentication token on server
+    client.post(`/auth.delete`);
+
     // remove authentication token itself
     removeCookie("accessToken", {
       path: "/",
     });
+
     // remove session record on apex cookie
     const team = this.team;
 

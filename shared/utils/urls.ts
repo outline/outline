@@ -1,3 +1,4 @@
+import { escapeRegExp } from "lodash";
 import env from "../env";
 import { parseDomain } from "./domains";
 
@@ -54,7 +55,9 @@ export function isUrl(text: string) {
 
   try {
     const url = new URL(text);
-    return url.hostname !== "";
+    const blockedProtocols = ["javascript:", "file:", "vbscript:", "data:"];
+
+    return url.hostname !== "" && !blockedProtocols.includes(url.protocol);
   } catch (err) {
     return false;
   }
@@ -67,7 +70,7 @@ export function isUrl(text: string) {
  * @returns True if the url is external, false otherwise.
  */
 export function isExternalUrl(url: string) {
-  return !isInternalUrl(url);
+  return !!url && !isInternalUrl(url);
 }
 
 /**
@@ -86,9 +89,22 @@ export function sanitizeUrl(url: string | null | undefined) {
     !isUrl(url) &&
     !url.startsWith("/") &&
     !url.startsWith("#") &&
-    !url.startsWith("mailto:")
+    !url.startsWith("mailto:") &&
+    !url.startsWith("sms:") &&
+    !url.startsWith("fax:") &&
+    !url.startsWith("tel:")
   ) {
     return `https://${url}`;
   }
   return url;
+}
+
+export function urlRegex(url: string | null | undefined): RegExp | undefined {
+  if (!url || !isUrl(url)) {
+    return undefined;
+  }
+
+  const urlObj = new URL(sanitizeUrl(url) as string);
+
+  return new RegExp(escapeRegExp(`${urlObj.protocol}//${urlObj.host}`));
 }

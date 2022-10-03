@@ -44,6 +44,7 @@ function DocumentDelete({ document, onSubmit }: Props) {
 
             if (parent) {
               history.push(documentUrl(parent));
+              onSubmit();
               return;
             }
           }

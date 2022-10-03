@@ -8,6 +8,8 @@ export const DeveloperSection = ({ t }: ActionContext) => t("Debug");
 
 export const DocumentSection = ({ t }: ActionContext) => t("Document");
 
+export const RevisionSection = ({ t }: ActionContext) => t("Revision");
+
 export const SettingsSection = ({ t }: ActionContext) => t("Settings");
 
 export const NavigationSection = ({ t }: ActionContext) => t("Navigation");

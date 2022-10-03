@@ -1,9 +1,11 @@
+import { S3 } from "aws-sdk";
 import { truncate } from "lodash";
+import { CollectionPermission } from "@shared/types";
 import { CollectionValidation } from "@shared/validations";
 import attachmentCreator from "@server/commands/attachmentCreator";
 import documentCreator from "@server/commands/documentCreator";
 import { sequelize } from "@server/database/sequelize";
-import { ValidationError } from "@server/errors";
+import { InternalError, ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import {
   User,
@@ -86,6 +88,9 @@ export default abstract class ImportTask extends BaseTask<Props> {
     try {
       Logger.info("task", `ImportTask fetching data for ${fileOperationId}`);
       const data = await this.fetchData(fileOperation);
+      if (!data) {
+        throw InternalError("Failed to fetch data for import from storage.");
+      }
 
       Logger.info("task", `ImportTask parsing data for ${fileOperationId}`);
       const parsed = await this.parseData(data, fileOperation);
@@ -176,7 +181,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
    * @returns A promise that resolves to the structured data
    */
   protected abstract parseData(
-    data: any,
+    data: S3.Body,
     fileOperation: FileOperation
   ): Promise<StructuredImportData>;
 
@@ -268,7 +273,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
                 length: CollectionValidation.maxDescriptionLength,
               }),
               createdById: fileOperation.userId,
-              permission: "read_write",
+              permission: CollectionPermission.ReadWrite,
             },
             transaction,
           });
@@ -288,7 +293,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
                 teamId: fileOperation.teamId,
                 createdById: fileOperation.userId,
                 name,
-                permission: "read_write",
+                permission: CollectionPermission.ReadWrite,
               },
               { transaction }
             );

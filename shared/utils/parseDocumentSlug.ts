@@ -1,3 +1,9 @@
+/**
+ * Parse the likely document identifier from a given url.
+ *
+ * @param url The url to parse.
+ * @returns A document identifier or undefined if not found.
+ */
 export default function parseDocumentSlug(url: string) {
   let parsed;
 
@@ -12,6 +18,6 @@ export default function parseDocumentSlug(url: string) {
   }
 
   return parsed.lastIndexOf("/doc/") === 0
-    ? parsed.replace(/^\/doc\//, "")
-    : null;
+    ? parsed.replace(/^\/doc\//, "").split("#")[0]
+    : undefined;
 }

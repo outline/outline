@@ -1,3 +1,4 @@
+import env from "@server/env";
 import Document from "@server/models/Document";
 import { Event } from "@server/types";
 import { globalEventQueue } from "..";
@@ -15,7 +16,9 @@ export default class DebounceProcessor extends BaseProcessor {
         globalEventQueue.add(
           { ...event, name: "documents.update.delayed" },
           {
-            delay: 5 * 60 * 1000,
+            // speed up revision creation in development, we don't have all the
+            // time in the world.
+            delay: (env.ENVIRONMENT === "development" ? 0.5 : 5) * 60 * 1000,
           }
         );
         break;

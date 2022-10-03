@@ -1,8 +1,10 @@
 import fs from "fs-extra";
 import invariant from "invariant";
 import Router from "koa-router";
+import mime from "mime-types";
 import { Op, ScopeOptions, WhereOptions } from "sequelize";
 import { subtractDate } from "@shared/utils/date";
+import { bytesToHumanReadable } from "@shared/utils/files";
 import documentCreator from "@server/commands/documentCreator";
 import documentImporter from "@server/commands/documentImporter";
 import documentLoader from "@server/commands/documentLoader";
@@ -14,6 +16,7 @@ import {
   NotFoundError,
   InvalidRequestError,
   AuthenticationError,
+  ValidationError,
 } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import {
@@ -23,16 +26,17 @@ import {
   Event,
   Revision,
   SearchQuery,
-  Star,
   User,
   View,
 } from "@server/models";
+import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import { authorize, cannot } from "@server/policies";
 import {
   presentCollection,
   presentDocument,
   presentPolicies,
 } from "@server/presenters";
+import slugify from "@server/utils/slugify";
 import {
   assertUuid,
   assertSort,
@@ -327,76 +331,71 @@ router.post("documents.viewed", auth(), pagination(), async (ctx) => {
   };
 });
 
-router.post(
-  "documents.drafts",
-  auth({ member: true }),
-  pagination(),
-  async (ctx) => {
-    let { direction } = ctx.body;
-    const { collectionId, dateFilter, sort = "updatedAt" } = ctx.body;
+router.post("documents.drafts", auth(), pagination(), async (ctx) => {
+  let { direction } = ctx.body;
+  const { collectionId, dateFilter, sort = "updatedAt" } = ctx.body;
 
-    assertSort(sort, Document);
-    if (direction !== "ASC") {
-      direction = "DESC";
-    }
-    const { user } = ctx.state;
-
-    if (collectionId) {
-      assertUuid(collectionId, "collectionId must be a UUID");
-      const collection = await Collection.scope({
-        method: ["withMembership", user.id],
-      }).findByPk(collectionId);
-      authorize(user, "read", collection);
-    }
-
-    const collectionIds = collectionId
-      ? [collectionId]
-      : await user.collectionIds();
-    const where: WhereOptions<Document> = {
-      createdById: user.id,
-      collectionId: collectionIds,
-      publishedAt: {
-        [Op.is]: null,
-      },
-    };
-
-    if (dateFilter) {
-      assertIn(
-        dateFilter,
-        ["day", "week", "month", "year"],
-        "dateFilter must be one of day,week,month,year"
-      );
-      where.updatedAt = {
-        [Op.gte]: subtractDate(new Date(), dateFilter),
-      };
-    } else {
-      delete where.updatedAt;
-    }
-
-    const collectionScope: Readonly<ScopeOptions> = {
-      method: ["withCollectionPermissions", user.id],
-    };
-    const documents = await Document.scope([
-      "defaultScope",
-      collectionScope,
-    ]).findAll({
-      where,
-      order: [[sort, direction]],
-      offset: ctx.state.pagination.offset,
-      limit: ctx.state.pagination.limit,
-    });
-    const data = await Promise.all(
-      documents.map((document) => presentDocument(document))
-    );
-    const policies = presentPolicies(user, documents);
-
-    ctx.body = {
-      pagination: ctx.state.pagination,
-      data,
-      policies,
-    };
+  assertSort(sort, Document);
+  if (direction !== "ASC") {
+    direction = "DESC";
   }
-);
+  const { user } = ctx.state;
+
+  if (collectionId) {
+    assertUuid(collectionId, "collectionId must be a UUID");
+    const collection = await Collection.scope({
+      method: ["withMembership", user.id],
+    }).findByPk(collectionId);
+    authorize(user, "read", collection);
+  }
+
+  const collectionIds = collectionId
+    ? [collectionId]
+    : await user.collectionIds();
+  const where: WhereOptions<Document> = {
+    createdById: user.id,
+    collectionId: collectionIds,
+    publishedAt: {
+      [Op.is]: null,
+    },
+  };
+
+  if (dateFilter) {
+    assertIn(
+      dateFilter,
+      ["day", "week", "month", "year"],
+      "dateFilter must be one of day,week,month,year"
+    );
+    where.updatedAt = {
+      [Op.gte]: subtractDate(new Date(), dateFilter),
+    };
+  } else {
+    delete where.updatedAt;
+  }
+
+  const collectionScope: Readonly<ScopeOptions> = {
+    method: ["withCollectionPermissions", user.id],
+  };
+  const documents = await Document.scope([
+    "defaultScope",
+    collectionScope,
+  ]).findAll({
+    where,
+    order: [[sort, direction]],
+    offset: ctx.state.pagination.offset,
+    limit: ctx.state.pagination.limit,
+  });
+  const data = await Promise.all(
+    documents.map((document) => presentDocument(document))
+  );
+  const policies = presentPolicies(user, documents);
+
+  ctx.body = {
+    pagination: ctx.state.pagination,
+    data,
+    policies,
+  };
+});
 
 router.post(
   "documents.info",
@@ -444,14 +443,46 @@ router.post(
   async (ctx) => {
     const { id, shareId } = ctx.body;
     assertPresent(id || shareId, "id or shareId is required");
+
     const { user } = ctx.state;
+    const accept = ctx.request.headers["accept"];
+
     const { document } = await documentLoader({
       id,
       shareId,
       user,
+      // We need the collaborative state to generate HTML.
+      includeState: accept === "text/html",
     });
+
+    let contentType;
+    let content;
+
+    if (accept?.includes("text/html")) {
+      contentType = "text/html";
+      content = DocumentHelper.toHTML(document);
+    } else if (accept?.includes("text/markdown")) {
+      contentType = "text/markdown";
+      content = DocumentHelper.toMarkdown(document);
+    } else {
+      contentType = "application/json";
+      content = DocumentHelper.toMarkdown(document);
+    }
+
+    if (contentType !== "application/json") {
+      ctx.set("Content-Type", contentType);
+      ctx.set(
+        "Content-Disposition",
+        `attachment; filename="${slugify(
+          document.titleWithDefault
+        )}.${mime.extension(contentType)}"`
+      );
+      ctx.body = content;
+      return;
+    }
+
     ctx.body = {
-      data: document.toMarkdown(),
+      data: content,
     };
   }
 );
@@ -484,8 +515,10 @@ router.post("documents.restore", auth({ member: true }), async (ctx) => {
   // be caught as a 403 on the authorize call below. Otherwise we're checking here
   // that the original collection still exists and advising to pass collectionId
   // if not.
-  if (!collectionId) {
-    assertPresent(collection, "collectionId is required");
+  if (!collectionId && !collection) {
+    throw ValidationError(
+      "Unable to restore to original collection, it may have been deleted"
+    );
   }
 
   authorize(user, "update", collection);
@@ -731,75 +764,6 @@ router.post(
   }
 );
 
-// Deprecated – use stars.create instead
-router.post("documents.star", auth(), async (ctx) => {
-  const { id } = ctx.body;
-  assertPresent(id, "id is required");
-  const { user } = ctx.state;
-
-  const document = await Document.findByPk(id, {
-    userId: user.id,
-  });
-  authorize(user, "read", document);
-
-  await Star.findOrCreate({
-    where: {
-      documentId: document.id,
-      userId: user.id,
-    },
-  });
-
-  await Event.create({
-    name: "documents.star",
-    documentId: document.id,
-    collectionId: document.collectionId,
-    teamId: document.teamId,
-    actorId: user.id,
-    data: {
-      title: document.title,
-    },
-    ip: ctx.request.ip,
-  });
-
-  ctx.body = {
-    success: true,
-  };
-});
-
-// Deprecated – use stars.delete instead
-router.post("documents.unstar", auth(), async (ctx) => {
-  const { id } = ctx.body;
-  assertPresent(id, "id is required");
-  const { user } = ctx.state;
-
-  const document = await Document.findByPk(id, {
-    userId: user.id,
-  });
-  authorize(user, "read", document);
-
-  await Star.destroy({
-    where: {
-      documentId: document.id,
-      userId: user.id,
-    },
-  });
-  await Event.create({
-    name: "documents.unstar",
-    documentId: document.id,
-    collectionId: document.collectionId,
-    teamId: document.teamId,
-    actorId: user.id,
-    data: {
-      title: document.title,
-    },
-    ip: ctx.request.ip,
-  });
-
-  ctx.body = {
-    success: true,
-  };
-});
-
 router.post("documents.templatize", auth({ member: true }), async (ctx) => {
   const { id } = ctx.body;
   assertPresent(id, "id is required");
@@ -847,7 +811,7 @@ router.post("documents.templatize", auth({ member: true }), async (ctx) => {
   };
 });
 
-router.post("documents.update", auth({ member: true }), async (ctx) => {
+router.post("documents.update", auth(), async (ctx) => {
   const {
     id,
     title,
@@ -907,7 +871,7 @@ router.post("documents.update", auth({ member: true }), async (ctx) => {
   };
 });
 
-router.post("documents.move", auth({ member: true }), async (ctx) => {
+router.post("documents.move", auth(), async (ctx) => {
   const { id, collectionId, parentDocumentId, index } = ctx.body;
   assertUuid(id, "id must be a uuid");
   assertUuid(collectionId, "collectionId must be a uuid");
@@ -973,7 +937,7 @@ router.post("documents.move", auth({ member: true }), async (ctx) => {
   };
 });
 
-router.post("documents.archive", auth({ member: true }), async (ctx) => {
+router.post("documents.archive", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertPresent(id, "id is required");
   const { user } = ctx.state;
@@ -1002,7 +966,7 @@ router.post("documents.archive", auth({ member: true }), async (ctx) => {
   };
 });
 
-router.post("documents.delete", auth({ member: true }), async (ctx) => {
+router.post("documents.delete", auth(), async (ctx) => {
   const { id, permanent } = ctx.body;
   assertPresent(id, "id is required");
   const { user } = ctx.state;
@@ -1063,7 +1027,7 @@ router.post("documents.delete", auth({ member: true }), async (ctx) => {
   };
 });
 
-router.post("documents.unpublish", auth({ member: true }), async (ctx) => {
+router.post("documents.unpublish", auth(), async (ctx) => {
   const { id } = ctx.body;
   assertPresent(id, "id is required");
   const { user } = ctx.state;
@@ -1097,19 +1061,26 @@ router.post("documents.unpublish", auth({ member: true }), async (ctx) => {
   };
 });
 
-router.post("documents.import", auth({ member: true }), async (ctx) => {
+router.post("documents.import", auth(), async (ctx) => {
   const { publish, collectionId, parentDocumentId, index } = ctx.body;
 
   if (!ctx.is("multipart/form-data")) {
     throw InvalidRequestError("Request type must be multipart/form-data");
   }
 
-  // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-  const file: any = Object.values(ctx.request.files)[0];
-  assertPresent(file, "file is required");
+  const file = ctx.request.files
+    ? Object.values(ctx.request.files)[0]
+    : undefined;
+  if (!file) {
+    throw InvalidRequestError("Request must include a file parameter");
+  }
 
   if (env.MAXIMUM_IMPORT_SIZE && file.size > env.MAXIMUM_IMPORT_SIZE) {
-    throw InvalidRequestError("The selected file was too large to import");
+    throw InvalidRequestError(
+      `The selected file was larger than the ${bytesToHumanReadable(
+        env.MAXIMUM_IMPORT_SIZE
+      )} maximum size`
+    );
   }
 
   assertUuid(collectionId, "collectionId must be an uuid");
@@ -1122,7 +1093,6 @@ router.post("documents.import", auth({ member: true }), async (ctx) => {
     assertPositiveInteger(index, "index must be an integer (>=0)");
   }
   const { user } = ctx.state;
-  authorize(user, "createDocument", user.team);
 
   const collection = await Collection.scope({
     method: ["withMembership", user.id],
@@ -1180,7 +1150,7 @@ router.post("documents.import", auth({ member: true }), async (ctx) => {
   });
 });
 
-router.post("documents.create", auth({ member: true }), async (ctx) => {
+router.post("documents.create", auth(), async (ctx) => {
   const {
     title = "",
     text = "",
@@ -1202,7 +1172,6 @@ router.post("documents.create", auth({ member: true }), async (ctx) => {
     assertPositiveInteger(index, "index must be an integer (>=0)");
   }
   const { user } = ctx.state;
-  authorize(user, "createDocument", user.team);
 
   const collection = await Collection.scope({
     method: ["withMembership", user.id],

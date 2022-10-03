@@ -1,11 +1,13 @@
+import { AnimatePresence } from "framer-motion";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { Switch, Route } from "react-router-dom";
+import { Switch, Route, useLocation, matchPath } from "react-router-dom";
 import ErrorSuspended from "~/scenes/ErrorSuspended";
 import Layout from "~/components/Layout";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import Sidebar from "~/components/Sidebar";
 import SettingsSidebar from "~/components/Sidebar/Settings";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import history from "~/utils/history";
 import {
@@ -13,6 +15,7 @@ import {
   matchDocumentSlug as slug,
   newDocumentPath,
   settingsPath,
+  matchDocumentHistory,
 } from "~/utils/routeHelpers";
 import Fade from "./Fade";
 
@@ -39,38 +42,35 @@ const CommandBar = React.lazy(
 );
 
 const AuthenticatedLayout: React.FC = ({ children }) => {
-  const { auth, ui, policies } = useStores();
+  const { ui, auth } = useStores();
+  const location = useLocation();
+  const can = usePolicy(ui.activeCollectionId);
   const { user, team } = auth;
-  const can = policies.abilities(ui.activeCollectionId || "");
-  const showSidebar = auth.authenticated && user && team;
 
-  const goToSearch = React.useCallback((ev: KeyboardEvent) => {
+  const goToSearch = (ev: KeyboardEvent) => {
     if (!ev.metaKey && !ev.ctrlKey) {
       ev.preventDefault();
       ev.stopPropagation();
       history.push(searchPath());
     }
-  }, []);
+  };
 
-  const goToNewDocument = React.useCallback(
-    (event) => {
-      if (event.metaKey || event.altKey) {
-        return;
-      }
-
-      if (!ui.activeCollectionId) {
-        return;
-      }
-      if (can.update) {
-        history.push(newDocumentPath(ui.activeCollectionId));
-      }
-    },
-    [can.update, ui.activeCollectionId]
-  );
+  const goToNewDocument = (event: KeyboardEvent) => {
+    if (event.metaKey || event.altKey) {
+      return;
+    }
+    const { activeCollectionId } = ui;
+    if (!activeCollectionId || !can.update) {
+      return;
+    }
+    history.push(newDocumentPath(activeCollectionId));
+  };
 
   if (auth.isSuspended) {
     return <ErrorSuspended />;
   }
+
+  const showSidebar = auth.authenticated && user && team;
 
   const sidebar = showSidebar ? (
     <Fade>
@@ -81,22 +81,34 @@ const AuthenticatedLayout: React.FC = ({ children }) => {
     </Fade>
   ) : undefined;
 
-  const rightSidebar = (
+  const sidebarRight = (
     <React.Suspense fallback={null}>
-      <Switch>
-        <Route
-          path={`/doc/${slug}/history/:revisionId?`}
-          component={DocumentHistory}
-        />
-        {ui.commentsCollapsed ? null : (
-          <Route path={`/doc/${slug}`} component={DocumentComments} />
-        )}
-      </Switch>
+      <AnimatePresence key={ui.activeDocumentId}>
+        <Switch
+          location={location}
+          key={
+            matchPath(location.pathname, {
+              path: matchDocumentHistory,
+            })
+              ? "history"
+              : ""
+          }
+        >
+          <Route
+            key="document-history"
+            path={`/doc/${slug}/history/:revisionId?`}
+            component={DocumentHistory}
+          />
+          {ui.commentsCollapsed ? null : (
+            <Route path={`/doc/${slug}`} component={DocumentComments} />
+          )}
+        </Switch>
+      </AnimatePresence>
     </React.Suspense>
   );
 
   return (
-    <Layout title={team?.name} sidebar={sidebar} rightSidebar={rightSidebar}>
+    <Layout title={team?.name} sidebar={sidebar} sidebarRight={sidebarRight}>
       <RegisterKeyDown trigger="n" handler={goToNewDocument} />
       <RegisterKeyDown trigger="t" handler={goToSearch} />
       <RegisterKeyDown trigger="/" handler={goToSearch} />

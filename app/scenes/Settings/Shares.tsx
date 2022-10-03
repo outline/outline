@@ -21,7 +21,7 @@ function Shares() {
   const { t } = useTranslation();
   const { shares, auth } = useStores();
   const canShareDocuments = auth.team && auth.team.sharing;
-  const can = usePolicy(team.id);
+  const can = usePolicy(team);
   const [isLoading, setIsLoading] = React.useState(false);
   const [data, setData] = React.useState<Share[]>([]);
   const [totalPages, setTotalPages] = React.useState(0);
@@ -67,8 +67,8 @@ function Shares() {
   }, [shares.orderedData, shareIds]);
 
   return (
-    <Scene title={t("Share Links")} icon={<LinkIcon color="currentColor" />}>
-      <Heading>{t("Share Links")}</Heading>
+    <Scene title={t("Shared Links")} icon={<LinkIcon color="currentColor" />}>
+      <Heading>{t("Shared Links")}</Heading>
 
       {can.manage && !canShareDocuments && (
         <>

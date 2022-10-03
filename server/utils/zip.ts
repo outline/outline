@@ -8,6 +8,7 @@ import Logger from "@server/logging/Logger";
 import Attachment from "@server/models/Attachment";
 import Collection from "@server/models/Collection";
 import Document from "@server/models/Document";
+import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import { NavigationNode } from "~/types";
 import { deserializeFilename, serializeFilename } from "./fs";
 import parseAttachmentIds from "./parseAttachmentIds";
@@ -36,7 +37,7 @@ async function addDocumentTreeToArchive(
       continue;
     }
 
-    let text = document.toMarkdown();
+    let text = DocumentHelper.toMarkdown(document);
     const attachments = await Attachment.findAll({
       where: {
         teamId: document.teamId,

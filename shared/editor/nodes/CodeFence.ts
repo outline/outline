@@ -122,44 +122,53 @@ export default class CodeFence extends Node {
         },
       ],
       toDOM: (node) => {
-        const button = document.createElement("button");
-        button.innerText = this.options.dictionary.copy;
-        button.type = "button";
-        button.addEventListener("click", this.handleCopyToClipboard);
+        let actions;
+        if (typeof document !== "undefined") {
+          const button = document.createElement("button");
+          button.innerText = this.options.dictionary.copy;
+          button.type = "button";
+          button.addEventListener("click", this.handleCopyToClipboard);
 
-        const select = document.createElement("select");
-        select.addEventListener("change", this.handleLanguageChange);
+          const select = document.createElement("select");
+          select.addEventListener("change", this.handleLanguageChange);
 
-        const actions = document.createElement("div");
-        actions.className = "code-actions";
-        actions.appendChild(select);
-        actions.appendChild(button);
+          actions = document.createElement("div");
+          actions.className = "code-actions";
+          actions.appendChild(select);
+          actions.appendChild(button);
 
-        this.languageOptions.forEach(([key, label]) => {
-          const option = document.createElement("option");
-          const value = key === "none" ? "" : key;
-          option.value = value;
-          option.innerText = label;
-          option.selected = node.attrs.language === value;
-          select.appendChild(option);
-        });
+          this.languageOptions.forEach(([key, label]) => {
+            const option = document.createElement("option");
+            const value = key === "none" ? "" : key;
+            option.value = value;
+            option.innerText = label;
+            option.selected = node.attrs.language === value;
+            select.appendChild(option);
+          });
 
-        // For the Mermaid language we add an extra button to toggle between
-        // source code and a rendered diagram view.
-        if (node.attrs.language === "mermaidjs") {
-          const showSourceButton = document.createElement("button");
-          showSourceButton.innerText = this.options.dictionary.showSource;
-          showSourceButton.type = "button";
-          showSourceButton.classList.add("show-source-button");
-          showSourceButton.addEventListener("click", this.handleToggleDiagram);
-          actions.prepend(showSourceButton);
+          // For the Mermaid language we add an extra button to toggle between
+          // source code and a rendered diagram view.
+          if (node.attrs.language === "mermaidjs") {
+            const showSourceButton = document.createElement("button");
+            showSourceButton.innerText = this.options.dictionary.showSource;
+            showSourceButton.type = "button";
+            showSourceButton.classList.add("show-source-button");
+            showSourceButton.addEventListener(
+              "click",
+              this.handleToggleDiagram
+            );
+            actions.prepend(showSourceButton);
 
-          const showDiagramButton = document.createElement("button");
-          showDiagramButton.innerText = this.options.dictionary.showDiagram;
-          showDiagramButton.type = "button";
-          showDiagramButton.classList.add("show-digram-button");
-          showDiagramButton.addEventListener("click", this.handleToggleDiagram);
-          actions.prepend(showDiagramButton);
+            const showDiagramButton = document.createElement("button");
+            showDiagramButton.innerText = this.options.dictionary.showDiagram;
+            showDiagramButton.type = "button";
+            showDiagramButton.classList.add("show-digram-button");
+            showDiagramButton.addEventListener(
+              "click",
+              this.handleToggleDiagram
+            );
+            actions.prepend(showDiagramButton);
+          }
         }
 
         return [
@@ -168,7 +177,7 @@ export default class CodeFence extends Node {
             class: "code-block",
             "data-language": node.attrs.language,
           },
-          ["div", { contentEditable: "false" }, actions],
+          ...(actions ? [["div", { contentEditable: "false" }, actions]] : []),
           ["pre", ["code", { spellCheck: "false" }, 0]],
         ];
       },

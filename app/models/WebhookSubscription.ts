@@ -17,6 +17,10 @@ class WebhookSubscription extends BaseModel {
 
   @Field
   @observable
+  secret: string;
+
+  @Field
+  @observable
   enabled: boolean;
 
   @Field

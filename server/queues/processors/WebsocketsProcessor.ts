@@ -2,6 +2,7 @@ import { subHours } from "date-fns";
 import { Op } from "sequelize";
 import { Server } from "socket.io";
 import {
+  Comment,
   Document,
   Collection,
   FileOperation,
@@ -10,13 +11,19 @@ import {
   GroupUser,
   Pin,
   Star,
-  Comment,
+  Team,
+  Subscription,
 } from "@server/models";
 import {
   presentComment,
+  presentCollection,
+  presentDocument,
   presentFileOperation,
+  presentGroup,
   presentPin,
   presentStar,
+  presentSubscription,
+  presentTeam,
 } from "@server/presenters";
 import { Event } from "../../types";
 
@@ -25,7 +32,6 @@ export default class WebsocketsProcessor {
     switch (event.name) {
       case "documents.publish":
       case "documents.restore":
-      case "documents.archive":
       case "documents.unarchive": {
         const document = await Document.findByPk(event.documentId, {
           paranoid: false,
@@ -53,52 +59,16 @@ export default class WebsocketsProcessor {
         });
       }
 
-      case "documents.delete": {
-        const document = await Document.findByPk(event.documentId, {
-          paranoid: false,
-        });
-        if (!document) {
-          return;
-        }
-
-        if (!document.publishedAt) {
-          return socketio.to(`user-${document.createdById}`).emit("entities", {
-            event: event.name,
-            documentIds: [
-              {
-                id: document.id,
-                updatedAt: document.updatedAt,
-              },
-            ],
-          });
-        }
-
-        return socketio
-          .to(`collection-${document.collectionId}`)
-          .emit("entities", {
-            event: event.name,
-            documentIds: [
-              {
-                id: document.id,
-                updatedAt: document.updatedAt,
-              },
-            ],
-            collectionIds: [
-              {
-                id: document.collectionId,
-              },
-            ],
-          });
-      }
-
       case "documents.permanent_delete": {
         return socketio
           .to(`collection-${event.collectionId}`)
           .emit(event.name, {
-            documentId: event.documentId,
+            modelId: event.documentId,
           });
       }
 
+      case "documents.archive":
+      case "documents.delete":
       case "documents.update": {
         const document = await Document.findByPk(event.documentId, {
           paranoid: false,
@@ -109,15 +79,9 @@ export default class WebsocketsProcessor {
         const channel = document.publishedAt
           ? `collection-${document.collectionId}`
           : `user-${event.actorId}`;
-        return socketio.to(channel).emit("entities", {
-          event: event.name,
-          documentIds: [
-            {
-              id: document.id,
-              updatedAt: document.updatedAt,
-            },
-          ],
-        });
+
+        const data = await presentDocument(document);
+        return socketio.to(channel).emit(event.name, data);
       }
 
       case "documents.create": {
@@ -138,13 +102,6 @@ export default class WebsocketsProcessor {
               id: document.collectionId,
             },
           ],
-        });
-      }
-
-      case "documents.star":
-      case "documents.unstar": {
-        return socketio.to(`user-${event.actorId}`).emit(event.name, {
-          documentId: event.documentId,
         });
       }
 
@@ -190,22 +147,15 @@ export default class WebsocketsProcessor {
           .to(
             collection.permission
               ? `team-${collection.teamId}`
-              : `collection-${collection.id}`
+              : `user-${collection.createdById}`
           )
-          .emit("entities", {
-            event: event.name,
-            collectionIds: [
-              {
-                id: collection.id,
-                updatedAt: collection.updatedAt,
-              },
-            ],
-          });
+          .emit(event.name, presentCollection(collection));
+
         return socketio
           .to(
             collection.permission
               ? `team-${collection.teamId}`
-              : `collection-${collection.id}`
+              : `user-${collection.createdById}`
           )
           .emit("join", {
             event: event.name,
@@ -213,8 +163,7 @@ export default class WebsocketsProcessor {
           });
       }
 
-      case "collections.update":
-      case "collections.delete": {
+      case "collections.update": {
         const collection = await Collection.findByPk(event.collectionId, {
           paranoid: false,
         });
@@ -230,6 +179,14 @@ export default class WebsocketsProcessor {
             },
           ],
         });
+      }
+
+      case "collections.delete": {
+        return socketio
+          .to(`collection-${event.collectionId}`)
+          .emit(event.name, {
+            modelId: event.collectionId,
+          });
       }
 
       case "collections.move": {
@@ -368,8 +325,9 @@ export default class WebsocketsProcessor {
         if (!fileOperation) {
           return;
         }
-        const data = await presentFileOperation(fileOperation);
-        return socketio.to(`user-${event.actorId}`).emit(event.name, data);
+        return socketio
+          .to(`user-${event.actorId}`)
+          .emit(event.name, presentFileOperation(fileOperation));
       }
 
       case "pins.create":
@@ -453,15 +411,9 @@ export default class WebsocketsProcessor {
         if (!group) {
           return;
         }
-        return socketio.to(`team-${group.teamId}`).emit("entities", {
-          event: event.name,
-          groupIds: [
-            {
-              id: group.id,
-              updatedAt: group.updatedAt,
-            },
-          ],
-        });
+        return socketio
+          .to(`team-${group.teamId}`)
+          .emit(event.name, presentGroup(group));
       }
 
       case "groups.add_user": {
@@ -549,25 +501,14 @@ export default class WebsocketsProcessor {
       }
 
       case "groups.delete": {
-        const group = await Group.findByPk(event.modelId, {
-          paranoid: false,
+        socketio.to(`team-${event.teamId}`).emit(event.name, {
+          modelId: event.modelId,
         });
-        if (!group) {
-          return;
-        }
 
-        socketio.to(`team-${group.teamId}`).emit("entities", {
-          event: event.name,
-          groupIds: [
-            {
-              id: group.id,
-              updatedAt: group.updatedAt,
-            },
-          ],
-        });
-        // we the users and collection relations that were just severed as a result of the group deletion
-        // since there are cascading deletes, we approximate this by looking for the recently deleted
-        // items in the GroupUser and CollectionGroup tables
+        // we get users and collection relations that were just severed as a
+        // result of the group deletion since there are cascading deletes, we
+        // approximate this by looking for the recently deleted items in the
+        // GroupUser and CollectionGroup tables
         const groupUsers = await GroupUser.findAll({
           paranoid: false,
           where: {
@@ -624,15 +565,30 @@ export default class WebsocketsProcessor {
         return;
       }
 
-      case "teams.update": {
-        return socketio.to(`team-${event.teamId}`).emit("entities", {
-          event: event.name,
-          teamIds: [
-            {
-              id: event.teamId,
-            },
-          ],
+      case "subscriptions.create": {
+        const subscription = await Subscription.findByPk(event.modelId);
+        if (!subscription) {
+          return;
+        }
+        return socketio
+          .to(`user-${event.userId}`)
+          .emit(event.name, presentSubscription(subscription));
+      }
+
+      case "subscriptions.delete": {
+        return socketio.to(`user-${event.userId}`).emit(event.name, {
+          modelId: event.modelId,
         });
+      }
+
+      case "teams.update": {
+        const team = await Team.scope("withDomains").findByPk(event.teamId);
+        if (!team) {
+          return;
+        }
+        return socketio
+          .to(`team-${event.teamId}`)
+          .emit(event.name, presentTeam(team));
       }
 
       default:

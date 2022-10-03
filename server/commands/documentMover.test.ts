@@ -5,10 +5,14 @@ import {
   buildCollection,
   buildUser,
 } from "@server/test/factories";
-import { flushdb, seed } from "@server/test/support";
+import { getTestDatabase, seed } from "@server/test/support";
 import documentMover from "./documentMover";
 
-beforeEach(() => flushdb());
+const db = getTestDatabase();
+
+afterAll(db.disconnect);
+
+beforeEach(db.flush);
 
 describe("documentMover", () => {
   const ip = "127.0.0.1";

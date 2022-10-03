@@ -5,12 +5,11 @@ import { Trans, useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
 import Collection from "~/models/Collection";
-import CollectionPermissions from "~/scenes/CollectionPermissions";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
-import Modal from "~/components/Modal";
 import Text from "~/components/Text";
-import useBoolean from "~/hooks/useBoolean";
+import { editCollectionPermissions } from "~/actions/definitions/collections";
+import useActionContext from "~/hooks/useActionContext";
 import usePolicy from "~/hooks/usePolicy";
 import { newDocumentPath } from "~/utils/routeHelpers";
 
@@ -20,14 +19,11 @@ type Props = {
 
 function EmptyCollection({ collection }: Props) {
   const { t } = useTranslation();
-  const can = usePolicy(collection.id);
+  const can = usePolicy(collection);
+  const context = useActionContext();
   const collectionName = collection ? collection.name : "";
 
-  const [
-    permissionsModalOpen,
-    handlePermissionsModalOpen,
-    handlePermissionsModalClose,
-  ] = useBoolean();
+  console.log({ context });
 
   return (
     <Centered column>
@@ -48,23 +44,20 @@ function EmptyCollection({ collection }: Props) {
       {can.update && (
         <Empty>
           <Link to={newDocumentPath(collection.id)}>
-            <Button icon={<NewDocumentIcon color="currentColor" />}>
+            <Button icon={<NewDocumentIcon color="currentColor" />} neutral>
               {t("Create a document")}
             </Button>
           </Link>
-          &nbsp;&nbsp;
-          <Button onClick={handlePermissionsModalOpen} neutral>
+          <Button
+            action={editCollectionPermissions}
+            context={context}
+            hideOnActionDisabled
+            neutral
+          >
             {t("Manage permissions")}…
           </Button>
         </Empty>
       )}
-      <Modal
-        title={t("Collection permissions")}
-        onRequestClose={handlePermissionsModalClose}
-        isOpen={permissionsModalOpen}
-      >
-        <CollectionPermissions collection={collection} />
-      </Modal>
     </Centered>
   );
 }
@@ -79,6 +72,7 @@ const Centered = styled(Flex)`
 const Empty = styled(Flex)`
   justify-content: center;
   margin: 10px 0;
+  gap: 8px;
 `;
 
 export default observer(EmptyCollection);

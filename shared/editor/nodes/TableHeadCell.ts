@@ -76,7 +76,12 @@ export default class TableHeadCell extends Node {
                     grip.addEventListener("mousedown", (event) => {
                       event.preventDefault();
                       event.stopImmediatePropagation();
-                      this.editor.view.dispatch(selectColumn(index)(state.tr));
+                      this.editor.view.dispatch(
+                        selectColumn(
+                          index,
+                          event.metaKey || event.shiftKey
+                        )(state.tr)
+                      );
                     });
                     return grip;
                   })

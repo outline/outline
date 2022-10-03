@@ -8,7 +8,7 @@ import {
   AuthorizationError,
   UserSuspendedError,
 } from "../errors";
-import { ContextWithState, AuthenticationTypes } from "../types";
+import { ContextWithState, AuthenticationType } from "../types";
 
 type AuthenticationOptions = {
   /* An admin user role is required to access the route */
@@ -63,7 +63,7 @@ export default function auth(options: AuthenticationOptions = {}) {
 
     if (token) {
       if (String(token).match(/^[\w]{38}$/)) {
-        ctx.state.authType = AuthenticationTypes.API;
+        ctx.state.authType = AuthenticationType.API;
         let apiKey;
 
         try {
@@ -94,7 +94,7 @@ export default function auth(options: AuthenticationOptions = {}) {
           throw AuthenticationError("Invalid API key");
         }
       } else {
-        ctx.state.authType = AuthenticationTypes.APP;
+        ctx.state.authType = AuthenticationType.APP;
         user = await getUserForJWT(String(token));
       }
 
@@ -123,7 +123,7 @@ export default function auth(options: AuthenticationOptions = {}) {
       }
 
       // not awaiting the promise here so that the request is not blocked
-      user.updateActiveAt(ctx.request.ip).catch((err) => {
+      user.updateActiveAt(ctx).catch((err) => {
         Logger.error("Failed to update user activeAt", err);
       });
 

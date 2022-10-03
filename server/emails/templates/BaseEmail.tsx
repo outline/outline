@@ -1,15 +1,18 @@
 import mailer from "@server/emails/mailer";
 import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/metrics";
+import Notification from "@server/models/Notification";
 import { taskQueue } from "@server/queues";
 import { TaskPriority } from "@server/queues/tasks/BaseTask";
+import { NotificationMetadata } from "@server/types";
 
 interface EmailProps {
   to: string;
 }
 
-export default abstract class BaseEmail<T extends EmailProps, S = any> {
+export default abstract class BaseEmail<T extends EmailProps, S = unknown> {
   private props: T;
+  private metadata?: NotificationMetadata;
 
   /**
    * Schedule this email type to be sent asyncronously by a worker.
@@ -17,7 +20,7 @@ export default abstract class BaseEmail<T extends EmailProps, S = any> {
    * @param props Properties to be used in the email template
    * @returns A promise that resolves once the email is placed on the task queue
    */
-  public static schedule<T>(props: T) {
+  public static schedule<T>(props: T, metadata?: NotificationMetadata) {
     const templateName = this.name;
 
     Metrics.increment("email.scheduled", {
@@ -31,6 +34,7 @@ export default abstract class BaseEmail<T extends EmailProps, S = any> {
         name: "EmailTask",
         props: {
           templateName,
+          ...metadata,
           props,
         },
       },
@@ -45,8 +49,9 @@ export default abstract class BaseEmail<T extends EmailProps, S = any> {
     );
   }
 
-  constructor(props: T) {
+  constructor(props: T, metadata?: NotificationMetadata) {
     this.props = props;
+    this.metadata = metadata;
   }
 
   /**
@@ -76,6 +81,7 @@ export default abstract class BaseEmail<T extends EmailProps, S = any> {
         previewText: this.preview(data),
         component: this.render(data),
         text: this.renderAsText(data),
+        headCSS: this.headCSS?.(data),
       });
       Metrics.increment("email.sent", {
         templateName,
@@ -85,6 +91,23 @@ export default abstract class BaseEmail<T extends EmailProps, S = any> {
         templateName,
       });
       throw err;
+    }
+
+    if (this.metadata?.notificationId) {
+      try {
+        await Notification.update(
+          {
+            emailedAt: new Date(),
+          },
+          {
+            where: {
+              id: this.metadata.notificationId,
+            },
+          }
+        );
+      } catch (err) {
+        Logger.error(`Failed to update notification`, err, this.metadata);
+      }
     }
   }
 
@@ -122,6 +145,14 @@ export default abstract class BaseEmail<T extends EmailProps, S = any> {
    * @returns A JSX element
    */
   protected abstract render(props: S & T): JSX.Element;
+
+  /**
+   * Allows injecting additional CSS into the head of the email.
+   *
+   * @param props Props in email constructor
+   * @returns A string of CSS
+   */
+  protected headCSS?(props: T): string | undefined;
 
   /**
    * beforeSend hook allows async loading additional data that was not passed

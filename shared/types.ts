@@ -21,3 +21,41 @@ export type PublicEnv = {
   GOOGLE_ANALYTICS_ID: string | undefined;
   RELEASE: string | undefined;
 };
+
+export enum IntegrationType {
+  Post = "post",
+  Command = "command",
+  Embed = "embed",
+}
+
+export enum CollectionPermission {
+  Read = "read",
+  ReadWrite = "read_write",
+}
+
+export type IntegrationSettings<T> = T extends IntegrationType.Embed
+  ? { url: string }
+  : T extends IntegrationType.Post
+  ? { url: string; channel: string; channelId: string }
+  : T extends IntegrationType.Post
+  ? { serviceTeamId: string }
+  :
+      | { url: string }
+      | { url: string; channel: string; channelId: string }
+      | { serviceTeamId: string };
+
+export enum UserPreference {
+  /** Whether reopening the app should redirect to the last viewed document. */
+  RememberLastPath = "rememberLastPath",
+  /** If web-style hand pointer should be used on interactive elements. */
+  UseCursorPointer = "useCursorPointer",
+}
+
+export type UserPreferences = { [key in UserPreference]?: boolean };
+
+export enum TeamPreference {
+  /** Whether documents have a separate edit mode instead of seamless editing. */
+  SeamlessEdit = "seamlessEdit",
+}
+
+export type TeamPreferences = { [key in TeamPreference]?: boolean };

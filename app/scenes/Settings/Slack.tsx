@@ -3,6 +3,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
+import { IntegrationType } from "@shared/types";
 import Collection from "~/models/Collection";
 import Integration from "~/models/Integration";
 import Button from "~/components/Button";
@@ -39,7 +40,7 @@ function Slack() {
 
   const commandIntegration = find(
     integrations.slackIntegrations,
-    (i) => i.type === "command"
+    (i) => i.type === IntegrationType.Command
   );
 
   const groupedCollections = collections.orderedData
@@ -124,7 +125,9 @@ function Slack() {
                   <SlackListItem
                     key={integration.id}
                     collection={collection}
-                    integration={integration}
+                    integration={
+                      integration as Integration<IntegrationType.Post>
+                    }
                   />
                 );
               }

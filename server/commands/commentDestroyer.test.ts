@@ -1,9 +1,14 @@
 import { Comment, Event } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
-import { flushdb } from "@server/test/support";
+import { getTestDatabase } from "@server/test/support";
 import commentDestroyer from "./commentDestroyer";
 
-beforeEach(() => flushdb());
+const db = getTestDatabase();
+
+afterAll(db.disconnect);
+
+beforeEach(db.flush);
+
 describe("commentDestroyer", () => {
   const ip = "127.0.0.1";
 

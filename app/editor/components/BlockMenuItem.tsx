@@ -76,7 +76,7 @@ const MenuItem = styled.button<{
   line-height: 1;
   width: 100%;
   height: 36px;
-  cursor: pointer;
+  cursor: var(--pointer);
   border: none;
   opacity: ${(props) => (props.disabled ? ".5" : "1")};
   color: ${(props) =>

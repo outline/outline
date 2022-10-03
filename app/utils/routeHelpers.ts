@@ -36,6 +36,10 @@ export function profileSettingsPath(): string {
   return "/settings";
 }
 
+export function accountPreferencesPath(): string {
+  return "/settings/preferences";
+}
+
 export function groupSettingsPath(): string {
   return "/settings/groups";
 }
@@ -121,6 +125,10 @@ export function searchPath(
 
   search = search ? `?${search}` : "";
   return `${route}${search}`;
+}
+
+export function sharedDocumentPath(shareId: string, docPath?: string) {
+  return docPath ? `/s/${shareId}${docPath}` : `/s/${shareId}`;
 }
 
 export function notFoundUrl(): string {

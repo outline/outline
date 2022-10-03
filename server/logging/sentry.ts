@@ -24,6 +24,7 @@ if (env.SENTRY_DSN) {
       "GmailAccountCreationError",
       "AuthRedirectError",
       "UserSuspendedError",
+      "TooManyRequestsError",
     ],
   });
 }

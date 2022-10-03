@@ -9,18 +9,22 @@ import {
   LinkIcon,
   TeamIcon,
   BeakerIcon,
+  BuildingBlocksIcon,
   DownloadIcon,
   WebhooksIcon,
+  SettingsIcon,
 } from "outline-icons";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import Details from "~/scenes/Settings/Details";
+import Drawio from "~/scenes/Settings/Drawio";
 import Export from "~/scenes/Settings/Export";
 import Features from "~/scenes/Settings/Features";
 import Groups from "~/scenes/Settings/Groups";
 import Import from "~/scenes/Settings/Import";
 import Members from "~/scenes/Settings/Members";
 import Notifications from "~/scenes/Settings/Notifications";
+import Preferences from "~/scenes/Settings/Preferences";
 import Profile from "~/scenes/Settings/Profile";
 import Security from "~/scenes/Settings/Security";
 import Shares from "~/scenes/Settings/Shares";
@@ -32,6 +36,7 @@ import SlackIcon from "~/components/SlackIcon";
 import ZapierIcon from "~/components/ZapierIcon";
 import env from "~/env";
 import isCloudHosted from "~/utils/isCloudHosted";
+import { accountPreferencesPath } from "~/utils/routeHelpers";
 import useCurrentTeam from "./useCurrentTeam";
 import usePolicy from "./usePolicy";
 
@@ -67,7 +72,7 @@ type ConfigType = {
 
 const useAuthorizedSettingsConfig = () => {
   const team = useCurrentTeam();
-  const can = usePolicy(team.id);
+  const can = usePolicy(team);
   const { t } = useTranslation();
 
   const config: ConfigType = React.useMemo(
@@ -79,6 +84,14 @@ const useAuthorizedSettingsConfig = () => {
         enabled: true,
         group: t("Account"),
         icon: ProfileIcon,
+      },
+      Preferences: {
+        name: t("Preferences"),
+        path: accountPreferencesPath(),
+        component: Preferences,
+        enabled: true,
+        group: t("Account"),
+        icon: SettingsIcon,
       },
       Notifications: {
         name: t("Notifications"),
@@ -117,7 +130,7 @@ const useAuthorizedSettingsConfig = () => {
         name: t("Features"),
         path: "/settings/features",
         component: Features,
-        enabled: can.update,
+        enabled: can.update && team.collaborativeEditing,
         group: t("Team"),
         icon: BeakerIcon,
       },
@@ -138,7 +151,7 @@ const useAuthorizedSettingsConfig = () => {
         icon: GroupIcon,
       },
       Shares: {
-        name: t("Share Links"),
+        name: t("Shared Links"),
         path: "/settings/shares",
         component: Shares,
         enabled: true,
@@ -169,6 +182,14 @@ const useAuthorizedSettingsConfig = () => {
         enabled: can.createWebhookSubscription,
         group: t("Integrations"),
         icon: WebhooksIcon,
+      },
+      Drawio: {
+        name: t("Draw.io"),
+        path: "/settings/integrations/drawio",
+        component: Drawio,
+        enabled: can.update,
+        group: t("Integrations"),
+        icon: BuildingBlocksIcon,
       },
       Slack: {
         name: "Slack",

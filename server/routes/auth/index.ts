@@ -5,12 +5,15 @@ import bodyParser from "koa-body";
 import Router from "koa-router";
 import { AuthenticationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
+import { defaultRateLimiter } from "@server/middlewares/rateLimiter";
 import { Collection, Team, View } from "@server/models";
 import providers from "./providers";
 
 const app = new Koa();
 const router = new Router();
+
 router.use(passport.initialize());
+router.use(defaultRateLimiter());
 
 // dynamically load available authentication provider routes
 providers.forEach((provider) => {
@@ -28,9 +31,11 @@ router.get("/redirect", auth(), async (ctx) => {
   }
 
   // ensure that the lastActiveAt on user is updated to prevent replay requests
-  await user.updateActiveAt(ctx.request.ip, true);
+  await user.updateActiveAt(ctx, true);
+
   ctx.cookies.set("accessToken", jwtToken, {
     httpOnly: false,
+    sameSite: true,
     expires: addMonths(new Date(), 3),
   });
   const [team, collection, view] = await Promise.all([

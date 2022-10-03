@@ -4,6 +4,7 @@ import { isInTable } from "prosemirror-tables";
 import { isUrl } from "../../utils/urls";
 import Extension from "../lib/Extension";
 import isMarkdown from "../lib/isMarkdown";
+import isInCode from "../queries/isInCode";
 import selectionIsInCode from "../queries/isInCode";
 import { LANGUAGES } from "./Prism";
 
@@ -98,7 +99,7 @@ export default class PasteHandler extends Extension {
               // Is this link embeddable? Create an embed!
               const { embeds } = this.editor.props;
 
-              if (embeds && !isInTable(state)) {
+              if (embeds && !isInTable(state) && !isInCode(state)) {
                 for (const embed of embeds) {
                   const matches = embed.matcher(text);
                   if (matches) {

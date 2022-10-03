@@ -151,31 +151,36 @@ allow(User, "move", Document, (user, document) => {
   return user.teamId === document.teamId;
 });
 
-allow(User, ["pin", "unpin"], Document, (user, document) => {
-  if (!document) {
-    return false;
+allow(
+  User,
+  ["pin", "unpin", "subscribe", "unsubscribe"],
+  Document,
+  (user, document) => {
+    if (!document) {
+      return false;
+    }
+    if (document.archivedAt) {
+      return false;
+    }
+    if (document.deletedAt) {
+      return false;
+    }
+    if (document.template) {
+      return false;
+    }
+    if (!document.publishedAt) {
+      return false;
+    }
+    invariant(
+      document.collection,
+      "collection is missing, did you forget to include in the query scope?"
+    );
+    if (cannot(user, "update", document.collection)) {
+      return false;
+    }
+    return user.teamId === document.teamId;
   }
-  if (document.archivedAt) {
-    return false;
-  }
-  if (document.deletedAt) {
-    return false;
-  }
-  if (document.template) {
-    return false;
-  }
-  if (!document.publishedAt) {
-    return false;
-  }
-  invariant(
-    document.collection,
-    "collection is missing, did you forget to include in the query scope?"
-  );
-  if (cannot(user, "update", document.collection)) {
-    return false;
-  }
-  return user.teamId === document.teamId;
-});
+);
 
 allow(User, ["pinToHome"], Document, (user, document) => {
   if (!document) {
@@ -204,9 +209,6 @@ allow(User, "delete", Document, (user, document) => {
   if (document.deletedAt) {
     return false;
   }
-  if (user.isViewer) {
-    return false;
-  }
 
   // allow deleting document without a collection
   if (document.collection && cannot(user, "update", document.collection)) {
@@ -232,9 +234,6 @@ allow(User, "permanentDelete", Document, (user, document) => {
   if (!document.deletedAt) {
     return false;
   }
-  if (user.isViewer) {
-    return false;
-  }
 
   // allow deleting document without a collection
   if (document.collection && cannot(user, "update", document.collection)) {
@@ -249,9 +248,6 @@ allow(User, "restore", Document, (user, document) => {
     return false;
   }
   if (!document.deletedAt) {
-    return false;
-  }
-  if (user.isViewer) {
     return false;
   }
 

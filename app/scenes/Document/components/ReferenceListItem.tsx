@@ -9,6 +9,7 @@ import EmojiIcon from "~/components/EmojiIcon";
 import Flex from "~/components/Flex";
 import { hover } from "~/styles";
 import { NavigationNode } from "~/types";
+import { sharedDocumentPath } from "~/utils/routeHelpers";
 
 type Props = {
   shareId?: string;
@@ -26,6 +27,7 @@ const DocumentLink = styled(Link)`
   min-width: 100%;
   overflow: hidden;
   position: relative;
+  cursor: var(--pointer);
 
   &:${hover},
   &:active,
@@ -64,7 +66,9 @@ function ReferenceListItem({
   return (
     <DocumentLink
       to={{
-        pathname: shareId ? `/share/${shareId}${document.url}` : document.url,
+        pathname: shareId
+          ? sharedDocumentPath(shareId, document.url)
+          : document.url,
         hash: anchor ? `d-${anchor}` : undefined,
         state: {
           title: document.title,

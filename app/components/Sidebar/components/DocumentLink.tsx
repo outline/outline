@@ -291,6 +291,21 @@ function InnerDocumentLink(
   const isExpanded = expanded && !isDragging;
   const hasChildren = nodeChildren.length > 0;
 
+  const handleKeyDown = React.useCallback(
+    (ev: React.KeyboardEvent) => {
+      if (!hasChildren) {
+        return;
+      }
+      if (ev.key === "ArrowRight" && !expanded) {
+        setExpanded(true);
+      }
+      if (ev.key === "ArrowLeft" && expanded) {
+        setExpanded(false);
+      }
+    },
+    [hasChildren, expanded]
+  );
+
   return (
     <>
       <Relative onDragLeave={resetHoverExpanding}>
@@ -299,6 +314,7 @@ function InnerDocumentLink(
           ref={drag}
           $isDragging={isDragging}
           $isMoving={isMoving}
+          onKeyDown={handleKeyDown}
         >
           <div ref={dropToReparent}>
             <DropToImport documentId={node.id} activeClassName="activeDropZone">

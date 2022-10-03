@@ -26,14 +26,6 @@ function TitleDocumentMeta({ to, isDraft, document, ...rest }: Props) {
   const totalViewers = documentViews.length;
   const onlyYou = totalViewers === 1 && documentViews[0].user.id;
 
-  React.useEffect(() => {
-    if (!document.isDeleted) {
-      views.fetchPage({
-        documentId: document.id,
-      });
-    }
-  }, [views, document.id, document.isDeleted]);
-
   const handleClickComments = () => {
     ui.toggleComments();
   };
@@ -47,7 +39,7 @@ function TitleDocumentMeta({ to, isDraft, document, ...rest }: Props) {
   const commentsCount = comments.inDocument(document.id).length;
 
   return (
-    <Meta document={document} to={to} {...rest}>
+    <Meta document={document} to={to} replace {...rest}>
       {totalViewers && !isDraft ? (
         <PopoverDisclosure {...popover}>
           {(props) => (
