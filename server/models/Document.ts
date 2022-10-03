@@ -728,16 +728,6 @@ class Document extends ParanoidModel {
 
   // instance methods
 
-  /**
-   * Evaluates whether a document not belonging
-   * to any collection, is a draft
-   *
-   * @returns A boolean signalling the same
-   */
-  get isDraftWithoutCollection() {
-    return !this.collection && !this.publishedAt;
-  }
-
   migrateVersion = () => {
     let migrated = false;
 
@@ -972,11 +962,7 @@ class Document extends ParanoidModel {
   // Delete a document, archived or otherwise.
   delete = (userId: string) => {
     return this.sequelize.transaction(async (transaction: Transaction) => {
-      if (
-        !this.archivedAt &&
-        !this.template &&
-        !this.isDraftWithoutCollection
-      ) {
+      if (!this.archivedAt && !this.template && this.collectionId) {
         // delete any children and remove from the document structure
         const collection = await Collection.findByPk(this.collectionId, {
           transaction,

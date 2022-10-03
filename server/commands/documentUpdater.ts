@@ -77,7 +77,7 @@ export default async function documentUpdater({
   const changed = document.changed();
 
   if (publish) {
-    if (document.isDraftWithoutCollection) {
+    if (!document.collectionId) {
       document.collectionId = collectionId as string;
     }
     await document.publish(user.id, { transaction });

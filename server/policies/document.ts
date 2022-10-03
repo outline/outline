@@ -35,10 +35,7 @@ allow(User, "star", Document, (user, document) => {
   if (document.template) {
     return false;
   }
-  if (
-    !document.isDraftWithoutCollection &&
-    cannot(user, "read", document.collection)
-  ) {
+  if (document.collection && cannot(user, "read", document.collection)) {
     return false;
   }
   return user.teamId === document.teamId;
@@ -51,10 +48,7 @@ allow(User, "unstar", Document, (user, document) => {
   if (document.template) {
     return false;
   }
-  if (
-    !document.isDraftWithoutCollection &&
-    cannot(user, "read", document.collection)
-  ) {
+  if (document.collection && cannot(user, "read", document.collection)) {
     return false;
   }
   return user.teamId === document.teamId;
@@ -92,10 +86,7 @@ allow(User, "update", Document, (user, document) => {
   if (document.deletedAt) {
     return false;
   }
-  if (
-    !document.isDraftWithoutCollection &&
-    cannot(user, "update", document.collection)
-  ) {
+  if (document.collection && cannot(user, "update", document.collection)) {
     return false;
   }
 

@@ -520,13 +520,13 @@ router.post("documents.restore", auth({ member: true }), async (ctx) => {
   // be caught as a 403 on the authorize call below. Otherwise we're checking here
   // that the original collection still exists and advising to pass collectionId
   // if not.
-  if (!document.isDraftWithoutCollection && !collectionId && !collection) {
+  if (document.collection && !collectionId && !collection) {
     throw ValidationError(
       "Unable to restore to original collection, it may have been deleted"
     );
   }
 
-  if (!document.isDraftWithoutCollection) {
+  if (document.collection) {
     authorize(user, "update", collection);
   }
 
@@ -859,7 +859,7 @@ router.post("documents.update", auth(), async (ctx) => {
   authorize(user, "update", document);
 
   if (publish) {
-    if (document.isDraftWithoutCollection) {
+    if (!document.collectionId) {
       assertPresent(
         collectionId,
         "collectionId is required to publish a draft without collection"

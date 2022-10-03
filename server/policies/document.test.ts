@@ -119,7 +119,7 @@ describe("private collection", () => {
 });
 
 describe("no collection", () => {
-  it("should allow same permissions as a draft document with the exception of share", async () => {
+  it("should grant same permissions as that on a draft document except the share permission", async () => {
     const team = await buildTeam();
     const user = await buildUser({
       teamId: team.id,
