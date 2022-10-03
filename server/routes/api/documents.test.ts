@@ -1011,7 +1011,7 @@ describe("#documents.search", () => {
     expect(body.data[0].document.id).toEqual(share.documentId);
   });
 
-  it("should return drafts too using shareId", async () => {
+  it("should not return drafts using shareId", async () => {
     const { user, document } = await seed();
     document.publishedAt = null;
     await document.save();
@@ -1031,7 +1031,7 @@ describe("#documents.search", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.length).toEqual(1);
+    expect(body.data.length).toEqual(0);
   });
 
   it("should not allow search if child documents are not included", async () => {

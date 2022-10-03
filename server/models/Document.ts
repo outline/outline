@@ -527,8 +527,8 @@ class Document extends ParanoidModel {
     "teamId" = :teamId AND
     "collectionId" IN(:collectionIds) AND
     ${documentClause}
-    ${!options.includeDrafts ? '"publishedAt" IS NOT NULL AND' : ""}
-    "deletedAt" IS NULL
+    "deletedAt" IS NULL AND
+    "publishedAt" IS NOT NULL
   `;
     const selectSql = `
     SELECT
@@ -569,7 +569,7 @@ class Document extends ParanoidModel {
     ]);
 
     // Final query to get associated document data
-    const documents = await this.scope(["withoutState", "withDrafts"]).findAll({
+    const documents = await this.findAll({
       where: {
         id: map(results, "id"),
         teamId: team.id,
