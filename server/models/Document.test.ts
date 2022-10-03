@@ -1,6 +1,7 @@
 import Document from "@server/models/Document";
 import {
   buildDocument,
+  buildDraftDocument,
   buildCollection,
   buildTeam,
   buildUser,
@@ -611,7 +612,9 @@ describe("tasks", () => {
 
 describe("#isDraftWithoutCollection()", () => {
   it("should return true if a draft document doesn't belong to any collection", async () => {
-    const document = await buildDocument({ title: "some doc" }, true);
+    const document = await buildDraftDocument({
+      title: "some doc",
+    });
     expect(document.isDraftWithoutCollection).toBe(true);
     expect(document.collectionId).toBeNull();
     expect(document.publishedAt).toBeNull();

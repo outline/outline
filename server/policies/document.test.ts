@@ -3,6 +3,7 @@ import {
   buildUser,
   buildTeam,
   buildDocument,
+  buildDraftDocument,
   buildCollection,
 } from "@server/test/factories";
 import { getTestDatabase } from "@server/test/support";
@@ -118,17 +119,14 @@ describe("private collection", () => {
 });
 
 describe("no collection", () => {
-  it("should allow same permissions as granted against a draft document with the exception of share", async () => {
+  it("should allow same permissions as a draft document with the exception of share", async () => {
     const team = await buildTeam();
     const user = await buildUser({
       teamId: team.id,
     });
-    const document = await buildDocument(
-      {
-        teamId: team.id,
-      },
-      true
-    );
+    const document = await buildDraftDocument({
+      teamId: team.id,
+    });
     const abilities = serialize(user, document);
     expect(abilities.archive).toEqual(false);
     expect(abilities.createChildDocument).toEqual(false);

@@ -14,6 +14,7 @@ import {
   buildCollection,
   buildUser,
   buildDocument,
+  buildDraftDocument,
   buildViewer,
   buildTeam,
 } from "@server/test/factories";
@@ -877,16 +878,13 @@ describe("#documents.drafts", () => {
     document.publishedAt = null;
     await document.save();
     drafts.push(document);
-    const draftWithoutCollection = await buildDocument(
-      {
-        title: "draft title",
-        text: "draft text",
-        createdById: user.id,
-        teamId: user.teamId,
-      },
-      true
-    );
-    drafts.push(draftWithoutCollection);
+    const draftDocument = await buildDraftDocument({
+      title: "draft title",
+      text: "draft text",
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+    drafts.push(draftDocument);
 
     const res = await server.post("/api/documents.drafts", {
       body: {
@@ -1207,16 +1205,13 @@ describe("#documents.search", () => {
 
   it("should return drafts without collection too", async () => {
     const user = await buildUser();
-    await buildDocument(
-      {
-        title: "some title",
-        text: "some text",
-        createdById: user.id,
-        userId: user.id,
-        teamId: user.teamId,
-      },
-      true
-    );
+    await buildDraftDocument({
+      title: "some title",
+      text: "some text",
+      createdById: user.id,
+      userId: user.id,
+      teamId: user.teamId,
+    });
     const res = await server.post("/api/documents.search", {
       body: {
         token: user.getJwtToken(),
@@ -1556,16 +1551,13 @@ describe("#documents.deleted", () => {
       userId: user.id,
       teamId: user.teamId,
     });
-    const draftWithoutCollection = await buildDocument(
-      {
-        userId: user.id,
-        teamId: user.teamId,
-      },
-      true
-    );
+    const draftDocument = await buildDraftDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
     await Promise.all([
       document.delete(user.id),
-      draftWithoutCollection.delete(user.id),
+      draftDocument.delete(user.id),
     ]);
     const res = await server.post("/api/documents.deleted", {
       body: {
@@ -1755,13 +1747,10 @@ describe("#documents.restore", () => {
 
   it("should allow restore of trashed drafts without collection", async () => {
     const { user } = await seed();
-    const document = await buildDocument(
-      {
-        userId: user.id,
-        teamId: user.teamId,
-      },
-      true
-    );
+    const document = await buildDraftDocument({
+      userId: user.id,
+      teamId: user.teamId,
+    });
     await document.delete(user.id);
     const res = await server.post("/api/documents.restore", {
       body: {
@@ -2174,12 +2163,9 @@ describe("#documents.update", () => {
 
   it("should not allow publishing a draft without specifying the collection", async () => {
     const { user, team } = await seed();
-    const document = await buildDocument(
-      {
-        teamId: team.id,
-      },
-      true
-    );
+    const document = await buildDraftDocument({
+      teamId: team.id,
+    });
     const res = await server.post("/api/documents.update", {
       body: {
         token: user.getJwtToken(),
@@ -2199,14 +2185,11 @@ describe("#documents.update", () => {
 
   it("should successfully publish a draft", async () => {
     const { user, team, collection } = await seed();
-    const document = await buildDocument(
-      {
-        title: "title",
-        text: "text",
-        teamId: team.id,
-      },
-      true
-    );
+    const document = await buildDraftDocument({
+      title: "title",
+      text: "text",
+      teamId: team.id,
+    });
 
     const res = await server.post("/api/documents.update", {
       body: {
@@ -2560,13 +2543,10 @@ describe("#documents.delete", () => {
 
   it("should delete a draft without collection", async () => {
     const { user } = await seed();
-    const document = await buildDocument(
-      {
-        teamId: user.teamId,
-        deletedAt: null,
-      },
-      true
-    );
+    const document = await buildDraftDocument({
+      teamId: user.teamId,
+      deletedAt: null,
+    });
     const res = await server.post("/api/documents.delete", {
       body: {
         token: user.getJwtToken(),
