@@ -97,7 +97,7 @@
     "file-loader": "^1.1.6",
     "focus-visible": "^5.2.0",
     "fractional-index": "^1.0.0",
-    "framer-motion": "^4.1.17",
+    "framer-motion": "^6.5.1",
     "fs-extra": "^4.0.2",
     "fuzzy-search": "^3.2.1",
     "gemoji": "6.x",
