@@ -333,7 +333,7 @@
     "lint-staged": "^12.3.8",
     "nodemon": "^2.0.18",
     "prettier": "^2.0.5",
-    "react-refresh": "^0.9.0",
+    "react-refresh": "^0.14.0",
     "rimraf": "^2.5.4",
     "terser-webpack-plugin": "^4.1.0",
     "typescript": "^4.7.4",
