@@ -4,7 +4,7 @@ import { EmbedProps as Props } from ".";
 
 const URL_REGEX = /(?:https?:\/\/)?(www\.bilibili\.com)\/video\/([\w\d]+)?(\?\S+)?/i;
 
-export default function Vimeo(props: Props) {
+export default function Bilibili(props: Props) {
   const { matches } = props.attrs;
   const videoId = matches[2];
   return (
@@ -16,4 +16,4 @@ export default function Vimeo(props: Props) {
   );
 }
 
-Vimeo.ENABLED = [URL_REGEX];
+Bilibili.ENABLED = [URL_REGEX];
