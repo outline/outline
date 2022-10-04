@@ -157,6 +157,10 @@ describe("documents.publish", () => {
 describe("revisions.create", () => {
   test("should send a notification to other collaborators", async () => {
     const document = await buildDocument();
+    await Revision.createFromDocument(document);
+
+    document.text = "Updated body content";
+    document.updatedAt = new Date();
     const revision = await Revision.createFromDocument(document);
     const collaborator = await buildUser({ teamId: document.teamId });
     document.collaboratorIds = [collaborator.id];
@@ -181,6 +185,9 @@ describe("revisions.create", () => {
 
   test("should not send a notification if viewed since update", async () => {
     const document = await buildDocument();
+    await Revision.createFromDocument(document);
+    document.text = "Updated body content";
+    document.updatedAt = new Date();
     const revision = await Revision.createFromDocument(document);
     const collaborator = await buildUser({ teamId: document.teamId });
     document.collaboratorIds = [collaborator.id];
@@ -211,6 +218,9 @@ describe("revisions.create", () => {
       teamId: user.teamId,
       lastModifiedById: user.id,
     });
+    await Revision.createFromDocument(document);
+    document.text = "Updated body content";
+    document.updatedAt = new Date();
     const revision = await Revision.createFromDocument(document);
     await NotificationSetting.create({
       userId: user.id,
@@ -232,6 +242,9 @@ describe("revisions.create", () => {
 
   test("should send a notification for subscriptions, even to collaborator", async () => {
     const document = await buildDocument();
+    await Revision.createFromDocument(document);
+    document.text = "Updated body content";
+    document.updatedAt = new Date();
     const revision = await Revision.createFromDocument(document);
     const collaborator = await buildUser({ teamId: document.teamId });
     const subscriber = await buildUser({ teamId: document.teamId });
@@ -273,6 +286,9 @@ describe("revisions.create", () => {
     const collaborator1 = await buildUser({ teamId: collaborator0.teamId });
     const collaborator2 = await buildUser({ teamId: collaborator0.teamId });
     const document = await buildDocument({ userId: collaborator0.id });
+    await Revision.createFromDocument(document);
+    document.text = "Updated body content";
+    document.updatedAt = new Date();
     const revision = await Revision.createFromDocument(document);
 
     await document.update({
@@ -318,6 +334,9 @@ describe("revisions.create", () => {
       teamId: collaborator0.teamId,
       userId: collaborator0.id,
     });
+    await Revision.createFromDocument(document);
+    document.text = "Updated body content";
+    document.updatedAt = new Date();
     const revision = await Revision.createFromDocument(document);
 
     await document.update({
@@ -362,6 +381,9 @@ describe("revisions.create", () => {
       teamId: collaborator0.teamId,
       userId: collaborator0.id,
     });
+    await Revision.createFromDocument(document);
+    document.text = "Updated body content";
+    document.updatedAt = new Date();
     const revision = await Revision.createFromDocument(document);
 
     await document.update({
@@ -414,6 +436,9 @@ describe("revisions.create", () => {
     const document = await buildDocument();
     const collaborator = await buildUser({ teamId: document.teamId });
     const subscriber = await buildUser({ teamId: document.teamId });
+    await Revision.createFromDocument(document);
+    document.text = "Updated body content";
+    document.updatedAt = new Date();
     const revision = await Revision.createFromDocument(document);
 
     // `subscriber` hasn't collaborated on `document`.
@@ -453,6 +478,9 @@ describe("revisions.create", () => {
 
   test("should not send a notification for subscriptions to collaborators if unsubscribed", async () => {
     const document = await buildDocument();
+    await Revision.createFromDocument(document);
+    document.text = "Updated body content";
+    document.updatedAt = new Date();
     const revision = await Revision.createFromDocument(document);
     const collaborator = await buildUser({ teamId: document.teamId });
     const subscriber = await buildUser({ teamId: document.teamId });
@@ -497,6 +525,9 @@ describe("revisions.create", () => {
 
   test("should not send a notification for subscriptions to members outside of the team", async () => {
     const document = await buildDocument();
+    await Revision.createFromDocument(document);
+    document.text = "Updated body content";
+    document.updatedAt = new Date();
     const revision = await Revision.createFromDocument(document);
     const collaborator = await buildUser({ teamId: document.teamId });
 
