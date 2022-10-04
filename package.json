@@ -227,7 +227,7 @@
     "@babel/cli": "^7.10.5",
     "@babel/preset-typescript": "^7.16.0",
     "@getoutline/jest-runner-serial": "^2.0.0",
-    "@pmmmwh/react-refresh-webpack-plugin": "^0.5.4",
+    "@pmmmwh/react-refresh-webpack-plugin": "^0.5.7",
     "@relative-ci/agent": "^3.0.0",
     "@types/body-scroll-lock": "^3.1.0",
     "@types/bull": "^3.15.9",
