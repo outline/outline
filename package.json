@@ -68,7 +68,7 @@
     "@sentry/react": "^7.14.0",
     "@sentry/tracing": "^7.14.0",
     "@theo.gravity/datadog-apm": "2.2.0",
-    "@tippy.js/react": "^2.2.2",
+    "@tippyjs/react": "^4.2.6",
     "@tommoor/remove-markdown": "^0.3.2",
     "@types/mermaid": "^8.2.9",
     "autotrack": "^2.4.1",
