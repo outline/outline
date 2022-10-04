@@ -7,6 +7,7 @@ import { dark, light, lightMobile, darkMobile } from "@shared/styles/theme";
 import { UserPreference } from "@shared/types";
 import useMediaQuery from "~/hooks/useMediaQuery";
 import useStores from "~/hooks/useStores";
+import { TooltipStyles } from "./Tooltip";
 
 const Theme: React.FC = ({ children }) => {
   const { auth, ui } = useStores();
@@ -28,6 +29,7 @@ const Theme: React.FC = ({ children }) => {
   return (
     <ThemeProvider theme={theme}>
       <>
+        <TooltipStyles />
         <GlobalStyles
           useCursorPointer={auth.user?.getPreference(
             UserPreference.UseCursorPointer,
