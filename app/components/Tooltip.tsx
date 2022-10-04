@@ -13,7 +13,7 @@ function Tooltip({ shortcut, tooltip, delay = 50, ...rest }: Props) {
   let content = <>{tooltip}</>;
 
   if (!tooltip) {
-    return rest.children;
+    return rest.children ?? null;
   }
 
   if (shortcut) {
