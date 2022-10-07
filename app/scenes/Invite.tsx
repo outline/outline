@@ -272,9 +272,7 @@ const CopyBlock = styled("div")`
 `;
 
 const Remove = styled("div")`
-  margin-top: 6px;
-  position: absolute;
-  right: -32px;
+  margin-top: 4px;
 `;
 
 export default observer(Invite);
