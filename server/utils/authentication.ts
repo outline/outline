@@ -16,9 +16,13 @@ import { User, Event, Team, Collection, View } from "@server/models";
  * @returns The session details
  */
 export function getSessionsInCookie(ctx: Context) {
-  return JSON.parse(
-    decodeURIComponent(ctx.cookies.get("sessions") || "") || "{}"
-  );
+  try {
+    const sessionCookie = ctx.cookies.get("sessions") || "";
+    const decodedSessionCookie = decodeURIComponent(sessionCookie);
+    return decodedSessionCookie ? JSON.parse(decodedSessionCookie) : {};
+  } catch (err) {
+    return {};
+  }
 }
 
 export async function signIn(
