@@ -16,10 +16,11 @@ const isProduction = env.ENVIRONMENT === "production";
 const koa = new Koa();
 const router = new Router();
 
-// serve static assets
+// serve public assets
 koa.use(
   serve(path.resolve(__dirname, "../../../public"), {
-    maxage: 60 * 60 * 24 * 30 * 1000,
+    // 1 month expiry, these assets are mostly static but do not contain a hash
+    maxAge: 30 * 24 * 60 * 60 * 1000,
   })
 );
 
@@ -43,10 +44,12 @@ if (isProduction) {
 
       await send(ctx, pathname, {
         root: path.join(__dirname, "../../app/"),
+        // Hashed static assets get 1 year expiry plus immutable flag
+        maxAge: 365 * 24 * 60 * 60 * 1000,
+        immutable: true,
         setHeaders: (res) => {
           res.setHeader("Service-Worker-Allowed", "/");
           res.setHeader("Access-Control-Allow-Origin", "*");
-          res.setHeader("Cache-Control", `max-age=${365 * 24 * 60 * 60}`);
         },
       });
     } catch (err) {
