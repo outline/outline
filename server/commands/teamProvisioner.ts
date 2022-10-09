@@ -1,4 +1,5 @@
 import teamCreator from "@server/commands/teamCreator";
+import { sequelize } from "@server/database/sequelize";
 import env from "@server/env";
 import {
   DomainNotAllowedError,
@@ -105,13 +106,16 @@ async function teamProvisioner({
   }
 
   // We cannot find an existing team, so we create a new one
-  const team = await teamCreator({
-    name,
-    domain,
-    subdomain,
-    avatarUrl,
-    authenticationProviders: [authenticationProvider],
-    ip,
+  const team = await sequelize.transaction((transaction) => {
+    return teamCreator({
+      name,
+      domain,
+      subdomain,
+      avatarUrl,
+      authenticationProviders: [authenticationProvider],
+      ip,
+      transaction,
+    });
   });
 
   return {

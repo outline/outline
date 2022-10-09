@@ -2,6 +2,7 @@ import invariant from "invariant";
 import Router from "koa-router";
 import teamCreator from "@server/commands/teamCreator";
 import teamUpdater from "@server/commands/teamUpdater";
+import { sequelize } from "@server/database/sequelize";
 import auth from "@server/middlewares/authentication";
 import { Event, Team, TeamDomain, User } from "@server/models";
 import { authorize } from "@server/policies";
@@ -86,37 +87,41 @@ router.post("teams.create", auth(), async (ctx) => {
     "authentication providers must exist"
   );
 
-  const team = await teamCreator({
-    name,
-    subdomain: name,
-    authenticationProviders,
-    ip: ctx.ip,
-    onSuccess: async (team, transaction) => {
-      const newUser = await User.create(
-        {
-          teamId: team.id,
-          name: user.name,
-          email: user.email,
-          isAdmin: true,
-          avatarUrl: user.avatarUrl,
-        },
-        { transaction }
-      );
+  const team = await sequelize.transaction(async (transaction) => {
+    const team = await teamCreator({
+      name,
+      subdomain: name,
+      authenticationProviders,
+      ip: ctx.ip,
+      transaction,
+    });
 
-      await Event.create(
-        {
-          name: "users.create",
-          actorId: user.id,
-          userId: newUser.id,
-          teamId: newUser.teamId,
-          data: {
-            name: newUser.name,
-          },
-          ip: ctx.ip,
+    const newUser = await User.create(
+      {
+        teamId: team.id,
+        name: user.name,
+        email: user.email,
+        isAdmin: true,
+        avatarUrl: user.avatarUrl,
+      },
+      { transaction }
+    );
+
+    await Event.create(
+      {
+        name: "users.create",
+        actorId: user.id,
+        userId: newUser.id,
+        teamId: newUser.teamId,
+        data: {
+          name: newUser.name,
         },
-        { transaction }
-      );
-    },
+        ip: ctx.ip,
+      },
+      { transaction }
+    );
+
+    return team;
   });
 
   const newUser = await User.findOne({

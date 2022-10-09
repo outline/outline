@@ -1,8 +1,6 @@
 import { Transaction } from "sequelize";
 import slugify from "slugify";
 import { RESERVED_SUBDOMAINS } from "@shared/utils/domains";
-import { sequelize } from "@server/database/sequelize";
-import Logger from "@server/logging/Logger";
 import { APM } from "@server/logging/tracing";
 import { Team, Event } from "@server/models";
 import { generateAvatarUrl } from "@server/utils/avatars";
@@ -25,8 +23,8 @@ type Props = {
   }[];
   /** The IP address of the incoming request */
   ip: string;
-  /** Optional callback after team is created */
-  onSuccess?: (team: Team, transaction: Transaction) => Promise<void>;
+  /** Optional transaction to be chained from outside */
+  transaction: Transaction;
 };
 
 async function teamCreator({
@@ -36,7 +34,7 @@ async function teamCreator({
   avatarUrl,
   authenticationProviders,
   ip,
-  onSuccess,
+  transaction,
 }: Props): Promise<Team> {
   // If the service did not provide a logo/avatar then we attempt to generate
   // one via ClearBit, or fallback to colored initials in worst case scenario
@@ -48,53 +46,36 @@ async function teamCreator({
     });
   }
 
-  const team = await sequelize.transaction(async (transaction) => {
-    const team = await Team.create(
-      {
-        name,
-        avatarUrl,
-        authenticationProviders,
-      },
-      {
-        include: ["authenticationProviders"],
-        transaction,
-      }
-    );
-
-    await Event.create(
-      {
-        name: "teams.create",
-        teamId: team.id,
-        ip,
-      },
-      {
-        transaction,
-      }
-    );
-
-    if (onSuccess) {
-      await onSuccess(team, transaction);
+  const team = await Team.create(
+    {
+      name,
+      avatarUrl,
+      authenticationProviders,
+    },
+    {
+      include: ["authenticationProviders"],
+      transaction,
     }
+  );
 
-    return team;
-  });
-
-  // Note provisioning the subdomain is done outside of the transaction as
-  // it is allowed to fail and the team can still be created, it also requires
-  // failed queries as part of iteration
-  try {
-    await provisionSubdomain(team, subdomain);
-  } catch (err) {
-    Logger.error("Provisioning subdomain failed", err, {
+  await Event.create(
+    {
+      name: "teams.create",
       teamId: team.id,
-      subdomain,
-    });
-  }
+      ip,
+    },
+    {
+      transaction,
+    }
+  );
+
+  const availableSubdomain = await findAvailableSubdomain(team, subdomain);
+  await team.update({ subdomain: availableSubdomain }, { transaction });
 
   return team;
 }
 
-async function provisionSubdomain(team: Team, requestedSubdomain: string) {
+async function findAvailableSubdomain(team: Team, requestedSubdomain: string) {
   // filter subdomain to only valid characters
   // if there are less than the minimum length, use a default subdomain
   let subdomain = slugify(requestedSubdomain, {
@@ -106,20 +87,16 @@ async function provisionSubdomain(team: Team, requestedSubdomain: string) {
       ? "team"
       : subdomain;
 
-  if (team.subdomain) {
-    return team.subdomain;
-  }
   let append = 0;
 
   for (;;) {
-    try {
-      await team.update({
-        subdomain,
-      });
-      break;
-    } catch (err) {
-      // subdomain was invalid or already used, try again
+    const existing = await Team.findOne({ where: { subdomain } });
+
+    if (existing) {
+      // subdomain was invalid or already used, try another
       subdomain = `${requestedSubdomain}${++append}`;
+    } else {
+      break;
     }
   }
 
