@@ -18,6 +18,7 @@ import {
   CrossIcon,
   ArchiveIcon,
   ShuffleIcon,
+  NotepadIcon,
 } from "outline-icons";
 import * as React from "react";
 import { getEventFiles } from "@shared/utils/files";
@@ -25,6 +26,7 @@ import DocumentDelete from "~/scenes/DocumentDelete";
 import DocumentMove from "~/scenes/DocumentMove";
 import DocumentPermanentDelete from "~/scenes/DocumentPermanentDelete";
 import DocumentTemplatizeDialog from "~/components/DocumentTemplatizeDialog";
+import WordCountDialog from "~/components/WordCountDialog";
 import { createAction } from "~/actions";
 import { DocumentSection } from "~/actions/sections";
 import history from "~/utils/history";
@@ -571,6 +573,26 @@ export const permanentlyDeleteDocument = createAction({
   },
 });
 
+export const wordCount = createAction({
+  name: ({ t }) => t("Word count"),
+  section: DocumentSection,
+  icon: <NotepadIcon />,
+  visible: ({ activeDocumentId }) => !!activeDocumentId,
+  perform: ({ activeDocumentId, stores, t, event }) => {
+    if (!activeDocumentId) {
+      return;
+    }
+    event?.preventDefault();
+    event?.stopPropagation();
+
+    stores.dialogs.openModal({
+      title: t("Word count"),
+      isCentered: true,
+      content: <WordCountDialog documentId={activeDocumentId} />,
+    });
+  },
+});
+
 export const rootDocumentActions = [
   openDocument,
   archiveDocument,
@@ -590,4 +612,5 @@ export const rootDocumentActions = [
   printDocument,
   pinDocumentToCollection,
   pinDocumentToHome,
+  wordCount,
 ];

@@ -38,6 +38,7 @@ import {
   unstarDocument,
   duplicateDocument,
   archiveDocument,
+  wordCount,
 } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -256,6 +257,7 @@ function DocumentMenu({
             actionToMenuItem(unstarDocument, context),
             actionToMenuItem(subscribeDocument, context),
             actionToMenuItem(unsubscribeDocument, context),
+            actionToMenuItem(wordCount, context),
             {
               type: "separator",
             },
