@@ -78,14 +78,15 @@ async function teamCreator({
 async function findAvailableSubdomain(team: Team, requestedSubdomain: string) {
   // filter subdomain to only valid characters
   // if there are less than the minimum length, use a default subdomain
-  let subdomain = slugify(requestedSubdomain, {
+  const normalizedSubdomain = slugify(requestedSubdomain, {
     lower: true,
     strict: true,
   });
-  subdomain =
-    subdomain.length < 3 || RESERVED_SUBDOMAINS.includes(subdomain)
+  let subdomain =
+    normalizedSubdomain.length < 3 ||
+    RESERVED_SUBDOMAINS.includes(normalizedSubdomain)
       ? "team"
-      : subdomain;
+      : normalizedSubdomain;
 
   let append = 0;
 
@@ -94,7 +95,7 @@ async function findAvailableSubdomain(team: Team, requestedSubdomain: string) {
 
     if (existing) {
       // subdomain was invalid or already used, try another
-      subdomain = `${requestedSubdomain}${++append}`;
+      subdomain = `${normalizedSubdomain}${++append}`;
     } else {
       break;
     }
