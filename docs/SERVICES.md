@@ -14,7 +14,7 @@ yarn start --services=web,worker
 ## Admin
 
 Currently this service is only used in development to view and debug the queues.
-It is hosted at `/admin`.
+It can be viewed at `/admin` when enabled.
 
 ## Web
 
@@ -32,13 +32,14 @@ At least one worker process is required to process the [queues](../server/queues
 
 ## Collaboration
 
-The service is in alpha and as such is not started by default. Start the service with:
+The collaboration server coordinates all realtime editing and updating of documents, 
+it can be ran on the same box as the web server or separately.
 
 ```bash
 yarn start --services=collaboration
 ```
 
-The collaboration service is ideally run on a separate server. If this is the
-case the `COLLABORATION_URL` env can be set to the publicly accessible URL. For
-example, if the app is hosted at `https://docs.example.com` you may use something
-like: `COLLABORATION_URL=wss://docs-collaboration.example.com`.
+If the collaboration service is hosted on a separate domain then the `COLLABORATION_URL` 
+env must be set to the publicly accessible URL. For example, if the app is hosted at 
+`https://docs.example.com` you may use something like:
+`COLLABORATION_URL=wss://docs-collaboration.example.com`.

@@ -1,10 +1,10 @@
+import invariant from "invariant";
 import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
 import { CollectionPermission } from "@shared/types";
-import Collection from "~/models/Collection";
 import Group from "~/models/Group";
 import User from "~/models/User";
 import Button from "~/components/Button";
@@ -26,13 +26,14 @@ import CollectionGroupMemberListItem from "./components/CollectionGroupMemberLis
 import MemberListItem from "./components/MemberListItem";
 
 type Props = {
-  collection: Collection;
+  collectionId: string;
 };
 
-function CollectionPermissions({ collection }: Props) {
+function CollectionPermissions({ collectionId }: Props) {
   const { t } = useTranslation();
   const user = useCurrentUser();
   const {
+    collections,
     memberships,
     collectionGroupMemberships,
     users,
@@ -40,6 +41,8 @@ function CollectionPermissions({ collection }: Props) {
     auth,
   } = useStores();
   const { showToast } = useToasts();
+  const collection = collections.get(collectionId);
+  invariant(collection, "Collection not found");
 
   const [
     addGroupModalOpen,

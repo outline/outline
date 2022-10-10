@@ -3,7 +3,7 @@ import * as React from "react";
 const MultiplayerEditor = React.lazy(
   () =>
     import(
-      /* webpackChunkName: "multiplayer-editor" */
+      /* webpackChunkName: "preload-multiplayer-editor" */
       "./MultiplayerEditor"
     )
 );

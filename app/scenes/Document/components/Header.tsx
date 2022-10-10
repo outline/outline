@@ -20,6 +20,8 @@ import Collaborators from "~/components/Collaborators";
 import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
 import Header from "~/components/Header";
 import Tooltip from "~/components/Tooltip";
+import { restoreRevision } from "~/actions/definitions/revisions";
+import useActionContext from "~/hooks/useActionContext";
 import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -99,6 +101,10 @@ function DocumentHeader({
     });
   }, [onSave]);
 
+  const context = useActionContext({
+    activeDocumentId: document?.id,
+  });
+
   const { isDeleted, isTemplate } = document;
   const can = usePolicy(document?.id);
   const canToggleEmbeds = team?.documentEmbeds;
@@ -168,7 +174,7 @@ function DocumentHeader({
       <Header
         title={document.title}
         hasSidebar={!!sharedTree}
-        breadcrumb={
+        left={
           isMobile ? (
             <TableOfContentsMenu headings={headings} />
           ) : (
@@ -195,7 +201,7 @@ function DocumentHeader({
     <>
       <Header
         hasSidebar
-        breadcrumb={
+        left={
           isMobile ? (
             <TableOfContentsMenu headings={headings} />
           ) : (
@@ -214,11 +220,11 @@ function DocumentHeader({
           <>
             <ObservingBanner />
 
-            {!isPublishing && isSaving && !team?.collaborativeEditing && (
+            {!isPublishing && isSaving && !team?.seamlessEditing && (
               <Status>{t("Saving")}…</Status>
             )}
-            {!isDeleted && <Collaborators document={document} />}
-            {(isEditing || team?.collaborativeEditing) && !isTemplate && isNew && (
+            {!isDeleted && !isRevision && <Collaborators document={document} />}
+            {(isEditing || team?.seamlessEditing) && !isTemplate && isNew && (
               <Action>
                 <TemplatesMenu
                   document={document}
@@ -226,11 +232,14 @@ function DocumentHeader({
                 />
               </Action>
             )}
-            {!isEditing && !isDeleted && (!isMobile || !isTemplate) && (
-              <Action>
-                <ShareButton document={document} />
-              </Action>
-            )}
+            {!isEditing &&
+              !isDeleted &&
+              !isRevision &&
+              (!isMobile || !isTemplate) && (
+                <Action>
+                  <ShareButton document={document} />
+                </Action>
+              )}
             {isEditing && (
               <>
                 <Action>
@@ -251,8 +260,8 @@ function DocumentHeader({
                 </Action>
               </>
             )}
-            {canEdit && !team?.collaborativeEditing && editAction}
-            {canEdit && can.createChildDocument && !isMobile && (
+            {canEdit && !team?.seamlessEditing && !isRevision && editAction}
+            {canEdit && can.createChildDocument && !isRevision && !isMobile && (
               <Action>
                 <NewChildDocumentMenu
                   document={document}
@@ -283,6 +292,24 @@ function DocumentHeader({
                 >
                   {t("New from template")}
                 </Button>
+              </Action>
+            )}
+            {isRevision && (
+              <Action>
+                <Tooltip
+                  tooltip={t("Restore version")}
+                  delay={500}
+                  placement="bottom"
+                >
+                  <Button
+                    action={restoreRevision}
+                    context={context}
+                    neutral
+                    hideOnActionDisabled
+                  >
+                    {t("Restore")}
+                  </Button>
+                </Tooltip>
               </Action>
             )}
             {can.update && isDraft && !isRevision && (

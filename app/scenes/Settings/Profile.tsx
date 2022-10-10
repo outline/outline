@@ -1,16 +1,11 @@
 import { observer } from "mobx-react";
 import { ProfileIcon } from "outline-icons";
 import * as React from "react";
-import { Trans, useTranslation } from "react-i18next";
-import styled from "styled-components";
-import { languageOptions } from "@shared/i18n";
-import UserDelete from "~/scenes/UserDelete";
+import { useTranslation } from "react-i18next";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
 import Input from "~/components/Input";
-import InputSelect from "~/components/InputSelect";
 import Scene from "~/components/Scene";
-import Text from "~/components/Text";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
@@ -23,8 +18,6 @@ const Profile = () => {
   const form = React.useRef<HTMLFormElement>(null);
   const [name, setName] = React.useState<string>(user.name || "");
   const [avatarUrl, setAvatarUrl] = React.useState<string>(user.avatarUrl);
-  const [showDeleteModal, setShowDeleteModal] = React.useState(false);
-  const [language, setLanguage] = React.useState(user.language);
   const { showToast } = useToasts();
   const { t } = useTranslation();
 
@@ -35,7 +28,6 @@ const Profile = () => {
       await auth.updateUser({
         name,
         avatarUrl,
-        language,
       });
       showToast(t("Profile saved"), {
         type: "success",
@@ -67,14 +59,6 @@ const Profile = () => {
     });
   };
 
-  const handleLanguageChange = (value: string) => {
-    setLanguage(value);
-  };
-
-  const toggleDeleteAccount = () => {
-    setShowDeleteModal((prev) => !prev);
-  };
-
   const isValid = form.current?.checkValidity();
   const { isSaving } = auth;
 
@@ -95,6 +79,7 @@ const Profile = () => {
           />
         </SettingRow>
         <SettingRow
+          border={false}
           label={t("Full name")}
           name="name"
           description={t(
@@ -110,60 +95,12 @@ const Profile = () => {
           />
         </SettingRow>
 
-        <SettingRow
-          border={false}
-          label={t("Language")}
-          name="language"
-          description={
-            <>
-              <Trans>
-                Please note that translations are currently in early access.
-                Community contributions are accepted though our{" "}
-                <a
-                  href="https://translate.getoutline.com"
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  translation portal
-                </a>
-                .
-              </Trans>
-            </>
-          }
-        >
-          <InputSelect
-            id="language"
-            options={languageOptions}
-            value={language}
-            onChange={handleLanguageChange}
-            ariaLabel={t("Language")}
-          />
-        </SettingRow>
-
         <Button type="submit" disabled={isSaving || !isValid}>
           {isSaving ? `${t("Saving")}…` : t("Save")}
         </Button>
       </form>
-
-      <DangerZone>
-        <h2>{t("Delete Account")}</h2>
-        <Text type="secondary">
-          <Trans>
-            You may delete your account at any time, note that this is
-            unrecoverable
-          </Trans>
-        </Text>
-        <Button onClick={toggleDeleteAccount} neutral>
-          {t("Delete account")}…
-        </Button>
-      </DangerZone>
-      {showDeleteModal && <UserDelete onRequestClose={toggleDeleteAccount} />}
     </Scene>
   );
 };
-
-const DangerZone = styled.div`
-  margin-top: 60px;
-`;
 
 export default observer(Profile);

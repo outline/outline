@@ -1,34 +1,11 @@
-import { escapeRegExp } from "lodash";
 import { APM } from "@server/logging/tracing";
 import { Document } from "@server/models";
-import Attachment from "@server/models/Attachment";
-import parseAttachmentIds from "@server/utils/parseAttachmentIds";
-import { getSignedUrl } from "@server/utils/s3";
+import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import presentUser from "./user";
 
 type Options = {
   isPublic?: boolean;
 };
-
-// replaces attachments.redirect urls with signed/authenticated url equivalents
-async function replaceImageAttachments(text: string) {
-  const attachmentIds = parseAttachmentIds(text);
-  await Promise.all(
-    attachmentIds.map(async (id) => {
-      const attachment = await Attachment.findByPk(id);
-
-      if (attachment) {
-        const signedUrl = await getSignedUrl(attachment.key, 3600);
-        text = text.replace(
-          new RegExp(escapeRegExp(attachment.redirectUrl), "g"),
-          signedUrl
-        );
-      }
-    })
-  );
-
-  return text;
-}
 
 async function present(
   document: Document,
@@ -40,7 +17,10 @@ async function present(
   };
   await document.migrateVersion();
   const text = options.isPublic
-    ? await replaceImageAttachments(document.text)
+    ? await DocumentHelper.attachmentsToSignedUrls(
+        document.text,
+        document.teamId
+      )
     : document.text;
 
   const data: Record<string, any> = {

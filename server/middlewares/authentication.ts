@@ -123,7 +123,7 @@ export default function auth(options: AuthenticationOptions = {}) {
       }
 
       // not awaiting the promise here so that the request is not blocked
-      user.updateActiveAt(ctx.request.ip).catch((err) => {
+      user.updateActiveAt(ctx).catch((err) => {
         Logger.error("Failed to update user activeAt", err);
       });
 

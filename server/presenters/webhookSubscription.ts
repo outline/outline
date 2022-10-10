@@ -5,6 +5,7 @@ export default function present(webhook: WebhookSubscription) {
     id: webhook.id,
     name: webhook.name,
     url: webhook.url,
+    secret: webhook.secret,
     events: webhook.events,
     enabled: webhook.enabled,
     createdAt: webhook.createdAt,

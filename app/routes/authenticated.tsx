@@ -7,7 +7,7 @@ import Drafts from "~/scenes/Drafts";
 import Error404 from "~/scenes/Error404";
 import Templates from "~/scenes/Templates";
 import Trash from "~/scenes/Trash";
-import Layout from "~/components/AuthenticatedLayout";
+import AuthenticatedLayout from "~/components/AuthenticatedLayout";
 import CenteredContent from "~/components/CenteredContent";
 import PlaceholderDocument from "~/components/PlaceholderDocument";
 import Route from "~/components/ProfiledRoute";
@@ -26,7 +26,7 @@ const SettingsRoutes = React.lazy(
 const Document = React.lazy(
   () =>
     import(
-      /* webpackChunkName: "document" */
+      /* webpackChunkName: "preload-document" */
       "~/scenes/Document"
     )
 );
@@ -68,7 +68,7 @@ function AuthenticatedRoutes() {
 
   return (
     <WebsocketProvider>
-      <Layout>
+      <AuthenticatedLayout>
         <React.Suspense
           fallback={
             <CenteredContent>
@@ -115,7 +115,7 @@ function AuthenticatedRoutes() {
             <Route component={Error404} />
           </Switch>
         </React.Suspense>
-      </Layout>
+      </AuthenticatedLayout>
     </WebsocketProvider>
   );
 }

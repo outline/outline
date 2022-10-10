@@ -9,6 +9,7 @@ import Logger from "./Logger";
 import download from "./download";
 import {
   AuthorizationError,
+  BadGatewayError,
   BadRequestError,
   NetworkError,
   NotFoundError,
@@ -25,6 +26,8 @@ type Options = {
 
 type FetchOptions = {
   download?: boolean;
+  credentials?: "omit" | "same-origin" | "include";
+  headers?: Record<string, string>;
 };
 
 const fetchWithRetry = retry(fetch);
@@ -81,6 +84,7 @@ class ApiClient {
       "cache-control": "no-cache",
       "x-editor-version": EDITOR_VERSION,
       pragma: "no-cache",
+      ...options?.headers,
     };
 
     // for multipart forms or other non JSON requests fetch
@@ -98,6 +102,7 @@ class ApiClient {
     }
 
     let response;
+    const timeStart = window.performance.now();
 
     try {
       response = await fetchWithRetry(urlToFetch, {
@@ -109,7 +114,11 @@ class ApiClient {
         // not needed for authentication this offers a performance increase.
         // For self-hosted we include them to support a wide variety of
         // authenticated proxies, e.g. Pomerium, Cloudflare Access etc.
-        credentials: isCloudHosted ? "omit" : "same-origin",
+        credentials: options.credentials
+          ? options.credentials
+          : isCloudHosted
+          ? "omit"
+          : "same-origin",
         cache: "no-cache",
       });
     } catch (err) {
@@ -120,6 +129,7 @@ class ApiClient {
       }
     }
 
+    const timeEnd = window.performance.now();
     const success = response.status >= 200 && response.status < 300;
 
     if (options.download && success) {
@@ -186,6 +196,12 @@ class ApiClient {
     if (response.status === 429) {
       throw new RateLimitExceededError(
         `Too many requests, try again in a minute.`
+      );
+    }
+
+    if (response.status === 502) {
+      throw new BadGatewayError(
+        `Request to ${urlToFetch} failed in ${timeEnd - timeStart}ms.`
       );
     }
 

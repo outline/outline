@@ -1,5 +1,7 @@
+import { subMinutes } from "date-fns";
 import { computed, observable } from "mobx";
-import type { Role } from "@shared/types";
+import { now } from "mobx-utils";
+import type { Role, UserPreference, UserPreferences } from "@shared/types";
 import ParanoidModel from "./ParanoidModel";
 import Field from "./decorators/Field";
 
@@ -24,6 +26,10 @@ class User extends ParanoidModel {
   @observable
   language: string;
 
+  @Field
+  @observable
+  preferences: UserPreferences | null;
+
   email: string;
 
   isAdmin: boolean;
@@ -39,6 +45,17 @@ class User extends ParanoidModel {
     return !this.lastActiveAt;
   }
 
+  /**
+   * Whether the user has been recently active. Recently is currently defined
+   * as within the last 5 minutes.
+   *
+   * @returns true if the user has been active recently
+   */
+  @computed
+  get isRecentlyActive(): boolean {
+    return new Date(this.lastActiveAt) > subMinutes(now(10000), 5);
+  }
+
   @computed
   get role(): Role {
     if (this.isAdmin) {
@@ -48,6 +65,31 @@ class User extends ParanoidModel {
     } else {
       return "member";
     }
+  }
+
+  /**
+   * Get the value for a specific preference key, or return the fallback if
+   * none is set.
+   *
+   * @param key The UserPreference key to retrieve
+   * @param fallback An optional fallback value, defaults to false.
+   * @returns The value
+   */
+  getPreference(key: UserPreference, fallback = false): boolean {
+    return this.preferences?.[key] ?? fallback;
+  }
+
+  /**
+   * Set the value for a specific preference key.
+   *
+   * @param key The UserPreference key to retrieve
+   * @param value The value to set
+   */
+  setPreference(key: UserPreference, value: boolean) {
+    this.preferences = {
+      ...this.preferences,
+      [key]: value,
+    };
   }
 }
 

@@ -19,7 +19,7 @@ import {
   IsUrl,
   AllowNull,
 } from "sequelize-typescript";
-import { CollectionPermission } from "@shared/types";
+import { CollectionPermission, TeamPreference } from "@shared/types";
 import { getBaseDomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
 import env from "@server/env";
 import { generateAvatarUrl } from "@server/utils/avatars";
@@ -35,6 +35,8 @@ import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
 
 const readFile = util.promisify(fs.readFile);
+
+export type TeamPreferences = Record<string, unknown>;
 
 @Scopes(() => ({
   withDomains: {
@@ -87,7 +89,7 @@ class Team extends ParanoidModel {
 
   @AllowNull
   @IsUrl
-  @Length({ max: 255, msg: "avatarUrl must be 255 characters or less" })
+  @Length({ max: 4096, msg: "avatarUrl must be 4096 characters or less" })
   @Column
   avatarUrl: string | null;
 
@@ -123,6 +125,10 @@ class Team extends ParanoidModel {
   @IsIn([["viewer", "member"]])
   @Column
   defaultUserRole: string;
+
+  @AllowNull
+  @Column(DataType.JSONB)
+  preferences: TeamPreferences | null;
 
   // getters
 
@@ -162,6 +168,35 @@ class Team extends ParanoidModel {
       })
     );
   }
+
+  /**
+   * Preferences that decide behavior for the team.
+   *
+   * @param preference The team preference to set
+   * @param value Sets the preference value
+   * @returns The current team preferences
+   */
+  public setPreference = (preference: TeamPreference, value: boolean) => {
+    if (!this.preferences) {
+      this.preferences = {};
+    }
+    this.preferences[preference] = value;
+    this.changed("preferences", true);
+
+    return this.preferences;
+  };
+
+  /**
+   * Returns the passed preference value
+   *
+   * @param preference The user preference to retrieve
+   * @returns The preference value if set, else undefined
+   */
+  public getPreference = (preference: TeamPreference) => {
+    return !!this.preferences && this.preferences[preference]
+      ? this.preferences[preference]
+      : undefined;
+  };
 
   provisionFirstCollection = async (userId: string) => {
     await this.sequelize!.transaction(async (transaction) => {

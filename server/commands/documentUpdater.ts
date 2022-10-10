@@ -1,5 +1,6 @@
 import { Transaction } from "sequelize";
 import { Event, Document, User } from "@server/models";
+import DocumentHelper from "@server/models/helpers/DocumentHelper";
 
 type Props = {
   /** The user updating the document */
@@ -62,7 +63,7 @@ export default async function documentUpdater({
   }
   if (text !== undefined) {
     if (user.team?.collaborativeEditing) {
-      document.updateFromMarkdown(text, append);
+      document = DocumentHelper.applyMarkdownToDocument(document, text, append);
     } else if (append) {
       document.text += text;
     } else {

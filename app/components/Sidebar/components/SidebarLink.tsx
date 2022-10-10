@@ -104,6 +104,7 @@ function SidebarLink(
               expanded={expanded}
               onClick={onDisclosureClick}
               root={depth === 0}
+              tabIndex={-1}
             />
           )}
           {icon && <IconWrapper>{icon}</IconWrapper>}
@@ -178,7 +179,7 @@ const Link = styled(NavLink)<{
   color: ${(props) =>
     props.$isActiveDrop ? props.theme.white : props.theme.sidebarText};
   font-size: 16px;
-  cursor: pointer;
+  cursor: var(--pointer);
   overflow: hidden;
 
   ${(props) =>

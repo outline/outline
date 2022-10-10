@@ -8,6 +8,7 @@ import {
   Route,
   useHistory,
   useRouteMatch,
+  useLocation,
 } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -18,6 +19,7 @@ import CenteredContent from "~/components/CenteredContent";
 import CollectionDescription from "~/components/CollectionDescription";
 import CollectionIcon from "~/components/CollectionIcon";
 import Heading from "~/components/Heading";
+import InputSearchPage from "~/components/InputSearchPage";
 import PlaceholderList from "~/components/List/Placeholder";
 import PaginatedDocumentList from "~/components/PaginatedDocumentList";
 import PinnedDocuments from "~/components/PinnedDocuments";
@@ -29,26 +31,35 @@ import Tabs from "~/components/Tabs";
 import Tooltip from "~/components/Tooltip";
 import { editCollection } from "~/actions/definitions/collections";
 import useCommandBarActions from "~/hooks/useCommandBarActions";
+import useLastVisitedPath from "~/hooks/useLastVisitedPath";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { collectionUrl, updateCollectionUrl } from "~/utils/routeHelpers";
 import Actions from "./Collection/Actions";
 import DropToImport from "./Collection/DropToImport";
 import Empty from "./Collection/Empty";
+import MembershipPreview from "./Collection/MembershipPreview";
 
 function CollectionScene() {
   const params = useParams<{ id?: string }>();
   const history = useHistory();
   const match = useRouteMatch();
+  const location = useLocation();
   const { t } = useTranslation();
   const { documents, pins, collections, ui } = useStores();
   const [isFetching, setFetching] = React.useState(false);
   const [error, setError] = React.useState<Error | undefined>();
+  const currentPath = location.pathname;
+  const [, setLastVisitedPath] = useLastVisitedPath();
 
   const id = params.id || "";
   const collection: Collection | null | undefined =
     collections.getByUrl(id) || collections.get(id);
   const can = usePolicy(collection?.id || "");
+
+  React.useEffect(() => {
+    setLastVisitedPath(currentPath);
+  }, [currentPath, setLastVisitedPath]);
 
   React.useEffect(() => {
     if (collection?.name) {
@@ -112,13 +123,28 @@ function CollectionScene() {
       key={collection.id}
       centered={false}
       textTitle={collection.name}
+      left={
+        collection.isEmpty ? undefined : (
+          <InputSearchPage
+            source="collection"
+            placeholder={`${t("Search in collection")}…`}
+            label={t("Search in collection")}
+            collectionId={collection.id}
+          />
+        )
+      }
       title={
         <>
           <CollectionIcon collection={collection} expanded />
           &nbsp;{collection.name}
         </>
       }
-      actions={<Actions collection={collection} />}
+      actions={
+        <>
+          <MembershipPreview collection={collection} />
+          <Actions collection={collection} />
+        </>
+      }
     >
       <DropToImport
         accept={documents.importFileTypes.join(", ")}

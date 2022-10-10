@@ -2,8 +2,8 @@
 import * as React from "react";
 import env from "~/env";
 
-export default class Analytics extends React.Component {
-  componentDidMount() {
+const Analytics: React.FC = ({ children }) => {
+  React.useEffect(() => {
     if (!env.GOOGLE_ANALYTICS_ID) {
       return;
     }
@@ -33,9 +33,9 @@ export default class Analytics extends React.Component {
     if (document.body) {
       document.body.appendChild(script);
     }
-  }
+  }, []);
 
-  render() {
-    return this.props.children || null;
-  }
-}
+  return <>{children}</>;
+};
+
+export default Analytics;

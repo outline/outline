@@ -43,7 +43,7 @@ const UserListItem = ({ user, showMenu }: Props) => {
 const Title = styled.span`
   &:hover {
     text-decoration: underline;
-    cursor: pointer;
+    cursor: var(--pointer);
   }
 `;
 

@@ -70,6 +70,33 @@ describe("DeliverWebhookTask", () => {
     expect(delivery.responseBody).toEqual("SUCCESS");
   });
 
+  test("should hit the subscription url with signature header", async () => {
+    const subscription = await buildWebhookSubscription({
+      url: "http://example.com",
+      events: ["*"],
+      secret: "secret",
+    });
+    const signedInUser = await buildUser({ teamId: subscription.teamId });
+    const processor = new DeliverWebhookTask();
+
+    const event: UserEvent = {
+      name: "users.signin",
+      userId: signedInUser.id,
+      teamId: subscription.teamId,
+      actorId: signedInUser.id,
+      ip,
+    };
+    await processor.perform({
+      subscriptionId: subscription.id,
+      event,
+    });
+
+    const headers = fetchMock.mock.calls[0]![1]!.headers!;
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(headers["Outline-Signature"]).toMatch(/^t=[0-9]+,s=[a-z0-9]+$/);
+  });
+
   test("should hit the subscription url when the eventing model doesn't exist", async () => {
     const subscription = await buildWebhookSubscription({
       url: "http://example.com",

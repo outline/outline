@@ -25,13 +25,14 @@ import { NotFoundError } from "~/utils/errors";
 import { uploadFile } from "~/utils/files";
 import history from "~/utils/history";
 import { isModKey } from "~/utils/keyboard";
+import { sharedDocumentPath } from "~/utils/routeHelpers";
 import { isHash } from "~/utils/urls";
 import DocumentBreadcrumb from "./DocumentBreadcrumb";
 
 const LazyLoadedEditor = React.lazy(
   () =>
     import(
-      /* webpackChunkName: "shared-editor" */
+      /* webpackChunkName: "preload-shared-editor" */
       "~/editor"
     )
 );
@@ -159,8 +160,10 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
           }
         }
 
-        if (shareId) {
-          navigateTo = `/share/${shareId}${navigateTo}`;
+        // If we're navigating to an internal document link then prepend the
+        // share route to the URL so that the document is loaded in context
+        if (shareId && navigateTo.includes("/doc/")) {
+          navigateTo = sharedDocumentPath(shareId, navigateTo);
         }
 
         history.push(navigateTo);

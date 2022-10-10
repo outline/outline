@@ -1,8 +1,10 @@
 import { createGlobalStyle } from "styled-components";
 import styledNormalize from "styled-normalize";
-import { breakpoints, depths } from "@shared/styles";
+import { breakpoints, depths } from ".";
 
-export default createGlobalStyle`
+type Props = { useCursorPointer?: boolean };
+
+export default createGlobalStyle<Props>`
   ${styledNormalize}
 
   * {
@@ -17,6 +19,7 @@ export default createGlobalStyle`
     padding: 0;
     print-color-adjust: exact;
     -webkit-print-color-adjust: exact;
+    --pointer: ${(props) => (props.useCursorPointer ? "pointer" : "default")};
   }
 
   body,

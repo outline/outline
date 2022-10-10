@@ -139,7 +139,7 @@ export const MenuAnchorCSS = css<MenuAnchorProps>`
       color: ${props.theme.white};
       background: ${props.dangerous ? props.theme.danger : props.theme.primary};
       box-shadow: none;
-      cursor: pointer;
+      cursor: var(--pointer);
 
       svg {
         fill: ${props.theme.white};

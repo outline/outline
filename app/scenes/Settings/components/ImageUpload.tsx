@@ -158,7 +158,7 @@ const RangeInput = styled.input`
   width: 300px;
   margin-bottom: 30px;
   height: 4px;
-  cursor: pointer;
+  cursor: var(--pointer);
   color: inherit;
   border-radius: 99999px;
   background-color: #dee1e3;
@@ -170,7 +170,7 @@ const RangeInput = styled.input`
     width: 16px;
     border-radius: 50%;
     background: ${(props) => props.theme.text};
-    cursor: pointer;
+    cursor: var(--pointer);
   }
 
   &:focus {

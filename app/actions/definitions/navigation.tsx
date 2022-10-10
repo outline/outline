@@ -28,6 +28,7 @@ import history from "~/utils/history";
 import {
   organizationSettingsPath,
   profileSettingsPath,
+  accountPreferencesPath,
   homePath,
   searchPath,
   draftsPath,
@@ -102,6 +103,14 @@ export const navigateToProfileSettings = createAction({
   iconInContextMenu: false,
   icon: <ProfileIcon />,
   perform: () => history.push(profileSettingsPath()),
+});
+
+export const navigateToAccountPreferences = createAction({
+  name: ({ t }) => t("Preferences"),
+  section: NavigationSection,
+  iconInContextMenu: false,
+  icon: <SettingsIcon />,
+  perform: () => history.push(accountPreferencesPath()),
 });
 
 export const openAPIDocumentation = createAction({

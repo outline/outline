@@ -67,8 +67,8 @@ function Shares() {
   }, [shares.orderedData, shareIds]);
 
   return (
-    <Scene title={t("Share Links")} icon={<LinkIcon color="currentColor" />}>
-      <Heading>{t("Share Links")}</Heading>
+    <Scene title={t("Shared Links")} icon={<LinkIcon color="currentColor" />}>
+      <Heading>{t("Shared Links")}</Heading>
 
       {can.manage && !canShareDocuments && (
         <>

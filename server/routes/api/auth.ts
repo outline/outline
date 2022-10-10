@@ -1,12 +1,18 @@
 import Router from "koa-router";
-import { find } from "lodash";
+import { find, uniqBy } from "lodash";
 import { parseDomain } from "@shared/utils/domains";
 import { sequelize } from "@server/database/sequelize";
 import env from "@server/env";
 import auth from "@server/middlewares/authentication";
 import { Event, Team } from "@server/models";
-import { presentUser, presentTeam, presentPolicies } from "@server/presenters";
+import {
+  presentUser,
+  presentTeam,
+  presentPolicies,
+  presentAvailableTeam,
+} from "@server/presenters";
 import ValidateSSOAccessTask from "@server/queues/tasks/ValidateSSOAccessTask";
+import { getSessionsInCookie } from "@server/utils/authentication";
 import providers from "../auth/providers";
 
 const router = new Router();
@@ -107,9 +113,20 @@ router.post("auth.config", async (ctx) => {
 
 router.post("auth.info", auth(), async (ctx) => {
   const { user } = ctx.state;
-  const team = await Team.scope("withDomains").findByPk(user.teamId, {
-    rejectOnEmpty: true,
-  });
+  const sessions = getSessionsInCookie(ctx);
+  const signedInTeamIds = Object.keys(sessions);
+
+  const [team, signedInTeams, availableTeams] = await Promise.all([
+    Team.scope("withDomains").findByPk(user.teamId, {
+      rejectOnEmpty: true,
+    }),
+    Team.findAll({
+      where: {
+        id: signedInTeamIds,
+      },
+    }),
+    user.availableTeams(),
+  ]);
 
   await ValidateSSOAccessTask.schedule({ userId: user.id });
 
@@ -119,6 +136,15 @@ router.post("auth.info", auth(), async (ctx) => {
         includeDetails: true,
       }),
       team: presentTeam(team),
+      availableTeams: uniqBy(
+        [...signedInTeams, ...availableTeams],
+        "id"
+      ).map((team) =>
+        presentAvailableTeam(
+          team,
+          signedInTeamIds.includes(team.id) || team.id === user.teamId
+        )
+      ),
     },
     policies: presentPolicies(user, [team]),
   };

@@ -16,6 +16,7 @@ import { EditorState, Selection, Plugin, Transaction } from "prosemirror-state";
 import { Decoration, EditorView } from "prosemirror-view";
 import * as React from "react";
 import { DefaultTheme, ThemeProps } from "styled-components";
+import EditorContainer from "@shared/editor/components/Styles";
 import { EmbedDescriptor } from "@shared/editor/embeds";
 import Extension, { CommandFactory } from "@shared/editor/lib/Extension";
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
@@ -40,7 +41,6 @@ import EmojiMenu from "./components/EmojiMenu";
 import { SearchResult } from "./components/LinkEditor";
 import LinkToolbar from "./components/LinkToolbar";
 import SelectionToolbar from "./components/SelectionToolbar";
-import EditorContainer from "./components/Styles";
 import WithTheme from "./components/WithTheme";
 
 export { default as Extension } from "@shared/editor/lib/Extension";
@@ -101,8 +101,6 @@ export type Props = {
   ) => void;
   /** Callback when user hovers on any link in the document */
   onHoverLink?: (event: MouseEvent) => boolean;
-  /** Callback when user clicks on any hashtag in the document */
-  onClickHashtag?: (tag: string, event: MouseEvent) => void;
   /** Callback when user presses any key with document focused */
   onKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>) => void;
   /** Collection of embed types to render in the document */

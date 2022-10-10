@@ -3,6 +3,7 @@ import TurndownService from "turndown";
 import breaks from "./breaks";
 import confluenceCodeBlock from "./confluence-code-block";
 import confluenceTaskList from "./confluence-task-list";
+import images from "./images";
 
 /**
  * Turndown converts HTML to Markdown and is used in the importer code.
@@ -25,6 +26,7 @@ const service = new TurndownService({
   .use(gfm)
   .use(confluenceTaskList)
   .use(confluenceCodeBlock)
+  .use(images)
   .use(breaks);
 
 export default service;

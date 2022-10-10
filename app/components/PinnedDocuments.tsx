@@ -42,7 +42,12 @@ function PinnedDocuments({ limit, pins, canUpdate, ...rest }: Props) {
   }, [pins]);
 
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        delay: 100,
+        tolerance: 5,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -54,8 +59,8 @@ function PinnedDocuments({ limit, pins, canUpdate, ...rest }: Props) {
 
       if (over && active.id !== over.id) {
         setItems((items) => {
-          const activePos = items.indexOf(active.id);
-          const overPos = items.indexOf(over.id);
+          const activePos = items.indexOf(active.id as string);
+          const overPos = items.indexOf(over.id as string);
 
           const overIndex = pins[overPos]?.index || null;
           const nextIndex = pins[overPos + 1]?.index || null;
@@ -121,7 +126,7 @@ function PinnedDocuments({ limit, pins, canUpdate, ...rest }: Props) {
 const List = styled.div`
   display: grid;
   column-gap: 8px;
-  row-gap: 8px;
+  row-gap: 12px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   padding: 0;
   list-style: none;
@@ -131,11 +136,11 @@ const List = styled.div`
     display: none;
   }
 
-  ${breakpoint("tablet")`
+  ${breakpoint("mobileLarge")`
     grid-template-columns: repeat(3, minmax(0, 1fr));
   `};
 
-  ${breakpoint("desktop")`
+  ${breakpoint("tablet")`
     grid-template-columns: repeat(4, minmax(0, 1fr));
   `};
 `;

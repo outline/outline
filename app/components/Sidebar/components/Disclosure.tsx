@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import styled, { css } from "styled-components";
 import NudeButton from "~/components/NudeButton";
 
-type Props = {
+type Props = React.ComponentProps<typeof Button> & {
   onClick?: React.MouseEventHandler<HTMLButtonElement>;
   expanded: boolean;
   root?: boolean;

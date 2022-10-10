@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import { addMinutes, subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
+import { Context } from "koa";
 import { Transaction, QueryTypes, SaveOptions, Op } from "sequelize";
 import {
   Table,
@@ -22,7 +23,11 @@ import {
   AllowNull,
 } from "sequelize-typescript";
 import { languages } from "@shared/i18n";
-import { CollectionPermission } from "@shared/types";
+import {
+  CollectionPermission,
+  UserPreference,
+  UserPreferences,
+} from "@shared/types";
 import { stringToColor } from "@shared/utils/color";
 import env from "@server/env";
 import { ValidationError } from "../errors";
@@ -47,6 +52,8 @@ import NotContainsUrl from "./validators/NotContainsUrl";
 export enum UserFlag {
   InviteSent = "inviteSent",
   InviteReminderSent = "inviteReminderSent",
+  DesktopWeb = "desktopWeb",
+  MobileWeb = "mobileWeb",
 }
 
 export enum UserRole {
@@ -152,6 +159,10 @@ class User extends ParanoidModel {
   @Column(DataType.JSONB)
   flags: { [key in UserFlag]?: number } | null;
 
+  @AllowNull
+  @Column(DataType.JSONB)
+  preferences: UserPreferences | null;
+
   @Default(env.DEFAULT_LANGUAGE)
   @IsIn([languages])
   @Column
@@ -159,7 +170,7 @@ class User extends ParanoidModel {
 
   @AllowNull
   @IsUrl
-  @Length({ max: 1000, msg: "avatarUrl must be less than 1000 characters" })
+  @Length({ max: 4096, msg: "avatarUrl must be less than 4096 characters" })
   @Column(DataType.STRING)
   get avatarUrl() {
     const original = this.getDataValue("avatarUrl");
@@ -256,8 +267,11 @@ class User extends ParanoidModel {
     if (!this.flags) {
       this.flags = {};
     }
-    this.flags[flag] = value ? 1 : 0;
-    this.changed("flags", true);
+    const binary = value ? 1 : 0;
+    if (this.flags[flag] !== binary) {
+      this.flags[flag] = binary;
+      this.changed("flags", true);
+    }
 
     return this.flags;
   };
@@ -290,6 +304,35 @@ class User extends ParanoidModel {
     return this.flags;
   };
 
+  /**
+   * Preferences set by the user that decide application behavior and ui.
+   *
+   * @param preference The user preference to set
+   * @param value Sets the preference value
+   * @returns The current user preferences
+   */
+  public setPreference = (preference: UserPreference, value: boolean) => {
+    if (!this.preferences) {
+      this.preferences = {};
+    }
+    this.preferences[preference] = value;
+    this.changed("preferences", true);
+
+    return this.preferences;
+  };
+
+  /**
+   * Returns the passed preference value
+   *
+   * @param preference The user preference to retrieve
+   * @returns The preference value if set, else undefined
+   */
+  public getPreference = (preference: UserPreference) => {
+    return !!this.preferences && this.preferences[preference]
+      ? this.preferences[preference]
+      : undefined;
+  };
+
   collectionIds = async (options = {}) => {
     const collectionStubs = await Collection.scope({
       method: ["withMembership", this.id],
@@ -313,7 +356,8 @@ class User extends ParanoidModel {
       .map((c) => c.id);
   };
 
-  updateActiveAt = async (ip: string, force = false) => {
+  updateActiveAt = async (ctx: Context, force = false) => {
+    const { ip } = ctx.request;
     const fiveMinutesAgo = subMinutes(new Date(), 5);
 
     // ensure this is updated only every few minutes otherwise
@@ -321,13 +365,20 @@ class User extends ParanoidModel {
     if (!this.lastActiveAt || this.lastActiveAt < fiveMinutesAgo || force) {
       this.lastActiveAt = new Date();
       this.lastActiveIp = ip;
-
-      return this.save({
-        hooks: false,
-      });
     }
 
-    return this;
+    // Track the clients each user is using
+    if (ctx.userAgent?.isMobile) {
+      this.setFlag(UserFlag.MobileWeb);
+    }
+    if (ctx.userAgent?.isDesktop) {
+      this.setFlag(UserFlag.DesktopWeb);
+    }
+
+    // Save only writes to the database if there are changes
+    return this.save({
+      hooks: false,
+    });
   };
 
   updateSignedIn = (ip: string) => {
@@ -403,6 +454,23 @@ class User extends ParanoidModel {
       },
       this.jwtSecret
     );
+  };
+
+  /**
+   * Returns a list of teams that have a user matching this user's email.
+   *
+   * @returns A promise resolving to a list of teams
+   */
+  availableTeams = async () => {
+    return Team.findAll({
+      include: [
+        {
+          model: this.constructor as typeof User,
+          required: true,
+          where: { email: this.email },
+        },
+      ],
+    });
   };
 
   demote = async (to: UserRole, options?: SaveOptions<User>) => {
@@ -558,7 +626,7 @@ class User extends ParanoidModel {
 
   static getCounts = async function (teamId: string) {
     const countSql = `
-      SELECT 
+      SELECT
         COUNT(CASE WHEN "suspendedAt" IS NOT NULL THEN 1 END) as "suspendedCount",
         COUNT(CASE WHEN "isAdmin" = true THEN 1 END) as "adminCount",
         COUNT(CASE WHEN "isViewer" = true THEN 1 END) as "viewerCount",

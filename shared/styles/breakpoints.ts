@@ -1,5 +1,6 @@
 const breakpoints = {
   mobile: 0,
+  mobileLarge: 460,
   // targeting all devices
   tablet: 737,
   // targeting devices that are larger than the iPhone 6 Plus (which is 736px in landscape mode)

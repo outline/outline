@@ -77,7 +77,7 @@ class Logger {
 
     if (env.SENTRY_DSN) {
       Sentry.withScope(function (scope) {
-        scope.setLevel(Sentry.Severity.Warning);
+        scope.setLevel("warning");
 
         for (const key in extra) {
           scope.setExtra(key, extra[key]);
@@ -117,7 +117,7 @@ class Logger {
 
     if (env.SENTRY_DSN) {
       Sentry.withScope(function (scope) {
-        scope.setLevel(Sentry.Severity.Error);
+        scope.setLevel("error");
 
         for (const key in extra) {
           scope.setExtra(key, extra[key]);

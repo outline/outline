@@ -1,8 +1,10 @@
 import fs from "fs-extra";
 import invariant from "invariant";
 import Router from "koa-router";
+import mime from "mime-types";
 import { Op, ScopeOptions, WhereOptions } from "sequelize";
 import { subtractDate } from "@shared/utils/date";
+import { bytesToHumanReadable } from "@shared/utils/files";
 import documentCreator from "@server/commands/documentCreator";
 import documentImporter from "@server/commands/documentImporter";
 import documentLoader from "@server/commands/documentLoader";
@@ -27,12 +29,14 @@ import {
   User,
   View,
 } from "@server/models";
+import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import { authorize, cannot } from "@server/policies";
 import {
   presentCollection,
   presentDocument,
   presentPolicies,
 } from "@server/presenters";
+import slugify from "@server/utils/slugify";
 import {
   assertUuid,
   assertSort,
@@ -439,14 +443,46 @@ router.post(
   async (ctx) => {
     const { id, shareId } = ctx.body;
     assertPresent(id || shareId, "id or shareId is required");
+
     const { user } = ctx.state;
+    const accept = ctx.request.headers["accept"];
+
     const { document } = await documentLoader({
       id,
       shareId,
       user,
+      // We need the collaborative state to generate HTML.
+      includeState: accept === "text/html",
     });
+
+    let contentType;
+    let content;
+
+    if (accept?.includes("text/html")) {
+      contentType = "text/html";
+      content = DocumentHelper.toHTML(document);
+    } else if (accept?.includes("text/markdown")) {
+      contentType = "text/markdown";
+      content = DocumentHelper.toMarkdown(document);
+    } else {
+      contentType = "application/json";
+      content = DocumentHelper.toMarkdown(document);
+    }
+
+    if (contentType !== "application/json") {
+      ctx.set("Content-Type", contentType);
+      ctx.set(
+        "Content-Disposition",
+        `attachment; filename="${slugify(
+          document.titleWithDefault
+        )}.${mime.extension(contentType)}"`
+      );
+      ctx.body = content;
+      return;
+    }
+
     ctx.body = {
-      data: document.toMarkdown(),
+      data: content,
     };
   }
 );
@@ -1032,12 +1068,19 @@ router.post("documents.import", auth(), async (ctx) => {
     throw InvalidRequestError("Request type must be multipart/form-data");
   }
 
-  // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-  const file: any = Object.values(ctx.request.files)[0];
-  assertPresent(file, "file is required");
+  const file = ctx.request.files
+    ? Object.values(ctx.request.files)[0]
+    : undefined;
+  if (!file) {
+    throw InvalidRequestError("Request must include a file parameter");
+  }
 
   if (env.MAXIMUM_IMPORT_SIZE && file.size > env.MAXIMUM_IMPORT_SIZE) {
-    throw InvalidRequestError("The selected file was too large to import");
+    throw InvalidRequestError(
+      `The selected file was larger than the ${bytesToHumanReadable(
+        env.MAXIMUM_IMPORT_SIZE
+      )} maximum size`
+    );
   }
 
   assertUuid(collectionId, "collectionId must be an uuid");

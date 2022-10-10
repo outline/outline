@@ -28,7 +28,9 @@ export default function useEmbeds(loadIfMissing = false) {
       }
     }
 
-    !integrations.isLoaded && loadIfMissing && fetchEmbedIntegrations();
+    if (!integrations.isLoaded && !integrations.isFetching && loadIfMissing) {
+      fetchEmbedIntegrations();
+    }
   }, [integrations, loadIfMissing]);
 
   return React.useMemo(

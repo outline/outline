@@ -13,7 +13,13 @@ import styled, { css } from "styled-components";
 import Button, { Inner } from "~/components/Button";
 import Text from "~/components/Text";
 import useMenuHeight from "~/hooks/useMenuHeight";
-import { Position, Background, Backdrop, Placement } from "./ContextMenu";
+import { fadeAndScaleIn } from "~/styles/animations";
+import {
+  Position,
+  Background as ContextMenuBackground,
+  Backdrop,
+  Placement,
+} from "./ContextMenu";
 import { MenuAnchorCSS } from "./ContextMenu/MenuItem";
 import { LabelText } from "./Input";
 
@@ -170,6 +176,7 @@ const InputSelect = (props: Props) => {
                   ref={contentRef}
                   topAnchor={topAnchor}
                   rightAnchor={rightAnchor}
+                  hiddenScrollbars
                   style={
                     maxHeight && topAnchor
                       ? {
@@ -215,6 +222,10 @@ const InputSelect = (props: Props) => {
     </>
   );
 };
+
+const Background = styled(ContextMenuBackground)`
+  animation: ${fadeAndScaleIn} 200ms ease;
+`;
 
 const Placeholder = styled.span`
   color: ${(props) => props.theme.placeholder};
@@ -277,7 +288,7 @@ const Positioner = styled(Position)`
         color: ${(props) => props.theme.white};
         background: ${(props) => props.theme.primary};
         box-shadow: none;
-        cursor: pointer;
+        cursor: var(--pointer);
 
         svg {
           fill: ${(props) => props.theme.white};

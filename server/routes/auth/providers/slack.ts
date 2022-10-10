@@ -46,6 +46,15 @@ const scopes = [
   "identity.team",
 ];
 
+function redirectOnClient(ctx: Context, url: string) {
+  ctx.type = "text/html";
+  ctx.body = `
+<html>
+<head>
+<meta http-equiv="refresh" content="0;URL='${url}'"/>
+</head>`;
+}
+
 export const config = {
   name: "Slack",
   enabled: !!env.SLACK_CLIENT_ID,
@@ -140,8 +149,9 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
             const team = await Team.findByPk(String(state), {
               rejectOnEmpty: true,
             });
-            return ctx.redirect(
-              `${team.url}/auth${ctx.request.path}?${ctx.request.querystring}`
+            return redirectOnClient(
+              ctx,
+              `${team.url}/auth/slack.commands?${ctx.request.querystring}`
             );
           } catch (err) {
             return ctx.redirect(
@@ -210,8 +220,9 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
           const team = await Team.findByPk(collection.teamId, {
             rejectOnEmpty: true,
           });
-          return ctx.redirect(
-            `${team.url}/auth${ctx.request.path}?${ctx.request.querystring}`
+          return redirectOnClient(
+            ctx,
+            `${team.url}/auth/slack.post?${ctx.request.querystring}`
           );
         } catch (err) {
           return ctx.redirect(

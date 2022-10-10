@@ -4,6 +4,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
 import Share from "~/models/Share";
+import Avatar from "~/components/Avatar";
 import Flex from "~/components/Flex";
 import TableFromParams from "~/components/TableFromParams";
 import Time from "~/components/Time";
@@ -35,12 +36,15 @@ function SharesTable({ canManage, ...rest }: Props) {
           Cell: observer(
             ({ value, row }: { value: string; row: { original: Share } }) =>
               value ? (
-                <>
-                  <Time dateTime={value} addSuffix />{" "}
-                  {t("by {{ name }}", {
-                    name: row.original.createdBy.name,
-                  })}
-                </>
+                <Flex align="center" gap={4}>
+                  {row.original.createdBy && (
+                    <Avatar
+                      src={row.original.createdBy.avatarUrl}
+                      alt={row.original.createdBy.name}
+                    />
+                  )}
+                  <Time dateTime={value} addSuffix />
+                </Flex>
               ) : null
           ),
         },
@@ -63,6 +67,11 @@ function SharesTable({ canManage, ...rest }: Props) {
               </Flex>
             ) : null
           ),
+        },
+        {
+          id: "views",
+          Header: t("Views"),
+          accessor: "views",
         },
         canManage
           ? {

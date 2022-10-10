@@ -52,6 +52,7 @@ import MarkAsViewed from "./MarkAsViewed";
 import Notices from "./Notices";
 import PublicReferences from "./PublicReferences";
 import References from "./References";
+import RevisionViewer from "./RevisionViewer";
 
 const AUTOSAVE_DELAY = 3000;
 
@@ -431,7 +432,6 @@ class DocumentScene extends React.Component<Props> {
     } = this.props;
     const team = auth.team;
     const isShare = !!shareId;
-    const value = revision ? revision.text : document.text;
     const embedsDisabled =
       (team && team.documentEmbeds === false) || document.embedsDisabled;
 
@@ -540,7 +540,7 @@ class DocumentScene extends React.Component<Props> {
               shareId={shareId}
               isRevision={!!revision}
               isDraft={document.isDraft}
-              isEditing={!readOnly && !team?.collaborativeEditing}
+              isEditing={!readOnly && !team?.seamlessEditing}
               isSaving={this.isSaving}
               isPublishing={this.isPublishing}
               publishingIsDisabled={
@@ -563,63 +563,77 @@ class DocumentScene extends React.Component<Props> {
               <Notices document={document} readOnly={readOnly} />
               <React.Suspense fallback={<PlaceholderDocument />}>
                 <Flex auto={!readOnly}>
-                  {showContents && (
-                    <Contents
-                      headings={this.headings}
-                      isFullWidth={document.fullWidth}
+                  {revision ? (
+                    <RevisionViewer
+                      isDraft={document.isDraft}
+                      document={document}
+                      revision={revision}
+                      id={revision.id}
                     />
-                  )}
-                  <Editor
-                    id={document.id}
-                    key={embedsDisabled ? "disabled" : "enabled"}
-                    ref={this.editor}
-                    multiplayer={collaborativeEditing}
-                    shareId={shareId}
-                    isDraft={document.isDraft}
-                    template={document.isTemplate}
-                    title={revision ? revision.title : document.title}
-                    document={document}
-                    value={readOnly ? value : undefined}
-                    defaultValue={value}
-                    embedsDisabled={embedsDisabled}
-                    onSynced={this.onSynced}
-                    onFileUploadStart={this.onFileUploadStart}
-                    onFileUploadStop={this.onFileUploadStop}
-                    onSearchLink={this.props.onSearchLink}
-                    onCreateLink={this.props.onCreateLink}
-                    onChangeTitle={this.onChangeTitle}
-                    onChange={this.onChange}
-                    onHeadingsChange={this.onHeadingsChange}
-                    onSave={this.onSave}
-                    onPublish={this.onPublish}
-                    onCancel={this.goBack}
-                    readOnly={readOnly}
-                    readOnlyWriteCheckboxes={readOnly && abilities.update}
-                  >
-                    {shareId && (
-                      <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
-                        <PublicReferences
-                          shareId={shareId}
-                          documentId={document.id}
-                          sharedTree={this.props.sharedTree}
+                  ) : (
+                    <>
+                      {showContents && (
+                        <Contents
+                          headings={this.headings}
+                          isFullWidth={document.fullWidth}
                         />
-                      </ReferencesWrapper>
-                    )}
-                    {!isShare && !revision && (
-                      <>
-                        <MarkAsViewed document={document} />
-                        <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
-                          <References document={document} />
-                        </ReferencesWrapper>
-                      </>
-                    )}
-                  </Editor>
+                      )}
+                      <Editor
+                        id={document.id}
+                        key={embedsDisabled ? "disabled" : "enabled"}
+                        ref={this.editor}
+                        multiplayer={collaborativeEditing}
+                        shareId={shareId}
+                        isDraft={document.isDraft}
+                        template={document.isTemplate}
+                        document={document}
+                        value={readOnly ? document.text : undefined}
+                        defaultValue={document.text}
+                        embedsDisabled={embedsDisabled}
+                        onSynced={this.onSynced}
+                        onFileUploadStart={this.onFileUploadStart}
+                        onFileUploadStop={this.onFileUploadStop}
+                        onSearchLink={this.props.onSearchLink}
+                        onCreateLink={this.props.onCreateLink}
+                        onChangeTitle={this.onChangeTitle}
+                        onChange={this.onChange}
+                        onHeadingsChange={this.onHeadingsChange}
+                        onSave={this.onSave}
+                        onPublish={this.onPublish}
+                        onCancel={this.goBack}
+                        readOnly={readOnly}
+                        readOnlyWriteCheckboxes={readOnly && abilities.update}
+                      >
+                        {shareId && (
+                          <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
+                            <PublicReferences
+                              shareId={shareId}
+                              documentId={document.id}
+                              sharedTree={this.props.sharedTree}
+                            />
+                          </ReferencesWrapper>
+                        )}
+                        {!isShare && !revision && (
+                          <>
+                            <MarkAsViewed document={document} />
+                            <ReferencesWrapper
+                              isOnlyTitle={document.isOnlyTitle}
+                            >
+                              <References document={document} />
+                            </ReferencesWrapper>
+                          </>
+                        )}
+                      </Editor>
+                    </>
+                  )}
                 </Flex>
               </React.Suspense>
             </MaxWidth>
-            {isShare && !parseDomain(window.location.origin).custom && (
-              <Branding href="//www.getoutline.com?ref=sharelink" />
-            )}
+            {isShare &&
+              !parseDomain(window.location.origin).custom &&
+              !auth.user && (
+                <Branding href="//www.getoutline.com?ref=sharelink" />
+              )}
           </Container>
         </Background>
         {!isShare && (

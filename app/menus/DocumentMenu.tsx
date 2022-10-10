@@ -263,7 +263,7 @@ function DocumentMenu({
               type: "route",
               title: t("Edit"),
               to: editDocumentUrl(document),
-              visible: !!can.update && !team.collaborativeEditing,
+              visible: !!can.update && !team.seamlessEditing,
               icon: <EditIcon />,
             },
             {
@@ -296,6 +296,7 @@ function DocumentMenu({
             {
               type: "separator",
             },
+            actionToMenuItem(downloadDocument, context),
             {
               type: "route",
               title: t("History"),
@@ -305,7 +306,6 @@ function DocumentMenu({
               visible: canViewHistory,
               icon: <HistoryIcon />,
             },
-            actionToMenuItem(downloadDocument, context),
             {
               type: "button",
               title: t("Print"),

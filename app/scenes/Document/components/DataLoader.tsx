@@ -12,7 +12,6 @@ import Logger from "~/utils/Logger";
 import { NotFoundError, OfflineError } from "~/utils/errors";
 import history from "~/utils/history";
 import { matchDocumentEdit } from "~/utils/routeHelpers";
-import HideSidebar from "./HideSidebar";
 import Loading from "./Loading";
 
 type Params = {
@@ -42,7 +41,15 @@ type Props = RouteComponentProps<Params, StaticContext, LocationState> & {
 };
 
 function DataLoader({ match, children }: Props) {
-  const { ui, shares, documents, auth, revisions, subscriptions } = useStores();
+  const {
+    ui,
+    views,
+    shares,
+    documents,
+    auth,
+    revisions,
+    subscriptions,
+  } = useStores();
   const { team } = auth;
   const [error, setError] = React.useState<Error | null>(null);
   const { revisionId, shareId, documentSlug } = match.params;
@@ -57,7 +64,7 @@ function DataLoader({ match, children }: Props) {
     ? documents.getSharedTree(document.id)
     : undefined;
   const isEditRoute = match.path === matchDocumentEdit;
-  const isEditing = isEditRoute || !!auth.team?.collaborativeEditing;
+  const isEditing = isEditRoute || !!auth.team?.seamlessEditing;
   const can = usePolicy(document?.id);
   const location = useLocation<LocationState>();
 
@@ -89,7 +96,7 @@ function DataLoader({ match, children }: Props) {
 
   React.useEffect(() => {
     async function fetchSubscription() {
-      if (document?.id) {
+      if (document?.id && !revisionId) {
         try {
           await subscriptions.fetchPage({
             documentId: document.id,
@@ -101,7 +108,22 @@ function DataLoader({ match, children }: Props) {
       }
     }
     fetchSubscription();
-  }, [document?.id, subscriptions]);
+  }, [document?.id, subscriptions, revisionId]);
+
+  React.useEffect(() => {
+    async function fetchViews() {
+      if (document?.id && !document?.isDeleted && !revisionId) {
+        try {
+          await views.fetchPage({
+            documentId: document.id,
+          });
+        } catch (err) {
+          Logger.error("Failed to fetch views", err);
+        }
+      }
+    }
+    fetchViews();
+  }, [document?.id, document?.isDeleted, revisionId, views]);
 
   const onCreateLink = React.useCallback(
     async (title: string) => {
@@ -153,7 +175,6 @@ function DataLoader({ match, children }: Props) {
     return (
       <>
         <Loading location={location} />
-        {isEditing && !team?.collaborativeEditing && <HideSidebar ui={ui} />}
       </>
     );
   }
@@ -168,7 +189,6 @@ function DataLoader({ match, children }: Props) {
 
   return (
     <React.Fragment key={key}>
-      {isEditing && !team.collaborativeEditing && <HideSidebar ui={ui} />}
       {children({
         document,
         revision,

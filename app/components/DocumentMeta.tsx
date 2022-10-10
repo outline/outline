@@ -12,30 +12,13 @@ import Time from "~/components/Time";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 
-const Container = styled(Flex)<{ rtl?: boolean }>`
-  justify-content: ${(props) => (props.rtl ? "flex-end" : "flex-start")};
-  color: ${(props) => props.theme.textTertiary};
-  font-size: 13px;
-  white-space: nowrap;
-  overflow: hidden;
-  min-width: 0;
-`;
-
-const Viewed = styled.span`
-  text-overflow: ellipsis;
-  overflow: hidden;
-`;
-
-const Modified = styled.span<{ highlight?: boolean }>`
-  font-weight: ${(props) => (props.highlight ? "600" : "400")};
-`;
-
 type Props = {
   showCollection?: boolean;
   showPublished?: boolean;
   showLastViewed?: boolean;
   showParentDocuments?: boolean;
   document: Document;
+  replace?: boolean;
   to?: LocationDescriptor;
 };
 
@@ -46,6 +29,7 @@ const DocumentMeta: React.FC<Props> = ({
   showParentDocuments,
   document,
   children,
+  replace,
   to,
   ...rest
 }) => {
@@ -163,7 +147,13 @@ const DocumentMeta: React.FC<Props> = ({
 
   return (
     <Container align="center" rtl={document.dir === "rtl"} {...rest} dir="ltr">
-      {to ? <Link to={to}>{content}</Link> : content}
+      {to ? (
+        <Link to={to} replace={replace}>
+          {content}
+        </Link>
+      ) : (
+        content
+      )}
       {showCollection && collection && (
         <span>
           &nbsp;{t("in")}&nbsp;
@@ -191,5 +181,23 @@ const DocumentMeta: React.FC<Props> = ({
     </Container>
   );
 };
+
+const Container = styled(Flex)<{ rtl?: boolean }>`
+  justify-content: ${(props) => (props.rtl ? "flex-end" : "flex-start")};
+  color: ${(props) => props.theme.textTertiary};
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  min-width: 0;
+`;
+
+const Viewed = styled.span`
+  text-overflow: ellipsis;
+  overflow: hidden;
+`;
+
+const Modified = styled.span<{ highlight?: boolean }>`
+  font-weight: ${(props) => (props.highlight ? "600" : "400")};
+`;
 
 export default observer(DocumentMeta);

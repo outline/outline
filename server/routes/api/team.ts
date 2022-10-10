@@ -1,9 +1,11 @@
 import invariant from "invariant";
 import Router from "koa-router";
+import { RateLimiterStrategy } from "@server/RateLimiter";
 import teamCreator from "@server/commands/teamCreator";
 import teamUpdater from "@server/commands/teamUpdater";
 import { sequelize } from "@server/database/sequelize";
 import auth from "@server/middlewares/authentication";
+import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { Event, Team, TeamDomain, User } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentTeam, presentPolicies } from "@server/presenters";
@@ -11,34 +13,12 @@ import { assertUuid } from "@server/validation";
 
 const router = new Router();
 
-router.post("team.update", auth(), async (ctx) => {
-  const {
-    name,
-    avatarUrl,
-    subdomain,
-    sharing,
-    guestSignin,
-    documentEmbeds,
-    memberCollectionCreate,
-    collaborativeEditing,
-    defaultCollectionId,
-    defaultUserRole,
-    inviteRequired,
-    allowedDomains,
-  } = ctx.body;
-
-  const { user } = ctx.state;
-  const team = await Team.findByPk(user.teamId, {
-    include: [{ model: TeamDomain }],
-  });
-  authorize(user, "update", team);
-
-  if (defaultCollectionId !== undefined && defaultCollectionId !== null) {
-    assertUuid(defaultCollectionId, "defaultCollectionId must be uuid");
-  }
-
-  const updatedTeam = await teamUpdater({
-    params: {
+router.post(
+  "team.update",
+  auth(),
+  rateLimiter(RateLimiterStrategy.TenPerHour),
+  async (ctx) => {
+    const {
       name,
       avatarUrl,
       subdomain,
@@ -51,17 +31,46 @@ router.post("team.update", auth(), async (ctx) => {
       defaultUserRole,
       inviteRequired,
       allowedDomains,
-    },
-    user,
-    team,
-    ip: ctx.request.ip,
-  });
+      preferences,
+    } = ctx.body;
 
-  ctx.body = {
-    data: presentTeam(updatedTeam),
-    policies: presentPolicies(user, [updatedTeam]),
-  };
-});
+    const { user } = ctx.state;
+    const team = await Team.findByPk(user.teamId, {
+      include: [{ model: TeamDomain }],
+    });
+    authorize(user, "update", team);
+
+    if (defaultCollectionId !== undefined && defaultCollectionId !== null) {
+      assertUuid(defaultCollectionId, "defaultCollectionId must be uuid");
+    }
+
+    const updatedTeam = await teamUpdater({
+      params: {
+        name,
+        avatarUrl,
+        subdomain,
+        sharing,
+        guestSignin,
+        documentEmbeds,
+        memberCollectionCreate,
+        collaborativeEditing,
+        defaultCollectionId,
+        defaultUserRole,
+        inviteRequired,
+        allowedDomains,
+        preferences,
+      },
+      user,
+      team,
+      ip: ctx.request.ip,
+    });
+
+    ctx.body = {
+      data: presentTeam(updatedTeam),
+      policies: presentPolicies(user, [updatedTeam]),
+    };
+  }
+);
 
 router.post("teams.create", auth(), async (ctx) => {
   const { user } = ctx.state;

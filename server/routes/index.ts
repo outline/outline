@@ -16,14 +16,23 @@ const isProduction = env.ENVIRONMENT === "production";
 const koa = new Koa();
 const router = new Router();
 
-// serve static assets
+// serve public assets
 koa.use(
   serve(path.resolve(__dirname, "../../../public"), {
-    maxage: 60 * 60 * 24 * 30 * 1000,
+    // 1 month expiry, these assets are mostly static but do not contain a hash
+    maxAge: 30 * 24 * 60 * 60 * 1000,
   })
 );
 
 koa.use<BaseContext, UserAgentContext>(userAgent);
+
+router.use(
+  ["/share/:shareId", "/share/:shareId/doc/:documentSlug", "/share/:shareId/*"],
+  (ctx) => {
+    ctx.redirect(ctx.path.replace(/^\/share/, "/s"));
+    ctx.status = 301;
+  }
+);
 
 if (isProduction) {
   router.get("/static/*", async (ctx) => {
@@ -35,10 +44,12 @@ if (isProduction) {
 
       await send(ctx, pathname, {
         root: path.join(__dirname, "../../app/"),
+        // Hashed static assets get 1 year expiry plus immutable flag
+        maxAge: 365 * 24 * 60 * 60 * 1000,
+        immutable: true,
         setHeaders: (res) => {
           res.setHeader("Service-Worker-Allowed", "/");
           res.setHeader("Access-Control-Allow-Origin", "*");
-          res.setHeader("Cache-Control", `max-age=${365 * 24 * 60 * 60}`);
         },
       });
     } catch (err) {
@@ -84,9 +95,9 @@ router.get("/opensearch.xml", (ctx) => {
   ctx.body = opensearchResponse(ctx.request.URL.origin);
 });
 
-router.get("/share/:shareId", renderShare);
-router.get("/share/:shareId/doc/:documentSlug", renderShare);
-router.get("/share/:shareId/*", renderShare);
+router.get("/s/:shareId", renderShare);
+router.get("/s/:shareId/doc/:documentSlug", renderShare);
+router.get("/s/:shareId/*", renderShare);
 
 // catch all for application
 router.get("*", renderApp);

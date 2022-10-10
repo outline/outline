@@ -86,10 +86,12 @@ router.post(
         const authProvider = find(team.authenticationProviders, {
           id: user.authentications[0].authenticationProviderId,
         });
-        ctx.body = {
-          redirect: `${team.url}/auth/${authProvider?.name}`,
-        };
-        return;
+        if (authProvider?.enabled) {
+          ctx.body = {
+            redirect: `${team.url}/auth/${authProvider?.name}`,
+          };
+          return;
+        }
       }
 
       if (!team.emailSigninEnabled) {

@@ -316,11 +316,8 @@ router.post(
       where = { ...where, permission };
     }
 
-    const memberships = await CollectionGroup.findAll({
+    const options = {
       where,
-      order: [["createdAt", "DESC"]],
-      offset: ctx.state.pagination.offset,
-      limit: ctx.state.pagination.limit,
       include: [
         {
           model: Group,
@@ -329,9 +326,20 @@ router.post(
           required: true,
         },
       ],
-    });
+    };
+
+    const [total, memberships] = await Promise.all([
+      CollectionGroup.count(options),
+      CollectionGroup.findAll({
+        ...options,
+        order: [["createdAt", "DESC"]],
+        offset: ctx.state.pagination.offset,
+        limit: ctx.state.pagination.limit,
+      }),
+    ]);
+
     ctx.body = {
-      pagination: ctx.state.pagination,
+      pagination: { ...ctx.state.pagination, total },
       data: {
         collectionGroupMemberships: memberships.map(
           presentCollectionGroupMembership
@@ -457,11 +465,8 @@ router.post("collections.memberships", auth(), pagination(), async (ctx) => {
     where = { ...where, permission };
   }
 
-  const memberships = await CollectionUser.findAll({
+  const options = {
     where,
-    order: [["createdAt", "DESC"]],
-    offset: ctx.state.pagination.offset,
-    limit: ctx.state.pagination.limit,
     include: [
       {
         model: User,
@@ -470,10 +475,20 @@ router.post("collections.memberships", auth(), pagination(), async (ctx) => {
         required: true,
       },
     ],
-  });
+  };
+
+  const [total, memberships] = await Promise.all([
+    CollectionUser.count(options),
+    CollectionUser.findAll({
+      ...options,
+      order: [["createdAt", "DESC"]],
+      offset: ctx.state.pagination.offset,
+      limit: ctx.state.pagination.limit,
+    }),
+  ]);
 
   ctx.body = {
-    pagination: ctx.state.pagination,
+    pagination: { ...ctx.state.pagination, total },
     data: {
       memberships: memberships.map(presentMembership),
       users: memberships.map((membership) => presentUser(membership.user)),

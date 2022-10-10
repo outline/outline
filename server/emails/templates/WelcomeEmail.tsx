@@ -59,7 +59,9 @@ ${teamUrl}/home
           </p>
           <EmptySpace height={10} />
           <p>
-            <Button href={`${teamUrl}/home`}>Open Outline</Button>
+            <Button href={`${teamUrl}/home?ref=welcome-email`}>
+              Open Outline
+            </Button>
           </p>
         </Body>
 

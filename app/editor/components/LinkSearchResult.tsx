@@ -61,7 +61,7 @@ const ListItem = styled.li<{
   text-decoration: none;
   overflow: hidden;
   white-space: nowrap;
-  cursor: pointer;
+  cursor: var(--pointer);
   user-select: none;
   line-height: ${(props) => (props.compact ? "inherit" : "1.2")};
   height: ${(props) => (props.compact ? "28px" : "auto")};

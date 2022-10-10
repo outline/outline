@@ -18,7 +18,6 @@ import EditableTitle from "./EditableTitle";
 
 type Props = Omit<EditorProps, "extensions"> & {
   onChangeTitle: (text: string) => void;
-  title: string;
   id: string;
   document: Document;
   isDraft: boolean;
@@ -41,7 +40,6 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   const match = useRouteMatch();
   const {
     document,
-    title,
     onChangeTitle,
     isDraft,
     shareId,
@@ -82,7 +80,6 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     <Flex auto column>
       <EditableTitle
         ref={titleRef}
-        value={title}
         readOnly={readOnly}
         document={document}
         onGoToNextInput={handleGoToNextInput}
@@ -107,9 +104,9 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
       )}
       <EditorComponent
         ref={ref}
-        autoFocus={!!title && !props.defaultValue}
+        autoFocus={!!document.title && !props.defaultValue}
         placeholder={t("Type '/' to insert, or start writing…")}
-        scrollTo={window.location.hash}
+        scrollTo={decodeURIComponent(window.location.hash)}
         readOnly={readOnly}
         shareId={shareId}
         extensions={fullPackage}

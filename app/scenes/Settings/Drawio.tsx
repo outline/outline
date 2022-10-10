@@ -1,4 +1,3 @@
-import { head } from "lodash";
 import { observer } from "mobx-react";
 import { BuildingBlocksIcon } from "outline-icons";
 import * as React from "react";
@@ -32,9 +31,11 @@ function Drawio() {
     });
   }, [integrations]);
 
-  const integration = head(integrations.orderedData) as
-    | Integration<IntegrationType.Embed>
-    | undefined;
+  const integration = integrations.orderedData.find(
+    (integration) =>
+      integration.type === IntegrationType.Embed &&
+      integration.service === SERVICE_NAME
+  ) as Integration<IntegrationType.Embed> | undefined;
 
   const { register, handleSubmit: formHandleSubmit, formState } = useForm<
     FormData

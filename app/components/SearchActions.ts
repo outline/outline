@@ -10,7 +10,9 @@ export default function SearchActions() {
   const { searches } = useStores();
 
   React.useEffect(() => {
-    searches.fetchPage({});
+    if (!searches.isLoaded) {
+      searches.fetchPage({});
+    }
   }, [searches]);
 
   const { searchQuery } = useKBar((state) => ({

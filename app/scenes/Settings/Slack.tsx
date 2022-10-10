@@ -40,7 +40,7 @@ function Slack() {
 
   const commandIntegration = find(
     integrations.slackIntegrations,
-    (i) => i.type === "command"
+    (i) => i.type === IntegrationType.Command
   );
 
   const groupedCollections = collections.orderedData

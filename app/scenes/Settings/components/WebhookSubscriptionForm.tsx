@@ -33,8 +33,6 @@ const WEBHOOK_EVENTS = {
     "documents.restore",
     "documents.move",
     "documents.update",
-    "documents.update.delayed",
-    "documents.update.debounced",
     "documents.title_change",
   ],
   revision: ["revisions.create"],
@@ -146,6 +144,7 @@ type Props = {
 interface FormData {
   name: string;
   url: string;
+  secret: string;
   events: string[];
 }
 
@@ -163,6 +162,7 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
       events: webhookSubscription ? [...webhookSubscription.events] : [],
       name: webhookSubscription?.name,
       url: webhookSubscription?.url,
+      secret: webhookSubscription?.secret,
     },
   });
 
@@ -237,6 +237,7 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
           autoFocus
           flex
           label={t("Name")}
+          placeholder={t("A memorable identifer")}
           {...register("name", {
             required: true,
           })}
@@ -249,6 +250,14 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
           placeholder="https://…"
           label={t("URL")}
           {...register("url", { required: true })}
+        />
+        <ReactHookWrappedInput
+          flex
+          label={t("Secret") + ` (${t("Optional")})`}
+          placeholder={t("Used to sign payload")}
+          {...register("secret", {
+            required: false,
+          })}
         />
       </TextFields>
 

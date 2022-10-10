@@ -8,7 +8,7 @@ export default function present(share: Share, isAdmin = false) {
     documentTitle: share.document?.title,
     documentUrl: share.document?.url,
     published: share.published,
-    url: `${share.team.url}/share/${share.id}`,
+    url: share.canonicalUrl,
     createdBy: presentUser(share.user),
     includeChildDocuments: share.includeChildDocuments,
     lastAccessedAt: share.lastAccessedAt || undefined,
