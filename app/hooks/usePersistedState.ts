@@ -15,7 +15,7 @@ import useEventListener from "./useEventListener";
 export default function usePersistedState(
   key: string,
   defaultValue: Primitive
-) {
+): [Primitive, (value: Primitive) => void] {
   const [storedValue, setStoredValue] = React.useState(() => {
     if (typeof window === "undefined") {
       return defaultValue;
@@ -23,19 +23,22 @@ export default function usePersistedState(
     return Storage.get(key) ?? defaultValue;
   });
 
-  const setValue = (value: Primitive | ((value: Primitive) => void)) => {
-    try {
-      // Allow value to be a function so we have same API as useState
-      const valueToStore =
-        value instanceof Function ? value(storedValue) : value;
+  const setValue = React.useCallback(
+    (value: Primitive | ((value: Primitive) => void)) => {
+      try {
+        // Allow value to be a function so we have same API as useState
+        const valueToStore =
+          value instanceof Function ? value(storedValue) : value;
 
-      setStoredValue(valueToStore);
-      Storage.set(key, valueToStore);
-    } catch (error) {
-      // A more advanced implementation would handle the error case
-      Logger.debug("misc", "Failed to persist state", { error });
-    }
-  };
+        setStoredValue(valueToStore);
+        Storage.set(key, valueToStore);
+      } catch (error) {
+        // A more advanced implementation would handle the error case
+        Logger.debug("misc", "Failed to persist state", { error });
+      }
+    },
+    [key, storedValue]
+  );
 
   // Listen to the key changing in other tabs so we can keep UI in sync
   useEventListener("storage", (event: StorageEvent) => {

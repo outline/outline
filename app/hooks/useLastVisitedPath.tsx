@@ -1,3 +1,4 @@
+import * as React from "react";
 import usePersistedState from "~/hooks/usePersistedState";
 
 export default function useLastVisitedPath() {
@@ -6,9 +7,12 @@ export default function useLastVisitedPath() {
     "/"
   );
 
-  const setPathAsLastVisitedPath = (path: string) => {
-    path !== lastVisitedPath && setLastVisitedPath(path);
-  };
+  const setPathAsLastVisitedPath = React.useCallback(
+    (path: string) => {
+      path !== lastVisitedPath && setLastVisitedPath(path);
+    },
+    [lastVisitedPath, setLastVisitedPath]
+  );
 
   return [lastVisitedPath, setPathAsLastVisitedPath];
 }
