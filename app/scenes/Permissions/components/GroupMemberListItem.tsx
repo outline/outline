@@ -1,27 +1,36 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import { CollectionPermission } from "@shared/types";
+import { CollectionPermission, DocumentPermission } from "@shared/types";
 import CollectionGroupMembership from "~/models/CollectionGroupMembership";
+import DocumentGroupMembership from "~/models/DocumentGroupMembership";
 import Group from "~/models/Group";
 import GroupListItem from "~/components/GroupListItem";
 import InputSelect, { Props as SelectProps } from "~/components/InputSelect";
 import CollectionGroupMemberMenu from "~/menus/CollectionGroupMemberMenu";
 
-type Props = {
+interface Props {
   group: Group;
-  collectionGroupMembership: CollectionGroupMembership | null | undefined;
-  onUpdate: (permission: CollectionPermission) => void;
-  onRemove: () => void;
-};
+  membership:
+    | CollectionGroupMembership
+    | DocumentGroupMembership
+    | null
+    | undefined;
+  onUpdate: (
+    permission: CollectionPermission | DocumentPermission
+  ) => void | false;
+  onRemove: (membership: this["membership"]) => void;
+}
 
-const CollectionGroupMemberListItem = ({
+const GroupMemberListItem = ({
   group,
-  collectionGroupMembership,
+  membership,
   onUpdate,
   onRemove,
 }: Props) => {
   const { t } = useTranslation();
+
+  const handleRemove = onRemove && (() => onRemove(membership));
 
   return (
     <GroupListItem
@@ -34,18 +43,19 @@ const CollectionGroupMemberListItem = ({
             options={[
               {
                 label: t("View only"),
-                value: CollectionPermission.Read,
+                value: "read",
               },
               {
                 label: t("View and edit"),
-                value: CollectionPermission.ReadWrite,
+                value: "read_write",
+              },
+              {
+                label: t("Partial access (document-level permissions)"),
+                value: "partial_read",
+                selectable: false,
               },
             ]}
-            value={
-              collectionGroupMembership
-                ? collectionGroupMembership.permission
-                : undefined
-            }
+            value={membership ? membership.permission : undefined}
             onChange={onUpdate}
             ariaLabel={t("Permissions")}
             labelHidden
@@ -53,7 +63,7 @@ const CollectionGroupMemberListItem = ({
           />
           <CollectionGroupMemberMenu
             onMembers={openMembersModal}
-            onRemove={onRemove}
+            onRemove={handleRemove}
           />
         </>
       )}
@@ -73,4 +83,4 @@ const Select = styled(InputSelect)`
   }
 ` as React.ComponentType<SelectProps>;
 
-export default CollectionGroupMemberListItem;
+export default GroupMemberListItem;

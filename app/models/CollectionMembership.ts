@@ -2,7 +2,7 @@ import { computed } from "mobx";
 import { CollectionPermission } from "@shared/types";
 import BaseModel from "./BaseModel";
 
-class Membership extends BaseModel {
+class CollectionMembership extends BaseModel {
   id: string;
 
   userId: string;
@@ -17,4 +17,4 @@ class Membership extends BaseModel {
   }
 }
 
-export default Membership;
+export default CollectionMembership;

@@ -25,6 +25,7 @@ import {
 import { languages } from "@shared/i18n";
 import {
   CollectionPermission,
+  DocumentPermission,
   UserPreference,
   UserPreferences,
 } from "@shared/types";
@@ -237,6 +238,12 @@ class User extends ParanoidModel {
       : CollectionPermission.ReadWrite;
   }
 
+  get defaultDocumentPermission(): DocumentPermission {
+    return this.isViewer
+      ? DocumentPermission.Read
+      : DocumentPermission.ReadWrite;
+  }
+
   /**
    * Returns a code that can be used to delete this user account. The code will
    * be rotated when the user signs out.
@@ -348,6 +355,7 @@ class User extends ParanoidModel {
     return collectionStubs
       .filter(
         (c) =>
+          c.permission === CollectionPermission.PartialRead ||
           c.permission === CollectionPermission.Read ||
           c.permission === CollectionPermission.ReadWrite ||
           c.memberships.length > 0 ||

@@ -14,6 +14,7 @@ type Props = {
   shareId?: string;
   user?: User;
   includeState?: boolean;
+  includeMemberships?: boolean;
 };
 
 type Result = {
@@ -27,6 +28,7 @@ export default async function loadDocument({
   shareId,
   user,
   includeState,
+  includeMemberships,
 }: Props): Promise<Result> {
   let document;
   let collection;
@@ -78,13 +80,16 @@ export default async function loadDocument({
       document = await Document.findByPk(id, {
         userId: user ? user.id : undefined,
         paranoid: false,
-      }); // otherwise, if the user has an authenticated session make sure to load
+        includeMemberships,
+      });
+      // otherwise, if the user has an authenticated session make sure to load
       // with their details so that we can return the correct policies, they may
       // be able to edit the shared document
     } else if (user) {
       document = await Document.findByPk(share.documentId, {
-        userId: user.id,
+        userId: user ? user.id : undefined,
         paranoid: false,
+        includeMemberships,
       });
     } else {
       document = share.document;
@@ -159,6 +164,7 @@ export default async function loadDocument({
       userId: user ? user.id : undefined,
       paranoid: false,
       includeState,
+      includeMemberships,
     });
 
     if (!document) {

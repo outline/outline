@@ -3,6 +3,7 @@ import invariant from "invariant";
 import Router from "koa-router";
 import mime from "mime-types";
 import { Op, ScopeOptions, WhereOptions } from "sequelize";
+import { CollectionPermission, DocumentPermission } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import documentCreator from "@server/commands/documentCreator";
@@ -27,14 +28,23 @@ import {
   Revision,
   SearchQuery,
   User,
+  Group,
   View,
+  CollectionUser,
+  CollectionGroup,
 } from "@server/models";
+import DocumentGroup from "@server/models/DocumentGroup";
+import DocumentUser from "@server/models/DocumentUser";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import { authorize, cannot } from "@server/policies";
 import {
   presentCollection,
   presentDocument,
   presentPolicies,
+  presentMembership,
+  presentUser,
+  presentGroup,
+  presentDocumentGroupMembership,
 } from "@server/presenters";
 import slugify from "@server/utils/slugify";
 import {
@@ -44,6 +54,7 @@ import {
   assertPresent,
   assertPositiveInteger,
   assertNotEmpty,
+  assertDocumentPermission,
 } from "@server/validation";
 import env from "../../env";
 import pagination from "./middlewares/pagination";
@@ -410,6 +421,7 @@ router.post(
       id,
       shareId,
       user,
+      includeMemberships: true,
     });
     const isPublic = cannot(user, "read", document);
     const serializedDocument = await presentDocument(document, {
@@ -431,6 +443,438 @@ router.post(
     ctx.body = {
       data,
       policies: isPublic ? undefined : presentPolicies(user, [document]),
+    };
+  }
+);
+
+router.post("documents.add_user", auth(), async (ctx) => {
+  const { id, userId, permission } = ctx.body;
+  assertUuid(id, "id is required");
+  assertUuid(userId, "userId is required");
+
+  const document = await Document.scope({
+    method: ["withMembership", ctx.state.user.id],
+  }).findByPk(id);
+  authorize(ctx.state.user, "update", document);
+
+  const user = await User.findByPk(userId);
+  authorize(ctx.state.user, "read", user);
+
+  let membership = await DocumentUser.findOne({
+    where: {
+      documentId: id,
+      userId,
+    },
+  });
+
+  if (permission) {
+    assertDocumentPermission(permission);
+  }
+
+  let addedCollectionUser = false;
+  if (!membership) {
+    membership = await sequelize.transaction(async (transaction) => {
+      const result = await DocumentUser.create(
+        {
+          documentId: id,
+          userId,
+          permission: permission || user.defaultCollectionPermission,
+          createdById: ctx.state.user.id,
+        },
+        { transaction }
+      );
+      [, addedCollectionUser] = await CollectionUser.findOrCreate({
+        where: {
+          collectionId: document.collectionId,
+          userId,
+        },
+        defaults: {
+          permission: CollectionPermission.PartialRead,
+          createdById: ctx.state.user.id,
+        },
+        transaction,
+      });
+      return result;
+    });
+  } else if (permission) {
+    membership.permission = permission;
+    await membership.save();
+  }
+
+  await Event.create({
+    name: "documents.add_user",
+    userId,
+    documentId: document.id,
+    teamId: document.teamId,
+    actorId: ctx.state.user.id,
+    data: {
+      name: user.name,
+    },
+    ip: ctx.request.ip,
+  });
+  if (addedCollectionUser) {
+    await Event.create({
+      name: "collections.add_user",
+      userId,
+      collectionId: document.collectionId,
+      teamId: document.teamId,
+      actorId: ctx.state.user.id,
+      data: {
+        name: user.name,
+      },
+      ip: ctx.request.ip,
+    });
+  }
+
+  ctx.body = {
+    data: {
+      users: [presentUser(user)],
+      memberships: [presentMembership(membership)],
+    },
+  };
+});
+
+router.post("documents.remove_user", auth(), async (ctx) => {
+  const { id, userId } = ctx.body;
+  assertUuid(id, "id is required");
+  assertUuid(userId, "userId is required");
+
+  const document = await Document.scope({
+    method: ["withMembership", ctx.state.user.id],
+  }).findByPk(id);
+  authorize(ctx.state.user, "update", document);
+
+  const user = await User.findByPk(userId);
+  authorize(ctx.state.user, "read", user);
+
+  const collectionUser = await CollectionUser.findOne({
+    where: {
+      collectionId: document.collectionId,
+      userId,
+    },
+  });
+  const shouldRemoveCollectionUser =
+    collectionUser?.permission === CollectionPermission.PartialRead &&
+    (await DocumentUser.scope({
+      method: ["withOtherDocumentsInCollection", userId, document],
+    })
+      .findOne()
+      .then((exists) => !exists));
+
+  await sequelize.transaction(async (transaction) => {
+    await DocumentUser.destroy({
+      where: {
+        documentId: id,
+        userId,
+      },
+      transaction,
+    });
+    if (shouldRemoveCollectionUser) {
+      await collectionUser.destroy({ transaction });
+    }
+  });
+
+  await Event.create({
+    name: "documents.remove_user",
+    userId,
+    documentId: document.id,
+    teamId: document.teamId,
+    actorId: ctx.state.user.id,
+    data: {
+      name: user.name,
+    },
+    ip: ctx.request.ip,
+  });
+  if (shouldRemoveCollectionUser) {
+    await Event.create({
+      name: "collections.remove_user",
+      userId,
+      collectionId: document.collectionId,
+      teamId: document.teamId,
+      actorId: ctx.state.user.id,
+      data: {
+        name: user.name,
+      },
+      ip: ctx.request.ip,
+    });
+  }
+
+  ctx.body = {
+    success: true,
+  };
+});
+
+router.post("documents.add_group", auth(), async (ctx) => {
+  const { id, groupId, permission = DocumentPermission.ReadWrite } = ctx.body;
+  assertUuid(id, "id is required");
+  assertUuid(groupId, "groupId is required");
+  assertDocumentPermission(permission);
+
+  const document = await Document.scope({
+    method: ["withMembership", ctx.state.user.id],
+  }).findByPk(id);
+  authorize(ctx.state.user, "update", document);
+
+  const group = await Group.findByPk(groupId);
+  authorize(ctx.state.user, "read", group);
+
+  let membership = await DocumentGroup.findOne({
+    where: {
+      documentId: id,
+      groupId,
+    },
+  });
+
+  let addedCollectionGroup = false;
+  if (!membership) {
+    membership = await sequelize.transaction(async (transaction) => {
+      const result = await DocumentGroup.create(
+        {
+          documentId: id,
+          groupId,
+          permission,
+          createdById: ctx.state.user.id,
+        },
+        { transaction }
+      );
+      [, addedCollectionGroup] = await CollectionGroup.findOrCreate({
+        where: {
+          collectionId: document.collectionId,
+          groupId,
+        },
+        defaults: {
+          permission: CollectionPermission.PartialRead,
+          createdById: ctx.state.user.id,
+        },
+        transaction,
+      });
+      return result;
+    });
+  } else if (permission) {
+    membership.permission = permission;
+    await membership.save();
+  }
+
+  await Event.create({
+    name: "documents.add_group",
+    documentId: id,
+    actorId: ctx.state.user.id,
+    modelId: groupId,
+    data: {
+      name: group.name,
+    },
+    ip: ctx.request.ip,
+  });
+  if (addedCollectionGroup) {
+    await Event.create({
+      name: "collections.add_group",
+      collectionId: document.collectionId,
+      teamId: document.teamId,
+      actorId: ctx.state.user.id,
+      modelId: groupId,
+      data: {
+        name: group.name,
+      },
+      ip: ctx.request.ip,
+    });
+  }
+
+  ctx.body = {
+    data: {
+      documentGroupMemberships: [presentDocumentGroupMembership(membership)],
+    },
+  };
+});
+
+router.post("documents.remove_group", auth(), async (ctx) => {
+  const { id, groupId } = ctx.body;
+  assertUuid(id, "id is required");
+  assertUuid(groupId, "groupId is required");
+
+  const document = await Document.scope({
+    method: ["withMembership", ctx.state.user.id],
+  }).findByPk(id);
+  authorize(ctx.state.user, "update", document);
+
+  const group = await Group.findByPk(groupId);
+  authorize(ctx.state.user, "read", group);
+
+  const collectionGroup = await CollectionGroup.findOne({
+    where: {
+      collectionId: document.collectionId,
+      groupId,
+    },
+  });
+  const shouldRemoveCollectionGroup =
+    collectionGroup?.permission === CollectionPermission.PartialRead &&
+    (await DocumentGroup.scope({
+      method: ["withOtherDocumentsInCollection", groupId, document],
+    })
+      .findOne()
+      .then((exists) => !exists));
+
+  await sequelize.transaction(async (transaction) => {
+    await DocumentGroup.destroy({
+      where: {
+        documentId: id,
+        groupId,
+      },
+      transaction,
+    });
+    if (shouldRemoveCollectionGroup) {
+      await collectionGroup.destroy({ transaction });
+    }
+  });
+
+  await Event.create({
+    name: "documents.remove_group",
+    documentId: id,
+    teamId: document.teamId,
+    actorId: ctx.state.user.id,
+    modelId: groupId,
+    data: {
+      name: group.name,
+    },
+    ip: ctx.request.ip,
+  });
+  if (shouldRemoveCollectionGroup) {
+    await Event.create({
+      name: "collections.remove_group",
+      collectionId: document.collectionId,
+      teamId: document.teamId,
+      actorId: ctx.state.user.id,
+      modelId: groupId,
+      data: {
+        name: group.name,
+      },
+      ip: ctx.request.ip,
+    });
+  }
+
+  ctx.body = {
+    success: true,
+  };
+});
+
+router.post("documents.memberships", auth(), pagination(), async (ctx) => {
+  const { id, query, permission } = ctx.body;
+  assertUuid(id, "id is required");
+  const { user } = ctx.state;
+
+  const document = await Document.scope({
+    method: ["withMembership", user.id],
+  }).findByPk(id);
+  authorize(user, "read", document);
+
+  let where: WhereOptions<DocumentUser> = {
+    documentId: id,
+  };
+  let userWhere;
+
+  if (query) {
+    userWhere = {
+      name: {
+        [Op.iLike]: `%${query}%`,
+      },
+    };
+  }
+  if (permission) {
+    assertDocumentPermission(permission);
+    where = { ...where, permission };
+  }
+
+  const options = {
+    where,
+    include: [
+      {
+        model: User,
+        as: "user",
+        where: userWhere,
+        required: true,
+      },
+    ],
+  };
+
+  const [total, memberships] = await Promise.all([
+    DocumentUser.count(options),
+    DocumentUser.findAll({
+      ...options,
+      order: [["createdAt", "DESC"]],
+      offset: ctx.state.pagination.offset,
+      limit: ctx.state.pagination.limit,
+    }),
+  ]);
+
+  ctx.body = {
+    pagination: { ...ctx.state.pagination, total },
+    data: {
+      memberships: memberships.map(presentMembership),
+      users: memberships.map((membership) => presentUser(membership.user)),
+    },
+  };
+});
+
+router.post(
+  "documents.group_memberships",
+  auth(),
+  pagination(),
+  async (ctx) => {
+    const { id, query, permission } = ctx.body;
+    assertUuid(id, "id is required");
+    const { user } = ctx.state;
+
+    const document = await Document.scope({
+      method: ["withMembership", user.id],
+    }).findByPk(id);
+    authorize(user, "read", document);
+
+    let where: WhereOptions<DocumentGroup> = {
+      documentId: id,
+    };
+    let groupWhere;
+
+    if (query) {
+      groupWhere = {
+        name: {
+          [Op.iLike]: `%${query}%`,
+        },
+      };
+    }
+
+    if (permission) {
+      where = { ...where, permission };
+    }
+
+    const options = {
+      where,
+      include: [
+        {
+          model: Group,
+          as: "group",
+          where: groupWhere,
+          required: true,
+        },
+      ],
+    };
+
+    const [total, memberships] = await Promise.all([
+      DocumentGroup.count(options),
+      DocumentGroup.findAll({
+        ...options,
+        order: [["createdAt", "DESC"]],
+        offset: ctx.state.pagination.offset,
+        limit: ctx.state.pagination.limit,
+      }),
+    ]);
+
+    ctx.body = {
+      pagination: { ...ctx.state.pagination, total },
+      data: {
+        documentGroupMemberships: memberships.map(
+          presentDocumentGroupMembership
+        ),
+        groups: memberships.map((membership) => presentGroup(membership.group)),
+      },
     };
   }
 );

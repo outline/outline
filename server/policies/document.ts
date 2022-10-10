@@ -1,4 +1,6 @@
 import invariant from "invariant";
+import { some } from "lodash";
+import { DocumentPermission } from "@shared/types";
 import { Document, Revision, User, Team } from "@server/models";
 import { allow, _cannot as cannot } from "./cancan";
 
@@ -16,7 +18,17 @@ allow(User, ["read", "download"], Document, (user, document) => {
 
   // existence of collection option is not required here to account for share tokens
   if (document.collection && cannot(user, "read", document.collection)) {
-    return false;
+    invariant(
+      document.memberships,
+      "membership should be preloaded, did you forget withMembership scope?"
+    );
+    const allMemberships = [
+      ...document.memberships,
+      ...document.documentGroupMemberships,
+    ];
+    return some(allMemberships, (m) =>
+      Object.values(DocumentPermission).includes(m.permission)
+    );
   }
 
   return user.teamId === document.teamId;
@@ -96,7 +108,18 @@ allow(User, "update", Document, (user, document) => {
   }
 
   if (cannot(user, "update", document.collection)) {
-    return false;
+    invariant(
+      document.memberships,
+      "membership should be preloaded, did you forget withMembership scope?"
+    );
+    const allMemberships = [
+      ...document.memberships,
+      ...document.documentGroupMemberships,
+    ];
+    return some(
+      allMemberships,
+      (m) => m.permission === DocumentPermission.ReadWrite
+    );
   }
 
   return user.teamId === document.teamId;

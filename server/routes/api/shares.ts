@@ -51,6 +51,7 @@ router.post("shares.info", auth(), async (ctx) => {
   if (documentId) {
     const document = await Document.findByPk(documentId, {
       userId: user.id,
+      includeMemberships: true,
     });
     authorize(user, "read", document);
 

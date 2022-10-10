@@ -29,6 +29,7 @@ export default class AuthenticationExtension implements Extension {
 
     const document = await Document.findByPk(documentId, {
       userId: user.id,
+      includeMemberships: true,
     });
 
     if (!can(user, "read", document)) {

@@ -16,6 +16,7 @@ router.post("views.list", auth(), async (ctx) => {
   const { user } = ctx.state;
   const document = await Document.findByPk(documentId, {
     userId: user.id,
+    includeMemberships: true,
   });
   authorize(user, "read", document);
   const views = await View.findByDocument(documentId, { includeSuspended });
@@ -36,6 +37,7 @@ router.post(
     const { user } = ctx.state;
     const document = await Document.findByPk(documentId, {
       userId: user.id,
+      includeMemberships: true,
     });
     authorize(user, "read", document);
 

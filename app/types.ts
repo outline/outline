@@ -146,6 +146,7 @@ export type NavigationNode = {
   url: string;
   children: NavigationNode[];
   isDraft?: boolean;
+  isAccessible?: boolean;
 };
 
 export type CollectionSort = {

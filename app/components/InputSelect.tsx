@@ -26,6 +26,7 @@ import { LabelText } from "./Input";
 export type Option = {
   label: string | JSX.Element;
   value: string;
+  selectable?: boolean;
 };
 
 export type Props = {
@@ -42,7 +43,10 @@ export type Props = {
   icon?: React.ReactNode;
   options: Option[];
   note?: React.ReactNode;
-  onChange: (value: string | null) => void;
+  onChange: (
+    value: string | null,
+    previousValue: string | null
+  ) => void | false | Promise<void | false>;
 };
 
 const getOptionFromValue = (options: Option[], value: string | null) => {
@@ -94,16 +98,22 @@ const InputSelect = (props: Props) => {
   );
 
   React.useEffect(() => {
-    if (previousValue.current === select.selectedValue) {
+    const prev = previousValue.current;
+    const next = select.selectedValue;
+
+    if (next === prev) {
       return;
     }
-    previousValue.current = select.selectedValue;
 
-    async function load() {
-      await onChange(select.selectedValue);
-    }
-
-    load();
+    const handleChange = async () => {
+      previousValue.current = next;
+      const shouldUpdate = await onChange(next, prev);
+      if (shouldUpdate === false) {
+        previousValue.current = prev;
+        select.setSelectedValue(prev);
+      }
+    };
+    handleChange();
   }, [onChange, select.selectedValue]);
 
   // Ensure selected option is visible when opening the input
@@ -189,23 +199,25 @@ const InputSelect = (props: Props) => {
                   }
                 >
                   {select.visible
-                    ? options.map((option) => {
-                        const isSelected =
-                          select.selectedValue === option.value;
-                        const Icon = isSelected ? CheckmarkIcon : Spacer;
-                        return (
-                          <StyledSelectOption
-                            {...select}
-                            value={option.value}
-                            key={option.value}
-                            ref={isSelected ? selectedRef : undefined}
-                          >
-                            <Icon />
-                            &nbsp;
-                            {option.label}
-                          </StyledSelectOption>
-                        );
-                      })
+                    ? options
+                        .filter(({ selectable }) => selectable !== false)
+                        .map((option) => {
+                          const isSelected =
+                            select.selectedValue === option.value;
+                          const Icon = isSelected ? CheckmarkIcon : Spacer;
+                          return (
+                            <StyledSelectOption
+                              {...select}
+                              value={option.value}
+                              key={option.value}
+                              ref={isSelected ? selectedRef : undefined}
+                            >
+                              <Icon />
+                              &nbsp;
+                              {option.label}
+                            </StyledSelectOption>
+                          );
+                        })
                     : null}
                 </Background>
               </Positioner>

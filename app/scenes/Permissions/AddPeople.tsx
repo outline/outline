@@ -5,6 +5,7 @@ import * as React from "react";
 import { WithTranslation, withTranslation } from "react-i18next";
 import RootStore from "~/stores/RootStore";
 import Collection from "~/models/Collection";
+import Document from "~/models/Document";
 import User from "~/models/User";
 import Invite from "~/scenes/Invite";
 import ButtonLink from "~/components/ButtonLink";
@@ -19,12 +20,12 @@ import MemberListItem from "./components/MemberListItem";
 
 type Props = WithTranslation &
   RootStore & {
-    collection: Collection;
+    object: Collection | Document;
     onSubmit: () => void;
   };
 
 @observer
-class AddPeopleToCollection extends React.Component<Props> {
+class AddPeople extends React.Component<Props> {
   @observable
   inviteModalOpen = false;
 
@@ -54,13 +55,22 @@ class AddPeopleToCollection extends React.Component<Props> {
     const { t } = this.props;
 
     try {
-      this.props.memberships.create({
-        collectionId: this.props.collection.id,
-        userId: user.id,
-      });
+      if (this.props.object instanceof Collection) {
+        this.props.collectionMemberships.create({
+          collectionId: this.props.object.id,
+          userId: user.id,
+        });
+      } else {
+        this.props.documentMemberships.create({
+          documentId: this.props.object.id,
+          userId: user.id,
+        });
+      }
       this.props.toasts.showToast(
-        t("{{ userName }} was added to the collection", {
+        t("{{ userName }} was added to the {{ type }}", {
           userName: user.name,
+          type:
+            this.props.object instanceof Collection ? "collection" : "document",
         }),
         {
           type: "success",
@@ -74,11 +84,14 @@ class AddPeopleToCollection extends React.Component<Props> {
   };
 
   render() {
-    const { users, collection, auth, t } = this.props;
+    const { users, object, auth, t } = this.props;
     const { user, team } = auth;
     if (!user || !team) {
       return null;
     }
+
+    const notInMethod =
+      object instanceof Collection ? "notInCollection" : "notInDocument";
 
     return (
       <Flex column>
@@ -109,7 +122,7 @@ class AddPeopleToCollection extends React.Component<Props> {
               <Empty>{t("No people left to add")}</Empty>
             )
           }
-          items={users.notInCollection(collection.id, this.query)}
+          items={users[notInMethod](object.id, this.query)}
           fetch={this.query ? undefined : users.fetchPage}
           renderItem={(item: User) => (
             <MemberListItem
@@ -132,4 +145,4 @@ class AddPeopleToCollection extends React.Component<Props> {
   }
 }
 
-export default withTranslation()(withStores(AddPeopleToCollection));
+export default withTranslation()(withStores(AddPeople));

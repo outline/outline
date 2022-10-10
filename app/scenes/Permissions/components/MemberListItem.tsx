@@ -3,7 +3,8 @@ import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { CollectionPermission } from "@shared/types";
-import Membership from "~/models/Membership";
+import CollectionMembership from "~/models/CollectionMembership";
+import DocumentMembership from "~/models/DocumentMembership";
 import User from "~/models/User";
 import Avatar from "~/components/Avatar";
 import Badge from "~/components/Badge";
@@ -14,14 +15,14 @@ import ListItem from "~/components/List/Item";
 import Time from "~/components/Time";
 import MemberMenu from "~/menus/MemberMenu";
 
-type Props = {
+interface Props {
   user: User;
-  membership?: Membership | undefined;
+  membership?: CollectionMembership | DocumentMembership | undefined;
   canEdit: boolean;
   onAdd?: () => void;
-  onRemove?: () => void;
-  onUpdate?: (permission: CollectionPermission) => void;
-};
+  onRemove?: (membership: this["membership"]) => void;
+  onUpdate?: (permission: CollectionPermission) => void | false;
+}
 
 const MemberListItem = ({
   user,
@@ -32,6 +33,8 @@ const MemberListItem = ({
   canEdit,
 }: Props) => {
   const { t } = useTranslation();
+
+  const handleRemove = onRemove && (() => onRemove(membership));
 
   return (
     <ListItem
@@ -64,6 +67,11 @@ const MemberListItem = ({
                   label: t("View and edit"),
                   value: CollectionPermission.ReadWrite,
                 },
+                {
+                  label: t("Partial access (document-level permissions)"),
+                  value: CollectionPermission.PartialRead,
+                  selectable: false,
+                },
               ]}
               value={membership ? membership.permission : undefined}
               onChange={onUpdate}
@@ -75,7 +83,7 @@ const MemberListItem = ({
           )}
           {canEdit && (
             <>
-              {onRemove && <MemberMenu onRemove={onRemove} />}
+              {handleRemove && <MemberMenu onRemove={handleRemove} />}
               {onAdd && (
                 <Button onClick={onAdd} neutral>
                   {t("Add")}

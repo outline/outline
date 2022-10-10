@@ -22,6 +22,8 @@ import {
   Group,
   Attachment,
   FileOperation,
+  DocumentUser,
+  DocumentGroup,
 } from "@server/models";
 import {
   FileOperationFormat,
@@ -229,8 +231,23 @@ router.post("collections.add_group", auth(), async (ctx) => {
       createdById: ctx.state.user.id,
     });
   } else if (permission) {
+    const shouldRemoveDocumentGroups =
+      membership.permission === CollectionPermission.PartialRead;
+    const documentIds =
+      (shouldRemoveDocumentGroups && collection.documentIds) || [];
     membership.permission = permission;
-    await membership.save();
+    await sequelize.transaction(async (transaction) => {
+      await membership!.save({ transaction });
+      if (shouldRemoveDocumentGroups && documentIds.length > 0) {
+        await DocumentGroup.destroy({
+          where: {
+            documentId: documentIds,
+            groupId,
+          },
+          transaction,
+        });
+      }
+    });
   }
 
   await Event.create({
@@ -267,7 +284,45 @@ router.post("collections.remove_group", auth(), async (ctx) => {
   const group = await Group.findByPk(groupId);
   authorize(ctx.state.user, "read", group);
 
-  await collection.$remove("group", group);
+  const membership = await CollectionGroup.findOne({
+    where: {
+      collectionId: id,
+      groupId,
+    },
+  });
+  const documentIds = collection.documentIds ?? [];
+
+  let shouldRemoveDocumentGroups = false;
+  let shouldUpdateToPartialRead = false;
+  if (membership?.permission === CollectionPermission.PartialRead) {
+    shouldRemoveDocumentGroups = true;
+  } else if (membership && documentIds.length > 0) {
+    const documentGroup = await DocumentGroup.findOne({
+      where: {
+        documentId: documentIds,
+        groupId,
+      },
+    });
+    shouldUpdateToPartialRead = !!documentGroup;
+  }
+
+  await sequelize.transaction(async (transaction) => {
+    if (shouldUpdateToPartialRead) {
+      membership!.permission = CollectionPermission.PartialRead;
+      await membership!.save({ transaction });
+    } else {
+      await collection.$remove("group", group, { transaction });
+    }
+    if (shouldRemoveDocumentGroups && documentIds.length > 0) {
+      await DocumentGroup.destroy({
+        where: {
+          documentId: documentIds,
+          groupId,
+        },
+        transaction,
+      });
+    }
+  });
   await Event.create({
     name: "collections.remove_group",
     collectionId: collection.id,
@@ -382,8 +437,23 @@ router.post("collections.add_user", auth(), async (ctx) => {
       createdById: ctx.state.user.id,
     });
   } else if (permission) {
+    const shouldRemoveDocumentUsers =
+      membership.permission === CollectionPermission.PartialRead;
+    const documentIds =
+      (shouldRemoveDocumentUsers && collection.documentIds) || [];
     membership.permission = permission;
-    await membership.save();
+    await sequelize.transaction(async (transaction) => {
+      await membership!.save({ transaction });
+      if (shouldRemoveDocumentUsers && documentIds.length > 0) {
+        await DocumentUser.destroy({
+          where: {
+            documentId: documentIds,
+            userId,
+          },
+          transaction,
+        });
+      }
+    });
   }
 
   await Event.create({
@@ -419,7 +489,46 @@ router.post("collections.remove_user", auth(), async (ctx) => {
   const user = await User.findByPk(userId);
   authorize(ctx.state.user, "read", user);
 
-  await collection.$remove("user", user);
+  const membership = await CollectionUser.findOne({
+    where: {
+      collectionId: id,
+      userId,
+    },
+  });
+  const documentIds = collection.documentIds ?? [];
+
+  let shouldRemoveDocumentUsers = false;
+  let shouldUpdateToPartialRead = false;
+  if (membership?.permission === CollectionPermission.PartialRead) {
+    shouldRemoveDocumentUsers = true;
+  } else if (membership && documentIds.length > 0) {
+    const documentUser = await DocumentUser.findOne({
+      where: {
+        documentId: documentIds,
+        userId,
+      },
+    });
+    shouldUpdateToPartialRead = !!documentUser;
+  }
+
+  await sequelize.transaction(async (transaction) => {
+    if (shouldUpdateToPartialRead) {
+      membership!.permission = CollectionPermission.PartialRead;
+      await membership!.save({ transaction });
+    } else {
+      await collection.$remove("user", user, { transaction });
+    }
+    if (shouldRemoveDocumentUsers && documentIds.length > 0) {
+      await DocumentUser.destroy({
+        where: {
+          documentId: documentIds,
+          userId,
+        },
+        transaction,
+      });
+    }
+  });
+
   await Event.create({
     name: "collections.remove_user",
     userId,
@@ -711,6 +820,8 @@ router.post("collections.list", auth(), pagination(), async (ctx) => {
       collection.index = indexedCollections[collection.id];
     });
   }
+
+  await Collection.setDocumentStructureForUser(collections, user.id);
 
   ctx.body = {
     pagination: ctx.state.pagination,

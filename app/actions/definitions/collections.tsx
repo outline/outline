@@ -11,7 +11,7 @@ import stores from "~/stores";
 import Collection from "~/models/Collection";
 import CollectionEdit from "~/scenes/CollectionEdit";
 import CollectionNew from "~/scenes/CollectionNew";
-import CollectionPermissions from "~/scenes/CollectionPermissions";
+import Permissions from "~/scenes/Permissions";
 import DynamicCollectionIcon from "~/components/CollectionIcon";
 import { createAction } from "~/actions";
 import { CollectionSection } from "~/actions/sections";
@@ -97,7 +97,7 @@ export const editCollectionPermissions = createAction({
 
     stores.dialogs.openModal({
       title: t("Collection permissions"),
-      content: <CollectionPermissions collectionId={activeCollectionId} />,
+      content: <Permissions type="collection" objectId={activeCollectionId} />,
     });
   },
 });

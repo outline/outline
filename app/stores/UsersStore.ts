@@ -210,7 +210,7 @@ export default class UsersStore extends BaseStore<User> {
 
   notInCollection = (collectionId: string, query = "") => {
     const memberships = filter(
-      this.rootStore.memberships.orderedData,
+      this.rootStore.collectionMemberships.orderedData,
       (member) => member.collectionId === collectionId
     );
     const userIds = memberships.map((member) => member.userId);
@@ -226,8 +226,39 @@ export default class UsersStore extends BaseStore<User> {
 
   inCollection = (collectionId: string, query?: string) => {
     const memberships = filter(
-      this.rootStore.memberships.orderedData,
+      this.rootStore.collectionMemberships.orderedData,
       (member) => member.collectionId === collectionId
+    );
+    const userIds = memberships.map((member) => member.userId);
+    const users = filter(this.activeOrInvited, (user) =>
+      userIds.includes(user.id)
+    );
+    if (!query) {
+      return users;
+    }
+    return queriedUsers(users, query);
+  };
+
+  notInDocument = (documentId: string, query = "") => {
+    const memberships = filter(
+      this.rootStore.documentMemberships.orderedData,
+      (member) => member.documentId === documentId
+    );
+    const userIds = memberships.map((member) => member.userId);
+    const users = filter(
+      this.activeOrInvited,
+      (user) => !userIds.includes(user.id)
+    );
+    if (!query) {
+      return users;
+    }
+    return queriedUsers(users, query);
+  };
+
+  inDocument = (documentId: string, query?: string) => {
+    const memberships = filter(
+      this.rootStore.documentMemberships.orderedData,
+      (member) => member.documentId === documentId
     );
     const userIds = memberships.map((member) => member.userId);
     const users = filter(this.activeOrInvited, (user) =>

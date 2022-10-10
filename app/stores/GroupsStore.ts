@@ -71,6 +71,37 @@ export default class GroupsStore extends BaseStore<Group> {
     }
     return queriedGroups(groups, query);
   };
+
+  inDocument = (documentId: string, query?: string) => {
+    const memberships = filter(
+      this.rootStore.documentGroupMemberships.orderedData,
+      (member) => member.documentId === documentId
+    );
+    const groupIds = memberships.map((member) => member.groupId);
+    const groups = filter(this.orderedData, (group) =>
+      groupIds.includes(group.id)
+    );
+    if (!query) {
+      return groups;
+    }
+    return queriedGroups(groups, query);
+  };
+
+  notInDocument = (documentId: string, query = "") => {
+    const memberships = filter(
+      this.rootStore.documentGroupMemberships.orderedData,
+      (member) => member.documentId === documentId
+    );
+    const groupIds = memberships.map((member) => member.groupId);
+    const groups = filter(
+      this.orderedData,
+      (group) => !groupIds.includes(group.id)
+    );
+    if (!query) {
+      return groups;
+    }
+    return queriedGroups(groups, query);
+  };
 }
 
 function queriedGroups(groups: Group[], query: string) {

@@ -18,12 +18,14 @@ import {
   CrossIcon,
   ArchiveIcon,
   ShuffleIcon,
+  PadlockIcon,
 } from "outline-icons";
 import * as React from "react";
 import { getEventFiles } from "@shared/utils/files";
 import DocumentDelete from "~/scenes/DocumentDelete";
 import DocumentMove from "~/scenes/DocumentMove";
 import DocumentPermanentDelete from "~/scenes/DocumentPermanentDelete";
+import Permissions from "~/scenes/Permissions";
 import DocumentTemplatizeDialog from "~/components/DocumentTemplatizeDialog";
 import { createAction } from "~/actions";
 import { DocumentSection } from "~/actions/sections";
@@ -478,6 +480,25 @@ export const moveDocument = createAction({
   },
 });
 
+export const editDocumentPermissions = createAction({
+  name: ({ t, isContextMenu }) =>
+    isContextMenu ? t("Permissions") : t("Document permissions"),
+  section: DocumentSection,
+  icon: <PadlockIcon />,
+  visible: ({ stores, activeDocumentId }) =>
+    !!activeDocumentId && stores.policies.abilities(activeDocumentId).update,
+  perform: ({ activeDocumentId, stores, t }) => {
+    if (!activeDocumentId) {
+      return;
+    }
+
+    stores.dialogs.openModal({
+      title: t("Document permissions"),
+      content: <Permissions type="document" objectId={activeDocumentId} />,
+    });
+  },
+});
+
 export const archiveDocument = createAction({
   name: ({ t }) => t("Archive"),
   section: DocumentSection,
@@ -590,4 +611,5 @@ export const rootDocumentActions = [
   printDocument,
   pinDocumentToCollection,
   pinDocumentToHome,
+  editDocumentPermissions,
 ];

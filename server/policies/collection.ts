@@ -58,7 +58,9 @@ allow(User, ["read", "star", "unstar"], Collection, (user, collection) => {
       ...collection.collectionGroupMemberships,
     ];
     return some(allMemberships, (m) =>
-      Object.values(CollectionPermission).includes(m.permission)
+      [CollectionPermission.Read, CollectionPermission.ReadWrite].includes(
+        m.permission
+      )
     );
   }
 

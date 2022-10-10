@@ -37,6 +37,7 @@ import {
   starDocument,
   unstarDocument,
   duplicateDocument,
+  editDocumentPermissions,
   archiveDocument,
 } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
@@ -278,6 +279,7 @@ function DocumentMenu({
             actionToMenuItem(importDocument, context),
             actionToMenuItem(createTemplate, context),
             actionToMenuItem(duplicateDocument, context),
+            actionToMenuItem(editDocumentPermissions, context),
             {
               type: "button",
               title: t("Unpublish"),

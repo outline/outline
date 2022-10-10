@@ -44,7 +44,7 @@ const CollectionLink: React.FC<Props> = ({
   const { dialogs, documents, collections } = useStores();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const [isEditing, setIsEditing] = React.useState(false);
-  const canUpdate = usePolicy(collection).update;
+  const { read: canRead, update: canUpdate } = usePolicy(collection);
   const { t } = useTranslation();
   const history = useHistory();
   const inStarredSection = useStarredContext();
@@ -123,10 +123,14 @@ const CollectionLink: React.FC<Props> = ({
       <Relative ref={drop}>
         <DropToImport collectionId={collection.id}>
           <SidebarLink
-            to={{
-              pathname: collection.url,
-              state: { starred: inStarredSection },
-            }}
+            to={
+              !canRead
+                ? undefined
+                : {
+                    pathname: collection.url,
+                    state: { starred: inStarredSection },
+                  }
+            }
             expanded={expanded}
             onDisclosureClick={onDisclosureClick}
             icon={

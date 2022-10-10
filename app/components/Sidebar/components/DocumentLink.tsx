@@ -113,7 +113,9 @@ function InnerDocumentLink(
   );
 
   const handleMouseEnter = React.useCallback(() => {
-    prefetchDocument?.(node.id);
+    if (node.isAccessible !== false) {
+      prefetchDocument?.(node.id);
+    }
   }, [prefetchDocument, node]);
 
   const handleTitleChange = React.useCallback(
@@ -322,13 +324,17 @@ function InnerDocumentLink(
                 expanded={hasChildren ? isExpanded : undefined}
                 onDisclosureClick={handleDisclosureClick}
                 onMouseEnter={handleMouseEnter}
-                to={{
-                  pathname: node.url,
-                  state: {
-                    title: node.title,
-                    starred: inStarredSection,
-                  },
-                }}
+                to={
+                  node.isAccessible === false
+                    ? undefined
+                    : {
+                        pathname: node.url,
+                        state: {
+                          title: node.title,
+                          starred: inStarredSection,
+                        },
+                      }
+                }
                 label={
                   <EditableTitle
                     title={title}

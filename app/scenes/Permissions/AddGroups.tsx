@@ -6,6 +6,7 @@ import { withTranslation, WithTranslation } from "react-i18next";
 import styled from "styled-components";
 import RootStore from "~/stores/RootStore";
 import Collection from "~/models/Collection";
+import Document from "~/models/Document";
 import Group from "~/models/Group";
 import GroupNew from "~/scenes/GroupNew";
 import Button from "~/components/Button";
@@ -21,12 +22,12 @@ import withStores from "~/components/withStores";
 
 type Props = WithTranslation &
   RootStore & {
-    collection: Collection;
+    object: Collection | Document;
     onSubmit: () => void;
   };
 
 @observer
-class AddGroupsToCollection extends React.Component<Props> {
+class AddGroups extends React.Component<Props> {
   @observable
   newGroupModalOpen = false;
 
@@ -56,13 +57,22 @@ class AddGroupsToCollection extends React.Component<Props> {
     const { t } = this.props;
 
     try {
-      this.props.collectionGroupMemberships.create({
-        collectionId: this.props.collection.id,
-        groupId: group.id,
-      });
+      if (this.props.object instanceof Collection) {
+        this.props.collectionGroupMemberships.create({
+          collectionId: this.props.object.id,
+          groupId: group.id,
+        });
+      } else {
+        this.props.documentGroupMemberships.create({
+          documentId: this.props.object.id,
+          groupId: group.id,
+        });
+      }
       this.props.toasts.showToast(
-        t("{{ groupName }} was added to the collection", {
+        t("{{ groupName }} was added to the {{ type }}", {
           groupName: group.name,
+          type:
+            this.props.object instanceof Collection ? "collection" : "document",
         }),
         {
           type: "success",
@@ -77,13 +87,16 @@ class AddGroupsToCollection extends React.Component<Props> {
   };
 
   render() {
-    const { groups, policies, collection, auth, t } = this.props;
+    const { groups, policies, object, auth, t } = this.props;
     const { user, team } = auth;
     if (!user || !team) {
       return null;
     }
 
     const can = policies.abilities(team.id);
+
+    const notInMethod =
+      object instanceof Collection ? "notInCollection" : "notInDocument";
 
     return (
       <Flex column>
@@ -114,7 +127,7 @@ class AddGroupsToCollection extends React.Component<Props> {
               <Empty>{t("No groups left to add")}</Empty>
             )
           }
-          items={groups.notInCollection(collection.id, this.query)}
+          items={groups[notInMethod](object.id, this.query)}
           fetch={this.query ? undefined : groups.fetchPage}
           renderItem={(item: Group) => (
             <GroupListItem
@@ -149,4 +162,4 @@ const ButtonWrap = styled.div`
   margin-left: 6px;
 `;
 
-export default withTranslation()(withStores(AddGroupsToCollection));
+export default withTranslation()(withStores(AddGroups));

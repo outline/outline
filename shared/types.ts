@@ -29,6 +29,12 @@ export enum IntegrationType {
 }
 
 export enum CollectionPermission {
+  PartialRead = "partial_read",
+  Read = "read",
+  ReadWrite = "read_write",
+}
+
+export enum DocumentPermission {
   Read = "read",
   ReadWrite = "read_write",
 }

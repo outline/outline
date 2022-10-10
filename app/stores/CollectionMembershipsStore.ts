@@ -1,31 +1,33 @@
 import invariant from "invariant";
 import { action, runInAction } from "mobx";
 import { CollectionPermission } from "@shared/types";
-import Membership from "~/models/Membership";
+import CollectionMembership from "~/models/CollectionMembership";
 import { PaginationParams } from "~/types";
 import { client } from "~/utils/ApiClient";
 import BaseStore, { PAGINATION_SYMBOL, RPCAction } from "./BaseStore";
 import RootStore from "./RootStore";
 
-export default class MembershipsStore extends BaseStore<Membership> {
+export default class CollectionMembershipsStore extends BaseStore<
+  CollectionMembership
+> {
   actions = [RPCAction.Create, RPCAction.Delete];
 
   constructor(rootStore: RootStore) {
-    super(rootStore, Membership);
+    super(rootStore, CollectionMembership);
   }
 
   @action
   fetchPage = async (
     params: PaginationParams | undefined
-  ): Promise<Membership[]> => {
+  ): Promise<CollectionMembership[]> => {
     this.isFetching = true;
 
     try {
       const res = await client.post(`/collections.memberships`, params);
       invariant(res?.data, "Data not available");
 
-      let response: Membership[] = [];
-      runInAction(`MembershipsStore#fetchPage`, () => {
+      let response: CollectionMembership[] = [];
+      runInAction(`CollectionMembershipsStore#fetchPage`, () => {
         res.data.users.forEach(this.rootStore.users.add);
         response = res.data.memberships.map(this.add);
         this.isLoaded = true;

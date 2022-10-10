@@ -14,6 +14,10 @@ export { default as CollectionUser } from "./CollectionUser";
 
 export { default as Document } from "./Document";
 
+export { default as DocumentGroup } from "./DocumentGroup";
+
+export { default as DocumentUser } from "./DocumentUser";
+
 export { default as Event } from "./Event";
 
 export { default as FileOperation } from "./FileOperation";

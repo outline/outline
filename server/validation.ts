@@ -1,7 +1,7 @@
 import { isArrayLike } from "lodash";
 import { Primitive } from "utility-types";
 import validator from "validator";
-import { CollectionPermission } from "../shared/types";
+import { CollectionPermission, DocumentPermission } from "../shared/types";
 import { validateColorHex } from "../shared/utils/color";
 import { validateIndexCharacters } from "../shared/utils/indexCharacters";
 import { ParamRequiredError, ValidationError } from "./errors";
@@ -166,4 +166,11 @@ export const assertCollectionPermission = (
   message = "Invalid permission"
 ) => {
   assertIn(value, [...Object.values(CollectionPermission), null], message);
+};
+
+export const assertDocumentPermission = (
+  value: string,
+  message = "Invalid permission"
+) => {
+  assertIn(value, [...Object.values(DocumentPermission), null], message);
 };

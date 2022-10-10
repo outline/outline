@@ -23,7 +23,10 @@ router.post("subscriptions.list", auth(), pagination(), async (ctx) => {
     `Not a valid subscription event for documents`
   );
 
-  const document = await Document.findByPk(documentId, { userId: user.id });
+  const document = await Document.findByPk(documentId, {
+    userId: user.id,
+    includeMemberships: true,
+  });
 
   authorize(user, "read", document);
 
@@ -56,7 +59,10 @@ router.post("subscriptions.info", auth(), async (ctx) => {
     "Not a valid subscription event for documents"
   );
 
-  const document = await Document.findByPk(documentId, { userId: user.id });
+  const document = await Document.findByPk(documentId, {
+    userId: user.id,
+    includeMemberships: true,
+  });
 
   authorize(user, "read", document);
 

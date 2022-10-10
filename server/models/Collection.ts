@@ -222,6 +222,21 @@ class Collection extends ParanoidModel {
     return `/collection/${slugify(this.name)}-${this.urlId}`;
   }
 
+  get documentIds(): Array<string> | null {
+    if (!this.documentStructure) {
+      return null;
+    }
+    const result = [] as string[];
+    const dfs = (nodes: NavigationNode[]) => {
+      nodes.forEach(({ id, children }) => {
+        result.push(id);
+        dfs(children);
+      });
+    };
+    dfs(this.documentStructure);
+    return result;
+  }
+
   // hooks
 
   @BeforeValidate
@@ -385,6 +400,72 @@ class Collection extends ParanoidModel {
         Sequelize.literal('"collection"."index" collate "C"'),
         ["updatedAt", "DESC"],
       ],
+    });
+  }
+
+  static async setDocumentStructureForUser(
+    collections: Collection[],
+    userId: string
+  ) {
+    const filteredCollections = collections.filter((collection) => {
+      if (
+        collection.permission ||
+        !collection.documentStructure ||
+        collection.documentStructure.length < 1
+      ) {
+        return false;
+      }
+
+      const readAccess =
+        collection.memberships.find(
+          (m) => m.permission !== CollectionPermission.PartialRead
+        ) ??
+        collection.collectionGroupMemberships.find(
+          (m) => m.permission !== CollectionPermission.PartialRead
+        );
+      return !readAccess;
+    });
+
+    const allowedDocumentIds = await Document.scope({
+      method: ["withMembership", userId, "DocumentUser"],
+    })
+      .findAll({
+        where: {
+          collectionId: filteredCollections.map(({ id }) => id),
+        },
+        attributes: ["id"],
+      })
+      .then((docs) => docs.map(({ id }) => id));
+    allowedDocumentIds.push(
+      ...(await Document.scope({
+        method: ["withMembership", userId, "DocumentGroup"],
+      })
+        .findAll({
+          where: {
+            collectionId: filteredCollections.map(({ id }) => id),
+          },
+          attributes: ["id"],
+        })
+        .then((docs) => docs.map(({ id }) => id)))
+    );
+
+    const parseChildren = (children: NavigationNode[]) => {
+      return children.reduce((acc, value) => {
+        const isAccessible = allowedDocumentIds.includes(value.id);
+        const children = parseChildren(value.children);
+
+        if (isAccessible || children.length > 0) {
+          acc.push({ ...value, children, isAccessible });
+        }
+        return acc;
+      }, [] as typeof children);
+    };
+
+    filteredCollections.forEach((c) => {
+      c.documentStructure = parseChildren(c.documentStructure!);
+      // Sequelize doesn't seem to set the value with splice on JSONB field
+      // https://github.com/sequelize/sequelize/blob/e1446837196c07b8ff0c23359b958d68af40fd6d/src/model.js#L3937
+      c.changed("documentStructure", true);
     });
   }
 
