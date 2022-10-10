@@ -298,7 +298,7 @@
     "@types/throng": "^5.0.3",
     "@types/tmp": "^0.2.2",
     "@types/turndown": "^5.0.1",
-    "@types/utf8": "^3.0.0",
+    "@types/utf8": "^3.0.1",
     "@types/validator": "^13.7.1",
     "@typescript-eslint/eslint-plugin": "^5.3.1",
     "@typescript-eslint/parser": "^5.3.1",
