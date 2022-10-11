@@ -72,80 +72,87 @@ router.post(
   }
 );
 
-router.post("teams.create", auth(), async (ctx) => {
-  const { user } = ctx.state;
-  const { name } = ctx.body;
+router.post(
+  "teams.create",
+  auth(),
+  rateLimiter(RateLimiterStrategy.FivePerHour),
+  async (ctx) => {
+    const { user } = ctx.state;
+    const { name } = ctx.body;
 
-  const existingTeam = await Team.scope("withAuthenticationProviders").findByPk(
-    user.teamId
-  );
-
-  authorize(user, "createTeam", existingTeam);
-
-  const authenticationProviders = existingTeam?.authenticationProviders.map(
-    (provider) => {
-      return {
-        name: provider.name,
-        providerId: provider.providerId,
-      };
-    }
-  );
-
-  invariant(
-    authenticationProviders?.length,
-    "authentication providers must exist"
-  );
-
-  const team = await sequelize.transaction(async (transaction) => {
-    const team = await teamCreator({
-      name,
-      subdomain: name,
-      authenticationProviders,
-      ip: ctx.ip,
-      transaction,
+    const existingTeam = await Team.scope(
+      "withAuthenticationProviders"
+    ).findByPk(user.teamId, {
+      rejectOnEmpty: true,
     });
 
-    const newUser = await User.create(
-      {
-        teamId: team.id,
-        name: user.name,
-        email: user.email,
-        isAdmin: true,
-        avatarUrl: user.avatarUrl,
-      },
-      { transaction }
+    authorize(user, "createTeam", existingTeam);
+
+    const authenticationProviders = existingTeam.authenticationProviders.map(
+      (provider) => {
+        return {
+          name: provider.name,
+          providerId: provider.providerId,
+        };
+      }
     );
 
-    await Event.create(
-      {
-        name: "users.create",
-        actorId: user.id,
-        userId: newUser.id,
-        teamId: newUser.teamId,
-        data: {
-          name: newUser.name,
-        },
+    invariant(
+      authenticationProviders?.length,
+      "Team must have at least one authentication provider"
+    );
+
+    const team = await sequelize.transaction(async (transaction) => {
+      const team = await teamCreator({
+        name,
+        subdomain: name,
+        authenticationProviders,
         ip: ctx.ip,
+        transaction,
+      });
+
+      const newUser = await User.create(
+        {
+          teamId: team.id,
+          name: user.name,
+          email: user.email,
+          isAdmin: true,
+          avatarUrl: user.avatarUrl,
+        },
+        { transaction }
+      );
+
+      await Event.create(
+        {
+          name: "users.create",
+          actorId: user.id,
+          userId: newUser.id,
+          teamId: newUser.teamId,
+          data: {
+            name: newUser.name,
+          },
+          ip: ctx.ip,
+        },
+        { transaction }
+      );
+
+      return team;
+    });
+
+    const newUser = await User.findOne({
+      where: { email: user.email, teamId: team.id },
+    });
+
+    ctx.body = {
+      success: true,
+      data: {
+        team: presentTeam(team),
+        transferUrl: `${
+          team.url
+        }/auth/redirect?token=${newUser?.getTransferToken()}`,
       },
-      { transaction }
-    );
-
-    return team;
-  });
-
-  const newUser = await User.findOne({
-    where: { email: user.email, teamId: team.id },
-  });
-
-  ctx.body = {
-    success: true,
-    data: {
-      team: presentTeam(team),
-      transferUrl: `${
-        team.url
-      }/auth/redirect?token=${newUser?.getTransferToken()}`,
-    },
-  };
-});
+    };
+  }
+);
 
 export default router;
