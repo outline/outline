@@ -220,6 +220,7 @@ function Invite({ onSubmit }: Props) {
             onChange={(ev) => handleChange(ev, index)}
             value={invite.name}
             required={!!invite.email}
+            flex
           />
           <InputSelectRole
             onChange={(role: Role) => handleRoleChange(role, index)}
@@ -234,6 +235,11 @@ function Invite({ onSubmit }: Props) {
                   <CloseIcon />
                 </NudeButton>
               </Tooltip>
+            </Remove>
+          )}
+          {index === 0 && invites.length > 1 && (
+            <Remove>
+              <Spacer />
             </Remove>
           )}
         </Flex>
@@ -272,9 +278,12 @@ const CopyBlock = styled("div")`
 `;
 
 const Remove = styled("div")`
-  margin-top: 6px;
-  position: absolute;
-  right: -32px;
+  margin-top: 4px;
+`;
+
+const Spacer = styled.div`
+  width: 24px;
+  height: 24px;
 `;
 
 export default observer(Invite);
