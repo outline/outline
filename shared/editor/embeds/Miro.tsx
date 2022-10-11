@@ -2,23 +2,23 @@ import * as React from "react";
 import Frame from "../components/Frame";
 import { EmbedProps as Props } from ".";
 
-const URL_REGEX = /^https:\/\/(realtimeboard|miro)\.com\/app\/board\/(.*)$/;
+function RealtimeBoard(props: Props) {
+  const { matches } = props.attrs;
+  const domain = matches[1];
+  const boardId = matches[2];
+  const titleName = domain === "realtimeboard" ? "RealtimeBoard" : "Miro";
 
-export default class RealtimeBoard extends React.Component<Props> {
-  static ENABLED = [URL_REGEX];
-
-  render() {
-    const { matches } = this.props.attrs;
-    const domain = matches[1];
-    const boardId = matches[2];
-    const titleName = domain === "realtimeboard" ? "RealtimeBoard" : "Miro";
-
-    return (
-      <Frame
-        {...this.props}
-        src={`https://${domain}.com/app/embed/${boardId}`}
-        title={`${titleName} (${boardId})`}
-      />
-    );
-  }
+  return (
+    <Frame
+      {...props}
+      src={`https://${domain}.com/app/embed/${boardId}`}
+      title={`${titleName} (${boardId})`}
+    />
+  );
 }
+
+RealtimeBoard.ENABLED = [
+  /^https:\/\/(realtimeboard|miro)\.com\/app\/board\/(.*)$/,
+];
+
+export default RealtimeBoard;
