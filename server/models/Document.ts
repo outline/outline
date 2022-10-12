@@ -647,8 +647,12 @@ class Document extends ParanoidModel {
         : ""
     }
     ${options.includeArchived ? "" : '"archivedAt" IS NULL AND'}
-    ${!options.includeDrafts ? '"publishedAt" IS NOT NULL AND' : ""}
-    "deletedAt" IS NULL
+    "deletedAt" IS NULL AND
+    ${
+      options.includeDrafts
+        ? '("publishedAt" IS NOT NULL OR "createdById" = :userId)'
+        : '"publishedAt" IS NOT NULL'
+    }
   `;
     const selectSql = `
   SELECT
