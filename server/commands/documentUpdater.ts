@@ -112,7 +112,7 @@ export default async function documentUpdater({
   }
 
   if (document.title !== previousTitle) {
-    Event.schedule({
+    await Event.schedule({
       name: "documents.title_change",
       documentId: document.id,
       collectionId: document.collectionId,
