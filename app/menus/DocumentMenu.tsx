@@ -40,14 +40,13 @@ import {
   archiveDocument,
 } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
-import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
+import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import { MenuItem } from "~/types";
-import Logger from "~/utils/Logger";
 import {
   documentHistoryUrl,
   documentUrl,
@@ -97,34 +96,23 @@ function DocumentMenu({
   });
   const { t } = useTranslation();
   const isMobile = useMobile();
-  const [subscriptionsLoaded, onLoad, onError] = useBoolean(false);
   const file = React.useRef<HTMLInputElement>(null);
+  const { data, loading, request } = useRequest(() =>
+    subscriptions.fetchPage({
+      documentId: document.id,
+      event: "documents.update",
+    })
+  );
 
   const handleOpen = React.useCallback(async () => {
-    if (document?.id && !subscriptionsLoaded) {
-      try {
-        await subscriptions.fetchPage({
-          documentId: document.id,
-          event: "documents.update",
-        });
-        onLoad();
-      } catch (err) {
-        onError();
-        Logger.error("Failed to fetch subscriptions", err);
-      }
+    if (!data && !loading) {
+      request();
     }
 
     if (onOpen) {
       onOpen();
     }
-  }, [
-    document?.id,
-    subscriptions,
-    onOpen,
-    subscriptionsLoaded,
-    onLoad,
-    onError,
-  ]);
+  }, [data, loading, onOpen, request]);
 
   const handleRestore = React.useCallback(
     async (
