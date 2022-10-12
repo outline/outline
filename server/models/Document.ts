@@ -628,16 +628,15 @@ class Document extends ParanoidModel {
 
     // Build the SQL query to get documentIds, ranking, and search term context
     const whereClause = `
-  "searchVector" @@ to_tsquery('english', :query) AND
+    "searchVector" @@ to_tsquery('english', :query) AND
     "teamId" = :teamId AND
     ${
-      options.includeDrafts
-        ? collectionIds.length
-          ? '("collectionId" IN(:collectionIds) OR "collectionId" IS NULL) AND'
-          : '"collectionId" IS NULL AND'
-        : collectionIds.length
-        ? '"collectionId" IN(:collectionIds) AND'
-        : ""
+      collectionIds.length
+        ? `(
+          "collectionId" IN(:collectionIds) OR
+          ("collectionId" IS NULL AND "createdById" = :userId)
+        ) AND`
+        : '"collectionId" IS NULL AND "createdById" = :userId AND'
     }
     ${
       options.dateFilter ? '"updatedAt" > now() - interval :dateFilter AND' : ""
@@ -648,12 +647,8 @@ class Document extends ParanoidModel {
         : ""
     }
     ${options.includeArchived ? "" : '"archivedAt" IS NULL AND'}
-    "deletedAt" IS NULL AND
-    ${
-      options.includeDrafts
-        ? '("publishedAt" IS NOT NULL OR "createdById" = :userId)'
-        : '"publishedAt" IS NOT NULL'
-    }
+    ${!options.includeDrafts ? '"publishedAt" IS NOT NULL AND' : ""}
+    "deletedAt" IS NULL
   `;
     const selectSql = `
   SELECT
