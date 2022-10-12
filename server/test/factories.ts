@@ -351,7 +351,7 @@ export async function buildDocument(
     overrides.userId = user.id;
   }
 
-  if (!overrides.collectionId && !isNull(overrides.collectionId)) {
+  if (overrides.collectionId === undefined) {
     const collection = await buildCollection({
       teamId: overrides.teamId,
       userId: overrides.userId,
