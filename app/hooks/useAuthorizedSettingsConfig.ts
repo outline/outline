@@ -17,7 +17,6 @@ import {
 import React from "react";
 import { useTranslation } from "react-i18next";
 import Details from "~/scenes/Settings/Details";
-import Drawio from "~/scenes/Settings/Drawio";
 import Export from "~/scenes/Settings/Export";
 import Features from "~/scenes/Settings/Features";
 import Groups from "~/scenes/Settings/Groups";
@@ -27,6 +26,7 @@ import Notifications from "~/scenes/Settings/Notifications";
 import Preferences from "~/scenes/Settings/Preferences";
 import Profile from "~/scenes/Settings/Profile";
 import Security from "~/scenes/Settings/Security";
+import SelfHosted from "~/scenes/Settings/SelfHosted";
 import Shares from "~/scenes/Settings/Shares";
 import Slack from "~/scenes/Settings/Slack";
 import Tokens from "~/scenes/Settings/Tokens";
@@ -183,10 +183,10 @@ const useAuthorizedSettingsConfig = () => {
         group: t("Integrations"),
         icon: WebhooksIcon,
       },
-      Drawio: {
-        name: t("Draw.io"),
-        path: "/settings/integrations/drawio",
-        component: Drawio,
+      SelfHosted: {
+        name: t("Self Hosted"),
+        path: "/settings/integrations/self-hosted",
+        component: SelfHosted,
         enabled: can.update,
         group: t("Integrations"),
         icon: BuildingBlocksIcon,
@@ -209,12 +209,13 @@ const useAuthorizedSettingsConfig = () => {
       },
     }),
     [
-      can.createApiKey,
-      can.createWebhookSubscription,
-      can.createExport,
-      can.createImport,
-      can.update,
       t,
+      can.createApiKey,
+      can.update,
+      can.createImport,
+      can.createExport,
+      can.createWebhookSubscription,
+      team.collaborativeEditing,
     ]
   );
 

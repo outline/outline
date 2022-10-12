@@ -1,3 +1,4 @@
+import { find } from "lodash";
 import { observer } from "mobx-react";
 import { BuildingBlocksIcon } from "outline-icons";
 import * as React from "react";
@@ -14,37 +15,40 @@ import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 
 type FormData = {
-  url: string;
+  drawIoUrl: string;
 };
 
-const SERVICE_NAME = "diagrams";
-
-function Drawio() {
+function SelfHosted() {
   const { integrations } = useStores();
   const { t } = useTranslation();
   const { showToast } = useToasts();
 
+  const integration = find(integrations.orderedData, {
+    type: IntegrationType.Embed,
+    service: "diagrams",
+  }) as Integration<IntegrationType.Embed> | undefined;
+
+  const {
+    register,
+    reset,
+    handleSubmit: formHandleSubmit,
+    formState,
+  } = useForm<FormData>({
+    mode: "all",
+    defaultValues: {
+      drawIoUrl: integration?.settings.url,
+    },
+  });
+
   React.useEffect(() => {
     integrations.fetchPage({
-      service: SERVICE_NAME,
       type: IntegrationType.Embed,
     });
   }, [integrations]);
 
-  const integration = integrations.orderedData.find(
-    (integration) =>
-      integration.type === IntegrationType.Embed &&
-      integration.service === SERVICE_NAME
-  ) as Integration<IntegrationType.Embed> | undefined;
-
-  const { register, handleSubmit: formHandleSubmit, formState } = useForm<
-    FormData
-  >({
-    mode: "all",
-    defaultValues: {
-      url: integration?.settings.url,
-    },
-  });
+  React.useEffect(() => {
+    reset({ drawIoUrl: integration?.settings.url });
+  }, [integration, reset]);
 
   const handleSubmit = React.useCallback(
     async (data: FormData) => {
@@ -52,9 +56,9 @@ function Drawio() {
         await integrations.save({
           id: integration?.id,
           type: IntegrationType.Embed,
-          service: SERVICE_NAME,
+          service: "diagrams",
           settings: {
-            url: data.url,
+            url: data.drawIoUrl,
           },
         });
 
@@ -71,8 +75,11 @@ function Drawio() {
   );
 
   return (
-    <Scene title="Draw.io" icon={<BuildingBlocksIcon color="currentColor" />}>
-      <Heading>Draw.io</Heading>
+    <Scene
+      title={t("Self Hosted")}
+      icon={<BuildingBlocksIcon color="currentColor" />}
+    >
+      <Heading>{t("Self Hosted")}</Heading>
 
       <Text type="secondary">
         <Trans>
@@ -83,9 +90,9 @@ function Drawio() {
           <p>
             <Input
               label={t("Draw.io deployment")}
-              placeholder={"https://app.diagrams.net/"}
+              placeholder="https://app.diagrams.net/"
               pattern="https?://.*"
-              {...register("url", {
+              {...register("drawIoUrl", {
                 required: true,
               })}
             />
@@ -99,4 +106,4 @@ function Drawio() {
   );
 }
 
-export default observer(Drawio);
+export default observer(SelfHosted);
