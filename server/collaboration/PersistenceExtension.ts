@@ -16,6 +16,10 @@ import markdownToYDoc from "./utils/markdownToYDoc";
   spanName: "persistence",
 })
 export default class PersistenceExtension implements Extension {
+  /**
+   * Map of documentId -> userIds that have modified the document since it
+   * was last persisted to the database. The map is cleared on every save.
+   */
   documentCollaboratorIds = new Map<string, Set<string>>();
 
   async onLoadDocument({ documentName, ...data }: onLoadDocumentPayload) {
@@ -83,6 +87,8 @@ export default class PersistenceExtension implements Extension {
   }: onStoreDocumentPayload) {
     const [, documentId] = documentName.split(".");
 
+    // Find the collaborators that have modified the document since it was last
+    // persisted and clear the map.
     const documentCollaboratorIds = this.documentCollaboratorIds.get(
       documentName
     );
@@ -97,7 +103,7 @@ export default class PersistenceExtension implements Extension {
         ydoc: document,
         // TODO: Right now we're attributing all changes to the last editor,
         // It would be nice in the future to have multiple editors per revision.
-        userId: collaboratorIds[0],
+        userId: collaboratorIds.pop(),
       });
     } catch (err) {
       Logger.error("Unable to persist document", err, {
