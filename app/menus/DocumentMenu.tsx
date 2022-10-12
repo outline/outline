@@ -43,6 +43,7 @@ import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
+import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import { MenuItem } from "~/types";
@@ -79,7 +80,7 @@ function DocumentMenu({
   onClose,
 }: Props) {
   const team = useCurrentTeam();
-  const { policies, collections, documents } = useStores();
+  const { policies, collections, documents, subscriptions } = useStores();
   const { showToast } = useToasts();
   const menu = useMenuState({
     modal,
@@ -96,6 +97,22 @@ function DocumentMenu({
   const { t } = useTranslation();
   const isMobile = useMobile();
   const file = React.useRef<HTMLInputElement>(null);
+  const { data, loading, request } = useRequest(() =>
+    subscriptions.fetchPage({
+      documentId: document.id,
+      event: "documents.update",
+    })
+  );
+
+  const handleOpen = React.useCallback(async () => {
+    if (!data && !loading) {
+      request();
+    }
+
+    if (onOpen) {
+      onOpen();
+    }
+  }, [data, loading, onOpen, request]);
 
   const handleRestore = React.useCallback(
     async (
@@ -219,7 +236,7 @@ function DocumentMenu({
       <ContextMenu
         {...menu}
         aria-label={t("Document options")}
-        onOpen={onOpen}
+        onOpen={handleOpen}
         onClose={onClose}
       >
         <Template
