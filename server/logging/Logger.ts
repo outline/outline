@@ -11,7 +11,7 @@ const isProduction = env.ENVIRONMENT === "production";
 
 type LogCategory =
   | "lifecycle"
-  | "hocuspocus"
+  | "multiplayer"
   | "http"
   | "commands"
   | "worker"
