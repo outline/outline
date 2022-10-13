@@ -198,11 +198,6 @@ export class Environment {
   public DEPLOYMENT = this.toOptionalString(process.env.DEPLOYMENT);
 
   /**
-   * Custom company logo that displays on the authentication screen.
-   */
-  public TEAM_LOGO = process.env.TEAM_LOGO;
-
-  /**
    * The default interface language. See translate.getoutline.com for a list of
    * available language codes and their percentage translated.
    */

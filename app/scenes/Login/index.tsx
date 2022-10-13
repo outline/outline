@@ -174,8 +174,8 @@ function Login({ children }: Props) {
       <Centered align="center" justify="center" gap={12} column auto>
         <PageTitle title={t("Login")} />
         <Logo>
-          {env.TEAM_LOGO && !isCloudHosted ? (
-            <TeamLogo src={env.TEAM_LOGO} />
+          {!isCloudHosted && config.logo ? (
+            <TeamLogo src={config.logo} />
           ) : (
             <OutlineLogo size={38} fill="currentColor" />
           )}
