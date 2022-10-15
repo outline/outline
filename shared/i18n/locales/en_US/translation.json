@@ -660,7 +660,7 @@
   "Seamless editing": "Seamless editing",
   "When enabled documents are always editable for team members that have permission. When disabled there is a separate editing view.": "When enabled documents are always editable for team members that have permission. When disabled there is a separate editing view.",
   "Public branding": "Public branding",
-  "Whether to use team logo across entire application for branding, take Login screen as one example.": "Whether to use team logo across entire application for branding, take Login screen as one example.",
+  "Show your team’s logo on public pages like login and shared documents.": "Show your team’s logo on public pages like login and shared documents.",
   "New group": "New group",
   "Groups can be used to organize and manage the people on your team.": "Groups can be used to organize and manage the people on your team.",
   "All groups": "All groups",

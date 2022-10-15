@@ -10,7 +10,6 @@ import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
-import isCloudHosted from "~/utils/isCloudHosted";
 import SettingRow from "./components/SettingRow";
 
 function Features() {
@@ -58,12 +57,12 @@ function Features() {
           />
         </SettingRow>
       )}
-      {team.avatarUrl && !isCloudHosted && (
+      {team.avatarUrl && (
         <SettingRow
           name="publicBranding"
           label={t("Public branding")}
           description={t(
-            "Whether to use team logo across entire application for branding, take Login screen as one example."
+            "Show your team’s logo on public pages like login and shared documents."
           )}
         >
           <Switch
