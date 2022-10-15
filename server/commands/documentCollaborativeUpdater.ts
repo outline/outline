@@ -77,7 +77,7 @@ export default async function documentCollaborativeUpdater({
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
-      actorId: userId,
+      actorId: userId ?? document.lastModifiedById,
       data: {
         multiplayer: true,
         title: document.title,
