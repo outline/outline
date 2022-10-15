@@ -323,6 +323,13 @@ export class Environment {
   public SENTRY_DSN = this.toOptionalString(process.env.SENTRY_DSN);
 
   /**
+   * Sentry tunnel URL for bypassing ad blockers
+   */
+  @IsUrl()
+  @IsOptional()
+  public SENTRY_TUNNEL = this.toOptionalString(process.env.SENTRY_TUNNEL);
+
+  /**
    * A release SHA or other identifier for Sentry.
    */
   public RELEASE = this.toOptionalString(process.env.RELEASE);
