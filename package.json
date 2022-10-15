@@ -67,7 +67,7 @@
     "@sentry/node": "^7.14.0",
     "@sentry/react": "^7.14.0",
     "@sentry/tracing": "^7.14.0",
-    "@theo.gravity/datadog-apm": "2.2.0",
+    "@theo.gravity/datadog-apm": "^3.0.0",
     "@tippyjs/react": "^4.2.6",
     "@tommoor/remove-markdown": "^0.3.2",
     "@types/mermaid": "^8.2.9",
