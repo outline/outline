@@ -102,7 +102,7 @@ router.post(
       "Team must have at least one authentication provider"
     );
 
-    const team = await sequelize.transaction(async (transaction) => {
+    const [team, newUser] = await sequelize.transaction(async (transaction) => {
       const team = await teamCreator({
         name,
         subdomain: name,
@@ -136,11 +136,7 @@ router.post(
         { transaction }
       );
 
-      return team;
-    });
-
-    const newUser = await User.findOne({
-      where: { email: user.email, teamId: team.id },
+      return [team, newUser];
     });
 
     ctx.body = {
