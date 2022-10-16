@@ -30,6 +30,7 @@ router.post("authenticationProviders.update", auth(), async (ctx) => {
   assertPresent(isEnabled, "isEnabled is required");
   const { user } = ctx.state;
   const authenticationProvider = await AuthenticationProvider.findByPk(id);
+
   authorize(user, "update", authenticationProvider);
   const enabled = !!isEnabled;
 

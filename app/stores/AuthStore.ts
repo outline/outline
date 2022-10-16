@@ -264,6 +264,20 @@ export default class AuthStore {
   };
 
   @action
+  createTeam = async (params: { name: string }) => {
+    this.isSaving = true;
+
+    try {
+      const res = await client.post(`/teams.create`, params);
+      invariant(res?.success, "Unable to create team");
+
+      window.location.href = res.data.transferUrl;
+    } finally {
+      this.isSaving = false;
+    }
+  };
+
+  @action
   logout = async (savePath = false) => {
     // if this logout was forced from an authenticated route then
     // save the current path so we can go back there once signed in

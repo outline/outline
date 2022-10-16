@@ -55,7 +55,7 @@ export type TeamPreferences = Record<string, unknown>;
 @Fix
 class Team extends ParanoidModel {
   @NotContainsUrl
-  @Length({ max: 255, msg: "name must be 255 characters or less" })
+  @Length({ min: 2, max: 255, msg: "name must be between 2 to 255 characters" })
   @Column
   name: string;
 

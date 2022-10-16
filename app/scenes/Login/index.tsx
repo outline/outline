@@ -185,7 +185,7 @@ function Login({ children }: Props) {
             <StyledHeading centered>{t("Create an account")}</StyledHeading>
             <GetStarted>
               {t(
-                "Get started by choosing a sign-in method for your new team below…"
+                "Get started by choosing a sign-in method for your new workspace below…"
               )}
             </GetStarted>
           </>
