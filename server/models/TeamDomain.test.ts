@@ -1,16 +1,9 @@
 import env from "@server/env";
 import { buildAdmin, buildTeam } from "@server/test/factories";
-import { getTestDatabase } from "@server/test/support";
+import { setupTestDatabase } from "@server/test/support";
 import TeamDomain from "./TeamDomain";
 
-const db = getTestDatabase();
-
-afterAll(db.disconnect);
-
-beforeEach(async () => {
-  await db.flush();
-  jest.resetAllMocks();
-});
+setupTestDatabase();
 
 describe("team domain model", () => {
   describe("create", () => {

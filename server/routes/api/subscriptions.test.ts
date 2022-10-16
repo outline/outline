@@ -4,14 +4,9 @@ import {
   buildSubscription,
   buildDocument,
 } from "@server/test/factories";
-import { getTestDatabase, getTestServer } from "@server/test/support";
+import { getTestServer } from "@server/test/support";
 
-const db = getTestDatabase();
 const server = getTestServer();
-
-afterAll(server.disconnect);
-
-beforeEach(db.flush);
 
 describe("#subscriptions.create", () => {
   it("should create a subscription", async () => {

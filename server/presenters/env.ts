@@ -15,6 +15,7 @@ export default function present(env: Environment): PublicEnv {
     DEPLOYMENT: env.DEPLOYMENT,
     ENVIRONMENT: env.ENVIRONMENT,
     SENTRY_DSN: env.SENTRY_DSN,
+    SENTRY_TUNNEL: env.SENTRY_TUNNEL,
     TEAM_LOGO: env.TEAM_LOGO,
     SLACK_CLIENT_ID: env.SLACK_CLIENT_ID,
     SLACK_APP_ID: env.SLACK_APP_ID,

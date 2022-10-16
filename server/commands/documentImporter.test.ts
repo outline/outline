@@ -2,16 +2,12 @@ import path from "path";
 import fs from "fs-extra";
 import Attachment from "@server/models/Attachment";
 import { buildUser } from "@server/test/factories";
-import { getTestDatabase } from "@server/test/support";
+import { setupTestDatabase } from "@server/test/support";
 import documentImporter from "./documentImporter";
 
 jest.mock("../utils/s3");
 
-const db = getTestDatabase();
-
-afterAll(db.disconnect);
-
-beforeEach(db.flush);
+setupTestDatabase();
 
 describe("documentImporter", () => {
   const ip = "127.0.0.1";

@@ -427,7 +427,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
     const embedItems: EmbedDescriptor[] = [];
 
     for (const embed of embeds) {
-      if (embed.title) {
+      if (embed.title && embed.visible !== false) {
         embedItems.push(
           new EmbedDescriptor({
             ...embed,
