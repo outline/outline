@@ -1,13 +1,8 @@
 import { v4 as uuidv4 } from "uuid";
 import { buildUser, buildAdmin, buildTeam } from "@server/test/factories";
-import { getTestDatabase, getTestServer } from "@server/test/support";
+import { getTestServer } from "@server/test/support";
 
-const db = getTestDatabase();
 const server = getTestServer();
-
-afterAll(server.disconnect);
-
-beforeEach(db.flush);
 
 describe("#authenticationProviders.info", () => {
   it("should return auth provider", async () => {

@@ -1,13 +1,8 @@
 import { Event } from "@server/models";
 import { buildUser, buildAdmin, buildGroup } from "@server/test/factories";
-import { getTestDatabase, getTestServer } from "@server/test/support";
+import { getTestServer } from "@server/test/support";
 
-const db = getTestDatabase();
 const server = getTestServer();
-
-afterAll(server.disconnect);
-
-beforeEach(db.flush);
 
 describe("#groups.create", () => {
   it("should create a group", async () => {

@@ -1,7 +1,6 @@
 import { buildTeam, buildAdmin, buildUser } from "@server/test/factories";
-import { seed, getTestDatabase, getTestServer } from "@server/test/support";
+import { seed, getTestServer } from "@server/test/support";
 
-const db = getTestDatabase();
 const server = getTestServer();
 
 beforeAll(() => {
@@ -9,10 +8,7 @@ beforeAll(() => {
 });
 afterAll(() => {
   jest.useRealTimers();
-  server.disconnect();
 });
-
-beforeEach(db.flush);
 
 describe("#users.list", () => {
   it("should allow filtering by user name", async () => {
