@@ -417,6 +417,24 @@ describe("#collections.add_user", () => {
     expect(users.length).toEqual(2);
   });
 
+  it("should not allow add self", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      permission: null,
+    });
+    const res = await server.post("/api/collections.add_user", {
+      body: {
+        token: user.getJwtToken(),
+        id: collection.id,
+        userId: user.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(403);
+    expect(body).toMatchSnapshot();
+  });
+
   it("should require user in team", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
