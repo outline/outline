@@ -1,13 +1,9 @@
 import { Pin, Event } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
-import { getTestDatabase } from "@server/test/support";
+import { setupTestDatabase } from "@server/test/support";
 import pinDestroyer from "./pinDestroyer";
 
-const db = getTestDatabase();
-
-afterAll(db.disconnect);
-
-beforeEach(db.flush);
+setupTestDatabase();
 
 describe("pinCreator", () => {
   const ip = "127.0.0.1";

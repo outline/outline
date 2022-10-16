@@ -3,7 +3,7 @@ import Frame from "../components/Frame";
 import { EmbedProps as Props } from ".";
 
 export default function ClickUp(props: Props) {
-  return <Frame {...props} src={this.props.attrs.href} title="ClickUp Embed" />;
+  return <Frame {...props} src={props.attrs.href} title="ClickUp Embed" />;
 }
 
 ClickUp.ENABLED = [

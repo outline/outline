@@ -1,13 +1,9 @@
 import env from "@server/env";
 import { buildUser, buildTeam, buildAdmin } from "@server/test/factories";
-import { getTestDatabase } from "@server/test/support";
+import { setupTestDatabase } from "@server/test/support";
 import { serialize } from "./index";
 
-const db = getTestDatabase();
-
-afterAll(db.disconnect);
-
-beforeEach(db.flush);
+setupTestDatabase();
 
 it("should allow reading only", async () => {
   const team = await buildTeam();

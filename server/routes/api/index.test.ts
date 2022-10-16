@@ -2,8 +2,6 @@ import { getTestServer } from "@server/test/support";
 
 const server = getTestServer();
 
-afterAll(server.disconnect);
-
 describe("POST unknown endpoint", () => {
   it("should be not found", async () => {
     const res = await server.post("/api/blah");

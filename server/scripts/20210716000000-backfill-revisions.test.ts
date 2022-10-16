@@ -1,13 +1,9 @@
 import { Revision, Event } from "@server/models";
 import { buildDocument } from "@server/test/factories";
-import { getTestDatabase } from "@server/test/support";
+import { setupTestDatabase } from "@server/test/support";
 import script from "./20210716000000-backfill-revisions";
 
-const db = getTestDatabase();
-
-afterAll(db.disconnect);
-
-beforeEach(db.flush);
+setupTestDatabase();
 
 describe("#work", () => {
   it("should create events for revisions", async () => {

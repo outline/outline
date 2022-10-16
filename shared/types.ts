@@ -11,6 +11,7 @@ export type PublicEnv = {
   DEPLOYMENT: string | undefined;
   ENVIRONMENT: string;
   SENTRY_DSN: string | undefined;
+  SENTRY_TUNNEL: string | undefined;
   TEAM_LOGO: string | undefined;
   SLACK_CLIENT_ID: string | undefined;
   SLACK_APP_ID: string | undefined;

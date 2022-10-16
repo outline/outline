@@ -1,14 +1,7 @@
 import { buildTeam, buildCollection } from "@server/test/factories";
-import { getTestDatabase } from "@server/test/support";
+import { setupTestDatabase } from "@server/test/support";
 
-const db = getTestDatabase();
-
-afterAll(db.disconnect);
-
-beforeEach(async () => {
-  await db.flush();
-  jest.resetAllMocks();
-});
+setupTestDatabase();
 
 describe("collectionIds", () => {
   it("should return non-private collection ids", async () => {

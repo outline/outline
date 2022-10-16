@@ -6,16 +6,11 @@ import {
   buildAttachment,
   buildDocument,
 } from "@server/test/factories";
-import { getTestDatabase, getTestServer } from "@server/test/support";
+import { getTestServer } from "@server/test/support";
 
 jest.mock("@server/utils/s3");
 
-const db = getTestDatabase();
 const server = getTestServer();
-
-afterAll(server.disconnect);
-
-beforeEach(db.flush);
 
 describe("#attachments.create", () => {
   it("should require authentication", async () => {

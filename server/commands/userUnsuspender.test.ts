@@ -1,12 +1,8 @@
 import { buildAdmin, buildUser } from "@server/test/factories";
-import { getTestDatabase } from "@server/test/support";
+import { setupTestDatabase } from "@server/test/support";
 import userUnsuspender from "./userUnsuspender";
 
-const db = getTestDatabase();
-
-afterAll(db.disconnect);
-
-beforeEach(db.flush);
+setupTestDatabase();
 
 describe("userUnsuspender", () => {
   const ip = "127.0.0.1";

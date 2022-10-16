@@ -6,34 +6,28 @@ import { EmbedProps as Props } from ".";
 const IFRAME_REGEX = /^https:\/\/(invis\.io\/.*)|(projects\.invisionapp\.com\/share\/.*)$/;
 const IMAGE_REGEX = /^https:\/\/(opal\.invisionapp\.com\/static-signed\/live-embed\/.*)$/;
 
-export default class InVision extends React.Component<Props> {
-  static ENABLED = [IFRAME_REGEX, IMAGE_REGEX];
-
-  render() {
-    if (IMAGE_REGEX.test(this.props.attrs.href)) {
-      return (
-        <ImageZoom
-          // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
-          className={this.props.isSelected ? "ProseMirror-selectednode" : ""}
-          image={{
-            src: this.props.attrs.href,
-            alt: "InVision Embed",
-            style: {
-              maxWidth: "100%",
-              maxHeight: "75vh",
-            },
-          }}
-          shouldRespectMaxDimension
-        />
-      );
-    }
-
+function InVision(props: Props) {
+  if (IMAGE_REGEX.test(props.attrs.href)) {
     return (
-      <Frame
-        {...this.props}
-        src={this.props.attrs.href}
-        title="InVision Embed"
+      <ImageZoom
+        // @ts-expect-error ts-migrate(2769) FIXME: No overload matches this call.
+        className={props.isSelected ? "ProseMirror-selectednode" : ""}
+        image={{
+          src: props.attrs.href,
+          alt: "InVision Embed",
+          style: {
+            maxWidth: "100%",
+            maxHeight: "75vh",
+          },
+        }}
+        shouldRespectMaxDimension
       />
     );
   }
+
+  return <Frame {...props} src={props.attrs.href} title="InVision Embed" />;
 }
+
+InVision.ENABLED = [IFRAME_REGEX, IMAGE_REGEX];
+
+export default InVision;

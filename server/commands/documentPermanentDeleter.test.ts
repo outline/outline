@@ -1,14 +1,10 @@
 import { subDays } from "date-fns";
 import { Attachment, Document } from "@server/models";
 import { buildAttachment, buildDocument } from "@server/test/factories";
-import { getTestDatabase } from "@server/test/support";
+import { setupTestDatabase } from "@server/test/support";
 import documentPermanentDeleter from "./documentPermanentDeleter";
 
-const db = getTestDatabase();
-
-afterAll(db.disconnect);
-
-beforeEach(db.flush);
+setupTestDatabase();
 
 describe("documentPermanentDeleter", () => {
   it("should destroy documents", async () => {
