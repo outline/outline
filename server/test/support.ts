@@ -109,14 +109,13 @@ export function getTestServer() {
     server.close();
   };
 
-  const db = getTestDatabase();
+  setupTestDatabase();
   afterAll(server.disconnect);
-  beforeEach(db.flush);
 
   return server;
 }
 
-export function getTestDatabase() {
+export function setupTestDatabase() {
   const flush = async () => {
     const sql = sequelize.getQueryInterface();
     const tables = Object.keys(sequelize.models).map((model) => {
@@ -134,5 +133,6 @@ export function getTestDatabase() {
     await sequelize.close();
   };
 
-  return { flush, disconnect };
+  afterAll(disconnect);
+  beforeEach(flush);
 }

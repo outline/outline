@@ -12,18 +12,15 @@ import {
   buildCollection,
   buildUser,
 } from "@server/test/factories";
-import { getTestDatabase } from "@server/test/support";
+import { setupTestDatabase } from "@server/test/support";
 import NotificationsProcessor from "./NotificationsProcessor";
 
 jest.mock("@server/emails/templates/DocumentNotificationEmail");
 const ip = "127.0.0.1";
 
-const db = getTestDatabase();
-
-afterAll(db.disconnect);
+setupTestDatabase();
 
 beforeEach(async () => {
-  await db.flush();
   jest.resetAllMocks();
 });
 

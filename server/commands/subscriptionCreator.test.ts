@@ -1,14 +1,11 @@
 import { sequelize } from "@server/database/sequelize";
 import { Subscription, Event } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
-import { getTestDatabase } from "@server/test/support";
+import { setupTestDatabase } from "@server/test/support";
 import subscriptionCreator from "./subscriptionCreator";
 import subscriptionDestroyer from "./subscriptionDestroyer";
 
-const db = getTestDatabase();
-
-beforeEach(db.flush);
-afterAll(db.disconnect);
+setupTestDatabase();
 
 describe("subscriptionCreator", () => {
   const ip = "127.0.0.1";

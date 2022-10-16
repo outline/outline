@@ -1,14 +1,10 @@
 import { CollectionPermission } from "@shared/types";
 import { CollectionUser, Collection } from "@server/models";
 import { buildUser, buildTeam, buildCollection } from "@server/test/factories";
-import { getTestDatabase } from "@server/test/support";
+import { setupTestDatabase } from "@server/test/support";
 import { serialize } from "./index";
 
-const db = getTestDatabase();
-
-afterAll(db.disconnect);
-
-beforeEach(db.flush);
+setupTestDatabase();
 
 describe("member", () => {
   describe("read_write permission", () => {
