@@ -5,14 +5,10 @@ import {
   buildDocument,
   buildCollection,
 } from "@server/test/factories";
-import { getTestDatabase } from "@server/test/support";
+import { setupTestDatabase } from "@server/test/support";
 import { serialize } from "./index";
 
-const db = getTestDatabase();
-
-afterAll(db.disconnect);
-
-beforeEach(db.flush);
+setupTestDatabase();
 
 describe("read_write collection", () => {
   it("should allow read write permissions for member", async () => {

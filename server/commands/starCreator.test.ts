@@ -1,14 +1,10 @@
 import { sequelize } from "@server/database/sequelize";
 import { Star, Event } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
-import { getTestDatabase } from "@server/test/support";
+import { setupTestDatabase } from "@server/test/support";
 import starCreator from "./starCreator";
 
-const db = getTestDatabase();
-
-afterAll(db.disconnect);
-
-beforeEach(db.flush);
+setupTestDatabase();
 
 describe("starCreator", () => {
   const ip = "127.0.0.1";

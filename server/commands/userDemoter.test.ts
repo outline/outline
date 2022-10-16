@@ -2,14 +2,10 @@ import { CollectionPermission } from "@shared/types";
 import { CollectionUser } from "@server/models";
 import { UserRole } from "@server/models/User";
 import { buildUser, buildAdmin, buildCollection } from "@server/test/factories";
-import { getTestDatabase } from "@server/test/support";
+import { setupTestDatabase } from "@server/test/support";
 import userDemoter from "./userDemoter";
 
-const db = getTestDatabase();
-
-afterAll(db.disconnect);
-
-beforeEach(db.flush);
+setupTestDatabase();
 
 describe("userDemoter", () => {
   const ip = "127.0.0.1";

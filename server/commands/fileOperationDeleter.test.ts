@@ -1,13 +1,9 @@
 import { FileOperation } from "@server/models";
 import { buildAdmin, buildFileOperation } from "@server/test/factories";
-import { getTestDatabase } from "@server/test/support";
+import { setupTestDatabase } from "@server/test/support";
 import fileOperationDeleter from "./fileOperationDeleter";
 
-const db = getTestDatabase();
-
-afterAll(db.disconnect);
-
-beforeEach(db.flush);
+setupTestDatabase();
 
 describe("fileOperationDeleter", () => {
   const ip = "127.0.0.1";

@@ -3,14 +3,9 @@ import SigninEmail from "@server/emails/templates/SigninEmail";
 import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
 import env from "@server/env";
 import { buildUser, buildGuestUser, buildTeam } from "@server/test/factories";
-import { getTestDatabase, getTestServer } from "@server/test/support";
+import { getTestServer } from "@server/test/support";
 
-const db = getTestDatabase();
 const server = getTestServer();
-
-afterAll(server.disconnect);
-
-beforeEach(db.flush);
 
 describe("email", () => {
   it("should require email param", async () => {

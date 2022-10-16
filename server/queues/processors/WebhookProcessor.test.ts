@@ -1,5 +1,5 @@
 import { buildUser, buildWebhookSubscription } from "@server/test/factories";
-import { getTestDatabase } from "@server/test/support";
+import { setupTestDatabase } from "@server/test/support";
 import { UserEvent } from "@server/types";
 import DeliverWebhookTask from "../tasks/DeliverWebhookTask";
 import WebhookProcessor from "./WebhookProcessor";
@@ -7,12 +7,9 @@ import WebhookProcessor from "./WebhookProcessor";
 jest.mock("@server/queues/tasks/DeliverWebhookTask");
 const ip = "127.0.0.1";
 
-const db = getTestDatabase();
-
-afterAll(db.disconnect);
+setupTestDatabase();
 
 beforeEach(async () => {
-  await db.flush();
   jest.resetAllMocks();
 });
 

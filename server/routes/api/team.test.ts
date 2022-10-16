@@ -1,13 +1,8 @@
 import { TeamDomain } from "@server/models";
 import { buildAdmin, buildCollection, buildTeam } from "@server/test/factories";
-import { seed, getTestDatabase, getTestServer } from "@server/test/support";
+import { seed, getTestServer } from "@server/test/support";
 
-const db = getTestDatabase();
 const server = getTestServer();
-
-afterAll(server.disconnect);
-
-beforeEach(db.flush);
 
 describe("#team.update", () => {
   it("should update team details", async () => {

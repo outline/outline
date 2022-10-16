@@ -4,15 +4,9 @@ import {
   buildUser,
   buildIntegration,
 } from "@server/test/factories";
+import { getTestServer } from "@server/test/support";
 
-import { getTestDatabase, getTestServer } from "@server/test/support";
-
-const db = getTestDatabase();
 const server = getTestServer();
-
-afterAll(server.disconnect);
-
-beforeEach(db.flush);
 
 describe("#integrations.update", () => {
   it("should allow updating integration events", async () => {

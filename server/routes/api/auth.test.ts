@@ -1,7 +1,7 @@
 import sharedEnv from "@shared/env";
 import env from "@server/env";
 import { buildUser, buildTeam } from "@server/test/factories";
-import { getTestDatabase, getTestServer } from "@server/test/support";
+import { getTestServer } from "@server/test/support";
 
 const mockTeamInSessionId = "1e023d05-951c-41c6-9012-c9fa0402e1c3";
 
@@ -13,12 +13,7 @@ jest.mock("@server/utils/authentication", () => {
   };
 });
 
-const db = getTestDatabase();
 const server = getTestServer();
-
-afterAll(server.disconnect);
-
-beforeEach(db.flush);
 
 describe("#auth.info", () => {
   it("should return current authentication", async () => {

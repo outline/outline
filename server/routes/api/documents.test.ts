@@ -16,14 +16,9 @@ import {
   buildDocument,
   buildViewer,
 } from "@server/test/factories";
-import { seed, getTestDatabase, getTestServer } from "@server/test/support";
+import { seed, getTestServer } from "@server/test/support";
 
-const db = getTestDatabase();
 const server = getTestServer();
-
-afterAll(server.disconnect);
-
-beforeEach(db.flush);
 
 describe("#documents.info", () => {
   it("should return published document", async () => {
