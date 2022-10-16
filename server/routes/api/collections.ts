@@ -13,6 +13,10 @@ import { AuthorizationError, ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import {
+  TransactionContext,
+  transaction,
+} from "@server/middlewares/transaction";
+import {
   Collection,
   CollectionUser,
   CollectionGroup,
@@ -350,96 +354,123 @@ router.post(
   }
 );
 
-router.post("collections.add_user", auth(), async (ctx) => {
-  const { id, userId, permission } = ctx.body;
-  assertUuid(id, "id is required");
-  assertUuid(userId, "userId is required");
+router.post(
+  "collections.add_user",
+  auth(),
+  transaction(),
+  async (ctx: TransactionContext) => {
+    const { transaction } = ctx.state;
+    const { id, userId, permission } = ctx.request.body;
+    assertUuid(id, "id is required");
+    assertUuid(userId, "userId is required");
 
-  const collection = await Collection.scope({
-    method: ["withMembership", ctx.state.user.id],
-  }).findByPk(id);
-  authorize(ctx.state.user, "update", collection);
+    const collection = await Collection.scope({
+      method: ["withMembership", ctx.state.user.id],
+    }).findByPk(id);
+    authorize(ctx.state.user, "update", collection);
 
-  const user = await User.findByPk(userId);
-  authorize(ctx.state.user, "read", user);
+    const user = await User.findByPk(userId);
+    authorize(ctx.state.user, "read", user);
 
-  let membership = await CollectionUser.findOne({
-    where: {
-      collectionId: id,
-      userId,
-    },
-  });
-
-  if (userId === ctx.state.user.id) {
-    throw AuthorizationError("You cannot add yourself to a collection");
-  }
-
-  if (permission) {
-    assertCollectionPermission(permission);
-  }
-
-  if (!membership) {
-    membership = await CollectionUser.create({
-      collectionId: id,
-      userId,
-      permission: permission || user.defaultCollectionPermission,
-      createdById: ctx.state.user.id,
+    let membership = await CollectionUser.findOne({
+      where: {
+        collectionId: id,
+        userId,
+      },
+      transaction,
+      lock: transaction.LOCK.UPDATE,
     });
-  } else if (permission) {
-    membership.permission = permission;
-    await membership.save();
+
+    if (userId === ctx.state.user.id) {
+      throw AuthorizationError("You cannot add yourself to a collection");
+    }
+
+    if (permission) {
+      assertCollectionPermission(permission);
+    }
+
+    if (!membership) {
+      membership = await CollectionUser.create(
+        {
+          collectionId: id,
+          userId,
+          permission: permission || user.defaultCollectionPermission,
+          createdById: ctx.state.user.id,
+        },
+        {
+          transaction,
+        }
+      );
+    } else if (permission) {
+      membership.permission = permission;
+      await membership.save({ transaction });
+    }
+
+    await Event.create(
+      {
+        name: "collections.add_user",
+        userId,
+        collectionId: collection.id,
+        teamId: collection.teamId,
+        actorId: ctx.state.user.id,
+        data: {
+          name: user.name,
+        },
+        ip: ctx.request.ip,
+      },
+      {
+        transaction,
+      }
+    );
+
+    ctx.body = {
+      data: {
+        users: [presentUser(user)],
+        memberships: [presentMembership(membership)],
+      },
+    };
   }
+);
 
-  await Event.create({
-    name: "collections.add_user",
-    userId,
-    collectionId: collection.id,
-    teamId: collection.teamId,
-    actorId: ctx.state.user.id,
-    data: {
-      name: user.name,
-    },
-    ip: ctx.request.ip,
-  });
+router.post(
+  "collections.remove_user",
+  auth(),
+  transaction(),
+  async (ctx: TransactionContext) => {
+    const { transaction } = ctx.state;
+    const { id, userId } = ctx.request.body;
+    assertUuid(id, "id is required");
+    assertUuid(userId, "userId is required");
 
-  ctx.body = {
-    data: {
-      users: [presentUser(user)],
-      memberships: [presentMembership(membership)],
-    },
-  };
-});
+    const collection = await Collection.scope({
+      method: ["withMembership", ctx.state.user.id],
+    }).findByPk(id);
+    authorize(ctx.state.user, "update", collection);
 
-router.post("collections.remove_user", auth(), async (ctx) => {
-  const { id, userId } = ctx.body;
-  assertUuid(id, "id is required");
-  assertUuid(userId, "userId is required");
+    const user = await User.findByPk(userId);
+    authorize(ctx.state.user, "read", user);
 
-  const collection = await Collection.scope({
-    method: ["withMembership", ctx.state.user.id],
-  }).findByPk(id);
-  authorize(ctx.state.user, "update", collection);
+    await collection.$remove("user", user, { transaction });
+    await Event.create(
+      {
+        name: "collections.remove_user",
+        userId,
+        collectionId: collection.id,
+        teamId: collection.teamId,
+        actorId: ctx.state.user.id,
+        data: {
+          name: user.name,
+        },
+        ip: ctx.request.ip,
+      },
+      { transaction }
+    );
 
-  const user = await User.findByPk(userId);
-  authorize(ctx.state.user, "read", user);
-
-  await collection.$remove("user", user);
-  await Event.create({
-    name: "collections.remove_user",
-    userId,
-    collectionId: collection.id,
-    teamId: collection.teamId,
-    actorId: ctx.state.user.id,
-    data: {
-      name: user.name,
-    },
-    ip: ctx.request.ip,
-  });
-
-  ctx.body = {
-    success: true,
-  };
-});
+    ctx.body = {
+      success: true,
+    };
+  }
+);
 
 router.post("collections.memberships", auth(), pagination(), async (ctx) => {
   const { id, query, permission } = ctx.body;
