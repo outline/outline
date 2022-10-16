@@ -9,7 +9,7 @@ import { RateLimiterStrategy } from "@server/RateLimiter";
 import collectionExporter from "@server/commands/collectionExporter";
 import teamUpdater from "@server/commands/teamUpdater";
 import { sequelize } from "@server/database/sequelize";
-import { ValidationError } from "@server/errors";
+import { AuthorizationError, ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import {
@@ -361,6 +361,10 @@ router.post("collections.add_user", auth(), async (ctx) => {
       userId,
     },
   });
+
+  if (userId === ctx.state.user.id) {
+    throw AuthorizationError("You cannot add yourself to a collection");
+  }
 
   if (permission) {
     assertCollectionPermission(permission);

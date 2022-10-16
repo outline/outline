@@ -109,7 +109,9 @@ class AddPeopleToCollection extends React.Component<Props> {
               <Empty>{t("No people left to add")}</Empty>
             )
           }
-          items={users.notInCollection(collection.id, this.query)}
+          items={users
+            .notInCollection(collection.id, this.query)
+            .filter((member) => member.id !== user.id)}
           fetch={this.query ? undefined : users.fetchPage}
           renderItem={(item: User) => (
             <MemberListItem

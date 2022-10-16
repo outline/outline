@@ -28,6 +28,7 @@ import env from "@server/env";
 import { ValidationError } from "../errors";
 import ApiKey from "./ApiKey";
 import Collection from "./Collection";
+import CollectionUser from "./CollectionUser";
 import NotificationSetting from "./NotificationSetting";
 import Star from "./Star";
 import Team from "./Team";
@@ -419,7 +420,7 @@ class User extends ParanoidModel {
 
     if (res.count >= 1) {
       if (to === "member") {
-        return this.update(
+        await this.update(
           {
             isAdmin: false,
             isViewer: false,
@@ -427,12 +428,23 @@ class User extends ParanoidModel {
           options
         );
       } else if (to === "viewer") {
-        return this.update(
+        await this.update(
           {
             isAdmin: false,
             isViewer: true,
           },
           options
+        );
+        await CollectionUser.update(
+          {
+            permission: CollectionPermission.Read,
+          },
+          {
+            ...options,
+            where: {
+              userId: this.id,
+            },
+          }
         );
       }
 
