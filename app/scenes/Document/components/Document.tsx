@@ -116,7 +116,6 @@ class DocumentScene extends React.Component<Props> {
   documentContext: DocumentContextValue = {
     editor: null,
     setEditor: action((editor: TEditor) => {
-      console.log("Setting editor in context");
       this.documentContext.editor = editor;
     }),
   };
