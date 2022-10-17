@@ -3024,10 +3024,10 @@
   resolved "https://registry.yarnpkg.com/@types/lodash/-/lodash-4.14.172.tgz#aad774c28e7bfd7a67de25408e03ee5a8c3d028a"
   integrity sha512-/BHF5HAx3em7/KkzVKm3LrsD6HZAXuXO1AJZQ3cRRBZj4oHZDviWPYu0aEplAqDFNHZPW6d3G7KN+ONcCCC7pw==
 
-"@types/markdown-it-container@^2.0.4":
-  version "2.0.4"
-  resolved "https://registry.yarnpkg.com/@types/markdown-it-container/-/markdown-it-container-2.0.4.tgz#da15919befbdce2fe2ff0a472f68d31180345424"
-  integrity sha512-QgzDCr8OWtWktWtlwPT908sKqZqSHUEaxTH/uVz68tYd6bsCS3defHLzN2rFeoKJ3q344qG0dWQ42K4UQSBqcw==
+"@types/markdown-it-container@^2.0.5":
+  version "2.0.5"
+  resolved "https://registry.yarnpkg.com/@types/markdown-it-container/-/markdown-it-container-2.0.5.tgz#abd793b64c5adc7b2d1e8963eddb388198248152"
+  integrity sha512-8v5jIC5gcCUv+JcD0DExwNBkoKC0kLB4acensF0NoNlTIcXmQxF3RDjzAdIW82sXSoR+n772ePguxIWlq2ELvA==
   dependencies:
     "@types/markdown-it" "*"
 

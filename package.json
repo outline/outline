@@ -256,7 +256,7 @@
     "@types/koa-static": "^4.0.2",
     "@types/koa-useragent": "^2.1.2",
     "@types/markdown-it": "^12.2.3",
-    "@types/markdown-it-container": "^2.0.4",
+    "@types/markdown-it-container": "^2.0.5",
     "@types/markdown-it-emoji": "^2.0.2",
     "@types/mime-types": "^2.1.1",
     "@types/natural-sort": "^0.0.21",
