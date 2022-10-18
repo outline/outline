@@ -23,7 +23,7 @@ describe("teams.create", () => {
   });
 
   it("requires a cloud hosted deployment", async () => {
-    env.DEPLOYMENT = "self-hosted";
+    env.DEPLOYMENT = "";
     const team = await buildTeam();
     const user = await buildAdmin({ teamId: team.id });
     const res = await server.post("/api/teams.create", {

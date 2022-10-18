@@ -95,6 +95,10 @@ router.post("hooks.unfurl", async (ctx) => {
     ts: event.message_ts,
     unfurls,
   });
+
+  ctx.body = {
+    success: true,
+  };
 });
 
 // triggered by interactions with actions, dialogs, message buttons in Slack
