@@ -12,14 +12,25 @@ import prefetchTags from "@server/utils/prefetchTags";
 const isProduction = env.ENVIRONMENT === "production";
 const isTest = env.ENVIRONMENT === "test";
 const readFile = util.promisify(fs.readFile);
+let indexHtmlCache: Buffer | undefined;
 
 const readIndexFile = async (ctx: Context): Promise<Buffer> => {
   if (isProduction) {
-    return readFile(path.join(__dirname, "../../app/index.html"));
+    return (
+      indexHtmlCache ??
+      (indexHtmlCache = await readFile(
+        path.join(__dirname, "../../app/index.html")
+      ))
+    );
   }
 
   if (isTest) {
-    return readFile(path.join(__dirname, "../static/index.html"));
+    return (
+      indexHtmlCache ??
+      (indexHtmlCache = await readFile(
+        path.join(__dirname, "../static/index.html")
+      ))
+    );
   }
 
   const middleware = ctx.devMiddleware;
