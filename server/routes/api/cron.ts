@@ -17,8 +17,11 @@ const cronHandler = async (ctx: Context) => {
     limit: number;
   };
 
+  if (!token || typeof token !== "string") {
+    throw AuthenticationError("Token is required");
+  }
+
   if (
-    !token ||
     token.length !== env.UTILS_SECRET.length ||
     !crypto.timingSafeEqual(
       Buffer.from(env.UTILS_SECRET),
