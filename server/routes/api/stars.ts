@@ -19,8 +19,8 @@ import pagination from "./middlewares/pagination";
 const router = new Router();
 
 router.post("stars.create", auth(), async (ctx) => {
-  const { documentId, collectionId } = ctx.body;
-  const { index } = ctx.body;
+  const { documentId, collectionId } = ctx.request.body;
+  const { index } = ctx.request.body;
   const { user } = ctx.state;
 
   assertUuid(
@@ -116,7 +116,7 @@ router.post("stars.list", auth(), pagination(), async (ctx) => {
 });
 
 router.post("stars.update", auth(), async (ctx) => {
-  const { id, index } = ctx.body;
+  const { id, index } = ctx.request.body;
   assertUuid(id, "id is required");
 
   assertIndexCharacters(index);
@@ -139,7 +139,7 @@ router.post("stars.update", auth(), async (ctx) => {
 });
 
 router.post("stars.delete", auth(), async (ctx) => {
-  const { id } = ctx.body;
+  const { id } = ctx.request.body;
   assertUuid(id, "id is required");
 
   const { user } = ctx.state;

@@ -13,7 +13,7 @@ import pagination from "./middlewares/pagination";
 const router = new Router();
 
 router.post("revisions.info", auth(), async (ctx) => {
-  const { id } = ctx.body;
+  const { id } = ctx.request.body;
   assertUuid(id, "id is required");
   const { user } = ctx.state;
   const revision = await Revision.findByPk(id, {
@@ -39,7 +39,7 @@ router.post("revisions.info", auth(), async (ctx) => {
 });
 
 router.post("revisions.diff", auth(), async (ctx) => {
-  const { id, compareToId } = ctx.body;
+  const { id, compareToId } = ctx.request.body;
   assertUuid(id, "id is required");
 
   const { user } = ctx.state;
@@ -93,8 +93,8 @@ router.post("revisions.diff", auth(), async (ctx) => {
 });
 
 router.post("revisions.list", auth(), pagination(), async (ctx) => {
-  let { direction } = ctx.body;
-  const { documentId, sort = "updatedAt" } = ctx.body;
+  let { direction } = ctx.request.body;
+  const { documentId, sort = "updatedAt" } = ctx.request.body;
   if (direction !== "ASC") {
     direction = "DESC";
   }

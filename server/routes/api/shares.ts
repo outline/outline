@@ -11,7 +11,7 @@ import pagination from "./middlewares/pagination";
 const router = new Router();
 
 router.post("shares.info", auth(), async (ctx) => {
-  const { id, documentId } = ctx.body;
+  const { id, documentId } = ctx.request.body;
   assertPresent(id || documentId, "id or documentId is required");
   if (id) {
     assertUuid(id, "id is must be a uuid");
@@ -92,8 +92,8 @@ router.post("shares.info", auth(), async (ctx) => {
 });
 
 router.post("shares.list", auth(), pagination(), async (ctx) => {
-  let { direction } = ctx.body;
-  const { sort = "updatedAt" } = ctx.body;
+  let { direction } = ctx.request.body;
+  const { sort = "updatedAt" } = ctx.request.body;
   if (direction !== "ASC") {
     direction = "DESC";
   }
@@ -162,7 +162,7 @@ router.post("shares.list", auth(), pagination(), async (ctx) => {
 });
 
 router.post("shares.update", auth(), async (ctx) => {
-  const { id, includeChildDocuments, published } = ctx.body;
+  const { id, includeChildDocuments, published } = ctx.request.body;
   assertUuid(id, "id is required");
 
   const { user } = ctx.state;
@@ -211,7 +211,7 @@ router.post("shares.update", auth(), async (ctx) => {
 });
 
 router.post("shares.create", auth(), async (ctx) => {
-  const { documentId } = ctx.body;
+  const { documentId } = ctx.request.body;
   assertPresent(documentId, "documentId is required");
 
   const { user } = ctx.state;
@@ -263,7 +263,7 @@ router.post("shares.create", auth(), async (ctx) => {
 });
 
 router.post("shares.revoke", auth(), async (ctx) => {
-  const { id } = ctx.body;
+  const { id } = ctx.request.body;
   assertUuid(id, "id is required");
 
   const { user } = ctx.state;

@@ -11,7 +11,7 @@ const router = new Router();
 
 router.post("events.list", auth(), pagination(), async (ctx) => {
   const { user } = ctx.state;
-  let { direction } = ctx.body;
+  let { direction } = ctx.request.body;
   const {
     sort = "createdAt",
     actorId,
@@ -19,7 +19,7 @@ router.post("events.list", auth(), pagination(), async (ctx) => {
     collectionId,
     name,
     auditLog = false,
-  } = ctx.body;
+  } = ctx.request.body;
   if (direction !== "ASC") {
     direction = "DESC";
   }

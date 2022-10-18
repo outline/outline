@@ -12,7 +12,7 @@ import allAuthenticationProviders from "../auth/providers";
 const router = new Router();
 
 router.post("authenticationProviders.info", auth(), async (ctx) => {
-  const { id } = ctx.body;
+  const { id } = ctx.request.body;
   assertUuid(id, "id is required");
   const { user } = ctx.state;
   const authenticationProvider = await AuthenticationProvider.findByPk(id);
@@ -25,7 +25,7 @@ router.post("authenticationProviders.info", auth(), async (ctx) => {
 });
 
 router.post("authenticationProviders.update", auth(), async (ctx) => {
-  const { id, isEnabled } = ctx.body;
+  const { id, isEnabled } = ctx.request.body;
   assertUuid(id, "id is required");
   assertPresent(isEnabled, "isEnabled is required");
   const { user } = ctx.state;

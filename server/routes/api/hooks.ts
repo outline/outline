@@ -40,9 +40,9 @@ function verifySlackToken(token: string) {
 
 // triggered by a user posting a getoutline.com link in Slack
 router.post("hooks.unfurl", async (ctx) => {
-  const { challenge, token, event } = ctx.body;
+  const { challenge, token, event } = ctx.request.body;
   if (challenge) {
-    return (ctx.body = ctx.body.challenge);
+    return (ctx.body = ctx.request.body.challenge);
   }
 
   assertPresent(token, "token is required");
@@ -95,11 +95,15 @@ router.post("hooks.unfurl", async (ctx) => {
     ts: event.message_ts,
     unfurls,
   });
+
+  ctx.body = {
+    success: true,
+  };
 });
 
 // triggered by interactions with actions, dialogs, message buttons in Slack
 router.post("hooks.interactive", async (ctx) => {
-  const { payload } = ctx.body;
+  const { payload } = ctx.request.body;
   assertPresent(payload, "payload is required");
 
   const data = JSON.parse(payload);
@@ -137,7 +141,7 @@ router.post("hooks.interactive", async (ctx) => {
 
 // triggered by the /outline command in Slack
 router.post("hooks.slack", async (ctx) => {
-  const { token, team_id, user_id, text = "" } = ctx.body;
+  const { token, team_id, user_id, text = "" } = ctx.request.body;
   assertPresent(token, "token is required");
   assertPresent(team_id, "team_id is required");
   assertPresent(user_id, "user_id is required");

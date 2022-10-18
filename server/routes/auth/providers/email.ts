@@ -8,7 +8,6 @@ import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
 import env from "@server/env";
 import { AuthorizationError } from "@server/errors";
 import errorHandling from "@server/middlewares/errorHandling";
-import methodOverride from "@server/middlewares/methodOverride";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { User, Team } from "@server/models";
 import { signIn } from "@server/utils/authentication";
@@ -22,14 +21,12 @@ export const config = {
   enabled: true,
 };
 
-router.use(methodOverride());
-
 router.post(
   "email",
   errorHandling(),
   rateLimiter(RateLimiterStrategy.TenPerHour),
   async (ctx) => {
-    const { email } = ctx.body;
+    const { email } = ctx.request.body;
     assertEmail(email, "email is required");
 
     const domain = parseDomain(ctx.request.hostname);
