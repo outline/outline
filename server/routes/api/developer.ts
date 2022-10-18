@@ -20,7 +20,7 @@ function dev() {
 }
 
 router.post("developer.create_test_users", dev(), auth(), async (ctx) => {
-  const { count = 10 } = ctx.body;
+  const { count = 10 } = ctx.request.body;
   const { user } = ctx.state;
   const invites = Array(count)
     .fill(0)

@@ -13,7 +13,7 @@ const router = new Router();
 
 router.post("subscriptions.list", auth(), pagination(), async (ctx) => {
   const { user } = ctx.state;
-  const { documentId, event } = ctx.body;
+  const { documentId, event } = ctx.request.body;
 
   assertUuid(documentId, "documentId is required");
 
@@ -46,7 +46,7 @@ router.post("subscriptions.list", auth(), pagination(), async (ctx) => {
 
 router.post("subscriptions.info", auth(), async (ctx) => {
   const { user } = ctx.state;
-  const { documentId, event } = ctx.body;
+  const { documentId, event } = ctx.request.body;
 
   assertUuid(documentId, "documentId is required");
 
@@ -77,7 +77,7 @@ router.post("subscriptions.info", auth(), async (ctx) => {
 
 router.post("subscriptions.create", auth(), async (ctx) => {
   const { user } = ctx.state;
-  const { documentId, event } = ctx.body;
+  const { documentId, event } = ctx.request.body;
 
   assertUuid(documentId, "documentId is required");
 
@@ -111,7 +111,7 @@ router.post("subscriptions.create", auth(), async (ctx) => {
 
 router.post("subscriptions.delete", auth(), async (ctx) => {
   const { user } = ctx.state;
-  const { id } = ctx.body;
+  const { id } = ctx.request.body;
 
   assertUuid(id, "id is required");
 

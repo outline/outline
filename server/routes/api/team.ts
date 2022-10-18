@@ -32,7 +32,7 @@ router.post(
       inviteRequired,
       allowedDomains,
       preferences,
-    } = ctx.body;
+    } = ctx.request.body;
 
     const { user } = ctx.state;
     const team = await Team.findByPk(user.teamId, {
@@ -78,7 +78,7 @@ router.post(
   rateLimiter(RateLimiterStrategy.FivePerHour),
   async (ctx) => {
     const { user } = ctx.state;
-    const { name } = ctx.body;
+    const { name } = ctx.request.body;
 
     const existingTeam = await Team.scope(
       "withAuthenticationProviders"

@@ -37,8 +37,8 @@ const router = new Router();
 const emailEnabled = !!(env.SMTP_HOST || env.ENVIRONMENT === "development");
 
 router.post("users.list", auth(), pagination(), async (ctx) => {
-  let { direction } = ctx.body;
-  const { sort = "createdAt", query, filter, ids } = ctx.body;
+  let { direction } = ctx.request.body;
+  const { sort = "createdAt", query, filter, ids } = ctx.request.body;
   if (direction !== "ASC") {
     direction = "DESC";
   }
@@ -162,7 +162,7 @@ router.post("users.count", auth(), async (ctx) => {
 });
 
 router.post("users.info", auth(), async (ctx) => {
-  const { id } = ctx.body;
+  const { id } = ctx.request.body;
   const actor = ctx.state.user;
   const user = id ? await User.findByPk(id) : actor;
   authorize(actor, "read", user);
@@ -178,7 +178,7 @@ router.post("users.info", auth(), async (ctx) => {
 
 router.post("users.update", auth(), async (ctx) => {
   const { user } = ctx.state;
-  const { name, avatarUrl, language, preferences } = ctx.body;
+  const { name, avatarUrl, language, preferences } = ctx.request.body;
   if (name) {
     user.name = name;
   }
@@ -216,7 +216,7 @@ router.post("users.update", auth(), async (ctx) => {
 
 // Admin specific
 router.post("users.promote", auth(), async (ctx) => {
-  const userId = ctx.body.id;
+  const userId = ctx.request.body.id;
   const teamId = ctx.state.user.teamId;
   const actor = ctx.state.user;
   assertPresent(userId, "id is required");
@@ -245,8 +245,8 @@ router.post("users.promote", auth(), async (ctx) => {
 });
 
 router.post("users.demote", auth(), async (ctx) => {
-  const userId = ctx.body.id;
-  let { to } = ctx.body;
+  const userId = ctx.request.body.id;
+  let { to } = ctx.request.body;
   const actor = ctx.state.user as User;
   assertPresent(userId, "id is required");
 
@@ -274,7 +274,7 @@ router.post("users.demote", auth(), async (ctx) => {
 });
 
 router.post("users.suspend", auth(), async (ctx) => {
-  const userId = ctx.body.id;
+  const userId = ctx.request.body.id;
   const actor = ctx.state.user;
   assertPresent(userId, "id is required");
   const user = await User.findByPk(userId, {
@@ -298,7 +298,7 @@ router.post("users.suspend", auth(), async (ctx) => {
 });
 
 router.post("users.activate", auth(), async (ctx) => {
-  const userId = ctx.body.id;
+  const userId = ctx.request.body.id;
   const actor = ctx.state.user;
   assertPresent(userId, "id is required");
   const user = await User.findByPk(userId, {
@@ -326,7 +326,7 @@ router.post(
   auth(),
   rateLimiter(RateLimiterStrategy.TenPerHour),
   async (ctx) => {
-    const { invites } = ctx.body;
+    const { invites } = ctx.request.body;
     assertArray(invites, "invites must be an array");
     const { user } = ctx.state;
     const team = await Team.findByPk(user.teamId);
@@ -348,7 +348,7 @@ router.post(
 );
 
 router.post("users.resendInvite", auth(), async (ctx) => {
-  const { id } = ctx.body;
+  const { id } = ctx.request.body;
   const actor = ctx.state.user;
 
   await sequelize.transaction(async (transaction) => {
@@ -415,7 +415,7 @@ router.post(
   auth(),
   rateLimiter(RateLimiterStrategy.TenPerHour),
   async (ctx) => {
-    const { id, code = "" } = ctx.body;
+    const { id, code = "" } = ctx.request.body;
     let user: User;
 
     if (id) {

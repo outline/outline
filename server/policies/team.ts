@@ -13,7 +13,7 @@ allow(User, "share", Team, (user, team) => {
 
 allow(User, "createTeam", Team, () => {
   if (env.DEPLOYMENT !== "hosted") {
-    throw "createTeam only available on cloud";
+    throw new Error("createTeam only available on cloud");
   }
 });
 

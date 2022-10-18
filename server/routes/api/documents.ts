@@ -51,12 +51,13 @@ import pagination from "./middlewares/pagination";
 const router = new Router();
 
 router.post("documents.list", auth(), pagination(), async (ctx) => {
-  let { sort = "updatedAt" } = ctx.body;
-  const { template, backlinkDocumentId, parentDocumentId } = ctx.body;
+  let { sort = "updatedAt" } = ctx.request.body;
+  const { template, backlinkDocumentId, parentDocumentId } = ctx.request.body;
   // collection and user are here for backwards compatibility
-  const collectionId = ctx.body.collectionId || ctx.body.collection;
-  const createdById = ctx.body.userId || ctx.body.user;
-  let direction = ctx.body.direction;
+  const collectionId =
+    ctx.request.body.collectionId || ctx.request.body.collection;
+  const createdById = ctx.request.body.userId || ctx.request.body.user;
+  let direction = ctx.request.body.direction;
   if (direction !== "ASC") {
     direction = "DESC";
   }
@@ -171,10 +172,10 @@ router.post(
   auth({ member: true }),
   pagination(),
   async (ctx) => {
-    const { sort = "updatedAt" } = ctx.body;
+    const { sort = "updatedAt" } = ctx.request.body;
 
     assertSort(sort, Document);
-    let direction = ctx.body.direction;
+    let direction = ctx.request.body.direction;
     if (direction !== "ASC") {
       direction = "DESC";
     }
@@ -220,10 +221,10 @@ router.post(
   auth({ member: true }),
   pagination(),
   async (ctx) => {
-    const { sort = "deletedAt" } = ctx.body;
+    const { sort = "deletedAt" } = ctx.request.body;
 
     assertSort(sort, Document);
-    let direction = ctx.body.direction;
+    let direction = ctx.request.body.direction;
     if (direction !== "ASC") {
       direction = "DESC";
     }
@@ -279,8 +280,8 @@ router.post(
 );
 
 router.post("documents.viewed", auth(), pagination(), async (ctx) => {
-  let { direction } = ctx.body;
-  const { sort = "updatedAt" } = ctx.body;
+  let { direction } = ctx.request.body;
+  const { sort = "updatedAt" } = ctx.request.body;
 
   assertSort(sort, Document);
   if (direction !== "ASC") {
@@ -332,8 +333,8 @@ router.post("documents.viewed", auth(), pagination(), async (ctx) => {
 });
 
 router.post("documents.drafts", auth(), pagination(), async (ctx) => {
-  let { direction } = ctx.body;
-  const { collectionId, dateFilter, sort = "updatedAt" } = ctx.body;
+  let { direction } = ctx.request.body;
+  const { collectionId, dateFilter, sort = "updatedAt" } = ctx.request.body;
 
   assertSort(sort, Document);
   if (direction !== "ASC") {
@@ -403,7 +404,7 @@ router.post(
     optional: true,
   }),
   async (ctx) => {
-    const { id, shareId, apiVersion } = ctx.body;
+    const { id, shareId, apiVersion } = ctx.request.body;
     assertPresent(id || shareId, "id or shareId is required");
     const { user } = ctx.state;
     const { document, share, collection } = await documentLoader({
@@ -441,7 +442,7 @@ router.post(
     optional: true,
   }),
   async (ctx) => {
-    const { id, shareId } = ctx.body;
+    const { id, shareId } = ctx.request.body;
     assertPresent(id || shareId, "id or shareId is required");
 
     const { user } = ctx.state;
@@ -488,7 +489,7 @@ router.post(
 );
 
 router.post("documents.restore", auth({ member: true }), async (ctx) => {
-  const { id, collectionId, revisionId } = ctx.body;
+  const { id, collectionId, revisionId } = ctx.request.body;
   assertPresent(id, "id is required");
   const { user } = ctx.state;
   const document = await Document.findByPk(id, {
@@ -585,7 +586,7 @@ router.post("documents.restore", auth({ member: true }), async (ctx) => {
 });
 
 router.post("documents.search_titles", auth(), pagination(), async (ctx) => {
-  const { query } = ctx.body;
+  const { query } = ctx.request.body;
   const { offset, limit } = ctx.state.pagination;
   const { user } = ctx.state;
 
@@ -651,12 +652,18 @@ router.post(
       userId,
       dateFilter,
       shareId,
-    } = ctx.body;
+    } = ctx.request.body;
     assertNotEmpty(query, "query is required");
 
     const { offset, limit } = ctx.state.pagination;
-    const snippetMinWords = parseInt(ctx.body.snippetMinWords || 20, 10);
-    const snippetMaxWords = parseInt(ctx.body.snippetMaxWords || 30, 10);
+    const snippetMinWords = parseInt(
+      ctx.request.body.snippetMinWords || 20,
+      10
+    );
+    const snippetMaxWords = parseInt(
+      ctx.request.body.snippetMaxWords || 30,
+      10
+    );
 
     // this typing is a bit ugly, would be better to use a type like ContextWithState
     // but that doesn't adequately handle cases when auth is optional
@@ -765,7 +772,7 @@ router.post(
 );
 
 router.post("documents.templatize", auth({ member: true }), async (ctx) => {
-  const { id } = ctx.body;
+  const { id } = ctx.request.body;
   assertPresent(id, "id is required");
   const { user } = ctx.state;
 
@@ -821,7 +828,7 @@ router.post("documents.update", auth(), async (ctx) => {
     lastRevision,
     templateId,
     append,
-  } = ctx.body;
+  } = ctx.request.body;
   const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
   assertPresent(id, "id is required");
   if (append) {
@@ -872,7 +879,7 @@ router.post("documents.update", auth(), async (ctx) => {
 });
 
 router.post("documents.move", auth(), async (ctx) => {
-  const { id, collectionId, parentDocumentId, index } = ctx.body;
+  const { id, collectionId, parentDocumentId, index } = ctx.request.body;
   assertUuid(id, "id must be a uuid");
   assertUuid(collectionId, "collectionId must be a uuid");
 
@@ -938,7 +945,7 @@ router.post("documents.move", auth(), async (ctx) => {
 });
 
 router.post("documents.archive", auth(), async (ctx) => {
-  const { id } = ctx.body;
+  const { id } = ctx.request.body;
   assertPresent(id, "id is required");
   const { user } = ctx.state;
 
@@ -967,7 +974,7 @@ router.post("documents.archive", auth(), async (ctx) => {
 });
 
 router.post("documents.delete", auth(), async (ctx) => {
-  const { id, permanent } = ctx.body;
+  const { id, permanent } = ctx.request.body;
   assertPresent(id, "id is required");
   const { user } = ctx.state;
 
@@ -1028,7 +1035,7 @@ router.post("documents.delete", auth(), async (ctx) => {
 });
 
 router.post("documents.unpublish", auth(), async (ctx) => {
-  const { id } = ctx.body;
+  const { id } = ctx.request.body;
   assertPresent(id, "id is required");
   const { user } = ctx.state;
 
@@ -1062,7 +1069,7 @@ router.post("documents.unpublish", auth(), async (ctx) => {
 });
 
 router.post("documents.import", auth(), async (ctx) => {
-  const { publish, collectionId, parentDocumentId, index } = ctx.body;
+  const { publish, collectionId, parentDocumentId, index } = ctx.request.body;
 
   if (!ctx.is("multipart/form-data")) {
     throw InvalidRequestError("Request type must be multipart/form-data");
@@ -1160,7 +1167,7 @@ router.post("documents.create", auth(), async (ctx) => {
     templateId,
     template,
     index,
-  } = ctx.body;
+  } = ctx.request.body;
   const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
   assertUuid(collectionId, "collectionId must be an uuid");
 
