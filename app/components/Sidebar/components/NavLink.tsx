@@ -36,6 +36,7 @@ export type Props = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
   activeStyle?: React.CSSProperties;
   scrollIntoViewIfNeeded?: boolean;
   exact?: boolean;
+  replace?: boolean;
   isActive?: (match: match | null, location: Location) => boolean;
   location?: Location;
   strict?: boolean;
@@ -55,6 +56,7 @@ const NavLink = ({
   isActive: isActiveProp,
   location: locationProp,
   strict,
+  replace,
   style: styleProp,
   scrollIntoViewIfNeeded,
   onClick,
@@ -74,11 +76,10 @@ const NavLink = ({
   );
   const { pathname: path } = toLocation;
 
-  // Regex taken from: https://github.com/pillarjs/path-to-regexp/blob/master/index.js#L202
-  const escapedPath = path?.replace(/([.+*?=^!:${}()[\]|/\\])/g, "\\$1");
-  const match = escapedPath
+  const match = path
     ? matchPath(currentLocation.pathname, {
-        path: escapedPath,
+        // Regex taken from: https://github.com/pillarjs/path-to-regexp/blob/master/index.js#L202
+        path: path.replace(/([.+*?=^!:${}()[\]|/\\])/g, "\\$1"),
         exact,
         strict,
       })
@@ -92,7 +93,7 @@ const NavLink = ({
     : classNameProp;
   const style = isActive ? { ...styleProp, ...activeStyle } : styleProp;
 
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     if (isActive && linkRef.current && scrollIntoViewIfNeeded !== false) {
       scrollIntoView(linkRef.current, {
         scrollMode: "if-needed",
@@ -101,40 +102,46 @@ const NavLink = ({
     }
   }, [linkRef, scrollIntoViewIfNeeded, isActive]);
 
-  const shouldHandleEvent = (
-    event: React.MouseEvent<HTMLAnchorElement>
-  ): boolean => {
-    return (
-      !event.defaultPrevented && // onClick prevented default
-      event.button === 0 && // ignore everything but left clicks
-      !rest.target && // let browser handle "target=_blank" etc.
-      !event.altKey &&
-      !event.metaKey &&
-      !event.ctrlKey
-    );
-  };
+  const shouldHandleEvent = React.useCallback(
+    (event: React.MouseEvent<HTMLAnchorElement>): boolean => {
+      return (
+        !event.defaultPrevented && // onClick prevented default
+        event.button === 0 && // ignore everything but left clicks
+        !rest.target && // let browser handle "target=_blank" etc.
+        !event.altKey &&
+        !event.metaKey &&
+        !event.ctrlKey
+      );
+    },
+    [rest.target]
+  );
 
-  const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
-    onClick?.(event);
+  const handleClick = React.useCallback(
+    (event: React.MouseEvent<HTMLAnchorElement>) => {
+      onClick?.(event);
 
-    if (shouldHandleEvent(event)) {
-      event.stopPropagation();
-      event.preventDefault();
-      event.currentTarget.focus();
+      if (shouldHandleEvent(event)) {
+        event.stopPropagation();
+        event.preventDefault();
+        event.currentTarget.focus();
 
-      setPreActive(true);
+        setPreActive(true);
 
-      // Wait one frame until following link
-      setTimeout(() => {
-        requestAnimationFrame(executeLink);
-        event.currentTarget?.blur();
-      }, 10);
-    }
-  };
-
-  const executeLink = () => {
-    history.push(to);
-  };
+        // Wait a frame until following the link
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            if (replace) {
+              history.replace(to);
+            } else {
+              history.push(to);
+            }
+          });
+          event.currentTarget?.blur();
+        });
+      }
+    },
+    [onClick, replace, to, shouldHandleEvent]
+  );
 
   React.useEffect(() => {
     setPreActive(undefined);
@@ -142,6 +149,7 @@ const NavLink = ({
 
   return (
     <Link
+      key={isActive ? "active" : "inactive"}
       ref={linkRef}
       onMouseDown={handleClick}
       onClick={(event) => {
@@ -154,6 +162,7 @@ const NavLink = ({
       className={className}
       style={style}
       to={toLocation}
+      replace={replace}
       {...rest}
     />
   );

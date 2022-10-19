@@ -14,6 +14,7 @@ const TabLink = styled(NavLink)`
   align-items: center;
   font-weight: 500;
   font-size: 14px;
+  cursor: var(--pointer);
   color: ${(props) => props.theme.textTertiary};
   margin-right: 24px;
   padding: 6px 0;
