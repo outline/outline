@@ -153,19 +153,14 @@ const NavLink = ({
     <Link
       key={isActive ? "active" : "inactive"}
       ref={linkRef}
-      onMouseDown={handleClick}
+      //onMouseDown={handleClick}
       onKeyDown={(event) => {
         if (["Enter", " "].includes(event.key)) {
           navigateTo();
           event.currentTarget?.blur();
         }
       }}
-      onClick={(event) => {
-        if (shouldFastClick(event)) {
-          event.stopPropagation();
-          event.preventDefault();
-        }
-      }}
+      onClick={handleClick}
       aria-current={(isActive && ariaCurrent) || undefined}
       className={className}
       style={style}
