@@ -54,6 +54,7 @@ router.post("auth.config", async (ctx) => {
       ctx.body = {
         data: {
           name: team.name,
+          logo: team.preferences?.publicBranding ? team.avatarUrl : undefined,
           providers: filterProviders(team),
         },
       };
@@ -74,6 +75,7 @@ router.post("auth.config", async (ctx) => {
       ctx.body = {
         data: {
           name: team.name,
+          logo: team.preferences?.publicBranding ? team.avatarUrl : undefined,
           hostname: ctx.request.hostname,
           providers: filterProviders(team),
         },
@@ -95,6 +97,7 @@ router.post("auth.config", async (ctx) => {
       ctx.body = {
         data: {
           name: team.name,
+          logo: team.preferences?.publicBranding ? team.avatarUrl : undefined,
           hostname: ctx.request.hostname,
           providers: filterProviders(team),
         },

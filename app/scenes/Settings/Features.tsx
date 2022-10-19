@@ -57,6 +57,22 @@ function Features() {
           />
         </SettingRow>
       )}
+      {team.avatarUrl && (
+        <SettingRow
+          name="publicBranding"
+          label={t("Public branding")}
+          description={t(
+            "Show your team’s logo on public pages like login and shared documents."
+          )}
+        >
+          <Switch
+            id="publicBranding"
+            name="publicBranding"
+            checked={!!team.preferences?.publicBranding}
+            onChange={handlePreferenceChange}
+          />
+        </SettingRow>
+      )}
     </Scene>
   );
 }

@@ -29,6 +29,7 @@ type Provider = {
 
 export type Config = {
   name?: string;
+  logo?: string;
   hostname?: string;
   providers: Provider[];
 };
