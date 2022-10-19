@@ -45,7 +45,7 @@ export type Props = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
 };
 
 /**
- * A <Link> wrapper that knows if it's "active" or not.
+ * A <Link> wrapper that clicks extra fast and knows if it's "active" or not.
  */
 const NavLink = ({
   "aria-current": ariaCurrent = "page",
@@ -102,12 +102,12 @@ const NavLink = ({
     }
   }, [linkRef, scrollIntoViewIfNeeded, isActive]);
 
-  const shouldHandleEvent = React.useCallback(
+  const shouldFastClick = React.useCallback(
     (event: React.MouseEvent<HTMLAnchorElement>): boolean => {
       return (
-        !event.defaultPrevented && // onClick prevented default
-        event.button === 0 && // ignore everything but left clicks
-        !rest.target && // let browser handle "target=_blank" etc.
+        event.button === 0 && // Only intercept left clicks
+        !event.defaultPrevented &&
+        !rest.target &&
         !event.altKey &&
         !event.metaKey &&
         !event.ctrlKey
@@ -116,11 +116,19 @@ const NavLink = ({
     [rest.target]
   );
 
+  const navigateTo = React.useCallback(() => {
+    if (replace) {
+      history.replace(to);
+    } else {
+      history.push(to);
+    }
+  }, [to, replace]);
+
   const handleClick = React.useCallback(
     (event: React.MouseEvent<HTMLAnchorElement>) => {
       onClick?.(event);
 
-      if (shouldHandleEvent(event)) {
+      if (shouldFastClick(event)) {
         event.stopPropagation();
         event.preventDefault();
         event.currentTarget.focus();
@@ -129,18 +137,12 @@ const NavLink = ({
 
         // Wait a frame until following the link
         requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            if (replace) {
-              history.replace(to);
-            } else {
-              history.push(to);
-            }
-          });
+          requestAnimationFrame(navigateTo);
           event.currentTarget?.blur();
         });
       }
     },
-    [onClick, replace, to, shouldHandleEvent]
+    [onClick, navigateTo, shouldFastClick]
   );
 
   React.useEffect(() => {
@@ -152,8 +154,14 @@ const NavLink = ({
       key={isActive ? "active" : "inactive"}
       ref={linkRef}
       onMouseDown={handleClick}
+      onKeyDown={(event) => {
+        if (["Enter", " "].includes(event.key)) {
+          navigateTo();
+          event.currentTarget?.blur();
+        }
+      }}
       onClick={(event) => {
-        if (shouldHandleEvent(event)) {
+        if (shouldFastClick(event)) {
           event.stopPropagation();
           event.preventDefault();
         }
