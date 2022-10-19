@@ -11,6 +11,7 @@ import {
 } from "react-router";
 import { Link } from "react-router-dom";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
+import history from "~/utils/history";
 
 const resolveToLocation = (
   to: LocationDescriptor | ((location: Location) => LocationDescriptor),
@@ -39,6 +40,7 @@ export type Props = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
   location?: Location;
   strict?: boolean;
   to: LocationDescriptor;
+  onBeforeClick?: () => void;
 };
 
 /**
@@ -55,11 +57,16 @@ const NavLink = ({
   strict,
   style: styleProp,
   scrollIntoViewIfNeeded,
+  onClick,
+  onBeforeClick,
   to,
   ...rest
 }: Props) => {
   const linkRef = React.useRef(null);
   const context = React.useContext(RouterContext);
+  const [preActive, setPreActive] = React.useState<boolean | undefined>(
+    undefined
+  );
   const currentLocation = locationProp || context.location;
   const toLocation = normalizeToLocation(
     resolveToLocation(to, currentLocation),
@@ -77,9 +84,9 @@ const NavLink = ({
       })
     : null;
 
-  const isActive = !!(isActiveProp
-    ? isActiveProp(match, currentLocation)
-    : match);
+  const isActive =
+    preActive ??
+    !!(isActiveProp ? isActiveProp(match, currentLocation) : match);
   const className = isActive
     ? joinClassnames(classNameProp, activeClassName)
     : classNameProp;
@@ -94,15 +101,62 @@ const NavLink = ({
     }
   }, [linkRef, scrollIntoViewIfNeeded, isActive]);
 
-  const props = {
-    "aria-current": (isActive && ariaCurrent) || undefined,
-    className,
-    style,
-    to: toLocation,
-    ...rest,
+  const shouldHandleEvent = (
+    event: React.MouseEvent<HTMLAnchorElement>
+  ): boolean => {
+    return (
+      !event.defaultPrevented && // onClick prevented default
+      event.button === 0 && // ignore everything but left clicks
+      !rest.target && // let browser handle "target=_blank" etc.
+      !event.altKey &&
+      !event.metaKey &&
+      !event.ctrlKey
+    );
   };
 
-  return <Link ref={linkRef} {...props} />;
+  const handleClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    onClick?.(event);
+
+    if (shouldHandleEvent(event)) {
+      event.stopPropagation();
+      event.preventDefault();
+      event.currentTarget.focus();
+
+      setPreActive(true);
+
+      // Wait one frame until following link
+      setTimeout(() => {
+        requestAnimationFrame(executeLink);
+        event.currentTarget?.blur();
+      }, 10);
+    }
+  };
+
+  const executeLink = () => {
+    history.push(to);
+  };
+
+  React.useEffect(() => {
+    setPreActive(undefined);
+  }, [currentLocation]);
+
+  return (
+    <Link
+      ref={linkRef}
+      onMouseDown={handleClick}
+      onClick={(event) => {
+        if (shouldHandleEvent(event)) {
+          event.stopPropagation();
+          event.preventDefault();
+        }
+      }}
+      aria-current={(isActive && ariaCurrent) || undefined}
+      className={className}
+      style={style}
+      to={toLocation}
+      {...rest}
+    />
+  );
 };
 
 export default NavLink;
