@@ -23,8 +23,6 @@ function EmptyCollection({ collection }: Props) {
   const context = useActionContext();
   const collectionName = collection ? collection.name : "";
 
-  console.log({ context });
-
   return (
     <Centered column>
       <Text type="secondary">
