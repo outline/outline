@@ -58,7 +58,7 @@ class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
   fetchCounter = 0;
 
   @observable
-  renderCount: number = DEFAULT_PAGINATION_LIMIT;
+  renderCount = 15;
 
   @observable
   offset = 0;
