@@ -57,7 +57,9 @@ router.post("notificationSettings.delete", auth(), async (ctx) => {
 });
 
 const handleUnsubscribe = async (ctx: ContextWithState) => {
-  const { id, token } = (ctx.request.body ?? ctx.request.query) as {
+  const { id, token } = (ctx.method === "POST"
+    ? ctx.request.body
+    : ctx.request.query) as {
     id?: string;
     token?: string;
   };

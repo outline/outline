@@ -12,7 +12,9 @@ import InviteReminderTask from "@server/queues/tasks/InviteReminderTask";
 const router = new Router();
 
 const cronHandler = async (ctx: Context) => {
-  const { token, limit = 500 } = (ctx.request.body ?? ctx.request.query) as {
+  const { token, limit = 500 } = (ctx.method === "POST"
+    ? ctx.request.body
+    : ctx.request.query) as {
     token?: string;
     limit: number;
   };

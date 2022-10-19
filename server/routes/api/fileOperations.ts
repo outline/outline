@@ -70,7 +70,7 @@ router.post(
 );
 
 const handleFileOperationsRedirect = async (ctx: ContextWithState) => {
-  const { id } = (ctx.request.body ?? ctx.request.query) as { id?: string };
+  const id = ctx.request.body?.id ?? ctx.request.query?.id;
   assertUuid(id, "id is required");
 
   const { user } = ctx.state;
