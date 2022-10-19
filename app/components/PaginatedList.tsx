@@ -55,6 +55,9 @@ class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
   isFetching = false;
 
   @observable
+  isFetchingInitial = !this.props.items?.length;
+
+  @observable
   fetchCounter = 0;
 
   @observable
@@ -85,6 +88,7 @@ class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
     this.allowLoadMore = true;
     this.renderCount = DEFAULT_PAGINATION_LIMIT;
     this.isFetching = false;
+    this.isFetchingInitial = false;
     this.isFetchingMore = false;
   };
 
@@ -112,6 +116,7 @@ class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
       }
 
       this.renderCount += limit;
+      this.isFetchingInitial = false;
     } catch (err) {
       this.error = err;
     } finally {
@@ -159,7 +164,7 @@ class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
     const showLoading =
       this.isFetching &&
       !this.isFetchingMore &&
-      (!items?.length || this.fetchCounter === 0);
+      (!items?.length || (this.fetchCounter <= 1 && this.isFetchingInitial));
 
     if (showLoading) {
       return (
