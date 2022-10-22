@@ -402,6 +402,7 @@ router.post(
   rateLimiter(RateLimiterStrategy.TenPerHour),
   async (ctx) => {
     const { id, code = "" } = ctx.body;
+    const actor = ctx.state.user;
     let user: User;
 
     if (id) {
@@ -410,13 +411,13 @@ router.post(
         rejectOnEmpty: true,
       });
     } else {
-      user = ctx.state.user;
+      user = actor;
     }
-    authorize(user, "delete", user);
+    authorize(actor, "delete", user);
 
     // If we're attempting to delete our own account then a confirmation code
     // is required. This acts as CSRF protection.
-    if (!id || id === ctx.state.user.id) {
+    if (!id || id === actor.id) {
       const deleteConfirmationCode = user.deleteConfirmationCode;
 
       if (
@@ -433,7 +434,7 @@ router.post(
 
     await userDestroyer({
       user,
-      actor: user,
+      actor,
       ip: ctx.request.ip,
     });
 
