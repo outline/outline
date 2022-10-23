@@ -61,15 +61,14 @@ router.post("authenticationProviders.list", auth(), async (ctx) => {
   const { user } = ctx.state;
   authorize(user, "read", user.team);
 
-  const teamAuthenticationProviders = await user.team.$get(
+  const teamAuthenticationProviders = (await user.team.$get(
     "authenticationProviders"
-  );
+  )) as AuthenticationProvider[];
 
   const otherAuthenticationProviders = allAuthenticationProviders.filter(
     (p) =>
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 't' implicitly has an 'any' type.
       !teamAuthenticationProviders.find((t) => t.name === p.id) &&
-      p.enabled && // email auth is dealt with separetly right now, although it definitely
+      p.enabled && // email auth is dealt with separately right now, although it definitely
       // wants to be here in the future – we'll need to migrate more data though
       p.id !== "email"
   );
