@@ -628,8 +628,7 @@ ul.checkbox_list li {
 }
 
 ul.checkbox_list li.checked > div > p {
-  color: ${props.theme.textSecondary};
-  text-decoration: line-through;
+  color: ${props.theme.textTertiary};
 }
 
 ul li::before,
