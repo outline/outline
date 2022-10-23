@@ -866,7 +866,7 @@ mark {
 
 .code-block.with-line-numbers {
   pre {
-    padding-left: calc(var(--line-number-gutter-width, 0) * 1em + 1em);
+    padding-left: calc(var(--line-number-gutter-width, 0) * 1em + 1.5em);
   }
 }
 
