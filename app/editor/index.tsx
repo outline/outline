@@ -28,9 +28,8 @@ import Node from "@shared/editor/nodes/Node";
 import ReactNode from "@shared/editor/nodes/ReactNode";
 import fullExtensionsPackage from "@shared/editor/packages/full";
 import { EventType } from "@shared/editor/types";
-import { IntegrationType } from "@shared/types";
+import { UserPreferences } from "@shared/types";
 import EventEmitter from "@shared/utils/events";
-import Integration from "~/models/Integration";
 import Flex from "~/components/Flex";
 import { Dictionary } from "~/hooks/useDictionary";
 import Logger from "~/utils/Logger";
@@ -105,14 +104,15 @@ export type Props = {
   onKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>) => void;
   /** Collection of embed types to render in the document */
   embeds: EmbedDescriptor[];
+  /** Display preferences for the logged in user, if any. */
+  userPreferences?: UserPreferences | null;
   /** Whether embeds should be rendered without an iframe */
   embedsDisabled?: boolean;
   /** Callback when a toast message is triggered (eg "link copied") */
   onShowToast: (message: string) => void;
   className?: string;
+  /** Optional style overrides */
   style?: React.CSSProperties;
-
-  embedIntegrations?: Integration<IntegrationType.Embed>[];
 };
 
 type State = {

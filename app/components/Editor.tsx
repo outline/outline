@@ -57,10 +57,12 @@ export type Props = Optional<
 
 function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   const { id, shareId, onChange, onHeadingsChange } = props;
-  const { documents } = useStores();
+  const { documents, auth } = useStores();
   const { showToast } = useToasts();
   const dictionary = useDictionary();
   const embeds = useEmbeds(!shareId);
+  const preferences = auth.user?.preferences;
+
   const [
     activeLinkEvent,
     setActiveLinkEvent,
@@ -286,6 +288,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
           uploadFile={onUploadFile}
           onShowToast={showToast}
           embeds={embeds}
+          userPreferences={preferences}
           dictionary={dictionary}
           {...props}
           onHoverLink={handleLinkActive}

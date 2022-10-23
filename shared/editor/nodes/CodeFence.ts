@@ -39,6 +39,7 @@ import sql from "refractor/lang/sql";
 import swift from "refractor/lang/swift";
 import typescript from "refractor/lang/typescript";
 import yaml from "refractor/lang/yaml";
+import { UserPreferences } from "@shared/types";
 import { Dictionary } from "~/hooks/useDictionary";
 
 import toggleBlockType from "../commands/toggleBlockType";
@@ -81,8 +82,10 @@ const DEFAULT_LANGUAGE = "javascript";
 export default class CodeFence extends Node {
   constructor(options: {
     dictionary: Dictionary;
+    userPreferences?: UserPreferences | null;
     onShowToast: (message: string) => void;
   }) {
+    console.log({ options });
     super(options);
   }
 
@@ -174,7 +177,11 @@ export default class CodeFence extends Node {
         return [
           "div",
           {
-            class: "code-block",
+            class: `code-block ${
+              this.options.userPreferences?.codeBlockLineNumbers
+                ? "with-line-numbers"
+                : ""
+            }`,
             "data-language": node.attrs.language,
           },
           ...(actions ? [["div", { contentEditable: "false" }, actions]] : []),
@@ -301,7 +308,10 @@ export default class CodeFence extends Node {
 
   get plugins() {
     return [
-      Prism({ name: this.name }),
+      Prism({
+        name: this.name,
+        lineNumbers: this.options.userPreferences?.codeBlockLineNumbers,
+      }),
       Mermaid({ name: this.name }),
       new Plugin({
         key: new PluginKey("triple-click"),
