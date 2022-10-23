@@ -19,9 +19,21 @@ import {
   ClockIcon,
   CalendarIcon,
 } from "outline-icons";
+import * as React from "react";
+import styled from "styled-components";
+import Image from "@shared/editor/components/Image";
 import { MenuItem } from "@shared/editor/types";
 import { Dictionary } from "~/hooks/useDictionary";
 import { metaDisplay } from "~/utils/keyboard";
+
+const Img = styled(Image)`
+  border-radius: 2px;
+  background: #fff;
+  box-shadow: 0 0 0 1px #fff;
+  margin: 4px;
+  width: 18px;
+  height: 18px;
+`;
 
 export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
   return [
@@ -167,6 +179,16 @@ export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
       icon: StarredIcon,
       keywords: "notice card suggestion",
       attrs: { style: "tip" },
+    },
+    {
+      name: "separator",
+    },
+    {
+      name: "code_block",
+      title: "Mermaid Diagram",
+      icon: () => <Img src="/images/mermaidjs.png" alt="Mermaid Diagram" />,
+      keywords: "diagram flowchart",
+      attrs: { language: "mermaidjs" },
     },
   ];
 }
