@@ -187,6 +187,7 @@ function Security() {
         </Trans>
       </Text>
 
+      <h2>{t("Access")}</h2>
       <SettingRow
         label={t("Allow email authentication")}
         name="guestSignin"
@@ -203,81 +204,18 @@ function Security() {
           disabled={!env.EMAIL_ENABLED}
         />
       </SettingRow>
-      <SettingRow
-        label={t("Public document sharing")}
-        name="sharing"
-        description={t(
-          "When enabled, documents can be shared publicly on the internet by any member of the workspace"
-        )}
-      >
-        <Switch id="sharing" checked={data.sharing} onChange={handleChange} />
-      </SettingRow>
-      <SettingRow
-        label={t("Rich service embeds")}
-        name="documentEmbeds"
-        description={t(
-          "Links to supported services are shown as rich embeds within your documents"
-        )}
-      >
-        <Switch
-          id="documentEmbeds"
-          checked={data.documentEmbeds}
-          onChange={handleChange}
-        />
-      </SettingRow>
-      <SettingRow
-        label={t("Collection creation")}
-        name="memberCollectionCreate"
-        description={t(
-          "Allow members to create new collections within the knowledge base"
-        )}
-      >
-        <Switch
-          id="memberCollectionCreate"
-          checked={data.memberCollectionCreate}
-          onChange={handleChange}
-        />
-      </SettingRow>
       {isCloudHosted && (
         <SettingRow
           label={t("Require invites")}
           name="inviteRequired"
           description={t(
-            "Require members to be invited to the team before they can create an account using SSO."
+            "Require members to be invited to the workspace before they can create an account using SSO."
           )}
         >
           <Switch
             id="inviteRequired"
             checked={data.inviteRequired}
             onChange={handleInviteRequiredChange}
-          />
-        </SettingRow>
-      )}
-
-      {!data.inviteRequired && (
-        <SettingRow
-          label={t("Default role")}
-          name="defaultUserRole"
-          description={t(
-            "The default user role for new accounts. Changing this setting does not affect existing user accounts."
-          )}
-        >
-          <InputSelect
-            id="defaultUserRole"
-            value={data.defaultUserRole}
-            options={[
-              {
-                label: t("Member"),
-                value: "member",
-              },
-              {
-                label: t("Viewer"),
-                value: "viewer",
-              },
-            ]}
-            onChange={handleDefaultRoleChange}
-            ariaLabel={t("Default role")}
-            short
           />
         </SettingRow>
       )}
@@ -342,6 +280,70 @@ function Security() {
           </Flex>
         </SettingRow>
       )}
+      {!data.inviteRequired && (
+        <SettingRow
+          label={t("Default role")}
+          name="defaultUserRole"
+          description={t(
+            "The default user role for new accounts. Changing this setting does not affect existing user accounts."
+          )}
+        >
+          <InputSelect
+            id="defaultUserRole"
+            value={data.defaultUserRole}
+            options={[
+              {
+                label: t("Member"),
+                value: "member",
+              },
+              {
+                label: t("Viewer"),
+                value: "viewer",
+              },
+            ]}
+            onChange={handleDefaultRoleChange}
+            ariaLabel={t("Default role")}
+            short
+          />
+        </SettingRow>
+      )}
+
+      <h2>{t("Behavior")}</h2>
+      <SettingRow
+        label={t("Public document sharing")}
+        name="sharing"
+        description={t(
+          "When enabled, documents can be shared publicly on the internet by any member of the workspace"
+        )}
+      >
+        <Switch id="sharing" checked={data.sharing} onChange={handleChange} />
+      </SettingRow>
+      <SettingRow
+        label={t("Rich service embeds")}
+        name="documentEmbeds"
+        description={t(
+          "Links to supported services are shown as rich embeds within your documents"
+        )}
+      >
+        <Switch
+          id="documentEmbeds"
+          checked={data.documentEmbeds}
+          onChange={handleChange}
+        />
+      </SettingRow>
+      <SettingRow
+        label={t("Collection creation")}
+        name="memberCollectionCreate"
+        description={t(
+          "Allow members to create new collections within the knowledge base"
+        )}
+      >
+        <Switch
+          id="memberCollectionCreate"
+          checked={data.memberCollectionCreate}
+          onChange={handleChange}
+        />
+      </SettingRow>
     </Scene>
   );
 }

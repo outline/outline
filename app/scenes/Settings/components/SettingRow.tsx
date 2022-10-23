@@ -38,7 +38,7 @@ const Column = styled.div`
   flex: 1;
 
   &:first-child {
-    min-width: 60%;
+    min-width: 70%;
   }
 
   &:last-child {
