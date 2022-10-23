@@ -61,7 +61,7 @@ small utilities.
 ```
 shared
 ├── editor            - The text editor, based on Prosemirror
-├── i18n              - Internationalization confiuration
+├── i18n              - Internationalization configuration
 │   └── locales       - Language specific translation files
 ├── styles            - Styles, colors and other global aesthetics
 ├── utils             - Shared utility methods
