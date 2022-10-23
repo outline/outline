@@ -125,14 +125,14 @@ function SharedDocumentScene(props: Props) {
         <Login>
           {(config) =>
             config?.name && isCloudHosted ? (
-              <GetStarted>
+              <Content>
                 {t(
                   "{{ teamName }} is using Outline to share documents, please login to continue.",
                   {
                     teamName: config.name,
                   }
                 )}
-              </GetStarted>
+              </Content>
             ) : null
           }
         </Login>
@@ -175,7 +175,8 @@ function SharedDocumentScene(props: Props) {
   );
 }
 
-const GetStarted = styled(Text)`
+const Content = styled(Text)`
+  color: ${(props) => props.theme.textSecondary};
   text-align: center;
   margin-top: -8px;
 `;
