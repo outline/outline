@@ -213,7 +213,9 @@ function DocumentHeader({
         title={
           <>
             {document.title}{" "}
-            {document.isArchived && <Badge>{t("Archived")}</Badge>}
+            {document.isArchived && (
+              <ArchivedBadge>{t("Archived")}</ArchivedBadge>
+            )}
           </>
         }
         actions={
@@ -357,6 +359,10 @@ function DocumentHeader({
     </>
   );
 }
+
+const ArchivedBadge = styled(Badge)`
+  position: absolute;
+`;
 
 const Status = styled(Action)`
   padding-left: 0;
