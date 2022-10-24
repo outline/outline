@@ -7,7 +7,7 @@ const server = getTestServer();
 describe("#authenticationProviders.info", () => {
   it("should return auth provider", async () => {
     const team = await buildTeam();
-    const user = await buildUser({
+    const user = await buildAdmin({
       teamId: team.id,
     });
     const authenticationProviders = await team.$get("authenticationProviders");
@@ -23,7 +23,7 @@ describe("#authenticationProviders.info", () => {
     expect(body.data.isEnabled).toBe(true);
     expect(body.data.isConnected).toBe(true);
     expect(body.policies[0].abilities.read).toBe(true);
-    expect(body.policies[0].abilities.update).toBe(false);
+    expect(body.policies[0].abilities.update).toBe(true);
   });
 
   it("should require authorization", async () => {
@@ -123,7 +123,7 @@ describe("#authenticationProviders.update", () => {
 describe("#authenticationProviders.list", () => {
   it("should return enabled and available auth providers", async () => {
     const team = await buildTeam();
-    const user = await buildUser({
+    const user = await buildAdmin({
       teamId: team.id,
     });
     const res = await server.post("/api/authenticationProviders.list", {

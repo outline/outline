@@ -107,7 +107,8 @@ router.post(
           isConnected: false,
           ...(row ? presentAuthenticationProvider(row) : {}),
         };
-      });
+      })
+      .sort((a) => (a.isEnabled ? -1 : 1));
 
     ctx.body = {
       data,
