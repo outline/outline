@@ -715,6 +715,7 @@
   "New users will first need to be invited to create an account. <em>Default role</em> and <em>Allowed domains</em> will no longer apply.": "New users will first need to be invited to create an account. <em>Default role</em> and <em>Allowed domains</em> will no longer apply.",
   "Settings that impact the access, security, and content of your knowledge base.": "Settings that impact the access, security, and content of your knowledge base.",
   "Allow members to sign-in with {{ authProvider }}": "Allow members to sign-in with {{ authProvider }}",
+  "Connected": "Connected",
   "Allow members to sign-in using their email address": "Allow members to sign-in using their email address",
   "The server must have SMTP configured to enable this setting": "The server must have SMTP configured to enable this setting",
   "Access": "Access",

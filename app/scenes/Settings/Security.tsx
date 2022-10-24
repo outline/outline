@@ -1,10 +1,10 @@
 import { debounce } from "lodash";
-import { action } from "mobx";
 import { observer } from "mobx-react";
-import { EmailIcon, PadlockIcon } from "outline-icons";
+import { CheckboxIcon, EmailIcon, PadlockIcon } from "outline-icons";
 import { useState } from "react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import { useTheme } from "styled-components";
 import AuthLogo from "~/components/AuthLogo";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Flex from "~/components/Flex";
@@ -27,6 +27,7 @@ function Security() {
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const { showToast } = useToasts();
+  const theme = useTheme();
   const [data, setData] = useState({
     sharing: team.sharing,
     documentEmbeds: team.documentEmbeds,
@@ -134,33 +135,29 @@ function Security() {
       </Text>
 
       <h2>{t("Sign In")}</h2>
-      {authenticationProviders.orderedData.map((provider) => (
-        <SettingRow
-          key={provider.name}
-          label={
-            <Flex gap={8} align="center">
-              <AuthLogo providerName={provider.name} /> {provider.displayName}
-            </Flex>
-          }
-          name={provider.name}
-          description={t("Allow members to sign-in with {{ authProvider }}", {
-            authProvider: provider.displayName,
-          })}
-        >
-          <Switch
-            id={provider.name}
-            checked={provider.isEnabled}
-            onChange={action(async () => {
-              try {
-                provider.isEnabled = !provider.isEnabled;
-                await provider.save();
-              } catch (err) {
-                provider.isEnabled = !provider.isEnabled;
-              }
+      {authenticationProviders.orderedData
+        // filtering unconnected, until we have ability to connect from this screen
+        .filter((provider) => provider.isConnected)
+        .map((provider) => (
+          <SettingRow
+            key={provider.name}
+            label={
+              <Flex gap={8} align="center">
+                <AuthLogo providerName={provider.name} color="currentColor" />{" "}
+                {provider.displayName}
+              </Flex>
+            }
+            name={provider.name}
+            description={t("Allow members to sign-in with {{ authProvider }}", {
+              authProvider: provider.displayName,
             })}
-          />
-        </SettingRow>
-      ))}
+          >
+            <Flex align="center">
+              <CheckboxIcon color={theme.primary} checked />{" "}
+              <Text type="secondary">{t("Connected")}</Text>
+            </Flex>
+          </SettingRow>
+        ))}
       <SettingRow
         label={
           <Flex gap={8} align="center">
