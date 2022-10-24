@@ -696,6 +696,8 @@
   "Choose the interface language. Community translations are accepted though our <2>translation portal</2>.": "选择界面语言。我们通过<2>翻译门户</2>接受来自社区的翻译。",
   "Use pointer cursor": "使用指针光标",
   "Show a hand cursor when hovering over interactive elements.": "将鼠标悬停在交互式元素上时显示手形光标。",
+  "Show line numbers": "Show line numbers",
+  "Show line numbers on code blocks in documents.": "Show line numbers on code blocks in documents.",
   "Remember previous location": "记住上一次的位置",
   "Automatically return to the document you were last viewing when the app is re-opened.": "重新打开应用程序时自动返回到您上次查看的文档。",
   "You may delete your account at any time, note that this is unrecoverable": "您可以随时删除您的帐户，请注意删除后将无法恢复该账号",
