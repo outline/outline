@@ -1,11 +1,12 @@
 import { observer } from "mobx-react";
 import { ProfileIcon } from "outline-icons";
 import * as React from "react";
-import { useTranslation } from "react-i18next";
+import { Trans, useTranslation } from "react-i18next";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
 import Input from "~/components/Input";
 import Scene from "~/components/Scene";
+import Text from "~/components/Text";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
@@ -65,6 +66,9 @@ const Profile = () => {
   return (
     <Scene title={t("Profile")} icon={<ProfileIcon color="currentColor" />}>
       <Heading>{t("Profile")}</Heading>
+      <Text type="secondary">
+        <Trans>Manage how you appear to other members of the workspace.</Trans>
+      </Text>
 
       <form onSubmit={handleSubmit} ref={form}>
         <SettingRow
@@ -80,7 +84,7 @@ const Profile = () => {
         </SettingRow>
         <SettingRow
           border={false}
-          label={t("Full name")}
+          label={t("Name")}
           name="name"
           description={t(
             "This could be your real name, or a nickname — however you’d like people to refer to you."
