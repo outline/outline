@@ -1,10 +1,13 @@
 import { debounce } from "lodash";
+import { action } from "mobx";
 import { observer } from "mobx-react";
-import { PadlockIcon } from "outline-icons";
+import { EmailIcon, PadlockIcon } from "outline-icons";
 import { useState } from "react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import AuthLogo from "~/components/AuthLogo";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
+import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import InputSelect from "~/components/InputSelect";
 import Scene from "~/components/Scene";
@@ -12,6 +15,7 @@ import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import isCloudHosted from "~/utils/isCloudHosted";
@@ -19,7 +23,7 @@ import DomainManagement from "./components/DomainManagement";
 import SettingRow from "./components/SettingRow";
 
 function Security() {
-  const { auth, dialogs } = useStores();
+  const { auth, authenticationProviders, dialogs } = useStores();
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const { showToast } = useToasts();
@@ -32,7 +36,15 @@ function Security() {
     inviteRequired: team.inviteRequired,
   });
 
-  const authenticationMethods = team.signinMethods;
+  const { data: providers, loading, request } = useRequest(() =>
+    authenticationProviders.fetchPage({})
+  );
+
+  React.useEffect(() => {
+    if (!providers && !loading) {
+      request();
+    }
+  }, [loading, providers, request]);
 
   const showSuccessMessage = React.useMemo(
     () =>
@@ -94,7 +106,7 @@ function Security() {
               <Trans
                 defaults="New users will first need to be invited to create an account. <em>Default role</em> and <em>Allowed domains</em> will no longer apply."
                 values={{
-                  authenticationMethods,
+                  authenticationMethods: team.signinMethods,
                 }}
                 components={{
                   em: <strong />,
@@ -108,7 +120,7 @@ function Security() {
 
       await saveData(newData);
     },
-    [data, saveData, t, dialogs, authenticationMethods]
+    [data, saveData, t, dialogs, team.signinMethods]
   );
 
   return (
@@ -121,15 +133,47 @@ function Security() {
         </Trans>
       </Text>
 
-      <h2>{t("Access")}</h2>
+      <h2>{t("Sign In")}</h2>
+      {authenticationProviders.orderedData.map((provider) => (
+        <SettingRow
+          key={provider.name}
+          label={
+            <Flex gap={8} align="center">
+              <AuthLogo providerName={provider.name} /> {provider.displayName}
+            </Flex>
+          }
+          name={provider.name}
+          description={t("Allow members to sign-in with {{ authProvider }}", {
+            authProvider: provider.displayName,
+          })}
+        >
+          <Switch
+            id={provider.name}
+            checked={provider.isEnabled}
+            onChange={action(async () => {
+              try {
+                provider.isEnabled = !provider.isEnabled;
+                await provider.save();
+              } catch (err) {
+                provider.isEnabled = !provider.isEnabled;
+              }
+            })}
+          />
+        </SettingRow>
+      ))}
       <SettingRow
-        label={t("Allow email authentication")}
+        label={
+          <Flex gap={8} align="center">
+            <EmailIcon color="currentColor" /> {t("Email")}
+          </Flex>
+        }
         name="guestSignin"
         description={
           env.EMAIL_ENABLED
-            ? t("When enabled, users can sign-in using their email address")
+            ? t("Allow members to sign-in using their email address")
             : t("The server must have SMTP configured to enable this setting")
         }
+        border={false}
       >
         <Switch
           id="guestSignin"
@@ -138,6 +182,8 @@ function Security() {
           disabled={!env.EMAIL_ENABLED}
         />
       </SettingRow>
+
+      <h2>{t("Access")}</h2>
       {isCloudHosted && (
         <SettingRow
           label={t("Require invites")}
@@ -164,6 +210,7 @@ function Security() {
           description={t(
             "The default user role for new accounts. Changing this setting does not affect existing user accounts."
           )}
+          border={false}
         >
           <InputSelect
             id="defaultUserRole"
