@@ -85,7 +85,6 @@ export default class CodeFence extends Node {
     userPreferences?: UserPreferences | null;
     onShowToast: (message: string) => void;
   }) {
-    console.log({ options });
     super(options);
   }
 
