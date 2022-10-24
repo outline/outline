@@ -7,7 +7,7 @@ const server = getTestServer();
 describe("#authenticationProviders.info", () => {
   it("should return auth provider", async () => {
     const team = await buildTeam();
-    const user = await buildUser({
+    const user = await buildAdmin({
       teamId: team.id,
     });
     const authenticationProviders = await team.$get("authenticationProviders");
@@ -23,7 +23,7 @@ describe("#authenticationProviders.info", () => {
     expect(body.data.isEnabled).toBe(true);
     expect(body.data.isConnected).toBe(true);
     expect(body.policies[0].abilities.read).toBe(true);
-    expect(body.policies[0].abilities.update).toBe(false);
+    expect(body.policies[0].abilities.update).toBe(true);
   });
 
   it("should require authorization", async () => {
@@ -123,7 +123,7 @@ describe("#authenticationProviders.update", () => {
 describe("#authenticationProviders.list", () => {
   it("should return enabled and available auth providers", async () => {
     const team = await buildTeam();
-    const user = await buildUser({
+    const user = await buildAdmin({
       teamId: team.id,
     });
     const res = await server.post("/api/authenticationProviders.list", {
@@ -133,13 +133,13 @@ describe("#authenticationProviders.list", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.authenticationProviders.length).toBe(2);
-    expect(body.data.authenticationProviders[0].name).toBe("slack");
-    expect(body.data.authenticationProviders[0].isEnabled).toBe(true);
-    expect(body.data.authenticationProviders[0].isConnected).toBe(true);
-    expect(body.data.authenticationProviders[1].name).toBe("google");
-    expect(body.data.authenticationProviders[1].isEnabled).toBe(false);
-    expect(body.data.authenticationProviders[1].isConnected).toBe(false);
+    expect(body.data.length).toBe(2);
+    expect(body.data[0].name).toBe("slack");
+    expect(body.data[0].isEnabled).toBe(true);
+    expect(body.data[0].isConnected).toBe(true);
+    expect(body.data[1].name).toBe("google");
+    expect(body.data[1].isEnabled).toBe(false);
+    expect(body.data[1].isConnected).toBe(false);
   });
 
   it("should require authentication", async () => {

@@ -3,13 +3,13 @@ import { sortBy } from "lodash";
 import { signin } from "@shared/utils/urlHelpers";
 import { requireDirectory } from "@server/utils/fs";
 
-interface AuthenticationProviderConfig {
+export type AuthenticationProviderConfig = {
   id: string;
   name: string;
   enabled: boolean;
   authUrl: string;
   router: Router;
-}
+};
 
 const providers: AuthenticationProviderConfig[] = [];
 
