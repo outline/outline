@@ -696,6 +696,8 @@
   "Choose the interface language. Community translations are accepted though our <2>translation portal</2>.": "Wählen Sie die Sprache der Benutzeroberfläche. Community-Übersetzungen werden über unser <2>Übersetzungsportal</2> akzeptiert.",
   "Use pointer cursor": "Mauszeiger verwenden",
   "Show a hand cursor when hovering over interactive elements.": "Zeigen einen Handcursor, wenn Sie den Mauszeiger über interaktive Elemente bewegen.",
+  "Show line numbers": "Show line numbers",
+  "Show line numbers on code blocks in documents.": "Show line numbers on code blocks in documents.",
   "Remember previous location": "Vorherige Position der Oberfläche merken",
   "Automatically return to the document you were last viewing when the app is re-opened.": "Automatisch zum zuletzt angezeigten Dokument zurückkehren, wenn die App wieder geöffnet wird.",
   "You may delete your account at any time, note that this is unrecoverable": "Sie können Ihren Account jederzeit löschen, beachten Sie, dass dies nicht wiederhergestellt werden kann",
