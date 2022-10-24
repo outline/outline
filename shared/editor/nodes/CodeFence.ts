@@ -88,6 +88,10 @@ export default class CodeFence extends Node {
     super(options);
   }
 
+  get showLineNumbers(): boolean {
+    return this.options.userPreferences?.codeBlockLineNumbers ?? true;
+  }
+
   get languageOptions() {
     return Object.entries(LANGUAGES);
   }
@@ -177,9 +181,7 @@ export default class CodeFence extends Node {
           "div",
           {
             class: `code-block ${
-              this.options.userPreferences?.codeBlockLineNumbers
-                ? "with-line-numbers"
-                : ""
+              this.showLineNumbers ? "with-line-numbers" : ""
             }`,
             "data-language": node.attrs.language,
           },
@@ -309,7 +311,7 @@ export default class CodeFence extends Node {
     return [
       Prism({
         name: this.name,
-        lineNumbers: this.options.userPreferences?.codeBlockLineNumbers,
+        lineNumbers: this.showLineNumbers,
       }),
       Mermaid({ name: this.name }),
       new Plugin({
