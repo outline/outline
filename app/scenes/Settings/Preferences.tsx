@@ -99,6 +99,18 @@ function Preferences() {
         />
       </SettingRow>
       <SettingRow
+        name="codeBlockLineNumbers"
+        label={t("Show line numbers")}
+        description={t("Show line numbers on code blocks in documents.")}
+      >
+        <Switch
+          id="codeBlockLineNumbers"
+          name="codeBlockLineNumbers"
+          checked={user.getPreference(UserPreference.CodeBlockLineNumers, true)}
+          onChange={handlePreferenceChange}
+        />
+      </SettingRow>
+      <SettingRow
         border={false}
         name="rememberLastPath"
         label={t("Remember previous location")}

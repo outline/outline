@@ -49,6 +49,7 @@ export enum UserPreference {
   RememberLastPath = "rememberLastPath",
   /** If web-style hand pointer should be used on interactive elements. */
   UseCursorPointer = "useCursorPointer",
+  CodeBlockLineNumers = "codeBlockLineNumbers",
 }
 
 export type UserPreferences = { [key in UserPreference]?: boolean };
