@@ -64,7 +64,7 @@
     "@outlinewiki/koa-passport": "^4.2.1",
     "@outlinewiki/passport-azure-ad-oauth2": "^0.1.0",
     "@renderlesskit/react": "^0.11.0",
-    "@sentry/node": "^7.15.0",
+    "@sentry/node": "^7.16.0",
     "@sentry/react": "^7.15.0",
     "@sentry/tracing": "^7.15.0",
     "@theo.gravity/datadog-apm": "^3.0.0",
