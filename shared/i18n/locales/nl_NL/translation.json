@@ -696,6 +696,8 @@
   "Choose the interface language. Community translations are accepted though our <2>translation portal</2>.": "Kies de taal van de interface. Vertalingen vanuit onze community worden geaccepteerd via het <2>vertaalportaal</2>.",
   "Use pointer cursor": "Use pointer cursor",
   "Show a hand cursor when hovering over interactive elements.": "Show a hand cursor when hovering over interactive elements.",
+  "Show line numbers": "Show line numbers",
+  "Show line numbers on code blocks in documents.": "Show line numbers on code blocks in documents.",
   "Remember previous location": "Onthoud vorige locatie",
   "Automatically return to the document you were last viewing when the app is re-opened.": "Automatisch terugkeren naar het document dat je het laatst hebt bekeken als de app opnieuw wordt geopend.",
   "You may delete your account at any time, note that this is unrecoverable": "Je kan jouw account op ieder moment verwijderen. Let op: je account kan niet hersteld worden.",
