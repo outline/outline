@@ -1,4 +1,3 @@
-import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
@@ -16,34 +15,30 @@ type Props = {
   className?: string;
 };
 
-@observer
-class Avatar extends React.Component<Props> {
-  @observable
-  error: boolean;
+function Avatar(props: Props) {
+  const { src, icon, showBorder, ...rest } = props;
 
-  static defaultProps = {
-    size: 24,
+  const [error, setError] = React.useState(false);
+  const handleError = () => {
+    setError(true);
   };
 
-  handleError = () => {
-    this.error = true;
-  };
-
-  render() {
-    const { src, icon, showBorder, ...rest } = this.props;
-    return (
-      <AvatarWrapper>
-        <CircleImg
-          onError={this.handleError}
-          src={this.error ? placeholder : src}
-          $showBorder={showBorder}
-          {...rest}
-        />
-        {icon && <IconWrapper>{icon}</IconWrapper>}
-      </AvatarWrapper>
-    );
-  }
+  return (
+    <AvatarWrapper>
+      <CircleImg
+        onError={handleError}
+        src={error ? placeholder : src}
+        $showBorder={showBorder}
+        {...rest}
+      />
+      {icon && <IconWrapper>{icon}</IconWrapper>}
+    </AvatarWrapper>
+  );
 }
+
+Avatar.defaultProps = {
+  size: 24,
+};
 
 const AvatarWrapper = styled.div`
   position: relative;
@@ -72,4 +67,4 @@ const CircleImg = styled.img<{ size: number; $showBorder?: boolean }>`
   flex-shrink: 0;
 `;
 
-export default Avatar;
+export default observer(Avatar);
