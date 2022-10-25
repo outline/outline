@@ -142,7 +142,6 @@ li {
     pointer-events: ${props.readOnly ? "initial" : "none"};
     display: inline-block;
     max-width: 100%;
-    max-height: 75vh;
   }
 
   .ProseMirror-selectednode img {

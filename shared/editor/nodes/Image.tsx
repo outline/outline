@@ -9,7 +9,7 @@ import {
   EditorState,
 } from "prosemirror-state";
 import * as React from "react";
-import ImageZoom from "react-medium-image-zoom";
+import ImageZoom, { ImageZoom_Image } from "react-medium-image-zoom";
 import styled from "styled-components";
 import { getDataTransferFiles, getEventFiles } from "../../utils/files";
 import { sanitizeUrl } from "../../utils/urls";
@@ -501,30 +501,83 @@ const ImageComponent = (
   const { theme, isSelected, node } = props;
   const { alt, src, layoutClass } = node.attrs;
   const className = layoutClass ? `image image-${layoutClass}` : "image";
-  const [width, setWidth] = React.useState(0);
+  const [naturalWidth, setNaturalWidth] = React.useState(0);
+  const [width, setWidth] = React.useState(naturalWidth);
+  const [offset, setOffset] = React.useState(0);
+  const [marginLeft, setMarginLeft] = React.useState<"auto" | number>("auto");
+  const [direction, setDirection] = React.useState<"left" | "right">();
+
+  const handleMouseMove = (event: MouseEvent) => {
+    event.preventDefault();
+
+    let diff;
+    if (direction === "left") {
+      diff = offset - event.pageX;
+    } else {
+      diff = event.pageX - offset;
+    }
+
+    const constrainedWidth = Math.min(
+      Math.max(naturalWidth + diff, naturalWidth * 0.1),
+      window.innerWidth * 0.8
+    );
+    setWidth(constrainedWidth);
+
+    // TODO: Hardcode for a second
+    if (constrainedWidth > 808) {
+      setMarginLeft(((constrainedWidth - 808) / 2) * -1);
+    } else {
+      setMarginLeft("auto");
+    }
+  };
+
+  const handleMouseUp = (event: MouseEvent) => {
+    event.preventDefault();
+
+    setOffset(0);
+
+    document.removeEventListener("mousemove", handleMouseMove);
+  };
+
+  const handleMouseDown = (direction: "left" | "right") => (
+    event: React.MouseEvent<HTMLDivElement>
+  ) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    setOffset(event.pageX);
+    setDirection(direction);
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp, { once: true });
+  };
 
   return (
     <div contentEditable={false} className={className}>
       <ImageWrapper
         className={isSelected ? "ProseMirror-selectednode" : ""}
         onClick={props.onClick}
-        style={{ width }}
+        style={{ width, marginLeft }}
       >
         <Button onClick={props.onDownload}>
           <DownloadIcon color="currentColor" />
         </Button>
         <ImageZoom
-          image={{
-            src: sanitizeUrl(src) ?? "",
-            alt,
-            // @ts-expect-error type is incorrect, allows spreading all img props
-            onLoad: (ev) => {
-              // For some SVG's Firefox does not provide the naturalWidth, in this
-              // rare case we need to provide a default so that the image can be
-              // seen and is not sized to 0px
-              setWidth(ev.target.naturalWidth || "50%");
-            },
-          }}
+          image={
+            {
+              width,
+              src: sanitizeUrl(src) ?? "",
+              alt,
+              onLoad: (ev: React.SyntheticEvent<HTMLImageElement>) => {
+                // For some SVG's Firefox does not provide the naturalWidth, in this
+                // rare case we need to provide a default so that the image can be
+                // seen and is not sized to 0px
+                const value =
+                  (ev.target as HTMLImageElement).naturalWidth || 300;
+                setNaturalWidth(value);
+                setWidth(value);
+              },
+            } as ImageZoom_Image
+          }
           defaultStyles={{
             overlay: {
               backgroundColor: theme.background,
@@ -532,11 +585,28 @@ const ImageComponent = (
           }}
           shouldRespectMaxDimension
         />
+        <ResizeLeft onMouseDown={handleMouseDown("left")} />
+        <ResizeRight onMouseDown={handleMouseDown("right")} />
       </ImageWrapper>
       {props.children}
     </div>
   );
 };
+
+const ResizeLeft = styled.div`
+  cursor: col-resize;
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  user-select: none;
+`;
+
+const ResizeRight = styled(ResizeLeft)`
+  left: initial;
+  right: 0;
+`;
 
 const Button = styled.button`
   position: absolute;
@@ -599,7 +669,7 @@ const ImageWrapper = styled.div`
   position: relative;
   margin-left: auto;
   margin-right: auto;
-  max-width: 100%;
+  max-width: 150%;
 
   &:hover {
     ${Button} {
