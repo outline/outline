@@ -8,6 +8,7 @@ import {
   NodeSelection,
   EditorState,
 } from "prosemirror-state";
+import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import ImageZoom, { ImageZoom_Image } from "react-medium-image-zoom";
 import styled from "styled-components";
@@ -304,6 +305,7 @@ export default class Image extends Node {
     return (
       <ImageComponent
         {...props}
+        view={this.editor.view}
         onClick={this.handleSelect(props)}
         onDownload={this.handleDownload(props)}
       >
@@ -496,12 +498,14 @@ const ImageComponent = (
     onClick: (event: React.MouseEvent<HTMLDivElement>) => void;
     onDownload: (event: React.MouseEvent<HTMLButtonElement>) => void;
     children: React.ReactNode;
+    view: EditorView;
   }
 ) => {
   const { theme, isSelected, node } = props;
   const { alt, src, layoutClass } = node.attrs;
   const className = layoutClass ? `image image-${layoutClass}` : "image";
   const [naturalWidth, setNaturalWidth] = React.useState(0);
+  const [widthAtDragStart, setWidthAtDragStart] = React.useState(naturalWidth);
   const [width, setWidth] = React.useState(naturalWidth);
   const [offset, setOffset] = React.useState(0);
   const [marginLeft, setMarginLeft] = React.useState<"auto" | number>("auto");
@@ -518,14 +522,23 @@ const ImageComponent = (
     }
 
     const constrainedWidth = Math.min(
-      Math.max(naturalWidth + diff, naturalWidth * 0.1),
+      Math.max(widthAtDragStart + diff * 2, widthAtDragStart * 0.1),
       window.innerWidth * 0.8
     );
+
+    // console.log({
+    //   offset,
+    //   direction,
+    //   constrainedWidth,
+    //   diff,
+    //   widthAtDragStart,
+    // });
+
     setWidth(constrainedWidth);
 
-    // TODO: Hardcode for a second
-    if (constrainedWidth > 808) {
-      setMarginLeft(((constrainedWidth - 808) / 2) * -1);
+    const documentWidth = props.view.dom.clientWidth;
+    if (constrainedWidth > documentWidth) {
+      setMarginLeft(((constrainedWidth - documentWidth) / 2) * -1);
     } else {
       setMarginLeft("auto");
     }
@@ -533,8 +546,10 @@ const ImageComponent = (
 
   const handleMouseUp = (event: MouseEvent) => {
     event.preventDefault();
+    event.stopPropagation();
 
     setOffset(0);
+    setDirection(undefined);
 
     document.removeEventListener("mousemove", handleMouseMove);
   };
@@ -544,18 +559,28 @@ const ImageComponent = (
   ) => {
     event.preventDefault();
     event.stopPropagation();
-
+    setWidthAtDragStart(width);
     setOffset(event.pageX);
     setDirection(direction);
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp, { once: true });
   };
+
+  React.useEffect(() => {
+    if (direction) {
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [direction, handleMouseMove, handleMouseUp]);
 
   return (
     <div contentEditable={false} className={className}>
       <ImageWrapper
         className={isSelected ? "ProseMirror-selectednode" : ""}
-        onClick={props.onClick}
+        onClick={direction ? undefined : props.onClick}
         style={{ width, marginLeft }}
       >
         <Button onClick={props.onDownload}>
