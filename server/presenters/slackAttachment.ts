@@ -10,8 +10,8 @@ type Action = {
 
 function present(
   document: Document,
-  collection: Collection,
   team: Team,
+  collection?: Collection | null,
   context?: string,
   actions?: Action[]
 ) {
@@ -22,10 +22,10 @@ function present(
     : document.getSummary();
 
   return {
-    color: collection.color,
+    color: collection?.color,
     title: document.title,
     title_link: `${team.url}${document.url}`,
-    footer: collection.name,
+    footer: collection?.name,
     callback_id: document.id,
     text,
     ts: document.getTimestamp(),

@@ -404,7 +404,7 @@ class Document extends ParanoidModel {
   teamId: string;
 
   @BelongsTo(() => Collection, "collectionId")
-  collection: Collection;
+  collection: Collection | null | undefined;
 
   @ForeignKey(() => Collection)
   @Column(DataType.UUID)
@@ -620,14 +620,6 @@ class Document extends ParanoidModel {
       collectionIds = await user.collectionIds();
     }
 
-    // If the user has access to no collections then shortcircuit the rest of this
-    if (!collectionIds.length) {
-      return {
-        results: [],
-        totalCount: 0,
-      };
-    }
-
     let dateFilter;
 
     if (options.dateFilter) {
@@ -636,9 +628,16 @@ class Document extends ParanoidModel {
 
     // Build the SQL query to get documentIds, ranking, and search term context
     const whereClause = `
-  "searchVector" @@ to_tsquery('english', :query) AND
+    "searchVector" @@ to_tsquery('english', :query) AND
     "teamId" = :teamId AND
-    "collectionId" IN(:collectionIds) AND
+    ${
+      collectionIds.length
+        ? `(
+          "collectionId" IN(:collectionIds) OR
+          ("collectionId" IS NULL AND "createdById" = :userId)
+        ) AND`
+        : '"collectionId" IS NULL AND "createdById" = :userId AND'
+    }
     ${
       options.dateFilter ? '"updatedAt" > now() - interval :dateFilter AND' : ""
     }
@@ -962,7 +961,7 @@ class Document extends ParanoidModel {
   // Delete a document, archived or otherwise.
   delete = (userId: string) => {
     return this.sequelize.transaction(async (transaction: Transaction) => {
-      if (!this.archivedAt && !this.template) {
+      if (!this.archivedAt && !this.template && this.collectionId) {
         // delete any children and remove from the document structure
         const collection = await Collection.findByPk(this.collectionId, {
           transaction,

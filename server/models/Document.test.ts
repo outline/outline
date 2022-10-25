@@ -1,6 +1,7 @@
 import Document from "@server/models/Document";
 import {
   buildDocument,
+  buildDraftDocument,
   buildCollection,
   buildTeam,
   buildUser,
@@ -336,6 +337,74 @@ describe("#searchForUser", () => {
     expect(results.length).toBe(0);
   });
 
+  test("should search only drafts created by user", async () => {
+    const user = await buildUser();
+    await buildDraftDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      createdById: user.id,
+      title: "test",
+    });
+    const { results } = await Document.searchForUser(user, "test", {
+      includeDrafts: true,
+    });
+    expect(results.length).toBe(1);
+  });
+
+  test("should not include drafts", async () => {
+    const user = await buildUser();
+    await buildDraftDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      createdById: user.id,
+      title: "test",
+    });
+    const { results } = await Document.searchForUser(user, "test", {
+      includeDrafts: false,
+    });
+    expect(results.length).toBe(0);
+  });
+
+  test("should include results from drafts as well", async () => {
+    const user = await buildUser();
+    await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      createdById: user.id,
+      title: "not draft",
+    });
+    await buildDraftDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      createdById: user.id,
+      title: "draft",
+    });
+    const { results } = await Document.searchForUser(user, "draft", {
+      includeDrafts: true,
+    });
+    expect(results.length).toBe(2);
+  });
+
+  test("should not include results from drafts", async () => {
+    const user = await buildUser();
+    await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      createdById: user.id,
+      title: "not draft",
+    });
+    await buildDraftDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      createdById: user.id,
+      title: "draft",
+    });
+    const { results } = await Document.searchForUser(user, "draft", {
+      includeDrafts: false,
+    });
+    expect(results.length).toBe(1);
+  });
+
   test("should return the total count of search results", async () => {
     const team = await buildTeam();
     const user = await buildUser({
@@ -444,6 +513,17 @@ describe("#delete", () => {
     });
     expect(newDocument?.lastModifiedById).toBe(user.id);
     expect(newDocument?.deletedAt).toBeTruthy();
+  });
+
+  it("should delete draft without collection", async () => {
+    const user = await buildUser();
+    const document = await buildDraftDocument();
+    await document.delete(user.id);
+    const deletedDocument = await Document.findByPk(document.id, {
+      paranoid: false,
+    });
+    expect(deletedDocument?.lastModifiedById).toBe(user.id);
+    expect(deletedDocument?.deletedAt).toBeTruthy();
   });
 });
 

@@ -44,6 +44,7 @@ import {
   assertPresent,
   assertPositiveInteger,
   assertNotEmpty,
+  assertBoolean,
 } from "@server/validation";
 import env from "../../env";
 import pagination from "./middlewares/pagination";
@@ -244,7 +245,9 @@ router.post(
     ]).findAll({
       where: {
         teamId: user.teamId,
-        collectionId: collectionIds,
+        collectionId: {
+          [Op.or]: [{ [Op.in]: collectionIds }, { [Op.is]: null }],
+        },
         deletedAt: {
           [Op.ne]: null,
         },
@@ -353,9 +356,11 @@ router.post("documents.drafts", auth(), pagination(), async (ctx) => {
   const collectionIds = collectionId
     ? [collectionId]
     : await user.collectionIds();
-  const where: WhereOptions<Document> = {
+  const where: WhereOptions = {
     createdById: user.id,
-    collectionId: collectionIds,
+    collectionId: {
+      [Op.or]: [{ [Op.in]: collectionIds }, { [Op.is]: null }],
+    },
     publishedAt: {
       [Op.is]: null,
     },
@@ -425,7 +430,7 @@ router.post(
             document: serializedDocument,
             sharedTree:
               share && share.includeChildDocuments
-                ? collection.getDocumentTree(share.documentId)
+                ? collection?.getDocumentTree(share.documentId)
                 : undefined,
           }
         : serializedDocument;
@@ -516,13 +521,15 @@ router.post("documents.restore", auth({ member: true }), async (ctx) => {
   // be caught as a 403 on the authorize call below. Otherwise we're checking here
   // that the original collection still exists and advising to pass collectionId
   // if not.
-  if (!collectionId && !collection) {
+  if (document.collection && !collectionId && !collection) {
     throw ValidationError(
       "Unable to restore to original collection, it may have been deleted"
     );
   }
 
-  authorize(user, "update", collection);
+  if (document.collection) {
+    authorize(user, "update", collection);
+  }
 
   if (document.deletedAt) {
     authorize(user, "restore", document);
@@ -655,6 +662,14 @@ router.post(
     } = ctx.request.body;
     assertNotEmpty(query, "query is required");
 
+    if (includeDrafts) {
+      assertBoolean(includeDrafts);
+    }
+
+    if (includeArchived) {
+      assertBoolean(includeArchived);
+    }
+
     const { offset, limit } = ctx.state.pagination;
     const snippetMinWords = parseInt(
       ctx.request.body.snippetMinWords || 20,
@@ -687,8 +702,8 @@ router.post(
       invariant(team, "Share must belong to a team");
 
       response = await Document.searchForTeam(team, query, {
-        includeArchived: includeArchived === "true",
-        includeDrafts: includeDrafts === "true",
+        includeArchived,
+        includeDrafts,
         collectionId: document.collectionId,
         share,
         dateFilter,
@@ -728,8 +743,8 @@ router.post(
       }
 
       response = await Document.searchForUser(user, query, {
-        includeArchived: includeArchived === "true",
-        includeDrafts: includeDrafts === "true",
+        includeArchived,
+        includeDrafts,
         collaboratorIds,
         collectionId,
         dateFilter,
@@ -827,6 +842,7 @@ router.post("documents.update", auth(), async (ctx) => {
     publish,
     lastRevision,
     templateId,
+    collectionId,
     append,
   } = ctx.request.body;
   const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
@@ -834,24 +850,39 @@ router.post("documents.update", auth(), async (ctx) => {
   if (append) {
     assertPresent(text, "Text is required while appending");
   }
+
+  if (collectionId) {
+    assertUuid(collectionId, "collectionId must be an uuid");
+  }
+
   const { user } = ctx.state;
 
   let collection: Collection | null | undefined;
 
-  const document = await sequelize.transaction(async (transaction) => {
-    const document = await Document.findByPk(id, {
-      userId: user.id,
-      includeState: true,
-      transaction,
-    });
-    authorize(user, "update", document);
+  const document = await Document.findByPk(id, {
+    userId: user.id,
+    includeState: true,
+  });
+  authorize(user, "update", document);
 
-    collection = document.collection;
-
-    if (lastRevision && lastRevision !== document.revisionCount) {
-      throw InvalidRequestError("Document has changed since last revision");
+  if (publish) {
+    if (!document.collectionId) {
+      assertPresent(
+        collectionId,
+        "collectionId is required to publish a draft without collection"
+      );
+      collection = await Collection.findByPk(collectionId);
+    } else {
+      collection = document.collection;
     }
+    authorize(user, "publish", collection);
+  }
 
+  if (lastRevision && lastRevision !== document.revisionCount) {
+    throw InvalidRequestError("Document has changed since last revision");
+  }
+
+  const updatedDocument = await sequelize.transaction(async (transaction) => {
     return documentUpdater({
       document,
       user,
@@ -859,6 +890,7 @@ router.post("documents.update", auth(), async (ctx) => {
       text,
       fullWidth,
       publish,
+      collectionId,
       append,
       templateId,
       editorVersion,
@@ -867,14 +899,12 @@ router.post("documents.update", auth(), async (ctx) => {
     });
   });
 
-  invariant(collection, "collection not found");
-
-  document.updatedBy = user;
-  document.collection = collection;
+  updatedDocument.updatedBy = user;
+  updatedDocument.collection = collection;
 
   ctx.body = {
-    data: await presentDocument(document),
-    policies: presentPolicies(user, [document]),
+    data: await presentDocument(updatedDocument),
+    policies: presentPolicies(user, [updatedDocument]),
   };
 });
 
@@ -1169,7 +1199,19 @@ router.post("documents.create", auth(), async (ctx) => {
     index,
   } = ctx.request.body;
   const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
-  assertUuid(collectionId, "collectionId must be an uuid");
+
+  if (parentDocumentId || template || publish) {
+    assertPresent(
+      collectionId,
+      publish
+        ? "collectionId is required to publish a draft without collection"
+        : "collectionId is required to create a nested doc or a template"
+    );
+  }
+
+  if (collectionId) {
+    assertUuid(collectionId, "collectionId must be an uuid");
+  }
 
   if (parentDocumentId) {
     assertUuid(parentDocumentId, "parentDocumentId must be an uuid");
@@ -1180,15 +1222,19 @@ router.post("documents.create", auth(), async (ctx) => {
   }
   const { user } = ctx.state;
 
-  const collection = await Collection.scope({
-    method: ["withMembership", user.id],
-  }).findOne({
-    where: {
-      id: collectionId,
-      teamId: user.teamId,
-    },
-  });
-  authorize(user, "publish", collection);
+  let collection;
+
+  if (collectionId) {
+    collection = await Collection.scope({
+      method: ["withMembership", user.id],
+    }).findOne({
+      where: {
+        id: collectionId,
+        teamId: user.teamId,
+      },
+    });
+    authorize(user, "publish", collection);
+  }
 
   let parentDocument;
 
@@ -1196,7 +1242,7 @@ router.post("documents.create", auth(), async (ctx) => {
     parentDocument = await Document.findOne({
       where: {
         id: parentDocumentId,
-        collectionId: collection.id,
+        collectionId: collection?.id,
       },
     });
     authorize(user, "read", parentDocument, {

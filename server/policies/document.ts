@@ -35,13 +35,17 @@ allow(User, "star", Document, (user, document) => {
   if (document.template) {
     return false;
   }
-  invariant(
-    document.collection,
-    "collection is missing, did you forget to include in the query scope?"
-  );
-  if (cannot(user, "read", document.collection)) {
-    return false;
+
+  if (document.collectionId) {
+    invariant(
+      document.collection,
+      "collection is missing, did you forget to include in the query scope?"
+    );
+    if (cannot(user, "read", document.collection)) {
+      return false;
+    }
   }
+
   return user.teamId === document.teamId;
 });
 
@@ -52,13 +56,17 @@ allow(User, "unstar", Document, (user, document) => {
   if (document.template) {
     return false;
   }
-  invariant(
-    document.collection,
-    "collection is missing, did you forget to include in the query scope?"
-  );
-  if (cannot(user, "read", document.collection)) {
-    return false;
+
+  if (document.collectionId) {
+    invariant(
+      document.collection,
+      "collection is missing, did you forget to include in the query scope?"
+    );
+    if (cannot(user, "read", document.collection)) {
+      return false;
+    }
   }
+
   return user.teamId === document.teamId;
 });
 
@@ -95,8 +103,15 @@ allow(User, "update", Document, (user, document) => {
     return false;
   }
 
-  if (cannot(user, "update", document.collection)) {
-    return false;
+  if (document.collectionId) {
+    invariant(
+      document.collection,
+      "collection is missing, did you forget to include in the query scope?"
+    );
+
+    if (cannot(user, "update", document.collection)) {
+      return false;
+    }
   }
 
   return user.teamId === document.teamId;

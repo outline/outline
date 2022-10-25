@@ -237,7 +237,8 @@ function DocumentHeader({
             {!isEditing &&
               !isDeleted &&
               !isRevision &&
-              (!isMobile || !isTemplate) && (
+              (!isMobile || !isTemplate) &&
+              document.collectionId && (
                 <Action>
                   <ShareButton document={document} />
                 </Action>

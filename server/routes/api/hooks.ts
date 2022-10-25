@@ -85,7 +85,7 @@ router.post("hooks.unfurl", async (ctx) => {
     unfurls[link.url] = {
       title: doc.title,
       text: doc.getSummary(),
-      color: doc.collection.color,
+      color: doc.collection?.color,
     };
   }
 
@@ -131,8 +131,8 @@ router.post("hooks.interactive", async (ctx) => {
     attachments: [
       presentSlackAttachment(
         document,
-        document.collection,
         team,
+        document.collection,
         document.getSummary()
       ),
     ],
@@ -303,8 +303,8 @@ router.post("hooks.slack", async (ctx) => {
       attachments.push(
         presentSlackAttachment(
           result.document,
-          result.document.collection,
           team,
+          result.document.collection,
           queryIsInTitle ? undefined : result.context,
           env.SLACK_MESSAGE_ACTIONS
             ? [
