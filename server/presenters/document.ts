@@ -28,6 +28,7 @@ async function present(
     url: document.url,
     urlId: document.urlId,
     title: document.title,
+    emoji: document.emoji,
     text,
     tasks: document.tasks,
     createdAt: document.createdAt,

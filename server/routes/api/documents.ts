@@ -48,6 +48,7 @@ import {
   assertPositiveInteger,
   assertNotEmpty,
   assertBoolean,
+  assertEmoji,
 } from "@server/validation";
 import env from "../../env";
 import pagination from "./middlewares/pagination";
@@ -846,6 +847,7 @@ router.post("documents.update", auth(), async (ctx) => {
     id,
     title,
     text,
+    emoji,
     fullWidth,
     publish,
     lastRevision,
@@ -861,6 +863,10 @@ router.post("documents.update", auth(), async (ctx) => {
 
   if (collectionId) {
     assertUuid(collectionId, "collectionId must be an uuid");
+  }
+
+  if (emoji) {
+    assertEmoji(emoji);
   }
 
   const { user } = ctx.state;
@@ -896,6 +902,7 @@ router.post("documents.update", auth(), async (ctx) => {
       document,
       user,
       title,
+      emoji,
       text,
       fullWidth,
       publish,

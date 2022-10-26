@@ -1,3 +1,4 @@
+import emojiRegex from "emoji-regex";
 import { isArrayLike } from "lodash";
 import { Primitive } from "utility-types";
 import validator from "validator";
@@ -7,6 +8,13 @@ import { validateIndexCharacters } from "../shared/utils/indexCharacters";
 import { ParamRequiredError, ValidationError } from "./errors";
 
 type IncomingValue = Primitive | string[];
+
+export const assertEmoji = (value: string, message = "Invalid emoji!") => {
+  const regex = emojiRegex();
+  if (!regex.test(value)) {
+    throw ValidationError(message);
+  }
+};
 
 export const assertPresent = (value: IncomingValue, message: string) => {
   if (value === undefined || value === null || value === "") {
