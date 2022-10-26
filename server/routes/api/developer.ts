@@ -20,9 +20,9 @@ function dev() {
 }
 
 router.post("developer.create_test_users", dev(), auth(), async (ctx) => {
-  const { count = 10 } = ctx.body;
+  const { count = 10 } = ctx.request.body;
   const { user } = ctx.state;
-  const invites = Array(count)
+  const invites = Array(Math.min(count, 100))
     .fill(0)
     .map(() => {
       const rando = randomstring.generate(10);

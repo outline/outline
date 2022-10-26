@@ -1,8 +1,7 @@
-import { observable } from "mobx";
-import { observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
 import User from "~/models/User";
+import useBoolean from "~/hooks/useBoolean";
 import placeholder from "./placeholder.png";
 
 type Props = {
@@ -16,34 +15,27 @@ type Props = {
   className?: string;
 };
 
-@observer
-class Avatar extends React.Component<Props> {
-  @observable
-  error: boolean;
+function Avatar(props: Props) {
+  const { src, icon, showBorder, ...rest } = props;
 
-  static defaultProps = {
-    size: 24,
-  };
+  const [error, handleError] = useBoolean(false);
 
-  handleError = () => {
-    this.error = true;
-  };
-
-  render() {
-    const { src, icon, showBorder, ...rest } = this.props;
-    return (
-      <AvatarWrapper>
-        <CircleImg
-          onError={this.handleError}
-          src={this.error ? placeholder : src}
-          $showBorder={showBorder}
-          {...rest}
-        />
-        {icon && <IconWrapper>{icon}</IconWrapper>}
-      </AvatarWrapper>
-    );
-  }
+  return (
+    <AvatarWrapper>
+      <CircleImg
+        onError={handleError}
+        src={error ? placeholder : src}
+        $showBorder={showBorder}
+        {...rest}
+      />
+      {icon && <IconWrapper>{icon}</IconWrapper>}
+    </AvatarWrapper>
+  );
 }
+
+Avatar.defaultProps = {
+  size: 24,
+};
 
 const AvatarWrapper = styled.div`
   position: relative;

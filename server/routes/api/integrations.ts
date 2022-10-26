@@ -20,8 +20,8 @@ import pagination from "./middlewares/pagination";
 const router = new Router();
 
 router.post("integrations.list", auth(), pagination(), async (ctx) => {
-  let { direction } = ctx.body;
-  const { sort = "updatedAt" } = ctx.body;
+  let { direction } = ctx.request.body;
+  const { sort = "updatedAt" } = ctx.request.body;
   if (direction !== "ASC") {
     direction = "DESC";
   }
@@ -44,7 +44,7 @@ router.post("integrations.list", auth(), pagination(), async (ctx) => {
 });
 
 router.post("integrations.create", auth({ admin: true }), async (ctx) => {
-  const { type, service, settings } = ctx.body;
+  const { type, service, settings } = ctx.request.body;
 
   assertIn(type, Object.values(IntegrationType));
 
@@ -71,7 +71,7 @@ router.post("integrations.create", auth({ admin: true }), async (ctx) => {
 });
 
 router.post("integrations.update", auth({ admin: true }), async (ctx) => {
-  const { id, events = [], settings } = ctx.body;
+  const { id, events = [], settings } = ctx.request.body;
   assertUuid(id, "id is required");
 
   const { user } = ctx.state;
@@ -100,7 +100,7 @@ router.post("integrations.update", auth({ admin: true }), async (ctx) => {
 });
 
 router.post("integrations.delete", auth({ admin: true }), async (ctx) => {
-  const { id } = ctx.body;
+  const { id } = ctx.request.body;
   assertUuid(id, "id is required");
 
   const { user } = ctx.state;

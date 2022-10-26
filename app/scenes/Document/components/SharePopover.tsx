@@ -165,7 +165,7 @@ function SharePopover({
             <SwitchText>
               {share?.published
                 ? t("Anyone with the link can view this document")
-                : t("Only team members with permission can view")}
+                : t("Only members with permission can view")}
               {share?.lastAccessedAt && (
                 <>
                   .{" "}
@@ -185,7 +185,7 @@ function SharePopover({
         </SwitchWrapper>
       ) : (
         <Text type="secondary">
-          {t("Only team members with permission can view")}
+          {t("Only members with permission can view")}
         </Text>
       )}
 

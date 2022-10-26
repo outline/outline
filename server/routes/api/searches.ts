@@ -26,7 +26,7 @@ router.post("searches.list", auth(), pagination(), async (ctx) => {
 });
 
 router.post("searches.delete", auth(), async (ctx) => {
-  const { id, query } = ctx.body;
+  const { id, query } = ctx.request.body;
   assertPresent(id || query, "id or query is required");
   if (id) {
     assertUuid(id, "id is must be a uuid");

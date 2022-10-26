@@ -199,10 +199,6 @@
       "description": "A sentry tunnel URL for bypassing ad blockers in the UI (optional)",
       "required": false
     },
-    "TEAM_LOGO": {
-      "description": "A logo that will be displayed on the signed out home page",
-      "required": false
-    },
     "DEFAULT_LANGUAGE": {
       "value": "en_US",
       "description": "The default interface language. See translate.getoutline.com for a list of available language codes and their rough percentage translated.",

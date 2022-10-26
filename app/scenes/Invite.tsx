@@ -150,7 +150,7 @@ function Invite({ onSubmit }: Props) {
       {team.guestSignin ? (
         <Text type="secondary">
           <Trans
-            defaults="Invite team members or guests to join your knowledge base. Team members can sign in with {{signinMethods}} or use their email address."
+            defaults="Invite members or guests to join your workspace. They can sign in with {{signinMethods}} or use their email address."
             values={{
               signinMethods: team.signinMethods,
             }}
@@ -159,7 +159,7 @@ function Invite({ onSubmit }: Props) {
       ) : (
         <Text type="secondary">
           <Trans
-            defaults="Invite team members to join your knowledge base. They will need to sign in with {{signinMethods}}."
+            defaults="Invite members to join your workspace. They will need to sign in with {{signinMethods}}."
             values={{
               signinMethods: team.signinMethods,
             }}

@@ -12,7 +12,6 @@ export type PublicEnv = {
   ENVIRONMENT: string;
   SENTRY_DSN: string | undefined;
   SENTRY_TUNNEL: string | undefined;
-  TEAM_LOGO: string | undefined;
   SLACK_CLIENT_ID: string | undefined;
   SLACK_APP_ID: string | undefined;
   MAXIMUM_IMPORT_SIZE: number;
@@ -50,6 +49,7 @@ export enum UserPreference {
   RememberLastPath = "rememberLastPath",
   /** If web-style hand pointer should be used on interactive elements. */
   UseCursorPointer = "useCursorPointer",
+  CodeBlockLineNumers = "codeBlockLineNumbers",
 }
 
 export type UserPreferences = { [key in UserPreference]?: boolean };
@@ -57,6 +57,8 @@ export type UserPreferences = { [key in UserPreference]?: boolean };
 export enum TeamPreference {
   /** Whether documents have a separate edit mode instead of seamless editing. */
   SeamlessEdit = "seamlessEdit",
+  /** Whether to use team logo across the app for branding. */
+  PublicBranding = "publicBranding",
 }
 
 export type TeamPreferences = { [key in TeamPreference]?: boolean };

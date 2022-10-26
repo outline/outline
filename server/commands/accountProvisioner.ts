@@ -1,10 +1,8 @@
 import invariant from "invariant";
-import { UniqueConstraintError } from "sequelize";
 import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
 import {
   AuthenticationError,
   InvalidAuthenticationError,
-  EmailAuthenticationRequiredError,
   AuthenticationProviderDisabledError,
 } from "@server/errors";
 import { APM } from "@server/logging/tracing";
@@ -181,25 +179,7 @@ async function accountProvisioner({
       isNewTeam,
     };
   } catch (err) {
-    if (err instanceof UniqueConstraintError) {
-      const exists = await User.findOne({
-        where: {
-          email: userParams.email,
-          teamId: team.id,
-        },
-      });
-
-      if (exists) {
-        throw EmailAuthenticationRequiredError(
-          "Email authentication required",
-          team.url
-        );
-      } else {
-        throw AuthenticationError(err.message, team.url);
-      }
-    }
-
-    throw err;
+    throw AuthenticationError(err.message);
   }
 }
 

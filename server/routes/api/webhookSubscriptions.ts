@@ -84,7 +84,7 @@ router.post(
   "webhookSubscriptions.delete",
   auth({ admin: true }),
   async (ctx) => {
-    const { id } = ctx.body;
+    const { id } = ctx.request.body;
     assertUuid(id, "id is required");
     const { user } = ctx.state;
     const webhookSubscription = await WebhookSubscription.findByPk(id);
@@ -113,7 +113,7 @@ router.post(
   "webhookSubscriptions.update",
   auth({ admin: true }),
   async (ctx) => {
-    const { id } = ctx.body;
+    const { id } = ctx.request.body;
     assertUuid(id, "id is required");
     const { user } = ctx.state;
 

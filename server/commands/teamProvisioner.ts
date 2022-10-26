@@ -1,3 +1,4 @@
+import teamCreator from "@server/commands/teamCreator";
 import { sequelize } from "@server/database/sequelize";
 import env from "@server/env";
 import {
@@ -5,10 +6,8 @@ import {
   InvalidAuthenticationError,
   MaximumTeamsError,
 } from "@server/errors";
-import Logger from "@server/logging/Logger";
 import { APM } from "@server/logging/tracing";
-import { Team, AuthenticationProvider, Event } from "@server/models";
-import { generateAvatarUrl } from "@server/utils/avatars";
+import { Team, AuthenticationProvider } from "@server/models";
 
 type TeamProvisionerResult = {
   team: Team;
@@ -106,82 +105,24 @@ async function teamProvisioner({
     }
   }
 
-  // If the service did not provide a logo/avatar then we attempt to generate
-  // one via ClearBit, or fallback to colored initials in worst case scenario
-  if (!avatarUrl) {
-    avatarUrl = await generateAvatarUrl({
+  // We cannot find an existing team, so we create a new one
+  const team = await sequelize.transaction((transaction) => {
+    return teamCreator({
       name,
       domain,
-      id: subdomain,
-    });
-  }
-
-  const team = await sequelize.transaction(async (transaction) => {
-    const team = await Team.create(
-      {
-        name,
-        avatarUrl,
-        authenticationProviders: [authenticationProvider],
-      },
-      {
-        include: "authenticationProviders",
-        transaction,
-      }
-    );
-
-    await Event.create(
-      {
-        name: "teams.create",
-        teamId: team.id,
-        ip,
-      },
-      {
-        transaction,
-      }
-    );
-
-    return team;
-  });
-
-  // Note provisioning the subdomain is done outside of the transaction as
-  // it is allowed to fail and the team can still be created, it also requires
-  // failed queries as part of iteration
-  try {
-    await provisionSubdomain(team, subdomain);
-  } catch (err) {
-    Logger.error("Provisioning subdomain failed", err, {
-      teamId: team.id,
       subdomain,
+      avatarUrl,
+      authenticationProviders: [authenticationProvider],
+      ip,
+      transaction,
     });
-  }
+  });
 
   return {
     team,
     authenticationProvider: team.authenticationProviders[0],
     isNewTeam: true,
   };
-}
-
-async function provisionSubdomain(team: Team, requestedSubdomain: string) {
-  if (team.subdomain) {
-    return team.subdomain;
-  }
-  let subdomain = requestedSubdomain;
-  let append = 0;
-
-  for (;;) {
-    try {
-      await team.update({
-        subdomain,
-      });
-      break;
-    } catch (err) {
-      // subdomain was invalid or already used, try again
-      subdomain = `${requestedSubdomain}${++append}`;
-    }
-  }
-
-  return subdomain;
 }
 
 export default APM.traceFunction({

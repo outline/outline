@@ -628,8 +628,7 @@ ul.checkbox_list li {
 }
 
 ul.checkbox_list li.checked > div > p {
-  color: ${props.theme.textSecondary};
-  text-decoration: line-through;
+  color: ${props.theme.textTertiary};
 }
 
 ul li::before,
@@ -863,6 +862,21 @@ mark {
       display: none;
     }
   }
+}
+
+.code-block.with-line-numbers {
+  pre {
+    padding-left: calc(var(--line-number-gutter-width, 0) * 1em + 1.5em);
+  }
+}
+
+.code-block .line-numbers {
+  position: absolute;
+  left: 1em;
+  color: ${props.theme.textTertiary};
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  user-select: none;
 }
 
 .mermaid-diagram-wrapper {

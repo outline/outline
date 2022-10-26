@@ -65,8 +65,8 @@ router.post("collections.create", auth(), async (ctx) => {
     sharing,
     icon,
     sort = Collection.DEFAULT_SORT,
-  } = ctx.body;
-  let { index } = ctx.body;
+  } = ctx.request.body;
+  let { index } = ctx.request.body;
   assertPresent(name, "name is required");
 
   if (color) {
@@ -135,7 +135,7 @@ router.post("collections.create", auth(), async (ctx) => {
 });
 
 router.post("collections.info", auth(), async (ctx) => {
-  const { id } = ctx.body;
+  const { id } = ctx.request.body;
   assertPresent(id, "id is required");
   const { user } = ctx.state;
   const collection = await Collection.scope({
@@ -155,7 +155,10 @@ router.post(
   auth(),
   rateLimiter(RateLimiterStrategy.TenPerHour),
   async (ctx) => {
-    const { attachmentId, format = FileOperationFormat.MarkdownZip } = ctx.body;
+    const {
+      attachmentId,
+      format = FileOperationFormat.MarkdownZip,
+    } = ctx.request.body;
     assertUuid(attachmentId, "attachmentId is required");
 
     const { user } = ctx.state;
@@ -205,7 +208,11 @@ router.post(
 );
 
 router.post("collections.add_group", auth(), async (ctx) => {
-  const { id, groupId, permission = CollectionPermission.ReadWrite } = ctx.body;
+  const {
+    id,
+    groupId,
+    permission = CollectionPermission.ReadWrite,
+  } = ctx.request.body;
   assertUuid(id, "id is required");
   assertUuid(groupId, "groupId is required");
   assertCollectionPermission(permission);
@@ -259,7 +266,7 @@ router.post("collections.add_group", auth(), async (ctx) => {
 });
 
 router.post("collections.remove_group", auth(), async (ctx) => {
-  const { id, groupId } = ctx.body;
+  const { id, groupId } = ctx.request.body;
   assertUuid(id, "id is required");
   assertUuid(groupId, "groupId is required");
 
@@ -294,7 +301,7 @@ router.post(
   auth(),
   pagination(),
   async (ctx) => {
-    const { id, query, permission } = ctx.body;
+    const { id, query, permission } = ctx.request.body;
     assertUuid(id, "id is required");
     const { user } = ctx.state;
 
@@ -473,7 +480,7 @@ router.post(
 );
 
 router.post("collections.memberships", auth(), pagination(), async (ctx) => {
-  const { id, query, permission } = ctx.body;
+  const { id, query, permission } = ctx.request.body;
   assertUuid(id, "id is required");
   const { user } = ctx.state;
 
@@ -536,7 +543,7 @@ router.post(
   auth(),
   rateLimiter(RateLimiterStrategy.TenPerHour),
   async (ctx) => {
-    const { id } = ctx.body;
+    const { id } = ctx.request.body;
     assertUuid(id, "id is required");
     const { user } = ctx.state;
     const team = await Team.findByPk(user.teamId);
@@ -603,7 +610,7 @@ router.post("collections.update", auth(), async (ctx) => {
     color,
     sort,
     sharing,
-  } = ctx.body;
+  } = ctx.request.body;
 
   if (color) {
     assertHexColor(color, "Invalid hex value (please use format #FFFFFF)");
@@ -755,7 +762,7 @@ router.post("collections.list", auth(), pagination(), async (ctx) => {
 });
 
 router.post("collections.delete", auth(), async (ctx) => {
-  const { id } = ctx.body;
+  const { id } = ctx.request.body;
   const { user } = ctx.state;
   assertUuid(id, "id is required");
 
@@ -799,8 +806,8 @@ router.post("collections.delete", auth(), async (ctx) => {
 });
 
 router.post("collections.move", auth(), async (ctx) => {
-  const id = ctx.body.id;
-  let index = ctx.body.index;
+  const id = ctx.request.body.id;
+  let index = ctx.request.body.index;
   assertPresent(index, "index is required");
   assertIndexCharacters(index);
   assertUuid(id, "id must be a uuid");

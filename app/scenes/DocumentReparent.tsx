@@ -71,7 +71,7 @@ function DocumentReparent({ collection, item, onSubmit, onCancel }: Props) {
       <form onSubmit={handleSubmit}>
         <Text type="secondary">
           <Trans
-            defaults="Heads up – moving the document <em>{{ title }}</em> to the <em>{{ newCollectionName }}</em> collection will grant all team members <em>{{ newPermission }}</em>, they currently have {{ prevPermission }}."
+            defaults="Heads up – moving the document <em>{{ title }}</em> to the <em>{{ newCollectionName }}</em> collection will grant all members of the workspace <em>{{ newPermission }}</em>, they currently have {{ prevPermission }}."
             values={{
               title: item.title,
               prevCollectionName: prevCollection?.name,

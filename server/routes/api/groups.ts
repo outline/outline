@@ -16,8 +16,8 @@ import pagination from "./middlewares/pagination";
 const router = new Router();
 
 router.post("groups.list", auth(), pagination(), async (ctx) => {
-  let { direction } = ctx.body;
-  const { sort = "updatedAt" } = ctx.body;
+  let { direction } = ctx.request.body;
+  const { sort = "updatedAt" } = ctx.request.body;
   if (direction !== "ASC") {
     direction = "DESC";
   }
@@ -53,7 +53,7 @@ router.post("groups.list", auth(), pagination(), async (ctx) => {
 });
 
 router.post("groups.info", auth(), async (ctx) => {
-  const { id } = ctx.body;
+  const { id } = ctx.request.body;
   assertUuid(id, "id is required");
 
   const { user } = ctx.state;
@@ -67,7 +67,7 @@ router.post("groups.info", auth(), async (ctx) => {
 });
 
 router.post("groups.create", auth(), async (ctx) => {
-  const { name } = ctx.body;
+  const { name } = ctx.request.body;
   assertPresent(name, "name is required");
 
   const { user } = ctx.state;
@@ -99,7 +99,7 @@ router.post("groups.create", auth(), async (ctx) => {
 });
 
 router.post("groups.update", auth(), async (ctx) => {
-  const { id, name } = ctx.body;
+  const { id, name } = ctx.request.body;
   assertPresent(name, "name is required");
   assertUuid(id, "id is required");
 
@@ -130,7 +130,7 @@ router.post("groups.update", auth(), async (ctx) => {
 });
 
 router.post("groups.delete", auth(), async (ctx) => {
-  const { id } = ctx.body;
+  const { id } = ctx.request.body;
   assertUuid(id, "id is required");
 
   const { user } = ctx.state;
@@ -155,7 +155,7 @@ router.post("groups.delete", auth(), async (ctx) => {
 });
 
 router.post("groups.memberships", auth(), pagination(), async (ctx) => {
-  const { id, query } = ctx.body;
+  const { id, query } = ctx.request.body;
   assertUuid(id, "id is required");
 
   const { user } = ctx.state;
@@ -200,7 +200,7 @@ router.post("groups.memberships", auth(), pagination(), async (ctx) => {
 });
 
 router.post("groups.add_user", auth(), async (ctx) => {
-  const { id, userId } = ctx.body;
+  const { id, userId } = ctx.request.body;
   assertUuid(id, "id is required");
   assertUuid(userId, "userId is required");
 
@@ -260,7 +260,7 @@ router.post("groups.add_user", auth(), async (ctx) => {
 });
 
 router.post("groups.remove_user", auth(), async (ctx) => {
-  const { id, userId } = ctx.body;
+  const { id, userId } = ctx.request.body;
   assertUuid(id, "id is required");
   assertUuid(userId, "userId is required");
 

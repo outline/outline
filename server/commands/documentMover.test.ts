@@ -73,7 +73,7 @@ describe("documentMover", () => {
     );
     expect(response.collections.length).toEqual(1);
     expect(response.documents.length).toEqual(1);
-    expect(response.documents[0].collection.id).toEqual(collection.id);
+    expect(response.documents[0].collection?.id).toEqual(collection.id);
     expect(response.documents[0].updatedBy.id).toEqual(user.id);
   });
 
@@ -112,9 +112,9 @@ describe("documentMover", () => {
     expect(response.collections.length).toEqual(2);
     expect(response.documents.length).toEqual(2);
 
-    expect(response.documents[0].collection.id).toEqual(newCollection.id);
+    expect(response.documents[0].collection?.id).toEqual(newCollection.id);
     expect(response.documents[0].updatedBy.id).toEqual(user.id);
-    expect(response.documents[1].collection.id).toEqual(newCollection.id);
+    expect(response.documents[1].collection?.id).toEqual(newCollection.id);
     expect(response.documents[1].updatedBy.id).toEqual(user.id);
   });
 
@@ -151,7 +151,7 @@ describe("documentMover", () => {
     expect(response.collections.length).toEqual(2);
     expect(response.documents.length).toEqual(1);
 
-    expect(response.documents[0].collection.id).toEqual(newCollection.id);
+    expect(response.documents[0].collection?.id).toEqual(newCollection.id);
     expect(response.documents[0].updatedBy.id).toEqual(user.id);
   });
 });

@@ -213,7 +213,7 @@ function CollectionPermissions({ collectionId }: Props) {
       <PermissionExplainer size="small">
         {!collection.permission && (
           <Trans
-            defaults="The <em>{{ collectionName }}</em> collection is private. Team members have no access to it by default."
+            defaults="The <em>{{ collectionName }}</em> collection is private. Workspace members have no access to it by default."
             values={{
               collectionName,
             }}
@@ -224,8 +224,7 @@ function CollectionPermissions({ collectionId }: Props) {
         )}
         {collection.permission === CollectionPermission.ReadWrite && (
           <Trans
-            defaults="Team members can view and edit documents in the <em>{{ collectionName }}</em> collection by
-          default."
+            defaults="Workspace members can view and edit documents in the <em>{{ collectionName }}</em> collection by default."
             values={{
               collectionName,
             }}
@@ -236,7 +235,8 @@ function CollectionPermissions({ collectionId }: Props) {
         )}
         {collection.permission === CollectionPermission.Read && (
           <Trans
-            defaults="Team members can view documents in the <em>{{ collectionName }}</em> collection by default."
+            defaults="Workspace members can view documents in the <em>{{ collectionName }}</em> collection by
+          default."
             values={{
               collectionName,
             }}
@@ -288,9 +288,7 @@ function CollectionPermissions({ collectionId }: Props) {
       <Divider />
       {isEmpty && (
         <Empty>
-          <Trans>
-            Add specific access for individual groups and team members
-          </Trans>
+          <Trans>Add additional access for individual members and groups</Trans>
         </Empty>
       )}
       <PaginatedList

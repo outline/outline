@@ -124,7 +124,7 @@ export default class SlackProcessor extends BaseProcessor {
       body: JSON.stringify({
         text,
         attachments: [
-          presentSlackAttachment(document, document.collection, team),
+          presentSlackAttachment(document, team, document.collection),
         ],
       }),
     });

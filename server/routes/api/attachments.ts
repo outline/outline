@@ -19,13 +19,13 @@ const router = new Router();
 const AWS_S3_ACL = process.env.AWS_S3_ACL || "private";
 
 router.post("attachments.create", auth(), async (ctx) => {
-  const isPublic = ctx.body.public;
+  const isPublic = ctx.request.body.public;
   const {
     name,
     documentId,
     contentType = "application/octet-stream",
     size,
-  } = ctx.body;
+  } = ctx.request.body;
   assertPresent(name, "name is required");
   assertPresent(size, "size is required");
 
@@ -118,7 +118,7 @@ router.post("attachments.create", auth(), async (ctx) => {
 });
 
 router.post("attachments.delete", auth(), async (ctx) => {
-  const { id } = ctx.body;
+  const { id } = ctx.request.body;
   assertUuid(id, "id is required");
   const { user } = ctx.state;
   const attachment = await Attachment.findByPk(id, {
@@ -147,7 +147,7 @@ router.post("attachments.delete", auth(), async (ctx) => {
 });
 
 const handleAttachmentsRedirect = async (ctx: ContextWithState) => {
-  const { id } = ctx.body as { id?: string };
+  const id = ctx.request.body?.id ?? ctx.request.query?.id;
   assertUuid(id, "id is required");
 
   const { user } = ctx.state;

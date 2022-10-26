@@ -35,6 +35,7 @@ describe("teamProvisioner", () => {
     await buildTeam({
       subdomain: "myteam",
     });
+
     const result = await teamProvisioner({
       name: "Test team",
       subdomain: "myteam",
@@ -46,6 +47,7 @@ describe("teamProvisioner", () => {
       ip,
     });
 
+    expect(result.isNewTeam).toEqual(true);
     expect(result.team.subdomain).toEqual("myteam1");
   });
 

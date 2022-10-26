@@ -9,6 +9,7 @@ import DocumentMeta from "~/components/DocumentMeta";
 import DocumentViews from "~/components/DocumentViews";
 import Popover from "~/components/Popover";
 import useStores from "~/hooks/useStores";
+import Fade from "./Fade";
 
 type Props = {
   document: Document;
@@ -23,6 +24,7 @@ function DocumentMetaWithViews({ to, isDraft, document, ...rest }: Props) {
   const documentViews = useObserver(() => views.inDocument(document.id));
   const totalViewers = documentViews.length;
   const onlyYou = totalViewers === 1 && documentViews[0].user.id;
+  const viewsLoadedOnMount = React.useRef(totalViewers > 0);
 
   const popover = usePopoverState({
     gutter: 8,
@@ -30,12 +32,14 @@ function DocumentMetaWithViews({ to, isDraft, document, ...rest }: Props) {
     modal: true,
   });
 
+  const Wrapper = viewsLoadedOnMount.current ? React.Fragment : Fade;
+
   return (
     <Meta document={document} to={to} replace {...rest}>
       {totalViewers && !isDraft ? (
         <PopoverDisclosure {...popover}>
           {(props) => (
-            <>
+            <Wrapper>
               &nbsp;•&nbsp;
               <a {...props}>
                 {t("Viewed by")}{" "}
@@ -45,7 +49,7 @@ function DocumentMetaWithViews({ to, isDraft, document, ...rest }: Props) {
                       totalViewers === 1 ? t("person") : t("people")
                     }`}
               </a>
-            </>
+            </Wrapper>
           )}
         </PopoverDisclosure>
       ) : null}

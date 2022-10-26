@@ -38,7 +38,7 @@ function Features() {
       <Text type="secondary">
         <Trans>
           Manage optional and beta features. Changing these settings will affect
-          the experience for all team members.
+          the experience for all members of the workspace.
         </Trans>
       </Text>
       {team.collaborativeEditing && (
@@ -53,6 +53,22 @@ function Features() {
             id="seamlessEdit"
             name="seamlessEdit"
             checked={team.getPreference(TeamPreference.SeamlessEdit, true)}
+            onChange={handlePreferenceChange}
+          />
+        </SettingRow>
+      )}
+      {team.avatarUrl && (
+        <SettingRow
+          name="publicBranding"
+          label={t("Public branding")}
+          description={t(
+            "Show your team’s logo on public pages like login and shared documents."
+          )}
+        >
+          <Switch
+            id="publicBranding"
+            name="publicBranding"
+            checked={!!team.preferences?.publicBranding}
             onChange={handlePreferenceChange}
           />
         </SettingRow>

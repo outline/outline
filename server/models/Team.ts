@@ -55,16 +55,16 @@ export type TeamPreferences = Record<string, unknown>;
 @Fix
 class Team extends ParanoidModel {
   @NotContainsUrl
-  @Length({ max: 255, msg: "name must be 255 characters or less" })
+  @Length({ min: 2, max: 255, msg: "name must be between 2 to 255 characters" })
   @Column
   name: string;
 
   @IsLowercase
   @Unique
   @Length({
-    min: 4,
+    min: 2,
     max: 32,
-    msg: "subdomain must be between 4 and 32 characters",
+    msg: "subdomain must be between 2 and 32 characters",
   })
   @Is({
     args: [/^[a-z\d-]+$/, "i"],

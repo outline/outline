@@ -1,4 +1,4 @@
-import { Op } from "sequelize";
+import { Op, SaveOptions } from "sequelize";
 import {
   BelongsTo,
   Column,
@@ -97,9 +97,10 @@ class AuthenticationProvider extends Model {
     }
   }
 
-  disable = async () => {
+  disable = async (options?: SaveOptions<AuthenticationProvider>) => {
     const res = await (this
       .constructor as typeof AuthenticationProvider).findAndCountAll({
+      ...options,
       where: {
         teamId: this.teamId,
         enabled: true,
@@ -111,18 +112,24 @@ class AuthenticationProvider extends Model {
     });
 
     if (res.count >= 1) {
-      return this.update({
-        enabled: false,
-      });
+      return this.update(
+        {
+          enabled: false,
+        },
+        options
+      );
     } else {
       throw ValidationError("At least one authentication provider is required");
     }
   };
 
-  enable = () => {
-    return this.update({
-      enabled: true,
-    });
+  enable = (options?: SaveOptions<AuthenticationProvider>) => {
+    return this.update(
+      {
+        enabled: true,
+      },
+      options
+    );
   };
 }
 

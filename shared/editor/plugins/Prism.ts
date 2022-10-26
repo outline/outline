@@ -12,25 +12,37 @@ export const LANGUAGES = {
   clike: "C",
   csharp: "C#",
   elixir: "Elixir",
+  erlang: "Erlang",
   go: "Go",
+  graphql: "GraphQL",
+  groovy: "Groovy",
+  haskell: "Haskell",
   markup: "HTML",
-  objectivec: "Objective-C",
+  ini: "INI",
   java: "Java",
   javascript: "JavaScript",
   json: "JSON",
   kotlin: "Kotlin",
+  lisp: "Lisp",
+  lua: "Lua",
   mermaidjs: "Mermaid Diagram",
+  objectivec: "Objective-C",
+  ocaml: "OCaml",
   perl: "Perl",
   php: "PHP",
   powershell: "Powershell",
   python: "Python",
   ruby: "Ruby",
   rust: "Rust",
+  scala: "Scala",
   sql: "SQL",
   solidity: "Solidity",
   swift: "Swift",
+  toml: "TOML",
   typescript: "TypeScript",
+  visualbasic: "Visual Basic",
   yaml: "YAML",
+  zig: "Zig",
 };
 
 type ParsedNode = {
@@ -40,7 +52,18 @@ type ParsedNode = {
 
 const cache: Record<number, { node: Node; decorations: Decoration[] }> = {};
 
-function getDecorations({ doc, name }: { doc: Node; name: string }) {
+function getDecorations({
+  doc,
+  name,
+  lineNumbers,
+}: {
+  /** The prosemirror document to operate on. */
+  doc: Node;
+  /** The node name. */
+  name: string;
+  /** Whether to include decorations representing line numbers */
+  lineNumbers?: boolean;
+}) {
   const decorations: Decoration[] = [];
   const blocks: { node: Node; pos: number }[] = findBlockNodes(doc).filter(
     (item) => item.node.type.name === name
@@ -71,6 +94,27 @@ function getDecorations({ doc, name }: { doc: Node; name: string }) {
     }
 
     if (!cache[block.pos] || !cache[block.pos].node.eq(block.node)) {
+      if (lineNumbers) {
+        const lineCount =
+          (block.node.textContent.match(/\n/g) || []).length + 1;
+        decorations.push(
+          Decoration.widget(block.pos + 1, () => {
+            const el = document.createElement("div");
+            el.innerText = new Array(lineCount)
+              .fill(0)
+              .map((_, i) => i + 1)
+              .join("\n");
+            el.className = "line-numbers";
+            return el;
+          })
+        );
+        decorations.push(
+          Decoration.node(block.pos, block.pos + block.node.nodeSize, {
+            style: `--line-number-gutter-width: ${String(lineCount).length}`,
+          })
+        );
+      }
+
       const nodes = refractor.highlight(block.node.textContent, language);
       const _decorations = flattenDeep(parseNodes(nodes))
         .map((node: ParsedNode) => {
@@ -111,7 +155,15 @@ function getDecorations({ doc, name }: { doc: Node; name: string }) {
   return DecorationSet.create(doc, decorations);
 }
 
-export default function Prism({ name }: { name: string }) {
+export default function Prism({
+  name,
+  lineNumbers,
+}: {
+  /** The node name. */
+  name: string;
+  /** Whether to include decorations representing line numbers */
+  lineNumbers?: boolean;
+}) {
   let highlighted = false;
 
   return new Plugin({
@@ -129,7 +181,7 @@ export default function Prism({ name }: { name: string }) {
 
         if (!highlighted || codeBlockChanged || ySyncEdit) {
           highlighted = true;
-          return getDecorations({ doc: transaction.doc, name });
+          return getDecorations({ doc: transaction.doc, name, lineNumbers });
         }
 
         return decorationSet.map(transaction.mapping, transaction.doc);

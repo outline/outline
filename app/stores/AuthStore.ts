@@ -29,6 +29,7 @@ type Provider = {
 
 export type Config = {
   name?: string;
+  logo?: string;
   hostname?: string;
   providers: Provider[];
 };
@@ -258,6 +259,20 @@ export default class AuthStore {
         this.addPolicies(res.policies);
         this.team = new Team(res.data, this);
       });
+    } finally {
+      this.isSaving = false;
+    }
+  };
+
+  @action
+  createTeam = async (params: { name: string }) => {
+    this.isSaving = true;
+
+    try {
+      const res = await client.post(`/teams.create`, params);
+      invariant(res?.success, "Unable to create team");
+
+      window.location.href = res.data.transferUrl;
     } finally {
       this.isSaving = false;
     }

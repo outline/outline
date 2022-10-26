@@ -1,7 +1,11 @@
 import "./bootstrap";
-import { updateYFragment } from "@getoutline/y-prosemirror";
+import {
+  updateYFragment,
+  yDocToProsemirrorJSON,
+} from "@getoutline/y-prosemirror";
+import { Node } from "prosemirror-model";
 import * as Y from "yjs";
-import { parser } from "@server/editor";
+import { parser, schema, serializer } from "@server/editor";
 import { Document } from "@server/models";
 
 const limit = 100;
@@ -51,6 +55,13 @@ export default async function main(exit = false) {
 
       const state = Y.encodeStateAsUpdate(ydoc);
       document.state = Buffer.from(state);
+
+      const node = Node.fromJSON(
+        schema,
+        yDocToProsemirrorJSON(ydoc, "default")
+      );
+      const text = serializer.serialize(node, undefined);
+      document.text = text;
 
       await document.save({
         hooks: false,

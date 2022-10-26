@@ -2,13 +2,19 @@ import * as urlsUtils from "./urls";
 import { urlRegex } from "./urls";
 
 describe("IsUrl Method", () => {
-  describe("invalid urls", () => {
-    it("should return false", () => {
-      expect(urlsUtils.isUrl("")).toBe(false);
-      expect(urlsUtils.isUrl("#invalidurl")).toBe(false);
-      expect(urlsUtils.isUrl("mailto:")).toBe(false);
-      expect(urlsUtils.isUrl("://")).toBe(false);
-    });
+  it("should return false for invalid url", () => {
+    expect(urlsUtils.isUrl("")).toBe(false);
+    expect(urlsUtils.isUrl("#invalidurl")).toBe(false);
+    expect(urlsUtils.isUrl("mailto:")).toBe(false);
+    expect(urlsUtils.isUrl("sms:")).toBe(false);
+    expect(urlsUtils.isUrl("://")).toBe(false);
+  });
+
+  it("should return true for valid urls", () => {
+    expect(urlsUtils.isUrl("http://example.com")).toBe(true);
+    expect(urlsUtils.isUrl("https://www.example.com")).toBe(true);
+    expect(urlsUtils.isUrl("seafile://openfile")).toBe(true);
+    expect(urlsUtils.isUrl("figma://launch")).toBe(true);
   });
 });
 
