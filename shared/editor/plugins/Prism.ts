@@ -12,6 +12,7 @@ export const LANGUAGES = {
   clike: "C",
   csharp: "C#",
   elixir: "Elixir",
+  erlang: "Erlang",
   go: "Go",
   graphql: "GraphQL",
   groovy: "Groovy",
