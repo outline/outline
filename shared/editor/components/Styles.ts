@@ -137,11 +137,14 @@ li {
   text-align: center;
   max-width: 100%;
   clear: both;
+  position: relative;
+  z-index: 1;
 
   img {
     pointer-events: ${props.readOnly ? "initial" : "none"};
     display: inline-block;
     max-width: 100%;
+    transition: width 150ms ease-in-out;
   }
 
   .ProseMirror-selectednode img {

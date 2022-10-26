@@ -99,20 +99,43 @@ const uploadPlugin = (options: Options) =>
   });
 
 const IMAGE_CLASSES = ["right-50", "left-50"];
+const imageSizeRegex = /\s=(\d+)?x(\d+)?$/;
 
-const getLayoutAndTitle = (tokenTitle: string | null) => {
+type TitleAttributes = {
+  layoutClass?: string;
+  title?: string;
+  width?: number;
+  height?: number;
+};
+
+const getLayoutAndTitle = (tokenTitle: string): TitleAttributes => {
+  const attributes: TitleAttributes = {
+    layoutClass: undefined,
+    title: undefined,
+    width: undefined,
+    height: undefined,
+  };
   if (!tokenTitle) {
-    return {};
+    return attributes;
   }
+
   if (IMAGE_CLASSES.includes(tokenTitle)) {
-    return {
-      layoutClass: tokenTitle,
-    };
-  } else {
-    return {
-      title: tokenTitle,
-    };
+    attributes.layoutClass = tokenTitle;
+    IMAGE_CLASSES.map((className) => {
+      tokenTitle = tokenTitle.replace(className, "");
+    });
   }
+
+  const match = tokenTitle.match(imageSizeRegex);
+  if (match) {
+    attributes.width = parseInt(match[1], 10);
+    attributes.height = parseInt(match[2], 10);
+    tokenTitle = tokenTitle.replace(imageSizeRegex, "");
+  }
+
+  attributes.title = tokenTitle;
+
+  return attributes;
 };
 
 const downloadImageNode = async (node: ProsemirrorNode) => {
@@ -145,6 +168,12 @@ export default class Image extends Node {
       inline: true,
       attrs: {
         src: {},
+        width: {
+          default: undefined,
+        },
+        height: {
+          default: undefined,
+        },
         alt: {
           default: null,
         },
@@ -174,6 +203,8 @@ export default class Image extends Node {
             return {
               src: img?.getAttribute("src"),
               alt: img?.getAttribute("alt"),
+              width: img?.getAttribute("width"),
+              height: img?.getAttribute("height"),
               title: img?.getAttribute("title"),
               layoutClass,
             };
@@ -184,6 +215,8 @@ export default class Image extends Node {
           getAttrs: (dom: HTMLImageElement) => {
             return {
               src: dom.getAttribute("src"),
+              width: dom.getAttribute("width"),
+              height: dom.getAttribute("height"),
               alt: dom.getAttribute("alt"),
               title: dom.getAttribute("title"),
             };
@@ -204,6 +237,8 @@ export default class Image extends Node {
             {
               ...node.attrs,
               src: sanitizeUrl(node.attrs.src),
+              width: node.attrs.width,
+              height: node.attrs.height,
               contentEditable: "false",
             },
           ],
@@ -285,6 +320,30 @@ export default class Image extends Node {
     view.dispatch(transaction);
   };
 
+  handleChangeSize = ({ getPos }: { getPos: () => number }) => ({
+    width,
+  }: {
+    width: number;
+    height: number;
+  }) => {
+    const { view } = this.editor;
+    const { tr } = view.state;
+
+    const pos = getPos();
+    const node = view.state.doc.nodeAt(pos);
+    if (node) {
+      const transaction = tr.setNodeMarkup(pos, undefined, {
+        ...node.attrs,
+        width,
+      });
+      console.log({
+        ...node.attrs,
+        width,
+      });
+      view.dispatch(transaction);
+    }
+  };
+
   handleDownload = ({ node }: { node: ProsemirrorNode }) => (
     event: React.MouseEvent
   ) => {
@@ -308,6 +367,7 @@ export default class Image extends Node {
         view={this.editor.view}
         onClick={this.handleSelect(props)}
         onDownload={this.handleDownload(props)}
+        onChangeSize={this.handleChangeSize(props)}
       >
         <Caption
           onKeyDown={this.handleKeyDown(props)}
@@ -332,10 +392,23 @@ export default class Image extends Node {
       state.esc((node.attrs.alt || "").replace("\n", "") || "", false) +
       "](" +
       state.esc(node.attrs.src || "", false);
+
+    let size = "";
+    if (node.attrs.width || node.attrs.height) {
+      size = ` =${state.esc(
+        node.attrs.width ? String(node.attrs.width) : "",
+        false
+      )}x${state.esc(
+        node.attrs.height ? String(node.attrs.height) : "",
+        false
+      )}`;
+    }
     if (node.attrs.layoutClass) {
-      markdown += ' "' + state.esc(node.attrs.layoutClass, false) + '"';
+      markdown += ' "' + state.esc(node.attrs.layoutClass, false) + size + '"';
     } else if (node.attrs.title) {
-      markdown += ' "' + state.esc(node.attrs.title, false) + '"';
+      markdown += ' "' + state.esc(node.attrs.title, false) + size + '"';
+    } else {
+      markdown += ' "' + size + '"';
     }
     markdown += ")";
     state.write(markdown);
@@ -352,7 +425,7 @@ export default class Image extends Node {
               token.children[0] &&
               token.children[0].content) ||
             null,
-          ...getLayoutAndTitle(token?.attrGet("title")),
+          ...getLayoutAndTitle(token?.attrGet("title") || ""),
         };
       },
     };
@@ -497,6 +570,7 @@ const ImageComponent = (
   props: ComponentProps & {
     onClick: (event: React.MouseEvent<HTMLDivElement>) => void;
     onDownload: (event: React.MouseEvent<HTMLButtonElement>) => void;
+    onChangeSize: (props: { width: number; height: number }) => void;
     children: React.ReactNode;
     view: EditorView;
   }
@@ -504,12 +578,12 @@ const ImageComponent = (
   const { theme, isSelected, node } = props;
   const { alt, src, layoutClass } = node.attrs;
   const className = layoutClass ? `image image-${layoutClass}` : "image";
-  const [naturalWidth, setNaturalWidth] = React.useState(0);
+  const [naturalWidth, setNaturalWidth] = React.useState(node.attrs.width);
   const [widthAtDragStart, setWidthAtDragStart] = React.useState(naturalWidth);
-  const [width, setWidth] = React.useState(naturalWidth);
+  const [width, setWidth] = React.useState(node.attrs.width ?? naturalWidth);
   const [offset, setOffset] = React.useState(0);
-  const [marginLeft, setMarginLeft] = React.useState<"auto" | number>("auto");
   const [direction, setDirection] = React.useState<"left" | "right">();
+  const documentWidth = props.view?.dom.clientWidth;
 
   const handleMouseMove = (event: MouseEvent) => {
     event.preventDefault();
@@ -521,27 +595,15 @@ const ImageComponent = (
       diff = event.pageX - offset;
     }
 
-    const constrainedWidth = Math.min(
-      Math.max(widthAtDragStart + diff * 2, widthAtDragStart * 0.1),
-      window.innerWidth * 0.8
+    const grid = documentWidth / 10;
+    const minWidth = widthAtDragStart * 0.1;
+    const newWidth = widthAtDragStart + diff * 2;
+    const widthOnGrid = Math.round(newWidth / grid) * grid;
+    const constrainedWidth = Math.round(
+      Math.min(Math.max(widthOnGrid, minWidth), documentWidth)
     );
 
-    // console.log({
-    //   offset,
-    //   direction,
-    //   constrainedWidth,
-    //   diff,
-    //   widthAtDragStart,
-    // });
-
     setWidth(constrainedWidth);
-
-    const documentWidth = props.view.dom.clientWidth;
-    if (constrainedWidth > documentWidth) {
-      setMarginLeft(((constrainedWidth - documentWidth) / 2) * -1);
-    } else {
-      setMarginLeft("auto");
-    }
   };
 
   const handleMouseUp = (event: MouseEvent) => {
@@ -550,6 +612,7 @@ const ImageComponent = (
 
     setOffset(0);
     setDirection(undefined);
+    props.onChangeSize({ width });
 
     document.removeEventListener("mousemove", handleMouseMove);
   };
@@ -565,12 +628,20 @@ const ImageComponent = (
   };
 
   React.useEffect(() => {
+    if (node.attrs.width !== width) {
+      setWidth(node.attrs.width);
+    }
+  }, [node.attrs.width]);
+
+  React.useEffect(() => {
     if (direction) {
+      document.body.style.cursor = "ew-resize";
       document.addEventListener("mousemove", handleMouseMove);
       document.addEventListener("mouseup", handleMouseUp);
     }
 
     return () => {
+      document.body.style.cursor = "initial";
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     };
@@ -579,17 +650,19 @@ const ImageComponent = (
   return (
     <div contentEditable={false} className={className}>
       <ImageWrapper
-        className={isSelected ? "ProseMirror-selectednode" : ""}
+        className={isSelected && !direction ? "ProseMirror-selectednode" : ""}
         onClick={direction ? undefined : props.onClick}
-        style={{ width, marginLeft }}
+        style={{ width: width || "auto" }}
       >
-        <Button onClick={props.onDownload}>
-          <DownloadIcon color="currentColor" />
-        </Button>
+        {!direction && (
+          <Button onClick={props.onDownload}>
+            <DownloadIcon color="currentColor" />
+          </Button>
+        )}
         <ImageZoom
           image={
             {
-              width,
+              style: { width: width || "auto" },
               src: sanitizeUrl(src) ?? "",
               alt,
               onLoad: (ev: React.SyntheticEvent<HTMLImageElement>) => {
@@ -619,7 +692,7 @@ const ImageComponent = (
 };
 
 const ResizeLeft = styled.div`
-  cursor: col-resize;
+  cursor: ew-resize;
   position: absolute;
   left: 0;
   top: 0;
@@ -695,6 +768,7 @@ const ImageWrapper = styled.div`
   margin-left: auto;
   margin-right: auto;
   max-width: 150%;
+  transition: all 150ms ease-in-out;
 
   &:hover {
     ${Button} {
