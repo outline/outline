@@ -654,6 +654,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     params: {
       id: string;
       title: string;
+      emoji?: string | null;
       text?: string;
       fullWidth?: boolean;
       templateId?: string;
