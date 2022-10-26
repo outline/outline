@@ -62,9 +62,9 @@ class Team extends ParanoidModel {
   @IsLowercase
   @Unique
   @Length({
-    min: 4,
+    min: 2,
     max: 32,
-    msg: "subdomain must be between 4 and 32 characters",
+    msg: "subdomain must be between 2 and 32 characters",
   })
   @Is({
     args: [/^[a-z\d-]+$/, "i"],
