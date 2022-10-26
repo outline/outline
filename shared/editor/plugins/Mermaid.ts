@@ -65,9 +65,7 @@ function getNewState({
             flowchart: {
               htmlLabels: false,
             },
-            themeVariables: {
-              fontFamily: "inherit",
-            },
+            fontFamily: "inherit",
           });
           try {
             module.default.render(
