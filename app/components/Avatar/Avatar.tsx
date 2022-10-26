@@ -1,4 +1,3 @@
-import { observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
 import User from "~/models/User";
@@ -65,4 +64,4 @@ const CircleImg = styled.img<{ size: number; $showBorder?: boolean }>`
   flex-shrink: 0;
 `;
 
-export default observer(Avatar);
+export default Avatar;
