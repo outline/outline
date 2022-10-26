@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
 import User from "~/models/User";
+import useBoolean from "~/hooks/useBoolean";
 import placeholder from "./placeholder.png";
 
 type Props = {
@@ -18,10 +19,7 @@ type Props = {
 function Avatar(props: Props) {
   const { src, icon, showBorder, ...rest } = props;
 
-  const [error, setError] = React.useState(false);
-  const handleError = () => {
-    setError(true);
-  };
+  const [error, handleError] = useBoolean(false);
 
   return (
     <AvatarWrapper>
