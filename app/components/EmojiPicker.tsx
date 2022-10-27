@@ -19,14 +19,14 @@ type Props = PopoverProps & {
   children: React.ReactNode;
   popoverState?: any;
   tabIndex?: number;
-  showPopoverArray?: boolean;
+  showPopoverArrow?: boolean;
 };
 
 const Popover: React.FC<Props> = ({
   disclosure,
   children,
   popoverState,
-  showPopoverArray,
+  showPopoverArrow,
   ...rest
 }) => {
   const popover = usePopoverState(popoverState);
@@ -41,7 +41,7 @@ const Popover: React.FC<Props> = ({
         {(disclosureProps) => React.cloneElement(disclosure, disclosureProps)}
       </PopoverDisclosure>
       <BasePopover {...popover} {...rest}>
-        {showPopoverArray && <PopoverArrow {...popover} />}
+        {showPopoverArrow && <PopoverArrow {...popover} />}
         {children}
       </BasePopover>
     </>
