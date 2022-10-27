@@ -30,11 +30,13 @@ router.post("attachments.create", auth(), async (ctx) => {
   assertPresent(size, "size is required");
 
   const { user } = ctx.state;
-  authorize(user, "createAttachment", user.team);
 
-  // Public attachments are only used for avatars, so this is loosely coupled.
+  // Public attachments are only used for avatars, so this is loosely coupled –
+  // all user types can upload an avatar so no additional authorization is needed.
   if (isPublic) {
     assertIn(contentType, AttachmentValidation.avatarContentTypes);
+  } else {
+    authorize(user, "createAttachment", user.team);
   }
 
   if (
