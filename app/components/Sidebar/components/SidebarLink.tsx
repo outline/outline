@@ -2,8 +2,10 @@ import { LocationDescriptor } from "history";
 import * as React from "react";
 import styled, { useTheme, css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import Emoji from "~/components/Emoji";
 import EventBoundary from "~/components/EventBoundary";
 import NudeButton from "~/components/NudeButton";
+import useEmojiWidth from "~/hooks/useEmojiWidth";
 import { NavigationNode } from "~/types";
 import Disclosure from "./Disclosure";
 import NavLink, { Props as NavLinkProps } from "./NavLink";
@@ -21,6 +23,7 @@ type Props = Omit<NavLinkProps, "to"> & {
   onMouseEnter?: React.MouseEventHandler<HTMLAnchorElement>;
   onDisclosureClick?: React.MouseEventHandler<HTMLButtonElement>;
   icon?: React.ReactNode;
+  emoji?: string | null;
   label?: React.ReactNode;
   menu?: React.ReactNode;
   showActions?: boolean;
@@ -44,6 +47,7 @@ function SidebarLink(
     onClick,
     onMouseEnter,
     to,
+    emoji,
     label,
     active,
     isActiveDrop,
@@ -79,6 +83,11 @@ function SidebarLink(
     [theme.text, theme.sidebarActiveBackground, style]
   );
 
+  const emojiWidth = useEmojiWidth(emoji, {
+    fontSize: "15px",
+    lineHeight: "1.6",
+  });
+
   return (
     <>
       <Link
@@ -108,6 +117,11 @@ function SidebarLink(
             />
           )}
           {icon && <IconWrapper>{icon}</IconWrapper>}
+          {emoji && (
+            <EmojiWrapper width={emojiWidth}>
+              <Emoji native={emoji} />
+            </EmojiWrapper>
+          )}
           <Label>{label}</Label>
         </Content>
       </Link>
@@ -134,6 +148,10 @@ export const IconWrapper = styled.span`
   height: 24px;
   overflow: hidden;
   flex-shrink: 0;
+`;
+
+const EmojiWrapper = styled(IconWrapper)<{ width?: number }>`
+  width: ${(props) => (props.width ? `${props.width}px` : "100%")};
 `;
 
 const Actions = styled(EventBoundary)<{ showActions?: boolean }>`

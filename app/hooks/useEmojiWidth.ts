@@ -9,7 +9,7 @@ type Options = {
  * Measures the width of an emoji character
  */
 export default function useEmojiWidth(
-  emoji: string | undefined,
+  emoji: string | null | undefined,
   { fontSize = "2.25em", lineHeight = "1.25" }: Options
 ) {
   return React.useMemo(() => {
