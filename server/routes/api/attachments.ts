@@ -19,12 +19,12 @@ const router = new Router();
 const AWS_S3_ACL = process.env.AWS_S3_ACL || "private";
 
 router.post("attachments.create", auth(), async (ctx) => {
-  const isPublic = ctx.request.body.public;
   const {
     name,
     documentId,
     contentType = "application/octet-stream",
     size,
+    public: isPublic,
   } = ctx.request.body;
   assertPresent(name, "name is required");
   assertPresent(size, "size is required");
