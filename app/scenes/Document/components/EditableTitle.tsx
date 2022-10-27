@@ -18,7 +18,6 @@ import EmojiPicker from "~/components/EmojiPicker";
 import NudeButton from "~/components/NudeButton";
 import Star, { AnimatedStar } from "~/components/Star";
 import usePickerTheme from "~/hooks/usePickerTheme";
-import useStores from "~/hooks/useStores";
 import { isModKey } from "~/utils/keyboard";
 
 type Props = {
@@ -58,7 +57,6 @@ const EditableTitle = React.forwardRef(
   ) => {
     const { editor } = useDocumentContext();
     const pickerTheme = usePickerTheme();
-    const { documents } = useStores();
 
     const handleClick = React.useCallback(() => {
       ref.current?.focus();
@@ -150,22 +148,24 @@ const EditableTitle = React.forwardRef(
 
     const handleEmojiSelect = React.useCallback(
       async (emoji: string) => {
-        await documents.update({
-          id: document.id,
-          title: document.title,
-          emoji,
-        });
+        if (document.emoji !== emoji) {
+          await document.store.update({
+            id: document.id,
+            emoji,
+          });
+        }
       },
-      [documents, document]
+      [document.id, document.emoji, document.store]
     );
 
     const handleEmojiRemove = React.useCallback(async () => {
-      await documents.update({
-        id: document.id,
-        title: document.title,
-        emoji: null,
-      });
-    }, [documents, document]);
+      if (document.emoji) {
+        await document.store.update({
+          id: document.id,
+          emoji: null,
+        });
+      }
+    }, [document.id, document.emoji, document.store]);
 
     const value =
       !document.title && readOnly ? document.titleWithDefault : document.title;
