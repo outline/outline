@@ -2,7 +2,7 @@ import { observer } from "mobx-react";
 import { Selection } from "prosemirror-state";
 import { SmileyIcon } from "outline-icons";
 import * as React from "react";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import { light } from "@shared/styles/theme";
 import {
   getCurrentDateAsString,
@@ -18,6 +18,7 @@ import EmojiPicker from "~/components/EmojiPicker";
 import NudeButton from "~/components/NudeButton";
 import Star, { AnimatedStar } from "~/components/Star";
 import usePickerTheme from "~/hooks/usePickerTheme";
+import { hover } from "~/styles";
 import { isModKey } from "~/utils/keyboard";
 
 type Props = {
@@ -56,6 +57,7 @@ const EditableTitle = React.forwardRef(
     ref: React.RefObject<RefHandle>
   ) => {
     const { editor } = useDocumentContext();
+    const theme = useTheme();
     const pickerTheme = usePickerTheme();
 
     const handleClick = React.useCallback(() => {
@@ -180,6 +182,7 @@ const EditableTitle = React.forwardRef(
         placeholder={placeholder}
         value={value}
         $isStarred={document.isStarred}
+        $containsEmoji={!!document.emoji}
         autoFocus={!document.title}
         maxLength={DocumentValidation.maxTitleLength}
         readOnly={readOnly}
@@ -192,7 +195,7 @@ const EditableTitle = React.forwardRef(
               {document.emoji ? (
                 <Emoji size="24px" native={document.emoji} />
               ) : (
-                <PlaceholderEmoji size={32} />
+                <AnimatedEmoji size={32} color={theme.textTertiary} />
               )}
             </EmojiButton>
           }
@@ -221,7 +224,28 @@ const StarButton = styled(Star)`
 
 type TitleProps = {
   $isStarred: boolean;
+  $containsEmoji: boolean;
 };
+
+const PlaceholderEmoji = styled(SmileyIcon)`
+  margin-top: 2px;
+`;
+
+const AnimatedEmoji = styled(PlaceholderEmoji)`
+  flex-shrink: 0;
+  transition: all 100ms ease-in-out;
+
+  &: ${hover} {
+    transform: scale(1.1);
+  }
+  &:active {
+    transform: scale(0.95);
+  }
+
+  @media print {
+    display: none;
+  }
+`;
 
 const Title = styled(ContentEditable)<TitleProps>`
   position: relative;
@@ -247,8 +271,20 @@ const Title = styled(ContentEditable)<TitleProps>`
     opacity: ${(props) => (props.$isStarred ? "1 !important" : 0)};
   }
 
+  ${AnimatedEmoji} {
+    opacity: ${(props) => (props.$containsEmoji ? "1 !important" : 0)};
+  }
+
   &:hover {
     ${AnimatedStar} {
+      opacity: 0.5;
+
+      &:hover {
+        opacity: 1;
+      }
+    }
+
+    ${AnimatedEmoji} {
       opacity: 0.5;
 
       &:hover {
@@ -268,10 +304,6 @@ const EmojiButton = styled(NudeButton)`
   position: absolute;
   top: 8px;
   left: -40px;
-`;
-
-const PlaceholderEmoji = styled(SmileyIcon)`
-  margin-top: 2px;
 `;
 
 export default observer(EditableTitle);
