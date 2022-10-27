@@ -50,11 +50,11 @@ router.post("attachments.create", auth(), async (ctx) => {
     );
   }
 
-  const s3Key = uuidv4();
+  const modelId = uuidv4();
   const acl =
     isPublic === undefined ? AWS_S3_ACL : isPublic ? "public-read" : "private";
   const bucket = acl === "public-read" ? "public" : "uploads";
-  const keyPrefix = `${bucket}/${user.id}/${s3Key}`;
+  const keyPrefix = `${bucket}/${user.id}/${modelId}`;
   const key = `${keyPrefix}/${name}`;
   const presignedPost = await getPresignedPost(key, acl, contentType);
   const endpoint = publicS3Endpoint();
@@ -71,6 +71,7 @@ router.post("attachments.create", auth(), async (ctx) => {
   const attachment = await sequelize.transaction(async (transaction) => {
     const attachment = await Attachment.create(
       {
+        id: modelId,
         key,
         acl,
         size,
@@ -88,6 +89,7 @@ router.post("attachments.create", auth(), async (ctx) => {
         data: {
           name,
         },
+        modelId,
         teamId: user.teamId,
         actorId: user.id,
         ip: ctx.request.ip,
