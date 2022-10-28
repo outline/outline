@@ -863,6 +863,7 @@ router.post("documents.update", auth(), async (ctx) => {
     userId: user.id,
     includeState: true,
   });
+  collection = document?.collection;
   authorize(user, "update", document);
 
   if (publish) {
