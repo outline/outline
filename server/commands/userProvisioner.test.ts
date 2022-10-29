@@ -301,20 +301,11 @@ describe("userProvisioner", () => {
       email: externalUser.email,
     });
 
-    const authenticationProviders = await team.$get("authenticationProviders");
-    const authenticationProvider = authenticationProviders[0];
     const result = await userProvisioner({
       name: invite.name,
       email: "external@ExamPle.com", // ensure that email is case insensistive
       teamId: invite.teamId,
-      emailMatchOnly: true,
       ip,
-      authentication: {
-        authenticationProviderId: authenticationProvider.id,
-        providerId: "whatever",
-        accessToken: "123",
-        scopes: ["read"],
-      },
     });
     const { user, authentication, isNewUser } = result;
     expect(authentication).toEqual(null);
@@ -395,13 +386,6 @@ describe("userProvisioner", () => {
       email: "user@example-company.com",
       teamId: team.id,
       ip,
-      emailMatchOnly: true,
-      authentication: {
-        authenticationProviderId: "a random provider",
-        providerId: "fake-service-id",
-        accessToken: "123",
-        scopes: ["read"],
-      },
     });
     const { user, authentication, isNewUser } = result;
     expect(authentication).toBeUndefined();
@@ -419,13 +403,6 @@ describe("userProvisioner", () => {
         email: "user@example-company.com",
         teamId: team.id,
         ip,
-        emailMatchOnly: true,
-        authentication: {
-          authenticationProviderId: "a random provider",
-          providerId: "fake-service-id",
-          accessToken: "123",
-          scopes: ["read"],
-        },
       });
     } catch (err) {
       error = err;
