@@ -3,6 +3,7 @@ import { Selection } from "prosemirror-state";
 import { SmileyIcon } from "outline-icons";
 import * as React from "react";
 import styled, { useTheme } from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 import { light } from "@shared/styles/theme";
 import {
   getCurrentDateAsString,
@@ -252,6 +253,7 @@ const Title = styled(ContentEditable)<TitleProps>`
   line-height: ${lineHeight};
   margin-top: 1em;
   margin-bottom: 0.5em;
+  margin-left: 35px;
   font-size: ${fontSize};
   font-weight: 500;
   border: 0;
@@ -293,6 +295,10 @@ const Title = styled(ContentEditable)<TitleProps>`
     }
   }
 
+  ${breakpoint("tablet")`
+    margin-left: 0px;
+  `};
+
   @media print {
     color: ${light.text};
     -webkit-text-fill-color: ${light.text};
@@ -304,6 +310,7 @@ const EmojiButton = styled(NudeButton)`
   position: absolute;
   top: 8px;
   left: -40px;
+  z-index: 2;
 `;
 
 export default observer(EditableTitle);
