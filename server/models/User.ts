@@ -21,6 +21,7 @@ import {
   IsDate,
   IsUrl,
   AllowNull,
+  AfterUpdate,
 } from "sequelize-typescript";
 import { languages } from "@shared/i18n";
 import {
@@ -30,8 +31,11 @@ import {
 } from "@shared/types";
 import { stringToColor } from "@shared/utils/color";
 import env from "@server/env";
+import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
+import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { ValidationError } from "../errors";
 import ApiKey from "./ApiKey";
+import Attachment from "./Attachment";
 import Collection from "./Collection";
 import CollectionUser from "./CollectionUser";
 import NotificationSetting from "./NotificationSetting";
@@ -578,6 +582,36 @@ class User extends ParanoidModel {
   @BeforeCreate
   static setRandomJwtSecret = (model: User) => {
     model.jwtSecret = crypto.randomBytes(64).toString("hex");
+  };
+
+  @AfterUpdate
+  static deletePreviousAvatar = async (model: User) => {
+    if (
+      model.previous("avatarUrl") &&
+      model.previous("avatarUrl") !== model.avatarUrl
+    ) {
+      const attachmentIds = parseAttachmentIds(
+        model.previous("avatarUrl"),
+        true
+      );
+      if (!attachmentIds.length) {
+        return;
+      }
+
+      const attachment = await Attachment.findOne({
+        where: {
+          id: attachmentIds[0],
+          teamId: model.teamId,
+          userId: model.id,
+        },
+      });
+
+      if (attachment) {
+        await DeleteAttachmentTask.schedule({
+          attachmentId: attachment.id,
+        });
+      }
+    }
   };
 
   // By default when a user signs up we subscribe them to email notifications

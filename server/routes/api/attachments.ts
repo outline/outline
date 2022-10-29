@@ -19,22 +19,24 @@ const router = new Router();
 const AWS_S3_ACL = process.env.AWS_S3_ACL || "private";
 
 router.post("attachments.create", auth(), async (ctx) => {
-  const isPublic = ctx.request.body.public;
   const {
     name,
     documentId,
     contentType = "application/octet-stream",
     size,
+    public: isPublic,
   } = ctx.request.body;
   assertPresent(name, "name is required");
   assertPresent(size, "size is required");
 
   const { user } = ctx.state;
-  authorize(user, "createAttachment", user.team);
 
-  // Public attachments are only used for avatars, so this is loosely coupled.
+  // Public attachments are only used for avatars, so this is loosely coupled –
+  // all user types can upload an avatar so no additional authorization is needed.
   if (isPublic) {
     assertIn(contentType, AttachmentValidation.avatarContentTypes);
+  } else {
+    authorize(user, "createAttachment", user.team);
   }
 
   if (
@@ -48,11 +50,11 @@ router.post("attachments.create", auth(), async (ctx) => {
     );
   }
 
-  const s3Key = uuidv4();
+  const modelId = uuidv4();
   const acl =
     isPublic === undefined ? AWS_S3_ACL : isPublic ? "public-read" : "private";
   const bucket = acl === "public-read" ? "public" : "uploads";
-  const keyPrefix = `${bucket}/${user.id}/${s3Key}`;
+  const keyPrefix = `${bucket}/${user.id}/${modelId}`;
   const key = `${keyPrefix}/${name}`;
   const presignedPost = await getPresignedPost(key, acl, contentType);
   const endpoint = publicS3Endpoint();
@@ -69,6 +71,7 @@ router.post("attachments.create", auth(), async (ctx) => {
   const attachment = await sequelize.transaction(async (transaction) => {
     const attachment = await Attachment.create(
       {
+        id: modelId,
         key,
         acl,
         size,
@@ -86,6 +89,7 @@ router.post("attachments.create", auth(), async (ctx) => {
         data: {
           name,
         },
+        modelId,
         teamId: user.teamId,
         actorId: user.id,
         ip: ctx.request.ip,

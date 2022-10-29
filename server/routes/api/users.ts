@@ -18,6 +18,10 @@ import { ValidationError } from "@server/errors";
 import logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
+import {
+  transaction,
+  TransactionContext,
+} from "@server/middlewares/transaction";
 import { Event, User, Team } from "@server/models";
 import { UserFlag, UserRole } from "@server/models/User";
 import { can, authorize } from "@server/policies";
@@ -176,43 +180,51 @@ router.post("users.info", auth(), async (ctx) => {
   };
 });
 
-router.post("users.update", auth(), async (ctx) => {
-  const { user } = ctx.state;
-  const { name, avatarUrl, language, preferences } = ctx.request.body;
-  if (name) {
-    user.name = name;
-  }
-  if (avatarUrl) {
-    user.avatarUrl = avatarUrl;
-  }
-  if (language) {
-    user.language = language;
-  }
-  if (preferences) {
-    assertKeysIn(preferences, UserPreference);
+router.post(
+  "users.update",
+  auth(),
+  transaction(),
+  async (ctx: TransactionContext) => {
+    const { user, transaction } = ctx.state;
+    const { name, avatarUrl, language, preferences } = ctx.request.body;
+    if (name) {
+      user.name = name;
+    }
+    if (avatarUrl) {
+      user.avatarUrl = avatarUrl;
+    }
+    if (language) {
+      user.language = language;
+    }
+    if (preferences) {
+      assertKeysIn(preferences, UserPreference);
 
-    for (const value of Object.values(UserPreference)) {
-      if (has(preferences, value)) {
-        assertBoolean(preferences[value]);
-        user.setPreference(value, preferences[value]);
+      for (const value of Object.values(UserPreference)) {
+        if (has(preferences, value)) {
+          assertBoolean(preferences[value]);
+          user.setPreference(value, preferences[value]);
+        }
       }
     }
-  }
-  await user.save();
-  await Event.create({
-    name: "users.update",
-    actorId: user.id,
-    userId: user.id,
-    teamId: user.teamId,
-    ip: ctx.request.ip,
-  });
+    await user.save({ transaction });
+    await Event.create(
+      {
+        name: "users.update",
+        actorId: user.id,
+        userId: user.id,
+        teamId: user.teamId,
+        ip: ctx.request.ip,
+      },
+      { transaction }
+    );
 
-  ctx.body = {
-    data: presentUser(user, {
-      includeDetails: true,
-    }),
-  };
-});
+    ctx.body = {
+      data: presentUser(user, {
+        includeDetails: true,
+      }),
+    };
+  }
+);
 
 // Admin specific
 router.post("users.promote", auth(), async (ctx) => {

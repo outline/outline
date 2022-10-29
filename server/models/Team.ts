@@ -18,11 +18,15 @@ import {
   IsUUID,
   IsUrl,
   AllowNull,
+  AfterUpdate,
 } from "sequelize-typescript";
 import { CollectionPermission, TeamPreference } from "@shared/types";
 import { getBaseDomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
 import env from "@server/env";
+import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
 import { generateAvatarUrl } from "@server/utils/avatars";
+import parseAttachmentIds from "@server/utils/parseAttachmentIds";
+import Attachment from "./Attachment";
 import AuthenticationProvider from "./AuthenticationProvider";
 import Collection from "./Collection";
 import Document from "./Document";
@@ -288,6 +292,37 @@ class Team extends ParanoidModel {
 
   @HasMany(() => TeamDomain)
   allowedDomains: TeamDomain[];
+
+  // hooks
+
+  @AfterUpdate
+  static deletePreviousAvatar = async (model: Team) => {
+    if (
+      model.previous("avatarUrl") &&
+      model.previous("avatarUrl") !== model.avatarUrl
+    ) {
+      const attachmentIds = parseAttachmentIds(
+        model.previous("avatarUrl"),
+        true
+      );
+      if (!attachmentIds.length) {
+        return;
+      }
+
+      const attachment = await Attachment.findOne({
+        where: {
+          id: attachmentIds[0],
+          teamId: model.id,
+        },
+      });
+
+      if (attachment) {
+        await DeleteAttachmentTask.schedule({
+          attachmentId: attachment.id,
+        });
+      }
+    }
+  };
 }
 
 export default Team;
