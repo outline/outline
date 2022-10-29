@@ -29,7 +29,7 @@ type Props = {
    * subdomain that the request came from, if any.
    */
   teamId: string;
-  /** Only match against existing user accounts using email, do not create a new account */
+  /** Only provision user accounts using email, do not create linked authentication */
   emailMatchOnly?: boolean;
   /** The IP address of the incoming request */
   ip: string;
@@ -123,6 +123,10 @@ export default async function userProvisioner({
     },
   });
 
+  const team = await Team.scope("withDomains").findByPk(teamId, {
+    attributes: ["defaultUserRole", "inviteRequired", "id"],
+  });
+
   // We have an existing user, so we need to update it with our
   // new details and count this as a new user creation.
   if (existingUser) {
@@ -197,7 +201,7 @@ export default async function userProvisioner({
       authentication: auth,
       isNewUser: isInvite,
     };
-  } else if (emailMatchOnly) {
+  } else if (emailMatchOnly && !team?.allowedDomains.length) {
     // There's no existing invite or user that matches the external auth email
     // This is simply unauthorized
     throw InvalidAuthenticationError();
@@ -210,11 +214,6 @@ export default async function userProvisioner({
   const transaction = await User.sequelize!.transaction();
 
   try {
-    const team = await Team.findByPk(teamId, {
-      attributes: ["defaultUserRole", "inviteRequired", "id"],
-      transaction,
-    });
-
     // If the team settings are set to require invites, and there's no existing user record,
     // throw an error and fail user creation.
     if (team?.inviteRequired) {
@@ -240,7 +239,7 @@ export default async function userProvisioner({
         teamId,
         avatarUrl,
         service: null,
-        authentications: [authentication],
+        authentications: emailMatchOnly ? [] : [authentication],
       },
       {
         include: "authentications",

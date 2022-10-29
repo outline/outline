@@ -253,7 +253,7 @@ class Team extends ParanoidModel {
     });
   };
 
-  collectionIds = async function (paranoid = true) {
+  public collectionIds = async function (this: Team, paranoid = true) {
     const models = await Collection.findAll({
       attributes: ["id"],
       where: {
@@ -267,7 +267,17 @@ class Team extends ParanoidModel {
     return models.map((c) => c.id);
   };
 
-  isDomainAllowed = async function (domain: string) {
+  /**
+   * Find whether the passed domain can be used to sign-in to this team. Note
+   * that this method always returns true if no domain restrictions are set.
+   *
+   * @param domain The domain to check
+   * @returns True if the domain is allowed to sign-in to this team
+   */
+  public isDomainAllowed = async function (
+    this: Team,
+    domain: string
+  ): Promise<boolean> {
     const allowedDomains = (await this.$get("allowedDomains")) || [];
 
     return (

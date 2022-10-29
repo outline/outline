@@ -351,7 +351,7 @@ describe("userProvisioner", () => {
     );
   });
 
-  it("should create a user from allowed Domain", async () => {
+  it("should create a user from allowed domain", async () => {
     const { admin, team } = await seed();
     await TeamDomain.create({
       teamId: team.id,
@@ -380,6 +380,58 @@ describe("userProvisioner", () => {
     expect(authentication?.scopes[0]).toEqual("read");
     expect(user.email).toEqual("user@example-company.com");
     expect(isNewUser).toEqual(true);
+  });
+
+  it("should create a user from allowed domain with emailMatchOnly", async () => {
+    const { admin, team } = await seed();
+    await TeamDomain.create({
+      teamId: team.id,
+      name: "example-company.com",
+      createdById: admin.id,
+    });
+
+    const result = await userProvisioner({
+      name: "Test Name",
+      email: "user@example-company.com",
+      teamId: team.id,
+      ip,
+      emailMatchOnly: true,
+      authentication: {
+        authenticationProviderId: "a random provider",
+        providerId: "fake-service-id",
+        accessToken: "123",
+        scopes: ["read"],
+      },
+    });
+    const { user, authentication, isNewUser } = result;
+    expect(authentication).toBeUndefined();
+    expect(user.email).toEqual("user@example-company.com");
+    expect(isNewUser).toEqual(true);
+  });
+
+  it("should not create a user with emailMatchOnly when no allowed domains are set", async () => {
+    const { team } = await seed();
+    let error;
+
+    try {
+      await userProvisioner({
+        name: "Test Name",
+        email: "user@example-company.com",
+        teamId: team.id,
+        ip,
+        emailMatchOnly: true,
+        authentication: {
+          authenticationProviderId: "a random provider",
+          providerId: "fake-service-id",
+          accessToken: "123",
+          scopes: ["read"],
+        },
+      });
+    } catch (err) {
+      error = err;
+    }
+
+    expect(error && error.toString()).toContain("UnauthorizedError");
   });
 
   it("should reject an user when the domain is not allowed", async () => {
