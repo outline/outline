@@ -602,6 +602,7 @@ class User extends ParanoidModel {
         where: {
           id: attachmentIds[0],
           teamId: model.teamId,
+          userId: model.id,
         },
       });
 
