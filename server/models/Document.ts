@@ -1,12 +1,10 @@
 import removeMarkdown from "@tommoor/remove-markdown";
-import invariant from "invariant";
-import { compact, find, map, uniq } from "lodash";
+import { compact, uniq } from "lodash";
 import randomstring from "randomstring";
 import type { SaveOptions } from "sequelize";
 import {
   Transaction,
   Op,
-  QueryTypes,
   FindOptions,
   ScopeOptions,
   WhereOptions,
@@ -33,7 +31,6 @@ import {
 } from "sequelize-typescript";
 import MarkdownSerializer from "slate-md-serializer";
 import isUUID from "validator/lib/isUUID";
-import { DateFilter } from "@shared/types";
 import getTasks from "@shared/utils/getTasks";
 import parseTitle from "@shared/utils/parseTitle";
 import unescape from "@shared/utils/unescape";
@@ -43,7 +40,6 @@ import slugify from "@server/utils/slugify";
 import Backlink from "./Backlink";
 import Collection from "./Collection";
 import Revision from "./Revision";
-import Share from "./Share";
 import Star from "./Star";
 import Team from "./Team";
 import User from "./User";
@@ -51,28 +47,6 @@ import View from "./View";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
 import Length from "./validators/Length";
-
-export type SearchResponse = {
-  results: {
-    ranking: number;
-    context: string;
-    document: Document;
-  }[];
-  totalCount: number;
-};
-
-type SearchOptions = {
-  limit?: number;
-  offset?: number;
-  collectionId?: string;
-  share?: Share;
-  dateFilter?: DateFilter;
-  collaboratorIds?: string[];
-  includeArchived?: boolean;
-  includeDrafts?: boolean;
-  snippetMinWords?: number;
-  snippetMaxWords?: number;
-};
 
 const serializer = new MarkdownSerializer();
 
@@ -474,257 +448,6 @@ class Document extends ParanoidModel {
     return null;
   }
 
-  static async searchForTeam(
-    team: Team,
-    query: string,
-    options: SearchOptions = {}
-  ): Promise<SearchResponse> {
-    const wildcardQuery = `${escapeQuery(query)}:*`;
-    const {
-      snippetMinWords = 20,
-      snippetMaxWords = 30,
-      limit = 15,
-      offset = 0,
-    } = options;
-
-    // restrict to specific collection if provided
-    // enables search in private collections if specified
-    let collectionIds;
-    if (options.collectionId) {
-      collectionIds = [options.collectionId];
-    } else {
-      collectionIds = await team.collectionIds();
-    }
-
-    // short circuit if no relevant collections
-    if (!collectionIds.length) {
-      return {
-        results: [],
-        totalCount: 0,
-      };
-    }
-
-    // restrict to documents in the tree of a shared document when one is provided
-    let documentIds;
-
-    if (options.share?.includeChildDocuments) {
-      const sharedDocument = await options.share.$get("document");
-      invariant(sharedDocument, "Cannot find document for share");
-
-      const childDocumentIds = await sharedDocument.getChildDocumentIds({
-        archivedAt: {
-          [Op.is]: null,
-        },
-      });
-      documentIds = [sharedDocument.id, ...childDocumentIds];
-    }
-
-    const documentClause = documentIds ? `"id" IN(:documentIds) AND` : "";
-
-    // Build the SQL query to get result documentIds, ranking, and search term context
-    const whereClause = `
-  "searchVector" @@ to_tsquery('english', :query) AND
-    "teamId" = :teamId AND
-    "collectionId" IN(:collectionIds) AND
-    ${documentClause}
-    "deletedAt" IS NULL AND
-    "publishedAt" IS NOT NULL
-  `;
-    const selectSql = `
-    SELECT
-      id,
-      ts_rank(documents."searchVector", to_tsquery('english', :query)) as "searchRanking",
-      ts_headline('english', "text", to_tsquery('english', :query), :headlineOptions) as "searchContext"
-    FROM documents
-    WHERE ${whereClause}
-    ORDER BY
-      "searchRanking" DESC,
-      "updatedAt" DESC
-    LIMIT :limit
-    OFFSET :offset;
-  `;
-    const countSql = `
-    SELECT COUNT(id)
-    FROM documents
-    WHERE ${whereClause}
-  `;
-    const queryReplacements = {
-      teamId: team.id,
-      query: wildcardQuery,
-      collectionIds,
-      documentIds,
-      headlineOptions: `MaxFragments=1, MinWords=${snippetMinWords}, MaxWords=${snippetMaxWords}`,
-    };
-    const resultsQuery = this.sequelize!.query(selectSql, {
-      type: QueryTypes.SELECT,
-      replacements: { ...queryReplacements, limit, offset },
-    });
-    const countQuery = this.sequelize!.query(countSql, {
-      type: QueryTypes.SELECT,
-      replacements: queryReplacements,
-    });
-    const [results, [{ count }]]: [any, any] = await Promise.all([
-      resultsQuery,
-      countQuery,
-    ]);
-
-    // Final query to get associated document data
-    const documents = await this.findAll({
-      where: {
-        id: map(results, "id"),
-        teamId: team.id,
-      },
-      include: [
-        {
-          model: Collection,
-          as: "collection",
-        },
-      ],
-    });
-
-    return {
-      results: map(results, (result: any) => ({
-        ranking: result.searchRanking,
-        context: removeMarkdown(unescape(result.searchContext), {
-          stripHTML: false,
-        }),
-        document: find(documents, {
-          id: result.id,
-        }) as Document,
-      })),
-      totalCount: count,
-    };
-  }
-
-  static async searchForUser(
-    user: User,
-    query: string,
-    options: SearchOptions = {}
-  ): Promise<SearchResponse> {
-    const {
-      snippetMinWords = 20,
-      snippetMaxWords = 30,
-      limit = 15,
-      offset = 0,
-    } = options;
-    const wildcardQuery = `${escapeQuery(query)}:*`;
-
-    // Ensure we're filtering by the users accessible collections. If
-    // collectionId is passed as an option it is assumed that the authorization
-    // has already been done in the router
-    let collectionIds;
-
-    if (options.collectionId) {
-      collectionIds = [options.collectionId];
-    } else {
-      collectionIds = await user.collectionIds();
-    }
-
-    let dateFilter;
-
-    if (options.dateFilter) {
-      dateFilter = `1 ${options.dateFilter}`;
-    }
-
-    // Build the SQL query to get documentIds, ranking, and search term context
-    const whereClause = `
-    "searchVector" @@ to_tsquery('english', :query) AND
-    "teamId" = :teamId AND
-    ${
-      collectionIds.length
-        ? `(
-          "collectionId" IN(:collectionIds) OR
-          ("collectionId" IS NULL AND "createdById" = :userId)
-        ) AND`
-        : '"collectionId" IS NULL AND "createdById" = :userId AND'
-    }
-    ${
-      options.dateFilter ? '"updatedAt" > now() - interval :dateFilter AND' : ""
-    }
-    ${
-      options.collaboratorIds
-        ? '"collaboratorIds" @> ARRAY[:collaboratorIds]::uuid[] AND'
-        : ""
-    }
-    ${options.includeArchived ? "" : '"archivedAt" IS NULL AND'}
-    "deletedAt" IS NULL AND
-    ${
-      options.includeDrafts
-        ? '("publishedAt" IS NOT NULL OR "createdById" = :userId)'
-        : '"publishedAt" IS NOT NULL'
-    }
-  `;
-    const selectSql = `
-  SELECT
-    id,
-    ts_rank(documents."searchVector", to_tsquery('english', :query)) as "searchRanking",
-    ts_headline('english', "text", to_tsquery('english', :query), :headlineOptions) as "searchContext"
-  FROM documents
-  WHERE ${whereClause}
-  ORDER BY
-    "searchRanking" DESC,
-    "updatedAt" DESC
-  LIMIT :limit
-  OFFSET :offset;
-  `;
-    const countSql = `
-    SELECT COUNT(id)
-    FROM documents
-    WHERE ${whereClause}
-  `;
-    const queryReplacements = {
-      teamId: user.teamId,
-      userId: user.id,
-      collaboratorIds: options.collaboratorIds,
-      query: wildcardQuery,
-      collectionIds,
-      dateFilter,
-      headlineOptions: `MaxFragments=1, MinWords=${snippetMinWords}, MaxWords=${snippetMaxWords}`,
-    };
-    const resultsQuery = this.sequelize!.query(selectSql, {
-      type: QueryTypes.SELECT,
-      replacements: { ...queryReplacements, limit, offset },
-    });
-    const countQuery = this.sequelize!.query(countSql, {
-      type: QueryTypes.SELECT,
-      replacements: queryReplacements,
-    });
-    const [results, [{ count }]]: [any, any] = await Promise.all([
-      resultsQuery,
-      countQuery,
-    ]);
-
-    // Final query to get associated document data
-    const documents = await this.scope([
-      "withoutState",
-      "withDrafts",
-      {
-        method: ["withViews", user.id],
-      },
-      {
-        method: ["withCollectionPermissions", user.id],
-      },
-    ]).findAll({
-      where: {
-        teamId: user.teamId,
-        id: map(results, "id"),
-      },
-    });
-
-    return {
-      results: map(results, (result: any) => ({
-        ranking: result.searchRanking,
-        context: removeMarkdown(unescape(result.searchContext), {
-          stripHTML: false,
-        }),
-        document: find(documents, {
-          id: result.id,
-        }) as Document,
-      })),
-      totalCount: count,
-    };
-  }
-
   // instance methods
 
   migrateVersion = () => {
@@ -1020,12 +743,6 @@ class Document extends ParanoidModel {
       children: [],
     };
   };
-}
-
-function escapeQuery(query: string): string {
-  // replace "\" with escaped "\\" because sequelize.escape doesn't do it
-  // https://github.com/sequelize/sequelize/issues/2950
-  return Document.sequelize!.escape(query).replace(/\\/g, "\\\\");
 }
 
 export default Document;

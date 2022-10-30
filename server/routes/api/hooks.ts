@@ -14,6 +14,7 @@ import {
   Integration,
   IntegrationAuthentication,
 } from "@server/models";
+import SearchHelper from "@server/models/helpers/SearchHelper";
 import { presentSlackAttachment } from "@server/presenters";
 import * as Slack from "@server/utils/slack";
 import { assertPresent } from "@server/validation";
@@ -281,8 +282,8 @@ router.post("hooks.slack", async (ctx) => {
   // to load more documents based on the collections they have access to. Otherwise
   // just a generic search against team-visible documents is allowed.
   const { results, totalCount } = user
-    ? await Document.searchForUser(user, text, options)
-    : await Document.searchForTeam(team, text, options);
+    ? await SearchHelper.searchForUser(user, text, options)
+    : await SearchHelper.searchForTeam(team, text, options);
   SearchQuery.create({
     userId: user ? user.id : null,
     teamId: team.id,

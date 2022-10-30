@@ -30,6 +30,7 @@ import {
   View,
 } from "@server/models";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
+import SearchHelper from "@server/models/helpers/SearchHelper";
 import { authorize, cannot } from "@server/policies";
 import {
   presentCollection,
@@ -701,7 +702,7 @@ router.post(
       const team = await share.$get("team");
       invariant(team, "Share must belong to a team");
 
-      response = await Document.searchForTeam(team, query, {
+      response = await SearchHelper.searchForTeam(team, query, {
         includeArchived,
         includeDrafts,
         collectionId: document.collectionId,
@@ -742,7 +743,7 @@ router.post(
         );
       }
 
-      response = await Document.searchForUser(user, query, {
+      response = await SearchHelper.searchForUser(user, query, {
         includeArchived,
         includeDrafts,
         collaboratorIds,
