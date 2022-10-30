@@ -13,6 +13,8 @@ import Embed from "../nodes/Embed";
 import Heading from "../nodes/Heading";
 import HorizontalRule from "../nodes/HorizontalRule";
 import ListItem from "../nodes/ListItem";
+import Math from "../nodes/Math";
+import MathDisplay from "../nodes/MathDisplay";
 import Node from "../nodes/Node";
 import Notice from "../nodes/Notice";
 import OrderedList from "../nodes/OrderedList";
@@ -36,6 +38,8 @@ const fullPackage: (typeof Node | typeof Mark | typeof Extension)[] = [
   OrderedList,
   Embed,
   ListItem,
+  Math,
+  MathDisplay,
   Attachment,
   Notice,
   Heading,

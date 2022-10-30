@@ -277,6 +277,8 @@
   "Bold": "Bold",
   "Subheading": "Subheading",
   "Table": "Table",
+  "Math In-Line (LaTeX)": "Math In-Line (LaTeX)",
+  "Math Block (LaTeX)": "Math Block (LaTeX)",
   "Tip": "Tip",
   "Tip notice": "Tip notice",
   "Show diagram": "Show diagram",
