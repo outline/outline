@@ -31,39 +31,34 @@ function isActive(props: Props) {
   }
 }
 
-export default class LinkToolbar extends React.Component<Props> {
-  menuRef = React.createRef<HTMLDivElement>();
+export default function LinkToolbar(props: Props) {
+  const menuRef = React.createRef<HTMLDivElement>();
 
-  state = {
-    left: -1000,
-    top: undefined,
-  };
+  const handleClickOutside = React.useCallback(
+    (event: Event) => {
+      if (
+        event.target instanceof HTMLElement &&
+        menuRef.current &&
+        menuRef.current.contains(event.target)
+      ) {
+        return;
+      }
 
-  componentDidMount() {
-    window.addEventListener("mousedown", this.handleClickOutside);
-  }
+      props.onClose();
+    },
+    [menuRef, props]
+  );
 
-  componentWillUnmount() {
-    window.removeEventListener("mousedown", this.handleClickOutside);
-  }
+  React.useEffect(() => {
+    window.addEventListener("mousedown", handleClickOutside);
+    return () => window.removeEventListener("mousedown", handleClickOutside);
+  }, [handleClickOutside]);
 
-  handleClickOutside = (event: Event) => {
-    if (
-      event.target instanceof HTMLElement &&
-      this.menuRef.current &&
-      this.menuRef.current.contains(event.target)
-    ) {
-      return;
-    }
-
-    this.props.onClose();
-  };
-
-  handleOnCreateLink = async (title: string) => {
-    const { dictionary, onCreateLink, view, onClose, onShowToast } = this.props;
+  const handleOnCreateLink = async (title: string) => {
+    const { dictionary, onCreateLink, view, onClose, onShowToast } = props;
 
     onClose();
-    this.props.view.focus();
+    props.view.focus();
 
     if (!onCreateLink) {
       return;
@@ -96,7 +91,7 @@ export default class LinkToolbar extends React.Component<Props> {
     });
   };
 
-  handleOnSelectLink = ({
+  const handleOnSelectLink = ({
     href,
     title,
   }: {
@@ -105,10 +100,10 @@ export default class LinkToolbar extends React.Component<Props> {
     from: number;
     to: number;
   }) => {
-    const { view, onClose } = this.props;
+    const { view, onClose } = props;
 
     onClose();
-    this.props.view.focus();
+    props.view.focus();
 
     const { dispatch, state } = view;
     const { from, to } = state.selection;
@@ -128,25 +123,23 @@ export default class LinkToolbar extends React.Component<Props> {
     );
   };
 
-  render() {
-    const { onCreateLink, onClose, ...rest } = this.props;
-    const { selection } = this.props.view.state;
-    const active = isActive(this.props);
+  const { onCreateLink, onClose, ...rest } = props;
+  const { selection } = props.view.state;
+  const active = isActive(props);
 
-    return (
-      <FloatingToolbar ref={this.menuRef} active={active} {...rest}>
-        {active && (
-          <LinkEditor
-            key={`${selection.from}-${selection.to}`}
-            from={selection.from}
-            to={selection.to}
-            onCreateLink={onCreateLink ? this.handleOnCreateLink : undefined}
-            onSelectLink={this.handleOnSelectLink}
-            onRemoveLink={onClose}
-            {...rest}
-          />
-        )}
-      </FloatingToolbar>
-    );
-  }
+  return (
+    <FloatingToolbar ref={menuRef} active={active} {...rest}>
+      {active && (
+        <LinkEditor
+          key={`${selection.from}-${selection.to}`}
+          from={selection.from}
+          to={selection.to}
+          onCreateLink={onCreateLink ? handleOnCreateLink : undefined}
+          onSelectLink={handleOnSelectLink}
+          onRemoveLink={onClose}
+          {...rest}
+        />
+      )}
+    </FloatingToolbar>
+  );
 }
