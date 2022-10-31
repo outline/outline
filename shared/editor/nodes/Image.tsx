@@ -288,10 +288,8 @@ export default class Image extends Node {
     node: ProsemirrorNode;
     getPos: () => number;
   }) => (event: React.FocusEvent<HTMLSpanElement>) => {
-    const alt = event.currentTarget.innerText;
-    const { src, title, layoutClass } = node.attrs;
-
-    if (alt === node.attrs.alt) {
+    const caption = event.currentTarget.innerText;
+    if (caption === node.attrs.alt) {
       return;
     }
 
@@ -301,10 +299,8 @@ export default class Image extends Node {
     // update meta on object
     const pos = getPos();
     const transaction = tr.setNodeMarkup(pos, undefined, {
-      src,
-      alt,
-      title,
-      layoutClass,
+      ...node.attrs,
+      alt: caption,
     });
     view.dispatch(transaction);
   };
@@ -320,28 +316,24 @@ export default class Image extends Node {
     view.dispatch(transaction);
   };
 
-  handleChangeSize = ({ getPos }: { getPos: () => number }) => ({
-    width,
+  handleChangeSize = ({
+    node,
+    getPos,
   }: {
-    width: number;
-    height: number;
-  }) => {
+    node: ProsemirrorNode;
+    getPos: () => number;
+  }) => ({ width, height }: { width: number; height?: number }) => {
     const { view } = this.editor;
     const { tr } = view.state;
 
     const pos = getPos();
-    const node = view.state.doc.nodeAt(pos);
-    if (node) {
-      const transaction = tr.setNodeMarkup(pos, undefined, {
-        ...node.attrs,
-        width,
-      });
-      console.log({
-        ...node.attrs,
-        width,
-      });
-      view.dispatch(transaction);
-    }
+    const transaction = tr.setNodeMarkup(pos, undefined, {
+      ...node.attrs,
+      width,
+      height,
+    });
+    const $pos = transaction.doc.resolve(getPos());
+    view.dispatch(transaction.setSelection(new NodeSelection($pos)));
   };
 
   handleDownload = ({ node }: { node: ProsemirrorNode }) => (
@@ -407,7 +399,7 @@ export default class Image extends Node {
       markdown += ' "' + state.esc(node.attrs.layoutClass, false) + size + '"';
     } else if (node.attrs.title) {
       markdown += ' "' + state.esc(node.attrs.title, false) + size + '"';
-    } else {
+    } else if (size) {
       markdown += ' "' + size + '"';
     }
     markdown += ")";
@@ -570,20 +562,25 @@ const ImageComponent = (
   props: ComponentProps & {
     onClick: (event: React.MouseEvent<HTMLDivElement>) => void;
     onDownload: (event: React.MouseEvent<HTMLButtonElement>) => void;
-    onChangeSize: (props: { width: number; height: number }) => void;
+    onChangeSize: (props: { width: number; height?: number }) => void;
     children: React.ReactNode;
     view: EditorView;
   }
 ) => {
   const { theme, isSelected, node } = props;
-  const { alt, src, layoutClass } = node.attrs;
+  const { alt, src, layoutClass, height } = node.attrs;
   const className = layoutClass ? `image image-${layoutClass}` : "image";
   const [naturalWidth, setNaturalWidth] = React.useState(node.attrs.width);
+  const [naturalHeight, setNaturalHeight] = React.useState(node.attrs.height);
   const [widthAtDragStart, setWidthAtDragStart] = React.useState(naturalWidth);
-  const [width, setWidth] = React.useState(node.attrs.width ?? naturalWidth);
+  const [size, setSize] = React.useState({
+    width: node.attrs.width ?? naturalWidth,
+    height: node.attrs.height ?? naturalHeight,
+  });
   const [offset, setOffset] = React.useState(0);
   const [direction, setDirection] = React.useState<"left" | "right">();
   const documentWidth = props.view?.dom.clientWidth;
+  const maxWidth = layoutClass ? documentWidth / 3 : documentWidth;
 
   const handleMouseMove = (event: MouseEvent) => {
     event.preventDefault();
@@ -600,10 +597,19 @@ const ImageComponent = (
     const newWidth = widthAtDragStart + diff * 2;
     const widthOnGrid = Math.round(newWidth / grid) * grid;
     const constrainedWidth = Math.round(
-      Math.min(Math.max(widthOnGrid, minWidth), documentWidth)
+      Math.min(
+        Math.min(naturalWidth, Math.max(widthOnGrid, minWidth)),
+        maxWidth
+      )
     );
 
-    setWidth(constrainedWidth);
+    const aspectRatio = naturalHeight / naturalWidth;
+    setSize({
+      width: constrainedWidth,
+      height: naturalWidth
+        ? Math.round(constrainedWidth * aspectRatio)
+        : undefined,
+    });
   };
 
   const handleMouseUp = (event: MouseEvent) => {
@@ -612,7 +618,7 @@ const ImageComponent = (
 
     setOffset(0);
     setDirection(undefined);
-    props.onChangeSize({ width });
+    props.onChangeSize(size);
 
     document.removeEventListener("mousemove", handleMouseMove);
   };
@@ -622,14 +628,17 @@ const ImageComponent = (
   ) => {
     event.preventDefault();
     event.stopPropagation();
-    setWidthAtDragStart(width);
+    setWidthAtDragStart(size.width);
     setOffset(event.pageX);
     setDirection(direction);
   };
 
   React.useEffect(() => {
-    if (node.attrs.width !== width) {
-      setWidth(node.attrs.width);
+    if (node.attrs.width !== size.width) {
+      setSize({
+        width: node.attrs.width,
+        height: node.attrs.height,
+      });
     }
   }, [node.attrs.width]);
 
@@ -647,12 +656,14 @@ const ImageComponent = (
     };
   }, [direction, handleMouseMove, handleMouseUp]);
 
+  const style = { width: size.width || "auto" };
+
   return (
     <div contentEditable={false} className={className}>
       <ImageWrapper
-        className={isSelected && !direction ? "ProseMirror-selectednode" : ""}
+        className={isSelected || direction ? "ProseMirror-selectednode" : ""}
         onClick={direction ? undefined : props.onClick}
-        style={{ width: width || "auto" }}
+        style={style}
       >
         {!direction && (
           <Button onClick={props.onDownload}>
@@ -662,17 +673,24 @@ const ImageComponent = (
         <ImageZoom
           image={
             {
-              style: { width: width || "auto" },
+              style,
               src: sanitizeUrl(src) ?? "",
               alt,
               onLoad: (ev: React.SyntheticEvent<HTMLImageElement>) => {
                 // For some SVG's Firefox does not provide the naturalWidth, in this
                 // rare case we need to provide a default so that the image can be
                 // seen and is not sized to 0px
-                const value =
-                  (ev.target as HTMLImageElement).naturalWidth || 300;
-                setNaturalWidth(value);
-                setWidth(value);
+                const nw = (ev.target as HTMLImageElement).naturalWidth || 300;
+                const nh = (ev.target as HTMLImageElement).naturalHeight;
+                setNaturalWidth(nw);
+                setNaturalHeight(nh);
+
+                if (!node.attrs.width) {
+                  setSize((state) => ({
+                    ...state,
+                    width: Math.min(nw, maxWidth),
+                  }));
+                }
               },
             } as ImageZoom_Image
           }
@@ -694,16 +712,16 @@ const ImageComponent = (
 const ResizeLeft = styled.div`
   cursor: ew-resize;
   position: absolute;
-  left: 0;
+  left: -3px;
   top: 0;
   bottom: 0;
-  width: 3px;
+  width: 6px;
   user-select: none;
 `;
 
 const ResizeRight = styled(ResizeLeft)`
   left: initial;
-  right: 0;
+  right: -3px;
 `;
 
 const Button = styled.button`
@@ -767,7 +785,7 @@ const ImageWrapper = styled.div`
   position: relative;
   margin-left: auto;
   margin-right: auto;
-  max-width: 150%;
+  max-width: 100%;
   transition: all 150ms ease-in-out;
 
   &:hover {
