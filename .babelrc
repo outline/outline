@@ -24,9 +24,7 @@
     ],
     "@babel/plugin-transform-destructuring",
     "@babel/plugin-transform-regenerator",
-    "transform-class-properties",
-    "css-modules-transform",
-    "file-loader"
+    "transform-class-properties"
   ],
   "env": {
     "production": {

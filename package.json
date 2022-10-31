@@ -308,8 +308,6 @@
     "babel-eslint": "^10.1.0",
     "babel-jest": "^28.1.3",
     "babel-loader": "^8.1.0",
-    "babel-plugin-css-modules-transform": "^1.6.2",
-    "babel-plugin-file-loader": "^2.0.0",
     "babel-plugin-transform-inline-environment-variables": "^0.4.3",
     "babel-plugin-transform-typescript-metadata": "^0.3.2",
     "babel-plugin-tsconfig-paths-module-resolver": "^1.0.3",

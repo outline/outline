@@ -1,12 +1,10 @@
 import {
-  mathPlugin,
   mathBackspaceCmd,
   insertMathCmd,
   makeInlineMathInputRule,
   REGEX_INLINE_MATH_DOLLARS,
   mathSchemaSpec,
 } from "@benrbray/prosemirror-math";
-import "katex/dist/katex.min.css";
 import { PluginSimple } from "markdown-it";
 import {
   chainCommands,
@@ -22,6 +20,7 @@ import {
 } from "prosemirror-model";
 import { EditorState, Plugin } from "prosemirror-state";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import MathPlugin from "../plugins/Math";
 import mathRule from "../rules/math";
 import { Dispatch } from "../types";
 import Node from "./Node";
@@ -64,7 +63,7 @@ export default class Math extends Node {
   }
 
   get plugins(): Plugin[] {
-    return [mathPlugin];
+    return [MathPlugin];
   }
 
   get rulePlugins(): PluginSimple[] {
