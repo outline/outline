@@ -133,15 +133,16 @@ async function accountProvisioner({
       isAdmin: isNewTeam || undefined,
       avatarUrl: userParams.avatarUrl,
       teamId: team.id,
-      emailMatchOnly,
       ip,
-      authentication: {
-        authenticationProviderId: authenticationProvider.id,
-        ...authenticationParams,
-        expiresAt: authenticationParams.expiresIn
-          ? new Date(Date.now() + authenticationParams.expiresIn * 1000)
-          : undefined,
-      },
+      authentication: emailMatchOnly
+        ? undefined
+        : {
+            authenticationProviderId: authenticationProvider.id,
+            ...authenticationParams,
+            expiresAt: authenticationParams.expiresIn
+              ? new Date(Date.now() + authenticationParams.expiresIn * 1000)
+              : undefined,
+          },
     });
     const { isNewUser, user } = result;
 

@@ -18,11 +18,15 @@ import {
   IsUUID,
   IsUrl,
   AllowNull,
+  AfterUpdate,
 } from "sequelize-typescript";
 import { CollectionPermission, TeamPreference } from "@shared/types";
 import { getBaseDomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
 import env from "@server/env";
+import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
 import { generateAvatarUrl } from "@server/utils/avatars";
+import parseAttachmentIds from "@server/utils/parseAttachmentIds";
+import Attachment from "./Attachment";
 import AuthenticationProvider from "./AuthenticationProvider";
 import Collection from "./Collection";
 import Document from "./Document";
@@ -249,7 +253,7 @@ class Team extends ParanoidModel {
     });
   };
 
-  collectionIds = async function (paranoid = true) {
+  public collectionIds = async function (this: Team, paranoid = true) {
     const models = await Collection.findAll({
       attributes: ["id"],
       where: {
@@ -263,7 +267,17 @@ class Team extends ParanoidModel {
     return models.map((c) => c.id);
   };
 
-  isDomainAllowed = async function (domain: string) {
+  /**
+   * Find whether the passed domain can be used to sign-in to this team. Note
+   * that this method always returns true if no domain restrictions are set.
+   *
+   * @param domain The domain to check
+   * @returns True if the domain is allowed to sign-in to this team
+   */
+  public isDomainAllowed = async function (
+    this: Team,
+    domain: string
+  ): Promise<boolean> {
     const allowedDomains = (await this.$get("allowedDomains")) || [];
 
     return (
@@ -288,6 +302,37 @@ class Team extends ParanoidModel {
 
   @HasMany(() => TeamDomain)
   allowedDomains: TeamDomain[];
+
+  // hooks
+
+  @AfterUpdate
+  static deletePreviousAvatar = async (model: Team) => {
+    if (
+      model.previous("avatarUrl") &&
+      model.previous("avatarUrl") !== model.avatarUrl
+    ) {
+      const attachmentIds = parseAttachmentIds(
+        model.previous("avatarUrl"),
+        true
+      );
+      if (!attachmentIds.length) {
+        return;
+      }
+
+      const attachment = await Attachment.findOne({
+        where: {
+          id: attachmentIds[0],
+          teamId: model.id,
+        },
+      });
+
+      if (attachment) {
+        await DeleteAttachmentTask.schedule({
+          attachmentId: attachment.id,
+        });
+      }
+    }
+  };
 }
 
 export default Team;
