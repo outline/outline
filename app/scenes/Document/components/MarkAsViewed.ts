@@ -9,7 +9,7 @@ type Props = {
 
 function MarkAsViewed(props: Props) {
   const { document, children } = props;
-  const viewTimeout = React.useRef<ReturnType<typeof setInterval> | null>(null);
+  const viewTimeout = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
   React.useEffect(() => {
     viewTimeout.current = setTimeout(async () => {
@@ -20,9 +20,10 @@ function MarkAsViewed(props: Props) {
       }
     }, MARK_AS_VIEWED_AFTER);
 
-    return () =>
-      clearTimeout(viewTimeout.current as ReturnType<typeof setInterval>);
-  }, []);
+    return () => {
+      viewTimeout.current && clearTimeout(viewTimeout.current);
+    };
+  }, [document]);
 
   return children || null;
 }
