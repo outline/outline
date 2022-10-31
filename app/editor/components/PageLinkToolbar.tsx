@@ -1,5 +1,6 @@
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
+import { isInternalUrl } from "@shared/utils/urls";
 import { Dictionary } from "~/hooks/useDictionary";
 import FloatingToolbar from "./FloatingToolbar";
 import LinkEditor, { SearchResult } from "./LinkEditor";
@@ -77,6 +78,11 @@ export default class PageLinkToolbar extends React.Component<Props> {
 
     try {
       const url = await onCreateLink(title);
+
+      if (!isInternalUrl(url)) {
+        return;
+      }
+
       dispatch(
         view.state.tr.insert(
           view.state.selection.from,
@@ -109,6 +115,10 @@ export default class PageLinkToolbar extends React.Component<Props> {
       return;
     }
 
+    if (!isInternalUrl(href)) {
+      return;
+    }
+
     dispatch(
       view.state.tr.insert(
         view.state.selection.from,
@@ -134,7 +144,7 @@ export default class PageLinkToolbar extends React.Component<Props> {
             onRemoveLink={onClose}
             hideOpenLink={true}
             disablePaste={true}
-            disableEnterKey={true}
+            disableExternalLinks={true}
             defaultPlaceholder={this.props.dictionary.searchDoc}
             {...rest}
           />

@@ -28,7 +28,7 @@ export default class PageLink extends Node {
       atom: true,
       parseDOM: [
         {
-          tag: "div.page-link",
+          tag: "a.page-link",
           getAttrs: (dom: HTMLAnchorElement) => {
             return {
               title: dom.title,

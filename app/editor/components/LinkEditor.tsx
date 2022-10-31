@@ -48,7 +48,7 @@ type Props = {
   view: EditorView;
   hideOpenLink?: boolean;
   disablePaste?: boolean;
-  disableEnterKey?: boolean;
+  disableExternalLinks?: boolean;
   defaultPlaceholder?: string;
 };
 
@@ -126,9 +126,6 @@ class LinkEditor extends React.Component<Props, State> {
     switch (event.key) {
       case "Enter": {
         event.preventDefault();
-        if (this.props.disableEnterKey) {
-          return;
-        }
         const { selectedIndex, value } = this.state;
         const results = this.state.results[value] || [];
         const { onCreateLink } = this.props;
@@ -137,7 +134,11 @@ class LinkEditor extends React.Component<Props, State> {
           const result = results[selectedIndex];
           if (result) {
             this.save(result.url, result.title);
-          } else if (onCreateLink && selectedIndex === results.length) {
+          } else if (
+            onCreateLink &&
+            selectedIndex === results.length &&
+            !this.props.disableExternalLinks
+          ) {
             this.handleCreateLink(this.suggestedLinkTitle);
           }
         } else {
