@@ -3,7 +3,7 @@ import { CollectionIcon } from "outline-icons";
 import { NodeSpec, Node as ProsemirrorNode, NodeType } from "prosemirror-model";
 import * as React from "react";
 import ReactDOM from "react-dom";
-import { sanitizeUrl } from "@shared/utils/urls";
+import { sanitizeUrl } from "../../utils/urls";
 import toggleWrap from "../commands/toggleWrap";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import Node from "./Node";
