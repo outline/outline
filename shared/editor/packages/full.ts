@@ -16,6 +16,7 @@ import ListItem from "../nodes/ListItem";
 import Node from "../nodes/Node";
 import Notice from "../nodes/Notice";
 import OrderedList from "../nodes/OrderedList";
+import PageLink from "../nodes/PageLink";
 import Table from "../nodes/Table";
 import TableCell from "../nodes/TableCell";
 import TableHeadCell from "../nodes/TableHeadCell";
@@ -33,6 +34,7 @@ const fullPackage: (typeof Node | typeof Mark | typeof Extension)[] = [
   CheckboxItem,
   Blockquote,
   BulletList,
+  PageLink,
   OrderedList,
   Embed,
   ListItem,

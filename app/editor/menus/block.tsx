@@ -18,6 +18,7 @@ import {
   AttachmentIcon,
   ClockIcon,
   CalendarIcon,
+  CollectionIcon,
 } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
@@ -98,6 +99,12 @@ export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
       icon: LinkIcon,
       shortcut: `${metaDisplay} k`,
       keywords: "link url uri href",
+    },
+    {
+      name: "page_link",
+      title: dictionary.pageLink,
+      icon: CollectionIcon,
+      keywords: "link page",
     },
     {
       name: "attachment",

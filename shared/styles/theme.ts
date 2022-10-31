@@ -87,6 +87,8 @@ export const base = {
   noticeTipText: colors.almostBlack,
   noticeWarningBackground: "#d73a49",
   noticeWarningText: colors.almostBlack,
+  pageLinkBackground: colors.primary,
+  pageLinkTxt: colors.almostBlack,
   breakpoints,
 };
 

@@ -46,6 +46,10 @@ type Props = {
   ) => void;
   onShowToast: (message: string, options?: ToastOptions) => void;
   view: EditorView;
+  hideOpenLink?: boolean;
+  disablePaste?: boolean;
+  disableEnterKey?: boolean;
+  defaultPlaceholder?: string;
 };
 
 type State = {
@@ -122,6 +126,9 @@ class LinkEditor extends React.Component<Props, State> {
     switch (event.key) {
       case "Enter": {
         event.preventDefault();
+        if (this.props.disableEnterKey) {
+          return;
+        }
         const { selectedIndex, value } = this.state;
         const results = this.state.results[value] || [];
         const { onCreateLink } = this.props;
@@ -307,17 +314,18 @@ class LinkEditor extends React.Component<Props, State> {
     const showResults =
       !!suggestedLinkTitle && (showCreateLink || results.length > 0);
 
+    const inputPlaceHolder =
+      this.props.defaultPlaceholder ?? dictionary.searchOrPasteLink;
+
     return (
       <Wrapper>
         <Input
           value={value}
           placeholder={
-            showCreateLink
-              ? dictionary.findOrCreateDoc
-              : dictionary.searchOrPasteLink
+            showCreateLink ? dictionary.findOrCreateDoc : inputPlaceHolder
           }
           onKeyDown={this.handleKeyDown}
-          onPaste={this.handlePaste}
+          onPaste={this.props.disablePaste ? undefined : this.handlePaste}
           onChange={this.handleChange}
           autoFocus={this.href === ""}
         />
@@ -325,13 +333,15 @@ class LinkEditor extends React.Component<Props, State> {
         <Tooltip
           tooltip={isInternal ? dictionary.goToLink : dictionary.openLink}
         >
-          <ToolbarButton onClick={this.handleOpenLink} disabled={!value}>
-            {isInternal ? (
-              <ArrowIcon color="currentColor" />
-            ) : (
-              <OpenIcon color="currentColor" />
-            )}
-          </ToolbarButton>
+          {!this.props.hideOpenLink && (
+            <ToolbarButton onClick={this.handleOpenLink} disabled={!value}>
+              {isInternal ? (
+                <ArrowIcon color="currentColor" />
+              ) : (
+                <OpenIcon color="currentColor" />
+              )}
+            </ToolbarButton>
+          )}
         </Tooltip>
         <Tooltip tooltip={dictionary.removeLink}>
           <ToolbarButton onClick={this.handleRemoveLink}>
