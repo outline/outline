@@ -44,6 +44,7 @@ const EmojiPicker: React.FC<Props> = ({
         tabIndex={0}
         onClick={(e) => e.stopPropagation()}
         width={352}
+        scrollable={false}
       >
         <Tooltip tooltip="Remove emoji" placement="top">
           <NudeButton onClick={onEmojiRemove}>

@@ -12,12 +12,14 @@ type Props = PopoverProps & {
   width?: number;
   shrink?: boolean;
   tabIndex?: number;
+  scrollable?: boolean;
 };
 
 const Popover: React.FC<Props> = ({
   children,
   shrink,
   width = 380,
+  scrollable = true,
   ...rest
 }) => {
   const isMobile = useMobile();
@@ -25,28 +27,36 @@ const Popover: React.FC<Props> = ({
   if (isMobile) {
     return (
       <Dialog {...rest} modal>
-        <Contents $shrink={shrink}>{children}</Contents>
+        <Contents $shrink={shrink} $width={width} $scrollable={scrollable}>
+          {children}
+        </Contents>
       </Dialog>
     );
   }
 
   return (
     <ReakitPopover {...rest}>
-      <Contents $shrink={shrink} $width={width}>
+      <Contents $shrink={shrink} $width={width} $scrollable={scrollable}>
         {children}
       </Contents>
     </ReakitPopover>
   );
 };
 
-const Contents = styled.div<{ $shrink?: boolean; $width?: number }>`
+type ContentProps = {
+  $shrink?: boolean;
+  $width?: number;
+  $scrollable?: boolean;
+};
+
+const Contents = styled.div<ContentProps>`
   animation: ${fadeAndScaleIn} 200ms ease;
   transform-origin: 75% 0;
   background: ${(props) => props.theme.menuBackground};
   border-radius: 6px;
   padding: ${(props) => (props.$shrink ? "6px 0" : "12px 24px")};
   max-height: 50vh;
-  overflow-y: auto;
+  overflow-y: ${(props) => (props.$scrollable ? "auto" : "visible")};
   box-shadow: ${(props) => props.theme.menuShadow};
   width: ${(props) => props.$width}px;
 
@@ -58,7 +68,6 @@ const Contents = styled.div<{ $shrink?: boolean; $width?: number }>`
     top: 50px;
     left: 8px;
     right: 8px;
-    width: auto;
   `};
 `;
 
