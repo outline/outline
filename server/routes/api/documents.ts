@@ -1,7 +1,8 @@
 import fs from "fs-extra";
 import invariant from "invariant";
+import { Request } from "koa";
 import Router from "koa-router";
-import { Op, ScopeOptions, WhereOptions } from "sequelize";
+import { Op, ScopeOptions, Transaction, WhereOptions } from "sequelize";
 import { subtractDate } from "@shared/utils/date";
 import documentCreator from "@server/commands/documentCreator";
 import documentImporter from "@server/commands/documentImporter";
@@ -41,6 +42,7 @@ import {
   assertPositiveInteger,
   assertNotEmpty,
 } from "@server/validation";
+import { NavigationNode } from "~/types";
 import env from "../../env";
 import pagination from "./middlewares/pagination";
 
@@ -1190,6 +1192,7 @@ router.post("documents.create", auth({ member: true }), async (ctx) => {
     templateId,
     template,
     index,
+    documentId,
   } = ctx.body;
   const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
   assertUuid(collectionId, "collectionId must be an uuid");
@@ -1214,7 +1217,7 @@ router.post("documents.create", auth({ member: true }), async (ctx) => {
   });
   authorize(user, "publish", collection);
 
-  let parentDocument;
+  let parentDocument: Document | null;
 
   if (parentDocumentId) {
     parentDocument = await Document.findOne({
@@ -1227,7 +1230,6 @@ router.post("documents.create", auth({ member: true }), async (ctx) => {
       collection,
     });
   }
-
   let templateDocument: Document | null | undefined;
 
   if (templateId) {
@@ -1254,6 +1256,23 @@ router.post("documents.create", auth({ member: true }), async (ctx) => {
     });
   });
 
+  if (documentId) {
+    // Check document tree for child/nested docs
+    const documentTree: NavigationNode | null = collection.getDocumentTree(
+      documentId
+    );
+    if (documentTree?.children?.length || [].length > 0) {
+      // Create duplicates of nested docs
+      await createChildDuplicates({
+        collection,
+        user,
+        request: ctx.request,
+        body: ctx.body,
+        parentDocumentId: document.id,
+        childs: documentTree?.children,
+      });
+    }
+  }
   document.collection = collection;
 
   return (ctx.body = {
@@ -1261,5 +1280,125 @@ router.post("documents.create", auth({ member: true }), async (ctx) => {
     policies: presentPolicies(user, [document]),
   });
 });
+
+// Recursive function to loop through nested documents
+async function createChildDuplicates({
+  collection,
+  user,
+  request,
+  body,
+  parentDocumentId,
+  childs,
+}: {
+  collection: Collection;
+  user: User;
+  request: Request;
+  body: {
+    index: number | undefined;
+    publish: boolean | undefined;
+    editorVersion: string | undefined;
+  };
+  parentDocumentId: string | undefined;
+  childs: NavigationNode[] | undefined;
+}) {
+  if (parentDocumentId) {
+    assertUuid(parentDocumentId, "parentDocumentId must be an uuid");
+  }
+
+  if (body.index) {
+    assertPositiveInteger(body.index, "index must be an integer (>=0)");
+  }
+  authorize(user, "createDocument", user.team);
+
+  let parentDocument;
+
+  if (parentDocumentId) {
+    parentDocument = await Document.findOne({
+      where: {
+        id: parentDocumentId,
+        collectionId: collection.id,
+      },
+    });
+    authorize(user, "read", parentDocument, {
+      collection,
+    });
+  }
+  for (const child of childs || []) {
+    let i = 1;
+    const childDoc: Document | null = await Document.findByPk(child.id, {
+      userId: user.id,
+    });
+
+    let templateDocument: Document | null | undefined;
+    if (childDoc?.templateId) {
+      templateDocument = await Document.findByPk(childDoc?.templateId, {
+        userId: user.id,
+      });
+      authorize(user, "read", templateDocument);
+    }
+    const obj = {
+      title: `${childDoc?.title}`,
+      text: `${childDoc?.text}`,
+      publish: body.publish,
+      collectionId: `${childDoc?.collectionId}`,
+      parentDocumentId: parentDocumentId,
+      templateDocument: templateDocument,
+      template: childDoc?.template,
+      index: i,
+      user,
+      editorVersion: body.editorVersion,
+      ip: request.ip,
+    };
+    const childData = await createDoc({ doc: obj });
+    if (child.children.length > 0) {
+      await createChildDuplicates({
+        collection,
+        user,
+        request,
+        body,
+        parentDocumentId: childData?.id,
+        childs: child.children,
+      });
+    }
+    i += 1;
+  }
+}
+
+// Function creates a new document
+async function createDoc({
+  doc,
+}: {
+  doc: {
+    title: string;
+    text: string;
+    publish: boolean | undefined;
+    collectionId: string;
+    parentDocumentId: string | undefined;
+    templateDocument: Document | null | undefined;
+    template: boolean | undefined;
+    index: number | undefined;
+    user: User;
+    editorVersion: string | undefined;
+    ip: string | undefined;
+    id?: string | undefined;
+    publishedAt?: Date | undefined;
+    createdAt?: Date | undefined;
+    updatedAt?: Date | undefined;
+    source?: "import" | undefined;
+    transaction?: Transaction;
+  };
+}): Promise<Document | undefined> {
+  try {
+    return await sequelize.transaction(async (transaction) => {
+      return documentCreator({
+        ...doc,
+        transaction,
+      });
+    });
+  } catch (err) {
+    console.log("ERROR:", err);
+    return;
+  }
+}
 
 export default router;
