@@ -1,9 +1,6 @@
 import { debounce } from "lodash";
-import { observable } from "mobx";
-import { observer } from "mobx-react";
 import * as React from "react";
-import { WithTranslation, withTranslation } from "react-i18next";
-import RootStore from "~/stores/RootStore";
+import { useTranslation } from "react-i18next";
 import Group from "~/models/Group";
 import User from "~/models/User";
 import Invite from "~/scenes/Invite";
@@ -14,51 +11,54 @@ import Input from "~/components/Input";
 import Modal from "~/components/Modal";
 import PaginatedList from "~/components/PaginatedList";
 import Text from "~/components/Text";
-import withStores from "~/components/withStores";
+import useBoolean from "~/hooks/useBoolean";
+import useStores from "~/hooks/useStores";
 import GroupMemberListItem from "./components/GroupMemberListItem";
 
-type Props = WithTranslation &
-  RootStore & {
-    group: Group;
-    onSubmit: () => void;
-  };
+type Props = {
+  group: Group;
+  onSubmit: () => void;
+};
 
-@observer
-class AddPeopleToGroup extends React.Component<Props> {
-  @observable
-  inviteModalOpen = false;
+function AddPeopleToGroup(props: Props) {
+  const { group } = props;
 
-  @observable
-  query = "";
+  const { users, auth, groupMemberships, toasts } = useStores();
+  const { t } = useTranslation();
 
-  handleInviteModalOpen = () => {
-    this.inviteModalOpen = true;
-  };
+  const [query, setQuery] = React.useState("");
+  const [
+    inviteModalOpen,
+    handleInviteModalOpen,
+    handleInviteModalClose,
+  ] = useBoolean(false);
 
-  handleInviteModalClose = () => {
-    this.inviteModalOpen = false;
-  };
+  const { fetchPage: fetchUsers } = users;
+  const debouncedFetch = React.useMemo(
+    () =>
+      debounce((query) => {
+        fetchUsers({ query });
+      }, 250),
+    [fetchUsers]
+  );
 
-  handleFilter = (ev: React.ChangeEvent<HTMLInputElement>) => {
-    this.query = ev.target.value;
-    this.debouncedFetch();
-  };
+  const handleFilter = React.useCallback(
+    (ev: React.ChangeEvent<HTMLInputElement>) => {
+      const updatedQuery = ev.target.value;
+      setQuery(updatedQuery);
+      debouncedFetch(updatedQuery);
+    },
+    [debouncedFetch]
+  );
 
-  debouncedFetch = debounce(() => {
-    this.props.users.fetchPage({
-      query: this.query,
-    });
-  }, 250);
-
-  handleAddUser = async (user: User) => {
-    const { t } = this.props;
-
+  const handleAddUser = async (user: User) => {
     try {
-      await this.props.groupMemberships.create({
-        groupId: this.props.group.id,
+      await groupMemberships.create({
+        groupId: group.id,
         userId: user.id,
       });
-      this.props.toasts.showToast(
+
+      toasts.showToast(
         t(`{{userName}} was added to the group`, {
           userName: user.name,
         }),
@@ -67,70 +67,67 @@ class AddPeopleToGroup extends React.Component<Props> {
         }
       );
     } catch (err) {
-      this.props.toasts.showToast(t("Could not add user"), {
+      toasts.showToast(t("Could not add user"), {
         type: "error",
       });
     }
   };
 
-  render() {
-    const { users, group, auth, t } = this.props;
-    const { user, team } = auth;
-    if (!user || !team) {
-      return null;
-    }
-
-    return (
-      <Flex column>
-        <Text type="secondary">
-          {t(
-            "Add members below to give them access to the group. Need to add someone who’s not yet a member?"
-          )}{" "}
-          <ButtonLink onClick={this.handleInviteModalOpen}>
-            {t("Invite them to {{teamName}}", {
-              teamName: team.name,
-            })}
-          </ButtonLink>
-          .
-        </Text>
-        <Input
-          type="search"
-          placeholder={`${t("Search by name")}…`}
-          value={this.query}
-          onChange={this.handleFilter}
-          label={t("Search people")}
-          labelHidden
-          autoFocus
-          flex
-        />
-        <PaginatedList
-          empty={
-            this.query ? (
-              <Empty>{t("No people matching your search")}</Empty>
-            ) : (
-              <Empty>{t("No people left to add")}</Empty>
-            )
-          }
-          items={users.notInGroup(group.id, this.query)}
-          fetch={this.query ? undefined : users.fetchPage}
-          renderItem={(item: User) => (
-            <GroupMemberListItem
-              key={item.id}
-              user={item}
-              onAdd={() => this.handleAddUser(item)}
-            />
-          )}
-        />
-        <Modal
-          title={t("Invite people")}
-          onRequestClose={this.handleInviteModalClose}
-          isOpen={this.inviteModalOpen}
-        >
-          <Invite onSubmit={this.handleInviteModalClose} />
-        </Modal>
-      </Flex>
-    );
+  const { user, team } = auth;
+  if (!user || !team) {
+    return null;
   }
+
+  return (
+    <Flex column>
+      <Text type="secondary">
+        {t(
+          "Add members below to give them access to the group. Need to add someone who’s not yet a member?"
+        )}{" "}
+        <ButtonLink onClick={handleInviteModalOpen}>
+          {t("Invite them to {{teamName}}", {
+            teamName: team.name,
+          })}
+        </ButtonLink>
+        .
+      </Text>
+      <Input
+        type="search"
+        placeholder={`${t("Search by name")}…`}
+        value={query}
+        onChange={handleFilter}
+        label={t("Search people")}
+        labelHidden
+        autoFocus
+        flex
+      />
+      <PaginatedList
+        empty={
+          query ? (
+            <Empty>{t("No people matching your search")}</Empty>
+          ) : (
+            <Empty>{t("No people left to add")}</Empty>
+          )
+        }
+        items={users.notInGroup(group.id, query)}
+        fetch={query ? undefined : users.fetchPage}
+        renderItem={(item: User) => (
+          <GroupMemberListItem
+            key={item.id}
+            user={item}
+            onAdd={() => handleAddUser(item)}
+          />
+        )}
+      />
+      <Modal
+        title={t("Invite people")}
+        onRequestClose={handleInviteModalClose}
+        isOpen={inviteModalOpen}
+      >
+        <Invite onSubmit={handleInviteModalClose} />
+      </Modal>
+    </Flex>
+  );
 }
 
-export default withTranslation()(withStores(AddPeopleToGroup));
+export default AddPeopleToGroup;
