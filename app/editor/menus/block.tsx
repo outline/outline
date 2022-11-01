@@ -119,10 +119,10 @@ export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
       keywords: "math latex",
     },
     {
-      name: "math_display",
+      name: "math_block",
       title: dictionary.mathDisplay,
       icon: MathIcon,
-      keywords: "math latex block",
+      keywords: "math katex latex",
     },
     {
       name: "blockquote",

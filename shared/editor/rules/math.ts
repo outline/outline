@@ -161,7 +161,7 @@ function mathDisplay(
 
   state.line = next + 1;
 
-  const token = state.push("math_display", "math", 0);
+  const token = state.push("math_block", "math", 0);
   token.block = true;
   token.content =
     (firstLine && firstLine.trim() ? firstLine + "\n" : "") +
@@ -174,7 +174,7 @@ function mathDisplay(
 
 export default function markdownMath(md: MarkdownIt) {
   md.inline.ruler.after("escape", "math_inline", mathInline);
-  md.block.ruler.after("blockquote", "math_display", mathDisplay, {
+  md.block.ruler.after("blockquote", "math_block", mathDisplay, {
     alt: ["paragraph", "reference", "blockquote", "list"],
   });
 }

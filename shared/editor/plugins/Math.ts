@@ -68,7 +68,7 @@ const mathPluginSpec: PluginSpec<IMathPluginState> = {
   props: {
     nodeViews: {
       math_inline: createMathView(false),
-      math_display: createMathView(true),
+      math_block: createMathView(true),
     },
   },
 };

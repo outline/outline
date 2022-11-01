@@ -69,7 +69,7 @@ export default function useDictionary() {
       strong: t("Bold"),
       subheading: t("Subheading"),
       table: t("Table"),
-      mathInline: t("Math In-Line (LaTeX)"),
+      mathInline: t("Math Inline (LaTeX)"),
       mathDisplay: t("Math Block (LaTeX)"),
       tip: t("Tip"),
       tipNotice: t("Tip notice"),

@@ -13,7 +13,7 @@ import Node from "./Node";
 
 export default class MathDisplay extends Node {
   get name() {
-    return "math_display";
+    return "math_block";
   }
 
   get schema(): NodeSpec {
@@ -45,8 +45,8 @@ export default class MathDisplay extends Node {
 
   parseMarkdown() {
     return {
-      node: "math_display",
-      block: "math_display",
+      node: "math_block",
+      block: "math_block",
       noCloseToken: true,
     };
   }

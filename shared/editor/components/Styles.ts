@@ -20,7 +20,7 @@ const mathStyle = (props: Props) => `
 	min-width: 1em;
 	min-height: 1em;
 	font-size: 0.95em;
-	font-family: "Consolas", "Ubuntu Mono", monospace;
+	font-family: ${props.theme.fontFamilyMono};
 	cursor: auto;
 }
 
@@ -56,7 +56,6 @@ math-inline {
 math-inline .math-render { 
 	display: inline-block;
 	font-size: 0.85em;
-	cursor:pointer;
 }
 
 math-inline .math-src .ProseMirror {
@@ -64,7 +63,6 @@ math-inline .math-src .ProseMirror {
 	/* Necessary to fix FireFox bug with contenteditable, https://bugzilla.mozilla.org/show_bug.cgi?id=1252108 */
   border-radius: 4px;
   border: 1px solid ${props.theme.codeBorder};
-  /* background: ${props.theme.codeBackground}; */
   padding: 3px 4px;
   margin: 0px 3px;
   font-family: ${props.theme.fontFamilyMono};
@@ -96,11 +94,6 @@ math-display .math-src .ProseMirror {
 	display: block;
 }
 
-math-display .math-src::after, math-display .math-src::before {
-	content: "$$";
-	text-align: left;
-	color: ${props.theme.codePunctuation};
-}
 
 math-display .katex-display { margin: 0; }
 
