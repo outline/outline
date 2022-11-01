@@ -4,29 +4,28 @@ import Document from "~/models/Document";
 const MARK_AS_VIEWED_AFTER = 3 * 1000;
 type Props = {
   document: Document;
+  children: JSX.Element;
 };
 
-class MarkAsViewed extends React.Component<Props> {
-  viewTimeout: ReturnType<typeof setTimeout>;
+function MarkAsViewed(props: Props) {
+  const { document, children } = props;
+  const viewTimeout = React.useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  componentDidMount() {
-    const { document } = this.props;
-    this.viewTimeout = setTimeout(async () => {
+  React.useEffect(() => {
+    viewTimeout.current = setTimeout(async () => {
       const view = await document.view();
 
       if (view) {
         document.updateLastViewed(view);
       }
     }, MARK_AS_VIEWED_AFTER);
-  }
 
-  componentWillUnmount() {
-    clearTimeout(this.viewTimeout);
-  }
+    return () => {
+      viewTimeout.current && clearTimeout(viewTimeout.current);
+    };
+  }, [document]);
 
-  render() {
-    return this.props.children || null;
-  }
+  return children || null;
 }
 
 export default MarkAsViewed;
