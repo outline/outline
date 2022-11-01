@@ -26,12 +26,12 @@ const mathStyle = (props: Props) => `
 
 .math-node.empty-math .math-render::before {
 	content: "(empty math)";
-	color: red;
+	color: ${props.theme.brand.red};
 }
 
 .math-node .math-render.parse-error::before {
 	content: "(math error)";
-	color: red;
+	color: ${props.theme.brand.red};
 	cursor: help;
 }
 
@@ -76,26 +76,27 @@ math-inline .math-src::after, math-inline .math-src::before {
 
 /* -- Block Math ---------------------------------------- */
 
-math-display { display: block; }
+math-block { display: block; }
 
-math-display .math-render { display: block; }
+math-block .math-render { display: block; }
 
-math-display.ProseMirror-selectednode {
+math-block.ProseMirror-selectednode {
   border-radius: 4px;
   border: 1px solid ${props.theme.codeBorder};
   background: ${props.theme.codeBackground};
   padding: 3px 4px;
+  padding-left: 3.1em;
   font-family: ${props.theme.fontFamilyMono};
   font-size: 80%;
 }
 
-math-display .math-src .ProseMirror {
+math-block .math-src .ProseMirror {
 	width: 100%;
 	display: block;
 }
 
 
-math-display .katex-display { margin: 0; }
+math-block .katex-display { margin: 0; }
 
 /* -- Selection Plugin ---------------------------------- */
 

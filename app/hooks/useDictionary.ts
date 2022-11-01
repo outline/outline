@@ -70,7 +70,7 @@ export default function useDictionary() {
       subheading: t("Subheading"),
       table: t("Table"),
       mathInline: t("Math Inline (LaTeX)"),
-      mathDisplay: t("Math Block (LaTeX)"),
+      mathBlock: t("Math Block (LaTeX)"),
       tip: t("Tip"),
       tipNotice: t("Tip notice"),
       showDiagram: t("Show diagram"),

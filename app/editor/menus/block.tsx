@@ -113,18 +113,6 @@ export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
       attrs: { rowsCount: 3, colsCount: 3 },
     },
     {
-      name: "math_inline",
-      title: dictionary.mathInline,
-      icon: MathIcon,
-      keywords: "math latex",
-    },
-    {
-      name: "math_block",
-      title: dictionary.mathDisplay,
-      icon: MathIcon,
-      keywords: "math katex latex",
-    },
-    {
       name: "blockquote",
       title: dictionary.quote,
       icon: BlockQuoteIcon,
@@ -136,6 +124,12 @@ export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
       icon: CodeIcon,
       shortcut: "^ ⇧ \\",
       keywords: "script",
+    },
+    {
+      name: "math_block",
+      title: dictionary.mathBlock,
+      icon: MathIcon,
+      keywords: "math katex latex",
     },
     {
       name: "hr",

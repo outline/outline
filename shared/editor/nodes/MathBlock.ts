@@ -11,7 +11,7 @@ import mathRule from "../rules/math";
 import { Dispatch } from "../types";
 import Node from "./Node";
 
-export default class MathDisplay extends Node {
+export default class MathBlock extends Node {
   get name() {
     return "math_block";
   }
