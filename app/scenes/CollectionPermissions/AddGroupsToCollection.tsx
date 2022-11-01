@@ -1,4 +1,5 @@
 import { debounce } from "lodash";
+import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
@@ -152,4 +153,4 @@ const ButtonWrap = styled.div`
   margin-left: 6px;
 `;
 
-export default AddGroupsToCollection;
+export default observer(AddGroupsToCollection);
