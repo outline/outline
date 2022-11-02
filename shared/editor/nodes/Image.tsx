@@ -200,12 +200,15 @@ export default class Image extends Node {
             const layoutClass = layoutClassMatched
               ? layoutClassMatched[1]
               : null;
+
+            const width = img.getAttribute("width");
+            const height = img.getAttribute("height");
             return {
               src: img?.getAttribute("src"),
               alt: img?.getAttribute("alt"),
-              width: img?.getAttribute("width"),
-              height: img?.getAttribute("height"),
               title: img?.getAttribute("title"),
+              width: width ? parseInt(width, 10) : undefined,
+              height: height ? parseInt(height, 10) : undefined,
               layoutClass,
             };
           },
@@ -213,12 +216,14 @@ export default class Image extends Node {
         {
           tag: "img",
           getAttrs: (dom: HTMLImageElement) => {
+            const width = dom.getAttribute("width");
+            const height = dom.getAttribute("height");
             return {
               src: dom.getAttribute("src"),
-              width: dom.getAttribute("width"),
-              height: dom.getAttribute("height"),
               alt: dom.getAttribute("alt"),
               title: dom.getAttribute("title"),
+              width: width ? parseInt(width, 10) : undefined,
+              height: height ? parseInt(height, 10) : undefined,
             };
           },
         },
@@ -470,7 +475,11 @@ export default class Image extends Node {
         return true;
       },
       replaceImage: () => (state: EditorState) => {
+        if (!(state.selection instanceof NodeSelection)) {
+          return false;
+        }
         const { view } = this.editor;
+        const { node } = state.selection;
         const {
           uploadFile,
           onFileUploadStart,
@@ -480,6 +489,10 @@ export default class Image extends Node {
 
         if (!uploadFile) {
           throw new Error("uploadFile prop is required to replace images");
+        }
+
+        if (node.type.name !== "image") {
+          return false;
         }
 
         // create an input element and click to trigger picker
@@ -495,6 +508,7 @@ export default class Image extends Node {
             onShowToast,
             dictionary: this.options.dictionary,
             replaceExisting: true,
+            width: node.attrs.width,
           });
         };
         inputElement.click();
@@ -567,8 +581,8 @@ const ImageComponent = (
     view: EditorView;
   }
 ) => {
-  const { theme, isSelected, node } = props;
-  const { alt, src, layoutClass, height } = node.attrs;
+  const { theme, isSelected, node, view } = props;
+  const { alt, src, layoutClass } = node.attrs;
   const className = layoutClass ? `image image-${layoutClass}` : "image";
   const [naturalWidth, setNaturalWidth] = React.useState(node.attrs.width);
   const [naturalHeight, setNaturalHeight] = React.useState(node.attrs.height);
@@ -701,15 +715,25 @@ const ImageComponent = (
           }}
           shouldRespectMaxDimension
         />
-        <ResizeLeft onMouseDown={handleMouseDown("left")} />
-        <ResizeRight onMouseDown={handleMouseDown("right")} />
+        {view?.props.editable && view.props.editable(view.state) && (
+          <>
+            <ResizeLeft
+              onMouseDown={handleMouseDown("left")}
+              $dragging={!!direction}
+            />
+            <ResizeRight
+              onMouseDown={handleMouseDown("right")}
+              $dragging={!!direction}
+            />
+          </>
+        )}
       </ImageWrapper>
       {props.children}
     </div>
   );
 };
 
-const ResizeLeft = styled.div`
+const ResizeLeft = styled.div<{ $dragging: boolean }>`
   cursor: ew-resize;
   position: absolute;
   left: -3px;
@@ -717,11 +741,31 @@ const ResizeLeft = styled.div`
   bottom: 0;
   width: 6px;
   user-select: none;
+  opacity: ${(props) => (props.$dragging ? 1 : 0)};
+  transition: opacity 150ms ease-in-out;
+
+  &:after {
+    content: "";
+    position: absolute;
+    left: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 6px;
+    height: 15%;
+    min-height: 20px;
+    border-radius: 4px;
+    background: ${(props) => props.theme.background};
+  }
 `;
 
 const ResizeRight = styled(ResizeLeft)`
   left: initial;
   right: -3px;
+
+  &:after {
+    left: initial;
+    right: 8px;
+  }
 `;
 
 const Button = styled.button`
@@ -739,7 +783,7 @@ const Button = styled.button`
   display: inline-block;
   cursor: var(--pointer);
   opacity: 0;
-  transition: opacity 100ms ease-in-out;
+  transition: opacity 150ms ease-in-out;
 
   &:active {
     transform: scale(0.98);
@@ -791,6 +835,10 @@ const ImageWrapper = styled.div`
   &:hover {
     ${Button} {
       opacity: 0.9;
+    }
+
+    ${ResizeLeft}, ${ResizeRight} {
+      opacity: 1;
     }
   }
 
