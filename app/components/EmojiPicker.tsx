@@ -33,7 +33,7 @@ const EmojiPicker: React.FC<Props> = ({
 
   return (
     <>
-      <PopoverDisclosure {...popover}>
+      <PopoverDisclosure {...popover} onClick={(e) => e.stopPropagation()}>
         {(disclosureProps) =>
           disclosure ? React.cloneElement(disclosure, disclosureProps) : null
         }

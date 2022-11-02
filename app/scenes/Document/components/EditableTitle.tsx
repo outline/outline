@@ -216,11 +216,7 @@ const EditableTitle = React.forwardRef(
         {(!isMobile || isFocused || document.emoji) && (
           <EmojiPicker
             disclosure={
-              <EmojiButton
-                size={32}
-                onClick={(ev) => ev.stopPropagation()}
-                id="emoji-picker-disclosure"
-              >
+              <EmojiButton size={32} id="emoji-picker-disclosure">
                 {document.emoji ? (
                   <Emoji size="24px" native={document.emoji} />
                 ) : (
