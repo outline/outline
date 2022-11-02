@@ -24,6 +24,12 @@ import { initSentry } from "./utils/sentry";
 initI18n();
 const element = window.document.getElementById("root");
 
+history.listen(() => {
+  requestAnimationFrame(() =>
+    window.dispatchEvent(new Event("location-changed"))
+  );
+});
+
 if (env.SENTRY_DSN) {
   initSentry(history);
 }

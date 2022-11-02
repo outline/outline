@@ -583,7 +583,7 @@ const ImageComponent = (
     view: EditorView;
   }
 ) => {
-  const { theme, isSelected, node, view } = props;
+  const { theme, isSelected, node, isEditable } = props;
   const { alt, src, layoutClass } = node.attrs;
   const className = layoutClass ? `image image-${layoutClass}` : "image";
   const [naturalWidth, setNaturalWidth] = React.useState(node.attrs.width);
@@ -726,7 +726,7 @@ const ImageComponent = (
           }}
           shouldRespectMaxDimension
         />
-        {view?.props.editable && view.props.editable(view.state) && (
+        {isEditable && (
           <>
             <ResizeLeft
               onMouseDown={handleMouseDown("left")}
@@ -765,7 +765,9 @@ const ResizeLeft = styled.div<{ $dragging: boolean }>`
     height: 15%;
     min-height: 20px;
     border-radius: 4px;
-    background: ${(props) => props.theme.background};
+    background: ${(props) => props.theme.toolbarBackground};
+    box-shadow: 0 0 0 1px ${(props) => props.theme.toolbarItem};
+    opacity: 0.75;
   }
 `;
 
@@ -841,7 +843,9 @@ const ImageWrapper = styled.div`
   margin-left: auto;
   margin-right: auto;
   max-width: 100%;
-  transition: all 150ms ease-in-out;
+  transition-property: width, height;
+  transition-duration: 150ms;
+  transition-timing-function: ease-in-out;
 
   &:hover {
     ${Button} {

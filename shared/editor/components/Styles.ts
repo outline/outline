@@ -144,7 +144,9 @@ li {
     pointer-events: ${props.readOnly ? "initial" : "none"};
     display: inline-block;
     max-width: 100%;
-    transition: all 150ms ease-in-out;
+    transition-property: width, height;
+    transition-duration: 150ms;
+    transition-timing-function: ease-in-out;
   }
 
   .ProseMirror-selectednode img {
