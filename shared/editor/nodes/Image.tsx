@@ -609,14 +609,11 @@ const ImageComponent = (
     }
 
     const grid = documentWidth / 10;
-    const minWidth = widthAtDragStart * 0.1;
+    const minWidth = naturalWidth * 0.1;
     const newWidth = widthAtDragStart + diff * 2;
     const widthOnGrid = Math.round(newWidth / grid) * grid;
     const constrainedWidth = Math.round(
-      Math.min(
-        Math.min(naturalWidth, Math.max(widthOnGrid, minWidth)),
-        maxWidth
-      )
+      Math.min(maxWidth, Math.max(widthOnGrid, minWidth))
     );
 
     const aspectRatio = naturalHeight / naturalWidth;
@@ -650,7 +647,7 @@ const ImageComponent = (
   };
 
   React.useEffect(() => {
-    if (node.attrs.width !== size.width) {
+    if (node.attrs.width && node.attrs.width !== size.width) {
       setSize({
         width: node.attrs.width,
         height: node.attrs.height,
@@ -704,7 +701,7 @@ const ImageComponent = (
                 if (!node.attrs.width) {
                   setSize((state) => ({
                     ...state,
-                    width: Math.min(nw, maxWidth),
+                    width: nw,
                   }));
                 }
               },
