@@ -129,31 +129,11 @@ const ContentEditable = React.forwardRef(
       []
     );
 
-    if (React.Children.count(children) > 1) {
-      return (
-        <div className={className} dir={dir} onClick={onClick}>
-          {React.Children.toArray(children)[0]}
-          <Content
-            ref={contentRef}
-            contentEditable={!disabled && !readOnly}
-            onInput={wrappedEvent(onInput)}
-            onBlur={wrappedEvent(onBlur)}
-            onKeyDown={wrappedEvent(onKeyDown)}
-            onPaste={handlePaste}
-            data-placeholder={placeholder}
-            suppressContentEditableWarning
-            role="textbox"
-            {...rest}
-          >
-            {innerValue}
-          </Content>
-          {React.Children.toArray(children)[1]}
-        </div>
-      );
-    }
+    const childrenArr = React.Children.toArray(children);
 
     return (
       <div className={className} dir={dir} onClick={onClick}>
+        {childrenArr.length > 1 ? childrenArr[0] : null}
         <Content
           ref={contentRef}
           contentEditable={!disabled && !readOnly}
@@ -168,7 +148,7 @@ const ContentEditable = React.forwardRef(
         >
           {innerValue}
         </Content>
-        {children}
+        {childrenArr.length > 1 ? childrenArr[1] : childrenArr[0]}
       </div>
     );
   }
