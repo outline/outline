@@ -13,6 +13,7 @@ export type Options = {
   isAttachment?: boolean;
   /** Set to true to replace any existing image at the users selection */
   replaceExisting?: boolean;
+  /** Width to use when inserting image */
   width?: number;
   uploadFile?: (file: File) => Promise<string>;
   onFileUploadStart?: () => void;

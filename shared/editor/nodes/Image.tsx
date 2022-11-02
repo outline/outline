@@ -572,6 +572,8 @@ export default class Image extends Node {
   }
 }
 
+type DragDirection = "left" | "right";
+
 const ImageComponent = (
   props: ComponentProps & {
     onClick: (event: React.MouseEvent<HTMLDivElement>) => void;
@@ -592,7 +594,7 @@ const ImageComponent = (
     height: node.attrs.height ?? naturalHeight,
   });
   const [offset, setOffset] = React.useState(0);
-  const [direction, setDirection] = React.useState<"left" | "right">();
+  const [dragging, setDragging] = React.useState<DragDirection>();
   const documentWidth = props.view?.dom.clientWidth;
   const maxWidth = layoutClass ? documentWidth / 3 : documentWidth;
 
@@ -600,7 +602,7 @@ const ImageComponent = (
     event.preventDefault();
 
     let diff;
-    if (direction === "left") {
+    if (dragging === "left") {
       diff = offset - event.pageX;
     } else {
       diff = event.pageX - offset;
@@ -631,20 +633,20 @@ const ImageComponent = (
     event.stopPropagation();
 
     setOffset(0);
-    setDirection(undefined);
+    setDragging(undefined);
     props.onChangeSize(size);
 
     document.removeEventListener("mousemove", handleMouseMove);
   };
 
-  const handleMouseDown = (direction: "left" | "right") => (
+  const handleMouseDown = (dragging: "left" | "right") => (
     event: React.MouseEvent<HTMLDivElement>
   ) => {
     event.preventDefault();
     event.stopPropagation();
     setWidthAtDragStart(size.width);
     setOffset(event.pageX);
-    setDirection(direction);
+    setDragging(dragging);
   };
 
   React.useEffect(() => {
@@ -657,7 +659,7 @@ const ImageComponent = (
   }, [node.attrs.width]);
 
   React.useEffect(() => {
-    if (direction) {
+    if (dragging) {
       document.body.style.cursor = "ew-resize";
       document.addEventListener("mousemove", handleMouseMove);
       document.addEventListener("mouseup", handleMouseUp);
@@ -668,18 +670,18 @@ const ImageComponent = (
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     };
-  }, [direction, handleMouseMove, handleMouseUp]);
+  }, [dragging, handleMouseMove, handleMouseUp]);
 
   const style = { width: size.width || "auto" };
 
   return (
     <div contentEditable={false} className={className}>
       <ImageWrapper
-        className={isSelected || direction ? "ProseMirror-selectednode" : ""}
-        onClick={direction ? undefined : props.onClick}
+        className={isSelected || dragging ? "ProseMirror-selectednode" : ""}
+        onClick={dragging ? undefined : props.onClick}
         style={style}
       >
-        {!direction && (
+        {!dragging && (
           <Button onClick={props.onDownload}>
             <DownloadIcon color="currentColor" />
           </Button>
@@ -719,11 +721,11 @@ const ImageComponent = (
           <>
             <ResizeLeft
               onMouseDown={handleMouseDown("left")}
-              $dragging={!!direction}
+              $dragging={!!dragging}
             />
             <ResizeRight
               onMouseDown={handleMouseDown("right")}
-              $dragging={!!direction}
+              $dragging={!!dragging}
             />
           </>
         )}
@@ -736,10 +738,10 @@ const ImageComponent = (
 const ResizeLeft = styled.div<{ $dragging: boolean }>`
   cursor: ew-resize;
   position: absolute;
-  left: -3px;
+  left: -4px;
   top: 0;
   bottom: 0;
-  width: 6px;
+  width: 8px;
   user-select: none;
   opacity: ${(props) => (props.$dragging ? 1 : 0)};
   transition: opacity 150ms ease-in-out;
@@ -760,7 +762,7 @@ const ResizeLeft = styled.div<{ $dragging: boolean }>`
 
 const ResizeRight = styled(ResizeLeft)`
   left: initial;
-  right: -3px;
+  right: -4px;
 
   &:after {
     left: initial;
