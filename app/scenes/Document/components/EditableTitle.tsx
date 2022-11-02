@@ -18,6 +18,8 @@ import Emoji from "~/components/Emoji";
 import EmojiPicker from "~/components/EmojiPicker";
 import NudeButton from "~/components/NudeButton";
 import Star, { AnimatedStar } from "~/components/Star";
+import useActiveElement from "~/hooks/useActiveElement";
+import useMobile from "~/hooks/useMobile";
 import usePickerTheme from "~/hooks/usePickerTheme";
 import { hover } from "~/styles";
 import { isModKey } from "~/utils/keyboard";
@@ -60,6 +62,26 @@ const EditableTitle = React.forwardRef(
     const { editor } = useDocumentContext();
     const theme = useTheme();
     const pickerTheme = usePickerTheme();
+    const isMobile = useMobile();
+    const activeElement = useActiveElement();
+
+    const [isFocused, setFocus] = React.useState<boolean>(false);
+
+    React.useEffect(() => {
+      if (
+        activeElement &&
+        (["emoji-picker-disclosure", "emoji-picker", "document-title"].includes(
+          activeElement.id
+        ) ||
+          window.document
+            .getElementById("emoji-picker")
+            ?.contains(activeElement))
+      ) {
+        setFocus(true);
+      } else {
+        setFocus(false);
+      }
+    }, [activeElement]);
 
     const handleClick = React.useCallback(() => {
       ref.current?.focus();
@@ -184,26 +206,33 @@ const EditableTitle = React.forwardRef(
         value={value}
         $isStarred={document.isStarred}
         $containsEmoji={!!document.emoji}
+        $isFocused={isFocused}
         autoFocus={!document.title}
         maxLength={DocumentValidation.maxTitleLength}
         readOnly={readOnly}
         dir="auto"
         ref={ref}
       >
-        <EmojiPicker
-          disclosure={
-            <EmojiButton size={32} onClick={(ev) => ev.stopPropagation()}>
-              {document.emoji ? (
-                <Emoji size="24px" native={document.emoji} />
-              ) : (
-                <AnimatedEmoji size={32} color={theme.textTertiary} />
-              )}
-            </EmojiButton>
-          }
-          onEmojiSelect={handleEmojiSelect}
-          onEmojiRemove={handleEmojiRemove}
-          theme={pickerTheme}
-        />
+        {(!isMobile || isFocused || document.emoji) && (
+          <EmojiPicker
+            disclosure={
+              <EmojiButton
+                size={32}
+                onClick={(ev) => ev.stopPropagation()}
+                id="emoji-picker-disclosure"
+              >
+                {document.emoji ? (
+                  <Emoji size="24px" native={document.emoji} />
+                ) : (
+                  <AnimatedEmoji size={32} color={theme.textTertiary} />
+                )}
+              </EmojiButton>
+            }
+            onEmojiSelect={handleEmojiSelect}
+            onEmojiRemove={handleEmojiRemove}
+            theme={pickerTheme}
+          />
+        )}
         {starrable !== false && <StarButton document={document} size={32} />}
       </Title>
     );
@@ -226,6 +255,7 @@ const StarButton = styled(Star)`
 type TitleProps = {
   $isStarred: boolean;
   $containsEmoji: boolean;
+  $isFocused: boolean;
 };
 
 const PlaceholderEmoji = styled(SmileyIcon)`
@@ -253,7 +283,8 @@ const Title = styled(ContentEditable)<TitleProps>`
   line-height: ${lineHeight};
   margin-top: 1em;
   margin-bottom: 0.5em;
-  margin-left: 35px;
+  margin-left: ${(props) =>
+    props.$containsEmoji || props.$isFocused ? "35px" : "0px"};
   font-size: ${fontSize};
   font-weight: 500;
   border: 0;

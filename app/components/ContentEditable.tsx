@@ -135,6 +135,7 @@ const ContentEditable = React.forwardRef(
       <div className={className} dir={dir} onClick={onClick}>
         {childrenArr.length > 1 ? childrenArr[0] : null}
         <Content
+          id="document-title"
           ref={contentRef}
           contentEditable={!disabled && !readOnly}
           onInput={wrappedEvent(onInput)}
