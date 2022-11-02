@@ -588,11 +588,11 @@ const ImageComponent = (
   const className = layoutClass ? `image image-${layoutClass}` : "image";
   const [naturalWidth, setNaturalWidth] = React.useState(node.attrs.width);
   const [naturalHeight, setNaturalHeight] = React.useState(node.attrs.height);
-  const [widthAtDragStart, setWidthAtDragStart] = React.useState(naturalWidth);
   const [size, setSize] = React.useState({
     width: node.attrs.width ?? naturalWidth,
     height: node.attrs.height ?? naturalHeight,
   });
+  const [sizeAtDragStart, setSizeAtDragStart] = React.useState(size);
   const [offset, setOffset] = React.useState(0);
   const [dragging, setDragging] = React.useState<DragDirection>();
   const documentWidth = props.view?.dom.clientWidth;
@@ -610,7 +610,7 @@ const ImageComponent = (
 
     const grid = documentWidth / 10;
     const minWidth = naturalWidth * 0.1;
-    const newWidth = widthAtDragStart + diff * 2;
+    const newWidth = sizeAtDragStart.width + diff * 2;
     const widthOnGrid = Math.round(newWidth / grid) * grid;
     const constrainedWidth = Math.round(
       Math.min(maxWidth, Math.max(widthOnGrid, minWidth))
@@ -641,9 +641,19 @@ const ImageComponent = (
   ) => {
     event.preventDefault();
     event.stopPropagation();
-    setWidthAtDragStart(size.width);
+    setSizeAtDragStart(size);
     setOffset(event.pageX);
     setDragging(dragging);
+  };
+
+  const handleKeyDown = (event: KeyboardEvent) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      event.stopPropagation();
+
+      setSize(sizeAtDragStart);
+      setDragging(undefined);
+    }
   };
 
   React.useEffect(() => {
@@ -658,12 +668,14 @@ const ImageComponent = (
   React.useEffect(() => {
     if (dragging) {
       document.body.style.cursor = "ew-resize";
+      document.addEventListener("keydown", handleKeyDown);
       document.addEventListener("mousemove", handleMouseMove);
       document.addEventListener("mouseup", handleMouseUp);
     }
 
     return () => {
       document.body.style.cursor = "initial";
+      document.removeEventListener("keydown", handleKeyDown);
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
     };
