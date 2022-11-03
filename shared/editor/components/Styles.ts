@@ -137,12 +137,16 @@ li {
   text-align: center;
   max-width: 100%;
   clear: both;
+  position: relative;
+  z-index: 1;
 
   img {
     pointer-events: ${props.readOnly ? "initial" : "none"};
     display: inline-block;
     max-width: 100%;
-    max-height: 75vh;
+    transition-property: width, height;
+    transition-duration: 150ms;
+    transition-timing-function: ease-in-out;
   }
 
   .ProseMirror-selectednode img {
@@ -168,7 +172,7 @@ li {
 
 .image-right-50 {
   float: right;
-  width: 50%;
+  width: 33.3%;
   margin-left: 2em;
   margin-bottom: 1em;
   clear: initial;
@@ -176,7 +180,7 @@ li {
 
 .image-left-50 {
   float: left;
-  width: 50%;
+  width: 33.3%;
   margin-right: 2em;
   margin-bottom: 1em;
   clear: initial;
