@@ -132,7 +132,10 @@ export default class Link extends Mark {
           if (range && range.mark && this.options.onClickLink) {
             try {
               const event = new KeyboardEvent("keydown", { metaKey: false });
-              this.options.onClickLink(range.mark.attrs.href, event);
+              this.options.onClickLink(
+                sanitizeUrl(range.mark.attrs.href),
+                event
+              );
             } catch (err) {
               this.editor.props.onShowToast(
                 this.options.dictionary.openLinkError
@@ -242,7 +245,7 @@ export default class Link extends Mark {
                 if (this.options.onClickLink) {
                   event.stopPropagation();
                   event.preventDefault();
-                  this.options.onClickLink(href, event);
+                  this.options.onClickLink(sanitizeUrl(href), event);
                 }
               } catch (err) {
                 this.editor.props.onShowToast(
