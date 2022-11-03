@@ -12,6 +12,7 @@ import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import ImageZoom, { ImageZoom_Image } from "react-medium-image-zoom";
 import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 import { getDataTransferFiles, getEventFiles } from "../../utils/files";
 import { sanitizeUrl } from "../../utils/urls";
 import { AttachmentValidation } from "../../validations";
@@ -598,7 +599,7 @@ const ImageComponent = (
   const documentWidth = props.view?.dom.clientWidth;
   const maxWidth = layoutClass ? documentWidth / 3 : documentWidth;
 
-  const handleMouseMove = (event: MouseEvent) => {
+  const handlePointerMove = (event: PointerEvent) => {
     event.preventDefault();
 
     let diff;
@@ -609,7 +610,7 @@ const ImageComponent = (
     }
 
     const grid = documentWidth / 10;
-    const minWidth = naturalWidth * 0.1;
+    const minWidth = documentWidth * 0.1;
     const newWidth = sizeAtDragStart.width + diff * 2;
     const widthOnGrid = Math.round(newWidth / grid) * grid;
     const constrainedWidth = Math.round(
@@ -625,7 +626,7 @@ const ImageComponent = (
     });
   };
 
-  const handleMouseUp = (event: MouseEvent) => {
+  const handlePointerUp = (event: PointerEvent) => {
     event.preventDefault();
     event.stopPropagation();
 
@@ -633,11 +634,11 @@ const ImageComponent = (
     setDragging(undefined);
     props.onChangeSize(size);
 
-    document.removeEventListener("mousemove", handleMouseMove);
+    document.removeEventListener("mousemove", handlePointerMove);
   };
 
-  const handleMouseDown = (dragging: "left" | "right") => (
-    event: React.MouseEvent<HTMLDivElement>
+  const handlePointerDown = (dragging: "left" | "right") => (
+    event: React.PointerEvent<HTMLDivElement>
   ) => {
     event.preventDefault();
     event.stopPropagation();
@@ -669,17 +670,17 @@ const ImageComponent = (
     if (dragging) {
       document.body.style.cursor = "ew-resize";
       document.addEventListener("keydown", handleKeyDown);
-      document.addEventListener("mousemove", handleMouseMove);
-      document.addEventListener("mouseup", handleMouseUp);
+      document.addEventListener("pointermove", handlePointerMove);
+      document.addEventListener("pointerup", handlePointerUp);
     }
 
     return () => {
       document.body.style.cursor = "initial";
       document.removeEventListener("keydown", handleKeyDown);
-      document.removeEventListener("mousemove", handleMouseMove);
-      document.removeEventListener("mouseup", handleMouseUp);
+      document.removeEventListener("pointermove", handlePointerMove);
+      document.removeEventListener("pointerup", handlePointerUp);
     };
-  }, [dragging, handleMouseMove, handleMouseUp]);
+  }, [dragging, handlePointerMove, handlePointerUp]);
 
   const style = { width: size.width || "auto" };
 
@@ -690,7 +691,7 @@ const ImageComponent = (
         onClick={dragging ? undefined : props.onClick}
         style={style}
       >
-        {!dragging && (
+        {!dragging && size.width > 60 && size.height > 60 && (
           <Button onClick={props.onDownload}>
             <DownloadIcon color="currentColor" />
           </Button>
@@ -729,11 +730,11 @@ const ImageComponent = (
         {isEditable && (
           <>
             <ResizeLeft
-              onMouseDown={handleMouseDown("left")}
+              onPointerDown={handlePointerDown("left")}
               $dragging={!!dragging}
             />
             <ResizeRight
-              onMouseDown={handleMouseDown("right")}
+              onPointerDown={handlePointerDown("right")}
               $dragging={!!dragging}
             />
           </>
@@ -811,7 +812,6 @@ const Button = styled.button`
 const Caption = styled.p`
   border: 0;
   display: block;
-  font-size: 13px;
   font-style: italic;
   font-weight: normal;
   color: ${(props) => props.theme.textSecondary};
@@ -825,6 +825,10 @@ const Caption = styled.p`
   user-select: text;
   margin: 0 !important;
   cursor: text;
+
+  ${breakpoint("tablet")`
+    font-size: 13px;
+  `};
 
   &:empty:not(:focus) {
     display: none;
@@ -846,6 +850,7 @@ const ImageWrapper = styled.div`
   transition-property: width, height;
   transition-duration: 150ms;
   transition-timing-function: ease-in-out;
+  touch-action: none;
 
   &:hover {
     ${Button} {
