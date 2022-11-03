@@ -174,23 +174,19 @@ const EditableTitle = React.forwardRef(
     const handleEmojiSelect = React.useCallback(
       async (emoji: string) => {
         if (document.emoji !== emoji) {
-          await document.store.update({
-            id: document.id,
-            emoji,
-          });
+          document.emoji = emoji;
+          await document.save();
         }
       },
-      [document.id, document.emoji, document.store]
+      [document]
     );
 
     const handleEmojiRemove = React.useCallback(async () => {
       if (document.emoji) {
-        await document.store.update({
-          id: document.id,
-          emoji: null,
-        });
+        document.emoji = null;
+        document.save();
       }
-    }, [document.id, document.emoji, document.store]);
+    }, [document]);
 
     const value =
       !document.title && readOnly ? document.titleWithDefault : document.title;
