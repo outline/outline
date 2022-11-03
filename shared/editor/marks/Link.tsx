@@ -167,7 +167,10 @@ export default class Link extends Mark {
                     if (this.options.onClickLink) {
                       event.stopPropagation();
                       event.preventDefault();
-                      this.options.onClickLink(linkMark.attrs.href, event);
+                      this.options.onClickLink(
+                        sanitizeUrl(linkMark.attrs.href),
+                        event
+                      );
                     }
                   } catch (err) {
                     this.editor.props.onShowToast(
