@@ -599,6 +599,11 @@ const ImageComponent = (
   const documentWidth = props.view?.dom.clientWidth;
   const maxWidth = layoutClass ? documentWidth / 3 : documentWidth;
 
+  const constrainWidth = (width: number) => {
+    const minWidth = documentWidth * 0.1;
+    return Math.round(Math.min(maxWidth, Math.max(width, minWidth)));
+  };
+
   const handlePointerMove = (event: PointerEvent) => {
     event.preventDefault();
 
@@ -610,12 +615,9 @@ const ImageComponent = (
     }
 
     const grid = documentWidth / 10;
-    const minWidth = documentWidth * 0.1;
     const newWidth = sizeAtDragStart.width + diff * 2;
     const widthOnGrid = Math.round(newWidth / grid) * grid;
-    const constrainedWidth = Math.round(
-      Math.min(maxWidth, Math.max(widthOnGrid, minWidth))
-    );
+    const constrainedWidth = constrainWidth(widthOnGrid);
 
     const aspectRatio = naturalHeight / naturalWidth;
     setSize({
@@ -642,7 +644,10 @@ const ImageComponent = (
   ) => {
     event.preventDefault();
     event.stopPropagation();
-    setSizeAtDragStart(size);
+    setSizeAtDragStart({
+      width: constrainWidth(size.width),
+      height: size.height,
+    });
     setOffset(event.pageX);
     setDragging(dragging);
   };
