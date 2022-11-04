@@ -2,7 +2,6 @@ import path from "path";
 import Koa, { BaseContext } from "koa";
 import Router from "koa-router";
 import send from "koa-send";
-import serve from "koa-static";
 import userAgent, { UserAgentContext } from "koa-useragent";
 import { languages } from "@shared/i18n";
 import env from "@server/env";
@@ -16,15 +15,30 @@ const isProduction = env.ENVIRONMENT === "production";
 const koa = new Koa();
 const router = new Router();
 
-// serve public assets
-koa.use(
-  serve(path.resolve(__dirname, "../../../public"), {
-    // 1 month expiry, these assets are mostly static but do not contain a hash
-    maxAge: 30 * 24 * 60 * 60 * 1000,
-  })
-);
-
 koa.use<BaseContext, UserAgentContext>(userAgent);
+
+// serve public assets
+router.use(["/images/*", "/email/*"], async (ctx, next) => {
+  let done;
+
+  if (ctx.method === "HEAD" || ctx.method === "GET") {
+    try {
+      done = await send(ctx, ctx.path, {
+        root: path.resolve(__dirname, "../../../public"),
+        // 7 day expiry, these assets are mostly static but do not contain a hash
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+    } catch (err) {
+      if (err.status !== 404) {
+        throw err;
+      }
+    }
+  }
+
+  if (!done) {
+    await next();
+  }
+});
 
 router.use(
   ["/share/:shareId", "/share/:shareId/doc/:documentSlug", "/share/:shareId/*"],
