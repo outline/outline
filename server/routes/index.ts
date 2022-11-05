@@ -1,5 +1,6 @@
 import path from "path";
 import Koa, { BaseContext } from "koa";
+import compress from "koa-compress";
 import Router from "koa-router";
 import send from "koa-send";
 import userAgent, { UserAgentContext } from "koa-useragent";
@@ -79,6 +80,8 @@ if (isProduction) {
     }
   });
 }
+
+router.use(compress());
 
 router.get("/locales/:lng.json", async (ctx) => {
   const { lng } = ctx.params;
