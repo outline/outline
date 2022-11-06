@@ -720,14 +720,6 @@ const ImageComponent = (
     ? { width: contentWidth }
     : { width: size.width || "auto" };
 
-  console.log({
-    isFullWidth,
-    documentWidth,
-    contentWidth,
-    size,
-    view: props.view,
-  });
-
   return (
     <div contentEditable={false} className={className}>
       <ImageWrapper
