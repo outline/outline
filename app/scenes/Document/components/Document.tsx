@@ -481,7 +481,12 @@ class DocumentScene extends React.Component<Props> {
             }
           }}
         />
-        <Background key={revision ? revision.id : document.id} column auto>
+        <Background
+          id="full-width-container"
+          key={revision ? revision.id : document.id}
+          column
+          auto
+        >
           <Route
             path={`${document.url}/move`}
             component={() => (

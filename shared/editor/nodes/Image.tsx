@@ -99,7 +99,7 @@ const uploadPlugin = (options: Options) =>
     },
   });
 
-const IMAGE_CLASSES = ["right-50", "left-50"];
+const IMAGE_CLASSES = ["right-50", "left-50", "full-width"];
 const imageSizeRegex = /\s=(\d+)?x(\d+)?$/;
 
 type TitleAttributes = {
@@ -362,7 +362,6 @@ export default class Image extends Node {
     return (
       <ImageComponent
         {...props}
-        view={this.editor.view}
         onClick={this.handleSelect(props)}
         onDownload={this.handleDownload(props)}
         onChangeSize={this.handleChangeSize(props)}
@@ -470,6 +469,19 @@ export default class Image extends Node {
           ...state.selection.node.attrs,
           title: null,
           layoutClass: "left-50",
+        };
+        const { selection } = state;
+        dispatch(state.tr.setNodeMarkup(selection.from, undefined, attrs));
+        return true;
+      },
+      alignFullWidth: () => (state: EditorState, dispatch: Dispatch) => {
+        if (!(state.selection instanceof NodeSelection)) {
+          return false;
+        }
+        const attrs = {
+          ...state.selection.node.attrs,
+          title: null,
+          layoutClass: "full-width",
         };
         const { selection } = state;
         dispatch(state.tr.setNodeMarkup(selection.from, undefined, attrs));
@@ -587,6 +599,9 @@ const ImageComponent = (
   const { theme, isSelected, node, isEditable } = props;
   const { alt, src, layoutClass } = node.attrs;
   const className = layoutClass ? `image image-${layoutClass}` : "image";
+  const [contentWidth, setContentWidth] = React.useState(
+    () => document.body.querySelector("#full-width-container")?.clientWidth || 0
+  );
   const [naturalWidth, setNaturalWidth] = React.useState(node.attrs.width);
   const [naturalHeight, setNaturalHeight] = React.useState(node.attrs.height);
   const [size, setSize] = React.useState({
@@ -598,6 +613,20 @@ const ImageComponent = (
   const [dragging, setDragging] = React.useState<DragDirection>();
   const documentWidth = props.view?.dom.clientWidth;
   const maxWidth = layoutClass ? documentWidth / 3 : documentWidth;
+  const isFullWidth = layoutClass === "full-width";
+
+  React.useEffect(() => {
+    const handleResize = () => {
+      const contentWidth =
+        document.body.querySelector("#full-width-container")?.clientWidth || 0;
+      setContentWidth(contentWidth);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [documentWidth]);
 
   const constrainWidth = (width: number) => {
     const minWidth = documentWidth * 0.1;
@@ -687,14 +716,30 @@ const ImageComponent = (
     };
   }, [dragging, handlePointerMove, handlePointerUp]);
 
-  const style = { width: size.width || "auto" };
+  const style = isFullWidth
+    ? { width: contentWidth }
+    : { width: size.width || "auto" };
+
+  console.log({
+    isFullWidth,
+    documentWidth,
+    contentWidth,
+    size,
+    view: props.view,
+  });
 
   return (
     <div contentEditable={false} className={className}>
       <ImageWrapper
+        isFullWidth={isFullWidth}
         className={isSelected || dragging ? "ProseMirror-selectednode" : ""}
         onClick={dragging ? undefined : props.onClick}
-        style={style}
+        style={{
+          ...style,
+          ...(isFullWidth
+            ? { marginLeft: -(contentWidth - documentWidth) / 2 }
+            : {}),
+        }}
       >
         {!dragging && size.width > 60 && size.height > 60 && (
           <Button onClick={props.onDownload}>
@@ -732,7 +777,7 @@ const ImageComponent = (
           }}
           shouldRespectMaxDimension
         />
-        {isEditable && (
+        {isEditable && !isFullWidth && (
           <>
             <ResizeLeft
               onPointerDown={handlePointerDown("left")}
@@ -846,16 +891,23 @@ const Caption = styled.p`
   }
 `;
 
-const ImageWrapper = styled.div`
+const ImageWrapper = styled.div<{ isFullWidth: boolean }>`
   line-height: 0;
   position: relative;
   margin-left: auto;
   margin-right: auto;
-  max-width: 100%;
+  max-width: ${(props) => (props.isFullWidth ? "initial" : "100%")};
   transition-property: width, height;
-  transition-duration: 150ms;
+  transition-duration: ${(props) => (props.isFullWidth ? "0ms" : "150ms")};
   transition-timing-function: ease-in-out;
   touch-action: none;
+  overflow: hidden;
+
+  img {
+    transition-property: width, height;
+    transition-duration: ${(props) => (props.isFullWidth ? "0ms" : "150ms")};
+    transition-timing-function: ease-in-out;
+  }
 
   &:hover {
     ${Button} {

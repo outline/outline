@@ -247,9 +247,6 @@ li {
     pointer-events: ${props.readOnly ? "initial" : "none"};
     display: inline-block;
     max-width: 100%;
-    transition-property: width, height;
-    transition-duration: 150ms;
-    transition-timing-function: ease-in-out;
   }
 
   .ProseMirror-selectednode img {
@@ -287,6 +284,19 @@ li {
   margin-right: 2em;
   margin-bottom: 1em;
   clear: initial;
+}
+
+.image-full-width {
+  width: initial;
+  max-width: 100vw;
+  clear: both;
+
+  img {
+    max-width: 100vw;
+    max-height: 60vh;
+    object-fit: cover;
+    object-position: center;
+  }
 }
 
 .ProseMirror-hideselection *::selection {

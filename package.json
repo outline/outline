@@ -141,7 +141,7 @@
     "node-fetch": "2.6.7",
     "node-htmldiff": "^0.9.4",
     "nodemailer": "^6.6.1",
-    "outline-icons": "^1.45.2",
+    "outline-icons": "^1.46.0",
     "oy-vey": "^0.12.0",
     "passport": "^0.6.0",
     "passport-google-oauth2": "^0.2.0",
