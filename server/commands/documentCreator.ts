@@ -31,7 +31,6 @@ export default async function documentCreator({
   template?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
-  index?: number;
   user: User;
   editorVersion?: string;
   source?: "import";
