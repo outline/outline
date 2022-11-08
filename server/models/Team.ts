@@ -168,7 +168,6 @@ class Team extends ParanoidModel {
       this.avatarUrl ||
       generateAvatarUrl({
         id: this.id,
-        name: this.name,
       })
     );
   }

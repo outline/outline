@@ -2,11 +2,12 @@ import * as React from "react";
 import styled from "styled-components";
 import User from "~/models/User";
 import useBoolean from "~/hooks/useBoolean";
+import Initials from "./Initials";
 import placeholder from "./placeholder.png";
 
 type Props = {
-  src: string;
   size: number;
+  src?: string;
   icon?: React.ReactNode;
   user?: User;
   alt?: string;
@@ -16,20 +17,29 @@ type Props = {
 };
 
 function Avatar(props: Props) {
-  const { src, icon, showBorder, ...rest } = props;
+  const { icon, showBorder, user, ...rest } = props;
+  const src = props.src || user?.avatarUrl;
 
   const [error, handleError] = useBoolean(false);
 
   return (
-    <AvatarWrapper>
-      <CircleImg
-        onError={handleError}
-        src={error ? placeholder : src}
-        $showBorder={showBorder}
-        {...rest}
-      />
+    <Relative>
+      {src ? (
+        <CircleImg
+          onError={handleError}
+          src={error ? placeholder : src}
+          $showBorder={showBorder}
+          {...rest}
+        />
+      ) : user ? (
+        <Initials color={user.color} $showBorder={showBorder} {...rest}>
+          {user.initial}
+        </Initials>
+      ) : (
+        <Initials $showBorder={showBorder} {...rest} />
+      )}
       {icon && <IconWrapper>{icon}</IconWrapper>}
-    </AvatarWrapper>
+    </Relative>
   );
 }
 
@@ -37,7 +47,7 @@ Avatar.defaultProps = {
   size: 24,
 };
 
-const AvatarWrapper = styled.div`
+const Relative = styled.div`
   position: relative;
 `;
 

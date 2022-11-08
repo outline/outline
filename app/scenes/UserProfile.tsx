@@ -39,7 +39,7 @@ function UserProfile(props: Props) {
     <Modal
       title={
         <Flex align="center">
-          <Avatar src={user.avatarUrl} size={38} alt={t("Profile picture")} />
+          <Avatar user={user} size={38} alt={t("Profile picture")} />
           <span>&nbsp;{user.name}</span>
         </Flex>
       }

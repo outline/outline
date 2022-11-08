@@ -39,7 +39,7 @@ function Facepile({
 }
 
 function DefaultAvatar(user: User) {
-  return <Avatar user={user} src={user.avatarUrl} size={32} />;
+  return <Avatar user={user} size={32} />;
 }
 
 const AvatarWrapper = styled.div`

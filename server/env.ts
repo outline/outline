@@ -330,13 +330,6 @@ export class Environment {
   public RELEASE = this.toOptionalString(process.env.RELEASE);
 
   /**
-   * An optional host from which to load default avatars.
-   */
-  @IsUrl()
-  public DEFAULT_AVATAR_HOST =
-    process.env.DEFAULT_AVATAR_HOST ?? "https://tiley.herokuapp.com";
-
-  /**
    * A Google Analytics tracking ID, only v3 supported at this time.
    */
   @Contains("UA-")

@@ -51,7 +51,7 @@ function AvatarWithPresence({
           $isObserving={isObserving}
           $color={user.color}
         >
-          <Avatar src={user.avatarUrl} onClick={onClick} size={32} />
+          <Avatar user={user} onClick={onClick} size={32} />
         </AvatarWrapper>
       </Tooltip>
     </>

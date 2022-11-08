@@ -41,6 +41,11 @@ class User extends ParanoidModel {
   isSuspended: boolean;
 
   @computed
+  get initial(): string {
+    return this.name ? this.name[0] : "?";
+  }
+
+  @computed
   get isInvited(): boolean {
     return !this.lastActiveAt;
   }

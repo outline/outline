@@ -61,7 +61,7 @@ function DocumentViews({ document, isOpen }: Props) {
                 key={item.id}
                 title={item.name}
                 subtitle={subtitle}
-                image={<Avatar key={item.id} src={item.avatarUrl} size={32} />}
+                image={<Avatar key={item.id} user={item} size={32} />}
                 border={false}
                 small
               />

@@ -104,9 +104,7 @@ const MembershipPreview = ({ collection, limit = 8 }: Props) => {
           users={sortBy(collectionUsers, "lastActiveAt")}
           overflow={overflow}
           limit={limit}
-          renderAvatar={(user) => (
-            <StyledAvatar user={user} src={user.avatarUrl} size={32} />
-          )}
+          renderAvatar={(user) => <StyledAvatar user={user} size={32} />}
         />
       </Fade>
     </NudeButton>
