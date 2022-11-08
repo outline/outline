@@ -9,6 +9,7 @@ import Text from "~/components/Text";
 
 type TFilterOption = {
   user?: User;
+  avatarUrl?: string;
   key: string;
   label: string;
   note?: string;
@@ -47,6 +48,7 @@ const FilterOptions = ({
       margin-right: 8px;
     `;
   }
+  const isAuthorDropdown = defaultLabel === "Any author" ? true : false;
 
   return (
     <Wrapper>
@@ -69,6 +71,9 @@ const FilterOptions = ({
             {...menu}
           >
             {Image && <StyledImage model={option.user} size={20} />}
+            {isAuthorDropdown && option.avatarUrl ? (
+              <StyledAvatar src={option.avatarUrl} size={20} />
+            ) : null}
             {option.note ? (
               <LabelWithNote>
                 {option.label}
