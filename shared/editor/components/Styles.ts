@@ -1302,7 +1302,8 @@ del {
 }
 
 del[data-operation-index] {
-  background-color: ${props.theme.slateLight};
+  color: ${props.theme.textDeleted};
+  background-color: ${props.theme.textDeletedBackground};
   
   img {
     opacity: .5;
