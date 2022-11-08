@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { useMenuState, MenuButton } from "reakit/Menu";
 import styled from "styled-components";
 import User from "~/models/User";
@@ -49,6 +50,8 @@ const FilterOptions = ({
     `;
   }
   const isAuthorDropdown = defaultLabel === "Any author" ? true : false;
+  const { t } = useTranslation();
+  const isAuthorDropdown = defaultLabel === t("Any author") ? true : false;
 
   return (
     <Wrapper>
