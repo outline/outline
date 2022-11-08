@@ -1261,7 +1261,7 @@ router.post("documents.create", auth({ member: true }), async (ctx) => {
     const documentTree: NavigationNode | null = collection.getDocumentTree(
       documentId
     );
-    if (documentTree?.children?.length || [].length > 0) {
+    if (documentTree?.children?.length) {
       // Create duplicates of nested docs
       await createChildDuplicates({
         collection,
