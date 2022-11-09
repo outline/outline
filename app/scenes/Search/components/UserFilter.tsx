@@ -26,14 +26,12 @@ function UserFilter(props: Props) {
       user,
       key: user.id,
       label: user.name,
-      avatarUrl: user.avatarUrl,
     }));
     return [
       {
         user: undefined,
         key: "",
         label: t("Any author"),
-        avatarUrl: "",
       },
       ...userOptions,
     ];
