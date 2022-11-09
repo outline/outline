@@ -3,7 +3,7 @@
 exports[`#users.activate should activate a suspended user 1`] = `
 Object {
   "data": Object {
-    "avatarUrl": "https://tiley.herokuapp.com/avatar/111d68d06e2d317b5a59c2c6c5bad808/U.png?c=e600e0",
+    "avatarUrl": null,
     "color": "#e600e0",
     "createdAt": "2018-01-02T00:00:00.000Z",
     "email": "user1@example.com",
@@ -59,7 +59,7 @@ Object {
 exports[`#users.demote should demote an admin 1`] = `
 Object {
   "data": Object {
-    "avatarUrl": "https://tiley.herokuapp.com/avatar/111d68d06e2d317b5a59c2c6c5bad808/U.png?c=e600e0",
+    "avatarUrl": null,
     "color": "#e600e0",
     "createdAt": "2018-01-02T00:00:00.000Z",
     "email": "user1@example.com",
@@ -97,7 +97,7 @@ Object {
 exports[`#users.demote should demote an admin to member 1`] = `
 Object {
   "data": Object {
-    "avatarUrl": "https://tiley.herokuapp.com/avatar/111d68d06e2d317b5a59c2c6c5bad808/U.png?c=e600e0",
+    "avatarUrl": null,
     "color": "#e600e0",
     "createdAt": "2018-01-02T00:00:00.000Z",
     "email": "user1@example.com",
@@ -135,7 +135,7 @@ Object {
 exports[`#users.demote should demote an admin to viewer 1`] = `
 Object {
   "data": Object {
-    "avatarUrl": "https://tiley.herokuapp.com/avatar/111d68d06e2d317b5a59c2c6c5bad808/U.png?c=e600e0",
+    "avatarUrl": null,
     "color": "#e600e0",
     "createdAt": "2018-01-02T00:00:00.000Z",
     "email": "user1@example.com",
@@ -191,7 +191,7 @@ Object {
 exports[`#users.promote should promote a new admin 1`] = `
 Object {
   "data": Object {
-    "avatarUrl": "https://tiley.herokuapp.com/avatar/111d68d06e2d317b5a59c2c6c5bad808/U.png?c=e600e0",
+    "avatarUrl": null,
     "color": "#e600e0",
     "createdAt": "2018-01-02T00:00:00.000Z",
     "email": "user1@example.com",
@@ -256,7 +256,7 @@ Object {
 exports[`#users.suspend should suspend an user 1`] = `
 Object {
   "data": Object {
-    "avatarUrl": "https://tiley.herokuapp.com/avatar/111d68d06e2d317b5a59c2c6c5bad808/U.png?c=e600e0",
+    "avatarUrl": null,
     "color": "#e600e0",
     "createdAt": "2018-01-02T00:00:00.000Z",
     "email": "user1@example.com",
