@@ -63,14 +63,7 @@ function AppSidebar() {
               <SidebarButton
                 {...props}
                 title={team.name}
-                image={
-                  <StyledTeamLogo
-                    src={team.avatarUrl}
-                    width={32}
-                    height={32}
-                    alt={t("Logo")}
-                  />
-                }
+                image={<TeamLogo model={team} size={32} alt={t("Logo")} />}
                 showDisclosure
               />
             )}
@@ -138,11 +131,6 @@ function AppSidebar() {
     </Sidebar>
   );
 }
-
-const StyledTeamLogo = styled(TeamLogo)`
-  margin-right: 4px;
-  background: white;
-`;
 
 const Drafts = styled(Text)`
   margin: 0 4px;

@@ -93,7 +93,7 @@ export async function signIn(
         ...existing,
         [team.id]: {
           name: team.name,
-          logoUrl: team.logoUrl,
+          logoUrl: team.avatarUrl,
           url: team.url,
         },
       })

@@ -40,7 +40,6 @@ async function teamCreator({
   // one via ClearBit, or fallback to colored initials in worst case scenario
   if (!avatarUrl || !avatarUrl.startsWith("http")) {
     avatarUrl = await generateAvatarUrl({
-      name,
       domain,
       id: subdomain,
     });

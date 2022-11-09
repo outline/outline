@@ -180,17 +180,11 @@ class User extends ParanoidModel {
   get avatarUrl() {
     const original = this.getDataValue("avatarUrl");
 
-    if (original) {
+    if (original && !original.startsWith("https://tiley.herokuapp.com")) {
       return original;
     }
 
-    const color = this.color.replace(/^#/, "");
-    const initial = this.name ? this.name[0] : "?";
-    const hash = crypto
-      .createHash("md5")
-      .update(this.email || "")
-      .digest("hex");
-    return `${env.DEFAULT_AVATAR_HOST}/avatar/${hash}/${initial}.png?c=${color}`;
+    return null;
   }
 
   set avatarUrl(value: string | null) {

@@ -24,7 +24,6 @@ import { CollectionPermission, TeamPreference } from "@shared/types";
 import { getBaseDomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
 import env from "@server/env";
 import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
-import { generateAvatarUrl } from "@server/utils/avatars";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import Attachment from "./Attachment";
 import AuthenticationProvider from "./AuthenticationProvider";
@@ -94,8 +93,20 @@ class Team extends ParanoidModel {
   @AllowNull
   @IsUrl
   @Length({ max: 4096, msg: "avatarUrl must be 4096 characters or less" })
-  @Column
-  avatarUrl: string | null;
+  @Column(DataType.STRING)
+  get avatarUrl() {
+    const original = this.getDataValue("avatarUrl");
+
+    if (original && !original.startsWith("https://tiley.herokuapp.com")) {
+      return original;
+    }
+
+    return null;
+  }
+
+  set avatarUrl(value: string | null) {
+    this.setDataValue("avatarUrl", value);
+  }
 
   @Default(true)
   @Column
@@ -161,16 +172,6 @@ class Team extends ParanoidModel {
     const url = new URL(env.URL);
     url.host = `${this.subdomain}.${getBaseDomain()}`;
     return url.href.replace(/\/$/, "");
-  }
-
-  get logoUrl() {
-    return (
-      this.avatarUrl ||
-      generateAvatarUrl({
-        id: this.id,
-        name: this.name,
-      })
-    );
   }
 
   /**

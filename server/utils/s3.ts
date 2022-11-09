@@ -6,7 +6,6 @@ import fetch from "fetch-with-proxy";
 import { compact } from "lodash";
 import { useAgent } from "request-filtering-agent";
 import { v4 as uuidv4 } from "uuid";
-import env from "@server/env";
 import Logger from "@server/logging/Logger";
 
 const AWS_S3_ACCELERATE_URL = process.env.AWS_S3_ACCELERATE_URL;
@@ -184,11 +183,7 @@ export const uploadToS3FromUrl = async (
   acl: string
 ) => {
   const endpoint = publicS3Endpoint(true);
-  if (
-    url.startsWith("/api") ||
-    url.startsWith(endpoint) ||
-    url.startsWith(env.DEFAULT_AVATAR_HOST)
-  ) {
+  if (url.startsWith("/api") || url.startsWith(endpoint)) {
     return;
   }
 

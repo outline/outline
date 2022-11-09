@@ -1,5 +1,6 @@
 import { computed, observable } from "mobx";
 import { TeamPreference, TeamPreferences } from "@shared/types";
+import { stringToColor } from "@shared/utils/color";
 import BaseModel from "./BaseModel";
 import Field from "./decorators/Field";
 
@@ -67,6 +68,16 @@ class Team extends BaseModel {
   @computed
   get signinMethods(): string {
     return "SSO";
+  }
+
+  @computed
+  get color(): string {
+    return stringToColor(this.id);
+  }
+
+  @computed
+  get initial(): string {
+    return this.name ? this.name[0] : "?";
   }
 
   /**

@@ -1,14 +1,21 @@
 import * as React from "react";
 import styled from "styled-components";
-import User from "~/models/User";
 import useBoolean from "~/hooks/useBoolean";
+import Initials from "./Initials";
 import placeholder from "./placeholder.png";
 
+export interface IAvatar {
+  avatarUrl: string | null;
+  color: string;
+  initial: string;
+  id: string;
+}
+
 type Props = {
-  src: string;
   size: number;
+  src?: string;
   icon?: React.ReactNode;
-  user?: User;
+  model?: IAvatar;
   alt?: string;
   showBorder?: boolean;
   onClick?: React.MouseEventHandler<HTMLImageElement>;
@@ -16,20 +23,28 @@ type Props = {
 };
 
 function Avatar(props: Props) {
-  const { src, icon, showBorder, ...rest } = props;
-
+  const { icon, showBorder, model, ...rest } = props;
+  const src = props.src || model?.avatarUrl;
   const [error, handleError] = useBoolean(false);
 
   return (
-    <AvatarWrapper>
-      <CircleImg
-        onError={handleError}
-        src={error ? placeholder : src}
-        $showBorder={showBorder}
-        {...rest}
-      />
+    <Relative>
+      {src ? (
+        <CircleImg
+          onError={handleError}
+          src={error ? placeholder : src}
+          $showBorder={showBorder}
+          {...rest}
+        />
+      ) : model ? (
+        <Initials color={model.color} $showBorder={showBorder} {...rest}>
+          {model.initial}
+        </Initials>
+      ) : (
+        <Initials $showBorder={showBorder} {...rest} />
+      )}
       {icon && <IconWrapper>{icon}</IconWrapper>}
-    </AvatarWrapper>
+    </Relative>
   );
 }
 
@@ -37,7 +52,7 @@ Avatar.defaultProps = {
   size: 24,
 };
 
-const AvatarWrapper = styled.div`
+const Relative = styled.div`
   position: relative;
 `;
 
