@@ -324,12 +324,11 @@ class User extends ParanoidModel {
    * Returns the passed preference value
    *
    * @param preference The user preference to retrieve
+   * @param fallback An optional fallback value, defaults to false.
    * @returns The preference value if set, else undefined
    */
-  public getPreference = (preference: UserPreference) => {
-    return !!this.preferences && this.preferences[preference]
-      ? this.preferences[preference]
-      : undefined;
+  public getPreference = (preference: UserPreference, fallback = false) => {
+    return this.preferences?.[preference] ?? fallback;
   };
 
   collectionIds = async (options = {}) => {
