@@ -7,7 +7,6 @@ import MenuItem from "~/components/ContextMenu/MenuItem";
 import Text from "~/components/Text";
 
 type TFilterOption = {
-  avatarUrl?: string;
   key: string;
   label: string;
   note?: string;
@@ -20,7 +19,6 @@ type Props = {
   selectedPrefix?: string;
   className?: string;
   onSelect: (key: string | null | undefined) => void;
-  image?: React.FunctionComponent<{ src: string; size: number }>;
 };
 
 const FilterOptions = ({
@@ -30,7 +28,6 @@ const FilterOptions = ({
   selectedPrefix = "",
   className,
   onSelect,
-  image: Image,
 }: Props) => {
   const menu = useMenuState({
     modal: true,
@@ -39,13 +36,6 @@ const FilterOptions = ({
     options.find((option) => option.key === activeKey) || options[0];
 
   const selectedLabel = selected ? `${selectedPrefix} ${selected.label}` : "";
-
-  let StyledImage: React.FunctionComponent<{ src?: string; size?: number }>;
-  if (Image) {
-    StyledImage = styled(Image)`
-      margin-right: 8px;
-    `;
-  }
 
   return (
     <Wrapper>
@@ -67,7 +57,6 @@ const FilterOptions = ({
             selected={option.key === activeKey}
             {...menu}
           >
-            {Image && <StyledImage src={option.avatarUrl} size={20} />}
             {option.note ? (
               <LabelWithNote>
                 {option.label}

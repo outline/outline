@@ -1,7 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import Avatar from "~/components/Avatar";
 import FilterOptions from "~/components/FilterOptions";
 import useStores from "~/hooks/useStores";
 
@@ -25,13 +24,11 @@ function UserFilter(props: Props) {
     const userOptions = users.all.map((user) => ({
       key: user.id,
       label: user.name,
-      avatarUrl: user.avatarUrl,
     }));
     return [
       {
         key: "",
         label: t("Any author"),
-        avatarUrl: "",
       },
       ...userOptions,
     ];
@@ -44,7 +41,6 @@ function UserFilter(props: Props) {
       onSelect={onSelect}
       defaultLabel={t("Any author")}
       selectedPrefix={`${t("Author")}:`}
-      image={Avatar}
     />
   );
 }
