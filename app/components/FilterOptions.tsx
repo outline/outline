@@ -1,12 +1,14 @@
 import * as React from "react";
 import { useMenuState, MenuButton } from "reakit/Menu";
 import styled from "styled-components";
+import User from "~/models/User";
 import Button, { Inner } from "~/components/Button";
 import ContextMenu from "~/components/ContextMenu";
 import MenuItem from "~/components/ContextMenu/MenuItem";
 import Text from "~/components/Text";
 
 type TFilterOption = {
+  user?: User;
   key: string;
   label: string;
   note?: string;
@@ -19,6 +21,7 @@ type Props = {
   selectedPrefix?: string;
   className?: string;
   onSelect: (key: string | null | undefined) => void;
+  image?: React.ComponentType<{ model?: User; size: number }>;
 };
 
 const FilterOptions = ({
@@ -28,6 +31,7 @@ const FilterOptions = ({
   selectedPrefix = "",
   className,
   onSelect,
+  image: Image,
 }: Props) => {
   const menu = useMenuState({
     modal: true,
@@ -36,6 +40,13 @@ const FilterOptions = ({
     options.find((option) => option.key === activeKey) || options[0];
 
   const selectedLabel = selected ? `${selectedPrefix} ${selected.label}` : "";
+
+  let StyledImage: React.ComponentType<{ model?: User; size: number }>;
+  if (Image) {
+    StyledImage = styled(Image)`
+      margin-right: 8px;
+    `;
+  }
 
   return (
     <Wrapper>
@@ -57,6 +68,7 @@ const FilterOptions = ({
             selected={option.key === activeKey}
             {...menu}
           >
+            {Image && <StyledImage model={option.user} size={20} />}
             {option.note ? (
               <LabelWithNote>
                 {option.label}
