@@ -197,7 +197,9 @@ export async function buildUser(overrides: Partial<User> = {}) {
     }
   );
 
-  user.team = team;
+  if (team) {
+    user.team = team;
+  }
   return user;
 }
 
