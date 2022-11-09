@@ -176,7 +176,7 @@ export async function buildUser(overrides: Partial<User> = {}) {
     },
   });
   count++;
-  return User.create(
+  const user = await User.create(
     {
       email: `user${count}@example.com`,
       name: `User ${count}`,
@@ -196,6 +196,9 @@ export async function buildUser(overrides: Partial<User> = {}) {
       include: "authentications",
     }
   );
+
+  user.team = team;
+  return user;
 }
 
 export async function buildAdmin(overrides: Partial<User> = {}) {
