@@ -35,7 +35,7 @@ const GroupMemberListItem = ({ user, onRemove, onAdd }: Props) => {
           {user.isAdmin && <Badge primary={user.isAdmin}>{t("Admin")}</Badge>}
         </>
       }
-      image={<Avatar user={user} size={32} />}
+      image={<Avatar model={user} size={32} />}
       actions={
         <Flex align="center">
           {onRemove && <GroupMemberMenu onRemove={onRemove} />}

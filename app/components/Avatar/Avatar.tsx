@@ -1,15 +1,21 @@
 import * as React from "react";
 import styled from "styled-components";
-import User from "~/models/User";
 import useBoolean from "~/hooks/useBoolean";
 import Initials from "./Initials";
 import placeholder from "./placeholder.png";
+
+export interface IAvatar {
+  avatarUrl: string | null;
+  color: string;
+  initial: string;
+  id: string;
+}
 
 type Props = {
   size: number;
   src?: string;
   icon?: React.ReactNode;
-  user?: User;
+  model?: IAvatar;
   alt?: string;
   showBorder?: boolean;
   onClick?: React.MouseEventHandler<HTMLImageElement>;
@@ -17,9 +23,8 @@ type Props = {
 };
 
 function Avatar(props: Props) {
-  const { icon, showBorder, user, ...rest } = props;
-  const src = props.src || user?.avatarUrl;
-
+  const { icon, showBorder, model, ...rest } = props;
+  const src = props.src || model?.avatarUrl;
   const [error, handleError] = useBoolean(false);
 
   return (
@@ -31,9 +36,9 @@ function Avatar(props: Props) {
           $showBorder={showBorder}
           {...rest}
         />
-      ) : user ? (
-        <Initials color={user.color} $showBorder={showBorder} {...rest}>
-          {user.initial}
+      ) : model ? (
+        <Initials color={model.color} $showBorder={showBorder} {...rest}>
+          {model.initial}
         </Initials>
       ) : (
         <Initials $showBorder={showBorder} {...rest} />

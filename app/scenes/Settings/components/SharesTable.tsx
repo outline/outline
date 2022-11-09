@@ -39,7 +39,7 @@ function SharesTable({ canManage, ...rest }: Props) {
                 <Flex align="center" gap={4}>
                   {row.original.createdBy && (
                     <Avatar
-                      user={row.original.createdBy}
+                      model={row.original.createdBy}
                       alt={row.original.createdBy.name}
                     />
                   )}

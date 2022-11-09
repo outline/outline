@@ -49,7 +49,7 @@ const MemberListItem = ({
           {user.isAdmin && <Badge primary={user.isAdmin}>{t("Admin")}</Badge>}
         </>
       }
-      image={<Avatar user={user} size={32} />}
+      image={<Avatar model={user} size={32} />}
       actions={
         <Flex align="center" gap={8}>
           {onUpdate && (

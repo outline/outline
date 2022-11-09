@@ -1,7 +1,9 @@
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
+import { stringToColor } from "@shared/utils/color";
 import TeamNew from "~/scenes/TeamNew";
+import TeamLogo from "~/components/TeamLogo";
 import { createAction } from "~/actions";
 import { loadSessionsFromCookie } from "~/hooks/useSessions";
 import { TeamSection } from "../sections";
@@ -11,7 +13,18 @@ export const switchTeamList = getSessions().map((session) => {
     name: session.name,
     section: TeamSection,
     keywords: "change switch workspace organization team",
-    icon: () => <Logo alt={session.name} src={session.logoUrl} />,
+    icon: () => (
+      <StyledTeamLogo
+        alt={session.name}
+        model={{
+          initial: session.name[0],
+          avatarUrl: session.logoUrl,
+          id: session.teamId,
+          color: stringToColor(session.teamId),
+        }}
+        size={24}
+      />
+    ),
     visible: ({ currentTeamId }) => currentTeamId !== session.teamId,
     perform: () => (window.location.href = session.url),
   });
@@ -55,10 +68,9 @@ function getSessions(params?: { exclude?: string }) {
   return otherSessions;
 }
 
-const Logo = styled("img")`
+const StyledTeamLogo = styled(TeamLogo)`
   border-radius: 2px;
-  width: 24px;
-  height: 24px;
+  border: 0;
 `;
 
 export const rootTeamActions = [switchTeam, createTeam];

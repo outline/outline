@@ -142,7 +142,7 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
           onClick={handleTimeClick}
         />
       }
-      image={<Avatar user={event.actor} size={32} />}
+      image={<Avatar model={event.actor} size={32} />}
       subtitle={
         <Subtitle>
           {icon}
