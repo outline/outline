@@ -39,9 +39,15 @@ import {
   presentDocument,
   presentPolicies,
 } from "@server/presenters";
+import {
+  DocumentSchema,
+  DocumentReq,
+  DocumentsListReqSchema,
+  DocumentsListReq,
+} from "@server/routes/api/types";
+import { APIContext } from "@server/types";
 import slugify from "@server/utils/slugify";
 import { assertPresent } from "@server/validation";
-import DocumentSchema from "@server/validations/DocumentSchema";
 import env from "../../env";
 import pagination from "./middlewares/pagination";
 
@@ -51,19 +57,17 @@ router.post(
   "documents.list",
   auth(),
   pagination(),
-  validate(DocumentSchema),
-  async (ctx) => {
-    let { sort } = ctx.request.body;
+  validate(DocumentsListReqSchema),
+  async (ctx: APIContext<DocumentsListReq>) => {
+    let { sort } = ctx.input;
     const {
       direction,
       template,
+      collectionId,
       backlinkDocumentId,
       parentDocumentId,
-    } = ctx.request.body;
-    // collection and user are here for backwards compatibility
-    const collectionId =
-      ctx.request.body.collectionId || ctx.request.body.collection;
-    const createdById = ctx.request.body.userId || ctx.request.body.user;
+      userId: createdById,
+    } = ctx.input;
 
     // always filter by the current team
     const { user } = ctx.state;
@@ -171,8 +175,8 @@ router.post(
   auth({ member: true }),
   pagination(),
   validate(DocumentSchema),
-  async (ctx) => {
-    const { sort, direction } = ctx.request.body;
+  async (ctx: APIContext<DocumentReq>) => {
+    const { sort, direction } = ctx.input;
     const { user } = ctx.state;
     const collectionIds = await user.collectionIds();
     const collectionScope: Readonly<ScopeOptions> = {
@@ -219,8 +223,8 @@ router.post(
       sort: z.string().default("deletedAt"),
     })
   ),
-  async (ctx) => {
-    const { sort, direction } = ctx.request.body;
+  async (ctx: APIContext<DocumentReq>) => {
+    const { sort, direction } = ctx.input;
     const { user } = ctx.state;
     const collectionIds = await user.collectionIds({
       paranoid: false,
@@ -283,8 +287,8 @@ router.post(
       sort: z.string().default("updatedAt"),
     })
   ),
-  async (ctx) => {
-    const { sort, direction } = ctx.request.body;
+  async (ctx: APIContext<DocumentReq>) => {
+    const { sort, direction } = ctx.input;
     const { user } = ctx.state;
     const collectionIds = await user.collectionIds();
     const userId = user.id;
@@ -336,8 +340,8 @@ router.post(
   auth(),
   pagination(),
   validate(DocumentSchema),
-  async (ctx) => {
-    const { collectionId, dateFilter, direction, sort } = ctx.request.body;
+  async (ctx: APIContext<DocumentReq>) => {
+    const { collectionId, dateFilter, direction, sort } = ctx.input;
     const { user } = ctx.state;
 
     if (collectionId) {
