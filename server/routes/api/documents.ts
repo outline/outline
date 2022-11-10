@@ -53,6 +53,10 @@ import {
   DocumentsDraftsReq,
   DocumentsInfoReqSchema,
   DocumentsInfoReq,
+  DocumentsExportReqSchema,
+  DocumentsExportReq,
+  DocumentsRestoreReqSchema,
+  DocumentsRestoreReq,
 } from "@server/routes/api/types";
 import { APIContext } from "@server/types";
 import slugify from "@server/utils/slugify";
@@ -441,10 +445,9 @@ router.post(
   auth({
     optional: true,
   }),
-  async (ctx) => {
-    const { id, shareId } = ctx.request.body;
-    assertPresent(id || shareId, "id or shareId is required");
-
+  validate(DocumentsExportReqSchema),
+  async (ctx: APIContext<DocumentsExportReq>) => {
+    const { id, shareId } = ctx.input;
     const { user } = ctx.state;
     const accept = ctx.request.headers["accept"];
 
@@ -491,13 +494,9 @@ router.post(
 router.post(
   "documents.restore",
   auth({ member: true }),
-  validate(
-    DocumentSchema.extend({
-      id: z.string().uuid(),
-    })
-  ),
-  async (ctx) => {
-    const { id, collectionId, revisionId } = ctx.request.body;
+  validate(DocumentsRestoreReqSchema),
+  async (ctx: APIContext<DocumentsRestoreReq>) => {
+    const { id, collectionId, revisionId } = ctx.input;
     const { user } = ctx.state;
     const document = await Document.findByPk(id, {
       userId: user.id,

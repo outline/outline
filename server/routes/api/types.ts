@@ -196,3 +196,30 @@ export const DocumentsInfoReqSchema = z
   });
 
 export type DocumentsInfoReq = z.infer<typeof DocumentsInfoReqSchema>;
+
+export const DocumentsExportReqSchema = z
+  .object({
+    /** Id of the document to be retrieved */
+    id: z.string().uuid().optional(),
+
+    /** Share Id, if available */
+    shareId: z.string().uuid().optional(),
+  })
+  .refine((obj) => !(isEmpty(obj.id) && isEmpty(obj.shareId)), {
+    message: "one of id or shareId is required",
+  });
+
+export type DocumentsExportReq = z.infer<typeof DocumentsExportReqSchema>;
+
+export const DocumentsRestoreReqSchema = z.object({
+  /** Id of the document to be retrieved */
+  id: z.string().uuid(),
+
+  /** Id of the collection to which the document belongs */
+  collectionId: z.string().uuid().optional(),
+
+  /** Id of document revision */
+  revisionId: z.string().uuid().optional(),
+});
+
+export type DocumentsRestoreReq = z.infer<typeof DocumentsRestoreReqSchema>;
