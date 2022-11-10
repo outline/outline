@@ -19,6 +19,7 @@ import getImageMenuItems from "../menus/image";
 import getTableMenuItems from "../menus/table";
 import getTableColMenuItems from "../menus/tableCol";
 import getTableRowMenuItems from "../menus/tableRow";
+import ColorEditor from "./ColorEditor";
 import FloatingToolbar from "./FloatingToolbar";
 import LinkEditor, { SearchResult } from "./LinkEditor";
 import ToolbarMenu from "./ToolbarMenu";
@@ -176,6 +177,23 @@ export default class SelectionToolbar extends React.Component<Props> {
     );
   };
 
+  handleOnSelectColor = ({
+    color,
+    from,
+    to,
+  }: {
+    color: string;
+    from: number;
+    to: number;
+  }): void => {
+    const { view } = this.props;
+    const { state, dispatch } = view;
+
+    const markType = state.schema.marks.color;
+
+    dispatch(state.tr.addMark(from, to, markType.create({ color })));
+  };
+
   render() {
     const { dictionary, onCreateLink, isTemplate, rtl, ...rest } = this.props;
     const { view } = rest;
@@ -196,6 +214,8 @@ export default class SelectionToolbar extends React.Component<Props> {
     const isTableSelection = colIndex !== undefined && rowIndex !== undefined;
     const link = isMarkActive(state.schema.marks.link)(state);
     const range = getMarkRange(selection.$from, state.schema.marks.link);
+    const color = isMarkActive(state.schema.marks.color)(state);
+    const rangeColor = getMarkRange(selection.$from, state.schema.marks.color);
     const isImageSelection = selection.node?.type?.name === "image";
 
     let items: MenuItem[] = [];
@@ -235,7 +255,7 @@ export default class SelectionToolbar extends React.Component<Props> {
         active={isVisible(this.props)}
         ref={this.menuRef}
       >
-        {link && range ? (
+        {link && range && (
           <LinkEditor
             key={`${range.from}-${range.to}`}
             dictionary={dictionary}
@@ -246,9 +266,19 @@ export default class SelectionToolbar extends React.Component<Props> {
             onSelectLink={this.handleOnSelectLink}
             {...rest}
           />
-        ) : (
-          <ToolbarMenu items={items} {...rest} />
         )}
+        {color && rangeColor && (
+          <ColorEditor
+            key={`${rangeColor.from}-${rangeColor.to}`}
+            dictionary={dictionary}
+            mark={rangeColor.mark}
+            from={rangeColor.from}
+            to={rangeColor.to}
+            onSelectColor={this.handleOnSelectColor}
+            {...rest}
+          />
+        )}
+        <ToolbarMenu items={items} {...rest} />
       </FloatingToolbar>
     );
   }

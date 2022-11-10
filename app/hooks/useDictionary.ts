@@ -78,6 +78,7 @@ export default function useDictionary() {
       insertDate: t("Current date"),
       insertTime: t("Current time"),
       insertDateTime: t("Current date and time"),
+      color: t("Select color"),
     };
   }, [t]);
 }

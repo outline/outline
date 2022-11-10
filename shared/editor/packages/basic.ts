@@ -1,6 +1,7 @@
 import Extension from "../lib/Extension";
 import Bold from "../marks/Bold";
 import Code from "../marks/Code";
+import Color from "../marks/Color";
 import Italic from "../marks/Italic";
 import Link from "../marks/Link";
 import Mark from "../marks/Mark";
@@ -30,6 +31,7 @@ const basicPackage: (typeof Node | typeof Mark | typeof Extension)[] = [
   Text,
   Image,
   Bold,
+  Color,
   Code,
   Italic,
   Underline,
