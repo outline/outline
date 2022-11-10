@@ -57,6 +57,10 @@ import {
   DocumentsExportReq,
   DocumentsRestoreReqSchema,
   DocumentsRestoreReq,
+  DocumentsSearchTitlesReqSchema,
+  DocumentsSearchTitlesReq,
+  DocumentsSearchReqSchema,
+  DocumentsSearchReq,
 } from "@server/routes/api/types";
 import { APIContext } from "@server/types";
 import slugify from "@server/utils/slugify";
@@ -597,13 +601,9 @@ router.post(
   "documents.search_titles",
   auth(),
   pagination(),
-  validate(
-    DocumentSchema.extend({
-      query: z.string(),
-    })
-  ),
-  async (ctx) => {
-    const { query } = ctx.request.body;
+  validate(DocumentsSearchTitlesReqSchema),
+  async (ctx: APIContext<DocumentsSearchTitlesReq>) => {
+    const { query } = ctx.input;
     const { offset, limit } = ctx.state.pagination;
     const { user } = ctx.state;
 
@@ -660,15 +660,8 @@ router.post(
     optional: true,
   }),
   pagination(),
-  validate(
-    DocumentSchema.extend({
-      query: z.string().refine((v) => v.trim() !== ""),
-      includeArchived: z.boolean().nullish(),
-      includeDrafts: z.boolean().nullish(),
-      shareId: z.string().uuid().nullish(),
-    })
-  ),
-  async (ctx) => {
+  validate(DocumentsSearchReqSchema),
+  async (ctx: APIContext<DocumentsSearchReq>) => {
     const {
       query,
       includeArchived,
@@ -677,7 +670,7 @@ router.post(
       userId,
       dateFilter,
       shareId,
-    } = ctx.request.body;
+    } = ctx.input;
     const { offset, limit } = ctx.state.pagination;
     const snippetMinWords = parseInt(
       ctx.request.body.snippetMinWords || 20,

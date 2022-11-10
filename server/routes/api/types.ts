@@ -223,3 +223,44 @@ export const DocumentsRestoreReqSchema = z.object({
 });
 
 export type DocumentsRestoreReq = z.infer<typeof DocumentsRestoreReqSchema>;
+
+export const DocumentsSearchTitlesReqSchema = z.object({
+  /** Query for document title search */
+  query: z.string().refine((v) => v.trim() !== ""),
+});
+
+export type DocumentsSearchTitlesReq = z.infer<
+  typeof DocumentsSearchTitlesReqSchema
+>;
+
+export const DocumentsSearchReqSchema = z.object({
+  /** Query for search */
+  query: z.string().refine((v) => v.trim() !== ""),
+
+  /** Whether to include archived docs in results */
+  includeArchived: z.boolean().optional(),
+
+  /** Whether to include drafts in results */
+  includeDrafts: z.boolean().optional(),
+
+  /** Filter results for team based on the collection */
+  collectionId: z.string().uuid().optional(),
+
+  /** Filter results based on user */
+  userId: z.string().uuid().optional(),
+
+  /** Filter results based on date */
+  dateFilter: z
+    .union([
+      z.literal("day"),
+      z.literal("week"),
+      z.literal("month"),
+      z.literal("year"),
+    ])
+    .optional(),
+
+  /** Filter results for the team derived from shareId */
+  shareId: z.string().uuid().optional(),
+});
+
+export type DocumentsSearchReq = z.infer<typeof DocumentsSearchReqSchema>;
