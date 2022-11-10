@@ -69,10 +69,6 @@ math-inline .math-src .ProseMirror {
   font-size: 80%;
 }
 
-math-inline .math-src::after, math-inline .math-src::before {
-	content: "$";
-	color: ${props.theme.codePunctuation};
-}
 
 /* -- Block Math ---------------------------------------- */
 
@@ -84,8 +80,7 @@ math-block.ProseMirror-selectednode {
   border-radius: 4px;
   border: 1px solid ${props.theme.codeBorder};
   background: ${props.theme.codeBackground};
-  padding: 3px 4px;
-  padding-left: 3.1em;
+  padding: 0.75em 1em;
   font-family: ${props.theme.fontFamilyMono};
   font-size: 80%;
 }
