@@ -556,6 +556,7 @@ export default class DocumentsStore extends BaseStore<Document> {
         DocumentValidation.maxTitleLength - append.length
       )}${append}`,
       text: document.text,
+      documentId: document.id,
     });
     invariant(res?.data, "Data should be available");
     const collection = this.getCollectionForDocument(document);
