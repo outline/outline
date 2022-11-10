@@ -93,3 +93,21 @@ export const DocumentsListReqSchema = z
   });
 
 export type DocumentsListReq = z.infer<typeof DocumentsListReqSchema>;
+
+export const DocumentsArchivedReqSchema = z.object({
+  /** Specifies the attributes by which documents will be sorted in the list */
+  sort: z
+    .string()
+    .refine((val) =>
+      [...Object.keys(Document.rawAttributes), "index"].includes(val)
+    )
+    .default("updatedAt"),
+
+  /** Specifies the sort order with respect to sort field */
+  direction: z
+    .string()
+    .nullish()
+    .transform((val) => (val !== "ASC" ? "DESC" : val)),
+});
+
+export type DocumentsArchivedReq = z.infer<typeof DocumentsArchivedReqSchema>;

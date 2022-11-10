@@ -44,6 +44,8 @@ import {
   DocumentReq,
   DocumentsListReqSchema,
   DocumentsListReq,
+  DocumentsArchivedReqSchema,
+  DocumentsArchivedReq,
 } from "@server/routes/api/types";
 import { APIContext } from "@server/types";
 import slugify from "@server/utils/slugify";
@@ -174,8 +176,8 @@ router.post(
   "documents.archived",
   auth({ member: true }),
   pagination(),
-  validate(DocumentSchema),
-  async (ctx: APIContext<DocumentReq>) => {
+  validate(DocumentsArchivedReqSchema),
+  async (ctx: APIContext<DocumentsArchivedReq>) => {
     const { sort, direction } = ctx.input;
     const { user } = ctx.state;
     const collectionIds = await user.collectionIds();
