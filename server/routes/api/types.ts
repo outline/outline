@@ -49,25 +49,25 @@ export type DocumentReq = z.infer<typeof DocumentSchema>;
 export const DocumentsListReqSchema = z
   .object({
     /** Id of the user who created the doc */
-    userId: z.string().uuid().nullish(),
+    userId: z.string().uuid().optional(),
 
     /** Alias for userId - kept for backwards compatibility */
-    user: z.string().uuid().nullish(),
+    user: z.string().uuid().optional(),
 
     /** Id of the collection to which the document belongs */
-    collectionId: z.string().uuid().nullish(),
+    collectionId: z.string().uuid().optional(),
 
     /** Alias for collectionId - kept for backwards compatibility */
-    collection: z.string().uuid().nullish(),
+    collection: z.string().uuid().optional(),
 
     /** Id of the backlinked document */
-    backlinkDocumentId: z.string().uuid().nullish(),
+    backlinkDocumentId: z.string().uuid().optional(),
 
     /** Id of the parent document to which the document belongs */
     parentDocumentId: z.string().uuid().nullish(),
 
     /** Boolean which denotes whether the document is a template */
-    template: z.boolean().nullish(),
+    template: z.boolean().optional(),
 
     /** Specifies the attributes by which documents will be sorted in the list */
     sort: z
@@ -80,7 +80,7 @@ export const DocumentsListReqSchema = z
     /** Specifies the sort order with respect to sort field */
     direction: z
       .string()
-      .nullish()
+      .optional()
       .transform((val) => (val !== "ASC" ? "DESC" : val)),
   })
   // Maintains backwards compatibility
