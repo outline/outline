@@ -11,6 +11,7 @@ import {
   TodoListIcon,
   InputIcon,
   HighlightIcon,
+  PaletteIcon,
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
 import { isInTable } from "prosemirror-tables";
@@ -64,6 +65,14 @@ export default function formattingMenuItems(
       icon: HighlightIcon,
       active: isMarkActive(schema.marks.highlight),
       visible: !isTemplate && !isCode,
+    },
+    {
+      name: "color",
+      tooltip: dictionary.color,
+      icon: PaletteIcon,
+      active: isMarkActive(schema.marks.color),
+      attrs: { color: "" },
+      visible: !isCode,
     },
     {
       name: "code_inline",
