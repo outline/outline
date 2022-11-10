@@ -1,0 +1,84 @@
+{
+  "colors": [
+    {
+      "color": "White",
+      "category": "hue",
+      "type": "secondary",
+      "code": {
+        "hex": "#ffffff"
+      }
+    },
+    {
+      "color": "Gray",
+      "category": "hue",
+      "type": "secondary",
+      "code": {
+        "hex": "#252525"
+      }
+    },
+    {
+      "color": "Brown",
+      "category": "hue",
+      "type": "secondary",
+      "code": {
+        "hex": "#9c715f"
+      }
+    },
+    {
+      "color": "Orange",
+      "category": "hue",
+      "type": "secondary",
+      "code": {
+        "hex": "#a76b41"
+      }
+    },
+    {
+      "color": "Yellow",
+      "category": "hue",
+      "type": "secondary",
+      "code": {
+        "hex": "#b68944"
+      }
+    },
+    {
+      "color": "Green",
+      "category": "hue",
+      "type": "secondary",
+      "code": {
+        "hex": "#3e6a51"
+      }
+    },
+    {
+      "color": "Blue",
+      "category": "hue",
+      "type": "secondary",
+      "code": {
+        "hex": "#5376ac"
+      }
+    },
+    {
+      "color": "Purple",
+      "category": "hue",
+      "type": "secondary",
+      "code": {
+        "hex": "#8a5db7"
+      }
+    },
+    {
+      "color": "Pink",
+      "category": "hue",
+      "type": "secondary",
+      "code": {
+        "hex": "#b64e84"
+      }
+    },
+    {
+      "color": "Red",
+      "category": "hue",
+      "type": "secondary",
+      "code": {
+        "hex": "#c44d4b"
+      }
+    }
+  ]
+}
