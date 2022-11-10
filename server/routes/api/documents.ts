@@ -41,11 +41,16 @@ import {
 } from "@server/presenters";
 import {
   DocumentSchema,
-  DocumentReq,
   DocumentsListReqSchema,
   DocumentsListReq,
   DocumentsArchivedReqSchema,
   DocumentsArchivedReq,
+  DocumentsDeletedReqSchema,
+  DocumentsDeletedReq,
+  DocumentsViewedReqSchema,
+  DocumentsViewedReq,
+  DocumentsDraftsReqSchema,
+  DocumentsDraftsReq,
 } from "@server/routes/api/types";
 import { APIContext } from "@server/types";
 import slugify from "@server/utils/slugify";
@@ -220,12 +225,8 @@ router.post(
   "documents.deleted",
   auth({ member: true }),
   pagination(),
-  validate(
-    DocumentSchema.extend({
-      sort: z.string().default("deletedAt"),
-    })
-  ),
-  async (ctx: APIContext<DocumentReq>) => {
+  validate(DocumentsDeletedReqSchema),
+  async (ctx: APIContext<DocumentsDeletedReq>) => {
     const { sort, direction } = ctx.input;
     const { user } = ctx.state;
     const collectionIds = await user.collectionIds({
@@ -284,12 +285,8 @@ router.post(
   "documents.viewed",
   auth(),
   pagination(),
-  validate(
-    DocumentSchema.extend({
-      sort: z.string().default("updatedAt"),
-    })
-  ),
-  async (ctx: APIContext<DocumentReq>) => {
+  validate(DocumentsViewedReqSchema),
+  async (ctx: APIContext<DocumentsViewedReq>) => {
     const { sort, direction } = ctx.input;
     const { user } = ctx.state;
     const collectionIds = await user.collectionIds();
@@ -341,8 +338,8 @@ router.post(
   "documents.drafts",
   auth(),
   pagination(),
-  validate(DocumentSchema),
-  async (ctx: APIContext<DocumentReq>) => {
+  validate(DocumentsDraftsReqSchema),
+  async (ctx: APIContext<DocumentsDraftsReq>) => {
     const { collectionId, dateFilter, direction, sort } = ctx.input;
     const { user } = ctx.state;
 

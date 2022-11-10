@@ -111,3 +111,70 @@ export const DocumentsArchivedReqSchema = z.object({
 });
 
 export type DocumentsArchivedReq = z.infer<typeof DocumentsArchivedReqSchema>;
+
+export const DocumentsDeletedReqSchema = z.object({
+  /** Specifies the attributes by which documents will be sorted in the list */
+  sort: z
+    .string()
+    .refine((val) =>
+      [...Object.keys(Document.rawAttributes), "index"].includes(val)
+    )
+    .default("updatedAt"),
+
+  /** Specifies the sort order with respect to sort field */
+  direction: z
+    .string()
+    .nullish()
+    .transform((val) => (val !== "ASC" ? "DESC" : val)),
+});
+
+export type DocumentsDeletedReq = z.infer<typeof DocumentsDeletedReqSchema>;
+
+export const DocumentsViewedReqSchema = z.object({
+  /** Specifies the attributes by which documents will be sorted in the list */
+  sort: z
+    .string()
+    .refine((val) =>
+      [...Object.keys(Document.rawAttributes), "index"].includes(val)
+    )
+    .default("updatedAt"),
+
+  /** Specifies the sort order with respect to sort field */
+  direction: z
+    .string()
+    .nullish()
+    .transform((val) => (val !== "ASC" ? "DESC" : val)),
+});
+
+export type DocumentsViewedReq = z.infer<typeof DocumentsViewedReqSchema>;
+
+export const DocumentsDraftsReqSchema = z.object({
+  /** Id of the collection to which the document belongs */
+  collectionId: z.string().uuid().optional(),
+
+  /** Specifies the attributes by which documents will be sorted in the list */
+  sort: z
+    .string()
+    .refine((val) =>
+      [...Object.keys(Document.rawAttributes), "index"].includes(val)
+    )
+    .default("updatedAt"),
+
+  /** Specifies the sort order with respect to sort field */
+  direction: z
+    .string()
+    .optional()
+    .transform((val) => (val !== "ASC" ? "DESC" : val)),
+
+  /** Date filter for recency */
+  dateFilter: z
+    .union([
+      z.literal("day"),
+      z.literal("week"),
+      z.literal("month"),
+      z.literal("year"),
+    ])
+    .optional(),
+});
+
+export type DocumentsDraftsReq = z.infer<typeof DocumentsDraftsReqSchema>;
