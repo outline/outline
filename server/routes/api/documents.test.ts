@@ -23,6 +23,17 @@ import { seed, getTestServer } from "@server/test/support";
 const server = getTestServer();
 
 describe("#documents.info", () => {
+  it("should fail if both id and shareId are absent", async () => {
+    const res = await server.post("/api/documents.info", {
+      body: {},
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual(
+      "ValidationError: one of id or shareId is required"
+    );
+  });
+
   it("should return published document", async () => {
     const { user, document } = await seed();
     const res = await server.post("/api/documents.info", {
@@ -411,7 +422,7 @@ describe("#documents.info", () => {
     const res = await server.post("/api/documents.info", {
       body: {
         token: user.getJwtToken(),
-        id: "test",
+        id: "9bcbf864-1090-4eb6-ba05-4da0c3a5c58e",
       },
     });
     expect(res.status).toEqual(404);

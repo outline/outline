@@ -9,8 +9,8 @@ export default function validate<T extends z.ZodTypeAny>(schema: T) {
       ctx.input = schema.parse(ctx.request.body);
     } catch (err) {
       const { path, message } = err.issues[0];
-      const [invalidAttr] = path;
-      throw ValidationError(`${invalidAttr}: ${message}`);
+      const [prefix = "ValidationError"] = path;
+      throw ValidationError(`${prefix}: ${message}`);
     }
     return next();
   };

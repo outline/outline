@@ -51,6 +51,8 @@ import {
   DocumentsViewedReq,
   DocumentsDraftsReqSchema,
   DocumentsDraftsReq,
+  DocumentsInfoReqSchema,
+  DocumentsInfoReq,
 } from "@server/routes/api/types";
 import { APIContext } from "@server/types";
 import slugify from "@server/utils/slugify";
@@ -401,9 +403,9 @@ router.post(
   auth({
     optional: true,
   }),
-  async (ctx) => {
-    const { id, shareId, apiVersion } = ctx.request.body;
-    assertPresent(id || shareId, "id or shareId is required");
+  validate(DocumentsInfoReqSchema),
+  async (ctx: APIContext<DocumentsInfoReq>) => {
+    const { id, shareId, apiVersion } = ctx.input;
     const { user } = ctx.state;
     const { document, share, collection } = await documentLoader({
       id,

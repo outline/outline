@@ -1,3 +1,4 @@
+import { isEmpty } from "lodash";
 import { z } from "zod";
 import { Document } from "@server/models";
 
@@ -178,3 +179,20 @@ export const DocumentsDraftsReqSchema = z.object({
 });
 
 export type DocumentsDraftsReq = z.infer<typeof DocumentsDraftsReqSchema>;
+
+export const DocumentsInfoReqSchema = z
+  .object({
+    /** Id of the document to be retrieved */
+    id: z.string().uuid().optional(),
+
+    /** Share Id, if available */
+    shareId: z.string().uuid().optional(),
+
+    /** Version of the API to be used */
+    apiVersion: z.number().optional(),
+  })
+  .refine((obj) => !(isEmpty(obj.id) && isEmpty(obj.shareId)), {
+    message: "one of id or shareId is required",
+  });
+
+export type DocumentsInfoReq = z.infer<typeof DocumentsInfoReqSchema>;
