@@ -61,6 +61,8 @@ import {
   DocumentsSearchTitlesReq,
   DocumentsSearchReqSchema,
   DocumentsSearchReq,
+  DocumentsTemplatizeReqSchema,
+  DocumentsTemplatizeReq,
 } from "@server/routes/api/types";
 import { APIContext } from "@server/types";
 import slugify from "@server/utils/slugify";
@@ -780,13 +782,9 @@ router.post(
 router.post(
   "documents.templatize",
   auth({ member: true }),
-  validate(
-    DocumentSchema.extend({
-      id: z.string().uuid(),
-    })
-  ),
-  async (ctx) => {
-    const { id } = ctx.request.body;
+  validate(DocumentsTemplatizeReqSchema),
+  async (ctx: APIContext<DocumentsTemplatizeReq>) => {
+    const { id } = ctx.input;
     const { user } = ctx.state;
 
     const original = await Document.findByPk(id, {

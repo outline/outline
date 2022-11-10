@@ -264,3 +264,12 @@ export const DocumentsSearchReqSchema = z.object({
 });
 
 export type DocumentsSearchReq = z.infer<typeof DocumentsSearchReqSchema>;
+
+export const DocumentsTemplatizeReqSchema = z.object({
+  /** Id of the doc to templatize */
+  id: z.string().uuid(),
+});
+
+export type DocumentsTemplatizeReq = z.infer<
+  typeof DocumentsTemplatizeReqSchema
+>;
