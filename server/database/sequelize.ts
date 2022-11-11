@@ -8,8 +8,8 @@ const isSSLDisabled = env.PGSSLMODE === "disable";
 const poolMax = env.DATABASE_CONNECTION_POOL_MAX ?? 5;
 const poolMin = env.DATABASE_CONNECTION_POOL_MIN ?? 0;
 const url =
-  env.DATABASE_URL ||
   env.DATABASE_CONNECTION_POOL_URL ||
+  env.DATABASE_URL ||
   "postgres://localhost:5432/outline";
 
 export const sequelize = new Sequelize(url, {

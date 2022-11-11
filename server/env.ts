@@ -37,7 +37,6 @@ export class Environment {
    * @returns A promise that resolves when the environment is validated.
    */
   public validate() {
-    console.log("validating…");
     return this.validationPromise;
   }
 
