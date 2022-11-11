@@ -684,16 +684,10 @@ router.post(
       userId,
       dateFilter,
       shareId,
+      snippetMinWords,
+      snippetMaxWords,
     } = ctx.input;
     const { offset, limit } = ctx.state.pagination;
-    const snippetMinWords = parseInt(
-      ctx.request.body.snippetMinWords || 20,
-      10
-    );
-    const snippetMaxWords = parseInt(
-      ctx.request.body.snippetMaxWords || 30,
-      10
-    );
 
     // this typing is a bit ugly, would be better to use a type like ContextWithState
     // but that doesn't adequately handle cases when auth is optional

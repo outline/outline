@@ -261,6 +261,12 @@ export const DocumentsSearchReqSchema = z.object({
 
   /** Filter results for the team derived from shareId */
   shareId: z.string().uuid().optional(),
+
+  /** Min words to be shown in the results snippets */
+  snippetMinWords: z.number().default(20),
+
+  /** Max words to be accomodated in the results snippets */
+  snippetMaxWords: z.number().default(30),
 });
 
 export type DocumentsSearchReq = z.infer<typeof DocumentsSearchReqSchema>;
