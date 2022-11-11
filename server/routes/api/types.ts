@@ -286,10 +286,10 @@ export const DocumentsUpdateReqSchema = z
     id: z.string().uuid(),
 
     /** Doc title to be updated */
-    title: z.string().default(""),
+    title: z.string().optional(),
 
     /** Doc text to be updated */
-    text: z.string().default(""),
+    text: z.string().optional(),
 
     /** Boolean to denote if the doc should occupy full width */
     fullWidth: z.boolean().optional(),
