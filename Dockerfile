@@ -1,5 +1,5 @@
 ARG APP_PATH=/opt/outline
-FROM 289925803667.dkr.ecr.us-east-1.amazonaws.com/outline-nonprod-base-image:outline-base-image0.1 as base
+FROM 289925803667.dkr.ecr.us-east-1.amazonaws.com/outline-nonprod-base-image:outline-base-image-0.2 as base
 
 ARG APP_PATH
 WORKDIR $APP_PATH
