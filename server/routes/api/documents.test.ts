@@ -2269,10 +2269,10 @@ describe("#documents.create", () => {
     });
     const body = await res.json();
 
-    expect(body.message).toBe(
-      "collectionId is required to create a nested doc or a template"
-    );
     expect(res.status).toEqual(400);
+    expect(body.message).toBe(
+      "ValidationError: collectionId is required to create a template document"
+    );
   });
 
   it("should not allow publishing without specifying the collection", async () => {
@@ -2288,10 +2288,10 @@ describe("#documents.create", () => {
     });
     const body = await res.json();
 
-    expect(body.message).toBe(
-      "collectionId is required to publish a draft without collection"
-    );
     expect(res.status).toEqual(400);
+    expect(body.message).toBe(
+      "ValidationError: collectionId is required to publish"
+    );
   });
 
   it("should not allow creating a nested doc without a collection", async () => {
@@ -2307,10 +2307,10 @@ describe("#documents.create", () => {
     });
     const body = await res.json();
 
-    expect(body.message).toBe(
-      "collectionId is required to create a nested doc or a template"
-    );
     expect(res.status).toEqual(400);
+    expect(body.message).toBe(
+      "ValidationError: collectionId is required to create a nested document"
+    );
   });
 
   it("should not allow very long titles", async () => {

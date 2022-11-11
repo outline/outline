@@ -328,3 +328,75 @@ export const DocumentsMoveReqSchema = z
   });
 
 export type DocumentsMoveReq = z.infer<typeof DocumentsMoveReqSchema>;
+
+export const DocumentsArchiveReqSchema = z.object({
+  /** Id of the doc to archive*/
+  id: z.string().uuid(),
+});
+
+export type DocumentsArchiveReq = z.infer<typeof DocumentsArchiveReqSchema>;
+
+export const DocumentsDeleteReqSchema = z.object({
+  /** Id of the doc to delete */
+  id: z.string().uuid(),
+
+  /** Whether to permanently delete the doc as opposed to soft-delete */
+  permanent: z.boolean().optional(),
+});
+
+export type DocumentsDeleteReq = z.infer<typeof DocumentsDeleteReqSchema>;
+
+export const DocumentsUnpublishReqSchema = z.object({
+  /** Id of the doc to unpublish */
+  id: z.string().uuid(),
+});
+
+export type DocumentsUnpublishReq = z.infer<typeof DocumentsUnpublishReqSchema>;
+
+export const DocumentsImportReqSchema = z.object({
+  /** Whether to publish the imported docs */
+  publish: z.boolean().optional(),
+
+  /** Import docs to this collection */
+  collectionId: z.string().uuid(),
+
+  /** Import under this parent doc */
+  parentDocumentId: z.string().uuid().optional(),
+});
+
+export type DocumentsImportReq = z.infer<typeof DocumentsImportReqSchema>;
+
+export const DocumentsCreateReqSchema = z
+  .object({
+    /** Doc title */
+    title: z.string().default(""),
+
+    /** Doc text */
+    text: z.string().default(""),
+
+    /** Boolean to denote if the doc should be published */
+    publish: z.boolean().optional(),
+
+    /** Create Doc under this collection */
+    collectionId: z.string().uuid().optional(),
+
+    /** Create Doc under this parent */
+    parentDocumentId: z.string().uuid().optional(),
+
+    /** Create doc with this template */
+    templateId: z.string().uuid().optional(),
+
+    /** Whether to create a template doc */
+    template: z.boolean().optional(),
+  })
+  .refine((obj) => !(obj.parentDocumentId && !obj.collectionId), {
+    message: "collectionId is required to create a nested document",
+  })
+  .refine((obj) => !(obj.template && !obj.collectionId), {
+    message: "collectionId is required to create a template document",
+  })
+  .refine((obj) => !(obj.publish && !obj.collectionId), {
+    message: "collectionId is required to publish",
+  });
+
+export type DocumentsCreateReq = z.infer<typeof DocumentsCreateReqSchema>;

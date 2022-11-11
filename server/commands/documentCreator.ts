@@ -24,7 +24,7 @@ export default async function documentCreator({
   title: string;
   text: string;
   publish?: boolean;
-  collectionId: string;
+  collectionId?: string;
   parentDocumentId?: string;
   templateDocument?: Document | null;
   publishedAt?: Date;

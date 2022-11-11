@@ -3,7 +3,6 @@ import invariant from "invariant";
 import Router from "koa-router";
 import mime from "mime-types";
 import { Op, ScopeOptions, WhereOptions } from "sequelize";
-import { z } from "zod";
 import { subtractDate } from "@shared/utils/date";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import documentCreator from "@server/commands/documentCreator";
@@ -40,7 +39,6 @@ import {
   presentPolicies,
 } from "@server/presenters";
 import {
-  DocumentSchema,
   DocumentsListReqSchema,
   DocumentsListReq,
   DocumentsArchivedReqSchema,
@@ -67,6 +65,16 @@ import {
   DocumentsUpdateReq,
   DocumentsMoveReqSchema,
   DocumentsMoveReq,
+  DocumentsArchiveReqSchema,
+  DocumentsArchiveReq,
+  DocumentsDeleteReqSchema,
+  DocumentsDeleteReq,
+  DocumentsUnpublishReqSchema,
+  DocumentsUnpublishReq,
+  DocumentsImportReqSchema,
+  DocumentsImportReq,
+  DocumentsCreateReqSchema,
+  DocumentsCreateReq,
 } from "@server/routes/api/types";
 import { APIContext } from "@server/types";
 import slugify from "@server/utils/slugify";
@@ -962,13 +970,9 @@ router.post(
 router.post(
   "documents.archive",
   auth(),
-  validate(
-    DocumentSchema.extend({
-      id: z.string().uuid(),
-    })
-  ),
-  async (ctx) => {
-    const { id } = ctx.request.body;
+  validate(DocumentsArchiveReqSchema),
+  async (ctx: APIContext<DocumentsArchiveReq>) => {
+    const { id } = ctx.input;
     const { user } = ctx.state;
 
     const document = await Document.findByPk(id, {
@@ -999,13 +1003,9 @@ router.post(
 router.post(
   "documents.delete",
   auth(),
-  validate(
-    DocumentSchema.extend({
-      id: z.string().uuid(),
-    })
-  ),
-  async (ctx) => {
-    const { id, permanent } = ctx.request.body;
+  validate(DocumentsDeleteReqSchema),
+  async (ctx: APIContext<DocumentsDeleteReq>) => {
+    const { id, permanent } = ctx.input;
     const { user } = ctx.state;
 
     if (permanent) {
@@ -1068,13 +1068,9 @@ router.post(
 router.post(
   "documents.unpublish",
   auth(),
-  validate(
-    DocumentSchema.extend({
-      id: z.string().uuid(),
-    })
-  ),
-  async (ctx) => {
-    const { id } = ctx.request.body;
+  validate(DocumentsUnpublishReqSchema),
+  async (ctx: APIContext<DocumentsUnpublishReq>) => {
+    const { id } = ctx.input;
     const { user } = ctx.state;
 
     const document = await Document.findByPk(id, {
@@ -1112,13 +1108,9 @@ router.post(
 router.post(
   "documents.import",
   auth(),
-  validate(
-    DocumentSchema.extend({
-      collectionId: z.string().uuid(),
-    })
-  ),
-  async (ctx) => {
-    const { publish, collectionId, parentDocumentId } = ctx.request.body;
+  validate(DocumentsImportReqSchema),
+  async (ctx: APIContext<DocumentsImportReq>) => {
+    const { publish, collectionId, parentDocumentId } = ctx.input;
 
     if (!ctx.is("multipart/form-data")) {
       throw InvalidRequestError("Request type must be multipart/form-data");
@@ -1200,8 +1192,8 @@ router.post(
 router.post(
   "documents.create",
   auth(),
-  validate(DocumentSchema),
-  async (ctx) => {
+  validate(DocumentsCreateReqSchema),
+  async (ctx: APIContext<DocumentsCreateReq>) => {
     const {
       title = "",
       text = "",
@@ -1210,17 +1202,8 @@ router.post(
       parentDocumentId,
       templateId,
       template,
-    } = ctx.request.body;
+    } = ctx.input;
     const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
-
-    if (parentDocumentId || template || publish) {
-      assertPresent(
-        collectionId,
-        publish
-          ? "collectionId is required to publish a draft without collection"
-          : "collectionId is required to create a nested doc or a template"
-      );
-    }
 
     const { user } = ctx.state;
 
