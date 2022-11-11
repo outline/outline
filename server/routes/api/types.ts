@@ -308,3 +308,23 @@ export const DocumentsUpdateReqSchema = z
   });
 
 export type DocumentsUpdateReq = z.infer<typeof DocumentsUpdateReqSchema>;
+
+export const DocumentsMoveReqSchema = z
+  .object({
+    /** Id of the doc to be moved */
+    id: z.string().uuid(),
+
+    /** Id of collection to which the doc is supposed to be moved */
+    collectionId: z.string().uuid(),
+
+    /** Parent Id, in case if the doc is moved to a new parent */
+    parentDocumentId: z.string().uuid().optional(),
+
+    /** Helps invaluate the new index in collection structure upon move */
+    index: z.number().positive().optional(),
+  })
+  .refine((obj) => !(obj.parentDocumentId === obj.id), {
+    message: "infinite loop detected, cannot nest a document inside itself",
+  });
+
+export type DocumentsMoveReq = z.infer<typeof DocumentsMoveReqSchema>;

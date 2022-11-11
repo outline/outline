@@ -1808,6 +1808,24 @@ describe("#documents.viewed", () => {
 });
 
 describe("#documents.move", () => {
+  it("should fail if attempting to nest doc within itself", async () => {
+    const { user, document } = await seed();
+    const collection = await buildCollection();
+    const res = await server.post("/api/documents.move", {
+      body: {
+        id: document.id,
+        collectionId: collection.id,
+        parentDocumentId: document.id,
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual(
+      "ValidationError: infinite loop detected, cannot nest a document inside itself"
+    );
+  });
+
   it("should require id", async () => {
     const { user } = await seed();
     const res = await server.post("/api/documents.move", {

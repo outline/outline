@@ -65,6 +65,8 @@ import {
   DocumentsTemplatizeReq,
   DocumentsUpdateReqSchema,
   DocumentsUpdateReq,
+  DocumentsMoveReqSchema,
+  DocumentsMoveReq,
 } from "@server/routes/api/types";
 import { APIContext } from "@server/types";
 import slugify from "@server/utils/slugify";
@@ -906,22 +908,9 @@ router.post(
 router.post(
   "documents.move",
   auth(),
-  validate(
-    DocumentSchema.extend({
-      id: z.string().uuid(),
-      collectionId: z.string().uuid(),
-      index: z.number().positive().nullish(),
-    })
-  ),
-  async (ctx) => {
-    const { id, collectionId, parentDocumentId, index } = ctx.request.body;
-
-    if (parentDocumentId === id) {
-      throw InvalidRequestError(
-        "Infinite loop detected, cannot nest a document inside itself"
-      );
-    }
-
+  validate(DocumentsMoveReqSchema),
+  async (ctx: APIContext<DocumentsMoveReq>) => {
+    const { id, collectionId, parentDocumentId, index } = ctx.input;
     const { user } = ctx.state;
     const document = await Document.findByPk(id, {
       userId: user.id,
