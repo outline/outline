@@ -114,7 +114,7 @@ export type DocumentsInfoReq = z.infer<typeof DocumentsInfoReqSchema>;
 
 export const DocumentsExportReqSchema = z
   .object({
-    /** Id of the document to be retrieved */
+    /** Id of the document to be exported */
     id: z.string().uuid().optional(),
 
     /** Share Id, if available */
@@ -212,7 +212,7 @@ export const DocumentsMoveReqSchema = BaseIdSchema.extend({
   /** Parent Id, in case if the doc is moved to a new parent */
   parentDocumentId: z.string().uuid().optional(),
 
-  /** Helps invaluate the new index in collection structure upon move */
+  /** Helps evaluate the new index in collection structure upon move */
   index: z.number().positive().optional(),
 }).refine((obj) => !(obj.parentDocumentId === obj.id), {
   message: "infinite loop detected, cannot nest a document inside itself",
