@@ -273,3 +273,38 @@ export const DocumentsTemplatizeReqSchema = z.object({
 export type DocumentsTemplatizeReq = z.infer<
   typeof DocumentsTemplatizeReqSchema
 >;
+
+export const DocumentsUpdateReqSchema = z
+  .object({
+    /** Id of the doc to be updated */
+    id: z.string().uuid(),
+
+    /** Doc title to be updated */
+    title: z.string().default(""),
+
+    /** Doc text to be updated */
+    text: z.string().default(""),
+
+    /** Boolean to denote if the doc should occupy full width */
+    fullWidth: z.boolean().optional(),
+
+    /** Boolean to denote if the doc should be published */
+    publish: z.boolean().optional(),
+
+    /** Revision to compare against document revision count */
+    lastRevision: z.number().optional(),
+
+    /** Doc template Id */
+    templateId: z.string().uuid().optional(),
+
+    /** Doc collection Id */
+    collectionId: z.string().uuid().optional(),
+
+    /** Boolean to denote if text should be appended */
+    append: z.boolean().optional(),
+  })
+  .refine((obj) => !(obj.append && !obj.text), {
+    message: "text is required while appending",
+  });
+
+export type DocumentsUpdateReq = z.infer<typeof DocumentsUpdateReqSchema>;

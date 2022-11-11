@@ -63,6 +63,8 @@ import {
   DocumentsSearchReq,
   DocumentsTemplatizeReqSchema,
   DocumentsTemplatizeReq,
+  DocumentsUpdateReqSchema,
+  DocumentsUpdateReq,
 } from "@server/routes/api/types";
 import { APIContext } from "@server/types";
 import slugify from "@server/utils/slugify";
@@ -833,12 +835,8 @@ router.post(
 router.post(
   "documents.update",
   auth(),
-  validate(
-    DocumentSchema.extend({
-      id: z.string().uuid(),
-    })
-  ),
-  async (ctx) => {
+  validate(DocumentsUpdateReqSchema),
+  async (ctx: APIContext<DocumentsUpdateReq>) => {
     const {
       id,
       title,
@@ -849,11 +847,8 @@ router.post(
       templateId,
       collectionId,
       append,
-    } = ctx.request.body;
+    } = ctx.input;
     const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
-    if (append) {
-      assertPresent(text, "Text is required while appending");
-    }
     const { user } = ctx.state;
     let collection: Collection | null | undefined;
 
@@ -870,7 +865,7 @@ router.post(
           collectionId,
           "collectionId is required to publish a draft without collection"
         );
-        collection = await Collection.findByPk(collectionId);
+        collection = await Collection.findByPk(collectionId as string);
       } else {
         collection = document.collection;
       }
