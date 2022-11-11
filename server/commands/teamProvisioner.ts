@@ -72,13 +72,13 @@ async function teamProvisioner({
     };
   } else if (teamId) {
     // The user is attempting to log into a team with an unfamiliar SSO provider
-    throw InvalidAuthenticationError();
-  }
+    if (env.DEPLOYMENT === "hosted") {
+      throw InvalidAuthenticationError();
+    }
 
-  // This team has never been seen before, if self hosted the logic is different
-  // to the multi-tenant version, we want to restrict to a single team that MAY
-  // have multiple authentication providers
-  if (env.DEPLOYMENT !== "hosted") {
+    // This team has never been seen before, if self hosted the logic is different
+    // to the multi-tenant version, we want to restrict to a single team that MAY
+    // have multiple authentication providers
     const team = await Team.findOne();
 
     // If the self-hosted installation has a single team and the domain for the
