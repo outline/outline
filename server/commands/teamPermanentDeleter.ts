@@ -175,13 +175,6 @@ async function teamPermanentDeleter(team: Team) {
       force: true,
       transaction,
     });
-    await User.destroy({
-      where: {
-        teamId,
-      },
-      force: true,
-      transaction,
-    });
     await team.destroy({
       force: true,
       transaction,
