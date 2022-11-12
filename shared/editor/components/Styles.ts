@@ -14,8 +14,6 @@ export type Props = {
 const mathStyle = (props: Props) => `
 /* Based on https://github.com/benrbray/prosemirror-math/blob/master/style/math.css */
 
-/* == Math Nodes ======================================== */
-
 .math-node {
 	min-width: 1em;
 	min-height: 1em;
@@ -35,7 +33,9 @@ const mathStyle = (props: Props) => `
 	cursor: help;
 }
 
-.math-node.ProseMirror-selectednode { outline: none; }
+.math-node.ProseMirror-selectednode {
+  outline: none;
+}
 
 .math-node .math-src {
 	display: none;
@@ -43,10 +43,13 @@ const mathStyle = (props: Props) => `
 	tab-size: 4;
 }
 
-.math-node.ProseMirror-selectednode .math-src { display: inline; }
-.math-node.ProseMirror-selectednode .math-render { display: none; }
+.math-node.ProseMirror-selectednode .math-src {
+  display: inline;
+}
 
-/* -- Inline Math --------------------------------------- */
+.math-node.ProseMirror-selectednode .math-render {
+  display: none;
+}
 
 math-inline {
   display: inline; white-space: nowrap;
@@ -60,7 +63,6 @@ math-inline .math-render {
 
 math-inline .math-src .ProseMirror {
 	display: inline;
-	/* Necessary to fix FireFox bug with contenteditable, https://bugzilla.mozilla.org/show_bug.cgi?id=1252108 */
   border-radius: 4px;
   border: 1px solid ${props.theme.codeBorder};
   padding: 3px 4px;
@@ -69,12 +71,13 @@ math-inline .math-src .ProseMirror {
   font-size: 80%;
 }
 
+math-block {
+  display: block;
+}
 
-/* -- Block Math ---------------------------------------- */
-
-math-block { display: block; }
-
-math-block .math-render { display: block; }
+math-block .math-render {
+  display: block;
+}
 
 math-block.ProseMirror-selectednode {
   border-radius: 4px;
@@ -90,17 +93,22 @@ math-block .math-src .ProseMirror {
 	display: block;
 }
 
+math-block .katex-display {
+  margin: 0;
+}
 
-math-block .katex-display { margin: 0; }
+p::selection, p > *::selection {
+  background-color: #c0c0c0;
+}
 
-/* -- Selection Plugin ---------------------------------- */
-
-p::selection, p > *::selection { background-color: #c0c0c0; }
-.katex-html *::selection { background-color: none !important; }
+.katex-html *::selection {
+  background-color: none !important;
+}
 
 .math-node.math-select .math-render {
 	background-color: #c0c0c0ff;
 }
+
 math-inline.math-select .math-render {
 	padding-top: 2px;
 }
