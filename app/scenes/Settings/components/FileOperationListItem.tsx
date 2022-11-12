@@ -21,6 +21,7 @@ const FileOperationListItem = ({ fileOperation, handleDelete }: Props) => {
   const user = useCurrentUser();
   const theme = useTheme();
   const stateMapping = {
+    complete: t("Completed"),
     creating: t("Processing"),
     expired: t("Expired"),
     uploading: t("Processing"),
@@ -46,9 +47,7 @@ const FileOperationListItem = ({ fileOperation, handleDelete }: Props) => {
       image={iconMapping[fileOperation.state]}
       subtitle={
         <>
-          {fileOperation.state !== "complete" && (
-            <>{stateMapping[fileOperation.state]}&nbsp;•&nbsp;</>
-          )}
+          {stateMapping[fileOperation.state]}&nbsp;•&nbsp;
           {fileOperation.error && <>{fileOperation.error}&nbsp;•&nbsp;</>}
           {t(`{{userName}} requested`, {
             userName:

@@ -30,6 +30,7 @@ import type { NavigationNode, CollectionSort } from "~/types";
 import CollectionGroup from "./CollectionGroup";
 import CollectionUser from "./CollectionUser";
 import Document from "./Document";
+import FileOperation from "./FileOperation";
 import Group from "./Group";
 import GroupUser from "./GroupUser";
 import Team from "./Team";
@@ -271,6 +272,13 @@ class Collection extends ParanoidModel {
   }
 
   // associations
+
+  @BelongsTo(() => FileOperation, "importId")
+  import: FileOperation | null;
+
+  @ForeignKey(() => FileOperation)
+  @Column(DataType.UUID)
+  importId: string | null;
 
   @HasMany(() => Document, "collectionId")
   documents: Document[];
