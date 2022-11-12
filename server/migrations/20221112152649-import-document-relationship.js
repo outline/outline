@@ -11,17 +11,21 @@ module.exports = {
         },
         transaction,
       });
-      await queryInterface.addIndex("documents", ["importId"]);
+      await queryInterface.addIndex("documents", ["importId"], {
+        transaction
+      });
     });
 
   },
 
   async down(queryInterface) {
     await queryInterface.sequelize.transaction(async (transaction) => {
+      await queryInterface.removeIndex("documents", ["importId"], {
+        transaction
+      });
       await queryInterface.removeColumn("documents", "importId", {
         transaction
       });
-      await queryInterface.removeIndex("documents", ["importId"]);
     });
   }
 };
