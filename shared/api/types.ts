@@ -1,14 +1,11 @@
 import { isEmpty } from "lodash";
 import { z } from "zod";
-import { Document } from "@server/models";
 
 const DocumentsSortParamsSchema = z.object({
   /** Specifies the attributes by which documents will be sorted in the list */
   sort: z
     .string()
-    .refine((val) =>
-      [...Object.keys(Document.rawAttributes), "index"].includes(val)
-    )
+    .refine((val) => ["createdAt", "updatedAt", "index"].includes(val))
     .default("updatedAt"),
 
   /** Specifies the sort order with respect to sort field */
@@ -40,7 +37,7 @@ const BaseIdSchema = z.object({
   id: z.string().uuid(),
 });
 
-export const DocumentsListReqSchema = DocumentsSortParamsSchema.extend({
+export const DocumentsListSchema = DocumentsSortParamsSchema.extend({
   /** Id of the user who created the doc */
   userId: z.string().uuid().optional(),
 
@@ -72,30 +69,30 @@ export const DocumentsListReqSchema = DocumentsSortParamsSchema.extend({
     return doc;
   });
 
-export type DocumentsListReq = z.infer<typeof DocumentsListReqSchema>;
+export type DocumentsListReq = z.infer<typeof DocumentsListSchema>;
 
-export const DocumentsArchivedReqSchema = DocumentsSortParamsSchema.extend({});
+export const DocumentsArchivedSchema = DocumentsSortParamsSchema.extend({});
 
-export type DocumentsArchivedReq = z.infer<typeof DocumentsArchivedReqSchema>;
+export type DocumentsArchivedReq = z.infer<typeof DocumentsArchivedSchema>;
 
-export const DocumentsDeletedReqSchema = DocumentsSortParamsSchema.extend({});
+export const DocumentsDeletedSchema = DocumentsSortParamsSchema.extend({});
 
-export type DocumentsDeletedReq = z.infer<typeof DocumentsDeletedReqSchema>;
+export type DocumentsDeletedReq = z.infer<typeof DocumentsDeletedSchema>;
 
-export const DocumentsViewedReqSchema = DocumentsSortParamsSchema.extend({});
+export const DocumentsViewedSchema = DocumentsSortParamsSchema.extend({});
 
-export type DocumentsViewedReq = z.infer<typeof DocumentsViewedReqSchema>;
+export type DocumentsViewedReq = z.infer<typeof DocumentsViewedSchema>;
 
-export const DocumentsDraftsReqSchema = DocumentsSortParamsSchema.merge(
+export const DocumentsDraftsSchema = DocumentsSortParamsSchema.merge(
   DateFilterSchema
 ).extend({
   /** Id of the collection to which the document belongs */
   collectionId: z.string().uuid().optional(),
 });
 
-export type DocumentsDraftsReq = z.infer<typeof DocumentsDraftsReqSchema>;
+export type DocumentsDraftsReq = z.infer<typeof DocumentsDraftsSchema>;
 
-export const DocumentsInfoReqSchema = z
+export const DocumentsInfoSchema = z
   .object({
     /** Id of the document to be retrieved */
     id: z.string().uuid().optional(),
@@ -110,9 +107,9 @@ export const DocumentsInfoReqSchema = z
     message: "one of id or shareId is required",
   });
 
-export type DocumentsInfoReq = z.infer<typeof DocumentsInfoReqSchema>;
+export type DocumentsInfoReq = z.infer<typeof DocumentsInfoSchema>;
 
-export const DocumentsExportReqSchema = z
+export const DocumentsExportSchema = z
   .object({
     /** Id of the document to be exported */
     id: z.string().uuid().optional(),
@@ -124,9 +121,9 @@ export const DocumentsExportReqSchema = z
     message: "one of id or shareId is required",
   });
 
-export type DocumentsExportReq = z.infer<typeof DocumentsExportReqSchema>;
+export type DocumentsExportReq = z.infer<typeof DocumentsExportSchema>;
 
-export const DocumentsRestoreReqSchema = BaseIdSchema.extend({
+export const DocumentsRestoreSchema = BaseIdSchema.extend({
   /** Id of the collection to which the document belongs */
   collectionId: z.string().uuid().optional(),
 
@@ -134,15 +131,15 @@ export const DocumentsRestoreReqSchema = BaseIdSchema.extend({
   revisionId: z.string().uuid().optional(),
 });
 
-export type DocumentsRestoreReq = z.infer<typeof DocumentsRestoreReqSchema>;
+export type DocumentsRestoreReq = z.infer<typeof DocumentsRestoreSchema>;
 
-export const DocumentsSearchTitlesReqSchema = SearchQuerySchema.extend({});
+export const DocumentsSearchTitlesSchema = SearchQuerySchema.extend({});
 
 export type DocumentsSearchTitlesReq = z.infer<
-  typeof DocumentsSearchTitlesReqSchema
+  typeof DocumentsSearchTitlesSchema
 >;
 
-export const DocumentsSearchReqSchema = SearchQuerySchema.merge(
+export const DocumentsSearchSchema = SearchQuerySchema.merge(
   DateFilterSchema
 ).extend({
   /** Whether to include archived docs in results */
@@ -167,15 +164,13 @@ export const DocumentsSearchReqSchema = SearchQuerySchema.merge(
   snippetMaxWords: z.number().default(30),
 });
 
-export type DocumentsSearchReq = z.infer<typeof DocumentsSearchReqSchema>;
+export type DocumentsSearchReq = z.infer<typeof DocumentsSearchSchema>;
 
-export const DocumentsTemplatizeReqSchema = BaseIdSchema.extend({});
+export const DocumentsTemplatizeSchema = BaseIdSchema.extend({});
 
-export type DocumentsTemplatizeReq = z.infer<
-  typeof DocumentsTemplatizeReqSchema
->;
+export type DocumentsTemplatizeReq = z.infer<typeof DocumentsTemplatizeSchema>;
 
-export const DocumentsUpdateReqSchema = BaseIdSchema.extend({
+export const DocumentsUpdateSchema = BaseIdSchema.extend({
   /** Doc title to be updated */
   title: z.string().optional(),
 
@@ -203,9 +198,9 @@ export const DocumentsUpdateReqSchema = BaseIdSchema.extend({
   message: "text is required while appending",
 });
 
-export type DocumentsUpdateReq = z.infer<typeof DocumentsUpdateReqSchema>;
+export type DocumentsUpdateReq = z.infer<typeof DocumentsUpdateSchema>;
 
-export const DocumentsMoveReqSchema = BaseIdSchema.extend({
+export const DocumentsMoveSchema = BaseIdSchema.extend({
   /** Id of collection to which the doc is supposed to be moved */
   collectionId: z.string().uuid(),
 
@@ -218,24 +213,24 @@ export const DocumentsMoveReqSchema = BaseIdSchema.extend({
   message: "infinite loop detected, cannot nest a document inside itself",
 });
 
-export type DocumentsMoveReq = z.infer<typeof DocumentsMoveReqSchema>;
+export type DocumentsMoveReq = z.infer<typeof DocumentsMoveSchema>;
 
-export const DocumentsArchiveReqSchema = BaseIdSchema.extend({});
+export const DocumentsArchiveSchema = BaseIdSchema.extend({});
 
-export type DocumentsArchiveReq = z.infer<typeof DocumentsArchiveReqSchema>;
+export type DocumentsArchiveReq = z.infer<typeof DocumentsArchiveSchema>;
 
-export const DocumentsDeleteReqSchema = BaseIdSchema.extend({
+export const DocumentsDeleteSchema = BaseIdSchema.extend({
   /** Whether to permanently delete the doc as opposed to soft-delete */
   permanent: z.boolean().optional(),
 });
 
-export type DocumentsDeleteReq = z.infer<typeof DocumentsDeleteReqSchema>;
+export type DocumentsDeleteReq = z.infer<typeof DocumentsDeleteSchema>;
 
-export const DocumentsUnpublishReqSchema = BaseIdSchema.extend({});
+export const DocumentsUnpublishSchema = BaseIdSchema.extend({});
 
-export type DocumentsUnpublishReq = z.infer<typeof DocumentsUnpublishReqSchema>;
+export type DocumentsUnpublishReq = z.infer<typeof DocumentsUnpublishSchema>;
 
-export const DocumentsImportReqSchema = z.object({
+export const DocumentsImportSchema = z.object({
   /** Whether to publish the imported docs */
   publish: z.boolean().optional(),
 
@@ -246,9 +241,9 @@ export const DocumentsImportReqSchema = z.object({
   parentDocumentId: z.string().uuid().optional(),
 });
 
-export type DocumentsImportReq = z.infer<typeof DocumentsImportReqSchema>;
+export type DocumentsImportReq = z.infer<typeof DocumentsImportSchema>;
 
-export const DocumentsCreateReqSchema = z
+export const DocumentsCreateSchema = z
   .object({
     /** Doc title */
     title: z.string().default(""),
@@ -281,4 +276,4 @@ export const DocumentsCreateReqSchema = z
     message: "collectionId is required to publish",
   });
 
-export type DocumentsCreateReq = z.infer<typeof DocumentsCreateReqSchema>;
+export type DocumentsCreateReq = z.infer<typeof DocumentsCreateSchema>;

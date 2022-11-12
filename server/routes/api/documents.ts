@@ -3,6 +3,7 @@ import invariant from "invariant";
 import Router from "koa-router";
 import mime from "mime-types";
 import { Op, ScopeOptions, WhereOptions } from "sequelize";
+import * as T from "@shared/api/types";
 import { subtractDate } from "@shared/utils/date";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import documentCreator from "@server/commands/documentCreator";
@@ -38,44 +39,6 @@ import {
   presentDocument,
   presentPolicies,
 } from "@server/presenters";
-import {
-  DocumentsListReqSchema,
-  DocumentsListReq,
-  DocumentsArchivedReqSchema,
-  DocumentsArchivedReq,
-  DocumentsDeletedReqSchema,
-  DocumentsDeletedReq,
-  DocumentsViewedReqSchema,
-  DocumentsViewedReq,
-  DocumentsDraftsReqSchema,
-  DocumentsDraftsReq,
-  DocumentsInfoReqSchema,
-  DocumentsInfoReq,
-  DocumentsExportReqSchema,
-  DocumentsExportReq,
-  DocumentsRestoreReqSchema,
-  DocumentsRestoreReq,
-  DocumentsSearchTitlesReqSchema,
-  DocumentsSearchTitlesReq,
-  DocumentsSearchReqSchema,
-  DocumentsSearchReq,
-  DocumentsTemplatizeReqSchema,
-  DocumentsTemplatizeReq,
-  DocumentsUpdateReqSchema,
-  DocumentsUpdateReq,
-  DocumentsMoveReqSchema,
-  DocumentsMoveReq,
-  DocumentsArchiveReqSchema,
-  DocumentsArchiveReq,
-  DocumentsDeleteReqSchema,
-  DocumentsDeleteReq,
-  DocumentsUnpublishReqSchema,
-  DocumentsUnpublishReq,
-  DocumentsImportReqSchema,
-  DocumentsImportReq,
-  DocumentsCreateReqSchema,
-  DocumentsCreateReq,
-} from "@server/routes/api/types";
 import { APIContext } from "@server/types";
 import slugify from "@server/utils/slugify";
 import { assertPresent } from "@server/validation";
@@ -88,8 +51,8 @@ router.post(
   "documents.list",
   auth(),
   pagination(),
-  validate(DocumentsListReqSchema),
-  async (ctx: APIContext<DocumentsListReq>) => {
+  validate(T.DocumentsListSchema),
+  async (ctx: APIContext<T.DocumentsListReq>) => {
     let { sort } = ctx.input;
     const {
       direction,
@@ -205,8 +168,8 @@ router.post(
   "documents.archived",
   auth({ member: true }),
   pagination(),
-  validate(DocumentsArchivedReqSchema),
-  async (ctx: APIContext<DocumentsArchivedReq>) => {
+  validate(T.DocumentsArchivedSchema),
+  async (ctx: APIContext<T.DocumentsArchivedReq>) => {
     const { sort, direction } = ctx.input;
     const { user } = ctx.state;
     const collectionIds = await user.collectionIds();
@@ -249,8 +212,8 @@ router.post(
   "documents.deleted",
   auth({ member: true }),
   pagination(),
-  validate(DocumentsDeletedReqSchema),
-  async (ctx: APIContext<DocumentsDeletedReq>) => {
+  validate(T.DocumentsDeletedSchema),
+  async (ctx: APIContext<T.DocumentsDeletedReq>) => {
     const { sort, direction } = ctx.input;
     const { user } = ctx.state;
     const collectionIds = await user.collectionIds({
@@ -309,8 +272,8 @@ router.post(
   "documents.viewed",
   auth(),
   pagination(),
-  validate(DocumentsViewedReqSchema),
-  async (ctx: APIContext<DocumentsViewedReq>) => {
+  validate(T.DocumentsViewedSchema),
+  async (ctx: APIContext<T.DocumentsViewedReq>) => {
     const { sort, direction } = ctx.input;
     const { user } = ctx.state;
     const collectionIds = await user.collectionIds();
@@ -362,8 +325,8 @@ router.post(
   "documents.drafts",
   auth(),
   pagination(),
-  validate(DocumentsDraftsReqSchema),
-  async (ctx: APIContext<DocumentsDraftsReq>) => {
+  validate(T.DocumentsDraftsSchema),
+  async (ctx: APIContext<T.DocumentsDraftsReq>) => {
     const { collectionId, dateFilter, direction, sort } = ctx.input;
     const { user } = ctx.state;
 
@@ -425,8 +388,8 @@ router.post(
   auth({
     optional: true,
   }),
-  validate(DocumentsInfoReqSchema),
-  async (ctx: APIContext<DocumentsInfoReq>) => {
+  validate(T.DocumentsInfoSchema),
+  async (ctx: APIContext<T.DocumentsInfoReq>) => {
     const { id, shareId, apiVersion } = ctx.input;
     const { user } = ctx.state;
     const { document, share, collection } = await documentLoader({
@@ -463,8 +426,8 @@ router.post(
   auth({
     optional: true,
   }),
-  validate(DocumentsExportReqSchema),
-  async (ctx: APIContext<DocumentsExportReq>) => {
+  validate(T.DocumentsExportSchema),
+  async (ctx: APIContext<T.DocumentsExportReq>) => {
     const { id, shareId } = ctx.input;
     const { user } = ctx.state;
     const accept = ctx.request.headers["accept"];
@@ -512,8 +475,8 @@ router.post(
 router.post(
   "documents.restore",
   auth({ member: true }),
-  validate(DocumentsRestoreReqSchema),
-  async (ctx: APIContext<DocumentsRestoreReq>) => {
+  validate(T.DocumentsRestoreSchema),
+  async (ctx: APIContext<T.DocumentsRestoreReq>) => {
     const { id, collectionId, revisionId } = ctx.input;
     const { user } = ctx.state;
     const document = await Document.findByPk(id, {
@@ -615,8 +578,8 @@ router.post(
   "documents.search_titles",
   auth(),
   pagination(),
-  validate(DocumentsSearchTitlesReqSchema),
-  async (ctx: APIContext<DocumentsSearchTitlesReq>) => {
+  validate(T.DocumentsSearchTitlesSchema),
+  async (ctx: APIContext<T.DocumentsSearchTitlesReq>) => {
     const { query } = ctx.input;
     const { offset, limit } = ctx.state.pagination;
     const { user } = ctx.state;
@@ -674,8 +637,8 @@ router.post(
     optional: true,
   }),
   pagination(),
-  validate(DocumentsSearchReqSchema),
-  async (ctx: APIContext<DocumentsSearchReq>) => {
+  validate(T.DocumentsSearchSchema),
+  async (ctx: APIContext<T.DocumentsSearchReq>) => {
     const {
       query,
       includeArchived,
@@ -788,8 +751,8 @@ router.post(
 router.post(
   "documents.templatize",
   auth({ member: true }),
-  validate(DocumentsTemplatizeReqSchema),
-  async (ctx: APIContext<DocumentsTemplatizeReq>) => {
+  validate(T.DocumentsTemplatizeSchema),
+  async (ctx: APIContext<T.DocumentsTemplatizeReq>) => {
     const { id } = ctx.input;
     const { user } = ctx.state;
 
@@ -839,8 +802,8 @@ router.post(
 router.post(
   "documents.update",
   auth(),
-  validate(DocumentsUpdateReqSchema),
-  async (ctx: APIContext<DocumentsUpdateReq>) => {
+  validate(T.DocumentsUpdateSchema),
+  async (ctx: APIContext<T.DocumentsUpdateReq>) => {
     const {
       id,
       title,
@@ -910,8 +873,8 @@ router.post(
 router.post(
   "documents.move",
   auth(),
-  validate(DocumentsMoveReqSchema),
-  async (ctx: APIContext<DocumentsMoveReq>) => {
+  validate(T.DocumentsMoveSchema),
+  async (ctx: APIContext<T.DocumentsMoveReq>) => {
     const { id, collectionId, parentDocumentId, index } = ctx.input;
     const { user } = ctx.state;
     const document = await Document.findByPk(id, {
@@ -964,8 +927,8 @@ router.post(
 router.post(
   "documents.archive",
   auth(),
-  validate(DocumentsArchiveReqSchema),
-  async (ctx: APIContext<DocumentsArchiveReq>) => {
+  validate(T.DocumentsArchiveSchema),
+  async (ctx: APIContext<T.DocumentsArchiveReq>) => {
     const { id } = ctx.input;
     const { user } = ctx.state;
 
@@ -997,8 +960,8 @@ router.post(
 router.post(
   "documents.delete",
   auth(),
-  validate(DocumentsDeleteReqSchema),
-  async (ctx: APIContext<DocumentsDeleteReq>) => {
+  validate(T.DocumentsDeleteSchema),
+  async (ctx: APIContext<T.DocumentsDeleteReq>) => {
     const { id, permanent } = ctx.input;
     const { user } = ctx.state;
 
@@ -1062,8 +1025,8 @@ router.post(
 router.post(
   "documents.unpublish",
   auth(),
-  validate(DocumentsUnpublishReqSchema),
-  async (ctx: APIContext<DocumentsUnpublishReq>) => {
+  validate(T.DocumentsUnpublishSchema),
+  async (ctx: APIContext<T.DocumentsUnpublishReq>) => {
     const { id } = ctx.input;
     const { user } = ctx.state;
 
@@ -1102,8 +1065,8 @@ router.post(
 router.post(
   "documents.import",
   auth(),
-  validate(DocumentsImportReqSchema),
-  async (ctx: APIContext<DocumentsImportReq>) => {
+  validate(T.DocumentsImportSchema),
+  async (ctx: APIContext<T.DocumentsImportReq>) => {
     const { publish, collectionId, parentDocumentId } = ctx.input;
 
     if (!ctx.is("multipart/form-data")) {
@@ -1186,8 +1149,8 @@ router.post(
 router.post(
   "documents.create",
   auth(),
-  validate(DocumentsCreateReqSchema),
-  async (ctx: APIContext<DocumentsCreateReq>) => {
+  validate(T.DocumentsCreateSchema),
+  async (ctx: APIContext<T.DocumentsCreateReq>) => {
     const {
       title = "",
       text = "",
