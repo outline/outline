@@ -159,11 +159,15 @@ const handleAttachmentsRedirect = async (ctx: ContextWithState) => {
     rejectOnEmpty: true,
   });
 
-  if (attachment.isPrivate) {
-    if (attachment.teamId !== user.teamId) {
-      throw AuthorizationError();
-    }
+  if (attachment.isPrivate && attachment.teamId !== user.teamId) {
+    throw AuthorizationError();
+  }
 
+  await attachment.update({
+    lastAccessedAt: new Date(),
+  });
+
+  if (attachment.isPrivate) {
     const accessUrl = await getSignedUrl(attachment.key);
     ctx.redirect(accessUrl);
   } else {
