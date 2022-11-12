@@ -45,6 +45,8 @@ import {
 } from "~/utils/routeHelpers";
 import Container from "./Container";
 import Contents from "./Contents";
+import DocumentContext from "./DocumentContext";
+import type { DocumentContextValue } from "./DocumentContext";
 import Editor from "./Editor";
 import Header from "./Header";
 import KeyboardShortcutsButton from "./KeyboardShortcutsButton";
@@ -109,6 +111,14 @@ class DocumentScene extends React.Component<Props> {
 
   @observable
   headings: Heading[] = [];
+
+  @observable
+  documentContext: DocumentContextValue = {
+    editor: null,
+    setEditor: action((editor: TEditor) => {
+      this.documentContext.editor = editor;
+    }),
+  };
 
   getEditorText: () => string = () => this.props.document.text;
 
@@ -452,196 +462,203 @@ class DocumentScene extends React.Component<Props> {
 
     return (
       <ErrorBoundary>
-        {this.props.location.pathname !== canonicalUrl && (
-          <Redirect
-            to={{
-              pathname: canonicalUrl,
-              state: this.props.location.state,
-              hash: this.props.location.hash,
+        <DocumentContext.Provider value={this.documentContext}>
+          {this.props.location.pathname !== canonicalUrl && (
+            <Redirect
+              to={{
+                pathname: canonicalUrl,
+                state: this.props.location.state,
+                hash: this.props.location.hash,
+              }}
+            />
+          )}
+          <RegisterKeyDown trigger="m" handler={this.goToMove} />
+          <RegisterKeyDown trigger="e" handler={this.goToEdit} />
+          <RegisterKeyDown trigger="Escape" handler={this.goBack} />
+          <RegisterKeyDown trigger="h" handler={this.goToHistory} />
+          <RegisterKeyDown
+            trigger="p"
+            handler={(event) => {
+              if (isModKey(event) && event.shiftKey) {
+                this.onPublish(event);
+              }
             }}
           />
-        )}
-        <RegisterKeyDown trigger="m" handler={this.goToMove} />
-        <RegisterKeyDown trigger="e" handler={this.goToEdit} />
-        <RegisterKeyDown trigger="Escape" handler={this.goBack} />
-        <RegisterKeyDown trigger="h" handler={this.goToHistory} />
-        <RegisterKeyDown
-          trigger="p"
-          handler={(event) => {
-            if (isModKey(event) && event.shiftKey) {
-              this.onPublish(event);
-            }
-          }}
-        />
-        <RegisterKeyDown
-          trigger="h"
-          handler={(event) => {
-            if (event.ctrlKey && event.altKey) {
-              this.onToggleTableOfContents(event);
-            }
-          }}
-        />
-        <Background key={revision ? revision.id : document.id} column auto>
-          <Route
-            path={`${document.url}/move`}
-            component={() => (
-              <Modal
-                title={`Move ${document.noun}`}
-                onRequestClose={this.goBack}
-                isOpen
-              >
-                <DocumentMove
-                  document={document}
-                  onRequestClose={this.goBack}
-                />
-              </Modal>
-            )}
-          />
-          <PageTitle
-            title={document.titleWithDefault.replace(document.emoji || "", "")}
-            favicon={document.emoji ? emojiToUrl(document.emoji) : undefined}
-          />
-          {(this.isUploading || this.isSaving) && <LoadingIndicator />}
-          <Container justify="center" column auto>
-            {!readOnly && (
-              <>
-                <Prompt
-                  when={
-                    this.isEditorDirty &&
-                    !this.isUploading &&
-                    !team?.collaborativeEditing
-                  }
-                  message={(location, action) => {
-                    if (
-                      // a URL replace matching the current document indicates a title change
-                      // no guard is needed for this transition
-                      action === "REPLACE" &&
-                      location.pathname === editDocumentUrl(document)
-                    ) {
-                      return true;
-                    }
-
-                    return t(
-                      `You have unsaved changes.\nAre you sure you want to discard them?`
-                    ) as string;
-                  }}
-                />
-                <Prompt
-                  when={this.isUploading && !this.isEditorDirty}
-                  message={t(
-                    `Images are still uploading.\nAre you sure you want to discard them?`
-                  )}
-                />
-              </>
-            )}
-            <Header
-              document={document}
-              documentHasHeadings={hasHeadings}
-              shareId={shareId}
-              isRevision={!!revision}
-              isDraft={document.isDraft}
-              isEditing={!readOnly && !team?.seamlessEditing}
-              isSaving={this.isSaving}
-              isPublishing={this.isPublishing}
-              publishingIsDisabled={
-                document.isSaving || this.isPublishing || this.isEmpty
+          <RegisterKeyDown
+            trigger="h"
+            handler={(event) => {
+              if (event.ctrlKey && event.altKey) {
+                this.onToggleTableOfContents(event);
               }
-              savingIsDisabled={document.isSaving || this.isEmpty}
-              sharedTree={this.props.sharedTree}
-              onSelectTemplate={this.replaceDocument}
-              onSave={this.onSave}
-              headings={this.headings}
+            }}
+          />
+          <Background key={revision ? revision.id : document.id} column auto>
+            <Route
+              path={`${document.url}/move`}
+              component={() => (
+                <Modal
+                  title={`Move ${document.noun}`}
+                  onRequestClose={this.goBack}
+                  isOpen
+                >
+                  <DocumentMove
+                    document={document}
+                    onRequestClose={this.goBack}
+                  />
+                </Modal>
+              )}
             />
-            <MaxWidth
-              archived={document.isArchived}
-              showContents={showContents}
-              isEditing={!readOnly}
-              isFullWidth={document.fullWidth}
-              column
-              auto
-            >
-              <Notices document={document} readOnly={readOnly} />
-              <React.Suspense fallback={<PlaceholderDocument />}>
-                <Flex auto={!readOnly}>
-                  {revision ? (
-                    <RevisionViewer
-                      isDraft={document.isDraft}
-                      document={document}
-                      revision={revision}
-                      id={revision.id}
-                    />
-                  ) : (
-                    <>
-                      {showContents && (
-                        <Contents
-                          headings={this.headings}
-                          isFullWidth={document.fullWidth}
-                        />
-                      )}
-                      <Editor
-                        id={document.id}
-                        key={embedsDisabled ? "disabled" : "enabled"}
-                        ref={this.editor}
-                        multiplayer={collaborativeEditing}
-                        shareId={shareId}
+            <PageTitle
+              title={document.titleWithDefault.replace(
+                document.emoji || "",
+                ""
+              )}
+              favicon={document.emoji ? emojiToUrl(document.emoji) : undefined}
+            />
+            {(this.isUploading || this.isSaving) && <LoadingIndicator />}
+            <Container justify="center" column auto>
+              {!readOnly && (
+                <>
+                  <Prompt
+                    when={
+                      this.isEditorDirty &&
+                      !this.isUploading &&
+                      !team?.collaborativeEditing
+                    }
+                    message={(location, action) => {
+                      if (
+                        // a URL replace matching the current document indicates a title change
+                        // no guard is needed for this transition
+                        action === "REPLACE" &&
+                        location.pathname === editDocumentUrl(document)
+                      ) {
+                        return true;
+                      }
+
+                      return t(
+                        `You have unsaved changes.\nAre you sure you want to discard them?`
+                      ) as string;
+                    }}
+                  />
+                  <Prompt
+                    when={this.isUploading && !this.isEditorDirty}
+                    message={t(
+                      `Images are still uploading.\nAre you sure you want to discard them?`
+                    )}
+                  />
+                </>
+              )}
+              <Header
+                document={document}
+                documentHasHeadings={hasHeadings}
+                shareId={shareId}
+                isRevision={!!revision}
+                isDraft={document.isDraft}
+                isEditing={!readOnly && !team?.seamlessEditing}
+                isSaving={this.isSaving}
+                isPublishing={this.isPublishing}
+                publishingIsDisabled={
+                  document.isSaving || this.isPublishing || this.isEmpty
+                }
+                savingIsDisabled={document.isSaving || this.isEmpty}
+                sharedTree={this.props.sharedTree}
+                onSelectTemplate={this.replaceDocument}
+                onSave={this.onSave}
+                headings={this.headings}
+              />
+              <MaxWidth
+                archived={document.isArchived}
+                showContents={showContents}
+                isEditing={!readOnly}
+                isFullWidth={document.fullWidth}
+                column
+                auto
+              >
+                <Notices document={document} readOnly={readOnly} />
+                <React.Suspense fallback={<PlaceholderDocument />}>
+                  <Flex auto={!readOnly}>
+                    {revision ? (
+                      <RevisionViewer
                         isDraft={document.isDraft}
-                        template={document.isTemplate}
                         document={document}
-                        value={readOnly ? document.text : undefined}
-                        defaultValue={document.text}
-                        embedsDisabled={embedsDisabled}
-                        onSynced={this.onSynced}
-                        onFileUploadStart={this.onFileUploadStart}
-                        onFileUploadStop={this.onFileUploadStop}
-                        onSearchLink={this.props.onSearchLink}
-                        onCreateLink={this.props.onCreateLink}
-                        onChangeTitle={this.onChangeTitle}
-                        onChange={this.onChange}
-                        onHeadingsChange={this.onHeadingsChange}
-                        onSave={this.onSave}
-                        onPublish={this.onPublish}
-                        onCancel={this.goBack}
-                        readOnly={readOnly}
-                        readOnlyWriteCheckboxes={readOnly && abilities.update}
-                      >
-                        {shareId && (
-                          <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
-                            <PublicReferences
-                              shareId={shareId}
-                              documentId={document.id}
-                              sharedTree={this.props.sharedTree}
-                            />
-                          </ReferencesWrapper>
+                        revision={revision}
+                        id={revision.id}
+                      />
+                    ) : (
+                      <>
+                        {showContents && (
+                          <Contents
+                            headings={this.headings}
+                            isFullWidth={document.fullWidth}
+                          />
                         )}
-                        {!isShare && !revision && (
-                          <>
-                            <MarkAsViewed document={document} />
+                        <Editor
+                          id={document.id}
+                          key={embedsDisabled ? "disabled" : "enabled"}
+                          ref={this.editor}
+                          multiplayer={collaborativeEditing}
+                          shareId={shareId}
+                          isDraft={document.isDraft}
+                          template={document.isTemplate}
+                          document={document}
+                          value={readOnly ? document.text : undefined}
+                          defaultValue={document.text}
+                          embedsDisabled={embedsDisabled}
+                          onSynced={this.onSynced}
+                          onFileUploadStart={this.onFileUploadStart}
+                          onFileUploadStop={this.onFileUploadStop}
+                          onSearchLink={this.props.onSearchLink}
+                          onCreateLink={this.props.onCreateLink}
+                          onChangeTitle={this.onChangeTitle}
+                          onChange={this.onChange}
+                          onHeadingsChange={this.onHeadingsChange}
+                          onSave={this.onSave}
+                          onPublish={this.onPublish}
+                          onCancel={this.goBack}
+                          readOnly={readOnly}
+                          readOnlyWriteCheckboxes={readOnly && abilities.update}
+                        >
+                          {shareId && (
                             <ReferencesWrapper
                               isOnlyTitle={document.isOnlyTitle}
                             >
-                              <References document={document} />
+                              <PublicReferences
+                                shareId={shareId}
+                                documentId={document.id}
+                                sharedTree={this.props.sharedTree}
+                              />
                             </ReferencesWrapper>
-                          </>
-                        )}
-                      </Editor>
-                    </>
-                  )}
-                </Flex>
-              </React.Suspense>
-            </MaxWidth>
-            {isShare &&
-              !parseDomain(window.location.origin).custom &&
-              !auth.user && (
-                <Branding href="//www.getoutline.com?ref=sharelink" />
-              )}
-          </Container>
-        </Background>
-        {!isShare && (
-          <>
-            <KeyboardShortcutsButton />
-            <ConnectionStatus />
-          </>
-        )}
+                          )}
+                          {!isShare && !revision && (
+                            <>
+                              <MarkAsViewed document={document} />
+                              <ReferencesWrapper
+                                isOnlyTitle={document.isOnlyTitle}
+                              >
+                                <References document={document} />
+                              </ReferencesWrapper>
+                            </>
+                          )}
+                        </Editor>
+                      </>
+                    )}
+                  </Flex>
+                </React.Suspense>
+              </MaxWidth>
+              {isShare &&
+                !parseDomain(window.location.origin).custom &&
+                !auth.user && (
+                  <Branding href="//www.getoutline.com?ref=sharelink" />
+                )}
+            </Container>
+          </Background>
+          {!isShare && (
+            <>
+              <KeyboardShortcutsButton />
+              <ConnectionStatus />
+            </>
+          )}
+        </DocumentContext.Provider>
       </ErrorBoundary>
     );
   }
