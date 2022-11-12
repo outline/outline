@@ -6,6 +6,7 @@ export default function present(data: FileOperation) {
   return {
     id: data.id,
     type: data.type,
+    format: data.format,
     name: data.collection?.name || path.basename(data.key || ""),
     state: data.state,
     error: data.error,
