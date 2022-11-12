@@ -26,6 +26,13 @@ const DocumentHistory = React.lazy(
       "~/components/DocumentHistory"
     )
 );
+const DocumentInsights = React.lazy(
+  () =>
+    import(
+      /* webpackChunkName: "document-insights" */
+      "~/components/DocumentInsights"
+    )
+);
 const CommandBar = React.lazy(
   () =>
     import(
@@ -91,6 +98,11 @@ const AuthenticatedLayout: React.FC = ({ children }) => {
             key="document-history"
             path={`/doc/${slug}/history/:revisionId?`}
             component={DocumentHistory}
+          />
+          <Route
+            key="document-history"
+            path={`/doc/${slug}/insights`}
+            component={DocumentInsights}
           />
         </Switch>
       </AnimatePresence>

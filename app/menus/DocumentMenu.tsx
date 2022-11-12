@@ -1,7 +1,6 @@
 import { observer } from "mobx-react";
 import {
   EditIcon,
-  HistoryIcon,
   UnpublishIcon,
   PrintIcon,
   NewDocumentIcon,
@@ -38,6 +37,8 @@ import {
   unstarDocument,
   duplicateDocument,
   archiveDocument,
+  openDocumentHistory,
+  openDocumentInsights,
 } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -47,12 +48,7 @@ import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import { MenuItem } from "~/types";
-import {
-  documentHistoryUrl,
-  documentUrl,
-  editDocumentUrl,
-  newDocumentPath,
-} from "~/utils/routeHelpers";
+import { editDocumentUrl, newDocumentPath } from "~/utils/routeHelpers";
 
 type Props = {
   document: Document;
@@ -70,7 +66,6 @@ type Props = {
 
 function DocumentMenu({
   document,
-  isRevision,
   className,
   modal = true,
   showToggleEmbeds,
@@ -143,7 +138,6 @@ function DocumentMenu({
 
   const collection = collections.get(document.collectionId);
   const can = usePolicy(document);
-  const canViewHistory = can.read && !can.restore;
   const restoreItems = React.useMemo(
     () => [
       ...collections.orderedData.reduce<MenuItem[]>((filtered, collection) => {
@@ -308,21 +302,9 @@ function DocumentMenu({
             {
               type: "separator",
             },
-            actionToMenuItem(deleteDocument, context),
-            actionToMenuItem(permanentlyDeleteDocument, context),
-            {
-              type: "separator",
-            },
             actionToMenuItem(downloadDocument, context),
-            {
-              type: "route",
-              title: t("History"),
-              to: isRevision
-                ? documentUrl(document)
-                : documentHistoryUrl(document),
-              visible: canViewHistory,
-              icon: <HistoryIcon />,
-            },
+            actionToMenuItem(openDocumentHistory, context),
+            actionToMenuItem(openDocumentInsights, context),
             {
               type: "button",
               title: t("Print"),
@@ -330,6 +312,11 @@ function DocumentMenu({
               visible: !!showDisplayOptions,
               icon: <PrintIcon />,
             },
+            {
+              type: "separator",
+            },
+            actionToMenuItem(deleteDocument, context),
+            actionToMenuItem(permanentlyDeleteDocument, context),
           ]}
         />
         {(showDisplayOptions || showToggleEmbeds) && (
