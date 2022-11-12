@@ -44,6 +44,9 @@ class Attachment extends IdModel {
   @Column
   acl: string;
 
+  @Column
+  lastAccessedAt: Date | null;
+
   // getters
 
   get name() {
