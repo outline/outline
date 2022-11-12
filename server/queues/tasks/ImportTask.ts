@@ -357,6 +357,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
             updatedAt: item.updatedAt ?? item.createdAt,
             publishedAt: item.updatedAt ?? item.createdAt ?? new Date(),
             parentDocumentId: item.parentDocumentId,
+            importId: fileOperation.id,
             user,
             ip,
             transaction,
