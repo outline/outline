@@ -2,12 +2,14 @@ import { m } from "framer-motion";
 import { observer } from "mobx-react";
 import { BackIcon } from "outline-icons";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
 import ResizeBorder from "~/components/Sidebar/components/ResizeBorder";
+import Tooltip from "~/components/Tooltip";
 import usePersistedState from "~/hooks/usePersistedState";
 
 type Props = React.HTMLAttributes<HTMLDivElement> & {
@@ -19,6 +21,7 @@ type Props = React.HTMLAttributes<HTMLDivElement> & {
 
 function RightSidebar({ title, onClose, children, border, className }: Props) {
   const theme = useTheme();
+  const { t } = useTranslation();
   const [width, setWidth] = usePersistedState(
     "rightSidebarWidth",
     theme.sidebarWidth
@@ -100,12 +103,14 @@ function RightSidebar({ title, onClose, children, border, className }: Props) {
       <Position style={style} column>
         <Header>
           <Title>{title}</Title>
-          <Button
-            icon={<ForwardIcon />}
-            onClick={onClose}
-            borderOnHover
-            neutral
-          />
+          <Tooltip tooltip={t("Close")} shortcut="Esc" delay={500}>
+            <Button
+              icon={<ForwardIcon />}
+              onClick={onClose}
+              borderOnHover
+              neutral
+            />
+          </Tooltip>
         </Header>
         <Scrollable topShadow>{children}</Scrollable>
         <ResizeBorder

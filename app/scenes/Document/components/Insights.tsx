@@ -47,11 +47,13 @@ function Insights() {
             <Heading>{t("Stats")}</Heading>
             <Text type="secondary" size="small">
               <List>
-                <li>
-                  {t(`{{ count }} minute read`, {
-                    count: stats.total.readingTime,
-                  })}
-                </li>
+                {stats.total.words > 0 && (
+                  <li>
+                    {t(`{{ count }} minute read`, {
+                      count: stats.total.readingTime,
+                    })}
+                  </li>
+                )}
                 <li>{t(`{{ count }} words`, { count: stats.total.words })}</li>
                 <li>
                   {t(`{{ count }} characters`, {
@@ -79,24 +81,6 @@ function Insights() {
                 )}
               </List>
             </Text>
-          </Content>
-          <Content column>
-            <Heading>{t("Views")}</Heading>
-            <Text type="secondary" size="small">
-              {documentViews.length <= 1
-                ? t("No one else has viewed yet")
-                : t(`Viewed {{ count }} times by {{ teamMembers }} people`, {
-                    count: documentViews.reduce(
-                      (memo, view) => memo + view.count,
-                      0
-                    ),
-                    teamMembers: documentViews.length,
-                  })}
-              .
-            </Text>
-            <ListSpacing>
-              <DocumentViews document={document} isOpen />
-            </ListSpacing>
           </Content>
           <Content column>
             <Heading>{t("Collaborators")}</Heading>
@@ -129,6 +113,26 @@ function Insights() {
               />
             </ListSpacing>
           </Content>
+          <Content column>
+            <Heading>{t("Views")}</Heading>
+            <Text type="secondary" size="small">
+              {documentViews.length <= 1
+                ? t("No one else has viewed yet")
+                : t(`Viewed {{ count }} times by {{ teamMembers }} people`, {
+                    count: documentViews.reduce(
+                      (memo, view) => memo + view.count,
+                      0
+                    ),
+                    teamMembers: documentViews.length,
+                  })}
+              .
+            </Text>
+            {documentViews.length > 1 && (
+              <ListSpacing>
+                <DocumentViews document={document} isOpen />
+              </ListSpacing>
+            )}
+          </Content>
         </>
       ) : null}
     </Sidebar>
@@ -145,7 +149,7 @@ function useTextStats(text: string, selectedText: string) {
       words: numTotalWords,
       characters: text.length,
       emoji: matches.length ?? 0,
-      readingTime: Math.floor(numTotalWords / 200),
+      readingTime: Math.max(1, Math.floor(numTotalWords / 200)),
     },
     selected: {
       words: countWords(selectedText),
@@ -176,7 +180,7 @@ const List = styled("ul")`
     display: inline-block;
     font-weight: 600;
     color: ${(props) => props.theme.textTertiary};
-    width: 8px;
+    width: 10px;
   }
 `;
 
