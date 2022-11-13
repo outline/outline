@@ -25,7 +25,7 @@ phases:
     commands:
       - echo DB Migration started on `date`
       - echo Migration on ECS...
-      - run_result=$(aws ecs run-task --launch-type FARGATE --cluster $CLUSTER_NAME --task-definition $TASK_DEFINITION --network-configuration "awsvpcConfiguration={subnets=[$SUBNAT_A,$SUBNET_B],securityGroups=[$SG_ID]}")
+      - run_result=$(aws ecs run-task --launch-type FARGATE --requires-compatibilities "fargate" --cluster $CLUSTER_NAME --task-definition $TASK_DEFINITION --network-configuration "awsvpcConfiguration={subnets=[$SUBNAT_A,$SUBNET_B],securityGroups=[$SG_ID]}")
       - container_arn=$(echo $run_result | jq '.tasks[0].taskArn' | sed -e 's/^"//' -e 's/"$//')
       - echo Container ARN $container_arn
       - aws ecs wait tasks-stopped --cluster  $CLUSTER_NAME --tasks "${container_arn}"
