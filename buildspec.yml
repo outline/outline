@@ -2,7 +2,7 @@ version: 0.2
 phases:
   install:
     runtime-versions:
-      docker: 18
+      docker: 20
   pre_build:
     on-failure: ABORT
     commands:
