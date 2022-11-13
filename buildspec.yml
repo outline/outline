@@ -16,7 +16,7 @@ phases:
     commands:
       - echo Build started on `date`
       - echo Building the Docker image...
-      - docker build -t --cache-from $ECR_REPOSITORY_URI:latest --tag $ECR_REPOSITORY_URI:$IMAGE_TAG .
+      - docker build --cache-from $ECR_REPOSITORY_URI:latest --tag $ECR_REPOSITORY_URI:$IMAGE_TAG .
       - docker push $ECR_REPOSITORY_URI:$IMAGE_TAG
       - docker tag $ECR_REPOSITORY_URI:$IMAGE_TAG $ECR_REPOSITORY_URI:latest
       - docker push $ECR_REPOSITORY_URI:latest
