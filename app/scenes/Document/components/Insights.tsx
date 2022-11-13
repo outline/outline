@@ -94,7 +94,9 @@ function Insights() {
                   })}
               .
             </Text>
-            <DocumentViews document={document} isOpen />
+            <ListSpacing>
+              <DocumentViews document={document} isOpen />
+            </ListSpacing>
           </Content>
           <Content column>
             <Heading>{t("Collaborators")}</Heading>
@@ -104,26 +106,28 @@ function Insights() {
               {t(`Last updated`)}{" "}
               <Time dateTime={document.updatedAt} addSuffix />.
             </Text>
-            <PaginatedList
-              aria-label={t("Collaborators")}
-              items={document.collaborators}
-              renderItem={(model: User) => (
-                <ListItem
-                  key={model.id}
-                  title={model.name}
-                  image={<Avatar model={model} size={32} />}
-                  subtitle={
-                    model.id === document.createdBy.id
-                      ? t("Creator")
-                      : model.id === document.updatedBy.id
-                      ? t("Last edited")
-                      : t("Previously edited")
-                  }
-                  border={false}
-                  small
-                />
-              )}
-            />
+            <ListSpacing>
+              <PaginatedList
+                aria-label={t("Collaborators")}
+                items={document.collaborators}
+                renderItem={(model: User) => (
+                  <ListItem
+                    key={model.id}
+                    title={model.name}
+                    image={<Avatar model={model} size={32} />}
+                    subtitle={
+                      model.id === document.createdBy.id
+                        ? t("Creator")
+                        : model.id === document.updatedBy.id
+                        ? t("Last edited")
+                        : t("Previously edited")
+                    }
+                    border={false}
+                    small
+                  />
+                )}
+              />
+            </ListSpacing>
           </Content>
         </>
       ) : null}
@@ -152,8 +156,15 @@ function useTextStats(text: string, selectedText: string) {
 
 function countWords(text: string): number {
   const t = text.trim();
+
+  // Hyphenated words are counted as two words
   return t ? t.replace(/-/g, " ").split(/\s+/g).length : 0;
 }
+
+const ListSpacing = styled("div")`
+  margin-top: -0.5em;
+  margin-bottom: 0.5em;
+`;
 
 const List = styled("ul")`
   margin: 0;
