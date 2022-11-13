@@ -54,7 +54,6 @@ function Actions({ collection }: Props) {
               {...props}
               borderOnHover
               neutral
-              small
             />
           )}
         />

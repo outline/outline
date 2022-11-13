@@ -2,9 +2,9 @@ import { AnimatePresence } from "framer-motion";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { Switch, Route, useLocation, matchPath } from "react-router-dom";
-import DocumentContext from "~/scenes/Document/components/DocumentContext";
-import type { DocumentContextValue } from "~/scenes/Document/components/DocumentContext";
 import ErrorSuspended from "~/scenes/ErrorSuspended";
+import DocumentContext from "~/components/DocumentContext";
+import type { DocumentContextValue } from "~/components/DocumentContext";
 import Layout from "~/components/Layout";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import Sidebar from "~/components/Sidebar";
@@ -26,14 +26,14 @@ const DocumentHistory = React.lazy(
   () =>
     import(
       /* webpackChunkName: "document-history" */
-      "~/components/DocumentHistory"
+      "~/scenes/Document/components/History"
     )
 );
 const DocumentInsights = React.lazy(
   () =>
     import(
       /* webpackChunkName: "document-insights" */
-      "~/components/DocumentInsights"
+      "~/scenes/Document/components/Insights"
     )
 );
 const CommandBar = React.lazy(
@@ -100,7 +100,7 @@ const AuthenticatedLayout: React.FC = ({ children }) => {
               path: matchDocumentHistory,
             })
               ? "history"
-              : ""
+              : location.pathname
           }
         >
           <Route

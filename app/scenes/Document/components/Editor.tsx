@@ -14,8 +14,8 @@ import {
   documentUrl,
   matchDocumentHistory,
 } from "~/utils/routeHelpers";
+import { useDocumentContext } from "../../../components/DocumentContext";
 import MultiplayerEditor from "./AsyncMultiplayerEditor";
-import { useDocumentContext } from "./DocumentContext";
 import EditableTitle from "./EditableTitle";
 
 type Props = Omit<EditorProps, "extensions"> & {

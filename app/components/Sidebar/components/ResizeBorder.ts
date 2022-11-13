@@ -1,10 +1,11 @@
 import styled from "styled-components";
 
-const ResizeBorder = styled.div`
+const ResizeBorder = styled.div<{ dir?: "left" | "right" }>`
   position: absolute;
   top: 0;
   bottom: 0;
-  right: -1px;
+  right: ${(props) => (props.dir !== "right" ? "-1px" : "auto")};
+  left: ${(props) => (props.dir === "right" ? "-1px" : "auto")};
   width: 2px;
   cursor: col-resize;
 
