@@ -106,6 +106,7 @@ function AuthenticatedRoutes() {
               path={`/doc/${slug}/history/:revisionId?`}
               component={Document}
             />
+            <Route exact path={`/doc/${slug}/insights`} component={Document} />
             <Route exact path={`/doc/${slug}/edit`} component={Document} />
             <Route path={`/doc/${slug}`} component={Document} />
             <Route exact path="/search" component={Search} />

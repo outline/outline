@@ -18,6 +18,8 @@ import {
   CrossIcon,
   ArchiveIcon,
   ShuffleIcon,
+  HistoryIcon,
+  LightBulbIcon,
 } from "outline-icons";
 import * as React from "react";
 import { getEventFiles } from "@shared/utils/files";
@@ -28,7 +30,13 @@ import DocumentTemplatizeDialog from "~/components/DocumentTemplatizeDialog";
 import { createAction } from "~/actions";
 import { DocumentSection } from "~/actions/sections";
 import history from "~/utils/history";
-import { homePath, newDocumentPath, searchPath } from "~/utils/routeHelpers";
+import {
+  documentInsightsUrl,
+  documentHistoryUrl,
+  homePath,
+  newDocumentPath,
+  searchPath,
+} from "~/utils/routeHelpers";
 
 export const openDocument = createAction({
   name: ({ t }) => t("Open document"),
@@ -571,6 +579,46 @@ export const permanentlyDeleteDocument = createAction({
   },
 });
 
+export const openDocumentHistory = createAction({
+  name: ({ t }) => t("History"),
+  section: DocumentSection,
+  icon: <HistoryIcon />,
+  visible: ({ activeDocumentId, stores }) => {
+    const can = stores.policies.abilities(activeDocumentId ?? "");
+    return !!activeDocumentId && can.read && !can.restore;
+  },
+  perform: ({ activeDocumentId, stores }) => {
+    if (!activeDocumentId) {
+      return;
+    }
+    const document = stores.documents.get(activeDocumentId);
+    if (!document) {
+      return;
+    }
+    history.push(documentHistoryUrl(document));
+  },
+});
+
+export const openDocumentInsights = createAction({
+  name: ({ t }) => t("Insights"),
+  section: DocumentSection,
+  icon: <LightBulbIcon />,
+  visible: ({ activeDocumentId, stores }) => {
+    const can = stores.policies.abilities(activeDocumentId ?? "");
+    return !!activeDocumentId && can.read;
+  },
+  perform: ({ activeDocumentId, stores }) => {
+    if (!activeDocumentId) {
+      return;
+    }
+    const document = stores.documents.get(activeDocumentId);
+    if (!document) {
+      return;
+    }
+    history.push(documentInsightsUrl(document));
+  },
+});
+
 export const rootDocumentActions = [
   openDocument,
   archiveDocument,
@@ -590,4 +638,6 @@ export const rootDocumentActions = [
   printDocument,
   pinDocumentToCollection,
   pinDocumentToHome,
+  openDocumentHistory,
+  openDocumentInsights,
 ];

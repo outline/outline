@@ -3,10 +3,13 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { Switch, Route, useLocation, matchPath } from "react-router-dom";
 import ErrorSuspended from "~/scenes/ErrorSuspended";
+import DocumentContext from "~/components/DocumentContext";
+import type { DocumentContextValue } from "~/components/DocumentContext";
 import Layout from "~/components/Layout";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import Sidebar from "~/components/Sidebar";
 import SettingsSidebar from "~/components/Sidebar/Settings";
+import type { Editor as TEditor } from "~/editor";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import history from "~/utils/history";
@@ -23,7 +26,14 @@ const DocumentHistory = React.lazy(
   () =>
     import(
       /* webpackChunkName: "document-history" */
-      "~/components/DocumentHistory"
+      "~/scenes/Document/components/History"
+    )
+);
+const DocumentInsights = React.lazy(
+  () =>
+    import(
+      /* webpackChunkName: "document-insights" */
+      "~/scenes/Document/components/Insights"
     )
 );
 const CommandBar = React.lazy(
@@ -39,6 +49,12 @@ const AuthenticatedLayout: React.FC = ({ children }) => {
   const location = useLocation();
   const can = usePolicy(ui.activeCollectionId);
   const { user, team } = auth;
+  const [documentContext] = React.useState<DocumentContextValue>({
+    editor: null,
+    setEditor: (editor: TEditor) => {
+      documentContext.editor = editor;
+    },
+  });
 
   const goToSearch = (ev: KeyboardEvent) => {
     if (!ev.metaKey && !ev.ctrlKey) {
@@ -84,7 +100,7 @@ const AuthenticatedLayout: React.FC = ({ children }) => {
               path: matchDocumentHistory,
             })
               ? "history"
-              : ""
+              : location.pathname
           }
         >
           <Route
@@ -92,19 +108,26 @@ const AuthenticatedLayout: React.FC = ({ children }) => {
             path={`/doc/${slug}/history/:revisionId?`}
             component={DocumentHistory}
           />
+          <Route
+            key="document-history"
+            path={`/doc/${slug}/insights`}
+            component={DocumentInsights}
+          />
         </Switch>
       </AnimatePresence>
     </React.Suspense>
   );
 
   return (
-    <Layout title={team?.name} sidebar={sidebar} sidebarRight={sidebarRight}>
-      <RegisterKeyDown trigger="n" handler={goToNewDocument} />
-      <RegisterKeyDown trigger="t" handler={goToSearch} />
-      <RegisterKeyDown trigger="/" handler={goToSearch} />
-      {children}
-      <CommandBar />
-    </Layout>
+    <DocumentContext.Provider value={documentContext}>
+      <Layout title={team?.name} sidebar={sidebar} sidebarRight={sidebarRight}>
+        <RegisterKeyDown trigger="n" handler={goToNewDocument} />
+        <RegisterKeyDown trigger="t" handler={goToSearch} />
+        <RegisterKeyDown trigger="/" handler={goToSearch} />
+        {children}
+        <CommandBar />
+      </Layout>
+    </DocumentContext.Provider>
   );
 };
 

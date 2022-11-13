@@ -152,6 +152,13 @@ export default class Document extends ParanoidModel {
     );
   }
 
+  @computed
+  get collaborators(): User[] {
+    return this.collaboratorIds
+      .map((id) => this.store.rootStore.users.get(id))
+      .filter(Boolean) as User[];
+  }
+
   /**
    * Returns whether there is a subscription for this document in the store.
    * Does not consider remote state.
