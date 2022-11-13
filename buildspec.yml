@@ -10,12 +10,13 @@ phases:
       - echo Logging in to Amazon ECR...
       - $(aws ecr get-login --region $AWS_DEFAULT_REGION --no-include-email)
       - IMAGE_TAG=release-$CODEBUILD_RESOLVED_SOURCE_VERSION
+      - docker pull $ECR_REPOSITORY_URI:latest || true
   build:
     on-failure: ABORT
     commands:
       - echo Build started on `date`
       - echo Building the Docker image...
-      - docker build -t $ECR_REPOSITORY_URI:$IMAGE_TAG .
+      - docker build -t --cache-from $ECR_REPOSITORY_URI:latest --tag $ECR_REPOSITORY_URI:$IMAGE_TAG .
       - docker push $ECR_REPOSITORY_URI:$IMAGE_TAG
       - docker tag $ECR_REPOSITORY_URI:$IMAGE_TAG $ECR_REPOSITORY_URI:latest
       - docker push $ECR_REPOSITORY_URI:latest
