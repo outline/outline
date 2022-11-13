@@ -6,7 +6,7 @@ phases:
   pre_build:
     on-failure: ABORT
     commands:
-      - ECR_REPOSITORY_URI={ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME}
+      - ECR_REPOSITORY_URI=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME}
       - echo Logging in to Amazon ECR...
       - $(aws ecr get-login --region $AWS_DEFAULT_REGION --no-include-email)
       - IMAGE_TAG=release-$CODEBUILD_RESOLVED_SOURCE_VERSION
