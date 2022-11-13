@@ -6,7 +6,7 @@ phases:
   pre_build:
     on-failure: ABORT
     commands:
-      - BASE_IMAGE=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${BASE_IMAGE_REPO_NAME}:${BASE_IMAGE_NAME}
+      - ECR_REPOSITORY_URI={ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME}
       - echo Logging in to Amazon ECR...
       - $(aws ecr get-login --region $AWS_DEFAULT_REGION --no-include-email)
       - IMAGE_TAG=release-$CODEBUILD_RESOLVED_SOURCE_VERSION
@@ -16,6 +16,9 @@ phases:
       - echo Build started on `date`
       - echo Building the Docker image...
       - docker build -t $ECR_REPOSITORY_URI:$IMAGE_TAG .
+      - docker push ECR_REPOSITORY_URI:$IMAGE_TAG
+      - docker tag ECR_REPOSITORY_URI:$IMAGE_TAG ECR_REPOSITORY_URI:latest
+      - docker push ECR_REPOSITORY_URI:latest
   post_build:
     on-failure: ABORT
     commands:
