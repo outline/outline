@@ -2959,10 +2959,10 @@
   dependencies:
     "@types/koa" "*"
 
-"@types/koa-sslify@^2.1.0":
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/@types/koa-sslify/-/koa-sslify-2.1.0.tgz#549f0ffed299f355228f773168c3de5662553876"
-  integrity sha512-wd6P0lPcnj5TWruzLucmQ75cdxkYVSimNAEpyKNRJ4wju8jruhJZYGod4l2R9ODq3LoBKtp/yd6PZu7c+w5/xg==
+"@types/koa-sslify@^4.0.3":
+  version "4.0.3"
+  resolved "https://registry.yarnpkg.com/@types/koa-sslify/-/koa-sslify-4.0.3.tgz#c0fe5a3abe9ec3a8ca9225b7c467b54f505c083b"
+  integrity sha512-FfbgV4Dex2FtnonU6uAA0BhEh+pGTWY63UkP14+StrlC0e3RNOGx6GZc3HMN3wzBRNchLhcnkyO7/hHLnx3bPw==
   dependencies:
     "@types/koa" "*"
 
@@ -10142,10 +10142,10 @@ koa-send@5.0.1, koa-send@^5.0.0:
     http-errors "^1.7.3"
     resolve-path "^1.4.0"
 
-koa-sslify@2.1.2:
-  version "2.1.2"
-  resolved "https://registry.yarnpkg.com/koa-sslify/-/koa-sslify-2.1.2.tgz#8947fd53949d69d539607814097863c1ecf38f30"
-  integrity sha1-iUf9U5SdadU5YHgUCXhjwezzjzA=
+koa-sslify@5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/koa-sslify/-/koa-sslify-5.0.0.tgz#f3047de9afc92ad960208cea87fcac43795791a7"
+  integrity sha512-3Qc/DxPcH4BavYkt7xOVDFbaS7nR8oCozb/0dlIpLlyGVhFXcjHETWBwE3QrDLwjKOVJj6ykwRJoNzPT9QxCag==
 
 koa-static@^5.0.0:
   version "5.0.0"
