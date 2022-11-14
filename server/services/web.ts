@@ -23,6 +23,7 @@ const scriptSrc = [
   "'unsafe-inline'",
   "'unsafe-eval'",
   "gist.github.com",
+  "cdn.zapier.com",
 ];
 
 if (env.GOOGLE_ANALYTICS_ID) {
@@ -107,7 +108,12 @@ export default function init(app: Koa = new Koa()): Koa {
       directives: {
         defaultSrc,
         scriptSrc,
-        styleSrc: ["'self'", "'unsafe-inline'", "github.githubassets.com"],
+        styleSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          "github.githubassets.com",
+          "cdn.zapier.com",
+        ],
         imgSrc: ["*", "data:", "blob:"],
         frameSrc: ["*", "data:"],
         connectSrc: ["*"], // Do not use connect-src: because self + websockets does not work in
