@@ -6,7 +6,7 @@ import {
   referrerPolicy,
 } from "koa-helmet";
 import mount from "koa-mount";
-import enforceHttps from "koa-sslify";
+import enforceHttps, { xForwardedProtoResolver } from "koa-sslify";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import routes from "../routes";
@@ -40,7 +40,7 @@ export default function init(app: Koa = new Koa()): Koa {
     if (env.FORCE_HTTPS) {
       app.use(
         enforceHttps({
-          trustProtoHeader: true,
+          resolver: xForwardedProtoResolver,
         })
       );
     } else {
