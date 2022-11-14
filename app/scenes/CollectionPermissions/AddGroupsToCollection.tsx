@@ -1,10 +1,8 @@
 import { debounce } from "lodash";
-import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { withTranslation, WithTranslation } from "react-i18next";
+import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import RootStore from "~/stores/RootStore";
 import Collection from "~/models/Collection";
 import Group from "~/models/Group";
 import GroupNew from "~/scenes/GroupNew";
@@ -17,50 +15,59 @@ import Input from "~/components/Input";
 import Modal from "~/components/Modal";
 import PaginatedList from "~/components/PaginatedList";
 import Text from "~/components/Text";
-import withStores from "~/components/withStores";
+import useBoolean from "~/hooks/useBoolean";
+import useStores from "~/hooks/useStores";
 
-type Props = WithTranslation &
-  RootStore & {
-    collection: Collection;
-    onSubmit: () => void;
-  };
+type Props = {
+  collection: Collection;
+  onSubmit: () => void;
+};
 
-@observer
-class AddGroupsToCollection extends React.Component<Props> {
-  @observable
-  newGroupModalOpen = false;
+function AddGroupsToCollection(props: Props) {
+  const { collection } = props;
 
-  @observable
-  query = "";
+  const [
+    newGroupModalOpen,
+    handleNewGroupModalOpen,
+    handleNewGroupModalClose,
+  ] = useBoolean(false);
+  const [query, setQuery] = React.useState("");
 
-  handleNewGroupModalOpen = () => {
-    this.newGroupModalOpen = true;
-  };
+  const {
+    auth,
+    collectionGroupMemberships,
+    groups,
+    policies,
+    toasts,
+  } = useStores();
+  const { fetchPage: fetchGroups } = groups;
 
-  handleNewGroupModalClose = () => {
-    this.newGroupModalOpen = false;
-  };
+  const { t } = useTranslation();
 
-  handleFilter = (ev: React.ChangeEvent<HTMLInputElement>) => {
-    this.query = ev.target.value;
-    this.debouncedFetch();
-  };
+  const debouncedFetch = React.useMemo(
+    () =>
+      debounce((query) => {
+        fetchGroups({ query });
+      }, 250),
+    [fetchGroups]
+  );
 
-  debouncedFetch = debounce(() => {
-    this.props.groups.fetchPage({
-      query: this.query,
-    });
-  }, 250);
+  const handleFilter = React.useCallback(
+    (ev: React.ChangeEvent<HTMLInputElement>) => {
+      const updatedQuery = ev.target.value;
+      setQuery(updatedQuery);
+      debouncedFetch(updatedQuery);
+    },
+    [debouncedFetch]
+  );
 
-  handleAddGroup = (group: Group) => {
-    const { t } = this.props;
-
+  const handleAddGroup = (group: Group) => {
     try {
-      this.props.collectionGroupMemberships.create({
-        collectionId: this.props.collection.id,
+      collectionGroupMemberships.create({
+        collectionId: collection.id,
         groupId: group.id,
       });
-      this.props.toasts.showToast(
+      toasts.showToast(
         t("{{ groupName }} was added to the collection", {
           groupName: group.name,
         }),
@@ -69,84 +76,81 @@ class AddGroupsToCollection extends React.Component<Props> {
         }
       );
     } catch (err) {
-      this.props.toasts.showToast(t("Could not add user"), {
+      toasts.showToast(t("Could not add user"), {
         type: "error",
       });
       console.error(err);
     }
   };
 
-  render() {
-    const { groups, policies, collection, auth, t } = this.props;
-    const { user, team } = auth;
-    if (!user || !team) {
-      return null;
-    }
-
-    const can = policies.abilities(team.id);
-
-    return (
-      <Flex column>
-        {can.createGroup && (
-          <Text type="secondary">
-            {t("Can’t find the group you’re looking for?")}{" "}
-            <ButtonLink onClick={this.handleNewGroupModalOpen}>
-              {t("Create a group")}
-            </ButtonLink>
-            .
-          </Text>
-        )}
-
-        <Input
-          type="search"
-          placeholder={`${t("Search by group name")}…`}
-          value={this.query}
-          onChange={this.handleFilter}
-          label={t("Search groups")}
-          labelHidden
-          flex
-        />
-        <PaginatedList
-          empty={
-            this.query ? (
-              <Empty>{t("No groups matching your search")}</Empty>
-            ) : (
-              <Empty>{t("No groups left to add")}</Empty>
-            )
-          }
-          items={groups.notInCollection(collection.id, this.query)}
-          fetch={this.query ? undefined : groups.fetchPage}
-          renderItem={(item: Group) => (
-            <GroupListItem
-              key={item.id}
-              group={item}
-              showFacepile
-              renderActions={() => (
-                <ButtonWrap>
-                  <Button onClick={() => this.handleAddGroup(item)} neutral>
-                    {t("Add")}
-                  </Button>
-                </ButtonWrap>
-              )}
-            />
-          )}
-        />
-        {can.createGroup && (
-          <Modal
-            title={t("Create a group")}
-            onRequestClose={this.handleNewGroupModalClose}
-            isOpen={this.newGroupModalOpen}
-          >
-            <GroupNew onSubmit={this.handleNewGroupModalClose} />
-          </Modal>
-        )}
-      </Flex>
-    );
+  const { user, team } = auth;
+  if (!user || !team) {
+    return null;
   }
+
+  const can = policies.abilities(team.id);
+
+  return (
+    <Flex column>
+      {can.createGroup ? (
+        <Text type="secondary">
+          {t("Can’t find the group you’re looking for?")}{" "}
+          <ButtonLink onClick={handleNewGroupModalOpen}>
+            {t("Create a group")}
+          </ButtonLink>
+          .
+        </Text>
+      ) : null}
+
+      <Input
+        type="search"
+        placeholder={`${t("Search by group name")}…`}
+        value={query}
+        onChange={handleFilter}
+        label={t("Search groups")}
+        labelHidden
+        flex
+      />
+      <PaginatedList
+        empty={
+          query ? (
+            <Empty>{t("No groups matching your search")}</Empty>
+          ) : (
+            <Empty>{t("No groups left to add")}</Empty>
+          )
+        }
+        items={groups.notInCollection(collection.id, query)}
+        fetch={query ? undefined : fetchGroups}
+        renderItem={(item: Group) => (
+          <GroupListItem
+            key={item.id}
+            group={item}
+            showFacepile
+            renderActions={() => (
+              <ButtonWrap>
+                <Button onClick={() => handleAddGroup(item)} neutral>
+                  {t("Add")}
+                </Button>
+              </ButtonWrap>
+            )}
+          />
+        )}
+      />
+      {can.createGroup ? (
+        <Modal
+          title={t("Create a group")}
+          onRequestClose={handleNewGroupModalClose}
+          isOpen={newGroupModalOpen}
+        >
+          <GroupNew onSubmit={handleNewGroupModalClose} />
+        </Modal>
+      ) : null}
+    </Flex>
+  );
 }
 
 const ButtonWrap = styled.div`
   margin-left: 6px;
 `;
 
-export default withTranslation()(withStores(AddGroupsToCollection));
+export default observer(AddGroupsToCollection);

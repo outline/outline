@@ -1,4 +1,5 @@
 import Router from "koa-router";
+import { sequelize } from "@server/database/sequelize";
 import auth from "@server/middlewares/authentication";
 import { AuthenticationProvider, Event } from "@server/models";
 import { authorize } from "@server/policies";
@@ -11,80 +12,108 @@ import allAuthenticationProviders from "../auth/providers";
 
 const router = new Router();
 
-router.post("authenticationProviders.info", auth(), async (ctx) => {
-  const { id } = ctx.body;
-  assertUuid(id, "id is required");
-  const { user } = ctx.state;
-  const authenticationProvider = await AuthenticationProvider.findByPk(id);
-  authorize(user, "read", authenticationProvider);
+router.post(
+  "authenticationProviders.info",
+  auth({ admin: true }),
+  async (ctx) => {
+    const { id } = ctx.request.body;
+    assertUuid(id, "id is required");
 
-  ctx.body = {
-    data: presentAuthenticationProvider(authenticationProvider),
-    policies: presentPolicies(user, [authenticationProvider]),
-  };
-});
+    const { user } = ctx.state;
+    const authenticationProvider = await AuthenticationProvider.findByPk(id);
+    authorize(user, "read", authenticationProvider);
 
-router.post("authenticationProviders.update", auth(), async (ctx) => {
-  const { id, isEnabled } = ctx.body;
-  assertUuid(id, "id is required");
-  assertPresent(isEnabled, "isEnabled is required");
-  const { user } = ctx.state;
-  const authenticationProvider = await AuthenticationProvider.findByPk(id);
-  authorize(user, "update", authenticationProvider);
-  const enabled = !!isEnabled;
-
-  if (enabled) {
-    await authenticationProvider.enable();
-  } else {
-    await authenticationProvider.disable();
+    ctx.body = {
+      data: presentAuthenticationProvider(authenticationProvider),
+      policies: presentPolicies(user, [authenticationProvider]),
+    };
   }
+);
 
-  await Event.create({
-    name: "authenticationProviders.update",
-    data: {
-      enabled,
-    },
-    modelId: id,
-    teamId: user.teamId,
-    actorId: user.id,
-    ip: ctx.request.ip,
-  });
+router.post(
+  "authenticationProviders.update",
+  auth({ admin: true }),
+  async (ctx) => {
+    const { id, isEnabled } = ctx.request.body;
+    assertUuid(id, "id is required");
+    assertPresent(isEnabled, "isEnabled is required");
+    const { user } = ctx.state;
 
-  ctx.body = {
-    data: presentAuthenticationProvider(authenticationProvider),
-    policies: presentPolicies(user, [authenticationProvider]),
-  };
-});
+    const authenticationProvider = await sequelize.transaction(
+      async (transaction) => {
+        const authenticationProvider = await AuthenticationProvider.findByPk(
+          id,
+          {
+            transaction,
+            lock: transaction.LOCK.UPDATE,
+          }
+        );
 
-router.post("authenticationProviders.list", auth(), async (ctx) => {
-  const { user } = ctx.state;
-  authorize(user, "read", user.team);
+        authorize(user, "update", authenticationProvider);
+        const enabled = !!isEnabled;
 
-  const teamAuthenticationProviders = await user.team.$get(
-    "authenticationProviders"
-  );
+        if (enabled) {
+          await authenticationProvider.enable({ transaction });
+        } else {
+          await authenticationProvider.disable({ transaction });
+        }
 
-  const otherAuthenticationProviders = allAuthenticationProviders.filter(
-    (p) =>
-      // @ts-expect-error ts-migrate(7006) FIXME: Parameter 't' implicitly has an 'any' type.
-      !teamAuthenticationProviders.find((t) => t.name === p.id) &&
-      p.enabled && // email auth is dealt with separetly right now, although it definitely
-      // wants to be here in the future – we'll need to migrate more data though
-      p.id !== "email"
-  );
+        await Event.create(
+          {
+            name: "authenticationProviders.update",
+            data: {
+              enabled,
+            },
+            modelId: id,
+            teamId: user.teamId,
+            actorId: user.id,
+            ip: ctx.request.ip,
+          },
+          { transaction }
+        );
 
-  ctx.body = {
-    data: {
-      authenticationProviders: [
-        ...teamAuthenticationProviders.map(presentAuthenticationProvider),
-        ...otherAuthenticationProviders.map((p) => ({
+        return authenticationProvider;
+      }
+    );
+
+    ctx.body = {
+      data: presentAuthenticationProvider(authenticationProvider),
+      policies: presentPolicies(user, [authenticationProvider]),
+    };
+  }
+);
+
+router.post(
+  "authenticationProviders.list",
+  auth({ admin: true }),
+  async (ctx) => {
+    const { user } = ctx.state;
+    authorize(user, "read", user.team);
+
+    const teamAuthenticationProviders = (await user.team.$get(
+      "authenticationProviders"
+    )) as AuthenticationProvider[];
+
+    const data = allAuthenticationProviders
+      .filter((p) => p.id !== "email")
+      .map((p) => {
+        const row = teamAuthenticationProviders.find((t) => t.name === p.id);
+
+        return {
+          id: p.id,
           name: p.id,
+          displayName: p.name,
           isEnabled: false,
           isConnected: false,
-        })),
-      ],
-    },
-  };
-});
+          ...(row ? presentAuthenticationProvider(row) : {}),
+        };
+      })
+      .sort((a) => (a.isEnabled ? -1 : 1));
+
+    ctx.body = {
+      data,
+    };
+  }
+);
 
 export default router;

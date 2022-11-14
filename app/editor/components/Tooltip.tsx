@@ -7,7 +7,7 @@ type Props = {
 };
 
 const WrappedTooltip: React.FC<Props> = ({ children, tooltip }) => (
-  <Tooltip offset="0, 8" delay={150} tooltip={tooltip} placement="top">
+  <Tooltip offset={[0, 16]} delay={150} tooltip={tooltip} placement="top">
     <TooltipContent>{children}</TooltipContent>
   </Tooltip>
 );

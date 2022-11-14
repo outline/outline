@@ -10,7 +10,7 @@ import { assertPresent, assertUuid } from "@server/validation";
 const router = new Router();
 
 router.post("notificationSettings.create", auth(), async (ctx) => {
-  const { event } = ctx.body;
+  const { event } = ctx.request.body;
   assertPresent(event, "event is required");
 
   const { user } = ctx.state;
@@ -42,7 +42,7 @@ router.post("notificationSettings.list", auth(), async (ctx) => {
 });
 
 router.post("notificationSettings.delete", auth(), async (ctx) => {
-  const { id } = ctx.body;
+  const { id } = ctx.request.body;
   assertUuid(id, "id is required");
 
   const { user } = ctx.state;
@@ -57,7 +57,12 @@ router.post("notificationSettings.delete", auth(), async (ctx) => {
 });
 
 const handleUnsubscribe = async (ctx: ContextWithState) => {
-  const { id, token } = ctx.body as { id?: string; token?: string };
+  const { id, token } = (ctx.method === "POST"
+    ? ctx.request.body
+    : ctx.request.query) as {
+    id?: string;
+    token?: string;
+  };
   assertUuid(id, "id is required");
   assertPresent(token, "token is required");
 

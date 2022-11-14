@@ -19,7 +19,7 @@ type Props = {
 type Result = {
   document: Document;
   share?: Share;
-  collection: Collection;
+  collection?: Collection | null;
 };
 
 export default async function loadDocument({

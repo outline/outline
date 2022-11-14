@@ -5,14 +5,10 @@ import {
   buildCollection,
   buildUser,
 } from "@server/test/factories";
-import { getTestDatabase, seed } from "@server/test/support";
+import { setupTestDatabase, seed } from "@server/test/support";
 import documentMover from "./documentMover";
 
-const db = getTestDatabase();
-
-afterAll(db.disconnect);
-
-beforeEach(db.flush);
+setupTestDatabase();
 
 describe("documentMover", () => {
   const ip = "127.0.0.1";
@@ -77,7 +73,7 @@ describe("documentMover", () => {
     );
     expect(response.collections.length).toEqual(1);
     expect(response.documents.length).toEqual(1);
-    expect(response.documents[0].collection.id).toEqual(collection.id);
+    expect(response.documents[0].collection?.id).toEqual(collection.id);
     expect(response.documents[0].updatedBy.id).toEqual(user.id);
   });
 
@@ -116,9 +112,9 @@ describe("documentMover", () => {
     expect(response.collections.length).toEqual(2);
     expect(response.documents.length).toEqual(2);
 
-    expect(response.documents[0].collection.id).toEqual(newCollection.id);
+    expect(response.documents[0].collection?.id).toEqual(newCollection.id);
     expect(response.documents[0].updatedBy.id).toEqual(user.id);
-    expect(response.documents[1].collection.id).toEqual(newCollection.id);
+    expect(response.documents[1].collection?.id).toEqual(newCollection.id);
     expect(response.documents[1].updatedBy.id).toEqual(user.id);
   });
 
@@ -155,7 +151,7 @@ describe("documentMover", () => {
     expect(response.collections.length).toEqual(2);
     expect(response.documents.length).toEqual(1);
 
-    expect(response.documents[0].collection.id).toEqual(newCollection.id);
+    expect(response.documents[0].collection?.id).toEqual(newCollection.id);
     expect(response.documents[0].updatedBy.id).toEqual(user.id);
   });
 });

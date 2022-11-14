@@ -59,6 +59,7 @@ export default class ComponentView {
 
     this.renderElement();
     window.addEventListener("theme-changed", this.renderElement);
+    window.addEventListener("location-changed", this.renderElement);
   }
 
   renderElement = () => {
@@ -107,9 +108,11 @@ export default class ComponentView {
   }
 
   destroy() {
+    window.removeEventListener("theme-changed", this.renderElement);
+    window.removeEventListener("location-changed", this.renderElement);
+
     if (this.dom) {
       ReactDOM.unmountComponentAtNode(this.dom);
-      window.removeEventListener("theme-changed", this.renderElement);
     }
     this.dom = null;
   }

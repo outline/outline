@@ -15,7 +15,7 @@ import pagination from "./middlewares/pagination";
 const router = new Router();
 
 router.post("fileOperations.info", auth({ admin: true }), async (ctx) => {
-  const { id } = ctx.body;
+  const { id } = ctx.request.body;
   assertUuid(id, "id is required");
   const { user } = ctx.state;
   const fileOperation = await FileOperation.findByPk(id, {
@@ -34,8 +34,8 @@ router.post(
   auth({ admin: true }),
   pagination(),
   async (ctx) => {
-    let { direction } = ctx.body;
-    const { sort = "createdAt", type } = ctx.body;
+    let { direction } = ctx.request.body;
+    const { sort = "createdAt", type } = ctx.request.body;
     assertIn(type, Object.values(FileOperationType));
     assertSort(sort, FileOperation);
 
@@ -51,13 +51,13 @@ router.post(
     authorize(user, "manage", team);
 
     const [exports, total] = await Promise.all([
-      await FileOperation.findAll({
+      FileOperation.findAll({
         where,
         order: [[sort, direction]],
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
       }),
-      await FileOperation.count({
+      FileOperation.count({
         where,
       }),
     ]);
@@ -70,7 +70,7 @@ router.post(
 );
 
 const handleFileOperationsRedirect = async (ctx: ContextWithState) => {
-  const { id } = ctx.body as { id?: string };
+  const id = ctx.request.body?.id ?? ctx.request.query?.id;
   assertUuid(id, "id is required");
 
   const { user } = ctx.state;
@@ -99,7 +99,7 @@ router.post(
 );
 
 router.post("fileOperations.delete", auth({ admin: true }), async (ctx) => {
-  const { id } = ctx.body;
+  const { id } = ctx.request.body;
   assertUuid(id, "id is required");
 
   const { user } = ctx.state;

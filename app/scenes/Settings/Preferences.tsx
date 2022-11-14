@@ -9,6 +9,7 @@ import Heading from "~/components/Heading";
 import InputSelect from "~/components/InputSelect";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
+import Text from "~/components/Text";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
@@ -55,7 +56,11 @@ function Preferences() {
       icon={<SettingsIcon color="currentColor" />}
     >
       <Heading>{t("Preferences")}</Heading>
+      <Text type="secondary">
+        <Trans>Manage settings that affect your personal experience.</Trans>
+      </Text>
 
+      <Heading as="h2">{t("Display")}</Heading>
       <SettingRow
         label={t("Language")}
         name="language"
@@ -98,6 +103,21 @@ function Preferences() {
           onChange={handlePreferenceChange}
         />
       </SettingRow>
+      <SettingRow
+        name="codeBlockLineNumbers"
+        label={t("Show line numbers")}
+        description={t("Show line numbers on code blocks in documents.")}
+        border={false}
+      >
+        <Switch
+          id="codeBlockLineNumbers"
+          name="codeBlockLineNumbers"
+          checked={user.getPreference(UserPreference.CodeBlockLineNumers, true)}
+          onChange={handlePreferenceChange}
+        />
+      </SettingRow>
+
+      <Heading as="h2">{t("Behavior")}</Heading>
       <SettingRow
         border={false}
         name="rememberLastPath"

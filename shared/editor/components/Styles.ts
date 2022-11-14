@@ -137,12 +137,16 @@ li {
   text-align: center;
   max-width: 100%;
   clear: both;
+  position: relative;
+  z-index: 1;
 
   img {
     pointer-events: ${props.readOnly ? "initial" : "none"};
     display: inline-block;
     max-width: 100%;
-    max-height: 75vh;
+    transition-property: width, height;
+    transition-duration: 150ms;
+    transition-timing-function: ease-in-out;
   }
 
   .ProseMirror-selectednode img {
@@ -168,7 +172,7 @@ li {
 
 .image-right-50 {
   float: right;
-  width: 50%;
+  width: 33.3%;
   margin-left: 2em;
   margin-bottom: 1em;
   clear: initial;
@@ -176,7 +180,7 @@ li {
 
 .image-left-50 {
   float: left;
-  width: 50%;
+  width: 33.3%;
   margin-right: 2em;
   margin-bottom: 1em;
   clear: initial;
@@ -639,8 +643,7 @@ ul.checkbox_list li {
 }
 
 ul.checkbox_list li.checked > div > p {
-  color: ${props.theme.textSecondary};
-  text-decoration: line-through;
+  color: ${props.theme.textTertiary};
 }
 
 ul li::before,
@@ -874,6 +877,21 @@ mark {
       display: none;
     }
   }
+}
+
+.code-block.with-line-numbers {
+  pre {
+    padding-left: calc(var(--line-number-gutter-width, 0) * 1em + 1.5em);
+  }
+}
+
+.code-block .line-numbers {
+  position: absolute;
+  left: 1em;
+  color: ${props.theme.textTertiary};
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  user-select: none;
 }
 
 .mermaid-diagram-wrapper {
@@ -1295,7 +1313,8 @@ del {
 }
 
 del[data-operation-index] {
-  background-color: ${props.theme.slateLight};
+  color: ${props.theme.textDeleted};
+  background-color: ${props.theme.textDeletedBackground};
   
   img {
     opacity: .5;

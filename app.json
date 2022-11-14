@@ -195,8 +195,8 @@
       "description": "An API key for Sentry if you wish to collect error reporting (optional)",
       "required": false
     },
-    "TEAM_LOGO": {
-      "description": "A logo that will be displayed on the signed out home page",
+    "SENTRY_TUNNEL": {
+      "description": "A sentry tunnel URL for bypassing ad blockers in the UI (optional)",
       "required": false
     },
     "DEFAULT_LANGUAGE": {

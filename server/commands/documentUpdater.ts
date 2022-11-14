@@ -21,6 +21,8 @@ type Props = {
   append?: boolean;
   /** Whether the document should be published to the collection */
   publish?: boolean;
+  /** The ID of the collection to publish the document to */
+  collectionId?: string;
   /** The IP address of the user creating the document */
   ip: string;
   /** The database transaction to run within */
@@ -44,6 +46,7 @@ export default async function documentUpdater({
   fullWidth,
   append,
   publish,
+  collectionId,
   transaction,
   ip,
 }: Props): Promise<Document> {
@@ -74,7 +77,9 @@ export default async function documentUpdater({
   const changed = document.changed();
 
   if (publish) {
-    document.lastModifiedById = user.id;
+    if (!document.collectionId) {
+      document.collectionId = collectionId as string;
+    }
     await document.publish(user.id, { transaction });
 
     await Event.create(
@@ -112,7 +117,7 @@ export default async function documentUpdater({
   }
 
   if (document.title !== previousTitle) {
-    Event.schedule({
+    await Event.schedule({
       name: "documents.title_change",
       documentId: document.id,
       collectionId: document.collectionId,

@@ -3,16 +3,13 @@ import {
   buildUser,
   buildTeam,
   buildDocument,
+  buildDraftDocument,
   buildCollection,
 } from "@server/test/factories";
-import { getTestDatabase } from "@server/test/support";
+import { setupTestDatabase } from "@server/test/support";
 import { serialize } from "./index";
 
-const db = getTestDatabase();
-
-afterAll(db.disconnect);
-
-beforeEach(db.flush);
+setupTestDatabase();
 
 describe("read_write collection", () => {
   it("should allow read write permissions for member", async () => {
@@ -114,5 +111,37 @@ describe("private collection", () => {
     expect(abilities.delete).toEqual(false);
     expect(abilities.share).toEqual(false);
     expect(abilities.move).toEqual(false);
+  });
+});
+
+describe("no collection", () => {
+  it("should grant same permissions as that on a draft document except the share permission", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({
+      teamId: team.id,
+    });
+    const document = await buildDraftDocument({
+      teamId: team.id,
+    });
+    const abilities = serialize(user, document);
+    expect(abilities.archive).toEqual(false);
+    expect(abilities.createChildDocument).toEqual(false);
+    expect(abilities.delete).toEqual(true);
+    expect(abilities.download).toEqual(true);
+    expect(abilities.move).toEqual(false);
+    expect(abilities.permanentDelete).toEqual(false);
+    expect(abilities.pin).toEqual(false);
+    expect(abilities.pinToHome).toEqual(false);
+    expect(abilities.read).toEqual(true);
+    expect(abilities.restore).toEqual(false);
+    expect(abilities.share).toEqual(false);
+    expect(abilities.star).toEqual(true);
+    expect(abilities.subscribe).toEqual(false);
+    expect(abilities.unarchive).toEqual(false);
+    expect(abilities.unpin).toEqual(false);
+    expect(abilities.unpublish).toEqual(false);
+    expect(abilities.unstar).toEqual(true);
+    expect(abilities.unsubscribe).toEqual(false);
+    expect(abilities.update).toEqual(true);
   });
 });

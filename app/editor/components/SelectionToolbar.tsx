@@ -108,7 +108,7 @@ export default class SelectionToolbar extends React.Component<Props> {
       return;
     }
 
-    if (!this.isActive) {
+    if (!this.isActive || document.activeElement?.tagName === "INPUT") {
       return;
     }
 

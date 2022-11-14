@@ -1,8 +1,8 @@
 import { Schema } from "prosemirror-model";
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
-import fullPackage from "@shared/editor/packages/full";
+import extensionsPackage from "@shared/editor/packages/fullWithComments";
 
-const extensions = new ExtensionManager(fullPackage);
+const extensions = new ExtensionManager(extensionsPackage);
 
 export const schema = new Schema({
   nodes: extensions.nodes,

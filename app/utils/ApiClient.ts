@@ -9,6 +9,7 @@ import Logger from "./Logger";
 import download from "./download";
 import {
   AuthorizationError,
+  BadGatewayError,
   BadRequestError,
   NetworkError,
   NotFoundError,
@@ -101,6 +102,7 @@ class ApiClient {
     }
 
     let response;
+    const timeStart = window.performance.now();
 
     try {
       response = await fetchWithRetry(urlToFetch, {
@@ -127,6 +129,7 @@ class ApiClient {
       }
     }
 
+    const timeEnd = window.performance.now();
     const success = response.status >= 200 && response.status < 300;
 
     if (options.download && success) {
@@ -193,6 +196,12 @@ class ApiClient {
     if (response.status === 429) {
       throw new RateLimitExceededError(
         `Too many requests, try again in a minute.`
+      );
+    }
+
+    if (response.status === 502) {
+      throw new BadGatewayError(
+        `Request to ${urlToFetch} failed in ${timeEnd - timeStart}ms.`
       );
     }
 

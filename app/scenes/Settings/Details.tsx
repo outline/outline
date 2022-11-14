@@ -26,7 +26,6 @@ function Details() {
   const form = useRef<HTMLFormElement>(null);
   const [name, setName] = useState(team.name);
   const [subdomain, setSubdomain] = useState(team.subdomain);
-  const [avatarUrl, setAvatarUrl] = useState<string>(team.avatarUrl);
   const [defaultCollectionId, setDefaultCollectionId] = useState<string | null>(
     team.defaultCollectionId
   );
@@ -40,7 +39,6 @@ function Details() {
       try {
         await auth.updateTeam({
           name,
-          avatarUrl,
           subdomain,
           defaultCollectionId,
         });
@@ -53,7 +51,7 @@ function Details() {
         });
       }
     },
-    [auth, name, avatarUrl, subdomain, defaultCollectionId, showToast, t]
+    [auth, name, subdomain, defaultCollectionId, showToast, t]
   );
 
   const handleNameChange = React.useCallback(
@@ -71,7 +69,6 @@ function Details() {
   );
 
   const handleAvatarUpload = async (avatarUrl: string) => {
-    setAvatarUrl(avatarUrl);
     await auth.updateTeam({
       avatarUrl,
     });
@@ -115,7 +112,7 @@ function Details() {
           <ImageInput
             onSuccess={handleAvatarUpload}
             onError={handleAvatarError}
-            src={avatarUrl}
+            model={team}
             borderRadius={0}
           />
         </SettingRow>
@@ -123,7 +120,7 @@ function Details() {
           label={t("Name")}
           name="name"
           description={t(
-            "The team name, usually the same as your company name."
+            "The workspace name, usually the same as your company name."
           )}
         >
           <Input
@@ -165,7 +162,7 @@ function Details() {
           label={t("Start view")}
           name="defaultCollectionId"
           description={t(
-            "This is the screen that team members will first see when they sign in."
+            "This is the screen that workspace members will first see when they sign in."
           )}
         >
           <DefaultCollectionInputSelect

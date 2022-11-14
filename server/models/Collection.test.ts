@@ -7,17 +7,14 @@ import {
   buildTeam,
   buildDocument,
 } from "@server/test/factories";
-import { getTestDatabase, seed } from "@server/test/support";
+import { setupTestDatabase, seed } from "@server/test/support";
 import slugify from "@server/utils/slugify";
 import Collection from "./Collection";
 import Document from "./Document";
 
-const db = getTestDatabase();
+setupTestDatabase();
 
-afterAll(db.disconnect);
-
-beforeEach(async () => {
-  await db.flush();
+beforeEach(() => {
   jest.resetAllMocks();
 });
 

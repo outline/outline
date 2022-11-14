@@ -104,18 +104,16 @@ const MembershipPreview = ({ collection, limit = 8 }: Props) => {
           users={sortBy(collectionUsers, "lastActiveAt")}
           overflow={overflow}
           limit={limit}
-          renderAvatar={(user) => (
-            <StyledAvatar user={user} src={user.avatarUrl} size={32} />
-          )}
+          renderAvatar={(user) => <StyledAvatar model={user} size={32} />}
         />
       </Fade>
     </NudeButton>
   );
 };
 
-const StyledAvatar = styled(Avatar)<{ user: User }>`
+const StyledAvatar = styled(Avatar)<{ model: User }>`
   transition: opacity 250ms ease-in-out;
-  opacity: ${(props) => (props.user.isRecentlyActive ? 1 : 0.5)};
+  opacity: ${(props) => (props.model.isRecentlyActive ? 1 : 0.5)};
 `;
 
 export default observer(MembershipPreview);

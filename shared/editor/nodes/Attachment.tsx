@@ -32,7 +32,9 @@ export default class Attachment extends Node {
           default: null,
         },
         title: {},
-        size: {},
+        size: {
+          default: 0,
+        },
       },
       group: "block",
       defining: true,

@@ -173,10 +173,19 @@ const Button = <T extends React.ElementType = "button">(
   props: Props<T> & React.ComponentPropsWithoutRef<T>,
   ref: React.Ref<HTMLButtonElement>
 ) => {
-  const { type, children, value, disclosure, neutral, action, ...rest } = props;
+  const {
+    type,
+    children,
+    value,
+    disclosure,
+    neutral,
+    action,
+    icon,
+    ...rest
+  } = props;
   const hasText = children !== undefined || value !== undefined;
-  const icon = action?.icon ?? rest.icon;
-  const hasIcon = icon !== undefined;
+  const ic = action?.icon ?? icon;
+  const hasIcon = ic !== undefined;
 
   return (
     <RealButton
@@ -187,7 +196,7 @@ const Button = <T extends React.ElementType = "button">(
       {...rest}
     >
       <Inner hasIcon={hasIcon} hasText={hasText} disclosure={disclosure}>
-        {hasIcon && icon}
+        {hasIcon && ic}
         {hasText && <Label hasIcon={hasIcon}>{children || value}</Label>}
         {disclosure && <ExpandedIcon color="currentColor" />}
       </Inner>

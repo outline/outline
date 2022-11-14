@@ -126,6 +126,10 @@ export default class NotificationsProcessor extends BaseProcessor {
       includeTitle: false,
       centered: false,
     });
+    if (!content) {
+      return;
+    }
+
     content = await DocumentHelper.attachmentsToSignedUrls(
       content,
       event.teamId,

@@ -1,18 +1,11 @@
 import { Backlink } from "@server/models";
 import { buildDocument } from "@server/test/factories";
-import { getTestDatabase } from "@server/test/support";
+import { setupTestDatabase } from "@server/test/support";
 import BacklinksProcessor from "./BacklinksProcessor";
 
 const ip = "127.0.0.1";
 
-const db = getTestDatabase();
-
-afterAll(db.disconnect);
-
-beforeEach(async () => {
-  await db.flush();
-  jest.resetAllMocks();
-});
+setupTestDatabase();
 
 describe("documents.publish", () => {
   test("should create new backlink records", async () => {

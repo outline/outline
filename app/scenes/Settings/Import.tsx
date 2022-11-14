@@ -83,7 +83,7 @@ function Import() {
           subtitle={t("Import pages from a Confluence instance")}
           actions={
             <Button type="submit" disabled neutral>
-              {t("Coming soon")}
+              {t("Enterprise")}
             </Button>
           }
         />

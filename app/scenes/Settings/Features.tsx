@@ -18,15 +18,6 @@ function Features() {
   const { t } = useTranslation();
   const { showToast } = useToasts();
 
-  const handleChange = async (ev: React.ChangeEvent<HTMLInputElement>) => {
-    await auth.updateTeam({
-      [ev.target.name]: ev.target.checked,
-    });
-    showToast(t("Settings saved"), {
-      type: "success",
-    });
-  };
-
   const handlePreferenceChange = async (
     ev: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -47,7 +38,7 @@ function Features() {
       <Text type="secondary">
         <Trans>
           Manage optional and beta features. Changing these settings will affect
-          the experience for all team members.
+          the experience for all members of the workspace.
         </Trans>
       </Text>
       {team.collaborativeEditing && (
@@ -75,11 +66,28 @@ function Features() {
       >
         <Switch
           id="commenting"
-          checked={team.commenting}
+          name="commenting"
+          checked={team.getPreference(TeamPreference.Commenting, false)}
           disabled={!team.collaborativeEditing}
-          onChange={handleChange}
+          onChange={handlePreferenceChange}
         />
       </SettingRow>
+      {team.avatarUrl && (
+        <SettingRow
+          name="publicBranding"
+          label={t("Public branding")}
+          description={t(
+            "Show your team’s logo on public pages like login and shared documents."
+          )}
+        >
+          <Switch
+            id="publicBranding"
+            name="publicBranding"
+            checked={team.getPreference(TeamPreference.PublicBranding, false)}
+            onChange={handlePreferenceChange}
+          />
+        </SettingRow>
+      )}
     </Scene>
   );
 }

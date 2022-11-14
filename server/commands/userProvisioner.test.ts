@@ -1,14 +1,10 @@
 import { v4 as uuidv4 } from "uuid";
 import { TeamDomain } from "@server/models";
 import { buildUser, buildTeam, buildInvite } from "@server/test/factories";
-import { getTestDatabase, seed } from "@server/test/support";
+import { setupTestDatabase, seed } from "@server/test/support";
 import userProvisioner from "./userProvisioner";
 
-const db = getTestDatabase();
-
-afterAll(db.disconnect);
-
-beforeEach(db.flush);
+setupTestDatabase();
 
 describe("userProvisioner", () => {
   const ip = "127.0.0.1";
@@ -305,20 +301,11 @@ describe("userProvisioner", () => {
       email: externalUser.email,
     });
 
-    const authenticationProviders = await team.$get("authenticationProviders");
-    const authenticationProvider = authenticationProviders[0];
     const result = await userProvisioner({
       name: invite.name,
       email: "external@ExamPle.com", // ensure that email is case insensistive
       teamId: invite.teamId,
-      emailMatchOnly: true,
       ip,
-      authentication: {
-        authenticationProviderId: authenticationProvider.id,
-        providerId: "whatever",
-        accessToken: "123",
-        scopes: ["read"],
-      },
     });
     const { user, authentication, isNewUser } = result;
     expect(authentication).toEqual(null);
@@ -355,7 +342,7 @@ describe("userProvisioner", () => {
     );
   });
 
-  it("should create a user from allowed Domain", async () => {
+  it("should create a user from allowed domain", async () => {
     const { admin, team } = await seed();
     await TeamDomain.create({
       teamId: team.id,
@@ -384,6 +371,44 @@ describe("userProvisioner", () => {
     expect(authentication?.scopes[0]).toEqual("read");
     expect(user.email).toEqual("user@example-company.com");
     expect(isNewUser).toEqual(true);
+  });
+
+  it("should create a user from allowed domain with emailMatchOnly", async () => {
+    const { admin, team } = await seed();
+    await TeamDomain.create({
+      teamId: team.id,
+      name: "example-company.com",
+      createdById: admin.id,
+    });
+
+    const result = await userProvisioner({
+      name: "Test Name",
+      email: "user@example-company.com",
+      teamId: team.id,
+      ip,
+    });
+    const { user, authentication, isNewUser } = result;
+    expect(authentication).toBeUndefined();
+    expect(user.email).toEqual("user@example-company.com");
+    expect(isNewUser).toEqual(true);
+  });
+
+  it("should not create a user with emailMatchOnly when no allowed domains are set", async () => {
+    const { team } = await seed();
+    let error;
+
+    try {
+      await userProvisioner({
+        name: "Test Name",
+        email: "user@example-company.com",
+        teamId: team.id,
+        ip,
+      });
+    } catch (err) {
+      error = err;
+    }
+
+    expect(error && error.toString()).toContain("UnauthorizedError");
   });
 
   it("should reject an user when the domain is not allowed", async () => {

@@ -14,7 +14,7 @@ type Props = {
  */
 export const Header: React.FC<Props> = ({ id, title, children }) => {
   const [firstRender, setFirstRender] = React.useState(true);
-  const [expanded, setExpanded] = usePersistedState(
+  const [expanded, setExpanded] = usePersistedState<boolean>(
     `sidebar-header-${id}`,
     true
   );

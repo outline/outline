@@ -10,7 +10,7 @@ import { assertUuid } from "@server/validation";
 const router = new Router();
 
 router.post("views.list", auth(), async (ctx) => {
-  const { documentId, includeSuspended = false } = ctx.body;
+  const { documentId, includeSuspended = false } = ctx.request.body;
   assertUuid(documentId, "documentId is required");
 
   const { user } = ctx.state;
@@ -30,7 +30,7 @@ router.post(
   auth(),
   rateLimiter(RateLimiterStrategy.OneThousandPerHour),
   async (ctx) => {
-    const { documentId } = ctx.body;
+    const { documentId } = ctx.request.body;
     assertUuid(documentId, "documentId is required");
 
     const { user } = ctx.state;

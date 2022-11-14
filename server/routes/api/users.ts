@@ -18,6 +18,10 @@ import { ValidationError } from "@server/errors";
 import logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
+import {
+  transaction,
+  TransactionContext,
+} from "@server/middlewares/transaction";
 import { Event, User, Team } from "@server/models";
 import { UserFlag, UserRole } from "@server/models/User";
 import { can, authorize } from "@server/policies";
@@ -37,8 +41,8 @@ const router = new Router();
 const emailEnabled = !!(env.SMTP_HOST || env.ENVIRONMENT === "development");
 
 router.post("users.list", auth(), pagination(), async (ctx) => {
-  let { direction } = ctx.body;
-  const { sort = "createdAt", query, filter, ids } = ctx.body;
+  let { direction } = ctx.request.body;
+  const { sort = "createdAt", query, filter, ids } = ctx.request.body;
   if (direction !== "ASC") {
     direction = "DESC";
   }
@@ -162,7 +166,7 @@ router.post("users.count", auth(), async (ctx) => {
 });
 
 router.post("users.info", auth(), async (ctx) => {
-  const { id } = ctx.body;
+  const { id } = ctx.request.body;
   const actor = ctx.state.user;
   const user = id ? await User.findByPk(id) : actor;
   authorize(actor, "read", user);
@@ -176,47 +180,55 @@ router.post("users.info", auth(), async (ctx) => {
   };
 });
 
-router.post("users.update", auth(), async (ctx) => {
-  const { user } = ctx.state;
-  const { name, avatarUrl, language, preferences } = ctx.body;
-  if (name) {
-    user.name = name;
-  }
-  if (avatarUrl) {
-    user.avatarUrl = avatarUrl;
-  }
-  if (language) {
-    user.language = language;
-  }
-  if (preferences) {
-    assertKeysIn(preferences, UserPreference);
+router.post(
+  "users.update",
+  auth(),
+  transaction(),
+  async (ctx: TransactionContext) => {
+    const { user, transaction } = ctx.state;
+    const { name, avatarUrl, language, preferences } = ctx.request.body;
+    if (name) {
+      user.name = name;
+    }
+    if (avatarUrl) {
+      user.avatarUrl = avatarUrl;
+    }
+    if (language) {
+      user.language = language;
+    }
+    if (preferences) {
+      assertKeysIn(preferences, UserPreference);
 
-    for (const value of Object.values(UserPreference)) {
-      if (has(preferences, value)) {
-        assertBoolean(preferences[value]);
-        user.setPreference(value, preferences[value]);
+      for (const value of Object.values(UserPreference)) {
+        if (has(preferences, value)) {
+          assertBoolean(preferences[value]);
+          user.setPreference(value, preferences[value]);
+        }
       }
     }
-  }
-  await user.save();
-  await Event.create({
-    name: "users.update",
-    actorId: user.id,
-    userId: user.id,
-    teamId: user.teamId,
-    ip: ctx.request.ip,
-  });
+    await user.save({ transaction });
+    await Event.create(
+      {
+        name: "users.update",
+        actorId: user.id,
+        userId: user.id,
+        teamId: user.teamId,
+        ip: ctx.request.ip,
+      },
+      { transaction }
+    );
 
-  ctx.body = {
-    data: presentUser(user, {
-      includeDetails: true,
-    }),
-  };
-});
+    ctx.body = {
+      data: presentUser(user, {
+        includeDetails: true,
+      }),
+    };
+  }
+);
 
 // Admin specific
 router.post("users.promote", auth(), async (ctx) => {
-  const userId = ctx.body.id;
+  const userId = ctx.request.body.id;
   const teamId = ctx.state.user.teamId;
   const actor = ctx.state.user;
   assertPresent(userId, "id is required");
@@ -245,8 +257,8 @@ router.post("users.promote", auth(), async (ctx) => {
 });
 
 router.post("users.demote", auth(), async (ctx) => {
-  const userId = ctx.body.id;
-  let { to } = ctx.body;
+  const userId = ctx.request.body.id;
+  let { to } = ctx.request.body;
   const actor = ctx.state.user as User;
   assertPresent(userId, "id is required");
 
@@ -274,7 +286,7 @@ router.post("users.demote", auth(), async (ctx) => {
 });
 
 router.post("users.suspend", auth(), async (ctx) => {
-  const userId = ctx.body.id;
+  const userId = ctx.request.body.id;
   const actor = ctx.state.user;
   assertPresent(userId, "id is required");
   const user = await User.findByPk(userId, {
@@ -298,7 +310,7 @@ router.post("users.suspend", auth(), async (ctx) => {
 });
 
 router.post("users.activate", auth(), async (ctx) => {
-  const userId = ctx.body.id;
+  const userId = ctx.request.body.id;
   const actor = ctx.state.user;
   assertPresent(userId, "id is required");
   const user = await User.findByPk(userId, {
@@ -326,7 +338,7 @@ router.post(
   auth(),
   rateLimiter(RateLimiterStrategy.TenPerHour),
   async (ctx) => {
-    const { invites } = ctx.body;
+    const { invites } = ctx.request.body;
     assertArray(invites, "invites must be an array");
     const { user } = ctx.state;
     const team = await Team.findByPk(user.teamId);
@@ -348,7 +360,7 @@ router.post(
 );
 
 router.post("users.resendInvite", auth(), async (ctx) => {
-  const { id } = ctx.body;
+  const { id } = ctx.request.body;
   const actor = ctx.state.user;
 
   await sequelize.transaction(async (transaction) => {
@@ -415,7 +427,8 @@ router.post(
   auth(),
   rateLimiter(RateLimiterStrategy.TenPerHour),
   async (ctx) => {
-    const { id, code = "" } = ctx.body;
+    const { id, code = "" } = ctx.request.body;
+    const actor = ctx.state.user;
     let user: User;
 
     if (id) {
@@ -424,13 +437,13 @@ router.post(
         rejectOnEmpty: true,
       });
     } else {
-      user = ctx.state.user;
+      user = actor;
     }
-    authorize(user, "delete", user);
+    authorize(actor, "delete", user);
 
     // If we're attempting to delete our own account then a confirmation code
     // is required. This acts as CSRF protection.
-    if ((!id || id === ctx.state.user.id) && emailEnabled) {
+    if ((!id || id === actor.id) && emailEnabled) {
       const deleteConfirmationCode = user.deleteConfirmationCode;
 
       if (
@@ -447,7 +460,7 @@ router.post(
 
     await userDestroyer({
       user,
-      actor: user,
+      actor,
       ip: ctx.request.ip,
     });
 

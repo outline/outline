@@ -46,11 +46,11 @@ const PaginatedEventList = React.memo<Props>(function PaginatedEventList({
 });
 
 const StyledPaginatedList = styled(PaginatedList)`
-  padding: 0 8px;
+  padding: 0 12px;
 `;
 
 const Heading = styled("h3")`
-  font-size: 14px;
+  font-size: 15px;
   padding: 0 4px;
 `;
 

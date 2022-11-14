@@ -1,9 +1,12 @@
+import invariant from "invariant";
 import Router from "koa-router";
 import { RateLimiterStrategy } from "@server/RateLimiter";
+import teamCreator from "@server/commands/teamCreator";
 import teamUpdater from "@server/commands/teamUpdater";
+import { sequelize } from "@server/database/sequelize";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
-import { Team, TeamDomain } from "@server/models";
+import { Event, Team, TeamDomain, User } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentTeam, presentPolicies } from "@server/presenters";
 import { assertUuid } from "@server/validation";
@@ -30,7 +33,7 @@ router.post(
       inviteRequired,
       allowedDomains,
       preferences,
-    } = ctx.body;
+    } = ctx.request.body;
 
     const { user } = ctx.state;
     const team = await Team.findByPk(user.teamId, {
@@ -67,6 +70,84 @@ router.post(
     ctx.body = {
       data: presentTeam(updatedTeam),
       policies: presentPolicies(user, [updatedTeam]),
+    };
+  }
+);
+
+router.post(
+  "teams.create",
+  auth(),
+  rateLimiter(RateLimiterStrategy.FivePerHour),
+  async (ctx) => {
+    const { user } = ctx.state;
+    const { name } = ctx.request.body;
+
+    const existingTeam = await Team.scope(
+      "withAuthenticationProviders"
+    ).findByPk(user.teamId, {
+      rejectOnEmpty: true,
+    });
+
+    authorize(user, "createTeam", existingTeam);
+
+    const authenticationProviders = existingTeam.authenticationProviders.map(
+      (provider) => {
+        return {
+          name: provider.name,
+          providerId: provider.providerId,
+        };
+      }
+    );
+
+    invariant(
+      authenticationProviders?.length,
+      "Team must have at least one authentication provider"
+    );
+
+    const [team, newUser] = await sequelize.transaction(async (transaction) => {
+      const team = await teamCreator({
+        name,
+        subdomain: name,
+        authenticationProviders,
+        ip: ctx.ip,
+        transaction,
+      });
+
+      const newUser = await User.create(
+        {
+          teamId: team.id,
+          name: user.name,
+          email: user.email,
+          isAdmin: true,
+        },
+        { transaction }
+      );
+
+      await Event.create(
+        {
+          name: "users.create",
+          actorId: user.id,
+          userId: newUser.id,
+          teamId: newUser.teamId,
+          data: {
+            name: newUser.name,
+          },
+          ip: ctx.ip,
+        },
+        { transaction }
+      );
+
+      return [team, newUser];
+    });
+
+    ctx.body = {
+      success: true,
+      data: {
+        team: presentTeam(team),
+        transferUrl: `${
+          team.url
+        }/auth/redirect?token=${newUser?.getTransferToken()}`,
+      },
     };
   }
 );

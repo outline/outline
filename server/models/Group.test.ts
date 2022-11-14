@@ -1,14 +1,11 @@
 import { buildUser, buildGroup, buildCollection } from "@server/test/factories";
-import { getTestDatabase } from "@server/test/support";
+import { setupTestDatabase } from "@server/test/support";
 import CollectionGroup from "./CollectionGroup";
 import GroupUser from "./GroupUser";
 
-const db = getTestDatabase();
-
-afterAll(db.disconnect);
+setupTestDatabase();
 
 beforeEach(async () => {
-  await db.flush();
   jest.resetAllMocks();
 });
 

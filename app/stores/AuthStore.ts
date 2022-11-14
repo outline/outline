@@ -29,6 +29,7 @@ type Provider = {
 
 export type Config = {
   name?: string;
+  logo?: string;
   hostname?: string;
   providers: Provider[];
 };
@@ -225,14 +226,17 @@ export default class AuthStore {
     preferences?: UserPreferences;
   }) => {
     this.isSaving = true;
+    const previousData = this.user?.toAPI();
 
     try {
+      this.user?.updateFromJson(params);
       const res = await client.post(`/users.update`, params);
       invariant(res?.data, "User response not available");
-      runInAction("AuthStore#updateUser", () => {
-        this.addPolicies(res.policies);
-        this.user = new User(res.data, this);
-      });
+      this.user?.updateFromJson(res.data);
+      this.addPolicies(res.policies);
+    } catch (err) {
+      this.user?.updateFromJson(previousData);
+      throw err;
     } finally {
       this.isSaving = false;
     }
@@ -250,14 +254,31 @@ export default class AuthStore {
     preferences?: TeamPreferences;
   }) => {
     this.isSaving = true;
+    const previousData = this.team?.toAPI();
 
     try {
+      this.team?.updateFromJson(params);
       const res = await client.post(`/team.update`, params);
       invariant(res?.data, "Team response not available");
-      runInAction("AuthStore#updateTeam", () => {
-        this.addPolicies(res.policies);
-        this.team = new Team(res.data, this);
-      });
+      this.team?.updateFromJson(res.data);
+      this.addPolicies(res.policies);
+    } catch (err) {
+      this.team?.updateFromJson(previousData);
+      throw err;
+    } finally {
+      this.isSaving = false;
+    }
+  };
+
+  @action
+  createTeam = async (params: { name: string }) => {
+    this.isSaving = true;
+
+    try {
+      const res = await client.post(`/teams.create`, params);
+      invariant(res?.success, "Unable to create team");
+
+      window.location.href = res.data.transferUrl;
     } finally {
       this.isSaving = false;
     }

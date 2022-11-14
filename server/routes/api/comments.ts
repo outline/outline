@@ -14,7 +14,7 @@ import pagination from "./middlewares/pagination";
 const router = new Router();
 
 router.post("comments.create", auth(), async (ctx) => {
-  const { id, documentId, parentCommentId, data } = ctx.body;
+  const { id, documentId, parentCommentId, data } = ctx.request.body;
   assertUuid(documentId, "documentId is required");
   assertPresent(data, "data is required");
 
@@ -49,8 +49,8 @@ router.post("comments.create", auth(), async (ctx) => {
 });
 
 router.post("comments.list", auth(), pagination(), async (ctx) => {
-  let { direction } = ctx.body;
-  const { sort = "createdAt", documentId } = ctx.body;
+  let { direction } = ctx.request.body;
+  const { sort = "createdAt", documentId } = ctx.request.body;
   assertUuid(documentId, "documentId is required");
 
   assertSort(sort, Comment);
@@ -77,7 +77,7 @@ router.post("comments.list", auth(), pagination(), async (ctx) => {
 });
 
 router.post("comments.update", auth(), async (ctx) => {
-  const { id, data } = ctx.body;
+  const { id, data } = ctx.request.body;
   assertUuid(id, "id is required");
 
   const { user } = ctx.state;
@@ -108,7 +108,7 @@ router.post("comments.update", auth(), async (ctx) => {
 });
 
 router.post("comments.delete", auth(), async (ctx) => {
-  const { id } = ctx.body;
+  const { id } = ctx.request.body;
   assertUuid(id, "id is required");
 
   const { user } = ctx.state;

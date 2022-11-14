@@ -21,6 +21,7 @@ import {
   IsDate,
   IsUrl,
   AllowNull,
+  AfterUpdate,
 } from "sequelize-typescript";
 import { languages } from "@shared/i18n";
 import {
@@ -30,9 +31,13 @@ import {
 } from "@shared/types";
 import { stringToColor } from "@shared/utils/color";
 import env from "@server/env";
+import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
+import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { ValidationError } from "../errors";
 import ApiKey from "./ApiKey";
+import Attachment from "./Attachment";
 import Collection from "./Collection";
+import CollectionUser from "./CollectionUser";
 import NotificationSetting from "./NotificationSetting";
 import Star from "./Star";
 import Team from "./Team";
@@ -175,17 +180,11 @@ class User extends ParanoidModel {
   get avatarUrl() {
     const original = this.getDataValue("avatarUrl");
 
-    if (original) {
+    if (original && !original.startsWith("https://tiley.herokuapp.com")) {
       return original;
     }
 
-    const color = this.color.replace(/^#/, "");
-    const initial = this.name ? this.name[0] : "?";
-    const hash = crypto
-      .createHash("md5")
-      .update(this.email || "")
-      .digest("hex");
-    return `${env.DEFAULT_AVATAR_HOST}/avatar/${hash}/${initial}.png?c=${color}`;
+    return null;
   }
 
   set avatarUrl(value: string | null) {
@@ -325,12 +324,11 @@ class User extends ParanoidModel {
    * Returns the passed preference value
    *
    * @param preference The user preference to retrieve
+   * @param fallback An optional fallback value, defaults to false.
    * @returns The preference value if set, else undefined
    */
-  public getPreference = (preference: UserPreference) => {
-    return !!this.preferences && this.preferences[preference]
-      ? this.preferences[preference]
-      : undefined;
+  public getPreference = (preference: UserPreference, fallback = false) => {
+    return this.preferences?.[preference] ?? fallback;
   };
 
   collectionIds = async (options = {}) => {
@@ -487,7 +485,7 @@ class User extends ParanoidModel {
 
     if (res.count >= 1) {
       if (to === "member") {
-        return this.update(
+        await this.update(
           {
             isAdmin: false,
             isViewer: false,
@@ -495,12 +493,23 @@ class User extends ParanoidModel {
           options
         );
       } else if (to === "viewer") {
-        return this.update(
+        await this.update(
           {
             isAdmin: false,
             isViewer: true,
           },
           options
+        );
+        await CollectionUser.update(
+          {
+            permission: CollectionPermission.Read,
+          },
+          {
+            ...options,
+            where: {
+              userId: this.id,
+            },
+          }
         );
       }
 
@@ -566,6 +575,36 @@ class User extends ParanoidModel {
   @BeforeCreate
   static setRandomJwtSecret = (model: User) => {
     model.jwtSecret = crypto.randomBytes(64).toString("hex");
+  };
+
+  @AfterUpdate
+  static deletePreviousAvatar = async (model: User) => {
+    if (
+      model.previous("avatarUrl") &&
+      model.previous("avatarUrl") !== model.avatarUrl
+    ) {
+      const attachmentIds = parseAttachmentIds(
+        model.previous("avatarUrl"),
+        true
+      );
+      if (!attachmentIds.length) {
+        return;
+      }
+
+      const attachment = await Attachment.findOne({
+        where: {
+          id: attachmentIds[0],
+          teamId: model.teamId,
+          userId: model.id,
+        },
+      });
+
+      if (attachment) {
+        await DeleteAttachmentTask.schedule({
+          attachmentId: attachment.id,
+        });
+      }
+    }
   };
 
   // By default when a user signs up we subscribe them to email notifications

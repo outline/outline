@@ -11,6 +11,7 @@ import {
 } from "react-router";
 import { Link } from "react-router-dom";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
+import history from "~/utils/history";
 
 const resolveToLocation = (
   to: LocationDescriptor | ((location: Location) => LocationDescriptor),
@@ -35,14 +36,16 @@ export type Props = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
   activeStyle?: React.CSSProperties;
   scrollIntoViewIfNeeded?: boolean;
   exact?: boolean;
+  replace?: boolean;
   isActive?: (match: match | null, location: Location) => boolean;
   location?: Location;
   strict?: boolean;
   to: LocationDescriptor;
+  onBeforeClick?: () => void;
 };
 
 /**
- * A <Link> wrapper that knows if it's "active" or not.
+ * A <Link> wrapper that clicks extra fast and knows if it's "active" or not.
  */
 const NavLink = ({
   "aria-current": ariaCurrent = "page",
@@ -53,13 +56,19 @@ const NavLink = ({
   isActive: isActiveProp,
   location: locationProp,
   strict,
+  replace,
   style: styleProp,
   scrollIntoViewIfNeeded,
+  onClick,
+  onBeforeClick,
   to,
   ...rest
 }: Props) => {
   const linkRef = React.useRef(null);
   const context = React.useContext(RouterContext);
+  const [preActive, setPreActive] = React.useState<boolean | undefined>(
+    undefined
+  );
   const currentLocation = locationProp || context.location;
   const toLocation = normalizeToLocation(
     resolveToLocation(to, currentLocation),
@@ -67,25 +76,24 @@ const NavLink = ({
   );
   const { pathname: path } = toLocation;
 
-  // Regex taken from: https://github.com/pillarjs/path-to-regexp/blob/master/index.js#L202
-  const escapedPath = path?.replace(/([.+*?=^!:${}()[\]|/\\])/g, "\\$1");
-  const match = escapedPath
+  const match = path
     ? matchPath(currentLocation.pathname, {
-        path: escapedPath,
+        // Regex taken from: https://github.com/pillarjs/path-to-regexp/blob/master/index.js#L202
+        path: path.replace(/([.+*?=^!:${}()[\]|/\\])/g, "\\$1"),
         exact,
         strict,
       })
     : null;
 
-  const isActive = !!(isActiveProp
-    ? isActiveProp(match, currentLocation)
-    : match);
+  const isActive =
+    preActive ??
+    !!(isActiveProp ? isActiveProp(match, currentLocation) : match);
   const className = isActive
     ? joinClassnames(classNameProp, activeClassName)
     : classNameProp;
   const style = isActive ? { ...styleProp, ...activeStyle } : styleProp;
 
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     if (isActive && linkRef.current && scrollIntoViewIfNeeded !== false) {
       scrollIntoView(linkRef.current, {
         scrollMode: "if-needed",
@@ -94,15 +102,73 @@ const NavLink = ({
     }
   }, [linkRef, scrollIntoViewIfNeeded, isActive]);
 
-  const props = {
-    "aria-current": (isActive && ariaCurrent) || undefined,
-    className,
-    style,
-    to: toLocation,
-    ...rest,
-  };
+  const shouldFastClick = React.useCallback(
+    (event: React.MouseEvent<HTMLAnchorElement>): boolean => {
+      return (
+        event.button === 0 && // Only intercept left clicks
+        !event.defaultPrevented &&
+        !rest.target &&
+        !event.altKey &&
+        !event.metaKey &&
+        !event.ctrlKey
+      );
+    },
+    [rest.target]
+  );
 
-  return <Link ref={linkRef} {...props} />;
+  const navigateTo = React.useCallback(() => {
+    if (replace) {
+      history.replace(to);
+    } else {
+      history.push(to);
+    }
+  }, [to, replace]);
+
+  const handleClick = React.useCallback(
+    (event: React.MouseEvent<HTMLAnchorElement>) => {
+      onClick?.(event);
+
+      if (shouldFastClick(event)) {
+        event.stopPropagation();
+        event.preventDefault();
+        event.currentTarget.focus();
+
+        setPreActive(true);
+
+        // Wait a frame until following the link
+        requestAnimationFrame(() => {
+          requestAnimationFrame(navigateTo);
+          event.currentTarget?.blur();
+        });
+      }
+    },
+    [onClick, navigateTo, shouldFastClick]
+  );
+
+  React.useEffect(() => {
+    setPreActive(undefined);
+  }, [currentLocation]);
+
+  return (
+    <Link
+      key={isActive ? "active" : "inactive"}
+      ref={linkRef}
+      //onMouseDown={handleClick}
+      onKeyDown={(event) => {
+        if (["Enter", " "].includes(event.key)) {
+          navigateTo();
+          event.currentTarget?.blur();
+        }
+      }}
+      onClick={handleClick}
+      aria-current={(isActive && ariaCurrent) || undefined}
+      className={className}
+      style={style}
+      to={toLocation}
+      replace={replace}
+      {...rest}
+    />
+  );
 };
 
 export default NavLink;

@@ -8,7 +8,6 @@ import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
 import env from "@server/env";
 import { AuthorizationError } from "@server/errors";
 import errorHandling from "@server/middlewares/errorHandling";
-import methodOverride from "@server/middlewares/methodOverride";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { User, Team } from "@server/models";
 import { signIn } from "@server/utils/authentication";
@@ -22,91 +21,69 @@ export const config = {
   enabled: true,
 };
 
-router.use(methodOverride());
-
 router.post(
   "email",
   errorHandling(),
   rateLimiter(RateLimiterStrategy.TenPerHour),
   async (ctx) => {
-    const { email } = ctx.body;
+    const { email } = ctx.request.body;
     assertEmail(email, "email is required");
-    const users = await User.scope("withAuthentications").findAll({
+
+    const domain = parseDomain(ctx.request.hostname);
+
+    let team: Team | null | undefined;
+    if (env.DEPLOYMENT !== "hosted") {
+      team = await Team.scope("withAuthenticationProviders").findOne();
+    } else if (domain.custom) {
+      team = await Team.scope("withAuthenticationProviders").findOne({
+        where: { domain: domain.host },
+      });
+    } else if (env.SUBDOMAINS_ENABLED && domain.teamSubdomain) {
+      team = await Team.scope("withAuthenticationProviders").findOne({
+        where: { subdomain: domain.teamSubdomain },
+      });
+    }
+
+    if (!team?.emailSigninEnabled) {
+      throw AuthorizationError();
+    }
+
+    const user = await User.scope("withAuthentications").findOne({
       where: {
+        teamId: team.id,
         email: email.toLowerCase(),
       },
     });
 
-    if (users.length) {
-      let team!: Team | null;
-      const domain = parseDomain(ctx.request.hostname);
+    if (!user) {
+      ctx.body = {
+        success: true,
+      };
+      return;
+    }
 
-      if (domain.custom) {
-        team = await Team.scope("withAuthenticationProviders").findOne({
-          where: {
-            domain: ctx.request.hostname,
-          },
-        });
-      } else if (env.SUBDOMAINS_ENABLED && domain.teamSubdomain) {
-        team = await Team.scope("withAuthenticationProviders").findOne({
-          where: {
-            subdomain: domain.teamSubdomain,
-          },
-        });
-      }
-
-      // If there are multiple users with this email address then give precedence
-      // to the one that is active on this subdomain/domain (if any)
-      let user = users.find((user) => team && user.teamId === team.id);
-
-      // A user was found for the email address, but they don't belong to the team
-      // that this subdomain belongs to, we load their team and allow the logic to
-      // continue
-      if (!user) {
-        user = users[0];
-        team = await Team.scope("withAuthenticationProviders").findByPk(
-          user.teamId
-        );
-      }
-
-      if (!team) {
-        team = await Team.scope("withAuthenticationProviders").findByPk(
-          user.teamId
-        );
-      }
-
-      if (!team) {
-        ctx.redirect(`/?notice=auth-error`);
+    // If the user matches an email address associated with an SSO
+    // provider then just forward them directly to that sign-in page
+    if (user.authentications.length) {
+      const authProvider = find(team.authenticationProviders, {
+        id: user.authentications[0].authenticationProviderId,
+      });
+      if (authProvider?.enabled) {
+        ctx.body = {
+          redirect: `${team.url}/auth/${authProvider?.name}`,
+        };
         return;
       }
-
-      // If the user matches an email address associated with an SSO
-      // provider then just forward them directly to that sign-in page
-      if (user.authentications.length) {
-        const authProvider = find(team.authenticationProviders, {
-          id: user.authentications[0].authenticationProviderId,
-        });
-        if (authProvider?.enabled) {
-          ctx.body = {
-            redirect: `${team.url}/auth/${authProvider?.name}`,
-          };
-          return;
-        }
-      }
-
-      if (!team.emailSigninEnabled) {
-        throw AuthorizationError();
-      }
-
-      // send email to users registered address with a short-lived token
-      await SigninEmail.schedule({
-        to: user.email,
-        token: user.getEmailSigninToken(),
-        teamUrl: team.url,
-      });
-      user.lastSigninEmailSentAt = new Date();
-      await user.save();
     }
+
+    // send email to users registered address with a short-lived token
+    await SigninEmail.schedule({
+      to: user.email,
+      token: user.getEmailSigninToken(),
+      teamUrl: team.url,
+    });
+    user.lastSigninEmailSentAt = new Date();
+    await user.save();
 
     // respond with success regardless of whether an email was sent
     ctx.body = {

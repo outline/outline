@@ -8,14 +8,9 @@ import {
   buildCollection,
   buildDocument,
 } from "@server/test/factories";
-import { seed, getTestDatabase, getTestServer } from "@server/test/support";
+import { seed, getTestServer } from "@server/test/support";
 
-const db = getTestDatabase();
 const server = getTestServer();
-
-afterAll(server.disconnect);
-
-beforeEach(db.flush);
 
 describe("#collections.list", () => {
   it("should require authentication", async () => {
@@ -420,6 +415,24 @@ describe("#collections.add_user", () => {
     const users = await collection.$get("users");
     expect(res.status).toEqual(200);
     expect(users.length).toEqual(2);
+  });
+
+  it("should not allow add self", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      permission: null,
+    });
+    const res = await server.post("/api/collections.add_user", {
+      body: {
+        token: user.getJwtToken(),
+        id: collection.id,
+        userId: user.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(403);
+    expect(body).toMatchSnapshot();
   });
 
   it("should require user in team", async () => {

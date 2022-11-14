@@ -1,8 +1,10 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { mergeRefs } from "react-merge-refs";
 import { useHistory, useRouteMatch } from "react-router-dom";
 import fullWithCommentsPackage from "@shared/editor/packages/fullWithComments";
+import { TeamPreference } from "@shared/types";
 import Comment from "~/models/Comment";
 import Document from "~/models/Document";
 import { RefHandle } from "~/components/ContentEditable";
@@ -14,6 +16,7 @@ import {
   documentUrl,
   matchDocumentHistory,
 } from "~/utils/routeHelpers";
+import { useDocumentContext } from "../../../components/DocumentContext";
 import MultiplayerEditor from "./AsyncMultiplayerEditor";
 import DocumentMeta from "./DocumentMeta";
 import EditableTitle from "./EditableTitle";
@@ -110,6 +113,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
       );
       comment.id = commentId;
       comments.add(comment);
+      console.log({ comment });
     },
     [comments, props.id, ui]
   );
@@ -124,6 +128,8 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     [comments]
   );
 
+  const { setEditor } = useDocumentContext();
+  const handleRefChanged = React.useCallback(setEditor, [setEditor]);
   const EditorComponent = multiplayer ? MultiplayerEditor : Editor;
 
   return (
@@ -153,7 +159,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         />
       )}
       <EditorComponent
-        ref={ref}
+        ref={mergeRefs([ref, handleRefChanged])}
         autoFocus={!!document.title && !props.defaultValue}
         placeholder={t("Type '/' to insert, or start writing…")}
         scrollTo={decodeURIComponent(window.location.hash)}
@@ -163,8 +169,16 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         extensions={fullWithCommentsPackage}
         grow
         onClickCommentMark={handleClickComment}
-        onCreateCommentMark={team?.commenting ? handleDraftComment : undefined}
-        onDeleteCommentMark={team?.commenting ? handleRemoveComment : undefined}
+        onCreateCommentMark={
+          team?.getPreference(TeamPreference.Commenting)
+            ? handleDraftComment
+            : undefined
+        }
+        onDeleteCommentMark={
+          team?.getPreference(TeamPreference.Commenting)
+            ? handleRemoveComment
+            : undefined
+        }
         {...rest}
       />
       {children}

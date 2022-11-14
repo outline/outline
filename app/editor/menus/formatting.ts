@@ -143,6 +143,7 @@ export default function formattingMenuItems(
       tooltip: dictionary.comment,
       icon: CommentIcon,
       active: isMarkActive(schema.marks.comment),
+      visible: !isCode,
     },
   ];
 }

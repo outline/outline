@@ -7,7 +7,7 @@ import Text from "~/components/Text";
 
 type Props = {
   label: React.ReactNode;
-  description: React.ReactNode;
+  description?: React.ReactNode;
   name: string;
   visible?: boolean;
   border?: boolean;
@@ -15,7 +15,7 @@ type Props = {
 
 const Row = styled(Flex)<{ $border?: boolean }>`
   display: block;
-  padding: 24px 0;
+  padding: 22px 0;
   border-bottom: 1px solid
     ${(props) =>
       props.$border === false
@@ -38,7 +38,7 @@ const Column = styled.div`
   flex: 1;
 
   &:first-child {
-    min-width: 60%;
+    min-width: 70%;
   }
 
   &:last-child {
@@ -73,7 +73,7 @@ const SettingRow: React.FC<Props> = ({
         <Label as="h3">
           <label htmlFor={name}>{label}</label>
         </Label>
-        <Text type="secondary">{description}</Text>
+        {description && <Text type="secondary">{description}</Text>}
       </Column>
       <Column>{children}</Column>
     </Row>

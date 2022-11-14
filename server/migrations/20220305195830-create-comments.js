@@ -60,18 +60,11 @@ module.exports = {
       }
     });
 
-    await queryInterface.addColumn("teams", "commenting", {
-      type: Sequelize.BOOLEAN,
-      allowNull: false,
-      defaultValue: true,
-    });
-
     await queryInterface.addIndex("comments", ["documentId"]);
     await queryInterface.addIndex("comments", ["createdAt"]);
   },
 
   down: async (queryInterface, Sequelize) => {
-    await queryInterface.removeColumn("teams", "commenting");
     queryInterface.dropTable("comments");
   }
 };

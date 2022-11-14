@@ -64,11 +64,13 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     onCreateCommentMark,
     onDeleteCommentMark,
   } = props;
-  const { documents } = useStores();
+  const { auth, documents } = useStores();
   const { showToast } = useToasts();
   const dictionary = useDictionary();
   const embeds = useEmbeds(!shareId);
   const history = useHistory();
+  const preferences = auth.user?.preferences;
+
   const [
     activeLinkEvent,
     setActiveLinkEvent,
@@ -294,7 +296,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
 
       previousComments.current = commentIds;
     }
-  }, [ref, onCreateCommentMark, onDeleteCommentMark]);
+  }, [onCreateCommentMark, onDeleteCommentMark]);
 
   const handleChange = React.useCallback(
     (event) => {
@@ -323,6 +325,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
           uploadFile={handleUploadFile}
           onShowToast={showToast}
           embeds={embeds}
+          userPreferences={preferences}
           dictionary={dictionary}
           {...props}
           onHoverLink={handleLinkActive}

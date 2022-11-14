@@ -103,7 +103,7 @@ class Event extends IdModel {
    */
   static schedule(event: Partial<Event>) {
     const now = new Date();
-    globalEventQueue.add(
+    return globalEventQueue.add(
       this.build({
         createdAt: now,
         ...event,

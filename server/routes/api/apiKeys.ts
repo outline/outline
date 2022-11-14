@@ -9,7 +9,7 @@ import pagination from "./middlewares/pagination";
 const router = new Router();
 
 router.post("apiKeys.create", auth({ member: true }), async (ctx) => {
-  const { name } = ctx.body;
+  const { name } = ctx.request.body;
   assertPresent(name, "name is required");
   const { user } = ctx.state;
 
@@ -58,7 +58,7 @@ router.post(
 );
 
 router.post("apiKeys.delete", auth({ member: true }), async (ctx) => {
-  const { id } = ctx.body;
+  const { id } = ctx.request.body;
   assertUuid(id, "id is required");
   const { user } = ctx.state;
   const key = await ApiKey.findByPk(id);

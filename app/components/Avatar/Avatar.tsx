@@ -1,51 +1,58 @@
-import { observable } from "mobx";
-import { observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
-import User from "~/models/User";
+import useBoolean from "~/hooks/useBoolean";
+import Initials from "./Initials";
 import placeholder from "./placeholder.png";
 
+export interface IAvatar {
+  avatarUrl: string | null;
+  color: string;
+  initial: string;
+  id: string;
+}
+
 type Props = {
-  src: string;
   size: number;
+  src?: string;
   icon?: React.ReactNode;
-  user?: User;
+  model?: IAvatar;
   alt?: string;
   showBorder?: boolean;
   onClick?: React.MouseEventHandler<HTMLImageElement>;
   className?: string;
 };
 
-@observer
-class Avatar extends React.Component<Props> {
-  @observable
-  error: boolean;
+function Avatar(props: Props) {
+  const { icon, showBorder, model, ...rest } = props;
+  const src = props.src || model?.avatarUrl;
+  const [error, handleError] = useBoolean(false);
 
-  static defaultProps = {
-    size: 24,
-  };
-
-  handleError = () => {
-    this.error = true;
-  };
-
-  render() {
-    const { src, icon, showBorder, ...rest } = this.props;
-    return (
-      <AvatarWrapper>
+  return (
+    <Relative>
+      {src ? (
         <CircleImg
-          onError={this.handleError}
-          src={this.error ? placeholder : src}
+          onError={handleError}
+          src={error ? placeholder : src}
           $showBorder={showBorder}
           {...rest}
         />
-        {icon && <IconWrapper>{icon}</IconWrapper>}
-      </AvatarWrapper>
-    );
-  }
+      ) : model ? (
+        <Initials color={model.color} $showBorder={showBorder} {...rest}>
+          {model.initial}
+        </Initials>
+      ) : (
+        <Initials $showBorder={showBorder} {...rest} />
+      )}
+      {icon && <IconWrapper>{icon}</IconWrapper>}
+    </Relative>
+  );
 }
 
-const AvatarWrapper = styled.div`
+Avatar.defaultProps = {
+  size: 24,
+};
+
+const Relative = styled.div`
   position: relative;
 `;
 

@@ -353,6 +353,7 @@ const embeds: EmbedDescriptor[] = [
   new EmbedDescriptor({
     title: "Tldraw",
     keywords: "draw schematics diagrams",
+    visible: false,
     icon: () => <Img src="/images/tldraw.png" alt="Tldraw" />,
     component: Tldraw,
   }),

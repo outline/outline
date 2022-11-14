@@ -5,17 +5,13 @@ import {
   buildCollection,
   buildAttachment,
   buildDocument,
+  buildViewer,
 } from "@server/test/factories";
-import { getTestDatabase, getTestServer } from "@server/test/support";
+import { getTestServer } from "@server/test/support";
 
 jest.mock("@server/utils/s3");
 
-const db = getTestDatabase();
 const server = getTestServer();
-
-afterAll(server.disconnect);
-
-beforeEach(db.flush);
 
 describe("#attachments.create", () => {
   it("should require authentication", async () => {
@@ -23,32 +19,50 @@ describe("#attachments.create", () => {
     expect(res.status).toEqual(401);
   });
 
-  it("should allow simple image upload for public attachments", async () => {
-    const user = await buildUser();
-    const res = await server.post("/api/attachments.create", {
-      body: {
-        name: "test.png",
-        contentType: "image/png",
-        size: 1000,
-        public: true,
-        token: user.getJwtToken(),
-      },
+  describe("member", () => {
+    it("should allow simple image upload for public attachments", async () => {
+      const user = await buildUser();
+      const res = await server.post("/api/attachments.create", {
+        body: {
+          name: "test.png",
+          contentType: "image/png",
+          size: 1000,
+          public: true,
+          token: user.getJwtToken(),
+        },
+      });
+      expect(res.status).toEqual(200);
     });
-    expect(res.status).toEqual(200);
+
+    it("should not allow file upload for public attachments", async () => {
+      const user = await buildUser();
+      const res = await server.post("/api/attachments.create", {
+        body: {
+          name: "test.pdf",
+          contentType: "application/pdf",
+          size: 1000,
+          public: true,
+          token: user.getJwtToken(),
+        },
+      });
+      expect(res.status).toEqual(400);
+    });
   });
 
-  it("should not allow file upload for public attachments", async () => {
-    const user = await buildUser();
-    const res = await server.post("/api/attachments.create", {
-      body: {
-        name: "test.pdf",
-        contentType: "application/pdf",
-        size: 1000,
-        public: true,
-        token: user.getJwtToken(),
-      },
+  describe("viewer", () => {
+    it("should allow simple image upload for public attachments", async () => {
+      const user = await buildViewer();
+      const res = await server.post("/api/attachments.create", {
+        body: {
+          name: "test.png",
+          contentType: "image/png",
+          size: 1000,
+          public: true,
+          token: user.getJwtToken(),
+        },
+      });
+      expect(res.status).toEqual(200);
     });
-    expect(res.status).toEqual(400);
   });
 });
 

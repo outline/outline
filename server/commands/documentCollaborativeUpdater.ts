@@ -4,6 +4,7 @@ import { Node } from "prosemirror-model";
 import * as Y from "yjs";
 import { sequelize } from "@server/database/sequelize";
 import { schema, serializer } from "@server/editor";
+import Logger from "@server/logging/Logger";
 import { Document, Event } from "@server/models";
 
 export default async function documentCollaborativeUpdater({
@@ -18,7 +19,10 @@ export default async function documentCollaborativeUpdater({
   return sequelize.transaction(async (transaction) => {
     const document = await Document.unscoped()
       .scope("withState")
-      .findByPk(documentId, {
+      .findOne({
+        where: {
+          id: documentId,
+        },
         transaction,
         lock: {
           of: Document,
@@ -37,6 +41,11 @@ export default async function documentCollaborativeUpdater({
     if (isUnchanged && hasMultiplayerState) {
       return;
     }
+
+    Logger.info(
+      "multiplayer",
+      `Persisting ${documentId}, attributed to ${userId}`
+    );
 
     // extract collaborators from doc user data
     const pud = new Y.PermanentUserData(ydoc);
@@ -68,7 +77,7 @@ export default async function documentCollaborativeUpdater({
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
-      actorId: userId,
+      actorId: userId ?? document.lastModifiedById,
       data: {
         multiplayer: true,
         title: document.title,

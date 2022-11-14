@@ -51,14 +51,14 @@ export class Environment {
    * set or your users will be unable to login.
    */
   @IsByteLength(32, 64)
-  public SECRET_KEY = `${process.env.SECRET_KEY}`;
+  public SECRET_KEY = process.env.SECRET_KEY ?? "";
 
   /**
    * The secret that should be passed to the cron utility endpoint to enable
    * triggering of scheduled tasks.
    */
   @IsNotEmpty()
-  public UTILS_SECRET = `${process.env.UTILS_SECRET}`;
+  public UTILS_SECRET = process.env.UTILS_SECRET ?? "";
 
   /**
    * The url of the database.
@@ -69,7 +69,7 @@ export class Environment {
     allow_underscores: true,
     protocols: ["postgres", "postgresql"],
   })
-  public DATABASE_URL = `${process.env.DATABASE_URL}`;
+  public DATABASE_URL = process.env.DATABASE_URL ?? "";
 
   /**
    * The url of the database pool.
@@ -125,7 +125,7 @@ export class Environment {
    */
   @IsNotEmpty()
   @IsUrl({ require_tld: false })
-  public URL = `${process.env.URL}`;
+  public URL = process.env.URL || "";
 
   /**
    * If using a Cloudfront/Cloudflare distribution or similar it can be set below.
@@ -157,7 +157,7 @@ export class Environment {
   /**
    * Optional extra debugging. Comma separated
    */
-  public DEBUG = `${process.env.DEBUG}`;
+  public DEBUG = process.env.DEBUG || "";
 
   /**
    * How many processes should be spawned. As a reasonable rule divide your
@@ -196,11 +196,6 @@ export class Environment {
   @Equals("hosted")
   @IsOptional()
   public DEPLOYMENT = this.toOptionalString(process.env.DEPLOYMENT);
-
-  /**
-   * Custom company logo that displays on the authentication screen.
-   */
-  public TEAM_LOGO = process.env.TEAM_LOGO;
 
   /**
    * The default interface language. See translate.getoutline.com for a list of
@@ -323,16 +318,16 @@ export class Environment {
   public SENTRY_DSN = this.toOptionalString(process.env.SENTRY_DSN);
 
   /**
+   * Sentry tunnel URL for bypassing ad blockers
+   */
+  @IsUrl()
+  @IsOptional()
+  public SENTRY_TUNNEL = this.toOptionalString(process.env.SENTRY_TUNNEL);
+
+  /**
    * A release SHA or other identifier for Sentry.
    */
   public RELEASE = this.toOptionalString(process.env.RELEASE);
-
-  /**
-   * An optional host from which to load default avatars.
-   */
-  @IsUrl()
-  public DEFAULT_AVATAR_HOST =
-    process.env.DEFAULT_AVATAR_HOST ?? "https://tiley.herokuapp.com";
 
   /**
    * A Google Analytics tracking ID, only v3 supported at this time.
