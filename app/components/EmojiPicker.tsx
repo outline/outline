@@ -4,6 +4,7 @@ import { CloseIcon } from "outline-icons";
 import * as React from "react";
 import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
 import styled from "styled-components";
+import { depths } from "@shared/styles";
 import NudeButton from "~/components/NudeButton";
 import Popover from "~/components/Popover";
 import Tooltip from "~/components/Tooltip";
@@ -38,7 +39,7 @@ const EmojiPicker: React.FC<Props> = ({
           disclosure ? React.cloneElement(disclosure, disclosureProps) : null
         }
       </PopoverDisclosure>
-      <Popover
+      <PickerPopover
         {...popover}
         baseId="emoji-picker"
         tabIndex={0}
@@ -59,10 +60,14 @@ const EmojiPicker: React.FC<Props> = ({
             {...pickerOptions}
           />
         </PickerStyles>
-      </Popover>
+      </PickerPopover>
     </>
   );
 };
+
+const PickerPopover = styled(Popover)`
+  z-index: ${depths.popover};
+`;
 
 const PickerStyles = styled.div`
   margin-left: -24px;
