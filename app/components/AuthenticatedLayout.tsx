@@ -8,6 +8,7 @@ import type { DocumentContextValue } from "~/components/DocumentContext";
 import Layout from "~/components/Layout";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import Sidebar from "~/components/Sidebar";
+import SidebarRight from "~/components/Sidebar/Right";
 import SettingsSidebar from "~/components/Sidebar/Settings";
 import type { Editor as TEditor } from "~/editor";
 import usePolicy from "~/hooks/usePolicy";
@@ -19,6 +20,7 @@ import {
   newDocumentPath,
   settingsPath,
   matchDocumentHistory,
+  matchDocumentInsights,
 } from "~/utils/routeHelpers";
 import Fade from "./Fade";
 
@@ -90,32 +92,26 @@ const AuthenticatedLayout: React.FC = ({ children }) => {
     </Fade>
   ) : undefined;
 
+  const showHistory = !!matchPath(location.pathname, {
+    path: matchDocumentHistory,
+  });
+  const showInsights = !!matchPath(location.pathname, {
+    path: matchDocumentInsights,
+  });
+
   const sidebarRight = (
-    <React.Suspense fallback={null}>
-      <AnimatePresence key={ui.activeDocumentId}>
-        <Switch
-          location={location}
-          key={
-            matchPath(location.pathname, {
-              path: matchDocumentHistory,
-            })
-              ? "history"
-              : location.pathname
-          }
-        >
-          <Route
-            key="document-history"
-            path={`/doc/${slug}/history/:revisionId?`}
-            component={DocumentHistory}
-          />
-          <Route
-            key="document-history"
-            path={`/doc/${slug}/insights`}
-            component={DocumentInsights}
-          />
-        </Switch>
-      </AnimatePresence>
-    </React.Suspense>
+    <AnimatePresence key={ui.activeDocumentId}>
+      {(showHistory || showInsights) && (
+        <Route path={`/doc/${slug}`}>
+          <SidebarRight>
+            <React.Suspense fallback={null}>
+              {showHistory && <DocumentHistory />}
+              {showInsights && <DocumentInsights />}
+            </React.Suspense>
+          </SidebarRight>
+        </Route>
+      )}
+    </AnimatePresence>
   );
 
   return (

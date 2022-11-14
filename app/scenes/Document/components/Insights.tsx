@@ -17,7 +17,7 @@ import useKeyDown from "~/hooks/useKeyDown";
 import useStores from "~/hooks/useStores";
 import useTextSelection from "~/hooks/useTextSelection";
 import { documentUrl } from "~/utils/routeHelpers";
-import Sidebar from "./RightSidebar";
+import Sidebar from "./SidebarLayout";
 
 function Insights() {
   const { views, documents } = useStores();

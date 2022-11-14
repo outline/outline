@@ -9,7 +9,7 @@ import PaginatedEventList from "~/components/PaginatedEventList";
 import useKeyDown from "~/hooks/useKeyDown";
 import useStores from "~/hooks/useStores";
 import { documentUrl } from "~/utils/routeHelpers";
-import Sidebar from "./RightSidebar";
+import Sidebar from "./SidebarLayout";
 
 const EMPTY_ARRAY: Event[] = [];
 
