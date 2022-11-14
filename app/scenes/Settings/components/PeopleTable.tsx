@@ -29,7 +29,7 @@ function PeopleTable({ canManage, ...rest }: Props) {
           Cell: observer(
             ({ value, row }: { value: string; row: { original: User } }) => (
               <Flex align="center" gap={8}>
-                <Avatar src={row.original.avatarUrl} size={32} /> {value}{" "}
+                <Avatar model={row.original} size={32} /> {value}{" "}
                 {currentUser.id === row.original.id && `(${t("You")})`}
               </Flex>
             )

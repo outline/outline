@@ -169,7 +169,7 @@ function Login({ children }: Props) {
         />
         <Logo>
           {config.logo ? (
-            <TeamLogo width={48} height={48} src={config.logo} />
+            <TeamLogo size={48} src={config.logo} />
           ) : (
             <OutlineLogo size={42} fill="currentColor" />
           )}

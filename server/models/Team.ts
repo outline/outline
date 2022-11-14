@@ -24,7 +24,6 @@ import { CollectionPermission, TeamPreference } from "@shared/types";
 import { getBaseDomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
 import env from "@server/env";
 import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
-import { generateAvatarUrl } from "@server/utils/avatars";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import Attachment from "./Attachment";
 import AuthenticationProvider from "./AuthenticationProvider";
@@ -94,8 +93,20 @@ class Team extends ParanoidModel {
   @AllowNull
   @IsUrl
   @Length({ max: 4096, msg: "avatarUrl must be 4096 characters or less" })
-  @Column
-  avatarUrl: string | null;
+  @Column(DataType.STRING)
+  get avatarUrl() {
+    const original = this.getDataValue("avatarUrl");
+
+    if (original && !original.startsWith("https://tiley.herokuapp.com")) {
+      return original;
+    }
+
+    return null;
+  }
+
+  set avatarUrl(value: string | null) {
+    this.setDataValue("avatarUrl", value);
+  }
 
   @Default(true)
   @Column
@@ -163,16 +174,6 @@ class Team extends ParanoidModel {
     return url.href.replace(/\/$/, "");
   }
 
-  get logoUrl() {
-    return (
-      this.avatarUrl ||
-      generateAvatarUrl({
-        id: this.id,
-        name: this.name,
-      })
-    );
-  }
-
   /**
    * Preferences that decide behavior for the team.
    *
@@ -194,12 +195,11 @@ class Team extends ParanoidModel {
    * Returns the passed preference value
    *
    * @param preference The user preference to retrieve
+   * @param fallback An optional fallback value, defaults to false.
    * @returns The preference value if set, else undefined
    */
-  public getPreference = (preference: TeamPreference) => {
-    return !!this.preferences && this.preferences[preference]
-      ? this.preferences[preference]
-      : undefined;
+  public getPreference = (preference: TeamPreference, fallback = false) => {
+    return this.preferences?.[preference] ?? fallback;
   };
 
   provisionFirstCollection = async (userId: string) => {

@@ -117,7 +117,6 @@ router.post(
           name: user.name,
           email: user.email,
           isAdmin: true,
-          avatarUrl: user.avatarUrl,
         },
         { transaction }
       );

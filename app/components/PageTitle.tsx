@@ -24,7 +24,7 @@ const PageTitle = ({ title, favicon }: Props) => {
         <link
           rel="shortcut icon"
           type="image/png"
-          href={cdnPath("/favicon-32.png")}
+          href={cdnPath("/images/favicon-32.png")}
           sizes="32x32"
         />
       )}

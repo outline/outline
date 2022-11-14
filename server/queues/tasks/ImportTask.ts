@@ -274,6 +274,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
               }),
               createdById: fileOperation.userId,
               permission: CollectionPermission.ReadWrite,
+              importId: fileOperation.id,
             },
             transaction,
           });
@@ -294,6 +295,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
                 createdById: fileOperation.userId,
                 name,
                 permission: CollectionPermission.ReadWrite,
+                importId: fileOperation.id,
               },
               { transaction }
             );
@@ -357,6 +359,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
             updatedAt: item.updatedAt ?? item.createdAt,
             publishedAt: item.updatedAt ?? item.createdAt ?? new Date(),
             parentDocumentId: item.parentDocumentId,
+            importId: fileOperation.id,
             user,
             ip,
             transaction,

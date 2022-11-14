@@ -5,6 +5,7 @@ import { useState } from "react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { useTheme } from "styled-components";
+import { TeamPreference } from "@shared/types";
 import AuthLogo from "~/components/AuthLogo";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Flex from "~/components/Flex";
@@ -84,6 +85,17 @@ function Security() {
       await saveData({ ...data, defaultUserRole: newDefaultRole });
     },
     [data, saveData]
+  );
+
+  const handlePreferenceChange = React.useCallback(
+    async (ev: React.ChangeEvent<HTMLInputElement>) => {
+      const preferences = {
+        ...team.preferences,
+        [ev.target.id]: ev.target.checked,
+      };
+      await saveData({ preferences });
+    },
+    [saveData, team.preferences]
   );
 
   const handleInviteRequiredChange = React.useCallback(
@@ -238,6 +250,19 @@ function Security() {
         )}
       >
         <Switch id="sharing" checked={data.sharing} onChange={handleChange} />
+      </SettingRow>
+      <SettingRow
+        label={t("Viewer document exports")}
+        name={TeamPreference.ViewersCanExport}
+        description={t(
+          "When enabled, viewers can see download options for documents"
+        )}
+      >
+        <Switch
+          id={TeamPreference.ViewersCanExport}
+          checked={team.getPreference(TeamPreference.ViewersCanExport, true)}
+          onChange={handlePreferenceChange}
+        />
       </SettingRow>
       <SettingRow
         label={t("Rich service embeds")}

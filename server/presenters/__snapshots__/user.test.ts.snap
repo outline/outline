@@ -2,7 +2,7 @@
 
 exports[`presents a user 1`] = `
 Object {
-  "avatarUrl": "https://tiley.herokuapp.com/avatar/d41d8cd98f00b204e9800998ecf8427e/T.png?c=FF5C80",
+  "avatarUrl": null,
   "color": "#FF5C80",
   "createdAt": undefined,
   "id": "123",
@@ -17,7 +17,7 @@ Object {
 
 exports[`presents a user without slack data 1`] = `
 Object {
-  "avatarUrl": "https://tiley.herokuapp.com/avatar/d41d8cd98f00b204e9800998ecf8427e/T.png?c=FF5C80",
+  "avatarUrl": null,
   "color": "#FF5C80",
   "createdAt": undefined,
   "id": "123",

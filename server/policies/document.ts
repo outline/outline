@@ -1,4 +1,5 @@
 import invariant from "invariant";
+import { TeamPreference } from "@shared/types";
 import { Document, Revision, User, Team } from "@server/models";
 import { allow, _cannot as cannot } from "./cancan";
 
@@ -9,13 +10,33 @@ allow(User, "createDocument", Team, (user, team) => {
   return true;
 });
 
-allow(User, ["read", "download"], Document, (user, document) => {
+allow(User, "read", Document, (user, document) => {
   if (!document) {
     return false;
   }
 
   // existence of collection option is not required here to account for share tokens
   if (document.collection && cannot(user, "read", document.collection)) {
+    return false;
+  }
+
+  return user.teamId === document.teamId;
+});
+
+allow(User, "download", Document, (user, document) => {
+  if (!document) {
+    return false;
+  }
+
+  // existence of collection option is not required here to account for share tokens
+  if (document.collection && cannot(user, "read", document.collection)) {
+    return false;
+  }
+
+  if (
+    user.isViewer &&
+    !user.team.getPreference(TeamPreference.ViewersCanExport, true)
+  ) {
     return false;
   }
 

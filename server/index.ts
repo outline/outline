@@ -6,7 +6,6 @@ import "./logging/tracing"; // must come before importing any instrumented modul
 import http from "http";
 import https from "https";
 import Koa from "koa";
-import compress from "koa-compress";
 import helmet from "koa-helmet";
 import logger from "koa-logger";
 import onerror from "koa-onerror";
@@ -81,7 +80,6 @@ async function start(id: number, disconnect: () => void) {
     app.use(logger((str) => Logger.info("http", str)));
   }
 
-  app.use(compress());
   app.use(helmet());
 
   // catch errors in one place, automatically set status and response headers

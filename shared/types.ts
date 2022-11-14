@@ -59,6 +59,8 @@ export enum TeamPreference {
   SeamlessEdit = "seamlessEdit",
   /** Whether to use team logo across the app for branding. */
   PublicBranding = "publicBranding",
+  /** Whether viewers should see download options */
+  ViewersCanExport = "viewersCanExport",
 }
 
 export type TeamPreferences = { [key in TeamPreference]?: boolean };

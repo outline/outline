@@ -38,9 +38,8 @@ async function teamCreator({
 }: Props): Promise<Team> {
   // If the service did not provide a logo/avatar then we attempt to generate
   // one via ClearBit, or fallback to colored initials in worst case scenario
-  if (!avatarUrl) {
+  if (!avatarUrl || !avatarUrl.startsWith("http")) {
     avatarUrl = await generateAvatarUrl({
-      name,
       domain,
       id: subdomain,
     });

@@ -18,7 +18,6 @@ const Profile = () => {
   const user = useCurrentUser();
   const form = React.useRef<HTMLFormElement>(null);
   const [name, setName] = React.useState<string>(user.name || "");
-  const [avatarUrl, setAvatarUrl] = React.useState<string>(user.avatarUrl);
   const { showToast } = useToasts();
   const { t } = useTranslation();
 
@@ -28,7 +27,6 @@ const Profile = () => {
     try {
       await auth.updateUser({
         name,
-        avatarUrl,
       });
       showToast(t("Profile saved"), {
         type: "success",
@@ -45,7 +43,6 @@ const Profile = () => {
   };
 
   const handleAvatarUpload = async (avatarUrl: string) => {
-    setAvatarUrl(avatarUrl);
     await auth.updateUser({
       avatarUrl,
     });
@@ -79,7 +76,7 @@ const Profile = () => {
           <ImageInput
             onSuccess={handleAvatarUpload}
             onError={handleAvatarError}
-            src={avatarUrl}
+            model={user}
           />
         </SettingRow>
         <SettingRow

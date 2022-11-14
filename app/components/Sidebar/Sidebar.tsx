@@ -178,7 +178,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(
                   image={
                     <StyledAvatar
                       alt={user.name}
-                      src={user.avatarUrl}
+                      model={user}
                       size={24}
                       showBorder={false}
                     />

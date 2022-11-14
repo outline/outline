@@ -2,13 +2,12 @@ import { LocationDescriptor } from "history";
 import { observer, useObserver } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
+import { Link, useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import Document from "~/models/Document";
 import DocumentMeta from "~/components/DocumentMeta";
-import DocumentViews from "~/components/DocumentViews";
-import Popover from "~/components/Popover";
 import useStores from "~/hooks/useStores";
+import { documentUrl, documentInsightsUrl } from "~/utils/routeHelpers";
 import Fade from "./Fade";
 
 type Props = {
@@ -21,41 +20,32 @@ type Props = {
 function DocumentMetaWithViews({ to, isDraft, document, ...rest }: Props) {
   const { views } = useStores();
   const { t } = useTranslation();
+  const match = useRouteMatch();
   const documentViews = useObserver(() => views.inDocument(document.id));
   const totalViewers = documentViews.length;
   const onlyYou = totalViewers === 1 && documentViews[0].user.id;
   const viewsLoadedOnMount = React.useRef(totalViewers > 0);
 
-  const popover = usePopoverState({
-    gutter: 8,
-    placement: "bottom",
-    modal: true,
-  });
-
+  const insightsUrl = documentInsightsUrl(document);
   const Wrapper = viewsLoadedOnMount.current ? React.Fragment : Fade;
 
   return (
     <Meta document={document} to={to} replace {...rest}>
       {totalViewers && !isDraft ? (
-        <PopoverDisclosure {...popover}>
-          {(props) => (
-            <Wrapper>
-              &nbsp;•&nbsp;
-              <a {...props}>
-                {t("Viewed by")}{" "}
-                {onlyYou
-                  ? t("only you")
-                  : `${totalViewers} ${
-                      totalViewers === 1 ? t("person") : t("people")
-                    }`}
-              </a>
-            </Wrapper>
-          )}
-        </PopoverDisclosure>
+        <Wrapper>
+          &nbsp;•&nbsp;
+          <Link
+            to={match.url === insightsUrl ? documentUrl(document) : insightsUrl}
+          >
+            {t("Viewed by")}{" "}
+            {onlyYou
+              ? t("only you")
+              : `${totalViewers} ${
+                  totalViewers === 1 ? t("person") : t("people")
+                }`}
+          </Link>
+        </Wrapper>
       ) : null}
-      <Popover {...popover} width={300} aria-label={t("Viewers")} tabIndex={0}>
-        <DocumentViews document={document} isOpen={popover.visible} />
-      </Popover>
     </Meta>
   );
 }

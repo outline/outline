@@ -72,6 +72,10 @@ export function documentMoveUrl(doc: Document): string {
   return `${doc.url}/move`;
 }
 
+export function documentInsightsUrl(doc: Document): string {
+  return `${doc.url}/insights`;
+}
+
 export function documentHistoryUrl(doc: Document, revisionId?: string): string {
   let base = `${doc.url}/history`;
   if (revisionId) {
@@ -135,3 +139,5 @@ export const matchDocumentSlug =
 export const matchDocumentEdit = `/doc/${matchDocumentSlug}/edit`;
 
 export const matchDocumentHistory = `/doc/${matchDocumentSlug}/history/:revisionId?`;
+
+export const matchDocumentInsights = `/doc/${matchDocumentSlug}/insights`;
