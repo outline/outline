@@ -139,3 +139,5 @@ export const matchDocumentSlug =
 export const matchDocumentEdit = `/doc/${matchDocumentSlug}/edit`;
 
 export const matchDocumentHistory = `/doc/${matchDocumentSlug}/history/:revisionId?`;
+
+export const matchDocumentInsights = `/doc/${matchDocumentSlug}/insights`;
