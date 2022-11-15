@@ -61,13 +61,14 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   const { showToast } = useToasts();
   const dictionary = useDictionary();
   const embeds = useEmbeds(!shareId);
+  const localRef = React.useRef<SharedEditor>();
   const preferences = auth.user?.preferences;
+  const previousHeadings = React.useRef<Heading[] | null>(null);
 
   const [
     activeLinkEvent,
     setActiveLinkEvent,
   ] = React.useState<MouseEvent | null>(null);
-  const previousHeadings = React.useRef<Heading[] | null>(null);
 
   const handleLinkActive = React.useCallback((event: MouseEvent) => {
     setActiveLinkEvent(event);
@@ -251,7 +252,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   // Calculate if headings have changed and trigger callback if so
   const updateHeadings = React.useCallback(() => {
     if (onHeadingsChange) {
-      const headings = ref?.current?.getHeadings();
+      const headings = localRef?.current?.getHeadings();
       if (
         headings &&
         headings.map((h) => h.level + h.title).join("") !==
@@ -261,7 +262,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
         onHeadingsChange(headings);
       }
     }
-  }, [ref, onHeadingsChange]);
+  }, [localRef, onHeadingsChange]);
 
   const handleChange = React.useCallback(
     (event) => {
@@ -284,7 +285,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     <ErrorBoundary reloadOnChunkMissing>
       <>
         <LazyLoadedEditor
-          ref={mergeRefs([ref, handleRefChanged])}
+          ref={mergeRefs([ref, localRef, handleRefChanged])}
           uploadFile={onUploadFile}
           onShowToast={showToast}
           embeds={embeds}

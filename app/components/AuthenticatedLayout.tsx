@@ -1,5 +1,5 @@
 import { AnimatePresence } from "framer-motion";
-import { observer } from "mobx-react";
+import { observer, useLocalStore } from "mobx-react";
 import * as React from "react";
 import { Switch, Route, useLocation, matchPath } from "react-router-dom";
 import ErrorSuspended from "~/scenes/ErrorSuspended";
@@ -51,12 +51,12 @@ const AuthenticatedLayout: React.FC = ({ children }) => {
   const location = useLocation();
   const can = usePolicy(ui.activeCollectionId);
   const { user, team } = auth;
-  const [documentContext] = React.useState<DocumentContextValue>({
+  const documentContext = useLocalStore<DocumentContextValue>(() => ({
     editor: null,
     setEditor: (editor: TEditor) => {
       documentContext.editor = editor;
     },
-  });
+  }));
 
   const goToSearch = (ev: KeyboardEvent) => {
     if (!ev.metaKey && !ev.ctrlKey) {
