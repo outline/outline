@@ -254,7 +254,6 @@ function SharePopover({
             type="submit"
             disabled={isCopied || (!share && team.sharing)}
             ref={buttonRef}
-            primary
           >
             {t("Copy link")}
           </Button>

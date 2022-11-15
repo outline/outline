@@ -8,16 +8,16 @@ import ActionButton, {
 } from "~/components/ActionButton";
 
 type RealProps = {
-  fullwidth?: boolean;
-  borderOnHover?: boolean;
+  $fullwidth?: boolean;
+  $borderOnHover?: boolean;
   $neutral?: boolean;
-  danger?: boolean;
-  iconColor?: string;
+  $danger?: boolean;
+  $iconColor?: string;
 };
 
 const RealButton = styled(ActionButton)<RealProps>`
-  display: ${(props) => (props.fullwidth ? "block" : "inline-block")};
-  width: ${(props) => (props.fullwidth ? "100%" : "auto")};
+  display: ${(props) => (props.$fullwidth ? "block" : "inline-block")};
+  width: ${(props) => (props.$fullwidth ? "100%" : "auto")};
   margin: 0;
   padding: 0;
   border: 0;
@@ -35,10 +35,10 @@ const RealButton = styled(ActionButton)<RealProps>`
   appearance: none !important;
 
   ${(props) =>
-    !props.borderOnHover &&
+    !props.$borderOnHover &&
     `
       svg {
-        fill: ${props.iconColor || "currentColor"};
+        fill: ${props.$iconColor || "currentColor"};
       }
     `}
 
@@ -69,16 +69,16 @@ const RealButton = styled(ActionButton)<RealProps>`
     background: ${props.theme.buttonNeutralBackground};
     color: ${props.theme.buttonNeutralText};
     box-shadow: ${
-      props.borderOnHover
+      props.$borderOnHover
         ? "none"
         : `rgba(0, 0, 0, 0.07) 0px 1px 2px, ${props.theme.buttonNeutralBorder} 0 0 0 1px inset`
     };
 
     ${
-      props.borderOnHover
+      props.$borderOnHover
         ? ""
         : `svg {
-      fill: ${props.iconColor || "currentColor"};
+      fill: ${props.$iconColor || "currentColor"};
     }`
     }
 
@@ -86,7 +86,7 @@ const RealButton = styled(ActionButton)<RealProps>`
     &:hover:not(:disabled),
     &[aria-expanded="true"] {
       background: ${
-        props.borderOnHover
+        props.$borderOnHover
           ? props.theme.buttonNeutralBackground
           : darken(0.05, props.theme.buttonNeutralBackground)
       };
@@ -106,7 +106,7 @@ const RealButton = styled(ActionButton)<RealProps>`
   `}
 
   ${(props) =>
-    props.danger &&
+    props.$danger &&
     `
       background: ${props.theme.danger};
       color: ${props.theme.white};
@@ -158,7 +158,6 @@ export type Props<T> = ActionButtonProps & {
   disclosure?: boolean;
   neutral?: boolean;
   danger?: boolean;
-  primary?: boolean;
   fullwidth?: boolean;
   as?: T;
   to?: LocationDescriptor;
@@ -181,6 +180,10 @@ const Button = <T extends React.ElementType = "button">(
     neutral,
     action,
     icon,
+    iconColor,
+    borderOnHover,
+    fullwidth,
+    danger,
     ...rest
   } = props;
   const hasText = children !== undefined || value !== undefined;
@@ -193,6 +196,10 @@ const Button = <T extends React.ElementType = "button">(
       ref={ref}
       $neutral={neutral}
       action={action}
+      $danger={danger}
+      $fullwidth={fullwidth}
+      $borderOnHover={borderOnHover}
+      $iconColor={iconColor}
       {...rest}
     >
       <Inner hasIcon={hasIcon} hasText={hasText} disclosure={disclosure}>

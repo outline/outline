@@ -69,7 +69,6 @@ function Export() {
         type="submit"
         onClick={handleExport}
         disabled={isLoading || isExporting}
-        primary
       >
         {isExporting
           ? t("Export Requested")
