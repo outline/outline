@@ -1,9 +1,12 @@
 import Router from "koa-router";
 import { find, uniqBy } from "lodash";
 import { parseDomain } from "@shared/utils/domains";
-import { sequelize } from "@server/database/sequelize";
 import env from "@server/env";
 import auth from "@server/middlewares/authentication";
+import {
+  transaction,
+  TransactionContext,
+} from "@server/middlewares/transaction";
 import { Event, Team } from "@server/models";
 import {
   presentUser,
@@ -153,10 +156,13 @@ router.post("auth.info", auth(), async (ctx) => {
   };
 });
 
-router.post("auth.delete", auth(), async (ctx) => {
-  const { user } = ctx.state;
+router.post(
+  "auth.delete",
+  auth(),
+  transaction(),
+  async (ctx: TransactionContext) => {
+    const { user, transaction } = ctx.state;
 
-  await sequelize.transaction(async (transaction) => {
     await user.rotateJwtSecret({ transaction });
     await Event.create(
       {
@@ -173,11 +179,11 @@ router.post("auth.delete", auth(), async (ctx) => {
         transaction,
       }
     );
-  });
 
-  ctx.body = {
-    success: true,
-  };
-});
+    ctx.body = {
+      success: true,
+    };
+  }
+);
 
 export default router;

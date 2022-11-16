@@ -10,7 +10,6 @@ import userDestroyer from "@server/commands/userDestroyer";
 import userInviter from "@server/commands/userInviter";
 import userSuspender from "@server/commands/userSuspender";
 import userUnsuspender from "@server/commands/userUnsuspender";
-import { sequelize } from "@server/database/sequelize";
 import ConfirmUserDeleteEmail from "@server/emails/templates/ConfirmUserDeleteEmail";
 import InviteEmail from "@server/emails/templates/InviteEmail";
 import env from "@server/env";
@@ -359,11 +358,15 @@ router.post(
   }
 );
 
-router.post("users.resendInvite", auth(), async (ctx) => {
-  const { id } = ctx.request.body;
-  const actor = ctx.state.user;
+router.post(
+  "users.resendInvite",
+  auth(),
+  transaction(),
+  async (ctx: TransactionContext) => {
+    const { id } = ctx.request.body;
+    const actor = ctx.state.user;
+    const { transaction } = ctx.state;
 
-  await sequelize.transaction(async (transaction) => {
     const user = await User.findByPk(id, {
       lock: transaction.LOCK.UPDATE,
       transaction,
@@ -394,12 +397,12 @@ router.post("users.resendInvite", auth(), async (ctx) => {
         }/auth/email.callback?token=${user.getEmailSigninToken()}`
       );
     }
-  });
 
-  ctx.body = {
-    success: true,
-  };
-});
+    ctx.body = {
+      success: true,
+    };
+  }
+);
 
 router.post(
   "users.requestDelete",
