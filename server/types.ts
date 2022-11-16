@@ -276,9 +276,9 @@ export type ViewEvent = BaseEvent & {
 
 export type WebhookSubscriptionEvent = BaseEvent & {
   name:
-    | "webhook_subscriptions.create"
-    | "webhook_subscriptions.delete"
-    | "webhook_subscriptions.update";
+    | "webhookSubscriptions.create"
+    | "webhookSubscriptions.delete"
+    | "webhookSubscriptions.update";
   modelId: string;
   data: {
     name: string;

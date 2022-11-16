@@ -61,7 +61,7 @@ router.post(
     });
 
     const event: WebhookSubscriptionEvent = {
-      name: "webhook_subscriptions.create",
+      name: "webhookSubscriptions.create",
       modelId: webhookSubscription.id,
       teamId: user.teamId,
       actorId: user.id,
@@ -94,7 +94,7 @@ router.post(
     await webhookSubscription.destroy();
 
     const event: WebhookSubscriptionEvent = {
-      name: "webhook_subscriptions.delete",
+      name: "webhookSubscriptions.delete",
       modelId: webhookSubscription.id,
       teamId: user.teamId,
       actorId: user.id,
@@ -139,7 +139,7 @@ router.post(
     });
 
     const event: WebhookSubscriptionEvent = {
-      name: "webhook_subscriptions.update",
+      name: "webhookSubscriptions.update",
       modelId: webhookSubscription.id,
       teamId: user.teamId,
       actorId: user.id,

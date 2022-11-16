@@ -37,9 +37,9 @@ const WEBHOOK_EVENTS = {
   ],
   revision: ["revisions.create"],
   fileOperation: [
-    "file_operations.create",
-    "file_operations.update",
-    "file_operations.delete",
+    "fileOperations.create",
+    "fileOperations.update",
+    "fileOperations.delete",
   ],
   collection: [
     "collections.create",
@@ -64,9 +64,9 @@ const WEBHOOK_EVENTS = {
   team: ["teams.update"],
   pin: ["pins.create", "pins.update", "pins.delete"],
   webhookSubscription: [
-    "webhook_subscriptions.create",
-    "webhook_subscriptions.delete",
-    "webhook_subscriptions.update",
+    "webhookSubscriptions.create",
+    "webhookSubscriptions.delete",
+    "webhookSubscriptions.update",
   ],
   view: ["views.create"],
 };
