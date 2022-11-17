@@ -118,8 +118,8 @@ const ContentEditable = React.forwardRef(
       }
     }, [value, contentRef]);
 
-    // Ensure only plain text can be pasted into title when pasting from another
-    // rich text editor
+    // Ensure only plain text can be pasted into input when pasting from another
+    // rich text source
     const handlePaste = React.useCallback(
       (event: React.ClipboardEvent<HTMLSpanElement>) => {
         event.preventDefault();
