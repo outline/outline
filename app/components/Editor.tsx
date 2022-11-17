@@ -178,8 +178,8 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   );
 
   const focusAtEnd = React.useCallback(() => {
-    ref?.current?.focusAtEnd();
-  }, [ref]);
+    localRef?.current?.focusAtEnd();
+  }, [localRef]);
 
   const handleDrop = React.useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
@@ -187,7 +187,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
       event.stopPropagation();
       const files = getDataTransferFiles(event);
 
-      const view = ref?.current?.view;
+      const view = localRef?.current?.view;
       if (!view) {
         return;
       }
@@ -231,7 +231,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
       });
     },
     [
-      ref,
+      localRef,
       props.onFileUploadStart,
       props.onFileUploadStop,
       dictionary,
