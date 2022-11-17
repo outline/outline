@@ -21,6 +21,7 @@ import Flex from "~/components/Flex";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import Scene from "~/components/Scene";
+import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import withStores from "~/components/withStores";
 import Logger from "~/utils/Logger";
@@ -52,11 +53,16 @@ class Search extends React.Component<Props> {
 
   lastParams: SearchParams;
 
+  lastTitleFilterState: boolean;
+
   @observable
   query: string = decodeURIComponentSafe(this.props.match.params.term || "");
 
   @observable
   params: URLSearchParams = new URLSearchParams(this.props.location.search);
+
+  @observable
+  searchTitleOnly = false;
 
   @observable
   offset = 0;
@@ -171,6 +177,20 @@ class Search extends React.Component<Props> {
     });
   };
 
+  handleSearchTitleOnly = (ev: React.ChangeEvent<HTMLInputElement>) => {
+    this.searchTitleOnly = ev.target.checked;
+    this.fetchResults();
+    // Disable other filters if this filter is enabled
+    if (ev.target.checked) {
+      this.handleFilterChange({
+        collectionId: undefined,
+        userId: undefined,
+        dateFilter: undefined,
+        includeArchived: undefined,
+      });
+    }
+  };
+
   get includeArchived() {
     return this.params.get("includeArchived") === "true";
   }
@@ -233,7 +253,11 @@ class Search extends React.Component<Props> {
       };
 
       // we just requested this thing – no need to try again
-      if (this.lastQuery === this.query && isEqual(params, this.lastParams)) {
+      if (
+        this.lastQuery === this.query &&
+        isEqual(params, this.lastParams) &&
+        isEqual(this.lastTitleFilterState, this.searchTitleOnly)
+      ) {
         this.isLoading = false;
         return;
       }
@@ -241,9 +265,12 @@ class Search extends React.Component<Props> {
       this.isLoading = true;
       this.lastQuery = this.query;
       this.lastParams = params;
+      this.lastTitleFilterState = this.searchTitleOnly;
 
       try {
-        const results = await this.props.documents.search(this.query, params);
+        const results = this.searchTitleOnly
+          ? await this.props.documents.searchTitles(this.query)
+          : await this.props.documents.search(this.query, params);
 
         // Add to the searches store so this search can immediately appear in
         // the recent searches list without a flash of load
@@ -348,6 +375,13 @@ class Search extends React.Component<Props> {
                   })
                 }
               />
+              <SearchOnlyTitleFilter
+                width={26}
+                height={14}
+                label={t("search title only")}
+                onChange={this.handleSearchTitleOnly}
+                checked={this.searchTitleOnly}
+              />
             </Filters>
           ) : (
             <RecentSearches />
@@ -435,6 +469,10 @@ const Filters = styled(Flex)`
   &:hover {
     opacity: 1;
   }
+`;
+
+const SearchOnlyTitleFilter = styled(Switch)`
+  margin-left: 8px;
 `;
 
 export default withTranslation()(withStores(withRouter(Search)));
