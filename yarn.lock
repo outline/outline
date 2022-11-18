@@ -1321,30 +1321,28 @@
   dependencies:
     lib0 "^0.2.42"
 
-"@hocuspocus/common@^1.0.0-alpha.11":
-  version "1.0.0-alpha.11"
-  resolved "https://registry.yarnpkg.com/@hocuspocus/common/-/common-1.0.0-alpha.11.tgz#d598d221465338c1d912251105519e88f8486805"
-  integrity sha512-oOddSLUTr8KrC58KSs5YHzr99ZSI4HZdIkYRoqmrusViF8M850uLXgYce7eG7Xaq4KlvXCSDG+wioQRTFXkCaA==
+"@hocuspocus/common@^1.0.0-beta.4":
+  version "1.0.0-beta.4"
+  resolved "https://registry.yarnpkg.com/@hocuspocus/common/-/common-1.0.0-beta.4.tgz#6d8a8b749f6da52a2b6e2d22b6ee9032fbf0a459"
+  integrity sha512-fnAqZNk8wUXrUBAB/nGjC/kGRGuLoQbaY1gqzHRRgHvBU3+PQWW9KwiYjvxtTJQ3YngkU9cEGr0L32KHT99QOQ==
   dependencies:
     lib0 "^0.2.47"
 
-"@hocuspocus/provider@^1.0.0-alpha.36":
-  version "1.0.0-alpha.36"
-  resolved "https://registry.yarnpkg.com/@hocuspocus/provider/-/provider-1.0.0-alpha.36.tgz#a09dd42baa9c88cbd63027a18edcd3f79823a0cf"
-  integrity sha512-vmrbaS2Si408Gau1vv/xH7ln/QbVJtUZsgLz0DwYYWWGcAJffaU1f89B2+sOL8IGRLclybldrVfZR+tFKBMzRw==
+"@hocuspocus/provider@^1.0.0-beta.4":
+  version "1.0.0-beta.4"
+  resolved "https://registry.yarnpkg.com/@hocuspocus/provider/-/provider-1.0.0-beta.4.tgz#ffa56841aa698c005db2f70a9b5e6838d2339102"
+  integrity sha512-nUKzDk58Gv+/mHYhi1HoR5yn7lpssDJH0v1to/okVf/zFuBhUxsUdvytfuUkXpF3H93sm5frQ5goN8i/KyJnNw==
   dependencies:
-    "@hocuspocus/common" "^1.0.0-alpha.11"
+    "@hocuspocus/common" "^1.0.0-beta.4"
     "@lifeomic/attempt" "^3.0.2"
     lib0 "^0.2.46"
-    y-protocols "^1.0.5"
-    yjs "^13.5.29"
 
-"@hocuspocus/server@^1.0.0-alpha.102":
-  version "1.0.0-alpha.102"
-  resolved "https://registry.yarnpkg.com/@hocuspocus/server/-/server-1.0.0-alpha.102.tgz#6c478032b3b30b45d96cbb744d8f61a6b9a71cf1"
-  integrity sha512-U82HAy9S9gNuPShsUrefJH2Bdv71+6gjIueNW39oLiWjR87Nmuenjzu1gbVcC6sJwjlsj3JJ0E1NDPu0xTDfxQ==
+"@hocuspocus/server@^1.0.0-beta.4":
+  version "1.0.0-beta.4"
+  resolved "https://registry.yarnpkg.com/@hocuspocus/server/-/server-1.0.0-beta.4.tgz#8f3da6343f643d84e1c856a6e30a47b56955a7e9"
+  integrity sha512-HmfRnUwTMLXei/mNjxJVE94dYHqutoTaCQjgJE82r+lrLZPZisvCgoe1pDlOsZEOWMnHpDdMhoS0zDHIg3xsmQ==
   dependencies:
-    "@hocuspocus/common" "^1.0.0-alpha.11"
+    "@hocuspocus/common" "^1.0.0-beta.4"
     "@types/async-lock" "^1.1.3"
     "@types/uuid" "^8.3.4"
     "@types/ws" "^8.5.3"
@@ -1353,8 +1351,6 @@
     lib0 "^0.2.46"
     uuid "^8.3.2"
     ws "^8.5.0"
-    y-protocols "^1.0.5"
-    yjs "^13.5.29"
 
 "@humanwhocodes/config-array@^0.5.0":
   version "0.5.0"
@@ -16227,7 +16223,7 @@ yarn-deduplicate@^3.1.0:
     commander "^6.1.0"
     semver "^7.3.2"
 
-yjs@^13.5.29, yjs@^13.5.39:
+yjs@^13.5.39:
   version "13.5.39"
   resolved "https://registry.yarnpkg.com/yjs/-/yjs-13.5.39.tgz#656763e61bfa0e50162657a8372ac2a50d955c6a"
   integrity sha512-EoVT856l301lomtjjVspgTdSRiFqZ7gNKnmVPX4/V8NHI5EYS39/MdjB9iNv0Mw1weKDZRU8NgxgerqwJ3y2xA==
