@@ -53,16 +53,11 @@ class Search extends React.Component<Props> {
 
   lastParams: SearchParams;
 
-  lastTitleFilterState: boolean;
-
   @observable
   query: string = decodeURIComponentSafe(this.props.match.params.term || "");
 
   @observable
   params: URLSearchParams = new URLSearchParams(this.props.location.search);
-
-  @observable
-  searchTitleOnly = false;
 
   @observable
   offset = 0;
@@ -165,6 +160,7 @@ class Search extends React.Component<Props> {
     userId?: string | undefined;
     dateFilter?: TDateFilter;
     includeArchived?: boolean | undefined;
+    titleFilter?: boolean | undefined;
   }) => {
     this.props.history.replace({
       pathname: this.props.location.pathname,
@@ -177,18 +173,8 @@ class Search extends React.Component<Props> {
     });
   };
 
-  handleSearchTitleOnly = (ev: React.ChangeEvent<HTMLInputElement>) => {
-    this.searchTitleOnly = ev.target.checked;
-    this.fetchResults();
-    // Disable other filters if this filter is enabled
-    if (ev.target.checked) {
-      this.handleFilterChange({
-        collectionId: undefined,
-        userId: undefined,
-        dateFilter: undefined,
-        includeArchived: undefined,
-      });
-    }
+  handleTitleFilterChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
+    this.handleFilterChange({ titleFilter: ev.target.checked });
   };
 
   get includeArchived() {
@@ -210,12 +196,17 @@ class Search extends React.Component<Props> {
     return id ? (id as TDateFilter) : undefined;
   }
 
+  get titleFilter() {
+    return this.params.get("titleFilter") === "true";
+  }
+
   get isFiltered() {
     return (
       this.dateFilter ||
       this.userId ||
       this.collectionId ||
-      this.includeArchived
+      this.includeArchived ||
+      this.titleFilter
     );
   }
 
@@ -250,14 +241,11 @@ class Search extends React.Component<Props> {
         includeDrafts: true,
         collectionId: this.collectionId,
         userId: this.userId,
+        titleFilter: this.titleFilter,
       };
 
       // we just requested this thing – no need to try again
-      if (
-        this.lastQuery === this.query &&
-        isEqual(params, this.lastParams) &&
-        isEqual(this.lastTitleFilterState, this.searchTitleOnly)
-      ) {
+      if (this.lastQuery === this.query && isEqual(params, this.lastParams)) {
         this.isLoading = false;
         return;
       }
@@ -265,10 +253,9 @@ class Search extends React.Component<Props> {
       this.isLoading = true;
       this.lastQuery = this.query;
       this.lastParams = params;
-      this.lastTitleFilterState = this.searchTitleOnly;
 
       try {
-        const results = this.searchTitleOnly
+        const results = this.titleFilter
           ? await this.props.documents.searchTitles(this.query)
           : await this.props.documents.search(this.query, params);
 
@@ -379,8 +366,8 @@ class Search extends React.Component<Props> {
                 width={26}
                 height={14}
                 label={t("search title only")}
-                onChange={this.handleSearchTitleOnly}
-                checked={this.searchTitleOnly}
+                onChange={this.handleTitleFilterChange}
+                checked={this.titleFilter}
               />
             </Filters>
           ) : (
