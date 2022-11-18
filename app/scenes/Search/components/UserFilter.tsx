@@ -1,6 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import styled from "styled-components";
 import Avatar from "~/components/Avatar";
 import FilterOptions from "~/components/FilterOptions";
 import useStores from "~/hooks/useStores";
@@ -44,9 +45,13 @@ function UserFilter(props: Props) {
       onSelect={onSelect}
       defaultLabel={t("Any author")}
       selectedPrefix={`${t("Author")}:`}
-      image={Avatar}
+      image={StyledAvatar}
     />
   );
 }
+
+const StyledAvatar = styled(Avatar)`
+  margin-right: 8px;
+`;
 
 export default observer(UserFilter);

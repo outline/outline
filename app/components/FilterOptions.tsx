@@ -1,5 +1,4 @@
 import * as React from "react";
-import { useTranslation } from "react-i18next";
 import { useMenuState, MenuButton } from "reakit/Menu";
 import styled from "styled-components";
 import User from "~/models/User";
@@ -10,7 +9,6 @@ import Text from "~/components/Text";
 
 type TFilterOption = {
   user?: User;
-  avatarUrl?: string;
   key: string;
   label: string;
   note?: string;
@@ -23,7 +21,7 @@ type Props = {
   selectedPrefix?: string;
   className?: string;
   onSelect: (key: string | null | undefined) => void;
-  image?: React.ComponentType<{ model?: User; size: number }>;
+  image?: React.FunctionComponent<any>;
 };
 
 const FilterOptions = ({
@@ -42,16 +40,6 @@ const FilterOptions = ({
     options.find((option) => option.key === activeKey) || options[0];
 
   const selectedLabel = selected ? `${selectedPrefix} ${selected.label}` : "";
-
-  let StyledImage: React.ComponentType<{ model?: User; size: number }>;
-  if (Image) {
-    StyledImage = styled(Image)`
-      margin-right: 8px;
-    `;
-  }
-  const isAuthorDropdown = defaultLabel === "Any author" ? true : false;
-  const { t } = useTranslation();
-  const isAuthorDropdown = defaultLabel === t("Any author") ? true : false;
 
   return (
     <Wrapper>
@@ -73,10 +61,7 @@ const FilterOptions = ({
             selected={option.key === activeKey}
             {...menu}
           >
-            {Image && <StyledImage model={option.user} size={20} />}
-            {isAuthorDropdown && option.avatarUrl ? (
-              <StyledAvatar src={option.avatarUrl} size={20} />
-            ) : null}
+            {Image && <Image model={option.user} />}
             {option.note ? (
               <LabelWithNote>
                 {option.label}
@@ -104,7 +89,6 @@ const Note = styled(Text)`
 const LabelWithNote = styled.div`
   font-weight: 500;
   text-align: left;
-
   &:hover ${Note} {
     color: ${(props) => props.theme.white50};
   }
@@ -115,11 +99,9 @@ const StyledButton = styled(Button)`
   text-transform: none;
   border-color: transparent;
   height: auto;
-
   &:hover {
     background: transparent;
   }
-
   ${Inner} {
     line-height: 24px;
     min-height: auto;
