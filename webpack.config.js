@@ -17,27 +17,32 @@ module.exports = {
   module: {
     rules: [
       {
-       test: /\.[jt]sx?$/,
-       loader: 'babel-loader',
-       exclude: [
-         path.join(__dirname, 'node_modules')
-       ],
-       include: [
-         path.join(__dirname, 'app'),
-         path.join(__dirname, 'shared'),
-       ],
-       options: {
-         cacheDirectory: true
-       }
+        test: /\.[jt]sx?$/,
+        loader: 'babel-loader',
+        exclude: [
+          path.join(__dirname, 'node_modules')
+        ],
+        include: [
+          path.join(__dirname, 'app'),
+          path.join(__dirname, 'shared'),
+        ],
+        options: {
+          cacheDirectory: true
+        }
       },
       // inline base64 URLs for <=8k images, direct URLs for the rest
       { test: /\.(png|jpg|svg)$/, loader: 'url-loader' },
       {
-       test: /\.woff$/,
-       loader: 'url-loader?limit=1&mimetype=application/font-woff&name=public/fonts/[name].[ext]',
+        test: /\.(woff|woff2|ttf|eot)$/,
+        loader:
+          'url-loader?limit=1&mimetype=application/font-woff&name=public/fonts/[name].[ext]',
       },
       { test: /\.md/, loader: 'raw-loader' },
-    ]
+      {
+        test: /\.css$/i,
+        use: ['style-loader', 'css-loader'],
+      },
+    ],
   },
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.json'],
