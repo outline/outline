@@ -15,7 +15,7 @@ export enum EventType {
 }
 
 export type MenuItem = {
-  icon?: typeof React.Component | React.FC<any>;
+  icon?: React.ReactElement;
   name?: string;
   title?: string;
   shortcut?: string;

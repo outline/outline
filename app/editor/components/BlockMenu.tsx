@@ -1,8 +1,8 @@
 import { findParentNode } from "prosemirror-utils";
 import React from "react";
 import getMenuItems from "../menus/block";
-import BlockMenuItem from "./BlockMenuItem";
 import CommandMenu, { Props } from "./CommandMenu";
+import CommandMenuItem from "./CommandMenuItem";
 
 type BlockMenuProps = Omit<
   Props,
@@ -26,7 +26,7 @@ function BlockMenu(props: BlockMenuProps) {
       filterable={true}
       onClearSearch={clearSearch}
       renderMenuItem={(item, _index, options) => (
-        <BlockMenuItem
+        <CommandMenuItem
           onClick={options.onClick}
           selected={options.selected}
           icon={item.icon}
