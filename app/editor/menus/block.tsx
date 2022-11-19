@@ -128,7 +128,7 @@ export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
     {
       name: "math_block",
       title: dictionary.mathBlock,
-      icon: MathIcon,
+      icon: <MathIcon />,
       keywords: "math katex latex",
     },
     {
