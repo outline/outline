@@ -1,10 +1,6 @@
 import { MathView } from "@benrbray/prosemirror-math";
 import { Node as ProseNode } from "prosemirror-model";
-import {
-  Plugin as ProsePlugin,
-  PluginKey,
-  PluginSpec,
-} from "prosemirror-state";
+import { Plugin, PluginKey, PluginSpec } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 
 export interface IMathPluginState {
@@ -22,7 +18,10 @@ export function createMathView(displayMode: boolean) {
     getPos: boolean | (() => number)
   ): MathView => {
     // dynamically load katex styles and fonts
-    import("katex/dist/katex.min.css");
+    import(
+      /* webpackChunkName: "katex" */
+      "katex/dist/katex.min.css"
+    );
 
     const pluginState = MATH_PLUGIN_KEY.getState(view.state);
     if (!pluginState) {
@@ -73,4 +72,4 @@ const mathPluginSpec: PluginSpec<IMathPluginState> = {
   },
 };
 
-export default new ProsePlugin(mathPluginSpec);
+export default new Plugin(mathPluginSpec);

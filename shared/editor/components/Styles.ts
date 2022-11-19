@@ -15,22 +15,22 @@ const mathStyle = (props: Props) => `
 /* Based on https://github.com/benrbray/prosemirror-math/blob/master/style/math.css */
 
 .math-node {
-	min-width: 1em;
-	min-height: 1em;
-	font-size: 0.95em;
-	font-family: ${props.theme.fontFamilyMono};
-	cursor: auto;
+  min-width: 1em;
+  min-height: 1em;
+  font-size: 0.95em;
+  font-family: ${props.theme.fontFamilyMono};
+  cursor: auto;
 }
 
 .math-node.empty-math .math-render::before {
-	content: "(empty math)";
-	color: ${props.theme.brand.red};
+  content: "(empty math)";
+  color: ${props.theme.brand.red};
 }
 
 .math-node .math-render.parse-error::before {
-	content: "(math error)";
-	color: ${props.theme.brand.red};
-	cursor: help;
+  content: "(math error)";
+  color: ${props.theme.brand.red};
+  cursor: help;
 }
 
 .math-node.ProseMirror-selectednode {
@@ -38,9 +38,9 @@ const mathStyle = (props: Props) => `
 }
 
 .math-node .math-src {
-	display: none;
-	color: ${props.theme.codeStatement};
-	tab-size: 4;
+  display: none;
+  color: ${props.theme.codeStatement};
+  tab-size: 4;
 }
 
 .math-node.ProseMirror-selectednode .math-src {
@@ -57,12 +57,12 @@ math-inline {
 }
 
 math-inline .math-render { 
-	display: inline-block;
-	font-size: 0.85em;
+  display: inline-block;
+  font-size: 0.85em;
 }
 
 math-inline .math-src .ProseMirror {
-	display: inline;
+  display: inline;
   border-radius: 4px;
   border: 1px solid ${props.theme.codeBorder};
   padding: 3px 4px;
@@ -89,8 +89,8 @@ math-block.ProseMirror-selectednode {
 }
 
 math-block .math-src .ProseMirror {
-	width: 100%;
-	display: block;
+  width: 100%;
+  display: block;
 }
 
 math-block .katex-display {
@@ -106,11 +106,11 @@ p::selection, p > *::selection {
 }
 
 .math-node.math-select .math-render {
-	background-color: #c0c0c0ff;
+  background-color: #c0c0c0ff;
 }
 
 math-inline.math-select .math-render {
-	padding-top: 2px;
+  padding-top: 2px;
 }
 `;
 
