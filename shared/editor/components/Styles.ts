@@ -432,6 +432,7 @@ h6:not(.placeholder):before {
   content: "H6";
 }
 
+.ProseMirror[contenteditable="true"]:focus-within,
 .ProseMirror-focused {
   h1,
   h2,
@@ -1357,6 +1358,7 @@ table {
   }
 }
 
+.ProseMirror[contenteditable="true"]:focus-within,
 .ProseMirror-focused .block-menu-trigger,
 .block-menu-trigger:active,
 .block-menu-trigger:focus {
