@@ -9,7 +9,7 @@ export default function DisabledEmbed(props: Props & ThemeProps<DefaultTheme>) {
     <Widget
       title={props.embed.title}
       href={props.attrs.href}
-      icon={props.embed.icon(undefined)}
+      icon={props.embed.icon}
       context={props.attrs.href.replace(/^https?:\/\//, "")}
       isSelected={props.isSelected}
       theme={props.theme}

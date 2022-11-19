@@ -7,6 +7,7 @@ import {
   AlignImageCenterIcon,
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
+import * as React from "react";
 import isNodeActive from "@shared/editor/queries/isNodeActive";
 import { MenuItem } from "@shared/editor/types";
 import { Dictionary } from "~/hooks/useDictionary";
@@ -27,14 +28,14 @@ export default function imageMenuItems(
     {
       name: "alignLeft",
       tooltip: dictionary.alignLeft,
-      icon: AlignImageLeftIcon,
+      icon: <AlignImageLeftIcon />,
       visible: true,
       active: isLeftAligned,
     },
     {
       name: "alignCenter",
       tooltip: dictionary.alignCenter,
-      icon: AlignImageCenterIcon,
+      icon: <AlignImageCenterIcon />,
       visible: true,
       active: (state) =>
         isNodeActive(schema.nodes.image)(state) &&
@@ -44,7 +45,7 @@ export default function imageMenuItems(
     {
       name: "alignRight",
       tooltip: dictionary.alignRight,
-      icon: AlignImageRightIcon,
+      icon: <AlignImageRightIcon />,
       visible: true,
       active: isRightAligned,
     },
@@ -55,21 +56,21 @@ export default function imageMenuItems(
     {
       name: "downloadImage",
       tooltip: dictionary.downloadImage,
-      icon: DownloadIcon,
+      icon: <DownloadIcon />,
       visible: !!fetch,
       active: () => false,
     },
     {
       name: "replaceImage",
       tooltip: dictionary.replaceImage,
-      icon: ReplaceIcon,
+      icon: <ReplaceIcon />,
       visible: true,
       active: () => false,
     },
     {
       name: "deleteImage",
       tooltip: dictionary.deleteImage,
-      icon: TrashIcon,
+      icon: <TrashIcon />,
       visible: true,
       active: () => false,
     },

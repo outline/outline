@@ -205,7 +205,7 @@ export const Background = styled(Scrollable)<BackgroundProps>`
   max-width: 100%;
   background: ${(props) => props.theme.menuBackground};
   border-radius: 6px;
-  padding: 6px 0;
+  padding: 6px;
   min-width: 180px;
   min-height: 44px;
   max-height: 75vh;
