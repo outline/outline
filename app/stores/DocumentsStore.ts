@@ -10,6 +10,7 @@ import { DocumentValidation } from "@shared/validations";
 import BaseStore from "~/stores/BaseStore";
 import RootStore from "~/stores/RootStore";
 import Document from "~/models/Document";
+import Team from "~/models/Team";
 import env from "~/env";
 import {
   FetchOptions,
@@ -466,6 +467,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     options: FetchOptions = {}
   ): Promise<{
     document: Document;
+    team?: Team;
     sharedTree?: NavigationNode;
   }> => {
     if (!options.prefetch) {
@@ -508,6 +510,7 @@ export default class DocumentsStore extends BaseStore<Document> {
         return {
           document,
           sharedTree: res.data.sharedTree,
+          team: res.data.team,
         };
       }
 

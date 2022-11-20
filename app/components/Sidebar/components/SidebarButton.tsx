@@ -33,7 +33,7 @@ const SidebarButton = React.forwardRef<HTMLButtonElement, SidebarButtonProps>(
       {...rest}
       ref={ref}
     >
-      <Title gap={4} align="center">
+      <Title gap={6} align="center">
         {image}
         {title}
       </Title>

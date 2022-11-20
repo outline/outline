@@ -1,5 +1,6 @@
 import Router from "koa-router";
 import { find, uniqBy } from "lodash";
+import { TeamPreference } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import auth from "@server/middlewares/authentication";
@@ -57,7 +58,9 @@ router.post("auth.config", async (ctx) => {
       ctx.body = {
         data: {
           name: team.name,
-          logo: team.preferences?.publicBranding ? team.avatarUrl : undefined,
+          logo: team.getPreference(TeamPreference.PublicBranding)
+            ? team.avatarUrl
+            : undefined,
           providers: filterProviders(team),
         },
       };
@@ -78,7 +81,9 @@ router.post("auth.config", async (ctx) => {
       ctx.body = {
         data: {
           name: team.name,
-          logo: team.preferences?.publicBranding ? team.avatarUrl : undefined,
+          logo: team.getPreference(TeamPreference.PublicBranding)
+            ? team.avatarUrl
+            : undefined,
           hostname: ctx.request.hostname,
           providers: filterProviders(team),
         },
@@ -100,7 +105,9 @@ router.post("auth.config", async (ctx) => {
       ctx.body = {
         data: {
           name: team.name,
-          logo: team.preferences?.publicBranding ? team.avatarUrl : undefined,
+          logo: team.getPreference(TeamPreference.PublicBranding)
+            ? team.avatarUrl
+            : undefined,
           hostname: ctx.request.hostname,
           providers: filterProviders(team),
         },
