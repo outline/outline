@@ -41,7 +41,10 @@ type ImportOptions = {
 };
 
 export default class DocumentsStore extends BaseStore<Document> {
-  sharedTreeCache: Map<string, NavigationNode | undefined> = new Map();
+  sharedCache: Map<
+    string,
+    { sharedTree: NavigationNode; team: Team } | undefined
+  > = new Map();
 
   @observable
   searchCache: Map<string, SearchResult[] | undefined> = new Map();
@@ -266,7 +269,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   }
 
   getSharedTree(documentId: string): NavigationNode | undefined {
-    return this.sharedTreeCache.get(documentId);
+    return this.sharedCache.get(documentId)?.sharedTree;
   }
 
   @action
@@ -484,10 +487,10 @@ export default class DocumentsStore extends BaseStore<Document> {
           return {
             document: doc,
           };
-        } else if (this.sharedTreeCache.has(options.shareId)) {
+        } else if (this.sharedCache.has(options.shareId)) {
           return {
             document: doc,
-            sharedTree: this.sharedTreeCache.get(options.shareId),
+            ...this.sharedCache.get(options.shareId),
           };
         }
       }
@@ -506,7 +509,10 @@ export default class DocumentsStore extends BaseStore<Document> {
       invariant(document, "Document not available");
 
       if (options.shareId) {
-        this.sharedTreeCache.set(options.shareId, res.data.sharedTree);
+        this.sharedCache.set(options.shareId, {
+          sharedTree: res.data.sharedTree,
+          team: res.data.team,
+        });
         return {
           document,
           sharedTree: res.data.sharedTree,

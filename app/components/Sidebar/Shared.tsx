@@ -8,7 +8,7 @@ import SearchPopover from "~/components/SearchPopover";
 import useStores from "~/hooks/useStores";
 import { NavigationNode } from "~/types";
 import history from "~/utils/history";
-import { sharedDocumentPath } from "~/utils/routeHelpers";
+import { homePath, sharedDocumentPath } from "~/utils/routeHelpers";
 import TeamLogo from "../TeamLogo";
 import Sidebar from "./Sidebar";
 import HeaderButton from "./components/HeaderButton";
@@ -22,7 +22,7 @@ type Props = {
 };
 
 function SharedSidebar({ rootNode, team, shareId }: Props) {
-  const { ui, documents } = useStores();
+  const { ui, documents, auth } = useStores();
   const { t } = useTranslation();
 
   return (
@@ -32,7 +32,9 @@ function SharedSidebar({ rootNode, team, shareId }: Props) {
           title={team.name}
           image={<TeamLogo model={team} size={32} alt={t("Logo")} />}
           onClick={() =>
-            history.push(sharedDocumentPath(shareId, rootNode.url))
+            history.push(
+              auth.user ? homePath() : sharedDocumentPath(shareId, rootNode.url)
+            )
           }
         />
       )}
