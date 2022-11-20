@@ -1,3 +1,4 @@
+import { AttachmentPreset } from "@shared/types";
 import Attachment from "@server/models/Attachment";
 import {
   buildUser,
@@ -34,6 +35,42 @@ describe("#attachments.create", () => {
       expect(res.status).toEqual(200);
     });
 
+    it("should allow upload using avatar preset", async () => {
+      const user = await buildUser();
+      const res = await server.post("/api/attachments.create", {
+        body: {
+          name: "test.png",
+          contentType: "image/png",
+          size: 1000,
+          preset: AttachmentPreset.Avatar,
+          token: user.getJwtToken(),
+        },
+      });
+      expect(res.status).toEqual(200);
+
+      const body = await res.json();
+      const attachment = await Attachment.findByPk(body.data.attachment.id);
+      expect(attachment!.expiresAt).toBeNull();
+    });
+
+    it("should create expiring attachment using import preset", async () => {
+      const user = await buildUser();
+      const res = await server.post("/api/attachments.create", {
+        body: {
+          name: "test.zip",
+          contentType: "application/zip",
+          size: 10000,
+          preset: AttachmentPreset.Import,
+          token: user.getJwtToken(),
+        },
+      });
+      expect(res.status).toEqual(200);
+
+      const body = await res.json();
+      const attachment = await Attachment.findByPk(body.data.attachment.id);
+      expect(attachment!.expiresAt).toBeTruthy();
+    });
+
     it("should not allow file upload for public attachments", async () => {
       const user = await buildUser();
       const res = await server.post("/api/attachments.create", {
@@ -42,6 +79,20 @@ describe("#attachments.create", () => {
           contentType: "application/pdf",
           size: 1000,
           public: true,
+          token: user.getJwtToken(),
+        },
+      });
+      expect(res.status).toEqual(400);
+    });
+
+    it("should not allow file upload for avatar preset", async () => {
+      const user = await buildUser();
+      const res = await server.post("/api/attachments.create", {
+        body: {
+          name: "test.pdf",
+          contentType: "application/pdf",
+          size: 1000,
+          preset: AttachmentPreset.Avatar,
           token: user.getJwtToken(),
         },
       });
@@ -58,6 +109,20 @@ describe("#attachments.create", () => {
           contentType: "image/png",
           size: 1000,
           public: true,
+          token: user.getJwtToken(),
+        },
+      });
+      expect(res.status).toEqual(200);
+    });
+
+    it("should allow upload using avatar preset", async () => {
+      const user = await buildViewer();
+      const res = await server.post("/api/attachments.create", {
+        body: {
+          name: "test.png",
+          contentType: "image/png",
+          size: 1000,
+          preset: AttachmentPreset.Avatar,
           token: user.getJwtToken(),
         },
       });

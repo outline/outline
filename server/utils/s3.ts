@@ -107,14 +107,13 @@ export const getSignature = (policy: string) => {
 export const getPresignedPost = (
   key: string,
   acl: string,
+  maxUploadSize: number,
   contentType = "image"
 ) => {
   const params = {
     Bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME,
     Conditions: compact([
-      process.env.AWS_S3_UPLOAD_MAX_SIZE
-        ? ["content-length-range", 0, +process.env.AWS_S3_UPLOAD_MAX_SIZE]
-        : undefined,
+      ["content-length-range", 0, maxUploadSize],
       ["starts-with", "$Content-Type", contentType],
       ["starts-with", "$Cache-Control", ""],
     ]),
