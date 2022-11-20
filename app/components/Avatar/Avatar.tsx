@@ -54,6 +54,7 @@ Avatar.defaultProps = {
 
 const Relative = styled.div`
   position: relative;
+  flex-shrink: 0;
 `;
 
 const IconWrapper = styled.div`
@@ -77,6 +78,7 @@ const CircleImg = styled.img<{ size: number; $showBorder?: boolean }>`
     ${(props) =>
       props.$showBorder === false ? "transparent" : props.theme.background};
   flex-shrink: 0;
+  overflow: hidden;
 `;
 
 export default Avatar;

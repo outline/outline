@@ -1,6 +1,7 @@
 import fs from "fs-extra";
 import invariant from "invariant";
 import Router from "koa-router";
+import { pick } from "lodash";
 import mime from "mime-types";
 import { Op, ScopeOptions, WhereOptions } from "sequelize";
 import { TeamPreference } from "@shared/types";
@@ -34,7 +35,6 @@ import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import SearchHelper from "@server/models/helpers/SearchHelper";
 import { authorize, cannot } from "@server/policies";
 import {
-  presentAvailableTeam,
   presentCollection,
   presentDocument,
   presentPolicies,
@@ -434,7 +434,7 @@ router.post(
         ? {
             document: serializedDocument,
             team: team?.getPreference(TeamPreference.PublicBranding)
-              ? presentAvailableTeam(team)
+              ? pick(team, ["avatarUrl", "name"])
               : undefined,
             sharedTree:
               share && share.includeChildDocuments
