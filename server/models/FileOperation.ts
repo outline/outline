@@ -27,7 +27,6 @@ export enum FileOperationFormat {
 
 export enum FileOperationState {
   Creating = "creating",
-  Processing = "processing",
   Uploading = "uploading",
   Complete = "complete",
   Error = "error",
