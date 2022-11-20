@@ -120,12 +120,12 @@ const getLayoutAndTitle = (tokenTitle: string): TitleAttributes => {
     return attributes;
   }
 
-  if (IMAGE_CLASSES.includes(tokenTitle)) {
-    attributes.layoutClass = tokenTitle;
-    IMAGE_CLASSES.map((className) => {
+  IMAGE_CLASSES.map((className) => {
+    if (tokenTitle.includes(className)) {
+      attributes.layoutClass = className;
       tokenTitle = tokenTitle.replace(className, "");
-    });
-  }
+    }
+  });
 
   const match = tokenTitle.match(imageSizeRegex);
   if (match) {
