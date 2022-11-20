@@ -8,6 +8,7 @@ import { mergeRefs } from "react-merge-refs";
 import { Optional } from "utility-types";
 import insertFiles from "@shared/editor/commands/insertFiles";
 import { Heading } from "@shared/editor/lib/getHeadings";
+import { AttachmentPreset } from "@shared/types";
 import { getDataTransferFiles } from "@shared/utils/files";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { isInternalUrl } from "@shared/utils/urls";
@@ -135,6 +136,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     async (file: File) => {
       const result = await uploadFile(file, {
         documentId: id,
+        preset: AttachmentPreset.DocumentAttachment,
       });
       return result.url;
     },

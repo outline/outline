@@ -6,7 +6,7 @@ export default function present(attachment: Attachment) {
     contentType: attachment.contentType,
     name: attachment.name,
     id: attachment.id,
-    url: attachment.canonicalUrl,
+    url: attachment.url,
     size: attachment.size,
   };
 }

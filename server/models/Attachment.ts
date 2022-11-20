@@ -81,6 +81,13 @@ class Attachment extends IdModel {
   /**
    * Get a url that can be used to download the attachment if the user has a valid session.
    */
+  get url() {
+    return this.isPrivate ? this.redirectUrl : this.canonicalUrl;
+  }
+
+  /**
+   * Get a url that can be used to download a private attachment if the user has a valid session.
+   */
   get redirectUrl() {
     return `/api/attachments.redirect?id=${this.id}`;
   }
@@ -90,7 +97,7 @@ class Attachment extends IdModel {
    * a signed URL must be used.
    */
   get canonicalUrl() {
-    return `${publicS3Endpoint()}/${this.key}`;
+    return encodeURI(`${publicS3Endpoint()}/${this.key}`);
   }
 
   /**

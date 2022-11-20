@@ -112,7 +112,6 @@ router.post(
 
     ctx.body = {
       data: {
-        maxUploadSize,
         uploadUrl: publicS3Endpoint(),
         form: {
           "Cache-Control": "max-age=31557600",

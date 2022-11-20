@@ -9,7 +9,7 @@ type UploadOptions = {
   /** The document that this file was uploaded in, if any */
   documentId?: string;
   /** The preset to use for attachment configuration */
-  preset?: AttachmentPreset;
+  preset: AttachmentPreset;
   /** Callback will be passed a number between 0-1 as upload progresses */
   onProgress?: (fractionComplete: number) => void;
 };
@@ -18,6 +18,7 @@ export const uploadFile = async (
   file: File | Blob,
   options: UploadOptions = {
     name: "",
+    preset: AttachmentPreset.DocumentAttachment,
   }
 ) => {
   const name = file instanceof File ? file.name : options.name;
