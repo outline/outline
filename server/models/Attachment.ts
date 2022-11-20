@@ -10,7 +10,12 @@ import {
   DataType,
   IsNumeric,
 } from "sequelize-typescript";
-import { publicS3Endpoint, deleteFromS3, getFileByKey } from "@server/utils/s3";
+import {
+  publicS3Endpoint,
+  deleteFromS3,
+  getFileByKey,
+  getSignedUrl,
+} from "@server/utils/s3";
 import Document from "./Document";
 import Team from "./Team";
 import User from "./User";
@@ -47,26 +52,59 @@ class Attachment extends IdModel {
   @Column
   lastAccessedAt: Date | null;
 
+  @Column
+  expiresAt: Date | null;
+
   // getters
 
+  /**
+   * Get the original uploaded file name.
+   */
   get name() {
     return path.parse(this.key).base;
   }
 
-  get redirectUrl() {
-    return `/api/attachments.redirect?id=${this.id}`;
-  }
-
+  /**
+   * Whether the attachment is private or not.
+   */
   get isPrivate() {
     return this.acl === "private";
   }
 
+  /**
+   * Get the contents of this attachment as a Buffer
+   */
   get buffer() {
     return getFileByKey(this.key);
   }
 
+  /**
+   * Get a url that can be used to download the attachment if the user has a valid session.
+   */
+  get url() {
+    return this.isPrivate ? this.redirectUrl : this.canonicalUrl;
+  }
+
+  /**
+   * Get a url that can be used to download a private attachment if the user has a valid session.
+   */
+  get redirectUrl() {
+    return `/api/attachments.redirect?id=${this.id}`;
+  }
+
+  /**
+   * Get a direct URL to the attachment in storage. Note that this will not work for private attachments,
+   * a signed URL must be used.
+   */
   get canonicalUrl() {
-    return `${publicS3Endpoint()}/${this.key}`;
+    return encodeURI(`${publicS3Endpoint()}/${this.key}`);
+  }
+
+  /**
+   * Get a signed URL with the default expirt to download the attachment from storage.
+   */
+  get signedUrl() {
+    return getSignedUrl(this.key);
   }
 
   // hooks

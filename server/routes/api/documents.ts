@@ -1114,10 +1114,10 @@ router.post("documents.import", auth(), async (ctx) => {
     throw InvalidRequestError("Request must include a file parameter");
   }
 
-  if (env.MAXIMUM_IMPORT_SIZE && file.size > env.MAXIMUM_IMPORT_SIZE) {
+  if (file.size > env.AWS_S3_UPLOAD_MAX_SIZE) {
     throw InvalidRequestError(
       `The selected file was larger than the ${bytesToHumanReadable(
-        env.MAXIMUM_IMPORT_SIZE
+        env.AWS_S3_UPLOAD_MAX_SIZE
       )} maximum size`
     );
   }
