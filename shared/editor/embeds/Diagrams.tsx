@@ -1,6 +1,6 @@
 import * as React from "react";
 import Frame from "../components/Frame";
-import Image from "../components/Image";
+import Image from "../components/Img";
 import { EmbedProps as Props } from ".";
 
 function Diagrams(props: Props) {

@@ -4,7 +4,7 @@ import styled from "styled-components";
 import { IntegrationType } from "../../types";
 import type { IntegrationSettings } from "../../types";
 import { urlRegex } from "../../utils/urls";
-import Image from "../components/Image";
+import Image from "../components/Img";
 import Abstract from "./Abstract";
 import Airtable from "./Airtable";
 import Berrycast from "./Berrycast";
