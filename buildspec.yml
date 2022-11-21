@@ -35,3 +35,5 @@ phases:
       - cat imagedefinitions.json
       - echo $terminated_status
       - exit $terminated_status
+artifacts:
+  files: imagedefinitions.json
