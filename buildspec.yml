@@ -25,11 +25,13 @@ phases:
     commands:
       - echo DB Migration started on `date`
       - echo Migration on ECS...
-      - run_result=$(aws ecs run-task --launch-type FARGATE --requires-compatibilities "fargate" --cluster $CLUSTER_NAME --task-definition $TASK_DEFINITION --network-configuration "awsvpcConfiguration={subnets=[$SUBNAT_A,$SUBNET_B],securityGroups=[$SG_ID]}")
+      - run_result=$(aws ecs run-task --cluster $CLUSTER_NAME --task-definition $TASK_DEFINITION)
       - container_arn=$(echo $run_result | jq '.tasks[0].taskArn' | sed -e 's/^"//' -e 's/"$//')
       - echo Container ARN $container_arn
       - aws ecs wait tasks-stopped --cluster  $CLUSTER_NAME --tasks "${container_arn}"
       - describe_result=$(aws ecs describe-tasks --cluster  $CLUSTER_NAME --tasks "${container_arn}")
       - terminated_status=$(echo $describe_result | jq '.tasks[0].containers[0].exitCode')
+      - printf '[{"name":"%s","imageUri":"%s"}, {"name":"%s","imageUri":"%s"}]' c303-dev-outline-ecs-service $ECR_REPOSITORY_URI:$IMAGE_TAG c303-dev-outline-ecs-service-worker $ECR_REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+      - cat imagedefinitions.json
       - echo $terminated_status
       - exit $terminated_status
