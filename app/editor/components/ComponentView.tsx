@@ -1,4 +1,5 @@
 import { Node as ProsemirrorNode } from "prosemirror-model";
+import { NodeSelection } from "prosemirror-state";
 import { EditorView, Decoration } from "prosemirror-view";
 import * as React from "react";
 import ReactDOM from "react-dom";
@@ -104,7 +105,26 @@ export default class ComponentView {
   }
 
   stopEvent(event: Event) {
-    return event.type !== "mousedown" && !event.type.startsWith("drag");
+    const isDropEvent = event.type === "drop";
+    const isCopyEvent = event.type === "copy";
+    const isPasteEvent = event.type === "paste";
+    const isCutEvent = event.type === "cut";
+    const isClickEvent = event.type === "mousedown";
+    const isDragEvent = event.type.startsWith("drag");
+    const isSelectable = NodeSelection.isSelectable(this.node);
+
+    if (
+      isDragEvent ||
+      (isClickEvent && isSelectable) ||
+      isDropEvent ||
+      isCutEvent ||
+      isCopyEvent ||
+      isPasteEvent
+    ) {
+      return false;
+    }
+
+    return true;
   }
 
   destroy() {

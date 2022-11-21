@@ -231,6 +231,11 @@ img.ProseMirror-separator {
   display: none;
 }
 
+[draggable="true"] {
+  position: relative;
+  z-index: 1;
+}
+
 .ProseMirror[contenteditable="false"] {
   .caption {
     pointer-events: none;

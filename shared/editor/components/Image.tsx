@@ -9,20 +9,18 @@ import { ComponentProps } from "../types";
 
 type DragDirection = "left" | "right";
 
-const Image = (
-  props: ComponentProps & {
-    dictionary: any;
-    onClick: (event: React.MouseEvent<HTMLDivElement>) => void;
-    onDownload: (event: React.MouseEvent<HTMLButtonElement>) => void;
-    onChangeSize: (props: { width: number; height?: number }) => void;
-    onCaptionKeyDown: (
-      event: React.KeyboardEvent<HTMLParagraphElement>
-    ) => void;
-    onCaptionBlur: (event: React.FocusEvent<HTMLParagraphElement>) => void;
-    onCaptionMouseDown: (event: React.MouseEvent<HTMLParagraphElement>) => void;
-    view: EditorView;
-  }
-) => {
+type Props = ComponentProps & {
+  dictionary: any;
+  onClick: (event: React.MouseEvent<HTMLDivElement>) => void;
+  onDownload: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  onChangeSize: (props: { width: number; height?: number }) => void;
+  onCaptionKeyDown: (event: React.KeyboardEvent<HTMLParagraphElement>) => void;
+  onCaptionBlur: (event: React.FocusEvent<HTMLParagraphElement>) => void;
+  onCaptionMouseDown: (event: React.MouseEvent<HTMLParagraphElement>) => void;
+  view: EditorView;
+};
+
+const Image = (props: Props) => {
   const { dictionary, theme, isSelected, node, isEditable } = props;
   const { alt, src, layoutClass } = node.attrs;
   const className = layoutClass ? `image image-${layoutClass}` : "image";
@@ -34,7 +32,7 @@ const Image = (
   });
   const [sizeAtDragStart, setSizeAtDragStart] = React.useState(size);
   const [offset, setOffset] = React.useState(0);
-  const [dragging, setDragging] = React.useState<DragDirection>();
+  const [resizing, setResizing] = React.useState<DragDirection>();
   const documentWidth = props.view?.dom.clientWidth;
   const maxWidth = layoutClass ? documentWidth / 3 : documentWidth;
 
@@ -46,13 +44,8 @@ const Image = (
   const handlePointerMove = (event: PointerEvent) => {
     event.preventDefault();
 
-    let diff;
-    if (dragging === "left") {
-      diff = offset - event.pageX;
-    } else {
-      diff = event.pageX - offset;
-    }
-
+    const diff =
+      resizing === "left" ? offset - event.pageX : event.pageX - offset;
     const grid = documentWidth / 10;
     const newWidth = sizeAtDragStart.width + diff * 2;
     const widthOnGrid = Math.round(newWidth / grid) * grid;
@@ -72,13 +65,13 @@ const Image = (
     event.stopPropagation();
 
     setOffset(0);
-    setDragging(undefined);
+    setResizing(undefined);
     props.onChangeSize(size);
 
     document.removeEventListener("mousemove", handlePointerMove);
   };
 
-  const handlePointerDown = (dragging: "left" | "right") => (
+  const handlePointerDown = (resizing: "left" | "right") => (
     event: React.PointerEvent<HTMLDivElement>
   ) => {
     event.preventDefault();
@@ -88,7 +81,7 @@ const Image = (
       height: size.height,
     });
     setOffset(event.pageX);
-    setDragging(dragging);
+    setResizing(resizing);
   };
 
   const handleKeyDown = (event: KeyboardEvent) => {
@@ -97,7 +90,7 @@ const Image = (
       event.stopPropagation();
 
       setSize(sizeAtDragStart);
-      setDragging(undefined);
+      setResizing(undefined);
     }
   };
 
@@ -111,7 +104,7 @@ const Image = (
   }, [node.attrs.width]);
 
   React.useEffect(() => {
-    if (dragging) {
+    if (resizing) {
       document.body.style.cursor = "ew-resize";
       document.addEventListener("keydown", handleKeyDown);
       document.addEventListener("pointermove", handlePointerMove);
@@ -124,18 +117,18 @@ const Image = (
       document.removeEventListener("pointermove", handlePointerMove);
       document.removeEventListener("pointerup", handlePointerUp);
     };
-  }, [dragging, handlePointerMove, handlePointerUp]);
+  }, [resizing, handlePointerMove, handlePointerUp]);
 
   const style = { width: size.width || "auto" };
 
   return (
     <div contentEditable={false} className={className}>
       <ImageWrapper
-        className={isSelected || dragging ? "ProseMirror-selectednode" : ""}
-        onClick={dragging ? undefined : props.onClick}
+        className={isSelected || resizing ? "ProseMirror-selectednode" : ""}
+        onClick={resizing ? undefined : props.onClick}
         style={style}
       >
-        {!dragging && size.width > 60 && size.height > 60 && (
+        {!resizing && size.width > 60 && size.height > 60 && (
           <Button onClick={props.onDownload}>
             <DownloadIcon color="currentColor" />
           </Button>
@@ -175,11 +168,11 @@ const Image = (
           <>
             <ResizeLeft
               onPointerDown={handlePointerDown("left")}
-              $dragging={!!dragging}
+              $resizing={!!resizing}
             />
             <ResizeRight
               onPointerDown={handlePointerDown("right")}
-              $dragging={!!dragging}
+              $resizing={!!resizing}
             />
           </>
         )}
@@ -201,7 +194,7 @@ const Image = (
   );
 };
 
-const ResizeLeft = styled.div<{ $dragging: boolean }>`
+const ResizeLeft = styled.div<{ $resizing: boolean }>`
   cursor: ew-resize;
   position: absolute;
   left: -4px;
@@ -209,7 +202,7 @@ const ResizeLeft = styled.div<{ $dragging: boolean }>`
   bottom: 0;
   width: 8px;
   user-select: none;
-  opacity: ${(props) => (props.$dragging ? 1 : 0)};
+  opacity: ${(props) => (props.$resizing ? 1 : 0)};
   transition: opacity 150ms ease-in-out;
 
   &:after {
