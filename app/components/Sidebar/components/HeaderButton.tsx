@@ -3,7 +3,7 @@ import * as React from "react";
 import styled from "styled-components";
 import Flex from "~/components/Flex";
 
-export type SidebarButtonProps = {
+export type HeaderButtonProps = {
   title: React.ReactNode;
   image: React.ReactNode;
   minHeight?: number;
@@ -13,7 +13,7 @@ export type SidebarButtonProps = {
   onClick: React.MouseEventHandler<HTMLButtonElement>;
 };
 
-const SidebarButton = React.forwardRef<HTMLButtonElement, SidebarButtonProps>(
+const HeaderButton = React.forwardRef<HTMLButtonElement, HeaderButtonProps>(
   (
     {
       showDisclosure,
@@ -22,7 +22,7 @@ const SidebarButton = React.forwardRef<HTMLButtonElement, SidebarButtonProps>(
       title,
       minHeight = 0,
       ...rest
-    }: SidebarButtonProps,
+    }: HeaderButtonProps,
     ref
   ) => (
     <Wrapper
@@ -33,7 +33,7 @@ const SidebarButton = React.forwardRef<HTMLButtonElement, SidebarButtonProps>(
       {...rest}
       ref={ref}
     >
-      <Title gap={4} align="center">
+      <Title gap={6} align="center">
         {image}
         {title}
       </Title>
@@ -79,4 +79,4 @@ const Wrapper = styled(Flex)<{ minHeight: number }>`
   }
 `;
 
-export default SidebarButton;
+export default HeaderButton;

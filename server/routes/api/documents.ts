@@ -1,8 +1,10 @@
 import fs from "fs-extra";
 import invariant from "invariant";
 import Router from "koa-router";
+import { pick } from "lodash";
 import mime from "mime-types";
 import { Op, ScopeOptions, WhereOptions } from "sequelize";
+import { TeamPreference } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import documentCreator from "@server/commands/documentCreator";
@@ -422,13 +424,18 @@ router.post(
     const serializedDocument = await presentDocument(document, {
       isPublic,
     });
-    // Passing apiVersion=2 has a single effect, to change the response payload to
-    // include document and sharedTree keys.
 
+    const team = await document.$get("team");
+
+    // Passing apiVersion=2 has a single effect, to change the response payload to
+    // include top level keys for document, sharedTree, and team.
     const data =
       apiVersion === 2
         ? {
             document: serializedDocument,
+            team: team?.getPreference(TeamPreference.PublicBranding)
+              ? pick(team, ["avatarUrl", "name"])
+              : undefined,
             sharedTree:
               share && share.includeChildDocuments
                 ? collection?.getDocumentTree(share.documentId)

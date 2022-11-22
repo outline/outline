@@ -11,8 +11,8 @@ import useAuthorizedSettingsConfig from "~/hooks/useAuthorizedSettingsConfig";
 import isCloudHosted from "~/utils/isCloudHosted";
 import Sidebar from "./Sidebar";
 import Header from "./components/Header";
+import HeaderButton from "./components/HeaderButton";
 import Section from "./components/Section";
-import SidebarButton from "./components/SidebarButton";
 import SidebarLink from "./components/SidebarLink";
 import Version from "./components/Version";
 
@@ -28,7 +28,7 @@ function SettingsSidebar() {
 
   return (
     <Sidebar>
-      <SidebarButton
+      <HeaderButton
         title={t("Return to App")}
         image={<StyledBackIcon color="currentColor" />}
         onClick={returnToApp}
