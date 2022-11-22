@@ -19,6 +19,7 @@ type Props = Omit<React.HTMLAttributes<HTMLSpanElement>, "ref" | "onChange"> & {
 };
 
 export type RefHandle = {
+  element: () => HTMLElement | null;
   focus: () => void;
   focusAtStart: () => void;
   focusAtEnd: () => void;
@@ -53,8 +54,12 @@ const ContentEditable = React.forwardRef(
     const contentRef = React.useRef<HTMLSpanElement>(null);
     const [innerValue, setInnerValue] = React.useState<string>(value);
     const lastValue = React.useRef("");
+    const parentRef = React.useRef<HTMLDivElement>(null);
 
     React.useImperativeHandle(ref, () => ({
+      element: () => {
+        return parentRef.current;
+      },
       focus: () => {
         contentRef.current?.focus();
       },
@@ -132,10 +137,9 @@ const ContentEditable = React.forwardRef(
     const childrenArr = React.Children.toArray(children);
 
     return (
-      <div className={className} dir={dir} onClick={onClick}>
+      <div className={className} dir={dir} onClick={onClick} ref={parentRef}>
         {childrenArr.length > 1 ? childrenArr[0] : null}
         <Content
-          id="document-title"
           ref={contentRef}
           contentEditable={!disabled && !readOnly}
           onInput={wrappedEvent(onInput)}

@@ -1,6 +1,6 @@
 import { observer } from "mobx-react";
-import { Selection } from "prosemirror-state";
 import { SmileyIcon } from "outline-icons";
+import { Selection } from "prosemirror-state";
 import * as React from "react";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -70,9 +70,8 @@ const EditableTitle = React.forwardRef(
     React.useEffect(() => {
       if (
         activeElement &&
-        (["emoji-picker-disclosure", "emoji-picker", "document-title"].includes(
-          activeElement.id
-        ) ||
+        (activeElement.id === "emoji-picker" ||
+          ref.current?.element()?.contains(activeElement) ||
           window.document
             .getElementById("emoji-picker")
             ?.contains(activeElement))
@@ -81,7 +80,7 @@ const EditableTitle = React.forwardRef(
       } else {
         setFocus(false);
       }
-    }, [activeElement]);
+    }, [activeElement, ref]);
 
     const handleClick = React.useCallback(() => {
       ref.current?.focus();
@@ -212,7 +211,7 @@ const EditableTitle = React.forwardRef(
         {(!isMobile || isFocused || document.emoji) && (
           <EmojiPicker
             disclosure={
-              <EmojiButton size={32} id="emoji-picker-disclosure">
+              <EmojiButton size={32}>
                 {document.emoji ? (
                   <Emoji size="24px" native={document.emoji} />
                 ) : (
