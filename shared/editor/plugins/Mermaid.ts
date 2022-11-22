@@ -3,6 +3,7 @@ import { Plugin, PluginKey, Transaction } from "prosemirror-state";
 import { findBlockNodes } from "prosemirror-utils";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { v4 as uuidv4 } from "uuid";
+import stores from "~/stores";
 
 type MermaidState = {
   decorationSet: DecorationSet;
@@ -66,6 +67,7 @@ function getNewState({
               htmlLabels: false,
             },
             fontFamily: "inherit",
+            theme: stores.ui.resolvedTheme === "light" ? "default" : "dark",
           });
           try {
             module.default.render(
