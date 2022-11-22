@@ -1,5 +1,6 @@
 import { TrashIcon, InsertAboveIcon, InsertBelowIcon } from "outline-icons";
 import { EditorState } from "prosemirror-state";
+import * as React from "react";
 import { MenuItem } from "@shared/editor/types";
 import { Dictionary } from "~/hooks/useDictionary";
 
@@ -12,7 +13,7 @@ export default function tableRowMenuItems(
     {
       name: "addRowAfter",
       tooltip: dictionary.addRowBefore,
-      icon: InsertAboveIcon,
+      icon: <InsertAboveIcon />,
       attrs: { index: index - 1 },
       active: () => false,
       visible: index !== 0,
@@ -20,7 +21,7 @@ export default function tableRowMenuItems(
     {
       name: "addRowAfter",
       tooltip: dictionary.addRowAfter,
-      icon: InsertBelowIcon,
+      icon: <InsertBelowIcon />,
       attrs: { index },
       active: () => false,
     },
@@ -30,7 +31,7 @@ export default function tableRowMenuItems(
     {
       name: "deleteRow",
       tooltip: dictionary.deleteRow,
-      icon: TrashIcon,
+      icon: <TrashIcon />,
       active: () => false,
     },
   ];

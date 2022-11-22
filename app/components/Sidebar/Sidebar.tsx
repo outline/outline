@@ -13,8 +13,8 @@ import useStores from "~/hooks/useStores";
 import AccountMenu from "~/menus/AccountMenu";
 import { fadeIn } from "~/styles/animations";
 import Avatar from "../Avatar";
+import HeaderButton, { HeaderButtonProps } from "./components/HeaderButton";
 import ResizeBorder from "./components/ResizeBorder";
-import SidebarButton, { SidebarButtonProps } from "./components/SidebarButton";
 import Toggle, { ToggleButton, Positioner } from "./components/Toggle";
 
 const ANIMATION_MS = 250;
@@ -170,8 +170,8 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(
 
           {user && (
             <AccountMenu>
-              {(props: SidebarButtonProps) => (
-                <SidebarButton
+              {(props: HeaderButtonProps) => (
+                <HeaderButton
                   {...props}
                   showMoreMenu
                   title={user.name}

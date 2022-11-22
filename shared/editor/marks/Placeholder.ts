@@ -13,6 +13,7 @@ export default class Placeholder extends Mark {
     return {
       parseDOM: [{ tag: "span.template-placeholder" }],
       toDOM: () => ["span", { class: "template-placeholder" }],
+      toPlainText: () => "",
     };
   }
 

@@ -23,6 +23,7 @@ import ExtensionManager from "@shared/editor/lib/ExtensionManager";
 import getHeadings from "@shared/editor/lib/getHeadings";
 import getTasks from "@shared/editor/lib/getTasks";
 import { MarkdownSerializer } from "@shared/editor/lib/markdown/serializer";
+import textBetween from "@shared/editor/lib/textBetween";
 import Mark from "@shared/editor/marks/Mark";
 import Node from "@shared/editor/nodes/Node";
 import ReactNode from "@shared/editor/nodes/ReactNode";
@@ -571,6 +572,9 @@ export class Editor extends React.PureComponent<
     this.setState({ blockMenuOpen: false });
   };
 
+  /**
+   * Focus the editor at the start of the content.
+   */
   public focusAtStart = () => {
     const selection = Selection.atStart(this.view.state.doc);
     const transaction = this.view.state.tr.setSelection(selection);
@@ -578,6 +582,9 @@ export class Editor extends React.PureComponent<
     this.view.focus();
   };
 
+  /**
+   * Focus the editor at the end of the content.
+   */
   public focusAtEnd = () => {
     const selection = Selection.atEnd(this.view.state.doc);
     const transaction = this.view.state.tr.setSelection(selection);
@@ -585,12 +592,38 @@ export class Editor extends React.PureComponent<
     this.view.focus();
   };
 
+  /**
+   * Return the headings in the current editor.
+   *
+   * @returns A list of headings in the document
+   */
   public getHeadings = () => {
     return getHeadings(this.view.state.doc);
   };
 
+  /**
+   * Return the tasks/checkmarks in the current editor.
+   *
+   * @returns A list of tasks in the document
+   */
   public getTasks = () => {
     return getTasks(this.view.state.doc);
+  };
+
+  /**
+   * Return the plain text content of the current editor.
+   *
+   * @returns A string of text
+   */
+  public getPlainText = () => {
+    const { doc } = this.view.state;
+    const textSerializers = Object.fromEntries(
+      Object.entries(this.schema.nodes)
+        .filter(([, node]) => node.spec.toPlainText)
+        .map(([name, node]) => [name, node.spec.toPlainText])
+    );
+
+    return textBetween(doc, 0, doc.content.size, textSerializers);
   };
 
   public render() {

@@ -70,7 +70,7 @@ export function actionToKBar(
     return [];
   }
 
-  const resolvedIcon = resolve<React.ReactElement<any>>(action.icon, context);
+  const resolvedIcon = resolve<React.ReactElement>(action.icon, context);
   const resolvedChildren = resolve<Action[]>(action.children, context);
   const resolvedSection = resolve<string>(action.section, context);
   const resolvedName = resolve<string>(action.name, context);

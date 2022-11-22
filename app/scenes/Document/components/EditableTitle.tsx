@@ -1,4 +1,5 @@
 import { observer } from "mobx-react";
+import { Selection } from "prosemirror-state";
 import * as React from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -11,6 +12,7 @@ import {
 import { DocumentValidation } from "@shared/validations";
 import Document from "~/models/Document";
 import ContentEditable, { RefHandle } from "~/components/ContentEditable";
+import { useDocumentContext } from "~/components/DocumentContext";
 import Star, { AnimatedStar } from "~/components/Star";
 import useEmojiWidth from "~/hooks/useEmojiWidth";
 import { isModKey } from "~/utils/keyboard";
@@ -50,6 +52,7 @@ const EditableTitle = React.forwardRef(
     }: Props,
     ref: React.RefObject<RefHandle>
   ) => {
+    const { editor } = useDocumentContext();
     const handleClick = React.useCallback(() => {
       ref.current?.focus();
     }, [ref]);
@@ -112,6 +115,32 @@ const EditableTitle = React.forwardRef(
       [ref, onChange]
     );
 
+    // Custom paste handling so that if a multiple lines are pasted we
+    // only take the first line and insert the rest directly into the editor.
+    const handlePaste = React.useCallback(
+      (event: React.ClipboardEvent) => {
+        event.preventDefault();
+        const text = event.clipboardData.getData("text/plain");
+        const [firstLine, ...rest] = text.split(`\n`);
+        const content = rest.join(`\n`).trim();
+        window.document.execCommand(
+          "insertText",
+          false,
+          firstLine.replace(/^#+\s?/, "")
+        );
+
+        if (editor && content) {
+          const { view, parser } = editor;
+          view.dispatch(
+            view.state.tr
+              .setSelection(Selection.atStart(view.state.doc))
+              .insert(0, parser.parse(content))
+          );
+        }
+      },
+      [editor]
+    );
+
     const emojiWidth = useEmojiWidth(document.emoji, {
       fontSize,
       lineHeight,
@@ -125,6 +154,7 @@ const EditableTitle = React.forwardRef(
         onClick={handleClick}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
+        onPaste={handlePaste}
         onBlur={onBlur}
         placeholder={placeholder}
         value={value}

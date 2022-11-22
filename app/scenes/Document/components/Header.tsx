@@ -291,7 +291,6 @@ function DocumentHeader({
                   to={newDocumentPath(document.collectionId, {
                     templateId: document.id,
                   })}
-                  primary
                 >
                   {t("New from template")}
                 </Button>

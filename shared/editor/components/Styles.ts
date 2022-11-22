@@ -1291,20 +1291,22 @@ table {
   display: block;
 }
 
-ins {
-  background-color: #128a2929;
-  text-decoration: none;
-}
-
 del {
   color: ${props.theme.slate};
   text-decoration: strikethrough;
 }
 
+ins[data-operation-index] {
+  color: ${props.theme.textDiffInserted};
+  background-color: ${props.theme.textDiffInsertedBackground};
+  text-decoration: none;
+}
+
 del[data-operation-index] {
-  color: ${props.theme.textDeleted};
-  background-color: ${props.theme.textDeletedBackground};
-  
+  color: ${props.theme.textDiffDeleted};
+  background-color: ${props.theme.textDiffDeletedBackground};
+  text-decoration: none;
+
   img {
     opacity: .5;
   }

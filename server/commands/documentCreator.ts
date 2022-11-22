@@ -9,6 +9,7 @@ export default async function documentCreator({
   collectionId,
   parentDocumentId,
   templateDocument,
+  importId,
   createdAt,
   // allows override for import
   updatedAt,
@@ -26,6 +27,7 @@ export default async function documentCreator({
   publish?: boolean;
   collectionId?: string;
   parentDocumentId?: string;
+  importId?: string;
   templateDocument?: Document | null;
   publishedAt?: Date;
   template?: boolean;
@@ -53,6 +55,7 @@ export default async function documentCreator({
       template,
       templateId,
       publishedAt,
+      importId,
       title: templateDocument ? templateDocument.title : title,
       text: templateDocument ? templateDocument.text : text,
     },

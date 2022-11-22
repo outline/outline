@@ -51,13 +51,13 @@ router.post(
     authorize(user, "manage", team);
 
     const [exports, total] = await Promise.all([
-      await FileOperation.findAll({
+      FileOperation.findAll({
         where,
         order: [[sort, direction]],
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
       }),
-      await FileOperation.count({
+      FileOperation.count({
         where,
       }),
     ]);

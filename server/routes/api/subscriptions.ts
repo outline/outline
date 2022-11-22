@@ -1,8 +1,11 @@
 import Router from "koa-router";
 import subscriptionCreator from "@server/commands/subscriptionCreator";
 import subscriptionDestroyer from "@server/commands/subscriptionDestroyer";
-import { sequelize } from "@server/database/sequelize";
 import auth from "@server/middlewares/authentication";
+import {
+  transaction,
+  TransactionContext,
+} from "@server/middlewares/transaction";
 import { Subscription, Document } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentSubscription } from "@server/presenters";
@@ -75,19 +78,22 @@ router.post("subscriptions.info", auth(), async (ctx) => {
   };
 });
 
-router.post("subscriptions.create", auth(), async (ctx) => {
-  const { user } = ctx.state;
-  const { documentId, event } = ctx.request.body;
+router.post(
+  "subscriptions.create",
+  auth(),
+  transaction(),
+  async (ctx: TransactionContext) => {
+    const { user, transaction } = ctx.state;
+    const { documentId, event } = ctx.request.body;
 
-  assertUuid(documentId, "documentId is required");
+    assertUuid(documentId, "documentId is required");
 
-  assertIn(
-    event,
-    ["documents.update"],
-    "Not a valid subscription event for documents"
-  );
+    assertIn(
+      event,
+      ["documents.update"],
+      "Not a valid subscription event for documents"
+    );
 
-  const subscription = await sequelize.transaction(async (transaction) => {
     const document = await Document.findByPk(documentId, {
       userId: user.id,
       transaction,
@@ -95,27 +101,30 @@ router.post("subscriptions.create", auth(), async (ctx) => {
 
     authorize(user, "subscribe", document);
 
-    return subscriptionCreator({
+    const subscription = await subscriptionCreator({
       user,
       documentId: document.id,
       event,
       ip: ctx.request.ip,
       transaction,
     });
-  });
 
-  ctx.body = {
-    data: presentSubscription(subscription),
-  };
-});
+    ctx.body = {
+      data: presentSubscription(subscription),
+    };
+  }
+);
 
-router.post("subscriptions.delete", auth(), async (ctx) => {
-  const { user } = ctx.state;
-  const { id } = ctx.request.body;
+router.post(
+  "subscriptions.delete",
+  auth(),
+  transaction(),
+  async (ctx: TransactionContext) => {
+    const { user, transaction } = ctx.state;
+    const { id } = ctx.request.body;
 
-  assertUuid(id, "id is required");
+    assertUuid(id, "id is required");
 
-  await sequelize.transaction(async (transaction) => {
     const subscription = await Subscription.findByPk(id, {
       rejectOnEmpty: true,
       transaction,
@@ -130,12 +139,10 @@ router.post("subscriptions.delete", auth(), async (ctx) => {
       transaction,
     });
 
-    return subscription;
-  });
-
-  ctx.body = {
-    success: true,
-  };
-});
+    ctx.body = {
+      success: true,
+    };
+  }
+);
 
 export default router;

@@ -22,6 +22,12 @@ export type PublicEnv = {
   RELEASE: string | undefined;
 };
 
+export enum AttachmentPreset {
+  DocumentAttachment = "documentAttachment",
+  Import = "import",
+  Avatar = "avatar",
+}
+
 export enum IntegrationType {
   Post = "post",
   Command = "command",

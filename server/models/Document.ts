@@ -39,6 +39,7 @@ import { DocumentValidation } from "@shared/validations";
 import slugify from "@server/utils/slugify";
 import Backlink from "./Backlink";
 import Collection from "./Collection";
+import FileOperation from "./FileOperation";
 import Revision from "./Revision";
 import Star from "./Star";
 import Team from "./Team";
@@ -341,6 +342,13 @@ class Document extends ParanoidModel {
   }
 
   // associations
+
+  @BelongsTo(() => FileOperation, "importId")
+  import: FileOperation | null;
+
+  @ForeignKey(() => FileOperation)
+  @Column(DataType.UUID)
+  importId: string | null;
 
   @BelongsTo(() => Document, "parentDocumentId")
   parentDocument: Document | null;

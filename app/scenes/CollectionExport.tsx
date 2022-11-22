@@ -54,7 +54,7 @@ function CollectionExport({ collection, onSubmit }: Props) {
             format. Please visit the Export section in Settings to get the zip.
           </Trans>
         </Text>
-        <Button type="submit" disabled={isLoading} primary>
+        <Button type="submit" disabled={isLoading}>
           {isLoading ? `${t("Exporting")}…` : t("Export collection")}
         </Button>
       </form>

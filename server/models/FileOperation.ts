@@ -73,7 +73,13 @@ class FileOperation extends IdModel {
 
   expire = async function () {
     this.state = "expired";
-    await deleteFromS3(this.key);
+    try {
+      await deleteFromS3(this.key);
+    } catch (err) {
+      if (err.retryable) {
+        throw err;
+      }
+    }
     await this.save();
   };
 

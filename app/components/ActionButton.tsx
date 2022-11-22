@@ -2,7 +2,7 @@ import * as React from "react";
 import Tooltip, { Props as TooltipProps } from "~/components/Tooltip";
 import { Action, ActionContext } from "~/types";
 
-export type Props = React.HTMLAttributes<HTMLButtonElement> & {
+export type Props = React.ComponentPropsWithoutRef<"button"> & {
   /** Show the button in a disabled state */
   disabled?: boolean;
   /** Hide the button entirely if action is not applicable */
@@ -20,13 +20,7 @@ export type Props = React.HTMLAttributes<HTMLButtonElement> & {
  */
 const ActionButton = React.forwardRef(
   (
-    {
-      action,
-      context,
-      tooltip,
-      hideOnActionDisabled,
-      ...rest
-    }: Props & React.HTMLAttributes<HTMLButtonElement>,
+    { action, context, tooltip, hideOnActionDisabled, ...rest }: Props,
     ref: React.Ref<HTMLButtonElement>
   ) => {
     const disabled = rest.disabled;
