@@ -40,10 +40,15 @@ router.post(
     assertPresent(name, "name is required");
     assertPresent(size, "size is required");
 
-    // Public attachments are only used for avatars, so this is loosely coupled –
-    // all user types can upload an avatar so no additional authorization is needed.
+    // All user types can upload an avatar so no additional authorization is needed.
     if (preset === AttachmentPreset.Avatar) {
       assertIn(contentType, AttachmentValidation.avatarContentTypes);
+    } else if (preset === AttachmentPreset.DocumentAttachment && documentId) {
+      assertUuid(documentId, "documentId must be a uuid");
+      const document = await Document.findByPk(documentId, {
+        userId: user.id,
+      });
+      authorize(user, "update", document);
     } else {
       authorize(user, "createAttachment", user.team);
     }
@@ -56,14 +61,6 @@ router.post(
           maxUploadSize
         )}`
       );
-    }
-
-    if (documentId !== undefined) {
-      assertUuid(documentId, "documentId must be a uuid");
-      const document = await Document.findByPk(documentId, {
-        userId: user.id,
-      });
-      authorize(user, "update", document);
     }
 
     const modelId = uuidv4();

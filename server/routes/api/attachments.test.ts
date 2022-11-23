@@ -1,4 +1,5 @@
-import { AttachmentPreset } from "@shared/types";
+import { AttachmentPreset, CollectionPermission } from "@shared/types";
+import { CollectionUser } from "@server/models";
 import Attachment from "@server/models/Attachment";
 import {
   buildUser,
@@ -53,6 +54,23 @@ describe("#attachments.create", () => {
       expect(attachment!.expiresAt).toBeNull();
     });
 
+    it("should allow attachment creation for documents", async () => {
+      const user = await buildUser();
+      const document = await buildDocument({ teamId: user.teamId });
+
+      const res = await server.post("/api/attachments.create", {
+        body: {
+          name: "test.png",
+          contentType: "image/png",
+          size: 1000,
+          documentId: document.id,
+          preset: AttachmentPreset.DocumentAttachment,
+          token: user.getJwtToken(),
+        },
+      });
+      expect(res.status).toEqual(200);
+    });
+
     it("should create expiring attachment using import preset", async () => {
       const user = await buildUser();
       const res = await server.post("/api/attachments.create", {
@@ -85,6 +103,23 @@ describe("#attachments.create", () => {
       expect(res.status).toEqual(400);
     });
 
+    it("should not allow attachment creation for other documents", async () => {
+      const user = await buildUser();
+      const document = await buildDocument();
+
+      const res = await server.post("/api/attachments.create", {
+        body: {
+          name: "test.png",
+          contentType: "image/png",
+          size: 1000,
+          documentId: document.id,
+          preset: AttachmentPreset.DocumentAttachment,
+          token: user.getJwtToken(),
+        },
+      });
+      expect(res.status).toEqual(403);
+    });
+
     it("should not allow file upload for avatar preset", async () => {
       const user = await buildUser();
       const res = await server.post("/api/attachments.create", {
@@ -113,6 +148,54 @@ describe("#attachments.create", () => {
         },
       });
       expect(res.status).toEqual(200);
+    });
+
+    it("should allow attachment creation for documents in collections with edit access", async () => {
+      const user = await buildViewer();
+      const collection = await buildCollection({
+        teamId: user.teamId,
+        permission: null,
+      });
+      const document = await buildDocument({
+        teamId: user.teamId,
+        collectionId: collection.id,
+      });
+
+      await CollectionUser.create({
+        createdById: user.id,
+        collectionId: collection.id,
+        userId: user.id,
+        permission: CollectionPermission.ReadWrite,
+      });
+
+      const res = await server.post("/api/attachments.create", {
+        body: {
+          name: "test.png",
+          contentType: "image/png",
+          size: 1000,
+          documentId: document.id,
+          preset: AttachmentPreset.DocumentAttachment,
+          token: user.getJwtToken(),
+        },
+      });
+      expect(res.status).toEqual(200);
+    });
+
+    it("should not allow attachment creation for documents", async () => {
+      const user = await buildViewer();
+      const document = await buildDocument({ teamId: user.teamId });
+
+      const res = await server.post("/api/attachments.create", {
+        body: {
+          name: "test.png",
+          contentType: "image/png",
+          size: 1000,
+          documentId: document.id,
+          preset: AttachmentPreset.DocumentAttachment,
+          token: user.getJwtToken(),
+        },
+      });
+      expect(res.status).toEqual(403);
     });
 
     it("should allow upload using avatar preset", async () => {
