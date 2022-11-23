@@ -187,7 +187,7 @@ export const DocumentsUpdateSchema = BaseIdSchema.extend({
   lastRevision: z.number().optional(),
 
   /** Doc template Id */
-  templateId: z.string().uuid().optional(),
+  templateId: z.string().uuid().nullish(),
 
   /** Doc collection Id */
   collectionId: z.string().uuid().optional(),

@@ -4,7 +4,6 @@ import Router from "koa-router";
 import { pick } from "lodash";
 import mime from "mime-types";
 import { Op, ScopeOptions, WhereOptions } from "sequelize";
-import * as T from "@shared/api/types";
 import { TeamPreference } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import { bytesToHumanReadable } from "@shared/utils/files";
@@ -44,8 +43,9 @@ import {
 import { APIContext } from "@server/types";
 import slugify from "@server/utils/slugify";
 import { assertPresent } from "@server/validation";
-import env from "../../env";
-import pagination from "./middlewares/pagination";
+import env from "../../../env";
+import pagination from "../middlewares/pagination";
+import * as T from "./schema";
 
 const router = new Router();
 
