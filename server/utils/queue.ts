@@ -1,7 +1,7 @@
 import Queue from "bull";
 import { snakeCase } from "lodash";
 import env from "@server/env";
-import Metrics from "@server/logging/metrics";
+import Metrics from "@server/logging/Metrics";
 import Redis from "../redis";
 
 export function createQueue(

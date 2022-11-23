@@ -5,7 +5,7 @@ import {
   onLoadDocumentPayload,
   Extension,
 } from "@hocuspocus/server";
-import Metrics from "@server/logging/metrics";
+import Metrics from "@server/logging/Metrics";
 
 export default class MetricsExtension implements Extension {
   async onLoadDocument({ documentName, instance }: onLoadDocumentPayload) {

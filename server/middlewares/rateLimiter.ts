@@ -3,7 +3,7 @@ import { defaults } from "lodash";
 import RateLimiter from "@server/RateLimiter";
 import env from "@server/env";
 import { RateLimitExceededError } from "@server/errors";
-import Metrics from "@server/logging/metrics";
+import Metrics from "@server/logging/Metrics";
 import Redis from "@server/redis";
 
 /**
