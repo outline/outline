@@ -95,7 +95,7 @@ export type DocumentsDraftsReq = z.infer<typeof DocumentsDraftsSchema>;
 export const DocumentsInfoSchema = z
   .object({
     /** Id of the document to be retrieved */
-    id: z.string().uuid().optional(),
+    id: z.string().optional(),
 
     /** Share Id, if available */
     shareId: z.string().uuid().optional(),
