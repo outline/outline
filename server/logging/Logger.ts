@@ -3,7 +3,7 @@ import chalk from "chalk";
 import { isEmpty } from "lodash";
 import winston from "winston";
 import env from "@server/env";
-import Metrics from "@server/logging/metrics";
+import Metrics from "@server/logging/Metrics";
 import Sentry from "@server/logging/sentry";
 import * as Tracing from "./tracing";
 

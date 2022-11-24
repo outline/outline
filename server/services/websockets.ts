@@ -5,7 +5,7 @@ import Koa from "koa";
 import IO from "socket.io";
 import { createAdapter } from "socket.io-redis";
 import Logger from "@server/logging/Logger";
-import Metrics from "@server/logging/metrics";
+import Metrics from "@server/logging/Metrics";
 import * as Tracing from "@server/logging/tracing";
 import { APM } from "@server/logging/tracing";
 import { Document, Collection, View, User } from "@server/models";

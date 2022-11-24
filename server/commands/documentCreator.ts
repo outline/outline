@@ -25,7 +25,7 @@ export default async function documentCreator({
   title: string;
   text: string;
   publish?: boolean;
-  collectionId: string;
+  collectionId?: string;
   parentDocumentId?: string;
   importId?: string;
   templateDocument?: Document | null;
@@ -33,7 +33,6 @@ export default async function documentCreator({
   template?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
-  index?: number;
   user: User;
   editorVersion?: string;
   source?: "import";
