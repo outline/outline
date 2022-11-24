@@ -330,7 +330,7 @@ const Title = styled(ContentEditable)<TitleProps>`
 
 const EmojiButton = styled(NudeButton)`
   position: absolute;
-  top: 8px;
+  top: 6px;
   left: -40px;
   z-index: 2;
 `;
