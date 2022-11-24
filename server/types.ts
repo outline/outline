@@ -1,4 +1,5 @@
 import { Context } from "koa";
+import { RouterContext } from "koa-router";
 import { FileOperation, Team, User } from "./models";
 
 export enum AuthenticationType {
@@ -15,6 +16,11 @@ export type AuthenticatedState = {
 export type ContextWithState = Context & {
   state: AuthenticatedState;
 };
+
+export interface APIContext<ReqT = Record<string, unknown>>
+  extends RouterContext<AuthenticatedState, Context> {
+  input: ReqT;
+}
 
 type BaseEvent = {
   teamId: string;
