@@ -58,6 +58,7 @@ const EmojiPicker: React.FC<Props> = ({
             data={data}
             onEmojiSelect={handleEmojiSelect}
             theme={theme}
+            previewPosition="none"
             {...pickerOptions}
           />
         </PickerStyles>
