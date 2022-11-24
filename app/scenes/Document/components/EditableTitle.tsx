@@ -1,8 +1,12 @@
 import { observer } from "mobx-react";
+import { Slice } from "prosemirror-model";
 import { Selection } from "prosemirror-state";
+import { __parseFromClipboard } from "prosemirror-view";
 import * as React from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import isMarkdown from "@shared/editor/lib/isMarkdown";
+import normalizePastedMarkdown from "@shared/editor/lib/markdown/normalize";
 import { light } from "@shared/styles/theme";
 import {
   getCurrentDateAsString,
@@ -120,9 +124,12 @@ const EditableTitle = React.forwardRef(
     const handlePaste = React.useCallback(
       (event: React.ClipboardEvent) => {
         event.preventDefault();
+
         const text = event.clipboardData.getData("text/plain");
+        const html = event.clipboardData.getData("text/html");
         const [firstLine, ...rest] = text.split(`\n`);
         const content = rest.join(`\n`).trim();
+
         window.document.execCommand(
           "insertText",
           false,
@@ -130,11 +137,37 @@ const EditableTitle = React.forwardRef(
         );
 
         if (editor && content) {
-          const { view, parser } = editor;
+          const { view, pasteParser } = editor;
+          let slice;
+
+          if (isMarkdown(text)) {
+            const paste = pasteParser.parse(normalizePastedMarkdown(content));
+            slice = paste.slice(0);
+          } else {
+            const defaultSlice = __parseFromClipboard(
+              view,
+              text,
+              html,
+              false,
+              view.state.selection.$from
+            );
+
+            // remove first node from slice
+            slice = defaultSlice.content.firstChild
+              ? new Slice(
+                  defaultSlice.content.cut(
+                    defaultSlice.content.firstChild.nodeSize
+                  ),
+                  defaultSlice.openStart,
+                  defaultSlice.openEnd
+                )
+              : defaultSlice;
+          }
+
           view.dispatch(
             view.state.tr
               .setSelection(Selection.atStart(view.state.doc))
-              .insert(0, parser.parse(content))
+              .replaceSelection(slice)
           );
         }
       },
