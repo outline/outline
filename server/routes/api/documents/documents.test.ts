@@ -47,6 +47,19 @@ describe("#documents.info", () => {
     expect(body.data.id).toEqual(document.id);
   });
 
+  it("should return published document for urlId", async () => {
+    const { user, document } = await seed();
+    const res = await server.post("/api/documents.info", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.urlId,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.id).toEqual(document.id);
+  });
+
   it("should return archived document", async () => {
     const { user, document } = await seed();
     await document.archive(user.id);
