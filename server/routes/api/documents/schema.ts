@@ -1,3 +1,4 @@
+import emojiRegex from "emoji-regex";
 import { isEmpty } from "lodash";
 import { z } from "zod";
 
@@ -176,6 +177,9 @@ export const DocumentsUpdateSchema = BaseIdSchema.extend({
 
   /** Doc text to be updated */
   text: z.string().optional(),
+
+  /** Emoji displayed alongside doc title */
+  emoji: z.string().regex(emojiRegex()).nullish(),
 
   /** Boolean to denote if the doc should occupy full width */
   fullWidth: z.boolean().optional(),

@@ -2512,7 +2512,7 @@ describe("#documents.update", () => {
     const body = await res.json();
     expect(res.status).toEqual(400);
 
-    expect(body.message).toBe("Invalid emoji!");
+    expect(body.message).toBe("emoji: Invalid");
   });
 
   it("should successfully update the emoji", async () => {
