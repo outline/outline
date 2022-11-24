@@ -29,6 +29,7 @@ const EmojiPicker: React.FC<Props> = ({
   });
 
   const handleEmojiSelect = (emoji: any) => {
+    popover.hide();
     onEmojiSelect(emoji.native);
   };
 
