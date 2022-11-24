@@ -23,6 +23,17 @@ import { seed, getTestServer } from "@server/test/support";
 const server = getTestServer();
 
 describe("#documents.info", () => {
+  it("should fail if both id and shareId are absent", async () => {
+    const res = await server.post("/api/documents.info", {
+      body: {},
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual(
+      "ValidationError: one of id or shareId is required"
+    );
+  });
+
   it("should return published document", async () => {
     const { user, document } = await seed();
     const res = await server.post("/api/documents.info", {
@@ -411,7 +422,7 @@ describe("#documents.info", () => {
     const res = await server.post("/api/documents.info", {
       body: {
         token: user.getJwtToken(),
-        id: "test",
+        id: "9bcbf864-1090-4eb6-ba05-4da0c3a5c58e",
       },
     });
     expect(res.status).toEqual(404);
@@ -665,6 +676,58 @@ describe("#documents.export", () => {
 });
 
 describe("#documents.list", () => {
+  it("should fail for invalid userId", async () => {
+    const { user } = await seed();
+    const res = await server.post("/api/documents.list", {
+      body: {
+        token: user.getJwtToken(),
+        userId: "invalid",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("userId: Invalid uuid");
+  });
+
+  it("should fail for invalid collectionId", async () => {
+    const { user } = await seed();
+    const res = await server.post("/api/documents.list", {
+      body: {
+        token: user.getJwtToken(),
+        collectionId: "invalid",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("collectionId: Invalid uuid");
+  });
+
+  it("should fail for invalid parentDocumentId", async () => {
+    const { user } = await seed();
+    const res = await server.post("/api/documents.list", {
+      body: {
+        token: user.getJwtToken(),
+        parentDocumentId: "invalid",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("parentDocumentId: Invalid uuid");
+  });
+
+  it("should fail for invalid backlinkDocumentId", async () => {
+    const { user } = await seed();
+    const res = await server.post("/api/documents.list", {
+      body: {
+        token: user.getJwtToken(),
+        backlinkDocumentId: "invalid",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("backlinkDocumentId: Invalid uuid");
+  });
+
   it("should return documents", async () => {
     const { user, document } = await seed();
     const res = await server.post("/api/documents.list", {
@@ -853,6 +916,36 @@ describe("#documents.list", () => {
 });
 
 describe("#documents.drafts", () => {
+  it("should fail for invalid collectionId", async () => {
+    const { user, document } = await seed();
+    document.publishedAt = null;
+    await document.save();
+    const res = await server.post("/api/documents.drafts", {
+      body: {
+        token: user.getJwtToken(),
+        collectionId: "invalid",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("collectionId: Invalid uuid");
+  });
+
+  it("should fail for invalid dateFilter", async () => {
+    const { user, document } = await seed();
+    document.publishedAt = null;
+    await document.save();
+    const res = await server.post("/api/documents.drafts", {
+      body: {
+        token: user.getJwtToken(),
+        dateFilter: "invalid",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("dateFilter: Invalid input");
+  });
+
   it("should return unpublished documents", async () => {
     const { user, document } = await seed();
     document.publishedAt = null;
@@ -909,6 +1002,18 @@ describe("#documents.drafts", () => {
 });
 
 describe("#documents.search_titles", () => {
+  it("should fail without query", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.search_titles", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("query: Required");
+  });
+
   it("should return case insensitive results for partial query", async () => {
     const user = await buildUser();
     const document = await buildDocument({
@@ -960,6 +1065,20 @@ describe("#documents.search_titles", () => {
 });
 
 describe("#documents.search", () => {
+  it("should fail for invalid shareId", async () => {
+    const { user } = await seed();
+    const res = await server.post("/api/documents.search", {
+      body: {
+        token: user.getJwtToken(),
+        query: "much",
+        shareId: "invalid",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("shareId: Invalid uuid");
+  });
+
   it("should return results", async () => {
     const { user } = await seed();
     const res = await server.post("/api/documents.search", {
@@ -1451,6 +1570,20 @@ describe("#documents.search", () => {
   });
 });
 
+describe("#documents.templatize", () => {
+  it("should require id", async () => {
+    const { user } = await seed();
+    const res = await server.post("/api/documents.templatize", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toBe(400);
+    expect(body.message).toBe("id: Required");
+  });
+});
+
 describe("#documents.archived", () => {
   it("should return archived documents", async () => {
     const { user } = await seed();
@@ -1675,6 +1808,64 @@ describe("#documents.viewed", () => {
 });
 
 describe("#documents.move", () => {
+  it("should fail if attempting to nest doc within itself", async () => {
+    const { user, document } = await seed();
+    const collection = await buildCollection();
+    const res = await server.post("/api/documents.move", {
+      body: {
+        id: document.id,
+        collectionId: collection.id,
+        parentDocumentId: document.id,
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual(
+      "ValidationError: infinite loop detected, cannot nest a document inside itself"
+    );
+  });
+
+  it("should require id", async () => {
+    const { user } = await seed();
+    const res = await server.post("/api/documents.move", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("id: Required");
+  });
+
+  it("should require collectionId", async () => {
+    const { user, document } = await seed();
+    const res = await server.post("/api/documents.move", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("collectionId: Required");
+  });
+
+  it("should fail for invalid index", async () => {
+    const { user, document, collection } = await seed();
+    const res = await server.post("/api/documents.move", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        collectionId: collection.id,
+        index: -1,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("index: Number must be greater than 0");
+  });
+
   it("should move the document", async () => {
     const { user, document } = await seed();
     const collection = await buildCollection({
@@ -1726,6 +1917,34 @@ describe("#documents.move", () => {
 });
 
 describe("#documents.restore", () => {
+  it("should require id", async () => {
+    const { user, document } = await seed();
+    await document.destroy();
+    const res = await server.post("/api/documents.restore", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("id: Required");
+  });
+
+  it("should fail for invalid collectionId", async () => {
+    const { user, document } = await seed();
+    await document.destroy();
+    const res = await server.post("/api/documents.restore", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        collectionId: "invalid",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("collectionId: Invalid uuid");
+  });
+
   it("should allow restore of trashed documents", async () => {
     const { user, document } = await seed();
     await document.destroy();
@@ -1905,7 +2124,7 @@ describe("#documents.restore", () => {
     const res = await server.post("/api/documents.restore", {
       body: {
         token: user.getJwtToken(),
-        id: "test",
+        id: "76fe8ba4-4e6a-4a75-8a10-9bf57330b24c",
       },
     });
     expect(res.status).toEqual(404);
@@ -1935,6 +2154,18 @@ describe("#documents.restore", () => {
 });
 
 describe("#documents.import", () => {
+  it("should require collectionId", async () => {
+    const { user } = await seed();
+    const res = await server.post("/api/documents.import", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("collectionId: Required");
+  });
+
   it("should error if no file is passed", async () => {
     const user = await buildUser();
     const res = await server.post("/api/documents.import", {
@@ -1957,6 +2188,37 @@ describe("#documents.import", () => {
 });
 
 describe("#documents.create", () => {
+  it("should fail for invalid collectionId", async () => {
+    const { user } = await seed();
+    const res = await server.post("/api/documents.create", {
+      body: {
+        token: user.getJwtToken(),
+        collectionId: "invalid",
+        title: "new document",
+        text: "hello",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("collectionId: Invalid uuid");
+  });
+
+  it("should fail for invalid parentDocumentId", async () => {
+    const { user, collection } = await seed();
+    const res = await server.post("/api/documents.create", {
+      body: {
+        token: user.getJwtToken(),
+        collectionId: collection.id,
+        parentDocumentId: "invalid",
+        title: "new document",
+        text: "hello",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("parentDocumentId: Invalid uuid");
+  });
+
   it("should create as a new document", async () => {
     const { user, collection } = await seed();
     const res = await server.post("/api/documents.create", {
@@ -2007,10 +2269,10 @@ describe("#documents.create", () => {
     });
     const body = await res.json();
 
-    expect(body.message).toBe(
-      "collectionId is required to create a nested doc or a template"
-    );
     expect(res.status).toEqual(400);
+    expect(body.message).toBe(
+      "ValidationError: collectionId is required to create a template document"
+    );
   });
 
   it("should not allow publishing without specifying the collection", async () => {
@@ -2026,10 +2288,10 @@ describe("#documents.create", () => {
     });
     const body = await res.json();
 
-    expect(body.message).toBe(
-      "collectionId is required to publish a draft without collection"
-    );
     expect(res.status).toEqual(400);
+    expect(body.message).toBe(
+      "ValidationError: collectionId is required to publish"
+    );
   });
 
   it("should not allow creating a nested doc without a collection", async () => {
@@ -2045,10 +2307,10 @@ describe("#documents.create", () => {
     });
     const body = await res.json();
 
-    expect(body.message).toBe(
-      "collectionId is required to create a nested doc or a template"
-    );
     expect(res.status).toEqual(400);
+    expect(body.message).toBe(
+      "ValidationError: collectionId is required to create a nested document"
+    );
   });
 
   it("should not allow very long titles", async () => {
@@ -2494,9 +2756,50 @@ describe("#documents.update", () => {
     });
     expect(res.status).toEqual(403);
   });
+
+  it("should fail for invalid collectionId", async () => {
+    const { document } = await seed();
+    const user = await buildUser();
+    const res = await server.post("/api/documents.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        text: "Updated",
+        collectionId: "invalid",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toBe(400);
+    expect(body.message).toBe("collectionId: Invalid uuid");
+  });
+
+  it("should require id", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/documents.update", {
+      body: {
+        token: user.getJwtToken(),
+        text: "Updated",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toBe(400);
+    expect(body.message).toBe("id: Required");
+  });
 });
 
 describe("#documents.archive", () => {
+  it("should require id", async () => {
+    const { user } = await seed();
+    const res = await server.post("/api/documents.archive", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("id: Required");
+  });
+
   it("should allow archiving document", async () => {
     const { user, document } = await seed();
     const res = await server.post("/api/documents.archive", {
@@ -2523,6 +2826,18 @@ describe("#documents.archive", () => {
 });
 
 describe("#documents.delete", () => {
+  it("should require id", async () => {
+    const { user } = await seed();
+    const res = await server.post("/api/documents.delete", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("id: Required");
+  });
+
   it("should allow deleting document", async () => {
     const { user, document } = await seed();
     const res = await server.post("/api/documents.delete", {
@@ -2616,6 +2931,18 @@ describe("#documents.delete", () => {
 });
 
 describe("#documents.unpublish", () => {
+  it("should require id", async () => {
+    const { user } = await seed();
+    const res = await server.post("/api/documents.unpublish", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("id: Required");
+  });
+
   it("should unpublish a document", async () => {
     const { user, document } = await seed();
     const res = await server.post("/api/documents.unpublish", {
