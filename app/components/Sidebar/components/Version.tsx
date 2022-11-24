@@ -17,9 +17,18 @@ export default function Version() {
       const releases = await res.json();
 
       if (Array.isArray(releases)) {
-        const computedReleasesBehind = releases
+        const everyNewRelease = releases
           .map((release) => release.tag_name)
           .findIndex((tagName) => tagName === `v${version}`);
+
+        const onlyFullNewRelease = releases
+          .filter((release) => !release.prerelease)
+          .map((release) => release.tag_name)
+          .findIndex((tagName) => tagName === `v${version}`);
+
+        const computedReleasesBehind = version.includes("pre")
+          ? everyNewRelease
+          : onlyFullNewRelease;
 
         if (computedReleasesBehind >= 0) {
           setReleasesBehind(computedReleasesBehind);
