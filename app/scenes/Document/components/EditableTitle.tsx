@@ -221,6 +221,7 @@ const EditableTitle = React.forwardRef(
             }
             onEmojiSelect={handleEmojiSelect}
             onEmojiRemove={handleEmojiRemove}
+            emojiPresent={!!document.emoji}
             pickerTheme={pickerTheme}
           />
         )}

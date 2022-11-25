@@ -13,6 +13,7 @@ type Props = {
   onEmojiSelect: (emoji: string) => void;
   onEmojiRemove: () => void;
   pickerTheme: string;
+  emojiPresent: boolean;
 };
 
 const EmojiPicker: React.FC<Props> = ({
@@ -20,6 +21,7 @@ const EmojiPicker: React.FC<Props> = ({
   onEmojiSelect,
   onEmojiRemove,
   pickerTheme,
+  emojiPresent,
   ...pickerOptions
 }) => {
   const { t } = useTranslation();
@@ -50,9 +52,11 @@ const EmojiPicker: React.FC<Props> = ({
         width={352}
         aria-label="emoji-picker"
       >
-        <RemoveButton neutral hasText onClick={onEmojiRemove} theme={theme}>
-          {t("Remove")}
-        </RemoveButton>
+        {emojiPresent && (
+          <RemoveButton neutral hasText onClick={onEmojiRemove} theme={theme}>
+            {t("Remove")}
+          </RemoveButton>
+        )}
         <PickerStyles theme={theme}>
           <Picker
             data={data}
