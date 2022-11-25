@@ -326,34 +326,43 @@ const Title = styled(ContentEditable)<TitleProps>`
   }
 
   ${AnimatedStar} {
-    opacity: ${(props) => (props.$isStarred ? "1 !important" : 0)};
+    opacity: ${(props) => (props.$isStarred ? "1 !important" : 0.5)};
   }
 
   ${AnimatedEmoji} {
-    opacity: ${(props) => (props.$containsEmoji ? "1 !important" : 0)};
-  }
-
-  &:hover {
-    ${AnimatedStar} {
-      opacity: 0.5;
-
-      &:hover {
-        opacity: 1;
-      }
-    }
-
-    ${AnimatedEmoji} {
-      opacity: 0.5;
-
-      &:hover {
-        opacity: 1;
-      }
-    }
+    opacity: ${(props) => (props.$containsEmoji ? "1 !important" : 0.5)};
   }
 
   ${breakpoint("tablet")`
     margin-left: 0px;
-  `};
+
+    ${AnimatedStar} {
+      opacity: ${(props: TitleProps) =>
+        props.$isStarred ? "1 !important" : 0};
+    }
+
+    ${AnimatedEmoji} {
+      opacity: ${(props: TitleProps) =>
+        props.$containsEmoji ? "1 !important" : 0};
+    }
+
+    &:hover {
+      ${AnimatedStar} {
+        opacity: 0.5;
+
+        &:hover {
+          opacity: 1;
+        }
+      }
+
+      ${AnimatedEmoji} {
+        opacity: 0.5;
+
+        &:hover {
+          opacity: 1;
+        }
+      }
+    }`};
 
   @media print {
     color: ${light.text};
