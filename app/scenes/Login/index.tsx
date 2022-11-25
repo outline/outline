@@ -13,7 +13,6 @@ import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import LoadingIndicator from "~/components/LoadingIndicator";
-import NoticeAlert from "~/components/NoticeAlert";
 import OutlineLogo from "~/components/OutlineLogo";
 import PageTitle from "~/components/PageTitle";
 import TeamLogo from "~/components/TeamLogo";
@@ -109,7 +108,8 @@ function Login({ children }: Props) {
         <Header />
         <Centered align="center" justify="center" column auto>
           <PageTitle title={t("Login")} />
-          <NoticeAlert>
+          <Heading centered>{t("Error")}</Heading>
+          <Note>
             {t("Failed to load configuration.")}
             {!isCloudHosted && (
               <p>
@@ -118,7 +118,7 @@ function Login({ children }: Props) {
                 )}
               </p>
             )}
-          </NoticeAlert>
+          </Note>
         </Centered>
       </Background>
     );
@@ -128,6 +128,26 @@ function Login({ children }: Props) {
   // indicator here that's delayed by 250ms
   if (!config) {
     return <LoadingIndicator />;
+  }
+
+  const isCustomDomain = parseDomain(window.location.origin).custom;
+
+  // Unmapped custom domain
+  if (isCloudHosted && isCustomDomain && !config.name) {
+    return (
+      <Background>
+        <Header config={config} />
+        <Centered align="center" justify="center" column auto>
+          <PageTitle title={t("Custom domain setup")} />
+          <Heading centered>{t("Almost there")}…</Heading>
+          <Note>
+            {t(
+              "Your custom domain is successfully pointing at Outline. To complete the setup process please contact support."
+            )}
+          </Note>
+        </Centered>
+      </Background>
+    );
   }
 
   const hasMultipleProviders = config.providers.length > 1;
@@ -168,7 +188,7 @@ function Login({ children }: Props) {
           title={config.name ? `${config.name} – ${t("Login")}` : t("Login")}
         />
         <Logo>
-          {config.logo ? (
+          {config.logo && !isCreate ? (
             <TeamLogo size={48} src={config.logo} />
           ) : (
             <OutlineLogo size={42} fill="currentColor" />
