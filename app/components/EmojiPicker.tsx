@@ -48,7 +48,6 @@ const EmojiPicker: React.FC<Props> = ({
         tabIndex={0}
         onClick={(e) => e.stopPropagation()}
         width={352}
-        scrollable={false}
         aria-label="emoji-picker"
       >
         <RemoveButton neutral hasText onClick={onEmojiRemove} theme={theme}>
@@ -85,6 +84,7 @@ const PickerPopover = styled(Popover)`
   z-index: ${depths.popover};
   > :first-child {
     padding-top: 8px;
+    max-height: 488px;
   }
 `;
 
