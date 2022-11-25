@@ -7,7 +7,6 @@ import { useEffect, useState } from "react";
 import { useDrag, useDrop } from "react-dnd";
 import { useLocation } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
-import parseTitle from "@shared/utils/parseTitle";
 import Star from "~/models/Star";
 import EmojiIcon from "~/components/EmojiIcon";
 import Fade from "~/components/Fade";
@@ -104,7 +103,7 @@ function StarredLink({ star }: Props) {
     }
 
     const collection = collections.get(document.collectionId);
-    const { emoji } = parseTitle(document.title);
+    const { emoji } = document;
     const label = emoji
       ? document.title.replace(emoji, "")
       : document.titleWithDefault;
