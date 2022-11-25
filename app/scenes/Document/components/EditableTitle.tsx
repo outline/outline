@@ -170,8 +170,8 @@ const EditableTitle = React.forwardRef(
       [editor]
     );
 
-    const handleEmojiSelect = React.useCallback(
-      async (emoji: string) => {
+    const handleEmojiChange = React.useCallback(
+      async (emoji: string | null) => {
         if (document.emoji !== emoji) {
           document.emoji = emoji;
           await document.save();
@@ -179,13 +179,6 @@ const EditableTitle = React.forwardRef(
       },
       [document]
     );
-
-    const handleEmojiRemove = React.useCallback(async () => {
-      if (document.emoji) {
-        document.emoji = null;
-        document.save();
-      }
-    }, [document]);
 
     const value =
       !document.title && readOnly ? document.titleWithDefault : document.title;
@@ -219,8 +212,7 @@ const EditableTitle = React.forwardRef(
                 )}
               </EmojiButton>
             }
-            onEmojiSelect={handleEmojiSelect}
-            onEmojiRemove={handleEmojiRemove}
+            onEmojiChange={handleEmojiChange}
             emojiPresent={!!document.emoji}
             pickerTheme={pickerTheme}
           />

@@ -10,16 +10,14 @@ import Popover from "~/components/Popover";
 
 type Props = {
   disclosure: React.ReactElement;
-  onEmojiSelect: (emoji: string) => void;
-  onEmojiRemove: () => void;
+  onEmojiChange: (emoji: string | null) => void;
   pickerTheme: string;
   emojiPresent: boolean;
 };
 
 const EmojiPicker: React.FC<Props> = ({
   disclosure,
-  onEmojiSelect,
-  onEmojiRemove,
+  onEmojiChange,
   pickerTheme,
   emojiPresent,
   ...pickerOptions
@@ -32,9 +30,9 @@ const EmojiPicker: React.FC<Props> = ({
     modal: true,
   });
 
-  const handleEmojiSelect = (emoji: any) => {
+  const handleEmojiChange = (emoji: any) => {
     popover.hide();
-    onEmojiSelect(emoji.native);
+    emoji ? onEmojiChange(emoji.native) : onEmojiChange(null);
   };
 
   return (
@@ -53,14 +51,19 @@ const EmojiPicker: React.FC<Props> = ({
         aria-label="emoji-picker"
       >
         {emojiPresent && (
-          <RemoveButton neutral hasText onClick={onEmojiRemove} theme={theme}>
+          <RemoveButton
+            neutral
+            hasText
+            onClick={() => handleEmojiChange(null)}
+            theme={theme}
+          >
             {t("Remove")}
           </RemoveButton>
         )}
         <PickerStyles theme={theme}>
           <Picker
             data={data}
-            onEmojiSelect={handleEmojiSelect}
+            onEmojiSelect={handleEmojiChange}
             theme={pickerTheme}
             previewPosition="none"
             {...pickerOptions}
