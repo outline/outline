@@ -251,6 +251,7 @@ type TitleProps = {
 
 const PlaceholderEmoji = styled(SmileyIcon)`
   margin-top: 2px;
+  margin-left: -4px;
 `;
 
 const AnimatedEmoji = styled(PlaceholderEmoji)`
@@ -331,8 +332,11 @@ const Title = styled(ContentEditable)<TitleProps>`
 const EmojiButton = styled(NudeButton)`
   position: absolute;
   top: 6px;
-  left: -40px;
+  left: -36px;
   z-index: 2;
+  width: 36px;
+  display: flex;
+  align-items: center;
 `;
 
 export default observer(EditableTitle);
