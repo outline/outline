@@ -21,6 +21,7 @@ import Star, { AnimatedStar } from "~/components/Star";
 import useActiveElement from "~/hooks/useActiveElement";
 import useMobile from "~/hooks/useMobile";
 import usePickerTheme from "~/hooks/usePickerTheme";
+import usePolicy from "~/hooks/usePolicy";
 import { hover } from "~/styles";
 import { isModKey } from "~/utils/keyboard";
 
@@ -64,6 +65,7 @@ const EditableTitle = React.forwardRef(
     const pickerTheme = usePickerTheme();
     const isMobile = useMobile();
     const activeElement = useActiveElement();
+    const can = usePolicy(document.id);
 
     const [isFocused, setFocus] = React.useState<boolean>(false);
 
@@ -201,7 +203,7 @@ const EditableTitle = React.forwardRef(
         dir="auto"
         ref={ref}
       >
-        {(!isMobile || isFocused || document.emoji) && (
+        {(!isMobile || isFocused || document.emoji) && can.update && (
           <EmojiPicker
             disclosure={
               <EmojiButton size={32}>
@@ -216,6 +218,11 @@ const EditableTitle = React.forwardRef(
             emojiPresent={!!document.emoji}
             pickerTheme={pickerTheme}
           />
+        )}
+        {!can.update && document.emoji && (
+          <EmojiButton size={32}>
+            <Emoji size="24px" native={document.emoji} />
+          </EmojiButton>
         )}
         {starrable !== false && <StarButton document={document} size={32} />}
       </Title>
