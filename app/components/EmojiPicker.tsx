@@ -53,12 +53,13 @@ const EmojiPicker: React.FC<Props> = ({
         <RemoveButton neutral hasText onClick={onEmojiRemove} theme={theme}>
           {t("Remove")}
         </RemoveButton>
-        <PickerStyles>
+        <PickerStyles theme={theme}>
           <Picker
             data={data}
             onEmojiSelect={handleEmojiSelect}
             theme={pickerTheme}
             previewPosition="none"
+            navPosition="none"
             {...pickerOptions}
           />
         </PickerStyles>
@@ -94,7 +95,7 @@ const PickerStyles = styled.div`
   em-emoji-picker {
     --shadow: none;
     --border-radius: 0;
-    --padding: 8px;
+    --rgb-background: ${(props) => props.theme.menuBackground};
   }
 `;
 
