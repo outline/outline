@@ -276,7 +276,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
 
   const handleRefChanged = React.useCallback(
     (node: SharedEditor | null) => {
-      if (node && !previousHeadings.current) {
+      if (node) {
         updateHeadings();
       }
     },

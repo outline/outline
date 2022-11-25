@@ -205,9 +205,7 @@ function DocumentHeader({
           isMobile ? (
             <TableOfContentsMenu headings={headings} />
           ) : (
-            <DocumentBreadcrumb document={document}>
-              {!isEditing && toc}
-            </DocumentBreadcrumb>
+            <DocumentBreadcrumb document={document}>{toc}</DocumentBreadcrumb>
           )
         }
         title={

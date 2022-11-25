@@ -4,6 +4,7 @@ import { isInTable } from "prosemirror-tables";
 import { isUrl } from "../../utils/urls";
 import Extension from "../lib/Extension";
 import isMarkdown from "../lib/isMarkdown";
+import normalizePastedMarkdown from "../lib/markdown/normalize";
 import isInCode from "../queries/isInCode";
 import { LANGUAGES } from "./Prism";
 
@@ -11,29 +12,6 @@ function isDropboxPaper(html: string): boolean {
   // The best we have to detect if a paste is likely coming from Paper
   // In this case it's actually better to use the text version
   return html?.includes("usually-unique-id");
-}
-
-/**
- * Add support for additional syntax that users paste even though it isn't
- * supported by the markdown parser directly by massaging the text content.
- *
- * @param text The incoming pasted plain text
- */
-function normalizePastedMarkdown(text: string): string {
-  const CHECKBOX_REGEX = /^\s?(\[(X|\s|_|-)\]\s(.*)?)/gim;
-
-  // find checkboxes not contained in a list and wrap them in list items
-  while (text.match(CHECKBOX_REGEX)) {
-    text = text.replace(CHECKBOX_REGEX, (match) => `- ${match.trim()}`);
-  }
-
-  // find multiple newlines and insert a hard break to ensure they are respected
-  text = text.replace(/\n{2,}/g, "\n\n\\\n");
-
-  // find single newlines and insert an extra to ensure they are treated as paragraphs
-  text = text.replace(/\b\n\b/g, "\n\n");
-
-  return text;
 }
 
 export default class PasteHandler extends Extension {
