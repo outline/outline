@@ -1,28 +1,30 @@
 import data from "@emoji-mart/data";
 import Picker from "@emoji-mart/react";
-import { CloseIcon } from "outline-icons";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import { depths } from "@shared/styles";
-import NudeButton from "~/components/NudeButton";
+import Button from "~/components/Button";
 import Popover from "~/components/Popover";
-import Tooltip from "~/components/Tooltip";
 
 type Props = {
   disclosure: React.ReactElement;
   onEmojiSelect: (emoji: string) => void;
   onEmojiRemove: () => void;
-  theme: string;
+  pickerTheme: string;
 };
 
 const EmojiPicker: React.FC<Props> = ({
   disclosure,
   onEmojiSelect,
   onEmojiRemove,
-  theme,
+  pickerTheme,
   ...pickerOptions
 }) => {
+  const { t } = useTranslation();
+  const theme = useTheme();
+
   const popover = usePopoverState({
     placement: "bottom-start",
     modal: true,
@@ -49,16 +51,14 @@ const EmojiPicker: React.FC<Props> = ({
         scrollable={false}
         aria-label="emoji-picker"
       >
-        <Tooltip tooltip="Remove emoji" placement="top">
-          <NudeButton onClick={onEmojiRemove}>
-            <CloseIcon />
-          </NudeButton>
-        </Tooltip>
+        <RemoveButton neutral hasText onClick={onEmojiRemove} theme={theme}>
+          {t("Remove")}
+        </RemoveButton>
         <PickerStyles>
           <Picker
             data={data}
             onEmojiSelect={handleEmojiSelect}
-            theme={theme}
+            theme={pickerTheme}
             previewPosition="none"
             {...pickerOptions}
           />
@@ -68,8 +68,24 @@ const EmojiPicker: React.FC<Props> = ({
   );
 };
 
+const RemoveButton = styled(Button)`
+  margin-left: -12px;
+  margin-bottom: 8px;
+  border-radius: 16px;
+  color: ${(props) => props.theme.textTertiary};
+  height: 24px;
+  font-size: 12px;
+  > :first-child {
+    min-height: unset;
+    line-height: unset;
+  }
+`;
+
 const PickerPopover = styled(Popover)`
   z-index: ${depths.popover};
+  > :first-child {
+    padding-top: 8px;
+  }
 `;
 
 const PickerStyles = styled.div`
