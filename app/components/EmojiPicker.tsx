@@ -63,7 +63,6 @@ const EmojiPicker: React.FC<Props> = ({
             onEmojiSelect={handleEmojiSelect}
             theme={pickerTheme}
             previewPosition="none"
-            navPosition="none"
             {...pickerOptions}
           />
         </PickerStyles>
