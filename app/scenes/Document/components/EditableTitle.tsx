@@ -221,7 +221,7 @@ const EditableTitle = React.forwardRef(
             }
             onEmojiSelect={handleEmojiSelect}
             onEmojiRemove={handleEmojiRemove}
-            theme={pickerTheme}
+            pickerTheme={pickerTheme}
           />
         )}
         {starrable !== false && <StarButton document={document} size={32} />}
