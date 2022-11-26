@@ -65,6 +65,7 @@ const Contents = styled.div<ContentProps>`
     top: 50px;
     left: 8px;
     right: 8px;
+    width: auto;
   `};
 `;
 

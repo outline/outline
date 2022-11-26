@@ -30,6 +30,8 @@ const EmojiPicker: React.FC<Props> = ({
     modal: true,
   });
 
+  const pickerRef = React.useRef<HTMLDivElement>(null);
+
   const handleEmojiChange = (emoji: any) => {
     popover.hide();
     emoji ? onEmojiChange(emoji.native) : onEmojiChange(null);
@@ -60,12 +62,20 @@ const EmojiPicker: React.FC<Props> = ({
             {t("Remove")}
           </RemoveButton>
         )}
-        <PickerStyles theme={theme}>
+        <PickerStyles theme={theme} ref={pickerRef}>
           <Picker
             data={data}
             onEmojiSelect={handleEmojiChange}
             theme={pickerTheme}
             previewPosition="none"
+            perLine={
+              // 28 is picker's observed width when perLine is set to 0
+              // and 36 is the default emojiButtonSize
+              // Ref: https://github.com/missive/emoji-mart#options--props
+              popover.visible && pickerRef.current
+                ? Math.floor((pickerRef.current.clientWidth - 28) / 36)
+                : 9
+            }
             {...pickerOptions}
           />
         </PickerStyles>
@@ -102,6 +112,8 @@ const PickerStyles = styled.div`
     --shadow: none;
     --border-radius: 0;
     --rgb-background: ${(props) => props.theme.menuBackground};
+    margin-left: auto;
+    margin-right: auto;
   }
 `;
 
