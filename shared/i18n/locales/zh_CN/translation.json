@@ -759,7 +759,7 @@
   "Default role": "默认权限",
   "The default user role for new accounts. Changing this setting does not affect existing user accounts.": "新帐户的默认用户角色。更改此设置不会影响现有用户帐户。",
   "When enabled, documents can be shared publicly on the internet by any member of the workspace": "启用后，工作区的任何成员都可以在公网上公开共享文档",
-  "Viewer document exports": "Viewer document exports",
+  "Viewer document exports": ".Viewer document exports",
   "When enabled, viewers can see download options for documents": "When enabled, viewers can see download options for documents",
   "Rich service embeds": "丰富的服务嵌入",
   "Links to supported services are shown as rich embeds within your documents": "支持服务的链接作为丰富的嵌入显示在您的文档中",
