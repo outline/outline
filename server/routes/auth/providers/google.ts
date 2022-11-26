@@ -70,7 +70,6 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
           const domain = profile._json.hd;
           const team = await getTeamFromContext(ctx);
           const client = getClientFromContext(ctx);
-          console.log({ client });
 
           // No profile domain means personal gmail account
           // No team implies the request came from the apex domain

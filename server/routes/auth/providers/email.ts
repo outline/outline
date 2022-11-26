@@ -26,7 +26,7 @@ router.post(
   errorHandling(),
   rateLimiter(RateLimiterStrategy.TenPerHour),
   async (ctx) => {
-    const { email } = ctx.request.body;
+    const { email, client } = ctx.request.body;
     assertEmail(email, "email is required");
 
     const domain = parseDomain(ctx.request.hostname);
@@ -81,6 +81,7 @@ router.post(
       to: user.email,
       token: user.getEmailSigninToken(),
       teamUrl: team.url,
+      client: client === "desktop" ? "desktop" : "",
     });
     user.lastSigninEmailSentAt = new Date();
     await user.save();
@@ -93,7 +94,7 @@ router.post(
 );
 
 router.get("email.callback", async (ctx) => {
-  const { token } = ctx.request.query;
+  const { token, client } = ctx.request.query;
   assertPresent(token, "token is required");
 
   let user!: User;
@@ -130,13 +131,13 @@ router.get("email.callback", async (ctx) => {
     }
   }
 
-  // TODO: Desktop handoff
   // set cookies on response and redirect to team subdomain
   await signIn(ctx, "email", {
     user,
     team: user.team,
     isNewTeam: false,
     isNewUser: false,
+    client: client === "desktop" ? "desktop" : "",
   });
 });
 

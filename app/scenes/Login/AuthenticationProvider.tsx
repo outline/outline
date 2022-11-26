@@ -40,6 +40,7 @@ function AuthenticationProvider(props: Props) {
       try {
         const response = await client.post(event.currentTarget.action, {
           email,
+          client: Desktop.isElectron() ? "desktop" : undefined,
         });
 
         if (response.redirect) {

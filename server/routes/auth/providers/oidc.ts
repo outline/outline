@@ -18,6 +18,7 @@ import {
   StateStore,
   request,
   getTeamFromContext,
+  getClientFromContext,
 } from "@server/utils/passport";
 
 const router = new Router();
@@ -73,7 +74,7 @@ if (env.OIDC_CLIENT_ID && env.OIDC_CLIENT_SECRET) {
         done: (
           err: Error | null,
           user: User | null,
-          result?: AccountProvisionerResult
+          result?: AccountProvisionerResult & { client: string }
         ) => void
       ) {
         try {
@@ -83,6 +84,7 @@ if (env.OIDC_CLIENT_ID && env.OIDC_CLIENT_SECRET) {
             );
           }
           const team = await getTeamFromContext(ctx);
+          const client = getClientFromContext(ctx);
 
           const parts = profile.email.toLowerCase().split("@");
           const domain = parts.length && parts[1];
@@ -123,7 +125,7 @@ if (env.OIDC_CLIENT_ID && env.OIDC_CLIENT_SECRET) {
               scopes,
             },
           });
-          return done(null, result.user, result);
+          return done(null, result.user, { ...result, client });
         } catch (err) {
           return done(err, null);
         }

@@ -14,6 +14,7 @@ type Props = {
   to: string;
   token: string;
   teamUrl: string;
+  client: string;
 };
 
 /**
@@ -28,20 +29,20 @@ export default class SigninEmail extends BaseEmail<Props> {
     return "Here’s your link to signin to Outline.";
   }
 
-  protected renderAsText({ token, teamUrl }: Props): string {
+  protected renderAsText({ token, teamUrl, client }: Props): string {
     return `
 Use the link below to signin to Outline:
 
-${this.signinLink(token)}
+${this.signinLink(token, client)}
 
 If your magic link expired you can request a new one from your team’s
 signin page at: ${teamUrl}
 `;
   }
 
-  protected render({ token, teamUrl }: Props) {
+  protected render({ token, client, teamUrl }: Props) {
     if (env.ENVIRONMENT === "development") {
-      logger.debug("email", `Sign-In link: ${this.signinLink(token)}`);
+      logger.debug("email", `Sign-In link: ${this.signinLink(token, client)}`);
     }
 
     return (
@@ -53,7 +54,7 @@ signin page at: ${teamUrl}
           <p>Click the button below to sign in to Outline.</p>
           <EmptySpace height={10} />
           <p>
-            <Button href={this.signinLink(token)}>Sign In</Button>
+            <Button href={this.signinLink(token, client)}>Sign In</Button>
           </p>
           <EmptySpace height={10} />
           <p>
@@ -67,7 +68,7 @@ signin page at: ${teamUrl}
     );
   }
 
-  private signinLink(token: string): string {
-    return `${env.URL}/auth/email.callback?token=${token}`;
+  private signinLink(token: string, client: string): string {
+    return `${env.URL}/auth/email.callback?token=${token}&client=${client}`;
   }
 }
