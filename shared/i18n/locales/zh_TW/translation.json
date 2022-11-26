@@ -759,7 +759,7 @@
   "Default role": "預設角色",
   "The default user role for new accounts. Changing this setting does not affect existing user accounts.": "預設角色設定只會套用到新的使用者帳號。改變此設定並不會影響現有使用者帳號。",
   "When enabled, documents can be shared publicly on the internet by any member of the workspace": "When enabled, documents can be shared publicly on the internet by any member of the workspace",
-  "Viewer document exports": "Viewer document exports",
+  "Viewer document exports": ".Viewer document exports",
   "When enabled, viewers can see download options for documents": "When enabled, viewers can see download options for documents",
   "Rich service embeds": "顯示嵌入的外部服務",
   "Links to supported services are shown as rich embeds within your documents": "支援的外部服務連結將會被嵌入顯示於您的文件中",
