@@ -368,7 +368,7 @@
   "Export started. If you have notifications enabled, you will receive an email when it's complete.": "Esportazione iniziata. Se hai attivato le notifiche, riceverai un'email quando sarà completata.",
   "Exporting the collection <em>{{collectionName}}</em> may take some time.": "Esportare la collezione <em>{{collectionName}}</em> potrebbe richiedere del tempo.",
   "Your documents will be a zip of folders with files in Markdown format. Please visit the Export section in Settings to get the zip.": "I tuoi documenti verranno salvati in un archivio zip con file in formato Markdown. Visita la sezione Esporta in Impostazioni per ottenere il file archivio.",
-  "Exporting": "Exporting",
+  "Exporting": "Esportazione in corso",
   "Collections are for grouping your documents. They work best when organized around a topic or internal team — Product or Engineering for example.": "Collections are for grouping your documents. They work best when organized around a topic or internal team — Product or Engineering for example.",
   "This is the default level of access, you can give individual users or groups more access once the collection is created.": "This is the default level of access, you can give individual users or groups more access once the collection is created.",
   "Public document sharing": "Public document sharing",
