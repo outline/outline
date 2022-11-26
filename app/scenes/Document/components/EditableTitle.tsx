@@ -289,9 +289,9 @@ const PlaceholderEmoji = styled(SmileyIcon)`
 
 const AnimatedEmoji = styled(PlaceholderEmoji)`
   flex-shrink: 0;
-  transition: all 100ms ease-in-out;
 
   &: ${hover} {
+    transition: all 100ms ease-in-out;
     transform: scale(1.1);
   }
   &:active {
@@ -379,6 +379,15 @@ const EmojiButton = styled(NudeButton)`
   width: 36px;
   display: flex;
   align-items: center;
+  &[aria-expanded="true"] {
+    ${AnimatedEmoji} {
+      opacity: 1;
+      border: 0;
+      border-radius: 4px;
+      box-shadow: ${(props) =>
+        `rgba(0, 0, 0, 0.07) 0px 1px 2px, ${props.theme.buttonNeutralBorder} 0 0 0 1px inset`};
+    }
+  }
 `;
 
 export default observer(EditableTitle);
