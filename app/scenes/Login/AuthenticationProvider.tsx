@@ -8,6 +8,7 @@ import ButtonLarge from "~/components/ButtonLarge";
 import InputLarge from "~/components/InputLarge";
 import env from "~/env";
 import { client } from "~/utils/ApiClient";
+import Desktop from "~/utils/Desktop";
 
 type Props = {
   id: string;
@@ -95,7 +96,9 @@ function AuthenticationProvider(props: Props) {
   // and keep the user on the same page.
   const { custom, teamSubdomain, host } = parseDomain(window.location.origin);
   const needsRedirect = custom || teamSubdomain;
-  const href = needsRedirect
+  const href = Desktop.isElectron()
+    ? `${env.URL}${authUrl}?client=desktop`
+    : needsRedirect
     ? `${env.URL}${authUrl}?host=${encodeURI(host)}`
     : authUrl;
 

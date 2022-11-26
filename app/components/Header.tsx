@@ -12,6 +12,7 @@ import Flex from "~/components/Flex";
 import useEventListener from "~/hooks/useEventListener";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
+import { draggableOnDesktop, fadeOnDesktopBackgrounded } from "~/styles";
 import { supportsPassiveListener } from "~/utils/browser";
 
 type Props = {
@@ -120,6 +121,8 @@ const Wrapper = styled(Flex)<{ $passThrough?: boolean }>`
   transform: translate3d(0, 0, 0);
   min-height: 64px;
   justify-content: flex-start;
+  ${draggableOnDesktop()}
+  ${fadeOnDesktopBackgrounded()}
 
   @supports (backdrop-filter: blur(20px)) {
     backdrop-filter: blur(20px);

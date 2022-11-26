@@ -3,7 +3,7 @@ import * as React from "react";
 import styled from "styled-components";
 import Flex from "~/components/Flex";
 
-export type HeaderButtonProps = {
+export type HeaderButtonProps = React.ComponentProps<typeof Wrapper> & {
   title: React.ReactNode;
   image: React.ReactNode;
   minHeight?: number;

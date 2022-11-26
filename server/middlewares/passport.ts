@@ -6,6 +6,10 @@ import { signIn } from "@server/utils/authentication";
 import { parseState } from "@server/utils/passport";
 import { AccountProvisionerResult } from "../commands/accountProvisioner";
 
+type PassportResult = AccountProvisionerResult & {
+  client: string;
+};
+
 export default function createMiddleware(providerName: string) {
   return function passportMiddleware(ctx: Context) {
     return passport.authorize(
@@ -13,7 +17,7 @@ export default function createMiddleware(providerName: string) {
       {
         session: false,
       },
-      async (err, user, result: AccountProvisionerResult) => {
+      async (err, user, result: PassportResult) => {
         if (err) {
           Logger.error("Error during authentication", err);
 
@@ -79,14 +83,7 @@ export default function createMiddleware(providerName: string) {
           return ctx.redirect("/?notice=suspended");
         }
 
-        await signIn(
-          ctx,
-          result.user,
-          result.team,
-          providerName,
-          result.isNewUser,
-          result.isNewTeam
-        );
+        await signIn(ctx, providerName, result);
       }
     )(ctx);
   };

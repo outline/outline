@@ -3,9 +3,10 @@ import { addMonths } from "date-fns";
 import { Context } from "koa";
 import { pick } from "lodash";
 import { getCookieDomain } from "@shared/utils/domains";
+import { AccountProvisionerResult } from "@server/commands/accountProvisioner";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
-import { User, Event, Team, Collection, View } from "@server/models";
+import { Event, Collection, View } from "@server/models";
 
 /**
  * Parse and return the details from the "sessions" cookie in the request, if
@@ -27,11 +28,13 @@ export function getSessionsInCookie(ctx: Context) {
 
 export async function signIn(
   ctx: Context,
-  user: User,
-  team: Team,
   service: string,
-  _isNewUser = false,
-  isNewTeam = false
+  {
+    user,
+    team,
+    client,
+    isNewTeam,
+  }: AccountProvisionerResult & { client?: string }
 ) {
   if (user.isSuspended) {
     return ctx.redirect("/?notice=suspended");
@@ -74,6 +77,7 @@ export async function signIn(
   });
   const domain = getCookieDomain(ctx.request.hostname);
   const expires = addMonths(new Date(), 3);
+
   // set a cookie for which service we last signed in with. This is
   // only used to display a UI hint for the user for next time
   ctx.cookies.set("lastSignedIn", service, {
@@ -82,6 +86,8 @@ export async function signIn(
     expires: new Date("2100"),
     domain,
   });
+
+  let url;
 
   // set a transfer cookie for the access token itself and redirect
   // to the teams subdomain if subdomains are enabled
@@ -103,7 +109,8 @@ export async function signIn(
       expires,
       domain,
     });
-    ctx.redirect(`${team.url}/auth/redirect?token=${user.getTransferToken()}`);
+
+    url = `${team.url}/auth/redirect?token=${user.getTransferToken()}`;
   } else {
     ctx.cookies.set("accessToken", user.getJwtToken(), {
       sameSite: true,
@@ -136,10 +143,16 @@ export async function signIn(
       }),
     ]);
     const hasViewedDocuments = !!view;
-    ctx.redirect(
+
+    url =
       !hasViewedDocuments && collection
         ? `${team.url}${collection.url}`
-        : `${team.url}/home`
-    );
+        : `${team.url}/home`;
+  }
+
+  if (client === "desktop") {
+    ctx.redirect(url.replace(/https?:/, "outline:"));
+  } else {
+    ctx.redirect(url);
   }
 }

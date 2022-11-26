@@ -4,6 +4,7 @@ import styled, { useTheme, css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "~/components/EventBoundary";
 import NudeButton from "~/components/NudeButton";
+import { undraggableOnDesktop } from "~/styles";
 import { NavigationNode } from "~/types";
 import Disclosure from "./Disclosure";
 import NavLink, { Props as NavLinkProps } from "./NavLink";
@@ -181,6 +182,7 @@ const Link = styled(NavLink)<{
   font-size: 16px;
   cursor: var(--pointer);
   overflow: hidden;
+  ${undraggableOnDesktop()}
 
   ${(props) =>
     props.$disabled &&

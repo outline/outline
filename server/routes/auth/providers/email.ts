@@ -130,8 +130,14 @@ router.get("email.callback", async (ctx) => {
     }
   }
 
+  // TODO: Desktop handoff
   // set cookies on response and redirect to team subdomain
-  await signIn(ctx, user, user.team, "email", false, false);
+  await signIn(ctx, "email", {
+    user,
+    team: user.team,
+    isNewTeam: false,
+    isNewUser: false,
+  });
 });
 
 export default router;

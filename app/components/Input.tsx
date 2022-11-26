@@ -5,6 +5,7 @@ import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Flex from "~/components/Flex";
+import { undraggableOnDesktop } from "~/styles";
 
 const RealTextarea = styled.textarea<{ hasIcon?: boolean }>`
   border: 0;
@@ -32,6 +33,7 @@ const RealInput = styled.input<{ hasIcon?: boolean }>`
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  ${undraggableOnDesktop()}
 
   &:disabled,
   &::placeholder {

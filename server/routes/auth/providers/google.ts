@@ -15,7 +15,11 @@ import {
 } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
 import { User } from "@server/models";
-import { StateStore, getTeamFromContext } from "@server/utils/passport";
+import {
+  StateStore,
+  getTeamFromContext,
+  getClientFromContext,
+} from "@server/utils/passport";
 
 const router = new Router();
 const GOOGLE = "google";
@@ -58,13 +62,15 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
         done: (
           err: Error | null,
           user: User | null,
-          result?: AccountProvisionerResult
+          result?: AccountProvisionerResult & { client: string }
         ) => void
       ) {
         try {
           // "domain" is the Google Workspaces domain
           const domain = profile._json.hd;
           const team = await getTeamFromContext(ctx);
+          const client = getClientFromContext(ctx);
+          console.log({ client });
 
           // No profile domain means personal gmail account
           // No team implies the request came from the apex domain
@@ -122,7 +128,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
             },
           });
 
-          return done(null, result.user, result);
+          return done(null, result.user, { ...result, client });
         } catch (err) {
           return done(err, null);
         }

@@ -14,6 +14,7 @@ import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import OrganizationMenu from "~/menus/OrganizationMenu";
+import Desktop from "~/utils/Desktop";
 import {
   homePath,
   draftsPath,
@@ -63,7 +64,14 @@ function AppSidebar() {
               <HeaderButton
                 {...props}
                 title={team.name}
-                image={<TeamLogo model={team} size={32} alt={t("Logo")} />}
+                image={
+                  <TeamLogo
+                    model={team}
+                    size={Desktop.isElectron() ? 24 : 32}
+                    alt={t("Logo")}
+                  />
+                }
+                style={Desktop.isElectron() ? { paddingLeft: 8 } : undefined}
                 showDisclosure
               />
             )}

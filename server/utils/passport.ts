@@ -20,8 +20,9 @@ export class StateStore {
 
     // We expect host to be a team subdomain, custom domain, or apex domain
     // that is passed via query param from the auth provider component.
+    const client = ctx.query.client?.toString() || "";
     const host = ctx.query.host?.toString() || parseDomain(ctx.hostname).host;
-    const state = buildState(host, token);
+    const state = buildState(host, token, client);
 
     ctx.cookies.set(this.key, state, {
       httpOnly: false,
@@ -76,13 +77,18 @@ export async function request(endpoint: string, accessToken: string) {
   return response.json();
 }
 
-function buildState(host: string, token: string) {
-  return [host, token].join("|");
+function buildState(host: string, token: string, client?: string) {
+  return [host, token, client].join("|");
 }
 
 export function parseState(state: string) {
-  const [host, token] = state.split("|");
-  return { host, token };
+  const [host, token, client] = state.split("|");
+  return { host, token, client };
+}
+
+export function getClientFromContext(ctx: Context) {
+  const state = ctx.cookies.get("state");
+  return state ? parseState(state).client : "";
 }
 
 export async function getTeamFromContext(ctx: Context) {
@@ -90,7 +96,6 @@ export async function getTeamFromContext(ctx: Context) {
   // we use it to infer the team they intend on signing into
   const state = ctx.cookies.get("state");
   const host = state ? parseState(state).host : ctx.hostname;
-
   const domain = parseDomain(host);
 
   let team;
