@@ -759,7 +759,7 @@
   "Default role": "Standard-Rolle",
   "The default user role for new accounts. Changing this setting does not affect existing user accounts.": "Die Standardrolle für neue Benutzer. Das Ändern dieser Einstellung wirkt sich nicht auf bestehende Benutzerkonten aus.",
   "When enabled, documents can be shared publicly on the internet by any member of the workspace": "Wenn diese Option aktiviert ist, können Dokumente von jedem Teammitglied öffentlich im Internet geteilt werden",
-  "Viewer document exports": "Viewer document exports",
+  "Viewer document exports": ".Viewer document exports",
   "When enabled, viewers can see download options for documents": "Wenn diese Option aktiviert ist, können Betrachter Download-Optionen für Dokumente sehen",
   "Rich service embeds": "Rich-Service-Einbettungen",
   "Links to supported services are shown as rich embeds within your documents": "Links zu unterstützten Diensten werden als Rich Embeds in Ihren Dokumenten angezeigt",
