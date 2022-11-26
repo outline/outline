@@ -759,7 +759,7 @@
   "Default role": "Varsayılan rol",
   "The default user role for new accounts. Changing this setting does not affect existing user accounts.": "Yeni hesaplar için varsayılan kullanıcı rolü. Bu ayarın değiştirilmesi mevcut kullanıcı hesaplarını etkilemez.",
   "When enabled, documents can be shared publicly on the internet by any member of the workspace": "When enabled, documents can be shared publicly on the internet by any member of the workspace",
-  "Viewer document exports": "Viewer document exports",
+  "Viewer document exports": ".Viewer document exports",
   "When enabled, viewers can see download options for documents": "When enabled, viewers can see download options for documents",
   "Rich service embeds": "Zengin hizmet yerleştirmeleri",
   "Links to supported services are shown as rich embeds within your documents": "Desteklenen hizmetlere bağlantılar, belgelerinizde zengin yerleştirmeler olarak gösterilir",
