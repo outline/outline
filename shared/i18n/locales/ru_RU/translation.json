@@ -759,7 +759,7 @@
   "Default role": "Роль по умолчанию",
   "The default user role for new accounts. Changing this setting does not affect existing user accounts.": "Роль пользователя по умолчанию для новых учетных записей. Изменение этого параметра не влияет на существующие учетные записи пользователей.",
   "When enabled, documents can be shared publicly on the internet by any member of the workspace": "When enabled, documents can be shared publicly on the internet by any member of the workspace",
-  "Viewer document exports": "Viewer document exports",
+  "Viewer document exports": ".Viewer document exports",
   "When enabled, viewers can see download options for documents": "When enabled, viewers can see download options for documents",
   "Rich service embeds": "Расширенная вставка сервиса",
   "Links to supported services are shown as rich embeds within your documents": "Ссылки на поддерживаемые сервисы отображаются в ваших документах в виде расширенных вставок",
