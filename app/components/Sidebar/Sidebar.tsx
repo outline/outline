@@ -270,7 +270,9 @@ const Container = styled(Flex)<ContainerProps>`
     margin: 0;
     min-width: 0;
     transform: translateX(${(props: ContainerProps) =>
-      props.$collapsed ? "calc(-100% + 16px)" : 0});
+      props.$collapsed
+        ? `calc(-100% + ${Desktop.isElectron() ? 8 : 16}px)`
+        : 0});
 
     &:hover,
     &:focus-within {

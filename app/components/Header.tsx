@@ -13,6 +13,7 @@ import useEventListener from "~/hooks/useEventListener";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 import { draggableOnDesktop, fadeOnDesktopBackgrounded } from "~/styles";
+import Desktop from "~/utils/Desktop";
 import { supportsPassiveListener } from "~/utils/browser";
 
 type Props = {
@@ -27,6 +28,7 @@ function Header({ left, title, actions, hasSidebar }: Props) {
   const isMobile = useMobile();
 
   const hasMobileSidebar = hasSidebar && isMobile;
+  const sidebarCollapsed = ui.isEditing || ui.sidebarCollapsed;
 
   const passThrough = !actions && !left && !title;
 
@@ -51,7 +53,12 @@ function Header({ left, title, actions, hasSidebar }: Props) {
   }, []);
 
   return (
-    <Wrapper align="center" shrink={false} $passThrough={passThrough}>
+    <Wrapper
+      align="center"
+      shrink={false}
+      $passThrough={passThrough}
+      $desktopAdjust={sidebarCollapsed && Desktop.isElectron()}
+    >
       {left || hasMobileSidebar ? (
         <Breadcrumbs>
           {hasMobileSidebar && (
@@ -99,7 +106,12 @@ const Actions = styled(Flex)`
   `};
 `;
 
-const Wrapper = styled(Flex)<{ $passThrough?: boolean }>`
+type WrapperProps = {
+  $passThrough?: boolean;
+  $desktopAdjust?: boolean;
+};
+
+const Wrapper = styled(Flex)<WrapperProps>`
   top: 0;
   z-index: ${depths.header};
   position: sticky;
@@ -136,7 +148,8 @@ const Wrapper = styled(Flex)<{ $passThrough?: boolean }>`
   ${breakpoint("tablet")`
     padding: 16px;
     justify-content: center;
-  `};
+    ${(props: WrapperProps) => props.$desktopAdjust && `padding-left: 64px;`}
+    `};
 `;
 
 const Title = styled("div")`
