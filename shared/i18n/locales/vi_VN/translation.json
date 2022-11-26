@@ -759,7 +759,7 @@
   "Default role": "Vai trò mặc định",
   "The default user role for new accounts. Changing this setting does not affect existing user accounts.": "Vai trò người dùng mặc định cho các tài khoản mới. Việc thay đổi cài đặt này không ảnh hưởng đến các tài khoản người dùng hiện có.",
   "When enabled, documents can be shared publicly on the internet by any member of the workspace": "When enabled, documents can be shared publicly on the internet by any member of the workspace",
-  "Viewer document exports": "Viewer document exports",
+  "Viewer document exports": ".Viewer document exports",
   "When enabled, viewers can see download options for documents": "When enabled, viewers can see download options for documents",
   "Rich service embeds": "Dịch vụ nhúng phong phú",
   "Links to supported services are shown as rich embeds within your documents": "Các đường Link đến các dịch vụ được hỗ trợ được hiển thị dưới dạng nhúng phong phú trong tài liệu của bạn",
