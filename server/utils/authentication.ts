@@ -87,8 +87,6 @@ export async function signIn(
     domain,
   });
 
-  let url;
-
   // set a transfer cookie for the access token itself and redirect
   // to the teams subdomain if subdomains are enabled
   if (env.SUBDOMAINS_ENABLED && team.subdomain) {
@@ -110,7 +108,14 @@ export async function signIn(
       domain,
     });
 
-    url = `${team.url}/auth/redirect?token=${user.getTransferToken()}`;
+    const url = `${team.url}/auth/redirect?token=${user.getTransferToken()}`;
+    if (client === "desktop") {
+      ctx.redirect(
+        `${team.url}/desktop-redirect?url=${encodeURIComponent(url)}`
+      );
+    } else {
+      ctx.redirect(url);
+    }
   } else {
     ctx.cookies.set("accessToken", user.getJwtToken(), {
       sameSite: true,
@@ -144,15 +149,10 @@ export async function signIn(
     ]);
     const hasViewedDocuments = !!view;
 
-    url =
+    ctx.redirect(
       !hasViewedDocuments && collection
         ? `${team.url}${collection.url}`
-        : `${team.url}/home`;
-  }
-
-  if (client === "desktop") {
-    ctx.redirect(url.replace(/https?:/, "outline:"));
-  } else {
-    ctx.redirect(url);
+        : `${team.url}/home`
+    );
   }
 }
