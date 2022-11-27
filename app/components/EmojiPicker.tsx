@@ -88,7 +88,6 @@ const RemoveButton = styled(Button)`
   margin-left: -12px;
   margin-bottom: 8px;
   border-radius: 16px;
-  color: ${(props) => props.theme.textTertiary};
   height: 24px;
   font-size: 12px;
   > :first-child {
