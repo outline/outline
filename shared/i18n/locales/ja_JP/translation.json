@@ -417,6 +417,8 @@
   "Add additional access for individual members and groups": "Add additional access for individual members and groups",
   "Add groups to {{ collectionName }}": "グループを {{ collectionName }} に追加",
   "Add people to {{ collectionName }}": "ユーザーを {{ collectionName }} に追加",
+  "Signing in": "Signing in",
+  "You can safely close this window once the Outline desktop app has opened": "You can safely close this window once the Outline desktop app has opened",
   "Document updated by {{userName}}": "{{userName}}がドキュメントを更新しました",
   "You have unsaved changes.\nAre you sure you want to discard them?": "保存されていない変更があります。\n本当に破棄してよいのですか？",
   "Images are still uploading.\nAre you sure you want to discard them?": "画像はまだアップロード中です\n本当に破棄していいんですか?",
