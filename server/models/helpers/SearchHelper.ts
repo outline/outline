@@ -103,7 +103,7 @@ export default class SearchHelper {
 
     // Build the SQL query to get result documentIds, ranking, and search term context
     const whereClause = `
-  "searchVector" @@ to_tsquery('english', :query) AND
+    "searchVector" @@ websearch_to_tsquery('english', :query) AND
     "teamId" = :teamId AND
     "collectionId" IN(:collectionIds) AND
     ${documentClause}
@@ -113,8 +113,8 @@ export default class SearchHelper {
     const selectSql = `
     SELECT
       id,
-      ts_rank(documents."searchVector", to_tsquery('english', :query)) as "searchRanking",
-      ts_headline('english', "text", to_tsquery('english', :query), :headlineOptions) as "searchContext"
+      ts_rank(documents."searchVector", websearch_to_tsquery('english', :query)) as "searchRanking",
+      ts_headline('english', "text", websearch_to_tsquery('english', :query), :headlineOptions) as "searchContext"
     FROM documents
     WHERE ${whereClause}
     ORDER BY
@@ -197,7 +197,7 @@ export default class SearchHelper {
 
     // Build the SQL query to get documentIds, ranking, and search term context
     const whereClause = `
-    "searchVector" @@ to_tsquery('english', :query) AND
+    "searchVector" @@ websearch_to_tsquery('english', :query) AND
     "teamId" = :teamId AND
     ${
       collectionIds.length
@@ -226,8 +226,8 @@ export default class SearchHelper {
     const selectSql = `
   SELECT
     id,
-    ts_rank(documents."searchVector", to_tsquery('english', :query)) as "searchRanking",
-    ts_headline('english', "text", to_tsquery('english', :query), :headlineOptions) as "searchContext"
+    ts_rank(documents."searchVector", websearch_to_tsquery('english', :query)) as "searchRanking",
+    ts_headline('english', "text", websearch_to_tsquery('english', :query), :headlineOptions) as "searchContext"
   FROM documents
   WHERE ${whereClause}
   ORDER BY
