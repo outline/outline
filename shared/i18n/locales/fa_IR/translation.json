@@ -417,6 +417,8 @@
   "Add additional access for individual members and groups": "Add additional access for individual members and groups",
   "Add groups to {{ collectionName }}": "افزودن گروه‌ها به {{ collectionName }}",
   "Add people to {{ collectionName }}": "افزودن افراد به {{ collectionName }}",
+  "Signing in": "Signing in",
+  "You can safely close this window once the Outline desktop app has opened": "You can safely close this window once the Outline desktop app has opened",
   "Document updated by {{userName}}": "سند توسط {{userName}} بروز شد",
   "You have unsaved changes.\nAre you sure you want to discard them?": "تغییرات ذخیره نشده‌ای وجود دارند. آیا مطمئن هستید که می‌خواهید آن‌ها را نادیده بگیرید؟",
   "Images are still uploading.\nAre you sure you want to discard them?": "تصاویر هنوز در حال بارگذاری هستند.\nآیا مطمئن هستید که می خواهید آنها را نادیده بگیرید؟",
