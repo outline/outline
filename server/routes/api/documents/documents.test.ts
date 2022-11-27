@@ -1243,7 +1243,7 @@ describe("#documents.search", () => {
     const res = await server.post("/api/documents.search", {
       body: {
         token: user.getJwtToken(),
-        query: "sear &",
+        query: "sear",
       },
     });
     const body = await res.json();
@@ -1254,24 +1254,58 @@ describe("#documents.search", () => {
     expect(body.data[2].document.id).toEqual(thirdResult.id);
   });
 
-  it("should strip junk from search term", async () => {
-    const user = await buildUser();
-    const firstResult = await buildDocument({
-      title: "search term",
-      text: "this is some random text of the document body",
-      userId: user.id,
-      teamId: user.teamId,
+  describe("search operators", () => {
+    it("negative search operator", async () => {
+      const { user } = await seed();
+      await buildDocument({
+        title: "search term",
+        text: "random text",
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const firstResult = await buildDocument({
+        title: "title text",
+        text: "search term",
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const res = await server.post("/api/documents.search", {
+        body: {
+          token: user.getJwtToken(),
+          query: `search -random`,
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.length).toEqual(1);
+      expect(body.data[0].document.id).toEqual(firstResult.id);
     });
-    const res = await server.post("/api/documents.search", {
-      body: {
-        token: user.getJwtToken(),
-        query: "rando &\\;:()",
-      },
+
+    it("quoted search operator", async () => {
+      const { user } = await seed();
+      await buildDocument({
+        title: "document one",
+        text: "term search",
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const firstResult = await buildDocument({
+        title: "search term",
+        text: "content",
+        userId: user.id,
+        teamId: user.teamId,
+      });
+      const res = await server.post("/api/documents.search", {
+        body: {
+          token: user.getJwtToken(),
+          query: `"search term"`,
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.length).toEqual(1);
+      expect(body.data[0].document.id).toEqual(firstResult.id);
     });
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.length).toEqual(1);
-    expect(body.data[0].document.id).toEqual(firstResult.id);
   });
 
   it("should not return draft documents", async () => {

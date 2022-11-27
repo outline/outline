@@ -150,6 +150,7 @@
     "passport-slack-oauth2": "^1.1.1",
     "pg": "^8.5.1",
     "pg-hstore": "^2.3.4",
+    "pg-tsquery": "^8.4.0",
     "polished": "^3.7.2",
     "prosemirror-commands": "1.2.2",
     "prosemirror-dropcursor": "^1.4.0",
