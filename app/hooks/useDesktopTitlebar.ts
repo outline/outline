@@ -18,6 +18,7 @@ export const useDesktopTitlebar = () => {
         return;
       }
 
+      event.preventDefault();
       Desktop.bridge.onTitlebarDoubleClick();
     };
 

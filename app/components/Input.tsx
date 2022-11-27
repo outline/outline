@@ -100,6 +100,9 @@ export const Outline = styled(Flex)<{
   align-items: center;
   overflow: hidden;
   background: ${(props) => props.theme.background};
+
+  /* Prevents an issue where input placeholder appears in a selected style when double clicking title bar */
+  user-select: none;
 `;
 
 export const LabelText = styled.div`
