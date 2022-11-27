@@ -1,5 +1,6 @@
 import Router from "koa-router";
 import { find } from "lodash";
+import { Client } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
 import { RateLimiterStrategy } from "@server/RateLimiter";
 import InviteAcceptedEmail from "@server/emails/templates/InviteAcceptedEmail";
@@ -81,7 +82,7 @@ router.post(
       to: user.email,
       token: user.getEmailSigninToken(),
       teamUrl: team.url,
-      client: client === "desktop" ? "desktop" : "",
+      client: client === Client.Desktop ? Client.Desktop : Client.Web,
     });
     user.lastSigninEmailSentAt = new Date();
     await user.save();
@@ -137,7 +138,7 @@ router.get("email.callback", async (ctx) => {
     team: user.team,
     isNewTeam: false,
     isNewUser: false,
-    client: client === "desktop" ? "desktop" : "",
+    client: client === Client.Desktop ? Client.Desktop : Client.Web,
   });
 });
 

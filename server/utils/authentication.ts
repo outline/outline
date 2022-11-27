@@ -3,10 +3,10 @@ import { addMonths } from "date-fns";
 import { Context } from "koa";
 import { pick } from "lodash";
 import { getCookieDomain } from "@shared/utils/domains";
-import { AccountProvisionerResult } from "@server/commands/accountProvisioner";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { Event, Collection, View } from "@server/models";
+import { AuthenticationResult } from "@server/types";
 
 /**
  * Parse and return the details from the "sessions" cookie in the request, if
@@ -29,12 +29,7 @@ export function getSessionsInCookie(ctx: Context) {
 export async function signIn(
   ctx: Context,
   service: string,
-  {
-    user,
-    team,
-    client,
-    isNewTeam,
-  }: AccountProvisionerResult & { client?: string }
+  { user, team, client, isNewTeam }: AuthenticationResult
 ) {
   if (user.isSuspended) {
     return ctx.redirect("/?notice=suspended");
@@ -108,13 +103,14 @@ export async function signIn(
       domain,
     });
 
-    const url = `${team.url}/auth/redirect?token=${user.getTransferToken()}`;
     if (client === "desktop") {
       ctx.redirect(
-        `${team.url}/desktop-redirect?url=${encodeURIComponent(url)}`
+        `${team.url}/desktop-redirect?token=${user.getTransferToken()}`
       );
     } else {
-      ctx.redirect(url);
+      ctx.redirect(
+        `${team.url}/auth/redirect?token=${user.getTransferToken()}`
+      );
     }
   } else {
     ctx.cookies.set("accessToken", user.getJwtToken(), {

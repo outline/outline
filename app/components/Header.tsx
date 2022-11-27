@@ -57,7 +57,7 @@ function Header({ left, title, actions, hasSidebar }: Props) {
       align="center"
       shrink={false}
       $passThrough={passThrough}
-      $desktopAdjust={sidebarCollapsed && Desktop.isElectron()}
+      $insetTitleAdjust={sidebarCollapsed && Desktop.hasInsetTitlebar()}
     >
       {left || hasMobileSidebar ? (
         <Breadcrumbs>
@@ -108,7 +108,7 @@ const Actions = styled(Flex)`
 
 type WrapperProps = {
   $passThrough?: boolean;
-  $desktopAdjust?: boolean;
+  $insetTitleAdjust?: boolean;
 };
 
 const Wrapper = styled(Flex)<WrapperProps>`
@@ -148,7 +148,7 @@ const Wrapper = styled(Flex)<WrapperProps>`
   ${breakpoint("tablet")`
     padding: 16px;
     justify-content: center;
-    ${(props: WrapperProps) => props.$desktopAdjust && `padding-left: 64px;`}
+    ${(props: WrapperProps) => props.$insetTitleAdjust && `padding-left: 64px;`}
     `};
 `;
 

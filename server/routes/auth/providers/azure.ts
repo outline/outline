@@ -5,13 +5,12 @@ import type { Context } from "koa";
 import Router from "koa-router";
 import { Profile } from "passport";
 import { slugifyDomain } from "@shared/utils/domains";
-import accountProvisioner, {
-  AccountProvisionerResult,
-} from "@server/commands/accountProvisioner";
+import accountProvisioner from "@server/commands/accountProvisioner";
 import env from "@server/env";
 import { MicrosoftGraphError } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
 import { User } from "@server/models";
+import { AuthenticationResult } from "@server/types";
 import {
   StateStore,
   request,
@@ -50,7 +49,7 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
       done: (
         err: Error | null,
         user: User | null,
-        result?: AccountProvisionerResult & { client: string }
+        result?: AuthenticationResult
       ) => void
     ) {
       try {

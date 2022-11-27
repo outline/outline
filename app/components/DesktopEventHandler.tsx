@@ -4,7 +4,7 @@ import { useDesktopTitlebar } from "~/hooks/useDesktopTitlebar";
 import useToasts from "~/hooks/useToasts";
 import Desktop from "~/utils/Desktop";
 
-export default function DesktopHandler() {
+export default function DesktopEventHandler() {
   useDesktopTitlebar();
   const history = useHistory();
   const { showToast } = useToasts();

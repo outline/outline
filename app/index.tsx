@@ -15,7 +15,7 @@ import ScrollToTop from "~/components/ScrollToTop";
 import Theme from "~/components/Theme";
 import Toasts from "~/components/Toasts";
 import env from "~/env";
-import Desktop from "./components/Desktop";
+import Desktop from "./components/DesktopEventHandler";
 import LazyPolyfill from "./components/LazyPolyfills";
 import Routes from "./routes";
 import Logger from "./utils/Logger";

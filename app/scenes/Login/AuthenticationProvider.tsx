@@ -2,6 +2,7 @@ import { EmailIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { Client } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
 import AuthLogo from "~/components/AuthLogo";
 import ButtonLarge from "~/components/ButtonLarge";
@@ -98,7 +99,7 @@ function AuthenticationProvider(props: Props) {
   const { custom, teamSubdomain, host } = parseDomain(window.location.origin);
   const needsRedirect = custom || teamSubdomain;
   const href = Desktop.isElectron()
-    ? `${env.URL}${authUrl}?client=desktop`
+    ? `${env.URL}${authUrl}?client=${Client.Desktop}`
     : needsRedirect
     ? `${env.URL}${authUrl}?host=${encodeURI(host)}`
     : authUrl;

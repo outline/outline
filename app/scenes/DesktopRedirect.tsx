@@ -9,14 +9,17 @@ import useQuery from "~/hooks/useQuery";
 
 const DesktopRedirect = () => {
   const params = useQuery();
-  const url = params.get("url");
+  const token = params.get("token");
   const { t } = useTranslation();
 
   React.useEffect(() => {
-    if (url) {
-      window.location.href = url.replace("http:", "outline:");
+    if (token) {
+      window.location.href = `outline://${window.location.host}/auth/redirect?token=${token}`;
+
+      // Clean the url so it's not possible to hit reload, re-using the transfer token will not work.
+      window.location.search = "";
     }
-  }, [url]);
+  }, [token]);
 
   return (
     <Centered align="center" justify="center" column auto>
@@ -24,7 +27,7 @@ const DesktopRedirect = () => {
       <Heading centered>{t("Signing in")}…</Heading>
       <Note>
         {t(
-          "You can safely close this window once the Outline desktop app has started"
+          "You can safely close this window once the Outline desktop app has opened"
         )}
         .
       </Note>

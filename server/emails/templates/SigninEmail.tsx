@@ -1,4 +1,5 @@
 import * as React from "react";
+import { Client } from "@shared/types";
 import env from "@server/env";
 import logger from "@server/logging/Logger";
 import BaseEmail from "./BaseEmail";
@@ -14,7 +15,7 @@ type Props = {
   to: string;
   token: string;
   teamUrl: string;
-  client: string;
+  client: Client;
 };
 
 /**
@@ -68,7 +69,7 @@ signin page at: ${teamUrl}
     );
   }
 
-  private signinLink(token: string, client: string): string {
+  private signinLink(token: string, client: Client): string {
     return `${env.URL}/auth/email.callback?token=${token}&client=${client}`;
   }
 }

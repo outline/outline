@@ -6,6 +6,7 @@ import {
   StateStoreStoreCallback,
   StateStoreVerifyCallback,
 } from "passport-oauth2";
+import { Client } from "@shared/types";
 import { getCookieDomain, parseDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import { Team } from "@server/models";
@@ -86,9 +87,10 @@ export function parseState(state: string) {
   return { host, token, client };
 }
 
-export function getClientFromContext(ctx: Context) {
+export function getClientFromContext(ctx: Context): Client {
   const state = ctx.cookies.get("state");
-  return state ? parseState(state).client : "";
+  const client = state ? parseState(state).client : undefined;
+  return client === Client.Desktop ? Client.Desktop : Client.Web;
 }
 
 export async function getTeamFromContext(ctx: Context) {

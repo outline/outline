@@ -253,7 +253,7 @@ const Container = styled(Flex)<ContainerProps>`
   z-index: ${depths.sidebar};
   max-width: 70%;
   min-width: 280px;
-  padding-top: ${Desktop.isElectron() ? 24 : 0}px;
+  padding-top: ${Desktop.hasInsetTitlebar() ? 24 : 0}px;
   ${draggableOnDesktop()}
   ${fadeOnDesktopBackgrounded()}
 
@@ -271,7 +271,7 @@ const Container = styled(Flex)<ContainerProps>`
     min-width: 0;
     transform: translateX(${(props: ContainerProps) =>
       props.$collapsed
-        ? `calc(-100% + ${Desktop.isElectron() ? 8 : 16}px)`
+        ? `calc(-100% + ${Desktop.hasInsetTitlebar() ? 8 : 16}px)`
         : 0});
 
     &:hover,

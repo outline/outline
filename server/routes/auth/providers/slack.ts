@@ -3,9 +3,7 @@ import type { Context } from "koa";
 import Router from "koa-router";
 import { Profile } from "passport";
 import { Strategy as SlackStrategy } from "passport-slack-oauth2";
-import accountProvisioner, {
-  AccountProvisionerResult,
-} from "@server/commands/accountProvisioner";
+import accountProvisioner from "@server/commands/accountProvisioner";
 import env from "@server/env";
 import auth from "@server/middlewares/authentication";
 import passportMiddleware from "@server/middlewares/passport";
@@ -16,6 +14,7 @@ import {
   Team,
   User,
 } from "@server/models";
+import { AuthenticationResult } from "@server/types";
 import {
   getClientFromContext,
   getTeamFromContext,
@@ -84,7 +83,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
       done: (
         err: Error | null,
         user: User | null,
-        result?: AccountProvisionerResult & { client: string }
+        result?: AuthenticationResult
       ) => void
     ) {
       try {

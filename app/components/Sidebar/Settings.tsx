@@ -33,7 +33,7 @@ function SettingsSidebar() {
         title={t("Return to App")}
         image={<StyledBackIcon color="currentColor" />}
         onClick={returnToApp}
-        minHeight={Desktop.isElectron() ? undefined : 48}
+        minHeight={Desktop.hasInsetTitlebar() ? undefined : 48}
       />
 
       <Flex auto column>

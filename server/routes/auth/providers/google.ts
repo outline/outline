@@ -5,9 +5,7 @@ import { capitalize } from "lodash";
 import { Profile } from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth2";
 import { slugifyDomain } from "@shared/utils/domains";
-import accountProvisioner, {
-  AccountProvisionerResult,
-} from "@server/commands/accountProvisioner";
+import accountProvisioner from "@server/commands/accountProvisioner";
 import env from "@server/env";
 import {
   GmailAccountCreationError,
@@ -15,6 +13,7 @@ import {
 } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
 import { User } from "@server/models";
+import { AuthenticationResult } from "@server/types";
 import {
   StateStore,
   getTeamFromContext,
@@ -62,7 +61,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
         done: (
           err: Error | null,
           user: User | null,
-          result?: AccountProvisionerResult & { client: string }
+          result?: AuthenticationResult
         ) => void
       ) {
         try {

@@ -67,11 +67,13 @@ function AppSidebar() {
                 image={
                   <TeamLogo
                     model={team}
-                    size={Desktop.isElectron() ? 24 : 32}
+                    size={Desktop.hasInsetTitlebar() ? 24 : 32}
                     alt={t("Logo")}
                   />
                 }
-                style={Desktop.isElectron() ? { paddingLeft: 8 } : undefined}
+                style={
+                  Desktop.hasInsetTitlebar() ? { paddingLeft: 8 } : undefined
+                }
                 showDisclosure
               />
             )}

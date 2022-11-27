@@ -223,7 +223,7 @@ const Back = styled(NudeButton)`
   position: absolute;
   display: none;
   align-items: center;
-  top: ${Desktop.isElectron() ? "3rem" : "2rem"};
+  top: ${Desktop.hasInsetTitlebar() ? "3rem" : "2rem"};
   left: 2rem;
   opacity: 0.75;
   color: ${(props) => props.theme.text};
