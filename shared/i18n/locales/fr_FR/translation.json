@@ -417,6 +417,8 @@
   "Add additional access for individual members and groups": "Ajouter un accès supplémentaire pour les membres individuels et les groupes",
   "Add groups to {{ collectionName }}": "Ajouter des groupes à {{ collectionName }}",
   "Add people to {{ collectionName }}": "Ajouter des personnes à {{ collectionName }}",
+  "Signing in": "Signing in",
+  "You can safely close this window once the Outline desktop app has opened": "You can safely close this window once the Outline desktop app has opened",
   "Document updated by {{userName}}": "Document mis à jour par {{userName}}",
   "You have unsaved changes.\nAre you sure you want to discard them?": "Vous avez des changements non enregistrés.\nÊtes-vous sûr de vouloir les supprimer ?",
   "Images are still uploading.\nAre you sure you want to discard them?": "Des images sont toujours en cours de téléchargement.\nÊtes-vous sûr de vouloir les supprimer ?",
