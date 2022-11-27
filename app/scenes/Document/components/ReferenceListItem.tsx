@@ -3,7 +3,6 @@ import { DocumentIcon } from "outline-icons";
 import * as React from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
-import parseTitle from "@shared/utils/parseTitle";
 import Document from "~/models/Document";
 import EmojiIcon from "~/components/EmojiIcon";
 import Flex from "~/components/Flex";
@@ -61,7 +60,7 @@ function ReferenceListItem({
   shareId,
   ...rest
 }: Props) {
-  const { emoji } = parseTitle(document.title);
+  const { emoji } = document;
 
   return (
     <DocumentLink

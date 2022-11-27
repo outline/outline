@@ -143,6 +143,7 @@ export type FetchOptions = {
 export type NavigationNode = {
   id: string;
   title: string;
+  emoji?: string | null;
   url: string;
   children: NavigationNode[];
   isDraft?: boolean;
