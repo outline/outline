@@ -11,6 +11,109 @@ export type Props = {
   theme: DefaultTheme;
 };
 
+const mathStyle = (props: Props) => `
+/* Based on https://github.com/benrbray/prosemirror-math/blob/master/style/math.css */
+
+.math-node {
+  min-width: 1em;
+  min-height: 1em;
+  font-size: 0.95em;
+  font-family: ${props.theme.fontFamilyMono};
+  cursor: auto;
+}
+
+.math-node.empty-math .math-render::before {
+  content: "(empty math)";
+  color: ${props.theme.brand.red};
+}
+
+.math-node .math-render.parse-error::before {
+  content: "(math error)";
+  color: ${props.theme.brand.red};
+  cursor: help;
+}
+
+.math-node.ProseMirror-selectednode {
+  outline: none;
+}
+
+.math-node .math-src {
+  display: none;
+  color: ${props.theme.codeStatement};
+  tab-size: 4;
+}
+
+.math-node.ProseMirror-selectednode .math-src {
+  display: inline;
+}
+
+.math-node.ProseMirror-selectednode .math-render {
+  display: none;
+}
+
+math-inline {
+  display: inline; white-space: nowrap;
+
+}
+
+math-inline .math-render { 
+  display: inline-block;
+  font-size: 0.85em;
+}
+
+math-inline .math-src .ProseMirror {
+  display: inline;
+  border-radius: 4px;
+  border: 1px solid ${props.theme.codeBorder};
+  padding: 3px 4px;
+  margin: 0px 3px;
+  font-family: ${props.theme.fontFamilyMono};
+  font-size: 80%;
+}
+
+math-block {
+  display: block;
+}
+
+math-block .math-render {
+  display: block;
+}
+
+math-block.ProseMirror-selectednode {
+  border-radius: 4px;
+  border: 1px solid ${props.theme.codeBorder};
+  background: ${props.theme.codeBackground};
+  padding: 0.75em 1em;
+  font-family: ${props.theme.fontFamilyMono};
+  font-size: 80%;
+}
+
+math-block .math-src .ProseMirror {
+  width: 100%;
+  display: block;
+}
+
+math-block .katex-display {
+  margin: 0;
+}
+
+p::selection, p > *::selection {
+  background-color: #c0c0c0;
+}
+
+.katex-html *::selection {
+  background-color: none !important;
+}
+
+.math-node.math-select .math-render {
+  background-color: #c0c0c0ff;
+}
+
+math-inline.math-select .math-render {
+  padding-top: 2px;
+}
+`;
+
 const style = (props: Props) => `
 flex-grow: ${props.grow ? 1 : 0};
 justify-content: start;
@@ -329,6 +432,7 @@ h6:not(.placeholder):before {
   content: "H6";
 }
 
+.ProseMirror[contenteditable="true"]:focus-within,
 .ProseMirror-focused {
   h1,
   h2,
@@ -1254,6 +1358,7 @@ table {
   }
 }
 
+.ProseMirror[contenteditable="true"]:focus-within,
 .ProseMirror-focused .block-menu-trigger,
 .block-menu-trigger:active,
 .block-menu-trigger:focus {
@@ -1344,6 +1449,7 @@ del[data-operation-index] {
 
 const EditorContainer = styled.div<Props>`
   ${style};
+  ${mathStyle};
 `;
 
 export default EditorContainer;

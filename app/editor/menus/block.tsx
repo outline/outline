@@ -18,6 +18,7 @@ import {
   AttachmentIcon,
   ClockIcon,
   CalendarIcon,
+  MathIcon,
 } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
@@ -123,6 +124,12 @@ export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
       icon: <CodeIcon />,
       shortcut: "^ ⇧ \\",
       keywords: "script",
+    },
+    {
+      name: "math_block",
+      title: dictionary.mathBlock,
+      icon: <MathIcon />,
+      keywords: "math katex latex",
     },
     {
       name: "hr",
