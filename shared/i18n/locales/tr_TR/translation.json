@@ -417,6 +417,8 @@
   "Add additional access for individual members and groups": "Add additional access for individual members and groups",
   "Add groups to {{ collectionName }}": "{{ collectionName }} koleksiyonuna grup ekle",
   "Add people to {{ collectionName }}": "{{ collectionName }} koleksiyonuna kişi ekle",
+  "Signing in": "Signing in",
+  "You can safely close this window once the Outline desktop app has opened": "You can safely close this window once the Outline desktop app has opened",
   "Document updated by {{userName}}": "Belge {{userName}} tarafından güncellendi",
   "You have unsaved changes.\nAre you sure you want to discard them?": "Kaydedilmemiş değişiklikleriniz mevcut.\nBunları atmak istediğinizden emin misiniz?",
   "Images are still uploading.\nAre you sure you want to discard them?": "Resimler yüklenmeye devam ediyor.\nBunları atmak istediğinizden emin misiniz?",
