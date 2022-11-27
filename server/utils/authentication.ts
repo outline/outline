@@ -2,6 +2,7 @@ import querystring from "querystring";
 import { addMonths } from "date-fns";
 import { Context } from "koa";
 import { pick } from "lodash";
+import { Client } from "@shared/types";
 import { getCookieDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
@@ -103,7 +104,11 @@ export async function signIn(
       domain,
     });
 
-    if (client === "desktop") {
+    // If the authentication request originally came from the desktop app then we send the user
+    // back to a screen in the web app that will immediately redirect to the desktop. The reason
+    // to do this from the client is that if you redirect from the server then the browser ends up
+    // stuck on the SSO screen.
+    if (client === Client.Desktop) {
       ctx.redirect(
         `${team.url}/desktop-redirect?token=${user.getTransferToken()}`
       );

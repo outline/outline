@@ -21,7 +21,8 @@ export class StateStore {
 
     // We expect host to be a team subdomain, custom domain, or apex domain
     // that is passed via query param from the auth provider component.
-    const client = ctx.query.client?.toString() || "";
+    const clientInput = ctx.query.client?.toString();
+    const client = clientInput === Client.Desktop ? Client.Desktop : Client.Web;
     const host = ctx.query.host?.toString() || parseDomain(ctx.hostname).host;
     const state = buildState(host, token, client);
 
@@ -78,7 +79,7 @@ export async function request(endpoint: string, accessToken: string) {
   return response.json();
 }
 
-function buildState(host: string, token: string, client?: string) {
+function buildState(host: string, token: string, client?: Client) {
   return [host, token, client].join("|");
 }
 
