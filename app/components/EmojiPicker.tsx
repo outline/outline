@@ -101,6 +101,7 @@ const PickerPopover = styled(Popover)`
   z-index: ${depths.popover};
   > :first-child {
     padding-top: 8px;
+    padding-bottom: 0;
     max-height: 488px;
   }
 `;
@@ -114,6 +115,7 @@ const PickerStyles = styled.div`
     --rgb-background: ${(props) => props.theme.menuBackground};
     margin-left: auto;
     margin-right: auto;
+    min-height: 443px;
   }
 `;
 
