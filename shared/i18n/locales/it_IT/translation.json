@@ -373,7 +373,7 @@
   "Exporting": "Esportazione in corso",
   "Collections are for grouping your documents. They work best when organized around a topic or internal team — Product or Engineering for example.": "Le collezioni servono a raggruppare i tuoi documenti. Funzionano meglio quando riguardano un argomento o un team interno — ad esempio \"prodotti\" o \"ingegneria\".",
   "This is the default level of access, you can give individual users or groups more access once the collection is created.": "Questo è il livello predefinito di accesso, è possibile dare ai singoli utenti o gruppi diversi accessi una volta creata la raccolta.",
-  "Public document sharing": "Public document sharing",
+  "Public document sharing": "Condivisione pubblica dei documenti",
   "When enabled any documents within this collection can be shared publicly on the internet.": "When enabled any documents within this collection can be shared publicly on the internet.",
   "Create": "Crea",
   "{{ groupName }} was added to the collection": "{{ groupName }} stato aggiunto alla raccolta",
