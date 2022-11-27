@@ -2,6 +2,7 @@ import * as React from "react";
 import styled from "styled-components";
 import { LabelText } from "~/components/Input";
 import Text from "~/components/Text";
+import { undraggableOnDesktop } from "~/styles";
 
 type Props = React.HTMLAttributes<HTMLInputElement> & {
   width?: number;
@@ -62,6 +63,7 @@ function Switch({
 
 const Wrapper = styled.div`
   padding-bottom: 8px;
+  ${undraggableOnDesktop()}
 `;
 
 const InlineLabelText = styled(LabelText)`

@@ -3,9 +3,7 @@ import type { Context } from "koa";
 import Router from "koa-router";
 import { Profile } from "passport";
 import { Strategy as SlackStrategy } from "passport-slack-oauth2";
-import accountProvisioner, {
-  AccountProvisionerResult,
-} from "@server/commands/accountProvisioner";
+import accountProvisioner from "@server/commands/accountProvisioner";
 import env from "@server/env";
 import auth from "@server/middlewares/authentication";
 import passportMiddleware from "@server/middlewares/passport";
@@ -16,7 +14,12 @@ import {
   Team,
   User,
 } from "@server/models";
-import { getTeamFromContext, StateStore } from "@server/utils/passport";
+import { AuthenticationResult } from "@server/types";
+import {
+  getClientFromContext,
+  getTeamFromContext,
+  StateStore,
+} from "@server/utils/passport";
 import * as Slack from "@server/utils/slack";
 import { assertPresent, assertUuid } from "@server/validation";
 
@@ -80,11 +83,13 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
       done: (
         err: Error | null,
         user: User | null,
-        result?: AccountProvisionerResult
+        result?: AuthenticationResult
       ) => void
     ) {
       try {
         const team = await getTeamFromContext(ctx);
+        const client = getClientFromContext(ctx);
+
         const result = await accountProvisioner({
           ip: ctx.ip,
           team: {
@@ -110,7 +115,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
             scopes,
           },
         });
-        return done(null, result.user, result);
+        return done(null, result.user, { ...result, client });
       } catch (err) {
         return done(err, null);
       }

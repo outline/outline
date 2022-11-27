@@ -5,6 +5,7 @@ import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Flex from "~/components/Flex";
+import { undraggableOnDesktop } from "~/styles";
 
 const RealTextarea = styled.textarea<{ hasIcon?: boolean }>`
   border: 0;
@@ -32,6 +33,7 @@ const RealInput = styled.input<{ hasIcon?: boolean }>`
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  ${undraggableOnDesktop()}
 
   &:disabled,
   &::placeholder {
@@ -98,6 +100,9 @@ export const Outline = styled(Flex)<{
   align-items: center;
   overflow: hidden;
   background: ${(props) => props.theme.background};
+
+  /* Prevents an issue where input placeholder appears in a selected style when double clicking title bar */
+  user-select: none;
 `;
 
 export const LabelText = styled.div`

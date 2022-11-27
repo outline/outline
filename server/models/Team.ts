@@ -160,16 +160,17 @@ class Team extends ParanoidModel {
   }
 
   get url() {
+    const url = new URL(env.URL);
+
     // custom domain
     if (this.domain) {
-      return `https://${this.domain}`;
+      return `${url.protocol}//${this.domain}${url.port ? `:${url.port}` : ""}`;
     }
 
     if (!this.subdomain || !env.SUBDOMAINS_ENABLED) {
       return env.URL;
     }
 
-    const url = new URL(env.URL);
     url.host = `${this.subdomain}.${getBaseDomain()}`;
     return url.href.replace(/\/$/, "");
   }

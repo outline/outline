@@ -6,6 +6,7 @@ import styled from "styled-components";
 import ActionButton, {
   Props as ActionButtonProps,
 } from "~/components/ActionButton";
+import { undraggableOnDesktop } from "~/styles";
 
 type RealProps = {
   $fullwidth?: boolean;
@@ -33,6 +34,7 @@ const RealButton = styled(ActionButton)<RealProps>`
   cursor: var(--pointer);
   user-select: none;
   appearance: none !important;
+  ${undraggableOnDesktop()}
 
   ${(props) =>
     !props.$borderOnHover &&

@@ -21,6 +21,8 @@ import env from "~/env";
 import useLastVisitedPath from "~/hooks/useLastVisitedPath";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
+import { draggableOnDesktop } from "~/styles";
+import Desktop from "~/utils/Desktop";
 import isCloudHosted from "~/utils/isCloudHosted";
 import { changeLanguage, detectLanguage } from "~/utils/language";
 import AuthenticationProvider from "./AuthenticationProvider";
@@ -30,7 +32,11 @@ function Header({ config }: { config?: Config | undefined }) {
   const { t } = useTranslation();
   const isSubdomain = !!config?.hostname;
 
-  if (!isCloudHosted || parseDomain(window.location.origin).custom) {
+  if (
+    !isCloudHosted ||
+    parseDomain(window.location.origin).custom ||
+    Desktop.isElectron()
+  ) {
     return null;
   }
 
@@ -274,6 +280,7 @@ const Background = styled(Fade)`
   height: 100%;
   background: ${(props) => props.theme.background};
   display: flex;
+  ${draggableOnDesktop()}
 `;
 
 const Logo = styled.div`

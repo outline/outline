@@ -1,5 +1,6 @@
 import Router from "koa-router";
 import { find } from "lodash";
+import { Client } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
 import { RateLimiterStrategy } from "@server/RateLimiter";
 import InviteAcceptedEmail from "@server/emails/templates/InviteAcceptedEmail";
@@ -26,7 +27,7 @@ router.post(
   errorHandling(),
   rateLimiter(RateLimiterStrategy.TenPerHour),
   async (ctx) => {
-    const { email } = ctx.request.body;
+    const { email, client } = ctx.request.body;
     assertEmail(email, "email is required");
 
     const domain = parseDomain(ctx.request.hostname);
@@ -81,6 +82,7 @@ router.post(
       to: user.email,
       token: user.getEmailSigninToken(),
       teamUrl: team.url,
+      client: client === Client.Desktop ? Client.Desktop : Client.Web,
     });
     user.lastSigninEmailSentAt = new Date();
     await user.save();
@@ -93,7 +95,7 @@ router.post(
 );
 
 router.get("email.callback", async (ctx) => {
-  const { token } = ctx.request.query;
+  const { token, client } = ctx.request.query;
   assertPresent(token, "token is required");
 
   let user!: User;
@@ -131,7 +133,13 @@ router.get("email.callback", async (ctx) => {
   }
 
   // set cookies on response and redirect to team subdomain
-  await signIn(ctx, user, user.team, "email", false, false);
+  await signIn(ctx, "email", {
+    user,
+    team: user.team,
+    isNewTeam: false,
+    isNewUser: false,
+    client: client === Client.Desktop ? Client.Desktop : Client.Web,
+  });
 });
 
 export default router;
