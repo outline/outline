@@ -417,6 +417,8 @@
   "Add additional access for individual members and groups": "为成员和组添加额外的访问权限",
   "Add groups to {{ collectionName }}": "将群组加到 {{ collectionName }}",
   "Add people to {{ collectionName }}": "添加用户到 {{ collectionName }}",
+  "Signing in": "Signing in",
+  "You can safely close this window once the Outline desktop app has opened": "You can safely close this window once the Outline desktop app has opened",
   "Document updated by {{userName}}": "文档已被 {{userName}} 更新",
   "You have unsaved changes.\nAre you sure you want to discard them?": "您有尚未保存的修改。\n您确定要丢弃它们吗？",
   "Images are still uploading.\nAre you sure you want to discard them?": "图像仍在上传中。\n您确定要丢弃它们吗？",
