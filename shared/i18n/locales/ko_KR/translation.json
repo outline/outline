@@ -417,6 +417,8 @@
   "Add additional access for individual members and groups": "Add additional access for individual members and groups",
   "Add groups to {{ collectionName }}": "{{ collectionName }} 에 그룹 추가",
   "Add people to {{ collectionName }}": "{{ collectionName }} 에 사용자 추가",
+  "Signing in": "Signing in",
+  "You can safely close this window once the Outline desktop app has opened": "You can safely close this window once the Outline desktop app has opened",
   "Document updated by {{userName}}": "{{userName}} 에 의해 업데이트 됨",
   "You have unsaved changes.\nAre you sure you want to discard them?": "저장하지 않은 변경사항이 있습니다.\n변경 내용을 삭제하시겠습니까?",
   "Images are still uploading.\nAre you sure you want to discard them?": "이미지가 아직 업로드 중입니다.\n변경 내용을 삭제하시겠습니까?",
