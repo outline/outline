@@ -4,7 +4,6 @@ import {
 } from "@getoutline/y-prosemirror";
 import { JSDOM } from "jsdom";
 import { escapeRegExp } from "lodash";
-import diff from "node-htmldiff";
 import { Node, DOMSerializer } from "prosemirror-model";
 import * as React from "react";
 import { renderToString } from "react-dom/server";
@@ -19,6 +18,7 @@ import { parser, schema } from "@server/editor";
 import Logger from "@server/logging/Logger";
 import Document from "@server/models/Document";
 import type Revision from "@server/models/Revision";
+import diff from "@server/utils/diff";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { getSignedUrl } from "@server/utils/s3";
 import Attachment from "../Attachment";

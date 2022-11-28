@@ -2,12 +2,14 @@ import { EmailIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { Client } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
 import AuthLogo from "~/components/AuthLogo";
 import ButtonLarge from "~/components/ButtonLarge";
 import InputLarge from "~/components/InputLarge";
 import env from "~/env";
 import { client } from "~/utils/ApiClient";
+import Desktop from "~/utils/Desktop";
 
 type Props = {
   id: string;
@@ -39,6 +41,7 @@ function AuthenticationProvider(props: Props) {
       try {
         const response = await client.post(event.currentTarget.action, {
           email,
+          client: Desktop.isElectron() ? "desktop" : undefined,
         });
 
         if (response.redirect) {
@@ -95,7 +98,9 @@ function AuthenticationProvider(props: Props) {
   // and keep the user on the same page.
   const { custom, teamSubdomain, host } = parseDomain(window.location.origin);
   const needsRedirect = custom || teamSubdomain;
-  const href = needsRedirect
+  const href = Desktop.isElectron()
+    ? `${env.URL}${authUrl}?client=${Client.Desktop}`
+    : needsRedirect
     ? `${env.URL}${authUrl}?host=${encodeURI(host)}`
     : authUrl;
 

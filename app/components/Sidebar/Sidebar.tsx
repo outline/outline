@@ -11,7 +11,9 @@ import useMenuContext from "~/hooks/useMenuContext";
 import usePrevious from "~/hooks/usePrevious";
 import useStores from "~/hooks/useStores";
 import AccountMenu from "~/menus/AccountMenu";
+import { draggableOnDesktop, fadeOnDesktopBackgrounded } from "~/styles";
 import { fadeIn } from "~/styles/animations";
+import Desktop from "~/utils/Desktop";
 import Avatar from "../Avatar";
 import HeaderButton, { HeaderButtonProps } from "./components/HeaderButton";
 import ResizeBorder from "./components/ResizeBorder";
@@ -251,6 +253,9 @@ const Container = styled(Flex)<ContainerProps>`
   z-index: ${depths.sidebar};
   max-width: 70%;
   min-width: 280px;
+  padding-top: ${Desktop.hasInsetTitlebar() ? 24 : 0}px;
+  ${draggableOnDesktop()}
+  ${fadeOnDesktopBackgrounded()}
 
   ${Positioner} {
     display: none;
@@ -265,7 +270,9 @@ const Container = styled(Flex)<ContainerProps>`
     margin: 0;
     min-width: 0;
     transform: translateX(${(props: ContainerProps) =>
-      props.$collapsed ? "calc(-100% + 16px)" : 0});
+      props.$collapsed
+        ? `calc(-100% + ${Desktop.hasInsetTitlebar() ? 8 : 16}px)`
+        : 0});
 
     &:hover,
     &:focus-within {

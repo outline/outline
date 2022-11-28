@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Switch, Redirect } from "react-router-dom";
+import DesktopRedirect from "~/scenes/DesktopRedirect";
 import DelayedMount from "~/components/DelayedMount";
 import FullscreenLoading from "~/components/FullscreenLoading";
 import Route from "~/components/ProfiledRoute";
@@ -54,6 +55,7 @@ export default function Routes() {
         <Route exact path="/" component={Login} />
         <Route exact path="/create" component={Login} />
         <Route exact path="/logout" component={Logout} />
+        <Route exact path="/desktop-redirect" component={DesktopRedirect} />
 
         <Redirect exact from="/share/:shareId" to="/s/:shareId" />
         <Route exact path="/s/:shareId" component={SharedDocument} />

@@ -1,11 +1,17 @@
 import { Context } from "koa";
 import { RouterContext } from "koa-router";
+import { Client } from "@shared/types";
+import { AccountProvisionerResult } from "./commands/accountProvisioner";
 import { FileOperation, Team, User } from "./models";
 
 export enum AuthenticationType {
   API = "api",
   APP = "app",
 }
+
+export type AuthenticationResult = AccountProvisionerResult & {
+  client: Client;
+};
 
 export type AuthenticatedState = {
   user: User;

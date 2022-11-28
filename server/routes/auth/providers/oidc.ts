@@ -4,9 +4,7 @@ import Router from "koa-router";
 import { get } from "lodash";
 import { Strategy } from "passport-oauth2";
 import { slugifyDomain } from "@shared/utils/domains";
-import accountProvisioner, {
-  AccountProvisionerResult,
-} from "@server/commands/accountProvisioner";
+import accountProvisioner from "@server/commands/accountProvisioner";
 import env from "@server/env";
 import {
   OIDCMalformedUserInfoError,
@@ -14,10 +12,12 @@ import {
 } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
 import { User } from "@server/models";
+import { AuthenticationResult } from "@server/types";
 import {
   StateStore,
   request,
   getTeamFromContext,
+  getClientFromContext,
 } from "@server/utils/passport";
 
 const router = new Router();
@@ -73,7 +73,7 @@ if (env.OIDC_CLIENT_ID && env.OIDC_CLIENT_SECRET) {
         done: (
           err: Error | null,
           user: User | null,
-          result?: AccountProvisionerResult
+          result?: AuthenticationResult
         ) => void
       ) {
         try {
@@ -83,6 +83,7 @@ if (env.OIDC_CLIENT_ID && env.OIDC_CLIENT_SECRET) {
             );
           }
           const team = await getTeamFromContext(ctx);
+          const client = getClientFromContext(ctx);
 
           const parts = profile.email.toLowerCase().split("@");
           const domain = parts.length && parts[1];
@@ -123,7 +124,7 @@ if (env.OIDC_CLIENT_ID && env.OIDC_CLIENT_SECRET) {
               scopes,
             },
           });
-          return done(null, result.user, result);
+          return done(null, result.user, { ...result, client });
         } catch (err) {
           return done(err, null);
         }

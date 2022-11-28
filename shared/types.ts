@@ -2,6 +2,11 @@ export type Role = "admin" | "viewer" | "member";
 
 export type DateFilter = "day" | "week" | "month" | "year";
 
+export enum Client {
+  Web = "web",
+  Desktop = "desktop",
+}
+
 export type PublicEnv = {
   URL: string;
   CDN_URL: string;

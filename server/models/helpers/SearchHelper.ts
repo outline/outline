@@ -1,6 +1,7 @@
 import removeMarkdown from "@tommoor/remove-markdown";
 import invariant from "invariant";
 import { find, map } from "lodash";
+import queryParser from "pg-tsquery";
 import { Op, QueryTypes } from "sequelize";
 import { DateFilter } from "@shared/types";
 import unescape from "@shared/utils/unescape";
@@ -54,12 +55,16 @@ type Results = {
 };
 
 export default class SearchHelper {
+  /**
+   * The maximum length of a search query.
+   */
+  public static maxQueryLength = 1000;
+
   public static async searchForTeam(
     team: Team,
     query: string,
     options: SearchOptions = {}
   ): Promise<SearchResponse> {
-    const wildcardQuery = `${this.escapeQuery(query)}:*`;
     const {
       snippetMinWords = 20,
       snippetMaxWords = 30,
@@ -103,7 +108,7 @@ export default class SearchHelper {
 
     // Build the SQL query to get result documentIds, ranking, and search term context
     const whereClause = `
-  "searchVector" @@ to_tsquery('english', :query) AND
+    "searchVector" @@ to_tsquery('english', :query) AND
     "teamId" = :teamId AND
     "collectionId" IN(:collectionIds) AND
     ${documentClause}
@@ -130,7 +135,7 @@ export default class SearchHelper {
   `;
     const queryReplacements = {
       teamId: team.id,
-      query: wildcardQuery,
+      query: this.webSearchQuery(query),
       collectionIds,
       documentIds,
       headlineOptions: `MaxFragments=1, MinWords=${snippetMinWords}, MaxWords=${snippetMaxWords}`,
@@ -176,8 +181,6 @@ export default class SearchHelper {
       limit = 15,
       offset = 0,
     } = options;
-    const wildcardQuery = `${SearchHelper.escapeQuery(query)}:*`;
-
     // Ensure we're filtering by the users accessible collections. If
     // collectionId is passed as an option it is assumed that the authorization
     // has already been done in the router
@@ -245,7 +248,7 @@ export default class SearchHelper {
       teamId: user.teamId,
       userId: user.id,
       collaboratorIds: options.collaboratorIds,
-      query: wildcardQuery,
+      query: this.webSearchQuery(query),
       collectionIds,
       dateFilter,
       headlineOptions: `MaxFragments=1, MinWords=${snippetMinWords}, MaxWords=${snippetMaxWords}`,
@@ -302,9 +305,29 @@ export default class SearchHelper {
     };
   }
 
+  /**
+   * Convert a user search query into a format that can be used by Postgres
+   *
+   * @param query The user search query
+   * @returns The query formatted for Postgres ts_query
+   */
+  private static webSearchQuery(query: string): string {
+    // limit length of search queries as we're using regex against untrusted input
+    const limitedQuery = this.escapeQuery(query.slice(0, this.maxQueryLength));
+
+    // if the search term is one unquoted word then allow partial matches automatically
+    const queryWordCount = limitedQuery.split(" ").length;
+    const singleUnquotedSearch =
+      queryWordCount === 1 && !limitedQuery.startsWith('"');
+
+    return queryParser({ singleQuoteReplacement: "&" })(
+      singleUnquotedSearch ? `${limitedQuery}*` : limitedQuery
+    );
+  }
+
   private static escapeQuery(query: string): string {
     // replace "\" with escaped "\\" because sequelize.escape doesn't do it
     // https://github.com/sequelize/sequelize/issues/2950
-    return sequelize.escape(query).replace(/\\/g, "\\\\");
+    return query.replace(/\\/g, "\\\\");
   }
 }

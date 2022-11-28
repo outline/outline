@@ -8,6 +8,7 @@ import styled from "styled-components";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
 import useAuthorizedSettingsConfig from "~/hooks/useAuthorizedSettingsConfig";
+import Desktop from "~/utils/Desktop";
 import isCloudHosted from "~/utils/isCloudHosted";
 import Sidebar from "./Sidebar";
 import Header from "./components/Header";
@@ -32,7 +33,7 @@ function SettingsSidebar() {
         title={t("Return to App")}
         image={<StyledBackIcon color="currentColor" />}
         onClick={returnToApp}
-        minHeight={48}
+        minHeight={Desktop.hasInsetTitlebar() ? undefined : 48}
       />
 
       <Flex auto column>

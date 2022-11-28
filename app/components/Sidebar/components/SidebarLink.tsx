@@ -6,6 +6,7 @@ import Emoji from "~/components/Emoji";
 import EventBoundary from "~/components/EventBoundary";
 import NudeButton from "~/components/NudeButton";
 import useEmojiWidth from "~/hooks/useEmojiWidth";
+import { undraggableOnDesktop } from "~/styles";
 import { NavigationNode } from "~/types";
 import Disclosure from "./Disclosure";
 import NavLink, { Props as NavLinkProps } from "./NavLink";
@@ -199,6 +200,7 @@ const Link = styled(NavLink)<{
   font-size: 16px;
   cursor: var(--pointer);
   overflow: hidden;
+  ${undraggableOnDesktop()}
 
   ${(props) =>
     props.$disabled &&
