@@ -2,6 +2,7 @@ import { ExpandedIcon, MoreIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
 import Flex from "~/components/Flex";
+import { undraggableOnDesktop } from "~/styles";
 
 export type HeaderButtonProps = React.ComponentProps<typeof Wrapper> & {
   title: React.ReactNode;
@@ -26,6 +27,7 @@ const HeaderButton = React.forwardRef<HTMLButtonElement, HeaderButtonProps>(
     ref
   ) => (
     <Wrapper
+      role="button"
       justify="space-between"
       align="center"
       as="button"
@@ -69,6 +71,7 @@ const Wrapper = styled(Flex)<{ minHeight: number }>`
   overflow: hidden;
   user-select: none;
   cursor: var(--pointer);
+  ${undraggableOnDesktop()}
 
   &:active,
   &:hover,

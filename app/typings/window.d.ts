@@ -61,6 +61,16 @@ declare global {
        * Registers a callback to be called when the application is ready to update.
        */
       updateDownloaded: (callback: () => void) => void;
+
+      /**
+       * Go back in history, if possible
+       */
+      goBack: () => void;
+
+      /**
+       * Go forward in history, if possible
+       */
+      goForward: () => void;
     };
   }
 }
