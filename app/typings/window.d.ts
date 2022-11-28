@@ -9,7 +9,7 @@ declare global {
       /**
        * The version of the loaded application.
        */
-      version: () => Promise<string>;
+      version: () => string;
 
       /**
        * Restarts the application.
