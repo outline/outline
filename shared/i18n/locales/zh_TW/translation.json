@@ -191,6 +191,8 @@
   "New nested document": "建立新的子文件",
   "Document not supported – try Markdown, Plain text, HTML, or Word": "不支援的文件格式－請嘗試使用 Markdown、純文字、HTML 或 Word 格式",
   "Empty": "Empty",
+  "Go back": "Go back",
+  "Go forward": "Go forward",
   "Starred documents could not be loaded": "無法讀取已經被收藏的文件",
   "Starred": "已收藏",
   "Show more": "顯示更多",
