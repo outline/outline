@@ -191,6 +191,8 @@
   "New nested document": "ایجاد زیرسند جدید",
   "Document not supported – try Markdown, Plain text, HTML, or Word": "نوع سند پشتیبانی نمی‌شود - از Markdown، متن ساده، HTML، یا Word استفاده کنید",
   "Empty": "خالی",
+  "Go back": "Go back",
+  "Go forward": "Go forward",
   "Starred documents could not be loaded": "اسناد ستاره دار بارگیری نمی شوند",
   "Starred": "ستاره‌دار",
   "Show more": "اطلاعات بیشتر",
