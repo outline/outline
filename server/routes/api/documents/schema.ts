@@ -208,7 +208,7 @@ export const DocumentsMoveSchema = BaseIdSchema.extend({
   parentDocumentId: z.string().uuid().optional(),
 
   /** Helps evaluate the new index in collection structure upon move */
-  index: z.number().positive().optional(),
+  index: z.number().gte(0).optional(),
 }).refine((obj) => !(obj.parentDocumentId === obj.id), {
   message: "infinite loop detected, cannot nest a document inside itself",
 });
