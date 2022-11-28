@@ -191,6 +191,8 @@
   "New nested document": "เอกสารย่อยใหม่",
   "Document not supported – try Markdown, Plain text, HTML, or Word": "ไม่รองรับเอกสารชนิดนี้ – ลองใช้ Markdown, ข้อความธรรมดา, HTML หรือ Word",
   "Empty": "ว่างเปล่า",
+  "Go back": "Go back",
+  "Go forward": "Go forward",
   "Starred documents could not be loaded": "ไม่สามารถโหลดเอกสารที่ติดดาว",
   "Starred": "ติดดาว",
   "Show more": "แสดงเพิ่มเติม",
