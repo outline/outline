@@ -191,6 +191,8 @@
   "New nested document": "Tài liệu mới lồng nhau",
   "Document not supported – try Markdown, Plain text, HTML, or Word": "Tài liệu không được hỗ trợ - hãy thử Markdown, Plain text, HTML hoặc Word",
   "Empty": "Trống",
+  "Go back": "Go back",
+  "Go forward": "Go forward",
   "Starred documents could not be loaded": "Không thể tải tài liệu có gắn dấu sao",
   "Starred": "Được gắn sao",
   "Show more": "Hiển thị thêm",
