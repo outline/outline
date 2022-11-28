@@ -191,6 +191,8 @@
   "New nested document": "New nested document",
   "Document not supported – try Markdown, Plain text, HTML, or Word": "Dokumen tidak didukung – coba Markdown, teks biasa, HTML, atau Word",
   "Empty": "Kosong",
+  "Go back": "Go back",
+  "Go forward": "Go forward",
   "Starred documents could not be loaded": "Starred documents could not be loaded",
   "Starred": "Starred",
   "Show more": "Selengkapnya",
