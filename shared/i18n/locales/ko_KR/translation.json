@@ -191,6 +191,8 @@
   "New nested document": "새 하위 문서",
   "Document not supported – try Markdown, Plain text, HTML, or Word": "이 문서는 지원되지 않습니다 – Markdown, Plain Text, HTML이나 Word를 이용해주세요",
   "Empty": "비어 있음",
+  "Go back": "Go back",
+  "Go forward": "Go forward",
   "Starred documents could not be loaded": "중요 문서를 불러올 수 없습니다",
   "Starred": "중요 문서",
   "Show more": "더 보기",
