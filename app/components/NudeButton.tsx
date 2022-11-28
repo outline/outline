@@ -2,6 +2,7 @@ import styled from "styled-components";
 import ActionButton, {
   Props as ActionButtonProps,
 } from "~/components/ActionButton";
+import { undraggableOnDesktop } from "~/styles";
 
 type Props = ActionButtonProps & {
   width?: number | string;
@@ -30,6 +31,7 @@ const NudeButton = styled(ActionButton).attrs((props: Props) => ({
   cursor: var(--pointer);
   user-select: none;
   color: inherit;
+  ${undraggableOnDesktop()}
 `;
 
 export default NudeButton;

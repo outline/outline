@@ -13,6 +13,7 @@ import isCloudHosted from "~/utils/isCloudHosted";
 import Sidebar from "./Sidebar";
 import Header from "./components/Header";
 import HeaderButton from "./components/HeaderButton";
+import HistoryNavigation from "./components/HistoryNavigation";
 import Section from "./components/Section";
 import SidebarLink from "./components/SidebarLink";
 import Version from "./components/Version";
@@ -29,6 +30,7 @@ function SettingsSidebar() {
 
   return (
     <Sidebar>
+      <HistoryNavigation />
       <HeaderButton
         title={t("Return to App")}
         image={<StyledBackIcon color="currentColor" />}

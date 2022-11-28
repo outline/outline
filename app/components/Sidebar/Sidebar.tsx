@@ -253,7 +253,7 @@ const Container = styled(Flex)<ContainerProps>`
   z-index: ${depths.sidebar};
   max-width: 70%;
   min-width: 280px;
-  padding-top: ${Desktop.hasInsetTitlebar() ? 24 : 0}px;
+  padding-top: ${Desktop.hasInsetTitlebar() ? 36 : 0}px;
   ${draggableOnDesktop()}
   ${fadeOnDesktopBackgrounded()}
 
