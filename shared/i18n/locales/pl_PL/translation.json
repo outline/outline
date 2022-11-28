@@ -191,6 +191,8 @@
   "New nested document": "Nowy zagnieżdżony dokument",
   "Document not supported – try Markdown, Plain text, HTML, or Word": "Dokument nie jest obsługiwany – wypróbuj Markdown, zwykły tekst, HTML lub Word",
   "Empty": "Pusty",
+  "Go back": "Go back",
+  "Go forward": "Go forward",
   "Starred documents could not be loaded": "Nie udało się wczytać dokumentów oznaczonych gwiazdką",
   "Starred": "Oznaczone gwiazdką",
   "Show more": "Pokaż więcej",
