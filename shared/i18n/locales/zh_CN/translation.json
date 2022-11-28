@@ -191,6 +191,8 @@
   "New nested document": "新建子文档",
   "Document not supported – try Markdown, Plain text, HTML, or Word": "不支持的文档类型 - 请用Markdown，纯文本，HTML或Word格式",
   "Empty": "空",
+  "Go back": "Go back",
+  "Go forward": "Go forward",
   "Starred documents could not be loaded": "无法加载收藏的文档",
   "Starred": "已加星标",
   "Show more": "显示更多",
