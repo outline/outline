@@ -191,6 +191,8 @@
   "New nested document": "Neues verschachteltes Dokument",
   "Document not supported – try Markdown, Plain text, HTML, or Word": "Dokument nicht unterstützt - versuche Markdown, Klartext, HTML oder Word",
   "Empty": "Leer",
+  "Go back": "Go back",
+  "Go forward": "Go forward",
   "Starred documents could not be loaded": "Favorisierte Dokumente konnten nicht geladen werden",
   "Starred": "Favoriten",
   "Show more": "Mehr anzeigen",
