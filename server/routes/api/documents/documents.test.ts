@@ -1910,7 +1910,22 @@ describe("#documents.move", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("index: Number must be greater than 0");
+    expect(body.message).toEqual(
+      "index: Number must be greater than or equal to 0"
+    );
+  });
+
+  it("should move doc to the top of collection as its first child", async () => {
+    const { user, document, collection } = await seed();
+    const res = await server.post("/api/documents.move", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+        collectionId: collection.id,
+        index: 0,
+      },
+    });
+    expect(res.status).toEqual(200);
   });
 
   it("should move the document", async () => {
