@@ -191,6 +191,8 @@
   "New nested document": "Novo documento aninhado",
   "Document not supported – try Markdown, Plain text, HTML, or Word": "Documento não compatível - experimente Markdown, Texto simples, HTML ou Word",
   "Empty": "Empty",
+  "Go back": "Go back",
+  "Go forward": "Go forward",
   "Starred documents could not be loaded": "Não foi possível carregar documentos com estrela",
   "Starred": "Favoritos",
   "Show more": "Exibir mais",
