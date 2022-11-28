@@ -191,6 +191,8 @@
   "New nested document": "Yeni iç içe belge",
   "Document not supported – try Markdown, Plain text, HTML, or Word": "Belge desteklenmiyor - Markdown, Düz Metin, HTML veya Word'ü deneyin",
   "Empty": "Boş",
+  "Go back": "Go back",
+  "Go forward": "Go forward",
   "Starred documents could not be loaded": "Yıldızlı belgeler yüklenemedi",
   "Starred": "Yıldızlı",
   "Show more": "Daha fazla göster",
