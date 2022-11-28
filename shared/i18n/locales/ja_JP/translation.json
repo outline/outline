@@ -191,6 +191,8 @@
   "New nested document": "新しい入れ子になった文書",
   "Document not supported – try Markdown, Plain text, HTML, or Word": "ドキュメントはサポートされていません。Markdown、プレーンテキスト、HTML、またはWordをお試しください",
   "Empty": "Empty",
+  "Go back": "Go back",
+  "Go forward": "Go forward",
   "Starred documents could not be loaded": "スター付きのドキュメントが読み込めませんでした",
   "Starred": "スター文書",
   "Show more": "もっと見る",
