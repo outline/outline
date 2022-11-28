@@ -318,7 +318,9 @@ export default class SearchHelper {
     // if the search term is one unquoted word then allow partial matches automatically
     const queryWordCount = limitedQuery.split(" ").length;
     const singleUnquotedSearch =
-      queryWordCount === 1 && !limitedQuery.startsWith('"');
+      queryWordCount === 1 &&
+      !limitedQuery.startsWith('"') &&
+      !limitedQuery.endsWith('"');
 
     return queryParser({ singleQuoteReplacement: "&" })(
       singleUnquotedSearch ? `${limitedQuery}*` : limitedQuery
