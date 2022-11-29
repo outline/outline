@@ -145,6 +145,9 @@ export const MenuAnchorCSS = css<MenuAnchorProps>`
       ? "pointer-events: none;"
       : `
 
+  ${
+    props.$active === undefined &&
+    `
   @media (hover: hover) {
     &:hover,
     &:focus,
@@ -158,6 +161,8 @@ export const MenuAnchorCSS = css<MenuAnchorProps>`
         fill: ${props.theme.white};
       }
     }
+  }
+  `
   }
 
   ${
