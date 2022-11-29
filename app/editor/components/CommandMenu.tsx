@@ -76,6 +76,7 @@ class CommandMenu<T extends MenuItem> extends React.Component<Props<T>, State> {
   };
 
   componentDidMount() {
+    window.addEventListener("mousedown", this.handleMouseDown);
     window.addEventListener("keydown", this.handleKeyDown);
   }
 
@@ -107,8 +108,20 @@ class CommandMenu<T extends MenuItem> extends React.Component<Props<T>, State> {
   }
 
   componentWillUnmount() {
+    window.removeEventListener("mousedown", this.handleMouseDown);
     window.removeEventListener("keydown", this.handleKeyDown);
   }
+
+  handleMouseDown = (event: MouseEvent) => {
+    if (
+      !this.menuRef.current ||
+      this.menuRef.current.contains(event.target as Element)
+    ) {
+      return;
+    }
+
+    this.props.onClose();
+  };
 
   handleKeyDown = (event: KeyboardEvent) => {
     if (!this.props.isActive) {
