@@ -1,12 +1,17 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
+import KeyboardShortcuts from "~/scenes/KeyboardShortcuts";
 import { useDesktopTitlebar } from "~/hooks/useDesktopTitlebar";
+import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import Desktop from "~/utils/Desktop";
 
 export default function DesktopEventHandler() {
   useDesktopTitlebar();
+  const { t } = useTranslation();
   const history = useHistory();
+  const { dialogs } = useStores();
   const { showToast } = useToasts();
 
   React.useEffect(() => {
@@ -38,7 +43,14 @@ export default function DesktopEventHandler() {
     Desktop.bridge?.blur(() => {
       window.document.body.classList.add("backgrounded");
     });
-  }, [history, showToast]);
+
+    Desktop.bridge?.openKeyboardShortcuts(() => {
+      dialogs.openGuide({
+        title: t("Keyboard shortcuts"),
+        content: <KeyboardShortcuts />,
+      });
+    });
+  }, [t, history, dialogs, showToast]);
 
   return null;
 }

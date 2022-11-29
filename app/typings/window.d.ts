@@ -63,6 +63,11 @@ declare global {
       updateDownloaded: (callback: () => void) => void;
 
       /**
+       * Registers a callback to be called when the application wants to open keyboard shortcuts.
+       */
+      openKeyboardShortcuts: (callback: () => void) => void;
+
+      /**
        * Go back in history, if possible
        */
       goBack: () => void;
