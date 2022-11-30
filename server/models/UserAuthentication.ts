@@ -1,5 +1,6 @@
 import { addMinutes, subMinutes } from "date-fns";
 import invariant from "invariant";
+import { isObject } from "lodash";
 import { SaveOptions } from "sequelize";
 import {
   BeforeCreate,
@@ -145,6 +146,7 @@ class UserAuthentication extends IdModel {
     if (
       this.expiresAt > addMinutes(Date.now(), 5) ||
       !this.refreshToken ||
+      isObject(this.refreshToken) ||
       // Some providers send no expiry depending on setup, in this case we can't
       // refresh and assume the session is valid until logged out.
       !this.expiresAt
