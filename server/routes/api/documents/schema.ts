@@ -33,8 +33,8 @@ const SearchQuerySchema = z.object({
 });
 
 const BaseIdSchema = z.object({
-  /** Id of the entity */
-  id: z.string().uuid(),
+  /** Id of the document to be updated */
+  id: z.string(),
 });
 
 export const DocumentsListSchema = DocumentsSortParamsSchema.extend({
