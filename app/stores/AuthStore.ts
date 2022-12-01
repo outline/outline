@@ -10,6 +10,7 @@ import Team from "~/models/Team";
 import User from "~/models/User";
 import env from "~/env";
 import { client } from "~/utils/ApiClient";
+import Desktop from "~/utils/Desktop";
 import Storage from "~/utils/Storage";
 
 const AUTH_STORE = "AUTH_STORE";
@@ -325,5 +326,8 @@ export default class AuthStore {
     this.team = null;
     this.policies = [];
     this.token = null;
+
+    // Tell the host application we logged out, if any – allows window cleanup.
+    Desktop.bridge?.onLogout?.();
   };
 }

@@ -32,6 +32,11 @@ declare global {
       onTitlebarDoubleClick: () => Promise<void>;
 
       /**
+       * Passes log out events from the app to the main process
+       */
+      onLogout: () => Promise<void>;
+
+      /**
        * Adds a custom host to config
        */
       addCustomHost: (host: string) => Promise<void>;
