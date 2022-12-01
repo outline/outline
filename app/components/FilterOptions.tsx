@@ -10,6 +10,7 @@ type TFilterOption = {
   key: string;
   label: string;
   note?: string;
+  icon?: React.ReactNode;
 };
 
 type Props = {
@@ -57,6 +58,7 @@ const FilterOptions = ({
             selected={option.key === activeKey}
             {...menu}
           >
+            {option.icon && <Icon>{option.icon}</Icon>}
             {option.note ? (
               <LabelWithNote>
                 {option.label}
@@ -84,7 +86,6 @@ const Note = styled(Text)`
 const LabelWithNote = styled.div`
   font-weight: 500;
   text-align: left;
-
   &:hover ${Note} {
     color: ${(props) => props.theme.white50};
   }
@@ -95,15 +96,17 @@ const StyledButton = styled(Button)`
   text-transform: none;
   border-color: transparent;
   height: auto;
-
   &:hover {
     background: transparent;
   }
-
   ${Inner} {
     line-height: 24px;
     min-height: auto;
   }
+`;
+
+const Icon = styled.div`
+  margin-right: 8px;
 `;
 
 const Wrapper = styled.div`

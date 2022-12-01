@@ -1,6 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import Avatar from "~/components/Avatar";
 import FilterOptions from "~/components/FilterOptions";
 import useStores from "~/hooks/useStores";
 
@@ -22,13 +23,17 @@ function UserFilter(props: Props) {
 
   const options = React.useMemo(() => {
     const userOptions = users.all.map((user) => ({
+      user,
       key: user.id,
       label: user.name,
+      icon: <Avatar model={user} />,
     }));
     return [
       {
+        user: undefined,
         key: "",
         label: t("Any author"),
+        icon: <Avatar />,
       },
       ...userOptions,
     ];
