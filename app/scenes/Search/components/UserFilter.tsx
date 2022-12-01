@@ -30,7 +30,6 @@ function UserFilter(props: Props) {
     }));
     return [
       {
-        user: undefined,
         key: "",
         label: t("Any author"),
         icon: <Avatar />,
