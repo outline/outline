@@ -112,6 +112,13 @@ async function teamPermanentDeleter(team: Team) {
       force: true,
       transaction,
     });
+    await FileOperation.destroy({
+      where: {
+        teamId,
+      },
+      force: true,
+      transaction,
+    });
     await Collection.destroy({
       where: {
         teamId,
@@ -120,13 +127,6 @@ async function teamPermanentDeleter(team: Team) {
       transaction,
     });
     await Document.unscoped().destroy({
-      where: {
-        teamId,
-      },
-      force: true,
-      transaction,
-    });
-    await FileOperation.destroy({
       where: {
         teamId,
       },
