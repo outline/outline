@@ -18,6 +18,9 @@ export default function Encrypted(target: any, propertyKey: string) {
  */
 export function getEncryptedColumn(target: any, propertyKey: string): string {
   try {
+    if (!target.getDataValue(propertyKey)) {
+      return "";
+    }
     return Reflect.getMetadata(key, target, propertyKey).get.call(target);
   } catch (err) {
     if (err.message.includes("Unexpected end of JSON input")) {
