@@ -19,8 +19,9 @@ const DesktopRedirect = () => {
         "_self"
       );
 
-      // Clean the url so it's not possible to hit reload, re-using the transfer token will not work.
-      window.location.search = "";
+      // Clean the url after a short delay so it's not possible to hit reload, re-using the transfer token
+      // will not work and changing the location immediately cancels the window.open call in Safari.
+      setTimeout(() => (window.location.search = ""), 500);
     }
   }, [token]);
 
