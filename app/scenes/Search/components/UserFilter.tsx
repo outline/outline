@@ -23,7 +23,6 @@ function UserFilter(props: Props) {
 
   const options = React.useMemo(() => {
     const userOptions = users.all.map((user) => ({
-      user,
       key: user.id,
       label: user.name,
       icon: <Avatar model={user} />,
