@@ -594,7 +594,7 @@
   "Check your email": "Controlla la tua email",
   "A magic sign-in link has been sent to the email <em>{{ emailLinkSentTo }}</em> if an account exists.": "Un link di accesso è stato inviato all'email <em>{{ emailLinkSentTo }}</em> se esiste un account associato.",
   "Back to login": "Torna all'accesso",
-  "Get started by choosing a sign-in method for your new workspace below…": "Get started by choosing a sign-in method for your new workspace below…",
+  "Get started by choosing a sign-in method for your new workspace below…": "Inizia scegliendo un metodo di accesso per la tua nuova area di lavoro qui sotto…",
   "Login to {{ authProviderName }}": "Login to {{ authProviderName }}",
   "You signed in with {{ authProviderName }} last time.": "You signed in with {{ authProviderName }} last time.",
   "Or": "Or",
