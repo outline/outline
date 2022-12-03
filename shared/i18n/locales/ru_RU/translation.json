@@ -191,6 +191,8 @@
   "New nested document": "Новый вложенный документ",
   "Document not supported – try Markdown, Plain text, HTML, or Word": "Документ не поддерживается – попробуйте Markdown, простой текст или Word",
   "Empty": "Пусто",
+  "Go back": "Go back",
+  "Go forward": "Go forward",
   "Starred documents could not be loaded": "Избранные документы не могут быть загружены",
   "Starred": "Избранное",
   "Show more": "Развернуть",

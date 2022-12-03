@@ -191,6 +191,8 @@
   "New nested document": "Nouveau document imbriqué",
   "Document not supported – try Markdown, Plain text, HTML, or Word": "Document non pris en charge - essayez un format Markdown, Text, HTML ou Word",
   "Empty": "Vide",
+  "Go back": "Revenir en arrière",
+  "Go forward": "Continuer",
   "Starred documents could not be loaded": "Les documents favoris n'ont pas pu être chargés",
   "Starred": "Favoris",
   "Show more": "Afficher plus",
