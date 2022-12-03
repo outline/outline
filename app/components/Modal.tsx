@@ -252,8 +252,9 @@ const Small = styled.div`
   animation: ${fadeAndScaleIn} 250ms ease;
 
   margin: auto auto;
+  width: 30vw;
   min-width: 350px;
-  max-width: 30vw;
+  max-width: 450px;
   z-index: ${depths.modal};
   display: flex;
   justify-content: center;
