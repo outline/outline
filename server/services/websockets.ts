@@ -31,7 +31,6 @@ export default function init(
   // Websockets for events and non-collaborative documents
   const io = new IO.Server(server, {
     path,
-    allowEIO3: true,
     serveClient: false,
     cookie: false,
     cors: {
