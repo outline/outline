@@ -1,10 +1,10 @@
 import { Table, TBody, TR, TD } from "oy-vey";
 import * as React from "react";
 import env from "@server/env";
+import isCloudHosted from "@server/utils/isCloudHosted";
 import EmptySpace from "./EmptySpace";
 
 const url = env.CDN_URL ?? env.URL;
-const isCloudHosted = env.DEPLOYMENT === "hosted";
 
 export default () => {
   return (
