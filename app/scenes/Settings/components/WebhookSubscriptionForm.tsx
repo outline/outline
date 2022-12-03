@@ -150,7 +150,7 @@ interface FormData {
 }
 
 function generateSigningSecret() {
-  return `olws_${randomstring.generate(32)}`;
+  return `ol_whs_${randomstring.generate(32)}`;
 }
 
 function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
