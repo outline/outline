@@ -168,7 +168,7 @@
     "prosemirror-view": "1.26.5",
     "query-string": "^7.1.1",
     "quoted-printable": "^1.0.1",
-    "randomstring": "1.1.5",
+    "randomstring": "1.2.3",
     "rate-limiter-flexible": "^2.4.1",
     "raw-loader": "^0.5.1",
     "react": "^17.0.2",
