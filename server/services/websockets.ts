@@ -94,10 +94,7 @@ export default function init(
 
   io.on("connection", (socket: SocketWithAuth) => {
     Metrics.increment("websockets.connected");
-    Metrics.gaugePerInstance(
-      "websockets.count",
-      socket.client.conn.server.clientsCount
-    );
+    Metrics.gaugePerInstance("websockets.count", io.engine.clientsCount);
 
     socket.on("authentication", async function (data) {
       try {
@@ -116,10 +113,7 @@ export default function init(
 
     socket.on("disconnect", async () => {
       Metrics.increment("websockets.disconnected");
-      Metrics.gaugePerInstance(
-        "websockets.count",
-        socket.client.conn.server.clientsCount
-      );
+      Metrics.gaugePerInstance("websockets.count", io.engine.clientsCount);
       await Redis.defaultClient.hdel(socket.id, "userId");
     });
 
