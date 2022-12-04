@@ -25,7 +25,7 @@ const Layout: React.FC<Props> = ({
   sidebarRight,
 }) => {
   const { ui } = useStores();
-  const sidebarCollapsed = !sidebar || ui.isEditing || ui.sidebarCollapsed;
+  const sidebarCollapsed = !sidebar || ui.sidebarIsClosed;
 
   useKeyDown(".", (event) => {
     if (isModKey(event)) {

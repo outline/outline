@@ -26,9 +26,7 @@ type Props = {
 function Header({ left, title, actions, hasSidebar }: Props) {
   const { ui } = useStores();
   const isMobile = useMobile();
-
   const hasMobileSidebar = hasSidebar && isMobile;
-  const sidebarCollapsed = ui.isEditing || ui.sidebarCollapsed;
 
   const passThrough = !actions && !left && !title;
 
@@ -57,7 +55,7 @@ function Header({ left, title, actions, hasSidebar }: Props) {
       align="center"
       shrink={false}
       $passThrough={passThrough}
-      $insetTitleAdjust={sidebarCollapsed && Desktop.hasInsetTitlebar()}
+      $insetTitleAdjust={ui.sidebarIsClosed && Desktop.hasInsetTitlebar()}
     >
       {left || hasMobileSidebar ? (
         <Breadcrumbs>
