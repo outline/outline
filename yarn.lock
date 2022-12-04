@@ -1321,30 +1321,28 @@
   dependencies:
     lib0 "^0.2.42"
 
-"@hocuspocus/common@^1.0.0-alpha.11":
-  version "1.0.0-alpha.11"
-  resolved "https://registry.yarnpkg.com/@hocuspocus/common/-/common-1.0.0-alpha.11.tgz#d598d221465338c1d912251105519e88f8486805"
-  integrity sha512-oOddSLUTr8KrC58KSs5YHzr99ZSI4HZdIkYRoqmrusViF8M850uLXgYce7eG7Xaq4KlvXCSDG+wioQRTFXkCaA==
+"@hocuspocus/common@^1.0.0-beta.6":
+  version "1.0.0-beta.6"
+  resolved "https://registry.yarnpkg.com/@hocuspocus/common/-/common-1.0.0-beta.6.tgz#f093820d227dcab17b697071eb0ce38c54048ead"
+  integrity sha512-XtlMfFtEY76VmEjOZHCitrHraswinC4C5lXvLnMBmRYjxDNWpuB0A9J55kkvKnV7AdJ0nCd78eo9GhSXuHpd2g==
   dependencies:
     lib0 "^0.2.47"
 
-"@hocuspocus/provider@^1.0.0-alpha.36":
-  version "1.0.0-alpha.36"
-  resolved "https://registry.yarnpkg.com/@hocuspocus/provider/-/provider-1.0.0-alpha.36.tgz#a09dd42baa9c88cbd63027a18edcd3f79823a0cf"
-  integrity sha512-vmrbaS2Si408Gau1vv/xH7ln/QbVJtUZsgLz0DwYYWWGcAJffaU1f89B2+sOL8IGRLclybldrVfZR+tFKBMzRw==
+"@hocuspocus/provider@^1.0.0-beta.6":
+  version "1.0.0-beta.6"
+  resolved "https://registry.yarnpkg.com/@hocuspocus/provider/-/provider-1.0.0-beta.6.tgz#5058ecb043516c9729069723a68327954aff2897"
+  integrity sha512-Plgq9vfiHXsEnHpvwWobUs+lEnsh5qIrOiXbvK8slLnDcVBvFcrmYbC4MBBklWA0N60EY4kVFpRVBsZfoohR0w==
   dependencies:
-    "@hocuspocus/common" "^1.0.0-alpha.11"
+    "@hocuspocus/common" "^1.0.0-beta.6"
     "@lifeomic/attempt" "^3.0.2"
     lib0 "^0.2.46"
-    y-protocols "^1.0.5"
-    yjs "^13.5.29"
 
-"@hocuspocus/server@^1.0.0-alpha.102":
-  version "1.0.0-alpha.102"
-  resolved "https://registry.yarnpkg.com/@hocuspocus/server/-/server-1.0.0-alpha.102.tgz#6c478032b3b30b45d96cbb744d8f61a6b9a71cf1"
-  integrity sha512-U82HAy9S9gNuPShsUrefJH2Bdv71+6gjIueNW39oLiWjR87Nmuenjzu1gbVcC6sJwjlsj3JJ0E1NDPu0xTDfxQ==
+"@hocuspocus/server@^1.0.0-beta.6":
+  version "1.0.0-beta.6"
+  resolved "https://registry.yarnpkg.com/@hocuspocus/server/-/server-1.0.0-beta.6.tgz#d36e2cd62d9fc1059310e712bb6f1208ef0e3e3e"
+  integrity sha512-54N5sdxaDGN7v6XVPyYI+XjhNlH82hFXkh3VQg3H/Hmpaw9gpXSUwaozxTOpiN4hhjLrQ95sDyqnve5G52a6Xw==
   dependencies:
-    "@hocuspocus/common" "^1.0.0-alpha.11"
+    "@hocuspocus/common" "^1.0.0-beta.6"
     "@types/async-lock" "^1.1.3"
     "@types/uuid" "^8.3.4"
     "@types/ws" "^8.5.3"
@@ -1353,8 +1351,6 @@
     lib0 "^0.2.46"
     uuid "^8.3.2"
     ws "^8.5.0"
-    y-protocols "^1.0.5"
-    yjs "^13.5.29"
 
 "@humanwhocodes/config-array@^0.5.0":
   version "0.5.0"
@@ -1970,7 +1966,7 @@
     "@jridgewell/sourcemap-codec" "^1.4.10"
     "@jridgewell/trace-mapping" "^0.3.9"
 
-"@jridgewell/resolve-uri@3.1.0", "@jridgewell/resolve-uri@^3.0.3":
+"@jridgewell/resolve-uri@3.1.0":
   version "3.1.0"
   resolved "https://registry.yarnpkg.com/@jridgewell/resolve-uri/-/resolve-uri-3.1.0.tgz#2203b118c157721addfe69d47b70465463066d78"
   integrity sha512-F2msla3tad+Mfht5cJq7LSXcdudKTWCVYUgw6pLFOOHSTtZlj6SWNYAp+AhuqLmWdBO2X5hPrLcu8cVP8fy28w==
@@ -16138,10 +16134,10 @@ xtend@^4.0.0, xtend@~4.0.0, xtend@~4.0.1:
   resolved "https://registry.yarnpkg.com/xtend/-/xtend-4.0.2.tgz#bb72779f5fa465186b1f438f674fa347fdb5db54"
   integrity sha512-LKYU1iAXJXUgAXn9URjiu+MWhyUXHsvfp7mcuYm9dSUKK0/CjtrUwFAxD82/mCWbtLsGjFIad0wIsod4zrTAEQ==
 
-y-indexeddb@^9.0.6:
-  version "9.0.6"
-  resolved "https://registry.yarnpkg.com/y-indexeddb/-/y-indexeddb-9.0.6.tgz#49aecac11bc229571fb134e0ec0717c0330b731f"
-  integrity sha512-8mdCYdzZDWS2lGiB9Reaz67ZqvnV6EXH/F7L+TmBC+3mWjIBrPw4UcI79nOhEOh+y9lHXzNpSda4YJ06M13F1A==
+y-indexeddb@^9.0.9:
+  version "9.0.9"
+  resolved "https://registry.yarnpkg.com/y-indexeddb/-/y-indexeddb-9.0.9.tgz#fd360f6b62ce1b2d4127671fe73b4feb08de70b2"
+  integrity sha512-GcJbiJa2eD5hankj46Hea9z4hbDnDjvh1fT62E5SpZRsv8GcEemw34l1hwI2eknGcv5Ih9JfusT37JLx9q3LFg==
   dependencies:
     lib0 "^0.2.35"
 
@@ -16227,7 +16223,7 @@ yarn-deduplicate@^3.1.0:
     commander "^6.1.0"
     semver "^7.3.2"
 
-yjs@^13.5.29, yjs@^13.5.39:
+yjs@^13.5.39:
   version "13.5.39"
   resolved "https://registry.yarnpkg.com/yjs/-/yjs-13.5.39.tgz#656763e61bfa0e50162657a8372ac2a50d955c6a"
   integrity sha512-EoVT856l301lomtjjVspgTdSRiFqZ7gNKnmVPX4/V8NHI5EYS39/MdjB9iNv0Mw1weKDZRU8NgxgerqwJ3y2xA==
