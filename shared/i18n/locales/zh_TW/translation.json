@@ -58,6 +58,7 @@
   "Report a bug": "回報錯誤",
   "Changelog": "更新日誌",
   "Keyboard shortcuts": "鍵盤快捷鍵",
+  "Download {{ platform }} app": "Download {{ platform }} app",
   "Log out": "登出",
   "Restore revision": "還原舊版",
   "Document restored": "文件已經被還原",
