@@ -1,6 +1,7 @@
 import { yDocToProsemirrorJSON } from "@getoutline/y-prosemirror";
 import { uniq } from "lodash";
 import { Node } from "prosemirror-model";
+import { QueryTypes } from "sequelize";
 import * as Y from "yjs";
 import { sequelize } from "@server/database/sequelize";
 import { schema, serializer } from "@server/editor";
@@ -17,8 +18,26 @@ export default async function documentCollaborativeUpdater({
   userId?: string;
 }) {
   return sequelize.transaction(async (transaction) => {
+    const [{ hasCollaborativeState }] = await sequelize.query<{
+      hasCollaborativeState: boolean;
+    }>(
+      `
+SELECT id,
+CASE WHEN state IS NOT NULL THEN true ELSE false END AS "hasCollaborativeState"
+FROM documents
+WHERE id = :documentId;
+`,
+      {
+        type: QueryTypes.SELECT,
+        transaction,
+        replacements: {
+          documentId,
+        },
+      }
+    );
+
     const document = await Document.unscoped()
-      .scope("withState")
+      .scope("withoutState")
       .findOne({
         where: {
           id: documentId,
@@ -36,9 +55,10 @@ export default async function documentCollaborativeUpdater({
     const node = Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
     const text = serializer.serialize(node, undefined);
     const isUnchanged = document.text === text;
-    const hasMultiplayerState = !!document.state;
 
-    if (isUnchanged && hasMultiplayerState) {
+    console.log("hasCollaborativeState", hasCollaborativeState);
+
+    if (isUnchanged && hasCollaborativeState) {
       return;
     }
 
