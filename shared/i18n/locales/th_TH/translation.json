@@ -58,6 +58,7 @@
   "Report a bug": "รายงานข้อผิดพลาด",
   "Changelog": "Changelog",
   "Keyboard shortcuts": "ปุ่มลัดแป้นพิมพ์",
+  "Download {{ platform }} app": "Download {{ platform }} app",
   "Log out": "ออกจากระบบ",
   "Restore revision": "Restore revision",
   "Document restored": "กู้คืนเอกสารแล้ว",
