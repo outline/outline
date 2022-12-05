@@ -4,7 +4,6 @@ import Router from "koa-router";
 import userAgent, { UserAgentContext } from "koa-useragent";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
-import errorHandling from "@server/middlewares/errorHandling";
 import { defaultRateLimiter } from "@server/middlewares/rateLimiter";
 import { AuthenticatedState } from "@server/types";
 import apiKeys from "./apiKeys";
@@ -41,7 +40,6 @@ const api = new Koa<
 const router = new Router();
 
 // middlewares
-api.use(errorHandling());
 api.use(
   bodyParser({
     multipart: true,

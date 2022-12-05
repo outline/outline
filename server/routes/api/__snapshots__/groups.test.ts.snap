@@ -14,6 +14,7 @@ Object {
   "error": "authorization_error",
   "message": "Authorization error",
   "ok": false,
+  "status": 403,
 }
 `;
 
@@ -67,6 +68,7 @@ Object {
   "error": "authorization_error",
   "message": "Authorization error",
   "ok": false,
+  "status": 403,
 }
 `;
 
@@ -84,5 +86,6 @@ Object {
   "error": "",
   "message": "The name of this group is already in use (isUniqueNameInTeam)",
   "ok": false,
+  "status": 400,
 }
 `;

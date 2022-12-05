@@ -2,12 +2,12 @@ import fs from "fs";
 import http from "http";
 import path from "path";
 import Koa, { Context } from "koa";
-import { isNil, escape } from "lodash";
+import { isNil, escape, snakeCase } from "lodash";
+import { ValidationError, EmptyResultError } from "sequelize";
 import env from "@server/env";
 import { InternalError } from "@server/errors";
 import { requestErrorHandler } from "@server/logging/sentry";
 
-const isDev = env.ENVIRONMENT === "development";
 const isTest = env.ENVIRONMENT === "test";
 let errorHtmlCache: Buffer | undefined;
 
@@ -96,7 +96,7 @@ export default function onerror(app: Koa) {
     this.status = err.status;
 
     this.set(err.headers);
-    const type = this.accepts("html", "json") || "json";
+    const type = this.accepts("json", "html") || "json";
     if (type === "html") {
       html.call(this, err, this);
     } else {
@@ -119,12 +119,48 @@ export default function onerror(app: Koa) {
  */
 
 function json(err: any, ctx: Context) {
-  const message =
-    (isDev || err.expose) && err.message
-      ? err.message
-      : http.STATUS_CODES[this.status];
+  ctx.status = err.status;
+  let message = err.message || err.name;
+  let error;
 
-  ctx.body = { error: message };
+  if (err instanceof ValidationError) {
+    // super basic form error handling
+    ctx.status = 400;
+
+    if (err.errors && err.errors[0]) {
+      message = `${err.errors[0].message} (${err.errors[0].path})`;
+    }
+  }
+
+  if (err instanceof EmptyResultError || /Not found/i.test(message)) {
+    message = "Resource not found";
+    ctx.status = 404;
+    error = "not_found";
+  }
+
+  if (/Authorization error/i.test(message)) {
+    ctx.status = 403;
+    error = "authorization_error";
+  }
+
+  if (ctx.status === 500) {
+    message = "Internal Server Error";
+    error = "internal_server_error";
+  }
+
+  ctx.body = {
+    ok: false,
+    error: snakeCase(err.id || error),
+    status: ctx.status,
+    message,
+    data: err.errorData,
+  };
+
+  // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
+  if (!ctx.body.data) {
+    // @ts-expect-error ts-migrate(2571) FIXME: Object is of type 'unknown'.
+    delete ctx.body.data;
+  }
 }
 
 /**
