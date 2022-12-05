@@ -11,6 +11,7 @@ import { opensearchResponse } from "@server/utils/opensearch";
 import { robotsResponse } from "@server/utils/robots";
 import apexRedirect from "../middlewares/apexRedirect";
 import { renderApp, renderShare } from "./app";
+import errors from "./errors";
 
 const isProduction = env.ENVIRONMENT === "production";
 const koa = new Koa();
@@ -133,6 +134,9 @@ koa.use(async (ctx, next) => {
   await next();
 });
 koa.use(apexRedirect());
+if (env.ENVIRONMENT === "test") {
+  koa.use(errors.routes());
+}
 koa.use(router.routes());
 
 export default koa;
