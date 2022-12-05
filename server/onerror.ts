@@ -5,6 +5,7 @@ import Koa, { Context } from "koa";
 import { isNil, escape } from "lodash";
 import env from "@server/env";
 import { InternalError } from "@server/errors";
+import { requestErrorHandler } from "@server/logging/sentry";
 
 const isDev = env.ENVIRONMENT === "development";
 const isTest = env.ENVIRONMENT === "test";
@@ -66,21 +67,6 @@ export default function onerror(app: Koa) {
       err = newError;
     }
 
-    const headerSent = this.headerSent || !this.writable;
-    if (headerSent) {
-      err.headerSent = true;
-    }
-
-    // delegate
-    this.app.emit("error", err, this);
-
-    // nothing we can do here other
-    // than delegate to the app-level
-    // handler and log.
-    if (headerSent) {
-      return;
-    }
-
     // ENOENT support
     if (err.code === "ENOENT") {
       err.status = 404;
@@ -89,6 +75,24 @@ export default function onerror(app: Koa) {
     if (typeof err.status !== "number" || !http.STATUS_CODES[err.status]) {
       err.status = 500;
     }
+
+    // Push only unknown 500 errors to sentry
+    if (err.status === 500) {
+      requestErrorHandler(err, this);
+    }
+
+    const headerSent = this.headerSent || !this.writable;
+    if (headerSent) {
+      err.headerSent = true;
+    }
+
+    // nothing we can do here other
+    // than delegate to the app-level
+    // handler and log.
+    if (headerSent) {
+      return;
+    }
+
     this.status = err.status;
 
     this.set(err.headers);

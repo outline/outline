@@ -14,7 +14,6 @@ import { AddressInfo } from "net";
 import stoppable from "stoppable";
 import throng from "throng";
 import Logger from "./logging/Logger";
-import { requestErrorHandler } from "./logging/sentry";
 import services from "./services";
 import { getArg } from "./utils/args";
 import { getSSLOptions } from "./utils/ssl";
@@ -84,7 +83,6 @@ async function start(id: number, disconnect: () => void) {
 
   // catch errors in one place, automatically set status and response headers
   onerror(app);
-  app.on("error", requestErrorHandler);
 
   // install health check endpoint for all services
   router.get("/_health", (ctx) => (ctx.body = "OK"));
