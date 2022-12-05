@@ -1074,11 +1074,13 @@ router.post(
   auth(),
   validate(T.DocumentsImportSchema),
   async (ctx: APIContext<T.DocumentsImportReq>) => {
-    const { publish, collectionId, parentDocumentId } = ctx.input;
-
     if (!ctx.is("multipart/form-data")) {
       throw InvalidRequestError("Request type must be multipart/form-data");
     }
+
+    // String as this is always multipart/form-data
+    const publish = ctx.input.publish === "true";
+    const { collectionId, parentDocumentId } = ctx.input;
 
     const file = ctx.request.files
       ? Object.values(ctx.request.files)[0]

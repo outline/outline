@@ -231,8 +231,8 @@ export const DocumentsUnpublishSchema = BaseIdSchema.extend({});
 export type DocumentsUnpublishReq = z.infer<typeof DocumentsUnpublishSchema>;
 
 export const DocumentsImportSchema = z.object({
-  /** Whether to publish the imported docs */
-  publish: z.boolean().optional(),
+  /** Whether to publish the imported docs. String due to multi-part form upload */
+  publish: z.string().optional(),
 
   /** Import docs to this collection */
   collectionId: z.string().uuid(),
