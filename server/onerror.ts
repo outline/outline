@@ -8,21 +8,29 @@ import env from "@server/env";
 import { InternalError } from "@server/errors";
 import { requestErrorHandler } from "@server/logging/sentry";
 
-const isTest = env.ENVIRONMENT === "test";
+const isDev = env.ENVIRONMENT === "development";
+const isProd = env.ENVIRONMENT === "production";
 let errorHtmlCache: Buffer | undefined;
 
 const readErrorFile = (): Buffer => {
-  if (!isTest) {
+  if (isDev) {
     return (
       errorHtmlCache ??
-      (errorHtmlCache = fs.readFileSync(path.join(__dirname, "error.html")))
+      (errorHtmlCache = fs.readFileSync(path.join(__dirname, "devError.html")))
+    );
+  }
+
+  if (isProd) {
+    return (
+      errorHtmlCache ??
+      (errorHtmlCache = fs.readFileSync(path.join(__dirname, "prodError.html")))
     );
   }
 
   return (
     errorHtmlCache ??
     (errorHtmlCache = fs.readFileSync(
-      path.join(__dirname, "static/index.html")
+      path.join(__dirname, "static/devError.html")
     ))
   );
 };
