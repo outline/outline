@@ -668,7 +668,7 @@
   "Update": "Aggiorna",
   "Updating": "Aggiornamento",
   "Provide a descriptive name for this webhook and the URL we should send a POST request to when matching events are created.": "Fornisci un nome descrittivo per questo webhook e l'URL a cui dobbiamo inviare una richiesta POST quando vengono creati gli eventi corrispondenti.",
-  "A memorable identifer": "A memorable identifer",
+  "A memorable identifer": "Un identificatore memorizzabile",
   "URL": "URL",
   "Signing secret": "Signing secret",
   "Subscribe to all events, groups, or individual events. We recommend only subscribing to the minimum amount of events that your application needs to function.": "Subscribe to all events, groups, or individual events. We recommend only subscribing to the minimum amount of events that your application needs to function.",
