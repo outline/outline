@@ -1,8 +1,8 @@
 import styled from "styled-components";
 
 type Props = {
-  type?: "secondary" | "tertiary";
-  size?: "large" | "small" | "xsmall";
+  type?: "secondary" | "tertiary" | "danger";
+  size?: "large" | "small" | "xsmall" | "xxsmall";
 };
 
 /**
@@ -16,6 +16,8 @@ const Text = styled.p<Props>`
       ? props.theme.textSecondary
       : props.type === "tertiary"
       ? props.theme.textTertiary
+      : props.type === "danger"
+      ? props.theme.brand.red
       : props.theme.text};
   font-size: ${(props) =>
     props.size === "large"

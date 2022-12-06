@@ -5,11 +5,13 @@ import { ExpandedIcon, GlobeIcon, PadlockIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
+import { SHARE_URL_SLUG_REGEX } from "@shared/utils/urlHelpers";
 import Document from "~/models/Document";
 import Share from "~/models/Share";
 import Button from "~/components/Button";
 import CopyToClipboard from "~/components/CopyToClipboard";
 import Flex from "~/components/Flex";
+import Input from "~/components/Input";
 import Notice from "~/components/Notice";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
@@ -43,6 +45,7 @@ function SharePopover({
   const [isCopied, setIsCopied] = React.useState(false);
   const [expandedOptions, setExpandedOptions] = React.useState(false);
   const [isEditMode, setIsEditMode] = React.useState(false);
+  const [slugValidationError, setSlugValidationError] = React.useState("");
   const timeout = React.useRef<ReturnType<typeof setTimeout>>();
   const buttonRef = React.useRef<HTMLButtonElement>(null);
   const can = usePolicy(share ? share.id : "");
@@ -119,6 +122,17 @@ function SharePopover({
       });
     }, 250);
   }, [t, onRequestClose, showToast]);
+
+  const handleUrlSlugChange = React.useCallback(
+    (ev) => {
+      ev.target.value && !SHARE_URL_SLUG_REGEX.test(ev.target.value)
+        ? setSlugValidationError(
+            t("Only lowercase letters, digits and dashes allowed")
+          )
+        : setSlugValidationError("");
+    },
+    [t]
+  );
 
   const userLocale = useUserLocale();
   const locale = userLocale ? dateLocale(userLocale) : undefined;
@@ -233,6 +247,15 @@ function SharePopover({
               </SwitchText>
             </SwitchLabel>
           </SwitchWrapper>
+          <Separator />
+          <SwitchWrapper>
+            <Input
+              type="text"
+              label={t("Share url slug")}
+              onChange={handleUrlSlugChange}
+              error={slugValidationError}
+            />
+          </SwitchWrapper>
         </>
       )}
 
@@ -252,7 +275,9 @@ function SharePopover({
         <CopyToClipboard text={shareUrl} onCopy={handleCopied}>
           <Button
             type="submit"
-            disabled={isCopied || (!share && team.sharing)}
+            disabled={
+              isCopied || (!share && team.sharing) || slugValidationError
+            }
             ref={buttonRef}
           >
             {t("Copy link")}
