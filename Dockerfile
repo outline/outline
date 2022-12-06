@@ -1,5 +1,25 @@
 ARG APP_PATH=/opt/outline
-FROM 289925803667.dkr.ecr.us-east-1.amazonaws.com/outline-nonprod-base-image:outline-base-image-0.2 as base
+
+ARG APP_PATH=/opt/outline
+FROM public.ecr.aws/docker/library/node:16.14.2-alpine3.15 AS deps
+
+ARG APP_PATH
+WORKDIR $APP_PATH
+COPY ./package.json ./yarn.lock ./
+
+RUN yarn install --no-optional --frozen-lockfile --network-timeout 1000000 && \
+  yarn cache clean
+
+COPY . .
+ARG CDN_URL
+RUN yarn build
+
+RUN rm -rf node_modules
+
+RUN yarn install --production=true --frozen-lockfile --network-timeout 1000000 && \
+  yarn cache clean
+
+FROM deps as base
 
 ARG APP_PATH
 WORKDIR $APP_PATH

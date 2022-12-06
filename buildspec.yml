@@ -1,0 +1,39 @@
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      docker: 20
+  pre_build:
+    on-failure: ABORT
+    commands:
+      - ECR_REPOSITORY_URI=${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO_NAME}
+      - echo Logging in to Amazon ECR...
+      - $(aws ecr get-login --region $AWS_DEFAULT_REGION --no-include-email)
+      - IMAGE_TAG=release-$CODEBUILD_RESOLVED_SOURCE_VERSION
+      - docker pull $ECR_REPOSITORY_URI:latest || true
+  build:
+    on-failure: ABORT
+    commands:
+      - echo Build started on `date`
+      - echo Building the Docker image...
+      - docker build --cache-from $ECR_REPOSITORY_URI:latest --tag $ECR_REPOSITORY_URI:$IMAGE_TAG .
+      - docker push $ECR_REPOSITORY_URI:$IMAGE_TAG
+      - docker tag $ECR_REPOSITORY_URI:$IMAGE_TAG $ECR_REPOSITORY_URI:latest
+      - docker push $ECR_REPOSITORY_URI:latest
+  post_build:
+    on-failure: ABORT
+    commands:
+      - echo DB Migration started on `date`
+      - echo Migration on ECS...
+      - run_result=$(aws ecs run-task --cluster $CLUSTER_NAME --task-definition $TASK_DEFINITION)
+      - container_arn=$(echo $run_result | jq '.tasks[0].taskArn' | sed -e 's/^"//' -e 's/"$//')
+      - echo Container ARN $container_arn
+      - aws ecs wait tasks-stopped --cluster  $CLUSTER_NAME --tasks "${container_arn}"
+      - describe_result=$(aws ecs describe-tasks --cluster  $CLUSTER_NAME --tasks "${container_arn}")
+      - terminated_status=$(echo $describe_result | jq '.tasks[0].containers[0].exitCode')
+      - printf '[{"name":"%s","imageUri":"%s"}]' $CONTAINER_NAME $ECR_REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+      - cat imagedefinitions.json
+      - echo $terminated_status
+      - exit $terminated_status
+artifacts:
+  files: imagedefinitions.json
