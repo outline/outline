@@ -1,6 +1,7 @@
 import Router from "koa-router";
 import { Op, WhereOptions } from "sequelize";
-import { NotFoundError } from "@server/errors";
+import { SHARE_URL_SLUG_REGEX } from "@shared/utils/urlHelpers";
+import { NotFoundError, ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { Document, User, Event, Share, Team, Collection } from "@server/models";
 import { authorize } from "@server/policies";
@@ -162,8 +163,14 @@ router.post("shares.list", auth(), pagination(), async (ctx) => {
 });
 
 router.post("shares.update", auth(), async (ctx) => {
-  const { id, includeChildDocuments, published } = ctx.request.body;
+  const { id, includeChildDocuments, published, urlId } = ctx.request.body;
   assertUuid(id, "id is required");
+
+  if (urlId) {
+    if (!SHARE_URL_SLUG_REGEX.test(urlId)) {
+      throw ValidationError("Invalid urlId!");
+    }
+  }
 
   const { user } = ctx.state;
   const team = await Team.findByPk(user.teamId);
@@ -190,6 +197,8 @@ router.post("shares.update", auth(), async (ctx) => {
   if (includeChildDocuments !== undefined) {
     share.includeChildDocuments = includeChildDocuments;
   }
+
+  share.urlId = urlId;
 
   await share.save();
   await Event.create({

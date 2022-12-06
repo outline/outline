@@ -7,6 +7,7 @@ import {
   Scopes,
   DataType,
   Default,
+  AllowNull,
 } from "sequelize-typescript";
 import Collection from "./Collection";
 import Document from "./Document";
@@ -84,6 +85,10 @@ class Share extends IdModel {
   @Default(0)
   @Column
   views: number;
+
+  @AllowNull
+  @Column
+  urlId: string | null | undefined;
 
   // getters
 
