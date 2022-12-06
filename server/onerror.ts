@@ -16,30 +16,30 @@ const readErrorFile = (): Buffer => {
   if (isDev) {
     return (
       errorHtmlCache ??
-      (errorHtmlCache = fs.readFileSync(path.join(__dirname, "devError.html")))
+      (errorHtmlCache = fs.readFileSync(path.join(__dirname, "error.dev.html")))
     );
   }
 
   if (isProd) {
     return (
       errorHtmlCache ??
-      (errorHtmlCache = fs.readFileSync(path.join(__dirname, "prodError.html")))
+      (errorHtmlCache = fs.readFileSync(
+        path.join(__dirname, "error.prod.html")
+      ))
     );
   }
 
   return (
     errorHtmlCache ??
     (errorHtmlCache = fs.readFileSync(
-      path.join(__dirname, "static/devError.html")
+      path.join(__dirname, "static/error.dev.html")
     ))
   );
 };
 
 export default function onerror(app: Koa) {
   app.context.onerror = function (err: any) {
-    // don't do anything if there is no error.
-    // this allows you to pass `this.onerror`
-    // to node-style callbacks.
+    // Don't do anything if there is no error, this allows you to pass `this.onerror` to node-style callbacks.
     if (isNil(err)) {
       return;
     }
@@ -82,7 +82,6 @@ export default function onerror(app: Koa) {
       err = newError;
     }
 
-    // ENOENT support
     if (err.code === "ENOENT") {
       err.status = 404;
     }
@@ -101,9 +100,7 @@ export default function onerror(app: Koa) {
       err.headerSent = true;
     }
 
-    // nothing we can do here other
-    // than delegate to the app-level
-    // handler and log.
+    // Nothing we can do here other than delegate to the app-level handler and log.
     if (headerSent) {
       return;
     }
@@ -129,8 +126,10 @@ export default function onerror(app: Koa) {
 }
 
 /**
- * json error handler
- * @param {Error} err
+ * Handle errors for json requests.
+ *
+ * @param err The error being handled.
+ * @param ctx The request context.
  */
 
 function json(err: any, ctx: Context) {
@@ -159,7 +158,7 @@ function json(err: any, ctx: Context) {
   }
 
   if (ctx.status === 500) {
-    message = "Internal Server Error";
+    message = "Internal server error";
     error = "internal_server_error";
   }
 
@@ -179,8 +178,10 @@ function json(err: any, ctx: Context) {
 }
 
 /**
- * html error handler
- * @param {Error} err
+ * Handle errors for html requests.
+ *
+ * @param err The error being handled.
+ * @param ctx The request context.
  */
 
 function html(err: any, ctx: Context) {
