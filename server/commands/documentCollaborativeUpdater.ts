@@ -1,41 +1,27 @@
 import { yDocToProsemirrorJSON } from "@getoutline/y-prosemirror";
 import { uniq } from "lodash";
 import { Node } from "prosemirror-model";
-import { QueryTypes } from "sequelize";
 import * as Y from "yjs";
 import { sequelize } from "@server/database/sequelize";
 import { schema, serializer } from "@server/editor";
 import Logger from "@server/logging/Logger";
 import { Document, Event } from "@server/models";
 
+type Props = {
+  /** The document ID to update */
+  documentId: string;
+  /** Current collaobrative state */
+  ydoc: Y.Doc;
+  /** The user ID that is performing the update, if known */
+  userId?: string;
+};
+
 export default async function documentCollaborativeUpdater({
   documentId,
   ydoc,
   userId,
-}: {
-  documentId: string;
-  ydoc: Y.Doc;
-  userId?: string;
-}) {
+}: Props) {
   return sequelize.transaction(async (transaction) => {
-    const [{ hasCollaborativeState }] = await sequelize.query<{
-      hasCollaborativeState: boolean;
-    }>(
-      `
-SELECT id,
-CASE WHEN state IS NOT NULL THEN true ELSE false END AS "hasCollaborativeState"
-FROM documents
-WHERE id = :documentId;
-`,
-      {
-        type: QueryTypes.SELECT,
-        transaction,
-        replacements: {
-          documentId,
-        },
-      }
-    );
-
     const document = await Document.unscoped()
       .scope("withoutState")
       .findOne({
@@ -55,49 +41,41 @@ WHERE id = :documentId;
     const node = Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
     const text = serializer.serialize(node, undefined);
     const isUnchanged = document.text === text;
+    const lastModifiedById = userId ?? document.lastModifiedById;
 
-    console.log("hasCollaborativeState", hasCollaborativeState);
-
-    if (isUnchanged && hasCollaborativeState) {
+    if (isUnchanged) {
       return;
     }
 
     Logger.info(
       "multiplayer",
-      `Persisting ${documentId}, attributed to ${userId}`
+      `Persisting ${documentId}, attributed to ${lastModifiedById}`
     );
 
     // extract collaborators from doc user data
     const pud = new Y.PermanentUserData(ydoc);
     const pudIds = Array.from(pud.clients.values());
-    const existingIds = document.collaboratorIds;
-    const collaboratorIds = uniq([...pudIds, ...existingIds]);
+    const collaboratorIds = uniq([...document.collaboratorIds, ...pudIds]);
 
     await document.update(
       {
         text,
         state: Buffer.from(state),
-        lastModifiedById:
-          isUnchanged || !userId ? document.lastModifiedById : userId,
+        lastModifiedById,
         collaboratorIds,
       },
       {
         transaction,
-        silent: isUnchanged,
         hooks: false,
       }
     );
-
-    if (isUnchanged) {
-      return;
-    }
 
     await Event.schedule({
       name: "documents.update",
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
-      actorId: userId ?? document.lastModifiedById,
+      actorId: lastModifiedById,
       data: {
         multiplayer: true,
         title: document.title,
