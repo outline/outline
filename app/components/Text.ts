@@ -2,7 +2,7 @@ import styled from "styled-components";
 
 type Props = {
   type?: "secondary" | "tertiary" | "danger";
-  size?: "large" | "small" | "xsmall" | "xxsmall";
+  size?: "large" | "small" | "xsmall";
 };
 
 /**
