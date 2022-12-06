@@ -1,13 +1,12 @@
 /**
  * Get the value of a command line argument
  *
- * @param {string} name The name of the argument
- * @param {string} shortName The optioanl short name
- *
- * @returns {string} The value of the argument.
+ * @param name The name of the argument
+ * @param shortName The optioanl short name
+ * @returns The value of the argument or undefined if the argument is not present
  */
 export function getArg(name: string, shortName?: string) {
-  return process.argv
+  const argument = process.argv
     .slice(2)
     .filter(
       (arg) =>
@@ -15,5 +14,8 @@ export function getArg(name: string, shortName?: string) {
         (shortName && arg.startsWith(`-${shortName}=`))
     )
     .map((arg) => arg.split("=")[1])
+    .map((arg) => arg.trim())
     .join(",");
+
+  return argument || undefined;
 }

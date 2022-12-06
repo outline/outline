@@ -18,7 +18,7 @@ type Props = {
 
 function Actions({ collection }: Props) {
   const { t } = useTranslation();
-  const can = usePolicy(collection.id);
+  const can = usePolicy(collection);
 
   return (
     <>

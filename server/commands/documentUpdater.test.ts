@@ -1,10 +1,14 @@
 import { sequelize } from "@server/database/sequelize";
 import { Event } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
-import { flushdb } from "@server/test/support";
+import { getTestDatabase } from "@server/test/support";
 import documentUpdater from "./documentUpdater";
 
-beforeEach(() => flushdb());
+const db = getTestDatabase();
+
+afterAll(db.disconnect);
+
+beforeEach(db.flush);
 
 describe("documentUpdater", () => {
   const ip = "127.0.0.1";

@@ -1,28 +1,30 @@
 import { Node } from "prosemirror-model";
+import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { parser } from "@server/editor";
 
+/**
+ * Parse a list of unique document identifiers contained in links in markdown
+ * text.
+ *
+ * @param text The text to parse in Markdown format
+ * @returns An array of document identifiers
+ */
 export default function parseDocumentIds(text: string): string[] {
   const value = parser.parse(text);
-  const links: string[] = [];
+  const identifiers: string[] = [];
 
   function findLinks(node: Node) {
     // get text nodes
     if (node.type.name === "text") {
       // get marks for text nodes
       node.marks.forEach((mark) => {
-        // any of the marks links?
+        // any of the marks identifiers?
         if (mark.type.name === "link") {
-          const { href } = mark.attrs;
+          const slug = parseDocumentSlug(mark.attrs.href);
 
-          // any of the links to other docs?
-          if (href.startsWith("/doc")) {
-            const tokens = href.replace(/\/$/, "").split("/");
-            const lastToken = tokens[tokens.length - 1];
-
-            // don't return the same link more than once
-            if (!links.includes(lastToken)) {
-              links.push(lastToken);
-            }
+          // don't return the same link more than once
+          if (slug && !identifiers.includes(slug)) {
+            identifiers.push(slug);
           }
         }
       });
@@ -36,5 +38,5 @@ export default function parseDocumentIds(text: string): string[] {
   }
 
   findLinks(value);
-  return links;
+  return identifiers;
 }

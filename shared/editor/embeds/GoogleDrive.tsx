@@ -3,7 +3,7 @@ import Frame from "../components/Frame";
 import Image from "../components/Image";
 import { EmbedProps as Props } from ".";
 
-const URL_REGEX = new RegExp("^https?://drive.google.com/file/d/(.*)$");
+const URL_REGEX = new RegExp("^https?://drive\\.google\\.com/file/d/(.*)$");
 
 export default class GoogleDrive extends React.Component<Props> {
   static ENABLED = [URL_REGEX];

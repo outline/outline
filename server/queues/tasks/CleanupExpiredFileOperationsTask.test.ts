@@ -5,17 +5,21 @@ import {
   FileOperationType,
 } from "@server/models/FileOperation";
 import { buildFileOperation } from "@server/test/factories";
-import { flushdb } from "@server/test/support";
+import { getTestDatabase } from "@server/test/support";
 import CleanupExpiredFileOperationsTask from "./CleanupExpiredFileOperationsTask";
 
-beforeEach(() => flushdb());
+const db = getTestDatabase();
+
+afterAll(db.disconnect);
+
+beforeEach(db.flush);
 
 describe("CleanupExpiredFileOperationsTask", () => {
-  it("should expire exports older than 30 days ago", async () => {
+  it("should expire exports older than 15 days ago", async () => {
     await buildFileOperation({
       type: FileOperationType.Export,
       state: FileOperationState.Complete,
-      createdAt: subDays(new Date(), 30),
+      createdAt: subDays(new Date(), 15),
     });
     await buildFileOperation({
       type: FileOperationType.Export,
@@ -35,11 +39,11 @@ describe("CleanupExpiredFileOperationsTask", () => {
     expect(data).toEqual(1);
   });
 
-  it("should not expire exports made less than 30 days ago", async () => {
+  it("should not expire exports made less than 15 days ago", async () => {
     await buildFileOperation({
       type: FileOperationType.Export,
       state: FileOperationState.Complete,
-      createdAt: subDays(new Date(), 29),
+      createdAt: subDays(new Date(), 14),
     });
     await buildFileOperation({
       type: FileOperationType.Export,

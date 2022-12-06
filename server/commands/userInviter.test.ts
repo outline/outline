@@ -1,8 +1,12 @@
 import { buildUser } from "@server/test/factories";
-import { flushdb } from "@server/test/support";
+import { getTestDatabase } from "@server/test/support";
 import userInviter from "./userInviter";
 
-beforeEach(() => flushdb());
+const db = getTestDatabase();
+
+afterAll(db.disconnect);
+
+beforeEach(db.flush);
 
 describe("userInviter", () => {
   const ip = "127.0.0.1";

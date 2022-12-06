@@ -63,6 +63,15 @@ const EditorStyles = styled.div<{
       margin-bottom: 0.25em;
     }
 
+    // all of heading sizes are stepped down one from global styles, except h1
+    // which is between h1 and h2
+    h1 { font-size: 1.75em; }
+    h2 { font-size: 1.25em; }
+    h3 { font-size: 1em; }
+    h4 { font-size: 0.875em; }
+    h5 { font-size: 0.75em; }
+    h6 { font-size: 0.75em; }
+
     .ProseMirror-yjs-cursor {
       position: relative;
       margin-left: -1px;
@@ -1266,6 +1275,7 @@ const EditorStyles = styled.div<{
     .placeholder:before,
     .block-menu-trigger,
     .heading-actions,
+    button.show-source-button,
     h1:not(.placeholder):before,
     h2:not(.placeholder):before,
     h3:not(.placeholder):before,
@@ -1277,6 +1287,11 @@ const EditorStyles = styled.div<{
 
     .page-break {
       opacity: 0;
+    }
+
+    pre {
+      overflow-x: hidden;
+      white-space: pre-wrap;
     }
 
     em,

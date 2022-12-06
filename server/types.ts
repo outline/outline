@@ -1,17 +1,19 @@
 import { Context } from "koa";
 import { FileOperation, Team, User } from "./models";
 
-export enum AuthenticationTypes {
+export enum AuthenticationType {
   API = "api",
   APP = "app",
 }
 
+export type AuthenticatedState = {
+  user: User;
+  token: string;
+  authType: AuthenticationType;
+};
+
 export type ContextWithState = Context & {
-  state: {
-    user: User;
-    token: string;
-    authType: AuthenticationTypes;
-  };
+  state: AuthenticatedState;
 };
 
 type BaseEvent = {
@@ -95,9 +97,7 @@ export type DocumentEvent = BaseEvent &
           | "documents.permanent_delete"
           | "documents.archive"
           | "documents.unarchive"
-          | "documents.restore"
-          | "documents.star"
-          | "documents.unstar";
+          | "documents.restore";
         documentId: string;
         collectionId: string;
         data: {
@@ -257,6 +257,13 @@ export type ShareEvent = BaseEvent & {
   };
 };
 
+export type SubscriptionEvent = BaseEvent & {
+  name: "subscriptions.create" | "subscriptions.delete";
+  modelId: string;
+  userId: string;
+  documentId: string | null;
+};
+
 export type ViewEvent = BaseEvent & {
   name: "views.create";
   documentId: string;
@@ -293,6 +300,7 @@ export type Event =
   | GroupEvent
   | RevisionEvent
   | ShareEvent
+  | SubscriptionEvent
   | TeamEvent
   | UserEvent
   | ViewEvent

@@ -16,6 +16,7 @@ import { EditorState, Selection, Plugin, Transaction } from "prosemirror-state";
 import { Decoration, EditorView } from "prosemirror-view";
 import * as React from "react";
 import { DefaultTheme, ThemeProps } from "styled-components";
+import { EmbedDescriptor } from "@shared/editor/embeds";
 import Extension, { CommandFactory } from "@shared/editor/lib/Extension";
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
 import getHeadings from "@shared/editor/lib/getHeadings";
@@ -25,8 +26,10 @@ import Mark from "@shared/editor/marks/Mark";
 import Node from "@shared/editor/nodes/Node";
 import ReactNode from "@shared/editor/nodes/ReactNode";
 import fullExtensionsPackage from "@shared/editor/packages/full";
-import { EmbedDescriptor, EventType } from "@shared/editor/types";
+import { EventType } from "@shared/editor/types";
+import { IntegrationType } from "@shared/types";
 import EventEmitter from "@shared/utils/events";
+import Integration from "~/models/Integration";
 import Flex from "~/components/Flex";
 import { Dictionary } from "~/hooks/useDictionary";
 import Logger from "~/utils/Logger";
@@ -110,6 +113,8 @@ export type Props = {
   onShowToast: (message: string) => void;
   className?: string;
   style?: React.CSSProperties;
+
+  embedIntegrations?: Integration<IntegrationType.Embed>[];
 };
 
 type State = {
@@ -430,7 +435,7 @@ export class Editor extends React.PureComponent<
       state: this.createState(this.props.value),
       editable: () => !this.props.readOnly,
       nodeViews: this.nodeViews,
-      dispatchTransaction: function (transaction) {
+      dispatchTransaction(transaction) {
         // callback is bound to have the view instance as its this binding
         const { state, transactions } = this.state.applyTransaction(
           transaction
@@ -554,7 +559,14 @@ export class Editor extends React.PureComponent<
     this.setState({ blockMenuOpen: true, blockMenuSearch: search });
   };
 
-  private handleCloseBlockMenu = () => {
+  private handleCloseBlockMenu = (insertNewLine?: boolean) => {
+    if (insertNewLine) {
+      const transaction = this.view.state.tr.split(
+        this.view.state.selection.to
+      );
+      this.view.dispatch(transaction);
+      this.view.focus();
+    }
     if (!this.state.blockMenuOpen) {
       return;
     }

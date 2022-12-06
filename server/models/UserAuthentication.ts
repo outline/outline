@@ -142,7 +142,13 @@ class UserAuthentication extends IdModel {
     authenticationProvider: AuthenticationProvider,
     options: SaveOptions
   ): Promise<boolean> {
-    if (this.expiresAt > addMinutes(Date.now(), 5) || !this.refreshToken) {
+    if (
+      this.expiresAt > addMinutes(Date.now(), 5) ||
+      !this.refreshToken ||
+      // Some providers send no expiry depending on setup, in this case we can't
+      // refresh and assume the session is valid until logged out.
+      !this.expiresAt
+    ) {
       return false;
     }
 
@@ -162,7 +168,7 @@ class UserAuthentication extends IdModel {
       }
       this.accessToken = response.accessToken;
       this.expiresAt = response.expiresAt;
-      this.save(options);
+      await this.save(options);
     }
 
     Logger.info("utils", "Successfully refreshed expired access token", {

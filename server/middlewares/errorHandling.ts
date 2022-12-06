@@ -1,6 +1,6 @@
 import { Context, Next } from "koa";
 import { snakeCase } from "lodash";
-import { ValidationError } from "sequelize";
+import { ValidationError, EmptyResultError } from "sequelize";
 
 export default function errorHandling() {
   return async function errorHandlingMiddleware(ctx: Context, next: Next) {
@@ -20,7 +20,8 @@ export default function errorHandling() {
         }
       }
 
-      if (message.match(/Not found/i)) {
+      if (err instanceof EmptyResultError || message.match(/Not found/i)) {
+        message = "Resource not found";
         ctx.status = 404;
         error = "not_found";
       }

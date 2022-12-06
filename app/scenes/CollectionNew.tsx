@@ -3,6 +3,9 @@ import { observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { withTranslation, Trans, WithTranslation } from "react-i18next";
+import { randomElement } from "@shared/random";
+import { CollectionPermission } from "@shared/types";
+import { colorPalette } from "@shared/utils/collections";
 import { CollectionValidation } from "@shared/validations";
 import RootStore from "~/stores/RootStore";
 import Collection from "~/models/Collection";
@@ -30,13 +33,13 @@ class CollectionNew extends React.Component<Props> {
   icon = "";
 
   @observable
-  color = "#4E5C6E";
+  color = randomElement(colorPalette);
 
   @observable
   sharing = true;
 
   @observable
-  permission = "read_write";
+  permission = CollectionPermission.ReadWrite;
 
   @observable
   isSaving: boolean;
@@ -98,8 +101,8 @@ class CollectionNew extends React.Component<Props> {
     this.hasOpenedIconPicker = true;
   };
 
-  handlePermissionChange = (newPermission: string) => {
-    this.permission = newPermission;
+  handlePermissionChange = (permission: CollectionPermission) => {
+    this.permission = permission;
   };
 
   handleSharingChange = (ev: React.ChangeEvent<HTMLInputElement>) => {

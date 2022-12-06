@@ -6,7 +6,6 @@ import "./logging/tracing"; // must come before importing any instrumented modul
 import http from "http";
 import https from "https";
 import Koa from "koa";
-import compress from "koa-compress";
 import helmet from "koa-helmet";
 import logger from "koa-logger";
 import onerror from "koa-onerror";
@@ -27,16 +26,10 @@ import {
 } from "./utils/startup";
 import { checkUpdates } from "./utils/updates";
 
-// If a services flag is passed it takes priority over the environment variable
-// for example: --services=web,worker
-const normalizedServiceFlag = getArg("services");
-
 // The default is to run all services to make development and OSS installations
 // easier to deal with. Separate services are only needed at scale.
 const serviceNames = uniq(
-  (normalizedServiceFlag || env.SERVICES)
-    .split(",")
-    .map((service) => service.trim())
+  env.SERVICES.split(",").map((service) => service.trim())
 );
 
 // The number of processes to run, defaults to the number of CPU's available
@@ -87,7 +80,6 @@ async function start(id: number, disconnect: () => void) {
     app.use(logger((str) => Logger.info("http", str)));
   }
 
-  app.use(compress());
   app.use(helmet());
 
   // catch errors in one place, automatically set status and response headers
@@ -122,7 +114,10 @@ async function start(id: number, disconnect: () => void) {
       }`
     );
   });
+
   server.listen(normalizedPortFlag || env.PORT || "3000");
+  server.setTimeout(env.REQUEST_TIMEOUT);
+
   process.once("SIGTERM", shutdown);
   process.once("SIGINT", shutdown);
 

@@ -39,7 +39,7 @@ function DraggableCollectionLink({
   const [expanded, setExpanded] = React.useState(
     collection.id === ui.activeCollectionId && !locationStateStarred
   );
-  const can = usePolicy(collection.id);
+  const can = usePolicy(collection);
   const belowCollectionIndex = belowCollection ? belowCollection.index : null;
 
   // Drop to reorder collection

@@ -1,8 +1,9 @@
 import path from "path";
-import Koa from "koa";
+import Koa, { BaseContext } from "koa";
+import compress from "koa-compress";
 import Router from "koa-router";
 import send from "koa-send";
-import serve from "koa-static";
+import userAgent, { UserAgentContext } from "koa-useragent";
 import { languages } from "@shared/i18n";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
@@ -15,12 +16,30 @@ const isProduction = env.ENVIRONMENT === "production";
 const koa = new Koa();
 const router = new Router();
 
-// serve static assets
-koa.use(
-  serve(path.resolve(__dirname, "../../../public"), {
-    maxage: 60 * 60 * 24 * 30 * 1000,
-  })
-);
+koa.use<BaseContext, UserAgentContext>(userAgent);
+
+// serve public assets
+router.use(["/images/*", "/email/*"], async (ctx, next) => {
+  let done;
+
+  if (ctx.method === "HEAD" || ctx.method === "GET") {
+    try {
+      done = await send(ctx, ctx.path, {
+        root: path.resolve(__dirname, "../../../public"),
+        // 7 day expiry, these assets are mostly static but do not contain a hash
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+      });
+    } catch (err) {
+      if (err.status !== 404) {
+        throw err;
+      }
+    }
+  }
+
+  if (!done) {
+    await next();
+  }
+});
 
 if (isProduction) {
   router.get("/static/*", async (ctx) => {
@@ -51,6 +70,8 @@ if (isProduction) {
     }
   });
 }
+
+router.use(compress());
 
 router.get("/locales/:lng.json", async (ctx) => {
   const { lng } = ctx.params;

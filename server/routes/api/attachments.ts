@@ -1,22 +1,25 @@
 import Router from "koa-router";
 import { v4 as uuidv4 } from "uuid";
 import { bytesToHumanReadable } from "@shared/utils/files";
+import { AttachmentValidation } from "@shared/validations";
 import { sequelize } from "@server/database/sequelize";
 import { AuthorizationError, ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { Attachment, Document, Event } from "@server/models";
 import { authorize } from "@server/policies";
+import { ContextWithState } from "@server/types";
 import {
   getPresignedPost,
   publicS3Endpoint,
   getSignedUrl,
 } from "@server/utils/s3";
-import { assertPresent, assertUuid } from "@server/validation";
+import { assertIn, assertPresent, assertUuid } from "@server/validation";
 
 const router = new Router();
 const AWS_S3_ACL = process.env.AWS_S3_ACL || "private";
 
 router.post("attachments.create", auth(), async (ctx) => {
+  const isPublic = ctx.body.public;
   const {
     name,
     documentId,
@@ -25,8 +28,14 @@ router.post("attachments.create", auth(), async (ctx) => {
   } = ctx.body;
   assertPresent(name, "name is required");
   assertPresent(size, "size is required");
+
   const { user } = ctx.state;
   authorize(user, "createAttachment", user.team);
+
+  // Public attachments are only used for avatars, so this is loosely coupled.
+  if (isPublic) {
+    assertIn(contentType, AttachmentValidation.avatarContentTypes);
+  }
 
   if (
     process.env.AWS_S3_UPLOAD_MAX_SIZE &&
@@ -39,17 +48,18 @@ router.post("attachments.create", auth(), async (ctx) => {
     );
   }
 
-  const isPublic = ctx.body.public;
   const s3Key = uuidv4();
   const acl =
     isPublic === undefined ? AWS_S3_ACL : isPublic ? "public-read" : "private";
   const bucket = acl === "public-read" ? "public" : "uploads";
-  const key = `${bucket}/${user.id}/${s3Key}/${name}`;
+  const keyPrefix = `${bucket}/${user.id}/${s3Key}`;
+  const key = `${keyPrefix}/${name}`;
   const presignedPost = await getPresignedPost(key, acl, contentType);
   const endpoint = publicS3Endpoint();
-  const url = `${endpoint}/${key}`;
+  const url = `${endpoint}/${keyPrefix}/${encodeURIComponent(name)}`;
 
-  if (documentId) {
+  if (documentId !== undefined) {
+    assertUuid(documentId, "documentId must be a uuid");
     const document = await Document.findByPk(documentId, {
       userId: user.id,
     });
@@ -136,9 +146,10 @@ router.post("attachments.delete", auth(), async (ctx) => {
   };
 });
 
-router.post("attachments.redirect", auth(), async (ctx) => {
-  const { id } = ctx.body;
+const handleAttachmentsRedirect = async (ctx: ContextWithState) => {
+  const { id } = ctx.body as { id?: string };
   assertUuid(id, "id is required");
+
   const { user } = ctx.state;
   const attachment = await Attachment.findByPk(id, {
     rejectOnEmpty: true,
@@ -154,6 +165,9 @@ router.post("attachments.redirect", auth(), async (ctx) => {
   } else {
     ctx.redirect(attachment.canonicalUrl);
   }
-});
+};
+
+router.get("attachments.redirect", auth(), handleAttachmentsRedirect);
+router.post("attachments.redirect", auth(), handleAttachmentsRedirect);
 
 export default router;

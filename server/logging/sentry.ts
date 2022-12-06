@@ -14,7 +14,9 @@ if (env.SENTRY_DSN) {
       // Validation
       "BadRequestError",
       "SequelizeValidationError",
+      "SequelizeEmptyResultError",
       "ValidationError",
+      "ForbiddenError",
 
       // Authentication
       "UnauthorizedError",
@@ -22,6 +24,7 @@ if (env.SENTRY_DSN) {
       "GmailAccountCreationError",
       "AuthRedirectError",
       "UserSuspendedError",
+      "TooManyRequestsError",
     ],
   });
 }

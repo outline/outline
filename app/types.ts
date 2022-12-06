@@ -1,7 +1,12 @@
 import { Location, LocationDescriptor } from "history";
 import { TFunction } from "react-i18next";
 import RootStore from "~/stores/RootStore";
-import Document from "~/models/Document";
+import Document from "./models/Document";
+import FileOperation from "./models/FileOperation";
+import Pin from "./models/Pin";
+import Star from "./models/Star";
+
+export type PartialWithId<T> = Partial<T> & { id: string };
 
 export type MenuItemButton = {
   type: "button";
@@ -88,6 +93,7 @@ export type Action = {
   section: ((context: ActionContext) => string) | string;
   shortcut?: string[];
   keywords?: string;
+  dangerous?: boolean;
   iconInContextMenu?: boolean;
   icon?: React.ReactElement | React.FC;
   placeholder?: ((context: ActionContext) => string) | string;
@@ -177,3 +183,34 @@ export type ToastOptions = {
     onClick: React.MouseEventHandler<HTMLSpanElement>;
   };
 };
+
+export type WebsocketEntityDeletedEvent = {
+  modelId: string;
+};
+
+export type WebsocketEntitiesEvent = {
+  documentIds: { id: string; updatedAt?: string }[];
+  collectionIds: { id: string; updatedAt?: string }[];
+  groupIds: { id: string; updatedAt?: string }[];
+  teamIds: string[];
+  event: string;
+};
+
+export type WebsocketCollectionUserEvent = {
+  collectionId: string;
+  userId: string;
+};
+
+export type WebsocketCollectionUpdateIndexEvent = {
+  collectionId: string;
+  index: string;
+};
+
+export type WebsocketEvent =
+  | PartialWithId<Pin>
+  | PartialWithId<Star>
+  | PartialWithId<FileOperation>
+  | WebsocketCollectionUserEvent
+  | WebsocketCollectionUpdateIndexEvent
+  | WebsocketEntityDeletedEvent
+  | WebsocketEntitiesEvent;

@@ -12,9 +12,11 @@ export default createGlobalStyle`
   html,
   body {
     width: 100%;
-    min-height: 100vh;
+    height: 100%;
     margin: 0;
     padding: 0;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
   }
 
   body,
@@ -35,6 +37,13 @@ export default createGlobalStyle`
     -moz-osx-font-smoothing: grayscale;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
+  }
+
+  @media (min-width: ${breakpoints.tablet}px) {
+    html,
+    body {
+      min-height: 100vh;
+    }
   }
 
   @media (min-width: ${breakpoints.tablet}px) and (display-mode: standalone) {

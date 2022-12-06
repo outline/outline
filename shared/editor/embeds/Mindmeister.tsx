@@ -3,7 +3,7 @@ import Frame from "../components/Frame";
 import { EmbedProps as Props } from ".";
 
 const URL_REGEX = new RegExp(
-  "^https://([w.-]+.)?(mindmeister.com|mm.tt)(/maps/public_map_shell)?/(\\d+)(\\?t=.*)?(/.*)?$"
+  "^https://([w.-]+\\.)?(mindmeister\\.com|mm\\.tt)(/maps/public_map_shell)?/(\\d+)(\\?t=.*)?(/.*)?$"
 );
 
 export default class Mindmeister extends React.Component<Props> {

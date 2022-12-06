@@ -1,5 +1,11 @@
 import httpErrors from "http-errors";
 
+export function InternalError(message = "Internal error") {
+  return httpErrors(500, message, {
+    id: "internal_error",
+  });
+}
+
 export function AuthenticationError(
   message = "Authentication required",
   redirectUrl = "/"
@@ -158,16 +164,6 @@ export function GmailAccountCreationError(
 ) {
   return httpErrors(400, message, {
     id: "gmail_account_creation",
-  });
-}
-
-export function AuthRedirectError(
-  message = "Redirect to the correct domain after authentication",
-  redirectUrl: string
-) {
-  return httpErrors(400, message, {
-    id: "auth_redirect",
-    redirectUrl,
   });
 }
 

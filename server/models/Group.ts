@@ -31,7 +31,7 @@ import NotContainsUrl from "./validators/NotContainsUrl";
   tableName: "groups",
   modelName: "group",
   validate: {
-    isUniqueNameInTeam: async function () {
+    async isUniqueNameInTeam() {
       const foundItem = await Group.findOne({
         where: {
           teamId: this.teamId,

@@ -57,7 +57,6 @@ class AddPeopleToCollection extends React.Component<Props> {
       this.props.memberships.create({
         collectionId: this.props.collection.id,
         userId: user.id,
-        permission: "read_write",
       });
       this.props.toasts.showToast(
         t("{{ userName }} was added to the collection", {
@@ -110,7 +109,9 @@ class AddPeopleToCollection extends React.Component<Props> {
               <Empty>{t("No people left to add")}</Empty>
             )
           }
-          items={users.notInCollection(collection.id, this.query)}
+          items={users
+            .notInCollection(collection.id, this.query)
+            .filter((member) => member.id !== user.id)}
           fetch={this.query ? undefined : users.fetchPage}
           renderItem={(item: User) => (
             <MemberListItem

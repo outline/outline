@@ -1,25 +1,24 @@
 import { formatDistanceToNow } from "date-fns";
 import { deburr, sortBy } from "lodash";
+import { observer } from "mobx-react";
 import { DOMParser as ProsemirrorDOMParser } from "prosemirror-model";
 import { TextSelection } from "prosemirror-state";
 import * as React from "react";
-import mergeRefs from "react-merge-refs";
+import { mergeRefs } from "react-merge-refs";
 import { Optional } from "utility-types";
 import insertFiles from "@shared/editor/commands/insertFiles";
-import embeds from "@shared/editor/embeds";
 import { Heading } from "@shared/editor/lib/getHeadings";
-import {
-  getDataTransferFiles,
-  supportedImageMimeTypes,
-} from "@shared/utils/files";
+import { getDataTransferFiles } from "@shared/utils/files";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { isInternalUrl } from "@shared/utils/urls";
+import { AttachmentValidation } from "@shared/validations";
 import Document from "~/models/Document";
 import ClickablePadding from "~/components/ClickablePadding";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import HoverPreview from "~/components/HoverPreview";
 import type { Props as EditorProps, Editor as SharedEditor } from "~/editor";
 import useDictionary from "~/hooks/useDictionary";
+import useEmbeds from "~/hooks/useEmbeds";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import { NotFoundError } from "~/utils/errors";
@@ -60,6 +59,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   const { documents } = useStores();
   const { showToast } = useToasts();
   const dictionary = useDictionary();
+  const embeds = useEmbeds(!shareId);
   const [
     activeLinkEvent,
     setActiveLinkEvent,
@@ -212,7 +212,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
 
       // Insert all files as attachments if any of the files are not images.
       const isAttachment = files.some(
-        (file) => !supportedImageMimeTypes.includes(file.type)
+        (file) => !AttachmentValidation.imageContentTypes.includes(file.type)
       );
 
       insertFiles(view, event, pos, files, {
@@ -312,4 +312,4 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   );
 }
 
-export default React.forwardRef(Editor);
+export default observer(React.forwardRef(Editor));

@@ -53,3 +53,5 @@ export { default as View } from "./View";
 export { default as WebhookSubscription } from "./WebhookSubscription";
 
 export { default as WebhookDelivery } from "./WebhookDelivery";
+
+export { default as Subscription } from "./Subscription";

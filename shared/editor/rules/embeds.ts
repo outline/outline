@@ -1,6 +1,6 @@
 import MarkdownIt from "markdown-it";
 import Token from "markdown-it/lib/token";
-import { EmbedDescriptor } from "../types";
+import { EmbedDescriptor } from "../embeds";
 
 function isParagraph(token: Token) {
   return token.type === "paragraph_open";

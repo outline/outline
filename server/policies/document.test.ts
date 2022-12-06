@@ -1,23 +1,28 @@
+import { CollectionPermission } from "@shared/types";
 import {
   buildUser,
   buildTeam,
   buildDocument,
   buildCollection,
 } from "@server/test/factories";
-import { flushdb } from "@server/test/support";
+import { getTestDatabase } from "@server/test/support";
 import { serialize } from "./index";
 
-beforeEach(() => flushdb());
+const db = getTestDatabase();
+
+afterAll(db.disconnect);
+
+beforeEach(db.flush);
 
 describe("read_write collection", () => {
-  it("should allow read write permissions for team member", async () => {
+  it("should allow read write permissions for member", async () => {
     const team = await buildTeam();
     const user = await buildUser({
       teamId: team.id,
     });
     const collection = await buildCollection({
       teamId: team.id,
-      permission: "read_write",
+      permission: CollectionPermission.ReadWrite,
     });
     const document = await buildDocument({
       teamId: team.id,
@@ -33,17 +38,42 @@ describe("read_write collection", () => {
     expect(abilities.share).toEqual(true);
     expect(abilities.move).toEqual(true);
   });
+
+  it("should allow read permissions for viewer", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({
+      teamId: team.id,
+      isViewer: true,
+    });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: CollectionPermission.ReadWrite,
+    });
+    const document = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+    });
+    const abilities = serialize(user, document);
+    expect(abilities.read).toEqual(true);
+    expect(abilities.download).toEqual(true);
+    expect(abilities.update).toEqual(false);
+    expect(abilities.createChildDocument).toEqual(false);
+    expect(abilities.archive).toEqual(false);
+    expect(abilities.delete).toEqual(false);
+    expect(abilities.share).toEqual(false);
+    expect(abilities.move).toEqual(false);
+  });
 });
 
 describe("read collection", () => {
-  it("should allow read only permissions permissions for team member", async () => {
+  it("should allow read permissions for team member", async () => {
     const team = await buildTeam();
     const user = await buildUser({
       teamId: team.id,
     });
     const collection = await buildCollection({
       teamId: team.id,
-      permission: "read",
+      permission: CollectionPermission.Read,
     });
     const document = await buildDocument({
       teamId: team.id,

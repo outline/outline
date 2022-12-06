@@ -1,19 +1,18 @@
-import TestServer from "fetch-test-server";
-import webService from "@server/services/web";
 import { buildTeam, buildAdmin, buildUser } from "@server/test/factories";
-import { flushdb, seed } from "@server/test/support";
+import { seed, getTestDatabase, getTestServer } from "@server/test/support";
 
-const app = webService();
-const server = new TestServer(app.callback());
-beforeEach(() => flushdb());
+const db = getTestDatabase();
+const server = getTestServer();
 
 beforeAll(() => {
   jest.useFakeTimers().setSystemTime(new Date("2018-01-02T00:00:00.000Z"));
 });
 afterAll(() => {
   jest.useRealTimers();
-  return server.close();
+  server.disconnect();
 });
+
+beforeEach(db.flush);
 
 describe("#users.list", () => {
   it("should allow filtering by user name", async () => {
@@ -329,46 +328,47 @@ describe("#users.delete", () => {
     expect(res.status).toEqual(400);
   });
 
-  it("should allow deleting user account", async () => {
+  it("should require correct code when no id passed", async () => {
+    const user = await buildAdmin();
+    await buildUser({
+      teamId: user.teamId,
+      isAdmin: false,
+    });
+    const res = await server.post("/api/users.delete", {
+      body: {
+        code: "123",
+        token: user.getJwtToken(),
+      },
+    });
+    expect(res.status).toEqual(400);
+  });
+
+  it("should allow deleting user account with correct code", async () => {
     const user = await buildUser();
     await buildUser({
       teamId: user.teamId,
     });
     const res = await server.post("/api/users.delete", {
       body: {
+        code: user.deleteConfirmationCode,
         token: user.getJwtToken(),
       },
     });
     expect(res.status).toEqual(200);
   });
 
-  it("should allow deleting user account with admin", async () => {
+  it("should allow deleting user account as admin", async () => {
     const admin = await buildAdmin();
     const user = await buildUser({
       teamId: admin.teamId,
-      lastActiveAt: null,
     });
     const res = await server.post("/api/users.delete", {
       body: {
-        token: admin.getJwtToken(),
         id: user.id,
+        token: admin.getJwtToken(),
       },
     });
     expect(res.status).toEqual(200);
-  });
-
-  it("should not allow deleting another user account", async () => {
-    const user = await buildUser();
-    const user2 = await buildUser({
-      teamId: user.teamId,
-    });
-    const res = await server.post("/api/users.delete", {
-      body: {
-        token: user.getJwtToken(),
-        id: user2.id,
-      },
-    });
-    expect(res.status).toEqual(403);
   });
 
   it("should require authentication", async () => {

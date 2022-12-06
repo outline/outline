@@ -40,9 +40,11 @@ const cronHandler = async (ctx: Context) => {
   };
 };
 
+router.get("cron.:period", cronHandler);
 router.post("cron.:period", cronHandler);
 
 // For backwards compatibility
+router.get("utils.gc", cronHandler);
 router.post("utils.gc", cronHandler);
 
 export default router;

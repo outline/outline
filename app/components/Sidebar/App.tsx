@@ -36,7 +36,7 @@ function AppSidebar() {
   const { documents } = useStores();
   const team = useCurrentTeam();
   const user = useCurrentUser();
-  const can = usePolicy(team.id);
+  const can = usePolicy(team);
 
   React.useEffect(() => {
     if (!user.isViewer) {

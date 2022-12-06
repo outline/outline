@@ -27,12 +27,6 @@ export type MenuItem = {
   active?: (state: EditorState) => boolean;
 };
 
-export type EmbedDescriptor = MenuItem & {
-  icon: React.FC<any>;
-  matcher: (url: string) => boolean | [] | RegExpMatchArray;
-  component: typeof React.Component | React.FC<any>;
-};
-
 export type ComponentProps = {
   theme: DefaultTheme;
   node: ProsemirrorNode;

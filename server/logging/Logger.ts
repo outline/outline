@@ -110,7 +110,9 @@ class Logger {
     extra?: Extra,
     request?: IncomingMessage
   ) {
-    Metrics.increment("logger.error");
+    Metrics.increment("logger.error", {
+      name: error.name,
+    });
     Tracing.setError(error);
 
     if (env.SENTRY_DSN) {

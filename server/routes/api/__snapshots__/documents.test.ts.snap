@@ -44,24 +44,6 @@ Object {
 }
 `;
 
-exports[`#documents.star should require authentication 1`] = `
-Object {
-  "error": "authentication_required",
-  "message": "Authentication required",
-  "ok": false,
-  "status": 401,
-}
-`;
-
-exports[`#documents.unstar should require authentication 1`] = `
-Object {
-  "error": "authentication_required",
-  "message": "Authentication required",
-  "ok": false,
-  "status": 401,
-}
-`;
-
 exports[`#documents.update should fail if document lastRevision does not match 1`] = `
 Object {
   "error": "invalid_request",

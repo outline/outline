@@ -20,6 +20,7 @@ import "./pins";
 import "./searchQuery";
 import "./share";
 import "./star";
+import "./subscription";
 import "./user";
 import "./team";
 import "./group";

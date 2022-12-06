@@ -29,13 +29,6 @@ class Attachment extends IdModel {
   key: string;
 
   @Length({
-    max: 4096,
-    msg: "url must be 4096 characters or less",
-  })
-  @Column
-  url: string;
-
-  @Length({
     max: 255,
     msg: "contentType must be 255 characters or less",
   })
@@ -69,10 +62,6 @@ class Attachment extends IdModel {
     return getFileByKey(this.key);
   }
 
-  /**
-   * Use this instead of url which will be deleted soon, the column is unneccessary
-   * and was not updated with the migraiton to the new s3 bucket.
-   */
   get canonicalUrl() {
     return `${publicS3Endpoint()}/${this.key}`;
   }

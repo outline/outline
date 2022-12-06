@@ -1,11 +1,8 @@
-import TestServer from "fetch-test-server";
-import webService from "@server/services/web";
-import { flushdb } from "@server/test/support";
+import { getTestServer } from "@server/test/support";
 
-const app = webService();
-const server = new TestServer(app.callback());
-beforeEach(() => flushdb());
-afterAll(() => server.close());
+const server = getTestServer();
+
+afterAll(server.disconnect);
 
 describe("POST unknown endpoint", () => {
   it("should be not found", async () => {
@@ -18,5 +15,12 @@ describe("GET unknown endpoint", () => {
   it("should be not found", async () => {
     const res = await server.get("/api/blah");
     expect(res.status).toEqual(404);
+  });
+});
+
+describe("PATCH unknown endpoint", () => {
+  it("should be method not allowed", async () => {
+    const res = await server.patch("/api/blah");
+    expect(res.status).toEqual(405);
   });
 });

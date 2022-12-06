@@ -1,8 +1,13 @@
 import { buildUser, buildTeam, buildAdmin } from "@server/test/factories";
-import { flushdb } from "@server/test/support";
+import { getTestDatabase } from "@server/test/support";
 import { serialize } from "./index";
 
-beforeEach(() => flushdb());
+const db = getTestDatabase();
+
+afterAll(db.disconnect);
+
+beforeEach(db.flush);
+
 it("should allow reading only", async () => {
   const team = await buildTeam();
   const user = await buildUser({
@@ -17,6 +22,7 @@ it("should allow reading only", async () => {
   expect(abilities.createGroup).toEqual(false);
   expect(abilities.createIntegration).toEqual(false);
 });
+
 it("should allow admins to manage", async () => {
   const team = await buildTeam();
   const admin = await buildAdmin({

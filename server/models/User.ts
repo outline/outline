@@ -18,13 +18,17 @@ import {
   HasMany,
   Scopes,
   IsDate,
+  IsUrl,
+  AllowNull,
 } from "sequelize-typescript";
 import { languages } from "@shared/i18n";
+import { CollectionPermission } from "@shared/types";
 import { stringToColor } from "@shared/utils/color";
 import env from "@server/env";
 import { ValidationError } from "../errors";
 import ApiKey from "./ApiKey";
 import Collection from "./Collection";
+import CollectionUser from "./CollectionUser";
 import NotificationSetting from "./NotificationSetting";
 import Star from "./Star";
 import Team from "./Team";
@@ -154,6 +158,8 @@ class User extends ParanoidModel {
   @Column
   language: string;
 
+  @AllowNull
+  @IsUrl
   @Length({ max: 1000, msg: "avatarUrl must be less than 1000 characters" })
   @Column(DataType.STRING)
   get avatarUrl() {
@@ -213,6 +219,28 @@ class User extends ParanoidModel {
 
   get color() {
     return stringToColor(this.id);
+  }
+
+  get defaultCollectionPermission(): CollectionPermission {
+    return this.isViewer
+      ? CollectionPermission.Read
+      : CollectionPermission.ReadWrite;
+  }
+
+  /**
+   * Returns a code that can be used to delete this user account. The code will
+   * be rotated when the user signs out.
+   *
+   * @returns The deletion code.
+   */
+  get deleteConfirmationCode() {
+    return crypto
+      .createHash("md5")
+      .update(this.jwtSecret)
+      .digest("hex")
+      .replace(/[l1IoO0]/gi, "")
+      .slice(0, 8)
+      .toUpperCase();
   }
 
   // instance methods
@@ -278,8 +306,8 @@ class User extends ParanoidModel {
     return collectionStubs
       .filter(
         (c) =>
-          c.permission === "read" ||
-          c.permission === "read_write" ||
+          c.permission === CollectionPermission.Read ||
+          c.permission === CollectionPermission.ReadWrite ||
           c.memberships.length > 0 ||
           c.collectionGroupMemberships.length > 0
       )
@@ -392,7 +420,7 @@ class User extends ParanoidModel {
 
     if (res.count >= 1) {
       if (to === "member") {
-        return this.update(
+        await this.update(
           {
             isAdmin: false,
             isViewer: false,
@@ -400,12 +428,23 @@ class User extends ParanoidModel {
           options
         );
       } else if (to === "viewer") {
-        return this.update(
+        await this.update(
           {
             isAdmin: false,
             isViewer: true,
           },
           options
+        );
+        await CollectionUser.update(
+          {
+            permission: CollectionPermission.Read,
+          },
+          {
+            ...options,
+            where: {
+              userId: this.id,
+            },
+          }
         );
       }
 
@@ -419,13 +458,6 @@ class User extends ParanoidModel {
     return this.update({
       isAdmin: true,
       isViewer: false,
-    });
-  };
-
-  activate = () => {
-    return this.update({
-      suspendedById: null,
-      suspendedAt: null,
     });
   };
 
@@ -481,7 +513,9 @@ class User extends ParanoidModel {
   };
 
   // By default when a user signs up we subscribe them to email notifications
-  // when documents they created are edited by other team members and onboarding
+  // when documents they created are edited by other team members and onboarding.
+  // If the user is an admin, they will also be subscribed to export_completed
+  // notifications.
   @AfterCreate
   static subscribeToNotifications = async (
     model: User,
@@ -521,6 +555,17 @@ class User extends ParanoidModel {
         transaction: options.transaction,
       }),
     ]);
+
+    if (model.isAdmin) {
+      await NotificationSetting.findOrCreate({
+        where: {
+          userId: model.id,
+          teamId: model.teamId,
+          event: "emails.export_completed",
+        },
+        transaction: options.transaction,
+      });
+    }
   };
 
   static getCounts = async function (teamId: string) {
@@ -550,7 +595,7 @@ class User extends ParanoidModel {
       suspendedCount: string;
       viewerCount: string;
       count: string;
-    } = results as any;
+    } = results;
 
     return {
       active: parseInt(counts.activeCount),

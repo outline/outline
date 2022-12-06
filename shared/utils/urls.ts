@@ -1,3 +1,4 @@
+import { escapeRegExp } from "lodash";
 import env from "../env";
 import { parseDomain } from "./domains";
 
@@ -71,24 +72,34 @@ export function isExternalUrl(url: string) {
 }
 
 /**
- * For use in the editor, this function will ensure that a link href is
+ * For use in the editor, this function will ensure that a url is
  * potentially valid, and filter out unsupported and malicious protocols.
  *
- * @param href The href to sanitize
+ * @param url The url to sanitize
  * @returns The sanitized href
  */
-export function sanitizeHref(href: string | null | undefined) {
-  if (!href) {
+export function sanitizeUrl(url: string | null | undefined) {
+  if (!url) {
     return undefined;
   }
 
   if (
-    !isUrl(href) &&
-    !href.startsWith("/") &&
-    !href.startsWith("#") &&
-    !href.startsWith("mailto:")
+    !isUrl(url) &&
+    !url.startsWith("/") &&
+    !url.startsWith("#") &&
+    !url.startsWith("mailto:")
   ) {
-    return `https://${href}`;
+    return `https://${url}`;
   }
-  return href;
+  return url;
+}
+
+export function urlRegex(url: string | null | undefined): RegExp | undefined {
+  if (!url || !isUrl(url)) {
+    return undefined;
+  }
+
+  const urlObj = new URL(sanitizeUrl(url) as string);
+
+  return new RegExp(escapeRegExp(`${urlObj.protocol}//${urlObj.host}`));
 }

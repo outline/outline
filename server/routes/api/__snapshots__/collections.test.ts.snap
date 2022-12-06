@@ -8,6 +8,14 @@ Object {
 }
 `;
 
+exports[`#collections.add_user should not allow add self 1`] = `
+Object {
+  "error": "authorization_error",
+  "message": "Authorization error",
+  "ok": false,
+}
+`;
+
 exports[`#collections.add_user should require user in team 1`] = `
 Object {
   "error": "authorization_error",
@@ -123,15 +131,6 @@ Object {
 `;
 
 exports[`#collections.update should require authentication 1`] = `
-Object {
-  "error": "authentication_required",
-  "message": "Authentication required",
-  "ok": false,
-  "status": 401,
-}
-`;
-
-exports[`#collections.users should require authentication 1`] = `
 Object {
   "error": "authentication_required",
   "message": "Authentication required",
