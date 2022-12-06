@@ -205,7 +205,7 @@ export const DocumentsMoveSchema = BaseIdSchema.extend({
   collectionId: z.string().uuid(),
 
   /** Parent Id, in case if the doc is moved to a new parent */
-  parentDocumentId: z.string().uuid().optional(),
+  parentDocumentId: z.string().uuid().nullish(),
 
   /** Helps evaluate the new index in collection structure upon move */
   index: z.number().gte(0).optional(),
@@ -238,7 +238,7 @@ export const DocumentsImportSchema = z.object({
   collectionId: z.string().uuid(),
 
   /** Import under this parent doc */
-  parentDocumentId: z.string().uuid().optional(),
+  parentDocumentId: z.string().uuid().nullish(),
 });
 
 export type DocumentsImportReq = z.infer<typeof DocumentsImportSchema>;
@@ -258,7 +258,7 @@ export const DocumentsCreateSchema = z
     collectionId: z.string().uuid().optional(),
 
     /** Create Doc under this parent */
-    parentDocumentId: z.string().uuid().optional(),
+    parentDocumentId: z.string().uuid().nullish(),
 
     /** Create doc with this template */
     templateId: z.string().uuid().optional(),
