@@ -74,9 +74,10 @@ const CircleImg = styled.img<{ size: number; $showBorder?: boolean }>`
   width: ${(props) => props.size}px;
   height: ${(props) => props.size}px;
   border-radius: 50%;
-  border: 2px solid
-    ${(props) =>
-      props.$showBorder === false ? "transparent" : props.theme.background};
+  border: ${(props) =>
+    props.$showBorder === false
+      ? "none"
+      : `2px solid ${props.theme.background}`};
   flex-shrink: 0;
   overflow: hidden;
 `;

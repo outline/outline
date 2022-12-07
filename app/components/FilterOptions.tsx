@@ -110,6 +110,8 @@ const StyledButton = styled(Button)`
 
 const Icon = styled.div`
   margin-right: 8px;
+  width: 18px;
+  height: 18px;
 `;
 
 const Wrapper = styled.div`
