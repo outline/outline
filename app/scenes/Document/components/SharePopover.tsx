@@ -273,6 +273,7 @@ function SharePopover({
               label={t("Custom link")}
               onChange={handleUrlSlugChange}
               error={slugValidationError}
+              preview={urlSlug ? `${team.url}/${urlSlug}` : ""}
               defaultValue={urlSlug || ""}
             />
           </SwitchWrapper>

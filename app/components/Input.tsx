@@ -122,6 +122,7 @@ export type Props = React.InputHTMLAttributes<
   short?: boolean;
   margin?: string | number;
   error?: string;
+  preview?: string;
   icon?: React.ReactNode;
   innerRef?: React.Ref<any>;
   onFocus?: (ev: React.SyntheticEvent) => unknown;
@@ -158,6 +159,7 @@ class Input extends React.Component<Props> {
       label,
       margin,
       error,
+      preview,
       className,
       short,
       flex,
@@ -200,24 +202,30 @@ class Input extends React.Component<Props> {
             )}
           </Outline>
         </label>
-        <ErrorWrapper>
-          <ErrorText type="danger" size="xsmall">
-            {error}
-          </ErrorText>
-        </ErrorWrapper>
+        <TextWrapper>
+          {error ? (
+            <StyledText type="danger" size="xsmall">
+              {error}
+            </StyledText>
+          ) : preview ? (
+            <StyledText type="preview" size="xsmall">
+              {preview}
+            </StyledText>
+          ) : null}
+        </TextWrapper>
       </Wrapper>
     );
   }
 }
 
-const ErrorWrapper = styled.span`
+const TextWrapper = styled.span`
   width: 100%;
   height: 16px;
   display: flex;
   margin-top: -16px;
 `;
 
-const ErrorText = styled(Text)`
+const StyledText = styled(Text)`
   margin-bottom: 0;
 `;
 
