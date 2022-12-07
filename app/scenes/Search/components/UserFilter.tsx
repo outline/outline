@@ -1,6 +1,9 @@
 import { observer } from "mobx-react";
+import { UserIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import styled from "styled-components";
+import Avatar from "~/components/Avatar";
 import FilterOptions from "~/components/FilterOptions";
 import useStores from "~/hooks/useStores";
 
@@ -24,11 +27,13 @@ function UserFilter(props: Props) {
     const userOptions = users.all.map((user) => ({
       key: user.id,
       label: user.name,
+      icon: <Avatar model={user} showBorder={false} size={18} />,
     }));
     return [
       {
         key: "",
         label: t("Any author"),
+        icon: <NoAuthor size={20} />,
       },
       ...userOptions,
     ];
@@ -44,5 +49,9 @@ function UserFilter(props: Props) {
     />
   );
 }
+
+const NoAuthor = styled(UserIcon)`
+  margin-left: -2px;
+`;
 
 export default observer(UserFilter);
