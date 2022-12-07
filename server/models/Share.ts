@@ -8,7 +8,9 @@ import {
   DataType,
   Default,
   AllowNull,
+  Is,
 } from "sequelize-typescript";
+import { SHARE_URL_SLUG_REGEX } from "@shared/utils/urlHelpers";
 import Collection from "./Collection";
 import Document from "./Document";
 import Team from "./Team";
@@ -87,6 +89,10 @@ class Share extends IdModel {
   views: number;
 
   @AllowNull
+  @Is({
+    args: [SHARE_URL_SLUG_REGEX],
+    msg: "Must be only alphanumeric and dashes",
+  })
   @Column
   urlId: string | null | undefined;
 

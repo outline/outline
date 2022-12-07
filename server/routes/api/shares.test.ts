@@ -479,7 +479,9 @@ describe("#shares.update", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("Invalid urlId!");
+    expect(body.message).toEqual(
+      "Must be only alphanumeric and dashes (urlId)"
+    );
   });
 
   it("should update urlId", async () => {
