@@ -251,7 +251,7 @@ function SharePopover({
           <SwitchWrapper>
             <Input
               type="text"
-              label={t("Share url slug")}
+              label={t("Custom link")}
               onChange={handleUrlSlugChange}
               error={slugValidationError}
             />
