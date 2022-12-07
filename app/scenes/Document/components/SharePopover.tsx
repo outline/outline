@@ -1,5 +1,6 @@
 import { formatDistanceToNow } from "date-fns";
 import invariant from "invariant";
+import { debounce, isEmpty } from "lodash";
 import { observer } from "mobx-react";
 import { ExpandedIcon, GlobeIcon, PadlockIcon } from "outline-icons";
 import * as React from "react";
@@ -46,6 +47,7 @@ function SharePopover({
   const [expandedOptions, setExpandedOptions] = React.useState(false);
   const [isEditMode, setIsEditMode] = React.useState(false);
   const [slugValidationError, setSlugValidationError] = React.useState("");
+  const [urlSlug, setUrlSlug] = React.useState<string | null | undefined>();
   const timeout = React.useRef<ReturnType<typeof setTimeout>>();
   const buttonRef = React.useRef<HTMLButtonElement>(null);
   const can = usePolicy(share ? share.id : "");
@@ -75,6 +77,10 @@ function SharePopover({
 
     return () => (timeout.current ? clearTimeout(timeout.current) : undefined);
   }, [document, visible, team.sharing]);
+
+  React.useEffect(() => {
+    setUrlSlug(share?.urlId);
+  }, [share]);
 
   const handlePublishedChange = React.useCallback(
     async (event) => {
@@ -123,15 +129,28 @@ function SharePopover({
     }, 250);
   }, [t, onRequestClose, showToast]);
 
-  const handleUrlSlugChange = React.useCallback(
-    (ev) => {
-      ev.target.value && !SHARE_URL_SLUG_REGEX.test(ev.target.value)
-        ? setSlugValidationError(
+  const handleUrlSlugChange = React.useMemo(
+    () =>
+      debounce((ev) => {
+        const share = shares.getByDocumentId(document.id);
+        invariant(share, "Share must exist");
+
+        const val = ev.target.value;
+        setUrlSlug(ev.target.value);
+        if (val && !SHARE_URL_SLUG_REGEX.test(val)) {
+          setSlugValidationError(
             t("Only lowercase letters, digits and dashes allowed")
-          )
-        : setSlugValidationError("");
-    },
-    [t]
+          );
+        } else {
+          setSlugValidationError("");
+          if (share.urlId !== val) {
+            share.save({
+              urlId: isEmpty(val) ? null : val,
+            });
+          }
+        }
+      }, 500),
+    [t, document.id, shares]
   );
 
   const userLocale = useUserLocale();
@@ -254,6 +273,7 @@ function SharePopover({
               label={t("Custom link")}
               onChange={handleUrlSlugChange}
               error={slugValidationError}
+              defaultValue={urlSlug || ""}
             />
           </SwitchWrapper>
         </>
