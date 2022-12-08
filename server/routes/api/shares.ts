@@ -191,7 +191,9 @@ router.post("shares.update", auth(), async (ctx) => {
     share.includeChildDocuments = includeChildDocuments;
   }
 
-  share.urlId = urlId;
+  if (urlId) {
+    share.urlId = urlId;
+  }
 
   await share.save();
   await Event.create({
