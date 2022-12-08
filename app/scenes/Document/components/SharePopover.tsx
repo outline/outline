@@ -246,6 +246,17 @@ function SharePopover({
         <>
           <Separator />
           <SwitchWrapper>
+            <Input
+              type="text"
+              label={t("Custom link")}
+              onChange={handleUrlSlugChange}
+              error={slugValidationError}
+              preview={urlSlug ? `${team.url}/${urlSlug}` : ""}
+              defaultValue={urlSlug || ""}
+            />
+          </SwitchWrapper>
+          <Separator />
+          <SwitchWrapper>
             <Switch
               id="enableEditMode"
               label={t("Automatically redirect to the editor")}
@@ -265,17 +276,6 @@ function SharePopover({
                 .
               </SwitchText>
             </SwitchLabel>
-          </SwitchWrapper>
-          <Separator />
-          <SwitchWrapper>
-            <Input
-              type="text"
-              label={t("Custom link")}
-              onChange={handleUrlSlugChange}
-              error={slugValidationError}
-              preview={urlSlug ? `${team.url}/${urlSlug}` : ""}
-              defaultValue={urlSlug || ""}
-            />
           </SwitchWrapper>
         </>
       )}
