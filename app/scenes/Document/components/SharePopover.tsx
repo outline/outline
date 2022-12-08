@@ -131,7 +131,7 @@ function SharePopover({
 
   const handleUrlSlugChange = React.useMemo(
     () =>
-      debounce((ev) => {
+      debounce(async (ev) => {
         const share = shares.getByDocumentId(document.id);
         invariant(share, "Share must exist");
 
@@ -144,9 +144,17 @@ function SharePopover({
         } else {
           setSlugValidationError("");
           if (share.urlId !== val) {
-            share.save({
-              urlId: isEmpty(val) ? null : val,
-            });
+            try {
+              await share.save({
+                urlId: isEmpty(val) ? null : val,
+              });
+            } catch (err) {
+              if (err.message.includes("must be unique")) {
+                setSlugValidationError(
+                  "The link already exists for some other document"
+                );
+              }
+            }
           }
         }
       }, 500),
