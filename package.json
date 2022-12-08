@@ -359,7 +359,8 @@
     "prosemirror-transform": "1.2.5",
     "dot-prop": "^5.2.0",
     "js-yaml": "^3.14.1",
-    "jpeg-js": "0.4.4"
+    "jpeg-js": "0.4.4",
+    "qs": "6.9.7"
   },
   "version": "0.66.2"
 }
