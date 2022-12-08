@@ -4,6 +4,7 @@ import util from "util";
 import { Context, Next } from "koa";
 import { escape } from "lodash";
 import { Sequelize } from "sequelize";
+import isUUID from "validator/lib/isUUID";
 import documentLoader from "@server/commands/documentLoader";
 import env from "@server/env";
 import presentEnv from "@server/presenters/env";
@@ -92,6 +93,12 @@ export const renderShare = async (ctx: Context, next: Next) => {
       shareId,
     });
     share = result.share;
+    if (isUUID(shareId) && share && share.urlId) {
+      // Redirect temporarily because the url slug
+      // can be modified by the user at any time
+      ctx.redirect(`/s/${share.urlId}`);
+      ctx.status = 307;
+    }
     document = result.document;
 
     if (share && !ctx.userAgent.isBot) {

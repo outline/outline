@@ -98,7 +98,7 @@ export const DocumentsInfoSchema = z
     id: z.string().optional(),
 
     /** Share Id, if available */
-    shareId: z.string().uuid().optional(),
+    shareId: z.string().optional(),
 
     /** Version of the API to be used */
     apiVersion: z.number().optional(),

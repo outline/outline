@@ -1,5 +1,6 @@
 import invariant from "invariant";
-import { Op } from "sequelize";
+import { Op, WhereOptions } from "sequelize";
+import isUUID from "validator/lib/isUUID";
 import {
   NotFoundError,
   InvalidRequestError,
@@ -37,13 +38,22 @@ export default async function loadDocument({
   }
 
   if (shareId) {
-    share = await Share.findOne({
-      where: {
+    let whereClause: WhereOptions<Share> = {
+      revokedAt: {
+        [Op.is]: null,
+      },
+      id: shareId,
+    };
+    if (!isUUID(shareId)) {
+      whereClause = {
         revokedAt: {
           [Op.is]: null,
         },
-        id: shareId,
-      },
+        urlId: shareId,
+      };
+    }
+    share = await Share.findOne({
+      where: whereClause,
       include: [
         {
           // unscoping here allows us to return unpublished documents
