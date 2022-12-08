@@ -203,29 +203,23 @@ class Input extends React.Component<Props> {
           </Outline>
         </label>
         <TextWrapper>
-          {error ? (
-            <StyledText type="danger" size="xsmall">
-              {error}
-            </StyledText>
-          ) : preview ? (
-            <StyledText type="preview" size="xsmall">
-              {preview}
-            </StyledText>
-          ) : null}
+          <StyledText type="danger" size="xsmall">
+            {error}
+          </StyledText>
         </TextWrapper>
       </Wrapper>
     );
   }
 }
 
-const TextWrapper = styled.span`
+export const TextWrapper = styled.span`
   width: 100%;
-  height: 16px;
-  display: flex;
+  min-height: 16px;
+  display: block;
   margin-top: -16px;
 `;
 
-const StyledText = styled(Text)`
+export const StyledText = styled(Text)`
   margin-bottom: 0;
 `;
 

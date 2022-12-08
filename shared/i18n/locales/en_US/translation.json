@@ -486,6 +486,7 @@
   "Nested documents are publicly available": "Nested documents are publicly available",
   "Nested documents are not shared": "Nested documents are not shared",
   "Custom link": "Custom link",
+  "The document will be available at": "The document will be available at",
   "Automatically redirect to the editor": "Automatically redirect to the editor",
   "Users with edit permission will be redirected to the main app": "Users with edit permission will be redirected to the main app",
   "All users see the same publicly shared view": "All users see the same publicly shared view",

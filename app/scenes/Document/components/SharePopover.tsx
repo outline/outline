@@ -12,7 +12,10 @@ import Share from "~/models/Share";
 import Button from "~/components/Button";
 import CopyToClipboard from "~/components/CopyToClipboard";
 import Flex from "~/components/Flex";
-import Input from "~/components/Input";
+import Input, {
+  TextWrapper,
+  StyledText as DocumentLinkPreview,
+} from "~/components/Input";
 import Notice from "~/components/Notice";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
@@ -259,9 +262,22 @@ function SharePopover({
               label={t("Custom link")}
               onChange={handleUrlSlugChange}
               error={slugValidationError}
-              preview={urlSlug ? `${team.url}/${urlSlug}` : ""}
               defaultValue={urlSlug}
             />
+            {!slugValidationError && urlSlug && (
+              <DocumentLinkPreviewWrapper>
+                <DocumentLinkPreview type="secondary" size="small">
+                  <Trans>The document will be available at</Trans>
+                  <br />
+                  <a
+                    href={urlSlug ? `${team.url}/s/${urlSlug}` : ""}
+                    target="_blank"
+                  >
+                    {urlSlug ? `${team.url}/s/${urlSlug}` : ""}
+                  </a>
+                </DocumentLinkPreview>
+              </DocumentLinkPreviewWrapper>
+            )}
           </SwitchWrapper>
           <Separator />
           <SwitchWrapper>
@@ -351,6 +367,10 @@ const SwitchLabel = styled(Flex)`
 const SwitchText = styled(Text)`
   margin: 0;
   font-size: 15px;
+`;
+
+const DocumentLinkPreviewWrapper = styled(TextWrapper)`
+  margin-top: -12px;
 `;
 
 export default observer(SharePopover);
