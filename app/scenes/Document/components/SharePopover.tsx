@@ -43,11 +43,10 @@ function SharePopover({
   const { t } = useTranslation();
   const { shares } = useStores();
   const { showToast } = useToasts();
-  const [isCopied, setIsCopied] = React.useState(false);
   const [expandedOptions, setExpandedOptions] = React.useState(false);
   const [isEditMode, setIsEditMode] = React.useState(false);
   const [slugValidationError, setSlugValidationError] = React.useState("");
-  const [urlSlug, setUrlSlug] = React.useState<string | null | undefined>();
+  const [urlSlug, setUrlSlug] = React.useState("");
   const timeout = React.useRef<ReturnType<typeof setTimeout>>();
   const buttonRef = React.useRef<HTMLButtonElement>(null);
   const can = usePolicy(share ? share.id : "");
@@ -79,8 +78,11 @@ function SharePopover({
   }, [document, visible, team.sharing]);
 
   React.useEffect(() => {
-    setUrlSlug(share?.urlId);
-  }, [share]);
+    if (!visible) {
+      setUrlSlug(share?.urlId || "");
+      setSlugValidationError("");
+    }
+  }, [share, visible]);
 
   const handlePublishedChange = React.useCallback(
     async (event) => {
@@ -119,9 +121,7 @@ function SharePopover({
   );
 
   const handleCopied = React.useCallback(() => {
-    setIsCopied(true);
     timeout.current = setTimeout(() => {
-      setIsCopied(false);
       onRequestClose();
       showToast(t("Share link copied"), {
         type: "info",
@@ -260,7 +260,7 @@ function SharePopover({
               onChange={handleUrlSlugChange}
               error={slugValidationError}
               preview={urlSlug ? `${team.url}/${urlSlug}` : ""}
-              defaultValue={urlSlug || ""}
+              defaultValue={urlSlug}
             />
           </SwitchWrapper>
           <Separator />
@@ -304,9 +304,7 @@ function SharePopover({
         <CopyToClipboard text={shareUrl} onCopy={handleCopied}>
           <Button
             type="submit"
-            disabled={
-              isCopied || (!share && team.sharing) || slugValidationError
-            }
+            disabled={(!share && team.sharing) || slugValidationError}
             ref={buttonRef}
           >
             {t("Copy link")}
