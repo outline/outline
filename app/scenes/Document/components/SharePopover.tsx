@@ -139,7 +139,7 @@ function SharePopover({
         invariant(share, "Share must exist");
 
         const val = ev.target.value;
-        setUrlSlug(ev.target.value);
+        setUrlSlug(val);
         if (val && !SHARE_URL_SLUG_REGEX.test(val)) {
           setSlugValidationError(
             t("Only lowercase letters, digits and dashes allowed")
