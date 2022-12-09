@@ -41,6 +41,7 @@ import {
   presentPolicies,
 } from "@server/presenters";
 import { APIContext } from "@server/types";
+import { getTeamFromContext } from "@server/utils/passport";
 import slugify from "@server/utils/slugify";
 import { assertPresent } from "@server/validation";
 import env from "../../../env";
@@ -394,17 +395,17 @@ router.post(
   async (ctx: APIContext<T.DocumentsInfoReq>) => {
     const { id, shareId, apiVersion } = ctx.input;
     const { user } = ctx.state;
+    const team = await getTeamFromContext(ctx);
     const { document, share, collection } = await documentLoader({
       id,
       shareId,
       user,
+      teamId: team?.id,
     });
     const isPublic = cannot(user, "read", document);
     const serializedDocument = await presentDocument(document, {
       isPublic,
     });
-
-    const team = await document.$get("team");
 
     // Passing apiVersion=2 has a single effect, to change the response payload to
     // include top level keys for document, sharedTree, and team.

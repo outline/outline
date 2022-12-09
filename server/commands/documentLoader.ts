@@ -1,6 +1,7 @@
 import invariant from "invariant";
 import { Op, WhereOptions } from "sequelize";
 import isUUID from "validator/lib/isUUID";
+import { SHARE_URL_SLUG_REGEX } from "@shared/utils/urlHelpers";
 import {
   NotFoundError,
   InvalidRequestError,
@@ -13,6 +14,7 @@ import { authorize, can } from "@server/policies";
 type Props = {
   id?: string;
   shareId?: string;
+  teamId?: string;
   user?: User;
   includeState?: boolean;
 };
@@ -26,6 +28,7 @@ type Result = {
 export default async function loadDocument({
   id,
   shareId,
+  teamId,
   user,
   includeState,
 }: Props): Promise<Result> {
@@ -37,6 +40,17 @@ export default async function loadDocument({
     throw AuthenticationError(`Authentication or shareId required`);
   }
 
+  const shareUrlId =
+    shareId && !isUUID(shareId) && SHARE_URL_SLUG_REGEX.test(shareId)
+      ? shareId
+      : undefined;
+
+  if (shareUrlId && !teamId) {
+    throw InvalidRequestError(
+      "teamId required for fetching share using shareUrlId"
+    );
+  }
+
   if (shareId) {
     let whereClause: WhereOptions<Share> = {
       revokedAt: {
@@ -44,12 +58,13 @@ export default async function loadDocument({
       },
       id: shareId,
     };
-    if (!isUUID(shareId)) {
+    if (shareUrlId) {
       whereClause = {
         revokedAt: {
           [Op.is]: null,
         },
-        urlId: shareId,
+        teamId,
+        urlId: shareUrlId,
       };
     }
     share = await Share.findOne({

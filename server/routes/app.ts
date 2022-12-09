@@ -8,6 +8,7 @@ import isUUID from "validator/lib/isUUID";
 import documentLoader from "@server/commands/documentLoader";
 import env from "@server/env";
 import presentEnv from "@server/presenters/env";
+import { getTeamFromContext } from "@server/utils/passport";
 import prefetchTags from "@server/utils/prefetchTags";
 
 const isProduction = env.ENVIRONMENT === "production";
@@ -88,9 +89,11 @@ export const renderShare = async (ctx: Context, next: Next) => {
   let share, document;
 
   try {
+    const team = await getTeamFromContext(ctx);
     const result = await documentLoader({
       id: documentSlug,
       shareId,
+      teamId: team?.id,
     });
     share = result.share;
     if (isUUID(shareId) && share && share.urlId) {
