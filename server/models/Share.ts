@@ -90,7 +90,7 @@ class Share extends IdModel {
 
   @AllowNull
   @Is({
-    args: [SHARE_URL_SLUG_REGEX],
+    args: SHARE_URL_SLUG_REGEX,
     msg: "Must be only alphanumeric and dashes",
   })
   @Column
