@@ -466,10 +466,12 @@ describe("#documents.info", () => {
   it("should require a valid shareId", async () => {
     const res = await server.post("/api/documents.info", {
       body: {
-        shareId: 123,
+        shareId: "share_id",
       },
     });
+    const body = await res.json();
     expect(res.status).toEqual(400);
+    expect(body.message).toEqual("shareId: Invalid input");
   });
 });
 
