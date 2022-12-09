@@ -211,7 +211,6 @@ class Input extends React.Component<Props> {
 }
 
 export const TextWrapper = styled.span`
-  width: 100%;
   min-height: 16px;
   display: block;
   margin-top: -16px;
