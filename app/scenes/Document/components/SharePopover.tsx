@@ -1,6 +1,6 @@
 import { formatDistanceToNow } from "date-fns";
 import invariant from "invariant";
-import { debounce, isEmpty } from "lodash";
+import { debounce, isEmpty, escape } from "lodash";
 import { observer } from "mobx-react";
 import { ExpandedIcon, GlobeIcon, PadlockIcon } from "outline-icons";
 import * as React from "react";
@@ -270,8 +270,9 @@ function SharePopover({
                   <Trans>The document will be available at</Trans>
                   <br />
                   <a
-                    href={urlSlug ? `${team.url}/s/${urlSlug}` : ""}
+                    href={escape(urlSlug ? `${team.url}/s/${urlSlug}` : "")}
                     target="_blank"
+                    rel="noopener noreferrer"
                   >
                     {urlSlug ? `${team.url}/s/${urlSlug}` : ""}
                   </a>
