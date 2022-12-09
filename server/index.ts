@@ -8,14 +8,12 @@ import https from "https";
 import Koa from "koa";
 import helmet from "koa-helmet";
 import logger from "koa-logger";
-import onerror from "koa-onerror";
 import Router from "koa-router";
 import { uniq } from "lodash";
 import { AddressInfo } from "net";
 import stoppable from "stoppable";
 import throng from "throng";
 import Logger from "./logging/Logger";
-import { requestErrorHandler } from "./logging/sentry";
 import services from "./services";
 import { getArg } from "./utils/args";
 import { getSSLOptions } from "./utils/ssl";
@@ -25,6 +23,7 @@ import {
   checkPendingMigrations,
 } from "./utils/startup";
 import { checkUpdates } from "./utils/updates";
+import onerror from "./onerror";
 
 // The default is to run all services to make development and OSS installations
 // easier to deal with. Separate services are only needed at scale.
@@ -84,7 +83,6 @@ async function start(id: number, disconnect: () => void) {
 
   // catch errors in one place, automatically set status and response headers
   onerror(app);
-  app.on("error", requestErrorHandler);
 
   // install health check endpoint for all services
   router.get("/_health", (ctx) => (ctx.body = "OK"));
