@@ -122,7 +122,6 @@ export type Props = React.InputHTMLAttributes<
   short?: boolean;
   margin?: string | number;
   error?: string;
-  preview?: string;
   icon?: React.ReactNode;
   innerRef?: React.Ref<any>;
   onFocus?: (ev: React.SyntheticEvent) => unknown;
@@ -159,7 +158,6 @@ class Input extends React.Component<Props> {
       label,
       margin,
       error,
-      preview,
       className,
       short,
       flex,
