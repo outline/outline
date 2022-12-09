@@ -4,7 +4,6 @@ import Router from "koa-router";
 import userAgent, { UserAgentContext } from "koa-useragent";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
-import { defaultRateLimiter } from "@server/middlewares/rateLimiter";
 import { AuthenticatedState } from "@server/types";
 import apiKeys from "./apiKeys";
 import attachments from "./attachments";
@@ -88,8 +87,6 @@ router.post("*", (ctx) => {
 router.get("*", (ctx) => {
   ctx.throw(NotFoundError("Endpoint not found"));
 });
-
-api.use(defaultRateLimiter());
 
 // Router is embedded in a Koa application wrapper, because koa-router does not
 // allow middleware to catch any routes which were not explicitly defined.

@@ -17,6 +17,7 @@ import Logger from "./logging/Logger";
 import services from "./services";
 import { getArg } from "./utils/args";
 import { getSSLOptions } from "./utils/ssl";
+import { defaultRateLimiter } from "@server/middlewares/rateLimiter";
 import {
   checkEnv,
   checkMigrations,
@@ -83,6 +84,9 @@ async function start(id: number, disconnect: () => void) {
 
   // catch errors in one place, automatically set status and response headers
   onerror(app);
+
+  // Apply default rate limit to all routes
+  app.use(defaultRateLimiter());
 
   // install health check endpoint for all services
   router.get("/_health", (ctx) => (ctx.body = "OK"));
