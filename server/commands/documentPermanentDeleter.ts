@@ -3,6 +3,7 @@ import { QueryTypes } from "sequelize";
 import { sequelize } from "@server/database/sequelize";
 import Logger from "@server/logging/Logger";
 import { Document, Attachment } from "@server/models";
+import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 
 export default async function documentPermanentDeleter(documents: Document[]) {
@@ -59,22 +60,14 @@ export default async function documentPermanentDeleter(documents: Document[]) {
         // If the attachment is not referenced in any other documents then
         // delete it from the database and the storage provider.
         if (parseInt(count) === 0) {
-          const attachment = await Attachment.findOne({
-            where: {
-              teamId: document.teamId,
-              id: attachmentId,
-            },
+          Logger.info(
+            "commands",
+            `Attachment ${attachmentId} scheduled for deletion`
+          );
+          await DeleteAttachmentTask.schedule({
+            attachmentId,
+            teamId: document.teamId,
           });
-
-          if (attachment) {
-            await attachment.destroy();
-            Logger.info("commands", `Attachment ${attachmentId} deleted`);
-          } else {
-            Logger.info(
-              "commands",
-              `Unknown attachment ${attachmentId} ignored`
-            );
-          }
         }
       })
     );
