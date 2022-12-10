@@ -6,6 +6,7 @@ import Extension from "../lib/Extension";
 import isMarkdown from "../lib/isMarkdown";
 import normalizePastedMarkdown from "../lib/markdown/normalize";
 import isInCode from "../queries/isInCode";
+import isInList from "../queries/isInList";
 import { LANGUAGES } from "./Prism";
 
 function isDropboxPaper(html: string): boolean {
@@ -76,7 +77,12 @@ export default class PasteHandler extends Extension {
               // Is this link embeddable? Create an embed!
               const { embeds } = this.editor.props;
 
-              if (embeds && !isInTable(state) && !isInCode(state)) {
+              if (
+                embeds &&
+                !isInTable(state) &&
+                !isInCode(state) &&
+                !isInList(state)
+              ) {
                 for (const embed of embeds) {
                   const matches = embed.matcher(text);
                   if (matches) {

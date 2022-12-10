@@ -8,7 +8,6 @@ import SigninEmail from "@server/emails/templates/SigninEmail";
 import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
 import env from "@server/env";
 import { AuthorizationError } from "@server/errors";
-import errorHandling from "@server/middlewares/errorHandling";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { User, Team } from "@server/models";
 import { signIn } from "@server/utils/authentication";
@@ -24,7 +23,6 @@ export const config = {
 
 router.post(
   "email",
-  errorHandling(),
   rateLimiter(RateLimiterStrategy.TenPerHour),
   async (ctx) => {
     const { email, client } = ctx.request.body;

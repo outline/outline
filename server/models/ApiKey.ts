@@ -15,6 +15,8 @@ import Length from "./validators/Length";
 @Table({ tableName: "apiKeys", modelName: "apiKey" })
 @Fix
 class ApiKey extends ParanoidModel {
+  static prefix = "ol_api_";
+
   @Length({
     min: 3,
     max: 255,
@@ -32,8 +34,19 @@ class ApiKey extends ParanoidModel {
   @BeforeValidate
   static async generateSecret(model: ApiKey) {
     if (!model.secret) {
-      model.secret = randomstring.generate(38);
+      model.secret = `${ApiKey.prefix}${randomstring.generate(38)}`;
     }
+  }
+
+  /**
+   * Validates that the input touch could be an API key, this does not check
+   * that the key exists in the database.
+   *
+   * @param text The text to validate
+   * @returns True if likely an API key
+   */
+  static match(text: string) {
+    return !!text.replace(ApiKey.prefix, "").match(/^[\w]{38}$/);
   }
 
   // associations

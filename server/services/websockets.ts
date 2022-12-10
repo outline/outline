@@ -31,7 +31,6 @@ export default function init(
   // Websockets for events and non-collaborative documents
   const io = new IO.Server(server, {
     path,
-    allowEIO3: true,
     serveClient: false,
     cookie: false,
     cors: {
@@ -95,10 +94,7 @@ export default function init(
 
   io.on("connection", (socket: SocketWithAuth) => {
     Metrics.increment("websockets.connected");
-    Metrics.gaugePerInstance(
-      "websockets.count",
-      socket.client.conn.server.clientsCount
-    );
+    Metrics.gaugePerInstance("websockets.count", io.engine.clientsCount);
 
     socket.on("authentication", async function (data) {
       try {
@@ -117,10 +113,7 @@ export default function init(
 
     socket.on("disconnect", async () => {
       Metrics.increment("websockets.disconnected");
-      Metrics.gaugePerInstance(
-        "websockets.count",
-        socket.client.conn.server.clientsCount
-      );
+      Metrics.gaugePerInstance("websockets.count", io.engine.clientsCount);
       await Redis.defaultClient.hdel(socket.id, "userId");
     });
 

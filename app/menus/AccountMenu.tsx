@@ -13,6 +13,7 @@ import {
   openBugReportUrl,
   openFeedbackUrl,
   logout,
+  downloadApp,
 } from "~/actions/definitions/navigation";
 import { changeTheme } from "~/actions/definitions/settings";
 import usePrevious from "~/hooks/usePrevious";
@@ -38,6 +39,7 @@ const AccountMenu: React.FC = ({ children }) => {
   const actions = React.useMemo(() => {
     return [
       openKeyboardShortcuts,
+      downloadApp,
       openAPIDocumentation,
       separator(),
       openChangelog,

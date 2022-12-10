@@ -140,11 +140,12 @@ export const MenuAnchorCSS = css<MenuAnchorProps>`
     opacity: ${(props) => (props.disabled ? ".5" : 1)};
   }
 
-  ${(props) =>
-    props.disabled
-      ? "pointer-events: none;"
-      : `
+  ${(props) => props.disabled && "pointer-events: none;"}
 
+  ${(props) =>
+    props.$active === undefined &&
+    !props.disabled &&
+    `
   @media (hover: hover) {
     &:hover,
     &:focus,
@@ -159,9 +160,11 @@ export const MenuAnchorCSS = css<MenuAnchorProps>`
       }
     }
   }
+  `}
 
-  ${
+  ${(props) =>
     props.$active &&
+    !props.disabled &&
     `
       color: ${props.theme.white};
       background: ${props.dangerous ? props.theme.danger : props.theme.primary};
@@ -171,16 +174,14 @@ export const MenuAnchorCSS = css<MenuAnchorProps>`
       svg {
         fill: ${props.theme.white};
       }
-    `
-  }
-  `};
+    `}
 
   ${breakpoint("tablet")`
     padding: 4px 12px;
     padding-right: ${(props: MenuAnchorProps) =>
       props.disclosure ? 32 : 12}px;
     font-size: 14px;
-  `};
+  `}
 `;
 
 export const MenuAnchor = styled.a`

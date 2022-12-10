@@ -26,6 +26,7 @@ import Sidebar from "./Sidebar";
 import ArchiveLink from "./components/ArchiveLink";
 import Collections from "./components/Collections";
 import HeaderButton, { HeaderButtonProps } from "./components/HeaderButton";
+import HistoryNavigation from "./components/HistoryNavigation";
 import Section from "./components/Section";
 import SidebarAction from "./components/SidebarAction";
 import SidebarLink from "./components/SidebarLink";
@@ -57,6 +58,7 @@ function AppSidebar() {
 
   return (
     <Sidebar ref={handleSidebarRef}>
+      <HistoryNavigation />
       {dndArea && (
         <DndProvider backend={HTML5Backend} options={html5Options}>
           <OrganizationMenu>
@@ -72,6 +74,7 @@ function AppSidebar() {
                   />
                 }
                 style={
+                  // Move the logo over to align with smaller size
                   Desktop.hasInsetTitlebar() ? { paddingLeft: 8 } : undefined
                 }
                 showDisclosure

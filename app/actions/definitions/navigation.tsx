@@ -11,6 +11,7 @@ import {
   EmailIcon,
   LogoutIcon,
   ProfileIcon,
+  BrowserIcon,
 } from "outline-icons";
 import * as React from "react";
 import {
@@ -24,7 +25,10 @@ import SearchQuery from "~/models/SearchQuery";
 import KeyboardShortcuts from "~/scenes/KeyboardShortcuts";
 import { createAction } from "~/actions";
 import { NavigationSection, RecentSearchesSection } from "~/actions/sections";
+import Desktop from "~/utils/Desktop";
+import { isMac } from "~/utils/browser";
 import history from "~/utils/history";
+import isCloudHosted from "~/utils/isCloudHosted";
 import {
   organizationSettingsPath,
   profileSettingsPath,
@@ -157,6 +161,20 @@ export const openKeyboardShortcuts = createAction({
   },
 });
 
+export const downloadApp = createAction({
+  name: ({ t }) =>
+    t("Download {{ platform }} app", {
+      platform: isMac() ? "macOS" : "Windows",
+    }),
+  section: NavigationSection,
+  iconInContextMenu: false,
+  icon: <BrowserIcon />,
+  visible: () => !Desktop.isElectron() && isMac() && isCloudHosted,
+  perform: () => {
+    window.open("https://desktop.getoutline.com");
+  },
+});
+
 export const logout = createAction({
   name: ({ t }) => t("Log out"),
   section: NavigationSection,
@@ -170,6 +188,7 @@ export const rootNavigationActions = [
   navigateToTemplates,
   navigateToArchive,
   navigateToTrash,
+  downloadApp,
   openAPIDocumentation,
   openFeedbackUrl,
   openBugReportUrl,

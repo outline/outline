@@ -3,6 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 import { CollectionPermission } from "@shared/types";
 import { sequelize } from "@server/database/sequelize";
 import { User, Document, Collection, Team } from "@server/models";
+import onerror from "@server/onerror";
 import webService from "@server/services/web";
 
 export const seed = async () => {
@@ -102,6 +103,7 @@ export const seed = async () => {
 
 export function getTestServer() {
   const app = webService();
+  onerror(app);
   const server = new TestServer(app.callback());
 
   server.disconnect = async () => {

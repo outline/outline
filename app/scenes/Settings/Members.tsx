@@ -82,6 +82,8 @@ function Members() {
       filtered = users.orderedData.filter((u) => userIds.includes(u.id));
     } else if (filter === "admins") {
       filtered = users.admins.filter((u) => userIds.includes(u.id));
+    } else if (filter === "members") {
+      filtered = users.members.filter((u) => userIds.includes(u.id));
     } else if (filter === "suspended") {
       filtered = users.suspended.filter((u) => userIds.includes(u.id));
     } else if (filter === "invited") {
@@ -96,6 +98,7 @@ function Members() {
     filter,
     users.active,
     users.admins,
+    users.members,
     users.orderedData,
     users.suspended,
     users.invited,

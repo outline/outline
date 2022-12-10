@@ -24,8 +24,13 @@ on:
   workflow_dispatch:
   schedule:
     - cron: "00 20 * * 0"
+permissions: {}
 jobs:
   build:
+    permissions:
+      contents: write
+      pull-requests: write #  to comment on pull request
+
     name: calibreapp/image-actions
     runs-on: ubuntu-latest
     # Only run on main repo on and PRs that match the main repo.

@@ -34,8 +34,8 @@ const SearchQuerySchema = z.object({
 });
 
 const BaseIdSchema = z.object({
-  /** Id of the entity */
-  id: z.string().uuid(),
+  /** Id of the document to be updated */
+  id: z.string(),
 });
 
 export const DocumentsListSchema = DocumentsSortParamsSchema.extend({
@@ -209,10 +209,10 @@ export const DocumentsMoveSchema = BaseIdSchema.extend({
   collectionId: z.string().uuid(),
 
   /** Parent Id, in case if the doc is moved to a new parent */
-  parentDocumentId: z.string().uuid().optional(),
+  parentDocumentId: z.string().uuid().nullish(),
 
   /** Helps evaluate the new index in collection structure upon move */
-  index: z.number().positive().optional(),
+  index: z.number().gte(0).optional(),
 }).refine((obj) => !(obj.parentDocumentId === obj.id), {
   message: "infinite loop detected, cannot nest a document inside itself",
 });
@@ -235,14 +235,14 @@ export const DocumentsUnpublishSchema = BaseIdSchema.extend({});
 export type DocumentsUnpublishReq = z.infer<typeof DocumentsUnpublishSchema>;
 
 export const DocumentsImportSchema = z.object({
-  /** Whether to publish the imported docs */
-  publish: z.boolean().optional(),
+  /** Whether to publish the imported docs. String due to multi-part form upload */
+  publish: z.string().optional(),
 
   /** Import docs to this collection */
   collectionId: z.string().uuid(),
 
   /** Import under this parent doc */
-  parentDocumentId: z.string().uuid().optional(),
+  parentDocumentId: z.string().uuid().nullish(),
 });
 
 export type DocumentsImportReq = z.infer<typeof DocumentsImportSchema>;
@@ -262,7 +262,7 @@ export const DocumentsCreateSchema = z
     collectionId: z.string().uuid().optional(),
 
     /** Create Doc under this parent */
-    parentDocumentId: z.string().uuid().optional(),
+    parentDocumentId: z.string().uuid().nullish(),
 
     /** Create doc with this template */
     templateId: z.string().uuid().optional(),

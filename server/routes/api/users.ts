@@ -50,7 +50,7 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
   if (filter) {
     assertIn(
       filter,
-      ["invited", "viewers", "admins", "active", "all", "suspended"],
+      ["invited", "viewers", "admins", "members", "active", "all", "suspended"],
       "Invalid filter"
     );
   }
@@ -83,6 +83,11 @@ router.post("users.list", auth(), pagination(), async (ctx) => {
 
     case "admins": {
       where = { ...where, isAdmin: true };
+      break;
+    }
+
+    case "members": {
+      where = { ...where, isAdmin: false, isViewer: false };
       break;
     }
 

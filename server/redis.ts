@@ -1,14 +1,14 @@
-import Redis from "ioredis";
+import Redis, { RedisOptions } from "ioredis";
 import { defaults } from "lodash";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 
-type RedisAdapterOptions = Redis.RedisOptions & {
+type RedisAdapterOptions = RedisOptions & {
   /** Suffix to append to the connection name that will be displayed in Redis */
   connectionNameSuffix?: string;
 };
 
-const defaultOptions: Redis.RedisOptions = {
+const defaultOptions: RedisOptions = {
   maxRetriesPerRequest: 20,
   enableReadyCheck: false,
 
@@ -43,7 +43,7 @@ export default class RedisAdapter extends Redis {
 
     if (!url || !url.startsWith("ioredis://")) {
       super(
-        env.REDIS_URL,
+        env.REDIS_URL ?? "",
         defaults(options, { connectionName }, defaultOptions)
       );
     } else {

@@ -148,19 +148,19 @@ export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
     {
       name: "date",
       title: dictionary.insertDate,
-      keywords: "clock",
+      keywords: "clock today",
       icon: <CalendarIcon />,
     },
     {
       name: "time",
       title: dictionary.insertTime,
-      keywords: "clock",
+      keywords: "clock now",
       icon: <ClockIcon />,
     },
     {
       name: "datetime",
       title: dictionary.insertDateTime,
-      keywords: "clock",
+      keywords: "clock today date",
       icon: <CalendarIcon />,
     },
     {

@@ -3,6 +3,7 @@ import { compact, uniq } from "lodash";
 import randomstring from "randomstring";
 import type { SaveOptions } from "sequelize";
 import {
+  Sequelize,
   Transaction,
   Op,
   FindOptions,
@@ -114,6 +115,17 @@ export const DOCUMENT_VERSION = 2;
         as: "collection",
       },
     ],
+  },
+  withStateIsEmpty: {
+    attributes: {
+      exclude: ["state"],
+      include: [
+        [
+          Sequelize.literal(`CASE WHEN state IS NULL THEN true ELSE false END`),
+          "stateIsEmpty",
+        ],
+      ],
+    },
   },
   withState: {
     attributes: {

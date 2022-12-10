@@ -5,6 +5,7 @@ Object {
   "error": "authorization_error",
   "message": "Authorization error",
   "ok": false,
+  "status": 403,
 }
 `;
 

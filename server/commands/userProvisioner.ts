@@ -35,7 +35,7 @@ type Props = {
   authentication?: {
     authenticationProviderId: string;
     /** External identifier of the user in the authentication provider  */
-    providerId: string;
+    providerId: string | number;
     /** The scopes granted by the access token */
     scopes: string[];
     /** The token provided by the authentication provider */
@@ -60,7 +60,7 @@ export default async function userProvisioner({
   const auth = authentication
     ? await UserAuthentication.findOne({
         where: {
-          providerId: authentication.providerId,
+          providerId: "" + authentication.providerId,
         },
         include: [
           {

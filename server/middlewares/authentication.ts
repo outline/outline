@@ -61,7 +61,7 @@ export default function auth(options: AuthenticationOptions = {}) {
     let user: User | null | undefined;
 
     if (token) {
-      if (String(token).match(/^[\w]{38}$/)) {
+      if (ApiKey.match(String(token))) {
         ctx.state.authType = AuthenticationType.API;
         let apiKey;
 

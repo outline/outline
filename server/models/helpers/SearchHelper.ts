@@ -313,14 +313,32 @@ export default class SearchHelper {
    */
   private static webSearchQuery(query: string): string {
     // limit length of search queries as we're using regex against untrusted input
-    const limitedQuery = this.escapeQuery(query.slice(0, this.maxQueryLength));
+    let limitedQuery = this.escapeQuery(query.slice(0, this.maxQueryLength));
 
     // if the search term is one unquoted word then allow partial matches automatically
     const queryWordCount = limitedQuery.split(" ").length;
     const singleUnquotedSearch =
-      queryWordCount === 1 && !limitedQuery.startsWith('"');
+      queryWordCount === 1 &&
+      !limitedQuery.startsWith('"') &&
+      !limitedQuery.endsWith('"');
 
-    return queryParser({ singleQuoteReplacement: "&" })(
+    // Replace single quote characters with &.
+    const singleQuotes = limitedQuery.matchAll(/'/g);
+
+    for (const match of singleQuotes) {
+      if (
+        match.index &&
+        match.index > 0 &&
+        match.index < limitedQuery.length - 1
+      ) {
+        limitedQuery =
+          limitedQuery.substring(0, match.index) +
+          "&" +
+          limitedQuery.substring(match.index + 1);
+      }
+    }
+
+    return queryParser()(
       singleUnquotedSearch ? `${limitedQuery}*` : limitedQuery
     );
   }

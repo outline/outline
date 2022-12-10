@@ -37,7 +37,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(
     const { user } = auth;
 
     const width = ui.sidebarWidth;
-    const collapsed = (ui.isEditing || ui.sidebarCollapsed) && !isMenuOpen;
+    const collapsed = ui.sidebarIsClosed && !isMenuOpen;
     const maxWidth = theme.sidebarMaxWidth;
     const minWidth = theme.sidebarMinWidth + 16; // padding
 
@@ -191,9 +191,9 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(
           )}
           <ResizeBorder
             onMouseDown={handleMouseDown}
-            onDoubleClick={ui.sidebarCollapsed ? undefined : handleReset}
+            onDoubleClick={ui.sidebarIsClosed ? undefined : handleReset}
           />
-          {ui.sidebarCollapsed && !ui.isEditing && (
+          {ui.sidebarIsClosed && (
             <Toggle
               onClick={ui.toggleCollapsedSidebar}
               direction={"right"}
@@ -201,14 +201,12 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(
             />
           )}
         </Container>
-        {!ui.isEditing && (
-          <Toggle
-            style={toggleStyle}
-            onClick={ui.toggleCollapsedSidebar}
-            direction={ui.sidebarCollapsed ? "right" : "left"}
-            aria-label={ui.sidebarCollapsed ? t("Expand") : t("Collapse")}
-          />
-        )}
+        <Toggle
+          style={toggleStyle}
+          onClick={ui.toggleCollapsedSidebar}
+          direction={ui.sidebarIsClosed ? "right" : "left"}
+          aria-label={ui.sidebarIsClosed ? t("Expand") : t("Collapse")}
+        />
       </>
     );
   }
@@ -253,7 +251,7 @@ const Container = styled(Flex)<ContainerProps>`
   z-index: ${depths.sidebar};
   max-width: 70%;
   min-width: 280px;
-  padding-top: ${Desktop.hasInsetTitlebar() ? 24 : 0}px;
+  padding-top: ${Desktop.hasInsetTitlebar() ? 36 : 0}px;
   ${draggableOnDesktop()}
   ${fadeOnDesktopBackgrounded()}
 

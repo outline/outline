@@ -9,7 +9,7 @@ declare global {
       /**
        * The version of the loaded application.
        */
-      version: () => Promise<string>;
+      version: () => string;
 
       /**
        * Restarts the application.
@@ -30,6 +30,11 @@ declare global {
        * Passes double click events from titlebar area
        */
       onTitlebarDoubleClick: () => Promise<void>;
+
+      /**
+       * Passes log out events from the app to the main process
+       */
+      onLogout: () => Promise<void>;
 
       /**
        * Adds a custom host to config
@@ -61,6 +66,21 @@ declare global {
        * Registers a callback to be called when the application is ready to update.
        */
       updateDownloaded: (callback: () => void) => void;
+
+      /**
+       * Registers a callback to be called when the application wants to open keyboard shortcuts.
+       */
+      openKeyboardShortcuts: (callback: () => void) => void;
+
+      /**
+       * Go back in history, if possible
+       */
+      goBack: () => void;
+
+      /**
+       * Go forward in history, if possible
+       */
+      goForward: () => void;
     };
   }
 }

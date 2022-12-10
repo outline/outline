@@ -1,4 +1,5 @@
 import { isEqual, filter, includes } from "lodash";
+import randomstring from "randomstring";
 import * as React from "react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -148,6 +149,10 @@ interface FormData {
   events: string[];
 }
 
+function generateSigningSecret() {
+  return `ol_whs_${randomstring.generate(32)}`;
+}
+
 function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
   const { t } = useTranslation();
   const {
@@ -162,7 +167,7 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
       events: webhookSubscription ? [...webhookSubscription.events] : [],
       name: webhookSubscription?.name,
       url: webhookSubscription?.url,
-      secret: webhookSubscription?.secret,
+      secret: webhookSubscription?.secret ?? generateSigningSecret(),
     },
   });
 
@@ -224,13 +229,6 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
           a POST request to when matching events are created.
         </Trans>
       </Text>
-      <Text type="secondary">
-        <Trans>
-          Subscribe to all events, groups, or individual events. We recommend
-          only subscribing to the minimum amount of events that your application
-          needs to function.
-        </Trans>
-      </Text>
       <TextFields>
         <ReactHookWrappedInput
           required
@@ -253,13 +251,20 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
         />
         <ReactHookWrappedInput
           flex
-          label={t("Secret") + ` (${t("Optional")})`}
-          placeholder={t("Used to sign payload")}
+          spellCheck={false}
+          label={t("Signing secret")}
           {...register("secret", {
             required: false,
           })}
         />
       </TextFields>
+      <Text type="secondary">
+        <Trans>
+          Subscribe to all events, groups, or individual events. We recommend
+          only subscribing to the minimum amount of events that your application
+          needs to function.
+        </Trans>
+      </Text>
 
       <EventCheckbox label={t("All events")} value="*" />
 

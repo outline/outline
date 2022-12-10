@@ -17,6 +17,9 @@ export default function Encrypted(target: any, propertyKey: string) {
  * Get the value of an encrypted column given the target and the property key.
  */
 export function getEncryptedColumn(target: any, propertyKey: string): string {
+  if (!target.getDataValue(propertyKey)) {
+    return "";
+  }
   try {
     return Reflect.getMetadata(key, target, propertyKey).get.call(target);
   } catch (err) {

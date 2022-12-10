@@ -1,6 +1,7 @@
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import createAndInsertLink from "@shared/editor/commands/createAndInsertLink";
+import { creatingUrlPrefix } from "@shared/utils/urls";
 import { Dictionary } from "~/hooks/useDictionary";
 import FloatingToolbar from "./FloatingToolbar";
 import LinkEditor, { SearchResult } from "./LinkEditor";
@@ -76,7 +77,7 @@ export default class LinkToolbar extends React.Component<Props> {
       return;
     }
 
-    const href = `creating#${title}…`;
+    const href = `${creatingUrlPrefix}${title}…`;
 
     // Insert a placeholder link
     dispatch(
