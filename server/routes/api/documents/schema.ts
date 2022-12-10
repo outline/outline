@@ -138,12 +138,6 @@ export const DocumentsRestoreSchema = BaseIdSchema.extend({
 
 export type DocumentsRestoreReq = z.infer<typeof DocumentsRestoreSchema>;
 
-export const DocumentsSearchTitlesSchema = SearchQuerySchema.extend({});
-
-export type DocumentsSearchTitlesReq = z.infer<
-  typeof DocumentsSearchTitlesSchema
->;
-
 export const DocumentsSearchSchema = SearchQuerySchema.merge(
   DateFilterSchema
 ).extend({
