@@ -47,6 +47,10 @@ describe("documentPermanentDeleter", () => {
       teamId: document.teamId,
       documentId: document.id,
     });
+    await buildAttachment({
+      teamId: document.teamId,
+      documentId: document.id,
+    });
     document.text = `![text](${attachment.redirectUrl})`;
     await document.save();
     const countDeletedDoc = await documentPermanentDeleter([document]);

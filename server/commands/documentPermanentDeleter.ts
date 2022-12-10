@@ -1,3 +1,4 @@
+import { uniq } from "lodash";
 import { QueryTypes } from "sequelize";
 import { sequelize } from "@server/database/sequelize";
 import Logger from "@server/logging/Logger";
@@ -22,34 +23,61 @@ export default async function documentPermanentDeleter(documents: Document[]) {
   `;
 
   for (const document of documents) {
-    const attachmentIds = parseAttachmentIds(document.text);
+    // Find any attachments that are referenced in the text content
+    const attachmentIdsInText = parseAttachmentIds(document.text);
 
-    for (const attachmentId of attachmentIds) {
-      const [{ count }] = await sequelize.query(query, {
-        type: QueryTypes.SELECT,
-        replacements: {
-          documentId: document.id,
+    // Find any attachments that were originally uploaded to this document
+    const attachmentIdsForDocument = (
+      await Attachment.findAll({
+        attributes: ["id"],
+        where: {
           teamId: document.teamId,
-          query: attachmentId,
+          documentId: document.id,
         },
-      });
+      })
+    ).map((attachment) => attachment.id);
 
-      if (parseInt(count) === 0) {
-        const attachment = await Attachment.findOne({
-          where: {
+    const attachmentIds = uniq([
+      ...attachmentIdsInText,
+      ...attachmentIdsForDocument,
+    ]);
+
+    await Promise.all(
+      attachmentIds.map(async (attachmentId) => {
+        // Check if the attachment is referenced in any other documents – this
+        // is needed as it's easy to copy and paste content between documents.
+        // An uploaded attachment may end up referenced in multiple documents.
+        const [{ count }] = await sequelize.query<{ count: string }>(query, {
+          type: QueryTypes.SELECT,
+          replacements: {
+            documentId: document.id,
             teamId: document.teamId,
-            id: attachmentId,
+            query: attachmentId,
           },
         });
 
-        if (attachment) {
-          await attachment.destroy();
-          Logger.info("commands", `Attachment ${attachmentId} deleted`);
-        } else {
-          Logger.info("commands", `Unknown attachment ${attachmentId} ignored`);
+        // If the attachment is not referenced in any other documents then
+        // delete it from the database and the storage provider.
+        if (parseInt(count) === 0) {
+          const attachment = await Attachment.findOne({
+            where: {
+              teamId: document.teamId,
+              id: attachmentId,
+            },
+          });
+
+          if (attachment) {
+            await attachment.destroy();
+            Logger.info("commands", `Attachment ${attachmentId} deleted`);
+          } else {
+            Logger.info(
+              "commands",
+              `Unknown attachment ${attachmentId} ignored`
+            );
+          }
         }
-      }
-    }
+      })
+    );
   }
 
   return Document.scope("withDrafts").destroy({
