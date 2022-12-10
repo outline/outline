@@ -7,6 +7,7 @@ import { v4 as uuidv4 } from "uuid";
 type MermaidState = {
   decorationSet: DecorationSet;
   diagramVisibility: Record<number, boolean>;
+  isDark: boolean;
 };
 
 function getNewState({
@@ -65,6 +66,7 @@ function getNewState({
             flowchart: {
               htmlLabels: false,
             },
+            theme: pluginState.isDark ? "dark" : "default",
             fontFamily: "inherit",
           });
           try {
@@ -114,10 +116,17 @@ function getNewState({
   return {
     decorationSet: DecorationSet.create(doc, decorations),
     diagramVisibility: pluginState.diagramVisibility,
+    isDark: pluginState.isDark,
   };
 }
 
-export default function Mermaid({ name }: { name: string }) {
+export default function Mermaid({
+  name,
+  isDark,
+}: {
+  name: string;
+  isDark: boolean;
+}) {
   let diagramShown = false;
 
   return new Plugin({
@@ -127,6 +136,7 @@ export default function Mermaid({ name }: { name: string }) {
         const pluginState: MermaidState = {
           decorationSet: DecorationSet.create(doc, []),
           diagramVisibility: {},
+          isDark,
         };
         return pluginState;
       },
@@ -143,6 +153,11 @@ export default function Mermaid({ name }: { name: string }) {
         const ySyncEdit = !!transaction.getMeta("y-sync$");
         const mermaidMeta = transaction.getMeta("mermaid");
         const diagramToggled = mermaidMeta?.toggleDiagram !== undefined;
+        const themeToggled = mermaidMeta?.isDark !== undefined;
+
+        if (themeToggled) {
+          pluginState.isDark = mermaidMeta.isDark;
+        }
 
         if (diagramToggled) {
           pluginState.diagramVisibility[
@@ -150,7 +165,13 @@ export default function Mermaid({ name }: { name: string }) {
           ] = !pluginState.diagramVisibility[mermaidMeta.toggleDiagram];
         }
 
-        if (!diagramShown || codeBlockChanged || diagramToggled || ySyncEdit) {
+        if (
+          !diagramShown ||
+          themeToggled ||
+          codeBlockChanged ||
+          diagramToggled ||
+          ySyncEdit
+        ) {
           diagramShown = true;
           return getNewState({
             doc: transaction.doc,
@@ -165,6 +186,7 @@ export default function Mermaid({ name }: { name: string }) {
             transaction.doc
           ),
           diagramVisibility: pluginState.diagramVisibility,
+          isDark: pluginState.isDark,
         };
       },
     },
@@ -178,7 +200,21 @@ export default function Mermaid({ name }: { name: string }) {
           view.dispatch(view.state.tr.setMeta("mermaid", { loaded: true }));
         }, 10);
       }
-      return {};
+
+      console.log("init view");
+
+      const rerenderOnThemeChange = (event: CustomEvent) => {
+        console.log("NOW NOW", event.detail);
+        view.dispatch(view.state.tr.setMeta("mermaid", event.detail));
+      };
+      window.addEventListener("theme-changed", rerenderOnThemeChange);
+
+      return {
+        destroy: () => {
+          console.log("destroy view");
+          window.removeEventListener("theme-changed", rerenderOnThemeChange);
+        },
+      };
     },
     props: {
       decorations(state) {

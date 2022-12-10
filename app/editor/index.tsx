@@ -398,7 +398,9 @@ export class Editor extends React.PureComponent<
       plugins: [
         ...this.plugins,
         ...this.keymaps,
-        dropCursor({ color: this.props.theme.cursor }),
+        dropCursor({
+          color: this.props.theme.cursor,
+        }),
         gapCursor(),
         inputRules({
           rules: this.inputRules,
