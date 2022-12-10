@@ -585,43 +585,37 @@ router.post(
   "documents.search_titles",
   auth(),
   pagination(),
-  validate(T.DocumentsSearchTitlesSchema),
-  async (ctx: APIContext<T.DocumentsSearchTitlesReq>) => {
-    const { query } = ctx.input;
+  validate(T.DocumentsSearchSchema),
+  async (ctx: APIContext<T.DocumentsSearchReq>) => {
+    const {
+      query,
+      includeArchived,
+      includeDrafts,
+      dateFilter,
+      collectionId,
+      userId,
+    } = ctx.input;
     const { offset, limit } = ctx.state.pagination;
     const { user } = ctx.state;
+    let collaboratorIds = undefined;
 
-    const collectionIds = await user.collectionIds();
-    const documents = await Document.scope([
-      {
-        method: ["withViews", user.id],
-      },
-      {
-        method: ["withCollectionPermissions", user.id],
-      },
-    ]).findAll({
-      where: {
-        title: {
-          [Op.iLike]: `%${query}%`,
-        },
-        collectionId: collectionIds,
-        archivedAt: {
-          [Op.is]: null,
-        },
-      },
-      order: [["updatedAt", "DESC"]],
-      include: [
-        {
-          model: User,
-          as: "createdBy",
-          paranoid: false,
-        },
-        {
-          model: User,
-          as: "updatedBy",
-          paranoid: false,
-        },
-      ],
+    if (collectionId) {
+      const collection = await Collection.scope({
+        method: ["withMembership", user.id],
+      }).findByPk(collectionId);
+      authorize(user, "read", collection);
+    }
+
+    if (userId) {
+      collaboratorIds = [userId];
+    }
+
+    const documents = await SearchHelper.searchTitlesForUser(user, query, {
+      includeArchived,
+      includeDrafts,
+      dateFilter,
+      collectionId,
+      collaboratorIds,
       offset,
       limit,
     });
