@@ -333,3 +333,102 @@ describe("#searchForUser", () => {
     expect(totalCount).toBe("0");
   });
 });
+
+describe("#searchTitlesForUser", () => {
+  test("should return search results from collections", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({
+      teamId: team.id,
+    });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: collection.id,
+      title: "test",
+    });
+    const documents = await SearchHelper.searchTitlesForUser(user, "test");
+    expect(documents.length).toBe(1);
+    expect(documents[0]?.id).toBe(document.id);
+  });
+
+  test("should handle no collections", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({
+      teamId: team.id,
+    });
+    const documents = await SearchHelper.searchTitlesForUser(user, "test");
+    expect(documents.length).toBe(0);
+  });
+
+  test("should search only drafts created by user", async () => {
+    const user = await buildUser();
+    await buildDraftDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      createdById: user.id,
+      title: "test",
+    });
+    const documents = await SearchHelper.searchTitlesForUser(user, "test", {
+      includeDrafts: true,
+    });
+    expect(documents.length).toBe(1);
+  });
+
+  test("should not include drafts", async () => {
+    const user = await buildUser();
+    await buildDraftDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      createdById: user.id,
+      title: "test",
+    });
+    const documents = await SearchHelper.searchTitlesForUser(user, "test", {
+      includeDrafts: false,
+    });
+    expect(documents.length).toBe(0);
+  });
+
+  test("should include results from drafts as well", async () => {
+    const user = await buildUser();
+    await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      createdById: user.id,
+      title: "not test",
+    });
+    await buildDraftDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      createdById: user.id,
+      title: "test",
+    });
+    const documents = await SearchHelper.searchTitlesForUser(user, "test", {
+      includeDrafts: true,
+    });
+    expect(documents.length).toBe(2);
+  });
+
+  test("should not include results from drafts", async () => {
+    const user = await buildUser();
+    await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      createdById: user.id,
+      title: "not test",
+    });
+    await buildDraftDocument({
+      teamId: user.teamId,
+      userId: user.id,
+      createdById: user.id,
+      title: "test",
+    });
+    const documents = await SearchHelper.searchTitlesForUser(user, "test", {
+      includeDrafts: false,
+    });
+    expect(documents.length).toBe(1);
+  });
+});

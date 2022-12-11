@@ -192,7 +192,28 @@ export default class SearchHelper {
       title: {
         [Op.iLike]: `%${query}%`,
       },
-      collectionId: collectionIds,
+      ...(collectionIds.length
+        ? {
+            [Op.or]: [
+              {
+                collectionId: {
+                  [Op.in]: collectionIds,
+                },
+              },
+              {
+                collectionId: {
+                  [Op.is]: null,
+                },
+                createdById: user.id,
+              },
+            ],
+          }
+        : {
+            collectionId: {
+              [Op.is]: null,
+            },
+            createdById: user.id,
+          }),
     };
 
     if (options.dateFilter) {
@@ -218,12 +239,16 @@ export default class SearchHelper {
     if (options.includeDrafts) {
       where = {
         ...where,
-        [Op.or]: {
-          publishedAt: {
-            [Op.ne]: null,
+        [Op.or]: [
+          {
+            publishedAt: {
+              [Op.ne]: null,
+            },
           },
-          createdById: user.id,
-        },
+          {
+            createdById: user.id,
+          },
+        ],
       };
     } else {
       where = {
@@ -244,6 +269,8 @@ export default class SearchHelper {
     }
 
     return await Document.scope([
+      "withoutState",
+      "withDrafts",
       {
         method: ["withViews", user.id],
       },
