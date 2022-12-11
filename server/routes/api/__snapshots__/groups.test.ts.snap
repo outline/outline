@@ -83,7 +83,7 @@ Object {
 
 exports[`#groups.update when user is admin fails with validation error when name already taken 1`] = `
 Object {
-  "error": "",
+  "error": "validation_error",
   "message": "The name of this group is already in use (isUniqueNameInTeam)",
   "ok": false,
   "status": 400,
