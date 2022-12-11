@@ -154,7 +154,7 @@ function SharePopover({
             } catch (err) {
               if (err.message.includes("must be unique")) {
                 setSlugValidationError(
-                  "The link already exists for some other document"
+                  t("Sorry, this link has already been used")
                 );
               }
             }

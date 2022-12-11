@@ -476,6 +476,7 @@
   "Anyone with the link <1></1>can view this document": "Anyone with the link <1></1>can view this document",
   "Share": "Share",
   "Only lowercase letters, digits and dashes allowed": "Only lowercase letters, digits and dashes allowed",
+  "Sorry, this link has already been used": "Sorry, this link has already been used",
   "Share this document": "Share this document",
   "This document is shared because the parent <em>{{ documentTitle }}</em> is publicly shared": "This document is shared because the parent <em>{{ documentTitle }}</em> is publicly shared",
   "Publish to internet": "Publish to internet",
