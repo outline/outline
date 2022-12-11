@@ -256,7 +256,7 @@ class Search extends React.Component<Props> {
 
       try {
         const results = this.titleFilter
-          ? await this.props.documents.searchTitles(this.query)
+          ? await this.props.documents.searchTitles(this.query, params)
           : await this.props.documents.search(this.query, params);
 
         // Add to the searches store so this search can immediately appear in
@@ -362,7 +362,7 @@ class Search extends React.Component<Props> {
                   })
                 }
               />
-              <SearchOnlyTitleFilter
+              <SearchTitleOnlyFilter
                 width={26}
                 height={14}
                 label={t("search title only")}
@@ -458,7 +458,7 @@ const Filters = styled(Flex)`
   }
 `;
 
-const SearchOnlyTitleFilter = styled(Switch)`
+const SearchTitleOnlyFilter = styled(Switch)`
   margin-left: 8px;
 `;
 

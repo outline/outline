@@ -386,8 +386,10 @@ export default class DocumentsStore extends BaseStore<Document> {
   };
 
   @action
-  searchTitles = async (query: string) => {
+  searchTitles = async (query: string, options?: SearchParams) => {
+    const compactedOptions = omitBy(options, (o) => !o);
     const res = await client.post("/documents.search_titles", {
+      ...compactedOptions,
       query,
     });
     invariant(res?.data, "Search response should be available");
@@ -430,7 +432,6 @@ export default class DocumentsStore extends BaseStore<Document> {
 
     // add the documents and associated policies to the store
     res.data.forEach((result: SearchResult) => this.add(result.document));
-
     this.addPolicies(res.policies);
 
     // store a reference to the document model in the search cache instead
