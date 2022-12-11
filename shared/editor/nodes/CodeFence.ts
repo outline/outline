@@ -338,7 +338,10 @@ export default class CodeFence extends Node {
         name: this.name,
         lineNumbers: this.showLineNumbers,
       }),
-      Mermaid({ name: this.name }),
+      Mermaid({
+        name: this.name,
+        isDark: this.editor.props.theme.isDark,
+      }),
       new Plugin({
         key: new PluginKey("triple-click"),
         props: {
