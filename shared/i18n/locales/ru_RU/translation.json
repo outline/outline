@@ -206,7 +206,7 @@
   "No results": "Ничего не найденo",
   "Previous page": "Предыдущая страница",
   "Next page": "Следующая страница",
-  "Confirm": "Confirm",
+  "Confirm": "Подтвердить",
   "Saving": "Сохранение",
   "Are you sure you want to make {{ userName }} a read-only viewer? They will not be able to edit any content": "Вы уверены, что хотите сделать {{ userName }} наблюдателем? Для него будет отключена возможность редактирования контента",
   "Are you sure you want to make {{ userName }} a member?": "Делаем {{ userName }} участником?",
