@@ -1,4 +1,5 @@
 import Router from "koa-router";
+import { isUndefined } from "lodash";
 import { Op, WhereOptions } from "sequelize";
 import { NotFoundError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
@@ -191,7 +192,7 @@ router.post("shares.update", auth(), async (ctx) => {
     share.includeChildDocuments = includeChildDocuments;
   }
 
-  if (urlId) {
+  if (!isUndefined(urlId)) {
     share.urlId = urlId;
   }
 

@@ -502,6 +502,32 @@ describe("#shares.update", () => {
     expect(body.data.urlId).toEqual("url-id");
   });
 
+  it("should allow clearing urlId", async () => {
+    const { user, document } = await seed();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+    });
+    await server.post("/api/shares.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: share.id,
+        urlId: "url-id",
+      },
+    });
+
+    const res = await server.post("/api/shares.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: share.id,
+        urlId: null,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.urlId).toBeNull();
+  });
+
   it("should allow user to update a share", async () => {
     const { user, document } = await seed();
     const share = await buildShare({
