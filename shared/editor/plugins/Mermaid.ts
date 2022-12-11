@@ -152,11 +152,12 @@ export default function Mermaid({
           transaction.docChanged && [nodeName, previousNodeName].includes(name);
         const ySyncEdit = !!transaction.getMeta("y-sync$");
         const mermaidMeta = transaction.getMeta("mermaid");
+        const themeMeta = transaction.getMeta("theme");
         const diagramToggled = mermaidMeta?.toggleDiagram !== undefined;
-        const themeToggled = mermaidMeta?.isDark !== undefined;
+        const themeToggled = themeMeta?.isDark !== undefined;
 
         if (themeToggled) {
-          pluginState.isDark = mermaidMeta.isDark;
+          pluginState.isDark = themeMeta.isDark;
         }
 
         if (diagramToggled) {
@@ -201,20 +202,7 @@ export default function Mermaid({
         }, 10);
       }
 
-      console.log("init view");
-
-      const rerenderOnThemeChange = (event: CustomEvent) => {
-        console.log("NOW NOW", event.detail);
-        view.dispatch(view.state.tr.setMeta("mermaid", event.detail));
-      };
-      window.addEventListener("theme-changed", rerenderOnThemeChange);
-
-      return {
-        destroy: () => {
-          console.log("destroy view");
-          window.removeEventListener("theme-changed", rerenderOnThemeChange);
-        },
-      };
+      return {};
     },
     props: {
       decorations(state) {

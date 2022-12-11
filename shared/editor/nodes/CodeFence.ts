@@ -333,7 +333,6 @@ export default class CodeFence extends Node {
   };
 
   get plugins() {
-    console.log(this.editor.props.theme.isDark);
     return [
       Prism({
         name: this.name,
