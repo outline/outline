@@ -81,7 +81,7 @@
     "bull": "^4.10.2",
     "cancan": "3.1.0",
     "chalk": "^4.1.0",
-    "class-validator": "^0.13.2",
+    "class-validator": "^0.14.0",
     "compressorjs": "^1.1.1",
     "copy-to-clipboard": "^3.3.1",
     "core-js": "^3.26.1",
