@@ -67,7 +67,7 @@ export function isUrl(text: string, options?: { requireHostname: boolean }) {
 
     return (
       url.protocol !== "" &&
-      url.pathname.startsWith("//") &&
+      (url.pathname.startsWith("//") || url.pathname.startsWith("http")) &&
       !options?.requireHostname
     );
   } catch (err) {
