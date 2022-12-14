@@ -34,6 +34,7 @@ import { metaDisplay } from "~/utils/keyboard";
 import { newDocumentPath, editDocumentUrl } from "~/utils/routeHelpers";
 import ObservingBanner from "./ObservingBanner";
 import PublicBreadcrumb from "./PublicBreadcrumb";
+import PublishButton from "./PublishButton";
 import ShareButton from "./ShareButton";
 
 type Props = {
@@ -314,19 +315,23 @@ function DocumentHeader({
             )}
             {can.update && isDraft && !isRevision && (
               <Action>
-                <Tooltip
-                  tooltip={t("Publish")}
-                  shortcut={`${metaDisplay}+shift+p`}
-                  delay={500}
-                  placement="bottom"
-                >
-                  <Button
-                    onClick={handlePublish}
-                    disabled={publishingIsDisabled}
+                {document.collectionId ? (
+                  <Tooltip
+                    tooltip={t("Publish")}
+                    shortcut={`${metaDisplay}+shift+p`}
+                    delay={500}
+                    placement="bottom"
                   >
-                    {isPublishing ? `${t("Publishing")}…` : t("Publish")}
-                  </Button>
-                </Tooltip>
+                    <Button
+                      onClick={handlePublish}
+                      disabled={publishingIsDisabled}
+                    >
+                      {isPublishing ? `${t("Publishing")}…` : t("Publish")}
+                    </Button>
+                  </Tooltip>
+                ) : (
+                  <PublishButton />
+                )}
               </Action>
             )}
             {!isEditing && (
