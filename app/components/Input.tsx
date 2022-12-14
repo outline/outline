@@ -5,6 +5,7 @@ import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Flex from "~/components/Flex";
+import Text from "~/components/Text";
 import { undraggableOnDesktop } from "~/styles";
 
 const RealTextarea = styled.textarea<{ hasIcon?: boolean }>`
@@ -120,6 +121,7 @@ export type Props = React.InputHTMLAttributes<
   flex?: boolean;
   short?: boolean;
   margin?: string | number;
+  error?: string;
   icon?: React.ReactNode;
   innerRef?: React.Ref<any>;
   onFocus?: (ev: React.SyntheticEvent) => unknown;
@@ -155,6 +157,7 @@ class Input extends React.Component<Props> {
       icon,
       label,
       margin,
+      error,
       className,
       short,
       flex,
@@ -197,10 +200,25 @@ class Input extends React.Component<Props> {
             )}
           </Outline>
         </label>
+        <TextWrapper>
+          <StyledText type="danger" size="xsmall">
+            {error}
+          </StyledText>
+        </TextWrapper>
       </Wrapper>
     );
   }
 }
+
+export const TextWrapper = styled.span`
+  min-height: 16px;
+  display: block;
+  margin-top: -16px;
+`;
+
+export const StyledText = styled(Text)`
+  margin-bottom: 0;
+`;
 
 export const ReactHookWrappedInput = React.forwardRef(
   (props: Omit<Props, "innerRef">, ref: React.Ref<any>) => {

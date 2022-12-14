@@ -4,9 +4,11 @@ import util from "util";
 import { Context, Next } from "koa";
 import { escape } from "lodash";
 import { Sequelize } from "sequelize";
+import isUUID from "validator/lib/isUUID";
 import documentLoader from "@server/commands/documentLoader";
 import env from "@server/env";
 import presentEnv from "@server/presenters/env";
+import { getTeamFromContext } from "@server/utils/passport";
 import prefetchTags from "@server/utils/prefetchTags";
 
 const isProduction = env.ENVIRONMENT === "production";
@@ -87,11 +89,19 @@ export const renderShare = async (ctx: Context, next: Next) => {
   let share, document;
 
   try {
+    const team = await getTeamFromContext(ctx);
     const result = await documentLoader({
       id: documentSlug,
       shareId,
+      teamId: team?.id,
     });
     share = result.share;
+    if (isUUID(shareId) && share && share.urlId) {
+      // Redirect temporarily because the url slug
+      // can be modified by the user at any time
+      ctx.redirect(`/s/${share.urlId}`);
+      ctx.status = 307;
+    }
     document = result.document;
 
     if (share && !ctx.userAgent.isBot) {

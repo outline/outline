@@ -1,5 +1,7 @@
 import { isEmpty } from "lodash";
+import isUUID from "validator/lib/isUUID";
 import { z } from "zod";
+import { SHARE_URL_SLUG_REGEX } from "@shared/utils/urlHelpers";
 
 const DocumentsSortParamsSchema = z.object({
   /** Specifies the attributes by which documents will be sorted in the list */
@@ -98,7 +100,10 @@ export const DocumentsInfoSchema = z
     id: z.string().optional(),
 
     /** Share Id, if available */
-    shareId: z.string().uuid().optional(),
+    shareId: z
+      .string()
+      .refine((val) => isUUID(val) || SHARE_URL_SLUG_REGEX.test(val))
+      .optional(),
 
     /** Version of the API to be used */
     apiVersion: z.number().optional(),

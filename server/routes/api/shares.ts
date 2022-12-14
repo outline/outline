@@ -1,4 +1,5 @@
 import Router from "koa-router";
+import { isUndefined } from "lodash";
 import { Op, WhereOptions } from "sequelize";
 import { NotFoundError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
@@ -162,7 +163,7 @@ router.post("shares.list", auth(), pagination(), async (ctx) => {
 });
 
 router.post("shares.update", auth(), async (ctx) => {
-  const { id, includeChildDocuments, published } = ctx.request.body;
+  const { id, includeChildDocuments, published, urlId } = ctx.request.body;
   assertUuid(id, "id is required");
 
   const { user } = ctx.state;
@@ -189,6 +190,10 @@ router.post("shares.update", auth(), async (ctx) => {
 
   if (includeChildDocuments !== undefined) {
     share.includeChildDocuments = includeChildDocuments;
+  }
+
+  if (!isUndefined(urlId)) {
+    share.urlId = urlId;
   }
 
   await share.save();

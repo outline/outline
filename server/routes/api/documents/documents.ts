@@ -41,6 +41,7 @@ import {
   presentPolicies,
 } from "@server/presenters";
 import { APIContext } from "@server/types";
+import { getTeamFromContext } from "@server/utils/passport";
 import slugify from "@server/utils/slugify";
 import { assertPresent } from "@server/validation";
 import env from "../../../env";
@@ -394,10 +395,12 @@ router.post(
   async (ctx: APIContext<T.DocumentsInfoReq>) => {
     const { id, shareId, apiVersion } = ctx.input;
     const { user } = ctx.state;
+    const teamFromCtx = await getTeamFromContext(ctx);
     const { document, share, collection } = await documentLoader({
       id,
       shareId,
       user,
+      teamId: teamFromCtx?.id,
     });
     const isPublic = cannot(user, "read", document);
     const serializedDocument = await presentDocument(document, {
