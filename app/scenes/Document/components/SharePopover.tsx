@@ -5,6 +5,7 @@ import { observer } from "mobx-react";
 import { ExpandedIcon, GlobeIcon, PadlockIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import slugify from "slugify";
 import styled from "styled-components";
 import { SHARE_URL_SLUG_REGEX } from "@shared/utils/urlHelpers";
 import Document from "~/models/Document";
@@ -257,31 +258,6 @@ function SharePopover({
         <>
           <Separator />
           <SwitchWrapper>
-            <Input
-              type="text"
-              label={t("Custom link")}
-              onChange={handleUrlSlugChange}
-              error={slugValidationError}
-              defaultValue={urlSlug}
-            />
-            {!slugValidationError && urlSlug && (
-              <DocumentLinkPreviewWrapper>
-                <DocumentLinkPreview type="secondary" size="small">
-                  <Trans>The document will be available at</Trans>
-                  <br />
-                  <a
-                    href={urlSlug ? `${team.url}/s/${urlSlug}` : ""}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {urlSlug ? `${team.url}/s/${urlSlug}` : ""}
-                  </a>
-                </DocumentLinkPreview>
-              </DocumentLinkPreviewWrapper>
-            )}
-          </SwitchWrapper>
-          <Separator />
-          <SwitchWrapper>
             <Switch
               id="enableEditMode"
               label={t("Automatically redirect to the editor")}
@@ -301,6 +277,32 @@ function SharePopover({
                 .
               </SwitchText>
             </SwitchLabel>
+          </SwitchWrapper>
+          <Separator />
+          <SwitchWrapper>
+            <Input
+              type="text"
+              label={t("Custom link")}
+              placeholder={slugify(document.titleWithDefault.toLowerCase())}
+              onChange={handleUrlSlugChange}
+              error={slugValidationError}
+              defaultValue={urlSlug}
+            />
+            {!slugValidationError && (
+              <DocumentLinkPreviewWrapper>
+                <DocumentLinkPreview type="secondary">
+                  <Trans>The document will be available at</Trans>
+                  <br />
+                  <a
+                    href={`${team.url}/s/${urlSlug || share?.id}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {`${team.url}/s/${urlSlug || share?.id}`}
+                  </a>
+                </DocumentLinkPreview>
+              </DocumentLinkPreviewWrapper>
+            )}
           </SwitchWrapper>
         </>
       )}
