@@ -96,10 +96,10 @@ export const renderShare = async (ctx: Context, next: Next) => {
       teamId: team?.id,
     });
     share = result.share;
-    if (isUUID(shareId) && share && share.urlId) {
+    if (isUUID(shareId) && share?.urlId) {
       // Redirect temporarily because the url slug
       // can be modified by the user at any time
-      ctx.redirect(`/s/${share.urlId}`);
+      ctx.redirect(share.canonicalUrl);
       ctx.status = 307;
     }
     document = result.document;
