@@ -220,8 +220,8 @@ export default class SearchHelper {
       where = {
         ...where,
         updatedAt: {
-          [Op.gte]: sequelize.literal(
-            `now() - interval 1 ${options.dateFilter}`
+          [Op.gt]: sequelize.literal(
+            `now() - interval '1 ${options.dateFilter}'`
           ),
         },
       };

@@ -365,14 +365,19 @@ export async function buildDocument(
   }
 
   count++;
-  return Document.create({
-    title: `Document ${count}`,
-    text: "This is the text in an example document",
-    publishedAt: isNull(overrides.collectionId) ? null : new Date(),
-    lastModifiedById: overrides.userId,
-    createdById: overrides.userId,
-    ...overrides,
-  });
+  return Document.create(
+    {
+      title: `Document ${count}`,
+      text: "This is the text in an example document",
+      publishedAt: isNull(overrides.collectionId) ? null : new Date(),
+      lastModifiedById: overrides.userId,
+      createdById: overrides.userId,
+      ...overrides,
+    },
+    {
+      silent: overrides.createdAt || overrides.updatedAt ? true : false,
+    }
+  );
 }
 
 export async function buildFileOperation(
