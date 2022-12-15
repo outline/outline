@@ -57,7 +57,7 @@ export default function imageMenuItems(
     {
       name: "alignFullWidth",
       tooltip: dictionary.alignFullWidth,
-      icon: AlignFullWidthIcon,
+      icon: <AlignFullWidthIcon />,
       visible: true,
       active: isFullWidthAligned,
     },

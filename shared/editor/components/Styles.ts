@@ -290,6 +290,7 @@ li {
   width: initial;
   max-width: 100vw;
   clear: both;
+  position: initial;
 
   img {
     max-width: 100vw;
