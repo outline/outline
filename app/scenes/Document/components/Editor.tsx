@@ -51,6 +51,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     ...rest
   } = props;
 
+  const childRef = React.useRef<HTMLDivElement>(null);
   const focusAtStart = React.useCallback(() => {
     if (ref.current) {
       ref.current.focusAtStart();
@@ -115,10 +116,10 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         readOnly={readOnly}
         shareId={shareId}
         extensions={fullPackage}
-        grow
+        bottomPadding={`calc(50vh - ${childRef.current?.offsetHeight || 0}px)`}
         {...rest}
       />
-      {children}
+      <div ref={childRef}>{children}</div>
     </Flex>
   );
 }

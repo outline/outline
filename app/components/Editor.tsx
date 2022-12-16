@@ -50,10 +50,10 @@ export type Props = Optional<
 > & {
   shareId?: string | undefined;
   embedsDisabled?: boolean;
-  grow?: boolean;
   onHeadingsChange?: (headings: Heading[]) => void;
   onSynced?: () => Promise<void>;
   onPublish?: (event: React.MouseEvent) => any;
+  bottomPadding?: string;
 };
 
 function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
@@ -301,12 +301,12 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
           placeholder={props.placeholder || ""}
           defaultValue={props.defaultValue || ""}
         />
-        {props.grow && !props.readOnly && (
+        {props.bottomPadding && !props.readOnly && (
           <ClickablePadding
             onClick={focusAtEnd}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
-            grow
+            minHeight={props.bottomPadding}
           />
         )}
         {activeLinkEvent && !shareId && (
