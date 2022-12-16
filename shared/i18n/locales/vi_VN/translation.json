@@ -495,7 +495,7 @@
   "Close": "Đóng",
   "{{ teamName }} is using Outline to share documents, please login to continue.": "{{ teamName }} đang sử dụng Outline để chia sẻ tài liệu, vui lòng đăng nhập để tiếp tục.",
   "Are you sure you want to delete the <em>{{ documentTitle }}</em> template?": "Bạn có chắc chắn muốn xóa mẫu <em>{{ documentTitle }}</em> không?",
-  "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history</em>.": "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history</em>.",
+  "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history</em>.": "Bạn có chắc chắn không? Xóa văn bản <em>{{ documentTitle }}</em> sẽ xóa tất cả lịch sử của nó</em>.",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history and <em>{{ any }} nested document</em>.": "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history and <em>one nested document</em>.",
   "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history and <em>{{ any }} nested document</em>._plural": "Are you sure about that? Deleting the <em>{{ documentTitle }}</em> document will delete all of its history and <em>{{ any }} nested documents</em>.",
   "If you’d like the option of referencing or restoring the {{noun}} in the future, consider archiving it instead.": "Nếu bạn muốn tùy chọn tham chiếu hoặc khôi phục số {{noun}} trong tương lai, hãy xem xét lưu trữ nó thay thế.",
