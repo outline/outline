@@ -1,6 +1,6 @@
 import { flatten } from "lodash";
 
-const flattenTree = (root: any) => {
+export const flattenTree = (root: any) => {
   const flattened: any[] = [];
   if (!root) {
     return flattened;
@@ -15,4 +15,11 @@ const flattenTree = (root: any) => {
   return flatten(flattened);
 };
 
-export default flattenTree;
+export const ancestors = (node: any) => {
+  const ancestors: any[] = [];
+  while (node.parent !== null) {
+    ancestors.unshift(node);
+    node = node.parent;
+  }
+  return ancestors;
+};

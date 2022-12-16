@@ -1,3 +1,5 @@
+import FuzzySearch from "fuzzy-search";
+import { uniq } from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -9,18 +11,54 @@ import Flex from "~/components/Flex";
 import { Outline } from "~/components/Input";
 import InputSearch from "~/components/InputSearch";
 import useStores from "~/hooks/useStores";
-import flattenTree from "~/utils/flattenTree";
+import { flattenTree, ancestors } from "~/utils/tree";
 
 type Props = {
   document: Document;
 };
 
 function PublishPopover({ document }: Props) {
+  const [searchTerm, setSearchTerm] = React.useState<string>();
   const { collections } = useStores();
   const { t } = useTranslation();
 
-  const handleSearch = () => {
-    return;
+  const searchIndex = React.useMemo(() => {
+    const data = flattenTree(collections.tree.root).slice(1);
+
+    return new FuzzySearch(data, ["data.title"], {
+      caseSensitive: false,
+      sort: true,
+    });
+  }, [collections.tree]);
+
+  const results = React.useMemo(() => {
+    const onlyShowCollections = document.isTemplate;
+    let results: any = [];
+
+    if (collections.isLoaded) {
+      if (searchTerm) {
+        results = searchIndex.search(searchTerm);
+      } else {
+        results = searchIndex.haystack;
+      }
+    }
+
+    if (onlyShowCollections) {
+      results = results.filter(
+        (result: any) => result.data.type === "collection"
+      );
+    }
+
+    // Include parents as well, required for displaying search results in a tree-like view
+    const resultsTree = uniq(
+      results.reduce((acc: any[], curr: any) => acc.concat(ancestors(curr)), [])
+    );
+
+    return resultsTree;
+  }, [document, collections, searchTerm, searchIndex]);
+
+  const handleSearch = (ev: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(ev.target.value);
   };
 
   const row = ({ index, data }: { index: number; data: any[] }) => {
@@ -37,7 +75,7 @@ function PublishPopover({ document }: Props) {
     );
   };
 
-  const data = flattenTree(collections.tree.root).slice(1);
+  const data = results;
 
   if (!document || !collections.isLoaded) {
     return null;
@@ -63,7 +101,7 @@ function PublishPopover({ document }: Props) {
                 itemData={data}
                 itemCount={data.length}
                 itemSize={40}
-                itemKey={(index, data) => data[index].id}
+                itemKey={(index, results: any) => results[index].data.id}
               >
                 {row}
               </List>
