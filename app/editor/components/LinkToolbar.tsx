@@ -54,74 +54,80 @@ export default function LinkToolbar(props: Props) {
     return () => window.removeEventListener("mousedown", handleClickOutside);
   }, [handleClickOutside]);
 
-  const handleOnCreateLink = async (title: string) => {
-    const { dictionary, onCreateLink, view, onClose, onShowToast } = props;
+  const handleOnCreateLink = React.useCallback(
+    async (title: string) => {
+      const { dictionary, onCreateLink, view, onClose, onShowToast } = props;
 
-    onClose();
-    props.view.focus();
+      onClose();
+      props.view.focus();
 
-    if (!onCreateLink) {
-      return;
-    }
+      if (!onCreateLink) {
+        return;
+      }
 
-    const { dispatch, state } = view;
-    const { from, to } = state.selection;
-    if (from !== to) {
-      // selection must be collapsed
-      return;
-    }
+      const { dispatch, state } = view;
+      const { from, to } = state.selection;
+      if (from !== to) {
+        // selection must be collapsed
+        return;
+      }
 
-    const href = `creating#${title}…`;
+      const href = `creating#${title}…`;
 
-    // Insert a placeholder link
-    dispatch(
-      view.state.tr
-        .insertText(title, from, to)
-        .addMark(
-          from,
-          to + title.length,
-          state.schema.marks.link.create({ href })
-        )
-    );
+      // Insert a placeholder link
+      dispatch(
+        view.state.tr
+          .insertText(title, from, to)
+          .addMark(
+            from,
+            to + title.length,
+            state.schema.marks.link.create({ href })
+          )
+      );
 
-    createAndInsertLink(view, title, href, {
-      onCreateLink,
-      onShowToast,
-      dictionary,
-    });
-  };
+      createAndInsertLink(view, title, href, {
+        onCreateLink,
+        onShowToast,
+        dictionary,
+      });
+    },
+    [props]
+  );
 
-  const handleOnSelectLink = ({
-    href,
-    title,
-  }: {
-    href: string;
-    title: string;
-    from: number;
-    to: number;
-  }) => {
-    const { view, onClose } = props;
+  const handleOnSelectLink = React.useCallback(
+    ({
+      href,
+      title,
+    }: {
+      href: string;
+      title: string;
+      from: number;
+      to: number;
+    }) => {
+      const { view, onClose } = props;
 
-    onClose();
-    props.view.focus();
+      onClose();
+      props.view.focus();
 
-    const { dispatch, state } = view;
-    const { from, to } = state.selection;
-    if (from !== to) {
-      // selection must be collapsed
-      return;
-    }
+      const { dispatch, state } = view;
+      const { from, to } = state.selection;
+      if (from !== to) {
+        // selection must be collapsed
+        return;
+      }
 
-    dispatch(
-      view.state.tr
-        .insertText(title, from, to)
-        .addMark(
-          from,
-          to + title.length,
-          state.schema.marks.link.create({ href })
-        )
-    );
-  };
+      dispatch(
+        view.state.tr
+          .insertText(title, from, to)
+          .addMark(
+            from,
+            to + title.length,
+            state.schema.marks.link.create({ href })
+          )
+      );
+    },
+    [props]
+  );
 
   const { onCreateLink, onClose, ...rest } = props;
   const { selection } = props.view.state;
