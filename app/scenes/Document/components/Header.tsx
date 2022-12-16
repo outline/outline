@@ -330,7 +330,7 @@ function DocumentHeader({
                     </Button>
                   </Tooltip>
                 ) : (
-                  <PublishButton />
+                  <PublishButton document={document} />
                 )}
               </Action>
             )}
