@@ -101,6 +101,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
       // can be modified by the user at any time
       ctx.redirect(share.canonicalUrl);
       ctx.status = 307;
+      return;
     }
     document = result.document;
 
