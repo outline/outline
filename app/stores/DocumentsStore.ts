@@ -404,9 +404,6 @@ export default class DocumentsStore extends BaseStore<Document> {
           return null;
         }
         return {
-          id: document.id,
-          ranking: result.ranking,
-          context: result.context,
           document,
         };
       })
@@ -415,7 +412,6 @@ export default class DocumentsStore extends BaseStore<Document> {
     // splice modifies any existing results, taking into account pagination
     existing.splice(0, existing.length, ...results);
     this.searchCache.set(query, existing);
-    console.log("searchTitles : ", res.data);
     return res.data;
   };
 
