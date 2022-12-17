@@ -10,7 +10,7 @@ function InVision(props: Props) {
   if (IMAGE_REGEX.test(props.attrs.href)) {
     return (
       <div className={props.isSelected ? "ProseMirror-selectednode" : ""}>
-        <ImageZoom>
+        <ImageZoom zoomMargin={24}>
           <img
             src={props.attrs.href}
             alt="InVision Embed"

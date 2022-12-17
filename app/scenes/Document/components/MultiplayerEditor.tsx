@@ -287,7 +287,8 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
         style={
           showCache
             ? {
-                display: "none",
+                opacity: 0,
+                pointerEvents: "none",
               }
             : undefined
         }

@@ -10,6 +10,7 @@ import React, {
   createRef,
 } from "react";
 import { createPortal } from "react-dom";
+import { VisuallyHidden } from "reakit";
 import type { SupportedImage } from "./types";
 import {
   getImgAlt,
@@ -257,6 +258,9 @@ class ControlledBase extends Component<
               <div data-rmiz-modal-overlay={dataOverlayState} />
               <div data-rmiz-modal-content="" ref={refModalContent}>
                 {modalContent}
+                <VisuallyHidden>
+                  <button onClick={handleUnzoom}>Close</button>
+                </VisuallyHidden>
               </div>
             </dialog>,
             elDialogContainer

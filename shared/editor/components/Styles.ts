@@ -294,7 +294,7 @@ li {
 
   img {
     max-width: 100vw;
-    max-height: 60vh;
+    max-height: 50vh;
     object-fit: cover;
     object-position: center;
   }

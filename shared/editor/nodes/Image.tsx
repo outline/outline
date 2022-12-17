@@ -597,7 +597,7 @@ const ImageComponent = (
   }
 ) => {
   const { isSelected, node, isEditable } = props;
-  const { alt, src, layoutClass } = node.attrs;
+  const { src, layoutClass } = node.attrs;
   const className = layoutClass ? `image image-${layoutClass}` : "image";
   const [contentWidth, setContentWidth] = React.useState(
     () => document.body.querySelector("#full-width-container")?.clientWidth || 0
@@ -611,22 +611,25 @@ const ImageComponent = (
   const [sizeAtDragStart, setSizeAtDragStart] = React.useState(size);
   const [offset, setOffset] = React.useState(0);
   const [dragging, setDragging] = React.useState<DragDirection>();
-  const documentWidth = props.view?.dom.clientWidth;
+  const [documentWidth, setDocumentWidth] = React.useState(
+    props.view?.dom.clientWidth || 0
+  );
   const maxWidth = layoutClass ? documentWidth / 3 : documentWidth;
   const isFullWidth = layoutClass === "full-width";
 
-  React.useEffect(() => {
+  React.useLayoutEffect(() => {
     const handleResize = () => {
       const contentWidth =
         document.body.querySelector("#full-width-container")?.clientWidth || 0;
       setContentWidth(contentWidth);
+      setDocumentWidth(props.view?.dom.clientWidth || 0);
     };
 
     window.addEventListener("resize", handleResize);
     return () => {
       window.removeEventListener("resize", handleResize);
     };
-  }, [documentWidth]);
+  }, [props.view]);
 
   const constrainWidth = (width: number) => {
     const minWidth = documentWidth * 0.1;
@@ -738,11 +741,10 @@ const ImageComponent = (
             <DownloadIcon color="currentColor" />
           </Button>
         )}
-        <ImageZoom>
+        <ImageZoom zoomMargin={24}>
           <img
             style={style}
             src={sanitizeUrl(src) ?? ""}
-            alt={alt}
             onLoad={(ev: React.SyntheticEvent<HTMLImageElement>) => {
               // For some SVG's Firefox does not provide the naturalWidth, in this
               // rare case we need to provide a default so that the image can be
