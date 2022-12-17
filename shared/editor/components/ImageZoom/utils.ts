@@ -114,6 +114,7 @@ export const getImgSrc: GetImgSrc = (imgEl) => {
       }
     }
   }
+  return;
 };
 
 export interface GetImgAlt {
@@ -128,6 +129,7 @@ export const getImgAlt: GetImgAlt = (imgEl) => {
       return imgEl.getAttribute("aria-label") ?? undefined;
     }
   }
+  return;
 };
 
 export interface GetImgRegularStyle {
