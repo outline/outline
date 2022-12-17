@@ -10,13 +10,13 @@ import {
 } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
-import ImageZoom, { ImageZoom_Image } from "react-medium-image-zoom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { getDataTransferFiles, getEventFiles } from "../../utils/files";
 import { sanitizeUrl } from "../../utils/urls";
 import { AttachmentValidation } from "../../validations";
 import insertFiles, { Options } from "../commands/insertFiles";
+import ImageZoom from "../components/ImageZoom";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import uploadPlaceholderPlugin from "../lib/uploadPlaceholder";
 import { ComponentProps, Dispatch } from "../types";
@@ -596,7 +596,7 @@ const ImageComponent = (
     view: EditorView;
   }
 ) => {
-  const { theme, isSelected, node, isEditable } = props;
+  const { isSelected, node, isEditable } = props;
   const { alt, src, layoutClass } = node.attrs;
   const className = layoutClass ? `image image-${layoutClass}` : "image";
   const [contentWidth, setContentWidth] = React.useState(
@@ -738,37 +738,29 @@ const ImageComponent = (
             <DownloadIcon color="currentColor" />
           </Button>
         )}
-        <ImageZoom
-          image={
-            {
-              style,
-              src: sanitizeUrl(src) ?? "",
-              alt,
-              onLoad: (ev: React.SyntheticEvent<HTMLImageElement>) => {
-                // For some SVG's Firefox does not provide the naturalWidth, in this
-                // rare case we need to provide a default so that the image can be
-                // seen and is not sized to 0px
-                const nw = (ev.target as HTMLImageElement).naturalWidth || 300;
-                const nh = (ev.target as HTMLImageElement).naturalHeight;
-                setNaturalWidth(nw);
-                setNaturalHeight(nh);
+        <ImageZoom>
+          <img
+            style={style}
+            src={sanitizeUrl(src) ?? ""}
+            alt={alt}
+            onLoad={(ev: React.SyntheticEvent<HTMLImageElement>) => {
+              // For some SVG's Firefox does not provide the naturalWidth, in this
+              // rare case we need to provide a default so that the image can be
+              // seen and is not sized to 0px
+              const nw = (ev.target as HTMLImageElement).naturalWidth || 300;
+              const nh = (ev.target as HTMLImageElement).naturalHeight;
+              setNaturalWidth(nw);
+              setNaturalHeight(nh);
 
-                if (!node.attrs.width) {
-                  setSize((state) => ({
-                    ...state,
-                    width: nw,
-                  }));
-                }
-              },
-            } as ImageZoom_Image
-          }
-          defaultStyles={{
-            overlay: {
-              backgroundColor: theme.background,
-            },
-          }}
-          shouldRespectMaxDimension
-        />
+              if (!node.attrs.width) {
+                setSize((state) => ({
+                  ...state,
+                  width: nw,
+                }));
+              }
+            }}
+          />
+        </ImageZoom>
         {isEditable && !isFullWidth && (
           <>
             <ResizeLeft
