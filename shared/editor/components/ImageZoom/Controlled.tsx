@@ -478,7 +478,6 @@ class ControlledBase extends Component<
   // Perform zoom actions
 
   zoom = () => {
-    this.bodyScrollDisable();
     this.refDialog.current?.showModal?.();
     this.setState({ modalState: ModalState.LOADING });
     this.loadZoomImg();
@@ -535,30 +534,7 @@ class ControlledBase extends Component<
       });
 
       this.refDialog.current?.close?.();
-
-      this.bodyScrollEnable();
     }, 0);
-  };
-
-  // Enable / disable body scrolling
-
-  bodyScrollDisable = () => {
-    this.prevBodyAttrs = {
-      overflow: document.body.style.overflow,
-      width: document.body.style.width,
-    };
-
-    // Get clientWidth before setting overflow: 'hidden'
-    const clientWidth = document.body.clientWidth;
-
-    document.body.style.overflow = "hidden";
-    document.body.style.width = `${clientWidth}px`;
-  };
-
-  bodyScrollEnable = () => {
-    document.body.style.width = this.prevBodyAttrs.width;
-    document.body.style.overflow = this.prevBodyAttrs.overflow;
-    this.prevBodyAttrs = defaultBodyAttrs;
   };
 
   // Load the zoomImg manually
