@@ -19,6 +19,13 @@ const NO_REDIRECT_PATHS = ["/", "/create", "/home"];
 type PersistedData = {
   user?: User;
   team?: Team;
+  availableTeams?: {
+    id: string;
+    name: string;
+    avatarUrl: string;
+    url: string;
+    isSignedIn: boolean;
+  }[];
   policies?: Policy[];
 };
 
@@ -37,19 +44,28 @@ export type Config = {
 
 export default class AuthStore {
   @observable
-  user: User | null | undefined;
+  user?: User | null;
 
   @observable
-  team: Team | null | undefined;
+  team?: Team | null;
 
   @observable
-  token: string | null | undefined;
+  availableTeams?: {
+    id: string;
+    name: string;
+    avatarUrl: string;
+    url: string;
+    isSignedIn: boolean;
+  }[];
+
+  @observable
+  token?: string | null;
 
   @observable
   policies: Policy[] = [];
 
   @observable
-  lastSignedIn: string | null | undefined;
+  lastSignedIn?: string | null;
 
   @observable
   isSaving = false;
@@ -58,7 +74,7 @@ export default class AuthStore {
   isSuspended = false;
 
   @observable
-  suspendedContactEmail: string | null | undefined;
+  suspendedContactEmail?: string | null;
 
   @observable
   config: Config | null | undefined;
@@ -133,6 +149,7 @@ export default class AuthStore {
     return {
       user: this.user,
       team: this.team,
+      availableTeams: this.availableTeams,
       policies: this.policies,
     };
   }
@@ -156,6 +173,7 @@ export default class AuthStore {
         const { user, team } = res.data;
         this.user = new User(user, this);
         this.team = new Team(team, this);
+        this.availableTeams = res.data.availableTeams;
 
         if (env.SENTRY_DSN) {
           Sentry.configureScope(function (scope) {
@@ -214,6 +232,9 @@ export default class AuthStore {
     runInAction("AuthStore#updateUser", () => {
       this.user = null;
       this.team = null;
+      this.availableTeams = this.availableTeams?.filter(
+        (team) => team.id !== this.team?.id
+      );
       this.policies = [];
       this.token = null;
     });
