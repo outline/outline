@@ -5,23 +5,19 @@ import { MenuButton, useMenuState } from "reakit/Menu";
 import ContextMenu from "~/components/ContextMenu";
 import Template from "~/components/ContextMenu/Template";
 import { navigateToSettings, logout } from "~/actions/definitions/navigation";
-import { createTeam, switchTeamList } from "~/actions/definitions/teams";
-import useCurrentTeam from "~/hooks/useCurrentTeam";
+import { createTeam, createTeamsList } from "~/actions/definitions/teams";
 import usePrevious from "~/hooks/usePrevious";
-import useSessions from "~/hooks/useSessions";
 import useStores from "~/hooks/useStores";
 import separator from "~/menus/separator";
 
 const OrganizationMenu: React.FC = ({ children }) => {
-  const [sessions] = useSessions();
   const menu = useMenuState({
     unstable_offset: [4, -4],
     placement: "bottom-start",
     modal: true,
   });
-  const { ui } = useStores();
-  const { theme } = ui;
-  const team = useCurrentTeam();
+  const stores = useStores();
+  const { theme } = stores.ui;
   const previousTheme = usePrevious(theme);
   const { t } = useTranslation();
 
@@ -35,13 +31,13 @@ const OrganizationMenu: React.FC = ({ children }) => {
   // menu is not cached at all.
   const actions = React.useMemo(() => {
     return [
-      ...switchTeamList,
+      ...createTeamsList({ stores }),
       createTeam,
       separator(),
       navigateToSettings,
       logout,
     ];
-  }, [team.id, sessions]);
+  }, [stores]);
 
   return (
     <>
