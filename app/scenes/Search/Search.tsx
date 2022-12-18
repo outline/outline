@@ -256,7 +256,7 @@ class Search extends React.Component<Props> {
 
       try {
         const results = this.titleFilter
-          ? await this.props.documents.searchTitles(this.query)
+          ? await this.props.documents.searchTitles(this.query, params)
           : await this.props.documents.search(this.query, params);
 
         // Add to the searches store so this search can immediately appear in
