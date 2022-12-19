@@ -20,6 +20,7 @@ type Props = {
 
 function PublishPopover({ document }: Props) {
   const [searchTerm, setSearchTerm] = React.useState<string>();
+  const [selectedLocation, setLocation] = React.useState<any>();
   const { collections } = useStores();
   const { t } = useTranslation();
 
@@ -62,10 +63,20 @@ function PublishPopover({ document }: Props) {
     setSearchTerm(ev.target.value);
   };
 
+  const handleSelect = (res: any) => {
+    setLocation(res);
+  };
+
   const row = ({ index, data }: { index: number; data: any[] }) => {
     const result = data[index];
     result.data.collection = collections.get(result.data.collectionId);
-    return <PublishLocation location={result}></PublishLocation>;
+    return (
+      <PublishLocation
+        location={result}
+        onSelect={handleSelect}
+        selected={result.data.id === selectedLocation.data.id}
+      ></PublishLocation>
+    );
   };
 
   const data = results;

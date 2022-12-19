@@ -6,13 +6,23 @@ import CollectionIcon from "~/components/CollectionIcon";
 
 type Props = {
   location: any;
+  onSelect: (location: any) => void;
+  selected: boolean;
 };
 
-function PublishLocation({ location }: Props) {
+function PublishLocation({ location, onSelect, selected }: Props) {
   const leadingSpaceWidth = location.depth ? location.depth * 24 + 12 : 0;
 
+  const handleSelect = React.useCallback(
+    (ev) => {
+      ev.preventDefault();
+      onSelect(location);
+    },
+    [onSelect, location]
+  );
+
   return (
-    <Row>
+    <Row selected={selected} onClick={handleSelect}>
       <Spacer width={leadingSpaceWidth} />
       {location.data.type === "collection" && location.data.collection && (
         <CollectionIcon collection={location.data.collection} />
@@ -34,7 +44,7 @@ const Spacer = styled.span<{ width?: number; height?: number }>`
   height: ${(props) => (isUndefined(props.height) ? 0 : props.height)}px;
 `;
 
-const Row = styled.span`
+const Row = styled.span<{ selected: boolean }>`
   display: flex;
   user-select: none;
 
@@ -50,10 +60,24 @@ const Row = styled.span`
   &:hover,
   &:active,
   &:focus {
-    background: ${(props) => props.theme.listItemHoverBackground};
+    background: ${(props) =>
+      !props.selected && props.theme.listItemHoverBackground};
     outline: none;
     border-radius: 6px;
   }
+
+  ${(props) =>
+    props.selected &&
+    `
+      background: ${props.theme.primary};
+      color: ${props.theme.white};
+      outline: none;
+      border-radius: 6px;
+
+      svg {
+        fill: ${props.theme.white};
+      }
+    `}
 `;
 
 export default observer(PublishLocation);
