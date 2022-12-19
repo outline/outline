@@ -2,6 +2,8 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
+import styled from "styled-components";
+import { depths } from "@shared/styles";
 import Document from "~/models/Document";
 import Button from "~/components/Button";
 import Popover from "~/components/Popover";
@@ -29,11 +31,18 @@ function PublishButton({ document }: Props) {
         )}
       </PopoverDisclosure>
 
-      <Popover {...popover} aria-label={t("Publish")}>
+      <StyledPopover {...popover} aria-label={t("Publish")}>
         <PublishPopover document={document} />
-      </Popover>
+      </StyledPopover>
     </>
   );
 }
+
+const StyledPopover = styled(Popover)`
+  z-index: ${depths.popover};
+  > :first-child {
+    max-height: 53vh;
+  }
+`;
 
 export default observer(PublishButton);
