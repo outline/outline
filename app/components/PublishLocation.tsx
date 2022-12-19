@@ -8,9 +8,10 @@ type Props = {
   location: any;
   onSelect: (location: any) => void;
   selected: boolean;
+  style?: React.CSSProperties;
 };
 
-function PublishLocation({ location, onSelect, selected }: Props) {
+function PublishLocation({ location, onSelect, selected, style }: Props) {
   const leadingSpaceWidth = location.depth ? location.depth * 24 + 12 : 0;
 
   const handleSelect = React.useCallback(
@@ -22,7 +23,7 @@ function PublishLocation({ location, onSelect, selected }: Props) {
   );
 
   return (
-    <Row selected={selected} onClick={handleSelect}>
+    <Row selected={selected} onClick={handleSelect} style={style}>
       <Spacer width={leadingSpaceWidth} />
       {location.data.type === "collection" && location.data.collection && (
         <CollectionIcon collection={location.data.collection} />

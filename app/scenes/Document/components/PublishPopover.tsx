@@ -67,14 +67,25 @@ function PublishPopover({ document }: Props) {
     setLocation(res);
   };
 
-  const row = ({ index, data }: { index: number; data: any[] }) => {
+  const row = ({
+    index,
+    data,
+    style,
+  }: {
+    index: number;
+    data: any[];
+    style: React.CSSProperties;
+  }) => {
     const result = data[index];
     result.data.collection = collections.get(result.data.collectionId);
     return (
       <PublishLocation
+        style={style}
         location={result}
         onSelect={handleSelect}
-        selected={result.data.id === selectedLocation.data.id}
+        selected={
+          selectedLocation && result.data.id === selectedLocation.data.id
+        }
       ></PublishLocation>
     );
   };
@@ -104,7 +115,7 @@ function PublishPopover({ document }: Props) {
                 height={height}
                 itemData={data}
                 itemCount={data.length}
-                itemSize={40}
+                itemSize={32}
                 itemKey={(index, results: any) => results[index].data.id}
               >
                 {row}
