@@ -93,11 +93,13 @@ function getDecorations({
       return;
     }
 
+    const lineDecorations = [];
+
     if (!cache[block.pos] || !cache[block.pos].node.eq(block.node)) {
       if (lineNumbers) {
         const lineCount =
           (block.node.textContent.match(/\n/g) || []).length + 1;
-        decorations.push(
+        lineDecorations.push(
           Decoration.widget(block.pos + 1, () => {
             const el = document.createElement("div");
             el.innerText = new Array(lineCount)
@@ -108,7 +110,7 @@ function getDecorations({
             return el;
           })
         );
-        decorations.push(
+        lineDecorations.push(
           Decoration.node(block.pos, block.pos + block.node.nodeSize, {
             style: `--line-number-gutter-width: ${String(lineCount).length}`,
           })
@@ -116,7 +118,7 @@ function getDecorations({
       }
 
       const nodes = refractor.highlight(block.node.textContent, language);
-      const _decorations = flattenDeep(parseNodes(nodes))
+      const newDecorations = flattenDeep(parseNodes(nodes))
         .map((node: ParsedNode) => {
           const from = startPos;
           const to = from + node.text.length;
@@ -134,13 +136,15 @@ function getDecorations({
           Decoration.inline(node.from, node.to, {
             class: node.classes.join(" "),
           })
-        );
+        )
+        .concat(lineDecorations);
 
       cache[block.pos] = {
         node: block.node,
-        decorations: _decorations,
+        decorations: newDecorations,
       };
     }
+
     cache[block.pos].decorations.forEach((decoration) => {
       decorations.push(decoration);
     });
