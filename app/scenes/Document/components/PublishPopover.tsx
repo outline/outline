@@ -10,6 +10,7 @@ import Document from "~/models/Document";
 import Flex from "~/components/Flex";
 import { Outline } from "~/components/Input";
 import InputSearch from "~/components/InputSearch";
+import PublishLocation from "~/components/PublishLocation";
 import useStores from "~/hooks/useStores";
 import { flattenTree, ancestors } from "~/utils/tree";
 
@@ -63,16 +64,8 @@ function PublishPopover({ document }: Props) {
 
   const row = ({ index, data }: { index: number; data: any[] }) => {
     const result = data[index];
-    let spaces = "";
-    for (let i = 1; i <= result.depth; i++) {
-      spaces += "        ";
-    }
-    return (
-      <Title>
-        {spaces}
-        {result.data.title}
-      </Title>
-    );
+    result.data.collection = collections.get(result.data.collectionId);
+    return <PublishLocation location={result}></PublishLocation>;
   };
 
   const data = results;
@@ -118,6 +111,7 @@ const PublishLocationSearch = styled(InputSearch)`
     border-radius: 16px;
   }
   margin-bottom: 16px;
+  margin-top: 16px;
 `;
 
 const Results = styled.div`
@@ -126,10 +120,6 @@ const Results = styled.div`
   border-top: 0;
   border-bottom-left-radius: 4px;
   border-bottom-right-radius: 4px;
-`;
-
-const Title = styled.p`
-  white-space: pre;
 `;
 
 export default observer(PublishPopover);
