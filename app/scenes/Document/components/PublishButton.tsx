@@ -41,7 +41,11 @@ function PublishButton({ document }: Props) {
 const StyledPopover = styled(Popover)`
   z-index: ${depths.popover};
   > :first-child {
-    max-height: 53vh;
+    max-height: unset;
+    overflow: hidden;
+    padding-bottom: 0;
+    padding-left: 0;
+    padding-right: 0;
   }
 `;
 

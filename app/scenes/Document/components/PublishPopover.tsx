@@ -7,6 +7,7 @@ import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList as List } from "react-window";
 import styled from "styled-components";
 import Document from "~/models/Document";
+import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import { Outline } from "~/components/Input";
 import InputSearch from "~/components/InputSearch";
@@ -96,7 +97,7 @@ function PublishPopover({ document }: Props) {
   }
 
   return (
-    <>
+    <Flex column>
       <PublishLocationSearch
         type="search"
         onChange={handleSearch}
@@ -108,7 +109,7 @@ function PublishPopover({ document }: Props) {
         <AutoSizer>
           {({ width, height }: { width: number; height: number }) => (
             <Flex role="listbox" column>
-              <List
+              <StyledList
                 key={data.length}
                 width={width}
                 height={height}
@@ -118,14 +119,22 @@ function PublishPopover({ document }: Props) {
                 itemKey={(index, results: any) => results[index].data.id}
               >
                 {row}
-              </List>
+              </StyledList>
             </Flex>
           )}
         </AutoSizer>
       </Results>
-    </>
+      <Footer justify="space-between" align="center">
+        <SelectedLocation>Choose a location to publish</SelectedLocation>
+        <Button disabled={!selectedLocation}>Publish</Button>
+      </Footer>
+    </Flex>
   );
 }
+
+const StyledList = styled(List)`
+  padding-bottom: 6px;
+`;
 
 const PublishLocationSearch = styled(InputSearch)`
   ${Outline} {
@@ -133,15 +142,31 @@ const PublishLocationSearch = styled(InputSearch)`
   }
   margin-bottom: 16px;
   margin-top: 16px;
+  padding-left: 24px;
+  padding-right: 24px;
 `;
 
 const Results = styled.div`
-  padding: 0;
+  padding-left: 24px;
+  padding-right: 24px;
   height: 40vh;
   border-top: 0;
   border-bottom-left-radius: 4px;
   border-bottom-right-radius: 4px;
   margin-right: -24px;
 `;
+
+const Footer = styled(Flex)`
+  background: ${(props) => props.theme.background};
+  color: ${(props) => props.theme.textTertiary};
+  height: 64px;
+  border-top: 1px solid ${(props) => props.theme.horizontalRule};
+  border-radius: 0 0 6px 6px;
+  width: 100%;
+  padding-left: 24px;
+  padding-right: 24px;
+`;
+
+const SelectedLocation = styled.div``;
 
 export default observer(PublishPopover);
