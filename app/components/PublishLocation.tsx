@@ -48,6 +48,7 @@ const Spacer = styled.span<{ width?: number; height?: number }>`
 const Row = styled.span<{ selected: boolean }>`
   display: flex;
   user-select: none;
+  max-width: calc(100% - 24px);
 
   color: ${(props) => props.theme.text};
   cursor: default;

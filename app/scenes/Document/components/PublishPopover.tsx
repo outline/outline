@@ -142,6 +142,7 @@ const Results = styled.div`
   border-top: 0;
   border-bottom-left-radius: 4px;
   border-bottom-right-radius: 4px;
+  margin-right: -24px;
 `;
 
 export default observer(PublishPopover);
