@@ -29,7 +29,6 @@ function PublishPopover({ document }: Props) {
 
     return new FuzzySearch(data, ["data.title"], {
       caseSensitive: false,
-      sort: true,
     });
   }, [collections.tree]);
 
