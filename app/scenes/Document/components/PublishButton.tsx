@@ -32,7 +32,7 @@ function PublishButton({ document }: Props) {
       </PopoverDisclosure>
 
       <StyledPopover {...popover} aria-label={t("Publish")}>
-        <PublishPopover document={document} />
+        <PublishPopover document={document} {...popover} />
       </StyledPopover>
     </>
   );

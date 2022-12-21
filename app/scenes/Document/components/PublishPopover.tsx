@@ -17,13 +17,21 @@ import { flattenTree, ancestors } from "~/utils/tree";
 
 type Props = {
   document: Document;
+  visible: boolean;
 };
 
-function PublishPopover({ document }: Props) {
+function PublishPopover({ document, visible }: Props) {
   const [searchTerm, setSearchTerm] = React.useState<string>();
   const [selectedLocation, setLocation] = React.useState<any>();
   const { collections } = useStores();
   const { t } = useTranslation();
+  const listRef = React.useRef<List>(null);
+
+  React.useEffect(() => {
+    if (visible && selectedLocation) {
+      listRef.current?.scrollToItem(selectedLocation.index);
+    }
+  });
 
   const searchIndex = React.useMemo(() => {
     const data = flattenTree(collections.tree.root).slice(1);
@@ -78,6 +86,7 @@ function PublishPopover({ document }: Props) {
   }) => {
     const result = data[index];
     result.data.collection = collections.get(result.data.collectionId);
+    result.index = index;
     return (
       <PublishLocation
         style={style}
@@ -109,7 +118,8 @@ function PublishPopover({ document }: Props) {
         <AutoSizer>
           {({ width, height }: { width: number; height: number }) => (
             <Flex role="listbox" column>
-              <StyledList
+              <List
+                ref={listRef}
                 key={data.length}
                 width={width}
                 height={height}
@@ -119,7 +129,7 @@ function PublishPopover({ document }: Props) {
                 itemKey={(index, results: any) => results[index].data.id}
               >
                 {row}
-              </StyledList>
+              </List>
             </Flex>
           )}
         </AutoSizer>
@@ -131,10 +141,6 @@ function PublishPopover({ document }: Props) {
     </Flex>
   );
 }
-
-const StyledList = styled(List)`
-  padding-bottom: 6px;
-`;
 
 const PublishLocationSearch = styled(InputSearch)`
   ${Outline} {
