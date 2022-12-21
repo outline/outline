@@ -17,9 +17,13 @@ function PublishLocation({ location, onSelect, selected, style }: Props) {
   const handleSelect = React.useCallback(
     (ev) => {
       ev.preventDefault();
-      onSelect(location);
+      if (selected) {
+        onSelect(null);
+      } else {
+        onSelect(location);
+      }
     },
-    [onSelect, location]
+    [onSelect, location, selected]
   );
 
   return (
