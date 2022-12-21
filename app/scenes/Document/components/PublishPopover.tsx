@@ -42,6 +42,12 @@ function PublishPopover({ document, visible }: Props) {
     });
   }, [collections.tree]);
 
+  React.useEffect(() => {
+    if (searchTerm) {
+      setLocation(null);
+    }
+  }, [searchTerm]);
+
   const results = React.useMemo(() => {
     const onlyShowCollections = document.isTemplate;
     let results: any = [];
