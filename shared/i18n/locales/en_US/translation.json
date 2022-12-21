@@ -478,6 +478,8 @@
   "Deleted by {{userName}}": "Deleted by {{userName}}",
   "Observing {{ userName }}": "Observing {{ userName }}",
   "Search collections & documents": "Search collections & documents",
+  "Publish under <strong>{{location}}</strong>": "Publish under <strong>{{location}}</strong>",
+  "Choose a location to publish": "Choose a location to publish",
   "Backlinks": "Backlinks",
   "Anyone with the link <1></1>can view this document": "Anyone with the link <1></1>can view this document",
   "Share": "Share",

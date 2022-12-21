@@ -2,7 +2,7 @@ import FuzzySearch from "fuzzy-search";
 import { uniq } from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { useTranslation } from "react-i18next";
+import { useTranslation, Trans } from "react-i18next";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList as List } from "react-window";
 import styled from "styled-components";
@@ -12,6 +12,7 @@ import Flex from "~/components/Flex";
 import { Outline } from "~/components/Input";
 import InputSearch from "~/components/InputSearch";
 import PublishLocation from "~/components/PublishLocation";
+import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import { flattenTree, ancestors } from "~/utils/tree";
 
@@ -135,7 +136,20 @@ function PublishPopover({ document, visible }: Props) {
         </AutoSizer>
       </Results>
       <Footer justify="space-between" align="center">
-        <SelectedLocation>Choose a location to publish</SelectedLocation>
+        {selectedLocation ? (
+          <SelectedLocation>
+            <Trans
+              defaults="Publish under <strong>{{location}}</strong>"
+              values={{
+                location: selectedLocation.data.title,
+              }}
+            />
+          </SelectedLocation>
+        ) : (
+          <SelectedLocation type="tertiary">
+            {t("Choose a location to publish")}
+          </SelectedLocation>
+        )}
         <Button disabled={!selectedLocation}>Publish</Button>
       </Footer>
     </Flex>
@@ -173,6 +187,8 @@ const Footer = styled(Flex)`
   padding-right: 24px;
 `;
 
-const SelectedLocation = styled.div``;
+const SelectedLocation = styled(Text)`
+  margin-bottom: 0;
+`;
 
 export default observer(PublishPopover);
