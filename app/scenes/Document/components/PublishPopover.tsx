@@ -14,6 +14,7 @@ import InputSearch from "~/components/InputSearch";
 import PublishLocation from "~/components/PublishLocation";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
+import useToasts from "~/hooks/useToasts";
 import { flattenTree, ancestors } from "~/utils/tree";
 
 type Props = {
@@ -25,6 +26,7 @@ function PublishPopover({ document, visible }: Props) {
   const [searchTerm, setSearchTerm] = React.useState<string>();
   const [selectedLocation, setLocation] = React.useState<any>();
   const { collections } = useStores();
+  const { showToast } = useToasts();
   const { t } = useTranslation();
   const listRef = React.useRef<List>(null);
 
@@ -81,6 +83,26 @@ function PublishPopover({ document, visible }: Props) {
   const handleSelect = (res: any) => {
     setLocation(res);
   };
+
+  const handlePublish = React.useCallback(async () => {
+    if (!selectedLocation) {
+      return;
+    }
+    try {
+      if (selectedLocation.data.type === "document") {
+        document.parentDocumentId = selectedLocation.data.id;
+      }
+      document.collectionId = selectedLocation.data.collectionId;
+      document.save({ publish: true });
+      showToast(t("Document published"), {
+        type: "success",
+      });
+    } catch (err) {
+      showToast(t("Couldn’t publish the document, try again?"), {
+        type: "error",
+      });
+    }
+  }, [selectedLocation, document, showToast, t]);
 
   const row = ({
     index,
@@ -156,7 +178,9 @@ function PublishPopover({ document, visible }: Props) {
             {t("Choose a location to publish")}
           </SelectedLocation>
         )}
-        <Button disabled={!selectedLocation}>Publish</Button>
+        <Button disabled={!selectedLocation} onClick={handlePublish}>
+          Publish
+        </Button>
       </Footer>
     </Flex>
   );
