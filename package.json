@@ -112,7 +112,7 @@
     "is-printable-key-event": "^1.0.0",
     "jsdom": "^20.0.3",
     "json-loader": "0.5.7",
-    "jsonwebtoken": "^8.5.0",
+    "jsonwebtoken": "^9.0.0",
     "jszip": "^3.10.1",
     "katex": "^0.16.3",
     "kbar": "0.1.0-beta.28",
