@@ -1,63 +1,57 @@
-# name: Build and push Docker image
+name: Build and push Docker image
 
-# on:
-#   push:
-#     branches:
-#       - main
+on:
+  push:
+    branches:
+      - main
 
-# jobs:
-#   build-and-push-docker-image:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Checkout
-#         uses: actions/checkout@v3
+jobs:
+  build-and-push-docker-image:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
 
-#       - name: Set up QEMU
-#         uses: docker/setup-qemu-action@v1
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
 
-#       - name: Set up Docker Buildx
-#         uses: docker/setup-buildx-action@v1
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
 
-#       # https://github.com/aws-actions/configure-aws-credentials (Community)
-#       - name: 'Configure AWS Credentials'
-#         uses: aws-actions/configure-aws-credentials@v1
-#         with:
-#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#           aws-region: us-east-1
+      # https://github.com/aws-actions/configure-aws-credentials (Community)
+      - name: "Configure AWS Credentials"
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
 
-#       # https://github.com/aws-actions/amazon-ecr-login (Community)
-#       - name: 'Login To Amazon ECR'
-#         id: login-ecr
-#         uses: aws-actions/amazon-ecr-login@v1
+      # https://github.com/aws-actions/amazon-ecr-login (Community)
+      - name: "Login To Amazon ECR"
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
 
-#       # In this section, we are Preparing Docker images  and push AWS ECR
-#       - name: 'Prepare Docker Images and push to Amazon ECR'
-#         env:
-#          DATABASE_URL: ${{ secrets.DATABASE_URL }}
-#          SECRET_KEY: ${{ secrets.DATABASE_SECRET_KEY }}
-#          BASE_URL: ${{ secrets.BASE_URL }}
-#          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-#          ECR_REPOSITORY: kanban
-#          IMAGE_TAG: ${{ github.run_id }}
-#         run: |
-#            docker build -f Dockerfile --no-cache \
-#            --build-arg BASE_URL=$BASE_URL \
-#            --build-arg DATABASE_URL=$DATABASE_URL \
-#            --build-arg SECRET_KEY=$SECRET_KEY \
-#            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-#            docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-#            docker rmi $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      # In this section, we are Preparing Docker images  and push AWS ECR
+      - name: "Prepare Docker Images and push to Amazon ECR"
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          ECR_REPOSITORY: outline
+          IMAGE_TAG: ${{ github.run_id }}
+        run: |
+          docker build -f Dockerfile --no-cache \
+          -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker rmi $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-#       # # Deployment: we are using helm for deployment on kubernetes, Helm are custom build by DevOps
-#       # - name: 'Application Deployment Using Helm'
-#       #   id: helm-deployment
-#       #   env:
-#       #     DATABASE_URL: ${{ secrets.DATABASE_URL }}
-#       #     SECRET_KEY: ${{ secrets.DATABASE_SECRET_KEY }}
-#       #     BASE_URL: ${{ secrets.BASE_URL }}
-#       #     IMAGE_TAG: ${{ github.run_id }}
-#       #   run: |
-#       #     aws eks --region us-east-1 update-kubeconfig --name production-posthog-eks-cluster
-#       #     export KUBECONFIG=~/.kube/config
-#       #     helm upgrade --install --atomic --set image.tag=$IMAGE_TAG --set configmap.configs.DATABASE_URL=$DATABASE_URL --set configmap.configs.SECRET_KEY=$SECRET_KEY --set configmap.configs.BASE_URL=$BASE_URL  --namespace=kanban -f ./_infra/k8s/kanban/config/prod.yaml kanban ./_infra/k8s/kanban --wait --history-max 4 --timeout 1000s --debug
+      # # Deployment: we are using helm for deployment on kubernetes, Helm are custom build by DevOps
+      # - name: 'Application Deployment Using Helm'
+      #   id: helm-deployment
+      #   env:
+      #     DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      #     SECRET_KEY: ${{ secrets.DATABASE_SECRET_KEY }}
+      #     BASE_URL: ${{ secrets.BASE_URL }}
+      #     IMAGE_TAG: ${{ github.run_id }}
+      #   run: |
+      #     aws eks --region us-east-1 update-kubeconfig --name production-posthog-eks-cluster
+      #     export KUBECONFIG=~/.kube/config
+      #     helm upgrade --install --atomic --set image.tag=$IMAGE_TAG --set configmap.configs.DATABASE_URL=$DATABASE_URL --set configmap.configs.SECRET_KEY=$SECRET_KEY --set configmap.configs.BASE_URL=$BASE_URL  --namespace=outline -f ./_infra/k8s/outline/config/prod.yaml outline ./_infra/k8s/outline --wait --history-max 4 --timeout 1000s --debug

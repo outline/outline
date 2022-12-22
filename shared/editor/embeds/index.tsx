@@ -357,7 +357,7 @@ const embeds: EmbedDescriptor[] = [
   }),
   new EmbedDescriptor({
     title: "Trello",
-    keywords: "kanban",
+    keywords: "outline",
     icon: <Img src="/images/trello.png" alt="Trello" />,
     component: Trello,
   }),

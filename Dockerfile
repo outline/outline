@@ -1,5 +1,5 @@
 ARG APP_PATH=/opt/outline
-FROM outlinewiki/outline-base as base
+FROM 419667429555.dkr.ecr.us-east-1.amazonaws.com/outline:base-3.15 as base
 
 ARG APP_PATH
 WORKDIR $APP_PATH
