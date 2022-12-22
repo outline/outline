@@ -89,11 +89,14 @@ function PublishPopover({ document, visible }: Props) {
       return;
     }
     try {
-      if (selectedLocation.data.type === "document") {
-        document.parentDocumentId = selectedLocation.data.id;
-      }
       document.collectionId = selectedLocation.data.collectionId;
-      document.save({ publish: true });
+      await document.save({ publish: true });
+      if (selectedLocation.data.type === "document") {
+        await document.move(
+          selectedLocation.data.collectionId,
+          selectedLocation.data.id
+        );
+      }
       showToast(t("Document published"), {
         type: "success",
       });
