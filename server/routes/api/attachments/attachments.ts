@@ -5,46 +5,32 @@ import { bytesToHumanReadable } from "@shared/utils/files";
 import { AttachmentValidation } from "@shared/validations";
 import { AuthorizationError, ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
-import {
-  transaction,
-  TransactionContext,
-} from "@server/middlewares/transaction";
+import { transaction } from "@server/middlewares/transaction";
+import validate from "@server/middlewares/validate";
 import { Attachment, Document, Event } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { authorize } from "@server/policies";
 import { presentAttachment } from "@server/presenters";
-import { ContextWithState } from "@server/types";
+import { APIContext, ContextWithState } from "@server/types";
 import { getPresignedPost, publicS3Endpoint } from "@server/utils/s3";
-import { assertIn, assertPresent, assertUuid } from "@server/validation";
+import { assertIn, assertUuid } from "@server/validation";
+import * as T from "./schema";
 
 const router = new Router();
 
 router.post(
   "attachments.create",
   auth(),
+  validate(T.AttachmentsCreateSchema),
   transaction(),
-  async (ctx: TransactionContext) => {
-    const {
-      name,
-      documentId,
-      contentType = "application/octet-stream",
-      size,
-      // 'public' is now deprecated and can be removed on December 1 2022.
-      public: isPublicDeprecated,
-      preset = isPublicDeprecated
-        ? AttachmentPreset.Avatar
-        : AttachmentPreset.DocumentAttachment,
-    } = ctx.request.body;
+  async (ctx: APIContext<T.AttachmentCreateReq>) => {
+    const { name, documentId, contentType, size, preset } = ctx.input;
     const { user, transaction } = ctx.state;
-
-    assertPresent(name, "name is required");
-    assertPresent(size, "size is required");
 
     // All user types can upload an avatar so no additional authorization is needed.
     if (preset === AttachmentPreset.Avatar) {
       assertIn(contentType, AttachmentValidation.avatarContentTypes);
     } else if (preset === AttachmentPreset.DocumentAttachment && documentId) {
-      assertUuid(documentId, "documentId must be a uuid");
       const document = await Document.findByPk(documentId, {
         userId: user.id,
       });
@@ -53,7 +39,7 @@ router.post(
       authorize(user, "createAttachment", user.team);
     }
 
-    const maxUploadSize = AttachmentHelper.presetToMaxUploadSize(preset);
+    const maxUploadSize = AttachmentHelper.presetToMaxUploadSize(preset!);
 
     if (size > maxUploadSize) {
       throw ValidationError(
@@ -64,7 +50,7 @@ router.post(
     }
 
     const modelId = uuidv4();
-    const acl = AttachmentHelper.presetToAcl(preset);
+    const acl = AttachmentHelper.presetToAcl(preset!);
     const key = AttachmentHelper.getKey({
       acl,
       id: modelId,
@@ -78,7 +64,7 @@ router.post(
         key,
         acl,
         size,
-        expiresAt: AttachmentHelper.presetToExpiry(preset),
+        expiresAt: AttachmentHelper.presetToExpiry(preset!),
         contentType,
         documentId,
         teamId: user.teamId,
