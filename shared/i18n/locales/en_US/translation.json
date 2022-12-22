@@ -476,6 +476,8 @@
   "Archived by {{userName}}": "Archived by {{userName}}",
   "Deleted by {{userName}}": "Deleted by {{userName}}",
   "Observing {{ userName }}": "Observing {{ userName }}",
+  "Document published": "Document published",
+  "Couldn’t publish the document, try again?": "Couldn’t publish the document, try again?",
   "Search collections & documents": "Search collections & documents",
   "Publish under <strong>{{location}}</strong>": "Publish under <strong>{{location}}</strong>",
   "Choose a location to publish": "Choose a location to publish",

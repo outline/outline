@@ -120,7 +120,11 @@ export default class CollectionsStore extends BaseStore<Collection> {
         node.children.forEach((child: any) => {
           root.children.push(
             subtree({
-              data: { ...child, type: DocumentPathItemType.Document },
+              data: {
+                ...child,
+                type: DocumentPathItemType.Document,
+                collectionId: root.data.collectionId,
+              },
               parent: root,
               children: child.children || [],
               depth: root.depth + 1,
