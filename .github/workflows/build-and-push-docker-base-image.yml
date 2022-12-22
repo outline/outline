@@ -5,7 +5,7 @@ on:
     paths:
       - ./Dockerfile.base
     branches:
-      - main
+      - master
   workflow_dispatch:
 
 env:
@@ -49,3 +49,6 @@ jobs:
            -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
            docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
            docker rmi $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+      
+      
+      
