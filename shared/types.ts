@@ -49,6 +49,7 @@ export type PublicEnv = {
   SUBDOMAINS_ENABLED: boolean;
   EMAIL_ENABLED: boolean;
   PDF_EXPORT_ENABLED: boolean;
+  PUBLISH_UI_ENABLED: boolean;
   DEFAULT_LANGUAGE: string;
   GOOGLE_ANALYTICS_ID: string | undefined;
   RELEASE: string | undefined;

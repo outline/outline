@@ -27,6 +27,7 @@ export default function present(
     PDF_EXPORT_ENABLED: false,
     DEFAULT_LANGUAGE: env.DEFAULT_LANGUAGE,
     EMAIL_ENABLED: !!env.SMTP_HOST || env.ENVIRONMENT === "development",
+    PUBLISH_UI_ENABLED: env.PUBLISH_UI_ENABLED,
     GOOGLE_ANALYTICS_ID: env.GOOGLE_ANALYTICS_ID,
     RELEASE:
       process.env.SOURCE_COMMIT || process.env.SOURCE_VERSION || undefined,

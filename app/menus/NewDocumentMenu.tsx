@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 import { MenuButton, useMenuState } from "reakit/Menu";
 import styled from "styled-components";
 import Collection from "~/models/Collection";
@@ -10,6 +11,8 @@ import ContextMenu from "~/components/ContextMenu";
 import Header from "~/components/ContextMenu/Header";
 import Template from "~/components/ContextMenu/Template";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
+import Tooltip from "~/components/Tooltip";
+import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -51,7 +54,20 @@ function NewDocumentMenu() {
     return null;
   }
 
-  return (
+  return env.PUBLISH_UI_ENABLED ? (
+    <>
+      <Tooltip
+        tooltip={t("New document")}
+        shortcut="n"
+        delay={500}
+        placement="bottom"
+      >
+        <Button as={Link} to={newDocumentPath()} icon={<PlusIcon />}>
+          {t("New doc")}
+        </Button>
+      </Tooltip>
+    </>
+  ) : (
     <>
       <MenuButton {...menu}>
         {(props) => (
