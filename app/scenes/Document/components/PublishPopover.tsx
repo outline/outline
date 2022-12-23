@@ -221,7 +221,11 @@ const Footer = styled(Flex)`
 `;
 
 const SelectedLocation = styled(Text)`
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   margin-bottom: 0;
+  max-width: 40vh;
 `;
 
 export default observer(PublishPopover);
