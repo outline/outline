@@ -34,24 +34,45 @@ jobs:
       # In this section, we are Preparing Docker images  and push AWS ECR
       - name: "Prepare Docker Images and push to Amazon ECR"
         env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SECRET_KEY: ${{ secrets.DATABASE_SECRET_KEY }}
+          BASE_URL: ${{ secrets.BASE_URL }}
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: outline
           IMAGE_TAG: ${{ github.run_id }}
         run: |
           docker build -f Dockerfile --no-cache \
+           --build-arg BASE_URL=$BASE_URL \
+           --build-arg DATABASE_URL=$DATABASE_URL \
+           --build-arg SECRET_KEY=$SECRET_KEY \
+           --build-arg S3_AWS_KEY_ID=$S3_AWS_KEY_ID \
+           --build-arg S3_AWS_SECRET_ACCESS_KEY=$S3_AWS_SECRET_ACCESS_KEY \
+           --build-arg S3_AWS_BUCKET=$S3_AWS_BUCKET \
+           --build-arg GITHUB_TOKEN=$GITHUB_TOKEN \
+
           -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
           docker rmi $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
-      # # Deployment: we are using helm for deployment on kubernetes, Helm are custom build by DevOps
-      # - name: 'Application Deployment Using Helm'
-      #   id: helm-deployment
-      #   env:
-      #     DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      #     SECRET_KEY: ${{ secrets.DATABASE_SECRET_KEY }}
-      #     BASE_URL: ${{ secrets.BASE_URL }}
-      #     IMAGE_TAG: ${{ github.run_id }}
-      #   run: |
-      #     aws eks --region us-east-1 update-kubeconfig --name production-posthog-eks-cluster
-      #     export KUBECONFIG=~/.kube/config
-      #     helm upgrade --install --atomic --set image.tag=$IMAGE_TAG --set configmap.configs.DATABASE_URL=$DATABASE_URL --set configmap.configs.SECRET_KEY=$SECRET_KEY --set configmap.configs.BASE_URL=$BASE_URL  --namespace=outline -f ./_infra/k8s/outline/config/prod.yaml outline ./_infra/k8s/outline --wait --history-max 4 --timeout 1000s --debug
+      # Deployment: we are using helm for deployment on kubernetes, Helm are custom build by DevOps
+      - name: 'Application Deployment Using Helm'
+        id: helm-deployment
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          SECRET_KEY: ${{ secrets.DATABASE_SECRET_KEY }}
+          BASE_URL: ${{ secrets.BASE_URL }}
+          S3_AWS_KEY_ID: ${{ secrets.S3_AWS_KEY_ID }}
+          S3_AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_AWS_SECRET_ACCESS_KEY }}
+          S3_AWS_BUCKET: ${{ secrets.S3_AWS_BUCKET }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+          IMAGE_TAG: ${{ github.run_id }}
+        run: |
+          aws eks --region us-east-1 update-kubeconfig --name production-posthog-eks-cluster
+          export KUBECONFIG=~/.kube/config
+          helm upgrade --install --atomic \
+           --set image.tag=$IMAGE_TAG \
+           --set configmap.configs.DATABASE_URL=$DATABASE_URL --set configmap.configs.SECRET_KEY=$SECRET_KEY --set configmap.configs.BASE_URL=$BASE_URL  \
+           --set configmap.configs.S3_AWS_KEY_ID=$S3_AWS_KEY_ID --set configmap.configs.S3_AWS_SECRET_ACCESS_KEY=$S3_AWS_SECRET_ACCESS_KEY --set configmap.configs.S3_AWS_BUCKET=$S3_AWS_BUCKET \
+           --set configmap.configs.GITHUB_TOKEN=$GITHUB_TOKEN \
+           --namespace=outline -f ./_infra/k8s/outline/config/prod.yaml outline ./_infra/k8s/outline --wait --history-max 4 --timeout 1000s --debug

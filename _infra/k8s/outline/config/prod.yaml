@@ -24,13 +24,13 @@ podAnnotations: {}
 podSecurityContext: {}
   # fsGroup: 2000
 
-securityContext:
-  capabilities:
-    drop:
-    - ALL
-  readOnlyRootFilesystem: true
-  runAsNonRoot: true
-  runAsUser: 1000
+securityContext: {}
+  # capabilities:
+  #   drop:
+  #   - ALL
+  # readOnlyRootFilesystem: true
+  # runAsNonRoot: true
+  # runAsUser: 1000
 
 service:
   type: ClusterIP
@@ -49,7 +49,7 @@ ingress:
     alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}, {"HTTPS":443}]'
     alb.ingress.kubernetes.io/actions.ssl-redirect: '{"Type": "redirect", "RedirectConfig": { "Protocol": "HTTPS", "Port": "443", "StatusCode": "HTTP_301"}}'
   hosts:
-    - host: notes.6ix.com
+    - host: out.6ix.com
       paths: [/]
   tls: []
 
@@ -65,6 +65,22 @@ resources:
   requests:
     cpu: 1
     memory: 1G
+    
+    
+configmap:
+  enabled: false
+  configs:
+    # PostgreSQL
+    DATABASE_URL: ""
+    SECRET_KEY: ""
+    BASE_URL: ""
+    # S3 Bucket
+    S3_AWS_KEY_ID: ""
+    S3_AWS_SECRET_ACCESS_KEY: ""
+    S3_AWS_BUCKET: ""
+    # Redis Cluster
+    GITHUB_TOKEN: ""
+
 
 autoscaling:
   enabled: true
