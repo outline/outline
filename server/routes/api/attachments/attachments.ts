@@ -107,34 +107,38 @@ router.post(
   }
 );
 
-router.post("attachments.delete", auth(), async (ctx) => {
-  const { id } = ctx.request.body;
-  assertUuid(id, "id is required");
-  const { user } = ctx.state;
-  const attachment = await Attachment.findByPk(id, {
-    rejectOnEmpty: true,
-  });
-
-  if (attachment.documentId) {
-    const document = await Document.findByPk(attachment.documentId, {
-      userId: user.id,
+router.post(
+  "attachments.delete",
+  auth(),
+  validate(T.AttachmentDeleteSchema),
+  async (ctx: APIContext<T.AttachmentDeleteReq>) => {
+    const { id } = ctx.input;
+    const { user } = ctx.state;
+    const attachment = await Attachment.findByPk(id, {
+      rejectOnEmpty: true,
     });
-    authorize(user, "update", document);
+
+    if (attachment.documentId) {
+      const document = await Document.findByPk(attachment.documentId, {
+        userId: user.id,
+      });
+      authorize(user, "update", document);
+    }
+
+    authorize(user, "delete", attachment);
+    await attachment.destroy();
+    await Event.create({
+      name: "attachments.delete",
+      teamId: user.teamId,
+      actorId: user.id,
+      ip: ctx.request.ip,
+    });
+
+    ctx.body = {
+      success: true,
+    };
   }
-
-  authorize(user, "delete", attachment);
-  await attachment.destroy();
-  await Event.create({
-    name: "attachments.delete",
-    teamId: user.teamId,
-    actorId: user.id,
-    ip: ctx.request.ip,
-  });
-
-  ctx.body = {
-    success: true,
-  };
-});
+);
 
 const handleAttachmentsRedirect = async (ctx: ContextWithState) => {
   const id = ctx.request.body?.id ?? ctx.request.query?.id;

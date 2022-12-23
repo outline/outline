@@ -32,3 +32,10 @@ export const AttachmentsCreateSchema = z
   });
 
 export type AttachmentCreateReq = z.infer<typeof AttachmentsCreateSchema>;
+
+export const AttachmentDeleteSchema = z.object({
+  /** Id of the attachment to be deleted */
+  id: z.string().uuid(),
+});
+
+export type AttachmentDeleteReq = z.infer<typeof AttachmentDeleteSchema>;
