@@ -6,6 +6,7 @@ import { useTranslation, Trans } from "react-i18next";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList as List } from "react-window";
 import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 import Document from "~/models/Document";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
@@ -202,11 +203,15 @@ const PublishLocationSearch = styled(InputSearch)`
 const Results = styled.div`
   padding-left: 24px;
   padding-right: 24px;
-  height: 40vh;
+  height: 65vh;
   border-top: 0;
   border-bottom-left-radius: 4px;
   border-bottom-right-radius: 4px;
   margin-right: -24px;
+
+  ${breakpoint("tablet")`
+    height: 40vh;
+  `}
 `;
 
 const Footer = styled(Flex)`
