@@ -210,12 +210,8 @@ const Results = styled.div`
 `;
 
 const Footer = styled(Flex)`
-  background: ${(props) => props.theme.background};
-  color: ${(props) => props.theme.textTertiary};
   height: 64px;
   border-top: 1px solid ${(props) => props.theme.horizontalRule};
-  border-radius: 0 0 6px 6px;
-  width: 100%;
   padding-left: 24px;
   padding-right: 24px;
 `;
