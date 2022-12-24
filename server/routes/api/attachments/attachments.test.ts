@@ -22,20 +22,6 @@ describe("#attachments.create", () => {
   });
 
   describe("member", () => {
-    it("should allow simple image upload for public attachments", async () => {
-      const user = await buildUser();
-      const res = await server.post("/api/attachments.create", {
-        body: {
-          name: "test.png",
-          contentType: "image/png",
-          size: 1000,
-          public: true,
-          token: user.getJwtToken(),
-        },
-      });
-      expect(res.status).toEqual(200);
-    });
-
     it("should allow upload using avatar preset", async () => {
       const user = await buildUser();
       const res = await server.post("/api/attachments.create", {
@@ -89,20 +75,6 @@ describe("#attachments.create", () => {
       expect(attachment!.expiresAt).toBeTruthy();
     });
 
-    it("should not allow file upload for public attachments", async () => {
-      const user = await buildUser();
-      const res = await server.post("/api/attachments.create", {
-        body: {
-          name: "test.pdf",
-          contentType: "application/pdf",
-          size: 1000,
-          public: true,
-          token: user.getJwtToken(),
-        },
-      });
-      expect(res.status).toEqual(400);
-    });
-
     it("should not allow attachment creation for other documents", async () => {
       const user = await buildUser();
       const document = await buildDocument();
@@ -136,20 +108,6 @@ describe("#attachments.create", () => {
   });
 
   describe("viewer", () => {
-    it("should allow simple image upload for public attachments", async () => {
-      const user = await buildViewer();
-      const res = await server.post("/api/attachments.create", {
-        body: {
-          name: "test.png",
-          contentType: "image/png",
-          size: 1000,
-          public: true,
-          token: user.getJwtToken(),
-        },
-      });
-      expect(res.status).toEqual(200);
-    });
-
     it("should allow attachment creation for documents in collections with edit access", async () => {
       const user = await buildViewer();
       const collection = await buildCollection({

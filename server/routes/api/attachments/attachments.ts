@@ -39,7 +39,7 @@ router.post(
       authorize(user, "createAttachment", user.team);
     }
 
-    const maxUploadSize = AttachmentHelper.presetToMaxUploadSize(preset!);
+    const maxUploadSize = AttachmentHelper.presetToMaxUploadSize(preset);
 
     if (size > maxUploadSize) {
       throw ValidationError(
@@ -50,7 +50,7 @@ router.post(
     }
 
     const modelId = uuidv4();
-    const acl = AttachmentHelper.presetToAcl(preset!);
+    const acl = AttachmentHelper.presetToAcl(preset);
     const key = AttachmentHelper.getKey({
       acl,
       id: modelId,
@@ -64,7 +64,7 @@ router.post(
         key,
         acl,
         size,
-        expiresAt: AttachmentHelper.presetToExpiry(preset!),
+        expiresAt: AttachmentHelper.presetToExpiry(preset),
         contentType,
         documentId,
         teamId: user.teamId,
