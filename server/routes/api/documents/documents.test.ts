@@ -1,3 +1,4 @@
+import { subDays } from "date-fns";
 import { CollectionPermission } from "@shared/types";
 import {
   Document,
@@ -1040,6 +1041,88 @@ describe("#documents.search_titles", () => {
       body: {
         token: user.getJwtToken(),
         query: "SECRET",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(document.id);
+  });
+
+  it("should allow filtering of results by date", async () => {
+    const user = await buildUser();
+    await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      title: "Super secret",
+      createdAt: subDays(new Date(), 365),
+      updatedAt: subDays(new Date(), 365),
+    });
+    const res = await server.post("/api/documents.search_titles", {
+      body: {
+        token: user.getJwtToken(),
+        query: "SECRET",
+        dateFilter: "day",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(0);
+  });
+
+  it("should allow filtering to include archived", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      title: "Super secret",
+      archivedAt: new Date(),
+    });
+    const res = await server.post("/api/documents.search_titles", {
+      body: {
+        token: user.getJwtToken(),
+        query: "SECRET",
+        includeArchived: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(document.id);
+  });
+
+  it("should allow filtering to include drafts", async () => {
+    const user = await buildUser();
+    const document = await buildDraftDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      title: "Super secret",
+    });
+    const res = await server.post("/api/documents.search_titles", {
+      body: {
+        token: user.getJwtToken(),
+        query: "SECRET",
+        includeDrafts: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
+    expect(body.data[0].id).toEqual(document.id);
+  });
+
+  it("should allow filtering to include a user", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: user.teamId,
+      title: "Super secret",
+    });
+    const res = await server.post("/api/documents.search_titles", {
+      body: {
+        token: user.getJwtToken(),
+        query: "SECRET",
+        userId: user.id,
       },
     });
     const body = await res.json();
