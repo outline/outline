@@ -21,12 +21,32 @@ export function subtractDate(date: Date, period: DateFilter) {
 }
 
 /**
+ * Converts a locale string from Unicode CLDR format to BCP47 format.
+ *
+ * @param locale The locale string to convert
+ * @returns The converted locale string
+ */
+export function unicodeCLDRtoBCP47(locale: string) {
+  return locale.replace("_", "-").replace("root", "und");
+}
+
+/**
+ * Converts a locale string from BCP47 format to Unicode CLDR format.
+ *
+ * @param locale The locale string to convert
+ * @returns The converted locale string
+ */
+export function unicodeBCP47toCLDR(locale: string) {
+  return locale.replace("-", "_").replace("und", "root");
+}
+
+/**
  * Returns the current date as a string formatted depending on current locale.
  *
  * @returns The current date
  */
-export function getCurrentDateAsString() {
-  return new Date().toLocaleDateString(undefined, {
+export function getCurrentDateAsString(locales?: Intl.LocalesArgument) {
+  return new Date().toLocaleDateString(locales, {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -38,8 +58,8 @@ export function getCurrentDateAsString() {
  *
  * @returns The current time
  */
-export function getCurrentTimeAsString() {
-  return new Date().toLocaleTimeString(undefined, {
+export function getCurrentTimeAsString(locales?: Intl.LocalesArgument) {
+  return new Date().toLocaleTimeString(locales, {
     hour: "numeric",
     minute: "numeric",
   });
@@ -51,8 +71,8 @@ export function getCurrentTimeAsString() {
  *
  * @returns The current date and time
  */
-export function getCurrentDateTimeAsString() {
-  return new Date().toLocaleString(undefined, {
+export function getCurrentDateTimeAsString(locales?: Intl.LocalesArgument) {
+  return new Date().toLocaleString(locales, {
     year: "numeric",
     month: "long",
     day: "numeric",

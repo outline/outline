@@ -34,6 +34,7 @@ import withStores from "~/components/withStores";
 import type { Editor as TEditor } from "~/editor";
 import { NavigationNode } from "~/types";
 import { client } from "~/utils/ApiClient";
+import { replaceTitleVariables } from "~/utils/date";
 import { emojiToUrl } from "~/utils/emoji";
 import { isModKey } from "~/utils/keyboard";
 import {
@@ -186,8 +187,12 @@ class DocumentScene extends React.Component<Props> {
     }
 
     if (!this.title) {
-      this.title = template.title;
-      this.props.document.title = template.title;
+      const title = replaceTitleVariables(
+        template.title,
+        this.props.auth.user || undefined
+      );
+      this.title = title;
+      this.props.document.title = title;
     }
 
     this.props.document.text = template.text;

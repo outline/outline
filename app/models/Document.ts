@@ -23,10 +23,6 @@ export default class Document extends ParanoidModel {
   constructor(fields: Record<string, any>, store: DocumentsStore) {
     super(fields, store);
 
-    if (this.isPersistedOnce && this.isFromTemplate) {
-      this.title = "";
-    }
-
     this.embedsDisabled = Storage.get(`embedsDisabled-${this.id}`) ?? false;
 
     autorun(() => {

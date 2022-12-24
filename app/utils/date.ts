@@ -6,7 +6,15 @@ import {
   differenceInCalendarYears,
   format as formatDate,
 } from "date-fns";
+import { startCase } from "lodash";
 import { TFunction } from "react-i18next";
+import {
+  getCurrentDateAsString,
+  getCurrentDateTimeAsString,
+  getCurrentTimeAsString,
+  unicodeCLDRtoBCP47,
+} from "@shared/utils/date";
+import User from "~/models/User";
 import { dateLocale } from "~/utils/i18n";
 
 export function dateToHeading(
@@ -61,4 +69,22 @@ export function dateToHeading(
   return formatDate(Date.parse(dateTime), "y", {
     locale,
   });
+}
+
+/**
+ * Replaces template variables in the given text with the current date and time.
+ *
+ * @param text The text to replace the variables in
+ * @param user The user to get the language/locale from
+ * @returns The text with the variables replaced
+ */
+export function replaceTitleVariables(text: string, user?: User) {
+  const locales = user?.language
+    ? unicodeCLDRtoBCP47(user.language)
+    : undefined;
+
+  return text
+    .replace("{date}", startCase(getCurrentDateAsString(locales)))
+    .replace("{time}", startCase(getCurrentTimeAsString(locales)))
+    .replace("{datetime}", startCase(getCurrentDateTimeAsString(locales)));
 }

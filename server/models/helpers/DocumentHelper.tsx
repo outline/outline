@@ -3,7 +3,7 @@ import {
   yDocToProsemirrorJSON,
 } from "@getoutline/y-prosemirror";
 import { JSDOM } from "jsdom";
-import { escapeRegExp } from "lodash";
+import { escapeRegExp, startCase } from "lodash";
 import { Node, DOMSerializer } from "prosemirror-model";
 import * as React from "react";
 import { renderToString } from "react-dom/server";
@@ -12,12 +12,19 @@ import * as Y from "yjs";
 import EditorContainer from "@shared/editor/components/Styles";
 import GlobalStyles from "@shared/styles/globals";
 import light from "@shared/styles/theme";
+import {
+  getCurrentDateAsString,
+  getCurrentDateTimeAsString,
+  getCurrentTimeAsString,
+  unicodeCLDRtoBCP47,
+} from "@shared/utils/date";
 import { isRTL } from "@shared/utils/rtl";
 import unescape from "@shared/utils/unescape";
 import { parser, schema } from "@server/editor";
 import Logger from "@server/logging/Logger";
 import Document from "@server/models/Document";
 import type Revision from "@server/models/Revision";
+import User from "@server/models/User";
 import diff from "@server/utils/diff";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { getSignedUrl } from "@server/utils/s3";
@@ -305,6 +312,24 @@ export default class DocumentHelper {
       })
     );
     return text;
+  }
+
+  /**
+   * Replaces template variables in the given text with the current date and time.
+   *
+   * @param text The text to replace the variables in
+   * @param user The user to get the language/locale from
+   * @returns The text with the variables replaced
+   */
+  static replaceTemplateVariables(text: string, user: User) {
+    const locales = user.language
+      ? unicodeCLDRtoBCP47(user.language)
+      : undefined;
+
+    return text
+      .replace("{date}", startCase(getCurrentDateAsString(locales)))
+      .replace("{time}", startCase(getCurrentTimeAsString(locales)))
+      .replace("{datetime}", startCase(getCurrentDateTimeAsString(locales)));
   }
 
   /**
