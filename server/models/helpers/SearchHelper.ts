@@ -177,44 +177,39 @@ export default class SearchHelper {
   ): Promise<Document[]> {
     const { limit = 15, offset = 0 } = options;
 
-    // Ensure we're filtering by the users accessible collections. If
-    // collectionId is passed as an option it is assumed that the authorization
-    // has already been done in the router
-    let collectionIds;
-
-    if (options.collectionId) {
-      collectionIds = [options.collectionId];
-    } else {
-      collectionIds = await user.collectionIds();
-    }
-
     let where: WhereOptions<Document> = {
       title: {
         [Op.iLike]: `%${query}%`,
       },
-      ...(collectionIds.length
-        ? {
-            [Op.or]: [
-              {
-                collectionId: {
-                  [Op.in]: collectionIds,
-                },
-              },
-              {
-                collectionId: {
-                  [Op.is]: null,
-                },
-                createdById: user.id,
-              },
-            ],
-          }
-        : {
+    };
+
+    // Ensure we're filtering by the users accessible collections. If
+    // collectionId is passed as an option it is assumed that the authorization
+    // has already been done in the router
+    if (options.collectionId) {
+      where = {
+        ...where,
+        collectionId: options.collectionId,
+      };
+    } else {
+      // @ts-expect-error doesn't like OR null
+      where = {
+        ...where,
+        [Op.or]: [
+          {
+            collectionId: {
+              [Op.in]: await user.collectionIds(),
+            },
+          },
+          {
             collectionId: {
               [Op.is]: null,
             },
             createdById: user.id,
-          }),
-    };
+          },
+        ],
+      };
+    }
 
     if (options.dateFilter) {
       where = {

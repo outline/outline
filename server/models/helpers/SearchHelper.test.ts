@@ -355,6 +355,43 @@ describe("#searchTitlesForUser", () => {
     expect(documents[0]?.id).toBe(document.id);
   });
 
+  test("should filter to specific collection", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({
+      teamId: team.id,
+    });
+    const collection = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const collection1 = await buildCollection({
+      userId: user.id,
+      teamId: team.id,
+    });
+    const document = await buildDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: collection.id,
+      title: "test",
+    });
+    await buildDraftDocument({
+      teamId: team.id,
+      userId: user.id,
+      title: "test",
+    });
+    await buildDocument({
+      userId: user.id,
+      teamId: team.id,
+      collectionId: collection1.id,
+      title: "test",
+    });
+    const documents = await SearchHelper.searchTitlesForUser(user, "test", {
+      collectionId: collection.id,
+    });
+    expect(documents.length).toBe(1);
+    expect(documents[0]?.id).toBe(document.id);
+  });
+
   test("should handle no collections", async () => {
     const team = await buildTeam();
     const user = await buildUser({
