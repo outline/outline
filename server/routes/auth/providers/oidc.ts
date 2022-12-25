@@ -22,6 +22,7 @@ import {
 
 const router = new Router();
 const providerName = "oidc";
+const httpRegex = /^https?:\/\//;
 const OIDC_AUTH_URI = env.OIDC_AUTH_URI || "";
 const OIDC_TOKEN_URI = env.OIDC_TOKEN_URI || "";
 const OIDC_USERINFO_URI = env.OIDC_USERINFO_URI || "";
@@ -46,7 +47,9 @@ if (env.OIDC_CLIENT_ID && env.OIDC_CLIENT_SECRET) {
     providerName,
     new Strategy(
       {
-        authorizationURL: OIDC_AUTH_URI,
+        authorizationURL: httpRegex.test(OIDC_AUTH_URI)
+          ? OIDC_AUTH_URI
+          : `https://${OIDC_AUTH_URI}`,
         tokenURL: OIDC_TOKEN_URI,
         clientID: env.OIDC_CLIENT_ID,
         clientSecret: env.OIDC_CLIENT_SECRET,
