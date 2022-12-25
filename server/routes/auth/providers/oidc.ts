@@ -49,7 +49,7 @@ if (env.OIDC_CLIENT_ID && env.OIDC_CLIENT_SECRET) {
       {
         authorizationURL: httpRegex.test(OIDC_AUTH_URI)
           ? OIDC_AUTH_URI
-          : `https://${OIDC_AUTH_URI}`,
+          : `http://${OIDC_AUTH_URI}`,
         tokenURL: OIDC_TOKEN_URI,
         clientID: env.OIDC_CLIENT_ID,
         clientSecret: env.OIDC_CLIENT_SECRET,
