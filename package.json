@@ -147,7 +147,7 @@
     "passport-google-oauth2": "^0.2.0",
     "passport-oauth2": "^1.6.1",
     "passport-slack-oauth2": "^1.1.1",
-    "pg": "^8.5.1",
+    "pg": "^8.8.0",
     "pg-hstore": "^2.3.4",
     "pg-tsquery": "^8.4.0",
     "polished": "^4.2.2",
