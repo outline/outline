@@ -30,7 +30,7 @@ router.post("revisions.info", auth(), async (ctx) => {
   ctx.body = {
     data: await presentRevision(
       revision,
-      DocumentHelper.diff(before, revision, {
+      await DocumentHelper.diff(before, revision, {
         includeTitle: false,
         includeStyles: false,
       })
@@ -73,7 +73,7 @@ router.post("revisions.diff", auth(), async (ctx) => {
   }
 
   const accept = ctx.request.headers["accept"];
-  const content = DocumentHelper.diff(before, revision);
+  const content = await DocumentHelper.diff(before, revision);
 
   if (accept?.includes("text/html")) {
     ctx.set("Content-Type", "text/html");

@@ -4,6 +4,7 @@ import * as React from "react";
 import styled, { css } from "styled-components";
 import { fadeAndScaleIn, pulse } from "~/styles/animations";
 import { Toast as TToast } from "~/types";
+import Spinner from "./Spinner";
 
 type Props = {
   onRequestClose: () => void;
@@ -56,6 +57,7 @@ function Toast({ closeAfterMs = 3000, onRequestClose, toast }: Props) {
       onMouseLeave={handleResume}
     >
       <Container onClick={action ? undefined : onRequestClose}>
+        {type === "loading" && <Spinner color="currentColor" />}
         {type === "info" && <InfoIcon color="currentColor" />}
         {type === "success" && <CheckboxIcon checked color="currentColor" />}
         {type === "warning" ||

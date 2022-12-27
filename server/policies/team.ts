@@ -1,4 +1,5 @@
 import env from "@server/env";
+import { IncorrectEditionError } from "@server/errors";
 import { Team, User } from "@server/models";
 import { allow } from "./cancan";
 
@@ -13,7 +14,7 @@ allow(User, "share", Team, (user, team) => {
 
 allow(User, "createTeam", Team, () => {
   if (env.DEPLOYMENT !== "hosted") {
-    throw new Error("createTeam only available on cloud");
+    throw IncorrectEditionError("createTeam only available on cloud");
   }
 });
 

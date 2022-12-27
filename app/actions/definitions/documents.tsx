@@ -29,6 +29,7 @@ import DocumentPermanentDelete from "~/scenes/DocumentPermanentDelete";
 import DocumentTemplatizeDialog from "~/components/DocumentTemplatizeDialog";
 import { createAction } from "~/actions";
 import { DocumentSection } from "~/actions/sections";
+import env from "~/env";
 import history from "~/utils/history";
 import {
   documentInsightsUrl,
@@ -206,6 +207,33 @@ export const downloadDocumentAsHTML = createAction({
   },
 });
 
+export const downloadDocumentAsPDF = createAction({
+  name: ({ t }) => t("PDF"),
+  section: DocumentSection,
+  keywords: "export",
+  icon: <DownloadIcon />,
+  iconInContextMenu: false,
+  visible: ({ activeDocumentId, stores }) =>
+    !!activeDocumentId &&
+    stores.policies.abilities(activeDocumentId).download &&
+    env.PDF_EXPORT_ENABLED,
+  perform: ({ activeDocumentId, t, stores }) => {
+    if (!activeDocumentId) {
+      return;
+    }
+
+    const id = stores.toasts.showToast(t("Exporting…"), {
+      type: "loading",
+      timeout: 30 * 1000,
+    });
+
+    const document = stores.documents.get(activeDocumentId);
+    document
+      ?.download("application/pdf")
+      .finally(() => id && stores.toasts.hideToast(id));
+  },
+});
+
 export const downloadDocumentAsMarkdown = createAction({
   name: ({ t }) => t("Markdown"),
   section: DocumentSection,
@@ -230,7 +258,11 @@ export const downloadDocument = createAction({
   section: DocumentSection,
   icon: <DownloadIcon />,
   keywords: "export",
-  children: [downloadDocumentAsHTML, downloadDocumentAsMarkdown],
+  children: [
+    downloadDocumentAsHTML,
+    downloadDocumentAsPDF,
+    downloadDocumentAsMarkdown,
+  ],
 });
 
 export const duplicateDocument = createAction({

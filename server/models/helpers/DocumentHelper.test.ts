@@ -2,7 +2,7 @@ import Revision from "@server/models/Revision";
 import DocumentHelper from "./DocumentHelper";
 
 describe("toEmailDiff", () => {
-  test("toEmailDiff", () => {
+  test("toEmailDiff", async () => {
     const before = new Revision({
       title: "Title",
       text: `
@@ -58,7 +58,7 @@ same on both sides
 same on both sides`,
     });
 
-    const html = DocumentHelper.toEmailDiff(before, after);
+    const html = await DocumentHelper.toEmailDiff(before, after);
 
     // marks breaks in diff
     expect(html).toContain("diff-context-break");
