@@ -222,7 +222,7 @@ export const downloadDocumentAsPDF = createAction({
       return;
     }
 
-    const id = stores.toasts.showToast(t("Exporting…"), {
+    const id = stores.toasts.showToast(`${t("Exporting")}…`, {
       type: "loading",
       timeout: 30 * 1000,
     });
