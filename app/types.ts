@@ -124,7 +124,7 @@ export type Toast = {
   id: string;
   createdAt: string;
   message: string;
-  type: "warning" | "error" | "info" | "success";
+  type: "warning" | "error" | "info" | "success" | "loading";
   timeout?: number;
   reoccurring?: number;
   action?: {
@@ -176,7 +176,7 @@ export type SearchResult = {
 };
 
 export type ToastOptions = {
-  type: "warning" | "error" | "info" | "success";
+  type: "warning" | "error" | "info" | "success" | "loading";
   timeout?: number;
   action?: {
     text: string;

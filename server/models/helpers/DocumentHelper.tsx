@@ -37,6 +37,8 @@ type HTMLOptions = {
   includeStyles?: boolean;
   /** Whether to include styles to center diff (defaults to true) */
   centered?: boolean;
+  /** Whether to replace attachment urls with pre-signed versions (defaults to false) */
+  signedUrls?: boolean;
 };
 
 export default class DocumentHelper {
@@ -81,7 +83,7 @@ export default class DocumentHelper {
    * @param options Options for the HTML output
    * @returns The document title and content as a HTML string
    */
-  static toHTML(document: Document | Revision, options?: HTMLOptions) {
+  static async toHTML(document: Document | Revision, options?: HTMLOptions) {
     const node = DocumentHelper.toProsemirror(document);
     const sheet = new ServerStyleSheet();
     let html, styleTags;
@@ -153,7 +155,16 @@ export default class DocumentHelper {
       target
     );
 
-    return dom.serialize();
+    let output = dom.serialize();
+
+    if (options?.signedUrls && document instanceof Document) {
+      output = await DocumentHelper.attachmentsToSignedUrls(
+        output,
+        document.teamId
+      );
+    }
+
+    return output;
   }
 
   /**
@@ -164,17 +175,17 @@ export default class DocumentHelper {
    * @param options Options passed to HTML generation
    * @returns The diff as a HTML string
    */
-  static diff(
+  static async diff(
     before: Document | Revision | null,
     after: Revision,
     options?: HTMLOptions
   ) {
     if (!before) {
-      return DocumentHelper.toHTML(after, options);
+      return await DocumentHelper.toHTML(after, options);
     }
 
-    const beforeHTML = DocumentHelper.toHTML(before, options);
-    const afterHTML = DocumentHelper.toHTML(after, options);
+    const beforeHTML = await DocumentHelper.toHTML(before, options);
+    const afterHTML = await DocumentHelper.toHTML(after, options);
     const beforeDOM = new JSDOM(beforeHTML);
     const afterDOM = new JSDOM(afterHTML);
 
@@ -205,7 +216,7 @@ export default class DocumentHelper {
    * @param options Options passed to HTML generation
    * @returns The diff as a HTML string
    */
-  static toEmailDiff(
+  static async toEmailDiff(
     before: Document | Revision | null,
     after: Revision,
     options?: HTMLOptions
@@ -214,7 +225,7 @@ export default class DocumentHelper {
       return "";
     }
 
-    const html = DocumentHelper.diff(before, after, options);
+    const html = await DocumentHelper.diff(before, after, options);
     const dom = new JSDOM(html);
     const doc = dom.window.document;
 

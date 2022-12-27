@@ -22,6 +22,7 @@ export type PublicEnv = {
   MAXIMUM_IMPORT_SIZE: number;
   SUBDOMAINS_ENABLED: boolean;
   EMAIL_ENABLED: boolean;
+  PDF_EXPORT_ENABLED: boolean;
   DEFAULT_LANGUAGE: string;
   GOOGLE_ANALYTICS_ID: string | undefined;
   RELEASE: string | undefined;

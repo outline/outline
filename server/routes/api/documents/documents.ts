@@ -7,6 +7,7 @@ import { Op, ScopeOptions, WhereOptions } from "sequelize";
 import { TeamPreference } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import { bytesToHumanReadable } from "@shared/utils/files";
+import { RateLimiterStrategy } from "@server/RateLimiter";
 import documentCreator from "@server/commands/documentCreator";
 import documentImporter from "@server/commands/documentImporter";
 import documentLoader from "@server/commands/documentLoader";
@@ -19,8 +20,10 @@ import {
   InvalidRequestError,
   AuthenticationError,
   ValidationError,
+  IncorrectEditionError,
 } from "@server/errors";
 import auth from "@server/middlewares/authentication";
+import { rateLimiter } from "@server/middlewares/rateLimiter";
 import validate from "@server/middlewares/validate";
 import {
   Backlink,
@@ -433,6 +436,7 @@ router.post(
 
 router.post(
   "documents.export",
+  rateLimiter(RateLimiterStrategy.FivePerMinute),
   auth({
     optional: true,
   }),
@@ -447,7 +451,7 @@ router.post(
       shareId,
       user,
       // We need the collaborative state to generate HTML.
-      includeState: accept === "text/html",
+      includeState: !accept?.includes("text/markdown"),
     });
 
     let contentType;
@@ -455,7 +459,11 @@ router.post(
 
     if (accept?.includes("text/html")) {
       contentType = "text/html";
-      content = DocumentHelper.toHTML(document);
+      content = await DocumentHelper.toHTML(document);
+    } else if (accept?.includes("application/pdf")) {
+      throw IncorrectEditionError(
+        "PDF export is not available in the community edition"
+      );
     } else if (accept?.includes("text/markdown")) {
       contentType = "text/markdown";
       content = DocumentHelper.toMarkdown(document);

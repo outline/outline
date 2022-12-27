@@ -419,7 +419,9 @@ export default class Document extends ParanoidModel {
     };
   }
 
-  download = async (contentType: "text/html" | "text/markdown") => {
+  download = async (
+    contentType: "text/html" | "text/markdown" | "application/pdf"
+  ) => {
     await client.post(
       `/documents.export`,
       {
