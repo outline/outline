@@ -63,12 +63,13 @@ const Row = styled.span<{ selected: boolean }>`
     flex-shrink: 0;
   }
 
+  border-radius: 6px;
+
   &:hover,
   &:active,
   &:focus {
     background: ${(props) =>
       !props.selected && props.theme.listItemHoverBackground};
-    border-radius: 6px;
   }
 
   ${(props) =>
@@ -76,7 +77,6 @@ const Row = styled.span<{ selected: boolean }>`
     `
       background: ${props.theme.primary};
       color: ${props.theme.white};
-      border-radius: 6px;
 
       svg {
         fill: ${props.theme.white};
