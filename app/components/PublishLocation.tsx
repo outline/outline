@@ -65,9 +65,7 @@ const Row = styled.span<{ selected: boolean }>`
 
   border-radius: 6px;
 
-  &:hover,
-  &:active,
-  &:focus {
+  &:hover {
     background: ${(props) =>
       !props.selected && props.theme.listItemHoverBackground};
   }
