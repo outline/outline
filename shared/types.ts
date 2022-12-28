@@ -7,6 +7,12 @@ export enum Client {
   Desktop = "desktop",
 }
 
+export enum ExportContentType {
+  Markdown = "text/markdown",
+  Html = "text/html",
+  Pdf = "application/pdf",
+}
+
 export type PublicEnv = {
   URL: string;
   CDN_URL: string;

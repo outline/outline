@@ -1,7 +1,7 @@
 import invariant from "invariant";
 import { concat, find, last } from "lodash";
 import { computed, action } from "mobx";
-import { CollectionPermission } from "@shared/types";
+import { CollectionPermission, ExportContentType } from "@shared/types";
 import Collection from "~/models/Collection";
 import { NavigationNode } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -215,7 +215,11 @@ export default class CollectionsStore extends BaseStore<Collection> {
     this.rootStore.documents.fetchRecentlyViewed();
   };
 
-  export = () => {
-    return client.post("/collections.export_all");
+  export = (contentType: ExportContentType) => {
+    return client.post("/collections.export_all", undefined, {
+      headers: {
+        accept: contentType,
+      },
+    });
   };
 }

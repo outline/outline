@@ -42,7 +42,7 @@ export type Props = {
   icon?: React.ReactNode;
   options: Option[];
   note?: React.ReactNode;
-  onChange: (value: string | null) => void;
+  onChange?: (value: string | null) => void;
 };
 
 const getOptionFromValue = (options: Option[], value: string | null) => {
@@ -109,7 +109,7 @@ const InputSelect = (props: Props) => {
     previousValue.current = select.selectedValue;
 
     async function load() {
-      await onChange(select.selectedValue);
+      await onChange?.(select.selectedValue);
     }
 
     load();
