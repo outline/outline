@@ -68,7 +68,6 @@ const Row = styled.span<{ selected: boolean }>`
   &:focus {
     background: ${(props) =>
       !props.selected && props.theme.listItemHoverBackground};
-    outline: none;
     border-radius: 6px;
   }
 
@@ -77,7 +76,6 @@ const Row = styled.span<{ selected: boolean }>`
     `
       background: ${props.theme.primary};
       color: ${props.theme.white};
-      outline: none;
       border-radius: 6px;
 
       svg {
