@@ -47,6 +47,7 @@ const Title = styled.span`
 const Spacer = styled.span<{ width?: number; height?: number }>`
   width: ${(props) => (isUndefined(props.width) ? 0 : props.width)}px;
   height: ${(props) => (isUndefined(props.height) ? 0 : props.height)}px;
+  flex-shrink: 0;
 `;
 
 const Row = styled.span<{ selected: boolean }>`
