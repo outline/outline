@@ -1,5 +1,5 @@
 import FuzzySearch from "fuzzy-search";
-import { uniq } from "lodash";
+import { uniq, isNumber } from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
@@ -29,11 +29,32 @@ function PublishPopover({ document, visible }: Props) {
   const { collections } = useStores();
   const { showToast } = useToasts();
   const { t } = useTranslation();
-  const listRef = React.useRef<List>(null);
+  const listRef = React.useRef<any>(null);
+
+  const SCROLL_LIST_PADDING = 6;
 
   React.useEffect(() => {
-    if (visible && selectedLocation) {
-      listRef.current?.scrollToItem(selectedLocation.index);
+    if (visible && selectedLocation && listRef.current) {
+      const index = selectedLocation.index;
+      const { height, itemSize } = listRef.current.props;
+      const scrollWindowTop = listRef.current.state.scrollOffset;
+      const scrollWindowBottom = scrollWindowTop + height;
+
+      const top = SCROLL_LIST_PADDING + index * itemSize;
+      const bottom = SCROLL_LIST_PADDING + (index + 1) * itemSize;
+
+      let offset;
+      if (top < scrollWindowTop) {
+        offset = top;
+      }
+
+      if (bottom > scrollWindowBottom) {
+        offset = scrollWindowTop + bottom - scrollWindowBottom;
+      }
+
+      if (isNumber(offset)) {
+        listRef.current.scrollTo(offset);
+      }
     }
   });
 
@@ -122,7 +143,10 @@ function PublishPopover({ document, visible }: Props) {
     result.index = index;
     return (
       <PublishLocation
-        style={style}
+        style={{
+          ...style,
+          top: (style.top as number) + SCROLL_LIST_PADDING,
+        }}
         location={result}
         onSelect={handleSelect}
         selected={
@@ -137,6 +161,19 @@ function PublishPopover({ document, visible }: Props) {
   if (!document || !collections.isLoaded) {
     return null;
   }
+
+  const innerElementType = React.forwardRef<HTMLDivElement, any>(
+    ({ style, ...rest }, ref) => (
+      <div
+        ref={ref}
+        style={{
+          ...style,
+          height: `${parseFloat(style.height) + SCROLL_LIST_PADDING * 2}px`,
+        }}
+        {...rest}
+      />
+    )
+  );
 
   return (
     <Flex column>
@@ -159,6 +196,7 @@ function PublishPopover({ document, visible }: Props) {
                 itemData={data}
                 itemCount={data.length}
                 itemSize={32}
+                innerElementType={innerElementType}
                 itemKey={(index, results: any) => results[index].data.id}
               >
                 {row}
