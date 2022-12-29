@@ -12,7 +12,10 @@ type Props = {
 };
 
 function PublishLocation({ location, onSelect, selected, style }: Props) {
-  const leadingSpaceWidth = location.depth ? location.depth * 24 + 12 : 0;
+  const OFFSET = 12;
+  const BASE_WIDTH = 24;
+
+  const netOffset = location.depth ? location.depth * BASE_WIDTH + OFFSET : 0;
 
   const handleSelect = React.useCallback(
     (ev) => {
@@ -28,7 +31,7 @@ function PublishLocation({ location, onSelect, selected, style }: Props) {
 
   return (
     <Row selected={selected} onClick={handleSelect} style={style}>
-      <Spacer width={leadingSpaceWidth} />
+      <Spacer width={netOffset} />
       {location.data.type === "collection" && location.data.collection && (
         <CollectionIcon collection={location.data.collection} />
       )}
