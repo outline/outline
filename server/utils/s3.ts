@@ -85,21 +85,28 @@ export const publicS3Endpoint = (isServerUpload?: boolean) => {
   }${AWS_S3_UPLOAD_BUCKET_NAME}`;
 };
 
-export const uploadToS3FromBuffer = async (
-  buffer: Buffer,
-  contentType: string,
-  key: string,
-  acl: string
-) => {
+export const uploadToS3 = async ({
+  body,
+  contentLength,
+  contentType,
+  key,
+  acl,
+}: {
+  body: S3.Body;
+  contentLength: number;
+  contentType: string;
+  key: string;
+  acl: string;
+}) => {
   await s3
     .putObject({
       ACL: acl,
       Bucket: AWS_S3_UPLOAD_BUCKET_NAME,
       Key: key,
       ContentType: contentType,
-      ContentLength: buffer.length,
+      ContentLength: contentLength,
       ContentDisposition: "attachment",
-      Body: buffer,
+      Body: body,
     })
     .promise();
   const endpoint = publicS3Endpoint(true);

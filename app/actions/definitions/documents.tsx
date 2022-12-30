@@ -22,6 +22,7 @@ import {
   LightBulbIcon,
 } from "outline-icons";
 import * as React from "react";
+import { ExportContentType } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import DocumentDelete from "~/scenes/DocumentDelete";
 import DocumentMove from "~/scenes/DocumentMove";
@@ -203,7 +204,7 @@ export const downloadDocumentAsHTML = createAction({
     }
 
     const document = stores.documents.get(activeDocumentId);
-    document?.download("text/html");
+    document?.download(ExportContentType.Html);
   },
 });
 
@@ -229,7 +230,7 @@ export const downloadDocumentAsPDF = createAction({
 
     const document = stores.documents.get(activeDocumentId);
     document
-      ?.download("application/pdf")
+      ?.download(ExportContentType.Pdf)
       .finally(() => id && stores.toasts.hideToast(id));
   },
 });
@@ -248,7 +249,7 @@ export const downloadDocumentAsMarkdown = createAction({
     }
 
     const document = stores.documents.get(activeDocumentId);
-    document?.download("text/markdown");
+    document?.download(ExportContentType.Markdown);
   },
 });
 

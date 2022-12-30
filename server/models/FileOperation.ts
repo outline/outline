@@ -8,30 +8,17 @@ import {
   Table,
   DataType,
 } from "sequelize-typescript";
+import {
+  FileOperationFormat,
+  FileOperationState,
+  FileOperationType,
+} from "@shared/types";
 import { deleteFromS3, getFileByKey } from "@server/utils/s3";
 import Collection from "./Collection";
 import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
-
-export enum FileOperationType {
-  Import = "import",
-  Export = "export",
-}
-
-export enum FileOperationFormat {
-  MarkdownZip = "outline-markdown",
-  Notion = "notion",
-}
-
-export enum FileOperationState {
-  Creating = "creating",
-  Uploading = "uploading",
-  Complete = "complete",
-  Error = "error",
-  Expired = "expired",
-}
 
 @DefaultScope(() => ({
   include: [

@@ -3,7 +3,12 @@ import invariant from "invariant";
 import Router from "koa-router";
 import { Sequelize, Op, WhereOptions } from "sequelize";
 import { randomElement } from "@shared/random";
-import { CollectionPermission } from "@shared/types";
+import {
+  CollectionPermission,
+  FileOperationFormat,
+  FileOperationState,
+  FileOperationType,
+} from "@shared/types";
 import { colorPalette } from "@shared/utils/collections";
 import { RateLimiterStrategy } from "@server/RateLimiter";
 import collectionExporter from "@server/commands/collectionExporter";
@@ -27,11 +32,6 @@ import {
   Attachment,
   FileOperation,
 } from "@server/models";
-import {
-  FileOperationFormat,
-  FileOperationState,
-  FileOperationType,
-} from "@server/models/FileOperation";
 import { authorize } from "@server/policies";
 import {
   presentCollection,
@@ -576,16 +576,20 @@ router.post(
 router.post(
   "collections.export_all",
   auth(),
-  rateLimiter(RateLimiterStrategy.TenPerHour),
+  rateLimiter(RateLimiterStrategy.FivePerHour),
   async (ctx) => {
+    const { format = FileOperationFormat.MarkdownZip } = ctx.request.body;
     const { user } = ctx.state;
     const team = await Team.findByPk(user.teamId);
     authorize(user, "createExport", team);
+
+    assertIn(format, Object.values(FileOperationFormat), "Invalid format");
 
     const fileOperation = await sequelize.transaction(async (transaction) => {
       return collectionExporter({
         user,
         team,
+        format,
         ip: ctx.request.ip,
         transaction,
       });

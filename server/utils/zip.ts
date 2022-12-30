@@ -3,6 +3,7 @@ import path from "path";
 import JSZip, { JSZipObject } from "jszip";
 import { find } from "lodash";
 import tmp from "tmp";
+import { FileOperationFormat } from "@shared/types";
 import { ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import Attachment from "@server/models/Attachment";
@@ -26,9 +27,21 @@ export type Item = {
   item: JSZipObject;
 };
 
+export type FileTreeNode = {
+  /** The title, extracted from the file name */
+  title: string;
+  /** The file name including extension */
+  name: string;
+  /** The full path to within the zip file */
+  path: string;
+  /** The nested children */
+  children: FileTreeNode[];
+};
+
 async function addDocumentTreeToArchive(
   zip: JSZip,
-  documents: NavigationNode[]
+  documents: NavigationNode[],
+  format = FileOperationFormat.MarkdownZip
 ) {
   for (const doc of documents) {
     const document = await Document.findByPk(doc.id);
@@ -37,7 +50,10 @@ async function addDocumentTreeToArchive(
       continue;
     }
 
-    let text = DocumentHelper.toMarkdown(document);
+    let text =
+      format === FileOperationFormat.HTMLZip
+        ? await DocumentHelper.toHTML(document)
+        : await DocumentHelper.toMarkdown(document);
     const attachments = await Attachment.findAll({
       where: {
         teamId: document.teamId,
@@ -52,7 +68,9 @@ async function addDocumentTreeToArchive(
 
     let title = serializeFilename(document.title) || "Untitled";
 
-    title = safeAddFileToArchive(zip, `${title}.md`, text, {
+    const extension = format === FileOperationFormat.HTMLZip ? "html" : "md";
+
+    title = safeAddFileToArchive(zip, `${title}.${extension}`, text, {
       date: document.updatedAt,
       comment: JSON.stringify({
         createdAt: document.createdAt,
@@ -161,7 +179,10 @@ async function archiveToPath(zip: JSZip): Promise<string> {
   });
 }
 
-export async function archiveCollections(collections: Collection[]) {
+export async function archiveCollections(
+  collections: Collection[],
+  format: FileOperationFormat
+) {
   const zip = new JSZip();
 
   for (const collection of collections) {
@@ -169,24 +190,17 @@ export async function archiveCollections(collections: Collection[]) {
       const folder = zip.folder(serializeFilename(collection.name));
 
       if (folder) {
-        await addDocumentTreeToArchive(folder, collection.documentStructure);
+        await addDocumentTreeToArchive(
+          folder,
+          collection.documentStructure,
+          format
+        );
       }
     }
   }
 
   return archiveToPath(zip);
 }
-
-export type FileTreeNode = {
-  /** The title, extracted from the file name */
-  title: string;
-  /** The file name including extension */
-  name: string;
-  /** The full path to within the zip file */
-  path: string;
-  /** The nested children */
-  children: FileTreeNode[];
-};
 
 /**
  * Converts the flat structure returned by JSZIP into a nested file structure

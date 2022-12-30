@@ -1,6 +1,7 @@
 import { addDays, differenceInDays } from "date-fns";
 import { floor } from "lodash";
 import { action, autorun, computed, observable, set } from "mobx";
+import { ExportContentType } from "@shared/types";
 import parseTitle from "@shared/utils/parseTitle";
 import { isRTL } from "@shared/utils/rtl";
 import DocumentsStore from "~/stores/DocumentsStore";
@@ -419,10 +420,8 @@ export default class Document extends ParanoidModel {
     };
   }
 
-  download = async (
-    contentType: "text/html" | "text/markdown" | "application/pdf"
-  ) => {
-    await client.post(
+  download = (contentType: ExportContentType) => {
+    return client.post(
       `/documents.export`,
       {
         id: this.id,

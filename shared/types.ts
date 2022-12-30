@@ -7,6 +7,32 @@ export enum Client {
   Desktop = "desktop",
 }
 
+export enum ExportContentType {
+  Markdown = "text/markdown",
+  Html = "text/html",
+  Pdf = "application/pdf",
+}
+
+export enum FileOperationFormat {
+  MarkdownZip = "outline-markdown",
+  HTMLZip = "html",
+  PDFZip = "pdf",
+  Notion = "notion",
+}
+
+export enum FileOperationType {
+  Import = "import",
+  Export = "export",
+}
+
+export enum FileOperationState {
+  Creating = "creating",
+  Uploading = "uploading",
+  Complete = "complete",
+  Error = "error",
+  Expired = "expired",
+}
+
 export type PublicEnv = {
   URL: string;
   CDN_URL: string;

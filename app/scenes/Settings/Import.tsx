@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import { NewDocumentIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import { FileOperationType } from "@shared/types";
 import { cdnPath } from "@shared/utils/urls";
 import FileOperation from "~/models/FileOperation";
 import Button from "~/components/Button";
@@ -93,7 +94,7 @@ function Import() {
         items={fileOperations.imports}
         fetch={fileOperations.fetchPage}
         options={{
-          type: "import",
+          type: FileOperationType.Import,
         }}
         heading={
           <h2>
