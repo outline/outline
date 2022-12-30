@@ -242,9 +242,6 @@ const Results = styled.div`
   padding-left: 24px;
   padding-right: 24px;
   height: 65vh;
-  border-top: 0;
-  border-bottom-left-radius: 4px;
-  border-bottom-right-radius: 4px;
   margin-right: -24px;
 
   ${breakpoint("tablet")`
