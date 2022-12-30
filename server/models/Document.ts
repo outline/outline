@@ -1,4 +1,3 @@
-import removeMarkdown from "@tommoor/remove-markdown";
 import { compact, uniq } from "lodash";
 import randomstring from "randomstring";
 import type { SaveOptions } from "sequelize";
@@ -34,7 +33,6 @@ import MarkdownSerializer from "slate-md-serializer";
 import isUUID from "validator/lib/isUUID";
 import getTasks from "@shared/utils/getTasks";
 import parseTitle from "@shared/utils/parseTitle";
-import unescape from "@shared/utils/unescape";
 import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
 import { DocumentValidation } from "@shared/validations";
 import slugify from "@server/utils/slugify";
@@ -48,6 +46,7 @@ import User from "./User";
 import View from "./View";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
+import DocumentHelper from "./helpers/DocumentHelper";
 import Length from "./validators/Length";
 
 const serializer = new MarkdownSerializer();
@@ -740,10 +739,8 @@ class Document extends ParanoidModel {
   };
 
   getSummary = () => {
-    const plain = removeMarkdown(unescape(this.text), {
-      stripHTML: false,
-    });
-    const lines = compact(plain.split("\n"));
+    const plainText = DocumentHelper.toPlainText(this);
+    const lines = compact(plainText.split("\n"));
     const notEmpty = lines.length >= 1;
 
     if (this.version) {

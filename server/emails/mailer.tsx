@@ -22,9 +22,7 @@ type SendMailOptions = {
 /**
  * Mailer class to send emails.
  */
-@APM.trace({
-  spanName: "mailer",
-})
+@APM.trace()
 export class Mailer {
   transporter: Transporter | undefined;
 

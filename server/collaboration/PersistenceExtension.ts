@@ -12,9 +12,7 @@ import Document from "@server/models/Document";
 import documentCollaborativeUpdater from "../commands/documentCollaborativeUpdater";
 import markdownToYDoc from "./utils/markdownToYDoc";
 
-@APM.trace({
-  spanName: "persistence",
-})
+@APM.trace()
 export default class PersistenceExtension implements Extension {
   /**
    * Map of documentId -> userIds that have modified the document since it

@@ -5,9 +5,7 @@ import { can } from "@server/policies";
 import { getUserForJWT } from "@server/utils/jwt";
 import { AuthenticationError } from "../errors";
 
-@APM.trace({
-  spanName: "authentication",
-})
+@APM.trace()
 export default class AuthenticationExtension implements Extension {
   async onAuthenticate({
     connection,

@@ -23,7 +23,8 @@ import { isRTL } from "@shared/utils/rtl";
 import unescape from "@shared/utils/unescape";
 import { parser, schema } from "@server/editor";
 import Logger from "@server/logging/Logger";
-import Document from "@server/models/Document";
+import { APM } from "@server/logging/tracing";
+import type Document from "@server/models/Document";
 import type Revision from "@server/models/Revision";
 import User from "@server/models/User";
 import diff from "@server/utils/diff";
@@ -42,6 +43,7 @@ type HTMLOptions = {
   signedUrls?: boolean;
 };
 
+@APM.trace()
 export default class DocumentHelper {
   /**
    * Returns the document as a Prosemirror Node. This method uses the
@@ -176,7 +178,7 @@ export default class DocumentHelper {
 
     let output = dom.serialize();
 
-    if (options?.signedUrls && document instanceof Document) {
+    if (options?.signedUrls && "teamId" in document) {
       output = await DocumentHelper.attachmentsToSignedUrls(
         output,
         document.teamId
