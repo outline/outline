@@ -578,7 +578,7 @@ router.post(
   auth(),
   rateLimiter(RateLimiterStrategy.FivePerHour),
   async (ctx) => {
-    const { format } = ctx.request.body;
+    const { format = FileOperationFormat.MarkdownZip } = ctx.request.body;
     const { user } = ctx.state;
     const team = await Team.findByPk(user.teamId);
     authorize(user, "createExport", team);
