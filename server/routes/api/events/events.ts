@@ -5,7 +5,7 @@ import { Event, User, Collection } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentEvent } from "@server/presenters";
 import { assertSort, assertUuid } from "@server/validation";
-import pagination from "./middlewares/pagination";
+import pagination from "../middlewares/pagination";
 
 const router = new Router();
 
