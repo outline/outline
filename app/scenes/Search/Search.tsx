@@ -365,7 +365,7 @@ class Search extends React.Component<Props> {
               <SearchTitleOnlyFilter
                 width={26}
                 height={14}
-                label={t("search title only")}
+                label={t("Search titles only")}
                 onChange={this.handleTitleFilterChange}
                 checked={this.titleFilter}
               />
@@ -460,6 +460,9 @@ const Filters = styled(Flex)`
 
 const SearchTitleOnlyFilter = styled(Switch)`
   margin-left: 8px;
+  margin-top: 2px;
+  font-size: 14px;
+  font-weight: 500;
 `;
 
 export default withTranslation()(withStores(withRouter(Search)));
