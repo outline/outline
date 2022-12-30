@@ -3,6 +3,7 @@ import { FileOperationFormat, FileOperationType } from "@shared/types";
 import { FileOperation } from "@server/models";
 import { Event as TEvent, FileOperationEvent } from "@server/types";
 import ExportHTMLZipTask from "../tasks/ExportHTMLZipTask";
+import ExportJSONTask from "../tasks/ExportJSONTask";
 import ExportMarkdownZipTask from "../tasks/ExportMarkdownZipTask";
 import ImportMarkdownZipTask from "../tasks/ImportMarkdownZipTask";
 import ImportNotionTask from "../tasks/ImportNotionTask";
@@ -45,6 +46,11 @@ export default class FileOperationsProcessor extends BaseProcessor {
           break;
         case FileOperationFormat.MarkdownZip:
           await ExportMarkdownZipTask.schedule({
+            fileOperationId: event.modelId,
+          });
+          break;
+        case FileOperationFormat.Outline:
+          await ExportJSONTask.schedule({
             fileOperationId: event.modelId,
           });
           break;

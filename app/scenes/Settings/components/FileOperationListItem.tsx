@@ -42,9 +42,10 @@ const FileOperationListItem = ({ fileOperation, handleDelete }: Props) => {
   };
 
   const formatMapping = {
+    [FileOperationFormat.Outline]: "Backup",
     [FileOperationFormat.MarkdownZip]: "Markdown",
     [FileOperationFormat.HTMLZip]: "HTML",
-    [FileOperationFormat.PDFZip]: "PDF",
+    [FileOperationFormat.PDF]: "PDF",
   };
 
   const format = formatMapping[fileOperation.format];

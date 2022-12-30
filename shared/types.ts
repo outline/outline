@@ -14,9 +14,10 @@ export enum ExportContentType {
 }
 
 export enum FileOperationFormat {
+  Outline = "outline-backup",
   MarkdownZip = "outline-markdown",
   HTMLZip = "html",
-  PDFZip = "pdf",
+  PDF = "pdf",
   Notion = "notion",
 }
 

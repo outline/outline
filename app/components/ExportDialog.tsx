@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { CodeIcon } from "outline-icons";
+import { CodeIcon, DocumentIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
@@ -98,6 +98,25 @@ function ExportDialog({ collection, onSubmit }: Props) {
           <Text size="small">
             <Trans>
               A ZIP file containing the images, and documents as HTML files.
+            </Trans>
+          </Text>
+        </Option>
+        <Option>
+          <Input
+            type="radio"
+            name="format"
+            value={FileOperationFormat.Outline}
+            checked={format === FileOperationFormat.Outline}
+            onChange={handleFormatChange}
+          />
+          <Format>
+            <DocumentIcon size={32} />
+            <Trans>Backup</Trans>
+          </Format>
+          <Text size="small">
+            <Trans>
+              A file that can be used to transfer data to another compatible
+              Outline instance.
             </Trans>
           </Text>
         </Option>
