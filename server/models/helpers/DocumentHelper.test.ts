@@ -1,7 +1,7 @@
 import Revision from "@server/models/Revision";
 import DocumentHelper from "./DocumentHelper";
 
-describe("toEmailDiff", () => {
+describe("DocumentHelper", () => {
   test("toEmailDiff", async () => {
     const before = new Revision({
       title: "Title",
@@ -79,5 +79,66 @@ same on both sides`,
     // unchanged
     expect(html).not.toContain("same on both sides");
     expect(html).not.toContain("this is a highlight");
+  });
+
+  test("toPlainText", async () => {
+    const revision = new Revision({
+      title: "Title",
+      text: `
+This is a test paragraph
+
+A new [link](https://www.google.com)
+
+- list item 1
+
+This is a new paragraph.
+
+!!This is a placeholder!!
+
+==this is a highlight==
+
+- [x] checklist item 1
+- [x] checklist item 2
+- [ ] checklist item 3
+- [ ] checklist item 4
+- [x] checklist item 5
+
+same on both sides
+
+same on both sides
+
+same on both sides`,
+    });
+
+    const text = await DocumentHelper.toPlainText(revision);
+
+    // Strip all formatting
+    expect(text).toEqual(`This is a test paragraph
+
+A new link
+
+list item 1
+
+This is a new paragraph.
+
+This is a placeholder
+
+this is a highlight
+
+checklist item 1
+
+checklist item 2
+
+checklist item 3
+
+checklist item 4
+
+checklist item 5
+
+same on both sides
+
+same on both sides
+
+same on both sides`);
   });
 });
