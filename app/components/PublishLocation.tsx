@@ -1,8 +1,8 @@
-import { isUndefined } from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
 import CollectionIcon from "~/components/CollectionIcon";
+import Text from "~/components/Text";
 
 type Props = {
   location: any;
@@ -31,26 +31,21 @@ function PublishLocation({ location, onSelect, selected, style }: Props) {
 
   return (
     <Row selected={selected} onClick={handleSelect} style={style}>
-      <Spacer width={netOffset} />
       {location.data.type === "collection" && location.data.collection && (
         <CollectionIcon collection={location.data.collection} />
       )}
-      <Title>{location.data.title}</Title>
+      <Title $paddingLeft={netOffset}>{location.data.title}</Title>
     </Row>
   );
 }
 
-const Title = styled.span`
+const Title = styled(Text)<{ $paddingLeft: number }>`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding-left: 4px;
-`;
-
-const Spacer = styled.span<{ width?: number; height?: number }>`
-  width: ${(props) => (isUndefined(props.width) ? 0 : props.width)}px;
-  height: ${(props) => (isUndefined(props.height) ? 0 : props.height)}px;
-  flex-shrink: 0;
+  padding-left: ${(props) => props.$paddingLeft}px;
+  margin: 0 4px 0 4px;
+  color: inherit;
 `;
 
 const Row = styled.span<{ selected: boolean }>`
