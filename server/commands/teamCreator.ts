@@ -104,6 +104,5 @@ async function findAvailableSubdomain(team: Team, requestedSubdomain: string) {
 }
 
 export default APM.traceFunction({
-  serviceName: "command",
   spanName: "teamCreator",
 })(teamCreator);

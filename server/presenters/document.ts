@@ -64,6 +64,5 @@ async function present(
 }
 
 export default APM.traceFunction({
-  serviceName: "presenter",
-  spanName: "document",
+  spanName: "presentDocument",
 })(present);

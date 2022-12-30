@@ -72,6 +72,5 @@ async function collectionExporter({
 }
 
 export default APM.traceFunction({
-  serviceName: "command",
   spanName: "collectionExporter",
 })(collectionExporter);

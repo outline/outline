@@ -17,6 +17,5 @@ function present(user: User, objects: Record<string, any>[]): Policy[] {
 }
 
 export default APM.traceFunction({
-  serviceName: "presenter",
-  spanName: "policy",
+  spanName: "presentPolicy",
 })(present);

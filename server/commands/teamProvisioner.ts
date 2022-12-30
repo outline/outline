@@ -126,6 +126,5 @@ async function teamProvisioner({
 }
 
 export default APM.traceFunction({
-  serviceName: "command",
   spanName: "teamProvisioner",
 })(teamProvisioner);

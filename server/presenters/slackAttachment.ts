@@ -34,6 +34,5 @@ function present(
 }
 
 export default APM.traceFunction({
-  serviceName: "presenter",
-  spanName: "slackAttachment",
+  spanName: "presentSlackAttachment",
 })(present);
