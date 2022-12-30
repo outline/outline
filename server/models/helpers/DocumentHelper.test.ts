@@ -103,11 +103,10 @@ This is a new paragraph.
 - [ ] checklist item 4
 - [x] checklist item 5
 
-same on both sides
-
-same on both sides
-
-same on both sides`,
+| This | Is | Table |
+|----|----|----|
+| Multiple \n Lines \n In a cell |    |    |
+|    |    |    |`,
     });
 
     const text = await DocumentHelper.toPlainText(revision);
@@ -135,10 +134,18 @@ checklist item 4
 
 checklist item 5
 
-same on both sides
+This
 
-same on both sides
+Is
 
-same on both sides`);
+Table
+
+Multiple
+
+Lines
+
+In a cell
+
+`);
   });
 });
