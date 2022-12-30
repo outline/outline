@@ -88,7 +88,7 @@ class Event extends IdModel {
 
   @ForeignKey(() => Collection)
   @Column(DataType.UUID)
-  collectionId: string;
+  collectionId: string | null;
 
   @BelongsTo(() => Team, "teamId")
   team: Team;
