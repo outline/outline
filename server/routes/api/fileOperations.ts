@@ -1,10 +1,10 @@
 import Router from "koa-router";
 import { WhereOptions } from "sequelize/types";
+import { FileOperationType } from "@shared/types";
 import fileOperationDeleter from "@server/commands/fileOperationDeleter";
 import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { FileOperation, Team } from "@server/models";
-import { FileOperationType } from "@server/models/FileOperation";
 import { authorize } from "@server/policies";
 import { presentFileOperation } from "@server/presenters";
 import { ContextWithState } from "@server/types";

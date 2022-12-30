@@ -1,6 +1,10 @@
 import { isNull } from "lodash";
 import { v4 as uuidv4 } from "uuid";
-import { CollectionPermission } from "@shared/types";
+import {
+  CollectionPermission,
+  FileOperationState,
+  FileOperationType,
+} from "@shared/types";
 import {
   Share,
   Team,
@@ -21,10 +25,6 @@ import {
   ApiKey,
   Subscription,
 } from "@server/models";
-import {
-  FileOperationState,
-  FileOperationType,
-} from "@server/models/FileOperation";
 
 let count = 1;
 

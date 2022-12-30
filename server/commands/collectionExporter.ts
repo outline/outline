@@ -1,11 +1,11 @@
 import { Transaction } from "sequelize";
-import { FileOperationFormat } from "@shared/types";
-import { APM } from "@server/logging/tracing";
-import { Collection, Event, Team, User, FileOperation } from "@server/models";
 import {
+  FileOperationFormat,
   FileOperationType,
   FileOperationState,
-} from "@server/models/FileOperation";
+} from "@shared/types";
+import { APM } from "@server/logging/tracing";
+import { Collection, Event, Team, User, FileOperation } from "@server/models";
 import { getAWSKeyForFileOp } from "@server/utils/s3";
 
 type Props = {

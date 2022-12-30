@@ -1,8 +1,5 @@
+import { FileOperationState, FileOperationType } from "@shared/types";
 import { Collection, User, Event, FileOperation } from "@server/models";
-import {
-  FileOperationState,
-  FileOperationType,
-} from "@server/models/FileOperation";
 import {
   buildAdmin,
   buildCollection,

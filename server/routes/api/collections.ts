@@ -3,7 +3,12 @@ import invariant from "invariant";
 import Router from "koa-router";
 import { Sequelize, Op, WhereOptions } from "sequelize";
 import { randomElement } from "@shared/random";
-import { CollectionPermission, FileOperationFormat } from "@shared/types";
+import {
+  CollectionPermission,
+  FileOperationFormat,
+  FileOperationState,
+  FileOperationType,
+} from "@shared/types";
 import { colorPalette } from "@shared/utils/collections";
 import { RateLimiterStrategy } from "@server/RateLimiter";
 import collectionExporter from "@server/commands/collectionExporter";
@@ -27,10 +32,6 @@ import {
   Attachment,
   FileOperation,
 } from "@server/models";
-import {
-  FileOperationState,
-  FileOperationType,
-} from "@server/models/FileOperation";
 import { authorize } from "@server/policies";
 import {
   presentCollection,

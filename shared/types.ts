@@ -20,6 +20,19 @@ export enum FileOperationFormat {
   Notion = "notion",
 }
 
+export enum FileOperationType {
+  Import = "import",
+  Export = "export",
+}
+
+export enum FileOperationState {
+  Creating = "creating",
+  Uploading = "uploading",
+  Complete = "complete",
+  Error = "error",
+  Expired = "expired",
+}
+
 export type PublicEnv = {
   URL: string;
   CDN_URL: string;

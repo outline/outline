@@ -1,7 +1,6 @@
 import invariant from "invariant";
-import { FileOperationFormat } from "@shared/types";
+import { FileOperationFormat, FileOperationType } from "@shared/types";
 import { FileOperation } from "@server/models";
-import { FileOperationType } from "@server/models/FileOperation";
 import { Event as TEvent, FileOperationEvent } from "@server/types";
 import ExportHTMLZipTask from "../tasks/ExportHTMLZipTask";
 import ExportMarkdownZipTask from "../tasks/ExportMarkdownZipTask";

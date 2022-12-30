@@ -3,6 +3,7 @@ import { ArchiveIcon, DoneIcon, WarningIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "styled-components";
+import { FileOperationFormat, FileOperationType } from "@shared/types";
 import FileOperation from "~/models/FileOperation";
 import { Action } from "~/components/Actions";
 import ListItem from "~/components/List/Item";
@@ -36,10 +37,19 @@ const FileOperationListItem = ({ fileOperation, handleDelete }: Props) => {
     error: <WarningIcon color={theme.danger} />,
   };
 
+  const formatToReadable = {
+    [FileOperationFormat.MarkdownZip]: "Markdown",
+    [FileOperationFormat.HTMLZip]: "HTML",
+    [FileOperationFormat.PDFZip]: "PDF",
+  };
+
+  const format = formatToReadable[fileOperation.format];
+
   const title =
-    fileOperation.type === "import" || fileOperation.collectionId
+    fileOperation.type === FileOperationType.Import ||
+    fileOperation.collectionId
       ? fileOperation.name
-      : t("All collections");
+      : t("All collections") + (format ? ` • ${format}` : "");
 
   return (
     <ListItem
