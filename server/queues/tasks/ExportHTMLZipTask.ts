@@ -15,7 +15,7 @@ type Props = {
   fileOperationId: string;
 };
 
-export default class ExportMarkdownZipTask extends BaseTask<Props> {
+export default class ExportHTMLZipTask extends BaseTask<Props> {
   /**
    * Runs the export task.
    *
@@ -50,7 +50,7 @@ export default class ExportMarkdownZipTask extends BaseTask<Props> {
 
       const filePath = await archiveCollections(
         collections,
-        FileOperationFormat.MarkdownZip
+        FileOperationFormat.HTMLZip
       );
 
       Logger.info("task", `ExportTask uploading data for ${fileOperationId}`);

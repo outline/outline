@@ -13,6 +13,13 @@ export enum ExportContentType {
   Pdf = "application/pdf",
 }
 
+export enum FileOperationFormat {
+  MarkdownZip = "outline-markdown",
+  HTMLZip = "html",
+  PDFZip = "pdf",
+  Notion = "notion",
+}
+
 export type PublicEnv = {
   URL: string;
   CDN_URL: string;

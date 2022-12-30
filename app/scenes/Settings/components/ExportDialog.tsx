@@ -3,7 +3,7 @@ import { CodeIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
-import { ExportContentType } from "@shared/types";
+import { FileOperationFormat } from "@shared/types";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Flex from "~/components/Flex";
 import MarkdownIcon from "~/components/Icons/Markdown";
@@ -15,15 +15,15 @@ type Props = {
 };
 
 function ExportDialog({ onSubmit }: Props) {
-  const [format, setFormat] = React.useState<ExportContentType>(
-    ExportContentType.Markdown
+  const [format, setFormat] = React.useState<FileOperationFormat>(
+    FileOperationFormat.MarkdownZip
   );
   const { collections } = useStores();
   const { t } = useTranslation();
 
   const handleFormatChange = React.useCallback(
     (ev: React.ChangeEvent<HTMLInputElement>) => {
-      setFormat(ev.target.value as ExportContentType);
+      setFormat(ev.target.value as FileOperationFormat);
     },
     []
   );
@@ -40,8 +40,8 @@ function ExportDialog({ onSubmit }: Props) {
           <Input
             type="radio"
             name="format"
-            value="text/markdown"
-            checked={format === "text/markdown"}
+            value={FileOperationFormat.MarkdownZip}
+            checked={format === FileOperationFormat.MarkdownZip}
             onChange={handleFormatChange}
           />
           <Format>
@@ -59,8 +59,8 @@ function ExportDialog({ onSubmit }: Props) {
           <Input
             type="radio"
             name="format"
-            value="text/html"
-            checked={format === "text/html"}
+            value={FileOperationFormat.HTMLZip}
+            checked={format === FileOperationFormat.HTMLZip}
             onChange={handleFormatChange}
           />
           <Format>
