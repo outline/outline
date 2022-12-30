@@ -13,9 +13,9 @@ type Props = {
 
 function PublishLocation({ location, onSelect, selected, style }: Props) {
   const OFFSET = 12;
-  const BASE_WIDTH = 24;
+  const ICON_SIZE = 24;
 
-  const netOffset = location.depth ? location.depth * BASE_WIDTH + OFFSET : 0;
+  const titlePadding = location.depth ? location.depth * ICON_SIZE + OFFSET : 0;
 
   const handleSelect = React.useCallback(
     (ev) => {
@@ -32,9 +32,12 @@ function PublishLocation({ location, onSelect, selected, style }: Props) {
   return (
     <Row selected={selected} onClick={handleSelect} style={style}>
       {location.data.type === "collection" && location.data.collection && (
-        <CollectionIcon collection={location.data.collection} />
+        <CollectionIcon
+          collection={location.data.collection}
+          size={ICON_SIZE}
+        />
       )}
-      <Title $paddingLeft={netOffset}>{location.data.title}</Title>
+      <Title $paddingLeft={titlePadding}>{location.data.title}</Title>
     </Row>
   );
 }
