@@ -7,12 +7,12 @@ import {
 import * as Y from "yjs";
 import { sequelize } from "@server/database/sequelize";
 import Logger from "@server/logging/Logger";
-import { APM } from "@server/logging/tracing";
+import { trace } from "@server/logging/tracing";
 import Document from "@server/models/Document";
 import documentCollaborativeUpdater from "../commands/documentCollaborativeUpdater";
 import markdownToYDoc from "./utils/markdownToYDoc";
 
-@APM.trace()
+@trace()
 export default class PersistenceExtension implements Extension {
   /**
    * Map of documentId -> userIds that have modified the document since it

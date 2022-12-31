@@ -1,4 +1,4 @@
-import { APM } from "@server/logging/tracing";
+import { traceFunction } from "@server/logging/tracing";
 import { Document } from "@server/models";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import presentUser from "./user";
@@ -63,6 +63,6 @@ async function present(
   return data;
 }
 
-export default APM.traceFunction({
+export default traceFunction({
   spanName: "presentDocument",
 })(present);

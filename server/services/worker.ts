@@ -1,6 +1,6 @@
 import Logger from "@server/logging/Logger";
-import * as Tracing from "@server/logging/tracing";
-import { APM } from "@server/logging/tracing";
+import { setResource } from "@server/logging/tracer";
+import { traceFunction } from "@server/logging/tracing";
 import {
   globalEventQueue,
   processorEventQueue,
@@ -13,7 +13,7 @@ import tasks from "../queues/tasks";
 export default function init() {
   // This queue processes the global event bus
   globalEventQueue.process(
-    APM.traceFunction({
+    traceFunction({
       serviceName: "worker",
       spanName: "process",
       isRoot: true,
@@ -21,7 +21,7 @@ export default function init() {
       const event = job.data;
       let err;
 
-      Tracing.setResource(`Event.${event.name}`);
+      setResource(`Event.${event.name}`);
 
       Logger.info("worker", `Processing ${event.name}`, {
         name: event.name,
@@ -71,7 +71,7 @@ export default function init() {
   // Jobs for individual processors are processed here. Only applicable events
   // as unapplicable events were filtered in the global event queue above.
   processorEventQueue.process(
-    APM.traceFunction({
+    traceFunction({
       serviceName: "worker",
       spanName: "process",
       isRoot: true,
@@ -79,7 +79,7 @@ export default function init() {
       const { event, name } = job.data;
       const ProcessorClass = processors[name];
 
-      Tracing.setResource(`Processor.${name}`);
+      setResource(`Processor.${name}`);
 
       if (!ProcessorClass) {
         throw new Error(
@@ -107,7 +107,7 @@ export default function init() {
 
   // Jobs for async tasks are processed here.
   taskQueue.process(
-    APM.traceFunction({
+    traceFunction({
       serviceName: "worker",
       spanName: "process",
       isRoot: true,
@@ -115,7 +115,7 @@ export default function init() {
       const { name, props } = job.data;
       const TaskClass = tasks[name];
 
-      Tracing.setResource(`Task.${name}`);
+      setResource(`Task.${name}`);
 
       if (!TaskClass) {
         throw new Error(

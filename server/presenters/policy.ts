@@ -1,4 +1,4 @@
-import { APM } from "@server/logging/tracing";
+import { traceFunction } from "@server/logging/tracing";
 import { User } from "@server/models";
 
 type Policy = {
@@ -16,6 +16,6 @@ function present(user: User, objects: Record<string, any>[]): Policy[] {
   }));
 }
 
-export default APM.traceFunction({
+export default traceFunction({
   spanName: "presentPolicy",
 })(present);

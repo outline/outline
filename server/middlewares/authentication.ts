@@ -1,6 +1,9 @@
 import { Next } from "koa";
 import Logger from "@server/logging/Logger";
-import tracer, { APM } from "@server/logging/tracing";
+import tracer, {
+  addTags,
+  getRootSpanFromRequestContext,
+} from "@server/logging/tracer";
 import { User, Team, ApiKey } from "@server/models";
 import { getUserForJWT } from "@server/utils/jwt";
 import {
@@ -130,13 +133,13 @@ export default function auth(options: AuthenticationOptions = {}) {
       ctx.state.user = user;
 
       if (tracer) {
-        APM.addTags(
+        addTags(
           {
             "request.userId": user.id,
             "request.teamId": user.teamId,
             "request.authType": ctx.state.authType,
           },
-          APM.getRootSpanFromRequestContext(ctx)
+          getRootSpanFromRequestContext(ctx)
         );
       }
     }

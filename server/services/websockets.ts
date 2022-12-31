@@ -6,8 +6,8 @@ import IO from "socket.io";
 import { createAdapter } from "socket.io-redis";
 import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/Metrics";
-import * as Tracing from "@server/logging/tracing";
-import { APM } from "@server/logging/tracing";
+import * as Tracing from "@server/logging/tracer";
+import { traceFunction } from "@server/logging/tracing";
 import { Document, Collection, View, User } from "@server/models";
 import { can } from "@server/policies";
 import { getUserForJWT } from "@server/utils/jwt";
@@ -131,7 +131,7 @@ export default function init(
   // Handle events from event queue that should be sent to the clients down ws
   const websockets = new WebsocketsProcessor();
   websocketQueue.process(
-    APM.traceFunction({
+    traceFunction({
       serviceName: "websockets",
       spanName: "process",
       isRoot: true,
