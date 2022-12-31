@@ -11,7 +11,7 @@ import Text from "~/components/Text";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
-import ExportDialog from "./components/ExportDialog";
+import ExportDialog from "../../components/ExportDialog";
 import FileOperationListItem from "./components/FileOperationListItem";
 
 function Export() {

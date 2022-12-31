@@ -52,7 +52,7 @@ async function addDocumentTreeToArchive(
 
     let text =
       format === FileOperationFormat.HTMLZip
-        ? await DocumentHelper.toHTML(document)
+        ? await DocumentHelper.toHTML(document, { centered: true })
         : await DocumentHelper.toMarkdown(document);
     const attachments = await Attachment.findAll({
       where: {

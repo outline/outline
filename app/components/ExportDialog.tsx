@@ -4,22 +4,30 @@ import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { FileOperationFormat } from "@shared/types";
+import Collection from "~/models/Collection";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Flex from "~/components/Flex";
 import MarkdownIcon from "~/components/Icons/Markdown";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
+import useToasts from "~/hooks/useToasts";
 
 type Props = {
+  collection?: Collection;
   onSubmit: () => void;
 };
 
-function ExportDialog({ onSubmit }: Props) {
+function ExportDialog({ collection, onSubmit }: Props) {
   const [format, setFormat] = React.useState<FileOperationFormat>(
     FileOperationFormat.MarkdownZip
   );
-  const { collections } = useStores();
+  const { showToast } = useToasts();
+  const { collections, notificationSettings } = useStores();
   const { t } = useTranslation();
+
+  React.useEffect(() => {
+    notificationSettings.fetchPage({});
+  }, [notificationSettings]);
 
   const handleFormatChange = React.useCallback(
     (ev: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,13 +36,33 @@ function ExportDialog({ onSubmit }: Props) {
     []
   );
 
-  const handleSubmit = React.useCallback(async () => {
-    await collections.export(format);
+  const handleSubmit = async () => {
+    if (collection) {
+      await collection.export(format);
+    } else {
+      await collections.export(format);
+    }
     onSubmit();
-  }, [collections, format, onSubmit]);
+    showToast(t("Export started"), { type: "success" });
+  };
 
   return (
     <ConfirmationDialog onSubmit={handleSubmit} submitText={t("Export")}>
+      {collection && (
+        <Text>
+          <Trans
+            defaults="Exporting the collection <em>{{collectionName}}</em> may take some time."
+            values={{
+              collectionName: collection.name,
+            }}
+            components={{
+              em: <strong />,
+            }}
+          />{" "}
+          {notificationSettings.getByEvent("emails.export_completed") &&
+            t("You will receive an email when it's complete.")}
+        </Text>
+      )}
       <Flex gap={12} column>
         <Option>
           <Input
