@@ -29,13 +29,8 @@ class Metrics {
       return;
     }
 
-    const instanceId = process.env.INSTANCE_ID || process.env.HEROKU_DYNO_ID;
-
-    if (!instanceId) {
-      throw new Error(
-        "INSTANCE_ID or HEROKU_DYNO_ID must be set when using DataDog"
-      );
-    }
+    const instanceId =
+      process.env.INSTANCE_ID || process.env.HEROKU_DYNO_ID || "server";
 
     return ddMetrics.gauge(key, value, [...tags, `instance:${instanceId}`]);
   }

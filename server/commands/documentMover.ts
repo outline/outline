@@ -1,7 +1,7 @@
 import invariant from "invariant";
 import { Transaction } from "sequelize";
 import { ValidationError } from "@server/errors";
-import { APM } from "@server/logging/tracing";
+import { traceFunction } from "@server/logging/decorators";
 import { User, Document, Collection, Pin, Event } from "@server/models";
 import pinDestroyer from "./pinDestroyer";
 
@@ -203,6 +203,6 @@ async function documentMover({
   return result;
 }
 
-export default APM.traceFunction({
+export default traceFunction({
   spanName: "documentMover",
 })(documentMover);

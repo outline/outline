@@ -23,7 +23,7 @@ import { isRTL } from "@shared/utils/rtl";
 import unescape from "@shared/utils/unescape";
 import { parser, schema } from "@server/editor";
 import Logger from "@server/logging/Logger";
-import { APM } from "@server/logging/tracing";
+import { trace } from "@server/logging/decorators";
 import type Document from "@server/models/Document";
 import type Revision from "@server/models/Revision";
 import User from "@server/models/User";
@@ -43,7 +43,7 @@ type HTMLOptions = {
   signedUrls?: boolean;
 };
 
-@APM.trace()
+@trace()
 export default class DocumentHelper {
   /**
    * Returns the document as a Prosemirror Node. This method uses the

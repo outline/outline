@@ -4,7 +4,7 @@ import {
   FileOperationType,
   FileOperationState,
 } from "@shared/types";
-import { APM } from "@server/logging/tracing";
+import { traceFunction } from "@server/logging/decorators";
 import { Collection, Event, Team, User, FileOperation } from "@server/models";
 import { getAWSKeyForFileOp } from "@server/utils/s3";
 
@@ -71,6 +71,6 @@ async function collectionExporter({
   return fileOperation;
 }
 
-export default APM.traceFunction({
+export default traceFunction({
   spanName: "collectionExporter",
 })(collectionExporter);

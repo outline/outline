@@ -1,20 +1,58 @@
-import { init, tracer, addTags, markAsError } from "@theo.gravity/datadog-apm";
+import tracer, { Span } from "dd-trace";
 import env from "@server/env";
 
-export * as APM from "@theo.gravity/datadog-apm";
+type PrivateDatadogContext = {
+  req: Record<string, any> & {
+    _datadog?: {
+      span?: Span;
+    };
+  };
+};
 
 // If the DataDog agent is installed and the DD_API_KEY environment variable is
 // in the environment then we can safely attempt to start the DD tracer
 if (env.DD_API_KEY) {
-  init(
-    {
-      version: env.VERSION,
-      service: process.env.DD_SERVICE || "outline",
-    },
-    {
-      useMock: env.ENVIRONMENT === "test",
+  tracer.init({
+    version: env.VERSION,
+    service: env.DD_SERVICE,
+    env: env.ENVIRONMENT,
+  });
+}
+
+const getCurrentSpan = (): Span | null => tracer.scope().active();
+
+/**
+ * Add tags to a span to have more context about how and why it was running.
+ * If added to the root span, tags are searchable and filterable.
+ *
+ * @param tags An object with the tags to add to the span
+ * @param span An optional span object to add the tags to. If none provided, the current span will be used.
+ */
+export function addTags(tags: Record<string, any>, span?: Span | null): void {
+  if (tracer) {
+    const currentSpan = span || getCurrentSpan();
+
+    if (!currentSpan) {
+      return;
     }
-  );
+
+    currentSpan.addTags(tags);
+  }
+}
+
+/**
+ * The root span is an undocumented internal property that DataDog adds to `context.req`.
+ * The root span is required in order to add searchable tags.
+ * Unfortunately, there is no API to access the root span directly.
+ * See: node_modules/dd-trace/src/plugins/util/web.js
+ *
+ * @param context A Koa context object
+ */
+export function getRootSpanFromRequestContext(
+  context: PrivateDatadogContext
+): Span | null {
+  // eslint-disable-next-line no-undef
+  return context?.req?._datadog?.span ?? null;
 }
 
 /**
@@ -37,9 +75,17 @@ export function setResource(name: string) {
  *
  * @param error The error to add
  */
-export function setError(error: Error) {
+export function setError(error: Error, span?: Span) {
   if (tracer) {
-    markAsError(error);
+    addTags(
+      {
+        errorMessage: error.message,
+        "error.type": error.name,
+        "error.msg": error.message,
+        "error.stack": error.stack,
+      },
+      span
+    );
   }
 }
 

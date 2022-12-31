@@ -2,7 +2,7 @@ import nodemailer, { Transporter } from "nodemailer";
 import Oy from "oy-vey";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
-import { APM } from "@server/logging/tracing";
+import { trace } from "@server/logging/decorators";
 import isCloudHosted from "@server/utils/isCloudHosted";
 import { baseStyles } from "./templates/components/EmailLayout";
 
@@ -22,7 +22,9 @@ type SendMailOptions = {
 /**
  * Mailer class to send emails.
  */
-@APM.trace()
+@trace({
+  serviceName: "mailer",
+})
 export class Mailer {
   transporter: Transporter | undefined;
 
