@@ -26,7 +26,7 @@ const getCurrentSpan = (): Span | null => tracer.scope().active();
  * If added to the root span, tags are searchable and filterable.
  *
  * @param tags An object with the tags to add to the span
- * @param span An optional span object to add the tags to. If none provided, the current span will be used.
+ * @param span An optional span object to add the tags to. If none provided,the current span will be used.
  */
 export function addTags(tags: Record<string, any>, span?: Span | null): void {
   if (tracer) {
@@ -73,7 +73,7 @@ export function setResource(name: string) {
  * Mark the current active span as an error. This method wraps addTags to allow
  * safe use in environments where APM is disabled.
  *
- * @param error The error to add
+ * @param error The error to add to the current span
  */
 export function setError(error: Error, span?: Span) {
   if (tracer) {

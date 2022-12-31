@@ -49,6 +49,11 @@ interface TraceConfig {
   tags?: Tags;
 }
 
+/**
+ * This decorator will cause an individual function to be traced by the APM.
+ *
+ * @param config Optional configuration for the span that will be created for this trace.
+ */
 export const traceFunction = (config: TraceConfig) => <
   F extends (...args: any[]) => any,
   P extends Parameters<F>,
