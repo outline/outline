@@ -25,7 +25,7 @@ import Fix from "./decorators/Fix";
 class Event extends IdModel {
   @IsUUID(4)
   @Column(DataType.UUID)
-  modelId: string;
+  modelId: string | null;
 
   @Length({
     max: 255,
@@ -39,7 +39,7 @@ class Event extends IdModel {
   ip: string | null;
 
   @Column(DataType.JSONB)
-  data: Record<string, any>;
+  data: Record<string, any> | null;
 
   // hooks
 
@@ -63,39 +63,39 @@ class Event extends IdModel {
   // associations
 
   @BelongsTo(() => User, "userId")
-  user: User;
+  user: User | null;
 
   @ForeignKey(() => User)
   @Column(DataType.UUID)
-  userId: string;
+  userId: string | null;
 
   @BelongsTo(() => Document, "documentId")
-  document: Document;
+  document: Document | null;
 
   @ForeignKey(() => Document)
   @Column(DataType.UUID)
-  documentId: string;
+  documentId: string | null;
 
   @BelongsTo(() => User, "actorId")
-  actor: User;
+  actor: User | null;
 
   @ForeignKey(() => User)
   @Column(DataType.UUID)
-  actorId: string;
+  actorId: string | null;
 
   @BelongsTo(() => Collection, "collectionId")
-  collection: Collection;
+  collection: Collection | null;
 
   @ForeignKey(() => Collection)
   @Column(DataType.UUID)
   collectionId: string | null;
 
   @BelongsTo(() => Team, "teamId")
-  team: Team;
+  team: Team | null;
 
   @ForeignKey(() => Team)
   @Column(DataType.UUID)
-  teamId: string;
+  teamId: string | null;
 
   /*
    * Schedule can be used to send events into the event system without recording
