@@ -82,7 +82,7 @@ async function addDocumentTreeToArchive(
       const folder = zip.folder(path.parse(title).name);
 
       if (folder) {
-        await addDocumentTreeToArchive(folder, doc.children);
+        await addDocumentTreeToArchive(folder, doc.children, format);
       }
     }
   }
