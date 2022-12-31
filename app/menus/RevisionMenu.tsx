@@ -39,6 +39,7 @@ function RevisionMenu({ document, className }: Props) {
       />
       <ContextMenu {...menu} aria-label={t("Revision options")}>
         <Template
+          {...menu}
           items={[
             actionToMenuItem(restoreRevision, context),
             separator(),

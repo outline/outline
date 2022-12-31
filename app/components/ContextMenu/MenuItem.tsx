@@ -41,13 +41,10 @@ const MenuItem = (
     (ev) => {
       if (onClick) {
         ev.preventDefault();
-        ev.stopPropagation();
         onClick(ev);
       }
 
-      if (hide) {
-        hide();
-      }
+      hide?.();
     },
     [onClick, hide]
   );
