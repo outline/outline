@@ -5,7 +5,6 @@ import { observer } from "mobx-react";
 import { ExpandedIcon, GlobeIcon, PadlockIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
-import slugify from "slugify";
 import styled from "styled-components";
 import { SHARE_URL_SLUG_REGEX } from "@shared/utils/urlHelpers";
 import Document from "~/models/Document";
@@ -13,10 +12,7 @@ import Share from "~/models/Share";
 import Button from "~/components/Button";
 import CopyToClipboard from "~/components/CopyToClipboard";
 import Flex from "~/components/Flex";
-import Input, {
-  TextWrapper,
-  StyledText as DocumentLinkPreview,
-} from "~/components/Input";
+import Input, { StyledText } from "~/components/Input";
 import Notice from "~/components/Notice";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
@@ -172,6 +168,8 @@ function SharePopover({
     shareUrl += "?edit=true";
   }
 
+  const url = shareUrl.replace(/https?:\/\//, "");
+
   return (
     <>
       <Heading>
@@ -283,25 +281,20 @@ function SharePopover({
             <Input
               type="text"
               label={t("Custom link")}
-              placeholder={slugify(document.titleWithDefault.toLowerCase())}
+              placeholder="a-unique-link"
               onChange={handleUrlSlugChange}
               error={slugValidationError}
               defaultValue={urlSlug}
             />
-            {!slugValidationError && (
-              <DocumentLinkPreviewWrapper>
-                <DocumentLinkPreview type="secondary">
-                  <Trans>The document will be available at</Trans>
-                  <br />
-                  <a
-                    href={`${team.url}/s/${urlSlug || share?.id}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {`${team.url}/s/${urlSlug || share?.id}`}
+            {!slugValidationError && urlSlug && (
+              <DocumentLinkPreview type="secondary">
+                <Trans>
+                  The document will be accessible at{" "}
+                  <a href={shareUrl} target="_blank" rel="noopener noreferrer">
+                    {{ url }}
                   </a>
-                </DocumentLinkPreview>
-              </DocumentLinkPreviewWrapper>
+                </Trans>
+              </DocumentLinkPreview>
             )}
           </SwitchWrapper>
         </>
@@ -372,7 +365,7 @@ const SwitchText = styled(Text)`
   font-size: 15px;
 `;
 
-const DocumentLinkPreviewWrapper = styled(TextWrapper)`
+const DocumentLinkPreview = styled(StyledText)`
   margin-top: -12px;
 `;
 

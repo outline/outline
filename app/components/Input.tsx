@@ -200,11 +200,13 @@ class Input extends React.Component<Props> {
             )}
           </Outline>
         </label>
-        <TextWrapper>
-          <StyledText type="danger" size="xsmall">
-            {error}
-          </StyledText>
-        </TextWrapper>
+        {error && (
+          <TextWrapper>
+            <StyledText type="danger" size="xsmall">
+              {error}
+            </StyledText>
+          </TextWrapper>
+        )}
       </Wrapper>
     );
   }
