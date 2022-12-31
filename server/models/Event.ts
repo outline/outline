@@ -91,11 +91,11 @@ class Event extends IdModel {
   collectionId: string | null;
 
   @BelongsTo(() => Team, "teamId")
-  team: Team | null;
+  team: Team;
 
   @ForeignKey(() => Team)
   @Column(DataType.UUID)
-  teamId: string | null;
+  teamId: string;
 
   /*
    * Schedule can be used to send events into the event system without recording
