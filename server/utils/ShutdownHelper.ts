@@ -1,6 +1,6 @@
-import { setTimeout } from "timers/promises";
 import { groupBy } from "lodash";
 import Logger from "@server/logging/Logger";
+import { timeout } from "./timers";
 
 export enum ShutdownOrder {
   first = 0,
@@ -59,7 +59,7 @@ export default class ShutdownHelper {
     this.isShuttingDown = true;
 
     // Start the shutdown timer
-    setTimeout(this.forceQuitTimeout).then(() => {
+    void timeout(this.forceQuitTimeout).then(() => {
       Logger.info("lifecycle", "Force quitting");
       process.exit(1);
     });
