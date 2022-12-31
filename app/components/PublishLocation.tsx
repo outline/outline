@@ -1,7 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
-import CollectionIcon from "~/components/CollectionIcon";
+import CollectionIcon from "~/components/Icons/CollectionIcon";
 import Text from "~/components/Text";
 
 type Props = {
