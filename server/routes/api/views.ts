@@ -1,10 +1,10 @@
 import Router from "koa-router";
-import { RateLimiterStrategy } from "@server/RateLimiter";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { View, Document, Event } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentView } from "@server/presenters";
+import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { assertUuid } from "@server/validation";
 
 const router = new Router();

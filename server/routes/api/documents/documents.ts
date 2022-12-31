@@ -7,7 +7,6 @@ import { Op, ScopeOptions, WhereOptions } from "sequelize";
 import { TeamPreference } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import { bytesToHumanReadable } from "@shared/utils/files";
-import { RateLimiterStrategy } from "@server/RateLimiter";
 import documentCreator from "@server/commands/documentCreator";
 import documentImporter from "@server/commands/documentImporter";
 import documentLoader from "@server/commands/documentLoader";
@@ -44,6 +43,7 @@ import {
   presentPolicies,
 } from "@server/presenters";
 import { APIContext } from "@server/types";
+import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { getTeamFromContext } from "@server/utils/passport";
 import slugify from "@server/utils/slugify";
 import { assertPresent } from "@server/validation";

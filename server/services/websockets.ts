@@ -10,6 +10,7 @@ import * as Tracing from "@server/logging/tracer";
 import { traceFunction } from "@server/logging/tracing";
 import { Document, Collection, View, User } from "@server/models";
 import { can } from "@server/policies";
+import ShutdownHelper, { ShutdownOrder } from "@server/utils/ShutdownHelper";
 import { getUserForJWT } from "@server/utils/jwt";
 import { websocketQueue } from "../queues";
 import WebsocketsProcessor from "../queues/processors/WebsocketsProcessor";
@@ -72,7 +73,7 @@ export default function init(
     socket.end(`HTTP/1.1 400 Bad Request\r\n`);
   });
 
-  server.on("shutdown", () => {
+  ShutdownHelper.add("websockets", ShutdownOrder.normal, async () => {
     Metrics.gaugePerInstance("websockets.count", 0);
   });
 

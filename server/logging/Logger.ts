@@ -28,7 +28,9 @@ class Logger {
   output: winston.Logger;
 
   constructor() {
-    this.output = winston.createLogger();
+    this.output = winston.createLogger({
+      level: isProduction ? "info" : "debug",
+    });
     this.output.add(
       new winston.transports.Console({
         format: isProduction
