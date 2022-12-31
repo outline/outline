@@ -1,6 +1,6 @@
 import ApiKey from "@server/models/ApiKey";
 
-export default function present(key: ApiKey) {
+export default function presentApiKey(key: ApiKey) {
   return {
     id: key.id,
     name: key.name,

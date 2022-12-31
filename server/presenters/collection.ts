@@ -1,6 +1,6 @@
 import Collection from "@server/models/Collection";
 
-export default function present(collection: Collection) {
+export default function presentCollection(collection: Collection) {
   return {
     id: collection.id,
     url: collection.url,

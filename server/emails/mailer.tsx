@@ -142,6 +142,4 @@ export class Mailer {
   }
 }
 
-const mailer = new Mailer();
-
-export default mailer;
+export default new Mailer();

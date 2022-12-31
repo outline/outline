@@ -7,7 +7,7 @@ type Options = {
   isPublic?: boolean;
 };
 
-async function present(
+async function presentDocument(
   document: Document,
   options: Options | null | undefined = {}
 ) {
@@ -64,5 +64,5 @@ async function present(
 }
 
 export default traceFunction({
-  spanName: "presentDocument",
-})(present);
+  spanName: "presenters",
+})(presentDocument);

@@ -1,6 +1,6 @@
 import { Subscription } from "@server/models";
 
-export default function present(subscription: Subscription) {
+export default function presentSubscription(subscription: Subscription) {
   return {
     id: subscription.id,
     userId: subscription.userId,

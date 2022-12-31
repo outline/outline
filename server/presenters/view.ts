@@ -1,7 +1,7 @@
 import { View } from "@server/models";
 import { presentUser } from "../presenters";
 
-export default function present(view: View) {
+export default function presentView(view: View) {
   return {
     id: view.id,
     documentId: view.documentId,

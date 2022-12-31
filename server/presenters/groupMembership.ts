@@ -8,14 +8,14 @@ type GroupMembership = {
   user?: ReturnType<typeof presentUser>;
 };
 
-export default (
+export default function presentGroupMembership(
   membership: GroupUser,
   options?: { includeUser: boolean }
-): GroupMembership => {
+): GroupMembership {
   return {
     id: `${membership.userId}-${membership.groupId}`,
     userId: membership.userId,
     groupId: membership.groupId,
     user: options?.includeUser ? presentUser(membership.user) : undefined,
   };
-};
+}

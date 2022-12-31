@@ -6,7 +6,7 @@ type Policy = {
   abilities: Record<string, boolean>;
 };
 
-function present(user: User, objects: Record<string, any>[]): Policy[] {
+function presentPolicy(user: User, objects: Record<string, any>[]): Policy[] {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { serialize } = require("../policies");
 
@@ -17,5 +17,5 @@ function present(user: User, objects: Record<string, any>[]): Policy[] {
 }
 
 export default traceFunction({
-  spanName: "presentPolicy",
-})(present);
+  spanName: "presenters",
+})(presentPolicy);

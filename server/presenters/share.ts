@@ -1,7 +1,7 @@
 import { Share } from "@server/models";
 import { presentUser } from ".";
 
-export default function present(share: Share, isAdmin = false) {
+export default function presentShare(share: Share, isAdmin = false) {
   const data = {
     id: share.id,
     documentId: share.documentId,

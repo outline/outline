@@ -22,7 +22,7 @@ export interface WebhookPresentation {
   createdAt: Date;
 }
 
-export default function present({
+export default function presentWebhook({
   event,
   delivery,
   payload,

@@ -8,7 +8,7 @@ type Action = {
   value: string;
 };
 
-function present(
+function presentSlackAttachment(
   document: Document,
   team: Team,
   collection?: Collection | null,
@@ -34,5 +34,5 @@ function present(
 }
 
 export default traceFunction({
-  spanName: "presentSlackAttachment",
-})(present);
+  spanName: "presenters",
+})(presentSlackAttachment);

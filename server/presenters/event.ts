@@ -1,7 +1,7 @@
 import { Event } from "@server/models";
 import presentUser from "./user";
 
-export default function present(event: Event, isAdmin = false) {
+export default function presentEvent(event: Event, isAdmin = false) {
   const data = {
     id: event.id,
     name: event.name,

@@ -23,7 +23,8 @@
 import { SpanOptions } from "dd-trace";
 import DDTags from "dd-trace/ext/tags";
 import env from "@server/env";
-import tracer, { setError } from "./tracer";
+import tracer from "./tracer";
+import * as Tracing from "./tracer";
 
 type DDTag = typeof DDTags[keyof typeof DDTags];
 
@@ -64,20 +65,15 @@ export const traceFunction = (config: TraceConfig) => <
   env.ENVIRONMENT === "test"
     ? target
     : (function wrapperFn(this: any, ...args: P): R {
-        const {
-          className,
-          methodName = target.name,
-          spanName = "DEFAULT_SPAN_NAME",
-          makeSearchable: useAnalytics,
-          tags,
-        } = config;
+        const { className, methodName = target.name, tags } = config;
         const childOf = config.isRoot
           ? undefined
           : tracer.scope().active() || undefined;
+
+        const spanName = config.spanName || className || "DEFAULT_SPAN_NAME";
+
         const resourceName = config.resourceName
           ? config.resourceName
-          : className
-          ? `${className}.${methodName}`
           : methodName;
         const spanOptions: SpanOptions = {
           childOf,
@@ -100,7 +96,7 @@ export const traceFunction = (config: TraceConfig) => <
           );
         }
 
-        if (useAnalytics) {
+        if (config.makeSearchable) {
           span.setTag(DDTags.ANALYTICS, true);
         }
 
@@ -111,7 +107,7 @@ export const traceFunction = (config: TraceConfig) => <
           if (output && typeof output.then === "function") {
             output
               .catch((error: Error) => {
-                setError(error, span);
+                Tracing.setError(error, span);
               })
               .finally(() => {
                 span.finish();

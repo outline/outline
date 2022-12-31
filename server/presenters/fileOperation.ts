@@ -2,7 +2,7 @@ import path from "path";
 import { FileOperation } from "@server/models";
 import { presentUser } from ".";
 
-export default function present(data: FileOperation) {
+export default function presentFileOperation(data: FileOperation) {
   return {
     id: data.id,
     type: data.type,
