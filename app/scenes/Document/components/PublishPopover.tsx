@@ -102,8 +102,8 @@ function PublishPopover({ document, visible }: Props) {
     setSearchTerm(ev.target.value);
   };
 
-  const handleSelect = (res: any) => {
-    setLocation(res);
+  const handleSelect = (location: any) => {
+    setLocation(location);
   };
 
   const handlePublish = React.useCallback(async () => {
