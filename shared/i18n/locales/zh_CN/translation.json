@@ -490,7 +490,7 @@
   "Users with edit permission will be redirected to the main app": "有编辑权限的用户将跳转到主应用程序",
   "All users see the same publicly shared view": "所有用户将看到相同的公开共享视图",
   "Custom link": "Custom link",
-  "The document will be available at": "The document will be available at",
+  "The document will be accessible at <2>{{url}}</2>": "The document will be accessible at <2>{{url}}</2>",
   "More options": "更多选项",
   "Close": "Close",
   "{{ teamName }} is using Outline to share documents, please login to continue.": "{{ teamName }} 正在使用 Outline 共享文档，请先登录。",
