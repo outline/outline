@@ -490,7 +490,7 @@
   "Users with edit permission will be redirected to the main app": "Gebruikers met bewerkingsrechten worden doorgestuurd naar de hoofdapp",
   "All users see the same publicly shared view": "Alle gebruikers zien dezelfde publiekelijk gedeelde weergave",
   "Custom link": "Aangepaste link",
-  "The document will be available at": "Het document zal beschikbaar zijn op",
+  "The document will be accessible at <2>{{url}}</2>": "The document will be accessible at <2>{{url}}</2>",
   "More options": "Meer opties",
   "Close": "Sluiten",
   "{{ teamName }} is using Outline to share documents, please login to continue.": "{{ teamName }} gebruikt Outline om documenten te delen, log alsjeblieft in om door te gaan.",
