@@ -77,11 +77,11 @@ class Event extends IdModel {
   documentId: string | null;
 
   @BelongsTo(() => User, "actorId")
-  actor: User | null;
+  actor: User;
 
   @ForeignKey(() => User)
   @Column(DataType.UUID)
-  actorId: string | null;
+  actorId: string;
 
   @BelongsTo(() => Collection, "collectionId")
   collection: Collection | null;
