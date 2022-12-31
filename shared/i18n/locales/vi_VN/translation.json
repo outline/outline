@@ -490,7 +490,7 @@
   "Users with edit permission will be redirected to the main app": "Users with edit permission will be redirected to the main app",
   "All users see the same publicly shared view": "All users see the same publicly shared view",
   "Custom link": "Liên kết tùy chỉnh",
-  "The document will be available at": "Tài liệu sẽ sẵn sàng lúc",
+  "The document will be accessible at <2>{{url}}</2>": "The document will be accessible at <2>{{url}}</2>",
   "More options": "Tùy chọn khác",
   "Close": "Đóng",
   "{{ teamName }} is using Outline to share documents, please login to continue.": "{{ teamName }} đang sử dụng Outline để chia sẻ tài liệu, vui lòng đăng nhập để tiếp tục.",
