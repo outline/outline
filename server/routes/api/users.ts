@@ -4,7 +4,6 @@ import { has } from "lodash";
 import { Op, WhereOptions } from "sequelize";
 import { UserPreference } from "@shared/types";
 import { UserValidation } from "@shared/validations";
-import { RateLimiterStrategy } from "@server/RateLimiter";
 import userDemoter from "@server/commands/userDemoter";
 import userDestroyer from "@server/commands/userDestroyer";
 import userInviter from "@server/commands/userInviter";
@@ -25,6 +24,7 @@ import { Event, User, Team } from "@server/models";
 import { UserFlag, UserRole } from "@server/models/User";
 import { can, authorize } from "@server/policies";
 import { presentUser, presentPolicies } from "@server/presenters";
+import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import {
   assertIn,
   assertSort,

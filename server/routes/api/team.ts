@@ -1,6 +1,5 @@
 import invariant from "invariant";
 import Router from "koa-router";
-import { RateLimiterStrategy } from "@server/RateLimiter";
 import teamCreator from "@server/commands/teamCreator";
 import teamUpdater from "@server/commands/teamUpdater";
 import { sequelize } from "@server/database/sequelize";
@@ -9,6 +8,7 @@ import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { Event, Team, TeamDomain, User } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentTeam, presentPolicies } from "@server/presenters";
+import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { assertUuid } from "@server/validation";
 
 const router = new Router();

@@ -10,7 +10,6 @@ import {
   FileOperationType,
 } from "@shared/types";
 import { colorPalette } from "@shared/utils/collections";
-import { RateLimiterStrategy } from "@server/RateLimiter";
 import collectionExporter from "@server/commands/collectionExporter";
 import teamUpdater from "@server/commands/teamUpdater";
 import { sequelize } from "@server/database/sequelize";
@@ -42,6 +41,7 @@ import {
   presentCollectionGroupMembership,
   presentFileOperation,
 } from "@server/presenters";
+import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { collectionIndexing } from "@server/utils/indexing";
 import removeIndexCollision from "@server/utils/removeIndexCollision";
 import {

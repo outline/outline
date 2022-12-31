@@ -25,6 +25,7 @@ import {
 } from "./utils/startup";
 import { checkUpdates } from "./utils/updates";
 import onerror from "./onerror";
+import ShutdownHelper, { ShutdownOrder } from "./utils/ShutdownHelper";
 
 // The default is to run all services to make development and OSS installations
 // easier to deal with. Separate services are only needed at scale.
@@ -71,7 +72,8 @@ async function start(id: number, disconnect: () => void) {
   const server = stoppable(
     useHTTPS
       ? https.createServer(ssl, app.callback())
-      : http.createServer(app.callback())
+      : http.createServer(app.callback()),
+    ShutdownHelper.connectionGraceTimeout
   );
   const router = new Router();
 
@@ -120,14 +122,26 @@ async function start(id: number, disconnect: () => void) {
   server.listen(normalizedPortFlag || env.PORT || "3000");
   server.setTimeout(env.REQUEST_TIMEOUT);
 
-  process.once("SIGTERM", shutdown);
-  process.once("SIGINT", shutdown);
+  ShutdownHelper.add("server", ShutdownOrder.last, () => {
+    return new Promise((resolve, reject) => {
+      // Calling stop prevents new connections from being accepted and waits for
+      // existing connections to close for the grace period before forcefully
+      // closing them.
+      server.stop((err, gracefully) => {
+        disconnect();
 
-  function shutdown() {
-    Logger.info("lifecycle", "Stopping server");
-    server.emit("shutdown");
-    server.stop(disconnect);
-  }
+        if (err) {
+          reject(err);
+        } else {
+          resolve(gracefully);
+        }
+      });
+    });
+  });
+
+  // Handle shutdown signals
+  process.once("SIGTERM", () => ShutdownHelper.execute());
+  process.once("SIGINT", () => ShutdownHelper.execute());
 }
 
 throng({
