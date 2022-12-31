@@ -7,7 +7,7 @@ import { FileOperationFormat } from "@shared/types";
 import Collection from "~/models/Collection";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Flex from "~/components/Flex";
-import MarkdownIcon from "~/components/Icons/Markdown";
+import MarkdownIcon from "~/components/Icons/MarkdownIcon";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";

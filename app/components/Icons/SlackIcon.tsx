@@ -1,15 +1,21 @@
 import * as React from "react";
 
 type Props = {
+  /** The size of the icon, 24px is default to match standard icons */
+  size?: number;
+  /** The color of the icon, defaults to the current text color */
   color?: string;
 };
 
-export default function SlackIcon({ color = "#4E5C6E" }: Props) {
+export default function SlackIcon({
+  size = 24,
+  color = "currentColor",
+}: Props) {
   return (
     <svg
       fill={color}
-      width="24px"
-      height="24px"
+      width={size}
+      height={size}
       viewBox="0 0 24 24"
       version="1.1"
     >

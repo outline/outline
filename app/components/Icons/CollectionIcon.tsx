@@ -8,9 +8,13 @@ import useStores from "~/hooks/useStores";
 import Logger from "~/utils/Logger";
 
 type Props = {
+  /** The collection to show an icon for */
   collection: Collection;
+  /** Whether the icon should be the "expanded" graphic when displaying the default collection icon */
   expanded?: boolean;
+  /** The size of the icon, 24px is default to match standard icons */
   size?: number;
+  /** The color of the icon, defaults to the collection color */
   color?: string;
 };
 

@@ -12,8 +12,8 @@ import ButtonLarge from "~/components/ButtonLarge";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
+import OutlineIcon from "~/components/Icons/OutlineIcon";
 import LoadingIndicator from "~/components/LoadingIndicator";
-import OutlineLogo from "~/components/OutlineLogo";
 import PageTitle from "~/components/PageTitle";
 import TeamLogo from "~/components/TeamLogo";
 import Text from "~/components/Text";
@@ -197,7 +197,7 @@ function Login({ children }: Props) {
           {config.logo && !isCreate ? (
             <TeamLogo size={48} src={config.logo} />
           ) : (
-            <OutlineLogo size={42} fill="currentColor" />
+            <OutlineIcon size={48} />
           )}
         </Logo>
         {isCreate ? (

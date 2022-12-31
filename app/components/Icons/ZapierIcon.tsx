@@ -1,15 +1,21 @@
 import * as React from "react";
 
 type Props = {
+  /** The size of the icon, 24px is default to match standard icons */
+  size?: number;
+  /** The color of the icon, defaults to the current text color */
   color?: string;
 };
 
-export default function ZapierIcon({ color = "#4E5C6E" }: Props) {
+export default function ZapierIcon({
+  size = 24,
+  color = "currentColor",
+}: Props) {
   return (
     <svg
+      width={size}
+      height={size}
       fill={color}
-      width="24px"
-      height="24px"
       viewBox="0 0 24 24"
       version="1.1"
     >

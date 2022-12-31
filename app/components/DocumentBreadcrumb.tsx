@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Document from "~/models/Document";
 import Breadcrumb from "~/components/Breadcrumb";
-import CollectionIcon from "~/components/CollectionIcon";
+import CollectionIcon from "~/components/Icons/CollectionIcon";
 import useStores from "~/hooks/useStores";
 import { MenuInternalLink, NavigationNode } from "~/types";
 import { collectionUrl } from "~/utils/routeHelpers";

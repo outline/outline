@@ -7,8 +7,8 @@ import { cdnPath } from "@shared/utils/urls";
 import FileOperation from "~/models/FileOperation";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
+import OutlineIcon from "~/components/Icons/OutlineIcon";
 import Item from "~/components/List/Item";
-import OutlineLogo from "~/components/OutlineLogo";
 import PaginatedList from "~/components/PaginatedList";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
@@ -35,7 +35,7 @@ function Import() {
       <div>
         <Item
           border={false}
-          image={<OutlineLogo size={28} fill="currentColor" />}
+          image={<OutlineIcon size={28} cover />}
           title="Outline"
           subtitle={t(
             "Import a backup file that was previously exported from Outline"

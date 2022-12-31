@@ -12,7 +12,7 @@ import Collection from "~/models/Collection";
 import CollectionEdit from "~/scenes/CollectionEdit";
 import CollectionNew from "~/scenes/CollectionNew";
 import CollectionPermissions from "~/scenes/CollectionPermissions";
-import DynamicCollectionIcon from "~/components/CollectionIcon";
+import DynamicCollectionIcon from "~/components/Icons/CollectionIcon";
 import { createAction } from "~/actions";
 import { CollectionSection } from "~/actions/sections";
 import history from "~/utils/history";
