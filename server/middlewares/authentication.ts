@@ -3,7 +3,7 @@ import Logger from "@server/logging/Logger";
 import tracer, {
   addTags,
   getRootSpanFromRequestContext,
-} from "@server/logging/tracing";
+} from "@server/logging/tracer";
 import { User, Team, ApiKey } from "@server/models";
 import { getUserForJWT } from "@server/utils/jwt";
 import {

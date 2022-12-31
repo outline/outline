@@ -1,7 +1,7 @@
 import { Transaction } from "sequelize";
 import slugify from "slugify";
 import { RESERVED_SUBDOMAINS } from "@shared/utils/domains";
-import { traceFunction } from "@server/logging/decorators";
+import { traceFunction } from "@server/logging/tracing";
 import { Team, Event } from "@server/models";
 import { generateAvatarUrl } from "@server/utils/avatars";
 

@@ -1,7 +1,7 @@
 /* eslint-disable import/order */
 import env from "./env";
 
-import "./logging/tracing"; // must come before importing any instrumented module
+import "./logging/tracer"; // must come before importing any instrumented module
 
 import http from "http";
 import https from "https";

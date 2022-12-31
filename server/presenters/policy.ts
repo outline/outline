@@ -1,4 +1,4 @@
-import { traceFunction } from "@server/logging/decorators";
+import { traceFunction } from "@server/logging/tracing";
 import { User } from "@server/models";
 
 type Policy = {

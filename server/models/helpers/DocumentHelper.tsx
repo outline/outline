@@ -23,7 +23,7 @@ import { isRTL } from "@shared/utils/rtl";
 import unescape from "@shared/utils/unescape";
 import { parser, schema } from "@server/editor";
 import Logger from "@server/logging/Logger";
-import { trace } from "@server/logging/decorators";
+import { trace } from "@server/logging/tracing";
 import type Document from "@server/models/Document";
 import type Revision from "@server/models/Revision";
 import User from "@server/models/User";

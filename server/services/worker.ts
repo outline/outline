@@ -1,6 +1,6 @@
 import Logger from "@server/logging/Logger";
-import { traceFunction } from "@server/logging/decorators";
-import { setResource } from "@server/logging/tracing";
+import { setResource } from "@server/logging/tracer";
+import { traceFunction } from "@server/logging/tracing";
 import {
   globalEventQueue,
   processorEventQueue,

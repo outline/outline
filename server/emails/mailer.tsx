@@ -2,7 +2,7 @@ import nodemailer, { Transporter } from "nodemailer";
 import Oy from "oy-vey";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
-import { trace } from "@server/logging/decorators";
+import { trace } from "@server/logging/tracing";
 import isCloudHosted from "@server/utils/isCloudHosted";
 import { baseStyles } from "./templates/components/EmailLayout";
 

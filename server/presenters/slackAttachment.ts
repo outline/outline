@@ -1,4 +1,4 @@
-import { traceFunction } from "@server/logging/decorators";
+import { traceFunction } from "@server/logging/tracing";
 import { Document, Collection, Team } from "@server/models";
 
 type Action = {

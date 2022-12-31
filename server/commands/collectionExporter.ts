@@ -4,7 +4,7 @@ import {
   FileOperationType,
   FileOperationState,
 } from "@shared/types";
-import { traceFunction } from "@server/logging/decorators";
+import { traceFunction } from "@server/logging/tracing";
 import { Collection, Event, Team, User, FileOperation } from "@server/models";
 import { getAWSKeyForFileOp } from "@server/utils/s3";
 

@@ -1,7 +1,7 @@
 import invariant from "invariant";
 import { Transaction } from "sequelize";
 import { ValidationError } from "@server/errors";
-import { traceFunction } from "@server/logging/decorators";
+import { traceFunction } from "@server/logging/tracing";
 import { User, Document, Collection, Pin, Event } from "@server/models";
 import pinDestroyer from "./pinDestroyer";
 

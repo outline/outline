@@ -30,7 +30,7 @@ class Metrics {
     }
 
     const instanceId =
-      process.env.INSTANCE_ID || process.env.HEROKU_DYNO_ID || "server";
+      process.env.INSTANCE_ID || process.env.HEROKU_DYNO_ID || process.pid;
 
     return ddMetrics.gauge(key, value, [...tags, `instance:${instanceId}`]);
   }

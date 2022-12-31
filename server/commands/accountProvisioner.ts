@@ -5,7 +5,7 @@ import {
   InvalidAuthenticationError,
   AuthenticationProviderDisabledError,
 } from "@server/errors";
-import { traceFunction } from "@server/logging/decorators";
+import { traceFunction } from "@server/logging/tracing";
 import { AuthenticationProvider, Collection, Team, User } from "@server/models";
 import teamProvisioner from "./teamProvisioner";
 import userProvisioner from "./userProvisioner";

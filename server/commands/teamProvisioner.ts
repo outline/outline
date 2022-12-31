@@ -6,7 +6,7 @@ import {
   InvalidAuthenticationError,
   MaximumTeamsError,
 } from "@server/errors";
-import { traceFunction } from "@server/logging/decorators";
+import { traceFunction } from "@server/logging/tracing";
 import { Team, AuthenticationProvider } from "@server/models";
 
 type TeamProvisionerResult = {
