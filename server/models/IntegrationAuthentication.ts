@@ -18,7 +18,7 @@ import Fix from "./decorators/Fix";
 @Table({ tableName: "authentications", modelName: "authentication" })
 @Fix
 class IntegrationAuthentication extends IdModel {
-  @Column
+  @Column(DataType.STRING)
   service: IntegrationService;
 
   @Column(DataType.ARRAY(DataType.STRING))

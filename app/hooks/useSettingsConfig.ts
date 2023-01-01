@@ -73,7 +73,7 @@ type ConfigType = {
   [key in SettingsPage]: ConfigItem;
 };
 
-const useAuthorizedSettingsConfig = () => {
+const useSettingsConfig = () => {
   const team = useCurrentTeam();
   const can = usePolicy(team);
   const { t } = useTranslation();
@@ -242,4 +242,4 @@ const useAuthorizedSettingsConfig = () => {
   return enabledConfigs;
 };
 
-export default useAuthorizedSettingsConfig;
+export default useSettingsConfig;
