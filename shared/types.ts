@@ -52,6 +52,10 @@ export type PublicEnv = {
   DEFAULT_LANGUAGE: string;
   GOOGLE_ANALYTICS_ID: string | undefined;
   RELEASE: string | undefined;
+  analytics: {
+    service?: IntegrationService;
+    settings?: IntegrationSettings<IntegrationType.Analytics>;
+  };
 };
 
 export enum AttachmentPreset {

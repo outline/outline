@@ -13,6 +13,7 @@ import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
+import SettingRow from "./components/SettingRow";
 
 type FormData = {
   measurementId: string;
@@ -91,23 +92,21 @@ function GoogleAnalytics() {
           analytics from the workspace to your own Google Analytics account.
         </Trans>
       </Text>
-      <Text type="secondary">
-        <Trans>
-          Create a "Web" stream in your Google Analytics admin dashboard and
-          copy the measurement ID from the generated code snippet to install.
-        </Trans>
-      </Text>
       <form onSubmit={formHandleSubmit(handleSubmit)}>
-        <p>
-          <Input
-            label={t("Measurement ID")}
-            placeholder="G-XXXXXXXXX1"
-            {...register("measurementId")}
-          />
-          <Button type="submit" disabled={formState.isSubmitting}>
-            {formState.isSubmitting ? `${t("Saving")}…` : t("Save")}
-          </Button>
-        </p>
+        <SettingRow
+          label={t("Measurement ID")}
+          name="measurementId"
+          description={t(
+            'Create a "Web" stream in your Google Analytics admin dashboard and copy the measurement ID from the generated code snippet to install.'
+          )}
+          border={false}
+        >
+          <Input placeholder="G-XXXXXXXXX1" {...register("measurementId")} />
+        </SettingRow>
+
+        <Button type="submit" disabled={formState.isSubmitting}>
+          {formState.isSubmitting ? `${t("Saving")}…` : t("Save")}
+        </Button>
       </form>
     </Scene>
   );

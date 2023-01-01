@@ -2,6 +2,7 @@
 import { escape } from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
+import { IntegrationService } from "@shared/types";
 import env from "~/env";
 import useStores from "~/hooks/useStores";
 
@@ -39,11 +40,17 @@ const Analytics: React.FC = ({ children }) => {
 
   // Google Analytics 4
   React.useEffect(() => {
-    if (!integration) {
+    if (
+      !integration &&
+      env.analytics.service !== IntegrationService.GoogleAnalytics
+    ) {
       return;
     }
 
-    const measurementId = escape(integration.settings.measurementId);
+    const measurementId = escape(
+      integration?.settings.measurementId ||
+        env.analytics.settings?.measurementId
+    );
 
     window.dataLayer = window.dataLayer || [];
     function gtag(...args: any[]) {
