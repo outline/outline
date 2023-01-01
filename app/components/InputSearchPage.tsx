@@ -68,7 +68,7 @@ function InputSearchPage({
 
   return (
     <InputMaxWidth
-      innerRef={inputRef}
+      ref={inputRef}
       type="search"
       placeholder={placeholder || `${t("Search")}…`}
       value={value}

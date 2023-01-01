@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { useTranslation, Trans } from "react-i18next";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
-import { ReactHookWrappedInput as Input } from "~/components/Input";
+import Input from "~/components/Input";
 import Text from "~/components/Text";
 import env from "~/env";
 import useStores from "~/hooks/useStores";
