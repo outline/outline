@@ -490,7 +490,7 @@
   "Users with edit permission will be redirected to the main app": "Gli utenti con il permesso di modifica verranno reindirizzati all'app principale",
   "All users see the same publicly shared view": "Tutti gli utenti vedono la stessa vista condivisa pubblicamente",
   "Custom link": "Link personalizzato",
-  "The document will be accessible at <2>{{url}}</2>": "The document will be accessible at <2>{{url}}</2>",
+  "The document will be accessible at <2>{{url}}</2>": "Il documento sarà accessibile su <2>{{url}}</2>",
   "More options": "Altre opzioni",
   "Close": "Chiudi",
   "{{ teamName }} is using Outline to share documents, please login to continue.": "{{ teamName }} utilizza Outline per condividere documenti, effettua il login per continuare.",
