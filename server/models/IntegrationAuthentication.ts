@@ -5,6 +5,7 @@ import {
   BelongsTo,
   Column,
 } from "sequelize-typescript";
+import { IntegrationService } from "@shared/types";
 import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
@@ -18,7 +19,7 @@ import Fix from "./decorators/Fix";
 @Fix
 class IntegrationAuthentication extends IdModel {
   @Column
-  service: string;
+  service: IntegrationService;
 
   @Column(DataType.ARRAY(DataType.STRING))
   scopes: string[];

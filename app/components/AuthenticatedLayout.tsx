@@ -2,7 +2,6 @@ import { AnimatePresence } from "framer-motion";
 import { observer, useLocalStore } from "mobx-react";
 import * as React from "react";
 import { Switch, Route, useLocation, matchPath } from "react-router-dom";
-import { IntegrationType } from "@shared/types";
 import ErrorSuspended from "~/scenes/ErrorSuspended";
 import DocumentContext from "~/components/DocumentContext";
 import type { DocumentContextValue } from "~/components/DocumentContext";
@@ -48,7 +47,7 @@ const CommandBar = React.lazy(
 );
 
 const AuthenticatedLayout: React.FC = ({ children }) => {
-  const { ui, auth, integrations } = useStores();
+  const { ui, auth } = useStores();
   const location = useLocation();
   const can = usePolicy(ui.activeCollectionId);
   const { user, team } = auth;
@@ -58,12 +57,6 @@ const AuthenticatedLayout: React.FC = ({ children }) => {
       documentContext.editor = editor;
     },
   }));
-
-  React.useEffect(() => {
-    integrations.fetchPage({
-      type: IntegrationType.Analytics,
-    });
-  }, [integrations]);
 
   const goToSearch = (ev: KeyboardEvent) => {
     if (!ev.metaKey && !ev.ctrlKey) {

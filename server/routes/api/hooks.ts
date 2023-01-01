@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import Router from "koa-router";
 import { escapeRegExp } from "lodash";
+import { IntegrationService } from "@shared/types";
 import env from "@server/env";
 import { AuthenticationError, InvalidRequestError } from "@server/errors";
 import Logger from "@server/logging/Logger";
@@ -67,7 +68,7 @@ router.post("hooks.unfurl", async (ctx) => {
   }
   const auth = await IntegrationAuthentication.findOne({
     where: {
-      service: "slack",
+      service: IntegrationService.Slack,
       teamId: user.teamId,
     },
   });
@@ -240,7 +241,7 @@ router.post("hooks.slack", async (ctx) => {
   if (!user) {
     const auth = await IntegrationAuthentication.findOne({
       where: {
-        service: "slack",
+        service: IntegrationService.Slack,
         teamId: team.id,
       },
     });

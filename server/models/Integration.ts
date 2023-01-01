@@ -37,11 +37,11 @@ export enum UserCreatableIntegrationService {
 class Integration<T = unknown> extends IdModel {
   @IsIn([Object.values(IntegrationType)])
   @Column
-  type: string;
+  type: IntegrationType;
 
   @IsIn([Object.values(IntegrationService)])
   @Column
-  service: string;
+  service: IntegrationService;
 
   @Column(DataType.JSONB)
   settings: IntegrationSettings<T>;

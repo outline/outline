@@ -4,7 +4,7 @@ import { BuildingBlocksIcon } from "outline-icons";
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";
-import { IntegrationType } from "@shared/types";
+import { IntegrationService, IntegrationType } from "@shared/types";
 import Integration from "~/models/Integration";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
@@ -25,7 +25,7 @@ function SelfHosted() {
 
   const integration = find(integrations.orderedData, {
     type: IntegrationType.Embed,
-    service: "diagrams",
+    service: IntegrationService.Diagrams,
   }) as Integration<IntegrationType.Embed> | undefined;
 
   const {
@@ -57,7 +57,7 @@ function SelfHosted() {
           await integrations.save({
             id: integration?.id,
             type: IntegrationType.Embed,
-            service: "diagrams",
+            service: IntegrationService.Diagrams,
             settings: {
               url: data.drawIoUrl,
             },

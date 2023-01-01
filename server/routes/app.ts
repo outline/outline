@@ -76,13 +76,7 @@ export const renderApp = async (
   const { shareId } = ctx.params;
   const page = await readIndexFile(ctx);
   const environment = `
-    window.env = ${JSON.stringify({
-      ...presentEnv(env),
-      analytics: {
-        service: options.analytics?.service,
-        settings: options.analytics?.settings,
-      },
-    })};
+    window.env = ${JSON.stringify(presentEnv(env, options.analytics))};
   `;
   ctx.body = page
     .toString()

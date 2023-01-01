@@ -3,6 +3,7 @@ import type { Context } from "koa";
 import Router from "koa-router";
 import { Profile } from "passport";
 import { Strategy as SlackStrategy } from "passport-slack-oauth2";
+import { IntegrationService, IntegrationType } from "@shared/types";
 import accountProvisioner from "@server/commands/accountProvisioner";
 import env from "@server/env";
 import auth from "@server/middlewares/authentication";
@@ -173,15 +174,15 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
       const endpoint = `${env.URL}/auth/slack.commands`;
       const data = await Slack.oauthAccess(String(code), endpoint);
       const authentication = await IntegrationAuthentication.create({
-        service: "slack",
+        service: IntegrationService.Slack,
         userId: user.id,
         teamId: user.teamId,
         token: data.access_token,
         scopes: data.scope.split(","),
       });
       await Integration.create({
-        service: "slack",
-        type: "command",
+        service: IntegrationService.Slack,
+        type: IntegrationType.Command,
         userId: user.id,
         teamId: user.teamId,
         authenticationId: authentication.id,
@@ -239,7 +240,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
       const endpoint = `${env.URL}/auth/slack.post`;
       const data = await Slack.oauthAccess(code as string, endpoint);
       const authentication = await IntegrationAuthentication.create({
-        service: "slack",
+        service: IntegrationService.Slack,
         userId: user.id,
         teamId: user.teamId,
         token: data.access_token,
@@ -247,8 +248,8 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
       });
 
       await Integration.create({
-        service: "slack",
-        type: "post",
+        service: IntegrationService.Slack,
+        type: IntegrationType.Post,
         userId: user.id,
         teamId: user.teamId,
         authenticationId: authentication.id,
