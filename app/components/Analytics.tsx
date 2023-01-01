@@ -1,3 +1,4 @@
+/* eslint-disable prefer-rest-params */
 /* global ga */
 import { escape } from "lodash";
 import * as React from "react";
@@ -22,6 +23,7 @@ const Analytics: React.FC = ({ children }) => {
     ga("create", env.GOOGLE_ANALYTICS_ID, "auto");
     ga("send", "pageview");
     const script = document.createElement("script");
+    script.type = "text/javascript";
     script.src = "https://www.google-analytics.com/analytics.js";
     script.async = true;
 
@@ -30,7 +32,7 @@ const Analytics: React.FC = ({ children }) => {
       ga("send", "event", "pwa", "install");
     });
 
-    document.body?.appendChild(script);
+    document.getElementsByTagName("head")[0]?.appendChild(script);
   }, []);
 
   // Google Analytics 4
@@ -42,16 +44,20 @@ const Analytics: React.FC = ({ children }) => {
     const measurementId = escape(env.analytics.settings?.measurementId);
 
     window.dataLayer = window.dataLayer || [];
-    function gtag(...args: any[]) {
-      window.dataLayer.push(args);
-    }
-    gtag("js", new Date());
-    gtag("config", measurementId);
+    window.gtag = function () {
+      window.dataLayer.push(arguments);
+    };
+    window.gtag("js", new Date());
+    window.gtag("config", measurementId, {
+      allow_google_signals: false,
+      restricted_data_processing: true,
+    });
 
     const script = document.createElement("script");
+    script.type = "text/javascript";
     script.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
     script.async = true;
-    document.body?.appendChild(script);
+    document.getElementsByTagName("head")[0]?.appendChild(script);
   }, []);
 
   return <>{children}</>;
