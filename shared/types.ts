@@ -67,6 +67,12 @@ export enum IntegrationType {
   Analytics = "analytics",
 }
 
+export enum IntegrationService {
+  Diagrams = "diagrams",
+  Slack = "slack",
+  GoogleAnalytics = "google-analytics",
+}
+
 export enum CollectionPermission {
   Read = "read",
   ReadWrite = "read_write",
@@ -75,7 +81,7 @@ export enum CollectionPermission {
 export type IntegrationSettings<T> = T extends IntegrationType.Embed
   ? { url: string }
   : T extends IntegrationType.Analytics
-  ? { trackingId: string }
+  ? { measurementId: string }
   : T extends IntegrationType.Post
   ? { url: string; channel: string; channelId: string }
   : T extends IntegrationType.Post
@@ -84,7 +90,7 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
       | { url: string }
       | { url: string; channel: string; channelId: string }
       | { serviceTeamId: string }
-      | { trackingId: string };
+      | { measurementId: string };
 
 export enum UserPreference {
   /** Whether reopening the app should redirect to the last viewed document. */

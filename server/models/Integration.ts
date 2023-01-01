@@ -7,7 +7,7 @@ import {
   Scopes,
   IsIn,
 } from "sequelize-typescript";
-import { IntegrationType } from "@shared/types";
+import { IntegrationType, IntegrationService } from "@shared/types";
 import type { IntegrationSettings } from "@shared/types";
 import Collection from "./Collection";
 import IntegrationAuthentication from "./IntegrationAuthentication";
@@ -15,12 +15,6 @@ import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
-
-export enum IntegrationService {
-  Diagrams = "diagrams",
-  Slack = "slack",
-  GoogleAnalytics = "google-analytics",
-}
 
 export enum UserCreatableIntegrationService {
   Diagrams = "diagrams",

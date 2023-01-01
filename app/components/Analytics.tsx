@@ -1,8 +1,15 @@
 /* global ga */
+import { escape } from "lodash";
+import { observer } from "mobx-react";
 import * as React from "react";
 import env from "~/env";
+import useStores from "~/hooks/useStores";
 
 const Analytics: React.FC = ({ children }) => {
+  const { integrations } = useStores();
+  const integration = integrations.googleAnalyticsIntegration;
+
+  // Google Analytics 3
   React.useEffect(() => {
     if (!env.GOOGLE_ANALYTICS_ID) {
       return;
@@ -17,9 +24,6 @@ const Analytics: React.FC = ({ children }) => {
 
     ga.l = +new Date();
     ga("create", env.GOOGLE_ANALYTICS_ID, "auto");
-    ga("set", {
-      dimension1: "true",
-    });
     ga("send", "pageview");
     const script = document.createElement("script");
     script.src = "https://www.google-analytics.com/analytics.js";
@@ -30,12 +34,31 @@ const Analytics: React.FC = ({ children }) => {
       ga("send", "event", "pwa", "install");
     });
 
-    if (document.body) {
-      document.body.appendChild(script);
-    }
+    document.body?.appendChild(script);
   }, []);
+
+  // Google Analytics 4
+  React.useEffect(() => {
+    if (!integration) {
+      return;
+    }
+
+    const measurementId = escape(integration.settings.measurementId);
+
+    window.dataLayer = window.dataLayer || [];
+    function gtag(...args: any[]) {
+      window.dataLayer.push(args);
+    }
+    gtag("js", new Date());
+    gtag("config", measurementId);
+
+    const script = document.createElement("script");
+    script.src = "https://www.googletagmanager.com/gtag/js?id=" + measurementId;
+    script.async = true;
+    document.body?.appendChild(script);
+  }, [integration]);
 
   return <>{children}</>;
 };
 
-export default Analytics;
+export default observer(Analytics);

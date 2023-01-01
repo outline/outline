@@ -3,7 +3,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useForm } from "react-hook-form";
 import { useTranslation, Trans } from "react-i18next";
-import { IntegrationType } from "@shared/types";
+import { IntegrationType, IntegrationService } from "@shared/types";
 import Integration from "~/models/Integration";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
@@ -15,7 +15,7 @@ import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 
 type FormData = {
-  trackingId: string;
+  measurementId: string;
 };
 
 function GoogleAnalytics() {
@@ -25,7 +25,7 @@ function GoogleAnalytics() {
 
   const integration = find(integrations.orderedData, {
     type: IntegrationType.Analytics,
-    service: "google-analytics",
+    service: IntegrationService.GoogleAnalytics,
   }) as Integration<IntegrationType.Analytics> | undefined;
 
   const {
@@ -36,7 +36,7 @@ function GoogleAnalytics() {
   } = useForm<FormData>({
     mode: "all",
     defaultValues: {
-      trackingId: integration?.settings.trackingId,
+      measurementId: integration?.settings.measurementId,
     },
   });
 
@@ -47,19 +47,19 @@ function GoogleAnalytics() {
   }, [integrations]);
 
   React.useEffect(() => {
-    reset({ trackingId: integration?.settings.trackingId });
+    reset({ measurementId: integration?.settings.measurementId });
   }, [integration, reset]);
 
   const handleSubmit = React.useCallback(
     async (data: FormData) => {
       try {
-        if (data.trackingId) {
+        if (data.measurementId) {
           await integrations.save({
             id: integration?.id,
             type: IntegrationType.Analytics,
-            service: "google-analytics",
+            service: IntegrationService.GoogleAnalytics,
             settings: {
-              trackingId: data.trackingId,
+              measurementId: data.measurementId,
             },
           });
         } else {
@@ -87,22 +87,28 @@ function GoogleAnalytics() {
 
       <Text type="secondary">
         <Trans>
-          Add a Google Analytics 4 tracking ID to send document views and
+          Add a Google Analytics 4 measurement ID to send document views and
           analytics from the workspace to your own Google Analytics account.
         </Trans>
-        <form onSubmit={formHandleSubmit(handleSubmit)}>
-          <p>
-            <Input
-              label={t("Tracking ID")}
-              placeholder=""
-              {...register("trackingId")}
-            />
-            <Button type="submit" disabled={formState.isSubmitting}>
-              {formState.isSubmitting ? `${t("Saving")}…` : t("Save")}
-            </Button>
-          </p>
-        </form>
       </Text>
+      <Text type="secondary">
+        <Trans>
+          Create a "Web" stream in your Google Analytics admin dashboard and
+          copy the measurement ID from the generated code snippet to install.
+        </Trans>
+      </Text>
+      <form onSubmit={formHandleSubmit(handleSubmit)}>
+        <p>
+          <Input
+            label={t("Measurement ID")}
+            placeholder="G-XXXXXXXXX1"
+            {...register("measurementId")}
+          />
+          <Button type="submit" disabled={formState.isSubmitting}>
+            {formState.isSubmitting ? `${t("Saving")}…` : t("Save")}
+          </Button>
+        </p>
+      </form>
     </Scene>
   );
 }

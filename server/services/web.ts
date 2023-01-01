@@ -23,6 +23,7 @@ const scriptSrc = [
   "'unsafe-inline'",
   "'unsafe-eval'",
   "gist.github.com",
+  "www.googletagmanager.com",
   "cdn.zapier.com",
 ];
 
