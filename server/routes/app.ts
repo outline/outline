@@ -99,7 +99,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
   // Find the share record if publicly published so that the document title
   // can be be returned in the server-rendered HTML. This allows it to appear in
   // unfurls with more reliablity
-  let share, document, integration;
+  let share, document, analytics;
 
   try {
     const team = await getTeamFromContext(ctx);
@@ -118,7 +118,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
     }
     document = result.document;
 
-    integration = await Integration.findOne({
+    analytics = await Integration.findOne({
       where: {
         teamId: document.teamId,
         type: IntegrationType.Analytics,
@@ -143,7 +143,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
   return renderApp(ctx, next, {
     title: document?.title,
     description: document?.getSummary(),
-    analytics: integration,
+    analytics,
     canonical: share
       ? `${share.canonicalUrl}${documentSlug && document ? document.url : ""}`
       : undefined,
