@@ -1,5 +1,3 @@
-import { observable } from "mobx";
-import { observer } from "mobx-react";
 import * as React from "react";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
@@ -123,93 +121,89 @@ export type Props = React.InputHTMLAttributes<
   margin?: string | number;
   error?: string;
   icon?: React.ReactNode;
-  innerRef?: React.Ref<any>;
   onFocus?: (ev: React.SyntheticEvent) => unknown;
   onBlur?: (ev: React.SyntheticEvent) => unknown;
 };
 
-@observer
-class Input extends React.Component<Props> {
-  input = this.props.innerRef;
+function Input(
+  props: Props,
+  ref: React.RefObject<HTMLInputElement | HTMLTextAreaElement>
+) {
+  const [focused, setFocused] = React.useState(false);
 
-  @observable
-  focused = false;
+  const handleBlur = (ev: React.SyntheticEvent) => {
+    setFocused(false);
 
-  handleBlur = (ev: React.SyntheticEvent) => {
-    this.focused = false;
-
-    if (this.props.onBlur) {
-      this.props.onBlur(ev);
+    if (props.onBlur) {
+      props.onBlur(ev);
     }
   };
 
-  handleFocus = (ev: React.SyntheticEvent) => {
-    this.focused = true;
+  const handleFocus = (ev: React.SyntheticEvent) => {
+    setFocused(true);
 
-    if (this.props.onFocus) {
-      this.props.onFocus(ev);
+    if (props.onFocus) {
+      props.onFocus(ev);
     }
   };
 
-  render() {
-    const {
-      type = "text",
-      icon,
-      label,
-      margin,
-      error,
-      className,
-      short,
-      flex,
-      labelHidden,
-      onFocus,
-      onBlur,
-      ...rest
-    } = this.props;
+  const {
+    type = "text",
+    icon,
+    label,
+    margin,
+    error,
+    className,
+    short,
+    flex,
+    labelHidden,
+    onFocus,
+    onBlur,
+    ...rest
+  } = props;
 
-    const wrappedLabel = <LabelText>{label}</LabelText>;
+  const wrappedLabel = <LabelText>{label}</LabelText>;
 
-    return (
-      <Wrapper className={className} short={short} flex={flex}>
-        <label>
-          {label &&
-            (labelHidden ? (
-              <VisuallyHidden>{wrappedLabel}</VisuallyHidden>
-            ) : (
-              wrappedLabel
-            ))}
-          <Outline focused={this.focused} margin={margin}>
-            {icon && <IconWrapper>{icon}</IconWrapper>}
-            {type === "textarea" ? (
-              <RealTextarea
-                ref={this.props.innerRef}
-                onBlur={this.handleBlur}
-                onFocus={this.handleFocus}
-                hasIcon={!!icon}
-                {...rest}
-              />
-            ) : (
-              <RealInput
-                ref={this.props.innerRef}
-                onBlur={this.handleBlur}
-                onFocus={this.handleFocus}
-                hasIcon={!!icon}
-                type={type}
-                {...rest}
-              />
-            )}
-          </Outline>
-        </label>
-        {error && (
-          <TextWrapper>
-            <StyledText type="danger" size="xsmall">
-              {error}
-            </StyledText>
-          </TextWrapper>
-        )}
-      </Wrapper>
-    );
-  }
+  return (
+    <Wrapper className={className} short={short} flex={flex}>
+      <label>
+        {label &&
+          (labelHidden ? (
+            <VisuallyHidden>{wrappedLabel}</VisuallyHidden>
+          ) : (
+            wrappedLabel
+          ))}
+        <Outline focused={focused} margin={margin}>
+          {icon && <IconWrapper>{icon}</IconWrapper>}
+          {type === "textarea" ? (
+            <RealTextarea
+              ref={ref as React.RefObject<HTMLTextAreaElement>}
+              onBlur={handleBlur}
+              onFocus={handleFocus}
+              hasIcon={!!icon}
+              {...rest}
+            />
+          ) : (
+            <RealInput
+              ref={ref as React.RefObject<HTMLInputElement>}
+              onBlur={handleBlur}
+              onFocus={handleFocus}
+              hasIcon={!!icon}
+              type={type}
+              {...rest}
+            />
+          )}
+        </Outline>
+      </label>
+      {error && (
+        <TextWrapper>
+          <StyledText type="danger" size="xsmall">
+            {error}
+          </StyledText>
+        </TextWrapper>
+      )}
+    </Wrapper>
+  );
 }
 
 export const TextWrapper = styled.span`
@@ -222,10 +216,4 @@ export const StyledText = styled(Text)`
   margin-bottom: 0;
 `;
 
-export const ReactHookWrappedInput = React.forwardRef(
-  (props: Omit<Props, "innerRef">, ref: React.Ref<any>) => {
-    return <Input {...{ ...props, innerRef: ref }} />;
-  }
-);
-
-export default Input;
+export default React.forwardRef(Input);

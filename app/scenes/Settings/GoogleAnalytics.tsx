@@ -8,7 +8,7 @@ import Integration from "~/models/Integration";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
 import GoogleIcon from "~/components/Icons/GoogleIcon";
-import { ReactHookWrappedInput as Input } from "~/components/Input";
+import Input from "~/components/Input";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";

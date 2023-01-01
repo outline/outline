@@ -7,7 +7,7 @@ import { useTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
 import WebhookSubscription from "~/models/WebhookSubscription";
 import Button from "~/components/Button";
-import { ReactHookWrappedInput } from "~/components/Input";
+import Input from "~/components/Input";
 import Text from "~/components/Text";
 import useMobile from "~/hooks/useMobile";
 
@@ -230,7 +230,7 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
         </Trans>
       </Text>
       <TextFields>
-        <ReactHookWrappedInput
+        <Input
           required
           autoFocus
           flex
@@ -240,7 +240,7 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
             required: true,
           })}
         />
-        <ReactHookWrappedInput
+        <Input
           required
           autoFocus
           flex
@@ -249,7 +249,7 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
           label={t("URL")}
           {...register("url", { required: true })}
         />
-        <ReactHookWrappedInput
+        <Input
           flex
           spellCheck={false}
           label={t("Signing secret")}

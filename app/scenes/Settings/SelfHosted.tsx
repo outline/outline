@@ -8,7 +8,7 @@ import { IntegrationService, IntegrationType } from "@shared/types";
 import Integration from "~/models/Integration";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
-import { ReactHookWrappedInput as Input } from "~/components/Input";
+import Input from "~/components/Input";
 import Scene from "~/components/Scene";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
