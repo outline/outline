@@ -330,7 +330,7 @@ export class Environment {
   public RELEASE = this.toOptionalString(process.env.RELEASE);
 
   /**
-   * A Google Analytics tracking ID, only v3 supported at this time.
+   * A Google Analytics tracking ID, supports only v3 properties.
    */
   @Contains("UA-")
   @IsOptional()

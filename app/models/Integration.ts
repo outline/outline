@@ -1,14 +1,18 @@
 import { observable } from "mobx";
-import type { IntegrationSettings } from "@shared/types";
+import type {
+  IntegrationService,
+  IntegrationSettings,
+  IntegrationType,
+} from "@shared/types";
 import BaseModel from "~/models/BaseModel";
 import Field from "./decorators/Field";
 
 class Integration<T = unknown> extends BaseModel {
   id: string;
 
-  type: string;
+  type: IntegrationType;
 
-  service: string;
+  service: IntegrationService;
 
   collectionId: string;
 

@@ -4,6 +4,8 @@ import {
   CollectionPermission,
   FileOperationState,
   FileOperationType,
+  IntegrationService,
+  IntegrationType,
 } from "@shared/types";
 import {
   Share,
@@ -241,15 +243,15 @@ export async function buildIntegration(overrides: Partial<Integration> = {}) {
     teamId: overrides.teamId,
   });
   const authentication = await IntegrationAuthentication.create({
-    service: "slack",
+    service: IntegrationService.Slack,
     userId: user.id,
     teamId: user.teamId,
     token: "fake-access-token",
     scopes: ["example", "scopes", "here"],
   });
   return Integration.create({
-    type: "post",
-    service: "slack",
+    service: IntegrationService.Slack,
+    type: IntegrationType.Post,
     events: ["documents.update", "documents.publish"],
     settings: {
       serviceTeamId: "slack_team_id",

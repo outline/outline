@@ -1,32 +1,33 @@
 import { find } from "lodash";
 import { observer } from "mobx-react";
-import { BuildingBlocksIcon } from "outline-icons";
 import * as React from "react";
 import { useForm } from "react-hook-form";
-import { useTranslation } from "react-i18next";
-import { IntegrationService, IntegrationType } from "@shared/types";
+import { useTranslation, Trans } from "react-i18next";
+import { IntegrationType, IntegrationService } from "@shared/types";
 import Integration from "~/models/Integration";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
+import GoogleIcon from "~/components/Icons/GoogleIcon";
 import { ReactHookWrappedInput as Input } from "~/components/Input";
 import Scene from "~/components/Scene";
+import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import SettingRow from "./components/SettingRow";
 
 type FormData = {
-  drawIoUrl: string;
+  measurementId: string;
 };
 
-function SelfHosted() {
+function GoogleAnalytics() {
   const { integrations } = useStores();
   const { t } = useTranslation();
   const { showToast } = useToasts();
 
   const integration = find(integrations.orderedData, {
-    type: IntegrationType.Embed,
-    service: IntegrationService.Diagrams,
-  }) as Integration<IntegrationType.Embed> | undefined;
+    type: IntegrationType.Analytics,
+    service: IntegrationService.GoogleAnalytics,
+  }) as Integration<IntegrationType.Analytics> | undefined;
 
   const {
     register,
@@ -36,30 +37,30 @@ function SelfHosted() {
   } = useForm<FormData>({
     mode: "all",
     defaultValues: {
-      drawIoUrl: integration?.settings.url,
+      measurementId: integration?.settings.measurementId,
     },
   });
 
   React.useEffect(() => {
     integrations.fetchPage({
-      type: IntegrationType.Embed,
+      type: IntegrationType.Analytics,
     });
   }, [integrations]);
 
   React.useEffect(() => {
-    reset({ drawIoUrl: integration?.settings.url });
+    reset({ measurementId: integration?.settings.measurementId });
   }, [integration, reset]);
 
   const handleSubmit = React.useCallback(
     async (data: FormData) => {
       try {
-        if (data.drawIoUrl) {
+        if (data.measurementId) {
           await integrations.save({
             id: integration?.id,
-            type: IntegrationType.Embed,
-            service: IntegrationService.Diagrams,
+            type: IntegrationType.Analytics,
+            service: IntegrationService.GoogleAnalytics,
             settings: {
-              url: data.drawIoUrl,
+              measurementId: data.measurementId,
             },
           });
         } else {
@@ -80,25 +81,27 @@ function SelfHosted() {
 
   return (
     <Scene
-      title={t("Self Hosted")}
-      icon={<BuildingBlocksIcon color="currentColor" />}
+      title={t("Google Analytics")}
+      icon={<GoogleIcon color="currentColor" />}
     >
-      <Heading>{t("Self Hosted")}</Heading>
+      <Heading>{t("Google Analytics")}</Heading>
 
+      <Text type="secondary">
+        <Trans>
+          Add a Google Analytics 4 measurement ID to send document views and
+          analytics from the workspace to your own Google Analytics account.
+        </Trans>
+      </Text>
       <form onSubmit={formHandleSubmit(handleSubmit)}>
         <SettingRow
-          label={t("Draw.io deployment")}
-          name="drawIoUrl"
+          label={t("Measurement ID")}
+          name="measurementId"
           description={t(
-            "Add your self-hosted draw.io installation url here to enable automatic embedding of diagrams within documents."
+            'Create a "Web" stream in your Google Analytics admin dashboard and copy the measurement ID from the generated code snippet to install.'
           )}
           border={false}
         >
-          <Input
-            placeholder="https://app.diagrams.net/"
-            pattern="https?://.*"
-            {...register("drawIoUrl")}
-          />
+          <Input placeholder="G-XXXXXXXXX1" {...register("measurementId")} />
         </SettingRow>
 
         <Button type="submit" disabled={formState.isSubmitting}>
@@ -109,4 +112,4 @@ function SelfHosted() {
   );
 }
 
-export default observer(SelfHosted);
+export default observer(GoogleAnalytics);

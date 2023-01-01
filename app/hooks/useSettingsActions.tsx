@@ -3,10 +3,10 @@ import * as React from "react";
 import { createAction } from "~/actions";
 import { NavigationSection } from "~/actions/sections";
 import history from "~/utils/history";
-import useAuthorizedSettingsConfig from "./useAuthorizedSettingsConfig";
+import useSettingsConfig from "./useSettingsConfig";
 
 const useSettingsActions = () => {
-  const config = useAuthorizedSettingsConfig();
+  const config = useSettingsConfig();
   const actions = React.useMemo(() => {
     return config.map((item) => {
       const Icon = item.icon;

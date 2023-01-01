@@ -1,8 +1,11 @@
 /* global ga */
+import { escape } from "lodash";
 import * as React from "react";
+import { IntegrationService } from "@shared/types";
 import env from "~/env";
 
 const Analytics: React.FC = ({ children }) => {
+  // Google Analytics 3
   React.useEffect(() => {
     if (!env.GOOGLE_ANALYTICS_ID) {
       return;
@@ -17,9 +20,6 @@ const Analytics: React.FC = ({ children }) => {
 
     ga.l = +new Date();
     ga("create", env.GOOGLE_ANALYTICS_ID, "auto");
-    ga("set", {
-      dimension1: "true",
-    });
     ga("send", "pageview");
     const script = document.createElement("script");
     script.src = "https://www.google-analytics.com/analytics.js";
@@ -30,9 +30,28 @@ const Analytics: React.FC = ({ children }) => {
       ga("send", "event", "pwa", "install");
     });
 
-    if (document.body) {
-      document.body.appendChild(script);
+    document.body?.appendChild(script);
+  }, []);
+
+  // Google Analytics 4
+  React.useEffect(() => {
+    if (env.analytics.service !== IntegrationService.GoogleAnalytics) {
+      return;
     }
+
+    const measurementId = escape(env.analytics.settings?.measurementId);
+
+    window.dataLayer = window.dataLayer || [];
+    function gtag(...args: any[]) {
+      window.dataLayer.push(args);
+    }
+    gtag("js", new Date());
+    gtag("config", measurementId);
+
+    const script = document.createElement("script");
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
+    script.async = true;
+    document.body?.appendChild(script);
   }, []);
 
   return <>{children}</>;

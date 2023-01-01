@@ -7,7 +7,7 @@ import {
   Scopes,
   IsIn,
 } from "sequelize-typescript";
-import { IntegrationType } from "@shared/types";
+import { IntegrationType, IntegrationService } from "@shared/types";
 import type { IntegrationSettings } from "@shared/types";
 import Collection from "./Collection";
 import IntegrationAuthentication from "./IntegrationAuthentication";
@@ -16,13 +16,9 @@ import User from "./User";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
 
-export enum IntegrationService {
-  Diagrams = "diagrams",
-  Slack = "slack",
-}
-
 export enum UserCreatableIntegrationService {
   Diagrams = "diagrams",
+  GoogleAnalytics = "google-analytics",
 }
 
 @Scopes(() => ({
@@ -40,12 +36,12 @@ export enum UserCreatableIntegrationService {
 @Fix
 class Integration<T = unknown> extends IdModel {
   @IsIn([Object.values(IntegrationType)])
-  @Column
-  type: string;
+  @Column(DataType.STRING)
+  type: IntegrationType;
 
   @IsIn([Object.values(IntegrationService)])
-  @Column
-  service: string;
+  @Column(DataType.STRING)
+  service: IntegrationService;
 
   @Column(DataType.JSONB)
   settings: IntegrationSettings<T>;

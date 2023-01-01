@@ -52,6 +52,10 @@ export type PublicEnv = {
   DEFAULT_LANGUAGE: string;
   GOOGLE_ANALYTICS_ID: string | undefined;
   RELEASE: string | undefined;
+  analytics: {
+    service?: IntegrationService;
+    settings?: IntegrationSettings<IntegrationType.Analytics>;
+  };
 };
 
 export enum AttachmentPreset {
@@ -64,6 +68,13 @@ export enum IntegrationType {
   Post = "post",
   Command = "command",
   Embed = "embed",
+  Analytics = "analytics",
+}
+
+export enum IntegrationService {
+  Diagrams = "diagrams",
+  Slack = "slack",
+  GoogleAnalytics = "google-analytics",
 }
 
 export enum CollectionPermission {
@@ -73,6 +84,8 @@ export enum CollectionPermission {
 
 export type IntegrationSettings<T> = T extends IntegrationType.Embed
   ? { url: string }
+  : T extends IntegrationType.Analytics
+  ? { measurementId: string }
   : T extends IntegrationType.Post
   ? { url: string; channel: string; channelId: string }
   : T extends IntegrationType.Post
@@ -80,7 +93,8 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
   :
       | { url: string }
       | { url: string; channel: string; channelId: string }
-      | { serviceTeamId: string };
+      | { serviceTeamId: string }
+      | { measurementId: string };
 
 export enum UserPreference {
   /** Whether reopening the app should redirect to the last viewed document. */

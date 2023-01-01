@@ -19,6 +19,7 @@ import { useTranslation } from "react-i18next";
 import Details from "~/scenes/Settings/Details";
 import Export from "~/scenes/Settings/Export";
 import Features from "~/scenes/Settings/Features";
+import GoogleAnalytics from "~/scenes/Settings/GoogleAnalytics";
 import Groups from "~/scenes/Settings/Groups";
 import Import from "~/scenes/Settings/Import";
 import Members from "~/scenes/Settings/Members";
@@ -32,6 +33,7 @@ import Slack from "~/scenes/Settings/Slack";
 import Tokens from "~/scenes/Settings/Tokens";
 import Webhooks from "~/scenes/Settings/Webhooks";
 import Zapier from "~/scenes/Settings/Zapier";
+import GoogleIcon from "~/components/Icons/GoogleIcon";
 import SlackIcon from "~/components/Icons/SlackIcon";
 import ZapierIcon from "~/components/Icons/ZapierIcon";
 import env from "~/env";
@@ -55,7 +57,8 @@ type SettingsPage =
   | "Export"
   | "Webhooks"
   | "Slack"
-  | "Zapier";
+  | "Zapier"
+  | "GoogleAnalytics";
 
 export type ConfigItem = {
   name: string;
@@ -70,7 +73,7 @@ type ConfigType = {
   [key in SettingsPage]: ConfigItem;
 };
 
-const useAuthorizedSettingsConfig = () => {
+const useSettingsConfig = () => {
   const team = useCurrentTeam();
   const can = usePolicy(team);
   const { t } = useTranslation();
@@ -199,6 +202,14 @@ const useAuthorizedSettingsConfig = () => {
         group: t("Integrations"),
         icon: SlackIcon,
       },
+      GoogleAnalytics: {
+        name: t("Google Analytics"),
+        path: "/settings/integrations/google-analytics",
+        component: GoogleAnalytics,
+        enabled: can.update,
+        group: t("Integrations"),
+        icon: GoogleIcon,
+      },
       Zapier: {
         name: "Zapier",
         path: "/settings/integrations/zapier",
@@ -215,7 +226,6 @@ const useAuthorizedSettingsConfig = () => {
       can.createImport,
       can.createExport,
       can.createWebhookSubscription,
-      team.collaborativeEditing,
     ]
   );
 
@@ -232,4 +242,4 @@ const useAuthorizedSettingsConfig = () => {
   return enabledConfigs;
 };
 
-export default useAuthorizedSettingsConfig;
+export default useSettingsConfig;

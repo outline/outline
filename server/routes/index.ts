@@ -5,9 +5,12 @@ import Router from "koa-router";
 import send from "koa-send";
 import userAgent, { UserAgentContext } from "koa-useragent";
 import { languages } from "@shared/i18n";
+import { IntegrationType } from "@shared/types";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
+import { Integration } from "@server/models";
 import { opensearchResponse } from "@server/utils/opensearch";
+import { getTeamFromContext } from "@server/utils/passport";
 import { robotsResponse } from "@server/utils/robots";
 import apexRedirect from "../middlewares/apexRedirect";
 import { renderApp, renderShare } from "./app";
@@ -118,7 +121,21 @@ router.get("/s/:shareId/doc/:documentSlug", renderShare);
 router.get("/s/:shareId/*", renderShare);
 
 // catch all for application
-router.get("*", renderApp);
+router.get("*", async (ctx, next) => {
+  const team = await getTeamFromContext(ctx);
+  const analytics = team
+    ? await Integration.findOne({
+        where: {
+          teamId: team.id,
+          type: IntegrationType.Analytics,
+        },
+      })
+    : undefined;
+
+  return renderApp(ctx, next, {
+    analytics,
+  });
+});
 
 // In order to report all possible performance metrics to Sentry this header
 // must be provided when serving the application, see:
