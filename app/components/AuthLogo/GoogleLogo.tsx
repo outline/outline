@@ -6,7 +6,7 @@ type Props = {
   className?: string;
 };
 
-function GoogleLogo({ size = 34, fill = "#FFF", className }: Props) {
+function GoogleLogo({ size = 24, fill = "currentColor", className }: Props) {
   return (
     <svg
       fill={fill}

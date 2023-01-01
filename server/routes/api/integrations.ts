@@ -1,5 +1,6 @@
 import Router from "koa-router";
 import { has } from "lodash";
+import { WhereOptions } from "sequelize";
 import { IntegrationType } from "@shared/types";
 import auth from "@server/middlewares/authentication";
 import { Event } from "@server/models";
@@ -21,17 +22,27 @@ const router = new Router();
 
 router.post("integrations.list", auth(), pagination(), async (ctx) => {
   let { direction } = ctx.request.body;
-  const { sort = "updatedAt" } = ctx.request.body;
+  const { user } = ctx.state;
+  const { type, sort = "updatedAt" } = ctx.request.body;
   if (direction !== "ASC") {
     direction = "DESC";
   }
   assertSort(sort, Integration);
 
-  const { user } = ctx.state;
+  let where: WhereOptions<Integration> = {
+    teamId: user.teamId,
+  };
+
+  if (type) {
+    assertIn(type, Object.values(IntegrationType));
+    where = {
+      ...where,
+      type,
+    };
+  }
+
   const integrations = await Integration.findAll({
-    where: {
-      teamId: user.teamId,
-    },
+    where,
     order: [[sort, direction]],
     offset: ctx.state.pagination.offset,
     limit: ctx.state.pagination.limit,

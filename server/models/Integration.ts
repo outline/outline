@@ -19,10 +19,12 @@ import Fix from "./decorators/Fix";
 export enum IntegrationService {
   Diagrams = "diagrams",
   Slack = "slack",
+  GoogleAnalytics = "google-analytics",
 }
 
 export enum UserCreatableIntegrationService {
   Diagrams = "diagrams",
+  GoogleAnalytics = "google-analytics",
 }
 
 @Scopes(() => ({

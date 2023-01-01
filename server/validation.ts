@@ -89,7 +89,7 @@ export function assertUrl(
       require_valid_protocol: true,
     })
   ) {
-    throw ValidationError(message ?? `${String(value)} is an invalid url!`);
+    throw ValidationError(message ?? `${String(value)} is an invalid url`);
   }
 }
 
@@ -105,9 +105,7 @@ export function assertBoolean(
   message?: string
 ): asserts value {
   if (typeof value !== "boolean") {
-    throw ValidationError(
-      message ?? `${String(value)} is a ${typeof value}, not a boolean!`
-    );
+    throw ValidationError(message ?? `${String(value)} is not a boolean`);
   }
 }
 
