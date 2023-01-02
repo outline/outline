@@ -345,7 +345,7 @@
     "webpack-manifest-plugin": "^3.0.0",
     "webpack-pwa-manifest": "^4.3.0",
     "workbox-webpack-plugin": "^6.5.3",
-    "yarn-deduplicate": "^3.1.0"
+    "yarn-deduplicate": "^6.0.1"
   },
   "resolutions": {
     "body-scroll-lock": "^4.0.0-beta.0",
