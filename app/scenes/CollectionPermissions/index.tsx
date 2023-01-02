@@ -331,10 +331,7 @@ function CollectionPermissions({ collectionId }: Props) {
         onRequestClose={handleAddGroupModalClose}
         isOpen={addGroupModalOpen}
       >
-        <AddGroupsToCollection
-          collection={collection}
-          onSubmit={handleAddGroupModalClose}
-        />
+        <AddGroupsToCollection collection={collection} />
       </Modal>
       <Modal
         title={t(`Add people to {{ collectionName }}`, {
@@ -343,10 +340,7 @@ function CollectionPermissions({ collectionId }: Props) {
         onRequestClose={handleAddMemberModalClose}
         isOpen={addMemberModalOpen}
       >
-        <AddPeopleToCollection
-          collection={collection}
-          onSubmit={handleAddMemberModalClose}
-        />
+        <AddPeopleToCollection collection={collection} />
       </Modal>
     </Flex>
   );
