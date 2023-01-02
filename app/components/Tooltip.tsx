@@ -1,11 +1,10 @@
 import Tippy, { TippyProps } from "@tippyjs/react";
-import { TFunctionResult } from "i18next";
 import * as React from "react";
 import styled, { createGlobalStyle } from "styled-components";
 import { roundArrow } from "tippy.js";
 
 export type Props = Omit<TippyProps, "content" | "theme"> & {
-  tooltip: React.ReactChild | React.ReactChild[] | TFunctionResult;
+  tooltip?: React.ReactChild | React.ReactChild[];
   shortcut?: React.ReactNode;
 };
 
