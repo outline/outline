@@ -1,5 +1,4 @@
 import {
-  NewDocumentIcon,
   EmailIcon,
   ProfileIcon,
   PadlockIcon,
@@ -10,9 +9,10 @@ import {
   TeamIcon,
   BeakerIcon,
   BuildingBlocksIcon,
-  DownloadIcon,
   WebhooksIcon,
   SettingsIcon,
+  ExportIcon,
+  ImportIcon,
 } from "outline-icons";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -167,7 +167,7 @@ const useSettingsConfig = () => {
         component: Import,
         enabled: can.createImport,
         group: t("Team"),
-        icon: NewDocumentIcon,
+        icon: ImportIcon,
       },
       Export: {
         name: t("Export"),
@@ -175,7 +175,7 @@ const useSettingsConfig = () => {
         component: Export,
         enabled: can.createExport,
         group: t("Team"),
-        icon: DownloadIcon,
+        icon: ExportIcon,
       },
       // Integrations
       Webhooks: {

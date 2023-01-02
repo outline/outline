@@ -7,7 +7,7 @@ import { cdnPath } from "@shared/utils/urls";
 import FileOperation from "~/models/FileOperation";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
-import OutlineIcon from "~/components/Icons/OutlineIcon";
+import MarkdownIcon from "~/components/Icons/MarkdownIcon";
 import Item from "~/components/List/Item";
 import PaginatedList from "~/components/PaginatedList";
 import Scene from "~/components/Scene";
@@ -35,10 +35,10 @@ function Import() {
       <div>
         <Item
           border={false}
-          image={<OutlineIcon size={28} cover />}
-          title="Outline"
+          image={<MarkdownIcon size={28} />}
+          title={t("Markdown")}
           subtitle={t(
-            "Import a backup file that was previously exported from Outline"
+            "Import a zip file of Markdown documents (exported from Outline 0.67.0 or earlier)"
           )}
           actions={
             <Button
