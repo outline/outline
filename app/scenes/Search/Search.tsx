@@ -21,6 +21,7 @@ import Flex from "~/components/Flex";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import Scene from "~/components/Scene";
+import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import withStores from "~/components/withStores";
 import Logger from "~/utils/Logger";
@@ -159,6 +160,7 @@ class Search extends React.Component<Props> {
     userId?: string | undefined;
     dateFilter?: TDateFilter;
     includeArchived?: boolean | undefined;
+    titleFilter?: boolean | undefined;
   }) => {
     this.props.history.replace({
       pathname: this.props.location.pathname,
@@ -169,6 +171,10 @@ class Search extends React.Component<Props> {
         }
       ),
     });
+  };
+
+  handleTitleFilterChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
+    this.handleFilterChange({ titleFilter: ev.target.checked });
   };
 
   get includeArchived() {
@@ -190,12 +196,17 @@ class Search extends React.Component<Props> {
     return id ? (id as TDateFilter) : undefined;
   }
 
+  get titleFilter() {
+    return this.params.get("titleFilter") === "true";
+  }
+
   get isFiltered() {
     return (
       this.dateFilter ||
       this.userId ||
       this.collectionId ||
-      this.includeArchived
+      this.includeArchived ||
+      this.titleFilter
     );
   }
 
@@ -230,6 +241,7 @@ class Search extends React.Component<Props> {
         includeDrafts: true,
         collectionId: this.collectionId,
         userId: this.userId,
+        titleFilter: this.titleFilter,
       };
 
       // we just requested this thing – no need to try again
@@ -243,7 +255,9 @@ class Search extends React.Component<Props> {
       this.lastParams = params;
 
       try {
-        const results = await this.props.documents.search(this.query, params);
+        const results = this.titleFilter
+          ? await this.props.documents.searchTitles(this.query, params)
+          : await this.props.documents.search(this.query, params);
 
         // Add to the searches store so this search can immediately appear in
         // the recent searches list without a flash of load
@@ -348,6 +362,13 @@ class Search extends React.Component<Props> {
                   })
                 }
               />
+              <SearchTitleOnlyFilter
+                width={26}
+                height={14}
+                label={t("Search titles only")}
+                onChange={this.handleTitleFilterChange}
+                checked={this.titleFilter}
+              />
             </Filters>
           ) : (
             <RecentSearches />
@@ -435,6 +456,13 @@ const Filters = styled(Flex)`
   &:hover {
     opacity: 1;
   }
+`;
+
+const SearchTitleOnlyFilter = styled(Switch)`
+  margin-left: 8px;
+  margin-top: 2px;
+  font-size: 14px;
+  font-weight: 500;
 `;
 
 export default withTranslation()(withStores(withRouter(Search)));
