@@ -7,7 +7,7 @@
     "clean": "rimraf build",
     "copy:i18n": "mkdir -p ./build/shared/i18n && cp -R ./shared/i18n/locales ./build/shared/i18n",
     "build:i18n": "i18next --silent 'shared/**/*.tsx' 'shared/**/*.ts' 'app/**/*.tsx' 'app/**/*.ts' 'server/**/*.ts' 'server/**/*.tsx' && yarn copy:i18n",
-    "build:server": "babel --extensions .ts,.tsx --quiet -d ./build/server ./server && babel --quiet --extensions .ts,.tsx -d./build/shared ./shared && cp ./server/collaboration/Procfile ./build/server/collaboration/Procfile && cp package.json ./build && cp ./server/static/error.dev.html ./build/server/error.dev.html && cp ./server/static/error.prod.html ./build/server/error.prod.html && ln -sf \"$(pwd)/webpack.config.dev.js\" ./build",
+    "build:server": "./build.sh",
     "build:webpack": "webpack --config webpack.config.prod.js",
     "build": "yarn build:webpack && yarn build:i18n && yarn build:server",
     "start": "node ./build/server/index.js",
