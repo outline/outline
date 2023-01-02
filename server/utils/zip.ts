@@ -1,17 +1,14 @@
-import fs from "fs";
 import path from "path";
 import JSZip, { JSZipObject } from "jszip";
-import { find } from "lodash";
-import tmp from "tmp";
 import { FileOperationFormat } from "@shared/types";
-import { ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import Attachment from "@server/models/Attachment";
 import Collection from "@server/models/Collection";
 import Document from "@server/models/Document";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import { NavigationNode } from "~/types";
-import { deserializeFilename, serializeFilename } from "./fs";
+import ZipHelper from "./ZipHelper";
+import { serializeFilename } from "./fs";
 import parseAttachmentIds from "./parseAttachmentIds";
 import { getFileByKey } from "./s3";
 
@@ -70,7 +67,7 @@ async function addDocumentTreeToArchive(
 
     const extension = format === FileOperationFormat.HTMLZip ? "html" : "md";
 
-    title = safeAddFileToArchive(zip, `${title}.${extension}`, text, {
+    title = ZipHelper.safeAddToArchive(zip, `${title}.${extension}`, text, {
       date: document.updatedAt,
       comment: JSON.stringify({
         createdAt: document.createdAt,
@@ -109,76 +106,6 @@ async function addImageToArchive(zip: JSZip, key: string) {
   }
 }
 
-/**
- * Adds content to a zip file, if the given filename already exists in the zip
- * then it will automatically increment numbers at the end of the filename.
- *
- * @param zip JSZip object to add to
- * @param key filename with extension
- * @param content the content to add
- * @param options options for added content
- * @returns The new title
- */
-function safeAddFileToArchive(
-  zip: JSZip,
-  key: string,
-  content: string | Uint8Array | ArrayBuffer | Blob,
-  options: JSZip.JSZipFileOptions
-) {
-  // @ts-expect-error root exists
-  const root = zip.root;
-
-  // Filenames in the directory already
-  const keysInDirectory = Object.keys(zip.files)
-    .filter((k) => k.includes(root))
-    .filter((k) => !k.endsWith("/"))
-    .map((k) => path.basename(k).replace(/\s\((\d+)\)\./, "."));
-
-  // The number of duplicate filenames
-  const existingKeysCount = keysInDirectory.filter((t) => t === key).length;
-  const filename = path.parse(key).name;
-  const extension = path.extname(key);
-
-  // Construct the new de-duplicated filename (if any)
-  const safeKey =
-    existingKeysCount > 0
-      ? `${filename} (${existingKeysCount})${extension}`
-      : key;
-
-  zip.file(safeKey, content, options);
-  return safeKey;
-}
-
-/**
- * Write a zip file to a temporary disk location
- *
- * @param zip JSZip object
- * @returns pathname of the temporary file where the zip was written to disk
- */
-async function archiveToPath(zip: JSZip): Promise<string> {
-  return new Promise((resolve, reject) => {
-    tmp.file(
-      {
-        prefix: "export-",
-        postfix: ".zip",
-      },
-      (err, path) => {
-        if (err) {
-          return reject(err);
-        }
-        zip
-          .generateNodeStream({
-            type: "nodebuffer",
-            streamFiles: true,
-          })
-          .pipe(fs.createWriteStream(path))
-          .on("finish", () => resolve(path))
-          .on("error", reject);
-      }
-    );
-  });
-}
-
 export async function archiveCollections(
   collections: Collection[],
   format: FileOperationFormat
@@ -199,68 +126,5 @@ export async function archiveCollections(
     }
   }
 
-  return archiveToPath(zip);
-}
-
-/**
- * Converts the flat structure returned by JSZIP into a nested file structure
- * for easier processing.
- *
- * @param paths An array of paths to files in the zip
- * @returns
- */
-export function zipAsFileTree(
-  zip: JSZip,
-  /** The maximum number of files to unzip */
-  maxFiles = 10000
-) {
-  let fileCount = 0;
-  const paths = Object.keys(zip.files).map((filePath) => {
-    if (++fileCount > maxFiles) {
-      throw ValidationError("Too many files in zip");
-    }
-
-    return `/${filePath}`;
-  });
-  const tree: FileTreeNode[] = [];
-
-  paths.forEach(function (filePath) {
-    if (filePath.startsWith("/__MACOSX")) {
-      return;
-    }
-
-    const pathParts = filePath.split("/");
-
-    // Remove first blank element from the parts array.
-    pathParts.shift();
-
-    let currentLevel = tree; // initialize currentLevel to root
-
-    pathParts.forEach(function (name) {
-      // check to see if the path already exists.
-      const existingPath = find(currentLevel, {
-        name,
-      });
-
-      if (existingPath) {
-        // The path to this item was already in the tree, so don't add again.
-        // Set the current level to this path's children
-        currentLevel = existingPath.children;
-      } else if (name.endsWith(".DS_Store") || !name) {
-        return;
-      } else {
-        const newPart = {
-          name,
-          path: filePath.replace(/^\//, ""),
-          title: deserializeFilename(path.parse(path.basename(name)).name),
-          children: [],
-        };
-
-        currentLevel.push(newPart);
-        currentLevel = newPart.children;
-      }
-    });
-  });
-
-  return tree;
+  return ZipHelper.toTmpFile(zip);
 }
