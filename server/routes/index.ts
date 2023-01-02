@@ -132,6 +132,12 @@ router.get("*", async (ctx, next) => {
       })
     : undefined;
 
+  // Redirect all requests to custom domain if one is set
+  if (team?.domain && team.domain !== ctx.hostname) {
+    ctx.redirect(ctx.href.replace(ctx.hostname, team.domain));
+    return;
+  }
+
   return renderApp(ctx, next, {
     analytics,
   });
