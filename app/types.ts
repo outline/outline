@@ -1,5 +1,5 @@
 import { Location, LocationDescriptor } from "history";
-import { TFunction } from "react-i18next";
+import { TFunction } from "i18next";
 import RootStore from "~/stores/RootStore";
 import Document from "./models/Document";
 import FileOperation from "./models/FileOperation";

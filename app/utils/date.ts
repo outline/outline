@@ -6,8 +6,8 @@ import {
   differenceInCalendarYears,
   format as formatDate,
 } from "date-fns";
+import { TFunction } from "i18next";
 import { startCase } from "lodash";
-import { TFunction } from "react-i18next";
 import {
   getCurrentDateAsString,
   getCurrentDateTimeAsString,

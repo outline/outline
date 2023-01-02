@@ -102,6 +102,7 @@ export const initI18n = (defaultLanguage = "en_US") => {
       supportedLngs: languages.map(unicodeCLDRtoBCP47),
       // Uncomment when debugging translation framework, otherwise it's noisy
       keySeparator: false,
+      returnNull: false,
     });
   return i18n;
 };
