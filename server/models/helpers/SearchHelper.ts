@@ -177,24 +177,23 @@ export default class SearchHelper {
   ): Promise<Document[]> {
     const { limit = 15, offset = 0 } = options;
 
-    let where: WhereOptions<Document> = {
+    const where: WhereOptions<Document> = {
+      teamId: user.teamId,
       title: {
         [Op.iLike]: `%${query}%`,
       },
+      [Op.and]: [],
     };
 
     // Ensure we're filtering by the users accessible collections. If
     // collectionId is passed as an option it is assumed that the authorization
     // has already been done in the router
     if (options.collectionId) {
-      where = {
-        ...where,
+      where[Op.and].push({
         collectionId: options.collectionId,
-      };
+      });
     } else {
-      // @ts-expect-error doesn't like OR null
-      where = {
-        ...where,
+      where[Op.and].push({
         [Op.or]: [
           {
             collectionId: {
@@ -208,32 +207,29 @@ export default class SearchHelper {
             createdById: user.id,
           },
         ],
-      };
+      });
     }
 
     if (options.dateFilter) {
-      where = {
-        ...where,
+      where[Op.and].push({
         updatedAt: {
           [Op.gt]: sequelize.literal(
             `now() - interval '1 ${options.dateFilter}'`
           ),
         },
-      };
+      });
     }
 
     if (!options.includeArchived) {
-      where = {
-        ...where,
+      where[Op.and].push({
         archivedAt: {
           [Op.is]: null,
         },
-      };
+      });
     }
 
     if (options.includeDrafts) {
-      where = {
-        ...where,
+      where[Op.and].push({
         [Op.or]: [
           {
             publishedAt: {
@@ -244,23 +240,21 @@ export default class SearchHelper {
             createdById: user.id,
           },
         ],
-      };
+      });
     } else {
-      where = {
-        ...where,
+      where[Op.and].push({
         publishedAt: {
           [Op.ne]: null,
         },
-      };
+      });
     }
 
     if (options.collaboratorIds) {
-      where = {
-        ...where,
+      where[Op.and].push({
         collaboratorIds: {
           [Op.contains]: options.collaboratorIds,
         },
-      };
+      });
     }
 
     return await Document.scope([

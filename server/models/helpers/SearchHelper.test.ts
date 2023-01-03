@@ -195,6 +195,9 @@ describe("#searchForUser", () => {
   test("should search only drafts created by user", async () => {
     const user = await buildUser();
     await buildDraftDocument({
+      title: "test",
+    });
+    await buildDraftDocument({
       teamId: user.teamId,
       userId: user.id,
       createdById: user.id,
