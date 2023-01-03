@@ -5,7 +5,7 @@ import auth from "@server/middlewares/authentication";
 import { WebhookSubscription, Event } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentWebhookSubscription } from "@server/presenters";
-import { WebhookSubscriptionEvent } from "@server/types";
+import { WebhookSubscriptionEvent, APIContext } from "@server/types";
 import { assertArray, assertPresent, assertUuid } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
@@ -15,8 +15,8 @@ router.post(
   "webhookSubscriptions.list",
   auth({ admin: true }),
   pagination(),
-  async (ctx) => {
-    const { user } = ctx.state;
+  async (ctx: APIContext) => {
+    const { user } = ctx.state.auth;
     authorize(user, "listWebhookSubscription", user.team);
     const webhooks = await WebhookSubscription.findAll({
       where: {
@@ -37,8 +37,8 @@ router.post(
 router.post(
   "webhookSubscriptions.create",
   auth({ admin: true }),
-  async (ctx) => {
-    const { user } = ctx.state;
+  async (ctx: APIContext) => {
+    const { user } = ctx.state.auth;
     authorize(user, "createWebhookSubscription", user.team);
 
     const { name, url, secret } = ctx.request.body;
@@ -83,10 +83,10 @@ router.post(
 router.post(
   "webhookSubscriptions.delete",
   auth({ admin: true }),
-  async (ctx) => {
+  async (ctx: APIContext) => {
     const { id } = ctx.request.body;
     assertUuid(id, "id is required");
-    const { user } = ctx.state;
+    const { user } = ctx.state.auth;
     const webhookSubscription = await WebhookSubscription.findByPk(id);
 
     authorize(user, "delete", webhookSubscription);
@@ -112,10 +112,10 @@ router.post(
 router.post(
   "webhookSubscriptions.update",
   auth({ admin: true }),
-  async (ctx) => {
+  async (ctx: APIContext) => {
     const { id } = ctx.request.body;
     assertUuid(id, "id is required");
-    const { user } = ctx.state;
+    const { user } = ctx.state.auth;
 
     const { name, url, secret } = ctx.request.body;
     const events: string[] = compact(ctx.request.body.events);

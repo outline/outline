@@ -1,14 +1,14 @@
 import querystring from "querystring";
-import { Context, Next } from "koa";
+import { Next } from "koa";
 import { InvalidRequestError } from "@server/errors";
+import { AppContext } from "@server/types";
 
-export default function pagination(options?: Record<string, any>) {
-  return async function paginationMiddleware(ctx: Context, next: Next) {
+export default function pagination() {
+  return async function paginationMiddleware(ctx: AppContext, next: Next) {
     const opts = {
       defaultLimit: 15,
       defaultOffset: 0,
       maxLimit: 100,
-      ...options,
     };
     const query = ctx.request.query;
     const body = ctx.request.body;
@@ -42,17 +42,14 @@ export default function pagination(options?: Record<string, any>) {
       );
     }
 
+    query.limit = String(limit);
+    query.offset = String(limit + offset);
+
     ctx.state.pagination = {
       limit,
       offset,
+      nextPath: `/api${ctx.request.path}?${querystring.stringify(query)}`,
     };
-
-    query.limit = ctx.state.pagination.limit;
-    query.offset = ctx.state.pagination.offset + query.limit;
-
-    ctx.state.pagination.nextPath = `/api${
-      ctx.request.path
-    }?${querystring.stringify(query)}`;
 
     return next();
   };

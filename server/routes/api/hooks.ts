@@ -17,6 +17,7 @@ import {
 } from "@server/models";
 import SearchHelper from "@server/models/helpers/SearchHelper";
 import { presentSlackAttachment } from "@server/presenters";
+import { APIContext } from "@server/types";
 import * as Slack from "@server/utils/slack";
 import { assertPresent } from "@server/validation";
 
@@ -41,7 +42,7 @@ function verifySlackToken(token: string) {
 }
 
 // triggered by a user posting a getoutline.com link in Slack
-router.post("hooks.unfurl", async (ctx) => {
+router.post("hooks.unfurl", async (ctx: APIContext) => {
   const { challenge, token, event } = ctx.request.body;
   if (challenge) {
     return (ctx.body = ctx.request.body.challenge);
@@ -104,7 +105,7 @@ router.post("hooks.unfurl", async (ctx) => {
 });
 
 // triggered by interactions with actions, dialogs, message buttons in Slack
-router.post("hooks.interactive", async (ctx) => {
+router.post("hooks.interactive", async (ctx: APIContext) => {
   const { payload } = ctx.request.body;
   assertPresent(payload, "payload is required");
 
@@ -142,7 +143,7 @@ router.post("hooks.interactive", async (ctx) => {
 });
 
 // triggered by the /outline command in Slack
-router.post("hooks.slack", async (ctx) => {
+router.post("hooks.slack", async (ctx: APIContext) => {
   const { token, team_id, user_id, text = "" } = ctx.request.body;
   assertPresent(token, "token is required");
   assertPresent(team_id, "team_id is required");

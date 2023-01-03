@@ -24,7 +24,7 @@ describe("Authentication middleware", () => {
         },
         jest.fn()
       );
-      expect(state.user.id).toEqual(user.id);
+      expect(state.auth.user.id).toEqual(user.id);
     });
 
     it("should return error with invalid token", async () => {
@@ -68,7 +68,7 @@ describe("Authentication middleware", () => {
         },
         jest.fn()
       );
-      expect(state.user.id).toEqual(user.id);
+      expect(state.auth.user.id).toEqual(user.id);
     });
     it("should return error with invalid API key", async () => {
       const state = {} as DefaultState;
@@ -133,7 +133,7 @@ describe("Authentication middleware", () => {
       },
       jest.fn()
     );
-    expect(state.user.id).toEqual(user.id);
+    expect(state.auth.user.id).toEqual(user.id);
   });
 
   it("should allow passing auth token in body params", async () => {
@@ -154,7 +154,7 @@ describe("Authentication middleware", () => {
       },
       jest.fn()
     );
-    expect(state.user.id).toEqual(user.id);
+    expect(state.auth.user.id).toEqual(user.id);
   });
 
   it("should return an error for suspended users", async () => {

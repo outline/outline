@@ -1,10 +1,10 @@
-import Koa, { BaseContext, DefaultContext, DefaultState } from "koa";
+import Koa, { BaseContext } from "koa";
 import bodyParser from "koa-body";
 import Router from "koa-router";
 import userAgent, { UserAgentContext } from "koa-useragent";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
-import { AuthenticatedState } from "@server/types";
+import { AppState, AppContext } from "@server/types";
 import apiKeys from "./apiKeys";
 import attachments from "./attachments";
 import auth from "./auth";
@@ -32,10 +32,7 @@ import users from "./users";
 import views from "./views";
 import webhookSubscriptions from "./webhookSubscriptions";
 
-const api = new Koa<
-  DefaultState & AuthenticatedState,
-  DefaultContext & { body: Record<string, any> }
->();
+const api = new Koa<AppState, AppContext>();
 const router = new Router();
 
 // middlewares

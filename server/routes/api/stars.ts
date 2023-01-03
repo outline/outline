@@ -12,16 +12,17 @@ import {
   presentDocument,
   presentPolicies,
 } from "@server/presenters";
+import { APIContext } from "@server/types";
 import { starIndexing } from "@server/utils/indexing";
 import { assertUuid, assertIndexCharacters } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
 const router = new Router();
 
-router.post("stars.create", auth(), async (ctx) => {
+router.post("stars.create", auth(), async (ctx: APIContext) => {
   const { documentId, collectionId } = ctx.request.body;
   const { index } = ctx.request.body;
-  const { user } = ctx.state;
+  const { user } = ctx.state.auth;
 
   assertUuid(
     documentId || collectionId,
@@ -62,8 +63,8 @@ router.post("stars.create", auth(), async (ctx) => {
   };
 });
 
-router.post("stars.list", auth(), pagination(), async (ctx) => {
-  const { user } = ctx.state;
+router.post("stars.list", auth(), pagination(), async (ctx: APIContext) => {
+  const { user } = ctx.state.auth;
 
   const [stars, collectionIds] = await Promise.all([
     Star.findAll({
@@ -115,13 +116,13 @@ router.post("stars.list", auth(), pagination(), async (ctx) => {
   };
 });
 
-router.post("stars.update", auth(), async (ctx) => {
+router.post("stars.update", auth(), async (ctx: APIContext) => {
   const { id, index } = ctx.request.body;
   assertUuid(id, "id is required");
 
   assertIndexCharacters(index);
 
-  const { user } = ctx.state;
+  const { user } = ctx.state.auth;
   let star = await Star.findByPk(id);
   authorize(user, "update", star);
 
@@ -138,11 +139,11 @@ router.post("stars.update", auth(), async (ctx) => {
   };
 });
 
-router.post("stars.delete", auth(), async (ctx) => {
+router.post("stars.delete", auth(), async (ctx: APIContext) => {
   const { id } = ctx.request.body;
   assertUuid(id, "id is required");
 
-  const { user } = ctx.state;
+  const { user } = ctx.state.auth;
   const star = await Star.findByPk(id);
   authorize(user, "delete", star);
 
