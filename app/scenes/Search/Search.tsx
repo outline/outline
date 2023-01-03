@@ -362,7 +362,7 @@ class Search extends React.Component<Props> {
                   })
                 }
               />
-              <SearchTitleOnlyFilter
+              <SearchTitlesFilter
                 width={26}
                 height={14}
                 label={t("Search titles only")}
@@ -458,7 +458,8 @@ const Filters = styled(Flex)`
   }
 `;
 
-const SearchTitleOnlyFilter = styled(Switch)`
+const SearchTitlesFilter = styled(Switch)`
+  white-space: nowrap;
   margin-left: 8px;
   margin-top: 2px;
   font-size: 14px;
