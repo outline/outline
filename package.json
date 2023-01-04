@@ -28,7 +28,10 @@
     "test": "jest --config=.jestconfig.json --forceExit",
     "test:app": "jest --config=.jestconfig.json --selectProjects app",
     "test:shared": "jest --config=.jestconfig.json --selectProjects shared-node shared-jsdom",
-    "test:server": "jest --config=.jestconfig.json --selectProjects server"
+    "test:server": "jest --config=.jestconfig.json --selectProjects server",
+    "vite:dev": "vite",
+    "vite:build": "vite build",
+    "vite:preview": "vite preview"
   },
   "funding": {
     "type": "GitHub Sponsors ❤",
@@ -71,6 +74,7 @@
     "@tippyjs/react": "^4.2.6",
     "@tommoor/remove-markdown": "^0.3.2",
     "@types/mermaid": "^9.1.0",
+    "@vitejs/plugin-react": "^3.0.0",
     "autotrack": "^2.4.1",
     "aws-sdk": "^2.1189.0",
     "babel-plugin-lodash": "^3.3.4",
@@ -218,6 +222,7 @@
     "utility-types": "^3.10.0",
     "uuid": "^8.3.2",
     "validator": "13.7.0",
+    "vite": "^4.0.4",
     "winston": "^3.3.3",
     "ws": "^7.5.3",
     "y-indexeddb": "^9.0.9",
