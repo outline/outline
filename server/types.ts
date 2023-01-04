@@ -1,5 +1,5 @@
 import { ParameterizedContext, DefaultContext } from "koa";
-import { RouterContext } from "koa-router";
+import { IRouterParamContext } from "koa-router";
 import { Transaction } from "sequelize/types";
 import { Client } from "@shared/types";
 import { AccountProvisionerResult } from "./commands/accountProvisioner";
@@ -34,8 +34,12 @@ export type AppState = {
 
 export type AppContext = ParameterizedContext<AppState, DefaultContext>;
 
-export interface APIContext<ReqT = Record<string, unknown>>
-  extends RouterContext<AppState, AppContext> {
+export interface APIContext<ReqT = Record<string, unknown>, ResT = unknown>
+  extends ParameterizedContext<
+    AppState,
+    DefaultContext & IRouterParamContext<AppState>,
+    ResT
+  > {
   input: ReqT;
 }
 
