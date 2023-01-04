@@ -442,13 +442,12 @@ router.post(
   }),
   validate(T.DocumentsExportSchema),
   async (ctx: APIContext<T.DocumentsExportReq>) => {
-    const { id, shareId } = ctx.input;
+    const { id } = ctx.input;
     const { user } = ctx.state;
     const accept = ctx.request.headers["accept"];
 
     const { document } = await documentLoader({
       id,
-      shareId,
       user,
       // We need the collaborative state to generate HTML.
       includeState: !accept?.includes("text/markdown"),
@@ -672,7 +671,9 @@ router.post(
     let response;
 
     if (shareId) {
+      const teamFromCtx = await getTeamFromContext(ctx);
       const { share, document } = await documentLoader({
+        teamId: teamFromCtx?.id,
         shareId,
         user,
       });

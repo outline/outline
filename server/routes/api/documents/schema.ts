@@ -114,17 +114,7 @@ export const DocumentsInfoSchema = z
 
 export type DocumentsInfoReq = z.infer<typeof DocumentsInfoSchema>;
 
-export const DocumentsExportSchema = z
-  .object({
-    /** Id of the document to be exported */
-    id: z.string().uuid().optional(),
-
-    /** Share Id, if available */
-    shareId: z.string().uuid().optional(),
-  })
-  .refine((obj) => !(isEmpty(obj.id) && isEmpty(obj.shareId)), {
-    message: "one of id or shareId is required",
-  });
+export const DocumentsExportSchema = BaseIdSchema.extend({});
 
 export type DocumentsExportReq = z.infer<typeof DocumentsExportSchema>;
 
@@ -154,7 +144,10 @@ export const DocumentsSearchSchema = SearchQuerySchema.merge(
   userId: z.string().uuid().optional(),
 
   /** Filter results for the team derived from shareId */
-  shareId: z.string().uuid().optional(),
+  shareId: z
+    .string()
+    .refine((val) => isUUID(val) || SHARE_URL_SLUG_REGEX.test(val))
+    .optional(),
 
   /** Min words to be shown in the results snippets */
   snippetMinWords: z.number().default(20),
