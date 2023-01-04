@@ -6,8 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import documentImporter from "@server/commands/documentImporter";
 import Logger from "@server/logging/Logger";
 import { FileOperation, User } from "@server/models";
-import ZipHelper from "@server/utils/ZipHelper";
-import { FileTreeNode } from "@server/utils/zip";
+import ZipHelper, { FileTreeNode } from "@server/utils/ZipHelper";
 import ImportTask, { StructuredImportData } from "./ImportTask";
 
 export default class ImportNotionTask extends ImportTask {

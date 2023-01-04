@@ -6,7 +6,17 @@ import tmp from "tmp";
 import { ValidationError } from "@server/errors";
 import { trace } from "@server/logging/tracing";
 import { deserializeFilename } from "./fs";
-import { FileTreeNode } from "./zip";
+
+export type FileTreeNode = {
+  /** The title, extracted from the file name */
+  title: string;
+  /** The file name including extension */
+  name: string;
+  /** Full path to the file within the zip file */
+  path: string;
+  /** Any nested children */
+  children: FileTreeNode[];
+};
 
 @trace()
 export default class ZipHelper {
@@ -78,12 +88,13 @@ export default class ZipHelper {
    * then it will automatically increment numbers at the end of the filename.
    *
    * @param zip JSZip object to add to
-   * @param key filename with extension
+   * @param key File name with extension
    * @param content the content to add
    * @param options options for added content
+   *
    * @returns The filename that was added to the zip (May be different than the key)
    */
-  public static safeAddToArchive(
+  public static addToArchive(
     zip: JSZip,
     key: string,
     content: string | Uint8Array | ArrayBuffer | Blob,
