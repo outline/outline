@@ -11,7 +11,7 @@
     "build:webpack": "webpack --config webpack.config.prod.js",
     "build": "yarn build:webpack && yarn build:i18n && yarn build:server",
     "start": "node ./build/server/index.js",
-    "dev": "NODE_ENV=development yarn concurrently -n api,collaboration  -c \"blue,magenta\" \"node --inspect=0.0.0.0 build/server/index.js --services=collaboration,websockets,admin,web,worker\"",
+    "dev": "NODE_ENV=development yarn concurrently -n api,collaboration  -c \"blue,magenta\" \"node --inspect=0.0.0.0 build/server/index.js --services=collaboration,websockets,admin,web,worker\" \"yarn vite:dev\"",
     "dev:watch": "nodemon --exec \"yarn build:server && yarn dev\" -e js,ts,tsx --ignore build/ --ignore app/ --ignore shared/editor",
     "lint": "eslint app server shared",
     "deploy": "git push heroku master",
