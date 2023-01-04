@@ -84,47 +84,6 @@ export default class ZipHelper {
   }
 
   /**
-   * Adds content to a zip file, if the given filename already exists in the zip
-   * then it will automatically increment numbers at the end of the filename.
-   *
-   * @param zip JSZip object to add to
-   * @param key File name with extension
-   * @param content the content to add
-   * @param options options for added content
-   *
-   * @returns The filename that was added to the zip (May be different than the key)
-   */
-  public static addToArchive(
-    zip: JSZip,
-    key: string,
-    content: string | Uint8Array | ArrayBuffer | Blob,
-    options: JSZip.JSZipFileOptions
-  ) {
-    // @ts-expect-error root exists
-    const root = zip.root;
-
-    // Filenames in the directory already
-    const keysInDirectory = Object.keys(zip.files)
-      .filter((k) => k.includes(root))
-      .filter((k) => !k.endsWith("/"))
-      .map((k) => path.basename(k).replace(/\s\((\d+)\)\./, "."));
-
-    // The number of duplicate filenames
-    const existingKeysCount = keysInDirectory.filter((t) => t === key).length;
-    const filename = path.parse(key).name;
-    const extension = path.extname(key);
-
-    // Construct the new de-duplicated filename (if any)
-    const safeKey =
-      existingKeysCount > 0
-        ? `${filename} (${existingKeysCount})${extension}`
-        : key;
-
-    zip.file(safeKey, content, options);
-    return safeKey;
-  }
-
-  /**
    * Write a zip file to a temporary disk location
    *
    * @param zip JSZip object
