@@ -176,7 +176,7 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
       // the same title as another document in the same collection.
       let i = 0;
       let filePath = path.join(root, `${title}.${extension}`);
-      while (Object.values(map).includes(filePath)) {
+      while (Array.from(map.values()).includes(filePath)) {
         filePath = path.join(root, `${title} (${++i}).${extension}`);
       }
 
