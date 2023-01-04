@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import documentImporter from "@server/commands/documentImporter";
 import Logger from "@server/logging/Logger";
 import { FileOperation, User } from "@server/models";
-import { zipAsFileTree, FileTreeNode } from "@server/utils/zip";
+import ZipHelper, { FileTreeNode } from "@server/utils/ZipHelper";
 import ImportTask, { StructuredImportData } from "./ImportTask";
 
 export default class ImportNotionTask extends ImportTask {
@@ -15,7 +15,7 @@ export default class ImportNotionTask extends ImportTask {
     fileOperation: FileOperation
   ): Promise<StructuredImportData> {
     const zip = await JSZip.loadAsync(buffer);
-    const tree = zipAsFileTree(zip);
+    const tree = ZipHelper.toFileTree(zip);
     return this.parseFileTree({ fileOperation, zip, tree });
   }
 

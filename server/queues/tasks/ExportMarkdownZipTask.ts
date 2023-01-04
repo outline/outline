@@ -1,11 +1,14 @@
+import JSZip from "jszip";
 import { FileOperationFormat } from "@shared/types";
 import { Collection } from "@server/models";
-import { archiveCollections } from "@server/utils/zip";
-import ExportTask from "./ExportTask";
+import ExportDocumentTreeTask from "./ExportDocumentTreeTask";
 
-export default class ExportMarkdownZipTask extends ExportTask {
+export default class ExportMarkdownZipTask extends ExportDocumentTreeTask {
   public async export(collections: Collection[]) {
-    return await archiveCollections(
+    const zip = new JSZip();
+
+    return await this.addCollectionsToArchive(
+      zip,
       collections,
       FileOperationFormat.MarkdownZip
     );
