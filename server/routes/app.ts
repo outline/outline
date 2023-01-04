@@ -18,7 +18,7 @@ const isTest = env.ENVIRONMENT === "test";
 const readFile = util.promisify(fs.readFile);
 let indexHtmlCache: Buffer | undefined;
 
-const readIndexFile = async (ctx: Context): Promise<Buffer> => {
+const readIndexFile = async (): Promise<Buffer> => {
   if (isProduction) {
     return (
       indexHtmlCache ??
@@ -37,20 +37,10 @@ const readIndexFile = async (ctx: Context): Promise<Buffer> => {
     );
   }
 
-  const middleware = ctx.devMiddleware;
-  await new Promise((resolve) => middleware.waitUntilValid(resolve));
-  return new Promise((resolve, reject) => {
-    middleware.fileSystem.readFile(
-      `${ctx.webpackConfig.output.path}/index.html`,
-      (err: Error, result: Buffer) => {
-        if (err) {
-          return reject(err);
-        }
-
-        resolve(result);
-      }
-    );
-  });
+  // TODO: Should be part of the build
+  return await readFile(
+    path.join(__dirname, "../../../server/static/index.html")
+  );
 };
 
 export const renderApp = async (

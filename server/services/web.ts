@@ -14,7 +14,6 @@ import api from "../routes/api";
 import auth from "../routes/auth";
 
 const isProduction = env.ENVIRONMENT === "production";
-const isTest = env.ENVIRONMENT === "test";
 
 // Construct scripts CSP based on services in use by this installation
 const defaultSrc = ["'self'"];
@@ -26,6 +25,12 @@ const scriptSrc = [
   "www.googletagmanager.com",
   "cdn.zapier.com",
 ];
+
+// Allow to load assets from Vite
+if (!isProduction) {
+  scriptSrc.push("127.0.0.1:3001");
+  scriptSrc.push("localhost:3001");
+}
 
 if (env.GOOGLE_ANALYTICS_ID) {
   scriptSrc.push("www.google-analytics.com");
@@ -51,52 +56,6 @@ export default function init(app: Koa = new Koa()): Koa {
 
     // trust header fields set by our proxy. eg X-Forwarded-For
     app.proxy = true;
-  } else if (!isTest) {
-    const convert = require("koa-convert");
-    const webpack = require("webpack");
-    const devMiddleware = require("koa-webpack-dev-middleware");
-    const hotMiddleware = require("koa-webpack-hot-middleware");
-    const config = require("../../webpack.config.dev");
-    const compile = webpack(config);
-
-    /* eslint-enable global-require */
-    const middleware = devMiddleware(compile, {
-      // display no info to console (only warnings and errors)
-      noInfo: true,
-      // display nothing to the console
-      quiet: false,
-      watchOptions: {
-        poll: 1000,
-        ignored: ["node_modules", "flow-typed", "server", "build", "__mocks__"],
-      },
-      // Uncomment to test service worker
-      // headers: {
-      //   "Service-Worker-Allowed": "/",
-      // },
-      // public path to bind the middleware to
-      // use the same as in webpack
-      publicPath: config.output.publicPath,
-      // options for formatting the statistics
-      stats: {
-        colors: true,
-      },
-    });
-    app.use(async (ctx, next) => {
-      ctx.webpackConfig = config;
-      ctx.devMiddleware = middleware;
-      await next();
-    });
-    app.use(convert(middleware));
-    app.use(
-      convert(
-        hotMiddleware(compile, {
-          // @ts-expect-error ts-migrate(7019) FIXME: Rest parameter 'args' implicitly has an 'any[]' ty... Remove this comment to see the full error message
-          log: (...args) => Logger.info("lifecycle", ...args),
-          path: "/__webpack_hmr",
-          heartbeat: 10 * 1000,
-        })
-      )
-    );
   }
 
   app.use(mount("/auth", auth));
