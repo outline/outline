@@ -1,8 +1,8 @@
 import { z } from "zod";
 
 const BaseSchema = z.object({
-  body: z.object({}),
-  query: z.object({}),
+  body: z.unknown(),
+  query: z.unknown(),
 });
 
 export default BaseSchema;
