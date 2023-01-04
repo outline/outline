@@ -4,10 +4,7 @@ import { TeamPreference } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import auth from "@server/middlewares/authentication";
-import {
-  transaction,
-  TransactionContext,
-} from "@server/middlewares/transaction";
+import { transaction } from "@server/middlewares/transaction";
 import { Event, Team } from "@server/models";
 import {
   presentUser,
@@ -16,6 +13,7 @@ import {
   presentAvailableTeam,
 } from "@server/presenters";
 import ValidateSSOAccessTask from "@server/queues/tasks/ValidateSSOAccessTask";
+import { APIContext } from "@server/types";
 import { getSessionsInCookie } from "@server/utils/authentication";
 import providers from "../auth/providers";
 
@@ -47,7 +45,7 @@ function filterProviders(team?: Team) {
     }));
 }
 
-router.post("auth.config", async (ctx) => {
+router.post("auth.config", async (ctx: APIContext) => {
   // If self hosted AND there is only one team then that team becomes the
   // brand for the knowledge base and it's guest signin option is used for the
   // root login page.
@@ -124,8 +122,8 @@ router.post("auth.config", async (ctx) => {
   };
 });
 
-router.post("auth.info", auth(), async (ctx) => {
-  const { user } = ctx.state;
+router.post("auth.info", auth(), async (ctx: APIContext) => {
+  const { user } = ctx.state.auth;
   const sessions = getSessionsInCookie(ctx);
   const signedInTeamIds = Object.keys(sessions);
 
@@ -163,34 +161,30 @@ router.post("auth.info", auth(), async (ctx) => {
   };
 });
 
-router.post(
-  "auth.delete",
-  auth(),
-  transaction(),
-  async (ctx: TransactionContext) => {
-    const { user, transaction } = ctx.state;
+router.post("auth.delete", auth(), transaction(), async (ctx: APIContext) => {
+  const { auth, transaction } = ctx.state;
+  const { user } = auth;
 
-    await user.rotateJwtSecret({ transaction });
-    await Event.create(
-      {
-        name: "users.signout",
-        actorId: user.id,
-        userId: user.id,
-        teamId: user.teamId,
-        data: {
-          name: user.name,
-        },
-        ip: ctx.request.ip,
+  await user.rotateJwtSecret({ transaction });
+  await Event.create(
+    {
+      name: "users.signout",
+      actorId: user.id,
+      userId: user.id,
+      teamId: user.teamId,
+      data: {
+        name: user.name,
       },
-      {
-        transaction,
-      }
-    );
+      ip: ctx.request.ip,
+    },
+    {
+      transaction,
+    }
+  );
 
-    ctx.body = {
-      success: true,
-    };
-  }
-);
+  ctx.body = {
+    success: true,
+  };
+});
 
 export default router;

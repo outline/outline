@@ -2,53 +2,56 @@ import Router from "koa-router";
 import subscriptionCreator from "@server/commands/subscriptionCreator";
 import subscriptionDestroyer from "@server/commands/subscriptionDestroyer";
 import auth from "@server/middlewares/authentication";
-import {
-  transaction,
-  TransactionContext,
-} from "@server/middlewares/transaction";
+import { transaction } from "@server/middlewares/transaction";
 import { Subscription, Document } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentSubscription } from "@server/presenters";
+import { APIContext } from "@server/types";
 import { assertIn, assertUuid } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
 const router = new Router();
 
-router.post("subscriptions.list", auth(), pagination(), async (ctx) => {
-  const { user } = ctx.state;
-  const { documentId, event } = ctx.request.body;
+router.post(
+  "subscriptions.list",
+  auth(),
+  pagination(),
+  async (ctx: APIContext) => {
+    const { user } = ctx.state.auth;
+    const { documentId, event } = ctx.request.body;
 
-  assertUuid(documentId, "documentId is required");
+    assertUuid(documentId, "documentId is required");
 
-  assertIn(
-    event,
-    ["documents.update"],
-    `Not a valid subscription event for documents`
-  );
-
-  const document = await Document.findByPk(documentId, { userId: user.id });
-
-  authorize(user, "read", document);
-
-  const subscriptions = await Subscription.findAll({
-    where: {
-      documentId: document.id,
-      userId: user.id,
+    assertIn(
       event,
-    },
-    order: [["createdAt", "DESC"]],
-    offset: ctx.state.pagination.offset,
-    limit: ctx.state.pagination.limit,
-  });
+      ["documents.update"],
+      `Not a valid subscription event for documents`
+    );
 
-  ctx.body = {
-    pagination: ctx.state.pagination,
-    data: subscriptions.map(presentSubscription),
-  };
-});
+    const document = await Document.findByPk(documentId, { userId: user.id });
 
-router.post("subscriptions.info", auth(), async (ctx) => {
-  const { user } = ctx.state;
+    authorize(user, "read", document);
+
+    const subscriptions = await Subscription.findAll({
+      where: {
+        documentId: document.id,
+        userId: user.id,
+        event,
+      },
+      order: [["createdAt", "DESC"]],
+      offset: ctx.state.pagination.offset,
+      limit: ctx.state.pagination.limit,
+    });
+
+    ctx.body = {
+      pagination: ctx.state.pagination,
+      data: subscriptions.map(presentSubscription),
+    };
+  }
+);
+
+router.post("subscriptions.info", auth(), async (ctx: APIContext) => {
+  const { user } = ctx.state.auth;
   const { documentId, event } = ctx.request.body;
 
   assertUuid(documentId, "documentId is required");
@@ -82,8 +85,9 @@ router.post(
   "subscriptions.create",
   auth(),
   transaction(),
-  async (ctx: TransactionContext) => {
-    const { user, transaction } = ctx.state;
+  async (ctx: APIContext) => {
+    const { auth, transaction } = ctx.state;
+    const { user } = auth;
     const { documentId, event } = ctx.request.body;
 
     assertUuid(documentId, "documentId is required");
@@ -119,8 +123,9 @@ router.post(
   "subscriptions.delete",
   auth(),
   transaction(),
-  async (ctx: TransactionContext) => {
-    const { user, transaction } = ctx.state;
+  async (ctx: APIContext) => {
+    const { auth, transaction } = ctx.state;
+    const { user } = auth;
     const { id } = ctx.request.body;
 
     assertUuid(id, "id is required");

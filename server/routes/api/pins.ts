@@ -11,17 +11,18 @@ import {
   presentDocument,
   presentPolicies,
 } from "@server/presenters";
+import { APIContext } from "@server/types";
 import { assertUuid, assertIndexCharacters } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
 const router = new Router();
 
-router.post("pins.create", auth(), async (ctx) => {
+router.post("pins.create", auth(), async (ctx: APIContext) => {
   const { documentId, collectionId } = ctx.request.body;
   const { index } = ctx.request.body;
   assertUuid(documentId, "documentId is required");
 
-  const { user } = ctx.state;
+  const { user } = ctx.state.auth;
   const document = await Document.findByPk(documentId, {
     userId: user.id,
   });
@@ -55,9 +56,9 @@ router.post("pins.create", auth(), async (ctx) => {
   };
 });
 
-router.post("pins.list", auth(), pagination(), async (ctx) => {
+router.post("pins.list", auth(), pagination(), async (ctx: APIContext) => {
   const { collectionId } = ctx.request.body;
-  const { user } = ctx.state;
+  const { user } = ctx.state.auth;
 
   const [pins, collectionIds] = await Promise.all([
     Pin.findAll({
@@ -98,13 +99,13 @@ router.post("pins.list", auth(), pagination(), async (ctx) => {
   };
 });
 
-router.post("pins.update", auth(), async (ctx) => {
+router.post("pins.update", auth(), async (ctx: APIContext) => {
   const { id, index } = ctx.request.body;
   assertUuid(id, "id is required");
 
   assertIndexCharacters(index);
 
-  const { user } = ctx.state;
+  const { user } = ctx.state.auth;
   let pin = await Pin.findByPk(id, { rejectOnEmpty: true });
 
   const document = await Document.findByPk(pin.documentId, {
@@ -130,11 +131,11 @@ router.post("pins.update", auth(), async (ctx) => {
   };
 });
 
-router.post("pins.delete", auth(), async (ctx) => {
+router.post("pins.delete", auth(), async (ctx: APIContext) => {
   const { id } = ctx.request.body;
   assertUuid(id, "id is required");
 
-  const { user } = ctx.state;
+  const { user } = ctx.state.auth;
   const pin = await Pin.findByPk(id, { rejectOnEmpty: true });
 
   const document = await Document.findByPk(pin.documentId, {

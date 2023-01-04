@@ -1,5 +1,6 @@
-import { Context } from "koa";
-import { RouterContext } from "koa-router";
+import { ParameterizedContext, DefaultContext } from "koa";
+import { IRouterParamContext } from "koa-router";
+import { Transaction } from "sequelize/types";
 import { Client } from "@shared/types";
 import { AccountProvisionerResult } from "./commands/accountProvisioner";
 import { FileOperation, Team, User } from "./models";
@@ -13,18 +14,32 @@ export type AuthenticationResult = AccountProvisionerResult & {
   client: Client;
 };
 
-export type AuthenticatedState = {
+export type Authentication = {
   user: User;
   token: string;
-  authType: AuthenticationType;
+  type: AuthenticationType;
 };
 
-export type ContextWithState = Context & {
-  state: AuthenticatedState;
+export type Pagination = {
+  limit: number;
+  offset: number;
+  nextPath: string;
 };
 
-export interface APIContext<ReqT = Record<string, unknown>>
-  extends RouterContext<AuthenticatedState, Context> {
+export type AppState = {
+  auth: Authentication | Record<string, never>;
+  transaction: Transaction;
+  pagination: Pagination;
+};
+
+export type AppContext = ParameterizedContext<AppState, DefaultContext>;
+
+export interface APIContext<ReqT = Record<string, unknown>, ResT = unknown>
+  extends ParameterizedContext<
+    AppState,
+    DefaultContext & IRouterParamContext<AppState>,
+    ResT
+  > {
   input: ReqT;
 }
 

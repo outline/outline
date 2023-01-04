@@ -70,7 +70,7 @@ router.post(
     } = ctx.input;
 
     // always filter by the current team
-    const { user } = ctx.state;
+    const { user } = ctx.state.auth;
     let where: WhereOptions<Document> = {
       teamId: user.teamId,
       archivedAt: {
@@ -177,7 +177,7 @@ router.post(
   validate(T.DocumentsArchivedSchema),
   async (ctx: APIContext<T.DocumentsArchivedReq>) => {
     const { sort, direction } = ctx.input;
-    const { user } = ctx.state;
+    const { user } = ctx.state.auth;
     const collectionIds = await user.collectionIds();
     const collectionScope: Readonly<ScopeOptions> = {
       method: ["withCollectionPermissions", user.id],
@@ -221,7 +221,7 @@ router.post(
   validate(T.DocumentsDeletedSchema),
   async (ctx: APIContext<T.DocumentsDeletedReq>) => {
     const { sort, direction } = ctx.input;
-    const { user } = ctx.state;
+    const { user } = ctx.state.auth;
     const collectionIds = await user.collectionIds({
       paranoid: false,
     });
@@ -281,7 +281,7 @@ router.post(
   validate(T.DocumentsViewedSchema),
   async (ctx: APIContext<T.DocumentsViewedReq>) => {
     const { sort, direction } = ctx.input;
-    const { user } = ctx.state;
+    const { user } = ctx.state.auth;
     const collectionIds = await user.collectionIds();
     const userId = user.id;
     const views = await View.findAll({
@@ -334,7 +334,7 @@ router.post(
   validate(T.DocumentsDraftsSchema),
   async (ctx: APIContext<T.DocumentsDraftsReq>) => {
     const { collectionId, dateFilter, direction, sort } = ctx.input;
-    const { user } = ctx.state;
+    const { user } = ctx.state.auth;
 
     if (collectionId) {
       const collection = await Collection.scope({
@@ -397,7 +397,7 @@ router.post(
   validate(T.DocumentsInfoSchema),
   async (ctx: APIContext<T.DocumentsInfoReq>) => {
     const { id, shareId, apiVersion } = ctx.input;
-    const { user } = ctx.state;
+    const { user } = ctx.state.auth;
     const teamFromCtx = await getTeamFromContext(ctx);
     const { document, share, collection } = await documentLoader({
       id,
@@ -443,7 +443,7 @@ router.post(
   validate(T.DocumentsExportSchema),
   async (ctx: APIContext<T.DocumentsExportReq>) => {
     const { id } = ctx.input;
-    const { user } = ctx.state;
+    const { user } = ctx.state.auth;
     const accept = ctx.request.headers["accept"];
 
     const { document } = await documentLoader({
@@ -495,7 +495,7 @@ router.post(
   validate(T.DocumentsRestoreSchema),
   async (ctx: APIContext<T.DocumentsRestoreReq>) => {
     const { id, collectionId, revisionId } = ctx.input;
-    const { user } = ctx.state;
+    const { user } = ctx.state.auth;
     const document = await Document.findByPk(id, {
       userId: user.id,
       paranoid: false,
@@ -606,7 +606,7 @@ router.post(
       userId,
     } = ctx.input;
     const { offset, limit } = ctx.state.pagination;
-    const { user } = ctx.state;
+    const { user } = ctx.state.auth;
     let collaboratorIds = undefined;
 
     if (collectionId) {
@@ -663,9 +663,8 @@ router.post(
     } = ctx.input;
     const { offset, limit } = ctx.state.pagination;
 
-    // this typing is a bit ugly, would be better to use a type like ContextWithState
-    // but that doesn't adequately handle cases when auth is optional
-    const { user }: { user: User | undefined } = ctx.state;
+    // Unfortunately, this still doesn't adequately handle cases when auth is optional
+    const { user } = ctx.state.auth;
 
     let teamId;
     let response;
@@ -747,7 +746,7 @@ router.post(
         userId: user?.id,
         teamId,
         shareId,
-        source: ctx.state.authType || "app", // we'll consider anything that isn't "api" to be "app"
+        source: ctx.state.auth.type || "app", // we'll consider anything that isn't "api" to be "app"
         query,
         results: totalCount,
       });
@@ -767,7 +766,7 @@ router.post(
   validate(T.DocumentsTemplatizeSchema),
   async (ctx: APIContext<T.DocumentsTemplatizeReq>) => {
     const { id } = ctx.input;
-    const { user } = ctx.state;
+    const { user } = ctx.state.auth;
 
     const original = await Document.findByPk(id, {
       userId: user.id,
@@ -829,7 +828,7 @@ router.post(
       append,
     } = ctx.input;
     const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
-    const { user } = ctx.state;
+    const { user } = ctx.state.auth;
     let collection: Collection | null | undefined;
 
     const document = await Document.findByPk(id, {
@@ -889,7 +888,7 @@ router.post(
   validate(T.DocumentsMoveSchema),
   async (ctx: APIContext<T.DocumentsMoveReq>) => {
     const { id, collectionId, parentDocumentId, index } = ctx.input;
-    const { user } = ctx.state;
+    const { user } = ctx.state.auth;
     const document = await Document.findByPk(id, {
       userId: user.id,
     });
@@ -943,7 +942,7 @@ router.post(
   validate(T.DocumentsArchiveSchema),
   async (ctx: APIContext<T.DocumentsArchiveReq>) => {
     const { id } = ctx.input;
-    const { user } = ctx.state;
+    const { user } = ctx.state.auth;
 
     const document = await Document.findByPk(id, {
       userId: user.id,
@@ -976,7 +975,7 @@ router.post(
   validate(T.DocumentsDeleteSchema),
   async (ctx: APIContext<T.DocumentsDeleteReq>) => {
     const { id, permanent } = ctx.input;
-    const { user } = ctx.state;
+    const { user } = ctx.state.auth;
 
     if (permanent) {
       const document = await Document.findByPk(id, {
@@ -1041,7 +1040,7 @@ router.post(
   validate(T.DocumentsUnpublishSchema),
   async (ctx: APIContext<T.DocumentsUnpublishReq>) => {
     const { id } = ctx.input;
-    const { user } = ctx.state;
+    const { user } = ctx.state.auth;
 
     const document = await Document.findByPk(id, {
       userId: user.id,
@@ -1103,7 +1102,7 @@ router.post(
       );
     }
 
-    const { user } = ctx.state;
+    const { user } = ctx.state.auth;
 
     const collection = await Collection.scope({
       method: ["withMembership", user.id],
@@ -1177,7 +1176,7 @@ router.post(
     } = ctx.input;
     const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
 
-    const { user } = ctx.state;
+    const { user } = ctx.state.auth;
 
     let collection;
 

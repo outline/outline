@@ -5,13 +5,13 @@ import tracer, {
   getRootSpanFromRequestContext,
 } from "@server/logging/tracer";
 import { User, Team, ApiKey } from "@server/models";
+import { AppContext, AuthenticationType } from "@server/types";
 import { getUserForJWT } from "@server/utils/jwt";
 import {
   AuthenticationError,
   AuthorizationError,
   UserSuspendedError,
 } from "../errors";
-import { ContextWithState, AuthenticationType } from "../types";
 
 type AuthenticationOptions = {
   /* An admin user role is required to access the route */
@@ -26,7 +26,7 @@ type AuthenticationOptions = {
 };
 
 export default function auth(options: AuthenticationOptions = {}) {
-  return async function authMiddleware(ctx: ContextWithState, next: Next) {
+  return async function authMiddleware(ctx: AppContext, next: Next) {
     let token;
     const authorizationHeader = ctx.request.get("authorization");
 
@@ -61,11 +61,12 @@ export default function auth(options: AuthenticationOptions = {}) {
       throw AuthenticationError("Authentication required");
     }
 
-    let user: User | null | undefined;
+    let user: User | null;
+    let type: AuthenticationType;
 
     if (token) {
       if (ApiKey.match(String(token))) {
-        ctx.state.authType = AuthenticationType.API;
+        type = AuthenticationType.API;
         let apiKey;
 
         try {
@@ -96,7 +97,7 @@ export default function auth(options: AuthenticationOptions = {}) {
           throw AuthenticationError("Invalid API key");
         }
       } else {
-        ctx.state.authType = AuthenticationType.APP;
+        type = AuthenticationType.APP;
         user = await getUserForJWT(String(token));
       }
 
@@ -129,19 +130,24 @@ export default function auth(options: AuthenticationOptions = {}) {
         Logger.error("Failed to update user activeAt", err);
       });
 
-      ctx.state.token = String(token);
-      ctx.state.user = user;
+      ctx.state.auth = {
+        user,
+        token: String(token),
+        type,
+      };
 
       if (tracer) {
         addTags(
           {
             "request.userId": user.id,
             "request.teamId": user.teamId,
-            "request.authType": ctx.state.authType,
+            "request.authType": type,
           },
           getRootSpanFromRequestContext(ctx)
         );
       }
+    } else {
+      ctx.state.auth = {};
     }
 
     return next();

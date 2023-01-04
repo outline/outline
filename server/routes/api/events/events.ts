@@ -17,7 +17,7 @@ router.post(
   pagination(),
   validate(T.EventsListSchema),
   async (ctx: APIContext<T.EventsListReq>) => {
-    const { user } = ctx.state;
+    const { user } = ctx.state.auth;
     const {
       sort,
       direction,
