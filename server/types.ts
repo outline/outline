@@ -1,7 +1,9 @@
 import { ParameterizedContext, DefaultContext } from "koa";
 import { IRouterParamContext } from "koa-router";
 import { Transaction } from "sequelize/types";
+import { z } from "zod";
 import { Client } from "@shared/types";
+import BaseSchema from "@server/routes/api/BaseSchema";
 import { AccountProvisionerResult } from "./commands/accountProvisioner";
 import { FileOperation, Team, User } from "./models";
 
@@ -34,7 +36,11 @@ export type AppState = {
 
 export type AppContext = ParameterizedContext<AppState, DefaultContext>;
 
-export interface APIContext<ReqT = Record<string, unknown>, ResT = unknown>
+export type BaseReq = z.infer<typeof BaseSchema>;
+
+export type BaseRes = unknown;
+
+export interface APIContext<ReqT = BaseReq, ResT = BaseRes>
   extends ParameterizedContext<
     AppState,
     DefaultContext & IRouterParamContext<AppState>,
