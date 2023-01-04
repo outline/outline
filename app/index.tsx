@@ -1,4 +1,5 @@
 import "focus-visible";
+import "setimmediate";
 import { LazyMotion } from "framer-motion";
 import { KBarProvider } from "kbar";
 import { Provider } from "mobx-react";
