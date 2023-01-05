@@ -123,7 +123,7 @@ export const DocumentsInfoSchema = BaseSchema.extend({
 export type DocumentsInfoReq = z.infer<typeof DocumentsInfoSchema>;
 
 export const DocumentsExportSchema = BaseSchema.extend({
-  body: BaseIdSchema.extend({}),
+  body: BaseIdSchema,
 });
 
 export type DocumentsExportReq = z.infer<typeof DocumentsExportSchema>;
@@ -171,7 +171,7 @@ export const DocumentsSearchSchema = BaseSchema.extend({
 export type DocumentsSearchReq = z.infer<typeof DocumentsSearchSchema>;
 
 export const DocumentsTemplatizeSchema = BaseSchema.extend({
-  body: BaseIdSchema.extend({}),
+  body: BaseIdSchema,
 });
 
 export type DocumentsTemplatizeReq = z.infer<typeof DocumentsTemplatizeSchema>;
@@ -226,7 +226,7 @@ export const DocumentsMoveSchema = BaseSchema.extend({
 export type DocumentsMoveReq = z.infer<typeof DocumentsMoveSchema>;
 
 export const DocumentsArchiveSchema = BaseSchema.extend({
-  body: BaseIdSchema.extend({}),
+  body: BaseIdSchema,
 });
 
 export type DocumentsArchiveReq = z.infer<typeof DocumentsArchiveSchema>;
@@ -241,7 +241,7 @@ export const DocumentsDeleteSchema = BaseSchema.extend({
 export type DocumentsDeleteReq = z.infer<typeof DocumentsDeleteSchema>;
 
 export const DocumentsUnpublishSchema = BaseSchema.extend({
-  body: BaseIdSchema.extend({}),
+  body: BaseIdSchema,
 });
 
 export type DocumentsUnpublishReq = z.infer<typeof DocumentsUnpublishSchema>;
