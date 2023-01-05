@@ -413,6 +413,6 @@ describe("#attachments.redirect", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual("ValidationError: id is required");
+    expect(body.message).toEqual("id is required");
   });
 });

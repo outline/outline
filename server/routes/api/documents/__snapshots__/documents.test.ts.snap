@@ -66,7 +66,7 @@ Object {
 exports[`#documents.update should require text while appending 1`] = `
 Object {
   "error": "validation_error",
-  "message": "ValidationError: text is required while appending",
+  "message": "text is required while appending",
   "ok": false,
   "status": 400,
 }
