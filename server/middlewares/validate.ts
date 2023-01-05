@@ -12,7 +12,8 @@ export default function validate<T extends z.ZodType<BaseReq>>(schema: T) {
       ctx.input = schema.parse(ctx.request);
     } catch (err) {
       const { path, message } = err.issues[0];
-      const [prefix = "ValidationError"] = path;
+      const prefix =
+        path.length > 0 ? path.at(path.length - 1) : "ValidationError";
       throw ValidationError(`${prefix}: ${message}`);
     }
     return next();

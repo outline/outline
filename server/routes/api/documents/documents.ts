@@ -59,7 +59,7 @@ router.post(
   pagination(),
   validate(T.DocumentsListSchema),
   async (ctx: APIContext<T.DocumentsListReq>) => {
-    let { sort } = ctx.input;
+    let { sort } = ctx.input.body;
     const {
       direction,
       template,
@@ -67,7 +67,7 @@ router.post(
       backlinkDocumentId,
       parentDocumentId,
       userId: createdById,
-    } = ctx.input;
+    } = ctx.input.body;
 
     // always filter by the current team
     const { user } = ctx.state.auth;
@@ -176,7 +176,7 @@ router.post(
   pagination(),
   validate(T.DocumentsArchivedSchema),
   async (ctx: APIContext<T.DocumentsArchivedReq>) => {
-    const { sort, direction } = ctx.input;
+    const { sort, direction } = ctx.input.body;
     const { user } = ctx.state.auth;
     const collectionIds = await user.collectionIds();
     const collectionScope: Readonly<ScopeOptions> = {
@@ -220,7 +220,7 @@ router.post(
   pagination(),
   validate(T.DocumentsDeletedSchema),
   async (ctx: APIContext<T.DocumentsDeletedReq>) => {
-    const { sort, direction } = ctx.input;
+    const { sort, direction } = ctx.input.body;
     const { user } = ctx.state.auth;
     const collectionIds = await user.collectionIds({
       paranoid: false,
@@ -280,7 +280,7 @@ router.post(
   pagination(),
   validate(T.DocumentsViewedSchema),
   async (ctx: APIContext<T.DocumentsViewedReq>) => {
-    const { sort, direction } = ctx.input;
+    const { sort, direction } = ctx.input.body;
     const { user } = ctx.state.auth;
     const collectionIds = await user.collectionIds();
     const userId = user.id;
@@ -333,7 +333,7 @@ router.post(
   pagination(),
   validate(T.DocumentsDraftsSchema),
   async (ctx: APIContext<T.DocumentsDraftsReq>) => {
-    const { collectionId, dateFilter, direction, sort } = ctx.input;
+    const { collectionId, dateFilter, direction, sort } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     if (collectionId) {
@@ -396,7 +396,7 @@ router.post(
   }),
   validate(T.DocumentsInfoSchema),
   async (ctx: APIContext<T.DocumentsInfoReq>) => {
-    const { id, shareId, apiVersion } = ctx.input;
+    const { id, shareId, apiVersion } = ctx.input.body;
     const { user } = ctx.state.auth;
     const teamFromCtx = await getTeamFromContext(ctx);
     const { document, share, collection } = await documentLoader({
@@ -442,7 +442,7 @@ router.post(
   }),
   validate(T.DocumentsExportSchema),
   async (ctx: APIContext<T.DocumentsExportReq>) => {
-    const { id } = ctx.input;
+    const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
     const accept = ctx.request.headers["accept"];
 
@@ -494,7 +494,7 @@ router.post(
   auth({ member: true }),
   validate(T.DocumentsRestoreSchema),
   async (ctx: APIContext<T.DocumentsRestoreReq>) => {
-    const { id, collectionId, revisionId } = ctx.input;
+    const { id, collectionId, revisionId } = ctx.input.body;
     const { user } = ctx.state.auth;
     const document = await Document.findByPk(id, {
       userId: user.id,
@@ -604,7 +604,7 @@ router.post(
       dateFilter,
       collectionId,
       userId,
-    } = ctx.input;
+    } = ctx.input.body;
     const { offset, limit } = ctx.state.pagination;
     const { user } = ctx.state.auth;
     let collaboratorIds = undefined;
@@ -660,7 +660,7 @@ router.post(
       shareId,
       snippetMinWords,
       snippetMaxWords,
-    } = ctx.input;
+    } = ctx.input.body;
     const { offset, limit } = ctx.state.pagination;
 
     // Unfortunately, this still doesn't adequately handle cases when auth is optional
@@ -765,7 +765,7 @@ router.post(
   auth({ member: true }),
   validate(T.DocumentsTemplatizeSchema),
   async (ctx: APIContext<T.DocumentsTemplatizeReq>) => {
-    const { id } = ctx.input;
+    const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     const original = await Document.findByPk(id, {
@@ -826,7 +826,7 @@ router.post(
       templateId,
       collectionId,
       append,
-    } = ctx.input;
+    } = ctx.input.body;
     const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
     const { user } = ctx.state.auth;
     let collection: Collection | null | undefined;
@@ -887,7 +887,7 @@ router.post(
   auth(),
   validate(T.DocumentsMoveSchema),
   async (ctx: APIContext<T.DocumentsMoveReq>) => {
-    const { id, collectionId, parentDocumentId, index } = ctx.input;
+    const { id, collectionId, parentDocumentId, index } = ctx.input.body;
     const { user } = ctx.state.auth;
     const document = await Document.findByPk(id, {
       userId: user.id,
@@ -941,7 +941,7 @@ router.post(
   auth(),
   validate(T.DocumentsArchiveSchema),
   async (ctx: APIContext<T.DocumentsArchiveReq>) => {
-    const { id } = ctx.input;
+    const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     const document = await Document.findByPk(id, {
@@ -974,7 +974,7 @@ router.post(
   auth(),
   validate(T.DocumentsDeleteSchema),
   async (ctx: APIContext<T.DocumentsDeleteReq>) => {
-    const { id, permanent } = ctx.input;
+    const { id, permanent } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     if (permanent) {
@@ -1039,7 +1039,7 @@ router.post(
   auth(),
   validate(T.DocumentsUnpublishSchema),
   async (ctx: APIContext<T.DocumentsUnpublishReq>) => {
-    const { id } = ctx.input;
+    const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     const document = await Document.findByPk(id, {
@@ -1083,9 +1083,7 @@ router.post(
       throw InvalidRequestError("Request type must be multipart/form-data");
     }
 
-    // String as this is always multipart/form-data
-    const publish = ctx.input.publish === "true";
-    const { collectionId, parentDocumentId } = ctx.input;
+    const { collectionId, parentDocumentId, publish } = ctx.input.body;
 
     const file = ctx.request.files
       ? Object.values(ctx.request.files)[0]
@@ -1173,7 +1171,7 @@ router.post(
       parentDocumentId,
       templateId,
       template,
-    } = ctx.input;
+    } = ctx.input.body;
     const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
 
     const { user } = ctx.state.auth;
