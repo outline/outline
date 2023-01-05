@@ -230,8 +230,7 @@ router.post("hooks.slack", async (ctx: APIContext) => {
   if (!team) {
     ctx.body = {
       response_type: "ephemeral",
-      text:
-        "Sorry, we couldn’t find an integration for your team. Head to your Outline settings to set one up.",
+      text: `Sorry, we couldn’t find an integration for your team. Head to your ${env.APP_NAME} settings to set one up.`,
     };
     return;
   }
@@ -293,7 +292,7 @@ router.post("hooks.slack", async (ctx: APIContext) => {
     query: text,
     results: totalCount,
   });
-  const haventSignedIn = `(It looks like you haven’t signed in to Outline yet, so results may be limited)`;
+  const haventSignedIn = `(It looks like you haven’t signed in to ${env.APP_NAME} yet, so results may be limited)`;
 
   // Map search results to the format expected by the Slack API
   if (results.length) {

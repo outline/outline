@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { Helmet } from "react-helmet";
 import { cdnPath } from "@shared/utils/urls";
+import env from "~/env";
 import useStores from "~/hooks/useStores";
 
 type Props = {
@@ -16,14 +17,15 @@ const PageTitle = ({ title, favicon }: Props) => {
   return (
     <Helmet>
       <title>
-        {team?.name ? `${title} - ${team.name}` : `${title} - Outline`}
+        {team?.name ? `${title} - ${team.name}` : `${title} - ${env.APP_NAME}}`}
       </title>
       {favicon ? (
-        <link rel="shortcut icon" href={favicon} />
+        <link rel="shortcut icon" href={favicon} key={favicon} />
       ) : (
         <link
           rel="shortcut icon"
           type="image/png"
+          key="favicon"
           href={cdnPath("/images/favicon-32.png")}
           sizes="32x32"
         />

@@ -553,6 +553,11 @@ export class Environment {
   @IsOptional()
   public AWS_S3_ACL = process.env.AWS_S3_ACL ?? "private";
 
+  /**
+   * The product name
+   */
+  public APP_NAME = "Outline";
+
   private toOptionalString(value: string | undefined) {
     return value ? value : undefined;
   }

@@ -1,4 +1,5 @@
 import * as React from "react";
+import env from "@server/env";
 import BaseEmail from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
@@ -27,7 +28,7 @@ export default class InviteReminderEmail extends BaseEmail<Props> {
   }
 
   protected preview() {
-    return "Outline is a place for your team to build and share knowledge.";
+    return `${env.APP_NAME} is a place for your team to build and share knowledge.`;
   }
 
   protected renderAsText({
@@ -37,7 +38,7 @@ export default class InviteReminderEmail extends BaseEmail<Props> {
     teamUrl,
   }: Props): string {
     return `
-This is just a quick reminder that ${actorName} (${actorEmail}) invited you to join them in the ${teamName} team on Outline, a place for your team to build and share knowledge.
+This is just a quick reminder that ${actorName} (${actorEmail}) invited you to join them in the ${teamName} team on ${env.APP_NAME}, a place for your team to build and share knowledge.
 We only send a reminder once.
 
 If you haven't signed up yet, you can do so here: ${teamUrl}
@@ -50,11 +51,13 @@ If you haven't signed up yet, you can do so here: ${teamUrl}
         <Header />
 
         <Body>
-          <Heading>Join {teamName} on Outline</Heading>
+          <Heading>
+            Join {teamName} on {env.APP_NAME}
+          </Heading>
           <p>
             This is just a quick reminder that {actorName} ({actorEmail})
-            invited you to join them in the {teamName} team on Outline, a place
-            for your team to build and share knowledge.
+            invited you to join them in the {teamName} team on {env.APP_NAME}, a
+            place for your team to build and share knowledge.
           </p>
           <p>If you haven't signed up yet, you can do so here:</p>
           <EmptySpace height={10} />

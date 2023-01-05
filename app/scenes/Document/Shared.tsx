@@ -13,6 +13,7 @@ import ErrorOffline from "~/scenes/ErrorOffline";
 import Layout from "~/components/Layout";
 import Sidebar from "~/components/Sidebar/Shared";
 import Text from "~/components/Text";
+import env from "~/env";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { NavigationNode } from "~/types";
@@ -136,9 +137,10 @@ function SharedDocumentScene(props: Props) {
             config?.name && isCloudHosted ? (
               <Content>
                 {t(
-                  "{{ teamName }} is using Outline to share documents, please login to continue.",
+                  "{{ teamName }} is using {{ appName }} to share documents, please login to continue.",
                   {
                     teamName: config.name,
+                    appName: env.APP_NAME,
                   }
                 )}
               </Content>
