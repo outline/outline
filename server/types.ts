@@ -46,6 +46,7 @@ export interface APIContext<ReqT = BaseReq, ResT = BaseRes>
     DefaultContext & IRouterParamContext<AppState>,
     ResT
   > {
+  /** Typed and validated version of request, consisting of validated body, query, etc */
   input: ReqT;
 }
 
