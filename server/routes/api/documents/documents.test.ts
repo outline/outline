@@ -30,9 +30,7 @@ describe("#documents.info", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(400);
-    expect(body.message).toEqual(
-      "ValidationError: one of id or shareId is required"
-    );
+    expect(body.message).toEqual("one of id or shareId is required");
   });
 
   it("should return published document", async () => {
@@ -1824,7 +1822,7 @@ describe("#documents.move", () => {
     const body = await res.json();
     expect(res.status).toEqual(400);
     expect(body.message).toEqual(
-      "ValidationError: infinite loop detected, cannot nest a document inside itself"
+      "infinite loop detected, cannot nest a document inside itself"
     );
   });
 
@@ -2288,7 +2286,7 @@ describe("#documents.create", () => {
 
     expect(res.status).toEqual(400);
     expect(body.message).toBe(
-      "ValidationError: collectionId is required to create a template document"
+      "collectionId is required to create a template document"
     );
   });
 
@@ -2306,9 +2304,7 @@ describe("#documents.create", () => {
     const body = await res.json();
 
     expect(res.status).toEqual(400);
-    expect(body.message).toBe(
-      "ValidationError: collectionId is required to publish"
-    );
+    expect(body.message).toBe("collectionId is required to publish");
   });
 
   it("should not allow creating a nested doc without a collection", async () => {
@@ -2326,7 +2322,7 @@ describe("#documents.create", () => {
 
     expect(res.status).toEqual(400);
     expect(body.message).toBe(
-      "ValidationError: collectionId is required to create a nested document"
+      "collectionId is required to create a nested document"
     );
   });
 

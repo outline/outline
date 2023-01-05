@@ -307,6 +307,24 @@ describe("#attachments.redirect", () => {
     expect(res.status).toEqual(302);
   });
 
+  it("should return a redirect for the attachment if id supplied via query params", async () => {
+    const user = await buildUser();
+    const attachment = await buildAttachment({
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const res = await server.post(
+      `/api/attachments.redirect?id=${attachment.id}`,
+      {
+        body: {
+          token: user.getJwtToken(),
+        },
+        redirect: "manual",
+      }
+    );
+    expect(res.status).toEqual(302);
+  });
+
   it("should return a redirect for an attachment belonging to a trashed document user has access to", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
@@ -384,5 +402,17 @@ describe("#attachments.redirect", () => {
       },
     });
     expect(res.status).toEqual(403);
+  });
+
+  it("should fail in absence of id", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/attachments.redirect", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("id is required");
   });
 });

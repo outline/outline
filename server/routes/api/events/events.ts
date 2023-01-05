@@ -26,7 +26,7 @@ router.post(
       collectionId,
       name,
       auditLog,
-    } = ctx.input;
+    } = ctx.input.body;
 
     let where: WhereOptions<Event> = {
       name: Event.ACTIVITY_EVENTS,
