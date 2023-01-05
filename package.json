@@ -103,7 +103,7 @@
     "fuzzy-search": "^3.2.1",
     "gemoji": "6.x",
     "http-errors": "2.0.0",
-    "i18next": "^22.4.6",
+    "i18next": "^22.4.8",
     "i18next-http-backend": "^2.1.1",
     "immutable": "^4.0.0",
     "inline-css": "^4.0.1",
