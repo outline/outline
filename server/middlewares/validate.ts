@@ -13,7 +13,7 @@ export default function validate<T extends z.ZodType<BaseReq>>(schema: T) {
     } catch (err) {
       const { path, message } = err.issues[0];
       const prefix =
-        path.length > 0 ? path.at(path.length - 1) : "ValidationError";
+        path.length > 0 ? path[path.length - 1] : "ValidationError";
       throw ValidationError(`${prefix}: ${message}`);
     }
     return next();
