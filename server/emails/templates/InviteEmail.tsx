@@ -1,4 +1,5 @@
 import * as React from "react";
+import env from "@server/env";
 import BaseEmail from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
@@ -26,7 +27,7 @@ export default class InviteEmail extends BaseEmail<Props> {
   }
 
   protected preview() {
-    return "Outline is a place for your team to build and share knowledge.";
+    return `${env.APP_NAME} is a place for your team to build and share knowledge.`;
   }
 
   protected renderAsText({
@@ -36,9 +37,9 @@ export default class InviteEmail extends BaseEmail<Props> {
     teamUrl,
   }: Props): string {
     return `
-Join ${teamName} on Outline
+Join ${teamName} on ${env.APP_NAME}
 
-${actorName} (${actorEmail}) has invited you to join Outline, a place for your team to build and share knowledge.
+${actorName} (${actorEmail}) has invited you to join ${env.APP_NAME}, a place for your team to build and share knowledge.
 
 Join now: ${teamUrl}
 `;
@@ -50,10 +51,12 @@ Join now: ${teamUrl}
         <Header />
 
         <Body>
-          <Heading>Join {teamName} on Outline</Heading>
+          <Heading>
+            Join {teamName} on {env.APP_NAME}
+          </Heading>
           <p>
-            {actorName} ({actorEmail}) has invited you to join Outline, a place
-            for your team to build and share knowledge.
+            {actorName} ({actorEmail}) has invited you to join {env.APP_NAME}, a
+            place for your team to build and share knowledge.
           </p>
           <EmptySpace height={10} />
           <p>

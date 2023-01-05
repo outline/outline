@@ -1,4 +1,5 @@
 import * as React from "react";
+import env from "@server/env";
 import { NotificationSetting } from "@server/models";
 import BaseEmail from "./BaseEmail";
 import Body from "./components/Body";
@@ -39,7 +40,7 @@ export default class InviteAcceptedEmail extends BaseEmail<Props> {
   }
 
   protected subject({ invitedName }: Props) {
-    return `${invitedName} has joined your Outline team`;
+    return `${invitedName} has joined your ${env.APP_NAME} team`;
   }
 
   protected preview({ invitedName }: Props) {
@@ -50,7 +51,7 @@ export default class InviteAcceptedEmail extends BaseEmail<Props> {
     return `
 Great news, ${invitedName} just accepted your invitation and has created an account. You can now start collaborating on documents.
 
-Open Outline: ${teamUrl}
+Open ${env.APP_NAME}: ${teamUrl}
 `;
   }
 
@@ -71,7 +72,7 @@ Open Outline: ${teamUrl}
           </p>
           <EmptySpace height={10} />
           <p>
-            <Button href={teamUrl}>Open Outline</Button>
+            <Button href={teamUrl}>Open {env.APP_NAME}</Button>
           </p>
         </Body>
 

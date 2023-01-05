@@ -13,7 +13,7 @@ function Branding({ href = env.URL }: Props) {
   return (
     <Link href={href}>
       <OutlineIcon size={20} />
-      &nbsp;Outline
+      &nbsp;{env.APP_NAME}
     </Link>
   );
 }

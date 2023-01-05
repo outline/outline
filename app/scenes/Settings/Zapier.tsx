@@ -5,11 +5,13 @@ import Heading from "~/components/Heading";
 import ZapierIcon from "~/components/Icons/ZapierIcon";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
+import env from "~/env";
 import useStores from "~/hooks/useStores";
 
 function Zapier() {
   const { ui } = useStores();
   const { resolvedTheme } = ui;
+  const appName = env.APP_NAME;
 
   return (
     <Scene title="Zapier" icon={<ZapierIcon color="currentColor" />}>
@@ -28,9 +30,9 @@ function Zapier() {
       </Helmet>
       <Text type="secondary">
         <Trans>
-          Zapier is a platform that allows Outline to easily integrate with
-          thousands of other business tools. Automate your workflows, sync data,
-          and more.
+          Zapier is a platform that allows {{ appName }} to easily integrate
+          with thousands of other business tools. Automate your workflows, sync
+          data, and more.
         </Trans>
       </Text>
       <br />

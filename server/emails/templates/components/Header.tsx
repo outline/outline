@@ -14,7 +14,7 @@ export default () => {
           <TD>
             <EmptySpace height={40} />
             <img
-              alt="Outline"
+              alt={env.APP_NAME}
               src={
                 isCloudHosted
                   ? `${url}/email/header-logo.png`

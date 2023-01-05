@@ -74,8 +74,8 @@ export default function Notices() {
       )}
       {notice === "suspended" && (
         <NoticeAlert>
-          Your Outline account has been suspended. To re-activate your account,
-          please contact a team admin.
+          Your account has been suspended. To re-activate your account, please
+          contact a team admin.
         </NoticeAlert>
       )}
       {notice === "authentication-provider-disabled" && (
