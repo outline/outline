@@ -799,7 +799,7 @@
   "New webhook": "Nouveau webhook",
   "Webhooks can be used to notify your application when events happen in {{appName}}. Events are sent as a https request with a JSON payload in near real-time.": "Webhooks can be used to notify your application when events happen in {{appName}}. Events are sent as a https request with a JSON payload in near real-time.",
   "Create a webhook": "Créer un webhook",
-  "Zapier is a platform that allows {{appName}} to easily integrate with thousands of other business tools. Automate your workflows, sync data, and more.": "Zapier is a platform that allows {{appName}} to easily integrate with thousands of other business tools. Automate your workflows, sync data, and more.",
+  "Zapier is a platform that allows {{appName}} to easily integrate with thousands of other business tools. Automate your workflows, sync data, and more.": "Zapier est une plate-forme qui permet à {{appName}} de s'intégrer facilement à des milliers d'autres outils professionnels. Automatisez vos flux de travail, synchronisez les données, et plus.",
   "Your are creating a new workspace using your current account — <em>{{email}}</em>": "Vous créez un nouvel espace de travail avec votre compte actuel — <em>{{email}}</em>",
   "Workspace name": "Nom de l'espace de travail",
   "When your new workspace is created, you will be the admin, meaning you will have the highest level of permissions and the ability to invite others.": "Lorsque votre nouvel espace de travail sera créé, vous serez l'administrateur, ce qui signifie que vous aurez le plus haut niveau d'autorisation et la possibilité d'inviter d'autres personnes.",
