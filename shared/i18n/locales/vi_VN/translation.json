@@ -714,7 +714,7 @@
   "All groups": "Tất cả các nhóm",
   "No groups have been created yet": "Chưa có nhóm nào được tạo",
   "Quickly transfer your existing documents, pages, and files from other tools and services into {{appName}}. You can also drag and drop any HTML, Markdown, and text documents directly into Collections in the app.": "Quickly transfer your existing documents, pages, and files from other tools and services into {{appName}}. You can also drag and drop any HTML, Markdown, and text documents directly into Collections in the app.",
-  "Import a zip file of Markdown documents (exported from version 0.67.0 or earlier)": "",
+  "Import a zip file of Markdown documents (exported from version 0.67.0 or earlier)": "Import a zip file of Markdown documents (exported from version 0.67.0 or earlier)",
   "Import data": "Nhập dữ liệu",
   "Import pages exported from Notion": "Nhập các trang được trích xuất từ Notion",
   "Import pages from a Confluence instance": "Nhập các trang từ Confluence",
