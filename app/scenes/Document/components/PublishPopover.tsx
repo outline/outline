@@ -31,7 +31,8 @@ function PublishPopover({ document, visible }: Props) {
   const { t } = useTranslation();
   const listRef = React.useRef<any>(null);
 
-  const SCROLL_LIST_PADDING = 6;
+  const VERTICAL_PADDING = 6;
+  const HORIZONTAL_PADDING = 24;
 
   React.useEffect(() => {
     if (visible && selectedLocation && listRef.current) {
@@ -40,8 +41,8 @@ function PublishPopover({ document, visible }: Props) {
       const scrollWindowTop = listRef.current.state.scrollOffset;
       const scrollWindowBottom = scrollWindowTop + height;
 
-      const top = SCROLL_LIST_PADDING + index * itemSize;
-      const bottom = SCROLL_LIST_PADDING + (index + 1) * itemSize;
+      const top = VERTICAL_PADDING + index * itemSize;
+      const bottom = VERTICAL_PADDING + (index + 1) * itemSize;
 
       let offset;
       if (top < scrollWindowTop) {
@@ -145,7 +146,9 @@ function PublishPopover({ document, visible }: Props) {
       <PublishLocation
         style={{
           ...style,
-          top: (style.top as number) + SCROLL_LIST_PADDING,
+          top: (style.top as number) + VERTICAL_PADDING,
+          left: (style.left as number) + HORIZONTAL_PADDING,
+          width: `calc(${style.width} - ${HORIZONTAL_PADDING * 2}px)`,
         }}
         location={result}
         onSelect={handleSelect}
@@ -168,7 +171,7 @@ function PublishPopover({ document, visible }: Props) {
         ref={ref}
         style={{
           ...style,
-          height: `${parseFloat(style.height) + SCROLL_LIST_PADDING * 2}px`,
+          height: `${parseFloat(style.height) + VERTICAL_PADDING * 2}px`,
         }}
         {...rest}
       />
@@ -239,10 +242,7 @@ const PublishLocationSearch = styled(InputSearch)`
 `;
 
 const Results = styled.div`
-  padding-left: 24px;
-  padding-right: 24px;
   height: 65vh;
-  margin-right: -24px;
 
   ${breakpoint("tablet")`
     height: 40vh;
