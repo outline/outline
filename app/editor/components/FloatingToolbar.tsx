@@ -1,6 +1,5 @@
 import { NodeSelection } from "prosemirror-state";
 import { CellSelection } from "prosemirror-tables";
-import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import { Portal } from "react-portal";
 import styled from "styled-components";
@@ -9,10 +8,10 @@ import useComponentSize from "~/hooks/useComponentSize";
 import useEventListener from "~/hooks/useEventListener";
 import useMediaQuery from "~/hooks/useMediaQuery";
 import useViewportHeight from "~/hooks/useViewportHeight";
+import { useEditor } from "./EditorContext";
 
 type Props = {
   active?: boolean;
-  view: EditorView;
   children: React.ReactNode;
   forwardedRef?: React.RefObject<HTMLDivElement> | null;
 };
@@ -27,13 +26,13 @@ const defaultPosition = {
 function usePosition({
   menuRef,
   isSelectingText,
-  props,
+  active,
 }: {
   menuRef: React.RefObject<HTMLDivElement>;
   isSelectingText: boolean;
-  props: Props;
+  active?: boolean;
 }) {
-  const { view, active } = props;
+  const { view } = useEditor();
   const { selection } = view.state;
   const { width: menuWidth, height: menuHeight } = useComponentSize(menuRef);
   const viewportHeight = useViewportHeight();
@@ -155,14 +154,14 @@ function usePosition({
 }
 
 const FloatingToolbar = React.forwardRef(
-  (props: Props, forwardedRef: React.RefObject<HTMLDivElement>) => {
-    const menuRef = forwardedRef || React.createRef<HTMLDivElement>();
+  (props: Props, ref: React.RefObject<HTMLDivElement>) => {
+    const menuRef = ref || React.createRef<HTMLDivElement>();
     const [isSelectingText, setSelectingText] = React.useState(false);
 
     const position = usePosition({
       menuRef,
       isSelectingText,
-      props,
+      active: props.active,
     });
 
     useEventListener("mouseup", () => {
