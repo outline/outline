@@ -714,7 +714,7 @@
   "All groups": "Tutti i gruppi",
   "No groups have been created yet": "Non sono stati ancora creati gruppi",
   "Quickly transfer your existing documents, pages, and files from other tools and services into {{appName}}. You can also drag and drop any HTML, Markdown, and text documents directly into Collections in the app.": "Quickly transfer your existing documents, pages, and files from other tools and services into {{appName}}. You can also drag and drop any HTML, Markdown, and text documents directly into Collections in the app.",
-  "Import a zip file of Markdown documents (exported from version 0.67.0 or earlier)": "",
+  "Import a zip file of Markdown documents (exported from version 0.67.0 or earlier)": "Import a zip file of Markdown documents (exported from version 0.67.0 or earlier)",
   "Import data": "Importa dati",
   "Import pages exported from Notion": "Importa pagine esportate da Notion",
   "Import pages from a Confluence instance": "Importa pagine da un'istanza di Confluence",
