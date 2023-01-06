@@ -8,7 +8,7 @@ type Props = {
   location: any;
   onSelect: (location: any) => void;
   selected: boolean;
-  style?: React.CSSProperties;
+  style: React.CSSProperties;
 };
 
 function PublishLocation({ location, onSelect, selected, style }: Props) {
