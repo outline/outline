@@ -231,11 +231,7 @@ export default class SelectionToolbar extends React.Component<Props> {
     }
 
     return (
-      <FloatingToolbar
-        view={view}
-        active={isVisible(this.props)}
-        ref={this.menuRef}
-      >
+      <FloatingToolbar active={isVisible(this.props)} ref={this.menuRef}>
         {link && range ? (
           <LinkEditor
             key={`${range.from}-${range.to}`}
