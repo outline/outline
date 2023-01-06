@@ -174,9 +174,6 @@ allow(User, "move", Document, (user, document) => {
   if (document.deletedAt) {
     return false;
   }
-  if (!document.publishedAt) {
-    return false;
-  }
   invariant(
     document.collection,
     "collection is missing, did you forget to include in the query scope?"
