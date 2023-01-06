@@ -27,7 +27,7 @@ import { useStarredContext } from "./StarredContext";
 type Props = {
   collection: Collection;
   expanded?: boolean;
-  onDisclosureClick: (ev: React.MouseEvent<HTMLButtonElement>) => void;
+  onDisclosureClick: (ev?: React.MouseEvent<HTMLButtonElement>) => void;
   activeDocument: Document | undefined;
   isDraggingAnyCollection?: boolean;
 };
@@ -62,7 +62,7 @@ const CollectionLink: React.FC<Props> = ({
   // Drop to re-parent document
   const [{ isOver, canDrop }, drop] = useDrop({
     accept: "document",
-    drop: (item: DragObject, monitor) => {
+    drop: async (item: DragObject, monitor) => {
       const { id, collectionId } = item;
       if (monitor.didDrop()) {
         return;
@@ -81,7 +81,8 @@ const CollectionLink: React.FC<Props> = ({
       if (
         prevCollection &&
         prevCollection.permission === null &&
-        prevCollection.permission !== collection.permission
+        prevCollection.permission !== collection.permission &&
+        !document?.isDraft
       ) {
         itemRef.current = item;
 
@@ -97,7 +98,11 @@ const CollectionLink: React.FC<Props> = ({
           ),
         });
       } else {
-        documents.move(id, collection.id);
+        await documents.move(id, collection.id);
+
+        if (!expanded) {
+          onDisclosureClick();
+        }
       }
     },
     canDrop: () => canUpdate,
