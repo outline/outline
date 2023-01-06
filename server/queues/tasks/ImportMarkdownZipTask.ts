@@ -152,22 +152,20 @@ export default class ImportMarkdownZipTask extends ImportTask {
     // and replace them out with attachment redirect urls before continuing.
     for (const document of output.documents) {
       for (const attachment of output.attachments) {
+        const encodedPath = encodeURI(attachment.path);
+
         // Pull the collection and subdirectory out of the path name, upload
         // folders in an export are relative to the document itself
-        const normalizedAttachmentPath = attachment.path.replace(
+        const normalizedAttachmentPath = encodedPath.replace(
           /(.*)uploads\//,
           "uploads/"
         );
 
         const reference = `<<${attachment.id}>>`;
         document.text = document.text
-          .replace(new RegExp(escapeRegExp(attachment.path), "g"), reference)
+          .replace(new RegExp(escapeRegExp(encodedPath), "g"), reference)
           .replace(
-            new RegExp(escapeRegExp(normalizedAttachmentPath), "g"),
-            reference
-          )
-          .replace(
-            new RegExp(escapeRegExp(`/${normalizedAttachmentPath}`), "g"),
+            new RegExp(`/?${escapeRegExp(normalizedAttachmentPath)}`, "g"),
             reference
           );
       }
