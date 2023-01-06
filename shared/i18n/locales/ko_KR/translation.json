@@ -714,7 +714,7 @@
   "All groups": "모든 그룹",
   "No groups have been created yet": "아직 생성 된 그룹이 없습니다",
   "Quickly transfer your existing documents, pages, and files from other tools and services into {{appName}}. You can also drag and drop any HTML, Markdown, and text documents directly into Collections in the app.": "Quickly transfer your existing documents, pages, and files from other tools and services into {{appName}}. You can also drag and drop any HTML, Markdown, and text documents directly into Collections in the app.",
-  "Import a zip file of Markdown documents (exported from version 0.67.0 or earlier)": "",
+  "Import a zip file of Markdown documents (exported from version 0.67.0 or earlier)": "Import a zip file of Markdown documents (exported from version 0.67.0 or earlier)",
   "Import data": "데이터 가져오기",
   "Import pages exported from Notion": "Import pages exported from Notion",
   "Import pages from a Confluence instance": "Import pages from a Confluence instance",
