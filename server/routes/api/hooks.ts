@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { t } from "i18next";
 import Router from "koa-router";
 import { escapeRegExp } from "lodash";
 import { IntegrationService } from "@shared/types";
@@ -18,6 +19,7 @@ import {
 import SearchHelper from "@server/models/helpers/SearchHelper";
 import { presentSlackAttachment } from "@server/presenters";
 import { APIContext } from "@server/types";
+import { opts } from "@server/utils/i18n";
 import * as Slack from "@server/utils/slack";
 import { assertPresent } from "@server/validation";
 
@@ -150,21 +152,6 @@ router.post("hooks.slack", async (ctx: APIContext) => {
   assertPresent(user_id, "user_id is required");
   verifySlackToken(token);
 
-  // Handle "help" command or no input
-  if (text.trim() === "help" || !text.trim()) {
-    ctx.body = {
-      response_type: "ephemeral",
-      text: "How to use /outline",
-      attachments: [
-        {
-          text:
-            "To search your knowledge base use `/outline keyword`. \nYou’ve already learned how to get help with `/outline help`.",
-        },
-      ],
-    };
-    return;
-  }
-
   let user, team;
   // attempt to find the corresponding team for this request based on the team_id
   team = await Team.findOne({
@@ -225,12 +212,39 @@ router.post("hooks.slack", async (ctx: APIContext) => {
     }
   }
 
+  // Handle "help" command or no input
+  if (text.trim() === "help" || !text.trim()) {
+    ctx.body = {
+      response_type: "ephemeral",
+      text: "How to use /outline",
+      attachments: [
+        {
+          text: t(
+            "To search your knowledgebase use {{ command }}. \nYou’ve already learned how to get help with {{ command2 }}.",
+            {
+              command: `/outline keyword`,
+              command2: `/outline help`,
+              ...opts(user),
+            }
+          ),
+        },
+      ],
+    };
+    return;
+  }
+
   // This should be super rare, how does someone end up being able to make a valid
   // request from Slack that connects to no teams in Outline.
   if (!team) {
     ctx.body = {
       response_type: "ephemeral",
-      text: `Sorry, we couldn’t find an integration for your team. Head to your ${env.APP_NAME} settings to set one up.`,
+      text: t(
+        `Sorry, we couldn’t find an integration for your team. Head to your {{ appName }} settings to set one up.`,
+        {
+          ...opts(user),
+          appName: env.APP_NAME,
+        }
+      ),
     };
     return;
   }
@@ -292,7 +306,13 @@ router.post("hooks.slack", async (ctx: APIContext) => {
     query: text,
     results: totalCount,
   });
-  const haventSignedIn = `(It looks like you haven’t signed in to ${env.APP_NAME} yet, so results may be limited)`;
+  const haventSignedIn = t(
+    `It looks like you haven’t signed in to {{ appName }} yet, so results may be limited`,
+    {
+      ...opts(user),
+      appName: env.APP_NAME,
+    }
+  );
 
   // Map search results to the format expected by the Slack API
   if (results.length) {
@@ -312,7 +332,7 @@ router.post("hooks.slack", async (ctx: APIContext) => {
             ? [
                 {
                   name: "post",
-                  text: "Post to Channel",
+                  text: t("Post to Channel", opts(user)),
                   type: "button",
                   value: result.document.id,
                 },
@@ -324,15 +344,24 @@ router.post("hooks.slack", async (ctx: APIContext) => {
 
     ctx.body = {
       text: user
-        ? `This is what we found for "${text}"…`
-        : `This is what we found for "${text}" ${haventSignedIn}…`,
+        ? t(`This is what we found for "{{ term }}"`, {
+            ...opts(user),
+            term: text,
+          })
+        : t(`This is what we found for "{{ term }}"`, {
+            term: text,
+          }) + ` (${haventSignedIn})…`,
       attachments,
     };
   } else {
     ctx.body = {
       text: user
-        ? `No results for "${text}"`
-        : `No results for "${text}" ${haventSignedIn}`,
+        ? t(`No results for "{{ term }}"`, {
+            ...opts(user),
+            term: text,
+          })
+        : t(`No results for "{{ term }}"`, { term: text }) +
+          ` (${haventSignedIn})…`,
     };
   }
 });
