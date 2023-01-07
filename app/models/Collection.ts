@@ -171,8 +171,11 @@ export default class Collection extends ParanoidModel {
   }
 
   pathToDocument(documentId: string) {
-    let path: NavigationNode[] | undefined;
+    let path: NavigationNode[] | undefined = [];
     const document = this.store.rootStore.documents.get(documentId);
+    if (!document) {
+      return path;
+    }
 
     const travelNodes = (
       nodes: NavigationNode[],
@@ -187,8 +190,8 @@ export default class Collection extends ParanoidModel {
         }
 
         if (
-          document?.parentDocumentId &&
-          node?.id === document?.parentDocumentId
+          document.parentDocumentId &&
+          node.id === document.parentDocumentId
         ) {
           path = [...newPath, document.asNavigationNode];
           return;
@@ -199,10 +202,10 @@ export default class Collection extends ParanoidModel {
     };
 
     if (this.documents) {
-      travelNodes(this.documents, []);
+      travelNodes(this.documents, path);
     }
 
-    return path || [];
+    return path;
   }
 
   @action

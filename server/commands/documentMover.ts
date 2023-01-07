@@ -67,29 +67,37 @@ async function documentMover({
 
     invariant(newCollection, "collection should exist");
 
-    // Remove the document from the current collection
-    const response = await collection?.removeDocumentInStructure(document, {
-      transaction,
-    });
+    if (document.publishedAt) {
+      // Remove the document from the current collection
+      const response = await collection?.removeDocumentInStructure(document, {
+        transaction,
+      });
 
-    const documentJson = response?.[0];
-    const fromIndex = response?.[1] || 0;
+      const documentJson = response?.[0];
+      const fromIndex = response?.[1] || 0;
 
-    if (!documentJson) {
-      throw ValidationError("The document was not found in the collection");
+      if (!documentJson) {
+        throw ValidationError("The document was not found in the collection");
+      }
+
+      // if we're reordering from within the same parent
+      // the original and destination collection are the same,
+      // so when the initial item is removed above, the list will reduce by 1.
+      // We need to compensate for this when reordering
+      const toIndex =
+        index !== undefined &&
+        document.parentDocumentId === parentDocumentId &&
+        document.collectionId === collectionId &&
+        fromIndex < index
+          ? index - 1
+          : index;
+
+      // Add the document and it's tree to the new collection
+      await newCollection.addDocumentToStructure(document, toIndex, {
+        documentJson,
+        transaction,
+      });
     }
-
-    // if we're reordering from within the same parent
-    // the original and destination collection are the same,
-    // so when the initial item is removed above, the list will reduce by 1.
-    // We need to compensate for this when reordering
-    const toIndex =
-      index !== undefined &&
-      document.parentDocumentId === parentDocumentId &&
-      document.collectionId === collectionId &&
-      fromIndex < index
-        ? index - 1
-        : index;
 
     // Update the properties on the document record
     document.collectionId = collectionId;
@@ -97,13 +105,7 @@ async function documentMover({
     document.lastModifiedById = user.id;
     document.updatedBy = user;
 
-    // Add the document and it's tree to the new collection
-    await newCollection.addDocumentToStructure(document, toIndex, {
-      documentJson,
-      transaction,
-    });
-
-    if (collection) {
+    if (collection && document.publishedAt) {
       result.collections.push(collection);
     }
 

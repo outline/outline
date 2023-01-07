@@ -128,7 +128,7 @@ describe("no collection", () => {
     expect(abilities.createChildDocument).toEqual(false);
     expect(abilities.delete).toEqual(true);
     expect(abilities.download).toEqual(true);
-    expect(abilities.move).toEqual(false);
+    expect(abilities.move).toEqual(true);
     expect(abilities.permanentDelete).toEqual(false);
     expect(abilities.pin).toEqual(false);
     expect(abilities.pinToHome).toEqual(false);
