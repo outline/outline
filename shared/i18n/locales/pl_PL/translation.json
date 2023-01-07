@@ -823,5 +823,11 @@
   "This month": "Ten miesiąc",
   "Last month": "Zeszły miesiąc",
   "This year": "Ten rok",
+  "To search your knowledgebase use {{ command }}. \nYou’ve already learned how to get help with {{ command2 }}.": "To search your knowledgebase use {{ command }}. \nYou’ve already learned how to get help with {{ command2 }}.",
+  "Sorry, we couldn’t find an integration for your team. Head to your {{ appName }} settings to set one up.": "Sorry, we couldn’t find an integration for your team. Head to your {{ appName }} settings to set one up.",
+  "It looks like you haven’t signed in to {{ appName }} yet, so results may be limited": "It looks like you haven’t signed in to {{ appName }} yet, so results may be limited",
+  "Post to Channel": "Post to Channel",
+  "This is what we found for \"{{ term }}\"": "This is what we found for \"{{ term }}\"",
+  "No results for \"{{ term }}\"": "No results for \"{{ term }}\"",
   "Uploading": "Wysyłanie"
 }
