@@ -43,10 +43,24 @@ const locales = {
   zh_TW: zhTW,
 };
 
-export function dateLocale(userLocale: string | null | undefined) {
-  return userLocale ? locales[userLocale] : undefined;
+/**
+ * Returns the date-fns locale object for the given user language preference.
+ *
+ * @param language The user language
+ * @returns The date-fns locale.
+ */
+export function dateLocale(language: string | null | undefined) {
+  return language ? locales[language] : undefined;
 }
 
+/**
+ * Initializes i18n library, loading all available translations from the
+ * API backend.
+ *
+ * @param defaultLanguage The default language to use if the user's language
+ * is not supported.
+ * @returns i18n instance
+ */
 export function initI18n(defaultLanguage = "en_US") {
   const lng = unicodeCLDRtoBCP47(defaultLanguage);
   i18n
