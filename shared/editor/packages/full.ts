@@ -38,8 +38,6 @@ const fullPackage: (typeof Node | typeof Mark | typeof Extension)[] = [
   OrderedList,
   Embed,
   ListItem,
-  Math,
-  MathBlock,
   Attachment,
   Notice,
   Heading,
@@ -53,6 +51,8 @@ const fullPackage: (typeof Node | typeof Mark | typeof Extension)[] = [
   Folding,
   Keys,
   BlockMenuTrigger,
+  Math,
+  MathBlock,
 ];
 
 export default fullPackage;
