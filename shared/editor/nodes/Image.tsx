@@ -168,7 +168,9 @@ export default class Image extends Node {
     return {
       inline: true,
       attrs: {
-        src: {},
+        src: {
+          default: "",
+        },
         width: {
           default: undefined,
         },
