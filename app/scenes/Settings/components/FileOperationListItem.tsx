@@ -72,7 +72,7 @@ const FileOperationListItem = ({ fileOperation, handleDelete }: Props) => {
           &nbsp;
           <Time dateTime={fileOperation.createdAt} addSuffix shorten />
           {format ? <>&nbsp;•&nbsp;{format}</> : ""}
-          &nbsp;•&nbsp;{fileOperation.sizeInMB}
+          {fileOperation.size ? <>&nbsp;•&nbsp;{fileOperation.sizeInMB}</> : ""}
         </>
       }
       actions={

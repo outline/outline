@@ -153,7 +153,7 @@ class Collection extends ParanoidModel {
     msg: `description must be ${CollectionValidation.maxDescriptionLength} characters or less`,
   })
   @Column
-  description: string;
+  description: string | null;
 
   @Length({
     max: 50,

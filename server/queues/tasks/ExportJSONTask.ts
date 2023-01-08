@@ -2,7 +2,12 @@ import JSZip from "jszip";
 import { parser } from "@server/editor";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
-import { Attachment, Collection, Document } from "@server/models";
+import {
+  Attachment,
+  Collection,
+  Document,
+  FileOperation,
+} from "@server/models";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import { presentAttachment, presentCollection } from "@server/presenters";
 import ZipHelper from "@server/utils/ZipHelper";
@@ -14,24 +19,28 @@ import packageJson from "../../../package.json";
 import ExportTask from "./ExportTask";
 
 export default class ExportJSONTask extends ExportTask {
-  public async export(collections: Collection[]) {
+  public async export(collections: Collection[], fileOperation: FileOperation) {
     const zip = new JSZip();
 
-    // serial to avoid overloading, slow and steady
+    // serial to avoid overloading, slow and steady wins the race
     for (const collection of collections) {
       await this.addCollectionToArchive(zip, collection);
     }
 
-    this.addMetadataToArchive(zip);
+    await this.addMetadataToArchive(zip, fileOperation);
 
     return ZipHelper.toTmpFile(zip);
   }
 
-  private addMetadataToArchive(zip: JSZip) {
+  private async addMetadataToArchive(zip: JSZip, fileOperation: FileOperation) {
+    const user = await fileOperation.$get("user");
+
     const metadata = {
       backupVersion: 1,
       version: packageJson.version,
       createdAt: new Date(),
+      createdById: fileOperation.userId,
+      createdByEmail: user?.email,
     };
 
     zip.file(
@@ -46,7 +55,9 @@ export default class ExportJSONTask extends ExportTask {
     const output = {
       ...presentCollection(collection),
       url: undefined,
-      description: parser.parse(collection.description),
+      description: collection.description
+        ? parser.parse(collection.description)
+        : null,
       documentStructure: collection.documentStructure,
       documents: {},
       attachments: {},
@@ -99,6 +110,8 @@ export default class ExportJSONTask extends ExportTask {
           urlId: document.urlId,
           title: document.title,
           data: DocumentHelper.toProsemirror(document),
+          createdById: document.createdById,
+          createdByEmail: document.createdBy.email,
           createdAt: document.createdAt,
           updatedAt: document.updatedAt,
           publishedAt: document.publishedAt,
