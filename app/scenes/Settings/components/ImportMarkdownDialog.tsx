@@ -3,29 +3,31 @@ import { Trans } from "react-i18next";
 import { FileOperationFormat } from "@shared/types";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
+import env from "~/env";
 import useStores from "~/hooks/useStores";
 import DropToImport from "./DropToImport";
 import HelpDisclosure from "./HelpDisclosure";
 
-function ImportNotionDialog() {
+function ImportMarkdownDialog() {
   const { dialogs } = useStores();
+  const appName = env.APP_NAME;
 
   return (
     <Flex column>
       <Text type="secondary">
         <DropToImport
           onSubmit={dialogs.closeAllModals}
-          format={FileOperationFormat.Notion}
+          format={FileOperationFormat.MarkdownZip}
         >
           <Trans>
-            Drag and drop the zip file from Notion's HTML export option, or
-            click to upload
+            Drag and drop the zip file from the Markdown export option in{" "}
+            {{ appName }}, or click to upload
           </Trans>
         </DropToImport>
       </Text>
-      <HelpDisclosure title={<Trans>Where do I find the file?</Trans>}>
+      <HelpDisclosure title={<Trans>How does this work?</Trans>}>
         <Trans
-          defaults="In Notion, click <em>Settings & Members</em> in the left sidebar and open Settings. Look for the Export section, and click <em>Export all workspace content</em>. Choose <em>HTML</em> as the format for the best data compatability."
+          defaults="You can import a zip file that was previously exported from an Outline installation – collections, documents, and images will be imported. In Outline, open <em>Export</em> in the Settings sidebar and click on <em>Export Data</em>."
           components={{
             em: <strong />,
           }}
@@ -35,4 +37,4 @@ function ImportNotionDialog() {
   );
 }
 
-export default ImportNotionDialog;
+export default ImportMarkdownDialog;
