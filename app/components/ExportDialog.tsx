@@ -1,5 +1,4 @@
 import { observer } from "mobx-react";
-import { CodeIcon, DocumentIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
@@ -7,7 +6,6 @@ import { FileOperationFormat } from "@shared/types";
 import Collection from "~/models/Collection";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Flex from "~/components/Flex";
-import MarkdownIcon from "~/components/Icons/MarkdownIcon";
 import Text from "~/components/Text";
 import env from "~/env";
 import useStores from "~/hooks/useStores";
@@ -48,6 +46,33 @@ function ExportDialog({ collection, onSubmit }: Props) {
     showToast(t("Export started"), { type: "success" });
   };
 
+  const items = [
+    {
+      title: "Markdown",
+      description: t(
+        "A ZIP file containing the images, and documents in the Markdown format."
+      ),
+      value: FileOperationFormat.MarkdownZip,
+    },
+    {
+      title: "HTML",
+      description: t(
+        "A ZIP file containing the images, and documents as HTML files."
+      ),
+      value: FileOperationFormat.HTMLZip,
+    },
+    {
+      title: "JSON",
+      description: t(
+        "Structured data that can be used to transfer data to another compatible {{ appName }} instance.",
+        {
+          appName,
+        }
+      ),
+      value: FileOperationFormat.JSON,
+    },
+  ];
+
   return (
     <ConfirmationDialog onSubmit={handleSubmit} submitText={t("Export")}>
       {collection && (
@@ -66,81 +91,27 @@ function ExportDialog({ collection, onSubmit }: Props) {
         </Text>
       )}
       <Flex gap={12} column>
-        <Option>
-          <Input
-            type="radio"
-            name="format"
-            value={FileOperationFormat.MarkdownZip}
-            checked={format === FileOperationFormat.MarkdownZip}
-            onChange={handleFormatChange}
-          />
-          <Format>
-            <MarkdownIcon size={32} color="currentColor" />
-            Markdown
-          </Format>
-          <Text size="small">
-            <Trans>
-              A ZIP file containing the images, and documents in the Markdown
-              format.
-            </Trans>
-          </Text>
-        </Option>
-        <Option>
-          <Input
-            type="radio"
-            name="format"
-            value={FileOperationFormat.HTMLZip}
-            checked={format === FileOperationFormat.HTMLZip}
-            onChange={handleFormatChange}
-          />
-          <Format>
-            <CodeIcon size={32} color="currentColor" />
-            HTML
-          </Format>
-          <Text size="small">
-            <Trans>
-              A ZIP file containing the images, and documents as HTML files.
-            </Trans>
-          </Text>
-        </Option>
-        <Option>
-          <Input
-            type="radio"
-            name="format"
-            value={FileOperationFormat.JSON}
-            checked={format === FileOperationFormat.JSON}
-            onChange={handleFormatChange}
-          />
-          <Format>
-            <DocumentIcon size={32} />
-            JSON
-          </Format>
-          <Text size="small">
-            <Trans>
-              Structured data that can be used to transfer data to another
-              compatible {{ appName }} instance.
-            </Trans>
-          </Text>
-        </Option>
+        {items.map((item) => (
+          <Option>
+            <input
+              type="radio"
+              name="format"
+              value={item.value}
+              checked={format === item.value}
+              onChange={handleFormatChange}
+            />
+            <div>
+              <Text size="small" weight="bold">
+                {item.title}
+              </Text>
+              <Text size="small">{item.description}</Text>
+            </div>
+          </Option>
+        ))}
       </Flex>
     </ConfirmationDialog>
   );
 }
-
-const Format = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex-shrink: 0;
-  background: ${(props) => props.theme.secondaryBackground};
-  border-radius: 6px;
-  width: 25%;
-  font-weight: 500;
-  font-size: 14px;
-  text-align: center;
-  padding: 10px 8px;
-  cursor: var(--pointer);
-`;
 
 const Option = styled.label`
   display: flex;
@@ -149,14 +120,6 @@ const Option = styled.label`
 
   p {
     margin: 0;
-  }
-`;
-
-const Input = styled.input`
-  display: none;
-
-  &:checked + ${Format} {
-    box-shadow: inset 0 0 0 2px ${(props) => props.theme.inputBorderFocused};
   }
 `;
 
