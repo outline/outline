@@ -49,7 +49,7 @@ export default class FileOperationsProcessor extends BaseProcessor {
             fileOperationId: event.modelId,
           });
           break;
-        case FileOperationFormat.Outline:
+        case FileOperationFormat.JSON:
           await ExportJSONTask.schedule({
             fileOperationId: event.modelId,
           });

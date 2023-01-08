@@ -9,6 +9,7 @@ import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Flex from "~/components/Flex";
 import MarkdownIcon from "~/components/Icons/MarkdownIcon";
 import Text from "~/components/Text";
+import env from "~/env";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 
@@ -24,6 +25,7 @@ function ExportDialog({ collection, onSubmit }: Props) {
   const { showToast } = useToasts();
   const { collections, notificationSettings } = useStores();
   const { t } = useTranslation();
+  const appName = env.APP_NAME;
 
   React.useEffect(() => {
     notificationSettings.fetchPage({});
@@ -105,18 +107,18 @@ function ExportDialog({ collection, onSubmit }: Props) {
           <Input
             type="radio"
             name="format"
-            value={FileOperationFormat.Outline}
-            checked={format === FileOperationFormat.Outline}
+            value={FileOperationFormat.JSON}
+            checked={format === FileOperationFormat.JSON}
             onChange={handleFormatChange}
           />
           <Format>
             <DocumentIcon size={32} />
-            <Trans>Backup</Trans>
+            <Trans>JSON</Trans>
           </Format>
           <Text size="small">
             <Trans>
-              A file that can be used to transfer data to another compatible
-              Outline instance.
+              A structured data file that can be used to transfer data to
+              another compatible {{ appName }} instance.
             </Trans>
           </Text>
         </Option>

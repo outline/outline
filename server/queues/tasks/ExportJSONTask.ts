@@ -1,4 +1,5 @@
 import JSZip from "jszip";
+import { parser } from "@server/editor";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { Attachment, Collection, Document } from "@server/models";
@@ -45,6 +46,7 @@ export default class ExportJSONTask extends ExportTask {
     const output = {
       ...presentCollection(collection),
       url: undefined,
+      description: parser.parse(collection.description),
       documentStructure: collection.documentStructure,
       documents: {},
       attachments: {},
@@ -80,6 +82,7 @@ export default class ExportJSONTask extends ExportTask {
 
               output.attachments[attachment.id] = {
                 ...presentAttachment(attachment),
+                key: attachment.key,
                 url: undefined,
               };
             } catch (err) {
