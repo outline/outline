@@ -113,12 +113,12 @@ function ExportDialog({ collection, onSubmit }: Props) {
           />
           <Format>
             <DocumentIcon size={32} />
-            <Trans>JSON</Trans>
+            JSON
           </Format>
           <Text size="small">
             <Trans>
-              A structured data file that can be used to transfer data to
-              another compatible {{ appName }} instance.
+              Structured data that can be used to transfer data to another
+              compatible {{ appName }} instance.
             </Trans>
           </Text>
         </Option>
