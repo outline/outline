@@ -183,7 +183,7 @@
     "react-i18next": "^12.1.1",
     "react-merge-refs": "^2.0.1",
     "react-portal": "^4.2.0",
-    "react-router-dom": "^5.2.0",
+    "react-router-dom": "^6.6.1",
     "react-table": "^7.7.0",
     "react-virtualized-auto-sizer": "^1.0.5",
     "react-waypoint": "^10.1.0",
