@@ -828,6 +828,6 @@
   "It looks like you haven’t signed in to {{ appName }} yet, so results may be limited": "It looks like you haven’t signed in to {{ appName }} yet, so results may be limited",
   "Post to Channel": "Post to Channel",
   "This is what we found for \"{{ term }}\"": "This is what we found for \"{{ term }}\"",
-  "No results for \"{{ term }}\"": "No results for \"{{ term }}\"",
+  "No results for \"{{ term }}\"": "Aucun résultats pour {{ term }}\"",
   "Uploading": "Transfert en cours"
 }
