@@ -2086,10 +2086,10 @@
   resolved "https://registry.yarnpkg.com/@jonkemp/package-utils/-/package-utils-1.0.8.tgz#4bce132a18f34407a88bb15c28bd3ed3030c4776"
   integrity sha512-bIcKnH5YmtTYr7S6J3J86dn/rFiklwRpOqbTOQ9C0WMmR9FKHVb3bxs2UYfqEmNb93O4nbA97sb6rtz33i9SyA==
 
-"@joplin/turndown-plugin-gfm@^1.0.44":
-  version "1.0.44"
-  resolved "https://registry.yarnpkg.com/@joplin/turndown-plugin-gfm/-/turndown-plugin-gfm-1.0.44.tgz#028e4c56bf58e57a4d0d923bb7d10a21c30d5c7d"
-  integrity sha512-lpVI/fpj0CKzWzpsOxsmqwjWlIrw+IZlIEz3h8Vqoviz8dCYbqSSY/4VxpiUDmBpxX/3Xk73R5BfzqiAHBmYqA==
+"@joplin/turndown-plugin-gfm@^1.0.45":
+  version "1.0.45"
+  resolved "https://registry.yarnpkg.com/@joplin/turndown-plugin-gfm/-/turndown-plugin-gfm-1.0.45.tgz#c37cb58ecad97a6385fc27350b7aead8236e30c6"
+  integrity sha512-RUQfMrFqFp2wB0mOZPGOTq6LVUVBOhQg87+ecv1+qF2gTHZm3jQd77iV5Eddbg2WjCj06eCG99et3kdPf0YwVw==
 
 "@jridgewell/gen-mapping@^0.1.0":
   version "0.1.1"

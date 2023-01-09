@@ -60,7 +60,7 @@
     "@getoutline/y-prosemirror": "^1.0.18",
     "@hocuspocus/provider": "^1.0.0-beta.6",
     "@hocuspocus/server": "^1.0.0-beta.6",
-    "@joplin/turndown-plugin-gfm": "^1.0.44",
+    "@joplin/turndown-plugin-gfm": "^1.0.45",
     "@juggle/resize-observer": "^3.4.0",
     "@outlinewiki/koa-passport": "^4.2.1",
     "@outlinewiki/passport-azure-ad-oauth2": "^0.1.0",
