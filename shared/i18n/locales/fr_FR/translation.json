@@ -824,7 +824,7 @@
   "Last month": "Le mois dernier",
   "This year": "Cette année",
   "To search your knowledgebase use {{ command }}. \nYou’ve already learned how to get help with {{ command2 }}.": "Pour rechercher dans votre base de connaissances, utilisez {{ command }}. \nVous avez déjà appris comment obtenir de l'aide avec {{ command2 }}.",
-  "Sorry, we couldn’t find an integration for your team. Head to your {{ appName }} settings to set one up.": "Sorry, we couldn’t find an integration for your team. Head to your {{ appName }} settings to set one up.",
+  "Sorry, we couldn’t find an integration for your team. Head to your {{ appName }} settings to set one up.": "Désolé, nous n'avons pas trouvé d'intégration pour votre équipe. Rendez-vous dans vos paramètres {{ appName }} pour en configurer un.",
   "It looks like you haven’t signed in to {{ appName }} yet, so results may be limited": "Il semble que vous ne vous soyez pas encore authentifié à {{ appName }} , les résultats peuvent donc être limités",
   "Post to Channel": "Publier sur le canal",
   "This is what we found for \"{{ term }}\"": "Voici ce que nous avons trouvé pour \"{{ term }}\"",
