@@ -1,6 +1,6 @@
 import path from "path";
 import JSZip from "jszip";
-import { FileOperationFormat } from "@shared/types";
+import { NavigationNode, FileOperationFormat } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import { Collection } from "@server/models";
 import Attachment from "@server/models/Attachment";
@@ -10,7 +10,6 @@ import ZipHelper from "@server/utils/ZipHelper";
 import { serializeFilename } from "@server/utils/fs";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { getFileByKey } from "@server/utils/s3";
-import { NavigationNode } from "~/types";
 import ExportTask from "./ExportTask";
 
 export default abstract class ExportDocumentTreeTask extends ExportTask {

@@ -5,6 +5,7 @@ import { CollectionValidation } from "@shared/validations";
 import attachmentCreator from "@server/commands/attachmentCreator";
 import documentCreator from "@server/commands/documentCreator";
 import { sequelize } from "@server/database/sequelize";
+import { serializer } from "@server/editor";
 import { InternalError, ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import {
@@ -27,6 +28,8 @@ type Props = {
 export type StructuredImportData = {
   collections: {
     id: string;
+    urlId?: string;
+    color?: string;
     name: string;
     /**
      * The collection description. To reference an attachment or image use the
@@ -37,12 +40,13 @@ export type StructuredImportData = {
      * link to the document as part of persistData once the document url is
      * generated.
      */
-    description?: string;
+    description?: string | Record<string, any> | null;
     /** Optional id from import source, useful for mapping */
     sourceId?: string;
   }[];
   documents: {
     id: string;
+    urlId?: string;
     title: string;
     /**
      * The document text. To reference an attachment or image use the special
@@ -54,10 +58,14 @@ export type StructuredImportData = {
      * is generated.
      */
     text: string;
+    data?: Record<string, any>;
     collectionId: string;
     updatedAt?: Date;
     createdAt?: Date;
-    parentDocumentId?: string;
+    publishedAt?: Date | null;
+    parentDocumentId?: string | null;
+    createdById?: string;
+    createdByEmail?: string | null;
     path: string;
     /** Optional id from import source, useful for mapping */
     sourceId?: string;
@@ -234,6 +242,12 @@ export default abstract class ImportTask extends BaseTask<Props> {
           Logger.debug("task", `ImportTask persisting collection ${item.id}`);
           let description = item.description;
 
+          // Description can be markdown text or a Prosemirror object if coming
+          // from JSON format. In that case we need to serialize to Markdown.
+          if (description instanceof Object) {
+            description = serializer.serialize(description);
+          }
+
           if (description) {
             // Check all of the attachments we've created against urls in the text
             // and replace them out with attachment redirect urls before saving.
@@ -268,9 +282,12 @@ export default abstract class ImportTask extends BaseTask<Props> {
             },
             defaults: {
               id: item.id,
-              description: truncate(description, {
-                length: CollectionValidation.maxDescriptionLength,
-              }),
+              urlId: item.urlId,
+              description: description
+                ? truncate(description, {
+                    length: CollectionValidation.maxDescriptionLength,
+                  })
+                : null,
               createdById: fileOperation.userId,
               permission: CollectionPermission.ReadWrite,
               importId: fileOperation.id,
@@ -289,6 +306,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
             collection = await Collection.create(
               {
                 id: item.id,
+                urlId: item.urlId,
                 description,
                 teamId: fileOperation.teamId,
                 createdById: fileOperation.userId,
@@ -351,6 +369,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
           const document = await documentCreator({
             source: "import",
             id: item.id,
+            urlId: item.urlId,
             title: item.title,
             text,
             collectionId: item.collectionId,

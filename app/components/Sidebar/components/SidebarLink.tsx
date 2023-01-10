@@ -2,10 +2,10 @@ import { LocationDescriptor } from "history";
 import * as React from "react";
 import styled, { useTheme, css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { NavigationNode } from "@shared/types";
 import EventBoundary from "~/components/EventBoundary";
 import NudeButton from "~/components/NudeButton";
 import { undraggableOnDesktop } from "~/styles";
-import { NavigationNode } from "~/types";
 import Disclosure from "./Disclosure";
 import NavLink, { Props as NavLinkProps } from "./NavLink";
 

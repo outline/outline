@@ -4,8 +4,10 @@ import DocumentHelper from "@server/models/helpers/DocumentHelper";
 
 type Props = {
   id?: string;
+  urlId?: string;
   title: string;
-  text: string;
+  text?: string;
+  state?: Buffer;
   publish?: boolean;
   collectionId?: string;
   parentDocumentId?: string | null;
@@ -19,13 +21,15 @@ type Props = {
   editorVersion?: string;
   source?: "import";
   ip?: string;
-  transaction: Transaction;
+  transaction?: Transaction;
 };
 
 export default async function documentCreator({
   title = "",
   text = "",
+  state,
   id,
+  urlId,
   publish,
   collectionId,
   parentDocumentId,
@@ -46,6 +50,7 @@ export default async function documentCreator({
   const document = await Document.create(
     {
       id,
+      urlId,
       parentDocumentId,
       editorVersion,
       collectionId,
@@ -63,6 +68,7 @@ export default async function documentCreator({
         ? DocumentHelper.replaceTemplateVariables(templateDocument.title, user)
         : title,
       text: templateDocument ? templateDocument.text : text,
+      state,
     },
     {
       transaction,

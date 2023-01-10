@@ -50,7 +50,7 @@ export class MarkdownSerializer {
   // :: (Node, ?Object) → string
   // Serialize the content of the given node to
   // [CommonMark](http://commonmark.org/).
-  serialize(content, options?: { tightLists?: boolean }) {
+  serialize(content, options?: { tightLists?: boolean }): string {
     const state = new MarkdownSerializerState(this.nodes, this.marks, options);
     state.renderContent(content);
     return state.out;

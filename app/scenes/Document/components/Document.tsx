@@ -15,6 +15,7 @@ import {
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { Heading } from "@shared/editor/lib/getHeadings";
+import { NavigationNode } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
 import getTasks from "@shared/utils/getTasks";
 import RootStore from "~/stores/RootStore";
@@ -32,7 +33,6 @@ import PlaceholderDocument from "~/components/PlaceholderDocument";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import withStores from "~/components/withStores";
 import type { Editor as TEditor } from "~/editor";
-import { NavigationNode } from "~/types";
 import { client } from "~/utils/ApiClient";
 import { replaceTitleVariables } from "~/utils/date";
 import { emojiToUrl } from "~/utils/emoji";

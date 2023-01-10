@@ -1,4 +1,6 @@
 import JSZip from "jszip";
+import { omit } from "lodash";
+import { NavigationNode } from "@shared/types";
 import { parser } from "@server/editor";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
@@ -10,11 +12,11 @@ import {
 } from "@server/models";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import { presentAttachment, presentCollection } from "@server/presenters";
+import { CollectionJSONExport, JSONExportMetadata } from "@server/types";
 import ZipHelper from "@server/utils/ZipHelper";
 import { serializeFilename } from "@server/utils/fs";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { getFileByKey } from "@server/utils/s3";
-import { NavigationNode } from "~/types";
 import packageJson from "../../../package.json";
 import ExportTask from "./ExportTask";
 
@@ -35,12 +37,12 @@ export default class ExportJSONTask extends ExportTask {
   private async addMetadataToArchive(zip: JSZip, fileOperation: FileOperation) {
     const user = await fileOperation.$get("user");
 
-    const metadata = {
-      backupVersion: 1,
+    const metadata: JSONExportMetadata = {
+      exportVersion: 1,
       version: packageJson.version,
-      createdAt: new Date(),
+      createdAt: new Date().toISOString(),
       createdById: fileOperation.userId,
-      createdByEmail: user?.email,
+      createdByEmail: user?.email ?? null,
     };
 
     zip.file(
@@ -52,13 +54,14 @@ export default class ExportJSONTask extends ExportTask {
   }
 
   private async addCollectionToArchive(zip: JSZip, collection: Collection) {
-    const output = {
-      ...presentCollection(collection),
-      url: undefined,
-      description: collection.description
-        ? parser.parse(collection.description)
-        : null,
-      documentStructure: collection.documentStructure,
+    const output: CollectionJSONExport = {
+      collection: {
+        ...omit(presentCollection(collection), ["url", "documents"]),
+        description: collection.description
+          ? parser.parse(collection.description)
+          : null,
+        documentStructure: collection.documentStructure,
+      },
       documents: {},
       attachments: {},
     };
@@ -92,9 +95,8 @@ export default class ExportJSONTask extends ExportTask {
               }
 
               output.attachments[attachment.id] = {
-                ...presentAttachment(attachment),
+                ...omit(presentAttachment(attachment), "url"),
                 key: attachment.key,
-                url: undefined,
               };
             } catch (err) {
               Logger.error(
@@ -112,9 +114,11 @@ export default class ExportJSONTask extends ExportTask {
           data: DocumentHelper.toProsemirror(document),
           createdById: document.createdById,
           createdByEmail: document.createdBy.email,
-          createdAt: document.createdAt,
-          updatedAt: document.updatedAt,
-          publishedAt: document.publishedAt,
+          createdAt: document.createdAt.toISOString(),
+          updatedAt: document.updatedAt.toISOString(),
+          publishedAt: document.publishedAt
+            ? document.publishedAt.toISOString()
+            : null,
           fullWidth: document.fullWidth,
           template: document.template,
           parentDocumentId: document.parentDocumentId,

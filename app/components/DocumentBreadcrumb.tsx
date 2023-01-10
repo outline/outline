@@ -3,11 +3,12 @@ import { ArchiveIcon, GoToIcon, ShapesIcon, TrashIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { NavigationNode } from "@shared/types";
 import Document from "~/models/Document";
 import Breadcrumb from "~/components/Breadcrumb";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import useStores from "~/hooks/useStores";
-import { MenuInternalLink, NavigationNode } from "~/types";
+import { MenuInternalLink } from "~/types";
 import { collectionUrl } from "~/utils/routeHelpers";
 
 type Props = {

@@ -245,7 +245,7 @@ export default class ImportNotionTask extends ImportTask {
     }
 
     for (const collection of output.collections) {
-      if (collection.description) {
+      if (typeof collection.description === "string") {
         collection.description = replaceInternalLinksAndImages(
           collection.description
         );

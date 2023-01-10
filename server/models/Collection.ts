@@ -21,12 +21,12 @@ import {
   Length as SimpleLength,
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
-import { CollectionPermission } from "@shared/types";
+import type { CollectionSort } from "@shared/types";
+import { CollectionPermission, NavigationNode } from "@shared/types";
 import { sortNavigationNodes } from "@shared/utils/collections";
 import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
 import { CollectionValidation } from "@shared/validations";
 import slugify from "@server/utils/slugify";
-import type { NavigationNode, CollectionSort } from "~/types";
 import CollectionGroup from "./CollectionGroup";
 import CollectionUser from "./CollectionUser";
 import Document from "./Document";

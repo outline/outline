@@ -1,10 +1,10 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { NavigationNode } from "@shared/types";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
 import useStores from "~/hooks/useStores";
-import { NavigationNode } from "~/types";
 import { sharedDocumentPath } from "~/utils/routeHelpers";
 import Disclosure from "./Disclosure";
 import SidebarLink from "./SidebarLink";
