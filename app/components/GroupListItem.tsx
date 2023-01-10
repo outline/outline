@@ -47,7 +47,7 @@ function GroupListItem({ group, showFacepile, renderActions }: Props) {
           </Image>
         }
         title={<Title onClick={setMembersModalOpen}>{group.name}</Title>}
-        subtitle={t("{{ count }} members", { count: memberCount })}
+        subtitle={t("{{ count }} member", { count: memberCount })}
         actions={
           <Flex align="center" gap={8}>
             {showFacepile && (
