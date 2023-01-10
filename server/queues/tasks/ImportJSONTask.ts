@@ -1,5 +1,5 @@
 import JSZip from "jszip";
-import { escapeRegExp } from "lodash";
+import { escapeRegExp, find } from "lodash";
 import mime from "mime-types";
 import { Node } from "prosemirror-model";
 import { v4 as uuidv4 } from "uuid";
@@ -74,6 +74,13 @@ export default class ImportJSONTask extends ImportTask {
           updatedAt: node.updatedAt ? new Date(node.updatedAt) : undefined,
           publishedAt: node.publishedAt ? new Date(node.publishedAt) : null,
           collectionId,
+          sourceId: node.id,
+          parentDocumentId: node.parentDocumentId
+            ? find(
+                output.documents,
+                (d) => d.sourceId === node.parentDocumentId
+              )?.id
+            : null,
           id,
         });
       });
@@ -93,6 +100,7 @@ export default class ImportJSONTask extends ImportTask {
           buffer: () => zipObject.async("nodebuffer"),
           mimeType,
           path: node.key,
+          sourceId: node.id,
         });
       });
     }
@@ -112,12 +120,18 @@ export default class ImportJSONTask extends ImportTask {
         await zipObject.async("string")
       );
 
-      console.log({ item });
-
       const collectionId = uuidv4();
       output.collections.push({
         ...item.collection,
+        description:
+          item.collection.description &&
+          typeof item.collection.description === "object"
+            ? serializer.serialize(
+                Node.fromJSON(schema, item.collection.description)
+              )
+            : item.collection.description,
         id: collectionId,
+        sourceId: item.collection.id,
       });
 
       if (Object.values(item.documents).length) {

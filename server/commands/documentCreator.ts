@@ -47,6 +47,20 @@ export default async function documentCreator({
   transaction,
 }: Props): Promise<Document> {
   const templateId = templateDocument ? templateDocument.id : undefined;
+
+  if (urlId) {
+    const existing = await Document.unscoped().findOne({
+      attributes: ["id"],
+      transaction,
+      where: {
+        urlId,
+      },
+    });
+    if (existing) {
+      urlId = undefined;
+    }
+  }
+
   const document = await Document.create(
     {
       id,
@@ -71,6 +85,7 @@ export default async function documentCreator({
       state,
     },
     {
+      silent: !!createdAt,
       transaction,
     }
   );

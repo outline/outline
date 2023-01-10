@@ -392,9 +392,9 @@ export type CollectionJSONExport = {
     urlId: string;
     name: string;
     description: Record<string, any> | null;
-    permission: CollectionPermission | null;
+    permission?: CollectionPermission | null;
     color: string;
-    icon: string | null;
+    icon?: string;
     sort: CollectionSort;
     documentStructure: NavigationNode[] | null;
   };

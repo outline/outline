@@ -1,6 +1,10 @@
 import { S3 } from "aws-sdk";
 import { truncate } from "lodash";
-import { CollectionPermission, FileOperationState } from "@shared/types";
+import {
+  CollectionPermission,
+  CollectionSort,
+  FileOperationState,
+} from "@shared/types";
 import { CollectionValidation } from "@shared/validations";
 import attachmentCreator from "@server/commands/attachmentCreator";
 import documentCreator from "@server/commands/documentCreator";
@@ -30,6 +34,9 @@ export type StructuredImportData = {
     id: string;
     urlId?: string;
     color?: string;
+    icon?: string;
+    sort?: CollectionSort;
+    permission?: CollectionPermission | null;
     name: string;
     /**
      * The collection description. To reference an attachment or image use the
@@ -104,7 +111,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
 
       if (parsed.collections.length === 0) {
         throw ValidationError(
-          "Uploaded file does not contain any collections. The root of the zip file must contain folders representing collections."
+          "Uploaded file does not contain any valid collections. It may be corrupt, the wrong type, or version."
         );
       }
 
@@ -274,6 +281,19 @@ export default abstract class ImportTask extends BaseTask<Props> {
             }
           }
 
+          let urlId = item.urlId;
+          const existing = await Collection.unscoped().findOne({
+            attributes: ["id"],
+            transaction,
+            where: {
+              urlId,
+            },
+          });
+
+          if (existing) {
+            urlId = undefined;
+          }
+
           // check if collection with name exists
           const response = await Collection.findOrCreate({
             where: {
@@ -282,7 +302,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
             },
             defaults: {
               id: item.id,
-              urlId: item.urlId,
+              urlId,
               description: description
                 ? truncate(description, {
                     length: CollectionValidation.maxDescriptionLength,
@@ -306,12 +326,15 @@ export default abstract class ImportTask extends BaseTask<Props> {
             collection = await Collection.create(
               {
                 id: item.id,
-                urlId: item.urlId,
+                urlId,
                 description,
+                color: item.color,
+                icon: item.icon,
+                sort: item.sort,
                 teamId: fileOperation.teamId,
                 createdById: fileOperation.userId,
                 name,
-                permission: CollectionPermission.ReadWrite,
+                permission: item.permission ?? CollectionPermission.ReadWrite,
                 importId: fileOperation.id,
               },
               { transaction }
