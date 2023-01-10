@@ -394,7 +394,7 @@ export type CollectionJSONExport = {
     description: Record<string, any> | null;
     permission?: CollectionPermission | null;
     color: string;
-    icon?: string;
+    icon?: string | null;
     sort: CollectionSort;
     documentStructure: NavigationNode[] | null;
   };
