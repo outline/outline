@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 yarn babel --extensions .ts,.tsx --quiet -d ./build/server ./server
 yarn babel --extensions .ts,.tsx --quiet -d ./build/shared ./shared
