@@ -11,6 +11,7 @@ export default defineConfig({
   plugins: [
     react({
       babel: {
+        babelrc: true,
         parserOpts: {
           plugins: ["decorators-legacy"],
         },
