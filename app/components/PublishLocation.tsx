@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
+import Disclosure from "~/components/Sidebar/components/Disclosure";
 import Text from "~/components/Text";
 
 type Props = {
@@ -9,13 +10,25 @@ type Props = {
   onSelect: (location: any) => void;
   selected: boolean;
   style: React.CSSProperties;
+  toggleExpansion: (location: any) => void;
 };
 
-function PublishLocation({ location, onSelect, selected, style }: Props) {
+function PublishLocation({
+  location,
+  onSelect,
+  toggleExpansion,
+  selected,
+  style,
+}: Props) {
   const OFFSET = 12;
   const ICON_SIZE = 24;
 
   const padding = location.depth ? location.depth * ICON_SIZE + OFFSET : 4;
+
+  const handleDisclosureClick = (ev: React.MouseEvent) => {
+    ev.stopPropagation();
+    toggleExpansion(location);
+  };
 
   const handleSelect = React.useCallback(
     (ev) => {
@@ -36,6 +49,14 @@ function PublishLocation({ location, onSelect, selected, style }: Props) {
       onClick={handleSelect}
       style={style}
     >
+      {location.data.expanded !== undefined && (
+        <StyledDisclosure
+          expanded={location.data.expanded}
+          onClick={handleDisclosureClick}
+          tabIndex={-1}
+        />
+      )}
+
       {location.data.type === "collection" && location.data.collection && (
         <CollectionIcon
           collection={location.data.collection}
@@ -53,6 +74,12 @@ const Title = styled(Text)`
   text-overflow: ellipsis;
   margin: 0 4px 0 4px;
   color: inherit;
+`;
+
+const StyledDisclosure = styled(Disclosure)`
+  position: relative;
+  left: auto;
+  margin-top: 2px;
 `;
 
 const Row = styled.span<{

@@ -1,5 +1,5 @@
 import FuzzySearch from "fuzzy-search";
-import { uniq, isNumber } from "lodash";
+import { uniq, isNumber, findIndex } from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
@@ -26,8 +26,12 @@ type Props = {
 function PublishPopover({ document, visible }: Props) {
   const [searchTerm, setSearchTerm] = React.useState<string>();
   const [selectedLocation, setLocation] = React.useState<any>();
+  const [initialScrollOffset, setInitialScrollOffset] = React.useState<number>(
+    0
+  );
   const { collections } = useStores();
   const { showToast } = useToasts();
+  const [items, setItems] = React.useState<any>();
   const { t } = useTranslation();
   const listRef = React.useRef<any>(null);
 
@@ -73,30 +77,25 @@ function PublishPopover({ document, visible }: Props) {
     }
   }, [searchTerm]);
 
-  const results = React.useMemo(() => {
-    const onlyShowCollections = document.isTemplate;
-    let results: any = [];
+  React.useEffect(() => {
+    let results: any = flattenTree(collections.tree.root).slice(1);
 
     if (collections.isLoaded) {
       if (searchTerm) {
         results = searchIndex.search(searchTerm);
+        // Include parents as well, required for displaying search results in a tree-like view
+        results = uniq(
+          results.reduce(
+            (acc: any[], curr: any) => acc.concat(ancestors(curr)),
+            []
+          )
+        );
       } else {
-        results = searchIndex.haystack;
+        results = results.filter((r: any) => r.data.show);
       }
     }
 
-    if (onlyShowCollections) {
-      results = results.filter(
-        (result: any) => result.data.type === "collection"
-      );
-    }
-
-    // Include parents as well, required for displaying search results in a tree-like view
-    const resultsTree = uniq(
-      results.reduce((acc: any[], curr: any) => acc.concat(ancestors(curr)), [])
-    );
-
-    return resultsTree;
+    setItems(results);
   }, [document, collections, searchTerm, searchIndex]);
 
   const handleSearch = (ev: React.ChangeEvent<HTMLInputElement>) => {
@@ -130,6 +129,32 @@ function PublishPopover({ document, visible }: Props) {
     }
   }, [selectedLocation, document, showToast, t]);
 
+  const toggleExpansion = (location: any) => {
+    const data: any = flattenTree(collections.tree.root).slice(1);
+    const locIndex = findIndex(
+      data,
+      (d: any) => d.data.id === location.data.id
+    );
+    if (location.data.expanded === false) {
+      // only show immediate children
+      location.children.forEach((child: any) => {
+        const index = findIndex(data, (d: any) => d.data.id === child.data.id);
+        data[index].data.show = true;
+      });
+      data[locIndex].data.expanded = true;
+    } else {
+      // hide all the descendants
+      const descendants = flattenTree(location).slice(1);
+      descendants.forEach((des) => {
+        const index = findIndex(data, (d: any) => d.data.id === des.data.id);
+        data[index].data.show = false;
+      });
+      data[locIndex].data.expanded = false;
+    }
+    setInitialScrollOffset(listRef.current.state.scrollOffset);
+    setItems(data.filter((d: any) => d.data.show));
+  };
+
   const row = ({
     index,
     data,
@@ -155,11 +180,10 @@ function PublishPopover({ document, visible }: Props) {
         selected={
           selectedLocation && result.data.id === selectedLocation.data.id
         }
+        toggleExpansion={toggleExpansion}
       ></PublishLocation>
     );
   };
-
-  const data = results;
 
   if (!document || !collections.isLoaded) {
     return null;
@@ -193,13 +217,14 @@ function PublishPopover({ document, visible }: Props) {
             <Flex role="listbox" column>
               <List
                 ref={listRef}
-                key={data.length}
+                key={items.length}
                 width={width}
                 height={height}
-                itemData={data}
-                itemCount={data.length}
+                itemData={items}
+                itemCount={items.length}
                 itemSize={32}
                 innerElementType={innerElementType}
+                initialScrollOffset={initialScrollOffset}
                 itemKey={(index, results: any) => results[index].data.id}
               >
                 {row}
