@@ -46,8 +46,14 @@ function verifySlackToken(token: string) {
 // triggered by a user posting a getoutline.com link in Slack
 router.post("hooks.unfurl", async (ctx: APIContext) => {
   const { challenge, token, event } = ctx.request.body;
+
+  // See URL verification handshake documentation on this page:
+  // https://api.slack.com/apis/connections/events-api
   if (challenge) {
-    return (ctx.body = ctx.request.body.challenge);
+    ctx.body = {
+      challenge,
+    };
+    return;
   }
 
   assertPresent(token, "token is required");
