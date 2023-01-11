@@ -23,6 +23,12 @@ export default defineConfig({
     },
   },
   define: {
-    global: {},
+    global: "({})",
+  },
+  build: {
+    manifest: true,
+    rollupOptions: {
+      input: "./app/index.tsx",
+    },
   },
 });
