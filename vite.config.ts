@@ -1,5 +1,6 @@
 import path from "path";
 import react from "@vitejs/plugin-react";
+import nodeGlobals from "rollup-plugin-node-globals";
 import { defineConfig } from "vite";
 
 export default defineConfig({
@@ -22,13 +23,11 @@ export default defineConfig({
       "@shared": path.resolve(__dirname, "./shared"),
     },
   },
-  define: {
-    global: "({})",
-  },
   build: {
     manifest: true,
     rollupOptions: {
       input: "./app/index.tsx",
+      plugins: [nodeGlobals()],
     },
   },
 });
