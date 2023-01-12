@@ -904,6 +904,10 @@ router.post(
         userId: user.id,
       });
       authorize(user, "update", parent);
+
+      if (!parent.publishedAt) {
+        throw InvalidRequestError("Cannot move document inside a draft");
+      }
     }
 
     const {

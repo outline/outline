@@ -180,7 +180,9 @@ function InnerDocumentLink(
       setExpanded(true);
     },
     canDrop: (_item, monitor) =>
-      !!pathToNode && !pathToNode.includes(monitor.getItem<DragObject>().id),
+      !isDraft &&
+      !!pathToNode &&
+      !pathToNode.includes(monitor.getItem<DragObject>().id),
     hover: (_item, monitor) => {
       // Enables expansion of document children when hovering over the document
       // for more than half a second.

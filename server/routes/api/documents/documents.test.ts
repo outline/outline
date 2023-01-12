@@ -1826,6 +1826,26 @@ describe("#documents.move", () => {
     );
   });
 
+  it("should fail if attempting to nest doc within a draft", async () => {
+    const { user, document, collection } = await seed();
+    const draft = await buildDraftDocument({
+      userId: user.id,
+      teamId: document.teamId,
+      collectionId: collection.id,
+    });
+    const res = await server.post("/api/documents.move", {
+      body: {
+        id: document.id,
+        collectionId: collection.id,
+        parentDocumentId: draft.id,
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("Cannot move document inside a draft");
+  });
+
   it("should require id", async () => {
     const { user } = await seed();
     const res = await server.post("/api/documents.move", {
