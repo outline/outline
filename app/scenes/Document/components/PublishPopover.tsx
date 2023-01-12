@@ -1,5 +1,5 @@
 import FuzzySearch from "fuzzy-search";
-import { uniq, isNumber, findIndex } from "lodash";
+import { uniq, isNumber, findIndex, isUndefined } from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
@@ -148,6 +148,9 @@ function PublishPopover({ document, onPublish }: Props) {
       const descendants = flattenTree(location).slice(1);
       descendants.forEach((des) => {
         const index = findIndex(data, (d: any) => d.data.id === des.data.id);
+        if (!isUndefined(data[index].data.expanded)) {
+          data[index].data.expanded = false;
+        }
         data[index].data.show = false;
       });
       data[locIndex].data.expanded = false;
