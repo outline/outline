@@ -11,6 +11,7 @@ type Props = {
   selected: boolean;
   style: React.CSSProperties;
   toggleExpansion: (location: any) => void;
+  isSearchResult: boolean;
 };
 
 function PublishLocation({
@@ -19,6 +20,7 @@ function PublishLocation({
   toggleExpansion,
   selected,
   style,
+  isSearchResult,
 }: Props) {
   const OFFSET = 12;
   const ICON_SIZE = 24;
@@ -49,7 +51,7 @@ function PublishLocation({
       onClick={handleSelect}
       style={style}
     >
-      {location.data.expanded !== undefined && (
+      {location.data.expanded !== undefined && !isSearchResult && (
         <StyledDisclosure
           expanded={location.data.expanded}
           onClick={handleDisclosureClick}

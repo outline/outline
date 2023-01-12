@@ -181,6 +181,7 @@ function PublishPopover({ document, visible }: Props) {
           selectedLocation && result.data.id === selectedLocation.data.id
         }
         toggleExpansion={toggleExpansion}
+        isSearchResult={!!searchTerm}
       ></PublishLocation>
     );
   };
