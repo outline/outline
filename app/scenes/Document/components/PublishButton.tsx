@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import Document from "~/models/Document";
 import Button from "~/components/Button";
 import useStores from "~/hooks/useStores";
-import PublishPopover from "./PublishPopover";
+import PublishModal from "./PublishModal";
 
 type Props = {
   document: Document;
@@ -19,10 +19,7 @@ function PublishButton({ document }: Props) {
       title: t("Publish document"),
       isCentered: true,
       content: (
-        <PublishPopover
-          document={document}
-          onPublish={dialogs.closeAllModals}
-        />
+        <PublishModal document={document} onPublish={dialogs.closeAllModals} />
       ),
     });
   }, [document, t, dialogs]);

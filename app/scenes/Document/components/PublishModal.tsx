@@ -23,7 +23,7 @@ type Props = {
   onPublish: () => void;
 };
 
-function PublishPopover({ document, onPublish }: Props) {
+function PublishModal({ document, onPublish }: Props) {
   const [searchTerm, setSearchTerm] = React.useState<string>();
   const [selectedLocation, setLocation] = React.useState<any>();
   const [initialScrollOffset, setInitialScrollOffset] = React.useState<number>(
@@ -299,4 +299,4 @@ const SelectedLocation = styled(Text)`
   max-width: 40vh;
 `;
 
-export default observer(PublishPopover);
+export default observer(PublishModal);
