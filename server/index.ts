@@ -68,6 +68,13 @@ async function start(id: number, disconnect: () => void) {
 
   // If a --port flag is passed then it takes priority over the env variable
   const normalizedPortFlag = getArg("port", "p");
+  const listenPort = Number(normalizedPortFlag || env.PORT || "3000");
+  if (Number.isNaN(listenPort)) {
+    throw new Error("Port is not a number");
+  }
+
+  const listenAddress = env.LISTEN_ADDRESS || "localhost";
+
   const app = new Koa();
   const server = stoppable(
     useHTTPS
@@ -113,13 +120,13 @@ async function start(id: number, disconnect: () => void) {
 
     Logger.info(
       "lifecycle",
-      `Listening on ${useHTTPS ? "https" : "http"}://localhost:${
+      `Listening on ${useHTTPS ? "https" : "http"}://${listenAddress}:${
         (address as AddressInfo).port
       }`
     );
   });
 
-  server.listen(normalizedPortFlag || env.PORT || "3000");
+  server.listen(listenPort, listenAddress);
   server.setTimeout(env.REQUEST_TIMEOUT);
 
   ShutdownHelper.add("server", ShutdownOrder.last, () => {

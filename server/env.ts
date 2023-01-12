@@ -155,6 +155,12 @@ export class Environment {
   public PORT = this.toOptionalNumber(process.env.PORT);
 
   /**
+   * The address that the server will listen on, defaults to localhost.
+   */
+  @IsOptional()
+  public LISTEN_ADDRESS = process.env.LISTEN_ADDRESS || "";
+
+  /**
    * Optional extra debugging. Comma separated
    */
   public DEBUG = process.env.DEBUG || "";
