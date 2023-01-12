@@ -1,12 +1,9 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
-import styled from "styled-components";
-import { depths } from "@shared/styles";
 import Document from "~/models/Document";
 import Button from "~/components/Button";
-import Popover from "~/components/Popover";
+import useStores from "~/hooks/useStores";
 import PublishPopover from "./PublishPopover";
 
 type Props = {
@@ -15,38 +12,22 @@ type Props = {
 
 function PublishButton({ document }: Props) {
   const { t } = useTranslation();
-  const popover = usePopoverState({
-    gutter: 0,
-    placement: "bottom-end",
-    unstable_fixed: true,
-  });
+  const { dialogs } = useStores();
 
-  return (
-    <>
-      <PopoverDisclosure {...popover}>
-        {(props) => (
-          <Button disclosure {...props}>
-            {t("Publish")}
-          </Button>
-        )}
-      </PopoverDisclosure>
+  const handleClick = React.useCallback(() => {
+    dialogs.openModal({
+      title: t("Publish document"),
+      isCentered: true,
+      content: (
+        <PublishPopover
+          document={document}
+          onPublish={dialogs.closeAllModals}
+        />
+      ),
+    });
+  }, [document, t, dialogs]);
 
-      <StyledPopover {...popover} aria-label={t("Publish")}>
-        <PublishPopover document={document} visible={popover.visible} />
-      </StyledPopover>
-    </>
-  );
+  return <Button onClick={handleClick}>{t("Publish")}</Button>;
 }
-
-const StyledPopover = styled(Popover)`
-  z-index: ${depths.popover};
-  > :first-child {
-    max-height: unset;
-    overflow: hidden;
-    padding-bottom: 0;
-    padding-left: 0;
-    padding-right: 0;
-  }
-`;
 
 export default observer(PublishButton);

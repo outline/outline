@@ -20,10 +20,10 @@ import { flattenTree, ancestors } from "~/utils/tree";
 
 type Props = {
   document: Document;
-  visible: boolean;
+  onPublish: () => void;
 };
 
-function PublishPopover({ document, visible }: Props) {
+function PublishPopover({ document, onPublish }: Props) {
   const [searchTerm, setSearchTerm] = React.useState<string>();
   const [selectedLocation, setLocation] = React.useState<any>();
   const [initialScrollOffset, setInitialScrollOffset] = React.useState<number>(
@@ -39,7 +39,7 @@ function PublishPopover({ document, visible }: Props) {
   const HORIZONTAL_PADDING = 24;
 
   React.useEffect(() => {
-    if (visible && selectedLocation && listRef.current) {
+    if (selectedLocation && listRef.current) {
       const index = selectedLocation.index;
       const { height, itemSize } = listRef.current.props;
       const scrollWindowTop = listRef.current.state.scrollOffset;
@@ -122,12 +122,13 @@ function PublishPopover({ document, visible }: Props) {
       showToast(t("Document published"), {
         type: "success",
       });
+      onPublish();
     } catch (err) {
       showToast(t("Couldn’t publish the document, try again?"), {
         type: "error",
       });
     }
-  }, [selectedLocation, document, showToast, t]);
+  }, [selectedLocation, document, showToast, t, onPublish]);
 
   const toggleExpansion = (location: any) => {
     const data: any = flattenTree(collections.tree.root).slice(1);
@@ -204,7 +205,7 @@ function PublishPopover({ document, visible }: Props) {
   );
 
   return (
-    <Flex column>
+    <FlexContainer column>
       <PublishLocationSearch
         type="search"
         onChange={handleSearch}
@@ -253,7 +254,7 @@ function PublishPopover({ document, visible }: Props) {
           Publish
         </Button>
       </Footer>
-    </Flex>
+    </FlexContainer>
   );
 }
 
@@ -261,10 +262,15 @@ const PublishLocationSearch = styled(InputSearch)`
   ${Outline} {
     border-radius: 16px;
   }
-  margin-bottom: 16px;
-  margin-top: 16px;
+  margin-bottom: 4px;
   padding-left: 24px;
   padding-right: 24px;
+`;
+
+const FlexContainer = styled(Flex)`
+  margin-left: -24px;
+  margin-right: -24px;
+  margin-bottom: -24px;
 `;
 
 const Results = styled.div`
