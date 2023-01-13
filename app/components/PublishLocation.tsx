@@ -6,6 +6,7 @@ import Flex from "~/components/Flex";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import Disclosure from "~/components/Sidebar/components/Disclosure";
 import Text from "~/components/Text";
+import { isModKey } from "~/utils/keyboard";
 
 type Props = {
   location: any;
@@ -38,6 +39,12 @@ function PublishLocation({
     toggleExpansion(location);
   };
 
+  const handleKeyDown = (ev: React.KeyboardEvent) => {
+    if (isModKey(ev) && ev.key === "e") {
+      toggleExpansion(location);
+    }
+  };
+
   const handleSelect = React.useCallback(
     (ev) => {
       ev.preventDefault();
@@ -55,6 +62,7 @@ function PublishLocation({
       selected={selected}
       active={active}
       onClick={handleSelect}
+      onKeyDown={handleKeyDown}
       style={style}
       tabIndex={0}
     >
