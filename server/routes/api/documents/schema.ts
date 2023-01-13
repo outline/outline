@@ -42,6 +42,7 @@ const BaseIdSchema = z.object({
 
 export const DocumentsListSchema = BaseSchema.extend({
   body: DocumentsSortParamsSchema.extend({
+    deep: z.boolean().optional(),
     /** Id of the user who created the doc */
     userId: z.string().uuid().optional(),
 

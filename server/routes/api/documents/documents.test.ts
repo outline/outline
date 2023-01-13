@@ -746,6 +746,31 @@ describe("#documents.list", () => {
     expect(body.data[1].id).toEqual(document.id);
   });
 
+  it("should return all sorted documents", async () => {
+    const { user, document, collection } = await seed();
+    const childDocument = await buildDocument({
+      title: "child document",
+      text: "random text",
+      userId: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      parentDocumentId: document.id,
+    });
+    const res = await server.post("/api/documents.list", {
+      body: {
+        token: user.getJwtToken(),
+        collectionId: collection.id,
+        sort: "index",
+        direction: "ASC",
+        deep: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data[0].id).toEqual(document.id);
+    expect(body.data[1].id).toEqual(childDocument.id);
+  });
+
   it("should allow filtering by collection", async () => {
     const { user, document } = await seed();
     const res = await server.post("/api/documents.list", {

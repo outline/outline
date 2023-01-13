@@ -1,7 +1,7 @@
 import fs from "fs-extra";
 import invariant from "invariant";
 import Router from "koa-router";
-import { pick } from "lodash";
+import { pick, flattenDeep } from "lodash";
 import mime from "mime-types";
 import { Op, ScopeOptions, WhereOptions } from "sequelize";
 import { TeamPreference } from "@shared/types";
@@ -67,6 +67,7 @@ router.post(
       backlinkDocumentId,
       parentDocumentId,
       userId: createdById,
+      deep,
     } = ctx.input.body;
 
     // always filter by the current team
@@ -100,10 +101,19 @@ router.post(
 
       // index sort is special because it uses the order of the documents in the
       // collection.documentStructure rather than a database column
-      if (sort === "index") {
-        documentIds = (collection?.documentStructure || [])
-          .map((node) => node.id)
-          .slice(ctx.state.pagination.offset, ctx.state.pagination.limit);
+      if (sort === "index" && deep) {
+        documentIds = flattenDeep(collection?.documentStructure || []).map(
+          (node) => node.id
+        );
+        const end = ctx.state.pagination.offset + ctx.state.pagination.limit;
+        documentIds = documentIds.slice(ctx.state.pagination.offset, end);
+        where = { ...where, id: documentIds };
+      } else if (sort === "index") {
+        documentIds = (collection?.documentStructure || []).map(
+          (node) => node.id
+        );
+        const end = ctx.state.pagination.offset + ctx.state.pagination.limit;
+        documentIds = documentIds.slice(ctx.state.pagination.offset, end);
         where = { ...where, id: documentIds };
       } // otherwise, filter by all collections the user has access to
     } else {
