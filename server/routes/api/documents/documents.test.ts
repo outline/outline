@@ -231,7 +231,7 @@ describe("#documents.info", () => {
       expect(body.data.document.id).toEqual(document.id);
       expect(body.data.document.createdBy).toEqual(undefined);
       expect(body.data.document.updatedBy).toEqual(undefined);
-      expect(body.data.sharedTree).toEqual(document.toJSON());
+      expect(body.data.sharedTree).toEqual(await document.toNavigationNode());
     });
     it("should not return sharedTree if child documents not shared", async () => {
       const { document, user } = await seed();
@@ -2622,7 +2622,7 @@ describe("#documents.update", () => {
             title: "Another doc",
             children: [],
           },
-          { ...document.toJSON(), children: [] },
+          { ...(await document.toNavigationNode()), children: [] },
         ],
       },
     ];
