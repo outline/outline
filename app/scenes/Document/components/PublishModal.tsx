@@ -14,8 +14,10 @@ import { Outline } from "~/components/Input";
 import InputSearch from "~/components/InputSearch";
 import PublishLocation from "~/components/PublishLocation";
 import Text from "~/components/Text";
+import useKeyDown from "~/hooks/useKeyDown";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
+import { isModKey } from "~/utils/keyboard";
 import { flattenTree, ancestors } from "~/utils/tree";
 
 type Props = {
@@ -31,16 +33,34 @@ function PublishModal({ document, onPublish }: Props) {
   );
   const { collections } = useStores();
   const { showToast } = useToasts();
-  const [items, setItems] = React.useState<any>();
+  const [items, setItems] = React.useState<any>(
+    flattenTree(collections.tree.root)
+      .slice(1)
+      .filter((d) => d.data.show)
+  );
+  const [activeItem, setActiveItem] = React.useState<number>(0);
   const { t } = useTranslation();
   const listRef = React.useRef<any>(null);
 
   const VERTICAL_PADDING = 6;
   const HORIZONTAL_PADDING = 24;
 
-  React.useEffect(() => {
-    if (selectedLocation && listRef.current) {
-      const index = selectedLocation.index;
+  const next = () => {
+    if (activeItem === items.length - 1) {
+      return 0;
+    }
+    return activeItem + 1;
+  };
+
+  const prev = () => {
+    if (activeItem === 0) {
+      return items.length - 1;
+    }
+    return activeItem - 1;
+  };
+
+  const scrollTo = (index: number) => {
+    if (listRef.current) {
       const { height, itemSize } = listRef.current.props;
       const scrollWindowTop = listRef.current.state.scrollOffset;
       const scrollWindowBottom = scrollWindowTop + height;
@@ -61,7 +81,40 @@ function PublishModal({ document, onPublish }: Props) {
         listRef.current.scrollTo(offset);
       }
     }
+  };
+
+  React.useEffect(() => {
+    scrollTo(activeItem);
+  }, [activeItem]);
+
+  React.useEffect(() => {
+    if (selectedLocation) {
+      scrollTo(selectedLocation.index);
+    }
+  }, [selectedLocation]);
+
+  useKeyDown("ArrowDown", () => {
+    setActiveItem(next());
+    scrollTo(activeItem);
   });
+
+  useKeyDown("ArrowUp", () => {
+    setActiveItem(prev());
+    scrollTo(activeItem);
+  });
+
+  useKeyDown("Enter", () => {
+    if (selectedLocation && selectedLocation.index === activeItem) {
+      handleSelect(null);
+    } else {
+      handleSelect(items[activeItem]);
+    }
+  });
+
+  useKeyDown(
+    (ev) => isModKey(ev) && ev.key === "Enter",
+    () => handlePublish()
+  );
 
   const searchIndex = React.useMemo(() => {
     const data = flattenTree(collections.tree.root).slice(1);
@@ -104,6 +157,9 @@ function PublishModal({ document, onPublish }: Props) {
 
   const handleSelect = (location: any) => {
     setLocation(location);
+    if (location) {
+      setActiveItem(location.index);
+    }
   };
 
   const handlePublish = React.useCallback(async () => {
@@ -185,6 +241,7 @@ function PublishModal({ document, onPublish }: Props) {
           selectedLocation && result.data.id === selectedLocation.data.id
         }
         toggleExpansion={toggleExpansion}
+        active={activeItem === index}
         isSearchResult={!!searchTerm}
       ></PublishLocation>
     );
@@ -216,7 +273,7 @@ function PublishModal({ document, onPublish }: Props) {
         required
         autoFocus
       />
-      <Results>
+      <Results tabIndex={-1}>
         <AutoSizer>
           {({ width, height }: { width: number; height: number }) => (
             <Flex role="listbox" column>

@@ -11,6 +11,7 @@ type Props = {
   location: any;
   onSelect: (location: any) => void;
   selected: boolean;
+  active: boolean;
   style: React.CSSProperties;
   toggleExpansion: (location: any) => void;
   isSearchResult: boolean;
@@ -21,6 +22,7 @@ function PublishLocation({
   onSelect,
   toggleExpansion,
   selected,
+  active,
   style,
   isSearchResult,
 }: Props) {
@@ -49,7 +51,13 @@ function PublishLocation({
   );
 
   return (
-    <Row selected={selected} onClick={handleSelect} style={style}>
+    <Row
+      selected={selected}
+      active={active}
+      onClick={handleSelect}
+      style={style}
+      tabIndex={0}
+    >
       <Spacer width={width}>
         {!isUndefined(location.data.expanded) && !isSearchResult && (
           <StyledDisclosure
@@ -91,6 +99,7 @@ const Spacer = styled(Flex)<{ width: number }>`
 `;
 
 const Row = styled.span<{
+  active: boolean;
   selected: boolean;
   style: React.CSSProperties;
 }>`
@@ -108,6 +117,13 @@ const Row = styled.span<{
   }
 
   border-radius: 6px;
+
+  background: ${(props) =>
+    !props.selected && props.active && props.theme.listItemHoverBackground};
+
+  &:focus {
+    outline: none;
+  }
 
   &:hover {
     background: ${(props) =>
