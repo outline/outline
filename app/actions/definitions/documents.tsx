@@ -20,6 +20,8 @@ import {
   ShuffleIcon,
   HistoryIcon,
   LightBulbIcon,
+  UnpublishIcon,
+  PublishIcon,
 } from "outline-icons";
 import * as React from "react";
 import { ExportContentType } from "@shared/types";
@@ -125,6 +127,61 @@ export const unstarDocument = createAction({
 
     const document = stores.documents.get(activeDocumentId);
     document?.unstar();
+  },
+});
+
+export const publishDocument = createAction({
+  name: ({ t }) => t("Publish"),
+  section: DocumentSection,
+  icon: <PublishIcon />,
+  visible: ({ activeDocumentId, stores }) => {
+    if (!activeDocumentId) {
+      return false;
+    }
+    const document = stores.documents.get(activeDocumentId);
+    return (
+      !!document?.isDraft && stores.policies.abilities(activeDocumentId).update
+    );
+  },
+  perform: ({ activeDocumentId, stores, t }) => {
+    if (!activeDocumentId) {
+      return;
+    }
+
+    const document = stores.documents.get(activeDocumentId);
+
+    document?.save({
+      publish: true,
+    });
+
+    stores.toasts.showToast(t("Document published"), {
+      type: "success",
+    });
+  },
+});
+
+export const unpublishDocument = createAction({
+  name: ({ t }) => t("Unpublish"),
+  section: DocumentSection,
+  icon: <UnpublishIcon />,
+  visible: ({ activeDocumentId, stores }) => {
+    if (!activeDocumentId) {
+      return false;
+    }
+    return stores.policies.abilities(activeDocumentId).unpublish;
+  },
+  perform: ({ activeDocumentId, stores, t }) => {
+    if (!activeDocumentId) {
+      return;
+    }
+
+    const document = stores.documents.get(activeDocumentId);
+
+    document?.unpublish();
+
+    stores.toasts.showToast(t("Document unpublished"), {
+      type: "success",
+    });
   },
 });
 
@@ -662,6 +719,8 @@ export const rootDocumentActions = [
   downloadDocument,
   starDocument,
   unstarDocument,
+  publishDocument,
+  unpublishDocument,
   subscribeDocument,
   unsubscribeDocument,
   duplicateDocument,
