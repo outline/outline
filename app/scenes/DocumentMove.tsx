@@ -63,13 +63,6 @@ function DocumentMove({ document, onRequestClose }: Props) {
     if (onlyShowCollections) {
       results = results.filter((result) => result.type === "collection");
     } else {
-      // Exclude root from search results if document is already at the root
-      if (!document.parentDocumentId) {
-        results = results.filter(
-          (result) => result.id !== document.collectionId
-        );
-      }
-
       // Exclude document if on the path to result, or the same result
       results = results.filter(
         (result) =>

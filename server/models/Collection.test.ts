@@ -33,7 +33,10 @@ describe("getDocumentParents", () => {
     const document = await buildDocument();
     const collection = await buildCollection({
       documentStructure: [
-        { ...parent.toJSON(), children: [document.toJSON()] },
+        {
+          ...(await parent.toNavigationNode()),
+          children: [await document.toNavigationNode()],
+        },
       ],
     });
     const result = collection.getDocumentParents(document.id);
@@ -46,7 +49,10 @@ describe("getDocumentParents", () => {
     const document = await buildDocument();
     const collection = await buildCollection({
       documentStructure: [
-        { ...parent.toJSON(), children: [document.toJSON()] },
+        {
+          ...(await parent.toNavigationNode()),
+          children: [await document.toNavigationNode()],
+        },
       ],
     });
     const result = collection.getDocumentParents(parent.id);
@@ -66,9 +72,11 @@ describe("getDocumentTree", () => {
   test("should return document tree", async () => {
     const document = await buildDocument();
     const collection = await buildCollection({
-      documentStructure: [document.toJSON()],
+      documentStructure: [await document.toNavigationNode()],
     });
-    expect(collection.getDocumentTree(document.id)).toEqual(document.toJSON());
+    expect(collection.getDocumentTree(document.id)).toEqual(
+      await document.toNavigationNode()
+    );
   });
 
   test("should return nested documents in tree", async () => {
@@ -76,15 +84,20 @@ describe("getDocumentTree", () => {
     const document = await buildDocument();
     const collection = await buildCollection({
       documentStructure: [
-        { ...parent.toJSON(), children: [document.toJSON()] },
+        {
+          ...(await parent.toNavigationNode()),
+          children: [await document.toNavigationNode()],
+        },
       ],
     });
 
     expect(collection.getDocumentTree(parent.id)).toEqual({
-      ...parent.toJSON(),
-      children: [document.toJSON()],
+      ...(await parent.toNavigationNode()),
+      children: [await document.toNavigationNode()],
     });
-    expect(collection.getDocumentTree(document.id)).toEqual(document.toJSON());
+    expect(collection.getDocumentTree(document.id)).toEqual(
+      await document.toNavigationNode()
+    );
   });
 });
 

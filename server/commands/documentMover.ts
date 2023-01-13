@@ -1,6 +1,5 @@
 import invariant from "invariant";
 import { Transaction } from "sequelize";
-import { ValidationError } from "@server/errors";
 import { traceFunction } from "@server/logging/tracing";
 import { User, Document, Collection, Pin, Event } from "@server/models";
 import pinDestroyer from "./pinDestroyer";
@@ -74,11 +73,11 @@ async function documentMover({
         save: collectionChanged,
       });
 
-      const documentJson = response?.[0];
+      let documentJson = response?.[0];
       const fromIndex = response?.[1] || 0;
 
       if (!documentJson) {
-        throw ValidationError("The document was not found in the collection");
+        documentJson = await document.toNavigationNode({ transaction });
       }
 
       // if we're reordering from within the same parent
