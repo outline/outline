@@ -38,25 +38,22 @@ function PublishModal({ document, onPublish }: Props) {
       .slice(1)
       .filter((d) => d.data.show)
   );
-  const [activeItem, setActiveItem] = React.useState<number>(0);
+  const [activeItem, setActiveItem] = React.useState<number>(-1);
   const { t } = useTranslation();
   const listRef = React.useRef<any>(null);
+  const inputSearchRef:
+    | React.RefObject<HTMLInputElement | HTMLTextAreaElement>
+    | undefined = React.useRef(null);
 
   const VERTICAL_PADDING = 6;
   const HORIZONTAL_PADDING = 24;
 
-  const next = () => {
-    if (activeItem === items.length - 1) {
-      return 0;
-    }
-    return activeItem + 1;
-  };
+  const next = React.useCallback(() => {
+    return activeItem === items.length - 1 ? 0 : activeItem + 1;
+  }, [activeItem, items.length]);
 
   const prev = () => {
-    if (activeItem === 0) {
-      return items.length - 1;
-    }
-    return activeItem - 1;
+    return activeItem === -1 ? activeItem : activeItem - 1;
   };
 
   const scrollTo = (index: number) => {
@@ -84,7 +81,11 @@ function PublishModal({ document, onPublish }: Props) {
   };
 
   React.useEffect(() => {
-    scrollTo(activeItem);
+    if (activeItem === -1) {
+      inputSearchRef.current?.focus();
+    } else {
+      scrollTo(activeItem);
+    }
   }, [activeItem]);
 
   React.useEffect(() => {
@@ -99,8 +100,10 @@ function PublishModal({ document, onPublish }: Props) {
   });
 
   useKeyDown("ArrowUp", () => {
-    setActiveItem(prev());
-    scrollTo(activeItem);
+    if (window.document.activeElement !== inputSearchRef.current) {
+      setActiveItem(prev());
+      scrollTo(activeItem);
+    }
   });
 
   useKeyDown("Enter", () => {
@@ -110,6 +113,20 @@ function PublishModal({ document, onPublish }: Props) {
       handleSelect(items[activeItem]);
     }
   });
+
+  useKeyDown("ArrowRight", () => {
+    toggleExpansion(items[activeItem]);
+  });
+
+  const handleSearchInputKeyDown = React.useCallback(
+    (ev) => {
+      if (ev.key === "ArrowDown") {
+        inputSearchRef.current?.blur();
+        setActiveItem(next());
+      }
+    },
+    [next]
+  );
 
   useKeyDown(
     (ev) => isModKey(ev) && ev.key === "Enter",
@@ -187,6 +204,9 @@ function PublishModal({ document, onPublish }: Props) {
   }, [selectedLocation, document, showToast, t, onPublish]);
 
   const toggleExpansion = (location: any) => {
+    if (location.children.length === 0) {
+      return;
+    }
     const data: any = flattenTree(collections.tree.root).slice(1);
     const locIndex = findIndex(
       data,
@@ -270,6 +290,8 @@ function PublishModal({ document, onPublish }: Props) {
         type="search"
         onChange={handleSearch}
         placeholder={`${t("Search collections & documents")}…`}
+        ref={inputSearchRef}
+        onKeyDown={handleSearchInputKeyDown}
         required
         autoFocus
       />
