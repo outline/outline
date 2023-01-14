@@ -163,11 +163,13 @@ const Actions = styled(EventBoundary)<{ showActions?: boolean }>`
   }
 `;
 
-const Link = styled(NavLink)<{
+type NavLinkProps = {
   $isActiveDrop?: boolean;
   $isDraft?: boolean;
   $disabled?: boolean;
-}>`
+};
+
+const Link = styled(NavLink)<NavLinkProps>`
   display: flex;
   position: relative;
   text-overflow: ellipsis;
@@ -194,8 +196,17 @@ const Link = styled(NavLink)<{
   ${(props) =>
     props.$isDraft &&
     css`
-      padding: 4px 14px;
-      border: 1px dashed ${props.theme.sidebarDraftBorder};
+      &:after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        border-radius: 4px;
+        border: 1.5px dashed ${props.theme.sidebarDraftBorder};
+      }
     `}
 
   svg {

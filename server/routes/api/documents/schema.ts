@@ -201,6 +201,9 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
 
     /** Boolean to denote if text should be appended */
     append: z.boolean().optional(),
+
+    /** Version of the API to be used */
+    apiVersion: z.number().optional(),
   }),
 }).refine((req) => !(req.body.append && !req.body.text), {
   message: "text is required while appending",
@@ -241,7 +244,10 @@ export const DocumentsDeleteSchema = BaseSchema.extend({
 export type DocumentsDeleteReq = z.infer<typeof DocumentsDeleteSchema>;
 
 export const DocumentsUnpublishSchema = BaseSchema.extend({
-  body: BaseIdSchema,
+  body: BaseIdSchema.extend({
+    /** Version of the API to be used */
+    apiVersion: z.number().optional(),
+  }),
 });
 
 export type DocumentsUnpublishReq = z.infer<typeof DocumentsUnpublishSchema>;

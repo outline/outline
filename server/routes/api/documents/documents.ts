@@ -826,6 +826,7 @@ router.post(
       templateId,
       collectionId,
       append,
+      apiVersion,
     } = ctx.input.body;
     const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
     const { user } = ctx.state.auth;
@@ -873,10 +874,18 @@ router.post(
     });
 
     updatedDocument.updatedBy = user;
-    updatedDocument.collection = collection;
+    if (!updatedDocument.collection) {
+      updatedDocument.collection = collection;
+    }
 
     ctx.body = {
-      data: await presentDocument(updatedDocument),
+      data:
+        apiVersion === 2
+          ? {
+              document: await presentDocument(updatedDocument),
+              collection: presentCollection(updatedDocument.collection),
+            }
+          : await presentDocument(updatedDocument),
       policies: presentPolicies(user, [updatedDocument]),
     };
   }
@@ -1043,7 +1052,7 @@ router.post(
   auth(),
   validate(T.DocumentsUnpublishSchema),
   async (ctx: APIContext<T.DocumentsUnpublishReq>) => {
-    const { id } = ctx.input.body;
+    const { id, apiVersion } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     const document = await Document.findByPk(id, {
@@ -1072,7 +1081,13 @@ router.post(
     });
 
     ctx.body = {
-      data: await presentDocument(document),
+      data:
+        apiVersion === 2
+          ? {
+              document: await presentDocument(document),
+              collection: presentCollection(document.collection),
+            }
+          : await presentDocument(document),
       policies: presentPolicies(user, [document]),
     };
   }
