@@ -30,7 +30,7 @@
   "Duplicate": "Duplicate",
   "Duplicate document": "Duplicate document",
   "Document duplicated": "Document duplicated",
-  "Pin to ": "Pin to ",
+  "Pin to {{collectionName}}": "Pin to {{collectionName}}",
   "Pinned to collection": "Pinned to collection",
   "Pin to home": "Pin to home",
   "Pinned to team home": "Pinned to team home",

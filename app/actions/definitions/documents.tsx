@@ -352,10 +352,16 @@ export const duplicateDocument = createAction({
  * of the collection for all collection members to see.
  */
 export const pinDocumentToCollection = createAction({
-  name: ({ t, stores }) => {
-    const activeCollectionName = stores.collections.active?.name;
-    return t("Pin to ") + activeCollectionName;
+  name: ({ activeDocumentId = "", t, stores }) => {
+    const activeDocument = stores.documents.get(activeDocumentId);
+    const activeCollectionName = activeDocument
+      ? stores.documents.getCollectionForDocument(activeDocument)?.name
+      : "";
+    return activeCollectionName
+      ? t("Pin to {{collectionName}}", { collectionName: activeCollectionName })
+      : "";
   },
+
   section: DocumentSection,
   icon: <PinIcon />,
   iconInContextMenu: false,
