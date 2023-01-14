@@ -265,6 +265,12 @@ export class Environment {
   public SMTP_HOST = process.env.SMTP_HOST;
 
   /**
+   * Optional hostname of the client, used for identifying to the server
+   * defaults to hostname of the machine.
+   */
+  public SMTP_NAME = process.env.SMTP_NAME;
+
+  /**
    * The port of your SMTP server.
    */
   @IsNumber()
