@@ -356,12 +356,12 @@ export const pinDocumentToCollection = createAction({
     const selectedDocument = stores.documents.get(activeDocumentId);
     const selectedDocumentCollectionName = selectedDocument
       ? stores.documents.getCollectionForDocument(selectedDocument)?.name
-      : "";
+      : undefined;
     return selectedDocumentCollectionName
       ? t("Pin to {{collectionName}}", {
           collectionName: selectedDocumentCollectionName,
         })
-      : "";
+      : t("Pin to collection");
   },
 
   section: DocumentSection,
