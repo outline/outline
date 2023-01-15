@@ -257,7 +257,7 @@ function IconPicker({ onOpen, onClose, icon, color, onChange }: Props) {
             );
           })}
         </Icons>
-        <Flex>
+        <Colors>
           <React.Suspense fallback={<Loading>{t("Loading")}…</Loading>}>
             <ColorPicker
               color={color}
@@ -266,6 +266,10 @@ function IconPicker({ onOpen, onClose, icon, color, onChange }: Props) {
               triangle="hide"
               styles={{
                 default: {
+                  body: {
+                    padding: 0,
+                    marginRight: -8,
+                  },
                   hash: {
                     color: theme.text,
                     background: theme.inputBorder,
@@ -279,7 +283,7 @@ function IconPicker({ onOpen, onClose, icon, color, onChange }: Props) {
               }}
             />
           </React.Suspense>
-        </Flex>
+        </Colors>
       </ContextMenu>
     </Wrapper>
   );
@@ -289,12 +293,16 @@ const Icon = styled.svg`
   transition: fill 150ms ease-in-out;
 `;
 
+const Colors = styled(Flex)`
+  padding: 8px;
+`;
+
 const Label = styled.label`
   display: block;
 `;
 
 const Icons = styled.div`
-  padding: 16px 8px 0 16px;
+  padding: 8px;
 
   ${breakpoint("tablet")`
     width: 276px;
@@ -321,11 +329,7 @@ const Loading = styled(Text)`
 const ColorPicker = styled(TwitterPicker)`
   box-shadow: none !important;
   background: transparent !important;
-  width: auto !important;
-
-  ${breakpoint("tablet")`
-    width: 276px;
-  `};
+  width: 100% !important;
 `;
 
 const Wrapper = styled("div")`
