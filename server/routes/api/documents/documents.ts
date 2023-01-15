@@ -846,8 +846,6 @@ router.post(
           "collectionId is required to publish a draft without collection"
         );
         collection = await Collection.findByPk(collectionId as string);
-      } else {
-        collection = document.collection;
       }
       authorize(user, "publish", collection);
     }
@@ -856,7 +854,7 @@ router.post(
       throw InvalidRequestError("Document has changed since last revision");
     }
 
-    const updatedDocument = await sequelize.transaction(async (transaction) => {
+    await sequelize.transaction((transaction) => {
       return documentUpdater({
         document,
         user,
@@ -873,20 +871,25 @@ router.post(
       });
     });
 
-    updatedDocument.updatedBy = user;
-    if (!updatedDocument.collection) {
-      updatedDocument.collection = collection;
+    document.updatedBy = user;
+
+    // Original collection has membership data for calculating policies so we
+    // use that collection and just update the documentStructure for performance
+    if (collection) {
+      const { documentStructure } = collection;
+      document.collection = collection;
+      document.collection.documentStructure = documentStructure;
     }
 
     ctx.body = {
       data:
         apiVersion === 2
           ? {
-              document: await presentDocument(updatedDocument),
-              collection: presentCollection(updatedDocument.collection),
+              document: await presentDocument(document),
+              collection: presentCollection(document.collection),
             }
-          : await presentDocument(updatedDocument),
-      policies: presentPolicies(user, [updatedDocument]),
+          : await presentDocument(document),
+      policies: presentPolicies(user, [document]),
     };
   }
 );
