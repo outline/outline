@@ -224,21 +224,23 @@ function SharePopover({
       </Heading>
 
       {sharedParent && !document.isDraft && (
-        <Notice>
-          <Trans
-            defaults="This document is shared because the parent <em>{{ documentTitle }}</em> is publicly shared"
-            values={{
-              documentTitle: sharedParent.documentTitle,
-            }}
-            components={{
-              em: <strong />,
-            }}
-          />
-        </Notice>
+        <NoticeWrapper>
+          <Notice>
+            <Trans
+              defaults="This document is shared because the parent <em>{{ documentTitle }}</em> is publicly shared"
+              values={{
+                documentTitle: sharedParent.documentTitle,
+              }}
+              components={{
+                em: <strong />,
+              }}
+            />
+          </Notice>
+        </NoticeWrapper>
       )}
 
       {canPublish && !sharedParent?.published && (
-        <PublishToInternet canPublish={canPublish} />
+        <PublishToInternet canPublish />
       )}
 
       {canPublish && share?.published && !document.isDraft && (
@@ -263,9 +265,11 @@ function SharePopover({
 
       {expandedOptions && (
         <>
-          <Separator />
           {canPublish && sharedParent?.published && (
-            <PublishToInternet canPublish={canPublish} />
+            <>
+              <Separator />
+              <PublishToInternet canPublish />
+            </>
           )}
           <Separator />
           <SwitchWrapper>
@@ -351,6 +355,10 @@ const Heading = styled.h2`
 `;
 
 const SwitchWrapper = styled.div`
+  margin: 20px 0;
+`;
+
+const NoticeWrapper = styled.div`
   margin: 20px 0;
 `;
 
