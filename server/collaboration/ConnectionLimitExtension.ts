@@ -10,11 +10,14 @@ import { trace } from "@server/logging/tracing";
 @trace()
 export class ConnectionLimitExtension implements Extension {
   /**
-   * Map of documentId -> userIds that have modified the document since it
-   * was last persisted to the database. The map is cleared on every save.
+   * Map of documentId -> connection count
    */
   connectionsByDocument: Map<string, number> = new Map();
 
+  /**
+   * onDisconnect hook
+   * @param data The disconnect payload
+   */
   onDisconnect(data: onDisconnectPayload) {
     const { documentName } = data;
 
@@ -32,7 +35,7 @@ export class ConnectionLimitExtension implements Extension {
 
   /**
    * onConnect hook
-   * @param data
+   * @param data The connect payload
    */
   onConnect(data: onConnectPayload) {
     const { documentName } = data;
@@ -43,6 +46,8 @@ export class ConnectionLimitExtension implements Extension {
         "multiplayer",
         `Rejected connection to "${documentName}" because it has reached the maximum number of connections`
       );
+
+      // Rejecting the promise will cause the connection to be dropped.
       return Promise.reject();
     }
 
