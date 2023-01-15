@@ -5,6 +5,7 @@ import { observer } from "mobx-react";
 import { ExpandedIcon, GlobeIcon, PadlockIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { SHARE_URL_SLUG_REGEX } from "@shared/utils/urlHelpers";
 import Document from "~/models/Document";
@@ -226,15 +227,15 @@ function SharePopover({
       {sharedParent && !document.isDraft && (
         <NoticeWrapper>
           <Notice>
-            <Trans
-              defaults="This document is shared because the parent <em>{{ documentTitle }}</em> is publicly shared"
-              values={{
-                documentTitle: sharedParent.documentTitle,
-              }}
-              components={{
-                em: <strong />,
-              }}
-            />
+            {t("This document is shared because the parent ")}
+            {sharedParent && (
+              <>
+                <StyledLink to={`/doc/${sharedParent.documentId}`}>
+                  {sharedParent.documentTitle}
+                </StyledLink>{" "}
+              </>
+            )}
+            {t("is publicly shared")}
           </Notice>
         </NoticeWrapper>
       )}
@@ -343,6 +344,10 @@ function SharePopover({
     </>
   );
 }
+
+const StyledLink = styled(Link)`
+  font-weight: 600;
+`;
 
 const Heading = styled.h2`
   display: flex;
