@@ -1,12 +1,6 @@
 import Collection from "@server/models/Collection";
 
-export default function presentCollection(
-  collection: Collection | null | undefined
-) {
-  if (!collection) {
-    return undefined;
-  }
-
+export default function presentCollection(collection: Collection) {
   return {
     id: collection.id,
     url: collection.url,

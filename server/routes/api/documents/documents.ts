@@ -886,7 +886,9 @@ router.post(
         apiVersion === 2
           ? {
               document: await presentDocument(document),
-              collection: presentCollection(document.collection),
+              collection: document.collection
+                ? presentCollection(document.collection)
+                : undefined,
             }
           : await presentDocument(document),
       policies: presentPolicies(user, [document]),
@@ -1088,7 +1090,9 @@ router.post(
         apiVersion === 2
           ? {
               document: await presentDocument(document),
-              collection: presentCollection(document.collection),
+              collection: document.collection
+                ? presentCollection(document.collection)
+                : undefined,
             }
           : await presentDocument(document),
       policies: presentPolicies(user, [document]),
