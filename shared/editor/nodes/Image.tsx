@@ -726,17 +726,22 @@ const ImageComponent = (
     : { width: size.width || "auto" };
 
   return (
-    <div contentEditable={false} className={className}>
+    <div
+      contentEditable={false}
+      className={className}
+      style={
+        isFullWidth
+          ? ({
+              "--offset": `${-(contentWidth - documentWidth) / 2}px`,
+            } as React.CSSProperties)
+          : undefined
+      }
+    >
       <ImageWrapper
         isFullWidth={isFullWidth}
         className={isSelected || dragging ? "ProseMirror-selectednode" : ""}
         onClick={dragging ? undefined : props.onClick}
-        style={{
-          ...style,
-          ...(isFullWidth
-            ? { marginLeft: -(contentWidth - documentWidth) / 2 }
-            : {}),
-        }}
+        style={style}
       >
         {!dragging && size.width > 60 && size.height > 60 && (
           <Button onClick={props.onDownload}>
