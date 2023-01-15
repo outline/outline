@@ -10,7 +10,7 @@ import attachments from "./attachments";
 import auth from "./auth";
 import authenticationProviders from "./authenticationProviders";
 import collections from "./collections";
-import comments from "./comments";
+import comments from "./comments/comments";
 import cron from "./cron";
 import developer from "./developer";
 import documents from "./documents";
