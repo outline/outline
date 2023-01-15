@@ -195,7 +195,7 @@ function SharePopover({
         </Notice>
       )}
 
-      {canPublish ? (
+      {canPublish && !sharedParent?.published ? (
         <SwitchWrapper>
           <Switch
             id="published"
@@ -254,6 +254,41 @@ function SharePopover({
 
       {expandedOptions && (
         <>
+          {sharedParent?.published && (
+            <>
+              <Separator />
+              <SwitchWrapper>
+                <Switch
+                  id="published"
+                  label={t("Publish to internet")}
+                  onChange={handlePublishedChange}
+                  checked={share ? share.published : false}
+                  disabled={!share}
+                />
+                <SwitchLabel>
+                  <SwitchText>
+                    {share?.published
+                      ? t("Anyone with the link can view this document")
+                      : t("Only members with permission can view")}
+                    {share?.lastAccessedAt && (
+                      <>
+                        .{" "}
+                        {t("The shared link was last accessed {{ timeAgo }}.", {
+                          timeAgo: formatDistanceToNow(
+                            Date.parse(share?.lastAccessedAt),
+                            {
+                              addSuffix: true,
+                              locale,
+                            }
+                          ),
+                        })}
+                      </>
+                    )}
+                  </SwitchText>
+                </SwitchLabel>
+              </SwitchWrapper>
+            </>
+          )}
           <Separator />
           <SwitchWrapper>
             <Switch
