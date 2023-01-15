@@ -354,14 +354,13 @@ export const duplicateDocument = createAction({
 export const pinDocumentToCollection = createAction({
   name: ({ activeDocumentId = "", t, stores }) => {
     const selectedDocument = stores.documents.get(activeDocumentId);
-    const selectedDocumentCollectionName = selectedDocument
+    const collectionName = selectedDocument
       ? stores.documents.getCollectionForDocument(selectedDocument)?.name
-      : undefined;
-    return selectedDocumentCollectionName
-      ? t("Pin to {{collectionName}}", {
-          collectionName: selectedDocumentCollectionName,
-        })
-      : t("Pin to collection");
+      : t("collection");
+
+    return t("Pin to {{collectionName}}", {
+      collectionName,
+    });
   },
 
   section: DocumentSection,
