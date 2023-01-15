@@ -2818,6 +2818,39 @@ describe("#documents.update", () => {
     expect(res.status).toBe(400);
     expect(body.message).toBe("id: Required");
   });
+
+  describe("apiVersion=2", () => {
+    it("should successfully publish a draft", async () => {
+      const { user, team, collection } = await seed();
+      const document = await buildDraftDocument({
+        title: "title",
+        text: "text",
+        teamId: team.id,
+      });
+
+      const res = await server.post("/api/documents.update", {
+        body: {
+          apiVersion: 2,
+          token: user.getJwtToken(),
+          id: document.id,
+          title: "Updated title",
+          text: "Updated text",
+          lastRevision: document.revisionCount,
+          collectionId: collection.id,
+          publish: true,
+        },
+      });
+      const body = await res.json();
+      expect(res.status).toEqual(200);
+      expect(body.data.document.collectionId).toBe(collection.id);
+      expect(body.data.document.title).toBe("Updated title");
+      expect(body.data.document.text).toBe("Updated text");
+      expect(body.data.collection.icon).toBe(collection.icon);
+      expect(body.data.collection.documents.length).toBe(
+        collection.documentStructure!.length + 1
+      );
+    });
+  });
 });
 
 describe("#documents.archive", () => {

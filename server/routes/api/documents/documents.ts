@@ -854,8 +854,8 @@ router.post(
       throw InvalidRequestError("Document has changed since last revision");
     }
 
-    await sequelize.transaction((transaction) => {
-      return documentUpdater({
+    collection = await sequelize.transaction(async (transaction) => {
+      await documentUpdater({
         document,
         user,
         title,
@@ -869,29 +869,26 @@ router.post(
         transaction,
         ip: ctx.request.ip,
       });
+
+      return await Collection.scope({
+        method: ["withMembership", user.id],
+      }).findByPk(document.collectionId, { transaction });
     });
 
     document.updatedBy = user;
-
-    // Original collection has membership data for calculating policies so we
-    // use that collection and just update the documentStructure for performance
-    if (collection) {
-      const { documentStructure } = collection;
-      document.collection = collection;
-      document.collection.documentStructure = documentStructure;
-    }
+    document.collection = collection;
 
     ctx.body = {
       data:
         apiVersion === 2
           ? {
               document: await presentDocument(document),
-              collection: document.collection
-                ? presentCollection(document.collection)
+              collection: collection
+                ? presentCollection(collection)
                 : undefined,
             }
           : await presentDocument(document),
-      policies: presentPolicies(user, [document]),
+      policies: presentPolicies(user, [document, collection]),
     };
   }
 );
