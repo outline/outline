@@ -163,13 +163,11 @@ const Actions = styled(EventBoundary)<{ showActions?: boolean }>`
   }
 `;
 
-type NavLinkProps = {
+const Link = styled(NavLink)<{
   $isActiveDrop?: boolean;
   $isDraft?: boolean;
   $disabled?: boolean;
-};
-
-const Link = styled(NavLink)<NavLinkProps>`
+}>`
   display: flex;
   position: relative;
   text-overflow: ellipsis;
