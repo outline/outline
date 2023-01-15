@@ -232,25 +232,28 @@ function SharePopover({
         </Text>
       )}
 
-      {canPublish && share?.published && !document.isDraft && (
-        <SwitchWrapper>
-          <Switch
-            id="includeChildDocuments"
-            label={t("Share nested documents")}
-            onChange={handleChildDocumentsChange}
-            checked={share ? share.includeChildDocuments : false}
-            disabled={!share}
-          />
-          <SwitchLabel>
-            <SwitchText>
-              {share.includeChildDocuments
-                ? t("Nested documents are publicly available")
-                : t("Nested documents are not shared")}
-              .
-            </SwitchText>
-          </SwitchLabel>
-        </SwitchWrapper>
-      )}
+      {canPublish &&
+        share?.published &&
+        !document.isDraft &&
+        !sharedParent?.published && (
+          <SwitchWrapper>
+            <Switch
+              id="includeChildDocuments"
+              label={t("Share nested documents")}
+              onChange={handleChildDocumentsChange}
+              checked={share ? share.includeChildDocuments : false}
+              disabled={!share}
+            />
+            <SwitchLabel>
+              <SwitchText>
+                {share.includeChildDocuments
+                  ? t("Nested documents are publicly available")
+                  : t("Nested documents are not shared")}
+                .
+              </SwitchText>
+            </SwitchLabel>
+          </SwitchWrapper>
+        )}
 
       {expandedOptions && (
         <>
