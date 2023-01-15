@@ -1,13 +1,11 @@
 import { onAuthenticatePayload, Extension } from "@hocuspocus/server";
-import { APM } from "@server/logging/tracing";
+import { trace } from "@server/logging/tracing";
 import Document from "@server/models/Document";
 import { can } from "@server/policies";
 import { getUserForJWT } from "@server/utils/jwt";
 import { AuthenticationError } from "../errors";
 
-@APM.trace({
-  spanName: "authentication",
-})
+@trace()
 export default class AuthenticationExtension implements Extension {
   async onAuthenticate({
     connection,

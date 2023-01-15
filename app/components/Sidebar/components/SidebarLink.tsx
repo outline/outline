@@ -4,6 +4,7 @@ import styled, { useTheme, css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "~/components/EventBoundary";
 import NudeButton from "~/components/NudeButton";
+import { undraggableOnDesktop } from "~/styles";
 import { NavigationNode } from "~/types";
 import Disclosure from "./Disclosure";
 import NavLink, { Props as NavLinkProps } from "./NavLink";
@@ -181,6 +182,7 @@ const Link = styled(NavLink)<{
   font-size: 16px;
   cursor: var(--pointer);
   overflow: hidden;
+  ${undraggableOnDesktop()}
 
   ${(props) =>
     props.$disabled &&
@@ -192,8 +194,17 @@ const Link = styled(NavLink)<{
   ${(props) =>
     props.$isDraft &&
     css`
-      padding: 4px 14px;
-      border: 1px dashed ${props.theme.sidebarDraftBorder};
+      &:after {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        pointer-events: none;
+        border-radius: 4px;
+        border: 1.5px dashed ${props.theme.sidebarDraftBorder};
+      }
     `}
 
   svg {

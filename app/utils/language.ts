@@ -1,4 +1,6 @@
 import { i18n } from "i18next";
+import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
+import Desktop from "./Desktop";
 
 export function detectLanguage() {
   const [ln, r] = navigator.language.split("-");
@@ -13,6 +15,9 @@ export function changeLanguage(
   if (toLanguageString && i18n.language !== toLanguageString) {
     // Languages are stored in en_US format in the database, however the
     // frontend translation framework (i18next) expects en-US
-    i18n.changeLanguage(toLanguageString.replace("_", "-"));
+    const locale = unicodeCLDRtoBCP47(toLanguageString);
+    i18n.changeLanguage(locale);
+
+    Desktop.bridge?.setSpellCheckerLanguages(["en-US", locale]);
   }
 }

@@ -5,15 +5,14 @@ import bodyParser from "koa-body";
 import Router from "koa-router";
 import { AuthenticationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
-import { defaultRateLimiter } from "@server/middlewares/rateLimiter";
 import { Collection, Team, View } from "@server/models";
+import { AppState, AppContext, APIContext } from "@server/types";
 import providers from "./providers";
 
-const app = new Koa();
+const app = new Koa<AppState, AppContext>();
 const router = new Router();
 
 router.use(passport.initialize());
-router.use(defaultRateLimiter());
 
 // dynamically load available authentication provider routes
 providers.forEach((provider) => {
@@ -22,8 +21,8 @@ providers.forEach((provider) => {
   }
 });
 
-router.get("/redirect", auth(), async (ctx) => {
-  const { user } = ctx.state;
+router.get("/redirect", auth(), async (ctx: APIContext) => {
+  const { user } = ctx.state.auth;
   const jwtToken = user.getJwtToken();
 
   if (jwtToken === ctx.params.token) {

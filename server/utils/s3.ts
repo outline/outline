@@ -1,7 +1,5 @@
-import crypto from "crypto";
 import util from "util";
 import AWS, { S3 } from "aws-sdk";
-import { addHours, format } from "date-fns";
 import fetch from "fetch-with-proxy";
 import { compact } from "lodash";
 import { useAgent } from "request-filtering-agent";
@@ -36,85 +34,16 @@ const createPresignedPost: (
   .promisify(s3.createPresignedPost)
   .bind(s3);
 
-const hmac = (
-  key: string | Buffer,
-  message: string,
-  encoding?: "base64" | "hex"
-) => {
-  const o = crypto.createHmac("sha256", key).update(message, "utf8");
-  return encoding ? o.digest(encoding) : o.digest();
-};
-
-export const makeCredential = () => {
-  const credential =
-    AWS_ACCESS_KEY_ID +
-    "/" +
-    format(new Date(), "yyyyMMdd") +
-    "/" +
-    AWS_REGION +
-    "/s3/aws4_request";
-  return credential;
-};
-
-export const makePolicy = (
-  credential: string,
-  longDate: string,
-  acl: string,
-  contentType = "image"
-) => {
-  const tomorrow = addHours(new Date(), 24);
-  const policy = {
-    conditions: [
-      {
-        bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME,
-      },
-      ["starts-with", "$key", ""],
-      {
-        acl,
-      },
-      // @ts-expect-error ts-migrate(2532) FIXME: Object is possibly 'undefined'.
-      ["content-length-range", 0, +process.env.AWS_S3_UPLOAD_MAX_SIZE],
-      ["starts-with", "$Content-Type", contentType],
-      ["starts-with", "$Cache-Control", ""],
-      {
-        "x-amz-algorithm": "AWS4-HMAC-SHA256",
-      },
-      {
-        "x-amz-credential": credential,
-      },
-      {
-        "x-amz-date": longDate,
-      },
-    ],
-    expiration: format(tomorrow, "yyyy-MM-dd'T'HH:mm:ss'Z'"),
-  };
-
-  return Buffer.from(JSON.stringify(policy)).toString("base64");
-};
-
-export const getSignature = (policy: string) => {
-  const kDate = hmac(
-    "AWS4" + AWS_SECRET_ACCESS_KEY,
-    format(new Date(), "yyyyMMdd")
-  );
-  const kRegion = hmac(kDate, AWS_REGION);
-  const kService = hmac(kRegion, "s3");
-  const kCredentials = hmac(kService, "aws4_request");
-  const signature = hmac(kCredentials, policy, "hex");
-  return signature;
-};
-
 export const getPresignedPost = (
   key: string,
   acl: string,
+  maxUploadSize: number,
   contentType = "image"
 ) => {
   const params = {
     Bucket: process.env.AWS_S3_UPLOAD_BUCKET_NAME,
     Conditions: compact([
-      process.env.AWS_S3_UPLOAD_MAX_SIZE
-        ? ["content-length-range", 0, +process.env.AWS_S3_UPLOAD_MAX_SIZE]
-        : undefined,
+      ["content-length-range", 0, maxUploadSize],
       ["starts-with", "$Content-Type", contentType],
       ["starts-with", "$Cache-Control", ""],
     ]),
@@ -156,21 +85,28 @@ export const publicS3Endpoint = (isServerUpload?: boolean) => {
   }${AWS_S3_UPLOAD_BUCKET_NAME}`;
 };
 
-export const uploadToS3FromBuffer = async (
-  buffer: Buffer,
-  contentType: string,
-  key: string,
-  acl: string
-) => {
+export const uploadToS3 = async ({
+  body,
+  contentLength,
+  contentType,
+  key,
+  acl,
+}: {
+  body: S3.Body;
+  contentLength: number;
+  contentType: string;
+  key: string;
+  acl: string;
+}) => {
   await s3
     .putObject({
       ACL: acl,
       Bucket: AWS_S3_UPLOAD_BUCKET_NAME,
       Key: key,
       ContentType: contentType,
-      ContentLength: buffer.length,
+      ContentLength: contentLength,
       ContentDisposition: "attachment",
-      Body: buffer,
+      Body: body,
     })
     .promise();
   const endpoint = publicS3Endpoint(true);

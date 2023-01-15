@@ -3,22 +3,31 @@ import {
   yDocToProsemirrorJSON,
 } from "@getoutline/y-prosemirror";
 import { JSDOM } from "jsdom";
-import { escapeRegExp } from "lodash";
-import diff from "node-htmldiff";
+import { escapeRegExp, startCase } from "lodash";
 import { Node, DOMSerializer } from "prosemirror-model";
 import * as React from "react";
 import { renderToString } from "react-dom/server";
 import styled, { ServerStyleSheet, ThemeProvider } from "styled-components";
 import * as Y from "yjs";
 import EditorContainer from "@shared/editor/components/Styles";
+import textBetween from "@shared/editor/lib/textBetween";
 import GlobalStyles from "@shared/styles/globals";
 import light from "@shared/styles/theme";
+import {
+  getCurrentDateAsString,
+  getCurrentDateTimeAsString,
+  getCurrentTimeAsString,
+  unicodeCLDRtoBCP47,
+} from "@shared/utils/date";
 import { isRTL } from "@shared/utils/rtl";
 import unescape from "@shared/utils/unescape";
 import { parser, schema } from "@server/editor";
 import Logger from "@server/logging/Logger";
-import Document from "@server/models/Document";
+import { trace } from "@server/logging/tracing";
+import type Document from "@server/models/Document";
 import type Revision from "@server/models/Revision";
+import User from "@server/models/User";
+import diff from "@server/utils/diff";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { getSignedUrl } from "@server/utils/s3";
 import Attachment from "../Attachment";
@@ -30,12 +39,15 @@ type HTMLOptions = {
   includeStyles?: boolean;
   /** Whether to include styles to center diff (defaults to true) */
   centered?: boolean;
+  /** Whether to replace attachment urls with pre-signed versions (defaults to false) */
+  signedUrls?: boolean;
 };
 
+@trace()
 export default class DocumentHelper {
   /**
    * Returns the document as a Prosemirror Node. This method uses the
-   * collaborative state if available, otherwise it falls back to Markdown->HTML.
+   * collaborative state if available, otherwise it falls back to Markdown.
    *
    * @param document The document or revision to convert
    * @returns The document content as a Prosemirror Node
@@ -47,6 +59,24 @@ export default class DocumentHelper {
       return Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
     }
     return parser.parse(document.text);
+  }
+
+  /**
+   * Returns the document as plain text. This method uses the
+   * collaborative state if available, otherwise it falls back to Markdown.
+   *
+   * @param document The document or revision to convert
+   * @returns The document content as plain text without formatting.
+   */
+  static toPlainText(document: Document | Revision) {
+    const node = DocumentHelper.toProsemirror(document);
+    const textSerializers = Object.fromEntries(
+      Object.entries(schema.nodes)
+        .filter(([, node]) => node.spec.toPlainText)
+        .map(([name, node]) => [name, node.spec.toPlainText])
+    );
+
+    return textBetween(node, 0, node.content.size, textSerializers);
   }
 
   /**
@@ -74,7 +104,7 @@ export default class DocumentHelper {
    * @param options Options for the HTML output
    * @returns The document title and content as a HTML string
    */
-  static toHTML(document: Document | Revision, options?: HTMLOptions) {
+  static async toHTML(document: Document | Revision, options?: HTMLOptions) {
     const node = DocumentHelper.toProsemirror(document);
     const sheet = new ServerStyleSheet();
     let html, styleTags;
@@ -146,7 +176,16 @@ export default class DocumentHelper {
       target
     );
 
-    return dom.serialize();
+    let output = dom.serialize();
+
+    if (options?.signedUrls && "teamId" in document) {
+      output = await DocumentHelper.attachmentsToSignedUrls(
+        output,
+        document.teamId
+      );
+    }
+
+    return output;
   }
 
   /**
@@ -157,17 +196,17 @@ export default class DocumentHelper {
    * @param options Options passed to HTML generation
    * @returns The diff as a HTML string
    */
-  static diff(
+  static async diff(
     before: Document | Revision | null,
     after: Revision,
     options?: HTMLOptions
   ) {
     if (!before) {
-      return DocumentHelper.toHTML(after, options);
+      return await DocumentHelper.toHTML(after, options);
     }
 
-    const beforeHTML = DocumentHelper.toHTML(before, options);
-    const afterHTML = DocumentHelper.toHTML(after, options);
+    const beforeHTML = await DocumentHelper.toHTML(before, options);
+    const afterHTML = await DocumentHelper.toHTML(after, options);
     const beforeDOM = new JSDOM(beforeHTML);
     const afterDOM = new JSDOM(afterHTML);
 
@@ -198,7 +237,7 @@ export default class DocumentHelper {
    * @param options Options passed to HTML generation
    * @returns The diff as a HTML string
    */
-  static toEmailDiff(
+  static async toEmailDiff(
     before: Document | Revision | null,
     after: Revision,
     options?: HTMLOptions
@@ -207,7 +246,7 @@ export default class DocumentHelper {
       return "";
     }
 
-    const html = DocumentHelper.diff(before, after, options);
+    const html = await DocumentHelper.diff(before, after, options);
     const dom = new JSDOM(html);
     const doc = dom.window.document;
 
@@ -305,6 +344,24 @@ export default class DocumentHelper {
       })
     );
     return text;
+  }
+
+  /**
+   * Replaces template variables in the given text with the current date and time.
+   *
+   * @param text The text to replace the variables in
+   * @param user The user to get the language/locale from
+   * @returns The text with the variables replaced
+   */
+  static replaceTemplateVariables(text: string, user: User) {
+    const locales = user.language
+      ? unicodeCLDRtoBCP47(user.language)
+      : undefined;
+
+    return text
+      .replace("{date}", startCase(getCurrentDateAsString(locales)))
+      .replace("{time}", startCase(getCurrentTimeAsString(locales)))
+      .replace("{datetime}", startCase(getCurrentDateTimeAsString(locales)));
   }
 
   /**

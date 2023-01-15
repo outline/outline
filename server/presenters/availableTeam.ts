@@ -1,6 +1,6 @@
 import { Team } from "@server/models";
 
-export default function present(team: Team, isSignedIn = false) {
+export default function presentAvailableTeam(team: Team, isSignedIn = false) {
   return {
     id: team.id,
     name: team.name,

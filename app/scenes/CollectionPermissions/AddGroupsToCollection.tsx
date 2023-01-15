@@ -20,7 +20,6 @@ import useStores from "~/hooks/useStores";
 
 type Props = {
   collection: Collection;
-  onSubmit: () => void;
 };
 
 function AddGroupsToCollection(props: Props) {

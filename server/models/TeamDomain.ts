@@ -10,16 +10,14 @@ import {
   BeforeCreate,
 } from "sequelize-typescript";
 import { TeamValidation } from "@shared/validations";
-import env from "@server/env";
 import { ValidationError } from "@server/errors";
+import isCloudHosted from "@server/utils/isCloudHosted";
 import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
 import Fix from "./decorators/Fix";
 import IsFQDN from "./validators/IsFQDN";
 import Length from "./validators/Length";
-
-const isCloudHosted = env.DEPLOYMENT === "hosted";
 
 @Table({ tableName: "team_domains", modelName: "team_domain" })
 @Fix

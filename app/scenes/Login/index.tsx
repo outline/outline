@@ -12,9 +12,8 @@ import ButtonLarge from "~/components/ButtonLarge";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
+import OutlineIcon from "~/components/Icons/OutlineIcon";
 import LoadingIndicator from "~/components/LoadingIndicator";
-import NoticeAlert from "~/components/NoticeAlert";
-import OutlineLogo from "~/components/OutlineLogo";
 import PageTitle from "~/components/PageTitle";
 import TeamLogo from "~/components/TeamLogo";
 import Text from "~/components/Text";
@@ -22,6 +21,8 @@ import env from "~/env";
 import useLastVisitedPath from "~/hooks/useLastVisitedPath";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
+import { draggableOnDesktop } from "~/styles";
+import Desktop from "~/utils/Desktop";
 import isCloudHosted from "~/utils/isCloudHosted";
 import { changeLanguage, detectLanguage } from "~/utils/language";
 import AuthenticationProvider from "./AuthenticationProvider";
@@ -31,7 +32,11 @@ function Header({ config }: { config?: Config | undefined }) {
   const { t } = useTranslation();
   const isSubdomain = !!config?.hostname;
 
-  if (!isCloudHosted || parseDomain(window.location.origin).custom) {
+  if (
+    !isCloudHosted ||
+    parseDomain(window.location.origin).custom ||
+    Desktop.isElectron()
+  ) {
     return null;
   }
 
@@ -109,7 +114,8 @@ function Login({ children }: Props) {
         <Header />
         <Centered align="center" justify="center" column auto>
           <PageTitle title={t("Login")} />
-          <NoticeAlert>
+          <Heading centered>{t("Error")}</Heading>
+          <Note>
             {t("Failed to load configuration.")}
             {!isCloudHosted && (
               <p>
@@ -118,7 +124,7 @@ function Login({ children }: Props) {
                 )}
               </p>
             )}
-          </NoticeAlert>
+          </Note>
         </Centered>
       </Background>
     );
@@ -128,6 +134,26 @@ function Login({ children }: Props) {
   // indicator here that's delayed by 250ms
   if (!config) {
     return <LoadingIndicator />;
+  }
+
+  const isCustomDomain = parseDomain(window.location.origin).custom;
+
+  // Unmapped custom domain
+  if (isCloudHosted && isCustomDomain && !config.name) {
+    return (
+      <Background>
+        <Header config={config} />
+        <Centered align="center" justify="center" column auto>
+          <PageTitle title={t("Custom domain setup")} />
+          <Heading centered>{t("Almost there")}…</Heading>
+          <Note>
+            {t(
+              "Your custom domain is successfully pointing at Outline. To complete the setup process please contact support."
+            )}
+          </Note>
+        </Centered>
+      </Background>
+    );
   }
 
   const hasMultipleProviders = config.providers.length > 1;
@@ -168,10 +194,10 @@ function Login({ children }: Props) {
           title={config.name ? `${config.name} – ${t("Login")}` : t("Login")}
         />
         <Logo>
-          {config.logo ? (
+          {config.logo && !isCreate ? (
             <TeamLogo size={48} src={config.logo} />
           ) : (
-            <OutlineLogo size={42} fill="currentColor" />
+            <OutlineIcon size={48} />
           )}
         </Logo>
         {isCreate ? (
@@ -189,7 +215,7 @@ function Login({ children }: Props) {
           <>
             <StyledHeading as="h2" centered>
               {t("Login to {{ authProviderName }}", {
-                authProviderName: config.name || "Outline",
+                authProviderName: config.name || env.APP_NAME,
               })}
             </StyledHeading>
             {children?.(config)}
@@ -254,6 +280,7 @@ const Background = styled(Fade)`
   height: 100%;
   background: ${(props) => props.theme.background};
   display: flex;
+  ${draggableOnDesktop()}
 `;
 
 const Logo = styled.div`

@@ -205,9 +205,7 @@ function DocumentHeader({
           isMobile ? (
             <TableOfContentsMenu headings={headings} />
           ) : (
-            <DocumentBreadcrumb document={document}>
-              {!isEditing && toc}
-            </DocumentBreadcrumb>
+            <DocumentBreadcrumb document={document}>{toc}</DocumentBreadcrumb>
           )
         }
         title={
@@ -291,7 +289,6 @@ function DocumentHeader({
                   to={newDocumentPath(document.collectionId, {
                     templateId: document.id,
                   })}
-                  primary
                 >
                   {t("New from template")}
                 </Button>

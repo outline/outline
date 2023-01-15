@@ -22,7 +22,10 @@ type UserPresentation = {
   preferences?: UserPreferences | null;
 };
 
-export default (user: User, options: Options = {}): UserPresentation => {
+export default function presentUser(
+  user: User,
+  options: Options = {}
+): UserPresentation {
   const userData: UserPresentation = {
     id: user.id,
     name: user.name,
@@ -43,4 +46,4 @@ export default (user: User, options: Options = {}): UserPresentation => {
   }
 
   return userData;
-};
+}

@@ -11,7 +11,7 @@ import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
 import DelayedMount from "~/components/DelayedMount";
 import PlaceholderList from "~/components/List/Placeholder";
 import withStores from "~/components/withStores";
-import { dateToHeading } from "~/utils/dates";
+import { dateToHeading } from "~/utils/date";
 
 export interface PaginatedItem {
   id: string;

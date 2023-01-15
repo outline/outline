@@ -57,6 +57,13 @@ export default class UsersStore extends BaseStore<User> {
   }
 
   @computed
+  get members(): User[] {
+    return this.orderedData.filter(
+      (user) => !user.isViewer && !user.isAdmin && !user.isInvited
+    );
+  }
+
+  @computed
   get viewers(): User[] {
     return this.orderedData.filter((user) => user.isViewer);
   }

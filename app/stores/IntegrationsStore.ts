@@ -1,5 +1,6 @@
 import { filter } from "lodash";
 import { computed } from "mobx";
+import { IntegrationService } from "@shared/types";
 import naturalSort from "@shared/utils/naturalSort";
 import BaseStore from "~/stores/BaseStore";
 import RootStore from "~/stores/RootStore";
@@ -18,7 +19,7 @@ class IntegrationsStore extends BaseStore<Integration> {
   @computed
   get slackIntegrations(): Integration[] {
     return filter(this.orderedData, {
-      service: "slack",
+      service: IntegrationService.Slack,
     });
   }
 }

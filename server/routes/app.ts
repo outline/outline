@@ -4,9 +4,13 @@ import util from "util";
 import { Context, Next } from "koa";
 import { escape } from "lodash";
 import { Sequelize } from "sequelize";
+import isUUID from "validator/lib/isUUID";
+import { IntegrationType } from "@shared/types";
 import documentLoader from "@server/commands/documentLoader";
 import env from "@server/env";
+import { Integration } from "@server/models";
 import presentEnv from "@server/presenters/env";
+import { getTeamFromContext } from "@server/utils/passport";
 import prefetchTags from "@server/utils/prefetchTags";
 
 const isProduction = env.ENVIRONMENT === "production";
@@ -52,10 +56,15 @@ const readIndexFile = async (ctx: Context): Promise<Buffer> => {
 export const renderApp = async (
   ctx: Context,
   next: Next,
-  options: { title?: string; description?: string; canonical?: string } = {}
+  options: {
+    title?: string;
+    description?: string;
+    canonical?: string;
+    analytics?: Integration | null;
+  } = {}
 ) => {
   const {
-    title = "Outline",
+    title = env.APP_NAME,
     description = "A modern team knowledge base for your internal documentation, product specs, support answers, meeting notes, onboarding, &amp; more…",
     canonical = "",
   } = options;
@@ -67,7 +76,7 @@ export const renderApp = async (
   const { shareId } = ctx.params;
   const page = await readIndexFile(ctx);
   const environment = `
-    window.env = ${JSON.stringify(presentEnv(env))};
+    window.env = ${JSON.stringify(presentEnv(env, options.analytics))};
   `;
   ctx.body = page
     .toString()
@@ -84,15 +93,31 @@ export const renderShare = async (ctx: Context, next: Next) => {
   // Find the share record if publicly published so that the document title
   // can be be returned in the server-rendered HTML. This allows it to appear in
   // unfurls with more reliablity
-  let share, document;
+  let share, document, analytics;
 
   try {
+    const team = await getTeamFromContext(ctx);
     const result = await documentLoader({
       id: documentSlug,
       shareId,
+      teamId: team?.id,
     });
     share = result.share;
+    if (isUUID(shareId) && share?.urlId) {
+      // Redirect temporarily because the url slug
+      // can be modified by the user at any time
+      ctx.redirect(share.canonicalUrl);
+      ctx.status = 307;
+      return;
+    }
     document = result.document;
+
+    analytics = await Integration.findOne({
+      where: {
+        teamId: document.teamId,
+        type: IntegrationType.Analytics,
+      },
+    });
 
     if (share && !ctx.userAgent.isBot) {
       await share.update({
@@ -112,6 +137,7 @@ export const renderShare = async (ctx: Context, next: Next) => {
   return renderApp(ctx, next, {
     title: document?.title,
     description: document?.getSummary(),
+    analytics,
     canonical: share
       ? `${share.canonicalUrl}${documentSlug && document ? document.url : ""}`
       : undefined,

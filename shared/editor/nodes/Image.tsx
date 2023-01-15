@@ -10,13 +10,13 @@ import {
 } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
-import ImageZoom, { ImageZoom_Image } from "react-medium-image-zoom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { getDataTransferFiles, getEventFiles } from "../../utils/files";
 import { sanitizeUrl } from "../../utils/urls";
 import { AttachmentValidation } from "../../validations";
 import insertFiles, { Options } from "../commands/insertFiles";
+import ImageZoom from "../components/ImageZoom";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import uploadPlaceholderPlugin from "../lib/uploadPlaceholder";
 import { ComponentProps, Dispatch } from "../types";
@@ -99,7 +99,7 @@ const uploadPlugin = (options: Options) =>
     },
   });
 
-const IMAGE_CLASSES = ["right-50", "left-50"];
+const IMAGE_CLASSES = ["right-50", "left-50", "full-width"];
 const imageSizeRegex = /\s=(\d+)?x(\d+)?$/;
 
 type TitleAttributes = {
@@ -120,12 +120,12 @@ const getLayoutAndTitle = (tokenTitle: string): TitleAttributes => {
     return attributes;
   }
 
-  if (IMAGE_CLASSES.includes(tokenTitle)) {
-    attributes.layoutClass = tokenTitle;
-    IMAGE_CLASSES.map((className) => {
+  IMAGE_CLASSES.map((className) => {
+    if (tokenTitle.includes(className)) {
+      attributes.layoutClass = className;
       tokenTitle = tokenTitle.replace(className, "");
-    });
-  }
+    }
+  });
 
   const match = tokenTitle.match(imageSizeRegex);
   if (match) {
@@ -168,7 +168,9 @@ export default class Image extends Node {
     return {
       inline: true,
       attrs: {
-        src: {},
+        src: {
+          default: "",
+        },
         width: {
           default: undefined,
         },
@@ -362,7 +364,6 @@ export default class Image extends Node {
     return (
       <ImageComponent
         {...props}
-        view={this.editor.view}
         onClick={this.handleSelect(props)}
         onDownload={this.handleDownload(props)}
         onChangeSize={this.handleChangeSize(props)}
@@ -470,6 +471,19 @@ export default class Image extends Node {
           ...state.selection.node.attrs,
           title: null,
           layoutClass: "left-50",
+        };
+        const { selection } = state;
+        dispatch(state.tr.setNodeMarkup(selection.from, undefined, attrs));
+        return true;
+      },
+      alignFullWidth: () => (state: EditorState, dispatch: Dispatch) => {
+        if (!(state.selection instanceof NodeSelection)) {
+          return false;
+        }
+        const attrs = {
+          ...state.selection.node.attrs,
+          title: null,
+          layoutClass: "full-width",
         };
         const { selection } = state;
         dispatch(state.tr.setNodeMarkup(selection.from, undefined, attrs));
@@ -584,9 +598,12 @@ const ImageComponent = (
     view: EditorView;
   }
 ) => {
-  const { theme, isSelected, node, isEditable } = props;
-  const { alt, src, layoutClass } = node.attrs;
+  const { isSelected, node, isEditable } = props;
+  const { src, layoutClass } = node.attrs;
   const className = layoutClass ? `image image-${layoutClass}` : "image";
+  const [contentWidth, setContentWidth] = React.useState(
+    () => document.body.querySelector("#full-width-container")?.clientWidth || 0
+  );
   const [naturalWidth, setNaturalWidth] = React.useState(node.attrs.width);
   const [naturalHeight, setNaturalHeight] = React.useState(node.attrs.height);
   const [size, setSize] = React.useState({
@@ -596,8 +613,25 @@ const ImageComponent = (
   const [sizeAtDragStart, setSizeAtDragStart] = React.useState(size);
   const [offset, setOffset] = React.useState(0);
   const [dragging, setDragging] = React.useState<DragDirection>();
-  const documentWidth = props.view?.dom.clientWidth;
+  const [documentWidth, setDocumentWidth] = React.useState(
+    props.view?.dom.clientWidth || 0
+  );
   const maxWidth = layoutClass ? documentWidth / 3 : documentWidth;
+  const isFullWidth = layoutClass === "full-width";
+
+  React.useLayoutEffect(() => {
+    const handleResize = () => {
+      const contentWidth =
+        document.body.querySelector("#full-width-container")?.clientWidth || 0;
+      setContentWidth(contentWidth);
+      setDocumentWidth(props.view?.dom.clientWidth || 0);
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, [props.view]);
 
   const constrainWidth = (width: number) => {
     const minWidth = documentWidth * 0.1;
@@ -687,11 +721,24 @@ const ImageComponent = (
     };
   }, [dragging, handlePointerMove, handlePointerUp]);
 
-  const style = { width: size.width || "auto" };
+  const style = isFullWidth
+    ? { width: contentWidth }
+    : { width: size.width || "auto" };
 
   return (
-    <div contentEditable={false} className={className}>
+    <div
+      contentEditable={false}
+      className={className}
+      style={
+        isFullWidth
+          ? ({
+              "--offset": `${-(contentWidth - documentWidth) / 2}px`,
+            } as React.CSSProperties)
+          : undefined
+      }
+    >
       <ImageWrapper
+        isFullWidth={isFullWidth}
         className={isSelected || dragging ? "ProseMirror-selectednode" : ""}
         onClick={dragging ? undefined : props.onClick}
         style={style}
@@ -701,38 +748,29 @@ const ImageComponent = (
             <DownloadIcon color="currentColor" />
           </Button>
         )}
-        <ImageZoom
-          image={
-            {
-              style,
-              src: sanitizeUrl(src) ?? "",
-              alt,
-              onLoad: (ev: React.SyntheticEvent<HTMLImageElement>) => {
-                // For some SVG's Firefox does not provide the naturalWidth, in this
-                // rare case we need to provide a default so that the image can be
-                // seen and is not sized to 0px
-                const nw = (ev.target as HTMLImageElement).naturalWidth || 300;
-                const nh = (ev.target as HTMLImageElement).naturalHeight;
-                setNaturalWidth(nw);
-                setNaturalHeight(nh);
+        <ImageZoom zoomMargin={24}>
+          <img
+            style={style}
+            src={sanitizeUrl(src) ?? ""}
+            onLoad={(ev: React.SyntheticEvent<HTMLImageElement>) => {
+              // For some SVG's Firefox does not provide the naturalWidth, in this
+              // rare case we need to provide a default so that the image can be
+              // seen and is not sized to 0px
+              const nw = (ev.target as HTMLImageElement).naturalWidth || 300;
+              const nh = (ev.target as HTMLImageElement).naturalHeight;
+              setNaturalWidth(nw);
+              setNaturalHeight(nh);
 
-                if (!node.attrs.width) {
-                  setSize((state) => ({
-                    ...state,
-                    width: nw,
-                  }));
-                }
-              },
-            } as ImageZoom_Image
-          }
-          defaultStyles={{
-            overlay: {
-              backgroundColor: theme.background,
-            },
-          }}
-          shouldRespectMaxDimension
-        />
-        {isEditable && (
+              if (!node.attrs.width) {
+                setSize((state) => ({
+                  ...state,
+                  width: nw,
+                }));
+              }
+            }}
+          />
+        </ImageZoom>
+        {isEditable && !isFullWidth && (
           <>
             <ResizeLeft
               onPointerDown={handlePointerDown("left")}
@@ -846,16 +884,23 @@ const Caption = styled.p`
   }
 `;
 
-const ImageWrapper = styled.div`
+const ImageWrapper = styled.div<{ isFullWidth: boolean }>`
   line-height: 0;
   position: relative;
   margin-left: auto;
   margin-right: auto;
-  max-width: 100%;
+  max-width: ${(props) => (props.isFullWidth ? "initial" : "100%")};
   transition-property: width, height;
-  transition-duration: 150ms;
+  transition-duration: ${(props) => (props.isFullWidth ? "0ms" : "150ms")};
   transition-timing-function: ease-in-out;
   touch-action: none;
+  overflow: hidden;
+
+  img {
+    transition-property: width, height;
+    transition-duration: ${(props) => (props.isFullWidth ? "0ms" : "150ms")};
+    transition-timing-function: ease-in-out;
+  }
 
   &:hover {
     ${Button} {

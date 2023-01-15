@@ -1,6 +1,6 @@
 import { AuthenticationProvider } from "@server/models";
 
-export default function present(
+export default function presentAuthenticationProvider(
   authenticationProvider: AuthenticationProvider
 ) {
   return {

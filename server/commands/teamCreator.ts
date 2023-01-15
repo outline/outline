@@ -1,7 +1,7 @@
 import { Transaction } from "sequelize";
 import slugify from "slugify";
 import { RESERVED_SUBDOMAINS } from "@shared/utils/domains";
-import { APM } from "@server/logging/tracing";
+import { traceFunction } from "@server/logging/tracing";
 import { Team, Event } from "@server/models";
 import { generateAvatarUrl } from "@server/utils/avatars";
 
@@ -103,7 +103,6 @@ async function findAvailableSubdomain(team: Team, requestedSubdomain: string) {
   return subdomain;
 }
 
-export default APM.traceFunction({
-  serviceName: "command",
+export default traceFunction({
   spanName: "teamCreator",
 })(teamCreator);

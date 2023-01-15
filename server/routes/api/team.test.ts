@@ -32,7 +32,7 @@ describe("teams.create", () => {
         name: "new workspace",
       },
     });
-    expect(res.status).toEqual(500);
+    expect(res.status).toEqual(402);
   });
 });
 

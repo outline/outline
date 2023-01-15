@@ -43,30 +43,30 @@ function Features() {
       </Text>
       {team.collaborativeEditing && (
         <SettingRow
-          name="seamlessEdit"
+          name={TeamPreference.SeamlessEdit}
           label={t("Seamless editing")}
           description={t(
             `When enabled documents are always editable for team members that have permission. When disabled there is a separate editing view.`
           )}
         >
           <Switch
-            id="seamlessEdit"
-            name="seamlessEdit"
+            id={TeamPreference.SeamlessEdit}
+            name={TeamPreference.SeamlessEdit}
             checked={team.getPreference(TeamPreference.SeamlessEdit, true)}
             onChange={handlePreferenceChange}
           />
         </SettingRow>
       )}
       <SettingRow
-        name="commenting"
+        name={TeamPreference.Commenting}
         label={t("Commenting")}
         description={t(
           "When enabled team members can add comments to documents."
         )}
       >
         <Switch
-          id="commenting"
-          name="commenting"
+          id={TeamPreference.Commenting}
+          name={TeamPreference.Commenting}
           checked={team.getPreference(TeamPreference.Commenting, false)}
           disabled={!team.collaborativeEditing}
           onChange={handlePreferenceChange}
@@ -74,15 +74,15 @@ function Features() {
       </SettingRow>
       {team.avatarUrl && (
         <SettingRow
-          name="publicBranding"
+          name={TeamPreference.PublicBranding}
           label={t("Public branding")}
           description={t(
             "Show your team’s logo on public pages like login and shared documents."
           )}
         >
           <Switch
-            id="publicBranding"
-            name="publicBranding"
+            id={TeamPreference.PublicBranding}
+            name={TeamPreference.PublicBranding}
             checked={team.getPreference(TeamPreference.PublicBranding, false)}
             onChange={handlePreferenceChange}
           />

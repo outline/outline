@@ -51,7 +51,7 @@ const ConfirmationDialog: React.FC<Props> = ({
       <form onSubmit={handleSubmit}>
         <Text type="secondary">{children}</Text>
         <Button type="submit" disabled={isSaving} danger={danger} autoFocus>
-          {isSaving ? savingText : submitText}
+          {isSaving && savingText ? savingText : submitText}
         </Button>
       </form>
     </Flex>

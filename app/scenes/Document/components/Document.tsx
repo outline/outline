@@ -34,6 +34,7 @@ import withStores from "~/components/withStores";
 import type { Editor as TEditor } from "~/editor";
 import { NavigationNode } from "~/types";
 import { client } from "~/utils/ApiClient";
+import { replaceTitleVariables } from "~/utils/date";
 import { emojiToUrl } from "~/utils/emoji";
 import { isModKey } from "~/utils/keyboard";
 import {
@@ -186,8 +187,12 @@ class DocumentScene extends React.Component<Props> {
     }
 
     if (!this.title) {
-      this.title = template.title;
-      this.props.document.title = template.title;
+      const title = replaceTitleVariables(
+        template.title,
+        this.props.auth.user || undefined
+      );
+      this.title = title;
+      this.props.document.title = title;
     }
 
     this.props.document.text = template.text;
@@ -481,7 +486,12 @@ class DocumentScene extends React.Component<Props> {
             }
           }}
         />
-        <Background key={revision ? revision.id : document.id} column auto>
+        <Background
+          id="full-width-container"
+          key={revision ? revision.id : document.id}
+          column
+          auto
+        >
           <Route
             path={`${document.url}/move`}
             component={() => (
@@ -562,7 +572,7 @@ class DocumentScene extends React.Component<Props> {
             >
               <Notices document={document} readOnly={readOnly} />
               <React.Suspense fallback={<PlaceholderDocument />}>
-                <Flex auto={!readOnly}>
+                <Flex auto={!readOnly} reverse>
                   {revision ? (
                     <RevisionViewer
                       isDraft={document.isDraft}
@@ -572,12 +582,6 @@ class DocumentScene extends React.Component<Props> {
                     />
                   ) : (
                     <>
-                      {showContents && (
-                        <Contents
-                          headings={this.headings}
-                          isFullWidth={document.fullWidth}
-                        />
-                      )}
                       <Editor
                         id={document.id}
                         key={embedsDisabled ? "disabled" : "enabled"}
@@ -624,6 +628,13 @@ class DocumentScene extends React.Component<Props> {
                           </>
                         )}
                       </Editor>
+
+                      {showContents && (
+                        <Contents
+                          headings={this.headings}
+                          isFullWidth={document.fullWidth}
+                        />
+                      )}
                     </>
                   )}
                 </Flex>
@@ -686,7 +697,6 @@ const MaxWidth = styled(Flex)<MaxWidthProps>`
   padding-bottom: 16px;
 
   ${breakpoint("tablet")`
-    padding: 0 44px;
     margin: 4px auto 12px;
     max-width: ${(props: MaxWidthProps) =>
       props.isFullWidth

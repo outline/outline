@@ -15,6 +15,7 @@ describe("IsUrl Method", () => {
     expect(urlsUtils.isUrl("https://www.example.com")).toBe(true);
     expect(urlsUtils.isUrl("seafile://openfile")).toBe(true);
     expect(urlsUtils.isUrl("figma://launch")).toBe(true);
+    expect(urlsUtils.isUrl("outline:https://getoutline.com")).toBe(true);
   });
 });
 
@@ -76,7 +77,7 @@ describe("sanitizeUrl Method", () => {
       expect(urlsUtils.sanitizeUrl("fax:0123456789")).toEqual("fax:0123456789");
       expect(urlsUtils.sanitizeUrl("sms:0123456789")).toEqual("sms:0123456789");
     });
-    it("should return the url as it's if it's a special domain", () => {
+    it("should return the url as it's if it's a special protocol", () => {
       expect(urlsUtils.sanitizeUrl("mqtt://getoutline.com")).toEqual(
         "mqtt://getoutline.com"
       );

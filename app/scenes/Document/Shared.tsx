@@ -7,11 +7,13 @@ import { RouteComponentProps, useLocation, Redirect } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import { setCookie } from "tiny-cookie";
 import DocumentModel from "~/models/Document";
+import Team from "~/models/Team";
 import Error404 from "~/scenes/Error404";
 import ErrorOffline from "~/scenes/ErrorOffline";
 import Layout from "~/components/Layout";
 import Sidebar from "~/components/Sidebar/Shared";
 import Text from "~/components/Text";
+import env from "~/env";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { NavigationNode } from "~/types";
@@ -26,6 +28,7 @@ const EMPTY_OBJECT = {};
 
 type Response = {
   document: DocumentModel;
+  team?: Team;
   sharedTree?: NavigationNode | undefined;
 };
 
@@ -134,9 +137,10 @@ function SharedDocumentScene(props: Props) {
             config?.name && isCloudHosted ? (
               <Content>
                 {t(
-                  "{{ teamName }} is using Outline to share documents, please login to continue.",
+                  "{{ teamName }} is using {{ appName }} to share documents, please login to continue.",
                   {
                     teamName: config.name,
+                    appName: env.APP_NAME,
                   }
                 )}
               </Content>
@@ -157,8 +161,12 @@ function SharedDocumentScene(props: Props) {
     return <Redirect to={response.document.url} />;
   }
 
-  const sidebar = response.sharedTree ? (
-    <Sidebar rootNode={response.sharedTree} shareId={shareId} />
+  const sidebar = response.sharedTree?.children.length ? (
+    <Sidebar
+      rootNode={response.sharedTree}
+      team={response.team}
+      shareId={shareId}
+    />
   ) : undefined;
 
   return (

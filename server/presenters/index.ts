@@ -1,4 +1,5 @@
 import presentApiKey from "./apiKey";
+import presentAttachment from "./attachment";
 import presentAuthenticationProvider from "./authenticationProvider";
 import presentAvailableTeam from "./availableTeam";
 import presentCollection from "./collection";
@@ -28,6 +29,7 @@ import presentWebhookSubscription from "./webhookSubscription";
 
 export {
   presentApiKey,
+  presentAttachment,
   presentAuthenticationProvider,
   presentAvailableTeam,
   presentCollection,

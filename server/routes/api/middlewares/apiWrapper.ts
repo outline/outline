@@ -8,7 +8,8 @@ export default function apiWrapper() {
 
     if (
       typeof ctx.body === "object" &&
-      !(ctx.body instanceof stream.Readable)
+      !(ctx.body instanceof stream.Readable) &&
+      !(ctx.body instanceof Buffer)
     ) {
       ctx.body = {
         ...ctx.body,

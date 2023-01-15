@@ -1,14 +1,12 @@
-import { observable } from "mobx";
 import { observer } from "mobx-react";
 import { EditIcon } from "outline-icons";
 import queryString from "query-string";
 import * as React from "react";
-import { WithTranslation, withTranslation } from "react-i18next";
-import { RouteComponentProps } from "react-router-dom";
+import { useTranslation } from "react-i18next";
+import { useHistory, useLocation } from "react-router-dom";
 import styled from "styled-components";
-import RootStore from "~/stores/RootStore";
+import { DateFilter as TDateFilter } from "@shared/types";
 import CollectionFilter from "~/scenes/Search/components/CollectionFilter";
-import DateFilter from "~/scenes/Search/components/DateFilter";
 import { Action } from "~/components/Actions";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
@@ -17,34 +15,27 @@ import InputSearchPage from "~/components/InputSearchPage";
 import PaginatedDocumentList from "~/components/PaginatedDocumentList";
 import Scene from "~/components/Scene";
 import Subheading from "~/components/Subheading";
-import withStores from "~/components/withStores";
+import useStores from "~/hooks/useStores";
 import NewDocumentMenu from "~/menus/NewDocumentMenu";
+import DateFilter from "./Search/components/DateFilter";
 
-type Props = WithTranslation & RouteComponentProps & RootStore;
+function Drafts() {
+  const { t } = useTranslation();
+  const { documents } = useStores();
+  const history = useHistory();
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const collectionId = params.get("collectionId") || undefined;
+  const dateFilter = (params.get("dateFilter") || undefined) as TDateFilter;
 
-@observer
-class Drafts extends React.Component<Props> {
-  @observable
-  params: URLSearchParams = new URLSearchParams(this.props.location.search);
-
-  componentDidUpdate(prevProps: Props) {
-    if (prevProps.location.search !== this.props.location.search) {
-      this.handleQueryChange();
-    }
-  }
-
-  handleQueryChange = () => {
-    this.params = new URLSearchParams(this.props.location.search);
-  };
-
-  handleFilterChange = (search: {
+  const handleFilterChange = (search: {
     dateFilter?: string | null | undefined;
     collectionId?: string | null | undefined;
   }) => {
-    this.props.history.replace({
-      pathname: this.props.location.pathname,
+    history.replace({
+      pathname: location.pathname,
       search: queryString.stringify(
-        { ...queryString.parse(this.props.location.search), ...search },
+        { ...queryString.parse(location.search), ...search },
         {
           skipEmptyString: true,
         }
@@ -52,84 +43,66 @@ class Drafts extends React.Component<Props> {
     });
   };
 
-  get collectionId() {
-    const id = this.params.get("collectionId");
-    return id ? id : undefined;
-  }
+  const isFiltered = collectionId || dateFilter;
+  const options = {
+    dateFilter,
+    collectionId,
+  };
 
-  get dateFilter() {
-    const id = this.params.get("dateFilter");
-    return (id ? id : undefined) as
-      | "day"
-      | "week"
-      | "month"
-      | "year"
-      | undefined;
-  }
+  return (
+    <Scene
+      icon={<EditIcon color="currentColor" />}
+      title={t("Drafts")}
+      actions={
+        <>
+          <Action>
+            <InputSearchPage source="drafts" label={t("Search documents")} />
+          </Action>
+          <Action>
+            <NewDocumentMenu />
+          </Action>
+        </>
+      }
+    >
+      <Heading>{t("Drafts")}</Heading>
+      <Subheading sticky>
+        {t("Documents")}
+        <Filters>
+          <CollectionFilter
+            collectionId={collectionId}
+            onSelect={(collectionId) =>
+              handleFilterChange({
+                collectionId,
+              })
+            }
+          />
+          <DateFilter
+            dateFilter={dateFilter}
+            onSelect={(dateFilter) =>
+              handleFilterChange({
+                dateFilter,
+              })
+            }
+          />
+        </Filters>
+      </Subheading>
 
-  render() {
-    const { t } = this.props;
-    const isFiltered = this.collectionId || this.dateFilter;
-    const options = {
-      dateFilter: this.dateFilter,
-      collectionId: this.collectionId,
-    };
-
-    return (
-      <Scene
-        icon={<EditIcon color="currentColor" />}
-        title={t("Drafts")}
-        actions={
-          <>
-            <Action>
-              <InputSearchPage source="drafts" label={t("Search documents")} />
-            </Action>
-            <Action>
-              <NewDocumentMenu />
-            </Action>
-          </>
+      <PaginatedDocumentList
+        empty={
+          <Empty>
+            {isFiltered
+              ? t("No documents found for your filters.")
+              : t("You’ve not got any drafts at the moment.")}
+          </Empty>
         }
-      >
-        <Heading>{t("Drafts")}</Heading>
-        <Subheading sticky>
-          {t("Documents")}
-          <Filters>
-            <CollectionFilter
-              collectionId={this.collectionId}
-              onSelect={(collectionId) =>
-                this.handleFilterChange({
-                  collectionId,
-                })
-              }
-            />
-            <DateFilter
-              dateFilter={this.dateFilter}
-              onSelect={(dateFilter) =>
-                this.handleFilterChange({
-                  dateFilter,
-                })
-              }
-            />
-          </Filters>
-        </Subheading>
-
-        <PaginatedDocumentList
-          empty={
-            <Empty>
-              {isFiltered
-                ? t("No documents found for your filters.")
-                : t("You’ve not got any drafts at the moment.")}
-            </Empty>
-          }
-          fetch={this.props.documents.fetchDrafts}
-          documents={this.props.documents.drafts(options)}
-          options={options}
-          showParentDocuments
-          showCollection
-        />
-      </Scene>
-    );
-  }
+        fetch={documents.fetchDrafts}
+        documents={documents.drafts(options)}
+        options={options}
+        showParentDocuments
+        showCollection
+      />
+    </Scene>
+  );
 }
 
 const Filters = styled(Flex)`
@@ -145,4 +118,4 @@ const Filters = styled(Flex)`
   }
 `;
 
-export default withTranslation()(withStores(Drafts));
+export default observer(Drafts);

@@ -122,7 +122,7 @@ export default class NotificationsProcessor extends BaseProcessor {
 
     // generate the diff html for the email
     const before = await revision.previous();
-    let content = DocumentHelper.toEmailDiff(before, revision, {
+    let content = await DocumentHelper.toEmailDiff(before, revision, {
       includeTitle: false,
       centered: false,
     });

@@ -103,6 +103,14 @@ export function ValidationError(message = "Validation failed") {
   });
 }
 
+export function IncorrectEditionError(
+  message = "Functionality not available in this edition"
+) {
+  return httpErrors(402, message, {
+    id: "incorrect_edition",
+  });
+}
+
 export function EditorUpdateError(
   message = "The client editor is out of date and must be reloaded"
 ) {

@@ -1,4 +1,5 @@
 import * as React from "react";
+import env from "@server/env";
 import BaseEmail from "./BaseEmail";
 import Body from "./components/Body";
 import CopyableCode from "./components/CopyableCode";
@@ -27,7 +28,7 @@ export default class ConfirmUserDeleteEmail extends BaseEmail<Props> {
 
   protected renderAsText({ deleteConfirmationCode }: Props): string {
     return `
-You requested to permanantly delete your Outline account. Please enter the code below to confirm your account deletion.
+You requested to permanantly delete your ${env.APP_NAME} account. Please enter the code below to confirm your account deletion.
 
 Code: ${deleteConfirmationCode}
 `;
@@ -41,8 +42,8 @@ Code: ${deleteConfirmationCode}
         <Body>
           <Heading>Your account deletion request</Heading>
           <p>
-            You requested to permanantly delete your Outline account. Please
-            enter the code below to confirm your account deletion.
+            You requested to permanantly delete your {env.APP_NAME} account.
+            Please enter the code below to confirm your account deletion.
           </p>
           <EmptySpace height={5} />
           <p>

@@ -16,11 +16,11 @@ import { useMenuState, MenuButton, MenuButtonHTMLProps } from "reakit/Menu";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import { getEventFiles } from "@shared/utils/files";
 import Collection from "~/models/Collection";
-import CollectionExport from "~/scenes/CollectionExport";
 import CollectionDeleteDialog from "~/components/CollectionDeleteDialog";
 import ContextMenu, { Placement } from "~/components/ContextMenu";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
 import Template from "~/components/ContextMenu/Template";
+import ExportDialog from "~/components/ExportDialog";
 import { actionToMenuItem } from "~/actions";
 import {
   editCollection,
@@ -67,7 +67,7 @@ function CollectionMenu({
       title: t("Export collection"),
       isCentered: true,
       content: (
-        <CollectionExport
+        <ExportDialog
           collection={collection}
           onSubmit={dialogs.closeAllModals}
         />

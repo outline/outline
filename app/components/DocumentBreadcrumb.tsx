@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Document from "~/models/Document";
 import Breadcrumb from "~/components/Breadcrumb";
-import CollectionIcon from "~/components/CollectionIcon";
+import CollectionIcon from "~/components/Icons/CollectionIcon";
 import useStores from "~/hooks/useStores";
 import { MenuInternalLink, NavigationNode } from "~/types";
 import { collectionUrl } from "~/utils/routeHelpers";
@@ -77,8 +77,9 @@ const DocumentBreadcrumb: React.FC<Props> = ({
   }
 
   const path = React.useMemo(
-    () => collection?.pathToDocument?.(document.id).slice(0, -1) || [],
-    [collection, document]
+    () => collection?.pathToDocument(document.id).slice(0, -1) || [],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [collection, document, document.collectionId, document.parentDocumentId]
   );
 
   const items = React.useMemo(() => {

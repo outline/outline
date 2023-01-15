@@ -26,6 +26,10 @@ const UserStatusFilter = ({ activeKey, onSelect, ...rest }: Props) => {
           label: t("Everyone"),
         },
         {
+          key: "members",
+          label: t("Members"),
+        },
+        {
           key: "admins",
           label: t("Admins"),
         },

@@ -1,11 +1,12 @@
 import nodemailer, { Transporter } from "nodemailer";
+import SMTPTransport from "nodemailer/lib/smtp-transport";
 import Oy from "oy-vey";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
-import { APM } from "@server/logging/tracing";
+import { trace } from "@server/logging/tracing";
+import isCloudHosted from "@server/utils/isCloudHosted";
 import { baseStyles } from "./templates/components/EmailLayout";
 
-const isCloudHosted = env.DEPLOYMENT === "hosted";
 const useTestEmailService =
   env.ENVIRONMENT === "development" && !env.SMTP_USERNAME;
 
@@ -22,8 +23,8 @@ type SendMailOptions = {
 /**
  * Mailer class to send emails.
  */
-@APM.trace({
-  spanName: "mailer",
+@trace({
+  serviceName: "mailer",
 })
 export class Mailer {
   transporter: Transporter | undefined;
@@ -101,8 +102,9 @@ export class Mailer {
     }
   };
 
-  private getOptions() {
+  private getOptions(): SMTPTransport.Options {
     return {
+      name: env.SMTP_NAME,
       host: env.SMTP_HOST,
       port: env.SMTP_PORT,
       secure: env.SMTP_SECURE ?? env.ENVIRONMENT === "production",
@@ -124,7 +126,9 @@ export class Mailer {
     };
   }
 
-  private async getTestTransportOptions() {
+  private async getTestTransportOptions(): Promise<
+    SMTPTransport.Options | undefined
+  > {
     try {
       const testAccount = await nodemailer.createTestAccount();
       return {
@@ -142,6 +146,4 @@ export class Mailer {
   }
 }
 
-const mailer = new Mailer();
-
-export default mailer;
+export default new Mailer();

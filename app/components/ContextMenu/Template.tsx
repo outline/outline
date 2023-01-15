@@ -6,6 +6,7 @@ import {
   useMenuState,
   MenuButton,
   MenuItem as BaseMenuItem,
+  MenuStateReturn,
 } from "reakit/Menu";
 import styled, { useTheme } from "styled-components";
 import Flex from "~/components/Flex";
@@ -25,7 +26,7 @@ import MouseSafeArea from "./MouseSafeArea";
 import Separator from "./Separator";
 import ContextMenu from ".";
 
-type Props = {
+type Props = Omit<MenuStateReturn, "items"> & {
   actions?: (Action | MenuSeparator | MenuHeading)[];
   context?: Partial<ActionContext>;
   items?: TMenuItem[];
@@ -37,13 +38,15 @@ const Disclosure = styled(ExpandedIcon)`
   right: 8px;
 `;
 
-const Submenu = React.forwardRef(
+type SubMenuProps = MenuStateReturn & {
+  templateItems: TMenuItem[];
+  parentMenuState: Omit<MenuStateReturn, "items">;
+  title: React.ReactNode;
+};
+
+const SubMenu = React.forwardRef(
   (
-    {
-      templateItems,
-      title,
-      ...rest
-    }: { templateItems: TMenuItem[]; title: React.ReactNode },
+    { templateItems, title, parentMenuState, ...rest }: SubMenuProps,
     ref: React.LegacyRef<HTMLButtonElement>
   ) => {
     const { t } = useTranslation();
@@ -59,7 +62,11 @@ const Submenu = React.forwardRef(
             </MenuAnchor>
           )}
         </MenuButton>
-        <ContextMenu {...menu} aria-label={t("Submenu")}>
+        <ContextMenu
+          {...menu}
+          aria-label={t("Submenu")}
+          onClick={parentMenuState.hide}
+        >
           <MouseSafeArea parentRef={menu.unstable_popoverRef} />
           <Template {...menu} items={templateItems} />
         </ContextMenu>
@@ -177,8 +184,9 @@ function Template({ items, actions, context, ...menu }: Props) {
           return (
             <BaseMenuItem
               key={index}
-              as={Submenu}
+              as={SubMenu}
               templateItems={item.items}
+              parentMenuState={menu}
               title={<Title title={item.title} icon={item.icon} />}
               {...menu}
             />

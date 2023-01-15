@@ -11,6 +11,109 @@ export type Props = {
   theme: DefaultTheme;
 };
 
+const mathStyle = (props: Props) => `
+/* Based on https://github.com/benrbray/prosemirror-math/blob/master/style/math.css */
+
+.math-node {
+  min-width: 1em;
+  min-height: 1em;
+  font-size: 0.95em;
+  font-family: ${props.theme.fontFamilyMono};
+  cursor: auto;
+}
+
+.math-node.empty-math .math-render::before {
+  content: "(empty math)";
+  color: ${props.theme.brand.red};
+}
+
+.math-node .math-render.parse-error::before {
+  content: "(math error)";
+  color: ${props.theme.brand.red};
+  cursor: help;
+}
+
+.math-node.ProseMirror-selectednode {
+  outline: none;
+}
+
+.math-node .math-src {
+  display: none;
+  color: ${props.theme.codeStatement};
+  tab-size: 4;
+}
+
+.math-node.ProseMirror-selectednode .math-src {
+  display: inline;
+}
+
+.math-node.ProseMirror-selectednode .math-render {
+  display: none;
+}
+
+math-inline {
+  display: inline; white-space: nowrap;
+
+}
+
+math-inline .math-render { 
+  display: inline-block;
+  font-size: 0.85em;
+}
+
+math-inline .math-src .ProseMirror {
+  display: inline;
+  border-radius: 4px;
+  border: 1px solid ${props.theme.codeBorder};
+  padding: 3px 4px;
+  margin: 0px 3px;
+  font-family: ${props.theme.fontFamilyMono};
+  font-size: 80%;
+}
+
+math-block {
+  display: block;
+}
+
+math-block .math-render {
+  display: block;
+}
+
+math-block.ProseMirror-selectednode {
+  border-radius: 4px;
+  border: 1px solid ${props.theme.codeBorder};
+  background: ${props.theme.codeBackground};
+  padding: 0.75em 1em;
+  font-family: ${props.theme.fontFamilyMono};
+  font-size: 80%;
+}
+
+math-block .math-src .ProseMirror {
+  width: 100%;
+  display: block;
+}
+
+math-block .katex-display {
+  margin: 0;
+}
+
+p::selection, p > *::selection {
+  background-color: #c0c0c0;
+}
+
+.katex-html *::selection {
+  background-color: none !important;
+}
+
+.math-node.math-select .math-render {
+  background-color: #c0c0c0ff;
+}
+
+math-inline.math-select .math-render {
+  padding-top: 2px;
+}
+`;
+
 const style = (props: Props) => `
 flex-grow: ${props.grow ? 1 : 0};
 justify-content: start;
@@ -46,6 +149,10 @@ width: 100%;
   & > * {
     margin-top: .5em;
     margin-bottom: .5em;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
   }
 
   & > :first-child,
@@ -144,9 +251,6 @@ li {
     pointer-events: ${props.readOnly ? "initial" : "none"};
     display: inline-block;
     max-width: 100%;
-    transition-property: width, height;
-    transition-duration: 150ms;
-    transition-timing-function: ease-in-out;
   }
 
   .ProseMirror-selectednode img {
@@ -184,6 +288,21 @@ li {
   margin-right: 2em;
   margin-bottom: 1em;
   clear: initial;
+}
+
+.image-full-width {
+  width: initial;
+  max-width: 100vw;
+  clear: both;
+  position: initial;
+  ${props.rtl ? `margin-right: var(--offset)` : `margin-left: var(--offset)`};
+
+  img {
+    max-width: 100vw;
+    max-height: 50vh;
+    object-fit: cover;
+    object-position: center;
+  }
 }
 
 .ProseMirror-hideselection *::selection {
@@ -329,6 +448,7 @@ h6:not(.placeholder):before {
   content: "H6";
 }
 
+.ProseMirror[contenteditable="true"]:focus-within,
 .ProseMirror-focused {
   h1,
   h2,
@@ -617,7 +737,6 @@ ol ol ol {
 }
 
 ul.checkbox_list {
-  list-style: none;
   padding: 0;
   margin-left: ${props.rtl ? "0" : "-24px"};
   margin-right: ${props.rtl ? "-24px" : "0"};
@@ -637,12 +756,13 @@ ol li {
   }
 }
 
-ul.checkbox_list li {
+ul.checkbox_list > li {
   display: flex;
+  list-style: none;
   padding-${props.rtl ? "right" : "left"}: 24px;
 }
 
-ul.checkbox_list li.checked > div > p {
+ul.checkbox_list > li.checked > div > p {
   color: ${props.theme.textTertiary};
 }
 
@@ -681,7 +801,7 @@ ol li.ProseMirror-selectednode::after {
   display: none;
 }
 
-ul.checkbox_list li::before {
+ul.checkbox_list > li::before {
   ${props.rtl ? "right" : "left"}: 0;
 }
 
@@ -1265,6 +1385,7 @@ table {
   }
 }
 
+.ProseMirror[contenteditable="true"]:focus-within,
 .ProseMirror-focused .block-menu-trigger,
 .block-menu-trigger:active,
 .block-menu-trigger:focus {
@@ -1302,20 +1423,22 @@ table {
   display: block;
 }
 
-ins {
-  background-color: #128a2929;
-  text-decoration: none;
-}
-
 del {
   color: ${props.theme.slate};
   text-decoration: strikethrough;
 }
 
+ins[data-operation-index] {
+  color: ${props.theme.textDiffInserted};
+  background-color: ${props.theme.textDiffInsertedBackground};
+  text-decoration: none;
+}
+
 del[data-operation-index] {
-  color: ${props.theme.textDeleted};
-  background-color: ${props.theme.textDeletedBackground};
-  
+  color: ${props.theme.textDiffDeleted};
+  background-color: ${props.theme.textDiffDeletedBackground};
+  text-decoration: none;
+
   img {
     opacity: .5;
   }
@@ -1353,6 +1476,7 @@ del[data-operation-index] {
 
 const EditorContainer = styled.div<Props>`
   ${style};
+  ${mathStyle};
 `;
 
 export default EditorContainer;

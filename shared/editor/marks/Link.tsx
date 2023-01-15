@@ -68,6 +68,9 @@ export default class Link extends Mark {
         href: {
           default: "",
         },
+        title: {
+          default: null,
+        },
       },
       inclusive: false,
       parseDOM: [
@@ -75,6 +78,7 @@ export default class Link extends Mark {
           tag: "a[href]",
           getAttrs: (dom: HTMLElement) => ({
             href: dom.getAttribute("href"),
+            title: dom.getAttribute("title"),
           }),
         },
       ],
@@ -311,9 +315,9 @@ export default class Link extends Mark {
   parseMarkdown() {
     return {
       mark: "link",
-      getAttrs: (tok: Token) => ({
-        href: tok.attrGet("href"),
-        title: tok.attrGet("title") || null,
+      getAttrs: (token: Token) => ({
+        href: token.attrGet("href"),
+        title: token.attrGet("title") || null,
       }),
     };
   }

@@ -41,13 +41,12 @@ function ToolbarMenu(props: Props) {
         if (item.visible === false || !item.icon) {
           return null;
         }
-        const Icon = item.icon;
         const isActive = item.active ? item.active(state) : false;
 
         return (
           <Tooltip tooltip={item.tooltip} key={index}>
             <ToolbarButton onClick={handleClick(item)} active={isActive}>
-              <Icon color="currentColor" />
+              {React.cloneElement(item.icon, { color: "currentColor" })}
             </ToolbarButton>
           </Tooltip>
         );

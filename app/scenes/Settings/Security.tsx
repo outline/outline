@@ -165,8 +165,13 @@ function Security() {
             })}
           >
             <Flex align="center">
-              <CheckboxIcon color={theme.primary} checked />{" "}
-              <Text type="secondary">{t("Connected")}</Text>
+              <CheckboxIcon
+                color={provider.isActive ? theme.primary : undefined}
+                checked={provider.isActive}
+              />{" "}
+              <Text type="secondary">
+                {provider.isActive ? t("Connected") : t("Disabled")}
+              </Text>
             </Flex>
           </SettingRow>
         ))}

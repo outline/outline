@@ -1,7 +1,7 @@
 import { Transaction } from "sequelize";
 import { sequelize } from "@server/database/sequelize";
 import Logger from "@server/logging/Logger";
-import { APM } from "@server/logging/tracing";
+import { traceFunction } from "@server/logging/tracing";
 import {
   ApiKey,
   Attachment,
@@ -112,6 +112,13 @@ async function teamPermanentDeleter(team: Team) {
       force: true,
       transaction,
     });
+    await FileOperation.destroy({
+      where: {
+        teamId,
+      },
+      force: true,
+      transaction,
+    });
     await Collection.destroy({
       where: {
         teamId,
@@ -120,13 +127,6 @@ async function teamPermanentDeleter(team: Team) {
       transaction,
     });
     await Document.unscoped().destroy({
-      where: {
-        teamId,
-      },
-      force: true,
-      transaction,
-    });
-    await FileOperation.destroy({
       where: {
         teamId,
       },
@@ -198,7 +198,6 @@ async function teamPermanentDeleter(team: Team) {
   }
 }
 
-export default APM.traceFunction({
-  serviceName: "command",
+export default traceFunction({
   spanName: "teamPermanentDeleter",
 })(teamPermanentDeleter);

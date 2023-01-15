@@ -11,5 +11,5 @@ export default function Separator(rest: React.HTMLAttributes<HTMLHRElement>) {
 }
 
 const HorizontalRule = styled.hr`
-  margin: 0.5em 12px;
+  margin: 6px 0;
 `;

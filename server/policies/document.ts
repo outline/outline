@@ -174,14 +174,7 @@ allow(User, "move", Document, (user, document) => {
   if (document.deletedAt) {
     return false;
   }
-  if (!document.publishedAt) {
-    return false;
-  }
-  invariant(
-    document.collection,
-    "collection is missing, did you forget to include in the query scope?"
-  );
-  if (cannot(user, "update", document.collection)) {
+  if (document.collection && cannot(user, "update", document.collection)) {
     return false;
   }
   return user.teamId === document.teamId;

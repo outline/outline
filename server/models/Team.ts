@@ -28,6 +28,7 @@ import {
 import { getBaseDomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
 import env from "@server/env";
 import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
+import isCloudHosted from "@server/utils/isCloudHosted";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import Attachment from "./Attachment";
 import AuthenticationProvider from "./AuthenticationProvider";
@@ -68,8 +69,10 @@ class Team extends ParanoidModel {
   @Unique
   @Length({
     min: 2,
-    max: 32,
-    msg: "subdomain must be between 2 and 32 characters",
+    max: isCloudHosted ? 32 : 255,
+    msg: `subdomain must be between 2 and ${
+      isCloudHosted ? 32 : 255
+    } characters`,
   })
   @Is({
     args: [/^[a-z\d-]+$/, "i"],
@@ -162,16 +165,17 @@ class Team extends ParanoidModel {
   }
 
   get url() {
+    const url = new URL(env.URL);
+
     // custom domain
     if (this.domain) {
-      return `https://${this.domain}`;
+      return `${url.protocol}//${this.domain}${url.port ? `:${url.port}` : ""}`;
     }
 
     if (!this.subdomain || !env.SUBDOMAINS_ENABLED) {
       return env.URL;
     }
 
-    const url = new URL(env.URL);
     url.host = `${this.subdomain}.${getBaseDomain()}`;
     return url.href.replace(/\/$/, "");
   }
@@ -209,8 +213,7 @@ class Team extends ParanoidModel {
       const collection = await Collection.create(
         {
           name: "Welcome",
-          description:
-            "This collection is a quick guide to what Outline is all about. Feel free to delete this collection once your team is up to speed with the basics!",
+          description: `This collection is a quick guide to what ${env.APP_NAME} is all about. Feel free to delete this collection once your team is up to speed with the basics!`,
           teamId: this.id,
           createdById: userId,
           sort: Collection.DEFAULT_SORT,
@@ -331,6 +334,7 @@ class Team extends ParanoidModel {
       if (attachment) {
         await DeleteAttachmentTask.schedule({
           attachmentId: attachment.id,
+          teamId: model.id,
         });
       }
     }

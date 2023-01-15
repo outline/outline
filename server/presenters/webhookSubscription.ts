@@ -1,6 +1,8 @@
 import { WebhookSubscription } from "@server/models";
 
-export default function present(webhook: WebhookSubscription) {
+export default function presentWebhookSubscription(
+  webhook: WebhookSubscription
+) {
   return {
     id: webhook.id,
     name: webhook.name,

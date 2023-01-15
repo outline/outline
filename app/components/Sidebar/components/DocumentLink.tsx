@@ -105,8 +105,7 @@ function InnerDocumentLink(
 
   const handleDisclosureClick = React.useCallback(
     (ev) => {
-      ev.preventDefault();
-      ev.stopPropagation();
+      ev?.preventDefault();
       setExpanded(!expanded);
     },
     [expanded]
@@ -150,14 +149,10 @@ function InnerDocumentLink(
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
-    canDrag: () => {
-      return (
-        !isDraft &&
-        (policies.abilities(node.id).move ||
-          policies.abilities(node.id).archive ||
-          policies.abilities(node.id).delete)
-      );
-    },
+    canDrag: () =>
+      policies.abilities(node.id).move ||
+      policies.abilities(node.id).archive ||
+      policies.abilities(node.id).delete,
   });
 
   const hoverExpanding = React.useRef<ReturnType<typeof setTimeout>>();
@@ -174,14 +169,15 @@ function InnerDocumentLink(
   // Drop to re-parent
   const [{ isOverReparent, canDropToReparent }, dropToReparent] = useDrop({
     accept: "document",
-    drop: (item: DragObject, monitor) => {
+    drop: async (item: DragObject, monitor) => {
       if (monitor.didDrop()) {
         return;
       }
       if (!collection) {
         return;
       }
-      documents.move(item.id, collection.id, node.id);
+      await documents.move(item.id, collection.id, node.id);
+      setExpanded(true);
     },
     canDrop: (_item, monitor) =>
       !isDraft &&

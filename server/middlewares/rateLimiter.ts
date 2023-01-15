@@ -1,10 +1,10 @@
 import { Context, Next } from "koa";
 import { defaults } from "lodash";
-import RateLimiter from "@server/RateLimiter";
 import env from "@server/env";
 import { RateLimitExceededError } from "@server/errors";
-import Metrics from "@server/logging/metrics";
+import Metrics from "@server/logging/Metrics";
 import Redis from "@server/redis";
+import RateLimiter from "@server/utils/RateLimiter";
 
 /**
  * Middleware that limits the number of requests that are allowed within a given

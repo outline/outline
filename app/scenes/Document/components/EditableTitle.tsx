@@ -1,7 +1,12 @@
 import { observer } from "mobx-react";
+import { Slice } from "prosemirror-model";
+import { Selection } from "prosemirror-state";
+import { __parseFromClipboard } from "prosemirror-view";
 import * as React from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import isMarkdown from "@shared/editor/lib/isMarkdown";
+import normalizePastedMarkdown from "@shared/editor/lib/markdown/normalize";
 import { light } from "@shared/styles/theme";
 import {
   getCurrentDateAsString,
@@ -11,6 +16,7 @@ import {
 import { DocumentValidation } from "@shared/validations";
 import Document from "~/models/Document";
 import ContentEditable, { RefHandle } from "~/components/ContentEditable";
+import { useDocumentContext } from "~/components/DocumentContext";
 import Star, { AnimatedStar } from "~/components/Star";
 import useEmojiWidth from "~/hooks/useEmojiWidth";
 import { isModKey } from "~/utils/keyboard";
@@ -50,6 +56,7 @@ const EditableTitle = React.forwardRef(
     }: Props,
     ref: React.RefObject<RefHandle>
   ) => {
+    const { editor } = useDocumentContext();
     const handleClick = React.useCallback(() => {
       ref.current?.focus();
     }, [ref]);
@@ -112,6 +119,61 @@ const EditableTitle = React.forwardRef(
       [ref, onChange]
     );
 
+    // Custom paste handling so that if a multiple lines are pasted we
+    // only take the first line and insert the rest directly into the editor.
+    const handlePaste = React.useCallback(
+      (event: React.ClipboardEvent) => {
+        event.preventDefault();
+
+        const text = event.clipboardData.getData("text/plain");
+        const html = event.clipboardData.getData("text/html");
+        const [firstLine, ...rest] = text.split(`\n`);
+        const content = rest.join(`\n`).trim();
+
+        window.document.execCommand(
+          "insertText",
+          false,
+          firstLine.replace(/^#+\s?/, "")
+        );
+
+        if (editor && content) {
+          const { view, pasteParser } = editor;
+          let slice;
+
+          if (isMarkdown(text)) {
+            const paste = pasteParser.parse(normalizePastedMarkdown(content));
+            slice = paste.slice(0);
+          } else {
+            const defaultSlice = __parseFromClipboard(
+              view,
+              text,
+              html,
+              false,
+              view.state.selection.$from
+            );
+
+            // remove first node from slice
+            slice = defaultSlice.content.firstChild
+              ? new Slice(
+                  defaultSlice.content.cut(
+                    defaultSlice.content.firstChild.nodeSize
+                  ),
+                  defaultSlice.openStart,
+                  defaultSlice.openEnd
+                )
+              : defaultSlice;
+          }
+
+          view.dispatch(
+            view.state.tr
+              .setSelection(Selection.atStart(view.state.doc))
+              .replaceSelection(slice)
+          );
+        }
+      },
+      [editor]
+    );
+
     const emojiWidth = useEmojiWidth(document.emoji, {
       fontSize,
       lineHeight,
@@ -125,6 +187,7 @@ const EditableTitle = React.forwardRef(
         onClick={handleClick}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
+        onPaste={handlePaste}
         onBlur={onBlur}
         placeholder={placeholder}
         value={value}

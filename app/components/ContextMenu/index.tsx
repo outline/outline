@@ -1,7 +1,7 @@
 import { disableBodyScroll, enableBodyScroll } from "body-scroll-lock";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Menu } from "reakit/Menu";
+import { Menu, MenuStateReturn } from "reakit/Menu";
 import styled, { DefaultTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { depths } from "@shared/styles";
@@ -36,21 +36,23 @@ export type Placement =
   | "left"
   | "left-start";
 
-type Props = {
+type Props = MenuStateReturn & {
   "aria-label": string;
-  visible?: boolean;
-  placement?: Placement;
-  animating?: boolean;
-  unstable_disclosureRef?: React.RefObject<HTMLElement | null>;
+  /** The parent menu state if this is a submenu. */
+  parentMenuState?: MenuStateReturn;
+  /** Called when the context menu is opened. */
   onOpen?: () => void;
+  /** Called when the context menu is closed. */
   onClose?: () => void;
-  hide?: () => void;
+  /** Called when the context menu is clicked. */
+  onClick?: (ev: React.MouseEvent) => void;
 };
 
 const ContextMenu: React.FC<Props> = ({
   children,
   onOpen,
   onClose,
+  parentMenuState,
   ...rest
 }) => {
   const previousVisible = usePrevious(rest.visible);
@@ -67,19 +69,17 @@ const ContextMenu: React.FC<Props> = ({
 
   React.useEffect(() => {
     if (rest.visible && !previousVisible) {
-      if (onOpen) {
-        onOpen();
-      }
-      if (rest["aria-label"] !== t("Submenu")) {
+      onOpen?.();
+
+      if (!parentMenuState) {
         setIsMenuOpen(true);
       }
     }
 
     if (!rest.visible && previousVisible) {
-      if (onClose) {
-        onClose();
-      }
-      if (rest["aria-label"] !== t("Submenu")) {
+      onClose?.();
+
+      if (!parentMenuState) {
         setIsMenuOpen(false);
       }
     }
@@ -90,7 +90,7 @@ const ContextMenu: React.FC<Props> = ({
     rest.visible,
     ui.sidebarCollapsed,
     setIsMenuOpen,
-    rest,
+    parentMenuState,
     t,
   ]);
 
@@ -205,8 +205,8 @@ export const Background = styled(Scrollable)<BackgroundProps>`
   max-width: 100%;
   background: ${(props) => props.theme.menuBackground};
   border-radius: 6px;
-  padding: 6px 0;
-  min-width: 120px;
+  padding: 6px;
+  min-width: 180px;
   min-height: 44px;
   max-height: 75vh;
   pointer-events: all;

@@ -1,4 +1,10 @@
-import { Context } from "koa";
+import { ParameterizedContext, DefaultContext } from "koa";
+import { IRouterParamContext } from "koa-router";
+import { Transaction } from "sequelize/types";
+import { z } from "zod";
+import { Client } from "@shared/types";
+import BaseSchema from "@server/routes/api/BaseSchema";
+import { AccountProvisionerResult } from "./commands/accountProvisioner";
 import { FileOperation, Team, User } from "./models";
 
 export enum AuthenticationType {
@@ -6,15 +12,43 @@ export enum AuthenticationType {
   APP = "app",
 }
 
-export type AuthenticatedState = {
-  user: User;
-  token: string;
-  authType: AuthenticationType;
+export type AuthenticationResult = AccountProvisionerResult & {
+  client: Client;
 };
 
-export type ContextWithState = Context & {
-  state: AuthenticatedState;
+export type Authentication = {
+  user: User;
+  token: string;
+  type: AuthenticationType;
 };
+
+export type Pagination = {
+  limit: number;
+  offset: number;
+  nextPath: string;
+};
+
+export type AppState = {
+  auth: Authentication | Record<string, never>;
+  transaction: Transaction;
+  pagination: Pagination;
+};
+
+export type AppContext = ParameterizedContext<AppState, DefaultContext>;
+
+export type BaseReq = z.infer<typeof BaseSchema>;
+
+export type BaseRes = unknown;
+
+export interface APIContext<ReqT = BaseReq, ResT = BaseRes>
+  extends ParameterizedContext<
+    AppState,
+    DefaultContext & IRouterParamContext<AppState>,
+    ResT
+  > {
+  /** Typed and validated version of request, consisting of validated body, query, etc */
+  input: ReqT;
+}
 
 type BaseEvent = {
   teamId: string;
@@ -283,9 +317,9 @@ export type ViewEvent = BaseEvent & {
 
 export type WebhookSubscriptionEvent = BaseEvent & {
   name:
-    | "webhook_subscriptions.create"
-    | "webhook_subscriptions.delete"
-    | "webhook_subscriptions.update";
+    | "webhookSubscriptions.create"
+    | "webhookSubscriptions.delete"
+    | "webhookSubscriptions.update";
   modelId: string;
   data: {
     name: string;

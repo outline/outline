@@ -115,8 +115,10 @@ declare module "styled-components" {
     cursor: string;
     textSecondary: string;
     textTertiary: string;
-    textDeleted: string;
-    textDeletedBackground: string;
+    textDiffInserted: string;
+    textDiffInsertedBackground: string;
+    textDiffDeleted: string;
+    textDiffDeletedBackground: string;
     placeholder: string;
     sidebarBackground: string;
     sidebarActiveBackground: string;

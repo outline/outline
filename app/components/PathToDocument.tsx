@@ -5,8 +5,8 @@ import styled from "styled-components";
 import { DocumentPath } from "~/stores/CollectionsStore";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
-import CollectionIcon from "~/components/CollectionIcon";
 import Flex from "~/components/Flex";
+import CollectionIcon from "~/components/Icons/CollectionIcon";
 
 type Props = {
   result: DocumentPath;

@@ -5,17 +5,17 @@ import type { Context } from "koa";
 import Router from "koa-router";
 import { Profile } from "passport";
 import { slugifyDomain } from "@shared/utils/domains";
-import accountProvisioner, {
-  AccountProvisionerResult,
-} from "@server/commands/accountProvisioner";
+import accountProvisioner from "@server/commands/accountProvisioner";
 import env from "@server/env";
 import { MicrosoftGraphError } from "@server/errors";
 import passportMiddleware from "@server/middlewares/passport";
 import { User } from "@server/models";
+import { AuthenticationResult } from "@server/types";
 import {
   StateStore,
   request,
   getTeamFromContext,
+  getClientFromContext,
 } from "@server/utils/passport";
 
 const router = new Router();
@@ -49,7 +49,7 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
       done: (
         err: Error | null,
         user: User | null,
-        result?: AccountProvisionerResult
+        result?: AuthenticationResult
       ) => void
     ) {
       try {
@@ -94,6 +94,7 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
         }
 
         const team = await getTeamFromContext(ctx);
+        const client = getClientFromContext(ctx);
 
         const domain = email.split("@")[1];
         const subdomain = slugifyDomain(domain);
@@ -124,7 +125,7 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
             scopes,
           },
         });
-        return done(null, result.user, result);
+        return done(null, result.user, { ...result, client });
       } catch (err) {
         return done(err, null);
       }

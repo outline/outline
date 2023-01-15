@@ -6,6 +6,9 @@ import Storage from "~/utils/Storage";
 
 const UI_STORE = "UI_STORE";
 
+// Whether the window launched with sidebar force hidden
+let sidebarHidden = window.location.search.includes("sidebarHidden=true");
+
 export enum Theme {
   Light = "light",
   Dark = "dark",
@@ -44,9 +47,6 @@ class UiStore {
 
   @observable
   progressBarVisible = false;
-
-  @observable
-  isEditing = false;
 
   @observable
   tocVisible = false;
@@ -172,6 +172,7 @@ class UiStore {
 
   @action
   expandSidebar = () => {
+    sidebarHidden = false;
     this.sidebarCollapsed = false;
   };
 
@@ -192,6 +193,7 @@ class UiStore {
 
   @action
   toggleCollapsedSidebar = () => {
+    sidebarHidden = false;
     this.sidebarCollapsed = !this.sidebarCollapsed;
   };
 
@@ -203,16 +205,6 @@ class UiStore {
   @action
   hideTableOfContents = () => {
     this.tocVisible = false;
-  };
-
-  @action
-  enableEditMode = () => {
-    this.isEditing = true;
-  };
-
-  @action
-  disableEditMode = () => {
-    this.isEditing = false;
   };
 
   @action
@@ -244,6 +236,16 @@ class UiStore {
   hideMobileSidebar = () => {
     this.mobileSidebarVisible = false;
   };
+
+  /**
+   * Returns the current state of the sidebar taking into account user preference
+   * and whether the sidebar has been hidden as part of launching in a new
+   * desktop window.
+   */
+  @computed
+  get sidebarIsClosed() {
+    return this.sidebarCollapsed || sidebarHidden;
+  }
 
   @computed
   get resolvedTheme(): Theme | SystemTheme {

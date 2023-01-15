@@ -1,152 +1,148 @@
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import createAndInsertLink from "@shared/editor/commands/createAndInsertLink";
-import { Dictionary } from "~/hooks/useDictionary";
+import { creatingUrlPrefix } from "@shared/utils/urls";
+import useDictionary from "~/hooks/useDictionary";
+import useEventListener from "~/hooks/useEventListener";
+import useToasts from "~/hooks/useToasts";
+import { useEditor } from "./EditorContext";
 import FloatingToolbar from "./FloatingToolbar";
 import LinkEditor, { SearchResult } from "./LinkEditor";
 
 type Props = {
   isActive: boolean;
-  view: EditorView;
-  dictionary: Dictionary;
   onCreateLink?: (title: string) => Promise<string>;
   onSearchLink?: (term: string) => Promise<SearchResult[]>;
   onClickLink: (
     href: string,
     event: React.MouseEvent<HTMLButtonElement>
   ) => void;
-  onShowToast: (message: string) => void;
   onClose: () => void;
 };
 
-function isActive(props: Props) {
-  const { view } = props;
-  const { selection } = view.state;
-
+function isActive(view: EditorView, active: boolean): boolean {
   try {
+    const { selection } = view.state;
     const paragraph = view.domAtPos(selection.from);
-    return props.isActive && !!paragraph.node;
+    return active && !!paragraph.node;
   } catch (err) {
     return false;
   }
 }
 
-export default class LinkToolbar extends React.Component<Props> {
-  menuRef = React.createRef<HTMLDivElement>();
+export default function LinkToolbar({
+  onCreateLink,
+  onSearchLink,
+  onClickLink,
+  onClose,
+  ...rest
+}: Props) {
+  const dictionary = useDictionary();
+  const { view } = useEditor();
+  const { showToast } = useToasts();
+  const menuRef = React.useRef<HTMLDivElement>(null);
 
-  state = {
-    left: -1000,
-    top: undefined,
-  };
-
-  componentDidMount() {
-    window.addEventListener("mousedown", this.handleClickOutside);
-  }
-
-  componentWillUnmount() {
-    window.removeEventListener("mousedown", this.handleClickOutside);
-  }
-
-  handleClickOutside = (event: Event) => {
+  useEventListener("mousedown", (event: Event) => {
     if (
       event.target instanceof HTMLElement &&
-      this.menuRef.current &&
-      this.menuRef.current.contains(event.target)
+      menuRef.current &&
+      menuRef.current.contains(event.target)
     ) {
       return;
     }
-
-    this.props.onClose();
-  };
-
-  handleOnCreateLink = async (title: string) => {
-    const { dictionary, onCreateLink, view, onClose, onShowToast } = this.props;
-
     onClose();
-    this.props.view.focus();
+  });
 
-    if (!onCreateLink) {
-      return;
-    }
+  const handleOnCreateLink = React.useCallback(
+    async (title: string) => {
+      onClose();
+      view.focus();
 
-    const { dispatch, state } = view;
-    const { from, to } = state.selection;
-    if (from !== to) {
-      // selection must be collapsed
-      return;
-    }
+      if (!onCreateLink) {
+        return;
+      }
 
-    const href = `creating#${title}…`;
+      const { dispatch, state } = view;
+      const { from, to } = state.selection;
+      if (from !== to) {
+        // selection must be collapsed
+        return;
+      }
 
-    // Insert a placeholder link
-    dispatch(
-      view.state.tr
-        .insertText(title, from, to)
-        .addMark(
-          from,
-          to + title.length,
-          state.schema.marks.link.create({ href })
-        )
-    );
+      const href = `${creatingUrlPrefix}#${title}…`;
 
-    createAndInsertLink(view, title, href, {
-      onCreateLink,
-      onShowToast,
-      dictionary,
-    });
-  };
+      // Insert a placeholder link
+      dispatch(
+        view.state.tr
+          .insertText(title, from, to)
+          .addMark(
+            from,
+            to + title.length,
+            state.schema.marks.link.create({ href })
+          )
+      );
 
-  handleOnSelectLink = ({
-    href,
-    title,
-  }: {
-    href: string;
-    title: string;
-    from: number;
-    to: number;
-  }) => {
-    const { view, onClose } = this.props;
+      createAndInsertLink(view, title, href, {
+        onCreateLink,
+        onShowToast: showToast,
+        dictionary,
+      });
+    },
+    [onCreateLink, onClose, view, dictionary, showToast]
+  );
 
-    onClose();
-    this.props.view.focus();
+  const handleOnSelectLink = React.useCallback(
+    ({
+      href,
+      title,
+    }: {
+      href: string;
+      title: string;
+      from: number;
+      to: number;
+    }) => {
+      onClose();
+      view.focus();
 
-    const { dispatch, state } = view;
-    const { from, to } = state.selection;
-    if (from !== to) {
-      // selection must be collapsed
-      return;
-    }
+      const { dispatch, state } = view;
+      const { from, to } = state.selection;
+      if (from !== to) {
+        // selection must be collapsed
+        return;
+      }
 
-    dispatch(
-      view.state.tr
-        .insertText(title, from, to)
-        .addMark(
-          from,
-          to + title.length,
-          state.schema.marks.link.create({ href })
-        )
-    );
-  };
+      dispatch(
+        view.state.tr
+          .insertText(title, from, to)
+          .addMark(
+            from,
+            to + title.length,
+            state.schema.marks.link.create({ href })
+          )
+      );
+    },
+    [onClose, view]
+  );
 
-  render() {
-    const { onCreateLink, onClose, ...rest } = this.props;
-    const { selection } = this.props.view.state;
-    const active = isActive(this.props);
+  const { selection } = view.state;
+  const active = isActive(view, rest.isActive);
 
-    return (
-      <FloatingToolbar ref={this.menuRef} active={active} {...rest}>
-        {active && (
-          <LinkEditor
-            key={`${selection.from}-${selection.to}`}
-            from={selection.from}
-            to={selection.to}
-            onCreateLink={onCreateLink ? this.handleOnCreateLink : undefined}
-            onSelectLink={this.handleOnSelectLink}
-            onRemoveLink={onClose}
-            {...rest}
-          />
-        )}
-      </FloatingToolbar>
-    );
-  }
+  return (
+    <FloatingToolbar ref={menuRef} active={active}>
+      {active && (
+        <LinkEditor
+          key={`${selection.from}-${selection.to}`}
+          from={selection.from}
+          to={selection.to}
+          onCreateLink={onCreateLink ? handleOnCreateLink : undefined}
+          onSelectLink={handleOnSelectLink}
+          onRemoveLink={onClose}
+          onShowToast={showToast}
+          onClickLink={onClickLink}
+          dictionary={dictionary}
+          view={view}
+        />
+      )}
+    </FloatingToolbar>
+  );
 }

@@ -1,8 +1,8 @@
-import removeMarkdown from "@tommoor/remove-markdown";
 import { compact, uniq } from "lodash";
 import randomstring from "randomstring";
 import type { SaveOptions } from "sequelize";
 import {
+  Sequelize,
   Transaction,
   Op,
   FindOptions,
@@ -33,10 +33,10 @@ import MarkdownSerializer from "slate-md-serializer";
 import isUUID from "validator/lib/isUUID";
 import getTasks from "@shared/utils/getTasks";
 import parseTitle from "@shared/utils/parseTitle";
-import unescape from "@shared/utils/unescape";
 import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
 import { DocumentValidation } from "@shared/validations";
 import slugify from "@server/utils/slugify";
+import type { NavigationNode } from "~/types";
 import Backlink from "./Backlink";
 import Collection from "./Collection";
 import FileOperation from "./FileOperation";
@@ -47,6 +47,7 @@ import User from "./User";
 import View from "./View";
 import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
+import DocumentHelper from "./helpers/DocumentHelper";
 import Length from "./validators/Length";
 
 const serializer = new MarkdownSerializer();
@@ -115,6 +116,17 @@ export const DOCUMENT_VERSION = 2;
         as: "collection",
       },
     ],
+  },
+  withStateIsEmpty: {
+    attributes: {
+      exclude: ["state"],
+      include: [
+        [
+          Sequelize.literal(`CASE WHEN state IS NULL THEN true ELSE false END`),
+          "stateIsEmpty",
+        ],
+      ],
+    },
   },
   withState: {
     attributes: {
@@ -728,10 +740,8 @@ class Document extends ParanoidModel {
   };
 
   getSummary = () => {
-    const plain = removeMarkdown(unescape(this.text), {
-      stripHTML: false,
-    });
-    const lines = compact(plain.split("\n"));
+    const plainText = DocumentHelper.toPlainText(this);
+    const lines = compact(plainText.split("\n"));
     const notEmpty = lines.length >= 1;
 
     if (this.version) {
@@ -741,14 +751,41 @@ class Document extends ParanoidModel {
     return notEmpty ? lines[1] : "";
   };
 
-  toJSON = () => {
-    // Warning: only use for new documents as order of children is
-    // handled in the collection's documentStructure
+  /**
+   * Returns a JSON representation of the document suitable for use in the
+   * collection documentStructure.
+   *
+   * @param options Optional transaction to use for the query
+   * @returns Promise resolving to a NavigationNode
+   */
+  toNavigationNode = async (options?: {
+    transaction?: Transaction | null | undefined;
+  }): Promise<NavigationNode> => {
+    const childDocuments = await (this.constructor as typeof Document)
+      .unscoped()
+      .findAll({
+        where: {
+          teamId: this.teamId,
+          parentDocumentId: this.id,
+          archivedAt: {
+            [Op.is]: null,
+          },
+          publishedAt: {
+            [Op.ne]: null,
+          },
+        },
+        transaction: options?.transaction,
+      });
+
+    const children = await Promise.all(
+      childDocuments.map((child) => child.toNavigationNode(options))
+    );
+
     return {
       id: this.id,
       title: this.title,
       url: this.url,
-      children: [],
+      children,
     };
   };
 }

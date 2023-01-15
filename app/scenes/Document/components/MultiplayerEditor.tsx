@@ -271,6 +271,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     <>
       {showCache && (
         <Editor
+          embedsDisabled={props.embedsDisabled}
           defaultValue={props.defaultValue}
           extensions={props.extensions}
           readOnly
@@ -286,7 +287,8 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
         style={
           showCache
             ? {
-                display: "none",
+                opacity: 0,
+                pointerEvents: "none",
               }
             : undefined
         }

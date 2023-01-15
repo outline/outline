@@ -57,8 +57,16 @@ export function actionToMenuItem(
     icon,
     visible,
     dangerous: action.dangerous,
-    onClick: () => action.perform && action.perform(context),
-    selected: action.selected ? action.selected(context) : undefined,
+    onClick: () => {
+      try {
+        action.perform?.(context);
+      } catch (err) {
+        context.stores.toasts.showToast(err.message, {
+          type: "error",
+        });
+      }
+    },
+    selected: action.selected?.(context),
   };
 }
 
@@ -70,7 +78,7 @@ export function actionToKBar(
     return [];
   }
 
-  const resolvedIcon = resolve<React.ReactElement<any>>(action.icon, context);
+  const resolvedIcon = resolve<React.ReactElement>(action.icon, context);
   const resolvedChildren = resolve<Action[]>(action.children, context);
   const resolvedSection = resolve<string>(action.section, context);
   const resolvedName = resolve<string>(action.name, context);
