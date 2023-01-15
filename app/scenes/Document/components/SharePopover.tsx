@@ -161,6 +161,48 @@ function SharePopover({
     [t, document.id, shares]
   );
 
+  const PublishToInternet = ({ canPublish }: { canPublish: boolean }) => {
+    if (!canPublish) {
+      return (
+        <Text type="secondary">
+          {t("Only members with permission can view")}
+        </Text>
+      );
+    }
+    return (
+      <SwitchWrapper>
+        <Switch
+          id="published"
+          label={t("Publish to internet")}
+          onChange={handlePublishedChange}
+          checked={share ? share.published : false}
+          disabled={!share}
+        />
+        <SwitchLabel>
+          <SwitchText>
+            {share?.published
+              ? t("Anyone with the link can view this document")
+              : t("Only members with permission can view")}
+            {share?.lastAccessedAt && (
+              <>
+                .{" "}
+                {t("The shared link was last accessed {{ timeAgo }}.", {
+                  timeAgo: formatDistanceToNow(
+                    Date.parse(share?.lastAccessedAt),
+                    {
+                      addSuffix: true,
+                      locale,
+                    }
+                  ),
+                })}
+              </>
+            )}
+          </SwitchText>
+        </SwitchLabel>
+      </SwitchWrapper>
+    );
+  };
+
   const userLocale = useUserLocale();
   const locale = userLocale ? dateLocale(userLocale) : undefined;
   let shareUrl = team.sharing ? share?.url ?? "" : `${team.url}${document.url}`;
@@ -195,102 +237,35 @@ function SharePopover({
         </Notice>
       )}
 
-      {canPublish && !sharedParent?.published ? (
+      {canPublish && !sharedParent?.published && (
+        <PublishToInternet canPublish={canPublish} />
+      )}
+
+      {canPublish && share?.published && !document.isDraft && (
         <SwitchWrapper>
           <Switch
-            id="published"
-            label={t("Publish to internet")}
-            onChange={handlePublishedChange}
-            checked={share ? share.published : false}
+            id="includeChildDocuments"
+            label={t("Share nested documents")}
+            onChange={handleChildDocumentsChange}
+            checked={share ? share.includeChildDocuments : false}
             disabled={!share}
           />
           <SwitchLabel>
             <SwitchText>
-              {share?.published
-                ? t("Anyone with the link can view this document")
-                : t("Only members with permission can view")}
-              {share?.lastAccessedAt && (
-                <>
-                  .{" "}
-                  {t("The shared link was last accessed {{ timeAgo }}.", {
-                    timeAgo: formatDistanceToNow(
-                      Date.parse(share?.lastAccessedAt),
-                      {
-                        addSuffix: true,
-                        locale,
-                      }
-                    ),
-                  })}
-                </>
-              )}
+              {share.includeChildDocuments
+                ? t("Nested documents are publicly available")
+                : t("Nested documents are not shared")}
+              .
             </SwitchText>
           </SwitchLabel>
         </SwitchWrapper>
-      ) : (
-        <Text type="secondary">
-          {t("Only members with permission can view")}
-        </Text>
       )}
-
-      {canPublish &&
-        share?.published &&
-        !document.isDraft &&
-        !sharedParent?.published && (
-          <SwitchWrapper>
-            <Switch
-              id="includeChildDocuments"
-              label={t("Share nested documents")}
-              onChange={handleChildDocumentsChange}
-              checked={share ? share.includeChildDocuments : false}
-              disabled={!share}
-            />
-            <SwitchLabel>
-              <SwitchText>
-                {share.includeChildDocuments
-                  ? t("Nested documents are publicly available")
-                  : t("Nested documents are not shared")}
-                .
-              </SwitchText>
-            </SwitchLabel>
-          </SwitchWrapper>
-        )}
 
       {expandedOptions && (
         <>
-          {sharedParent?.published && (
-            <>
-              <Separator />
-              <SwitchWrapper>
-                <Switch
-                  id="published"
-                  label={t("Publish to internet")}
-                  onChange={handlePublishedChange}
-                  checked={share ? share.published : false}
-                  disabled={!share}
-                />
-                <SwitchLabel>
-                  <SwitchText>
-                    {share?.published
-                      ? t("Anyone with the link can view this document")
-                      : t("Only members with permission can view")}
-                    {share?.lastAccessedAt && (
-                      <>
-                        .{" "}
-                        {t("The shared link was last accessed {{ timeAgo }}.", {
-                          timeAgo: formatDistanceToNow(
-                            Date.parse(share?.lastAccessedAt),
-                            {
-                              addSuffix: true,
-                              locale,
-                            }
-                          ),
-                        })}
-                      </>
-                    )}
-                  </SwitchText>
-                </SwitchLabel>
-              </SwitchWrapper>
-            </>
+          <Separator />
+          {canPublish && sharedParent?.published && (
+            <PublishToInternet canPublish={canPublish} />
           )}
           <Separator />
           <SwitchWrapper>
