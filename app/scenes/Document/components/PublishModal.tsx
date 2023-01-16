@@ -325,7 +325,7 @@ function PublishModal({ document, onPublish }: Props) {
       </Results>
       <Footer justify="space-between" align="center">
         {selectedLocation ? (
-          <SelectedLocation>
+          <SelectedLocation type="secondary">
             <Trans
               defaults="Publish under <strong>{{location}}</strong>"
               values={{
