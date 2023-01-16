@@ -15,6 +15,7 @@ type Props = {
   style: React.CSSProperties;
   toggleExpansion: (location: any) => void;
   isSearchResult: boolean;
+  setActive: (item: any) => void;
 };
 
 function PublishLocation({
@@ -25,6 +26,7 @@ function PublishLocation({
   active,
   style,
   isSearchResult,
+  setActive,
 }: Props) {
   const OFFSET = 12;
   const ICON_SIZE = 24;
@@ -50,12 +52,19 @@ function PublishLocation({
     [onSelect, location, selected]
   );
 
+  const handlePointerMove = React.useCallback(() => {
+    if (location) {
+      setActive(location.index);
+    }
+  }, [location, setActive]);
+
   return (
     <Row
       selected={selected}
       active={active}
       onClick={handleSelect}
       style={style}
+      onPointerMove={handlePointerMove}
     >
       <Spacer width={width}>
         {!isUndefined(location.data.expanded) && !isSearchResult && (
@@ -122,11 +131,6 @@ const Row = styled.span<{
 
   &:focus {
     outline: none;
-  }
-
-  &:hover {
-    background: ${(props) =>
-      !props.selected && props.theme.listItemHoverBackground};
   }
 
   ${(props) =>

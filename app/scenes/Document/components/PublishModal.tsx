@@ -84,6 +84,7 @@ function PublishModal({ document, onPublish }: Props) {
     if (activeItem === -1) {
       inputSearchRef.current?.focus();
     } else {
+      inputSearchRef.current?.blur();
       scrollTo(activeItem);
     }
   }, [activeItem]);
@@ -171,6 +172,10 @@ function PublishModal({ document, onPublish }: Props) {
   const handleSearch = (ev: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(ev.target.value);
   };
+
+  const handleSearchInputClick = React.useCallback(() => {
+    setActiveItem(-1);
+  }, [setActiveItem]);
 
   const handleSelect = (location: any) => {
     setLocation(location);
@@ -262,6 +267,7 @@ function PublishModal({ document, onPublish }: Props) {
         }
         toggleExpansion={toggleExpansion}
         active={activeItem === index}
+        setActive={setActiveItem}
         isSearchResult={!!searchTerm}
       ></PublishLocation>
     );
@@ -289,6 +295,7 @@ function PublishModal({ document, onPublish }: Props) {
       <PublishLocationSearch
         type="search"
         onChange={handleSearch}
+        onClick={handleSearchInputClick}
         placeholder={`${t("Search collections & documents")}…`}
         ref={inputSearchRef}
         onKeyDown={handleSearchInputKeyDown}
