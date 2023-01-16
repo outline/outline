@@ -109,7 +109,7 @@
     "invariant": "^2.2.4",
     "ioredis": "^5.0.0",
     "is-printable-key-event": "^1.0.0",
-    "jsdom": "^20.0.3",
+    "jsdom": "^21.0.0",
     "json-loader": "0.5.7",
     "jsonwebtoken": "^9.0.0",
     "jszip": "^3.10.1",
