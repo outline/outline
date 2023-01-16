@@ -442,7 +442,7 @@
   "person": "person",
   "people": "people",
   "{{ count }} comment": "{{ count }} comment",
-  "{{ count }} comment_plural": "{{ count }} comment",
+  "{{ count }} comment_plural": "{{ count }} comments",
   "Type '/' to insert, or start writing…": "Type '/' to insert, or start writing…",
   "Hide contents": "Hide contents",
   "Show contents": "Show contents",

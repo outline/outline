@@ -78,7 +78,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     setActiveLinkEvent,
   ] = React.useState<MouseEvent | null>(null);
   const previousHeadings = React.useRef<Heading[]>();
-  const previousComments = React.useRef<string[]>();
+  const previousCommentIds = React.useRef<string[]>();
 
   const handleLinkActive = React.useCallback((event: MouseEvent) => {
     setActiveLinkEvent(event);
@@ -276,12 +276,13 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   }, [localRef, onHeadingsChange]);
 
   const updateComments = React.useCallback(() => {
+    console.log("updateComments");
     if (onCreateCommentMark && onDeleteCommentMark) {
-      const comments = ref?.current?.getComments();
+      const comments = localRef.current?.getComments();
       const commentIds = comments?.map((c) => c.id);
       const newCommentIds = difference(
         commentIds,
-        previousComments.current ?? []
+        previousCommentIds.current ?? []
       );
 
       newCommentIds.forEach((commentId) => {
@@ -289,7 +290,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
       });
 
       const removedCommentIds = difference(
-        previousComments.current ?? [],
+        previousCommentIds.current ?? [],
         commentIds ?? []
       );
 
@@ -297,9 +298,9 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
         onDeleteCommentMark(commentId);
       });
 
-      previousComments.current = commentIds;
+      previousCommentIds.current = commentIds;
     }
-  }, [onCreateCommentMark, onDeleteCommentMark]);
+  }, [onCreateCommentMark, onDeleteCommentMark, localRef]);
 
   const handleChange = React.useCallback(
     (event) => {

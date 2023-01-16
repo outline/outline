@@ -52,6 +52,7 @@ function CommentThread({ comment: thread, document }: Props) {
   });
 
   const commentsInThread = comments.inThread(thread.id);
+  console.log({ commentsInThread });
   const highlighted = location.state?.commentId === thread.id;
 
   const handleClickThread = () => {
@@ -102,7 +103,7 @@ function CommentThread({ comment: thread, document }: Props) {
         .filter((typing) => typing.id !== user.id)
         .map((typing) => (
           <Flex gap={8} key={typing.id}>
-            <Avatar src={typing.avatarUrl} size={24} />
+            <Avatar model={typing} size={24} />
             <Typing />
           </Flex>
         ))}

@@ -17,7 +17,7 @@ type Props = {
 };
 
 function CommentForm({ documentId, thread, onTyping }: Props) {
-  const [data, setData] = usePersistedState(
+  const [data, setData] = usePersistedState<Record<string, any> | undefined>(
     `draft-${documentId}-${thread.id}`,
     undefined
   );
@@ -49,6 +49,9 @@ function CommentForm({ documentId, thread, onTyping }: Props) {
 
   const handleCreateReply = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (!data) {
+      return;
+    }
 
     setData(undefined);
     setForceRender((s) => ++s);
@@ -64,7 +67,7 @@ function CommentForm({ documentId, thread, onTyping }: Props) {
     }
   };
 
-  const handleChange = (value: (asString: boolean) => string) => {
+  const handleChange = (value: (asString: boolean) => Record<string, any>) => {
     setData(value(false));
     onTyping();
   };
@@ -81,7 +84,7 @@ function CommentForm({ documentId, thread, onTyping }: Props) {
       onSubmit={thread?.isNew ? handleCreateComment : handleCreateReply}
     >
       <Flex gap={8}>
-        <Avatar src={user.avatarUrl} />
+        <Avatar model={user} />
         <CommentEditor
           key={`${forceRender}`}
           onChange={handleChange}

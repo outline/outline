@@ -107,7 +107,7 @@ function CommentThreadItem({
 
   return (
     <Flex gap={8} key={comment.id} align="flex-start">
-      {firstOfAuthor && <Avatar src={comment.createdBy.avatarUrl} />}
+      {firstOfAuthor && <Avatar model={comment.createdBy} />}
       <Bubble
         $firstOfThread={firstOfThread}
         $firstOfAuthor={firstOfAuthor}
