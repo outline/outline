@@ -1,11 +1,13 @@
 import { isUndefined } from "lodash";
 import { observer } from "mobx-react";
+import { DocumentIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
 import Flex from "~/components/Flex";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import Disclosure from "~/components/Sidebar/components/Disclosure";
 import Text from "~/components/Text";
+import { ancestors } from "~/utils/tree";
 
 type Props = {
   location: any;
@@ -58,6 +60,11 @@ function PublishLocation({
     }
   }, [location, setActive]);
 
+  const path = (location: any) =>
+    ancestors(location)
+      .map((a) => a.data.title)
+      .join("/");
+
   return (
     <Row
       selected={selected}
@@ -66,32 +73,53 @@ function PublishLocation({
       style={style}
       onPointerMove={handlePointerMove}
     >
-      <Spacer width={width}>
-        {!isUndefined(location.data.expanded) && !isSearchResult && (
-          <StyledDisclosure
-            expanded={location.data.expanded}
-            onClick={handleDisclosureClick}
-            tabIndex={-1}
-          />
-        )}
-      </Spacer>
-      {location.data.type === "collection" && location.data.collection && (
+      {!isSearchResult && (
+        <Spacer width={width}>
+          {!isUndefined(location.data.expanded) && (
+            <StyledDisclosure
+              expanded={location.data.expanded}
+              onClick={handleDisclosureClick}
+              tabIndex={-1}
+            />
+          )}
+        </Spacer>
+      )}
+      {location.data.type === "collection" ? (
         <CollectionIcon
           collection={location.data.collection}
           size={ICON_SIZE}
         />
+      ) : (
+        <DocumentIcon />
       )}
-      <Title>{location.data.title}</Title>
+      {isSearchResult ? (
+        <Title
+          dangerouslySetInnerHTML={{ __html: location.data.highlightedTitle }}
+        />
+      ) : (
+        <Title>{location.data.title}</Title>
+      )}
+      {isSearchResult && (
+        <Path type="secondary" size="xsmall">
+          {path(location)}
+        </Path>
+      )}
     </Row>
   );
 }
 
 const Title = styled(Text)`
   white-space: nowrap;
+  margin: 0 4px 0 4px;
+  color: inherit;
+`;
+
+const Path = styled(Text)`
+  padding-top: 2px;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   margin: 0 4px 0 4px;
-  color: inherit;
 `;
 
 const StyledDisclosure = styled(Disclosure)`

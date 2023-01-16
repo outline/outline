@@ -1,5 +1,5 @@
 import FuzzySearch from "fuzzy-search";
-import { uniq, isNumber, findIndex, isUndefined } from "lodash";
+import { escape, isNumber, findIndex, isUndefined } from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
@@ -18,7 +18,7 @@ import useKeyDown from "~/hooks/useKeyDown";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import { isModKey } from "~/utils/keyboard";
-import { flattenTree, ancestors } from "~/utils/tree";
+import { flattenTree } from "~/utils/tree";
 
 type Props = {
   document: Document;
@@ -154,13 +154,12 @@ function PublishModal({ document, onPublish }: Props) {
     if (collections.isLoaded) {
       if (searchTerm) {
         results = searchIndex.search(searchTerm);
-        // Include parents as well, required for displaying search results in a tree-like view
-        results = uniq(
-          results.reduce(
-            (acc: any[], curr: any) => acc.concat(ancestors(curr)),
-            []
-          )
-        );
+        results.forEach((_: any, i: number) => {
+          results[i].data.highlightedTitle = results[i].data.title.replaceAll(
+            searchTerm,
+            `<b>${escape(searchTerm)}</b>`
+          );
+        });
       } else {
         results = results.filter((r: any) => r.data.show);
       }
