@@ -166,6 +166,7 @@ function PublishModal({ document }: Props) {
       }
     }
 
+    setInitialScrollOffset(0);
     setItems(results);
   }, [document, collections, searchTerm, searchIndex]);
 
