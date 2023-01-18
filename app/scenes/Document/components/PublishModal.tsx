@@ -38,14 +38,10 @@ function PublishModal({ document }: Props) {
       .slice(1)
       .filter((d) => d.data.show)
   );
-  const [activeItem, setActiveItem] = React.useState<number>(-1);
+  const [activeItem, setActiveItem] = React.useState<number>(0);
   const { t } = useTranslation();
   const { dialogs } = useStores();
   const listRef = React.useRef<any>(null);
-  const inputSearchRef:
-    | React.RefObject<HTMLInputElement | HTMLTextAreaElement>
-    | undefined = React.useRef(null);
-
   const VERTICAL_PADDING = 6;
   const HORIZONTAL_PADDING = 24;
 
@@ -53,9 +49,9 @@ function PublishModal({ document }: Props) {
     return activeItem === items.length - 1 ? 0 : activeItem + 1;
   }, [activeItem, items.length]);
 
-  const prev = () => {
-    return activeItem === -1 ? activeItem : activeItem - 1;
-  };
+  const prev = React.useCallback(() => {
+    return activeItem === 0 ? items.length - 1 : activeItem - 1;
+  }, [activeItem, items.length]);
 
   const scrollTo = (index: number) => {
     if (listRef.current) {
@@ -82,12 +78,7 @@ function PublishModal({ document }: Props) {
   };
 
   React.useEffect(() => {
-    if (activeItem === -1) {
-      inputSearchRef.current?.focus();
-    } else {
-      inputSearchRef.current?.blur();
-      scrollTo(activeItem);
-    }
+    scrollTo(activeItem);
   }, [activeItem]);
 
   React.useEffect(() => {
@@ -102,10 +93,8 @@ function PublishModal({ document }: Props) {
   });
 
   useKeyDown("ArrowUp", () => {
-    if (window.document.activeElement !== inputSearchRef.current) {
-      setActiveItem(prev());
-      scrollTo(activeItem);
-    }
+    setActiveItem(prev());
+    scrollTo(activeItem);
   });
 
   useKeyDown("Enter", () => {
@@ -119,16 +108,6 @@ function PublishModal({ document }: Props) {
   useKeyDown("ArrowRight", () => {
     toggleExpansion(items[activeItem]);
   });
-
-  const handleSearchInputKeyDown = React.useCallback(
-    (ev) => {
-      if (ev.key === "ArrowDown") {
-        inputSearchRef.current?.blur();
-        setActiveItem(next());
-      }
-    },
-    [next]
-  );
 
   useKeyDown(
     (ev) => isModKey(ev) && ev.key === "Enter",
@@ -167,10 +146,6 @@ function PublishModal({ document }: Props) {
   const handleSearch = (ev: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(ev.target.value);
   };
-
-  const handleSearchInputClick = React.useCallback(() => {
-    setActiveItem(-1);
-  }, [setActiveItem]);
 
   const handleSelect = (location: any) => {
     setLocation(location);
@@ -287,12 +262,9 @@ function PublishModal({ document }: Props) {
 
   return (
     <FlexContainer column>
-      <PublishLocationSearch
+      <Search
         onChange={handleSearch}
-        onClick={handleSearchInputClick}
         placeholder={`${t("Search collections & documents")}…`}
-        ref={inputSearchRef}
-        onKeyDown={handleSearchInputKeyDown}
         autoFocus
       />
       <Results tabIndex={-1}>
@@ -340,7 +312,7 @@ function PublishModal({ document }: Props) {
   );
 }
 
-const PublishLocationSearch = styled(InputSearch)`
+const Search = styled(InputSearch)`
   ${Outline} {
     border-radius: 16px;
   }
