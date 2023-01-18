@@ -1,5 +1,5 @@
 import FuzzySearch from "fuzzy-search";
-import { escape, isNumber, findIndex, isUndefined } from "lodash";
+import { isNumber, findIndex, isUndefined } from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
@@ -155,12 +155,6 @@ function PublishModal({ document }: Props) {
     if (collections.isLoaded) {
       if (searchTerm) {
         results = searchIndex.search(searchTerm);
-        results.forEach((_: any, i: number) => {
-          results[i].data.highlightedTitle = results[i].data.title.replaceAll(
-            searchTerm,
-            `<b>${escape(searchTerm)}</b>`
-          );
-        });
       } else {
         results = results.filter((r: any) => r.data.show);
       }

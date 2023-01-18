@@ -92,13 +92,7 @@ function PublishLocation({
       ) : (
         <DocumentIcon />
       )}
-      {isSearchResult ? (
-        <Title
-          dangerouslySetInnerHTML={{ __html: location.data.highlightedTitle }}
-        />
-      ) : (
-        <Title>{location.data.title}</Title>
-      )}
+      <Title>{location.data.title}</Title>
       {isSearchResult && (
         <Path type="secondary" size="xsmall">
           {path(location)}
