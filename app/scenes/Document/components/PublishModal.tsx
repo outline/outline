@@ -293,13 +293,11 @@ function PublishModal({ document }: Props) {
   return (
     <FlexContainer column>
       <PublishLocationSearch
-        type="search"
         onChange={handleSearch}
         onClick={handleSearchInputClick}
         placeholder={`${t("Search collections & documents")}…`}
         ref={inputSearchRef}
         onKeyDown={handleSearchInputKeyDown}
-        required
         autoFocus
       />
       <Results tabIndex={-1}>
