@@ -21,11 +21,11 @@ import { isModKey } from "~/utils/keyboard";
 import { flattenTree } from "~/utils/tree";
 
 type Props = {
+  /** Document to publish */
   document: Document;
-  onPublish: () => void;
 };
 
-function PublishModal({ document, onPublish }: Props) {
+function PublishModal({ document }: Props) {
   const [searchTerm, setSearchTerm] = React.useState<string>();
   const [selectedLocation, setLocation] = React.useState<any>();
   const [initialScrollOffset, setInitialScrollOffset] = React.useState<number>(
@@ -40,6 +40,7 @@ function PublishModal({ document, onPublish }: Props) {
   );
   const [activeItem, setActiveItem] = React.useState<number>(-1);
   const { t } = useTranslation();
+  const { dialogs } = useStores();
   const listRef = React.useRef<any>(null);
   const inputSearchRef:
     | React.RefObject<HTMLInputElement | HTMLTextAreaElement>
@@ -199,13 +200,13 @@ function PublishModal({ document, onPublish }: Props) {
       showToast(t("Document published"), {
         type: "success",
       });
-      onPublish();
+      dialogs.closeAllModals();
     } catch (err) {
       showToast(t("Couldn’t publish the document, try again?"), {
         type: "error",
       });
     }
-  }, [selectedLocation, document, showToast, t, onPublish]);
+  }, [selectedLocation, document, showToast, t, dialogs]);
 
   const toggleExpansion = (location: any) => {
     if (location.children.length === 0) {

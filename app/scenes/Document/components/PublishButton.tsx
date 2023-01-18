@@ -18,9 +18,7 @@ function PublishButton({ document }: Props) {
     dialogs.openModal({
       title: t("Publish document"),
       isCentered: true,
-      content: (
-        <PublishModal document={document} onPublish={dialogs.closeAllModals} />
-      ),
+      content: <PublishModal document={document} />,
     });
   }, [document, t, dialogs]);
 
