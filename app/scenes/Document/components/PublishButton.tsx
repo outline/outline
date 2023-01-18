@@ -22,7 +22,7 @@ function PublishButton({ document }: Props) {
     });
   }, [document, t, dialogs]);
 
-  return <Button onClick={handleClick}>{t("Publish...")}</Button>;
+  return <Button onClick={handleClick}>{`${t("Publish")}…`}</Button>;
 }
 
 export default observer(PublishButton);
