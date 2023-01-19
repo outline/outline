@@ -1,0 +1,22 @@
+diff --git a/node_modules/@benrbray/prosemirror-math/dist/index.es.js b/node_modules/@benrbray/prosemirror-math/dist/index.es.js
+index b52d589..0b4cb17 100644
+--- a/node_modules/@benrbray/prosemirror-math/dist/index.es.js
++++ b/node_modules/@benrbray/prosemirror-math/dist/index.es.js
+@@ -3,7 +3,7 @@ import { EditorView, DecorationSet, Decoration } from 'prosemirror-view';
+ import { StepMap } from 'prosemirror-transform';
+ import { keymap } from 'prosemirror-keymap';
+ import { chainCommands, deleteSelection, newlineInCode } from 'prosemirror-commands';
+-import katex, { ParseError } from 'katex';
++import katex from 'katex';
+ import { Fragment, Schema } from 'prosemirror-model';
+ import { InputRule } from 'prosemirror-inputrules';
+
+@@ -213,7 +213,7 @@ class MathView {
+             this.dom.setAttribute("title", "");
+         }
+         catch (err) {
+-            if (err instanceof ParseError) {
++            if (err instanceof katex.ParseError) {
+                 console.error(err);
+                 this._mathRenderElt.classList.add("parse-error");
+                 this.dom.setAttribute("title", err.toString());
