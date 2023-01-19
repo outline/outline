@@ -7,6 +7,7 @@ import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
   root: "./",
+  publicDir: "./server/static",
   server: {
     port: 3001,
   },
