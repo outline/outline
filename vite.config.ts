@@ -79,6 +79,11 @@ export default defineConfig({
     alias: {
       "~": path.resolve(__dirname, "./app"),
       "@shared": path.resolve(__dirname, "./shared"),
+      // TODO: Do we need those? Nothing seems to break without them.
+      // "@server": path.resolve(__dirname, 'server'),
+      // 'boundless-popover': 'boundless-popover/build',
+      // 'boundless-utils-omit-keys': 'boundless-utils-omit-keys/build',
+      // 'boundless-utils-uuid': 'boundless-utils-uuid/build'
     },
   },
   build: {
