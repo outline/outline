@@ -49,7 +49,7 @@ export default defineConfig({
     outDir: "./build/app",
     manifest: true,
     target: browserslistToEsbuild(),
-    // reportCompressedSize: false,
+    reportCompressedSize: false,
     rollupOptions: {
       input: "./app/index.tsx",
       plugins: [webpackStats()],
