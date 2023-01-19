@@ -74,9 +74,6 @@ export default defineConfig({
       },
     }),
   ],
-  optimizeDeps: {
-    exclude: ["@benrbray/prosemirror-math"],
-  },
   resolve: {
     alias: {
       "~": path.resolve(__dirname, "./app"),
