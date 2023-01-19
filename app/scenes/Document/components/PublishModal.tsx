@@ -1,5 +1,5 @@
 import FuzzySearch from "fuzzy-search";
-import { isNumber, findIndex, isUndefined } from "lodash";
+import { isNumber, includes, difference, concat, filter } from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
@@ -14,11 +14,10 @@ import { Outline } from "~/components/Input";
 import InputSearch from "~/components/InputSearch";
 import PublishLocation from "~/components/PublishLocation";
 import Text from "~/components/Text";
-import useKeyDown from "~/hooks/useKeyDown";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import { isModKey } from "~/utils/keyboard";
-import { flattenTree } from "~/utils/tree";
+import { flattenTree, descendants } from "~/utils/tree";
 
 type Props = {
   /** Document to publish */
@@ -39,19 +38,27 @@ function PublishModal({ document }: Props) {
       .filter((d) => d.data.show)
   );
   const [activeItem, setActiveItem] = React.useState<number>(0);
+  const [expandedItems, setExpandedItems] = React.useState<string[]>([]);
+  const inputSearchRef:
+    | React.RefObject<HTMLInputElement | HTMLTextAreaElement>
+    | undefined = React.useRef(null);
   const { t } = useTranslation();
   const { dialogs } = useStores();
   const listRef = React.useRef<any>(null);
   const VERTICAL_PADDING = 6;
   const HORIZONTAL_PADDING = 24;
 
-  const next = React.useCallback(() => {
+  const nextItem = () => {
     return activeItem === items.length - 1 ? 0 : activeItem + 1;
-  }, [activeItem, items.length]);
+  };
 
-  const prev = React.useCallback(() => {
+  const moveTo = (index: number) => {
+    setActiveItem(index);
+  };
+
+  const prevItem = () => {
     return activeItem === 0 ? items.length - 1 : activeItem - 1;
-  }, [activeItem, items.length]);
+  };
 
   const scrollTo = (index: number) => {
     if (listRef.current) {
@@ -81,39 +88,6 @@ function PublishModal({ document }: Props) {
     scrollTo(activeItem);
   }, [activeItem]);
 
-  React.useEffect(() => {
-    if (selectedLocation) {
-      scrollTo(selectedLocation.index);
-    }
-  }, [selectedLocation]);
-
-  useKeyDown("ArrowDown", () => {
-    setActiveItem(next());
-    scrollTo(activeItem);
-  });
-
-  useKeyDown("ArrowUp", () => {
-    setActiveItem(prev());
-    scrollTo(activeItem);
-  });
-
-  useKeyDown("Enter", () => {
-    if (selectedLocation && selectedLocation.index === activeItem) {
-      handleSelect(null);
-    } else {
-      handleSelect(items[activeItem]);
-    }
-  });
-
-  useKeyDown("ArrowRight", () => {
-    toggleExpansion(items[activeItem]);
-  });
-
-  useKeyDown(
-    (ev) => isModKey(ev) && ev.key === "Enter",
-    () => handlePublish()
-  );
-
   const searchIndex = React.useMemo(() => {
     const data = flattenTree(collections.tree.root).slice(1);
 
@@ -126,6 +100,7 @@ function PublishModal({ document }: Props) {
     if (searchTerm) {
       setLocation(null);
     }
+    setActiveItem(0);
   }, [searchTerm]);
 
   React.useEffect(() => {
@@ -147,67 +122,119 @@ function PublishModal({ document }: Props) {
     setSearchTerm(ev.target.value);
   };
 
-  const handleSelect = (location: any) => {
-    setLocation(location);
-    if (location) {
-      setActiveItem(location.index);
+  const isExpanded = (index: number) => {
+    const item = items[index];
+    return includes(expandedItems, item.data.id);
+  };
+
+  const calculateInitialScrollOffset = (itemCount: number) => {
+    const { height, itemSize } = listRef.current.props;
+    const { scrollOffset } = listRef.current.state;
+    const itemsHeight = itemCount * itemSize;
+    return itemsHeight < height ? 0 : scrollOffset;
+  };
+
+  const removeChildren = () => {
+    const descendantIds = descendants(items[activeItem]).map(
+      (des) => des.data.id
+    );
+    const newItems = filter(
+      items,
+      (item: any) => !includes(descendantIds, item.data.id)
+    );
+    const scrollOffset = calculateInitialScrollOffset(newItems.length);
+    setInitialScrollOffset(scrollOffset);
+    setItems(newItems);
+  };
+
+  const addChildren = () => {
+    const newItems = items.slice();
+    newItems.splice(activeItem + 1, 0, ...descendants(items[activeItem], 1));
+    const scrollOffset = calculateInitialScrollOffset(newItems.length);
+    setInitialScrollOffset(scrollOffset);
+    setItems(newItems);
+  };
+
+  const removeFromExpandedItems = () => {
+    const descendantIds = descendants(items[activeItem]).map(
+      (des) => des.data.id
+    );
+    setExpandedItems(
+      difference(expandedItems, [...descendantIds, items[activeItem].data.id])
+    );
+  };
+
+  const addToExpandedItems = () => {
+    setExpandedItems(concat(expandedItems, items[activeItem].data.id));
+  };
+
+  const shrink = () => {
+    removeFromExpandedItems();
+    removeChildren();
+  };
+
+  const expand = () => {
+    addToExpandedItems();
+    addChildren();
+  };
+
+  const isSelected = (item: number) => {
+    return selectedLocation && selectedLocation.index === item;
+  };
+
+  const select = () => {
+    setLocation(items[activeItem]);
+  };
+
+  const deselect = () => {
+    setLocation(null);
+  };
+
+  const toggleCollapse = () => {
+    if (isExpanded(activeItem)) {
+      shrink();
+    } else {
+      expand();
     }
   };
 
-  const handlePublish = React.useCallback(async () => {
+  const toggleSelect = () => {
+    if (isSelected(activeItem)) {
+      deselect();
+    } else {
+      select();
+    }
+  };
+
+  const publish = async () => {
     if (!selectedLocation) {
+      showToast(t("Select destination to publish document"), {
+        type: "info",
+      });
       return;
     }
     try {
-      document.collectionId = selectedLocation.data.collectionId;
+      const destCol = selectedLocation.data.collectionId;
+      const destType = selectedLocation.data.type;
+
+      document.collectionId = destCol;
       await document.save({ publish: true });
-      if (selectedLocation.data.type === "document") {
-        await document.move(
-          selectedLocation.data.collectionId,
-          selectedLocation.data.id
-        );
+
+      // Also move it under if selected path corresponds to another doc
+      if (destType === "document") {
+        const destDoc = selectedLocation.data.id;
+        await document.move(destCol, destDoc);
       }
       showToast(t("Document published"), {
         type: "success",
       });
+
       dialogs.closeAllModals();
     } catch (err) {
       showToast(t("Couldn’t publish the document, try again?"), {
         type: "error",
       });
     }
-  }, [selectedLocation, document, showToast, t, dialogs]);
-
-  const toggleExpansion = (location: any) => {
-    if (location.children.length === 0) {
-      return;
-    }
-    const data: any = flattenTree(collections.tree.root).slice(1);
-    const locIndex = findIndex(
-      data,
-      (d: any) => d.data.id === location.data.id
-    );
-    if (location.data.expanded === false) {
-      // only show immediate children
-      location.children.forEach((child: any) => {
-        const index = findIndex(data, (d: any) => d.data.id === child.data.id);
-        data[index].data.show = true;
-      });
-      data[locIndex].data.expanded = true;
-    } else {
-      // hide all the descendants
-      const descendants = flattenTree(location).slice(1);
-      descendants.forEach((des) => {
-        const index = findIndex(data, (d: any) => d.data.id === des.data.id);
-        if (!isUndefined(data[index].data.expanded)) {
-          data[index].data.expanded = false;
-        }
-        data[index].data.show = false;
-      });
-      data[locIndex].data.expanded = false;
-    }
-    setInitialScrollOffset(listRef.current.state.scrollOffset);
-    setItems(data.filter((d: any) => d.data.show));
   };
 
   const row = ({
@@ -231,12 +258,11 @@ function PublishModal({ document }: Props) {
           width: `calc(${style.width} - ${HORIZONTAL_PADDING * 2}px)`,
         }}
         location={result}
-        onSelect={handleSelect}
-        selected={
-          selectedLocation && result.data.id === selectedLocation.data.id
-        }
-        toggleExpansion={toggleExpansion}
+        onSelect={toggleSelect}
+        selected={isSelected(index)}
+        toggleExpansion={toggleCollapse}
         active={activeItem === index}
+        expanded={isExpanded(index)}
         setActive={setActiveItem}
         isSearchResult={!!searchTerm}
       ></PublishLocation>
@@ -246,6 +272,40 @@ function PublishModal({ document }: Props) {
   if (!document || !collections.isLoaded) {
     return null;
   }
+
+  const shiftFocusToSearchInput = () => {
+    inputSearchRef.current?.focus();
+  };
+
+  const handleKeyDown = (ev: React.KeyboardEvent<HTMLDivElement>) => {
+    switch (ev.key) {
+      case "ArrowDown": {
+        ev.preventDefault();
+        moveTo(nextItem());
+        break;
+      }
+      case "ArrowUp": {
+        ev.preventDefault();
+        shiftFocusToSearchInput();
+        moveTo(prevItem());
+        break;
+      }
+      case "ArrowRight": {
+        if (!searchTerm) {
+          toggleCollapse();
+        }
+        break;
+      }
+      case "Enter": {
+        if (isModKey(ev)) {
+          publish();
+        } else {
+          toggleSelect();
+        }
+        break;
+      }
+    }
+  };
 
   const innerElementType = React.forwardRef<HTMLDivElement, any>(
     ({ style, ...rest }, ref) => (
@@ -261,13 +321,14 @@ function PublishModal({ document }: Props) {
   );
 
   return (
-    <FlexContainer column>
+    <FlexContainer column tabIndex={-1} onKeyDown={handleKeyDown}>
       <Search
+        ref={inputSearchRef}
         onChange={handleSearch}
         placeholder={`${t("Search collections & documents")}…`}
         autoFocus
       />
-      <Results tabIndex={-1}>
+      <Results>
         <AutoSizer>
           {({ width, height }: { width: number; height: number }) => (
             <Flex role="listbox" column>
@@ -304,7 +365,7 @@ function PublishModal({ document }: Props) {
             {t("Choose a location to publish")}
           </SelectedLocation>
         )}
-        <Button disabled={!selectedLocation} onClick={handlePublish}>
+        <Button disabled={!selectedLocation} onClick={publish}>
           Publish
         </Button>
       </Footer>

@@ -477,6 +477,7 @@
   "Deleted by {{userName}}": "Deleted by {{userName}}",
   "Observing {{ userName }}": "Observing {{ userName }}",
   "Publish document": "",
+  "Select destination to publish document": "",
   "Document published": "Document published",
   "Couldn’t publish the document, try again?": "Couldn’t publish the document, try again?",
   "Search collections & documents": "Search collections & documents",

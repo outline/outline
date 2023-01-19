@@ -1,4 +1,3 @@
-import { isUndefined } from "lodash";
 import { observer } from "mobx-react";
 import { DocumentIcon } from "outline-icons";
 import * as React from "react";
@@ -11,13 +10,14 @@ import { ancestors } from "~/utils/tree";
 
 type Props = {
   location: any;
-  onSelect: (location: any) => void;
+  onSelect: () => void;
   selected: boolean;
   active: boolean;
   style: React.CSSProperties;
-  toggleExpansion: (location: any) => void;
+  toggleExpansion: () => void;
   isSearchResult: boolean;
   setActive: (item: any) => void;
+  expanded: boolean;
 };
 
 function PublishLocation({
@@ -29,9 +29,12 @@ function PublishLocation({
   style,
   isSearchResult,
   setActive,
+  expanded,
 }: Props) {
   const OFFSET = 12;
   const ICON_SIZE = 24;
+
+  const hasChildren = location.children.length > 0;
 
   const width = location.depth
     ? location.depth * ICON_SIZE + OFFSET
@@ -39,19 +42,15 @@ function PublishLocation({
 
   const handleDisclosureClick = (ev: React.MouseEvent) => {
     ev.stopPropagation();
-    toggleExpansion(location);
+    toggleExpansion();
   };
 
   const handleSelect = React.useCallback(
     (ev) => {
       ev.preventDefault();
-      if (selected) {
-        onSelect(null);
-      } else {
-        onSelect(location);
-      }
+      onSelect();
     },
-    [onSelect, location, selected]
+    [onSelect]
   );
 
   const handlePointerMove = React.useCallback(() => {
@@ -75,9 +74,9 @@ function PublishLocation({
     >
       {!isSearchResult && (
         <Spacer width={width}>
-          {!isUndefined(location.data.expanded) && (
+          {hasChildren && (
             <StyledDisclosure
-              expanded={location.data.expanded}
+              expanded={expanded}
               onClick={handleDisclosureClick}
               tabIndex={-1}
             />

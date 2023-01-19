@@ -23,3 +23,10 @@ export const ancestors = (node: any) => {
   }
   return ancestors;
 };
+
+export const descendants = (node: any, depth = 0) => {
+  const allDescendants = flattenTree(node).slice(1);
+  return depth === 0
+    ? allDescendants
+    : allDescendants.filter((d) => d.depth <= node.depth + depth);
+};
