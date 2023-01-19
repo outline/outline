@@ -19,6 +19,11 @@ export default defineConfig({
     }),
     VitePWA(),
   ],
+  optimizeDeps: {
+    // include: ["@hocuspocus/provider"],
+    exclude: ["@benrbray/prosemirror-math"],
+    // esbuildOptions: {},
+  },
   resolve: {
     alias: {
       "~": path.resolve(__dirname, "./app"),
