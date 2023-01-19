@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react";
 import browserslistToEsbuild from "browserslist-to-esbuild";
 import { webpackStats } from "rollup-plugin-webpack-stats";
 import { defineConfig } from "vite";
-// import { VitePWA } from "vite-plugin-pwa";
+import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
   root: "./",
@@ -16,7 +16,7 @@ export default defineConfig({
         babelrc: true,
       },
     }),
-    // VitePWA(),
+    VitePWA(),
   ],
   optimizeDeps: {
     exclude: ["@benrbray/prosemirror-math"],
