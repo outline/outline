@@ -12,6 +12,7 @@ export default defineConfig({
     port: 3001,
   },
   plugins: [
+    // https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#readme
     react({
       babel: {
         babelrc: true,
