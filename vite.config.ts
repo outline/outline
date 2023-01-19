@@ -4,6 +4,7 @@ import browserslistToEsbuild from "browserslist-to-esbuild";
 import nodeGlobals from "rollup-plugin-node-globals";
 import { webpackStats } from "rollup-plugin-webpack-stats";
 import { defineConfig } from "vite";
+import { VitePWA } from "vite-plugin-pwa";
 
 export default defineConfig({
   root: "./",
@@ -16,6 +17,7 @@ export default defineConfig({
         babelrc: true,
       },
     }),
+    VitePWA(),
   ],
   resolve: {
     alias: {
