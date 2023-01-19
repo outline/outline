@@ -134,10 +134,8 @@ function PublishModal({ document }: Props) {
     return itemsHeight < height ? 0 : scrollOffset;
   };
 
-  const removeChildren = () => {
-    const descendantIds = descendants(items[activeItem]).map(
-      (des) => des.data.id
-    );
+  const removeChildren = (item: number) => {
+    const descendantIds = descendants(items[item]).map((des) => des.data.id);
     const newItems = filter(
       items,
       (item: any) => !includes(descendantIds, item.data.id)
@@ -147,62 +145,66 @@ function PublishModal({ document }: Props) {
     setItems(newItems);
   };
 
-  const addChildren = () => {
+  const addChildren = (item: number) => {
     const newItems = items.slice();
-    newItems.splice(activeItem + 1, 0, ...descendants(items[activeItem], 1));
+    newItems.splice(item + 1, 0, ...descendants(items[item], 1));
     const scrollOffset = calculateInitialScrollOffset(newItems.length);
     setInitialScrollOffset(scrollOffset);
     setItems(newItems);
   };
 
-  const removeFromExpandedItems = () => {
-    const descendantIds = descendants(items[activeItem]).map(
-      (des) => des.data.id
-    );
+  const removeFromExpandedItems = (item: number) => {
+    const descendantIds = descendants(items[item]).map((des) => des.data.id);
     setExpandedItems(
-      difference(expandedItems, [...descendantIds, items[activeItem].data.id])
+      difference(expandedItems, [...descendantIds, items[item].data.id])
     );
   };
 
-  const addToExpandedItems = () => {
-    setExpandedItems(concat(expandedItems, items[activeItem].data.id));
+  const addToExpandedItems = (item: number) => {
+    setExpandedItems(concat(expandedItems, items[item].data.id));
   };
 
-  const shrink = () => {
-    removeFromExpandedItems();
-    removeChildren();
+  const shrink = (item: number) => {
+    removeFromExpandedItems(item);
+    removeChildren(item);
   };
 
-  const expand = () => {
-    addToExpandedItems();
-    addChildren();
+  const expand = (item: number) => {
+    addToExpandedItems(item);
+    addChildren(item);
   };
 
   const isSelected = (item: number) => {
-    return selectedLocation && selectedLocation.index === item;
+    if (!selectedLocation) {
+      return false;
+    }
+    const selectedItemId = selectedLocation.data.id;
+    const itemId = items[item].data.id;
+
+    return selectedItemId === itemId;
   };
 
-  const select = () => {
-    setLocation(items[activeItem]);
+  const select = (item: number) => {
+    setLocation(items[item]);
   };
 
   const deselect = () => {
     setLocation(null);
   };
 
-  const toggleCollapse = () => {
-    if (isExpanded(activeItem)) {
-      shrink();
+  const toggleCollapse = (item: number) => {
+    if (isExpanded(item)) {
+      shrink(item);
     } else {
-      expand();
+      expand(item);
     }
   };
 
-  const toggleSelect = () => {
-    if (isSelected(activeItem)) {
+  const toggleSelect = (item: number) => {
+    if (isSelected(item)) {
       deselect();
     } else {
-      select();
+      select(item);
     }
   };
 
@@ -248,7 +250,6 @@ function PublishModal({ document }: Props) {
   }) => {
     const result = data[index];
     result.data.collection = collections.get(result.data.collectionId);
-    result.index = index;
     return (
       <PublishLocation
         style={{
@@ -257,13 +258,16 @@ function PublishModal({ document }: Props) {
           left: (style.left as number) + HORIZONTAL_PADDING,
           width: `calc(${style.width} - ${HORIZONTAL_PADDING * 2}px)`,
         }}
+        onPointerMove={() => setActiveItem(index)}
+        onClick={() => toggleSelect(index)}
+        onDisclosureClick={(ev) => {
+          ev.stopPropagation();
+          toggleCollapse(index);
+        }}
         location={result}
-        onSelect={toggleSelect}
         selected={isSelected(index)}
-        toggleExpansion={toggleCollapse}
         active={activeItem === index}
         expanded={isExpanded(index)}
-        setActive={setActiveItem}
         isSearchResult={!!searchTerm}
       ></PublishLocation>
     );
@@ -292,7 +296,7 @@ function PublishModal({ document }: Props) {
       }
       case "ArrowRight": {
         if (!searchTerm) {
-          toggleCollapse();
+          toggleCollapse(activeItem);
         }
         break;
       }
@@ -300,7 +304,7 @@ function PublishModal({ document }: Props) {
         if (isModKey(ev)) {
           publish();
         } else {
-          toggleSelect();
+          toggleSelect(activeItem);
         }
         break;
       }

@@ -10,26 +10,27 @@ import { ancestors } from "~/utils/tree";
 
 type Props = {
   location: any;
-  onSelect: () => void;
   selected: boolean;
   active: boolean;
   style: React.CSSProperties;
-  toggleExpansion: () => void;
   isSearchResult: boolean;
-  setActive: (item: any) => void;
   expanded: boolean;
+
+  onDisclosureClick: (ev: React.MouseEvent) => void;
+  onPointerMove: (ev: React.MouseEvent) => void;
+  onClick: (ev: React.MouseEvent) => void;
 };
 
 function PublishLocation({
   location,
-  onSelect,
-  toggleExpansion,
   selected,
   active,
   style,
   isSearchResult,
-  setActive,
   expanded,
+  onDisclosureClick,
+  onPointerMove,
+  onClick,
 }: Props) {
   const OFFSET = 12;
   const ICON_SIZE = 24;
@@ -40,25 +41,6 @@ function PublishLocation({
     ? location.depth * ICON_SIZE + OFFSET
     : ICON_SIZE;
 
-  const handleDisclosureClick = (ev: React.MouseEvent) => {
-    ev.stopPropagation();
-    toggleExpansion();
-  };
-
-  const handleSelect = React.useCallback(
-    (ev) => {
-      ev.preventDefault();
-      onSelect();
-    },
-    [onSelect]
-  );
-
-  const handlePointerMove = React.useCallback(() => {
-    if (location) {
-      setActive(location.index);
-    }
-  }, [location, setActive]);
-
   const path = (location: any) =>
     ancestors(location)
       .map((a) => a.data.title)
@@ -68,16 +50,16 @@ function PublishLocation({
     <Row
       selected={selected}
       active={active}
-      onClick={handleSelect}
+      onClick={onClick}
       style={style}
-      onPointerMove={handlePointerMove}
+      onPointerMove={onPointerMove}
     >
       {!isSearchResult && (
         <Spacer width={width}>
           {hasChildren && (
             <StyledDisclosure
               expanded={expanded}
-              onClick={handleDisclosureClick}
+              onClick={onDisclosureClick}
               tabIndex={-1}
             />
           )}
