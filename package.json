@@ -342,7 +342,6 @@
     "prettier": "^2.0.5",
     "react-refresh": "^0.14.0",
     "rimraf": "^2.5.4",
-    "rollup-plugin-node-globals": "^1.4.0",
     "rollup-plugin-webpack-stats": "^0.0.4",
     "style-loader": "2.0.0",
     "terser-webpack-plugin": "^4.1.0",
