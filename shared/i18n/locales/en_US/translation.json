@@ -482,6 +482,7 @@
   "Document published": "Document published",
   "Couldn’t publish the document, try again?": "Couldn’t publish the document, try again?",
   "Search collections & documents": "Search collections & documents",
+  "No results found.": "",
   "Publish under <strong>{{location}}</strong>": "Publish under <strong>{{location}}</strong>",
   "Choose a location to publish": "Choose a location to publish",
   "Backlinks": "Backlinks",

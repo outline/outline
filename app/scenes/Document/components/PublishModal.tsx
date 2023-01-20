@@ -360,28 +360,34 @@ function PublishModal({ document }: Props) {
         placeholder={`${t("Search collections & documents")}…`}
         autoFocus
       />
-      <Results>
-        <AutoSizer>
-          {({ width, height }: { width: number; height: number }) => (
-            <Flex role="listbox" column>
-              <List
-                ref={listRef}
-                key={items.length}
-                width={width}
-                height={height}
-                itemData={items}
-                itemCount={items.length}
-                itemSize={32}
-                innerElementType={innerElementType}
-                initialScrollOffset={initialScrollOffset}
-                itemKey={(index, results: any) => results[index].data.id}
-              >
-                {row}
-              </List>
-            </Flex>
-          )}
-        </AutoSizer>
-      </Results>
+      {items.length ? (
+        <Results>
+          <AutoSizer>
+            {({ width, height }: { width: number; height: number }) => (
+              <Flex role="listbox" column>
+                <List
+                  ref={listRef}
+                  key={items.length}
+                  width={width}
+                  height={height}
+                  itemData={items}
+                  itemCount={items.length}
+                  itemSize={32}
+                  innerElementType={innerElementType}
+                  initialScrollOffset={initialScrollOffset}
+                  itemKey={(index, results: any) => results[index].data.id}
+                >
+                  {row}
+                </List>
+              </Flex>
+            )}
+          </AutoSizer>
+        </Results>
+      ) : (
+        <NoResults>
+          <Text type="secondary">{t("No results found.")}</Text>
+        </NoResults>
+      )}
       <Footer justify="space-between" align="center">
         {selectedLocation ? (
           <SelectedLocation type="secondary">
@@ -404,6 +410,16 @@ function PublishModal({ document }: Props) {
     </FlexContainer>
   );
 }
+
+const NoResults = styled(Flex)`
+  align-items: center;
+  justify-content: center;
+  height: 65vh;
+
+  ${breakpoint("tablet")`
+    height: 40vh;
+  `}
+`;
 
 const Search = styled(InputSearch)`
   ${Outline} {
