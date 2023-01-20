@@ -54,6 +54,7 @@ const DocumentBreadcrumb: React.FC<Props> = ({
   onlyText,
 }) => {
   const { collections } = useStores();
+  const { t } = useTranslation();
   const category = useCategory(document);
   const collection = collections.get(document.collectionId);
 
@@ -65,6 +66,13 @@ const DocumentBreadcrumb: React.FC<Props> = ({
       title: collection.name,
       icon: <CollectionIcon collection={collection} expanded />,
       to: collectionUrl(collection.url),
+    };
+  } else if (document.collectionId && !collection) {
+    collectionNode = {
+      type: "route",
+      title: t("Deleted Collection"),
+      icon: undefined,
+      to: collectionUrl("deleted-collection"),
     };
   }
 
