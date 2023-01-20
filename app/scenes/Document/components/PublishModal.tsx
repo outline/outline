@@ -317,7 +317,9 @@ function PublishModal({ document }: Props) {
       }
       case "ArrowUp": {
         ev.preventDefault();
-        shiftFocusToSearchInput();
+        if (activeItem === 0) {
+          shiftFocusToSearchInput();
+        }
         moveTo(prevItem());
         break;
       }
