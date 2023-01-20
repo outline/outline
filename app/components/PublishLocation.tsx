@@ -1,9 +1,7 @@
 import { observer } from "mobx-react";
-import { DocumentIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
 import Flex from "~/components/Flex";
-import CollectionIcon from "~/components/Icons/CollectionIcon";
 import Disclosure from "~/components/Sidebar/components/Disclosure";
 import Text from "~/components/Text";
 import { ancestors } from "~/utils/tree";
@@ -15,6 +13,7 @@ type Props = {
   style: React.CSSProperties;
   isSearchResult: boolean;
   expanded: boolean;
+  icon?: React.ReactNode;
 
   onDisclosureClick: (ev: React.MouseEvent) => void;
   onPointerMove: (ev: React.MouseEvent) => void;
@@ -31,6 +30,7 @@ function PublishLocation({
   onDisclosureClick,
   onPointerMove,
   onClick,
+  icon,
 }: Props) {
   const OFFSET = 12;
   const ICON_SIZE = 24;
@@ -65,14 +65,7 @@ function PublishLocation({
           )}
         </Spacer>
       )}
-      {location.data.type === "collection" ? (
-        <CollectionIcon
-          collection={location.data.collection}
-          size={ICON_SIZE}
-        />
-      ) : (
-        <DocumentIcon />
-      )}
+      {icon}
       <Title>{location.data.title}</Title>
       {isSearchResult && (
         <Path type="secondary" size="xsmall">

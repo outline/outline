@@ -1,15 +1,19 @@
 import FuzzySearch from "fuzzy-search";
 import { isNumber, includes, difference, concat, filter } from "lodash";
 import { observer } from "mobx-react";
+import { StarredIcon, DocumentIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList as List } from "react-window";
-import styled from "styled-components";
+import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import parseTitle from "@shared/utils/parseTitle";
 import Document from "~/models/Document";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
+import CollectionIcon from "~/components/Icons/CollectionIcon";
+import EmojiIcon from "~/components/Icons/EmojiIcon";
 import { Outline } from "~/components/Input";
 import InputSearch from "~/components/InputSearch";
 import PublishLocation from "~/components/PublishLocation";
@@ -30,8 +34,9 @@ function PublishModal({ document }: Props) {
   const [initialScrollOffset, setInitialScrollOffset] = React.useState<number>(
     0
   );
-  const { collections } = useStores();
+  const { collections, documents } = useStores();
   const { showToast } = useToasts();
+  const theme = useTheme();
   const [items, setItems] = React.useState<any>(
     flattenTree(collections.tree.root)
       .slice(1)
@@ -249,7 +254,28 @@ function PublishModal({ document }: Props) {
     style: React.CSSProperties;
   }) => {
     const result = data[index];
-    result.data.collection = collections.get(result.data.collectionId);
+    const isCollection = result.data.type === "collection";
+    const getIcon = () => {
+      let icon;
+      if (isCollection) {
+        const id = result.data.collectionId;
+        const col = collections.get(id);
+        icon = col && <CollectionIcon collection={col} />;
+      } else {
+        const id = result.data.id;
+        const doc = documents.get(id);
+        const { emoji } = parseTitle(doc?.title);
+        if (emoji) {
+          icon = <EmojiIcon emoji={emoji} />;
+        } else if (doc?.isStarred) {
+          icon = <StarredIcon color={theme.yellow} />;
+        } else {
+          icon = <DocumentIcon />;
+        }
+      }
+      return icon;
+    };
+
     return (
       <PublishLocation
         style={{
@@ -268,8 +294,9 @@ function PublishModal({ document }: Props) {
         selected={isSelected(index)}
         active={activeItem === index}
         expanded={isExpanded(index)}
+        icon={getIcon()}
         isSearchResult={!!searchTerm}
-      ></PublishLocation>
+      />
     );
   };
 

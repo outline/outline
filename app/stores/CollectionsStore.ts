@@ -2,6 +2,7 @@ import invariant from "invariant";
 import { concat, find, last, isEmpty } from "lodash";
 import { computed, action } from "mobx";
 import { CollectionPermission, FileOperationFormat } from "@shared/types";
+import parseTitle from "@shared/utils/parseTitle";
 import Collection from "~/models/Collection";
 import { NavigationNode } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -102,6 +103,11 @@ export default class CollectionsStore extends BaseStore<Collection> {
   @computed
   get tree() {
     const subtree = (node: any) => {
+      const isDocument = node.data.type === DocumentPathItemType.Document;
+      if (isDocument) {
+        const { strippedTitle } = parseTitle(node.data.title);
+        node.data.title = strippedTitle;
+      }
       const root: any = {
         data: {
           id: node.data.id,
