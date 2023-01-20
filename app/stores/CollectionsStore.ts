@@ -105,8 +105,11 @@ export default class CollectionsStore extends BaseStore<Collection> {
     const subtree = (node: any) => {
       const isDocument = node.data.type === DocumentPathItemType.Document;
       if (isDocument) {
-        const { strippedTitle } = parseTitle(node.data.title);
+        const { strippedTitle, emoji } = parseTitle(node.data.title);
         node.data.title = strippedTitle;
+        if (emoji) {
+          node.data.emoji = emoji;
+        }
       }
       const root: any = {
         data: {
@@ -119,6 +122,7 @@ export default class CollectionsStore extends BaseStore<Collection> {
               : node.data.collectionId,
           expanded: isEmpty(node.children) ? undefined : node.data.expanded,
           show: node.data.show,
+          emoji: node.data.emoji,
         },
         children: [],
         parent: node.parent,

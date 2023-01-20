@@ -8,7 +8,6 @@ import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList as List } from "react-window";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import parseTitle from "@shared/utils/parseTitle";
 import Document from "~/models/Document";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
@@ -264,7 +263,7 @@ function PublishModal({ document }: Props) {
       } else {
         const id = result.data.id;
         const doc = documents.get(id);
-        const { emoji } = parseTitle(doc?.title);
+        const emoji = result.data.emoji;
         if (emoji) {
           icon = <EmojiIcon emoji={emoji} />;
         } else if (doc?.isStarred) {

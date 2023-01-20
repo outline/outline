@@ -18,7 +18,9 @@ export default function parseTitle(text = "") {
   const emoji = startsWithEmoji ? firstEmoji : undefined;
 
   // title with first leading emoji stripped
-  const strippedTitle = startsWithEmoji ? title.replace(firstEmoji, "") : title;
+  const strippedTitle = startsWithEmoji
+    ? title.replace(firstEmoji, "").trim()
+    : title;
 
   return {
     title,
