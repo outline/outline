@@ -36,6 +36,7 @@ function PublishLocation({
   const ICON_SIZE = 24;
 
   const hasChildren = location.children.length > 0;
+  const isCollection = location.data.type === "collection";
 
   const width = location.depth
     ? location.depth * ICON_SIZE + OFFSET
@@ -67,7 +68,7 @@ function PublishLocation({
       )}
       {icon}
       <Title>{location.data.title}</Title>
-      {isSearchResult && (
+      {isSearchResult && !isCollection && (
         <Path type="tertiary" size="xsmall">
           {path(location)}
         </Path>
