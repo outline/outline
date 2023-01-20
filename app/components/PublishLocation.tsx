@@ -69,7 +69,7 @@ function PublishLocation({
       {icon}
       <Title>{location.data.title}</Title>
       {isSearchResult && !isCollection && (
-        <Path type="tertiary" size="xsmall">
+        <Path type={selected ? undefined : "tertiary"} size="xsmall">
           {path(location)}
         </Path>
       )}
