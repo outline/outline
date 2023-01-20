@@ -68,7 +68,7 @@ function PublishLocation({
       {icon}
       <Title>{location.data.title}</Title>
       {isSearchResult && (
-        <Path type="secondary" size="xsmall">
+        <Path type="tertiary" size="xsmall">
           {path(location)}
         </Path>
       )}
