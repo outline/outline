@@ -83,7 +83,7 @@ const Title = styled(Text)`
 `;
 
 const Path = styled(Text)`
-  padding-top: 2px;
+  padding-top: 3px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
