@@ -45,7 +45,7 @@ function PublishLocation({
   const path = (location: any) =>
     ancestors(location)
       .map((a) => a.data.title)
-      .join("/");
+      .join(" / ");
 
   return (
     <Row
