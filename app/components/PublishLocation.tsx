@@ -1,5 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
+import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled from "styled-components";
 import Flex from "~/components/Flex";
 import Disclosure from "~/components/Sidebar/components/Disclosure";
@@ -47,8 +48,21 @@ function PublishLocation({
       .map((a) => a.data.title)
       .join(" / ");
 
+  const ref = React.useCallback(
+    (node: HTMLSpanElement | null) => {
+      if (active && node) {
+        scrollIntoView(node, {
+          scrollMode: "if-needed",
+          block: "center",
+        });
+      }
+    },
+    [active]
+  );
+
   return (
     <Row
+      ref={ref}
       selected={selected}
       active={active}
       onClick={onClick}
@@ -88,7 +102,7 @@ const Path = styled(Text)`
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin: 0 4px 0 4px;
+  margin: 0 4px 0 8px;
 `;
 
 const StyledDisclosure = styled(Disclosure)`
@@ -111,20 +125,16 @@ const Row = styled.span<{
   display: flex;
   user-select: none;
   width: ${(props) => props.style.width};
-
   color: ${(props) => props.theme.text};
-  cursor: default;
-
+  cursor: var(--pointer);
   padding: 4px;
+  border-radius: 6px;
+  background: ${(props) =>
+    !props.selected && props.active && props.theme.listItemHoverBackground};
 
   svg {
     flex-shrink: 0;
   }
-
-  border-radius: 6px;
-
-  background: ${(props) =>
-    !props.selected && props.active && props.theme.listItemHoverBackground};
 
   &:focus {
     outline: none;

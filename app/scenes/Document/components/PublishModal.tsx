@@ -1,5 +1,5 @@
 import FuzzySearch from "fuzzy-search";
-import { isNumber, includes, difference, concat, filter } from "lodash";
+import { includes, difference, concat, filter } from "lodash";
 import { observer } from "mobx-react";
 import { StarredIcon, DocumentIcon } from "outline-icons";
 import * as React from "react";
@@ -43,12 +43,12 @@ function PublishModal({ document }: Props) {
   );
   const [activeItem, setActiveItem] = React.useState<number>(0);
   const [expandedItems, setExpandedItems] = React.useState<string[]>([]);
-  const inputSearchRef:
-    | React.RefObject<HTMLInputElement | HTMLTextAreaElement>
-    | undefined = React.useRef(null);
+  const inputSearchRef = React.useRef<HTMLInputElement | HTMLTextAreaElement>(
+    null
+  );
   const { t } = useTranslation();
   const { dialogs } = useStores();
-  const listRef = React.useRef<any>(null);
+  const listRef = React.useRef<List<HTMLDivElement>>(null);
   const VERTICAL_PADDING = 6;
   const HORIZONTAL_PADDING = 24;
 
@@ -63,34 +63,6 @@ function PublishModal({ document }: Props) {
   const prevItem = () => {
     return activeItem === 0 ? items.length - 1 : activeItem - 1;
   };
-
-  const scrollTo = (index: number) => {
-    if (listRef.current) {
-      const { height, itemSize } = listRef.current.props;
-      const scrollWindowTop = listRef.current.state.scrollOffset;
-      const scrollWindowBottom = scrollWindowTop + height;
-
-      const top = VERTICAL_PADDING + index * itemSize;
-      const bottom = VERTICAL_PADDING + (index + 1) * itemSize;
-
-      let offset;
-      if (top < scrollWindowTop) {
-        offset = top;
-      }
-
-      if (bottom > scrollWindowBottom) {
-        offset = scrollWindowTop + bottom - scrollWindowBottom;
-      }
-
-      if (isNumber(offset)) {
-        listRef.current.scrollTo(offset);
-      }
-    }
-  };
-
-  React.useEffect(() => {
-    scrollTo(activeItem);
-  }, [activeItem]);
 
   const searchIndex = React.useMemo(() => {
     const data = flattenTree(collections.tree.root).slice(1);
@@ -132,10 +104,15 @@ function PublishModal({ document }: Props) {
   };
 
   const calculateInitialScrollOffset = (itemCount: number) => {
-    const { height, itemSize } = listRef.current.props;
-    const { scrollOffset } = listRef.current.state;
-    const itemsHeight = itemCount * itemSize;
-    return itemsHeight < height ? 0 : scrollOffset;
+    if (listRef.current) {
+      const { height, itemSize } = listRef.current.props;
+      const { scrollOffset } = listRef.current.state as {
+        scrollOffset: number;
+      };
+      const itemsHeight = itemCount * itemSize;
+      return itemsHeight < height ? 0 : scrollOffset;
+    }
+    return 0;
   };
 
   const removeChildren = (item: number) => {
@@ -214,23 +191,27 @@ function PublishModal({ document }: Props) {
 
   const publish = async () => {
     if (!selectedLocation) {
-      showToast(t("Select destination to publish document"), {
+      showToast(t("Choose a location to publish the document"), {
         type: "info",
       });
       return;
     }
-    try {
-      const destCol = selectedLocation.data.collectionId;
-      const destType = selectedLocation.data.type;
 
-      document.collectionId = destCol;
-      await document.save({ publish: true });
+    try {
+      const {
+        collectionId,
+        type,
+        id: parentDocumentId,
+      } = selectedLocation.data;
 
       // Also move it under if selected path corresponds to another doc
-      if (destType === "document") {
-        const destDoc = selectedLocation.data.id;
-        await document.move(destCol, destDoc);
+      if (type === "document") {
+        await document.move(collectionId, parentDocumentId);
       }
+
+      document.collectionId = collectionId;
+      await document.save({ publish: true });
+
       showToast(t("Document published"), {
         type: "success",
       });
@@ -254,26 +235,22 @@ function PublishModal({ document }: Props) {
   }) => {
     const result = data[index];
     const isCollection = result.data.type === "collection";
-    const getIcon = () => {
-      let icon;
-      if (isCollection) {
-        const id = result.data.collectionId;
-        const col = collections.get(id);
-        icon = col && <CollectionIcon collection={col} />;
+    let icon;
+
+    if (isCollection) {
+      const col = collections.get(result.data.collectionId);
+      icon = col && <CollectionIcon collection={col} />;
+    } else {
+      const doc = documents.get(result.data.id);
+      const { emoji } = result.data;
+      if (emoji) {
+        icon = <EmojiIcon emoji={emoji} />;
+      } else if (doc?.isStarred) {
+        icon = <StarredIcon color={theme.yellow} />;
       } else {
-        const id = result.data.id;
-        const doc = documents.get(id);
-        const emoji = result.data.emoji;
-        if (emoji) {
-          icon = <EmojiIcon emoji={emoji} />;
-        } else if (doc?.isStarred) {
-          icon = <StarredIcon color={theme.yellow} />;
-        } else {
-          icon = <DocumentIcon />;
-        }
+        icon = <DocumentIcon />;
       }
-      return icon;
-    };
+    }
 
     return (
       <PublishLocation
@@ -293,7 +270,7 @@ function PublishModal({ document }: Props) {
         selected={isSelected(index)}
         active={activeItem === index}
         expanded={isExpanded(index)}
-        icon={getIcon()}
+        icon={icon}
         isSearchResult={!!searchTerm}
       />
     );
@@ -303,7 +280,7 @@ function PublishModal({ document }: Props) {
     return null;
   }
 
-  const shiftFocusToSearchInput = () => {
+  const focusSearchInput = () => {
     inputSearchRef.current?.focus();
   };
 
@@ -317,9 +294,16 @@ function PublishModal({ document }: Props) {
       case "ArrowUp": {
         ev.preventDefault();
         if (activeItem === 0) {
-          shiftFocusToSearchInput();
+          focusSearchInput();
+        } else {
+          moveTo(prevItem());
         }
-        moveTo(prevItem());
+        break;
+      }
+      case "ArrowLeft": {
+        if (!searchTerm && isExpanded(activeItem)) {
+          toggleCollapse(activeItem);
+        }
         break;
       }
       case "ArrowRight": {
@@ -339,18 +323,19 @@ function PublishModal({ document }: Props) {
     }
   };
 
-  const innerElementType = React.forwardRef<HTMLDivElement, any>(
-    ({ style, ...rest }, ref) => (
-      <div
-        ref={ref}
-        style={{
-          ...style,
-          height: `${parseFloat(style.height) + VERTICAL_PADDING * 2}px`,
-        }}
-        {...rest}
-      />
-    )
-  );
+  const innerElementType = React.forwardRef<
+    HTMLDivElement,
+    React.HTMLAttributes<HTMLDivElement>
+  >(({ style, ...rest }, ref) => (
+    <div
+      ref={ref}
+      style={{
+        ...style,
+        height: `${parseFloat(style?.height + "") + VERTICAL_PADDING * 2}px`,
+      }}
+      {...rest}
+    />
+  ));
 
   return (
     <FlexContainer column tabIndex={-1} onKeyDown={handleKeyDown}>
@@ -392,7 +377,7 @@ function PublishModal({ document }: Props) {
         {selectedLocation ? (
           <SelectedLocation type="secondary">
             <Trans
-              defaults="Publish under <strong>{{location}}</strong>"
+              defaults="Publish in <strong>{{location}}</strong>"
               values={{
                 location: selectedLocation.data.title,
               }}
@@ -400,7 +385,7 @@ function PublishModal({ document }: Props) {
           </SelectedLocation>
         ) : (
           <SelectedLocation type="tertiary">
-            {t("Choose a location to publish")}
+            {t("Select a location to publish")}
           </SelectedLocation>
         )}
         <Button disabled={!selectedLocation} onClick={publish}>
