@@ -564,15 +564,6 @@ export class Environment {
    */
   public APP_NAME = "Outline";
 
-  /**
-   * A boolean flag to toggle the new publish UI.
-   */
-  @IsOptional()
-  @IsBoolean()
-  public PUBLISH_UI_ENABLED = this.toBoolean(
-    process.env.PUBLISH_UI_ENABLED ?? "false"
-  );
-
   private toOptionalString(value: string | undefined) {
     return value ? value : undefined;
   }
