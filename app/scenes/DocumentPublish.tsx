@@ -111,8 +111,13 @@ function DocumentPublish({ document }: Props) {
     return 0;
   };
 
-  const removeChildren = (item: number) => {
+  const shrink = (item: number) => {
     const descendantIds = descendants(items[item]).map((des) => des.data.id);
+    setExpandedItems(
+      difference(expandedItems, [...descendantIds, items[item].data.id])
+    );
+
+    // remove children
     const newItems = filter(
       items,
       (item: any) => !includes(descendantIds, item.data.id)
@@ -122,33 +127,15 @@ function DocumentPublish({ document }: Props) {
     setItems(newItems);
   };
 
-  const addChildren = (item: number) => {
+  const expand = (item: number) => {
+    setExpandedItems(concat(expandedItems, items[item].data.id));
+
+    // add children
     const newItems = items.slice();
     newItems.splice(item + 1, 0, ...descendants(items[item], 1));
     const scrollOffset = calculateInitialScrollOffset(newItems.length);
     setInitialScrollOffset(scrollOffset);
     setItems(newItems);
-  };
-
-  const removeFromExpandedItems = (item: number) => {
-    const descendantIds = descendants(items[item]).map((des) => des.data.id);
-    setExpandedItems(
-      difference(expandedItems, [...descendantIds, items[item].data.id])
-    );
-  };
-
-  const addToExpandedItems = (item: number) => {
-    setExpandedItems(concat(expandedItems, items[item].data.id));
-  };
-
-  const shrink = (item: number) => {
-    removeFromExpandedItems(item);
-    removeChildren(item);
-  };
-
-  const expand = (item: number) => {
-    addToExpandedItems(item);
-    addChildren(item);
   };
 
   const isSelected = (item: number) => {
@@ -235,7 +222,9 @@ function DocumentPublish({ document }: Props) {
 
     if (isCollection) {
       const col = collections.get(result.data.collectionId);
-      icon = col && <CollectionIcon collection={col} />;
+      icon = col && (
+        <CollectionIcon collection={col} expanded={isExpanded(index)} />
+      );
     } else {
       const doc = documents.get(result.data.id);
       const { emoji } = result.data;
