@@ -17,6 +17,7 @@ import { Outline } from "~/components/Input";
 import InputSearch from "~/components/InputSearch";
 import PublishLocation from "~/components/PublishLocation";
 import Text from "~/components/Text";
+import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import { isModKey } from "~/utils/keyboard";
@@ -28,6 +29,7 @@ type Props = {
 };
 
 function DocumentPublish({ document }: Props) {
+  const isMobile = useMobile();
   const [searchTerm, setSearchTerm] = React.useState<string>();
   const [selectedLocation, setLocation] = React.useState<any>();
   const [initialScrollOffset, setInitialScrollOffset] = React.useState<number>(
@@ -333,7 +335,7 @@ function DocumentPublish({ document }: Props) {
                   height={height}
                   itemData={items}
                   itemCount={items.length}
-                  itemSize={32}
+                  itemSize={isMobile ? 48 : 32}
                   innerElementType={innerElementType}
                   initialScrollOffset={initialScrollOffset}
                   itemKey={(index, results: any) => results[index].data.id}

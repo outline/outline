@@ -3,6 +3,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 import Flex from "~/components/Flex";
 import Disclosure from "~/components/Sidebar/components/Disclosure";
 import Text from "~/components/Text";
@@ -132,11 +133,11 @@ const Row = styled.span<{
   display: flex;
   user-select: none;
   overflow: hidden;
-  font-size: 15px;
+  font-size: 16px;
   width: ${(props) => props.style.width};
   color: ${(props) => props.theme.text};
   cursor: var(--pointer);
-  padding: 4px;
+  padding: 12px;
   border-radius: 6px;
   background: ${(props) =>
     !props.selected && props.active && props.theme.listItemHoverBackground};
@@ -159,6 +160,11 @@ const Row = styled.span<{
         fill: ${props.theme.white};
       }
     `}
+
+  ${breakpoint("tablet")`
+    padding: 4px;
+    font-size: 15px;
+  `}
 `;
 
 export default observer(PublishLocation);
