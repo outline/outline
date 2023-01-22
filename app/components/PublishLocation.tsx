@@ -130,6 +130,7 @@ const Row = styled.span<{
   display: flex;
   user-select: none;
   overflow: hidden;
+  font-size: 15px;
   width: ${(props) => props.style.width};
   color: ${(props) => props.theme.text};
   cursor: var(--pointer);
