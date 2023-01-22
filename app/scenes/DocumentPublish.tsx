@@ -27,7 +27,7 @@ type Props = {
   document: Document;
 };
 
-function PublishModal({ document }: Props) {
+function DocumentPublish({ document }: Props) {
   const [searchTerm, setSearchTerm] = React.useState<string>();
   const [selectedLocation, setLocation] = React.useState<any>();
   const [initialScrollOffset, setInitialScrollOffset] = React.useState<number>(
@@ -370,7 +370,7 @@ function PublishModal({ document }: Props) {
         </Results>
       ) : (
         <NoResults>
-          <Text type="secondary">{t("No results found.")}</Text>
+          <Text type="secondary">{t("No results found")}.</Text>
         </NoResults>
       )}
       <Footer justify="space-between" align="center">
@@ -444,4 +444,4 @@ const SelectedLocation = styled(Text)`
   max-width: 40vh;
 `;
 
-export default observer(PublishModal);
+export default observer(DocumentPublish);
