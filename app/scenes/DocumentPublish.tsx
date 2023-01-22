@@ -388,7 +388,7 @@ function DocumentPublish({ document }: Props) {
           </SelectedLocation>
         )}
         <Button disabled={!selectedLocation} onClick={publish}>
-          Publish
+          {t("Publish")}
         </Button>
       </Footer>
     </FlexContainer>
@@ -418,6 +418,7 @@ const FlexContainer = styled(Flex)`
   margin-left: -24px;
   margin-right: -24px;
   margin-bottom: -24px;
+  outline: none;
 `;
 
 const Results = styled.div`

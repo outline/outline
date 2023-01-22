@@ -71,6 +71,7 @@ function PublishLocation({
       onClick={onClick}
       style={style}
       onPointerMove={onPointerMove}
+      role="option"
     >
       {!isSearchResult && (
         <Spacer width={width}>
