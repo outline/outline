@@ -56,10 +56,6 @@ function DocumentPublish({ document }: Props) {
     return Math.min(activeItem + 1, items.length - 1);
   };
 
-  const moveTo = (index: number) => {
-    setActiveItem(index);
-  };
-
   const prevItem = () => {
     return Math.max(activeItem - 1, 0);
   };
@@ -191,7 +187,7 @@ function DocumentPublish({ document }: Props) {
 
   const publish = async () => {
     if (!selectedLocation) {
-      showToast(t("Choose a location to publish the document"), {
+      showToast(t("Select a location to publish"), {
         type: "info",
       });
       return;
@@ -288,7 +284,7 @@ function DocumentPublish({ document }: Props) {
     switch (ev.key) {
       case "ArrowDown": {
         ev.preventDefault();
-        moveTo(nextItem());
+        setActiveItem(nextItem());
         break;
       }
       case "ArrowUp": {
@@ -296,7 +292,7 @@ function DocumentPublish({ document }: Props) {
         if (activeItem === 0) {
           focusSearchInput();
         } else {
-          moveTo(prevItem());
+          setActiveItem(prevItem());
         }
         break;
       }

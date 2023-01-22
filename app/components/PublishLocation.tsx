@@ -96,6 +96,7 @@ function PublishLocation({
 
 const Title = styled(Text)`
   white-space: nowrap;
+  overflow: hidden;
   margin: 0 4px 0 4px;
   color: inherit;
 `;
@@ -127,6 +128,7 @@ const Row = styled.span<{
 }>`
   display: flex;
   user-select: none;
+  overflow: hidden;
   width: ${(props) => props.style.width};
   color: ${(props) => props.theme.text};
   cursor: var(--pointer);
