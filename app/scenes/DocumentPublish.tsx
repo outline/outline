@@ -373,7 +373,7 @@ function DocumentPublish({ document }: Props) {
           <Text type="secondary">{t("No results found")}.</Text>
         </NoResults>
       )}
-      <Footer justify="space-between" align="center">
+      <Footer justify="space-between" align="center" gap={8}>
         {selectedLocation ? (
           <SelectedLocation type="secondary">
             <Trans
@@ -441,7 +441,6 @@ const SelectedLocation = styled(Text)`
   overflow: hidden;
   text-overflow: ellipsis;
   margin-bottom: 0;
-  max-width: 40vh;
 `;
 
 export default observer(DocumentPublish);
