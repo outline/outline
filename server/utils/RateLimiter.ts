@@ -1,6 +1,7 @@
 import {
   IRateLimiterStoreOptions,
   RateLimiterRedis,
+  RateLimiterMemory,
 } from "rate-limiter-flexible";
 import env from "@server/env";
 import Redis from "@server/redis";
@@ -14,11 +15,17 @@ export default class RateLimiter {
 
   static readonly rateLimiterMap = new Map<string, RateLimiterRedis>();
 
+  static readonly insuranceRateLimiter = new RateLimiterMemory({
+    points: env.RATE_LIMITER_REQUESTS,
+    duration: env.RATE_LIMITER_DURATION_WINDOW,
+  });
+
   static readonly defaultRateLimiter = new RateLimiterRedis({
     storeClient: Redis.defaultClient,
     points: env.RATE_LIMITER_REQUESTS,
     duration: env.RATE_LIMITER_DURATION_WINDOW,
     keyPrefix: this.RATE_LIMITER_REDIS_KEY_PREFIX,
+    insuranceLimiter: this.insuranceRateLimiter,
   });
 
   static getRateLimiter(path: string): RateLimiterRedis {
