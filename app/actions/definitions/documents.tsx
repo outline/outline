@@ -439,7 +439,7 @@ export const printDocument = createAction({
     isContextMenu ? t("Print") : t("Print document"),
   section: DocumentSection,
   icon: <PrintIcon />,
-  visible: ({ activeDocumentId }) => !!activeDocumentId,
+  visible: ({ activeDocumentId }) => !!(activeDocumentId && window.print),
   perform: async () => {
     window.print();
   },
