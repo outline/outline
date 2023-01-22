@@ -53,7 +53,7 @@ function DocumentPublish({ document }: Props) {
   const HORIZONTAL_PADDING = 24;
 
   const nextItem = () => {
-    return activeItem === items.length - 1 ? 0 : activeItem + 1;
+    return Math.min(activeItem + 1, items.length - 1);
   };
 
   const moveTo = (index: number) => {
@@ -61,7 +61,7 @@ function DocumentPublish({ document }: Props) {
   };
 
   const prevItem = () => {
-    return activeItem === 0 ? items.length - 1 : activeItem - 1;
+    return Math.max(activeItem - 1, 0);
   };
 
   const searchIndex = React.useMemo(() => {
@@ -377,9 +377,12 @@ function DocumentPublish({ document }: Props) {
         {selectedLocation ? (
           <SelectedLocation type="secondary">
             <Trans
-              defaults="Publish in <strong>{{location}}</strong>"
+              defaults="Publish in <em>{{ location }}</em>"
               values={{
                 location: selectedLocation.data.title,
+              }}
+              components={{
+                em: <strong />,
               }}
             />
           </SelectedLocation>

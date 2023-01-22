@@ -1,5 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled from "styled-components";
 import Flex from "~/components/Flex";
@@ -33,6 +34,7 @@ function PublishLocation({
   onClick,
   icon,
 }: Props) {
+  const { t } = useTranslation();
   const OFFSET = 12;
   const ICON_SIZE = 24;
 
@@ -53,7 +55,8 @@ function PublishLocation({
       if (active && node) {
         scrollIntoView(node, {
           scrollMode: "if-needed",
-          block: "center",
+          behavior: "auto",
+          block: "start",
         });
       }
     },
@@ -81,7 +84,7 @@ function PublishLocation({
         </Spacer>
       )}
       {icon}
-      <Title>{location.data.title}</Title>
+      <Title>{location.data.title || t("Untitled")}</Title>
       {isSearchResult && !isCollection && (
         <Path type={selected ? undefined : "tertiary"} size="xsmall">
           {path(location)}
