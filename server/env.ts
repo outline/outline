@@ -148,6 +148,17 @@ export class Environment {
   );
 
   /**
+   * The maximum number of network clients that can be connected to a single
+   * document at once. Defaults to 100.
+   */
+  @IsOptional()
+  @IsNumber()
+  public COLLABORATION_MAX_CLIENTS_PER_DOCUMENT = parseInt(
+    process.env.COLLABORATION_MAX_CLIENTS_PER_DOCUMENT || "100",
+    10
+  );
+
+  /**
    * The port that the server will listen on, defaults to 3000.
    */
   @IsNumber()
