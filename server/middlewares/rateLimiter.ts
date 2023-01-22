@@ -28,7 +28,7 @@ export function defaultRateLimiter() {
     try {
       await limiter.consume(key);
     } catch (rateLimiterRes) {
-      if (rateLimiterRes.points) {
+      if (rateLimiterRes.msBeforeNext) {
         ctx.set("Retry-After", `${rateLimiterRes.msBeforeNext / 1000}`);
         ctx.set("RateLimit-Limit", `${limiter.points}`);
         ctx.set("RateLimit-Remaining", `${rateLimiterRes.remainingPoints}`);
