@@ -69,16 +69,19 @@ function DocumentPublish({ document }: Props) {
   React.useEffect(() => {
     if (searchTerm) {
       setLocation(null);
+      setExpandedItems([]);
     }
     setActiveItem(0);
   }, [searchTerm]);
 
   React.useEffect(() => {
-    let results: any = flattenTree(collections.tree.root).slice(1);
+    let results = flattenTree(collections.tree.root).slice(1);
 
     if (collections.isLoaded) {
       if (searchTerm) {
         results = searchIndex.search(searchTerm);
+      } else {
+        results = results.filter((r) => r.data.type === "collection");
       }
     }
 
@@ -107,7 +110,7 @@ function DocumentPublish({ document }: Props) {
     return 0;
   };
 
-  const shrink = (item: number) => {
+  const collapse = (item: number) => {
     const descendantIds = descendants(items[item]).map((des) => des.data.id);
     setExpandedItems(
       difference(expandedItems, [...descendantIds, items[item].data.id])
@@ -144,17 +147,9 @@ function DocumentPublish({ document }: Props) {
     return selectedItemId === itemId;
   };
 
-  const select = (item: number) => {
-    setLocation(items[item]);
-  };
-
-  const deselect = () => {
-    setLocation(null);
-  };
-
   const toggleCollapse = (item: number) => {
     if (isExpanded(item)) {
-      shrink(item);
+      collapse(item);
     } else {
       expand(item);
     }
@@ -162,9 +157,9 @@ function DocumentPublish({ document }: Props) {
 
   const toggleSelect = (item: number) => {
     if (isSelected(item)) {
-      deselect();
+      setLocation(null);
     } else {
-      select(item);
+      setLocation(items[item]);
     }
   };
 
