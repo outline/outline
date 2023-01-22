@@ -2,7 +2,6 @@ import * as React from "react";
 import styled from "styled-components";
 import useBoolean from "~/hooks/useBoolean";
 import Initials from "./Initials";
-import placeholder from "./placeholder.png";
 
 export interface IAvatar {
   avatarUrl: string | null;
@@ -29,10 +28,10 @@ function Avatar(props: Props) {
 
   return (
     <Relative>
-      {src ? (
+      {src && !error ? (
         <CircleImg
           onError={handleError}
-          src={error ? placeholder : src}
+          src={src}
           $showBorder={showBorder}
           {...rest}
         />
