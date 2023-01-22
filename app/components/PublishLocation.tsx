@@ -87,7 +87,7 @@ function PublishLocation({
       {icon}
       <Title>{location.data.title || t("Untitled")}</Title>
       {isSearchResult && !isCollection && (
-        <Path type={selected ? undefined : "tertiary"} size="xsmall">
+        <Path $selected={selected} size="xsmall">
           {path(location)}
         </Path>
       )}
@@ -102,12 +102,14 @@ const Title = styled(Text)`
   color: inherit;
 `;
 
-const Path = styled(Text)`
+const Path = styled(Text)<{ $selected: boolean }>`
   padding-top: 3px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   margin: 0 4px 0 8px;
+  color: ${(props) =>
+    props.$selected ? props.theme.white50 : props.theme.textTertiary};
 `;
 
 const StyledDisclosure = styled(Disclosure)`

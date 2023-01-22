@@ -37,9 +37,7 @@ function DocumentPublish({ document }: Props) {
   const { showToast } = useToasts();
   const theme = useTheme();
   const [items, setItems] = React.useState<any>(
-    flattenTree(collections.tree.root)
-      .slice(1)
-      .filter((d) => d.data.show)
+    flattenTree(collections.tree.root).slice(1)
   );
   const [activeItem, setActiveItem] = React.useState<number>(0);
   const [expandedItems, setExpandedItems] = React.useState<string[]>([]);
@@ -81,8 +79,6 @@ function DocumentPublish({ document }: Props) {
     if (collections.isLoaded) {
       if (searchTerm) {
         results = searchIndex.search(searchTerm);
-      } else {
-        results = results.filter((r: any) => r.data.show);
       }
     }
 

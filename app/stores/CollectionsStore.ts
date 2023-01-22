@@ -120,8 +120,6 @@ export default class CollectionsStore extends BaseStore<Collection> {
             node.data.type === DocumentPathItemType.Collection
               ? node.data.id
               : node.data.collectionId,
-          expanded: isEmpty(node.children) ? undefined : node.data.expanded,
-          show: node.data.show,
           emoji: node.data.emoji,
         },
         children: [],
@@ -136,8 +134,6 @@ export default class CollectionsStore extends BaseStore<Collection> {
                 ...child,
                 type: DocumentPathItemType.Document,
                 collectionId: root.data.collectionId,
-                expanded: false,
-                show: root.data.expanded ? true : false,
               },
               parent: root,
               children: child.children || [],
@@ -162,8 +158,6 @@ export default class CollectionsStore extends BaseStore<Collection> {
             data: {
               ...collection,
               type: DocumentPathItemType.Collection,
-              expanded: false,
-              show: true,
             },
             children: collection.documents || [],
             parent: root,
