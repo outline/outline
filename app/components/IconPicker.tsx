@@ -51,6 +51,7 @@ const style = {
   width: 30,
   height: 30,
 };
+
 const TwitterPicker = React.lazy(
   () =>
     import(
@@ -241,7 +242,7 @@ function IconPicker({ onOpen, onClose, icon, color, onChange }: Props) {
         aria-label={t("Choose icon")}
       >
         <Icons>
-          {Object.keys(icons).map((name) => {
+          {Object.keys(icons).map((name, index) => {
             return (
               <MenuItem
                 key={name}
@@ -249,7 +250,15 @@ function IconPicker({ onOpen, onClose, icon, color, onChange }: Props) {
                 {...menu}
               >
                 {(props) => (
-                  <IconButton style={style} {...props}>
+                  <IconButton
+                    style={
+                      {
+                        ...style,
+                        "--delay": `${index * 8}ms`,
+                      } as React.CSSProperties
+                    }
+                    {...props}
+                  >
                     <Icon as={icons[name].component} color={color} size={30} />
                   </IconButton>
                 )}
@@ -291,6 +300,7 @@ function IconPicker({ onOpen, onClose, icon, color, onChange }: Props) {
 
 const Icon = styled.svg`
   transition: fill 150ms ease-in-out;
+  transition-delay: var(--delay);
 `;
 
 const Colors = styled(Flex)`
