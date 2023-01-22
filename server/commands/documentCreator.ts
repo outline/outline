@@ -7,7 +7,7 @@ type Props = {
   title: string;
   text: string;
   publish?: boolean;
-  collectionId?: string;
+  collectionId?: string | null;
   parentDocumentId?: string | null;
   importId?: string;
   templateDocument?: Document | null;
