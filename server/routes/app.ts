@@ -71,7 +71,7 @@ export const renderApp = async (
   `;
   const entry = "app/index.tsx";
   const scriptTags = isProduction
-    ? `<script type="module" src="/${manifest[entry]["file"]}"></script>`
+    ? `<script type="module" src="${env.CDN_URL}/${manifest[entry]["file"]}"></script>`
     : `<script type="module">
         import RefreshRuntime from 'http://localhost:3001/@react-refresh'
         RefreshRuntime.injectIntoGlobalHook(window)
