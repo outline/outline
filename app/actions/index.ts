@@ -57,8 +57,16 @@ export function actionToMenuItem(
     icon,
     visible,
     dangerous: action.dangerous,
-    onClick: () => action.perform && action.perform(context),
-    selected: action.selected ? action.selected(context) : undefined,
+    onClick: () => {
+      try {
+        action.perform?.(context);
+      } catch (err) {
+        context.stores.toasts.showToast(err.message, {
+          type: "error",
+        });
+      }
+    },
+    selected: action.selected?.(context),
   };
 }
 

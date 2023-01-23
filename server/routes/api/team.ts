@@ -8,6 +8,7 @@ import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { Event, Team, TeamDomain, User } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentTeam, presentPolicies } from "@server/presenters";
+import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { assertUuid } from "@server/validation";
 
@@ -17,7 +18,7 @@ router.post(
   "team.update",
   auth(),
   rateLimiter(RateLimiterStrategy.TenPerHour),
-  async (ctx) => {
+  async (ctx: APIContext) => {
     const {
       name,
       avatarUrl,
@@ -34,7 +35,7 @@ router.post(
       preferences,
     } = ctx.request.body;
 
-    const { user } = ctx.state;
+    const { user } = ctx.state.auth;
     const team = await Team.findByPk(user.teamId, {
       include: [{ model: TeamDomain }],
     });
@@ -76,8 +77,8 @@ router.post(
   "teams.create",
   auth(),
   rateLimiter(RateLimiterStrategy.FivePerHour),
-  async (ctx) => {
-    const { user } = ctx.state;
+  async (ctx: APIContext) => {
+    const { user } = ctx.state.auth;
     const { name } = ctx.request.body;
 
     const existingTeam = await Team.scope(

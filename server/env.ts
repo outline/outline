@@ -148,6 +148,17 @@ export class Environment {
   );
 
   /**
+   * The maximum number of network clients that can be connected to a single
+   * document at once. Defaults to 100.
+   */
+  @IsOptional()
+  @IsNumber()
+  public COLLABORATION_MAX_CLIENTS_PER_DOCUMENT = parseInt(
+    process.env.COLLABORATION_MAX_CLIENTS_PER_DOCUMENT || "100",
+    10
+  );
+
+  /**
    * The port that the server will listen on, defaults to 3000.
    */
   @IsNumber()
@@ -263,6 +274,12 @@ export class Environment {
    * The host of your SMTP server for enabling emails.
    */
   public SMTP_HOST = process.env.SMTP_HOST;
+
+  /**
+   * Optional hostname of the client, used for identifying to the server
+   * defaults to hostname of the machine.
+   */
+  public SMTP_NAME = process.env.SMTP_NAME;
 
   /**
    * The port of your SMTP server.
@@ -552,6 +569,11 @@ export class Environment {
    */
   @IsOptional()
   public AWS_S3_ACL = process.env.AWS_S3_ACL ?? "private";
+
+  /**
+   * The product name
+   */
+  public APP_NAME = "Outline";
 
   private toOptionalString(value: string | undefined) {
     return value ? value : undefined;

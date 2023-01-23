@@ -56,6 +56,7 @@ function UserDelete() {
   const inputProps = register("code", {
     required: true,
   });
+  const appName = env.APP_NAME;
 
   return (
     <Flex column>
@@ -91,8 +92,8 @@ function UserDelete() {
               <Trans>
                 Are you sure? Deleting your account will destroy identifying
                 data associated with your user and cannot be undone. You will be
-                immediately logged out of Outline and all your API tokens will
-                be revoked.
+                immediately logged out of {{ appName }} and all your API tokens
+                will be revoked.
               </Trans>
             </Text>
           </>

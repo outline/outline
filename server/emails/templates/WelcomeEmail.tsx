@@ -1,4 +1,5 @@
 import * as React from "react";
+import env from "@server/env";
 import BaseEmail from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
@@ -19,18 +20,18 @@ type Props = {
  */
 export default class WelcomeEmail extends BaseEmail<Props> {
   protected subject() {
-    return "Welcome to Outline";
+    return `Welcome to ${env.APP_NAME}`;
   }
 
   protected preview() {
-    return "Outline is a place for your team to build and share knowledge.";
+    return `${env.APP_NAME} is a place for your team to build and share knowledge.`;
   }
 
   protected renderAsText({ teamUrl }: Props) {
     return `
-Welcome to Outline!
+Welcome to ${env.APP_NAME}!
 
-Outline is a place for your team to build and share knowledge.
+${env.APP_NAME} is a place for your team to build and share knowledge.
 
 To get started, head to the home screen and try creating a collection to help document your processes, create playbooks, or plan your teams work.
 
@@ -46,8 +47,11 @@ ${teamUrl}/home
         <Header />
 
         <Body>
-          <Heading>Welcome to Outline!</Heading>
-          <p>Outline is a place for your team to build and share knowledge.</p>
+          <Heading>Welcome to {env.APP_NAME}!</Heading>
+          <p>
+            {env.APP_NAME} is a place for your team to build and share
+            knowledge.
+          </p>
           <p>
             To get started, head to the home screen and try creating a
             collection to help document your processes, create playbooks, or
@@ -60,7 +64,7 @@ ${teamUrl}/home
           <EmptySpace height={10} />
           <p>
             <Button href={`${teamUrl}/home?ref=welcome-email`}>
-              Open Outline
+              Open {env.APP_NAME}
             </Button>
           </p>
         </Body>

@@ -685,13 +685,10 @@ export class Editor extends React.PureComponent<
                 onShowToast={this.props.onShowToast}
               />
               <LinkToolbar
-                view={this.view}
-                dictionary={dictionary}
                 isActive={this.state.linkMenuOpen}
                 onCreateLink={this.props.onCreateLink}
                 onSearchLink={this.props.onSearchLink}
                 onClickLink={this.props.onClickLink}
-                onShowToast={this.props.onShowToast}
                 onClose={this.handleCloseLinkMenu}
               />
               <EmojiMenu

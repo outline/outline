@@ -1,7 +1,6 @@
 import { observer } from "mobx-react";
 import {
   EditIcon,
-  UnpublishIcon,
   PrintIcon,
   NewDocumentIcon,
   RestoreIcon,
@@ -39,6 +38,8 @@ import {
   archiveDocument,
   openDocumentHistory,
   openDocumentInsights,
+  publishDocument,
+  unpublishDocument,
 } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -123,13 +124,6 @@ function DocumentMenu({
     },
     [showToast, t, document]
   );
-
-  const handleUnpublish = React.useCallback(async () => {
-    await document.unpublish();
-    showToast(t("Document unpublished"), {
-      type: "success",
-    });
-  }, [showToast, t, document]);
 
   const handlePrint = React.useCallback(() => {
     menu.hide();
@@ -289,13 +283,8 @@ function DocumentMenu({
             actionToMenuItem(importDocument, context),
             actionToMenuItem(createTemplate, context),
             actionToMenuItem(duplicateDocument, context),
-            {
-              type: "button",
-              title: t("Unpublish"),
-              onClick: handleUnpublish,
-              visible: !!can.unpublish,
-              icon: <UnpublishIcon />,
-            },
+            actionToMenuItem(publishDocument, context),
+            actionToMenuItem(unpublishDocument, context),
             actionToMenuItem(archiveDocument, context),
             actionToMenuItem(moveDocument, context),
             actionToMenuItem(pinDocument, context),

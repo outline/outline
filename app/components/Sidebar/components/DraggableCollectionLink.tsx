@@ -91,7 +91,7 @@ function DraggableCollectionLink({
   }, [collection.id, ui.activeCollectionId, locationStateStarred]);
 
   const handleDisclosureClick = React.useCallback((ev) => {
-    ev.preventDefault();
+    ev?.preventDefault();
     setExpanded((e) => !e);
   }, []);
 

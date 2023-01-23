@@ -30,6 +30,7 @@ export default function present(
     GOOGLE_ANALYTICS_ID: env.GOOGLE_ANALYTICS_ID,
     RELEASE:
       process.env.SOURCE_COMMIT || process.env.SOURCE_VERSION || undefined,
+    APP_NAME: env.APP_NAME,
     analytics: {
       service: analytics?.service,
       settings: analytics?.settings,

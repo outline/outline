@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 yarn babel --extensions .ts,.tsx --quiet -d ./build/server ./server
 yarn babel --extensions .ts,.tsx --quiet -d ./build/shared ./shared
@@ -10,4 +10,4 @@ cp ./server/static/error.dev.html ./build/server/error.dev.html
 cp ./server/static/error.prod.html ./build/server/error.prod.html
 
 # Link webpack config
-ln -sf \"$(pwd)/webpack.config.dev.js\" ./build
+ln -sf "$(pwd)/webpack.config.dev.js" ./build

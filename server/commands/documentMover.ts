@@ -1,6 +1,5 @@
 import invariant from "invariant";
 import { Transaction } from "sequelize";
-import { ValidationError } from "@server/errors";
 import { traceFunction } from "@server/logging/tracing";
 import { User, Document, Collection, Pin, Event } from "@server/models";
 import pinDestroyer from "./pinDestroyer";
@@ -67,43 +66,52 @@ async function documentMover({
 
     invariant(newCollection, "collection should exist");
 
-    // Remove the document from the current collection
-    const response = await collection?.removeDocumentInStructure(document, {
-      transaction,
-    });
+    if (document.publishedAt) {
+      // Remove the document from the current collection
+      const response = await collection?.removeDocumentInStructure(document, {
+        transaction,
+        save: collectionChanged,
+      });
 
-    const documentJson = response?.[0];
-    const fromIndex = response?.[1] || 0;
+      let documentJson = response?.[0];
+      const fromIndex = response?.[1] || 0;
 
-    if (!documentJson) {
-      throw ValidationError("The document was not found in the collection");
+      if (!documentJson) {
+        documentJson = await document.toNavigationNode({ transaction });
+      }
+
+      // if we're reordering from within the same parent
+      // the original and destination collection are the same,
+      // so when the initial item is removed above, the list will reduce by 1.
+      // We need to compensate for this when reordering
+      const toIndex =
+        index !== undefined &&
+        document.parentDocumentId === parentDocumentId &&
+        document.collectionId === collectionId &&
+        fromIndex < index
+          ? index - 1
+          : index;
+
+      // Update the properties on the document record, this must be done after
+      // the toIndex is calculated above
+      document.collectionId = collectionId;
+      document.parentDocumentId = parentDocumentId;
+      document.lastModifiedById = user.id;
+      document.updatedBy = user;
+
+      // Add the document and it's tree to the new collection
+      await newCollection.addDocumentToStructure(document, toIndex, {
+        documentJson,
+        transaction,
+      });
+    } else {
+      document.collectionId = collectionId;
+      document.parentDocumentId = parentDocumentId;
+      document.lastModifiedById = user.id;
+      document.updatedBy = user;
     }
 
-    // if we're reordering from within the same parent
-    // the original and destination collection are the same,
-    // so when the initial item is removed above, the list will reduce by 1.
-    // We need to compensate for this when reordering
-    const toIndex =
-      index !== undefined &&
-      document.parentDocumentId === parentDocumentId &&
-      document.collectionId === collectionId &&
-      fromIndex < index
-        ? index - 1
-        : index;
-
-    // Update the properties on the document record
-    document.collectionId = collectionId;
-    document.parentDocumentId = parentDocumentId;
-    document.lastModifiedById = user.id;
-    document.updatedBy = user;
-
-    // Add the document and it's tree to the new collection
-    await newCollection.addDocumentToStructure(document, toIndex, {
-      documentJson,
-      transaction,
-    });
-
-    if (collection) {
+    if (collection && document.publishedAt) {
       result.collections.push(collection);
     }
 

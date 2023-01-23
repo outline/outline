@@ -149,6 +149,10 @@ width: 100%;
   & > * {
     margin-top: .5em;
     margin-bottom: .5em;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
   }
 
   & > :first-child,
@@ -291,6 +295,7 @@ li {
   max-width: 100vw;
   clear: both;
   position: initial;
+  ${props.rtl ? `margin-right: var(--offset)` : `margin-left: var(--offset)`};
 
   img {
     max-width: 100vw;
@@ -721,7 +726,6 @@ ol ol ol {
 }
 
 ul.checkbox_list {
-  list-style: none;
   padding: 0;
   margin-left: ${props.rtl ? "0" : "-24px"};
   margin-right: ${props.rtl ? "-24px" : "0"};
@@ -741,12 +745,13 @@ ol li {
   }
 }
 
-ul.checkbox_list li {
+ul.checkbox_list > li {
   display: flex;
+  list-style: none;
   padding-${props.rtl ? "right" : "left"}: 24px;
 }
 
-ul.checkbox_list li.checked > div > p {
+ul.checkbox_list > li.checked > div > p {
   color: ${props.theme.textTertiary};
 }
 
@@ -785,7 +790,7 @@ ol li.ProseMirror-selectednode::after {
   display: none;
 }
 
-ul.checkbox_list li::before {
+ul.checkbox_list > li::before {
   ${props.rtl ? "right" : "left"}: 0;
 }
 

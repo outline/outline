@@ -19,6 +19,25 @@ type Props = {
   onEmailSuccess: (email: string) => void;
 };
 
+function useRedirectHref(authUrl: string) {
+  // If we're on a custom domain or a subdomain then the auth must point to the
+  // apex (env.URL) for authentication so that the state cookie can be set and read.
+  // We pass the host into the auth URL so that the server can redirect on error
+  // and keep the user on the same page.
+  const { custom, teamSubdomain, host } = parseDomain(window.location.origin);
+  const url = new URL(env.URL);
+  url.pathname = authUrl;
+
+  if (custom || teamSubdomain) {
+    url.searchParams.set("host", host);
+  }
+  if (Desktop.isElectron()) {
+    url.searchParams.set("client", Client.Desktop);
+  }
+
+  return url.toString();
+}
+
 function AuthenticationProvider(props: Props) {
   const { t } = useTranslation();
   const [showEmailSignin, setShowEmailSignin] = React.useState(false);
@@ -57,6 +76,8 @@ function AuthenticationProvider(props: Props) {
     }
   };
 
+  const href = useRedirectHref(authUrl);
+
   if (id === "email") {
     if (isCreate) {
       return null;
@@ -91,18 +112,6 @@ function AuthenticationProvider(props: Props) {
       </Wrapper>
     );
   }
-
-  // If we're on a custom domain or a subdomain then the auth must point to the
-  // apex (env.URL) for authentication so that the state cookie can be set and read.
-  // We pass the host into the auth URL so that the server can redirect on error
-  // and keep the user on the same page.
-  const { custom, teamSubdomain, host } = parseDomain(window.location.origin);
-  const needsRedirect = custom || teamSubdomain;
-  const href = Desktop.isElectron()
-    ? `${env.URL}${authUrl}?client=${Client.Desktop}`
-    : needsRedirect
-    ? `${env.URL}${authUrl}?host=${encodeURI(host)}`
-    : authUrl;
 
   return (
     <Wrapper>

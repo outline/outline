@@ -11,9 +11,9 @@ import { Attachment, Document, Event } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { authorize } from "@server/policies";
 import { presentAttachment } from "@server/presenters";
-import { APIContext, ContextWithState } from "@server/types";
+import { APIContext } from "@server/types";
 import { getPresignedPost, publicS3Endpoint } from "@server/utils/s3";
-import { assertIn, assertUuid } from "@server/validation";
+import { assertIn } from "@server/validation";
 import * as T from "./schema";
 
 const router = new Router();
@@ -24,8 +24,9 @@ router.post(
   validate(T.AttachmentsCreateSchema),
   transaction(),
   async (ctx: APIContext<T.AttachmentCreateReq>) => {
-    const { name, documentId, contentType, size, preset } = ctx.input;
-    const { user, transaction } = ctx.state;
+    const { name, documentId, contentType, size, preset } = ctx.input.body;
+    const { auth, transaction } = ctx.state;
+    const { user } = auth;
 
     // All user types can upload an avatar so no additional authorization is needed.
     if (preset === AttachmentPreset.Avatar) {
@@ -112,8 +113,8 @@ router.post(
   auth(),
   validate(T.AttachmentDeleteSchema),
   async (ctx: APIContext<T.AttachmentDeleteReq>) => {
-    const { id } = ctx.input;
-    const { user } = ctx.state;
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
     const attachment = await Attachment.findByPk(id, {
       rejectOnEmpty: true,
     });
@@ -140,11 +141,12 @@ router.post(
   }
 );
 
-const handleAttachmentsRedirect = async (ctx: ContextWithState) => {
-  const id = ctx.request.body?.id ?? ctx.request.query?.id;
-  assertUuid(id, "id is required");
+const handleAttachmentsRedirect = async (
+  ctx: APIContext<T.AttachmentsRedirectReq>
+) => {
+  const id = (ctx.input.body.id ?? ctx.input.query.id) as string;
 
-  const { user } = ctx.state;
+  const { user } = ctx.state.auth;
   const attachment = await Attachment.findByPk(id, {
     rejectOnEmpty: true,
   });
@@ -164,7 +166,17 @@ const handleAttachmentsRedirect = async (ctx: ContextWithState) => {
   }
 };
 
-router.get("attachments.redirect", auth(), handleAttachmentsRedirect);
-router.post("attachments.redirect", auth(), handleAttachmentsRedirect);
+router.get(
+  "attachments.redirect",
+  auth(),
+  validate(T.AttachmentsRedirectSchema),
+  handleAttachmentsRedirect
+);
+router.post(
+  "attachments.redirect",
+  auth(),
+  validate(T.AttachmentsRedirectSchema),
+  handleAttachmentsRedirect
+);
 
 export default router;

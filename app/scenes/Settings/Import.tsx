@@ -12,6 +12,7 @@ import Item from "~/components/List/Item";
 import PaginatedList from "~/components/PaginatedList";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
+import env from "~/env";
 import useStores from "~/hooks/useStores";
 import FileOperationListItem from "./components/FileOperationListItem";
 import ImportNotionDialog from "./components/ImportNotionDialog";
@@ -20,6 +21,7 @@ import ImportOutlineDialog from "./components/ImportOutlineDialog";
 function Import() {
   const { t } = useTranslation();
   const { dialogs, fileOperations } = useStores();
+  const appName = env.APP_NAME;
 
   return (
     <Scene title={t("Import")} icon={<NewDocumentIcon color="currentColor" />}>
@@ -27,8 +29,9 @@ function Import() {
       <Text type="secondary">
         <Trans>
           Quickly transfer your existing documents, pages, and files from other
-          tools and services into Outline. You can also drag and drop any HTML,
-          Markdown, and text documents directly into Collections in the app.
+          tools and services into {{ appName }}. You can also drag and drop any
+          HTML, Markdown, and text documents directly into Collections in the
+          app.
         </Trans>
       </Text>
 
@@ -38,7 +41,7 @@ function Import() {
           image={<MarkdownIcon size={28} />}
           title={t("Markdown")}
           subtitle={t(
-            "Import a zip file of Markdown documents (exported from Outline 0.67.0 or earlier)"
+            "Import a zip file of Markdown documents (exported from version 0.67.0 or earlier)"
           )}
           actions={
             <Button

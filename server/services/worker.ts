@@ -1,6 +1,7 @@
 import Logger from "@server/logging/Logger";
 import { setResource } from "@server/logging/tracer";
 import { traceFunction } from "@server/logging/tracing";
+import { initI18n } from "@server/utils/i18n";
 import {
   globalEventQueue,
   processorEventQueue,
@@ -11,6 +12,8 @@ import processors from "../queues/processors";
 import tasks from "../queues/tasks";
 
 export default function init() {
+  initI18n();
+
   // This queue processes the global event bus
   globalEventQueue.process(
     traceFunction({

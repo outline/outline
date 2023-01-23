@@ -1,8 +1,8 @@
 import i18n from "i18next";
-import de_DE from "./locales/de_DE/translation.json";
-import en_US from "./locales/en_US/translation.json";
-import pt_PT from "./locales/pt_PT/translation.json";
-import { initI18n } from ".";
+import de_DE from "../../shared/i18n/locales/de_DE/translation.json";
+import en_US from "../../shared/i18n/locales/en_US/translation.json";
+import pt_PT from "../../shared/i18n/locales/pt_PT/translation.json";
+import { initI18n } from "./i18n";
 
 describe("i18n env is unset", () => {
   beforeEach(() => {

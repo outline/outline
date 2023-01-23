@@ -215,7 +215,7 @@ function Login({ children }: Props) {
           <>
             <StyledHeading as="h2" centered>
               {t("Login to {{ authProviderName }}", {
-                authProviderName: config.name || "Outline",
+                authProviderName: config.name || env.APP_NAME,
               })}
             </StyledHeading>
             {children?.(config)}

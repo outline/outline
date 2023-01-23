@@ -17,7 +17,7 @@ router.post(
   pagination(),
   validate(T.EventsListSchema),
   async (ctx: APIContext<T.EventsListReq>) => {
-    const { user } = ctx.state;
+    const { user } = ctx.state.auth;
     const {
       sort,
       direction,
@@ -26,7 +26,7 @@ router.post(
       collectionId,
       name,
       auditLog,
-    } = ctx.input;
+    } = ctx.input.body;
 
     let where: WhereOptions<Event> = {
       name: Event.ACTIVITY_EVENTS,

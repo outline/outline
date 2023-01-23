@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import documentImporter from "@server/commands/documentImporter";
 import Logger from "@server/logging/Logger";
 import { FileOperation, User } from "@server/models";
-import { zipAsFileTree, FileTreeNode } from "@server/utils/zip";
+import ZipHelper, { FileTreeNode } from "@server/utils/ZipHelper";
 import ImportTask, { StructuredImportData } from "./ImportTask";
 
 export default class ImportMarkdownZipTask extends ImportTask {
@@ -14,7 +14,7 @@ export default class ImportMarkdownZipTask extends ImportTask {
     fileOperation: FileOperation
   ): Promise<StructuredImportData> {
     const zip = await JSZip.loadAsync(buffer);
-    const tree = zipAsFileTree(zip);
+    const tree = ZipHelper.toFileTree(zip);
 
     return this.parseFileTree({ fileOperation, zip, tree });
   }
@@ -152,22 +152,20 @@ export default class ImportMarkdownZipTask extends ImportTask {
     // and replace them out with attachment redirect urls before continuing.
     for (const document of output.documents) {
       for (const attachment of output.attachments) {
+        const encodedPath = encodeURI(attachment.path);
+
         // Pull the collection and subdirectory out of the path name, upload
         // folders in an export are relative to the document itself
-        const normalizedAttachmentPath = attachment.path.replace(
+        const normalizedAttachmentPath = encodedPath.replace(
           /(.*)uploads\//,
           "uploads/"
         );
 
         const reference = `<<${attachment.id}>>`;
         document.text = document.text
-          .replace(new RegExp(escapeRegExp(attachment.path), "g"), reference)
+          .replace(new RegExp(escapeRegExp(encodedPath), "g"), reference)
           .replace(
-            new RegExp(escapeRegExp(normalizedAttachmentPath), "g"),
-            reference
-          )
-          .replace(
-            new RegExp(escapeRegExp(`/${normalizedAttachmentPath}`), "g"),
+            new RegExp(`/?${escapeRegExp(normalizedAttachmentPath)}`, "g"),
             reference
           );
       }

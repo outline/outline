@@ -77,8 +77,9 @@ const DocumentBreadcrumb: React.FC<Props> = ({
   }
 
   const path = React.useMemo(
-    () => collection?.pathToDocument?.(document.id).slice(0, -1) || [],
-    [collection, document]
+    () => collection?.pathToDocument(document.id).slice(0, -1) || [],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [collection, document, document.collectionId, document.parentDocumentId]
   );
 
   const items = React.useMemo(() => {

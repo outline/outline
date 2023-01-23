@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { t } from "i18next";
 import Router from "koa-router";
 import { escapeRegExp } from "lodash";
 import { IntegrationService } from "@shared/types";
@@ -17,6 +18,8 @@ import {
 } from "@server/models";
 import SearchHelper from "@server/models/helpers/SearchHelper";
 import { presentSlackAttachment } from "@server/presenters";
+import { APIContext } from "@server/types";
+import { opts } from "@server/utils/i18n";
 import * as Slack from "@server/utils/slack";
 import { assertPresent } from "@server/validation";
 
@@ -41,10 +44,16 @@ function verifySlackToken(token: string) {
 }
 
 // triggered by a user posting a getoutline.com link in Slack
-router.post("hooks.unfurl", async (ctx) => {
+router.post("hooks.unfurl", async (ctx: APIContext) => {
   const { challenge, token, event } = ctx.request.body;
+
+  // See URL verification handshake documentation on this page:
+  // https://api.slack.com/apis/connections/events-api
   if (challenge) {
-    return (ctx.body = ctx.request.body.challenge);
+    ctx.body = {
+      challenge,
+    };
+    return;
   }
 
   assertPresent(token, "token is required");
@@ -104,7 +113,7 @@ router.post("hooks.unfurl", async (ctx) => {
 });
 
 // triggered by interactions with actions, dialogs, message buttons in Slack
-router.post("hooks.interactive", async (ctx) => {
+router.post("hooks.interactive", async (ctx: APIContext) => {
   const { payload } = ctx.request.body;
   assertPresent(payload, "payload is required");
 
@@ -142,27 +151,12 @@ router.post("hooks.interactive", async (ctx) => {
 });
 
 // triggered by the /outline command in Slack
-router.post("hooks.slack", async (ctx) => {
+router.post("hooks.slack", async (ctx: APIContext) => {
   const { token, team_id, user_id, text = "" } = ctx.request.body;
   assertPresent(token, "token is required");
   assertPresent(team_id, "team_id is required");
   assertPresent(user_id, "user_id is required");
   verifySlackToken(token);
-
-  // Handle "help" command or no input
-  if (text.trim() === "help" || !text.trim()) {
-    ctx.body = {
-      response_type: "ephemeral",
-      text: "How to use /outline",
-      attachments: [
-        {
-          text:
-            "To search your knowledge base use `/outline keyword`. \nYou’ve already learned how to get help with `/outline help`.",
-        },
-      ],
-    };
-    return;
-  }
 
   let user, team;
   // attempt to find the corresponding team for this request based on the team_id
@@ -224,13 +218,39 @@ router.post("hooks.slack", async (ctx) => {
     }
   }
 
+  // Handle "help" command or no input
+  if (text.trim() === "help" || !text.trim()) {
+    ctx.body = {
+      response_type: "ephemeral",
+      text: "How to use /outline",
+      attachments: [
+        {
+          text: t(
+            "To search your knowledgebase use {{ command }}. \nYou’ve already learned how to get help with {{ command2 }}.",
+            {
+              command: `/outline keyword`,
+              command2: `/outline help`,
+              ...opts(user),
+            }
+          ),
+        },
+      ],
+    };
+    return;
+  }
+
   // This should be super rare, how does someone end up being able to make a valid
   // request from Slack that connects to no teams in Outline.
   if (!team) {
     ctx.body = {
       response_type: "ephemeral",
-      text:
-        "Sorry, we couldn’t find an integration for your team. Head to your Outline settings to set one up.",
+      text: t(
+        `Sorry, we couldn’t find an integration for your team. Head to your {{ appName }} settings to set one up.`,
+        {
+          ...opts(user),
+          appName: env.APP_NAME,
+        }
+      ),
     };
     return;
   }
@@ -292,7 +312,13 @@ router.post("hooks.slack", async (ctx) => {
     query: text,
     results: totalCount,
   });
-  const haventSignedIn = `(It looks like you haven’t signed in to Outline yet, so results may be limited)`;
+  const haventSignedIn = t(
+    `It looks like you haven’t signed in to {{ appName }} yet, so results may be limited`,
+    {
+      ...opts(user),
+      appName: env.APP_NAME,
+    }
+  );
 
   // Map search results to the format expected by the Slack API
   if (results.length) {
@@ -312,7 +338,7 @@ router.post("hooks.slack", async (ctx) => {
             ? [
                 {
                   name: "post",
-                  text: "Post to Channel",
+                  text: t("Post to Channel", opts(user)),
                   type: "button",
                   value: result.document.id,
                 },
@@ -324,15 +350,24 @@ router.post("hooks.slack", async (ctx) => {
 
     ctx.body = {
       text: user
-        ? `This is what we found for "${text}"…`
-        : `This is what we found for "${text}" ${haventSignedIn}…`,
+        ? t(`This is what we found for "{{ term }}"`, {
+            ...opts(user),
+            term: text,
+          })
+        : t(`This is what we found for "{{ term }}"`, {
+            term: text,
+          }) + ` (${haventSignedIn})…`,
       attachments,
     };
   } else {
     ctx.body = {
       text: user
-        ? `No results for "${text}"`
-        : `No results for "${text}" ${haventSignedIn}`,
+        ? t(`No results for "{{ term }}"`, {
+            ...opts(user),
+            term: text,
+          })
+        : t(`No results for "{{ term }}"`, { term: text }) +
+          ` (${haventSignedIn})…`,
     };
   }
 });

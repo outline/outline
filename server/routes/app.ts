@@ -55,7 +55,7 @@ export const renderApp = async (
   } = {}
 ) => {
   const {
-    title = "Outline",
+    title = env.APP_NAME,
     description = "A modern team knowledge base for your internal documentation, product specs, support answers, meeting notes, onboarding, &amp; more…",
     canonical = "",
   } = options;

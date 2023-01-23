@@ -318,7 +318,7 @@ class ControlledBase extends Component<
     }
 
     this.imgEl = contentEl.querySelector(
-      ':is(img, svg, [role="img"], [data-zoom]):not([aria-hidden="true"])'
+      'img:not([aria-hidden="true"])'
     ) as SupportedImage | null;
 
     if (this.imgEl) {

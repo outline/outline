@@ -1,4 +1,5 @@
 import * as React from "react";
+import env from "@server/env";
 import { NotificationSetting } from "@server/models";
 import BaseEmail from "./BaseEmail";
 import Body from "./components/Body";
@@ -39,7 +40,7 @@ export default class ExportSuccessEmail extends BaseEmail<Props> {
   }
 
   protected preview() {
-    return "Here's your request data export from Outline";
+    return `Here's your request data export from ${env.APP_NAME}`;
   }
 
   protected renderAsText() {

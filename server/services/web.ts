@@ -9,6 +9,7 @@ import mount from "koa-mount";
 import enforceHttps, { xForwardedProtoResolver } from "koa-sslify";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
+import { initI18n } from "@server/utils/i18n";
 import routes from "../routes";
 import api from "../routes/api";
 import auth from "../routes/auth";
@@ -42,6 +43,8 @@ if (env.CDN_URL) {
 }
 
 export default function init(app: Koa = new Koa()): Koa {
+  initI18n();
+
   if (isProduction) {
     // Force redirect to HTTPS protocol unless explicitly disabled
     if (env.FORCE_HTTPS) {
