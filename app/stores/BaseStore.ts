@@ -21,7 +21,10 @@ export enum RPCAction {
 type FetchPageParams = PaginationParams & Record<string, any>;
 
 function modelNameFromClassName(string: string) {
-  return string.charAt(0).toLowerCase() + string.slice(1);
+  const modelName = string.charAt(0).toLowerCase() + string.slice(1);
+
+  // Remove digits from mangled class names
+  return modelName.replace(/[0-9]/g, "");
 }
 
 export const DEFAULT_PAGINATION_LIMIT = 25;
