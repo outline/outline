@@ -1,14 +1,13 @@
 import fs from "fs";
 import path from "path";
 
-type ManifestFile = Record<
-  string,
-  {
-    file: string;
-    src: string;
-    isEntry?: boolean;
-  }
->;
+type Chunk = {
+  file: string;
+  src: string;
+  isEntry?: boolean;
+};
+
+type ManifestStructure = Record<string, Chunk>;
 
 const file = path.resolve("./build/app/manifest.json");
 
@@ -25,4 +24,4 @@ try {
   manifest = {};
 }
 
-export default manifest as ManifestFile;
+export default manifest as ManifestStructure;
