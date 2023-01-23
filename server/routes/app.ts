@@ -10,6 +10,7 @@ import documentLoader from "@server/commands/documentLoader";
 import env from "@server/env";
 import { Integration } from "@server/models";
 import presentEnv from "@server/presenters/env";
+import manifest from "@server/utils/manifest";
 import { getTeamFromContext } from "@server/utils/passport";
 import prefetchTags from "@server/utils/prefetchTags";
 
@@ -68,6 +69,20 @@ export const renderApp = async (
   const environment = `
     window.env = ${JSON.stringify(presentEnv(env, options.analytics))};
   `;
+  const entry = "app/index.tsx";
+  const scriptTags = isProduction
+    ? `<script type="module" src="/${manifest[entry]["file"]}"></script>`
+    : `<script type="module">
+        import RefreshRuntime from 'http://localhost:3001/@react-refresh'
+        RefreshRuntime.injectIntoGlobalHook(window)
+        window.$RefreshReg$ = () => { }
+        window.$RefreshSig$ = () => (type) => type
+        window.__vite_plugin_react_preamble_installed__ = true
+      </script>
+      <script type="module" src="http://localhost:3001/@vite/client"></script>
+      <script type="module" src="http://localhost:3001/${entry}"></script>
+    `;
+
   ctx.body = page
     .toString()
     .replace(/\/\/inject-env\/\//g, environment)
@@ -75,7 +90,8 @@ export const renderApp = async (
     .replace(/\/\/inject-description\/\//g, escape(description))
     .replace(/\/\/inject-canonical\/\//g, canonical)
     .replace(/\/\/inject-prefetch\/\//g, shareId ? "" : prefetchTags)
-    .replace(/\/\/inject-slack-app-id\/\//g, env.SLACK_APP_ID || "");
+    .replace(/\/\/inject-slack-app-id\/\//g, env.SLACK_APP_ID || "")
+    .replace(/\/\/inject-script-tags\/\//g, scriptTags);
 };
 
 export const renderShare = async (ctx: Context, next: Next) => {
