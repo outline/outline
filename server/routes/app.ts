@@ -69,9 +69,10 @@ export const renderApp = async (
   const environment = `
     window.env = ${JSON.stringify(presentEnv(env, options.analytics))};
   `;
+  const serviceWorker = `<script src="${process.env.CDN_URL}/app/registerSW.js"></script>`;
   const entry = "app/index.tsx";
   const scriptTags = isProduction
-    ? `<script type="module" src="${env.CDN_URL}/${manifest[entry]["file"]}"></script>`
+    ? `<script type="module" src="${process.env.CDN_URL}/${manifest[entry]["file"]}"></script>`
     : `<script type="module">
         import RefreshRuntime from 'http://localhost:3001/@react-refresh'
         RefreshRuntime.injectIntoGlobalHook(window)
@@ -90,6 +91,7 @@ export const renderApp = async (
     .replace(/\/\/inject-description\/\//g, escape(description))
     .replace(/\/\/inject-canonical\/\//g, canonical)
     .replace(/\/\/inject-prefetch\/\//g, shareId ? "" : prefetchTags)
+    .replace(/\/\/inject-service-worker\/\//g, serviceWorker)
     .replace(/\/\/inject-slack-app-id\/\//g, env.SLACK_APP_ID || "")
     .replace(/\/\/inject-script-tags\/\//g, scriptTags);
 };
