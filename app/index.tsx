@@ -1,3 +1,5 @@
+// eslint-disable-next-line import/no-unresolved
+import "vite/modulepreload-polyfill";
 import "focus-visible";
 import "setimmediate";
 import { LazyMotion } from "framer-motion";
