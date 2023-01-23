@@ -57,7 +57,7 @@ function PublishLocation({
         scrollIntoView(node, {
           scrollMode: "if-needed",
           behavior: "auto",
-          block: "start",
+          block: "nearest",
         });
       }
     },
