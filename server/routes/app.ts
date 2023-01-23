@@ -69,7 +69,6 @@ export const renderApp = async (
   const environment = `
     window.env = ${JSON.stringify(presentEnv(env, options.analytics))};
   `;
-  // TODO: Merge prefetch-tags and the following code
   const entry = "app/index.tsx";
   const scriptTags = isProduction
     ? `<script type="module" src="/${manifest[entry]["file"]}"></script>`

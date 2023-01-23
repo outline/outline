@@ -1,8 +1,7 @@
-import fs from "fs";
-import path from "path";
 import * as React from "react";
 import ReactDOMServer from "react-dom/server";
 import env from "@server/env";
+import manifest from "./manifest";
 
 const prefetchTags = [];
 
@@ -16,42 +15,34 @@ if (process.env.AWS_S3_UPLOAD_BUCKET_URL) {
   );
 }
 
-let manifestData = {};
+Object.keys(manifest).forEach((filename) => {
+  const file = manifest[filename]["file"];
 
-try {
-  const manifest = fs.readFileSync(
-    path.join(__dirname, "../../app/manifest.json"),
-    "utf8"
-  );
-  manifestData = JSON.parse(manifest);
-} catch (err) {
-  // no-op
-}
-
-Object.values(manifestData).forEach((filename) => {
-  if (typeof filename !== "string") {
+  if (typeof file !== "string") {
     return;
   }
   if (!env.CDN_URL) {
     return;
   }
 
-  if (filename.endsWith(".js")) {
+  if (file.endsWith(".js")) {
     //  Preload resources you have high-confidence will be used in the current
     // page.Prefetch resources likely to be used for future navigations
+    // TODO: Doesn’t apply to any file after switching to Vite.
+    // What files should we really preload?
     const shouldPreload =
-      filename.includes("/main") ||
-      filename.includes("/runtime") ||
-      filename.includes("preload-");
+      file.includes("/main") ||
+      file.includes("/runtime") ||
+      file.includes("preload-");
 
     if (shouldPreload) {
       prefetchTags.push(
-        <link rel="preload" href={filename} key={filename} as="script" />
+        <link rel="preload" href={file} key={file} as="script" />
       );
     }
-  } else if (filename.endsWith(".css")) {
+  } else if (file.endsWith(".css")) {
     prefetchTags.push(
-      <link rel="prefetch" href={filename} key={filename} as="style" />
+      <link rel="prefetch" href={file} key={file} as="style" />
     );
   }
 });

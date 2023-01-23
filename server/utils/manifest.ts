@@ -11,17 +11,14 @@ type ManifestStructure = Record<string, Chunk>;
 
 const file = path.resolve("./build/app/manifest.json");
 
-let manifest;
+let manifest = "{}";
 
 try {
-  manifest = fs.readFileSync(file, "utf8");
-  manifest = JSON.parse(manifest);
+  manifest = fs.readFileSync(file, "utf8") as string;
 } catch (err) {
   console.warn(
     `Can not find ${file}. Try executing "yarn vite:build" before running in production mode.`
   );
-
-  manifest = {};
 }
 
-export default manifest as ManifestStructure;
+export default JSON.parse(manifest) as ManifestStructure;
