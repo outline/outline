@@ -9,7 +9,6 @@ import Disclosure from "~/components/Sidebar/components/Disclosure";
 import Text from "~/components/Text";
 
 type Props = {
-  location: any;
   selected: boolean;
   active: boolean;
   style: React.CSSProperties;
@@ -18,6 +17,8 @@ type Props = {
   icon?: React.ReactNode;
   title: string;
   path?: string;
+  nestLevel: number;
+  hasChildren: boolean;
 
   onDisclosureClick: (ev: React.MouseEvent) => void;
   onPointerMove: (ev: React.MouseEvent) => void;
@@ -25,7 +26,6 @@ type Props = {
 };
 
 function PublishLocation({
-  location,
   selected,
   active,
   style,
@@ -37,16 +37,14 @@ function PublishLocation({
   icon,
   title,
   path,
+  nestLevel,
+  hasChildren,
 }: Props) {
   const { t } = useTranslation();
   const OFFSET = 12;
   const ICON_SIZE = 24;
 
-  const hasChildren = location.children.length > 0;
-
-  const width = location.depth
-    ? location.depth * ICON_SIZE + OFFSET
-    : ICON_SIZE;
+  const width = nestLevel ? nestLevel * ICON_SIZE + OFFSET : ICON_SIZE;
 
   const ref = React.useCallback(
     (node: HTMLSpanElement | null) => {

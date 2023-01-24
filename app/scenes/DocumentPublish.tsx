@@ -252,13 +252,14 @@ function DocumentPublish({ document }: Props) {
           ev.stopPropagation();
           toggleCollapse(index);
         }}
-        location={result}
         selected={isSelected(index)}
         active={activeItem === index}
         expanded={isExpanded(index)}
         icon={icon}
         title={title}
         path={path}
+        nestLevel={result.depth}
+        hasChildren={result.children.length > 0}
         isSearchResult={!!searchTerm}
       />
     );
