@@ -152,7 +152,7 @@ export default class CollectionsStore extends BaseStore<Collection> {
     };
 
     if (this.isLoaded) {
-      this.data.forEach((collection) => {
+      this.orderedData.forEach((collection) => {
         root.children.push(
           subtree({
             data: {
