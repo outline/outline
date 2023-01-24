@@ -330,7 +330,7 @@
     "jest-fetch-mock": "^3.0.3",
     "koa-webpack-dev-middleware": "^1.4.5",
     "koa-webpack-hot-middleware": "^1.0.3",
-    "lint-staged": "^12.3.8",
+    "lint-staged": "^13.1.0",
     "nodemon": "^2.0.20",
     "prettier": "^2.0.5",
     "react-refresh": "^0.14.0",
