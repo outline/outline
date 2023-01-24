@@ -1,7 +1,8 @@
 import invariant from "invariant";
-import { concat, find, last } from "lodash";
+import { concat, find, last, isEmpty } from "lodash";
 import { computed, action } from "mobx";
 import { CollectionPermission, FileOperationFormat } from "@shared/types";
+import parseTitle from "@shared/utils/parseTitle";
 import Collection from "~/models/Collection";
 import { NavigationNode } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -97,6 +98,76 @@ export default class CollectionsStore extends BaseStore<Collection> {
       const tail = last(result) as DocumentPathItem;
       return { ...tail, path: result };
     });
+  }
+
+  @computed
+  get tree() {
+    const subtree = (node: any) => {
+      const isDocument = node.data.type === DocumentPathItemType.Document;
+      if (isDocument) {
+        const { strippedTitle, emoji } = parseTitle(node.data.title);
+        node.data.title = strippedTitle;
+        if (emoji) {
+          node.data.emoji = emoji;
+        }
+      }
+      const root: any = {
+        data: {
+          id: node.data.id,
+          title: node.data.name || node.data.title,
+          type: node.data.type,
+          collectionId:
+            node.data.type === DocumentPathItemType.Collection
+              ? node.data.id
+              : node.data.collectionId,
+          emoji: node.data.emoji,
+        },
+        children: [],
+        parent: node.parent,
+        depth: node.depth,
+      };
+      !isEmpty(node.children) &&
+        node.children.forEach((child: any) => {
+          root.children.push(
+            subtree({
+              data: {
+                ...child,
+                type: DocumentPathItemType.Document,
+                collectionId: root.data.collectionId,
+              },
+              parent: root,
+              children: child.children || [],
+              depth: root.depth + 1,
+            }).root
+          );
+        });
+      return { root };
+    };
+
+    const root: any = {
+      data: null,
+      parent: null,
+      children: [],
+      depth: -1,
+    };
+
+    if (this.isLoaded) {
+      this.orderedData.forEach((collection) => {
+        root.children.push(
+          subtree({
+            data: {
+              ...collection,
+              type: DocumentPathItemType.Collection,
+            },
+            children: collection.documents || [],
+            parent: root,
+            depth: root.depth + 1,
+          }).root
+        );
+      });
+    }
+
+    return { root };
   }
 
   @action

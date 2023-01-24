@@ -58,7 +58,7 @@ const DocumentBreadcrumb: React.FC<Props> = ({
   const category = useCategory(document);
   const collection = collections.get(document.collectionId);
 
-  let collectionNode: MenuInternalLink;
+  let collectionNode: MenuInternalLink | undefined;
 
   if (collection) {
     collectionNode = {
@@ -67,7 +67,7 @@ const DocumentBreadcrumb: React.FC<Props> = ({
       icon: <CollectionIcon collection={collection} expanded />,
       to: collectionUrl(collection.url),
     };
-  } else {
+  } else if (document.collectionId && !collection) {
     collectionNode = {
       type: "route",
       title: t("Deleted Collection"),
@@ -89,7 +89,9 @@ const DocumentBreadcrumb: React.FC<Props> = ({
       output.push(category);
     }
 
-    output.push(collectionNode);
+    if (collectionNode) {
+      output.push(collectionNode);
+    }
 
     path.forEach((node: NavigationNode) => {
       output.push({

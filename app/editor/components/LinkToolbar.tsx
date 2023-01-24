@@ -139,6 +139,7 @@ export default function LinkToolbar({
           onRemoveLink={onClose}
           onShowToast={showToast}
           onClickLink={onClickLink}
+          onSearchLink={onSearchLink}
           dictionary={dictionary}
           view={view}
         />

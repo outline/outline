@@ -57,7 +57,7 @@ export default function useKeyDown(
     return () => {
       callbacks = callbacks.filter((cb) => cb.callback !== handler);
     };
-  }, []);
+  }, [fn, predicate, options]);
 }
 
 window.addEventListener("keydown", (event) => {
