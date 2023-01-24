@@ -98,8 +98,8 @@ jobs:
       - restore_cache:
           key: dependency-cache-{{ checksum "package.json" }}
       - run:
-          name: build-webpack
-          command: yarn build:webpack
+          name: build-vite
+          command: yarn vite:build
   build-image:
     executor: docker-publisher
     steps:
