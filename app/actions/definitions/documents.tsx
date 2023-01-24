@@ -29,6 +29,7 @@ import { getEventFiles } from "@shared/utils/files";
 import DocumentDelete from "~/scenes/DocumentDelete";
 import DocumentMove from "~/scenes/DocumentMove";
 import DocumentPermanentDelete from "~/scenes/DocumentPermanentDelete";
+import DocumentPublish from "~/scenes/DocumentPublish";
 import DocumentTemplatizeDialog from "~/components/DocumentTemplatizeDialog";
 import { createAction } from "~/actions";
 import { DocumentSection } from "~/actions/sections";
@@ -71,11 +72,9 @@ export const createDocument = createAction({
   section: DocumentSection,
   icon: <NewDocumentIcon />,
   keywords: "create",
-  visible: ({ activeCollectionId, stores }) =>
-    !!activeCollectionId &&
-    stores.policies.abilities(activeCollectionId).update,
+  visible: ({ currentTeamId, stores }) =>
+    !!currentTeamId && stores.policies.abilities(currentTeamId).createDocument,
   perform: ({ activeCollectionId, inStarredSection }) =>
-    activeCollectionId &&
     history.push(newDocumentPath(activeCollectionId), {
       starred: inStarredSection,
     }),
@@ -143,20 +142,30 @@ export const publishDocument = createAction({
       !!document?.isDraft && stores.policies.abilities(activeDocumentId).update
     );
   },
-  perform: ({ activeDocumentId, stores, t }) => {
+  perform: async ({ activeDocumentId, stores, t }) => {
     if (!activeDocumentId) {
       return;
     }
 
     const document = stores.documents.get(activeDocumentId);
+    if (document?.publishedAt) {
+      return;
+    }
 
-    document?.save({
-      publish: true,
-    });
-
-    stores.toasts.showToast(t("Document published"), {
-      type: "success",
-    });
+    if (document?.collectionId) {
+      await document.save({
+        publish: true,
+      });
+      stores.toasts.showToast(t("Document published"), {
+        type: "success",
+      });
+    } else if (document) {
+      stores.dialogs.openModal({
+        title: t("Publish document"),
+        isCentered: true,
+        content: <DocumentPublish document={document} />,
+      });
+    }
   },
 });
 

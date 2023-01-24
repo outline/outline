@@ -164,6 +164,7 @@ export type Props<T> = ActionButtonProps & {
   as?: T;
   to?: LocationDescriptor;
   borderOnHover?: boolean;
+  hideIcon?: boolean;
   href?: string;
   "data-on"?: string;
   "data-event-category"?: string;
@@ -184,12 +185,13 @@ const Button = <T extends React.ElementType = "button">(
     icon,
     iconColor,
     borderOnHover,
+    hideIcon,
     fullwidth,
     danger,
     ...rest
   } = props;
   const hasText = children !== undefined || value !== undefined;
-  const ic = action?.icon ?? icon;
+  const ic = hideIcon ? undefined : action?.icon ?? icon;
   const hasIcon = ic !== undefined;
 
   return (

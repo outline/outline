@@ -22,7 +22,7 @@ type Props = {
   /** Whether the document should be published to the collection */
   publish?: boolean;
   /** The ID of the collection to publish the document to */
-  collectionId?: string;
+  collectionId?: string | null;
   /** The IP address of the user creating the document */
   ip: string;
   /** The database transaction to run within */
