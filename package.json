@@ -124,7 +124,7 @@
     "koa-mount": "^3.0.0",
     "koa-router": "7.4.0",
     "koa-send": "5.0.1",
-    "koa-sslify": "5.0.0",
+    "koa-sslify": "5.0.1",
     "koa-useragent": "^4.1.0",
     "lodash": "^4.17.21",
     "mammoth": "^1.4.19",

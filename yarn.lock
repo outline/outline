@@ -10464,10 +10464,10 @@ koa-send@5.0.1, koa-send@^5.0.0:
     http-errors "^1.7.3"
     resolve-path "^1.4.0"
 
-koa-sslify@5.0.0:
-  version "5.0.0"
-  resolved "https://registry.yarnpkg.com/koa-sslify/-/koa-sslify-5.0.0.tgz#f3047de9afc92ad960208cea87fcac43795791a7"
-  integrity sha512-3Qc/DxPcH4BavYkt7xOVDFbaS7nR8oCozb/0dlIpLlyGVhFXcjHETWBwE3QrDLwjKOVJj6ykwRJoNzPT9QxCag==
+koa-sslify@5.0.1:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/koa-sslify/-/koa-sslify-5.0.1.tgz#b94ffead65a3e239a0324ff7516cb0fde996a1e1"
+  integrity sha512-QwQgMvNPyePpngghYZxeuPzeQqMOFYUXiKu8pd4wz9rd7ZmoOq4VKtoEIjctLt3Qcfv2aHL/0UIRAmIK4qDczg==
 
 koa-static@^5.0.0:
   version "5.0.0"
