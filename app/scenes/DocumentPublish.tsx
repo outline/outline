@@ -8,6 +8,7 @@ import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList as List } from "react-window";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import parseTitle from "@shared/utils/parseTitle";
 import Document from "~/models/Document";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
@@ -21,7 +22,7 @@ import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import { isModKey } from "~/utils/keyboard";
-import { flattenTree, descendants } from "~/utils/tree";
+import { flattenTree, ancestors, descendants } from "~/utils/tree";
 
 type Props = {
   /** Document to publish */
@@ -211,16 +212,19 @@ function DocumentPublish({ document }: Props) {
   }) => {
     const result = data[index];
     const isCollection = result.data.type === "collection";
-    let icon;
+    let icon, title, path;
 
     if (isCollection) {
       const col = collections.get(result.data.collectionId);
       icon = col && (
         <CollectionIcon collection={col} expanded={isExpanded(index)} />
       );
+      title = result.data.title;
     } else {
       const doc = documents.get(result.data.id);
-      const { emoji } = result.data;
+      const { strippedTitle, emoji } = parseTitle(result.data.title);
+      title = strippedTitle;
+
       if (emoji) {
         icon = <EmojiIcon emoji={emoji} />;
       } else if (doc?.isStarred) {
@@ -228,6 +232,10 @@ function DocumentPublish({ document }: Props) {
       } else {
         icon = <DocumentIcon />;
       }
+
+      path = ancestors(result)
+        .map((a) => parseTitle(a.data.title).strippedTitle)
+        .join(" / ");
     }
 
     return (
@@ -249,6 +257,8 @@ function DocumentPublish({ document }: Props) {
         active={activeItem === index}
         expanded={isExpanded(index)}
         icon={icon}
+        title={title}
+        path={path}
         isSearchResult={!!searchTerm}
       />
     );

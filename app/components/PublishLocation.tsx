@@ -7,7 +7,6 @@ import breakpoint from "styled-components-breakpoint";
 import Flex from "~/components/Flex";
 import Disclosure from "~/components/Sidebar/components/Disclosure";
 import Text from "~/components/Text";
-import { ancestors } from "~/utils/tree";
 
 type Props = {
   location: any;
@@ -17,6 +16,8 @@ type Props = {
   isSearchResult: boolean;
   expanded: boolean;
   icon?: React.ReactNode;
+  title: string;
+  path?: string;
 
   onDisclosureClick: (ev: React.MouseEvent) => void;
   onPointerMove: (ev: React.MouseEvent) => void;
@@ -34,22 +35,18 @@ function PublishLocation({
   onPointerMove,
   onClick,
   icon,
+  title,
+  path,
 }: Props) {
   const { t } = useTranslation();
   const OFFSET = 12;
   const ICON_SIZE = 24;
 
   const hasChildren = location.children.length > 0;
-  const isCollection = location.data.type === "collection";
 
   const width = location.depth
     ? location.depth * ICON_SIZE + OFFSET
     : ICON_SIZE;
-
-  const path = (location: any) =>
-    ancestors(location)
-      .map((a) => a.data.title)
-      .join(" / ");
 
   const ref = React.useCallback(
     (node: HTMLSpanElement | null) => {
@@ -86,10 +83,10 @@ function PublishLocation({
         </Spacer>
       )}
       {icon}
-      <Title>{location.data.title || t("Untitled")}</Title>
-      {isSearchResult && !isCollection && (
+      <Title>{title || t("Untitled")}</Title>
+      {isSearchResult && path && (
         <Path $selected={selected} size="xsmall">
-          {path(location)}
+          {path}
         </Path>
       )}
     </Row>
