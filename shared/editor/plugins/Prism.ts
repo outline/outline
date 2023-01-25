@@ -86,11 +86,22 @@ function getDecorations({
     });
   }
 
-  blocks.forEach((block) => {
+  blocks.forEach(async (block) => {
     let startPos = block.pos + 1;
     const language = block.node.attrs.language;
-    if (!language || language === "none" || !refractor.registered(language)) {
+    if (!language || language === "none") {
       return;
+    }
+
+    if (!refractor.registered(language)) {
+      try {
+        // Dynamically load and register the language module
+        const mod = await import(`refractor/lang/${language}`);
+        refractor.register(mod.default);
+      } catch (e) {
+        console.error(`Failed loading '${language}' language module: ${e}`);
+        return;
+      }
     }
 
     const lineDecorations = [];
