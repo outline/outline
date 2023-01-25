@@ -1,5 +1,5 @@
 import FuzzySearch from "fuzzy-search";
-import { includes, difference, concat, filter } from "lodash";
+import { includes, difference, concat, filter, flatten } from "lodash";
 import { observer } from "mobx-react";
 import { StarredIcon, DocumentIcon } from "outline-icons";
 import * as React from "react";
@@ -8,6 +8,7 @@ import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList as List } from "react-window";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { NavigationNode } from "@shared/types";
 import parseTitle from "@shared/utils/parseTitle";
 import Document from "~/models/Document";
 import Button from "~/components/Button";
@@ -18,6 +19,7 @@ import { Outline } from "~/components/Input";
 import InputSearch from "~/components/InputSearch";
 import PublishLocation from "~/components/PublishLocation";
 import Text from "~/components/Text";
+import useCollectionTrees from "~/hooks/useCollectionTrees";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
@@ -31,74 +33,69 @@ type Props = {
 
 function DocumentPublish({ document }: Props) {
   const isMobile = useMobile();
+  const { collections, documents, dialogs } = useStores();
+  const { showToast } = useToasts();
+  const { t } = useTranslation();
+  const theme = useTheme();
+  const collectionTrees = useCollectionTrees();
+
   const [searchTerm, setSearchTerm] = React.useState<string>();
-  const [selectedLocation, setLocation] = React.useState<any>();
+  const [selectedNode, selectNode] = React.useState<NavigationNode | null>(
+    null
+  );
   const [initialScrollOffset, setInitialScrollOffset] = React.useState<number>(
     0
   );
-  const { collections, documents } = useStores();
-  const { showToast } = useToasts();
-  const theme = useTheme();
-  const [items, setItems] = React.useState<any>(
-    flattenTree(collections.tree.root).slice(1)
-  );
-  const [activeItem, setActiveItem] = React.useState<number>(0);
-  const [expandedItems, setExpandedItems] = React.useState<string[]>([]);
+  const [nodes, setNodes] = React.useState<NavigationNode[]>([]);
+  const [activeNode, setActiveNode] = React.useState<number>(0);
+  const [expandedNodes, setExpandedNodes] = React.useState<string[]>([]);
+
   const inputSearchRef = React.useRef<HTMLInputElement | HTMLTextAreaElement>(
     null
   );
-  const { t } = useTranslation();
-  const { dialogs } = useStores();
-  const listRef = React.useRef<List<HTMLDivElement>>(null);
+  const listRef = React.useRef<List<NavigationNode[]>>(null);
+
   const VERTICAL_PADDING = 6;
   const HORIZONTAL_PADDING = 24;
 
-  const nextItem = () => {
-    return Math.min(activeItem + 1, items.length - 1);
-  };
-
-  const prevItem = () => {
-    return Math.max(activeItem - 1, 0);
-  };
+  const allNodes = React.useMemo(
+    () => flatten(collectionTrees.map(flattenTree)),
+    [collectionTrees]
+  );
 
   const searchIndex = React.useMemo(() => {
-    const data = flattenTree(collections.tree.root).slice(1);
-
-    return new FuzzySearch(data, ["data.title"], {
+    return new FuzzySearch(allNodes, ["title"], {
       caseSensitive: false,
     });
-  }, [collections.tree]);
+  }, [allNodes]);
 
   React.useEffect(() => {
     if (searchTerm) {
-      setLocation(null);
-      setExpandedItems([]);
+      selectNode(null);
+      setExpandedNodes([]);
     }
-    setActiveItem(0);
+    setActiveNode(0);
   }, [searchTerm]);
 
   React.useEffect(() => {
-    let results = flattenTree(collections.tree.root).slice(1);
+    let results;
 
-    if (collections.isLoaded) {
-      if (searchTerm) {
-        results = searchIndex.search(searchTerm);
-      } else {
-        results = results.filter((r) => r.data.type === "collection");
-      }
+    if (searchTerm) {
+      results = searchIndex.search(searchTerm);
+    } else {
+      results = allNodes.filter((r) => r.type === "collection");
     }
 
     setInitialScrollOffset(0);
-    setItems(results);
-  }, [document, collections, searchTerm, searchIndex]);
+    setNodes(results);
+  }, [searchTerm, allNodes, searchIndex]);
 
   const handleSearch = (ev: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(ev.target.value);
   };
 
-  const isExpanded = (index: number) => {
-    const item = items[index];
-    return includes(expandedItems, item.data.id);
+  const isExpanded = (node: number) => {
+    return includes(expandedNodes, nodes[node].id);
   };
 
   const calculateInitialScrollOffset = (itemCount: number) => {
@@ -113,61 +110,58 @@ function DocumentPublish({ document }: Props) {
     return 0;
   };
 
-  const collapse = (item: number) => {
-    const descendantIds = descendants(items[item]).map((des) => des.data.id);
-    setExpandedItems(
-      difference(expandedItems, [...descendantIds, items[item].data.id])
+  const collapse = (node: number) => {
+    const descendantIds = descendants(nodes[node]).map((des) => des.id);
+    setExpandedNodes(
+      difference(expandedNodes, [...descendantIds, nodes[node].id])
     );
 
     // remove children
-    const newItems = filter(
-      items,
-      (item: any) => !includes(descendantIds, item.data.id)
-    );
-    const scrollOffset = calculateInitialScrollOffset(newItems.length);
+    const newNodes = filter(nodes, (node) => !includes(descendantIds, node.id));
+    const scrollOffset = calculateInitialScrollOffset(newNodes.length);
     setInitialScrollOffset(scrollOffset);
-    setItems(newItems);
+    setNodes(newNodes);
   };
 
-  const expand = (item: number) => {
-    setExpandedItems(concat(expandedItems, items[item].data.id));
+  const expand = (node: number) => {
+    setExpandedNodes(concat(expandedNodes, nodes[node].id));
 
     // add children
-    const newItems = items.slice();
-    newItems.splice(item + 1, 0, ...descendants(items[item], 1));
-    const scrollOffset = calculateInitialScrollOffset(newItems.length);
+    const newNodes = nodes.slice();
+    newNodes.splice(node + 1, 0, ...descendants(nodes[node], 1));
+    const scrollOffset = calculateInitialScrollOffset(newNodes.length);
     setInitialScrollOffset(scrollOffset);
-    setItems(newItems);
+    setNodes(newNodes);
   };
 
-  const isSelected = (item: number) => {
-    if (!selectedLocation) {
+  const isSelected = (node: number) => {
+    if (!selectedNode) {
       return false;
     }
-    const selectedItemId = selectedLocation.data.id;
-    const itemId = items[item].data.id;
+    const selectedNodeId = selectedNode.id;
+    const nodeId = nodes[node].id;
 
-    return selectedItemId === itemId;
+    return selectedNodeId === nodeId;
   };
 
-  const toggleCollapse = (item: number) => {
-    if (isExpanded(item)) {
-      collapse(item);
+  const toggleCollapse = (node: number) => {
+    if (isExpanded(node)) {
+      collapse(node);
     } else {
-      expand(item);
+      expand(node);
     }
   };
 
-  const toggleSelect = (item: number) => {
-    if (isSelected(item)) {
-      setLocation(null);
+  const toggleSelect = (node: number) => {
+    if (isSelected(node)) {
+      selectNode(null);
     } else {
-      setLocation(items[item]);
+      selectNode(nodes[node]);
     }
   };
 
   const publish = async () => {
-    if (!selectedLocation) {
+    if (!selectedNode) {
       showToast(t("Select a location to publish"), {
         type: "info",
       });
@@ -175,11 +169,9 @@ function DocumentPublish({ document }: Props) {
     }
 
     try {
-      const {
-        collectionId,
-        type,
-        id: parentDocumentId,
-      } = selectedLocation.data;
+      const { type, id: parentDocumentId } = selectedNode;
+
+      const collectionId = selectedNode.collectionId as string;
 
       // Also move it under if selected path corresponds to another doc
       if (type === "document") {
@@ -207,22 +199,22 @@ function DocumentPublish({ document }: Props) {
     style,
   }: {
     index: number;
-    data: any[];
+    data: NavigationNode[];
     style: React.CSSProperties;
   }) => {
     const result = data[index];
-    const isCollection = result.data.type === "collection";
+    const isCollection = result.type === "collection";
     let icon, title, path;
 
     if (isCollection) {
-      const col = collections.get(result.data.collectionId);
+      const col = collections.get(result.collectionId as string);
       icon = col && (
         <CollectionIcon collection={col} expanded={isExpanded(index)} />
       );
-      title = result.data.title;
+      title = result.title;
     } else {
-      const doc = documents.get(result.data.id);
-      const { strippedTitle, emoji } = parseTitle(result.data.title);
+      const doc = documents.get(result.id);
+      const { strippedTitle, emoji } = parseTitle(result.title);
       title = strippedTitle;
 
       if (emoji) {
@@ -234,7 +226,7 @@ function DocumentPublish({ document }: Props) {
       }
 
       path = ancestors(result)
-        .map((a) => parseTitle(a.data.title).strippedTitle)
+        .map((a) => parseTitle(a.title).strippedTitle)
         .join(" / ");
     }
 
@@ -246,19 +238,19 @@ function DocumentPublish({ document }: Props) {
           left: (style.left as number) + HORIZONTAL_PADDING,
           width: `calc(${style.width} - ${HORIZONTAL_PADDING * 2}px)`,
         }}
-        onPointerMove={() => setActiveItem(index)}
+        onPointerMove={() => setActiveNode(index)}
         onClick={() => toggleSelect(index)}
         onDisclosureClick={(ev) => {
           ev.stopPropagation();
           toggleCollapse(index);
         }}
         selected={isSelected(index)}
-        active={activeItem === index}
+        active={activeNode === index}
         expanded={isExpanded(index)}
         icon={icon}
         title={title}
         path={path}
-        nestLevel={result.depth}
+        nestLevel={result.depth as number}
         hasChildren={result.children.length > 0}
         isSearchResult={!!searchTerm}
       />
@@ -273,31 +265,39 @@ function DocumentPublish({ document }: Props) {
     inputSearchRef.current?.focus();
   };
 
+  const next = () => {
+    return Math.min(activeNode + 1, nodes.length - 1);
+  };
+
+  const prev = () => {
+    return Math.max(activeNode - 1, 0);
+  };
+
   const handleKeyDown = (ev: React.KeyboardEvent<HTMLDivElement>) => {
     switch (ev.key) {
       case "ArrowDown": {
         ev.preventDefault();
-        setActiveItem(nextItem());
+        setActiveNode(next());
         break;
       }
       case "ArrowUp": {
         ev.preventDefault();
-        if (activeItem === 0) {
+        if (activeNode === 0) {
           focusSearchInput();
         } else {
-          setActiveItem(prevItem());
+          setActiveNode(prev());
         }
         break;
       }
       case "ArrowLeft": {
-        if (!searchTerm && isExpanded(activeItem)) {
-          toggleCollapse(activeItem);
+        if (!searchTerm && isExpanded(activeNode)) {
+          toggleCollapse(activeNode);
         }
         break;
       }
       case "ArrowRight": {
         if (!searchTerm) {
-          toggleCollapse(activeItem);
+          toggleCollapse(activeNode);
         }
         break;
       }
@@ -305,7 +305,7 @@ function DocumentPublish({ document }: Props) {
         if (isModKey(ev)) {
           publish();
         } else {
-          toggleSelect(activeItem);
+          toggleSelect(activeNode);
         }
         break;
       }
@@ -334,22 +334,22 @@ function DocumentPublish({ document }: Props) {
         placeholder={`${t("Search collections & documents")}…`}
         autoFocus
       />
-      {items.length ? (
+      {nodes.length ? (
         <Results>
           <AutoSizer>
             {({ width, height }: { width: number; height: number }) => (
               <Flex role="listbox" column>
                 <List
                   ref={listRef}
-                  key={items.length}
+                  key={nodes.length}
                   width={width}
                   height={height}
-                  itemData={items}
-                  itemCount={items.length}
+                  itemData={nodes}
+                  itemCount={nodes.length}
                   itemSize={isMobile ? 48 : 32}
                   innerElementType={innerElementType}
                   initialScrollOffset={initialScrollOffset}
-                  itemKey={(index, results: any) => results[index].data.id}
+                  itemKey={(index, results) => results[index].id}
                 >
                   {row}
                 </List>
@@ -363,12 +363,12 @@ function DocumentPublish({ document }: Props) {
         </NoResults>
       )}
       <Footer justify="space-between" align="center" gap={8}>
-        {selectedLocation ? (
+        {selectedNode ? (
           <SelectedLocation type="secondary">
             <Trans
               defaults="Publish in <em>{{ location }}</em>"
               values={{
-                location: selectedLocation.data.title,
+                location: selectedNode.title,
               }}
               components={{
                 em: <strong />,
@@ -380,7 +380,7 @@ function DocumentPublish({ document }: Props) {
             {t("Select a location to publish")}
           </SelectedLocation>
         )}
-        <Button disabled={!selectedLocation} onClick={publish}>
+        <Button disabled={!selectedNode} onClick={publish}>
           {t("Publish")}
         </Button>
       </Footer>
