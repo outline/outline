@@ -15,42 +15,6 @@ import {
   Plugin,
   PluginKey,
 } from "prosemirror-state";
-import refractor from "refractor/core";
-import bash from "refractor/lang/bash";
-import clike from "refractor/lang/clike";
-import csharp from "refractor/lang/csharp";
-import css from "refractor/lang/css";
-import elixir from "refractor/lang/elixir";
-import erlang from "refractor/lang/erlang";
-import go from "refractor/lang/go";
-import graphql from "refractor/lang/graphql";
-import groovy from "refractor/lang/groovy";
-import haskell from "refractor/lang/haskell";
-import ini from "refractor/lang/ini";
-import java from "refractor/lang/java";
-import javascript from "refractor/lang/javascript";
-import json from "refractor/lang/json";
-import kotlin from "refractor/lang/kotlin";
-import lisp from "refractor/lang/lisp";
-import lua from "refractor/lang/lua";
-import markup from "refractor/lang/markup";
-import objectivec from "refractor/lang/objectivec";
-import ocaml from "refractor/lang/ocaml";
-import perl from "refractor/lang/perl";
-import php from "refractor/lang/php";
-import powershell from "refractor/lang/powershell";
-import python from "refractor/lang/python";
-import ruby from "refractor/lang/ruby";
-import rust from "refractor/lang/rust";
-import scala from "refractor/lang/scala";
-import solidity from "refractor/lang/solidity";
-import sql from "refractor/lang/sql";
-import swift from "refractor/lang/swift";
-import toml from "refractor/lang/toml";
-import typescript from "refractor/lang/typescript";
-import visualbasic from "refractor/lang/visual-basic";
-import yaml from "refractor/lang/yaml";
-import zig from "refractor/lang/zig";
 
 import { UserPreferences } from "@shared/types";
 import { Dictionary } from "~/hooks/useDictionary";
@@ -65,44 +29,6 @@ import Node from "./Node";
 
 const PERSISTENCE_KEY = "rme-code-language";
 const DEFAULT_LANGUAGE = "javascript";
-
-[
-  bash,
-  css,
-  clike,
-  csharp,
-  elixir,
-  erlang,
-  go,
-  graphql,
-  groovy,
-  haskell,
-  ini,
-  java,
-  javascript,
-  json,
-  kotlin,
-  lisp,
-  lua,
-  markup,
-  objectivec,
-  ocaml,
-  perl,
-  php,
-  python,
-  powershell,
-  ruby,
-  rust,
-  scala,
-  sql,
-  solidity,
-  swift,
-  toml,
-  typescript,
-  visualbasic,
-  yaml,
-  zig,
-].forEach(refractor.register);
 
 export default class CodeFence extends Node {
   constructor(options: {
