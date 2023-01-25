@@ -32,6 +32,7 @@ export const LANGUAGES = {
   php: "PHP",
   powershell: "Powershell",
   python: "Python",
+  rego: "Rego",
   ruby: "Ruby",
   rust: "Rust",
   scala: "Scala",
