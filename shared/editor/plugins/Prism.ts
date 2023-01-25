@@ -45,6 +45,9 @@ export const LANGUAGES = {
   zig: "Zig",
 };
 
+// Languages that are not supported by refractor or are specially handled
+const EXCLUDED_LANGUAGES = ["mermaidjs"];
+
 type ParsedNode = {
   text: string;
   classes: string[];
@@ -89,7 +92,8 @@ function getDecorations({
   blocks.forEach(async (block) => {
     let startPos = block.pos + 1;
     const language = block.node.attrs.language;
-    if (!language || language === "none") {
+    const isExcluded = EXCLUDED_LANGUAGES.includes(language);
+    if (!language || language === "none" || isExcluded) {
       return;
     }
 
