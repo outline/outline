@@ -57,6 +57,7 @@ import NotContainsUrl from "./validators/NotContainsUrl";
 export enum UserFlag {
   InviteSent = "inviteSent",
   InviteReminderSent = "inviteReminderSent",
+  Desktop = "desktop",
   DesktopWeb = "desktopWeb",
   MobileWeb = "mobileWeb",
 }
@@ -366,11 +367,12 @@ class User extends ParanoidModel {
     }
 
     // Track the clients each user is using
-    if (ctx.userAgent?.isMobile) {
-      this.setFlag(UserFlag.MobileWeb);
-    }
-    if (ctx.userAgent?.isDesktop) {
+    if (ctx.userAgent?.source.includes("Outline/")) {
+      this.setFlag(UserFlag.Desktop);
+    } else if (ctx.userAgent?.isDesktop) {
       this.setFlag(UserFlag.DesktopWeb);
+    } else if (ctx.userAgent?.isMobile) {
+      this.setFlag(UserFlag.MobileWeb);
     }
 
     // Save only writes to the database if there are changes
@@ -602,6 +604,7 @@ class User extends ParanoidModel {
       if (attachment) {
         await DeleteAttachmentTask.schedule({
           attachmentId: attachment.id,
+          teamId: model.id,
         });
       }
     }

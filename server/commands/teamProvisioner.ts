@@ -6,7 +6,7 @@ import {
   InvalidAuthenticationError,
   MaximumTeamsError,
 } from "@server/errors";
-import { APM } from "@server/logging/tracing";
+import { traceFunction } from "@server/logging/tracing";
 import { Team, AuthenticationProvider } from "@server/models";
 
 type TeamProvisionerResult = {
@@ -125,7 +125,6 @@ async function teamProvisioner({
   };
 }
 
-export default APM.traceFunction({
-  serviceName: "command",
+export default traceFunction({
   spanName: "teamProvisioner",
 })(teamProvisioner);

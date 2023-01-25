@@ -1,7 +1,6 @@
-import { APM } from "@server/logging/tracing";
 import Collection from "@server/models/Collection";
 
-function present(collection: Collection) {
+export default function presentCollection(collection: Collection) {
   return {
     id: collection.id,
     url: collection.url,
@@ -20,8 +19,3 @@ function present(collection: Collection) {
     documents: collection.documentStructure || [],
   };
 }
-
-export default APM.traceFunction({
-  serviceName: "presenter",
-  spanName: "collection",
-})(present);

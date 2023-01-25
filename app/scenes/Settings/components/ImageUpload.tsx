@@ -5,6 +5,7 @@ import * as React from "react";
 import AvatarEditor from "react-avatar-editor";
 import Dropzone from "react-dropzone";
 import styled from "styled-components";
+import { AttachmentPreset } from "@shared/types";
 import { AttachmentValidation } from "@shared/validations";
 import RootStore from "~/stores/RootStore";
 import Button from "~/components/Button";
@@ -67,7 +68,7 @@ class ImageUpload extends React.Component<RootStore & Props> {
       });
       const attachment = await uploadFile(compressed, {
         name: this.file.name,
-        public: true,
+        preset: AttachmentPreset.Avatar,
       });
       this.props.onSuccess(attachment.url);
     } catch (err) {

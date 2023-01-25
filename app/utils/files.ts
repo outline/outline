@@ -1,4 +1,5 @@
 import invariant from "invariant";
+import { AttachmentPreset } from "@shared/types";
 import { client } from "./ApiClient";
 import Logger from "./Logger";
 
@@ -7,8 +8,8 @@ type UploadOptions = {
   name?: string;
   /** The document that this file was uploaded in, if any */
   documentId?: string;
-  /** Whether the file should be public in cloud storage */
-  public?: boolean;
+  /** The preset to use for attachment configuration */
+  preset: AttachmentPreset;
   /** Callback will be passed a number between 0-1 as upload progresses */
   onProgress?: (fractionComplete: number) => void;
 };
@@ -17,11 +18,12 @@ export const uploadFile = async (
   file: File | Blob,
   options: UploadOptions = {
     name: "",
+    preset: AttachmentPreset.DocumentAttachment,
   }
 ) => {
   const name = file instanceof File ? file.name : options.name;
   const response = await client.post("/attachments.create", {
-    public: options.public,
+    preset: options.preset,
     documentId: options.documentId,
     contentType: file.type,
     size: file.size,

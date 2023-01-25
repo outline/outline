@@ -15,6 +15,7 @@ import useMobile from "~/hooks/useMobile";
 import usePrevious from "~/hooks/usePrevious";
 import useUnmount from "~/hooks/useUnmount";
 import { fadeAndScaleIn } from "~/styles/animations";
+import Desktop from "~/utils/Desktop";
 
 let openModals = 0;
 type Props = {
@@ -222,7 +223,7 @@ const Back = styled(NudeButton)`
   position: absolute;
   display: none;
   align-items: center;
-  top: 2rem;
+  top: ${Desktop.hasInsetTitlebar() ? "3rem" : "2rem"};
   left: 2rem;
   opacity: 0.75;
   color: ${(props) => props.theme.text};
@@ -251,8 +252,9 @@ const Small = styled.div`
   animation: ${fadeAndScaleIn} 250ms ease;
 
   margin: auto auto;
+  width: 30vw;
   min-width: 350px;
-  max-width: 30vw;
+  max-width: 500px;
   z-index: ${depths.modal};
   display: flex;
   justify-content: center;

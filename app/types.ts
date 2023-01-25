@@ -1,5 +1,5 @@
 import { Location, LocationDescriptor } from "history";
-import { TFunction } from "react-i18next";
+import { TFunction } from "i18next";
 import RootStore from "~/stores/RootStore";
 import Document from "./models/Document";
 import FileOperation from "./models/FileOperation";
@@ -99,7 +99,7 @@ export type Action = {
   placeholder?: ((context: ActionContext) => string) | string;
   selected?: (context: ActionContext) => boolean;
   visible?: (context: ActionContext) => boolean;
-  perform?: (context: ActionContext) => void;
+  perform?: (context: ActionContext) => Promise<any> | any;
   children?: ((context: ActionContext) => Action[]) | Action[];
 };
 
@@ -124,7 +124,7 @@ export type Toast = {
   id: string;
   createdAt: string;
   message: string;
-  type: "warning" | "error" | "info" | "success";
+  type: "warning" | "error" | "info" | "success" | "loading";
   timeout?: number;
   reoccurring?: number;
   action?: {
@@ -176,7 +176,7 @@ export type SearchResult = {
 };
 
 export type ToastOptions = {
-  type: "warning" | "error" | "info" | "success";
+  type: "warning" | "error" | "info" | "success" | "loading";
   timeout?: number;
   action?: {
     text: string;

@@ -12,6 +12,7 @@ import getRowIndex from "@shared/editor/queries/getRowIndex";
 import isMarkActive from "@shared/editor/queries/isMarkActive";
 import isNodeActive from "@shared/editor/queries/isNodeActive";
 import { MenuItem } from "@shared/editor/types";
+import { creatingUrlPrefix } from "@shared/utils/urls";
 import { Dictionary } from "~/hooks/useDictionary";
 import getDividerMenuItems from "../menus/divider";
 import getFormattingMenuItems from "../menus/formatting";
@@ -138,7 +139,7 @@ export default class SelectionToolbar extends React.Component<Props> {
       return;
     }
 
-    const href = `creating#${title}…`;
+    const href = `${creatingUrlPrefix}${title}…`;
     const markType = state.schema.marks.link;
 
     // Insert a placeholder link
@@ -230,11 +231,7 @@ export default class SelectionToolbar extends React.Component<Props> {
     }
 
     return (
-      <FloatingToolbar
-        view={view}
-        active={isVisible(this.props)}
-        ref={this.menuRef}
-      >
+      <FloatingToolbar active={isVisible(this.props)} ref={this.menuRef}>
         {link && range ? (
           <LinkEditor
             key={`${range.from}-${range.to}`}

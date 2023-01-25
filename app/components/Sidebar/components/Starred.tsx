@@ -45,7 +45,7 @@ function Starred() {
 
   React.useEffect(() => {
     fetchResults();
-  }, [fetchResults]);
+  }, []);
 
   const handleShowMore = async () => {
     await fetchResults(displayedStarsCount);

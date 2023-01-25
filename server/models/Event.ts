@@ -25,7 +25,7 @@ import Fix from "./decorators/Fix";
 class Event extends IdModel {
   @IsUUID(4)
   @Column(DataType.UUID)
-  modelId: string;
+  modelId: string | null;
 
   @Length({
     max: 255,
@@ -39,7 +39,7 @@ class Event extends IdModel {
   ip: string | null;
 
   @Column(DataType.JSONB)
-  data: Record<string, any>;
+  data: Record<string, any> | null;
 
   // hooks
 
@@ -63,18 +63,18 @@ class Event extends IdModel {
   // associations
 
   @BelongsTo(() => User, "userId")
-  user: User;
+  user: User | null;
 
   @ForeignKey(() => User)
   @Column(DataType.UUID)
-  userId: string;
+  userId: string | null;
 
   @BelongsTo(() => Document, "documentId")
-  document: Document;
+  document: Document | null;
 
   @ForeignKey(() => Document)
   @Column(DataType.UUID)
-  documentId: string;
+  documentId: string | null;
 
   @BelongsTo(() => User, "actorId")
   actor: User;
@@ -84,11 +84,11 @@ class Event extends IdModel {
   actorId: string;
 
   @BelongsTo(() => Collection, "collectionId")
-  collection: Collection;
+  collection: Collection | null;
 
   @ForeignKey(() => Collection)
   @Column(DataType.UUID)
-  collectionId: string;
+  collectionId: string | null;
 
   @BelongsTo(() => Team, "teamId")
   team: Team;
@@ -171,8 +171,10 @@ class Event extends IdModel {
     "users.suspend",
     "users.activate",
     "users.delete",
-    "webhook_subscriptions.create",
-    "webhook_subscriptions.delete",
+    "fileOperations.create",
+    "fileOperations.delete",
+    "webhookSubscriptions.create",
+    "webhookSubscriptions.delete",
   ];
 }
 

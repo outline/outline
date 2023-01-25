@@ -67,7 +67,7 @@ export function isUrl(text: string, options?: { requireHostname: boolean }) {
 
     return (
       url.protocol !== "" &&
-      url.pathname.startsWith("//") &&
+      (url.pathname.startsWith("//") || url.pathname.startsWith("http")) &&
       !options?.requireHostname
     );
   } catch (err) {
@@ -76,13 +76,18 @@ export function isUrl(text: string, options?: { requireHostname: boolean }) {
 }
 
 /**
+ * Temporary prefix applied to links in document that are not yet persisted.
+ */
+export const creatingUrlPrefix = "creating#";
+
+/**
  * Returns true if the given string is a link to outside the application.
  *
  * @param url The url to check.
  * @returns True if the url is external, false otherwise.
  */
 export function isExternalUrl(url: string) {
-  return !!url && !isInternalUrl(url);
+  return !!url && !isInternalUrl(url) && !url.startsWith(creatingUrlPrefix);
 }
 
 /**

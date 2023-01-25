@@ -8,6 +8,7 @@ import { mergeRefs } from "react-merge-refs";
 import { Optional } from "utility-types";
 import insertFiles from "@shared/editor/commands/insertFiles";
 import { Heading } from "@shared/editor/lib/getHeadings";
+import { AttachmentPreset } from "@shared/types";
 import { getDataTransferFiles } from "@shared/utils/files";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { isInternalUrl } from "@shared/utils/urls";
@@ -49,10 +50,10 @@ export type Props = Optional<
 > & {
   shareId?: string | undefined;
   embedsDisabled?: boolean;
-  grow?: boolean;
   onHeadingsChange?: (headings: Heading[]) => void;
   onSynced?: () => Promise<void>;
   onPublish?: (event: React.MouseEvent) => any;
+  bottomPadding?: string;
 };
 
 function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
@@ -61,13 +62,14 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   const { showToast } = useToasts();
   const dictionary = useDictionary();
   const embeds = useEmbeds(!shareId);
+  const localRef = React.useRef<SharedEditor>();
   const preferences = auth.user?.preferences;
+  const previousHeadings = React.useRef<Heading[] | null>(null);
 
   const [
     activeLinkEvent,
     setActiveLinkEvent,
   ] = React.useState<MouseEvent | null>(null);
-  const previousHeadings = React.useRef<Heading[] | null>(null);
 
   const handleLinkActive = React.useCallback((event: MouseEvent) => {
     setActiveLinkEvent(event);
@@ -134,6 +136,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     async (file: File) => {
       const result = await uploadFile(file, {
         documentId: id,
+        preset: AttachmentPreset.DocumentAttachment,
       });
       return result.url;
     },
@@ -177,8 +180,8 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   );
 
   const focusAtEnd = React.useCallback(() => {
-    ref?.current?.focusAtEnd();
-  }, [ref]);
+    localRef?.current?.focusAtEnd();
+  }, [localRef]);
 
   const handleDrop = React.useCallback(
     (event: React.DragEvent<HTMLDivElement>) => {
@@ -186,7 +189,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
       event.stopPropagation();
       const files = getDataTransferFiles(event);
 
-      const view = ref?.current?.view;
+      const view = localRef?.current?.view;
       if (!view) {
         return;
       }
@@ -230,7 +233,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
       });
     },
     [
-      ref,
+      localRef,
       props.onFileUploadStart,
       props.onFileUploadStop,
       dictionary,
@@ -251,7 +254,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   // Calculate if headings have changed and trigger callback if so
   const updateHeadings = React.useCallback(() => {
     if (onHeadingsChange) {
-      const headings = ref?.current?.getHeadings();
+      const headings = localRef?.current?.getHeadings();
       if (
         headings &&
         headings.map((h) => h.level + h.title).join("") !==
@@ -261,7 +264,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
         onHeadingsChange(headings);
       }
     }
-  }, [ref, onHeadingsChange]);
+  }, [localRef, onHeadingsChange]);
 
   const handleChange = React.useCallback(
     (event) => {
@@ -273,7 +276,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
 
   const handleRefChanged = React.useCallback(
     (node: SharedEditor | null) => {
-      if (node && !previousHeadings.current) {
+      if (node) {
         updateHeadings();
       }
     },
@@ -284,7 +287,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     <ErrorBoundary reloadOnChunkMissing>
       <>
         <LazyLoadedEditor
-          ref={mergeRefs([ref, handleRefChanged])}
+          ref={mergeRefs([ref, localRef, handleRefChanged])}
           uploadFile={onUploadFile}
           onShowToast={showToast}
           embeds={embeds}
@@ -298,12 +301,12 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
           placeholder={props.placeholder || ""}
           defaultValue={props.defaultValue || ""}
         />
-        {props.grow && !props.readOnly && (
+        {props.bottomPadding && !props.readOnly && (
           <ClickablePadding
             onClick={focusAtEnd}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
-            grow
+            minHeight={props.bottomPadding}
           />
         )}
         {activeLinkEvent && !shareId && (

@@ -216,6 +216,7 @@ export class Editor extends React.PureComponent<
    */
   public componentDidMount() {
     this.init();
+    window.addEventListener("theme-changed", this.dispatchThemeChanged);
 
     if (this.props.scrollTo) {
       this.scrollToAnchor(this.props.scrollTo);
@@ -284,6 +285,10 @@ export class Editor extends React.PureComponent<
       this.isBlurred = false;
       this.props.onFocus?.();
     }
+  }
+
+  public componentWillUnmount(): void {
+    window.removeEventListener("theme-changed", this.dispatchThemeChanged);
   }
 
   private init() {
@@ -406,7 +411,9 @@ export class Editor extends React.PureComponent<
       plugins: [
         ...this.plugins,
         ...this.keymaps,
-        dropCursor({ color: this.props.theme.cursor }),
+        dropCursor({
+          color: this.props.theme.cursor,
+        }),
         gapCursor(),
         inputRules({
           rules: this.inputRules,
@@ -475,6 +482,10 @@ export class Editor extends React.PureComponent<
 
     return view;
   }
+
+  private dispatchThemeChanged = (event: CustomEvent) => {
+    this.view.dispatch(this.view.state.tr.setMeta("theme", event.detail));
+  };
 
   public scrollToAnchor(hash: string) {
     if (!hash) {
@@ -690,13 +701,10 @@ export class Editor extends React.PureComponent<
                 onShowToast={this.props.onShowToast}
               />
               <LinkToolbar
-                view={this.view}
-                dictionary={dictionary}
                 isActive={this.state.linkMenuOpen}
                 onCreateLink={this.props.onCreateLink}
                 onSearchLink={this.props.onSearchLink}
                 onClickLink={this.props.onClickLink}
-                onShowToast={this.props.onShowToast}
                 onClose={this.handleCloseLinkMenu}
               />
               <PageLinkToolbar

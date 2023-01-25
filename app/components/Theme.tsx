@@ -23,8 +23,12 @@ const Theme: React.FC = ({ children }) => {
     : resolvedTheme;
 
   React.useEffect(() => {
-    window.dispatchEvent(new Event("theme-changed"));
-  }, [theme]);
+    window.dispatchEvent(
+      new CustomEvent("theme-changed", {
+        detail: { isDark: ui.resolvedTheme === "dark" },
+      })
+    );
+  }, [ui.resolvedTheme]);
 
   return (
     <ThemeProvider theme={theme}>

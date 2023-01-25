@@ -100,7 +100,7 @@ function DocumentLink(
         }}
         label={
           <>
-            {hasChildDocuments && (
+            {hasChildDocuments && depth !== 0 && (
               <Disclosure expanded={expanded} onClick={handleDisclosureClick} />
             )}
             {title}

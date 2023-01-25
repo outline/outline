@@ -1,6 +1,12 @@
 import { isNull } from "lodash";
 import { v4 as uuidv4 } from "uuid";
-import { CollectionPermission } from "@shared/types";
+import {
+  CollectionPermission,
+  FileOperationState,
+  FileOperationType,
+  IntegrationService,
+  IntegrationType,
+} from "@shared/types";
 import {
   Share,
   Team,
@@ -21,10 +27,6 @@ import {
   ApiKey,
   Subscription,
 } from "@server/models";
-import {
-  FileOperationState,
-  FileOperationType,
-} from "@server/models/FileOperation";
 
 let count = 1;
 
@@ -241,15 +243,15 @@ export async function buildIntegration(overrides: Partial<Integration> = {}) {
     teamId: overrides.teamId,
   });
   const authentication = await IntegrationAuthentication.create({
-    service: "slack",
+    service: IntegrationService.Slack,
     userId: user.id,
     teamId: user.teamId,
     token: "fake-access-token",
     scopes: ["example", "scopes", "here"],
   });
   return Integration.create({
-    type: "post",
-    service: "slack",
+    service: IntegrationService.Slack,
+    type: IntegrationType.Post,
     events: ["documents.update", "documents.publish"],
     settings: {
       serviceTeamId: "slack_team_id",
@@ -365,14 +367,19 @@ export async function buildDocument(
   }
 
   count++;
-  return Document.create({
-    title: `Document ${count}`,
-    text: "This is the text in an example document",
-    publishedAt: isNull(overrides.collectionId) ? null : new Date(),
-    lastModifiedById: overrides.userId,
-    createdById: overrides.userId,
-    ...overrides,
-  });
+  return Document.create(
+    {
+      title: `Document ${count}`,
+      text: "This is the text in an example document",
+      publishedAt: isNull(overrides.collectionId) ? null : new Date(),
+      lastModifiedById: overrides.userId,
+      createdById: overrides.userId,
+      ...overrides,
+    },
+    {
+      silent: overrides.createdAt || overrides.updatedAt ? true : false,
+    }
+  );
 }
 
 export async function buildFileOperation(

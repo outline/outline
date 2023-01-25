@@ -20,6 +20,7 @@ import Collaborators from "~/components/Collaborators";
 import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
 import Header from "~/components/Header";
 import Tooltip from "~/components/Tooltip";
+import { publishDocument } from "~/actions/definitions/documents";
 import { restoreRevision } from "~/actions/definitions/revisions";
 import useActionContext from "~/hooks/useActionContext";
 import useMobile from "~/hooks/useMobile";
@@ -91,13 +92,6 @@ function DocumentHeader({
   const handleSave = React.useCallback(() => {
     onSave({
       done: true,
-    });
-  }, [onSave]);
-
-  const handlePublish = React.useCallback(() => {
-    onSave({
-      done: true,
-      publish: true,
     });
   }, [onSave]);
 
@@ -205,9 +199,7 @@ function DocumentHeader({
           isMobile ? (
             <TableOfContentsMenu headings={headings} />
           ) : (
-            <DocumentBreadcrumb document={document}>
-              {!isEditing && toc}
-            </DocumentBreadcrumb>
+            <DocumentBreadcrumb document={document}>{toc}</DocumentBreadcrumb>
           )
         }
         title={
@@ -291,7 +283,6 @@ function DocumentHeader({
                   to={newDocumentPath(document.collectionId, {
                     templateId: document.id,
                   })}
-                  primary
                 >
                   {t("New from template")}
                 </Button>
@@ -315,23 +306,17 @@ function DocumentHeader({
                 </Tooltip>
               </Action>
             )}
-            {can.update && isDraft && !isRevision && (
-              <Action>
-                <Tooltip
-                  tooltip={t("Publish")}
-                  shortcut={`${metaDisplay}+shift+p`}
-                  delay={500}
-                  placement="bottom"
-                >
-                  <Button
-                    onClick={handlePublish}
-                    disabled={publishingIsDisabled}
-                  >
-                    {isPublishing ? `${t("Publishing")}…` : t("Publish")}
-                  </Button>
-                </Tooltip>
-              </Action>
-            )}
+            <Action>
+              <Button
+                action={publishDocument}
+                context={context}
+                disabled={publishingIsDisabled}
+                hideOnActionDisabled
+                hideIcon
+              >
+                {document.collectionId ? t("Publish") : `${t("Publish")}…`}
+              </Button>
+            </Action>
             {!isEditing && (
               <>
                 {!isDeleted && <Separator />}

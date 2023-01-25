@@ -2,10 +2,10 @@ import * as React from "react";
 import { Switch, Redirect } from "react-router-dom";
 import Error404 from "~/scenes/Error404";
 import Route from "~/components/ProfiledRoute";
-import useAuthorizedSettingsConfig from "~/hooks/useAuthorizedSettingsConfig";
+import useSettingsConfig from "~/hooks/useSettingsConfig";
 
 export default function SettingsRoutes() {
-  const configs = useAuthorizedSettingsConfig();
+  const configs = useSettingsConfig();
 
   return (
     <Switch>

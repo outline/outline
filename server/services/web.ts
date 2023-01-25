@@ -6,9 +6,10 @@ import {
   referrerPolicy,
 } from "koa-helmet";
 import mount from "koa-mount";
-import enforceHttps from "koa-sslify";
+import enforceHttps, { xForwardedProtoResolver } from "koa-sslify";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
+import { initI18n } from "@server/utils/i18n";
 import routes from "../routes";
 import api from "../routes/api";
 import auth from "../routes/auth";
@@ -23,6 +24,8 @@ const scriptSrc = [
   "'unsafe-inline'",
   "'unsafe-eval'",
   "gist.github.com",
+  "www.googletagmanager.com",
+  "cdn.zapier.com",
 ];
 
 if (env.GOOGLE_ANALYTICS_ID) {
@@ -35,12 +38,14 @@ if (env.CDN_URL) {
 }
 
 export default function init(app: Koa = new Koa()): Koa {
+  initI18n();
+
   if (isProduction) {
     // Force redirect to HTTPS protocol unless explicitly disabled
     if (env.FORCE_HTTPS) {
       app.use(
         enforceHttps({
-          trustProtoHeader: true,
+          resolver: xForwardedProtoResolver,
         })
       );
     } else {
@@ -107,7 +112,12 @@ export default function init(app: Koa = new Koa()): Koa {
       directives: {
         defaultSrc,
         scriptSrc,
-        styleSrc: ["'self'", "'unsafe-inline'", "github.githubassets.com"],
+        styleSrc: [
+          "'self'",
+          "'unsafe-inline'",
+          "github.githubassets.com",
+          "cdn.zapier.com",
+        ],
         imgSrc: ["*", "data:", "blob:"],
         frameSrc: ["*", "data:"],
         connectSrc: ["*"], // Do not use connect-src: because self + websockets does not work in

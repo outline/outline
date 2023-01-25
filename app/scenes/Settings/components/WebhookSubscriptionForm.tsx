@@ -1,4 +1,5 @@
 import { isEqual, filter, includes } from "lodash";
+import randomstring from "randomstring";
 import * as React from "react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -6,7 +7,7 @@ import { useTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
 import WebhookSubscription from "~/models/WebhookSubscription";
 import Button from "~/components/Button";
-import { ReactHookWrappedInput } from "~/components/Input";
+import Input from "~/components/Input";
 import Text from "~/components/Text";
 import useMobile from "~/hooks/useMobile";
 
@@ -37,9 +38,9 @@ const WEBHOOK_EVENTS = {
   ],
   revision: ["revisions.create"],
   fileOperation: [
-    "file_operations.create",
-    "file_operations.update",
-    "file_operations.delete",
+    "fileOperations.create",
+    "fileOperations.update",
+    "fileOperations.delete",
   ],
   collection: [
     "collections.create",
@@ -64,9 +65,9 @@ const WEBHOOK_EVENTS = {
   team: ["teams.update"],
   pin: ["pins.create", "pins.update", "pins.delete"],
   webhookSubscription: [
-    "webhook_subscriptions.create",
-    "webhook_subscriptions.delete",
-    "webhook_subscriptions.update",
+    "webhookSubscriptions.create",
+    "webhookSubscriptions.delete",
+    "webhookSubscriptions.update",
   ],
   view: ["views.create"],
 };
@@ -148,6 +149,10 @@ interface FormData {
   events: string[];
 }
 
+function generateSigningSecret() {
+  return `ol_whs_${randomstring.generate(32)}`;
+}
+
 function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
   const { t } = useTranslation();
   const {
@@ -162,7 +167,7 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
       events: webhookSubscription ? [...webhookSubscription.events] : [],
       name: webhookSubscription?.name,
       url: webhookSubscription?.url,
-      secret: webhookSubscription?.secret,
+      secret: webhookSubscription?.secret ?? generateSigningSecret(),
     },
   });
 
@@ -224,15 +229,8 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
           a POST request to when matching events are created.
         </Trans>
       </Text>
-      <Text type="secondary">
-        <Trans>
-          Subscribe to all events, groups, or individual events. We recommend
-          only subscribing to the minimum amount of events that your application
-          needs to function.
-        </Trans>
-      </Text>
       <TextFields>
-        <ReactHookWrappedInput
+        <Input
           required
           autoFocus
           flex
@@ -242,7 +240,7 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
             required: true,
           })}
         />
-        <ReactHookWrappedInput
+        <Input
           required
           autoFocus
           flex
@@ -251,15 +249,22 @@ function WebhookSubscriptionForm({ handleSubmit, webhookSubscription }: Props) {
           label={t("URL")}
           {...register("url", { required: true })}
         />
-        <ReactHookWrappedInput
+        <Input
           flex
-          label={t("Secret") + ` (${t("Optional")})`}
-          placeholder={t("Used to sign payload")}
+          spellCheck={false}
+          label={t("Signing secret")}
           {...register("secret", {
             required: false,
           })}
         />
       </TextFields>
+      <Text type="secondary">
+        <Trans>
+          Subscribe to all events, groups, or individual events. We recommend
+          only subscribing to the minimum amount of events that your application
+          needs to function.
+        </Trans>
+      </Text>
 
       <EventCheckbox label={t("All events")} value="*" />
 

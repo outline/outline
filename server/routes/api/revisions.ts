@@ -6,16 +6,17 @@ import { Document, Revision } from "@server/models";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import { authorize } from "@server/policies";
 import { presentRevision } from "@server/presenters";
+import { APIContext } from "@server/types";
 import slugify from "@server/utils/slugify";
 import { assertPresent, assertSort, assertUuid } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
 const router = new Router();
 
-router.post("revisions.info", auth(), async (ctx) => {
+router.post("revisions.info", auth(), async (ctx: APIContext) => {
   const { id } = ctx.request.body;
   assertUuid(id, "id is required");
-  const { user } = ctx.state;
+  const { user } = ctx.state.auth;
   const revision = await Revision.findByPk(id, {
     rejectOnEmpty: true,
   });
@@ -30,7 +31,7 @@ router.post("revisions.info", auth(), async (ctx) => {
   ctx.body = {
     data: await presentRevision(
       revision,
-      DocumentHelper.diff(before, revision, {
+      await DocumentHelper.diff(before, revision, {
         includeTitle: false,
         includeStyles: false,
       })
@@ -38,11 +39,11 @@ router.post("revisions.info", auth(), async (ctx) => {
   };
 });
 
-router.post("revisions.diff", auth(), async (ctx) => {
+router.post("revisions.diff", auth(), async (ctx: APIContext) => {
   const { id, compareToId } = ctx.request.body;
   assertUuid(id, "id is required");
 
-  const { user } = ctx.state;
+  const { user } = ctx.state.auth;
   const revision = await Revision.findByPk(id, {
     rejectOnEmpty: true,
   });
@@ -73,7 +74,7 @@ router.post("revisions.diff", auth(), async (ctx) => {
   }
 
   const accept = ctx.request.headers["accept"];
-  const content = DocumentHelper.diff(before, revision);
+  const content = await DocumentHelper.diff(before, revision);
 
   if (accept?.includes("text/html")) {
     ctx.set("Content-Type", "text/html");
@@ -92,7 +93,7 @@ router.post("revisions.diff", auth(), async (ctx) => {
   };
 });
 
-router.post("revisions.list", auth(), pagination(), async (ctx) => {
+router.post("revisions.list", auth(), pagination(), async (ctx: APIContext) => {
   let { direction } = ctx.request.body;
   const { documentId, sort = "updatedAt" } = ctx.request.body;
   if (direction !== "ASC") {
@@ -101,7 +102,7 @@ router.post("revisions.list", auth(), pagination(), async (ctx) => {
   assertSort(sort, Revision);
   assertPresent(documentId, "documentId is required");
 
-  const { user } = ctx.state;
+  const { user } = ctx.state.auth;
   const document = await Document.findByPk(documentId, {
     userId: user.id,
   });

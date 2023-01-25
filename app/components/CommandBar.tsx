@@ -11,7 +11,7 @@ import CommandBarResults from "~/components/CommandBarResults";
 import SearchActions from "~/components/SearchActions";
 import rootActions from "~/actions/root";
 import useCommandBarActions from "~/hooks/useCommandBarActions";
-import useSettingsActions from "~/hooks/useSettingsAction";
+import useSettingsActions from "~/hooks/useSettingsActions";
 import useStores from "~/hooks/useStores";
 import { CommandBarAction } from "~/types";
 import { metaDisplay } from "~/utils/keyboard";

@@ -14,7 +14,7 @@ type Props = {
   /** The version of the client editor that was used */
   editorVersion?: string;
   /** The ID of the template that was used */
-  templateId?: string;
+  templateId?: string | null;
   /** If the document should be displayed full-width on the screen */
   fullWidth?: boolean;
   /** Whether the text be appended to the end instead of replace */
@@ -22,7 +22,7 @@ type Props = {
   /** Whether the document should be published to the collection */
   publish?: boolean;
   /** The ID of the collection to publish the document to */
-  collectionId?: string;
+  collectionId?: string | null;
   /** The IP address of the user creating the document */
   ip: string;
   /** The database transaction to run within */

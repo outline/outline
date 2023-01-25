@@ -3,7 +3,7 @@ import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { depths } from "@shared/styles";
 import env from "~/env";
-import OutlineLogo from "./OutlineLogo";
+import OutlineIcon from "./Icons/OutlineIcon";
 
 type Props = {
   href?: string;
@@ -12,8 +12,8 @@ type Props = {
 function Branding({ href = env.URL }: Props) {
   return (
     <Link href={href}>
-      <OutlineLogo size={16} />
-      &nbsp;Outline
+      <OutlineIcon size={20} />
+      &nbsp;{env.APP_NAME}
     </Link>
   );
 }

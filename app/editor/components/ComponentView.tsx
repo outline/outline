@@ -68,6 +68,7 @@ export default class ComponentView {
     const children = this.component({
       theme,
       node: this.node,
+      view: this.view,
       isSelected: this.isSelected,
       isEditable: this.view.editable,
       getPos: this.getPos,

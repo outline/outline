@@ -5,7 +5,6 @@ import { Provider } from "mobx-react";
 import * as React from "react";
 import { render } from "react-dom";
 import { Router } from "react-router-dom";
-import { initI18n } from "@shared/i18n";
 import stores from "~/stores";
 import Analytics from "~/components/Analytics";
 import Dialogs from "~/components/Dialogs";
@@ -15,6 +14,8 @@ import ScrollToTop from "~/components/ScrollToTop";
 import Theme from "~/components/Theme";
 import Toasts from "~/components/Toasts";
 import env from "~/env";
+import { initI18n } from "~/utils/i18n";
+import Desktop from "./components/DesktopEventHandler";
 import LazyPolyfill from "./components/LazyPolyfills";
 import Routes from "./routes";
 import Logger from "./utils/Logger";
@@ -92,6 +93,7 @@ if (element) {
                         </ScrollToTop>
                         <Toasts />
                         <Dialogs />
+                        <Desktop />
                       </>
                     </Router>
                   </LazyMotion>

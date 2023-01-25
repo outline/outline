@@ -1,39 +1,43 @@
 import Router from "koa-router";
 import { WhereOptions } from "sequelize/types";
+import { FileOperationType } from "@shared/types";
 import fileOperationDeleter from "@server/commands/fileOperationDeleter";
 import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { FileOperation, Team } from "@server/models";
-import { FileOperationType } from "@server/models/FileOperation";
 import { authorize } from "@server/policies";
 import { presentFileOperation } from "@server/presenters";
-import { ContextWithState } from "@server/types";
+import { APIContext } from "@server/types";
 import { getSignedUrl } from "@server/utils/s3";
 import { assertIn, assertSort, assertUuid } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
 const router = new Router();
 
-router.post("fileOperations.info", auth({ admin: true }), async (ctx) => {
-  const { id } = ctx.request.body;
-  assertUuid(id, "id is required");
-  const { user } = ctx.state;
-  const fileOperation = await FileOperation.findByPk(id, {
-    rejectOnEmpty: true,
-  });
+router.post(
+  "fileOperations.info",
+  auth({ admin: true }),
+  async (ctx: APIContext) => {
+    const { id } = ctx.request.body;
+    assertUuid(id, "id is required");
+    const { user } = ctx.state.auth;
+    const fileOperation = await FileOperation.findByPk(id, {
+      rejectOnEmpty: true,
+    });
 
-  authorize(user, "read", fileOperation);
+    authorize(user, "read", fileOperation);
 
-  ctx.body = {
-    data: presentFileOperation(fileOperation),
-  };
-});
+    ctx.body = {
+      data: presentFileOperation(fileOperation),
+    };
+  }
+);
 
 router.post(
   "fileOperations.list",
   auth({ admin: true }),
   pagination(),
-  async (ctx) => {
+  async (ctx: APIContext) => {
     let { direction } = ctx.request.body;
     const { sort = "createdAt", type } = ctx.request.body;
     assertIn(type, Object.values(FileOperationType));
@@ -42,7 +46,7 @@ router.post(
     if (direction !== "ASC") {
       direction = "DESC";
     }
-    const { user } = ctx.state;
+    const { user } = ctx.state.auth;
     const where: WhereOptions<FileOperation> = {
       teamId: user.teamId,
       type,
@@ -69,11 +73,11 @@ router.post(
   }
 );
 
-const handleFileOperationsRedirect = async (ctx: ContextWithState) => {
+const handleFileOperationsRedirect = async (ctx: APIContext) => {
   const id = ctx.request.body?.id ?? ctx.request.query?.id;
   assertUuid(id, "id is required");
 
-  const { user } = ctx.state;
+  const { user } = ctx.state.auth;
   const fileOperation = await FileOperation.unscoped().findByPk(id, {
     rejectOnEmpty: true,
   });
@@ -98,21 +102,25 @@ router.post(
   handleFileOperationsRedirect
 );
 
-router.post("fileOperations.delete", auth({ admin: true }), async (ctx) => {
-  const { id } = ctx.request.body;
-  assertUuid(id, "id is required");
+router.post(
+  "fileOperations.delete",
+  auth({ admin: true }),
+  async (ctx: APIContext) => {
+    const { id } = ctx.request.body;
+    assertUuid(id, "id is required");
 
-  const { user } = ctx.state;
-  const fileOperation = await FileOperation.unscoped().findByPk(id, {
-    rejectOnEmpty: true,
-  });
-  authorize(user, "delete", fileOperation);
+    const { user } = ctx.state.auth;
+    const fileOperation = await FileOperation.unscoped().findByPk(id, {
+      rejectOnEmpty: true,
+    });
+    authorize(user, "delete", fileOperation);
 
-  await fileOperationDeleter(fileOperation, user, ctx.request.ip);
+    await fileOperationDeleter(fileOperation, user, ctx.request.ip);
 
-  ctx.body = {
-    success: true,
-  };
-});
+    ctx.body = {
+      success: true,
+    };
+  }
+);
 
 export default router;

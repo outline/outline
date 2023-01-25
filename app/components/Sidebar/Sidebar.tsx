@@ -11,10 +11,12 @@ import useMenuContext from "~/hooks/useMenuContext";
 import usePrevious from "~/hooks/usePrevious";
 import useStores from "~/hooks/useStores";
 import AccountMenu from "~/menus/AccountMenu";
+import { draggableOnDesktop, fadeOnDesktopBackgrounded } from "~/styles";
 import { fadeIn } from "~/styles/animations";
+import Desktop from "~/utils/Desktop";
 import Avatar from "../Avatar";
+import HeaderButton, { HeaderButtonProps } from "./components/HeaderButton";
 import ResizeBorder from "./components/ResizeBorder";
-import SidebarButton, { SidebarButtonProps } from "./components/SidebarButton";
 import Toggle, { ToggleButton, Positioner } from "./components/Toggle";
 
 const ANIMATION_MS = 250;
@@ -35,7 +37,7 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(
     const { user } = auth;
 
     const width = ui.sidebarWidth;
-    const collapsed = (ui.isEditing || ui.sidebarCollapsed) && !isMenuOpen;
+    const collapsed = ui.sidebarIsClosed && !isMenuOpen;
     const maxWidth = theme.sidebarMaxWidth;
     const minWidth = theme.sidebarMinWidth + 16; // padding
 
@@ -170,8 +172,8 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(
 
           {user && (
             <AccountMenu>
-              {(props: SidebarButtonProps) => (
-                <SidebarButton
+              {(props: HeaderButtonProps) => (
+                <HeaderButton
                   {...props}
                   showMoreMenu
                   title={user.name}
@@ -189,9 +191,9 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(
           )}
           <ResizeBorder
             onMouseDown={handleMouseDown}
-            onDoubleClick={ui.sidebarCollapsed ? undefined : handleReset}
+            onDoubleClick={ui.sidebarIsClosed ? undefined : handleReset}
           />
-          {ui.sidebarCollapsed && !ui.isEditing && (
+          {ui.sidebarIsClosed && (
             <Toggle
               onClick={ui.toggleCollapsedSidebar}
               direction={"right"}
@@ -199,14 +201,12 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(
             />
           )}
         </Container>
-        {!ui.isEditing && (
-          <Toggle
-            style={toggleStyle}
-            onClick={ui.toggleCollapsedSidebar}
-            direction={ui.sidebarCollapsed ? "right" : "left"}
-            aria-label={ui.sidebarCollapsed ? t("Expand") : t("Collapse")}
-          />
-        )}
+        <Toggle
+          style={toggleStyle}
+          onClick={ui.toggleCollapsedSidebar}
+          direction={ui.sidebarIsClosed ? "right" : "left"}
+          aria-label={ui.sidebarIsClosed ? t("Expand") : t("Collapse")}
+        />
       </>
     );
   }
@@ -251,6 +251,9 @@ const Container = styled(Flex)<ContainerProps>`
   z-index: ${depths.sidebar};
   max-width: 70%;
   min-width: 280px;
+  padding-top: ${Desktop.hasInsetTitlebar() ? 36 : 0}px;
+  ${draggableOnDesktop()}
+  ${fadeOnDesktopBackgrounded()}
 
   ${Positioner} {
     display: none;
@@ -265,7 +268,9 @@ const Container = styled(Flex)<ContainerProps>`
     margin: 0;
     min-width: 0;
     transform: translateX(${(props: ContainerProps) =>
-      props.$collapsed ? "calc(-100% + 16px)" : 0});
+      props.$collapsed
+        ? `calc(-100% + ${Desktop.hasInsetTitlebar() ? 8 : 16}px)`
+        : 0});
 
     &:hover,
     &:focus-within {

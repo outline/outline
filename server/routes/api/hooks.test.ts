@@ -1,3 +1,4 @@
+import { IntegrationService } from "@shared/types";
 import env from "@server/env";
 import { IntegrationAuthentication, SearchQuery } from "@server/models";
 import { buildDocument, buildIntegration } from "@server/test/factories";
@@ -14,7 +15,7 @@ describe("#hooks.unfurl", () => {
   it("should return documents", async () => {
     const { user, document } = await seed();
     await IntegrationAuthentication.create({
-      service: "slack",
+      service: IntegrationService.Slack,
       userId: user.id,
       teamId: user.teamId,
       token: "",

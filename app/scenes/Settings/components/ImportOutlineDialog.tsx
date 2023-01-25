@@ -1,14 +1,15 @@
-import { observer } from "mobx-react";
 import * as React from "react";
 import { Trans } from "react-i18next";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
+import env from "~/env";
 import useStores from "~/hooks/useStores";
 import DropToImport from "./DropToImport";
 import HelpDisclosure from "./HelpDisclosure";
 
 function ImportOutlineDialog() {
   const { dialogs } = useStores();
+  const appName = env.APP_NAME;
 
   return (
     <Flex column>
@@ -18,8 +19,8 @@ function ImportOutlineDialog() {
           format="outline-markdown"
         >
           <Trans>
-            Drag and drop the zip file from Outline's export option, or click to
-            upload
+            Drag and drop the zip file from the Markdown export option in{" "}
+            {{ appName }}, or click to upload
           </Trans>
         </DropToImport>
       </Text>
@@ -35,4 +36,4 @@ function ImportOutlineDialog() {
   );
 }
 
-export default observer(ImportOutlineDialog);
+export default ImportOutlineDialog;

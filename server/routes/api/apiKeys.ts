@@ -3,44 +3,49 @@ import auth from "@server/middlewares/authentication";
 import { ApiKey, Event } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentApiKey } from "@server/presenters";
+import { APIContext } from "@server/types";
 import { assertUuid, assertPresent } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
 const router = new Router();
 
-router.post("apiKeys.create", auth({ member: true }), async (ctx) => {
-  const { name } = ctx.request.body;
-  assertPresent(name, "name is required");
-  const { user } = ctx.state;
+router.post(
+  "apiKeys.create",
+  auth({ member: true }),
+  async (ctx: APIContext) => {
+    const { name } = ctx.request.body;
+    assertPresent(name, "name is required");
+    const { user } = ctx.state.auth;
 
-  authorize(user, "createApiKey", user.team);
-  const key = await ApiKey.create({
-    name,
-    userId: user.id,
-  });
-
-  await Event.create({
-    name: "api_keys.create",
-    modelId: key.id,
-    teamId: user.teamId,
-    actorId: user.id,
-    data: {
+    authorize(user, "createApiKey", user.team);
+    const key = await ApiKey.create({
       name,
-    },
-    ip: ctx.request.ip,
-  });
+      userId: user.id,
+    });
 
-  ctx.body = {
-    data: presentApiKey(key),
-  };
-});
+    await Event.create({
+      name: "api_keys.create",
+      modelId: key.id,
+      teamId: user.teamId,
+      actorId: user.id,
+      data: {
+        name,
+      },
+      ip: ctx.request.ip,
+    });
+
+    ctx.body = {
+      data: presentApiKey(key),
+    };
+  }
+);
 
 router.post(
   "apiKeys.list",
   auth({ member: true }),
   pagination(),
-  async (ctx) => {
-    const { user } = ctx.state;
+  async (ctx: APIContext) => {
+    const { user } = ctx.state.auth;
     const keys = await ApiKey.findAll({
       where: {
         userId: user.id,
@@ -57,28 +62,32 @@ router.post(
   }
 );
 
-router.post("apiKeys.delete", auth({ member: true }), async (ctx) => {
-  const { id } = ctx.request.body;
-  assertUuid(id, "id is required");
-  const { user } = ctx.state;
-  const key = await ApiKey.findByPk(id);
-  authorize(user, "delete", key);
+router.post(
+  "apiKeys.delete",
+  auth({ member: true }),
+  async (ctx: APIContext) => {
+    const { id } = ctx.request.body;
+    assertUuid(id, "id is required");
+    const { user } = ctx.state.auth;
+    const key = await ApiKey.findByPk(id);
+    authorize(user, "delete", key);
 
-  await key.destroy();
-  await Event.create({
-    name: "api_keys.delete",
-    modelId: key.id,
-    teamId: user.teamId,
-    actorId: user.id,
-    data: {
-      name: key.name,
-    },
-    ip: ctx.request.ip,
-  });
+    await key.destroy();
+    await Event.create({
+      name: "api_keys.delete",
+      modelId: key.id,
+      teamId: user.teamId,
+      actorId: user.id,
+      data: {
+        name: key.name,
+      },
+      ip: ctx.request.ip,
+    });
 
-  ctx.body = {
-    success: true,
-  };
-});
+    ctx.body = {
+      success: true,
+    };
+  }
+);
 
 export default router;

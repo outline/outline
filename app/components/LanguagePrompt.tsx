@@ -6,6 +6,7 @@ import { languages, languageOptions } from "@shared/i18n";
 import ButtonLink from "~/components/ButtonLink";
 import Flex from "~/components/Flex";
 import NoticeTip from "~/components/NoticeTip";
+import env from "~/env";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 import { detectLanguage } from "~/utils/language";
@@ -57,6 +58,7 @@ export default function LanguagePrompt() {
 
   const option = find(languageOptions, (o) => o.value === language);
   const optionLabel = option ? option.label : "";
+  const appName = env.APP_NAME;
 
   return (
     <NoticeTip>
@@ -64,7 +66,7 @@ export default function LanguagePrompt() {
         <LanguageIcon />
         <span>
           <Trans>
-            Outline is available in your language{" "}
+            {{ appName }} is available in your language{" "}
             {{
               optionLabel,
             }}

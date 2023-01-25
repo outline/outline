@@ -1,6 +1,6 @@
 import fetch from "fetch-with-proxy";
 import { Op } from "sequelize";
-import { IntegrationType } from "@shared/types";
+import { IntegrationService, IntegrationType } from "@shared/types";
 import env from "@server/env";
 import { Document, Integration, Collection, Team } from "@server/models";
 import { presentSlackAttachment } from "@server/presenters";
@@ -36,8 +36,8 @@ export default class SlackProcessor extends BaseProcessor {
     const integration = (await Integration.findOne({
       where: {
         id: event.modelId,
-        service: "slack",
-        type: "post",
+        service: IntegrationService.Slack,
+        type: IntegrationType.Post,
       },
       include: [
         {
@@ -62,7 +62,7 @@ export default class SlackProcessor extends BaseProcessor {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        text: `👋 Hey there! When documents are published or updated in the *${collection.name}* collection on Outline they will be posted to this channel!`,
+        text: `👋 Hey there! When documents are published or updated in the *${collection.name}* collection on ${env.APP_NAME} they will be posted to this channel!`,
         attachments: [
           {
             color: collection.color,
@@ -98,8 +98,8 @@ export default class SlackProcessor extends BaseProcessor {
       where: {
         teamId: document.teamId,
         collectionId: document.collectionId,
-        service: "slack",
-        type: "post",
+        service: IntegrationService.Slack,
+        type: IntegrationType.Post,
         events: {
           [Op.contains]: [
             event.name === "revisions.create" ? "documents.update" : event.name,

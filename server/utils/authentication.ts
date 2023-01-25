@@ -2,10 +2,12 @@ import querystring from "querystring";
 import { addMonths } from "date-fns";
 import { Context } from "koa";
 import { pick } from "lodash";
+import { Client } from "@shared/types";
 import { getCookieDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
-import { User, Event, Team, Collection, View } from "@server/models";
+import { Event, Collection, View } from "@server/models";
+import { AuthenticationResult } from "@server/types";
 
 /**
  * Parse and return the details from the "sessions" cookie in the request, if
@@ -27,11 +29,8 @@ export function getSessionsInCookie(ctx: Context) {
 
 export async function signIn(
   ctx: Context,
-  user: User,
-  team: Team,
   service: string,
-  _isNewUser = false,
-  isNewTeam = false
+  { user, team, client, isNewTeam }: AuthenticationResult
 ) {
   if (user.isSuspended) {
     return ctx.redirect("/?notice=suspended");
@@ -74,6 +73,7 @@ export async function signIn(
   });
   const domain = getCookieDomain(ctx.request.hostname);
   const expires = addMonths(new Date(), 3);
+
   // set a cookie for which service we last signed in with. This is
   // only used to display a UI hint for the user for next time
   ctx.cookies.set("lastSignedIn", service, {
@@ -103,7 +103,20 @@ export async function signIn(
       expires,
       domain,
     });
-    ctx.redirect(`${team.url}/auth/redirect?token=${user.getTransferToken()}`);
+
+    // If the authentication request originally came from the desktop app then we send the user
+    // back to a screen in the web app that will immediately redirect to the desktop. The reason
+    // to do this from the client is that if you redirect from the server then the browser ends up
+    // stuck on the SSO screen.
+    if (client === Client.Desktop) {
+      ctx.redirect(
+        `${team.url}/desktop-redirect?token=${user.getTransferToken()}`
+      );
+    } else {
+      ctx.redirect(
+        `${team.url}/auth/redirect?token=${user.getTransferToken()}`
+      );
+    }
   } else {
     ctx.cookies.set("accessToken", user.getJwtToken(), {
       sameSite: true,
@@ -136,6 +149,7 @@ export async function signIn(
       }),
     ]);
     const hasViewedDocuments = !!view;
+
     ctx.redirect(
       !hasViewedDocuments && collection
         ? `${team.url}${collection.url}`

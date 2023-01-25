@@ -2,9 +2,9 @@ import passport from "@outlinewiki/koa-passport";
 import { Context } from "koa";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
+import { AuthenticationResult } from "@server/types";
 import { signIn } from "@server/utils/authentication";
 import { parseState } from "@server/utils/passport";
-import { AccountProvisionerResult } from "../commands/accountProvisioner";
 
 export default function createMiddleware(providerName: string) {
   return function passportMiddleware(ctx: Context) {
@@ -13,7 +13,7 @@ export default function createMiddleware(providerName: string) {
       {
         session: false,
       },
-      async (err, user, result: AccountProvisionerResult) => {
+      async (err, user, result: AuthenticationResult) => {
         if (err) {
           Logger.error("Error during authentication", err);
 
@@ -66,12 +66,10 @@ export default function createMiddleware(providerName: string) {
         if (error && error_description) {
           Logger.error(
             "Error from Azure during authentication",
-            // @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'string | string[]' is not assign... Remove this comment to see the full error message
-            new Error(error_description)
+            new Error(String(error_description))
           );
           // Display only the descriptive message to the user, log the rest
-          // @ts-expect-error ts-migrate(2339) FIXME: Property 'split' does not exist on type 'string | ... Remove this comment to see the full error message
-          const description = error_description.split("Trace ID")[0];
+          const description = String(error_description).split("Trace ID")[0];
           return ctx.redirect(`/?notice=auth-error&description=${description}`);
         }
 
@@ -79,14 +77,7 @@ export default function createMiddleware(providerName: string) {
           return ctx.redirect("/?notice=suspended");
         }
 
-        await signIn(
-          ctx,
-          result.user,
-          result.team,
-          providerName,
-          result.isNewUser,
-          result.isNewTeam
-        );
+        await signIn(ctx, providerName, result);
       }
     )(ctx);
   };

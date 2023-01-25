@@ -7,13 +7,13 @@ import { IntegrationType } from "@shared/types";
 import Collection from "~/models/Collection";
 import Integration from "~/models/Integration";
 import Button from "~/components/Button";
-import CollectionIcon from "~/components/CollectionIcon";
 import Heading from "~/components/Heading";
+import CollectionIcon from "~/components/Icons/CollectionIcon";
+import SlackIcon from "~/components/Icons/SlackIcon";
 import List from "~/components/List";
 import ListItem from "~/components/List/Item";
 import Notice from "~/components/Notice";
 import Scene from "~/components/Scene";
-import SlackIcon from "~/components/SlackIcon";
 import Text from "~/components/Text";
 import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -53,6 +53,8 @@ function Slack() {
     })
     .sort((a) => (a[1] ? -1 : 1));
 
+  const appName = env.APP_NAME;
+
   return (
     <Scene title="Slack" icon={<SlackIcon color="currentColor" />}>
       <Heading>Slack</Heading>
@@ -61,7 +63,7 @@ function Slack() {
         <Notice>
           <Trans>
             Whoops, you need to accept the permissions in Slack to connect
-            Outline to your team. Try again?
+            {{ appName }} to your team. Try again?
           </Trans>
         </Notice>
       )}
@@ -75,9 +77,10 @@ function Slack() {
       )}
       <Text type="secondary">
         <Trans
-          defaults="Get rich previews of Outline links shared in Slack and use the <em>{{ command }}</em> slash command to search for documents without leaving your chat."
+          defaults="Get rich previews of {{ appName }} links shared in Slack and use the <em>{{ command }}</em> slash command to search for documents without leaving your chat."
           values={{
             command: "/outline",
+            appName,
           }}
           components={{
             em: <Code />,
@@ -112,8 +115,8 @@ function Slack() {
           <h2>{t("Collections")}</h2>
           <Text type="secondary">
             <Trans>
-              Connect Outline collections to Slack channels and messages will be
-              automatically posted to Slack when documents are published or
+              Connect {{ appName }} collections to Slack channels. Messages will
+              be automatically posted to Slack when documents are published or
               updated.
             </Trans>
           </Text>

@@ -42,7 +42,7 @@ function InputSearch(
       onBlur={handleBlur}
       margin={0}
       labelHidden
-      innerRef={ref}
+      ref={ref}
       {...rest}
     />
   );

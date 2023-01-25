@@ -63,7 +63,7 @@ type State = {
   selectedIndex: number;
 };
 
-class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
+class CommandMenu<T extends MenuItem> extends React.Component<Props<T>, State> {
   menuRef = React.createRef<HTMLDivElement>();
   inputRef = React.createRef<HTMLInputElement>();
 
@@ -77,10 +77,11 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
   };
 
   componentDidMount() {
+    window.addEventListener("mousedown", this.handleMouseDown);
     window.addEventListener("keydown", this.handleKeyDown);
   }
 
-  shouldComponentUpdate(nextProps: Props, nextState: State) {
+  shouldComponentUpdate(nextProps: Props<T>, nextState: State) {
     return (
       nextProps.search !== this.props.search ||
       nextProps.isActive !== this.props.isActive ||
@@ -88,7 +89,7 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
     );
   }
 
-  componentDidUpdate(prevProps: Props) {
+  componentDidUpdate(prevProps: Props<T>) {
     if (!prevProps.isActive && this.props.isActive) {
       // reset scroll position to top when opening menu as the contents are
       // hidden, not unrendered
@@ -108,8 +109,20 @@ class CommandMenu<T = MenuItem> extends React.Component<Props<T>, State> {
   }
 
   componentWillUnmount() {
+    window.removeEventListener("mousedown", this.handleMouseDown);
     window.removeEventListener("keydown", this.handleKeyDown);
   }
+
+  handleMouseDown = (event: MouseEvent) => {
+    if (
+      !this.menuRef.current ||
+      this.menuRef.current.contains(event.target as Element)
+    ) {
+      return;
+    }
+
+    this.props.onClose();
+  };
 
   handleKeyDown = (event: KeyboardEvent) => {
     if (!this.props.isActive) {
@@ -582,7 +595,7 @@ const LinkInputWrapper = styled.div`
 `;
 
 const LinkInput = styled(Input)`
-  height: 36px;
+  height: 32px;
   width: 100%;
   color: ${(props) => props.theme.textSecondary};
 `;
@@ -591,7 +604,7 @@ const List = styled.ol`
   list-style: none;
   text-align: left;
   height: 100%;
-  padding: 8px 0;
+  padding: 6px;
   margin: 0;
 `;
 
@@ -606,7 +619,7 @@ const Empty = styled.div`
   color: ${(props) => props.theme.textSecondary};
   font-weight: 500;
   font-size: 14px;
-  height: 36px;
+  height: 32px;
   padding: 0 16px;
 `;
 
@@ -637,7 +650,7 @@ export const Wrapper = styled(Scrollable)<{
   box-sizing: border-box;
   pointer-events: none;
   white-space: nowrap;
-  width: 300px;
+  width: 280px;
   height: auto;
   max-height: 324px;
 

@@ -1,6 +1,7 @@
 import { addDays, differenceInDays } from "date-fns";
 import { floor } from "lodash";
 import { action, autorun, computed, observable, set } from "mobx";
+import { ExportContentType } from "@shared/types";
 import parseTitle from "@shared/utils/parseTitle";
 import { isRTL } from "@shared/utils/rtl";
 import DocumentsStore from "~/stores/DocumentsStore";
@@ -22,10 +23,6 @@ type SaveOptions = {
 export default class Document extends ParanoidModel {
   constructor(fields: Record<string, any>, store: DocumentsStore) {
     super(fields, store);
-
-    if (this.isPersistedOnce && this.isFromTemplate) {
-      this.title = "";
-    }
 
     this.embedsDisabled = Storage.get(`embedsDisabled-${this.id}`) ?? false;
 
@@ -423,8 +420,8 @@ export default class Document extends ParanoidModel {
     };
   }
 
-  download = async (contentType: "text/html" | "text/markdown") => {
-    await client.post(
+  download = (contentType: ExportContentType) => {
+    return client.post(
       `/documents.export`,
       {
         id: this.id,

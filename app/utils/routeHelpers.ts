@@ -97,14 +97,16 @@ export function updateDocumentUrl(oldUrl: string, document: Document): string {
 }
 
 export function newDocumentPath(
-  collectionId: string,
+  collectionId?: string,
   params: {
     parentDocumentId?: string;
     templateId?: string;
     template?: boolean;
   } = {}
 ): string {
-  return `/collection/${collectionId}/new?${queryString.stringify(params)}`;
+  return collectionId
+    ? `/collection/${collectionId}/new?${queryString.stringify(params)}`
+    : `/doc/new`;
 }
 
 export function searchPath(

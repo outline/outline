@@ -1,15 +1,18 @@
 import { formatDistanceToNow } from "date-fns";
 import invariant from "invariant";
+import { debounce, isEmpty } from "lodash";
 import { observer } from "mobx-react";
 import { ExpandedIcon, GlobeIcon, PadlockIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
+import { SHARE_URL_SLUG_REGEX } from "@shared/utils/urlHelpers";
 import Document from "~/models/Document";
 import Share from "~/models/Share";
 import Button from "~/components/Button";
 import CopyToClipboard from "~/components/CopyToClipboard";
 import Flex from "~/components/Flex";
+import Input, { StyledText } from "~/components/Input";
 import Notice from "~/components/Notice";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
@@ -40,9 +43,10 @@ function SharePopover({
   const { t } = useTranslation();
   const { shares } = useStores();
   const { showToast } = useToasts();
-  const [isCopied, setIsCopied] = React.useState(false);
   const [expandedOptions, setExpandedOptions] = React.useState(false);
   const [isEditMode, setIsEditMode] = React.useState(false);
+  const [slugValidationError, setSlugValidationError] = React.useState("");
+  const [urlSlug, setUrlSlug] = React.useState("");
   const timeout = React.useRef<ReturnType<typeof setTimeout>>();
   const buttonRef = React.useRef<HTMLButtonElement>(null);
   const can = usePolicy(share ? share.id : "");
@@ -72,6 +76,13 @@ function SharePopover({
 
     return () => (timeout.current ? clearTimeout(timeout.current) : undefined);
   }, [document, visible, team.sharing]);
+
+  React.useEffect(() => {
+    if (!visible) {
+      setUrlSlug(share?.urlId || "");
+      setSlugValidationError("");
+    }
+  }, [share, visible]);
 
   const handlePublishedChange = React.useCallback(
     async (event) => {
@@ -110,9 +121,7 @@ function SharePopover({
   );
 
   const handleCopied = React.useCallback(() => {
-    setIsCopied(true);
     timeout.current = setTimeout(() => {
-      setIsCopied(false);
       onRequestClose();
       showToast(t("Share link copied"), {
         type: "info",
@@ -120,12 +129,46 @@ function SharePopover({
     }, 250);
   }, [t, onRequestClose, showToast]);
 
+  const handleUrlSlugChange = React.useMemo(
+    () =>
+      debounce(async (ev) => {
+        const share = shares.getByDocumentId(document.id);
+        invariant(share, "Share must exist");
+
+        const val = ev.target.value;
+        setUrlSlug(val);
+        if (val && !SHARE_URL_SLUG_REGEX.test(val)) {
+          setSlugValidationError(
+            t("Only lowercase letters, digits and dashes allowed")
+          );
+        } else {
+          setSlugValidationError("");
+          if (share.urlId !== val) {
+            try {
+              await share.save({
+                urlId: isEmpty(val) ? null : val,
+              });
+            } catch (err) {
+              if (err.message.includes("must be unique")) {
+                setSlugValidationError(
+                  t("Sorry, this link has already been used")
+                );
+              }
+            }
+          }
+        }
+      }, 500),
+    [t, document.id, shares]
+  );
+
   const userLocale = useUserLocale();
   const locale = userLocale ? dateLocale(userLocale) : undefined;
   let shareUrl = team.sharing ? share?.url ?? "" : `${team.url}${document.url}`;
   if (isEditMode) {
     shareUrl += "?edit=true";
   }
+
+  const url = shareUrl.replace(/https?:\/\//, "");
 
   return (
     <>
@@ -233,6 +276,27 @@ function SharePopover({
               </SwitchText>
             </SwitchLabel>
           </SwitchWrapper>
+          <Separator />
+          <SwitchWrapper>
+            <Input
+              type="text"
+              label={t("Custom link")}
+              placeholder="a-unique-link"
+              onChange={handleUrlSlugChange}
+              error={slugValidationError}
+              defaultValue={urlSlug}
+            />
+            {!slugValidationError && urlSlug && (
+              <DocumentLinkPreview type="secondary">
+                <Trans>
+                  The document will be accessible at{" "}
+                  <a href={shareUrl} target="_blank" rel="noopener noreferrer">
+                    {{ url }}
+                  </a>
+                </Trans>
+              </DocumentLinkPreview>
+            )}
+          </SwitchWrapper>
         </>
       )}
 
@@ -252,9 +316,8 @@ function SharePopover({
         <CopyToClipboard text={shareUrl} onCopy={handleCopied}>
           <Button
             type="submit"
-            disabled={isCopied || (!share && team.sharing)}
+            disabled={(!share && team.sharing) || slugValidationError}
             ref={buttonRef}
-            primary
           >
             {t("Copy link")}
           </Button>
@@ -300,6 +363,10 @@ const SwitchLabel = styled(Flex)`
 const SwitchText = styled(Text)`
   margin: 0;
   font-size: 15px;
+`;
+
+const DocumentLinkPreview = styled(StyledText)`
+  margin-top: -12px;
 `;
 
 export default observer(SharePopover);

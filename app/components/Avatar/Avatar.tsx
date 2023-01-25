@@ -2,7 +2,6 @@ import * as React from "react";
 import styled from "styled-components";
 import useBoolean from "~/hooks/useBoolean";
 import Initials from "./Initials";
-import placeholder from "./placeholder.png";
 
 export interface IAvatar {
   avatarUrl: string | null;
@@ -29,10 +28,10 @@ function Avatar(props: Props) {
 
   return (
     <Relative>
-      {src ? (
+      {src && !error ? (
         <CircleImg
           onError={handleError}
-          src={error ? placeholder : src}
+          src={src}
           $showBorder={showBorder}
           {...rest}
         />
@@ -54,6 +53,7 @@ Avatar.defaultProps = {
 
 const Relative = styled.div`
   position: relative;
+  flex-shrink: 0;
 `;
 
 const IconWrapper = styled.div`
@@ -73,10 +73,12 @@ const CircleImg = styled.img<{ size: number; $showBorder?: boolean }>`
   width: ${(props) => props.size}px;
   height: ${(props) => props.size}px;
   border-radius: 50%;
-  border: 2px solid
-    ${(props) =>
-      props.$showBorder === false ? "transparent" : props.theme.background};
+  border: ${(props) =>
+    props.$showBorder === false
+      ? "none"
+      : `2px solid ${props.theme.background}`};
   flex-shrink: 0;
+  overflow: hidden;
 `;
 
 export default Avatar;

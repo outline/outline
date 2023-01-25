@@ -1,6 +1,6 @@
 import { S3 } from "aws-sdk";
 import { truncate } from "lodash";
-import { CollectionPermission } from "@shared/types";
+import { CollectionPermission, FileOperationState } from "@shared/types";
 import { CollectionValidation } from "@shared/validations";
 import attachmentCreator from "@server/commands/attachmentCreator";
 import documentCreator from "@server/commands/documentCreator";
@@ -15,7 +15,6 @@ import {
   FileOperation,
   Attachment,
 } from "@server/models";
-import { FileOperationState } from "@server/models/FileOperation";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
 type Props = {

@@ -1,4 +1,5 @@
 import * as React from "react";
+import { Client } from "@shared/types";
 import env from "@server/env";
 import logger from "@server/logging/Logger";
 import BaseEmail from "./BaseEmail";
@@ -14,6 +15,7 @@ type Props = {
   to: string;
   token: string;
   teamUrl: string;
+  client: Client;
 };
 
 /**
@@ -25,23 +27,23 @@ export default class SigninEmail extends BaseEmail<Props> {
   }
 
   protected preview(): string {
-    return "Here’s your link to signin to Outline.";
+    return `Here’s your link to signin to ${env.APP_NAME}.`;
   }
 
-  protected renderAsText({ token, teamUrl }: Props): string {
+  protected renderAsText({ token, teamUrl, client }: Props): string {
     return `
-Use the link below to signin to Outline:
+Use the link below to signin to ${env.APP_NAME}:
 
-${this.signinLink(token)}
+${this.signinLink(token, client)}
 
 If your magic link expired you can request a new one from your team’s
 signin page at: ${teamUrl}
 `;
   }
 
-  protected render({ token, teamUrl }: Props) {
+  protected render({ token, client, teamUrl }: Props) {
     if (env.ENVIRONMENT === "development") {
-      logger.debug("email", `Sign-In link: ${this.signinLink(token)}`);
+      logger.debug("email", `Sign-In link: ${this.signinLink(token, client)}`);
     }
 
     return (
@@ -50,10 +52,10 @@ signin page at: ${teamUrl}
 
         <Body>
           <Heading>Magic Sign-in Link</Heading>
-          <p>Click the button below to sign in to Outline.</p>
+          <p>Click the button below to sign in to {env.APP_NAME}.</p>
           <EmptySpace height={10} />
           <p>
-            <Button href={this.signinLink(token)}>Sign In</Button>
+            <Button href={this.signinLink(token, client)}>Sign In</Button>
           </p>
           <EmptySpace height={10} />
           <p>
@@ -67,7 +69,7 @@ signin page at: ${teamUrl}
     );
   }
 
-  private signinLink(token: string): string {
-    return `${env.URL}/auth/email.callback?token=${token}`;
+  private signinLink(token: string, client: Client): string {
+    return `${env.URL}/auth/email.callback?token=${token}&client=${client}`;
   }
 }

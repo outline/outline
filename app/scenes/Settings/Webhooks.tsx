@@ -11,6 +11,7 @@ import PaginatedList from "~/components/PaginatedList";
 import Scene from "~/components/Scene";
 import Subheading from "~/components/Subheading";
 import Text from "~/components/Text";
+import env from "~/env";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
@@ -24,6 +25,7 @@ function Webhooks() {
   const { webhookSubscriptions } = useStores();
   const [newModalOpen, handleNewModalOpen, handleNewModalClose] = useBoolean();
   const can = usePolicy(team);
+  const appName = env.APP_NAME;
 
   return (
     <Scene
@@ -45,7 +47,11 @@ function Webhooks() {
     >
       <Heading>{t("Webhooks")}</Heading>
       <Text type="secondary">
-        <Trans defaults="Webhooks can be used to notify your application when events happen in Outline. Events are sent as a https request with a JSON payload in near real-time." />
+        <Trans>
+          Webhooks can be used to notify your application when events happen in{" "}
+          {{ appName }}. Events are sent as a https request with a JSON payload
+          in near real-time.
+        </Trans>
       </Text>
       <PaginatedList
         fetch={webhookSubscriptions.fetchPage}

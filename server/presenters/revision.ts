@@ -1,8 +1,10 @@
+import { traceFunction } from "@server/logging/tracing";
 import { Revision } from "@server/models";
 import presentUser from "./user";
 
-export default async function present(revision: Revision, diff?: string) {
+async function presentRevision(revision: Revision, diff?: string) {
   await revision.migrateVersion();
+
   return {
     id: revision.id,
     documentId: revision.documentId,
@@ -13,3 +15,7 @@ export default async function present(revision: Revision, diff?: string) {
     createdBy: presentUser(revision.user),
   };
 }
+
+export default traceFunction({
+  spanName: "presenters",
+})(presentRevision);

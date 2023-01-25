@@ -340,6 +340,14 @@ function KeyboardShortcuts() {
             label: t("Code block"),
           },
           {
+            shortcut: (
+              <>
+                <Key>$$</Key> <Key>Space</Key>
+              </>
+            ),
+            label: t("LaTeX block"),
+          },
+          {
             shortcut: <Key>{":::"}</Key>,
             label: t("Info notice"),
           },
@@ -358,6 +366,10 @@ function KeyboardShortcuts() {
           {
             shortcut: "`code`",
             label: t("Inline code"),
+          },
+          {
+            shortcut: "$latex$",
+            label: t("Inline LaTeX"),
           },
           {
             shortcut: "==highlight==",

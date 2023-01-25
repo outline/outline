@@ -7,6 +7,7 @@ import {
   presentAuthenticationProvider,
   presentPolicies,
 } from "@server/presenters";
+import { APIContext } from "@server/types";
 import { assertUuid, assertPresent } from "@server/validation";
 import allAuthenticationProviders from "../auth/providers";
 
@@ -15,11 +16,11 @@ const router = new Router();
 router.post(
   "authenticationProviders.info",
   auth({ admin: true }),
-  async (ctx) => {
+  async (ctx: APIContext) => {
     const { id } = ctx.request.body;
     assertUuid(id, "id is required");
 
-    const { user } = ctx.state;
+    const { user } = ctx.state.auth;
     const authenticationProvider = await AuthenticationProvider.findByPk(id);
     authorize(user, "read", authenticationProvider);
 
@@ -33,11 +34,11 @@ router.post(
 router.post(
   "authenticationProviders.update",
   auth({ admin: true }),
-  async (ctx) => {
+  async (ctx: APIContext) => {
     const { id, isEnabled } = ctx.request.body;
     assertUuid(id, "id is required");
     assertPresent(isEnabled, "isEnabled is required");
-    const { user } = ctx.state;
+    const { user } = ctx.state.auth;
 
     const authenticationProvider = await sequelize.transaction(
       async (transaction) => {
@@ -86,8 +87,8 @@ router.post(
 router.post(
   "authenticationProviders.list",
   auth({ admin: true }),
-  async (ctx) => {
-    const { user } = ctx.state;
+  async (ctx: APIContext) => {
+    const { user } = ctx.state.auth;
     authorize(user, "read", user.team);
 
     const teamAuthenticationProviders = (await user.team.$get(

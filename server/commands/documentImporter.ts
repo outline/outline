@@ -7,7 +7,7 @@ import { Transaction } from "sequelize";
 import utf8 from "utf8";
 import parseTitle from "@shared/utils/parseTitle";
 import { DocumentValidation } from "@shared/validations";
-import { APM } from "@server/logging/tracing";
+import { traceFunction } from "@server/logging/tracing";
 import { User } from "@server/models";
 import dataURItoBuffer from "@server/utils/dataURItoBuffer";
 import parseImages from "@server/utils/parseImages";
@@ -229,7 +229,6 @@ async function documentImporter({
   };
 }
 
-export default APM.traceFunction({
-  serviceName: "command",
+export default traceFunction({
   spanName: "documentImporter",
 })(documentImporter);

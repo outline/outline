@@ -8,11 +8,13 @@ type Membership = {
   permission: CollectionPermission;
 };
 
-export default (membership: CollectionGroup): Membership => {
+export default function presentCollectionGroupMembership(
+  membership: CollectionGroup
+): Membership {
   return {
     id: `${membership.groupId}-${membership.collectionId}`,
     groupId: membership.groupId,
     collectionId: membership.collectionId,
     permission: membership.permission,
   };
-};
+}

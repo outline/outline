@@ -5,7 +5,9 @@ import { Server } from "@hocuspocus/server";
 import Koa from "koa";
 import WebSocket from "ws";
 import { DocumentValidation } from "@shared/validations";
+import { ConnectionLimitExtension } from "@server/collaboration/ConnectionLimitExtension";
 import Logger from "@server/logging/Logger";
+import ShutdownHelper, { ShutdownOrder } from "@server/utils/ShutdownHelper";
 import AuthenticationExtension from "../collaboration/AuthenticationExtension";
 import LoggerExtension from "../collaboration/LoggerExtension";
 import MetricsExtension from "../collaboration/MetricsExtension";
@@ -27,6 +29,7 @@ export default function init(
     timeout: 30000,
     maxDebounce: 10000,
     extensions: [
+      new ConnectionLimitExtension(),
       new AuthenticationExtension(),
       new PersistenceExtension(),
       new LoggerExtension(),
@@ -79,7 +82,7 @@ export default function init(
     socket.end(`HTTP/1.1 400 Bad Request\r\n`);
   });
 
-  server.on("shutdown", () => {
-    return hocuspocus.destroy();
-  });
+  ShutdownHelper.add("collaboration", ShutdownOrder.normal, () =>
+    hocuspocus.destroy()
+  );
 }

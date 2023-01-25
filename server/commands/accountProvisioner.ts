@@ -5,7 +5,7 @@ import {
   InvalidAuthenticationError,
   AuthenticationProviderDisabledError,
 } from "@server/errors";
-import { APM } from "@server/logging/tracing";
+import { traceFunction } from "@server/logging/tracing";
 import { AuthenticationProvider, Collection, Team, User } from "@server/models";
 import teamProvisioner from "./teamProvisioner";
 import userProvisioner from "./userProvisioner";
@@ -184,7 +184,6 @@ async function accountProvisioner({
   }
 }
 
-export default APM.traceFunction({
-  serviceName: "command",
+export default traceFunction({
   spanName: "accountProvisioner",
 })(accountProvisioner);

@@ -1,16 +1,18 @@
 import Router from "koa-router";
+import { isUndefined } from "lodash";
 import { Op, WhereOptions } from "sequelize";
 import { NotFoundError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { Document, User, Event, Share, Team, Collection } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentShare, presentPolicies } from "@server/presenters";
+import { APIContext } from "@server/types";
 import { assertUuid, assertSort, assertPresent } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
 const router = new Router();
 
-router.post("shares.info", auth(), async (ctx) => {
+router.post("shares.info", auth(), async (ctx: APIContext) => {
   const { id, documentId } = ctx.request.body;
   assertPresent(id || documentId, "id or documentId is required");
   if (id) {
@@ -20,7 +22,7 @@ router.post("shares.info", auth(), async (ctx) => {
     assertUuid(documentId, "documentId is must be a uuid");
   }
 
-  const { user } = ctx.state;
+  const { user } = ctx.state.auth;
   const shares = [];
   const share = await Share.scope({
     method: ["withCollectionPermissions", user.id],
@@ -91,7 +93,7 @@ router.post("shares.info", auth(), async (ctx) => {
   };
 });
 
-router.post("shares.list", auth(), pagination(), async (ctx) => {
+router.post("shares.list", auth(), pagination(), async (ctx: APIContext) => {
   let { direction } = ctx.request.body;
   const { sort = "updatedAt" } = ctx.request.body;
   if (direction !== "ASC") {
@@ -99,7 +101,7 @@ router.post("shares.list", auth(), pagination(), async (ctx) => {
   }
   assertSort(sort, Share);
 
-  const { user } = ctx.state;
+  const { user } = ctx.state.auth;
   const where: WhereOptions<Share> = {
     teamId: user.teamId,
     userId: user.id,
@@ -161,11 +163,11 @@ router.post("shares.list", auth(), pagination(), async (ctx) => {
   };
 });
 
-router.post("shares.update", auth(), async (ctx) => {
-  const { id, includeChildDocuments, published } = ctx.request.body;
+router.post("shares.update", auth(), async (ctx: APIContext) => {
+  const { id, includeChildDocuments, published, urlId } = ctx.request.body;
   assertUuid(id, "id is required");
 
-  const { user } = ctx.state;
+  const { user } = ctx.state.auth;
   const team = await Team.findByPk(user.teamId);
   authorize(user, "share", team);
 
@@ -191,6 +193,10 @@ router.post("shares.update", auth(), async (ctx) => {
     share.includeChildDocuments = includeChildDocuments;
   }
 
+  if (!isUndefined(urlId)) {
+    share.urlId = urlId;
+  }
+
   await share.save();
   await Event.create({
     name: "shares.update",
@@ -210,11 +216,11 @@ router.post("shares.update", auth(), async (ctx) => {
   };
 });
 
-router.post("shares.create", auth(), async (ctx) => {
+router.post("shares.create", auth(), async (ctx: APIContext) => {
   const { documentId } = ctx.request.body;
   assertPresent(documentId, "documentId is required");
 
-  const { user } = ctx.state;
+  const { user } = ctx.state.auth;
   const document = await Document.findByPk(documentId, {
     userId: user.id,
   });
@@ -262,11 +268,11 @@ router.post("shares.create", auth(), async (ctx) => {
   };
 });
 
-router.post("shares.revoke", auth(), async (ctx) => {
+router.post("shares.revoke", auth(), async (ctx: APIContext) => {
   const { id } = ctx.request.body;
   assertUuid(id, "id is required");
 
-  const { user } = ctx.state;
+  const { user } = ctx.state.auth;
   const share = await Share.findByPk(id);
 
   if (!share?.document) {

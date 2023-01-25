@@ -3,11 +3,12 @@ import chalk from "chalk";
 import { isEmpty } from "lodash";
 import winston from "winston";
 import env from "@server/env";
-import Metrics from "@server/logging/metrics";
+import Metrics from "@server/logging/Metrics";
 import Sentry from "@server/logging/sentry";
-import * as Tracing from "./tracing";
+import * as Tracing from "./tracer";
 
 const isProduction = env.ENVIRONMENT === "production";
+const isDev = env.ENVIRONMENT === "development";
 
 type LogCategory =
   | "lifecycle"
@@ -28,7 +29,9 @@ class Logger {
   output: winston.Logger;
 
   constructor() {
-    this.output = winston.createLogger();
+    this.output = winston.createLogger({
+      level: isDev ? "debug" : "info",
+    });
     this.output.add(
       new winston.transports.Console({
         format: isProduction

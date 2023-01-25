@@ -7,6 +7,7 @@ import {
   InsertRightIcon,
 } from "outline-icons";
 import { EditorState } from "prosemirror-state";
+import * as React from "react";
 import isNodeActive from "@shared/editor/queries/isNodeActive";
 import { MenuItem } from "@shared/editor/types";
 import { Dictionary } from "~/hooks/useDictionary";
@@ -23,7 +24,7 @@ export default function tableColMenuItems(
     {
       name: "setColumnAttr",
       tooltip: dictionary.alignLeft,
-      icon: AlignLeftIcon,
+      icon: <AlignLeftIcon />,
       attrs: { index, alignment: "left" },
       active: isNodeActive(schema.nodes.th, {
         colspan: 1,
@@ -34,7 +35,7 @@ export default function tableColMenuItems(
     {
       name: "setColumnAttr",
       tooltip: dictionary.alignCenter,
-      icon: AlignCenterIcon,
+      icon: <AlignCenterIcon />,
       attrs: { index, alignment: "center" },
       active: isNodeActive(schema.nodes.th, {
         colspan: 1,
@@ -45,7 +46,7 @@ export default function tableColMenuItems(
     {
       name: "setColumnAttr",
       tooltip: dictionary.alignRight,
-      icon: AlignRightIcon,
+      icon: <AlignRightIcon />,
       attrs: { index, alignment: "right" },
       active: isNodeActive(schema.nodes.th, {
         colspan: 1,
@@ -59,13 +60,13 @@ export default function tableColMenuItems(
     {
       name: rtl ? "addColumnAfter" : "addColumnBefore",
       tooltip: rtl ? dictionary.addColumnAfter : dictionary.addColumnBefore,
-      icon: InsertLeftIcon,
+      icon: <InsertLeftIcon />,
       active: () => false,
     },
     {
       name: rtl ? "addColumnBefore" : "addColumnAfter",
       tooltip: rtl ? dictionary.addColumnBefore : dictionary.addColumnAfter,
-      icon: InsertRightIcon,
+      icon: <InsertRightIcon />,
       active: () => false,
     },
     {
@@ -74,7 +75,7 @@ export default function tableColMenuItems(
     {
       name: "deleteColumn",
       tooltip: dictionary.deleteColumn,
-      icon: TrashIcon,
+      icon: <TrashIcon />,
       active: () => false,
     },
   ];

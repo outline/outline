@@ -1,6 +1,6 @@
 import Group from "@server/models/Group";
 
-export default function present(group: Group) {
+export default function presentGroup(group: Group) {
   return {
     id: group.id,
     name: group.name,

@@ -20,15 +20,20 @@ import {
   ShuffleIcon,
   HistoryIcon,
   LightBulbIcon,
+  UnpublishIcon,
+  PublishIcon,
 } from "outline-icons";
 import * as React from "react";
+import { ExportContentType } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import DocumentDelete from "~/scenes/DocumentDelete";
 import DocumentMove from "~/scenes/DocumentMove";
 import DocumentPermanentDelete from "~/scenes/DocumentPermanentDelete";
+import DocumentPublish from "~/scenes/DocumentPublish";
 import DocumentTemplatizeDialog from "~/components/DocumentTemplatizeDialog";
 import { createAction } from "~/actions";
 import { DocumentSection } from "~/actions/sections";
+import env from "~/env";
 import history from "~/utils/history";
 import {
   documentInsightsUrl,
@@ -67,11 +72,9 @@ export const createDocument = createAction({
   section: DocumentSection,
   icon: <NewDocumentIcon />,
   keywords: "create",
-  visible: ({ activeCollectionId, stores }) =>
-    !!activeCollectionId &&
-    stores.policies.abilities(activeCollectionId).update,
+  visible: ({ currentTeamId, stores }) =>
+    !!currentTeamId && stores.policies.abilities(currentTeamId).createDocument,
   perform: ({ activeCollectionId, inStarredSection }) =>
-    activeCollectionId &&
     history.push(newDocumentPath(activeCollectionId), {
       starred: inStarredSection,
     }),
@@ -123,6 +126,71 @@ export const unstarDocument = createAction({
 
     const document = stores.documents.get(activeDocumentId);
     document?.unstar();
+  },
+});
+
+export const publishDocument = createAction({
+  name: ({ t }) => t("Publish"),
+  section: DocumentSection,
+  icon: <PublishIcon />,
+  visible: ({ activeDocumentId, stores }) => {
+    if (!activeDocumentId) {
+      return false;
+    }
+    const document = stores.documents.get(activeDocumentId);
+    return (
+      !!document?.isDraft && stores.policies.abilities(activeDocumentId).update
+    );
+  },
+  perform: async ({ activeDocumentId, stores, t }) => {
+    if (!activeDocumentId) {
+      return;
+    }
+
+    const document = stores.documents.get(activeDocumentId);
+    if (document?.publishedAt) {
+      return;
+    }
+
+    if (document?.collectionId) {
+      await document.save({
+        publish: true,
+      });
+      stores.toasts.showToast(t("Document published"), {
+        type: "success",
+      });
+    } else if (document) {
+      stores.dialogs.openModal({
+        title: t("Publish document"),
+        isCentered: true,
+        content: <DocumentPublish document={document} />,
+      });
+    }
+  },
+});
+
+export const unpublishDocument = createAction({
+  name: ({ t }) => t("Unpublish"),
+  section: DocumentSection,
+  icon: <UnpublishIcon />,
+  visible: ({ activeDocumentId, stores }) => {
+    if (!activeDocumentId) {
+      return false;
+    }
+    return stores.policies.abilities(activeDocumentId).unpublish;
+  },
+  perform: ({ activeDocumentId, stores, t }) => {
+    if (!activeDocumentId) {
+      return;
+    }
+
+    const document = stores.documents.get(activeDocumentId);
+
+    document?.unpublish();
+
+    stores.toasts.showToast(t("Document unpublished"), {
+      type: "success",
+    });
   },
 });
 
@@ -202,7 +270,34 @@ export const downloadDocumentAsHTML = createAction({
     }
 
     const document = stores.documents.get(activeDocumentId);
-    document?.download("text/html");
+    document?.download(ExportContentType.Html);
+  },
+});
+
+export const downloadDocumentAsPDF = createAction({
+  name: ({ t }) => t("PDF"),
+  section: DocumentSection,
+  keywords: "export",
+  icon: <DownloadIcon />,
+  iconInContextMenu: false,
+  visible: ({ activeDocumentId, stores }) =>
+    !!activeDocumentId &&
+    stores.policies.abilities(activeDocumentId).download &&
+    env.PDF_EXPORT_ENABLED,
+  perform: ({ activeDocumentId, t, stores }) => {
+    if (!activeDocumentId) {
+      return;
+    }
+
+    const id = stores.toasts.showToast(`${t("Exporting")}…`, {
+      type: "loading",
+      timeout: 30 * 1000,
+    });
+
+    const document = stores.documents.get(activeDocumentId);
+    document
+      ?.download(ExportContentType.Pdf)
+      .finally(() => id && stores.toasts.hideToast(id));
   },
 });
 
@@ -220,7 +315,7 @@ export const downloadDocumentAsMarkdown = createAction({
     }
 
     const document = stores.documents.get(activeDocumentId);
-    document?.download("text/markdown");
+    document?.download(ExportContentType.Markdown);
   },
 });
 
@@ -230,7 +325,11 @@ export const downloadDocument = createAction({
   section: DocumentSection,
   icon: <DownloadIcon />,
   keywords: "export",
-  children: [downloadDocumentAsHTML, downloadDocumentAsMarkdown],
+  children: [
+    downloadDocumentAsHTML,
+    downloadDocumentAsPDF,
+    downloadDocumentAsMarkdown,
+  ],
 });
 
 export const duplicateDocument = createAction({
@@ -262,7 +361,17 @@ export const duplicateDocument = createAction({
  * of the collection for all collection members to see.
  */
 export const pinDocumentToCollection = createAction({
-  name: ({ t }) => t("Pin to collection"),
+  name: ({ activeDocumentId = "", t, stores }) => {
+    const selectedDocument = stores.documents.get(activeDocumentId);
+    const collectionName = selectedDocument
+      ? stores.documents.getCollectionForDocument(selectedDocument)?.name
+      : t("collection");
+
+    return t("Pin to {{collectionName}}", {
+      collectionName,
+    });
+  },
+
   section: DocumentSection,
   icon: <PinIcon />,
   iconInContextMenu: false,
@@ -339,7 +448,7 @@ export const printDocument = createAction({
     isContextMenu ? t("Print") : t("Print document"),
   section: DocumentSection,
   icon: <PrintIcon />,
-  visible: ({ activeDocumentId }) => !!activeDocumentId,
+  visible: ({ activeDocumentId }) => !!(activeDocumentId && window.print),
   perform: async () => {
     window.print();
   },
@@ -629,6 +738,8 @@ export const rootDocumentActions = [
   downloadDocument,
   starDocument,
   unstarDocument,
+  publishDocument,
+  unpublishDocument,
   subscribeDocument,
   unsubscribeDocument,
   duplicateDocument,

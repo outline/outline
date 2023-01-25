@@ -2,6 +2,37 @@ export type Role = "admin" | "viewer" | "member";
 
 export type DateFilter = "day" | "week" | "month" | "year";
 
+export enum Client {
+  Web = "web",
+  Desktop = "desktop",
+}
+
+export enum ExportContentType {
+  Markdown = "text/markdown",
+  Html = "text/html",
+  Pdf = "application/pdf",
+}
+
+export enum FileOperationFormat {
+  MarkdownZip = "outline-markdown",
+  HTMLZip = "html",
+  PDFZip = "pdf",
+  Notion = "notion",
+}
+
+export enum FileOperationType {
+  Import = "import",
+  Export = "export",
+}
+
+export enum FileOperationState {
+  Creating = "creating",
+  Uploading = "uploading",
+  Complete = "complete",
+  Error = "error",
+  Expired = "expired",
+}
+
 export type PublicEnv = {
   URL: string;
   CDN_URL: string;
@@ -17,15 +48,34 @@ export type PublicEnv = {
   MAXIMUM_IMPORT_SIZE: number;
   SUBDOMAINS_ENABLED: boolean;
   EMAIL_ENABLED: boolean;
+  PDF_EXPORT_ENABLED: boolean;
   DEFAULT_LANGUAGE: string;
   GOOGLE_ANALYTICS_ID: string | undefined;
   RELEASE: string | undefined;
+  APP_NAME: string;
+  analytics: {
+    service?: IntegrationService;
+    settings?: IntegrationSettings<IntegrationType.Analytics>;
+  };
 };
+
+export enum AttachmentPreset {
+  DocumentAttachment = "documentAttachment",
+  Import = "import",
+  Avatar = "avatar",
+}
 
 export enum IntegrationType {
   Post = "post",
   Command = "command",
   Embed = "embed",
+  Analytics = "analytics",
+}
+
+export enum IntegrationService {
+  Diagrams = "diagrams",
+  Slack = "slack",
+  GoogleAnalytics = "google-analytics",
 }
 
 export enum CollectionPermission {
@@ -35,6 +85,8 @@ export enum CollectionPermission {
 
 export type IntegrationSettings<T> = T extends IntegrationType.Embed
   ? { url: string }
+  : T extends IntegrationType.Analytics
+  ? { measurementId: string }
   : T extends IntegrationType.Post
   ? { url: string; channel: string; channelId: string }
   : T extends IntegrationType.Post
@@ -42,7 +94,8 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
   :
       | { url: string }
       | { url: string; channel: string; channelId: string }
-      | { serviceTeamId: string };
+      | { serviceTeamId: string }
+      | { measurementId: string };
 
 export enum UserPreference {
   /** Whether reopening the app should redirect to the last viewed document. */
