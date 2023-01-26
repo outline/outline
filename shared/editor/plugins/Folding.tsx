@@ -1,6 +1,7 @@
 import { Plugin } from "prosemirror-state";
 import { findBlockNodes } from "prosemirror-utils";
 import { Decoration, DecorationSet } from "prosemirror-view";
+import Storage from "../../utils/Storage";
 import Extension from "../lib/Extension";
 import { headingToPersistenceKey } from "../lib/headingToSlug";
 import findCollapsedNodes from "../queries/findCollapsedNodes";
@@ -40,7 +41,7 @@ export default class Folding extends Extension {
                 block.node,
                 this.editor.props.id
               );
-              const persistedState = localStorage?.getItem(persistKey);
+              const persistedState = Storage.get(persistKey);
 
               if (persistedState === "collapsed") {
                 tr.setNodeMarkup(block.pos, undefined, {
