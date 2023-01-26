@@ -59,6 +59,19 @@ const uploadPlugin = (options: Options) =>
             return false;
           }
 
+          // When copying from Microsoft Office product the clipboard contains
+          // an image version of the content, check if there is also text and
+          // use that instead in this scenario.
+          const html = event.clipboardData.getData("text/html");
+          const text = event.clipboardData.getData("text/plain");
+          const isMicrosoftOffice = html.includes(
+            "urn:schemas-microsoft-com:office"
+          );
+          if (text.length && isMicrosoftOffice) {
+            // Fallback to default paste behavior
+            return false;
+          }
+
           const { tr } = view.state;
           if (!tr.selection.empty) {
             tr.deleteSelection();
