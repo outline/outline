@@ -94,7 +94,7 @@ function getDecorations({
     let startPos = block.pos + 1;
     const language = block.node.attrs.language;
     const isExcluded = EXCLUDED_LANGUAGES.includes(language);
-    if (!language || language === "none" || isExcluded) {
+    if (!language || isExcluded) {
       return;
     }
 
