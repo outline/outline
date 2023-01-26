@@ -11,6 +11,7 @@ import breakpoint from "styled-components-breakpoint";
 import { NavigationNode } from "@shared/types";
 import parseTitle from "@shared/utils/parseTitle";
 import DocumentExplorerNode from "~/components/DocumentExplorerNode";
+import DocumentExplorerSearchResult from "~/components/DocumentExplorerSearchResult";
 import Flex from "~/components/Flex";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import EmojiIcon from "~/components/Icons/EmojiIcon";
@@ -197,7 +198,23 @@ function DocumentExplorer({ actionOnItem, onSelectItem }: Props) {
         .join(" / ");
     }
 
-    return (
+    return searchTerm ? (
+      <DocumentExplorerSearchResult
+        selected={isSelected(index)}
+        active={activeNode === index}
+        style={{
+          ...style,
+          top: (style.top as number) + VERTICAL_PADDING,
+          left: (style.left as number) + HORIZONTAL_PADDING,
+          width: `calc(${style.width} - ${HORIZONTAL_PADDING * 2}px)`,
+        }}
+        onPointerMove={() => setActiveNode(index)}
+        onClick={() => toggleSelect(index)}
+        icon={icon}
+        title={title}
+        path={path}
+      />
+    ) : (
       <DocumentExplorerNode
         style={{
           ...style,
@@ -216,10 +233,8 @@ function DocumentExplorer({ actionOnItem, onSelectItem }: Props) {
         expanded={isExpanded(index)}
         icon={icon}
         title={title}
-        path={path}
         nestLevel={node.depth as number}
         hasChildren={node.children.length > 0}
-        isSearchResult={!!searchTerm}
       />
     );
   };

@@ -12,11 +12,9 @@ type Props = {
   selected: boolean;
   active: boolean;
   style: React.CSSProperties;
-  isSearchResult: boolean;
   expanded: boolean;
   icon?: React.ReactNode;
   title: string;
-  path?: string;
   nestLevel: number;
   hasChildren: boolean;
 
@@ -25,20 +23,18 @@ type Props = {
   onClick: (ev: React.MouseEvent) => void;
 };
 
-function PublishLocation({
+function DocumentExplorerNode({
   selected,
   active,
   style,
-  isSearchResult,
   expanded,
+  icon,
+  title,
+  nestLevel,
+  hasChildren,
   onDisclosureClick,
   onPointerMove,
   onClick,
-  icon,
-  title,
-  path,
-  nestLevel,
-  hasChildren,
 }: Props) {
   const { t } = useTranslation();
   const OFFSET = 12;
@@ -60,7 +56,7 @@ function PublishLocation({
   );
 
   return (
-    <Row
+    <Node
       ref={ref}
       selected={selected}
       active={active}
@@ -69,43 +65,27 @@ function PublishLocation({
       onPointerMove={onPointerMove}
       role="option"
     >
-      {!isSearchResult && (
-        <Spacer width={width}>
-          {hasChildren && (
-            <StyledDisclosure
-              expanded={expanded}
-              onClick={onDisclosureClick}
-              tabIndex={-1}
-            />
-          )}
-        </Spacer>
-      )}
+      <Spacer width={width}>
+        {hasChildren && (
+          <StyledDisclosure
+            expanded={expanded}
+            onClick={onDisclosureClick}
+            tabIndex={-1}
+          />
+        )}
+      </Spacer>
       {icon}
       <Title>{title || t("Untitled")}</Title>
-      {isSearchResult && path && (
-        <Path $selected={selected} size="xsmall">
-          {path}
-        </Path>
-      )}
-    </Row>
+    </Node>
   );
 }
 
 const Title = styled(Text)`
   white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
   margin: 0 4px 0 4px;
   color: inherit;
-`;
-
-const Path = styled(Text)<{ $selected: boolean }>`
-  padding-top: 3px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin: 0 4px 0 8px;
-  color: ${(props) =>
-    props.$selected ? props.theme.white50 : props.theme.textTertiary};
 `;
 
 const StyledDisclosure = styled(Disclosure)`
@@ -120,7 +100,7 @@ const Spacer = styled(Flex)<{ width: number }>`
   width: ${(props) => props.width}px;
 `;
 
-const Row = styled.span<{
+export const Node = styled.span<{
   active: boolean;
   selected: boolean;
   style: React.CSSProperties;
@@ -162,4 +142,4 @@ const Row = styled.span<{
   `}
 `;
 
-export default observer(PublishLocation);
+export default observer(DocumentExplorerNode);
