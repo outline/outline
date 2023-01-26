@@ -47,7 +47,7 @@ export const LANGUAGES = {
 };
 
 // Languages that are not supported by refractor or are specially handled
-const EXCLUDED_LANGUAGES = ["mermaidjs"];
+const EXCLUDED_LANGUAGES = ["mermaidjs", "none"];
 
 type ParsedNode = {
   text: string;
