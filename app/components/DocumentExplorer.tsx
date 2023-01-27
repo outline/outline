@@ -1,5 +1,5 @@
 import FuzzySearch from "fuzzy-search";
-import { includes, difference, concat, filter, flatten } from "lodash";
+import { includes, difference, concat, filter } from "lodash";
 import { observer } from "mobx-react";
 import { StarredIcon, DocumentIcon } from "outline-icons";
 import * as React from "react";
@@ -18,11 +18,10 @@ import EmojiIcon from "~/components/Icons/EmojiIcon";
 import { Outline } from "~/components/Input";
 import InputSearch from "~/components/InputSearch";
 import Text from "~/components/Text";
-import useCollectionTrees from "~/hooks/useCollectionTrees";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 import { isModKey } from "~/utils/keyboard";
-import { flattenTree, ancestors, descendants } from "~/utils/tree";
+import { ancestors, descendants } from "~/utils/tree";
 
 type Props = {
   /** Action taken upon submission of selected item, could be publish, move etc. */
@@ -30,14 +29,16 @@ type Props = {
 
   /** A side-effect of item selection */
   onSelect: (item: NavigationNode | null) => void;
+
+  /** Items to be shown in explorer */
+  items: NavigationNode[];
 };
 
-function DocumentExplorer({ onSubmit, onSelect }: Props) {
+function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
   const isMobile = useMobile();
   const { collections, documents } = useStores();
   const { t } = useTranslation();
   const theme = useTheme();
-  const collectionTrees = useCollectionTrees();
 
   const [searchTerm, setSearchTerm] = React.useState<string>();
   const [selectedNode, selectNode] = React.useState<NavigationNode | null>(
@@ -58,16 +59,11 @@ function DocumentExplorer({ onSubmit, onSelect }: Props) {
   const VERTICAL_PADDING = 6;
   const HORIZONTAL_PADDING = 24;
 
-  const allNodes = React.useMemo(
-    () => flatten(collectionTrees.map(flattenTree)),
-    [collectionTrees]
-  );
-
   const searchIndex = React.useMemo(() => {
-    return new FuzzySearch(allNodes, ["title"], {
+    return new FuzzySearch(items, ["title"], {
       caseSensitive: false,
     });
-  }, [allNodes]);
+  }, [items]);
 
   React.useEffect(() => {
     if (searchTerm) {
@@ -83,12 +79,12 @@ function DocumentExplorer({ onSubmit, onSelect }: Props) {
     if (searchTerm) {
       results = searchIndex.search(searchTerm);
     } else {
-      results = allNodes.filter((r) => r.type === "collection");
+      results = items.filter((item) => item.type === "collection");
     }
 
     setInitialScrollOffset(0);
     setNodes(results);
-  }, [searchTerm, allNodes, searchIndex]);
+  }, [searchTerm, items, searchIndex]);
 
   React.useEffect(() => {
     onSelect(selectedNode);

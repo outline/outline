@@ -1,3 +1,4 @@
+import { flatten } from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
@@ -8,8 +9,10 @@ import Button from "~/components/Button";
 import DocumentExplorer from "~/components/DocumentExplorer";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
+import useCollectionTrees from "~/hooks/useCollectionTrees";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
+import { flattenTree } from "~/utils/tree";
 
 type Props = {
   /** Document to publish */
@@ -20,9 +23,13 @@ function DocumentPublish({ document }: Props) {
   const { dialogs } = useStores();
   const { showToast } = useToasts();
   const { t } = useTranslation();
-
+  const collectionTrees = useCollectionTrees();
   const [selectedPath, selectPath] = React.useState<NavigationNode | null>(
     null
+  );
+  const publishOptions = React.useMemo(
+    () => flatten(collectionTrees.map(flattenTree)),
+    [collectionTrees]
   );
 
   const publish = async () => {
@@ -60,7 +67,11 @@ function DocumentPublish({ document }: Props) {
 
   return (
     <FlexContainer column>
-      <DocumentExplorer onSubmit={publish} onSelect={selectPath} />
+      <DocumentExplorer
+        items={publishOptions}
+        onSubmit={publish}
+        onSelect={selectPath}
+      />
       <Footer justify="space-between" align="center" gap={8}>
         <StyledText type="secondary">
           {selectedPath ? (
