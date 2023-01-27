@@ -119,7 +119,7 @@ export async function signIn(
     }
   } else {
     ctx.cookies.set("accessToken", user.getJwtToken(), {
-      sameSite: true,
+      sameSite: "lax",
       httpOnly: false,
       expires,
     });
