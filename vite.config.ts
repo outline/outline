@@ -97,11 +97,7 @@ export default defineConfig({
     reportCompressedSize: false,
     rollupOptions: {
       input: "./app/index.tsx",
-      plugins: [
-        // eslint-disable-next-line
-        // @ts-ignore
-        webpackStats(),
-      ],
+      plugins: [webpackStats()],
     },
   },
 });
