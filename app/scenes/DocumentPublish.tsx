@@ -60,7 +60,7 @@ function DocumentPublish({ document }: Props) {
 
   return (
     <FlexContainer column>
-      <DocumentExplorer actionOnItem={publish} onSelectItem={selectPath} />
+      <DocumentExplorer onSubmit={publish} onSelect={selectPath} />
       <Footer justify="space-between" align="center" gap={8}>
         <StyledText type="secondary">
           {selectedPath ? (
