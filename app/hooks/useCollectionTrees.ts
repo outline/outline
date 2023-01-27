@@ -3,7 +3,15 @@ import { NavigationNode, NavigationNodeType } from "@shared/types";
 import Collection from "~/models/Collection";
 import useStores from "~/hooks/useStores";
 
-export default function useCollectionsTree() {
+/**
+ * React hook that modifies the document structure
+ * of all collections present in store. Adds extra attributes
+ * like type, depth and parent to each of the nodes in document
+ * structure.
+ *
+ * @return {NavigationNode[]} collectionTrees root collection nodes of modified trees
+ */
+export default function useCollectionTrees(): NavigationNode[] {
   const { collections } = useStores();
 
   const getCollectionTree = (collection: Collection): NavigationNode => {
@@ -53,7 +61,7 @@ export default function useCollectionsTree() {
       return node;
     };
 
-    let collectionNode: NavigationNode = {
+    const collectionNode: NavigationNode = {
       id: collection.id,
       title: collection.name,
       url: collection.url,
@@ -62,15 +70,13 @@ export default function useCollectionsTree() {
       parent: null,
     };
 
-    collectionNode = addType(collectionNode);
-    collectionNode = addDepth(collectionNode);
-    collectionNode = addCollectionId(collectionNode);
-    collectionNode = addParent(collectionNode);
-
-    return collectionNode;
+    return addParent(addCollectionId(addDepth(addType(collectionNode))));
   };
 
-  return React.useMemo(() => collections.orderedData.map(getCollectionTree), [
-    collections.orderedData,
-  ]);
+  const collectionTrees = React.useMemo(
+    () => collections.orderedData.map(getCollectionTree),
+    [collections.orderedData]
+  );
+
+  return collectionTrees;
 }

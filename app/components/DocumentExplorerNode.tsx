@@ -15,7 +15,7 @@ type Props = {
   expanded: boolean;
   icon?: React.ReactNode;
   title: string;
-  nestLevel: number;
+  depth: number;
   hasChildren: boolean;
 
   onDisclosureClick: (ev: React.MouseEvent) => void;
@@ -30,7 +30,7 @@ function DocumentExplorerNode({
   expanded,
   icon,
   title,
-  nestLevel,
+  depth,
   hasChildren,
   onDisclosureClick,
   onPointerMove,
@@ -40,7 +40,7 @@ function DocumentExplorerNode({
   const OFFSET = 12;
   const ICON_SIZE = 24;
 
-  const width = nestLevel ? nestLevel * ICON_SIZE + OFFSET : ICON_SIZE;
+  const width = depth ? depth * ICON_SIZE + OFFSET : ICON_SIZE;
 
   const ref = React.useCallback(
     (node: HTMLSpanElement | null) => {

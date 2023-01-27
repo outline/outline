@@ -25,11 +25,14 @@ import { isModKey } from "~/utils/keyboard";
 import { flattenTree, ancestors, descendants } from "~/utils/tree";
 
 type Props = {
-  actionOnItem: () => void;
-  onSelectItem: (item: NavigationNode | null) => void;
+  /** Action taken upon submission of selected item, could be publish, move etc. */
+  onSubmit: () => void;
+
+  /** A side-effect of item selection */
+  onSelect: (item: NavigationNode | null) => void;
 };
 
-function DocumentExplorer({ actionOnItem, onSelectItem }: Props) {
+function DocumentExplorer({ onSubmit, onSelect }: Props) {
   const isMobile = useMobile();
   const { collections, documents } = useStores();
   const { t } = useTranslation();
@@ -88,8 +91,8 @@ function DocumentExplorer({ actionOnItem, onSelectItem }: Props) {
   }, [searchTerm, allNodes, searchIndex]);
 
   React.useEffect(() => {
-    onSelectItem(selectedNode);
-  }, [selectedNode, onSelectItem]);
+    onSelect(selectedNode);
+  }, [selectedNode, onSelect]);
 
   const handleSearch = (ev: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(ev.target.value);
@@ -233,7 +236,7 @@ function DocumentExplorer({ actionOnItem, onSelectItem }: Props) {
         expanded={isExpanded(index)}
         icon={icon}
         title={title}
-        nestLevel={node.depth as number}
+        depth={node.depth as number}
         hasChildren={node.children.length > 0}
       />
     );
@@ -281,7 +284,7 @@ function DocumentExplorer({ actionOnItem, onSelectItem }: Props) {
       }
       case "Enter": {
         if (isModKey(ev)) {
-          actionOnItem();
+          onSubmit();
         } else {
           toggleSelect(activeNode);
         }
