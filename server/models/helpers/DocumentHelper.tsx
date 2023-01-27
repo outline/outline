@@ -118,14 +118,19 @@ export default class DocumentHelper {
       : "article";
 
     const rtl = isRTL(document.title);
+    const content = <div id="content" className="ProseMirror"></div>;
     const children = (
       <>
         {options?.includeTitle !== false && (
           <h1 dir={rtl ? "rtl" : "ltr"}>{document.title}</h1>
         )}
-        <EditorContainer dir={rtl ? "rtl" : "ltr"} rtl={rtl}>
-          <div id="content" className="ProseMirror"></div>
-        </EditorContainer>
+        {options?.includeStyles ? (
+          <EditorContainer dir={rtl ? "rtl" : "ltr"} rtl={rtl}>
+            {content}
+          </EditorContainer>
+        ) : (
+          content
+        )}
       </>
     );
 
