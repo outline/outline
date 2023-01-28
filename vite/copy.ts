@@ -1,4 +1,6 @@
-export default function copy() {
+import type { Plugin } from "vite";
+
+export default function copy(): Plugin {
   return {
     name: "copy",
     apply: "build",
