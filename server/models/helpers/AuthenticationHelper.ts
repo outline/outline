@@ -1,6 +1,6 @@
 import { find } from "lodash";
+import env from "@server/env";
 import Team from "@server/models/Team";
-import isCloudHosted from "@server/utils/isCloudHosted";
 import providerConfigs from "../../routes/auth/providers";
 
 export default class AuthenticationHelper {
@@ -12,6 +12,8 @@ export default class AuthenticationHelper {
    * @returns A list of authentication providers
    */
   static providersForTeam(team?: Team) {
+    const isCloudHosted = env.isCloudHosted();
+
     return providerConfigs
       .sort((config) => (config.id === "email" ? 1 : -1))
       .filter((config) => {

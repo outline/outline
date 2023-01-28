@@ -11,7 +11,6 @@ import { getCookieDomain, parseDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import { Team } from "@server/models";
 import { OAuthStateMismatchError } from "../errors";
-import isCloudHosted from "./isCloudHosted";
 
 export class StateStore {
   key = "state";
@@ -103,7 +102,7 @@ export async function getTeamFromContext(ctx: Context) {
   const domain = parseDomain(host);
 
   let team;
-  if (!isCloudHosted) {
+  if (!env.isCloudHosted()) {
     team = await Team.findOne();
   } else if (domain.custom) {
     team = await Team.findOne({ where: { domain: domain.host } });

@@ -17,7 +17,6 @@ import {
 import ValidateSSOAccessTask from "@server/queues/tasks/ValidateSSOAccessTask";
 import { APIContext } from "@server/types";
 import { getSessionsInCookie } from "@server/utils/authentication";
-import isCloudHosted from "@server/utils/isCloudHosted";
 
 const router = new Router();
 
@@ -25,7 +24,7 @@ router.post("auth.config", async (ctx: APIContext) => {
   // If self hosted AND there is only one team then that team becomes the
   // brand for the knowledge base and it's guest signin option is used for the
   // root login page.
-  if (!isCloudHosted) {
+  if (!env.isCloudHosted()) {
     const team = await Team.scope("withAuthenticationProviders").findOne();
 
     if (team) {
