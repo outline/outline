@@ -12,13 +12,12 @@ const Key = styled.kbd<Props>`
   font-family: ${(props) =>
     props.symbol ? props.theme.fontFamily : props.theme.fontFamilyMono};
   line-height: 10px;
-  color: ${(props) => props.theme.almostBlack};
+  color: ${(props) => props.theme.textSecondary};
   vertical-align: middle;
   background-color: ${(props) => props.theme.smokeLight};
   border: solid 1px ${(props) => props.theme.slateLight};
   border-bottom-color: ${(props) => props.theme.slate};
   border-radius: 3px;
-  box-shadow: inset 0 -1px 0 ${(props) => props.theme.slate};
 `;
 
 export default Key;
