@@ -1,4 +1,5 @@
 {
+  "workerIdleMemoryLimit": "0.75",
   "projects": [
     {
       "displayName": "server",
