@@ -573,10 +573,10 @@ export default class DocumentsStore extends BaseStore<Document> {
   duplicate = async (document: Document): Promise<Document> => {
     const append = " (duplicate)";
     const res = await client.post("/documents.create", {
-      publish: document.template ? true : false,
+      publish: document.isTemplate ? true : false,
       parentDocumentId: null,
-      collectionId: document.template ? document.collectionId : null,
-      template: document.template,
+      collectionId: document.isTemplate ? document.collectionId : null,
+      template: document.isTemplate,
       title: `${document.title.slice(
         0,
         DocumentValidation.maxTitleLength - append.length
