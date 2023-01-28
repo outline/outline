@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react";
 import browserslistToEsbuild from "browserslist-to-esbuild";
 import { webpackStats } from "rollup-plugin-webpack-stats";
 import { defineConfig } from "vite";
+import copy from "./vite/copy";
 
 export default defineConfig({
   root: "./",
@@ -35,10 +36,10 @@ export default defineConfig({
         ],
       },
     }),
+    copy(),
   ],
   optimizeDeps: {
     esbuildOptions: {
-      // Node.js global to browser globalThis
       define: {
         global: "globalThis",
       },
@@ -56,7 +57,26 @@ export default defineConfig({
     target: browserslistToEsbuild(),
     reportCompressedSize: false,
     rollupOptions: {
-      input: "./app/index.tsx",
+      input: {
+        index: "./app/index.tsx",
+        sw: "./app/sw/sw.ts",
+        registerSW: "./app/sw/registerSW.ts",
+      },
+      output: [
+        {
+          entryFileNames: (chunkInfo) => {
+            const isServiceWorker = ["sw", "registerSW"].includes(
+              chunkInfo.name
+            );
+
+            if (chunkInfo.isEntry && isServiceWorker) {
+              return `sw/[name].js`;
+            }
+
+            return `[name].js`;
+          },
+        },
+      ],
       plugins: [webpackStats()],
     },
   },
