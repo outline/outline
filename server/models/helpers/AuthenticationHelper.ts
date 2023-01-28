@@ -5,8 +5,8 @@ import providerConfigs from "../../routes/auth/providers";
 
 export default class AuthenticationHelper {
   /**
-   * Returns the enabled authentication providers for a team, if given otherwise
-   * all enabled providers are returned.
+   * Returns the enabled authentication provider configurations for a team,
+   * if given otherwise all enabled providers are returned.
    *
    * @param team The team to get enabled providers for
    * @returns A list of authentication providers

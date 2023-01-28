@@ -11,7 +11,7 @@ import {
   presentUser,
   presentTeam,
   presentPolicies,
-  presentProvider,
+  presentProviderConfig,
   presentAvailableTeam,
 } from "@server/presenters";
 import ValidateSSOAccessTask from "@server/queues/tasks/ValidateSSOAccessTask";
@@ -36,7 +36,7 @@ router.post("auth.config", async (ctx: APIContext) => {
             ? team.avatarUrl
             : undefined,
           providers: AuthenticationHelper.providersForTeam(team).map(
-            presentProvider
+            presentProviderConfig
           ),
         },
       };
@@ -62,7 +62,7 @@ router.post("auth.config", async (ctx: APIContext) => {
             : undefined,
           hostname: ctx.request.hostname,
           providers: AuthenticationHelper.providersForTeam(team).map(
-            presentProvider
+            presentProviderConfig
           ),
         },
       };
@@ -88,7 +88,7 @@ router.post("auth.config", async (ctx: APIContext) => {
             : undefined,
           hostname: ctx.request.hostname,
           providers: AuthenticationHelper.providersForTeam(team).map(
-            presentProvider
+            presentProviderConfig
           ),
         },
       };
@@ -99,7 +99,9 @@ router.post("auth.config", async (ctx: APIContext) => {
   // Otherwise, we're requesting from the standard root signin page
   ctx.body = {
     data: {
-      providers: AuthenticationHelper.providersForTeam().map(presentProvider),
+      providers: AuthenticationHelper.providersForTeam().map(
+        presentProviderConfig
+      ),
     },
   };
 });
