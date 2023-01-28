@@ -20,12 +20,14 @@ const readFile = util.promisify(fs.readFile);
 let indexHtmlCache: Buffer | undefined;
 
 const readIndexFile = async (): Promise<Buffer> => {
-  if ((isProduction || isTest) && indexHtmlCache) {
-    return indexHtmlCache;
+  if (isProduction || isTest) {
+    if (indexHtmlCache) {
+      return indexHtmlCache;
+    }
   }
 
   return (indexHtmlCache = await readFile(
-    path.join(__dirname, "../../../server/static/index.html")
+    path.join(__dirname, "../static/index.html")
   ));
 };
 
