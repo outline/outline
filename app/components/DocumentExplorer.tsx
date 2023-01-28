@@ -311,42 +311,46 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
   ));
 
   return (
-    <ListContainer tabIndex={-1} onKeyDown={handleKeyDown}>
+    <Container tabIndex={-1} onKeyDown={handleKeyDown}>
       <ListSearch
         ref={inputSearchRef}
         onChange={handleSearch}
         placeholder={`${t("Search collections & documents")}…`}
         autoFocus
       />
-      {nodes.length ? (
-        <AutoSizer>
-          {({ width, height }: { width: number; height: number }) => (
-            <Flex role="listbox" column>
-              <List
-                ref={listRef}
-                key={nodes.length}
-                width={width}
-                height={height}
-                itemData={nodes}
-                itemCount={nodes.length}
-                itemSize={isMobile ? 48 : 32}
-                innerElementType={innerElementType}
-                initialScrollOffset={initialScrollOffset}
-                itemKey={(index, results) => results[index].id}
-              >
-                {ListItem}
-              </List>
-            </Flex>
-          )}
-        </AutoSizer>
-      ) : (
-        <FlexContainer>
-          <Text type="secondary">{t("No results found")}.</Text>
-        </FlexContainer>
-      )}
-    </ListContainer>
+      <ListContainer>
+        {nodes.length ? (
+          <AutoSizer>
+            {({ width, height }: { width: number; height: number }) => (
+              <Flex role="listbox" column>
+                <List
+                  ref={listRef}
+                  key={nodes.length}
+                  width={width}
+                  height={height}
+                  itemData={nodes}
+                  itemCount={nodes.length}
+                  itemSize={isMobile ? 48 : 32}
+                  innerElementType={innerElementType}
+                  initialScrollOffset={initialScrollOffset}
+                  itemKey={(index, results) => results[index].id}
+                >
+                  {ListItem}
+                </List>
+              </Flex>
+            )}
+          </AutoSizer>
+        ) : (
+          <FlexContainer>
+            <Text type="secondary">{t("No results found")}.</Text>
+          </FlexContainer>
+        )}
+      </ListContainer>
+    </Container>
   );
 }
+
+const Container = styled.div``;
 
 const FlexContainer = styled(Flex)`
   height: 100%;
