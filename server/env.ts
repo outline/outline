@@ -575,6 +575,14 @@ export class Environment {
    */
   public APP_NAME = "Outline";
 
+  /**
+   * Returns true if the current installation is the cloud hosted version at
+   * getoutline.com
+   */
+  public isCloudHosted() {
+    return this.DEPLOYMENT === "hosted";
+  }
+
   private toOptionalString(value: string | undefined) {
     return value ? value : undefined;
   }

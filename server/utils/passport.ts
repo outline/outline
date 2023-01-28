@@ -102,7 +102,7 @@ export async function getTeamFromContext(ctx: Context) {
   const domain = parseDomain(host);
 
   let team;
-  if (env.DEPLOYMENT !== "hosted") {
+  if (!env.isCloudHosted()) {
     team = await Team.findOne();
   } else if (domain.custom) {
     team = await Team.findOne({ where: { domain: domain.host } });

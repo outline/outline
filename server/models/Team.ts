@@ -24,7 +24,6 @@ import { CollectionPermission, TeamPreference } from "@shared/types";
 import { getBaseDomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
 import env from "@server/env";
 import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
-import isCloudHosted from "@server/utils/isCloudHosted";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import Attachment from "./Attachment";
 import AuthenticationProvider from "./AuthenticationProvider";
@@ -67,9 +66,9 @@ class Team extends ParanoidModel {
   @Unique
   @Length({
     min: 2,
-    max: isCloudHosted ? 32 : 255,
+    max: env.isCloudHosted() ? 32 : 255,
     msg: `subdomain must be between 2 and ${
-      isCloudHosted ? 32 : 255
+      env.isCloudHosted() ? 32 : 255
     } characters`,
   })
   @Is({
