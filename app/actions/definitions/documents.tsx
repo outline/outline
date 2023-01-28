@@ -581,15 +581,11 @@ export const moveDocument = createAction({
       }
 
       stores.dialogs.openModal({
-        title: t("Move {{ documentName }}", {
-          documentName: document.noun,
+        title: t("Move {{ documentType }}", {
+          documentType: document.noun,
         }),
-        content: (
-          <DocumentMove
-            document={document}
-            onRequestClose={stores.dialogs.closeAllModals}
-          />
-        ),
+        isCentered: true,
+        content: <DocumentMove document={document} />,
       });
     }
   },

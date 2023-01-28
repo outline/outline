@@ -144,7 +144,14 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
     return selectedNodeId === nodeId;
   };
 
+  const hasChildren = (node: number) => {
+    return nodes[node].children.length > 0;
+  };
+
   const toggleCollapse = (node: number) => {
+    if (!hasChildren(node)) {
+      return;
+    }
     if (isExpanded(node)) {
       collapse(node);
     } else {
@@ -233,7 +240,7 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
         icon={icon}
         title={title}
         depth={node.depth as number}
-        hasChildren={node.children.length > 0}
+        hasChildren={hasChildren(index)}
       />
     );
   };

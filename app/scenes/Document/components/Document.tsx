@@ -510,10 +510,7 @@ class DocumentScene extends React.Component<Props> {
                 onRequestClose={this.goBack}
                 isOpen
               >
-                <DocumentMove
-                  document={document}
-                  onRequestClose={this.goBack}
-                />
+                <DocumentMove document={document} />
               </Modal>
             )}
           />
