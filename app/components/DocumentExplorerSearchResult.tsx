@@ -73,7 +73,7 @@ const Title = styled(Text)`
 `;
 
 const Path = styled(Text)<{ $selected: boolean }>`
-  padding-top: 3px;
+  padding-top: 2px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
