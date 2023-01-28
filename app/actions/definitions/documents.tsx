@@ -5,7 +5,6 @@ import {
   StarredIcon,
   PrintIcon,
   UnstarredIcon,
-  DocumentIcon,
   NewDocumentIcon,
   ShapesIcon,
   ImportIcon,
@@ -17,7 +16,6 @@ import {
   TrashIcon,
   CrossIcon,
   ArchiveIcon,
-  ShuffleIcon,
   HistoryIcon,
   LightBulbIcon,
   UnpublishIcon,
@@ -42,30 +40,6 @@ import {
   newDocumentPath,
   searchPath,
 } from "~/utils/routeHelpers";
-
-export const openDocument = createAction({
-  name: ({ t }) => t("Open document"),
-  section: DocumentSection,
-  shortcut: ["o", "d"],
-  keywords: "go to",
-  icon: <DocumentIcon />,
-  children: ({ stores }) => {
-    const paths = stores.collections.pathsToDocuments;
-
-    return paths
-      .filter((path) => path.type === "document")
-      .map((path) => ({
-        // Note: using url which includes the slug rather than id here to bust
-        // cache if the document is renamed
-        id: path.url,
-        name: path.title,
-        icon: () =>
-          stores.documents.get(path.id)?.isStarred ? <StarredIcon /> : null,
-        section: DocumentSection,
-        perform: () => history.push(path.url),
-      }));
-  },
-});
 
 export const createDocument = createAction({
   name: ({ t }) => t("New document"),
@@ -534,24 +508,6 @@ export const createTemplate = createAction({
   },
 });
 
-export const openRandomDocument = createAction({
-  id: "random",
-  section: DocumentSection,
-  name: ({ t }) => t(`Open random document`),
-  icon: <ShuffleIcon />,
-  perform: ({ stores, activeDocumentId }) => {
-    const documentPaths = stores.collections.pathsToDocuments.filter(
-      (path) => path.type === "document" && path.id !== activeDocumentId
-    );
-    const documentPath =
-      documentPaths[Math.round(Math.random() * documentPaths.length)];
-
-    if (documentPath) {
-      history.push(documentPath.url);
-    }
-  },
-});
-
 export const searchDocumentsForQuery = (searchQuery: string) =>
   createAction({
     id: "search",
@@ -725,7 +681,6 @@ export const openDocumentInsights = createAction({
 });
 
 export const rootDocumentActions = [
-  openDocument,
   archiveDocument,
   createDocument,
   createTemplate,
@@ -740,7 +695,6 @@ export const rootDocumentActions = [
   unsubscribeDocument,
   duplicateDocument,
   moveDocument,
-  openRandomDocument,
   permanentlyDeleteDocument,
   printDocument,
   pinDocumentToCollection,
