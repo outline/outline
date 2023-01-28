@@ -11,6 +11,7 @@ import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { User, Team } from "@server/models";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { signIn } from "@server/utils/authentication";
+import isCloudHosted from "@server/utils/isCloudHosted";
 import { getUserForEmailSigninToken } from "@server/utils/jwt";
 import { assertEmail, assertPresent } from "@server/validation";
 
@@ -31,7 +32,7 @@ router.post(
     const domain = parseDomain(ctx.request.hostname);
 
     let team: Team | null | undefined;
-    if (env.DEPLOYMENT !== "hosted") {
+    if (!isCloudHosted) {
       team = await Team.scope("withAuthenticationProviders").findOne();
     } else if (domain.custom) {
       team = await Team.scope("withAuthenticationProviders").findOne({

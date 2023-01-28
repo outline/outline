@@ -1,6 +1,5 @@
 import teamCreator from "@server/commands/teamCreator";
 import { sequelize } from "@server/database/sequelize";
-import env from "@server/env";
 import {
   DomainNotAllowedError,
   InvalidAuthenticationError,
@@ -8,6 +7,7 @@ import {
 } from "@server/errors";
 import { traceFunction } from "@server/logging/tracing";
 import { Team, AuthenticationProvider } from "@server/models";
+import isCloudHosted from "@server/utils/isCloudHosted";
 
 type TeamProvisionerResult = {
   team: Team;
@@ -72,7 +72,7 @@ async function teamProvisioner({
     };
   } else if (teamId) {
     // The user is attempting to log into a team with an unfamiliar SSO provider
-    if (env.DEPLOYMENT === "hosted") {
+    if (isCloudHosted) {
       throw InvalidAuthenticationError();
     }
 

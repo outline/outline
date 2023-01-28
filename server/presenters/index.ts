@@ -14,6 +14,7 @@ import presentMembership from "./membership";
 import presentNotificationSetting from "./notificationSetting";
 import presentPin from "./pin";
 import presentPolicies from "./policy";
+import presentProvider from "./provider";
 import presentRevision from "./revision";
 import presentSearchQuery from "./searchQuery";
 import presentShare from "./share";
@@ -43,6 +44,7 @@ export {
   presentNotificationSetting,
   presentPin,
   presentPolicies,
+  presentProvider,
   presentRevision,
   presentSearchQuery,
   presentShare,

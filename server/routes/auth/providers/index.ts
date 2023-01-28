@@ -1,17 +1,15 @@
 import Router from "koa-router";
 import { sortBy } from "lodash";
-import { signin } from "@shared/utils/urlHelpers";
 import { requireDirectory } from "@server/utils/fs";
 
 export type AuthenticationProviderConfig = {
   id: string;
   name: string;
   enabled: boolean;
-  authUrl: string;
   router: Router;
 };
 
-const providers: AuthenticationProviderConfig[] = [];
+const authenticationProviderConfigs: AuthenticationProviderConfig[] = [];
 
 requireDirectory(__dirname).forEach(([module, id]) => {
   // @ts-expect-error ts-migrate(2339) FIXME: Property 'config' does not exist on type 'unknown'... Remove this comment to see the full error message
@@ -34,14 +32,13 @@ requireDirectory(__dirname).forEach(([module, id]) => {
   }
 
   if (config && config.enabled) {
-    providers.push({
+    authenticationProviderConfigs.push({
       id,
       name: config.name,
       enabled: config.enabled,
-      authUrl: signin(id),
       router,
     });
   }
 });
 
-export default sortBy(providers, "id");
+export default sortBy(authenticationProviderConfigs, "id");
