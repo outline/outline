@@ -58,6 +58,9 @@ class FileOperation extends IdModel {
   @Column(DataType.BIGINT)
   size: number;
 
+  /**
+   * Mark the current file operation as expired and remove the file from storage.
+   */
   expire = async function () {
     this.state = "expired";
     try {
@@ -70,7 +73,10 @@ class FileOperation extends IdModel {
     await this.save();
   };
 
-  get buffer() {
+  /**
+   * The file operation contents as a readable stream.
+   */
+  get stream() {
     return getFileByKey(this.key);
   }
 

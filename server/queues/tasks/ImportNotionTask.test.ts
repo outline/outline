@@ -10,9 +10,9 @@ setupTestDatabase();
 describe("ImportNotionTask", () => {
   it("should import successfully from a Markdown export", async () => {
     const fileOperation = await buildFileOperation();
-    Object.defineProperty(fileOperation, "buffer", {
+    Object.defineProperty(fileOperation, "stream", {
       get() {
-        return fs.readFileSync(
+        return fs.createReadStream(
           path.resolve(
             __dirname,
             "..",
@@ -45,9 +45,9 @@ describe("ImportNotionTask", () => {
 
   it("should import successfully from a HTML export", async () => {
     const fileOperation = await buildFileOperation();
-    Object.defineProperty(fileOperation, "buffer", {
+    Object.defineProperty(fileOperation, "stream", {
       get() {
-        return fs.readFileSync(
+        return fs.createReadStream(
           path.resolve(
             __dirname,
             "..",
