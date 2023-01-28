@@ -1,12 +1,33 @@
 import invariant from "invariant";
-import { find } from "lodash";
+import { concat, find, last } from "lodash";
 import { computed, action } from "mobx";
-import { CollectionPermission, FileOperationFormat } from "@shared/types";
+import {
+  CollectionPermission,
+  FileOperationFormat,
+  NavigationNode,
+} from "@shared/types";
 import Collection from "~/models/Collection";
 import { client } from "~/utils/ApiClient";
 import { AuthorizationError, NotFoundError } from "~/utils/errors";
 import BaseStore from "./BaseStore";
 import RootStore from "./RootStore";
+
+enum DocumentPathItemType {
+  Collection = "collection",
+  Document = "document",
+}
+
+export type DocumentPathItem = {
+  type: DocumentPathItemType;
+  id: string;
+  collectionId: string;
+  title: string;
+  url: string;
+};
+
+export type DocumentPath = DocumentPathItem & {
+  path: DocumentPathItem[];
+};
 
 export default class CollectionsStore extends BaseStore<Collection> {
   constructor(rootStore: RootStore) {
@@ -32,6 +53,52 @@ export default class CollectionsStore extends BaseStore<Collection> {
       }
 
       return a.index < b.index ? -1 : 1;
+    });
+  }
+
+  /**
+   * List of paths to each of the documents, where paths are composed of id and title/name pairs
+   */
+  @computed
+  get pathsToDocuments(): DocumentPath[] {
+    const results: DocumentPathItem[][] = [];
+
+    const travelDocuments = (
+      documentList: NavigationNode[],
+      collectionId: string,
+      path: DocumentPathItem[]
+    ) =>
+      documentList.forEach((document: NavigationNode) => {
+        const { id, title, url } = document;
+        const node = {
+          type: DocumentPathItemType.Document,
+          id,
+          collectionId,
+          title,
+          url,
+        };
+        results.push(concat(path, node));
+        travelDocuments(document.children, collectionId, concat(path, [node]));
+      });
+
+    if (this.isLoaded) {
+      this.data.forEach((collection) => {
+        const { id, name, url } = collection;
+        const node = {
+          type: DocumentPathItemType.Collection,
+          id,
+          collectionId: id,
+          title: name,
+          url,
+        };
+        results.push([node]);
+        travelDocuments(collection.documents, id, [node]);
+      });
+    }
+
+    return results.map((result) => {
+      const tail = last(result) as DocumentPathItem;
+      return { ...tail, path: result };
     });
   }
 
@@ -127,6 +194,19 @@ export default class CollectionsStore extends BaseStore<Collection> {
     );
     await star?.delete();
   };
+
+  getPathForDocument(documentId: string): DocumentPath | undefined {
+    return this.pathsToDocuments.find((path) => path.id === documentId);
+  }
+
+  titleForDocument(documentUrl: string): string | undefined {
+    const path = this.pathsToDocuments.find((path) => path.url === documentUrl);
+    if (path) {
+      return path.title;
+    }
+
+    return;
+  }
 
   getByUrl(url: string): Collection | null | undefined {
     return find(this.orderedData, (col: Collection) => url.endsWith(col.urlId));
