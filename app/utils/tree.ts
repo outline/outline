@@ -15,11 +15,11 @@ export const flattenTree = (root: NavigationNode) => {
   return flattened;
 };
 
-export const ancestors = (node: NavigationNode) => {
+export const ancestors = (node: NavigationNode | null) => {
   const ancestors: NavigationNode[] = [];
-  while (node.parent !== null) {
+  while (node !== null) {
     ancestors.unshift(node);
-    node = node.parent as NavigationNode;
+    node = node.parent as NavigationNode | null;
   }
   return ancestors;
 };
