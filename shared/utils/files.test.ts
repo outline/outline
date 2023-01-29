@@ -9,5 +9,6 @@ describe("bytesToHumanReadable", () => {
     expect(bytesToHumanReadable(12345)).toBe("12.34 kB");
     expect(bytesToHumanReadable(123456)).toBe("123.45 kB");
     expect(bytesToHumanReadable(1234567)).toBe("1.23 MB");
+    expect(bytesToHumanReadable(undefined)).toBe("0 Bytes");
   });
 });

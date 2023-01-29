@@ -1,6 +1,5 @@
 import invariant from "invariant";
 import { Transaction } from "sequelize";
-import { ValidationError } from "@server/errors";
 import { traceFunction } from "@server/logging/tracing";
 import { User, Document, Collection, Pin, Event } from "@server/models";
 import pinDestroyer from "./pinDestroyer";
@@ -71,13 +70,14 @@ async function documentMover({
       // Remove the document from the current collection
       const response = await collection?.removeDocumentInStructure(document, {
         transaction,
+        save: collectionChanged,
       });
 
-      const documentJson = response?.[0];
+      let documentJson = response?.[0];
       const fromIndex = response?.[1] || 0;
 
       if (!documentJson) {
-        throw ValidationError("The document was not found in the collection");
+        documentJson = await document.toNavigationNode({ transaction });
       }
 
       // if we're reordering from within the same parent
@@ -92,18 +92,24 @@ async function documentMover({
           ? index - 1
           : index;
 
+      // Update the properties on the document record, this must be done after
+      // the toIndex is calculated above
+      document.collectionId = collectionId;
+      document.parentDocumentId = parentDocumentId;
+      document.lastModifiedById = user.id;
+      document.updatedBy = user;
+
       // Add the document and it's tree to the new collection
       await newCollection.addDocumentToStructure(document, toIndex, {
         documentJson,
         transaction,
       });
+    } else {
+      document.collectionId = collectionId;
+      document.parentDocumentId = parentDocumentId;
+      document.lastModifiedById = user.id;
+      document.updatedBy = user;
     }
-
-    // Update the properties on the document record
-    document.collectionId = collectionId;
-    document.parentDocumentId = parentDocumentId;
-    document.lastModifiedById = user.id;
-    document.updatedBy = user;
 
     if (collection && document.publishedAt) {
       result.collections.push(collection);

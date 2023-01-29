@@ -1,6 +1,6 @@
 import path from "path";
 import JSZip from "jszip";
-import { NavigationNode, FileOperationFormat } from "@shared/types";
+import { FileOperationFormat, NavigationNode } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import { Collection } from "@server/models";
 import Attachment from "@server/models/Attachment";

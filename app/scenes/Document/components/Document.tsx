@@ -6,7 +6,6 @@ import * as React from "react";
 import { WithTranslation, withTranslation } from "react-i18next";
 import {
   Prompt,
-  Route,
   RouteComponentProps,
   StaticContext,
   withRouter,
@@ -22,12 +21,12 @@ import RootStore from "~/stores/RootStore";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
 import DocumentMove from "~/scenes/DocumentMove";
+import DocumentPublish from "~/scenes/DocumentPublish";
 import Branding from "~/components/Branding";
 import ConnectionStatus from "~/components/ConnectionStatus";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import Flex from "~/components/Flex";
 import LoadingIndicator from "~/components/LoadingIndicator";
-import Modal from "~/components/Modal";
 import PageTitle from "~/components/PageTitle";
 import PlaceholderDocument from "~/components/PlaceholderDocument";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
@@ -38,7 +37,6 @@ import { replaceTitleVariables } from "~/utils/date";
 import { emojiToUrl } from "~/utils/emoji";
 import { isModKey } from "~/utils/keyboard";
 import {
-  documentMoveUrl,
   documentHistoryUrl,
   editDocumentUrl,
   documentUrl,
@@ -225,15 +223,15 @@ class DocumentScene extends React.Component<Props> {
     }
   };
 
-  goToMove = (ev: KeyboardEvent) => {
-    if (!this.props.readOnly) {
-      return;
-    }
+  onMove = (ev: React.MouseEvent | KeyboardEvent) => {
     ev.preventDefault();
-    const { document, abilities } = this.props;
-
+    const { document, dialogs, t, abilities } = this.props;
     if (abilities.move) {
-      this.props.history.push(documentMoveUrl(document));
+      dialogs.openModal({
+        title: t("Move document"),
+        isCentered: true,
+        content: <DocumentMove document={document} />,
+      });
     }
   };
 
@@ -268,14 +266,23 @@ class DocumentScene extends React.Component<Props> {
 
   onPublish = (ev: React.MouseEvent | KeyboardEvent) => {
     ev.preventDefault();
-    const { document } = this.props;
+    const { document, dialogs, t } = this.props;
     if (document.publishedAt) {
       return;
     }
-    this.onSave({
-      publish: true,
-      done: true,
-    });
+
+    if (document?.collectionId) {
+      this.onSave({
+        publish: true,
+        done: true,
+      });
+    } else {
+      dialogs.openModal({
+        title: t("Publish document"),
+        isCentered: true,
+        content: <DocumentPublish document={document} />,
+      });
+    }
   };
 
   onToggleTableOfContents = (ev: KeyboardEvent) => {
@@ -466,7 +473,7 @@ class DocumentScene extends React.Component<Props> {
             }}
           />
         )}
-        <RegisterKeyDown trigger="m" handler={this.goToMove} />
+        <RegisterKeyDown trigger="m" handler={this.onMove} />
         <RegisterKeyDown trigger="e" handler={this.goToEdit} />
         <RegisterKeyDown trigger="Escape" handler={this.goBack} />
         <RegisterKeyDown trigger="h" handler={this.goToHistory} />
@@ -492,21 +499,6 @@ class DocumentScene extends React.Component<Props> {
           column
           auto
         >
-          <Route
-            path={`${document.url}/move`}
-            component={() => (
-              <Modal
-                title={`Move ${document.noun}`}
-                onRequestClose={this.goBack}
-                isOpen
-              >
-                <DocumentMove
-                  document={document}
-                  onRequestClose={this.goBack}
-                />
-              </Modal>
-            )}
-          />
           <PageTitle
             title={document.titleWithDefault.replace(document.emoji || "", "")}
             favicon={document.emoji ? emojiToUrl(document.emoji) : undefined}

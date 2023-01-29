@@ -826,6 +826,7 @@ router.post(
       templateId,
       collectionId,
       append,
+      apiVersion,
     } = ctx.input.body;
     const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
     const { user } = ctx.state.auth;
@@ -845,8 +846,6 @@ router.post(
           "collectionId is required to publish a draft without collection"
         );
         collection = await Collection.findByPk(collectionId as string);
-      } else {
-        collection = document.collection;
       }
       authorize(user, "publish", collection);
     }
@@ -855,8 +854,8 @@ router.post(
       throw InvalidRequestError("Document has changed since last revision");
     }
 
-    const updatedDocument = await sequelize.transaction(async (transaction) => {
-      return documentUpdater({
+    collection = await sequelize.transaction(async (transaction) => {
+      await documentUpdater({
         document,
         user,
         title,
@@ -870,14 +869,26 @@ router.post(
         transaction,
         ip: ctx.request.ip,
       });
+
+      return await Collection.scope({
+        method: ["withMembership", user.id],
+      }).findByPk(document.collectionId, { transaction });
     });
 
-    updatedDocument.updatedBy = user;
-    updatedDocument.collection = collection;
+    document.updatedBy = user;
+    document.collection = collection;
 
     ctx.body = {
-      data: await presentDocument(updatedDocument),
-      policies: presentPolicies(user, [updatedDocument]),
+      data:
+        apiVersion === 2
+          ? {
+              document: await presentDocument(document),
+              collection: collection
+                ? presentCollection(collection)
+                : undefined,
+            }
+          : await presentDocument(document),
+      policies: presentPolicies(user, [document, collection]),
     };
   }
 );
@@ -904,6 +915,10 @@ router.post(
         userId: user.id,
       });
       authorize(user, "update", parent);
+
+      if (!parent.publishedAt) {
+        throw InvalidRequestError("Cannot move document inside a draft");
+      }
     }
 
     const {
@@ -1039,7 +1054,7 @@ router.post(
   auth(),
   validate(T.DocumentsUnpublishSchema),
   async (ctx: APIContext<T.DocumentsUnpublishReq>) => {
-    const { id } = ctx.input.body;
+    const { id, apiVersion } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     const document = await Document.findByPk(id, {
@@ -1068,7 +1083,15 @@ router.post(
     });
 
     ctx.body = {
-      data: await presentDocument(document),
+      data:
+        apiVersion === 2
+          ? {
+              document: await presentDocument(document),
+              collection: document.collection
+                ? presentCollection(document.collection)
+                : undefined,
+            }
+          : await presentDocument(document),
       policies: presentPolicies(user, [document]),
     };
   }

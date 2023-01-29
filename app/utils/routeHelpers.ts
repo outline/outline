@@ -68,10 +68,6 @@ export function editDocumentUrl(doc: Document): string {
   return `${doc.url}/edit`;
 }
 
-export function documentMoveUrl(doc: Document): string {
-  return `${doc.url}/move`;
-}
-
 export function documentInsightsUrl(doc: Document): string {
   return `${doc.url}/insights`;
 }
@@ -97,14 +93,16 @@ export function updateDocumentUrl(oldUrl: string, document: Document): string {
 }
 
 export function newDocumentPath(
-  collectionId: string,
+  collectionId?: string,
   params: {
     parentDocumentId?: string;
     templateId?: string;
     template?: boolean;
   } = {}
 ): string {
-  return `/collection/${collectionId}/new?${queryString.stringify(params)}`;
+  return collectionId
+    ? `/collection/${collectionId}/new?${queryString.stringify(params)}`
+    : `/doc/new`;
 }
 
 export function searchPath(

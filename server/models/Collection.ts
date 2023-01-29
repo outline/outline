@@ -554,7 +554,7 @@ class Collection extends ParanoidModel {
    */
   updateDocument = async function (
     updatedDocument: Document,
-    options?: { transaction?: Transaction | null }
+    options?: { transaction?: Transaction | null | undefined }
   ) {
     if (!this.documentStructure) {
       return;
@@ -563,21 +563,23 @@ class Collection extends ParanoidModel {
     const { id } = updatedDocument;
 
     const updateChildren = (documents: NavigationNode[]) => {
-      return documents.map((document) => {
-        if (document.id === id) {
-          document = {
-            ...(updatedDocument.toJSON() as NavigationNode),
-            children: document.children,
-          };
-        } else {
-          document.children = updateChildren(document.children);
-        }
+      return Promise.all(
+        documents.map(async (document) => {
+          if (document.id === id) {
+            document = {
+              ...(await updatedDocument.toNavigationNode(options)),
+              children: document.children,
+            };
+          } else {
+            document.children = await updateChildren(document.children);
+          }
 
-        return document;
-      });
+          return document;
+        })
+      );
     };
 
-    this.documentStructure = updateChildren(this.documentStructure);
+    this.documentStructure = await updateChildren(this.documentStructure);
     // Sequelize doesn't seem to set the value with splice on JSONB field
     // https://github.com/sequelize/sequelize/blob/e1446837196c07b8ff0c23359b958d68af40fd6d/src/model.js#L3937
     this.changed("documentStructure", true);
@@ -602,7 +604,10 @@ class Collection extends ParanoidModel {
     }
 
     // If moving existing document with children, use existing structure
-    const documentJson = { ...document.toJSON(), ...options.documentJson };
+    const documentJson = {
+      ...(await document.toNavigationNode(options)),
+      ...options.documentJson,
+    };
 
     if (!document.parentDocumentId) {
       // Note: Index is supported on DB level but it's being ignored

@@ -31,6 +31,7 @@ import {
 } from "sequelize-typescript";
 import MarkdownSerializer from "slate-md-serializer";
 import isUUID from "validator/lib/isUUID";
+import type { NavigationNode } from "@shared/types";
 import getTasks from "@shared/utils/getTasks";
 import parseTitle from "@shared/utils/parseTitle";
 import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
@@ -750,14 +751,41 @@ class Document extends ParanoidModel {
     return notEmpty ? lines[1] : "";
   };
 
-  toJSON = () => {
-    // Warning: only use for new documents as order of children is
-    // handled in the collection's documentStructure
+  /**
+   * Returns a JSON representation of the document suitable for use in the
+   * collection documentStructure.
+   *
+   * @param options Optional transaction to use for the query
+   * @returns Promise resolving to a NavigationNode
+   */
+  toNavigationNode = async (options?: {
+    transaction?: Transaction | null | undefined;
+  }): Promise<NavigationNode> => {
+    const childDocuments = await (this.constructor as typeof Document)
+      .unscoped()
+      .findAll({
+        where: {
+          teamId: this.teamId,
+          parentDocumentId: this.id,
+          archivedAt: {
+            [Op.is]: null,
+          },
+          publishedAt: {
+            [Op.ne]: null,
+          },
+        },
+        transaction: options?.transaction,
+      });
+
+    const children = await Promise.all(
+      childDocuments.map((child) => child.toNavigationNode(options))
+    );
+
     return {
       id: this.id,
       title: this.title,
       url: this.url,
-      children: [],
+      children,
     };
   };
 }

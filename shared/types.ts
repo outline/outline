@@ -119,12 +119,21 @@ export enum TeamPreference {
 
 export type TeamPreferences = { [key in TeamPreference]?: boolean };
 
+export enum NavigationNodeType {
+  Collection = "collection",
+  Document = "document",
+}
+
 export type NavigationNode = {
   id: string;
   title: string;
   url: string;
   children: NavigationNode[];
   isDraft?: boolean;
+  collectionId?: string;
+  type?: NavigationNodeType;
+  parent?: NavigationNode | null;
+  depth?: number;
 };
 
 export type CollectionSort = {

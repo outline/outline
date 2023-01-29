@@ -9,7 +9,7 @@ type Props = {
   text?: string;
   state?: Buffer;
   publish?: boolean;
-  collectionId?: string;
+  collectionId?: string | null;
   parentDocumentId?: string | null;
   importId?: string;
   templateDocument?: Document | null;

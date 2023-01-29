@@ -5,6 +5,7 @@ import { Server } from "@hocuspocus/server";
 import Koa from "koa";
 import WebSocket from "ws";
 import { DocumentValidation } from "@shared/validations";
+import { ConnectionLimitExtension } from "@server/collaboration/ConnectionLimitExtension";
 import Logger from "@server/logging/Logger";
 import ShutdownHelper, { ShutdownOrder } from "@server/utils/ShutdownHelper";
 import AuthenticationExtension from "../collaboration/AuthenticationExtension";
@@ -28,6 +29,7 @@ export default function init(
     timeout: 30000,
     maxDebounce: 10000,
     extensions: [
+      new ConnectionLimitExtension(),
       new AuthenticationExtension(),
       new PersistenceExtension(),
       new LoggerExtension(),

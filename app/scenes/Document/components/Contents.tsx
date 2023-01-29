@@ -102,6 +102,8 @@ const Sticky = styled.div`
   max-height: calc(100vh - 80px);
 
   background: ${(props) => props.theme.background};
+  transition: ${(props) => props.theme.backgroundTransition};
+
   margin-top: 72px;
   margin-right: 52px;
   min-width: 204px;

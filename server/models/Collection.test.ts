@@ -33,7 +33,10 @@ describe("getDocumentParents", () => {
     const document = await buildDocument();
     const collection = await buildCollection({
       documentStructure: [
-        { ...parent.toJSON(), children: [document.toJSON()] },
+        {
+          ...(await parent.toNavigationNode()),
+          children: [await document.toNavigationNode()],
+        },
       ],
     });
     const result = collection.getDocumentParents(document.id);
@@ -46,7 +49,10 @@ describe("getDocumentParents", () => {
     const document = await buildDocument();
     const collection = await buildCollection({
       documentStructure: [
-        { ...parent.toJSON(), children: [document.toJSON()] },
+        {
+          ...(await parent.toNavigationNode()),
+          children: [await document.toNavigationNode()],
+        },
       ],
     });
     const result = collection.getDocumentParents(parent.id);
@@ -66,9 +72,11 @@ describe("getDocumentTree", () => {
   test("should return document tree", async () => {
     const document = await buildDocument();
     const collection = await buildCollection({
-      documentStructure: [document.toJSON()],
+      documentStructure: [await document.toNavigationNode()],
     });
-    expect(collection.getDocumentTree(document.id)).toEqual(document.toJSON());
+    expect(collection.getDocumentTree(document.id)).toEqual(
+      await document.toNavigationNode()
+    );
   });
 
   test("should return nested documents in tree", async () => {
@@ -76,15 +84,20 @@ describe("getDocumentTree", () => {
     const document = await buildDocument();
     const collection = await buildCollection({
       documentStructure: [
-        { ...parent.toJSON(), children: [document.toJSON()] },
+        {
+          ...(await parent.toNavigationNode()),
+          children: [await document.toNavigationNode()],
+        },
       ],
     });
 
     expect(collection.getDocumentTree(parent.id)).toEqual({
-      ...parent.toJSON(),
-      children: [document.toJSON()],
+      ...(await parent.toNavigationNode()),
+      children: [await document.toNavigationNode()],
     });
-    expect(collection.getDocumentTree(document.id)).toEqual(document.toJSON());
+    expect(collection.getDocumentTree(document.id)).toEqual(
+      await document.toNavigationNode()
+    );
   });
 });
 
@@ -92,10 +105,11 @@ describe("#addDocumentToStructure", () => {
   test("should add as last element without index", async () => {
     const { collection } = await seed();
     const id = uuidv4();
-    const newDocument = new Document({
+    const newDocument = await buildDocument({
       id,
       title: "New end node",
       parentDocumentId: null,
+      teamId: collection.teamId,
     });
     await collection.addDocumentToStructure(newDocument);
     expect(collection.documentStructure!.length).toBe(2);
@@ -105,10 +119,11 @@ describe("#addDocumentToStructure", () => {
   test("should add with an index", async () => {
     const { collection } = await seed();
     const id = uuidv4();
-    const newDocument = new Document({
+    const newDocument = await buildDocument({
       id,
       title: "New end node",
       parentDocumentId: null,
+      teamId: collection.teamId,
     });
     await collection.addDocumentToStructure(newDocument, 1);
     expect(collection.documentStructure!.length).toBe(2);
@@ -118,10 +133,11 @@ describe("#addDocumentToStructure", () => {
   test("should add as a child if with parent", async () => {
     const { collection, document } = await seed();
     const id = uuidv4();
-    const newDocument = new Document({
+    const newDocument = await buildDocument({
       id,
       title: "New end node",
       parentDocumentId: document.id,
+      teamId: collection.teamId,
     });
     await collection.addDocumentToStructure(newDocument, 1);
     expect(collection.documentStructure!.length).toBe(1);
@@ -132,16 +148,18 @@ describe("#addDocumentToStructure", () => {
 
   test("should add as a child if with parent with index", async () => {
     const { collection, document } = await seed();
-    const newDocument = new Document({
+    const newDocument = await buildDocument({
       id: uuidv4(),
       title: "node",
       parentDocumentId: document.id,
+      teamId: collection.teamId,
     });
     const id = uuidv4();
-    const secondDocument = new Document({
+    const secondDocument = await buildDocument({
       id,
       title: "New start node",
       parentDocumentId: document.id,
+      teamId: collection.teamId,
     });
     await collection.addDocumentToStructure(newDocument);
     await collection.addDocumentToStructure(secondDocument, 0);
@@ -154,10 +172,11 @@ describe("#addDocumentToStructure", () => {
     test("should append supplied json over document's own", async () => {
       const { collection } = await seed();
       const id = uuidv4();
-      const newDocument = new Document({
+      const newDocument = await buildDocument({
         id: uuidv4(),
         title: "New end node",
         parentDocumentId: null,
+        teamId: collection.teamId,
       });
       await collection.addDocumentToStructure(newDocument, undefined, {
         documentJson: {

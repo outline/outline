@@ -573,10 +573,10 @@ export default class DocumentsStore extends BaseStore<Document> {
   duplicate = async (document: Document): Promise<Document> => {
     const append = " (duplicate)";
     const res = await client.post("/documents.create", {
-      publish: !!document.publishedAt,
-      parentDocumentId: document.parentDocumentId,
-      collectionId: document.collectionId,
-      template: document.template,
+      publish: document.isTemplate,
+      parentDocumentId: null,
+      collectionId: document.isTemplate ? document.collectionId : null,
+      template: document.isTemplate,
       title: `${document.title.slice(
         0,
         DocumentValidation.maxTitleLength - append.length
@@ -681,15 +681,24 @@ export default class DocumentsStore extends BaseStore<Document> {
       lastRevision: number;
     }
   ) {
-    const document = await super.update(params, options);
+    this.isSaving = true;
 
-    // Because the collection object contains the url and title
-    // we need to ensure they are updated there as well.
-    const collection = this.getCollectionForDocument(document);
-    if (collection) {
-      collection.updateDocument(document);
+    try {
+      const res = await client.post(`/${this.apiEndpoint}.update`, {
+        ...params,
+        ...options,
+        apiVersion: 2,
+      });
+
+      invariant(res?.data, "Data should be available");
+      this.addPolicies(res.policies);
+      const document = this.add(res.data.document);
+      const collection = this.getCollectionForDocument(document);
+      collection?.updateFromJson(res.data.collection);
+      return document;
+    } finally {
+      this.isSaving = false;
     }
-    return document;
   }
 
   @action
@@ -758,16 +767,16 @@ export default class DocumentsStore extends BaseStore<Document> {
   unpublish = async (document: Document) => {
     const res = await client.post("/documents.unpublish", {
       id: document.id,
+      apiVersion: 2,
     });
+
     runInAction("Document#unpublish", () => {
       invariant(res?.data, "Data should be available");
-      document.updateFromJson(res.data);
+      document.updateFromJson(res.data.document);
+      const collection = this.getCollectionForDocument(document);
+      collection?.updateFromJson(res.data.collection);
       this.addPolicies(res.policies);
     });
-    const collection = this.getCollectionForDocument(document);
-    if (collection) {
-      collection.refresh();
-    }
   };
 
   star = (document: Document) => {
