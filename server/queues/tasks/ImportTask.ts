@@ -161,15 +161,27 @@ export default abstract class ImportTask extends BaseTask<Props> {
   }
 
   /**
-   * Fetch the remote data needed for the import, by default this will download
-   * any file associated with the FileOperation, save it to a temporary file,
-   * and return the path.
+   * Fetch the remote data associated with the file operation as a Buffer.
    *
    * @param fileOperation The FileOperation to fetch data for
-   * @returns string
+   * @returns A promise that resolves to the data as a buffer.
    */
-  protected async fetchData(fileOperation: FileOperation) {
-    return fileOperation.buffer;
+  protected async fetchData(fileOperation: FileOperation): Promise<Buffer> {
+    return new Promise((resolve, reject) => {
+      const bufs: Buffer[] = [];
+      const stream = fileOperation.stream;
+      if (!stream) {
+        return reject(new Error("No stream available"));
+      }
+
+      stream.on("data", function (d) {
+        bufs.push(d);
+      });
+      stream.on("error", reject);
+      stream.on("end", () => {
+        resolve(Buffer.concat(bufs));
+      });
+    });
   }
 
   /**
