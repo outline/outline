@@ -17,9 +17,11 @@ export const flattenTree = (root: NavigationNode) => {
 
 export const ancestors = (node: NavigationNode | null) => {
   const ancestors: NavigationNode[] = [];
-  while (node !== null) {
-    ancestors.unshift(node);
-    node = node.parent as NavigationNode | null;
+  if (node) {
+    while (node.parent !== null) {
+      ancestors.unshift(node.parent as NavigationNode);
+      node = node.parent as NavigationNode;
+    }
   }
   return ancestors;
 };
