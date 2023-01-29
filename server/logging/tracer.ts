@@ -16,6 +16,7 @@ if (env.DD_API_KEY) {
     version: env.VERSION,
     service: env.DD_SERVICE,
     env: env.ENVIRONMENT,
+    logInjection: true,
   });
 }
 
