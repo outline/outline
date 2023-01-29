@@ -55,10 +55,10 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
     await Promise.all(
       attachments.map(async (attachment) => {
         try {
-          const img = await getFileByKey(attachment.key);
+          const stream = getFileByKey(attachment.key);
           const dir = path.dirname(pathInZip);
-          if (img) {
-            zip.file(path.join(dir, attachment.key), img as Blob, {
+          if (stream) {
+            zip.file(path.join(dir, attachment.key), stream, {
               createFolders: true,
             });
           }

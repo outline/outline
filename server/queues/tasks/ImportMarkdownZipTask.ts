@@ -10,10 +10,10 @@ import ImportTask, { StructuredImportData } from "./ImportTask";
 
 export default class ImportMarkdownZipTask extends ImportTask {
   public async parseData(
-    buffer: Buffer,
+    stream: NodeJS.ReadableStream,
     fileOperation: FileOperation
   ): Promise<StructuredImportData> {
-    const zip = await JSZip.loadAsync(buffer);
+    const zip = await JSZip.loadAsync(stream);
     const tree = ZipHelper.toFileTree(zip);
 
     return this.parseFileTree({ fileOperation, zip, tree });
