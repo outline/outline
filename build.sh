@@ -1,7 +1,5 @@
 #!/bin/sh
-
-yarn babel --extensions .ts,.tsx --quiet -d ./build/server ./server
-yarn babel --extensions .ts,.tsx --quiet -d ./build/shared ./shared
+yarn concurrently "yarn babel --extensions .ts,.tsx --quiet -d ./build/server ./server" "yarn babel --extensions .ts,.tsx --quiet -d ./build/shared ./shared"
 
 # Copy static files
 cp ./server/collaboration/Procfile ./build/server/collaboration/Procfile
