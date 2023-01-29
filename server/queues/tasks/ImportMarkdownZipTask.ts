@@ -35,7 +35,9 @@ export default class ImportMarkdownZipTask extends ImportTask {
     fileOperation: FileOperation;
     tree: FileTreeNode[];
   }): Promise<StructuredImportData> {
-    const user = await User.findByPk(fileOperation.userId);
+    const user = await User.findByPk(fileOperation.userId, {
+      rejectOnEmpty: true,
+    });
     const output: StructuredImportData = {
       collections: [],
       documents: [],
@@ -47,10 +49,6 @@ export default class ImportMarkdownZipTask extends ImportTask {
       collectionId: string,
       parentDocumentId?: string
     ): Promise<void> {
-      if (!user) {
-        throw new Error("User not found");
-      }
-
       await Promise.all(
         children.map(async (child) => {
           // special case for folders of attachments

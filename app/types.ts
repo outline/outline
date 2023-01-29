@@ -140,11 +140,6 @@ export type FetchOptions = {
   force?: boolean;
 };
 
-export type CollectionSort = {
-  field: string;
-  direction: "asc" | "desc";
-};
-
 // Pagination response in an API call
 export type Pagination = {
   limit: number;

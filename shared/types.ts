@@ -14,9 +14,10 @@ export enum ExportContentType {
 }
 
 export enum FileOperationFormat {
+  JSON = "json",
   MarkdownZip = "outline-markdown",
   HTMLZip = "html",
-  PDFZip = "pdf",
+  PDF = "pdf",
   Notion = "notion",
 }
 
@@ -133,4 +134,9 @@ export type NavigationNode = {
   type?: NavigationNodeType;
   parent?: NavigationNode | null;
   depth?: number;
+};
+
+export type CollectionSort = {
+  field: string;
+  direction: "asc" | "desc";
 };

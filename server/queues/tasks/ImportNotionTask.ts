@@ -35,10 +35,9 @@ export default class ImportNotionTask extends ImportTask {
     fileOperation: FileOperation;
     tree: FileTreeNode[];
   }): Promise<StructuredImportData> {
-    const user = await User.findByPk(fileOperation.userId);
-    if (!user) {
-      throw new Error("User not found");
-    }
+    const user = await User.findByPk(fileOperation.userId, {
+      rejectOnEmpty: true,
+    });
 
     const output: StructuredImportData = {
       collections: [],
@@ -51,10 +50,6 @@ export default class ImportNotionTask extends ImportTask {
       collectionId: string,
       parentDocumentId?: string
     ): Promise<void> => {
-      if (!user) {
-        throw new Error("User not found");
-      }
-
       await Promise.all(
         children.map(async (child) => {
           // Ignore the CSV's for databases upfront
@@ -245,7 +240,7 @@ export default class ImportNotionTask extends ImportTask {
     }
 
     for (const collection of output.collections) {
-      if (collection.description) {
+      if (typeof collection.description === "string") {
         collection.description = replaceInternalLinksAndImages(
           collection.description
         );

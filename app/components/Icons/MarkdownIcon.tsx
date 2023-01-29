@@ -10,6 +10,7 @@ type Props = {
 export default function MarkdownIcon({
   size = 24,
   color = "currentColor",
+  ...rest
 }: Props) {
   return (
     <svg
@@ -18,6 +19,7 @@ export default function MarkdownIcon({
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
+      {...rest}
     >
       <path
         d="M19.2692 7H3.86538C3.38745 7 3 7.38476 3 7.85938V16.2812C3 16.7559 3.38745 17.1406 3.86538 17.1406H19.2692C19.7472 17.1406 20.1346 16.7559 20.1346 16.2812V7.85938C20.1346 7.38476 19.7472 7 19.2692 7Z"
