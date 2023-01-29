@@ -197,7 +197,7 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
     templateId: z.string().uuid().nullish(),
 
     /** Doc collection Id */
-    collectionId: z.string().uuid().optional(),
+    collectionId: z.string().uuid().nullish(),
 
     /** Boolean to denote if text should be appended */
     append: z.boolean().optional(),
@@ -279,7 +279,7 @@ export const DocumentsCreateSchema = BaseSchema.extend({
     publish: z.boolean().optional(),
 
     /** Create Doc under this collection */
-    collectionId: z.string().uuid().optional(),
+    collectionId: z.string().uuid().nullish(),
 
     /** Create Doc under this parent */
     parentDocumentId: z.string().uuid().nullish(),

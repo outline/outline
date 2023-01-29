@@ -2,7 +2,7 @@ import path from "path";
 import invariant from "invariant";
 import { find, orderBy, filter, compact, omitBy } from "lodash";
 import { observable, action, computed, runInAction } from "mobx";
-import { DateFilter } from "@shared/types";
+import { DateFilter, NavigationNode } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import naturalSort from "@shared/utils/naturalSort";
@@ -12,12 +12,7 @@ import RootStore from "~/stores/RootStore";
 import Document from "~/models/Document";
 import Team from "~/models/Team";
 import env from "~/env";
-import {
-  FetchOptions,
-  PaginationParams,
-  SearchResult,
-  NavigationNode,
-} from "~/types";
+import { FetchOptions, PaginationParams, SearchResult } from "~/types";
 import { client } from "~/utils/ApiClient";
 
 type FetchPageParams = PaginationParams & {
@@ -578,10 +573,10 @@ export default class DocumentsStore extends BaseStore<Document> {
   duplicate = async (document: Document): Promise<Document> => {
     const append = " (duplicate)";
     const res = await client.post("/documents.create", {
-      publish: !!document.publishedAt,
-      parentDocumentId: document.parentDocumentId,
-      collectionId: document.collectionId,
-      template: document.template,
+      publish: document.isTemplate,
+      parentDocumentId: null,
+      collectionId: document.isTemplate ? document.collectionId : null,
+      template: document.isTemplate,
       title: `${document.title.slice(
         0,
         DocumentValidation.maxTitleLength - append.length

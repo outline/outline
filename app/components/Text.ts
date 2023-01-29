@@ -4,6 +4,7 @@ type Props = {
   type?: "secondary" | "tertiary" | "danger";
   size?: "large" | "small" | "xsmall";
   selectable?: boolean;
+  weight?: "bold" | "normal";
 };
 
 /**
@@ -27,6 +28,12 @@ const Text = styled.p<Props>`
       ? "14px"
       : props.size === "xsmall"
       ? "13px"
+      : "inherit"};
+  font-weight: ${(props) =>
+    props.weight === "bold"
+      ? "bold"
+      : props.weight === "normal"
+      ? "normal"
       : "inherit"};
   white-space: normal;
   user-select: ${(props) => (props.selectable ? "text" : "none")};

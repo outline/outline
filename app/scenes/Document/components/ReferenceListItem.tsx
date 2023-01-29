@@ -3,12 +3,12 @@ import { DocumentIcon } from "outline-icons";
 import * as React from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { NavigationNode } from "@shared/types";
 import parseTitle from "@shared/utils/parseTitle";
 import Document from "~/models/Document";
 import Flex from "~/components/Flex";
 import EmojiIcon from "~/components/Icons/EmojiIcon";
 import { hover } from "~/styles";
-import { NavigationNode } from "~/types";
 import { sharedDocumentPath } from "~/utils/routeHelpers";
 
 type Props = {

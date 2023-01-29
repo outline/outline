@@ -1,14 +1,13 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useLocation, RouteComponentProps, StaticContext } from "react-router";
-import { TeamPreference } from "@shared/types";
+import { NavigationNode, TeamPreference } from "@shared/types";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
 import Error404 from "~/scenes/Error404";
 import ErrorOffline from "~/scenes/ErrorOffline";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import { NavigationNode } from "~/types";
 import Logger from "~/utils/Logger";
 import { NotFoundError, OfflineError } from "~/utils/errors";
 import history from "~/utils/history";

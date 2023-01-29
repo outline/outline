@@ -34,7 +34,7 @@ router.get("/redirect", auth(), async (ctx: APIContext) => {
 
   ctx.cookies.set("accessToken", jwtToken, {
     httpOnly: false,
-    sameSite: true,
+    sameSite: "lax",
     expires: addMonths(new Date(), 3),
   });
   const [team, collection, view] = await Promise.all([

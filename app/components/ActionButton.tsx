@@ -23,31 +23,44 @@ const ActionButton = React.forwardRef(
     { action, context, tooltip, hideOnActionDisabled, ...rest }: Props,
     ref: React.Ref<HTMLButtonElement>
   ) => {
+    const [executing, setExecuting] = React.useState(false);
     const disabled = rest.disabled;
 
     if (!context || !action) {
       return <button {...rest} ref={ref} />;
     }
 
-    if (action?.visible && !action.visible(context) && hideOnActionDisabled) {
+    const actionContext = { ...context, isButton: true };
+
+    if (
+      action?.visible &&
+      !action.visible(actionContext) &&
+      hideOnActionDisabled
+    ) {
       return null;
     }
 
     const label =
-      typeof action.name === "function" ? action.name(context) : action.name;
+      typeof action.name === "function"
+        ? action.name(actionContext)
+        : action.name;
 
     const button = (
       <button
         {...rest}
         aria-label={label}
-        disabled={disabled}
+        disabled={disabled || executing}
         ref={ref}
         onClick={
-          action?.perform && context
+          action?.perform && actionContext
             ? (ev) => {
                 ev.preventDefault();
                 ev.stopPropagation();
-                action.perform?.(context);
+                const response = action.perform?.(actionContext);
+                if (response?.finally) {
+                  setExecuting(true);
+                  response.finally(() => setExecuting(false));
+                }
               }
             : rest.onClick
         }

@@ -59,6 +59,19 @@ const uploadPlugin = (options: Options) =>
             return false;
           }
 
+          // When copying from Microsoft Office product the clipboard contains
+          // an image version of the content, check if there is also text and
+          // use that instead in this scenario.
+          const html = event.clipboardData.getData("text/html");
+          const text = event.clipboardData.getData("text/plain");
+          const isMicrosoftOffice = html.includes(
+            "urn:schemas-microsoft-com:office"
+          );
+          if (text.length && isMicrosoftOffice) {
+            // Fallback to default paste behavior
+            return false;
+          }
+
           const { tr } = view.state;
           if (!tr.selection.empty) {
             tr.deleteSelection();
@@ -594,7 +607,7 @@ const ImageComponent = (
     onClick: (event: React.MouseEvent<HTMLDivElement>) => void;
     onDownload: (event: React.MouseEvent<HTMLButtonElement>) => void;
     onChangeSize: (props: { width: number; height?: number }) => void;
-    children: React.ReactNode;
+    children: React.ReactElement;
     view: EditorView;
   }
 ) => {
@@ -721,27 +734,23 @@ const ImageComponent = (
     };
   }, [dragging, handlePointerMove, handlePointerUp]);
 
-  const style = isFullWidth
+  const widthStyle = isFullWidth
     ? { width: contentWidth }
     : { width: size.width || "auto" };
 
+  const containerStyle = isFullWidth
+    ? ({
+        "--offset": `${-(contentWidth - documentWidth) / 2}px`,
+      } as React.CSSProperties)
+    : undefined;
+
   return (
-    <div
-      contentEditable={false}
-      className={className}
-      style={
-        isFullWidth
-          ? ({
-              "--offset": `${-(contentWidth - documentWidth) / 2}px`,
-            } as React.CSSProperties)
-          : undefined
-      }
-    >
+    <div contentEditable={false} className={className} style={containerStyle}>
       <ImageWrapper
         isFullWidth={isFullWidth}
         className={isSelected || dragging ? "ProseMirror-selectednode" : ""}
         onClick={dragging ? undefined : props.onClick}
-        style={style}
+        style={widthStyle}
       >
         {!dragging && size.width > 60 && size.height > 60 && (
           <Button onClick={props.onDownload}>
@@ -750,7 +759,7 @@ const ImageComponent = (
         )}
         <ImageZoom zoomMargin={24}>
           <img
-            style={style}
+            style={widthStyle}
             src={sanitizeUrl(src) ?? ""}
             onLoad={(ev: React.SyntheticEvent<HTMLImageElement>) => {
               // For some SVG's Firefox does not provide the naturalWidth, in this
@@ -783,7 +792,9 @@ const ImageComponent = (
           </>
         )}
       </ImageWrapper>
-      {props.children}
+      {isFullWidth
+        ? React.cloneElement(props.children, { style: widthStyle })
+        : props.children}
     </div>
   );
 };

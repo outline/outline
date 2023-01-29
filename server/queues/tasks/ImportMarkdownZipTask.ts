@@ -10,10 +10,10 @@ import ImportTask, { StructuredImportData } from "./ImportTask";
 
 export default class ImportMarkdownZipTask extends ImportTask {
   public async parseData(
-    buffer: Buffer,
+    stream: NodeJS.ReadableStream,
     fileOperation: FileOperation
   ): Promise<StructuredImportData> {
-    const zip = await JSZip.loadAsync(buffer);
+    const zip = await JSZip.loadAsync(stream);
     const tree = ZipHelper.toFileTree(zip);
 
     return this.parseFileTree({ fileOperation, zip, tree });
@@ -35,7 +35,9 @@ export default class ImportMarkdownZipTask extends ImportTask {
     fileOperation: FileOperation;
     tree: FileTreeNode[];
   }): Promise<StructuredImportData> {
-    const user = await User.findByPk(fileOperation.userId);
+    const user = await User.findByPk(fileOperation.userId, {
+      rejectOnEmpty: true,
+    });
     const output: StructuredImportData = {
       collections: [],
       documents: [],
@@ -47,10 +49,6 @@ export default class ImportMarkdownZipTask extends ImportTask {
       collectionId: string,
       parentDocumentId?: string
     ): Promise<void> {
-      if (!user) {
-        throw new Error("User not found");
-      }
-
       await Promise.all(
         children.map(async (child) => {
           // special case for folders of attachments

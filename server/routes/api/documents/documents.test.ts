@@ -2238,6 +2238,19 @@ describe("#documents.create", () => {
     expect(body.message).toEqual("collectionId: Invalid uuid");
   });
 
+  it("should succeed if collectionId is null", async () => {
+    const { user } = await seed();
+    const res = await server.post("/api/documents.create", {
+      body: {
+        token: user.getJwtToken(),
+        collectionId: null,
+        title: "new document",
+        text: "hello",
+      },
+    });
+    expect(res.status).toEqual(200);
+  });
+
   it("should fail for invalid parentDocumentId", async () => {
     const { user, collection } = await seed();
     const res = await server.post("/api/documents.create", {

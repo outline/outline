@@ -3,6 +3,7 @@ import invariant from "invariant";
 import { observable, action, computed, autorun, runInAction } from "mobx";
 import { getCookie, setCookie, removeCookie } from "tiny-cookie";
 import { TeamPreferences, UserPreferences } from "@shared/types";
+import Storage from "@shared/utils/Storage";
 import { getCookieDomain, parseDomain } from "@shared/utils/domains";
 import RootStore from "~/stores/RootStore";
 import Policy from "~/models/Policy";
@@ -11,7 +12,6 @@ import User from "~/models/User";
 import env from "~/env";
 import { client } from "~/utils/ApiClient";
 import Desktop from "~/utils/Desktop";
-import Storage from "~/utils/Storage";
 
 const AUTH_STORE = "AUTH_STORE";
 const NO_REDIRECT_PATHS = ["/", "/create", "/home"];

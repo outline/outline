@@ -2,14 +2,13 @@ import { observer } from "mobx-react";
 import { useState } from "react";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
-import { CollectionPermission } from "@shared/types";
+import { CollectionPermission, NavigationNode } from "@shared/types";
 import Collection from "~/models/Collection";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
-import { NavigationNode } from "~/types";
 
 type Props = {
   item:

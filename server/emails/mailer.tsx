@@ -4,7 +4,6 @@ import Oy from "oy-vey";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
-import isCloudHosted from "@server/utils/isCloudHosted";
 import { baseStyles } from "./templates/components/EmailLayout";
 
 const useTestEmailService =
@@ -79,7 +78,7 @@ export class Mailer {
         subject: data.subject,
         html,
         text: data.text,
-        attachments: isCloudHosted
+        attachments: env.isCloudHosted()
           ? undefined
           : [
               {

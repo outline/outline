@@ -99,7 +99,7 @@ export type Action = {
   placeholder?: ((context: ActionContext) => string) | string;
   selected?: (context: ActionContext) => boolean;
   visible?: (context: ActionContext) => boolean;
-  perform?: (context: ActionContext) => void;
+  perform?: (context: ActionContext) => Promise<any> | any;
   children?: ((context: ActionContext) => Action[]) | Action[];
 };
 
@@ -138,19 +138,6 @@ export type FetchOptions = {
   revisionId?: string;
   shareId?: string;
   force?: boolean;
-};
-
-export type NavigationNode = {
-  id: string;
-  title: string;
-  url: string;
-  children: NavigationNode[];
-  isDraft?: boolean;
-};
-
-export type CollectionSort = {
-  field: string;
-  direction: "asc" | "desc";
 };
 
 // Pagination response in an API call

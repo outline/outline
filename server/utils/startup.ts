@@ -46,7 +46,7 @@ export function checkPendingMigrations() {
 }
 
 export async function checkMigrations() {
-  if (env.DEPLOYMENT === "hosted") {
+  if (env.isCloudHosted()) {
     return;
   }
 
