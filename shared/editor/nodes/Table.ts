@@ -43,7 +43,7 @@ export default class Table extends Node {
       toDOM() {
         return [
           "div",
-          { class: "scrollable-wrapper" },
+          { class: "scrollable-wrapper table-wrapper" },
           [
             "div",
             { class: "scrollable" },
