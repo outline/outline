@@ -2,10 +2,11 @@ import Revision from "@server/models/Revision";
 import DocumentHelper from "./DocumentHelper";
 
 describe("DocumentHelper", () => {
-  test("toEmailDiff", async () => {
-    const before = new Revision({
-      title: "Title",
-      text: `
+  describe("toEmailDiff", () => {
+    it("should render a compact diff", async () => {
+      const before = new Revision({
+        title: "Title",
+        text: `
 This is a test paragraph
 
 - list item 1
@@ -28,11 +29,11 @@ same on both sides
 same on both sides
 
 same on both sides`,
-    });
+      });
 
-    const after = new Revision({
-      title: "Title",
-      text: `
+      const after = new Revision({
+        title: "Title",
+        text: `
 This is a test paragraph
 
 A new paragraph
@@ -56,35 +57,68 @@ same on both sides
 same on both sides
 
 same on both sides`,
+      });
+
+      const html = await DocumentHelper.toEmailDiff(before, after);
+
+      // marks breaks in diff
+      expect(html).toContain("diff-context-break");
+
+      // changed list
+      expect(html).toContain("checklist item 1");
+      expect(html).toContain("checklist item 5");
+
+      // added
+      expect(html).toContain("A new paragraph");
+
+      // Retained for context above added paragraph
+      expect(html).toContain("This is a test paragraph");
+
+      // removed
+      expect(html).toContain("Content in an info block");
+
+      // unchanged
+      expect(html).not.toContain("same on both sides");
+      expect(html).not.toContain("this is a highlight");
     });
 
-    const html = await DocumentHelper.toEmailDiff(before, after);
+    it("should trim table rows to show minimal diff including header", async () => {
+      const before = new Revision({
+        title: "Title",
+        text: `
+| Syntax      | Description |
+| ----------- | ----------- |
+| Header      | Title       |
+| Paragraph   | Text        |
+| Content     | Another     |
+| More        | Content     |
+| Long        | Table       |`,
+      });
 
-    // marks breaks in diff
-    expect(html).toContain("diff-context-break");
+      const after = new Revision({
+        title: "Title",
+        text: `
+| Syntax      | Description |
+| ----------- | ----------- |
+| Header      | Title       |
+| Paragraph   | Text        |
+| Content     | Changed     |
+| More        | Content     |
+| Long        | Table       |`,
+      });
 
-    // changed list
-    expect(html).toContain("checklist item 1");
-    expect(html).toContain("checklist item 5");
+      const html = await DocumentHelper.toEmailDiff(before, after);
 
-    // added
-    expect(html).toContain("A new paragraph");
-
-    // Retained for context above added paragraph
-    expect(html).toContain("This is a test paragraph");
-
-    // removed
-    expect(html).toContain("Content in an info block");
-
-    // unchanged
-    expect(html).not.toContain("same on both sides");
-    expect(html).not.toContain("this is a highlight");
+      expect(html).toContain("Changed");
+      expect(html).not.toContain("Long");
+    });
   });
 
-  test("toPlainText", async () => {
-    const revision = new Revision({
-      title: "Title",
-      text: `
+  describe("toPlainText", () => {
+    it("should return only plain text", async () => {
+      const revision = new Revision({
+        title: "Title",
+        text: `
 This is a test paragraph
 
 A new [link](https://www.google.com)
@@ -107,12 +141,12 @@ This is a new paragraph.
 |----|----|----|
 | Multiple \n Lines \n In a cell |    |    |
 |    |    |    |`,
-    });
+      });
 
-    const text = await DocumentHelper.toPlainText(revision);
+      const text = await DocumentHelper.toPlainText(revision);
 
-    // Strip all formatting
-    expect(text).toEqual(`This is a test paragraph
+      // Strip all formatting
+      expect(text).toEqual(`This is a test paragraph
 
 A new link
 
@@ -147,5 +181,6 @@ Lines
 In a cell
 
 `);
+    });
   });
 });
