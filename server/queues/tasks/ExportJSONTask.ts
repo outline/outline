@@ -86,10 +86,9 @@ export default class ExportJSONTask extends ExportTask {
         await Promise.all(
           attachments.map(async (attachment) => {
             try {
-              const img = await getFileByKey(attachment.key);
-
-              if (img) {
-                zip.file(attachment.key, img as Blob, {
+              const stream = getFileByKey(attachment.key);
+              if (stream) {
+                zip.file(attachment.key, stream, {
                   createFolders: true,
                 });
               }
