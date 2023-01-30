@@ -16,7 +16,7 @@ type Props = {
   onTyping: () => void;
 };
 
-function CommentForm({ documentId, thread, onTyping }: Props) {
+function CommentForm({ documentId, thread, onTyping, ...rest }: Props) {
   const [data, setData] = usePersistedState<Record<string, any> | undefined>(
     `draft-${documentId}-${thread.id}`,
     undefined
@@ -82,6 +82,7 @@ function CommentForm({ documentId, thread, onTyping }: Props) {
     <form
       ref={formRef}
       onSubmit={thread?.isNew ? handleCreateComment : handleCreateReply}
+      {...rest}
     >
       <Flex gap={8}>
         <Avatar model={user} />

@@ -6,7 +6,7 @@ import { TeamPreference } from "@shared/types";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useStores from "~/hooks/useStores";
 import CommentThread from "./CommentThread";
-import Sidebar from "./RightSidebar";
+import Sidebar from "./SidebarLayout";
 
 function Comments() {
   const { ui, comments, documents } = useStores();
@@ -21,7 +21,7 @@ function Comments() {
   }
 
   return (
-    <Sidebar title={t("Comments")} onClose={ui.collapseComments} id="comments">
+    <Sidebar title={t("Comments")} onClose={ui.collapseComments}>
       <div>
         {comments.threadsInDocument(document.id).map((comment) => (
           <CommentThread

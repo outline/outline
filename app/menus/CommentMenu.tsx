@@ -8,7 +8,7 @@ import CommentDeleteDialog from "~/components/CommentDeleteDialog";
 import ContextMenu from "~/components/ContextMenu";
 import MenuItem from "~/components/ContextMenu/MenuItem";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
-import Divider from "~/components/Divider";
+import Separator from "~/components/ContextMenu/Separator";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
@@ -64,11 +64,11 @@ function CommentMenu({ comment, onEdit, onDelete, className }: Props) {
           </MenuItem>
         )}
         <MenuItem {...menu} onClick={handleCopyLink}>
-          {t("Copy")}
+          {t("Copy link")}
         </MenuItem>
         {can.delete && (
           <>
-            <Divider />
+            <Separator />
             <MenuItem {...menu} onClick={handleDelete} dangerous>
               {t("Delete")}
             </MenuItem>

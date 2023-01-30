@@ -3,10 +3,11 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import Comment from "~/models/Comment";
 import Document from "~/models/Document";
 import Avatar from "~/components/Avatar";
+import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import Typing from "~/components/Typing";
 import { WebsocketContext } from "~/components/WebsocketProvider";
@@ -107,20 +108,39 @@ function CommentThread({ comment: thread, document }: Props) {
             <Typing />
           </Flex>
         ))}
-      <CommentForm
-        documentId={document.id}
-        thread={thread}
-        onTyping={setIsTyping}
-      />
+      {highlighted && (
+        <Fade>
+          <CommentForm
+            documentId={document.id}
+            thread={thread}
+            onTyping={setIsTyping}
+          />
+        </Fade>
+      )}
     </Thread>
   );
 }
 
 const Thread = styled.div<{ $highlighted: boolean }>`
   margin: 1em 18px 1em 12px;
+  position: relative;
 
-  outline: ${(props) =>
-    props.$highlighted ? `2px solid ${props.theme.brand.marine}` : "none"};
+  ${(props) =>
+    props.$highlighted &&
+    css`
+      &:after {
+        content: "";
+        position: absolute;
+        display: block;
+        height: 100%;
+        top: 0;
+        left: -12px;
+        width: 4px;
+        bottom: 0;
+        background: ${(props) => props.theme.brand.marine};
+        border-radius: 2px;
+      }
+    `}
 `;
 
 export default observer(CommentThread);

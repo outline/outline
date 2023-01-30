@@ -13,6 +13,7 @@ import useStores from "~/hooks/useStores";
 import { documentUrl, documentInsightsUrl } from "~/utils/routeHelpers";
 
 type Props = {
+  /* The document to display meta data for */
   document: Document;
   isDraft: boolean;
   to?: LocationDescriptor;
@@ -28,10 +29,6 @@ function TitleDocumentMeta({ to, isDraft, document, ...rest }: Props) {
   const totalViewers = documentViews.length;
   const onlyYou = totalViewers === 1 && documentViews[0].user.id;
   const viewsLoadedOnMount = React.useRef(totalViewers > 0);
-
-  const handleClickComments = () => {
-    ui.toggleComments();
-  };
 
   const Wrapper = viewsLoadedOnMount.current ? React.Fragment : Fade;
 
@@ -53,19 +50,19 @@ function TitleDocumentMeta({ to, isDraft, document, ...rest }: Props) {
                   totalViewers === 1 ? t("person") : t("people")
                 }`}
           </Link>
-          {team?.getPreference(TeamPreference.Commenting) && (
-            <>
-              &nbsp;•&nbsp;
-              <CommentLink onClick={handleClickComments}>
-                <CommentIcon color="currentColor" size={18} />
-                {commentsCount
-                  ? t("{{ count }} comment", { count: commentsCount })
-                  : t("Comment")}
-              </CommentLink>
-            </>
-          )}
         </Wrapper>
       ) : null}
+      {team?.getPreference(TeamPreference.Commenting) && (
+        <>
+          &nbsp;•&nbsp;
+          <CommentLink onClick={ui.toggleComments}>
+            <CommentIcon color="currentColor" size={18} />
+            {commentsCount
+              ? t("{{ count }} comment", { count: commentsCount })
+              : t("Comment")}
+          </CommentLink>
+        </>
+      )}
     </Meta>
   );
 }
