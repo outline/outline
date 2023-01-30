@@ -53,7 +53,6 @@ function CommentThread({ comment: thread, document }: Props) {
   });
 
   const commentsInThread = comments.inThread(thread.id);
-  console.log({ commentsInThread });
   const highlighted = location.state?.commentId === thread.id;
 
   const handleClickThread = () => {

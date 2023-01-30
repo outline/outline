@@ -104,6 +104,10 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   // acts as a local draft before submission.
   const handleDraftComment = React.useCallback(
     (commentId: string) => {
+      if (comments.get(commentId)) {
+        return;
+      }
+
       ui.expandComments();
 
       const comment = new Comment(
@@ -114,7 +118,6 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
       );
       comment.id = commentId;
       comments.add(comment);
-      console.log({ comment });
     },
     [comments, props.id, ui]
   );
@@ -122,7 +125,6 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   // Soft delete the Comment model when associated mark is totally removed.
   const handleRemoveComment = React.useCallback(
     async (commentId: string) => {
-      console.log("handleRemoveComment", commentId);
       const comment = comments.get(commentId);
       await comment?.delete();
     },

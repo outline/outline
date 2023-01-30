@@ -93,6 +93,8 @@ function CommentForm({ documentId, thread, onTyping, ...rest }: Props) {
           maxLength={CommentValidation.maxLength}
           autoFocus={thread.isNew}
           placeholder={
+            // isNew is only the case for comments that exist in draft state,
+            // they are marks in the document, but not yet saved to the db.
             thread.isNew ? `${t("Add a comment")}…` : `${t("Add a reply")}…`
           }
         />

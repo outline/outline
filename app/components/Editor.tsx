@@ -65,7 +65,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     onCreateCommentMark,
     onDeleteCommentMark,
   } = props;
-  const { auth, documents } = useStores();
+  const { auth, comments, documents } = useStores();
   const { showToast } = useToasts();
   const dictionary = useDictionary();
   const embeds = useEmbeds(!shareId);
@@ -276,13 +276,14 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   }, [localRef, onHeadingsChange]);
 
   const updateComments = React.useCallback(() => {
-    console.log("updateComments");
     if (onCreateCommentMark && onDeleteCommentMark) {
-      const comments = localRef.current?.getComments();
-      const commentIds = comments?.map((c) => c.id);
+      const commentMarks = localRef.current?.getComments();
+      const commentIds = comments.orderedData.map((c) => c.id);
+      const commentMarkIds = commentMarks?.map((c) => c.id);
       const newCommentIds = difference(
-        commentIds,
-        previousCommentIds.current ?? []
+        commentMarkIds,
+        previousCommentIds.current ?? [],
+        commentIds
       );
 
       newCommentIds.forEach((commentId) => {
@@ -291,16 +292,16 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
 
       const removedCommentIds = difference(
         previousCommentIds.current ?? [],
-        commentIds ?? []
+        commentMarkIds ?? []
       );
 
       removedCommentIds.forEach((commentId) => {
         onDeleteCommentMark(commentId);
       });
 
-      previousCommentIds.current = commentIds;
+      previousCommentIds.current = commentMarkIds;
     }
-  }, [onCreateCommentMark, onDeleteCommentMark, localRef]);
+  }, [onCreateCommentMark, onDeleteCommentMark, comments.orderedData]);
 
   const handleChange = React.useCallback(
     (event) => {

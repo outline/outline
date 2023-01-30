@@ -1,4 +1,5 @@
 import { Comment } from "@server/models";
+import presentUser from "./user";
 
 export default function present(comment: Comment) {
   return {
@@ -6,7 +7,7 @@ export default function present(comment: Comment) {
     data: comment.data,
     documentId: comment.documentId,
     parentCommentId: comment.parentCommentId,
-    createdBy: comment.createdBy,
+    createdBy: presentUser(comment.createdBy),
     createdById: comment.createdById,
     createdAt: comment.createdAt,
     updatedAt: comment.updatedAt,

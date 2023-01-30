@@ -24,9 +24,13 @@ import CommentEditor from "./CommentEditor";
  * @returns boolean if to show timestamp
  */
 function useShowTime(
-  createdAt: string,
+  createdAt: string | undefined,
   previousCreatedAt: string | undefined
 ): boolean {
+  if (!createdAt) {
+    return false;
+  }
+
   const previousTimeStamp = previousCreatedAt
     ? formatDistanceToNow(Date.parse(previousCreatedAt))
     : undefined;

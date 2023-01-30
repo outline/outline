@@ -14,7 +14,6 @@ function Comments() {
   const team = useCurrentTeam();
   const match = useRouteMatch<{ documentSlug: string }>();
   const document = documents.getByUrl(match.params.documentSlug);
-  console.log({ comments, document });
 
   if (!team.getPreference(TeamPreference.Commenting) || !document) {
     return null;

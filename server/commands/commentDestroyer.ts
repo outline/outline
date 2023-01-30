@@ -24,6 +24,7 @@ export default async function commentDestroyer({
   ip,
   transaction,
 }: Props): Promise<Comment> {
+  await comment.destroy({ transaction });
   await Event.create(
     {
       name: "comments.delete",
@@ -35,8 +36,5 @@ export default async function commentDestroyer({
     },
     { transaction }
   );
-
-  await comment.destroy({ transaction });
-
   return comment;
 }

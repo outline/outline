@@ -15,21 +15,40 @@ export default class CommentsStore extends BaseStore<Comment> {
     super(rootStore, Comment);
   }
 
+  /**
+   * Returns a list of comments in a document that are not replies to other
+   * comments.
+   *
+   * @param documentId ID of the document to get comments for
+   * @returns Array of comments
+   */
   threadsInDocument(documentId: string): Comment[] {
     return this.inDocument(documentId).filter(
       (comment) => !comment.parentCommentId
     );
   }
 
-  inThread(parentCommentId: string): Comment[] {
+  /**
+   * Returns a list of comments that are replies to the given comment.
+   *
+   * @param commentId ID of the comment to get replies for
+   * @returns Array of comments
+   */
+  inThread(threadId: string): Comment[] {
     return filter(
       this.orderedData,
       (comment) =>
-        comment.parentCommentId === parentCommentId ||
-        (comment.id === parentCommentId && !comment.isNew)
+        comment.parentCommentId === threadId ||
+        (comment.id === threadId && !comment.isNew)
     );
   }
 
+  /**
+   * Returns a list of comments in a document.
+   *
+   * @param documentId ID of the document to get comments for
+   * @returns Array of comments
+   */
   inDocument(documentId: string): Comment[] {
     return filter(
       this.orderedData,

@@ -20,8 +20,8 @@ export default abstract class BaseModel {
 
   constructor(fields: Record<string, any>, store: any) {
     this.updateFromJson(fields);
-    this.store = store;
     this.isNew = !this.id;
+    this.store = store;
   }
 
   save = async (
@@ -40,9 +40,11 @@ export default abstract class BaseModel {
         {
           ...params,
           id: this.id,
-          isNew: this.isNew,
         },
-        options
+        {
+          ...options,
+          isNew: this.isNew,
+        }
       );
 
       // if saving is successful set the new values on the model itself
@@ -57,7 +59,8 @@ export default abstract class BaseModel {
   };
 
   updateFromJson = (data: any) => {
-    set(this, data);
+    //const isNew = !data.id && !this.id && this.isNew;
+    set(this, { ...data, isNew: false });
     this.persistedAttributes = this.toAPI();
   };
 

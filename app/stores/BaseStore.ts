@@ -107,12 +107,13 @@ export default abstract class BaseStore<T extends BaseModel> {
 
   save(
     params: Partial<T>,
-    options?: Record<string, string | boolean | number | undefined>
+    options: Record<string, string | boolean | number | undefined> = {}
   ): Promise<T> {
-    if (params.isNew || !params.id) {
-      return this.create(params, options);
+    const { isNew, ...rest } = options;
+    if (isNew || !params.id) {
+      return this.create(params, rest);
     }
-    return this.update(params, options);
+    return this.update(params, rest);
   }
 
   get(id: string): T | undefined {
