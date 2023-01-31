@@ -196,7 +196,11 @@ allow(User, ["pin", "unpin"], Document, (user, document) => {
   if (!document.publishedAt) {
     return false;
   }
-  if (document.collection && cannot(user, "update", document.collection)) {
+  invariant(
+    document.collection,
+    "collection is missing, did you forget to include in the query scope?"
+  );
+  if (cannot(user, "update", document.collection)) {
     return false;
   }
   return user.teamId === document.teamId;
@@ -218,6 +222,14 @@ allow(User, ["subscribe", "unsubscribe"], Document, (user, document) => {
   if (!document.publishedAt) {
     return false;
   }
+  invariant(
+    document.collection,
+    "collection is missing, did you forget to include in the query scope?"
+  );
+  if (cannot(user, "read", document.collection)) {
+    return false;
+  }
+
   return user.teamId === document.teamId;
 });
 

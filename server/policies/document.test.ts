@@ -115,6 +115,8 @@ describe("private collection", () => {
     expect(abilities.delete).toEqual(false);
     expect(abilities.share).toEqual(false);
     expect(abilities.move).toEqual(false);
+    expect(abilities.subscribe).toEqual(false);
+    expect(abilities.unsubscribe).toEqual(false);
   });
 });
 
