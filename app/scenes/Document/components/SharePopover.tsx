@@ -227,15 +227,13 @@ function SharePopover({
       {sharedParent && !document.isDraft && (
         <NoticeWrapper>
           <Notice>
-            {t("This document is shared because the parent ")}
-            {sharedParent && (
-              <>
-                <StyledLink to={`/doc/${sharedParent.documentId}`}>
-                  {sharedParent.documentTitle}
-                </StyledLink>{" "}
-              </>
-            )}
-            {t("is publicly shared")}
+            <Trans>
+              This document is shared because the parent
+              <StyledLink to={`/doc/${sharedParent.documentId}`}>
+                {sharedParent.documentTitle}
+              </StyledLink>
+              is publicly shared.
+            </Trans>
           </Notice>
         </NoticeWrapper>
       )}
@@ -346,7 +344,12 @@ function SharePopover({
 }
 
 const StyledLink = styled(Link)`
-  font-weight: 600;
+  color: ${(props) => props.theme.textTertiary};
+  &:hover {
+    text-decoration: underline;
+  }
+  padding: 0 4px;
+  font-weight: bold;
 `;
 
 const Heading = styled.h2`
