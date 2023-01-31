@@ -108,8 +108,6 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         return;
       }
 
-      ui.expandComments();
-
       const comment = new Comment(
         {
           documentId: props.id,
@@ -118,8 +116,14 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
       );
       comment.id = commentId;
       comments.add(comment);
+
+      ui.expandComments();
+      history.replace({
+        pathname: window.location.pathname.replace(/\/history$/, ""),
+        state: { commentId },
+      });
     },
-    [comments, props.id, ui]
+    [comments, props.id, history, ui]
   );
 
   // Soft delete the Comment model when associated mark is totally removed.

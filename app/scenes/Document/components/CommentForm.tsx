@@ -1,10 +1,13 @@
+import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { CommentValidation } from "@shared/validations";
 import Comment from "~/models/Comment";
 import Avatar from "~/components/Avatar";
 import Flex from "~/components/Flex";
+import type { Editor as SharedEditor } from "~/editor";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import useOnClickOutside from "~/hooks/useOnClickOutside";
 import usePersistedState from "~/hooks/usePersistedState";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
@@ -14,19 +17,38 @@ type Props = {
   documentId: string;
   thread: Comment;
   onTyping: () => void;
+  onFocus?: () => void;
+  onBlur?: () => void;
+  onClickOutside?: (event: MouseEvent | TouchEvent) => void;
 };
 
-function CommentForm({ documentId, thread, onTyping, ...rest }: Props) {
+function CommentForm({
+  documentId,
+  thread,
+  onTyping,
+  onFocus,
+  onBlur,
+  onClickOutside,
+  ...rest
+}: Props) {
   const [data, setData] = usePersistedState<Record<string, any> | undefined>(
     `draft-${documentId}-${thread.id}`,
     undefined
   );
   const formRef = React.useRef<HTMLFormElement>(null);
+  const editorRef = React.useRef<SharedEditor>(null);
   const [forceRender, setForceRender] = React.useState(0);
   const { t } = useTranslation();
   const { showToast } = useToasts();
   const { comments } = useStores();
   const user = useCurrentUser();
+
+  useOnClickOutside(formRef, () => {
+    // TODO check if empty paragraph
+    if (!data) {
+      thread.delete();
+    }
+  });
 
   const handleCreateComment = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -78,6 +100,16 @@ function CommentForm({ documentId, thread, onTyping, ...rest }: Props) {
     );
   };
 
+  // Focus the editor when it's a new comment just mounted, after a delay as the
+  // editor is mounted within a fade transition.
+  React.useEffect(() => {
+    setTimeout(() => {
+      if (thread.isNew) {
+        editorRef.current?.focusAtStart();
+      }
+    }, 0);
+  }, [thread.isNew]);
+
   return (
     <form
       ref={formRef}
@@ -88,10 +120,12 @@ function CommentForm({ documentId, thread, onTyping, ...rest }: Props) {
         <Avatar model={user} />
         <CommentEditor
           key={`${forceRender}`}
+          ref={editorRef}
           onChange={handleChange}
           onSave={handleSave}
+          onFocus={onFocus}
+          onBlur={onBlur}
           maxLength={CommentValidation.maxLength}
-          autoFocus={thread.isNew}
           placeholder={
             // isNew is only the case for comments that exist in draft state,
             // they are marks in the document, but not yet saved to the db.
@@ -103,4 +137,4 @@ function CommentForm({ documentId, thread, onTyping, ...rest }: Props) {
   );
 }
 
-export default React.forwardRef(CommentForm);
+export default observer(CommentForm);

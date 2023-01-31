@@ -53,6 +53,7 @@ Avatar.defaultProps = {
 
 const Relative = styled.div`
   position: relative;
+  user-select: none;
   flex-shrink: 0;
 `;
 
