@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`presents a user 1`] = `
-Object {
+{
   "avatarUrl": null,
   "color": "#FF5C80",
   "createdAt": undefined,
@@ -16,7 +16,7 @@ Object {
 `;
 
 exports[`presents a user without slack data 1`] = `
-Object {
+{
   "avatarUrl": null,
   "color": "#FF5C80",
   "createdAt": undefined,
