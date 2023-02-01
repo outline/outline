@@ -8,8 +8,8 @@ import { mergeRefs } from "react-merge-refs";
 import { useHistory } from "react-router-dom";
 import { Optional } from "utility-types";
 import insertFiles from "@shared/editor/commands/insertFiles";
-import { Heading } from "@shared/editor/lib/getHeadings";
 import { AttachmentPreset } from "@shared/types";
+import { Heading } from "@shared/utils/ProsemirrorHelper";
 import { getDataTransferFiles } from "@shared/utils/files";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { isInternalUrl } from "@shared/utils/urls";
@@ -287,7 +287,10 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
       );
 
       newCommentIds.forEach((commentId) => {
-        onCreateCommentMark(commentId);
+        const mark = commentMarks?.find((c) => c.id === commentId);
+        if (mark) {
+          onCreateCommentMark(mark.id, mark.userId);
+        }
       });
 
       const removedCommentIds = difference(

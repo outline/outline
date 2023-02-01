@@ -20,9 +20,6 @@ import EditorContainer from "@shared/editor/components/Styles";
 import { EmbedDescriptor } from "@shared/editor/embeds";
 import Extension, { CommandFactory } from "@shared/editor/lib/Extension";
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
-import getComments from "@shared/editor/lib/getComments";
-import getHeadings from "@shared/editor/lib/getHeadings";
-import getTasks from "@shared/editor/lib/getTasks";
 import { MarkdownSerializer } from "@shared/editor/lib/markdown/serializer";
 import textBetween from "@shared/editor/lib/textBetween";
 import Mark from "@shared/editor/marks/Mark";
@@ -31,6 +28,7 @@ import ReactNode from "@shared/editor/nodes/ReactNode";
 import fullExtensionsPackage from "@shared/editor/packages/full";
 import { EventType } from "@shared/editor/types";
 import { UserPreferences } from "@shared/types";
+import ProsemirrorHelper from "@shared/utils/ProsemirrorHelper";
 import EventEmitter from "@shared/utils/events";
 import Flex from "~/components/Flex";
 import { Dictionary } from "~/hooks/useDictionary";
@@ -92,7 +90,7 @@ export type Props = {
   /** Callback when a comment mark is clicked */
   onClickCommentMark?: (commentId: string) => void;
   /** Callback when a comment mark is created */
-  onCreateCommentMark?: (commentId: string) => void;
+  onCreateCommentMark?: (commentId: string, userId: string) => void;
   /** Callback when a comment mark is removed */
   onDeleteCommentMark?: (commentId: string) => void;
   /** Callback when a file upload begins */
@@ -525,10 +523,10 @@ export class Editor extends React.PureComponent<
     }
   };
 
-  public value = (asString = true): string => {
+  public value = (asString = true) => {
     return asString
       ? this.serializer.serialize(this.view.state.doc)
-      : this.view.state.doc;
+      : this.view.state.doc.toJSON();
   };
 
   private handleChange = () => {
@@ -620,12 +618,21 @@ export class Editor extends React.PureComponent<
   };
 
   /**
+   * Returns true if the trimmed content of the editor is an empty string.
+   *
+   * @returns True if the editor is empty
+   */
+  public isEmpty = () => {
+    return ProsemirrorHelper.isEmpty(this.view.state.doc);
+  };
+
+  /**
    * Return the headings in the current editor.
    *
    * @returns A list of headings in the document
    */
   public getHeadings = () => {
-    return getHeadings(this.view.state.doc);
+    return ProsemirrorHelper.getHeadings(this.view.state.doc);
   };
 
   /**
@@ -634,7 +641,7 @@ export class Editor extends React.PureComponent<
    * @returns A list of tasks in the document
    */
   public getTasks = () => {
-    return getTasks(this.view.state.doc);
+    return ProsemirrorHelper.getTasks(this.view.state.doc);
   };
 
   /**
@@ -643,7 +650,7 @@ export class Editor extends React.PureComponent<
    * @returns A list of comments in the document
    */
   public getComments = () => {
-    return getComments(this.view.state.doc);
+    return ProsemirrorHelper.getComments(this.view.state.doc);
   };
 
   /**

@@ -1,3 +1,4 @@
+import { action } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -44,13 +45,12 @@ function CommentForm({
   const user = useCurrentUser();
 
   useOnClickOutside(formRef, () => {
-    // TODO check if empty paragraph
-    if (!data) {
+    if (editorRef.current?.isEmpty() && thread.isNew) {
       thread.delete();
     }
   });
 
-  const handleCreateComment = async (event: React.FormEvent) => {
+  const handleCreateComment = action(async (event: React.FormEvent) => {
     event.preventDefault();
 
     const comment = comments.get(thread.id);
@@ -58,16 +58,21 @@ function CommentForm({
       setData(undefined);
       setForceRender((s) => ++s);
 
-      try {
-        await comment.save({
+      comment
+        .save({
           documentId,
           data,
+        })
+        .catch(() => {
+          comment.isNew = true;
+          showToast(t("Error creating comment"), { type: "error" });
         });
-      } catch (error) {
-        showToast(t("Error creating comment"), { type: "error" });
-      }
+
+      // optimisticly update the comment model
+      comment.isNew = false;
+      comment.createdBy = user;
     }
-  };
+  });
 
   const handleCreateReply = async (event: React.FormEvent) => {
     event.preventDefault();

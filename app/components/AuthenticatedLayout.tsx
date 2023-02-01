@@ -108,7 +108,7 @@ const AuthenticatedLayout: React.FC = ({ children }) => {
   const showComments = !showInsights && !showHistory && !ui.commentsCollapsed;
 
   const sidebarRight = (
-    <AnimatePresence key={ui.activeDocumentId}>
+    <AnimatePresence>
       {(showHistory || showInsights || showComments) && (
         <Route path={`/doc/${slug}`}>
           <SidebarRight>
