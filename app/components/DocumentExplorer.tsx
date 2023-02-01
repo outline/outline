@@ -1,13 +1,5 @@
 import FuzzySearch from "fuzzy-search";
-import {
-  includes,
-  difference,
-  concat,
-  filter,
-  throttle,
-  map,
-  fill,
-} from "lodash";
+import { includes, difference, concat, filter, map, fill } from "lodash";
 import { observer } from "mobx-react";
 import { StarredIcon, DocumentIcon } from "outline-icons";
 import * as React from "react";
@@ -115,7 +107,7 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
     (node: number) => {
       if (itemRefs[node] && itemRefs[node].current) {
         scrollIntoView(itemRefs[node].current as HTMLSpanElement, {
-          behavior: "smooth",
+          behavior: "auto",
           block: "center",
         });
       }
@@ -292,55 +284,46 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
   };
 
   const handleKeyDown = (ev: React.KeyboardEvent<HTMLDivElement>) => {
-    if (ev.key === "ArrowDown" || ev.key === "ArrowUp") {
-      ev.preventDefault();
-    }
-
-    const throttledOnKeyDown = throttle(
-      (ev) => {
-        switch (ev.key) {
-          case "ArrowDown": {
-            setActiveNode(next());
-            scrollNodeIntoView(next());
-            break;
-          }
-          case "ArrowUp": {
-            if (activeNode === 0) {
-              focusSearchInput();
-            } else {
-              setActiveNode(prev());
-              scrollNodeIntoView(prev());
-            }
-            break;
-          }
-          case "ArrowLeft": {
-            if (!searchTerm && isExpanded(activeNode)) {
-              toggleCollapse(activeNode);
-            }
-            break;
-          }
-          case "ArrowRight": {
-            if (!searchTerm) {
-              toggleCollapse(activeNode);
-              scrollNodeIntoView(next());
-            }
-            break;
-          }
-          case "Enter": {
-            if (isModKey(ev)) {
-              onSubmit();
-            } else {
-              toggleSelect(activeNode);
-            }
-            break;
-          }
+    switch (ev.key) {
+      case "ArrowDown": {
+        ev.preventDefault();
+        setActiveNode(next());
+        scrollNodeIntoView(next());
+        break;
+      }
+      case "ArrowUp": {
+        ev.preventDefault();
+        if (activeNode === 0) {
+          focusSearchInput();
+        } else {
+          setActiveNode(prev());
+          scrollNodeIntoView(prev());
         }
-      },
-      100,
-      { leading: false }
-    );
-
-    throttledOnKeyDown(ev);
+        break;
+      }
+      case "ArrowLeft": {
+        if (!searchTerm && isExpanded(activeNode)) {
+          toggleCollapse(activeNode);
+        }
+        break;
+      }
+      case "ArrowRight": {
+        if (!searchTerm) {
+          toggleCollapse(activeNode);
+          // let the nodes re-render first and then scroll
+          setImmediate(() => scrollNodeIntoView(activeNode));
+        }
+        break;
+      }
+      case "Enter": {
+        if (isModKey(ev)) {
+          onSubmit();
+        } else {
+          toggleSelect(activeNode);
+        }
+        break;
+      }
+    }
   };
 
   const innerElementType = React.forwardRef<
