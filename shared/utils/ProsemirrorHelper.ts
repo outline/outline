@@ -26,6 +26,23 @@ export type Task = {
 
 export default class ProsemirrorHelper {
   /**
+   * Removes any empty paragraphs from the beginning and end of the document.
+   *
+   * @returns True if the editor is empty
+   */
+  static trim(doc: Node) {
+    const first = doc.firstChild;
+    const last = doc.lastChild;
+    const firstIsEmpty = first?.type.name === "paragraph" && !first.textContent;
+    const lastIsEmpty = last?.type.name === "paragraph" && !last.textContent;
+
+    return doc.cut(
+      firstIsEmpty ? first.nodeSize : 0,
+      lastIsEmpty ? doc.nodeSize - last.nodeSize : undefined
+    );
+  }
+
+  /**
    * Returns true if the trimmed content of the passed document is an empty
    * string.
    *

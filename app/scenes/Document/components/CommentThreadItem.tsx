@@ -111,7 +111,11 @@ function CommentThreadItem({
 
   return (
     <Flex gap={8} key={comment.id} align="flex-start">
-      {firstOfAuthor && <Avatar model={comment.createdBy} />}
+      {firstOfAuthor && (
+        <AvatarSpacer>
+          <Avatar model={comment.createdBy} size={firstOfThread ? 24 : 20} />
+        </AvatarSpacer>
+      )}
       <Bubble
         $firstOfThread={firstOfThread}
         $firstOfAuthor={firstOfAuthor}
@@ -147,6 +151,14 @@ function CommentThreadItem({
     </Flex>
   );
 }
+
+const AvatarSpacer = styled(Flex)`
+  width: 24px;
+  height: 24px;
+  align-items: flex-end;
+  justify-content: flex-end;
+  flex-direction: column;
+`;
 
 const Body = styled.form<{ $isEditing: boolean }>`
   background: ${(props) => (props.$isEditing ? "white" : "none")};

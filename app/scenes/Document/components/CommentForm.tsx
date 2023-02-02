@@ -5,6 +5,8 @@ import { useTranslation } from "react-i18next";
 import { CommentValidation } from "@shared/validations";
 import Comment from "~/models/Comment";
 import Avatar from "~/components/Avatar";
+import Button from "~/components/Button";
+import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import type { Editor as SharedEditor } from "~/editor";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -17,7 +19,8 @@ import CommentEditor from "./CommentEditor";
 type Props = {
   documentId: string;
   thread: Comment;
-  onTyping: () => void;
+  placeholder?: string;
+  onTyping?: () => void;
   onFocus?: () => void;
   onBlur?: () => void;
   onClickOutside?: (event: MouseEvent | TouchEvent) => void;
@@ -30,6 +33,7 @@ function CommentForm({
   onFocus,
   onBlur,
   onClickOutside,
+  placeholder,
   ...rest
 }: Props) {
   const [data, setData] = usePersistedState<Record<string, any> | undefined>(
@@ -43,9 +47,10 @@ function CommentForm({
   const { showToast } = useToasts();
   const { comments } = useStores();
   const user = useCurrentUser();
+  const isEmpty = editorRef.current?.isEmpty() ?? true;
 
   useOnClickOutside(formRef, () => {
-    if (editorRef.current?.isEmpty() && thread.isNew) {
+    if (isEmpty && thread.isNew) {
       thread.delete();
     }
   });
@@ -53,25 +58,22 @@ function CommentForm({
   const handleCreateComment = action(async (event: React.FormEvent) => {
     event.preventDefault();
 
-    const comment = comments.get(thread.id);
-    if (comment) {
-      setData(undefined);
-      setForceRender((s) => ++s);
+    setData(undefined);
+    setForceRender((s) => ++s);
 
-      comment
-        .save({
-          documentId,
-          data,
-        })
-        .catch(() => {
-          comment.isNew = true;
-          showToast(t("Error creating comment"), { type: "error" });
-        });
+    thread
+      .save({
+        documentId,
+        data,
+      })
+      .catch(() => {
+        thread.isNew = true;
+        showToast(t("Error creating comment"), { type: "error" });
+      });
 
-      // optimisticly update the comment model
-      comment.isNew = false;
-      comment.createdBy = user;
-    }
+    // optimisticly update the comment model
+    thread.isNew = false;
+    thread.createdBy = user;
   });
 
   const handleCreateReply = async (event: React.FormEvent) => {
@@ -94,9 +96,11 @@ function CommentForm({
     }
   };
 
-  const handleChange = (value: (asString: boolean) => Record<string, any>) => {
-    setData(value(false));
-    onTyping();
+  const handleChange = (
+    value: (asString: boolean, trim: boolean) => Record<string, any>
+  ) => {
+    setData(value(false, true));
+    onTyping?.();
   };
 
   const handleSave = () => {
@@ -123,20 +127,32 @@ function CommentForm({
     >
       <Flex gap={8}>
         <Avatar model={user} />
-        <CommentEditor
-          key={`${forceRender}`}
-          ref={editorRef}
-          onChange={handleChange}
-          onSave={handleSave}
-          onFocus={onFocus}
-          onBlur={onBlur}
-          maxLength={CommentValidation.maxLength}
-          placeholder={
-            // isNew is only the case for comments that exist in draft state,
-            // they are marks in the document, but not yet saved to the db.
-            thread.isNew ? `${t("Add a comment")}…` : `${t("Add a reply")}…`
-          }
-        />
+        <Flex column>
+          <CommentEditor
+            key={`${forceRender}`}
+            ref={editorRef}
+            onChange={handleChange}
+            onSave={handleSave}
+            onFocus={onFocus}
+            onBlur={onBlur}
+            maxLength={CommentValidation.maxLength}
+            placeholder={
+              placeholder ||
+              // isNew is only the case for comments that exist in draft state,
+              // they are marks in the document, but not yet saved to the db.
+              (thread.isNew ? `${t("Add a comment")}…` : `${t("Add a reply")}…`)
+            }
+          />
+          <Fade>
+            {!isEmpty && (
+              <Flex align="flex-end">
+                <Button type="submit" neutral borderOnHover>
+                  Post
+                </Button>
+              </Flex>
+            )}
+          </Fade>
+        </Flex>
       </Flex>
     </form>
   );

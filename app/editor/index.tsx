@@ -523,10 +523,16 @@ export class Editor extends React.PureComponent<
     }
   };
 
-  public value = (asString = true) => {
-    return asString
-      ? this.serializer.serialize(this.view.state.doc)
-      : this.view.state.doc.toJSON();
+  public value = (asString = true, trim?: boolean) => {
+    if (asString) {
+      const content = this.serializer.serialize(this.view.state.doc);
+      return trim ? content.trim() : content;
+    }
+
+    return (trim
+      ? ProsemirrorHelper.trim(this.view.state.doc)
+      : this.view.state.doc
+    ).toJSON();
   };
 
   private handleChange = () => {
@@ -534,8 +540,8 @@ export class Editor extends React.PureComponent<
       return;
     }
 
-    this.props.onChange((asString = true) => {
-      return this.view ? this.value(asString) : undefined;
+    this.props.onChange((asString = true, trim = false) => {
+      return this.view ? this.value(asString, trim) : undefined;
     });
   };
 

@@ -9,9 +9,12 @@ import Document from "~/models/Document";
 import Avatar from "~/components/Avatar";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
+import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Typing from "~/components/Typing";
 import { WebsocketContext } from "~/components/WebsocketProvider";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import useOnClickOutside from "~/hooks/useOnClickOutside";
+import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import CommentForm from "./CommentForm";
 import CommentThreadItem from "./CommentThreadItem";
@@ -45,6 +48,7 @@ function CommentThread({ comment: thread, document }: Props) {
   const { comments } = useStores();
   const topRef = React.useRef<HTMLDivElement>(null);
   const user = useCurrentUser();
+  const query = useQuery();
   const location = useLocation<{ commentId?: string }>();
   const history = useHistory();
   const [, setIsTyping] = useTypingIndicator({
@@ -53,7 +57,21 @@ function CommentThread({ comment: thread, document }: Props) {
   });
 
   const commentsInThread = comments.inThread(thread.id);
-  const highlighted = location.state?.commentId === thread.id;
+  const highlighted =
+    location.state?.commentId === thread.id ||
+    query.get("commentId") === thread.id;
+
+  useOnClickOutside(topRef, (event) => {
+    if (
+      highlighted &&
+      !(event.target as HTMLElement).classList.contains("comment")
+    ) {
+      history.replace({
+        pathname: window.location.pathname,
+        state: { commentId: undefined },
+      });
+    }
+  });
 
   const handleClickThread = () => {
     history.replace({
@@ -73,8 +91,18 @@ function CommentThread({ comment: thread, document }: Props) {
           return parent.id !== "comments";
         },
       });
+
+      setImmediate(() => {
+        const commentMarkElement = window.document?.getElementById(
+          `comment-${thread.id}`
+        );
+        commentMarkElement?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      });
     }
-  }, [highlighted]);
+  }, [highlighted, thread.id]);
 
   return (
     <Thread ref={topRef} $highlighted={highlighted} onClick={handleClickThread}>
@@ -107,21 +135,31 @@ function CommentThread({ comment: thread, document }: Props) {
             <Typing />
           </Flex>
         ))}
-      {highlighted && (
-        <Fade>
-          <CommentForm
-            documentId={document.id}
-            thread={thread}
-            onTyping={setIsTyping}
-          />
-        </Fade>
-      )}
+
+      <ResizingHeightContainer
+        config={{
+          transition: {
+            duration: 0.2,
+            ease: "easeInOut",
+          },
+        }}
+      >
+        {highlighted && (
+          <Fade>
+            <CommentForm
+              documentId={document.id}
+              thread={thread}
+              onTyping={setIsTyping}
+            />
+          </Fade>
+        )}
+      </ResizingHeightContainer>
     </Thread>
   );
 }
 
 const Thread = styled.div<{ $highlighted: boolean }>`
-  margin: 1em 18px 1em 12px;
+  margin: 12px 18px 32px 12px;
   position: relative;
 
   ${(props) =>
