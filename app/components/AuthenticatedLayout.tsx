@@ -25,26 +25,12 @@ import {
 import Fade from "./Fade";
 
 const DocumentHistory = React.lazy(
-  () =>
-    import(
-      /* webpackChunkName: "document-history" */
-      "~/scenes/Document/components/History"
-    )
+  () => import("~/scenes/Document/components/History")
 );
 const DocumentInsights = React.lazy(
-  () =>
-    import(
-      /* webpackChunkName: "document-insights" */
-      "~/scenes/Document/components/Insights"
-    )
+  () => import("~/scenes/Document/components/Insights")
 );
-const CommandBar = React.lazy(
-  () =>
-    import(
-      /* webpackChunkName: "command-bar" */
-      "~/components/CommandBar"
-    )
-);
+const CommandBar = React.lazy(() => import("~/components/CommandBar"));
 
 const AuthenticatedLayout: React.FC = ({ children }) => {
   const { ui, auth } = useStores();

@@ -53,11 +53,7 @@ const style = {
 };
 
 const TwitterPicker = React.lazy(
-  () =>
-    import(
-      /* webpackChunkName: "twitter-picker" */
-      "react-color/lib/components/twitter/Twitter"
-    )
+  () => import("react-color/lib/components/twitter/Twitter")
 );
 
 export const icons = {

@@ -5,13 +5,7 @@ import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import useQuery from "~/hooks/useQuery";
 import type { Props } from "./Table";
 
-const Table = React.lazy(
-  () =>
-    import(
-      /* webpackChunkName: "table" */
-      "~/components/Table"
-    )
-);
+const Table = React.lazy(() => import("~/components/Table"));
 
 const TableFromParams = (
   props: Omit<Props, "onChangeSort" | "onChangePage" | "topRef">

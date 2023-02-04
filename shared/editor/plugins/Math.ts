@@ -18,10 +18,7 @@ export function createMathView(displayMode: boolean) {
     getPos: boolean | (() => number)
   ): MathView => {
     // dynamically load katex styles and fonts
-    import(
-      /* webpackChunkName: "katex" */
-      "katex/dist/katex.min.css"
-    );
+    import("katex/dist/katex.min.css");
 
     const pluginState = MATH_PLUGIN_KEY.getState(view.state);
     if (!pluginState) {

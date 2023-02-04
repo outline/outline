@@ -119,10 +119,7 @@ window.addEventListener("load", async () => {
     return;
   }
   // https://github.com/googleanalytics/autotrack/issues/137#issuecomment-305890099
-  await import(
-    /* webpackChunkName: "autotrack" */
-    "autotrack/autotrack.js"
-  );
+  await import("autotrack/autotrack.js");
   window.ga("require", "outboundLinkTracker");
   window.ga("require", "urlChangeTracker");
   window.ga("require", "eventTracker", {
