@@ -176,16 +176,17 @@ function InnerDocumentLink(
       if (monitor.didDrop()) {
         return;
       }
-      if (!collection || item.id === node.id) {
+      if (!collection) {
         return;
       }
       await documents.move(item.id, collection.id, node.id);
       setExpanded(true);
     },
-    canDrop: (_item, monitor) =>
+    canDrop: (item, monitor) =>
       !isDraft &&
       !!pathToNode &&
-      !pathToNode.includes(monitor.getItem<DragObject>().id),
+      !pathToNode.includes(monitor.getItem<DragObject>().id) &&
+      item.id !== node.id,
     hover: (_item, monitor) => {
       // Enables expansion of document children when hovering over the document
       // for more than half a second.
