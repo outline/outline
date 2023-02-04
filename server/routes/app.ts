@@ -15,6 +15,7 @@ import { getTeamFromContext } from "@server/utils/passport";
 import prefetchTags from "@server/utils/prefetchTags";
 
 const isProduction = env.ENVIRONMENT === "production";
+const isDevelopment = env.ENVIRONMENT === "development";
 const isTest = env.ENVIRONMENT === "test";
 const readFile = util.promisify(fs.readFile);
 let indexHtmlCache: Buffer | undefined;
@@ -24,6 +25,12 @@ const readIndexFile = async (): Promise<Buffer> => {
     if (indexHtmlCache) {
       return indexHtmlCache;
     }
+  }
+
+  if (isDevelopment) {
+    return await readFile(
+      path.join(__dirname, "../../../server/static/index.html")
+    );
   }
 
   return (indexHtmlCache = await readFile(
