@@ -71,23 +71,19 @@ function DraggableCollectionLink({
   // Drag to reorder collection
   const [{ isDragging }, dragToReorderCollection, preview] = useDrag({
     type: "collection",
-    item: () => {
-      return {
-        id: collection.id,
-        title: collection.name,
-        icon: <CollectionIcon collection={collection} />,
-      };
-    },
+    item: () => ({
+      id: collection.id,
+      title: collection.name,
+      icon: <CollectionIcon collection={collection} />,
+    }),
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
-    canDrag: () => {
-      return can.move;
-    },
+    canDrag: () => can.move,
   });
 
   React.useEffect(() => {
-    preview(getEmptyImage(), { captureDraggingState: true });
+    preview(getEmptyImage(), { captureDraggingState: false });
   }, [preview]);
 
   // If the current collection is active and relevant to the sidebar section we

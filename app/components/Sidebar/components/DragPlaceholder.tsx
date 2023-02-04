@@ -18,7 +18,7 @@ const layerStyles: React.CSSProperties = {
 function getItemStyles(
   initialOffset: XYCoord | null,
   currentOffset: XYCoord | null,
-  allowedOffset: number
+  sidebarWidth: number
 ) {
   if (!initialOffset || !currentOffset) {
     return {
@@ -28,11 +28,12 @@ function getItemStyles(
   const { y } = currentOffset;
   const x = Math.max(
     initialOffset.x,
-    Math.min(initialOffset.x + allowedOffset, currentOffset.x)
+    Math.min(initialOffset.x + sidebarWidth / 4, currentOffset.x)
   );
 
   const transform = `translate(${x}px, ${y}px)`;
   return {
+    width: sidebarWidth - 24,
     transform,
     WebkitTransform: transform,
   };
@@ -57,13 +58,11 @@ const DragPlaceholder = () => {
   }
 
   return (
-    <div style={{ ...layerStyles, width: ui.sidebarWidth - 24 }}>
-      <div
-        style={getItemStyles(initialOffset, currentOffset, ui.sidebarWidth / 2)}
-      >
+    <div style={layerStyles}>
+      <div style={getItemStyles(initialOffset, currentOffset, ui.sidebarWidth)}>
         <GhostLink
           icon={item.icon}
-          label={item.title ?? t("Untitled")}
+          label={item.title || t("Untitled")}
           isDraft={item.isDraft}
           depth={item.depth}
           active

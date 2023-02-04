@@ -137,6 +137,7 @@ function InnerDocumentLink(
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const isMoving = documents.movingDocumentId === node.id;
   const manualSort = collection?.sort.field === "index";
+  const can = policies.abilities(node.id);
 
   // Draggable
   const [{ isDragging }, drag, preview] = useDrag({
@@ -150,10 +151,7 @@ function InnerDocumentLink(
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
-    canDrag: () =>
-      policies.abilities(node.id).move ||
-      policies.abilities(node.id).archive ||
-      policies.abilities(node.id).delete,
+    canDrag: () => can.move || can.archive || can.delete,
   });
 
   React.useEffect(() => {
@@ -288,7 +286,6 @@ function InnerDocumentLink(
     (activeDocument?.id === node.id ? activeDocument.title : node.title) ||
     t("Untitled");
 
-  const can = policies.abilities(node.id);
   const isExpanded = expanded && !isDragging;
   const hasChildren = nodeChildren.length > 0;
 
@@ -381,12 +378,8 @@ function InnerDocumentLink(
             </DropToImport>
           </div>
         </Draggable>
-        {isDraggingAnyDocument && (
-          <DropCursor
-            disabled={!manualSort}
-            isActiveDrop={isOverReorder}
-            innerRef={dropToReorder}
-          />
+        {isDraggingAnyDocument && manualSort && (
+          <DropCursor isActiveDrop={isOverReorder} innerRef={dropToReorder} />
         )}
       </Relative>
       <Folder expanded={expanded && !isDragging}>
