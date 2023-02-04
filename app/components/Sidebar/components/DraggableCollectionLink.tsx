@@ -2,10 +2,12 @@ import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useDrop, useDrag, DropTargetMonitor } from "react-dnd";
+import { getEmptyImage } from "react-dnd-html5-backend";
 import { useLocation } from "react-router-dom";
 import styled from "styled-components";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
+import CollectionIcon from "~/components/Icons/CollectionIcon";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import CollectionLink from "./CollectionLink";
@@ -62,25 +64,31 @@ function DraggableCollectionLink({
     },
     collect: (monitor: DropTargetMonitor<Collection, Collection>) => ({
       isCollectionDropping: monitor.isOver(),
-      isDraggingAnyCollection: monitor.getItemType() === "collection",
+      isDraggingAnyCollection: monitor.canDrop(),
     }),
   });
 
   // Drag to reorder collection
-  const [{ isCollectionDragging }, dragToReorderCollection] = useDrag({
+  const [{ isDragging }, dragToReorderCollection, preview] = useDrag({
     type: "collection",
     item: () => {
       return {
         id: collection.id,
+        title: collection.name,
+        icon: <CollectionIcon collection={collection} />,
       };
     },
     collect: (monitor) => ({
-      isCollectionDragging: monitor.isDragging(),
+      isDragging: monitor.isDragging(),
     }),
     canDrag: () => {
       return can.move;
     },
   });
+
+  React.useEffect(() => {
+    preview(getEmptyImage(), { captureDraggingState: true });
+  }, [preview]);
 
   // If the current collection is active and relevant to the sidebar section we
   // are in then expand it automatically
@@ -95,14 +103,14 @@ function DraggableCollectionLink({
     setExpanded((e) => !e);
   }, []);
 
-  const displayChildDocuments = expanded && !isCollectionDragging;
+  const displayChildDocuments = expanded && !isDragging;
 
   return (
     <>
       <Draggable
         key={collection.id}
         ref={dragToReorderCollection}
-        $isDragging={isCollectionDragging}
+        $isDragging={isDragging}
       >
         <CollectionLink
           collection={collection}
@@ -130,7 +138,8 @@ function DraggableCollectionLink({
 }
 
 const Draggable = styled("div")<{ $isDragging: boolean }>`
-  opacity: ${(props) => (props.$isDragging ? 0.5 : 1)};
+  transition: opacity 250ms ease;
+  opacity: ${(props) => (props.$isDragging ? 0.1 : 1)};
   pointer-events: ${(props) => (props.$isDragging ? "none" : "auto")};
 `;
 

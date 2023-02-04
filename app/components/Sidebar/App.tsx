@@ -25,6 +25,7 @@ import TeamLogo from "../TeamLogo";
 import Sidebar from "./Sidebar";
 import ArchiveLink from "./components/ArchiveLink";
 import Collections from "./components/Collections";
+import DragPlaceholder from "./components/DragPlaceholder";
 import HeaderButton, { HeaderButtonProps } from "./components/HeaderButton";
 import HistoryNavigation from "./components/HistoryNavigation";
 import Section from "./components/Section";
@@ -61,6 +62,8 @@ function AppSidebar() {
       <HistoryNavigation />
       {dndArea && (
         <DndProvider backend={HTML5Backend} options={html5Options}>
+          <DragPlaceholder />
+
           <OrganizationMenu>
             {(props: HeaderButtonProps) => (
               <HeaderButton

@@ -3,6 +3,7 @@ import { observer } from "mobx-react";
 import { PlusIcon } from "outline-icons";
 import * as React from "react";
 import { useDrag, useDrop } from "react-dnd";
+import { getEmptyImage } from "react-dnd-html5-backend";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
@@ -138,7 +139,7 @@ function InnerDocumentLink(
   const manualSort = collection?.sort.field === "index";
 
   // Draggable
-  const [{ isDragging }, drag] = useDrag({
+  const [{ isDragging }, drag, preview] = useDrag({
     type: "document",
     item: () => ({
       ...node,
@@ -154,6 +155,10 @@ function InnerDocumentLink(
       policies.abilities(node.id).archive ||
       policies.abilities(node.id).delete,
   });
+
+  React.useEffect(() => {
+    preview(getEmptyImage(), { captureDraggingState: true });
+  }, [preview]);
 
   const hoverExpanding = React.useRef<ReturnType<typeof setTimeout>>();
 
@@ -173,7 +178,7 @@ function InnerDocumentLink(
       if (monitor.didDrop()) {
         return;
       }
-      if (!collection) {
+      if (!collection || item.id === node.id) {
         return;
       }
       await documents.move(item.id, collection.id, node.id);
@@ -404,7 +409,8 @@ function InnerDocumentLink(
 }
 
 const Draggable = styled.div<{ $isDragging?: boolean; $isMoving?: boolean }>`
-  opacity: ${(props) => (props.$isDragging || props.$isMoving ? 0.5 : 1)};
+  transition: opacity 250ms ease;
+  opacity: ${(props) => (props.$isDragging || props.$isMoving ? 0.1 : 1)};
   pointer-events: ${(props) => (props.$isMoving ? "none" : "all")};
 `;
 
