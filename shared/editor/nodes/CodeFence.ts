@@ -52,8 +52,9 @@ import visualbasic from "refractor/lang/visual-basic";
 import yaml from "refractor/lang/yaml";
 import zig from "refractor/lang/zig";
 
-import { UserPreferences } from "@shared/types";
 import { Dictionary } from "~/hooks/useDictionary";
+import { UserPreferences } from "../../types";
+import Storage from "../../utils/Storage";
 
 import toggleBlockType from "../commands/toggleBlockType";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
@@ -220,7 +221,7 @@ export default class CodeFence extends Node {
   commands({ type, schema }: { type: NodeType; schema: Schema }) {
     return (attrs: Record<string, any>) =>
       toggleBlockType(type, schema.nodes.paragraph, {
-        language: localStorage?.getItem(PERSISTENCE_KEY) || DEFAULT_LANGUAGE,
+        language: Storage.get(PERSISTENCE_KEY, DEFAULT_LANGUAGE),
         ...attrs,
       });
   }
@@ -302,7 +303,7 @@ export default class CodeFence extends Node {
 
       view.dispatch(transaction);
 
-      localStorage?.setItem(PERSISTENCE_KEY, language);
+      Storage.set(PERSISTENCE_KEY, language);
     }
   };
 
@@ -364,7 +365,7 @@ export default class CodeFence extends Node {
   inputRules({ type }: { type: NodeType }) {
     return [
       textblockTypeInputRule(/^```$/, type, () => ({
-        language: localStorage?.getItem(PERSISTENCE_KEY) || DEFAULT_LANGUAGE,
+        language: Storage.get(PERSISTENCE_KEY, DEFAULT_LANGUAGE),
       })),
     ];
   }

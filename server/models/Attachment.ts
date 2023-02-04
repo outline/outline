@@ -72,9 +72,9 @@ class Attachment extends IdModel {
   }
 
   /**
-   * Get the contents of this attachment as a Buffer
+   * Get the contents of this attachment as a readable stream.
    */
-  get buffer() {
+  get stream() {
     return getFileByKey(this.key);
   }
 

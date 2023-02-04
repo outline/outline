@@ -100,6 +100,10 @@ if (env.OIDC_CLIENT_ID && env.OIDC_CLIENT_SECRET) {
           // remove the TLD and form a subdomain from the remaining
           const subdomain = slugifyDomain(domain);
 
+          // Claim name can be overriden using an env variable.
+          // Default is 'preferred_username' as per OIDC spec.
+          const username = get(profile, env.OIDC_USERNAME_CLAIM);
+
           const result = await accountProvisioner({
             ip: ctx.ip,
             team: {
@@ -110,12 +114,10 @@ if (env.OIDC_CLIENT_ID && env.OIDC_CLIENT_SECRET) {
               subdomain,
             },
             user: {
-              name: profile.name,
+              name: profile.name || username || profile.username,
               email: profile.email,
               avatarUrl: profile.picture,
-              // Claim name can be overriden using an env variable.
-              // Default is 'preferred_username' as per OIDC spec.
-              username: get(profile, env.OIDC_USERNAME_CLAIM),
+              username,
             },
             authenticationProvider: {
               name: providerName,

@@ -760,7 +760,10 @@ router.post(
       method: ["withMembership", user.id],
     }).findAll({
       where,
-      order: [["updatedAt", "DESC"]],
+      order: [
+        Sequelize.literal('"collection"."index" collate "C"'),
+        ["updatedAt", "DESC"],
+      ],
       offset: ctx.state.pagination.offset,
       limit: ctx.state.pagination.limit,
     });

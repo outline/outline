@@ -1,32 +1,36 @@
-import { flatten } from "lodash";
+import { NavigationNode } from "@shared/types";
 
-export const flattenTree = (root: any) => {
-  const flattened: any[] = [];
+export const flattenTree = (root: NavigationNode) => {
+  const flattened: NavigationNode[] = [];
   if (!root) {
     return flattened;
   }
 
   flattened.push(root);
 
-  root.children.forEach((child: any) => {
-    flattened.push(flattenTree(child));
+  root.children.forEach((child) => {
+    flattened.push(...flattenTree(child));
   });
 
-  return flatten(flattened);
+  return flattened;
 };
 
-export const ancestors = (node: any) => {
-  const ancestors: any[] = [];
-  while (node.parent !== null) {
-    ancestors.unshift(node);
-    node = node.parent;
+export const ancestors = (node: NavigationNode | null) => {
+  const ancestors: NavigationNode[] = [];
+  if (node) {
+    while (node.parent !== null) {
+      ancestors.unshift(node.parent as NavigationNode);
+      node = node.parent as NavigationNode;
+    }
   }
   return ancestors;
 };
 
-export const descendants = (node: any, depth = 0) => {
+export const descendants = (node: NavigationNode, depth = 0) => {
   const allDescendants = flattenTree(node).slice(1);
   return depth === 0
     ? allDescendants
-    : allDescendants.filter((d) => d.depth <= node.depth + depth);
+    : allDescendants.filter(
+        (d) => (d.depth as number) <= (node.depth as number) + depth
+      );
 };

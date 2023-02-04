@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`#shares.create should require authentication 1`] = `
-Object {
+{
   "error": "authentication_required",
   "message": "Authentication required",
   "ok": false,
@@ -10,7 +10,7 @@ Object {
 `;
 
 exports[`#shares.list should require authentication 1`] = `
-Object {
+{
   "error": "authentication_required",
   "message": "Authentication required",
   "ok": false,
@@ -19,7 +19,7 @@ Object {
 `;
 
 exports[`#shares.revoke should require authentication 1`] = `
-Object {
+{
   "error": "authentication_required",
   "message": "Authentication required",
   "ok": false,
@@ -28,7 +28,7 @@ Object {
 `;
 
 exports[`#shares.update should require authentication 1`] = `
-Object {
+{
   "error": "authentication_required",
   "message": "Authentication required",
   "ok": false,
@@ -37,7 +37,7 @@ Object {
 `;
 
 exports[`should require authentication 1`] = `
-Object {
+{
   "error": "authentication_required",
   "message": "Authentication required",
   "ok": false,

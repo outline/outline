@@ -6,7 +6,10 @@ import {
   referrerPolicy,
 } from "koa-helmet";
 import mount from "koa-mount";
-import enforceHttps, { xForwardedProtoResolver } from "koa-sslify";
+import enforceHttps, {
+  httpsResolver,
+  xForwardedProtoResolver,
+} from "koa-sslify";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { initI18n } from "@server/utils/i18n";
@@ -50,7 +53,12 @@ export default function init(app: Koa = new Koa()): Koa {
     if (env.FORCE_HTTPS) {
       app.use(
         enforceHttps({
-          resolver: xForwardedProtoResolver,
+          resolver: (ctx) => {
+            if (httpsResolver(ctx)) {
+              return true;
+            }
+            return xForwardedProtoResolver(ctx);
+          },
         })
       );
     } else {

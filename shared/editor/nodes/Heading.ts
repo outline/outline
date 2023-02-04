@@ -8,6 +8,7 @@ import {
 } from "prosemirror-model";
 import { Plugin, Selection } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
+import Storage from "../../utils/Storage";
 import backspaceToParagraph from "../commands/backspaceToParagraph";
 import splitHeading from "../commands/splitHeading";
 import toggleBlockType from "../commands/toggleBlockType";
@@ -151,9 +152,9 @@ export default class Heading extends Node {
         const persistKey = headingToPersistenceKey(node, this.editor.props.id);
 
         if (collapsed) {
-          localStorage?.setItem(persistKey, "collapsed");
+          Storage.set(persistKey, "collapsed");
         } else {
-          localStorage?.removeItem(persistKey);
+          Storage.remove(persistKey);
         }
 
         view.dispatch(transaction);

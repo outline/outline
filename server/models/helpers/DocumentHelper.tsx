@@ -118,14 +118,19 @@ export default class DocumentHelper {
       : "article";
 
     const rtl = isRTL(document.title);
+    const content = <div id="content" className="ProseMirror"></div>;
     const children = (
       <>
         {options?.includeTitle !== false && (
           <h1 dir={rtl ? "rtl" : "ltr"}>{document.title}</h1>
         )}
-        <EditorContainer dir={rtl ? "rtl" : "ltr"} rtl={rtl}>
-          <div id="content" className="ProseMirror"></div>
-        </EditorContainer>
+        {options?.includeStyles !== false ? (
+          <EditorContainer dir={rtl ? "rtl" : "ltr"} rtl={rtl}>
+            {content}
+          </EditorContainer>
+        ) : (
+          content
+        )}
       </>
     );
 
@@ -273,36 +278,77 @@ export default class DocumentHelper {
         previousNodeRemoved = false;
         previousDiffClipped = true;
 
-        // If the block node does not contain a diff tag and the previous
-        // block node did not contain a diff tag then remove the previous.
-      } else {
-        if (
-          childNode.nodeName === "P" &&
-          childNode.textContent &&
-          childNode.nextElementSibling?.nodeName === "P" &&
-          containsDiffElement(childNode.nextElementSibling)
-        ) {
-          if (previousDiffClipped) {
-            childNode.parentElement?.insertBefore(
-              br.cloneNode(true),
-              childNode
-            );
+        // Special case for largetables, as this block can get very large we
+        // want to clip it to only the changed rows and surrounding context.
+        if (childNode.classList.contains("table-wrapper")) {
+          const rows = childNode.querySelectorAll("tr");
+          if (rows.length < 3) {
+            continue;
           }
-          previousNodeRemoved = false;
-          continue;
+
+          let previousRowRemoved = false;
+          let previousRowDiffClipped = false;
+
+          for (const row of rows) {
+            if (containsDiffElement(row)) {
+              const cells = row.querySelectorAll("td");
+              if (previousRowRemoved && previousRowDiffClipped) {
+                const tr = doc.createElement("tr");
+                const br = doc.createElement("td");
+                br.colSpan = cells.length;
+                br.innerHTML = "…";
+                br.className = "diff-context-break";
+                tr.appendChild(br);
+                childNode.parentElement?.insertBefore(tr, childNode);
+              }
+              previousRowRemoved = false;
+              previousRowDiffClipped = true;
+              continue;
+            }
+
+            if (containsDiffElement(row.nextElementSibling)) {
+              previousRowRemoved = false;
+              continue;
+            }
+
+            if (containsDiffElement(row.previousElementSibling)) {
+              previousRowRemoved = false;
+              continue;
+            }
+
+            previousRowRemoved = true;
+            row.remove();
+          }
         }
-        if (
-          childNode.nodeName === "P" &&
-          childNode.textContent &&
-          childNode.previousElementSibling?.nodeName === "P" &&
-          containsDiffElement(childNode.previousElementSibling)
-        ) {
-          previousNodeRemoved = false;
-          continue;
-        }
-        previousNodeRemoved = true;
-        childNode.remove();
+
+        continue;
       }
+
+      // If the block node does not contain a diff tag and the previous
+      // block node did not contain a diff tag then remove the previous.
+      if (
+        childNode.nodeName === "P" &&
+        childNode.textContent &&
+        childNode.nextElementSibling?.nodeName === "P" &&
+        containsDiffElement(childNode.nextElementSibling)
+      ) {
+        if (previousDiffClipped) {
+          childNode.parentElement?.insertBefore(br.cloneNode(true), childNode);
+        }
+        previousNodeRemoved = false;
+        continue;
+      }
+      if (
+        childNode.nodeName === "P" &&
+        childNode.textContent &&
+        childNode.previousElementSibling?.nodeName === "P" &&
+        containsDiffElement(childNode.previousElementSibling)
+      ) {
+        previousNodeRemoved = false;
+        continue;
+      }
+      previousNodeRemoved = true;
+      childNode.remove();
     }
 
     const head = doc.querySelector("head");
