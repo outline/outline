@@ -1,11 +1,12 @@
 import FuzzySearch from "fuzzy-search";
-import { includes, difference, concat, filter } from "lodash";
+import { includes, difference, concat, filter, map, fill } from "lodash";
 import { observer } from "mobx-react";
 import { StarredIcon, DocumentIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import AutoSizer from "react-virtualized-auto-sizer";
 import { FixedSizeList as List } from "react-window";
+import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { NavigationNode } from "@shared/types";
@@ -50,6 +51,9 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
   const [nodes, setNodes] = React.useState<NavigationNode[]>([]);
   const [activeNode, setActiveNode] = React.useState<number>(0);
   const [expandedNodes, setExpandedNodes] = React.useState<string[]>([]);
+  const [itemRefs, setItemRefs] = React.useState<
+    React.RefObject<HTMLSpanElement>[]
+  >([]);
 
   const inputSearchRef = React.useRef<HTMLInputElement | HTMLTextAreaElement>(
     null
@@ -87,8 +91,29 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
   }, [searchTerm, items, searchIndex]);
 
   React.useEffect(() => {
+    setItemRefs((itemRefs) =>
+      map(
+        fill(Array(items.length), 0),
+        (_, i) => itemRefs[i] || React.createRef()
+      )
+    );
+  }, [items.length]);
+
+  React.useEffect(() => {
     onSelect(selectedNode);
   }, [selectedNode, onSelect]);
+
+  const scrollNodeIntoView = React.useCallback(
+    (node: number) => {
+      if (itemRefs[node] && itemRefs[node].current) {
+        scrollIntoView(itemRefs[node].current as HTMLSpanElement, {
+          behavior: "auto",
+          block: "center",
+        });
+      }
+    },
+    [itemRefs]
+  );
 
   const handleSearch = (ev: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(ev.target.value);
@@ -241,6 +266,7 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
         title={title}
         depth={node.depth as number}
         hasChildren={hasChildren(index)}
+        ref={itemRefs[index]}
       />
     );
   };
@@ -262,6 +288,7 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
       case "ArrowDown": {
         ev.preventDefault();
         setActiveNode(next());
+        scrollNodeIntoView(next());
         break;
       }
       case "ArrowUp": {
@@ -270,6 +297,7 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
           focusSearchInput();
         } else {
           setActiveNode(prev());
+          scrollNodeIntoView(prev());
         }
         break;
       }
@@ -282,6 +310,8 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
       case "ArrowRight": {
         if (!searchTerm) {
           toggleCollapse(activeNode);
+          // let the nodes re-render first and then scroll
+          setImmediate(() => scrollNodeIntoView(activeNode));
         }
         break;
       }
