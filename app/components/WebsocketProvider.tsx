@@ -272,7 +272,9 @@ class WebsocketProvider extends React.Component<Props> {
     });
 
     this.socket.on("comments.delete", (event: WebsocketEntityDeletedEvent) => {
-      comments.remove(event.modelId);
+      comments.inThread(event.modelId).forEach((comment) => {
+        comments.remove(comment.id);
+      });
     });
 
     this.socket.on("groups.create", (event: PartialWithId<Group>) => {

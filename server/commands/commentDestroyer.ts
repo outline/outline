@@ -25,6 +25,16 @@ export default async function commentDestroyer({
   transaction,
 }: Props): Promise<Comment> {
   await comment.destroy({ transaction });
+
+  // Also destroy any child comments
+  const childComments = await Comment.findAll({
+    where: { parentCommentId: comment.id },
+    transaction,
+  });
+  await Promise.all(
+    childComments.map((childComment) => childComment.destroy({ transaction }))
+  );
+
   await Event.create(
     {
       name: "comments.delete",

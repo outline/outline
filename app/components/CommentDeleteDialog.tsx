@@ -4,6 +4,7 @@ import { useTranslation, Trans } from "react-i18next";
 import Comment from "~/models/Comment";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Text from "~/components/Text";
+import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 
 type Props = {
@@ -12,8 +13,10 @@ type Props = {
 };
 
 function CommentDeleteDialog({ comment, onSubmit }: Props) {
+  const { comments } = useStores();
   const { showToast } = useToasts();
   const { t } = useTranslation();
+  const hasChildComments = comments.inThread(comment.id).length > 1;
 
   const handleSubmit = async () => {
     try {
@@ -32,7 +35,16 @@ function CommentDeleteDialog({ comment, onSubmit }: Props) {
       danger
     >
       <Text type="secondary">
-        <Trans>Are you sure you want to permanently delete this comment?</Trans>
+        {hasChildComments ? (
+          <Trans>
+            Are you sure you want to permanently delete this entire comment
+            thread?
+          </Trans>
+        ) : (
+          <Trans>
+            Are you sure you want to permanently delete this comment?
+          </Trans>
+        )}
       </Text>
     </ConfirmationDialog>
   );
