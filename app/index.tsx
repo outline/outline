@@ -21,7 +21,6 @@ import { initI18n } from "~/utils/i18n";
 import Desktop from "./components/DesktopEventHandler";
 import LazyPolyfill from "./components/LazyPolyfills";
 import Routes from "./routes";
-import Logger from "./utils/Logger";
 import history from "./utils/history";
 import { initSentry } from "./utils/sentry";
 
@@ -36,33 +35,6 @@ history.listen(() => {
 
 if (env.SENTRY_DSN) {
   initSentry(history);
-}
-
-if ("serviceWorker" in window.navigator) {
-  window.addEventListener("load", () => {
-    // see: https://bugs.chromium.org/p/chromium/issues/detail?id=1097616
-    // In some rare (<0.1% of cases) this call can return `undefined`
-    const maybePromise = window.navigator.serviceWorker.register(
-      "/static/service-worker.js",
-      {
-        scope: "/",
-      }
-    );
-
-    if (maybePromise?.then) {
-      maybePromise
-        .then((registration) => {
-          Logger.debug("lifecycle", "SW registered: ", registration);
-        })
-        .catch((registrationError) => {
-          Logger.debug(
-            "lifecycle",
-            "SW registration failed: ",
-            registrationError
-          );
-        });
-    }
-  });
 }
 
 // Make sure to return the specific export containing the feature bundle.
