@@ -1,5 +1,3 @@
-import Logger from "~/utils/Logger";
-
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
     // see: https://bugs.chromium.org/p/chromium/issues/detail?id=1097616
@@ -11,10 +9,10 @@ if ("serviceWorker" in navigator) {
     if (maybePromise?.then) {
       maybePromise
         .then((registration) => {
-          Logger.debug("lifecycle", "SW registered: ", registration);
+          console.log("lifecycle", "SW registered: ", registration);
         })
         .catch((registrationError) => {
-          Logger.debug(
+          console.log(
             "lifecycle",
             "SW registration failed: ",
             registrationError
@@ -23,3 +21,6 @@ if ("serviceWorker" in navigator) {
     }
   });
 }
+
+// Add an empty 'export {}' statement to make it a module.
+export default {};

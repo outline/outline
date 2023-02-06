@@ -57,6 +57,11 @@ export default defineConfig({
     target: browserslistToEsbuild(),
     reportCompressedSize: false,
     rollupOptions: {
+      /**
+       * Regular assets can be hosted on a CDN.
+       * But the Service Worker code must not be hosted on a CDN.
+       * That’s why we need to separate the code:
+       */
       input: {
         index: "./app/index.tsx",
         sw: "./app/sw/sw.ts",
