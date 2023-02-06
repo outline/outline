@@ -1,6 +1,6 @@
 import path from "path";
 import JSZip from "jszip";
-import { FileOperationFormat } from "@shared/types";
+import { FileOperationFormat, NavigationNode } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import { Collection } from "@server/models";
 import Attachment from "@server/models/Attachment";
@@ -10,7 +10,6 @@ import ZipHelper from "@server/utils/ZipHelper";
 import { serializeFilename } from "@server/utils/fs";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { getFileByKey } from "@server/utils/s3";
-import { NavigationNode } from "~/types";
 import ExportTask from "./ExportTask";
 
 export default abstract class ExportDocumentTreeTask extends ExportTask {
@@ -56,10 +55,10 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
     await Promise.all(
       attachments.map(async (attachment) => {
         try {
-          const img = await getFileByKey(attachment.key);
+          const stream = getFileByKey(attachment.key);
           const dir = path.dirname(pathInZip);
-          if (img) {
-            zip.file(path.join(dir, attachment.key), img as Blob, {
+          if (stream) {
+            zip.file(path.join(dir, attachment.key), stream, {
               createFolders: true,
             });
           }

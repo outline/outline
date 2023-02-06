@@ -1,71 +1,51 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Flex from "~/components/Flex";
 import Disclosure from "~/components/Sidebar/components/Disclosure";
 import Text from "~/components/Text";
-import { ancestors } from "~/utils/tree";
 
 type Props = {
-  location: any;
   selected: boolean;
   active: boolean;
   style: React.CSSProperties;
-  isSearchResult: boolean;
   expanded: boolean;
   icon?: React.ReactNode;
+  title: string;
+  depth: number;
+  hasChildren: boolean;
 
   onDisclosureClick: (ev: React.MouseEvent) => void;
   onPointerMove: (ev: React.MouseEvent) => void;
   onClick: (ev: React.MouseEvent) => void;
 };
 
-function PublishLocation({
-  location,
-  selected,
-  active,
-  style,
-  isSearchResult,
-  expanded,
-  onDisclosureClick,
-  onPointerMove,
-  onClick,
-  icon,
-}: Props) {
+function DocumentExplorerNode(
+  {
+    selected,
+    active,
+    style,
+    expanded,
+    icon,
+    title,
+    depth,
+    hasChildren,
+    onDisclosureClick,
+    onPointerMove,
+    onClick,
+  }: Props,
+  ref: React.RefObject<HTMLSpanElement>
+) {
   const { t } = useTranslation();
   const OFFSET = 12;
   const ICON_SIZE = 24;
 
-  const hasChildren = location.children.length > 0;
-  const isCollection = location.data.type === "collection";
-
-  const width = location.depth
-    ? location.depth * ICON_SIZE + OFFSET
-    : ICON_SIZE;
-
-  const path = (location: any) =>
-    ancestors(location)
-      .map((a) => a.data.title)
-      .join(" / ");
-
-  const ref = React.useCallback(
-    (node: HTMLSpanElement | null) => {
-      if (active && node) {
-        scrollIntoView(node, {
-          scrollMode: "if-needed",
-          behavior: "auto",
-          block: "nearest",
-        });
-      }
-    },
-    [active]
-  );
+  const width = depth ? depth * ICON_SIZE + OFFSET : ICON_SIZE;
 
   return (
-    <Row
+    <Node
       ref={ref}
       selected={selected}
       active={active}
@@ -74,43 +54,27 @@ function PublishLocation({
       onPointerMove={onPointerMove}
       role="option"
     >
-      {!isSearchResult && (
-        <Spacer width={width}>
-          {hasChildren && (
-            <StyledDisclosure
-              expanded={expanded}
-              onClick={onDisclosureClick}
-              tabIndex={-1}
-            />
-          )}
-        </Spacer>
-      )}
+      <Spacer width={width}>
+        {hasChildren && (
+          <StyledDisclosure
+            expanded={expanded}
+            onClick={onDisclosureClick}
+            tabIndex={-1}
+          />
+        )}
+      </Spacer>
       {icon}
-      <Title>{location.data.title || t("Untitled")}</Title>
-      {isSearchResult && !isCollection && (
-        <Path $selected={selected} size="xsmall">
-          {path(location)}
-        </Path>
-      )}
-    </Row>
+      <Title>{title || t("Untitled")}</Title>
+    </Node>
   );
 }
 
 const Title = styled(Text)`
   white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
   margin: 0 4px 0 4px;
   color: inherit;
-`;
-
-const Path = styled(Text)<{ $selected: boolean }>`
-  padding-top: 3px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin: 0 4px 0 8px;
-  color: ${(props) =>
-    props.$selected ? props.theme.white50 : props.theme.textTertiary};
 `;
 
 const StyledDisclosure = styled(Disclosure)`
@@ -125,7 +89,7 @@ const Spacer = styled(Flex)<{ width: number }>`
   width: ${(props) => props.width}px;
 `;
 
-const Row = styled.span<{
+export const Node = styled.span<{
   active: boolean;
   selected: boolean;
   style: React.CSSProperties;
@@ -167,4 +131,4 @@ const Row = styled.span<{
   `}
 `;
 
-export default observer(PublishLocation);
+export default observer(React.forwardRef(DocumentExplorerNode));

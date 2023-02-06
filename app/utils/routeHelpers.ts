@@ -68,10 +68,6 @@ export function editDocumentUrl(doc: Document): string {
   return `${doc.url}/edit`;
 }
 
-export function documentMoveUrl(doc: Document): string {
-  return `${doc.url}/move`;
-}
-
 export function documentInsightsUrl(doc: Document): string {
   return `${doc.url}/insights`;
 }

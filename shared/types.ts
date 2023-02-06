@@ -14,9 +14,10 @@ export enum ExportContentType {
 }
 
 export enum FileOperationFormat {
+  JSON = "json",
   MarkdownZip = "outline-markdown",
   HTMLZip = "html",
-  PDFZip = "pdf",
+  PDF = "pdf",
   Notion = "notion",
 }
 
@@ -117,3 +118,25 @@ export enum TeamPreference {
 }
 
 export type TeamPreferences = { [key in TeamPreference]?: boolean };
+
+export enum NavigationNodeType {
+  Collection = "collection",
+  Document = "document",
+}
+
+export type NavigationNode = {
+  id: string;
+  title: string;
+  url: string;
+  children: NavigationNode[];
+  isDraft?: boolean;
+  collectionId?: string;
+  type?: NavigationNodeType;
+  parent?: NavigationNode | null;
+  depth?: number;
+};
+
+export type CollectionSort = {
+  field: string;
+  direction: "asc" | "desc";
+};

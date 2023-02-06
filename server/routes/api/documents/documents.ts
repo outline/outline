@@ -458,7 +458,10 @@ router.post(
 
     if (accept?.includes("text/html")) {
       contentType = "text/html";
-      content = await DocumentHelper.toHTML(document);
+      content = await DocumentHelper.toHTML(document, {
+        signedUrls: true,
+        centered: true,
+      });
     } else if (accept?.includes("application/pdf")) {
       throw IncorrectEditionError(
         "PDF export is not available in the community edition"

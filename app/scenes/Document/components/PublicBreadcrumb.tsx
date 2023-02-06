@@ -1,6 +1,7 @@
 import * as React from "react";
+import { NavigationNode } from "@shared/types";
 import Breadcrumb from "~/components/Breadcrumb";
-import { MenuInternalLink, NavigationNode } from "~/types";
+import { MenuInternalLink } from "~/types";
 import { sharedDocumentPath } from "~/utils/routeHelpers";
 
 type Props = {

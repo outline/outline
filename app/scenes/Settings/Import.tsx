@@ -8,6 +8,7 @@ import FileOperation from "~/models/FileOperation";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
 import MarkdownIcon from "~/components/Icons/MarkdownIcon";
+import OutlineIcon from "~/components/Icons/OutlineIcon";
 import Item from "~/components/List/Item";
 import PaginatedList from "~/components/PaginatedList";
 import Scene from "~/components/Scene";
@@ -15,8 +16,9 @@ import Text from "~/components/Text";
 import env from "~/env";
 import useStores from "~/hooks/useStores";
 import FileOperationListItem from "./components/FileOperationListItem";
+import ImportJSONDialog from "./components/ImportJSONDialog";
+import ImportMarkdownDialog from "./components/ImportMarkdownDialog";
 import ImportNotionDialog from "./components/ImportNotionDialog";
-import ImportOutlineDialog from "./components/ImportOutlineDialog";
 
 function Import() {
   const { t } = useTranslation();
@@ -50,7 +52,33 @@ function Import() {
                 dialogs.openModal({
                   title: t("Import data"),
                   isCentered: true,
-                  content: <ImportOutlineDialog />,
+                  content: <ImportMarkdownDialog />,
+                });
+              }}
+              neutral
+            >
+              {t("Import")}…
+            </Button>
+          }
+        />
+        <Item
+          border={false}
+          image={<OutlineIcon size={28} cover />}
+          title="JSON"
+          subtitle={t(
+            "Import a JSON data file exported from another {{ appName }} instance",
+            {
+              appName,
+            }
+          )}
+          actions={
+            <Button
+              type="submit"
+              onClick={() => {
+                dialogs.openModal({
+                  title: t("Import data"),
+                  isCentered: true,
+                  content: <ImportJSONDialog />,
                 });
               }}
               neutral

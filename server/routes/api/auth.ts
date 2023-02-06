@@ -1,55 +1,30 @@
 import Router from "koa-router";
-import { find, uniqBy } from "lodash";
+import { uniqBy } from "lodash";
 import { TeamPreference } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import { Event, Team } from "@server/models";
+import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
 import {
   presentUser,
   presentTeam,
   presentPolicies,
+  presentProviderConfig,
   presentAvailableTeam,
 } from "@server/presenters";
 import ValidateSSOAccessTask from "@server/queues/tasks/ValidateSSOAccessTask";
 import { APIContext } from "@server/types";
 import { getSessionsInCookie } from "@server/utils/authentication";
-import providers from "../auth/providers";
 
 const router = new Router();
-
-function filterProviders(team?: Team) {
-  return providers
-    .sort((provider) => (provider.id === "email" ? 1 : -1))
-    .filter((provider) => {
-      // guest sign-in is an exception as it does not have an authentication
-      // provider using passport, instead it exists as a boolean option on the team
-      if (provider.id === "email") {
-        return team?.emailSigninEnabled;
-      }
-
-      return (
-        !team ||
-        env.DEPLOYMENT !== "hosted" ||
-        find(team.authenticationProviders, {
-          name: provider.id,
-          enabled: true,
-        })
-      );
-    })
-    .map((provider) => ({
-      id: provider.id,
-      name: provider.name,
-      authUrl: provider.authUrl,
-    }));
-}
 
 router.post("auth.config", async (ctx: APIContext) => {
   // If self hosted AND there is only one team then that team becomes the
   // brand for the knowledge base and it's guest signin option is used for the
   // root login page.
-  if (env.DEPLOYMENT !== "hosted") {
+  if (!env.isCloudHosted()) {
     const team = await Team.scope("withAuthenticationProviders").findOne();
 
     if (team) {
@@ -59,7 +34,9 @@ router.post("auth.config", async (ctx: APIContext) => {
           logo: team.getPreference(TeamPreference.PublicBranding)
             ? team.avatarUrl
             : undefined,
-          providers: filterProviders(team),
+          providers: AuthenticationHelper.providersForTeam(team).map(
+            presentProviderConfig
+          ),
         },
       };
       return;
@@ -83,7 +60,9 @@ router.post("auth.config", async (ctx: APIContext) => {
             ? team.avatarUrl
             : undefined,
           hostname: ctx.request.hostname,
-          providers: filterProviders(team),
+          providers: AuthenticationHelper.providersForTeam(team).map(
+            presentProviderConfig
+          ),
         },
       };
       return;
@@ -107,7 +86,9 @@ router.post("auth.config", async (ctx: APIContext) => {
             ? team.avatarUrl
             : undefined,
           hostname: ctx.request.hostname,
-          providers: filterProviders(team),
+          providers: AuthenticationHelper.providersForTeam(team).map(
+            presentProviderConfig
+          ),
         },
       };
       return;
@@ -117,7 +98,9 @@ router.post("auth.config", async (ctx: APIContext) => {
   // Otherwise, we're requesting from the standard root signin page
   ctx.body = {
     data: {
-      providers: filterProviders(),
+      providers: AuthenticationHelper.providersForTeam().map(
+        presentProviderConfig
+      ),
     },
   };
 });

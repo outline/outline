@@ -1,10 +1,15 @@
 import { S3 } from "aws-sdk";
 import { truncate } from "lodash";
-import { CollectionPermission, FileOperationState } from "@shared/types";
+import {
+  CollectionPermission,
+  CollectionSort,
+  FileOperationState,
+} from "@shared/types";
 import { CollectionValidation } from "@shared/validations";
 import attachmentCreator from "@server/commands/attachmentCreator";
 import documentCreator from "@server/commands/documentCreator";
 import { sequelize } from "@server/database/sequelize";
+import { serializer } from "@server/editor";
 import { InternalError, ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import {
@@ -27,6 +32,11 @@ type Props = {
 export type StructuredImportData = {
   collections: {
     id: string;
+    urlId?: string;
+    color?: string;
+    icon?: string | null;
+    sort?: CollectionSort;
+    permission?: CollectionPermission | null;
     name: string;
     /**
      * The collection description. To reference an attachment or image use the
@@ -37,12 +47,13 @@ export type StructuredImportData = {
      * link to the document as part of persistData once the document url is
      * generated.
      */
-    description?: string;
+    description?: string | Record<string, any> | null;
     /** Optional id from import source, useful for mapping */
     sourceId?: string;
   }[];
   documents: {
     id: string;
+    urlId?: string;
     title: string;
     /**
      * The document text. To reference an attachment or image use the special
@@ -54,10 +65,14 @@ export type StructuredImportData = {
      * is generated.
      */
     text: string;
+    data?: Record<string, any>;
     collectionId: string;
     updatedAt?: Date;
     createdAt?: Date;
-    parentDocumentId?: string;
+    publishedAt?: Date | null;
+    parentDocumentId?: string | null;
+    createdById?: string;
+    createdByEmail?: string | null;
     path: string;
     /** Optional id from import source, useful for mapping */
     sourceId?: string;
@@ -96,7 +111,7 @@ export default abstract class ImportTask extends BaseTask<Props> {
 
       if (parsed.collections.length === 0) {
         throw ValidationError(
-          "Uploaded file does not contain any collections. The root of the zip file must contain folders representing collections."
+          "Uploaded file does not contain any valid collections. It may be corrupt, the wrong type, or version."
         );
       }
 
@@ -161,15 +176,27 @@ export default abstract class ImportTask extends BaseTask<Props> {
   }
 
   /**
-   * Fetch the remote data needed for the import, by default this will download
-   * any file associated with the FileOperation, save it to a temporary file,
-   * and return the path.
+   * Fetch the remote data associated with the file operation as a Buffer.
    *
    * @param fileOperation The FileOperation to fetch data for
-   * @returns string
+   * @returns A promise that resolves to the data as a buffer.
    */
-  protected async fetchData(fileOperation: FileOperation) {
-    return fileOperation.buffer;
+  protected async fetchData(fileOperation: FileOperation): Promise<Buffer> {
+    return new Promise((resolve, reject) => {
+      const bufs: Buffer[] = [];
+      const stream = fileOperation.stream;
+      if (!stream) {
+        return reject(new Error("No stream available"));
+      }
+
+      stream.on("data", function (d) {
+        bufs.push(d);
+      });
+      stream.on("error", reject);
+      stream.on("end", () => {
+        resolve(Buffer.concat(bufs));
+      });
+    });
   }
 
   /**
@@ -234,6 +261,12 @@ export default abstract class ImportTask extends BaseTask<Props> {
           Logger.debug("task", `ImportTask persisting collection ${item.id}`);
           let description = item.description;
 
+          // Description can be markdown text or a Prosemirror object if coming
+          // from JSON format. In that case we need to serialize to Markdown.
+          if (description instanceof Object) {
+            description = serializer.serialize(description);
+          }
+
           if (description) {
             // Check all of the attachments we've created against urls in the text
             // and replace them out with attachment redirect urls before saving.
@@ -260,6 +293,21 @@ export default abstract class ImportTask extends BaseTask<Props> {
             }
           }
 
+          const options: { urlId?: string } = {};
+          if (item.urlId) {
+            const existing = await Collection.unscoped().findOne({
+              attributes: ["id"],
+              transaction,
+              where: {
+                urlId: item.urlId,
+              },
+            });
+
+            if (!existing) {
+              options.urlId = item.urlId;
+            }
+          }
+
           // check if collection with name exists
           const response = await Collection.findOrCreate({
             where: {
@@ -267,10 +315,13 @@ export default abstract class ImportTask extends BaseTask<Props> {
               name: item.name,
             },
             defaults: {
+              ...options,
               id: item.id,
-              description: truncate(description, {
-                length: CollectionValidation.maxDescriptionLength,
-              }),
+              description: description
+                ? truncate(description, {
+                    length: CollectionValidation.maxDescriptionLength,
+                  })
+                : null,
               createdById: fileOperation.userId,
               permission: CollectionPermission.ReadWrite,
               importId: fileOperation.id,
@@ -288,12 +339,16 @@ export default abstract class ImportTask extends BaseTask<Props> {
             const name = `${item.name} (Imported)`;
             collection = await Collection.create(
               {
+                ...options,
                 id: item.id,
                 description,
+                color: item.color,
+                icon: item.icon,
+                sort: item.sort,
                 teamId: fileOperation.teamId,
                 createdById: fileOperation.userId,
                 name,
-                permission: CollectionPermission.ReadWrite,
+                permission: item.permission ?? CollectionPermission.ReadWrite,
                 importId: fileOperation.id,
               },
               { transaction }
@@ -348,7 +403,23 @@ export default abstract class ImportTask extends BaseTask<Props> {
             );
           }
 
+          const options: { urlId?: string } = {};
+          if (item.urlId) {
+            const existing = await Document.unscoped().findOne({
+              attributes: ["id"],
+              transaction,
+              where: {
+                urlId: item.urlId,
+              },
+            });
+
+            if (!existing) {
+              options.urlId = item.urlId;
+            }
+          }
+
           const document = await documentCreator({
+            ...options,
             source: "import",
             id: item.id,
             title: item.title,

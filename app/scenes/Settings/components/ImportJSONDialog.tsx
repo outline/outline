@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Trans } from "react-i18next";
+import { FileOperationFormat } from "@shared/types";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import env from "~/env";
@@ -7,7 +8,7 @@ import useStores from "~/hooks/useStores";
 import DropToImport from "./DropToImport";
 import HelpDisclosure from "./HelpDisclosure";
 
-function ImportOutlineDialog() {
+function ImportJSONDialog() {
   const { dialogs } = useStores();
   const appName = env.APP_NAME;
 
@@ -16,17 +17,18 @@ function ImportOutlineDialog() {
       <Text type="secondary">
         <DropToImport
           onSubmit={dialogs.closeAllModals}
-          format="outline-markdown"
+          format={FileOperationFormat.JSON}
         >
           <Trans>
-            Drag and drop the zip file from the Markdown export option in{" "}
+            Drag and drop the zip file from the JSON export option in{" "}
             {{ appName }}, or click to upload
           </Trans>
         </DropToImport>
       </Text>
       <HelpDisclosure title={<Trans>How does this work?</Trans>}>
         <Trans
-          defaults="You can import a zip file that was previously exported from an Outline installation – collections, documents, and images will be imported. In Outline, open <em>Export</em> in the Settings sidebar and click on <em>Export Data</em>."
+          defaults="You can import a zip file that was previously exported from the JSON option in another instance. In {{ appName }}, open <em>Export</em> in the Settings sidebar and click on <em>Export Data</em>."
+          values={{ appName }}
           components={{
             em: <strong />,
           }}
@@ -36,4 +38,4 @@ function ImportOutlineDialog() {
   );
 }
 
-export default ImportOutlineDialog;
+export default ImportJSONDialog;

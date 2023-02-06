@@ -99,7 +99,7 @@ class PaginatedList<T extends PaginatedItem> extends React.Component<Props<T>> {
     }
     this.isFetching = true;
     const counter = ++this.fetchCounter;
-    const limit = DEFAULT_PAGINATION_LIMIT;
+    const limit = this.props.options?.limit ?? DEFAULT_PAGINATION_LIMIT;
     this.error = undefined;
 
     try {

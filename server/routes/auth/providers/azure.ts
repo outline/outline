@@ -133,7 +133,10 @@ if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
   );
   passport.use(strategy);
 
-  router.get("azure", passport.authenticate(providerName));
+  router.get(
+    "azure",
+    passport.authenticate(providerName, { prompt: "select_account" })
+  );
 
   router.get("azure.callback", passportMiddleware(providerName));
 }

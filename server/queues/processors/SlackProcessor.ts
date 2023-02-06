@@ -94,6 +94,13 @@ export default class SlackProcessor extends BaseProcessor {
       return;
     }
 
+    if (
+      event.name === "revisions.create" &&
+      document.updatedAt === document.publishedAt
+    ) {
+      return;
+    }
+
     const integration = (await Integration.findOne({
       where: {
         teamId: document.teamId,

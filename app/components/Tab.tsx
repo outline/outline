@@ -31,8 +31,7 @@ const Active = styled(m.div)`
   right: 0;
   height: 3px;
   width: 100%;
-  border-top-left-radius: 2px;
-  border-top-right-radius: 2px;
+  border-radius: 3px;
   background: ${(props) => props.theme.textSecondary};
 `;
 

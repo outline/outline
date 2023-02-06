@@ -57,10 +57,7 @@ function getNewState({
           return diagramWrapper;
         }
 
-        import(
-          /* webpackChunkName: "mermaid" */
-          "mermaid"
-        ).then((module) => {
+        import("mermaid").then((module) => {
           module.default.initialize({
             startOnLoad: true,
             flowchart: {
