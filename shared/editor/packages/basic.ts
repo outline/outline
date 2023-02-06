@@ -10,6 +10,7 @@ import Doc from "../nodes/Doc";
 import Emoji from "../nodes/Emoji";
 import HardBreak from "../nodes/HardBreak";
 import Image from "../nodes/Image";
+import Mention from "../nodes/Mention";
 import Node from "../nodes/Node";
 import Paragraph from "../nodes/Paragraph";
 import Text from "../nodes/Text";
@@ -43,6 +44,7 @@ const basicPackage: (typeof Node | typeof Mark | typeof Extension)[] = [
   MaxLength,
   DateTime,
   ClipboardTextSerializer,
+  Mention,
 ];
 
 export default basicPackage;

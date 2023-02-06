@@ -13,6 +13,8 @@ export enum EventType {
   emojiMenuClose = "emojiMenuClose",
   linkMenuOpen = "linkMenuOpen",
   linkMenuClose = "linkMenuClose",
+  mentionMenuOpen = "mentionMenuOpen",
+  mentionMenuClose = "mentionMenuClose",
 }
 
 export type MenuItem = {
