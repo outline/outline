@@ -10,9 +10,9 @@ import documentLoader from "@server/commands/documentLoader";
 import env from "@server/env";
 import { Integration } from "@server/models";
 import presentEnv from "@server/presenters/env";
-import manifest from "@server/utils/manifest";
 import { getTeamFromContext } from "@server/utils/passport";
 import prefetchTags from "@server/utils/prefetchTags";
+import readManifestFile from "@server/utils/readManifestFile";
 
 const isProduction = env.ENVIRONMENT === "production";
 const isTest = env.ENVIRONMENT === "test";
@@ -27,7 +27,7 @@ const readIndexFile = async (): Promise<Buffer> => {
   }
 
   return (indexHtmlCache = await readFile(
-    path.join(__dirname, "../static/index.html")
+    path.join(__dirname, "../../../server/static/index.html")
   ));
 };
 
@@ -59,7 +59,9 @@ export const renderApp = async (
   const serviceWorker = `<script src="${process.env.CDN_URL}/app/registerSW.js"></script>`;
   const entry = "app/index.tsx";
   const scriptTags = isProduction
-    ? `<script type="module" src="${process.env.CDN_URL}/${manifest[entry]["file"]}"></script>`
+    ? `<script type="module" src="${process.env.CDN_URL}/${
+        readManifestFile()[entry]["file"]
+      }"></script>`
     : `<script type="module">
         import RefreshRuntime from 'http://localhost:3001/@react-refresh'
         RefreshRuntime.injectIntoGlobalHook(window)
