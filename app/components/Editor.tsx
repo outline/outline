@@ -311,7 +311,11 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
         )}
         {activeLinkEvent && !shareId && (
           <HoverPreview
-            node={activeLinkEvent.target as HTMLAnchorElement}
+            node={
+              (activeLinkEvent.target as HTMLElement)?.closest(
+                "a"
+              ) as HTMLAnchorElement
+            }
             event={activeLinkEvent}
             onClose={handleLinkInactive}
           />
