@@ -437,6 +437,8 @@
   "Error creating comment": "Error creating comment",
   "Add a comment": "Add a comment",
   "Add a reply": "Add a reply",
+  "Post": "Post",
+  "Reply": "Reply",
   "Comments": "Comments",
   "Error updating comment": "Error updating comment",
   "Document updated by {{userName}}": "Document updated by {{userName}}",

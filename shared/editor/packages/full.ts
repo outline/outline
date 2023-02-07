@@ -10,6 +10,7 @@ import CheckboxList from "../nodes/CheckboxList";
 import CodeBlock from "../nodes/CodeBlock";
 import CodeFence from "../nodes/CodeFence";
 import Embed from "../nodes/Embed";
+import HardBreak from "../nodes/HardBreak";
 import Heading from "../nodes/Heading";
 import HorizontalRule from "../nodes/HorizontalRule";
 import ListItem from "../nodes/ListItem";
@@ -28,6 +29,7 @@ import basicPackage from "./basic";
 
 const fullPackage: (typeof Node | typeof Mark | typeof Extension)[] = [
   ...basicPackage,
+  HardBreak,
   CodeBlock,
   CodeFence,
   CheckboxList,

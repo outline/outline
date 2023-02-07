@@ -6,7 +6,6 @@ import { CommentValidation } from "@shared/validations";
 import Comment from "~/models/Comment";
 import Avatar from "~/components/Avatar";
 import Button from "~/components/Button";
-import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import type { Editor as SharedEditor } from "~/editor";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -15,11 +14,14 @@ import usePersistedState from "~/hooks/usePersistedState";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import CommentEditor from "./CommentEditor";
+import { Bubble } from "./CommentThreadItem";
 
 type Props = {
   documentId: string;
   thread: Comment;
   placeholder?: string;
+  autoFocus?: boolean;
+  standalone?: boolean;
   onTyping?: () => void;
   onFocus?: () => void;
   onBlur?: () => void;
@@ -33,6 +35,8 @@ function CommentForm({
   onFocus,
   onBlur,
   onClickOutside,
+  autoFocus,
+  standalone,
   placeholder,
   ...rest
 }: Props) {
@@ -109,15 +113,21 @@ function CommentForm({
     );
   };
 
+  const handleClick = () => {
+    if (editorRef.current?.isBlurred) {
+      editorRef.current?.focusAtStart();
+    }
+  };
+
   // Focus the editor when it's a new comment just mounted, after a delay as the
   // editor is mounted within a fade transition.
   React.useEffect(() => {
     setTimeout(() => {
-      if (thread.isNew) {
+      if (thread.isNew && autoFocus !== false) {
         editorRef.current?.focusAtStart();
       }
     }, 0);
-  }, [thread.isNew]);
+  }, [thread.isNew, autoFocus]);
 
   return (
     <form
@@ -125,9 +135,16 @@ function CommentForm({
       onSubmit={thread?.isNew ? handleCreateComment : handleCreateReply}
       {...rest}
     >
-      <Flex gap={8}>
-        <Avatar model={user} />
-        <Flex column>
+      <Flex gap={8} align="flex-start">
+        <Avatar model={user} size={24} />
+        <Bubble
+          gap={8}
+          onClick={handleClick}
+          $lastOfThread
+          $firstOfAuthor
+          $firstOfThread={standalone}
+          column
+        >
           <CommentEditor
             key={`${forceRender}`}
             ref={editorRef}
@@ -143,16 +160,18 @@ function CommentForm({
               (thread.isNew ? `${t("Add a comment")}…` : `${t("Add a reply")}…`)
             }
           />
-          <Fade>
-            {!isEmpty && (
-              <Flex align="flex-end">
-                <Button type="submit" neutral borderOnHover>
-                  Post
-                </Button>
-              </Flex>
-            )}
-          </Fade>
-        </Flex>
+
+          {!isEmpty && (
+            <Flex align="flex-end" gap={8}>
+              <Button type="submit" borderOnHover>
+                {thread.isNew ? t("Post") : t("Reply")}
+              </Button>
+              <Button type="submit" neutral borderOnHover>
+                Cancel
+              </Button>
+            </Flex>
+          )}
+        </Bubble>
       </Flex>
     </form>
   );

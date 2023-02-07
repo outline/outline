@@ -1,7 +1,7 @@
 import { throttle } from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { useHistory, useLocation } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled, { css } from "styled-components";
 import Comment from "~/models/Comment";
@@ -14,7 +14,6 @@ import Typing from "~/components/Typing";
 import { WebsocketContext } from "~/components/WebsocketProvider";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
-import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
 import CommentForm from "./CommentForm";
 import CommentThreadItem from "./CommentThreadItem";
@@ -22,12 +21,14 @@ import CommentThreadItem from "./CommentThreadItem";
 type Props = {
   document: Document;
   comment: Comment;
+  focused: boolean;
+  recessed: boolean;
 };
 
 function useTypingIndicator({
   document,
   comment,
-}: Props): [undefined, () => void] {
+}: Omit<Props, "focused" | "recessed">): [undefined, () => void] {
   const socket = React.useContext(WebsocketContext);
 
   const setIsTyping = React.useMemo(
@@ -44,12 +45,15 @@ function useTypingIndicator({
   return [undefined, setIsTyping];
 }
 
-function CommentThread({ comment: thread, document }: Props) {
+function CommentThread({
+  comment: thread,
+  document,
+  recessed,
+  focused,
+}: Props) {
   const { comments } = useStores();
   const topRef = React.useRef<HTMLDivElement>(null);
   const user = useCurrentUser();
-  const query = useQuery();
-  const location = useLocation<{ commentId?: string }>();
   const history = useHistory();
   const [, setIsTyping] = useTypingIndicator({
     document,
@@ -57,13 +61,10 @@ function CommentThread({ comment: thread, document }: Props) {
   });
 
   const commentsInThread = comments.inThread(thread.id);
-  const highlighted =
-    location.state?.commentId === thread.id ||
-    query.get("commentId") === thread.id;
 
   useOnClickOutside(topRef, (event) => {
     if (
-      highlighted &&
+      focused &&
       !(event.target as HTMLElement).classList.contains("comment")
     ) {
       history.replace({
@@ -81,7 +82,7 @@ function CommentThread({ comment: thread, document }: Props) {
   };
 
   React.useEffect(() => {
-    if (highlighted && topRef.current) {
+    if (focused && topRef.current) {
       scrollIntoView(topRef.current, {
         scrollMode: "if-needed",
         behavior: "smooth",
@@ -102,10 +103,15 @@ function CommentThread({ comment: thread, document }: Props) {
         });
       });
     }
-  }, [highlighted, thread.id]);
+  }, [focused, thread.id]);
 
   return (
-    <Thread ref={topRef} $highlighted={highlighted} onClick={handleClickThread}>
+    <Thread
+      ref={topRef}
+      $focused={focused}
+      $recessed={recessed}
+      onClick={handleClickThread}
+    >
       {commentsInThread.map((comment, index) => {
         const firstOfAuthor =
           index === 0 ||
@@ -119,7 +125,7 @@ function CommentThread({ comment: thread, document }: Props) {
             comment={comment}
             key={comment.id}
             firstOfThread={index === 0}
-            lastOfThread={index === commentsInThread.length - 1}
+            lastOfThread={index === commentsInThread.length - 1 && !focused}
             firstOfAuthor={firstOfAuthor}
             lastOfAuthor={lastOfAuthor}
             previousCommentCreatedAt={commentsInThread[index - 1]?.createdAt}
@@ -137,19 +143,22 @@ function CommentThread({ comment: thread, document }: Props) {
         ))}
 
       <ResizingHeightContainer
+        hideOverflow={false}
         config={{
           transition: {
-            duration: 0.2,
+            duration: 0.1,
             ease: "easeInOut",
           },
         }}
       >
-        {highlighted && (
+        {focused && (
           <Fade>
             <CommentForm
               documentId={document.id}
               thread={thread}
               onTyping={setIsTyping}
+              standalone={commentsInThread.length === 0}
+              autoFocus
             />
           </Fade>
         )}
@@ -158,25 +167,16 @@ function CommentThread({ comment: thread, document }: Props) {
   );
 }
 
-const Thread = styled.div<{ $highlighted: boolean }>`
+const Thread = styled.div<{ $focused: boolean; $recessed: boolean }>`
   margin: 12px 18px 32px 12px;
   position: relative;
+  transition: opacity 250ms ease-out;
 
   ${(props) =>
-    props.$highlighted &&
+    props.$recessed &&
     css`
-      &:after {
-        content: "";
-        position: absolute;
-        display: block;
-        height: 100%;
-        top: 0;
-        left: -12px;
-        width: 4px;
-        bottom: 0;
-        background: ${(props) => props.theme.brand.marine};
-        border-radius: 2px;
-      }
+      opacity: 0.35;
+      cursor: default;
     `}
 `;
 

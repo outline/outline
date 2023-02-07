@@ -110,10 +110,10 @@ function CommentThreadItem({
   }, [comment.data]);
 
   return (
-    <Flex gap={8} key={comment.id} align="flex-start">
+    <Flex gap={8} align="flex-start">
       {firstOfAuthor && (
         <AvatarSpacer>
-          <Avatar model={comment.createdBy} size={firstOfThread ? 24 : 20} />
+          <Avatar model={comment.createdBy} size={24} />
         </AvatarSpacer>
       )}
       <Bubble
@@ -188,16 +188,17 @@ const Meta = styled(Text)`
   }
 `;
 
-const Bubble = styled(Flex)<{
+export const Bubble = styled(Flex)<{
   $firstOfThread?: boolean;
   $firstOfAuthor?: boolean;
   $lastOfThread?: boolean;
+  $focused?: boolean;
 }>`
   position: relative;
   flex-grow: 1;
   font-size: 15px;
   color: ${(props) => props.theme.text};
-  background: ${(props) => props.theme.secondaryBackground};
+  background: ${(props) => props.theme.commentBackground};
   min-width: 2em;
   margin-bottom: 1px;
   padding: 8px 12px;

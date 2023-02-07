@@ -33,12 +33,15 @@ export default class ProsemirrorHelper {
   static trim(doc: Node) {
     const first = doc.firstChild;
     const last = doc.lastChild;
-    const firstIsEmpty = first?.type.name === "paragraph" && !first.textContent;
-    const lastIsEmpty = last?.type.name === "paragraph" && !last.textContent;
+    const firstIsEmpty =
+      first?.type.name === "paragraph" && !first.textContent.trim();
+    const lastIsEmpty =
+      last?.type.name === "paragraph" && !last.textContent.trim();
+    const firstIsLast = first === last;
 
     return doc.cut(
       firstIsEmpty ? first.nodeSize : 0,
-      lastIsEmpty ? doc.nodeSize - last.nodeSize : undefined
+      lastIsEmpty && !firstIsLast ? doc.nodeSize - last.nodeSize : undefined
     );
   }
 

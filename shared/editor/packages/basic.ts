@@ -8,7 +8,6 @@ import Strikethrough from "../marks/Strikethrough";
 import Underline from "../marks/Underline";
 import Doc from "../nodes/Doc";
 import Emoji from "../nodes/Emoji";
-import HardBreak from "../nodes/HardBreak";
 import Image from "../nodes/Image";
 import Node from "../nodes/Node";
 import Paragraph from "../nodes/Paragraph";
@@ -25,7 +24,6 @@ import TrailingNode from "../plugins/TrailingNode";
 
 const basicPackage: (typeof Node | typeof Mark | typeof Extension)[] = [
   Doc,
-  HardBreak,
   Paragraph,
   Emoji,
   Text,
