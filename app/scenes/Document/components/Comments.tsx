@@ -65,7 +65,7 @@ function Comments() {
 }
 
 const Wrapper = styled.div`
-  padding-bottom: 68px;
+  padding-bottom: 50vh;
 `;
 
 const NewCommentForm = styled(CommentForm)`

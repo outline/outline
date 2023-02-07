@@ -113,10 +113,15 @@ function CommentForm({
     );
   };
 
-  const handleClick = () => {
+  const handleClickPadding = () => {
     if (editorRef.current?.isBlurred) {
       editorRef.current?.focusAtStart();
     }
+  };
+
+  const handleCancel = () => {
+    setData(undefined);
+    setForceRender((s) => ++s);
   };
 
   // Focus the editor when it's a new comment just mounted, after a delay as the
@@ -139,7 +144,7 @@ function CommentForm({
         <Avatar model={user} size={24} />
         <Bubble
           gap={8}
-          onClick={handleClick}
+          onClick={handleClickPadding}
           $lastOfThread
           $firstOfAuthor
           $firstOfThread={standalone}
@@ -166,7 +171,7 @@ function CommentForm({
               <Button type="submit" borderOnHover>
                 {thread.isNew ? t("Post") : t("Reply")}
               </Button>
-              <Button type="submit" neutral borderOnHover>
+              <Button onClick={handleCancel} neutral borderOnHover>
                 Cancel
               </Button>
             </Flex>
