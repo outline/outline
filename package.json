@@ -35,7 +35,7 @@
     "url": "https://github.com/sponsors/outline"
   },
   "engines": {
-    "node": ">= 14 <=16"
+    "node": ">= 14 <=18"
   },
   "repository": {
     "type": "git",
@@ -107,7 +107,7 @@
     "i18next": "^22.4.8",
     "i18next-fs-backend": "^2.1.1",
     "i18next-http-backend": "^2.1.1",
-    "immutable": "^4.2.2",
+    "immutable": "^4.2.4",
     "inline-css": "^4.0.1",
     "invariant": "^2.2.4",
     "ioredis": "^5.0.0",
@@ -213,7 +213,7 @@
     "styled-components-breakpoint": "^2.1.1",
     "styled-normalize": "^8.0.4",
     "throng": "^5.0.0",
-    "tiny-cookie": "^2.3.1",
+    "tiny-cookie": "^2.4.0",
     "tmp": "^0.2.1",
     "turndown": "^7.1.1",
     "utf8": "^3.0.0",
@@ -227,7 +227,7 @@
     "y-indexeddb": "^9.0.9",
     "y-protocols": "^1.0.5",
     "yjs": "^13.5.39",
-    "zod": "^3.19.1"
+    "zod": "^3.20.2"
   },
   "devDependencies": {
     "@babel/cli": "^7.10.5",
