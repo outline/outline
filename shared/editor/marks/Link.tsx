@@ -220,7 +220,7 @@ export default class Link extends Mark {
               (!view.editable || (view.editable && !view.hasFocus()))
             ) {
               if (this.options.onHoverLink) {
-                return this.options.onHoverLink(event);
+                return this.options.onHoverLink(target);
               }
             }
             return false;

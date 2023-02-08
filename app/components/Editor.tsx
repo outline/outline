@@ -65,19 +65,18 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   const localRef = React.useRef<SharedEditor>();
   const preferences = auth.user?.preferences;
   const previousHeadings = React.useRef<Heading[] | null>(null);
-
   const [
-    activeLinkEvent,
-    setActiveLinkEvent,
-  ] = React.useState<MouseEvent | null>(null);
+    activeLinkElement,
+    setActiveLink,
+  ] = React.useState<HTMLAnchorElement | null>(null);
 
-  const handleLinkActive = React.useCallback((event: MouseEvent) => {
-    setActiveLinkEvent(event);
+  const handleLinkActive = React.useCallback((element: HTMLAnchorElement) => {
+    setActiveLink(element);
     return false;
   }, []);
 
   const handleLinkInactive = React.useCallback(() => {
-    setActiveLinkEvent(null);
+    setActiveLink(null);
   }, []);
 
   const handleSearchLink = React.useCallback(
@@ -309,14 +308,9 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
             minHeight={props.bottomPadding}
           />
         )}
-        {activeLinkEvent && !shareId && (
+        {activeLinkElement && !shareId && (
           <HoverPreview
-            node={
-              (activeLinkEvent.target as HTMLElement)?.closest(
-                "a"
-              ) as HTMLAnchorElement
-            }
-            event={activeLinkEvent}
+            element={activeLinkElement}
             onClose={handleLinkInactive}
           />
         )}
