@@ -34,7 +34,10 @@ if (isProduction) {
       //  Preload resources you have high-confidence will be used in the current
       // page.Prefetch resources likely to be used for future navigations
       // TODO: Doesn’t apply to any file after switching to Vite.
-      // What files should we really preload?
+      // "app/index.tsx"
+      // “app/editor/index.tsx"
+      // and their imports
+
       const shouldPreload =
         file.includes("/main") ||
         file.includes("/runtime") ||
