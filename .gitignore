@@ -12,3 +12,5 @@ fakes3/*
 *.pem
 *.key
 *.cert
+/public/sw.js
+/public/registerSW.js

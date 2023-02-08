@@ -9,12 +9,11 @@ if ("serviceWorker" in navigator) {
     if (maybePromise?.then) {
       maybePromise
         .then((registration) => {
-          console.log("lifecycle", "SW registered: ", registration);
+          console.log("[ServiceWorker] Registered.", registration);
         })
         .catch((registrationError) => {
           console.log(
-            "lifecycle",
-            "SW registration failed: ",
+            "[ServiceWorker] Registration failed. ",
             registrationError
           );
         });

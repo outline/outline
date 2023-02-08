@@ -222,6 +222,7 @@
     "validator": "13.7.0",
     "vite": "^4.0.4",
     "winston": "^3.3.3",
+    "workbox-precaching": "^6.5.4",
     "ws": "^7.5.3",
     "y-indexeddb": "^9.0.9",
     "y-protocols": "^1.0.5",
