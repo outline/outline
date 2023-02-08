@@ -13019,17 +13019,12 @@ timers-ext@^0.1.7:
     es5-ext "~0.10.46"
     next-tick "1"
 
-tiny-cookie@^2.3.1:
-  version "2.3.2"
-  resolved "https://registry.yarnpkg.com/tiny-cookie/-/tiny-cookie-2.3.2.tgz#3b5fb4e0888cfa0b4728d5f6b7be3d3a88e6a5f0"
-  integrity sha512-qbymkVh+6+Gc/c9sqnvbG+dOHH6bschjphK3SHgIfT6h/t+63GBL37JXNoXEc6u/+BcwU6XmaWUuf19ouLVtPg==
-
 timm@^1.6.1:
   version "1.7.1"
   resolved "https://registry.yarnpkg.com/timm/-/timm-1.7.1.tgz#96bab60c7d45b5a10a8a4d0f0117c6b7e5aff76f"
   integrity sha512-IjZc9KIotudix8bMaBW6QvMuq64BrJWFs1+4V0lXwWGQZwH+LnX87doAYhem4caOEusRP9/g6jVDQmZ8XOk1nw==
 
-tiny-cookie@^2.4.0:
+tiny-cookie@^2.3.1, tiny-cookie@^2.4.0:
   version "2.4.0"
   resolved "https://registry.yarnpkg.com/tiny-cookie/-/tiny-cookie-2.4.0.tgz#f2f2d4c2b1714cbb28ded23a7024e026c02b4a4a"
   integrity sha512-MbXgqX1JwuaOgHWIM7KsEryxIHSpRchroXh/fy67mw2XLPvrpZvQ2j85zSf8bLpRhTztLnOtOkVSKytJPo1ATA==
