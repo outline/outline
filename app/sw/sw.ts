@@ -8,6 +8,6 @@ const prefetchedURLs = ["/#"];
 
 self.addEventListener("install", () => {
   console.log("[ServiceWorker] Service Worker installed.");
-  console.log("[ServiceWorker] Preaching URLs …");
+  console.log("[ServiceWorker] Precaching URLs …");
   precacheAndRoute(prefetchedURLs);
 });

@@ -23,27 +23,30 @@ const router = new Router();
 koa.use<BaseContext, UserAgentContext>(userAgent);
 
 // serve public assets
-router.use(["/images/*", "/email/*"], async (ctx, next) => {
-  let done;
+router.use(
+  ["/images/*", "/email/*", "/sw.js", "/registerSW.js"],
+  async (ctx, next) => {
+    let done;
 
-  if (ctx.method === "HEAD" || ctx.method === "GET") {
-    try {
-      done = await send(ctx, ctx.path, {
-        root: path.resolve(__dirname, "../../../public"),
-        // 7 day expiry, these assets are mostly static but do not contain a hash
-        maxAge: 7 * 24 * 60 * 60 * 1000,
-      });
-    } catch (err) {
-      if (err.status !== 404) {
-        throw err;
+    if (ctx.method === "HEAD" || ctx.method === "GET") {
+      try {
+        done = await send(ctx, ctx.path, {
+          root: path.resolve(__dirname, "../../../public"),
+          // 7 day expiry, these assets are mostly static but do not contain a hash
+          maxAge: 7 * 24 * 60 * 60 * 1000,
+        });
+      } catch (err) {
+        if (err.status !== 404) {
+          throw err;
+        }
       }
     }
-  }
 
-  if (!done) {
-    await next();
+    if (!done) {
+      await next();
+    }
   }
-});
+);
 
 router.use(
   ["/share/:shareId", "/share/:shareId/doc/:documentSlug", "/share/:shareId/*"],

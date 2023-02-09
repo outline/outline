@@ -1,7 +1,7 @@
 import * as React from "react";
 import ReactDOMServer from "react-dom/server";
 import env from "@server/env";
-import readManifestFile from "./readManifestFile";
+import readManifestFile, { ManifestStructure } from "./readManifestFile";
 
 const isProduction = env.ENVIRONMENT === "production";
 
@@ -20,37 +20,39 @@ if (process.env.AWS_S3_UPLOAD_BUCKET_URL) {
 if (isProduction) {
   const manifest = readManifestFile();
 
-  Object.keys(manifest).forEach((filename) => {
-    const file = manifest[filename]["file"];
+  const returnFileAndImportsFromManifest = (
+    manifest: ManifestStructure,
+    file: string
+  ): string[] => {
+    return [
+      manifest[file]["file"],
+      ...manifest[file]["imports"].map((entry: string) => {
+        return manifest[entry]["file"];
+      }),
+    ];
+  };
 
-    if (typeof file !== "string") {
-      return;
-    }
-    if (!env.CDN_URL) {
-      return;
-    }
-
+  Array.from([
+    ...returnFileAndImportsFromManifest(manifest, "app/index.tsx"),
+    ...returnFileAndImportsFromManifest(manifest, "app/editor/index.tsx"),
+  ]).forEach((file) => {
     if (file.endsWith(".js")) {
-      //  Preload resources you have high-confidence will be used in the current
-      // page.Prefetch resources likely to be used for future navigations
-      // TODO: Doesn’t apply to any file after switching to Vite.
-      // "app/index.tsx"
-      // “app/editor/index.tsx"
-      // and their imports
-
-      const shouldPreload =
-        file.includes("/main") ||
-        file.includes("/runtime") ||
-        file.includes("preload-");
-
-      if (shouldPreload) {
-        prefetchTags.push(
-          <link rel="preload" href={file} key={file} as="script" />
-        );
-      }
+      prefetchTags.push(
+        <link
+          rel="preload"
+          href={`${env.CDN_URL}${file}`}
+          key={file}
+          as="script"
+        />
+      );
     } else if (file.endsWith(".css")) {
       prefetchTags.push(
-        <link rel="prefetch" href={file} key={file} as="style" />
+        <link
+          rel="prefetch"
+          href={`${env.CDN_URL}${file}`}
+          key={file}
+          as="style"
+        />
       );
     }
   });
