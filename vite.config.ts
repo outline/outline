@@ -2,11 +2,11 @@ import path from "path";
 import react from "@vitejs/plugin-react";
 import browserslistToEsbuild from "browserslist-to-esbuild";
 import { webpackStats } from "rollup-plugin-webpack-stats";
-import { defineConfig, loadEnv } from "vite";
+import { defineConfig } from "vite";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import generateServiceWorker from "./vite/generateServiceWorker";
 
-export default ({ mode }: { mode: string }) => {
+export default () => {
   return defineConfig({
     root: "./",
     publicDir: "./server/static",
@@ -40,7 +40,7 @@ export default ({ mode }: { mode: string }) => {
         },
       }),
       generateServiceWorker({
-        cdnUrl: loadEnv(mode, process.cwd(), "")["CDN_URL"] ?? "/",
+        cdnUrl: process.env.CDN_URL || "/",
       }),
       viteStaticCopy({
         targets: [
