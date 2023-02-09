@@ -34,7 +34,7 @@ const readIndexFile = async (): Promise<Buffer> => {
   }
 
   return (indexHtmlCache = await readFile(
-    path.join(__dirname, "../static/index.html")
+    path.join(__dirname, "../../app/index.html")
   ));
 };
 
