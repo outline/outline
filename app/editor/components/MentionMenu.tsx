@@ -20,17 +20,13 @@ type MentionMenuProps = Omit<
 function MentionMenu({ search, ...rest }: MentionMenuProps) {
   const [items, setItems] = React.useState<MentionItem[]>([]);
   const { users } = useStores();
-  const { data, loading, request } = useRequest(() =>
-    users.fetchPage({
-      query: search,
-    })
+  const { data, request } = useRequest(
+    React.useCallback(() => users.fetchPage({ query: search }), [users, search])
   );
 
   React.useEffect(() => {
-    if (!data && !loading) {
-      request();
-    }
-  }, [data, loading, request]);
+    request();
+  }, [request]);
 
   React.useEffect(() => {
     if (data) {
