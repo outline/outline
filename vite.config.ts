@@ -91,7 +91,7 @@ export default () => {
                 return `sw/[name].js`;
               }
 
-              return `[name].js`;
+              return `[name]-[hash].js`;
             },
           },
         ],
