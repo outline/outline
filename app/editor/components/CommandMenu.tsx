@@ -62,7 +62,10 @@ type State = {
   selectedIndex: number;
 };
 
-class CommandMenu<T extends MenuItem> extends React.Component<Props<T>, State> {
+class CommandMenu<T extends MenuItem> extends React.PureComponent<
+  Props<T>,
+  State
+> {
   menuRef = React.createRef<HTMLDivElement>();
   inputRef = React.createRef<HTMLInputElement>();
 
@@ -78,14 +81,6 @@ class CommandMenu<T extends MenuItem> extends React.Component<Props<T>, State> {
   componentDidMount() {
     window.addEventListener("mousedown", this.handleMouseDown);
     window.addEventListener("keydown", this.handleKeyDown);
-  }
-
-  shouldComponentUpdate(nextProps: Props<T>, nextState: State) {
-    return (
-      nextProps.search !== this.props.search ||
-      nextProps.isActive !== this.props.isActive ||
-      nextState !== this.state
-    );
   }
 
   componentDidUpdate(prevProps: Props<T>) {
