@@ -20,6 +20,7 @@
     "resolveJsonModule": true,
     "strictNullChecks": true,
     "noEmit": true,
+    "skipLibCheck": true,
     "suppressImplicitAnyIndexErrors": true,
     "target": "es2020",
     "paths": {
