@@ -221,7 +221,7 @@
     "utility-types": "^3.10.0",
     "uuid": "^8.3.2",
     "validator": "13.7.0",
-    "vite": "^4.0.4",
+    "vite": "^4.1.1",
     "winston": "^3.3.3",
     "workbox-precaching": "^6.5.4",
     "ws": "^7.5.3",
