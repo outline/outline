@@ -10,6 +10,7 @@ export default () => {
   return defineConfig({
     root: "./",
     publicDir: "./server/static",
+    base: "/static/",
     server: {
       port: 3001,
       host: true,
