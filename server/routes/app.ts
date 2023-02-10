@@ -27,6 +27,10 @@ const readIndexFile = async (): Promise<Buffer> => {
     }
   }
 
+  if (isTest) {
+    return await readFile(path.join(__dirname, "../static/index.html"));
+  }
+
   if (isDevelopment) {
     return await readFile(
       path.join(__dirname, "../../../server/static/index.html")
