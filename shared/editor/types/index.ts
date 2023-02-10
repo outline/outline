@@ -28,6 +28,7 @@ export type MenuItem = {
   attrs?: Record<string, any>;
   visible?: boolean;
   active?: (state: EditorState) => boolean;
+  appendSpace?: boolean;
 };
 
 export type ComponentProps = {

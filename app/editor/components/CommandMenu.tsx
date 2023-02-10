@@ -205,7 +205,7 @@ class CommandMenu<T extends MenuItem> extends React.PureComponent<
         return;
       }
       default:
-        this.insertBlock(item);
+        this.insertNode(item);
     }
   };
 
@@ -234,7 +234,7 @@ class CommandMenu<T extends MenuItem> extends React.PureComponent<
         return;
       }
 
-      this.insertBlock({
+      this.insertNode({
         name: "embed",
         attrs: {
           href,
@@ -263,7 +263,7 @@ class CommandMenu<T extends MenuItem> extends React.PureComponent<
       event.preventDefault();
       event.stopPropagation();
 
-      this.insertBlock({
+      this.insertNode({
         name: "embed",
         attrs: {
           href,
@@ -326,7 +326,7 @@ class CommandMenu<T extends MenuItem> extends React.PureComponent<
     this.props.onClearSearch();
   };
 
-  insertBlock(item: MenuItem) {
+  insertNode(item: MenuItem) {
     this.clearSearch();
 
     const command = item.name ? this.props.commands[item.name] : undefined;
@@ -335,6 +335,11 @@ class CommandMenu<T extends MenuItem> extends React.PureComponent<
       command(item.attrs);
     } else {
       this.props.commands[`create${capitalize(item.name)}`](item.attrs);
+    }
+    if (item.appendSpace) {
+      const { view } = this.props;
+      const { dispatch } = view;
+      dispatch(view.state.tr.insertText(" "));
     }
 
     this.props.onClose();

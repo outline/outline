@@ -37,6 +37,7 @@ function MentionMenu({ search, ...rest }: MentionMenuProps) {
         data.map((d) => ({
           name: "mention",
           title: d.name,
+          appendSpace: true,
           attrs: {
             "data-type": "user",
             "data-id": d.id,
