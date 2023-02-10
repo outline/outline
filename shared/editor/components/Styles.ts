@@ -56,7 +56,7 @@ math-inline {
 
 }
 
-math-inline .math-render { 
+math-inline .math-render {
   display: inline-block;
   font-size: 0.85em;
 }
@@ -123,6 +123,17 @@ font-weight: ${props.theme.fontWeight};
 font-size: 1em;
 line-height: 1.6em;
 width: 100%;
+
+.mention {
+  background: ${props.theme.listItemHoverBackground};
+  border-radius: 12px;
+  padding-bottom: 2px;
+  padding-top: 1px;
+  padding-left: 4px;
+  padding-right: 4px;
+  font-weight: bold;
+  font-size: 14px;
+}
 
 > div {
   background: transparent;
@@ -971,7 +982,7 @@ mark {
     display: inline;
   }
 
-  &.code-hidden { 
+  &.code-hidden {
     button,
     select,
     button.show-diagram-button {
