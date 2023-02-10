@@ -23,6 +23,7 @@ const ColorCollectionIcon = ({ collection }: { collection: Collection }) => {
 
 export const openCollection = createAction({
   name: ({ t }) => t("Open collection"),
+  analyticsName: "Open collection",
   section: CollectionSection,
   shortcut: ["o", "c"],
   icon: <CollectionIcon />,
@@ -42,6 +43,7 @@ export const openCollection = createAction({
 
 export const createCollection = createAction({
   name: ({ t }) => t("New collection"),
+  analyticsName: "New collection",
   section: CollectionSection,
   icon: <PlusIcon />,
   keywords: "create",
@@ -60,6 +62,7 @@ export const createCollection = createAction({
 export const editCollection = createAction({
   name: ({ t, isContextMenu }) =>
     isContextMenu ? `${t("Edit")}…` : t("Edit collection"),
+  analyticsName: "Edit collection",
   section: CollectionSection,
   icon: <EditIcon />,
   visible: ({ stores, activeCollectionId }) =>
@@ -85,6 +88,7 @@ export const editCollection = createAction({
 export const editCollectionPermissions = createAction({
   name: ({ t, isContextMenu }) =>
     isContextMenu ? `${t("Permissions")}…` : t("Collection permissions"),
+  analyticsName: "Collection permissions",
   section: CollectionSection,
   icon: <PadlockIcon />,
   visible: ({ stores, activeCollectionId }) =>
@@ -104,6 +108,7 @@ export const editCollectionPermissions = createAction({
 
 export const starCollection = createAction({
   name: ({ t }) => t("Star"),
+  analyticsName: "Star collection",
   section: CollectionSection,
   icon: <StarredIcon />,
   keywords: "favorite bookmark",
@@ -129,6 +134,7 @@ export const starCollection = createAction({
 
 export const unstarCollection = createAction({
   name: ({ t }) => t("Unstar"),
+  analyticsName: "Unstar collection",
   section: CollectionSection,
   icon: <UnstarredIcon />,
   keywords: "unfavorite unbookmark",
