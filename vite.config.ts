@@ -70,6 +70,10 @@ export default () => {
       manifest: true,
       target: browserslistToEsbuild(),
       reportCompressedSize: false,
+      terserOptions: {
+        keep_classnames: true,
+        keep_fnames: true,
+      },
       rollupOptions: {
         /**
          * Regular assets can be hosted on a CDN.
