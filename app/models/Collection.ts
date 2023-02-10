@@ -18,9 +18,6 @@ export default class Collection extends ParanoidModel {
   @observable
   isSaving: boolean;
 
-  @observable
-  isLoadingUsers: boolean;
-
   @Field
   @observable
   id: string;

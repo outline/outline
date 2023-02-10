@@ -54,6 +54,7 @@ export default () => {
     ],
     optimizeDeps: {
       esbuildOptions: {
+        keepNames: true,
         define: {
           global: "globalThis",
         },
