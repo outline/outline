@@ -6,10 +6,13 @@ import CommandMenu, { Props } from "./CommandMenu";
 import MentionMenuItem from "./MentionMenuItem";
 
 interface MentionItem extends MenuItem {
-  id: string;
-  type: string;
-  label: string;
+  name: string;
   title: string;
+  attrs: {
+    "data-type": string;
+    "data-id": string;
+    label: string;
+  };
 }
 
 type MentionMenuProps = Omit<
@@ -32,10 +35,13 @@ function MentionMenu({ search, ...rest }: MentionMenuProps) {
     if (data) {
       setItems(
         data.map((d) => ({
-          id: d.id,
-          label: d.name,
+          name: "mention",
           title: d.name,
-          type: "user",
+          attrs: {
+            "data-type": "user",
+            "data-id": d.id,
+            label: d.name,
+          },
         }))
       );
     }
@@ -66,8 +72,8 @@ function MentionMenu({ search, ...rest }: MentionMenuProps) {
         <MentionMenuItem
           onClick={options.onClick}
           selected={options.selected}
-          title={item.label}
-          label={item.label}
+          title={item.title}
+          label={item.attrs.label}
           containerId={containerId}
         />
       )}
