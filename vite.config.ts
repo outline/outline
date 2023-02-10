@@ -53,7 +53,7 @@ export default () => {
     build: {
       outDir: "./build/app",
       manifest: true,
-      minify: "esbuild",
+      minify: "terser",
       target: browserslistToEsbuild(),
       reportCompressedSize: false,
       terserOptions: {
