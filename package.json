@@ -16,7 +16,7 @@
     "lint": "eslint app server shared",
     "prepare": "husky install",
     "postinstall": "rimraf node_modules/prosemirror-view/dist/index.d.ts && patch-package",
-    "heroku-postbuild": "yarn vite:build && yarn build:server && yarn copy:i18n && yarn db:migrate",
+    "heroku-postbuild": "yarn build && yarn db:migrate",
     "db:create-migration": "sequelize migration:create",
     "db:create": "sequelize db:create",
     "db:migrate": "sequelize db:migrate",

@@ -66,7 +66,7 @@ export const renderApp = async (
   const serviceWorker = `<script src="/registerSW.js"></script>`;
   const entry = "app/index.tsx";
   const scriptTags = isProduction
-    ? `<script type="module" src="${env.CDN_URL || "/"}${
+    ? `<script type="module" src="${env.CDN_URL || ""}/static/${
         readManifestFile()[entry]["file"]
       }"></script>`
     : `<script type="module">
