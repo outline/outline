@@ -19,25 +19,9 @@ export default () => {
       // https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#readme
       react({
         babel: {
-          babelrc: true,
-          presets: [
-            "@babel/preset-react",
-            "@babel/preset-typescript",
-            [
-              "@babel/preset-env",
-              {
-                corejs: {
-                  version: "3",
-                  proposals: true,
-                },
-                useBuiltIns: "usage",
-                exclude: [
-                  "transform-modules-commonjs",
-                  "proposal-dynamic-import",
-                ],
-              },
-            ],
-          ],
+          parserOpts: {
+            plugins: ["decorators-legacy", "classProperties"],
+          },
         },
       }),
       generateServiceWorker({
