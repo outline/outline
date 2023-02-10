@@ -213,6 +213,7 @@
     "styled-components": "^5.2.3",
     "styled-components-breakpoint": "^2.1.1",
     "styled-normalize": "^8.0.4",
+    "terser": "^5.16.3",
     "throng": "^5.0.0",
     "tiny-cookie": "^2.4.0",
     "tmp": "^0.2.1",
