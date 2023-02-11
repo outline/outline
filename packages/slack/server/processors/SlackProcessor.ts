@@ -4,13 +4,13 @@ import { IntegrationService, IntegrationType } from "@shared/types";
 import env from "@server/env";
 import { Document, Integration, Collection, Team } from "@server/models";
 import { presentSlackAttachment } from "@server/presenters";
+import BaseProcessor from "@server/queues/processors/BaseProcessor";
 import {
   DocumentEvent,
   IntegrationEvent,
   RevisionEvent,
   Event,
 } from "@server/types";
-import BaseProcessor from "./BaseProcessor";
 
 export default class SlackProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = [

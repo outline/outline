@@ -1,10 +1,14 @@
+import path from "path";
+import glob from "glob";
 import Koa, { BaseContext } from "koa";
 import bodyParser from "koa-body";
 import Router from "koa-router";
 import userAgent, { UserAgentContext } from "koa-useragent";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
+import Logger from "@server/logging/Logger";
 import { AppState, AppContext } from "@server/types";
+//import hooks from "../../../packages/slack/server/api/hooks";
 import apiKeys from "./apiKeys";
 import attachments from "./attachments";
 import auth from "./auth";
@@ -16,7 +20,6 @@ import documents from "./documents";
 import events from "./events";
 import fileOperationsRoute from "./fileOperations";
 import groups from "./groups";
-import hooks from "./hooks";
 import integrations from "./integrations";
 import apiWrapper from "./middlewares/apiWrapper";
 import editor from "./middlewares/editor";
@@ -58,7 +61,6 @@ router.use("/", documents.routes());
 router.use("/", pins.routes());
 router.use("/", revisions.routes());
 router.use("/", views.routes());
-router.use("/", hooks.routes());
 router.use("/", apiKeys.routes());
 router.use("/", searches.routes());
 router.use("/", shares.routes());
@@ -72,6 +74,21 @@ router.use("/", utils.routes());
 router.use("/", groups.routes());
 router.use("/", fileOperationsRoute.routes());
 router.use("/", webhookSubscriptions.routes());
+
+// register package API routes
+glob
+  .sync("build/packages/*/server/api/!(*.test).js")
+  .forEach((filePath: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const router: Router = require(path.join(process.cwd(), filePath)).default;
+    router.use("/", router.routes());
+    Logger.debug(
+      "lifecycle",
+      `Registered API routes for ${path.join(process.cwd(), filePath)}`
+    );
+  });
+
+//router.use("/", hooks.routes());
 
 if (env.ENVIRONMENT === "development") {
   router.use("/", developer.routes());
