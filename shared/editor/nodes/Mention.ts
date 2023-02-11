@@ -185,7 +185,7 @@ export default class Mention extends Node {
       getAttrs: (tok: Token) => ({
         "data-type": tok.attrGet("data-type"),
         "data-id": tok.attrGet("data-id"),
-        label: tok.attrGet("label"),
+        label: tok.content,
       }),
     };
   }
