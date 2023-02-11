@@ -5,6 +5,7 @@ import { EditorState, TextSelection, Plugin } from "prosemirror-state";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { run } from "../plugins/BlockMenuTrigger";
 import isInCode from "../queries/isInCode";
+import mentionRule from "../rules/mention";
 import { Dispatch, EventType } from "../types";
 import Node from "./Node";
 
@@ -61,6 +62,10 @@ export default class Mention extends Node {
       },
       toPlainText: (node) => node.attrs.label,
     };
+  }
+
+  get rulePlugins() {
+    return [mentionRule];
   }
 
   get plugins() {
