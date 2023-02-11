@@ -5,7 +5,7 @@ import { authorize } from "@server/policies";
 import { presentApiKey } from "@server/presenters";
 import { APIContext } from "@server/types";
 import { assertUuid, assertPresent } from "@server/validation";
-import pagination from "./middlewares/pagination";
+import pagination from "../middlewares/pagination";
 
 const router = new Router();
 
