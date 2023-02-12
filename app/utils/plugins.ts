@@ -2,6 +2,8 @@ interface Plugin {
   id: string;
   config: {
     name: string;
+    description: string;
+    requiredEnvVars?: string[];
   };
   settings: React.FC;
   icon: React.FC;

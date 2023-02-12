@@ -8,7 +8,7 @@ type Action = {
   value: string;
 };
 
-function presentmessageAttachment(
+function presentMessageAttachment(
   document: Document,
   team: Team,
   collection?: Collection | null,
@@ -35,4 +35,4 @@ function presentmessageAttachment(
 
 export default traceFunction({
   spanName: "presenters",
-})(presentmessageAttachment);
+})(presentMessageAttachment);

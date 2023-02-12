@@ -10,7 +10,7 @@ import {
   RevisionEvent,
   Event,
 } from "@server/types";
-import presentmessageAttachment from "../presenters/messageAttachment";
+import presentMessageAttachment from "../presenters/messageAttachment";
 
 export default class SlackProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = [
@@ -131,7 +131,7 @@ export default class SlackProcessor extends BaseProcessor {
       body: JSON.stringify({
         text,
         attachments: [
-          presentmessageAttachment(document, team, document.collection),
+          presentMessageAttachment(document, team, document.collection),
         ],
       }),
     });

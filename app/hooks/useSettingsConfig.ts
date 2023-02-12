@@ -17,6 +17,7 @@ import {
 } from "outline-icons";
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 import Details from "~/scenes/Settings/Details";
 import Export from "~/scenes/Settings/Export";
 import Features from "~/scenes/Settings/Features";
@@ -164,7 +165,7 @@ const useSettingsConfig = () => {
       ...mapValues(loadPlugins(), (plugin) => {
         return {
           name: plugin.config.name,
-          path: `/settings/integrations/${plugin.id}`,
+          path: integrationSettingsPath(plugin.id),
           group: t("Integrations"),
           component: plugin.settings,
           enabled: !!plugin.settings && can.update,
@@ -181,7 +182,7 @@ const useSettingsConfig = () => {
       },
       SelfHosted: {
         name: t("Self Hosted"),
-        path: "/settings/integrations/self-hosted",
+        path: integrationSettingsPath("self-hosted"),
         component: SelfHosted,
         enabled: can.update,
         group: t("Integrations"),
@@ -189,7 +190,7 @@ const useSettingsConfig = () => {
       },
       GoogleAnalytics: {
         name: t("Google Analytics"),
-        path: "/settings/integrations/google-analytics",
+        path: integrationSettingsPath("google-analytics"),
         component: GoogleAnalytics,
         enabled: can.update,
         group: t("Integrations"),
@@ -197,7 +198,7 @@ const useSettingsConfig = () => {
       },
       Zapier: {
         name: "Zapier",
-        path: "/settings/integrations/zapier",
+        path: integrationSettingsPath("zapier"),
         component: Zapier,
         enabled: can.update && isCloudHosted,
         group: t("Integrations"),
