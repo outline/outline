@@ -1,3 +1,4 @@
 {
-  "name": "Slack"
+  "name": "Slack",
+  "requiredEnvVars": ["SLACK_CLIENT_ID", "SLACK_CLIENT_SECRET"]
 }

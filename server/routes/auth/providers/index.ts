@@ -3,6 +3,7 @@ import path from "path";
 import { glob } from "glob";
 import Router from "koa-router";
 import { sortBy } from "lodash";
+import env from "@server/env";
 import { requireDirectory } from "@server/utils/fs";
 
 export type AuthenticationProviderConfig = {
@@ -48,22 +49,30 @@ requireDirectory<{
 
 // Temporarily also include plugins here until all auth methods are moved over.
 glob
-  .sync("build/plugins/*/server/auth/!(*.test).js")
+  .sync(
+    (env.ENVIRONMENT === "test" ? "" : "build/") +
+      "plugins/*/server/auth/!(*.test).[jt]s"
+  )
   .forEach((filePath: string) => {
     const authProvider = require(path.join(process.cwd(), filePath)).default;
-    const id = filePath.split("/")[2];
+    const id = filePath.replace("build/", "").split("/")[1];
     const config = require(path.join(
       process.cwd(),
-      "build",
+      env.ENVIRONMENT === "test" ? "" : "build",
       "plugins",
       id,
       "plugin.json"
     ));
 
+    // Test the all required env vars are set for the auth provider
+    const enabled = (config.requiredEnvVars ?? []).every(
+      (name: string) => !!env[name]
+    );
+
     authenticationProviderConfigs.push({
       id,
       name: config.name,
-      enabled: true,
+      enabled,
       router: authProvider,
     });
   });
