@@ -3,7 +3,7 @@
 // Load the process environment variables
 require("dotenv").config({
   silent: true,
-});
+})
 
 import {
   validate,
@@ -18,17 +18,17 @@ import {
   IsBoolean,
   Contains,
   MaxLength,
-} from "class-validator";
-import { languages } from "@shared/i18n";
-import { CannotUseWithout } from "@server/utils/validators";
-import Deprecated from "./models/decorators/Deprecated";
-import { getArg } from "./utils/args";
+} from "class-validator"
+import { languages } from "@shared/i18n"
+import { CannotUseWithout } from "@server/utils/validators"
+import Deprecated from "./models/decorators/Deprecated"
+import { getArg } from "./utils/args"
 
 export class Environment {
-  private validationPromise;
+  private validationPromise
 
   constructor() {
-    this.validationPromise = validate(this);
+    this.validationPromise = validate(this)
   }
 
   /**
@@ -37,7 +37,7 @@ export class Environment {
    * @returns A promise that resolves when the environment is validated.
    */
   public validate() {
-    return this.validationPromise;
+    return this.validationPromise
   }
 
   /**
@@ -70,6 +70,12 @@ export class Environment {
     protocols: ["postgres", "postgresql"],
   })
   public DATABASE_URL = process.env.DATABASE_URL ?? "";
+
+  /**
+   * The database schema to be used.
+   */
+  @IsOptional()
+  public DATABASE_SCHEMA = process.env.DATABASE_SCHEMA;
 
   /**
    * The url of the database pool.
@@ -580,15 +586,15 @@ export class Environment {
    * getoutline.com
    */
   public isCloudHosted() {
-    return this.DEPLOYMENT === "hosted";
+    return this.DEPLOYMENT === "hosted"
   }
 
   private toOptionalString(value: string | undefined) {
-    return value ? value : undefined;
+    return value ? value : undefined
   }
 
   private toOptionalNumber(value: string | undefined) {
-    return value ? parseInt(value, 10) : undefined;
+    return value ? parseInt(value, 10) : undefined
   }
 
   /**
@@ -604,10 +610,10 @@ export class Environment {
    * @returns A boolean
    */
   private toBoolean(value: string) {
-    return value ? !!JSON.parse(value) : false;
+    return value ? !!JSON.parse(value) : false
   }
 }
 
-const env = new Environment();
+const env = new Environment()
 
-export default env;
+export default env
