@@ -164,6 +164,12 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
           }
         }
 
+        // Link to our own API should be opened in a new tab, not in the app
+        if (navigateTo.startsWith("/api/")) {
+          window.open(href, "_blank");
+          return;
+        }
+
         // If we're navigating to an internal document link then prepend the
         // share route to the URL so that the document is loaded in context
         if (shareId && navigateTo.includes("/doc/")) {
