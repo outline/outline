@@ -1,16 +1,28 @@
+import path from "path";
+import { glob } from "glob";
+import Logger from "@server/logging/Logger";
 import { requireDirectory } from "@server/utils/fs";
+import BaseProcessor from "./BaseProcessor";
 
 const processors = {};
 
-requireDirectory(__dirname).forEach(([module, id]) => {
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'default' does not exist on type 'unknown'
-  const { default: Processor } = module;
-
-  if (id === "index") {
-    return;
+requireDirectory<{ default: BaseProcessor }>(__dirname).forEach(
+  ([module, id]) => {
+    if (id === "index") {
+      return;
+    }
+    processors[id] = module.default;
   }
+);
 
-  processors[id] = Processor;
-});
+glob
+  .sync("build/plugins/*/server/processors/!(*.test).js")
+  .forEach((filePath: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const processor = require(path.join(process.cwd(), filePath)).default;
+    const name = path.basename(filePath, ".js");
+    processors[name] = processor;
+    Logger.debug("processor", `Registered processor ${name}`);
+  });
 
 export default processors;

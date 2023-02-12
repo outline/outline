@@ -4,6 +4,7 @@ import Router from "koa-router";
 import { Profile } from "passport";
 import { Strategy as SlackStrategy } from "passport-slack-oauth2";
 import { IntegrationService, IntegrationType } from "@shared/types";
+import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 import accountProvisioner from "@server/commands/accountProvisioner";
 import env from "@server/env";
 import auth from "@server/middlewares/authentication";
@@ -21,8 +22,8 @@ import {
   getTeamFromContext,
   StateStore,
 } from "@server/utils/passport";
-import * as Slack from "@server/utils/slack";
 import { assertPresent, assertUuid } from "@server/validation";
+import * as Slack from "../slack";
 
 type SlackProfile = Profile & {
   team: {
@@ -58,11 +59,6 @@ function redirectOnClient(ctx: Context, url: string) {
 <meta http-equiv="refresh" content="0;URL='${url}'"/>
 </head>`;
 }
-
-export const config = {
-  name: "Slack",
-  enabled: !!env.SLACK_CLIENT_ID,
-};
 
 if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
   const strategy = new SlackStrategy(
@@ -142,7 +138,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
       assertPresent(code || error, "code is required");
 
       if (error) {
-        ctx.redirect(`/settings/integrations/slack?error=${error}`);
+        ctx.redirect(integrationSettingsPath(`slack?error=${error}`));
         return;
       }
 
@@ -161,12 +157,12 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
             );
           } catch (err) {
             return ctx.redirect(
-              `/settings/integrations/slack?error=unauthenticated`
+              integrationSettingsPath(`slack?error=unauthenticated`)
             );
           }
         } else {
           return ctx.redirect(
-            `/settings/integrations/slack?error=unauthenticated`
+            integrationSettingsPath(`slack?error=unauthenticated`)
           );
         }
       }
@@ -190,7 +186,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
           serviceTeamId: data.team_id,
         },
       });
-      ctx.redirect("/settings/integrations/slack");
+      ctx.redirect(integrationSettingsPath("slack"));
     }
   );
 
@@ -208,7 +204,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
       assertUuid(collectionId, "collectionId must be an uuid");
 
       if (error) {
-        ctx.redirect(`/settings/integrations/slack?error=${error}`);
+        ctx.redirect(integrationSettingsPath(`slack?error=${error}`));
         return;
       }
 
@@ -232,7 +228,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
           );
         } catch (err) {
           return ctx.redirect(
-            `/settings/integrations/slack?error=unauthenticated`
+            integrationSettingsPath(`slack?error=unauthenticated`)
           );
         }
       }
@@ -261,7 +257,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
           channelId: data.incoming_webhook.channel_id,
         },
       });
-      ctx.redirect("/settings/integrations/slack");
+      ctx.redirect(integrationSettingsPath("slack"));
     }
   );
 }

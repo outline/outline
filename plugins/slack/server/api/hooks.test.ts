@@ -3,7 +3,7 @@ import env from "@server/env";
 import { IntegrationAuthentication, SearchQuery } from "@server/models";
 import { buildDocument, buildIntegration } from "@server/test/factories";
 import { seed, getTestServer } from "@server/test/support";
-import * as Slack from "@server/utils/slack";
+import * as Slack from "../slack";
 
 jest.mock("@server/utils/slack", () => ({
   post: jest.fn(),
