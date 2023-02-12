@@ -18,7 +18,6 @@ import presentProviderConfig from "./providerConfig";
 import presentRevision from "./revision";
 import presentSearchQuery from "./searchQuery";
 import presentShare from "./share";
-import presentSlackAttachment from "./slackAttachment";
 import presentStar from "./star";
 import presentSubscription from "./subscription";
 import presentTeam from "./team";
@@ -48,7 +47,6 @@ export {
   presentRevision,
   presentSearchQuery,
   presentShare,
-  presentSlackAttachment,
   presentStar,
   presentSubscription,
   presentTeam,
