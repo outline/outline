@@ -21,8 +21,8 @@ import {
   getTeamFromContext,
   StateStore,
 } from "@server/utils/passport";
-import * as Slack from "@server/utils/slack";
 import { assertPresent, assertUuid } from "@server/validation";
+import * as Slack from "../slack";
 
 type SlackProfile = Profile & {
   team: {

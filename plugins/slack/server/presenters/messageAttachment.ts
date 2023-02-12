@@ -8,7 +8,7 @@ type Action = {
   value: string;
 };
 
-function presentSlackAttachment(
+function presentmessageAttachment(
   document: Document,
   team: Team,
   collection?: Collection | null,
@@ -35,4 +35,4 @@ function presentSlackAttachment(
 
 export default traceFunction({
   spanName: "presenters",
-})(presentSlackAttachment);
+})(presentmessageAttachment);

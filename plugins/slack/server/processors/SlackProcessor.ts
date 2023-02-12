@@ -3,7 +3,6 @@ import { Op } from "sequelize";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import env from "@server/env";
 import { Document, Integration, Collection, Team } from "@server/models";
-import { presentSlackAttachment } from "@server/presenters";
 import BaseProcessor from "@server/queues/processors/BaseProcessor";
 import {
   DocumentEvent,
@@ -11,6 +10,7 @@ import {
   RevisionEvent,
   Event,
 } from "@server/types";
+import presentmessageAttachment from "../presenters/messageAttachment";
 
 export default class SlackProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = [
@@ -131,7 +131,7 @@ export default class SlackProcessor extends BaseProcessor {
       body: JSON.stringify({
         text,
         attachments: [
-          presentSlackAttachment(document, team, document.collection),
+          presentmessageAttachment(document, team, document.collection),
         ],
       }),
     });

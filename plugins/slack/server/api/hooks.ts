@@ -17,11 +17,11 @@ import {
   IntegrationAuthentication,
 } from "@server/models";
 import SearchHelper from "@server/models/helpers/SearchHelper";
-import { presentSlackAttachment } from "@server/presenters";
 import { APIContext } from "@server/types";
 import { opts } from "@server/utils/i18n";
-import * as Slack from "@server/utils/slack";
 import { assertPresent } from "@server/validation";
+import presentmessageAttachment from "../presenters/messageAttachment";
+import * as Slack from "../slack";
 
 const router = new Router();
 
@@ -140,7 +140,7 @@ router.post("hooks.interactive", async (ctx: APIContext) => {
     response_type: "in_channel",
     replace_original: false,
     attachments: [
-      presentSlackAttachment(
+      presentmessageAttachment(
         document,
         team,
         document.collection,
@@ -329,7 +329,7 @@ router.post("hooks.slack", async (ctx: APIContext) => {
         .toLowerCase()
         .match(escapeRegExp(text.toLowerCase()));
       attachments.push(
-        presentSlackAttachment(
+        presentmessageAttachment(
           result.document,
           team,
           result.document.collection,

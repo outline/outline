@@ -1,7 +1,7 @@
 import querystring from "querystring";
 import fetch from "fetch-with-proxy";
 import env from "@server/env";
-import { InvalidRequestError } from "../errors";
+import { InvalidRequestError } from "@server/errors";
 
 const SLACK_API_URL = "https://slack.com/api";
 
