@@ -8,7 +8,6 @@ import env from "@server/env";
 import { NotFoundError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { AppState, AppContext } from "@server/types";
-//import hooks from "../../../packages/slack/server/api/hooks";
 import apiKeys from "./apiKeys";
 import attachments from "./attachments";
 import auth from "./auth";
@@ -51,6 +50,16 @@ api.use<BaseContext, UserAgentContext>(userAgent);
 api.use(apiWrapper());
 api.use(editor());
 
+// register package API routes before others to allow for overrides
+glob
+  .sync("build/plugins/*/server/api/!(*.test).js")
+  .forEach((filePath: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const pkg: Router = require(path.join(process.cwd(), filePath)).default;
+    router.use("/", pkg.routes());
+    Logger.debug("lifecycle", `Registered API routes for ${filePath}`);
+  });
+
 // routes
 router.use("/", auth.routes());
 router.use("/", authenticationProviders.routes());
@@ -74,21 +83,6 @@ router.use("/", utils.routes());
 router.use("/", groups.routes());
 router.use("/", fileOperationsRoute.routes());
 router.use("/", webhookSubscriptions.routes());
-
-// register package API routes
-glob
-  .sync("build/packages/*/server/api/!(*.test).js")
-  .forEach((filePath: string) => {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const router: Router = require(path.join(process.cwd(), filePath)).default;
-    router.use("/", router.routes());
-    Logger.debug(
-      "lifecycle",
-      `Registered API routes for ${path.join(process.cwd(), filePath)}`
-    );
-  });
-
-//router.use("/", hooks.routes());
 
 if (env.ENVIRONMENT === "development") {
   router.use("/", developer.routes());

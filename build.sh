@@ -5,10 +5,10 @@ yarn concurrently "yarn babel --extensions .ts,.tsx --quiet -d ./build/server ./
  "yarn babel --extensions .ts,.tsx --quiet -d ./build/shared ./shared"
 
 # Compile code in packages
-for d in ./packages/*; do
+for d in ./plugins/*; do
   # Get the name of the folder
   package=$(basename "$d")
-  yarn babel --config-file ./server/.babelrc --extensions .ts,.tsx --quiet -d "./build/packages/$package/server" "./packages/$package/server"
+  yarn babel --extensions .ts,.tsx --quiet -d "./build/plugins/$package/server" "./plugins/$package/server"
 done
 
 # Copy static files
