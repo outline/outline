@@ -3,6 +3,7 @@ import env from "@server/env";
 import Logger from "../logging/Logger";
 import * as models from "../models";
 
+const schema = env.DATABASE_SCHEMA;
 const isProduction = env.ENVIRONMENT === "production";
 const isSSLDisabled = env.PGSSLMODE === "disable";
 const poolMax = env.DATABASE_CONNECTION_POOL_MAX ?? 5;
@@ -13,6 +14,7 @@ const url =
   "postgres://localhost:5432/outline";
 
 export const sequelize = new Sequelize(url, {
+  schema,
   logging: (msg) => Logger.debug("database", msg),
   typeValidation: true,
   dialectOptions: {

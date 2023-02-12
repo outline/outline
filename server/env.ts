@@ -103,6 +103,12 @@ export class Environment {
   );
 
   /**
+   * Database schema name.
+   */
+  @IsOptional()
+  public DATABASE_SCHEMA = process.env.DATABASE_SCHEMA;
+ 
+  /**
    * Set to "disable" to disable SSL connection to the database. This option is
    * passed through to Postgres. See:
    *
