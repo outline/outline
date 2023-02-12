@@ -1,7 +1,7 @@
 import { WebhookSubscription } from "@server/models";
+import BaseProcessor from "@server/queues/processors/BaseProcessor";
 import { Event } from "@server/types";
 import DeliverWebhookTask from "../tasks/DeliverWebhookTask";
-import BaseProcessor from "./BaseProcessor";
 
 export default class WebhookProcessor extends BaseProcessor {
   static applicableEvents: ["*"] = ["*"];

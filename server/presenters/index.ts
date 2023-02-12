@@ -23,8 +23,6 @@ import presentSubscription from "./subscription";
 import presentTeam from "./team";
 import presentUser from "./user";
 import presentView from "./view";
-import presentWebhook from "./webhook";
-import presentWebhookSubscription from "./webhookSubscription";
 
 export {
   presentApiKey,
@@ -52,6 +50,4 @@ export {
   presentTeam,
   presentUser,
   presentView,
-  presentWebhook,
-  presentWebhookSubscription,
 };

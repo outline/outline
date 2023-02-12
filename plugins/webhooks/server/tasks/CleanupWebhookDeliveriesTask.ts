@@ -2,7 +2,7 @@ import { subDays } from "date-fns";
 import { Op } from "sequelize";
 import Logger from "@server/logging/Logger";
 import { WebhookDelivery } from "@server/models";
-import BaseTask, { TaskPriority } from "./BaseTask";
+import BaseTask, { TaskPriority } from "@server/queues/tasks/BaseTask";
 
 type Props = void;
 

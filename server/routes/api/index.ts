@@ -8,6 +8,7 @@ import env from "@server/env";
 import { NotFoundError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { AppState, AppContext } from "@server/types";
+import webhookSubscriptions from "../../../plugins/webhooks/server/api/webhookSubscriptions";
 import apiKeys from "./apiKeys";
 import attachments from "./attachments";
 import auth from "./auth";
@@ -32,7 +33,6 @@ import subscriptions from "./subscriptions";
 import team from "./team";
 import users from "./users";
 import views from "./views";
-import webhookSubscriptions from "./webhookSubscriptions";
 
 const api = new Koa<AppState, AppContext>();
 const router = new Router();

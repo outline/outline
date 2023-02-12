@@ -7,7 +7,7 @@ import CleanupDeletedDocumentsTask from "@server/queues/tasks/CleanupDeletedDocu
 import CleanupDeletedTeamsTask from "@server/queues/tasks/CleanupDeletedTeamsTask";
 import CleanupExpiredAttachmentsTask from "@server/queues/tasks/CleanupExpiredAttachmentsTask";
 import CleanupExpiredFileOperationsTask from "@server/queues/tasks/CleanupExpiredFileOperationsTask";
-import CleanupWebhookDeliveriesTask from "@server/queues/tasks/CleanupWebhookDeliveriesTask";
+//import CleanupWebhookDeliveriesTask from "@server/queues/tasks/CleanupWebhookDeliveriesTask";
 import InviteReminderTask from "@server/queues/tasks/InviteReminderTask";
 
 const router = new Router();
@@ -42,7 +42,7 @@ const cronHandler = async (ctx: Context) => {
 
   await CleanupDeletedTeamsTask.schedule({ limit });
 
-  await CleanupWebhookDeliveriesTask.schedule({ limit });
+  //await CleanupWebhookDeliveriesTask.schedule({ limit });
 
   await InviteReminderTask.schedule();
 
