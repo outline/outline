@@ -9,7 +9,6 @@ import Integration from "~/models/Integration";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
-import SlackIcon from "~/components/Icons/SlackIcon";
 import List from "~/components/List";
 import ListItem from "~/components/List/Item";
 import Notice from "~/components/Notice";
@@ -19,6 +18,7 @@ import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useQuery from "~/hooks/useQuery";
 import useStores from "~/hooks/useStores";
+import SlackIcon from "./Icon";
 import SlackButton from "./components/SlackButton";
 import SlackListItem from "./components/SlackListItem";
 

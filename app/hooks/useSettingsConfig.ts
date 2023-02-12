@@ -1,3 +1,4 @@
+import { mapValues } from "lodash";
 import {
   EmailIcon,
   ProfileIcon,
@@ -29,36 +30,18 @@ import Profile from "~/scenes/Settings/Profile";
 import Security from "~/scenes/Settings/Security";
 import SelfHosted from "~/scenes/Settings/SelfHosted";
 import Shares from "~/scenes/Settings/Shares";
-import Slack from "~/scenes/Settings/Slack";
 import Tokens from "~/scenes/Settings/Tokens";
 import Webhooks from "~/scenes/Settings/Webhooks";
 import Zapier from "~/scenes/Settings/Zapier";
 import GoogleIcon from "~/components/Icons/GoogleIcon";
-import SlackIcon from "~/components/Icons/SlackIcon";
 import ZapierIcon from "~/components/Icons/ZapierIcon";
-import env from "~/env";
 import isCloudHosted from "~/utils/isCloudHosted";
+import { loadPlugins } from "~/utils/plugins";
 import { accountPreferencesPath } from "~/utils/routeHelpers";
 import useCurrentTeam from "./useCurrentTeam";
 import usePolicy from "./usePolicy";
 
 type SettingsGroups = "Account" | "Team" | "Integrations";
-type SettingsPage =
-  | "Profile"
-  | "Notifications"
-  | "Api"
-  | "Details"
-  | "Security"
-  | "Features"
-  | "Members"
-  | "Groups"
-  | "Shares"
-  | "Import"
-  | "Export"
-  | "Webhooks"
-  | "Slack"
-  | "Zapier"
-  | "GoogleAnalytics";
 
 export type ConfigItem = {
   name: string;
@@ -70,7 +53,7 @@ export type ConfigItem = {
 };
 
 type ConfigType = {
-  [key in SettingsPage]: ConfigItem;
+  [key in string]: ConfigItem;
 };
 
 const useSettingsConfig = () => {
@@ -178,6 +161,16 @@ const useSettingsConfig = () => {
         icon: ExportIcon,
       },
       // Integrations
+      ...mapValues(loadPlugins(), (plugin) => {
+        return {
+          name: plugin.config.name,
+          path: `/settings/integrations/${plugin.id}`,
+          group: t("Integrations"),
+          component: plugin.settings,
+          enabled: can.update,
+          icon: plugin.icon,
+        } as ConfigItem;
+      }),
       Webhooks: {
         name: t("Webhooks"),
         path: "/settings/webhooks",
@@ -193,14 +186,6 @@ const useSettingsConfig = () => {
         enabled: can.update,
         group: t("Integrations"),
         icon: BuildingBlocksIcon,
-      },
-      Slack: {
-        name: "Slack",
-        path: "/settings/integrations/slack",
-        component: Slack,
-        enabled: can.update && (!!env.SLACK_CLIENT_ID || isCloudHosted),
-        group: t("Integrations"),
-        icon: SlackIcon,
       },
       GoogleAnalytics: {
         name: t("Google Analytics"),
@@ -232,7 +217,7 @@ const useSettingsConfig = () => {
   const enabledConfigs = React.useMemo(
     () =>
       Object.keys(config).reduce(
-        (acc, key: SettingsPage) =>
+        (acc, key: string) =>
           config[key].enabled ? [...acc, config[key]] : acc,
         []
       ),

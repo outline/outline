@@ -25,6 +25,7 @@ module.exports = {
         include: [
           path.join(__dirname, 'app'),
           path.join(__dirname, 'shared'),
+          path.join(__dirname, 'plugins'),
         ],
         options: {
           cacheDirectory: true
