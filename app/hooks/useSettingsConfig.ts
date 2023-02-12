@@ -167,7 +167,7 @@ const useSettingsConfig = () => {
           path: `/settings/integrations/${plugin.id}`,
           group: t("Integrations"),
           component: plugin.settings,
-          enabled: can.update,
+          enabled: !!plugin.settings && can.update,
           icon: plugin.icon,
         } as ConfigItem;
       }),

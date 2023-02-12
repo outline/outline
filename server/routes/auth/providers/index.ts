@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
+import path from "path";
+import { glob } from "glob";
 import Router from "koa-router";
 import { sortBy } from "lodash";
 import { requireDirectory } from "@server/utils/fs";
@@ -11,8 +14,10 @@ export type AuthenticationProviderConfig = {
 
 const authenticationProviderConfigs: AuthenticationProviderConfig[] = [];
 
-requireDirectory(__dirname).forEach(([module, id]) => {
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'config' does not exist on type 'unknown'... Remove this comment to see the full error message
+requireDirectory<{
+  default: Router;
+  config: { name: string; enabled: boolean };
+}>(__dirname).forEach(([module, id]) => {
   const { config, default: router } = module;
 
   if (id === "index") {
@@ -40,5 +45,27 @@ requireDirectory(__dirname).forEach(([module, id]) => {
     });
   }
 });
+
+// Temporarily also include plugins here until all auth methods are moved over.
+glob
+  .sync("build/plugins/*/server/auth/!(*.test).js")
+  .forEach((filePath: string) => {
+    const authProvider = require(path.join(process.cwd(), filePath)).default;
+    const id = filePath.split("/")[2];
+    const config = require(path.join(
+      process.cwd(),
+      "build",
+      "plugins",
+      id,
+      "plugin.json"
+    ));
+
+    authenticationProviderConfigs.push({
+      id,
+      name: config.name,
+      enabled: true,
+      router: authProvider,
+    });
+  });
 
 export default sortBy(authenticationProviderConfigs, "id");

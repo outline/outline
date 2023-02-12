@@ -59,11 +59,6 @@ function redirectOnClient(ctx: Context, url: string) {
 </head>`;
 }
 
-export const config = {
-  name: "Slack",
-  enabled: !!env.SLACK_CLIENT_ID,
-};
-
 if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
   const strategy = new SlackStrategy(
     {
