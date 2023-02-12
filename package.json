@@ -6,7 +6,7 @@
   "scripts": {
     "clean": "rimraf build",
     "copy:i18n": "mkdir -p ./build/shared/i18n && cp -R ./shared/i18n/locales ./build/shared/i18n",
-    "build:i18n": "i18next --silent 'shared/**/*.tsx' 'shared/**/*.ts' 'app/**/*.tsx' 'app/**/*.ts' 'server/**/*.ts' 'server/**/*.tsx' && yarn copy:i18n",
+    "build:i18n": "i18next --silent '{shared,app,server,plugins}/**/*.{ts,tsx}' && yarn copy:i18n",
     "build:server": "./build.sh",
     "build:webpack": "webpack --config webpack.config.prod.js",
     "build": "yarn clean && yarn build:webpack && yarn build:i18n && yarn build:server",
