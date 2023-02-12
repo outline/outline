@@ -1,5 +1,9 @@
 #!/bin/sh
 
+# Clean previous build
+rm -rf ./build/server
+rm -rf ./build/plugins
+
 # Compile server and shared
 yarn concurrently "yarn babel --extensions .ts,.tsx --quiet -d ./build/server ./server" \
  "yarn babel --extensions .ts,.tsx --quiet -d ./build/shared ./shared"
