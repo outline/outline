@@ -108,8 +108,6 @@ if ("serviceWorker" in navigator) {
       return;
     }
 
-    console.log("[ServiceWorker] Executing Service Worker code.");
-
     // see: https://bugs.chromium.org/p/chromium/issues/detail?id=1097616
     // In some rare (<0.1% of cases) this call can return `undefined`
     const maybePromise = navigator.serviceWorker.register("/static/sw.js", {
