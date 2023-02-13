@@ -100,6 +100,9 @@ jobs:
       - run:
           name: build-vite
           command: yarn vite:build
+      - run:
+          name: Send bundle stats to RelativeCI
+          command: npx relative-ci-agent
   build-image:
     executor: docker-publisher
     steps:
