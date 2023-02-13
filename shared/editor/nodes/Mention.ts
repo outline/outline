@@ -53,8 +53,8 @@ export default class Mention extends Node {
         return [
           "span",
           {
-            class: `${this.name}`,
-            "data-name": node.attrs["data-name"],
+            class: `${node.type.name}`,
+            "data-type": node.attrs["data-type"],
             "data-id": node.attrs["data-id"],
           },
           node.attrs.label,
