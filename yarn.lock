@@ -13705,6 +13705,19 @@ vinyl@~3.0.0:
     replace-ext "^2.0.0"
     teex "^1.0.1"
 
+vite-plugin-pwa@^0.14.4:
+  version "0.14.4"
+  resolved "https://registry.yarnpkg.com/vite-plugin-pwa/-/vite-plugin-pwa-0.14.4.tgz#d83fae9e85ab4a082e11ab475b3ec124bfe49084"
+  integrity sha512-M7Ct0so8OlouMkTWgXnl8W1xU95glITSKIe7qswZf1tniAstO2idElGCnsrTJ5NPNSx1XqfTCOUj8j94S6FD7Q==
+  dependencies:
+    "@rollup/plugin-replace" "^5.0.1"
+    debug "^4.3.4"
+    fast-glob "^3.2.12"
+    pretty-bytes "^6.0.0"
+    rollup "^3.7.2"
+    workbox-build "^6.5.4"
+    workbox-window "^6.5.4"
+
 vite-plugin-static-copy@^0.13.0:
   version "0.13.0"
   resolved "https://registry.yarnpkg.com/vite-plugin-static-copy/-/vite-plugin-static-copy-0.13.0.tgz#1a05bfc0afb5d89e052043f645b610b57b050662"
