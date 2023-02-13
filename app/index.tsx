@@ -21,6 +21,7 @@ import { initI18n } from "~/utils/i18n";
 import Desktop from "./components/DesktopEventHandler";
 import LazyPolyfill from "./components/LazyPolyfills";
 import Routes from "./routes";
+import Logger from "./utils/Logger";
 import history from "./utils/history";
 import { initSentry } from "./utils/sentry";
 
@@ -118,11 +119,16 @@ if ("serviceWorker" in navigator) {
     if (maybePromise?.then) {
       maybePromise
         .then((registration) => {
-          console.log("[ServiceWorker] Registered.", registration);
+          Logger.debug(
+            "lifecycle",
+            "[ServiceWorker] Registered.",
+            registration
+          );
         })
         .catch((registrationError) => {
-          console.log(
-            "[ServiceWorker] Registration failed. ",
+          Logger.debug(
+            "lifecycle",
+            "[ServiceWorker] Registration failed.",
             registrationError
           );
         });
