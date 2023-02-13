@@ -37,6 +37,9 @@ export default () => {
       VitePWA({
         injectRegister: "inline",
         registerType: "autoUpdate",
+        workbox: {
+          globPatterns: ["**/*.{js,css,ico,png,svg}"],
+        },
         // includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
         manifest: {
           name: "Outline",
