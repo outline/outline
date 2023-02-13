@@ -2,11 +2,16 @@ import { subDays } from "date-fns";
 import { Op } from "sequelize";
 import Logger from "@server/logging/Logger";
 import { WebhookDelivery } from "@server/models";
-import BaseTask, { TaskPriority } from "@server/queues/tasks/BaseTask";
+import BaseTask, {
+  TaskPriority,
+  TaskSchedule,
+} from "@server/queues/tasks/BaseTask";
 
 type Props = void;
 
 export default class CleanupWebhookDeliveriesTask extends BaseTask<Props> {
+  static cron = TaskSchedule.Daily;
+
   public async perform(_: Props) {
     Logger.info("task", `Deleting WebhookDeliveries older than one week…`);
     const count = await WebhookDelivery.unscoped().destroy({

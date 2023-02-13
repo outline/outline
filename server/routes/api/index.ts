@@ -8,7 +8,6 @@ import env from "@server/env";
 import { NotFoundError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { AppState, AppContext } from "@server/types";
-import webhookSubscriptions from "../../../plugins/webhooks/server/api/webhookSubscriptions";
 import apiKeys from "./apiKeys";
 import attachments from "./attachments";
 import auth from "./auth";
@@ -82,7 +81,6 @@ router.use("/", attachments.routes());
 router.use("/", utils.routes());
 router.use("/", groups.routes());
 router.use("/", fileOperationsRoute.routes());
-router.use("/", webhookSubscriptions.routes());
 
 if (env.ENVIRONMENT === "development") {
   router.use("/", developer.routes());
