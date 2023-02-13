@@ -67,7 +67,7 @@ export const renderApp = async (
   const environment = `
     window.env = ${JSON.stringify(presentEnv(env, options.analytics))};
   `;
-  const serviceWorker = `<script src="/registerSW.js"></script>`;
+  const serviceWorker = ""; //`<script src="/registerSW.js"></script>`;
   const entry = "app/index.tsx";
   const scriptTags = isProduction
     ? `<script type="module" src="${env.CDN_URL || ""}/static/${
