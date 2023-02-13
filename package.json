@@ -161,7 +161,7 @@
     "prosemirror-model": "1.16.1",
     "prosemirror-schema-list": "1.1.4",
     "prosemirror-state": "1.3.4",
-    "prosemirror-tables": "^1.1.1",
+    "prosemirror-tables": "^1.3.2",
     "prosemirror-transform": "1.2.5",
     "prosemirror-utils": "^0.9.6",
     "prosemirror-view": "1.26.5",
