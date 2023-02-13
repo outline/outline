@@ -47,6 +47,7 @@ import Typeform from "./Typeform";
 import Vimeo from "./Vimeo";
 import Whimsical from "./Whimsical";
 import YouTube from "./YouTube";
+import ZhiXi from "./ZhiXi";
 
 export type EmbedProps = {
   isSelected: boolean;
@@ -384,6 +385,12 @@ const embeds: EmbedDescriptor[] = [
     keywords: "google video",
     icon: <Img src="/images/youtube.png" alt="YouTube" />,
     component: YouTube,
+  }),
+  new EmbedDescriptor({
+    title: "ZhiXi",
+    keywords: "ZhiXi MindMap",
+    icon: <Img src="/images/zhixi.png" alt="ZhiXi MindMap" />,
+    component: ZhiXi,
   }),
 ];
 
