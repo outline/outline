@@ -7,6 +7,7 @@ import { UserSection } from "~/actions/sections";
 
 export const inviteUser = createAction({
   name: ({ t }) => `${t("Invite people")}…`,
+  analyticsName: "Invite people",
   icon: <PlusIcon />,
   keywords: "team member workspace user",
   section: UserSection,

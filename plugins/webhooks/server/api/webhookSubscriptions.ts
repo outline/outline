@@ -4,10 +4,10 @@ import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { WebhookSubscription, Event } from "@server/models";
 import { authorize } from "@server/policies";
-import { presentWebhookSubscription } from "@server/presenters";
+import pagination from "@server/routes/api/middlewares/pagination";
 import { WebhookSubscriptionEvent, APIContext } from "@server/types";
 import { assertArray, assertPresent, assertUuid } from "@server/validation";
-import pagination from "./middlewares/pagination";
+import presentWebhookSubscription from "../presenters/webhookSubscription";
 
 const router = new Router();
 

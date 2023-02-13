@@ -20,6 +20,10 @@ function isLinkClose(token: Token) {
 
 function isAttachment(token: Token) {
   const href = token.attrGet("href");
+  if (href?.includes("display=link")) {
+    return false;
+  }
+
   return (
     // internal
     href?.startsWith("/api/attachments.redirect") ||

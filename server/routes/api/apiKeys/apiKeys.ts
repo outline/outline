@@ -1,20 +1,21 @@
 import Router from "koa-router";
 import auth from "@server/middlewares/authentication";
+import validate from "@server/middlewares/validate";
 import { ApiKey, Event } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentApiKey } from "@server/presenters";
 import { APIContext } from "@server/types";
-import { assertUuid, assertPresent } from "@server/validation";
-import pagination from "./middlewares/pagination";
+import pagination from "../middlewares/pagination";
+import * as T from "./schema";
 
 const router = new Router();
 
 router.post(
   "apiKeys.create",
   auth({ member: true }),
-  async (ctx: APIContext) => {
+  validate(T.APIKeysCreateSchema),
+  async (ctx: APIContext<T.APIKeysCreateReq>) => {
     const { name } = ctx.request.body;
-    assertPresent(name, "name is required");
     const { user } = ctx.state.auth;
 
     authorize(user, "createApiKey", user.team);
@@ -65,10 +66,11 @@ router.post(
 router.post(
   "apiKeys.delete",
   auth({ member: true }),
-  async (ctx: APIContext) => {
+  validate(T.APIKeysDeleteSchema),
+  async (ctx: APIContext<T.APIKeysDeleteReq>) => {
     const { id } = ctx.request.body;
-    assertUuid(id, "id is required");
     const { user } = ctx.state.auth;
+
     const key = await ApiKey.findByPk(id);
     authorize(user, "delete", key);
 

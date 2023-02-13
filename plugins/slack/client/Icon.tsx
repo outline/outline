@@ -7,10 +7,7 @@ type Props = {
   color?: string;
 };
 
-export default function SlackIcon({
-  size = 24,
-  color = "currentColor",
-}: Props) {
+export default function Icon({ size = 24, color = "currentColor" }: Props) {
   return (
     <svg
       fill={color}

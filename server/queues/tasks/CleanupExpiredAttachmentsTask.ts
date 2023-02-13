@@ -1,13 +1,15 @@
 import { Op } from "sequelize";
 import Logger from "@server/logging/Logger";
 import { Attachment } from "@server/models";
-import BaseTask, { TaskPriority } from "./BaseTask";
+import BaseTask, { TaskPriority, TaskSchedule } from "./BaseTask";
 
 type Props = {
   limit: number;
 };
 
 export default class CleanupExpiredAttachmentsTask extends BaseTask<Props> {
+  static cron = TaskSchedule.Daily;
+
   public async perform({ limit }: Props) {
     Logger.info("task", `Deleting expired attachments…`);
     const attachments = await Attachment.unscoped().findAll({

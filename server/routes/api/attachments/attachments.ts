@@ -102,7 +102,15 @@ router.post(
           "Content-Type": contentType,
           ...presignedPost.fields,
         },
-        attachment: presentAttachment(attachment),
+        attachment: {
+          ...presentAttachment(attachment),
+          // always use the redirect url for document attachments, as the serializer
+          // depends on it to detect attachment vs link
+          url:
+            preset === AttachmentPreset.DocumentAttachment
+              ? attachment.redirectUrl
+              : attachment.url,
+        },
       },
     };
   }

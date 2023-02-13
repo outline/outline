@@ -1,3 +1,4 @@
+import { mapValues } from "lodash";
 import {
   EmailIcon,
   ProfileIcon,
@@ -9,13 +10,13 @@ import {
   TeamIcon,
   BeakerIcon,
   BuildingBlocksIcon,
-  WebhooksIcon,
   SettingsIcon,
   ExportIcon,
   ImportIcon,
 } from "outline-icons";
 import React from "react";
 import { useTranslation } from "react-i18next";
+import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 import Details from "~/scenes/Settings/Details";
 import Export from "~/scenes/Settings/Export";
 import Features from "~/scenes/Settings/Features";
@@ -29,36 +30,17 @@ import Profile from "~/scenes/Settings/Profile";
 import Security from "~/scenes/Settings/Security";
 import SelfHosted from "~/scenes/Settings/SelfHosted";
 import Shares from "~/scenes/Settings/Shares";
-import Slack from "~/scenes/Settings/Slack";
 import Tokens from "~/scenes/Settings/Tokens";
-import Webhooks from "~/scenes/Settings/Webhooks";
 import Zapier from "~/scenes/Settings/Zapier";
 import GoogleIcon from "~/components/Icons/GoogleIcon";
-import SlackIcon from "~/components/Icons/SlackIcon";
 import ZapierIcon from "~/components/Icons/ZapierIcon";
-import env from "~/env";
 import isCloudHosted from "~/utils/isCloudHosted";
+import { loadPlugins } from "~/utils/plugins";
 import { accountPreferencesPath } from "~/utils/routeHelpers";
 import useCurrentTeam from "./useCurrentTeam";
 import usePolicy from "./usePolicy";
 
 type SettingsGroups = "Account" | "Team" | "Integrations";
-type SettingsPage =
-  | "Profile"
-  | "Notifications"
-  | "Api"
-  | "Details"
-  | "Security"
-  | "Features"
-  | "Members"
-  | "Groups"
-  | "Shares"
-  | "Import"
-  | "Export"
-  | "Webhooks"
-  | "Slack"
-  | "Zapier"
-  | "GoogleAnalytics";
 
 export type ConfigItem = {
   name: string;
@@ -70,7 +52,7 @@ export type ConfigItem = {
 };
 
 type ConfigType = {
-  [key in SettingsPage]: ConfigItem;
+  [key in string]: ConfigItem;
 };
 
 const useSettingsConfig = () => {
@@ -178,33 +160,27 @@ const useSettingsConfig = () => {
         icon: ExportIcon,
       },
       // Integrations
-      Webhooks: {
-        name: t("Webhooks"),
-        path: "/settings/webhooks",
-        component: Webhooks,
-        enabled: can.createWebhookSubscription,
-        group: t("Integrations"),
-        icon: WebhooksIcon,
-      },
+      ...mapValues(loadPlugins(), (plugin) => {
+        return {
+          name: plugin.config.name,
+          path: integrationSettingsPath(plugin.id),
+          group: t("Integrations"),
+          component: plugin.settings,
+          enabled: !!plugin.settings && can.update,
+          icon: plugin.icon,
+        } as ConfigItem;
+      }),
       SelfHosted: {
         name: t("Self Hosted"),
-        path: "/settings/integrations/self-hosted",
+        path: integrationSettingsPath("self-hosted"),
         component: SelfHosted,
         enabled: can.update,
         group: t("Integrations"),
         icon: BuildingBlocksIcon,
       },
-      Slack: {
-        name: "Slack",
-        path: "/settings/integrations/slack",
-        component: Slack,
-        enabled: can.update && (!!env.SLACK_CLIENT_ID || isCloudHosted),
-        group: t("Integrations"),
-        icon: SlackIcon,
-      },
       GoogleAnalytics: {
         name: t("Google Analytics"),
-        path: "/settings/integrations/google-analytics",
+        path: integrationSettingsPath("google-analytics"),
         component: GoogleAnalytics,
         enabled: can.update,
         group: t("Integrations"),
@@ -212,7 +188,7 @@ const useSettingsConfig = () => {
       },
       Zapier: {
         name: "Zapier",
-        path: "/settings/integrations/zapier",
+        path: integrationSettingsPath("zapier"),
         component: Zapier,
         enabled: can.update && isCloudHosted,
         group: t("Integrations"),
@@ -232,7 +208,7 @@ const useSettingsConfig = () => {
   const enabledConfigs = React.useMemo(
     () =>
       Object.keys(config).reduce(
-        (acc, key: SettingsPage) =>
+        (acc, key: string) =>
           config[key].enabled ? [...acc, config[key]] : acc,
         []
       ),

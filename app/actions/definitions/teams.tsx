@@ -14,6 +14,7 @@ export const createTeamsList = ({ stores }: { stores: RootStore }) => {
     stores.auth.availableTeams?.map((session) => ({
       id: `switch-${session.id}`,
       name: session.name,
+      analyticsName: "Switch workspace",
       section: TeamSection,
       keywords: "change switch workspace organization team",
       icon: () => (
@@ -38,6 +39,7 @@ export const createTeamsList = ({ stores }: { stores: RootStore }) => {
 export const switchTeam = createAction({
   name: ({ t }) => t("Switch workspace"),
   placeholder: ({ t }) => t("Select a workspace"),
+  analyticsName: "Switch workspace",
   keywords: "change switch workspace organization team",
   section: TeamSection,
   visible: ({ stores }) =>
@@ -47,6 +49,7 @@ export const switchTeam = createAction({
 
 export const createTeam = createAction({
   name: ({ t }) => `${t("New workspace")}…`,
+  analyticsName: "New workspace",
   keywords: "create change switch workspace organization team",
   section: TeamSection,
   icon: <PlusIcon />,

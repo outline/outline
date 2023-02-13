@@ -3,12 +3,7 @@ import { Context } from "koa";
 import Router from "koa-router";
 import env from "@server/env";
 import { AuthenticationError } from "@server/errors";
-import CleanupDeletedDocumentsTask from "@server/queues/tasks/CleanupDeletedDocumentsTask";
-import CleanupDeletedTeamsTask from "@server/queues/tasks/CleanupDeletedTeamsTask";
-import CleanupExpiredAttachmentsTask from "@server/queues/tasks/CleanupExpiredAttachmentsTask";
-import CleanupExpiredFileOperationsTask from "@server/queues/tasks/CleanupExpiredFileOperationsTask";
-import CleanupWebhookDeliveriesTask from "@server/queues/tasks/CleanupWebhookDeliveriesTask";
-import InviteReminderTask from "@server/queues/tasks/InviteReminderTask";
+import tasks from "@server/queues/tasks";
 
 const router = new Router();
 
@@ -34,17 +29,12 @@ const cronHandler = async (ctx: Context) => {
     throw AuthenticationError("Invalid secret token");
   }
 
-  await CleanupDeletedDocumentsTask.schedule({ limit });
-
-  await CleanupExpiredFileOperationsTask.schedule({ limit });
-
-  await CleanupExpiredAttachmentsTask.schedule({ limit });
-
-  await CleanupDeletedTeamsTask.schedule({ limit });
-
-  await CleanupWebhookDeliveriesTask.schedule({ limit });
-
-  await InviteReminderTask.schedule();
+  for (const name in tasks) {
+    const TaskClass = tasks[name];
+    if (TaskClass.cron) {
+      await TaskClass.schedule({ limit });
+    }
+  }
 
   ctx.body = {
     success: true,

@@ -1,4 +1,9 @@
 declare global {
+  interface ImportMeta {
+    /** A special feature supported by webpack's compiler that allows you to get all matching modules starting from some base directory.  */
+    glob: (pattern: string, option?: { eager: boolean }) => any;
+  }
+
   interface Window {
     dataLayer: any[];
     gtag: (...args: any[]) => void;
