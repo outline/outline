@@ -4,11 +4,6 @@ import Router from "koa-router";
 import env from "@server/env";
 import { AuthenticationError } from "@server/errors";
 import tasks from "@server/queues/tasks";
-import CleanupDeletedDocumentsTask from "@server/queues/tasks/CleanupDeletedDocumentsTask";
-import CleanupDeletedTeamsTask from "@server/queues/tasks/CleanupDeletedTeamsTask";
-import CleanupExpiredAttachmentsTask from "@server/queues/tasks/CleanupExpiredAttachmentsTask";
-import CleanupExpiredFileOperationsTask from "@server/queues/tasks/CleanupExpiredFileOperationsTask";
-import InviteReminderTask from "@server/queues/tasks/InviteReminderTask";
 
 const router = new Router();
 
@@ -37,19 +32,9 @@ const cronHandler = async (ctx: Context) => {
   for (const name in tasks) {
     const TaskClass = tasks[name];
     if (TaskClass.cron) {
-      await TaskClass.schedule();
+      await TaskClass.schedule({ limit });
     }
   }
-
-  await CleanupDeletedDocumentsTask.schedule({ limit });
-
-  await CleanupExpiredFileOperationsTask.schedule({ limit });
-
-  await CleanupExpiredAttachmentsTask.schedule({ limit });
-
-  await CleanupDeletedTeamsTask.schedule({ limit });
-
-  await InviteReminderTask.schedule();
 
   ctx.body = {
     success: true,

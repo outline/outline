@@ -3,13 +3,15 @@ import { Op } from "sequelize";
 import teamPermanentDeleter from "@server/commands/teamPermanentDeleter";
 import Logger from "@server/logging/Logger";
 import { Team } from "@server/models";
-import BaseTask, { TaskPriority } from "./BaseTask";
+import BaseTask, { TaskPriority, TaskSchedule } from "./BaseTask";
 
 type Props = {
   limit: number;
 };
 
 export default class CleanupDeletedTeamsTask extends BaseTask<Props> {
+  static cron = TaskSchedule.Daily;
+
   public async perform({ limit }: Props) {
     Logger.info(
       "task",
