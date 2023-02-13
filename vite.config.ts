@@ -5,7 +5,6 @@ import { webpackStats } from "rollup-plugin-webpack-stats";
 import { defineConfig } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 import { viteStaticCopy } from "vite-plugin-static-copy";
-// import generateServiceWorker from "./vite/generateServiceWorker";
 
 export default () => {
   return defineConfig({
@@ -25,9 +24,7 @@ export default () => {
           },
         },
       }),
-      // generateServiceWorker({
-      //   cdnUrl: process.env.CDN_URL || "/",
-      // }),
+      // https://github.com/sapphi-red/vite-plugin-static-copy#readme
       viteStaticCopy({
         targets: [
           {
@@ -101,31 +98,9 @@ export default () => {
         keep_fnames: true,
       },
       rollupOptions: {
-        /**
-         * Regular assets can be hosted on a CDN.
-         * But the Service Worker code must not be hosted on a CDN.
-         * That’s why we need to separate the code:
-         */
         input: {
           index: "./app/index.tsx",
-          // sw: "./app/sw/sw.ts",
-          // registerSW: "./app/sw/registerSW.ts",
         },
-        // output: [
-        //   {
-        //     entryFileNames: (chunkInfo) => {
-        //       const isServiceWorker = ["sw", "registerSW"].includes(
-        //         chunkInfo.name
-        //       );
-
-        //       if (chunkInfo.isEntry && isServiceWorker) {
-        //         return `sw/[name].js`;
-        //       }
-
-        //       return `[name]-[hash].js`;
-        //     },
-        //   },
-        // ],
         plugins: [webpackStats()],
       },
     },
