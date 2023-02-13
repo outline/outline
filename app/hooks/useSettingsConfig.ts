@@ -10,7 +10,6 @@ import {
   TeamIcon,
   BeakerIcon,
   BuildingBlocksIcon,
-  WebhooksIcon,
   SettingsIcon,
   ExportIcon,
   ImportIcon,
@@ -32,7 +31,6 @@ import Security from "~/scenes/Settings/Security";
 import SelfHosted from "~/scenes/Settings/SelfHosted";
 import Shares from "~/scenes/Settings/Shares";
 import Tokens from "~/scenes/Settings/Tokens";
-import Webhooks from "~/scenes/Settings/Webhooks";
 import Zapier from "~/scenes/Settings/Zapier";
 import GoogleIcon from "~/components/Icons/GoogleIcon";
 import ZapierIcon from "~/components/Icons/ZapierIcon";
@@ -172,14 +170,6 @@ const useSettingsConfig = () => {
           icon: plugin.icon,
         } as ConfigItem;
       }),
-      Webhooks: {
-        name: t("Webhooks"),
-        path: "/settings/webhooks",
-        component: Webhooks,
-        enabled: can.createWebhookSubscription,
-        group: t("Integrations"),
-        icon: WebhooksIcon,
-      },
       SelfHosted: {
         name: t("Self Hosted"),
         path: integrationSettingsPath("self-hosted"),

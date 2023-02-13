@@ -34,15 +34,13 @@ import {
   presentStar,
   presentTeam,
   presentUser,
-  presentWebhook,
-  presentWebhookSubscription,
   presentView,
   presentShare,
   presentMembership,
   presentGroupMembership,
   presentCollectionGroupMembership,
 } from "@server/presenters";
-import { WebhookPayload } from "@server/presenters/webhook";
+import BaseTask from "@server/queues/tasks/BaseTask";
 import {
   CollectionEvent,
   CollectionGroupEvent,
@@ -62,7 +60,8 @@ import {
   ViewEvent,
   WebhookSubscriptionEvent,
 } from "@server/types";
-import BaseTask from "./BaseTask";
+import presentWebhook, { WebhookPayload } from "../presenters/webhook";
+import presentWebhookSubscription from "../presenters/webhookSubscription";
 
 function assertUnreachable(event: never) {
   Logger.warn(`DeliverWebhookTask did not handle ${(event as any).name}`);
