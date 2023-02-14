@@ -173,7 +173,7 @@
   "{{userName}} moved": "{{userName}} が移動しました",
   "Export started": "エクスポートを開始しました",
   "A ZIP file containing the images, and documents in the Markdown format.": "画像、およびMarkdown形式のドキュメントを含むZIPファイル",
-  "A ZIP file containing the images, and documents as HTML files.": "A ZIP file containing the images, and documents as HTML files.",
+  "A ZIP file containing the images, and documents as HTML files.": "画像、およびHTML形式のドキュメントを含むZIPファイル",
   "Structured data that can be used to transfer data to another compatible {{ appName }} instance.": "Structured data that can be used to transfer data to another compatible {{ appName }} instance.",
   "Export": "エクスポート",
   "Exporting the collection <em>{{collectionName}}</em> may take some time.": "コレクション<em>{{collectionName}}</em> のエクスポートには時間がかかる場合があります。",
