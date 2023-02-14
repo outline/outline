@@ -19,7 +19,7 @@ router.post(
   auth({ admin: true }),
   validate(T.AuthenticationProvidersInfoSchema),
   async (ctx: APIContext<T.AuthenticationProvidersInfoReq>) => {
-    const { id } = ctx.request.body;
+    const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     const authenticationProvider = await AuthenticationProvider.findByPk(id);
@@ -37,7 +37,7 @@ router.post(
   auth({ admin: true }),
   validate(T.AuthenticationProvidersUpdateSchema),
   async (ctx: APIContext<T.AuthenticationProvidersUpdateReq>) => {
-    const { id, isEnabled } = ctx.request.body;
+    const { id, isEnabled } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     const authenticationProvider = await sequelize.transaction(
