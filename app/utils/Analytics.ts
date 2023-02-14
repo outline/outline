@@ -14,13 +14,17 @@ export default class Analytics {
     metadata?: Record<string, string>
   ) => {
     // GA3
-    ga?.("send", "event", event, action);
+    if (window.ga) {
+      window.ga("send", "event", event, action);
+    }
 
     // GA4
-    window.dataLayer?.push({
-      event,
-      action,
-      ...metadata,
-    });
+    if (window.dataLayer) {
+      window.dataLayer.push({
+        event,
+        action,
+        ...metadata,
+      });
+    }
   };
 }
