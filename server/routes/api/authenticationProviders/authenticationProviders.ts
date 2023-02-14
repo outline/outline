@@ -1,6 +1,7 @@
 import Router from "koa-router";
 import { sequelize } from "@server/database/sequelize";
 import auth from "@server/middlewares/authentication";
+import validate from "@server/middlewares/validate";
 import { AuthenticationProvider, Event } from "@server/models";
 import { authorize } from "@server/policies";
 import {
@@ -8,19 +9,19 @@ import {
   presentPolicies,
 } from "@server/presenters";
 import { APIContext } from "@server/types";
-import { assertUuid, assertPresent } from "@server/validation";
-import allAuthenticationProviders from "../auth/providers";
+import allAuthenticationProviders from "../../auth/providers";
+import * as T from "./schema";
 
 const router = new Router();
 
 router.post(
   "authenticationProviders.info",
   auth({ admin: true }),
-  async (ctx: APIContext) => {
-    const { id } = ctx.request.body;
-    assertUuid(id, "id is required");
-
+  validate(T.AuthenticationProvidersInfoSchema),
+  async (ctx: APIContext<T.AuthenticationProvidersInfoReq>) => {
+    const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
+
     const authenticationProvider = await AuthenticationProvider.findByPk(id);
     authorize(user, "read", authenticationProvider);
 
@@ -34,10 +35,9 @@ router.post(
 router.post(
   "authenticationProviders.update",
   auth({ admin: true }),
-  async (ctx: APIContext) => {
-    const { id, isEnabled } = ctx.request.body;
-    assertUuid(id, "id is required");
-    assertPresent(isEnabled, "isEnabled is required");
+  validate(T.AuthenticationProvidersUpdateSchema),
+  async (ctx: APIContext<T.AuthenticationProvidersUpdateReq>) => {
+    const { id, isEnabled } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     const authenticationProvider = await sequelize.transaction(
