@@ -1,6 +1,7 @@
 import Router from "koa-router";
 import { sequelize } from "@server/database/sequelize";
 import auth from "@server/middlewares/authentication";
+import validate from "@server/middlewares/validate";
 import { AuthenticationProvider, Event } from "@server/models";
 import { authorize } from "@server/policies";
 import {
@@ -10,17 +11,18 @@ import {
 import { APIContext } from "@server/types";
 import { assertUuid, assertPresent } from "@server/validation";
 import allAuthenticationProviders from "../../auth/providers";
+import * as T from "./schema";
 
 const router = new Router();
 
 router.post(
   "authenticationProviders.info",
   auth({ admin: true }),
-  async (ctx: APIContext) => {
+  validate(T.AuthenticationProvidersInfoSchema),
+  async (ctx: APIContext<T.AuthenticationProvidersInfoReq>) => {
     const { id } = ctx.request.body;
-    assertUuid(id, "id is required");
-
     const { user } = ctx.state.auth;
+
     const authenticationProvider = await AuthenticationProvider.findByPk(id);
     authorize(user, "read", authenticationProvider);
 
