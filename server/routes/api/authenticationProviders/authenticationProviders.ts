@@ -9,7 +9,6 @@ import {
   presentPolicies,
 } from "@server/presenters";
 import { APIContext } from "@server/types";
-import { assertUuid, assertPresent } from "@server/validation";
 import allAuthenticationProviders from "../../auth/providers";
 import * as T from "./schema";
 
@@ -36,10 +35,9 @@ router.post(
 router.post(
   "authenticationProviders.update",
   auth({ admin: true }),
-  async (ctx: APIContext) => {
+  validate(T.AuthenticationProvidersUpdateSchema),
+  async (ctx: APIContext<T.AuthenticationProvidersUpdateReq>) => {
     const { id, isEnabled } = ctx.request.body;
-    assertUuid(id, "id is required");
-    assertPresent(isEnabled, "isEnabled is required");
     const { user } = ctx.state.auth;
 
     const authenticationProvider = await sequelize.transaction(
