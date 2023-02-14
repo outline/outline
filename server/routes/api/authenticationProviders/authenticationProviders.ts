@@ -9,7 +9,7 @@ import {
 } from "@server/presenters";
 import { APIContext } from "@server/types";
 import { assertUuid, assertPresent } from "@server/validation";
-import allAuthenticationProviders from "../auth/providers";
+import allAuthenticationProviders from "../../auth/providers";
 
 const router = new Router();
 
