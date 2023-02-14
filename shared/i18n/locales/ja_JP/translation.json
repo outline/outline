@@ -705,7 +705,7 @@
   "Import pages from a Confluence instance": "Confluenceからコンテンツをインポートする",
   "Enterprise": "エンタープライズ",
   "Recent imports": "最近のインポート",
-  "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {team.signinMethods} but haven’t signed in yet.": "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {team.signinMethods} but haven’t signed in yet.",
+  "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {team.signinMethods} but haven’t signed in yet.": "{{appName}} にサインインしたことのあるすべてのユーザーがここに表示されています。{team.signinMethods} での認証は可能だが、まだサインインはしていないユーザーがいる可能性があります。",
   "Filter": "フィルター",
   "Receive a notification whenever a new document is published": "新しいドキュメントが公開されたら、メッセージを受信する",
   "Document updated": "ドキュメントが更新されました",
