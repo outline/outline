@@ -39,10 +39,11 @@ if (isProduction) {
     if (file.endsWith(".js")) {
       prefetchTags.push(
         <link
-          rel="preload"
+          rel="prefetch"
           href={`${env.CDN_URL || ""}/static/${file}`}
           key={file}
           as="script"
+          crossOrigin="anonymous"
         />
       );
     } else if (file.endsWith(".css")) {
@@ -52,11 +53,11 @@ if (isProduction) {
           href={`${env.CDN_URL || ""}/static/${file}`}
           key={file}
           as="style"
+          crossOrigin="anonymous"
         />
       );
     }
   });
 }
 
-// @ts-expect-error ts-migrate(2345) FIXME: Argument of type 'Element[]' is not assignable to ... Remove this comment to see the full error message
-export default ReactDOMServer.renderToString(prefetchTags);
+export default ReactDOMServer.renderToString(<>{prefetchTags}</>);
