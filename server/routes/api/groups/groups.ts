@@ -2,6 +2,7 @@ import Router from "koa-router";
 import { Op } from "sequelize";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
 import auth from "@server/middlewares/authentication";
+import validate from "@server/middlewares/validate";
 import { User, Event, Group, GroupUser } from "@server/models";
 import { authorize } from "@server/policies";
 import {
@@ -11,47 +12,49 @@ import {
   presentGroupMembership,
 } from "@server/presenters";
 import { APIContext } from "@server/types";
-import { assertPresent, assertUuid, assertSort } from "@server/validation";
+import { assertPresent, assertUuid } from "@server/validation";
 import pagination from "../middlewares/pagination";
+import * as T from "./schema";
 
 const router = new Router();
 
-router.post("groups.list", auth(), pagination(), async (ctx: APIContext) => {
-  let { direction } = ctx.request.body;
-  const { sort = "updatedAt" } = ctx.request.body;
-  if (direction !== "ASC") {
-    direction = "DESC";
+router.post(
+  "groups.list",
+  auth(),
+  pagination(),
+  validate(T.GroupsListSchema),
+  async (ctx: APIContext<T.GroupsListReq>) => {
+    const { direction, sort } = ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    const groups = await Group.findAll({
+      where: {
+        teamId: user.teamId,
+      },
+      order: [[sort, direction]],
+      offset: ctx.state.pagination.offset,
+      limit: ctx.state.pagination.limit,
+    });
+
+    ctx.body = {
+      pagination: ctx.state.pagination,
+      data: {
+        groups: groups.map(presentGroup),
+        groupMemberships: groups
+          .map((g) =>
+            g.groupMemberships
+              .filter((membership) => !!membership.user)
+              .slice(0, MAX_AVATAR_DISPLAY)
+          )
+          .flat()
+          .map((membership) =>
+            presentGroupMembership(membership, { includeUser: true })
+          ),
+      },
+      policies: presentPolicies(user, groups),
+    };
   }
-
-  assertSort(sort, Group);
-  const { user } = ctx.state.auth;
-  const groups = await Group.findAll({
-    where: {
-      teamId: user.teamId,
-    },
-    order: [[sort, direction]],
-    offset: ctx.state.pagination.offset,
-    limit: ctx.state.pagination.limit,
-  });
-
-  ctx.body = {
-    pagination: ctx.state.pagination,
-    data: {
-      groups: groups.map(presentGroup),
-      groupMemberships: groups
-        .map((g) =>
-          g.groupMemberships
-            .filter((membership) => !!membership.user)
-            .slice(0, MAX_AVATAR_DISPLAY)
-        )
-        .flat()
-        .map((membership) =>
-          presentGroupMembership(membership, { includeUser: true })
-        ),
-    },
-    policies: presentPolicies(user, groups),
-  };
-});
+);
 
 router.post("groups.info", auth(), async (ctx: APIContext) => {
   const { id } = ctx.request.body;
