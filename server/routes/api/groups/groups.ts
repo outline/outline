@@ -12,7 +12,6 @@ import {
   presentGroupMembership,
 } from "@server/presenters";
 import { APIContext } from "@server/types";
-import { assertUuid } from "@server/validation";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -286,40 +285,42 @@ router.post(
   }
 );
 
-router.post("groups.remove_user", auth(), async (ctx: APIContext) => {
-  const { id, userId } = ctx.request.body;
-  assertUuid(id, "id is required");
-  assertUuid(userId, "userId is required");
+router.post(
+  "groups.remove_user",
+  auth(),
+  validate(T.GroupsRemoveUserSchema),
+  async (ctx: APIContext<T.GroupsRemoveUserReq>) => {
+    const { id, userId } = ctx.input.body;
+    const actor = ctx.state.auth.user;
 
-  const actor = ctx.state.auth.user;
+    let group = await Group.findByPk(id);
+    authorize(actor, "update", group);
 
-  let group = await Group.findByPk(id);
-  authorize(actor, "update", group);
+    const user = await User.findByPk(userId);
+    authorize(actor, "read", user);
 
-  const user = await User.findByPk(userId);
-  authorize(actor, "read", user);
+    await group.$remove("user", user);
+    await Event.create({
+      name: "groups.remove_user",
+      userId,
+      modelId: group.id,
+      teamId: user.teamId,
+      actorId: actor.id,
+      data: {
+        name: user.name,
+      },
+      ip: ctx.request.ip,
+    });
 
-  await group.$remove("user", user);
-  await Event.create({
-    name: "groups.remove_user",
-    userId,
-    modelId: group.id,
-    teamId: user.teamId,
-    actorId: actor.id,
-    data: {
-      name: user.name,
-    },
-    ip: ctx.request.ip,
-  });
+    // reload to get default scope
+    group = await Group.findByPk(id, { rejectOnEmpty: true });
 
-  // reload to get default scope
-  group = await Group.findByPk(id, { rejectOnEmpty: true });
-
-  ctx.body = {
-    data: {
-      groups: [presentGroup(group)],
-    },
-  };
-});
+    ctx.body = {
+      data: {
+        groups: [presentGroup(group)],
+      },
+    };
+  }
+);
 
 export default router;

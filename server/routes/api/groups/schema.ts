@@ -73,3 +73,12 @@ export const GroupsAddUserSchema = z.object({
 });
 
 export type GroupsAddUserReq = z.infer<typeof GroupsAddUserSchema>;
+
+export const GroupsRemoveUserSchema = z.object({
+  body: BaseIdSchema.extend({
+    /** User Id */
+    userId: z.string().uuid(),
+  }),
+});
+
+export type GroupsRemoveUserReq = z.infer<typeof GroupsRemoveUserSchema>;
