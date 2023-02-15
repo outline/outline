@@ -25,3 +25,9 @@ export const GroupsListSchema = z.object({
 });
 
 export type GroupsListReq = z.infer<typeof GroupsListSchema>;
+
+export const GroupsInfoSchema = z.object({
+  body: BaseIdSchema,
+});
+
+export type GroupsInfoReq = z.infer<typeof GroupsInfoSchema>;

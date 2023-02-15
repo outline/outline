@@ -56,19 +56,23 @@ router.post(
   }
 );
 
-router.post("groups.info", auth(), async (ctx: APIContext) => {
-  const { id } = ctx.request.body;
-  assertUuid(id, "id is required");
+router.post(
+  "groups.info",
+  auth(),
+  validate(T.GroupsInfoSchema),
+  async (ctx: APIContext<T.GroupsInfoReq>) => {
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
 
-  const { user } = ctx.state.auth;
-  const group = await Group.findByPk(id);
-  authorize(user, "read", group);
+    const group = await Group.findByPk(id);
+    authorize(user, "read", group);
 
-  ctx.body = {
-    data: presentGroup(group),
-    policies: presentPolicies(user, [group]),
-  };
-});
+    ctx.body = {
+      data: presentGroup(group),
+      policies: presentPolicies(user, [group]),
+    };
+  }
+);
 
 router.post("groups.create", auth(), async (ctx: APIContext) => {
   const { name } = ctx.request.body;
