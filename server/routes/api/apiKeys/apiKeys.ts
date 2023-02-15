@@ -15,7 +15,7 @@ router.post(
   auth({ member: true }),
   validate(T.APIKeysCreateSchema),
   async (ctx: APIContext<T.APIKeysCreateReq>) => {
-    const { name } = ctx.request.body;
+    const { name } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     authorize(user, "createApiKey", user.team);
@@ -68,7 +68,7 @@ router.post(
   auth({ member: true }),
   validate(T.APIKeysDeleteSchema),
   async (ctx: APIContext<T.APIKeysDeleteReq>) => {
-    const { id } = ctx.request.body;
+    const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     const key = await ApiKey.findByPk(id);
