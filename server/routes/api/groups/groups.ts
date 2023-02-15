@@ -74,37 +74,40 @@ router.post(
   }
 );
 
-router.post("groups.create", auth(), async (ctx: APIContext) => {
-  const { name } = ctx.request.body;
-  assertPresent(name, "name is required");
+router.post(
+  "groups.create",
+  auth(),
+  validate(T.GroupsCreateSchema),
+  async (ctx: APIContext<T.GroupsCreateReq>) => {
+    const { name } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    authorize(user, "createGroup", user.team);
+    const g = await Group.create({
+      name,
+      teamId: user.teamId,
+      createdById: user.id,
+    });
 
-  const { user } = ctx.state.auth;
-  authorize(user, "createGroup", user.team);
-  const g = await Group.create({
-    name,
-    teamId: user.teamId,
-    createdById: user.id,
-  });
+    // reload to get default scope
+    const group = await Group.findByPk(g.id, { rejectOnEmpty: true });
 
-  // reload to get default scope
-  const group = await Group.findByPk(g.id, { rejectOnEmpty: true });
+    await Event.create({
+      name: "groups.create",
+      actorId: user.id,
+      teamId: user.teamId,
+      modelId: group.id,
+      data: {
+        name: group.name,
+      },
+      ip: ctx.request.ip,
+    });
 
-  await Event.create({
-    name: "groups.create",
-    actorId: user.id,
-    teamId: user.teamId,
-    modelId: group.id,
-    data: {
-      name: group.name,
-    },
-    ip: ctx.request.ip,
-  });
-
-  ctx.body = {
-    data: presentGroup(group),
-    policies: presentPolicies(user, [group]),
-  };
-});
+    ctx.body = {
+      data: presentGroup(group),
+      policies: presentPolicies(user, [group]),
+    };
+  }
+);
 
 router.post("groups.update", auth(), async (ctx: APIContext) => {
   const { id, name } = ctx.request.body;

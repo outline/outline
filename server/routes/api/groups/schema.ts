@@ -31,3 +31,12 @@ export const GroupsInfoSchema = z.object({
 });
 
 export type GroupsInfoReq = z.infer<typeof GroupsInfoSchema>;
+
+export const GroupsCreateSchema = z.object({
+  body: z.object({
+    /** Group name */
+    name: z.string(),
+  }),
+});
+
+export type GroupsCreateReq = z.infer<typeof GroupsCreateSchema>;
