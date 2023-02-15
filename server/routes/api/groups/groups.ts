@@ -12,7 +12,7 @@ import {
   presentGroupMembership,
 } from "@server/presenters";
 import { APIContext } from "@server/types";
-import { assertPresent, assertUuid } from "@server/validation";
+import { assertUuid } from "@server/validation";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -109,36 +109,39 @@ router.post(
   }
 );
 
-router.post("groups.update", auth(), async (ctx: APIContext) => {
-  const { id, name } = ctx.request.body;
-  assertPresent(name, "name is required");
-  assertUuid(id, "id is required");
+router.post(
+  "groups.update",
+  auth(),
+  validate(T.GroupsUpdateSchema),
+  async (ctx: APIContext<T.GroupsUpdateReq>) => {
+    const { id, name } = ctx.input.body;
+    const { user } = ctx.state.auth;
 
-  const { user } = ctx.state.auth;
-  const group = await Group.findByPk(id);
-  authorize(user, "update", group);
+    const group = await Group.findByPk(id);
+    authorize(user, "update", group);
 
-  group.name = name;
+    group.name = name;
 
-  if (group.changed()) {
-    await group.save();
-    await Event.create({
-      name: "groups.update",
-      teamId: user.teamId,
-      actorId: user.id,
-      modelId: group.id,
-      data: {
-        name,
-      },
-      ip: ctx.request.ip,
-    });
+    if (group.changed()) {
+      await group.save();
+      await Event.create({
+        name: "groups.update",
+        teamId: user.teamId,
+        actorId: user.id,
+        modelId: group.id,
+        data: {
+          name,
+        },
+        ip: ctx.request.ip,
+      });
+    }
+
+    ctx.body = {
+      data: presentGroup(group),
+      policies: presentPolicies(user, [group]),
+    };
   }
-
-  ctx.body = {
-    data: presentGroup(group),
-    policies: presentPolicies(user, [group]),
-  };
-});
+);
 
 router.post("groups.delete", auth(), async (ctx: APIContext) => {
   const { id } = ctx.request.body;

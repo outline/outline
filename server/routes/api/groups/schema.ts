@@ -40,3 +40,12 @@ export const GroupsCreateSchema = z.object({
 });
 
 export type GroupsCreateReq = z.infer<typeof GroupsCreateSchema>;
+
+export const GroupsUpdateSchema = z.object({
+  body: BaseIdSchema.extend({
+    /** Group name */
+    name: z.string(),
+  }),
+});
+
+export type GroupsUpdateReq = z.infer<typeof GroupsUpdateSchema>;
