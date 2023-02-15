@@ -143,30 +143,34 @@ router.post(
   }
 );
 
-router.post("groups.delete", auth(), async (ctx: APIContext) => {
-  const { id } = ctx.request.body;
-  assertUuid(id, "id is required");
+router.post(
+  "groups.delete",
+  auth(),
+  validate(T.GroupsDeleteSchema),
+  async (ctx: APIContext<T.GroupsDeleteReq>) => {
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
 
-  const { user } = ctx.state.auth;
-  const group = await Group.findByPk(id);
-  authorize(user, "delete", group);
+    const group = await Group.findByPk(id);
+    authorize(user, "delete", group);
 
-  await group.destroy();
-  await Event.create({
-    name: "groups.delete",
-    actorId: user.id,
-    modelId: group.id,
-    teamId: group.teamId,
-    data: {
-      name: group.name,
-    },
-    ip: ctx.request.ip,
-  });
+    await group.destroy();
+    await Event.create({
+      name: "groups.delete",
+      actorId: user.id,
+      modelId: group.id,
+      teamId: group.teamId,
+      data: {
+        name: group.name,
+      },
+      ip: ctx.request.ip,
+    });
 
-  ctx.body = {
-    success: true,
-  };
-});
+    ctx.body = {
+      success: true,
+    };
+  }
+);
 
 router.post(
   "groups.memberships",

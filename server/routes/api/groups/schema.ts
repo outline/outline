@@ -49,3 +49,9 @@ export const GroupsUpdateSchema = z.object({
 });
 
 export type GroupsUpdateReq = z.infer<typeof GroupsUpdateSchema>;
+
+export const GroupsDeleteSchema = z.object({
+  body: BaseIdSchema,
+});
+
+export type GroupsDeleteReq = z.infer<typeof GroupsDeleteSchema>;
