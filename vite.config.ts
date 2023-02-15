@@ -39,6 +39,7 @@ export default () => {
         registerType: "autoUpdate",
         workbox: {
           globPatterns: ["**/*.{js,css,ico,png,svg}"],
+          navigateFallback: null,
         },
         // includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
         manifest: {
