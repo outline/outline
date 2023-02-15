@@ -64,3 +64,12 @@ export const GroupsMembershipsSchema = z.object({
 });
 
 export type GroupsMembershipsReq = z.infer<typeof GroupsMembershipsSchema>;
+
+export const GroupsAddUserSchema = z.object({
+  body: BaseIdSchema.extend({
+    /** User Id */
+    userId: z.string().uuid(),
+  }),
+});
+
+export type GroupsAddUserReq = z.infer<typeof GroupsAddUserSchema>;

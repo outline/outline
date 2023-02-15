@@ -222,67 +222,69 @@ router.post(
   }
 );
 
-router.post("groups.add_user", auth(), async (ctx: APIContext) => {
-  const { id, userId } = ctx.request.body;
-  assertUuid(id, "id is required");
-  assertUuid(userId, "userId is required");
+router.post(
+  "groups.add_user",
+  auth(),
+  validate(T.GroupsAddUserSchema),
+  async (ctx: APIContext<T.GroupsAddUserReq>) => {
+    const { id, userId } = ctx.input.body;
+    const actor = ctx.state.auth.user;
 
-  const actor = ctx.state.auth.user;
+    const user = await User.findByPk(userId);
+    authorize(actor, "read", user);
 
-  const user = await User.findByPk(userId);
-  authorize(actor, "read", user);
+    let group = await Group.findByPk(id);
+    authorize(actor, "update", group);
 
-  let group = await Group.findByPk(id);
-  authorize(actor, "update", group);
-
-  let membership = await GroupUser.findOne({
-    where: {
-      groupId: id,
-      userId,
-    },
-  });
-
-  if (!membership) {
-    await group.$add("user", user, {
-      through: {
-        createdById: actor.id,
-      },
-    });
-    // reload to get default scope
-    membership = await GroupUser.findOne({
+    let membership = await GroupUser.findOne({
       where: {
         groupId: id,
         userId,
       },
-      rejectOnEmpty: true,
     });
 
-    // reload to get default scope
-    group = await Group.findByPk(id, { rejectOnEmpty: true });
+    if (!membership) {
+      await group.$add("user", user, {
+        through: {
+          createdById: actor.id,
+        },
+      });
+      // reload to get default scope
+      membership = await GroupUser.findOne({
+        where: {
+          groupId: id,
+          userId,
+        },
+        rejectOnEmpty: true,
+      });
 
-    await Event.create({
-      name: "groups.add_user",
-      userId,
-      teamId: user.teamId,
-      modelId: group.id,
-      actorId: actor.id,
+      // reload to get default scope
+      group = await Group.findByPk(id, { rejectOnEmpty: true });
+
+      await Event.create({
+        name: "groups.add_user",
+        userId,
+        teamId: user.teamId,
+        modelId: group.id,
+        actorId: actor.id,
+        data: {
+          name: user.name,
+        },
+        ip: ctx.request.ip,
+      });
+    }
+
+    ctx.body = {
       data: {
-        name: user.name,
+        users: [presentUser(user)],
+        groupMemberships: [
+          presentGroupMembership(membership, { includeUser: true }),
+        ],
+        groups: [presentGroup(group)],
       },
-      ip: ctx.request.ip,
-    });
+    };
   }
-
-  ctx.body = {
-    data: {
-      users: [presentUser(user)],
-      groupMemberships: [
-        presentGroupMembership(membership, { includeUser: true }),
-      ],
-      groups: [presentGroup(group)],
-    },
-  };
-});
+);
 
 router.post("groups.remove_user", auth(), async (ctx: APIContext) => {
   const { id, userId } = ctx.request.body;
