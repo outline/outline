@@ -55,3 +55,12 @@ export const GroupsDeleteSchema = z.object({
 });
 
 export type GroupsDeleteReq = z.infer<typeof GroupsDeleteSchema>;
+
+export const GroupsMembershipsSchema = z.object({
+  body: BaseIdSchema.extend({
+    /** Group name search query */
+    query: z.string().optional(),
+  }),
+});
+
+export type GroupsMembershipsReq = z.infer<typeof GroupsMembershipsSchema>;

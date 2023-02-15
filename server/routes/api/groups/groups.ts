@@ -176,11 +176,11 @@ router.post(
   "groups.memberships",
   auth(),
   pagination(),
-  async (ctx: APIContext) => {
-    const { id, query } = ctx.request.body;
-    assertUuid(id, "id is required");
-
+  validate(T.GroupsMembershipsSchema),
+  async (ctx: APIContext<T.GroupsMembershipsReq>) => {
+    const { id, query } = ctx.input.body;
     const { user } = ctx.state.auth;
+
     const group = await Group.findByPk(id);
     authorize(user, "read", group);
     let userWhere;
