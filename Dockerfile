@@ -5,7 +5,7 @@ ARG APP_PATH
 WORKDIR $APP_PATH
 
 # ---
-FROM node:16.14.2-alpine3.15 AS runner
+FROM node:18-alpine AS runner
 
 ARG APP_PATH
 WORKDIR $APP_PATH
