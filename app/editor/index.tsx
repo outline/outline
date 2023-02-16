@@ -40,6 +40,7 @@ import EditorContext from "./components/EditorContext";
 import EmojiMenu from "./components/EmojiMenu";
 import { SearchResult } from "./components/LinkEditor";
 import LinkToolbar from "./components/LinkToolbar";
+import PageLinkToolbar from "./components/PageLinkToolbar";
 import SelectionToolbar from "./components/SelectionToolbar";
 import WithTheme from "./components/WithTheme";
 
@@ -127,6 +128,8 @@ type State = {
   blockMenuOpen: boolean;
   /** If the insert link toolbar is visible */
   linkMenuOpen: boolean;
+  /** If the insert page link toolbar is visible */
+  pageLinkMenuOpen: boolean;
   /** The search term currently filtering the block menu */
   blockMenuSearch: string;
   /** If the emoji insert menu is visible */
@@ -162,6 +165,7 @@ export class Editor extends React.PureComponent<
     selectionMenuOpen: false,
     blockMenuOpen: false,
     linkMenuOpen: false,
+    pageLinkMenuOpen: false,
     blockMenuSearch: "",
     emojiMenuOpen: false,
   };
@@ -198,6 +202,8 @@ export class Editor extends React.PureComponent<
     super(props);
     this.events.on(EventType.linkMenuOpen, this.handleOpenLinkMenu);
     this.events.on(EventType.linkMenuClose, this.handleCloseLinkMenu);
+    this.events.on(EventType.pageLinkMenuOpen, this.handleOpenPageLinkMenu);
+    this.events.on(EventType.pageLinkMenuClose, this.handleClosePageLinkMenu);
     this.events.on(EventType.blockMenuOpen, this.handleOpenBlockMenu);
     this.events.on(EventType.blockMenuClose, this.handleCloseBlockMenu);
     this.events.on(EventType.emojiMenuOpen, this.handleOpenEmojiMenu);
@@ -261,6 +267,7 @@ export class Editor extends React.PureComponent<
       !this.state.isEditorFocused &&
       !this.state.blockMenuOpen &&
       !this.state.linkMenuOpen &&
+      !this.state.pageLinkMenuOpen &&
       !this.state.selectionMenuOpen
     ) {
       this.isBlurred = true;
@@ -272,6 +279,7 @@ export class Editor extends React.PureComponent<
       (this.state.isEditorFocused ||
         this.state.blockMenuOpen ||
         this.state.linkMenuOpen ||
+        this.state.pageLinkMenuOpen ||
         this.state.selectionMenuOpen)
     ) {
       this.isBlurred = false;
@@ -565,6 +573,14 @@ export class Editor extends React.PureComponent<
     this.setState({ linkMenuOpen: false });
   };
 
+  private handleOpenPageLinkMenu = () => {
+    this.setState({ blockMenuOpen: false, pageLinkMenuOpen: true });
+  };
+
+  private handleClosePageLinkMenu = () => {
+    this.setState({ pageLinkMenuOpen: false });
+  };
+
   private handleOpenBlockMenu = (search: string) => {
     this.setState({ blockMenuOpen: true, blockMenuSearch: search });
   };
@@ -691,6 +707,16 @@ export class Editor extends React.PureComponent<
                 onClickLink={this.props.onClickLink}
                 onClose={this.handleCloseLinkMenu}
               />
+              <PageLinkToolbar
+                view={this.view}
+                dictionary={dictionary}
+                isActive={this.state.pageLinkMenuOpen}
+                onCreateLink={this.props.onCreateLink}
+                onSearchLink={this.props.onSearchLink}
+                onClickLink={this.props.onClickLink}
+                onShowToast={this.props.onShowToast}
+                onClose={this.handleClosePageLinkMenu}
+              />
               <EmojiMenu
                 view={this.view}
                 commands={this.commands}
@@ -711,6 +737,7 @@ export class Editor extends React.PureComponent<
                 onClose={this.handleCloseBlockMenu}
                 uploadFile={this.props.uploadFile}
                 onLinkToolbarOpen={this.handleOpenLinkMenu}
+                onPageLinkToolbarOpen={this.handleOpenPageLinkMenu}
                 onFileUploadStart={this.props.onFileUploadStart}
                 onFileUploadStop={this.props.onFileUploadStop}
                 onShowToast={this.props.onShowToast}

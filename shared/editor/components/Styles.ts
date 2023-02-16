@@ -567,6 +567,45 @@ h6 {
   opacity: 1;
 }
 
+.page-link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 4px;
+  margin: 8px 0;
+  padding: 8px 10px 8px 8px;
+  background: ${transparentize(0.95, props.theme.noticeInfoBackground)};
+  border: 3px solid ${transparentize(0.9, props.theme.noticeInfoBackground)};
+  color: ${props.theme.noticeInfoText};
+  transition: border 250ms ease-in-out 0s;
+  cursor: pointer!important;
+
+  .content {
+    flex: 1 1 auto;
+    font-size: 1.25em;
+    font-weight: 500;
+  }
+
+  .page-link-edit {
+    align-items: center;
+    gap: 8px;
+    position: absolute;
+    z-index: 1;
+    top: 8px;
+    right: 8px;
+    display: none;
+  }
+
+  &:hover {
+    border: 3px solid ${props.theme.noticeInfoBackground};
+
+    .page-link-edit {
+      display: flex;
+    }
+  }
+}
+
 .notice-block {
   display: flex;
   align-items: center;

@@ -37,6 +37,7 @@ export type Props<T extends MenuItem = MenuItem> = {
   onFileUploadStop?: () => void;
   onShowToast: (message: string) => void;
   onLinkToolbarOpen?: () => void;
+  onPageLinkToolbarOpen?: () => void;
   onClose: (insertNewLine?: boolean) => void;
   onClearSearch: () => void;
   embeds?: EmbedDescriptor[];
@@ -207,6 +208,12 @@ class CommandMenu<T extends MenuItem> extends React.Component<Props<T>, State> {
         this.clearSearch();
         this.props.onClose();
         this.props.onLinkToolbarOpen?.();
+        return;
+      }
+      case "page_link": {
+        this.clearSearch();
+        this.props.onClose();
+        this.props.onPageLinkToolbarOpen?.();
         return;
       }
       default:
