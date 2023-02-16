@@ -9,6 +9,7 @@ import { viteStaticCopy } from "vite-plugin-static-copy";
 export default () => {
   return defineConfig({
     root: "./",
+    publicDir: "./server/static",
     base: "/static/",
     server: {
       port: 3001,
@@ -92,6 +93,7 @@ export default () => {
     build: {
       outDir: "./build/app",
       manifest: true,
+      sourcemap: true,
       minify: "terser",
       target: browserslistToEsbuild(),
       reportCompressedSize: false,
