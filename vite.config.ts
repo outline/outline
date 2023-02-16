@@ -48,7 +48,7 @@ export default () => {
           theme_color: "#fff",
           background_color: "#fff",
           start_url: "/",
-          publicPath: "/static/",
+          publicPath: `${process.env.CDN_URL ?? ""}/static/`,
           display: "standalone",
           // For Chrome, you must provide at least a 192x192 pixel icon, and a 512x512 pixel icon.
           // If only those two icon sizes are provided, Chrome will automatically scale the icons
