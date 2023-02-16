@@ -9,7 +9,6 @@ import { viteStaticCopy } from "vite-plugin-static-copy";
 export default () => {
   return defineConfig({
     root: "./",
-    publicDir: "./server/static",
     base: "/static/",
     server: {
       port: 3001,
@@ -41,7 +40,6 @@ export default () => {
           globPatterns: ["**/*.{js,css,ico,png,svg}"],
           navigateFallback: null,
         },
-        // includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'masked-icon.svg'],
         manifest: {
           name: "Outline",
           short_name: "Outline",
