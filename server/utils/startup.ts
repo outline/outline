@@ -50,10 +50,11 @@ export async function checkMigrations() {
     return;
   }
 
+  const isProduction = env.ENVIRONMENT === "production";
   const teams = await Team.count();
   const providers = await AuthenticationProvider.count();
 
-  if (teams && !providers) {
+  if (isProduction && teams && !providers) {
     Logger.warn(`
 This version of Outline cannot start until a data migration is complete.
 Backup your database, run the database migrations and the following script:

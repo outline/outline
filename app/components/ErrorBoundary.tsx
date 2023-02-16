@@ -30,7 +30,7 @@ class ErrorBoundary extends React.Component<Props> {
     if (
       this.props.reloadOnChunkMissing &&
       error.message &&
-      error.message.match(/chunk/)
+      error.message.match(/dynamically imported module/)
     ) {
       // If the editor bundle fails to load then reload the entire window. This
       // can happen if a deploy happens between the user loading the initial JS
@@ -60,7 +60,9 @@ class ErrorBoundary extends React.Component<Props> {
     if (this.error) {
       const error = this.error;
       const isReported = !!env.SENTRY_DSN && isCloudHosted;
-      const isChunkError = this.error.message.match(/chunk/);
+      const isChunkError = this.error.message.match(
+        /dynamically imported module/
+      );
 
       if (isChunkError) {
         return (

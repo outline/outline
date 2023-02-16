@@ -6,7 +6,7 @@ import {
   NavigationNode,
 } from "@shared/types";
 import { sortNavigationNodes } from "@shared/utils/collections";
-import CollectionsStore from "~/stores/CollectionsStore";
+import type CollectionsStore from "~/stores/CollectionsStore";
 import Document from "~/models/Document";
 import ParanoidModel from "~/models/ParanoidModel";
 import { client } from "~/utils/ApiClient";
@@ -17,9 +17,6 @@ export default class Collection extends ParanoidModel {
 
   @observable
   isSaving: boolean;
-
-  @observable
-  isLoadingUsers: boolean;
 
   @Field
   @observable

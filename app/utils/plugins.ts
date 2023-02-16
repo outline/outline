@@ -13,25 +13,31 @@ export function loadPlugins(): { [id: string]: Plugin } {
   const plugins = {};
 
   function importAll(r: any, property: string) {
-    r.keys().forEach((key: string) => {
-      const id = key.split("/")[1];
+    Object.keys(r).forEach((key: string) => {
+      const id = key.split("/")[3];
       plugins[id] = plugins[id] || {
         id,
       };
-
-      const plugin = r(key);
-      plugins[id][property] = "default" in plugin ? plugin.default : plugin;
+      plugins[id][property] = r[key].default;
     });
   }
+
   importAll(
-    require.context("../../plugins", true, /client\/Settings\.[tj]sx?$/),
+    import.meta.glob("../../plugins/*/client/Settings.{ts,js,tsx,jsx}", {
+      eager: true,
+    }),
     "settings"
   );
   importAll(
-    require.context("../../plugins", true, /client\/Icon\.[tj]sx?$/),
+    import.meta.glob("../../plugins/*/client/Icon.{ts,js,tsx,jsx}", {
+      eager: true,
+    }),
     "icon"
   );
-  importAll(require.context("../../plugins", true, /plugin\.json?$/), "config");
+  importAll(
+    import.meta.glob("../../plugins/*/plugin.json", { eager: true }),
+    "config"
+  );
 
   return plugins;
 }

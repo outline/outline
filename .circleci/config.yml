@@ -98,8 +98,11 @@ jobs:
       - restore_cache:
           key: dependency-cache-{{ checksum "package.json" }}
       - run:
-          name: build-webpack
-          command: yarn build:webpack
+          name: build-vite
+          command: yarn vite:build
+      - run:
+          name: Send bundle stats to RelativeCI
+          command: npx relative-ci-agent
   build-image:
     executor: docker-publisher
     steps:

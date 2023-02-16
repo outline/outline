@@ -30,13 +30,7 @@ import { sharedDocumentPath } from "~/utils/routeHelpers";
 import { isHash } from "~/utils/urls";
 import DocumentBreadcrumb from "./DocumentBreadcrumb";
 
-const LazyLoadedEditor = React.lazy(
-  () =>
-    import(
-      /* webpackChunkName: "preload-shared-editor" */
-      "~/editor"
-    )
-);
+const LazyLoadedEditor = React.lazy(() => import("~/editor"));
 
 export type Props = Optional<
   EditorProps,

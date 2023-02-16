@@ -1,13 +1,7 @@
 import { formatDistanceToNow } from "date-fns";
 import * as React from "react";
 
-const LocaleTime = React.lazy(
-  () =>
-    import(
-      /* webpackChunkName: "locale-time" */
-      "~/components/LocaleTime"
-    )
-);
+const LocaleTime = React.lazy(() => import("~/components/LocaleTime"));
 
 type Props = React.ComponentProps<typeof LocaleTime> & {
   onClick?: () => void;
