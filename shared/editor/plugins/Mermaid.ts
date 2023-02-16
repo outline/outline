@@ -66,7 +66,6 @@ function getNewState({
             // TODO: Make dynamic based on the width of the editor or remove in
             // the future if Mermaid is able to handle this automatically.
             gantt: {
-              // @ts-expect-error types do not include this property.
               useWidth: 700,
             },
             theme: pluginState.isDark ? "dark" : "default",

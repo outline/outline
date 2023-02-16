@@ -20,6 +20,7 @@ defaults: &defaults
     SMTP_FROM_EMAIL: hello@example.com
     AWS_S3_UPLOAD_BUCKET_URL: https://s3.amazonaws.com
     AWS_S3_UPLOAD_BUCKET_NAME: outline-circle
+    NODE_OPTIONS: --max-old-space-size=8000
 
 executors:
   docker-publisher:
