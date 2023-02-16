@@ -62,7 +62,7 @@ if (isProduction) {
       }
 
       await send(ctx, pathname, {
-        root: path.join(__dirname, "../../app/"),
+        root: path.join(__dirname, "../../app/static/"),
         // Hashed static assets get 1 year expiry plus immutable flag
         maxAge: 365 * 24 * 60 * 60 * 1000,
         immutable: true,
