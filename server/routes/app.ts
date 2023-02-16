@@ -69,7 +69,7 @@ export const renderApp = async (
   `;
   const entry = "app/index.tsx";
   const scriptTags = isProduction
-    ? `<script type="module" src="${env.CDN_URL || ""}/static/${
+    ? `<script type="module" src="${env.CDN_URL || ""}/${
         readManifestFile()[entry]["file"]
       }"></script>`
     : `<script type="module">

@@ -10,7 +10,7 @@ export default () => {
   return defineConfig({
     root: "./",
     publicDir: "./server/static",
-    base: "/static/",
+    //base: "/static/",
     server: {
       port: 3001,
       host: true,
@@ -45,11 +45,10 @@ export default () => {
         manifest: {
           name: "Outline",
           short_name: "Outline",
-          // description: "My Awesome App description",
           theme_color: "#fff",
           background_color: "#fff",
           start_url: "/",
-          publicPath: "/static/",
+          //publicPath: "/",
           display: "standalone",
           // For Chrome, you must provide at least a 192x192 pixel icon, and a 512x512 pixel icon.
           // If only those two icon sizes are provided, Chrome will automatically scale the icons
@@ -93,6 +92,7 @@ export default () => {
     },
     build: {
       outDir: "./build/app",
+      assetsDir: "static",
       manifest: true,
       minify: "terser",
       target: browserslistToEsbuild(),
