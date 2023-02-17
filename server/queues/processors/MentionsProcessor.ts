@@ -99,24 +99,41 @@ export default class MentionsProcessor extends BaseProcessor {
         };
         await Promise.allSettled(mentionIds.map(findOrCreateMention));
 
-        Mention.destroy({
-          where: {
-            mentionUserId: {
-              [Op.notIn]: actualMentionIds,
+        try {
+          await Mention.destroy({
+            where: {
+              mentionUserId: {
+                [Op.notIn]: actualMentionIds,
+              },
+              documentId: event.documentId,
             },
-            documentId: event.documentId,
-          },
-        });
+          });
+        } catch (err) {
+          Logger.warn(`MentionsProcessor: ${err.message}`, {
+            processor: "MentionsProcessor",
+            event,
+            err,
+          });
+        }
 
         break;
       }
 
       case "documents.delete": {
-        Mention.destroy({
-          where: {
-            documentId: event.documentId,
-          },
-        });
+        try {
+          await Mention.destroy({
+            where: {
+              documentId: event.documentId,
+            },
+          });
+        } catch (err) {
+          Logger.warn(`MentionsProcessor: ${err.message}`, {
+            processor: "MentionsProcessor",
+            event,
+            err,
+          });
+        }
+
         break;
       }
 
