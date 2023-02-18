@@ -22,15 +22,15 @@ export default class AuthenticationHelper {
           return false;
         }
 
-        // If no team return all possible authentication providers.
-        if (!team) {
-          return true;
-        }
-
         // Guest sign-in is an exception as it does not have an authentication
         // provider using passport, instead it exists as a boolean option.
         if (config.id === "email") {
           return team?.emailSigninEnabled;
+        }
+
+        // If no team return all possible authentication providers except email.
+        if (!team) {
+          return true;
         }
 
         const authProvider = find(team.authenticationProviders, {
