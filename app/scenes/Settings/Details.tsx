@@ -7,11 +7,13 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { ThemeProvider } from "styled-components";
 import { buildDarkTheme, buildLightTheme } from "@shared/styles/theme";
+import { CustomTheme } from "@shared/types";
 import { getBaseDomain } from "@shared/utils/domains";
 import Button from "~/components/Button";
 import DefaultCollectionInputSelect from "~/components/DefaultCollectionInputSelect";
 import Heading from "~/components/Heading";
 import Input from "~/components/Input";
+import InputColor from "~/components/InputColor";
 import Scene from "~/components/Scene";
 import Text from "~/components/Text";
 import env from "~/env";
@@ -29,15 +31,19 @@ function Details() {
   const team = useCurrentTeam();
   const form = useRef<HTMLFormElement>(null);
   const [accent, setAccent] = useState(team.preferences?.customTheme?.accent);
+  const [accentText, setAccentText] = useState(
+    team.preferences?.customTheme?.accentText
+  );
   const [name, setName] = useState(team.name);
   const [subdomain, setSubdomain] = useState(team.subdomain);
   const [defaultCollectionId, setDefaultCollectionId] = useState<string | null>(
     team.defaultCollectionId
   );
 
-  const customTheme = pickBy(
+  const customTheme: Partial<CustomTheme> = pickBy(
     {
       accent,
+      accentText,
     },
     isHexColor
   );
@@ -86,9 +92,9 @@ function Details() {
     []
   );
 
-  const handleAccentChange = React.useCallback(
+  const handleAccentTextChange = React.useCallback(
     (ev: React.ChangeEvent<HTMLInputElement>) => {
-      setAccent(ev.target.value);
+      setAccentText(ev.target.value);
     },
     []
   );
@@ -177,21 +183,21 @@ function Details() {
             border={false}
             label={t("Theme")}
             name="accent"
-            description={t("Customize the look and feel.")}
+            description={t("Customize the interface look and feel.")}
           >
-            <Input
+            <InputColor
               id="accent"
               value={accent}
-              onChange={handleAccentChange}
-              pattern="#[0-9a-fA-F]{3,6}"
-              required
+              label={t("Accent color")}
+              onChange={setAccent}
+              flex
             />
-            <Input
+            <InputColor
               id="accentText"
-              value={accent}
-              onChange={handleAccentChange}
-              pattern="#[0-9a-fA-F]{3,6}"
-              required
+              value={accentText}
+              label={t("Accent text color")}
+              onChange={setAccentText}
+              flex
             />
           </SettingRow>
 

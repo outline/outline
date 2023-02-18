@@ -111,7 +111,7 @@ const RealButton = styled(ActionButton)<RealProps>`
     props.$danger &&
     `
       background: ${props.theme.danger};
-      color: ${props.theme.accentText};
+      color: ${props.theme.white};
 
       &:hover:not(:disabled),
       &[aria-expanded="true"] {

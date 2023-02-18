@@ -62,8 +62,6 @@ const buildBaseTheme = (input: Colors): DefaultTheme => {
   };
 
   return {
-    ...colors,
-    ...spacing,
     fontFamily:
       "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Oxygen, Ubuntu,Cantarell,'Open Sans','Helvetica Neue',sans-serif",
     fontFamilyMono:
@@ -97,6 +95,8 @@ const buildBaseTheme = (input: Colors): DefaultTheme => {
     noticeWarningBackground: "#d73a49",
     noticeWarningText: colors.almostBlack,
     breakpoints,
+    ...colors,
+    ...spacing,
   };
 };
 
