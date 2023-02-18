@@ -108,16 +108,32 @@ export enum UserPreference {
 
 export type UserPreferences = { [key in UserPreference]?: boolean };
 
+export type CustomTheme = {
+  text: string;
+  background: string;
+  sidebarText: string;
+  sidebarBackground: string;
+  accent: string;
+  accentText: string;
+};
+
 export enum TeamPreference {
   /** Whether documents have a separate edit mode instead of seamless editing. */
   SeamlessEdit = "seamlessEdit",
   /** Whether to use team logo across the app for branding. */
   PublicBranding = "publicBranding",
-  /** Whether viewers should see download options */
+  /** Whether viewers should see download options. */
   ViewersCanExport = "viewersCanExport",
+  /** The custom theme for the team. */
+  CustomTheme = "customTheme",
 }
 
-export type TeamPreferences = { [key in TeamPreference]?: boolean };
+export type TeamPreferences = {
+  [TeamPreference.SeamlessEdit]?: boolean;
+  [TeamPreference.PublicBranding]?: boolean;
+  [TeamPreference.ViewersCanExport]?: boolean;
+  [TeamPreference.CustomTheme]?: CustomTheme;
+};
 
 export enum NavigationNodeType {
   Collection = "collection",
