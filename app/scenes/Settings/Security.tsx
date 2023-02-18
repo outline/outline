@@ -166,7 +166,7 @@ function Security() {
           >
             <Flex align="center">
               <CheckboxIcon
-                color={provider.isActive ? theme.primary : undefined}
+                color={provider.isActive ? theme.accent : undefined}
                 checked={provider.isActive}
               />{" "}
               <Text type="secondary">

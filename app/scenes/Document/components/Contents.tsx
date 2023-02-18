@@ -141,7 +141,7 @@ const ListItem = styled.li<{ level: number; active?: boolean }>`
   a {
     font-weight: ${(props) => (props.active ? "600" : "inherit")};
     color: ${(props) =>
-      props.active ? props.theme.primary : props.theme.text};
+      props.active ? props.theme.accent : props.theme.text};
   }
 `;
 
@@ -150,7 +150,7 @@ const Link = styled.a`
   font-size: 14px;
 
   &:hover {
-    color: ${(props) => props.theme.primary};
+    color: ${(props) => props.theme.accent};
   }
 `;
 

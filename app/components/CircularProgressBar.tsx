@@ -63,7 +63,7 @@ const CircularProgressBar = ({
         <Circle color={theme.progressBarBackground} offset={offset} />
         {percentage > 0 && (
           <Circle
-            color={theme.primary}
+            color={theme.accent}
             percentage={percentage}
             offset={offset}
           />

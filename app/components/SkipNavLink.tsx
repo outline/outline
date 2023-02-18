@@ -25,7 +25,7 @@ const Anchor = styled.a`
     left: 12px;
     background: ${(props) => props.theme.background};
     color: ${(props) => props.theme.text};
-    outline-color: ${(props) => props.theme.primary};
+    outline-color: ${(props) => props.theme.accent};
     z-index: ${depths.popover};
     width: auto;
     height: auto;

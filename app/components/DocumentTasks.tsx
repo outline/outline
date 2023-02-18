@@ -44,7 +44,7 @@ function DocumentTasks({ document }: Props) {
     <>
       {completed === total ? (
         <Done
-          color={theme.primary}
+          color={theme.accent}
           size={20}
           $animated={done && previousDone === false}
         />

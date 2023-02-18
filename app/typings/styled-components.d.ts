@@ -107,8 +107,8 @@ declare module "styled-components" {
   export interface DefaultTheme extends Colors, Spacing, EditorTheme {
     background: string;
     backgroundTransition: string;
-    buttonBackground: string;
-    buttonText: string;
+    accent: string;
+    accentText: string;
     secondaryBackground: string;
     link: string;
     text: string;

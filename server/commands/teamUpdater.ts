@@ -107,7 +107,7 @@ const teamUpdater = async ({ params, user, team, ip }: TeamUpdaterProps) => {
   if (preferences) {
     for (const value of Object.values(TeamPreference)) {
       if (has(preferences, value)) {
-        team.setPreference(value, Boolean(preferences[value]));
+        team.setPreference(value, preferences[value]);
       }
     }
   }

@@ -3,7 +3,11 @@ import * as React from "react";
 import { ThemeProvider } from "styled-components";
 import { breakpoints } from "@shared/styles";
 import GlobalStyles from "@shared/styles/globals";
-import { dark, light, lightMobile, darkMobile } from "@shared/styles/theme";
+import {
+  buildDarkTheme,
+  buildLightTheme,
+  buildPitchBlackTheme,
+} from "@shared/styles/theme";
 import { UserPreference } from "@shared/types";
 import useMediaQuery from "~/hooks/useMediaQuery";
 import useStores from "~/hooks/useStores";
@@ -11,16 +15,27 @@ import { TooltipStyles } from "./Tooltip";
 
 const Theme: React.FC = ({ children }) => {
   const { auth, ui } = useStores();
-  const resolvedTheme = ui.resolvedTheme === "dark" ? dark : light;
-  const resolvedMobileTheme =
-    ui.resolvedTheme === "dark" ? darkMobile : lightMobile;
   const isMobile = useMediaQuery(`(max-width: ${breakpoints.tablet}px)`);
   const isPrinting = useMediaQuery("print");
-  const theme = isPrinting
-    ? light
-    : isMobile
-    ? resolvedMobileTheme
-    : resolvedTheme;
+
+  const theme = React.useMemo(() => {
+    const customTheme = auth.team?.preferences?.customTheme || {};
+
+    return isPrinting
+      ? buildLightTheme(customTheme)
+      : isMobile
+      ? ui.resolvedTheme === "dark"
+        ? buildPitchBlackTheme(customTheme)
+        : buildLightTheme(customTheme)
+      : ui.resolvedTheme === "dark"
+      ? buildDarkTheme(customTheme)
+      : buildLightTheme(customTheme);
+  }, [
+    auth.team?.preferences?.customTheme,
+    isMobile,
+    isPrinting,
+    ui.resolvedTheme,
+  ]);
 
   React.useEffect(() => {
     window.dispatchEvent(
