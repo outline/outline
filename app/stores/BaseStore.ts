@@ -57,7 +57,7 @@ export default abstract class BaseStore<T extends BaseModel> {
   constructor(rootStore: RootStore, model: Class<T>) {
     this.rootStore = rootStore;
     this.model = model;
-    this.modelName = lowerFirst(model.name);
+    this.modelName = lowerFirst(model.name).replace(/\d$/, "");
 
     if (!this.apiEndpoint) {
       this.apiEndpoint = `${this.modelName}s`;
