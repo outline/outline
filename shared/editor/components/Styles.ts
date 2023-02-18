@@ -992,15 +992,21 @@ mark {
   pre {
     padding-left: calc(var(--line-number-gutter-width, 0) * 1em + 1.5em);
   }
-}
 
-.code-block .line-numbers {
-  position: absolute;
-  left: 1em;
-  color: ${props.theme.textTertiary};
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-  user-select: none;
+  &:after {
+    content: attr(data-line-numbers);
+    position: absolute;
+    left: 1em;
+    top: calc(1px + 0.75em);
+
+    font-family: ${props.theme.fontFamilyMono};
+    font-size: 13px;
+    line-height: 1.4em;
+    color: ${props.theme.textTertiary};
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    user-select: none;
+  }
 }
 
 .mermaid-diagram-wrapper {

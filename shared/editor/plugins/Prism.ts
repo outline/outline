@@ -99,21 +99,24 @@ function getDecorations({
       if (lineNumbers) {
         const lineCount =
           (block.node.textContent.match(/\n/g) || []).length + 1;
+
+        const lineCountText = new Array(lineCount)
+          .fill(0)
+          .map((_, i) => i + 1)
+          .join("\n");
+
         lineDecorations.push(
-          Decoration.widget(block.pos + 1, () => {
-            const el = document.createElement("div");
-            el.innerText = new Array(lineCount)
-              .fill(0)
-              .map((_, i) => i + 1)
-              .join("\n");
-            el.className = "line-numbers";
-            return el;
-          })
-        );
-        lineDecorations.push(
-          Decoration.node(block.pos, block.pos + block.node.nodeSize, {
-            style: `--line-number-gutter-width: ${String(lineCount).length}`,
-          })
+          Decoration.node(
+            block.pos,
+            block.pos + block.node.nodeSize,
+            {
+              "data-line-numbers": lineCountText,
+              style: `--line-number-gutter-width: ${String(lineCount).length};`,
+            },
+            {
+              key: `line-${lineCount}-gutter`,
+            }
+          )
         );
       }
 
