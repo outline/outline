@@ -822,7 +822,7 @@
   "Are you sure you want to delete the {{ name }} webhook?": "Sind Sie sich sicher, dass Sie den {{ name }} Webhook löschen möchten?",
   "Webhook updated": "Webhook aktualisiert",
   "Update": "Update",
-  "Updating": "Wird aktualisiert ...",
+  "Updating": "Aktualisierung",
   "Provide a descriptive name for this webhook and the URL we should send a POST request to when matching events are created.": "Geben Sie einen aussagekräftigen Namen für diesen Webhook und die URL an, an die wir beim Erstellen passender Events einen POST-Request senden sollen.",
   "A memorable identifer": "Ein einprägsamer Identifer",
   "URL": "URL",
