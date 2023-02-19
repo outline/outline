@@ -14,7 +14,7 @@ const defaultColors: Colors = {
   smoke: "#F4F7FA",
   smokeLight: "#F9FBFC",
   smokeDark: "#E8EBED",
-  white: "#FFF",
+  white: "#FFFFFF",
   white05: "rgba(255, 255, 255, 0.05)",
   white10: "rgba(255, 255, 255, 0.1)",
   white50: "rgba(255, 255, 255, 0.5)",

@@ -5,7 +5,7 @@ import { TeamIcon } from "outline-icons";
 import { useRef, useState } from "react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
-import { ThemeProvider } from "styled-components";
+import { ThemeProvider, useTheme } from "styled-components";
 import { buildDarkTheme, buildLightTheme } from "@shared/styles/theme";
 import { CustomTheme } from "@shared/types";
 import { getBaseDomain } from "@shared/utils/domains";
@@ -29,6 +29,7 @@ function Details() {
   const { showToast } = useToasts();
   const { t } = useTranslation();
   const team = useCurrentTeam();
+  const theme = useTheme();
   const form = useRef<HTMLFormElement>(null);
   const [accent, setAccent] = useState(team.preferences?.customTheme?.accent);
   const [accentText, setAccentText] = useState(
@@ -122,7 +123,7 @@ function Details() {
 
   const isValid = form.current?.checkValidity();
 
-  const theme = React.useMemo(
+  const newTheme = React.useMemo(
     () =>
       ui.resolvedTheme === "light"
         ? buildLightTheme(customTheme)
@@ -131,7 +132,7 @@ function Details() {
   );
 
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={newTheme}>
       <Scene title={t("Details")} icon={<TeamIcon color="currentColor" />}>
         <Heading>{t("Details")}</Heading>
         <Text type="secondary">
@@ -180,14 +181,14 @@ function Details() {
           >
             <InputColor
               id="accent"
-              value={accent}
+              value={accent ?? theme.accent}
               label={t("Accent color")}
               onChange={setAccent}
               flex
             />
             <InputColor
               id="accentText"
-              value={accentText}
+              value={accentText ?? theme.accentText}
               label={t("Accent text color")}
               onChange={setAccentText}
               flex
