@@ -2,7 +2,7 @@ import * as Sentry from "@sentry/react";
 import invariant from "invariant";
 import { observable, action, computed, autorun, runInAction } from "mobx";
 import { getCookie, setCookie, removeCookie } from "tiny-cookie";
-import { TeamPreferences, UserPreferences } from "@shared/types";
+import { CustomTheme, TeamPreferences, UserPreferences } from "@shared/types";
 import Storage from "@shared/utils/Storage";
 import { getCookieDomain, parseDomain } from "@shared/utils/domains";
 import RootStore from "~/stores/RootStore";
@@ -38,6 +38,7 @@ type Provider = {
 export type Config = {
   name?: string;
   logo?: string;
+  customTheme?: Partial<CustomTheme>;
   hostname?: string;
   providers: Provider[];
 };

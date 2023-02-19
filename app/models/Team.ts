@@ -105,7 +105,7 @@ class Team extends BaseModel {
   getPreference<T extends keyof TeamPreferences>(
     key: T,
     fallback = false
-  ): TeamPreferences[T] | boolean {
+  ): TeamPreferences[T] | false {
     return this.preferences?.[key] ?? fallback;
   }
 
