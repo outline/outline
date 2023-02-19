@@ -29,7 +29,7 @@ import searches from "./searches";
 import shares from "./shares";
 import stars from "./stars";
 import subscriptions from "./subscriptions";
-import team from "./team";
+import teams from "./teams";
 import users from "./users";
 import views from "./views";
 
@@ -74,7 +74,7 @@ router.use("/", searches.routes());
 router.use("/", shares.routes());
 router.use("/", stars.routes());
 router.use("/", subscriptions.routes());
-router.use("/", team.routes());
+router.use("/", teams.routes());
 router.use("/", integrations.routes());
 router.use("/", notificationSettings.routes());
 router.use("/", attachments.routes());

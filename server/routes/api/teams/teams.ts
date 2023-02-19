@@ -5,12 +5,13 @@ import teamUpdater from "@server/commands/teamUpdater";
 import { sequelize } from "@server/database/sequelize";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
+import validate from "@server/middlewares/validate";
 import { Event, Team, TeamDomain, User } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentTeam, presentPolicies } from "@server/presenters";
 import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
-import { assertUuid } from "@server/validation";
+import * as T from "./schema";
 
 const router = new Router();
 
@@ -18,49 +19,16 @@ router.post(
   "team.update",
   auth(),
   rateLimiter(RateLimiterStrategy.TenPerHour),
-  async (ctx: APIContext) => {
-    const {
-      name,
-      avatarUrl,
-      subdomain,
-      sharing,
-      guestSignin,
-      documentEmbeds,
-      memberCollectionCreate,
-      collaborativeEditing,
-      defaultCollectionId,
-      defaultUserRole,
-      inviteRequired,
-      allowedDomains,
-      preferences,
-    } = ctx.request.body;
-
+  validate(T.TeamsUpdateSchema),
+  async (ctx: APIContext<T.TeamsUpdateSchemaReq>) => {
     const { user } = ctx.state.auth;
     const team = await Team.findByPk(user.teamId, {
       include: [{ model: TeamDomain }],
     });
     authorize(user, "update", team);
 
-    if (defaultCollectionId !== undefined && defaultCollectionId !== null) {
-      assertUuid(defaultCollectionId, "defaultCollectionId must be uuid");
-    }
-
     const updatedTeam = await teamUpdater({
-      params: {
-        name,
-        avatarUrl,
-        subdomain,
-        sharing,
-        guestSignin,
-        documentEmbeds,
-        memberCollectionCreate,
-        collaborativeEditing,
-        defaultCollectionId,
-        defaultUserRole,
-        inviteRequired,
-        allowedDomains,
-        preferences,
-      },
+      params: ctx.input.body,
       user,
       team,
       ip: ctx.request.ip,
