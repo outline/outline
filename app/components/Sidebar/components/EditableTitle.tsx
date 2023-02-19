@@ -123,7 +123,7 @@ const Input = styled.input`
   height: 32px;
 
   &:focus {
-    outline-color: ${(props) => props.theme.primary};
+    outline-color: ${(props) => props.theme.accent};
   }
 `;
 

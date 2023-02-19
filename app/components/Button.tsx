@@ -1,6 +1,6 @@
 import { LocationDescriptor } from "history";
 import { ExpandedIcon } from "outline-icons";
-import { darken, lighten } from "polished";
+import { darken, lighten, transparentize } from "polished";
 import * as React from "react";
 import styled from "styled-components";
 import ActionButton, {
@@ -22,8 +22,8 @@ const RealButton = styled(ActionButton)<RealProps>`
   margin: 0;
   padding: 0;
   border: 0;
-  background: ${(props) => props.theme.buttonBackground};
-  color: ${(props) => props.theme.buttonText};
+  background: ${(props) => props.theme.accent};
+  color: ${(props) => props.theme.accentText};
   box-shadow: rgba(0, 0, 0, 0.2) 0px 1px 2px;
   border-radius: 4px;
   font-size: 14px;
@@ -51,14 +51,14 @@ const RealButton = styled(ActionButton)<RealProps>`
 
   &:hover:not(:disabled),
   &[aria-expanded="true"] {
-    background: ${(props) => darken(0.05, props.theme.buttonBackground)};
+    background: ${(props) => darken(0.05, props.theme.accent)};
   }
 
   &:disabled {
     cursor: default;
     pointer-events: none;
-    color: ${(props) => props.theme.white50};
-    background: ${(props) => lighten(0.2, props.theme.buttonBackground)};
+    color: ${(props) => transparentize(0.5, props.theme.accentText)};
+    background: ${(props) => lighten(0.2, props.theme.accent)};
 
     svg {
       fill: ${(props) => props.theme.white50};

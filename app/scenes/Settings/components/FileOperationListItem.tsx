@@ -37,7 +37,7 @@ const FileOperationListItem = ({ fileOperation, handleDelete }: Props) => {
     [FileOperationState.Creating]: <Spinner />,
     [FileOperationState.Uploading]: <Spinner />,
     [FileOperationState.Expired]: <ArchiveIcon color={theme.textTertiary} />,
-    [FileOperationState.Complete]: <DoneIcon color={theme.primary} />,
+    [FileOperationState.Complete]: <DoneIcon color={theme.accent} />,
     [FileOperationState.Error]: <WarningIcon color={theme.danger} />,
   };
 

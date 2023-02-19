@@ -90,7 +90,7 @@ class Team extends BaseModel {
   get seamlessEditing(): boolean {
     return (
       this.collaborativeEditing &&
-      this.getPreference(TeamPreference.SeamlessEdit, true)
+      !!this.getPreference(TeamPreference.SeamlessEdit, true)
     );
   }
 
@@ -102,7 +102,10 @@ class Team extends BaseModel {
    * @param fallback An optional fallback value, defaults to false.
    * @returns The value
    */
-  getPreference(key: TeamPreference, fallback = false): boolean {
+  getPreference<T extends keyof TeamPreferences>(
+    key: T,
+    fallback = false
+  ): TeamPreferences[T] | false {
     return this.preferences?.[key] ?? fallback;
   }
 

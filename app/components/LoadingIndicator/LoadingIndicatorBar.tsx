@@ -28,7 +28,7 @@ const Container = styled.div`
 const Loader = styled.div`
   width: 100%;
   height: 2px;
-  background-color: ${(props) => props.theme.primary};
+  background-color: ${(props) => props.theme.accent};
 `;
 
 export default LoadingIndicatorBar;

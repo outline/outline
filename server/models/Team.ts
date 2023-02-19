@@ -20,7 +20,11 @@ import {
   AllowNull,
   AfterUpdate,
 } from "sequelize-typescript";
-import { CollectionPermission, TeamPreference } from "@shared/types";
+import {
+  CollectionPermission,
+  TeamPreference,
+  TeamPreferences,
+} from "@shared/types";
 import { getBaseDomain, RESERVED_SUBDOMAINS } from "@shared/utils/domains";
 import env from "@server/env";
 import DeleteAttachmentTask from "@server/queues/tasks/DeleteAttachmentTask";
@@ -38,8 +42,6 @@ import Length from "./validators/Length";
 import NotContainsUrl from "./validators/NotContainsUrl";
 
 const readFile = util.promisify(fs.readFile);
-
-export type TeamPreferences = Record<string, unknown>;
 
 @Scopes(() => ({
   withDomains: {
@@ -184,7 +186,10 @@ class Team extends ParanoidModel {
    * @param value Sets the preference value
    * @returns The current team preferences
    */
-  public setPreference = (preference: TeamPreference, value: boolean) => {
+  public setPreference = <T extends keyof TeamPreferences>(
+    preference: T,
+    value: TeamPreferences[T]
+  ) => {
     if (!this.preferences) {
       this.preferences = {};
     }

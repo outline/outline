@@ -117,7 +117,7 @@ export const Node = styled.span<{
   ${(props) =>
     props.selected &&
     `
-      background: ${props.theme.primary};
+      background: ${props.theme.accent};
       color: ${props.theme.white};
 
       svg {

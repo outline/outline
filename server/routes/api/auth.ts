@@ -31,6 +31,7 @@ router.post("auth.config", async (ctx: APIContext) => {
       ctx.body = {
         data: {
           name: team.name,
+          customTheme: team.getPreference(TeamPreference.CustomTheme),
           logo: team.getPreference(TeamPreference.PublicBranding)
             ? team.avatarUrl
             : undefined,
@@ -56,6 +57,7 @@ router.post("auth.config", async (ctx: APIContext) => {
       ctx.body = {
         data: {
           name: team.name,
+          customTheme: team.getPreference(TeamPreference.CustomTheme),
           logo: team.getPreference(TeamPreference.PublicBranding)
             ? team.avatarUrl
             : undefined,
@@ -82,6 +84,7 @@ router.post("auth.config", async (ctx: APIContext) => {
       ctx.body = {
         data: {
           name: team.name,
+          customTheme: team.getPreference(TeamPreference.CustomTheme),
           logo: team.getPreference(TeamPreference.PublicBranding)
             ? team.avatarUrl
             : undefined,

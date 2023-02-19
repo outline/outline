@@ -5,9 +5,9 @@ import Initials from "./Initials";
 
 export interface IAvatar {
   avatarUrl: string | null;
-  color: string;
-  initial: string;
-  id: string;
+  color?: string;
+  initial?: string;
+  id?: string;
 }
 
 type Props = {
@@ -61,7 +61,7 @@ const IconWrapper = styled.div`
   position: absolute;
   bottom: -2px;
   right: -2px;
-  background: ${(props) => props.theme.primary};
+  background: ${(props) => props.theme.accent};
   border: 2px solid ${(props) => props.theme.background};
   border-radius: 100%;
   width: 20px;
