@@ -92,13 +92,6 @@ function Details() {
     []
   );
 
-  const handleAccentTextChange = React.useCallback(
-    (ev: React.ChangeEvent<HTMLInputElement>) => {
-      setAccentText(ev.target.value);
-    },
-    []
-  );
-
   const handleSubdomainChange = React.useCallback(
     (ev: React.ChangeEvent<HTMLInputElement>) => {
       setSubdomain(ev.target.value.toLowerCase());

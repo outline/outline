@@ -109,10 +109,6 @@ export enum UserPreference {
 export type UserPreferences = { [key in UserPreference]?: boolean };
 
 export type CustomTheme = {
-  text: string;
-  background: string;
-  sidebarText: string;
-  sidebarBackground: string;
   accent: string;
   accentText: string;
 };
@@ -132,7 +128,7 @@ export type TeamPreferences = {
   [TeamPreference.SeamlessEdit]?: boolean;
   [TeamPreference.PublicBranding]?: boolean;
   [TeamPreference.ViewersCanExport]?: boolean;
-  [TeamPreference.CustomTheme]?: CustomTheme;
+  [TeamPreference.CustomTheme]?: Partial<CustomTheme>;
 };
 
 export enum NavigationNodeType {

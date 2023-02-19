@@ -140,8 +140,7 @@ const ListItem = styled.li<{ level: number; active?: boolean }>`
 
   a {
     font-weight: ${(props) => (props.active ? "600" : "inherit")};
-    color: ${(props) =>
-      props.active ? props.theme.accent : props.theme.text};
+    color: ${(props) => (props.active ? props.theme.accent : props.theme.text)};
   }
 `;
 

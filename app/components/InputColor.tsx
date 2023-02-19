@@ -3,9 +3,11 @@ import { useTranslation } from "react-i18next";
 import { MenuButton, useMenuState } from "reakit/Menu";
 import styled from "styled-components";
 import ContextMenu from "./ContextMenu";
+import DelayedMount from "./DelayedMount";
 import Input, { Props as InputProps } from "./Input";
 import NudeButton from "./NudeButton";
 import Relative from "./Sidebar/components/Relative";
+import Text from "./Text";
 
 type Props = Omit<InputProps, "onChange"> & {
   value: string | undefined;
@@ -38,7 +40,13 @@ const InputColor: React.FC<Props> = ({ value, onChange, ...rest }) => {
         )}
       </MenuButton>
       <ContextMenu {...menu} aria-label={t("Select a color")}>
-        <React.Suspense fallback={null}>
+        <React.Suspense
+          fallback={
+            <DelayedMount>
+              <Text>{t("Loading")}…</Text>
+            </DelayedMount>
+          }
+        >
           <StyledColorPicker
             disableAlpha
             color={value}

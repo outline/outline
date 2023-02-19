@@ -1,8 +1,8 @@
 import { darken, lighten } from "polished";
-import { DefaultTheme } from "styled-components";
+import { DefaultTheme, Colors } from "styled-components";
 import breakpoints from "./breakpoints";
 
-const defaultColors = {
+const defaultColors: Colors = {
   transparent: "transparent",
   almostBlack: "#111319",
   lightBlack: "#2F3336",
@@ -43,8 +43,6 @@ const defaultColors = {
   },
 };
 
-type Colors = Partial<typeof defaultColors>;
-
 const spacing = {
   padding: "1.5vw 1.875vw",
   vpadding: "1.5vw",
@@ -55,7 +53,7 @@ const spacing = {
   sidebarMaxWidth: 400,
 };
 
-const buildBaseTheme = (input: Colors): DefaultTheme => {
+const buildBaseTheme = (input: Partial<Colors>) => {
   const colors = {
     ...defaultColors,
     ...input,
@@ -100,7 +98,7 @@ const buildBaseTheme = (input: Colors): DefaultTheme => {
   };
 };
 
-export const buildLightTheme = (input: Colors) => {
+export const buildLightTheme = (input: Partial<Colors>): DefaultTheme => {
   const colors = buildBaseTheme(input);
 
   return {
@@ -165,7 +163,7 @@ export const buildLightTheme = (input: Colors) => {
   };
 };
 
-export const buildDarkTheme = (input: Colors): DefaultTheme => {
+export const buildDarkTheme = (input: Partial<Colors>): DefaultTheme => {
   const colors = buildBaseTheme(input);
 
   return {
@@ -235,11 +233,15 @@ export const buildDarkTheme = (input: Colors): DefaultTheme => {
   };
 };
 
-export const buildPitchBlackTheme = (colors: Colors) => ({
-  ...buildDarkTheme(colors),
-  background: colors.black,
-  codeBackground: colors.almostBlack,
-});
+export const buildPitchBlackTheme = (input: Partial<Colors>) => {
+  const colors = buildDarkTheme(input);
+
+  return {
+    ...colors,
+    background: colors.black,
+    codeBackground: colors.almostBlack,
+  };
+};
 
 export const light = buildLightTheme(defaultColors);
 
