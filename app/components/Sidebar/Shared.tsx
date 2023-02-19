@@ -3,12 +3,12 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { NavigationNode } from "@shared/types";
-import Team from "~/models/Team";
 import Scrollable from "~/components/Scrollable";
 import SearchPopover from "~/components/SearchPopover";
 import useStores from "~/hooks/useStores";
 import history from "~/utils/history";
 import { homePath, sharedDocumentPath } from "~/utils/routeHelpers";
+import { IAvatar } from "../Avatar/Avatar";
 import TeamLogo from "../TeamLogo";
 import Sidebar from "./Sidebar";
 import HeaderButton from "./components/HeaderButton";
@@ -16,7 +16,7 @@ import Section from "./components/Section";
 import DocumentLink from "./components/SharedDocumentLink";
 
 type Props = {
-  team?: Team;
+  team?: IAvatar & { name: string };
   rootNode: NavigationNode;
   shareId: string;
 };

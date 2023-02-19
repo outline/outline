@@ -5,9 +5,9 @@ import Initials from "./Initials";
 
 export interface IAvatar {
   avatarUrl: string | null;
-  color: string;
-  initial: string;
-  id: string;
+  color?: string;
+  initial?: string;
+  id?: string;
 }
 
 type Props = {
