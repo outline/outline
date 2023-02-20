@@ -311,7 +311,7 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
         if (!searchTerm) {
           toggleCollapse(activeNode);
           // let the nodes re-render first and then scroll
-          setImmediate(() => scrollNodeIntoView(activeNode));
+          setTimeout(() => scrollNodeIntoView(activeNode), 0);
         }
         break;
       }

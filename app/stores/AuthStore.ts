@@ -128,7 +128,7 @@ export default class AuthStore {
     this.addPolicies(data.policies);
 
     if (this.token) {
-      setImmediate(() => this.fetch());
+      setTimeout(() => this.fetch(), 0);
     }
   }
 
