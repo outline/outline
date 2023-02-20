@@ -254,15 +254,6 @@ export class Environment {
   );
 
   /**
-   * Because imports can be much larger than regular file attachments and are
-   * deleted automatically we allow an optional separate limit on the size of
-   * imports.
-   */
-  @IsNumber()
-  public MAXIMUM_IMPORT_SIZE =
-    this.toOptionalNumber(process.env.MAXIMUM_IMPORT_SIZE) ?? 5120000;
-
-  /**
    * An optional comma separated list of allowed domains.
    */
   public ALLOWED_DOMAINS =
@@ -562,13 +553,24 @@ export class Environment {
   @IsOptional()
   @IsNumber()
   public AWS_S3_UPLOAD_MAX_SIZE =
-    this.toOptionalNumber(process.env.AWS_S3_UPLOAD_MAX_SIZE) ?? 10000000000;
+    this.toOptionalNumber(process.env.AWS_S3_UPLOAD_MAX_SIZE) ?? 100000000;
 
   /**
    * Set default AWS S3 ACL for file attachments.
    */
   @IsOptional()
   public AWS_S3_ACL = process.env.AWS_S3_ACL ?? "private";
+
+  /**
+   * Because imports can be much larger than regular file attachments and are
+   * deleted automatically we allow an optional separate limit on the size of
+   * imports.
+   */
+  @IsNumber()
+  public MAXIMUM_IMPORT_SIZE = Math.max(
+    this.toOptionalNumber(process.env.MAXIMUM_IMPORT_SIZE) ?? 100000000,
+    this.AWS_S3_UPLOAD_MAX_SIZE
+  );
 
   /**
    * The product name
