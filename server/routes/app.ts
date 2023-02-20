@@ -73,14 +73,14 @@ export const renderApp = async (
         readManifestFile()[entry]["file"]
       }"></script>`
     : `<script type="module">
-        import RefreshRuntime from 'http://localhost:3001/@react-refresh'
+        import RefreshRuntime from 'http://localhost:3001/static/@react-refresh'
         RefreshRuntime.injectIntoGlobalHook(window)
         window.$RefreshReg$ = () => { }
         window.$RefreshSig$ = () => (type) => type
         window.__vite_plugin_react_preamble_installed__ = true
       </script>
-      <script type="module" src="http://localhost:3001/@vite/client"></script>
-      <script type="module" src="http://localhost:3001/${entry}"></script>
+      <script type="module" src="http://localhost:3001/static/@vite/client"></script>
+      <script type="module" src="http://localhost:3001/static/${entry}"></script>
     `;
 
   ctx.body = page
