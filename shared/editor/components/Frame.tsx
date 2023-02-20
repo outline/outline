@@ -30,7 +30,7 @@ class Frame extends React.Component<PropsWithRef> {
 
   componentDidMount() {
     this.mounted = true;
-    setImmediate(this.loadIframe);
+    setTimeout(this.loadIframe, 0);
   }
 
   componentWillUnmount() {
