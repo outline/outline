@@ -3,32 +3,33 @@ import styled from "styled-components";
 import PluginLoader from "~/utils/PluginLoader";
 
 type Props = {
-  providerName: string;
+  id: string;
   size?: number;
   color?: string;
 };
 
-function AuthLogo({ providerName, color, size = 24 }: Props) {
-  const plugin = PluginLoader.plugins[providerName];
+function PluginIcon({ id, color, size = 24 }: Props) {
+  const plugin = PluginLoader.plugins[id];
   const Icon = plugin?.icon;
 
   if (Icon) {
     return (
-      <Logo>
+      <Wrapper>
         <Icon size={size} fill={color} />
-      </Logo>
+      </Wrapper>
     );
   }
 
   return null;
 }
 
-const Logo = styled.div`
+const Wrapper = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
   width: 24px;
   height: 24px;
 `;
 
-export default AuthLogo;
+export default PluginIcon;

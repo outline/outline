@@ -2,7 +2,7 @@
 
 A new auth provider can be added with the addition of a plugin with a koa router
 as the default export in /server/auth/[provider].ts and (optionally) a matching
-logo in `/app/components/AuthLogo/index.js` that will appear on the signin button.
+logo in `/client/Icon.tsx` that will appear on the sign-in button.
 
 Auth providers generally use [Passport](http://www.passportjs.org/) strategies,
 although they can use any custom logic if needed. See the `google` auth provider
