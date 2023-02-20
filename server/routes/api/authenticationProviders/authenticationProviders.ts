@@ -3,13 +3,13 @@ import { sequelize } from "@server/database/sequelize";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
 import { AuthenticationProvider, Event } from "@server/models";
+import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
 import { authorize } from "@server/policies";
 import {
   presentAuthenticationProvider,
   presentPolicies,
 } from "@server/presenters";
 import { APIContext } from "@server/types";
-import allAuthenticationProviders from "../../auth/providers";
 import * as T from "./schema";
 
 const router = new Router();
@@ -95,7 +95,7 @@ router.post(
       "authenticationProviders"
     )) as AuthenticationProvider[];
 
-    const data = allAuthenticationProviders
+    const data = AuthenticationHelper.providers
       .filter((p) => p.id !== "email")
       .map((p) => {
         const row = teamAuthenticationProviders.find((t) => t.name === p.id);

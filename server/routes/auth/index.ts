@@ -6,8 +6,8 @@ import Router from "koa-router";
 import { AuthenticationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { Collection, Team, View } from "@server/models";
+import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
 import { AppState, AppContext, APIContext } from "@server/types";
-import providers from "./providers";
 
 const app = new Koa<AppState, AppContext>();
 const router = new Router();
@@ -15,10 +15,8 @@ const router = new Router();
 router.use(passport.initialize());
 
 // dynamically load available authentication provider routes
-providers.forEach((provider) => {
-  if (provider.enabled) {
-    router.use("/", provider.router.routes());
-  }
+AuthenticationHelper.providers.forEach((provider) => {
+  router.use("/", provider.router.routes());
 });
 
 router.get("/redirect", auth(), async (ctx: APIContext) => {
