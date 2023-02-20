@@ -56,7 +56,7 @@ function Slack() {
   const appName = env.APP_NAME;
 
   return (
-    <Scene title="Slack" icon={<SlackIcon color="currentColor" />}>
+    <Scene title="Slack" icon={<SlackIcon />}>
       <Heading>Slack</Heading>
 
       {error === "access_denied" && (
@@ -106,7 +106,7 @@ function Slack() {
                 ]}
                 redirectUri={`${env.URL}/auth/slack.commands`}
                 state={team.id}
-                icon={<SlackIcon color="currentColor" />}
+                icon={<SlackIcon />}
               />
             )}
           </p>
