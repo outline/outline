@@ -16,11 +16,6 @@ import { assertEmail, assertPresent } from "@server/validation";
 
 const router = new Router();
 
-export const config = {
-  name: "Email",
-  enabled: true,
-};
-
 router.post(
   "email",
   rateLimiter(RateLimiterStrategy.TenPerHour),

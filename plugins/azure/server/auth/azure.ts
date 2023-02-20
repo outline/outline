@@ -22,11 +22,6 @@ const router = new Router();
 const providerName = "azure";
 const scopes: string[] = [];
 
-export const config = {
-  name: "Microsoft",
-  enabled: !!env.AZURE_CLIENT_ID,
-};
-
 if (env.AZURE_CLIENT_ID && env.AZURE_CLIENT_SECRET) {
   const strategy = new AzureStrategy(
     {
