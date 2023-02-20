@@ -998,6 +998,9 @@ mark {
     position: absolute;
     left: 1em;
     top: calc(1px + 0.75em);
+    width: calc(var(--line-number-gutter-width,0) * 1em + .25em);
+    word-break: break-all;
+    text-align: right;
 
     font-family: ${props.theme.fontFamilyMono};
     font-size: 13px;
