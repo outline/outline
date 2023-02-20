@@ -1,3 +1,5 @@
+import React from "react";
+
 interface Plugin {
   id: string;
   config: {
@@ -24,14 +26,12 @@ export default class PluginLoader {
         plugins[id] = plugins[id] || {
           id,
         };
-        plugins[id][property] = r[key].default;
+        plugins[id][property] = r[key].default ?? React.lazy(r[key]);
       });
     }
 
     importAll(
-      import.meta.glob("../../plugins/*/client/Settings.{ts,js,tsx,jsx}", {
-        eager: true,
-      }),
+      import.meta.glob("../../plugins/*/client/Settings.{ts,js,tsx,jsx}"),
       "settings"
     );
     importAll(
