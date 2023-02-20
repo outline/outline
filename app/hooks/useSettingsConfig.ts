@@ -34,8 +34,8 @@ import Tokens from "~/scenes/Settings/Tokens";
 import Zapier from "~/scenes/Settings/Zapier";
 import GoogleIcon from "~/components/Icons/GoogleIcon";
 import ZapierIcon from "~/components/Icons/ZapierIcon";
+import PluginLoader from "~/utils/PluginLoader";
 import isCloudHosted from "~/utils/isCloudHosted";
-import { loadPlugins } from "~/utils/plugins";
 import { accountPreferencesPath } from "~/utils/routeHelpers";
 import useCurrentTeam from "./useCurrentTeam";
 import usePolicy from "./usePolicy";
@@ -160,7 +160,7 @@ const useSettingsConfig = () => {
         icon: ExportIcon,
       },
       // Integrations
-      ...mapValues(loadPlugins(), (plugin) => {
+      ...mapValues(PluginLoader.plugins, (plugin) => {
         return {
           name: plugin.config.name,
           path: integrationSettingsPath(plugin.id),
@@ -195,14 +195,7 @@ const useSettingsConfig = () => {
         icon: ZapierIcon,
       },
     }),
-    [
-      t,
-      can.createApiKey,
-      can.update,
-      can.createImport,
-      can.createExport,
-      can.createWebhookSubscription,
-    ]
+    [t, can.createApiKey, can.update, can.createImport, can.createExport]
   );
 
   const enabledConfigs = React.useMemo(

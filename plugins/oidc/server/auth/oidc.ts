@@ -22,32 +22,30 @@ import {
 
 const router = new Router();
 const providerName = "oidc";
-const OIDC_AUTH_URI = env.OIDC_AUTH_URI || "";
-const OIDC_TOKEN_URI = env.OIDC_TOKEN_URI || "";
-const OIDC_USERINFO_URI = env.OIDC_USERINFO_URI || "";
-
-export const config = {
-  name: env.OIDC_DISPLAY_NAME,
-  enabled: !!env.OIDC_CLIENT_ID,
-};
 const scopes = env.OIDC_SCOPES.split(" ");
 
 Strategy.prototype.userProfile = async function (accessToken, done) {
   try {
-    const response = await request(OIDC_USERINFO_URI, accessToken);
+    const response = await request(env.OIDC_USERINFO_URI ?? "", accessToken);
     return done(null, response);
   } catch (err) {
     return done(err);
   }
 };
 
-if (env.OIDC_CLIENT_ID && env.OIDC_CLIENT_SECRET) {
+if (
+  env.OIDC_CLIENT_ID &&
+  env.OIDC_CLIENT_SECRET &&
+  env.OIDC_AUTH_URI &&
+  env.OIDC_TOKEN_URI &&
+  env.OIDC_USERINFO_URI
+) {
   passport.use(
     providerName,
     new Strategy(
       {
-        authorizationURL: OIDC_AUTH_URI,
-        tokenURL: OIDC_TOKEN_URI,
+        authorizationURL: env.OIDC_AUTH_URI,
+        tokenURL: env.OIDC_TOKEN_URI,
         clientID: env.OIDC_CLIENT_ID,
         clientSecret: env.OIDC_CLIENT_SECRET,
         callbackURL: `${env.URL}/auth/${providerName}.callback`,
@@ -143,5 +141,7 @@ if (env.OIDC_CLIENT_ID && env.OIDC_CLIENT_SECRET) {
 
   router.get(`${providerName}.callback`, passportMiddleware(providerName));
 }
+
+export const name = env.OIDC_DISPLAY_NAME;
 
 export default router;

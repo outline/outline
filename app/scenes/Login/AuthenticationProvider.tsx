@@ -4,9 +4,9 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { Client } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
-import AuthLogo from "~/components/AuthLogo";
 import ButtonLarge from "~/components/ButtonLarge";
 import InputLarge from "~/components/InputLarge";
+import PluginIcon from "~/components/PluginIcon";
 import env from "~/env";
 import { client } from "~/utils/ApiClient";
 import Desktop from "~/utils/Desktop";
@@ -117,7 +117,7 @@ function AuthenticationProvider(props: Props) {
     <Wrapper>
       <ButtonLarge
         onClick={() => (window.location.href = href)}
-        icon={<AuthLogo providerName={id} />}
+        icon={<PluginIcon id={id} />}
         fullwidth
       >
         {t("Continue with {{ authProviderName }}", {

@@ -21,16 +21,12 @@ import {
 } from "@server/utils/passport";
 
 const router = new Router();
-const GOOGLE = "google";
+const providerName = "google";
+
 const scopes = [
   "https://www.googleapis.com/auth/userinfo.profile",
   "https://www.googleapis.com/auth/userinfo.email",
 ];
-
-export const config = {
-  name: "Google",
-  enabled: !!env.GOOGLE_CLIENT_ID,
-};
 
 type GoogleProfile = Profile & {
   email: string;
@@ -114,7 +110,7 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
               avatarUrl,
             },
             authenticationProvider: {
-              name: GOOGLE,
+              name: providerName,
               providerId: domain ?? "",
             },
             authentication: {
@@ -136,13 +132,13 @@ if (env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET) {
 
   router.get(
     "google",
-    passport.authenticate(GOOGLE, {
+    passport.authenticate(providerName, {
       accessType: "offline",
       prompt: "select_account consent",
     })
   );
 
-  router.get("google.callback", passportMiddleware(GOOGLE));
+  router.get("google.callback", passportMiddleware(providerName));
 }
 
 export default router;

@@ -6,11 +6,11 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { useTheme } from "styled-components";
 import { TeamPreference } from "@shared/types";
-import AuthLogo from "~/components/AuthLogo";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import InputSelect from "~/components/InputSelect";
+import PluginIcon from "~/components/PluginIcon";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
@@ -155,7 +155,7 @@ function Security() {
             key={provider.name}
             label={
               <Flex gap={8} align="center">
-                <AuthLogo providerName={provider.name} color="currentColor" />{" "}
+                <PluginIcon id={provider.name} color="currentColor" />{" "}
                 {provider.displayName}
               </Flex>
             }
