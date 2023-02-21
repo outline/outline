@@ -15,7 +15,6 @@ async function presentDocument(
     isPublic: false,
     ...options,
   };
-  await document.migrateVersion();
   const text = options.isPublic
     ? await DocumentHelper.attachmentsToSignedUrls(
         document.text,
