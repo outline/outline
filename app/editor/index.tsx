@@ -107,7 +107,7 @@ export type Props = {
     event: MouseEvent | React.MouseEvent<HTMLButtonElement>
   ) => void;
   /** Callback when user hovers on any link in the document */
-  onHoverLink?: (event: MouseEvent) => boolean;
+  onHoverLink?: (element: HTMLAnchorElement) => boolean;
   /** Callback when user presses any key with document focused */
   onKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>) => void;
   /** Collection of embed types to render in the document */

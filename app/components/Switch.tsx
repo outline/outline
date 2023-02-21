@@ -124,11 +124,11 @@ const HiddenInput = styled.input<{ width: number; height: number }>`
   }
 
   &:checked + ${Slider} {
-    background-color: ${(props) => props.theme.primary};
+    background-color: ${(props) => props.theme.accent};
   }
 
   &:focus + ${Slider} {
-    box-shadow: 0 0 1px ${(props) => props.theme.primary};
+    box-shadow: 0 0 1px ${(props) => props.theme.accent};
   }
 
   &:checked + ${Slider}:before {

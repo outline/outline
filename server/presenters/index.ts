@@ -16,17 +16,15 @@ import presentNotificationSetting from "./notificationSetting";
 import presentPin from "./pin";
 import presentPolicies from "./policy";
 import presentProviderConfig from "./providerConfig";
+import presentPublicTeam from "./publicTeam";
 import presentRevision from "./revision";
 import presentSearchQuery from "./searchQuery";
 import presentShare from "./share";
-import presentSlackAttachment from "./slackAttachment";
 import presentStar from "./star";
 import presentSubscription from "./subscription";
 import presentTeam from "./team";
 import presentUser from "./user";
 import presentView from "./view";
-import presentWebhook from "./webhook";
-import presentWebhookSubscription from "./webhookSubscription";
 
 export {
   presentApiKey,
@@ -44,18 +42,16 @@ export {
   presentIntegration,
   presentMembership,
   presentNotificationSetting,
+  presentPublicTeam,
   presentPin,
   presentPolicies,
   presentProviderConfig,
   presentRevision,
   presentSearchQuery,
   presentShare,
-  presentSlackAttachment,
   presentStar,
   presentSubscription,
   presentTeam,
   presentUser,
   presentView,
-  presentWebhook,
-  presentWebhookSubscription,
 };

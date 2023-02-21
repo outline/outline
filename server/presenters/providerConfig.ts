@@ -1,5 +1,5 @@
-import { signin } from "@shared/utils/urlHelpers";
-import { AuthenticationProviderConfig } from "@server/routes/auth/providers";
+import { signin } from "@shared/utils/routeHelpers";
+import { AuthenticationProviderConfig } from "@server/models/helpers/AuthenticationHelper";
 
 export default function presentProviderConfig(
   config: AuthenticationProviderConfig

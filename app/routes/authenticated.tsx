@@ -16,41 +16,11 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import { matchDocumentSlug as slug } from "~/utils/routeHelpers";
 
-const SettingsRoutes = React.lazy(
-  () =>
-    import(
-      /* webpackChunkName: "settings" */
-      "./settings"
-    )
-);
-const Document = React.lazy(
-  () =>
-    import(
-      /* webpackChunkName: "preload-document" */
-      "~/scenes/Document"
-    )
-);
-const Collection = React.lazy(
-  () =>
-    import(
-      /* webpackChunkName: "collection" */
-      "~/scenes/Collection"
-    )
-);
-const Home = React.lazy(
-  () =>
-    import(
-      /* webpackChunkName: "home" */
-      "~/scenes/Home"
-    )
-);
-const Search = React.lazy(
-  () =>
-    import(
-      /* webpackChunkName: "search" */
-      "~/scenes/Search"
-    )
-);
+const SettingsRoutes = React.lazy(() => import("./settings"));
+const Document = React.lazy(() => import("~/scenes/Document"));
+const Collection = React.lazy(() => import("~/scenes/Collection"));
+const Home = React.lazy(() => import("~/scenes/Home"));
+const Search = React.lazy(() => import("~/scenes/Search"));
 
 const RedirectDocument = ({
   match,

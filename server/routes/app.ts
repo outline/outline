@@ -12,45 +12,34 @@ import { Integration } from "@server/models";
 import presentEnv from "@server/presenters/env";
 import { getTeamFromContext } from "@server/utils/passport";
 import prefetchTags from "@server/utils/prefetchTags";
+import readManifestFile from "@server/utils/readManifestFile";
 
 const isProduction = env.ENVIRONMENT === "production";
+const isDevelopment = env.ENVIRONMENT === "development";
 const isTest = env.ENVIRONMENT === "test";
 const readFile = util.promisify(fs.readFile);
 let indexHtmlCache: Buffer | undefined;
 
-const readIndexFile = async (ctx: Context): Promise<Buffer> => {
-  if (isProduction) {
-    return (
-      indexHtmlCache ??
-      (indexHtmlCache = await readFile(
-        path.join(__dirname, "../../app/index.html")
-      ))
-    );
+const readIndexFile = async (): Promise<Buffer> => {
+  if (isProduction || isTest) {
+    if (indexHtmlCache) {
+      return indexHtmlCache;
+    }
   }
 
   if (isTest) {
-    return (
-      indexHtmlCache ??
-      (indexHtmlCache = await readFile(
-        path.join(__dirname, "../static/index.html")
-      ))
+    return await readFile(path.join(__dirname, "../static/index.html"));
+  }
+
+  if (isDevelopment) {
+    return await readFile(
+      path.join(__dirname, "../../../server/static/index.html")
     );
   }
 
-  const middleware = ctx.devMiddleware;
-  await new Promise((resolve) => middleware.waitUntilValid(resolve));
-  return new Promise((resolve, reject) => {
-    middleware.fileSystem.readFile(
-      `${ctx.webpackConfig.output.path}/index.html`,
-      (err: Error, result: Buffer) => {
-        if (err) {
-          return reject(err);
-        }
-
-        resolve(result);
-      }
-    );
-  });
+  return (indexHtmlCache = await readFile(
+    path.join(__dirname, "../../app/index.html")
+  ));
 };
 
 export const renderApp = async (
@@ -74,10 +63,26 @@ export const renderApp = async (
   }
 
   const { shareId } = ctx.params;
-  const page = await readIndexFile(ctx);
+  const page = await readIndexFile();
   const environment = `
     window.env = ${JSON.stringify(presentEnv(env, options.analytics))};
   `;
+  const entry = "app/index.tsx";
+  const scriptTags = isProduction
+    ? `<script type="module" src="${env.CDN_URL || ""}/static/${
+        readManifestFile()[entry]["file"]
+      }"></script>`
+    : `<script type="module">
+        import RefreshRuntime from 'http://localhost:3001/static/@react-refresh'
+        RefreshRuntime.injectIntoGlobalHook(window)
+        window.$RefreshReg$ = () => { }
+        window.$RefreshSig$ = () => (type) => type
+        window.__vite_plugin_react_preamble_installed__ = true
+      </script>
+      <script type="module" src="http://localhost:3001/static/@vite/client"></script>
+      <script type="module" src="http://localhost:3001/static/${entry}"></script>
+    `;
+
   ctx.body = page
     .toString()
     .replace(/\/\/inject-env\/\//g, environment)
@@ -85,7 +90,8 @@ export const renderApp = async (
     .replace(/\/\/inject-description\/\//g, escape(description))
     .replace(/\/\/inject-canonical\/\//g, canonical)
     .replace(/\/\/inject-prefetch\/\//g, shareId ? "" : prefetchTags)
-    .replace(/\/\/inject-slack-app-id\/\//g, env.SLACK_APP_ID || "");
+    .replace(/\/\/inject-slack-app-id\/\//g, env.SLACK_APP_ID || "")
+    .replace(/\/\/inject-script-tags\/\//g, scriptTags);
 };
 
 export const renderShare = async (ctx: Context, next: Next) => {

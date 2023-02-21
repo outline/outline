@@ -5,7 +5,7 @@ const Badge = styled.span<{ yellow?: boolean; primary?: boolean }>`
   margin-left: 10px;
   padding: 1px 5px 2px;
   background-color: ${({ yellow, primary, theme }) =>
-    yellow ? theme.yellow : primary ? theme.primary : "transparent"};
+    yellow ? theme.yellow : primary ? theme.accent : "transparent"};
   color: ${({ primary, yellow, theme }) =>
     primary ? theme.white : yellow ? theme.almostBlack : theme.textTertiary};
   border: 1px solid

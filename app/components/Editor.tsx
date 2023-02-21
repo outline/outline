@@ -30,13 +30,7 @@ import { sharedDocumentPath } from "~/utils/routeHelpers";
 import { isHash } from "~/utils/urls";
 import DocumentBreadcrumb from "./DocumentBreadcrumb";
 
-const LazyLoadedEditor = React.lazy(
-  () =>
-    import(
-      /* webpackChunkName: "preload-shared-editor" */
-      "~/editor"
-    )
-);
+const LazyLoadedEditor = React.lazy(() => import("~/editor"));
 
 export type Props = Optional<
   EditorProps,
@@ -72,21 +66,20 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   const history = useHistory();
   const localRef = React.useRef<SharedEditor>();
   const preferences = auth.user?.preferences;
-
+  const previousHeadings = React.useRef<Heading[] | null>(null);
   const [
-    activeLinkEvent,
-    setActiveLinkEvent,
-  ] = React.useState<MouseEvent | null>(null);
-  const previousHeadings = React.useRef<Heading[]>();
+    activeLinkElement,
+    setActiveLink,
+  ] = React.useState<HTMLAnchorElement | null>(null);
   const previousCommentIds = React.useRef<string[]>();
 
-  const handleLinkActive = React.useCallback((event: MouseEvent) => {
-    setActiveLinkEvent(event);
+  const handleLinkActive = React.useCallback((element: HTMLAnchorElement) => {
+    setActiveLink(element);
     return false;
   }, []);
 
   const handleLinkInactive = React.useCallback(() => {
-    setActiveLinkEvent(null);
+    setActiveLink(null);
   }, []);
 
   const handleSearchLink = React.useCallback(
@@ -172,6 +165,12 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
           } catch (err) {
             navigateTo = href;
           }
+        }
+
+        // Link to our own API should be opened in a new tab, not in the app
+        if (navigateTo.startsWith("/api/")) {
+          window.open(href, "_blank");
+          return;
         }
 
         // If we're navigating to an internal document link then prepend the
@@ -351,10 +350,9 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
             minHeight={props.bottomPadding}
           />
         )}
-        {activeLinkEvent && !shareId && (
+        {activeLinkElement && !shareId && (
           <HoverPreview
-            node={activeLinkEvent.target as HTMLAnchorElement}
-            event={activeLinkEvent}
+            element={activeLinkElement}
             onClose={handleLinkInactive}
           />
         )}

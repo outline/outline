@@ -9,7 +9,7 @@ export function deserializeFilename(text: string): string {
   return text.replace(/%2F/g, "/").replace(/%5C/g, "\\");
 }
 
-export function requireDirectory<T>(dirName: string): [T, string][] {
+export function getFilenamesInDirectory(dirName: string): string[] {
   return fs
     .readdirSync(dirName)
     .filter(
@@ -18,10 +18,13 @@ export function requireDirectory<T>(dirName: string): [T, string][] {
         file.match(/\.[jt]s$/) &&
         file !== path.basename(__filename) &&
         !file.includes(".test")
-    )
-    .map((fileName) => {
-      const filePath = path.join(dirName, fileName);
-      const name = path.basename(filePath.replace(/\.[jt]s$/, ""));
-      return [require(filePath), name];
-    });
+    );
+}
+
+export function requireDirectory<T>(dirName: string): [T, string][] {
+  return getFilenamesInDirectory(dirName).map((fileName) => {
+    const filePath = path.join(dirName, fileName);
+    const name = path.basename(filePath.replace(/\.[jt]s$/, ""));
+    return [require(filePath), name];
+  });
 }

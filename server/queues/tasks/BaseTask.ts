@@ -8,7 +8,17 @@ export enum TaskPriority {
   High = 10,
 }
 
+export enum TaskSchedule {
+  Daily = "daily",
+  Hourly = "hourly",
+}
+
 export default abstract class BaseTask<T> {
+  /**
+   * An optional schedule for this task to be run automatically.
+   */
+  static cron: TaskSchedule | undefined;
+
   /**
    * Schedule this task type to be processed asyncronously by a worker.
    *

@@ -10,6 +10,7 @@ import { documentHistoryUrl, matchDocumentHistory } from "~/utils/routeHelpers";
 
 export const restoreRevision = createAction({
   name: ({ t }) => t("Restore revision"),
+  analyticsName: "Restore revision",
   icon: <RestoreIcon />,
   section: RevisionSection,
   visible: ({ activeDocumentId, stores }) =>
@@ -50,6 +51,7 @@ export const restoreRevision = createAction({
 
 export const copyLinkToRevision = createAction({
   name: ({ t }) => t("Copy link"),
+  analyticsName: "Copy link to revision",
   icon: <LinkIcon />,
   section: RevisionSection,
   perform: async ({ activeDocumentId, stores, t }) => {

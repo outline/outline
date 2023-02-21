@@ -89,6 +89,7 @@ export type ActionContext = {
 export type Action = {
   type?: undefined;
   id: string;
+  analyticsName?: string;
   name: ((context: ActionContext) => string) | string;
   section: ((context: ActionContext) => string) | string;
   shortcut?: string[];

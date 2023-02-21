@@ -65,10 +65,10 @@ export default class AttachmentHelper {
    */
   static presetToMaxUploadSize(preset: AttachmentPreset) {
     switch (preset) {
-      case AttachmentPreset.Avatar:
-        return Math.min(1024 * 1024 * 5, env.AWS_S3_UPLOAD_MAX_SIZE);
       case AttachmentPreset.Import:
         return env.MAXIMUM_IMPORT_SIZE;
+      case AttachmentPreset.Avatar:
+      case AttachmentPreset.DocumentAttachment:
       default:
         return env.AWS_S3_UPLOAD_MAX_SIZE;
     }

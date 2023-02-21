@@ -1,4 +1,4 @@
-import { flattenDeep } from "lodash";
+import { flattenDeep, padStart } from "lodash";
 import { Node } from "prosemirror-model";
 import { Plugin, PluginKey, Transaction } from "prosemirror-state";
 import { findBlockNodes } from "prosemirror-utils";
@@ -40,7 +40,7 @@ export const LANGUAGES = {
   swift: "Swift",
   toml: "TOML",
   typescript: "TypeScript",
-  visualbasic: "Visual Basic",
+  vb: "Visual Basic",
   yaml: "YAML",
   zig: "Zig",
 };
@@ -99,21 +99,25 @@ function getDecorations({
       if (lineNumbers) {
         const lineCount =
           (block.node.textContent.match(/\n/g) || []).length + 1;
+        const gutterWidth = String(lineCount).length;
+
+        const lineCountText = new Array(lineCount)
+          .fill(0)
+          .map((_, i) => padStart(`${i + 1}`, gutterWidth, " "))
+          .join(" ");
+
         lineDecorations.push(
-          Decoration.widget(block.pos + 1, () => {
-            const el = document.createElement("div");
-            el.innerText = new Array(lineCount)
-              .fill(0)
-              .map((_, i) => i + 1)
-              .join("\n");
-            el.className = "line-numbers";
-            return el;
-          })
-        );
-        lineDecorations.push(
-          Decoration.node(block.pos, block.pos + block.node.nodeSize, {
-            style: `--line-number-gutter-width: ${String(lineCount).length}`,
-          })
+          Decoration.node(
+            block.pos,
+            block.pos + block.node.nodeSize,
+            {
+              "data-line-numbers": `${lineCountText} `,
+              style: `--line-number-gutter-width: ${gutterWidth};`,
+            },
+            {
+              key: `line-${lineCount}-gutter`,
+            }
+          )
         );
       }
 

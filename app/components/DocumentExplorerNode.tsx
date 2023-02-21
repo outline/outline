@@ -1,7 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Flex from "~/components/Flex";
@@ -23,37 +22,27 @@ type Props = {
   onClick: (ev: React.MouseEvent) => void;
 };
 
-function DocumentExplorerNode({
-  selected,
-  active,
-  style,
-  expanded,
-  icon,
-  title,
-  depth,
-  hasChildren,
-  onDisclosureClick,
-  onPointerMove,
-  onClick,
-}: Props) {
+function DocumentExplorerNode(
+  {
+    selected,
+    active,
+    style,
+    expanded,
+    icon,
+    title,
+    depth,
+    hasChildren,
+    onDisclosureClick,
+    onPointerMove,
+    onClick,
+  }: Props,
+  ref: React.RefObject<HTMLSpanElement>
+) {
   const { t } = useTranslation();
   const OFFSET = 12;
   const ICON_SIZE = 24;
 
   const width = depth ? depth * ICON_SIZE + OFFSET : ICON_SIZE;
-
-  const ref = React.useCallback(
-    (node: HTMLSpanElement | null) => {
-      if (active && node) {
-        scrollIntoView(node, {
-          scrollMode: "if-needed",
-          behavior: "auto",
-          block: "nearest",
-        });
-      }
-    },
-    [active]
-  );
 
   return (
     <Node
@@ -128,7 +117,7 @@ export const Node = styled.span<{
   ${(props) =>
     props.selected &&
     `
-      background: ${props.theme.primary};
+      background: ${props.theme.accent};
       color: ${props.theme.white};
 
       svg {
@@ -142,4 +131,4 @@ export const Node = styled.span<{
   `}
 `;
 
-export default observer(DocumentExplorerNode);
+export default observer(React.forwardRef(DocumentExplorerNode));

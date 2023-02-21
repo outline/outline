@@ -52,7 +52,7 @@ const ListItem = (
         $border={border}
         $small={small}
         activeStyle={{
-          background: theme.primary,
+          background: theme.accent,
         }}
         {...rest}
         as={NavLink}

@@ -4,17 +4,17 @@ import * as React from "react";
 import { Helmet } from "react-helmet";
 import { useTranslation } from "react-i18next";
 import { RouteComponentProps, useLocation, Redirect } from "react-router-dom";
-import styled, { useTheme } from "styled-components";
+import styled, { ThemeProvider } from "styled-components";
 import { setCookie } from "tiny-cookie";
-import { NavigationNode } from "@shared/types";
+import { CustomTheme, NavigationNode } from "@shared/types";
 import DocumentModel from "~/models/Document";
-import Team from "~/models/Team";
 import Error404 from "~/scenes/Error404";
 import ErrorOffline from "~/scenes/ErrorOffline";
 import Layout from "~/components/Layout";
 import Sidebar from "~/components/Sidebar/Shared";
 import Text from "~/components/Text";
 import env from "~/env";
+import useBuildTheme from "~/hooks/useBuildTheme";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { AuthorizationError, OfflineError } from "~/utils/errors";
@@ -28,7 +28,11 @@ const EMPTY_OBJECT = {};
 
 type Response = {
   document: DocumentModel;
-  team?: Team;
+  team?: {
+    name: string;
+    avatarUrl: string;
+    customTheme?: Partial<CustomTheme>;
+  };
   sharedTree?: NavigationNode | undefined;
 };
 
@@ -81,7 +85,6 @@ function useDocumentId(documentSlug: string, response?: Response) {
 
 function SharedDocumentScene(props: Props) {
   const { ui, auth } = useStores();
-  const theme = useTheme();
   const location = useLocation();
   const searchParams = React.useMemo(
     () => new URLSearchParams(location.search),
@@ -94,6 +97,7 @@ function SharedDocumentScene(props: Props) {
   const { shareId, documentSlug } = props.match.params;
   const documentId = useDocumentId(documentSlug, response);
   const can = usePolicy(response?.document.id ?? "");
+  const theme = useBuildTheme(response?.team?.customTheme);
 
   React.useEffect(() => {
     if (!auth.user) {
@@ -177,15 +181,17 @@ function SharedDocumentScene(props: Props) {
           href={canonicalOrigin + location.pathname.replace(/\/$/, "")}
         />
       </Helmet>
-      <Layout title={response.document.title} sidebar={sidebar}>
-        <Document
-          abilities={EMPTY_OBJECT}
-          document={response.document}
-          sharedTree={response.sharedTree}
-          shareId={shareId}
-          readOnly
-        />
-      </Layout>
+      <ThemeProvider theme={theme}>
+        <Layout title={response.document.title} sidebar={sidebar}>
+          <Document
+            abilities={EMPTY_OBJECT}
+            document={response.document}
+            sharedTree={response.sharedTree}
+            shareId={shareId}
+            readOnly
+          />
+        </Layout>
+      </ThemeProvider>
     </>
   );
 }

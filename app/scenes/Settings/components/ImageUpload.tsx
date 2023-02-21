@@ -53,7 +53,7 @@ class ImageUpload extends React.Component<RootStore & Props> {
     this.isUploading = true;
     // allow the UI to update before converting the canvas to a Blob
     // for large images this can cause the page rendering to hang.
-    setImmediate(this.uploadImage);
+    setTimeout(this.uploadImage, 0);
   };
 
   uploadImage = async () => {

@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Switch, Redirect } from "react-router-dom";
+import { Switch } from "react-router-dom";
 import Error404 from "~/scenes/Error404";
 import Route from "~/components/ProfiledRoute";
 import useSettingsConfig from "~/hooks/useSettingsConfig";
@@ -17,10 +17,6 @@ export default function SettingsRoutes() {
           component={config.component}
         />
       ))}
-      {/* old routes */}
-      <Redirect from="/settings/import-export" to="/settings/export" />
-      <Redirect from="/settings/people" to="/settings/members" />
-      <Redirect from="/settings/profile" to="/settings" />
       <Route component={Error404} />
     </Switch>
   );

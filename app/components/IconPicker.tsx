@@ -46,6 +46,7 @@ import Flex from "~/components/Flex";
 import { LabelText } from "~/components/Input";
 import NudeButton from "~/components/NudeButton";
 import Text from "~/components/Text";
+import DelayedMount from "./DelayedMount";
 
 const style = {
   width: 30,
@@ -53,11 +54,7 @@ const style = {
 };
 
 const TwitterPicker = React.lazy(
-  () =>
-    import(
-      /* webpackChunkName: "twitter-picker" */
-      "react-color/lib/components/twitter/Twitter"
-    )
+  () => import("react-color/lib/components/twitter/Twitter")
 );
 
 export const icons = {
@@ -267,7 +264,13 @@ function IconPicker({ onOpen, onClose, icon, color, onChange }: Props) {
           })}
         </Icons>
         <Colors>
-          <React.Suspense fallback={<Loading>{t("Loading")}…</Loading>}>
+          <React.Suspense
+            fallback={
+              <DelayedMount>
+                <Text>{t("Loading")}…</Text>
+              </DelayedMount>
+            }
+          >
             <ColorPicker
               color={color}
               onChange={(color) => onChange(color.hex, icon)}
@@ -330,10 +333,6 @@ const IconButton = styled(NudeButton)`
   margin: 0px 6px 6px 0px;
   width: 30px;
   height: 30px;
-`;
-
-const Loading = styled(Text)`
-  padding: 16px;
 `;
 
 const ColorPicker = styled(TwitterPicker)`

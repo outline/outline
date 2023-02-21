@@ -1,7 +1,6 @@
 import fs from "fs-extra";
 import invariant from "invariant";
 import Router from "koa-router";
-import { pick } from "lodash";
 import mime from "mime-types";
 import { Op, ScopeOptions, WhereOptions } from "sequelize";
 import { TeamPreference } from "@shared/types";
@@ -41,6 +40,7 @@ import {
   presentCollection,
   presentDocument,
   presentPolicies,
+  presentPublicTeam,
 } from "@server/presenters";
 import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
@@ -419,7 +419,7 @@ router.post(
         ? {
             document: serializedDocument,
             team: team?.getPreference(TeamPreference.PublicBranding)
-              ? pick(team, ["avatarUrl", "name"])
+              ? presentPublicTeam(team)
               : undefined,
             sharedTree:
               share && share.includeChildDocuments
@@ -458,7 +458,10 @@ router.post(
 
     if (accept?.includes("text/html")) {
       contentType = "text/html";
-      content = await DocumentHelper.toHTML(document);
+      content = await DocumentHelper.toHTML(document, {
+        signedUrls: true,
+        centered: true,
+      });
     } else if (accept?.includes("application/pdf")) {
       throw IncorrectEditionError(
         "PDF export is not available in the community edition"

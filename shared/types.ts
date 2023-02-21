@@ -108,6 +108,11 @@ export enum UserPreference {
 
 export type UserPreferences = { [key in UserPreference]?: boolean };
 
+export type CustomTheme = {
+  accent: string;
+  accentText: string;
+};
+
 export enum TeamPreference {
   /** Whether documents have a separate edit mode instead of seamless editing. */
   SeamlessEdit = "seamlessEdit",
@@ -117,9 +122,16 @@ export enum TeamPreference {
   ViewersCanExport = "viewersCanExport",
   /** Whether users can comment on documents. */
   Commenting = "commenting",
+  /** The custom theme for the team. */
+  CustomTheme = "customTheme",
 }
 
-export type TeamPreferences = { [key in TeamPreference]?: boolean };
+export type TeamPreferences = {
+  [TeamPreference.SeamlessEdit]?: boolean;
+  [TeamPreference.PublicBranding]?: boolean;
+  [TeamPreference.ViewersCanExport]?: boolean;
+  [TeamPreference.CustomTheme]?: Partial<CustomTheme>;
+};
 
 export enum NavigationNodeType {
   Collection = "collection",

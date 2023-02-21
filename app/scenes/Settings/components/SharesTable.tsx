@@ -63,7 +63,7 @@ function SharesTable({ canManage, ...rest }: Props) {
           Cell: observer(({ value }: { value: string }) =>
             value ? (
               <Flex align="center">
-                <CheckmarkIcon color={theme.primary} />
+                <CheckmarkIcon color={theme.accent} />
               </Flex>
             ) : null
           ),
@@ -89,7 +89,7 @@ function SharesTable({ canManage, ...rest }: Props) {
             }
           : undefined,
       ].filter((i) => i),
-    [t, theme.primary, canManage]
+    [t, theme.accent, canManage]
   );
 
   return <TableFromParams columns={columns} {...rest} />;

@@ -10,7 +10,7 @@ import {
   Mark as ProsemirrorMark,
 } from "prosemirror-model";
 import { EditorState, Plugin } from "prosemirror-state";
-import { Decoration, DecorationSet } from "prosemirror-view";
+import { Decoration, DecorationSet, EditorView } from "prosemirror-view";
 import * as React from "react";
 import ReactDOM from "react-dom";
 import { isExternalUrl, sanitizeUrl } from "../../utils/urls";
@@ -206,29 +206,28 @@ export default class Link extends Mark {
         },
       },
       props: {
-        decorations: (state) => plugin.getState(state),
+        decorations: (state: EditorState) => plugin.getState(state),
         handleDOMEvents: {
-          mouseover: (view, event: MouseEvent) => {
+          mouseover: (view: EditorView, event: MouseEvent) => {
+            const target = (event.target as HTMLElement)?.closest("a");
             if (
-              event.target instanceof HTMLAnchorElement &&
-              !event.target.className.includes("ProseMirror-widget") &&
+              target instanceof HTMLAnchorElement &&
+              !target.className.includes("ProseMirror-widget") &&
               (!view.editable || (view.editable && !view.hasFocus()))
             ) {
               if (this.options.onHoverLink) {
-                return this.options.onHoverLink(event);
+                return this.options.onHoverLink(target);
               }
             }
             return false;
           },
-          mousedown: (view, event: MouseEvent) => {
-            if (
-              !(event.target instanceof HTMLAnchorElement) ||
-              event.button !== 0
-            ) {
+          mousedown: (view: EditorView, event: MouseEvent) => {
+            const target = (event.target as HTMLElement)?.closest("a");
+            if (!(target instanceof HTMLAnchorElement) || event.button !== 0) {
               return false;
             }
 
-            if (event.target.matches(".component-attachment *")) {
+            if (target.matches(".component-attachment *")) {
               return false;
             }
 
@@ -236,9 +235,9 @@ export default class Link extends Mark {
             // clicking in read-only will navigate
             if (!view.editable || (view.editable && !view.hasFocus())) {
               const href =
-                event.target.href ||
-                (event.target.parentNode instanceof HTMLAnchorElement
-                  ? event.target.parentNode.href
+                target.href ||
+                (target.parentNode instanceof HTMLAnchorElement
+                  ? target.parentNode.href
                   : "");
 
               try {
@@ -258,7 +257,7 @@ export default class Link extends Mark {
 
             return false;
           },
-          click: (view, event) => {
+          click: (view: EditorView, event: MouseEvent) => {
             if (
               !(event.target instanceof HTMLAnchorElement) ||
               event.button !== 0

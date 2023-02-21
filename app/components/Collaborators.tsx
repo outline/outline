@@ -4,7 +4,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
 import Document from "~/models/Document";
-import { AvatarWithPresence } from "~/components/Avatar";
+import AvatarWithPresence from "~/components/Avatar/AvatarWithPresence";
 import DocumentViews from "~/components/DocumentViews";
 import Facepile from "~/components/Facepile";
 import NudeButton from "~/components/NudeButton";

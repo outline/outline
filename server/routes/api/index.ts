@@ -1,9 +1,12 @@
+import path from "path";
+import glob from "glob";
 import Koa, { BaseContext } from "koa";
 import bodyParser from "koa-body";
 import Router from "koa-router";
 import userAgent, { UserAgentContext } from "koa-useragent";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
+import Logger from "@server/logging/Logger";
 import { AppState, AppContext } from "@server/types";
 import apiKeys from "./apiKeys";
 import attachments from "./attachments";
@@ -17,7 +20,6 @@ import documents from "./documents";
 import events from "./events";
 import fileOperationsRoute from "./fileOperations";
 import groups from "./groups";
-import hooks from "./hooks";
 import integrations from "./integrations";
 import apiWrapper from "./middlewares/apiWrapper";
 import editor from "./middlewares/editor";
@@ -28,10 +30,9 @@ import searches from "./searches";
 import shares from "./shares";
 import stars from "./stars";
 import subscriptions from "./subscriptions";
-import team from "./team";
+import teams from "./teams";
 import users from "./users";
 import views from "./views";
-import webhookSubscriptions from "./webhookSubscriptions";
 
 const api = new Koa<AppState, AppContext>();
 const router = new Router();
@@ -49,6 +50,16 @@ api.use<BaseContext, UserAgentContext>(userAgent);
 api.use(apiWrapper());
 api.use(editor());
 
+// register package API routes before others to allow for overrides
+glob
+  .sync("build/plugins/*/server/api/!(*.test).js")
+  .forEach((filePath: string) => {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const pkg: Router = require(path.join(process.cwd(), filePath)).default;
+    router.use("/", pkg.routes());
+    Logger.debug("lifecycle", `Registered API routes for ${filePath}`);
+  });
+
 // routes
 router.use("/", auth.routes());
 router.use("/", authenticationProviders.routes());
@@ -60,20 +71,18 @@ router.use("/", documents.routes());
 router.use("/", pins.routes());
 router.use("/", revisions.routes());
 router.use("/", views.routes());
-router.use("/", hooks.routes());
 router.use("/", apiKeys.routes());
 router.use("/", searches.routes());
 router.use("/", shares.routes());
 router.use("/", stars.routes());
 router.use("/", subscriptions.routes());
-router.use("/", team.routes());
+router.use("/", teams.routes());
 router.use("/", integrations.routes());
 router.use("/", notificationSettings.routes());
 router.use("/", attachments.routes());
 router.use("/", cron.routes());
 router.use("/", groups.routes());
 router.use("/", fileOperationsRoute.routes());
-router.use("/", webhookSubscriptions.routes());
 
 if (env.ENVIRONMENT === "development") {
   router.use("/", developer.routes());

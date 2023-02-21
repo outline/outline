@@ -276,7 +276,7 @@ const Positioner = styled(Position)`
     ${StyledSelectOption} {
       &[aria-selected="true"] {
         color: ${(props) => props.theme.white};
-        background: ${(props) => props.theme.primary};
+        background: ${(props) => props.theme.accent};
         box-shadow: none;
         cursor: var(--pointer);
 

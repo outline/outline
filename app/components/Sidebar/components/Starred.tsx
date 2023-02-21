@@ -55,8 +55,10 @@ function Starred() {
   // Drop to reorder document
   const [{ isOverReorder, isDraggingAnyStar }, dropToReorder] = useDrop({
     accept: "star",
-    drop: async (item: Star) => {
-      item?.save({ index: fractionalIndex(null, stars.orderedData[0].index) });
+    drop: async (item: { star: Star }) => {
+      item.star.save({
+        index: fractionalIndex(null, stars.orderedData[0].index),
+      });
     },
     collect: (monitor) => ({
       isOverReorder: !!monitor.isOver(),
