@@ -3,8 +3,6 @@ import { Revision } from "@server/models";
 import presentUser from "./user";
 
 async function presentRevision(revision: Revision, diff?: string) {
-  await revision.migrateVersion();
-
   return {
     id: revision.id,
     documentId: revision.documentId,

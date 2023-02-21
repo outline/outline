@@ -107,22 +107,6 @@ class Revision extends IdModel {
       order: [["createdAt", "DESC"]],
     });
   }
-
-  migrateVersion = function () {
-    // migrate from document version 0 -> 1
-    if (!this.version) {
-      // removing the title from the document text attribute
-      this.text = this.text.replace(/^#\s(.*)\n/, "");
-      this.version = 1;
-
-      return this.save({
-        silent: true,
-        hooks: false,
-      });
-    }
-
-    return undefined;
-  };
 }
 
 export default Revision;
