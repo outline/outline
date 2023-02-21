@@ -71,7 +71,7 @@ const Wrapper = styled.div`
 const NewCommentForm = styled(CommentForm)`
   background: ${(props) => props.theme.background};
   position: absolute;
-  padding: 12px 18px 12px;
+  padding: 12px 18px 12px 12px;
   left: 0;
   right: 0;
   bottom: 0;

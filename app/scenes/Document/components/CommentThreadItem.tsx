@@ -7,7 +7,7 @@ import styled, { css } from "styled-components";
 import { Minute } from "@shared/utils/time";
 import Comment from "~/models/Comment";
 import Avatar from "~/components/Avatar";
-import Button from "~/components/Button";
+import ButtonSmall from "~/components/ButtonSmall";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
@@ -154,12 +154,12 @@ function CommentThreadItem({
           />
           {isEditing && (
             <Flex align="flex-end" gap={8}>
-              <Button type="submit" borderOnHover>
+              <ButtonSmall type="submit" borderOnHover>
                 {t("Save")}
-              </Button>
-              <Button onClick={handleCancel} neutral borderOnHover>
+              </ButtonSmall>
+              <ButtonSmall onClick={handleCancel} neutral borderOnHover>
                 {t("Cancel")}
-              </Button>
+              </ButtonSmall>
             </Flex>
           )}
         </Body>

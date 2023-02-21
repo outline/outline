@@ -487,10 +487,6 @@ export class Editor extends React.PureComponent<
     return view;
   }
 
-  private dispatchThemeChanged = (event: CustomEvent) => {
-    this.view.dispatch(this.view.state.tr.setMeta("theme", event.detail));
-  };
-
   public scrollToAnchor(hash: string) {
     if (!hash) {
       return;
@@ -509,6 +505,18 @@ export class Editor extends React.PureComponent<
     }
   }
 
+  public value = (asString = true, trim?: boolean) => {
+    if (asString) {
+      const content = this.serializer.serialize(this.view.state.doc);
+      return trim ? content.trim() : content;
+    }
+
+    return (trim
+      ? ProsemirrorHelper.trim(this.view.state.doc)
+      : this.view.state.doc
+    ).toJSON();
+  };
+
   private calculateDir = () => {
     if (!this.element.current) {
       return;
@@ -523,16 +531,106 @@ export class Editor extends React.PureComponent<
     }
   };
 
-  public value = (asString = true, trim?: boolean) => {
-    if (asString) {
-      const content = this.serializer.serialize(this.view.state.doc);
-      return trim ? content.trim() : content;
-    }
+  /**
+   * Focus the editor at the start of the content.
+   */
+  public focusAtStart = () => {
+    const selection = Selection.atStart(this.view.state.doc);
+    const transaction = this.view.state.tr.setSelection(selection);
+    this.view.dispatch(transaction);
+    this.view.focus();
+  };
 
-    return (trim
-      ? ProsemirrorHelper.trim(this.view.state.doc)
-      : this.view.state.doc
-    ).toJSON();
+  /**
+   * Focus the editor at the end of the content.
+   */
+  public focusAtEnd = () => {
+    const selection = Selection.atEnd(this.view.state.doc);
+    const transaction = this.view.state.tr.setSelection(selection);
+    this.view.dispatch(transaction);
+    this.view.focus();
+  };
+
+  /**
+   * Returns true if the trimmed content of the editor is an empty string.
+   *
+   * @returns True if the editor is empty
+   */
+  public isEmpty = () => {
+    return ProsemirrorHelper.isEmpty(this.view.state.doc);
+  };
+
+  /**
+   * Return the headings in the current editor.
+   *
+   * @returns A list of headings in the document
+   */
+  public getHeadings = () => {
+    return ProsemirrorHelper.getHeadings(this.view.state.doc);
+  };
+
+  /**
+   * Return the tasks/checkmarks in the current editor.
+   *
+   * @returns A list of tasks in the document
+   */
+  public getTasks = () => {
+    return ProsemirrorHelper.getTasks(this.view.state.doc);
+  };
+
+  /**
+   * Return the comments in the current editor.
+   *
+   * @returns A list of comments in the document
+   */
+  public getComments = () => {
+    return ProsemirrorHelper.getComments(this.view.state.doc);
+  };
+
+  /**
+   * Remove a specific comment mark from the document.
+   *
+   * @param commentId The id of the comment to remove
+   */
+  public removeComment = (commentId: string) => {
+    const { state, dispatch } = this.view;
+    let found = false;
+    state.doc.descendants((node, pos) => {
+      if (!node.isInline || found) {
+        return;
+      }
+
+      const mark = node.marks.find(
+        (mark) =>
+          mark.type === state.schema.marks.comment &&
+          mark.attrs.id === commentId
+      );
+
+      if (mark) {
+        dispatch(state.tr.removeMark(pos, pos + node.nodeSize, mark));
+        found = true;
+      }
+    });
+  };
+
+  /**
+   * Return the plain text content of the current editor.
+   *
+   * @returns A string of text
+   */
+  public getPlainText = () => {
+    const { doc } = this.view.state;
+    const textSerializers = Object.fromEntries(
+      Object.entries(this.schema.nodes)
+        .filter(([, node]) => node.spec.toPlainText)
+        .map(([name, node]) => [name, node.spec.toPlainText])
+    );
+
+    return textBetween(doc, 0, doc.content.size, textSerializers);
+  };
+
+  private dispatchThemeChanged = (event: CustomEvent) => {
+    this.view.dispatch(this.view.state.tr.setMeta("theme", event.detail));
   };
 
   private handleChange = () => {
@@ -601,78 +699,6 @@ export class Editor extends React.PureComponent<
       return;
     }
     this.setState({ blockMenuOpen: false });
-  };
-
-  /**
-   * Focus the editor at the start of the content.
-   */
-  public focusAtStart = () => {
-    const selection = Selection.atStart(this.view.state.doc);
-    const transaction = this.view.state.tr.setSelection(selection);
-    this.view.dispatch(transaction);
-    this.view.focus();
-  };
-
-  /**
-   * Focus the editor at the end of the content.
-   */
-  public focusAtEnd = () => {
-    const selection = Selection.atEnd(this.view.state.doc);
-    const transaction = this.view.state.tr.setSelection(selection);
-    this.view.dispatch(transaction);
-    this.view.focus();
-  };
-
-  /**
-   * Returns true if the trimmed content of the editor is an empty string.
-   *
-   * @returns True if the editor is empty
-   */
-  public isEmpty = () => {
-    return ProsemirrorHelper.isEmpty(this.view.state.doc);
-  };
-
-  /**
-   * Return the headings in the current editor.
-   *
-   * @returns A list of headings in the document
-   */
-  public getHeadings = () => {
-    return ProsemirrorHelper.getHeadings(this.view.state.doc);
-  };
-
-  /**
-   * Return the tasks/checkmarks in the current editor.
-   *
-   * @returns A list of tasks in the document
-   */
-  public getTasks = () => {
-    return ProsemirrorHelper.getTasks(this.view.state.doc);
-  };
-
-  /**
-   * Return the comments in the current editor.
-   *
-   * @returns A list of comments in the document
-   */
-  public getComments = () => {
-    return ProsemirrorHelper.getComments(this.view.state.doc);
-  };
-
-  /**
-   * Return the plain text content of the current editor.
-   *
-   * @returns A string of text
-   */
-  public getPlainText = () => {
-    const { doc } = this.view.state;
-    const textSerializers = Object.fromEntries(
-      Object.entries(this.schema.nodes)
-        .filter(([, node]) => node.spec.toPlainText)
-        .map(([name, node]) => [name, node.spec.toPlainText])
-    );
-
-    return textBetween(doc, 0, doc.content.size, textSerializers);
   };
 
   public render() {

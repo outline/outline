@@ -5,7 +5,8 @@ import { useTranslation } from "react-i18next";
 import { CommentValidation } from "@shared/validations";
 import Comment from "~/models/Comment";
 import Avatar from "~/components/Avatar";
-import Button from "~/components/Button";
+import ButtonSmall from "~/components/ButtonSmall";
+import { useDocumentContext } from "~/components/DocumentContext";
 import Flex from "~/components/Flex";
 import type { Editor as SharedEditor } from "~/editor";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -40,6 +41,7 @@ function CommentForm({
   placeholder,
   ...rest
 }: Props) {
+  const { editor } = useDocumentContext();
   const [data, setData] = usePersistedState<Record<string, any> | undefined>(
     `draft-${documentId}-${thread.id}`,
     undefined
@@ -55,6 +57,9 @@ function CommentForm({
 
   useOnClickOutside(formRef, () => {
     if (isEmpty && thread.isNew) {
+      if (thread.id) {
+        editor?.removeComment(thread.id);
+      }
       thread.delete();
     }
   });
@@ -143,7 +148,7 @@ function CommentForm({
       <Flex gap={8} align="flex-start">
         <Avatar model={user} size={24} />
         <Bubble
-          gap={8}
+          gap={10}
           onClick={handleClickPadding}
           $lastOfThread
           $firstOfAuthor
@@ -168,12 +173,12 @@ function CommentForm({
 
           {!isEmpty && (
             <Flex align="flex-end" gap={8}>
-              <Button type="submit" borderOnHover>
+              <ButtonSmall type="submit" borderOnHover>
                 {thread.isNew ? t("Post") : t("Reply")}
-              </Button>
-              <Button onClick={handleCancel} neutral borderOnHover>
+              </ButtonSmall>
+              <ButtonSmall onClick={handleCancel} neutral borderOnHover>
                 {t("Cancel")}
-              </Button>
+              </ButtonSmall>
             </Flex>
           )}
         </Bubble>
