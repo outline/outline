@@ -2,6 +2,7 @@ import { AnimatePresence } from "framer-motion";
 import { observer, useLocalStore } from "mobx-react";
 import * as React from "react";
 import { Switch, Route, useLocation, matchPath } from "react-router-dom";
+import { TeamPreference } from "@shared/types";
 import ErrorSuspended from "~/scenes/ErrorSuspended";
 import DocumentContext from "~/components/DocumentContext";
 import type { DocumentContextValue } from "~/components/DocumentContext";
@@ -91,7 +92,11 @@ const AuthenticatedLayout: React.FC = ({ children }) => {
   const showInsights = !!matchPath(location.pathname, {
     path: matchDocumentInsights,
   });
-  const showComments = !showInsights && !showHistory && !ui.commentsCollapsed;
+  const showComments =
+    !showInsights &&
+    !showHistory &&
+    !ui.commentsCollapsed &&
+    team?.getPreference(TeamPreference.Commenting);
 
   const sidebarRight = (
     <AnimatePresence>

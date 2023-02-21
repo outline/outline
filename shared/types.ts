@@ -130,6 +130,7 @@ export type TeamPreferences = {
   [TeamPreference.SeamlessEdit]?: boolean;
   [TeamPreference.PublicBranding]?: boolean;
   [TeamPreference.ViewersCanExport]?: boolean;
+  [TeamPreference.Commenting]?: boolean;
   [TeamPreference.CustomTheme]?: Partial<CustomTheme>;
 };
 
