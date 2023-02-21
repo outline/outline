@@ -1,5 +1,3 @@
-declare module "slate-md-serializer";
-
 declare module "sequelize-encrypted";
 
 declare module "styled-components-breakpoint";

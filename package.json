@@ -197,8 +197,6 @@
     "sequelize-cli": "^6.4.1",
     "sequelize-encrypted": "^1.0.0",
     "sequelize-typescript": "^2.1.5",
-    "slate": "0.45.0",
-    "slate-md-serializer": "5.5.4",
     "slug": "^5.3.0",
     "slugify": "^1.6.5",
     "smooth-scroll-into-view-if-needed": "^1.1.32",

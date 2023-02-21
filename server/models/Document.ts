@@ -29,7 +29,6 @@ import {
   IsNumeric,
   IsDate,
 } from "sequelize-typescript";
-import MarkdownSerializer from "slate-md-serializer";
 import isUUID from "validator/lib/isUUID";
 import type { NavigationNode } from "@shared/types";
 import getTasks from "@shared/utils/getTasks";
@@ -49,8 +48,6 @@ import ParanoidModel from "./base/ParanoidModel";
 import Fix from "./decorators/Fix";
 import DocumentHelper from "./helpers/DocumentHelper";
 import Length from "./validators/Length";
-
-const serializer = new MarkdownSerializer();
 
 export const DOCUMENT_VERSION = 2;
 
@@ -471,27 +468,12 @@ class Document extends ParanoidModel {
   // instance methods
 
   migrateVersion = () => {
-    let migrated = false;
-
     // migrate from document version 0 -> 1
     if (!this.version) {
       // removing the title from the document text attribute
       this.text = this.text.replace(/^#\s(.*)\n/, "");
       this.version = 1;
-      migrated = true;
-    }
 
-    // migrate from document version 1 -> 2
-    if (this.version === 1) {
-      const nodes = serializer.deserialize(this.text);
-      this.text = serializer.serialize(nodes, {
-        version: 2,
-      });
-      this.version = 2;
-      migrated = true;
-    }
-
-    if (migrated) {
       return this.save({
         silent: true,
         hooks: false,
