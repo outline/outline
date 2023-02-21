@@ -12,6 +12,8 @@ export const TeamsUpdateSchema = BaseSchema.extend({
     subdomain: z.string().optional(),
     /** Whether public sharing is enabled */
     sharing: z.boolean().optional(),
+    /** Whether commenting is enabled */
+    commenting: z.boolean().optional(),
     /** Whether siginin with email is enabled */
     guestSignin: z.boolean().optional(),
     /** Whether third-party document embeds are enabled */
