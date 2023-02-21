@@ -93,7 +93,7 @@ function CommentThread({
         },
       });
 
-      setImmediate(() => {
+      setTimeout(() => {
         const commentMarkElement = window.document?.getElementById(
           `comment-${thread.id}`
         );
@@ -101,7 +101,7 @@ function CommentThread({
           behavior: "smooth",
           block: "center",
         });
-      });
+      }, 0);
     }
   }, [focused, thread.id]);
 

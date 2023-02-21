@@ -172,7 +172,7 @@ function CommentForm({
                 {thread.isNew ? t("Post") : t("Reply")}
               </Button>
               <Button onClick={handleCancel} neutral borderOnHover>
-                Cancel
+                {t("Cancel")}
               </Button>
             </Flex>
           )}
