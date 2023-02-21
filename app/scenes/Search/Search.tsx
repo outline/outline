@@ -4,7 +4,11 @@ import { observer } from "mobx-react";
 import queryString from "query-string";
 import * as React from "react";
 import { WithTranslation, withTranslation, Trans } from "react-i18next";
-import { RouteComponentProps, StaticContext, withRouter } from "react-router";
+import {
+  RouteComponentProps,
+  StaticContext,
+  withRouter,
+} from "react-router-dom";
 import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
