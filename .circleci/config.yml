@@ -94,6 +94,8 @@ jobs:
           command: yarn test:server --forceExit
   bundle-size:
     <<: *defaults
+    environment:
+      NODE_ENV: production
     steps:
       - checkout
       - restore_cache:
