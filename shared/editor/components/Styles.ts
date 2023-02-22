@@ -1467,6 +1467,11 @@ del[data-operation-index] {
     display: none;
   }
 
+  .comment {
+    border: 0;
+    background: none;
+  }
+
   .page-break {
     opacity: 0;
   }

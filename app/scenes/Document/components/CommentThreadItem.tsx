@@ -186,6 +186,7 @@ const StyledCommentEditor = styled(CommentEditor)`
 const AvatarSpacer = styled(Flex)`
   width: 24px;
   height: 24px;
+  margin-top: 4px;
   align-items: flex-end;
   justify-content: flex-end;
   flex-direction: column;

@@ -80,7 +80,7 @@ function CommentForm({
         showToast(t("Error creating comment"), { type: "error" });
       });
 
-    // optimisticly update the comment model
+    // optimistically update the comment model
     thread.isNew = false;
     thread.createdBy = user;
   });
@@ -146,7 +146,7 @@ function CommentForm({
       {...rest}
     >
       <Flex gap={8} align="flex-start">
-        <Avatar model={user} size={24} />
+        <Avatar model={user} size={24} style={{ marginTop: 8 }} />
         <Bubble
           gap={10}
           onClick={handleClickPadding}

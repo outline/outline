@@ -13,6 +13,14 @@ import CommentForm from "./CommentForm";
 import CommentThread from "./CommentThread";
 import Sidebar from "./SidebarLayout";
 
+function useFocusedComment() {
+  const { comments } = useStores();
+  const location = useLocation<{ commentId?: string }>();
+  const query = useQuery();
+  const focusedCommentId = location.state?.commentId || query.get("commentId");
+  return focusedCommentId ? comments.get(focusedCommentId) : undefined;
+}
+
 function Comments() {
   const { ui, comments, documents } = useStores();
   const [newComment] = React.useState(new Comment({}, comments));
@@ -20,9 +28,7 @@ function Comments() {
   const user = useCurrentUser();
   const match = useRouteMatch<{ documentSlug: string }>();
   const document = documents.getByUrl(match.params.documentSlug);
-  const query = useQuery();
-  const location = useLocation<{ commentId?: string }>();
-  const focusedCommentId = location.state?.commentId || query.get("commentId");
+  const focusedComment = useFocusedComment();
 
   if (!document) {
     return null;
@@ -39,13 +45,13 @@ function Comments() {
               key={thread.id}
               comment={thread}
               document={document}
-              recessed={!!focusedCommentId && focusedCommentId !== thread.id}
-              focused={focusedCommentId === thread.id}
+              recessed={!!focusedComment && focusedComment.id !== thread.id}
+              focused={focusedComment?.id === thread.id}
             />
           ))}
         <Flex />
 
-        {!focusedCommentId && (
+        {!focusedComment && (
           <Fade>
             <NewCommentForm
               documentId={document.id}
