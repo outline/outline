@@ -22,6 +22,7 @@ import {
   CollectionUser,
   CollectionGroup,
   GroupUser,
+  Mention,
 } from "@server/models";
 import {
   presentCollection,
@@ -51,6 +52,7 @@ import {
   GroupEvent,
   GroupUserEvent,
   IntegrationEvent,
+  MentionEvent,
   PinEvent,
   RevisionEvent,
   ShareEvent,
@@ -194,6 +196,9 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
         return;
       case "views.create":
         await this.handleViewEvent(subscription, event);
+        return;
+      case "mentions.create":
+        await this.handleMentionEvent(subscription, event);
         return;
       default:
         assertUnreachable(event);
@@ -498,6 +503,26 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       payload: {
         id: event.modelId,
         model: model && (await presentRevision(model)),
+      },
+    });
+  }
+
+  private async handleMentionEvent(
+    subscription: WebhookSubscription,
+    event: MentionEvent
+  ): Promise<void> {
+    const model = await Mention.findByPk(event.modelId);
+
+    await this.sendWebhook({
+      event,
+      subscription,
+      payload: {
+        id: event.modelId,
+        model: {
+          actor: model && model.user && presentUser(model.user),
+          mentionedUser: model && presentUser(model.mentionedUser),
+          document: model && presentDocument(model.document),
+        },
       },
     });
   }

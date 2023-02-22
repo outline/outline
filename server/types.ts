@@ -326,6 +326,13 @@ export type WebhookSubscriptionEvent = BaseEvent & {
   };
 };
 
+export type MentionEvent = BaseEvent & {
+  name: "mentions.create";
+  modelId: string;
+  documentId: string;
+  userId: string;
+};
+
 export type Event =
   | ApiKeyEvent
   | AttachmentEvent
@@ -343,7 +350,8 @@ export type Event =
   | TeamEvent
   | UserEvent
   | ViewEvent
-  | WebhookSubscriptionEvent;
+  | WebhookSubscriptionEvent
+  | MentionEvent;
 
 export type NotificationMetadata = {
   notificationId?: string;

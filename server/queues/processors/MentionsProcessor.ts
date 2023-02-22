@@ -1,19 +1,19 @@
 import { Op } from "sequelize";
 import Logger from "@server/logging/Logger";
 import { Document, Mention, User } from "@server/models";
-import { Event, DocumentEvent, UserEvent } from "@server/types";
+import { Event, DocumentEvent, UserEvent, RevisionEvent } from "@server/types";
 import parseMentions from "@server/utils/parseMentions";
 import BaseProcessor from "./BaseProcessor";
 
 export default class MentionsProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = [
     "documents.publish",
-    "documents.update",
+    "revisions.create",
     "documents.delete",
     "users.delete",
   ];
 
-  async perform(event: DocumentEvent | UserEvent) {
+  async perform(event: DocumentEvent | UserEvent | RevisionEvent) {
     switch (event.name) {
       case "documents.publish": {
         const document = await Document.findByPk(event.documentId);
@@ -58,7 +58,7 @@ export default class MentionsProcessor extends BaseProcessor {
         break;
       }
 
-      case "documents.update": {
+      case "revisions.create": {
         const document = await Document.findByPk(event.documentId);
         if (!(document && document.publishedAt)) {
           return;

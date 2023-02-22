@@ -5,6 +5,7 @@ import subscriptionCreator from "@server/commands/subscriptionCreator";
 import { sequelize } from "@server/database/sequelize";
 import CollectionNotificationEmail from "@server/emails/templates/CollectionNotificationEmail";
 import DocumentNotificationEmail from "@server/emails/templates/DocumentNotificationEmail";
+import MentionNotificationEmail from "@server/emails/templates/MentionNotificationEmail";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import {
@@ -17,6 +18,7 @@ import {
   Subscription,
   Notification,
   Revision,
+  Mention,
 } from "@server/models";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import {
@@ -24,6 +26,7 @@ import {
   RevisionEvent,
   Event,
   DocumentEvent,
+  MentionEvent,
 } from "@server/types";
 import BaseProcessor from "./BaseProcessor";
 
@@ -32,6 +35,7 @@ export default class NotificationsProcessor extends BaseProcessor {
     "documents.publish",
     "revisions.create",
     "collections.create",
+    "mentions.create",
   ];
 
   async perform(event: Event) {
@@ -42,7 +46,8 @@ export default class NotificationsProcessor extends BaseProcessor {
         return this.revisionCreated(event);
       case "collections.create":
         return this.collectionCreated(event);
-
+      case "mentions.create":
+        return this.mentionCreated(event);
       default:
     }
   }
@@ -194,6 +199,48 @@ export default class NotificationsProcessor extends BaseProcessor {
     }
   }
 
+  async mentionCreated(event: MentionEvent) {
+    const mention = await Mention.findByPk(event.modelId);
+
+    if (
+      !(mention && mention.document && mention.user && mention.mentionedUser)
+    ) {
+      return;
+    }
+
+    const recipient = mention.mentionedUser;
+    const actor = mention.user;
+    const document = mention.document;
+    const team = await Team.findByPk(document.teamId);
+
+    if (!team) {
+      return;
+    }
+
+    if (recipient.id === actor.id) {
+      return;
+    }
+
+    const notify = await this.shouldNotify(document, recipient);
+
+    if (notify) {
+      await Notification.create({
+        event: event.name,
+        userId: recipient.id,
+        actorId: actor.id,
+        teamId: team.id,
+        documentId: document.id,
+      });
+      await MentionNotificationEmail.schedule({
+        to: recipient.email,
+        documentId: event.documentId,
+        eventName: "mentioned",
+        actorName: actor.name,
+        teamUrl: team.url,
+      });
+    }
+  }
+
   /**
    * Create any new subscriptions that might be missing for collaborators in the
    * document on publish and revision creation. This does mean that there is a
@@ -317,9 +364,13 @@ export default class NotificationsProcessor extends BaseProcessor {
     }
 
     // Deliver only a single notification in a 12 hour window
+    // except for mention notifications
     const notification = await Notification.findOne({
       order: [["createdAt", "DESC"]],
       where: {
+        event: {
+          [Op.not]: "mentions.create",
+        },
         userId: user.id,
         documentId: document.id,
         emailedAt: {

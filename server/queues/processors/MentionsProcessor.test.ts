@@ -1,4 +1,4 @@
-import { Mention } from "@server/models";
+import { Mention, Revision } from "@server/models";
 import {
   buildCollection,
   buildDocument,
@@ -98,7 +98,7 @@ describe("documents.publish", () => {
   });
 });
 
-describe("documents.update", () => {
+describe("revisions.create", () => {
   test("should create mention records for newly mentioned users", async () => {
     const team = await buildTeam();
     const user = await buildUser({
@@ -120,16 +120,16 @@ describe("documents.update", () => {
       collectionId: collection.id,
       publishedAt: new Date(),
     });
+    const revision = await Revision.createFromDocument(document);
 
     const processor = new MentionsProcessor();
     await processor.perform({
-      name: "documents.update",
+      name: "revisions.create",
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: document.createdById,
-      createdAt: new Date().toISOString(),
-      data: { title: document.title, autosave: false, done: true },
+      modelId: revision.id,
       ip,
     });
 
@@ -196,16 +196,18 @@ describe("documents.update", () => {
 
     await document.save();
 
+    const revision = await Revision.createFromDocument(document);
+
     await processor.perform({
-      name: "documents.update",
+      name: "revisions.create",
       documentId: document.id,
       collectionId: document.collectionId,
       teamId: document.teamId,
       actorId: document.createdById,
-      createdAt: new Date().toISOString(),
-      data: { title: document.title, autosave: false, done: true },
+      modelId: revision.id,
       ip,
     });
+
     const mentions = await Mention.findAll({
       where: {
         documentId: document.id,
