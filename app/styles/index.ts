@@ -40,7 +40,7 @@ export const fadeOnDesktopBackgrounded = () => {
 };
 
 /**
- * Mixing to hide scrollbars.
+ * Mixin to hide scrollbars.
  *
  * @returns string of CSS
  */

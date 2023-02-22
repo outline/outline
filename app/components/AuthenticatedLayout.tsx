@@ -26,11 +26,7 @@ import {
 import Fade from "./Fade";
 
 const DocumentComments = React.lazy(
-  () =>
-    import(
-      /* webpackChunkName: "document-comments" */
-      "~/scenes/Document/components/Comments"
-    )
+  () => import("~/scenes/Document/components/Comments")
 );
 const DocumentHistory = React.lazy(
   () => import("~/scenes/Document/components/History")
