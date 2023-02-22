@@ -8,6 +8,7 @@ import { Minute } from "@shared/utils/time";
 import Comment from "~/models/Comment";
 import Avatar from "~/components/Avatar";
 import ButtonSmall from "~/components/ButtonSmall";
+import { useDocumentContext } from "~/components/DocumentContext";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import Time from "~/components/Time";
@@ -67,7 +68,7 @@ function CommentThreadItem({
   lastOfThread,
   previousCommentCreatedAt,
 }: Props) {
-  //const can = usePolicy(comment.id);
+  const { editor } = useDocumentContext();
   const { showToast } = useToasts();
   const { t } = useTranslation();
   const [forceRender, setForceRender] = React.useState(0);
@@ -102,7 +103,7 @@ function CommentThreadItem({
   };
 
   const handleDelete = () => {
-    // comment should be removed as mark.
+    editor?.removeComment(comment.id);
   };
 
   const handleCancel = () => {
