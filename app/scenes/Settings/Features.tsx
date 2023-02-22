@@ -3,8 +3,6 @@ import { BeakerIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { TeamPreference } from "@shared/types";
-import Badge from "~/components/Badge";
-import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
@@ -59,7 +57,7 @@ function Features() {
           />
         </SettingRow>
       )}
-      <SettingRow
+      {/* <SettingRow
         name={TeamPreference.Commenting}
         label={
           <Flex align="center">
@@ -77,7 +75,7 @@ function Features() {
           disabled={!team.collaborativeEditing}
           onChange={handlePreferenceChange}
         />
-      </SettingRow>
+      </SettingRow> */}
       {team.avatarUrl && (
         <SettingRow
           name={TeamPreference.PublicBranding}
