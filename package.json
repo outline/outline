@@ -188,7 +188,7 @@
     "refractor": "^3.6.0",
     "request-filtering-agent": "^1.1.2",
     "semver": "^7.3.7",
-    "sequelize": "^6.20.1",
+    "sequelize": "^6.28.2",
     "sequelize-cli": "^6.4.1",
     "sequelize-encrypted": "^1.0.0",
     "sequelize-typescript": "^2.1.5",
