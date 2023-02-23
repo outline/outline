@@ -1,4 +1,5 @@
 import path from "path";
+import { optimizeLodashImports } from "@optimize-lodash/rollup-plugin";
 import react from "@vitejs/plugin-react";
 import browserslistToEsbuild from "browserslist-to-esbuild";
 import dotenv from "dotenv";
@@ -113,7 +114,7 @@ export default () => {
         input: {
           index: "./app/index.tsx",
         },
-        plugins: [webpackStats()],
+        plugins: [optimizeLodashImports(), webpackStats()],
       },
     },
   });
