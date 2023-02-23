@@ -174,7 +174,7 @@
   "Export started": "已开始导出",
   "A ZIP file containing the images, and documents in the Markdown format.": "包含图像和 Markdown 格式文档的 ZIP 文件。",
   "A ZIP file containing the images, and documents as HTML files.": "包含图像和 HTML 格式文档的 ZIP 文件。",
-  "Structured data that can be used to transfer data to another compatible {{ appName }} instance.": "Structured data that can be used to transfer data to another compatible {{ appName }} instance.",
+  "Structured data that can be used to transfer data to another compatible {{ appName }} instance.": "结构化数据可以用于传输数据到另一个兼容的 {{ appName }} 实例。",
   "Export": "导出",
   "Exporting the collection <em>{{collectionName}}</em> may take some time.": "导出集合 <em>{{collectionName}}</em> 可能需要一些时间。",
   "You will receive an email when it's complete.": "完成后，您将收到一封电子邮件。",
