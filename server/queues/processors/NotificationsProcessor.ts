@@ -1,5 +1,5 @@
 import { subHours } from "date-fns";
-import { uniqBy } from "lodash";
+import { difference, uniqBy } from "lodash";
 import { Op } from "sequelize";
 import subscriptionCreator from "@server/commands/subscriptionCreator";
 import { sequelize } from "@server/database/sequelize";
@@ -18,7 +18,6 @@ import {
   Subscription,
   Notification,
   Revision,
-  Mention,
 } from "@server/models";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import {
@@ -26,8 +25,8 @@ import {
   RevisionEvent,
   Event,
   DocumentEvent,
-  MentionEvent,
 } from "@server/types";
+import parseMentions from "@server/utils/parseMentions";
 import BaseProcessor from "./BaseProcessor";
 
 export default class NotificationsProcessor extends BaseProcessor {
@@ -35,7 +34,6 @@ export default class NotificationsProcessor extends BaseProcessor {
     "documents.publish",
     "revisions.create",
     "collections.create",
-    "mentions.create",
   ];
 
   async perform(event: Event) {
@@ -46,8 +44,6 @@ export default class NotificationsProcessor extends BaseProcessor {
         return this.revisionCreated(event);
       case "collections.create":
         return this.collectionCreated(event);
-      case "mentions.create":
-        return this.mentionCreated(event);
       default:
     }
   }
@@ -102,6 +98,29 @@ export default class NotificationsProcessor extends BaseProcessor {
           },
           { notificationId: notification.id }
         );
+      }
+    }
+
+    // send notifs to mentioned users
+    const mentionIds = parseMentions(document.text);
+    for (const mentionId of mentionIds) {
+      const recipient = await User.findByPk(mentionId);
+      const actor = document.updatedBy;
+      if (recipient && recipient.id !== actor.id) {
+        await Notification.create({
+          event: event.name,
+          userId: recipient.id,
+          actorId: actor.id,
+          teamId: team.id,
+          documentId: document.id,
+        });
+        await MentionNotificationEmail.schedule({
+          to: recipient.email,
+          documentId: event.documentId,
+          eventName: "mentioned",
+          actorName: actor.name,
+          teamUrl: team.url,
+        });
       }
     }
   }
@@ -168,6 +187,32 @@ export default class NotificationsProcessor extends BaseProcessor {
         );
       }
     }
+
+    // send notifs to newly mentioned users
+    const prev = await revision.previous();
+    const oldMentions = prev ? parseMentions(prev.text) : [];
+    const newMentions = parseMentions(revision.text);
+    const mentionIds = difference(newMentions, oldMentions);
+    for (const mentionId of mentionIds) {
+      const recipient = await User.findByPk(mentionId);
+      const actor = document.updatedBy;
+      if (recipient && recipient.id !== actor.id) {
+        await Notification.create({
+          event: event.name,
+          userId: recipient.id,
+          actorId: actor.id,
+          teamId: team.id,
+          documentId: document.id,
+        });
+        await MentionNotificationEmail.schedule({
+          to: recipient.email,
+          documentId: event.documentId,
+          eventName: "mentioned",
+          actorName: actor.name,
+          teamUrl: team.url,
+        });
+      }
+    }
   }
 
   async collectionCreated(event: CollectionEvent) {
@@ -195,48 +240,6 @@ export default class NotificationsProcessor extends BaseProcessor {
         eventName: "created",
         collectionId: collection.id,
         unsubscribeUrl: recipient.unsubscribeUrl,
-      });
-    }
-  }
-
-  async mentionCreated(event: MentionEvent) {
-    const mention = await Mention.findByPk(event.modelId);
-
-    if (
-      !(mention && mention.document && mention.user && mention.mentionedUser)
-    ) {
-      return;
-    }
-
-    const recipient = mention.mentionedUser;
-    const actor = mention.user;
-    const document = mention.document;
-    const team = await Team.findByPk(document.teamId);
-
-    if (!team) {
-      return;
-    }
-
-    if (recipient.id === actor.id) {
-      return;
-    }
-
-    const notify = await this.shouldNotify(document, recipient);
-
-    if (notify) {
-      await Notification.create({
-        event: event.name,
-        userId: recipient.id,
-        actorId: actor.id,
-        teamId: team.id,
-        documentId: document.id,
-      });
-      await MentionNotificationEmail.schedule({
-        to: recipient.email,
-        documentId: event.documentId,
-        eventName: "mentioned",
-        actorName: actor.name,
-        teamUrl: team.url,
       });
     }
   }
@@ -364,13 +367,9 @@ export default class NotificationsProcessor extends BaseProcessor {
     }
 
     // Deliver only a single notification in a 12 hour window
-    // except for mention notifications
     const notification = await Notification.findOne({
       order: [["createdAt", "DESC"]],
       where: {
-        event: {
-          [Op.not]: "mentions.create",
-        },
         userId: user.id,
         documentId: document.id,
         emailedAt: {

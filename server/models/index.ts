@@ -6,8 +6,6 @@ export { default as AuthenticationProvider } from "./AuthenticationProvider";
 
 export { default as Backlink } from "./Backlink";
 
-export { default as Mention } from "./Mention";
-
 export { default as Collection } from "./Collection";
 
 export { default as CollectionGroup } from "./CollectionGroup";
