@@ -29,7 +29,13 @@ export default class Mention extends Node {
         "data-id": {
           default: undefined,
         },
+        "data-actor": {
+          default: undefined,
+        },
         label: {
+          default: undefined,
+        },
+        id: {
           default: undefined,
         },
       },
@@ -45,7 +51,9 @@ export default class Mention extends Node {
           getAttrs: (dom: HTMLElement) => ({
             "data-type": dom.dataset.type,
             "data-id": dom.dataset.id,
+            "data-actor": dom.dataset.actor,
             label: dom.innerText,
+            id: dom.id,
           }),
         },
       ],
@@ -54,8 +62,10 @@ export default class Mention extends Node {
           "span",
           {
             class: `${node.type.name}`,
+            id: node.attrs.id,
             "data-type": node.attrs["data-type"],
             "data-id": node.attrs["data-id"],
+            "data-actor": node.attrs["data-actor"],
           },
           node.attrs.label,
         ];
@@ -171,12 +181,14 @@ export default class Mention extends Node {
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
-    const type = node.attrs["data-type"];
-    const id = node.attrs["data-id"];
+    const mType = node.attrs["data-type"];
+    const mId = node.attrs["data-id"];
+    const mActor = node.attrs["data-actor"];
     const label = node.attrs.label;
-    if (label) {
-      state.write(`@[${label}](mention://${type}/${id})`);
-    }
+    const id = node.attrs.id;
+
+    console.log(mActor);
+    state.write(`@[${label}](mention://m/${id}/a/${mActor}/${mType}/${mId})`);
   }
 
   parseMarkdown() {
@@ -185,7 +197,9 @@ export default class Mention extends Node {
       getAttrs: (tok: Token) => ({
         "data-type": tok.attrGet("data-type"),
         "data-id": tok.attrGet("data-id"),
+        "data-actor": tok.attrGet("data-actor"),
         label: tok.content,
+        id: tok.attrGet("id"),
       }),
     };
   }

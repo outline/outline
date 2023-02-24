@@ -1,4 +1,5 @@
 import * as React from "react";
+import { v4 } from "uuid";
 import { MenuItem } from "@shared/editor/types";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
@@ -22,7 +23,7 @@ type MentionMenuProps = Omit<
 
 function MentionMenu({ search, ...rest }: MentionMenuProps) {
   const [items, setItems] = React.useState<MentionItem[]>([]);
-  const { users } = useStores();
+  const { users, auth } = useStores();
   const { data, request } = useRequest(
     React.useCallback(() => users.fetchPage({ query: search }), [users, search])
   );
@@ -41,7 +42,9 @@ function MentionMenu({ search, ...rest }: MentionMenuProps) {
           attrs: {
             "data-type": "user",
             "data-id": d.id,
+            "data-actor": auth.user?.id,
             label: d.name,
+            id: v4(),
           },
         }))
       );
