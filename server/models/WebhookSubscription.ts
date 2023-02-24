@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import { bool } from "aws-sdk/clients/signer";
 import { isEmpty } from "lodash";
+import { SaveOptions } from "sequelize";
 import {
   Column,
   Table,
@@ -13,7 +14,6 @@ import {
   DefaultScope,
   AllowNull,
 } from "sequelize-typescript";
-import { SaveOptions } from "sequelize/types";
 import { WebhookSubscriptionValidation } from "@shared/validations";
 import { ValidationError } from "@server/errors";
 import { Event } from "@server/types";
