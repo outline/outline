@@ -1,6 +1,6 @@
 import { ParameterizedContext, DefaultContext } from "koa";
 import { IRouterParamContext } from "koa-router";
-import { Transaction } from "sequelize/types";
+import { Transaction } from "sequelize";
 import { z } from "zod";
 import {
   CollectionSort,
