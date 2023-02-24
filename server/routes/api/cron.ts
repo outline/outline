@@ -8,12 +8,10 @@ import tasks from "@server/queues/tasks";
 const router = new Router();
 
 const cronHandler = async (ctx: Context) => {
-  const { token, limit = 500 } = (ctx.method === "POST"
-    ? ctx.request.body
-    : ctx.request.query) as {
-    token?: string;
-    limit: number;
-  };
+  const token =
+    ctx.method === "POST" ? ctx.request.body?.token : ctx.query.token;
+  const limit =
+    (ctx.method === "POST" ? ctx.request.body?.limit : ctx.query.limit) ?? 500;
 
   if (!token || typeof token !== "string") {
     throw AuthenticationError("Token is required");
