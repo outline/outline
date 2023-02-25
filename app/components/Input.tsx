@@ -122,7 +122,9 @@ export type Props = React.InputHTMLAttributes<
   error?: string;
   icon?: React.ReactNode;
   /* Callback is triggered with the CMD+Enter keyboard combo */
-  onRequestSubmit?: (ev: React.KeyboardEvent<HTMLInputElement>) => unknown;
+  onRequestSubmit?: (
+    ev: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => unknown;
   onFocus?: (ev: React.SyntheticEvent) => unknown;
   onBlur?: (ev: React.SyntheticEvent) => unknown;
 };
@@ -153,13 +155,13 @@ function Input(
     ev: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     if (ev.key === "Enter" && ev.metaKey) {
-      if (this.props.onRequestSubmit) {
-        this.props.onRequestSubmit(ev);
+      if (props.onRequestSubmit) {
+        props.onRequestSubmit(ev);
       }
     }
 
-    if (this.props.onKeyDown) {
-      this.props.onKeyDown(ev);
+    if (props.onKeyDown) {
+      props.onKeyDown(ev);
     }
   };
 
