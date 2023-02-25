@@ -1,28 +1,20 @@
+import { uniq } from "lodash";
 import { Node } from "prosemirror-model";
-import { Document, Revision } from "@server/models";
-import DocumentHelper from "@server/models/helpers/DocumentHelper";
+import { parser } from "@server/editor";
 
 /**
- * Parse a list of mentions contained in a document or revision
+ * Parse a list of mentions contained in markdown text.
  *
- * @param document Document or Revision
- * @returns An array of mentions in passed document or revision
+ * @param text The text to parse in Markdown format
+ * @returns An array of mention identifiers
  */
-export default function parseMentions(
-  document: Document | Revision
-): Record<string, string>[] {
-  const node = DocumentHelper.toProsemirror(document);
-  const mentions: Record<string, string>[] = [];
-  const visited: Map<string, boolean> = new Map();
+export default function parseMentions(text: string): string[] {
+  const value = parser.parse(text);
+  const identifiers: string[] = [];
 
   function findMentions(node: Node) {
-    if (visited.get(node.attrs.id)) {
-      return;
-    }
-
-    visited.set(node.attrs.id, true);
     if (node.type.name === "mention") {
-      mentions.push(node.attrs);
+      identifiers.push(node.attrs["data-id"]);
     }
 
     if (!node.content.size) {
@@ -32,7 +24,7 @@ export default function parseMentions(
     node.content.descendants(findMentions);
   }
 
-  findMentions(node);
+  findMentions(value);
 
-  return mentions;
+  return uniq(identifiers);
 }
