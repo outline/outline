@@ -152,7 +152,7 @@ function CommentThread({
         }}
       >
         {focused && (
-          <Fade>
+          <Fade timing={100}>
             <CommentForm
               documentId={document.id}
               thread={thread}
@@ -170,7 +170,7 @@ function CommentThread({
 const Thread = styled.div<{ $focused: boolean; $recessed: boolean }>`
   margin: 12px 18px 32px 12px;
   position: relative;
-  transition: opacity 250ms ease-out;
+  transition: opacity 100ms ease-out;
 
   ${(props) =>
     props.$recessed &&
