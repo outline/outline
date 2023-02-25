@@ -3,25 +3,18 @@ import StateCore from "markdown-it/lib/rules_core/state_core";
 import Token from "markdown-it/lib/token";
 
 function renderMention(tokens: Token[], idx: number) {
-  const type = tokens[idx].attrGet("data-type");
-  const id = tokens[idx].attrGet("data-id");
+  const mType = tokens[idx].attrGet("data-type");
+  const mId = tokens[idx].attrGet("data-id");
+  const mActor = tokens[idx].attrGet("data-actor");
   const label = tokens[idx].content;
+  const id = tokens[idx].attrGet("id");
 
-  return `<span class="mention" data-type="${type}" data-id="${id}">${label}</span>`;
-}
-
-function parseUri(uri: string) {
-  const url = new URL(uri);
-  const parts = url.pathname.split("/");
-
-  return {
-    type: parts[parts.length - 2],
-    id: parts[parts.length - 1],
-  };
+  return `<span class="mention" id="${id}" data-actor="${mActor}" data-type="${mType}" data-id="${mId}">${label}</span>`;
 }
 
 function parseMentions(state: StateCore) {
-  const scanRE = /(?:^|\s)@\[[a-zA-Z\s]+\]\(mention:\/\/[a-z]+\/[a-z0-9-]+\)/;
+  const scanRE = /(?:^|\s)@\[[a-zA-Z\s]+\]\(mention:\/\/m\/[a-z0-9-]+\/a\/[a-z0-9-]+\/[a-z]+\/[a-z0-9-]+\)/;
+  const hrefRE = /^mention:\/\/m\/([a-z0-9-]+)\/a\/([a-z0-9-]+)\/([a-z]+)\/([a-z0-9-]+)$/;
   const WINDOW_SIZE = 4;
 
   for (let i = 0; i < state.tokens.length; i++) {
@@ -53,11 +46,14 @@ function parseMentions(state: StateCore) {
       // href must be present, otherwise the scanRE test above would've failed
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const href = openToken.attrs![0];
-      const { type, id } = parseUri(href[1]);
+      const matches = href[1].match(hrefRE);
+      const [id, mActor, mType, mId] = matches!.slice(1);
 
       const mentionToken = new Token("mention", "", 0);
-      mentionToken.attrSet("data-type", type);
-      mentionToken.attrSet("data-id", id);
+      mentionToken.attrSet("data-type", mType);
+      mentionToken.attrSet("data-id", mId);
+      mentionToken.attrSet("data-actor", mActor);
+      mentionToken.attrSet("id", id);
       mentionToken.content = textToken.content;
 
       return [precToken, mentionToken];

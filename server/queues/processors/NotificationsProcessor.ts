@@ -1,5 +1,5 @@
 import { subHours } from "date-fns";
-import { difference, uniqBy } from "lodash";
+import { differenceBy, uniqBy } from "lodash";
 import { Op } from "sequelize";
 import subscriptionCreator from "@server/commands/subscriptionCreator";
 import { sequelize } from "@server/database/sequelize";
@@ -60,7 +60,7 @@ export default class NotificationsProcessor extends BaseProcessor {
 
     const [collection, document, team] = await Promise.all([
       Collection.findByPk(event.collectionId),
-      Document.findByPk(event.documentId),
+      Document.findByPk(event.documentId, { includeState: true }),
       Team.findByPk(event.teamId),
     ]);
 
@@ -102,18 +102,13 @@ export default class NotificationsProcessor extends BaseProcessor {
     }
 
     // send notifs to mentioned users
-    const mentionIds = parseMentions(document.text);
-    for (const mentionId of mentionIds) {
-      const recipient = await User.findByPk(mentionId);
-      const actor = document.updatedBy;
-      if (recipient && recipient.id !== actor.id) {
-        await Notification.create({
-          event: event.name,
-          userId: recipient.id,
-          actorId: actor.id,
-          teamId: team.id,
-          documentId: document.id,
-        });
+    const mentions = parseMentions(document);
+    for (const mention of mentions) {
+      const [recipient, actor] = await Promise.all([
+        User.findByPk(mention["data-id"]),
+        User.findByPk(mention["data-actor"]),
+      ]);
+      if (recipient && actor && recipient.id !== actor.id) {
         await MentionNotificationEmail.schedule({
           to: recipient.email,
           documentId: event.documentId,
@@ -128,7 +123,7 @@ export default class NotificationsProcessor extends BaseProcessor {
   async revisionCreated(event: RevisionEvent) {
     const [collection, document, revision, team] = await Promise.all([
       Collection.findByPk(event.collectionId),
-      Document.findByPk(event.documentId),
+      Document.findByPk(event.documentId, { includeState: true }),
       Revision.findByPk(event.modelId),
       Team.findByPk(event.teamId),
     ]);
@@ -190,20 +185,15 @@ export default class NotificationsProcessor extends BaseProcessor {
 
     // send notifs to newly mentioned users
     const prev = await revision.previous();
-    const oldMentions = prev ? parseMentions(prev.text) : [];
-    const newMentions = parseMentions(revision.text);
-    const mentionIds = difference(newMentions, oldMentions);
-    for (const mentionId of mentionIds) {
-      const recipient = await User.findByPk(mentionId);
-      const actor = document.updatedBy;
-      if (recipient && recipient.id !== actor.id) {
-        await Notification.create({
-          event: event.name,
-          userId: recipient.id,
-          actorId: actor.id,
-          teamId: team.id,
-          documentId: document.id,
-        });
+    const oldMentions = prev ? parseMentions(prev) : [];
+    const newMentions = parseMentions(revision);
+    const mentions = differenceBy(newMentions, oldMentions, "id");
+    for (const mention of mentions) {
+      const [recipient, actor] = await Promise.all([
+        User.findByPk(mention["data-id"]),
+        User.findByPk(mention["data-actor"]),
+      ]);
+      if (recipient && actor && recipient.id !== actor.id) {
         await MentionNotificationEmail.schedule({
           to: recipient.email,
           documentId: event.documentId,
