@@ -87,6 +87,8 @@ export type Props = {
   onCancel?: () => void;
   /** Callback when user changes editor content */
   onChange?: (value: () => any) => void;
+  /** Callback when the text direction is detected to have changed */
+  onChangeDir?: (dir: "rtl" | "ltr") => void;
   /** Callback when a comment mark is clicked */
   onClickCommentMark?: (commentId: string) => void;
   /** Callback when a comment mark is created */
@@ -528,6 +530,7 @@ export class Editor extends React.PureComponent<
 
     if (this.state.isRTL !== isRTL) {
       this.setState({ isRTL });
+      this.props.onChangeDir?.(isRTL ? "rtl" : "ltr");
     }
   };
 

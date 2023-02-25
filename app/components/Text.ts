@@ -3,6 +3,7 @@ import styled from "styled-components";
 type Props = {
   type?: "secondary" | "tertiary" | "danger";
   size?: "large" | "small" | "xsmall";
+  dir?: "ltr" | "rtl" | "auto";
   selectable?: boolean;
   weight?: "bold" | "normal";
 };
@@ -13,6 +14,7 @@ type Props = {
  */
 const Text = styled.p<Props>`
   margin-top: 0;
+  text-align: ${(props) => (props.dir ? props.dir : "left")};
   color: ${(props) =>
     props.type === "secondary"
       ? props.theme.textSecondary

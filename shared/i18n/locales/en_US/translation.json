@@ -440,6 +440,7 @@
   "Reply": "Reply",
   "Cancel": "Cancel",
   "Comments": "Comments",
+  "No comments yet": "No comments yet",
   "Error updating comment": "Error updating comment",
   "Document updated by {{userName}}": "Document updated by {{userName}}",
   "You have unsaved changes.\nAre you sure you want to discard them?": "You have unsaved changes.\nAre you sure you want to discard them?",

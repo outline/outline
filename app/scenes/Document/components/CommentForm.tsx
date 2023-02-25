@@ -48,6 +48,7 @@ function CommentForm({
   );
   const formRef = React.useRef<HTMLFormElement>(null);
   const editorRef = React.useRef<SharedEditor>(null);
+  const [dir, setDir] = React.useState<"ltr" | "rtl">("ltr");
   const [forceRender, setForceRender] = React.useState(0);
   const { t } = useTranslation();
   const { showToast } = useToasts();
@@ -145,7 +146,7 @@ function CommentForm({
       onSubmit={thread?.isNew ? handleCreateComment : handleCreateReply}
       {...rest}
     >
-      <Flex gap={8} align="flex-start">
+      <Flex gap={8} align="flex-start" reverse={dir === "rtl"}>
         <Avatar model={user} size={24} style={{ marginTop: 8 }} />
         <Bubble
           gap={10}
@@ -158,6 +159,7 @@ function CommentForm({
           <CommentEditor
             key={`${forceRender}`}
             ref={editorRef}
+            onChangeDir={setDir}
             onChange={handleChange}
             onSave={handleSave}
             onFocus={onFocus}
@@ -172,7 +174,7 @@ function CommentForm({
           />
 
           {!isEmpty && (
-            <Flex align="flex-end" gap={8}>
+            <Flex justify={dir === "rtl" ? "flex-end" : "flex-start"} gap={8}>
               <ButtonSmall type="submit" borderOnHover>
                 {thread.isNew ? t("Post") : t("Reply")}
               </ButtonSmall>

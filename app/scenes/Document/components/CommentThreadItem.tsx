@@ -16,7 +16,6 @@ import useBoolean from "~/hooks/useBoolean";
 import useToasts from "~/hooks/useToasts";
 import CommentMenu from "~/menus/CommentMenu";
 import CommentEditor from "./CommentEditor";
-//import usePolicy from "~/hooks/usePolicy";
 
 /**
  * Hook to calculate if we should display a timestamp on a comment
@@ -72,6 +71,7 @@ function CommentThreadItem({
   const { showToast } = useToasts();
   const { t } = useTranslation();
   const [forceRender, setForceRender] = React.useState(0);
+  const [dir, setDir] = React.useState<"ltr" | "rtl">("ltr");
   const [data, setData] = React.useState(toJS(comment.data));
   const showAuthor = firstOfAuthor;
   const showTime = useShowTime(comment.createdAt, previousCommentCreatedAt);
@@ -118,7 +118,7 @@ function CommentThreadItem({
   }, [comment.data]);
 
   return (
-    <Flex gap={8} align="flex-start">
+    <Flex gap={8} align="flex-start" reverse={dir === "rtl"}>
       {firstOfAuthor && (
         <AvatarSpacer>
           <Avatar model={comment.createdBy} size={24} />
@@ -131,7 +131,7 @@ function CommentThreadItem({
         column
       >
         {(showAuthor || showTime) && (
-          <Meta size="xsmall" type="secondary">
+          <Meta size="xsmall" type="secondary" dir={dir}>
             {showAuthor && <em>{comment.createdBy.name}</em>}
             {showAuthor && showTime && <> &middot; </>}
             {showTime && (
@@ -149,6 +149,7 @@ function CommentThreadItem({
             key={`${forceRender}`}
             readOnly={!isEditing}
             defaultValue={data}
+            onChangeDir={setDir}
             onChange={handleChange}
             onSave={handleSave}
             autoFocus
@@ -190,6 +191,7 @@ const AvatarSpacer = styled(Flex)`
   margin-top: 4px;
   align-items: flex-end;
   justify-content: flex-end;
+  flex-shrink: 0;
   flex-direction: column;
 `;
 

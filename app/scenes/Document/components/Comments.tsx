@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useLocation, useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import Comment from "~/models/Comment";
+import Empty from "~/components/Empty";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -34,13 +35,16 @@ function Comments() {
     return null;
   }
 
+  const threads = comments
+    .threadsInDocument(document.id)
+    .filter((thread) => !thread.isNew || thread.createdById === user.id);
+  const hasComments = threads.length > 0;
+
   return (
     <Sidebar title={t("Comments")} onClose={ui.collapseComments}>
-      <Wrapper>
-        {comments
-          .threadsInDocument(document.id)
-          .filter((thread) => !thread.isNew || thread.createdById === user.id)
-          .map((thread) => (
+      <Wrapper $hasComments={hasComments}>
+        {hasComments ? (
+          threads.map((thread) => (
             <CommentThread
               key={thread.id}
               comment={thread}
@@ -48,8 +52,12 @@ function Comments() {
               recessed={!!focusedComment && focusedComment.id !== thread.id}
               focused={focusedComment?.id === thread.id}
             />
-          ))}
-        <Flex />
+          ))
+        ) : (
+          <NoComments align="center" justify="center" auto>
+            <Empty>{t("No comments yet")}</Empty>
+          </NoComments>
+        )}
 
         {!focusedComment && (
           <Fade>
@@ -67,8 +75,14 @@ function Comments() {
   );
 }
 
-const Wrapper = styled.div`
-  padding-bottom: 50vh;
+const NoComments = styled(Flex)`
+  padding-bottom: 65px;
+  height: 100%;
+`;
+
+const Wrapper = styled.div<{ $hasComments: boolean }>`
+  padding-bottom: ${(props) => (props.$hasComments ? "50vh" : "0")};
+  height: ${(props) => (props.$hasComments ? "auto" : "100%")};
 `;
 
 const NewCommentForm = styled(CommentForm)`
