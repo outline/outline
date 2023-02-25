@@ -13,6 +13,7 @@ import documentMover from "@server/commands/documentMover";
 import documentPermanentDeleter from "@server/commands/documentPermanentDeleter";
 import documentUpdater from "@server/commands/documentUpdater";
 import { sequelize } from "@server/database/sequelize";
+import env from "@server/env";
 import {
   NotFoundError,
   InvalidRequestError,
@@ -44,10 +45,10 @@ import {
 } from "@server/presenters";
 import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
+import { getFileFromRequest } from "@server/utils/koa";
 import { getTeamFromContext } from "@server/utils/passport";
 import slugify from "@server/utils/slugify";
 import { assertPresent } from "@server/validation";
-import env from "../../../env";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -1111,9 +1112,7 @@ router.post(
 
     const { collectionId, parentDocumentId, publish } = ctx.input.body;
 
-    const file = ctx.request.files
-      ? Object.values(ctx.request.files)[0]
-      : undefined;
+    const file = getFileFromRequest(ctx.request);
     if (!file) {
       throw InvalidRequestError("Request must include a file parameter");
     }
@@ -1151,12 +1150,12 @@ router.post(
       });
     }
 
-    const content = await fs.readFile(file.path);
+    const content = await fs.readFile(file.filepath);
     const document = await sequelize.transaction(async (transaction) => {
       const { text, title } = await documentImporter({
         user,
-        fileName: file.name,
-        mimeType: file.type,
+        fileName: file.originalFilename ?? file.newFilename,
+        mimeType: file.mimetype ?? "",
         content,
         ip: ctx.request.ip,
         transaction,

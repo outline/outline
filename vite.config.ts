@@ -1,4 +1,6 @@
 import path from "path";
+// eslint-disable-next-line import/no-unresolved
+import { optimizeLodashImports } from "@optimize-lodash/rollup-plugin";
 import react from "@vitejs/plugin-react";
 import browserslistToEsbuild from "browserslist-to-esbuild";
 import dotenv from "dotenv";
@@ -53,10 +55,10 @@ export default () => {
         manifest: {
           name: "Outline",
           short_name: "Outline",
-          // description: "My Awesome App description",
           theme_color: "#fff",
           background_color: "#fff",
           start_url: "/",
+          scope: "/",
           display: "standalone",
           // For Chrome, you must provide at least a 192x192 pixel icon, and a 512x512 pixel icon.
           // If only those two icon sizes are provided, Chrome will automatically scale the icons
@@ -64,18 +66,18 @@ export default () => {
           // pixel-perfection, provide icons in increments of 48dp.
           icons: [
             {
-              src: "images/icon-512.png",
+              src: "/static/images/icon-512.png",
               sizes: "192x192",
               type: "image/png",
             },
             {
-              src: "images/icon-512.png",
+              src: "/static/images/icon-512.png",
               sizes: "512x512",
               type: "image/png",
             },
             // last one duplicated for purpose: 'any maskable'
             {
-              src: "images/icon-512.png",
+              src: "/static/images/icon-512.png",
               sizes: "512x512",
               type: "image/png",
               purpose: "any maskable",
@@ -83,6 +85,10 @@ export default () => {
           ],
         },
       }),
+      // Convert lodash imports to single imports
+      optimizeLodashImports(),
+      // Generate a stats.json file for webpack that will be consumed by RelativeCI
+      webpackStats(),
     ],
     optimizeDeps: {
       esbuildOptions: {
@@ -113,7 +119,6 @@ export default () => {
         input: {
           index: "./app/index.tsx",
         },
-        plugins: [webpackStats()],
       },
     },
   });
