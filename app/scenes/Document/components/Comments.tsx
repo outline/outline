@@ -59,6 +59,7 @@ function Comments() {
               thread={newComment}
               placeholder={`${t("Add a comment")}…`}
               autoFocus={false}
+              dir={document.dir}
               animatePresence
               standalone
             />
@@ -79,10 +80,12 @@ const Wrapper = styled.div<{ $hasComments: boolean }>`
   height: ${(props) => (props.$hasComments ? "auto" : "100%")};
 `;
 
-const NewCommentForm = styled(CommentForm)`
+const NewCommentForm = styled(CommentForm)<{ dir?: "ltr" | "rtl" }>`
   background: ${(props) => props.theme.background};
   position: absolute;
-  padding: 12px 18px 12px 12px;
+  padding: 12px;
+  padding-right: ${(props) => (props.dir !== "rtl" ? "18px" : "12px")};
+  padding-left: ${(props) => (props.dir === "rtl" ? "18px" : "12px")};
   left: 0;
   right: 0;
   bottom: 0;

@@ -52,11 +52,19 @@ function useShowTime(
 }
 
 type Props = {
+  /** The comment to render */
   comment: Comment;
+  /** The text direction of the editor */
+  dir?: "rtl" | "ltr";
+  /** Whether this is the first comment in the thread */
   firstOfThread?: boolean;
+  /** Whether this is the last comment in the thread */
   lastOfThread?: boolean;
+  /** Whether this is the first consecutive comment by this author */
   firstOfAuthor?: boolean;
+  /** Whether this is the last consecutive comment by this author */
   lastOfAuthor?: boolean;
+  /** The date of the previous comment in the thread */
   previousCommentCreatedAt?: string;
 };
 
@@ -65,13 +73,13 @@ function CommentThreadItem({
   firstOfAuthor,
   firstOfThread,
   lastOfThread,
+  dir,
   previousCommentCreatedAt,
 }: Props) {
   const { editor } = useDocumentContext();
   const { showToast } = useToasts();
   const { t } = useTranslation();
   const [forceRender, setForceRender] = React.useState(0);
-  const [dir, setDir] = React.useState<"ltr" | "rtl">("ltr");
   const [data, setData] = React.useState(toJS(comment.data));
   const showAuthor = firstOfAuthor;
   const showTime = useShowTime(comment.createdAt, previousCommentCreatedAt);
@@ -128,6 +136,7 @@ function CommentThreadItem({
         $firstOfThread={firstOfThread}
         $firstOfAuthor={firstOfAuthor}
         $lastOfThread={lastOfThread}
+        $dir={dir}
         column
       >
         {(showAuthor || showTime) && (
@@ -149,7 +158,6 @@ function CommentThreadItem({
             key={`${forceRender}`}
             readOnly={!isEditing}
             defaultValue={data}
-            onChangeDir={setDir}
             onChange={handleChange}
             onSave={handleSave}
             autoFocus
@@ -166,7 +174,12 @@ function CommentThreadItem({
           )}
         </Body>
         {!isEditing && (
-          <Menu comment={comment} onEdit={setEditing} onDelete={handleDelete} />
+          <Menu
+            comment={comment}
+            onEdit={setEditing}
+            onDelete={handleDelete}
+            dir={dir}
+          />
         )}
       </Bubble>
     </Flex>
@@ -199,9 +212,10 @@ const Body = styled.form`
   border-radius: 2px;
 `;
 
-const Menu = styled(CommentMenu)`
+const Menu = styled(CommentMenu)<{ dir?: "rtl" | "ltr" }>`
   position: absolute;
-  right: 4px;
+  left: ${(props) => (props.dir !== "rtl" ? "auto" : "4px")};
+  right: ${(props) => (props.dir === "rtl" ? "auto" : "4px")};
   top: 4px;
   opacity: 0;
   transition: opacity 100ms ease-in-out;
@@ -227,6 +241,7 @@ export const Bubble = styled(Flex)<{
   $firstOfAuthor?: boolean;
   $lastOfThread?: boolean;
   $focused?: boolean;
+  $dir?: "rtl" | "ltr";
 }>`
   position: relative;
   flex-grow: 1;
@@ -247,7 +262,10 @@ export const Bubble = styled(Flex)<{
     $firstOfThread &&
     "border-top-left-radius: 8px; border-top-right-radius: 8px"};
 
-  margin-left: ${(props) => (props.$firstOfAuthor ? 0 : 32)}px;
+  margin-left: ${(props) =>
+    props.$firstOfAuthor || props.$dir === "rtl" ? 0 : 32}px;
+  margin-right: ${(props) =>
+    props.$firstOfAuthor || props.$dir !== "rtl" ? 0 : 32}px;
 
   p:last-child {
     margin-bottom: 0;

@@ -19,15 +19,27 @@ import CommentEditor from "./CommentEditor";
 import { Bubble } from "./CommentThreadItem";
 
 type Props = {
+  /** The document that the comment will be associated with */
   documentId: string;
+  /** The comment thread that the comment will be associated with */
   thread: Comment;
+  /** Placeholder text to display in the editor */
   placeholder?: string;
+  /** Whether to focus the editor on mount */
   autoFocus?: boolean;
+  /** Whether to render the comment form as standalone, rather than as a reply  */
   standalone?: boolean;
+  /** Whether to animate the comment form in and out */
   animatePresence?: boolean;
+  /** The text direction of the editor */
+  dir?: "rtl" | "ltr";
+  /** Callback when the user is typing in the editor */
   onTyping?: () => void;
+  /** Callback when the editor is focused */
   onFocus?: () => void;
+  /** Callback when the editor is blurred */
   onBlur?: () => void;
+  /** Callback when the editor is clicked outside of */
   onClickOutside?: (event: MouseEvent | TouchEvent) => void;
 };
 
@@ -42,6 +54,7 @@ function CommentForm({
   standalone,
   placeholder,
   animatePresence,
+  dir,
   ...rest
 }: Props) {
   const { editor } = useDocumentContext();
@@ -51,7 +64,6 @@ function CommentForm({
   );
   const formRef = React.useRef<HTMLFormElement>(null);
   const editorRef = React.useRef<SharedEditor>(null);
-  const [dir, setDir] = React.useState<"ltr" | "rtl">("ltr");
   const [forceRender, setForceRender] = React.useState(0);
   const { t } = useTranslation();
   const { showToast } = useToasts();
@@ -185,7 +197,6 @@ function CommentForm({
           <CommentEditor
             key={`${forceRender}`}
             ref={editorRef}
-            onChangeDir={setDir}
             onChange={handleChange}
             onSave={handleSave}
             onFocus={onFocus}

@@ -19,9 +19,13 @@ import CommentForm from "./CommentForm";
 import CommentThreadItem from "./CommentThreadItem";
 
 type Props = {
+  /** The document that this comment thread belongs to */
   document: Document;
+  /** The root comment to render */
   comment: Comment;
+  /** Whether the thread is focused */
   focused: boolean;
+  /** Whether the thread is displayed in a recessed/backgrounded state */
   recessed: boolean;
 };
 
@@ -110,6 +114,7 @@ function CommentThread({
       ref={topRef}
       $focused={focused}
       $recessed={recessed}
+      $dir={document.dir}
       onClick={handleClickThread}
     >
       {commentsInThread.map((comment, index) => {
@@ -129,6 +134,7 @@ function CommentThread({
             firstOfAuthor={firstOfAuthor}
             lastOfAuthor={lastOfAuthor}
             previousCommentCreatedAt={commentsInThread[index - 1]?.createdAt}
+            dir={document.dir}
           />
         );
       })}
@@ -158,6 +164,7 @@ function CommentThread({
               thread={thread}
               onTyping={setIsTyping}
               standalone={commentsInThread.length === 0}
+              dir={document.dir}
               autoFocus
             />
           </Fade>
@@ -167,8 +174,14 @@ function CommentThread({
   );
 }
 
-const Thread = styled.div<{ $focused: boolean; $recessed: boolean }>`
-  margin: 12px 18px 32px 12px;
+const Thread = styled.div<{
+  $focused: boolean;
+  $recessed: boolean;
+  $dir?: "rtl" | "ltr";
+}>`
+  margin: 12px 12px 32px;
+  margin-right: ${(props) => (props.$dir !== "rtl" ? "18px" : "12px")};
+  margin-left: ${(props) => (props.$dir === "rtl" ? "18px" : "12px")};
   position: relative;
   transition: opacity 100ms ease-out;
 
