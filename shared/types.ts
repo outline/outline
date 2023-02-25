@@ -34,6 +34,10 @@ export enum FileOperationState {
   Expired = "expired",
 }
 
+export enum MentionType {
+  User = "user",
+}
+
 export type PublicEnv = {
   URL: string;
   CDN_URL: string;

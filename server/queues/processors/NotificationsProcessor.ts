@@ -105,8 +105,8 @@ export default class NotificationsProcessor extends BaseProcessor {
     const mentions = parseMentions(document);
     for (const mention of mentions) {
       const [recipient, actor] = await Promise.all([
-        User.findByPk(mention["data-id"]),
-        User.findByPk(mention["data-actor"]),
+        User.findByPk(mention.modelId),
+        User.findByPk(mention.actorId),
       ]);
       if (recipient && actor && recipient.id !== actor.id) {
         await MentionNotificationEmail.schedule({
@@ -115,6 +115,7 @@ export default class NotificationsProcessor extends BaseProcessor {
           eventName: "mentioned",
           actorName: actor.name,
           teamUrl: team.url,
+          mentionId: mention.id,
         });
       }
     }
@@ -186,12 +187,12 @@ export default class NotificationsProcessor extends BaseProcessor {
     // send notifs to newly mentioned users
     const prev = await revision.previous();
     const oldMentions = prev ? parseMentions(prev) : [];
-    const newMentions = parseMentions(revision);
-    const mentions = differenceBy(newMentions, oldMentions, "id");
+    const newMentions = parseMentions(document);
+    const mentions = differenceBy(newMentions, oldMentions, "modelId");
     for (const mention of mentions) {
       const [recipient, actor] = await Promise.all([
-        User.findByPk(mention["data-id"]),
-        User.findByPk(mention["data-actor"]),
+        User.findByPk(mention.modelId),
+        User.findByPk(mention.actorId),
       ]);
       if (recipient && actor && recipient.id !== actor.id) {
         await MentionNotificationEmail.schedule({
@@ -200,6 +201,7 @@ export default class NotificationsProcessor extends BaseProcessor {
           eventName: "mentioned",
           actorName: actor.name,
           teamUrl: team.url,
+          mentionId: mention.id,
         });
       }
     }

@@ -20,19 +20,10 @@ export default class Mention extends Node {
   get schema(): NodeSpec {
     return {
       attrs: {
-        style: {
-          default: "",
-        },
-        "data-type": {
-          default: undefined,
-        },
-        "data-id": {
-          default: undefined,
-        },
-        "data-actor": {
-          default: undefined,
-        },
-        label: {
+        type: {},
+        label: {},
+        modelId: {},
+        actorId: {
           default: undefined,
         },
         id: {
@@ -49,9 +40,9 @@ export default class Mention extends Node {
           tag: `span.${this.name}`,
           preserveWhitespace: "full",
           getAttrs: (dom: HTMLElement) => ({
-            "data-type": dom.dataset.type,
-            "data-id": dom.dataset.id,
-            "data-actor": dom.dataset.actor,
+            type: dom.dataset.type,
+            modelId: dom.dataset.id,
+            actorId: dom.dataset.actorId,
             label: dom.innerText,
             id: dom.id,
           }),
@@ -63,14 +54,14 @@ export default class Mention extends Node {
           {
             class: `${node.type.name}`,
             id: node.attrs.id,
-            "data-type": node.attrs["data-type"],
-            "data-id": node.attrs["data-id"],
-            "data-actor": node.attrs["data-actor"],
+            "data-type": node.attrs.type,
+            "data-id": node.attrs.modelId,
+            "data-actorId": node.attrs.actorId,
           },
           node.attrs.label,
         ];
       },
-      toPlainText: (node) => node.attrs.label,
+      toPlainText: (node) => `@${node.attrs.label}`,
     };
   }
 
@@ -181,25 +172,20 @@ export default class Mention extends Node {
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
-    const mType = node.attrs["data-type"];
-    const mId = node.attrs["data-id"];
-    const mActor = node.attrs["data-actor"];
+    const mType = node.attrs.type;
+    const mId = node.attrs.modelId;
     const label = node.attrs.label;
-    const id = node.attrs.id;
 
-    console.log(mActor);
-    state.write(`@[${label}](mention://m/${id}/a/${mActor}/${mType}/${mId})`);
+    state.write(`@[${label}](mention://${mType}/${mId})`);
   }
 
   parseMarkdown() {
     return {
       node: "mention",
       getAttrs: (tok: Token) => ({
-        "data-type": tok.attrGet("data-type"),
-        "data-id": tok.attrGet("data-id"),
-        "data-actor": tok.attrGet("data-actor"),
+        type: tok.attrGet("data-type"),
+        modelId: tok.attrGet("data-id"),
         label: tok.content,
-        id: tok.attrGet("id"),
       }),
     };
   }

@@ -1,6 +1,7 @@
 import * as React from "react";
 import { v4 } from "uuid";
 import { MenuItem } from "@shared/editor/types";
+import { MentionType } from "@shared/types";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import CommandMenu, { Props } from "./CommandMenu";
@@ -9,10 +10,13 @@ import MentionMenuItem from "./MentionMenuItem";
 interface MentionItem extends MenuItem {
   name: string;
   title: string;
+  appendSpace: boolean;
   attrs: {
-    "data-type": string;
-    "data-id": string;
+    id: string;
+    type: MentionType;
+    modelId: string;
     label: string;
+    actorId?: string;
   };
 }
 
@@ -40,11 +44,11 @@ function MentionMenu({ search, ...rest }: MentionMenuProps) {
           title: d.name,
           appendSpace: true,
           attrs: {
-            "data-type": "user",
-            "data-id": d.id,
-            "data-actor": auth.user?.id,
-            label: d.name,
             id: v4(),
+            type: MentionType.User,
+            modelId: d.id,
+            actorId: auth.user?.id,
+            label: d.name,
           },
         }))
       );

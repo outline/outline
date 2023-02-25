@@ -12,17 +12,11 @@ export default function parseMentions(
   document: Document | Revision
 ): Record<string, string>[] {
   const node = DocumentHelper.toProsemirror(document);
-  const mentions: Record<string, string>[] = [];
-  const visited: Map<string, boolean> = new Map();
+  const mentions: Set<Record<string, string>> = new Set();
 
   function findMentions(node: Node) {
-    if (visited.get(node.attrs.id)) {
-      return;
-    }
-
-    visited.set(node.attrs.id, true);
     if (node.type.name === "mention") {
-      mentions.push(node.attrs);
+      mentions.add(node.attrs);
     }
 
     if (!node.content.size) {
@@ -34,5 +28,5 @@ export default function parseMentions(
 
   findMentions(node);
 
-  return mentions;
+  return Array.from(mentions);
 }

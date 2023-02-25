@@ -125,7 +125,7 @@ line-height: 1.6em;
 width: 100%;
 
 .mention {
-  background: ${props.theme.listItemHoverBackground};
+  background: ${props.theme.mentionBackground};
   border-radius: 12px;
   padding-bottom: 2px;
   padding-top: 1px;
