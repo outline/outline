@@ -5,6 +5,7 @@ import { v4 as uuidv4 } from "uuid";
 import collapseSelection from "../commands/collapseSelection";
 import { Command } from "../lib/Extension";
 import chainTransactions from "../lib/chainTransactions";
+import isMarkActive from "../queries/isMarkActive";
 import { Dispatch } from "../types";
 import Mark from "./Mark";
 
@@ -31,11 +32,21 @@ export default class Comment extends Mark {
   keys({ type }: { type: MarkType }): Record<string, Command> {
     return this.options.onCreateCommentMark
       ? {
-          // TODO: Only create, don't toggle
-          "Mod-Alt-m": toggleMark(type, {
-            id: uuidv4(),
-            userId: this.options.userId,
-          }),
+          "Mod-Alt-m": (state: EditorState, dispatch: Dispatch) => {
+            if (isMarkActive(state.schema.marks.comment)(state)) {
+              return false;
+            }
+
+            chainTransactions(
+              toggleMark(type, {
+                id: uuidv4(),
+                userId: this.options.userId,
+              }),
+              collapseSelection()
+            )(state, dispatch);
+
+            return true;
+          },
         }
       : {};
   }
@@ -43,6 +54,10 @@ export default class Comment extends Mark {
   commands({ type }: { type: MarkType; schema: Schema }) {
     return this.options.onCreateCommentMark
       ? () => (state: EditorState, dispatch: Dispatch) => {
+          if (isMarkActive(state.schema.marks.comment)(state)) {
+            return false;
+          }
+
           chainTransactions(
             toggleMark(type, {
               id: uuidv4(),
