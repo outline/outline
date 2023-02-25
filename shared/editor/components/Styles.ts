@@ -571,10 +571,10 @@ h6 {
   border-bottom: 2px solid ${transparentize(0.5, props.theme.brand.marine)};
   transition: background 100ms ease-in-out;
   cursor: pointer;
+  border-radius: 2px;
 
   &:hover {
     background: ${transparentize(0.5, props.theme.brand.marine)};
-    border-radius: 2px;
   }
 }
 

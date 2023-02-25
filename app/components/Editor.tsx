@@ -21,6 +21,7 @@ import HoverPreview from "~/components/HoverPreview";
 import type { Props as EditorProps, Editor as SharedEditor } from "~/editor";
 import useDictionary from "~/hooks/useDictionary";
 import useEmbeds from "~/hooks/useEmbeds";
+import useFocusedComment from "~/hooks/useFocusedComment";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import { NotFoundError } from "~/utils/errors";
@@ -60,6 +61,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     onDeleteCommentMark,
   } = props;
   const { auth, comments, documents } = useStores();
+  const focusedComment = useFocusedComment();
   const { showToast } = useToasts();
   const dictionary = useDictionary();
   const embeds = useEmbeds(!shareId);
@@ -341,6 +343,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
           onChange={handleChange}
           placeholder={props.placeholder || ""}
           defaultValue={props.defaultValue || ""}
+          focusedCommentId={focusedComment?.id}
         />
         {props.bottomPadding && !props.readOnly && (
           <ClickablePadding

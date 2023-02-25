@@ -1,26 +1,18 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { useLocation, useRouteMatch } from "react-router-dom";
+import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import Comment from "~/models/Comment";
 import Empty from "~/components/Empty";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import useQuery from "~/hooks/useQuery";
+import useFocusedComment from "~/hooks/useFocusedComment";
 import useStores from "~/hooks/useStores";
 import CommentForm from "./CommentForm";
 import CommentThread from "./CommentThread";
 import Sidebar from "./SidebarLayout";
-
-function useFocusedComment() {
-  const { comments } = useStores();
-  const location = useLocation<{ commentId?: string }>();
-  const query = useQuery();
-  const focusedCommentId = location.state?.commentId || query.get("commentId");
-  return focusedCommentId ? comments.get(focusedCommentId) : undefined;
-}
 
 function Comments() {
   const { ui, comments, documents } = useStores();

@@ -1,5 +1,6 @@
 /* global File Promise */
 import { PluginSimple } from "markdown-it";
+import { transparentize } from "polished";
 import { baseKeymap } from "prosemirror-commands";
 import { dropCursor } from "prosemirror-dropcursor";
 import { gapCursor } from "prosemirror-gapcursor";
@@ -15,8 +16,8 @@ import {
 import { EditorState, Selection, Plugin, Transaction } from "prosemirror-state";
 import { Decoration, EditorView } from "prosemirror-view";
 import * as React from "react";
-import { DefaultTheme, ThemeProps } from "styled-components";
-import EditorContainer from "@shared/editor/components/Styles";
+import styled, { css, DefaultTheme, ThemeProps } from "styled-components";
+import Styles from "@shared/editor/components/Styles";
 import { EmbedDescriptor } from "@shared/editor/embeds";
 import Extension, { CommandFactory } from "@shared/editor/lib/Extension";
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
@@ -59,6 +60,8 @@ export type Props = {
   extensions?: (typeof Node | typeof Mark | typeof Extension | Extension)[];
   /** If the editor should be focused on mount */
   autoFocus?: boolean;
+  /** The focused comment, if any */
+  focusedCommentId?: string;
   /** If the editor should not allow editing */
   readOnly?: boolean;
   /** If the editor should still allow editing checkboxes when it is readOnly */
@@ -734,6 +737,7 @@ export class Editor extends React.PureComponent<
             grow={grow}
             readOnly={readOnly}
             readOnlyWriteCheckboxes={readOnlyWriteCheckboxes}
+            focusedCommentId={this.props.focusedCommentId}
             ref={this.element}
           />
           {!readOnly && this.view && (
@@ -790,6 +794,16 @@ export class Editor extends React.PureComponent<
     );
   }
 }
+
+const EditorContainer = styled(Styles)<{ focusedCommentId?: string }>`
+  ${(props) =>
+    props.focusedCommentId &&
+    css`
+      #comment-${props.focusedCommentId} {
+        background: ${transparentize(0.5, props.theme.brand.marine)};
+      }
+    `}
+`;
 
 const LazyLoadedEditor = React.forwardRef<Editor, Props>(
   (props: Props, ref) => {
