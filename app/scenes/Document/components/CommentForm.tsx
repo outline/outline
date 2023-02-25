@@ -1,3 +1,4 @@
+import { m } from "framer-motion";
 import { action } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
@@ -23,6 +24,7 @@ type Props = {
   placeholder?: string;
   autoFocus?: boolean;
   standalone?: boolean;
+  animatePresence?: boolean;
   onTyping?: () => void;
   onFocus?: () => void;
   onBlur?: () => void;
@@ -39,6 +41,7 @@ function CommentForm({
   autoFocus,
   standalone,
   placeholder,
+  animatePresence,
   ...rest
 }: Props) {
   const { editor } = useDocumentContext();
@@ -140,10 +143,33 @@ function CommentForm({
     }, 0);
   }, [thread.isNew, autoFocus]);
 
+  const presence = animatePresence
+    ? {
+        initial: {
+          opacity: 0,
+          translateY: 100,
+        },
+        animate: {
+          opacity: 1,
+          translateY: 0,
+          transition: {
+            type: "spring",
+            bounce: 0.1,
+          },
+        },
+        exit: {
+          opacity: 0,
+          translateY: 100,
+          scale: 0.98,
+        },
+      }
+    : {};
+
   return (
-    <form
+    <m.form
       ref={formRef}
       onSubmit={thread?.isNew ? handleCreateComment : handleCreateReply}
+      {...presence}
       {...rest}
     >
       <Flex gap={8} align="flex-start" reverse={dir === "rtl"}>
@@ -185,7 +211,7 @@ function CommentForm({
           )}
         </Bubble>
       </Flex>
-    </form>
+    </m.form>
   );
 }
 

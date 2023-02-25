@@ -1,3 +1,4 @@
+import { AnimatePresence } from "framer-motion";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -5,7 +6,6 @@ import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import Comment from "~/models/Comment";
 import Empty from "~/components/Empty";
-import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useFocusedComment from "~/hooks/useFocusedComment";
@@ -51,17 +51,19 @@ function Comments() {
           </NoComments>
         )}
 
-        {!focusedComment && (
-          <Fade>
+        <AnimatePresence initial={false}>
+          {!focusedComment && (
             <NewCommentForm
+              key="new-comment-form"
               documentId={document.id}
               thread={newComment}
               placeholder={`${t("Add a comment")}…`}
               autoFocus={false}
+              animatePresence
               standalone
             />
-          </Fade>
-        )}
+          )}
+        </AnimatePresence>
       </Wrapper>
     </Sidebar>
   );
