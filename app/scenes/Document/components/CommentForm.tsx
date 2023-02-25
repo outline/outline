@@ -149,11 +149,11 @@ function CommentForm({
   // editor is mounted within a fade transition.
   React.useEffect(() => {
     setTimeout(() => {
-      if (thread.isNew && autoFocus !== false) {
+      if (autoFocus) {
         editorRef.current?.focusAtStart();
       }
     }, 0);
-  }, [thread.isNew, autoFocus]);
+  }, [autoFocus]);
 
   const presence = animatePresence
     ? {

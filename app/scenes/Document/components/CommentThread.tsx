@@ -1,6 +1,7 @@
 import { throttle } from "lodash";
 import { observer } from "mobx-react";
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled, { css } from "styled-components";
@@ -58,7 +59,9 @@ function CommentThread({
   const { comments } = useStores();
   const topRef = React.useRef<HTMLDivElement>(null);
   const user = useCurrentUser();
+  const { t } = useTranslation();
   const history = useHistory();
+  const [autoFocus, setAutoFocus] = React.useState(thread.isNew);
   const [, setIsTyping] = useTypingIndicator({
     document,
     comment: thread,
@@ -84,6 +87,12 @@ function CommentThread({
       state: { commentId: thread.id },
     });
   };
+
+  React.useEffect(() => {
+    if (!focused && autoFocus) {
+      setAutoFocus(false);
+    }
+  }, [focused, autoFocus]);
 
   React.useEffect(() => {
     if (focused && topRef.current) {
@@ -165,14 +174,35 @@ function CommentThread({
               onTyping={setIsTyping}
               standalone={commentsInThread.length === 0}
               dir={document.dir}
-              autoFocus
+              autoFocus={autoFocus}
             />
           </Fade>
         )}
       </ResizingHeightContainer>
+      {!focused && !recessed && (
+        <Reply onClick={() => setAutoFocus(true)}>{t("Reply")}…</Reply>
+      )}
     </Thread>
   );
 }
+
+const Reply = styled.button`
+  border: 0;
+  padding: 8px;
+  margin: 0;
+  background: none;
+  color: ${(props) => props.theme.textTertiary};
+  font-size: 14px;
+  -webkit-appearance: none;
+  cursor: var(--pointer);
+  opacity: 0;
+  transition: opacity 100ms ease-out;
+  position: absolute;
+  text-align: left;
+  width: 100%;
+  bottom: -30px;
+  left: 32px;
+`;
 
 const Thread = styled.div<{
   $focused: boolean;
@@ -184,6 +214,12 @@ const Thread = styled.div<{
   margin-left: ${(props) => (props.$dir === "rtl" ? "18px" : "12px")};
   position: relative;
   transition: opacity 100ms ease-out;
+
+  &:hover {
+    ${Reply} {
+      opacity: 1;
+    }
+  }
 
   ${(props) =>
     props.$recessed &&
