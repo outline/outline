@@ -5,6 +5,7 @@ import bodyParser from "koa-body";
 import Router from "koa-router";
 import { AuthenticationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
+import coalesceBody from "@server/middlewares/coaleseBody";
 import { Collection, Team, View } from "@server/models";
 import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
 import { AppState, AppContext, APIContext } from "@server/types";
@@ -71,6 +72,7 @@ router.get("/redirect", auth(), async (ctx: APIContext) => {
 });
 
 app.use(bodyParser());
+app.use(coalesceBody());
 app.use(router.routes());
 
 export default app;

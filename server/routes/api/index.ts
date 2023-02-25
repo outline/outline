@@ -7,6 +7,7 @@ import userAgent, { UserAgentContext } from "koa-useragent";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
 import Logger from "@server/logging/Logger";
+import coalesceBody from "@server/middlewares/coaleseBody";
 import { AppState, AppContext } from "@server/types";
 import apiKeys from "./apiKeys";
 import attachments from "./attachments";
@@ -45,6 +46,7 @@ api.use(
     },
   })
 );
+api.use(coalesceBody());
 api.use<BaseContext, UserAgentContext>(userAgent);
 api.use(apiWrapper());
 api.use(editor());
