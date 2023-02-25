@@ -124,6 +124,9 @@ export const buildLightTheme = (input: Partial<Colors>): DefaultTheme => {
     backdrop: "rgba(0, 0, 0, 0.2)",
     shadow: "rgba(0, 0, 0, 0.2)",
 
+    commentBackground: colors.warmGrey,
+    commentActiveBackground: "#d7e0ea",
+
     modalBackdrop: colors.black10,
     modalBackground: colors.white,
     modalShadow:
@@ -188,6 +191,9 @@ export const buildDarkTheme = (input: Partial<Colors>): DefaultTheme => {
     sidebarText: colors.slate,
     backdrop: "rgba(0, 0, 0, 0.5)",
     shadow: "rgba(0, 0, 0, 0.6)",
+
+    commentBackground: colors.veryDarkBlue,
+    commentActiveBackground: colors.black,
 
     modalBackdrop: colors.black50,
     modalBackground: "#1f2128",

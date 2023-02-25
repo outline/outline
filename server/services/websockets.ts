@@ -284,6 +284,18 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
         documentId: event.documentId,
         isEditing: event.isEditing,
       });
+
+      socket.on("typing", async (event) => {
+        const room = `document-${event.documentId}`;
+
+        if (event.documentId && socket.rooms[room]) {
+          io.to(room).emit("user.typing", {
+            userId: user.id,
+            documentId: event.documentId,
+            commentId: event.commentId,
+          });
+        }
+      });
     }
   });
 }

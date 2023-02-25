@@ -57,6 +57,25 @@ function Features() {
           />
         </SettingRow>
       )}
+      {/* <SettingRow
+        name={TeamPreference.Commenting}
+        label={
+          <Flex align="center">
+            {t("Commenting")} <Badge>Beta</Badge>
+          </Flex>
+        }
+        description={t(
+          "When enabled team members can add comments to documents."
+        )}
+      >
+        <Switch
+          id={TeamPreference.Commenting}
+          name={TeamPreference.Commenting}
+          checked={team.getPreference(TeamPreference.Commenting, false)}
+          disabled={!team.collaborativeEditing}
+          onChange={handlePreferenceChange}
+        />
+      </SettingRow> */}
       {team.avatarUrl && (
         <SettingRow
           name={TeamPreference.PublicBranding}

@@ -7,6 +7,10 @@ type Options = {
 
 /**
  * Measures the width of an emoji character
+ *
+ * @param emoji The emoji to measure
+ * @param options Options to pass to the measurement element
+ * @returns The width of the emoji in pixels
  */
 export default function useEmojiWidth(
   emoji: string | undefined,

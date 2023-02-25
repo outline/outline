@@ -35,7 +35,6 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(
     const previousLocation = usePrevious(location);
     const { isMenuOpen } = useMenuContext();
     const { user } = auth;
-
     const width = ui.sidebarWidth;
     const collapsed = ui.sidebarIsClosed && !isMenuOpen;
     const maxWidth = theme.sidebarMaxWidth;

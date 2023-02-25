@@ -153,6 +153,11 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       case "collections.remove_group":
         await this.handleCollectionGroupEvent(subscription, event);
         return;
+      case "comments.create":
+      case "comments.update":
+      case "comments.delete":
+        // TODO
+        return;
       case "groups.create":
       case "groups.update":
       case "groups.delete":

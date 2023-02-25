@@ -213,7 +213,7 @@ export default class ExtensionManager {
           Object.entries(value).forEach(([commandName, commandValue]) => {
             handle(commandName, commandValue);
           });
-        } else {
+        } else if (value) {
           handle(name, value);
         }
 

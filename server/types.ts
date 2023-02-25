@@ -279,6 +279,13 @@ export type PinEvent = BaseEvent & {
   collectionId?: string;
 };
 
+export type CommentEvent = BaseEvent & {
+  name: "comments.create" | "comments.update" | "comments.delete";
+  modelId: string;
+  documentId: string;
+  actorId: string;
+};
+
 export type StarEvent = BaseEvent & {
   name: "stars.create" | "stars.update" | "stars.delete";
   modelId: string;
@@ -332,6 +339,7 @@ export type Event =
   | AuthenticationProviderEvent
   | DocumentEvent
   | PinEvent
+  | CommentEvent
   | StarEvent
   | CollectionEvent
   | FileOperationEvent

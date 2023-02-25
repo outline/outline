@@ -103,12 +103,13 @@ export default abstract class BaseStore<T extends BaseModel> {
 
   save(
     params: Partial<T>,
-    options?: Record<string, string | boolean | number | undefined>
+    options: Record<string, string | boolean | number | undefined> = {}
   ): Promise<T> {
-    if (params.id) {
-      return this.update(params, options);
+    const { isNew, ...rest } = options;
+    if (isNew || !params.id) {
+      return this.create(params, rest);
     }
-    return this.create(params, options);
+    return this.update(params, rest);
   }
 
   get(id: string): T | undefined {
@@ -169,6 +170,10 @@ export default abstract class BaseStore<T extends BaseModel> {
   async delete(item: T, options: Record<string, any> = {}) {
     if (!this.actions.includes(RPCAction.Delete)) {
       throw new Error(`Cannot delete ${this.modelName}`);
+    }
+
+    if (item.isNew) {
+      return this.remove(item.id);
     }
 
     this.isSaving = true;

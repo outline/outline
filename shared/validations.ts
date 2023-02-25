@@ -27,6 +27,11 @@ export const CollectionValidation = {
   maxNameLength: 100,
 };
 
+export const CommentValidation = {
+  /** The maximum length of a comment */
+  maxLength: 1000,
+};
+
 export const DocumentValidation = {
   /** The maximum length of the document title */
   maxTitleLength: 100,

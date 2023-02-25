@@ -60,7 +60,11 @@ export default function DocumentScene(props: Props) {
         // no longer be required
         if (isActive && !team.collaborativeEditing) {
           return (
-            <SocketPresence documentId={document.id} isEditing={isEditing}>
+            <SocketPresence
+              documentId={document.id}
+              isEditing={isEditing}
+              presence={!team.collaborativeEditing}
+            >
               <Document document={document} {...rest} />
             </SocketPresence>
           );

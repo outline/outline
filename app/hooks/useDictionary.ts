@@ -19,6 +19,7 @@ export default function useDictionary() {
       codeBlock: t("Code block"),
       codeCopied: t("Copied to clipboard"),
       codeInline: t("Code"),
+      comment: t("Comment"),
       copy: t("Copy"),
       createLink: t("Create link"),
       createLinkError: t("Sorry, an error occurred creating the link"),

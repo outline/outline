@@ -1,5 +1,6 @@
 /* global File Promise */
 import { PluginSimple } from "markdown-it";
+import { transparentize } from "polished";
 import { baseKeymap } from "prosemirror-commands";
 import { dropCursor } from "prosemirror-dropcursor";
 import { gapCursor } from "prosemirror-gapcursor";
@@ -15,13 +16,11 @@ import {
 import { EditorState, Selection, Plugin, Transaction } from "prosemirror-state";
 import { Decoration, EditorView } from "prosemirror-view";
 import * as React from "react";
-import { DefaultTheme, ThemeProps } from "styled-components";
-import EditorContainer from "@shared/editor/components/Styles";
+import styled, { css, DefaultTheme, ThemeProps } from "styled-components";
+import Styles from "@shared/editor/components/Styles";
 import { EmbedDescriptor } from "@shared/editor/embeds";
 import Extension, { CommandFactory } from "@shared/editor/lib/Extension";
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
-import getHeadings from "@shared/editor/lib/getHeadings";
-import getTasks from "@shared/editor/lib/getTasks";
 import { MarkdownSerializer } from "@shared/editor/lib/markdown/serializer";
 import textBetween from "@shared/editor/lib/textBetween";
 import Mark from "@shared/editor/marks/Mark";
@@ -30,6 +29,7 @@ import ReactNode from "@shared/editor/nodes/ReactNode";
 import fullExtensionsPackage from "@shared/editor/packages/full";
 import { EventType } from "@shared/editor/types";
 import { UserPreferences } from "@shared/types";
+import ProsemirrorHelper from "@shared/utils/ProsemirrorHelper";
 import EventEmitter from "@shared/utils/events";
 import Flex from "~/components/Flex";
 import { Dictionary } from "~/hooks/useDictionary";
@@ -48,16 +48,20 @@ export { default as Extension } from "@shared/editor/lib/Extension";
 export type Props = {
   /** An optional identifier for the editor context. It is used to persist local settings */
   id?: string;
+  /** The current userId, if any */
+  userId?: string;
   /** The editor content, should only be changed if you wish to reset the content */
   value?: string;
-  /** The initial editor content */
-  defaultValue: string;
+  /** The initial editor content as a markdown string or JSON object */
+  defaultValue: string | object;
   /** Placeholder displayed when the editor is empty */
   placeholder: string;
   /** Extensions to load into the editor */
   extensions?: (typeof Node | typeof Mark | typeof Extension | Extension)[];
   /** If the editor should be focused on mount */
   autoFocus?: boolean;
+  /** The focused comment, if any */
+  focusedCommentId?: string;
   /** If the editor should not allow editing */
   readOnly?: boolean;
   /** If the editor should still allow editing checkboxes when it is readOnly */
@@ -85,7 +89,13 @@ export type Props = {
   /** Callback when user uses cancel key combo */
   onCancel?: () => void;
   /** Callback when user changes editor content */
-  onChange?: (value: () => string | undefined) => void;
+  onChange?: (value: () => any) => void;
+  /** Callback when a comment mark is clicked */
+  onClickCommentMark?: (commentId: string) => void;
+  /** Callback when a comment mark is created */
+  onCreateCommentMark?: (commentId: string, userId: string) => void;
+  /** Callback when a comment mark is removed */
+  onDeleteCommentMark?: (commentId: string) => void;
   /** Callback when a file upload begins */
   onFileUploadStart?: () => void;
   /** Callback when a file upload ends */
@@ -394,7 +404,7 @@ export class Editor extends React.PureComponent<
     });
   }
 
-  private createState(value?: string) {
+  private createState(value?: string | object) {
     const doc = this.createDocument(value || this.props.defaultValue);
 
     return EditorState.create({
@@ -415,8 +425,13 @@ export class Editor extends React.PureComponent<
     });
   }
 
-  private createDocument(content: string) {
-    return this.parser.parse(content);
+  private createDocument(content: string | object) {
+    // Looks like Markdown
+    if (typeof content === "string") {
+      return this.parser.parse(content);
+    }
+
+    return ProsemirrorNode.fromJSON(this.schema, content);
   }
 
   private createView() {
@@ -475,10 +490,6 @@ export class Editor extends React.PureComponent<
     return view;
   }
 
-  private dispatchThemeChanged = (event: CustomEvent) => {
-    this.view.dispatch(this.view.state.tr.setMeta("theme", event.detail));
-  };
-
   public scrollToAnchor(hash: string) {
     if (!hash) {
       return;
@@ -497,6 +508,18 @@ export class Editor extends React.PureComponent<
     }
   }
 
+  public value = (asString = true, trim?: boolean) => {
+    if (asString) {
+      const content = this.serializer.serialize(this.view.state.doc);
+      return trim ? content.trim() : content;
+    }
+
+    return (trim
+      ? ProsemirrorHelper.trim(this.view.state.doc)
+      : this.view.state.doc
+    ).toJSON();
+  };
+
   private calculateDir = () => {
     if (!this.element.current) {
       return;
@@ -511,8 +534,106 @@ export class Editor extends React.PureComponent<
     }
   };
 
-  public value = (): string => {
-    return this.serializer.serialize(this.view.state.doc);
+  /**
+   * Focus the editor at the start of the content.
+   */
+  public focusAtStart = () => {
+    const selection = Selection.atStart(this.view.state.doc);
+    const transaction = this.view.state.tr.setSelection(selection);
+    this.view.dispatch(transaction);
+    this.view.focus();
+  };
+
+  /**
+   * Focus the editor at the end of the content.
+   */
+  public focusAtEnd = () => {
+    const selection = Selection.atEnd(this.view.state.doc);
+    const transaction = this.view.state.tr.setSelection(selection);
+    this.view.dispatch(transaction);
+    this.view.focus();
+  };
+
+  /**
+   * Returns true if the trimmed content of the editor is an empty string.
+   *
+   * @returns True if the editor is empty
+   */
+  public isEmpty = () => {
+    return ProsemirrorHelper.isEmpty(this.view.state.doc);
+  };
+
+  /**
+   * Return the headings in the current editor.
+   *
+   * @returns A list of headings in the document
+   */
+  public getHeadings = () => {
+    return ProsemirrorHelper.getHeadings(this.view.state.doc);
+  };
+
+  /**
+   * Return the tasks/checkmarks in the current editor.
+   *
+   * @returns A list of tasks in the document
+   */
+  public getTasks = () => {
+    return ProsemirrorHelper.getTasks(this.view.state.doc);
+  };
+
+  /**
+   * Return the comments in the current editor.
+   *
+   * @returns A list of comments in the document
+   */
+  public getComments = () => {
+    return ProsemirrorHelper.getComments(this.view.state.doc);
+  };
+
+  /**
+   * Remove a specific comment mark from the document.
+   *
+   * @param commentId The id of the comment to remove
+   */
+  public removeComment = (commentId: string) => {
+    const { state, dispatch } = this.view;
+    let found = false;
+    state.doc.descendants((node, pos) => {
+      if (!node.isInline || found) {
+        return;
+      }
+
+      const mark = node.marks.find(
+        (mark) =>
+          mark.type === state.schema.marks.comment &&
+          mark.attrs.id === commentId
+      );
+
+      if (mark) {
+        dispatch(state.tr.removeMark(pos, pos + node.nodeSize, mark));
+        found = true;
+      }
+    });
+  };
+
+  /**
+   * Return the plain text content of the current editor.
+   *
+   * @returns A string of text
+   */
+  public getPlainText = () => {
+    const { doc } = this.view.state;
+    const textSerializers = Object.fromEntries(
+      Object.entries(this.schema.nodes)
+        .filter(([, node]) => node.spec.toPlainText)
+        .map(([name, node]) => [name, node.spec.toPlainText])
+    );
+
+    return textBetween(doc, 0, doc.content.size, textSerializers);
+  };
+
+  private dispatchThemeChanged = (event: CustomEvent) => {
+    this.view.dispatch(this.view.state.tr.setMeta("theme", event.detail));
   };
 
   private handleChange = () => {
@@ -520,8 +641,8 @@ export class Editor extends React.PureComponent<
       return;
     }
 
-    this.props.onChange(() => {
-      return this.view ? this.value() : undefined;
+    this.props.onChange((asString = true, trim = false) => {
+      return this.view ? this.value(asString, trim) : undefined;
     });
   };
 
@@ -583,60 +704,6 @@ export class Editor extends React.PureComponent<
     this.setState({ blockMenuOpen: false });
   };
 
-  /**
-   * Focus the editor at the start of the content.
-   */
-  public focusAtStart = () => {
-    const selection = Selection.atStart(this.view.state.doc);
-    const transaction = this.view.state.tr.setSelection(selection);
-    this.view.dispatch(transaction);
-    this.view.focus();
-  };
-
-  /**
-   * Focus the editor at the end of the content.
-   */
-  public focusAtEnd = () => {
-    const selection = Selection.atEnd(this.view.state.doc);
-    const transaction = this.view.state.tr.setSelection(selection);
-    this.view.dispatch(transaction);
-    this.view.focus();
-  };
-
-  /**
-   * Return the headings in the current editor.
-   *
-   * @returns A list of headings in the document
-   */
-  public getHeadings = () => {
-    return getHeadings(this.view.state.doc);
-  };
-
-  /**
-   * Return the tasks/checkmarks in the current editor.
-   *
-   * @returns A list of tasks in the document
-   */
-  public getTasks = () => {
-    return getTasks(this.view.state.doc);
-  };
-
-  /**
-   * Return the plain text content of the current editor.
-   *
-   * @returns A string of text
-   */
-  public getPlainText = () => {
-    const { doc } = this.view.state;
-    const textSerializers = Object.fromEntries(
-      Object.entries(this.schema.nodes)
-        .filter(([, node]) => node.spec.toPlainText)
-        .map(([name, node]) => [name, node.spec.toPlainText])
-    );
-
-    return textBetween(doc, 0, doc.content.size, textSerializers);
-  };
-
   public render() {
     const {
       dir,
@@ -658,7 +725,6 @@ export class Editor extends React.PureComponent<
           className={className}
           align="flex-start"
           justify="center"
-          dir={dir}
           column
         >
           <EditorContainer
@@ -667,6 +733,7 @@ export class Editor extends React.PureComponent<
             grow={grow}
             readOnly={readOnly}
             readOnlyWriteCheckboxes={readOnlyWriteCheckboxes}
+            focusedCommentId={this.props.focusedCommentId}
             ref={this.element}
           />
           {!readOnly && this.view && (
@@ -723,6 +790,16 @@ export class Editor extends React.PureComponent<
     );
   }
 }
+
+const EditorContainer = styled(Styles)<{ focusedCommentId?: string }>`
+  ${(props) =>
+    props.focusedCommentId &&
+    css`
+      #comment-${props.focusedCommentId} {
+        background: ${transparentize(0.5, props.theme.brand.marine)};
+      }
+    `}
+`;
 
 const LazyLoadedEditor = React.forwardRef<Editor, Props>(
   (props: Props, ref) => {
