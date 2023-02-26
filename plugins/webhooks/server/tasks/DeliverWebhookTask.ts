@@ -22,6 +22,7 @@ import {
   CollectionUser,
   CollectionGroup,
   GroupUser,
+  Comment,
 } from "@server/models";
 import {
   presentCollection,
@@ -39,12 +40,14 @@ import {
   presentMembership,
   presentGroupMembership,
   presentCollectionGroupMembership,
+  presentComment,
 } from "@server/presenters";
 import BaseTask from "@server/queues/tasks/BaseTask";
 import {
   CollectionEvent,
   CollectionGroupEvent,
   CollectionUserEvent,
+  CommentEvent,
   DocumentEvent,
   Event,
   FileOperationEvent,
@@ -156,7 +159,7 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       case "comments.create":
       case "comments.update":
       case "comments.delete":
-        // TODO
+        await this.handleCommentEvent(subscription, event);
         return;
       case "groups.create":
       case "groups.update":
@@ -281,6 +284,23 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       payload: {
         id: event.modelId,
         model: model && presentShare(model),
+      },
+    });
+  }
+
+  private async handleCommentEvent(
+    subscription: WebhookSubscription,
+    event: CommentEvent
+  ): Promise<void> {
+    const model = await Comment.findByPk(event.modelId, {
+      paranoid: false,
+    });
+    await this.sendWebhook({
+      event,
+      subscription,
+      payload: {
+        id: event.modelId,
+        model: model && presentComment(model),
       },
     });
   }
