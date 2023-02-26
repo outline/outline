@@ -1,10 +1,5 @@
 import { observer } from "mobx-react";
-import {
-  EditIcon,
-  PrintIcon,
-  NewDocumentIcon,
-  RestoreIcon,
-} from "outline-icons";
+import { EditIcon, NewDocumentIcon, RestoreIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
@@ -40,6 +35,8 @@ import {
   openDocumentInsights,
   publishDocument,
   unpublishDocument,
+  printDocument,
+  openDocumentComments,
 } from "~/actions/definitions/documents";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -124,11 +121,6 @@ function DocumentMenu({
     },
     [showToast, t, document]
   );
-
-  const handlePrint = React.useCallback(() => {
-    menu.hide();
-    window.print();
-  }, [menu]);
 
   const collection = collections.get(document.collectionId);
   const can = usePolicy(document);
@@ -291,16 +283,11 @@ function DocumentMenu({
             {
               type: "separator",
             },
-            actionToMenuItem(downloadDocument, context),
+            actionToMenuItem(openDocumentComments, context),
             actionToMenuItem(openDocumentHistory, context),
             actionToMenuItem(openDocumentInsights, context),
-            {
-              type: "button",
-              title: t("Print"),
-              onClick: handlePrint,
-              visible: !!showDisplayOptions,
-              icon: <PrintIcon />,
-            },
+            actionToMenuItem(downloadDocument, context),
+            actionToMenuItem(printDocument, context),
             {
               type: "separator",
             },

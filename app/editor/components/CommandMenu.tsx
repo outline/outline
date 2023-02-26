@@ -3,7 +3,6 @@ import { findDomRefAtPos, findParentNode } from "prosemirror-utils";
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import { Trans } from "react-i18next";
-import { Portal } from "react-portal";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
 import insertFiles from "@shared/editor/commands/insertFiles";
@@ -14,6 +13,7 @@ import { MenuItem } from "@shared/editor/types";
 import { depths } from "@shared/styles";
 import { getEventFiles } from "@shared/utils/files";
 import { AttachmentValidation } from "@shared/validations";
+import { Portal } from "~/components/Portal";
 import Scrollable from "~/components/Scrollable";
 import { Dictionary } from "~/hooks/useDictionary";
 import Input from "./Input";
@@ -406,7 +406,16 @@ class CommandMenu<T extends MenuItem> extends React.Component<Props<T>, State> {
     const { top, bottom, right } = paragraph.node.getBoundingClientRect();
     const margin = 24;
 
-    let leftPos = left + window.scrollX;
+    const offsetParent = ref?.offsetParent
+      ? ref.offsetParent.getBoundingClientRect()
+      : ({
+          width: 0,
+          height: 0,
+          top: 0,
+          left: 0,
+        } as DOMRect);
+
+    let leftPos = left - offsetParent.left;
     if (props.rtl && ref) {
       leftPos = right - ref.scrollWidth;
     }
@@ -414,14 +423,14 @@ class CommandMenu<T extends MenuItem> extends React.Component<Props<T>, State> {
     if (startPos.top - offsetHeight > margin) {
       return {
         left: leftPos,
-        top: undefined,
-        bottom: window.innerHeight - top - window.scrollY,
+        top: top - offsetParent.top - offsetHeight,
+        bottom: undefined,
         isAbove: false,
       };
     } else {
       return {
         left: leftPos,
-        top: bottom + window.scrollY,
+        top: bottom - offsetParent.top,
         bottom: undefined,
         isAbove: true,
       };

@@ -10,6 +10,7 @@ import Document from "~/models/Document";
 import { RefHandle } from "~/components/ContentEditable";
 import Editor, { Props as EditorProps } from "~/components/Editor";
 import Flex from "~/components/Flex";
+import useFocusedComment from "~/hooks/useFocusedComment";
 import useStores from "~/hooks/useStores";
 import {
   documentHistoryUrl,
@@ -43,6 +44,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   const titleRef = React.useRef<RefHandle>(null);
   const { t } = useTranslation();
   const match = useRouteMatch();
+  const focusedComment = useFocusedComment();
   const { ui, comments, auth } = useStores();
   const { user, team } = auth;
   const history = useHistory();
@@ -91,13 +93,13 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
           pathname: window.location.pathname.replace(/\/history$/, ""),
           state: { commentId },
         });
-      } else {
+      } else if (focusedComment) {
         history.replace({
           pathname: window.location.pathname,
         });
       }
     },
-    [ui, history]
+    [ui, focusedComment, history]
   );
 
   // Create a Comment model in local store when a comment mark is created, this
@@ -177,6 +179,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         readOnly={readOnly}
         shareId={shareId}
         userId={user?.id}
+        focusedCommentId={focusedComment?.id}
         onClickCommentMark={handleClickComment}
         onCreateCommentMark={
           team?.getPreference(TeamPreference.Commenting)

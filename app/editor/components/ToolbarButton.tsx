@@ -2,7 +2,9 @@ import styled from "styled-components";
 
 type Props = { active?: boolean; disabled?: boolean };
 
-export default styled.button<Props>`
+export default styled.button.attrs((props) => ({
+  type: props.type || "button",
+}))<Props>`
   display: inline-block;
   flex: 0;
   width: 24px;
