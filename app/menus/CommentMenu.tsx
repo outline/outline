@@ -9,6 +9,7 @@ import ContextMenu from "~/components/ContextMenu";
 import MenuItem from "~/components/ContextMenu/MenuItem";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
 import Separator from "~/components/ContextMenu/Separator";
+import EventBoundary from "~/components/EventBoundary";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
@@ -52,11 +53,14 @@ function CommentMenu({ comment, onEdit, onDelete, className }: Props) {
 
   return (
     <>
-      <OverflowMenuButton
-        aria-label={t("Show menu")}
-        className={className}
-        {...menu}
-      />
+      <EventBoundary>
+        <OverflowMenuButton
+          aria-label={t("Show menu")}
+          className={className}
+          {...menu}
+        />
+      </EventBoundary>
+
       <ContextMenu {...menu} aria-label={t("Comment options")}>
         {can.update && (
           <MenuItem {...menu} onClick={onEdit}>

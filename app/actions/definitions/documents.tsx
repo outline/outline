@@ -25,7 +25,7 @@ import {
   CommentIcon,
 } from "outline-icons";
 import * as React from "react";
-import { ExportContentType } from "@shared/types";
+import { ExportContentType, TeamPreference } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import DocumentDelete from "~/scenes/DocumentDelete";
 import DocumentMove from "~/scenes/DocumentMove";
@@ -716,7 +716,12 @@ export const openDocumentComments = createAction({
   icon: <CommentIcon />,
   visible: ({ activeDocumentId, stores }) => {
     const can = stores.policies.abilities(activeDocumentId ?? "");
-    return !!activeDocumentId && can.read && !can.restore;
+    return (
+      !!activeDocumentId &&
+      can.read &&
+      !can.restore &&
+      !!stores.auth.team?.getPreference(TeamPreference.Commenting)
+    );
   },
   perform: ({ activeDocumentId, stores }) => {
     if (!activeDocumentId) {

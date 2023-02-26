@@ -83,7 +83,7 @@ function Insights() {
             </Text>
           </Content>
           <Content column>
-            <Heading>{t("Collaborators")}</Heading>
+            <Heading>{t("Contributors")}</Heading>
             <Text type="secondary" size="small">
               {t(`Created`)} <Time dateTime={document.createdAt} addSuffix />.
               <br />
@@ -92,7 +92,7 @@ function Insights() {
             </Text>
             <ListSpacing>
               <PaginatedList
-                aria-label={t("Collaborators")}
+                aria-label={t("Contributors")}
                 items={document.collaborators}
                 renderItem={(model: User) => (
                   <ListItem
