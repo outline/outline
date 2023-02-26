@@ -65,13 +65,15 @@ function CommentForm({
   const formRef = React.useRef<HTMLFormElement>(null);
   const editorRef = React.useRef<SharedEditor>(null);
   const [forceRender, setForceRender] = React.useState(0);
+  const [inputFocused, setInputFocused] = React.useState(false);
   const { t } = useTranslation();
   const { showToast } = useToasts();
   const { comments } = useStores();
   const user = useCurrentUser();
-  const isEmpty = editorRef.current?.isEmpty() ?? true;
 
   useOnClickOutside(formRef, () => {
+    const isEmpty = editorRef.current?.isEmpty() ?? true;
+
     if (isEmpty && thread?.isNew) {
       if (thread.id) {
         editor?.removeComment(thread.id);
@@ -155,6 +157,16 @@ function CommentForm({
     setForceRender((s) => ++s);
   };
 
+  const handleFocus = () => {
+    onFocus?.();
+    setInputFocused(true);
+  };
+
+  const handleBlur = () => {
+    onBlur?.();
+    setInputFocused(false);
+  };
+
   // Focus the editor when it's a new comment just mounted, after a delay as the
   // editor is mounted within a fade transition.
   React.useEffect(() => {
@@ -209,8 +221,8 @@ function CommentForm({
             ref={editorRef}
             onChange={handleChange}
             onSave={handleSave}
-            onFocus={onFocus}
-            onBlur={onBlur}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
             maxLength={CommentValidation.maxLength}
             placeholder={
               placeholder ||
@@ -222,10 +234,10 @@ function CommentForm({
             }
           />
 
-          {!isEmpty && (
+          {inputFocused && (
             <Flex justify={dir === "rtl" ? "flex-end" : "flex-start"} gap={8}>
               <ButtonSmall type="submit" borderOnHover>
-                {thread?.isNew ? t("Post") : t("Reply")}
+                {thread && !thread.isNew ? t("Reply") : t("Post")}
               </ButtonSmall>
               <ButtonSmall onClick={handleCancel} neutral borderOnHover>
                 {t("Cancel")}
