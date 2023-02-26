@@ -25,6 +25,7 @@ import TableHeadCell from "../nodes/TableHeadCell";
 import TableRow from "../nodes/TableRow";
 import BlockMenuTrigger from "../plugins/BlockMenuTrigger";
 import Folding from "../plugins/Folding";
+import PreventTab from "../plugins/PreventTab";
 import basicPackage from "./basic";
 
 const fullPackage: (typeof Node | typeof Mark | typeof Extension)[] = [
@@ -53,6 +54,7 @@ const fullPackage: (typeof Node | typeof Mark | typeof Extension)[] = [
   BlockMenuTrigger,
   Math,
   MathBlock,
+  PreventTab,
 ];
 
 export default fullPackage;
