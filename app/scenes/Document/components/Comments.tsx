@@ -4,7 +4,6 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
-import Comment from "~/models/Comment";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
 import useCurrentUser from "~/hooks/useCurrentUser";
@@ -16,7 +15,6 @@ import Sidebar from "./SidebarLayout";
 
 function Comments() {
   const { ui, comments, documents } = useStores();
-  const [newComment] = React.useState(new Comment({}, comments));
   const { t } = useTranslation();
   const user = useCurrentUser();
   const match = useRouteMatch<{ documentSlug: string }>();
@@ -54,9 +52,7 @@ function Comments() {
         <AnimatePresence initial={false}>
           {!focusedComment && (
             <NewCommentForm
-              key="new-comment-form"
               documentId={document.id}
-              thread={newComment}
               placeholder={`${t("Add a comment")}…`}
               autoFocus={false}
               dir={document.dir}

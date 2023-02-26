@@ -22,7 +22,7 @@ type Props = {
   /** The document that the comment will be associated with */
   documentId: string;
   /** The comment thread that the comment will be associated with */
-  thread: Comment;
+  thread?: Comment;
   /** Placeholder text to display in the editor */
   placeholder?: string;
   /** Whether to focus the editor on mount */
@@ -59,7 +59,7 @@ function CommentForm({
 }: Props) {
   const { editor } = useDocumentContext();
   const [data, setData] = usePersistedState<Record<string, any> | undefined>(
-    `draft-${documentId}-${thread.id}`,
+    `draft-${documentId}-${thread?.id ?? "new"}`,
     undefined
   );
   const formRef = React.useRef<HTMLFormElement>(null);
@@ -72,7 +72,7 @@ function CommentForm({
   const isEmpty = editorRef.current?.isEmpty() ?? true;
 
   useOnClickOutside(formRef, () => {
-    if (isEmpty && thread.isNew) {
+    if (isEmpty && thread?.isNew) {
       if (thread.id) {
         editor?.removeComment(thread.id);
       }
@@ -86,19 +86,22 @@ function CommentForm({
     setData(undefined);
     setForceRender((s) => ++s);
 
-    thread
-      .save({
+    const comment = new Comment(
+      {
         documentId,
         data,
-      })
-      .catch(() => {
-        thread.isNew = true;
-        showToast(t("Error creating comment"), { type: "error" });
-      });
+      },
+      comments
+    );
+
+    comment.save().catch(() => {
+      comment.isNew = true;
+      showToast(t("Error creating comment"), { type: "error" });
+    });
 
     // optimistically update the comment model
-    thread.isNew = false;
-    thread.createdBy = user;
+    comment.isNew = false;
+    comment.createdBy = user;
   });
 
   const handleCreateReply = async (event: React.FormEvent) => {
@@ -206,14 +209,16 @@ function CommentForm({
               placeholder ||
               // isNew is only the case for comments that exist in draft state,
               // they are marks in the document, but not yet saved to the db.
-              (thread.isNew ? `${t("Add a comment")}…` : `${t("Add a reply")}…`)
+              (thread?.isNew
+                ? `${t("Add a comment")}…`
+                : `${t("Add a reply")}…`)
             }
           />
 
           {!isEmpty && (
             <Flex justify={dir === "rtl" ? "flex-end" : "flex-start"} gap={8}>
               <ButtonSmall type="submit" borderOnHover>
-                {thread.isNew ? t("Post") : t("Reply")}
+                {thread?.isNew ? t("Post") : t("Reply")}
               </ButtonSmall>
               <ButtonSmall onClick={handleCancel} neutral borderOnHover>
                 {t("Cancel")}
