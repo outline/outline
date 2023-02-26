@@ -86,18 +86,25 @@ function CommentForm({
     setData(undefined);
     setForceRender((s) => ++s);
 
-    const comment = new Comment(
-      {
+    const comment =
+      thread ??
+      new Comment(
+        {
+          documentId,
+          data,
+        },
+        comments
+      );
+
+    comment
+      .save({
         documentId,
         data,
-      },
-      comments
-    );
-
-    comment.save().catch(() => {
-      comment.isNew = true;
-      showToast(t("Error creating comment"), { type: "error" });
-    });
+      })
+      .catch(() => {
+        comment.isNew = true;
+        showToast(t("Error creating comment"), { type: "error" });
+      });
 
     // optimistically update the comment model
     comment.isNew = false;
