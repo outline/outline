@@ -171,6 +171,12 @@ export class Environment {
   public DEBUG = process.env.DEBUG || "";
 
   /**
+   * Configure lowest severity level for server logs
+   */
+  @IsIn(["error", "warn", "info", "http", "verbose", "debug", "silly"])
+  public LOG_LEVEL = process.env.LOG_LEVEL || "info";
+
+  /**
    * How many processes should be spawned. As a reasonable rule divide your
    * server's available memory by 512 for a rough estimate
    */
