@@ -108,7 +108,7 @@
     "i18next-http-backend": "^2.1.1",
     "inline-css": "^4.0.1",
     "invariant": "^2.2.4",
-    "ioredis": "^5.0.0",
+    "ioredis": "^5.3.1",
     "is-printable-key-event": "^1.0.0",
     "jsdom": "^21.0.0",
     "jsonwebtoken": "^9.0.0",
