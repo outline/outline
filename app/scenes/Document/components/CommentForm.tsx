@@ -3,6 +3,7 @@ import { action } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { v4 as uuidv4 } from "uuid";
 import { CommentValidation } from "@shared/validations";
 import Comment from "~/models/Comment";
 import Avatar from "~/components/Avatar";
@@ -87,6 +88,7 @@ function CommentForm({
 
     setData(undefined);
     setForceRender((s) => ++s);
+    setInputFocused(false);
 
     const comment =
       thread ??
@@ -98,6 +100,7 @@ function CommentForm({
         comments
       );
 
+    comment.id = uuidv4();
     comment
       .save({
         documentId,
@@ -110,10 +113,11 @@ function CommentForm({
 
     // optimistically update the comment model
     comment.isNew = false;
+    comment.createdById = user.id;
     comment.createdBy = user;
   });
 
-  const handleCreateReply = async (event: React.FormEvent) => {
+  const handleCreateReply = action(async (event: React.FormEvent) => {
     event.preventDefault();
     if (!data) {
       return;
@@ -121,17 +125,31 @@ function CommentForm({
 
     setData(undefined);
     setForceRender((s) => ++s);
+    setInputFocused(false);
 
-    try {
-      await comments.save({
+    const comment = new Comment(
+      {
         parentCommentId: thread?.id,
         documentId,
         data,
-      });
-    } catch (error) {
+      },
+      comments
+    );
+
+    comment.id = uuidv4();
+    comments.add(comment);
+
+    comment.save().catch(() => {
+      comments.remove(comment.id);
+      comment.isNew = true;
       showToast(t("Error creating comment"), { type: "error" });
-    }
-  };
+    });
+
+    // optimistically update the comment model
+    comment.isNew = false;
+    comment.createdById = user.id;
+    comment.createdBy = user;
+  });
 
   const handleChange = (
     value: (asString: boolean, trim: boolean) => Record<string, any>
@@ -155,6 +173,7 @@ function CommentForm({
   const handleCancel = () => {
     setData(undefined);
     setForceRender((s) => ++s);
+    setInputFocused(false);
   };
 
   const handleFocus = () => {
@@ -164,7 +183,6 @@ function CommentForm({
 
   const handleBlur = () => {
     onBlur?.();
-    setInputFocused(false);
   };
 
   // Focus the editor when it's a new comment just mounted, after a delay as the
