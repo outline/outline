@@ -8,7 +8,6 @@ import Sentry from "@server/logging/sentry";
 import * as Tracing from "./tracer";
 
 const isProduction = env.ENVIRONMENT === "production";
-const isDev = env.ENVIRONMENT === "development";
 
 type LogCategory =
   | "lifecycle"
@@ -30,7 +29,7 @@ class Logger {
 
   constructor() {
     this.output = winston.createLogger({
-      level: isDev ? "debug" : "info",
+      level: env.LOG_LEVEL,
     });
     this.output.add(
       new winston.transports.Console({
