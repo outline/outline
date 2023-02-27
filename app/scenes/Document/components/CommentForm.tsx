@@ -59,13 +59,13 @@ function CommentForm({
 }: Props) {
   const { editor } = useDocumentContext();
   const [data, setData] = usePersistedState<Record<string, any> | undefined>(
-    `draft-${documentId}-${thread?.id ?? "new"}`,
+    `draft-${documentId}-${!thread ? "new" : thread?.id}`,
     undefined
   );
   const formRef = React.useRef<HTMLFormElement>(null);
   const editorRef = React.useRef<SharedEditor>(null);
   const [forceRender, setForceRender] = React.useState(0);
-  const [inputFocused, setInputFocused] = React.useState(false);
+  const [inputFocused, setInputFocused] = React.useState(autoFocus);
   const { t } = useTranslation();
   const { showToast } = useToasts();
   const { comments } = useStores();
@@ -219,6 +219,7 @@ function CommentForm({
           <CommentEditor
             key={`${forceRender}`}
             ref={editorRef}
+            defaultValue={data}
             onChange={handleChange}
             onSave={handleSave}
             onFocus={handleFocus}
