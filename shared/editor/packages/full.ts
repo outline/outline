@@ -10,6 +10,7 @@ import CheckboxList from "../nodes/CheckboxList";
 import CodeBlock from "../nodes/CodeBlock";
 import CodeFence from "../nodes/CodeFence";
 import Embed from "../nodes/Embed";
+import HardBreak from "../nodes/HardBreak";
 import Heading from "../nodes/Heading";
 import HorizontalRule from "../nodes/HorizontalRule";
 import ListItem from "../nodes/ListItem";
@@ -24,11 +25,12 @@ import TableHeadCell from "../nodes/TableHeadCell";
 import TableRow from "../nodes/TableRow";
 import BlockMenuTrigger from "../plugins/BlockMenuTrigger";
 import Folding from "../plugins/Folding";
-import Keys from "../plugins/Keys";
+import PreventTab from "../plugins/PreventTab";
 import basicPackage from "./basic";
 
 const fullPackage: (typeof Node | typeof Mark | typeof Extension)[] = [
   ...basicPackage,
+  HardBreak,
   CodeBlock,
   CodeFence,
   CheckboxList,
@@ -49,10 +51,10 @@ const fullPackage: (typeof Node | typeof Mark | typeof Extension)[] = [
   Highlight,
   TemplatePlaceholder,
   Folding,
-  Keys,
   BlockMenuTrigger,
   Math,
   MathBlock,
+  PreventTab,
 ];
 
 export default fullPackage;

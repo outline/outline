@@ -18,7 +18,7 @@ type Options = {
  * @param options Options for the hook
  * @returns Tuple of the current value and a function to update it
  */
-export default function usePersistedState<T extends Primitive>(
+export default function usePersistedState<T extends Primitive | object>(
   key: string,
   defaultValue: T,
   options?: Options

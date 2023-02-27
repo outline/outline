@@ -31,7 +31,9 @@ function SidebarLayout({ title, onClose, children }: Props) {
           />
         </Tooltip>
       </Header>
-      <Scrollable topShadow>{children}</Scrollable>
+      <Scrollable hiddenScrollbars topShadow>
+        {children}
+      </Scrollable>
     </>
   );
 }

@@ -58,7 +58,13 @@ class UiStore {
   sidebarWidth: number;
 
   @observable
+  sidebarRightWidth: number;
+
+  @observable
   sidebarCollapsed = false;
+
+  @observable
+  commentsCollapsed = false;
 
   @observable
   sidebarIsResizing = false;
@@ -91,6 +97,8 @@ class UiStore {
     this.languagePromptDismissed = data.languagePromptDismissed;
     this.sidebarCollapsed = !!data.sidebarCollapsed;
     this.sidebarWidth = data.sidebarWidth || defaultTheme.sidebarWidth;
+    this.sidebarRightWidth =
+      data.sidebarRightWidth || defaultTheme.sidebarWidth;
     this.tocVisible = !!data.tocVisible;
     this.theme = data.theme || Theme.System;
 
@@ -153,8 +161,8 @@ class UiStore {
   };
 
   @action
-  setSidebarWidth = (sidebarWidth: number): void => {
-    this.sidebarWidth = sidebarWidth;
+  setSidebarWidth = (width: number): void => {
+    this.sidebarWidth = width;
   };
 
   @action
@@ -166,6 +174,21 @@ class UiStore {
   expandSidebar = () => {
     sidebarHidden = false;
     this.sidebarCollapsed = false;
+  };
+
+  @action
+  collapseComments = () => {
+    this.commentsCollapsed = true;
+  };
+
+  @action
+  expandComments = () => {
+    this.commentsCollapsed = false;
+  };
+
+  @action
+  toggleComments = () => {
+    this.commentsCollapsed = !this.commentsCollapsed;
   };
 
   @action
@@ -239,6 +262,7 @@ class UiStore {
       tocVisible: this.tocVisible,
       sidebarCollapsed: this.sidebarCollapsed,
       sidebarWidth: this.sidebarWidth,
+      sidebarRightWidth: this.sidebarRightWidth,
       languagePromptDismissed: this.languagePromptDismissed,
       theme: this.theme,
     };

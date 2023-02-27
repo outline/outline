@@ -578,6 +578,17 @@ h6 {
   opacity: 1;
 }
 
+.comment {
+  border-bottom: 2px solid ${transparentize(0.5, props.theme.brand.marine)};
+  transition: background 100ms ease-in-out;
+  cursor: pointer;
+  border-radius: 2px;
+
+  &:hover {
+    background: ${transparentize(0.5, props.theme.brand.marine)};
+  }
+}
+
 .notice-block {
   display: flex;
   align-items: center;
@@ -1465,6 +1476,11 @@ del[data-operation-index] {
   h5:not(.placeholder):before,
   h6:not(.placeholder):before {
     display: none;
+  }
+
+  .comment {
+    border: 0;
+    background: none;
   }
 
   .page-break {

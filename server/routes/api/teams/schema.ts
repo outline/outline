@@ -40,6 +40,8 @@ export const TeamsUpdateSchema = BaseSchema.extend({
         publicBranding: z.boolean().optional(),
         /** Whether viewers should see download options. */
         viewersCanExport: z.boolean().optional(),
+        /** Whether commenting is enabled */
+        commenting: z.boolean().optional(),
         /** The custom theme for the team. */
         customTheme: z
           .object({

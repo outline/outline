@@ -13,8 +13,8 @@ import {
 } from "react-router";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { Heading } from "@shared/editor/lib/getHeadings";
 import { NavigationNode } from "@shared/types";
+import { Heading } from "@shared/utils/ProsemirrorHelper";
 import { parseDomain } from "@shared/utils/domains";
 import getTasks from "@shared/utils/getTasks";
 import RootStore from "~/stores/RootStore";
@@ -638,19 +638,28 @@ class DocumentScene extends React.Component<Props> {
                 <Branding href="//www.getoutline.com?ref=sharelink" />
               )}
           </Container>
+          {!isShare && (
+            <Footer>
+              <KeyboardShortcutsButton />
+              <ConnectionStatus />
+            </Footer>
+          )}
         </Background>
-        {!isShare && (
-          <>
-            <KeyboardShortcutsButton />
-            <ConnectionStatus />
-          </>
-        )}
       </ErrorBoundary>
     );
   }
 }
 
+const Footer = styled.div`
+  position: absolute;
+  width: 100%;
+  text-align: right;
+  display: flex;
+  justify-content: flex-end;
+`;
+
 const Background = styled(Container)`
+  position: relative;
   background: ${(props) => props.theme.background};
   transition: ${(props) => props.theme.backgroundTransition};
 `;

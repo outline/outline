@@ -2,6 +2,7 @@ import { subHours } from "date-fns";
 import { Op } from "sequelize";
 import { Server } from "socket.io";
 import {
+  Comment,
   Document,
   Collection,
   FileOperation,
@@ -14,6 +15,7 @@ import {
   Subscription,
 } from "@server/models";
 import {
+  presentComment,
   presentCollection,
   presentDocument,
   presentFileOperation,
@@ -350,6 +352,35 @@ export default class WebsocketsProcessor {
               ? `collection-${event.collectionId}`
               : `team-${event.teamId}`
           )
+          .emit(event.name, {
+            modelId: event.modelId,
+          });
+      }
+
+      case "comments.create":
+      case "comments.update": {
+        const comment = await Comment.scope([
+          "defaultScope",
+          "withDocument",
+        ]).findByPk(event.modelId);
+        if (!comment) {
+          return;
+        }
+        return socketio
+          .to(`collection-${comment.document.collectionId}`)
+          .emit(event.name, presentComment(comment));
+      }
+
+      case "comments.delete": {
+        const comment = await Comment.scope([
+          "defaultScope",
+          "withDocument",
+        ]).findByPk(event.modelId);
+        if (!comment) {
+          return;
+        }
+        return socketio
+          .to(`collection-${comment.document.collectionId}`)
           .emit(event.name, {
             modelId: event.modelId,
           });

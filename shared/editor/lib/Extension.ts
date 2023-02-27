@@ -64,7 +64,7 @@ export default class Extension {
   commands(_options: {
     type?: NodeType | MarkType;
     schema: Schema;
-  }): Record<string, CommandFactory> | CommandFactory {
+  }): Record<string, CommandFactory> | CommandFactory | undefined {
     return {};
   }
 }

@@ -124,6 +124,8 @@ export enum TeamPreference {
   PublicBranding = "publicBranding",
   /** Whether viewers should see download options. */
   ViewersCanExport = "viewersCanExport",
+  /** Whether users can comment on documents. */
+  Commenting = "commenting",
   /** The custom theme for the team. */
   CustomTheme = "customTheme",
 }
@@ -132,6 +134,7 @@ export type TeamPreferences = {
   [TeamPreference.SeamlessEdit]?: boolean;
   [TeamPreference.PublicBranding]?: boolean;
   [TeamPreference.ViewersCanExport]?: boolean;
+  [TeamPreference.Commenting]?: boolean;
   [TeamPreference.CustomTheme]?: Partial<CustomTheme>;
 };
 

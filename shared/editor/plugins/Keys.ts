@@ -24,10 +24,6 @@ export default class Keys extends Extension {
     };
 
     return {
-      // No-ops prevent Tab escaping the editor bounds
-      Tab: () => true,
-      "Shift-Tab": () => true,
-
       // Shortcuts for when editor has separate edit mode
       "Mod-Escape": onCancel,
       "Shift-Escape": onCancel,

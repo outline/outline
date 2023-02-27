@@ -19,15 +19,16 @@ type Props = {
   showBorder?: boolean;
   onClick?: React.MouseEventHandler<HTMLImageElement>;
   className?: string;
+  style?: React.CSSProperties;
 };
 
 function Avatar(props: Props) {
-  const { icon, showBorder, model, ...rest } = props;
+  const { icon, showBorder, model, style, ...rest } = props;
   const src = props.src || model?.avatarUrl;
   const [error, handleError] = useBoolean(false);
 
   return (
-    <Relative>
+    <Relative style={style}>
       {src && !error ? (
         <CircleImg
           onError={handleError}
@@ -53,6 +54,7 @@ Avatar.defaultProps = {
 
 const Relative = styled.div`
   position: relative;
+  user-select: none;
   flex-shrink: 0;
 `;
 

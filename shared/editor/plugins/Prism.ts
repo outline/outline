@@ -104,7 +104,7 @@ function getDecorations({
         const lineCountText = new Array(lineCount)
           .fill(0)
           .map((_, i) => padStart(`${i + 1}`, gutterWidth, " "))
-          .join(" ");
+          .join(" \n");
 
         lineDecorations.push(
           Decoration.node(

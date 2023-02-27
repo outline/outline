@@ -121,6 +121,10 @@ export type Props = React.InputHTMLAttributes<
   margin?: string | number;
   error?: string;
   icon?: React.ReactNode;
+  /* Callback is triggered with the CMD+Enter keyboard combo */
+  onRequestSubmit?: (
+    ev: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => unknown;
   onFocus?: (ev: React.SyntheticEvent) => unknown;
   onBlur?: (ev: React.SyntheticEvent) => unknown;
 };
@@ -144,6 +148,20 @@ function Input(
 
     if (props.onFocus) {
       props.onFocus(ev);
+    }
+  };
+
+  const handleKeyDown = (
+    ev: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    if (ev.key === "Enter" && ev.metaKey) {
+      if (props.onRequestSubmit) {
+        props.onRequestSubmit(ev);
+      }
+    }
+
+    if (props.onKeyDown) {
+      props.onKeyDown(ev);
     }
   };
 
@@ -180,6 +198,7 @@ function Input(
               ref={ref as React.RefObject<HTMLTextAreaElement>}
               onBlur={handleBlur}
               onFocus={handleFocus}
+              onKeyDown={handleKeyDown}
               hasIcon={!!icon}
               {...rest}
             />
@@ -188,6 +207,7 @@ function Input(
               ref={ref as React.RefObject<HTMLInputElement>}
               onBlur={handleBlur}
               onFocus={handleFocus}
+              onKeyDown={handleKeyDown}
               hasIcon={!!icon}
               type={type}
               {...rest}

@@ -8,7 +8,6 @@ import Strikethrough from "../marks/Strikethrough";
 import Underline from "../marks/Underline";
 import Doc from "../nodes/Doc";
 import Emoji from "../nodes/Emoji";
-import HardBreak from "../nodes/HardBreak";
 import Image from "../nodes/Image";
 import Mention from "../nodes/Mention";
 import Node from "../nodes/Node";
@@ -17,6 +16,7 @@ import Text from "../nodes/Text";
 import ClipboardTextSerializer from "../plugins/ClipboardTextSerializer";
 import DateTime from "../plugins/DateTime";
 import History from "../plugins/History";
+import Keys from "../plugins/Keys";
 import MaxLength from "../plugins/MaxLength";
 import PasteHandler from "../plugins/PasteHandler";
 import Placeholder from "../plugins/Placeholder";
@@ -25,7 +25,6 @@ import TrailingNode from "../plugins/TrailingNode";
 
 const basicPackage: (typeof Node | typeof Mark | typeof Extension)[] = [
   Doc,
-  HardBreak,
   Paragraph,
   Emoji,
   Text,
@@ -43,6 +42,7 @@ const basicPackage: (typeof Node | typeof Mark | typeof Extension)[] = [
   Placeholder,
   MaxLength,
   DateTime,
+  Keys,
   ClipboardTextSerializer,
   Mention,
 ];

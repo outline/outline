@@ -1,14 +1,15 @@
 import { formatDistanceToNow } from "date-fns";
-import { deburr, sortBy } from "lodash";
+import { deburr, difference, sortBy } from "lodash";
 import { observer } from "mobx-react";
 import { DOMParser as ProsemirrorDOMParser } from "prosemirror-model";
 import { TextSelection } from "prosemirror-state";
 import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
+import { useHistory } from "react-router-dom";
 import { Optional } from "utility-types";
 import insertFiles from "@shared/editor/commands/insertFiles";
-import { Heading } from "@shared/editor/lib/getHeadings";
 import { AttachmentPreset } from "@shared/types";
+import { Heading } from "@shared/utils/ProsemirrorHelper";
 import { getDataTransferFiles } from "@shared/utils/files";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { isInternalUrl } from "@shared/utils/urls";
@@ -24,7 +25,6 @@ import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import { NotFoundError } from "~/utils/errors";
 import { uploadFile } from "~/utils/files";
-import history from "~/utils/history";
 import { isModKey } from "~/utils/keyboard";
 import { sharedDocumentPath } from "~/utils/routeHelpers";
 import { isHash } from "~/utils/urls";
@@ -51,11 +51,19 @@ export type Props = Optional<
 };
 
 function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
-  const { id, shareId, onChange, onHeadingsChange } = props;
-  const { documents, auth } = useStores();
+  const {
+    id,
+    shareId,
+    onChange,
+    onHeadingsChange,
+    onCreateCommentMark,
+    onDeleteCommentMark,
+  } = props;
+  const { auth, comments, documents } = useStores();
   const { showToast } = useToasts();
   const dictionary = useDictionary();
   const embeds = useEmbeds(!shareId);
+  const history = useHistory();
   const localRef = React.useRef<SharedEditor>();
   const preferences = auth.user?.preferences;
   const previousHeadings = React.useRef<Heading[] | null>(null);
@@ -63,6 +71,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     activeLinkElement,
     setActiveLink,
   ] = React.useState<HTMLAnchorElement | null>(null);
+  const previousCommentIds = React.useRef<string[]>();
 
   const handleLinkActive = React.useCallback((element: HTMLAnchorElement) => {
     setActiveLink(element);
@@ -125,7 +134,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     [documents]
   );
 
-  const onUploadFile = React.useCallback(
+  const handleUploadFile = React.useCallback(
     async (file: File) => {
       const result = await uploadFile(file, {
         documentId: id,
@@ -136,7 +145,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     [id]
   );
 
-  const onClickLink = React.useCallback(
+  const handleClickLink = React.useCallback(
     (href: string, event: MouseEvent) => {
       // on page hash
       if (isHash(href)) {
@@ -175,7 +184,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
         window.open(href, "_blank");
       }
     },
-    [shareId]
+    [history, shareId]
   );
 
   const focusAtEnd = React.useCallback(() => {
@@ -223,7 +232,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
       );
 
       insertFiles(view, event, pos, files, {
-        uploadFile: onUploadFile,
+        uploadFile: handleUploadFile,
         onFileUploadStart: props.onFileUploadStart,
         onFileUploadStop: props.onFileUploadStop,
         onShowToast: showToast,
@@ -236,7 +245,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
       props.onFileUploadStart,
       props.onFileUploadStop,
       dictionary,
-      onUploadFile,
+      handleUploadFile,
       showToast,
     ]
   );
@@ -265,21 +274,54 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     }
   }, [localRef, onHeadingsChange]);
 
+  const updateComments = React.useCallback(() => {
+    if (onCreateCommentMark && onDeleteCommentMark) {
+      const commentMarks = localRef.current?.getComments();
+      const commentIds = comments.orderedData.map((c) => c.id);
+      const commentMarkIds = commentMarks?.map((c) => c.id);
+      const newCommentIds = difference(
+        commentMarkIds,
+        previousCommentIds.current ?? [],
+        commentIds
+      );
+
+      newCommentIds.forEach((commentId) => {
+        const mark = commentMarks?.find((c) => c.id === commentId);
+        if (mark) {
+          onCreateCommentMark(mark.id, mark.userId);
+        }
+      });
+
+      const removedCommentIds = difference(
+        previousCommentIds.current ?? [],
+        commentMarkIds ?? []
+      );
+
+      removedCommentIds.forEach((commentId) => {
+        onDeleteCommentMark(commentId);
+      });
+
+      previousCommentIds.current = commentMarkIds;
+    }
+  }, [onCreateCommentMark, onDeleteCommentMark, comments.orderedData]);
+
   const handleChange = React.useCallback(
     (event) => {
       onChange?.(event);
       updateHeadings();
+      updateComments();
     },
-    [onChange, updateHeadings]
+    [onChange, updateComments, updateHeadings]
   );
 
   const handleRefChanged = React.useCallback(
     (node: SharedEditor | null) => {
       if (node) {
         updateHeadings();
+        updateComments();
       }
     },
-    [updateHeadings]
+    [updateComments, updateHeadings]
   );
 
   return (
@@ -287,14 +329,14 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
       <>
         <LazyLoadedEditor
           ref={mergeRefs([ref, localRef, handleRefChanged])}
-          uploadFile={onUploadFile}
+          uploadFile={handleUploadFile}
           onShowToast={showToast}
           embeds={embeds}
           userPreferences={preferences}
           dictionary={dictionary}
           {...props}
           onHoverLink={handleLinkActive}
-          onClickLink={onClickLink}
+          onClickLink={handleClickLink}
           onSearchLink={handleSearchLink}
           onChange={handleChange}
           placeholder={props.placeholder || ""}

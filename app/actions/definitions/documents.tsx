@@ -22,9 +22,10 @@ import {
   LightBulbIcon,
   UnpublishIcon,
   PublishIcon,
+  CommentIcon,
 } from "outline-icons";
 import * as React from "react";
-import { ExportContentType } from "@shared/types";
+import { ExportContentType, TeamPreference } from "@shared/types";
 import { getEventFiles } from "@shared/utils/files";
 import DocumentDelete from "~/scenes/DocumentDelete";
 import DocumentMove from "~/scenes/DocumentMove";
@@ -466,7 +467,7 @@ export const printDocument = createAction({
   icon: <PrintIcon />,
   visible: ({ activeDocumentId }) => !!(activeDocumentId && window.print),
   perform: async () => {
-    window.print();
+    queueMicrotask(window.print);
   },
 });
 
@@ -708,6 +709,29 @@ export const permanentlyDeleteDocument = createAction({
   },
 });
 
+export const openDocumentComments = createAction({
+  name: ({ t }) => t("Comments"),
+  analyticsName: "Open comments",
+  section: DocumentSection,
+  icon: <CommentIcon />,
+  visible: ({ activeDocumentId, stores }) => {
+    const can = stores.policies.abilities(activeDocumentId ?? "");
+    return (
+      !!activeDocumentId &&
+      can.read &&
+      !can.restore &&
+      !!stores.auth.team?.getPreference(TeamPreference.Commenting)
+    );
+  },
+  perform: ({ activeDocumentId, stores }) => {
+    if (!activeDocumentId) {
+      return;
+    }
+
+    stores.ui.toggleComments();
+  },
+});
+
 export const openDocumentHistory = createAction({
   name: ({ t }) => t("History"),
   analyticsName: "Open document history",
@@ -771,6 +795,7 @@ export const rootDocumentActions = [
   printDocument,
   pinDocumentToCollection,
   pinDocumentToHome,
+  openDocumentComments,
   openDocumentHistory,
   openDocumentInsights,
 ];
