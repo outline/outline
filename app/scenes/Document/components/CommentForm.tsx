@@ -100,7 +100,6 @@ function CommentForm({
         comments
       );
 
-    comment.id = uuidv4();
     comment
       .save({
         documentId,
