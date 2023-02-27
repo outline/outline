@@ -206,7 +206,11 @@ function SharePopover({
 
   const userLocale = useUserLocale();
   const locale = userLocale ? dateLocale(userLocale) : undefined;
-  let shareUrl = team.sharing ? share?.url ?? "" : `${team.url}${document.url}`;
+  let shareUrl = team.sharing
+    ? sharedParent?.url
+      ? `${sharedParent.url}${document.url}`
+      : share?.url ?? ""
+    : `${team.url}${document.url}`;
   if (isEditMode) {
     shareUrl += "?edit=true";
   }
