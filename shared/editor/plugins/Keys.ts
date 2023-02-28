@@ -41,6 +41,10 @@ export default class Keys extends Extension {
         }
         return false;
       },
+      Escape: () => {
+        (this.editor.view.dom as HTMLElement).blur();
+        return true;
+      },
     };
   }
 
