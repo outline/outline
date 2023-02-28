@@ -86,20 +86,14 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   );
 
   const handleClickComment = React.useCallback(
-    (commentId?: string) => {
-      if (commentId) {
-        ui.expandComments();
-        history.replace({
-          pathname: window.location.pathname.replace(/\/history$/, ""),
-          state: { commentId },
-        });
-      } else if (focusedComment) {
-        history.replace({
-          pathname: window.location.pathname,
-        });
-      }
+    (commentId: string) => {
+      ui.expandComments();
+      history.replace({
+        pathname: window.location.pathname.replace(/\/history$/, ""),
+        state: { commentId },
+      });
     },
-    [ui, focusedComment, history]
+    [ui, history]
   );
 
   // Create a Comment model in local store when a comment mark is created, this
