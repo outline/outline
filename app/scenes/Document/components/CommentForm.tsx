@@ -198,11 +198,11 @@ function CommentForm({
     ? {
         initial: {
           opacity: 0,
-          translateY: 100,
+          marginBottom: -100,
         },
         animate: {
           opacity: 1,
-          translateY: 0,
+          marginBottom: 0,
           transition: {
             type: "spring",
             bounce: 0.1,
@@ -210,7 +210,7 @@ function CommentForm({
         },
         exit: {
           opacity: 0,
-          translateY: 100,
+          marginBottom: -100,
           scale: 0.98,
         },
       }
@@ -251,7 +251,6 @@ function CommentForm({
                 : `${t("Add a reply")}…`)
             }
           />
-
           {inputFocused && (
             <Flex justify={dir === "rtl" ? "flex-end" : "flex-start"} gap={8}>
               <ButtonSmall type="submit" borderOnHover>
