@@ -1,30 +1,36 @@
 import Router from "koa-router";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
+import validate from "@server/middlewares/validate";
 import { View, Document, Event } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentView } from "@server/presenters";
 import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { assertUuid } from "@server/validation";
+import * as T from "./schema";
 
 const router = new Router();
 
-router.post("views.list", auth(), async (ctx: APIContext) => {
-  const { documentId, includeSuspended = false } = ctx.request.body;
-  assertUuid(documentId, "documentId is required");
+router.post(
+  "views.list",
+  auth(),
+  validate(T.ViewsListSchema),
+  async (ctx: APIContext<T.ViewsListReq>) => {
+    const { documentId, includeSuspended } = ctx.input.body;
+    const { user } = ctx.state.auth;
 
-  const { user } = ctx.state.auth;
-  const document = await Document.findByPk(documentId, {
-    userId: user.id,
-  });
-  authorize(user, "read", document);
-  const views = await View.findByDocument(documentId, { includeSuspended });
+    const document = await Document.findByPk(documentId, {
+      userId: user.id,
+    });
+    authorize(user, "read", document);
+    const views = await View.findByDocument(documentId, { includeSuspended });
 
-  ctx.body = {
-    data: views.map(presentView),
-  };
-});
+    ctx.body = {
+      data: views.map(presentView),
+    };
+  }
+);
 
 router.post(
   "views.create",
