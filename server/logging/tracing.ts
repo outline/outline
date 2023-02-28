@@ -106,8 +106,10 @@ export const traceFunction = (config: TraceConfig) => <
 
           if (output && typeof output.then === "function") {
             output
-              .catch((error: Error) => {
-                Tracing.setError(error, span);
+              .catch((error: Error | undefined) => {
+                if (error instanceof Error) {
+                  Tracing.setError(error, span);
+                }
               })
               .finally(() => {
                 span.finish();
