@@ -243,7 +243,6 @@ export const Bubble = styled(Flex)<{
   $focused?: boolean;
   $dir?: "rtl" | "ltr";
 }>`
-  position: relative;
   flex-grow: 1;
   font-size: 15px;
   color: ${(props) => props.theme.text};
