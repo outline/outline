@@ -12,3 +12,12 @@ export const ViewsListSchema = BaseSchema.extend({
 });
 
 export type ViewsListReq = z.infer<typeof ViewsListSchema>;
+
+export const ViewsCreateSchema = BaseSchema.extend({
+  body: z.object({
+    /** Id of the document to create the view for */
+    documentId: z.string().uuid(),
+  }),
+});
+
+export type ViewsCreateReq = z.infer<typeof ViewsCreateSchema>;

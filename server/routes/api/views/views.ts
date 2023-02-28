@@ -7,7 +7,6 @@ import { authorize } from "@server/policies";
 import { presentView } from "@server/presenters";
 import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
-import { assertUuid } from "@server/validation";
 import * as T from "./schema";
 
 const router = new Router();
@@ -36,11 +35,11 @@ router.post(
   "views.create",
   auth(),
   rateLimiter(RateLimiterStrategy.OneThousandPerHour),
-  async (ctx: APIContext) => {
-    const { documentId } = ctx.request.body;
-    assertUuid(documentId, "documentId is required");
-
+  validate(T.ViewsCreateSchema),
+  async (ctx: APIContext<T.ViewsCreateReq>) => {
+    const { documentId } = ctx.input.body;
     const { user } = ctx.state.auth;
+
     const document = await Document.findByPk(documentId, {
       userId: user.id,
     });
