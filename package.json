@@ -88,7 +88,7 @@
     "crypto-js": "^4.1.1",
     "datadog-metrics": "^0.10.2",
     "date-fns": "^2.25.0",
-    "dd-trace": "^3.9.3",
+    "dd-trace": "^3.14.1",
     "dotenv": "^4.0.0",
     "email-providers": "^1.13.1",
     "emoji-regex": "^10.0.0",
