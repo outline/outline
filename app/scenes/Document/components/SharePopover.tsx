@@ -216,7 +216,7 @@ function SharePopover({
   }
 
   const url = shareUrl.replace(/https?:\/\//, "");
-  const documentTitle = sharedParent.documentTitle;
+  const documentTitle = sharedParent?.documentTitle;
 
   return (
     <>
