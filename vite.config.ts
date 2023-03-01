@@ -119,6 +119,25 @@ export default () => {
         input: {
           index: "./app/index.tsx",
         },
+        output: {
+          manualChunks: {
+            vendor: [
+              "@popperjs",
+              "date-fns",
+              "i18next",
+              "lodash",
+              "mobx",
+              "mobx-react",
+              "mobx-react-lite",
+              "react",
+              "react-dom",
+              "react-router",
+              "react-router-dom",
+            ],
+            emoji: ["gemoji"],
+            "vendor-editor": ["mermaid", "katex", "prismjs", "refractor"],
+          },
+        },
       },
     },
   });
