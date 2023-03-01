@@ -1,7 +1,9 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { v4 } from "uuid";
 import { MenuItem } from "@shared/editor/types";
 import { MentionType } from "@shared/types";
+import Avatar from "~/components/Avatar";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import CommandMenu, { Props } from "./CommandMenu";
@@ -9,6 +11,7 @@ import MentionMenuItem from "./MentionMenuItem";
 
 interface MentionItem extends MenuItem {
   name: string;
+  iconUrl: string;
   title: string;
   appendSpace: boolean;
   attrs: {
@@ -27,6 +30,7 @@ type MentionMenuProps = Omit<
 
 function MentionMenu({ search, ...rest }: MentionMenuProps) {
   const [items, setItems] = React.useState<MentionItem[]>([]);
+  const { t } = useTranslation();
   const { users, auth } = useStores();
   const { data, request } = useRequest(
     React.useCallback(() => users.fetchPage({ query: search }), [users, search])
@@ -42,6 +46,7 @@ function MentionMenu({ search, ...rest }: MentionMenuProps) {
         data.map((d) => ({
           name: "mention",
           title: d.name,
+          iconUrl: d.avatarUrl,
           appendSpace: true,
           attrs: {
             id: v4(),
@@ -83,6 +88,13 @@ function MentionMenu({ search, ...rest }: MentionMenuProps) {
           title={item.title}
           label={item.attrs.label}
           containerId={containerId}
+          icon={
+            <Avatar
+              src={item.iconUrl}
+              showBorder={false}
+              alt={t("Profile picture")}
+            />
+          }
         />
       )}
       items={items}
