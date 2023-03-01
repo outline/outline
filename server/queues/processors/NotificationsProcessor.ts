@@ -112,7 +112,6 @@ export default class NotificationsProcessor extends BaseProcessor {
         await MentionNotificationEmail.schedule({
           to: recipient.email,
           documentId: event.documentId,
-          eventName: "mentioned",
           actorName: actor.name,
           teamUrl: team.url,
           mentionId: mention.id,
@@ -198,7 +197,6 @@ export default class NotificationsProcessor extends BaseProcessor {
         await MentionNotificationEmail.schedule({
           to: recipient.email,
           documentId: event.documentId,
-          eventName: "mentioned",
           actorName: actor.name,
           teamUrl: team.url,
           mentionId: mention.id,

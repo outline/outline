@@ -11,7 +11,6 @@ type InputProps = {
   to: string;
   documentId: string;
   actorName: string;
-  eventName: string;
   teamUrl: string;
   mentionId: string;
 };
@@ -42,33 +41,26 @@ export default class MentionNotificationEmail extends BaseEmail<
     return `${actorName} mentioned you in "${document.title}"`;
   }
 
-  protected preview({ actorName, eventName }: Props): string {
-    return `${actorName} ${eventName} you`;
+  protected preview({ actorName }: Props): string {
+    return `${actorName} mentioned you`;
   }
 
   protected renderAsText({
     actorName,
     teamUrl,
     document,
-    eventName = "mentioned",
     mentionId,
   }: Props): string {
     return `
 You were mentioned
 
-${actorName} ${eventName} you in document "${document.title}".
+${actorName} mentioned you in the document "${document.title}".
 
 Open Document: ${teamUrl}${document.url}?mentionId=${mentionId}
 `;
   }
 
-  protected render({
-    document,
-    actorName,
-    eventName = "mentioned",
-    teamUrl,
-    mentionId,
-  }: Props) {
+  protected render({ document, actorName, teamUrl, mentionId }: Props) {
     const link = `${teamUrl}${document.url}?ref=notification-email&mentionId=${mentionId}`;
 
     return (
@@ -78,7 +70,7 @@ Open Document: ${teamUrl}${document.url}?mentionId=${mentionId}
         <Body>
           <Heading>You were mentioned</Heading>
           <p>
-            {actorName} {eventName} you in document{" "}
+            {actorName} mentioned you in the document{" "}
             <a href={link}>{document.title}</a>.
           </p>
           <p>
