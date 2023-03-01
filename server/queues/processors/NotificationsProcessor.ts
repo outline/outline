@@ -75,6 +75,34 @@ export default class NotificationsProcessor extends BaseProcessor {
       "documents.publish"
     );
 
+    // send notifs to mentioned users
+    const mentions = parseMentions(document);
+    for (const mention of mentions) {
+      const [recipient, actor] = await Promise.all([
+        User.findByPk(mention.modelId),
+        User.findByPk(mention.actorId),
+      ]);
+      if (recipient && actor && recipient.id !== actor.id) {
+        const notification = await Notification.create({
+          event: event.name,
+          userId: recipient.id,
+          actorId: document.updatedBy.id,
+          teamId: team.id,
+          documentId: document.id,
+        });
+        await MentionNotificationEmail.schedule(
+          {
+            to: recipient.email,
+            documentId: event.documentId,
+            actorName: actor.name,
+            teamUrl: team.url,
+            mentionId: mention.id,
+          },
+          { notificationId: notification.id }
+        );
+      }
+    }
+
     for (const recipient of recipients) {
       const notify = await this.shouldNotify(document, recipient.user);
 
@@ -98,24 +126,6 @@ export default class NotificationsProcessor extends BaseProcessor {
           },
           { notificationId: notification.id }
         );
-      }
-    }
-
-    // send notifs to mentioned users
-    const mentions = parseMentions(document);
-    for (const mention of mentions) {
-      const [recipient, actor] = await Promise.all([
-        User.findByPk(mention.modelId),
-        User.findByPk(mention.actorId),
-      ]);
-      if (recipient && actor && recipient.id !== actor.id) {
-        await MentionNotificationEmail.schedule({
-          to: recipient.email,
-          documentId: event.documentId,
-          actorName: actor.name,
-          teamUrl: team.url,
-          mentionId: mention.id,
-        });
       }
     }
   }
@@ -155,6 +165,37 @@ export default class NotificationsProcessor extends BaseProcessor {
       86400 * 4
     );
 
+    // send notifs to newly mentioned users
+    const prev = await revision.previous();
+    const oldMentions = prev ? parseMentions(prev) : [];
+    const newMentions = parseMentions(document);
+    const mentions = differenceBy(newMentions, oldMentions, "modelId");
+    for (const mention of mentions) {
+      const [recipient, actor] = await Promise.all([
+        User.findByPk(mention.modelId),
+        User.findByPk(mention.actorId),
+      ]);
+      if (recipient && actor && recipient.id !== actor.id) {
+        const notification = await Notification.create({
+          event: event.name,
+          userId: recipient.id,
+          actorId: document.updatedBy.id,
+          teamId: team.id,
+          documentId: document.id,
+        });
+        await MentionNotificationEmail.schedule(
+          {
+            to: recipient.email,
+            documentId: event.documentId,
+            actorName: actor.name,
+            teamUrl: team.url,
+            mentionId: mention.id,
+          },
+          { notificationId: notification.id }
+        );
+      }
+    }
+
     for (const recipient of recipients) {
       const notify = await this.shouldNotify(document, recipient.user);
 
@@ -180,27 +221,6 @@ export default class NotificationsProcessor extends BaseProcessor {
           },
           { notificationId: notification.id }
         );
-      }
-    }
-
-    // send notifs to newly mentioned users
-    const prev = await revision.previous();
-    const oldMentions = prev ? parseMentions(prev) : [];
-    const newMentions = parseMentions(document);
-    const mentions = differenceBy(newMentions, oldMentions, "modelId");
-    for (const mention of mentions) {
-      const [recipient, actor] = await Promise.all([
-        User.findByPk(mention.modelId),
-        User.findByPk(mention.actorId),
-      ]);
-      if (recipient && actor && recipient.id !== actor.id) {
-        await MentionNotificationEmail.schedule({
-          to: recipient.email,
-          documentId: event.documentId,
-          actorName: actor.name,
-          teamUrl: team.url,
-          mentionId: mention.id,
-        });
       }
     }
   }
