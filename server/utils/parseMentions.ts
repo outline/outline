@@ -12,11 +12,15 @@ export default function parseMentions(
   document: Document | Revision
 ): Record<string, string>[] {
   const node = DocumentHelper.toProsemirror(document);
-  const mentions: Set<Record<string, string>> = new Set();
+  const mentions: Record<string, string>[] = [];
+  const id = "state" in document && document.state ? "id" : "modelId";
 
   function findMentions(node: Node) {
-    if (node.type.name === "mention") {
-      mentions.add(node.attrs);
+    if (
+      node.type.name === "mention" &&
+      !mentions.some((m) => m[id] === node.attrs[id])
+    ) {
+      mentions.push(node.attrs);
     }
 
     if (!node.content.size) {
@@ -28,5 +32,5 @@ export default function parseMentions(
 
   findMentions(node);
 
-  return Array.from(mentions);
+  return mentions;
 }
