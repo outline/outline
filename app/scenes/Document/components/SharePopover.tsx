@@ -216,6 +216,7 @@ function SharePopover({
   }
 
   const url = shareUrl.replace(/https?:\/\//, "");
+  const documentTitle = sharedParent.documentTitle;
 
   return (
     <>
@@ -234,7 +235,7 @@ function SharePopover({
             <Trans>
               This document is shared because the parent{" "}
               <StyledLink to={`/doc/${sharedParent.documentId}`}>
-                {sharedParent.documentTitle}
+                {documentTitle}
               </StyledLink>{" "}
               is publicly shared.
             </Trans>
