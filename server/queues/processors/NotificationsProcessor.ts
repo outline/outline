@@ -169,7 +169,7 @@ export default class NotificationsProcessor extends BaseProcessor {
     const prev = await revision.previous();
     const oldMentions = prev ? parseMentions(prev) : [];
     const newMentions = parseMentions(document);
-    const mentions = differenceBy(newMentions, oldMentions, "modelId");
+    const mentions = differenceBy(newMentions, oldMentions, "id");
     for (const mention of mentions) {
       const [recipient, actor] = await Promise.all([
         User.findByPk(mention.modelId),

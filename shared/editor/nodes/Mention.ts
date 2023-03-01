@@ -26,9 +26,7 @@ export default class Mention extends Node {
         actorId: {
           default: undefined,
         },
-        id: {
-          default: undefined,
-        },
+        id: {},
       },
       inline: true,
       content: "text*",
@@ -175,16 +173,18 @@ export default class Mention extends Node {
     const mType = node.attrs.type;
     const mId = node.attrs.modelId;
     const label = node.attrs.label;
+    const id = node.attrs.id;
 
-    state.write(`@[${label}](mention://${mType}/${mId})`);
+    state.write(`@[${label}](mention://m/${id}/${mType}/${mId})`);
   }
 
   parseMarkdown() {
     return {
       node: "mention",
       getAttrs: (tok: Token) => ({
-        type: tok.attrGet("data-type"),
-        modelId: tok.attrGet("data-id"),
+        id: tok.attrGet("id"),
+        type: tok.attrGet("type"),
+        modelId: tok.attrGet("modelId"),
         label: tok.content,
       }),
     };
