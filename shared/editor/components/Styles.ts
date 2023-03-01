@@ -131,7 +131,7 @@ width: 100%;
   padding-top: 1px;
   padding-left: 4px;
   padding-right: 4px;
-  font-weight: bold;
+  font-weight: 500;
   font-size: 14px;
 }
 
