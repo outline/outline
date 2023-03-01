@@ -122,7 +122,6 @@ export default () => {
         output: {
           manualChunks: {
             vendor: [
-              "@popperjs",
               "date-fns",
               "i18next",
               "lodash",
