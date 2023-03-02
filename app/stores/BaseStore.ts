@@ -231,13 +231,14 @@ export default abstract class BaseStore<T extends BaseModel> {
       const res = await client.post(`/${this.apiEndpoint}.list`, params);
       invariant(res?.data, "Data not available");
 
+      let response: T[] = [];
+
       runInAction(`list#${this.modelName}`, () => {
         this.addPolicies(res.policies);
-        res.data.forEach(this.add);
+        response = res.data.map(this.add);
         this.isLoaded = true;
       });
 
-      const response = res.data;
       response[PAGINATION_SYMBOL] = res.pagination;
       return response;
     } finally {
