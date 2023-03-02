@@ -175,7 +175,7 @@ export default class Mention extends Node {
     const label = node.attrs.label;
     const id = node.attrs.id;
 
-    state.write(`@[${label}](mention://m/${id}/${mType}/${mId})`);
+    state.write(`@[${label}](mention://${id}/${mType}/${mId})`);
   }
 
   parseMarkdown() {

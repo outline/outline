@@ -15,11 +15,11 @@ it("should return an array of mentions", async () => {
   const document = await buildDocument({
     text: `# Header
 
-@[Alan Kay](mention://m/2767ba0e-ac5c-4533-b9cf-4f5fc456600e/user/34095ac1-c808-45c0-8c6e-6c554497de64) :wink:
+@[Alan Kay](mention://2767ba0e-ac5c-4533-b9cf-4f5fc456600e/user/34095ac1-c808-45c0-8c6e-6c554497de64) :wink:
 
 More text
 
-@[Bret Victor](mention://m/34095ac1-c808-45c0-8c6e-6c554497de64/user/2767ba0e-ac5c-4533-b9cf-4f5fc456600e) :fire:`,
+@[Bret Victor](mention://34095ac1-c808-45c0-8c6e-6c554497de64/user/2767ba0e-ac5c-4533-b9cf-4f5fc456600e) :fire:`,
   });
   const result = parseMentions(document);
   expect(result.length).toBe(2);

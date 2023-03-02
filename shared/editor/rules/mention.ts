@@ -12,8 +12,8 @@ function renderMention(tokens: Token[], idx: number) {
 }
 
 function parseMentions(state: StateCore) {
-  const scanRE = /(?:^|\s)@\[[a-zA-Z\s]+\]\(mention:\/\/m\/[a-z0-9-]+\/[a-z]+\/[a-z0-9-]+\)/;
-  const hrefRE = /^mention:\/\/m\/([a-z0-9-]+)\/([a-z]+)\/([a-z0-9-]+)$/;
+  const scanRE = /(?:^|\s)@\[[a-zA-Z\s]+\]\(mention:\/\/[a-z0-9-]+\/[a-z]+\/[a-z0-9-]+\)/;
+  const hrefRE = /^mention:\/\/([a-z0-9-]+)\/([a-z]+)\/([a-z0-9-]+)$/;
   const WINDOW_SIZE = 4;
 
   for (let i = 0; i < state.tokens.length; i++) {
