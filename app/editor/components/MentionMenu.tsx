@@ -3,7 +3,9 @@ import { useTranslation } from "react-i18next";
 import { v4 } from "uuid";
 import { MenuItem } from "@shared/editor/types";
 import { MentionType } from "@shared/types";
+import User from "~/models/User";
 import Avatar from "~/components/Avatar";
+import Flex from "~/components/Flex";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import CommandMenu, { Props } from "./CommandMenu";
@@ -11,8 +13,7 @@ import MentionMenuItem from "./MentionMenuItem";
 
 interface MentionItem extends MenuItem {
   name: string;
-  iconUrl: string;
-  title: string;
+  user: User;
   appendSpace: boolean;
   attrs: {
     id: string;
@@ -43,22 +44,22 @@ function MentionMenu({ search, ...rest }: MentionMenuProps) {
   React.useEffect(() => {
     if (data) {
       setItems(
-        data.map((d) => ({
+        data.map((user) => ({
           name: "mention",
-          title: d.name,
-          iconUrl: d.avatarUrl,
+          user,
+          title: user.name,
           appendSpace: true,
           attrs: {
             id: v4(),
             type: MentionType.User,
-            modelId: d.id,
+            modelId: user.id,
             actorId: auth.user?.id,
-            label: d.name,
+            label: user.name,
           },
         }))
       );
     }
-  }, [data]);
+  }, [auth.user?.id, data]);
 
   const clearSearch = () => {
     const { state, dispatch } = rest.view;
@@ -89,11 +90,18 @@ function MentionMenu({ search, ...rest }: MentionMenuProps) {
           label={item.attrs.label}
           containerId={containerId}
           icon={
-            <Avatar
-              src={item.iconUrl}
-              showBorder={false}
-              alt={t("Profile picture")}
-            />
+            <Flex
+              align="center"
+              justify="center"
+              style={{ width: 24, height: 24 }}
+            >
+              <Avatar
+                model={item.user}
+                showBorder={false}
+                alt={t("Profile picture")}
+                size={16}
+              />
+            </Flex>
           }
         />
       )}
