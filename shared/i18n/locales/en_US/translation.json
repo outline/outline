@@ -787,6 +787,8 @@
   "Links to supported services are shown as rich embeds within your documents": "Links to supported services are shown as rich embeds within your documents",
   "Collection creation": "Collection creation",
   "Allow members to create new collections within the knowledge base": "Allow members to create new collections within the knowledge base",
+  "Castopod deployment": "Castopod deployment",
+  "Add your self-hosted castopod installation url here to enable automatic embedding of podcasts within documents.": "Add your self-hosted castopod installation url here to enable automatic embedding of podcasts within documents.",
   "Draw.io deployment": "Draw.io deployment",
   "Add your self-hosted draw.io installation url here to enable automatic embedding of diagrams within documents.": "Add your self-hosted draw.io installation url here to enable automatic embedding of diagrams within documents.",
   "Sharing is currently disabled.": "Sharing is currently disabled.",

@@ -9,6 +9,7 @@ import Abstract from "./Abstract";
 import Airtable from "./Airtable";
 import Berrycast from "./Berrycast";
 import Bilibili from "./Bilibili";
+import Castopod from "./Castopod";
 import Cawemo from "./Cawemo";
 import ClickUp from "./ClickUp";
 import Codepen from "./Codepen";
@@ -212,6 +213,12 @@ const embeds: EmbedDescriptor[] = [
     component: Diagrams,
   }),
   new EmbedDescriptor({
+    title: "Castopod.org",
+    keywords: "castopod podcast",
+    icon: <Img src="/images/castopod.png" alt="Castopod.org" />,
+    component: Castopod,
+  }),
+  new EmbedDescriptor({
     title: "Google Drawings",
     keywords: "drawings",
     icon: <Img src="/images/google-drawings.png" alt="Google Drawings" />,
@@ -349,10 +356,9 @@ const embeds: EmbedDescriptor[] = [
     component: Spotify,
   }),
   new EmbedDescriptor({
-    title: "Tldraw",
+    title: "Tldraw (beta)",
     keywords: "draw schematics diagrams",
-    visible: false,
-    icon: <Img src="/images/tldraw.png" alt="Tldraw" />,
+    icon: <Img src="/images/tldraw.png" alt="Tldraw (beta)" />,
     component: Tldraw,
   }),
   new EmbedDescriptor({

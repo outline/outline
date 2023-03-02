@@ -77,6 +77,7 @@ export enum IntegrationService {
   Diagrams = "diagrams",
   Slack = "slack",
   GoogleAnalytics = "google-analytics",
+  Castopod = "castopod",
 }
 
 export enum CollectionPermission {
