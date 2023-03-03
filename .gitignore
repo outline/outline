@@ -12,6 +12,3 @@ fakes3/*
 *.pem
 *.key
 *.cert
-docker-compose.yml
-server/config/database.json
-docker-compose.yml
