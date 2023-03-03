@@ -25,7 +25,7 @@ function GoogleLookerStudio(props: Props) {
 
 GoogleLookerStudio.ENABLED = [
   new RegExp(
-    "^https?://lookerstudio\\.google\\.com/(embed|u/0)/reporting/(.*)/page/(.*)(/edit)?$"
+    "^https?://(lookerstudio|datastudio)\\.google\\.com/(embed|u/0)/reporting/(.*)/page/(.*)(/edit)?$"
   ),
 ];
 
