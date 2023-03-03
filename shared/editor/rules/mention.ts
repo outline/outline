@@ -32,6 +32,7 @@ function parseMentions(state: StateCore) {
       if (
         !(
           precToken.type === "text" &&
+          precToken.content &&
           precToken.content.endsWith("@") &&
           openToken.type === "link_open" &&
           textToken.content &&
