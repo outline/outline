@@ -9,8 +9,9 @@ import mentionRule from "../rules/mention";
 import { Dispatch, EventType } from "../types";
 import Node from "./Node";
 
-const OPEN_REGEX = /(?:^|\s)@([a-zA-Z+-]+)?$/;
-const CLOSE_REGEX = /(?:^|\s)@(([0-9a-zA-Z_+-]*\s+)|(\s+[0-9a-zA-Z_+-]+)|[^0-9a-zA-Z_+-]+)$/;
+// ported from https://github.com/tc39/proposal-regexp-unicode-property-escapes#unicode-aware-version-of-w
+const OPEN_REGEX = /(?:^|\s)@([\p{Alphabetic}\p{Mark}\p{Connector_Punctuation}\p{Join_Control}]+)?$/u;
+const CLOSE_REGEX = /(?:^|\s)@(([\p{Alphabetic}\p{Mark}\p{Connector_Punctuation}\p{Join_Control}]*\s+)|(\s+[\p{Alphabetic}\p{Mark}\p{Connector_Punctuation}\p{Join_Control}]+))$/u;
 
 export default class Mention extends Node {
   get name() {
