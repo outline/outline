@@ -19,7 +19,6 @@ import Fix from "./decorators/Fix";
 export enum UserCreatableIntegrationService {
   Diagrams = "diagrams",
   GoogleAnalytics = "google-analytics",
-  Castopod = "castopod",
 }
 
 @Scopes(() => ({

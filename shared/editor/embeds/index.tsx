@@ -9,7 +9,6 @@ import Abstract from "./Abstract";
 import Airtable from "./Airtable";
 import Berrycast from "./Berrycast";
 import Bilibili from "./Bilibili";
-import Castopod from "./Castopod";
 import Cawemo from "./Cawemo";
 import ClickUp from "./ClickUp";
 import Codepen from "./Codepen";
@@ -211,12 +210,6 @@ const embeds: EmbedDescriptor[] = [
     keywords: "diagrams drawio",
     icon: <Img src="/images/diagrams.png" alt="Diagrams.net" />,
     component: Diagrams,
-  }),
-  new EmbedDescriptor({
-    title: "Castopod.org",
-    keywords: "castopod podcast",
-    icon: <Img src="/images/castopod.png" alt="Castopod.org" />,
-    component: Castopod,
   }),
   new EmbedDescriptor({
     title: "Google Drawings",

@@ -16,7 +16,6 @@ import SettingRow from "./components/SettingRow";
 
 type FormData = {
   drawIoUrl: string;
-  castopodUrl: string;
 };
 
 function SelfHosted() {
@@ -24,14 +23,9 @@ function SelfHosted() {
   const { t } = useTranslation();
   const { showToast } = useToasts();
 
-  const integrationDiagrams = find(integrations.orderedData, {
+  const integration = find(integrations.orderedData, {
     type: IntegrationType.Embed,
     service: IntegrationService.Diagrams,
-  }) as Integration<IntegrationType.Embed> | undefined;
-
-  const integrationCastopod = find(integrations.orderedData, {
-    type: IntegrationType.Embed,
-    service: IntegrationService.Castopod,
   }) as Integration<IntegrationType.Embed> | undefined;
 
   const {
@@ -42,8 +36,7 @@ function SelfHosted() {
   } = useForm<FormData>({
     mode: "all",
     defaultValues: {
-      drawIoUrl: integrationDiagrams?.settings.url,
-      castopodUrl: integrationCastopod?.settings.url,
+      drawIoUrl: integration?.settings.url,
     },
   });
 
@@ -54,41 +47,23 @@ function SelfHosted() {
   }, [integrations]);
 
   React.useEffect(() => {
-    reset({ drawIoUrl: integrationDiagrams?.settings.url });
-    reset({ castopodUrl: integrationCastopod?.settings.url });
-  }, [integrationDiagrams, integrationCastopod, reset]);
+    reset({ drawIoUrl: integration?.settings.url });
+  }, [integration, reset]);
 
   const handleSubmit = React.useCallback(
     async (data: FormData) => {
       try {
-        if (data.drawIoUrl || data.castopodUrl) {
-          if (data.castopodUrl) {
-            await integrations.save({
-              id: integrationCastopod?.id,
-              type: IntegrationType.Embed,
-              service: IntegrationService.Castopod,
-              settings: {
-                url: data.castopodUrl,
-              },
-            });
-          } else {
-            await integrationCastopod?.delete();
-          }
-          if (data.drawIoUrl) {
-            await integrations.save({
-              id: integrationDiagrams?.id,
-              type: IntegrationType.Embed,
-              service: IntegrationService.Diagrams,
-              settings: {
-                url: data.drawIoUrl,
-              },
-            });
-          } else {
-            await integrationDiagrams?.delete();
-          }
+        if (data.drawIoUrl) {
+          await integrations.save({
+            id: integration?.id,
+            type: IntegrationType.Embed,
+            service: IntegrationService.Diagrams,
+            settings: {
+              url: data.drawIoUrl,
+            },
+          });
         } else {
-          await integrationCastopod?.delete();
-          await integrationDiagrams?.delete();
+          await integration?.delete();
         }
 
         showToast(t("Settings saved"), {
@@ -100,7 +75,7 @@ function SelfHosted() {
         });
       }
     },
-    [integrations, integrationDiagrams, integrationCastopod, t, showToast]
+    [integrations, integration, t, showToast]
   );
 
   return (
@@ -111,20 +86,6 @@ function SelfHosted() {
       <Heading>{t("Self Hosted")}</Heading>
 
       <form onSubmit={formHandleSubmit(handleSubmit)}>
-        <SettingRow
-          label={t("Castopod deployment")}
-          name="castopodUrl"
-          description={t(
-            "Add your self-hosted castopod installation url here to enable automatic embedding of podcasts within documents."
-          )}
-          border={false}
-        >
-          <Input
-            placeholder="https://castopod.org/"
-            pattern="https?://.*"
-            {...register("castopodUrl")}
-          />
-        </SettingRow>
         <SettingRow
           label={t("Draw.io deployment")}
           name="drawIoUrl"
@@ -139,6 +100,7 @@ function SelfHosted() {
             {...register("drawIoUrl")}
           />
         </SettingRow>
+
         <Button type="submit" disabled={formState.isSubmitting}>
           {formState.isSubmitting ? `${t("Saving")}…` : t("Save")}
         </Button>
