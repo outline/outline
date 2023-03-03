@@ -12,28 +12,43 @@ function renderMention(tokens: Token[], idx: number) {
 }
 
 function parseMentions(state: StateCore) {
-  const scanRE = /(?:^|\s)@\[[a-zA-Z\s]+\]\(mention:\/\/[a-z0-9-]+\/[a-z]+\/[a-z0-9-]+\)/;
   const hrefRE = /^mention:\/\/([a-z0-9-]+)\/([a-z]+)\/([a-z0-9-]+)$/;
-  const WINDOW_SIZE = 4;
 
   for (let i = 0; i < state.tokens.length; i++) {
     const tok = state.tokens[i];
-    if (!(tok.type === "inline" && scanRE.test(tok.content) && tok.children)) {
+    if (!(tok.type === "inline" && tok.children)) {
       continue;
     }
 
     const canChunkComposeMentionToken = (chunk: Token[]) => {
+      // no group of tokens of size less than 4 can compose a mention token
       if (chunk.length < 4) {
         return false;
       }
 
       const [precToken, openToken, textToken, closeToken] = chunk;
-      return (
-        precToken.content.endsWith("@") &&
-        openToken.type === "link_open" &&
-        textToken.content &&
-        closeToken.type === "link_close"
-      );
+
+      // check for the valid order of tokens required to compose a mention token
+      if (
+        !(
+          precToken.type === "text" &&
+          precToken.content.endsWith("@") &&
+          openToken.type === "link_open" &&
+          textToken.content &&
+          closeToken.type === "link_close"
+        )
+      ) {
+        return false;
+      }
+
+      // "link_open" token should have valid href
+      const attr = openToken.attrs?.[0];
+      if (!(attr && attr[0] === "href" && hrefRE.test(attr[1]))) {
+        return false;
+      }
+
+      // can probably compose a mention token if arrived here
+      return true;
     };
 
     const chunkWithMentionToken = (chunk: Token[]) => {
@@ -42,10 +57,10 @@ function parseMentions(state: StateCore) {
       // remove "@" from preceding token
       precToken.content = precToken.content.slice(0, -1);
 
-      // href must be present, otherwise the scanRE test above would've failed
+      // href must be present, otherwise the hrefRE test in canChunkComposeMentionToken would've failed
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const href = openToken.attrs![0];
-      const matches = href[1].match(hrefRE);
+      const href = openToken.attrs![0][1];
+      const matches = href.match(hrefRE);
       const [id, mType, mId] = matches!.slice(1);
 
       const mentionToken = new Token("mention", "", 0);
@@ -54,17 +69,23 @@ function parseMentions(state: StateCore) {
       mentionToken.attrSet("modelId", mId);
       mentionToken.content = textToken.content;
 
+      // "link_open", followed by "text" and "link_close" tokens are coalesced
+      // into "mention" token, hence removed
       return [precToken, mentionToken];
     };
 
     let newChildren: Token[] = [];
     let j = 0;
     while (j < tok.children.length) {
-      const chunk = tok.children.slice(j, j + WINDOW_SIZE);
+      // attempt to grab next four tokens that could potentially construct a mention token
+      const chunk = tok.children.slice(j, j + 4);
       if (canChunkComposeMentionToken(chunk)) {
         newChildren = newChildren.concat(chunkWithMentionToken(chunk));
-        j += WINDOW_SIZE;
+        // skip by 4 since mention token for this group of tokens has been composed
+        // and the group cannot compose mention tokens any further
+        j += 4;
       } else {
+        // push the tokens which do not participate in composing a mention token as it is
         newChildren.push(tok.children[j]);
         j++;
       }
