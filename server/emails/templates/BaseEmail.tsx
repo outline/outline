@@ -18,6 +18,7 @@ export default abstract class BaseEmail<T extends EmailProps, S = unknown> {
    * Schedule this email type to be sent asyncronously by a worker.
    *
    * @param props Properties to be used in the email template
+   * @param metadata Optional metadata to be stored with the notification
    * @returns A promise that resolves once the email is placed on the task queue
    */
   public static schedule<T>(props: T, metadata?: NotificationMetadata) {

@@ -4,25 +4,17 @@ import {
 } from "@getoutline/y-prosemirror";
 import { JSDOM } from "jsdom";
 import { escapeRegExp, startCase } from "lodash";
-import { Node, DOMSerializer } from "prosemirror-model";
-import * as React from "react";
-import { renderToString } from "react-dom/server";
-import styled, { ServerStyleSheet, ThemeProvider } from "styled-components";
+import { Node } from "prosemirror-model";
 import * as Y from "yjs";
-import EditorContainer from "@shared/editor/components/Styles";
 import textBetween from "@shared/editor/lib/textBetween";
-import GlobalStyles from "@shared/styles/globals";
-import light from "@shared/styles/theme";
 import {
   getCurrentDateAsString,
   getCurrentDateTimeAsString,
   getCurrentTimeAsString,
   unicodeCLDRtoBCP47,
 } from "@shared/utils/date";
-import { isRTL } from "@shared/utils/rtl";
 import unescape from "@shared/utils/unescape";
 import { parser, schema } from "@server/editor";
-import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
 import type Document from "@server/models/Document";
 import type Revision from "@server/models/Revision";
@@ -31,6 +23,7 @@ import diff from "@server/utils/diff";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { getSignedUrl } from "@server/utils/s3";
 import Attachment from "../Attachment";
+import ProsemirrorHelper from "./ProsemirrorHelper";
 
 type HTMLOptions = {
   /** Whether to include the document title in the generated HTML (defaults to true) */
@@ -39,8 +32,11 @@ type HTMLOptions = {
   includeStyles?: boolean;
   /** Whether to include styles to center diff (defaults to true) */
   centered?: boolean;
-  /** Whether to replace attachment urls with pre-signed versions (defaults to false) */
-  signedUrls?: boolean;
+  /**
+   * Whether to replace attachment urls with pre-signed versions. If set to a
+   * number then the urls will be signed for that many seconds. (defaults to false)
+   */
+  signedUrls?: boolean | number;
 };
 
 @trace()
@@ -106,87 +102,17 @@ export default class DocumentHelper {
    */
   static async toHTML(document: Document | Revision, options?: HTMLOptions) {
     const node = DocumentHelper.toProsemirror(document);
-    const sheet = new ServerStyleSheet();
-    let html, styleTags;
-
-    const Centered = options?.centered
-      ? styled.article`
-          max-width: 46em;
-          margin: 0 auto;
-          padding: 0 1em;
-        `
-      : "article";
-
-    const rtl = isRTL(document.title);
-    const content = <div id="content" className="ProseMirror"></div>;
-    const children = (
-      <>
-        {options?.includeTitle !== false && (
-          <h1 dir={rtl ? "rtl" : "ltr"}>{document.title}</h1>
-        )}
-        {options?.includeStyles !== false ? (
-          <EditorContainer dir={rtl ? "rtl" : "ltr"} rtl={rtl}>
-            {content}
-          </EditorContainer>
-        ) : (
-          content
-        )}
-      </>
-    );
-
-    // First render the containing document which has all the editor styles,
-    // global styles, layout and title.
-    try {
-      html = renderToString(
-        sheet.collectStyles(
-          <ThemeProvider theme={light}>
-            <>
-              {options?.includeStyles === false ? (
-                <article>{children}</article>
-              ) : (
-                <>
-                  <GlobalStyles />
-                  <Centered>{children}</Centered>
-                </>
-              )}
-            </>
-          </ThemeProvider>
-        )
-      );
-      styleTags = sheet.getStyleTags();
-    } catch (error) {
-      Logger.error("Failed to render styles on document export", error, {
-        id: document.id,
-      });
-    } finally {
-      sheet.seal();
-    }
-
-    // Render the Prosemirror document using virtual DOM and serialize the
-    // result to a string
-    const dom = new JSDOM(
-      `<!DOCTYPE html>${
-        options?.includeStyles === false ? "" : styleTags
-      }${html}`
-    );
-    const doc = dom.window.document;
-    const target = doc.getElementById("content");
-
-    DOMSerializer.fromSchema(schema).serializeFragment(
-      node.content,
-      {
-        document: doc,
-      },
-      // @ts-expect-error incorrect library type, third argument is target node
-      target
-    );
-
-    let output = dom.serialize();
+    let output = ProsemirrorHelper.toHTML(node, {
+      title: options?.includeTitle !== false ? document.title : undefined,
+      includeStyles: options?.includeStyles,
+      centered: options?.centered,
+    });
 
     if (options?.signedUrls && "teamId" in document) {
       output = await DocumentHelper.attachmentsToSignedUrls(
         output,
-        document.teamId
+        document.teamId,
+        typeof options.signedUrls === "number" ? options.signedUrls : undefined
       );
     }
 
