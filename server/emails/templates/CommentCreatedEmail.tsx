@@ -1,7 +1,7 @@
 import inlineCss from "inline-css";
 import * as React from "react";
 import env from "@server/env";
-import { Document } from "@server/models";
+import { Comment, Document } from "@server/models";
 import BaseEmail from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
@@ -17,6 +17,7 @@ type InputProps = {
   documentId: string;
   actorName: string;
   isReply: boolean;
+  commentId: string;
   collectionName: string;
   teamUrl: string;
   unsubscribeUrl: string;
@@ -26,6 +27,7 @@ type InputProps = {
 type BeforeSend = {
   document: Document;
   body: string | undefined;
+  isFirstComment: boolean;
 };
 
 type Props = InputProps & BeforeSend;
@@ -38,11 +40,18 @@ export default class CommentCreatedEmail extends BaseEmail<
   InputProps,
   BeforeSend
 > {
-  protected async beforeSend({ documentId, content }: InputProps) {
+  protected async beforeSend({ documentId, commentId, content }: InputProps) {
     const document = await Document.unscoped().findByPk(documentId);
     if (!document) {
       return false;
     }
+
+    const firstComment = await Comment.findOne({
+      attributes: ["id"],
+      where: { documentId },
+      order: [["createdAt", "ASC"]],
+    });
+    const isFirstComment = firstComment?.id === commentId;
 
     // inline all css so that it works in as many email providers as possible.
     let body;
@@ -55,13 +64,11 @@ export default class CommentCreatedEmail extends BaseEmail<
       });
     }
 
-    return { document, body };
+    return { document, isFirstComment, body };
   }
 
-  protected subject({ isReply, actorName, document }: Props) {
-    return isReply
-      ? `${actorName} replied in “${document.title}”`
-      : `New comment on “${document.title}”`;
+  protected subject({ isFirstComment, document }: Props) {
+    return `${isFirstComment ? "" : "Re: "}New comment on “${document.title}”`;
   }
 
   protected preview({ isReply, actorName }: Props): string {
@@ -70,11 +77,16 @@ export default class CommentCreatedEmail extends BaseEmail<
       : `${actorName} commented on the document`;
   }
 
+  protected fromName({ actorName }: Props): string {
+    return actorName;
+  }
+
   protected renderAsText({
     actorName,
     teamUrl,
     isReply,
     document,
+    commentId,
     collectionName,
   }: Props): string {
     return `
@@ -82,7 +94,7 @@ ${actorName} ${isReply ? "replied in" : "commented on"} the document "${
       document.title
     }", in the ${collectionName} collection.
 
-Open Document: ${teamUrl}${document.url}
+Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
 `;
   }
 
@@ -92,10 +104,11 @@ Open Document: ${teamUrl}${document.url}
     isReply,
     collectionName,
     teamUrl,
+    commentId,
     unsubscribeUrl,
     body,
   }: Props) {
-    const link = `${teamUrl}${document.url}?ref=notification-email`;
+    const link = `${teamUrl}${document.url}?commentId=${commentId}&ref=notification-email`;
 
     return (
       <EmailTemplate>

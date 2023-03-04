@@ -78,6 +78,7 @@ export default abstract class BaseEmail<T extends EmailProps, S = unknown> {
     try {
       await mailer.sendMail({
         to: this.props.to,
+        fromName: this.fromName?.(data),
         subject: this.subject(data),
         previewText: this.preview(data),
         component: this.render(data),
@@ -164,4 +165,9 @@ export default abstract class BaseEmail<T extends EmailProps, S = unknown> {
    * @returns A promise resolving to additional data
    */
   protected beforeSend?(props: T): Promise<S | false>;
+
+  /**
+   * fromName hook allows overriding the "from" name of the email.
+   */
+  protected fromName?(props: T): string | undefined;
 }
