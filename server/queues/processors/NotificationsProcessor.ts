@@ -81,7 +81,8 @@ export default class NotificationsProcessor extends BaseProcessor {
     const recipients = await NotificationHelper.getDocumentNotificationRecipients(
       document,
       "documents.publish",
-      document.lastModifiedById
+      document.lastModifiedById,
+      false
     );
 
     for (const recipient of recipients) {
@@ -128,7 +129,8 @@ export default class NotificationsProcessor extends BaseProcessor {
     const recipients = await NotificationHelper.getDocumentNotificationRecipients(
       document,
       "documents.update",
-      document.lastModifiedById
+      document.lastModifiedById,
+      true
     );
     if (!recipients.length) {
       return;

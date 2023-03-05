@@ -51,8 +51,9 @@ export default class NotificationHelper {
   ): Promise<NotificationSetting[]> => {
     const recipients = await this.getDocumentNotificationRecipients(
       document,
-      "documents.update",
-      actorId
+      "comments.create",
+      actorId,
+      !comment.parentCommentId
     );
 
     if (recipients.length > 0 && comment.parentCommentId) {
@@ -76,15 +77,18 @@ export default class NotificationHelper {
   /**
    * Get the recipients of a notification for a document event.
    *
-   * @param document The document to get recipients for
-   * @param eventName The event name
-   * @param actorId The id of the user that performed the action
+   * @param document The document to get recipients for.
+   * @param eventName The event name.
+   * @param actorId The id of the user that performed the action.
+   * @param onlySubscribers Whether to only return recipients that are actively
+   * subscribed to the document.
    * @returns A list of recipients
    */
   public static getDocumentNotificationRecipients = async (
     document: Document,
     eventName: string,
-    actorId: string
+    actorId: string,
+    onlySubscribers: boolean
   ): Promise<NotificationSetting[]> => {
     // First find all the users that have notifications enabled for this event
     // type at all and aren't the one that performed the action.
@@ -98,9 +102,8 @@ export default class NotificationHelper {
       },
     });
 
-    // If the event is a revision creation we can filter further to only those
-    // that have a subscription to the document…
-    if (eventName === "documents.update") {
+    // Filter further to only those that have a subscription to the document…
+    if (onlySubscribers) {
       const subscriptions = await Subscription.findAll({
         attributes: ["userId"],
         where: {
