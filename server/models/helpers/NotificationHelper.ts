@@ -119,20 +119,24 @@ export default class NotificationHelper {
       );
     }
 
-    recipients = recipients
-      .filter((recipient) => {
-        // Suppress notifications for suspended and users with no email address
-        return recipient.user.email && !recipient.user.isSuspended;
-      })
-      .filter(async (recipient) => {
-        // Check the recipient has access to the collection this document is in. Just
-        // because they are subscribed doesn't meant they still have access to read
-        // the document.
-        const collectionIds = await recipient.user.collectionIds();
-        return collectionIds.includes(document.collectionId);
-      });
+    const filtered = [];
+
+    for (const recipient of recipients) {
+      const collectionIds = await recipient.user.collectionIds();
+
+      // Check the recipient has access to the collection this document is in. Just
+      // because they are subscribed doesn't meant they still have access to read
+      // the document.
+      if (
+        recipient.user.email &&
+        !recipient.user.isSuspended &&
+        collectionIds.includes(document.collectionId)
+      ) {
+        filtered.push(recipient);
+      }
+    }
 
     // Ensure we only have one recipient per user as a safety measure
-    return uniqBy(recipients, "userId");
+    return uniqBy(filtered, "userId");
   };
 }
