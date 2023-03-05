@@ -98,7 +98,7 @@ class UiStore {
     this.sidebarCollapsed = !!data.sidebarCollapsed;
     this.sidebarWidth = data.sidebarWidth || defaultTheme.sidebarWidth;
     this.sidebarRightWidth =
-      data.sidebarRightWidth || defaultTheme.sidebarWidth;
+      data.sidebarRightWidth || defaultTheme.sidebarRightWidth;
     this.tocVisible = !!data.tocVisible;
     this.theme = data.theme || Theme.System;
 
@@ -163,6 +163,11 @@ class UiStore {
   @action
   setSidebarWidth = (width: number): void => {
     this.sidebarWidth = width;
+  };
+
+  @action
+  setRightSidebarWidth = (width: number): void => {
+    this.sidebarRightWidth = width;
   };
 
   @action

@@ -48,6 +48,7 @@ const spacing = {
   vpadding: "1.5vw",
   hpadding: "1.875vw",
   sidebarWidth: 260,
+  sidebarRightWidth: 300,
   sidebarCollapsedWidth: 16,
   sidebarMinWidth: 200,
   sidebarMaxWidth: 600,

@@ -111,6 +111,7 @@ declare module "styled-components" {
     vpadding: string;
     hpadding: string;
     sidebarWidth: number;
+    sidebarRightWidth: number;
     sidebarCollapsedWidth: number;
     sidebarMinWidth: number;
     sidebarMaxWidth: number;
