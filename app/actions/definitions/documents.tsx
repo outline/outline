@@ -728,7 +728,7 @@ export const openDocumentComments = createAction({
       return;
     }
 
-    stores.ui.toggleComments();
+    stores.ui.toggleComments(activeDocumentId);
   },
 });
 

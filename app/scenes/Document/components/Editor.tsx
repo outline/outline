@@ -87,13 +87,13 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
 
   const handleClickComment = React.useCallback(
     (commentId: string) => {
-      ui.expandComments();
+      ui.expandComments(document.id);
       history.replace({
         pathname: window.location.pathname.replace(/\/history$/, ""),
         state: { commentId },
       });
     },
-    [ui, history]
+    [ui, document.id, history]
   );
 
   // Create a Comment model in local store when a comment mark is created, this
@@ -115,13 +115,13 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
       comment.id = commentId;
       comments.add(comment);
 
-      ui.expandComments();
+      ui.expandComments(document.id);
       history.replace({
         pathname: window.location.pathname.replace(/\/history$/, ""),
         state: { commentId },
       });
     },
-    [comments, user?.id, props.id, ui, history]
+    [comments, user?.id, props.id, ui, document.id, history]
   );
 
   // Soft delete the Comment model when associated mark is totally removed.

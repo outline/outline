@@ -64,7 +64,7 @@ class UiStore {
   sidebarCollapsed = false;
 
   @observable
-  commentsCollapsed = false;
+  commentsExpanded: string[] = [];
 
   @observable
   sidebarIsResizing = false;
@@ -100,6 +100,7 @@ class UiStore {
     this.sidebarRightWidth =
       data.sidebarRightWidth || defaultTheme.sidebarRightWidth;
     this.tocVisible = !!data.tocVisible;
+    this.commentsExpanded = data.commentsExpanded || [];
     this.theme = data.theme || Theme.System;
 
     autorun(() => {
@@ -182,18 +183,26 @@ class UiStore {
   };
 
   @action
-  collapseComments = () => {
-    this.commentsCollapsed = true;
+  collapseComments = (documentId: string) => {
+    this.commentsExpanded = this.commentsExpanded.filter(
+      (id) => id !== documentId
+    );
   };
 
   @action
-  expandComments = () => {
-    this.commentsCollapsed = false;
+  expandComments = (documentId: string) => {
+    if (!this.commentsExpanded.includes(documentId)) {
+      this.commentsExpanded.push(documentId);
+    }
   };
 
   @action
-  toggleComments = () => {
-    this.commentsCollapsed = !this.commentsCollapsed;
+  toggleComments = (documentId: string) => {
+    if (this.commentsExpanded.includes(documentId)) {
+      this.collapseComments(documentId);
+    } else {
+      this.expandComments(documentId);
+    }
   };
 
   @action
@@ -269,6 +278,7 @@ class UiStore {
       sidebarWidth: this.sidebarWidth,
       sidebarRightWidth: this.sidebarRightWidth,
       languagePromptDismissed: this.languagePromptDismissed,
+      commentsExpanded: this.commentsExpanded,
       theme: this.theme,
     };
   }

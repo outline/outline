@@ -55,7 +55,10 @@ function TitleDocumentMeta({ to, isDraft, document, ...rest }: Props) {
       {team?.getPreference(TeamPreference.Commenting) && (
         <>
           &nbsp;•&nbsp;
-          <CommentLink to={documentUrl(document)} onClick={ui.toggleComments}>
+          <CommentLink
+            to={documentUrl(document)}
+            onClick={() => ui.toggleComments(document.id)}
+          >
             <CommentIcon color="currentColor" size={18} />
             {commentsCount
               ? t("{{ count }} comment", { count: commentsCount })

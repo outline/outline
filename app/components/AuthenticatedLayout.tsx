@@ -91,7 +91,8 @@ const AuthenticatedLayout: React.FC = ({ children }) => {
   const showComments =
     !showInsights &&
     !showHistory &&
-    !ui.commentsCollapsed &&
+    ui.activeDocumentId &&
+    ui.commentsExpanded.includes(ui.activeDocumentId) &&
     team?.getPreference(TeamPreference.Commenting);
 
   const sidebarRight = (

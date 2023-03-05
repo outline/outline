@@ -23,7 +23,7 @@ function Comments() {
   const document = documents.getByUrl(match.params.documentSlug);
   const focusedComment = useFocusedComment();
 
-  useKeyDown("Escape", ui.collapseComments);
+  useKeyDown("Escape", () => document && ui.collapseComments(document?.id));
 
   if (!document) {
     return null;
@@ -37,7 +37,7 @@ function Comments() {
   return (
     <Sidebar
       title={t("Comments")}
-      onClose={ui.collapseComments}
+      onClose={() => ui.collapseComments(document?.id)}
       scrollable={false}
     >
       <Scrollable bottomShadow={!focusedComment} hiddenScrollbars topShadow>
