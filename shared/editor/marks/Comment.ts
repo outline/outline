@@ -21,10 +21,10 @@ export default class Comment extends Mark {
         userId: {},
       },
       inclusive: false,
-      parseDOM: [{ tag: "span.comment" }],
+      parseDOM: [{ tag: "span.comment-marker" }],
       toDOM: (node) => [
         "span",
-        { class: "comment", id: `comment-${node.attrs.id}` },
+        { class: "comment-marker", id: `comment-${node.attrs.id}` },
       ],
     };
   }
@@ -88,7 +88,7 @@ export default class Comment extends Mark {
             mousedown: (view, event: MouseEvent) => {
               if (
                 !(event.target instanceof HTMLSpanElement) ||
-                !event.target.classList.contains("comment")
+                !event.target.classList.contains("comment-marker")
               ) {
                 return false;
               }

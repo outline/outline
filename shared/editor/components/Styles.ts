@@ -563,7 +563,7 @@ h6 {
   opacity: 1;
 }
 
-.comment {
+.comment-marker {
   border-bottom: 2px solid ${transparentize(0.5, props.theme.brand.marine)};
   transition: background 100ms ease-in-out;
   cursor: pointer;
@@ -1463,7 +1463,7 @@ del[data-operation-index] {
     display: none;
   }
 
-  .comment {
+  .comment-marker {
     border: 0;
     background: none;
   }
