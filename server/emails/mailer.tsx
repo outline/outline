@@ -84,7 +84,10 @@ export class Mailer {
 
       const info = await transporter.sendMail({
         from: data.fromName
-          ? `${data.fromName} <${from.address}>`
+          ? {
+              name: data.fromName,
+              address: from.address,
+            }
           : env.SMTP_FROM_EMAIL,
         replyTo: data.replyTo ?? env.SMTP_REPLY_EMAIL ?? env.SMTP_FROM_EMAIL,
         to: data.to,
