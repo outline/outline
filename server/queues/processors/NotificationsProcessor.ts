@@ -1,6 +1,7 @@
 import { subHours } from "date-fns";
-import { differenceBy, uniqBy } from "lodash";
+import { differenceBy } from "lodash";
 import { Op } from "sequelize";
+import { Minute } from "@shared/utils/time";
 import subscriptionCreator from "@server/commands/subscriptionCreator";
 import { sequelize } from "@server/database/sequelize";
 import CollectionNotificationEmail from "@server/emails/templates/CollectionNotificationEmail";
@@ -9,24 +10,25 @@ import MentionNotificationEmail from "@server/emails/templates/MentionNotificati
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import {
-  View,
   Document,
   Team,
   Collection,
-  User,
-  NotificationSetting,
-  Subscription,
   Notification,
   Revision,
+  User,
+  View,
 } from "@server/models";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
+import NotificationHelper from "@server/models/helpers/NotificationHelper";
 import {
   CollectionEvent,
   RevisionEvent,
   Event,
   DocumentEvent,
+  CommentEvent,
 } from "@server/types";
 import parseMentions from "@server/utils/parseMentions";
+import CommentCreatedNotificationTask from "../tasks/CommentCreatedNotificationTask";
 import BaseProcessor from "./BaseProcessor";
 
 export default class NotificationsProcessor extends BaseProcessor {
@@ -34,6 +36,7 @@ export default class NotificationsProcessor extends BaseProcessor {
     "documents.publish",
     "revisions.create",
     "collections.create",
+    "comments.create",
   ];
 
   async perform(event: Event) {
@@ -44,8 +47,16 @@ export default class NotificationsProcessor extends BaseProcessor {
         return this.revisionCreated(event);
       case "collections.create":
         return this.collectionCreated(event);
+      case "comments.create":
+        return this.commentCreated(event);
       default:
     }
+  }
+
+  async commentCreated(event: CommentEvent) {
+    await CommentCreatedNotificationTask.schedule(event, {
+      delay: Minute,
+    });
   }
 
   async documentPublished(event: DocumentEvent) {
@@ -70,9 +81,10 @@ export default class NotificationsProcessor extends BaseProcessor {
 
     await this.createDocumentSubscriptions(document, event);
 
-    const recipients = await this.getDocumentNotificationRecipients(
+    const recipients = await NotificationHelper.getDocumentNotificationRecipients(
       document,
-      "documents.publish"
+      "documents.publish",
+      document.lastModifiedById
     );
 
     // send notifs to mentioned users
@@ -144,26 +156,25 @@ export default class NotificationsProcessor extends BaseProcessor {
 
     await this.createDocumentSubscriptions(document, event);
 
-    const recipients = await this.getDocumentNotificationRecipients(
+    const recipients = await NotificationHelper.getDocumentNotificationRecipients(
       document,
-      "documents.update"
+      "documents.update",
+      document.lastModifiedById
     );
+    if (!recipients.length) {
+      return;
+    }
 
     // generate the diff html for the email
     const before = await revision.previous();
-    let content = await DocumentHelper.toEmailDiff(before, revision, {
+    const content = await DocumentHelper.toEmailDiff(before, revision, {
       includeTitle: false,
       centered: false,
+      signedUrls: 86400 * 4,
     });
     if (!content) {
       return;
     }
-
-    content = await DocumentHelper.attachmentsToSignedUrls(
-      content,
-      event.teamId,
-      86400 * 4
-    );
 
     // send notifs to newly mentioned users
     const prev = await revision.previous();
@@ -234,7 +245,7 @@ export default class NotificationsProcessor extends BaseProcessor {
       return;
     }
 
-    const recipients = await this.getCollectionNotificationRecipients(
+    const recipients = await NotificationHelper.getCollectionNotificationRecipients(
       collection,
       event.name
     );
@@ -254,128 +265,10 @@ export default class NotificationsProcessor extends BaseProcessor {
     }
   }
 
-  /**
-   * Create any new subscriptions that might be missing for collaborators in the
-   * document on publish and revision creation. This does mean that there is a
-   * short period of time where the user is not subscribed after editing until a
-   * revision is created.
-   *
-   * @param document The document to create subscriptions for
-   * @param event The event that triggered the subscription creation
-   */
-  private createDocumentSubscriptions = async (
-    document: Document,
-    event: DocumentEvent | RevisionEvent
-  ): Promise<void> => {
-    await sequelize.transaction(async (transaction) => {
-      const users = await document.collaborators({ transaction });
-
-      for (const user of users) {
-        await subscriptionCreator({
-          user,
-          documentId: document.id,
-          event: "documents.update",
-          resubscribe: false,
-          transaction,
-          ip: event.ip,
-        });
-      }
-    });
-  };
-
-  /**
-   * Get the recipients of a notification for a collection event.
-   *
-   * @param collection The collection to get recipients for
-   * @param eventName The event name
-   * @returns A list of recipients
-   */
-  private getCollectionNotificationRecipients = async (
-    collection: Collection,
-    eventName: string
-  ): Promise<NotificationSetting[]> => {
-    // First find all the users that have notifications enabled for this event
-    // type at all and aren't the one that performed the action.
-    const recipients = await NotificationSetting.scope("withUser").findAll({
-      where: {
-        userId: {
-          [Op.ne]: collection.createdById,
-        },
-        teamId: collection.teamId,
-        event: eventName,
-      },
-    });
-
-    // Ensure we only have one recipient per user as a safety measure
-    return uniqBy(recipients, "userId");
-  };
-
-  /**
-   * Get the recipients of a notification for a document event.
-   *
-   * @param document The document to get recipients for
-   * @param eventName The event name
-   * @returns A list of recipients
-   */
-  private getDocumentNotificationRecipients = async (
-    document: Document,
-    eventName: string
-  ): Promise<NotificationSetting[]> => {
-    // First find all the users that have notifications enabled for this event
-    // type at all and aren't the one that performed the action.
-    let recipients = await NotificationSetting.scope("withUser").findAll({
-      where: {
-        userId: {
-          [Op.ne]: document.lastModifiedById,
-        },
-        teamId: document.teamId,
-        event: eventName,
-      },
-    });
-
-    // If the event is a revision creation we can filter further to only those
-    // that have a subscription to the document…
-    if (eventName === "documents.update") {
-      const subscriptions = await Subscription.findAll({
-        attributes: ["userId"],
-        where: {
-          userId: recipients.map((recipient) => recipient.user.id),
-          documentId: document.id,
-          event: eventName,
-        },
-      });
-
-      const subscribedUserIds = subscriptions.map(
-        (subscription) => subscription.userId
-      );
-
-      recipients = recipients.filter((recipient) =>
-        subscribedUserIds.includes(recipient.user.id)
-      );
-    }
-
-    // Ensure we only have one recipient per user as a safety measure
-    return uniqBy(recipients, "userId");
-  };
-
   private shouldNotify = async (
     document: Document,
     user: User
   ): Promise<boolean> => {
-    // Suppress notifications for suspended and users with no email address
-    if (user.isSuspended || !user.email) {
-      return false;
-    }
-
-    // Check the recipient has access to the collection this document is in. Just
-    // because they are subscribed doesn't meant they still have access to read
-    // the document.
-    const collectionIds = await user.collectionIds();
-
-    if (!collectionIds.includes(document.collectionId)) {
-      return false;
-    }
-
     // Deliver only a single notification in a 12 hour window
     const notification = await Notification.findOne({
       order: [["createdAt", "DESC"]],
@@ -425,5 +318,34 @@ export default class NotificationsProcessor extends BaseProcessor {
     }
 
     return true;
+  };
+
+  /**
+   * Create any new subscriptions that might be missing for collaborators in the
+   * document on publish and revision creation. This does mean that there is a
+   * short period of time where the user is not subscribed after editing until a
+   * revision is created.
+   *
+   * @param document The document to create subscriptions for
+   * @param event The event that triggered the subscription creation
+   */
+  private createDocumentSubscriptions = async (
+    document: Document,
+    event: DocumentEvent | RevisionEvent
+  ): Promise<void> => {
+    await sequelize.transaction(async (transaction) => {
+      const users = await document.collaborators({ transaction });
+
+      for (const user of users) {
+        await subscriptionCreator({
+          user,
+          documentId: document.id,
+          event: "documents.update",
+          resubscribe: false,
+          transaction,
+          ip: event.ip,
+        });
+      }
+    });
   };
 }

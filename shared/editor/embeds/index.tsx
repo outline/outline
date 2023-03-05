@@ -20,11 +20,11 @@ import Framer from "./Framer";
 import Gist from "./Gist";
 import Gliffy from "./Gliffy";
 import GoogleCalendar from "./GoogleCalendar";
-import GoogleDataStudio from "./GoogleDataStudio";
 import GoogleDocs from "./GoogleDocs";
 import GoogleDrawings from "./GoogleDrawings";
 import GoogleDrive from "./GoogleDrive";
 import GoogleForms from "./GoogleForms";
+import GoogleLookerStudio from "./GoogleLookerStudio";
 import GoogleSheets from "./GoogleSheets";
 import GoogleSlides from "./GoogleSlides";
 import Grist from "./Grist";
@@ -248,10 +248,12 @@ const embeds: EmbedDescriptor[] = [
     component: GoogleCalendar,
   }),
   new EmbedDescriptor({
-    title: "Google Data Studio",
+    title: "Google Looker Studio",
     keywords: "bi business intelligence",
-    icon: <Img src="/images/google-datastudio.png" alt="Google Data Studio" />,
-    component: GoogleDataStudio,
+    icon: (
+      <Img src="/images/google-lookerstudio.png" alt="Google Looker Studio" />
+    ),
+    component: GoogleLookerStudio,
   }),
   new EmbedDescriptor({
     title: "Google Forms",

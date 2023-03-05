@@ -285,7 +285,7 @@ class CommandMenu<T extends MenuItem> extends React.PureComponent<
     this.setState({ insertItem: item });
   };
 
-  handleFilePicked = (event: React.ChangeEvent<HTMLInputElement>) => {
+  handleFilesPicked = (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = getEventFiles(event);
 
     const {
@@ -581,7 +581,8 @@ class CommandMenu<T extends MenuItem> extends React.PureComponent<
                 <input
                   type="file"
                   ref={this.inputRef}
-                  onChange={this.handleFilePicked}
+                  onChange={this.handleFilesPicked}
+                  multiple
                 />
               </label>
             </VisuallyHidden>

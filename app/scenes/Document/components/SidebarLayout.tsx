@@ -9,13 +9,17 @@ import Scrollable from "~/components/Scrollable";
 import Tooltip from "~/components/Tooltip";
 
 type Props = React.HTMLAttributes<HTMLDivElement> & {
+  /* The title of the sidebar */
   title: React.ReactNode;
+  /* The content of the sidebar */
   children: React.ReactNode;
+  /* Called when the sidebar is closed */
   onClose: React.MouseEventHandler;
-  border?: boolean;
+  /* Whether the sidebar should be scrollable */
+  scrollable?: boolean;
 };
 
-function SidebarLayout({ title, onClose, children }: Props) {
+function SidebarLayout({ title, onClose, children, scrollable = true }: Props) {
   const { t } = useTranslation();
 
   return (
@@ -31,9 +35,13 @@ function SidebarLayout({ title, onClose, children }: Props) {
           />
         </Tooltip>
       </Header>
-      <Scrollable hiddenScrollbars topShadow>
-        {children}
-      </Scrollable>
+      {scrollable ? (
+        <Scrollable hiddenScrollbars topShadow>
+          {children}
+        </Scrollable>
+      ) : (
+        children
+      )}
     </>
   );
 }

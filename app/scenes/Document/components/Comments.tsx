@@ -6,8 +6,10 @@ import { useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
+import Scrollable from "~/components/Scrollable";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useFocusedComment from "~/hooks/useFocusedComment";
+import useKeyDown from "~/hooks/useKeyDown";
 import useStores from "~/hooks/useStores";
 import CommentForm from "./CommentForm";
 import CommentThread from "./CommentThread";
@@ -21,6 +23,8 @@ function Comments() {
   const document = documents.getByUrl(match.params.documentSlug);
   const focusedComment = useFocusedComment();
 
+  useKeyDown("Escape", ui.collapseComments);
+
   if (!document) {
     return null;
   }
@@ -31,37 +35,42 @@ function Comments() {
   const hasComments = threads.length > 0;
 
   return (
-    <Sidebar title={t("Comments")} onClose={ui.collapseComments}>
-      <Wrapper $hasComments={hasComments}>
-        {hasComments ? (
-          threads.map((thread) => (
-            <CommentThread
-              key={thread.id}
-              comment={thread}
-              document={document}
-              recessed={!!focusedComment && focusedComment.id !== thread.id}
-              focused={focusedComment?.id === thread.id}
-            />
-          ))
-        ) : (
-          <NoComments align="center" justify="center" auto>
-            <Empty>{t("No comments yet")}</Empty>
-          </NoComments>
-        )}
-
-        <AnimatePresence initial={false}>
-          {!focusedComment && (
-            <NewCommentForm
-              documentId={document.id}
-              placeholder={`${t("Add a comment")}…`}
-              autoFocus={false}
-              dir={document.dir}
-              animatePresence
-              standalone
-            />
+    <Sidebar
+      title={t("Comments")}
+      onClose={ui.collapseComments}
+      scrollable={false}
+    >
+      <Scrollable bottomShadow={!focusedComment} hiddenScrollbars topShadow>
+        <Wrapper $hasComments={hasComments}>
+          {hasComments ? (
+            threads.map((thread) => (
+              <CommentThread
+                key={thread.id}
+                comment={thread}
+                document={document}
+                recessed={!!focusedComment && focusedComment.id !== thread.id}
+                focused={focusedComment?.id === thread.id}
+              />
+            ))
+          ) : (
+            <NoComments align="center" justify="center" auto>
+              <Empty>{t("No comments yet")}</Empty>
+            </NoComments>
           )}
-        </AnimatePresence>
-      </Wrapper>
+        </Wrapper>
+      </Scrollable>
+      <AnimatePresence initial={false}>
+        {!focusedComment && (
+          <NewCommentForm
+            documentId={document.id}
+            placeholder={`${t("Add a comment")}…`}
+            autoFocus={false}
+            dir={document.dir}
+            animatePresence
+            standalone
+          />
+        )}
+      </AnimatePresence>
     </Sidebar>
   );
 }
@@ -77,14 +86,9 @@ const Wrapper = styled.div<{ $hasComments: boolean }>`
 `;
 
 const NewCommentForm = styled(CommentForm)<{ dir?: "ltr" | "rtl" }>`
-  background: ${(props) => props.theme.background};
-  position: absolute;
   padding: 12px;
   padding-right: ${(props) => (props.dir !== "rtl" ? "18px" : "12px")};
   padding-left: ${(props) => (props.dir === "rtl" ? "18px" : "12px")};
-  left: 0;
-  right: 0;
-  bottom: 0;
 `;
 
 export default observer(Comments);

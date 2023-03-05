@@ -97,10 +97,6 @@ math-block .katex-display {
   margin: 0;
 }
 
-p::selection, p > *::selection {
-  background-color: #c0c0c0;
-}
-
 .katex-html *::selection {
   background-color: none !important;
 }

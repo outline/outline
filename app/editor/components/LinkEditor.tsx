@@ -73,15 +73,18 @@ class LinkEditor extends React.Component<Props, State> {
     return sanitizeUrl(this.props.mark?.attrs.href) ?? "";
   }
 
-  get suggestedLinkTitle(): string {
+  get selectedText(): string {
     const { state } = this.props.view;
-    const { value } = this.state;
     const selectionText = state.doc.cut(
       state.selection.from,
       state.selection.to
     ).textContent;
 
-    return value.trim() || selectionText.trim();
+    return selectionText.trim();
+  }
+
+  get suggestedLinkTitle(): string {
+    return this.state.value.trim() || this.selectedText;
   }
 
   componentWillUnmount = () => {
@@ -195,7 +198,7 @@ class LinkEditor extends React.Component<Props, State> {
     this.setState({ selectedIndex });
   };
 
-  handleChange = async (
+  handleSearch = async (
     event: React.ChangeEvent<HTMLInputElement>
   ): Promise<void> => {
     const value = event.target.value;
@@ -205,7 +208,7 @@ class LinkEditor extends React.Component<Props, State> {
       selectedIndex: -1,
     });
 
-    const trimmedValue = value.trim();
+    const trimmedValue = value.trim() || this.selectedText;
 
     if (trimmedValue && this.props.onSearchLink) {
       try {
@@ -318,7 +321,8 @@ class LinkEditor extends React.Component<Props, State> {
           }
           onKeyDown={this.handleKeyDown}
           onPaste={this.handlePaste}
-          onChange={this.handleChange}
+          onChange={this.handleSearch}
+          onFocus={this.handleSearch}
           autoFocus={this.href === ""}
         />
 

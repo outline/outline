@@ -57,50 +57,62 @@ const insertFiles = function (
 
   // we'll use this to track of how many files have succeeded or failed
   let complete = 0;
+  let attachmentPlaceholdersSet = false;
+
+  const filesToUpload = files.map((file) => ({
+    id: `upload-${uuidv4()}`,
+    isImage: file.type.startsWith("image/") && !options.isAttachment,
+    file,
+  }));
 
   // the user might have dropped multiple files at once, we need to loop
-  for (const file of files) {
-    const id = `upload-${uuidv4()}`;
-    const isImage = file.type.startsWith("image/") && !options.isAttachment;
+  for (const upload of filesToUpload) {
     const { tr } = view.state;
 
-    if (isImage) {
+    if (upload.isImage) {
       // insert a placeholder at this position, or mark an existing file as being
       // replaced
       tr.setMeta(uploadPlaceholderPlugin, {
         add: {
-          id,
-          file,
+          id: upload.id,
+          file: upload.file,
           pos,
-          isImage,
+          isImage: true,
           replaceExisting: options.replaceExisting,
         },
       });
       view.dispatch(tr);
-    } else {
+    } else if (!attachmentPlaceholdersSet) {
       const $pos = tr.doc.resolve(pos);
+      const attachmentsToUpload = filesToUpload.filter(
+        (i) => i.isImage === false
+      );
+
       view.dispatch(
         view.state.tr.replaceWith(
           $pos.pos,
           $pos.pos + ($pos.nodeAfter?.nodeSize || 0),
-          schema.nodes.attachment.create({
-            id,
-            title: file.name ?? "Untitled",
-            size: file.size,
-          })
+          attachmentsToUpload.map((attachment) =>
+            schema.nodes.attachment.create({
+              id: attachment.id,
+              title: attachment.file.name ?? "Untitled",
+              size: attachment.file.size,
+            })
+          )
         )
       );
+      attachmentPlaceholdersSet = true;
     }
 
     // start uploading the file to the server. Using "then" syntax
     // to allow all placeholders to be entered at once with the uploads
     // happening in the background in parallel.
-    uploadFile(file)
+    uploadFile(upload.file)
       .then((src) => {
-        if (isImage) {
+        if (upload.isImage) {
           const newImg = new Image();
           newImg.onload = () => {
-            const result = findPlaceholder(view.state, id);
+            const result = findPlaceholder(view.state, upload.id);
 
             // if the content around the placeholder has been deleted
             // then forget about inserting this file
@@ -116,7 +128,7 @@ const insertFiles = function (
                   to || from,
                   schema.nodes.image.create({ src, width: options.width })
                 )
-                .setMeta(uploadPlaceholderPlugin, { remove: { id } })
+                .setMeta(uploadPlaceholderPlugin, { remove: { id: upload.id } })
             );
 
             // If the users selection is still at the file then make sure to select
@@ -137,7 +149,7 @@ const insertFiles = function (
 
           newImg.src = src;
         } else {
-          const result = findAttachmentById(view.state, id);
+          const result = findAttachmentById(view.state, upload.id);
 
           // if the attachment has been deleted then forget about updating it
           if (result === null) {
@@ -151,8 +163,8 @@ const insertFiles = function (
               to || from,
               schema.nodes.attachment.create({
                 href: src,
-                title: file.name ?? "Untitled",
-                size: file.size,
+                title: upload.file.name ?? "Untitled",
+                size: upload.file.size,
               })
             )
           );
@@ -173,14 +185,14 @@ const insertFiles = function (
         Sentry.captureException(error);
 
         // cleanup the placeholder if there is a failure
-        if (isImage) {
+        if (upload.isImage) {
           view.dispatch(
             view.state.tr.setMeta(uploadPlaceholderPlugin, {
-              remove: { id },
+              remove: { id: upload.id },
             })
           );
         } else {
-          const result = findAttachmentById(view.state, id);
+          const result = findAttachmentById(view.state, upload.id);
 
           // if the attachment has been deleted then forget about updating it
           if (result === null) {

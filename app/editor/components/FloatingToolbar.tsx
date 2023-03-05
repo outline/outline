@@ -83,8 +83,8 @@ function usePosition({
   const offsetParent = menuRef.current.offsetParent
     ? menuRef.current.offsetParent.getBoundingClientRect()
     : ({
-        width: 0,
-        height: 0,
+        width: window.innerWidth,
+        height: window.innerHeight,
         top: 0,
         left: 0,
       } as DOMRect);
@@ -141,8 +141,8 @@ function usePosition({
     // instances leave a margin
     const margin = 12;
     const left = Math.min(
-      window.innerWidth - menuWidth - margin,
-      Math.max(margin, centerOfSelection - menuWidth / 2)
+      offsetParent.x + offsetParent.width - menuWidth - margin,
+      Math.max(offsetParent.x + margin, centerOfSelection - menuWidth / 2)
     );
     const top = Math.min(
       window.innerHeight - menuHeight - margin,

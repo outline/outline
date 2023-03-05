@@ -904,7 +904,6 @@ const ImageWrapper = styled.div<{ isFullWidth: boolean }>`
   transition-property: width, height;
   transition-duration: ${(props) => (props.isFullWidth ? "0ms" : "150ms")};
   transition-timing-function: ease-in-out;
-  touch-action: none;
   overflow: hidden;
 
   img {
