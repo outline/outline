@@ -141,8 +141,14 @@ function usePosition({
     // instances leave a margin
     const margin = 12;
     const left = Math.min(
-      offsetParent.x + offsetParent.width - menuWidth - margin,
-      Math.max(offsetParent.x + margin, centerOfSelection - menuWidth / 2)
+      Math.min(
+        offsetParent.x + offsetParent.width - menuWidth,
+        window.innerWidth - margin
+      ),
+      Math.max(
+        Math.max(offsetParent.x, margin),
+        centerOfSelection - menuWidth / 2
+      )
     );
     const top = Math.min(
       window.innerHeight - menuHeight - margin,
