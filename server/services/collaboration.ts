@@ -6,6 +6,7 @@ import Koa from "koa";
 import WebSocket from "ws";
 import { DocumentValidation } from "@shared/validations";
 import { ConnectionLimitExtension } from "@server/collaboration/ConnectionLimitExtension";
+import { ViewsExtension } from "@server/collaboration/ViewsExtension";
 import Logger from "@server/logging/Logger";
 import ShutdownHelper, { ShutdownOrder } from "@server/utils/ShutdownHelper";
 import AuthenticationExtension from "../collaboration/AuthenticationExtension";
@@ -32,6 +33,7 @@ export default function init(
       new ConnectionLimitExtension(),
       new AuthenticationExtension(),
       new PersistenceExtension(),
+      new ViewsExtension(),
       new LoggerExtension(),
       new MetricsExtension(),
     ],
