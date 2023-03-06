@@ -11,7 +11,7 @@ import { View } from "@server/models";
 @trace()
 export class ViewsExtension implements Extension {
   /**
-   * Map of documentId -> intervals
+   * Map of socketId -> intervals
    */
   intervalsBySocket: Map<string, NodeJS.Timer> = new Map();
 
@@ -53,7 +53,6 @@ export class ViewsExtension implements Extension {
 
     // Set up an interval to update the last viewed at timestamp continuously
     // while the user is connected. This should only be done once per socket.
-
     const interval = setInterval(updateView, 30 * Second);
     updateView();
 

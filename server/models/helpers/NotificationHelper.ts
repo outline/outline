@@ -1,11 +1,13 @@
 import { uniqBy } from "lodash";
 import { Op } from "sequelize";
+import Logger from "@server/logging/Logger";
 import {
   Document,
   Collection,
   NotificationSetting,
   Subscription,
   Comment,
+  View,
 } from "@server/models";
 
 export default class NotificationHelper {
@@ -49,9 +51,9 @@ export default class NotificationHelper {
     comment: Comment,
     actorId: string
   ): Promise<NotificationSetting[]> => {
-    const recipients = await this.getDocumentNotificationRecipients(
+    let recipients = await this.getDocumentNotificationRecipients(
       document,
-      "comments.create",
+      "documents.update",
       actorId,
       !comment.parentCommentId
     );
@@ -68,10 +70,35 @@ export default class NotificationHelper {
       });
 
       const userIdsInThread = contextComments.map((c) => c.createdById);
-      return recipients.filter((r) => userIdsInThread.includes(r.userId));
+      recipients = recipients.filter((r) => userIdsInThread.includes(r.userId));
     }
 
-    return recipients;
+    const filtered: NotificationSetting[] = [];
+
+    for (const recipient of recipients) {
+      // If this recipient has viewed the document since the comment was made
+      // then we can avoid sending them a useless notification, yay.
+      const view = await View.findOne({
+        where: {
+          userId: recipient.userId,
+          documentId: document.id,
+          updatedAt: {
+            [Op.gt]: comment.createdAt,
+          },
+        },
+      });
+
+      if (view) {
+        Logger.info(
+          "processor",
+          `suppressing notification to ${recipient.userId} because doc viewed`
+        );
+      } else {
+        filtered.push(recipient);
+      }
+    }
+
+    return filtered;
   };
 
   /**
@@ -128,7 +155,7 @@ export default class NotificationHelper {
       const collectionIds = await recipient.user.collectionIds();
 
       // Check the recipient has access to the collection this document is in. Just
-      // because they are subscribed doesn't meant they still have access to read
+      // because they are subscribed doesn't meant they "still have access to read
       // the document.
       if (
         recipient.user.email &&
