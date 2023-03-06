@@ -36,3 +36,14 @@ export const FileOperationsListSchema = BaseSchema.extend({
 });
 
 export type FileOperationsListReq = z.infer<typeof FileOperationsListSchema>;
+
+export const FileOperationsDeleteSchema = BaseSchema.extend({
+  body: z.object({
+    /** Id of the file operation to delete */
+    id: z.string().uuid(),
+  }),
+});
+
+export type FileOperationsDeleteReq = z.infer<
+  typeof FileOperationsDeleteSchema
+>;

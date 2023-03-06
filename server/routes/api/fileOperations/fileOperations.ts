@@ -102,11 +102,11 @@ router.post(
 router.post(
   "fileOperations.delete",
   auth({ admin: true }),
-  async (ctx: APIContext) => {
-    const { id } = ctx.request.body;
-    assertUuid(id, "id is required");
-
+  validate(T.FileOperationsDeleteSchema),
+  async (ctx: APIContext<T.FileOperationsDeleteReq>) => {
+    const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
+
     const fileOperation = await FileOperation.unscoped().findByPk(id, {
       rejectOnEmpty: true,
     });
