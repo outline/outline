@@ -10,8 +10,8 @@ import { Dispatch, EventType } from "../types";
 import Node from "./Node";
 
 // ported from https://github.com/tc39/proposal-regexp-unicode-property-escapes#unicode-aware-version-of-w
-const OPEN_REGEX = /(?:^|\s)@([\p{Alphabetic}\p{Mark}\p{Connector_Punctuation}\p{Join_Control}]+)?$/u;
-const CLOSE_REGEX = /(?:^|\s)@(([\p{Alphabetic}\p{Mark}\p{Connector_Punctuation}\p{Join_Control}]*\s+)|(\s+[\p{Alphabetic}\p{Mark}\p{Connector_Punctuation}\p{Join_Control}]+))$/u;
+const OPEN_REGEX = /(?:^|\s)@([\p{L}\p{M}\d]+)?$/u;
+const CLOSE_REGEX = /(?:^|\s)@(([\p{L}\p{M}\d]*\s+)|(\s+[\p{L}\p{M}\d]+))$/u;
 
 export default class Mention extends Node {
   get name() {
