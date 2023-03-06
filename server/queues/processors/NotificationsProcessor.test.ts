@@ -194,7 +194,10 @@ describe("revisions.create", () => {
       teamId: collaborator.teamId,
       event: "documents.update",
     });
-    await View.touch(document.id, collaborator.id, true);
+    await View.create({
+      userId: collaborator.id,
+      documentId: document.id,
+    });
 
     const processor = new NotificationsProcessor();
     await processor.perform({
@@ -581,7 +584,10 @@ describe("revisions.create", () => {
       teamId: collaborator.teamId,
       event: "documents.update",
     });
-    await View.touch(document.id, collaborator.id, true);
+    await View.create({
+      userId: collaborator.id,
+      documentId: document.id,
+    });
 
     const processor = new NotificationsProcessor();
 
