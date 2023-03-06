@@ -157,11 +157,49 @@ export default class NotificationsProcessor extends BaseProcessor {
 
     await this.createDocumentSubscriptions(document, event);
 
-    const recipients = await NotificationHelper.getDocumentNotificationRecipients(
-      document,
-      "documents.update",
-      document.lastModifiedById,
-      true
+    // Send notifications to mentioned users first
+    const prev = await revision.previous();
+    const oldMentions = prev ? parseMentions(prev) : [];
+    const newMentions = parseMentions(document);
+    const mentions = differenceBy(newMentions, oldMentions, "id");
+    const userIdsSentNotifications: string[] = [];
+
+    for (const mention of mentions) {
+      const [recipient, actor] = await Promise.all([
+        User.findByPk(mention.modelId),
+        User.findByPk(mention.actorId),
+      ]);
+      if (recipient && actor && recipient.id !== actor.id) {
+        const notification = await Notification.create({
+          event: event.name,
+          userId: recipient.id,
+          actorId: document.updatedBy.id,
+          teamId: team.id,
+          documentId: document.id,
+        });
+        userIdsSentNotifications.push(recipient.id);
+        await MentionNotificationEmail.schedule(
+          {
+            to: recipient.email,
+            documentId: event.documentId,
+            actorName: actor.name,
+            teamUrl: team.url,
+            mentionId: mention.id,
+          },
+          { notificationId: notification.id }
+        );
+      }
+    }
+
+    const recipients = (
+      await NotificationHelper.getDocumentNotificationRecipients(
+        document,
+        "documents.update",
+        document.lastModifiedById,
+        true
+      )
+    ).filter(
+      (recipient) => !userIdsSentNotifications.includes(recipient.userId)
     );
     if (!recipients.length) {
       return;
@@ -176,37 +214,6 @@ export default class NotificationsProcessor extends BaseProcessor {
     });
     if (!content) {
       return;
-    }
-
-    // send notifs to newly mentioned users
-    const prev = await revision.previous();
-    const oldMentions = prev ? parseMentions(prev) : [];
-    const newMentions = parseMentions(document);
-    const mentions = differenceBy(newMentions, oldMentions, "id");
-    for (const mention of mentions) {
-      const [recipient, actor] = await Promise.all([
-        User.findByPk(mention.modelId),
-        User.findByPk(mention.actorId),
-      ]);
-      if (recipient && actor && recipient.id !== actor.id) {
-        const notification = await Notification.create({
-          event: event.name,
-          userId: recipient.id,
-          actorId: document.updatedBy.id,
-          teamId: team.id,
-          documentId: document.id,
-        });
-        await MentionNotificationEmail.schedule(
-          {
-            to: recipient.email,
-            documentId: event.documentId,
-            actorName: actor.name,
-            teamUrl: team.url,
-            mentionId: mention.id,
-          },
-          { notificationId: notification.id }
-        );
-      }
     }
 
     for (const recipient of recipients) {

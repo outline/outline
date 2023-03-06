@@ -37,12 +37,16 @@ export default class MentionNotificationEmail extends BaseEmail<
     return { document };
   }
 
-  protected subject({ actorName, document }: Props) {
-    return `${actorName} mentioned you in "${document.title}"`;
+  protected subject({ document }: Props) {
+    return `Mentioned you in “${document.title}”`;
   }
 
   protected preview({ actorName }: Props): string {
     return `${actorName} mentioned you`;
+  }
+
+  protected fromName({ actorName }: Props) {
+    return actorName;
   }
 
   protected renderAsText({
@@ -54,7 +58,7 @@ export default class MentionNotificationEmail extends BaseEmail<
     return `
 You were mentioned
 
-${actorName} mentioned you in the document "${document.title}".
+${actorName} mentioned you in the document “${document.title}”.
 
 Open Document: ${teamUrl}${document.url}?mentionId=${mentionId}
 `;
