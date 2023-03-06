@@ -16,8 +16,8 @@ export class ViewsExtension implements Extension {
   intervalsBySocket: Map<string, NodeJS.Timer> = new Map();
 
   /**
-   * onConnect hook
-   * @param data The connect payload
+   * onAwarenessUpdate hook
+   * @param data The awareness payload
    */
   async onAwarenessUpdate({
     documentName,
@@ -26,32 +26,38 @@ export class ViewsExtension implements Extension {
     context,
     socketId,
   }: onAwarenessUpdatePayload) {
+    if (this.intervalsBySocket.get(socketId)) {
+      return;
+    }
+
     const [, documentId] = documentName.split(".");
 
-    if (!this.intervalsBySocket.get(socketId)) {
-      const updateView = async () => {
-        Logger.debug(
-          "multiplayer",
-          `Updating last viewed at for "${documentName}"`
+    const updateView = async () => {
+      Logger.debug(
+        "multiplayer",
+        `Updating last viewed at for "${documentName}"`
+      );
+      try {
+        await View.touch(documentId, context.user.id, !connection.readOnly);
+      } catch (err) {
+        Logger.error(
+          `Failed to update last viewed at for "${documentName}"`,
+          err,
+          {
+            documentId,
+            userId: context.user.id,
+          }
         );
-        try {
-          await View.touch(documentId, context.user.id, !connection.readOnly);
-        } catch (err) {
-          Logger.error(
-            `Failed to update last viewed at for "${documentName}"`,
-            err,
-            {
-              documentId,
-              userId: context.user.id,
-            }
-          );
-        }
-      };
-      const interval = setInterval(updateView, 30 * Second);
-      updateView();
+      }
+    };
 
-      this.intervalsBySocket.set(socketId, interval);
-    }
+    // Set up an interval to update the last viewed at timestamp continuously
+    // while the user is connected. This should only be done once per socket.
+
+    const interval = setInterval(updateView, 30 * Second);
+    updateView();
+
+    this.intervalsBySocket.set(socketId, interval);
   }
 
   /**
