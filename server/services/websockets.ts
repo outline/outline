@@ -276,9 +276,8 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
     const room = `document-${event.documentId}`;
 
     if (event.documentId && socket.rooms.has(room)) {
-      const view = await View.touch(event.documentId, user.id, event.isEditing);
+      await View.touch(event.documentId, user.id, event.isEditing);
 
-      view.user = user;
       io.to(room).emit("user.presence", {
         userId: user.id,
         documentId: event.documentId,

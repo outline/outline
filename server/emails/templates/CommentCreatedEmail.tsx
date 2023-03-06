@@ -90,7 +90,7 @@ export default class CommentCreatedEmail extends BaseEmail<
     collectionName,
   }: Props): string {
     return `
-${actorName} ${isReply ? "replied in" : "commented on"} the document "${
+${actorName} ${isReply ? "replied to a thread in" : "commented on"} "${
       document.title
     }", in the ${collectionName} collection.
 
@@ -117,7 +117,7 @@ Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
         <Body>
           <Heading>{document.title}</Heading>
           <p>
-            {actorName} {isReply ? "replied in" : "commented on"} the document{" "}
+            {actorName} {isReply ? "replied to a thread in" : "commented on"}{" "}
             <a href={link}>{document.title}</a>, in the {collectionName}{" "}
             collection.
           </p>
