@@ -1,6 +1,5 @@
 import Router from "koa-router";
 import { WhereOptions } from "sequelize";
-import { FileOperationType } from "@shared/types";
 import fileOperationDeleter from "@server/commands/fileOperationDeleter";
 import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
@@ -10,7 +9,7 @@ import { authorize } from "@server/policies";
 import { presentFileOperation } from "@server/presenters";
 import { APIContext } from "@server/types";
 import { getSignedUrl } from "@server/utils/s3";
-import { assertIn, assertSort, assertUuid } from "@server/validation";
+import { assertUuid } from "@server/validation";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -40,16 +39,11 @@ router.post(
   "fileOperations.list",
   auth({ admin: true }),
   pagination(),
-  async (ctx: APIContext) => {
-    let { direction } = ctx.request.body;
-    const { sort = "createdAt", type } = ctx.request.body;
-    assertIn(type, Object.values(FileOperationType));
-    assertSort(sort, FileOperation);
-
-    if (direction !== "ASC") {
-      direction = "DESC";
-    }
+  validate(T.FileOperationsListSchema),
+  async (ctx: APIContext<T.FileOperationsListReq>) => {
+    const { direction, sort, type } = ctx.input.body;
     const { user } = ctx.state.auth;
+
     const where: WhereOptions<FileOperation> = {
       teamId: user.teamId,
       type,
