@@ -1,10 +1,12 @@
 import { subHours } from "date-fns";
+import { differenceBy } from "lodash";
 import { Op } from "sequelize";
 import { Minute } from "@shared/utils/time";
 import subscriptionCreator from "@server/commands/subscriptionCreator";
 import { sequelize } from "@server/database/sequelize";
 import CollectionNotificationEmail from "@server/emails/templates/CollectionNotificationEmail";
 import DocumentNotificationEmail from "@server/emails/templates/DocumentNotificationEmail";
+import MentionNotificationEmail from "@server/emails/templates/MentionNotificationEmail";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import {
@@ -25,6 +27,7 @@ import {
   DocumentEvent,
   CommentEvent,
 } from "@server/types";
+import parseMentions from "@server/utils/parseMentions";
 import CommentCreatedNotificationTask from "../tasks/CommentCreatedNotificationTask";
 import BaseProcessor from "./BaseProcessor";
 
@@ -68,7 +71,7 @@ export default class NotificationsProcessor extends BaseProcessor {
 
     const [collection, document, team] = await Promise.all([
       Collection.findByPk(event.collectionId),
-      Document.findByPk(event.documentId),
+      Document.findByPk(event.documentId, { includeState: true }),
       Team.findByPk(event.teamId),
     ]);
 
@@ -84,6 +87,34 @@ export default class NotificationsProcessor extends BaseProcessor {
       document.lastModifiedById,
       false
     );
+
+    // send notifs to mentioned users
+    const mentions = parseMentions(document);
+    for (const mention of mentions) {
+      const [recipient, actor] = await Promise.all([
+        User.findByPk(mention.modelId),
+        User.findByPk(mention.actorId),
+      ]);
+      if (recipient && actor && recipient.id !== actor.id) {
+        const notification = await Notification.create({
+          event: event.name,
+          userId: recipient.id,
+          actorId: document.updatedBy.id,
+          teamId: team.id,
+          documentId: document.id,
+        });
+        await MentionNotificationEmail.schedule(
+          {
+            to: recipient.email,
+            documentId: event.documentId,
+            actorName: actor.name,
+            teamUrl: team.url,
+            mentionId: mention.id,
+          },
+          { notificationId: notification.id }
+        );
+      }
+    }
 
     for (const recipient of recipients) {
       const notify = await this.shouldNotify(document, recipient.user);
@@ -115,7 +146,7 @@ export default class NotificationsProcessor extends BaseProcessor {
   async revisionCreated(event: RevisionEvent) {
     const [collection, document, revision, team] = await Promise.all([
       Collection.findByPk(event.collectionId),
-      Document.findByPk(event.documentId),
+      Document.findByPk(event.documentId, { includeState: true }),
       Revision.findByPk(event.modelId),
       Team.findByPk(event.teamId),
     ]);
@@ -145,6 +176,37 @@ export default class NotificationsProcessor extends BaseProcessor {
     });
     if (!content) {
       return;
+    }
+
+    // send notifs to newly mentioned users
+    const prev = await revision.previous();
+    const oldMentions = prev ? parseMentions(prev) : [];
+    const newMentions = parseMentions(document);
+    const mentions = differenceBy(newMentions, oldMentions, "id");
+    for (const mention of mentions) {
+      const [recipient, actor] = await Promise.all([
+        User.findByPk(mention.modelId),
+        User.findByPk(mention.actorId),
+      ]);
+      if (recipient && actor && recipient.id !== actor.id) {
+        const notification = await Notification.create({
+          event: event.name,
+          userId: recipient.id,
+          actorId: document.updatedBy.id,
+          teamId: team.id,
+          documentId: document.id,
+        });
+        await MentionNotificationEmail.schedule(
+          {
+            to: recipient.email,
+            documentId: event.documentId,
+            actorName: actor.name,
+            teamUrl: team.url,
+            mentionId: mention.id,
+          },
+          { notificationId: notification.id }
+        );
+      }
     }
 
     for (const recipient of recipients) {

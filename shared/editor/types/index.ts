@@ -13,6 +13,8 @@ export enum EventType {
   emojiMenuClose = "emojiMenuClose",
   linkMenuOpen = "linkMenuOpen",
   linkMenuClose = "linkMenuClose",
+  mentionMenuOpen = "mentionMenuOpen",
+  mentionMenuClose = "mentionMenuClose",
 }
 
 export type MenuItem = {
@@ -26,6 +28,7 @@ export type MenuItem = {
   attrs?: Record<string, any>;
   visible?: boolean;
   active?: (state: EditorState) => boolean;
+  appendSpace?: boolean;
 };
 
 export type ComponentProps = {

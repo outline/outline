@@ -62,7 +62,10 @@ type State = {
   selectedIndex: number;
 };
 
-class CommandMenu<T extends MenuItem> extends React.Component<Props<T>, State> {
+class CommandMenu<T extends MenuItem> extends React.PureComponent<
+  Props<T>,
+  State
+> {
   menuRef = React.createRef<HTMLDivElement>();
   inputRef = React.createRef<HTMLInputElement>();
 
@@ -78,14 +81,6 @@ class CommandMenu<T extends MenuItem> extends React.Component<Props<T>, State> {
   componentDidMount() {
     window.addEventListener("mousedown", this.handleMouseDown);
     window.addEventListener("keydown", this.handleKeyDown);
-  }
-
-  shouldComponentUpdate(nextProps: Props<T>, nextState: State) {
-    return (
-      nextProps.search !== this.props.search ||
-      nextProps.isActive !== this.props.isActive ||
-      nextState !== this.state
-    );
   }
 
   componentDidUpdate(prevProps: Props<T>) {
@@ -210,7 +205,7 @@ class CommandMenu<T extends MenuItem> extends React.Component<Props<T>, State> {
         return;
       }
       default:
-        this.insertBlock(item);
+        this.insertNode(item);
     }
   };
 
@@ -239,7 +234,7 @@ class CommandMenu<T extends MenuItem> extends React.Component<Props<T>, State> {
         return;
       }
 
-      this.insertBlock({
+      this.insertNode({
         name: "embed",
         attrs: {
           href,
@@ -268,7 +263,7 @@ class CommandMenu<T extends MenuItem> extends React.Component<Props<T>, State> {
       event.preventDefault();
       event.stopPropagation();
 
-      this.insertBlock({
+      this.insertNode({
         name: "embed",
         attrs: {
           href,
@@ -331,7 +326,7 @@ class CommandMenu<T extends MenuItem> extends React.Component<Props<T>, State> {
     this.props.onClearSearch();
   };
 
-  insertBlock(item: MenuItem) {
+  insertNode(item: MenuItem) {
     this.clearSearch();
 
     const command = item.name ? this.props.commands[item.name] : undefined;
@@ -340,6 +335,11 @@ class CommandMenu<T extends MenuItem> extends React.Component<Props<T>, State> {
       command(item.attrs);
     } else {
       this.props.commands[`create${capitalize(item.name)}`](item.attrs);
+    }
+    if (item.appendSpace) {
+      const { view } = this.props;
+      const { dispatch } = view;
+      dispatch(view.state.tr.insertText(" "));
     }
 
     this.props.onClose();

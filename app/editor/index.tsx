@@ -41,6 +41,7 @@ import EditorContext from "./components/EditorContext";
 import EmojiMenu from "./components/EmojiMenu";
 import { SearchResult } from "./components/LinkEditor";
 import LinkToolbar from "./components/LinkToolbar";
+import MentionMenu from "./components/MentionMenu";
 import SelectionToolbar from "./components/SelectionToolbar";
 import WithTheme from "./components/WithTheme";
 
@@ -142,6 +143,8 @@ type State = {
   blockMenuSearch: string;
   /** If the emoji insert menu is visible */
   emojiMenuOpen: boolean;
+  /** If the mention user menu is visible */
+  mentionMenuOpen: boolean;
 };
 
 /**
@@ -175,6 +178,7 @@ export class Editor extends React.PureComponent<
     linkMenuOpen: false,
     blockMenuSearch: "",
     emojiMenuOpen: false,
+    mentionMenuOpen: false,
   };
 
   isBlurred: boolean;
@@ -214,6 +218,8 @@ export class Editor extends React.PureComponent<
     this.events.on(EventType.blockMenuClose, this.handleCloseBlockMenu);
     this.events.on(EventType.emojiMenuOpen, this.handleOpenEmojiMenu);
     this.events.on(EventType.emojiMenuClose, this.handleCloseEmojiMenu);
+    this.events.on(EventType.mentionMenuOpen, this.handleOpenMentionMenu);
+    this.events.on(EventType.mentionMenuClose, this.handleCloseMentionMenu);
   }
 
   /**
@@ -673,11 +679,22 @@ export class Editor extends React.PureComponent<
     this.setState({ emojiMenuOpen: true, blockMenuSearch: search });
   };
 
+  private handleOpenMentionMenu = (search: string) => {
+    this.setState({ mentionMenuOpen: true, blockMenuSearch: search });
+  };
+
   private handleCloseEmojiMenu = () => {
     if (!this.state.emojiMenuOpen) {
       return;
     }
     this.setState({ emojiMenuOpen: false });
+  };
+
+  private handleCloseMentionMenu = () => {
+    if (!this.state.mentionMenuOpen) {
+      return;
+    }
+    this.setState({ mentionMenuOpen: false });
   };
 
   private handleOpenLinkMenu = () => {
@@ -771,6 +788,16 @@ export class Editor extends React.PureComponent<
                   isActive={this.state.emojiMenuOpen}
                   search={this.state.blockMenuSearch}
                   onClose={this.handleCloseEmojiMenu}
+                />
+                <MentionMenu
+                  view={this.view}
+                  commands={this.commands}
+                  dictionary={dictionary}
+                  rtl={isRTL}
+                  onShowToast={this.props.onShowToast}
+                  isActive={this.state.mentionMenuOpen}
+                  search={this.state.blockMenuSearch}
+                  onClose={this.handleCloseMentionMenu}
                 />
                 <BlockMenu
                   view={this.view}
