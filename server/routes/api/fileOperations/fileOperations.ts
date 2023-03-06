@@ -9,7 +9,6 @@ import { authorize } from "@server/policies";
 import { presentFileOperation } from "@server/presenters";
 import { APIContext } from "@server/types";
 import { getSignedUrl } from "@server/utils/s3";
-import { assertUuid } from "@server/validation";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -70,11 +69,12 @@ router.post(
   }
 );
 
-const handleFileOperationsRedirect = async (ctx: APIContext) => {
-  const id = ctx.request.body?.id ?? ctx.request.query?.id;
-  assertUuid(id, "id is required");
-
+const handleFileOperationsRedirect = async (
+  ctx: APIContext<T.FileOperationsRedirectReq>
+) => {
+  const id = (ctx.input.body.id ?? ctx.input.query.id) as string;
   const { user } = ctx.state.auth;
+
   const fileOperation = await FileOperation.unscoped().findByPk(id, {
     rejectOnEmpty: true,
   });
@@ -91,11 +91,13 @@ const handleFileOperationsRedirect = async (ctx: APIContext) => {
 router.get(
   "fileOperations.redirect",
   auth({ admin: true }),
+  validate(T.FileOperationsRedirectSchema),
   handleFileOperationsRedirect
 );
 router.post(
   "fileOperations.redirect",
   auth({ admin: true }),
+  validate(T.FileOperationsRedirectSchema),
   handleFileOperationsRedirect
 );
 

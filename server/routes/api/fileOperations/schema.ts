@@ -1,3 +1,4 @@
+import { isEmpty } from "lodash";
 import z from "zod";
 import { FileOperationType } from "@shared/types";
 import { FileOperation } from "@server/models";
@@ -36,6 +37,23 @@ export const FileOperationsListSchema = BaseSchema.extend({
 });
 
 export type FileOperationsListReq = z.infer<typeof FileOperationsListSchema>;
+
+export const FileOperationsRedirectSchema = BaseSchema.extend({
+  body: z.object({
+    /** Id of the file operation to access */
+    id: z.string().uuid().optional(),
+  }),
+  query: z.object({
+    /** Id of the file operation to access */
+    id: z.string().uuid().optional(),
+  }),
+}).refine((req) => !(isEmpty(req.body.id) && isEmpty(req.query.id)), {
+  message: "id is required",
+});
+
+export type FileOperationsRedirectReq = z.infer<
+  typeof FileOperationsRedirectSchema
+>;
 
 export const FileOperationsDeleteSchema = BaseSchema.extend({
   body: z.object({
