@@ -10,7 +10,7 @@ import { presentFileOperation } from "@server/presenters";
 import { APIContext } from "@server/types";
 import { getSignedUrl } from "@server/utils/s3";
 import { assertIn, assertSort, assertUuid } from "@server/validation";
-import pagination from "./middlewares/pagination";
+import pagination from "../middlewares/pagination";
 
 const router = new Router();
 
