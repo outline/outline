@@ -4,6 +4,7 @@ import { FileOperationType } from "@shared/types";
 import fileOperationDeleter from "@server/commands/fileOperationDeleter";
 import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
+import validate from "@server/middlewares/validate";
 import { FileOperation, Team } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentFileOperation } from "@server/presenters";
@@ -11,16 +12,18 @@ import { APIContext } from "@server/types";
 import { getSignedUrl } from "@server/utils/s3";
 import { assertIn, assertSort, assertUuid } from "@server/validation";
 import pagination from "../middlewares/pagination";
+import * as T from "./schema";
 
 const router = new Router();
 
 router.post(
   "fileOperations.info",
   auth({ admin: true }),
-  async (ctx: APIContext) => {
-    const { id } = ctx.request.body;
-    assertUuid(id, "id is required");
+  validate(T.FileOperationsInfoSchema),
+  async (ctx: APIContext<T.FileOperationsInfoReq>) => {
+    const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
+
     const fileOperation = await FileOperation.findByPk(id, {
       rejectOnEmpty: true,
     });
