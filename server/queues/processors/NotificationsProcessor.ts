@@ -27,7 +27,6 @@ import {
   DocumentEvent,
   CommentEvent,
 } from "@server/types";
-import parseMentions from "@server/utils/parseMentions";
 import CommentCreatedNotificationTask from "../tasks/CommentCreatedNotificationTask";
 import BaseProcessor from "./BaseProcessor";
 
@@ -82,7 +81,7 @@ export default class NotificationsProcessor extends BaseProcessor {
     await this.createDocumentSubscriptions(document, event);
 
     // Send notifications to mentioned users first
-    const mentions = parseMentions(document);
+    const mentions = DocumentHelper.parseMentions(document);
     const userIdsSentNotifications: string[] = [];
 
     for (const mention of mentions) {
@@ -166,8 +165,8 @@ export default class NotificationsProcessor extends BaseProcessor {
 
     // Send notifications to mentioned users first
     const prev = await revision.previous();
-    const oldMentions = prev ? parseMentions(prev) : [];
-    const newMentions = parseMentions(document);
+    const oldMentions = prev ? DocumentHelper.parseMentions(prev) : [];
+    const newMentions = DocumentHelper.parseMentions(document);
     const mentions = differenceBy(newMentions, oldMentions, "id");
     const userIdsSentNotifications: string[] = [];
 

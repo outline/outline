@@ -3,7 +3,7 @@ import subscriptionCreator from "@server/commands/subscriptionCreator";
 import { sequelize } from "@server/database/sequelize";
 import { schema } from "@server/editor";
 import CommentCreatedEmail from "@server/emails/templates/CommentCreatedEmail";
-import { Comment, Document, Notification, Team } from "@server/models";
+import { Comment, Document, Notification, Team, User } from "@server/models";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import NotificationHelper from "@server/models/helpers/NotificationHelper";
 import ProsemirrorHelper from "@server/models/helpers/ProsemirrorHelper";
@@ -40,15 +40,6 @@ export default class CommentCreatedNotificationTask extends BaseTask<
       });
     });
 
-    const recipients = await NotificationHelper.getCommentNotificationRecipients(
-      document,
-      comment,
-      comment.createdById
-    );
-    if (!recipients.length) {
-      return;
-    }
-
     let content = ProsemirrorHelper.toHTML(
       Node.fromJSON(schema, comment.data),
       {
@@ -64,6 +55,54 @@ export default class CommentCreatedNotificationTask extends BaseTask<
       event.teamId,
       86400 * 4
     );
+
+    const mentions = ProsemirrorHelper.parseMentions(
+      ProsemirrorHelper.toProsemirror(comment.data)
+    );
+    const userIdsSentNotifications: string[] = [];
+
+    for (const mention of mentions) {
+      const [recipient, actor] = await Promise.all([
+        User.findByPk(mention.modelId),
+        User.findByPk(mention.actorId),
+      ]);
+      if (recipient && actor && recipient.id !== actor.id) {
+        const notification = await Notification.create({
+          event: event.name,
+          userId: recipient.id,
+          actorId: actor.id,
+          teamId: team.id,
+          documentId: document.id,
+        });
+        userIdsSentNotifications.push(recipient.id);
+        await CommentCreatedEmail.schedule(
+          {
+            to: recipient.email,
+            documentId: document.id,
+            teamUrl: team.url,
+            isReply: !!comment.parentCommentId,
+            actorName: comment.createdBy.name,
+            commentId: comment.id,
+            content,
+            collectionName: document.collection?.name,
+          },
+          { notificationId: notification.id }
+        );
+      }
+    }
+
+    const recipients = (
+      await NotificationHelper.getCommentNotificationRecipients(
+        document,
+        comment,
+        comment.createdById
+      )
+    ).filter(
+      (recipient) => !userIdsSentNotifications.includes(recipient.userId)
+    );
+    if (!recipients.length) {
+      return;
+    }
 
     for (const recipient of recipients) {
       const notification = await Notification.create({

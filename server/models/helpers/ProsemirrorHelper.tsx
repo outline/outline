@@ -20,8 +20,55 @@ export type HTMLOptions = {
   centered?: boolean;
 };
 
+type MentionAttrs = {
+  type: string;
+  label: string;
+  modelId: string;
+  actorId: string | undefined;
+  id: string;
+};
+
 @trace()
 export default class ProsemirrorHelper {
+  /**
+   * Returns the data as a Prosemirror Node.
+   *
+   * @param node The node to parse
+   * @returns The content as a Prosemirror Node
+   */
+  static toProsemirror(data: Record<string, any>) {
+    return Node.fromJSON(schema, data);
+  }
+
+  /**
+   * Returns an array of attributes of all mentions in the node.
+   *
+   * @param node The node to parse mentions from
+   * @returns An array of mention attributes
+   */
+  static parseMentions(node: Node) {
+    const mentions: MentionAttrs[] = [];
+
+    function findMentions(node: Node) {
+      if (
+        node.type.name === "mention" &&
+        !mentions.some((m) => m.id === node.attrs.id)
+      ) {
+        mentions.push(node.attrs as MentionAttrs);
+      }
+
+      if (!node.content.size) {
+        return;
+      }
+
+      node.content.descendants(findMentions);
+    }
+
+    findMentions(node);
+
+    return mentions;
+  }
+
   /**
    * Returns the node as HTML. This is a lossy conversion and should only be used
    * for export.

@@ -120,6 +120,17 @@ export default class DocumentHelper {
   }
 
   /**
+   * Parse a list of mentions contained in a document or revision
+   *
+   * @param document Document or Revision
+   * @returns An array of mentions in passed document or revision
+   */
+  static parseMentions(document: Document | Revision) {
+    const node = DocumentHelper.toProsemirror(document);
+    return ProsemirrorHelper.parseMentions(node);
+  }
+
+  /**
    * Generates a HTML diff between documents or revisions.
    *
    * @param before The before document
