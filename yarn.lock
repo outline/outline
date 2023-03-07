@@ -2721,11 +2721,6 @@
   resolved "https://registry.yarnpkg.com/@types/crypto-js/-/crypto-js-4.1.1.tgz#602859584cecc91894eb23a4892f38cfa927890d"
   integrity sha512-BG7fQKZ689HIoc5h+6D2Dgq1fABRa0RbBWKBd9SP/MVRVXROflpm5fhwyATX5duFmbStzyzyycPB8qUYKDH3NA==
 
-"@types/datadog-metrics@^0.6.2":
-  version "0.6.2"
-  resolved "https://registry.yarnpkg.com/@types/datadog-metrics/-/datadog-metrics-0.6.2.tgz#b3b2b9b4e7838cff07830472e8a8c8caa04514fa"
-  integrity sha512-2HWyhh8V7bytaWefhRKKV0qj1nfMCcXWMpqpOwhhtQMxWC37VuInDVlEdaWh8LzTWV/k+yao6cFiFTg+W8OrbQ==
-
 "@types/debug@^4.1.7":
   version "4.1.7"
   resolved "https://registry.yarnpkg.com/@types/debug/-/debug-4.1.7.tgz#7cc0ea761509124709b8b2d1090d8f6c17aadb82"
@@ -5542,10 +5537,10 @@ data-urls@^3.0.2:
     whatwg-mimetype "^3.0.0"
     whatwg-url "^11.0.0"
 
-datadog-metrics@^0.10.2:
-  version "0.10.2"
-  resolved "https://registry.yarnpkg.com/datadog-metrics/-/datadog-metrics-0.10.2.tgz#aece2c45874f0d8b7640ef93937f859517c535ed"
-  integrity sha512-GP1zqzTJz0hjxbpD3LRutrKi9keGqnfq9O7z8tNgFaKGwuqSKH5cpwW7vvh6K8N43QJRFLyXACVmnv/aqEvylA==
+datadog-metrics@^0.11.0:
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/datadog-metrics/-/datadog-metrics-0.11.0.tgz#93c2dcba9bbec49559aae4da50c5a08b222d2498"
+  integrity sha512-ye00uYbybUEEv7tfn8LMybYBqGVTfLHlpBUZkRmXHSINF9FznNHNY4cALT+nEShRsDS075g+vvtASFrg5f6QdQ==
   dependencies:
     "@datadog/datadog-api-client" "^1.3.0"
     debug "^4.1.0"
