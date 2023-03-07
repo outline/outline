@@ -63,12 +63,11 @@ const uploadPlugin = (options: Options) =>
           // an image version of the content, check if there is also text and
           // use that instead in this scenario.
           const html = event.clipboardData.getData("text/html");
-          const text = event.clipboardData.getData("text/plain");
-          const isMicrosoftOffice = html.includes(
-            "urn:schemas-microsoft-com:office"
-          );
-          if (text.length && isMicrosoftOffice) {
-            // Fallback to default paste behavior
+
+          // Fallback to default paste behavior if the clipboard contains HTML
+          // Even if there is an image, it's likely to be a screenshot from eg
+          // Microsoft Suite / Apple Numbers – and not the original content.
+          if (html.length && !html.includes("<img")) {
             return false;
           }
 
