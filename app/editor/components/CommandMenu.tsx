@@ -423,8 +423,8 @@ class CommandMenu<T extends MenuItem> extends React.PureComponent<
     if (startPos.top - offsetHeight > margin) {
       return {
         left: leftPos,
-        top: top - offsetParent.top - offsetHeight,
-        bottom: undefined,
+        top: undefined,
+        bottom: offsetParent.bottom - top,
         isAbove: false,
       };
     } else {
