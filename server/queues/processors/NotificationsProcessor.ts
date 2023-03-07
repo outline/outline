@@ -81,15 +81,10 @@ export default class NotificationsProcessor extends BaseProcessor {
 
     await this.createDocumentSubscriptions(document, event);
 
-    const recipients = await NotificationHelper.getDocumentNotificationRecipients(
-      document,
-      "documents.publish",
-      document.lastModifiedById,
-      false
-    );
-
-    // send notifs to mentioned users
+    // Send notifications to mentioned users first
     const mentions = parseMentions(document);
+    const userIdsSentNotifications: string[] = [];
+
     for (const mention of mentions) {
       const [recipient, actor] = await Promise.all([
         User.findByPk(mention.modelId),
@@ -103,6 +98,7 @@ export default class NotificationsProcessor extends BaseProcessor {
           teamId: team.id,
           documentId: document.id,
         });
+        userIdsSentNotifications.push(recipient.id);
         await MentionNotificationEmail.schedule(
           {
             to: recipient.email,
@@ -115,6 +111,17 @@ export default class NotificationsProcessor extends BaseProcessor {
         );
       }
     }
+
+    const recipients = (
+      await NotificationHelper.getDocumentNotificationRecipients(
+        document,
+        "documents.publish",
+        document.lastModifiedById,
+        false
+      )
+    ).filter(
+      (recipient) => !userIdsSentNotifications.includes(recipient.userId)
+    );
 
     for (const recipient of recipients) {
       const notify = await this.shouldNotify(document, recipient.user);
