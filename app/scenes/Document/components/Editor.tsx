@@ -3,7 +3,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
 import { useHistory, useRouteMatch } from "react-router-dom";
-import fullWithCommentsPackage from "@shared/editor/packages/fullWithComments";
+import { richExtensions, withComments } from "@shared/editor/nodes";
 import { TeamPreference } from "@shared/types";
 import Comment from "~/models/Comment";
 import Document from "~/models/Document";
@@ -21,6 +21,8 @@ import { useDocumentContext } from "../../../components/DocumentContext";
 import MultiplayerEditor from "./AsyncMultiplayerEditor";
 import DocumentMeta from "./DocumentMeta";
 import EditableTitle from "./EditableTitle";
+
+const extensions = withComments(richExtensions);
 
 type Props = Omit<EditorProps, "extensions"> & {
   onChangeTitle: (text: string) => void;
@@ -185,7 +187,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
             ? handleRemoveComment
             : undefined
         }
-        extensions={fullWithCommentsPackage}
+        extensions={extensions}
         bottomPadding={`calc(50vh - ${childRef.current?.offsetHeight || 0}px)`}
         {...rest}
       />

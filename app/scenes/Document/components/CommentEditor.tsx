@@ -1,7 +1,9 @@
 import * as React from "react";
-import extensions from "@shared/editor/packages/basic";
+import { basicExtensions, withComments } from "@shared/editor/nodes";
 import Editor, { Props as EditorProps } from "~/components/Editor";
 import type { Editor as SharedEditor } from "~/editor";
+
+const extensions = withComments(basicExtensions);
 
 const CommentEditor = (
   props: EditorProps,

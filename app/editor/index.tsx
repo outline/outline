@@ -24,9 +24,9 @@ import ExtensionManager from "@shared/editor/lib/ExtensionManager";
 import { MarkdownSerializer } from "@shared/editor/lib/markdown/serializer";
 import textBetween from "@shared/editor/lib/textBetween";
 import Mark from "@shared/editor/marks/Mark";
+import { richExtensions, withComments } from "@shared/editor/nodes";
 import Node from "@shared/editor/nodes/Node";
 import ReactNode from "@shared/editor/nodes/ReactNode";
-import fullExtensionsPackage from "@shared/editor/packages/full";
 import { EventType } from "@shared/editor/types";
 import { UserPreferences } from "@shared/types";
 import ProsemirrorHelper from "@shared/utils/ProsemirrorHelper";
@@ -44,6 +44,8 @@ import LinkToolbar from "./components/LinkToolbar";
 import MentionMenu from "./components/MentionMenu";
 import SelectionToolbar from "./components/SelectionToolbar";
 import WithTheme from "./components/WithTheme";
+
+const extensions = withComments(richExtensions);
 
 export { default as Extension } from "@shared/editor/lib/Extension";
 
@@ -167,7 +169,7 @@ export class Editor extends React.PureComponent<
       // no default behavior
     },
     embeds: [],
-    extensions: fullExtensionsPackage,
+    extensions,
   };
 
   state = {

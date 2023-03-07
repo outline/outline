@@ -1,17 +1,18 @@
 import { Schema } from "prosemirror-model";
 import ExtensionManager from "@shared/editor/lib/ExtensionManager";
-import extensionsPackage from "@shared/editor/packages/fullWithComments";
+import { richExtensions, withComments } from "@shared/editor/nodes";
 
-const extensions = new ExtensionManager(extensionsPackage);
+const extensions = withComments(richExtensions);
+const extensionManager = new ExtensionManager(extensions);
 
 export const schema = new Schema({
-  nodes: extensions.nodes,
-  marks: extensions.marks,
+  nodes: extensionManager.nodes,
+  marks: extensionManager.marks,
 });
 
-export const parser = extensions.parser({
+export const parser = extensionManager.parser({
   schema,
-  plugins: extensions.rulePlugins,
+  plugins: extensionManager.rulePlugins,
 });
 
-export const serializer = extensions.serializer();
+export const serializer = extensionManager.serializer();

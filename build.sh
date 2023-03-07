@@ -8,7 +8,7 @@ rm -rf ./build/plugins
 yarn concurrently "yarn babel --extensions .ts,.tsx --quiet -d ./build/server ./server" \
  "yarn babel --extensions .ts,.tsx --quiet -d ./build/shared ./shared"
 
-# Compile code in packages
+# Compile code in plugins
 for d in ./plugins/*; do
   # Get the name of the folder
   package=$(basename "$d")
