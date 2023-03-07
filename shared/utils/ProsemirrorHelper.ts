@@ -1,4 +1,5 @@
-import { Node } from "prosemirror-model";
+import { Node, Schema } from "prosemirror-model";
+import textBetween from "@shared/editor/lib/textBetween";
 import headingToSlug from "../editor/lib/headingToSlug";
 
 export type Heading = {
@@ -26,6 +27,23 @@ export type Task = {
 
 export default class ProsemirrorHelper {
   /**
+   * Returns the node as plain text.
+   *
+   * @param node The node to convert.
+   * @param schema The schema to use.
+   * @returns The document content as plain text without formatting.
+   */
+  static toPlainText(node: Node, schema: Schema) {
+    const textSerializers = Object.fromEntries(
+      Object.entries(schema.nodes)
+        .filter(([, node]) => node.spec.toPlainText)
+        .map(([name, node]) => [name, node.spec.toPlainText])
+    );
+
+    return textBetween(node, 0, node.content.size, textSerializers);
+  }
+
+  /**
    * Removes any empty paragraphs from the beginning and end of the document.
    *
    * @returns True if the editor is empty
@@ -34,9 +52,11 @@ export default class ProsemirrorHelper {
     const first = doc.firstChild;
     const last = doc.lastChild;
     const firstIsEmpty =
-      first?.type.name === "paragraph" && !first.textContent.trim();
+      first &&
+      ProsemirrorHelper.toPlainText(first, doc.type.schema).trim() === "";
     const lastIsEmpty =
-      last?.type.name === "paragraph" && !last.textContent.trim();
+      last &&
+      ProsemirrorHelper.toPlainText(last, doc.type.schema).trim() === "";
     const firstIsLast = first === last;
 
     return doc.cut(
