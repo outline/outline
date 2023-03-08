@@ -710,6 +710,8 @@
   "Manage optional and beta features. Changing these settings will affect the experience for all members of the workspace.": "オプション機能とベータ機能を管理します。これらの設定を変更すると、ワークスペースのすべてのメンバーのエクスペリエンスに影響します。",
   "Seamless editing": "シームレスな編集",
   "When enabled documents are always editable for team members that have permission. When disabled there is a separate editing view.": "有効にすると、権限を持つチーム メンバーは常にドキュメントを編集できます。無効にすると、別の編集ビューが表示されます。",
+  "Commenting": "Commenting",
+  "When enabled team members can add comments to documents.": "When enabled team members can add comments to documents.",
   "Public branding": "ブランディング",
   "Show your team’s logo on public pages like login and shared documents.": "ログインや共有ドキュメントなどの公開ページにチームのロゴを表示します。",
   "Add a Google Analytics 4 measurement ID to send document views and analytics from the workspace to your own Google Analytics account.": "Add a Google Analytics 4 measurement ID to send document views and analytics from the workspace to your own Google Analytics account.",
