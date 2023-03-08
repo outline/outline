@@ -1,4 +1,9 @@
-import { buildTeam, buildAdmin, buildUser } from "@server/test/factories";
+import {
+  buildTeam,
+  buildAdmin,
+  buildUser,
+  buildInvite,
+} from "@server/test/factories";
 import { seed, getTestServer } from "@server/test/support";
 
 const server = getTestServer();
@@ -68,6 +73,26 @@ describe("#users.list", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.length).toEqual(0);
+  });
+
+  it("should allow filtering to active", async () => {
+    const user = await buildUser({
+      name: "Tester",
+    });
+    await buildInvite({
+      name: "Tester",
+      teamId: user.teamId,
+    });
+    const res = await server.post("/api/users.list", {
+      body: {
+        query: "test",
+        filter: "active",
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.length).toEqual(1);
   });
 
   it("should allow filtering to invited", async () => {

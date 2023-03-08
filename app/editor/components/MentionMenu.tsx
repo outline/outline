@@ -34,7 +34,10 @@ function MentionMenu({ search, ...rest }: MentionMenuProps) {
   const { t } = useTranslation();
   const { users, auth } = useStores();
   const { data, request } = useRequest(
-    React.useCallback(() => users.fetchPage({ query: search }), [users, search])
+    React.useCallback(
+      () => users.fetchPage({ query: search, filter: "active" }),
+      [users, search]
+    )
   );
 
   React.useEffect(() => {

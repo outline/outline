@@ -101,6 +101,19 @@ router.post("users.list", auth(), pagination(), async (ctx: APIContext) => {
       break;
     }
 
+    case "active": {
+      where = {
+        ...where,
+        lastActiveAt: {
+          [Op.ne]: null,
+        },
+        suspendedAt: {
+          [Op.is]: null,
+        },
+      };
+      break;
+    }
+
     case "all": {
       break;
     }
