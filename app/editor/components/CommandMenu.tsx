@@ -390,6 +390,7 @@ class CommandMenu<T extends MenuItem> extends React.PureComponent<
     const domAtPos = view.domAtPos.bind(view);
 
     const ref = this.menuRef.current;
+    const offsetWidth = ref ? ref.offsetWidth : 0;
     const offsetHeight = ref ? ref.offsetHeight : 0;
     const node = findDomRefAtPos(selection.from, domAtPos);
     const paragraph: any = { node };
@@ -404,7 +405,7 @@ class CommandMenu<T extends MenuItem> extends React.PureComponent<
 
     const { left } = this.caretPosition;
     const { top, bottom, right } = paragraph.node.getBoundingClientRect();
-    const margin = 24;
+    const margin = 12;
 
     const offsetParent = ref?.offsetParent
       ? ref.offsetParent.getBoundingClientRect()
@@ -415,9 +416,12 @@ class CommandMenu<T extends MenuItem> extends React.PureComponent<
           left: 0,
         } as DOMRect);
 
-    let leftPos = left - offsetParent.left;
-    if (props.rtl && ref) {
-      leftPos = right - ref.scrollWidth;
+    let leftPos = Math.min(
+      left - offsetParent.left,
+      window.innerWidth - offsetParent.left - offsetWidth - margin
+    );
+    if (props.rtl) {
+      leftPos = right - offsetWidth;
     }
 
     if (startPos.top - offsetHeight > margin) {
@@ -468,6 +472,7 @@ class CommandMenu<T extends MenuItem> extends React.PureComponent<
       );
     }
 
+    const searchInput = search.toLowerCase();
     const filtered = items.filter((item) => {
       if (item.name === "separator") {
         return true;
@@ -492,17 +497,23 @@ class CommandMenu<T extends MenuItem> extends React.PureComponent<
         return !item.defaultHidden;
       }
 
-      const n = search.toLowerCase();
       if (!filterable) {
         return item;
       }
+
       return (
-        (item.title || "").toLowerCase().includes(n) ||
-        (item.keywords || "").toLowerCase().includes(n)
+        (item.title || "").toLowerCase().includes(searchInput) ||
+        (item.keywords || "").toLowerCase().includes(searchInput)
       );
     });
 
-    return filterExcessSeparators(filtered);
+    return filterExcessSeparators(
+      filtered.sort((item) => {
+        return (item.title || "").toLowerCase().startsWith(searchInput)
+          ? -1
+          : 1;
+      })
+    );
   }
 
   render() {
