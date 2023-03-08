@@ -710,6 +710,8 @@
   "Manage optional and beta features. Changing these settings will affect the experience for all members of the workspace.": "Gérer les fonctionnalités optionnelles et bêta. La modification de ces paramètres sera effective pour tous les membres de l'espace de travail.",
   "Seamless editing": "Édition transparente",
   "When enabled documents are always editable for team members that have permission. When disabled there is a separate editing view.": "Lorsque cette option est activée, les documents sont toujours modifiables pour les membres de l'équipe qui en ont l'autorisation. Lorsqu'il est désactivé, il y a une vue d'édition séparée.",
+  "Commenting": "Commenting",
+  "When enabled team members can add comments to documents.": "When enabled team members can add comments to documents.",
   "Public branding": "Marquage public",
   "Show your team’s logo on public pages like login and shared documents.": "Affichez le logo de votre équipe sur les pages publiques telles que l'authentification et les documents partagés.",
   "Add a Google Analytics 4 measurement ID to send document views and analytics from the workspace to your own Google Analytics account.": "Ajouter un identifiant de mesure Google Analytics 4 pour envoyer le nombre de vues de documents et les statistiques de l'espace de travail à votre propre compte Google Analytics.",
