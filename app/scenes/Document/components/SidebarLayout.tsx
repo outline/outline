@@ -2,11 +2,15 @@ import { observer } from "mobx-react";
 import { BackIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { Portal } from "react-portal";
 import styled from "styled-components";
+import { depths } from "@shared/styles";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
 import Tooltip from "~/components/Tooltip";
+import useMobile from "~/hooks/useMobile";
+import { fadeIn } from "~/styles/animations";
 
 type Props = React.HTMLAttributes<HTMLDivElement> & {
   /* The title of the sidebar */
@@ -21,6 +25,7 @@ type Props = React.HTMLAttributes<HTMLDivElement> & {
 
 function SidebarLayout({ title, onClose, children, scrollable = true }: Props) {
   const { t } = useTranslation();
+  const isMobile = useMobile();
 
   return (
     <>
@@ -42,9 +47,27 @@ function SidebarLayout({ title, onClose, children, scrollable = true }: Props) {
       ) : (
         children
       )}
+
+      {isMobile && (
+        <Portal>
+          <Backdrop onClick={onClose} />
+        </Portal>
+      )}
     </>
   );
 }
+
+const Backdrop = styled.a`
+  animation: ${fadeIn} 250ms ease-in-out;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  cursor: default;
+  z-index: ${depths.sidebar - 1};
+  background: ${(props) => props.theme.backdrop};
+`;
 
 const ForwardIcon = styled(BackIcon)`
   transform: rotate(180deg);

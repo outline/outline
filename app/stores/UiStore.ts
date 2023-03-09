@@ -43,9 +43,6 @@ class UiStore {
   observingUserId: string | undefined;
 
   @observable
-  commandBarOpenedFromSidebar = false;
-
-  @observable
   progressBarVisible = false;
 
   @observable
@@ -234,16 +231,6 @@ class UiStore {
   @action
   toggleMobileSidebar = () => {
     this.mobileSidebarVisible = !this.mobileSidebarVisible;
-  };
-
-  @action
-  commandBarOpened = () => {
-    this.commandBarOpenedFromSidebar = true;
-  };
-
-  @action
-  commandBarClosed = () => {
-    this.commandBarOpenedFromSidebar = false;
   };
 
   @action

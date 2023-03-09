@@ -3,8 +3,10 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { depths } from "@shared/styles";
 import Flex from "~/components/Flex";
 import ResizeBorder from "~/components/Sidebar/components/ResizeBorder";
+import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 
 type Props = React.HTMLAttributes<HTMLDivElement> & {
@@ -16,6 +18,7 @@ function Right({ children, border, className }: Props) {
   const theme = useTheme();
   const { ui } = useStores();
   const [isResizing, setResizing] = React.useState(false);
+  const isMobile = useMobile();
   const maxWidth = theme.sidebarMaxWidth;
   const minWidth = theme.sidebarMinWidth + 16; // padding
 
@@ -91,11 +94,13 @@ function Right({ children, border, className }: Props) {
     >
       <Position style={style} column>
         {children}
-        <ResizeBorder
-          onMouseDown={handleMouseDown}
-          onDoubleClick={handleReset}
-          dir="right"
-        />
+        {!isMobile && (
+          <ResizeBorder
+            onMouseDown={handleMouseDown}
+            onDoubleClick={handleReset}
+            dir="right"
+          />
+        )}
       </Position>
     </Sidebar>
   );
@@ -107,19 +112,29 @@ const Position = styled(Flex)`
   bottom: 0;
 `;
 
-const Sidebar = styled(m.div)<{ $border?: boolean }>`
-  display: none;
-  position: relative;
+const Sidebar = styled(m.div)<{
+  $border?: boolean;
+}>`
+  display: flex;
   flex-shrink: 0;
   background: ${(props) => props.theme.background};
   width: ${(props) => props.theme.sidebarRightWidth}px;
+  max-width: 70%;
   border-left: 1px solid ${(props) => props.theme.divider};
   transition: border-left 100ms ease-in-out;
   z-index: 1;
 
+  ${breakpoint("mobile", "tablet")`
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    z-index: ${depths.sidebar};
+  `}
+
   ${breakpoint("tablet")`
-    display: flex;
-  `};
+    position: relative;
+  `}
 `;
 
 export default observer(Right);
