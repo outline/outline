@@ -80,7 +80,7 @@ const MembershipPreview = ({ collection, limit = 8 }: Props) => {
               ? groupsCount > 1
                 ? t(
                     `{{ usersCount }} users and {{ groupsCount }} groups with access`,
-                    { usersCount, count: usersCount }
+                    { usersCount, groupsCount, count: usersCount }
                   )
                 : t(`{{ usersCount }} users and a group have access`, {
                     usersCount,
