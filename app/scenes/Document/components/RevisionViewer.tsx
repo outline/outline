@@ -26,7 +26,11 @@ function RevisionViewer(props: Props) {
     <Flex auto column>
       <h1 dir={revision.dir}>{revision.title}</h1>
       {!shareId && (
-        <DocumentMeta document={document} to={documentUrl(document)} />
+        <DocumentMeta
+          document={document}
+          to={documentUrl(document)}
+          rtl={revision.rtl}
+        />
       )}
       <EditorContainer
         dangerouslySetInnerHTML={{ __html: revision.html }}
