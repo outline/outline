@@ -351,10 +351,9 @@ const embeds: EmbedDescriptor[] = [
     component: Spotify,
   }),
   new EmbedDescriptor({
-    title: "Tldraw",
+    title: "Tldraw (beta)",
     keywords: "draw schematics diagrams",
-    visible: false,
-    icon: <Img src="/images/tldraw.png" alt="Tldraw" />,
+    icon: <Img src="/images/tldraw.png" alt="Tldraw (beta)" />,
     component: Tldraw,
   }),
   new EmbedDescriptor({
