@@ -1,26 +1,27 @@
 import Router from "koa-router";
 import { WhereOptions } from "sequelize";
-import { FileOperationType } from "@shared/types";
 import fileOperationDeleter from "@server/commands/fileOperationDeleter";
 import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
+import validate from "@server/middlewares/validate";
 import { FileOperation, Team } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentFileOperation } from "@server/presenters";
 import { APIContext } from "@server/types";
 import { getSignedUrl } from "@server/utils/s3";
-import { assertIn, assertSort, assertUuid } from "@server/validation";
-import pagination from "./middlewares/pagination";
+import pagination from "../middlewares/pagination";
+import * as T from "./schema";
 
 const router = new Router();
 
 router.post(
   "fileOperations.info",
   auth({ admin: true }),
-  async (ctx: APIContext) => {
-    const { id } = ctx.request.body;
-    assertUuid(id, "id is required");
+  validate(T.FileOperationsInfoSchema),
+  async (ctx: APIContext<T.FileOperationsInfoReq>) => {
+    const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
+
     const fileOperation = await FileOperation.findByPk(id, {
       rejectOnEmpty: true,
     });
@@ -37,16 +38,11 @@ router.post(
   "fileOperations.list",
   auth({ admin: true }),
   pagination(),
-  async (ctx: APIContext) => {
-    let { direction } = ctx.request.body;
-    const { sort = "createdAt", type } = ctx.request.body;
-    assertIn(type, Object.values(FileOperationType));
-    assertSort(sort, FileOperation);
-
-    if (direction !== "ASC") {
-      direction = "DESC";
-    }
+  validate(T.FileOperationsListSchema),
+  async (ctx: APIContext<T.FileOperationsListReq>) => {
+    const { direction, sort, type } = ctx.input.body;
     const { user } = ctx.state.auth;
+
     const where: WhereOptions<FileOperation> = {
       teamId: user.teamId,
       type,
@@ -73,11 +69,12 @@ router.post(
   }
 );
 
-const handleFileOperationsRedirect = async (ctx: APIContext) => {
-  const id = ctx.request.body?.id ?? ctx.request.query?.id;
-  assertUuid(id, "id is required");
-
+const handleFileOperationsRedirect = async (
+  ctx: APIContext<T.FileOperationsRedirectReq>
+) => {
+  const id = (ctx.input.body.id ?? ctx.input.query.id) as string;
   const { user } = ctx.state.auth;
+
   const fileOperation = await FileOperation.unscoped().findByPk(id, {
     rejectOnEmpty: true,
   });
@@ -94,22 +91,24 @@ const handleFileOperationsRedirect = async (ctx: APIContext) => {
 router.get(
   "fileOperations.redirect",
   auth({ admin: true }),
+  validate(T.FileOperationsRedirectSchema),
   handleFileOperationsRedirect
 );
 router.post(
   "fileOperations.redirect",
   auth({ admin: true }),
+  validate(T.FileOperationsRedirectSchema),
   handleFileOperationsRedirect
 );
 
 router.post(
   "fileOperations.delete",
   auth({ admin: true }),
-  async (ctx: APIContext) => {
-    const { id } = ctx.request.body;
-    assertUuid(id, "id is required");
-
+  validate(T.FileOperationsDeleteSchema),
+  async (ctx: APIContext<T.FileOperationsDeleteReq>) => {
+    const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
+
     const fileOperation = await FileOperation.unscoped().findByPk(id, {
       rejectOnEmpty: true,
     });
