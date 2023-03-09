@@ -509,7 +509,8 @@ class CommandMenu<T extends MenuItem> extends React.PureComponent<
 
     return filterExcessSeparators(
       filtered.sort((item) => {
-        return (item.title || "").toLowerCase().startsWith(searchInput)
+        return searchInput &&
+          (item.title || "").toLowerCase().startsWith(searchInput)
           ? -1
           : 1;
       })
