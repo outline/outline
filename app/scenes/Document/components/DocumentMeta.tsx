@@ -85,6 +85,7 @@ export const Meta = styled(DocumentMeta)<{ rtl?: boolean }>`
 
   a {
     color: inherit;
+    cursor: var(--pointer);
 
     &:hover {
       text-decoration: underline;
