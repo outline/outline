@@ -75,7 +75,7 @@ const CommentLink = styled(Link)`
   align-items: center;
 `;
 
-const Meta = styled(DocumentMeta)<{ rtl?: boolean }>`
+export const Meta = styled(DocumentMeta)<{ rtl?: boolean }>`
   justify-content: ${(props) => (props.rtl ? "flex-end" : "flex-start")};
   margin: -12px 0 2em 0;
   font-size: 14px;
