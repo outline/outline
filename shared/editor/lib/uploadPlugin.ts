@@ -1,5 +1,5 @@
 import { Plugin } from "prosemirror-state";
-import { getDataTransferFiles } from "@shared/utils/files";
+import { getDataTransferFiles } from "../../utils/files";
 import insertFiles, { Options } from "../commands/insertFiles";
 
 const uploadPlugin = (options: Options) =>

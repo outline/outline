@@ -1,4 +1,4 @@
-import { NavigationNode } from "@shared/types";
+import type { NavigationNode } from "../types";
 import naturalSort from "./naturalSort";
 
 type Sort = {

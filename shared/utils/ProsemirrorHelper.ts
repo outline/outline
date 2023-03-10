@@ -1,6 +1,6 @@
 import { Node, Schema } from "prosemirror-model";
-import textBetween from "@shared/editor/lib/textBetween";
 import headingToSlug from "../editor/lib/headingToSlug";
+import textBetween from "../editor/lib/textBetween";
 
 export type Heading = {
   /* The heading in plain text */

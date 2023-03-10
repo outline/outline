@@ -3,7 +3,7 @@ import type { EditorView } from "prosemirror-view";
 import * as React from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { sanitizeUrl } from "@shared/utils/urls";
+import { sanitizeUrl } from "../../utils/urls";
 import { ComponentProps } from "../types";
 import ImageZoom from "./ImageZoom";
 

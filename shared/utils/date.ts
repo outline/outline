@@ -1,5 +1,5 @@
 import { subDays, subMonths, subWeeks, subYears } from "date-fns";
-import { DateFilter } from "@shared/types";
+import type { DateFilter } from "../types";
 
 export function subtractDate(date: Date, period: DateFilter) {
   switch (period) {
