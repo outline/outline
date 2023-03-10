@@ -106,7 +106,6 @@
   "Collapse": "Свернуть",
   "Expand": "Развернуть",
   "Type a command or search": "Введите слово для поиска",
-  "Open search from anywhere with the {{ shortcut }} shortcut": "Откройте поиск из любого места с помощью сочетания клавиш {{ shortcut }}",
   "Are you sure you want to permanently delete this entire comment thread?": "Вы уверены, что хотите НАВСЕГДА удалить эту ветку комментариев?",
   "Are you sure you want to permanently delete this comment?": "Вы уверены, что хотите НАВСЕГДА удалить этот комментарий?",
   "Server connection lost": "Потеряна связь с сервером",
