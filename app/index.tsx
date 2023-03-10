@@ -45,9 +45,6 @@ const commandBarOptions = {
     enterMs: 250,
     exitMs: 200,
   },
-  callbacks: {
-    onClose: () => stores.ui.commandBarClosed(),
-  },
 };
 
 if (element) {
