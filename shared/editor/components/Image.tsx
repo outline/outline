@@ -12,9 +12,9 @@ type DragDirection = "left" | "right";
 const Image = (
   props: ComponentProps & {
     onClick: (event: React.MouseEvent<HTMLDivElement>) => void;
-    onDownload: (event: React.MouseEvent<HTMLButtonElement>) => void;
-    onChangeSize: (props: { width: number; height?: number }) => void;
-    children: React.ReactElement;
+    onDownload?: (event: React.MouseEvent<HTMLButtonElement>) => void;
+    onChangeSize?: (props: { width: number; height?: number }) => void;
+    children?: React.ReactElement;
     view: EditorView;
   }
 ) => {
@@ -38,8 +38,13 @@ const Image = (
   );
   const maxWidth = layoutClass ? documentWidth / 3 : documentWidth;
   const isFullWidth = layoutClass === "full-width";
+  const isResizable = !!props.onChangeSize;
 
   React.useLayoutEffect(() => {
+    if (!isResizable) {
+      return;
+    }
+
     const handleResize = () => {
       const contentWidth =
         document.body.querySelector("#full-width-container")?.clientWidth || 0;
@@ -51,7 +56,7 @@ const Image = (
     return () => {
       window.removeEventListener("resize", handleResize);
     };
-  }, [props.view]);
+  }, [props.view, isResizable]);
 
   const constrainWidth = (width: number) => {
     const minWidth = documentWidth * 0.1;
@@ -88,7 +93,7 @@ const Image = (
 
     setOffset(0);
     setDragging(undefined);
-    props.onChangeSize(size);
+    props.onChangeSize?.(size);
 
     document.removeEventListener("mousemove", handlePointerMove);
   };
@@ -126,6 +131,10 @@ const Image = (
   }, [node.attrs.width]);
 
   React.useEffect(() => {
+    if (!isResizable) {
+      return;
+    }
+
     if (dragging) {
       document.body.style.cursor = "ew-resize";
       document.addEventListener("keydown", handleKeyDown);
@@ -139,7 +148,7 @@ const Image = (
       document.removeEventListener("pointermove", handlePointerMove);
       document.removeEventListener("pointerup", handlePointerUp);
     };
-  }, [dragging, handlePointerMove, handlePointerUp]);
+  }, [dragging, handlePointerMove, handlePointerUp, isResizable]);
 
   const widthStyle = isFullWidth
     ? { width: contentWidth }
@@ -159,7 +168,7 @@ const Image = (
         onClick={dragging ? undefined : props.onClick}
         style={widthStyle}
       >
-        {!dragging && size.width > 60 && size.height > 60 && (
+        {!dragging && size.width > 60 && size.height > 60 && props.onDownload && (
           <Button onClick={props.onDownload}>
             <DownloadIcon color="currentColor" />
           </Button>
@@ -186,7 +195,7 @@ const Image = (
             }}
           />
         </ImageZoom>
-        {isEditable && !isFullWidth && (
+        {isEditable && !isFullWidth && isResizable && (
           <>
             <ResizeLeft
               onPointerDown={handlePointerDown("left")}

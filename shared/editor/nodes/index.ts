@@ -43,6 +43,7 @@ import Node from "./Node";
 import Notice from "./Notice";
 import OrderedList from "./OrderedList";
 import Paragraph from "./Paragraph";
+import SimpleImage from "./SimpleImage";
 import Table from "./Table";
 import TableCell from "./TableCell";
 import TableHeadCell from "./TableHeadCell";
@@ -60,7 +61,7 @@ export const basicExtensions: Nodes = [
   Paragraph,
   Emoji,
   Text,
-  Image,
+  SimpleImage,
   Bold,
   Code,
   Italic,
@@ -83,7 +84,8 @@ export const basicExtensions: Nodes = [
  * editors that need advanced formatting.
  */
 export const richExtensions: Nodes = [
-  ...basicExtensions,
+  ...basicExtensions.filter((n) => n !== SimpleImage),
+  Image,
   HardBreak,
   CodeBlock,
   CodeFence,

@@ -1,20 +1,14 @@
 import Token from "markdown-it/lib/token";
 import { InputRule } from "prosemirror-inputrules";
 import { Node as ProsemirrorNode, NodeSpec, NodeType } from "prosemirror-model";
-import { TextSelection, NodeSelection, EditorState } from "prosemirror-state";
+import { NodeSelection, EditorState } from "prosemirror-state";
 import * as React from "react";
-import { getEventFiles } from "../../utils/files";
 import { sanitizeUrl } from "../../utils/urls";
-import { AttachmentValidation } from "../../validations";
-import insertFiles, { Options } from "../commands/insertFiles";
 import { default as ImageComponent, Caption } from "../components/Image";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
-import uploadPlaceholderPlugin from "../lib/uploadPlaceholder";
-import uploadPlugin from "../lib/uploadPlugin";
 import { ComponentProps, Dispatch } from "../types";
-import Node from "./Node";
+import SimpleImage from "./SimpleImage";
 
-const IMAGE_CLASSES = ["right-50", "left-50", "full-width"];
 const imageSizeRegex = /\s=(\d+)?x(\d+)?$/;
 
 type TitleAttributes = {
@@ -24,7 +18,7 @@ type TitleAttributes = {
   height?: number;
 };
 
-const getLayoutAndTitle = (tokenTitle: string): TitleAttributes => {
+const parseTitleAttribute = (tokenTitle: string): TitleAttributes => {
   const attributes: TitleAttributes = {
     layoutClass: undefined,
     title: undefined,
@@ -35,7 +29,7 @@ const getLayoutAndTitle = (tokenTitle: string): TitleAttributes => {
     return attributes;
   }
 
-  IMAGE_CLASSES.map((className) => {
+  ["right-50", "left-50", "full-width"].map((className) => {
     if (tokenTitle.includes(className)) {
       attributes.layoutClass = className;
       tokenTitle = tokenTitle.replace(className, "");
@@ -72,13 +66,7 @@ const downloadImageNode = async (node: ProsemirrorNode) => {
   document.body.removeChild(link);
 };
 
-export default class Image extends Node {
-  options: Options;
-
-  get name() {
-    return "image";
-  }
-
+export default class Image extends SimpleImage {
   get schema(): NodeSpec {
     return {
       inline: true,
@@ -171,74 +159,6 @@ export default class Image extends Node {
     };
   }
 
-  handleKeyDown = ({
-    node,
-    getPos,
-  }: {
-    node: ProsemirrorNode;
-    getPos: () => number;
-  }) => (event: React.KeyboardEvent<HTMLSpanElement>) => {
-    // Pressing Enter in the caption field should move the cursor/selection
-    // below the image
-    if (event.key === "Enter") {
-      event.preventDefault();
-
-      const { view } = this.editor;
-      const $pos = view.state.doc.resolve(getPos() + node.nodeSize);
-      view.dispatch(
-        view.state.tr.setSelection(new TextSelection($pos)).split($pos.pos)
-      );
-      view.focus();
-      return;
-    }
-
-    // Pressing Backspace in an an empty caption field should remove the entire
-    // image, leaving an empty paragraph
-    if (event.key === "Backspace" && event.currentTarget.innerText === "") {
-      const { view } = this.editor;
-      const $pos = view.state.doc.resolve(getPos());
-      const tr = view.state.tr.setSelection(new NodeSelection($pos));
-      view.dispatch(tr.deleteSelection());
-      view.focus();
-      return;
-    }
-  };
-
-  handleBlur = ({
-    node,
-    getPos,
-  }: {
-    node: ProsemirrorNode;
-    getPos: () => number;
-  }) => (event: React.FocusEvent<HTMLSpanElement>) => {
-    const caption = event.currentTarget.innerText;
-    if (caption === node.attrs.alt) {
-      return;
-    }
-
-    const { view } = this.editor;
-    const { tr } = view.state;
-
-    // update meta on object
-    const pos = getPos();
-    const transaction = tr.setNodeMarkup(pos, undefined, {
-      ...node.attrs,
-      alt: caption,
-    });
-    view.dispatch(transaction);
-  };
-
-  handleSelect = ({ getPos }: { getPos: () => number }) => (
-    event: React.MouseEvent
-  ) => {
-    event.preventDefault();
-
-    const { view } = this.editor;
-    const $pos = view.state.doc.resolve(getPos());
-    const transaction = view.state.tr.setSelection(new NodeSelection($pos));
-    view.dispatch(transaction);
-  };
-
   handleChangeSize = ({
     node,
     getPos,
@@ -265,14 +185,6 @@ export default class Image extends Node {
     event.preventDefault();
     event.stopPropagation();
     downloadImageNode(node);
-  };
-
-  handleMouseDown = (ev: React.MouseEvent<HTMLParagraphElement>) => {
-    if (document.activeElement !== ev.currentTarget) {
-      ev.preventDefault();
-      ev.stopPropagation();
-      ev.currentTarget.focus();
-    }
   };
 
   component = (props: ComponentProps) => {
@@ -339,7 +251,7 @@ export default class Image extends Node {
               token.children[0] &&
               token.children[0].content) ||
             null,
-          ...getLayoutAndTitle(token?.attrGet("title") || ""),
+          ...parseTitleAttribute(token?.attrGet("title") || ""),
         };
       },
     };
@@ -347,6 +259,7 @@ export default class Image extends Node {
 
   commands({ type }: { type: NodeType }) {
     return {
+      ...super.commands({ type }),
       downloadImage: () => (state: EditorState) => {
         if (!(state.selection instanceof NodeSelection)) {
           return false;
@@ -359,10 +272,6 @@ export default class Image extends Node {
 
         downloadImageNode(node);
 
-        return true;
-      },
-      deleteImage: () => (state: EditorState, dispatch: Dispatch) => {
-        dispatch(state.tr.deleteSelection());
         return true;
       },
       alignRight: () => (state: EditorState, dispatch: Dispatch) => {
@@ -404,46 +313,6 @@ export default class Image extends Node {
         dispatch(state.tr.setNodeMarkup(selection.from, undefined, attrs));
         return true;
       },
-      replaceImage: () => (state: EditorState) => {
-        if (!(state.selection instanceof NodeSelection)) {
-          return false;
-        }
-        const { view } = this.editor;
-        const { node } = state.selection;
-        const {
-          uploadFile,
-          onFileUploadStart,
-          onFileUploadStop,
-          onShowToast,
-        } = this.editor.props;
-
-        if (!uploadFile) {
-          throw new Error("uploadFile prop is required to replace images");
-        }
-
-        if (node.type.name !== "image") {
-          return false;
-        }
-
-        // create an input element and click to trigger picker
-        const inputElement = document.createElement("input");
-        inputElement.type = "file";
-        inputElement.accept = AttachmentValidation.imageContentTypes.join(", ");
-        inputElement.onchange = (event) => {
-          const files = getEventFiles(event);
-          insertFiles(view, event, state.selection.from, files, {
-            uploadFile,
-            onFileUploadStart,
-            onFileUploadStop,
-            onShowToast,
-            dictionary: this.options.dictionary,
-            replaceExisting: true,
-            width: node.attrs.width,
-          });
-        };
-        inputElement.click();
-        return true;
-      },
       alignCenter: () => (state: EditorState, dispatch: Dispatch) => {
         if (!(state.selection instanceof NodeSelection)) {
           return false;
@@ -451,24 +320,6 @@ export default class Image extends Node {
         const attrs = { ...state.selection.node.attrs, layoutClass: null };
         const { selection } = state;
         dispatch(state.tr.setNodeMarkup(selection.from, undefined, attrs));
-        return true;
-      },
-      createImage: (attrs: Record<string, any>) => (
-        state: EditorState,
-        dispatch: Dispatch
-      ) => {
-        const { selection } = state;
-        const position =
-          selection instanceof TextSelection
-            ? selection.$cursor?.pos
-            : selection.$to.pos;
-        if (position === undefined) {
-          return false;
-        }
-
-        const node = type.create(attrs);
-        const transaction = state.tr.insert(position, node);
-        dispatch(transaction);
         return true;
       },
     };
@@ -497,7 +348,7 @@ export default class Image extends Node {
             type.create({
               src,
               alt,
-              ...getLayoutAndTitle(matchedTitle),
+              ...parseTitleAttribute(matchedTitle),
             })
           );
         }
@@ -505,9 +356,5 @@ export default class Image extends Node {
         return tr;
       }),
     ];
-  }
-
-  get plugins() {
-    return [uploadPlaceholderPlugin, uploadPlugin(this.options)];
   }
 }
