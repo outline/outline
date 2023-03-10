@@ -106,7 +106,6 @@
   "Collapse": "감추기",
   "Expand": "펼치기",
   "Type a command or search": "명령어를 입력하거나 검색",
-  "Open search from anywhere with the {{ shortcut }} shortcut": "{{ shortcut }} 단축키로 어디서나 검색 열기",
   "Are you sure you want to permanently delete this entire comment thread?": "Are you sure you want to permanently delete this entire comment thread?",
   "Are you sure you want to permanently delete this comment?": "Are you sure you want to permanently delete this comment?",
   "Server connection lost": "서버 연결 끊김",
