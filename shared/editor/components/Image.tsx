@@ -208,7 +208,7 @@ const Image = (
           </>
         )}
       </ImageWrapper>
-      {isFullWidth
+      {isFullWidth && props.children
         ? React.cloneElement(props.children, { style: widthStyle })
         : props.children}
     </div>
