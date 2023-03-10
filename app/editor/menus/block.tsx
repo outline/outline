@@ -22,7 +22,7 @@ import {
 } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
-import Image from "@shared/editor/components/Image";
+import Image from "@shared/editor/components/Img";
 import { MenuItem } from "@shared/editor/types";
 import { Dictionary } from "~/hooks/useDictionary";
 import { metaDisplay } from "~/utils/keyboard";
