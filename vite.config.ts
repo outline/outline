@@ -18,7 +18,7 @@ export default () => {
   return defineConfig({
     root: "./",
     publicDir: "./server/static",
-    base: "/static/",
+    base: (process.env.CDN_URL ?? "") + "/static/",
     server: {
       port: 3001,
       host: true,
