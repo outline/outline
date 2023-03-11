@@ -65,7 +65,9 @@ export const renderApp = async (
   const { shareId } = ctx.params;
   const page = await readIndexFile();
   const environment = `
-    window.env = ${JSON.stringify(presentEnv(env, options.analytics))};
+    <script>
+      window.env = ${JSON.stringify(presentEnv(env, options.analytics))};
+    </script>
   `;
   const entry = "app/index.tsx";
   const scriptTags = isProduction
@@ -85,13 +87,14 @@ export const renderApp = async (
 
   ctx.body = page
     .toString()
-    .replace(/\/\/inject-env\/\//g, environment)
-    .replace(/\/\/inject-title\/\//g, escape(title))
-    .replace(/\/\/inject-description\/\//g, escape(description))
-    .replace(/\/\/inject-canonical\/\//g, canonical)
-    .replace(/\/\/inject-prefetch\/\//g, shareId ? "" : prefetchTags)
-    .replace(/\/\/inject-slack-app-id\/\//g, env.SLACK_APP_ID || "")
-    .replace(/\/\/inject-script-tags\/\//g, scriptTags);
+    .replace(/\{env\}/g, environment)
+    .replace(/\{title\}/g, escape(title))
+    .replace(/\{description\}/g, escape(description))
+    .replace(/\{canonical-url\}/g, canonical)
+    .replace(/\{prefetch\}/g, shareId ? "" : prefetchTags)
+    .replace(/\{slack-app-id\}/g, env.SLACK_APP_ID || "")
+    .replace(/\{cdn-url\}/g, env.CDN_URL || "")
+    .replace(/\{script-tags\}/g, scriptTags);
 };
 
 export const renderShare = async (ctx: Context, next: Next) => {

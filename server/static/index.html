@@ -1,36 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>//inject-title//</title>
+    <title>{title}</title>
     <meta name="theme-color" content="#FFF" />
-    <meta name="slack-app-id" content="//inject-slack-app-id//" />
+    <meta name="slack-app-id" content="{slack-app-id}" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light dark" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="description" content="//inject-description//" />
-    <link rel="manifest" href="/static/manifest.webmanifest" />
-    <link
-      rel="canonical"
-      href="//inject-canonical//"
-      data-react-helmet="true"
-    />
-    //inject-prefetch//
+    <meta name="description" content="{description}" />
+    <link rel="manifest" href="{cdn-url}/static/manifest.webmanifest" />
+    <link rel="canonical" href="{canonical-url}" data-react-helmet="true" />
+    {prefetch}
     <link
       rel="shortcut icon"
       type="image/png"
-      href="/static/images/favicon-32.png"
+      href="{cdn-url}/static/images/favicon-32.png"
       sizes="32x32"
     />
     <link
       rel="apple-touch-icon"
       type="image/png"
-      href="/static/images/apple-touch-icon.png"
+      href="{cdn-url}/static/images/apple-touch-icon.png"
       sizes="192x192"
     />
     <link
       rel="search"
       type="application/opensearchdescription+xml"
-      href="/opensearch.xml"
+      href="{cdn-url}/opensearch.xml"
       title="Outline"
     />
     <style>
@@ -56,9 +52,7 @@
 
   <body>
     <div id="root"></div>
-    <script>
-      //inject-env//
-    </script>
+    {env}
     <script>
       if (
         window.localStorage &&
@@ -71,6 +65,6 @@
           .setAttribute("content", color);
       }
     </script>
-    //inject-script-tags//
+    {script-tags}
   </body>
 </html>
