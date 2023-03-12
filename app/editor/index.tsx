@@ -565,6 +565,16 @@ export class Editor extends React.PureComponent<
   };
 
   /**
+   * Blur the editor.
+   */
+  public blur = () => {
+    (this.view.dom as HTMLElement).blur();
+
+    // Have Safari remove the caret.
+    window?.getSelection()?.removeAllRanges();
+  };
+
+  /**
    * Returns true if the trimmed content of the editor is an empty string.
    *
    * @returns True if the editor is empty

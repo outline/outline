@@ -1,24 +1,24 @@
 import { findParentNode } from "prosemirror-utils";
 import React from "react";
 import getMenuItems from "../menus/block";
-import CommandMenu, { Props } from "./CommandMenu";
+import CommandMenu, { Props as CommandMenuProps } from "./CommandMenu";
 import CommandMenuItem from "./CommandMenuItem";
 
-type BlockMenuProps = Omit<
-  Props,
+type Props = Omit<
+  CommandMenuProps,
   "renderMenuItem" | "items" | "onClearSearch"
 > &
-  Required<Pick<Props, "onLinkToolbarOpen" | "embeds">>;
+  Required<Pick<CommandMenuProps, "onLinkToolbarOpen" | "embeds">>;
 
-function BlockMenu(props: BlockMenuProps) {
-  const clearSearch = () => {
+function BlockMenu(props: Props) {
+  const clearSearch = React.useCallback(() => {
     const { state, dispatch } = props.view;
     const parent = findParentNode((node) => !!node)(state.selection);
 
     if (parent) {
       dispatch(state.tr.insertText("", parent.pos, state.selection.to));
     }
-  };
+  }, [props.view]);
 
   return (
     <CommandMenu

@@ -8,7 +8,7 @@ import Avatar from "~/components/Avatar";
 import Flex from "~/components/Flex";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
-import CommandMenu, { Props } from "./CommandMenu";
+import CommandMenu, { Props as CommandMenuProps } from "./CommandMenu";
 import MentionMenuItem from "./MentionMenuItem";
 
 interface MentionItem extends MenuItem {
@@ -24,12 +24,12 @@ interface MentionItem extends MenuItem {
   };
 }
 
-type MentionMenuProps = Omit<
-  Props<MentionItem>,
+type Props = Omit<
+  CommandMenuProps<MentionItem>,
   "renderMenuItem" | "items" | "onLinkToolbarOpen" | "embeds" | "onClearSearch"
 >;
 
-function MentionMenu({ search, ...rest }: MentionMenuProps) {
+function MentionMenu({ search, ...rest }: Props) {
   const [items, setItems] = React.useState<MentionItem[]>([]);
   const { t } = useTranslation();
   const { users, auth } = useStores();
