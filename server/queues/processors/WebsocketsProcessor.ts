@@ -372,15 +372,8 @@ export default class WebsocketsProcessor {
       }
 
       case "comments.delete": {
-        const comment = await Comment.scope([
-          "defaultScope",
-          "withDocument",
-        ]).findByPk(event.modelId);
-        if (!comment) {
-          return;
-        }
         return socketio
-          .to(`collection-${comment.document.collectionId}`)
+          .to(`collection-${event.collectionId}`)
           .emit(event.name, {
             modelId: event.modelId,
           });

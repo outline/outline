@@ -24,6 +24,8 @@ export default async function commentDestroyer({
   ip,
   transaction,
 }: Props): Promise<Comment> {
+  const document = await comment.$get("document", { transaction });
+
   await comment.destroy({ transaction });
 
   // Also destroy any child comments
@@ -42,6 +44,7 @@ export default async function commentDestroyer({
       teamId: user.teamId,
       actorId: user.id,
       documentId: comment.documentId,
+      collectionId: document?.collectionId,
       ip,
     },
     { transaction }
