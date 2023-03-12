@@ -13,7 +13,7 @@ export type Props = {
   containerId?: string;
 };
 
-function CommandMenuItem({
+function SuggestionsMenuItem({
   selected,
   disabled,
   onClick,
@@ -60,4 +60,4 @@ const Shortcut = styled.span<{ $active?: boolean }>`
   text-align: right;
 `;
 
-export default CommandMenuItem;
+export default SuggestionsMenuItem;

@@ -792,29 +792,18 @@ export class Editor extends React.PureComponent<
                   onClose={this.handleCloseLinkMenu}
                 />
                 <EmojiMenu
-                  view={this.view}
-                  commands={this.commands}
-                  dictionary={dictionary}
                   rtl={isRTL}
-                  onShowToast={this.props.onShowToast}
                   isActive={this.state.emojiMenuOpen}
                   search={this.state.blockMenuSearch}
                   onClose={this.handleCloseEmojiMenu}
                 />
                 <MentionMenu
-                  view={this.view}
-                  commands={this.commands}
-                  dictionary={dictionary}
                   rtl={isRTL}
-                  onShowToast={this.props.onShowToast}
                   isActive={this.state.mentionMenuOpen}
                   search={this.state.blockMenuSearch}
                   onClose={this.handleCloseMentionMenu}
                 />
                 <BlockMenu
-                  view={this.view}
-                  commands={this.commands}
-                  dictionary={dictionary}
                   rtl={isRTL}
                   isActive={this.state.blockMenuOpen}
                   search={this.state.blockMenuSearch}
@@ -823,7 +812,6 @@ export class Editor extends React.PureComponent<
                   onLinkToolbarOpen={this.handleOpenLinkMenu}
                   onFileUploadStart={this.props.onFileUploadStart}
                   onFileUploadStop={this.props.onFileUploadStop}
-                  onShowToast={this.props.onShowToast}
                   embeds={this.props.embeds}
                 />
               </>

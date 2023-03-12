@@ -1,13 +1,11 @@
 import { capitalize } from "lodash";
 import { findDomRefAtPos, findParentNode } from "prosemirror-utils";
-import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import { Trans } from "react-i18next";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
 import insertFiles from "@shared/editor/commands/insertFiles";
 import { EmbedDescriptor } from "@shared/editor/embeds";
-import { CommandFactory } from "@shared/editor/lib/Extension";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
 import { MenuItem } from "@shared/editor/types";
 import { depths } from "@shared/styles";
@@ -15,7 +13,9 @@ import { getEventFiles } from "@shared/utils/files";
 import { AttachmentValidation } from "@shared/validations";
 import { Portal } from "~/components/Portal";
 import Scrollable from "~/components/Scrollable";
-import { Dictionary } from "~/hooks/useDictionary";
+import useDictionary from "~/hooks/useDictionary";
+import useToasts from "~/hooks/useToasts";
+import { useEditor } from "./EditorContext";
 import Input from "./Input";
 
 const defaultPosition: {
@@ -33,14 +33,10 @@ const defaultPosition: {
 export type Props<T extends MenuItem = MenuItem> = {
   rtl: boolean;
   isActive: boolean;
-  commands: Record<string, CommandFactory>;
-  dictionary: Dictionary;
-  view: EditorView;
   search: string;
   uploadFile?: (file: File) => Promise<string>;
   onFileUploadStart?: () => void;
   onFileUploadStop?: () => void;
-  onShowToast: (message: string) => void;
   onLinkToolbarOpen?: () => void;
   onClose: (insertNewLine?: boolean) => void;
   onClearSearch: () => void;
@@ -58,7 +54,10 @@ export type Props<T extends MenuItem = MenuItem> = {
   id?: string;
 };
 
-function CommandMenu<T extends MenuItem>(props: Props<T>) {
+function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
+  const { view, commands } = useEditor();
+  const { showToast: onShowToast } = useToasts();
+  const dictionary = useDictionary();
   const menuRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
   const [position, setPosition] = React.useState(defaultPosition);
@@ -67,40 +66,39 @@ function CommandMenu<T extends MenuItem>(props: Props<T>) {
   >();
   const [selectedIndex, setSelectedIndex] = React.useState(0);
 
-  const caretPosition: { top: number; left: number } = React.useMemo(() => {
-    const selection = window.document.getSelection();
-    if (!selection || !selection.anchorNode || !selection.focusNode) {
-      return {
-        top: 0,
-        left: 0,
-      };
-    }
-
-    const range = window.document.createRange();
-    range.setStart(selection.anchorNode, selection.anchorOffset);
-    range.setEnd(selection.focusNode, selection.focusOffset);
-
-    // This is a workaround for an edgecase where getBoundingClientRect will
-    // return zero values if the selection is collapsed at the start of a newline
-    // see reference here: https://stackoverflow.com/a/59780954
-    const rects = range.getClientRects();
-    if (rects.length === 0) {
-      // probably buggy newline behavior, explicitly select the node contents
-      if (range.startContainer && range.collapsed) {
-        range.selectNodeContents(range.startContainer);
-      }
-    }
-
-    const rect = range.getBoundingClientRect();
-    return {
-      top: rect.top,
-      left: rect.left,
-    };
-  }, []);
-
   const calculatePosition = React.useCallback(
     (props: Props) => {
-      const { view } = props;
+      const caretPosition = () => {
+        const selection = window.document.getSelection();
+        if (!selection || !selection.anchorNode || !selection.focusNode) {
+          return {
+            top: 0,
+            left: 0,
+          };
+        }
+
+        const range = window.document.createRange();
+        range.setStart(selection.anchorNode, selection.anchorOffset);
+        range.setEnd(selection.focusNode, selection.focusOffset);
+
+        // This is a workaround for an edgecase where getBoundingClientRect will
+        // return zero values if the selection is collapsed at the start of a newline
+        // see reference here: https://stackoverflow.com/a/59780954
+        const rects = range.getClientRects();
+        if (rects.length === 0) {
+          // probably buggy newline behavior, explicitly select the node contents
+          if (range.startContainer && range.collapsed) {
+            range.selectNodeContents(range.startContainer);
+          }
+        }
+
+        const rect = range.getBoundingClientRect();
+        return {
+          top: rect.top,
+          left: rect.left,
+        };
+      };
+
       const { selection } = view.state;
       let startPos;
       try {
@@ -126,7 +124,7 @@ function CommandMenu<T extends MenuItem>(props: Props<T>) {
         return defaultPosition;
       }
 
-      const { left } = caretPosition;
+      const { left } = caretPosition();
       const { top, bottom, right } = paragraph.node.getBoundingClientRect();
       const margin = 12;
 
@@ -163,7 +161,7 @@ function CommandMenu<T extends MenuItem>(props: Props<T>) {
         };
       }
     },
-    [caretPosition]
+    [view]
   );
 
   React.useEffect(() => {
@@ -180,7 +178,7 @@ function CommandMenu<T extends MenuItem>(props: Props<T>) {
     setPosition(calculatePosition(props));
     setSelectedIndex(0);
     setInsertItem(undefined);
-  }, [calculatePosition, props, props.isActive]);
+  }, [calculatePosition, props.isActive]);
 
   React.useEffect(() => {
     setSelectedIndex(0);
@@ -190,22 +188,21 @@ function CommandMenu<T extends MenuItem>(props: Props<T>) {
     (item: MenuItem | EmbedDescriptor) => {
       props.onClearSearch();
 
-      const command = item.name ? props.commands[item.name] : undefined;
+      const command = item.name ? commands[item.name] : undefined;
 
       if (command) {
         command(item.attrs);
       } else {
-        props.commands[`create${capitalize(item.name)}`](item.attrs);
+        commands[`create${capitalize(item.name)}`](item.attrs);
       }
       if ("appendSpace" in item) {
-        const { view } = props;
         const { dispatch } = view;
         dispatch(view.state.tr.insertText(" "));
       }
 
       props.onClose();
     },
-    [props]
+    [commands, props, view]
   );
 
   const handleClickItem = React.useCallback(
@@ -234,8 +231,8 @@ function CommandMenu<T extends MenuItem>(props: Props<T>) {
 
   const close = React.useCallback(() => {
     props.onClose();
-    props.view.focus();
-  }, [props]);
+    view.focus();
+  }, [props, view]);
 
   const handleLinkInputKeydown = (
     event: React.KeyboardEvent<HTMLInputElement>
@@ -255,7 +252,7 @@ function CommandMenu<T extends MenuItem>(props: Props<T>) {
       const matches = "matcher" in insertItem && insertItem.matcher(href);
 
       if (!matches) {
-        props.onShowToast(props.dictionary.embedInvalidLink);
+        onShowToast(dictionary.embedInvalidLink);
         return;
       }
 
@@ -269,7 +266,7 @@ function CommandMenu<T extends MenuItem>(props: Props<T>) {
 
     if (event.key === "Escape") {
       props.onClose();
-      props.view.focus();
+      view.focus();
     }
   };
 
@@ -313,14 +310,8 @@ function CommandMenu<T extends MenuItem>(props: Props<T>) {
   };
 
   const handleFilesPicked = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const { uploadFile, onFileUploadStart, onFileUploadStop } = props;
     const files = getEventFiles(event);
-    const {
-      view,
-      uploadFile,
-      onFileUploadStart,
-      onFileUploadStop,
-      onShowToast,
-    } = props;
     const parent = findParentNode((node) => !!node)(view.state.selection);
 
     props.onClearSearch();
@@ -335,7 +326,7 @@ function CommandMenu<T extends MenuItem>(props: Props<T>) {
         onFileUploadStart,
         onFileUploadStop,
         onShowToast,
-        dictionary: props.dictionary,
+        dictionary,
         isAttachment: inputRef.current?.accept === "*",
       });
     }
@@ -348,13 +339,7 @@ function CommandMenu<T extends MenuItem>(props: Props<T>) {
   };
 
   const filtered = React.useMemo(() => {
-    const {
-      embeds = [],
-      search = "",
-      uploadFile,
-      commands,
-      filterable = true,
-    } = props;
+    const { embeds = [], search = "", uploadFile, filterable = true } = props;
     let items: (EmbedDescriptor | MenuItem)[] = [...props.items];
     const embedItems: EmbedDescriptor[] = [];
 
@@ -421,7 +406,7 @@ function CommandMenu<T extends MenuItem>(props: Props<T>) {
           : 1;
       })
     );
-  }, [props]);
+  }, [commands, props]);
 
   React.useEffect(() => {
     const handleMouseDown = (event: MouseEvent) => {
@@ -511,7 +496,7 @@ function CommandMenu<T extends MenuItem>(props: Props<T>) {
     };
   }, [close, filtered, handleClickItem, props, selectedIndex]);
 
-  const { dictionary, isActive, uploadFile } = props;
+  const { isActive, uploadFile } = props;
   const items = filtered;
 
   return (
@@ -683,4 +668,4 @@ export const Wrapper = styled(Scrollable)<{
   }
 `;
 
-export default CommandMenu;
+export default SuggestionsMenu;
