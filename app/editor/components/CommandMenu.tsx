@@ -18,7 +18,12 @@ import Scrollable from "~/components/Scrollable";
 import { Dictionary } from "~/hooks/useDictionary";
 import Input from "./Input";
 
-const defaultPosition = {
+const defaultPosition: {
+  left: number;
+  top: number | undefined;
+  bottom: number | undefined;
+  isAbove: boolean;
+} = {
   left: -1000,
   top: 0,
   bottom: undefined,
@@ -53,299 +58,16 @@ export type Props<T extends MenuItem = MenuItem> = {
   id?: string;
 };
 
-type State = {
-  insertItem?: EmbedDescriptor;
-  left?: number;
-  top?: number;
-  bottom?: number;
-  isAbove: boolean;
-  selectedIndex: number;
-};
+function CommandMenu<T extends MenuItem>(props: Props<T>) {
+  const menuRef = React.useRef<HTMLDivElement>(null);
+  const inputRef = React.useRef<HTMLInputElement>(null);
+  const [position, setPosition] = React.useState(defaultPosition);
+  const [insertItem, setInsertItem] = React.useState<
+    MenuItem | EmbedDescriptor
+  >();
+  const [selectedIndex, setSelectedIndex] = React.useState(0);
 
-class CommandMenu<T extends MenuItem> extends React.PureComponent<
-  Props<T>,
-  State
-> {
-  menuRef = React.createRef<HTMLDivElement>();
-  inputRef = React.createRef<HTMLInputElement>();
-
-  state: State = {
-    left: -1000,
-    top: 0,
-    bottom: undefined,
-    isAbove: false,
-    selectedIndex: 0,
-    insertItem: undefined,
-  };
-
-  componentDidMount() {
-    window.addEventListener("mousedown", this.handleMouseDown);
-    window.addEventListener("keydown", this.handleKeyDown);
-  }
-
-  componentDidUpdate(prevProps: Props<T>) {
-    if (!prevProps.isActive && this.props.isActive) {
-      // reset scroll position to top when opening menu as the contents are
-      // hidden, not unrendered
-      if (this.menuRef.current) {
-        this.menuRef.current.scroll({ top: 0 });
-      }
-      const position = this.calculatePosition(this.props);
-
-      this.setState({
-        insertItem: undefined,
-        selectedIndex: 0,
-        ...position,
-      });
-    } else if (prevProps.search !== this.props.search) {
-      this.setState({ selectedIndex: 0 });
-    }
-  }
-
-  componentWillUnmount() {
-    window.removeEventListener("mousedown", this.handleMouseDown);
-    window.removeEventListener("keydown", this.handleKeyDown);
-  }
-
-  handleMouseDown = (event: MouseEvent) => {
-    if (
-      !this.menuRef.current ||
-      this.menuRef.current.contains(event.target as Element)
-    ) {
-      return;
-    }
-
-    this.props.onClose();
-  };
-
-  handleKeyDown = (event: KeyboardEvent) => {
-    if (!this.props.isActive) {
-      return;
-    }
-
-    if (event.key === "Enter") {
-      event.preventDefault();
-      event.stopPropagation();
-
-      const item = this.filtered[this.state.selectedIndex];
-
-      if (item) {
-        this.insertItem(item);
-      } else {
-        this.props.onClose(true);
-      }
-    }
-
-    if (
-      event.key === "ArrowUp" ||
-      (event.key === "Tab" && event.shiftKey) ||
-      (event.ctrlKey && event.key === "p")
-    ) {
-      event.preventDefault();
-      event.stopPropagation();
-
-      if (this.filtered.length) {
-        const prevIndex = this.state.selectedIndex - 1;
-        const prev = this.filtered[prevIndex];
-
-        this.setState({
-          selectedIndex: Math.max(
-            0,
-            prev?.name === "separator" ? prevIndex - 1 : prevIndex
-          ),
-        });
-      } else {
-        this.close();
-      }
-    }
-
-    if (
-      event.key === "ArrowDown" ||
-      (event.key === "Tab" && !event.shiftKey) ||
-      (event.ctrlKey && event.key === "n")
-    ) {
-      event.preventDefault();
-      event.stopPropagation();
-
-      if (this.filtered.length) {
-        const total = this.filtered.length - 1;
-        const nextIndex = this.state.selectedIndex + 1;
-        const next = this.filtered[nextIndex];
-
-        this.setState({
-          selectedIndex: Math.min(
-            next?.name === "separator" ? nextIndex + 1 : nextIndex,
-            total
-          ),
-        });
-      } else {
-        this.close();
-      }
-    }
-
-    if (event.key === "Escape") {
-      this.close();
-    }
-  };
-
-  insertItem = (item: any) => {
-    switch (item.name) {
-      case "image":
-        return this.triggerFilePick(
-          AttachmentValidation.imageContentTypes.join(", ")
-        );
-      case "attachment":
-        return this.triggerFilePick("*");
-      case "embed":
-        return this.triggerLinkInput(item);
-      case "link": {
-        this.clearSearch();
-        this.props.onClose();
-        this.props.onLinkToolbarOpen?.();
-        return;
-      }
-      default:
-        this.insertNode(item);
-    }
-  };
-
-  close = () => {
-    this.props.onClose();
-    this.props.view.focus();
-  };
-
-  handleLinkInputKeydown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (!this.props.isActive) {
-      return;
-    }
-    if (!this.state.insertItem) {
-      return;
-    }
-
-    if (event.key === "Enter") {
-      event.preventDefault();
-      event.stopPropagation();
-
-      const href = event.currentTarget.value;
-      const matches = this.state.insertItem.matcher(href);
-
-      if (!matches) {
-        this.props.onShowToast(this.props.dictionary.embedInvalidLink);
-        return;
-      }
-
-      this.insertNode({
-        name: "embed",
-        attrs: {
-          href,
-        },
-      });
-    }
-
-    if (event.key === "Escape") {
-      this.props.onClose();
-      this.props.view.focus();
-    }
-  };
-
-  handleLinkInputPaste = (event: React.ClipboardEvent<HTMLInputElement>) => {
-    if (!this.props.isActive) {
-      return;
-    }
-    if (!this.state.insertItem) {
-      return;
-    }
-
-    const href = event.clipboardData.getData("text/plain");
-    const matches = this.state.insertItem.matcher(href);
-
-    if (matches) {
-      event.preventDefault();
-      event.stopPropagation();
-
-      this.insertNode({
-        name: "embed",
-        attrs: {
-          href,
-        },
-      });
-    }
-  };
-
-  triggerFilePick = (accept: string) => {
-    if (this.inputRef.current) {
-      if (accept) {
-        this.inputRef.current.accept = accept;
-      }
-      this.inputRef.current.click();
-    }
-  };
-
-  triggerLinkInput = (item: EmbedDescriptor) => {
-    this.setState({ insertItem: item });
-  };
-
-  handleFilesPicked = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = getEventFiles(event);
-
-    const {
-      view,
-      uploadFile,
-      onFileUploadStart,
-      onFileUploadStop,
-      onShowToast,
-    } = this.props;
-    const { state } = view;
-    const parent = findParentNode((node) => !!node)(state.selection);
-
-    this.clearSearch();
-
-    if (!uploadFile) {
-      throw new Error("uploadFile prop is required to replace files");
-    }
-
-    if (parent) {
-      insertFiles(view, event, parent.pos, files, {
-        uploadFile,
-        onFileUploadStart,
-        onFileUploadStop,
-        onShowToast,
-        dictionary: this.props.dictionary,
-        isAttachment: this.inputRef.current?.accept === "*",
-      });
-    }
-
-    if (this.inputRef.current) {
-      this.inputRef.current.value = "";
-    }
-
-    this.props.onClose();
-  };
-
-  clearSearch = () => {
-    this.props.onClearSearch();
-  };
-
-  insertNode(item: MenuItem) {
-    this.clearSearch();
-
-    const command = item.name ? this.props.commands[item.name] : undefined;
-
-    if (command) {
-      command(item.attrs);
-    } else {
-      this.props.commands[`create${capitalize(item.name)}`](item.attrs);
-    }
-    if (item.appendSpace) {
-      const { view } = this.props;
-      const { dispatch } = view;
-      dispatch(view.state.tr.insertText(" "));
-    }
-
-    this.props.onClose();
-  }
-
-  get caretPosition(): { top: number; left: number } {
+  const caretPosition: { top: number; left: number } = React.useMemo(() => {
     const selection = window.document.getSelection();
     if (!selection || !selection.anchorNode || !selection.focusNode) {
       return {
@@ -374,82 +96,266 @@ class CommandMenu<T extends MenuItem> extends React.PureComponent<
       top: rect.top,
       left: rect.left,
     };
-  }
+  }, []);
 
-  calculatePosition(props: Props) {
-    const { view } = props;
-    const { selection } = view.state;
-    let startPos;
-    try {
-      startPos = view.coordsAtPos(selection.from);
-    } catch (err) {
-      console.warn(err);
-      return defaultPosition;
+  const calculatePosition = React.useCallback(
+    (props: Props) => {
+      const { view } = props;
+      const { selection } = view.state;
+      let startPos;
+      try {
+        startPos = view.coordsAtPos(selection.from);
+      } catch (err) {
+        console.warn(err);
+        return defaultPosition;
+      }
+
+      const domAtPos = view.domAtPos.bind(view);
+
+      const ref = menuRef.current;
+      const offsetWidth = ref ? ref.offsetWidth : 0;
+      const offsetHeight = ref ? ref.offsetHeight : 0;
+      const node = findDomRefAtPos(selection.from, domAtPos) as HTMLElement;
+      const paragraph = { node };
+
+      if (
+        !props.isActive ||
+        !paragraph.node ||
+        !paragraph.node.getBoundingClientRect
+      ) {
+        return defaultPosition;
+      }
+
+      const { left } = caretPosition;
+      const { top, bottom, right } = paragraph.node.getBoundingClientRect();
+      const margin = 12;
+
+      const offsetParent = ref?.offsetParent
+        ? ref.offsetParent.getBoundingClientRect()
+        : ({
+            width: 0,
+            height: 0,
+            top: 0,
+            left: 0,
+          } as DOMRect);
+
+      let leftPos = Math.min(
+        left - offsetParent.left,
+        window.innerWidth - offsetParent.left - offsetWidth - margin
+      );
+      if (props.rtl) {
+        leftPos = right - offsetWidth;
+      }
+
+      if (startPos.top - offsetHeight > margin) {
+        return {
+          left: leftPos,
+          top: undefined,
+          bottom: offsetParent.bottom - top,
+          isAbove: false,
+        };
+      } else {
+        return {
+          left: leftPos,
+          top: bottom - offsetParent.top,
+          bottom: undefined,
+          isAbove: true,
+        };
+      }
+    },
+    [caretPosition]
+  );
+
+  React.useEffect(() => {
+    if (!props.isActive) {
+      return;
     }
 
-    const domAtPos = view.domAtPos.bind(view);
-
-    const ref = this.menuRef.current;
-    const offsetWidth = ref ? ref.offsetWidth : 0;
-    const offsetHeight = ref ? ref.offsetHeight : 0;
-    const node = findDomRefAtPos(selection.from, domAtPos);
-    const paragraph: any = { node };
-
-    if (
-      !props.isActive ||
-      !paragraph.node ||
-      !paragraph.node.getBoundingClientRect
-    ) {
-      return defaultPosition;
+    // reset scroll position to top when opening menu as the contents are
+    // hidden, not unrendered
+    if (menuRef.current) {
+      menuRef.current.scroll({ top: 0 });
     }
 
-    const { left } = this.caretPosition;
-    const { top, bottom, right } = paragraph.node.getBoundingClientRect();
-    const margin = 12;
+    setPosition(calculatePosition(props));
+    setSelectedIndex(0);
+    setInsertItem(undefined);
+  }, [calculatePosition, props, props.isActive]);
 
-    const offsetParent = ref?.offsetParent
-      ? ref.offsetParent.getBoundingClientRect()
-      : ({
-          width: 0,
-          height: 0,
-          top: 0,
-          left: 0,
-        } as DOMRect);
+  React.useEffect(() => {
+    setSelectedIndex(0);
+  }, [props.search]);
 
-    let leftPos = Math.min(
-      left - offsetParent.left,
-      window.innerWidth - offsetParent.left - offsetWidth - margin
-    );
-    if (props.rtl) {
-      leftPos = right - offsetWidth;
+  const insertNode = React.useCallback(
+    (item: MenuItem | EmbedDescriptor) => {
+      props.onClearSearch();
+
+      const command = item.name ? props.commands[item.name] : undefined;
+
+      if (command) {
+        command(item.attrs);
+      } else {
+        props.commands[`create${capitalize(item.name)}`](item.attrs);
+      }
+      if ("appendSpace" in item) {
+        const { view } = props;
+        const { dispatch } = view;
+        dispatch(view.state.tr.insertText(" "));
+      }
+
+      props.onClose();
+    },
+    [props]
+  );
+
+  const handleClickItem = React.useCallback(
+    (item) => {
+      switch (item.name) {
+        case "image":
+          return triggerFilePick(
+            AttachmentValidation.imageContentTypes.join(", ")
+          );
+        case "attachment":
+          return triggerFilePick("*");
+        case "embed":
+          return triggerLinkInput(item);
+        case "link": {
+          props.onClearSearch();
+          props.onClose();
+          props.onLinkToolbarOpen?.();
+          return;
+        }
+        default:
+          insertNode(item);
+      }
+    },
+    [insertNode, props]
+  );
+
+  const close = React.useCallback(() => {
+    props.onClose();
+    props.view.focus();
+  }, [props]);
+
+  const handleLinkInputKeydown = (
+    event: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (!props.isActive) {
+      return;
+    }
+    if (!insertItem) {
+      return;
     }
 
-    if (startPos.top - offsetHeight > margin) {
-      return {
-        left: leftPos,
-        top: undefined,
-        bottom: offsetParent.bottom - top,
-        isAbove: false,
-      };
-    } else {
-      return {
-        left: leftPos,
-        top: bottom - offsetParent.top,
-        bottom: undefined,
-        isAbove: true,
-      };
-    }
-  }
+    if (event.key === "Enter") {
+      event.preventDefault();
+      event.stopPropagation();
 
-  get filtered() {
+      const href = event.currentTarget.value;
+      const matches = "matcher" in insertItem && insertItem.matcher(href);
+
+      if (!matches) {
+        props.onShowToast(props.dictionary.embedInvalidLink);
+        return;
+      }
+
+      insertNode({
+        name: "embed",
+        attrs: {
+          href,
+        },
+      });
+    }
+
+    if (event.key === "Escape") {
+      props.onClose();
+      props.view.focus();
+    }
+  };
+
+  const handleLinkInputPaste = (
+    event: React.ClipboardEvent<HTMLInputElement>
+  ) => {
+    if (!props.isActive) {
+      return;
+    }
+    if (!insertItem) {
+      return;
+    }
+
+    const href = event.clipboardData.getData("text/plain");
+    const matches = "matcher" in insertItem && insertItem.matcher(href);
+
+    if (matches) {
+      event.preventDefault();
+      event.stopPropagation();
+
+      insertNode({
+        name: "embed",
+        attrs: {
+          href,
+        },
+      });
+    }
+  };
+
+  const triggerFilePick = (accept: string) => {
+    if (inputRef.current) {
+      if (accept) {
+        inputRef.current.accept = accept;
+      }
+      inputRef.current.click();
+    }
+  };
+
+  const triggerLinkInput = (item: MenuItem) => {
+    setInsertItem(item);
+  };
+
+  const handleFilesPicked = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = getEventFiles(event);
+    const {
+      view,
+      uploadFile,
+      onFileUploadStart,
+      onFileUploadStop,
+      onShowToast,
+    } = props;
+    const parent = findParentNode((node) => !!node)(view.state.selection);
+
+    props.onClearSearch();
+
+    if (!uploadFile) {
+      throw new Error("uploadFile prop is required to replace files");
+    }
+
+    if (parent) {
+      insertFiles(view, event, parent.pos, files, {
+        uploadFile,
+        onFileUploadStart,
+        onFileUploadStop,
+        onShowToast,
+        dictionary: props.dictionary,
+        isAttachment: inputRef.current?.accept === "*",
+      });
+    }
+
+    if (inputRef.current) {
+      inputRef.current.value = "";
+    }
+
+    props.onClose();
+  };
+
+  const filtered = React.useMemo(() => {
     const {
       embeds = [],
       search = "",
       uploadFile,
       commands,
       filterable = true,
-    } = this.props;
-    let items: (EmbedDescriptor | MenuItem)[] = [...this.props.items];
+    } = props;
+    let items: (EmbedDescriptor | MenuItem)[] = [...props.items];
     const embedItems: EmbedDescriptor[] = [];
 
     for (const embed of embeds) {
@@ -515,94 +421,179 @@ class CommandMenu<T extends MenuItem> extends React.PureComponent<
           : 1;
       })
     );
-  }
+  }, [props]);
 
-  render() {
-    const { dictionary, isActive, uploadFile } = this.props;
-    const items = this.filtered;
-    const { insertItem, ...positioning } = this.state;
+  React.useEffect(() => {
+    const handleMouseDown = (event: MouseEvent) => {
+      if (
+        !menuRef.current ||
+        menuRef.current.contains(event.target as Element)
+      ) {
+        return;
+      }
 
-    return (
-      <Portal>
-        <Wrapper
-          id={this.props.id || "block-menu-container"}
-          active={isActive}
-          ref={this.menuRef}
-          hiddenScrollbars
-          {...positioning}
-        >
-          {insertItem ? (
-            <LinkInputWrapper>
-              <LinkInput
-                type="text"
-                placeholder={
-                  insertItem.title
-                    ? dictionary.pasteLinkWithTitle(insertItem.title)
-                    : dictionary.pasteLink
-                }
-                onKeyDown={this.handleLinkInputKeydown}
-                onPaste={this.handleLinkInputPaste}
-                autoFocus
-              />
-            </LinkInputWrapper>
-          ) : (
-            <List>
-              {items.map((item, index) => {
-                if (item.name === "separator") {
-                  return (
-                    <ListItem key={index}>
-                      <hr />
-                    </ListItem>
-                  );
-                }
+      props.onClose();
+    };
 
-                if (!item.title) {
-                  return null;
-                }
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!props.isActive) {
+        return;
+      }
 
-                const handlePointer = () => {
-                  if (this.state.selectedIndex !== index) {
-                    this.setState({ selectedIndex: index });
-                  }
-                };
+      if (event.key === "Enter") {
+        event.preventDefault();
+        event.stopPropagation();
 
+        const item = filtered[selectedIndex];
+
+        if (item) {
+          handleClickItem(item);
+        } else {
+          props.onClose(true);
+        }
+      }
+
+      if (
+        event.key === "ArrowUp" ||
+        (event.key === "Tab" && event.shiftKey) ||
+        (event.ctrlKey && event.key === "p")
+      ) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (filtered.length) {
+          const prevIndex = selectedIndex - 1;
+          const prev = filtered[prevIndex];
+
+          setSelectedIndex(
+            Math.max(0, prev?.name === "separator" ? prevIndex - 1 : prevIndex)
+          );
+        } else {
+          close();
+        }
+      }
+
+      if (
+        event.key === "ArrowDown" ||
+        (event.key === "Tab" && !event.shiftKey) ||
+        (event.ctrlKey && event.key === "n")
+      ) {
+        event.preventDefault();
+        event.stopPropagation();
+
+        if (filtered.length) {
+          const total = filtered.length - 1;
+          const nextIndex = selectedIndex + 1;
+          const next = filtered[nextIndex];
+
+          setSelectedIndex(
+            Math.min(
+              next?.name === "separator" ? nextIndex + 1 : nextIndex,
+              total
+            )
+          );
+        } else {
+          close();
+        }
+      }
+
+      if (event.key === "Escape") {
+        close();
+      }
+    };
+
+    window.addEventListener("mousedown", handleMouseDown);
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("mousedown", handleMouseDown);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [close, filtered, handleClickItem, props, selectedIndex]);
+
+  const { dictionary, isActive, uploadFile } = props;
+  const items = filtered;
+
+  return (
+    <Portal>
+      <Wrapper
+        id={props.id || "block-menu-container"}
+        active={isActive}
+        ref={menuRef}
+        hiddenScrollbars
+        {...position}
+      >
+        {insertItem ? (
+          <LinkInputWrapper>
+            <LinkInput
+              type="text"
+              placeholder={
+                insertItem.title
+                  ? dictionary.pasteLinkWithTitle(insertItem.title)
+                  : dictionary.pasteLink
+              }
+              onKeyDown={handleLinkInputKeydown}
+              onPaste={handleLinkInputPaste}
+              autoFocus
+            />
+          </LinkInputWrapper>
+        ) : (
+          <List>
+            {items.map((item, index) => {
+              if (item.name === "separator") {
                 return (
-                  <ListItem
-                    key={index}
-                    onPointerMove={handlePointer}
-                    onPointerDown={handlePointer}
-                  >
-                    {this.props.renderMenuItem(item as any, index, {
-                      selected: index === this.state.selectedIndex,
-                      onClick: () => this.insertItem(item),
-                    })}
+                  <ListItem key={index}>
+                    <hr />
                   </ListItem>
                 );
-              })}
-              {items.length === 0 && (
-                <ListItem>
-                  <Empty>{dictionary.noResults}</Empty>
+              }
+
+              if (!item.title) {
+                return null;
+              }
+
+              const handlePointer = () => {
+                if (selectedIndex !== index) {
+                  setSelectedIndex(index);
+                }
+              };
+
+              return (
+                <ListItem
+                  key={index}
+                  onPointerMove={handlePointer}
+                  onPointerDown={handlePointer}
+                >
+                  {props.renderMenuItem(item as any, index, {
+                    selected: index === selectedIndex,
+                    onClick: () => handleClickItem(item),
+                  })}
                 </ListItem>
-              )}
-            </List>
-          )}
-          {uploadFile && (
-            <VisuallyHidden>
-              <label>
-                <Trans>Import document</Trans>
-                <input
-                  type="file"
-                  ref={this.inputRef}
-                  onChange={this.handleFilesPicked}
-                  multiple
-                />
-              </label>
-            </VisuallyHidden>
-          )}
-        </Wrapper>
-      </Portal>
-    );
-  }
+              );
+            })}
+            {items.length === 0 && (
+              <ListItem>
+                <Empty>{dictionary.noResults}</Empty>
+              </ListItem>
+            )}
+          </List>
+        )}
+        {uploadFile && (
+          <VisuallyHidden>
+            <label>
+              <Trans>Import document</Trans>
+              <input
+                type="file"
+                ref={inputRef}
+                onChange={handleFilesPicked}
+                multiple
+              />
+            </label>
+          </VisuallyHidden>
+        )}
+      </Wrapper>
+    </Portal>
+  );
 }
 
 const LinkInputWrapper = styled.div`
