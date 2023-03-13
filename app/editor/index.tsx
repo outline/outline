@@ -743,7 +743,6 @@ export class Editor extends React.PureComponent<
       grow,
       style,
       className,
-      dictionary,
       onKeyDown,
     } = this.props;
     const { isRTL } = this.state;
@@ -772,9 +771,6 @@ export class Editor extends React.PureComponent<
             {!readOnly && this.view && (
               <>
                 <SelectionToolbar
-                  view={this.view}
-                  dictionary={dictionary}
-                  commands={this.commands}
                   rtl={isRTL}
                   isTemplate={this.props.template === true}
                   onOpen={this.handleOpenSelectionMenu}
@@ -782,7 +778,6 @@ export class Editor extends React.PureComponent<
                   onSearchLink={this.props.onSearchLink}
                   onClickLink={this.props.onClickLink}
                   onCreateLink={this.props.onCreateLink}
-                  onShowToast={this.props.onShowToast}
                 />
                 <LinkToolbar
                   isActive={this.state.linkMenuOpen}
