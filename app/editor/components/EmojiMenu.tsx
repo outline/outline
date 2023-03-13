@@ -63,11 +63,9 @@ const EmojiMenu = (props: Props) => {
     );
   }, [view, props.search]);
 
-  const containerId = "emoji-menu-container";
   return (
     <SuggestionsMenu
       {...props}
-      id={containerId}
       filterable={false}
       onClearSearch={clearSearch}
       renderMenuItem={(item, _index, options) => (
@@ -76,7 +74,6 @@ const EmojiMenu = (props: Props) => {
           selected={options.selected}
           title={item.description}
           emoji={item.emoji}
-          containerId={containerId}
         />
       )}
       items={items}

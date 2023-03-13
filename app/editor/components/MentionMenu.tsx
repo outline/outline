@@ -82,11 +82,9 @@ function MentionMenu({ search, ...rest }: Props) {
     );
   };
 
-  const containerId = "mention-menu-container";
   return (
     <SuggestionsMenu
       {...rest}
-      id={containerId}
       filterable={false}
       onClearSearch={clearSearch}
       search={search}
@@ -96,7 +94,6 @@ function MentionMenu({ search, ...rest }: Props) {
           selected={options.selected}
           title={item.title}
           label={item.attrs.label}
-          containerId={containerId}
           icon={
             <Flex
               align="center"

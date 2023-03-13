@@ -51,7 +51,6 @@ export type Props<T extends MenuItem = MenuItem> = {
   ) => React.ReactNode;
   filterable?: boolean;
   items: T[];
-  id?: string;
 };
 
 function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
@@ -501,13 +500,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
 
   return (
     <Portal>
-      <Wrapper
-        id={props.id || "block-menu-container"}
-        active={isActive}
-        ref={menuRef}
-        hiddenScrollbars
-        {...position}
-      >
+      <Wrapper active={isActive} ref={menuRef} hiddenScrollbars {...position}>
         {insertItem ? (
           <LinkInputWrapper>
             <LinkInput

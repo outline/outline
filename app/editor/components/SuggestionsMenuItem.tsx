@@ -2,6 +2,7 @@ import * as React from "react";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled from "styled-components";
 import MenuItem from "~/components/ContextMenu/MenuItem";
+import { usePortalContext } from "~/components/Portal";
 
 export type Props = {
   selected: boolean;
@@ -10,7 +11,6 @@ export type Props = {
   icon?: React.ReactElement;
   title: React.ReactNode;
   shortcut?: string;
-  containerId?: string;
 };
 
 function SuggestionsMenuItem({
@@ -20,8 +20,8 @@ function SuggestionsMenuItem({
   title,
   shortcut,
   icon,
-  containerId = "block-menu-container",
 }: Props) {
+  const portal = usePortalContext();
   const ref = React.useCallback(
     (node) => {
       if (selected && node) {
@@ -30,14 +30,14 @@ function SuggestionsMenuItem({
           block: "nearest",
           boundary: (parent) => {
             // All the parent elements of your target are checked until they
-            // reach the #block-menu-container. Prevents body and other parent
+            // reach the portal context. Prevents body and other parent
             // elements from being scrolled
-            return parent.id !== containerId;
+            return parent !== portal;
           },
         });
       }
     },
-    [selected, containerId]
+    [selected, portal]
   );
 
   return (
