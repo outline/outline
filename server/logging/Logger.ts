@@ -170,12 +170,12 @@ class Logger {
 
     if (isString(input)) {
       if (sensitiveFields.some((field) => input.includes(field))) {
-        return "[Filtered]" as T;
+        return ("[Filtered]" as any) as T;
       }
     }
 
     if (isArray(input)) {
-      return input.map(this.sanitize) as T;
+      return (input.map(this.sanitize) as any) as T;
     }
 
     if (isObject(input)) {
