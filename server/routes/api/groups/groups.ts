@@ -1,4 +1,5 @@
 import Router from "koa-router";
+import { includes } from "lodash";
 import { Op } from "sequelize";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
 import auth from "@server/middlewares/authentication";
@@ -24,9 +25,10 @@ router.post(
   validate(T.GroupsListSchema),
   async (ctx: APIContext<T.GroupsListReq>) => {
     const { direction, sort } = ctx.input.body;
+    const { userId } = ctx.input.query;
     const { user } = ctx.state.auth;
 
-    const groups = await Group.findAll({
+    let groups = await Group.findAll({
       where: {
         teamId: user.teamId,
       },
@@ -34,6 +36,15 @@ router.post(
       offset: ctx.state.pagination.offset,
       limit: ctx.state.pagination.limit,
     });
+
+    if (userId) {
+      groups = groups.filter((group) => {
+        return includes(
+          group.groupMemberships.map((member) => member.userId),
+          userId
+        );
+      });
+    }
 
     ctx.body = {
       pagination: ctx.state.pagination,

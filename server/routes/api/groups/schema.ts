@@ -22,6 +22,9 @@ export const GroupsListSchema = z.object({
       })
       .default("updatedAt"),
   }),
+  query: z.object({
+    userId: z.string().uuid().optional(),
+  }),
 });
 
 export type GroupsListReq = z.infer<typeof GroupsListSchema>;
