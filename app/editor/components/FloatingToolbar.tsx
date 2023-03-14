@@ -25,11 +25,9 @@ const defaultPosition = {
 
 function usePosition({
   menuRef,
-  isSelectingText,
   active,
 }: {
   menuRef: React.RefObject<HTMLDivElement>;
-  isSelectingText: boolean;
   active?: boolean;
 }) {
   const { view } = useEditor();
@@ -38,13 +36,7 @@ function usePosition({
   const viewportHeight = useViewportHeight();
   const isTouchDevice = useMediaQuery("(hover: none) and (pointer: coarse)");
 
-  if (
-    !active ||
-    !menuWidth ||
-    !menuHeight ||
-    !menuRef.current ||
-    isSelectingText
-  ) {
+  if (!active || !menuWidth || !menuHeight || !menuRef.current) {
     return defaultPosition;
   }
 
@@ -173,11 +165,14 @@ const FloatingToolbar = React.forwardRef(
     const menuRef = ref || React.createRef<HTMLDivElement>();
     const [isSelectingText, setSelectingText] = React.useState(false);
 
-    const position = usePosition({
+    let position = usePosition({
       menuRef,
-      isSelectingText,
       active: props.active,
     });
+
+    if (isSelectingText) {
+      position = defaultPosition;
+    }
 
     useEventListener("mouseup", () => {
       setSelectingText(false);

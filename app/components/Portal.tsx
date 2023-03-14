@@ -9,6 +9,11 @@ export const PortalContext = React.createContext<
 >(undefined);
 
 /**
+ * A hook that returns the portal context value.
+ */
+export const usePortalContext = () => React.useContext(PortalContext);
+
+/**
  * A portal component that uses context to render into a different dom node
  * or the root of body if no context is available.
  */

@@ -1,3 +1,4 @@
+import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { v4 } from "uuid";
@@ -8,8 +9,11 @@ import Avatar from "~/components/Avatar";
 import Flex from "~/components/Flex";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
-import CommandMenu, { Props } from "./CommandMenu";
+import { useEditor } from "./EditorContext";
 import MentionMenuItem from "./MentionMenuItem";
+import SuggestionsMenu, {
+  Props as SuggestionsMenuProps,
+} from "./SuggestionsMenu";
 
 interface MentionItem extends MenuItem {
   name: string;
@@ -24,15 +28,16 @@ interface MentionItem extends MenuItem {
   };
 }
 
-type MentionMenuProps = Omit<
-  Props<MentionItem>,
+type Props = Omit<
+  SuggestionsMenuProps<MentionItem>,
   "renderMenuItem" | "items" | "onLinkToolbarOpen" | "embeds" | "onClearSearch"
 >;
 
-function MentionMenu({ search, ...rest }: MentionMenuProps) {
+function MentionMenu({ search, ...rest }: Props) {
   const [items, setItems] = React.useState<MentionItem[]>([]);
   const { t } = useTranslation();
   const { users, auth } = useStores();
+  const { view } = useEditor();
   const { data, request } = useRequest(
     React.useCallback(
       () => users.fetchPage({ query: search, filter: "active" }),
@@ -65,7 +70,7 @@ function MentionMenu({ search, ...rest }: MentionMenuProps) {
   }, [auth.user?.id, data]);
 
   const clearSearch = () => {
-    const { state, dispatch } = rest.view;
+    const { state, dispatch } = view;
 
     // clear search input
     dispatch(
@@ -77,11 +82,9 @@ function MentionMenu({ search, ...rest }: MentionMenuProps) {
     );
   };
 
-  const containerId = "mention-menu-container";
   return (
-    <CommandMenu
+    <SuggestionsMenu
       {...rest}
-      id={containerId}
       filterable={false}
       onClearSearch={clearSearch}
       search={search}
@@ -91,7 +94,6 @@ function MentionMenu({ search, ...rest }: MentionMenuProps) {
           selected={options.selected}
           title={item.title}
           label={item.attrs.label}
-          containerId={containerId}
           icon={
             <Flex
               align="center"
@@ -113,4 +115,4 @@ function MentionMenu({ search, ...rest }: MentionMenuProps) {
   );
 }
 
-export default MentionMenu;
+export default observer(MentionMenu);

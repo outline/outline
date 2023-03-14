@@ -565,6 +565,16 @@ export class Editor extends React.PureComponent<
   };
 
   /**
+   * Blur the editor.
+   */
+  public blur = () => {
+    (this.view.dom as HTMLElement).blur();
+
+    // Have Safari remove the caret.
+    window?.getSelection()?.removeAllRanges();
+  };
+
+  /**
    * Returns true if the trimmed content of the editor is an empty string.
    *
    * @returns True if the editor is empty
@@ -733,7 +743,6 @@ export class Editor extends React.PureComponent<
       grow,
       style,
       className,
-      dictionary,
       onKeyDown,
     } = this.props;
     const { isRTL } = this.state;
@@ -762,9 +771,6 @@ export class Editor extends React.PureComponent<
             {!readOnly && this.view && (
               <>
                 <SelectionToolbar
-                  view={this.view}
-                  dictionary={dictionary}
-                  commands={this.commands}
                   rtl={isRTL}
                   isTemplate={this.props.template === true}
                   onOpen={this.handleOpenSelectionMenu}
@@ -772,7 +778,6 @@ export class Editor extends React.PureComponent<
                   onSearchLink={this.props.onSearchLink}
                   onClickLink={this.props.onClickLink}
                   onCreateLink={this.props.onCreateLink}
-                  onShowToast={this.props.onShowToast}
                 />
                 <LinkToolbar
                   isActive={this.state.linkMenuOpen}
@@ -782,29 +787,18 @@ export class Editor extends React.PureComponent<
                   onClose={this.handleCloseLinkMenu}
                 />
                 <EmojiMenu
-                  view={this.view}
-                  commands={this.commands}
-                  dictionary={dictionary}
                   rtl={isRTL}
-                  onShowToast={this.props.onShowToast}
                   isActive={this.state.emojiMenuOpen}
                   search={this.state.blockMenuSearch}
                   onClose={this.handleCloseEmojiMenu}
                 />
                 <MentionMenu
-                  view={this.view}
-                  commands={this.commands}
-                  dictionary={dictionary}
                   rtl={isRTL}
-                  onShowToast={this.props.onShowToast}
                   isActive={this.state.mentionMenuOpen}
                   search={this.state.blockMenuSearch}
                   onClose={this.handleCloseMentionMenu}
                 />
                 <BlockMenu
-                  view={this.view}
-                  commands={this.commands}
-                  dictionary={dictionary}
                   rtl={isRTL}
                   isActive={this.state.blockMenuOpen}
                   search={this.state.blockMenuSearch}
@@ -813,7 +807,6 @@ export class Editor extends React.PureComponent<
                   onLinkToolbarOpen={this.handleOpenLinkMenu}
                   onFileUploadStart={this.props.onFileUploadStart}
                   onFileUploadStop={this.props.onFileUploadStop}
-                  onShowToast={this.props.onShowToast}
                   embeds={this.props.embeds}
                 />
               </>

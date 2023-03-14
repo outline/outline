@@ -1,32 +1,39 @@
 import { findParentNode } from "prosemirror-utils";
 import React from "react";
+import useDictionary from "~/hooks/useDictionary";
 import getMenuItems from "../menus/block";
-import CommandMenu, { Props } from "./CommandMenu";
-import CommandMenuItem from "./CommandMenuItem";
+import { useEditor } from "./EditorContext";
+import SuggestionsMenu, {
+  Props as SuggestionsMenuProps,
+} from "./SuggestionsMenu";
+import SuggestionsMenuItem from "./SuggestionsMenuItem";
 
-type BlockMenuProps = Omit<
-  Props,
+type Props = Omit<
+  SuggestionsMenuProps,
   "renderMenuItem" | "items" | "onClearSearch"
 > &
-  Required<Pick<Props, "onLinkToolbarOpen" | "embeds">>;
+  Required<Pick<SuggestionsMenuProps, "onLinkToolbarOpen" | "embeds">>;
 
-function BlockMenu(props: BlockMenuProps) {
-  const clearSearch = () => {
-    const { state, dispatch } = props.view;
+function BlockMenu(props: Props) {
+  const { view } = useEditor();
+  const dictionary = useDictionary();
+
+  const clearSearch = React.useCallback(() => {
+    const { state, dispatch } = view;
     const parent = findParentNode((node) => !!node)(state.selection);
 
     if (parent) {
       dispatch(state.tr.insertText("", parent.pos, state.selection.to));
     }
-  };
+  }, [view]);
 
   return (
-    <CommandMenu
+    <SuggestionsMenu
       {...props}
       filterable={true}
       onClearSearch={clearSearch}
       renderMenuItem={(item, _index, options) => (
-        <CommandMenuItem
+        <SuggestionsMenuItem
           onClick={options.onClick}
           selected={options.selected}
           icon={item.icon}
@@ -34,7 +41,7 @@ function BlockMenu(props: BlockMenuProps) {
           shortcut={item.shortcut}
         />
       )}
-      items={getMenuItems(props.dictionary)}
+      items={getMenuItems(dictionary)}
     />
   );
 }
