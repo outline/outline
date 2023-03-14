@@ -1,5 +1,5 @@
 import { capitalize } from "lodash";
-import { findDomRefAtPos, findParentNode } from "prosemirror-utils";
+import { findParentNode } from "prosemirror-utils";
 import * as React from "react";
 import { Trans } from "react-i18next";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
@@ -18,15 +18,35 @@ import useToasts from "~/hooks/useToasts";
 import { useEditor } from "./EditorContext";
 import Input from "./Input";
 
-const defaultPosition: {
+type TopAnchor = {
+  top: number;
+  bottom: undefined;
+};
+
+type BottomAnchor = {
+  top: undefined;
+  bottom: number;
+};
+
+type LeftAnchor = {
   left: number;
-  top: number | undefined;
-  bottom: number | undefined;
+  right: undefined;
+};
+
+type RightAnchor = {
+  left: undefined;
+  right: number;
+};
+
+type Position = ((TopAnchor | BottomAnchor) & (LeftAnchor | RightAnchor)) & {
   isAbove: boolean;
-} = {
-  left: -1000,
+};
+
+const defaultPosition: Position = {
   top: 0,
   bottom: undefined,
+  left: -1000,
+  right: undefined,
   isAbove: false,
 };
 
@@ -59,7 +79,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   const dictionary = useDictionary();
   const menuRef = React.useRef<HTMLDivElement>(null);
   const inputRef = React.useRef<HTMLInputElement>(null);
-  const [position, setPosition] = React.useState(defaultPosition);
+  const [position, setPosition] = React.useState<Position>(defaultPosition);
   const [insertItem, setInsertItem] = React.useState<
     MenuItem | EmbedDescriptor
   >();
@@ -67,64 +87,40 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
 
   const calculatePosition = React.useCallback(
     (props: Props) => {
+      if (!props.isActive) {
+        return defaultPosition;
+      }
+
       const caretPosition = () => {
-        const selection = window.document.getSelection();
-        if (!selection || !selection.anchorNode || !selection.focusNode) {
+        let fromPos;
+        let toPos;
+        try {
+          fromPos = view.coordsAtPos(selection.from);
+          toPos = view.coordsAtPos(selection.to, -1);
+        } catch (err) {
+          console.warn(err);
           return {
             top: 0,
+            bottom: 0,
             left: 0,
+            right: 0,
           };
         }
 
-        const range = window.document.createRange();
-        range.setStart(selection.anchorNode, selection.anchorOffset);
-        range.setEnd(selection.focusNode, selection.focusOffset);
-
-        // This is a workaround for an edgecase where getBoundingClientRect will
-        // return zero values if the selection is collapsed at the start of a newline
-        // see reference here: https://stackoverflow.com/a/59780954
-        const rects = range.getClientRects();
-        if (rects.length === 0) {
-          // probably buggy newline behavior, explicitly select the node contents
-          if (range.startContainer && range.collapsed) {
-            range.selectNodeContents(range.startContainer);
-          }
-        }
-
-        const rect = range.getBoundingClientRect();
+        // ensure that start < end for the menu to be positioned correctly
         return {
-          top: rect.top,
-          left: rect.left,
+          top: Math.min(fromPos.top, toPos.top),
+          bottom: Math.max(fromPos.bottom, toPos.bottom),
+          left: Math.min(fromPos.left, toPos.left),
+          right: Math.max(fromPos.right, toPos.right),
         };
       };
 
       const { selection } = view.state;
-      let startPos;
-      try {
-        startPos = view.coordsAtPos(selection.from);
-      } catch (err) {
-        console.warn(err);
-        return defaultPosition;
-      }
-
-      const domAtPos = view.domAtPos.bind(view);
-
       const ref = menuRef.current;
       const offsetWidth = ref ? ref.offsetWidth : 0;
       const offsetHeight = ref ? ref.offsetHeight : 0;
-      const node = findDomRefAtPos(selection.from, domAtPos) as HTMLElement;
-      const paragraph = { node };
-
-      if (
-        !props.isActive ||
-        !paragraph.node ||
-        !paragraph.node.getBoundingClientRect
-      ) {
-        return defaultPosition;
-      }
-
-      const { left } = caretPosition();
-      const { top, bottom, right } = paragraph.node.getBoundingClientRect();
+      const { top, bottom, right, left } = caretPosition();
       const margin = 12;
 
       const offsetParent = ref?.offsetParent
@@ -144,11 +140,12 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         leftPos = right - offsetWidth;
       }
 
-      if (startPos.top - offsetHeight > margin) {
+      if (top - offsetHeight > margin) {
         return {
           left: leftPos,
           top: undefined,
           bottom: offsetParent.bottom - top,
+          right: undefined,
           isAbove: false,
         };
       } else {
@@ -156,6 +153,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
           left: leftPos,
           top: bottom - offsetParent.top,
           bottom: undefined,
+          right: undefined,
           isAbove: true,
         };
       }
