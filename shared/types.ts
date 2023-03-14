@@ -159,3 +159,19 @@ export type CollectionSort = {
   field: string;
   direction: "asc" | "desc";
 };
+
+export enum NotificationEventType {
+  PublishDocument = "documents.publish",
+  UpdateDocument = "documents.update",
+  CreateCollection = "collections.create",
+  InviteAccepted = "emails.invite_accepted",
+  Onboarding = "emails.onboarding",
+  Features = "emails.features",
+  ExportCompleted = "emails.export_completed",
+}
+
+export enum NotificationChannelType {
+  App = "app",
+  Email = "email",
+  Chat = "chat",
+}

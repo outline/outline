@@ -12,7 +12,6 @@ import {
   IsIn,
   BeforeDestroy,
   BeforeCreate,
-  AfterCreate,
   BelongsTo,
   ForeignKey,
   DataType,
@@ -26,6 +25,8 @@ import {
 import { languages } from "@shared/i18n";
 import {
   CollectionPermission,
+  NotificationChannelType,
+  NotificationEventType,
   UserPreference,
   UserPreferences,
 } from "@shared/types";
@@ -168,6 +169,15 @@ class User extends ParanoidModel {
   @AllowNull
   @Column(DataType.JSONB)
   preferences: UserPreferences | null;
+
+  @Column(DataType.JSONB)
+  notificationSettings: {
+    [key in NotificationEventType]?:
+      | {
+          [key in NotificationChannelType]?: boolean;
+        }
+      | boolean;
+  };
 
   @Default(env.DEFAULT_LANGUAGE)
   @IsIn([languages])
@@ -607,62 +617,6 @@ class User extends ParanoidModel {
           teamId: model.id,
         });
       }
-    }
-  };
-
-  // By default when a user signs up we subscribe them to email notifications
-  // when documents they created are edited by other team members and onboarding.
-  // If the user is an admin, they will also be subscribed to export_completed
-  // notifications.
-  @AfterCreate
-  static subscribeToNotifications = async (
-    model: User,
-    options: { transaction: Transaction }
-  ) => {
-    await Promise.all([
-      NotificationSetting.findOrCreate({
-        where: {
-          userId: model.id,
-          teamId: model.teamId,
-          event: "documents.update",
-        },
-        transaction: options.transaction,
-      }),
-      NotificationSetting.findOrCreate({
-        where: {
-          userId: model.id,
-          teamId: model.teamId,
-          event: "emails.onboarding",
-        },
-        transaction: options.transaction,
-      }),
-      NotificationSetting.findOrCreate({
-        where: {
-          userId: model.id,
-          teamId: model.teamId,
-          event: "emails.features",
-        },
-        transaction: options.transaction,
-      }),
-      NotificationSetting.findOrCreate({
-        where: {
-          userId: model.id,
-          teamId: model.teamId,
-          event: "emails.invite_accepted",
-        },
-        transaction: options.transaction,
-      }),
-    ]);
-
-    if (model.isAdmin) {
-      await NotificationSetting.findOrCreate({
-        where: {
-          userId: model.id,
-          teamId: model.teamId,
-          event: "emails.export_completed",
-        },
-        transaction: options.transaction,
-      });
     }
   };
 

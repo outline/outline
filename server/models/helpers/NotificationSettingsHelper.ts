@@ -1,21 +1,6 @@
+import { NotificationEventType } from "@shared/types";
 import NotificationSetting from "../NotificationSetting";
 import User from "../User";
-
-export enum NotificationEventType {
-  PublishDocument = "documents.publish",
-  UpdateDocument = "documents.update",
-  CreateCollection = "collections.create",
-  InviteAccepted = "emails.invite_accepted",
-  Onboarding = "emails.onboarding",
-  Features = "emails.features",
-  ExportCompleted = "emails.export_completed",
-}
-
-export enum NotificationChannelType {
-  App = "app",
-  Email = "email",
-  Chat = "chat",
-}
 
 export const NotificationEventDefaults = {
   [NotificationEventType.PublishDocument]: false,
