@@ -83,7 +83,7 @@ export default class CommentCreatedEmail extends BaseEmail<
       body,
       unsubscribeUrl: NotificationSettingsHelper.unsubscribeUrl(
         user,
-        NotificationEventType.CreateCollection
+        NotificationEventType.CreateComment
       ),
     };
   }
