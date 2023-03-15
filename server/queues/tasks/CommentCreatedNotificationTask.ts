@@ -1,4 +1,5 @@
 import { Node } from "prosemirror-model";
+import { NotificationEventType } from "@shared/types";
 import subscriptionCreator from "@server/commands/subscriptionCreator";
 import { sequelize } from "@server/database/sequelize";
 import { schema } from "@server/editor";
@@ -75,9 +76,53 @@ export default class CommentCreatedNotificationTask extends BaseTask<
           documentId: document.id,
         });
         userIdsSentNotifications.push(recipient.id);
+
+        if (recipient.shouldNotifyEventType(NotificationEventType.Mentioned)) {
+          await CommentCreatedEmail.schedule(
+            {
+              to: recipient.email,
+              userId: recipient.id,
+              documentId: document.id,
+              teamUrl: team.url,
+              isReply: !!comment.parentCommentId,
+              actorName: comment.createdBy.name,
+              commentId: comment.id,
+              content,
+              collectionName: document.collection?.name,
+            },
+            { notificationId: notification.id }
+          );
+        }
+      }
+    }
+
+    const recipients = (
+      await NotificationHelper.getCommentNotificationRecipients(
+        document,
+        comment,
+        comment.createdById
+      )
+    ).filter((recipient) => !userIdsSentNotifications.includes(recipient.id));
+    if (!recipients.length) {
+      return;
+    }
+
+    for (const recipient of recipients) {
+      const notification = await Notification.create({
+        event: event.name,
+        userId: recipient.id,
+        actorId: comment.createdById,
+        teamId: team.id,
+        documentId: document.id,
+      });
+
+      if (
+        recipient.shouldNotifyEventType(NotificationEventType.CreateComment)
+      ) {
         await CommentCreatedEmail.schedule(
           {
             to: recipient.email,
+            userId: recipient.id,
             documentId: document.id,
             teamUrl: team.url,
             isReply: !!comment.parentCommentId,
@@ -89,43 +134,6 @@ export default class CommentCreatedNotificationTask extends BaseTask<
           { notificationId: notification.id }
         );
       }
-    }
-
-    const recipients = (
-      await NotificationHelper.getCommentNotificationRecipients(
-        document,
-        comment,
-        comment.createdById
-      )
-    ).filter(
-      (recipient) => !userIdsSentNotifications.includes(recipient.userId)
-    );
-    if (!recipients.length) {
-      return;
-    }
-
-    for (const recipient of recipients) {
-      const notification = await Notification.create({
-        event: event.name,
-        userId: recipient.user.id,
-        actorId: comment.createdById,
-        teamId: team.id,
-        documentId: document.id,
-      });
-      await CommentCreatedEmail.schedule(
-        {
-          to: recipient.user.email,
-          documentId: document.id,
-          teamUrl: team.url,
-          isReply: !!comment.parentCommentId,
-          actorName: comment.createdBy.name,
-          commentId: comment.id,
-          content,
-          collectionName: document.collection?.name,
-          unsubscribeUrl: recipient.unsubscribeUrl,
-        },
-        { notificationId: notification.id }
-      );
     }
   }
 

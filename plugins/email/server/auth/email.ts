@@ -1,6 +1,6 @@
 import Router from "koa-router";
 import { find } from "lodash";
-import { Client } from "@shared/types";
+import { Client, NotificationEventType } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
 import InviteAcceptedEmail from "@server/emails/templates/InviteAcceptedEmail";
 import SigninEmail from "@server/emails/templates/SigninEmail";
@@ -115,7 +115,10 @@ router.get("email.callback", async (ctx) => {
     });
 
     const inviter = await user.$get("invitedBy");
-    if (inviter) {
+    if (
+      inviter &&
+      inviter.shouldNotifyEventType(NotificationEventType.InviteAccepted)
+    ) {
       await InviteAcceptedEmail.schedule({
         to: inviter.email,
         inviterId: inviter.id,

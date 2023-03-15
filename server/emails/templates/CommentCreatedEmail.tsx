@@ -1,7 +1,9 @@
 import inlineCss from "inline-css";
 import * as React from "react";
+import { NotificationEventType } from "@shared/types";
 import env from "@server/env";
-import { Comment, Document } from "@server/models";
+import { Comment, Document, User } from "@server/models";
+import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import BaseEmail from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
@@ -14,13 +16,13 @@ import Heading from "./components/Heading";
 
 type InputProps = {
   to: string;
+  userId: string;
   documentId: string;
   actorName: string;
   isReply: boolean;
   commentId: string;
   collectionName: string;
   teamUrl: string;
-  unsubscribeUrl: string;
   content: string;
 };
 
@@ -28,6 +30,7 @@ type BeforeSend = {
   document: Document;
   body: string | undefined;
   isFirstComment: boolean;
+  unsubscribeUrl: string;
 };
 
 type Props = InputProps & BeforeSend;
@@ -40,9 +43,19 @@ export default class CommentCreatedEmail extends BaseEmail<
   InputProps,
   BeforeSend
 > {
-  protected async beforeSend({ documentId, commentId, content }: InputProps) {
+  protected async beforeSend({
+    documentId,
+    userId,
+    commentId,
+    content,
+  }: InputProps) {
     const document = await Document.unscoped().findByPk(documentId);
     if (!document) {
+      return false;
+    }
+
+    const user = await User.findByPk(userId);
+    if (!user) {
       return false;
     }
 
@@ -64,7 +77,15 @@ export default class CommentCreatedEmail extends BaseEmail<
       });
     }
 
-    return { document, isFirstComment, body };
+    return {
+      document,
+      isFirstComment,
+      body,
+      unsubscribeUrl: NotificationSettingsHelper.unsubscribeUrl(
+        user,
+        NotificationEventType.CreateCollection
+      ),
+    };
   }
 
   protected subject({ isFirstComment, document }: Props) {

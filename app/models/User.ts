@@ -1,7 +1,13 @@
 import { subMinutes } from "date-fns";
 import { computed, observable } from "mobx";
 import { now } from "mobx-utils";
-import type { Role, UserPreference, UserPreferences } from "@shared/types";
+import {
+  NotificationEventDefaults,
+  NotificationEventType,
+  UserPreference,
+  UserPreferences,
+} from "@shared/types";
+import type { Role, NotificationSettings } from "@shared/types";
 import ParanoidModel from "./ParanoidModel";
 import Field from "./decorators/Field";
 
@@ -29,6 +35,10 @@ class User extends ParanoidModel {
   @Field
   @observable
   preferences: UserPreferences | null;
+
+  @Field
+  @observable
+  notificationSettings: NotificationSettings;
 
   email: string;
 
@@ -71,6 +81,14 @@ class User extends ParanoidModel {
       return "member";
     }
   }
+
+  public shouldNotifyEventType = (type: NotificationEventType) => {
+    return (
+      this.notificationSettings[type] ??
+      NotificationEventDefaults[type] ??
+      false
+    );
+  };
 
   /**
    * Get the value for a specific preference key, or return the fallback if

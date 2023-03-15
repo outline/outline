@@ -1,6 +1,7 @@
 import { subHours } from "date-fns";
 import { differenceBy } from "lodash";
 import { Op } from "sequelize";
+import { NotificationEventType } from "@shared/types";
 import { Minute } from "@shared/utils/time";
 import subscriptionCreator from "@server/commands/subscriptionCreator";
 import { sequelize } from "@server/database/sequelize";
@@ -114,34 +115,32 @@ export default class NotificationsProcessor extends BaseProcessor {
     const recipients = (
       await NotificationHelper.getDocumentNotificationRecipients(
         document,
-        "documents.publish",
+        NotificationEventType.PublishDocument,
         document.lastModifiedById,
         false
       )
-    ).filter(
-      (recipient) => !userIdsSentNotifications.includes(recipient.userId)
-    );
+    ).filter((recipient) => !userIdsSentNotifications.includes(recipient.id));
 
     for (const recipient of recipients) {
-      const notify = await this.shouldNotify(document, recipient.user);
+      const notify = await this.shouldNotify(document, recipient);
 
       if (notify) {
         const notification = await Notification.create({
           event: event.name,
-          userId: recipient.user.id,
+          userId: recipient.id,
           actorId: document.updatedBy.id,
           teamId: team.id,
           documentId: document.id,
         });
         await DocumentNotificationEmail.schedule(
           {
-            to: recipient.user.email,
+            to: recipient.email,
+            userId: recipient.id,
             eventName: "published",
             documentId: document.id,
             teamUrl: team.url,
             actorName: document.updatedBy.name,
             collectionName: collection.name,
-            unsubscribeUrl: recipient.unsubscribeUrl,
           },
           { notificationId: notification.id }
         );
@@ -200,13 +199,11 @@ export default class NotificationsProcessor extends BaseProcessor {
     const recipients = (
       await NotificationHelper.getDocumentNotificationRecipients(
         document,
-        "documents.update",
+        NotificationEventType.UpdateDocument,
         document.lastModifiedById,
         true
       )
-    ).filter(
-      (recipient) => !userIdsSentNotifications.includes(recipient.userId)
-    );
+    ).filter((recipient) => !userIdsSentNotifications.includes(recipient.id));
     if (!recipients.length) {
       return;
     }
@@ -223,12 +220,12 @@ export default class NotificationsProcessor extends BaseProcessor {
     }
 
     for (const recipient of recipients) {
-      const notify = await this.shouldNotify(document, recipient.user);
+      const notify = await this.shouldNotify(document, recipient);
 
       if (notify) {
         const notification = await Notification.create({
           event: event.name,
-          userId: recipient.user.id,
+          userId: recipient.id,
           actorId: document.updatedBy.id,
           teamId: team.id,
           documentId: document.id,
@@ -236,13 +233,12 @@ export default class NotificationsProcessor extends BaseProcessor {
 
         await DocumentNotificationEmail.schedule(
           {
-            to: recipient.user.email,
+            to: recipient.email,
             eventName: "updated",
             documentId: document.id,
             teamUrl: team.url,
             actorName: document.updatedBy.name,
             collectionName: collection.name,
-            unsubscribeUrl: recipient.unsubscribeUrl,
             content,
           },
           { notificationId: notification.id }
@@ -262,20 +258,20 @@ export default class NotificationsProcessor extends BaseProcessor {
 
     const recipients = await NotificationHelper.getCollectionNotificationRecipients(
       collection,
-      event.name
+      NotificationEventType.CreateCollection
     );
 
     for (const recipient of recipients) {
       // Suppress notifications for suspended users
-      if (recipient.user.isSuspended || !recipient.user.email) {
+      if (recipient.isSuspended || !recipient.email) {
         continue;
       }
 
       await CollectionNotificationEmail.schedule({
-        to: recipient.user.email,
+        to: recipient.email,
+        userId: recipient.id,
         eventName: "created",
         collectionId: collection.id,
-        unsubscribeUrl: recipient.unsubscribeUrl,
       });
     }
   }

@@ -1,6 +1,8 @@
 import * as React from "react";
+import { NotificationEventType } from "@shared/types";
 import env from "@server/env";
-import { Collection } from "@server/models";
+import { Collection, User } from "@server/models";
+import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import BaseEmail from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
@@ -13,12 +15,13 @@ import Heading from "./components/Heading";
 type InputProps = {
   to: string;
   eventName: string;
+  userId: string;
   collectionId: string;
-  unsubscribeUrl: string;
 };
 
 type BeforeSend = {
   collection: Collection;
+  unsubscribeUrl: string;
 };
 
 type Props = InputProps & BeforeSend;
@@ -32,7 +35,7 @@ export default class CollectionNotificationEmail extends BaseEmail<
   InputProps,
   BeforeSend
 > {
-  protected async beforeSend({ collectionId }: Props) {
+  protected async beforeSend({ userId, collectionId }: Props) {
     const collection = await Collection.scope("withUser").findByPk(
       collectionId
     );
@@ -40,7 +43,18 @@ export default class CollectionNotificationEmail extends BaseEmail<
       return false;
     }
 
-    return { collection };
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return false;
+    }
+
+    return {
+      collection,
+      unsubscribeUrl: NotificationSettingsHelper.unsubscribeUrl(
+        user,
+        NotificationEventType.CreateCollection
+      ),
+    };
   }
 
   protected subject({ collection, eventName }: Props) {

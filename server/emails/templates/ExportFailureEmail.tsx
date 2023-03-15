@@ -1,5 +1,7 @@
 import * as React from "react";
-import { NotificationSetting } from "@server/models";
+import { NotificationEventType } from "@shared/types";
+import { User } from "@server/models";
+import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import BaseEmail from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
@@ -16,20 +18,26 @@ type Props = {
   teamId: string;
 };
 
+type BeforeSendProps = {
+  unsubscribeUrl: string;
+};
+
 /**
  * Email sent to a user when their data export has failed for some reason.
  */
 export default class ExportFailureEmail extends BaseEmail<Props> {
-  protected async beforeSend({ userId, teamId }: Props) {
-    const notificationSetting = await NotificationSetting.findOne({
-      where: {
-        userId,
-        teamId,
-        event: "emails.export_completed",
-      },
-    });
+  protected async beforeSend({ userId }: Props) {
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return false;
+    }
 
-    return notificationSetting !== null;
+    return {
+      unsubscribeUrl: NotificationSettingsHelper.unsubscribeUrl(
+        user,
+        NotificationEventType.ExportCompleted
+      ),
+    };
   }
 
   protected subject() {
@@ -49,7 +57,7 @@ section to try again – if the problem persists please contact support.
 `;
   }
 
-  protected render({ teamUrl }: Props) {
+  protected render({ teamUrl, unsubscribeUrl }: Props & BeforeSendProps) {
     return (
       <EmailTemplate>
         <Header />
@@ -71,7 +79,7 @@ section to try again – if the problem persists please contact support.
             <Button href={`${teamUrl}/settings/export`}>Go to export</Button>
           </p>
         </Body>
-        <Footer />
+        <Footer unsubscribeUrl={unsubscribeUrl} />
       </EmailTemplate>
     );
   }

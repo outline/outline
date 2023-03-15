@@ -164,6 +164,8 @@ export enum NotificationEventType {
   PublishDocument = "documents.publish",
   UpdateDocument = "documents.update",
   CreateCollection = "collections.create",
+  CreateComment = "comments.create",
+  Mentioned = "comments.mentioned",
   InviteAccepted = "emails.invite_accepted",
   Onboarding = "emails.onboarding",
   Features = "emails.features",
@@ -175,3 +177,23 @@ export enum NotificationChannelType {
   Email = "email",
   Chat = "chat",
 }
+
+export type NotificationSettings = {
+  [key in NotificationEventType]?:
+    | {
+        [key in NotificationChannelType]?: boolean;
+      }
+    | boolean;
+};
+
+export const NotificationEventDefaults = {
+  [NotificationEventType.PublishDocument]: false,
+  [NotificationEventType.UpdateDocument]: true,
+  [NotificationEventType.CreateCollection]: false,
+  [NotificationEventType.CreateComment]: true,
+  [NotificationEventType.Mentioned]: true,
+  [NotificationEventType.InviteAccepted]: true,
+  [NotificationEventType.Onboarding]: true,
+  [NotificationEventType.Features]: true,
+  [NotificationEventType.ExportCompleted]: true,
+};

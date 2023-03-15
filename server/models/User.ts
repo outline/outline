@@ -23,12 +23,13 @@ import {
   AfterUpdate,
 } from "sequelize-typescript";
 import { languages } from "@shared/i18n";
+import type { NotificationSettings } from "@shared/types";
 import {
   CollectionPermission,
-  NotificationChannelType,
-  NotificationEventType,
   UserPreference,
   UserPreferences,
+  NotificationEventType,
+  NotificationEventDefaults,
 } from "@shared/types";
 import { stringToColor } from "@shared/utils/color";
 import env from "@server/env";
@@ -39,7 +40,6 @@ import ApiKey from "./ApiKey";
 import Attachment from "./Attachment";
 import Collection from "./Collection";
 import CollectionUser from "./CollectionUser";
-import NotificationSetting from "./NotificationSetting";
 import Star from "./Star";
 import Team from "./Team";
 import UserAuthentication from "./UserAuthentication";
@@ -171,13 +171,7 @@ class User extends ParanoidModel {
   preferences: UserPreferences | null;
 
   @Column(DataType.JSONB)
-  notificationSettings: {
-    [key in NotificationEventType]?:
-      | {
-          [key in NotificationChannelType]?: boolean;
-        }
-      | boolean;
-  };
+  notificationSettings: NotificationSettings;
 
   @Default(env.DEFAULT_LANGUAGE)
   @IsIn([languages])
@@ -264,6 +258,22 @@ class User extends ParanoidModel {
   }
 
   // instance methods
+
+  public setNotificationEventType = (
+    type: NotificationEventType,
+    value: boolean
+  ) => {
+    this.notificationSettings[type] = value;
+    this.changed("notificationSettings", true);
+  };
+
+  public shouldNotifyEventType = (type: NotificationEventType) => {
+    return (
+      this.notificationSettings[type] ??
+      NotificationEventDefaults[type] ??
+      false
+    );
+  };
 
   /**
    * User flags are for storing information on a user record that is not visible
@@ -545,12 +555,6 @@ class User extends ParanoidModel {
     model: User,
     options: { transaction: Transaction }
   ) => {
-    await NotificationSetting.destroy({
-      where: {
-        userId: model.id,
-      },
-      transaction: options.transaction,
-    });
     await ApiKey.destroy({
       where: {
         userId: model.id,
