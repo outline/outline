@@ -21,6 +21,9 @@ export const GroupsListSchema = z.object({
         message: "Invalid sort parameter",
       })
       .default("updatedAt"),
+
+    /** Only list groups where this user is a member */
+    userId: z.string().uuid().optional(),
   }),
 });
 

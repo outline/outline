@@ -9,6 +9,7 @@ import {
   BelongsToMany,
   DefaultScope,
   DataType,
+  Scopes,
 } from "sequelize-typescript";
 import CollectionGroup from "./CollectionGroup";
 import GroupUser from "./GroupUser";
@@ -26,6 +27,23 @@ import NotContainsUrl from "./validators/NotContainsUrl";
       required: false,
     },
   ],
+}))
+@Scopes(() => ({
+  withMember: (memberId: string) => ({
+    include: [
+      {
+        association: "groupMemberships",
+        required: true,
+      },
+      {
+        association: "members",
+        required: true,
+        where: {
+          userId: memberId,
+        },
+      },
+    ],
+  }),
 }))
 @Table({
   tableName: "groups",
@@ -76,9 +94,16 @@ class Group extends ParanoidModel {
     });
   }
 
+  static filterByMember(memberId: string | undefined) {
+    return memberId
+      ? this.scope({ method: ["withMember", memberId] })
+      : this.scope("defaultScope");
+  }
+
   // associations
 
   @HasMany(() => GroupUser, "groupId")
+  @HasMany(() => GroupUser, { as: "members", foreignKey: "groupId" })
   groupMemberships: GroupUser[];
 
   @HasMany(() => CollectionGroup, "groupId")
