@@ -49,12 +49,17 @@ function getNewState({
     const diagramDecoration = Decoration.widget(
       block.pos + block.node.nodeSize,
       () => {
-        const diagramWrapper = document.createElement("div");
+        const elementId = "mermaid-diagram-wrapper-" + diagramId;
+        const diagramWrapper =
+          document.getElementById(elementId) || document.createElement("div");
+        diagramWrapper.id = elementId;
         diagramWrapper.classList.add("mermaid-diagram-wrapper");
 
         if (pluginState.diagramVisibility[diagramId] === false) {
           diagramWrapper.classList.add("diagram-hidden");
           return diagramWrapper;
+        } else {
+          diagramWrapper.classList.remove("diagram-hidden");
         }
 
         import("mermaid").then((module) => {
@@ -71,6 +76,7 @@ function getNewState({
             theme: pluginState.isDark ? "dark" : "default",
             fontFamily: "inherit",
           });
+
           module.default
             .render("mermaid-diagram-" + diagramId, block.node.textContent)
             .then(({ svg, bindFunctions }) => {
