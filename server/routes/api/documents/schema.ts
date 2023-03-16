@@ -302,3 +302,12 @@ export const DocumentsCreateSchema = BaseSchema.extend({
   });
 
 export type DocumentsCreateReq = z.infer<typeof DocumentsCreateSchema>;
+
+export const DocumentsUsersSchema = BaseSchema.extend({
+  body: BaseIdSchema.extend({
+    /** Query term to search users by name */
+    query: z.string().optional(),
+  }),
+});
+
+export type DocumentsUsersReq = z.infer<typeof DocumentsUsersSchema>;

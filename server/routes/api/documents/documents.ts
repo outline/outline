@@ -42,6 +42,7 @@ import {
   presentDocument,
   presentPolicies,
   presentPublicTeam,
+  presentUser,
 } from "@server/presenters";
 import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
@@ -431,6 +432,49 @@ router.post(
     ctx.body = {
       data,
       policies: isPublic ? undefined : presentPolicies(user, [document]),
+    };
+  }
+);
+
+router.post(
+  "documents.users",
+  auth(),
+  validate(T.DocumentsUsersSchema),
+  async (ctx: APIContext<T.DocumentsUsersReq>) => {
+    const { id, query } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const document = await Document.findByPk(id);
+    authorize(user, "update", document);
+
+    let users: User[] = [];
+
+    if (document.collectionId) {
+      const collection = await Collection.findByPk(document.collectionId);
+      authorize(user, "update", collection);
+      const memberIds = await Collection.membershipUserIds(collection.id);
+
+      let where: WhereOptions<User> = {
+        id: {
+          [Op.in]: memberIds,
+        },
+      };
+      if (query) {
+        where = {
+          ...where,
+          name: {
+            [Op.iLike]: `%${query}%`,
+          },
+        };
+      }
+
+      users = await User.findAll({ where });
+    }
+
+    ctx.body = {
+      data: {
+        document: await presentDocument(document),
+        users: users.map((user) => presentUser(user)),
+      },
     };
   }
 );
