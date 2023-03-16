@@ -21,7 +21,7 @@ export type NotificationSettingsDeleteReq = z.infer<
   typeof NotificationSettingsDeleteSchema
 >;
 
-export const NotificationSettingsUnsubscribeSchema = z.object({
+export const NotificationsUnsubscribeSchema = z.object({
   body: z.object({
     userId: z.string().uuid(),
     token: z.string(),
@@ -34,6 +34,6 @@ export const NotificationSettingsUnsubscribeSchema = z.object({
   }),
 });
 
-export type NotificationSettingsUnsubscribeReq = z.infer<
-  typeof NotificationSettingsUnsubscribeSchema
+export type NotificationsUnsubscribeReq = z.infer<
+  typeof NotificationsUnsubscribeSchema
 >;

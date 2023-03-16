@@ -14,7 +14,7 @@ export default class NotificationSettingsHelper {
   public static unsubscribeUrl(user: User, eventType: NotificationEventType) {
     return `${
       env.URL
-    }/api/notificationSettings.unsubscribe?token=${this.unsubscribeToken(
+    }/api/notifications.unsubscribe?token=${this.unsubscribeToken(
       user,
       eventType
     )}&userId=${user.id}eventType=${eventType}`;

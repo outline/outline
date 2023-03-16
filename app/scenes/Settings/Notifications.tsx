@@ -79,18 +79,10 @@ function Notifications() {
 
   const handleChange = React.useCallback(
     async (ev: React.ChangeEvent<HTMLInputElement>) => {
-      const setting = user.shouldNotifyEventType(
-        ev.target.name as NotificationEventType
+      await user.setNotificationEventType(
+        ev.target.name as NotificationEventType,
+        ev.target.checked
       );
-
-      if (ev.target.checked) {
-        await notificationSettings.save({
-          event: ev.target.name,
-        });
-      } else if (setting) {
-        await notificationSettings.delete(setting);
-      }
-
       showSuccessMessage();
     },
     [user, showSuccessMessage]

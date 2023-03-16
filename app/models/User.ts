@@ -1,5 +1,5 @@
 import { subMinutes } from "date-fns";
-import { computed, observable } from "mobx";
+import { computed, action, observable } from "mobx";
 import { now } from "mobx-utils";
 import {
   NotificationEventDefaults,
@@ -8,6 +8,7 @@ import {
   UserPreferences,
 } from "@shared/types";
 import type { Role, NotificationSettings } from "@shared/types";
+import { client } from "~/utils/ApiClient";
 import ParanoidModel from "./ParanoidModel";
 import Field from "./decorators/Field";
 
@@ -88,6 +89,27 @@ class User extends ParanoidModel {
       NotificationEventDefaults[type] ??
       false
     );
+  };
+
+  @action
+  setNotificationEventType = async (
+    eventType: NotificationEventType,
+    value: boolean
+  ) => {
+    this.notificationSettings = {
+      ...this.notificationSettings,
+      [eventType]: value,
+    };
+
+    if (value) {
+      await client.post(`/users.notificationsSubscribe`, {
+        eventType,
+      });
+    } else {
+      await client.post(`/users.notificationsUnsubscribe`, {
+        eventType,
+      });
+    }
   };
 
   /**

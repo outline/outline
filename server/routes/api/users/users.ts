@@ -17,6 +17,7 @@ import logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
+import validate from "@server/middlewares/validate";
 import { Event, User, Team } from "@server/models";
 import { UserFlag, UserRole } from "@server/models/User";
 import { can, authorize } from "@server/policies";
@@ -32,7 +33,8 @@ import {
   assertKeysIn,
   assertBoolean,
 } from "@server/validation";
-import pagination from "./middlewares/pagination";
+import pagination from "../middlewares/pagination";
+import * as T from "./schema";
 
 const router = new Router();
 const emailEnabled = !!(env.SMTP_HOST || env.ENVIRONMENT === "development");
@@ -481,6 +483,44 @@ router.post(
 
     ctx.body = {
       success: true,
+    };
+  }
+);
+
+router.post(
+  "users.notificationsSubscribe",
+  auth(),
+  validate(T.UsersNotificationsSubscribeSchema),
+  transaction(),
+  async (ctx: APIContext<T.UsersNotificationsSubscribeReq>) => {
+    const { eventType } = ctx.input.body;
+    const { transaction } = ctx.state;
+
+    const { user } = ctx.state.auth;
+    user.setNotificationEventType(eventType, true);
+    await user.save({ transaction });
+
+    ctx.body = {
+      data: presentUser(user, { includeDetails: true }),
+    };
+  }
+);
+
+router.post(
+  "users.notificationsUnsubscribe",
+  auth(),
+  validate(T.UsersNotificationsUnsubscribeSchema),
+  transaction(),
+  async (ctx: APIContext<T.UsersNotificationsUnsubscribeReq>) => {
+    const { eventType } = ctx.input.body;
+    const { transaction } = ctx.state;
+
+    const { user } = ctx.state.auth;
+    user.setNotificationEventType(eventType, false);
+    await user.save({ transaction });
+
+    ctx.body = {
+      data: presentUser(user, { includeDetails: true }),
     };
   }
 );

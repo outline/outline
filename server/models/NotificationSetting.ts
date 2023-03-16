@@ -61,7 +61,7 @@ class NotificationSetting extends Model {
   // getters
 
   get unsubscribeUrl() {
-    return `${env.URL}/api/notificationSettings.unsubscribe?token=${this.unsubscribeToken}&id=${this.id}`;
+    return `${env.URL}/api/notifications.unsubscribe?token=${this.unsubscribeToken}&id=${this.id}`;
   }
 
   get unsubscribeToken() {
