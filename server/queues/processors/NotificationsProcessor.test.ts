@@ -1,7 +1,7 @@
+import { NotificationEventType } from "@shared/types";
 import DocumentNotificationEmail from "@server/emails/templates/DocumentNotificationEmail";
 import {
   View,
-  NotificationSetting,
   Subscription,
   Event,
   Notification,
@@ -31,11 +31,8 @@ describe("documents.publish", () => {
       teamId: user.teamId,
       lastModifiedById: user.id,
     });
-    await NotificationSetting.create({
-      userId: user.id,
-      teamId: user.teamId,
-      event: "documents.publish",
-    });
+    user.setNotificationEventType(NotificationEventType.PublishDocument);
+    await user.save();
 
     const processor = new NotificationsProcessor();
     await processor.perform({
@@ -57,11 +54,8 @@ describe("documents.publish", () => {
     const document = await buildDocument({
       teamId: user.teamId,
     });
-    await NotificationSetting.create({
-      userId: user.id,
-      teamId: user.teamId,
-      event: "documents.publish",
-    });
+    user.setNotificationEventType(NotificationEventType.PublishDocument);
+    await user.save();
 
     const processor = new NotificationsProcessor();
     await processor.perform({
@@ -90,11 +84,8 @@ describe("documents.publish", () => {
       teamId: user.teamId,
     });
 
-    await NotificationSetting.create({
-      userId: recipient.id,
-      teamId: recipient.teamId,
-      event: "documents.publish",
-    });
+    user.setNotificationEventType(NotificationEventType.PublishDocument);
+    await user.save();
 
     await Notification.create({
       actorId: user.id,
@@ -130,11 +121,9 @@ describe("documents.publish", () => {
       teamId: user.teamId,
       collectionId: collection.id,
     });
-    await NotificationSetting.create({
-      userId: user.id,
-      teamId: user.teamId,
-      event: "documents.publish",
-    });
+    user.setNotificationEventType(NotificationEventType.PublishDocument);
+    await user.save();
+
     const processor = new NotificationsProcessor();
     await processor.perform({
       name: "documents.publish",
@@ -162,11 +151,7 @@ describe("revisions.create", () => {
     const collaborator = await buildUser({ teamId: document.teamId });
     document.collaboratorIds = [collaborator.id];
     await document.save();
-    await NotificationSetting.create({
-      userId: collaborator.id,
-      teamId: collaborator.teamId,
-      event: "documents.update",
-    });
+
     const processor = new NotificationsProcessor();
     await processor.perform({
       name: "revisions.create",
@@ -189,11 +174,7 @@ describe("revisions.create", () => {
     const collaborator = await buildUser({ teamId: document.teamId });
     document.collaboratorIds = [collaborator.id];
     await document.save();
-    await NotificationSetting.create({
-      userId: collaborator.id,
-      teamId: collaborator.teamId,
-      event: "documents.update",
-    });
+
     await View.create({
       userId: collaborator.id,
       documentId: document.id,
@@ -222,11 +203,7 @@ describe("revisions.create", () => {
     document.text = "Updated body content";
     document.updatedAt = new Date();
     const revision = await Revision.createFromDocument(document);
-    await NotificationSetting.create({
-      userId: user.id,
-      teamId: user.teamId,
-      event: "documents.update",
-    });
+
     const processor = new NotificationsProcessor();
     await processor.perform({
       name: "revisions.create",
@@ -252,12 +229,6 @@ describe("revisions.create", () => {
     document.collaboratorIds = [collaborator.id, subscriber.id];
 
     await document.save();
-
-    await NotificationSetting.create({
-      userId: collaborator.id,
-      teamId: collaborator.teamId,
-      event: "documents.update",
-    });
 
     await Subscription.create({
       userId: subscriber.id,
@@ -446,12 +417,6 @@ describe("revisions.create", () => {
 
     await document.save();
 
-    await NotificationSetting.create({
-      userId: collaborator.id,
-      teamId: collaborator.teamId,
-      event: "documents.update",
-    });
-
     // `subscriber` subscribes to `document`'s changes.
     // Specifically "documents.update" event.
     await Subscription.create({
@@ -489,12 +454,6 @@ describe("revisions.create", () => {
     document.collaboratorIds = [collaborator.id, subscriber.id];
 
     await document.save();
-
-    await NotificationSetting.create({
-      userId: collaborator.id,
-      teamId: collaborator.teamId,
-      event: "documents.update",
-    });
 
     // `subscriber` subscribes to `document`'s changes.
     // Specifically "documents.update" event.
@@ -540,12 +499,6 @@ describe("revisions.create", () => {
 
     await document.save();
 
-    await NotificationSetting.create({
-      userId: collaborator.id,
-      teamId: collaborator.teamId,
-      event: "documents.update",
-    });
-
     // `subscriber` subscribes to `document`'s changes.
     // Specifically "documents.update" event.
     // Not sure how they got hold of this document,
@@ -579,11 +532,7 @@ describe("revisions.create", () => {
     const collaborator = await buildUser({ teamId: document.teamId });
     document.collaboratorIds = [collaborator.id];
     await document.save();
-    await NotificationSetting.create({
-      userId: collaborator.id,
-      teamId: collaborator.teamId,
-      event: "documents.update",
-    });
+
     await View.create({
       userId: collaborator.id,
       documentId: document.id,
@@ -611,11 +560,6 @@ describe("revisions.create", () => {
     });
     const revision = await Revision.createFromDocument(document);
 
-    await NotificationSetting.create({
-      userId: user.id,
-      teamId: user.teamId,
-      event: "documents.update",
-    });
     const processor = new NotificationsProcessor();
     await processor.perform({
       name: "revisions.create",

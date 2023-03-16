@@ -170,6 +170,7 @@ class User extends ParanoidModel {
   @Column(DataType.JSONB)
   preferences: UserPreferences | null;
 
+  @Default(NotificationEventDefaults)
   @Column(DataType.JSONB)
   notificationSettings: NotificationSettings;
 
@@ -261,7 +262,7 @@ class User extends ParanoidModel {
 
   public setNotificationEventType = (
     type: NotificationEventType,
-    value: boolean
+    value = true
   ) => {
     this.notificationSettings[type] = value;
     this.changed("notificationSettings", true);
