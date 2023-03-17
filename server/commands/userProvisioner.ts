@@ -18,8 +18,6 @@ type Props = {
   name: string;
   /** The email address of the user */
   email: string;
-  /** The username of the user */
-  username?: string;
   /** Provision the new user as an administrator */
   isAdmin?: boolean;
   /** The public url of an image representing the user */
@@ -50,7 +48,6 @@ type Props = {
 export default async function userProvisioner({
   name,
   email,
-  username,
   isAdmin,
   avatarUrl,
   teamId,
@@ -92,7 +89,6 @@ export default async function userProvisioner({
     if (user) {
       await user.update({
         email,
-        username,
       });
       await auth.update(rest);
       return {
@@ -231,7 +227,6 @@ export default async function userProvisioner({
       {
         name,
         email,
-        username,
         isAdmin: typeof isAdmin === "boolean" && isAdmin,
         isViewer: isAdmin === true ? false : defaultUserRole === "viewer",
         teamId,
