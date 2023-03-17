@@ -19,6 +19,10 @@ describe("YouTube", () => {
     expect("https://youtu.be/dQw4w9WgXcQ".match(match)).toBeTruthy();
   });
 
+  test("to be enabled on shortlink with timestamp", () => {
+    expect("https://youtu.be/dQw4w9WgXcQ?t=123".match(match)).toBeTruthy();
+  });
+
   test("to not be enabled elsewhere", () => {
     expect("https://youtu.be".match(match)).toBe(null);
     expect("https://youtube.com".match(match)).toBe(null);
