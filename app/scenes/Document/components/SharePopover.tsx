@@ -5,6 +5,7 @@ import { observer } from "mobx-react";
 import { ExpandedIcon, GlobeIcon, PadlockIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
+import { Link } from "react-router-dom";
 import styled from "styled-components";
 import { SHARE_URL_SLUG_REGEX } from "@shared/utils/urlHelpers";
 import Document from "~/models/Document";
@@ -161,14 +162,61 @@ function SharePopover({
     [t, document.id, shares]
   );
 
+  const PublishToInternet = ({ canPublish }: { canPublish: boolean }) => {
+    if (!canPublish) {
+      return (
+        <Text type="secondary">
+          {t("Only members with permission can view")}
+        </Text>
+      );
+    }
+    return (
+      <SwitchWrapper>
+        <Switch
+          id="published"
+          label={t("Publish to internet")}
+          onChange={handlePublishedChange}
+          checked={share ? share.published : false}
+          disabled={!share}
+        />
+        <SwitchLabel>
+          <SwitchText>
+            {share?.published
+              ? t("Anyone with the link can view this document")
+              : t("Only members with permission can view")}
+            {share?.lastAccessedAt && (
+              <>
+                .{" "}
+                {t("The shared link was last accessed {{ timeAgo }}.", {
+                  timeAgo: formatDistanceToNow(
+                    Date.parse(share?.lastAccessedAt),
+                    {
+                      addSuffix: true,
+                      locale,
+                    }
+                  ),
+                })}
+              </>
+            )}
+          </SwitchText>
+        </SwitchLabel>
+      </SwitchWrapper>
+    );
+  };
+
   const userLocale = useUserLocale();
   const locale = userLocale ? dateLocale(userLocale) : undefined;
-  let shareUrl = team.sharing ? share?.url ?? "" : `${team.url}${document.url}`;
+  let shareUrl = team.sharing
+    ? sharedParent?.url
+      ? `${sharedParent.url}${document.url}`
+      : share?.url ?? ""
+    : `${team.url}${document.url}`;
   if (isEditMode) {
     shareUrl += "?edit=true";
   }
 
   const url = shareUrl.replace(/https?:\/\//, "");
+  const documentTitle = sharedParent?.documentTitle;
 
   return (
     <>
@@ -182,54 +230,21 @@ function SharePopover({
       </Heading>
 
       {sharedParent && !document.isDraft && (
-        <Notice>
-          <Trans
-            defaults="This document is shared because the parent <em>{{ documentTitle }}</em> is publicly shared"
-            values={{
-              documentTitle: sharedParent.documentTitle,
-            }}
-            components={{
-              em: <strong />,
-            }}
-          />
-        </Notice>
+        <NoticeWrapper>
+          <Notice>
+            <Trans>
+              This document is shared because the parent{" "}
+              <StyledLink to={`/doc/${sharedParent.documentId}`}>
+                {documentTitle}
+              </StyledLink>{" "}
+              is publicly shared.
+            </Trans>
+          </Notice>
+        </NoticeWrapper>
       )}
 
-      {canPublish ? (
-        <SwitchWrapper>
-          <Switch
-            id="published"
-            label={t("Publish to internet")}
-            onChange={handlePublishedChange}
-            checked={share ? share.published : false}
-            disabled={!share}
-          />
-          <SwitchLabel>
-            <SwitchText>
-              {share?.published
-                ? t("Anyone with the link can view this document")
-                : t("Only members with permission can view")}
-              {share?.lastAccessedAt && (
-                <>
-                  .{" "}
-                  {t("The shared link was last accessed {{ timeAgo }}.", {
-                    timeAgo: formatDistanceToNow(
-                      Date.parse(share?.lastAccessedAt),
-                      {
-                        addSuffix: true,
-                        locale,
-                      }
-                    ),
-                  })}
-                </>
-              )}
-            </SwitchText>
-          </SwitchLabel>
-        </SwitchWrapper>
-      ) : (
-        <Text type="secondary">
-          {t("Only members with permission can view")}
-        </Text>
+      {canPublish && !sharedParent?.published && (
+        <PublishToInternet canPublish />
       )}
 
       {canPublish && share?.published && !document.isDraft && (
@@ -254,6 +269,12 @@ function SharePopover({
 
       {expandedOptions && (
         <>
+          {canPublish && sharedParent?.published && (
+            <>
+              <Separator />
+              <PublishToInternet canPublish />
+            </>
+          )}
           <Separator />
           <SwitchWrapper>
             <Switch
@@ -327,6 +348,11 @@ function SharePopover({
   );
 }
 
+const StyledLink = styled(Link)`
+  color: ${(props) => props.theme.textSecondary};
+  text-decoration: underline;
+`;
+
 const Heading = styled.h2`
   display: flex;
   align-items: center;
@@ -338,6 +364,10 @@ const Heading = styled.h2`
 `;
 
 const SwitchWrapper = styled.div`
+  margin: 20px 0;
+`;
+
+const NoticeWrapper = styled.div`
   margin: 20px 0;
 `;
 
