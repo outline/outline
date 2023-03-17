@@ -457,6 +457,9 @@ router.post(
         id: {
           [Op.in]: memberIds,
         },
+        suspendedAt: {
+          [Op.is]: null,
+        },
       };
       if (query) {
         where = {

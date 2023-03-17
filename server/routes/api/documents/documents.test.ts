@@ -3123,7 +3123,7 @@ describe("#documents.users", () => {
       createdById: user.id,
       teamId: user.teamId,
     });
-    const members = await Promise.all([
+    const [alan, bret, ken] = await Promise.all([
       buildUser({
         name: "Alan Kay",
         teamId: user.teamId,
@@ -3142,19 +3142,19 @@ describe("#documents.users", () => {
     await Promise.all([
       CollectionUser.create({
         collectionId: collection.id,
-        userId: members[0].id,
+        userId: alan.id,
         permission: CollectionPermission.Read,
         createdById: user.id,
       }),
       CollectionUser.create({
         collectionId: collection.id,
-        userId: members[1].id,
+        userId: bret.id,
         permission: CollectionPermission.Read,
         createdById: user.id,
       }),
       CollectionUser.create({
         collectionId: collection.id,
-        userId: members[2].id,
+        userId: ken.id,
         permission: CollectionPermission.Read,
         createdById: user.id,
       }),
@@ -3173,9 +3173,9 @@ describe("#documents.users", () => {
     expect(body.data.users.length).toBe(3);
 
     const memberIds = body.data.users.map((u: User) => u.id);
-    expect(memberIds).toContain(members[0].id);
-    expect(memberIds).toContain(members[1].id);
-    expect(memberIds).toContain(members[2].id);
+    expect(memberIds).toContain(alan.id);
+    expect(memberIds).toContain(bret.id);
+    expect(memberIds).toContain(ken.id);
   });
 
   it("should return document users with names matching the search query", async () => {
@@ -3189,7 +3189,7 @@ describe("#documents.users", () => {
       createdById: user.id,
       teamId: user.teamId,
     });
-    const members = await Promise.all([
+    const [alan, bret, ken, jamie] = await Promise.all([
       buildUser({
         name: "Alan Kay",
         teamId: user.teamId,
@@ -3215,12 +3215,12 @@ describe("#documents.users", () => {
 
     // add people to group
     await Promise.all([
-      group.$add("user", members[2], {
+      group.$add("user", ken, {
         through: {
           createdById: user.id,
         },
       }),
-      group.$add("user", members[3], {
+      group.$add("user", jamie, {
         through: {
           createdById: user.id,
         },
@@ -3231,19 +3231,19 @@ describe("#documents.users", () => {
     await Promise.all([
       CollectionUser.create({
         collectionId: collection.id,
-        userId: members[0].id,
+        userId: alan.id,
         permission: CollectionPermission.Read,
         createdById: user.id,
       }),
       CollectionUser.create({
         collectionId: collection.id,
-        userId: members[1].id,
+        userId: bret.id,
         permission: CollectionPermission.Read,
         createdById: user.id,
       }),
       CollectionUser.create({
         collectionId: collection.id,
-        userId: members[2].id,
+        userId: ken.id,
         permission: CollectionPermission.Read,
         createdById: user.id,
       }),
@@ -3276,18 +3276,88 @@ describe("#documents.users", () => {
     expect(res.status).toBe(200);
     expect(body.data.document.id).toBe(document.id);
     expect(body.data.users.length).toBe(1);
-    expect(body.data.users[0].id).toContain(members[0].id);
-    expect(body.data.users[0].name).toBe("Alan Kay");
+    expect(body.data.users[0].id).toContain(alan.id);
+    expect(body.data.users[0].name).toBe(alan.name);
 
     expect(anotherRes.status).toBe(200);
     expect(anotherBody.data.users.length).toBe(3);
     const memberIds = anotherBody.data.users.map((u: User) => u.id);
     const memberNames = anotherBody.data.users.map((u: User) => u.name);
-    expect(memberIds).toContain(members[1].id);
-    expect(memberIds).toContain(members[2].id);
-    expect(memberIds).toContain(members[3].id);
-    expect(memberNames).toContain(members[1].name);
-    expect(memberNames).toContain(members[2].name);
-    expect(memberNames).toContain(members[3].name);
+    expect(memberIds).toContain(bret.id);
+    expect(memberIds).toContain(ken.id);
+    expect(memberIds).toContain(jamie.id);
+    expect(memberNames).toContain(bret.name);
+    expect(memberNames).toContain(ken.name);
+    expect(memberNames).toContain(jamie.name);
+  });
+
+  it("should not return suspended users", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      createdById: user.id,
+    });
+    const document = await buildDocument({
+      collectionId: collection.id,
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+    const [alan, bret, ken] = await Promise.all([
+      buildUser({
+        name: "Alan Kay",
+        teamId: user.teamId,
+      }),
+      buildUser({
+        name: "Bret Victor",
+        teamId: user.teamId,
+      }),
+      buildUser({
+        name: "Ken Thompson",
+        teamId: user.teamId,
+      }),
+    ]);
+
+    // add people to collection
+    await Promise.all([
+      CollectionUser.create({
+        collectionId: collection.id,
+        userId: alan.id,
+        permission: CollectionPermission.Read,
+        createdById: user.id,
+      }),
+      CollectionUser.create({
+        collectionId: collection.id,
+        userId: bret.id,
+        permission: CollectionPermission.Read,
+        createdById: user.id,
+      }),
+      CollectionUser.create({
+        collectionId: collection.id,
+        userId: ken.id,
+        permission: CollectionPermission.Read,
+        createdById: user.id,
+      }),
+    ]);
+
+    // suspend Alan
+    alan.suspendedAt = new Date();
+    await alan.save();
+
+    const res = await server.post("/api/documents.users", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.data.document.id).toBe(document.id);
+    expect(body.data.users.length).toBe(2);
+
+    const memberIds = body.data.users.map((u: User) => u.id);
+    expect(memberIds).not.toContain(alan.id);
+    expect(memberIds).toContain(bret.id);
+    expect(memberIds).toContain(ken.id);
   });
 });
