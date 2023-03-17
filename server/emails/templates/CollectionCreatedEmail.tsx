@@ -29,8 +29,7 @@ type Props = InputProps & BeforeSend;
  * Email sent to a user when they have enabled notifications of new collection
  * creation.
  */
-
-export default class CollectionNotificationEmail extends BaseEmail<
+export default class CollectionCreatedEmail extends BaseEmail<
   InputProps,
   BeforeSend
 > {

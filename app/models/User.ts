@@ -98,6 +98,13 @@ class User extends ParanoidModel {
     );
   };
 
+  /**
+   * Sets a preference for the users notification settings on the model and
+   * saves the change to the server.
+   *
+   * @param type The type of notification event
+   * @param value Set the preference to true/false
+   */
   @action
   setNotificationEventType = async (
     eventType: NotificationEventType,

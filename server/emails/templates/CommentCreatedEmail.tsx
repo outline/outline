@@ -35,8 +35,8 @@ type BeforeSend = {
 type Props = InputProps & BeforeSend;
 
 /**
- * Email sent to a user when they are subscribed to a document and a new comment
- * is created.
+ * Email sent to a user when a new comment is created in a document they are
+ * subscribed to.
  */
 export default class CommentCreatedEmail extends BaseEmail<
   InputProps,

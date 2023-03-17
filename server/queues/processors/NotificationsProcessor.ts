@@ -5,7 +5,7 @@ import { NotificationEventType } from "@shared/types";
 import { Minute } from "@shared/utils/time";
 import subscriptionCreator from "@server/commands/subscriptionCreator";
 import { sequelize } from "@server/database/sequelize";
-import CollectionNotificationEmail from "@server/emails/templates/CollectionNotificationEmail";
+import CollectionCreatedEmail from "@server/emails/templates/CollectionCreatedEmail";
 import DocumentNotificationEmail from "@server/emails/templates/DocumentNotificationEmail";
 import MentionNotificationEmail from "@server/emails/templates/MentionNotificationEmail";
 import env from "@server/env";
@@ -278,7 +278,7 @@ export default class NotificationsProcessor extends BaseProcessor {
         continue;
       }
 
-      await new CollectionNotificationEmail({
+      await new CollectionCreatedEmail({
         to: recipient.email,
         userId: recipient.id,
         collectionId: collection.id,

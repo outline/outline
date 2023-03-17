@@ -21,7 +21,7 @@ type BeforeSend = {
 type Props = InputProps & BeforeSend;
 
 /**
- * Email sent to a user when someone mentions them in a doucment
+ * Email sent to a user when someone mentions them in a document.
  */
 export default class MentionNotificationEmail extends BaseEmail<
   InputProps,
