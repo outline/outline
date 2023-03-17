@@ -141,7 +141,7 @@ export default class NotificationsProcessor extends BaseProcessor {
           {
             to: recipient.email,
             userId: recipient.id,
-            eventName: "published",
+            eventType: NotificationEventType.PublishDocument,
             documentId: document.id,
             teamUrl: team.url,
             actorName: document.updatedBy.name,
@@ -244,7 +244,8 @@ export default class NotificationsProcessor extends BaseProcessor {
         await DocumentNotificationEmail.schedule(
           {
             to: recipient.email,
-            eventName: "updated",
+            userId: recipient.id,
+            eventType: NotificationEventType.UpdateDocument,
             documentId: document.id,
             teamUrl: team.url,
             actorName: document.updatedBy.name,

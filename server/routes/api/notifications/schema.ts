@@ -1,3 +1,4 @@
+import { isEmpty } from "lodash";
 import { z } from "zod";
 import { NotificationEventType } from "@shared/types";
 
@@ -21,18 +22,22 @@ export type NotificationSettingsDeleteReq = z.infer<
   typeof NotificationSettingsDeleteSchema
 >;
 
-export const NotificationsUnsubscribeSchema = z.object({
-  body: z.object({
-    userId: z.string().uuid(),
-    token: z.string(),
-    eventType: z.nativeEnum(NotificationEventType),
-  }),
-  query: z.object({
-    userId: z.string().uuid(),
-    token: z.string(),
-    eventType: z.nativeEnum(NotificationEventType),
-  }),
-});
+export const NotificationsUnsubscribeSchema = z
+  .object({
+    body: z.object({
+      userId: z.string().uuid().optional(),
+      token: z.string().optional(),
+      eventType: z.nativeEnum(NotificationEventType).optional(),
+    }),
+    query: z.object({
+      userId: z.string().uuid().optional(),
+      token: z.string().optional(),
+      eventType: z.nativeEnum(NotificationEventType).optional(),
+    }),
+  })
+  .refine((req) => !(isEmpty(req.body.userId) && isEmpty(req.query.userId)), {
+    message: "userId is required",
+  });
 
 export type NotificationsUnsubscribeReq = z.infer<
   typeof NotificationsUnsubscribeSchema

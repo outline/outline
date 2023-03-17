@@ -17,7 +17,7 @@ export default class NotificationSettingsHelper {
     }/api/notifications.unsubscribe?token=${this.unsubscribeToken(
       user,
       eventType
-    )}&userId=${user.id}eventType=${eventType}`;
+    )}&userId=${user.id}&eventType=${eventType}`;
   }
 
   public static unsubscribeToken(user: User, eventType: NotificationEventType) {

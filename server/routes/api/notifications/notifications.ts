@@ -1,4 +1,5 @@
 import Router from "koa-router";
+import { NotificationEventType } from "@shared/types";
 import env from "@server/env";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
@@ -12,8 +13,10 @@ const router = new Router();
 const handleUnsubscribe = async (
   ctx: APIContext<T.NotificationsUnsubscribeReq>
 ) => {
-  const { eventType, userId, token } =
-    ctx.method === "POST" ? ctx.input.body : ctx.input.query;
+  const eventType = (ctx.input.body.eventType ??
+    ctx.input.query.eventType) as NotificationEventType;
+  const userId = (ctx.input.body.userId ?? ctx.input.query.userId) as string;
+  const token = (ctx.input.body.token ?? ctx.input.query.token) as string;
 
   const user = await User.scope("withTeam").findByPk(userId, {
     rejectOnEmpty: true,
