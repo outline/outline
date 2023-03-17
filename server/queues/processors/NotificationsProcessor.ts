@@ -104,7 +104,7 @@ export default class NotificationsProcessor extends BaseProcessor {
           documentId: document.id,
         });
         userIdsSentNotifications.push(recipient.id);
-        await MentionNotificationEmail.schedule(
+        await new MentionNotificationEmail(
           {
             to: recipient.email,
             documentId: event.documentId,
@@ -113,7 +113,7 @@ export default class NotificationsProcessor extends BaseProcessor {
             mentionId: mention.id,
           },
           { notificationId: notification.id }
-        );
+        ).schedule();
       }
     }
 
@@ -137,7 +137,7 @@ export default class NotificationsProcessor extends BaseProcessor {
           teamId: team.id,
           documentId: document.id,
         });
-        await DocumentNotificationEmail.schedule(
+        await new DocumentNotificationEmail(
           {
             to: recipient.email,
             userId: recipient.id,
@@ -148,7 +148,7 @@ export default class NotificationsProcessor extends BaseProcessor {
             collectionName: collection.name,
           },
           { notificationId: notification.id }
-        );
+        ).schedule();
       }
     }
   }
@@ -193,7 +193,7 @@ export default class NotificationsProcessor extends BaseProcessor {
           documentId: document.id,
         });
         userIdsSentNotifications.push(recipient.id);
-        await MentionNotificationEmail.schedule(
+        await new MentionNotificationEmail(
           {
             to: recipient.email,
             documentId: event.documentId,
@@ -202,7 +202,7 @@ export default class NotificationsProcessor extends BaseProcessor {
             mentionId: mention.id,
           },
           { notificationId: notification.id }
-        );
+        ).schedule();
       }
     }
 
@@ -241,7 +241,7 @@ export default class NotificationsProcessor extends BaseProcessor {
           documentId: document.id,
         });
 
-        await DocumentNotificationEmail.schedule(
+        await new DocumentNotificationEmail(
           {
             to: recipient.email,
             userId: recipient.id,
@@ -253,7 +253,7 @@ export default class NotificationsProcessor extends BaseProcessor {
             content,
           },
           { notificationId: notification.id }
-        );
+        ).schedule();
       }
     }
   }
@@ -278,11 +278,11 @@ export default class NotificationsProcessor extends BaseProcessor {
         continue;
       }
 
-      await CollectionNotificationEmail.schedule({
+      await new CollectionNotificationEmail({
         to: recipient.email,
         userId: recipient.id,
         collectionId: collection.id,
-      });
+      }).schedule();
     }
   }
 

@@ -82,7 +82,7 @@ export default class CommentCreatedNotificationTask extends BaseTask<
         });
         userIdsSentNotifications.push(recipient.id);
 
-        await CommentCreatedEmail.schedule(
+        await new CommentCreatedEmail(
           {
             to: recipient.email,
             userId: recipient.id,
@@ -95,7 +95,7 @@ export default class CommentCreatedNotificationTask extends BaseTask<
             collectionName: document.collection?.name,
           },
           { notificationId: notification.id }
-        );
+        ).schedule();
       }
     }
 
@@ -115,7 +115,7 @@ export default class CommentCreatedNotificationTask extends BaseTask<
         teamId: team.id,
         documentId: document.id,
       });
-      await CommentCreatedEmail.schedule(
+      await new CommentCreatedEmail(
         {
           to: recipient.email,
           userId: recipient.id,
@@ -128,7 +128,7 @@ export default class CommentCreatedNotificationTask extends BaseTask<
           collectionName: document.collection?.name,
         },
         { notificationId: notification.id }
-      );
+      ).schedule();
     }
   }
 

@@ -1,6 +1,6 @@
 import * as React from "react";
 import env from "@server/env";
-import BaseEmail from "./BaseEmail";
+import BaseEmail, { EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
 import EmailTemplate from "./components/EmailLayout";
@@ -9,11 +9,10 @@ import Footer from "./components/Footer";
 import Header from "./components/Header";
 import Heading from "./components/Heading";
 
-type Props = {
-  to: string;
+type Props = EmailProps & {
   name: string;
   actorName: string;
-  actorEmail: string;
+  actorEmail: string | null;
   teamName: string;
   teamUrl: string;
 };
@@ -39,7 +38,9 @@ export default class InviteEmail extends BaseEmail<Props> {
     return `
 Join ${teamName} on ${env.APP_NAME}
 
-${actorName} (${actorEmail}) has invited you to join ${env.APP_NAME}, a place for your team to build and share knowledge.
+${actorName} ${actorEmail ? `(${actorEmail})` : ""} has invited you to join ${
+      env.APP_NAME
+    }, a place for your team to build and share knowledge.
 
 Join now: ${teamUrl}
 `;
@@ -55,8 +56,9 @@ Join now: ${teamUrl}
             Join {teamName} on {env.APP_NAME}
           </Heading>
           <p>
-            {actorName} ({actorEmail}) has invited you to join {env.APP_NAME}, a
-            place for your team to build and share knowledge.
+            {actorName} {actorEmail ? `(${actorEmail})` : ""} has invited you to
+            join {env.APP_NAME}, a place for your team to build and share
+            knowledge.
           </p>
           <EmptySpace height={10} />
           <p>

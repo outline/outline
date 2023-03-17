@@ -1,14 +1,13 @@
 import * as React from "react";
 import { Document } from "@server/models";
-import BaseEmail from "./BaseEmail";
+import BaseEmail, { EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
 import EmailTemplate from "./components/EmailLayout";
 import Header from "./components/Header";
 import Heading from "./components/Heading";
 
-type InputProps = {
-  to: string;
+type InputProps = EmailProps & {
   documentId: string;
   actorName: string;
   teamUrl: string;

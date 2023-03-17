@@ -4,7 +4,7 @@ import { NotificationEventType } from "@shared/types";
 import env from "@server/env";
 import { Comment, Document, User } from "@server/models";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
-import BaseEmail from "./BaseEmail";
+import BaseEmail, { EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
 import Diff from "./components/Diff";
@@ -14,14 +14,13 @@ import Footer from "./components/Footer";
 import Header from "./components/Header";
 import Heading from "./components/Heading";
 
-type InputProps = {
-  to: string;
+type InputProps = EmailProps & {
   userId: string;
   documentId: string;
   actorName: string;
   isReply: boolean;
   commentId: string;
-  collectionName: string;
+  collectionName: string | undefined;
   teamUrl: string;
   content: string;
 };
@@ -113,7 +112,7 @@ export default class CommentCreatedEmail extends BaseEmail<
     return `
 ${actorName} ${isReply ? "replied to a thread in" : "commented on"} "${
       document.title
-    }", in the ${collectionName} collection.
+    }"${collectionName ? `in the ${collectionName} collection` : ""}.
 
 Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
 `;
@@ -139,8 +138,8 @@ Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
           <Heading>{document.title}</Heading>
           <p>
             {actorName} {isReply ? "replied to a thread in" : "commented on"}{" "}
-            <a href={link}>{document.title}</a>, in the {collectionName}{" "}
-            collection.
+            <a href={link}>{document.title}</a>{" "}
+            {collectionName ? `in the ${collectionName} collection` : ""}.
           </p>
           {body && (
             <>

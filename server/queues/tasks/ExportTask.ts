@@ -71,13 +71,13 @@ export default abstract class ExportTask extends BaseTask<Props> {
       });
 
       if (user.subscribedToEventType(NotificationEventType.ExportCompleted)) {
-        await ExportSuccessEmail.schedule({
+        await new ExportSuccessEmail({
           to: user.email,
           userId: user.id,
           id: fileOperation.id,
           teamUrl: team.url,
           teamId: team.id,
-        });
+        }).schedule();
       }
     } catch (error) {
       await this.updateFileOperation(fileOperation, {
@@ -85,12 +85,12 @@ export default abstract class ExportTask extends BaseTask<Props> {
         error,
       });
       if (user.subscribedToEventType(NotificationEventType.ExportCompleted)) {
-        await ExportFailureEmail.schedule({
+        await new ExportFailureEmail({
           to: user.email,
           userId: user.id,
           teamUrl: team.url,
           teamId: team.id,
-        });
+        }).schedule();
       }
       throw error;
     }

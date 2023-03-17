@@ -391,14 +391,14 @@ router.post(
       throw ValidationError("This invite has been sent too many times");
     }
 
-    await InviteEmail.schedule({
+    await new InviteEmail({
       to: user.email,
       name: user.name,
       actorName: actor.name,
       actorEmail: actor.email,
       teamName: actor.team.name,
       teamUrl: actor.team.url,
-    });
+    }).schedule();
 
     user.incrementFlag(UserFlag.InviteSent);
     await user.save({ transaction });
@@ -427,10 +427,10 @@ router.post(
     authorize(user, "delete", user);
 
     if (emailEnabled) {
-      await ConfirmUserDeleteEmail.schedule({
+      await new ConfirmUserDeleteEmail({
         to: user.email,
         deleteConfirmationCode: user.deleteConfirmationCode,
-      });
+      }).schedule();
     }
 
     ctx.body = {

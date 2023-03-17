@@ -4,7 +4,7 @@ import { NotificationEventType } from "@shared/types";
 import env from "@server/env";
 import { Document, User } from "@server/models";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
-import BaseEmail from "./BaseEmail";
+import BaseEmail, { EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
 import Diff from "./components/Diff";
@@ -14,8 +14,7 @@ import Footer from "./components/Footer";
 import Header from "./components/Header";
 import Heading from "./components/Heading";
 
-type InputProps = {
-  to: string;
+type InputProps = EmailProps & {
   userId: string;
   documentId: string;
   actorName: string;
@@ -24,8 +23,7 @@ type InputProps = {
     | NotificationEventType.PublishDocument
     | NotificationEventType.UpdateDocument;
   teamUrl: string;
-  unsubscribeUrl: string;
-  content: string;
+  content?: string;
 };
 
 type BeforeSend = {

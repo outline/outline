@@ -71,12 +71,13 @@ router.post(
     }
 
     // send email to users registered address with a short-lived token
-    await SigninEmail.schedule({
+    await new SigninEmail({
       to: user.email,
       token: user.getEmailSigninToken(),
       teamUrl: team.url,
       client: client === Client.Desktop ? Client.Desktop : Client.Web,
-    });
+    }).schedule();
+
     user.lastSigninEmailSentAt = new Date();
     await user.save();
 
@@ -109,19 +110,19 @@ router.get("email.callback", async (ctx) => {
   }
 
   if (user.isInvited) {
-    await WelcomeEmail.schedule({
+    await new WelcomeEmail({
       to: user.email,
       teamUrl: user.team.url,
-    });
+    }).schedule();
 
     const inviter = await user.$get("invitedBy");
     if (inviter?.subscribedToEventType(NotificationEventType.InviteAccepted)) {
-      await InviteAcceptedEmail.schedule({
-        to: inviter.email,
+      await new InviteAcceptedEmail({
+        to: user.email,
         inviterId: inviter.id,
         invitedName: user.name,
         teamUrl: user.team.url,
-      });
+      }).schedule();
     }
   }
 
