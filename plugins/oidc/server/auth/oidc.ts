@@ -115,7 +115,6 @@ if (
               name: profile.name || username || profile.username,
               email: profile.email,
               avatarUrl: profile.picture,
-              username,
             },
             authenticationProvider: {
               name: providerName,

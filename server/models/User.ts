@@ -111,11 +111,6 @@ class User extends ParanoidModel {
   email: string | null;
 
   @NotContainsUrl
-  @Length({ max: 255, msg: "User username must be 255 characters or less" })
-  @Column
-  username: string | null;
-
-  @NotContainsUrl
   @Length({ max: 255, msg: "User name must be 255 characters or less" })
   @Column
   name: string;
@@ -562,7 +557,6 @@ class User extends ParanoidModel {
     model.email = null;
     model.name = "Unknown";
     model.avatarUrl = null;
-    model.username = null;
     model.lastActiveIp = null;
     model.lastSignedInIp = null;
 
