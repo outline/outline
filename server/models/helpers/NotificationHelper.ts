@@ -34,7 +34,7 @@ export default class NotificationHelper {
     });
 
     recipients = recipients.filter((recipient) =>
-      recipient.shouldNotifyEventType(eventType)
+      recipient.subscribedToEventType(eventType)
     );
 
     return recipients;
@@ -45,7 +45,7 @@ export default class NotificationHelper {
    *
    * @param document The document associated with the comment
    * @param comment The comment to get recipients for
-   * @param eventName The event name
+   * @param actorId The creator of the comment
    * @returns A list of recipients
    */
   public static getCommentNotificationRecipients = async (
@@ -58,6 +58,10 @@ export default class NotificationHelper {
       NotificationEventType.UpdateDocument,
       actorId,
       !comment.parentCommentId
+    );
+
+    recipients = recipients.filter((recipient) =>
+      recipient.subscribedToEventType(NotificationEventType.CreateComment)
     );
 
     if (recipients.length > 0 && comment.parentCommentId) {
@@ -131,7 +135,7 @@ export default class NotificationHelper {
     });
 
     recipients = recipients.filter((recipient) =>
-      recipient.shouldNotifyEventType(eventType)
+      recipient.subscribedToEventType(eventType)
     );
 
     // Filter further to only those that have a subscription to the document…

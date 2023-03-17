@@ -14,7 +14,6 @@ import Heading from "./components/Heading";
 
 type InputProps = {
   to: string;
-  eventName: string;
   userId: string;
   collectionId: string;
 };
@@ -57,29 +56,25 @@ export default class CollectionNotificationEmail extends BaseEmail<
     };
   }
 
-  protected subject({ collection, eventName }: Props) {
-    return `“${collection.name}” ${eventName}`;
+  protected subject({ collection }: Props) {
+    return `“${collection.name}” created`;
   }
 
-  protected preview({ collection, eventName }: Props) {
-    return `${collection.user.name} ${eventName} a collection`;
+  protected preview({ collection }: Props) {
+    return `${collection.user.name} created a collection`;
   }
 
-  protected renderAsText({ collection, eventName = "created" }: Props) {
+  protected renderAsText({ collection }: Props) {
     return `
 ${collection.name}
 
-${collection.user.name} ${eventName} the collection "${collection.name}"
+${collection.user.name} created the collection "${collection.name}"
 
 Open Collection: ${env.URL}${collection.url}
 `;
   }
 
-  protected render({
-    collection,
-    eventName = "created",
-    unsubscribeUrl,
-  }: Props) {
+  protected render({ collection, unsubscribeUrl }: Props) {
     return (
       <EmailTemplate>
         <Header />
@@ -87,7 +82,7 @@ Open Collection: ${env.URL}${collection.url}
         <Body>
           <Heading>{collection.name}</Heading>
           <p>
-            {collection.user.name} {eventName} the collection "{collection.name}
+            {collection.user.name} created the collection "{collection.name}
             ".
           </p>
           <EmptySpace height={10} />

@@ -84,7 +84,7 @@ function ExportDialog({ collection, onSubmit }: Props) {
               em: <strong />,
             }}
           />{" "}
-          {user.shouldNotifyEventType(NotificationEventType.ExportCompleted) &&
+          {user.subscribedToEventType(NotificationEventType.ExportCompleted) &&
             t("You will receive an email when it's complete.")}
         </Text>
       )}

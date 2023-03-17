@@ -259,6 +259,12 @@ class User extends ParanoidModel {
 
   // instance methods
 
+  /**
+   * Sets a preference for the users notification settings.
+   *
+   * @param type The type of notification event
+   * @param value Set the preference to true/false
+   */
   public setNotificationEventType = (
     type: NotificationEventType,
     value = true
@@ -267,7 +273,14 @@ class User extends ParanoidModel {
     this.changed("notificationSettings", true);
   };
 
-  public shouldNotifyEventType = (type: NotificationEventType) => {
+  /**
+   * Returns the current preference for the given notification event type taking
+   * into account the default system value.
+   *
+   * @param type The type of notification event
+   * @returns The current preference
+   */
+  public subscribedToEventType = (type: NotificationEventType) => {
     return (
       this.notificationSettings[type] ??
       NotificationEventDefaults[type] ??

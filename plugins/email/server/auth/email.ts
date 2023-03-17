@@ -115,10 +115,7 @@ router.get("email.callback", async (ctx) => {
     });
 
     const inviter = await user.$get("invitedBy");
-    if (
-      inviter &&
-      inviter.shouldNotifyEventType(NotificationEventType.InviteAccepted)
-    ) {
+    if (inviter?.subscribedToEventType(NotificationEventType.InviteAccepted)) {
       await InviteAcceptedEmail.schedule({
         to: inviter.email,
         inviterId: inviter.id,

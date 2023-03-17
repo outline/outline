@@ -90,7 +90,12 @@ export default class NotificationsProcessor extends BaseProcessor {
         User.findByPk(mention.modelId),
         User.findByPk(mention.actorId),
       ]);
-      if (recipient && actor && recipient.id !== actor.id) {
+      if (
+        recipient &&
+        actor &&
+        recipient.id !== actor.id &&
+        recipient.subscribedToEventType(NotificationEventType.Mentioned)
+      ) {
         const notification = await Notification.create({
           event: event.name,
           userId: recipient.id,
@@ -174,7 +179,12 @@ export default class NotificationsProcessor extends BaseProcessor {
         User.findByPk(mention.modelId),
         User.findByPk(mention.actorId),
       ]);
-      if (recipient && actor && recipient.id !== actor.id) {
+      if (
+        recipient &&
+        actor &&
+        recipient.id !== actor.id &&
+        recipient.subscribedToEventType(NotificationEventType.Mentioned)
+      ) {
         const notification = await Notification.create({
           event: event.name,
           userId: recipient.id,
@@ -270,7 +280,6 @@ export default class NotificationsProcessor extends BaseProcessor {
       await CollectionNotificationEmail.schedule({
         to: recipient.email,
         userId: recipient.id,
-        eventName: "created",
         collectionId: collection.id,
       });
     }

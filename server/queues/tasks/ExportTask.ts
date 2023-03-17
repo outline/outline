@@ -70,7 +70,7 @@ export default abstract class ExportTask extends BaseTask<Props> {
         url,
       });
 
-      if (user.shouldNotifyEventType(NotificationEventType.ExportCompleted)) {
+      if (user.subscribedToEventType(NotificationEventType.ExportCompleted)) {
         await ExportSuccessEmail.schedule({
           to: user.email,
           userId: user.id,
@@ -84,7 +84,7 @@ export default abstract class ExportTask extends BaseTask<Props> {
         state: FileOperationState.Error,
         error,
       });
-      if (user.shouldNotifyEventType(NotificationEventType.ExportCompleted)) {
+      if (user.subscribedToEventType(NotificationEventType.ExportCompleted)) {
         await ExportFailureEmail.schedule({
           to: user.email,
           userId: user.id,

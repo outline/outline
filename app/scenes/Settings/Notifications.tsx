@@ -33,7 +33,21 @@ function Notifications() {
       event: NotificationEventType.UpdateDocument,
       title: t("Document updated"),
       description: t(
-        "Receive a notification when a document you created is edited"
+        "Receive a notification when a document you are subscribed to is edited"
+      ),
+    },
+    {
+      event: NotificationEventType.CreateComment,
+      title: t("Comment posted"),
+      description: t(
+        "Receive a notification when a document you are subscribed to or a thread you participated in receives a comment"
+      ),
+    },
+    {
+      event: NotificationEventType.Mentioned,
+      title: t("Mentioned"),
+      description: t(
+        "Receive a notification when someone mentions you in a document or comment"
       ),
     },
     {
@@ -119,7 +133,7 @@ function Notifications() {
           <h2>{t("Notifications")}</h2>
 
           {options.map((option) => {
-            const setting = user.shouldNotifyEventType(option.event);
+            const setting = user.subscribedToEventType(option.event);
 
             return (
               <SettingRow
