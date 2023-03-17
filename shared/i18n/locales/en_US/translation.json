@@ -505,7 +505,7 @@
   "Anyone with the link can view this document": "Anyone with the link can view this document",
   "The shared link was last accessed {{ timeAgo }}.": "The shared link was last accessed {{ timeAgo }}.",
   "Share this document": "Share this document",
-  "This document is shared because the parent<1>{documentTitle}</1>is publicly shared.": "This document is shared because the parent<1>{documentTitle}</1>is publicly shared.",
+  "This document is shared because the parent <2>{documentTitle}</2> is publicly shared.": "This document is shared because the parent <2>{documentTitle}</2> is publicly shared.",
   "Share nested documents": "Share nested documents",
   "Nested documents are publicly available": "Nested documents are publicly available",
   "Nested documents are not shared": "Nested documents are not shared",
