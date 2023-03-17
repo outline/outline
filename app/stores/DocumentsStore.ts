@@ -11,6 +11,7 @@ import BaseStore from "~/stores/BaseStore";
 import RootStore from "~/stores/RootStore";
 import Document from "~/models/Document";
 import Team from "~/models/Team";
+import User from "~/models/User";
 import env from "~/env";
 import { FetchOptions, PaginationParams, SearchResult } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -279,6 +280,24 @@ export default class DocumentsStore extends BaseStore<Document> {
       data.forEach(this.add);
       this.addPolicies(res.policies);
     });
+  };
+
+  @action
+  fetchUsers = async (
+    params: { id: string; query?: string } | undefined
+  ): Promise<User[]> => {
+    try {
+      const res = await client.post("/documents.users", params);
+      invariant(res?.data, "User list not available");
+      let response: User[] = [];
+      runInAction("DocumentsStore#fetchUsers", () => {
+        response = res.data.map(this.rootStore.users.add);
+        this.addPolicies(res.policies);
+      });
+      return response;
+    } catch (err) {
+      return [];
+    }
   };
 
   @action

@@ -36,7 +36,7 @@ import {
 } from "@server/models";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import SearchHelper from "@server/models/helpers/SearchHelper";
-import { authorize, cannot } from "@server/policies";
+import { authorize, can, cannot } from "@server/policies";
 import {
   presentCollection,
   presentDocument,
@@ -439,18 +439,21 @@ router.post(
 router.post(
   "documents.users",
   auth(),
+  pagination(),
   validate(T.DocumentsUsersSchema),
   async (ctx: APIContext<T.DocumentsUsersReq>) => {
     const { id, query } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const actor = ctx.state.auth.user;
+    const { offset, limit } = ctx.state.pagination;
     const document = await Document.findByPk(id);
-    authorize(user, "update", document);
+    authorize(actor, "update", document);
 
     let users: User[] = [];
+    let total = 0;
 
     if (document.collectionId) {
       const collection = await Collection.findByPk(document.collectionId);
-      authorize(user, "update", collection);
+      authorize(actor, "update", collection);
       const memberIds = await Collection.membershipUserIds(collection.id);
 
       let where: WhereOptions<User> = {
@@ -470,14 +473,18 @@ router.post(
         };
       }
 
-      users = await User.findAll({ where });
+      [users, total] = await Promise.all([
+        User.findAll({ where, offset, limit }),
+        User.count({ where }),
+      ]);
     }
 
     ctx.body = {
-      data: {
-        document: await presentDocument(document),
-        users: users.map((user) => presentUser(user)),
-      },
+      pagination: { ...ctx.state.pagination, total },
+      data: users.map((user) =>
+        presentUser(user, { includeDetails: can(actor, "readDetails", user) })
+      ),
+      policies: presentPolicies(actor, users),
     };
   }
 );
