@@ -14,19 +14,19 @@
   <a href="https://translate.getoutline.com/project/outline" alt="Localized"><img src="https://badges.crowdin.net/outline/localized.svg"></a>
 </p>
 
-This is the source code that runs [**Outline**](https://www.getoutline.com) and all the associated services. If you want to use Outline then you don't need to run this code, we offer a hosted version of the app at [getoutline.com](https://www.getoutline.com).
+This is the source code that runs [**Outline**](https://www.getoutline.com) and all the associated services. If you want to use Outline then you don't need to run this code, we offer a hosted version of the app at [getoutline.com](https://www.getoutline.com). You can also find documentation on using Outline in [our guide](https://docs.getoutline.com/s/guide).
 
 If you'd like to run your own copy of Outline or contribute to development then this is the place for you.
 
 # Installation
 
-Please see the [documentation](https://app.getoutline.com/share/770a97da-13e5-401e-9f8a-37949c19f97e/) for running your own copy of Outline in a production configuration.
+Please see the [documentation](https://docs.getoutline.com/s/hosting/) for running your own copy of Outline in a production configuration.
 
 If you have questions or improvements for the docs please create a thread in [GitHub discussions](https://github.com/outline/outline/discussions).
 
 # Development
 
-There is a short guide for [setting up a development environment](https://app.getoutline.com/share/770a97da-13e5-401e-9f8a-37949c19f97e/doc/local-development-5hEhFRXow7) if you wish to contribute changes, fixes, and improvements to Outline.
+There is a short guide for [setting up a development environment](https://docs.getoutline.com/s/hosting/doc/local-development-5hEhFRXow7) if you wish to contribute changes, fixes, and improvements to Outline.
 
 ## Contributing
 
