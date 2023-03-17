@@ -3169,10 +3169,9 @@ describe("#documents.users", () => {
     const body = await res.json();
 
     expect(res.status).toBe(200);
-    expect(body.data.document.id).toBe(document.id);
-    expect(body.data.users.length).toBe(3);
+    expect(body.data.length).toBe(3);
 
-    const memberIds = body.data.users.map((u: User) => u.id);
+    const memberIds = body.data.map((u: User) => u.id);
     expect(memberIds).toContain(alan.id);
     expect(memberIds).toContain(bret.id);
     expect(memberIds).toContain(ken.id);
@@ -3274,15 +3273,14 @@ describe("#documents.users", () => {
     const anotherBody = await anotherRes.json();
 
     expect(res.status).toBe(200);
-    expect(body.data.document.id).toBe(document.id);
-    expect(body.data.users.length).toBe(1);
-    expect(body.data.users[0].id).toContain(alan.id);
-    expect(body.data.users[0].name).toBe(alan.name);
+    expect(body.data.length).toBe(1);
+    expect(body.data[0].id).toContain(alan.id);
+    expect(body.data[0].name).toBe(alan.name);
 
     expect(anotherRes.status).toBe(200);
-    expect(anotherBody.data.users.length).toBe(3);
-    const memberIds = anotherBody.data.users.map((u: User) => u.id);
-    const memberNames = anotherBody.data.users.map((u: User) => u.name);
+    expect(anotherBody.data.length).toBe(3);
+    const memberIds = anotherBody.data.map((u: User) => u.id);
+    const memberNames = anotherBody.data.map((u: User) => u.name);
     expect(memberIds).toContain(bret.id);
     expect(memberIds).toContain(ken.id);
     expect(memberIds).toContain(jamie.id);
@@ -3352,10 +3350,9 @@ describe("#documents.users", () => {
     const body = await res.json();
 
     expect(res.status).toBe(200);
-    expect(body.data.document.id).toBe(document.id);
-    expect(body.data.users.length).toBe(2);
+    expect(body.data.length).toBe(2);
 
-    const memberIds = body.data.users.map((u: User) => u.id);
+    const memberIds = body.data.map((u: User) => u.id);
     expect(memberIds).not.toContain(alan.id);
     expect(memberIds).toContain(bret.id);
     expect(memberIds).toContain(ken.id);
