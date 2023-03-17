@@ -1,5 +1,7 @@
 import "./bootstrap";
-import { NotificationSetting, User } from "@server/models";
+import { QueryTypes } from "sequelize";
+import { sequelize } from "@server/database/sequelize";
+import { User } from "@server/models";
 
 const limit = 100;
 let page = parseInt(process.argv[2], 10);
@@ -16,12 +18,15 @@ export default async function main(exit = false) {
 
     for (const user of users) {
       try {
-        const settings = await NotificationSetting.findAll({
-          attributes: ["event"],
-          where: {
-            userId: user.id,
-          },
-        });
+        const settings = await sequelize.query<{ event: string }>(
+          `SELECT event FROM notification_settings WHERE "userId" = :userId`,
+          {
+            type: QueryTypes.SELECT,
+            replacements: {
+              userId: user.id,
+            },
+          }
+        );
 
         const eventTypes = settings.map((setting) => setting.event);
         user.notificationSettings = {};

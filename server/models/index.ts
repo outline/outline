@@ -30,8 +30,6 @@ export { default as IntegrationAuthentication } from "./IntegrationAuthenticatio
 
 export { default as Notification } from "./Notification";
 
-export { default as NotificationSetting } from "./NotificationSetting";
-
 export { default as Pin } from "./Pin";
 
 export { default as Revision } from "./Revision";
