@@ -170,7 +170,6 @@ class User extends ParanoidModel {
   @Column(DataType.JSONB)
   preferences: UserPreferences | null;
 
-  @Default(NotificationEventDefaults)
   @Column(DataType.JSONB)
   notificationSettings: NotificationSettings;
 
