@@ -25,8 +25,10 @@ defaults: &defaults
 executors:
   docker-publisher:
     environment:
-      IMAGE_NAME: outlinewiki/outline
-      BASE_IMAGE_NAME: outlinewiki/outline-base
+      GITHUB_NAMESPACE: outline
+      DOCKERHUB_NAMESPACE: outlinewiki
+      IMAGE_NAME: outline
+      BASE_IMAGE_NAME: outline-base
     docker:
       - image: circleci/buildpack-deps:stretch
 
@@ -133,16 +135,25 @@ jobs:
             docker buildx use docker-multiarch
       - run:
           name: Build base image
-          command: docker build -f Dockerfile.base -t $BASE_IMAGE_NAME:latest --load .
+          command: docker build -f Dockerfile.base -t $GITHUB_NAMESPACE/$BASE_IMAGE_NAME:latest -t $DOCKERHUB_NAMESPACE/$BASE_IMAGE_NAME:latest --load .
+      - run:
+          name: Login to GitHub Container Registry
+          command: echo "$GITHUB_CR_TOKEN" | docker login -u "$GITHUB_USERNAME" --password-stdin
+      - run:
+          name: Publish base Docker Image to GitHub Container Registry
+          command: docker push $GITHUB_NAMESPACE/$BASE_IMAGE_NAME:latest
+      - run:
+          name: Build and push Docker image to GitHub Container Registry
+          command: docker buildx build -t $GITHUB_NAMESPACE/$IMAGE_NAME:latest -t $GITHUB_NAMESPACE/$IMAGE_NAME:${CIRCLE_TAG/v/''} --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x --push .
       - run:
           name: Login to Docker Hub
           command: echo "$DOCKERHUB_PASS" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
       - run:
           name: Publish base Docker Image to Docker Hub
-          command: docker push $BASE_IMAGE_NAME:latest
+          command: docker push $DOCKERHUB_NAMESPACE/$BASE_IMAGE_NAME:latest
       - run:
           name: Build and push Docker image
-          command: docker buildx build -t $IMAGE_NAME:latest -t $IMAGE_NAME:${CIRCLE_TAG/v/''} --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x --push .
+          command: docker buildx build -t $DOCKERHUB_NAMESPACE/$IMAGE_NAME:latest -t $DOCKERHUB_NAMESPACE/$IMAGE_NAME:${CIRCLE_TAG/v/''} --platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/arm64/v8,linux/ppc64le,linux/s390x --push .
 
 workflows:
   version: 2
