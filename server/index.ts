@@ -90,8 +90,6 @@ async function start(id: number, disconnect: () => void) {
   // Apply default rate limit to all routes
   app.use(defaultRateLimiter());
 
-  // install health check endpoint for all services
-  router.get("/_health", (ctx) => (ctx.body = "OK"));
   app.use(router.routes());
 
   // loop through requested services at startup
