@@ -505,7 +505,7 @@
   "Anyone with the link can view this document": "Chiunque abbia il link può visualizzare questo documento",
   "The shared link was last accessed {{ timeAgo }}.": "L'ultimo accesso con il link condiviso è stato {{ timeAgo }}.",
   "Share this document": "Condividi documento",
-  "This document is shared because the parent <2>{documentTitle}</2> is publicly shared.": "This document is shared because the parent <2>{documentTitle}</2> is publicly shared.",
+  "This document is shared because the parent <2>{documentTitle}</2> is publicly shared.": "Questo documento è condiviso perché il documento padre <2>{documentTitle}</2> è pubblico.",
   "Share nested documents": "Condividi documenti annidati",
   "Nested documents are publicly available": "I documenti annidati sono disponibili pubblicamente",
   "Nested documents are not shared": "I documenti annidati non sono condivisi",
