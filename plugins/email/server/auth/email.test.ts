@@ -2,6 +2,7 @@ import sharedEnv from "@shared/env";
 import SigninEmail from "@server/emails/templates/SigninEmail";
 import WelcomeEmail from "@server/emails/templates/WelcomeEmail";
 import env from "@server/env";
+import { AuthenticationProvider } from "@server/models";
 import { buildUser, buildGuestUser, buildTeam } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
 
@@ -30,6 +31,42 @@ describe("email", () => {
     expect(res.status).toEqual(200);
     expect(body.redirect).toMatch("slack");
     expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
+  it("should respond with success and email to be sent when user has SSO but disabled", async () => {
+    const spy = jest.spyOn(SigninEmail, "schedule");
+    const team = await buildTeam({
+      subdomain: "example",
+    });
+    const user = await buildUser({
+      teamId: team.id,
+    });
+
+    // Disable all the auth providers
+    await AuthenticationProvider.update(
+      {
+        enabled: false,
+      },
+      {
+        where: {
+          enabled: true,
+        },
+      }
+    );
+
+    const res = await server.post("/auth/email", {
+      body: {
+        email: user.email,
+      },
+      headers: {
+        host: "example.localoutline.com",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.success).toEqual(true);
+    expect(spy).toHaveBeenCalled();
     spy.mockRestore();
   });
 

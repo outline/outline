@@ -192,6 +192,62 @@ describe("#groups.list", () => {
     expect(body.policies.length).toEqual(1);
     expect(body.policies[0].abilities.read).toEqual(true);
   });
+
+  it("should return groups only to which a given user has been added", async () => {
+    const user = await buildUser();
+    const anotherUser = await buildUser({
+      teamId: user.teamId,
+    });
+    const group = await buildGroup({
+      teamId: user.teamId,
+    });
+    const anotherGroup = await buildGroup({
+      teamId: user.teamId,
+    });
+    await group.$add("user", user, {
+      through: {
+        createdById: user.id,
+      },
+    });
+    await group.$add("user", anotherUser, {
+      through: {
+        createdById: user.id,
+      },
+    });
+    const res = await server.post("/api/groups.list", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    const anotherRes = await server.post("/api/groups.list", {
+      body: {
+        userId: user.id,
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    const anotherBody = await anotherRes.json();
+    expect(res.status).toEqual(200);
+    expect(anotherRes.status).toEqual(200);
+    expect(body.data["groups"].length).toEqual(2);
+    expect(body.data["groups"][0].id).toEqual(anotherGroup.id);
+    expect(body.data["groups"][1].id).toEqual(group.id);
+    expect(body.data["groupMemberships"].length).toEqual(2);
+    expect(anotherBody.data["groups"].length).toEqual(1);
+    expect(anotherBody.data["groups"][0].id).toEqual(group.id);
+    expect(anotherBody.data["groupMemberships"].length).toEqual(2);
+    expect(body.data["groupMemberships"][0].groupId).toEqual(group.id);
+    expect(body.data["groupMemberships"][1].groupId).toEqual(group.id);
+    expect(body.data["groupMemberships"][0].user.id).toEqual(user.id);
+    expect(body.data["groupMemberships"][1].user.id).toEqual(anotherUser.id);
+    expect(anotherBody.data["groupMemberships"][0].groupId).toEqual(group.id);
+    expect(anotherBody.data["groupMemberships"][1].groupId).toEqual(group.id);
+    expect(anotherBody.data["groupMemberships"][0].user.id).toEqual(user.id);
+    expect(anotherBody.data["groupMemberships"][1].user.id).toEqual(
+      anotherUser.id
+    );
+    expect(body.policies.length).toEqual(2);
+  });
 });
 
 describe("#groups.info", () => {

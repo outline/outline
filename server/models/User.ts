@@ -38,6 +38,7 @@ import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { ValidationError } from "../errors";
 import ApiKey from "./ApiKey";
 import Attachment from "./Attachment";
+import AuthenticationProvider from "./AuthenticationProvider";
 import Collection from "./Collection";
 import CollectionUser from "./CollectionUser";
 import Star from "./Star";
@@ -72,8 +73,18 @@ export enum UserRole {
   withAuthentications: {
     include: [
       {
+        separate: true,
         model: UserAuthentication,
         as: "authentications",
+        include: [
+          {
+            model: AuthenticationProvider,
+            as: "authenticationProvider",
+            where: {
+              enabled: true,
+            },
+          },
+        ],
       },
     ],
   },
@@ -110,11 +121,6 @@ class User extends ParanoidModel {
   @Length({ max: 255, msg: "User email must be 255 characters or less" })
   @Column
   email: string | null;
-
-  @NotContainsUrl
-  @Length({ max: 255, msg: "User username must be 255 characters or less" })
-  @Column
-  username: string | null;
 
   @NotContainsUrl
   @Length({ max: 255, msg: "User name must be 255 characters or less" })
@@ -589,7 +595,6 @@ class User extends ParanoidModel {
     model.email = null;
     model.name = "Unknown";
     model.avatarUrl = null;
-    model.username = null;
     model.lastActiveIp = null;
     model.lastSignedInIp = null;
 
