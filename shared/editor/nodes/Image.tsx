@@ -1,7 +1,7 @@
 import Token from "markdown-it/lib/token";
 import { InputRule } from "prosemirror-inputrules";
 import { Node as ProsemirrorNode, NodeSpec, NodeType } from "prosemirror-model";
-import { NodeSelection, EditorState } from "prosemirror-state";
+import { NodeSelection, EditorState, Plugin } from "prosemirror-state";
 import * as React from "react";
 import { sanitizeUrl } from "../../utils/urls";
 import { default as ImageComponent, Caption } from "../components/Image";
@@ -157,6 +157,31 @@ export default class Image extends SimpleImage {
         ];
       },
     };
+  }
+
+  get plugins() {
+    return [
+      new Plugin({
+        props: {
+          handleKeyDown: (view, event) => {
+            // prevent prosemirror's default spacebar behavior
+            // & zoom in if the selected node is image
+            if (event.key === " ") {
+              const { state } = view;
+              const { selection } = state;
+              if (selection instanceof NodeSelection) {
+                const { node } = selection;
+                if (node.type.name === "image") {
+                  return true;
+                }
+              }
+            }
+
+            return false;
+          },
+        },
+      }),
+    ];
   }
 
   handleChangeSize = ({
