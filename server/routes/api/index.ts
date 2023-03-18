@@ -53,8 +53,9 @@ api.use(apiWrapper());
 api.use(editor());
 
 // register package API routes before others to allow for overrides
+const rootDir = env.ENVIRONMENT === "test" ? "" : "build";
 glob
-  .sync("build/plugins/*/server/api/!(*.test).js")
+  .sync(path.join(rootDir, "plugins/*/server/api/!(*.test).[jt]s"))
   .forEach((filePath: string) => {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const pkg: Router = require(path.join(process.cwd(), filePath)).default;
