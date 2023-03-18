@@ -78,11 +78,11 @@ class Logger {
     Metrics.increment("logger.warning");
 
     if (env.SENTRY_DSN) {
-      Sentry.withScope(function (scope) {
+      Sentry.withScope((scope) => {
         scope.setLevel("warning");
 
         for (const key in extra) {
-          scope.setExtra(key, extra[key]);
+          scope.setExtra(key, this.sanitize(extra[key]));
         }
 
         Sentry.captureMessage(message);
@@ -118,7 +118,7 @@ class Logger {
     Tracing.setError(error);
 
     if (env.SENTRY_DSN) {
-      Sentry.withScope(function (scope) {
+      Sentry.withScope((scope) => {
         scope.setLevel("error");
 
         for (const key in extra) {
@@ -126,7 +126,7 @@ class Logger {
         }
 
         if (request) {
-          scope.addEventProcessor(function (event) {
+          scope.addEventProcessor((event) => {
             return Sentry.Handlers.parseRequest(event, request);
           });
         }
