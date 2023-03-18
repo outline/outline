@@ -2,7 +2,6 @@ import {
   mathBackspaceCmd,
   insertMathCmd,
   makeInlineMathInputRule,
-  REGEX_INLINE_MATH_DOLLARS,
   mathSchemaSpec,
 } from "@benrbray/prosemirror-math";
 import { PluginSimple } from "markdown-it";
@@ -21,7 +20,7 @@ import {
 import { EditorState, Plugin } from "prosemirror-state";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import MathPlugin from "../plugins/Math";
-import mathRule from "../rules/math";
+import mathRule, { REGEX_INLINE_MATH_DOLLARS } from "../rules/math";
 import { Dispatch } from "../types";
 import Node from "./Node";
 
@@ -71,9 +70,9 @@ export default class Math extends Node {
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
-    state.write("$");
+    state.write("$$");
     state.text(node.textContent, false);
-    state.write("$");
+    state.write("$$");
   }
 
   parseMarkdown() {
