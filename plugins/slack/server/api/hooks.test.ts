@@ -5,7 +5,7 @@ import { buildDocument, buildIntegration } from "@server/test/factories";
 import { seed, getTestServer } from "@server/test/support";
 import * as Slack from "../slack";
 
-jest.mock("@server/utils/slack", () => ({
+jest.mock("../slack", () => ({
   post: jest.fn(),
 }));
 

@@ -36,6 +36,7 @@ import parseAttachmentIds from "@server/utils/parseAttachmentIds";
 import { ValidationError } from "../errors";
 import ApiKey from "./ApiKey";
 import Attachment from "./Attachment";
+import AuthenticationProvider from "./AuthenticationProvider";
 import Collection from "./Collection";
 import CollectionUser from "./CollectionUser";
 import NotificationSetting from "./NotificationSetting";
@@ -71,8 +72,18 @@ export enum UserRole {
   withAuthentications: {
     include: [
       {
+        separate: true,
         model: UserAuthentication,
         as: "authentications",
+        include: [
+          {
+            model: AuthenticationProvider,
+            as: "authenticationProvider",
+            where: {
+              enabled: true,
+            },
+          },
+        ],
       },
     ],
   },
