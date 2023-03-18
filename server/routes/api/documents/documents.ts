@@ -446,7 +446,7 @@ router.post(
     const actor = ctx.state.auth.user;
     const { offset, limit } = ctx.state.pagination;
     const document = await Document.findByPk(id);
-    authorize(actor, "update", document);
+    authorize(actor, "read", document);
 
     let users: User[] = [];
     let total = 0;

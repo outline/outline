@@ -13,11 +13,11 @@ export default function parseDocumentSlug(url: string) {
     try {
       parsed = new URL(url).pathname;
     } catch (err) {
-      return "";
+      return;
     }
   }
 
   return parsed.lastIndexOf("/doc/") === 0
     ? parsed.replace(/^\/doc\//, "").split("#")[0]
-    : "";
+    : undefined;
 }

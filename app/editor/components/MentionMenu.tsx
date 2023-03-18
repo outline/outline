@@ -38,14 +38,17 @@ type Props = Omit<
 function MentionMenu({ search, ...rest }: Props) {
   const [items, setItems] = React.useState<MentionItem[]>([]);
   const { t } = useTranslation();
-  const { documents, auth } = useStores();
+  const { users, auth } = useStores();
   const location = useLocation();
   const documentId = parseDocumentSlug(location.pathname);
   const { view } = useEditor();
   const { data, request } = useRequest(
     React.useCallback(
-      () => documents.fetchUsers({ id: documentId, query: search }),
-      [documents, search]
+      () =>
+        documentId
+          ? users.fetchDocumentUsers({ id: documentId, query: search })
+          : Promise.resolve([]),
+      [users, documentId, search]
     )
   );
 
