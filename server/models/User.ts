@@ -12,7 +12,6 @@ import {
   IsIn,
   BeforeDestroy,
   BeforeCreate,
-  AfterCreate,
   BelongsTo,
   ForeignKey,
   DataType,
@@ -24,10 +23,13 @@ import {
   AfterUpdate,
 } from "sequelize-typescript";
 import { languages } from "@shared/i18n";
+import type { NotificationSettings } from "@shared/types";
 import {
   CollectionPermission,
   UserPreference,
   UserPreferences,
+  NotificationEventType,
+  NotificationEventDefaults,
 } from "@shared/types";
 import { stringToColor } from "@shared/utils/color";
 import env from "@server/env";
@@ -39,7 +41,6 @@ import Attachment from "./Attachment";
 import AuthenticationProvider from "./AuthenticationProvider";
 import Collection from "./Collection";
 import CollectionUser from "./CollectionUser";
-import NotificationSetting from "./NotificationSetting";
 import Star from "./Star";
 import Team from "./Team";
 import UserAuthentication from "./UserAuthentication";
@@ -175,6 +176,9 @@ class User extends ParanoidModel {
   @Column(DataType.JSONB)
   preferences: UserPreferences | null;
 
+  @Column(DataType.JSONB)
+  notificationSettings: NotificationSettings;
+
   @Default(env.DEFAULT_LANGUAGE)
   @IsIn([languages])
   @Column
@@ -260,6 +264,35 @@ class User extends ParanoidModel {
   }
 
   // instance methods
+
+  /**
+   * Sets a preference for the users notification settings.
+   *
+   * @param type The type of notification event
+   * @param value Set the preference to true/false
+   */
+  public setNotificationEventType = (
+    type: NotificationEventType,
+    value = true
+  ) => {
+    this.notificationSettings[type] = value;
+    this.changed("notificationSettings", true);
+  };
+
+  /**
+   * Returns the current preference for the given notification event type taking
+   * into account the default system value.
+   *
+   * @param type The type of notification event
+   * @returns The current preference
+   */
+  public subscribedToEventType = (type: NotificationEventType) => {
+    return (
+      this.notificationSettings[type] ??
+      NotificationEventDefaults[type] ??
+      false
+    );
+  };
 
   /**
    * User flags are for storing information on a user record that is not visible
@@ -541,12 +574,6 @@ class User extends ParanoidModel {
     model: User,
     options: { transaction: Transaction }
   ) => {
-    await NotificationSetting.destroy({
-      where: {
-        userId: model.id,
-      },
-      transaction: options.transaction,
-    });
     await ApiKey.destroy({
       where: {
         userId: model.id,
@@ -612,62 +639,6 @@ class User extends ParanoidModel {
           teamId: model.id,
         });
       }
-    }
-  };
-
-  // By default when a user signs up we subscribe them to email notifications
-  // when documents they created are edited by other team members and onboarding.
-  // If the user is an admin, they will also be subscribed to export_completed
-  // notifications.
-  @AfterCreate
-  static subscribeToNotifications = async (
-    model: User,
-    options: { transaction: Transaction }
-  ) => {
-    await Promise.all([
-      NotificationSetting.findOrCreate({
-        where: {
-          userId: model.id,
-          teamId: model.teamId,
-          event: "documents.update",
-        },
-        transaction: options.transaction,
-      }),
-      NotificationSetting.findOrCreate({
-        where: {
-          userId: model.id,
-          teamId: model.teamId,
-          event: "emails.onboarding",
-        },
-        transaction: options.transaction,
-      }),
-      NotificationSetting.findOrCreate({
-        where: {
-          userId: model.id,
-          teamId: model.teamId,
-          event: "emails.features",
-        },
-        transaction: options.transaction,
-      }),
-      NotificationSetting.findOrCreate({
-        where: {
-          userId: model.id,
-          teamId: model.teamId,
-          event: "emails.invite_accepted",
-        },
-        transaction: options.transaction,
-      }),
-    ]);
-
-    if (model.isAdmin) {
-      await NotificationSetting.findOrCreate({
-        where: {
-          userId: model.id,
-          teamId: model.teamId,
-          event: "emails.export_completed",
-        },
-        transaction: options.transaction,
-      });
     }
   };
 

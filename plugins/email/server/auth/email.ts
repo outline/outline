@@ -1,5 +1,5 @@
 import Router from "koa-router";
-import { Client } from "@shared/types";
+import { Client, NotificationEventType } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
 import InviteAcceptedEmail from "@server/emails/templates/InviteAcceptedEmail";
 import SigninEmail from "@server/emails/templates/SigninEmail";
@@ -67,12 +67,13 @@ router.post(
     }
 
     // send email to users email address with a short-lived token
-    await SigninEmail.schedule({
+    await new SigninEmail({
       to: user.email,
       token: user.getEmailSigninToken(),
       teamUrl: team.url,
       client: client === Client.Desktop ? Client.Desktop : Client.Web,
-    });
+    }).schedule();
+
     user.lastSigninEmailSentAt = new Date();
     await user.save();
 
@@ -105,19 +106,19 @@ router.get("email.callback", async (ctx) => {
   }
 
   if (user.isInvited) {
-    await WelcomeEmail.schedule({
+    await new WelcomeEmail({
       to: user.email,
       teamUrl: user.team.url,
-    });
+    }).schedule();
 
     const inviter = await user.$get("invitedBy");
-    if (inviter) {
-      await InviteAcceptedEmail.schedule({
+    if (inviter?.subscribedToEventType(NotificationEventType.InviteAccepted)) {
+      await new InviteAcceptedEmail({
         to: inviter.email,
         inviterId: inviter.id,
         invitedName: user.name,
         teamUrl: user.team.url,
-      });
+      }).schedule();
     }
   }
 

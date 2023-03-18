@@ -1,10 +1,11 @@
 import { subHours } from "date-fns";
 import { differenceBy } from "lodash";
 import { Op } from "sequelize";
+import { NotificationEventType } from "@shared/types";
 import { Minute } from "@shared/utils/time";
 import subscriptionCreator from "@server/commands/subscriptionCreator";
 import { sequelize } from "@server/database/sequelize";
-import CollectionNotificationEmail from "@server/emails/templates/CollectionNotificationEmail";
+import CollectionCreatedEmail from "@server/emails/templates/CollectionCreatedEmail";
 import DocumentNotificationEmail from "@server/emails/templates/DocumentNotificationEmail";
 import MentionNotificationEmail from "@server/emails/templates/MentionNotificationEmail";
 import env from "@server/env";
@@ -89,7 +90,12 @@ export default class NotificationsProcessor extends BaseProcessor {
         User.findByPk(mention.modelId),
         User.findByPk(mention.actorId),
       ]);
-      if (recipient && actor && recipient.id !== actor.id) {
+      if (
+        recipient &&
+        actor &&
+        recipient.id !== actor.id &&
+        recipient.subscribedToEventType(NotificationEventType.Mentioned)
+      ) {
         const notification = await Notification.create({
           event: event.name,
           userId: recipient.id,
@@ -98,7 +104,7 @@ export default class NotificationsProcessor extends BaseProcessor {
           documentId: document.id,
         });
         userIdsSentNotifications.push(recipient.id);
-        await MentionNotificationEmail.schedule(
+        await new MentionNotificationEmail(
           {
             to: recipient.email,
             documentId: event.documentId,
@@ -107,44 +113,42 @@ export default class NotificationsProcessor extends BaseProcessor {
             mentionId: mention.id,
           },
           { notificationId: notification.id }
-        );
+        ).schedule();
       }
     }
 
     const recipients = (
       await NotificationHelper.getDocumentNotificationRecipients(
         document,
-        "documents.publish",
+        NotificationEventType.PublishDocument,
         document.lastModifiedById,
         false
       )
-    ).filter(
-      (recipient) => !userIdsSentNotifications.includes(recipient.userId)
-    );
+    ).filter((recipient) => !userIdsSentNotifications.includes(recipient.id));
 
     for (const recipient of recipients) {
-      const notify = await this.shouldNotify(document, recipient.user);
+      const notify = await this.shouldNotify(document, recipient);
 
       if (notify) {
         const notification = await Notification.create({
           event: event.name,
-          userId: recipient.user.id,
+          userId: recipient.id,
           actorId: document.updatedBy.id,
           teamId: team.id,
           documentId: document.id,
         });
-        await DocumentNotificationEmail.schedule(
+        await new DocumentNotificationEmail(
           {
-            to: recipient.user.email,
-            eventName: "published",
+            to: recipient.email,
+            userId: recipient.id,
+            eventType: NotificationEventType.PublishDocument,
             documentId: document.id,
             teamUrl: team.url,
             actorName: document.updatedBy.name,
             collectionName: collection.name,
-            unsubscribeUrl: recipient.unsubscribeUrl,
           },
           { notificationId: notification.id }
-        );
+        ).schedule();
       }
     }
   }
@@ -175,7 +179,12 @@ export default class NotificationsProcessor extends BaseProcessor {
         User.findByPk(mention.modelId),
         User.findByPk(mention.actorId),
       ]);
-      if (recipient && actor && recipient.id !== actor.id) {
+      if (
+        recipient &&
+        actor &&
+        recipient.id !== actor.id &&
+        recipient.subscribedToEventType(NotificationEventType.Mentioned)
+      ) {
         const notification = await Notification.create({
           event: event.name,
           userId: recipient.id,
@@ -184,7 +193,7 @@ export default class NotificationsProcessor extends BaseProcessor {
           documentId: document.id,
         });
         userIdsSentNotifications.push(recipient.id);
-        await MentionNotificationEmail.schedule(
+        await new MentionNotificationEmail(
           {
             to: recipient.email,
             documentId: event.documentId,
@@ -193,20 +202,18 @@ export default class NotificationsProcessor extends BaseProcessor {
             mentionId: mention.id,
           },
           { notificationId: notification.id }
-        );
+        ).schedule();
       }
     }
 
     const recipients = (
       await NotificationHelper.getDocumentNotificationRecipients(
         document,
-        "documents.update",
+        NotificationEventType.UpdateDocument,
         document.lastModifiedById,
         true
       )
-    ).filter(
-      (recipient) => !userIdsSentNotifications.includes(recipient.userId)
-    );
+    ).filter((recipient) => !userIdsSentNotifications.includes(recipient.id));
     if (!recipients.length) {
       return;
     }
@@ -223,30 +230,30 @@ export default class NotificationsProcessor extends BaseProcessor {
     }
 
     for (const recipient of recipients) {
-      const notify = await this.shouldNotify(document, recipient.user);
+      const notify = await this.shouldNotify(document, recipient);
 
       if (notify) {
         const notification = await Notification.create({
           event: event.name,
-          userId: recipient.user.id,
+          userId: recipient.id,
           actorId: document.updatedBy.id,
           teamId: team.id,
           documentId: document.id,
         });
 
-        await DocumentNotificationEmail.schedule(
+        await new DocumentNotificationEmail(
           {
-            to: recipient.user.email,
-            eventName: "updated",
+            to: recipient.email,
+            userId: recipient.id,
+            eventType: NotificationEventType.UpdateDocument,
             documentId: document.id,
             teamUrl: team.url,
             actorName: document.updatedBy.name,
             collectionName: collection.name,
-            unsubscribeUrl: recipient.unsubscribeUrl,
             content,
           },
           { notificationId: notification.id }
-        );
+        ).schedule();
       }
     }
   }
@@ -262,21 +269,20 @@ export default class NotificationsProcessor extends BaseProcessor {
 
     const recipients = await NotificationHelper.getCollectionNotificationRecipients(
       collection,
-      event.name
+      NotificationEventType.CreateCollection
     );
 
     for (const recipient of recipients) {
       // Suppress notifications for suspended users
-      if (recipient.user.isSuspended || !recipient.user.email) {
+      if (recipient.isSuspended || !recipient.email) {
         continue;
       }
 
-      await CollectionNotificationEmail.schedule({
-        to: recipient.user.email,
-        eventName: "created",
+      await new CollectionCreatedEmail({
+        to: recipient.email,
+        userId: recipient.id,
         collectionId: collection.id,
-        unsubscribeUrl: recipient.unsubscribeUrl,
-      });
+      }).schedule();
     }
   }
 

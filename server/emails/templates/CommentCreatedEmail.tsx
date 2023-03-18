@@ -1,8 +1,10 @@
 import inlineCss from "inline-css";
 import * as React from "react";
+import { NotificationEventType } from "@shared/types";
 import env from "@server/env";
-import { Comment, Document } from "@server/models";
-import BaseEmail from "./BaseEmail";
+import { Comment, Document, User } from "@server/models";
+import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
+import BaseEmail, { EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
 import Diff from "./components/Diff";
@@ -12,15 +14,14 @@ import Footer from "./components/Footer";
 import Header from "./components/Header";
 import Heading from "./components/Heading";
 
-type InputProps = {
-  to: string;
+type InputProps = EmailProps & {
+  userId: string;
   documentId: string;
   actorName: string;
   isReply: boolean;
   commentId: string;
-  collectionName: string;
+  collectionName: string | undefined;
   teamUrl: string;
-  unsubscribeUrl: string;
   content: string;
 };
 
@@ -28,21 +29,32 @@ type BeforeSend = {
   document: Document;
   body: string | undefined;
   isFirstComment: boolean;
+  unsubscribeUrl: string;
 };
 
 type Props = InputProps & BeforeSend;
 
 /**
- * Email sent to a user when they are subscribed to a document and a new comment
- * is created.
+ * Email sent to a user when a new comment is created in a document they are
+ * subscribed to.
  */
 export default class CommentCreatedEmail extends BaseEmail<
   InputProps,
   BeforeSend
 > {
-  protected async beforeSend({ documentId, commentId, content }: InputProps) {
+  protected async beforeSend({
+    documentId,
+    userId,
+    commentId,
+    content,
+  }: InputProps) {
     const document = await Document.unscoped().findByPk(documentId);
     if (!document) {
+      return false;
+    }
+
+    const user = await User.findByPk(userId);
+    if (!user) {
       return false;
     }
 
@@ -64,7 +76,15 @@ export default class CommentCreatedEmail extends BaseEmail<
       });
     }
 
-    return { document, isFirstComment, body };
+    return {
+      document,
+      isFirstComment,
+      body,
+      unsubscribeUrl: NotificationSettingsHelper.unsubscribeUrl(
+        user,
+        NotificationEventType.CreateComment
+      ),
+    };
   }
 
   protected subject({ isFirstComment, document }: Props) {
@@ -92,7 +112,7 @@ export default class CommentCreatedEmail extends BaseEmail<
     return `
 ${actorName} ${isReply ? "replied to a thread in" : "commented on"} "${
       document.title
-    }", in the ${collectionName} collection.
+    }"${collectionName ? `in the ${collectionName} collection` : ""}.
 
 Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
 `;
@@ -118,8 +138,8 @@ Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
           <Heading>{document.title}</Heading>
           <p>
             {actorName} {isReply ? "replied to a thread in" : "commented on"}{" "}
-            <a href={link}>{document.title}</a>, in the {collectionName}{" "}
-            collection.
+            <a href={link}>{document.title}</a>{" "}
+            {collectionName ? `in the ${collectionName} collection` : ""}.
           </p>
           {body && (
             <>

@@ -18,7 +18,7 @@ describe("accountProvisioner", () => {
     });
 
     it("should create a new user and team", async () => {
-      const spy = jest.spyOn(WelcomeEmail, "schedule");
+      const spy = jest.spyOn(WelcomeEmail.prototype, "schedule");
       const { user, team, isNewTeam, isNewUser } = await accountProvisioner({
         ip,
         user: {
@@ -58,7 +58,7 @@ describe("accountProvisioner", () => {
     });
 
     it("should update exising user and authentication", async () => {
-      const spy = jest.spyOn(WelcomeEmail, "schedule");
+      const spy = jest.spyOn(WelcomeEmail.prototype, "schedule");
       const existingTeam = await buildTeam();
       const providers = await existingTeam.$get("authenticationProviders");
       const authenticationProvider = providers[0];
@@ -230,7 +230,7 @@ describe("accountProvisioner", () => {
     });
 
     it("should create a new user in an existing team when the domain is allowed", async () => {
-      const spy = jest.spyOn(WelcomeEmail, "schedule");
+      const spy = jest.spyOn(WelcomeEmail.prototype, "schedule");
       const { admin, team } = await seed();
       const authenticationProviders = await team.$get(
         "authenticationProviders"
@@ -280,7 +280,7 @@ describe("accountProvisioner", () => {
     });
 
     it("should create a new user in an existing team", async () => {
-      const spy = jest.spyOn(WelcomeEmail, "schedule");
+      const spy = jest.spyOn(WelcomeEmail.prototype, "schedule");
       const team = await buildTeam();
       const authenticationProviders = await team.$get(
         "authenticationProviders"

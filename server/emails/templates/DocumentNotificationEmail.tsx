@@ -1,8 +1,10 @@
 import inlineCss from "inline-css";
 import * as React from "react";
+import { NotificationEventType } from "@shared/types";
 import env from "@server/env";
-import { Document } from "@server/models";
-import BaseEmail from "./BaseEmail";
+import { Document, User } from "@server/models";
+import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
+import BaseEmail, { EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
 import Diff from "./components/Diff";
@@ -12,19 +14,21 @@ import Footer from "./components/Footer";
 import Header from "./components/Header";
 import Heading from "./components/Heading";
 
-type InputProps = {
-  to: string;
+type InputProps = EmailProps & {
+  userId: string;
   documentId: string;
   actorName: string;
   collectionName: string;
-  eventName: string;
+  eventType:
+    | NotificationEventType.PublishDocument
+    | NotificationEventType.UpdateDocument;
   teamUrl: string;
-  unsubscribeUrl: string;
-  content: string;
+  content?: string;
 };
 
 type BeforeSend = {
   document: Document;
+  unsubscribeUrl: string;
   body: string | undefined;
 };
 
@@ -38,9 +42,19 @@ export default class DocumentNotificationEmail extends BaseEmail<
   InputProps,
   BeforeSend
 > {
-  protected async beforeSend({ documentId, content }: InputProps) {
+  protected async beforeSend({
+    documentId,
+    eventType,
+    userId,
+    content,
+  }: InputProps) {
     const document = await Document.unscoped().findByPk(documentId);
     if (!document) {
+      return false;
+    }
+
+    const user = await User.findByPk(userId);
+    if (!user) {
       return false;
     }
 
@@ -55,15 +69,33 @@ export default class DocumentNotificationEmail extends BaseEmail<
       });
     }
 
-    return { document, body };
+    return {
+      document,
+      body,
+      unsubscribeUrl: NotificationSettingsHelper.unsubscribeUrl(
+        user,
+        eventType
+      ),
+    };
   }
 
-  protected subject({ document, eventName }: Props) {
-    return `“${document.title}” ${eventName}`;
+  eventName(eventType: NotificationEventType) {
+    switch (eventType) {
+      case NotificationEventType.PublishDocument:
+        return "published";
+      case NotificationEventType.UpdateDocument:
+        return "updated";
+      default:
+        return "";
+    }
   }
 
-  protected preview({ actorName, eventName }: Props): string {
-    return `${actorName} ${eventName} a document`;
+  protected subject({ document, eventType }: Props) {
+    return `“${document.title}” ${this.eventName(eventType)}`;
+  }
+
+  protected preview({ actorName, eventType }: Props): string {
+    return `${actorName} ${this.eventName(eventType)} a document`;
   }
 
   protected renderAsText({
@@ -71,8 +103,10 @@ export default class DocumentNotificationEmail extends BaseEmail<
     teamUrl,
     document,
     collectionName,
-    eventName = "published",
+    eventType,
   }: Props): string {
+    const eventName = this.eventName(eventType);
+
     return `
 "${document.title}" ${eventName}
 
@@ -86,12 +120,13 @@ Open Document: ${teamUrl}${document.url}
     document,
     actorName,
     collectionName,
-    eventName = "published",
+    eventType,
     teamUrl,
     unsubscribeUrl,
     body,
   }: Props) {
     const link = `${teamUrl}${document.url}?ref=notification-email`;
+    const eventName = this.eventName(eventType);
 
     return (
       <EmailTemplate>

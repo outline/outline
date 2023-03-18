@@ -2,7 +2,7 @@ import * as React from "react";
 import { Client } from "@shared/types";
 import env from "@server/env";
 import logger from "@server/logging/Logger";
-import BaseEmail from "./BaseEmail";
+import BaseEmail, { EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
 import EmailTemplate from "./components/EmailLayout";
@@ -11,8 +11,7 @@ import Footer from "./components/Footer";
 import Header from "./components/Header";
 import Heading from "./components/Heading";
 
-type Props = {
-  to: string;
+type Props = EmailProps & {
   token: string;
   teamUrl: string;
   client: Client;

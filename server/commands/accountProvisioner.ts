@@ -144,10 +144,10 @@ async function accountProvisioner({
     const { isNewUser, user } = result;
 
     if (isNewUser) {
-      await WelcomeEmail.schedule({
+      await new WelcomeEmail({
         to: user.email,
         teamUrl: team.url,
-      });
+      }).schedule();
     }
 
     if (isNewUser || isNewTeam) {

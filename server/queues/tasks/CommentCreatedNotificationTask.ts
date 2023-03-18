@@ -1,4 +1,5 @@
 import { Node } from "prosemirror-model";
+import { NotificationEventType } from "@shared/types";
 import subscriptionCreator from "@server/commands/subscriptionCreator";
 import { sequelize } from "@server/database/sequelize";
 import { schema } from "@server/editor";
@@ -66,7 +67,12 @@ export default class CommentCreatedNotificationTask extends BaseTask<
         User.findByPk(mention.modelId),
         User.findByPk(mention.actorId),
       ]);
-      if (recipient && actor && recipient.id !== actor.id) {
+      if (
+        recipient &&
+        actor &&
+        recipient.id !== actor.id &&
+        recipient.subscribedToEventType(NotificationEventType.Mentioned)
+      ) {
         const notification = await Notification.create({
           event: event.name,
           userId: recipient.id,
@@ -75,9 +81,11 @@ export default class CommentCreatedNotificationTask extends BaseTask<
           documentId: document.id,
         });
         userIdsSentNotifications.push(recipient.id);
-        await CommentCreatedEmail.schedule(
+
+        await new CommentCreatedEmail(
           {
             to: recipient.email,
+            userId: recipient.id,
             documentId: document.id,
             teamUrl: team.url,
             isReply: !!comment.parentCommentId,
@@ -87,7 +95,7 @@ export default class CommentCreatedNotificationTask extends BaseTask<
             collectionName: document.collection?.name,
           },
           { notificationId: notification.id }
-        );
+        ).schedule();
       }
     }
 
@@ -97,24 +105,20 @@ export default class CommentCreatedNotificationTask extends BaseTask<
         comment,
         comment.createdById
       )
-    ).filter(
-      (recipient) => !userIdsSentNotifications.includes(recipient.userId)
-    );
-    if (!recipients.length) {
-      return;
-    }
+    ).filter((recipient) => !userIdsSentNotifications.includes(recipient.id));
 
     for (const recipient of recipients) {
       const notification = await Notification.create({
         event: event.name,
-        userId: recipient.user.id,
+        userId: recipient.id,
         actorId: comment.createdById,
         teamId: team.id,
         documentId: document.id,
       });
-      await CommentCreatedEmail.schedule(
+      await new CommentCreatedEmail(
         {
-          to: recipient.user.email,
+          to: recipient.email,
+          userId: recipient.id,
           documentId: document.id,
           teamUrl: team.url,
           isReply: !!comment.parentCommentId,
@@ -122,10 +126,9 @@ export default class CommentCreatedNotificationTask extends BaseTask<
           commentId: comment.id,
           content,
           collectionName: document.collection?.name,
-          unsubscribeUrl: recipient.unsubscribeUrl,
         },
         { notificationId: notification.id }
-      );
+      ).schedule();
     }
   }
 

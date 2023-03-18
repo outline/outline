@@ -12,7 +12,6 @@ import presentGroup from "./group";
 import presentGroupMembership from "./groupMembership";
 import presentIntegration from "./integration";
 import presentMembership from "./membership";
-import presentNotificationSetting from "./notificationSetting";
 import presentPin from "./pin";
 import presentPolicies from "./policy";
 import presentProviderConfig from "./providerConfig";
@@ -41,7 +40,6 @@ export {
   presentGroupMembership,
   presentIntegration,
   presentMembership,
-  presentNotificationSetting,
   presentPublicTeam,
   presentPin,
   presentPolicies,

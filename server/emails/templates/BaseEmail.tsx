@@ -1,3 +1,4 @@
+import Bull from "bull";
 import mailer from "@server/emails/mailer";
 import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/Metrics";
@@ -6,8 +7,8 @@ import { taskQueue } from "@server/queues";
 import { TaskPriority } from "@server/queues/tasks/BaseTask";
 import { NotificationMetadata } from "@server/types";
 
-interface EmailProps {
-  to: string;
+export interface EmailProps {
+  to: string | null;
 }
 
 export default abstract class BaseEmail<T extends EmailProps, S = unknown> {
@@ -17,12 +18,11 @@ export default abstract class BaseEmail<T extends EmailProps, S = unknown> {
   /**
    * Schedule this email type to be sent asyncronously by a worker.
    *
-   * @param props Properties to be used in the email template
-   * @param metadata Optional metadata to be stored with the notification
+   * @param options Options to pass to the Bull queue
    * @returns A promise that resolves once the email is placed on the task queue
    */
-  public static schedule<T>(props: T, metadata?: NotificationMetadata) {
-    const templateName = this.name;
+  public schedule(options?: Bull.JobOptions) {
+    const templateName = this.constructor.name;
 
     Metrics.increment("email.scheduled", {
       templateName,
@@ -35,8 +35,8 @@ export default abstract class BaseEmail<T extends EmailProps, S = unknown> {
         name: "EmailTask",
         props: {
           templateName,
-          ...metadata,
-          props,
+          ...this.metadata,
+          props: this.props,
         },
       },
       {
@@ -46,6 +46,7 @@ export default abstract class BaseEmail<T extends EmailProps, S = unknown> {
           type: "exponential",
           delay: 60 * 1000,
         },
+        ...options,
       }
     );
   }
@@ -68,6 +69,15 @@ export default abstract class BaseEmail<T extends EmailProps, S = unknown> {
       Logger.info(
         "email",
         `Email ${templateName} not sent due to beforeSend hook`,
+        this.props
+      );
+      return;
+    }
+
+    if (!this.props.to) {
+      Logger.info(
+        "email",
+        `Email ${templateName} not sent due to missing email address`,
         this.props
       );
       return;

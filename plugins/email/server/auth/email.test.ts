@@ -20,7 +20,7 @@ describe("email", () => {
   });
 
   it("should respond with redirect location when user is SSO enabled", async () => {
-    const spy = jest.spyOn(WelcomeEmail, "schedule");
+    const spy = jest.spyOn(WelcomeEmail.prototype, "schedule");
     const user = await buildUser();
     const res = await server.post("/auth/email", {
       body: {
@@ -35,7 +35,7 @@ describe("email", () => {
   });
 
   it("should respond with success and email to be sent when user has SSO but disabled", async () => {
-    const spy = jest.spyOn(SigninEmail, "schedule");
+    const spy = jest.spyOn(SigninEmail.prototype, "schedule");
     const team = await buildTeam({
       subdomain: "example",
     });
@@ -76,7 +76,7 @@ describe("email", () => {
     env.DEPLOYMENT = "hosted";
 
     const user = await buildUser();
-    const spy = jest.spyOn(WelcomeEmail, "schedule");
+    const spy = jest.spyOn(WelcomeEmail.prototype, "schedule");
     await buildTeam({
       subdomain: "example",
     });
@@ -97,7 +97,7 @@ describe("email", () => {
   });
 
   it("should respond with success and email to be sent when user is not SSO enabled", async () => {
-    const spy = jest.spyOn(SigninEmail, "schedule");
+    const spy = jest.spyOn(SigninEmail.prototype, "schedule");
     const team = await buildTeam({
       subdomain: "example",
     });
@@ -120,7 +120,7 @@ describe("email", () => {
   });
 
   it("should respond with success regardless of whether successful to prevent crawling email logins", async () => {
-    const spy = jest.spyOn(WelcomeEmail, "schedule");
+    const spy = jest.spyOn(WelcomeEmail.prototype, "schedule");
     await buildTeam({
       subdomain: "example",
     });
@@ -140,7 +140,7 @@ describe("email", () => {
   });
   describe("with multiple users matching email", () => {
     it("should default to current subdomain with SSO", async () => {
-      const spy = jest.spyOn(SigninEmail, "schedule");
+      const spy = jest.spyOn(SigninEmail.prototype, "schedule");
       env.URL = sharedEnv.URL = "http://localoutline.com";
       env.SUBDOMAINS_ENABLED = sharedEnv.SUBDOMAINS_ENABLED = true;
       const email = "sso-user@example.org";
@@ -170,7 +170,7 @@ describe("email", () => {
     });
 
     it("should default to current subdomain with guest email", async () => {
-      const spy = jest.spyOn(SigninEmail, "schedule");
+      const spy = jest.spyOn(SigninEmail.prototype, "schedule");
       env.URL = sharedEnv.URL = "http://localoutline.com";
       env.SUBDOMAINS_ENABLED = sharedEnv.SUBDOMAINS_ENABLED = true;
       const email = "guest-user@example.org";
@@ -200,7 +200,7 @@ describe("email", () => {
     });
 
     it("should default to custom domain with SSO", async () => {
-      const spy = jest.spyOn(WelcomeEmail, "schedule");
+      const spy = jest.spyOn(WelcomeEmail.prototype, "schedule");
       const email = "sso-user-2@example.org";
       const team = await buildTeam({
         domain: "docs.mycompany.com",
@@ -228,7 +228,7 @@ describe("email", () => {
     });
 
     it("should default to custom domain with guest email", async () => {
-      const spy = jest.spyOn(SigninEmail, "schedule");
+      const spy = jest.spyOn(SigninEmail.prototype, "schedule");
       const email = "guest-user-2@example.org";
       const team = await buildTeam({
         domain: "docs.mycompany.com",

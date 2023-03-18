@@ -181,12 +181,12 @@ export default async function userProvisioner({
     if (isInvite) {
       const inviter = await existingUser.$get("invitedBy");
       if (inviter) {
-        await InviteAcceptedEmail.schedule({
+        await new InviteAcceptedEmail({
           to: inviter.email,
           inviterId: inviter.id,
           invitedName: existingUser.name,
           teamUrl: existingUser.team.url,
-        });
+        }).schedule();
       }
     }
 

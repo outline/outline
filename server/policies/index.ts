@@ -17,7 +17,6 @@ import "./comment";
 import "./document";
 import "./fileOperation";
 import "./integration";
-import "./notificationSetting";
 import "./pins";
 import "./searchQuery";
 import "./share";
