@@ -35,7 +35,7 @@ describe("email", () => {
   });
 
   it("should respond with success and email to be sent when user has SSO but disabled", async () => {
-    const spy = jest.spyOn(SigninEmail, "schedule");
+    const spy = jest.spyOn(SigninEmail.prototype, "schedule");
     const team = await buildTeam({
       subdomain: "example",
     });
