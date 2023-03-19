@@ -2,6 +2,10 @@ import MarkdownIt from "markdown-it";
 import StateBlock from "markdown-it/lib/rules_block/state_block";
 import StateInline from "markdown-it/lib/rules_inline/state_inline";
 
+export const REGEX_INLINE_MATH_DOLLARS = /\$\$(.+)\$\$/;
+
+export const REGEX_BLOCK_MATH_DOLLARS = /\$\$\$\s+$/;
+
 // test if potential opening or closing delimiter
 // assumes that there is a "$" at state.src[pos]
 function isValidDelimiter(state: StateInline, pos: number) {
