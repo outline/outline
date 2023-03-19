@@ -6,11 +6,9 @@ import send from "koa-send";
 import userAgent, { UserAgentContext } from "koa-useragent";
 import { languages } from "@shared/i18n";
 import { IntegrationType } from "@shared/types";
-import { sequelize } from "@server/database/sequelize";
 import env from "@server/env";
 import { NotFoundError } from "@server/errors";
 import { Integration } from "@server/models";
-import RedisAdapter from "@server/redis";
 import { opensearchResponse } from "@server/utils/opensearch";
 import { getTeamFromContext } from "@server/utils/passport";
 import { robotsResponse } from "@server/utils/robots";
@@ -116,22 +114,6 @@ router.get("/opensearch.xml", (ctx) => {
   ctx.type = "text/xml";
 
   ctx.body = opensearchResponse(ctx.request.URL.origin);
-});
-
-router.get("/_health", async (ctx) => {
-  try {
-    await sequelize.query("SELECT 1");
-  } catch (err) {
-    throw new Error("Database connection failed");
-  }
-
-  try {
-    await RedisAdapter.defaultClient.ping();
-  } catch (err) {
-    throw new Error("Redis ping failed");
-  }
-
-  ctx.body = "OK";
 });
 
 router.get("/s/:shareId", renderShare);
