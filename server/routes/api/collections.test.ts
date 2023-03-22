@@ -1463,6 +1463,41 @@ describe("#collections.delete", () => {
     ).toEqual(1);
   });
 
+  it("should delete draft documents", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+    // ensure the above collection isn't the last one
+    await buildCollection({
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+
+    const document = await buildDocument({
+      createdById: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      publishedAt: null,
+    });
+
+    const res = await server.post("/api/collections.delete", {
+      body: {
+        token: user.getJwtToken(),
+        id: collection.id,
+      },
+    });
+
+    expect(res.status).toBe(200);
+    const deletedDoc = await Document.findByPk(document.id, {
+      paranoid: false,
+    });
+    expect(deletedDoc).not.toBe(null);
+    expect(deletedDoc?.publishedAt).toBe(null);
+    expect(deletedDoc?.deletedAt).not.toBe(null);
+  });
+
   it("allows deleting by read-write collection group user", async () => {
     const user = await buildUser();
     const collection = await buildCollection({

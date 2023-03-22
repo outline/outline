@@ -239,7 +239,7 @@ class Collection extends ParanoidModel {
 
   @AfterDestroy
   static async onAfterDestroy(model: Collection) {
-    await Document.destroy({
+    await Document.unscoped().destroy({
       where: {
         collectionId: model.id,
         archivedAt: {

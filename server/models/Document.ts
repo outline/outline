@@ -675,6 +675,7 @@ class Document extends ParanoidModel {
         const collection = await Collection.findByPk(this.collectionId, {
           transaction,
           lock: transaction.LOCK.UPDATE,
+          paranoid: false,
         });
         await collection?.deleteDocument(this, { transaction });
       } else {
