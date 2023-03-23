@@ -342,7 +342,7 @@ function KeyboardShortcuts() {
           {
             shortcut: (
               <>
-                <Key>$$</Key> <Key>Space</Key>
+                <Key>$$$</Key> <Key>Space</Key>
               </>
             ),
             label: t("LaTeX block"),
@@ -368,7 +368,7 @@ function KeyboardShortcuts() {
             label: t("Inline code"),
           },
           {
-            shortcut: "$latex$",
+            shortcut: "$$latex$$",
             label: t("Inline LaTeX"),
           },
           {
