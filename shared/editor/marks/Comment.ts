@@ -94,7 +94,11 @@ export default class Comment extends Mark {
               }
 
               const commentId = event.target.id.replace("comment-", "");
-              this.options?.onClickCommentMark?.(commentId);
+              if (commentId) {
+                event.preventDefault();
+                event.stopPropagation();
+                this.options?.onClickCommentMark?.(commentId);
+              }
 
               return false;
             },
