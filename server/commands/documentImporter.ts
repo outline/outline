@@ -202,10 +202,6 @@ async function documentImporter({
   // to match our hardbreak parser.
   text = text.replace(/<br>/gi, "\\n");
 
-  // Escape any dollar signs in the text to prevent them being interpreted as
-  // math blocks
-  text = text.replace(/\$/g, "\\$");
-
   // find data urls, convert to blobs, upload and write attachments
   const images = parseImages(text);
   const dataURIs = images.filter((href) => href.startsWith("data:"));
