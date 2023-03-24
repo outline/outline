@@ -132,7 +132,11 @@ const Wrapper = styled(Flex)<WrapperProps>`
   min-height: 64px;
   justify-content: flex-start;
   ${draggableOnDesktop()}
-  ${fadeOnDesktopBackgrounded()}
+
+  button,
+  [role="button"] {
+    ${fadeOnDesktopBackgrounded()}
+  }
 
   @supports (backdrop-filter: blur(20px)) {
     backdrop-filter: blur(20px);
