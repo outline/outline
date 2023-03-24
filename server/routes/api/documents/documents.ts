@@ -36,7 +36,7 @@ import {
 } from "@server/models";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import SearchHelper from "@server/models/helpers/SearchHelper";
-import { authorize, can, cannot } from "@server/policies";
+import { authorize, cannot } from "@server/policies";
 import {
   presentCollection,
   presentDocument,
@@ -452,9 +452,11 @@ router.post(
     let total = 0;
 
     if (document.collectionId) {
-      const collection = await Collection.findByPk(document.collectionId);
+      const [collection, memberIds] = await Promise.all([
+        Collection.findByPk(document.collectionId),
+        Collection.membershipUserIds(document.collectionId),
+      ]);
       authorize(actor, "update", collection);
-      const memberIds = await Collection.membershipUserIds(collection.id);
 
       let where: WhereOptions<User> = {
         id: {
@@ -481,9 +483,7 @@ router.post(
 
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
-      data: users.map((user) =>
-        presentUser(user, { includeDetails: can(actor, "readDetails", user) })
-      ),
+      data: users.map((user) => presentUser(user)),
       policies: presentPolicies(actor, users),
     };
   }
