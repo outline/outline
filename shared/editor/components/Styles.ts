@@ -1474,6 +1474,10 @@ del[data-operation-index] {
     display: none;
   }
 
+  .image {
+    page-break-inside: avoid;
+  }
+
   .comment-marker {
     border: 0;
     background: none;
