@@ -35,7 +35,7 @@ type Props = Omit<
   "renderMenuItem" | "items" | "onLinkToolbarOpen" | "embeds" | "onClearSearch"
 >;
 
-function MentionMenu({ search, ...rest }: Props) {
+function MentionMenu({ search, isActive, ...rest }: Props) {
   const [items, setItems] = React.useState<MentionItem[]>([]);
   const { t } = useTranslation();
   const { users, auth } = useStores();
@@ -53,8 +53,10 @@ function MentionMenu({ search, ...rest }: Props) {
   );
 
   React.useEffect(() => {
-    request();
-  }, [request]);
+    if (isActive) {
+      request();
+    }
+  }, [request, isActive]);
 
   React.useEffect(() => {
     if (data) {
@@ -92,6 +94,7 @@ function MentionMenu({ search, ...rest }: Props) {
   return (
     <SuggestionsMenu
       {...rest}
+      isActive={isActive}
       filterable={false}
       onClearSearch={clearSearch}
       search={search}
