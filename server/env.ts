@@ -453,6 +453,7 @@ export class Environment {
   @CannotUseWithout("OIDC_TOKEN_URI")
   @CannotUseWithout("OIDC_USERINFO_URI")
   @CannotUseWithout("OIDC_DISPLAY_NAME")
+  @CannotUseWithout("OIDC_END_SESSION_URI")
   public OIDC_CLIENT_ID = this.toOptionalString(process.env.OIDC_CLIENT_ID);
 
   @IsOptional()
@@ -499,6 +500,18 @@ export class Environment {
   })
   public OIDC_USERINFO_URI = this.toOptionalString(
     process.env.OIDC_USERINFO_URI
+  );
+
+  /**
+   * The OIDC end session endpoint.
+   */
+  @IsOptional()
+  @IsUrl({
+    require_tld: false,
+    allow_underscores: true,
+  })
+  public OIDC_END_SESSION_URI = this.toOptionalString(
+    process.env.OIDC_END_SESSION_URI
   );
 
   /**

@@ -63,6 +63,9 @@ export default class AuthStore {
   token?: string | null;
 
   @observable
+  oidcRedirectLogout?: string | null;
+
+  @observable
   policies: Policy[] = [];
 
   @observable
@@ -325,7 +328,8 @@ export default class AuthStore {
     }
 
     // invalidate authentication token on server
-    client.post(`/auth.delete`);
+    const deleteResult = await client.post(`/auth.delete`);
+    this.oidcRedirectLogout = deleteResult.oidcEndSessionUri;
 
     // remove authentication token itself
     removeCookie("accessToken", {

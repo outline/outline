@@ -3,6 +3,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Redirect } from "react-router-dom";
 import LoadingIndicator from "~/components/LoadingIndicator";
+import env from "~/env";
 import useStores from "~/hooks/useStores";
 import { changeLanguage } from "~/utils/language";
 
@@ -32,7 +33,16 @@ const Authenticated = ({ children }: Props) => {
   }
 
   auth.logout(true);
-  return <Redirect to="/" />;
+
+  if (auth.oidcRedirectLogout) {
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    window.location =
+      auth.oidcRedirectLogout + "&post_logout_redirect_uri=" + env.URL;
+    return null;
+  } else {
+    return <Redirect to="/" />;
+  }
 };
 
 export default observer(Authenticated);

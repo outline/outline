@@ -66,7 +66,7 @@ if (
         ctx: Context,
         accessToken: string,
         refreshToken: string,
-        params: { expires_in: number },
+        params: { expires_in: number; id_token: string },
         profile: Record<string, string>,
         done: (
           err: Error | null,
@@ -125,6 +125,7 @@ if (
               accessToken,
               refreshToken,
               expiresIn: params.expires_in,
+              oidcTokenId: params.id_token,
               scopes,
             },
           });

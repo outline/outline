@@ -168,8 +168,13 @@ router.post("auth.delete", auth(), transaction(), async (ctx: APIContext) => {
     }
   );
 
+  const authentications = await user.$get("authentications");
+
   ctx.body = {
     success: true,
+    oidcEndSessionUri: authentications[0]?.oidcTokenId
+      ? `${env.OIDC_END_SESSION_URI}?id_token_hint=${authentications[0].oidcTokenId}`
+      : null,
   };
 });
 

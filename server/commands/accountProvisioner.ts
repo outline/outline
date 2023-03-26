@@ -57,6 +57,8 @@ type Props = {
     refreshToken?: string;
     /** A number of seconds that the given access token expires in */
     expiresIn?: number;
+    /** A token that may be used by the authentication provider */
+    oidcTokenId?: string;
   };
 };
 

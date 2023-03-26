@@ -50,6 +50,9 @@ class UserAuthentication extends IdModel {
   @Column
   providerId: string;
 
+  @Column
+  oidcTokenId: string;
+
   @Column(DataType.DATE)
   expiresAt: Date;
 

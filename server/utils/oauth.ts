@@ -9,6 +9,7 @@ export default abstract class OAuthClient {
     authorize: "",
     token: "",
     userinfo: "",
+    endSession: "",
   };
 
   constructor(clientId: string, clientSecret: string) {
