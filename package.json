@@ -59,7 +59,7 @@
     "@dnd-kit/modifiers": "^6.0.0",
     "@dnd-kit/sortable": "^7.0.1",
     "@getoutline/y-prosemirror": "^1.0.18",
-    "@hocuspocus/provider": "^1.0.0-beta.6",
+    "@hocuspocus/provider": "^1.1.2",
     "@hocuspocus/server": "^1.0.0-beta.6",
     "@joplin/turndown-plugin-gfm": "^1.0.47",
     "@juggle/resize-observer": "^3.4.0",
