@@ -1,4 +1,3 @@
-import path from "path";
 import invariant from "invariant";
 import { find, orderBy, filter, compact, omitBy } from "lodash";
 import { observable, action, computed, runInAction } from "mobx";
@@ -14,6 +13,7 @@ import Team from "~/models/Team";
 import env from "~/env";
 import { FetchOptions, PaginationParams, SearchResult } from "~/types";
 import { client } from "~/utils/ApiClient";
+import { extname } from "~/utils/files";
 
 type FetchPageParams = PaginationParams & {
   template?: boolean;
@@ -603,7 +603,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     if (
       file.type &&
       !this.importFileTypes.includes(file.type) &&
-      !this.importFileTypes.includes(path.extname(file.name))
+      !this.importFileTypes.includes(extname(file.name))
     ) {
       throw new Error(`The selected file type is not supported (${file.type})`);
     }
