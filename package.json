@@ -102,7 +102,7 @@
     "fs-extra": "^11.1.0",
     "fuzzy-search": "^3.2.1",
     "gemoji": "6.x",
-    "glob": "^8.1.0",
+    "glob": "^9.3.2",
     "http-errors": "2.0.0",
     "i18next": "^22.4.8",
     "i18next-fs-backend": "^2.1.1",
