@@ -525,7 +525,7 @@
   "Archiving": "正在封存",
   "Select a location to move": "Select a location to move",
   "Document moved": "文件已移動",
-  "Couldn’t move the document, try again?": "Couldn’t move the document, try again?",
+  "Couldn’t move the document, try again?": "無法移動文件，請再試一次。",
   "Move to <em>{{ location }}</em>": "Move to <em>{{ location }}</em>",
   "Couldn’t create the document, try again?": "無法建立文件，請再試一次？",
   "Document permanently deleted": "文件已經被永久刪除",
