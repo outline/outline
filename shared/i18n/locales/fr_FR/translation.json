@@ -659,7 +659,7 @@
   "Completed": "Terminé",
   "Failed": "Échoué",
   "All collections": "Toutes les collections",
-  "{{userName}} requested": "{{userName}} demandé",
+  "{{userName}} requested": "{{userName}} avez demandé un export",
   "Upload": "Envoyer",
   "Drag and drop the zip file from the JSON export option in {{appName}}, or click to upload": "Glissez et déposez le fichier zip provenant d'un export JSON de {{appName}}, ou cliquez pour le téléverser",
   "How does this work?": "Comment cela fonctionne-t-il ?",
