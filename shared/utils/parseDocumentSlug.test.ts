@@ -15,6 +15,14 @@ describe("#parseDocumentSlug", () => {
     ).toEqual("my-doc-y4j4tR4UuV");
   });
 
+  it("should work with hash", () => {
+    expect(
+      parseDocumentSlug(
+        "http://mywiki.getoutline.com/doc/my-doc-y4j4tR4UuV#state"
+      )
+    ).toEqual("my-doc-y4j4tR4UuV");
+  });
+
   it("should work with subdomain qualified url", () => {
     expect(
       parseDocumentSlug("http://mywiki.getoutline.com/doc/my-doc-y4j4tR4UuV")
