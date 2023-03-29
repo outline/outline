@@ -161,6 +161,7 @@ export default class Image extends SimpleImage {
 
   get plugins() {
     return [
+      ...super.plugins,
       new Plugin({
         props: {
           handleKeyDown: (view, event) => {
