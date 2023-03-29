@@ -160,6 +160,25 @@ export default class UsersStore extends BaseStore<User> {
   };
 
   @action
+  fetchDocumentUsers = async (params: {
+    id: string;
+    query?: string;
+  }): Promise<User[]> => {
+    try {
+      const res = await client.post("/documents.users", params);
+      invariant(res?.data, "User list not available");
+      let response: User[] = [];
+      runInAction("DocumentsStore#fetchUsers", () => {
+        response = res.data.map(this.add);
+        this.addPolicies(res.policies);
+      });
+      return response;
+    } catch (err) {
+      return Promise.resolve([]);
+    }
+  };
+
+  @action
   async delete(user: User, options: Record<string, any> = {}) {
     super.delete(user, options);
 
