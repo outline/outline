@@ -123,7 +123,6 @@ export function buildTeam(overrides: Record<string, any> = {}) {
   return Team.create(
     {
       name: `Team ${count}`,
-      collaborativeEditing: false,
       authenticationProviders: [
         {
           name: "slack",

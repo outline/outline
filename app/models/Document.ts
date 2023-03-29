@@ -17,7 +17,6 @@ type SaveOptions = {
   publish?: boolean;
   done?: boolean;
   autosave?: boolean;
-  lastRevision?: number;
 };
 
 export default class Document extends ParanoidModel {
@@ -53,7 +52,6 @@ export default class Document extends ParanoidModel {
   @observable
   id: string;
 
-  @Field
   @observable
   text: string;
 
@@ -345,23 +343,10 @@ export default class Document extends ParanoidModel {
   @action
   save = async (options?: SaveOptions | undefined) => {
     const params = this.toAPI();
-    const collaborativeEditing = this.store.rootStore.auth.team
-      ?.collaborativeEditing;
-
-    if (collaborativeEditing) {
-      delete params.text;
-    }
-
     this.isSaving = true;
 
     try {
-      const model = await this.store.save(
-        { ...params, id: this.id },
-        {
-          lastRevision: options?.lastRevision || this.revision,
-          ...options,
-        }
-      );
+      const model = await this.store.save({ ...params, id: this.id }, options);
 
       // if saving is successful set the new values on the model itself
       set(this, { ...params, ...model });

@@ -190,9 +190,6 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
     /** Boolean to denote if the doc should be published */
     publish: z.boolean().optional(),
 
-    /** Revision to compare against document revision count */
-    lastRevision: z.number().optional(),
-
     /** Doc template Id */
     templateId: z.string().uuid().nullish(),
 

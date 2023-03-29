@@ -270,7 +270,6 @@ export default class AuthStore {
     name?: string;
     avatarUrl?: string | null | undefined;
     sharing?: boolean;
-    collaborativeEditing?: boolean;
     defaultCollectionId?: string | null;
     subdomain?: string | null | undefined;
     allowedDomains?: string[] | null | undefined;

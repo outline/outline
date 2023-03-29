@@ -8,7 +8,7 @@ import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/Metrics";
 import * as Tracing from "@server/logging/tracer";
 import { traceFunction } from "@server/logging/tracing";
-import { Document, Collection, View, User } from "@server/models";
+import { Collection, User } from "@server/models";
 import { can } from "@server/policies";
 import ShutdownHelper, { ShutdownOrder } from "@server/utils/ShutdownHelper";
 import { getUserForJWT } from "@server/utils/jwt";
@@ -186,58 +186,6 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
         Metrics.increment("websockets.collections.join");
       }
     }
-
-    // user is joining a document channel, because they have navigated to
-    // view a document.
-    if (event.documentId) {
-      const document = await Document.findByPk(event.documentId, {
-        userId: user.id,
-      });
-
-      if (can(user, "read", document)) {
-        const room = `document-${event.documentId}`;
-        await View.touch(event.documentId, user.id, event.isEditing);
-        const editing = await View.findRecentlyEditingByDocument(
-          event.documentId
-        );
-
-        await socket.join(room);
-        Metrics.increment("websockets.documents.join");
-
-        // let everyone else in the room know that a new user joined
-        io.to(room).emit("user.join", {
-          userId: user.id,
-          documentId: event.documentId,
-          isEditing: event.isEditing,
-        });
-
-        // let this user know who else is already present in the room
-        try {
-          const socketIds = await io.in(room).allSockets();
-
-          // because a single user can have multiple socket connections we
-          // need to make sure that only unique userIds are returned. A Map
-          // makes this easy.
-          const userIds = new Map();
-
-          for (const socketId of socketIds) {
-            const userId = await Redis.defaultClient.hget(socketId, "userId");
-            userIds.set(userId, userId);
-          }
-
-          socket.emit("document.presence", {
-            documentId: event.documentId,
-            userIds: Array.from(userIds.keys()),
-            editingIds: editing.map((view) => view.userId),
-          });
-        } catch (err) {
-          if (err) {
-            Logger.error("Error getting clients for room", err);
-            return;
-          }
-        }
-      }
-    }
   });
 
   // allow the client to request to leave rooms
@@ -245,56 +193,6 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
     if (event.collectionId) {
       await socket.leave(`collection-${event.collectionId}`);
       Metrics.increment("websockets.collections.leave");
-    }
-
-    if (event.documentId) {
-      const room = `document-${event.documentId}`;
-
-      await socket.leave(room);
-      Metrics.increment("websockets.documents.leave");
-      io.to(room).emit("user.leave", {
-        userId: user.id,
-        documentId: event.documentId,
-      });
-    }
-  });
-
-  socket.on("disconnecting", () => {
-    socket.rooms.forEach((room) => {
-      if (room.startsWith("document-")) {
-        const documentId = room.replace("document-", "");
-        io.to(room).emit("user.leave", {
-          userId: user.id,
-          documentId,
-        });
-      }
-    });
-  });
-
-  socket.on("presence", async (event) => {
-    Metrics.increment("websockets.presence");
-    const room = `document-${event.documentId}`;
-
-    if (event.documentId && socket.rooms.has(room)) {
-      await View.touch(event.documentId, user.id, event.isEditing);
-
-      io.to(room).emit("user.presence", {
-        userId: user.id,
-        documentId: event.documentId,
-        isEditing: event.isEditing,
-      });
-
-      socket.on("typing", async (event) => {
-        const room = `document-${event.documentId}`;
-
-        if (event.documentId && socket.rooms[room]) {
-          io.to(room).emit("user.typing", {
-            userId: user.id,
-            documentId: event.documentId,
-            commentId: event.commentId,
-          });
-        }
-      });
     }
   });
 }

@@ -27,10 +27,6 @@ class Team extends BaseModel {
 
   @Field
   @observable
-  collaborativeEditing: boolean;
-
-  @Field
-  @observable
   commenting: boolean;
 
   @Field
@@ -92,10 +88,7 @@ class Team extends BaseModel {
    */
   @computed
   get seamlessEditing(): boolean {
-    return (
-      this.collaborativeEditing &&
-      !!this.getPreference(TeamPreference.SeamlessEdit, true)
-    );
+    return !!this.getPreference(TeamPreference.SeamlessEdit, true);
   }
 
   /**
