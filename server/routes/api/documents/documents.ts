@@ -530,12 +530,17 @@ router.post(
     }
 
     if (contentType !== "application/json") {
+      // Override the extension for Markdown as it's incorrect in the mime-types
+      // library until a new release > 2.1.35
+      const extension =
+        contentType === "text/markdown" ? "md" : mime.extension(contentType);
+
       ctx.set("Content-Type", contentType);
       ctx.set(
         "Content-Disposition",
         `attachment; filename="${slugify(
           document.titleWithDefault
-        )}.${mime.extension(contentType)}"`
+        )}.${extension}"`
       );
       ctx.body = content;
       return;
