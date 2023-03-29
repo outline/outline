@@ -445,18 +445,18 @@ router.post(
     const { id, query } = ctx.input.body;
     const actor = ctx.state.auth.user;
     const { offset, limit } = ctx.state.pagination;
-    const document = await Document.findByPk(id);
+    const document = await Document.findByPk(id, {
+      userId: actor.id,
+    });
     authorize(actor, "read", document);
 
     let users: User[] = [];
     let total = 0;
 
     if (document.collectionId) {
-      const [collection, memberIds] = await Promise.all([
-        Collection.findByPk(document.collectionId),
-        Collection.membershipUserIds(document.collectionId),
-      ]);
-      authorize(actor, "update", collection);
+      const memberIds = await Collection.membershipUserIds(
+        document.collectionId
+      );
 
       let where: WhereOptions<User> = {
         id: {
