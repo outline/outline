@@ -45,15 +45,6 @@ exports[`#documents.search should require authentication 1`] = `
 }
 `;
 
-exports[`#documents.update should fail if document lastRevision does not match 1`] = `
-{
-  "error": "invalid_request",
-  "message": "Document has changed since last revision",
-  "ok": false,
-  "status": 400,
-}
-`;
-
 exports[`#documents.update should require authentication 1`] = `
 {
   "error": "authentication_required",

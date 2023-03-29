@@ -678,7 +678,6 @@ export default class DocumentsStore extends BaseStore<Document> {
       publish?: boolean;
       done?: boolean;
       autosave?: boolean;
-      lastRevision: number;
     }
   ) {
     this.isSaving = true;

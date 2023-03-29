@@ -880,7 +880,6 @@ router.post(
       text,
       fullWidth,
       publish,
-      lastRevision,
       templateId,
       collectionId,
       append,
@@ -906,10 +905,6 @@ router.post(
         collection = await Collection.findByPk(collectionId as string);
       }
       authorize(user, "publish", collection);
-    }
-
-    if (lastRevision && lastRevision !== document.revisionCount) {
-      throw InvalidRequestError("Document has changed since last revision");
     }
 
     collection = await sequelize.transaction(async (transaction) => {

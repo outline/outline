@@ -39,7 +39,6 @@ import { isModKey } from "~/utils/keyboard";
 import {
   documentHistoryUrl,
   editDocumentUrl,
-  documentUrl,
   updateDocumentUrl,
 } from "~/utils/routeHelpers";
 import Container from "./Container";
@@ -101,9 +100,6 @@ class DocumentScene extends React.Component<Props> {
   isEmpty = true;
 
   @observable
-  lastRevision: number = this.props.document.revision;
-
-  @observable
   title: string = this.props.document.title;
 
   @observable
@@ -116,38 +112,8 @@ class DocumentScene extends React.Component<Props> {
   }
 
   componentDidUpdate(prevProps: Props) {
-    const { auth, document, t } = this.props;
-
     if (prevProps.readOnly && !this.props.readOnly) {
       this.updateIsDirty();
-    }
-
-    if (this.props.readOnly || auth.team?.collaborativeEditing) {
-      this.lastRevision = document.revision;
-    }
-
-    if (
-      !this.props.readOnly &&
-      !auth.team?.collaborativeEditing &&
-      prevProps.document.revision !== this.lastRevision
-    ) {
-      if (auth.user && document.updatedBy.id !== auth.user.id) {
-        this.props.toasts.showToast(
-          t(`Document updated by {{userName}}`, {
-            userName: document.updatedBy.name,
-          }),
-          {
-            timeout: 30 * 1000,
-            type: "warning",
-            action: {
-              text: "Reload",
-              onClick: () => {
-                window.location.href = documentUrl(document);
-              },
-            },
-          }
-        );
-      }
     }
   }
 
@@ -332,13 +298,8 @@ class DocumentScene extends React.Component<Props> {
     this.isPublishing = !!options.publish;
 
     try {
-      const savedDocument = await document.save({
-        ...options,
-        lastRevision: this.lastRevision,
-      });
-
+      const savedDocument = await document.save(options);
       this.isEditorDirty = false;
-      this.lastRevision = savedDocument.revision;
 
       if (options.done) {
         this.props.history.push(savedDocument.url);
@@ -385,7 +346,7 @@ class DocumentScene extends React.Component<Props> {
   };
 
   onChange = (getEditorText: () => string) => {
-    const { document, auth } = this.props;
+    const { document } = this.props;
     this.getEditorText = getEditorText;
 
     // Keep derived task list in sync
@@ -393,25 +354,6 @@ class DocumentScene extends React.Component<Props> {
     const total = tasks?.length ?? 0;
     const completed = tasks?.filter((t) => t.completed).length ?? 0;
     document.updateTasks(total, completed);
-
-    // If the multiplayer editor is enabled we're done here as changes are saved
-    // through the persistence protocol. The rest of this method is legacy.
-    if (auth.team?.collaborativeEditing) {
-      return;
-    }
-
-    // document change while read only is presumed to be a checkbox edit,
-    // in that case we don't delay in saving for a better user experience.
-    if (this.props.readOnly) {
-      this.updateIsDirty();
-      this.onSave({
-        done: false,
-        autosave: true,
-      });
-    } else {
-      this.updateIsDirtyDebounced();
-      this.autosave();
-    }
   };
 
   onHeadingsChange = (headings: Heading[]) => {
@@ -449,14 +391,9 @@ class DocumentScene extends React.Component<Props> {
 
     const hasHeadings = this.headings.length > 0;
     const showContents =
-      ui.tocVisible &&
-      ((readOnly && hasHeadings) || team?.collaborativeEditing);
-    const collaborativeEditing =
-      team?.collaborativeEditing &&
-      !document.isArchived &&
-      !document.isDeleted &&
-      !revision &&
-      !isShare;
+      ui.tocVisible && ((readOnly && hasHeadings) || !readOnly);
+    const multiplayerEditor =
+      !document.isArchived && !document.isDeleted && !revision && !isShare;
 
     const canonicalUrl = shareId
       ? this.props.match.url
@@ -506,35 +443,12 @@ class DocumentScene extends React.Component<Props> {
           {(this.isUploading || this.isSaving) && <LoadingIndicator />}
           <Container justify="center" column auto>
             {!readOnly && (
-              <>
-                <Prompt
-                  when={
-                    this.isEditorDirty &&
-                    !this.isUploading &&
-                    !team?.collaborativeEditing
-                  }
-                  message={(location, action) => {
-                    if (
-                      // a URL replace matching the current document indicates a title change
-                      // no guard is needed for this transition
-                      action === "REPLACE" &&
-                      location.pathname === editDocumentUrl(document)
-                    ) {
-                      return true;
-                    }
-
-                    return t(
-                      `You have unsaved changes.\nAre you sure you want to discard them?`
-                    ) as string;
-                  }}
-                />
-                <Prompt
-                  when={this.isUploading && !this.isEditorDirty}
-                  message={t(
-                    `Images are still uploading.\nAre you sure you want to discard them?`
-                  )}
-                />
-              </>
+              <Prompt
+                when={this.isUploading && !this.isEditorDirty}
+                message={t(
+                  `Images are still uploading.\nAre you sure you want to discard them?`
+                )}
+              />
             )}
             <Header
               document={document}
@@ -578,7 +492,7 @@ class DocumentScene extends React.Component<Props> {
                         id={document.id}
                         key={embedsDisabled ? "disabled" : "enabled"}
                         ref={this.editor}
-                        multiplayer={collaborativeEditing}
+                        multiplayer={multiplayerEditor}
                         shareId={shareId}
                         isDraft={document.isDraft}
                         template={document.isTemplate}

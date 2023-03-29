@@ -2456,7 +2456,6 @@ describe("#documents.update", () => {
         id: document.id,
         title: "Updated title",
         text: "Updated text",
-        lastRevision: document.revisionCount,
       },
     });
     const body = await res.json();
@@ -2478,7 +2477,6 @@ describe("#documents.update", () => {
         id: document.id,
         title: "Updated title",
         text: "Updated text",
-        lastRevision: document.revisionCount,
         publish: true,
       },
     });
@@ -2503,7 +2501,6 @@ describe("#documents.update", () => {
         id: document.id,
         title: "Updated title",
         text: "Updated text",
-        lastRevision: document.revisionCount,
         collectionId: collection.id,
         publish: true,
       },
@@ -2526,7 +2523,6 @@ describe("#documents.update", () => {
         id: document.id,
         title: "Updated title",
         text: "Updated text",
-        lastRevision: document.revisionCount,
         collectionId: collection.id,
         publish: true,
       },
@@ -2551,7 +2547,6 @@ describe("#documents.update", () => {
         id: template.id,
         title: "Updated title",
         text: "Updated text",
-        lastRevision: template.revisionCount,
         publish: true,
       },
     });
@@ -2582,7 +2577,6 @@ describe("#documents.update", () => {
         id: document.id,
         title: "Updated title",
         text: "Updated text",
-        lastRevision: document.revisionCount,
         publish: true,
       },
     });
@@ -2603,25 +2597,9 @@ describe("#documents.update", () => {
         id: document.id,
         title: "Updated title",
         text: "Updated text",
-        lastRevision: document.revisionCount,
       },
     });
     expect(res.status).toEqual(403);
-  });
-
-  it("should fail if document lastRevision does not match", async () => {
-    const { user, document } = await seed();
-    const res = await server.post("/api/documents.update", {
-      body: {
-        token: user.getJwtToken(),
-        id: document.id,
-        text: "Updated text",
-        lastRevision: 123,
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(400);
-    expect(body).toMatchSnapshot();
   });
 
   it("should update document details for children", async () => {
@@ -2670,7 +2648,6 @@ describe("#documents.update", () => {
         token: admin.getJwtToken(),
         id: document.id,
         text: "Changed text",
-        lastRevision: document.revisionCount,
       },
     });
     const body = await res.json();
@@ -2694,7 +2671,6 @@ describe("#documents.update", () => {
         token: user.getJwtToken(),
         id: document.id,
         text: "Changed text",
-        lastRevision: document.revisionCount,
       },
     });
     expect(res.status).toEqual(403);
@@ -2709,7 +2685,6 @@ describe("#documents.update", () => {
         token: user.getJwtToken(),
         id: document.id,
         text: "Changed text",
-        lastRevision: document.revisionCount,
       },
     });
     expect(res.status).toEqual(403);
@@ -2722,7 +2697,6 @@ describe("#documents.update", () => {
         token: user.getJwtToken(),
         id: document.id,
         text: "Additional text",
-        lastRevision: document.revisionCount,
         append: true,
       },
     });
@@ -2738,7 +2712,6 @@ describe("#documents.update", () => {
       body: {
         token: user.getJwtToken(),
         id: document.id,
-        lastRevision: document.revisionCount,
         title: "Updated Title",
         append: true,
       },
@@ -2754,7 +2727,6 @@ describe("#documents.update", () => {
       body: {
         token: user.getJwtToken(),
         id: document.id,
-        lastRevision: document.revisionCount,
         title: "Updated Title",
         text: "",
       },
@@ -2770,7 +2742,6 @@ describe("#documents.update", () => {
       body: {
         token: user.getJwtToken(),
         id: document.id,
-        lastRevision: document.revisionCount,
         title: document.title,
         text: document.text,
       },
@@ -2851,7 +2822,6 @@ describe("#documents.update", () => {
           id: document.id,
           title: "Updated title",
           text: "Updated text",
-          lastRevision: document.revisionCount,
           collectionId: collection.id,
           publish: true,
         },

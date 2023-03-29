@@ -9,7 +9,6 @@ import DocumentViews from "~/components/DocumentViews";
 import Facepile from "~/components/Facepile";
 import NudeButton from "~/components/NudeButton";
 import Popover from "~/components/Popover";
-import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 
@@ -20,7 +19,6 @@ type Props = {
 function Collaborators(props: Props) {
   const { t } = useTranslation();
   const user = useCurrentUser();
-  const team = useCurrentTeam();
   const currentUserId = user?.id;
   const [requestedUserIds, setRequestedUserIds] = React.useState<string[]>([]);
   const { users, presence, ui } = useStores();
@@ -79,8 +77,7 @@ function Collaborators(props: Props) {
                 const isPresent = presentIds.includes(collaborator.id);
                 const isEditing = editingIds.includes(collaborator.id);
                 const isObserving = ui.observingUserId === collaborator.id;
-                const isObservable =
-                  team.collaborativeEditing && collaborator.id !== user.id;
+                const isObservable = collaborator.id !== user.id;
 
                 return (
                   <AvatarWithPresence
