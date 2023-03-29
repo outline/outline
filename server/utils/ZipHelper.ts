@@ -32,14 +32,7 @@ export default class ZipHelper {
     /** The maximum number of files to unzip */
     maxFiles = 10000
   ) {
-    let fileCount = 0;
-    const paths = Object.keys(zip.files).map((filePath) => {
-      if (++fileCount > maxFiles) {
-        throw ValidationError("Too many files in zip");
-      }
-
-      return `/${filePath}`;
-    });
+    const paths = ZipHelper.getPathsInZip(zip, maxFiles);
     const tree: FileTreeNode[] = [];
 
     paths.forEach(function (filePath) {
@@ -111,5 +104,35 @@ export default class ZipHelper {
         }
       );
     });
+  }
+
+  /**
+   * Gets a list of file paths contained within the ZIP file, accounting for
+   * differences between OS.
+   *
+   * @param zip The JSZip instance
+   * @param maxFiles The maximum number of files to unzip (Prevent zip bombs)
+   */
+  private static getPathsInZip(zip: JSZip, maxFiles = 10000) {
+    let fileCount = 0;
+    const paths: string[] = [];
+
+    Object.keys(zip.files).forEach((p) => {
+      if (++fileCount > maxFiles) {
+        throw ValidationError("Too many files in zip");
+      }
+
+      const filePath = `/${p}`;
+
+      // "zip.files" for ZIPs created on Windows does not return paths for
+      // directories, so we must add them manually if missing.
+      const dir = filePath.slice(0, filePath.lastIndexOf("/") + 1);
+      if (!paths.includes(dir)) {
+        paths.push(dir);
+      }
+
+      paths.push(filePath);
+    });
+    return paths;
   }
 }
