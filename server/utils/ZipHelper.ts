@@ -127,7 +127,7 @@ export default class ZipHelper {
       // "zip.files" for ZIPs created on Windows does not return paths for
       // directories, so we must add them manually if missing.
       const dir = filePath.slice(0, filePath.lastIndexOf("/") + 1);
-      if (!paths.includes(dir)) {
+      if (dir.length > 1 && !paths.includes(dir)) {
         paths.push(dir);
       }
 

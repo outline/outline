@@ -88,7 +88,7 @@ export default class ImportNotionTask extends ImportTask {
           const { title, text } = await documentImporter({
             mimeType: mimeType || "text/markdown",
             fileName: name,
-            content: await zipObject.async("string"),
+            content: zipObject ? await zipObject.async("string") : "",
             user,
             ip: user.lastActiveIp || undefined,
           });
