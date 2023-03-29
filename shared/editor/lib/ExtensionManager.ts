@@ -3,10 +3,11 @@ import { keymap } from "prosemirror-keymap";
 import { MarkdownParser, TokenConfig } from "prosemirror-markdown";
 import { Schema } from "prosemirror-model";
 import { EditorView } from "prosemirror-view";
-import { Editor } from "~/editor";
-import Mark from "../marks/Mark";
-import Node from "../nodes/Node";
-import Extension, { CommandFactory } from "./Extension";
+import type { Editor } from "~/editor";
+import type Mark from "../marks/Mark";
+import type Node from "../nodes/Node";
+import type Extension from "./Extension";
+import { CommandFactory } from "./Extension";
 import makeRules from "./markdown/rules";
 import { MarkdownSerializer } from "./markdown/serializer";
 
