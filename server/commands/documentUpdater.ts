@@ -53,7 +53,7 @@ export default async function documentUpdater({
   const previousTitle = document.title;
 
   if (title !== undefined) {
-    document.title = title;
+    document.title = title.trim();
   }
   if (editorVersion) {
     document.editorVersion = editorVersion;
