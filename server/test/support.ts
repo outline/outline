@@ -11,7 +11,6 @@ export const seed = async () => {
     const team = await Team.create(
       {
         name: "Team",
-        collaborativeEditing: false,
         authenticationProviders: [
           {
             name: "slack",
@@ -28,7 +27,6 @@ export const seed = async () => {
     const admin = await User.create(
       {
         email: "admin@example.com",
-        username: "admin",
         name: "Admin User",
         teamId: team.id,
         isAdmin: true,

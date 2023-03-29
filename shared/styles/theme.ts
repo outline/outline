@@ -229,7 +229,7 @@ export const buildDarkTheme = (input: Partial<Colors>): DefaultTheme => {
     quote: colors.almostWhite,
     code: colors.almostWhite,
     codeBackground: colors.black75,
-    codeBorder: colors.black50,
+    codeBorder: colors.white10,
     codeString: "#3d8fd1",
     embedBorder: colors.black50,
     horizontalRule: lighten(0.1, colors.almostBlack),

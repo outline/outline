@@ -1,10 +1,10 @@
-import { uniqBy } from "lodash";
 import { Op } from "sequelize";
+import { NotificationEventType } from "@shared/types";
 import Logger from "@server/logging/Logger";
 import {
+  User,
   Document,
   Collection,
-  NotificationSetting,
   Subscription,
   Comment,
   View,
@@ -15,27 +15,29 @@ export default class NotificationHelper {
    * Get the recipients of a notification for a collection event.
    *
    * @param collection The collection to get recipients for
-   * @param eventName The event name
+   * @param eventType The event type
    * @returns A list of recipients
    */
   public static getCollectionNotificationRecipients = async (
     collection: Collection,
-    eventName: string
-  ): Promise<NotificationSetting[]> => {
-    // First find all the users that have notifications enabled for this event
+    eventType: NotificationEventType
+  ): Promise<User[]> => {
+    // Find all the users that have notifications enabled for this event
     // type at all and aren't the one that performed the action.
-    const recipients = await NotificationSetting.scope("withUser").findAll({
+    let recipients = await User.findAll({
       where: {
-        userId: {
+        id: {
           [Op.ne]: collection.createdById,
         },
         teamId: collection.teamId,
-        event: eventName,
       },
     });
 
-    // Ensure we only have one recipient per user as a safety measure
-    return uniqBy(recipients, "userId");
+    recipients = recipients.filter((recipient) =>
+      recipient.subscribedToEventType(eventType)
+    );
+
+    return recipients;
   };
 
   /**
@@ -43,19 +45,23 @@ export default class NotificationHelper {
    *
    * @param document The document associated with the comment
    * @param comment The comment to get recipients for
-   * @param eventName The event name
+   * @param actorId The creator of the comment
    * @returns A list of recipients
    */
   public static getCommentNotificationRecipients = async (
     document: Document,
     comment: Comment,
     actorId: string
-  ): Promise<NotificationSetting[]> => {
+  ): Promise<User[]> => {
     let recipients = await this.getDocumentNotificationRecipients(
       document,
-      "documents.update",
+      NotificationEventType.UpdateDocument,
       actorId,
       !comment.parentCommentId
+    );
+
+    recipients = recipients.filter((recipient) =>
+      recipient.subscribedToEventType(NotificationEventType.CreateComment)
     );
 
     if (recipients.length > 0 && comment.parentCommentId) {
@@ -70,17 +76,17 @@ export default class NotificationHelper {
       });
 
       const userIdsInThread = contextComments.map((c) => c.createdById);
-      recipients = recipients.filter((r) => userIdsInThread.includes(r.userId));
+      recipients = recipients.filter((r) => userIdsInThread.includes(r.id));
     }
 
-    const filtered: NotificationSetting[] = [];
+    const filtered: User[] = [];
 
     for (const recipient of recipients) {
       // If this recipient has viewed the document since the comment was made
       // then we can avoid sending them a useless notification, yay.
       const view = await View.findOne({
         where: {
-          userId: recipient.userId,
+          userId: recipient.id,
           documentId: document.id,
           updatedAt: {
             [Op.gt]: comment.createdAt,
@@ -91,7 +97,7 @@ export default class NotificationHelper {
       if (view) {
         Logger.info(
           "processor",
-          `suppressing notification to ${recipient.userId} because doc viewed`
+          `suppressing notification to ${recipient.id} because doc viewed`
         );
       } else {
         filtered.push(recipient);
@@ -105,7 +111,7 @@ export default class NotificationHelper {
    * Get the recipients of a notification for a document event.
    *
    * @param document The document to get recipients for.
-   * @param eventName The event name.
+   * @param eventType The event name.
    * @param actorId The id of the user that performed the action.
    * @param onlySubscribers Whether to only return recipients that are actively
    * subscribed to the document.
@@ -113,30 +119,33 @@ export default class NotificationHelper {
    */
   public static getDocumentNotificationRecipients = async (
     document: Document,
-    eventName: string,
+    eventType: NotificationEventType,
     actorId: string,
     onlySubscribers: boolean
-  ): Promise<NotificationSetting[]> => {
+  ): Promise<User[]> => {
     // First find all the users that have notifications enabled for this event
     // type at all and aren't the one that performed the action.
-    let recipients = await NotificationSetting.scope("withUser").findAll({
+    let recipients = await User.findAll({
       where: {
-        userId: {
+        id: {
           [Op.ne]: actorId,
         },
         teamId: document.teamId,
-        event: eventName,
       },
     });
+
+    recipients = recipients.filter((recipient) =>
+      recipient.subscribedToEventType(eventType)
+    );
 
     // Filter further to only those that have a subscription to the document…
     if (onlySubscribers) {
       const subscriptions = await Subscription.findAll({
         attributes: ["userId"],
         where: {
-          userId: recipients.map((recipient) => recipient.user.id),
+          userId: recipients.map((recipient) => recipient.id),
           documentId: document.id,
-          event: eventName,
+          event: eventType,
         },
       });
 
@@ -145,28 +154,27 @@ export default class NotificationHelper {
       );
 
       recipients = recipients.filter((recipient) =>
-        subscribedUserIds.includes(recipient.user.id)
+        subscribedUserIds.includes(recipient.id)
       );
     }
 
     const filtered = [];
 
     for (const recipient of recipients) {
-      const collectionIds = await recipient.user.collectionIds();
+      const collectionIds = await recipient.collectionIds();
 
       // Check the recipient has access to the collection this document is in. Just
       // because they are subscribed doesn't meant they "still have access to read
       // the document.
       if (
-        recipient.user.email &&
-        !recipient.user.isSuspended &&
+        recipient.email &&
+        !recipient.isSuspended &&
         collectionIds.includes(document.collectionId)
       ) {
         filtered.push(recipient);
       }
     }
 
-    // Ensure we only have one recipient per user as a safety measure
-    return uniqBy(filtered, "userId");
+    return filtered;
   };
 }

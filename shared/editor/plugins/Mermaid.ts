@@ -50,16 +50,16 @@ function getNewState({
       block.pos + block.node.nodeSize,
       () => {
         const elementId = "mermaid-diagram-wrapper-" + diagramId;
-        const diagramWrapper =
+        const element =
           document.getElementById(elementId) || document.createElement("div");
-        diagramWrapper.id = elementId;
-        diagramWrapper.classList.add("mermaid-diagram-wrapper");
+        element.id = elementId;
+        element.classList.add("mermaid-diagram-wrapper");
 
         if (pluginState.diagramVisibility[diagramId] === false) {
-          diagramWrapper.classList.add("diagram-hidden");
-          return diagramWrapper;
+          element.classList.add("diagram-hidden");
+          return element;
         } else {
-          diagramWrapper.classList.remove("diagram-hidden");
+          element.classList.remove("diagram-hidden");
         }
 
         import("mermaid").then((module) => {
@@ -80,8 +80,8 @@ function getNewState({
           module.default
             .render("mermaid-diagram-" + diagramId, block.node.textContent)
             .then(({ svg, bindFunctions }) => {
-              diagramWrapper.innerHTML = svg;
-              bindFunctions?.(diagramWrapper);
+              element.innerHTML = svg;
+              bindFunctions?.(element);
             })
             .catch((error) => {
               console.log(error);
@@ -89,12 +89,12 @@ function getNewState({
                 "d" + "mermaid-diagram-" + diagramId
               );
               if (errorNode) {
-                diagramWrapper.appendChild(errorNode);
+                element.appendChild(errorNode);
               }
             });
         });
 
-        return diagramWrapper;
+        return element;
       },
       {
         diagramId,

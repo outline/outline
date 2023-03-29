@@ -3,7 +3,7 @@
   "projects": [
     {
       "displayName": "server",
-      "roots": ["<rootDir>/server"],
+      "roots": ["<rootDir>/server", "<rootDir>/plugins"],
       "moduleNameMapper": {
         "^@server/(.*)$": "<rootDir>/server/$1",
         "^@shared/(.*)$": "<rootDir>/shared/$1"

@@ -6,7 +6,6 @@ it("presents a user", async () => {
     User.build({
       id: "123",
       name: "Test User",
-      username: "testuser",
     })
   );
   expect(user).toMatchSnapshot();
@@ -17,7 +16,6 @@ it("presents a user without slack data", async () => {
     User.build({
       id: "123",
       name: "Test User",
-      username: "testuser",
     })
   );
   expect(user).toMatchSnapshot();

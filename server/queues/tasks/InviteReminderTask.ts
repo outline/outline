@@ -42,14 +42,14 @@ export default class InviteReminderTask extends BaseTask<Props> {
           invitedBy &&
           user.getFlag(UserFlag.InviteReminderSent) === 0
         ) {
-          await InviteReminderEmail.schedule({
+          await new InviteReminderEmail({
             to: user.email,
             name: user.name,
             actorName: invitedBy.name,
             actorEmail: invitedBy.email,
             teamName: user.team.name,
             teamUrl: user.team.url,
-          });
+          }).schedule();
 
           user.incrementFlag(UserFlag.InviteReminderSent);
           await user.save({ transaction });

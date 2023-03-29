@@ -109,6 +109,8 @@ export default () => {
       manifest: true,
       sourcemap: true,
       minify: "terser",
+      // Prevent asset inling as it does not conform to CSP rules
+      assetsInlineLimit: 0,
       target: browserslistToEsbuild(),
       reportCompressedSize: false,
       terserOptions: {

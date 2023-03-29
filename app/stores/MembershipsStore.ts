@@ -72,6 +72,7 @@ export default class MembershipsStore extends BaseStore<Membership> {
       userId,
     });
     this.remove(`${userId}-${collectionId}`);
+    this.rootStore.users.remove(userId);
   }
 
   @action

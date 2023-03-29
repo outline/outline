@@ -21,8 +21,6 @@ type Props = {
     email: string;
     /** The public url of an image representing the user */
     avatarUrl?: string | null;
-    /** The username of the user */
-    username?: string;
   };
   /** Details of the team the user is logging into */
   team: {
@@ -129,7 +127,6 @@ async function accountProvisioner({
     const result = await userProvisioner({
       name: userParams.name,
       email: userParams.email,
-      username: userParams.username,
       isAdmin: isNewTeam || undefined,
       avatarUrl: userParams.avatarUrl,
       teamId: team.id,
@@ -147,10 +144,10 @@ async function accountProvisioner({
     const { isNewUser, user } = result;
 
     if (isNewUser) {
-      await WelcomeEmail.schedule({
+      await new WelcomeEmail({
         to: user.email,
         teamUrl: team.url,
-      });
+      }).schedule();
     }
 
     if (isNewUser || isNewTeam) {

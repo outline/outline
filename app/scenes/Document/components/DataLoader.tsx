@@ -30,7 +30,6 @@ type Children = (options: {
   document: Document;
   revision: Revision | undefined;
   abilities: Record<string, boolean>;
-  isEditing: boolean;
   readOnly: boolean;
   onCreateLink: (title: string) => Promise<string>;
   sharedTree: NavigationNode | undefined;
@@ -186,21 +185,12 @@ function DataLoader({ match, children }: Props) {
     );
   }
 
-  // We do not want to remount the document when changing from view->edit
-  // on the multiplayer flag as the doc is guaranteed to be upto date.
-  const key = team.collaborativeEditing
-    ? ""
-    : isEditing
-    ? "editing"
-    : "read-only";
-
   return (
-    <React.Fragment key={key}>
+    <React.Fragment>
       {children({
         document,
         revision,
         abilities: can,
-        isEditing,
         readOnly:
           !isEditing || !can.update || document.isArchived || !!revisionId,
         onCreateLink,

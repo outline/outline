@@ -30,6 +30,13 @@ const scriptSrc = [
   "cdn.zapier.com",
 ];
 
+const styleSrc = [
+  "'self'",
+  "'unsafe-inline'",
+  "github.githubassets.com",
+  "cdn.zapier.com",
+];
+
 // Allow to load assets from Vite
 if (!isProduction) {
   scriptSrc.push("127.0.0.1:3001");
@@ -42,6 +49,7 @@ if (env.GOOGLE_ANALYTICS_ID) {
 
 if (env.CDN_URL) {
   scriptSrc.push(env.CDN_URL);
+  styleSrc.push(env.CDN_URL);
   defaultSrc.push(env.CDN_URL);
 }
 
@@ -79,12 +87,7 @@ export default function init(app: Koa = new Koa()): Koa {
       directives: {
         defaultSrc,
         scriptSrc,
-        styleSrc: [
-          "'self'",
-          "'unsafe-inline'",
-          "github.githubassets.com",
-          "cdn.zapier.com",
-        ],
+        styleSrc,
         imgSrc: ["*", "data:", "blob:"],
         frameSrc: ["*", "data:"],
         connectSrc: ["*"], // Do not use connect-src: because self + websockets does not work in

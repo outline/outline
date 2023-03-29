@@ -1,9 +1,11 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
+import { useLocation } from "react-router-dom";
 import { v4 } from "uuid";
 import { MenuItem } from "@shared/editor/types";
 import { MentionType } from "@shared/types";
+import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import User from "~/models/User";
 import Avatar from "~/components/Avatar";
 import Flex from "~/components/Flex";
@@ -33,21 +35,28 @@ type Props = Omit<
   "renderMenuItem" | "items" | "onLinkToolbarOpen" | "embeds" | "onClearSearch"
 >;
 
-function MentionMenu({ search, ...rest }: Props) {
+function MentionMenu({ search, isActive, ...rest }: Props) {
   const [items, setItems] = React.useState<MentionItem[]>([]);
   const { t } = useTranslation();
   const { users, auth } = useStores();
+  const location = useLocation();
+  const documentId = parseDocumentSlug(location.pathname);
   const { view } = useEditor();
   const { data, request } = useRequest(
     React.useCallback(
-      () => users.fetchPage({ query: search, filter: "active" }),
-      [users, search]
+      () =>
+        documentId
+          ? users.fetchDocumentUsers({ id: documentId, query: search })
+          : Promise.resolve([]),
+      [users, documentId, search]
     )
   );
 
   React.useEffect(() => {
-    request();
-  }, [request]);
+    if (isActive) {
+      request();
+    }
+  }, [request, isActive]);
 
   React.useEffect(() => {
     if (data) {
@@ -85,6 +94,7 @@ function MentionMenu({ search, ...rest }: Props) {
   return (
     <SuggestionsMenu
       {...rest}
+      isActive={isActive}
       filterable={false}
       onClearSearch={clearSearch}
       search={search}

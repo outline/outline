@@ -42,6 +42,7 @@ import {
   presentDocument,
   presentPolicies,
   presentPublicTeam,
+  presentUser,
 } from "@server/presenters";
 import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
@@ -431,6 +432,59 @@ router.post(
     ctx.body = {
       data,
       policies: isPublic ? undefined : presentPolicies(user, [document]),
+    };
+  }
+);
+
+router.post(
+  "documents.users",
+  auth(),
+  pagination(),
+  validate(T.DocumentsUsersSchema),
+  async (ctx: APIContext<T.DocumentsUsersReq>) => {
+    const { id, query } = ctx.input.body;
+    const actor = ctx.state.auth.user;
+    const { offset, limit } = ctx.state.pagination;
+    const document = await Document.findByPk(id, {
+      userId: actor.id,
+    });
+    authorize(actor, "read", document);
+
+    let users: User[] = [];
+    let total = 0;
+
+    if (document.collectionId) {
+      const memberIds = await Collection.membershipUserIds(
+        document.collectionId
+      );
+
+      let where: WhereOptions<User> = {
+        id: {
+          [Op.in]: memberIds,
+        },
+        suspendedAt: {
+          [Op.is]: null,
+        },
+      };
+      if (query) {
+        where = {
+          ...where,
+          name: {
+            [Op.iLike]: `%${query}%`,
+          },
+        };
+      }
+
+      [users, total] = await Promise.all([
+        User.findAll({ where, offset, limit }),
+        User.count({ where }),
+      ]);
+    }
+
+    ctx.body = {
+      pagination: { ...ctx.state.pagination, total },
+      data: users.map((user) => presentUser(user)),
+      policies: presentPolicies(actor, users),
     };
   }
 );
@@ -826,7 +880,6 @@ router.post(
       text,
       fullWidth,
       publish,
-      lastRevision,
       templateId,
       collectionId,
       append,
@@ -852,10 +905,6 @@ router.post(
         collection = await Collection.findByPk(collectionId as string);
       }
       authorize(user, "publish", collection);
-    }
-
-    if (lastRevision && lastRevision !== document.revisionCount) {
-      throw InvalidRequestError("Document has changed since last revision");
     }
 
     collection = await sequelize.transaction(async (transaction) => {

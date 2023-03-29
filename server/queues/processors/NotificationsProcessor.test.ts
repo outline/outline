@@ -1,7 +1,7 @@
+import { NotificationEventType } from "@shared/types";
 import DocumentNotificationEmail from "@server/emails/templates/DocumentNotificationEmail";
 import {
   View,
-  NotificationSetting,
   Subscription,
   Event,
   Notification,
@@ -15,7 +15,6 @@ import {
 import { setupTestDatabase } from "@server/test/support";
 import NotificationsProcessor from "./NotificationsProcessor";
 
-jest.mock("@server/emails/templates/DocumentNotificationEmail");
 const ip = "127.0.0.1";
 
 setupTestDatabase();
@@ -26,16 +25,18 @@ beforeEach(async () => {
 
 describe("documents.publish", () => {
   test("should not send a notification to author", async () => {
+    const schedule = jest.spyOn(
+      DocumentNotificationEmail.prototype,
+      "schedule"
+    );
+
     const user = await buildUser();
     const document = await buildDocument({
       teamId: user.teamId,
       lastModifiedById: user.id,
     });
-    await NotificationSetting.create({
-      userId: user.id,
-      teamId: user.teamId,
-      event: "documents.publish",
-    });
+    user.setNotificationEventType(NotificationEventType.PublishDocument);
+    await user.save();
 
     const processor = new NotificationsProcessor();
     await processor.perform({
@@ -49,19 +50,20 @@ describe("documents.publish", () => {
       },
       ip,
     });
-    expect(DocumentNotificationEmail.schedule).not.toHaveBeenCalled();
+    expect(schedule).not.toHaveBeenCalled();
   });
 
   test("should send a notification to other users in team", async () => {
+    const schedule = jest.spyOn(
+      DocumentNotificationEmail.prototype,
+      "schedule"
+    );
     const user = await buildUser();
     const document = await buildDocument({
       teamId: user.teamId,
     });
-    await NotificationSetting.create({
-      userId: user.id,
-      teamId: user.teamId,
-      event: "documents.publish",
-    });
+    user.setNotificationEventType(NotificationEventType.PublishDocument);
+    await user.save();
 
     const processor = new NotificationsProcessor();
     await processor.perform({
@@ -75,10 +77,14 @@ describe("documents.publish", () => {
       },
       ip,
     });
-    expect(DocumentNotificationEmail.schedule).toHaveBeenCalled();
+    expect(schedule).toHaveBeenCalled();
   });
 
   test("should send only one notification in a 12-hour window", async () => {
+    const schedule = jest.spyOn(
+      DocumentNotificationEmail.prototype,
+      "schedule"
+    );
     const user = await buildUser();
     const document = await buildDocument({
       teamId: user.teamId,
@@ -90,11 +96,8 @@ describe("documents.publish", () => {
       teamId: user.teamId,
     });
 
-    await NotificationSetting.create({
-      userId: recipient.id,
-      teamId: recipient.teamId,
-      event: "documents.publish",
-    });
+    user.setNotificationEventType(NotificationEventType.PublishDocument);
+    await user.save();
 
     await Notification.create({
       actorId: user.id,
@@ -117,10 +120,14 @@ describe("documents.publish", () => {
       },
       ip,
     });
-    expect(DocumentNotificationEmail.schedule).not.toHaveBeenCalled();
+    expect(schedule).not.toHaveBeenCalled();
   });
 
   test("should not send a notification to users without collection access", async () => {
+    const schedule = jest.spyOn(
+      DocumentNotificationEmail.prototype,
+      "schedule"
+    );
     const user = await buildUser();
     const collection = await buildCollection({
       teamId: user.teamId,
@@ -130,11 +137,9 @@ describe("documents.publish", () => {
       teamId: user.teamId,
       collectionId: collection.id,
     });
-    await NotificationSetting.create({
-      userId: user.id,
-      teamId: user.teamId,
-      event: "documents.publish",
-    });
+    user.setNotificationEventType(NotificationEventType.PublishDocument);
+    await user.save();
+
     const processor = new NotificationsProcessor();
     await processor.perform({
       name: "documents.publish",
@@ -147,12 +152,16 @@ describe("documents.publish", () => {
       },
       ip,
     });
-    expect(DocumentNotificationEmail.schedule).not.toHaveBeenCalled();
+    expect(schedule).not.toHaveBeenCalled();
   });
 });
 
 describe("revisions.create", () => {
   test("should send a notification to other collaborators", async () => {
+    const schedule = jest.spyOn(
+      DocumentNotificationEmail.prototype,
+      "schedule"
+    );
     const document = await buildDocument();
     await Revision.createFromDocument(document);
 
@@ -162,11 +171,7 @@ describe("revisions.create", () => {
     const collaborator = await buildUser({ teamId: document.teamId });
     document.collaboratorIds = [collaborator.id];
     await document.save();
-    await NotificationSetting.create({
-      userId: collaborator.id,
-      teamId: collaborator.teamId,
-      event: "documents.update",
-    });
+
     const processor = new NotificationsProcessor();
     await processor.perform({
       name: "revisions.create",
@@ -177,10 +182,14 @@ describe("revisions.create", () => {
       modelId: revision.id,
       ip,
     });
-    expect(DocumentNotificationEmail.schedule).toHaveBeenCalled();
+    expect(schedule).toHaveBeenCalled();
   });
 
   test("should not send a notification if viewed since update", async () => {
+    const schedule = jest.spyOn(
+      DocumentNotificationEmail.prototype,
+      "schedule"
+    );
     const document = await buildDocument();
     await Revision.createFromDocument(document);
     document.text = "Updated body content";
@@ -189,11 +198,7 @@ describe("revisions.create", () => {
     const collaborator = await buildUser({ teamId: document.teamId });
     document.collaboratorIds = [collaborator.id];
     await document.save();
-    await NotificationSetting.create({
-      userId: collaborator.id,
-      teamId: collaborator.teamId,
-      event: "documents.update",
-    });
+
     await View.create({
       userId: collaborator.id,
       documentId: document.id,
@@ -209,10 +214,14 @@ describe("revisions.create", () => {
       modelId: revision.id,
       ip,
     });
-    expect(DocumentNotificationEmail.schedule).not.toHaveBeenCalled();
+    expect(schedule).not.toHaveBeenCalled();
   });
 
   test("should not send a notification to last editor", async () => {
+    const schedule = jest.spyOn(
+      DocumentNotificationEmail.prototype,
+      "schedule"
+    );
     const user = await buildUser();
     const document = await buildDocument({
       teamId: user.teamId,
@@ -222,11 +231,7 @@ describe("revisions.create", () => {
     document.text = "Updated body content";
     document.updatedAt = new Date();
     const revision = await Revision.createFromDocument(document);
-    await NotificationSetting.create({
-      userId: user.id,
-      teamId: user.teamId,
-      event: "documents.update",
-    });
+
     const processor = new NotificationsProcessor();
     await processor.perform({
       name: "revisions.create",
@@ -237,10 +242,14 @@ describe("revisions.create", () => {
       modelId: revision.id,
       ip,
     });
-    expect(DocumentNotificationEmail.schedule).not.toHaveBeenCalled();
+    expect(schedule).not.toHaveBeenCalled();
   });
 
   test("should send a notification for subscriptions, even to collaborator", async () => {
+    const schedule = jest.spyOn(
+      DocumentNotificationEmail.prototype,
+      "schedule"
+    );
     const document = await buildDocument();
     await Revision.createFromDocument(document);
     document.text = "Updated body content";
@@ -252,12 +261,6 @@ describe("revisions.create", () => {
     document.collaboratorIds = [collaborator.id, subscriber.id];
 
     await document.save();
-
-    await NotificationSetting.create({
-      userId: collaborator.id,
-      teamId: collaborator.teamId,
-      event: "documents.update",
-    });
 
     await Subscription.create({
       userId: subscriber.id,
@@ -278,7 +281,7 @@ describe("revisions.create", () => {
       ip,
     });
 
-    expect(DocumentNotificationEmail.schedule).toHaveBeenCalled();
+    expect(schedule).toHaveBeenCalled();
   });
 
   test("should create subscriptions for collaborator", async () => {
@@ -327,6 +330,10 @@ describe("revisions.create", () => {
   });
 
   test("should not send multiple emails", async () => {
+    const schedule = jest.spyOn(
+      DocumentNotificationEmail.prototype,
+      "schedule"
+    );
     const collaborator0 = await buildUser();
     const collaborator1 = await buildUser({ teamId: collaborator0.teamId });
     const collaborator2 = await buildUser({ teamId: collaborator0.teamId });
@@ -370,10 +377,14 @@ describe("revisions.create", () => {
 
     // This should send out 2 emails, one for each collaborator that did not
     // participate in the edit
-    expect(DocumentNotificationEmail.schedule).toHaveBeenCalledTimes(2);
+    expect(schedule).toHaveBeenCalledTimes(2);
   });
 
   test("should not create subscriptions if previously unsubscribed", async () => {
+    const schedule = jest.spyOn(
+      DocumentNotificationEmail.prototype,
+      "schedule"
+    );
     const collaborator0 = await buildUser();
     const collaborator1 = await buildUser({ teamId: collaborator0.teamId });
     const collaborator2 = await buildUser({ teamId: collaborator0.teamId });
@@ -429,10 +440,14 @@ describe("revisions.create", () => {
 
     // One notification as one collaborator performed edit and the other is
     // unsubscribed
-    expect(DocumentNotificationEmail.schedule).toHaveBeenCalledTimes(1);
+    expect(schedule).toHaveBeenCalledTimes(1);
   });
 
   test("should send a notification for subscriptions to non-collaborators", async () => {
+    const schedule = jest.spyOn(
+      DocumentNotificationEmail.prototype,
+      "schedule"
+    );
     const document = await buildDocument();
     const collaborator = await buildUser({ teamId: document.teamId });
     const subscriber = await buildUser({ teamId: document.teamId });
@@ -445,12 +460,6 @@ describe("revisions.create", () => {
     document.collaboratorIds = [collaborator.id];
 
     await document.save();
-
-    await NotificationSetting.create({
-      userId: collaborator.id,
-      teamId: collaborator.teamId,
-      event: "documents.update",
-    });
 
     // `subscriber` subscribes to `document`'s changes.
     // Specifically "documents.update" event.
@@ -473,10 +482,14 @@ describe("revisions.create", () => {
       ip,
     });
 
-    expect(DocumentNotificationEmail.schedule).toHaveBeenCalled();
+    expect(schedule).toHaveBeenCalled();
   });
 
   test("should not send a notification for subscriptions to collaborators if unsubscribed", async () => {
+    const schedule = jest.spyOn(
+      DocumentNotificationEmail.prototype,
+      "schedule"
+    );
     const document = await buildDocument();
     await Revision.createFromDocument(document);
     document.text = "Updated body content";
@@ -489,12 +502,6 @@ describe("revisions.create", () => {
     document.collaboratorIds = [collaborator.id, subscriber.id];
 
     await document.save();
-
-    await NotificationSetting.create({
-      userId: collaborator.id,
-      teamId: collaborator.teamId,
-      event: "documents.update",
-    });
 
     // `subscriber` subscribes to `document`'s changes.
     // Specifically "documents.update" event.
@@ -520,10 +527,14 @@ describe("revisions.create", () => {
     });
 
     // Should send notification to `collaborator` and not `subscriber`.
-    expect(DocumentNotificationEmail.schedule).toHaveBeenCalledTimes(1);
+    expect(schedule).toHaveBeenCalledTimes(1);
   });
 
   test("should not send a notification for subscriptions to members outside of the team", async () => {
+    const schedule = jest.spyOn(
+      DocumentNotificationEmail.prototype,
+      "schedule"
+    );
     const document = await buildDocument();
     await Revision.createFromDocument(document);
     document.text = "Updated body content";
@@ -539,12 +550,6 @@ describe("revisions.create", () => {
     document.collaboratorIds = [collaborator.id];
 
     await document.save();
-
-    await NotificationSetting.create({
-      userId: collaborator.id,
-      teamId: collaborator.teamId,
-      event: "documents.update",
-    });
 
     // `subscriber` subscribes to `document`'s changes.
     // Specifically "documents.update" event.
@@ -570,20 +575,20 @@ describe("revisions.create", () => {
     });
 
     // Should send notification to `collaborator` and not `subscriber`.
-    expect(DocumentNotificationEmail.schedule).toHaveBeenCalledTimes(1);
+    expect(schedule).toHaveBeenCalledTimes(1);
   });
 
   test("should not send a notification if viewed since update", async () => {
+    const schedule = jest.spyOn(
+      DocumentNotificationEmail.prototype,
+      "schedule"
+    );
     const document = await buildDocument();
     const revision = await Revision.createFromDocument(document);
     const collaborator = await buildUser({ teamId: document.teamId });
     document.collaboratorIds = [collaborator.id];
     await document.save();
-    await NotificationSetting.create({
-      userId: collaborator.id,
-      teamId: collaborator.teamId,
-      event: "documents.update",
-    });
+
     await View.create({
       userId: collaborator.id,
       documentId: document.id,
@@ -600,10 +605,14 @@ describe("revisions.create", () => {
       modelId: revision.id,
       ip,
     });
-    expect(DocumentNotificationEmail.schedule).not.toHaveBeenCalled();
+    expect(schedule).not.toHaveBeenCalled();
   });
 
   test("should not send a notification to last editor", async () => {
+    const schedule = jest.spyOn(
+      DocumentNotificationEmail.prototype,
+      "schedule"
+    );
     const user = await buildUser();
     const document = await buildDocument({
       teamId: user.teamId,
@@ -611,11 +620,6 @@ describe("revisions.create", () => {
     });
     const revision = await Revision.createFromDocument(document);
 
-    await NotificationSetting.create({
-      userId: user.id,
-      teamId: user.teamId,
-      event: "documents.update",
-    });
     const processor = new NotificationsProcessor();
     await processor.perform({
       name: "revisions.create",
@@ -626,6 +630,6 @@ describe("revisions.create", () => {
       modelId: revision.id,
       ip,
     });
-    expect(DocumentNotificationEmail.schedule).not.toHaveBeenCalled();
+    expect(schedule).not.toHaveBeenCalled();
   });
 });

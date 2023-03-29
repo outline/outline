@@ -1,7 +1,9 @@
 import * as React from "react";
+import { NotificationEventType } from "@shared/types";
 import env from "@server/env";
-import { NotificationSetting } from "@server/models";
-import BaseEmail from "./BaseEmail";
+import { User } from "@server/models";
+import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
+import BaseEmail, { EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
 import EmailTemplate from "./components/EmailLayout";
@@ -10,8 +12,7 @@ import Footer from "./components/Footer";
 import Header from "./components/Header";
 import Heading from "./components/Heading";
 
-type Props = {
-  to: string;
+type Props = EmailProps & {
   inviterId: string;
   invitedName: string;
   teamUrl: string;
@@ -26,17 +27,17 @@ type BeforeSendProps = {
  */
 export default class InviteAcceptedEmail extends BaseEmail<Props> {
   protected async beforeSend({ inviterId }: Props) {
-    const notificationSetting = await NotificationSetting.findOne({
-      where: {
-        userId: inviterId,
-        event: "emails.invite_accepted",
-      },
-    });
-    if (!notificationSetting) {
+    const inviter = await User.findByPk(inviterId);
+    if (!inviter) {
       return false;
     }
 
-    return { unsubscribeUrl: notificationSetting.unsubscribeUrl };
+    return {
+      unsubscribeUrl: NotificationSettingsHelper.unsubscribeUrl(
+        inviter,
+        NotificationEventType.InviteAccepted
+      ),
+    };
   }
 
   protected subject({ invitedName }: Props) {

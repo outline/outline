@@ -123,7 +123,6 @@ export function buildTeam(overrides: Record<string, any> = {}) {
   return Team.create(
     {
       name: `Team ${count}`,
-      collaborativeEditing: false,
       authenticationProviders: [
         {
           name: "slack",
@@ -182,7 +181,6 @@ export async function buildUser(overrides: Partial<User> = {}) {
     {
       email: `user${count}@example.com`,
       name: `User ${count}`,
-      username: `user${count}`,
       createdAt: new Date("2018-01-01T00:00:00.000Z"),
       updatedAt: new Date("2018-01-02T00:00:00.000Z"),
       lastActiveAt: new Date("2018-01-03T00:00:00.000Z"),

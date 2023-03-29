@@ -23,10 +23,10 @@ router.post(
   pagination(),
   validate(T.GroupsListSchema),
   async (ctx: APIContext<T.GroupsListReq>) => {
-    const { direction, sort } = ctx.input.body;
+    const { direction, sort, userId } = ctx.input.body;
     const { user } = ctx.state.auth;
 
-    const groups = await Group.findAll({
+    const groups = await Group.filterByMember(userId).findAll({
       where: {
         teamId: user.teamId,
       },

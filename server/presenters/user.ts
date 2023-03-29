@@ -1,4 +1,4 @@
-import { UserPreferences } from "@shared/types";
+import { NotificationSettings, UserPreferences } from "@shared/types";
 import env from "@server/env";
 import { User } from "@server/models";
 
@@ -20,6 +20,7 @@ type UserPresentation = {
   email?: string | null;
   language?: string;
   preferences?: UserPreferences | null;
+  notificationSettings?: NotificationSettings;
 };
 
 export default function presentUser(
@@ -43,6 +44,7 @@ export default function presentUser(
     userData.email = user.email;
     userData.language = user.language || env.DEFAULT_LANGUAGE;
     userData.preferences = user.preferences;
+    userData.notificationSettings = user.notificationSettings;
   }
 
   return userData;

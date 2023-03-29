@@ -121,16 +121,11 @@ function InnerDocumentLink(
       if (!document) {
         return;
       }
-      await documents.update(
-        {
-          id: document.id,
-          text: document.text,
-          title,
-        },
-        {
-          lastRevision: document.revision,
-        }
-      );
+      await documents.update({
+        id: document.id,
+        text: document.text,
+        title,
+      });
     },
     [documents, document]
   );

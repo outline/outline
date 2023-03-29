@@ -1,6 +1,6 @@
 import fs from "fs";
 import { truncate } from "lodash";
-import { FileOperationState } from "@shared/types";
+import { FileOperationState, NotificationEventType } from "@shared/types";
 import ExportFailureEmail from "@server/emails/templates/ExportFailureEmail";
 import ExportSuccessEmail from "@server/emails/templates/ExportSuccessEmail";
 import Logger from "@server/logging/Logger";
@@ -70,24 +70,28 @@ export default abstract class ExportTask extends BaseTask<Props> {
         url,
       });
 
-      await ExportSuccessEmail.schedule({
-        to: user.email,
-        userId: user.id,
-        id: fileOperation.id,
-        teamUrl: team.url,
-        teamId: team.id,
-      });
+      if (user.subscribedToEventType(NotificationEventType.ExportCompleted)) {
+        await new ExportSuccessEmail({
+          to: user.email,
+          userId: user.id,
+          id: fileOperation.id,
+          teamUrl: team.url,
+          teamId: team.id,
+        }).schedule();
+      }
     } catch (error) {
       await this.updateFileOperation(fileOperation, {
         state: FileOperationState.Error,
         error,
       });
-      await ExportFailureEmail.schedule({
-        to: user.email,
-        userId: user.id,
-        teamUrl: team.url,
-        teamId: team.id,
-      });
+      if (user.subscribedToEventType(NotificationEventType.ExportCompleted)) {
+        await new ExportFailureEmail({
+          to: user.email,
+          userId: user.id,
+          teamUrl: team.url,
+          teamId: team.id,
+        }).schedule();
+      }
       throw error;
     }
   }

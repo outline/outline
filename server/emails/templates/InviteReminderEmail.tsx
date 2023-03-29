@@ -1,6 +1,6 @@
 import * as React from "react";
 import env from "@server/env";
-import BaseEmail from "./BaseEmail";
+import BaseEmail, { EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
 import EmailTemplate from "./components/EmailLayout";
@@ -9,11 +9,10 @@ import Footer from "./components/Footer";
 import Header from "./components/Header";
 import Heading from "./components/Heading";
 
-type Props = {
-  to: string;
+type Props = EmailProps & {
   name: string;
   actorName: string;
-  actorEmail: string;
+  actorEmail: string | null;
   teamName: string;
   teamUrl: string;
 };
@@ -38,7 +37,11 @@ export default class InviteReminderEmail extends BaseEmail<Props> {
     teamUrl,
   }: Props): string {
     return `
-This is just a quick reminder that ${actorName} (${actorEmail}) invited you to join them in the ${teamName} team on ${env.APP_NAME}, a place for your team to build and share knowledge.
+This is just a quick reminder that ${actorName} ${
+      actorEmail ? `(${actorEmail})` : ""
+    } invited you to join them in the ${teamName} team on ${
+      env.APP_NAME
+    }, a place for your team to build and share knowledge.
 We only send a reminder once.
 
 If you haven't signed up yet, you can do so here: ${teamUrl}
@@ -55,7 +58,8 @@ If you haven't signed up yet, you can do so here: ${teamUrl}
             Join {teamName} on {env.APP_NAME}
           </Heading>
           <p>
-            This is just a quick reminder that {actorName} ({actorEmail})
+            This is just a quick reminder that {actorName}{" "}
+            {actorEmail ? `(${actorEmail})` : ""}
             invited you to join them in the {teamName} team on {env.APP_NAME}, a
             place for your team to build and share knowledge.
           </p>

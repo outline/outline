@@ -63,12 +63,7 @@ math-inline .math-render {
 
 math-inline .math-src .ProseMirror {
   display: inline;
-  border-radius: 4px;
-  border: 1px solid ${props.theme.codeBorder};
-  padding: 3px 4px;
   margin: 0px 3px;
-  font-family: ${props.theme.fontFamilyMono};
-  font-size: 80%;
 }
 
 math-block {
@@ -85,7 +80,7 @@ math-block.ProseMirror-selectednode {
   background: ${props.theme.codeBackground};
   padding: 0.75em 1em;
   font-family: ${props.theme.fontFamilyMono};
-  font-size: 80%;
+  font-size: 90%;
 }
 
 math-block .math-src .ProseMirror {
@@ -876,13 +871,14 @@ hr.page-break:before {
   border-top: 1px dashed ${props.theme.horizontalRule};
 }
 
+.math-inline .math-src .ProseMirror,
 code {
   border-radius: 4px;
   border: 1px solid ${props.theme.codeBorder};
   background: ${props.theme.codeBackground};
   padding: 3px 4px;
   font-family: ${props.theme.fontFamilyMono};
-  font-size: 80%;
+  font-size: 90%;
 }
 
 mark {
@@ -1472,6 +1468,10 @@ del[data-operation-index] {
   h5:not(.placeholder):before,
   h6:not(.placeholder):before {
     display: none;
+  }
+
+  .image {
+    page-break-inside: avoid;
   }
 
   .comment-marker {

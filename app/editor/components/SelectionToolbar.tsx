@@ -234,6 +234,7 @@ export default function SelectionToolbar(props: Props) {
           to={range.to}
           onShowToast={onShowToast}
           onClickLink={props.onClickLink}
+          onSearchLink={props.onSearchLink}
           onCreateLink={onCreateLink ? handleOnCreateLink : undefined}
           onSelectLink={handleOnSelectLink}
         />

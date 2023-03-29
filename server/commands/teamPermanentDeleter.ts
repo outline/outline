@@ -12,7 +12,6 @@ import {
   FileOperation,
   Group,
   Team,
-  NotificationSetting,
   User,
   UserAuthentication,
   Integration,
@@ -148,13 +147,6 @@ async function teamPermanentDeleter(team: Team) {
       transaction,
     });
     await IntegrationAuthentication.destroy({
-      where: {
-        teamId,
-      },
-      force: true,
-      transaction,
-    });
-    await NotificationSetting.destroy({
       where: {
         teamId,
       },

@@ -1,7 +1,14 @@
 import { subMinutes } from "date-fns";
-import { computed, observable } from "mobx";
+import { computed, action, observable } from "mobx";
 import { now } from "mobx-utils";
-import type { Role, UserPreference, UserPreferences } from "@shared/types";
+import {
+  NotificationEventDefaults,
+  NotificationEventType,
+  UserPreference,
+  UserPreferences,
+} from "@shared/types";
+import type { Role, NotificationSettings } from "@shared/types";
+import { client } from "~/utils/ApiClient";
 import ParanoidModel from "./ParanoidModel";
 import Field from "./decorators/Field";
 
@@ -29,6 +36,10 @@ class User extends ParanoidModel {
   @Field
   @observable
   preferences: UserPreferences | null;
+
+  @Field
+  @observable
+  notificationSettings: NotificationSettings;
 
   email: string;
 
@@ -71,6 +82,49 @@ class User extends ParanoidModel {
       return "member";
     }
   }
+
+  /**
+   * Returns the current preference for the given notification event type taking
+   * into account the default system value.
+   *
+   * @param type The type of notification event
+   * @returns The current preference
+   */
+  public subscribedToEventType = (type: NotificationEventType) => {
+    return (
+      this.notificationSettings[type] ??
+      NotificationEventDefaults[type] ??
+      false
+    );
+  };
+
+  /**
+   * Sets a preference for the users notification settings on the model and
+   * saves the change to the server.
+   *
+   * @param type The type of notification event
+   * @param value Set the preference to true/false
+   */
+  @action
+  setNotificationEventType = async (
+    eventType: NotificationEventType,
+    value: boolean
+  ) => {
+    this.notificationSettings = {
+      ...this.notificationSettings,
+      [eventType]: value,
+    };
+
+    if (value) {
+      await client.post(`/users.notificationsSubscribe`, {
+        eventType,
+      });
+    } else {
+      await client.post(`/users.notificationsUnsubscribe`, {
+        eventType,
+      });
+    }
+  };
 
   /**
    * Get the value for a specific preference key, or return the fallback if

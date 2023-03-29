@@ -83,15 +83,13 @@ const insertFiles = function (
       });
       view.dispatch(tr);
     } else if (!attachmentPlaceholdersSet) {
-      const $pos = tr.doc.resolve(pos);
       const attachmentsToUpload = filesToUpload.filter(
         (i) => i.isImage === false
       );
 
       view.dispatch(
-        view.state.tr.replaceWith(
-          $pos.pos,
-          $pos.pos + ($pos.nodeAfter?.nodeSize || 0),
+        tr.insert(
+          pos,
           attachmentsToUpload.map((attachment) =>
             schema.nodes.attachment.create({
               id: attachment.id,

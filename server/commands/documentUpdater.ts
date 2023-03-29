@@ -53,7 +53,7 @@ export default async function documentUpdater({
   const previousTitle = document.title;
 
   if (title !== undefined) {
-    document.title = title;
+    document.title = title.trim();
   }
   if (editorVersion) {
     document.editorVersion = editorVersion;
@@ -65,13 +65,7 @@ export default async function documentUpdater({
     document.fullWidth = fullWidth;
   }
   if (text !== undefined) {
-    if (user.team?.collaborativeEditing) {
-      document = DocumentHelper.applyMarkdownToDocument(document, text, append);
-    } else if (append) {
-      document.text += text;
-    } else {
-      document.text = text;
-    }
+    document = DocumentHelper.applyMarkdownToDocument(document, text, append);
   }
 
   const changed = document.changed();

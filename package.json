@@ -61,7 +61,7 @@
     "@getoutline/y-prosemirror": "^1.0.18",
     "@hocuspocus/provider": "^1.0.0-beta.6",
     "@hocuspocus/server": "^1.0.0-beta.6",
-    "@joplin/turndown-plugin-gfm": "^1.0.45",
+    "@joplin/turndown-plugin-gfm": "^1.0.47",
     "@juggle/resize-observer": "^3.4.0",
     "@outlinewiki/koa-passport": "^4.2.1",
     "@outlinewiki/passport-azure-ad-oauth2": "^0.1.0",
@@ -219,7 +219,7 @@
     "y-indexeddb": "^9.0.9",
     "y-protocols": "^1.0.5",
     "yjs": "^13.5.39",
-    "zod": "^3.20.2"
+    "zod": "^3.21.4"
   },
   "devDependencies": {
     "@babel/cli": "^7.21.0",

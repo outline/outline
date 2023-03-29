@@ -26,6 +26,8 @@ import {
 import { checkUpdates } from "./utils/updates";
 import onerror from "./onerror";
 import ShutdownHelper, { ShutdownOrder } from "./utils/ShutdownHelper";
+import { sequelize } from "./database/sequelize";
+import RedisAdapter from "./redis";
 
 // The default is to run all services to make development and OSS installations
 // easier to deal with. Separate services are only needed at scale.
@@ -90,8 +92,23 @@ async function start(id: number, disconnect: () => void) {
   // Apply default rate limit to all routes
   app.use(defaultRateLimiter());
 
-  // install health check endpoint for all services
-  router.get("/_health", (ctx) => (ctx.body = "OK"));
+  // Add a health check endpoint to all services
+  router.get("/_health", async (ctx) => {
+    try {
+      await sequelize.query("SELECT 1");
+    } catch (err) {
+      throw new Error("Database connection failed");
+    }
+
+    try {
+      await RedisAdapter.defaultClient.ping();
+    } catch (err) {
+      throw new Error("Redis ping failed");
+    }
+
+    ctx.body = "OK";
+  });
+
   app.use(router.routes());
 
   // loop through requested services at startup

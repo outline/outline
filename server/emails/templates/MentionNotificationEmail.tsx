@@ -1,14 +1,13 @@
 import * as React from "react";
 import { Document } from "@server/models";
-import BaseEmail from "./BaseEmail";
+import BaseEmail, { EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
 import EmailTemplate from "./components/EmailLayout";
 import Header from "./components/Header";
 import Heading from "./components/Heading";
 
-type InputProps = {
-  to: string;
+type InputProps = EmailProps & {
   documentId: string;
   actorName: string;
   teamUrl: string;
@@ -22,7 +21,7 @@ type BeforeSend = {
 type Props = InputProps & BeforeSend;
 
 /**
- * Email sent to a user when someone mentions them in a doucment
+ * Email sent to a user when someone mentions them in a document.
  */
 export default class MentionNotificationEmail extends BaseEmail<
   InputProps,
