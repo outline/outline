@@ -772,7 +772,7 @@
   "This could be your real name, or a nickname — however you’d like people to refer to you.": "這可以是您的真實姓名或暱稱，或任何您希望別人用來稱呼您的名字。",
   "Are you sure you want to require invites?": "Are you sure you want to require invites?",
   "I’m sure": "我確定",
-  "New users will first need to be invited to create an account. <em>Default role</em> and <em>Allowed domains</em> will no longer apply.": "New users will first need to be invited to create an account. <em>Default role</em> and <em>Allowed domains</em> will no longer apply.",
+  "New users will first need to be invited to create an account. <em>Default role</em> and <em>Allowed domains</em> will no longer apply.": "新使用者在創建賬號前需要先被邀請。 <em>預設身份</em> 和 <em>允許使用的域名</em> 都將不再適用。",
   "Settings that impact the access, security, and content of your knowledge base.": "此處設定將影響您的知識庫存取、安全性、內容呈現。",
   "Allow members to sign-in with {{ authProvider }}": "允許成員使用 {{ authProvider }} 登入",
   "Connected": "已連接",
