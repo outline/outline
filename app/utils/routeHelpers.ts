@@ -98,7 +98,7 @@ export function updateDocumentUrl(oldUrl: string, document: Document): string {
 }
 
 export function newDocumentPath(
-  collectionId?: string,
+  collectionId?: string | null,
   params: {
     parentDocumentId?: string;
     templateId?: string;

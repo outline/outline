@@ -1,5 +1,5 @@
 import invariant from "invariant";
-import { filter, find } from "lodash";
+import { find } from "lodash";
 import { action, observable } from "mobx";
 import { observer } from "mobx-react";
 import * as React from "react";
@@ -175,7 +175,7 @@ class WebsocketProvider extends React.Component<Props> {
                 id: document.collectionId,
               });
 
-              if (!existing) {
+              if (!existing && document.collectionId) {
                 event.collectionIds.push({
                   id: document.collectionId,
                 });
@@ -298,14 +298,14 @@ class WebsocketProvider extends React.Component<Props> {
       action((event: WebsocketEntityDeletedEvent) => {
         const collectionId = event.modelId;
         const deletedAt = new Date().toISOString();
-
-        // drafts eventually are to be detached from collection rather than deleted, hence excluded here
-        const deletedDocuments = filter(
-          documents.inCollection(collectionId),
-          (d) => !!d.publishedAt
-        );
+        const deletedDocuments = documents.inCollection(collectionId);
         deletedDocuments.forEach((doc) => {
-          doc.deletedAt = deletedAt;
+          if (!doc.publishedAt) {
+            // draft is to be detached from collection, not deleted
+            doc.collectionId = null;
+          } else {
+            doc.deletedAt = deletedAt;
+          }
           policies.remove(doc.id);
         });
         documents.removeCollectionDocuments(collectionId);
