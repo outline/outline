@@ -1,4 +1,5 @@
 import * as React from "react";
+import { Minute } from "@shared/utils/time";
 
 const activityEvents = [
   "click",
@@ -18,7 +19,7 @@ const activityEvents = [
  * @param {number} timeToIdle
  * @returns boolean if the user is idle
  */
-export default function useIdle(timeToIdle: number = 3 * 60 * 1000) {
+export default function useIdle(timeToIdle: number = 3 * Minute) {
   const [isIdle, setIsIdle] = React.useState(false);
   const timeout = React.useRef<ReturnType<typeof setTimeout>>();
 

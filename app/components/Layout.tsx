@@ -8,6 +8,7 @@ import { LoadingIndicatorBar } from "~/components/LoadingIndicator";
 import SkipNavContent from "~/components/SkipNavContent";
 import SkipNavLink from "~/components/SkipNavLink";
 import env from "~/env";
+import useAutoRefresh from "~/hooks/useAutoRefresh";
 import useKeyDown from "~/hooks/useKeyDown";
 import { MenuProvider } from "~/hooks/useMenuContext";
 import useStores from "~/hooks/useStores";
@@ -27,6 +28,8 @@ const Layout: React.FC<Props> = ({
 }) => {
   const { ui } = useStores();
   const sidebarCollapsed = !sidebar || ui.sidebarIsClosed;
+
+  useAutoRefresh();
 
   useKeyDown(".", (event) => {
     if (isModKey(event)) {
