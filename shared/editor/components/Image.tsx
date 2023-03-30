@@ -24,6 +24,7 @@ const Image = (
   const [contentWidth, setContentWidth] = React.useState(
     () => document.body.querySelector("#full-width-container")?.clientWidth || 0
   );
+  const [loaded, setLoaded] = React.useState(false);
   const [naturalWidth, setNaturalWidth] = React.useState(node.attrs.width);
   const [naturalHeight, setNaturalHeight] = React.useState(node.attrs.height);
   const [size, setSize] = React.useState({
@@ -175,7 +176,10 @@ const Image = (
         )}
         <ImageZoom zoomMargin={24}>
           <img
-            style={widthStyle}
+            style={{
+              ...widthStyle,
+              display: loaded ? "block" : "none",
+            }}
             src={sanitizeUrl(src) ?? ""}
             onLoad={(ev: React.SyntheticEvent<HTMLImageElement>) => {
               // For some SVG's Firefox does not provide the naturalWidth, in this
@@ -185,6 +189,7 @@ const Image = (
               const nh = (ev.target as HTMLImageElement).naturalHeight;
               setNaturalWidth(nw);
               setNaturalHeight(nh);
+              setLoaded(true);
 
               if (!node.attrs.width) {
                 setSize((state) => ({
@@ -193,6 +198,15 @@ const Image = (
                 }));
               }
             }}
+          />
+          <img
+            style={{
+              ...widthStyle,
+              display: loaded ? "none" : "block",
+            }}
+            src={`data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
+              getPlaceholder(size.width, size.height)
+            )}`}
           />
         </ImageZoom>
         {isEditable && !isFullWidth && isResizable && (
@@ -214,6 +228,10 @@ const Image = (
     </div>
   );
 };
+
+function getPlaceholder(width: number, height: number) {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" />`;
+}
 
 export const Caption = styled.p`
   border: 0;
