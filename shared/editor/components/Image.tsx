@@ -205,7 +205,7 @@ const Image = (
               display: loaded ? "none" : "block",
             }}
             src={`data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
-              `<svg xmlns="http://www.w3.org/2000/svg" width="${size.width}" height="${size.height}" />`
+              getPlaceholder(size.width, size.height)
             )}`}
           />
         </ImageZoom>
@@ -228,6 +228,10 @@ const Image = (
     </div>
   );
 };
+
+function getPlaceholder(width: number, height: number) {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" />`;
+}
 
 export const Caption = styled.p`
   border: 0;
