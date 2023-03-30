@@ -183,7 +183,7 @@ export class Editor extends React.PureComponent<
     mentionMenuOpen: false,
   };
 
-  isBlurred: boolean;
+  isBlurred = true;
   extensions: ExtensionManager;
   elementRef = React.createRef<HTMLDivElement>();
   wrapperRef = React.createRef<HTMLDivElement>();
