@@ -23,6 +23,19 @@ allow(User, "read", Document, (user, document) => {
   return user.teamId === document.teamId;
 });
 
+allow(User, "comment", Document, (user, document) => {
+  if (!document) {
+    return false;
+  }
+
+  // existence of collection option is not required here to account for share tokens
+  if (document.collection && cannot(user, "read", document.collection)) {
+    return false;
+  }
+
+  return user.teamId === document.teamId;
+});
+
 allow(User, "download", Document, (user, document) => {
   if (!document) {
     return false;
