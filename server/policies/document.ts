@@ -10,20 +10,7 @@ allow(User, "createDocument", Team, (user, team) => {
   return true;
 });
 
-allow(User, "read", Document, (user, document) => {
-  if (!document) {
-    return false;
-  }
-
-  // existence of collection option is not required here to account for share tokens
-  if (document.collection && cannot(user, "read", document.collection)) {
-    return false;
-  }
-
-  return user.teamId === document.teamId;
-});
-
-allow(User, "comment", Document, (user, document) => {
+allow(User, ["read", "comment"], Document, (user, document) => {
   if (!document) {
     return false;
   }
