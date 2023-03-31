@@ -133,13 +133,16 @@ describe("#authenticationProviders.list", () => {
     });
     const body = await res.json();
     expect(res.status).toEqual(200);
-    expect(body.data.length).toBe(2);
+    expect(body.data.length).toBe(3);
     expect(body.data[0].name).toBe("slack");
     expect(body.data[0].isEnabled).toBe(true);
     expect(body.data[0].isConnected).toBe(true);
     expect(body.data[1].name).toBe("google");
     expect(body.data[1].isEnabled).toBe(false);
     expect(body.data[1].isConnected).toBe(false);
+    expect(body.data[2].name).toBe("oidc");
+    expect(body.data[2].isEnabled).toBe(false);
+    expect(body.data[2].isConnected).toBe(false);
   });
 
   it("should require authentication", async () => {

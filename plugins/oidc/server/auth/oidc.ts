@@ -33,6 +33,20 @@ Strategy.prototype.userProfile = async function (accessToken, done) {
   }
 };
 
+const authorizationParams = Strategy.prototype.authorizationParams;
+Strategy.prototype.authorizationParams = function (options) {
+  return {
+    ...(options.originalQuery || {}),
+    ...(authorizationParams.bind(this)(options) || {}),
+  };
+};
+
+const authenticate = Strategy.prototype.authenticate;
+Strategy.prototype.authenticate = function (req, options) {
+  options.originalQuery = req.query;
+  authenticate.bind(this)(req, options);
+};
+
 if (
   env.OIDC_CLIENT_ID &&
   env.OIDC_CLIENT_SECRET &&
