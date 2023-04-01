@@ -1,6 +1,7 @@
 import { EditorState } from "prosemirror-state";
 import * as React from "react";
 import styled from "styled-components";
+import Iframe from "@shared/editor/embeds/Iframe";
 import { IntegrationType } from "../../types";
 import type { IntegrationSettings } from "../../types";
 import { urlRegex } from "../../utils/urls";
@@ -385,6 +386,12 @@ const embeds: EmbedDescriptor[] = [
     keywords: "google video",
     icon: <Img src="/images/youtube.png" alt="YouTube" />,
     component: YouTube,
+  }),
+  new EmbedDescriptor({
+    title: "Iframe",
+    keywords: "iframe",
+    icon: <Img src="/images/iframe.png" alt="Iframe" />,
+    component: Iframe,
   }),
 ];
 
