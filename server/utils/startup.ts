@@ -27,11 +27,24 @@ export function checkPendingMigrations() {
           .map((line, i) => `${i + 1}. ${line.replace("down ", "")}`)
           .join("\n")
       );
-      Logger.warn(
-        "Please run `yarn db:migrate` or `yarn db:migrate --env production-ssl-disabled` to run all pending migrations"
-      );
+      if (env.isCloudHosted()) {
+        Logger.warn(
+          "Please run `yarn db:migrate` or `yarn db:migrate --env production-ssl-disabled` to run all pending migrations"
+        );
 
-      process.exit(1);
+        process.exit(1);
+      } else {
+        // run migrations automatically for community edition
+        Logger.info("database", "Running migrations...");
+        const cmdResult = execSync(
+          `yarn db:migrate${
+            env.PGSSLMODE === "disable" ? " --env=production-ssl-disabled" : ""
+          }`
+        );
+        const cmdOutput = Buffer.from(cmdResult).toString("utf-8");
+        Logger.info("database", cmdOutput);
+        Logger.info("database", "Done.");
+      }
     }
   } catch (err) {
     if (err.message.includes("ECONNREFUSED")) {
@@ -58,6 +71,7 @@ export async function checkMigrations() {
     Logger.warn(`
 This version of Outline cannot start until a data migration is complete.
 Backup your database, run the database migrations and the following script:
+(Note: script run needed only when upgrading to any version between 0.54.0 and 0.61.1, including both)
 
 $ node ./build/server/scripts/20210226232041-migrate-authentication.js
 `);
