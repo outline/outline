@@ -29,7 +29,7 @@ router.post(
       userId: user.id,
       transaction,
     });
-    authorize(user, "read", document);
+    authorize(user, "comment", document);
 
     const comment = await commentCreator({
       id,

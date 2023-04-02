@@ -10,7 +10,7 @@ allow(User, "createDocument", Team, (user, team) => {
   return true;
 });
 
-allow(User, "read", Document, (user, document) => {
+allow(User, ["read", "comment"], Document, (user, document) => {
   if (!document) {
     return false;
   }
