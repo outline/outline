@@ -10,8 +10,11 @@ env.SLACK_CLIENT_SECRET = "123";
 
 env.AZURE_CLIENT_ID = undefined;
 env.AZURE_CLIENT_SECRET = undefined;
-env.OIDC_CLIENT_ID = undefined;
-env.OIDC_CLIENT_SECRET = undefined;
+env.OIDC_CLIENT_ID = "client-id";
+env.OIDC_CLIENT_SECRET = "client-secret";
+env.OIDC_AUTH_URI = "http://localhost/authorize";
+env.OIDC_TOKEN_URI = "http://localhost/token";
+env.OIDC_USERINFO_URI = "http://localhost/userinfo";
 
 env.RATE_LIMITER_ENABLED = false;
 env.DEPLOYMENT = undefined;
