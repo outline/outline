@@ -225,7 +225,9 @@ export default class SimpleImage extends Node {
             onShowToast,
             dictionary: this.options.dictionary,
             replaceExisting: true,
-            width: node.attrs.width,
+            attrs: {
+              width: node.attrs.width,
+            },
           });
         };
         inputElement.click();

@@ -200,11 +200,13 @@ export default class Image extends SimpleImage {
     const { tr } = view.state;
 
     const pos = getPos();
-    const transaction = tr.setNodeMarkup(pos, undefined, {
-      ...node.attrs,
-      width,
-      height,
-    });
+    const transaction = tr
+      .setNodeMarkup(pos, undefined, {
+        ...node.attrs,
+        width,
+        height,
+      })
+      .setMeta("addToHistory", true);
     const $pos = transaction.doc.resolve(getPos());
     view.dispatch(transaction.setSelection(new NodeSelection($pos)));
   };

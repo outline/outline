@@ -199,15 +199,17 @@ const Image = (
               }
             }}
           />
-          <img
-            style={{
-              ...widthStyle,
-              display: loaded ? "none" : "block",
-            }}
-            src={`data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
-              getPlaceholder(size.width, size.height)
-            )}`}
-          />
+          {!loaded && (
+            <img
+              style={{
+                ...widthStyle,
+                display: "block",
+              }}
+              src={`data:image/svg+xml;charset=UTF-8,${encodeURIComponent(
+                getPlaceholder(size.width, size.height)
+              )}`}
+            />
+          )}
         </ImageZoom>
         {isEditable && !isFullWidth && isResizable && (
           <>
