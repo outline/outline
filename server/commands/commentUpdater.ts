@@ -1,5 +1,6 @@
 import { Transaction } from "sequelize";
 import { Event, Comment, User } from "@server/models";
+import ProsemirrorHelper from "@server/models/helpers/ProsemirrorHelper";
 
 type Props = {
   /** The user updating the comment */
@@ -29,12 +30,24 @@ export default async function commentUpdater({
   ip,
   transaction,
 }: Props): Promise<Comment> {
+  const mentionIdsBefore = ProsemirrorHelper.parseMentions(
+    ProsemirrorHelper.toProsemirror(comment.data)
+  ).map((mention) => mention.id);
+
   if (resolvedBy !== undefined) {
     comment.resolvedBy = resolvedBy;
   }
   if (data !== undefined) {
     comment.data = data;
   }
+
+  const mentionsAfter = ProsemirrorHelper.parseMentions(
+    ProsemirrorHelper.toProsemirror(comment.data)
+  );
+
+  const newMentionIds = mentionsAfter
+    .filter((mention) => !mentionIdsBefore.includes(mention.id))
+    .map((mention) => mention.id);
 
   await comment.save({ transaction });
 
@@ -46,6 +59,9 @@ export default async function commentUpdater({
       actorId: user.id,
       documentId: comment.documentId,
       ip,
+      data: {
+        newMentionIds,
+      },
     },
     { transaction }
   );

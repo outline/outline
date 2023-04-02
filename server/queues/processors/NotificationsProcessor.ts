@@ -6,8 +6,8 @@ import { Minute } from "@shared/utils/time";
 import subscriptionCreator from "@server/commands/subscriptionCreator";
 import { sequelize } from "@server/database/sequelize";
 import CollectionCreatedEmail from "@server/emails/templates/CollectionCreatedEmail";
+import DocumentMentionNotificationEmail from "@server/emails/templates/DocumentMentionNotificationEmail";
 import DocumentNotificationEmail from "@server/emails/templates/DocumentNotificationEmail";
-import MentionNotificationEmail from "@server/emails/templates/MentionNotificationEmail";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import {
@@ -29,6 +29,7 @@ import {
   CommentEvent,
 } from "@server/types";
 import CommentCreatedNotificationTask from "../tasks/CommentCreatedNotificationTask";
+import CommentUpdatedNotificationTask from "../tasks/CommentUpdatedNotificationTask";
 import BaseProcessor from "./BaseProcessor";
 
 export default class NotificationsProcessor extends BaseProcessor {
@@ -37,6 +38,7 @@ export default class NotificationsProcessor extends BaseProcessor {
     "revisions.create",
     "collections.create",
     "comments.create",
+    "comments.update",
   ];
 
   async perform(event: Event) {
@@ -49,12 +51,20 @@ export default class NotificationsProcessor extends BaseProcessor {
         return this.collectionCreated(event);
       case "comments.create":
         return this.commentCreated(event);
+      case "comments.update":
+        return this.commentUpdated(event);
       default:
     }
   }
 
   async commentCreated(event: CommentEvent) {
     await CommentCreatedNotificationTask.schedule(event, {
+      delay: Minute,
+    });
+  }
+
+  async commentUpdated(event: CommentEvent) {
+    await CommentUpdatedNotificationTask.schedule(event, {
       delay: Minute,
     });
   }
@@ -104,7 +114,7 @@ export default class NotificationsProcessor extends BaseProcessor {
           documentId: document.id,
         });
         userIdsSentNotifications.push(recipient.id);
-        await new MentionNotificationEmail(
+        await new DocumentMentionNotificationEmail(
           {
             to: recipient.email,
             documentId: event.documentId,
@@ -193,7 +203,7 @@ export default class NotificationsProcessor extends BaseProcessor {
           documentId: document.id,
         });
         userIdsSentNotifications.push(recipient.id);
-        await new MentionNotificationEmail(
+        await new DocumentMentionNotificationEmail(
           {
             to: recipient.email,
             documentId: event.documentId,

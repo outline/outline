@@ -279,13 +279,24 @@ export type PinEvent = BaseEvent & {
   collectionId?: string;
 };
 
+export type CommentUpdateEvent = BaseEvent & {
+  name: "comments.update";
+  modelId: string;
+  documentId: string;
+  actorId: string;
+  data: {
+    newMentionIds: string[];
+  };
+};
+
 export type CommentEvent =
   | (BaseEvent & {
-      name: "comments.create" | "comments.update";
+      name: "comments.create";
       modelId: string;
       documentId: string;
       actorId: string;
     })
+  | CommentUpdateEvent
   | (BaseEvent & {
       name: "comments.delete";
       modelId: string;
