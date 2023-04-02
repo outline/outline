@@ -1,5 +1,5 @@
 import { NotificationEventType } from "@shared/types";
-import CommentCreatedEmail from "@server/emails/templates/CommentCreatedEmail";
+import CommentMentionedEmail from "@server/emails/templates/CommentMentionedEmail";
 import { Comment, Document, Notification, Team, User } from "@server/models";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import ProsemirrorHelper from "@server/models/helpers/ProsemirrorHelper";
@@ -65,13 +65,12 @@ export default class CommentUpdatedNotificationTask extends BaseTask<
           documentId: document.id,
         });
 
-        await new CommentCreatedEmail(
+        await new CommentMentionedEmail(
           {
             to: recipient.email,
             userId: recipient.id,
             documentId: document.id,
             teamUrl: team.url,
-            isReply: !!comment.parentCommentId,
             actorName: comment.createdBy.name,
             commentId: comment.id,
             content,

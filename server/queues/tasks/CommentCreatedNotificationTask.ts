@@ -4,6 +4,7 @@ import subscriptionCreator from "@server/commands/subscriptionCreator";
 import { sequelize } from "@server/database/sequelize";
 import { schema } from "@server/editor";
 import CommentCreatedEmail from "@server/emails/templates/CommentCreatedEmail";
+import CommentMentionedEmail from "@server/emails/templates/CommentMentionedEmail";
 import { Comment, Document, Notification, Team, User } from "@server/models";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import NotificationHelper from "@server/models/helpers/NotificationHelper";
@@ -82,13 +83,12 @@ export default class CommentCreatedNotificationTask extends BaseTask<
         });
         userIdsSentNotifications.push(recipient.id);
 
-        await new CommentCreatedEmail(
+        await new CommentMentionedEmail(
           {
             to: recipient.email,
             userId: recipient.id,
             documentId: document.id,
             teamUrl: team.url,
-            isReply: !!comment.parentCommentId,
             actorName: comment.createdBy.name,
             commentId: comment.id,
             content,

@@ -6,8 +6,8 @@ import { Minute } from "@shared/utils/time";
 import subscriptionCreator from "@server/commands/subscriptionCreator";
 import { sequelize } from "@server/database/sequelize";
 import CollectionCreatedEmail from "@server/emails/templates/CollectionCreatedEmail";
-import DocumentMentionNotificationEmail from "@server/emails/templates/DocumentMentionNotificationEmail";
-import DocumentNotificationEmail from "@server/emails/templates/DocumentNotificationEmail";
+import DocumentMentionedEmail from "@server/emails/templates/DocumentMentionedEmail";
+import DocumentPublishedOrUpdatedEmail from "@server/emails/templates/DocumentPublishedOrUpdatedEmail";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import {
@@ -114,7 +114,7 @@ export default class NotificationsProcessor extends BaseProcessor {
           documentId: document.id,
         });
         userIdsSentNotifications.push(recipient.id);
-        await new DocumentMentionNotificationEmail(
+        await new DocumentMentionedEmail(
           {
             to: recipient.email,
             documentId: event.documentId,
@@ -147,7 +147,7 @@ export default class NotificationsProcessor extends BaseProcessor {
           teamId: team.id,
           documentId: document.id,
         });
-        await new DocumentNotificationEmail(
+        await new DocumentPublishedOrUpdatedEmail(
           {
             to: recipient.email,
             userId: recipient.id,
@@ -203,7 +203,7 @@ export default class NotificationsProcessor extends BaseProcessor {
           documentId: document.id,
         });
         userIdsSentNotifications.push(recipient.id);
-        await new DocumentMentionNotificationEmail(
+        await new DocumentMentionedEmail(
           {
             to: recipient.email,
             documentId: event.documentId,
@@ -251,7 +251,7 @@ export default class NotificationsProcessor extends BaseProcessor {
           documentId: document.id,
         });
 
-        await new DocumentNotificationEmail(
+        await new DocumentPublishedOrUpdatedEmail(
           {
             to: recipient.email,
             userId: recipient.id,

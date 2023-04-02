@@ -18,36 +18,29 @@ type InputProps = EmailProps & {
   userId: string;
   documentId: string;
   actorName: string;
-  collectionName: string;
-  eventType:
-    | NotificationEventType.PublishDocument
-    | NotificationEventType.UpdateDocument;
+  commentId: string;
+  collectionName: string | undefined;
   teamUrl: string;
-  content?: string;
+  content: string;
 };
 
 type BeforeSend = {
   document: Document;
-  unsubscribeUrl: string;
   body: string | undefined;
+  unsubscribeUrl: string;
 };
 
 type Props = InputProps & BeforeSend;
 
 /**
- * Email sent to a user when they have enabled document notifications, the event
- * may be published or updated.
+ * Email sent to a user when a new comment is created in a document they are
+ * subscribed to.
  */
-export default class DocumentNotificationEmail extends BaseEmail<
+export default class CommentMentionedEmail extends BaseEmail<
   InputProps,
   BeforeSend
 > {
-  protected async beforeSend({
-    documentId,
-    eventType,
-    userId,
-    content,
-  }: InputProps) {
+  protected async beforeSend({ documentId, userId, content }: InputProps) {
     const document = await Document.unscoped().findByPk(documentId);
     if (!document) {
       return false;
@@ -74,45 +67,36 @@ export default class DocumentNotificationEmail extends BaseEmail<
       body,
       unsubscribeUrl: NotificationSettingsHelper.unsubscribeUrl(
         user,
-        eventType
+        NotificationEventType.Mentioned
       ),
     };
   }
 
-  eventName(eventType: NotificationEventType) {
-    switch (eventType) {
-      case NotificationEventType.PublishDocument:
-        return "published";
-      case NotificationEventType.UpdateDocument:
-        return "updated";
-      default:
-        return "";
-    }
+  protected subject({ actorName, document }: Props) {
+    return `${actorName} mentioned you in “${document.title}”`;
   }
 
-  protected subject({ document, eventType }: Props) {
-    return `“${document.title}” ${this.eventName(eventType)}`;
+  protected preview({ actorName }: Props): string {
+    return `${actorName} mentioned you in a thread`;
   }
 
-  protected preview({ actorName, eventType }: Props): string {
-    return `${actorName} ${this.eventName(eventType)} a document`;
+  protected fromName({ actorName }: Props): string {
+    return actorName;
   }
 
   protected renderAsText({
     actorName,
     teamUrl,
     document,
+    commentId,
     collectionName,
-    eventType,
   }: Props): string {
-    const eventName = this.eventName(eventType);
-
     return `
-"${document.title}" ${eventName}
+${actorName} mentioned you in a comment on "${document.title}"${
+      collectionName ? `in the ${collectionName} collection` : ""
+    }.
 
-${actorName} ${eventName} the document "${document.title}", in the ${collectionName} collection.
-
-Open Document: ${teamUrl}${document.url}
+Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
 `;
   }
 
@@ -120,26 +104,23 @@ Open Document: ${teamUrl}${document.url}
     document,
     actorName,
     collectionName,
-    eventType,
     teamUrl,
+    commentId,
     unsubscribeUrl,
     body,
   }: Props) {
-    const link = `${teamUrl}${document.url}?ref=notification-email`;
-    const eventName = this.eventName(eventType);
+    const link = `${teamUrl}${document.url}?commentId=${commentId}&ref=notification-email`;
 
     return (
       <EmailTemplate>
         <Header />
 
         <Body>
-          <Heading>
-            “{document.title}” {eventName}
-          </Heading>
+          <Heading>{document.title}</Heading>
           <p>
-            {actorName} {eventName} the document{" "}
-            <a href={link}>{document.title}</a>, in the {collectionName}{" "}
-            collection.
+            {actorName} mentioned you in a comment on{" "}
+            <a href={link}>{document.title}</a>{" "}
+            {collectionName ? `in the ${collectionName} collection` : ""}.
           </p>
           {body && (
             <>
@@ -151,7 +132,7 @@ Open Document: ${teamUrl}${document.url}
             </>
           )}
           <p>
-            <Button href={link}>Open Document</Button>
+            <Button href={link}>Open Thread</Button>
           </p>
         </Body>
 

@@ -1,5 +1,5 @@
 import { NotificationEventType } from "@shared/types";
-import DocumentNotificationEmail from "@server/emails/templates/DocumentNotificationEmail";
+import DocumentPublishedOrUpdatedEmail from "@server/emails/templates/DocumentPublishedOrUpdatedEmail";
 import {
   View,
   Subscription,
@@ -26,7 +26,7 @@ beforeEach(async () => {
 describe("documents.publish", () => {
   test("should not send a notification to author", async () => {
     const schedule = jest.spyOn(
-      DocumentNotificationEmail.prototype,
+      DocumentPublishedOrUpdatedEmail.prototype,
       "schedule"
     );
 
@@ -55,7 +55,7 @@ describe("documents.publish", () => {
 
   test("should send a notification to other users in team", async () => {
     const schedule = jest.spyOn(
-      DocumentNotificationEmail.prototype,
+      DocumentPublishedOrUpdatedEmail.prototype,
       "schedule"
     );
     const user = await buildUser();
@@ -82,7 +82,7 @@ describe("documents.publish", () => {
 
   test("should send only one notification in a 12-hour window", async () => {
     const schedule = jest.spyOn(
-      DocumentNotificationEmail.prototype,
+      DocumentPublishedOrUpdatedEmail.prototype,
       "schedule"
     );
     const user = await buildUser();
@@ -125,7 +125,7 @@ describe("documents.publish", () => {
 
   test("should not send a notification to users without collection access", async () => {
     const schedule = jest.spyOn(
-      DocumentNotificationEmail.prototype,
+      DocumentPublishedOrUpdatedEmail.prototype,
       "schedule"
     );
     const user = await buildUser();
@@ -159,7 +159,7 @@ describe("documents.publish", () => {
 describe("revisions.create", () => {
   test("should send a notification to other collaborators", async () => {
     const schedule = jest.spyOn(
-      DocumentNotificationEmail.prototype,
+      DocumentPublishedOrUpdatedEmail.prototype,
       "schedule"
     );
     const document = await buildDocument();
@@ -187,7 +187,7 @@ describe("revisions.create", () => {
 
   test("should not send a notification if viewed since update", async () => {
     const schedule = jest.spyOn(
-      DocumentNotificationEmail.prototype,
+      DocumentPublishedOrUpdatedEmail.prototype,
       "schedule"
     );
     const document = await buildDocument();
@@ -219,7 +219,7 @@ describe("revisions.create", () => {
 
   test("should not send a notification to last editor", async () => {
     const schedule = jest.spyOn(
-      DocumentNotificationEmail.prototype,
+      DocumentPublishedOrUpdatedEmail.prototype,
       "schedule"
     );
     const user = await buildUser();
@@ -247,7 +247,7 @@ describe("revisions.create", () => {
 
   test("should send a notification for subscriptions, even to collaborator", async () => {
     const schedule = jest.spyOn(
-      DocumentNotificationEmail.prototype,
+      DocumentPublishedOrUpdatedEmail.prototype,
       "schedule"
     );
     const document = await buildDocument();
@@ -331,7 +331,7 @@ describe("revisions.create", () => {
 
   test("should not send multiple emails", async () => {
     const schedule = jest.spyOn(
-      DocumentNotificationEmail.prototype,
+      DocumentPublishedOrUpdatedEmail.prototype,
       "schedule"
     );
     const collaborator0 = await buildUser();
@@ -382,7 +382,7 @@ describe("revisions.create", () => {
 
   test("should not create subscriptions if previously unsubscribed", async () => {
     const schedule = jest.spyOn(
-      DocumentNotificationEmail.prototype,
+      DocumentPublishedOrUpdatedEmail.prototype,
       "schedule"
     );
     const collaborator0 = await buildUser();
@@ -445,7 +445,7 @@ describe("revisions.create", () => {
 
   test("should send a notification for subscriptions to non-collaborators", async () => {
     const schedule = jest.spyOn(
-      DocumentNotificationEmail.prototype,
+      DocumentPublishedOrUpdatedEmail.prototype,
       "schedule"
     );
     const document = await buildDocument();
@@ -487,7 +487,7 @@ describe("revisions.create", () => {
 
   test("should not send a notification for subscriptions to collaborators if unsubscribed", async () => {
     const schedule = jest.spyOn(
-      DocumentNotificationEmail.prototype,
+      DocumentPublishedOrUpdatedEmail.prototype,
       "schedule"
     );
     const document = await buildDocument();
@@ -532,7 +532,7 @@ describe("revisions.create", () => {
 
   test("should not send a notification for subscriptions to members outside of the team", async () => {
     const schedule = jest.spyOn(
-      DocumentNotificationEmail.prototype,
+      DocumentPublishedOrUpdatedEmail.prototype,
       "schedule"
     );
     const document = await buildDocument();
@@ -580,7 +580,7 @@ describe("revisions.create", () => {
 
   test("should not send a notification if viewed since update", async () => {
     const schedule = jest.spyOn(
-      DocumentNotificationEmail.prototype,
+      DocumentPublishedOrUpdatedEmail.prototype,
       "schedule"
     );
     const document = await buildDocument();
@@ -610,7 +610,7 @@ describe("revisions.create", () => {
 
   test("should not send a notification to last editor", async () => {
     const schedule = jest.spyOn(
-      DocumentNotificationEmail.prototype,
+      DocumentPublishedOrUpdatedEmail.prototype,
       "schedule"
     );
     const user = await buildUser();
