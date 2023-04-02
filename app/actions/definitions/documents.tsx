@@ -719,7 +719,6 @@ export const openDocumentComments = createAction({
     return (
       !!activeDocumentId &&
       can.read &&
-      can.comment &&
       !can.restore &&
       !!stores.auth.team?.getPreference(TeamPreference.Commenting)
     );
