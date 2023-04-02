@@ -21,7 +21,7 @@ type Props = {
 };
 
 function TitleDocumentMeta({ to, isDraft, document, ...rest }: Props) {
-  const { auth, views, comments, ui } = useStores();
+  const { auth, views, comments, ui, policies } = useStores();
   const { t } = useTranslation();
   const { team } = auth;
   const match = useRouteMatch();
@@ -34,6 +34,8 @@ function TitleDocumentMeta({ to, isDraft, document, ...rest }: Props) {
 
   const insightsUrl = documentInsightsUrl(document);
   const commentsCount = comments.inDocument(document.id).length;
+
+  const can = policies.abilities(document.id);
 
   return (
     <Meta document={document} to={to} replace {...rest}>
@@ -52,7 +54,7 @@ function TitleDocumentMeta({ to, isDraft, document, ...rest }: Props) {
           </Link>
         </Wrapper>
       ) : null}
-      {team?.getPreference(TeamPreference.Commenting) && (
+      {team?.getPreference(TeamPreference.Commenting) && can.comment && (
         <>
           &nbsp;•&nbsp;
           <CommentLink
