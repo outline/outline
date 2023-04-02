@@ -8,6 +8,7 @@ import Flex from "~/components/Flex";
 import ResizeBorder from "~/components/Sidebar/components/ResizeBorder";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
+import { sidebarAppearDuration } from "~/styles/animations";
 
 type Props = React.HTMLAttributes<HTMLDivElement> & {
   children: React.ReactNode;
@@ -82,7 +83,7 @@ function Right({ children, border, className }: Props) {
           : {
               type: "spring",
               bounce: 0.2,
-              duration: 0.6,
+              duration: sidebarAppearDuration / 1000,
             },
         width: ui.sidebarRightWidth,
       }}

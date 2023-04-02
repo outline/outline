@@ -16,6 +16,7 @@ import { WebsocketContext } from "~/components/WebsocketProvider";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
 import useStores from "~/hooks/useStores";
+import { sidebarAppearDuration } from "~/styles/animations";
 import CommentForm from "./CommentForm";
 import CommentThreadItem from "./CommentThreadItem";
 
@@ -95,16 +96,29 @@ function CommentThread({
   }, [focused, autoFocus]);
 
   React.useEffect(() => {
-    if (focused && topRef.current) {
-      scrollIntoView(topRef.current, {
-        scrollMode: "if-needed",
-        behavior: "smooth",
-        block: "start",
-        boundary: (parent) => {
-          // Prevents body and other parent elements from being scrolled
-          return parent.id !== "comments";
+    if (focused) {
+      // If the thread is already visible, scroll it into view immediately,
+      // otherwise wait for the sidebar to appear.
+      const isVisible =
+        (topRef.current?.getBoundingClientRect().left ?? 0) < window.innerWidth;
+
+      setTimeout(
+        () => {
+          if (!topRef.current) {
+            return;
+          }
+          scrollIntoView(topRef.current, {
+            scrollMode: "if-needed",
+            behavior: "smooth",
+            block: "start",
+            boundary: (parent) => {
+              // Prevents body and other parent elements from being scrolled
+              return parent.id !== "comments";
+            },
+          });
         },
-      });
+        isVisible ? 0 : sidebarAppearDuration
+      );
 
       setTimeout(() => {
         const commentMarkElement = window.document?.getElementById(

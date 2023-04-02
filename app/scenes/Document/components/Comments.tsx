@@ -40,7 +40,12 @@ function Comments() {
       onClose={() => ui.collapseComments(document?.id)}
       scrollable={false}
     >
-      <Scrollable bottomShadow={!focusedComment} hiddenScrollbars topShadow>
+      <Scrollable
+        bottomShadow={!focusedComment}
+        id="comments"
+        hiddenScrollbars
+        topShadow
+      >
         <Wrapper $hasComments={hasComments}>
           {hasComments ? (
             threads.map((thread) => (

@@ -1,4 +1,3 @@
-import { subMilliseconds } from "date-fns";
 import { FindOrCreateOptions, Op } from "sequelize";
 import {
   BelongsTo,
@@ -9,7 +8,6 @@ import {
   DataType,
   Scopes,
 } from "sequelize-typescript";
-import { USER_PRESENCE_INTERVAL } from "@shared/constants";
 import Document from "./Document";
 import User from "./User";
 import IdModel from "./base/IdModel";
@@ -91,18 +89,6 @@ class View extends IdModel {
             : { where: { suspendedAt: { [Op.is]: null } } }),
         },
       ],
-    });
-  }
-
-  static async findRecentlyEditingByDocument(documentId: string) {
-    return this.findAll({
-      where: {
-        documentId,
-        lastEditingAt: {
-          [Op.gt]: subMilliseconds(new Date(), USER_PRESENCE_INTERVAL * 2),
-        },
-      },
-      order: [["lastEditingAt", "DESC"]],
     });
   }
 

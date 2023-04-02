@@ -138,7 +138,6 @@ declare module "styled-components" {
     textDiffDeletedBackground: string;
     placeholder: string;
     commentBackground: string;
-    commentActiveBackground: string;
     sidebarBackground: string;
     sidebarActiveBackground: string;
     sidebarControlHoverBackground: string;
