@@ -1,7 +1,6 @@
 import { EditorState } from "prosemirror-state";
 import * as React from "react";
 import styled from "styled-components";
-import Iframe from "@shared/editor/embeds/Iframe";
 import { IntegrationType } from "../../types";
 import type { IntegrationSettings } from "../../types";
 import { urlRegex } from "../../utils/urls";
@@ -29,6 +28,7 @@ import GoogleLookerStudio from "./GoogleLookerStudio";
 import GoogleSheets from "./GoogleSheets";
 import GoogleSlides from "./GoogleSlides";
 import Grist from "./Grist";
+import Iframe from "./Iframe";
 import InVision from "./InVision";
 import JSFiddle from "./JSFiddle";
 import Loom from "./Loom";
