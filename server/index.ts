@@ -18,11 +18,7 @@ import services from "./services";
 import { getArg } from "./utils/args";
 import { getSSLOptions } from "./utils/ssl";
 import { defaultRateLimiter } from "@server/middlewares/rateLimiter";
-import {
-  checkEnv,
-  checkMigrations,
-  checkPendingMigrations,
-} from "./utils/startup";
+import { checkEnv, checkPendingMigrations } from "./utils/startup";
 import { checkUpdates } from "./utils/updates";
 import onerror from "./onerror";
 import ShutdownHelper, { ShutdownOrder } from "./utils/ShutdownHelper";
@@ -53,8 +49,7 @@ if (serviceNames.includes("collaboration")) {
 // This function will only be called once in the original process
 async function master() {
   await checkEnv();
-  checkPendingMigrations();
-  await checkMigrations();
+  await checkPendingMigrations();
 
   if (env.TELEMETRY && env.ENVIRONMENT === "production") {
     checkUpdates();

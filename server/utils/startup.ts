@@ -1,11 +1,12 @@
 import { execSync } from "child_process";
 import chalk from "chalk";
+import { isEmpty } from "lodash";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import AuthenticationProvider from "@server/models/AuthenticationProvider";
 import Team from "@server/models/Team";
 
-export function checkPendingMigrations() {
+function getPendingMigrations() {
   try {
     const commandResult = execSync(
       `yarn sequelize db:migrate:status${
@@ -20,45 +21,74 @@ export function checkPendingMigrations() {
       line.startsWith("down")
     );
 
-    if (pendingMigrations.length) {
-      Logger.warn("You have pending migrations");
-      Logger.warn(
-        pendingMigrations
-          .map((line, i) => `${i + 1}. ${line.replace("down ", "")}`)
-          .join("\n")
-      );
-      if (env.isCloudHosted()) {
-        Logger.warn(
-          "Please run `yarn db:migrate` or `yarn db:migrate --env production-ssl-disabled` to run all pending migrations"
-        );
-
-        process.exit(1);
-      } else {
-        // run migrations automatically for community edition
-        Logger.info("database", "Running migrations...");
-        const cmdResult = execSync(
-          `yarn db:migrate${
-            env.PGSSLMODE === "disable" ? " --env=production-ssl-disabled" : ""
-          }`
-        );
-        const cmdOutput = Buffer.from(cmdResult).toString("utf-8");
-        Logger.info("database", cmdOutput);
-        Logger.info("database", "Done.");
-      }
-    }
+    return pendingMigrations;
   } catch (err) {
+    Logger.warn(chalk.red("Failed to fetch pending migrations!"));
     if (err.message.includes("ECONNREFUSED")) {
       Logger.warn(
-        `Could not connect to the database. Please check your connection settings.`
+        chalk.red(
+          `Could not connect to the database. Please check your connection settings.`
+        )
       );
     } else {
-      Logger.warn(err.message);
+      Logger.warn(chalk.red(err.message));
     }
     process.exit(1);
   }
 }
 
-export async function checkMigrations() {
+function runMigrations() {
+  try {
+    Logger.info("database", "Running migrations...");
+    const cmdResult = execSync(
+      `yarn db:migrate${
+        env.PGSSLMODE === "disable" ? " --env=production-ssl-disabled" : ""
+      }`
+    );
+    const cmdOutput = Buffer.from(cmdResult).toString("utf-8");
+    Logger.info("database", cmdOutput);
+    Logger.info("database", "Done.");
+  } catch (err) {
+    Logger.warn(chalk.red("Failed to run migrations!"));
+    if (err.message.includes("ECONNREFUSED")) {
+      Logger.warn(
+        chalk.red(
+          `Could not connect to the database. Please check your connection settings.`
+        )
+      );
+    } else {
+      Logger.warn(chalk.red(err.message));
+    }
+    process.exit(1);
+  }
+}
+
+function logMigrations(migrations: string[]) {
+  Logger.warn("You have pending migrations");
+  Logger.warn(
+    migrations
+      .map((line, i) => `${i + 1}. ${line.replace("down ", "")}`)
+      .join("\n")
+  );
+  Logger.warn(
+    "Please run `yarn db:migrate` or `yarn db:migrate --env production-ssl-disabled` to run all pending migrations"
+  );
+}
+
+export async function checkPendingMigrations() {
+  const pending = getPendingMigrations();
+  if (!isEmpty(pending)) {
+    if (env.isCloudHosted()) {
+      logMigrations(pending);
+      process.exit(1);
+    } else {
+      runMigrations();
+    }
+  }
+  await checkDataMigrations();
+}
+
+export async function checkDataMigrations() {
   if (env.isCloudHosted()) {
     return;
   }
