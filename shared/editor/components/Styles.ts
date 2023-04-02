@@ -688,20 +688,21 @@ strong {
 p {
   margin: 0;
   min-height: 1.6em;
+}
 
-  a {
-    color: ${props.theme.text};
+.heading-content a,
+p a {
+  color: ${props.theme.text};
+  text-decoration: underline;
+  text-decoration-color: ${lighten(0.5, props.theme.text)};
+  text-decoration-thickness: 1px;
+  text-underline-offset: .15em;
+  font-weight: 500;
+
+  &:hover {
     text-decoration: underline;
-    text-decoration-color: ${lighten(0.5, props.theme.text)};
+    text-decoration-color: ${props.theme.text};
     text-decoration-thickness: 1px;
-    text-underline-offset: .15em;
-    font-weight: 500;
-
-    &:hover {
-      text-decoration: underline;
-      text-decoration-color: ${props.theme.text};
-      text-decoration-thickness: 1px;
-    }
   }
 }
 
