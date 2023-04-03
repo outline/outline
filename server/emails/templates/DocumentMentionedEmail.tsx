@@ -11,7 +11,6 @@ type InputProps = EmailProps & {
   documentId: string;
   actorName: string;
   teamUrl: string;
-  mentionId: string;
 };
 
 type BeforeSend = {
@@ -48,23 +47,18 @@ export default class DocumentMentionedEmail extends BaseEmail<
     return actorName;
   }
 
-  protected renderAsText({
-    actorName,
-    teamUrl,
-    document,
-    mentionId,
-  }: Props): string {
+  protected renderAsText({ actorName, teamUrl, document }: Props): string {
     return `
 You were mentioned
 
 ${actorName} mentioned you in the document “${document.title}”.
 
-Open Document: ${teamUrl}${document.url}?mentionId=${mentionId}
+Open Document: ${teamUrl}${document.url}
 `;
   }
 
-  protected render({ document, actorName, teamUrl, mentionId }: Props) {
-    const link = `${teamUrl}${document.url}?ref=notification-email&mentionId=${mentionId}`;
+  protected render({ document, actorName, teamUrl }: Props) {
+    const link = `${teamUrl}${document.url}?ref=notification-email`;
 
     return (
       <EmailTemplate>

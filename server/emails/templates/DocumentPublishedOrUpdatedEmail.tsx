@@ -2,7 +2,7 @@ import inlineCss from "inline-css";
 import * as React from "react";
 import { NotificationEventType } from "@shared/types";
 import env from "@server/env";
-import { Document, User } from "@server/models";
+import { Document, Collection, User } from "@server/models";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import BaseEmail, { EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
@@ -18,7 +18,6 @@ type InputProps = EmailProps & {
   userId: string;
   documentId: string;
   actorName: string;
-  collectionName: string;
   eventType:
     | NotificationEventType.PublishDocument
     | NotificationEventType.UpdateDocument;
@@ -28,6 +27,7 @@ type InputProps = EmailProps & {
 
 type BeforeSend = {
   document: Document;
+  collection: Collection;
   unsubscribeUrl: string;
   body: string | undefined;
 };
@@ -53,6 +53,11 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
       return false;
     }
 
+    const collection = await document.$get("collection");
+    if (!collection) {
+      return false;
+    }
+
     const user = await User.findByPk(userId);
     if (!user) {
       return false;
@@ -71,6 +76,7 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
 
     return {
       document,
+      collection,
       body,
       unsubscribeUrl: NotificationSettingsHelper.unsubscribeUrl(
         user,
@@ -102,7 +108,7 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
     actorName,
     teamUrl,
     document,
-    collectionName,
+    collection,
     eventType,
   }: Props): string {
     const eventName = this.eventName(eventType);
@@ -110,7 +116,7 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
     return `
 "${document.title}" ${eventName}
 
-${actorName} ${eventName} the document "${document.title}", in the ${collectionName} collection.
+${actorName} ${eventName} the document "${document.title}", in the ${collection.name} collection.
 
 Open Document: ${teamUrl}${document.url}
 `;
@@ -119,7 +125,7 @@ Open Document: ${teamUrl}${document.url}
   protected render({
     document,
     actorName,
-    collectionName,
+    collection,
     eventType,
     teamUrl,
     unsubscribeUrl,
@@ -138,7 +144,7 @@ Open Document: ${teamUrl}${document.url}
           </Heading>
           <p>
             {actorName} {eventName} the document{" "}
-            <a href={link}>{document.title}</a>, in the {collectionName}{" "}
+            <a href={link}>{document.title}</a>, in the {collection.name}{" "}
             collection.
           </p>
           {body && (

@@ -1,3 +1,4 @@
+import type { SaveOptions } from "sequelize";
 import {
   Table,
   ForeignKey,
@@ -10,12 +11,40 @@ import {
   DataType,
   Default,
   AllowNull,
+  AfterSave,
+  Scopes,
 } from "sequelize-typescript";
+import { NotificationEventType } from "@shared/types";
+import Comment from "./Comment";
 import Document from "./Document";
+import Event from "./Event";
 import Team from "./Team";
 import User from "./User";
 import Fix from "./decorators/Fix";
 
+@Scopes(() => ({
+  withTeam: {
+    include: [
+      {
+        association: "team",
+      },
+    ],
+  },
+  withUser: {
+    include: [
+      {
+        association: "user",
+      },
+    ],
+  },
+  withActor: {
+    include: [
+      {
+        association: "actor",
+      },
+    ],
+  },
+}))
 @Table({
   tableName: "notifications",
   modelName: "notification",
@@ -41,7 +70,7 @@ class Notification extends Model {
   createdAt: Date;
 
   @Column
-  event: string;
+  event: NotificationEventType;
 
   // associations
 
@@ -60,6 +89,14 @@ class Notification extends Model {
   @Column(DataType.UUID)
   actorId: string;
 
+  @BelongsTo(() => Comment, "commentId")
+  comment: Comment;
+
+  @AllowNull
+  @ForeignKey(() => Comment)
+  @Column(DataType.UUID)
+  commentId: string;
+
   @BelongsTo(() => Document, "documentId")
   document: Document;
 
@@ -74,6 +111,27 @@ class Notification extends Model {
   @ForeignKey(() => Team)
   @Column(DataType.UUID)
   teamId: string;
+
+  @AfterSave
+  static async createEvent(
+    model: Notification,
+    options: SaveOptions<Notification>
+  ) {
+    const params = {
+      name: "notifications.create",
+      userId: model.userId,
+      modelId: model.id,
+      teamId: model.teamId,
+      documentId: model.documentId,
+      actorId: model.actorId,
+    };
+
+    if (options.transaction) {
+      options.transaction.afterCommit(() => void Event.create(params));
+      return;
+    }
+    await Event.create(params);
+  }
 }
 
 export default Notification;
