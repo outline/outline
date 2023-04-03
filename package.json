@@ -260,7 +260,7 @@
     "@types/natural-sort": "^0.0.21",
     "@types/node": "18.0.6",
     "@types/node-fetch": "^2.6.2",
-    "@types/nodemailer": "^6.4.4",
+    "@types/nodemailer": "^6.4.7",
     "@types/passport-oauth2": "^1.4.11",
     "@types/prosemirror-commands": "^1.0.4",
     "@types/prosemirror-dropcursor": "^1.5.0",
