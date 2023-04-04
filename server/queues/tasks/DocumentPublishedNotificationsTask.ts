@@ -6,14 +6,13 @@ import NotificationHelper from "@server/models/helpers/NotificationHelper";
 import { DocumentEvent } from "@server/types";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
-export default class DocumentPublishedNotificationTask extends BaseTask<
+export default class DocumentPublishedNotificationsTask extends BaseTask<
   DocumentEvent
 > {
   public async perform(event: DocumentEvent) {
     const document = await Document.findByPk(event.documentId, {
       includeState: true,
     });
-
     if (!document) {
       return;
     }
@@ -25,18 +24,17 @@ export default class DocumentPublishedNotificationTask extends BaseTask<
     const userIdsMentioned: string[] = [];
 
     for (const mention of mentions) {
-      const [recipient, actor] = await Promise.all([
-        User.findByPk(mention.modelId),
-        User.findByPk(mention.actorId),
-      ]);
+      const recipient = await User.findByPk(mention.modelId);
+
       if (
         recipient &&
-        actor &&
-        recipient.id !== actor.id &&
-        recipient.subscribedToEventType(NotificationEventType.Mentioned)
+        recipient.id !== mention.actorId &&
+        recipient.subscribedToEventType(
+          NotificationEventType.MentionedInDocument
+        )
       ) {
         await Notification.create({
-          event: NotificationEventType.Mentioned,
+          event: NotificationEventType.MentionedInDocument,
           userId: recipient.id,
           actorId: document.updatedBy.id,
           teamId: document.teamId,

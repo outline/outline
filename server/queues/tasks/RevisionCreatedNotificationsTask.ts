@@ -5,73 +5,52 @@ import { NotificationEventType } from "@shared/types";
 import { createSubscriptionsForDocument } from "@server/commands/subscriptionCreator";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
-import {
-  Collection,
-  Document,
-  Revision,
-  Notification,
-  Team,
-  User,
-  View,
-} from "@server/models";
+import { Document, Revision, Notification, User, View } from "@server/models";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import NotificationHelper from "@server/models/helpers/NotificationHelper";
 import { RevisionEvent } from "@server/types";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
-export default class RevisionCreatedNotificationTask extends BaseTask<
+export default class RevisionCreatedNotificationsTask extends BaseTask<
   RevisionEvent
 > {
   public async perform(event: RevisionEvent) {
-    const [collection, document, revision, team] = await Promise.all([
-      Collection.findByPk(event.collectionId),
+    const [document, revision] = await Promise.all([
       Document.findByPk(event.documentId, { includeState: true }),
       Revision.findByPk(event.modelId),
-      Team.findByPk(event.teamId),
     ]);
 
-    if (!document || !team || !revision || !collection) {
+    if (!document || !revision) {
       return;
     }
 
     await createSubscriptionsForDocument(document, event);
 
     // Send notifications to mentioned users first
-    const prev = await revision.previous();
-    const oldMentions = prev ? DocumentHelper.parseMentions(prev) : [];
+    const before = await revision.previous();
+    const oldMentions = before ? DocumentHelper.parseMentions(before) : [];
     const newMentions = DocumentHelper.parseMentions(document);
     const mentions = differenceBy(newMentions, oldMentions, "id");
     const userIdsMentioned: string[] = [];
 
     for (const mention of mentions) {
-      const [recipient, actor] = await Promise.all([
-        User.findByPk(mention.modelId),
-        User.findByPk(mention.actorId),
-      ]);
+      const recipient = await User.findByPk(mention.modelId);
       if (
         recipient &&
-        actor &&
-        recipient.id !== actor.id &&
-        recipient.subscribedToEventType(NotificationEventType.Mentioned)
+        recipient.id !== mention.actorId &&
+        recipient.subscribedToEventType(
+          NotificationEventType.MentionedInDocument
+        )
       ) {
         await Notification.create({
-          event: event.name,
+          event: NotificationEventType.MentionedInDocument,
           userId: recipient.id,
+          revisionId: event.modelId,
           actorId: document.updatedBy.id,
-          teamId: team.id,
+          teamId: document.teamId,
           documentId: document.id,
         });
         userIdsMentioned.push(recipient.id);
-        // await new DocumentMentionedEmail(
-        //   {
-        //     to: recipient.email,
-        //     documentId: event.documentId,
-        //     actorName: actor.name,
-        //     teamUrl: team.url,
-        //     mentionId: mention.id,
-        //   },
-        //   { notificationId: notification.id }
-        // ).schedule();
       }
     }
 
@@ -87,42 +66,18 @@ export default class RevisionCreatedNotificationTask extends BaseTask<
       return;
     }
 
-    // generate the diff html for the email
-    const before = await revision.previous();
-    const content = await DocumentHelper.toEmailDiff(before, revision, {
-      includeTitle: false,
-      centered: false,
-      signedUrls: 86400 * 4,
-    });
-    if (!content) {
-      return;
-    }
-
     for (const recipient of recipients) {
       const notify = await this.shouldNotify(document, recipient);
 
       if (notify) {
         await Notification.create({
-          event: event.name,
+          event: NotificationEventType.UpdateDocument,
           userId: recipient.id,
+          revisionId: event.modelId,
           actorId: document.updatedBy.id,
-          teamId: team.id,
+          teamId: document.teamId,
           documentId: document.id,
         });
-
-        // await new DocumentPublishedOrUpdatedEmail(
-        //   {
-        //     to: recipient.email,
-        //     userId: recipient.id,
-        //     eventType: NotificationEventType.UpdateDocument,
-        //     documentId: document.id,
-        //     teamUrl: team.url,
-        //     actorName: document.updatedBy.name,
-        //     collectionName: collection.name,
-        //     content,
-        //   },
-        //   { notificationId: notification.id }
-        // ).schedule();
       }
     }
   }
@@ -131,7 +86,7 @@ export default class RevisionCreatedNotificationTask extends BaseTask<
     document: Document,
     user: User
   ): Promise<boolean> => {
-    // Deliver only a single notification in a 12 hour window
+    // Create only a single notification in a 6 hour window
     const notification = await Notification.findOne({
       order: [["createdAt", "DESC"]],
       where: {
@@ -139,7 +94,7 @@ export default class RevisionCreatedNotificationTask extends BaseTask<
         documentId: document.id,
         emailedAt: {
           [Op.not]: null,
-          [Op.gte]: subHours(new Date(), 12),
+          [Op.gte]: subHours(new Date(), 6),
         },
       },
     });

@@ -1,8 +1,10 @@
 import inlineCss from "inline-css";
 import * as React from "react";
 import { NotificationEventType } from "@shared/types";
+import { Day } from "@shared/utils/time";
 import env from "@server/env";
-import { Document, Collection, User } from "@server/models";
+import { Document, Collection, User, Revision } from "@server/models";
+import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import BaseEmail, { EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
@@ -17,12 +19,12 @@ import Heading from "./components/Heading";
 type InputProps = EmailProps & {
   userId: string;
   documentId: string;
+  revisionId?: string;
   actorName: string;
   eventType:
     | NotificationEventType.PublishDocument
     | NotificationEventType.UpdateDocument;
   teamUrl: string;
-  content?: string;
 };
 
 type BeforeSend = {
@@ -44,11 +46,13 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
 > {
   protected async beforeSend({
     documentId,
+    revisionId,
     eventType,
     userId,
-    content,
   }: InputProps) {
-    const document = await Document.unscoped().findByPk(documentId);
+    const document = await Document.unscoped().findByPk(documentId, {
+      includeState: true,
+    });
     if (!document) {
       return false;
     }
@@ -58,20 +62,27 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
       return false;
     }
 
-    const user = await User.findByPk(userId);
-    if (!user) {
-      return false;
-    }
-
-    // inline all css so that it works in as many email providers as possible.
     let body;
-    if (content) {
-      body = await inlineCss(content, {
-        url: env.URL,
-        applyStyleTags: true,
-        applyLinkTags: false,
-        removeStyleTags: true,
-      });
+    if (revisionId) {
+      // generate the diff html for the email
+      const revision = await Revision.findByPk(revisionId);
+
+      if (revision) {
+        const before = await revision.previous();
+        const content = await DocumentHelper.toEmailDiff(before, revision, {
+          includeTitle: false,
+          centered: false,
+          signedUrls: (4 * Day) / 1000,
+        });
+
+        // inline all css so that it works in as many email providers as possible.
+        body = await inlineCss(content, {
+          url: env.URL,
+          applyStyleTags: true,
+          applyLinkTags: false,
+          removeStyleTags: true,
+        });
+      }
     }
 
     return {
@@ -79,7 +90,7 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
       collection,
       body,
       unsubscribeUrl: NotificationSettingsHelper.unsubscribeUrl(
-        user,
+        await User.findByPk(userId, { rejectOnEmpty: true }),
         eventType
       ),
     };

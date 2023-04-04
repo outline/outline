@@ -44,7 +44,7 @@ function Notifications() {
       ),
     },
     {
-      event: NotificationEventType.Mentioned,
+      event: NotificationEventType.MentionedInComment,
       title: t("Mentioned"),
       description: t(
         "Receive a notification when someone mentions you in a document or comment"

@@ -6,11 +6,11 @@ import {
   DocumentEvent,
   CommentEvent,
 } from "@server/types";
-import CollectionCreatedNotificationTask from "../tasks/CollectionCreatedNotificationTask";
-import CommentCreatedNotificationTask from "../tasks/CommentCreatedNotificationTask";
-import CommentUpdatedNotificationTask from "../tasks/CommentUpdatedNotificationTask";
-import DocumentPublishedNotificationTask from "../tasks/DocumentPublishedNotificationTask";
-import RevisionCreatedNotificationTask from "../tasks/RevisionCreatedNotificationTask";
+import CollectionCreatedNotificationsTask from "../tasks/CollectionCreatedNotificationsTask";
+import CommentCreatedNotificationsTask from "../tasks/CommentCreatedNotificationsTask";
+import CommentUpdatedNotificationsTask from "../tasks/CommentUpdatedNotificationsTask";
+import DocumentPublishedNotificationsTask from "../tasks/DocumentPublishedNotificationsTask";
+import RevisionCreatedNotificationsTask from "../tasks/RevisionCreatedNotificationsTask";
 import BaseProcessor from "./BaseProcessor";
 
 export default class NotificationsProcessor extends BaseProcessor {
@@ -48,11 +48,11 @@ export default class NotificationsProcessor extends BaseProcessor {
       return;
     }
 
-    await DocumentPublishedNotificationTask.schedule(event);
+    await DocumentPublishedNotificationsTask.schedule(event);
   }
 
   async revisionCreated(event: RevisionEvent) {
-    await RevisionCreatedNotificationTask.schedule(event);
+    await RevisionCreatedNotificationsTask.schedule(event);
   }
 
   async collectionCreated(event: CollectionEvent) {
@@ -65,17 +65,17 @@ export default class NotificationsProcessor extends BaseProcessor {
       return;
     }
 
-    await CollectionCreatedNotificationTask.schedule(event);
+    await CollectionCreatedNotificationsTask.schedule(event);
   }
 
   async commentCreated(event: CommentEvent) {
-    await CommentCreatedNotificationTask.schedule(event, {
+    await CommentCreatedNotificationsTask.schedule(event, {
       delay: Minute,
     });
   }
 
   async commentUpdated(event: CommentEvent) {
-    await CommentUpdatedNotificationTask.schedule(event, {
+    await CommentUpdatedNotificationsTask.schedule(event, {
       delay: Minute,
     });
   }

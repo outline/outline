@@ -1,9 +1,12 @@
 import inlineCss from "inline-css";
 import * as React from "react";
 import { NotificationEventType } from "@shared/types";
+import { Day } from "@shared/utils/time";
 import env from "@server/env";
-import { Comment, Document, User } from "@server/models";
+import { Collection, Comment, Document, User } from "@server/models";
+import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
+import ProsemirrorHelper from "@server/models/helpers/ProsemirrorHelper";
 import BaseEmail, { EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
@@ -18,17 +21,16 @@ type InputProps = EmailProps & {
   userId: string;
   documentId: string;
   actorName: string;
-  isReply: boolean;
   commentId: string;
-  collectionName: string | undefined;
   teamUrl: string;
-  content: string;
 };
 
 type BeforeSend = {
   document: Document;
+  collection: Collection;
   body: string | undefined;
   isFirstComment: boolean;
+  isReply: boolean;
   unsubscribeUrl: string;
 };
 
@@ -42,19 +44,19 @@ export default class CommentCreatedEmail extends BaseEmail<
   InputProps,
   BeforeSend
 > {
-  protected async beforeSend({
-    documentId,
-    userId,
-    commentId,
-    content,
-  }: InputProps) {
+  protected async beforeSend({ documentId, userId, commentId }: InputProps) {
     const document = await Document.unscoped().findByPk(documentId);
     if (!document) {
       return false;
     }
 
-    const user = await User.findByPk(userId);
-    if (!user) {
+    const collection = await document.$get("collection");
+    if (!collection) {
+      return false;
+    }
+
+    const comment = await Comment.findByPk(commentId);
+    if (!comment) {
       return false;
     }
 
@@ -63,11 +65,23 @@ export default class CommentCreatedEmail extends BaseEmail<
       where: { documentId },
       order: [["createdAt", "ASC"]],
     });
-    const isFirstComment = firstComment?.id === commentId;
 
-    // inline all css so that it works in as many email providers as possible.
     let body;
+    let content = ProsemirrorHelper.toHTML(
+      ProsemirrorHelper.toProsemirror(comment.data),
+      {
+        centered: false,
+      }
+    );
+
+    content = await DocumentHelper.attachmentsToSignedUrls(
+      content,
+      document.teamId,
+      (4 * Day) / 1000
+    );
+
     if (content) {
+      // inline all css so that it works in as many email providers as possible.
       body = await inlineCss(content, {
         url: env.URL,
         applyStyleTags: true,
@@ -76,12 +90,17 @@ export default class CommentCreatedEmail extends BaseEmail<
       });
     }
 
+    const isReply = !!comment.parentCommentId;
+    const isFirstComment = firstComment?.id === commentId;
+
     return {
       document,
+      collection,
+      isReply,
       isFirstComment,
       body,
       unsubscribeUrl: NotificationSettingsHelper.unsubscribeUrl(
-        user,
+        await User.findByPk(userId, { rejectOnEmpty: true }),
         NotificationEventType.CreateComment
       ),
     };
@@ -107,12 +126,12 @@ export default class CommentCreatedEmail extends BaseEmail<
     isReply,
     document,
     commentId,
-    collectionName,
+    collection,
   }: Props): string {
     return `
 ${actorName} ${isReply ? "replied to a thread in" : "commented on"} "${
       document.title
-    }"${collectionName ? `in the ${collectionName} collection` : ""}.
+    }"${collection.name ? `in the ${collection.name} collection` : ""}.
 
 Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
 `;
@@ -122,7 +141,7 @@ Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
     document,
     actorName,
     isReply,
-    collectionName,
+    collection,
     teamUrl,
     commentId,
     unsubscribeUrl,
@@ -139,7 +158,7 @@ Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
           <p>
             {actorName} {isReply ? "replied to a thread in" : "commented on"}{" "}
             <a href={link}>{document.title}</a>{" "}
-            {collectionName ? `in the ${collectionName} collection` : ""}.
+            {collection.name ? `in the ${collection.name} collection` : ""}.
           </p>
           {body && (
             <>

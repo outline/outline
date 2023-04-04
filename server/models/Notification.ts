@@ -15,9 +15,11 @@ import {
   Scopes,
 } from "sequelize-typescript";
 import { NotificationEventType } from "@shared/types";
+import Collection from "./Collection";
 import Comment from "./Comment";
 import Document from "./Document";
 import Event from "./Event";
+import Revision from "./Revision";
 import Team from "./Team";
 import User from "./User";
 import Fix from "./decorators/Fix";
@@ -69,7 +71,7 @@ class Notification extends Model {
   @CreatedAt
   createdAt: Date;
 
-  @Column
+  @Column(DataType.STRING)
   event: NotificationEventType;
 
   // associations
@@ -105,6 +107,22 @@ class Notification extends Model {
   @Column(DataType.UUID)
   documentId: string;
 
+  @BelongsTo(() => Revision, "revisionId")
+  revision: Revision;
+
+  @AllowNull
+  @ForeignKey(() => Revision)
+  @Column(DataType.UUID)
+  revisionId: string;
+
+  @BelongsTo(() => Collection, "collectionId")
+  collection: Collection;
+
+  @AllowNull
+  @ForeignKey(() => Collection)
+  @Column(DataType.UUID)
+  collectionId: string;
+
   @BelongsTo(() => Team, "teamId")
   team: Team;
 
@@ -127,10 +145,10 @@ class Notification extends Model {
     };
 
     if (options.transaction) {
-      options.transaction.afterCommit(() => void Event.create(params));
+      options.transaction.afterCommit(() => void Event.schedule(params));
       return;
     }
-    await Event.create(params);
+    await Event.schedule(params);
   }
 }
 

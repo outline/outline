@@ -4,14 +4,13 @@ import NotificationHelper from "@server/models/helpers/NotificationHelper";
 import { CollectionEvent } from "@server/types";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
-export default class CollectionCreatedNotificationTask extends BaseTask<
+export default class CollectionCreatedNotificationsTask extends BaseTask<
   CollectionEvent
 > {
   public async perform(event: CollectionEvent) {
-    const collection = await Collection.scope("withUser").findByPk(
-      event.collectionId
-    );
+    const collection = await Collection.findByPk(event.collectionId);
 
+    // We only send notifications for collections visible to the entire team
     if (!collection || !collection.permission) {
       return;
     }
@@ -28,17 +27,12 @@ export default class CollectionCreatedNotificationTask extends BaseTask<
       }
 
       await Notification.create({
-        event: event.name,
+        event: NotificationEventType.CreateCollection,
         userId: recipient.id,
+        collectionId: collection.id,
         actorId: collection.createdById,
         teamId: collection.teamId,
       });
-
-      // await new CollectionCreatedEmail({
-      //   to: recipient.email,
-      //   userId: recipient.id,
-      //   collectionId: collection.id,
-      // }).schedule();
     }
   }
 

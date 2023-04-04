@@ -29,14 +29,9 @@ type BeforeSendProps = {
  */
 export default class ExportSuccessEmail extends BaseEmail<Props> {
   protected async beforeSend({ userId }: Props) {
-    const user = await User.findByPk(userId);
-    if (!user) {
-      return false;
-    }
-
     return {
       unsubscribeUrl: NotificationSettingsHelper.unsubscribeUrl(
-        user,
+        await User.findByPk(userId, { rejectOnEmpty: true }),
         NotificationEventType.ExportCompleted
       ),
     };
