@@ -452,20 +452,28 @@ router.post(
 
     let users: User[] = [];
     let total = 0;
+    let where: WhereOptions<User> = {
+      teamId: document.teamId,
+      suspendedAt: {
+        [Op.is]: null,
+      },
+    };
 
     if (document.collectionId) {
-      const memberIds = await Collection.membershipUserIds(
-        document.collectionId
-      );
+      const collection = await document.$get("collection");
 
-      let where: WhereOptions<User> = {
-        id: {
-          [Op.in]: memberIds,
-        },
-        suspendedAt: {
-          [Op.is]: null,
-        },
-      };
+      if (!collection?.permission) {
+        const memberIds = await Collection.membershipUserIds(
+          document.collectionId
+        );
+        where = {
+          ...where,
+          id: {
+            [Op.in]: memberIds,
+          },
+        };
+      }
+
       if (query) {
         where = {
           ...where,
