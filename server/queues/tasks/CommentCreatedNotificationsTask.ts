@@ -39,7 +39,7 @@ export default class CommentCreatedNotificationsTask extends BaseTask<
     const mentions = ProsemirrorHelper.parseMentions(
       ProsemirrorHelper.toProsemirror(comment.data)
     );
-    const userIdsSentNotifications: string[] = [];
+    const userIdsMentioned: string[] = [];
 
     for (const mention of mentions) {
       const recipient = await User.findByPk(mention.modelId);
@@ -59,7 +59,7 @@ export default class CommentCreatedNotificationsTask extends BaseTask<
           commentId: comment.id,
           documentId: document.id,
         });
-        userIdsSentNotifications.push(recipient.id);
+        userIdsMentioned.push(recipient.id);
       }
     }
 
@@ -69,7 +69,7 @@ export default class CommentCreatedNotificationsTask extends BaseTask<
         comment,
         comment.createdById
       )
-    ).filter((recipient) => !userIdsSentNotifications.includes(recipient.id));
+    ).filter((recipient) => !userIdsMentioned.includes(recipient.id));
 
     for (const recipient of recipients) {
       await Notification.create({
