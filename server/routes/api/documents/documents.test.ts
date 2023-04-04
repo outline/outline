@@ -3082,15 +3082,15 @@ describe("#documents.unpublish", () => {
 });
 
 describe("#documents.users", () => {
-  it("should return document users", async () => {
+  it("should return all users when collection is not private", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
       teamId: user.teamId,
-      createdById: user.id,
+      userId: user.id,
     });
     const document = await buildDocument({
       collectionId: collection.id,
-      createdById: user.id,
+      userId: user.id,
       teamId: user.teamId,
     });
     const [alan, bret, ken] = await Promise.all([
@@ -3108,28 +3108,6 @@ describe("#documents.users", () => {
       }),
     ]);
 
-    // add people to collection
-    await Promise.all([
-      CollectionUser.create({
-        collectionId: collection.id,
-        userId: alan.id,
-        permission: CollectionPermission.Read,
-        createdById: user.id,
-      }),
-      CollectionUser.create({
-        collectionId: collection.id,
-        userId: bret.id,
-        permission: CollectionPermission.Read,
-        createdById: user.id,
-      }),
-      CollectionUser.create({
-        collectionId: collection.id,
-        userId: ken.id,
-        permission: CollectionPermission.Read,
-        createdById: user.id,
-      }),
-    ]);
-
     const res = await server.post("/api/documents.users", {
       body: {
         token: user.getJwtToken(),
@@ -3139,23 +3117,25 @@ describe("#documents.users", () => {
     const body = await res.json();
 
     expect(res.status).toBe(200);
-    expect(body.data.length).toBe(3);
+    expect(body.data.length).toBe(4);
 
     const memberIds = body.data.map((u: User) => u.id);
     expect(memberIds).toContain(alan.id);
     expect(memberIds).toContain(bret.id);
     expect(memberIds).toContain(ken.id);
+    expect(memberIds).toContain(user.id);
   });
 
   it("should return document users with names matching the search query", async () => {
     const user = await buildUser();
     const collection = await buildCollection({
       teamId: user.teamId,
-      createdById: user.id,
+      userId: user.id,
+      permission: null,
     });
     const document = await buildDocument({
       collectionId: collection.id,
-      createdById: user.id,
+      userId: user.id,
       teamId: user.teamId,
     });
     const [alan, bret, ken, jamie] = await Promise.all([
@@ -3248,7 +3228,7 @@ describe("#documents.users", () => {
     expect(body.data[0].name).toBe(alan.name);
 
     expect(anotherRes.status).toBe(200);
-    expect(anotherBody.data.length).toBe(3);
+    expect(anotherBody.data.length).toBe(4);
     const memberIds = anotherBody.data.map((u: User) => u.id);
     const memberNames = anotherBody.data.map((u: User) => u.name);
     expect(memberIds).toContain(bret.id);
@@ -3263,11 +3243,12 @@ describe("#documents.users", () => {
     const user = await buildUser();
     const collection = await buildCollection({
       teamId: user.teamId,
-      createdById: user.id,
+      userId: user.id,
+      permission: null,
     });
     const document = await buildDocument({
       collectionId: collection.id,
-      createdById: user.id,
+      userId: user.id,
       teamId: user.teamId,
     });
     const [alan, bret, ken] = await Promise.all([
@@ -3320,7 +3301,7 @@ describe("#documents.users", () => {
     const body = await res.json();
 
     expect(res.status).toBe(200);
-    expect(body.data.length).toBe(2);
+    expect(body.data.length).toBe(3);
 
     const memberIds = body.data.map((u: User) => u.id);
     expect(memberIds).not.toContain(alan.id);
