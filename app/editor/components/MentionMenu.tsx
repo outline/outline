@@ -42,7 +42,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
   const location = useLocation();
   const documentId = parseDocumentSlug(location.pathname);
   const { view } = useEditor();
-  const { data, request } = useRequest(
+  const { data, loading, request } = useRequest(
     React.useCallback(
       () =>
         documentId
@@ -59,24 +59,24 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
   }, [request, isActive]);
 
   React.useEffect(() => {
-    if (data) {
-      setItems(
-        data.map((user) => ({
-          name: "mention",
-          user,
-          title: user.name,
-          appendSpace: true,
-          attrs: {
-            id: v4(),
-            type: MentionType.User,
-            modelId: user.id,
-            actorId: auth.user?.id,
-            label: user.name,
-          },
-        }))
-      );
+    if (data && !loading) {
+      const items = data.map((user) => ({
+        name: "mention",
+        user,
+        title: user.name,
+        appendSpace: true,
+        attrs: {
+          id: v4(),
+          type: MentionType.User,
+          modelId: user.id,
+          actorId: auth.user?.id,
+          label: user.name,
+        },
+      }));
+
+      setItems(items);
     }
-  }, [auth.user?.id, data]);
+  }, [auth.user?.id, loading, data]);
 
   const clearSearch = () => {
     const { state, dispatch } = view;
