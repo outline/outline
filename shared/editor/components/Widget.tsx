@@ -17,7 +17,6 @@ export default function Widget(props: Props & ThemeProps<DefaultTheme>) {
         props.isSelected ? "ProseMirror-selectednode widget" : "widget"
       }
       href={props.href}
-      target="_blank"
       rel="noreferrer nofollow"
     >
       {props.icon}
