@@ -829,7 +829,7 @@
   "Posting to the <em>{{ channelName }}</em> channel on": "پست کردن در کانال <em>{{ channelName }}</em>",
   "These events should be posted to Slack": "این رویدادها باید در Slack پست شوند",
   "Disconnect": "قطع اتصال",
-  "Whoops, you need to accept the permissions in Slack to connect{{appName}} to your team. Try again?": "Whoops, you need to accept the permissions in Slack to connect{{appName}} to your team. Try again?",
+  "Whoops, you need to accept the permissions in Slack to connect {{appName}} to your team. Try again?": "Whoops, you need to accept the permissions in Slack to connect {{appName}} to your team. Try again?",
   "Something went wrong while authenticating your request. Please try logging in again?": "هنگام احراز هویت درخواست شما مشکلی پیش آمد. لطفا دوباره تلاش می‌کنید؟",
   "Get rich previews of {{ appName }} links shared in Slack and use the <em>{{ command }}</em> slash command to search for documents without leaving your chat.": "Get rich previews of {{ appName }} links shared in Slack and use the <em>{{ command }}</em> slash command to search for documents without leaving your chat.",
   "Connect {{appName}} collections to Slack channels. Messages will be automatically posted to Slack when documents are published or updated.": "Connect {{appName}} collections to Slack channels. Messages will be automatically posted to Slack when documents are published or updated.",
