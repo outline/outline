@@ -829,7 +829,7 @@
   "Posting to the <em>{{ channelName }}</em> channel on": "发布到 <em>{{ channelName }}</em> 频道",
   "These events should be posted to Slack": "这些事件应该发布到 Slack",
   "Disconnect": "断开连接",
-  "Whoops, you need to accept the permissions in Slack to connect{{appName}} to your team. Try again?": "糟糕，您需要在 Slack 中接受权限才能将{{appName}} 连接到您的团队。再试一次？",
+  "Whoops, you need to accept the permissions in Slack to connect {{appName}} to your team. Try again?": "Whoops, you need to accept the permissions in Slack to connect {{appName}} to your team. Try again?",
   "Something went wrong while authenticating your request. Please try logging in again?": "验证您的请求时出现问题。请尝试重新登录？",
   "Get rich previews of {{ appName }} links shared in Slack and use the <em>{{ command }}</em> slash command to search for documents without leaving your chat.": "获取 Slack 中共享的 {{ appName }} 预览链接，并使用 <em>{{ command }}</em> 斜杠命令搜索文档而无需离开聊天。",
   "Connect {{appName}} collections to Slack channels. Messages will be automatically posted to Slack when documents are published or updated.": "将 {{appName}} 集合连接到 Slack 频道，当文档发布或更新时，消息将自动发布到 Slack。",
