@@ -59,7 +59,7 @@ function Comments() {
             ))
           ) : (
             <NoComments align="center" justify="center" auto>
-              <Empty>{t("No comments yet")}</Empty>
+              <PositionedEmpty>{t("No comments yet")}</PositionedEmpty>
             </NoComments>
           )}
         </Wrapper>
@@ -79,6 +79,12 @@ function Comments() {
     </Sidebar>
   );
 }
+
+const PositionedEmpty = styled(Empty)`
+  position: absolute;
+  top: calc(50vh - 30px);
+  transform: translateY(-50%);
+`;
 
 const NoComments = styled(Flex)`
   padding-bottom: 65px;
