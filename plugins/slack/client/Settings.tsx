@@ -62,7 +62,7 @@ function Slack() {
       {error === "access_denied" && (
         <Notice>
           <Trans>
-            Whoops, you need to accept the permissions in Slack to connect
+            Whoops, you need to accept the permissions in Slack to connect{" "}
             {{ appName }} to your team. Try again?
           </Trans>
         </Notice>
