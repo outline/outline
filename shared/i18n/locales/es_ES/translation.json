@@ -829,7 +829,7 @@
   "Posting to the <em>{{ channelName }}</em> channel on": "Publicando al canal <em>{{ channelName }}</em> en",
   "These events should be posted to Slack": "Estos eventos deben publicarse en Slack",
   "Disconnect": "Desconectar",
-  "Whoops, you need to accept the permissions in Slack to connect{{appName}} to your team. Try again?": "Whoops, you need to accept the permissions in Slack to connect{{appName}} to your team. Try again?",
+  "Whoops, you need to accept the permissions in Slack to connect {{appName}} to your team. Try again?": "Whoops, you need to accept the permissions in Slack to connect {{appName}} to your team. Try again?",
   "Something went wrong while authenticating your request. Please try logging in again?": "Se ha producido un error al autenticar tu solicitud. Intenta iniciar sesión de nuevo.",
   "Get rich previews of {{ appName }} links shared in Slack and use the <em>{{ command }}</em> slash command to search for documents without leaving your chat.": "Get rich previews of {{ appName }} links shared in Slack and use the <em>{{ command }}</em> slash command to search for documents without leaving your chat.",
   "Connect {{appName}} collections to Slack channels. Messages will be automatically posted to Slack when documents are published or updated.": "Connect {{appName}} collections to Slack channels. Messages will be automatically posted to Slack when documents are published or updated.",
