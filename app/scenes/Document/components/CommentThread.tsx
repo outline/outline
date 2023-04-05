@@ -68,7 +68,9 @@ function CommentThread({
     comment: thread,
   });
 
-  const commentsInThread = comments.inThread(thread.id);
+  const commentsInThread = comments
+    .inThread(thread.id)
+    .filter((comment) => !comment.isNew);
 
   useOnClickOutside(topRef, (event) => {
     if (
@@ -180,7 +182,7 @@ function CommentThread({
           },
         }}
       >
-        {focused && (
+        {(focused || commentsInThread.length === 0) && (
           <Fade timing={100}>
             <CommentForm
               documentId={document.id}
