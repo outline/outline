@@ -1,3 +1,4 @@
+import commandScore from "command-score";
 import { capitalize } from "lodash";
 import { findParentNode } from "prosemirror-utils";
 import * as React from "react";
@@ -397,10 +398,9 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
 
     return filterExcessSeparators(
       filtered.sort((item) => {
-        return searchInput &&
-          (item.title || "").toLowerCase().startsWith(searchInput)
-          ? -1
-          : 1;
+        return searchInput && item.title
+          ? commandScore(item.title, searchInput)
+          : 0;
       })
     );
   }, [commands, props]);
