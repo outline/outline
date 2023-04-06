@@ -486,11 +486,15 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     };
 
     window.addEventListener("mousedown", handleMouseDown);
-    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown, {
+      capture: true,
+    });
 
     return () => {
       window.removeEventListener("mousedown", handleMouseDown);
-      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("keydown", handleKeyDown, {
+        capture: true,
+      });
     };
   }, [close, filtered, handleClickItem, props, selectedIndex]);
 
