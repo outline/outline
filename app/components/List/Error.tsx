@@ -30,7 +30,7 @@ export default function LoadingError({ error, retry, ...rest }: Props) {
 
   return (
     <Content {...rest}>
-      <Flex align="center" gap={4}>
+      <Flex align="center" gap={4} wrap>
         {message}{" "}
         <ButtonLink onClick={() => retry()}>{t("Click to retry")}…</ButtonLink>
       </Flex>

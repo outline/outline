@@ -16,6 +16,7 @@ import usePrevious from "~/hooks/usePrevious";
 import useUnmount from "~/hooks/useUnmount";
 import { fadeAndScaleIn } from "~/styles/animations";
 import Desktop from "~/utils/Desktop";
+import ErrorBoundary from "./ErrorBoundary";
 
 let openModals = 0;
 type Props = {
@@ -82,7 +83,9 @@ const Modal: React.FC<Props> = ({
                     column
                     reverse
                   >
-                    <SmallContent shadow>{children}</SmallContent>
+                    <SmallContent shadow>
+                      <ErrorBoundary component="div">{children}</ErrorBoundary>
+                    </SmallContent>
                     <Header>
                       {title && (
                         <Text as="span" size="large">
@@ -112,7 +115,7 @@ const Modal: React.FC<Props> = ({
                   <Content>
                     <Centered onClick={(ev) => ev.stopPropagation()} column>
                       {title && <h1>{title}</h1>}
-                      {children}
+                      <ErrorBoundary>{children}</ErrorBoundary>
                     </Centered>
                   </Content>
                   <Close onClick={onRequestClose}>

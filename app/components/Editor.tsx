@@ -325,7 +325,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   );
 
   return (
-    <ErrorBoundary reloadOnChunkMissing>
+    <ErrorBoundary component="div" reloadOnChunkMissing>
       <>
         <LazyLoadedEditor
           ref={mergeRefs([ref, localRef, handleRefChanged])}

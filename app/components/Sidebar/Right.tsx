@@ -4,6 +4,7 @@ import * as React from "react";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { depths } from "@shared/styles";
+import ErrorBoundary from "~/components/ErrorBoundary";
 import Flex from "~/components/Flex";
 import ResizeBorder from "~/components/Sidebar/components/ResizeBorder";
 import useMobile from "~/hooks/useMobile";
@@ -94,7 +95,7 @@ function Right({ children, border, className }: Props) {
       className={className}
     >
       <Position style={style} column>
-        {children}
+        <ErrorBoundary>{children}</ErrorBoundary>
         {!isMobile && (
           <ResizeBorder
             onMouseDown={handleMouseDown}

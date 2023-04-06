@@ -53,7 +53,7 @@ if (element) {
       <Provider {...stores}>
         <Analytics>
           <Theme>
-            <ErrorBoundary>
+            <ErrorBoundary showTitle>
               <KBarProvider actions={[]} options={commandBarOptions}>
                 <LazyPolyfill>
                   <LazyMotion features={loadFeatures}>

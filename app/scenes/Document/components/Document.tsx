@@ -400,7 +400,7 @@ class DocumentScene extends React.Component<Props> {
       : updateDocumentUrl(this.props.match.url, document);
 
     return (
-      <ErrorBoundary>
+      <ErrorBoundary showTitle>
         {this.props.location.pathname !== canonicalUrl && (
           <Redirect
             to={{
