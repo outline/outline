@@ -36,6 +36,7 @@ type Props = Omit<
 >;
 
 function MentionMenu({ search, isActive, ...rest }: Props) {
+  const [loaded, setLoaded] = React.useState(false);
   const [items, setItems] = React.useState<MentionItem[]>([]);
   const { t } = useTranslation();
   const { users, auth } = useStores();
@@ -75,6 +76,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
       }));
 
       setItems(items);
+      setLoaded(true);
     }
   }, [auth.user?.id, loading, data]);
 
@@ -90,6 +92,12 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
       )
     );
   };
+
+  // Prevent showing the menu until we have data otherwise it will be positioned
+  // incorrectly due to the height being unknown.
+  if (!loaded) {
+    return null;
+  }
 
   return (
     <SuggestionsMenu

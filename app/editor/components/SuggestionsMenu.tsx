@@ -88,6 +88,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
 
   const calculatePosition = React.useCallback(
     (props: Props) => {
+      console.log("calculatePosition");
       if (!props.isActive) {
         return defaultPosition;
       }
@@ -141,7 +142,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         leftPos = right - offsetWidth;
       }
 
-      if (top - offsetHeight > margin) {
+      if (top - offsetHeight > offsetParent.top + margin) {
         return {
           left: leftPos,
           top: undefined,
