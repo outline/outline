@@ -17,7 +17,7 @@ type Props = {
 };
 
 const defaultPosition = {
-  left: -1000,
+  left: -10000,
   top: 0,
   offset: 0,
   visible: false,
@@ -134,7 +134,7 @@ function usePosition({
     const margin = 12;
     const left = Math.min(
       Math.min(
-        offsetParent.x + offsetParent.width - menuWidth,
+        offsetParent.x + offsetParent.width - menuWidth - margin,
         window.innerWidth - margin
       ),
       Math.max(

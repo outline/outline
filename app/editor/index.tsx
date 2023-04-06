@@ -770,6 +770,31 @@ export class Editor extends React.PureComponent<
             />
             {!readOnly && this.view && (
               <>
+                {this.marks.link && (
+                  <LinkToolbar
+                    isActive={this.state.linkMenuOpen}
+                    onCreateLink={this.props.onCreateLink}
+                    onSearchLink={this.props.onSearchLink}
+                    onClickLink={this.props.onClickLink}
+                    onClose={this.handleCloseLinkMenu}
+                  />
+                )}
+                {this.nodes.emoji && (
+                  <EmojiMenu
+                    rtl={isRTL}
+                    isActive={this.state.emojiMenuOpen}
+                    search={this.state.blockMenuSearch}
+                    onClose={this.handleCloseEmojiMenu}
+                  />
+                )}
+                {this.nodes.mention && (
+                  <MentionMenu
+                    rtl={isRTL}
+                    isActive={this.state.mentionMenuOpen}
+                    search={this.state.blockMenuSearch}
+                    onClose={this.handleCloseMentionMenu}
+                  />
+                )}
                 <SelectionToolbar
                   rtl={isRTL}
                   isTemplate={this.props.template === true}
@@ -778,25 +803,6 @@ export class Editor extends React.PureComponent<
                   onSearchLink={this.props.onSearchLink}
                   onClickLink={this.props.onClickLink}
                   onCreateLink={this.props.onCreateLink}
-                />
-                <LinkToolbar
-                  isActive={this.state.linkMenuOpen}
-                  onCreateLink={this.props.onCreateLink}
-                  onSearchLink={this.props.onSearchLink}
-                  onClickLink={this.props.onClickLink}
-                  onClose={this.handleCloseLinkMenu}
-                />
-                <EmojiMenu
-                  rtl={isRTL}
-                  isActive={this.state.emojiMenuOpen}
-                  search={this.state.blockMenuSearch}
-                  onClose={this.handleCloseEmojiMenu}
-                />
-                <MentionMenu
-                  rtl={isRTL}
-                  isActive={this.state.mentionMenuOpen}
-                  search={this.state.blockMenuSearch}
-                  onClose={this.handleCloseMentionMenu}
                 />
                 <BlockMenu
                   rtl={isRTL}
