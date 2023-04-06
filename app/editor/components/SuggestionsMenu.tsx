@@ -46,7 +46,7 @@ type Position = ((TopAnchor | BottomAnchor) & (LeftAnchor | RightAnchor)) & {
 const defaultPosition: Position = {
   top: 0,
   bottom: undefined,
-  left: -1000,
+  left: -10000,
   right: undefined,
   isAbove: false,
 };
@@ -88,7 +88,6 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
 
   const calculatePosition = React.useCallback(
     (props: Props) => {
-      console.log("calculatePosition");
       if (!props.isActive) {
         return defaultPosition;
       }
@@ -142,7 +141,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         leftPos = right - offsetWidth;
       }
 
-      if (top - offsetHeight > offsetParent.top + margin) {
+      if (top - offsetHeight > margin) {
         return {
           left: leftPos,
           top: undefined,
