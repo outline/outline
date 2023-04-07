@@ -153,7 +153,8 @@ function CommentForm({
   const handleChange = (
     value: (asString: boolean, trim: boolean) => Record<string, any>
   ) => {
-    setData(value(false, true));
+    const text = value(true, true);
+    setData(text ? value(false, true) : undefined);
     onTyping?.();
   };
 
@@ -251,7 +252,7 @@ function CommentForm({
                 : `${t("Add a reply")}…`)
             }
           />
-          {inputFocused && (
+          {(inputFocused || data) && (
             <Flex justify={dir === "rtl" ? "flex-end" : "flex-start"} gap={8}>
               <ButtonSmall type="submit" borderOnHover>
                 {thread && !thread.isNew ? t("Reply") : t("Post")}

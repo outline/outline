@@ -20,6 +20,7 @@ const defaultPosition = {
   left: -10000,
   top: 0,
   offset: 0,
+  maxWidth: 1000,
   visible: false,
 };
 
@@ -48,6 +49,7 @@ function usePosition({
       right: 0,
       top: viewportHeight - menuHeight,
       offset: 0,
+      maxWidth: 1000,
       visible: true,
     };
   }
@@ -155,6 +157,7 @@ function usePosition({
       left: Math.round(left - offsetParent.left),
       top: Math.round(top - offsetParent.top),
       offset: Math.round(offset),
+      maxWidth: offsetParent.width,
       visible: true,
     };
   }
@@ -191,6 +194,7 @@ const FloatingToolbar = React.forwardRef(
           ref={menuRef}
           offset={position.offset}
           style={{
+            maxWidth: `${position.maxWidth}px`,
             top: `${position.top}px`,
             left: `${position.left}px`,
           }}

@@ -30,7 +30,7 @@ function LinkSearchResult({ title, subtitle, selected, icon, ...rest }: Props) {
 
   return (
     <ListItem ref={ref} compact={!subtitle} selected={selected} {...rest}>
-      <IconWrapper>{icon}</IconWrapper>
+      <IconWrapper selected={selected}>{icon}</IconWrapper>
       <div>
         <Title>{title}</Title>
         {subtitle ? <Subtitle selected={selected}>{subtitle}</Subtitle> : null}
@@ -39,11 +39,12 @@ function LinkSearchResult({ title, subtitle, selected, icon, ...rest }: Props) {
   );
 }
 
-const IconWrapper = styled.span`
+const IconWrapper = styled.span<{ selected: boolean }>`
   flex-shrink: 0;
   margin-right: 4px;
   opacity: 0.8;
-  color: ${(props) => props.theme.toolbarItem};
+  color: ${(props) =>
+    props.selected ? props.theme.accentText : props.theme.toolbarItem};
 `;
 
 const ListItem = styled.li<{
@@ -54,9 +55,11 @@ const ListItem = styled.li<{
   align-items: center;
   padding: 8px;
   border-radius: 4px;
-  color: ${(props) => props.theme.toolbarItem};
+  margin: 0 8px;
+  color: ${(props) =>
+    props.selected ? props.theme.accentText : props.theme.toolbarItem};
   background: ${(props) =>
-    props.selected ? props.theme.toolbarHoverBackground : "transparent"};
+    props.selected ? props.theme.accent : "transparent"};
   font-family: ${(props) => props.theme.fontFamily};
   text-decoration: none;
   overflow: hidden;

@@ -3,7 +3,6 @@ import {
   DocumentIcon,
   CloseIcon,
   PlusIcon,
-  TrashIcon,
   OpenIcon,
 } from "outline-icons";
 import { Mark } from "prosemirror-model";
@@ -339,11 +338,7 @@ class LinkEditor extends React.Component<Props, State> {
         </Tooltip>
         <Tooltip tooltip={dictionary.removeLink}>
           <ToolbarButton onClick={this.handleRemoveLink}>
-            {this.initialValue ? (
-              <TrashIcon color="currentColor" />
-            ) : (
-              <CloseIcon color="currentColor" />
-            )}
+            <CloseIcon color="currentColor" />
           </ToolbarButton>
         </Tooltip>
 
@@ -388,7 +383,6 @@ class LinkEditor extends React.Component<Props, State> {
 const Wrapper = styled(Flex)`
   margin-left: -8px;
   margin-right: -8px;
-  min-width: 336px;
   pointer-events: all;
   gap: 8px;
 `;
@@ -400,9 +394,9 @@ const SearchResults = styled.ol`
   width: 100%;
   height: auto;
   left: 0;
-  padding: 0;
+  padding: 8px 0;
   margin: 0;
-  margin-top: -3px;
+  margin-top: -8px;
   margin-bottom: 0;
   border-radius: 0 0 4px 4px;
   overflow-y: auto;
