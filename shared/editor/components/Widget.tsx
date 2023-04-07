@@ -67,6 +67,7 @@ const Wrapper = styled.a`
   background: ${(props) => props.theme.background};
   color: ${(props) => props.theme.text} !important;
   box-shadow: 0 0 0 1px ${(props) => props.theme.divider};
+  white-space: nowrap;
   border-radius: 8px;
   padding: 6px 8px;
   max-width: 840px;
