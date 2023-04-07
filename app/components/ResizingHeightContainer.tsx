@@ -19,7 +19,17 @@ type Props = {
  * Automatically animates the height of a container based on it's contents.
  */
 export function ResizingHeightContainer(props: Props) {
-  const { hideOverflow, children, config, style } = props;
+  const {
+    hideOverflow,
+    children,
+    config = {
+      transition: {
+        duration: 0.1,
+        ease: "easeInOut",
+      },
+    },
+    style,
+  } = props;
 
   const ref = React.useRef<HTMLDivElement>(null);
   const { height } = useComponentSize(ref);

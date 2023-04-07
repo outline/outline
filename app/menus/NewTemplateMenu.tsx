@@ -12,6 +12,7 @@ import CollectionIcon from "~/components/Icons/CollectionIcon";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
+import { ellipsis } from "~/styles";
 import { MenuItem } from "~/types";
 import { newDocumentPath } from "~/utils/routeHelpers";
 
@@ -67,9 +68,7 @@ function NewTemplateMenu() {
 }
 
 const CollectionName = styled.div`
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  ${ellipsis()}
 `;
 
 export default observer(NewTemplateMenu);

@@ -13,6 +13,7 @@ import { useEditor } from "./EditorContext";
 type Props = {
   active?: boolean;
   children: React.ReactNode;
+  width?: number;
   forwardedRef?: React.RefObject<HTMLDivElement> | null;
 };
 
@@ -192,8 +193,9 @@ const FloatingToolbar = React.forwardRef(
         <Wrapper
           active={props.active && position.visible}
           ref={menuRef}
-          offset={position.offset}
+          $offset={position.offset}
           style={{
+            width: props.width,
             maxWidth: `${position.maxWidth}px`,
             top: `${position.top}px`,
             left: `${position.left}px`,
@@ -208,7 +210,7 @@ const FloatingToolbar = React.forwardRef(
 
 const Wrapper = styled.div<{
   active?: boolean;
-  offset: number;
+  $offset: number;
 }>`
   will-change: opacity, transform;
   padding: 8px 16px;
@@ -238,7 +240,7 @@ const Wrapper = styled.div<{
     z-index: -1;
     position: absolute;
     bottom: -2px;
-    left: calc(50% - ${(props) => props.offset || 0}px);
+    left: calc(50% - ${(props) => props.$offset || 0}px);
     pointer-events: none;
   }
 

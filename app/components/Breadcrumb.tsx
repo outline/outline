@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import styled from "styled-components";
 import Flex from "~/components/Flex";
 import BreadcrumbMenu from "~/menus/BreadcrumbMenu";
+import { ellipsis } from "~/styles";
 import { MenuInternalLink } from "~/types";
 
 type Props = {
@@ -64,6 +65,7 @@ const Slash = styled(GoToIcon)`
 `;
 
 const Item = styled(Link)<{ $highlight: boolean; $withIcon: boolean }>`
+  ${ellipsis()}
   display: flex;
   flex-shrink: 1;
   min-width: 0;
@@ -71,9 +73,6 @@ const Item = styled(Link)<{ $highlight: boolean; $withIcon: boolean }>`
   color: ${(props) => props.theme.text};
   font-size: 15px;
   height: 24px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
   font-weight: ${(props) => (props.$highlight ? "500" : "inherit")};
   margin-left: ${(props) => (props.$withIcon ? "4px" : "0")};
 

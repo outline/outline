@@ -1,6 +1,7 @@
 import * as React from "react";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled from "styled-components";
+import { ellipsis } from "~/styles";
 
 type Props = React.HTMLAttributes<HTMLLIElement> & {
   icon: React.ReactNode;
@@ -31,17 +32,22 @@ function LinkSearchResult({ title, subtitle, selected, icon, ...rest }: Props) {
   return (
     <ListItem ref={ref} compact={!subtitle} selected={selected} {...rest}>
       <IconWrapper selected={selected}>{icon}</IconWrapper>
-      <div>
+      <Content>
         <Title>{title}</Title>
         {subtitle ? <Subtitle selected={selected}>{subtitle}</Subtitle> : null}
-      </div>
+      </Content>
     </ListItem>
   );
 }
 
+const Content = styled.div`
+  overflow: hidden;
+`;
+
 const IconWrapper = styled.span<{ selected: boolean }>`
   flex-shrink: 0;
   margin-right: 4px;
+  height: 24px;
   opacity: 0.8;
   color: ${(props) =>
     props.selected ? props.theme.accentText : props.theme.toolbarItem};
@@ -71,6 +77,7 @@ const ListItem = styled.li<{
 `;
 
 const Title = styled.div`
+  ${ellipsis()}
   font-size: 14px;
   font-weight: 500;
 `;
@@ -78,6 +85,7 @@ const Title = styled.div`
 const Subtitle = styled.div<{
   selected: boolean;
 }>`
+  ${ellipsis()}
   font-size: 13px;
   opacity: ${(props) => (props.selected ? 0.75 : 0.5)};
 `;

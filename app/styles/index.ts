@@ -52,3 +52,14 @@ export const hideScrollbars = () => `
     display: none;
   }
 `;
+
+/**
+ * Mixin to make text ellipse when it overflows.
+ *
+ * @returns string of CSS
+ */
+export const ellipsis = () => `
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+`;

@@ -6,6 +6,7 @@ import breakpoint from "styled-components-breakpoint";
 import Flex from "~/components/Flex";
 import Disclosure from "~/components/Sidebar/components/Disclosure";
 import Text from "~/components/Text";
+import { ellipsis } from "~/styles";
 
 type Props = {
   selected: boolean;
@@ -70,9 +71,7 @@ function DocumentExplorerNode(
 }
 
 const Title = styled(Text)`
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  ${ellipsis()}
   margin: 0 4px 0 4px;
   color: inherit;
 `;
