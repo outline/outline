@@ -10,6 +10,7 @@ const Input = styled.input`
   margin: 0;
   outline: none;
   flex-grow: 1;
+  min-width: 0;
 
   @media (hover: none) and (pointer: coarse) {
     font-size: 16px;

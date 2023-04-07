@@ -13,13 +13,15 @@ import { useEditor } from "./EditorContext";
 type Props = {
   active?: boolean;
   children: React.ReactNode;
+  width?: number;
   forwardedRef?: React.RefObject<HTMLDivElement> | null;
 };
 
 const defaultPosition = {
-  left: -1000,
+  left: -10000,
   top: 0,
   offset: 0,
+  maxWidth: 1000,
   visible: false,
 };
 
@@ -48,6 +50,7 @@ function usePosition({
       right: 0,
       top: viewportHeight - menuHeight,
       offset: 0,
+      maxWidth: 1000,
       visible: true,
     };
   }
@@ -134,7 +137,7 @@ function usePosition({
     const margin = 12;
     const left = Math.min(
       Math.min(
-        offsetParent.x + offsetParent.width - menuWidth,
+        offsetParent.x + offsetParent.width - menuWidth - margin,
         window.innerWidth - margin
       ),
       Math.max(
@@ -155,6 +158,7 @@ function usePosition({
       left: Math.round(left - offsetParent.left),
       top: Math.round(top - offsetParent.top),
       offset: Math.round(offset),
+      maxWidth: offsetParent.width,
       visible: true,
     };
   }
@@ -189,8 +193,10 @@ const FloatingToolbar = React.forwardRef(
         <Wrapper
           active={props.active && position.visible}
           ref={menuRef}
-          offset={position.offset}
+          $offset={position.offset}
           style={{
+            width: props.width,
+            maxWidth: `${position.maxWidth}px`,
             top: `${position.top}px`,
             left: `${position.left}px`,
           }}
@@ -204,7 +210,7 @@ const FloatingToolbar = React.forwardRef(
 
 const Wrapper = styled.div<{
   active?: boolean;
-  offset: number;
+  $offset: number;
 }>`
   will-change: opacity, transform;
   padding: 8px 16px;
@@ -234,7 +240,7 @@ const Wrapper = styled.div<{
     z-index: -1;
     position: absolute;
     bottom: -2px;
-    left: calc(50% - ${(props) => props.offset || 0}px);
+    left: calc(50% - ${(props) => props.$offset || 0}px);
     pointer-events: none;
   }
 

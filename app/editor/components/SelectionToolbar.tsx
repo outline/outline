@@ -222,9 +222,15 @@ export default function SelectionToolbar(props: Props) {
     return null;
   }
 
+  const showLinkToolbar = link && range;
+
   return (
-    <FloatingToolbar active={isActive} ref={menuRef}>
-      {link && range ? (
+    <FloatingToolbar
+      active={isActive}
+      ref={menuRef}
+      width={showLinkToolbar ? 336 : undefined}
+    >
+      {showLinkToolbar ? (
         <LinkEditor
           key={`${range.from}-${range.to}`}
           dictionary={dictionary}

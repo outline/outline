@@ -8,7 +8,7 @@ import parseTitle from "@shared/utils/parseTitle";
 import Document from "~/models/Document";
 import Flex from "~/components/Flex";
 import EmojiIcon from "~/components/Icons/EmojiIcon";
-import { hover } from "~/styles";
+import { ellipsis, hover } from "~/styles";
 import { sharedDocumentPath } from "~/utils/routeHelpers";
 
 type Props = {
@@ -42,13 +42,11 @@ const Content = styled(Flex)`
 `;
 
 const Title = styled.div`
-  overflow: hidden;
-  text-overflow: ellipsis;
+  ${ellipsis()}
   font-size: 14px;
   font-weight: 500;
   line-height: 1.25;
   padding-top: 3px;
-  white-space: nowrap;
   color: ${(props) => props.theme.text};
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
     Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;

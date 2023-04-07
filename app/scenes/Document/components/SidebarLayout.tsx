@@ -10,6 +10,7 @@ import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
 import Tooltip from "~/components/Tooltip";
 import useMobile from "~/hooks/useMobile";
+import { ellipsis } from "~/styles";
 import { fadeIn } from "~/styles/animations";
 
 type Props = React.HTMLAttributes<HTMLDivElement> & {
@@ -75,15 +76,13 @@ const ForwardIcon = styled(BackIcon)`
 `;
 
 const Title = styled(Flex)`
+  ${ellipsis()}
   font-size: 16px;
   font-weight: 600;
   text-align: center;
   align-items: center;
   justify-content: flex-start;
-  text-overflow: ellipsis;
-  white-space: nowrap;
   user-select: none;
-  overflow: hidden;
   width: 0;
   flex-grow: 1;
 `;

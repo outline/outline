@@ -4,6 +4,7 @@ import * as React from "react";
 import styled, { css, useTheme } from "styled-components";
 import Flex from "~/components/Flex";
 import Key from "~/components/Key";
+import { ellipsis } from "~/styles";
 
 type Props = {
   action: ActionImpl;
@@ -85,8 +86,7 @@ const Ancestor = styled.span`
 `;
 
 const Content = styled(Flex)`
-  overflow: hidden;
-  text-overflow: ellipsis;
+  ${ellipsis()}
   flex-shrink: 1;
 `;
 
@@ -102,9 +102,7 @@ const Item = styled.div<{ active?: boolean }>`
   justify-content: space-between;
   cursor: var(--pointer);
 
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
+  ${ellipsis()}
   user-select: none;
   min-width: 0;
 

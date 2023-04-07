@@ -11,6 +11,7 @@ import Flex from "~/components/Flex";
 import Time from "~/components/Time";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
+import { ellipsis } from "~/styles";
 
 type Props = {
   showCollection?: boolean;
@@ -192,8 +193,7 @@ const Container = styled(Flex)<{ rtl?: boolean }>`
 `;
 
 const Viewed = styled.span`
-  text-overflow: ellipsis;
-  overflow: hidden;
+  ${ellipsis()}
 `;
 
 const Modified = styled.span<{ highlight?: boolean }>`

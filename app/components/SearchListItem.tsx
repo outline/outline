@@ -6,7 +6,7 @@ import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Document from "~/models/Document";
 import Highlight, { Mark } from "~/components/Highlight";
-import { hover } from "~/styles";
+import { ellipsis, hover } from "~/styles";
 import { sharedDocumentPath } from "~/utils/routeHelpers";
 
 type Props = {
@@ -125,8 +125,7 @@ const Heading = styled.h4<{ rtl?: boolean }>`
 
 const Title = styled(Highlight)`
   max-width: 90%;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  ${ellipsis()}
 
   ${Mark} {
     padding: 0;
@@ -139,10 +138,7 @@ const ResultContext = styled(Highlight)`
   font-size: 14px;
   margin-top: -0.25em;
   margin-bottom: 0.25em;
-
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  ${ellipsis()}
 
   ${Mark} {
     padding: 0;

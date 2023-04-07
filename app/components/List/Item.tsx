@@ -3,6 +3,7 @@ import * as React from "react";
 import styled, { useTheme } from "styled-components";
 import Flex from "~/components/Flex";
 import NavLink from "~/components/NavLink";
+import { ellipsis } from "~/styles";
 
 export type Props = Omit<React.HTMLAttributes<HTMLAnchorElement>, "title"> & {
   image?: React.ReactNode;
@@ -103,9 +104,7 @@ const Image = styled(Flex)`
 const Heading = styled.p<{ $small?: boolean }>`
   font-size: ${(props) => (props.$small ? 14 : 16)}px;
   font-weight: 500;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
+  ${ellipsis()}
   line-height: ${(props) => (props.$small ? 1.3 : 1.2)};
   margin: 0;
 `;

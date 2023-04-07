@@ -1,15 +1,24 @@
 import * as React from "react";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled from "styled-components";
+import { ellipsis } from "~/styles";
 
-type Props = React.HTMLAttributes<HTMLLIElement> & {
+type Props = React.HTMLAttributes<HTMLDivElement> & {
   icon: React.ReactNode;
   selected: boolean;
   title: React.ReactNode;
   subtitle?: React.ReactNode;
+  containerRef: React.RefObject<HTMLDivElement>;
 };
 
-function LinkSearchResult({ title, subtitle, selected, icon, ...rest }: Props) {
+function LinkSearchResult({
+  title,
+  subtitle,
+  containerRef,
+  selected,
+  icon,
+  ...rest
+}: Props) {
   const ref = React.useCallback(
     (node: HTMLElement | null) => {
       if (selected && node) {
@@ -17,36 +26,46 @@ function LinkSearchResult({ title, subtitle, selected, icon, ...rest }: Props) {
           scrollMode: "if-needed",
           block: "center",
           boundary: (parent) => {
-            // All the parent elements of your target are checked until they
-            // reach the #link-search-results. Prevents body and other parent
-            // elements from being scrolled
-            return parent.id !== "link-search-results";
+            // Prevents body and other parent elements from being scrolled
+            return parent !== containerRef.current;
           },
         });
       }
     },
-    [selected]
+    [containerRef, selected]
   );
 
   return (
-    <ListItem ref={ref} compact={!subtitle} selected={selected} {...rest}>
-      <IconWrapper>{icon}</IconWrapper>
-      <div>
+    <ListItem
+      ref={ref}
+      compact={!subtitle}
+      selected={selected}
+      role="menuitem"
+      {...rest}
+    >
+      <IconWrapper selected={selected}>{icon}</IconWrapper>
+      <Content>
         <Title>{title}</Title>
         {subtitle ? <Subtitle selected={selected}>{subtitle}</Subtitle> : null}
-      </div>
+      </Content>
     </ListItem>
   );
 }
 
-const IconWrapper = styled.span`
-  flex-shrink: 0;
-  margin-right: 4px;
-  opacity: 0.8;
-  color: ${(props) => props.theme.toolbarItem};
+const Content = styled.div`
+  overflow: hidden;
 `;
 
-const ListItem = styled.li<{
+const IconWrapper = styled.span<{ selected: boolean }>`
+  flex-shrink: 0;
+  margin-right: 4px;
+  height: 24px;
+  opacity: 0.8;
+  color: ${(props) =>
+    props.selected ? props.theme.accentText : props.theme.toolbarItem};
+`;
+
+const ListItem = styled.div<{
   selected: boolean;
   compact: boolean;
 }>`
@@ -54,9 +73,11 @@ const ListItem = styled.li<{
   align-items: center;
   padding: 8px;
   border-radius: 4px;
-  color: ${(props) => props.theme.toolbarItem};
+  margin: 0 8px;
+  color: ${(props) =>
+    props.selected ? props.theme.accentText : props.theme.toolbarItem};
   background: ${(props) =>
-    props.selected ? props.theme.toolbarHoverBackground : "transparent"};
+    props.selected ? props.theme.accent : "transparent"};
   font-family: ${(props) => props.theme.fontFamily};
   text-decoration: none;
   overflow: hidden;
@@ -68,6 +89,7 @@ const ListItem = styled.li<{
 `;
 
 const Title = styled.div`
+  ${ellipsis()}
   font-size: 14px;
   font-weight: 500;
 `;
@@ -75,6 +97,7 @@ const Title = styled.div`
 const Subtitle = styled.div<{
   selected: boolean;
 }>`
+  ${ellipsis()}
   font-size: 13px;
   opacity: ${(props) => (props.selected ? 0.75 : 0.5)};
 `;

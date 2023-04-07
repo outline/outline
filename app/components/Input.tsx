@@ -4,7 +4,7 @@ import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
-import { undraggableOnDesktop } from "~/styles";
+import { ellipsis, undraggableOnDesktop } from "~/styles";
 
 const RealTextarea = styled.textarea<{ hasIcon?: boolean }>`
   border: 0;
@@ -29,9 +29,7 @@ const RealInput = styled.input<{ hasIcon?: boolean }>`
   color: ${(props) => props.theme.text};
   height: 30px;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  ${ellipsis()}
   ${undraggableOnDesktop()}
 
   &:disabled,

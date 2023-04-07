@@ -11,6 +11,7 @@ import MenuItem from "~/components/ContextMenu/MenuItem";
 import Separator from "~/components/ContextMenu/Separator";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
+import { ellipsis } from "~/styles";
 import { replaceTitleVariables } from "~/utils/date";
 
 type Props = {
@@ -81,9 +82,7 @@ function TemplatesMenu({ onSelectTemplate, document }: Props) {
 
 const TemplateItem = styled.div`
   text-align: left;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  ${ellipsis()}
 `;
 
 const Author = styled.div`

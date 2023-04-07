@@ -173,15 +173,7 @@ function CommentThread({
           </Flex>
         ))}
 
-      <ResizingHeightContainer
-        hideOverflow={false}
-        config={{
-          transition: {
-            duration: 0.1,
-            ease: "easeInOut",
-          },
-        }}
-      >
+      <ResizingHeightContainer hideOverflow={false}>
         {(focused || commentsInThread.length === 0) && (
           <Fade timing={100}>
             <CommentForm

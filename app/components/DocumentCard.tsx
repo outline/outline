@@ -13,6 +13,7 @@ import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
 import Time from "~/components/Time";
 import useStores from "~/hooks/useStores";
+import { ellipsis } from "~/styles";
 import CollectionIcon from "./Icons/CollectionIcon";
 import EmojiIcon from "./Icons/EmojiIcon";
 import Squircle from "./Squircle";
@@ -217,14 +218,12 @@ const Content = styled(Flex)`
 `;
 
 const DocumentMeta = styled(Text)`
+  ${ellipsis()}
   display: flex;
   align-items: center;
   gap: 2px;
   color: ${(props) => props.theme.textTertiary};
   margin: 0 0 0 -2px;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
 `;
 
 const DocumentLink = styled(Link)<{
