@@ -45,6 +45,7 @@ import usePolicy from "~/hooks/usePolicy";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
+import { ellipsis } from "~/styles";
 import { MenuItem } from "~/types";
 import { editDocumentUrl, newDocumentPath } from "~/utils/routeHelpers";
 
@@ -351,9 +352,7 @@ const Style = styled.div`
 `;
 
 const CollectionName = styled.div`
-  overflow: hidden;
-  white-space: nowrap;
-  text-overflow: ellipsis;
+  ${ellipsis()}
 `;
 
 export default observer(DocumentMenu);

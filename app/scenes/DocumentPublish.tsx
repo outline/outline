@@ -12,6 +12,7 @@ import Text from "~/components/Text";
 import useCollectionTrees from "~/hooks/useCollectionTrees";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
+import { ellipsis } from "~/styles";
 import { flattenTree } from "~/utils/tree";
 
 type Props = {
@@ -111,9 +112,7 @@ const Footer = styled(Flex)`
 `;
 
 const StyledText = styled(Text)`
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  ${ellipsis()}
   margin-bottom: 0;
 `;
 

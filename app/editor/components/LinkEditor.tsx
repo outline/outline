@@ -13,6 +13,7 @@ import styled from "styled-components";
 import { isInternalUrl, sanitizeUrl } from "@shared/utils/urls";
 import Flex from "~/components/Flex";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
+import Scrollable from "~/components/Scrollable";
 import { Dictionary } from "~/hooks/useDictionary";
 import { ToastOptions } from "~/types";
 import Input from "./Input";
@@ -61,6 +62,7 @@ class LinkEditor extends React.Component<Props, State> {
   discardInputValue = false;
   initialValue = this.href;
   initialSelectionLength = this.props.to - this.props.from;
+  resultsRef = React.createRef<HTMLDivElement>();
 
   state: State = {
     selectedIndex: -1,
@@ -264,10 +266,7 @@ class LinkEditor extends React.Component<Props, State> {
       dispatch(state.tr.removeMark(from, to, mark));
     }
 
-    if (onRemoveLink) {
-      onRemoveLink();
-    }
-
+    onRemoveLink?.();
     view.focus();
   };
 
@@ -312,7 +311,7 @@ class LinkEditor extends React.Component<Props, State> {
       suggestedLinkTitle.length > 0 &&
       !looksLikeUrl;
 
-    const showResults =
+    const hasResults =
       !!suggestedLinkTitle && (showCreateLink || results.length > 0);
 
     return (
@@ -348,9 +347,13 @@ class LinkEditor extends React.Component<Props, State> {
           </ToolbarButton>
         </Tooltip>
 
-        <SearchResults id="link-search-results">
+        <SearchResults
+          ref={this.resultsRef}
+          $hasResults={hasResults}
+          role="menu"
+        >
           <ResizingHeightContainer>
-            {showResults && (
+            {hasResults && (
               <>
                 {results.map((result, index) => (
                   <LinkSearchResult
@@ -361,12 +364,14 @@ class LinkEditor extends React.Component<Props, State> {
                     onPointerMove={() => this.handleFocusLink(index)}
                     onClick={this.handleSelectLink(result.url, result.title)}
                     selected={index === selectedIndex}
+                    containerRef={this.resultsRef}
                   />
                 ))}
 
                 {showCreateLink && (
                   <LinkSearchResult
                     key="create"
+                    containerRef={this.resultsRef}
                     title={suggestedLinkTitle}
                     subtitle={dictionary.createNewDoc}
                     icon={<PlusIcon color="currentColor" />}
@@ -397,20 +402,16 @@ const Wrapper = styled(Flex)`
   gap: 8px;
 `;
 
-const SearchResults = styled.ol`
+const SearchResults = styled(Scrollable)<{ $hasResults: boolean }>`
   background: ${(props) => props.theme.toolbarBackground};
   position: absolute;
   top: 100%;
   width: 100%;
   height: auto;
   left: 0;
-  padding: 8px 0;
-  margin: 0;
-  margin-top: -8px;
-  margin-bottom: 0;
+  margin: -8px 0 0;
   border-radius: 0 0 4px 4px;
-  overflow-y: auto;
-  overscroll-behavior: none;
+  padding: ${(props) => (props.$hasResults ? "8px 0" : "0")};
   max-height: 260px;
 
   @media (hover: none) and (pointer: coarse) {

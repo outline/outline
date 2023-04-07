@@ -3,14 +3,22 @@ import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled from "styled-components";
 import { ellipsis } from "~/styles";
 
-type Props = React.HTMLAttributes<HTMLLIElement> & {
+type Props = React.HTMLAttributes<HTMLDivElement> & {
   icon: React.ReactNode;
   selected: boolean;
   title: React.ReactNode;
   subtitle?: React.ReactNode;
+  containerRef: React.RefObject<HTMLDivElement>;
 };
 
-function LinkSearchResult({ title, subtitle, selected, icon, ...rest }: Props) {
+function LinkSearchResult({
+  title,
+  subtitle,
+  containerRef,
+  selected,
+  icon,
+  ...rest
+}: Props) {
   const ref = React.useCallback(
     (node: HTMLElement | null) => {
       if (selected && node) {
@@ -18,19 +26,23 @@ function LinkSearchResult({ title, subtitle, selected, icon, ...rest }: Props) {
           scrollMode: "if-needed",
           block: "center",
           boundary: (parent) => {
-            // All the parent elements of your target are checked until they
-            // reach the #link-search-results. Prevents body and other parent
-            // elements from being scrolled
-            return parent.id !== "link-search-results";
+            // Prevents body and other parent elements from being scrolled
+            return parent !== containerRef.current;
           },
         });
       }
     },
-    [selected]
+    [containerRef, selected]
   );
 
   return (
-    <ListItem ref={ref} compact={!subtitle} selected={selected} {...rest}>
+    <ListItem
+      ref={ref}
+      compact={!subtitle}
+      selected={selected}
+      role="menuitem"
+      {...rest}
+    >
       <IconWrapper selected={selected}>{icon}</IconWrapper>
       <Content>
         <Title>{title}</Title>
@@ -53,7 +65,7 @@ const IconWrapper = styled.span<{ selected: boolean }>`
     props.selected ? props.theme.accentText : props.theme.toolbarItem};
 `;
 
-const ListItem = styled.li<{
+const ListItem = styled.div<{
   selected: boolean;
   compact: boolean;
 }>`
