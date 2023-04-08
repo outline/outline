@@ -223,9 +223,7 @@ export default class AuthStore {
   };
 
   @action
-  requestDelete = () => {
-    return client.post(`/users.requestDelete`);
-  };
+  requestDelete = () => client.post(`/users.requestDelete`);
 
   @action
   deleteUser = async (data: { code: string }) => {
@@ -350,5 +348,6 @@ export default class AuthStore {
 
     // Tell the host application we logged out, if any – allows window cleanup.
     Desktop.bridge?.onLogout?.();
+    this.rootStore.logout();
   };
 }

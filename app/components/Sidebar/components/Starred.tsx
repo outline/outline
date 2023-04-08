@@ -6,7 +6,6 @@ import { useTranslation } from "react-i18next";
 import Star from "~/models/Star";
 import Flex from "~/components/Flex";
 import useStores from "~/hooks/useStores";
-import useToasts from "~/hooks/useToasts";
 import DropCursor from "./DropCursor";
 import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
@@ -22,7 +21,6 @@ function Starred() {
   const [displayedStarsCount, setDisplayedStarsCount] = React.useState(
     STARRED_PAGINATION_LIMIT
   );
-  const { showToast } = useToasts();
   const { stars } = useStores();
   const { t } = useTranslation();
 
@@ -34,13 +32,10 @@ function Starred() {
           offset,
         });
       } catch (error) {
-        showToast(t("Starred documents could not be loaded"), {
-          type: "error",
-        });
         setFetchError(error);
       }
     },
-    [stars, showToast, t]
+    [stars]
   );
 
   React.useEffect(() => {

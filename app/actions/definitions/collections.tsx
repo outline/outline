@@ -17,9 +17,9 @@ import { createAction } from "~/actions";
 import { CollectionSection } from "~/actions/sections";
 import history from "~/utils/history";
 
-const ColorCollectionIcon = ({ collection }: { collection: Collection }) => {
-  return <DynamicCollectionIcon collection={collection} />;
-};
+const ColorCollectionIcon = ({ collection }: { collection: Collection }) => (
+  <DynamicCollectionIcon collection={collection} />
+);
 
 export const openCollection = createAction({
   name: ({ t }) => t("Open collection"),

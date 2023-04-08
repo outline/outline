@@ -30,9 +30,7 @@ export default function DocumentScene(props: Props) {
     setLastVisitedPath(currentPath);
   }, [currentPath, setLastVisitedPath]);
 
-  React.useEffect(() => {
-    return () => ui.clearActiveDocument();
-  }, [ui]);
+  React.useEffect(() => () => ui.clearActiveDocument(), [ui]);
 
   // the urlId portion of the url does not include the slugified title
   // we only want to force a re-mount of the document component when the

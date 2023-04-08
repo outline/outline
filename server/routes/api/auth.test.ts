@@ -5,13 +5,11 @@ import { getTestServer } from "@server/test/support";
 
 const mockTeamInSessionId = "1e023d05-951c-41c6-9012-c9fa0402e1c3";
 
-jest.mock("@server/utils/authentication", () => {
-  return {
-    getSessionsInCookie() {
-      return { [mockTeamInSessionId]: {} };
-    },
-  };
-});
+jest.mock("@server/utils/authentication", () => ({
+  getSessionsInCookie() {
+    return { [mockTeamInSessionId]: {} };
+  },
+}));
 
 const server = getTestServer();
 

@@ -51,31 +51,27 @@ export default class SimpleImage extends Node {
         },
         {
           tag: "img",
-          getAttrs: (dom: HTMLImageElement) => {
-            return {
-              src: dom.getAttribute("src"),
-              alt: dom.getAttribute("alt"),
-              title: dom.getAttribute("title"),
-            };
-          },
+          getAttrs: (dom: HTMLImageElement) => ({
+            src: dom.getAttribute("src"),
+            alt: dom.getAttribute("alt"),
+            title: dom.getAttribute("title"),
+          }),
         },
       ],
-      toDOM: (node) => {
-        return [
-          "div",
+      toDOM: (node) => [
+        "div",
+        {
+          class: "image",
+        },
+        [
+          "img",
           {
-            class: "image",
+            ...node.attrs,
+            src: sanitizeUrl(node.attrs.src),
+            contentEditable: "false",
           },
-          [
-            "img",
-            {
-              ...node.attrs,
-              src: sanitizeUrl(node.attrs.src),
-              contentEditable: "false",
-            },
-          ],
-        ];
-      },
+        ],
+      ],
     };
   }
 
@@ -155,9 +151,9 @@ export default class SimpleImage extends Node {
     }
   };
 
-  component = (props: ComponentProps) => {
-    return <ImageComponent {...props} onClick={this.handleSelect(props)} />;
-  };
+  component = (props: ComponentProps) => (
+    <ImageComponent {...props} onClick={this.handleSelect(props)} />
+  );
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     state.write(
@@ -172,16 +168,12 @@ export default class SimpleImage extends Node {
   parseMarkdown() {
     return {
       node: "image",
-      getAttrs: (token: Token) => {
-        return {
-          src: token.attrGet("src"),
-          alt:
-            (token?.children &&
-              token.children[0] &&
-              token.children[0].content) ||
-            null,
-        };
-      },
+      getAttrs: (token: Token) => ({
+        src: token.attrGet("src"),
+        alt:
+          (token?.children && token.children[0] && token.children[0].content) ||
+          null,
+      }),
     };
   }
 

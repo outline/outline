@@ -114,9 +114,8 @@ export default class Heading extends Node {
   }
 
   commands({ type, schema }: { type: NodeType; schema: Schema }) {
-    return (attrs: Record<string, any>) => {
-      return toggleBlockType(type, schema.nodes.paragraph, attrs);
-    };
+    return (attrs: Record<string, any>) =>
+      toggleBlockType(type, schema.nodes.paragraph, attrs);
   }
 
   handleFoldContent = (event: MouseEvent) => {
@@ -256,12 +255,9 @@ export default class Heading extends Node {
 
     const plugin: Plugin = new Plugin({
       state: {
-        init: (config, state) => {
-          return getAnchors(state.doc);
-        },
-        apply: (tr, oldState) => {
-          return tr.docChanged ? getAnchors(tr.doc) : oldState;
-        },
+        init: (config, state) => getAnchors(state.doc),
+        apply: (tr, oldState) =>
+          tr.docChanged ? getAnchors(tr.doc) : oldState,
       },
       props: {
         decorations: (state) => plugin.getState(state),

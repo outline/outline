@@ -101,8 +101,8 @@ function Slack() {
                   "links:read",
                   "links:write",
                   // TODO: Wait forever for Slack to approve these scopes.
-                  //"users:read",
-                  //"users:read.email",
+                  // "users:read",
+                  // "users:read.email",
                 ]}
                 redirectUri={`${env.URL}/auth/slack.commands`}
                 state={team.id}

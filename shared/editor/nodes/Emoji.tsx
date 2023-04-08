@@ -101,10 +101,10 @@ export default class Emoji extends Node {
             ) {
               const { pos } = view.state.selection.$from;
 
-              return run(view, pos, pos, OPEN_REGEX, (state, match) => {
+              return run(view, pos, pos, OPEN_REGEX, (state, match) =>
                 // just tell Prosemirror we handled it and not to do anything
-                return match ? true : null;
-              });
+                match ? true : null
+              );
             }
 
             return false;
@@ -189,9 +189,7 @@ export default class Emoji extends Node {
   parseMarkdown() {
     return {
       node: "emoji",
-      getAttrs: (tok: Token) => {
-        return { "data-name": tok.markup.trim() };
-      },
+      getAttrs: (tok: Token) => ({ "data-name": tok.markup.trim() }),
     };
   }
 }

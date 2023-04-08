@@ -160,16 +160,18 @@ const useSettingsConfig = () => {
         icon: ExportIcon,
       },
       // Integrations
-      ...mapValues(PluginLoader.plugins, (plugin) => {
-        return {
-          name: plugin.config.name,
-          path: integrationSettingsPath(plugin.id),
-          group: t("Integrations"),
-          component: plugin.settings,
-          enabled: !!plugin.settings && can.update,
-          icon: plugin.icon,
-        } as ConfigItem;
-      }),
+      ...mapValues(
+        PluginLoader.plugins,
+        (plugin) =>
+          ({
+            name: plugin.config.name,
+            path: integrationSettingsPath(plugin.id),
+            group: t("Integrations"),
+            component: plugin.settings,
+            enabled: !!plugin.settings && can.update,
+            icon: plugin.icon,
+          } as ConfigItem)
+      ),
       SelfHosted: {
         name: t("Self Hosted"),
         path: integrationSettingsPath("self-hosted"),

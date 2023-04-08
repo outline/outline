@@ -1,5 +1,4 @@
-export const opensearchResponse = (baseUrl: string): string => {
-  return `
+export const opensearchResponse = (baseUrl: string): string => `
 <OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/" xmlns:moz="http://www.mozilla.org/2006/browser/search/">
   <ShortName>Outline</ShortName>
   <Description>Search Outline</Description>
@@ -9,4 +8,3 @@ export const opensearchResponse = (baseUrl: string): string => {
   <moz:SearchForm>${baseUrl}/search</moz:SearchForm>
 </OpenSearchDescription>
 `;
-};

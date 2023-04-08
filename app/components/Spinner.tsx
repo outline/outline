@@ -22,7 +22,7 @@ export default function Spinner({ color, ...props }: Props) {
         cx="8"
         cy="8"
         r="6"
-      ></Circle>
+      />
     </SVG>
   );
 }

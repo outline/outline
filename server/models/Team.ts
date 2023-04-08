@@ -202,9 +202,8 @@ class Team extends ParanoidModel {
    * @param fallback An optional fallback value, defaults to false.
    * @returns The preference value if set, else undefined
    */
-  public getPreference = (preference: TeamPreference, fallback = false) => {
-    return this.preferences?.[preference] ?? fallback;
-  };
+  public getPreference = (preference: TeamPreference, fallback = false) =>
+    this.preferences?.[preference] ?? fallback;
 
   provisionFirstCollection = async (userId: string) => {
     await this.sequelize!.transaction(async (transaction) => {

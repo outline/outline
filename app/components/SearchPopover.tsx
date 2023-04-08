@@ -158,21 +158,19 @@ function SearchPopover({ shareId }: Props) {
   return (
     <>
       <PopoverDisclosure {...popover}>
-        {(props) => {
+        {(props) => (
           // props assumes the disclosure is a button, but we want a type-ahead
           // so we take the aria props, and ref and ignore the event handlers
-          return (
-            <StyledInputSearch
-              aria-controls={props["aria-controls"]}
-              aria-expanded={props["aria-expanded"]}
-              aria-haspopup={props["aria-haspopup"]}
-              ref={props.ref}
-              onChange={handleSearchInputChange}
-              onFocus={handleSearchInputFocus}
-              onKeyDown={handleKeyDown}
-            />
-          );
-        }}
+          <StyledInputSearch
+            aria-controls={props["aria-controls"]}
+            aria-expanded={props["aria-expanded"]}
+            aria-haspopup={props["aria-haspopup"]}
+            ref={props.ref}
+            onChange={handleSearchInputChange}
+            onFocus={handleSearchInputFocus}
+            onKeyDown={handleKeyDown}
+          />
+        )}
       </PopoverDisclosure>
       <Popover
         {...popover}

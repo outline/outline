@@ -114,10 +114,9 @@ function CommentThread({
             scrollMode: "if-needed",
             behavior: "smooth",
             block: "start",
-            boundary: (parent) => {
+            boundary: (parent) =>
               // Prevents body and other parent elements from being scrolled
-              return parent.id !== "comments";
-            },
+              parent.id !== "comments",
           });
         },
         isVisible ? 0 : sidebarAppearDuration

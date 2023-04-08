@@ -115,9 +115,10 @@ const teamUpdater = async ({ params, user, team, ip }: TeamUpdaterProps) => {
       transaction,
     });
     if (changes) {
-      const data = changes.reduce((acc, curr) => {
-        return { ...acc, [curr]: team[curr] };
-      }, {});
+      const data = changes.reduce(
+        (acc, curr) => ({ ...acc, [curr]: team[curr] }),
+        {}
+      );
 
       await Event.create(
         {

@@ -61,8 +61,9 @@ function Toast({ closeAfterMs = 3000, onRequestClose, toast }: Props) {
         {type === "loading" && <Spinner color="currentColor" />}
         {type === "info" && <InfoIcon color="currentColor" />}
         {type === "success" && <CheckboxIcon checked color="currentColor" />}
-        {type === "warning" ||
-          (type === "error" && <WarningIcon color="currentColor" />)}
+        {(type === "warning" || type === "error") && (
+          <WarningIcon color="currentColor" />
+        )}
         <Message>{toast.message}</Message>
         {action && <Action onClick={action.onClick}>{action.text}</Action>}
       </Container>

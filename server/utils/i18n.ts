@@ -30,8 +30,8 @@ export function initI18n() {
   i18n.use(backend).init({
     compatibilityJSON: "v3",
     backend: {
-      loadPath: (language: string) => {
-        return path.resolve(
+      loadPath: (language: string) =>
+        path.resolve(
           path.join(
             __dirname,
             "..",
@@ -42,8 +42,7 @@ export function initI18n() {
             unicodeBCP47toCLDR(language),
             "translation.json"
           )
-        );
-      },
+        ),
     },
     preload: languages.map(unicodeCLDRtoBCP47),
     interpolation: {

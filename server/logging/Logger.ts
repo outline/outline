@@ -126,9 +126,9 @@ class Logger {
         }
 
         if (request) {
-          scope.addEventProcessor((event) => {
-            return Sentry.Handlers.parseRequest(event, request);
-          });
+          scope.addEventProcessor((event) =>
+            Sentry.Handlers.parseRequest(event, request)
+          );
         }
 
         Sentry.captureException(error);

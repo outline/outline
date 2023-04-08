@@ -26,12 +26,10 @@ const Content = styled.div`
   `};
 `;
 
-const CenteredContent: React.FC<Props> = ({ children, ...rest }) => {
-  return (
-    <Container {...rest}>
-      <Content>{children}</Content>
-    </Container>
-  );
-};
+const CenteredContent: React.FC<Props> = ({ children, ...rest }) => (
+  <Container {...rest}>
+    <Content>{children}</Content>
+  </Container>
+);
 
 export default CenteredContent;

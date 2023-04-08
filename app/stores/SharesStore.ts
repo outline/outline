@@ -99,7 +99,6 @@ export default class SharesStore extends BaseStore<Share> {
     return undefined;
   };
 
-  getByDocumentId = (documentId: string): Share | null | undefined => {
-    return find(this.orderedData, (share) => share.documentId === documentId);
-  };
+  getByDocumentId = (documentId: string): Share | null | undefined =>
+    find(this.orderedData, (share) => share.documentId === documentId);
 }

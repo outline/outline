@@ -59,20 +59,17 @@ export default abstract class BaseModel {
   };
 
   updateFromJson = (data: any) => {
-    //const isNew = !data.id && !this.id && this.isNew;
+    // const isNew = !data.id && !this.id && this.isNew;
     set(this, { ...data, isNew: false });
     this.persistedAttributes = this.toAPI();
   };
 
-  fetch = (options?: any) => {
-    return this.store.fetch(this.id, options);
-  };
+  fetch = (options?: any) => this.store.fetch(this.id, options);
 
-  refresh = () => {
-    return this.fetch({
+  refresh = () =>
+    this.fetch({
       force: true,
     });
-  };
 
   delete = async () => {
     this.isSaving = true;

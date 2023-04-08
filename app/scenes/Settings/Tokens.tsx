@@ -10,7 +10,6 @@ import Heading from "~/components/Heading";
 import Modal from "~/components/Modal";
 import PaginatedList from "~/components/PaginatedList";
 import Scene from "~/components/Scene";
-import Subheading from "~/components/Subheading";
 import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -59,7 +58,7 @@ function Tokens() {
       <PaginatedList
         fetch={apiKeys.fetchPage}
         items={apiKeys.orderedData}
-        heading={<Subheading sticky>{t("Tokens")}</Subheading>}
+        heading={<h2>{t("Active")}</h2>}
         renderItem={(token: ApiKey) => (
           <TokenListItem key={token.id} token={token} />
         )}

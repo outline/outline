@@ -668,8 +668,8 @@ class Document extends ParanoidModel {
   };
 
   // Delete a document, archived or otherwise.
-  delete = (userId: string) => {
-    return this.sequelize.transaction(async (transaction: Transaction) => {
+  delete = (userId: string) =>
+    this.sequelize.transaction(async (transaction: Transaction) => {
       if (!this.archivedAt && !this.template && this.collectionId) {
         // delete any children and remove from the document structure
         const collection = await Collection.findByPk(this.collectionId, {
@@ -699,11 +699,8 @@ class Document extends ParanoidModel {
       );
       return this;
     });
-  };
 
-  getTimestamp = () => {
-    return Math.round(new Date(this.updatedAt).getTime() / 1000);
-  };
+  getTimestamp = () => Math.round(new Date(this.updatedAt).getTime() / 1000);
 
   getSummary = () => {
     const plainText = DocumentHelper.toPlainText(this);

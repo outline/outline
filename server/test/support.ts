@@ -6,8 +6,8 @@ import { User, Document, Collection, Team } from "@server/models";
 import onerror from "@server/onerror";
 import webService from "@server/services/web";
 
-export const seed = async () => {
-  return sequelize.transaction(async (transaction) => {
+export const seed = async () =>
+  sequelize.transaction(async (transaction) => {
     const team = await Team.create(
       {
         name: "Team",
@@ -97,7 +97,6 @@ export const seed = async () => {
       team,
     };
   });
-};
 
 export function getTestServer() {
   const app = webService();

@@ -63,11 +63,13 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
   const VERTICAL_PADDING = 6;
   const HORIZONTAL_PADDING = 24;
 
-  const searchIndex = React.useMemo(() => {
-    return new FuzzySearch(items, ["title"], {
-      caseSensitive: false,
-    });
-  }, [items]);
+  const searchIndex = React.useMemo(
+    () =>
+      new FuzzySearch(items, ["title"], {
+        caseSensitive: false,
+      }),
+    [items]
+  );
 
   React.useEffect(() => {
     if (searchTerm) {
@@ -119,9 +121,7 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
     setSearchTerm(ev.target.value);
   };
 
-  const isExpanded = (node: number) => {
-    return includes(expandedNodes, nodes[node].id);
-  };
+  const isExpanded = (node: number) => includes(expandedNodes, nodes[node].id);
 
   const calculateInitialScrollOffset = (itemCount: number) => {
     if (listRef.current) {
@@ -169,9 +169,7 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
     return selectedNodeId === nodeId;
   };
 
-  const hasChildren = (node: number) => {
-    return nodes[node].children.length > 0;
-  };
+  const hasChildren = (node: number) => nodes[node].children.length > 0;
 
   const toggleCollapse = (node: number) => {
     if (!hasChildren(node)) {
@@ -275,13 +273,9 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
     inputSearchRef.current?.focus();
   };
 
-  const next = () => {
-    return Math.min(activeNode + 1, nodes.length - 1);
-  };
+  const next = () => Math.min(activeNode + 1, nodes.length - 1);
 
-  const prev = () => {
-    return Math.max(activeNode - 1, 0);
-  };
+  const prev = () => Math.max(activeNode - 1, 0);
 
   const handleKeyDown = (ev: React.KeyboardEvent<HTMLDivElement>) => {
     switch (ev.key) {

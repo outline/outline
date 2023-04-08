@@ -14,18 +14,16 @@ type Props = {
   body?: PlaceholderTextProps;
 };
 
-const Placeholder = ({ count, className, header, body }: Props) => {
-  return (
-    <Fade>
-      {times(count || 2, (index) => (
-        <Item key={index} className={className} column auto>
-          <PlaceholderText {...header} header delay={0.2 * index} />
-          <PlaceholderText {...body} delay={0.2 * index} />
-        </Item>
-      ))}
-    </Fade>
-  );
-};
+const Placeholder = ({ count, className, header, body }: Props) => (
+  <Fade>
+    {times(count || 2, (index) => (
+      <Item key={index} className={className} column auto>
+        <PlaceholderText {...header} header delay={0.2 * index} />
+        <PlaceholderText {...body} delay={0.2 * index} />
+      </Item>
+    ))}
+  </Fade>
+);
 
 const Item = styled(Flex)`
   padding: 10px 0;
