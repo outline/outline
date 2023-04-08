@@ -4,15 +4,15 @@ import ApiKey from "~/models/ApiKey";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 
 type Props = {
-  token: ApiKey;
+  apiKey: ApiKey;
   onSubmit: () => void;
 };
 
-export default function TokenRevokeDialog({ token, onSubmit }: Props) {
+export default function ApiKeyRevokeDialog({ apiKey, onSubmit }: Props) {
   const { t } = useTranslation();
 
   const handleSubmit = async () => {
-    await token.delete();
+    await apiKey.delete();
     onSubmit();
   };
 
@@ -24,7 +24,7 @@ export default function TokenRevokeDialog({ token, onSubmit }: Props) {
       danger
     >
       {t("Are you sure you want to revoke the {{ tokenName }} token?", {
-        tokenName: token.name,
+        tokenName: apiKey.name,
       })}
     </ConfirmationDialog>
   );

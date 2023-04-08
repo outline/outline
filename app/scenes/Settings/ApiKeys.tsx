@@ -15,9 +15,9 @@ import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import TokenListItem from "./components/TokenListItem";
+import ApiKeyListItem from "./components/ApiKeyListItem";
 
-function Tokens() {
+function ApiKeys() {
   const team = useCurrentTeam();
   const { t } = useTranslation();
   const { apiKeys } = useStores();
@@ -59,14 +59,15 @@ function Tokens() {
         fetch={apiKeys.fetchPage}
         items={apiKeys.orderedData}
         heading={<h2>{t("Active")}</h2>}
-        renderItem={(token: ApiKey) => (
-          <TokenListItem key={token.id} token={token} />
+        renderItem={(apiKey: ApiKey) => (
+          <ApiKeyListItem key={apiKey.id} apiKey={apiKey} />
         )}
       />
       <Modal
         title={t("Create a token")}
         onRequestClose={handleNewModalClose}
         isOpen={newModalOpen}
+        isCentered
       >
         <APITokenNew onSubmit={handleNewModalClose} />
       </Modal>
@@ -74,4 +75,4 @@ function Tokens() {
   );
 }
 
-export default observer(Tokens);
+export default observer(ApiKeys);

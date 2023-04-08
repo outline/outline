@@ -10,10 +10,10 @@ import useToasts from "~/hooks/useToasts";
 import ApiKeyMenu from "~/menus/ApiKeyMenu";
 
 type Props = {
-  token: ApiKey;
+  apiKey: ApiKey;
 };
 
-const TokenListItem = ({ token }: Props) => {
+const ApiKeyListItem = ({ apiKey }: Props) => {
   const { t } = useTranslation();
   const { showToast } = useToasts();
   const [linkCopied, setLinkCopied] = React.useState<boolean>(false);
@@ -35,21 +35,21 @@ const TokenListItem = ({ token }: Props) => {
 
   return (
     <ListItem
-      key={token.id}
-      title={token.name}
-      subtitle={<code>{token.secret.slice(0, 15)}…</code>}
+      key={apiKey.id}
+      title={apiKey.name}
+      subtitle={<code>{apiKey.secret.slice(0, 15)}…</code>}
       actions={
         <Flex align="center" gap={8}>
-          <CopyToClipboard text={token.secret} onCopy={handleCopy}>
+          <CopyToClipboard text={apiKey.secret} onCopy={handleCopy}>
             <Button type="button" icon={<CopyIcon />} neutral borderOnHover>
               {linkCopied ? t("Copied") : t("Copy")}
             </Button>
           </CopyToClipboard>
-          <ApiKeyMenu token={token} />
+          <ApiKeyMenu apiKey={apiKey} />
         </Flex>
       }
     />
   );
 };
 
-export default TokenListItem;
+export default ApiKeyListItem;

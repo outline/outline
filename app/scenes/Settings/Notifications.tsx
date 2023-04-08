@@ -157,6 +157,7 @@ function Notifications() {
 
             return (
               <SettingRow
+                key={option.event}
                 visible={option.visible}
                 label={
                   <Flex align="center" gap={4}>

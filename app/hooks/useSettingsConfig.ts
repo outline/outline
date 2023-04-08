@@ -17,6 +17,7 @@ import {
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
+import ApiKeys from "~/scenes/Settings/ApiKeys";
 import Details from "~/scenes/Settings/Details";
 import Export from "~/scenes/Settings/Export";
 import Features from "~/scenes/Settings/Features";
@@ -30,7 +31,6 @@ import Profile from "~/scenes/Settings/Profile";
 import Security from "~/scenes/Settings/Security";
 import SelfHosted from "~/scenes/Settings/SelfHosted";
 import Shares from "~/scenes/Settings/Shares";
-import Tokens from "~/scenes/Settings/Tokens";
 import Zapier from "~/scenes/Settings/Zapier";
 import GoogleIcon from "~/components/Icons/GoogleIcon";
 import ZapierIcon from "~/components/Icons/ZapierIcon";
@@ -89,7 +89,7 @@ const useSettingsConfig = () => {
       Api: {
         name: t("API Tokens"),
         path: "/settings/tokens",
-        component: Tokens,
+        component: ApiKeys,
         enabled: can.createApiKey,
         group: t("Account"),
         icon: CodeIcon,
