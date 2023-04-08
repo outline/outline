@@ -1,5 +1,5 @@
 import * as React from "react";
-import type { Editor } from "~/editor";
+import { Editor } from "~/editor";
 
 export type DocumentContextValue = {
   /** The current editor instance for this document. */
