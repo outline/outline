@@ -11,7 +11,7 @@ import RegisterKeyDown from "~/components/RegisterKeyDown";
 import Sidebar from "~/components/Sidebar";
 import SidebarRight from "~/components/Sidebar/Right";
 import SettingsSidebar from "~/components/Sidebar/Settings";
-import type { Editor as TEditor } from "~/editor";
+import type { Editor as SharedEditor } from "~/editor";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import history from "~/utils/history";
@@ -43,7 +43,7 @@ const AuthenticatedLayout: React.FC = ({ children }) => {
   const { user, team } = auth;
   const documentContext = useLocalStore<DocumentContextValue>(() => ({
     editor: null,
-    setEditor: (editor: TEditor) => {
+    setEditor: (editor: SharedEditor) => {
       documentContext.editor = editor;
     },
   }));
