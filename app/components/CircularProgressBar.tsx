@@ -42,7 +42,7 @@ const Circle = ({
       style={{
         transition: "stroke-dashoffset 0.6s ease 0s",
       }}
-    ></circle>
+    />
   );
 };
 

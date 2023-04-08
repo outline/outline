@@ -31,6 +31,10 @@
     "no-mixed-operators": "off",
     "no-useless-escape": "off",
     "es/no-regexp-lookbehind-assertions": "error",
+    "react/self-closing-comp": ["error", {
+      "component": true,
+      "html": true
+    }],
     "@typescript-eslint/no-unused-vars": [
       "error",
       {
