@@ -1,6 +1,7 @@
+import { WarningIcon } from "outline-icons";
 import * as React from "react";
 import { Trans } from "react-i18next";
-import NoticeAlert from "~/components/NoticeAlert";
+import Notice from "~/components/Notice";
 import useQuery from "~/hooks/useQuery";
 
 export default function Notices() {
@@ -13,7 +14,7 @@ export default function Notices() {
   }
 
   return (
-    <NoticeAlert>
+    <Notice icon={<WarningIcon color="currentcolor" />}>
       {notice === "domain-required" && (
         <Trans>
           Unable to sign-in. Please navigate to your team's custom URL, then try
@@ -103,6 +104,6 @@ export default function Notices() {
           team domain.
         </Trans>
       )}
-    </NoticeAlert>
+    </Notice>
   );
 }
