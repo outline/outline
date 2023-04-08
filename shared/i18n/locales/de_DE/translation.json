@@ -489,7 +489,7 @@
   "Sorry, the last change could not be persisted – please reload the page": "Die letzte Änderung konnte leider nicht übernommen werden – bitte lade die Seite neu",
   "This template will be permanently deleted in <2></2> unless restored.": "Diese Vorlage wird dauerhaft in <2></2> gelöscht, wenn sie nicht wiederhergestellt wird.",
   "This document will be permanently deleted in <2></2> unless restored.": "Dieses Dokument wird dauerhaft in <2></2> gelöscht, wenn es nicht wiederhergestellt wird.",
-  "Highlight some text and use the <2></2> control to add placeholders that can be filled out when creating new documents": "Markiere eine Textstelle und nutze das <2></2>-Werkzeug, um Platzhalter hinzuzufügen, die beim Erstellen neuer Dokumente ausgefüllt werden können",
+  "Highlight some text and use the <1></1> control to add placeholders that can be filled out when creating new documents": "Highlight some text and use the <1></1> control to add placeholders that can be filled out when creating new documents",
   "You’re editing a template": "Du bearbeitest eine Vorlage",
   "Archived by {{userName}}": "Archiviert durch {{userName}}",
   "Deleted by {{userName}}": "Gelöscht von {{userName}}",
