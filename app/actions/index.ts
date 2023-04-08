@@ -49,9 +49,7 @@ export function actionToMenuItem(
   const title = resolve<string>(action.name, context);
   const icon =
     resolvedIcon && action.iconInContextMenu !== false
-      ? React.cloneElement(resolvedIcon, {
-          color: "currentColor",
-        })
+      ? resolvedIcon
       : undefined;
 
   if (resolvedChildren) {

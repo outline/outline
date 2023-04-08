@@ -76,11 +76,7 @@ function ReferenceListItem({
       {...rest}
     >
       <Content gap={4} dir="auto">
-        {emoji ? (
-          <EmojiIcon emoji={emoji} />
-        ) : (
-          <DocumentIcon color="currentColor" />
-        )}
+        {emoji ? <EmojiIcon emoji={emoji} /> : <DocumentIcon />}
         <Title>
           {emoji ? document.title.replace(emoji, "") : document.title}
         </Title>

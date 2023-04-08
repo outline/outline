@@ -58,7 +58,7 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
 
   switch (event.name) {
     case "revisions.create":
-      icon = <EditIcon color="currentColor" size={16} />;
+      icon = <EditIcon size={16} />;
       meta = t("{{userName}} edited", opts);
       to = {
         pathname: documentHistoryUrl(document, event.modelId || ""),
@@ -67,7 +67,7 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
       break;
 
     case "documents.live_editing":
-      icon = <LightningIcon color="currentColor" size={16} />;
+      icon = <LightningIcon size={16} />;
       meta = t("Latest");
       to = {
         pathname: documentHistoryUrl(document),
@@ -76,7 +76,7 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
       break;
 
     case "documents.archive":
-      icon = <ArchiveIcon color="currentColor" size={16} />;
+      icon = <ArchiveIcon size={16} />;
       meta = t("{{userName}} archived", opts);
       break;
 
@@ -85,7 +85,7 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
       break;
 
     case "documents.delete":
-      icon = <TrashIcon color="currentColor" size={16} />;
+      icon = <TrashIcon size={16} />;
       meta = t("{{userName}} deleted", opts);
       break;
 
@@ -94,17 +94,17 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
       break;
 
     case "documents.publish":
-      icon = <PublishIcon color="currentColor" size={16} />;
+      icon = <PublishIcon size={16} />;
       meta = t("{{userName}} published", opts);
       break;
 
     case "documents.unpublish":
-      icon = <UnpublishIcon color="currentColor" size={16} />;
+      icon = <UnpublishIcon size={16} />;
       meta = t("{{userName}} unpublished", opts);
       break;
 
     case "documents.move":
-      icon = <MoveIcon color="currentColor" size={16} />;
+      icon = <MoveIcon size={16} />;
       meta = t("{{userName}} moved", opts);
       break;
 

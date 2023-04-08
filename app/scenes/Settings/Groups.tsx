@@ -33,7 +33,7 @@ function Groups() {
   return (
     <Scene
       title={t("Groups")}
-      icon={<GroupIcon color="currentColor" />}
+      icon={<GroupIcon />}
       actions={
         <>
           {can.createGroup && (

@@ -29,7 +29,7 @@ function Webhooks() {
   return (
     <Scene
       title={t("Webhooks")}
-      icon={<WebhooksIcon color="currentColor" />}
+      icon={<WebhooksIcon />}
       actions={
         <>
           {can.createWebhookSubscription && (

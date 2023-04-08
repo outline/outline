@@ -220,6 +220,7 @@ const Menu = styled(CommentMenu)<{ dir?: "rtl" | "ltr" }>`
   top: 4px;
   opacity: 0;
   transition: opacity 100ms ease-in-out;
+  color: ${s("textSecondary")};
 
   &:hover,
   &[aria-expanded="true"] {

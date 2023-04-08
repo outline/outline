@@ -36,7 +36,7 @@ function TrashLink() {
       <div ref={dropToTrashDocument}>
         <SidebarLink
           to={trashPath()}
-          icon={<TrashIcon color="currentColor" open={isDocumentDropping} />}
+          icon={<TrashIcon open={isDocumentDropping} />}
           exact={false}
           label={t("Trash")}
           active={documents.active?.isDeleted}

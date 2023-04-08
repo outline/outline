@@ -220,11 +220,7 @@ function CollectionMenu({
         type: "submenu",
         title: t("Sort in sidebar"),
         visible: can.update,
-        icon: alphabeticalSort ? (
-          <AlphabeticalSortIcon color="currentColor" />
-        ) : (
-          <ManualSortIcon color="currentColor" />
-        ),
+        icon: alphabeticalSort ? <AlphabeticalSortIcon /> : <ManualSortIcon />,
         items: [
           {
             type: "button",

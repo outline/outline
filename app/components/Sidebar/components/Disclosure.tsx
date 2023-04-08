@@ -22,7 +22,7 @@ function Disclosure({ onClick, root, expanded, ...rest }: Props) {
       aria-label={expanded ? t("Collapse") : t("Expand")}
       {...rest}
     >
-      <StyledCollapsedIcon expanded={expanded} size={20} color="currentColor" />
+      <StyledCollapsedIcon expanded={expanded} size={20} />
     </Button>
   );
 }

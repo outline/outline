@@ -18,11 +18,7 @@ export default function FileExtension(props: Props) {
       style={{ background: stringToColor(extension || "") }}
       $size={props.size || 28}
     >
-      {extension ? (
-        <span>{extension?.slice(0, 4)}</span>
-      ) : (
-        <AttachmentIcon color="currentColor" />
-      )}
+      {extension ? <span>{extension?.slice(0, 4)}</span> : <AttachmentIcon />}
     </Icon>
   );
 }

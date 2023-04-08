@@ -178,6 +178,7 @@ const Actions = styled(EventBoundary)`
   margin: 8px;
   flex-shrink: 0;
   flex-grow: 0;
+  color: ${s("textSecondary")};
 
   ${NudeButton} {
     &:hover,

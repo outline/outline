@@ -32,7 +32,7 @@ function ArchiveLink() {
     <div ref={dropToArchiveDocument}>
       <SidebarLink
         to={archivePath()}
-        icon={<ArchiveIcon color="currentColor" open={isDocumentDropping} />}
+        icon={<ArchiveIcon open={isDocumentDropping} />}
         exact={false}
         label={t("Archive")}
         active={documents.active?.isArchived && !documents.active?.isDeleted}

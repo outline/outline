@@ -42,7 +42,7 @@ function EmptyCollection({ collection }: Props) {
       {can.update && (
         <Empty>
           <Link to={newDocumentPath(collection.id)}>
-            <Button icon={<NewDocumentIcon color="currentColor" />} neutral>
+            <Button icon={<NewDocumentIcon />} neutral>
               {t("Create a document")}
             </Button>
           </Link>

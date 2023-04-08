@@ -128,7 +128,7 @@ function DocumentCard(props: Props) {
                   : document.titleWithDefault}
               </Heading>
               <DocumentMeta size="xsmall">
-                <Clock color="currentColor" size={18} />
+                <Clock size={18} />
                 <Time
                   dateTime={document.updatedAt}
                   tooltipDelay={500}
@@ -143,7 +143,7 @@ function DocumentCard(props: Props) {
               {!isDragging && pin && (
                 <Tooltip tooltip={t("Unpin")}>
                   <PinButton onClick={handleUnpin} aria-label={t("Unpin")}>
-                    <CloseIcon color="currentColor" />
+                    <CloseIcon />
                   </PinButton>
                 </Tooltip>
               )}

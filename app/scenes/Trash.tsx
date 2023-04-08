@@ -13,7 +13,7 @@ function Trash() {
   const { t } = useTranslation();
   const { documents } = useStores();
   return (
-    <Scene icon={<TrashIcon color="currentColor" />} title={t("Trash")}>
+    <Scene icon={<TrashIcon />} title={t("Trash")}>
       <Heading>{t("Trash")}</Heading>
       <PaginatedDocumentList
         documents={documents.deleted}

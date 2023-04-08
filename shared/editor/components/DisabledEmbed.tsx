@@ -14,7 +14,7 @@ export default function DisabledEmbed(props: Props & ThemeProps<DefaultTheme>) {
       isSelected={props.isSelected}
       theme={props.theme}
     >
-      <OpenIcon color="currentColor" size={20} />
+      <OpenIcon size={20} />
     </Widget>
   );
 }

@@ -133,7 +133,7 @@ function Details() {
 
   return (
     <ThemeProvider theme={newTheme}>
-      <Scene title={t("Details")} icon={<TeamIcon color="currentColor" />}>
+      <Scene title={t("Details")} icon={<TeamIcon />}>
         <Heading>{t("Details")}</Heading>
         <Text type="secondary">
           <Trans>

@@ -137,7 +137,7 @@ function Security() {
   );
 
   return (
-    <Scene title={t("Security")} icon={<PadlockIcon color="currentColor" />}>
+    <Scene title={t("Security")} icon={<PadlockIcon />}>
       <Heading>{t("Security")}</Heading>
       <Text type="secondary">
         <Trans>
@@ -155,8 +155,7 @@ function Security() {
             key={provider.name}
             label={
               <Flex gap={8} align="center">
-                <PluginIcon id={provider.name} color="currentColor" />{" "}
-                {provider.displayName}
+                <PluginIcon id={provider.name} /> {provider.displayName}
               </Flex>
             }
             name={provider.name}
@@ -178,7 +177,7 @@ function Security() {
       <SettingRow
         label={
           <Flex gap={8} align="center">
-            <EmailIcon color="currentColor" /> {t("Email")}
+            <EmailIcon /> {t("Email")}
           </Flex>
         }
         name="guestSignin"

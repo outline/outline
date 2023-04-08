@@ -78,15 +78,11 @@ const MenuItem = (
         >
           {selected !== undefined && (
             <>
-              {selected ? <CheckmarkIcon color="currentColor" /> : <Spacer />}
+              {selected ? <CheckmarkIcon /> : <Spacer />}
               &nbsp;
             </>
           )}
-          {icon && (
-            <MenuIconWrapper>
-              {React.cloneElement(icon, { color: "currentColor" })}
-            </MenuIconWrapper>
-          )}
+          {icon && <MenuIconWrapper>{icon}</MenuIconWrapper>}
           {children}
         </MenuAnchor>
       )}

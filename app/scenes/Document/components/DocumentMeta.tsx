@@ -59,7 +59,7 @@ function TitleDocumentMeta({ to, isDraft, document, ...rest }: Props) {
             to={documentUrl(document)}
             onClick={() => ui.toggleComments(document.id)}
           >
-            <CommentIcon color="currentColor" size={18} />
+            <CommentIcon size={18} />
             {commentsCount
               ? t("{{ count }} comment", { count: commentsCount })
               : t("Comment")}

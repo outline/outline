@@ -14,7 +14,7 @@ function Zapier() {
   const appName = env.APP_NAME;
 
   return (
-    <Scene title="Zapier" icon={<ZapierIcon color="currentColor" />}>
+    <Scene title="Zapier" icon={<ZapierIcon />}>
       <Heading>Zapier</Heading>
       <Helmet>
         <script

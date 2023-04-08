@@ -47,7 +47,7 @@ function ToolbarMenu(props: Props) {
         return (
           <Tooltip tooltip={item.tooltip} key={index}>
             <ToolbarButton onClick={handleClick(item)} active={isActive}>
-              {React.cloneElement(item.icon, { color: "currentColor" })}
+              {item.icon}
             </ToolbarButton>
           </Tooltip>
         );

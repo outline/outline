@@ -48,7 +48,7 @@ function Export() {
   );
 
   return (
-    <Scene title={t("Export")} icon={<DownloadIcon color="currentColor" />}>
+    <Scene title={t("Export")} icon={<DownloadIcon />}>
       <Heading>{t("Export")}</Heading>
       <Text type="secondary">
         <Trans
