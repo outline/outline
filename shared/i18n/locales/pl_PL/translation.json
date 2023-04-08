@@ -489,7 +489,7 @@
   "Sorry, the last change could not be persisted – please reload the page": "Sorry, the last change could not be persisted – please reload the page",
   "This template will be permanently deleted in <2></2> unless restored.": "Ten szablon zostanie trwale usunięty w <2></2> chyba że zostanie przywrócony.",
   "This document will be permanently deleted in <2></2> unless restored.": "Ten dokument zostanie trwale usunięty w <2></2> chyba że zostanie przywrócony.",
-  "Highlight some text and use the <2></2> control to add placeholders that can be filled out when creating new documents": "Zaznacz jakiś tekst i użyj kontroli <2></2> aby dodać symbole zastępcze, które mogą być wypełnione podczas tworzenia nowych dokumentów",
+  "Highlight some text and use the <1></1> control to add placeholders that can be filled out when creating new documents": "Highlight some text and use the <1></1> control to add placeholders that can be filled out when creating new documents",
   "You’re editing a template": "Edytujesz szablon",
   "Archived by {{userName}}": "Zarchiwizowane przez {{userName}}",
   "Deleted by {{userName}}": "Usunięte przez {{userName}}",
