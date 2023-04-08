@@ -21,30 +21,79 @@ export default class NotificationsProcessor extends BaseProcessor {
       return;
     }
 
+    const notificationId = notification.id;
+
     switch (notification.event) {
       case NotificationEventType.UpdateDocument:
       case NotificationEventType.PublishDocument: {
-        await new DocumentPublishedOrUpdatedEmail(notification).schedule();
+        await new DocumentPublishedOrUpdatedEmail(
+          {
+            to: notification.user.email,
+            userId: notification.userId,
+            eventType: notification.event,
+            revisionId: notification.revisionId,
+            documentId: notification.documentId,
+            teamUrl: notification.team.url,
+            actorName: notification.actor.name,
+          },
+          { notificationId }
+        ).schedule();
         return;
       }
 
       case NotificationEventType.MentionedInDocument: {
-        await new DocumentMentionedEmail(notification).schedule();
+        await new DocumentMentionedEmail(
+          {
+            to: notification.user.email,
+            documentId: notification.documentId,
+            teamUrl: notification.team.url,
+            actorName: notification.actor.name,
+          },
+          { notificationId }
+        ).schedule();
         return;
       }
 
       case NotificationEventType.MentionedInComment: {
-        await new CommentMentionedEmail(notification).schedule();
+        await new CommentMentionedEmail(
+          {
+            to: notification.user.email,
+            userId: notification.userId,
+            documentId: notification.documentId,
+            teamUrl: notification.team.url,
+            actorName: notification.actor.name,
+            commentId: notification.commentId,
+          },
+          { notificationId: notification.id }
+        ).schedule();
         return;
       }
 
       case NotificationEventType.CreateCollection: {
-        await new CollectionCreatedEmail(notification).schedule();
+        await new CollectionCreatedEmail(
+          {
+            to: notification.user.email,
+            userId: notification.userId,
+            collectionId: notification.collectionId,
+            teamUrl: notification.team.url,
+          },
+          { notificationId: notification.id }
+        ).schedule();
         return;
       }
 
       case NotificationEventType.CreateComment: {
-        await new CommentCreatedEmail(notification).schedule();
+        await new CommentCreatedEmail(
+          {
+            to: notification.user.email,
+            userId: notification.userId,
+            documentId: notification.documentId,
+            teamUrl: notification.team.url,
+            actorName: notification.actor.name,
+            commentId: notification.commentId,
+          },
+          { notificationId: notification.id }
+        ).schedule();
       }
     }
   }

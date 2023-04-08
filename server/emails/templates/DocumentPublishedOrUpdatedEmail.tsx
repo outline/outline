@@ -3,13 +3,7 @@ import * as React from "react";
 import { NotificationEventType } from "@shared/types";
 import { Day } from "@shared/utils/time";
 import env from "@server/env";
-import {
-  Document,
-  Collection,
-  User,
-  Revision,
-  Notification,
-} from "@server/models";
+import { Document, Collection, User, Revision } from "@server/models";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import BaseEmail, { EmailProps } from "./BaseEmail";
@@ -50,25 +44,6 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
   InputProps,
   BeforeSend
 > {
-  public constructor(notification: Notification) {
-    super(
-      {
-        to: notification.user.email,
-        userId: notification.userId,
-        eventType: notification.event as
-          | NotificationEventType.PublishDocument
-          | NotificationEventType.UpdateDocument,
-        revisionId: notification.revisionId,
-        documentId: notification.documentId,
-        teamUrl: notification.team.url,
-        actorName: notification.actor.name,
-      },
-      {
-        notificationId: notification.id,
-      }
-    );
-  }
-
   protected async beforeSend({
     documentId,
     revisionId,
