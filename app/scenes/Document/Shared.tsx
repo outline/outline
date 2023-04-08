@@ -1,7 +1,7 @@
 import { Location } from "history";
 import { observer } from "mobx-react";
 import * as React from "react";
-import { Helmet } from "react-helmet";
+import { Helmet } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 import { RouteComponentProps, useLocation, Redirect } from "react-router-dom";
 import styled, { ThemeProvider } from "styled-components";
