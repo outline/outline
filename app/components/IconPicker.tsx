@@ -240,29 +240,27 @@ function IconPicker({ onOpen, onClose, icon, color, onChange }: Props) {
         aria-label={t("Choose icon")}
       >
         <Icons>
-          {Object.keys(icons).map((name, index) => {
-            return (
-              <MenuItem
-                key={name}
-                onClick={() => onChange(color, name)}
-                {...menu}
-              >
-                {(props) => (
-                  <IconButton
-                    style={
-                      {
-                        ...style,
-                        "--delay": `${index * 8}ms`,
-                      } as React.CSSProperties
-                    }
-                    {...props}
-                  >
-                    <Icon as={icons[name].component} color={color} size={30} />
-                  </IconButton>
-                )}
-              </MenuItem>
-            );
-          })}
+          {Object.keys(icons).map((name, index) => (
+            <MenuItem
+              key={name}
+              onClick={() => onChange(color, name)}
+              {...menu}
+            >
+              {(props) => (
+                <IconButton
+                  style={
+                    {
+                      ...style,
+                      "--delay": `${index * 8}ms`,
+                    } as React.CSSProperties
+                  }
+                  {...props}
+                >
+                  <Icon as={icons[name].component} color={color} size={30} />
+                </IconButton>
+              )}
+            </MenuItem>
+          ))}
         </Icons>
         <Colors>
           <React.Suspense

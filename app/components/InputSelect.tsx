@@ -46,9 +46,8 @@ export type Props = {
   onChange?: (value: string | null) => void;
 };
 
-const getOptionFromValue = (options: Option[], value: string | null) => {
-  return options.find((option) => option.value === value);
-};
+const getOptionFromValue = (options: Option[], value: string | null) =>
+  options.find((option) => option.value === value);
 
 const InputSelect = (props: Props) => {
   const {

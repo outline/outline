@@ -34,14 +34,12 @@ const Background = styled.div<{ sticky?: boolean }>`
   z-index: 1;
 `;
 
-const Subheading: React.FC<Props> = ({ children, sticky, ...rest }) => {
-  return (
-    <Background sticky={sticky}>
-      <H3 {...rest}>
-        <Underline>{children}</Underline>
-      </H3>
-    </Background>
-  );
-};
+const Subheading: React.FC<Props> = ({ children, sticky, ...rest }) => (
+  <Background sticky={sticky}>
+    <H3 {...rest}>
+      <Underline>{children}</Underline>
+    </H3>
+  </Background>
+);
 
 export default Subheading;

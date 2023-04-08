@@ -36,8 +36,8 @@ const AccountMenu: React.FC = ({ children }) => {
     }
   }, [menu, theme, previousTheme]);
 
-  const actions = React.useMemo(() => {
-    return [
+  const actions = React.useMemo(
+    () => [
       openKeyboardShortcuts,
       downloadApp,
       openAPIDocumentation,
@@ -50,8 +50,9 @@ const AccountMenu: React.FC = ({ children }) => {
       navigateToAccountPreferences,
       separator(),
       logout,
-    ];
-  }, []);
+    ],
+    []
+  );
 
   return (
     <>

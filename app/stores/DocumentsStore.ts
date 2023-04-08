@@ -303,81 +303,66 @@ export default class DocumentsStore extends BaseStore<Document> {
   };
 
   @action
-  fetchArchived = async (options?: PaginationParams): Promise<Document[]> => {
-    return this.fetchNamedPage("archived", options);
-  };
+  fetchArchived = async (options?: PaginationParams): Promise<Document[]> =>
+    this.fetchNamedPage("archived", options);
 
   @action
-  fetchDeleted = async (options?: PaginationParams): Promise<Document[]> => {
-    return this.fetchNamedPage("deleted", options);
-  };
+  fetchDeleted = async (options?: PaginationParams): Promise<Document[]> =>
+    this.fetchNamedPage("deleted", options);
 
   @action
   fetchRecentlyUpdated = async (
     options?: PaginationParams
-  ): Promise<Document[]> => {
-    return this.fetchNamedPage("list", options);
-  };
+  ): Promise<Document[]> => this.fetchNamedPage("list", options);
 
   @action
-  fetchTemplates = async (options?: PaginationParams): Promise<Document[]> => {
-    return this.fetchNamedPage("list", { ...options, template: true });
-  };
+  fetchTemplates = async (options?: PaginationParams): Promise<Document[]> =>
+    this.fetchNamedPage("list", { ...options, template: true });
 
   @action
-  fetchAlphabetical = async (
-    options?: PaginationParams
-  ): Promise<Document[]> => {
-    return this.fetchNamedPage("list", {
+  fetchAlphabetical = async (options?: PaginationParams): Promise<Document[]> =>
+    this.fetchNamedPage("list", {
       sort: "title",
       direction: "ASC",
       ...options,
     });
-  };
 
   @action
   fetchLeastRecentlyUpdated = async (
     options?: PaginationParams
-  ): Promise<Document[]> => {
-    return this.fetchNamedPage("list", {
+  ): Promise<Document[]> =>
+    this.fetchNamedPage("list", {
       sort: "updatedAt",
       direction: "ASC",
       ...options,
     });
-  };
 
   @action
   fetchRecentlyPublished = async (
     options?: PaginationParams
-  ): Promise<Document[]> => {
-    return this.fetchNamedPage("list", {
+  ): Promise<Document[]> =>
+    this.fetchNamedPage("list", {
       sort: "publishedAt",
       direction: "DESC",
       ...options,
     });
-  };
 
   @action
   fetchRecentlyViewed = async (
     options?: PaginationParams
-  ): Promise<Document[]> => {
-    return this.fetchNamedPage("viewed", options);
-  };
+  ): Promise<Document[]> => this.fetchNamedPage("viewed", options);
 
   @action
-  fetchStarred = (options?: PaginationParams): Promise<Document[]> => {
-    return this.fetchNamedPage("starred", options);
-  };
+  fetchStarred = (options?: PaginationParams): Promise<Document[]> =>
+    this.fetchNamedPage("starred", options);
 
   @action
-  fetchDrafts = (options?: PaginationParams): Promise<Document[]> => {
-    return this.fetchNamedPage("drafts", options);
-  };
+  fetchDrafts = (options?: PaginationParams): Promise<Document[]> =>
+    this.fetchNamedPage("drafts", options);
 
   @action
-  fetchOwned = (options?: PaginationParams): Promise<Document[]> => {
-    return this.fetchNamedPage("list", options);
-  };
+  fetchOwned = (options?: PaginationParams): Promise<Document[]> =>
+    this.fetchNamedPage("list", options);
 
   @action
   searchTitles = async (query: string, options?: SearchParams) => {
@@ -778,11 +763,10 @@ export default class DocumentsStore extends BaseStore<Document> {
     });
   };
 
-  star = (document: Document) => {
-    return this.rootStore.stars.create({
+  star = (document: Document) =>
+    this.rootStore.stars.create({
       documentId: document.id,
     });
-  };
 
   unstar = (document: Document) => {
     const star = this.rootStore.stars.orderedData.find(
@@ -791,12 +775,11 @@ export default class DocumentsStore extends BaseStore<Document> {
     return star?.delete();
   };
 
-  subscribe = (document: Document) => {
-    return this.rootStore.subscriptions.create({
+  subscribe = (document: Document) =>
+    this.rootStore.subscriptions.create({
       documentId: document.id,
       event: "documents.update",
     });
-  };
 
   unsubscribe = (userId: string, document: Document) => {
     const subscription = this.rootStore.subscriptions.orderedData.find(
@@ -808,9 +791,8 @@ export default class DocumentsStore extends BaseStore<Document> {
     return subscription?.delete();
   };
 
-  getByUrl = (url = ""): Document | undefined => {
-    return find(this.orderedData, (doc) => url.endsWith(doc.urlId));
-  };
+  getByUrl = (url = ""): Document | undefined =>
+    find(this.orderedData, (doc) => url.endsWith(doc.urlId));
 
   getCollectionForDocument(document: Document) {
     return this.rootStore.collections.data.get(document.collectionId);

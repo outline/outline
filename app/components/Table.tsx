@@ -195,23 +195,21 @@ export const Placeholder = ({
 }: {
   columns: number;
   rows?: number;
-}) => {
-  return (
-    <DelayedMount>
-      <tbody>
-        {new Array(rows).fill(1).map((_, row) => (
-          <Row key={row}>
-            {new Array(columns).fill(1).map((_, col) => (
-              <Cell key={col}>
-                <PlaceholderText minWidth={25} maxWidth={75} />
-              </Cell>
-            ))}
-          </Row>
-        ))}
-      </tbody>
-    </DelayedMount>
-  );
-};
+}) => (
+  <DelayedMount>
+    <tbody>
+      {new Array(rows).fill(1).map((_, row) => (
+        <Row key={row}>
+          {new Array(columns).fill(1).map((_, col) => (
+            <Cell key={col}>
+              <PlaceholderText minWidth={25} maxWidth={75} />
+            </Cell>
+          ))}
+        </Row>
+      ))}
+    </tbody>
+  </DelayedMount>
+);
 
 const Anchor = styled.div`
   top: -32px;

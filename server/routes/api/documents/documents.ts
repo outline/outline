@@ -1300,8 +1300,8 @@ router.post(
       authorize(user, "read", templateDocument);
     }
 
-    const document = await sequelize.transaction(async (transaction) => {
-      return documentCreator({
+    const document = await sequelize.transaction(async (transaction) =>
+      documentCreator({
         title,
         text,
         publish,
@@ -1313,8 +1313,8 @@ router.post(
         editorVersion,
         ip: ctx.request.ip,
         transaction,
-      });
-    });
+      })
+    );
 
     document.collection = collection;
 

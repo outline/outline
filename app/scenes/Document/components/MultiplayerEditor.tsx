@@ -185,13 +185,14 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     isMounted,
   ]);
 
-  const user = React.useMemo(() => {
-    return {
+  const user = React.useMemo(
+    () => ({
       id: currentUser.id,
       name: currentUser.name,
       color: currentUser.color,
-    };
-  }, [currentUser.id, currentUser.color, currentUser.name]);
+    }),
+    [currentUser.id, currentUser.color, currentUser.name]
+  );
 
   const extensions = React.useMemo(() => {
     if (!remoteProvider) {

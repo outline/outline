@@ -219,30 +219,28 @@ export default class Image extends SimpleImage {
     downloadImageNode(node);
   };
 
-  component = (props: ComponentProps) => {
-    return (
-      <ImageComponent
-        {...props}
-        onClick={this.handleSelect(props)}
-        onDownload={this.handleDownload(props)}
-        onChangeSize={this.handleChangeSize(props)}
+  component = (props: ComponentProps) => (
+    <ImageComponent
+      {...props}
+      onClick={this.handleSelect(props)}
+      onDownload={this.handleDownload(props)}
+      onChangeSize={this.handleChangeSize(props)}
+    >
+      <Caption
+        onKeyDown={this.handleKeyDown(props)}
+        onBlur={this.handleBlur(props)}
+        onMouseDown={this.handleMouseDown}
+        className="caption"
+        tabIndex={-1}
+        role="textbox"
+        contentEditable
+        suppressContentEditableWarning
+        data-caption={this.options.dictionary.imageCaptionPlaceholder}
       >
-        <Caption
-          onKeyDown={this.handleKeyDown(props)}
-          onBlur={this.handleBlur(props)}
-          onMouseDown={this.handleMouseDown}
-          className="caption"
-          tabIndex={-1}
-          role="textbox"
-          contentEditable
-          suppressContentEditableWarning
-          data-caption={this.options.dictionary.imageCaptionPlaceholder}
-        >
-          {props.node.attrs.alt}
-        </Caption>
-      </ImageComponent>
-    );
-  };
+        {props.node.attrs.alt}
+      </Caption>
+    </ImageComponent>
+  );
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     let markdown =
@@ -275,17 +273,13 @@ export default class Image extends SimpleImage {
   parseMarkdown() {
     return {
       node: "image",
-      getAttrs: (token: Token) => {
-        return {
-          src: token.attrGet("src"),
-          alt:
-            (token?.children &&
-              token.children[0] &&
-              token.children[0].content) ||
-            null,
-          ...parseTitleAttribute(token?.attrGet("title") || ""),
-        };
-      },
+      getAttrs: (token: Token) => ({
+        src: token.attrGet("src"),
+        alt:
+          (token?.children && token.children[0] && token.children[0].content) ||
+          null,
+        ...parseTitleAttribute(token?.attrGet("title") || ""),
+      }),
     };
   }
 

@@ -106,8 +106,8 @@ async function teamProvisioner({
   }
 
   // We cannot find an existing team, so we create a new one
-  const team = await sequelize.transaction((transaction) => {
-    return teamCreator({
+  const team = await sequelize.transaction((transaction) =>
+    teamCreator({
       name,
       domain,
       subdomain,
@@ -115,8 +115,8 @@ async function teamProvisioner({
       authenticationProviders: [authenticationProvider],
       ip,
       transaction,
-    });
-  });
+    })
+  );
 
   return {
     team,

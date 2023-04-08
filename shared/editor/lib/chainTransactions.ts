@@ -10,9 +10,10 @@ export default function chainTransactions(
       dispatch?.(tr);
     };
     const last = commands.pop();
-    const reduced = commands.reduce((result, command) => {
-      return result || command(state, dispatcher);
-    }, false);
+    const reduced = commands.reduce(
+      (result, command) => result || command(state, dispatcher),
+      false
+    );
     return reduced && last !== undefined && last(state, dispatch);
   };
 }

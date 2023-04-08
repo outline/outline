@@ -178,9 +178,7 @@ export default function Prism({
   return new Plugin({
     key: new PluginKey("prism"),
     state: {
-      init: (_: Plugin, { doc }) => {
-        return DecorationSet.create(doc, []);
-      },
+      init: (_: Plugin, { doc }) => DecorationSet.create(doc, []),
       apply: (transaction: Transaction, decorationSet, oldState, state) => {
         const nodeName = state.selection.$head.parent.type.name;
         const previousNodeName = oldState.selection.$head.parent.type.name;

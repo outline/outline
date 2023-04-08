@@ -4,8 +4,8 @@ import { useTranslation } from "react-i18next";
 export default function useDictionary() {
   const { t } = useTranslation();
 
-  return React.useMemo(() => {
-    return {
+  return React.useMemo(
+    () => ({
       addColumnAfter: t("Insert column after"),
       addColumnBefore: t("Insert column before"),
       addRowAfter: t("Insert row after"),
@@ -79,8 +79,9 @@ export default function useDictionary() {
       insertDate: t("Current date"),
       insertTime: t("Current time"),
       insertDateTime: t("Current date and time"),
-    };
-  }, [t]);
+    }),
+    [t]
+  );
 }
 
 export type Dictionary = ReturnType<typeof useDictionary>;

@@ -23,14 +23,12 @@ if (isProduction) {
   const returnFileAndImportsFromManifest = (
     manifest: ManifestStructure,
     file: string
-  ): string[] => {
-    return [
-      manifest[file]["file"],
-      ...manifest[file]["imports"].map((entry: string) => {
-        return manifest[entry]["file"];
-      }),
-    ];
-  };
+  ): string[] => [
+    manifest[file]["file"],
+    ...manifest[file]["imports"].map(
+      (entry: string) => manifest[entry]["file"]
+    ),
+  ];
 
   Array.from([
     ...returnFileAndImportsFromManifest(manifest, "app/index.tsx"),

@@ -25,10 +25,9 @@ function LinkSearchResult({
         scrollIntoView(node, {
           scrollMode: "if-needed",
           block: "center",
-          boundary: (parent) => {
+          boundary: (parent) =>
             // Prevents body and other parent elements from being scrolled
-            return parent !== containerRef.current;
-          },
+            parent !== containerRef.current,
         });
       }
     },

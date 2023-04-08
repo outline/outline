@@ -218,9 +218,8 @@ export default class CollectionsStore extends BaseStore<Collection> {
     this.rootStore.documents.fetchRecentlyViewed();
   };
 
-  export = (format: FileOperationFormat) => {
-    return client.post("/collections.export_all", {
+  export = (format: FileOperationFormat) =>
+    client.post("/collections.export_all", {
       format,
     });
-  };
 }

@@ -123,14 +123,13 @@ class AuthenticationProvider extends Model {
     }
   };
 
-  enable = (options?: SaveOptions<AuthenticationProvider>) => {
-    return this.update(
+  enable = (options?: SaveOptions<AuthenticationProvider>) =>
+    this.update(
       {
         enabled: true,
       },
       options
     );
-  };
 }
 
 export default AuthenticationProvider;

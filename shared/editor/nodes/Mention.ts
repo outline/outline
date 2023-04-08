@@ -47,19 +47,17 @@ export default class Mention extends Node {
           }),
         },
       ],
-      toDOM: (node) => {
-        return [
-          "span",
-          {
-            class: `${node.type.name}`,
-            id: node.attrs.id,
-            "data-type": node.attrs.type,
-            "data-id": node.attrs.modelId,
-            "data-actorId": node.attrs.actorId,
-          },
-          node.attrs.label,
-        ];
-      },
+      toDOM: (node) => [
+        "span",
+        {
+          class: `${node.type.name}`,
+          id: node.attrs.id,
+          "data-type": node.attrs.type,
+          "data-id": node.attrs.modelId,
+          "data-actorId": node.attrs.actorId,
+        },
+        node.attrs.label,
+      ],
       toPlainText: (node) => `@${node.attrs.label}`,
     };
   }
@@ -109,10 +107,10 @@ export default class Mention extends Node {
             ) {
               const { pos } = view.state.selection.$from;
 
-              return run(view, pos, pos, OPEN_REGEX, (state, match) => {
+              return run(view, pos, pos, OPEN_REGEX, (state, match) =>
                 // just tell Prosemirror we handled it and not to do anything
-                return match ? true : null;
-              });
+                match ? true : null
+              );
             }
 
             return false;

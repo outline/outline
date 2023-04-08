@@ -64,15 +64,12 @@ export default abstract class BaseModel {
     this.persistedAttributes = this.toAPI();
   };
 
-  fetch = (options?: any) => {
-    return this.store.fetch(this.id, options);
-  };
+  fetch = (options?: any) => this.store.fetch(this.id, options);
 
-  refresh = () => {
-    return this.fetch({
+  refresh = () =>
+    this.fetch({
       force: true,
     });
-  };
 
   delete = async () => {
     this.isSaving = true;

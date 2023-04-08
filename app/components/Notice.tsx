@@ -9,24 +9,22 @@ type Props = {
   description?: JSX.Element;
 };
 
-const Notice: React.FC<Props> = ({ children, icon, description }) => {
-  return (
-    <Container>
-      <Flex as="span" gap={8}>
-        {icon}
-        <span>
-          <Title>{children}</Title>
-          {description && (
-            <>
-              <br />
-              {description}
-            </>
-          )}
-        </span>
-      </Flex>
-    </Container>
-  );
-};
+const Notice: React.FC<Props> = ({ children, icon, description }) => (
+  <Container>
+    <Flex as="span" gap={8}>
+      {icon}
+      <span>
+        <Title>{children}</Title>
+        {description && (
+          <>
+            <br />
+            {description}
+          </>
+        )}
+      </span>
+    </Flex>
+  </Container>
+);
 
 const Title = styled.span`
   font-weight: 500;

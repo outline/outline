@@ -90,13 +90,8 @@ class User extends ParanoidModel {
    * @param type The type of notification event
    * @returns The current preference
    */
-  public subscribedToEventType = (type: NotificationEventType) => {
-    return (
-      this.notificationSettings[type] ??
-      NotificationEventDefaults[type] ??
-      false
-    );
-  };
+  public subscribedToEventType = (type: NotificationEventType) =>
+    this.notificationSettings[type] ?? NotificationEventDefaults[type] ?? false;
 
   /**
    * Sets a preference for the users notification settings on the model and

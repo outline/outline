@@ -49,13 +49,11 @@ const PublicBreadcrumb: React.FC<Props> = ({
     () =>
       pathToDocument(sharedTree, documentId)
         .slice(0, -1)
-        .map((item) => {
-          return {
-            ...item,
-            type: "route",
-            to: sharedDocumentPath(shareId, item.url),
-          };
-        }),
+        .map((item) => ({
+          ...item,
+          type: "route",
+          to: sharedDocumentPath(shareId, item.url),
+        })),
     [sharedTree, shareId, documentId]
   );
 
