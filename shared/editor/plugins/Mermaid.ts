@@ -76,22 +76,23 @@ function getNewState({
             theme: pluginState.isDark ? "dark" : "default",
             fontFamily: "inherit",
           });
-
-          module.default
-            .render("mermaid-diagram-" + diagramId, block.node.textContent)
-            .then(({ svg, bindFunctions }) => {
-              element.innerHTML = svg;
-              bindFunctions?.(element);
-            })
-            .catch((error) => {
-              console.log(error);
-              const errorNode = document.getElementById(
-                "d" + "mermaid-diagram-" + diagramId
-              );
-              if (errorNode) {
-                element.appendChild(errorNode);
+          try {
+            module.default.render(
+              "mermaid-diagram-" + diagramId,
+              block.node.textContent,
+              (svgCode) => {
+                element.innerHTML = svgCode;
               }
-            });
+            );
+          } catch (error) {
+            console.log(error);
+            const errorNode = document.getElementById(
+              "d" + "mermaid-diagram-" + diagramId
+            );
+            if (errorNode) {
+              element.appendChild(errorNode);
+            }
+          }
         });
 
         return element;
