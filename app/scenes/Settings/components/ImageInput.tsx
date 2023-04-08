@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import Avatar, { IAvatar } from "~/components/Avatar/Avatar";
 import Flex from "~/components/Flex";
 import ImageUpload, { Props as ImageUploadProps } from "./ImageUpload";
@@ -38,8 +39,8 @@ const ImageBox = styled(Flex)`
   position: relative;
   font-size: 14px;
   border-radius: 8px;
-  box-shadow: 0 0 0 1px ${(props) => props.theme.secondaryBackground};
-  background: ${(props) => props.theme.background};
+  box-shadow: 0 0 0 1px ${s("secondaryBackground")};
+  background: ${s("background")};
   overflow: hidden;
 
   .upload {

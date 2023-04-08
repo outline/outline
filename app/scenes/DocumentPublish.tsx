@@ -3,6 +3,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import styled from "styled-components";
+import { ellipsis } from "@shared/styles";
 import { NavigationNode } from "@shared/types";
 import Document from "~/models/Document";
 import Button from "~/components/Button";
@@ -12,7 +13,6 @@ import Text from "~/components/Text";
 import useCollectionTrees from "~/hooks/useCollectionTrees";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
-import { ellipsis } from "~/styles";
 import { flattenTree } from "~/utils/tree";
 
 type Props = {

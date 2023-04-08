@@ -1,6 +1,7 @@
 import { SearchIcon } from "outline-icons";
 import * as React from "react";
 import styled, { useTheme } from "styled-components";
+import { s } from "@shared/styles";
 import Flex from "~/components/Flex";
 
 type Props = React.HTMLAttributes<HTMLInputElement> & {
@@ -57,26 +58,26 @@ const StyledInput = styled.input`
   font-weight: 400;
   outline: none;
   border: 0;
-  background: ${(props) => props.theme.sidebarBackground};
-  transition: ${(props) => props.theme.backgroundTransition};
+  background: ${s("sidebarBackground")};
+  transition: ${s("backgroundTransition")};
   border-radius: 4px;
 
-  color: ${(props) => props.theme.text};
+  color: ${s("text")};
 
   ::-webkit-search-cancel-button {
     -webkit-appearance: none;
   }
   ::-webkit-input-placeholder {
-    color: ${(props) => props.theme.placeholder};
+    color: ${s("placeholder")};
   }
   :-moz-placeholder {
-    color: ${(props) => props.theme.placeholder};
+    color: ${s("placeholder")};
   }
   ::-moz-placeholder {
-    color: ${(props) => props.theme.placeholder};
+    color: ${s("placeholder")};
   }
   :-ms-input-placeholder {
-    color: ${(props) => props.theme.placeholder};
+    color: ${s("placeholder")};
   }
 `;
 

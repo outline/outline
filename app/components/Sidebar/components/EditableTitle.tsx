@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import useToasts from "~/hooks/useToasts";
 
 type Props = {
@@ -113,8 +114,8 @@ function EditableTitle({
 }
 
 const Input = styled.input`
-  color: ${(props) => props.theme.text};
-  background: ${(props) => props.theme.background};
+  color: ${s("text")};
+  background: ${s("background")};
   width: calc(100% + 12px);
   border-radius: 3px;
   border: 0;
@@ -123,7 +124,7 @@ const Input = styled.input`
   height: 32px;
 
   &:focus {
-    outline-color: ${(props) => props.theme.accent};
+    outline-color: ${s("accent")};
   }
 `;
 

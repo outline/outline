@@ -5,6 +5,7 @@ import * as React from "react";
 import AvatarEditor from "react-avatar-editor";
 import Dropzone from "react-dropzone";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import { AttachmentPreset } from "@shared/types";
 import { AttachmentValidation } from "@shared/validations";
 import RootStore from "~/stores/RootStore";
@@ -170,7 +171,7 @@ const RangeInput = styled.input`
     height: 16px;
     width: 16px;
     border-radius: 50%;
-    background: ${(props) => props.theme.text};
+    background: ${s("text")};
     cursor: var(--pointer);
   }
 

@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import { RouteComponentProps, useLocation, Redirect } from "react-router-dom";
 import styled, { ThemeProvider } from "styled-components";
 import { setCookie } from "tiny-cookie";
+import { s } from "@shared/styles";
 import { CustomTheme, NavigationNode } from "@shared/types";
 import DocumentModel from "~/models/Document";
 import Error404 from "~/scenes/Error404";
@@ -197,7 +198,7 @@ function SharedDocumentScene(props: Props) {
 }
 
 const Content = styled(Text)`
-  color: ${(props) => props.theme.textSecondary};
+  color: ${s("textSecondary")};
   text-align: center;
   margin-top: -8px;
 `;

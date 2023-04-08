@@ -2,6 +2,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { s } from "@shared/styles";
 import Arrow from "~/components/Arrow";
 
 type Props = {
@@ -39,10 +40,10 @@ export const ToggleButton = styled.button<{ $direction?: "left" | "right" }>`
   padding: 8px;
   border: 0;
   pointer-events: none;
-  color: ${(props) => props.theme.divider};
+  color: ${s("divider")};
 
   &:active {
-    color: ${(props) => props.theme.sidebarText};
+    color: ${s("sidebarText")};
   }
 
   ${breakpoint("tablet")`

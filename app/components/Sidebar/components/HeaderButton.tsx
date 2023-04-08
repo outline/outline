@@ -1,6 +1,7 @@
 import { ExpandedIcon, MoreIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import Flex from "~/components/Flex";
 import { undraggableOnDesktop } from "~/styles";
 
@@ -46,7 +47,7 @@ const HeaderButton = React.forwardRef<HTMLButtonElement, HeaderButtonProps>(
 );
 
 const Title = styled(Flex)`
-  color: ${(props) => props.theme.text};
+  color: ${s("text")};
   flex-shrink: 1;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -59,7 +60,7 @@ const Wrapper = styled(Flex)<{ minHeight: number }>`
   font-weight: 500;
   border-radius: 4px;
   margin: 8px;
-  color: ${(props) => props.theme.textTertiary};
+  color: ${s("textTertiary")};
   border: 0;
   background: none;
   flex-shrink: 0;
@@ -76,9 +77,9 @@ const Wrapper = styled(Flex)<{ minHeight: number }>`
   &:active,
   &:hover,
   &[aria-expanded="true"] {
-    color: ${(props) => props.theme.sidebarText};
+    color: ${s("sidebarText")};
     transition: background 100ms ease-in-out;
-    background: ${(props) => props.theme.sidebarActiveBackground};
+    background: ${s("sidebarActiveBackground")};
   }
 `;
 

@@ -4,6 +4,7 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import { Role } from "@shared/types";
 import { UserValidation } from "@shared/validations";
 import Button from "~/components/Button";
@@ -272,7 +273,7 @@ function Invite({ onSubmit }: Props) {
 const CopyBlock = styled("div")`
   margin: 2em 0;
   font-size: 14px;
-  background: ${(props) => props.theme.secondaryBackground};
+  background: ${s("secondaryBackground")};
   border-radius: 8px;
   padding: 16px 16px 8px;
 `;

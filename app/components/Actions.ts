@@ -1,5 +1,6 @@
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { s } from "@shared/styles";
 import Flex from "~/components/Flex";
 
 export const Action = styled(Flex)`
@@ -20,7 +21,7 @@ export const Separator = styled.div`
   margin-left: 12px;
   width: 1px;
   height: 28px;
-  background: ${(props) => props.theme.divider};
+  background: ${s("divider")};
 `;
 
 const Actions = styled(Flex)`
@@ -29,8 +30,8 @@ const Actions = styled(Flex)`
   right: 0;
   left: 0;
   border-radius: 3px;
-  background: ${(props) => props.theme.background};
-  transition: ${(props) => props.theme.backgroundTransition};
+  background: ${s("background")};
+  transition: ${s("backgroundTransition")};
   padding: 12px;
   backdrop-filter: blur(20px);
 

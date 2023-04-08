@@ -9,7 +9,7 @@ import insertFiles from "@shared/editor/commands/insertFiles";
 import { EmbedDescriptor } from "@shared/editor/embeds";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
 import { MenuItem } from "@shared/editor/types";
-import { depths } from "@shared/styles";
+import { depths, s } from "@shared/styles";
 import { getEventFiles } from "@shared/utils/files";
 import { AttachmentValidation } from "@shared/validations";
 import { Portal } from "~/components/Portal";
@@ -583,7 +583,7 @@ const LinkInputWrapper = styled.div`
 const LinkInput = styled(Input)`
   height: 32px;
   width: 100%;
-  color: ${(props) => props.theme.textSecondary};
+  color: ${s("textSecondary")};
 `;
 
 const List = styled.ol`
@@ -602,7 +602,7 @@ const ListItem = styled.li`
 const Empty = styled.div`
   display: flex;
   align-items: center;
-  color: ${(props) => props.theme.textSecondary};
+  color: ${s("textSecondary")};
   font-weight: 500;
   font-size: 14px;
   height: 32px;
@@ -616,14 +616,14 @@ export const Wrapper = styled(Scrollable)<{
   left?: number;
   isAbove: boolean;
 }>`
-  color: ${(props) => props.theme.textSecondary};
-  font-family: ${(props) => props.theme.fontFamily};
+  color: ${s("textSecondary")};
+  font-family: ${s("fontFamily")};
   position: absolute;
   z-index: ${depths.editorToolbar};
   ${(props) => props.top !== undefined && `top: ${props.top}px`};
   ${(props) => props.bottom !== undefined && `bottom: ${props.bottom}px`};
   left: ${(props) => props.left}px;
-  background: ${(props) => props.theme.menuBackground};
+  background: ${s("menuBackground")};
   border-radius: 6px;
   box-shadow: rgba(0, 0, 0, 0.05) 0px 0px 0px 1px,
     rgba(0, 0, 0, 0.08) 0px 4px 8px, rgba(0, 0, 0, 0.08) 0px 2px 4px;
@@ -647,7 +647,7 @@ export const Wrapper = styled(Scrollable)<{
   hr {
     border: 0;
     height: 0;
-    border-top: 1px solid ${(props) => props.theme.divider};
+    border-top: 1px solid ${s("divider")};
   }
 
   ${({ active, isAbove }) =>

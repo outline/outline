@@ -1,7 +1,7 @@
 import * as React from "react";
 import Notice from "~/components/Notice";
 
-const AlertNotice: React.FC = ({ children }) => {
+const NoticeAlert: React.FC = ({ children }) => {
   return (
     <Notice>
       <svg
@@ -26,4 +26,4 @@ const AlertNotice: React.FC = ({ children }) => {
   );
 };
 
-export default AlertNotice;
+export default NoticeAlert;

@@ -4,6 +4,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useRouteMatch } from "react-router-dom";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import User from "~/models/User";
 import Avatar from "~/components/Avatar";
 import { useDocumentContext } from "~/components/DocumentContext";
@@ -179,7 +180,7 @@ const List = styled("ul")`
     content: "·";
     display: inline-block;
     font-weight: 600;
-    color: ${(props) => props.theme.textTertiary};
+    color: ${s("textTertiary")};
     width: 10px;
   }
 `;

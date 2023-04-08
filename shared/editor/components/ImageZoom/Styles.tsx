@@ -1,5 +1,6 @@
 import { transparentize } from "polished";
 import { createGlobalStyle } from "styled-components";
+import { s } from "../../../styles";
 
 export default createGlobalStyle`
   [data-rmiz] {
@@ -37,7 +38,7 @@ export default createGlobalStyle`
     background-color: ${(props) => transparentize(1, props.theme.background)};
   }
   [data-rmiz-modal-overlay="visible"] {
-    background-color: ${(props) => props.theme.background};
+    background-color: ${s("background")};
   }
   [data-rmiz-modal-content] {
     position: relative;

@@ -2,7 +2,7 @@ import { transparentize } from "polished";
 import * as React from "react";
 import { Portal } from "react-portal";
 import styled from "styled-components";
-import { depths } from "@shared/styles";
+import { depths, s } from "@shared/styles";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { isExternalUrl } from "@shared/utils/urls";
 import HoverPreviewDocument from "~/components/HoverPreviewDocument";
@@ -163,7 +163,7 @@ const CardContent = styled.div`
 // &:after — gradient mask for overflow text
 const Card = styled.div`
   backdrop-filter: blur(10px);
-  background: ${(props) => props.theme.background};
+  background: ${s("background")};
   border-radius: 4px;
   box-shadow: 0 30px 90px -20px rgba(0, 0, 0, 0.3),
     0 0 1px 1px rgba(0, 0, 0, 0.05);
@@ -186,13 +186,13 @@ const Card = styled.div`
       90deg,
       ${(props) => transparentize(1, props.theme.background)} 0%,
       ${(props) => transparentize(1, props.theme.background)} 75%,
-      ${(props) => props.theme.background} 90%
+      ${s("background")} 90%
     );
     bottom: 0;
     left: 0;
     right: 0;
     height: 1.7em;
-    border-bottom: 16px solid ${(props) => props.theme.background};
+    border-bottom: 16px solid ${s("background")};
     border-bottom-left-radius: 4px;
     border-bottom-right-radius: 4px;
   }
@@ -236,7 +236,7 @@ const Pointer = styled.div<{ offset: number }>`
 
   &:after {
     border: 7px solid transparent;
-    border-bottom-color: ${(props) => props.theme.background};
+    border-bottom-color: ${s("background")};
   }
 `;
 

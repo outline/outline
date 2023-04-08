@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Menu, MenuStateReturn } from "reakit/Menu";
 import styled, { DefaultTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { depths } from "@shared/styles";
+import { depths, s } from "@shared/styles";
 import Scrollable from "~/components/Scrollable";
 import useMenuContext from "~/hooks/useMenuContext";
 import useMenuHeight from "~/hooks/useMenuHeight";
@@ -171,7 +171,7 @@ export const Backdrop = styled.div`
   left: 0;
   right: 0;
   bottom: 0;
-  background: ${(props) => props.theme.backdrop};
+  background: ${s("backdrop")};
   z-index: ${depths.menu - 1};
 `;
 
@@ -203,7 +203,7 @@ export const Background = styled(Scrollable)<BackgroundProps>`
   animation: ${mobileContextMenu} 200ms ease;
   transform-origin: 50% 100%;
   max-width: 100%;
-  background: ${(props) => props.theme.menuBackground};
+  background: ${s("menuBackground")};
   border-radius: 6px;
   padding: 6px;
   min-width: 180px;

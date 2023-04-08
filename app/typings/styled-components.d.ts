@@ -107,9 +107,6 @@ declare module "styled-components" {
   }
 
   interface Spacing {
-    padding: string;
-    vpadding: string;
-    hpadding: string;
     sidebarWidth: number;
     sidebarRightWidth: number;
     sidebarCollapsedWidth: number;

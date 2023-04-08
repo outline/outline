@@ -1,5 +1,6 @@
 import React from "react";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import Flex from "./Flex";
 import Text from "./Text";
 
@@ -33,8 +34,8 @@ const Title = styled.span`
 `;
 
 const Container = styled(Text)`
-  background: ${(props) => props.theme.sidebarBackground};
-  color: ${(props) => props.theme.sidebarText};
+  background: ${s("sidebarBackground")};
+  color: ${s("sidebarText")};
   padding: 10px 12px;
   border-radius: 4px;
   position: relative;

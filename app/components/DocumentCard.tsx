@@ -7,13 +7,13 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
+import { s, ellipsis } from "@shared/styles";
 import Document from "~/models/Document";
 import Pin from "~/models/Pin";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
 import Time from "~/components/Time";
 import useStores from "~/hooks/useStores";
-import { ellipsis } from "~/styles";
 import CollectionIcon from "./Icons/CollectionIcon";
 import EmojiIcon from "./Icons/EmojiIcon";
 import Squircle from "./Squircle";
@@ -165,9 +165,9 @@ const AnimatePresence = styled(m.div)`
 `;
 
 const Fold = styled.svg`
-  fill: ${(props) => props.theme.background};
-  stroke: ${(props) => props.theme.inputBorder};
-  background: ${(props) => props.theme.background};
+  fill: ${s("background")};
+  stroke: ${s("inputBorder")};
+  background: ${s("background")};
 
   position: absolute;
   top: -1px;
@@ -175,11 +175,11 @@ const Fold = styled.svg`
 `;
 
 const PinButton = styled(NudeButton)`
-  color: ${(props) => props.theme.textTertiary};
+  color: ${s("textTertiary")};
 
   &:hover,
   &:active {
-    color: ${(props) => props.theme.text};
+    color: ${s("text")};
   }
 `;
 
@@ -189,7 +189,7 @@ const Actions = styled(Flex)`
   right: ${(props) => (props.dir === "rtl" ? "auto" : "4px")};
   left: ${(props) => (props.dir === "rtl" ? "4px" : "auto")};
   opacity: 0;
-  color: ${(props) => props.theme.textTertiary};
+  color: ${s("textTertiary")};
 
   // move actions above content
   z-index: 2;
@@ -222,7 +222,7 @@ const DocumentMeta = styled(Text)`
   display: flex;
   align-items: center;
   gap: 2px;
-  color: ${(props) => props.theme.textTertiary};
+  color: ${s("textTertiary")};
   margin: 0 0 0 -2px;
 `;
 
@@ -236,9 +236,9 @@ const DocumentLink = styled(Link)<{
   height: 100%;
   border-radius: 8px;
   cursor: var(--pointer);
-  background: ${(props) => props.theme.background};
+  background: ${s("background")};
   transition: transform 50ms ease-in-out;
-  border: 1px solid ${(props) => props.theme.inputBorder};
+  border: 1px solid ${s("inputBorder")};
   border-bottom-width: 2px;
   border-right-width: 2px;
 
@@ -275,7 +275,7 @@ const Heading = styled.h3`
   max-height: 66px; // 3*line-height
   overflow: hidden;
 
-  color: ${(props) => props.theme.text};
+  color: ${s("text")};
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
     Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 `;

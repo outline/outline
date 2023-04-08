@@ -2,6 +2,7 @@ import { LocationDescriptor } from "history";
 import * as React from "react";
 import styled, { useTheme, css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { s } from "@shared/styles";
 import { NavigationNode } from "@shared/types";
 import EventBoundary from "~/components/EventBoundary";
 import NudeButton from "~/components/NudeButton";
@@ -144,12 +145,12 @@ const Actions = styled(EventBoundary)<{ showActions?: boolean }>`
   top: 4px;
   right: 4px;
   gap: 4px;
-  color: ${(props) => props.theme.textTertiary};
+  color: ${s("textTertiary")};
   transition: opacity 50ms;
   height: 24px;
 
   svg {
-    color: ${(props) => props.theme.textSecondary};
+    color: ${s("textSecondary")};
     fill: currentColor;
     opacity: 0.5;
   }
@@ -217,20 +218,20 @@ const Link = styled(NavLink)<{
   }
 
   & + ${Actions} {
-    background: ${(props) => props.theme.sidebarBackground};
+    background: ${s("sidebarBackground")};
 
     ${NudeButton} {
       background: transparent;
 
       &:hover,
       &[aria-expanded="true"] {
-        background: ${(props) => props.theme.sidebarControlHoverBackground};
+        background: ${s("sidebarControlHoverBackground")};
       }
     }
   }
 
   &[aria-current="page"] + ${Actions} {
-    background: ${(props) => props.theme.sidebarActiveBackground};
+    background: ${s("sidebarActiveBackground")};
   }
 
   ${breakpoint("tablet")`

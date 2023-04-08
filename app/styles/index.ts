@@ -38,28 +38,3 @@ export const fadeOnDesktopBackgrounded = () => {
     body.backgrounded & { opacity: 0.75; }
   `;
 };
-
-/**
- * Mixin to hide scrollbars.
- *
- * @returns string of CSS
- */
-export const hideScrollbars = () => `
-  -ms-overflow-style: none;
-  overflow: -moz-scrollbars-none;
-  scrollbar-width: none;
-  &::-webkit-scrollbar {
-    display: none;
-  }
-`;
-
-/**
- * Mixin to make text ellipse when it overflows.
- *
- * @returns string of CSS
- */
-export const ellipsis = () => `
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
-`;

@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import { CollectionPermission } from "@shared/types";
 import Membership from "~/models/Membership";
 import User from "~/models/User";
@@ -94,7 +95,7 @@ const Select = styled(InputSelect)`
   font-size: 14px;
   border-color: transparent;
   box-shadow: none;
-  color: ${(props) => props.theme.textSecondary};
+  color: ${s("textSecondary")};
 
   select {
     margin: 0;

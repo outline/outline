@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled, { css } from "styled-components";
+import { s } from "@shared/styles";
 import User from "~/models/User";
 import Avatar from "~/components/Avatar";
 import Tooltip from "~/components/Tooltip";
@@ -106,7 +107,7 @@ const AvatarWrapper = styled.div<AvatarWrapperProps>`
 
       &:hover:after {
         border: 2px solid ${(props) => props.$color};
-        box-shadow: inset 0 0 0 2px ${(props) => props.theme.background};
+        box-shadow: inset 0 0 0 2px ${s("background")};
       }
     `}
 `;

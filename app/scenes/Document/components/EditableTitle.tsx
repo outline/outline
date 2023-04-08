@@ -7,6 +7,7 @@ import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import isMarkdown from "@shared/editor/lib/isMarkdown";
 import normalizePastedMarkdown from "@shared/editor/lib/markdown/normalize";
+import { s } from "@shared/styles";
 import { light } from "@shared/styles/theme";
 import {
   getCurrentDateAsString,
@@ -238,8 +239,8 @@ const Title = styled(ContentEditable)<TitleProps>`
   }
 
   &::placeholder {
-    color: ${(props) => props.theme.placeholder};
-    -webkit-text-fill-color: ${(props) => props.theme.placeholder};
+    color: ${s("placeholder")};
+    -webkit-text-fill-color: ${s("placeholder")};
   }
 
   ${breakpoint("tablet")`

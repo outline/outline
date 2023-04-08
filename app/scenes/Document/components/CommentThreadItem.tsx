@@ -4,6 +4,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled, { css } from "styled-components";
+import { s } from "@shared/styles";
 import { Minute } from "@shared/utils/time";
 import Comment from "~/models/Comment";
 import Avatar from "~/components/Avatar";
@@ -223,7 +224,7 @@ const Menu = styled(CommentMenu)<{ dir?: "rtl" | "ltr" }>`
   &:hover,
   &[aria-expanded="true"] {
     opacity: 1;
-    background: ${(props) => props.theme.sidebarActiveBackground};
+    background: ${s("sidebarActiveBackground")};
   }
 `;
 
@@ -246,13 +247,12 @@ export const Bubble = styled(Flex)<{
   position: relative;
   flex-grow: 1;
   font-size: 15px;
-  color: ${(props) => props.theme.text};
-  background: ${(props) => props.theme.commentBackground};
+  color: ${s("text")};
+  background: ${s("commentBackground")};
   min-width: 2em;
   margin-bottom: 1px;
   padding: 8px 12px;
-  transition: color 100ms ease-out,
-    ${(props) => props.theme.backgroundTransition};
+  transition: color 100ms ease-out, ${s("backgroundTransition")};
 
   ${({ $lastOfThread }) =>
     $lastOfThread &&
