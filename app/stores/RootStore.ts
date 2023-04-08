@@ -87,30 +87,10 @@ export default class RootStore {
   }
 
   logout() {
-    this.apiKeys.clear();
-    this.authenticationProviders.clear();
-    // this.auth omitted for reasons...
-    this.collections.clear();
-    this.collectionGroupMemberships.clear();
-    this.comments.clear();
-    this.documents.clear();
-    this.events.clear();
-    this.groups.clear();
-    this.groupMemberships.clear();
-    this.integrations.clear();
-    this.memberships.clear();
-    this.presence.clear();
-    this.pins.clear();
-    this.policies.clear();
-    this.revisions.clear();
-    this.searches.clear();
-    this.shares.clear();
-    this.stars.clear();
-    this.subscriptions.clear();
-    this.fileOperations.clear();
-    // this.ui omitted to keep ui settings between sessions
-    this.users.clear();
-    this.views.clear();
-    this.webhookSubscriptions.clear();
+    Object.getOwnPropertyNames(this)
+      .filter((key) => ["auth", "ui"].includes(key) === false)
+      .forEach((key) => {
+        this[key]?.clear?.();
+      });
   }
 }

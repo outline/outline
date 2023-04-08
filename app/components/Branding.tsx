@@ -1,7 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { depths } from "@shared/styles";
+import { depths, s } from "@shared/styles";
 import env from "~/env";
 import OutlineIcon from "./Icons/OutlineIcon";
 
@@ -26,16 +26,16 @@ const Link = styled.a`
   font-size: 14px;
   text-decoration: none;
   border-top-right-radius: 2px;
-  color: ${(props) => props.theme.text};
+  color: ${s("text")};
   display: flex;
   align-items: center;
 
   svg {
-    fill: ${(props) => props.theme.text};
+    fill: ${s("text")};
   }
 
   &:hover {
-    background: ${(props) => props.theme.sidebarBackground};
+    background: ${s("sidebarBackground")};
   }
 
   ${breakpoint("tablet")`

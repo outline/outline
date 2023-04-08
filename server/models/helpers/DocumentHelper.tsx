@@ -192,9 +192,8 @@ export default class DocumentHelper {
     const dom = new JSDOM(html);
     const doc = dom.window.document;
 
-    const containsDiffElement = (node: Element | null) => {
-      return node && node.innerHTML.includes("data-operation-index");
-    };
+    const containsDiffElement = (node: Element | null) =>
+      node && node.innerHTML.includes("data-operation-index");
 
     // We use querySelectorAll to get a static NodeList as we'll be modifying
     // it as we iterate, rather than getting content.childNodes.

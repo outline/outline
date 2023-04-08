@@ -30,7 +30,7 @@ function BlockMenu(props: Props) {
   return (
     <SuggestionsMenu
       {...props}
-      filterable={true}
+      filterable
       onClearSearch={clearSearch}
       renderMenuItem={(item, _index, options) => (
         <SuggestionsMenuItem

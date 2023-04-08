@@ -219,17 +219,13 @@ class ApiClient {
     path: string,
     data: Record<string, any> | undefined,
     options?: FetchOptions
-  ) => {
-    return this.fetch(path, "GET", data, options);
-  };
+  ) => this.fetch(path, "GET", data, options);
 
   post = (
     path: string,
     data?: Record<string, any> | undefined,
     options?: FetchOptions
-  ) => {
-    return this.fetch(path, "POST", data, options);
-  };
+  ) => this.fetch(path, "POST", data, options);
 }
 
 export const client = new ApiClient();

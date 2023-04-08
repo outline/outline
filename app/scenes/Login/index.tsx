@@ -6,6 +6,7 @@ import { Trans, useTranslation } from "react-i18next";
 import { useLocation, Link, Redirect } from "react-router-dom";
 import styled from "styled-components";
 import { getCookie, setCookie } from "tiny-cookie";
+import { s } from "@shared/styles";
 import { parseDomain } from "@shared/utils/domains";
 import { Config } from "~/stores/AuthStore";
 import ButtonLarge from "~/components/ButtonLarge";
@@ -278,7 +279,7 @@ const CheckEmailIcon = styled(EmailIcon)`
 const Background = styled(Fade)`
   width: 100vw;
   height: 100%;
-  background: ${(props) => props.theme.background};
+  background: ${s("background")};
   display: flex;
   ${draggableOnDesktop()}
 `;
@@ -288,13 +289,13 @@ const Logo = styled.div`
 `;
 
 const Content = styled(Text)`
-  color: ${(props) => props.theme.textSecondary};
+  color: ${s("textSecondary")};
   text-align: center;
   margin-top: -8px;
 `;
 
 const Note = styled(Text)`
-  color: ${(props) => props.theme.textTertiary};
+  color: ${s("textTertiary")};
   text-align: center;
   font-size: 14px;
   margin-top: 8px;
@@ -337,8 +338,8 @@ const Or = styled.hr`
     transform: translate3d(-50%, -50%, 0);
     text-transform: uppercase;
     font-size: 11px;
-    color: ${(props) => props.theme.textSecondary};
-    background: ${(props) => props.theme.background};
+    color: ${s("textSecondary")};
+    background: ${s("background")};
     border-radius: 2px;
     padding: 0 4px;
   }

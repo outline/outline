@@ -1,6 +1,7 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import PageTitle from "~/components/PageTitle";
@@ -40,7 +41,7 @@ const DesktopRedirect = () => {
 };
 
 const Note = styled(Text)`
-  color: ${(props) => props.theme.textTertiary};
+  color: ${s("textTertiary")};
   text-align: center;
   font-size: 14px;
   margin-top: 8px;

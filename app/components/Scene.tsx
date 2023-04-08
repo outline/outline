@@ -21,32 +21,30 @@ const Scene: React.FC<Props> = ({
   left,
   children,
   centered,
-}) => {
-  return (
-    <FillWidth>
-      <PageTitle title={textTitle || title} />
-      <Header
-        hasSidebar
-        title={
-          icon ? (
-            <>
-              {icon}&nbsp;{title}
-            </>
-          ) : (
-            title
-          )
-        }
-        actions={actions}
-        left={left}
-      />
-      {centered !== false ? (
-        <CenteredContent withStickyHeader>{children}</CenteredContent>
-      ) : (
-        children
-      )}
-    </FillWidth>
-  );
-};
+}) => (
+  <FillWidth>
+    <PageTitle title={textTitle || title} />
+    <Header
+      hasSidebar
+      title={
+        icon ? (
+          <>
+            {icon}&nbsp;{title}
+          </>
+        ) : (
+          title
+        )
+      }
+      actions={actions}
+      left={left}
+    />
+    {centered !== false ? (
+      <CenteredContent withStickyHeader>{children}</CenteredContent>
+    ) : (
+      children
+    )}
+  </FillWidth>
+);
 
 const FillWidth = styled.div`
   width: 100%;

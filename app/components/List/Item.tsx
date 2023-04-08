@@ -1,6 +1,7 @@
 import { LocationDescriptor } from "history";
 import * as React from "react";
 import styled, { useTheme } from "styled-components";
+import { s, ellipsis } from "@shared/styles";
 import Flex from "~/components/Flex";
 import NavLink from "~/components/NavLink";
 
@@ -97,15 +98,13 @@ const Image = styled(Flex)`
   user-select: none;
   flex-shrink: 0;
   align-self: center;
-  color: ${(props) => props.theme.text};
+  color: ${s("text")};
 `;
 
 const Heading = styled.p<{ $small?: boolean }>`
   font-size: ${(props) => (props.$small ? 14 : 16)}px;
   font-weight: 500;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
+  ${ellipsis()}
   line-height: ${(props) => (props.$small ? 1.3 : 1.2)};
   margin: 0;
 `;

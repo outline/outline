@@ -38,8 +38,7 @@ export default class CommentsStore extends BaseStore<Comment> {
     return filter(
       this.orderedData,
       (comment) =>
-        comment.parentCommentId === threadId ||
-        (comment.id === threadId && !comment.isNew)
+        comment.parentCommentId === threadId || comment.id === threadId
     );
   }
 

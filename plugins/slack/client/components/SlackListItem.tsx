@@ -4,6 +4,7 @@ import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import { IntegrationType } from "@shared/types";
 import Collection from "~/models/Collection";
 import Integration from "~/models/Integration";
@@ -111,7 +112,7 @@ function SlackListItem({ integration, collection }: Props) {
 }
 
 const Events = styled.div`
-  color: ${(props) => props.theme.text};
+  color: ${s("text")};
   margin-top: -12px;
 `;
 

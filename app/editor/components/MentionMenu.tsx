@@ -36,13 +36,14 @@ type Props = Omit<
 >;
 
 function MentionMenu({ search, isActive, ...rest }: Props) {
+  const [loaded, setLoaded] = React.useState(false);
   const [items, setItems] = React.useState<MentionItem[]>([]);
   const { t } = useTranslation();
   const { users, auth } = useStores();
   const location = useLocation();
   const documentId = parseDocumentSlug(location.pathname);
   const { view } = useEditor();
-  const { data, request } = useRequest(
+  const { data, loading, request } = useRequest(
     React.useCallback(
       () =>
         documentId
@@ -59,24 +60,25 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
   }, [request, isActive]);
 
   React.useEffect(() => {
-    if (data) {
-      setItems(
-        data.map((user) => ({
-          name: "mention",
-          user,
-          title: user.name,
-          appendSpace: true,
-          attrs: {
-            id: v4(),
-            type: MentionType.User,
-            modelId: user.id,
-            actorId: auth.user?.id,
-            label: user.name,
-          },
-        }))
-      );
+    if (data && !loading) {
+      const items = data.map((user) => ({
+        name: "mention",
+        user,
+        title: user.name,
+        appendSpace: true,
+        attrs: {
+          id: v4(),
+          type: MentionType.User,
+          modelId: user.id,
+          actorId: auth.user?.id,
+          label: user.name,
+        },
+      }));
+
+      setItems(items);
+      setLoaded(true);
     }
-  }, [auth.user?.id, data]);
+  }, [auth.user?.id, loading, data]);
 
   const clearSearch = () => {
     const { state, dispatch } = view;
@@ -90,6 +92,12 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
       )
     );
   };
+
+  // Prevent showing the menu until we have data otherwise it will be positioned
+  // incorrectly due to the height being unknown.
+  if (!loaded) {
+    return null;
+  }
 
   return (
     <SuggestionsMenu

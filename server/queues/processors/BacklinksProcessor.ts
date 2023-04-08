@@ -8,7 +8,6 @@ export default class BacklinksProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = [
     "documents.publish",
     "documents.update",
-    //"documents.title_change",
     "documents.delete",
   ];
 
@@ -87,17 +86,6 @@ export default class BacklinksProcessor extends BaseProcessor {
             reverseDocumentId: event.documentId,
           },
         });
-        break;
-      }
-
-      case "documents.title_change": {
-        // might as well check
-        const { title, previousTitle } = event.data;
-        if (!previousTitle || title === previousTitle) {
-          break;
-        }
-
-        // TODO: Handle re-writing of titles into CRDT
         break;
       }
 

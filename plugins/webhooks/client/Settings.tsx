@@ -9,7 +9,6 @@ import Heading from "~/components/Heading";
 import Modal from "~/components/Modal";
 import PaginatedList from "~/components/PaginatedList";
 import Scene from "~/components/Scene";
-import Subheading from "~/components/Subheading";
 import Text from "~/components/Text";
 import env from "~/env";
 import useBoolean from "~/hooks/useBoolean";
@@ -55,8 +54,15 @@ function Webhooks() {
       </Text>
       <PaginatedList
         fetch={webhookSubscriptions.fetchPage}
-        items={webhookSubscriptions.orderedData}
-        heading={<Subheading sticky>{t("Webhooks")}</Subheading>}
+        items={webhookSubscriptions.enabled}
+        heading={<h2>{t("Active")}</h2>}
+        renderItem={(webhook: WebhookSubscription) => (
+          <WebhookSubscriptionListItem key={webhook.id} webhook={webhook} />
+        )}
+      />
+      <PaginatedList
+        items={webhookSubscriptions.disabled}
+        heading={<h2>{t("Inactive")}</h2>}
         renderItem={(webhook: WebhookSubscription) => (
           <WebhookSubscriptionListItem key={webhook.id} webhook={webhook} />
         )}

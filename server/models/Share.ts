@@ -34,39 +34,31 @@ import Fix from "./decorators/Fix";
   ],
 }))
 @Scopes(() => ({
-  withCollectionPermissions: (userId: string) => {
-    return {
-      include: [
-        {
-          model: Document.scope("withDrafts"),
-          paranoid: true,
-          as: "document",
-          include: [
-            {
-              attributes: [
-                "id",
-                "permission",
-                "sharing",
-                "teamId",
-                "deletedAt",
-              ],
-              model: Collection.scope({
-                method: ["withMembership", userId],
-              }),
-              as: "collection",
-            },
-          ],
-        },
-        {
-          association: "user",
-          paranoid: false,
-        },
-        {
-          association: "team",
-        },
-      ],
-    };
-  },
+  withCollectionPermissions: (userId: string) => ({
+    include: [
+      {
+        model: Document.scope("withDrafts"),
+        paranoid: true,
+        as: "document",
+        include: [
+          {
+            attributes: ["id", "permission", "sharing", "teamId", "deletedAt"],
+            model: Collection.scope({
+              method: ["withMembership", userId],
+            }),
+            as: "collection",
+          },
+        ],
+      },
+      {
+        association: "user",
+        paranoid: false,
+      },
+      {
+        association: "team",
+      },
+    ],
+  }),
 }))
 @Table({ tableName: "shares", modelName: "share" })
 @Fix

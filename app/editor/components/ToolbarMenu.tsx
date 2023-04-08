@@ -1,6 +1,7 @@
 import * as React from "react";
 import styled from "styled-components";
 import { MenuItem } from "@shared/editor/types";
+import { s } from "@shared/styles";
 import { useEditor } from "./EditorContext";
 import ToolbarButton from "./ToolbarButton";
 import ToolbarSeparator from "./ToolbarSeparator";
@@ -11,7 +12,7 @@ type Props = {
 };
 
 const FlexibleWrapper = styled.div`
-  color: ${(props) => props.theme.toolbarItem};
+  color: ${s("toolbarItem")};
   display: flex;
   gap: 8px;
 `;

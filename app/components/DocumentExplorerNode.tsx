@@ -3,6 +3,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { s, ellipsis } from "@shared/styles";
 import Flex from "~/components/Flex";
 import Disclosure from "~/components/Sidebar/components/Disclosure";
 import Text from "~/components/Text";
@@ -70,9 +71,7 @@ function DocumentExplorerNode(
 }
 
 const Title = styled(Text)`
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  ${ellipsis()}
   margin: 0 4px 0 4px;
   color: inherit;
 `;
@@ -99,7 +98,7 @@ export const Node = styled.span<{
   overflow: hidden;
   font-size: 16px;
   width: ${(props) => props.style.width};
-  color: ${(props) => props.theme.text};
+  color: ${s("text")};
   cursor: var(--pointer);
   padding: 12px;
   border-radius: 6px;

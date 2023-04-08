@@ -21,7 +21,7 @@ function Zapier() {
           type="module"
           src="https://cdn.zapier.com/packages/partner-sdk/v0/zapier-elements/zapier-elements.esm.js"
           key="zapier-js"
-        ></script>
+        />
         <link
           rel="stylesheet"
           href="https://cdn.zapier.com/packages/partner-sdk/v0/zapier-elements/zapier-elements.css"

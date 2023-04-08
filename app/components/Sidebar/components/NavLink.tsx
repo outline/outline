@@ -21,15 +21,13 @@ const resolveToLocation = (
 const normalizeToLocation = (
   to: LocationDescriptor,
   currentLocation: Location
-) => {
-  return typeof to === "string"
+) =>
+  typeof to === "string"
     ? createLocation(to, null, undefined, currentLocation)
     : to;
-};
 
-const joinClassnames = (...classnames: (string | undefined)[]) => {
-  return classnames.filter((i) => i).join(" ");
-};
+const joinClassnames = (...classnames: (string | undefined)[]) =>
+  classnames.filter((i) => i).join(" ");
 
 export type Props = React.AnchorHTMLAttributes<HTMLAnchorElement> & {
   activeClassName?: string;
@@ -103,16 +101,13 @@ const NavLink = ({
   }, [linkRef, scrollIntoViewIfNeeded, isActive]);
 
   const shouldFastClick = React.useCallback(
-    (event: React.MouseEvent<HTMLAnchorElement>): boolean => {
-      return (
-        event.button === 0 && // Only intercept left clicks
-        !event.defaultPrevented &&
-        !rest.target &&
-        !event.altKey &&
-        !event.metaKey &&
-        !event.ctrlKey
-      );
-    },
+    (event: React.MouseEvent<HTMLAnchorElement>): boolean =>
+      event.button === 0 && // Only intercept left clicks
+      !event.defaultPrevented &&
+      !rest.target &&
+      !event.altKey &&
+      !event.metaKey &&
+      !event.ctrlKey,
     [rest.target]
   );
 
@@ -153,7 +148,7 @@ const NavLink = ({
     <Link
       key={isActive ? "active" : "inactive"}
       ref={linkRef}
-      //onMouseDown={handleClick}
+      // onMouseDown={handleClick}
       onKeyDown={(event) => {
         if (["Enter", " "].includes(event.key)) {
           navigateTo();

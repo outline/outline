@@ -1,4 +1,5 @@
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import { undraggableOnDesktop } from "~/styles";
 
 const ResizeBorder = styled.div<{ dir?: "left" | "right" }>`
@@ -14,7 +15,7 @@ const ResizeBorder = styled.div<{ dir?: "left" | "right" }>`
   &:hover {
     transition-delay: 500ms;
     transition: background 250ms ease-in-out;
-    background: ${(props) => props.theme.sidebarActiveBackground};
+    background: ${s("sidebarActiveBackground")};
   }
 
   &:after {

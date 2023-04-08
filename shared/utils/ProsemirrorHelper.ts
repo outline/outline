@@ -49,20 +49,42 @@ export default class ProsemirrorHelper {
    * @returns True if the editor is empty
    */
   static trim(doc: Node) {
-    const first = doc.firstChild;
-    const last = doc.lastChild;
-    const firstIsEmpty =
-      first &&
-      ProsemirrorHelper.toPlainText(first, doc.type.schema).trim() === "";
-    const lastIsEmpty =
-      last &&
-      ProsemirrorHelper.toPlainText(last, doc.type.schema).trim() === "";
-    const firstIsLast = first === last;
+    const { schema } = doc.type;
+    let index = 0,
+      start = 0,
+      end = doc.nodeSize - 2,
+      isEmpty;
 
-    return doc.cut(
-      firstIsEmpty ? first.nodeSize : 0,
-      lastIsEmpty && !firstIsLast ? doc.nodeSize - last.nodeSize : undefined
-    );
+    if (doc.childCount <= 1) {
+      return doc;
+    }
+
+    isEmpty = true;
+    while (isEmpty) {
+      const node = doc.maybeChild(index++);
+      if (!node) {
+        break;
+      }
+      isEmpty = ProsemirrorHelper.toPlainText(node, schema).trim() === "";
+      if (isEmpty) {
+        start += node.nodeSize;
+      }
+    }
+
+    index = doc.childCount - 1;
+    isEmpty = true;
+    while (isEmpty) {
+      const node = doc.maybeChild(index--);
+      if (!node) {
+        break;
+      }
+      isEmpty = ProsemirrorHelper.toPlainText(node, schema).trim() === "";
+      if (isEmpty) {
+        end -= node.nodeSize;
+      }
+    }
+
+    return doc.cut(start, end);
   }
 
   /**

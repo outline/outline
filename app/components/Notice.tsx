@@ -1,5 +1,6 @@
 import React from "react";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import Flex from "./Flex";
 import Text from "./Text";
 
@@ -8,24 +9,22 @@ type Props = {
   description?: JSX.Element;
 };
 
-const Notice: React.FC<Props> = ({ children, icon, description }) => {
-  return (
-    <Container>
-      <Flex as="span" gap={8}>
-        {icon}
-        <span>
-          <Title>{children}</Title>
-          {description && (
-            <>
-              <br />
-              {description}
-            </>
-          )}
-        </span>
-      </Flex>
-    </Container>
-  );
-};
+const Notice: React.FC<Props> = ({ children, icon, description }) => (
+  <Container>
+    <Flex as="span" gap={8}>
+      {icon}
+      <span>
+        <Title>{children}</Title>
+        {description && (
+          <>
+            <br />
+            {description}
+          </>
+        )}
+      </span>
+    </Flex>
+  </Container>
+);
 
 const Title = styled.span`
   font-weight: 500;
@@ -33,8 +32,8 @@ const Title = styled.span`
 `;
 
 const Container = styled(Text)`
-  background: ${(props) => props.theme.sidebarBackground};
-  color: ${(props) => props.theme.sidebarText};
+  background: ${s("sidebarBackground")};
+  color: ${s("sidebarText")};
   padding: 10px 12px;
   border-radius: 4px;
   position: relative;

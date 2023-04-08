@@ -20,16 +20,11 @@ export interface GetScaleToWindow {
   (data: { width: number; height: number; offset: number }): number;
 }
 
-export const getScaleToWindow: GetScaleToWindow = ({
-  height,
-  offset,
-  width,
-}) => {
-  return Math.min(
+export const getScaleToWindow: GetScaleToWindow = ({ height, offset, width }) =>
+  Math.min(
     (window.innerWidth - offset * 2) / width, // scale X-axis
     (window.innerHeight - offset * 2) / height // scale Y-axis
   );
-};
 
 export interface GetScaleToWindowMax {
   (data: {
@@ -80,8 +75,8 @@ export const getScale: GetScale = ({
   offset,
   targetHeight,
   targetWidth,
-}) => {
-  return !hasScalableSrc && targetHeight && targetWidth
+}) =>
+  !hasScalableSrc && targetHeight && targetWidth
     ? getScaleToWindowMax({
         containerHeight,
         containerWidth,
@@ -94,7 +89,6 @@ export const getScale: GetScale = ({
         offset,
         width: containerWidth,
       });
-};
 
 const URL_REGEX = /url(?:\(['"]?)(.*?)(?:['"]?\))/;
 

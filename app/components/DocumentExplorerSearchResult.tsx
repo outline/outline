@@ -3,6 +3,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled from "styled-components";
+import { ellipsis } from "@shared/styles";
 import { Node as SearchResult } from "~/components/DocumentExplorerNode";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
@@ -73,10 +74,8 @@ const Title = styled(Text)`
 `;
 
 const Path = styled(Text)<{ $selected: boolean }>`
+  ${ellipsis()}
   padding-top: 2px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   margin: 0 4px 0 8px;
   color: ${(props) =>
     props.$selected ? props.theme.white50 : props.theme.textTertiary};

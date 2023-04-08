@@ -38,17 +38,3 @@ export const fadeOnDesktopBackgrounded = () => {
     body.backgrounded & { opacity: 0.75; }
   `;
 };
-
-/**
- * Mixin to hide scrollbars.
- *
- * @returns string of CSS
- */
-export const hideScrollbars = () => `
-  -ms-overflow-style: none;
-  overflow: -moz-scrollbars-none;
-  scrollbar-width: none;
-  &::-webkit-scrollbar {
-    display: none;
-  }
-`;

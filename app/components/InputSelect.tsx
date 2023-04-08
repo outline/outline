@@ -9,6 +9,7 @@ import { CheckmarkIcon } from "outline-icons";
 import * as React from "react";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled, { css } from "styled-components";
+import { s } from "@shared/styles";
 import Button, { Inner } from "~/components/Button";
 import Text from "~/components/Text";
 import useMenuHeight from "~/hooks/useMenuHeight";
@@ -45,9 +46,8 @@ export type Props = {
   onChange?: (value: string | null) => void;
 };
 
-const getOptionFromValue = (options: Option[], value: string | null) => {
-  return options.find((option) => option.value === value);
-};
+const getOptionFromValue = (options: Option[], value: string | null) =>
+  options.find((option) => option.value === value);
 
 const InputSelect = (props: Props) => {
   const {
@@ -218,7 +218,7 @@ const Background = styled(ContextMenuBackground)`
 `;
 
 const Placeholder = styled.span`
-  color: ${(props) => props.theme.placeholder};
+  color: ${s("placeholder")};
 `;
 
 const Spacer = styled.div`
@@ -236,7 +236,7 @@ const StyledButton = styled(Button)<{ nude?: boolean }>`
   cursor: default;
 
   &:hover:not(:disabled) {
-    background: ${(props) => props.theme.buttonNeutralBackground};
+    background: ${s("buttonNeutralBackground")};
   }
 
   ${(props) =>
@@ -276,7 +276,7 @@ const Positioner = styled(Position)`
     ${StyledSelectOption} {
       &[aria-selected="true"] {
         color: ${(props) => props.theme.white};
-        background: ${(props) => props.theme.accent};
+        background: ${s("accent")};
         box-shadow: none;
         cursor: var(--pointer);
 

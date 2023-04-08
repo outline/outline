@@ -131,7 +131,7 @@ const SmallSlash = styled(GoToIcon)`
   vertical-align: middle;
   flex-shrink: 0;
 
-  fill: ${(props) => props.theme.slate};
+  fill: ${(props) => props.theme.textTertiary};
   opacity: 0.5;
 `;
 

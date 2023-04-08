@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled, { css, DefaultTheme, ThemeProps } from "styled-components";
+import { s } from "../../styles";
 
 type Props = {
   icon: React.ReactNode;
@@ -17,7 +18,6 @@ export default function Widget(props: Props & ThemeProps<DefaultTheme>) {
         props.isSelected ? "ProseMirror-selectednode widget" : "widget"
       }
       href={props.href}
-      target="_blank"
       rel="noreferrer nofollow"
     >
       {props.icon}
@@ -36,14 +36,14 @@ const Children = styled.div`
   opacity: 0;
 
   &:hover {
-    color: ${(props) => props.theme.text};
+    color: ${s("text")};
   }
 `;
 
 const Title = styled.strong`
   font-weight: 500;
   font-size: 14px;
-  color: ${(props) => props.theme.text};
+  color: ${s("text")};
 `;
 
 const Preview = styled.div`
@@ -52,12 +52,12 @@ const Preview = styled.div`
   flex-direction: row;
   flex-grow: 1;
   align-items: center;
-  color: ${(props) => props.theme.textTertiary};
+  color: ${s("textTertiary")};
 `;
 
 const Subtitle = styled.span`
   font-size: 13px;
-  color: ${(props) => props.theme.textTertiary} !important;
+  color: ${s("textTertiary")} !important;
   line-height: 0;
 `;
 
@@ -65,9 +65,9 @@ const Wrapper = styled.a`
   display: flex;
   align-items: center;
   gap: 6px;
-  background: ${(props) => props.theme.background};
-  color: ${(props) => props.theme.text} !important;
-  box-shadow: 0 0 0 1px ${(props) => props.theme.divider};
+  background: ${s("background")};
+  color: ${s("text")} !important;
+  box-shadow: 0 0 0 1px ${s("divider")};
   white-space: nowrap;
   border-radius: 8px;
   padding: 6px 8px;
@@ -85,7 +85,7 @@ const Wrapper = styled.a`
       &:active {
         cursor: pointer !important;
         text-decoration: none !important;
-        background: ${(props) => props.theme.secondaryBackground};
+        background: ${s("secondaryBackground")};
 
         ${Children} {
           opacity: 1;

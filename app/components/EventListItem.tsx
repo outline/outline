@@ -14,6 +14,7 @@ import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 import { CompositeStateReturn } from "reakit/Composite";
 import styled, { css } from "styled-components";
+import { s } from "@shared/styles";
 import Document from "~/models/Document";
 import Event from "~/models/Event";
 import Avatar from "~/components/Avatar";
@@ -197,7 +198,7 @@ const ItemStyle = css`
     left: 23px;
     width: 2px;
     height: calc(100% + 8px);
-    background: ${(props) => props.theme.textSecondary};
+    background: ${s("textSecondary")};
     opacity: 0.25;
   }
 

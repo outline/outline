@@ -2,6 +2,7 @@ import { ActionImpl } from "kbar";
 import { ArrowIcon, BackIcon } from "outline-icons";
 import * as React from "react";
 import styled, { css, useTheme } from "styled-components";
+import { s, ellipsis } from "@shared/styles";
 import Flex from "~/components/Flex";
 import Key from "~/components/Key";
 
@@ -76,17 +77,16 @@ const Icon = styled(Flex)`
   justify-content: center;
   width: 24px;
   height: 24px;
-  color: ${(props) => props.theme.textSecondary};
+  color: ${s("textSecondary")};
   flex-shrink: 0;
 `;
 
 const Ancestor = styled.span`
-  color: ${(props) => props.theme.textSecondary};
+  color: ${s("textSecondary")};
 `;
 
 const Content = styled(Flex)`
-  overflow: hidden;
-  text-overflow: ellipsis;
+  ${ellipsis()}
   flex-shrink: 1;
 `;
 
@@ -102,9 +102,7 @@ const Item = styled.div<{ active?: boolean }>`
   justify-content: space-between;
   cursor: var(--pointer);
 
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
+  ${ellipsis()}
   user-select: none;
   min-width: 0;
 

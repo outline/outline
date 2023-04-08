@@ -21,17 +21,19 @@ export default function useBuildTheme(customTheme: Partial<CustomTheme> = {}) {
   const isMobile = useMediaQuery(`(max-width: ${breakpoints.tablet}px)`);
   const isPrinting = useMediaQuery("print");
 
-  const theme = React.useMemo(() => {
-    return isPrinting
-      ? buildLightTheme(customTheme)
-      : isMobile
-      ? ui.resolvedTheme === "dark"
-        ? buildPitchBlackTheme(customTheme)
-        : buildLightTheme(customTheme)
-      : ui.resolvedTheme === "dark"
-      ? buildDarkTheme(customTheme)
-      : buildLightTheme(customTheme);
-  }, [customTheme, isMobile, isPrinting, ui.resolvedTheme]);
+  const theme = React.useMemo(
+    () =>
+      isPrinting
+        ? buildLightTheme(customTheme)
+        : isMobile
+        ? ui.resolvedTheme === "dark"
+          ? buildPitchBlackTheme(customTheme)
+          : buildLightTheme(customTheme)
+        : ui.resolvedTheme === "dark"
+        ? buildDarkTheme(customTheme)
+        : buildLightTheme(customTheme),
+    [customTheme, isMobile, isPrinting, ui.resolvedTheme]
+  );
 
   return theme;
 }

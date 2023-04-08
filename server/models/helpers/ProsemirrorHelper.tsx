@@ -90,7 +90,7 @@ export default class ProsemirrorHelper {
       : "article";
 
     const rtl = isRTL(node.textContent);
-    const content = <div id="content" className="ProseMirror"></div>;
+    const content = <div id="content" className="ProseMirror" />;
     const children = (
       <>
         {options?.title && <h1 dir={rtl ? "rtl" : "ltr"}>{options.title}</h1>}

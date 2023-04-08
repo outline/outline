@@ -198,12 +198,9 @@ export default class Link extends Mark {
 
     const plugin: Plugin = new Plugin({
       state: {
-        init: (config, state) => {
-          return getLinkDecorations(state);
-        },
-        apply: (tr, decorationSet, _oldState, newState) => {
-          return tr.docChanged ? getLinkDecorations(newState) : decorationSet;
-        },
+        init: (config, state) => getLinkDecorations(state),
+        apply: (tr, decorationSet, _oldState, newState) =>
+          tr.docChanged ? getLinkDecorations(newState) : decorationSet,
       },
       props: {
         decorations: (state: EditorState) => plugin.getState(state),

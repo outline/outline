@@ -143,11 +143,10 @@ export default class UsersStore extends BaseStore<User> {
   };
 
   @action
-  resendInvite = async (user: User) => {
-    return client.post(`/users.resendInvite`, {
+  resendInvite = async (user: User) =>
+    client.post(`/users.resendInvite`, {
       id: user.id,
     });
-  };
 
   @action
   fetchCounts = async (teamId: string): Promise<any> => {

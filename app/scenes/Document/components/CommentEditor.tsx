@@ -8,8 +8,6 @@ const extensions = withComments(basicExtensions);
 const CommentEditor = (
   props: EditorProps,
   ref: React.RefObject<SharedEditor>
-) => {
-  return <Editor extensions={extensions} {...props} ref={ref} />;
-};
+) => <Editor extensions={extensions} {...props} ref={ref} />;
 
 export default React.forwardRef(CommentEditor);

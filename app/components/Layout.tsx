@@ -3,6 +3,7 @@ import * as React from "react";
 import { Helmet } from "react-helmet";
 import styled, { DefaultTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { s } from "@shared/styles";
 import Flex from "~/components/Flex";
 import { LoadingIndicatorBar } from "~/components/LoadingIndicator";
 import SkipNavContent from "~/components/SkipNavContent";
@@ -76,8 +77,8 @@ const Layout: React.FC<Props> = ({
 };
 
 const Container = styled(Flex)`
-  background: ${(props) => props.theme.background};
-  transition: ${(props) => props.theme.backgroundTransition};
+  background: ${s("background")};
+  transition: ${s("backgroundTransition")};
   position: relative;
   width: 100%;
   min-height: 100%;

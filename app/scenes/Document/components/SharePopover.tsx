@@ -7,6 +7,7 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import { SHARE_URL_SLUG_REGEX } from "@shared/utils/urlHelpers";
 import Document from "~/models/Document";
 import Share from "~/models/Share";
@@ -349,7 +350,7 @@ function SharePopover({
 }
 
 const StyledLink = styled(Link)`
-  color: ${(props) => props.theme.textSecondary};
+  color: ${s("textSecondary")};
   text-decoration: underline;
 `;
 
@@ -374,14 +375,14 @@ const NoticeWrapper = styled.div`
 const MoreOptionsButton = styled(Button)`
   background: none;
   font-size: 14px;
-  color: ${(props) => props.theme.textTertiary};
+  color: ${s("textTertiary")};
   margin-left: -8px;
 `;
 
 const Separator = styled.div`
   height: 1px;
   width: 100%;
-  background-color: ${(props) => props.theme.divider};
+  background-color: ${s("divider")};
 `;
 
 const SwitchLabel = styled(Flex)`

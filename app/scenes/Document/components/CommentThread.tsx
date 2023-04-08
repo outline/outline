@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled, { css } from "styled-components";
+import { s } from "@shared/styles";
 import Comment from "~/models/Comment";
 import Document from "~/models/Document";
 import Avatar from "~/components/Avatar";
@@ -68,7 +69,9 @@ function CommentThread({
     comment: thread,
   });
 
-  const commentsInThread = comments.inThread(thread.id);
+  const commentsInThread = comments
+    .inThread(thread.id)
+    .filter((comment) => !comment.isNew);
 
   useOnClickOutside(topRef, (event) => {
     if (
@@ -111,10 +114,9 @@ function CommentThread({
             scrollMode: "if-needed",
             behavior: "smooth",
             block: "start",
-            boundary: (parent) => {
+            boundary: (parent) =>
               // Prevents body and other parent elements from being scrolled
-              return parent.id !== "comments";
-            },
+              parent.id !== "comments",
           });
         },
         isVisible ? 0 : sidebarAppearDuration
@@ -171,16 +173,8 @@ function CommentThread({
           </Flex>
         ))}
 
-      <ResizingHeightContainer
-        hideOverflow={false}
-        config={{
-          transition: {
-            duration: 0.1,
-            ease: "easeInOut",
-          },
-        }}
-      >
-        {focused && (
+      <ResizingHeightContainer hideOverflow={false}>
+        {(focused || commentsInThread.length === 0) && (
           <Fade timing={100}>
             <CommentForm
               documentId={document.id}
@@ -205,7 +199,7 @@ const Reply = styled.button`
   padding: 8px;
   margin: 0;
   background: none;
-  color: ${(props) => props.theme.textTertiary};
+  color: ${s("textTertiary")};
   font-size: 14px;
   -webkit-appearance: none;
   cursor: var(--pointer);

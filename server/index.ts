@@ -139,22 +139,25 @@ async function start(id: number, disconnect: () => void) {
   server.listen(normalizedPortFlag || env.PORT || "3000");
   server.setTimeout(env.REQUEST_TIMEOUT);
 
-  ShutdownHelper.add("server", ShutdownOrder.last, () => {
-    return new Promise((resolve, reject) => {
-      // Calling stop prevents new connections from being accepted and waits for
-      // existing connections to close for the grace period before forcefully
-      // closing them.
-      server.stop((err, gracefully) => {
-        disconnect();
+  ShutdownHelper.add(
+    "server",
+    ShutdownOrder.last,
+    () =>
+      new Promise((resolve, reject) => {
+        // Calling stop prevents new connections from being accepted and waits for
+        // existing connections to close for the grace period before forcefully
+        // closing them.
+        server.stop((err, gracefully) => {
+          disconnect();
 
-        if (err) {
-          reject(err);
-        } else {
-          resolve(gracefully);
-        }
-      });
-    });
-  });
+          if (err) {
+            reject(err);
+          } else {
+            resolve(gracefully);
+          }
+        });
+      })
+  );
 
   // Handle shutdown signals
   process.once("SIGTERM", () => ShutdownHelper.execute());

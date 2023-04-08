@@ -34,9 +34,7 @@ function Collections() {
         fractionalIndex(null, orderedCollections[0].index)
       );
     },
-    canDrop: (item) => {
-      return item.id !== orderedCollections[0].id;
-    },
+    canDrop: (item) => item.id !== orderedCollections[0].id,
     collect: (monitor) => ({
       isCollectionDropping: monitor.isOver(),
       isDraggingAnyCollection: monitor.getItemType() === "collection",

@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { Portal } from "react-portal";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { depths } from "@shared/styles";
+import { depths, s } from "@shared/styles";
 import CommandBarResults from "~/components/CommandBarResults";
 import SearchActions from "~/components/SearchActions";
 import rootActions from "~/actions/root";
@@ -73,12 +73,12 @@ const SearchInput = styled(KBarSearch)`
   width: 100%;
   outline: none;
   border: none;
-  background: ${(props) => props.theme.menuBackground};
-  color: ${(props) => props.theme.text};
+  background: ${s("menuBackground")};
+  color: ${s("text")};
 
   &:disabled,
   &::placeholder {
-    color: ${(props) => props.theme.placeholder};
+    color: ${s("placeholder")};
   }
 `;
 
@@ -86,8 +86,8 @@ const Animator = styled(KBarAnimator)`
   max-width: 600px;
   max-height: 75vh;
   width: 90vw;
-  background: ${(props) => props.theme.menuBackground};
-  color: ${(props) => props.theme.text};
+  background: ${s("menuBackground")};
+  color: ${s("text")};
   border-radius: 8px;
   overflow: hidden;
   box-shadow: rgb(0 0 0 / 40%) 0px 16px 60px;

@@ -567,16 +567,16 @@ router.post(
     }).findByPk(id);
     authorize(user, "read", collection);
 
-    const fileOperation = await sequelize.transaction(async (transaction) => {
-      return collectionExporter({
+    const fileOperation = await sequelize.transaction(async (transaction) =>
+      collectionExporter({
         collection,
         user,
         team,
         format,
         ip: ctx.request.ip,
         transaction,
-      });
-    });
+      })
+    );
 
     ctx.body = {
       success: true,
@@ -599,15 +599,15 @@ router.post(
 
     assertIn(format, Object.values(FileOperationFormat), "Invalid format");
 
-    const fileOperation = await sequelize.transaction(async (transaction) => {
-      return collectionExporter({
+    const fileOperation = await sequelize.transaction(async (transaction) =>
+      collectionExporter({
         user,
         team,
         format,
         ip: ctx.request.ip,
         transaction,
-      });
-    });
+      })
+    );
 
     ctx.body = {
       success: true,

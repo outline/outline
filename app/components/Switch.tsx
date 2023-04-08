@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import { LabelText } from "~/components/Input";
 import Text from "~/components/Text";
 import { undraggableOnDesktop } from "~/styles";
@@ -124,11 +125,11 @@ const HiddenInput = styled.input<{ width: number; height: number }>`
   }
 
   &:checked + ${Slider} {
-    background-color: ${(props) => props.theme.accent};
+    background-color: ${s("accent")};
   }
 
   &:focus + ${Slider} {
-    box-shadow: 0 0 1px ${(props) => props.theme.accent};
+    box-shadow: 0 0 1px ${s("accent")};
   }
 
   &:checked + ${Slider}:before {

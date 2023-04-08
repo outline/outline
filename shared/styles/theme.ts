@@ -1,4 +1,4 @@
-import { darken, lighten } from "polished";
+import { darken, lighten, transparentize } from "polished";
 import { DefaultTheme, Colors } from "styled-components";
 import breakpoints from "./breakpoints";
 
@@ -44,9 +44,6 @@ const defaultColors: Colors = {
 };
 
 const spacing = {
-  padding: "1.5vw 1.875vw",
-  vpadding: "1.5vw",
-  hpadding: "1.875vw",
   sidebarWidth: 260,
   sidebarRightWidth: 300,
   sidebarCollapsedWidth: 16,
@@ -93,6 +90,7 @@ const buildBaseTheme = (input: Partial<Colors>) => {
     noticeTipText: colors.almostBlack,
     noticeWarningBackground: "#d73a49",
     noticeWarningText: colors.almostBlack,
+    tableSelectedBackground: transparentize(0.8, colors.accent),
     breakpoints,
     ...colors,
     ...spacing,
@@ -148,7 +146,6 @@ export const buildLightTheme = (input: Partial<Colors>): DefaultTheme => {
     toolbarItem: colors.white,
     tableDivider: colors.smokeDark,
     tableSelected: colors.accent,
-    tableSelectedBackground: "#E5F7FF",
     buttonNeutralBackground: colors.white,
     buttonNeutralText: colors.almostBlack,
     buttonNeutralBorder: darken(0.15, colors.white),
@@ -216,7 +213,6 @@ export const buildDarkTheme = (input: Partial<Colors>): DefaultTheme => {
     toolbarItem: colors.lightBlack,
     tableDivider: colors.lightBlack,
     tableSelected: colors.accent,
-    tableSelectedBackground: "#002333",
     buttonNeutralBackground: colors.almostBlack,
     buttonNeutralText: colors.white,
     buttonNeutralBorder: colors.slateDark,

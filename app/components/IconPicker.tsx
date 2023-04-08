@@ -40,6 +40,7 @@ import { useTranslation } from "react-i18next";
 import { useMenuState, MenuButton, MenuItem } from "reakit/Menu";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { s } from "@shared/styles";
 import { colorPalette } from "@shared/utils/collections";
 import ContextMenu from "~/components/ContextMenu";
 import Flex from "~/components/Flex";
@@ -239,29 +240,27 @@ function IconPicker({ onOpen, onClose, icon, color, onChange }: Props) {
         aria-label={t("Choose icon")}
       >
         <Icons>
-          {Object.keys(icons).map((name, index) => {
-            return (
-              <MenuItem
-                key={name}
-                onClick={() => onChange(color, name)}
-                {...menu}
-              >
-                {(props) => (
-                  <IconButton
-                    style={
-                      {
-                        ...style,
-                        "--delay": `${index * 8}ms`,
-                      } as React.CSSProperties
-                    }
-                    {...props}
-                  >
-                    <Icon as={icons[name].component} color={color} size={30} />
-                  </IconButton>
-                )}
-              </MenuItem>
-            );
-          })}
+          {Object.keys(icons).map((name, index) => (
+            <MenuItem
+              key={name}
+              onClick={() => onChange(color, name)}
+              {...menu}
+            >
+              {(props) => (
+                <IconButton
+                  style={
+                    {
+                      ...style,
+                      "--delay": `${index * 8}ms`,
+                    } as React.CSSProperties
+                  }
+                  {...props}
+                >
+                  <Icon as={icons[name].component} color={color} size={30} />
+                </IconButton>
+              )}
+            </MenuItem>
+          ))}
         </Icons>
         <Colors>
           <React.Suspense
@@ -323,7 +322,7 @@ const Icons = styled.div`
 `;
 
 const Button = styled(NudeButton)`
-  border: 1px solid ${(props) => props.theme.inputBorder};
+  border: 1px solid ${s("inputBorder")};
   width: 32px;
   height: 32px;
 `;

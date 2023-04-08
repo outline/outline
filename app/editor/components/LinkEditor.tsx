@@ -3,7 +3,6 @@ import {
   DocumentIcon,
   CloseIcon,
   PlusIcon,
-  TrashIcon,
   OpenIcon,
 } from "outline-icons";
 import { Mark } from "prosemirror-model";
@@ -11,8 +10,11 @@ import { setTextSelection } from "prosemirror-utils";
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import { isInternalUrl, sanitizeUrl } from "@shared/utils/urls";
 import Flex from "~/components/Flex";
+import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
+import Scrollable from "~/components/Scrollable";
 import { Dictionary } from "~/hooks/useDictionary";
 import { ToastOptions } from "~/types";
 import Input from "./Input";
@@ -61,6 +63,7 @@ class LinkEditor extends React.Component<Props, State> {
   discardInputValue = false;
   initialValue = this.href;
   initialSelectionLength = this.props.to - this.props.from;
+  resultsRef = React.createRef<HTMLDivElement>();
 
   state: State = {
     selectedIndex: -1,
@@ -122,11 +125,12 @@ class LinkEditor extends React.Component<Props, State> {
   };
 
   handleKeyDown = (event: React.KeyboardEvent): void => {
+    const results = this.results;
+
     switch (event.key) {
       case "Enter": {
         event.preventDefault();
         const { selectedIndex, value } = this.state;
-        const results = this.state.results[value] || [];
         const { onCreateLink } = this.props;
 
         if (selectedIndex >= 0) {
@@ -181,8 +185,7 @@ class LinkEditor extends React.Component<Props, State> {
 
         event.preventDefault();
         event.stopPropagation();
-        const { selectedIndex, value } = this.state;
-        const results = this.state.results[value] || [];
+        const { selectedIndex } = this.state;
         const total = results.length;
         const nextIndex = selectedIndex + 1;
 
@@ -264,10 +267,7 @@ class LinkEditor extends React.Component<Props, State> {
       dispatch(state.tr.removeMark(from, to, mark));
     }
 
-    if (onRemoveLink) {
-      onRemoveLink();
-    }
-
+    onRemoveLink?.();
     view.focus();
   };
 
@@ -289,14 +289,19 @@ class LinkEditor extends React.Component<Props, State> {
     view.focus();
   };
 
+  get results() {
+    const { value } = this.state;
+    return (
+      this.state.results[value.trim()] ||
+      this.state.results[this.state.previousValue] ||
+      []
+    );
+  }
+
   render() {
     const { dictionary } = this.props;
     const { value, selectedIndex } = this.state;
-    const results =
-      this.state.results[value.trim()] ||
-      this.state.results[this.state.previousValue] ||
-      [];
-
+    const results = this.results;
     const looksLikeUrl = value.match(/^https?:\/\//i);
     const suggestedLinkTitle = this.suggestedLinkTitle;
     const isInternal = isInternalUrl(value);
@@ -307,7 +312,7 @@ class LinkEditor extends React.Component<Props, State> {
       suggestedLinkTitle.length > 0 &&
       !looksLikeUrl;
 
-    const showResults =
+    const hasResults =
       !!suggestedLinkTitle && (showCreateLink || results.length > 0);
 
     return (
@@ -339,47 +344,53 @@ class LinkEditor extends React.Component<Props, State> {
         </Tooltip>
         <Tooltip tooltip={dictionary.removeLink}>
           <ToolbarButton onClick={this.handleRemoveLink}>
-            {this.initialValue ? (
-              <TrashIcon color="currentColor" />
-            ) : (
-              <CloseIcon color="currentColor" />
-            )}
+            <CloseIcon color="currentColor" />
           </ToolbarButton>
         </Tooltip>
 
-        {showResults && (
-          <SearchResults id="link-search-results">
-            {results.map((result, index) => (
-              <LinkSearchResult
-                key={result.url}
-                title={result.title}
-                subtitle={result.subtitle}
-                icon={<DocumentIcon color="currentColor" />}
-                onPointerMove={() => this.handleFocusLink(index)}
-                onClick={this.handleSelectLink(result.url, result.title)}
-                selected={index === selectedIndex}
-              />
-            ))}
+        <SearchResults
+          ref={this.resultsRef}
+          $hasResults={hasResults}
+          role="menu"
+        >
+          <ResizingHeightContainer>
+            {hasResults && (
+              <>
+                {results.map((result, index) => (
+                  <LinkSearchResult
+                    key={result.url}
+                    title={result.title}
+                    subtitle={result.subtitle}
+                    icon={<DocumentIcon color="currentColor" />}
+                    onPointerMove={() => this.handleFocusLink(index)}
+                    onClick={this.handleSelectLink(result.url, result.title)}
+                    selected={index === selectedIndex}
+                    containerRef={this.resultsRef}
+                  />
+                ))}
 
-            {showCreateLink && (
-              <LinkSearchResult
-                key="create"
-                title={suggestedLinkTitle}
-                subtitle={dictionary.createNewDoc}
-                icon={<PlusIcon color="currentColor" />}
-                onPointerMove={() => this.handleFocusLink(results.length)}
-                onClick={() => {
-                  this.handleCreateLink(suggestedLinkTitle);
+                {showCreateLink && (
+                  <LinkSearchResult
+                    key="create"
+                    containerRef={this.resultsRef}
+                    title={suggestedLinkTitle}
+                    subtitle={dictionary.createNewDoc}
+                    icon={<PlusIcon color="currentColor" />}
+                    onPointerMove={() => this.handleFocusLink(results.length)}
+                    onClick={() => {
+                      this.handleCreateLink(suggestedLinkTitle);
 
-                  if (this.initialSelectionLength) {
-                    this.moveSelectionToEnd();
-                  }
-                }}
-                selected={results.length === selectedIndex}
-              />
+                      if (this.initialSelectionLength) {
+                        this.moveSelectionToEnd();
+                      }
+                    }}
+                    selected={results.length === selectedIndex}
+                  />
+                )}
+              </>
             )}
-          </SearchResults>
-        )}
+          </ResizingHeightContainer>
+        </SearchResults>
       </Wrapper>
     );
   }
@@ -388,25 +399,20 @@ class LinkEditor extends React.Component<Props, State> {
 const Wrapper = styled(Flex)`
   margin-left: -8px;
   margin-right: -8px;
-  min-width: 336px;
   pointer-events: all;
   gap: 8px;
 `;
 
-const SearchResults = styled.ol`
-  background: ${(props) => props.theme.toolbarBackground};
+const SearchResults = styled(Scrollable)<{ $hasResults: boolean }>`
+  background: ${s("toolbarBackground")};
   position: absolute;
   top: 100%;
   width: 100%;
   height: auto;
   left: 0;
-  padding: 0;
-  margin: 0;
-  margin-top: -3px;
-  margin-bottom: 0;
+  margin: -8px 0 0;
   border-radius: 0 0 4px 4px;
-  overflow-y: auto;
-  overscroll-behavior: none;
+  padding: ${(props) => (props.$hasResults ? "8px 0" : "0")};
   max-height: 260px;
 
   @media (hover: none) and (pointer: coarse) {

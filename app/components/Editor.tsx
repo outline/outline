@@ -116,13 +116,11 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
       const results = await documents.searchTitles(term);
 
       return sortBy(
-        results.map((document: Document) => {
-          return {
-            title: document.title,
-            subtitle: <DocumentBreadcrumb document={document} onlyText />,
-            url: document.url,
-          };
-        }),
+        results.map((document: Document) => ({
+          title: document.title,
+          subtitle: <DocumentBreadcrumb document={document} onlyText />,
+          url: document.url,
+        })),
         (document) =>
           deburr(document.title)
             .toLowerCase()
@@ -325,7 +323,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   );
 
   return (
-    <ErrorBoundary reloadOnChunkMissing>
+    <ErrorBoundary component="div" reloadOnChunkMissing>
       <>
         <LazyLoadedEditor
           ref={mergeRefs([ref, localRef, handleRefChanged])}

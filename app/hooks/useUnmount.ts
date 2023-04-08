@@ -4,11 +4,12 @@ const useUnmount = (callback: (...args: Array<any>) => any) => {
   const ref = React.useRef(callback);
   ref.current = callback;
 
-  React.useEffect(() => {
-    return () => {
+  React.useEffect(
+    () => () => {
       ref.current();
-    };
-  }, []);
+    },
+    []
+  );
 };
 
 export default useUnmount;

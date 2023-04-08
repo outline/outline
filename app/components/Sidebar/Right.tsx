@@ -3,7 +3,8 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { depths } from "@shared/styles";
+import { depths, s } from "@shared/styles";
+import ErrorBoundary from "~/components/ErrorBoundary";
 import Flex from "~/components/Flex";
 import ResizeBorder from "~/components/Sidebar/components/ResizeBorder";
 import useMobile from "~/hooks/useMobile";
@@ -94,7 +95,7 @@ function Right({ children, border, className }: Props) {
       className={className}
     >
       <Position style={style} column>
-        {children}
+        <ErrorBoundary>{children}</ErrorBoundary>
         {!isMobile && (
           <ResizeBorder
             onMouseDown={handleMouseDown}
@@ -118,10 +119,9 @@ const Sidebar = styled(m.div)<{
 }>`
   display: flex;
   flex-shrink: 0;
-  background: ${(props) => props.theme.background};
-  width: ${(props) => props.theme.sidebarRightWidth}px;
+  background: ${s("background")};
   max-width: 70%;
-  border-left: 1px solid ${(props) => props.theme.divider};
+  border-left: 1px solid ${s("divider")};
   transition: border-left 100ms ease-in-out;
   z-index: 1;
 

@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import DocumentMeta from "~/components/DocumentMeta";
 import Editor from "~/components/Editor";
@@ -52,7 +53,7 @@ const Content = styled(Link)`
 
 const Heading = styled.h2`
   margin: 0 0 0.75em;
-  color: ${(props) => props.theme.text};
+  color: ${s("text")};
 `;
 
 export default observer(HoverPreviewDocument);

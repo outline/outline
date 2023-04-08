@@ -56,12 +56,9 @@ function DraggableCollectionLink({
         fractionalIndex(collection.index, belowCollectionIndex)
       );
     },
-    canDrop: (item) => {
-      return (
-        collection.id !== item.id &&
-        (!belowCollection || item.id !== belowCollection.id)
-      );
-    },
+    canDrop: (item) =>
+      collection.id !== item.id &&
+      (!belowCollection || item.id !== belowCollection.id),
     collect: (monitor: DropTargetMonitor<Collection, Collection>) => ({
       isCollectionDropping: monitor.isOver(),
       isDraggingAnyCollection: monitor.canDrop(),

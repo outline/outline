@@ -3,7 +3,7 @@ import { Dialog } from "reakit/Dialog";
 import { Popover as ReakitPopover, PopoverProps } from "reakit/Popover";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { depths } from "@shared/styles";
+import { depths, s } from "@shared/styles";
 import useMobile from "~/hooks/useMobile";
 import { fadeAndScaleIn } from "~/styles/animations";
 
@@ -42,13 +42,13 @@ const Popover: React.FC<Props> = ({
 const Contents = styled.div<{ $shrink?: boolean; $width?: number }>`
   animation: ${fadeAndScaleIn} 200ms ease;
   transform-origin: 75% 0;
-  background: ${(props) => props.theme.menuBackground};
+  background: ${s("menuBackground")};
   border-radius: 6px;
   padding: ${(props) => (props.$shrink ? "6px 0" : "12px 24px")};
   max-height: 75vh;
   overflow-x: hidden;
   overflow-y: auto;
-  box-shadow: ${(props) => props.theme.menuShadow};
+  box-shadow: ${s("menuShadow")};
   width: ${(props) => props.$width}px;
 
   ${breakpoint("mobile", "tablet")`

@@ -209,19 +209,14 @@ export default class Collection extends ParanoidModel {
   }
 
   @action
-  star = async () => {
-    return this.store.star(this);
-  };
+  star = async () => this.store.star(this);
 
   @action
-  unstar = async () => {
-    return this.store.unstar(this);
-  };
+  unstar = async () => this.store.unstar(this);
 
-  export = (format: FileOperationFormat) => {
-    return client.post("/collections.export", {
+  export = (format: FileOperationFormat) =>
+    client.post("/collections.export", {
       id: this.id,
       format,
     });
-  };
 }

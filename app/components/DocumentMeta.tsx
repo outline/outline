@@ -4,6 +4,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { s, ellipsis } from "@shared/styles";
 import Document from "~/models/Document";
 import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
 import DocumentTasks from "~/components/DocumentTasks";
@@ -184,7 +185,7 @@ const DocumentMeta: React.FC<Props> = ({
 
 const Container = styled(Flex)<{ rtl?: boolean }>`
   justify-content: ${(props) => (props.rtl ? "flex-end" : "flex-start")};
-  color: ${(props) => props.theme.textTertiary};
+  color: ${s("textTertiary")};
   font-size: 13px;
   white-space: nowrap;
   overflow: hidden;
@@ -192,8 +193,7 @@ const Container = styled(Flex)<{ rtl?: boolean }>`
 `;
 
 const Viewed = styled.span`
-  text-overflow: ellipsis;
-  overflow: hidden;
+  ${ellipsis()}
 `;
 
 const Modified = styled.span<{ highlight?: boolean }>`

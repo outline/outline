@@ -58,12 +58,10 @@ router.post(
     authorize(user, "createTeam", existingTeam);
 
     const authenticationProviders = existingTeam.authenticationProviders.map(
-      (provider) => {
-        return {
-          name: provider.name,
-          providerId: provider.providerId,
-        };
-      }
+      (provider) => ({
+        name: provider.name,
+        providerId: provider.providerId,
+      })
     );
 
     invariant(

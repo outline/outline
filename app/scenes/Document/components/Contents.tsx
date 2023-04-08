@@ -3,6 +3,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { s } from "@shared/styles";
 import Text from "~/components/Text";
 import useWindowScrollPosition from "~/hooks/useWindowScrollPosition";
 
@@ -101,8 +102,8 @@ const Sticky = styled.div`
   top: 80px;
   max-height: calc(100vh - 80px);
 
-  background: ${(props) => props.theme.background};
-  transition: ${(props) => props.theme.backgroundTransition};
+  background: ${s("background")};
+  transition: ${s("backgroundTransition")};
 
   margin-top: 72px;
   margin-right: 52px;
@@ -122,7 +123,7 @@ const Sticky = styled.div`
 const Heading = styled.h3`
   font-size: 13px;
   font-weight: 600;
-  color: ${(props) => props.theme.textTertiary};
+  color: ${s("textTertiary")};
   letter-spacing: 0.03em;
 `;
 
@@ -145,11 +146,11 @@ const ListItem = styled.li<{ level: number; active?: boolean }>`
 `;
 
 const Link = styled.a`
-  color: ${(props) => props.theme.text};
+  color: ${s("text")};
   font-size: 14px;
 
   &:hover {
-    color: ${(props) => props.theme.accent};
+    color: ${s("accent")};
   }
 `;
 

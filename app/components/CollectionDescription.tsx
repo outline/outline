@@ -4,6 +4,7 @@ import { transparentize } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import Collection from "~/models/Collection";
 import Arrow from "~/components/Arrow";
 import ButtonLink from "~/components/ButtonLink";
@@ -141,7 +142,7 @@ function CollectionDescription({ collection }: Props) {
 
 const Disclosure = styled(NudeButton)`
   opacity: 0;
-  color: ${(props) => props.theme.divider};
+  color: ${s("divider")};
   position: absolute;
   top: calc(25vh - 50px);
   left: 50%;
@@ -155,12 +156,12 @@ const Disclosure = styled(NudeButton)`
   }
 
   &:active {
-    color: ${(props) => props.theme.sidebarText};
+    color: ${s("sidebarText")};
   }
 `;
 
 const Placeholder = styled(ButtonLink)`
-  color: ${(props) => props.theme.placeholder};
+  color: ${s("placeholder")};
   cursor: text;
   min-height: 27px;
 `;
@@ -193,7 +194,7 @@ const Input = styled.div`
   margin: -8px;
   padding: 8px;
   border-radius: 8px;
-  transition: ${(props) => props.theme.backgroundTransition};
+  transition: ${s("backgroundTransition")};
 
   &:after {
     content: "";
@@ -206,7 +207,7 @@ const Input = styled.div`
     background: linear-gradient(
       180deg,
       ${(props) => transparentize(1, props.theme.background)} 0%,
-      ${(props) => props.theme.background} 100%
+      ${s("background")} 100%
     );
   }
 
@@ -218,7 +219,7 @@ const Input = styled.div`
   }
 
   &[data-editing="true"] {
-    background: ${(props) => props.theme.secondaryBackground};
+    background: ${s("secondaryBackground")};
   }
 
   .block-menu-trigger,

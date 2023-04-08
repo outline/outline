@@ -5,7 +5,6 @@ import styled from "styled-components";
 import { languages, languageOptions } from "@shared/i18n";
 import ButtonLink from "~/components/ButtonLink";
 import Flex from "~/components/Flex";
-import NoticeTip from "~/components/NoticeTip";
 import env from "~/env";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
@@ -61,7 +60,7 @@ export default function LanguagePrompt() {
   const appName = env.APP_NAME;
 
   return (
-    <NoticeTip>
+    <Wrapper>
       <Flex align="center">
         <LanguageIcon />
         <span>
@@ -87,9 +86,27 @@ export default function LanguagePrompt() {
           <Link onClick={ui.setLanguagePromptDismissed}>{t("Dismiss")}</Link>
         </span>
       </Flex>
-    </NoticeTip>
+    </Wrapper>
   );
 }
+
+const Wrapper = styled.p`
+  background: ${(props) => props.theme.brand.marine};
+  color: ${(props) => props.theme.almostBlack};
+  padding: 10px 12px;
+  margin-top: 24px;
+  border-radius: 4px;
+  position: relative;
+
+  a {
+    color: ${(props) => props.theme.almostBlack};
+    font-weight: 500;
+  }
+
+  a:hover {
+    text-decoration: underline;
+  }
+`;
 
 const Link = styled(ButtonLink)`
   color: ${(props) => props.theme.almostBlack};

@@ -2,6 +2,7 @@ import * as React from "react";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { s, ellipsis } from "@shared/styles";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import { undraggableOnDesktop } from "~/styles";
@@ -12,11 +13,11 @@ const RealTextarea = styled.textarea<{ hasIcon?: boolean }>`
   padding: 8px 12px 8px ${(props) => (props.hasIcon ? "8px" : "12px")};
   outline: none;
   background: none;
-  color: ${(props) => props.theme.text};
+  color: ${s("text")};
 
   &:disabled,
   &::placeholder {
-    color: ${(props) => props.theme.placeholder};
+    color: ${s("placeholder")};
   }
 `;
 
@@ -26,24 +27,21 @@ const RealInput = styled.input<{ hasIcon?: boolean }>`
   padding: 8px 12px 8px ${(props) => (props.hasIcon ? "8px" : "12px")};
   outline: none;
   background: none;
-  color: ${(props) => props.theme.text};
+  color: ${s("text")};
   height: 30px;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  ${ellipsis()}
   ${undraggableOnDesktop()}
 
   &:disabled,
   &::placeholder {
-    color: ${(props) => props.theme.placeholder};
+    color: ${s("placeholder")};
   }
 
   &:-webkit-autofill,
   &:-webkit-autofill:hover,
   &:-webkit-autofill:focus {
-    -webkit-box-shadow: 0 0 0px 1000px ${(props) => props.theme.background}
-      inset;
+    -webkit-box-shadow: 0 0 0px 1000px ${s("background")} inset;
   }
 
   &::-webkit-search-cancel-button {
@@ -98,7 +96,7 @@ export const Outline = styled(Flex)<{
   font-weight: normal;
   align-items: center;
   overflow: hidden;
-  background: ${(props) => props.theme.background};
+  background: ${s("background")};
 
   /* Prevents an issue where input placeholder appears in a selected style when double clicking title bar */
   user-select: none;

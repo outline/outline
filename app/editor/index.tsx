@@ -355,8 +355,8 @@ export class Editor extends React.PureComponent<
           decorations: Decoration<{
             [key: string]: any;
           }>[]
-        ) => {
-          return new ComponentView(extension.component, {
+        ) =>
+          new ComponentView(extension.component, {
             editor: this,
             extension,
             node,
@@ -364,7 +364,6 @@ export class Editor extends React.PureComponent<
             getPos,
             decorations,
           });
-        };
 
         return {
           ...nodeViews,
@@ -449,13 +448,12 @@ export class Editor extends React.PureComponent<
       throw new Error("createView called before ref available");
     }
 
-    const isEditingCheckbox = (tr: Transaction) => {
-      return tr.steps.some(
+    const isEditingCheckbox = (tr: Transaction) =>
+      tr.steps.some(
         (step: any) =>
           step.slice?.content?.firstChild?.type.name ===
           this.schema.nodes.checkbox_item.name
       );
-    };
 
     const self = this; // eslint-disable-line
     const view = new EditorView(this.elementRef.current, {
@@ -579,36 +577,28 @@ export class Editor extends React.PureComponent<
    *
    * @returns True if the editor is empty
    */
-  public isEmpty = () => {
-    return ProsemirrorHelper.isEmpty(this.view.state.doc);
-  };
+  public isEmpty = () => ProsemirrorHelper.isEmpty(this.view.state.doc);
 
   /**
    * Return the headings in the current editor.
    *
    * @returns A list of headings in the document
    */
-  public getHeadings = () => {
-    return ProsemirrorHelper.getHeadings(this.view.state.doc);
-  };
+  public getHeadings = () => ProsemirrorHelper.getHeadings(this.view.state.doc);
 
   /**
    * Return the tasks/checkmarks in the current editor.
    *
    * @returns A list of tasks in the document
    */
-  public getTasks = () => {
-    return ProsemirrorHelper.getTasks(this.view.state.doc);
-  };
+  public getTasks = () => ProsemirrorHelper.getTasks(this.view.state.doc);
 
   /**
    * Return the comments in the current editor.
    *
    * @returns A list of comments in the document
    */
-  public getComments = () => {
-    return ProsemirrorHelper.getComments(this.view.state.doc);
-  };
+  public getComments = () => ProsemirrorHelper.getComments(this.view.state.doc);
 
   /**
    * Remove a specific comment mark from the document.
@@ -661,9 +651,9 @@ export class Editor extends React.PureComponent<
       return;
     }
 
-    this.props.onChange((asString = true, trim = false) => {
-      return this.view ? this.value(asString, trim) : undefined;
-    });
+    this.props.onChange((asString = true, trim = false) =>
+      this.view ? this.value(asString, trim) : undefined
+    );
   };
 
   private handleEditorBlur = () => {
@@ -770,6 +760,31 @@ export class Editor extends React.PureComponent<
             />
             {!readOnly && this.view && (
               <>
+                {this.marks.link && (
+                  <LinkToolbar
+                    isActive={this.state.linkMenuOpen}
+                    onCreateLink={this.props.onCreateLink}
+                    onSearchLink={this.props.onSearchLink}
+                    onClickLink={this.props.onClickLink}
+                    onClose={this.handleCloseLinkMenu}
+                  />
+                )}
+                {this.nodes.emoji && (
+                  <EmojiMenu
+                    rtl={isRTL}
+                    isActive={this.state.emojiMenuOpen}
+                    search={this.state.blockMenuSearch}
+                    onClose={this.handleCloseEmojiMenu}
+                  />
+                )}
+                {this.nodes.mention && (
+                  <MentionMenu
+                    rtl={isRTL}
+                    isActive={this.state.mentionMenuOpen}
+                    search={this.state.blockMenuSearch}
+                    onClose={this.handleCloseMentionMenu}
+                  />
+                )}
                 <SelectionToolbar
                   rtl={isRTL}
                   isTemplate={this.props.template === true}
@@ -778,25 +793,6 @@ export class Editor extends React.PureComponent<
                   onSearchLink={this.props.onSearchLink}
                   onClickLink={this.props.onClickLink}
                   onCreateLink={this.props.onCreateLink}
-                />
-                <LinkToolbar
-                  isActive={this.state.linkMenuOpen}
-                  onCreateLink={this.props.onCreateLink}
-                  onSearchLink={this.props.onSearchLink}
-                  onClickLink={this.props.onClickLink}
-                  onClose={this.handleCloseLinkMenu}
-                />
-                <EmojiMenu
-                  rtl={isRTL}
-                  isActive={this.state.emojiMenuOpen}
-                  search={this.state.blockMenuSearch}
-                  onClose={this.handleCloseEmojiMenu}
-                />
-                <MentionMenu
-                  rtl={isRTL}
-                  isActive={this.state.mentionMenuOpen}
-                  search={this.state.blockMenuSearch}
-                  onClose={this.handleCloseMentionMenu}
                 />
                 <BlockMenu
                   rtl={isRTL}
@@ -829,13 +825,11 @@ const EditorContainer = styled(Styles)<{ focusedCommentId?: string }>`
 `;
 
 const LazyLoadedEditor = React.forwardRef<Editor, Props>(
-  (props: Props, ref) => {
-    return (
-      <WithTheme>
-        {(theme) => <Editor theme={theme} {...props} ref={ref} />}
-      </WithTheme>
-    );
-  }
+  (props: Props, ref) => (
+    <WithTheme>
+      {(theme) => <Editor theme={theme} {...props} ref={ref} />}
+    </WithTheme>
+  )
 );
 
 export default LazyLoadedEditor;
