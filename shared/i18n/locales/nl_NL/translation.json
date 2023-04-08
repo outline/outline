@@ -489,7 +489,7 @@
   "Sorry, the last change could not be persisted – please reload the page": "Sorry, de laatste wijziging kon niet worden bewaard - laad de pagina opnieuw",
   "This template will be permanently deleted in <2></2> unless restored.": "Dit sjabloon wordt definitief verwijderd over <2></2> tenzij het hersteld wordt.",
   "This document will be permanently deleted in <2></2> unless restored.": "Dit document wordt definitief verwijderd over <2></2> als dit niet wordt hersteld.",
-  "Highlight some text and use the <2></2> control to add placeholders that can be filled out when creating new documents": "Markeer wat tekst en gebruik de <2></2> controle om tijdelijke aanduidingen toe te voegen die kunnen worden ingevuld bij het maken van nieuwe documenten",
+  "Highlight some text and use the <1></1> control to add placeholders that can be filled out when creating new documents": "Highlight some text and use the <1></1> control to add placeholders that can be filled out when creating new documents",
   "You’re editing a template": "Je bent een sjabloon aan het bewerken",
   "Archived by {{userName}}": "Gearchiveerd door {{userName}}",
   "Deleted by {{userName}}": "Verwijderd door {{userName}}",
