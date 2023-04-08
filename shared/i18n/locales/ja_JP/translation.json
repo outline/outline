@@ -489,7 +489,7 @@
   "Sorry, the last change could not be persisted – please reload the page": "申し訳ありませんが、最後の変更を保持できませんでした。ページをリロードしてください",
   "This template will be permanently deleted in <2></2> unless restored.": "このテンプレートは復元しない限り、<2></2>で永久に削除されます。",
   "This document will be permanently deleted in <2></2> unless restored.": "このドキュメントは復元されない限り、<2></2>で永久に削除されます。",
-  "Highlight some text and use the <2></2> control to add placeholders that can be filled out when creating new documents": "テキストをハイライト表示し、<2></2>コントロールを使用して、新しいドキュメントを作成するときに記入できるプレースホルダを追加します。",
+  "Highlight some text and use the <1></1> control to add placeholders that can be filled out when creating new documents": "Highlight some text and use the <1></1> control to add placeholders that can be filled out when creating new documents",
   "You’re editing a template": "現在テンプレートの編集中です",
   "Archived by {{userName}}": "{{userName}} がアーカイブしました",
   "Deleted by {{userName}}": "{{userName}} によって削除されました",
