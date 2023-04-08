@@ -90,7 +90,7 @@ const Content = styled(Flex)`
 `;
 
 const Item = styled.div<{ active?: boolean }>`
-  font-size: 15px;
+  font-size: 14px;
   padding: 9px 12px;
   margin: 0 8px;
   border-radius: 4px;
