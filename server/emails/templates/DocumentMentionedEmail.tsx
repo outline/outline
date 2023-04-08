@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Document } from "@server/models";
+import { Document, Notification } from "@server/models";
 import BaseEmail, { EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
@@ -11,7 +11,6 @@ type InputProps = EmailProps & {
   documentId: string;
   actorName: string;
   teamUrl: string;
-  mentionId: string;
 };
 
 type BeforeSend = {
@@ -27,6 +26,20 @@ export default class DocumentMentionedEmail extends BaseEmail<
   InputProps,
   BeforeSend
 > {
+  public constructor(notification: Notification) {
+    super(
+      {
+        to: notification.user.email,
+        documentId: notification.documentId,
+        teamUrl: notification.team.url,
+        actorName: notification.actor.name,
+      },
+      {
+        notificationId: notification.id,
+      }
+    );
+  }
+
   protected async beforeSend({ documentId }: InputProps) {
     const document = await Document.unscoped().findByPk(documentId);
     if (!document) {
@@ -48,23 +61,18 @@ export default class DocumentMentionedEmail extends BaseEmail<
     return actorName;
   }
 
-  protected renderAsText({
-    actorName,
-    teamUrl,
-    document,
-    mentionId,
-  }: Props): string {
+  protected renderAsText({ actorName, teamUrl, document }: Props): string {
     return `
 You were mentioned
 
 ${actorName} mentioned you in the document “${document.title}”.
 
-Open Document: ${teamUrl}${document.url}?mentionId=${mentionId}
+Open Document: ${teamUrl}${document.url}
 `;
   }
 
-  protected render({ document, actorName, teamUrl, mentionId }: Props) {
-    const link = `${teamUrl}${document.url}?ref=notification-email&mentionId=${mentionId}`;
+  protected render({ document, actorName, teamUrl }: Props) {
+    const link = `${teamUrl}${document.url}?ref=notification-email`;
 
     return (
       <EmailTemplate>

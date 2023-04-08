@@ -1,9 +1,18 @@
 import inlineCss from "inline-css";
 import * as React from "react";
 import { NotificationEventType } from "@shared/types";
+import { Day } from "@shared/utils/time";
 import env from "@server/env";
-import { Document, User } from "@server/models";
+import {
+  Collection,
+  Comment,
+  Document,
+  Notification,
+  User,
+} from "@server/models";
+import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
+import ProsemirrorHelper from "@server/models/helpers/ProsemirrorHelper";
 import BaseEmail, { EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
@@ -19,13 +28,12 @@ type InputProps = EmailProps & {
   documentId: string;
   actorName: string;
   commentId: string;
-  collectionName: string | undefined;
   teamUrl: string;
-  content: string;
 };
 
 type BeforeSend = {
   document: Document;
+  collection: Collection;
   body: string | undefined;
   unsubscribeUrl: string;
 };
@@ -40,20 +48,54 @@ export default class CommentMentionedEmail extends BaseEmail<
   InputProps,
   BeforeSend
 > {
-  protected async beforeSend({ documentId, userId, content }: InputProps) {
+  public constructor(notification: Notification) {
+    super(
+      {
+        to: notification.user.email,
+        userId: notification.userId,
+        documentId: notification.documentId,
+        teamUrl: notification.team.url,
+        actorName: notification.actor.name,
+        commentId: notification.commentId,
+      },
+      {
+        notificationId: notification.id,
+      }
+    );
+  }
+
+  protected async beforeSend({ documentId, commentId, userId }: InputProps) {
     const document = await Document.unscoped().findByPk(documentId);
     if (!document) {
       return false;
     }
 
-    const user = await User.findByPk(userId);
-    if (!user) {
+    const collection = await document.$get("collection");
+    if (!collection) {
       return false;
     }
 
-    // inline all css so that it works in as many email providers as possible.
+    const comment = await Comment.findByPk(commentId);
+    if (!comment) {
+      return false;
+    }
+
     let body;
+    let content = ProsemirrorHelper.toHTML(
+      ProsemirrorHelper.toProsemirror(comment.data),
+      {
+        centered: false,
+      }
+    );
+
+    content = await DocumentHelper.attachmentsToSignedUrls(
+      content,
+      document.teamId,
+      (4 * Day) / 1000
+    );
+
     if (content) {
+      // inline all css so that it works in as many email providers as possible.
       body = await inlineCss(content, {
         url: env.URL,
         applyStyleTags: true,
@@ -64,10 +106,11 @@ export default class CommentMentionedEmail extends BaseEmail<
 
     return {
       document,
+      collection,
       body,
       unsubscribeUrl: NotificationSettingsHelper.unsubscribeUrl(
-        user,
-        NotificationEventType.Mentioned
+        await User.findByPk(userId, { rejectOnEmpty: true }),
+        NotificationEventType.MentionedInComment
       ),
     };
   }
@@ -89,11 +132,11 @@ export default class CommentMentionedEmail extends BaseEmail<
     teamUrl,
     document,
     commentId,
-    collectionName,
+    collection,
   }: Props): string {
     return `
 ${actorName} mentioned you in a comment on "${document.title}"${
-      collectionName ? `in the ${collectionName} collection` : ""
+      collection.name ? `in the ${collection.name} collection` : ""
     }.
 
 Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
@@ -102,8 +145,8 @@ Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
 
   protected render({
     document,
+    collection,
     actorName,
-    collectionName,
     teamUrl,
     commentId,
     unsubscribeUrl,
@@ -120,7 +163,7 @@ Open Thread: ${teamUrl}${document.url}?commentId=${commentId}
           <p>
             {actorName} mentioned you in a comment on{" "}
             <a href={link}>{document.title}</a>{" "}
-            {collectionName ? `in the ${collectionName} collection` : ""}.
+            {collection.name ? `in the ${collection.name} collection` : ""}.
           </p>
           {body && (
             <>

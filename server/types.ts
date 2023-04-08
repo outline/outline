@@ -76,7 +76,7 @@ export type AttachmentEvent = BaseEvent &
         modelId: string;
         data: {
           name: string;
-          source: string;
+          source?: "import";
         };
       }
     | {
@@ -215,10 +215,15 @@ export type CollectionEvent = BaseEvent &
     | CollectionUserEvent
     | CollectionGroupEvent
     | {
-        name:
-          | "collections.create"
-          | "collections.update"
-          | "collections.delete";
+        name: "collections.create";
+        collectionId: string;
+        data: {
+          name: string;
+          source?: "import";
+        };
+      }
+    | {
+        name: "collections.update" | "collections.delete";
         collectionId: string;
         data: {
           name: string;
@@ -352,6 +357,14 @@ export type WebhookSubscriptionEvent = BaseEvent & {
   };
 };
 
+export type NotificationEvent = BaseEvent & {
+  name: "notifications.create";
+  modelId: string;
+  teamId: string;
+  userId: string;
+  documentId?: string;
+};
+
 export type Event =
   | ApiKeyEvent
   | AttachmentEvent
@@ -370,7 +383,8 @@ export type Event =
   | TeamEvent
   | UserEvent
   | ViewEvent
-  | WebhookSubscriptionEvent;
+  | WebhookSubscriptionEvent
+  | NotificationEvent;
 
 export type NotificationMetadata = {
   notificationId?: string;

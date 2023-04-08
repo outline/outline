@@ -27,14 +27,9 @@ type BeforeSendProps = {
  */
 export default class InviteAcceptedEmail extends BaseEmail<Props> {
   protected async beforeSend({ inviterId }: Props) {
-    const inviter = await User.findByPk(inviterId);
-    if (!inviter) {
-      return false;
-    }
-
     return {
       unsubscribeUrl: NotificationSettingsHelper.unsubscribeUrl(
-        inviter,
+        await User.findByPk(inviterId, { rejectOnEmpty: true }),
         NotificationEventType.InviteAccepted
       ),
     };

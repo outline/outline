@@ -1,9 +1,8 @@
 import * as React from "react";
 import { NotificationEventType } from "@shared/types";
-import env from "@server/env";
-import { Collection, User } from "@server/models";
+import { Collection, Notification, User } from "@server/models";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
-import BaseEmail from "./BaseEmail";
+import BaseEmail, { EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
 import EmailTemplate from "./components/EmailLayout";
@@ -12,9 +11,9 @@ import Footer from "./components/Footer";
 import Header from "./components/Header";
 import Heading from "./components/Heading";
 
-type InputProps = {
-  to: string;
+type InputProps = EmailProps & {
   userId: string;
+  teamUrl: string;
   collectionId: string;
 };
 
@@ -33,6 +32,20 @@ export default class CollectionCreatedEmail extends BaseEmail<
   InputProps,
   BeforeSend
 > {
+  public constructor(notification: Notification) {
+    super(
+      {
+        to: notification.user.email,
+        userId: notification.userId,
+        collectionId: notification.collectionId,
+        teamUrl: notification.team.url,
+      },
+      {
+        notificationId: notification.id,
+      }
+    );
+  }
+
   protected async beforeSend({ userId, collectionId }: Props) {
     const collection = await Collection.scope("withUser").findByPk(
       collectionId
@@ -41,15 +54,10 @@ export default class CollectionCreatedEmail extends BaseEmail<
       return false;
     }
 
-    const user = await User.findByPk(userId);
-    if (!user) {
-      return false;
-    }
-
     return {
       collection,
       unsubscribeUrl: NotificationSettingsHelper.unsubscribeUrl(
-        user,
+        await User.findByPk(userId, { rejectOnEmpty: true }),
         NotificationEventType.CreateCollection
       ),
     };
@@ -63,17 +71,17 @@ export default class CollectionCreatedEmail extends BaseEmail<
     return `${collection.user.name} created a collection`;
   }
 
-  protected renderAsText({ collection }: Props) {
+  protected renderAsText({ teamUrl, collection }: Props) {
     return `
 ${collection.name}
 
 ${collection.user.name} created the collection "${collection.name}"
 
-Open Collection: ${env.URL}${collection.url}
+Open Collection: ${teamUrl}${collection.url}
 `;
   }
 
-  protected render({ collection, unsubscribeUrl }: Props) {
+  protected render({ collection, teamUrl, unsubscribeUrl }: Props) {
     return (
       <EmailTemplate>
         <Header />
@@ -86,7 +94,7 @@ Open Collection: ${env.URL}${collection.url}
           </p>
           <EmptySpace height={10} />
           <p>
-            <Button href={`${env.URL}${collection.url}`}>
+            <Button href={`${teamUrl}${collection.url}`}>
               Open Collection
             </Button>
           </p>

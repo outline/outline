@@ -58,7 +58,7 @@ function Notifications() {
       ),
     },
     {
-      event: NotificationEventType.Mentioned,
+      event: NotificationEventType.MentionedInComment,
       icon: <EmailIcon color="currentColor" />,
       title: t("Mentioned"),
       description: t(

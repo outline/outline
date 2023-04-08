@@ -1,8 +1,16 @@
 import inlineCss from "inline-css";
 import * as React from "react";
 import { NotificationEventType } from "@shared/types";
+import { Day } from "@shared/utils/time";
 import env from "@server/env";
-import { Document, User } from "@server/models";
+import {
+  Document,
+  Collection,
+  User,
+  Revision,
+  Notification,
+} from "@server/models";
+import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import BaseEmail, { EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
@@ -17,17 +25,17 @@ import Heading from "./components/Heading";
 type InputProps = EmailProps & {
   userId: string;
   documentId: string;
+  revisionId?: string;
   actorName: string;
-  collectionName: string;
   eventType:
     | NotificationEventType.PublishDocument
     | NotificationEventType.UpdateDocument;
   teamUrl: string;
-  content?: string;
 };
 
 type BeforeSend = {
   document: Document;
+  collection: Collection;
   unsubscribeUrl: string;
   body: string | undefined;
 };
@@ -42,38 +50,72 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
   InputProps,
   BeforeSend
 > {
+  public constructor(notification: Notification) {
+    super(
+      {
+        to: notification.user.email,
+        userId: notification.userId,
+        eventType: notification.event as
+          | NotificationEventType.PublishDocument
+          | NotificationEventType.UpdateDocument,
+        revisionId: notification.revisionId,
+        documentId: notification.documentId,
+        teamUrl: notification.team.url,
+        actorName: notification.actor.name,
+      },
+      {
+        notificationId: notification.id,
+      }
+    );
+  }
+
   protected async beforeSend({
     documentId,
+    revisionId,
     eventType,
     userId,
-    content,
   }: InputProps) {
-    const document = await Document.unscoped().findByPk(documentId);
+    const document = await Document.unscoped().findByPk(documentId, {
+      includeState: true,
+    });
     if (!document) {
       return false;
     }
 
-    const user = await User.findByPk(userId);
-    if (!user) {
+    const collection = await document.$get("collection");
+    if (!collection) {
       return false;
     }
 
-    // inline all css so that it works in as many email providers as possible.
     let body;
-    if (content) {
-      body = await inlineCss(content, {
-        url: env.URL,
-        applyStyleTags: true,
-        applyLinkTags: false,
-        removeStyleTags: true,
-      });
+    if (revisionId) {
+      // generate the diff html for the email
+      const revision = await Revision.findByPk(revisionId);
+
+      if (revision) {
+        const before = await revision.previous();
+        const content = await DocumentHelper.toEmailDiff(before, revision, {
+          includeTitle: false,
+          centered: false,
+          signedUrls: (4 * Day) / 1000,
+        });
+
+        // inline all css so that it works in as many email providers as possible.
+        body = await inlineCss(content, {
+          url: env.URL,
+          applyStyleTags: true,
+          applyLinkTags: false,
+          removeStyleTags: true,
+        });
+      }
     }
 
     return {
       document,
+      collection,
       body,
       unsubscribeUrl: NotificationSettingsHelper.unsubscribeUrl(
-        user,
+        await User.findByPk(userId, { rejectOnEmpty: true }),
         eventType
       ),
     };
@@ -102,7 +144,7 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
     actorName,
     teamUrl,
     document,
-    collectionName,
+    collection,
     eventType,
   }: Props): string {
     const eventName = this.eventName(eventType);
@@ -110,7 +152,7 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
     return `
 "${document.title}" ${eventName}
 
-${actorName} ${eventName} the document "${document.title}", in the ${collectionName} collection.
+${actorName} ${eventName} the document "${document.title}", in the ${collection.name} collection.
 
 Open Document: ${teamUrl}${document.url}
 `;
@@ -119,7 +161,7 @@ Open Document: ${teamUrl}${document.url}
   protected render({
     document,
     actorName,
-    collectionName,
+    collection,
     eventType,
     teamUrl,
     unsubscribeUrl,
@@ -138,7 +180,7 @@ Open Document: ${teamUrl}${document.url}
           </Heading>
           <p>
             {actorName} {eventName} the document{" "}
-            <a href={link}>{document.title}</a>, in the {collectionName}{" "}
+            <a href={link}>{document.title}</a>, in the {collection.name}{" "}
             collection.
           </p>
           {body && (
