@@ -729,7 +729,7 @@
   "New group": "建立群組",
   "Groups can be used to organize and manage the people on your team.": "群組可以用來組織與管理團隊中的人員。",
   "No groups have been created yet": "尚未建立任何群組",
-  "All": "All",
+  "All": "全部",
   "Quickly transfer your existing documents, pages, and files from other tools and services into {{appName}}. You can also drag and drop any HTML, Markdown, and text documents directly into Collections in the app.": "Quickly transfer your existing documents, pages, and files from other tools and services into {{appName}}. You can also drag and drop any HTML, Markdown, and text documents directly into Collections in the app.",
   "Import a zip file of Markdown documents (exported from version 0.67.0 or earlier)": "匯入包含 Markdown 文檔的 zip 壓縮檔案 (需要從 0.67.0 或更早版本匯出)",
   "Import data": "匯入數據",
