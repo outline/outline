@@ -2,9 +2,9 @@ import { ActionImpl } from "kbar";
 import { ArrowIcon, BackIcon } from "outline-icons";
 import * as React from "react";
 import styled, { css, useTheme } from "styled-components";
+import { s, ellipsis } from "@shared/styles";
 import Flex from "~/components/Flex";
 import Key from "~/components/Key";
-import { ellipsis } from "~/styles";
 
 type Props = {
   action: ActionImpl;
@@ -77,12 +77,12 @@ const Icon = styled(Flex)`
   justify-content: center;
   width: 24px;
   height: 24px;
-  color: ${(props) => props.theme.textSecondary};
+  color: ${s("textSecondary")};
   flex-shrink: 0;
 `;
 
 const Ancestor = styled.span`
-  color: ${(props) => props.theme.textSecondary};
+  color: ${s("textSecondary")};
 `;
 
 const Content = styled(Flex)`

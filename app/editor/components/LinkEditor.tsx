@@ -10,6 +10,7 @@ import { setTextSelection } from "prosemirror-utils";
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import { isInternalUrl, sanitizeUrl } from "@shared/utils/urls";
 import Flex from "~/components/Flex";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
@@ -403,7 +404,7 @@ const Wrapper = styled(Flex)`
 `;
 
 const SearchResults = styled(Scrollable)<{ $hasResults: boolean }>`
-  background: ${(props) => props.theme.toolbarBackground};
+  background: ${s("toolbarBackground")};
   position: absolute;
   top: 100%;
   width: 100%;

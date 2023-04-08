@@ -5,7 +5,7 @@ import { Portal } from "react-portal";
 import { useLocation } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { depths } from "@shared/styles";
+import { depths, s } from "@shared/styles";
 import Flex from "~/components/Flex";
 import useMenuContext from "~/hooks/useMenuContext";
 import usePrevious from "~/hooks/usePrevious";
@@ -224,7 +224,7 @@ const Backdrop = styled.a`
   right: 0;
   cursor: default;
   z-index: ${depths.sidebar - 1};
-  background: ${(props) => props.theme.backdrop};
+  background: ${s("backdrop")};
 `;
 
 type ContainerProps = {
@@ -239,9 +239,9 @@ const Container = styled(Flex)<ContainerProps>`
   top: 0;
   bottom: 0;
   width: 100%;
-  background: ${(props) => props.theme.sidebarBackground};
+  background: ${s("sidebarBackground")};
   transition: box-shadow 100ms ease-in-out, transform 100ms ease-out,
-    ${(props) => props.theme.backgroundTransition}
+    ${s("backgroundTransition")}
       ${(props: ContainerProps) =>
         props.$isAnimating ? `,width ${ANIMATION_MS}ms ease-out` : ""};
   transform: translateX(

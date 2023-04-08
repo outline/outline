@@ -3,6 +3,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { withTranslation, Trans, WithTranslation } from "react-i18next";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import { githubIssuesUrl, feedbackUrl } from "@shared/utils/urlHelpers";
 import Button from "~/components/Button";
 import CenteredContent from "~/components/CenteredContent";
@@ -137,7 +138,7 @@ class ErrorBoundary extends React.Component<Props> {
 }
 
 const Pre = styled.pre`
-  background: ${(props) => props.theme.secondaryBackground};
+  background: ${s("secondaryBackground")};
   padding: 16px;
   border-radius: 4px;
   font-size: 12px;

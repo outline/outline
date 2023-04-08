@@ -1,5 +1,6 @@
 import * as React from "react";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 
 type Props = {
   /** The size to render the indicator, defaults to 24px */
@@ -20,7 +21,7 @@ export default function Typing({ size = 24 }: Props) {
 }
 
 const Wrapper = styled.svg`
-  fill: ${(props) => props.theme.textTertiary};
+  fill: ${s("textTertiary")};
 
   @keyframes blink {
     50% {

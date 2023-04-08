@@ -4,6 +4,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import Fade from "~/components/Fade";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
@@ -53,7 +54,7 @@ const Heading = styled.h2`
   font-weight: 500;
   font-size: 14px;
   line-height: 1.5;
-  color: ${(props) => props.theme.textSecondary};
+  color: ${s("textSecondary")};
   margin-bottom: 0;
 `;
 
@@ -70,7 +71,7 @@ const ListItem = styled.li`
 
   &:before {
     content: "·";
-    color: ${(props) => props.theme.textTertiary};
+    color: ${s("textTertiary")};
     position: absolute;
     left: -8px;
   }
@@ -78,24 +79,24 @@ const ListItem = styled.li`
 
 const RemoveButton = styled(NudeButton)`
   opacity: 0;
-  color: ${(props) => props.theme.textTertiary};
+  color: ${s("textTertiary")};
 
   &:hover {
-    color: ${(props) => props.theme.text};
+    color: ${s("text")};
   }
 `;
 
 const RecentSearch = styled(Link)`
   display: flex;
   justify-content: space-between;
-  color: ${(props) => props.theme.textSecondary};
+  color: ${s("textSecondary")};
   cursor: var(--pointer);
   padding: 1px 4px;
   border-radius: 4px;
 
   &: ${hover} {
-    color: ${(props) => props.theme.text};
-    background: ${(props) => props.theme.secondaryBackground};
+    color: ${s("text")};
+    background: ${s("secondaryBackground")};
 
     ${RemoveButton} {
       opacity: 1;

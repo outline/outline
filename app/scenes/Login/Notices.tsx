@@ -1,4 +1,5 @@
 import * as React from "react";
+import { Trans } from "react-i18next";
 import NoticeAlert from "~/components/NoticeAlert";
 import useQuery from "~/hooks/useQuery";
 
@@ -7,97 +8,101 @@ export default function Notices() {
   const notice = query.get("notice");
   const description = query.get("description");
 
+  if (!notice) {
+    return null;
+  }
+
   return (
-    <>
+    <NoticeAlert>
       {notice === "domain-required" && (
-        <NoticeAlert>
+        <Trans>
           Unable to sign-in. Please navigate to your team's custom URL, then try
           to sign-in again.
           <hr />
           If you were invited to a team, you will find a link to it in the
           invite email.
-        </NoticeAlert>
+        </Trans>
       )}
       {notice === "gmail-account-creation" && (
-        <NoticeAlert>
+        <Trans>
           Sorry, a new account cannot be created with a personal Gmail address.
           <hr />
           Please use a Google Workspaces account instead.
-        </NoticeAlert>
+        </Trans>
       )}
       {notice === "maximum-teams" && (
-        <NoticeAlert>
+        <Trans>
           The team you authenticated with is not authorized on this
           installation. Try another?
-        </NoticeAlert>
+        </Trans>
       )}
       {notice === "malformed-user-info" && (
-        <NoticeAlert>
+        <Trans>
           We could not read the user info supplied by your identity provider.
-        </NoticeAlert>
+        </Trans>
       )}
       {notice === "email-auth-required" && (
-        <NoticeAlert>
+        <Trans>
           Your account uses email sign-in, please sign-in with email to
           continue.
-        </NoticeAlert>
+        </Trans>
       )}
       {notice === "email-auth-ratelimit" && (
-        <NoticeAlert>
+        <Trans>
           An email sign-in link was recently sent, please check your inbox or
           try again in a few minutes.
-        </NoticeAlert>
+        </Trans>
       )}
       {(notice === "auth-error" || notice === "state-mismatch") &&
         (description ? (
-          <NoticeAlert>{description}</NoticeAlert>
+          <>{description}</>
         ) : (
-          <NoticeAlert>
+          <Trans>
             Authentication failed – we were unable to sign you in at this time.
             Please try again.
-          </NoticeAlert>
+          </Trans>
         ))}
       {notice === "invalid-authentication" &&
         (description ? (
-          <NoticeAlert>{description}</NoticeAlert>
+          <>{description}</>
         ) : (
-          <NoticeAlert>
+          <Trans>
             Authentication failed – you do not have permission to access this
             team.
-          </NoticeAlert>
+          </Trans>
         ))}
       {notice === "expired-token" && (
-        <NoticeAlert>
+        <Trans>
           Sorry, it looks like that sign-in link is no longer valid, please try
           requesting another.
-        </NoticeAlert>
+        </Trans>
       )}
       {notice === "suspended" && (
-        <NoticeAlert>
+        <Trans>
           Your account has been suspended. To re-activate your account, please
           contact a team admin.
-        </NoticeAlert>
+        </Trans>
       )}
       {notice === "authentication-provider-disabled" && (
-        <NoticeAlert>
+        <Trans>
           Authentication failed – this login method was disabled by a team
           admin.
-        </NoticeAlert>
+        </Trans>
       )}
       {notice === "invite-required" && (
-        <NoticeAlert>
+        <Trans>
           The team you are trying to join requires an invite before you can
           create an account.
           <hr />
           Please request an invite from your team admin and try again.
-        </NoticeAlert>
+        </Trans>
       )}
       {notice === "domain-not-allowed" && (
-        <NoticeAlert>
+        <Trans>
           Sorry, your domain is not allowed. Please try again with an allowed
           team domain.
-        </NoticeAlert>
+        </Trans>
       )}
-    </>
+    </NoticeAlert>
   );
 }

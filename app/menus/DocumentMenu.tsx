@@ -7,6 +7,7 @@ import { useMenuState, MenuButton, MenuButtonHTMLProps } from "reakit/Menu";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { s, ellipsis } from "@shared/styles";
 import { getEventFiles } from "@shared/utils/files";
 import Document from "~/models/Document";
 import ContextMenu from "~/components/ContextMenu";
@@ -45,7 +46,6 @@ import usePolicy from "~/hooks/usePolicy";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
-import { ellipsis } from "~/styles";
 import { MenuItem } from "~/types";
 import { editDocumentUrl, newDocumentPath } from "~/utils/routeHelpers";
 
@@ -338,7 +338,7 @@ function DocumentMenu({
 const ToggleMenuItem = styled(Switch)`
   * {
     font-weight: normal;
-    color: ${(props) => props.theme.textSecondary};
+    color: ${s("textSecondary")};
   }
 `;
 

@@ -13,6 +13,7 @@ import {
 } from "react-router";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { s } from "@shared/styles";
 import { NavigationNode } from "@shared/types";
 import { Heading } from "@shared/utils/ProsemirrorHelper";
 import { parseDomain } from "@shared/utils/domains";
@@ -36,6 +37,7 @@ import { client } from "~/utils/ApiClient";
 import { replaceTitleVariables } from "~/utils/date";
 import { emojiToUrl } from "~/utils/emoji";
 import { isModKey } from "~/utils/keyboard";
+
 import {
   documentHistoryUrl,
   editDocumentUrl,
@@ -574,8 +576,8 @@ const Footer = styled.div`
 
 const Background = styled(Container)`
   position: relative;
-  background: ${(props) => props.theme.background};
-  transition: ${(props) => props.theme.backgroundTransition};
+  background: ${s("background")};
+  transition: ${s("backgroundTransition")};
 `;
 
 const ReferencesWrapper = styled.div<{ isOnlyTitle?: boolean }>`

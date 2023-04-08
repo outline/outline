@@ -3,6 +3,7 @@ import type { EditorView } from "prosemirror-view";
 import * as React from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { s } from "../../styles";
 import { sanitizeUrl } from "../../utils/urls";
 import { ComponentProps } from "../types";
 import ImageZoom from "./ImageZoom";
@@ -240,7 +241,7 @@ export const Caption = styled.p`
   display: block;
   font-style: italic;
   font-weight: normal;
-  color: ${(props) => props.theme.textSecondary};
+  color: ${s("textSecondary")};
   padding: 8px 0 4px;
   line-height: 16px;
   text-align: center;
@@ -261,7 +262,7 @@ export const Caption = styled.p`
   }
 
   &:empty:before {
-    color: ${(props) => props.theme.placeholder};
+    color: ${s("placeholder")};
     content: attr(data-caption);
     pointer-events: none;
   }
@@ -288,8 +289,8 @@ const ResizeLeft = styled.div<{ $dragging: boolean }>`
     height: 15%;
     min-height: 20px;
     border-radius: 4px;
-    background: ${(props) => props.theme.toolbarBackground};
-    box-shadow: 0 0 0 1px ${(props) => props.theme.toolbarItem};
+    background: ${s("toolbarBackground")};
+    box-shadow: 0 0 0 1px ${s("toolbarItem")};
     opacity: 0.75;
   }
 `;
@@ -312,8 +313,8 @@ const Button = styled.button`
   margin: 0;
   padding: 0;
   border-radius: 4px;
-  background: ${(props) => props.theme.background};
-  color: ${(props) => props.theme.textSecondary};
+  background: ${s("background")};
+  color: ${s("textSecondary")};
   width: 24px;
   height: 24px;
   display: inline-block;
@@ -326,7 +327,7 @@ const Button = styled.button`
   }
 
   &:hover {
-    color: ${(props) => props.theme.text};
+    color: ${s("text")};
     opacity: 1;
   }
 `;

@@ -44,9 +44,6 @@ const defaultColors: Colors = {
 };
 
 const spacing = {
-  padding: "1.5vw 1.875vw",
-  vpadding: "1.5vw",
-  hpadding: "1.875vw",
   sidebarWidth: 260,
   sidebarRightWidth: 300,
   sidebarCollapsedWidth: 16,

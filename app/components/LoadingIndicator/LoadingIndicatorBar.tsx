@@ -1,6 +1,6 @@
 import * as React from "react";
 import styled, { keyframes } from "styled-components";
-import { depths } from "@shared/styles";
+import { depths, s } from "@shared/styles";
 
 const LoadingIndicatorBar = () => {
   return (
@@ -28,7 +28,7 @@ const Container = styled.div`
 const Loader = styled.div`
   width: 100%;
   height: 2px;
-  background-color: ${(props) => props.theme.accent};
+  background-color: ${s("accent")};
 `;
 
 export default LoadingIndicatorBar;

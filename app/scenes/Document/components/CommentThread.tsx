@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled, { css } from "styled-components";
+import { s } from "@shared/styles";
 import Comment from "~/models/Comment";
 import Document from "~/models/Document";
 import Avatar from "~/components/Avatar";
@@ -199,7 +200,7 @@ const Reply = styled.button`
   padding: 8px;
   margin: 0;
   background: none;
-  color: ${(props) => props.theme.textTertiary};
+  color: ${s("textTertiary")};
   font-size: 14px;
   -webkit-appearance: none;
   cursor: var(--pointer);

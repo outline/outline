@@ -6,6 +6,7 @@ import { Link } from "react-router-dom";
 import { CompositeStateReturn, CompositeItem } from "reakit/Composite";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { s } from "@shared/styles";
 import Document from "~/models/Document";
 import Badge from "~/components/Badge";
 import Button from "~/components/Button";
@@ -181,7 +182,7 @@ const Actions = styled(EventBoundary)`
   ${NudeButton} {
     &:hover,
     &[aria-expanded="true"] {
-      background: ${(props) => props.theme.sidebarControlHoverBackground};
+      background: ${s("sidebarControlHoverBackground")};
     }
   }
 
@@ -223,7 +224,7 @@ const DocumentLink = styled(Link)<{
   &:active,
   &:focus,
   &:focus-within {
-    background: ${(props) => props.theme.listItemHoverBackground};
+    background: ${s("listItemHoverBackground")};
 
     ${Actions} {
       opacity: 1;
@@ -241,7 +242,7 @@ const DocumentLink = styled(Link)<{
   ${(props) =>
     props.$menuOpen &&
     css`
-      background: ${(props) => props.theme.listItemHoverBackground};
+      background: ${s("listItemHoverBackground")};
 
       ${Actions} {
         opacity: 1;
@@ -262,7 +263,7 @@ const Heading = styled.h3<{ rtl?: boolean }>`
   margin-bottom: 0.25em;
   overflow: hidden;
   white-space: nowrap;
-  color: ${(props) => props.theme.text};
+  color: ${s("text")};
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
     Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 `;
@@ -280,7 +281,7 @@ const Title = styled(Highlight)`
 
 const ResultContext = styled(Highlight)`
   display: block;
-  color: ${(props) => props.theme.textTertiary};
+  color: ${s("textTertiary")};
   font-size: 14px;
   margin-top: -0.25em;
   margin-bottom: 0.25em;

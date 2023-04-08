@@ -2,6 +2,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { MenuButton, useMenuState } from "reakit/Menu";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import ContextMenu from "./ContextMenu";
 import DelayedMount from "./DelayedMount";
 import Input, { Props as InputProps } from "./Input";
@@ -60,7 +61,7 @@ const InputColor: React.FC<Props> = ({ value, onChange, ...rest }) => {
 
 const SwatchButton = styled(NudeButton)<{ $background: string | undefined }>`
   background: ${(props) => props.$background};
-  border: 1px solid ${(props) => props.theme.inputBorder};
+  border: 1px solid ${s("inputBorder")};
   border-radius: 50%;
   position: absolute;
   bottom: 20px;
@@ -80,7 +81,7 @@ const StyledColorPicker = styled(ColorPicker)`
 
   input {
     user-select: text;
-    color: ${(props) => props.theme.text} !important;
+    color: ${s("text")} !important;
   }
 `;
 

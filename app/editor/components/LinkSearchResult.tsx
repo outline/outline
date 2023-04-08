@@ -1,7 +1,7 @@
 import * as React from "react";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled from "styled-components";
-import { ellipsis } from "~/styles";
+import { s, ellipsis } from "@shared/styles";
 
 type Props = React.HTMLAttributes<HTMLDivElement> & {
   icon: React.ReactNode;
@@ -78,7 +78,7 @@ const ListItem = styled.div<{
     props.selected ? props.theme.accentText : props.theme.toolbarItem};
   background: ${(props) =>
     props.selected ? props.theme.accent : "transparent"};
-  font-family: ${(props) => props.theme.fontFamily};
+  font-family: ${s("fontFamily")};
   text-decoration: none;
   overflow: hidden;
   white-space: nowrap;

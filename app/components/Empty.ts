@@ -1,7 +1,8 @@
 import styled from "styled-components";
+import { s } from "@shared/styles";
 
 const Empty = styled.p`
-  color: ${(props) => props.theme.textTertiary};
+  color: ${s("textTertiary")};
   user-select: none;
 `;
 

@@ -40,6 +40,7 @@ import { useTranslation } from "react-i18next";
 import { useMenuState, MenuButton, MenuItem } from "reakit/Menu";
 import styled, { useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { s } from "@shared/styles";
 import { colorPalette } from "@shared/utils/collections";
 import ContextMenu from "~/components/ContextMenu";
 import Flex from "~/components/Flex";
@@ -323,7 +324,7 @@ const Icons = styled.div`
 `;
 
 const Button = styled(NudeButton)`
-  border: 1px solid ${(props) => props.theme.inputBorder};
+  border: 1px solid ${s("inputBorder")};
   width: 32px;
   height: 32px;
 `;

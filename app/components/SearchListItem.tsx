@@ -4,9 +4,10 @@ import { Link } from "react-router-dom";
 import { CompositeItem } from "reakit/Composite";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { s, ellipsis } from "@shared/styles";
 import Document from "~/models/Document";
 import Highlight, { Mark } from "~/components/Highlight";
-import { ellipsis, hover } from "~/styles";
+import { hover } from "~/styles";
 import { sharedDocumentPath } from "~/utils/routeHelpers";
 
 type Props = {
@@ -101,13 +102,13 @@ const DocumentLink = styled(Link)<{
   &:active,
   &:focus,
   &:focus-within {
-    background: ${(props) => props.theme.listItemHoverBackground};
+    background: ${s("listItemHoverBackground")};
   }
 
   ${(props) =>
     props.$menuOpen &&
     css`
-      background: ${(props) => props.theme.listItemHoverBackground};
+      background: ${s("listItemHoverBackground")};
     `}
 `;
 
@@ -120,7 +121,7 @@ const Heading = styled.h4<{ rtl?: boolean }>`
   margin-bottom: 0.25em;
   overflow: hidden;
   white-space: nowrap;
-  color: ${(props) => props.theme.text};
+  color: ${s("text")};
 `;
 
 const Title = styled(Highlight)`
@@ -134,7 +135,7 @@ const Title = styled(Highlight)`
 
 const ResultContext = styled(Highlight)`
   display: block;
-  color: ${(props) => props.theme.textTertiary};
+  color: ${s("textTertiary")};
   font-size: 14px;
   margin-top: -0.25em;
   margin-bottom: 0.25em;

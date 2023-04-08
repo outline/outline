@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import { Dialog, DialogBackdrop, useDialogState } from "reakit/Dialog";
 import styled, { DefaultTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { depths } from "@shared/styles";
+import { depths, s } from "@shared/styles";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
 import Scrollable from "~/components/Scrollable";
@@ -171,8 +171,8 @@ const Fullscreen = styled.div<FullscreenProps>`
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  background: ${(props) => props.theme.background};
-  transition: ${(props) => props.theme.backgroundTransition};
+  background: ${s("background")};
+  transition: ${s("backgroundTransition")};
   outline: none;
 
   ${breakpoint("tablet")`
@@ -209,7 +209,7 @@ const Close = styled(NudeButton)`
   right: 0;
   margin: 12px;
   opacity: 0.75;
-  color: ${(props) => props.theme.text};
+  color: ${s("text")};
   width: auto;
   height: auto;
 
@@ -229,7 +229,7 @@ const Back = styled(NudeButton)`
   top: ${Desktop.hasInsetTitlebar() ? "3rem" : "2rem"};
   left: 2rem;
   opacity: 0.75;
-  color: ${(props) => props.theme.text};
+  color: ${s("text")};
   font-weight: 500;
   width: auto;
   height: auto;
@@ -244,7 +244,7 @@ const Back = styled(NudeButton)`
 `;
 
 const Header = styled(Flex)`
-  color: ${(props) => props.theme.textSecondary};
+  color: ${s("textSecondary")};
   align-items: center;
   justify-content: space-between;
   font-weight: 600;
@@ -262,16 +262,16 @@ const Small = styled.div`
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  background: ${(props) => props.theme.modalBackground};
-  transition: ${(props) => props.theme.backgroundTransition};
-  box-shadow: ${(props) => props.theme.modalShadow};
+  background: ${s("modalBackground")};
+  transition: ${s("backgroundTransition")};
+  box-shadow: ${s("modalShadow")};
   border-radius: 8px;
   outline: none;
 
   ${NudeButton} {
     &:hover,
     &[aria-expanded="true"] {
-      background: ${(props) => props.theme.sidebarControlHoverBackground};
+      background: ${s("sidebarControlHoverBackground")};
     }
     vertical-align: middle;
   }

@@ -4,6 +4,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { MenuButton, useMenuState } from "reakit/Menu";
 import styled from "styled-components";
+import { ellipsis } from "@shared/styles";
 import Button from "~/components/Button";
 import ContextMenu from "~/components/ContextMenu";
 import Header from "~/components/ContextMenu/Header";
@@ -12,7 +13,6 @@ import CollectionIcon from "~/components/Icons/CollectionIcon";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import { ellipsis } from "~/styles";
 import { MenuItem } from "~/types";
 import { newDocumentPath } from "~/utils/routeHelpers";
 

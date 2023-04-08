@@ -3,6 +3,7 @@ import { ExpandedIcon } from "outline-icons";
 import { darken, lighten, transparentize } from "polished";
 import * as React from "react";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import ActionButton, {
   Props as ActionButtonProps,
 } from "~/components/ActionButton";
@@ -22,8 +23,8 @@ const RealButton = styled(ActionButton)<RealProps>`
   margin: 0;
   padding: 0;
   border: 0;
-  background: ${(props) => props.theme.accent};
-  color: ${(props) => props.theme.accentText};
+  background: ${s("accent")};
+  color: ${s("accentText")};
   box-shadow: rgba(0, 0, 0, 0.2) 0px 1px 2px;
   border-radius: 4px;
   font-size: 14px;

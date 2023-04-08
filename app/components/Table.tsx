@@ -5,6 +5,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useTable, useSortBy, usePagination } from "react-table";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import Button from "~/components/Button";
 import DelayedMount from "~/components/DelayedMount";
 import Empty from "~/components/Empty";
@@ -225,7 +226,7 @@ const DescSortIcon = styled(CollapsedIcon)`
   margin-left: -2px;
 
   &:hover {
-    fill: ${(props) => props.theme.text};
+    fill: ${s("text")};
   }
 `;
 
@@ -256,7 +257,7 @@ const SortWrapper = styled(Flex)<{ $sortable: boolean }>`
 
 const Cell = styled.td`
   padding: 10px 6px;
-  border-bottom: 1px solid ${(props) => props.theme.divider};
+  border-bottom: 1px solid ${s("divider")};
   font-size: 14px;
 
   &:first-child {
@@ -273,7 +274,7 @@ const Cell = styled.td`
   ${NudeButton} {
     &:hover,
     &[aria-expanded="true"] {
-      background: ${(props) => props.theme.sidebarControlHoverBackground};
+      background: ${s("sidebarControlHoverBackground")};
     }
   }
 `;
@@ -299,11 +300,11 @@ const Head = styled.th`
   position: sticky;
   top: 54px;
   padding: 6px 6px 0;
-  border-bottom: 1px solid ${(props) => props.theme.divider};
-  background: ${(props) => props.theme.background};
-  transition: ${(props) => props.theme.backgroundTransition};
+  border-bottom: 1px solid ${s("divider")};
+  background: ${s("background")};
+  transition: ${s("backgroundTransition")};
   font-size: 14px;
-  color: ${(props) => props.theme.textSecondary};
+  color: ${s("textSecondary")};
   font-weight: 500;
   z-index: 1;
 

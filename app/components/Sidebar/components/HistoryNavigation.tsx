@@ -2,6 +2,7 @@ import { ArrowIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
 import Tooltip from "~/components/Tooltip";
@@ -63,7 +64,7 @@ const Navigation = styled(Flex)`
 `;
 
 const Forward = styled(ArrowIcon)<{ $active: boolean }>`
-  color: ${(props) => props.theme.textTertiary};
+  color: ${s("textTertiary")};
   opacity: ${(props) => (props.$active ? 1 : 0.5)};
   transition: color 100ms ease-in-out;
 

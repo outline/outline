@@ -2,7 +2,7 @@ import { NodeSelection } from "prosemirror-state";
 import { CellSelection } from "prosemirror-tables";
 import * as React from "react";
 import styled from "styled-components";
-import { depths } from "@shared/styles";
+import { depths, s } from "@shared/styles";
 import { Portal } from "~/components/Portal";
 import useComponentSize from "~/hooks/useComponentSize";
 import useEventListener from "~/hooks/useEventListener";
@@ -217,7 +217,7 @@ const Wrapper = styled.div<{
   position: absolute;
   z-index: ${depths.editorToolbar};
   opacity: 0;
-  background-color: ${(props) => props.theme.toolbarBackground};
+  background-color: ${s("toolbarBackground")};
   border-radius: 4px;
   transform: scale(0.95);
   transition: opacity 150ms cubic-bezier(0.175, 0.885, 0.32, 1.275),
@@ -235,7 +235,7 @@ const Wrapper = styled.div<{
     width: 24px;
     height: 24px;
     transform: translateX(-50%) rotate(45deg);
-    background: ${(props) => props.theme.toolbarBackground};
+    background: ${s("toolbarBackground")};
     border-radius: 3px;
     z-index: -1;
     position: absolute;

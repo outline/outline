@@ -3,12 +3,13 @@ import { DocumentIcon } from "outline-icons";
 import * as React from "react";
 import { Link } from "react-router-dom";
 import styled from "styled-components";
+import { s, ellipsis } from "@shared/styles";
 import { NavigationNode } from "@shared/types";
 import parseTitle from "@shared/utils/parseTitle";
 import Document from "~/models/Document";
 import Flex from "~/components/Flex";
 import EmojiIcon from "~/components/Icons/EmojiIcon";
-import { ellipsis, hover } from "~/styles";
+import { hover } from "~/styles";
 import { sharedDocumentPath } from "~/utils/routeHelpers";
 
 type Props = {
@@ -32,12 +33,12 @@ const DocumentLink = styled(Link)`
   &:${hover},
   &:active,
   &:focus {
-    background: ${(props) => props.theme.listItemHoverBackground};
+    background: ${s("listItemHoverBackground")};
   }
 `;
 
 const Content = styled(Flex)`
-  color: ${(props) => props.theme.textSecondary};
+  color: ${s("textSecondary")};
   margin-left: -4px;
 `;
 
@@ -47,7 +48,7 @@ const Title = styled.div`
   font-weight: 500;
   line-height: 1.25;
   padding-top: 3px;
-  color: ${(props) => props.theme.text};
+  color: ${s("text")};
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
     Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 `;

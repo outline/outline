@@ -1,6 +1,7 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import Flex from "~/components/Flex";
 
 type Props = {
@@ -18,7 +19,7 @@ export const Label = styled(Flex)`
   font-weight: 500;
   padding-bottom: 4px;
   display: inline-block;
-  color: ${(props) => props.theme.text};
+  color: ${s("text")};
 `;
 
 export default observer(Labeled);

@@ -3,10 +3,10 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled from "styled-components";
+import { ellipsis } from "@shared/styles";
 import { Node as SearchResult } from "~/components/DocumentExplorerNode";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
-import { ellipsis } from "~/styles";
 
 type Props = {
   selected: boolean;

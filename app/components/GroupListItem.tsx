@@ -4,6 +4,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
+import { s } from "@shared/styles";
 import CollectionGroupMembership from "~/models/CollectionGroupMembership";
 import Group from "~/models/Group";
 import GroupMembers from "~/scenes/GroupMembers";
@@ -81,7 +82,7 @@ const Image = styled(Flex)`
   justify-content: center;
   width: 32px;
   height: 32px;
-  background: ${(props) => props.theme.secondaryBackground};
+  background: ${s("secondaryBackground")};
   border-radius: 32px;
 `;
 
