@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Document } from "@server/models";
+import { Document, Notification } from "@server/models";
 import BaseEmail, { EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
 import Button from "./components/Button";
@@ -26,6 +26,20 @@ export default class DocumentMentionedEmail extends BaseEmail<
   InputProps,
   BeforeSend
 > {
+  public constructor(notification: Notification) {
+    super(
+      {
+        to: notification.user.email,
+        documentId: notification.documentId,
+        teamUrl: notification.team.url,
+        actorName: notification.actor.name,
+      },
+      {
+        notificationId: notification.id,
+      }
+    );
+  }
+
   protected async beforeSend({ documentId }: InputProps) {
     const document = await Document.unscoped().findByPk(documentId);
     if (!document) {

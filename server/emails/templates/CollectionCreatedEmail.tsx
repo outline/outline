@@ -1,6 +1,6 @@
 import * as React from "react";
 import { NotificationEventType } from "@shared/types";
-import { Collection, User } from "@server/models";
+import { Collection, Notification, User } from "@server/models";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import BaseEmail, { EmailProps } from "./BaseEmail";
 import Body from "./components/Body";
@@ -32,6 +32,20 @@ export default class CollectionCreatedEmail extends BaseEmail<
   InputProps,
   BeforeSend
 > {
+  public constructor(notification: Notification) {
+    super(
+      {
+        to: notification.user.email,
+        userId: notification.userId,
+        collectionId: notification.collectionId,
+        teamUrl: notification.team.url,
+      },
+      {
+        notificationId: notification.id,
+      }
+    );
+  }
+
   protected async beforeSend({ userId, collectionId }: Props) {
     const collection = await Collection.scope("withUser").findByPk(
       collectionId

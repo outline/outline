@@ -3,7 +3,13 @@ import * as React from "react";
 import { NotificationEventType } from "@shared/types";
 import { Day } from "@shared/utils/time";
 import env from "@server/env";
-import { Collection, Comment, Document, User } from "@server/models";
+import {
+  Collection,
+  Comment,
+  Document,
+  Notification,
+  User,
+} from "@server/models";
 import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
 import ProsemirrorHelper from "@server/models/helpers/ProsemirrorHelper";
@@ -44,6 +50,22 @@ export default class CommentCreatedEmail extends BaseEmail<
   InputProps,
   BeforeSend
 > {
+  public constructor(notification: Notification) {
+    super(
+      {
+        to: notification.user.email,
+        userId: notification.userId,
+        documentId: notification.documentId,
+        teamUrl: notification.team.url,
+        actorName: notification.actor.name,
+        commentId: notification.commentId,
+      },
+      {
+        notificationId: notification.id,
+      }
+    );
+  }
+
   protected async beforeSend({ documentId, userId, commentId }: InputProps) {
     const document = await Document.unscoped().findByPk(documentId);
     if (!document) {
