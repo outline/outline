@@ -25,6 +25,7 @@
   "rules": {
     "eqeqeq": 2,
     "curly": 2,
+    "spaced-comment": "error",
     "object-shorthand": "error",
     "no-mixed-operators": "off",
     "no-useless-escape": "off",
