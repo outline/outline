@@ -88,20 +88,20 @@ function AppSidebar() {
             <Section>
               <SidebarLink
                 to={homePath()}
-                icon={<HomeIcon color="currentColor" />}
+                icon={<HomeIcon />}
                 exact={false}
                 label={t("Home")}
               />
               <SidebarLink
                 to={searchPath()}
-                icon={<SearchIcon color="currentColor" />}
+                icon={<SearchIcon />}
                 label={t("Search")}
                 exact={false}
               />
               {can.createDocument && (
                 <SidebarLink
                   to={draftsPath()}
-                  icon={<EditIcon color="currentColor" />}
+                  icon={<EditIcon />}
                   label={
                     <Flex align="center" justify="space-between">
                       {t("Drafts")}
@@ -124,7 +124,7 @@ function AppSidebar() {
                 <>
                   <SidebarLink
                     to={templatesPath()}
-                    icon={<ShapesIcon color="currentColor" />}
+                    icon={<ShapesIcon />}
                     exact={false}
                     label={t("Templates")}
                     active={

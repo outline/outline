@@ -222,11 +222,7 @@ function SharePopover({
   return (
     <>
       <Heading>
-        {isPubliclyShared ? (
-          <GlobeIcon size={28} color="currentColor" />
-        ) : (
-          <PadlockIcon size={28} color="currentColor" />
-        )}
+        {isPubliclyShared ? <GlobeIcon size={28} /> : <PadlockIcon size={28} />}
         <span>{t("Share this document")}</span>
       </Heading>
 
@@ -327,7 +323,7 @@ function SharePopover({
           <span />
         ) : (
           <MoreOptionsButton
-            icon={<ExpandedIcon color="currentColor" />}
+            icon={<ExpandedIcon />}
             onClick={() => setExpandedOptions(true)}
             neutral
             borderOnHover

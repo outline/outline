@@ -37,7 +37,7 @@ function RecentSearches() {
                     searchQuery.delete();
                   }}
                 >
-                  <CloseIcon color="currentColor" />
+                  <CloseIcon />
                 </RemoveButton>
               </Tooltip>
             </RecentSearch>

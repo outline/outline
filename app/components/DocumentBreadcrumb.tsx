@@ -22,7 +22,7 @@ function useCategory(document: Document): MenuInternalLink | null {
   if (document.isDeleted) {
     return {
       type: "route",
-      icon: <TrashIcon color="currentColor" />,
+      icon: <TrashIcon />,
       title: t("Trash"),
       to: "/trash",
     };
@@ -31,7 +31,7 @@ function useCategory(document: Document): MenuInternalLink | null {
   if (document.isArchived) {
     return {
       type: "route",
-      icon: <ArchiveIcon color="currentColor" />,
+      icon: <ArchiveIcon />,
       title: t("Archive"),
       to: "/archive",
     };
@@ -40,7 +40,7 @@ function useCategory(document: Document): MenuInternalLink | null {
   if (document.isTemplate) {
     return {
       type: "route",
-      icon: <ShapesIcon color="currentColor" />,
+      icon: <ShapesIcon />,
       title: t("Templates"),
       to: "/templates",
     };

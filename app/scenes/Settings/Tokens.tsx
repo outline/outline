@@ -27,7 +27,7 @@ function Tokens() {
   return (
     <Scene
       title={t("API Tokens")}
-      icon={<CodeIcon color="currentColor" />}
+      icon={<CodeIcon />}
       actions={
         <>
           {can.createApiKey && (

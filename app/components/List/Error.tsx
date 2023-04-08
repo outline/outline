@@ -21,11 +21,11 @@ export default function LoadingError({ error, retry, ...rest }: Props) {
   const message =
     error instanceof OfflineError ? (
       <>
-        <DisconnectedIcon color="currentColor" /> {t("You’re offline.")}
+        <DisconnectedIcon /> {t("You’re offline.")}
       </>
     ) : (
       <>
-        <WarningIcon color="currentColor" /> {t("Sorry, an error occurred.")}
+        <WarningIcon /> {t("Sorry, an error occurred.")}
       </>
     );
 

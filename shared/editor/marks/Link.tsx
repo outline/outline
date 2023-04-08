@@ -24,7 +24,7 @@ const LINK_INPUT_REGEX = /\[([^[]+)]\((\S+)\)$/;
 let icon: HTMLSpanElement;
 
 if (typeof window !== "undefined") {
-  const component = <OpenIcon color="currentColor" size={16} />;
+  const component = <OpenIcon size={16} />;
   icon = document.createElement("span");
   icon.className = "external-link";
   ReactDOM.render(component, icon);

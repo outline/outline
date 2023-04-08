@@ -43,7 +43,7 @@ function Header({ config }: { config?: Config | undefined }) {
 
   return (
     <Back href={isSubdomain ? env.URL : "https://www.getoutline.com"}>
-      <BackIcon color="currentColor" /> {t("Back to home")}
+      <BackIcon /> {t("Back to home")}
     </Back>
   );
 }
@@ -169,7 +169,7 @@ function Login({ children }: Props) {
         <Header config={config} />
         <Centered align="center" justify="center" column auto>
           <PageTitle title={t("Check your email")} />
-          <CheckEmailIcon size={38} color="currentColor" />
+          <CheckEmailIcon size={38} />
           <Heading centered>{t("Check your email")}</Heading>
           <Note>
             <Trans

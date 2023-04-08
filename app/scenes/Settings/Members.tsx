@@ -148,7 +148,7 @@ function Members() {
   return (
     <Scene
       title={t("Members")}
-      icon={<UserIcon color="currentColor" />}
+      icon={<UserIcon />}
       actions={
         <>
           {can.inviteUser && (

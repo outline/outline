@@ -39,10 +39,9 @@ function CommandBarItem(
             // @ts-expect-error no icon on ActionImpl
             React.cloneElement(action.icon, {
               size: 22,
-              color: "currentColor",
             })
           ) : (
-            <ArrowIcon color="currentColor" />
+            <ArrowIcon />
           )}
         </Icon>
 

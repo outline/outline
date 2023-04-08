@@ -33,7 +33,7 @@ function SettingsSidebar() {
       <HistoryNavigation />
       <HeaderButton
         title={t("Return to App")}
-        image={<StyledBackIcon color="currentColor" />}
+        image={<StyledBackIcon />}
         onClick={returnToApp}
         minHeight={Desktop.hasInsetTitlebar() ? undefined : 48}
       />
@@ -47,7 +47,7 @@ function SettingsSidebar() {
                   <SidebarLink
                     key={item.path}
                     to={item.path}
-                    icon={<item.icon color="currentColor" />}
+                    icon={<item.icon />}
                     label={item.name}
                   />
                 ))}

@@ -35,7 +35,7 @@ function Features() {
   };
 
   return (
-    <Scene title={t("Features")} icon={<BeakerIcon color="currentColor" />}>
+    <Scene title={t("Features")} icon={<BeakerIcon />}>
       <Heading>{t("Features")}</Heading>
       <Text type="secondary">
         <Trans>

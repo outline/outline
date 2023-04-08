@@ -34,7 +34,7 @@ function Home() {
 
   return (
     <Scene
-      icon={<HomeIcon color="currentColor" />}
+      icon={<HomeIcon />}
       title={t("Home")}
       left={
         <InputSearchPage source="dashboard" label={t("Search documents")} />

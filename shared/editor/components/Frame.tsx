@@ -92,7 +92,7 @@ class Frame extends React.Component<PropsWithRef> {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <OpenIcon color="currentColor" size={18} /> Open
+                <OpenIcon size={18} /> Open
               </Open>
             )}
           </Bar>

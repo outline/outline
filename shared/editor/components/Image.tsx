@@ -172,7 +172,7 @@ const Image = (
       >
         {!dragging && size.width > 60 && size.height > 60 && props.onDownload && (
           <Button onClick={props.onDownload}>
-            <DownloadIcon color="currentColor" />
+            <DownloadIcon />
           </Button>
         )}
         <ImageZoom zoomMargin={24}>

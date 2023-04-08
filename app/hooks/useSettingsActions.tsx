@@ -14,7 +14,7 @@ const useSettingsActions = () => {
         return {
           id: item.path,
           name: item.name,
-          icon: <Icon color="currentColor" />,
+          icon: <Icon />,
           section: NavigationSection,
           perform: () => history.push(item.path),
         };

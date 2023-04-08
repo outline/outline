@@ -51,7 +51,7 @@ function Drafts() {
 
   return (
     <Scene
-      icon={<EditIcon color="currentColor" />}
+      icon={<EditIcon />}
       title={t("Drafts")}
       actions={
         <>

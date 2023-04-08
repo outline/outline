@@ -40,8 +40,8 @@ const HeaderButton = React.forwardRef<HTMLButtonElement, HeaderButtonProps>(
         {image}
         {title}
       </Title>
-      {showDisclosure && <ExpandedIcon color="currentColor" />}
-      {showMoreMenu && <MoreIcon color="currentColor" />}
+      {showDisclosure && <ExpandedIcon />}
+      {showMoreMenu && <MoreIcon />}
     </Wrapper>
   )
 );

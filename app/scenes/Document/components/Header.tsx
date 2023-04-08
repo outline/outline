@@ -115,7 +115,6 @@ function DocumentHeader({
           ui.tocVisible ? ui.hideTableOfContents : ui.showTableOfContents
         }
         icon={<TableOfContentsIcon />}
-        iconColor="currentColor"
         borderOnHover
         neutral
       />
@@ -327,7 +326,6 @@ function DocumentHeader({
                     label={(props) => (
                       <Button
                         icon={<MoreIcon />}
-                        iconColor="currentColor"
                         {...props}
                         borderOnHover
                         neutral
