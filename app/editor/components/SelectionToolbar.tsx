@@ -81,13 +81,15 @@ export default function SelectionToolbar(props: Props) {
   const isActive = useIsActive(view.state);
   const previousIsActuve = usePrevious(isActive);
 
-  // Trigger callbacks when the toolbar is opened or closed
-  if (previousIsActuve && !isActive) {
-    onClose();
-  }
-  if (!previousIsActuve && isActive) {
-    onOpen();
-  }
+  React.useEffect(() => {
+    // Trigger callbacks when the toolbar is opened or closed
+    if (previousIsActuve && !isActive) {
+      onClose();
+    }
+    if (!previousIsActuve && isActive) {
+      onOpen();
+    }
+  }, [isActive, onClose, onOpen, previousIsActuve]);
 
   React.useEffect(() => {
     const handleClickOutside = (ev: MouseEvent): void => {
