@@ -54,6 +54,12 @@ function DocumentLink(
     }
   }, [showChildren]);
 
+  React.useEffect(() => {
+    if (isActiveDocument) {
+      setExpanded(true);
+    }
+  }, [isActiveDocument]);
+
   const handleDisclosureClick = React.useCallback(
     (ev: React.SyntheticEvent) => {
       ev.preventDefault();
