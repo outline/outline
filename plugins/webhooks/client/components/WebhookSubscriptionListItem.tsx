@@ -45,7 +45,7 @@ const WebhookSubscriptionListItem = ({ webhook }: Props) => {
         <>
           {webhook.name}
           {!webhook.enabled && (
-            <StyledBadge yellow={true}>{t("Disabled")}</StyledBadge>
+            <StyledBadge yellow>{t("Disabled")}</StyledBadge>
           )}
         </>
       }

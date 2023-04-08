@@ -17,6 +17,7 @@ const TabLink = styled(NavLink)`
   font-size: 14px;
   cursor: var(--pointer);
   color: ${s("textTertiary")};
+  user-select: none;
   margin-right: 24px;
   padding: 6px 0;
 

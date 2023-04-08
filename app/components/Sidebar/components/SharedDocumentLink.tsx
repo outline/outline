@@ -111,9 +111,7 @@ function DocumentLink(
         scrollIntoViewIfNeeded={!document?.isStarred}
         isDraft={isDraft}
         ref={ref}
-        isActive={() => {
-          return !!isActiveDocument;
-        }}
+        isActive={() => !!isActiveDocument}
       />
       {expanded &&
         nodeChildren.map((childNode, index) => (
