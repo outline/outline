@@ -37,7 +37,7 @@ export type Placement =
   | "left-start";
 
 type Props = MenuStateReturn & {
-  "aria-label": string;
+  "aria-label"?: string;
   /** The parent menu state if this is a submenu. */
   parentMenuState?: MenuStateReturn;
   /** Called when the context menu is opened. */

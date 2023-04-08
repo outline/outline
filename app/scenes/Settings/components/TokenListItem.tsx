@@ -4,10 +4,10 @@ import { useTranslation } from "react-i18next";
 import ApiKey from "~/models/ApiKey";
 import Button from "~/components/Button";
 import CopyToClipboard from "~/components/CopyToClipboard";
+import Flex from "~/components/Flex";
 import ListItem from "~/components/List/Item";
-import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
-import TokenRevokeDialog from "./TokenRevokeDialog";
+import ApiKeyMenu from "~/menus/ApiKeyMenu";
 
 type Props = {
   token: ApiKey;
@@ -16,7 +16,6 @@ type Props = {
 const TokenListItem = ({ token }: Props) => {
   const { t } = useTranslation();
   const { showToast } = useToasts();
-  const { dialogs } = useStores();
   const [linkCopied, setLinkCopied] = React.useState<boolean>(false);
 
   React.useEffect(() => {
@@ -34,32 +33,20 @@ const TokenListItem = ({ token }: Props) => {
     });
   }, [showToast, t]);
 
-  const showRevokeConfirmation = React.useCallback(() => {
-    dialogs.openModal({
-      title: t("Revoke token"),
-      isCentered: true,
-      content: (
-        <TokenRevokeDialog onSubmit={dialogs.closeAllModals} token={token} />
-      ),
-    });
-  }, [t, dialogs, token]);
-
   return (
     <ListItem
       key={token.id}
       title={token.name}
-      subtitle={<code>{token.secret}</code>}
+      subtitle={<code>{token.secret.slice(0, 15)}…</code>}
       actions={
-        <>
+        <Flex align="center" gap={8}>
           <CopyToClipboard text={token.secret} onCopy={handleCopy}>
             <Button type="button" icon={<CopyIcon />} neutral borderOnHover>
               {linkCopied ? t("Copied") : t("Copy")}
             </Button>
           </CopyToClipboard>
-          <Button onClick={showRevokeConfirmation} neutral>
-            Revoke
-          </Button>
-        </>
+          <ApiKeyMenu token={token} />
+        </Flex>
       }
     />
   );

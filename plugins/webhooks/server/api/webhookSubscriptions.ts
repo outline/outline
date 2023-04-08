@@ -106,6 +106,10 @@ router.post(
       ip: ctx.request.ip,
     };
     await Event.create(event);
+
+    ctx.body = {
+      success: true,
+    };
   }
 );
 
