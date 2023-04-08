@@ -350,5 +350,6 @@ export default class AuthStore {
 
     // Tell the host application we logged out, if any – allows window cleanup.
     Desktop.bridge?.onLogout?.();
+    this.rootStore.logout();
   };
 }
