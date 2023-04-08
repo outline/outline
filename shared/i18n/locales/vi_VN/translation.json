@@ -489,7 +489,7 @@
   "Sorry, the last change could not be persisted – please reload the page": "Xin lỗi, không thể tiếp tục thay đổi cuối cùng - vui lòng tải lại trang",
   "This template will be permanently deleted in <2></2> unless restored.": "Mẫu này sẽ bị xóa vĩnh viễn sau <2></2> trừ khi được khôi phục.",
   "This document will be permanently deleted in <2></2> unless restored.": "Tài liệu này sẽ bị xóa vĩnh viễn sau <2></2> trừ khi được khôi phục.",
-  "Highlight some text and use the <2></2> control to add placeholders that can be filled out when creating new documents": "Đánh dấu một số văn bản và sử dụng <2></2> kiểm soát để thêm trình giữ chỗ có thể được điền khi tạo tài liệu mới",
+  "Highlight some text and use the <1></1> control to add placeholders that can be filled out when creating new documents": "Highlight some text and use the <1></1> control to add placeholders that can be filled out when creating new documents",
   "You’re editing a template": "Bạn đang chỉnh sửa mẫu",
   "Archived by {{userName}}": "Được lưu trữ bởi {{userName}}",
   "Deleted by {{userName}}": "Đã xóa bởi {{userName}}",
