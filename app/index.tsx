@@ -6,6 +6,7 @@ import { KBarProvider } from "kbar";
 import { Provider } from "mobx-react";
 import * as React from "react";
 import { render } from "react-dom";
+import { HelmetProvider } from "react-helmet-async";
 import { Router } from "react-router-dom";
 import stores from "~/stores";
 import Analytics from "~/components/Analytics";
@@ -50,31 +51,33 @@ const commandBarOptions = {
 if (element) {
   const App = () => (
     <React.StrictMode>
-      <Provider {...stores}>
-        <Analytics>
-          <Theme>
-            <ErrorBoundary showTitle>
-              <KBarProvider actions={[]} options={commandBarOptions}>
-                <LazyPolyfill>
-                  <LazyMotion features={loadFeatures}>
-                    <Router history={history}>
-                      <>
-                        <PageTheme />
-                        <ScrollToTop>
-                          <Routes />
-                        </ScrollToTop>
-                        <Toasts />
-                        <Dialogs />
-                        <Desktop />
-                      </>
-                    </Router>
-                  </LazyMotion>
-                </LazyPolyfill>
-              </KBarProvider>
-            </ErrorBoundary>
-          </Theme>
-        </Analytics>
-      </Provider>
+      <HelmetProvider>
+        <Provider {...stores}>
+          <Analytics>
+            <Theme>
+              <ErrorBoundary showTitle>
+                <KBarProvider actions={[]} options={commandBarOptions}>
+                  <LazyPolyfill>
+                    <LazyMotion features={loadFeatures}>
+                      <Router history={history}>
+                        <>
+                          <PageTheme />
+                          <ScrollToTop>
+                            <Routes />
+                          </ScrollToTop>
+                          <Toasts />
+                          <Dialogs />
+                          <Desktop />
+                        </>
+                      </Router>
+                    </LazyMotion>
+                  </LazyPolyfill>
+                </KBarProvider>
+              </ErrorBoundary>
+            </Theme>
+          </Analytics>
+        </Provider>
+      </HelmetProvider>
     </React.StrictMode>
   );
 
