@@ -6,6 +6,7 @@ import DetachDraftsFromCollectionTask from "./DetachDraftsFromCollectionTask";
 setupTestDatabase();
 
 describe("DetachDraftsFromCollectionTask", () => {
+  const ip = "127.0.0.1";
   it("should detach drafts from deleted collection", async () => {
     const collection = await buildCollection();
     const document = await buildDocument({
@@ -18,7 +19,11 @@ describe("DetachDraftsFromCollectionTask", () => {
     await collection.destroy();
 
     const task = new DetachDraftsFromCollectionTask();
-    await task.perform({ collectionId: collection.id });
+    await task.perform({
+      collectionId: collection.id,
+      ip,
+      actorId: collection.createdById,
+    });
 
     const draft = await Document.findByPk(document.id);
     expect(draft).not.toBe(null);

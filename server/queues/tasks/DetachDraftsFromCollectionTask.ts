@@ -1,32 +1,48 @@
 import { Op } from "sequelize";
-import { Collection, Document } from "@server/models";
+import documentMover from "@server/commands/documentMover";
+import { sequelize } from "@server/database/sequelize";
+import { Collection, Document, User } from "@server/models";
 import BaseTask from "./BaseTask";
 
 type Task = {
   collectionId: string;
+  actorId: string;
+  ip: string;
 };
 
 export default class DetachDraftsFromCollectionTask extends BaseTask<Task> {
   async perform(task: Task) {
-    const collection = await Collection.findByPk(task.collectionId, {
-      paranoid: false,
-    });
+    const [collection, actor] = await Promise.all([
+      Collection.findByPk(task.collectionId, {
+        paranoid: false,
+      }),
+      User.findByPk(task.actorId),
+    ]);
 
-    if (!collection || !collection.deletedAt) {
+    if (!actor || !collection || !collection.deletedAt) {
       return;
     }
 
-    await Document.update(
-      { collectionId: null },
-      {
-        where: {
-          collectionId: task.collectionId,
-          publishedAt: {
-            [Op.is]: null,
-          },
+    const documents = await Document.findAll({
+      where: {
+        collectionId: task.collectionId,
+        publishedAt: {
+          [Op.is]: null,
         },
-        paranoid: false,
+      },
+      paranoid: false,
+    });
+
+    return sequelize.transaction(async (transaction) => {
+      for (const document of documents) {
+        await documentMover({
+          document,
+          user: actor,
+          ip: task.ip,
+          collectionId: null,
+          transaction,
+        });
       }
-    );
+    });
   }
 }

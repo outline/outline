@@ -15,6 +15,8 @@ export default class CollectionsProcessor extends BaseProcessor {
   async collectionDeleted(event: CollectionEvent) {
     await DetachDraftsFromCollectionTask.schedule({
       collectionId: event.collectionId,
+      actorId: event.actorId,
+      ip: event.ip,
     });
   }
 }
