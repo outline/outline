@@ -264,7 +264,7 @@ function Security() {
       >
         <Switch
           id={TeamPreference.ViewersCanExport}
-          checked={team.getPreference(TeamPreference.ViewersCanExport, true)}
+          checked={team.getPreference(TeamPreference.ViewersCanExport)}
           onChange={handlePreferenceChange}
         />
       </SettingRow>

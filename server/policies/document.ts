@@ -35,7 +35,7 @@ allow(User, "download", Document, (user, document) => {
 
   if (
     user.isViewer &&
-    !user.team.getPreference(TeamPreference.ViewersCanExport, true)
+    !user.team.getPreference(TeamPreference.ViewersCanExport)
   ) {
     return false;
   }

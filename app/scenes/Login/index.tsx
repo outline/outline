@@ -7,6 +7,7 @@ import { useLocation, Link, Redirect } from "react-router-dom";
 import styled from "styled-components";
 import { getCookie, setCookie } from "tiny-cookie";
 import { s } from "@shared/styles";
+import { UserPreference } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
 import { Config } from "~/stores/AuthStore";
 import ButtonLarge from "~/components/ButtonLarge";
@@ -61,7 +62,9 @@ function Login({ children }: Props) {
   const [error, setError] = React.useState(null);
   const [emailLinkSentTo, setEmailLinkSentTo] = React.useState("");
   const isCreate = location.pathname === "/create";
-  const rememberLastPath = !!auth.user?.preferences?.rememberLastPath;
+  const rememberLastPath = !!auth.user?.getPreference(
+    UserPreference.RememberLastPath
+  );
   const [lastVisitedPath] = useLastVisitedPath();
 
   const handleReset = React.useCallback(() => {
