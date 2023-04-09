@@ -739,7 +739,7 @@
   "Import a JSON data file exported from another {{ appName }} instance": "Import a JSON data file exported from another {{ appName }} instance",
   "Import pages exported from Notion": "匯入從 Notion 匯出的頁面",
   "Import pages from a Confluence instance": "從 Confluence 實例匯入文件",
-  "Enterprise": "Enterprise",
+  "Enterprise": "企業用戶",
   "Recent imports": "最近匯入的",
   "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {team.signinMethods} but haven’t signed in yet.": "Everyone that has signed into {{appName}} is listed here. It’s possible that there are other users who have access through {team.signinMethods} but haven’t signed in yet.",
   "Filter": "篩選器",
