@@ -11,7 +11,7 @@ type Props = {
   document: Document;
   /** Destination collection to which the document is moved */
   collectionId: string | null;
-  /** The parent of the moved document */
+  /** ID of parent under which the document is moved */
   parentDocumentId?: string | null;
   /** Position of moved document within document structure */
   index?: number;
