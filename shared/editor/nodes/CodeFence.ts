@@ -56,11 +56,10 @@ import zig from "refractor/lang/zig";
 import { Dictionary } from "~/hooks/useDictionary";
 import { UserPreferences } from "../../types";
 import Storage from "../../utils/Storage";
-
 import toggleBlockType from "../commands/toggleBlockType";
+import Mermaid from "../extensions/Mermaid";
+import Prism, { LANGUAGES } from "../extensions/Prism";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
-import Mermaid from "../plugins/Mermaid";
-import Prism, { LANGUAGES } from "../plugins/Prism";
 import isInCode from "../queries/isInCode";
 import { Dispatch } from "../types";
 import Node from "./Node";

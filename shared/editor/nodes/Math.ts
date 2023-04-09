@@ -18,8 +18,8 @@ import {
   Node as ProsemirrorNode,
 } from "prosemirror-model";
 import { EditorState, Plugin } from "prosemirror-state";
+import MathPlugin from "../extensions/Math";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
-import MathPlugin from "../plugins/Math";
 import mathRule, { REGEX_INLINE_MATH_DOLLARS } from "../rules/math";
 import { Dispatch } from "../types";
 import Node from "./Node";
