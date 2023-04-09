@@ -17,7 +17,7 @@ function isDropboxPaper(html: string): boolean {
 
 export default class PasteHandler extends Extension {
   get name() {
-    return "markdown-paste";
+    return "paste-handler";
   }
 
   get plugins() {
