@@ -31,7 +31,7 @@ type SearchOptions = {
   /** The query offset for pagination */
   offset?: number;
   /** Limit results to a collection. Authorization is presumed to have been done before passing to this helper. */
-  collectionId?: string;
+  collectionId?: string | null;
   /** Limit results to a shared document. */
   share?: Share;
   /** Limit results to a date range. */

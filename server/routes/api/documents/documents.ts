@@ -582,9 +582,12 @@ router.post(
       document.collectionId = collectionId;
     }
 
-    const collection = await Collection.scope({
-      method: ["withMembership", user.id],
-    }).findByPk(document.collectionId);
+    let collection;
+    if (document.collectionId) {
+      collection = await Collection.scope({
+        method: ["withMembership", user.id],
+      }).findByPk(document.collectionId);
+    }
 
     // if the collectionId was provided in the request and isn't valid then it will
     // be caught as a 403 on the authorize call below. Otherwise we're checking here
@@ -935,6 +938,10 @@ router.post(
         transaction,
         ip: ctx.request.ip,
       });
+
+      if (!document.collectionId) {
+        return null;
+      }
 
       return await Collection.scope({
         method: ["withMembership", user.id],

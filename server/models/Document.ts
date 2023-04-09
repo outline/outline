@@ -267,7 +267,8 @@ class Document extends ParanoidModel {
       model.archivedAt ||
       model.template ||
       !model.publishedAt ||
-      !model.changed("title")
+      !model.changed("title") ||
+      !model.collectionId
     ) {
       return;
     }
@@ -286,12 +287,17 @@ class Document extends ParanoidModel {
 
   @AfterCreate
   static async addDocumentToCollectionStructure(model: Document) {
-    if (model.archivedAt || model.template || !model.publishedAt) {
+    if (
+      model.archivedAt ||
+      model.template ||
+      !model.publishedAt ||
+      !model.collectionId
+    ) {
       return;
     }
 
     return this.sequelize!.transaction(async (transaction: Transaction) => {
-      const collection = await Collection.findByPk(model.collectionId, {
+      const collection = await Collection.findByPk(model.collectionId!, {
         transaction,
         lock: transaction.LOCK.UPDATE,
       });
@@ -399,7 +405,7 @@ class Document extends ParanoidModel {
 
   @ForeignKey(() => Collection)
   @Column(DataType.UUID)
-  collectionId: string;
+  collectionId: string | null | undefined;
 
   @HasMany(() => Revision)
   revisions: Revision[];
@@ -555,7 +561,11 @@ class Document extends ParanoidModel {
     return this.save(options);
   };
 
-  publish = async (userId: string, { transaction }: SaveOptions<Document>) => {
+  publish = async (
+    userId: string,
+    collectionId: string,
+    { transaction }: SaveOptions<Document>
+  ) => {
     // If the document is already published then calling publish should act like
     // a regular save
     if (this.publishedAt) {
@@ -563,7 +573,7 @@ class Document extends ParanoidModel {
     }
 
     if (!this.template) {
-      const collection = await Collection.findByPk(this.collectionId, {
+      const collection = await Collection.findByPk(collectionId, {
         transaction,
         lock: Transaction.LOCK.UPDATE,
       });
@@ -587,10 +597,13 @@ class Document extends ParanoidModel {
     }
 
     await this.sequelize.transaction(async (transaction: Transaction) => {
-      const collection = await Collection.findByPk(this.collectionId, {
-        transaction,
-        lock: transaction.LOCK.UPDATE,
-      });
+      let collection;
+      if (this.collectionId) {
+        collection = await Collection.findByPk(this.collectionId, {
+          transaction,
+          lock: transaction.LOCK.UPDATE,
+        });
+      }
 
       if (collection) {
         await collection.removeDocumentInStructure(this, { transaction });
@@ -603,6 +616,8 @@ class Document extends ParanoidModel {
     this.createdById = userId;
     this.lastModifiedById = userId;
     this.publishedAt = null;
+    // Q: should it be detached from collection?
+    this.collectionId = null;
     return this.save();
   };
 
@@ -610,10 +625,13 @@ class Document extends ParanoidModel {
   // to the archived area, where it can be subsequently restored.
   archive = async (userId: string) => {
     await this.sequelize.transaction(async (transaction: Transaction) => {
-      const collection = await Collection.findByPk(this.collectionId, {
-        transaction,
-        lock: transaction.LOCK.UPDATE,
-      });
+      let collection;
+      if (this.collectionId) {
+        collection = await Collection.findByPk(this.collectionId, {
+          transaction,
+          lock: transaction.LOCK.UPDATE,
+        });
+      }
 
       if (collection) {
         await collection.removeDocumentInStructure(this, { transaction });
@@ -628,10 +646,13 @@ class Document extends ParanoidModel {
   // Restore an archived document back to being visible to the team
   unarchive = async (userId: string) => {
     await this.sequelize.transaction(async (transaction: Transaction) => {
-      const collection = await Collection.findByPk(this.collectionId, {
-        transaction,
-        lock: transaction.LOCK.UPDATE,
-      });
+      let collection;
+      if (this.collectionId) {
+        collection = await Collection.findByPk(this.collectionId, {
+          transaction,
+          lock: transaction.LOCK.UPDATE,
+        });
+      }
 
       // check to see if the documents parent hasn't been archived also
       // If it has then restore the document to the collection root.

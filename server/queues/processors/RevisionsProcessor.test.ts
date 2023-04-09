@@ -15,7 +15,7 @@ describe("documents.update.debounced", () => {
     await processor.perform({
       name: "documents.update.debounced",
       documentId: document.id,
-      collectionId: document.collectionId,
+      collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: document.createdById,
       createdAt: new Date().toISOString(),
@@ -38,7 +38,7 @@ describe("documents.update.debounced", () => {
     await processor.perform({
       name: "documents.update.debounced",
       documentId: document.id,
-      collectionId: document.collectionId,
+      collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: document.createdById,
       createdAt: new Date().toISOString(),
