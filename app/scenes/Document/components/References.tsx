@@ -23,7 +23,9 @@ function References({ document }: Props) {
   }, [documents, document.id]);
 
   const backlinks = documents.getBacklinkedDocuments(document.id);
-  const collection = collections.get(document.collectionId);
+  const collection = document.collectionId
+    ? collections.get(document.collectionId)
+    : undefined;
   const children = collection
     ? collection.getDocumentChildren(document.id)
     : [];

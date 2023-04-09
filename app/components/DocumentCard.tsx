@@ -36,7 +36,9 @@ function DocumentCard(props: Props) {
   const { collections } = useStores();
   const theme = useTheme();
   const { document, pin, canUpdatePin, isDraggable } = props;
-  const collection = collections.get(document.collectionId);
+  const collection = document.collectionId
+    ? collections.get(document.collectionId)
+    : undefined;
   const {
     attributes,
     listeners,

@@ -799,6 +799,8 @@ export default class DocumentsStore extends BaseStore<Document> {
     find(this.orderedData, (doc) => url.endsWith(doc.urlId));
 
   getCollectionForDocument(document: Document) {
-    return this.rootStore.collections.get(document.collectionId);
+    return document.collectionId
+      ? this.rootStore.collections.get(document.collectionId)
+      : undefined;
   }
 }

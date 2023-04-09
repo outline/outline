@@ -112,10 +112,7 @@ export default abstract class BaseStore<T extends BaseModel> {
     return this.update(params, rest);
   }
 
-  get(id?: string | null): T | undefined {
-    if (!id) {
-      return;
-    }
+  get(id: string): T | undefined {
     return this.data.get(id);
   }
 
