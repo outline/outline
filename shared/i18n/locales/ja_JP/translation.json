@@ -746,7 +746,7 @@
   "Receive a notification whenever a new document is published": "新しいドキュメントが公開されたら、メッセージを受信する",
   "Document updated": "ドキュメントが更新されました",
   "Receive a notification when a document you are subscribed to is edited": "Receive a notification when a document you are subscribed to is edited",
-  "Comment posted": "Comment posted",
+  "Comment posted": "投稿されたコメント",
   "Receive a notification when a document you are subscribed to or a thread you participated in receives a comment": "Receive a notification when a document you are subscribed to or a thread you participated in receives a comment",
   "Mentioned": "メンションされました",
   "Receive a notification when someone mentions you in a document or comment": "誰かがあなたを文書やコメントでメンションしたときに通知を受け取ります",
