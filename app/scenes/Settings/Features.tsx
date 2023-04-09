@@ -53,7 +53,7 @@ function Features() {
         <Switch
           id={TeamPreference.SeamlessEdit}
           name={TeamPreference.SeamlessEdit}
-          checked={team.getPreference(TeamPreference.SeamlessEdit, true)}
+          checked={team.getPreference(TeamPreference.SeamlessEdit)}
           onChange={handlePreferenceChange}
         />
       </SettingRow>
@@ -71,7 +71,7 @@ function Features() {
         <Switch
           id={TeamPreference.Commenting}
           name={TeamPreference.Commenting}
-          checked={team.getPreference(TeamPreference.Commenting, false)}
+          checked={team.getPreference(TeamPreference.Commenting)}
           onChange={handlePreferenceChange}
         />
       </SettingRow>
@@ -86,7 +86,7 @@ function Features() {
           <Switch
             id={TeamPreference.PublicBranding}
             name={TeamPreference.PublicBranding}
-            checked={team.getPreference(TeamPreference.PublicBranding, false)}
+            checked={team.getPreference(TeamPreference.PublicBranding)}
             onChange={handlePreferenceChange}
           />
         </SettingRow>

@@ -22,6 +22,7 @@ import {
   AllowNull,
   AfterUpdate,
 } from "sequelize-typescript";
+import { UserPreferenceDefaults } from "@shared/constants";
 import { languages } from "@shared/i18n";
 import type { NotificationSettings } from "@shared/types";
 import {
@@ -354,14 +355,15 @@ class User extends ParanoidModel {
   };
 
   /**
-   * Returns the passed preference value
+   * Returns the value of the givem preference
    *
    * @param preference The user preference to retrieve
-   * @param fallback An optional fallback value, defaults to false.
-   * @returns The preference value if set, else undefined
+   * @returns The preference value if set, else the default value.
    */
-  public getPreference = (preference: UserPreference, fallback = false) =>
-    this.preferences?.[preference] ?? fallback;
+  public getPreference = (preference: UserPreference) =>
+    this.preferences?.[preference] ??
+    UserPreferenceDefaults[preference] ??
+    false;
 
   collectionIds = async (options = {}) => {
     const collectionStubs = await Collection.scope({

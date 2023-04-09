@@ -107,6 +107,7 @@ export enum UserPreference {
   RememberLastPath = "rememberLastPath",
   /** If web-style hand pointer should be used on interactive elements. */
   UseCursorPointer = "useCursorPointer",
+  /** Whether code blocks should show line numbers. */
   CodeBlockLineNumers = "codeBlockLineNumbers",
 }
 
