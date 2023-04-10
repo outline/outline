@@ -194,7 +194,7 @@
     "sequelize-cli": "^6.4.1",
     "sequelize-encrypted": "^1.0.0",
     "sequelize-typescript": "^2.1.5",
-    "slug": "^5.3.0",
+    "slug": "^8.2.2",
     "slugify": "^1.6.5",
     "smooth-scroll-into-view-if-needed": "^1.1.32",
     "socket.io": "^4.5.4",
