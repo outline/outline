@@ -117,7 +117,7 @@ export default class Link extends Mark {
     return {
       "Mod-k": (state: EditorState, dispatch: Dispatch) => {
         if (state.selection.empty) {
-          this.editor.events.emit(EventType.linkMenuOpen);
+          this.editor.events.emit(EventType.LinkToolbarOpen);
           return true;
         }
 

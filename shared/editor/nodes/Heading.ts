@@ -15,6 +15,7 @@ import toggleBlockType from "../commands/toggleBlockType";
 import { Command } from "../lib/Extension";
 import headingToSlug, { headingToPersistenceKey } from "../lib/headingToSlug";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import { FoldingHeadersPlugin } from "../plugins/FoldingHeaders";
 import Node from "./Node";
 
 export default class Heading extends Node {
@@ -264,7 +265,7 @@ export default class Heading extends Node {
       },
     });
 
-    return [plugin];
+    return [new FoldingHeadersPlugin(this.editor.props.id), plugin];
   }
 
   inputRules({ type }: { type: NodeType }) {

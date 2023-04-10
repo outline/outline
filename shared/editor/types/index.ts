@@ -7,14 +7,9 @@ import { DefaultTheme } from "styled-components";
 export type PlainTextSerializer = (node: ProsemirrorNode) => string;
 
 export enum EventType {
-  blockMenuOpen = "blockMenuOpen",
-  blockMenuClose = "blockMenuClose",
-  emojiMenuOpen = "emojiMenuOpen",
-  emojiMenuClose = "emojiMenuClose",
-  linkMenuOpen = "linkMenuOpen",
-  linkMenuClose = "linkMenuClose",
-  mentionMenuOpen = "mentionMenuOpen",
-  mentionMenuClose = "mentionMenuClose",
+  SuggestionsMenuOpen = "suggestionMenuOpen",
+  SuggestionsMenuClose = "suggestionMenuClose",
+  LinkToolbarOpen = "linkMenuOpen",
 }
 
 export type MenuItem = {

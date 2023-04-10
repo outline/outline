@@ -1,7 +1,6 @@
-import BlockMenuTrigger from "../extensions/BlockMenuTrigger";
+import BlockMenu from "../extensions/BlockMenu";
 import ClipboardTextSerializer from "../extensions/ClipboardTextSerializer";
 import DateTime from "../extensions/DateTime";
-import Folding from "../extensions/Folding";
 import History from "../extensions/History";
 import Keys from "../extensions/Keys";
 import MaxLength from "../extensions/MaxLength";
@@ -106,8 +105,7 @@ export const richExtensions: Nodes = [
   TableRow,
   Highlight,
   TemplatePlaceholder,
-  Folding,
-  BlockMenuTrigger,
+  BlockMenu,
   Math,
   MathBlock,
   PreventTab,

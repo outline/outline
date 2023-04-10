@@ -25,17 +25,17 @@ export default class DateTime extends Extension {
       // in places other than the start of a line
       new InputRule(/\/date\s$/, ({ tr }, _match, start, end) => {
         tr.delete(start, end).insertText(getCurrentDateAsString() + " ");
-        this.editor.events.emit(EventType.blockMenuClose);
+        this.editor.events.emit(EventType.SuggestionsMenuClose);
         return tr;
       }),
       new InputRule(/\/time\s$/, ({ tr }, _match, start, end) => {
         tr.delete(start, end).insertText(getCurrentTimeAsString() + " ");
-        this.editor.events.emit(EventType.blockMenuClose);
+        this.editor.events.emit(EventType.SuggestionsMenuClose);
         return tr;
       }),
       new InputRule(/\/datetime\s$/, ({ tr }, _match, start, end) => {
         tr.delete(start, end).insertText(`${getCurrentDateTimeAsString()} `);
-        this.editor.events.emit(EventType.blockMenuClose);
+        this.editor.events.emit(EventType.SuggestionsMenuClose);
         return tr;
       }),
     ];
