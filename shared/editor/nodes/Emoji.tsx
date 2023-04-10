@@ -7,12 +7,21 @@ import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import {
   SuggestionsMenuPlugin,
   SuggestionsMenuType,
+  getInputRules,
 } from "../plugins/SuggestionsMenu";
 import emojiRule from "../rules/emoji";
 import { Dispatch } from "../types";
 import Node from "./Node";
 
 export default class Emoji extends Node {
+  get defaultOptions() {
+    return {
+      type: SuggestionsMenuType.Emoji,
+      openRegex: /(?:^|\s):([0-9a-zA-Z_+-]+)?$/,
+      closeRegex: /(?:^|\s):(([0-9a-zA-Z_+-]*\s+)|(\s+[0-9a-zA-Z_+-]+)|[^0-9a-zA-Z_+-]+)$/,
+    };
+  }
+
   get name() {
     return "emoji";
   }
@@ -63,13 +72,7 @@ export default class Emoji extends Node {
   }
 
   get plugins() {
-    return [
-      new SuggestionsMenuPlugin(this.editor, {
-        type: SuggestionsMenuType.Emoji,
-        openRegex: /(?:^|\s):([0-9a-zA-Z_+-]+)?$/,
-        closeRegex: /(?:^|\s):(([0-9a-zA-Z_+-]*\s+)|(\s+[0-9a-zA-Z_+-]+)|[^0-9a-zA-Z_+-]+)$/,
-      }),
-    ];
+    return [new SuggestionsMenuPlugin(this.editor, this.options)];
   }
 
   commands({ type }: { type: NodeType }) {
@@ -93,26 +96,25 @@ export default class Emoji extends Node {
     };
   }
 
-  inputRules({ type }: { type: NodeType }): InputRule[] {
-    return [
-      new InputRule(/^:([a-zA-Z0-9_+-]+):$/, (state, match, start, end) => {
-        const [okay, markup] = match;
-        const { tr } = state;
-        if (okay) {
-          tr.replaceWith(
-            start - 1,
-            end,
-            type.create({
-              "data-name": markup,
-              markup,
-            })
-          );
-        }
+  inputRules = ({ type }: { type: NodeType }): InputRule[] => [
+    ...getInputRules(this.editor, this.options),
+    new InputRule(/^:([a-zA-Z0-9_+-]+):$/, (state, match, start, end) => {
+      const [okay, markup] = match;
+      const { tr } = state;
+      if (okay) {
+        tr.replaceWith(
+          start - 1,
+          end,
+          type.create({
+            "data-name": markup,
+            markup,
+          })
+        );
+      }
 
-        return tr;
-      }),
-    ];
-  }
+      return tr;
+    }),
+  ];
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     const name = node.attrs["data-name"];

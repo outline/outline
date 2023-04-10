@@ -1,3 +1,4 @@
+import { InputRule } from "prosemirror-inputrules";
 import { EditorState, Plugin } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import type { Editor } from "../../../app/editor";
@@ -17,6 +18,28 @@ type Options = {
   openRegex: RegExp;
   closeRegex: RegExp;
 };
+
+export const getInputRules = (editor: Editor, options: Options) => [
+  new InputRule(options.openRegex, (state, match) => {
+    if (
+      match &&
+      state.selection.$from.parent.type.name === "paragraph" &&
+      !isInCode(state)
+    ) {
+      editor.events.emit(EventType.SuggestionsMenuOpen, {
+        type: options.type,
+        query: match[1],
+      });
+    }
+    return null;
+  }),
+  new InputRule(options.closeRegex, (state, match) => {
+    if (match) {
+      editor.events.emit(EventType.SuggestionsMenuClose);
+    }
+    return null;
+  }),
+];
 
 export class SuggestionsMenuPlugin extends Plugin {
   constructor(editor: Editor, options: Options) {
@@ -47,7 +70,10 @@ export class SuggestionsMenuPlugin extends Plugin {
                       query: match[1],
                     });
                   } else {
-                    editor.events.emit(EventType.SuggestionsMenuClose);
+                    editor.events.emit(
+                      EventType.SuggestionsMenuClose,
+                      options.type
+                    );
                   }
                   return null;
                 }
@@ -69,40 +95,11 @@ export class SuggestionsMenuPlugin extends Plugin {
               view,
               pos,
               pos,
-              options.closeRegex,
+              options.openRegex,
               (state, match) =>
                 // just tell Prosemirror we handled it and not to do anything
                 match ? true : null
             );
-          }
-
-          if (
-            this.execute(view, pos, pos, options.openRegex, (state, match) => {
-              if (
-                match &&
-                state.selection.$from.parent.type.name === "paragraph" &&
-                !isInCode(state)
-              ) {
-                editor.events.emit(EventType.SuggestionsMenuOpen, {
-                  type: options.type,
-                  query: match[1],
-                });
-              }
-              return null;
-            })
-          ) {
-            return true;
-          }
-
-          if (
-            this.execute(view, pos, pos, options.closeRegex, (state, match) => {
-              if (match) {
-                editor.events.emit(EventType.SuggestionsMenuClose);
-              }
-              return null;
-            })
-          ) {
-            return true;
           }
 
           return false;

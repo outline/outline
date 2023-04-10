@@ -1,16 +1,27 @@
 import Token from "markdown-it/lib/token";
+import { InputRule } from "prosemirror-inputrules";
 import { NodeSpec, Node as ProsemirrorNode, NodeType } from "prosemirror-model";
 import { EditorState, TextSelection } from "prosemirror-state";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import {
   SuggestionsMenuPlugin,
   SuggestionsMenuType,
+  getInputRules,
 } from "../plugins/SuggestionsMenu";
 import mentionRule from "../rules/mention";
 import { Dispatch } from "../types";
 import Node from "./Node";
 
 export default class Mention extends Node {
+  get defaultOptions() {
+    return {
+      type: SuggestionsMenuType.Mention,
+      // ported from https://github.com/tc39/proposal-regexp-unicode-property-escapes#unicode-aware-version-of-w
+      openRegex: /(?:^|\s)@([\p{L}\p{M}\d]+)?$/u,
+      closeRegex: /(?:^|\s)@(([\p{L}\p{M}\d]*\s+)|(\s+[\p{L}\p{M}\d]+))$/u,
+    };
+  }
+
   get name() {
     return "mention";
   }
@@ -64,15 +75,10 @@ export default class Mention extends Node {
   }
 
   get plugins() {
-    return [
-      new SuggestionsMenuPlugin(this.editor, {
-        type: SuggestionsMenuType.Emoji,
-        // ported from https://github.com/tc39/proposal-regexp-unicode-property-escapes#unicode-aware-version-of-w
-        openRegex: /(?:^|\s)@([\p{L}\p{M}\d]+)?$/u,
-        closeRegex: /(?:^|\s)@(([\p{L}\p{M}\d]*\s+)|(\s+[\p{L}\p{M}\d]+))$/u,
-      }),
-    ];
+    return [new SuggestionsMenuPlugin(this.editor, this.options)];
   }
+
+  inputRules = (): InputRule[] => getInputRules(this.editor, this.options);
 
   commands({ type }: { type: NodeType }) {
     return (attrs: Record<string, string>) => (

@@ -139,9 +139,11 @@ type State = {
   /** If the toolbar for a text selection is visible */
   selectionToolbarOpen: boolean;
   /** If a suggestions menu is visible */
-  suggestionsMenuOpen?: SuggestionsMenuType;
+  suggestionsMenuOpen: SuggestionsMenuType | false;
   /** If the insert link toolbar is visible */
   linkToolbarOpen: boolean;
+  /** The query for the suggestion menu */
+  query: string;
 };
 
 /**
@@ -167,10 +169,10 @@ export class Editor extends React.PureComponent<
     extensions,
   };
 
-  state = {
+  state: State = {
     isRTL: false,
     isEditorFocused: false,
-    suggestionsMenuOpen: undefined,
+    suggestionsMenuOpen: false,
     selectionToolbarOpen: false,
     linkToolbarOpen: false,
     query: "",
@@ -664,7 +666,7 @@ export class Editor extends React.PureComponent<
     this.setState((state) => ({
       ...state,
       selectionToolbarOpen: true,
-      suggestionsMenuOpen: undefined,
+      suggestionsMenuOpen: false,
       query: "",
     }));
   };
@@ -682,7 +684,7 @@ export class Editor extends React.PureComponent<
   private handleOpenLinkToolbar = () => {
     this.setState((state) => ({
       ...state,
-      suggestionsMenuOpen: undefined,
+      suggestionsMenuOpen: false,
       linkToolbarOpen: true,
       query: "",
     }));
@@ -706,7 +708,10 @@ export class Editor extends React.PureComponent<
     }));
   };
 
-  private handleCloseSuggestionsMenu = (insertNewLine?: boolean) => {
+  private handleCloseSuggestionsMenu = (
+    type: SuggestionsMenuType,
+    insertNewLine?: boolean
+  ) => {
     if (insertNewLine) {
       const transaction = this.view.state.tr.split(
         this.view.state.selection.to
@@ -714,12 +719,12 @@ export class Editor extends React.PureComponent<
       this.view.dispatch(transaction);
       this.view.focus();
     }
-    if (!this.state.suggestionsMenuOpen) {
+    if (this.state.suggestionsMenuOpen !== type) {
       return;
     }
     this.setState((state) => ({
       ...state,
-      suggestionsMenuOpen: undefined,
+      suggestionsMenuOpen: false,
       query: "",
     }));
   };
@@ -776,7 +781,12 @@ export class Editor extends React.PureComponent<
                       SuggestionsMenuType.Emoji
                     }
                     search={this.state.query}
-                    onClose={this.handleCloseSuggestionsMenu}
+                    onClose={(insertNewLine) =>
+                      this.handleCloseSuggestionsMenu(
+                        SuggestionsMenuType.Emoji,
+                        insertNewLine
+                      )
+                    }
                   />
                 )}
                 {this.nodes.mention && (
@@ -787,7 +797,12 @@ export class Editor extends React.PureComponent<
                       SuggestionsMenuType.Mention
                     }
                     search={this.state.query}
-                    onClose={this.handleCloseSuggestionsMenu}
+                    onClose={(insertNewLine) =>
+                      this.handleCloseSuggestionsMenu(
+                        SuggestionsMenuType.Mention,
+                        insertNewLine
+                      )
+                    }
                   />
                 )}
                 <SelectionToolbar
@@ -805,7 +820,12 @@ export class Editor extends React.PureComponent<
                     this.state.suggestionsMenuOpen === SuggestionsMenuType.Block
                   }
                   search={this.state.query}
-                  onClose={this.handleCloseSuggestionsMenu}
+                  onClose={(insertNewLine) =>
+                    this.handleCloseSuggestionsMenu(
+                      SuggestionsMenuType.Block,
+                      insertNewLine
+                    )
+                  }
                   uploadFile={this.props.uploadFile}
                   onLinkToolbarOpen={this.handleOpenLinkToolbar}
                   onFileUploadStart={this.props.onFileUploadStart}
