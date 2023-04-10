@@ -1,19 +1,14 @@
 import { PlusIcon } from "outline-icons";
-import { InputRule } from "prosemirror-inputrules";
 import { Plugin } from "prosemirror-state";
 import { findParentNode } from "prosemirror-utils";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import * as React from "react";
 import ReactDOM from "react-dom";
-import Extension from "../lib/Extension";
-import {
-  SuggestionsMenuPlugin,
-  SuggestionsMenuType,
-  getInputRules,
-} from "../plugins/SuggestionsMenu";
+import { SuggestionsMenuType } from "../plugins/Suggestions";
 import { EventType } from "../types";
+import Suggestion from "./Suggestion";
 
-export default class BlockMenu extends Extension {
+export default class BlockMenu extends Suggestion {
   get defaultOptions() {
     return {
       type: SuggestionsMenuType.Block,
@@ -26,8 +21,6 @@ export default class BlockMenu extends Extension {
     return "blockmenu";
   }
 
-  inputRules = (): InputRule[] => getInputRules(this.editor, this.options);
-
   get plugins() {
     const button = document.createElement("button");
     button.className = "block-menu-trigger";
@@ -35,7 +28,7 @@ export default class BlockMenu extends Extension {
     ReactDOM.render(<PlusIcon />, button);
 
     return [
-      new SuggestionsMenuPlugin(this.editor, this.options),
+      ...super.plugins,
       new Plugin({
         props: {
           decorations: (state) => {

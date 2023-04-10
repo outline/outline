@@ -1,24 +1,29 @@
 import Token from "markdown-it/lib/token";
-import { InputRule } from "prosemirror-inputrules";
-import { NodeSpec, Node as ProsemirrorNode, NodeType } from "prosemirror-model";
-import { EditorState, TextSelection } from "prosemirror-state";
-import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import {
-  SuggestionsMenuPlugin,
-  SuggestionsMenuType,
-  getInputRules,
-} from "../plugins/SuggestionsMenu";
+  NodeSpec,
+  Node as ProsemirrorNode,
+  NodeType,
+  Schema,
+} from "prosemirror-model";
+import { EditorState, TextSelection } from "prosemirror-state";
+import Suggestion from "../extensions/Suggestion";
+import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import { SuggestionsMenuType } from "../plugins/Suggestions";
 import mentionRule from "../rules/mention";
 import { Dispatch } from "../types";
-import Node from "./Node";
 
-export default class Mention extends Node {
+export default class Mention extends Suggestion {
+  get type() {
+    return "node";
+  }
+
   get defaultOptions() {
     return {
       type: SuggestionsMenuType.Mention,
       // ported from https://github.com/tc39/proposal-regexp-unicode-property-escapes#unicode-aware-version-of-w
       openRegex: /(?:^|\s)@([\p{L}\p{M}\d]+)?$/u,
       closeRegex: /(?:^|\s)@(([\p{L}\p{M}\d]*\s+)|(\s+[\p{L}\p{M}\d]+))$/u,
+      enabledInTable: true,
     };
   }
 
@@ -74,13 +79,7 @@ export default class Mention extends Node {
     return [mentionRule];
   }
 
-  get plugins() {
-    return [new SuggestionsMenuPlugin(this.editor, this.options)];
-  }
-
-  inputRules = (): InputRule[] => getInputRules(this.editor, this.options);
-
-  commands({ type }: { type: NodeType }) {
+  commands({ type }: { type: NodeType; schema: Schema }) {
     return (attrs: Record<string, string>) => (
       state: EditorState,
       dispatch: Dispatch

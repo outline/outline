@@ -1,24 +1,29 @@
 import nameToEmoji from "gemoji/name-to-emoji.json";
 import Token from "markdown-it/lib/token";
-import { InputRule } from "prosemirror-inputrules";
-import { NodeSpec, Node as ProsemirrorNode, NodeType } from "prosemirror-model";
-import { EditorState, TextSelection } from "prosemirror-state";
-import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import {
-  SuggestionsMenuPlugin,
-  SuggestionsMenuType,
-  getInputRules,
-} from "../plugins/SuggestionsMenu";
+  NodeSpec,
+  Node as ProsemirrorNode,
+  NodeType,
+  Schema,
+} from "prosemirror-model";
+import { EditorState, TextSelection } from "prosemirror-state";
+import Suggestion from "../extensions/Suggestion";
+import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import { SuggestionsMenuType } from "../plugins/Suggestions";
 import emojiRule from "../rules/emoji";
 import { Dispatch } from "../types";
-import Node from "./Node";
 
-export default class Emoji extends Node {
+export default class Emoji extends Suggestion {
+  get type() {
+    return "node";
+  }
+
   get defaultOptions() {
     return {
       type: SuggestionsMenuType.Emoji,
       openRegex: /(?:^|\s):([0-9a-zA-Z_+-]+)?$/,
       closeRegex: /(?:^|\s):(([0-9a-zA-Z_+-]*\s+)|(\s+[0-9a-zA-Z_+-]+)|[^0-9a-zA-Z_+-]+)$/,
+      enabledInTable: true,
     };
   }
 
@@ -71,11 +76,7 @@ export default class Emoji extends Node {
     return [emojiRule];
   }
 
-  get plugins() {
-    return [new SuggestionsMenuPlugin(this.editor, this.options)];
-  }
-
-  commands({ type }: { type: NodeType }) {
+  commands({ type }: { type: NodeType; schema: Schema }) {
     return (attrs: Record<string, string>) => (
       state: EditorState,
       dispatch: Dispatch
@@ -95,26 +96,6 @@ export default class Emoji extends Node {
       return true;
     };
   }
-
-  inputRules = ({ type }: { type: NodeType }): InputRule[] => [
-    ...getInputRules(this.editor, this.options),
-    new InputRule(/^:([a-zA-Z0-9_+-]+):$/, (state, match, start, end) => {
-      const [okay, markup] = match;
-      const { tr } = state;
-      if (okay) {
-        tr.replaceWith(
-          start - 1,
-          end,
-          type.create({
-            "data-name": markup,
-            markup,
-          })
-        );
-      }
-
-      return tr;
-    }),
-  ];
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
     const name = node.attrs["data-name"];

@@ -1,8 +1,6 @@
-import { InputRule } from "prosemirror-inputrules";
 import { EditorState, Plugin } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import type { Editor } from "../../../app/editor";
-import isInCode from "../queries/isInCode";
 import { EventType } from "../types";
 
 const MAX_MATCH = 500;
@@ -17,29 +15,9 @@ type Options = {
   type: SuggestionsMenuType;
   openRegex: RegExp;
   closeRegex: RegExp;
+  enabledInCode: true;
+  enabledInTable: true;
 };
-
-export const getInputRules = (editor: Editor, options: Options) => [
-  new InputRule(options.openRegex, (state, match) => {
-    if (
-      match &&
-      state.selection.$from.parent.type.name === "paragraph" &&
-      !isInCode(state)
-    ) {
-      editor.events.emit(EventType.SuggestionsMenuOpen, {
-        type: options.type,
-        query: match[1],
-      });
-    }
-    return null;
-  }),
-  new InputRule(options.closeRegex, (state, match) => {
-    if (match) {
-      editor.events.emit(EventType.SuggestionsMenuClose);
-    }
-    return null;
-  }),
-];
 
 export class SuggestionsMenuPlugin extends Plugin {
   constructor(editor: Editor, options: Options) {

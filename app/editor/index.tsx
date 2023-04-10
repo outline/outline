@@ -27,7 +27,7 @@ import Mark from "@shared/editor/marks/Mark";
 import { richExtensions, withComments } from "@shared/editor/nodes";
 import Node from "@shared/editor/nodes/Node";
 import ReactNode from "@shared/editor/nodes/ReactNode";
-import { SuggestionsMenuType } from "@shared/editor/plugins/SuggestionsMenu";
+import { SuggestionsMenuType } from "@shared/editor/plugins/Suggestions";
 import { EventType } from "@shared/editor/types";
 import { UserPreferences } from "@shared/types";
 import ProsemirrorHelper from "@shared/utils/ProsemirrorHelper";
