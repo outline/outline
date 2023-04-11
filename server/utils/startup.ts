@@ -70,9 +70,6 @@ function logMigrations(migrations: string[]) {
       .map((line, i) => `${i + 1}. ${line.replace("down ", "")}`)
       .join("\n")
   );
-  Logger.warn(
-    "Please run `yarn db:migrate` or `yarn db:migrate --env production-ssl-disabled` to run all pending migrations"
-  );
 }
 
 export async function checkPendingMigrations() {
