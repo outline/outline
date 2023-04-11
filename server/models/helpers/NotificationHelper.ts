@@ -169,9 +169,14 @@ export default class NotificationHelper {
       if (
         recipient.email &&
         !recipient.isSuspended &&
-        (!document.collectionId ||
-          collectionIds.includes(document.collectionId))
+        document.collectionId &&
+        collectionIds.includes(document.collectionId)
       ) {
+        filtered.push(recipient);
+      }
+
+      // If it's a detached draft, check recipient against document creator
+      if (!document.collectionId && recipient.id === document.createdById) {
         filtered.push(recipient);
       }
     }

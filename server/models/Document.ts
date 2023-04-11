@@ -405,7 +405,7 @@ class Document extends ParanoidModel {
 
   @ForeignKey(() => Collection)
   @Column(DataType.UUID)
-  collectionId: string | null | undefined;
+  collectionId?: string | null;
 
   @HasMany(() => Revision)
   revisions: Revision[];
@@ -572,8 +572,12 @@ class Document extends ParanoidModel {
       return this.save({ transaction });
     }
 
+    if (!this.collectionId) {
+      this.collectionId = collectionId;
+    }
+
     if (!this.template) {
-      const collection = await Collection.findByPk(collectionId, {
+      const collection = await Collection.findByPk(this.collectionId, {
         transaction,
         lock: Transaction.LOCK.UPDATE,
       });
@@ -616,8 +620,6 @@ class Document extends ParanoidModel {
     this.createdById = userId;
     this.lastModifiedById = userId;
     this.publishedAt = null;
-    // Q: should it be detached from collection?
-    this.collectionId = null;
     return this.save();
   };
 

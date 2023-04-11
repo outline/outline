@@ -46,7 +46,7 @@ export default class Document extends ParanoidModel {
 
   @Field
   @observable
-  collectionId: string | null | undefined;
+  collectionId?: string | null;
 
   @Field
   @observable

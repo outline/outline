@@ -15,7 +15,7 @@ type Props = {
   parentDocumentId?: string | null;
   /** Position of moved document within document structure */
   index?: number;
-  /** The IP address of the user creating the document */
+  /** The IP address of the user moving the document */
   ip: string;
   /** The database transaction to run within */
   transaction?: Transaction;
