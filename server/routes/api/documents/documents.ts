@@ -915,7 +915,9 @@ router.post(
           collectionId,
           "collectionId is required to publish a draft without collection"
         );
-        collection = await Collection.findByPk(collectionId as string);
+        collection = await Collection.scope({
+          method: ["withMembership", user.id],
+        }).findByPk(collectionId!);
       }
       authorize(user, "publish", collection);
     }
