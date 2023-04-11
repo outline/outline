@@ -11,6 +11,7 @@ import { RefHandle } from "~/components/ContentEditable";
 import Editor, { Props as EditorProps } from "~/components/Editor";
 import Flex from "~/components/Flex";
 import useFocusedComment from "~/hooks/useFocusedComment";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import {
   documentHistoryUrl,
@@ -60,6 +61,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     multiplayer,
     ...rest
   } = props;
+  const can = usePolicy(document.id);
 
   const childRef = React.useRef<HTMLDivElement>(null);
   const focusAtStart = React.useCallback(() => {
@@ -178,7 +180,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         focusedCommentId={focusedComment?.id}
         onClickCommentMark={handleClickComment}
         onCreateCommentMark={
-          team?.getPreference(TeamPreference.Commenting)
+          team?.getPreference(TeamPreference.Commenting) && can.comment
             ? handleDraftComment
             : undefined
         }

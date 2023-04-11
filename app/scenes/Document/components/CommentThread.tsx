@@ -16,6 +16,7 @@ import Typing from "~/components/Typing";
 import { WebsocketContext } from "~/components/WebsocketProvider";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useOnClickOutside from "~/hooks/useOnClickOutside";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import { sidebarAppearDuration } from "~/styles/animations";
 import CommentForm from "./CommentForm";
@@ -68,6 +69,7 @@ function CommentThread({
     document,
     comment: thread,
   });
+  const can = usePolicy(document.id);
 
   const commentsInThread = comments
     .inThread(thread.id)
@@ -155,7 +157,8 @@ function CommentThread({
             comment={comment}
             key={comment.id}
             firstOfThread={index === 0}
-            lastOfThread={index === commentsInThread.length - 1 && !focused}
+            lastOfThread={index === commentsInThread.length - 1}
+            canReply={focused && can.comment}
             firstOfAuthor={firstOfAuthor}
             lastOfAuthor={lastOfAuthor}
             previousCommentCreatedAt={commentsInThread[index - 1]?.createdAt}
@@ -174,7 +177,7 @@ function CommentThread({
         ))}
 
       <ResizingHeightContainer hideOverflow={false}>
-        {(focused || commentsInThread.length === 0) && (
+        {(focused || commentsInThread.length === 0) && can.comment && (
           <Fade timing={100}>
             <CommentForm
               documentId={document.id}
@@ -187,7 +190,7 @@ function CommentThread({
           </Fade>
         )}
       </ResizingHeightContainer>
-      {!focused && !recessed && (
+      {!focused && !recessed && can.comment && (
         <Reply onClick={() => setAutoFocus(true)}>{t("Reply")}…</Reply>
       )}
     </Thread>

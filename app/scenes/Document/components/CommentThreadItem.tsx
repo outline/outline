@@ -67,6 +67,8 @@ type Props = {
   lastOfAuthor?: boolean;
   /** The date of the previous comment in the thread */
   previousCommentCreatedAt?: string;
+  /** Whether the user can reply in the thread */
+  canReply: boolean;
 };
 
 function CommentThreadItem({
@@ -76,6 +78,7 @@ function CommentThreadItem({
   lastOfThread,
   dir,
   previousCommentCreatedAt,
+  canReply,
 }: Props) {
   const { editor } = useDocumentContext();
   const { showToast } = useToasts();
@@ -138,6 +141,7 @@ function CommentThreadItem({
         $firstOfAuthor={firstOfAuthor}
         $lastOfThread={lastOfThread}
         $dir={dir}
+        $canReply={canReply}
         column
       >
         {(showAuthor || showTime) && (
@@ -242,6 +246,7 @@ export const Bubble = styled(Flex)<{
   $firstOfThread?: boolean;
   $firstOfAuthor?: boolean;
   $lastOfThread?: boolean;
+  $canReply?: boolean;
   $focused?: boolean;
   $dir?: "rtl" | "ltr";
 }>`
@@ -255,8 +260,9 @@ export const Bubble = styled(Flex)<{
   padding: 8px 12px;
   transition: color 100ms ease-out, ${s("backgroundTransition")};
 
-  ${({ $lastOfThread }) =>
+  ${({ $lastOfThread, $canReply }) =>
     $lastOfThread &&
+    !$canReply &&
     "border-bottom-left-radius: 8px; border-bottom-right-radius: 8px"};
 
   ${({ $firstOfThread }) =>
