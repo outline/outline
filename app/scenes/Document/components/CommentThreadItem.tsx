@@ -1,6 +1,7 @@
 import { differenceInMilliseconds, formatDistanceToNow } from "date-fns";
 import { toJS } from "mobx";
 import { observer } from "mobx-react";
+import { darken } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled, { css } from "styled-components";
@@ -197,6 +198,10 @@ const StyledCommentEditor = styled(CommentEditor)`
       margin: 2px;
       margin-bottom: 8px;
     `}
+
+  .mention {
+    background: ${(props) => darken(0.05, props.theme.mentionBackground)};
+  }
 `;
 
 const AvatarSpacer = styled(Flex)`

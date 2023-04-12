@@ -117,13 +117,13 @@ width: 100%;
 
 .mention {
   background: ${props.theme.mentionBackground};
-  border-radius: 12px;
+  border-radius: 8px;
   padding-bottom: 2px;
   padding-top: 1px;
   padding-left: 4px;
   padding-right: 4px;
   font-weight: 500;
-  font-size: 14px;
+  font-size: 0.9em;
 }
 
 > div {
