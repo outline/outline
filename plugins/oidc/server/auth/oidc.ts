@@ -94,11 +94,6 @@ if (
               `An email field was not returned in the profile parameter, but is required.`
             );
           }
-          if (!profile.name) {
-            throw AuthenticationError(
-              `A name field was not returned in the profile parameter, but is required.`
-            );
-          }
           const team = await getTeamFromContext(ctx);
           const client = getClientFromContext(ctx);
 
