@@ -8,6 +8,7 @@ import useComponentSize from "~/hooks/useComponentSize";
 import useEventListener from "~/hooks/useEventListener";
 import useMediaQuery from "~/hooks/useMediaQuery";
 import useViewportHeight from "~/hooks/useViewportHeight";
+import Logger from "~/utils/Logger";
 import { useEditor } from "./EditorContext";
 
 type Props = {
@@ -63,7 +64,7 @@ function usePosition({
     fromPos = view.coordsAtPos(selection.from);
     toPos = view.coordsAtPos(selection.to, -1);
   } catch (err) {
-    console.warn(err);
+    Logger.warn("Unable to calculate selection position", err);
     return defaultPosition;
   }
 

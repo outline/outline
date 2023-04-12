@@ -1,5 +1,6 @@
 import fs from "fs";
 import path from "path";
+import Logger from "@server/logging/Logger";
 
 export type Chunk = {
   file: string;
@@ -17,7 +18,7 @@ export const readManifestFile = (file = "./build/app/manifest.json") => {
   try {
     manifest = fs.readFileSync(absoluteFilePath, "utf8") as string;
   } catch (err) {
-    console.warn(
+    Logger.warn(
       `Can not find ${absoluteFilePath}. Try executing "yarn vite:build" before running in production mode.`
     );
   }

@@ -85,7 +85,6 @@ function getNewState({
               }
             );
           } catch (error) {
-            console.log(error);
             const errorNode = document.getElementById(
               "d" + "mermaid-diagram-" + diagramId
             );

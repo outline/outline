@@ -12,30 +12,26 @@ export default class Suggestion extends Extension {
     return [new SuggestionsMenuPlugin(this.editor, this.options)];
   }
 
-  inputRules = (_options: { type: NodeType; schema: Schema }) => {
-    console.log(this.name, this.options.openRegex);
-
-    return [
-      new InputRule(this.options.openRegex, (state, match) => {
-        if (
-          match &&
-          state.selection.$from.parent.type.name === "paragraph" &&
-          (!isInCode(state) || this.options.enabledInCode) &&
-          (!isInTable(state) || this.options.enabledInTable)
-        ) {
-          this.editor.events.emit(EventType.SuggestionsMenuOpen, {
-            type: this.options.type,
-            query: match[1],
-          });
-        }
-        return null;
-      }),
-      new InputRule(this.options.closeRegex, (state, match) => {
-        if (match) {
-          this.editor.events.emit(EventType.SuggestionsMenuClose);
-        }
-        return null;
-      }),
-    ];
-  };
+  inputRules = (_options: { type: NodeType; schema: Schema }) => [
+    new InputRule(this.options.openRegex, (state, match) => {
+      if (
+        match &&
+        state.selection.$from.parent.type.name === "paragraph" &&
+        (!isInCode(state) || this.options.enabledInCode) &&
+        (!isInTable(state) || this.options.enabledInTable)
+      ) {
+        this.editor.events.emit(EventType.SuggestionsMenuOpen, {
+          type: this.options.type,
+          query: match[1],
+        });
+      }
+      return null;
+    }),
+    new InputRule(this.options.closeRegex, (state, match) => {
+      if (match) {
+        this.editor.events.emit(EventType.SuggestionsMenuClose);
+      }
+      return null;
+    }),
+  ];
 }

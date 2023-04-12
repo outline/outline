@@ -16,6 +16,7 @@ import { Portal } from "~/components/Portal";
 import Scrollable from "~/components/Scrollable";
 import useDictionary from "~/hooks/useDictionary";
 import useToasts from "~/hooks/useToasts";
+import Logger from "~/utils/Logger";
 import { useEditor } from "./EditorContext";
 import Input from "./Input";
 
@@ -99,7 +100,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
           fromPos = view.coordsAtPos(selection.from);
           toPos = view.coordsAtPos(selection.to, -1);
         } catch (err) {
-          console.warn(err);
+          Logger.warn("Unable to calculate caret position", err);
           return {
             top: 0,
             bottom: 0,

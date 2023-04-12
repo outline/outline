@@ -78,7 +78,6 @@ function AddGroupsToCollection(props: Props) {
       toasts.showToast(t("Could not add user"), {
         type: "error",
       });
-      console.error(err);
     }
   };
 

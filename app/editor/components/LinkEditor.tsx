@@ -17,6 +17,7 @@ import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Scrollable from "~/components/Scrollable";
 import { Dictionary } from "~/hooks/useDictionary";
 import { ToastOptions } from "~/types";
+import Logger from "~/utils/Logger";
 import Input from "./Input";
 import LinkSearchResult from "./LinkSearchResult";
 import ToolbarButton from "./ToolbarButton";
@@ -223,8 +224,8 @@ class LinkEditor extends React.Component<Props, State> {
           },
           previousValue: trimmedValue,
         }));
-      } catch (error) {
-        console.error(error);
+      } catch (err) {
+        Logger.error("Error searching for link", err);
       }
     }
   };

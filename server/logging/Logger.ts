@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { IncomingMessage } from "http";
 import chalk from "chalk";
 import { isEmpty, isArray, isObject, isString } from "lodash";

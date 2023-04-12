@@ -1,4 +1,5 @@
 import * as Sentry from "@sentry/react";
+import invariant from "invariant";
 import { NodeSelection } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import { v4 as uuidv4 } from "uuid";
@@ -43,10 +44,10 @@ const insertFiles = function (
     onShowToast,
   } = options;
 
-  if (!uploadFile) {
-    console.warn("uploadFile callback must be defined to handle uploads.");
-    return;
-  }
+  invariant(
+    uploadFile,
+    "uploadFile callback must be defined to handle uploads."
+  );
 
   // okay, we have some dropped files and a handler – lets stop this
   // event going any further up the stack

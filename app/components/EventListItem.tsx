@@ -25,6 +25,7 @@ import Item, { Actions } from "~/components/List/Item";
 import Time from "~/components/Time";
 import useStores from "~/hooks/useStores";
 import RevisionMenu from "~/menus/RevisionMenu";
+import Logger from "~/utils/Logger";
 import { documentHistoryUrl } from "~/utils/routeHelpers";
 
 type Props = {
@@ -109,7 +110,7 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
       break;
 
     default:
-      console.warn("Unhandled event: ", event.name);
+      Logger.warn("Unhandled event", { event });
   }
 
   if (!meta) {

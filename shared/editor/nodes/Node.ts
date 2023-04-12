@@ -37,8 +37,8 @@ export default abstract class Node extends Extension {
     return {};
   }
 
-  toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode): void {
-    console.error("toMarkdown not implemented", state, node);
+  toMarkdown(_state: MarkdownSerializerState, _node: ProsemirrorNode) {
+    throw new Error("toMarkdown not implemented");
   }
 
   parseMarkdown(): TokenConfig | void {
