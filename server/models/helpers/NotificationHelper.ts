@@ -174,11 +174,6 @@ export default class NotificationHelper {
       ) {
         filtered.push(recipient);
       }
-
-      // If it's a detached draft, check recipient against document creator
-      if (!document.collectionId && recipient.id === document.createdById) {
-        filtered.push(recipient);
-      }
     }
 
     return filtered;
