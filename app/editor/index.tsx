@@ -725,7 +725,6 @@ export class Editor extends React.PureComponent<
     this.setState((state) => ({
       ...state,
       suggestionsMenuOpen: false,
-      query: "",
     }));
   };
 
