@@ -10,6 +10,7 @@ import Scrollable from "~/components/Scrollable";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useFocusedComment from "~/hooks/useFocusedComment";
 import useKeyDown from "~/hooks/useKeyDown";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import CommentForm from "./CommentForm";
 import CommentThread from "./CommentThread";
@@ -22,6 +23,7 @@ function Comments() {
   const match = useRouteMatch<{ documentSlug: string }>();
   const document = documents.getByUrl(match.params.documentSlug);
   const focusedComment = useFocusedComment();
+  const can = usePolicy(document?.id);
 
   useKeyDown("Escape", () => document && ui.collapseComments(document?.id));
 
@@ -65,7 +67,7 @@ function Comments() {
         </Wrapper>
       </Scrollable>
       <AnimatePresence initial={false}>
-        {!focusedComment && (
+        {!focusedComment && can.comment && (
           <NewCommentForm
             documentId={document.id}
             placeholder={`${t("Add a comment")}…`}
