@@ -59,7 +59,12 @@ const EditableTitle = React.forwardRef(
   ) => {
     const { editor } = useDocumentContext();
     const handleClick = React.useCallback(() => {
-      ref.current?.focus();
+      if (!document.title) {
+        // looks unnecessary but required because of https://github.com/outline/outline/issues/5198
+        ref.current?.focusAtStart();
+      } else {
+        ref.current?.focus();
+      }
     }, [ref]);
 
     const handleKeyDown = React.useCallback(
