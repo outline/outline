@@ -89,7 +89,8 @@ function CommentThreadItem({
   const [data, setData] = React.useState(toJS(comment.data));
   const showAuthor = firstOfAuthor;
   const showTime = useShowTime(comment.createdAt, previousCommentCreatedAt);
-  const showEdited = comment.updatedAt !== comment.createdAt;
+  const showEdited =
+    comment.updatedAt && comment.updatedAt !== comment.createdAt;
   const [isEditing, setEditing, setReadOnly] = useBoolean();
   const formRef = React.useRef<HTMLFormElement>(null);
 
