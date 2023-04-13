@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import styled, { css } from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
 import Comment from "~/models/Comment";
 import Document from "~/models/Document";
@@ -206,13 +207,16 @@ const Reply = styled.button`
   font-size: 14px;
   -webkit-appearance: none;
   cursor: var(--pointer);
-  opacity: 0;
   transition: opacity 100ms ease-out;
   position: absolute;
   text-align: left;
   width: 100%;
   bottom: -30px;
   left: 32px;
+
+  ${breakpoint("tablet")`
+    opacity: 0;
+  `}
 `;
 
 const Thread = styled.div<{
