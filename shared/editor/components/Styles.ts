@@ -7,6 +7,7 @@ export type Props = {
   rtl: boolean;
   readOnly?: boolean;
   readOnlyWriteCheckboxes?: boolean;
+  editorStyle?: React.CSSProperties;
   grow?: boolean;
   theme: DefaultTheme;
 };
@@ -143,6 +144,8 @@ width: 100%;
   -webkit-font-variant-ligatures: none;
   font-variant-ligatures: none;
   font-feature-settings: "liga" 0; /* the above doesn't seem to work in Edge */
+  padding: ${props.editorStyle?.padding ?? "initial"};
+  margin: ${props.editorStyle?.margin ?? "initial"};
 
   & > .ProseMirror-yjs-cursor {
     display: none;

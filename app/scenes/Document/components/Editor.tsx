@@ -25,7 +25,7 @@ import EditableTitle from "./EditableTitle";
 
 const extensions = withComments(richExtensions);
 
-type Props = Omit<EditorProps, "extensions"> & {
+type Props = Omit<EditorProps, "extensions" | "editorStyle"> & {
   onChangeTitle: (text: string) => void;
   id: string;
   document: Document;
@@ -189,12 +189,18 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
             : undefined
         }
         onDeleteCommentMark={
-          team?.getPreference(TeamPreference.Commenting)
+          team?.getPreference(TeamPreference.Commenting) && can.comment
             ? handleRemoveComment
             : undefined
         }
         extensions={extensions}
-        bottomPadding={`calc(50vh - ${childRef.current?.offsetHeight || 0}px)`}
+        editorStyle={{
+          padding: "0 60px",
+          margin: "0 -60px",
+          paddingBottom: `calc(50vh - ${
+            childRef.current?.offsetHeight || 0
+          }px)`,
+        }}
         {...rest}
       />
       <div ref={childRef}>{children}</div>
