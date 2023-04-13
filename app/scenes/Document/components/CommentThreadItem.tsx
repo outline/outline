@@ -5,6 +5,7 @@ import { darken } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled, { css } from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
 import { Minute } from "@shared/utils/time";
 import Comment from "~/models/Comment";
@@ -257,7 +258,7 @@ export const Bubble = styled(Flex)<{
 }>`
   position: relative;
   flex-grow: 1;
-  font-size: 15px;
+  font-size: 16px;
   color: ${s("text")};
   background: ${s("commentBackground")};
   min-width: 2em;
@@ -286,6 +287,10 @@ export const Bubble = styled(Flex)<{
   &:hover ${Menu} {
     opacity: 1;
   }
+
+  ${breakpoint("tablet")`
+    font-size: 15px;
+  `}
 `;
 
 export default observer(CommentThreadItem);

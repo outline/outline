@@ -248,7 +248,7 @@ const Container = styled(Flex)<ContainerProps>`
     ${(props) => (props.$mobileSidebarVisible ? 0 : "-100%")}
   );
   z-index: ${depths.sidebar};
-  max-width: 70%;
+  max-width: 80%;
   min-width: 280px;
   padding-top: ${Desktop.hasInsetTitlebar() ? 36 : 0}px;
   ${draggableOnDesktop()}

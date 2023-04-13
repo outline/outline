@@ -67,33 +67,36 @@ function Right({ children, border, className }: Props) {
   }, [isResizing, handleDrag, handleStopDrag]);
 
   const style = React.useMemo(
-    () => ({
-      width: `${ui.sidebarRightWidth}px`,
-    }),
-    [ui.sidebarRightWidth]
+    () =>
+      isMobile
+        ? { width: "80%" }
+        : {
+            width: `${ui.sidebarRightWidth}px`,
+          },
+    [isMobile, ui.sidebarRightWidth]
   );
 
+  const animationProps = {
+    initial: {
+      width: 0,
+    },
+    animate: {
+      transition: isResizing
+        ? { duration: 0 }
+        : {
+            type: "spring",
+            bounce: 0.2,
+            duration: sidebarAppearDuration / 1000,
+          },
+      width: ui.sidebarRightWidth,
+    },
+    exit: {
+      width: 0,
+    },
+  };
+
   return (
-    <Sidebar
-      initial={{
-        width: 0,
-      }}
-      animate={{
-        transition: isResizing
-          ? { duration: 0 }
-          : {
-              type: "spring",
-              bounce: 0.2,
-              duration: sidebarAppearDuration / 1000,
-            },
-        width: ui.sidebarRightWidth,
-      }}
-      exit={{
-        width: 0,
-      }}
-      $border={border}
-      className={className}
-    >
+    <Sidebar {...animationProps} $border={border} className={className}>
       <Position style={style} column>
         <ErrorBoundary>{children}</ErrorBoundary>
         {!isMobile && (
@@ -120,7 +123,7 @@ const Sidebar = styled(m.div)<{
   display: flex;
   flex-shrink: 0;
   background: ${s("background")};
-  max-width: 70%;
+  max-width: 80%;
   border-left: 1px solid ${s("divider")};
   transition: border-left 100ms ease-in-out;
   z-index: 1;
