@@ -47,7 +47,7 @@ export type Props = Optional<
   onHeadingsChange?: (headings: Heading[]) => void;
   onSynced?: () => Promise<void>;
   onPublish?: (event: React.MouseEvent) => any;
-  editorStyle: React.CSSProperties;
+  editorStyle?: React.CSSProperties;
 };
 
 function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
