@@ -12,6 +12,7 @@ import isNodeActive from "@shared/editor/queries/isNodeActive";
 import { MenuItem } from "@shared/editor/types";
 import { creatingUrlPrefix } from "@shared/utils/urls";
 import useDictionary from "~/hooks/useDictionary";
+import useMobile from "~/hooks/useMobile";
 import usePrevious from "~/hooks/usePrevious";
 import useToasts from "~/hooks/useToasts";
 import getDividerMenuItems from "../menus/divider";
@@ -80,6 +81,7 @@ export default function SelectionToolbar(props: Props) {
   const menuRef = React.useRef<HTMLDivElement | null>(null);
   const isActive = useIsActive(view.state);
   const previousIsActuve = usePrevious(isActive);
+  const isMobile = useMobile();
 
   React.useEffect(() => {
     // Trigger callbacks when the toolbar is opened or closed
@@ -205,7 +207,7 @@ export default function SelectionToolbar(props: Props) {
   } else if (isDividerSelection) {
     items = getDividerMenuItems(state, dictionary);
   } else {
-    items = getFormattingMenuItems(state, isTemplate, dictionary);
+    items = getFormattingMenuItems(state, isTemplate, isMobile, dictionary);
   }
 
   // Some extensions may be disabled, remove corresponding items
