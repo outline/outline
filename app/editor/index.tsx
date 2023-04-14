@@ -127,8 +127,10 @@ export type Props = {
   /** Callback when a toast message is triggered (eg "link copied") */
   onShowToast: (message: string) => void;
   className?: string;
-  /** Optional style overrides */
+  /** Optional style overrides for the container*/
   style?: React.CSSProperties;
+  /** Optional style overrides for the contenteeditable */
+  editorStyle?: React.CSSProperties;
 };
 
 type State = {
@@ -759,6 +761,7 @@ export class Editor extends React.PureComponent<
               readOnly={readOnly}
               readOnlyWriteCheckboxes={readOnlyWriteCheckboxes}
               focusedCommentId={this.props.focusedCommentId}
+              editorStyle={this.props.editorStyle}
               ref={this.elementRef}
             />
             {!readOnly && this.view && (

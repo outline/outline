@@ -47,7 +47,7 @@ export type Props = Optional<
   onHeadingsChange?: (headings: Heading[]) => void;
   onSynced?: () => Promise<void>;
   onPublish?: (event: React.MouseEvent) => any;
-  bottomPadding?: string;
+  editorStyle?: React.CSSProperties;
 };
 
 function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
@@ -340,12 +340,12 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
           placeholder={props.placeholder || ""}
           defaultValue={props.defaultValue || ""}
         />
-        {props.bottomPadding && !props.readOnly && (
+        {props.editorStyle?.paddingBottom && !props.readOnly && (
           <ClickablePadding
             onClick={focusAtEnd}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
-            minHeight={props.bottomPadding}
+            minHeight={props.editorStyle.paddingBottom}
           />
         )}
         {activeLinkElement && !shareId && (
