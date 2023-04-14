@@ -57,7 +57,13 @@ const ContentEditable = React.forwardRef(
 
     React.useImperativeHandle(ref, () => ({
       focus: () => {
-        contentRef.current?.focus();
+        if (contentRef.current) {
+          contentRef.current.focus();
+          // looks unnecessary but required because of https://github.com/outline/outline/issues/5198
+          if (!contentRef.current.innerText) {
+            placeCaret(contentRef.current, true);
+          }
+        }
       },
       focusAtStart: () => {
         if (contentRef.current) {
