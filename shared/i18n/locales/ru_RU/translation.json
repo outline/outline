@@ -299,6 +299,8 @@
   "Current date": "Текущая дата",
   "Current time": "Текущее время",
   "Current date and time": "Текущая дата и время",
+  "Indent": "Indent",
+  "Outdent": "Outdent",
   "Could not import file": "Не удалось импортировать файл",
   "Account": "Аккаунт",
   "Notifications": "Уведомления",
