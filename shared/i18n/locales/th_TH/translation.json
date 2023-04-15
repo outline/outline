@@ -299,6 +299,8 @@
   "Current date": "วันที่ปัจจุบัน",
   "Current time": "เวลาปัจจุบัน",
   "Current date and time": "วันที่และเวลาปัจจุบัน",
+  "Indent": "Indent",
+  "Outdent": "Outdent",
   "Could not import file": "ไม่สามารถนำเข้าไฟล์ได้",
   "Account": "บัญชีผู้ใช้",
   "Notifications": "การแจ้งเตือน",
