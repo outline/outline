@@ -299,6 +299,8 @@
   "Current date": "현재 날짜",
   "Current time": "현재 시간",
   "Current date and time": "현재 날짜 및 시간",
+  "Indent": "Indent",
+  "Outdent": "Outdent",
   "Could not import file": "파일을 가져올 수 없음",
   "Account": "계정",
   "Notifications": "알림",
