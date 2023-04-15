@@ -65,9 +65,6 @@ function getNewState({
         import("mermaid").then((module) => {
           module.default.initialize({
             startOnLoad: true,
-            flowchart: {
-              htmlLabels: false,
-            },
             // TODO: Make dynamic based on the width of the editor or remove in
             // the future if Mermaid is able to handle this automatically.
             gantt: {
