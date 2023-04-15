@@ -193,6 +193,13 @@ export default class ListItem extends Node {
     ];
   }
 
+  commands({ type }: { type: NodeType }) {
+    return {
+      indentList: () => sinkListItem(type),
+      outdentList: () => liftListItem(type),
+    };
+  }
+
   keys({ type }: { type: NodeType }) {
     return {
       Enter: splitListItem(type),

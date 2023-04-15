@@ -79,6 +79,8 @@ export default function useDictionary() {
       insertDate: t("Current date"),
       insertTime: t("Current time"),
       insertDateTime: t("Current date and time"),
+      indent: t("Indent"),
+      outdent: t("Outdent"),
     }),
     [t]
   );
