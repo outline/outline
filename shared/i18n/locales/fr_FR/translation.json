@@ -299,6 +299,8 @@
   "Current date": "Date actuelle",
   "Current time": "Heure actuelle",
   "Current date and time": "Date et heure actuelle",
+  "Indent": "Indent",
+  "Outdent": "Outdent",
   "Could not import file": "Le fichier n'a pas pu être importé",
   "Account": "Compte",
   "Notifications": "Notifications",
