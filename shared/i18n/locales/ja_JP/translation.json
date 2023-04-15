@@ -299,6 +299,8 @@
   "Current date": "現在の日付",
   "Current time": "現在の時刻",
   "Current date and time": "現在の日時",
+  "Indent": "Indent",
+  "Outdent": "Outdent",
   "Could not import file": "ファイルをインポートできませんでした",
   "Account": "アカウント",
   "Notifications": "通知",
