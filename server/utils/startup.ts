@@ -7,60 +7,32 @@ import AuthenticationProvider from "@server/models/AuthenticationProvider";
 import Team from "@server/models/Team";
 
 function getPendingMigrations() {
-  try {
-    const commandResult = execSync(
-      `yarn sequelize db:migrate:status${
-        env.PGSSLMODE === "disable" ? " --env=production-ssl-disabled" : ""
-      }`
-    );
-    const commandResultArray = Buffer.from(commandResult)
-      .toString("utf-8")
-      .split("\n");
+  const commandResult = execSync(
+    `yarn sequelize db:migrate:status${
+      env.PGSSLMODE === "disable" ? " --env=production-ssl-disabled" : ""
+    }`
+  );
+  const commandResultArray = Buffer.from(commandResult)
+    .toString("utf-8")
+    .split("\n");
 
-    const pendingMigrations = commandResultArray.filter((line) =>
-      line.startsWith("down")
-    );
+  const pendingMigrations = commandResultArray.filter((line) =>
+    line.startsWith("down")
+  );
 
-    return pendingMigrations;
-  } catch (err) {
-    Logger.warn(chalk.red("Failed to fetch pending migrations!"));
-    if (err.message.includes("ECONNREFUSED")) {
-      Logger.warn(
-        chalk.red(
-          `Could not connect to the database. Please check your connection settings.`
-        )
-      );
-    } else {
-      Logger.warn(chalk.red(err.message));
-    }
-    process.exit(1);
-  }
+  return pendingMigrations;
 }
 
 function runMigrations() {
-  try {
-    Logger.info("database", "Running migrations...");
-    const cmdResult = execSync(
-      `yarn db:migrate${
-        env.PGSSLMODE === "disable" ? " --env=production-ssl-disabled" : ""
-      }`
-    );
-    const cmdOutput = Buffer.from(cmdResult).toString("utf-8");
-    Logger.info("database", cmdOutput);
-    Logger.info("database", "Done.");
-  } catch (err) {
-    Logger.warn(chalk.red("Failed to run migrations!"));
-    if (err.message.includes("ECONNREFUSED")) {
-      Logger.warn(
-        chalk.red(
-          `Could not connect to the database. Please check your connection settings.`
-        )
-      );
-    } else {
-      Logger.warn(chalk.red(err.message));
-    }
-    process.exit(1);
-  }
+  Logger.info("database", "Running migrations...");
+  const cmdResult = execSync(
+    `yarn db:migrate${
+      env.PGSSLMODE === "disable" ? " --env=production-ssl-disabled" : ""
+    }`
+  );
+  const cmdOutput = Buffer.from(cmdResult).toString("utf-8");
+  Logger.info("database", cmdOutput);
+  Logger.info("database", "Done.");
 }
 
 function logMigrations(migrations: string[]) {
@@ -73,16 +45,29 @@ function logMigrations(migrations: string[]) {
 }
 
 export async function checkPendingMigrations() {
-  const pending = getPendingMigrations();
-  if (!isEmpty(pending)) {
-    if (env.isCloudHosted()) {
-      logMigrations(pending);
-      process.exit(1);
-    } else {
-      runMigrations();
+  try {
+    const pending = getPendingMigrations();
+    if (!isEmpty(pending)) {
+      if (env.isCloudHosted()) {
+        logMigrations(pending);
+        process.exit(1);
+      } else {
+        runMigrations();
+      }
     }
+    await checkDataMigrations();
+  } catch (err) {
+    if (err.message.includes("ECONNREFUSED")) {
+      Logger.warn(
+        chalk.red(
+          `Could not connect to the database. Please check your connection settings.`
+        )
+      );
+    } else {
+      Logger.warn(chalk.red(err.message));
+    }
+    process.exit(1);
   }
-  await checkDataMigrations();
 }
 
 export async function checkDataMigrations() {
