@@ -41,7 +41,7 @@ export default class ExtensionManager {
   }
 
   get nodes() {
-    const nodes = this.extensions
+    return this.extensions
       .filter((extension) => extension.type === "node")
       .reduce(
         (nodes, node: Node) => ({
@@ -50,17 +50,6 @@ export default class ExtensionManager {
         }),
         {}
       );
-
-    for (const i in nodes) {
-      if (nodes[i].excludes) {
-        nodes[i].excludes = nodes[i].excludes
-          .split(" ")
-          .filter((m: string) => Object.keys(nodes).includes(m))
-          .join(" ");
-      }
-    }
-
-    return nodes;
   }
 
   get marks() {
@@ -76,6 +65,8 @@ export default class ExtensionManager {
 
     for (const i in marks) {
       if (marks[i].excludes) {
+        // We must filter marks from the excludes list that are not defined
+        // in the schema for the current editor.
         marks[i].excludes = marks[i].excludes
           .split(" ")
           .filter((m: string) => Object.keys(marks).includes(m))
