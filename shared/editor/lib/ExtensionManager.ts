@@ -41,7 +41,7 @@ export default class ExtensionManager {
   }
 
   get nodes() {
-    return this.extensions
+    const nodes = this.extensions
       .filter((extension) => extension.type === "node")
       .reduce(
         (nodes, node: Node) => ({
@@ -50,6 +50,40 @@ export default class ExtensionManager {
         }),
         {}
       );
+
+    for (const i in nodes) {
+      if (nodes[i].excludes) {
+        nodes[i].excludes = nodes[i].excludes
+          .split(" ")
+          .filter((m: string) => Object.keys(nodes).includes(m))
+          .join(" ");
+      }
+    }
+
+    return nodes;
+  }
+
+  get marks() {
+    const marks = this.extensions
+      .filter((extension) => extension.type === "mark")
+      .reduce(
+        (marks, mark: Mark) => ({
+          ...marks,
+          [mark.name]: mark.schema,
+        }),
+        {}
+      );
+
+    for (const i in marks) {
+      if (marks[i].excludes) {
+        marks[i].excludes = marks[i].excludes
+          .split(" ")
+          .filter((m: string) => Object.keys(marks).includes(m))
+          .join(" ");
+      }
+    }
+
+    return marks;
   }
 
   serializer() {
@@ -102,18 +136,6 @@ export default class ExtensionManager {
       }, {});
 
     return new MarkdownParser(schema, makeRules({ rules, plugins }), tokens);
-  }
-
-  get marks() {
-    return this.extensions
-      .filter((extension) => extension.type === "mark")
-      .reduce(
-        (marks, { name, schema }: Mark) => ({
-          ...marks,
-          [name]: schema,
-        }),
-        {}
-      );
   }
 
   get plugins() {
