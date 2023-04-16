@@ -7,14 +7,7 @@ import {
   Schema,
   Node as ProsemirrorNode,
 } from "prosemirror-model";
-import {
-  EditorState,
-  Selection,
-  TextSelection,
-  Transaction,
-  Plugin,
-  PluginKey,
-} from "prosemirror-state";
+import { Selection, Plugin, PluginKey } from "prosemirror-state";
 import refractor from "refractor/core";
 import bash from "refractor/lang/bash";
 import clike from "refractor/lang/clike";
@@ -56,12 +49,17 @@ import zig from "refractor/lang/zig";
 import { Dictionary } from "~/hooks/useDictionary";
 import { UserPreferences } from "../../types";
 import Storage from "../../utils/Storage";
+import {
+  newlineInCode,
+  insertSpaceTab,
+  moveToNextNewline,
+  moveToPreviousNewline,
+} from "../commands/codeFence";
 import toggleBlockType from "../commands/toggleBlockType";
 import Mermaid from "../extensions/Mermaid";
 import Prism, { LANGUAGES } from "../extensions/Prism";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import isInCode from "../queries/isInCode";
-import { Dispatch } from "../types";
 import Node from "./Node";
 
 const PERSISTENCE_KEY = "rme-code-language";
@@ -228,38 +226,11 @@ export default class CodeFence extends Node {
   keys({ type, schema }: { type: NodeType; schema: Schema }) {
     return {
       "Shift-Ctrl-\\": toggleBlockType(type, schema.nodes.paragraph),
-      "Shift-Enter": (state: EditorState, dispatch: Dispatch) => {
-        if (!isInCode(state)) {
-          return false;
-        }
-        const {
-          tr,
-          selection,
-        }: { tr: Transaction; selection: TextSelection } = state;
-        const text = selection?.$anchor?.nodeBefore?.text;
-
-        let newText = "\n";
-
-        if (text) {
-          const splitByNewLine = text.split("\n");
-          const numOfSpaces = splitByNewLine[splitByNewLine.length - 1].search(
-            /\S|$/
-          );
-          newText += " ".repeat(numOfSpaces);
-        }
-
-        dispatch(tr.insertText(newText, selection.from, selection.to));
-        return true;
-      },
-      Tab: (state: EditorState, dispatch: Dispatch) => {
-        if (!isInCode(state)) {
-          return false;
-        }
-
-        const { tr, selection } = state;
-        dispatch(tr.insertText("  ", selection.from, selection.to));
-        return true;
-      },
+      Tab: insertSpaceTab,
+      Enter: newlineInCode,
+      "Shift-Enter": newlineInCode,
+      "Ctrl-a": moveToPreviousNewline,
+      "Ctrl-e": moveToNextNewline,
     };
   }
 

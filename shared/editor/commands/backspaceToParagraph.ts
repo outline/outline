@@ -2,6 +2,13 @@ import { NodeType } from "prosemirror-model";
 import { EditorState } from "prosemirror-state";
 import { Dispatch } from "../types";
 
+/**
+ * Converts the current node to a paragraph when pressing backspace at the
+ * beginning of the node and not already a paragraph.
+ *
+ * @param type The node type
+ * @returns A prosemirror command.
+ */
 export default function backspaceToParagraph(type: NodeType) {
   return (state: EditorState, dispatch: Dispatch) => {
     const { $from, from, to, empty } = state.selection;
