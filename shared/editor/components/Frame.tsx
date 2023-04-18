@@ -148,6 +148,7 @@ const Bar = styled.div`
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
   user-select: none;
+  position: relative;
 `;
 
 export default React.forwardRef<HTMLIFrameElement, Props>((props, ref) => (
