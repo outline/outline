@@ -84,7 +84,7 @@ const buildBaseTheme = (input: Partial<Colors>) => {
     codePlaceholder: "#3d8fd1",
     codeInserted: "#202746",
     codeImportant: "#c94922",
-    noticeInfoBackground: colors.accent,
+    noticeInfoBackground: colors.brand.blue,
     noticeInfoText: colors.almostBlack,
     noticeTipBackground: "#F5BE31",
     noticeTipText: colors.almostBlack,
