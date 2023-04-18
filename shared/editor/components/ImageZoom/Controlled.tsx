@@ -574,8 +574,8 @@ class ControlledBase extends Component<
       tmp.innerHTML = imgEl.outerHTML;
 
       const svg = tmp.firstChild as SVGSVGElement;
-      svg.style.width = `${styleModalImg.width ?? 0}px`;
-      svg.style.height = `${styleModalImg.height ?? 0}px`;
+      svg.style.width = `${styleModalImg.width || 0}px`;
+      svg.style.height = `${styleModalImg.height || 0}px`;
       svg.addEventListener("click", this.handleUnzoom);
 
       refModalImg.current?.firstChild?.remove?.();
