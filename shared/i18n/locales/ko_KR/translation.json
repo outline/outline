@@ -711,6 +711,7 @@
   "The workspace name, usually the same as your company name.": "The workspace name, usually the same as your company name.",
   "Theme": "테마",
   "Customize the interface look and feel.": "Customize the interface look and feel.",
+  "Reset theme": "Reset theme",
   "Accent color": "강조 색상",
   "Accent text color": "강조 텍스트 색상",
   "Behavior": "동작",
