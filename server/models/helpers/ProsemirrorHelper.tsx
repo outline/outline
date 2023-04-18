@@ -49,22 +49,21 @@ export default class ProsemirrorHelper {
   static parseMentions(node: Node) {
     const mentions: MentionAttrs[] = [];
 
-    function findMentions(node: Node) {
+    node.descendants((node: Node) => {
       if (
         node.type.name === "mention" &&
         !mentions.some((m) => m.id === node.attrs.id)
       ) {
         mentions.push(node.attrs as MentionAttrs);
+        return false;
       }
 
       if (!node.content.size) {
-        return;
+        return false;
       }
 
-      node.content.descendants(findMentions);
-    }
-
-    findMentions(node);
+      return true;
+    });
 
     return mentions;
   }

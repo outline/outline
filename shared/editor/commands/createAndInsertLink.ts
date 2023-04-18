@@ -4,7 +4,7 @@ import { EditorView } from "prosemirror-view";
 function findPlaceholderLink(doc: Node, href: string) {
   let result: { pos: number; node: Node } | undefined;
 
-  function findLinks(node: Node, pos = 0) {
+  doc.descendants((node: Node, pos = 0) => {
     // get text nodes
     if (node.type.name === "text") {
       // get marks for text nodes
@@ -17,16 +17,17 @@ function findPlaceholderLink(doc: Node, href: string) {
           }
         }
       });
+
+      return false;
     }
 
     if (!node.content.size) {
-      return;
+      return false;
     }
 
-    node.descendants(findLinks);
-  }
+    return true;
+  });
 
-  findLinks(doc);
   return result;
 }
 

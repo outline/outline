@@ -2,25 +2,24 @@ import { Node } from "prosemirror-model";
 import { parser } from "@server/editor";
 
 export default function parseImages(text: string): string[] {
-  const value = parser.parse(text);
+  const doc = parser.parse(text);
   const images: string[] = [];
 
-  function findImages(node: Node) {
+  doc.descendants((node: Node) => {
     if (node.type.name === "image") {
       if (!images.includes(node.attrs.src)) {
         images.push(node.attrs.src);
       }
 
-      return;
+      return false;
     }
 
     if (!node.content.size) {
-      return;
+      return false;
     }
 
-    node.content.descendants(findImages);
-  }
+    return true;
+  });
 
-  findImages(value);
   return images;
 }
