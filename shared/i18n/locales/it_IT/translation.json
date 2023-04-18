@@ -711,6 +711,7 @@
   "The workspace name, usually the same as your company name.": "Il nome dell'area di lavoro, in genere uguale al nome della tua azienda.",
   "Theme": "Tema",
   "Customize the interface look and feel.": "Personalizza l'aspetto dell'interfaccia.",
+  "Reset theme": "Reset theme",
   "Accent color": "Colore in rilievo",
   "Accent text color": "Colore del testo in risalto",
   "Behavior": "Comportamento",
