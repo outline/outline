@@ -711,6 +711,7 @@
   "The workspace name, usually the same as your company name.": "工作区名称，通常与您的公司名称相同。",
   "Theme": "主题",
   "Customize the interface look and feel.": "自定义外观和样式",
+  "Reset theme": "Reset theme",
   "Accent color": "主题色",
   "Accent text color": "文本强调色",
   "Behavior": "行为",
