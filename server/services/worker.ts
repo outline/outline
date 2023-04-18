@@ -27,8 +27,7 @@ export default function init() {
       setResource(`Event.${event.name}`);
 
       Logger.info("worker", `Processing ${event.name}`, {
-        name: event.name,
-        modelId: event.modelId,
+        event,
         attempt: job.attemptsMade,
       });
 
@@ -94,8 +93,7 @@ export default function init() {
 
       if (processor.perform) {
         Logger.info("worker", `${name} running ${event.name}`, {
-          name: event.name,
-          modelId: event.modelId,
+          event,
         });
 
         try {
