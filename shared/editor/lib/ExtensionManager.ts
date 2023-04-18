@@ -52,6 +52,31 @@ export default class ExtensionManager {
       );
   }
 
+  get marks() {
+    const marks = this.extensions
+      .filter((extension) => extension.type === "mark")
+      .reduce(
+        (marks, mark: Mark) => ({
+          ...marks,
+          [mark.name]: mark.schema,
+        }),
+        {}
+      );
+
+    for (const i in marks) {
+      if (marks[i].excludes) {
+        // We must filter marks from the excludes list that are not defined
+        // in the schema for the current editor.
+        marks[i].excludes = marks[i].excludes
+          .split(" ")
+          .filter((m: string) => Object.keys(marks).includes(m))
+          .join(" ");
+      }
+    }
+
+    return marks;
+  }
+
   serializer() {
     const nodes = this.extensions
       .filter((extension) => extension.type === "node")
@@ -102,18 +127,6 @@ export default class ExtensionManager {
       }, {});
 
     return new MarkdownParser(schema, makeRules({ rules, plugins }), tokens);
-  }
-
-  get marks() {
-    return this.extensions
-      .filter((extension) => extension.type === "mark")
-      .reduce(
-        (marks, { name, schema }: Mark) => ({
-          ...marks,
-          [name]: schema,
-        }),
-        {}
-      );
   }
 
   get plugins() {
