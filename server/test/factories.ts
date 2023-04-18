@@ -6,6 +6,7 @@ import {
   FileOperationType,
   IntegrationService,
   IntegrationType,
+  NotificationEventType,
 } from "@shared/types";
 import {
   Share,
@@ -26,6 +27,7 @@ import {
   WebhookDelivery,
   ApiKey,
   Subscription,
+  Notification,
 } from "@server/models";
 
 let count = 1;
@@ -492,4 +494,26 @@ export async function buildWebhookDelivery(
   }
 
   return WebhookDelivery.create(overrides);
+}
+
+export async function buildNotification(
+  overrides: Partial<Notification> = {}
+): Promise<Notification> {
+  if (!overrides.event) {
+    overrides.event = NotificationEventType.UpdateDocument;
+  }
+
+  if (!overrides.teamId) {
+    const team = await buildTeam();
+    overrides.teamId = team.id;
+  }
+
+  if (!overrides.userId) {
+    const user = await buildUser({
+      teamId: overrides.teamId,
+    });
+    overrides.userId = user.id;
+  }
+
+  return Notification.create(overrides);
 }
