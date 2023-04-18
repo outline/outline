@@ -10,6 +10,7 @@ import { buildDarkTheme, buildLightTheme } from "@shared/styles/theme";
 import { CustomTheme } from "@shared/types";
 import { getBaseDomain } from "@shared/utils/domains";
 import Button from "~/components/Button";
+import ButtonLink from "~/components/ButtonLink";
 import DefaultCollectionInputSelect from "~/components/DefaultCollectionInputSelect";
 import Heading from "~/components/Heading";
 import Input from "~/components/Input";
@@ -31,8 +32,10 @@ function Details() {
   const team = useCurrentTeam();
   const theme = useTheme();
   const form = useRef<HTMLFormElement>(null);
-  const [accent, setAccent] = useState(team.preferences?.customTheme?.accent);
-  const [accentText, setAccentText] = useState(
+  const [accent, setAccent] = useState<null | undefined | string>(
+    team.preferences?.customTheme?.accent
+  );
+  const [accentText, setAccentText] = useState<null | undefined | string>(
     team.preferences?.customTheme?.accentText
   );
   const [name, setName] = useState(team.name);
@@ -177,7 +180,24 @@ function Details() {
             border={false}
             label={t("Theme")}
             name="accent"
-            description={t("Customize the interface look and feel.")}
+            description={
+              <>
+                {t("Customize the interface look and feel.")}{" "}
+                {accent && (
+                  <>
+                    <ButtonLink
+                      onClick={() => {
+                        setAccent(null);
+                        setAccentText(null);
+                      }}
+                    >
+                      {t("Reset theme")}
+                    </ButtonLink>
+                    .
+                  </>
+                )}
+              </>
+            }
           >
             <InputColor
               id="accent"
