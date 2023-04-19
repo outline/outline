@@ -36,7 +36,7 @@ const Image = (
   const [offset, setOffset] = React.useState(0);
   const [dragging, setDragging] = React.useState<DragDirection>();
   const [documentWidth, setDocumentWidth] = React.useState(
-    props.view?.dom.clientWidth || 0
+    props.view ? getInnerWidth(props.view.dom) : 0
   );
   const maxWidth = layoutClass ? documentWidth / 3 : documentWidth;
   const isFullWidth = layoutClass === "full-width";
@@ -51,7 +51,7 @@ const Image = (
       const contentWidth =
         document.body.querySelector("#full-width-container")?.clientWidth || 0;
       setContentWidth(contentWidth);
-      setDocumentWidth(props.view?.dom.clientWidth || 0);
+      setDocumentWidth(props.view ? getInnerWidth(props.view.dom) : 0);
     };
 
     window.addEventListener("resize", handleResize);
@@ -231,6 +231,16 @@ const Image = (
     </div>
   );
 };
+
+function getInnerWidth(element: Element) {
+  const computedStyle = window.getComputedStyle(element, null);
+  let width = element.clientWidth;
+  width -=
+    parseFloat(computedStyle.paddingLeft) +
+    parseFloat(computedStyle.paddingRight);
+
+  return width;
+}
 
 function getPlaceholder(width: number, height: number) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" />`;
