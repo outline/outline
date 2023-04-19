@@ -11,8 +11,8 @@ import {
   DataType,
   Default,
   AllowNull,
-  AfterSave,
   Scopes,
+  AfterCreate,
 } from "sequelize-typescript";
 import { NotificationEventType } from "@shared/types";
 import Collection from "./Collection";
@@ -67,6 +67,10 @@ class Notification extends Model {
   @AllowNull
   @Column
   viewedAt: Date;
+
+  @AllowNull
+  @Column
+  archivedAt: Date;
 
   @CreatedAt
   createdAt: Date;
@@ -130,7 +134,7 @@ class Notification extends Model {
   @Column(DataType.UUID)
   teamId: string;
 
-  @AfterSave
+  @AfterCreate
   static async createEvent(
     model: Notification,
     options: SaveOptions<Notification>

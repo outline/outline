@@ -5,6 +5,7 @@ export default function presentNotification(notification: Notification) {
   return {
     id: notification.id,
     viewedAt: notification.viewedAt,
+    archivedAt: notification.archivedAt,
     createdAt: notification.createdAt,
     event: notification.event,
     userId: notification.userId,
