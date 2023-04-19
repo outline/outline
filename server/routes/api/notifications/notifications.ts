@@ -1,12 +1,15 @@
 import Router from "koa-router";
 import { WhereOptions, Op } from "sequelize";
 import { NotificationEventType } from "@shared/types";
+import notificationUpdater from "@server/commands/notificationUpdater";
 import env from "@server/env";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { Notification, User } from "@server/models";
 import NotificationSettingsHelper from "@server/models/helpers/NotificationSettingsHelper";
+import { authorize } from "@server/policies";
+import { presentPolicies } from "@server/presenters";
 import presentNotification from "@server/presenters/notification";
 import { APIContext } from "@server/types";
 import pagination from "../middlewares/pagination";
@@ -93,6 +96,33 @@ router.post(
       pagination: ctx.state.pagination,
       data,
       unseenCount,
+    };
+  }
+);
+
+router.post(
+  "notifications.update",
+  auth(),
+  validate(T.NotificationsUpdateSchema),
+  transaction(),
+  async (ctx: APIContext<T.NotificationsUpdateReq>) => {
+    const { id, markAsViewed, archive } = ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    const notification = await Notification.findByPk(id);
+    authorize(user, "update", notification);
+
+    await notificationUpdater({
+      notification,
+      markAsViewed,
+      archive,
+      ip: ctx.request.ip,
+      transaction: ctx.state.transaction,
+    });
+
+    ctx.body = {
+      data: presentNotification(notification),
+      policies: presentPolicies(user, [notification]),
     };
   }
 );

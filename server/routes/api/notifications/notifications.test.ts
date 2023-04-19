@@ -4,6 +4,7 @@ import {
   buildCollection,
   buildDocument,
   buildNotification,
+  buildTeam,
   buildUser,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
@@ -121,5 +122,91 @@ describe("#notifications.list", () => {
     expect((randomElement(body.data) as any).userId).toBe(user.id);
     const events = body.data.map((n: any) => n.event);
     expect(events).toContain(NotificationEventType.MentionedInComment);
+  });
+});
+
+describe("#notification.update", () => {
+  it("should mark notification as viewed", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({
+      teamId: team.id,
+    });
+    const actor = await buildUser({
+      teamId: team.id,
+    });
+    const collection = await buildCollection({
+      teamId: team.id,
+      createdById: actor.id,
+    });
+    const document = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+      createdById: actor.id,
+    });
+    const notification = await buildNotification({
+      teamId: team.id,
+      documentId: document.id,
+      collectionId: collection.id,
+      userId: user.id,
+      actorId: actor.id,
+      event: NotificationEventType.UpdateDocument,
+    });
+
+    expect(notification.viewedAt).toBeNull();
+
+    const res = await server.post("/api/notifications.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: notification.id,
+        markAsViewed: true,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.data.id).toBe(notification.id);
+    expect(body.data.viewedAt).not.toBeNull();
+  });
+
+  it("should archive the notification", async () => {
+    const team = await buildTeam();
+    const user = await buildUser({
+      teamId: team.id,
+    });
+    const actor = await buildUser({
+      teamId: team.id,
+    });
+    const collection = await buildCollection({
+      teamId: team.id,
+      createdById: actor.id,
+    });
+    const document = await buildDocument({
+      teamId: team.id,
+      collectionId: collection.id,
+      createdById: actor.id,
+    });
+    const notification = await buildNotification({
+      teamId: team.id,
+      documentId: document.id,
+      collectionId: collection.id,
+      userId: user.id,
+      actorId: actor.id,
+      event: NotificationEventType.UpdateDocument,
+    });
+
+    expect(notification.archivedAt).toBeNull();
+
+    const res = await server.post("/api/notifications.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: notification.id,
+        archive: true,
+      },
+    });
+    const body = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(body.data.id).toBe(notification.id);
+    expect(body.data.archivedAt).not.toBeNull();
   });
 });

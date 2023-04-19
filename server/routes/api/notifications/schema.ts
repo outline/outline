@@ -52,3 +52,13 @@ export const NotificationsListSchema = BaseSchema.extend({
 });
 
 export type NotificationsListReq = z.infer<typeof NotificationsListSchema>;
+
+export const NotificationsUpdateSchema = BaseSchema.extend({
+  body: z.object({
+    id: z.string().uuid(),
+    markAsViewed: z.boolean().optional().nullish(),
+    archive: z.boolean().optional().nullish(),
+  }),
+});
+
+export type NotificationsUpdateReq = z.infer<typeof NotificationsUpdateSchema>;
