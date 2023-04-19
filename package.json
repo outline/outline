@@ -11,7 +11,7 @@
     "build": "yarn clean && yarn vite:build && yarn build:i18n && yarn build:server",
     "start": "node ./build/server/index.js",
     "dev": "NODE_ENV=development yarn concurrently -n api,collaboration  -c \"blue,magenta\" \"node --inspect=0.0.0.0 build/server/index.js --services=collaboration,websockets,admin,web,worker\"",
-    "dev:backend": "NODE_ENV=development nodemon --exec \"yarn build:server && yarn dev\" -e js,ts,tsx --ignore build/ --ignore app/ --ignore shared/editor",
+    "dev:backend": "NODE_ENV=development nodemon --exec \"yarn build:server && yarn dev\" -e js,ts,tsx --ignore build/ --ignore app/ --ignore shared/editor --ignore server/migrations",
     "dev:watch": "NODE_ENV=development yarn concurrently -n backend,frontend \"yarn dev:backend\" \"yarn vite:dev\"",
     "lint": "eslint app server shared plugins",
     "prepare": "husky install",
