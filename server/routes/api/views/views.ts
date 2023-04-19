@@ -33,8 +33,8 @@ router.post(
 
 router.post(
   "views.create",
-  auth(),
   rateLimiter(RateLimiterStrategy.OneThousandPerHour),
+  auth(),
   validate(T.ViewsCreateSchema),
   async (ctx: APIContext<T.ViewsCreateReq>) => {
     const { documentId } = ctx.input.body;

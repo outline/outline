@@ -150,8 +150,8 @@ router.post("collections.info", auth(), async (ctx: APIContext) => {
 
 router.post(
   "collections.import",
-  auth(),
   rateLimiter(RateLimiterStrategy.TenPerHour),
+  auth(),
   async (ctx: APIContext) => {
     const {
       attachmentId,
@@ -549,8 +549,8 @@ router.post(
 
 router.post(
   "collections.export",
-  auth(),
   rateLimiter(RateLimiterStrategy.TenPerHour),
+  auth(),
   async (ctx: APIContext) => {
     const { id } = ctx.request.body;
     const { format = FileOperationFormat.MarkdownZip } = ctx.request.body;
@@ -589,8 +589,8 @@ router.post(
 
 router.post(
   "collections.export_all",
-  auth(),
   rateLimiter(RateLimiterStrategy.FivePerHour),
+  auth(),
   async (ctx: APIContext) => {
     const { format = FileOperationFormat.MarkdownZip } = ctx.request.body;
     const { user } = ctx.state.auth;

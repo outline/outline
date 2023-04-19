@@ -348,8 +348,8 @@ router.post("users.activate", auth(), async (ctx: APIContext) => {
 
 router.post(
   "users.invite",
-  auth(),
   rateLimiter(RateLimiterStrategy.TenPerHour),
+  auth(),
   async (ctx: APIContext) => {
     const { invites } = ctx.request.body;
     assertArray(invites, "invites must be an array");
@@ -420,8 +420,8 @@ router.post(
 
 router.post(
   "users.requestDelete",
-  auth(),
   rateLimiter(RateLimiterStrategy.FivePerHour),
+  auth(),
   async (ctx: APIContext) => {
     const { user } = ctx.state.auth;
     authorize(user, "delete", user);
@@ -441,8 +441,8 @@ router.post(
 
 router.post(
   "users.delete",
-  auth(),
   rateLimiter(RateLimiterStrategy.TenPerHour),
+  auth(),
   async (ctx: APIContext) => {
     const { id, code = "" } = ctx.request.body;
     const actor = ctx.state.auth.user;
