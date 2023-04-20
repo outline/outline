@@ -44,10 +44,12 @@ export type NotificationsUnsubscribeReq = z.infer<
 
 export const NotificationsListSchema = BaseSchema.extend({
   body: z.object({
-    eventType: z.nativeEnum(NotificationEventType).optional(),
+    eventType: z.nativeEnum(NotificationEventType).nullish(),
+    archived: z.boolean().nullish(),
   }),
   query: z.object({
-    eventType: z.nativeEnum(NotificationEventType).optional(),
+    eventType: z.nativeEnum(NotificationEventType).nullish(),
+    archived: z.boolean().nullish(),
   }),
 });
 
@@ -56,8 +58,8 @@ export type NotificationsListReq = z.infer<typeof NotificationsListSchema>;
 export const NotificationsUpdateSchema = BaseSchema.extend({
   body: z.object({
     id: z.string().uuid(),
-    markAsViewed: z.boolean().optional().nullish(),
-    archive: z.boolean().optional().nullish(),
+    markAsViewed: z.boolean().nullish(),
+    archive: z.boolean().nullish(),
   }),
 });
 

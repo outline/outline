@@ -66,11 +66,11 @@ class Notification extends Model {
 
   @AllowNull
   @Column
-  viewedAt: Date;
+  viewedAt: Date | null;
 
   @AllowNull
   @Column
-  archivedAt: Date;
+  archivedAt: Date | null;
 
   @CreatedAt
   createdAt: Date;
