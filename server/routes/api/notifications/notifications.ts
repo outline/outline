@@ -136,4 +136,44 @@ router.post(
   }
 );
 
+router.post(
+  "notifications.update_all",
+  auth(),
+  validate(T.NotificationsUpdateAllSchema),
+  async (ctx: APIContext<T.NotificationsUpdateAllReq>) => {
+    const { markAsViewed, archive } = ctx.input.body;
+    const { user } = ctx.state.auth;
+
+    const values: { [x: string]: any } = {};
+    let where: WhereOptions<Notification> = {
+      userId: user.id,
+    };
+    if (markAsViewed) {
+      values.viewedAt = new Date();
+      where = {
+        ...where,
+        viewedAt: {
+          [Op.is]: null,
+        },
+      };
+    }
+    if (archive) {
+      values.archivedAt = new Date();
+      where = {
+        ...where,
+        archivedAt: {
+          [Op.is]: null,
+        },
+      };
+    }
+
+    const [updateCount] = await Notification.update(values, { where });
+
+    ctx.body = {
+      success: true,
+      data: { updateCount },
+    };
+  }
+);
+
 export default router;
