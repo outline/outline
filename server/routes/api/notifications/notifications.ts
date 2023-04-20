@@ -64,12 +64,21 @@ router.post(
   transaction(),
   async (ctx: APIContext<T.NotificationsListReq>) => {
     const eventType = ctx.input.body.eventType ?? ctx.input.query.eventType;
+    const archived = ctx.input.body.archived ?? ctx.input.query.archived;
     const user = ctx.state.auth.user;
     let where: WhereOptions<Notification> = {
       userId: user.id,
     };
     if (eventType) {
       where = { ...where, event: eventType };
+    }
+    if (archived) {
+      where = {
+        ...where,
+        archivedAt: {
+          [Op.ne]: null,
+        },
+      };
     }
     const [notifications, unseenCount] = await Promise.all([
       Notification.scope(["withUser", "withActor"]).findAll({
