@@ -64,3 +64,14 @@ export const NotificationsUpdateSchema = BaseSchema.extend({
 });
 
 export type NotificationsUpdateReq = z.infer<typeof NotificationsUpdateSchema>;
+
+export const NotificationsUpdateAllSchema = BaseSchema.extend({
+  body: z.object({
+    markAsViewed: z.boolean().nullish(),
+    archive: z.boolean().nullish(),
+  }),
+});
+
+export type NotificationsUpdateAllReq = z.infer<
+  typeof NotificationsUpdateAllSchema
+>;

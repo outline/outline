@@ -268,3 +268,157 @@ describe("#notification.update", () => {
     expect(body.data.archivedAt).not.toBeNull();
   });
 });
+
+describe("#notifications.update_all", () => {
+  it("should perform no updates", async () => {
+    const actor = await buildUser();
+    const user = await buildUser({
+      teamId: actor.teamId,
+    });
+    const collection = await buildCollection({
+      teamId: actor.teamId,
+      createdById: actor.id,
+    });
+    const document = await buildDocument({
+      teamId: actor.teamId,
+      createdById: actor.id,
+      collectionId: collection.id,
+    });
+    await Promise.all([
+      buildNotification({
+        actorId: actor.id,
+        documentId: document.id,
+        collectionId: collection.id,
+        event: NotificationEventType.UpdateDocument,
+        viewedAt: new Date(),
+        userId: user.id,
+      }),
+      buildNotification({
+        actorId: actor.id,
+        documentId: document.id,
+        collectionId: collection.id,
+        event: NotificationEventType.CreateComment,
+        userId: user.id,
+      }),
+      buildNotification({
+        actorId: actor.id,
+        documentId: document.id,
+        collectionId: collection.id,
+        event: NotificationEventType.MentionedInComment,
+        userId: user.id,
+      }),
+    ]);
+
+    const res = await server.post("/api/notifications.update_all", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toBe(200);
+    expect(body.success).toBe(true);
+    expect(body.data.updateCount).toBe(0);
+  });
+
+  it("should mark all notifications as viewed", async () => {
+    const actor = await buildUser();
+    const user = await buildUser({
+      teamId: actor.teamId,
+    });
+    const collection = await buildCollection({
+      teamId: actor.teamId,
+      createdById: actor.id,
+    });
+    const document = await buildDocument({
+      teamId: actor.teamId,
+      createdById: actor.id,
+      collectionId: collection.id,
+    });
+    await Promise.all([
+      buildNotification({
+        actorId: actor.id,
+        documentId: document.id,
+        collectionId: collection.id,
+        event: NotificationEventType.UpdateDocument,
+        viewedAt: new Date(),
+        userId: user.id,
+      }),
+      buildNotification({
+        actorId: actor.id,
+        documentId: document.id,
+        collectionId: collection.id,
+        event: NotificationEventType.CreateComment,
+        userId: user.id,
+      }),
+      buildNotification({
+        actorId: actor.id,
+        documentId: document.id,
+        collectionId: collection.id,
+        event: NotificationEventType.MentionedInComment,
+        userId: user.id,
+      }),
+    ]);
+
+    const res = await server.post("/api/notifications.update_all", {
+      body: {
+        token: user.getJwtToken(),
+        markAsViewed: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toBe(200);
+    expect(body.success).toBe(true);
+    expect(body.data.updateCount).toBe(2);
+  });
+
+  it("should archive all notifications", async () => {
+    const actor = await buildUser();
+    const user = await buildUser({
+      teamId: actor.teamId,
+    });
+    const collection = await buildCollection({
+      teamId: actor.teamId,
+      createdById: actor.id,
+    });
+    const document = await buildDocument({
+      teamId: actor.teamId,
+      createdById: actor.id,
+      collectionId: collection.id,
+    });
+    await Promise.all([
+      buildNotification({
+        actorId: actor.id,
+        documentId: document.id,
+        collectionId: collection.id,
+        event: NotificationEventType.UpdateDocument,
+        archivedAt: new Date(),
+        userId: user.id,
+      }),
+      buildNotification({
+        actorId: actor.id,
+        documentId: document.id,
+        collectionId: collection.id,
+        event: NotificationEventType.CreateComment,
+        userId: user.id,
+      }),
+      buildNotification({
+        actorId: actor.id,
+        documentId: document.id,
+        collectionId: collection.id,
+        event: NotificationEventType.MentionedInComment,
+        userId: user.id,
+      }),
+    ]);
+
+    const res = await server.post("/api/notifications.update_all", {
+      body: {
+        token: user.getJwtToken(),
+        archive: true,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toBe(200);
+    expect(body.success).toBe(true);
+    expect(body.data.updateCount).toBe(2);
+  });
+});
