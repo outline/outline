@@ -2,6 +2,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import User from "~/models/User";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
+import Input from "~/components/Input";
 import useStores from "~/hooks/useStores";
 
 type Props = {
@@ -103,6 +104,44 @@ export function UserSuspendDialog({ user, onSubmit }: Props) {
           userName: user.name,
         }
       )}
+    </ConfirmationDialog>
+  );
+}
+
+export function UserChangeNameDialog({ user, onSubmit }: Props) {
+  const { t } = useTranslation();
+  const { users } = useStores();
+  const [name, setName] = React.useState<string>(user.name);
+
+  const handleSubmit = async () => {
+    await users.update({
+      id: user.id,
+      name,
+    });
+    onSubmit();
+  };
+
+  const handleChange = (ev: React.ChangeEvent<HTMLInputElement>) => {
+    setName(ev.target.value);
+  };
+
+  return (
+    <ConfirmationDialog
+      onSubmit={handleSubmit}
+      submitText={t("Confirm")}
+      savingText={`${t("Saving")}…`}
+      disabled={!name}
+    >
+      <Input
+        type="text"
+        name="name"
+        label={t("New name")}
+        onChange={handleChange}
+        error={!name ? t("Name can't be empty") : undefined}
+        value={name}
+        required
+        flex
+      />
     </ConfirmationDialog>
   );
 }
