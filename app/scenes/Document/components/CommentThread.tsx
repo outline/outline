@@ -116,7 +116,7 @@ function CommentThread({
           scrollIntoView(topRef.current, {
             scrollMode: "if-needed",
             behavior: "smooth",
-            block: "start",
+            block: "end",
             boundary: (parent) =>
               // Prevents body and other parent elements from being scrolled
               parent.id !== "comments",
