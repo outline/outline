@@ -149,7 +149,6 @@ export default class PasteHandler extends Extension {
             // html on the clipboard then try to parse content as Markdown
             if (
               (isMarkdown(text) && !isDropboxPaper(html)) ||
-              html.length === 0 ||
               pasteCodeLanguage === "markdown"
             ) {
               event.preventDefault();
