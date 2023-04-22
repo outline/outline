@@ -350,6 +350,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
         )}
         {activeLinkElement && !shareId && (
           <HoverPreview
+            id={props.id}
             element={activeLinkElement}
             onClose={handleLinkInactive}
           />

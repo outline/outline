@@ -14,11 +14,15 @@ const DELAY_OPEN = 300;
 const DELAY_CLOSE = 300;
 
 type Props = {
+  /* The document associated with the editor, if any */
+  id?: string;
+  /* The HTML element that is being hovered over */
   element: HTMLAnchorElement;
+  /* A callback on close of the hover preview */
   onClose: () => void;
 };
 
-function HoverPreviewInternal({ element, onClose }: Props) {
+function HoverPreviewInternal({ element, id, onClose }: Props) {
   const { documents } = useStores();
   const slug = parseDocumentSlug(element.href);
   const [isVisible, setVisible] = React.useState(false);
@@ -104,7 +108,7 @@ function HoverPreviewInternal({ element, onClose }: Props) {
         aria-hidden
       >
         <div ref={cardRef}>
-          <HoverPreviewDocument url={element.href}>
+          <HoverPreviewDocument url={element.href} id={id}>
             {(content: React.ReactNode) =>
               isVisible ? (
                 <Animate>
