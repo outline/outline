@@ -11,6 +11,7 @@ import {
   UserChangeToMemberDialog,
   UserChangeToViewerDialog,
   UserSuspendDialog,
+  UserChangeNameDialog,
 } from "~/components/UserRoleDialogs";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
@@ -74,6 +75,20 @@ function UserMenu({ user }: Props) {
             user={user}
             onSubmit={dialogs.closeAllModals}
           />
+        ),
+      });
+    },
+    [dialogs, t, user]
+  );
+
+  const handleChangeName = React.useCallback(
+    (ev: React.SyntheticEvent) => {
+      ev.preventDefault();
+      dialogs.openModal({
+        title: t("Change name"),
+        isCentered: true,
+        content: (
+          <UserChangeNameDialog user={user} onSubmit={dialogs.closeAllModals} />
         ),
       });
     },
@@ -153,6 +168,12 @@ function UserMenu({ user }: Props) {
               title: `${t("Change role to admin")}…`,
               onClick: handlePromote,
               visible: can.promote && user.role !== "admin",
+            },
+            {
+              type: "button",
+              title: `${t("Change name")}…`,
+              onClick: handleChangeName,
+              visible: can.update && user.role !== "admin",
             },
             {
               type: "button",
