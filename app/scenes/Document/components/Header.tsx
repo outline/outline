@@ -32,7 +32,7 @@ import NewChildDocumentMenu from "~/menus/NewChildDocumentMenu";
 import TableOfContentsMenu from "~/menus/TableOfContentsMenu";
 import TemplatesMenu from "~/menus/TemplatesMenu";
 import { metaDisplay } from "~/utils/keyboard";
-import { newDocumentPath, editDocumentUrl } from "~/utils/routeHelpers";
+import { newDocumentPath, documentEditPath } from "~/utils/routeHelpers";
 import ObservingBanner from "./ObservingBanner";
 import PublicBreadcrumb from "./PublicBreadcrumb";
 import ShareButton from "./ShareButton";
@@ -133,7 +133,7 @@ function DocumentHeader({
         <Button
           as={Link}
           icon={<EditIcon />}
-          to={editDocumentUrl(document)}
+          to={documentEditPath(document)}
           neutral
         >
           {t("Edit")}

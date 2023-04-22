@@ -15,8 +15,8 @@ import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import {
-  documentHistoryUrl,
-  documentUrl,
+  documentHistoryPath,
+  documentPath,
   matchDocumentHistory,
 } from "~/utils/routeHelpers";
 import { useDocumentContext } from "../../../components/DocumentContext";
@@ -167,8 +167,8 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
           document={document}
           to={
             match.path === matchDocumentHistory
-              ? documentUrl(document)
-              : documentHistoryUrl(document)
+              ? documentPath(document)
+              : documentHistoryPath(document)
           }
           rtl={
             titleRef.current?.getComputedDirection() === "rtl" ? true : false

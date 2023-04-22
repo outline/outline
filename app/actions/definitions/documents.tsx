@@ -37,8 +37,8 @@ import { DocumentSection } from "~/actions/sections";
 import env from "~/env";
 import history from "~/utils/history";
 import {
-  documentInsightsUrl,
-  documentHistoryUrl,
+  documentInsightsPath,
+  documentHistoryPath,
   homePath,
   newDocumentPath,
   searchPath,
@@ -749,7 +749,7 @@ export const openDocumentHistory = createAction({
     if (!document) {
       return;
     }
-    history.push(documentHistoryUrl(document));
+    history.push(documentHistoryPath(document));
   },
 });
 
@@ -770,7 +770,7 @@ export const openDocumentInsights = createAction({
     if (!document) {
       return;
     }
-    history.push(documentInsightsUrl(document));
+    history.push(documentInsightsPath(document));
   },
 });
 

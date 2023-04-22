@@ -47,7 +47,7 @@ import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import { MenuItem } from "~/types";
-import { editDocumentUrl, newDocumentPath } from "~/utils/routeHelpers";
+import { documentEditPath, newDocumentPath } from "~/utils/routeHelpers";
 
 type Props = {
   document: Document;
@@ -260,7 +260,7 @@ function DocumentMenu({
             {
               type: "route",
               title: t("Edit"),
-              to: editDocumentUrl(document),
+              to: documentEditPath(document),
               visible: !!can.update && !team.seamlessEditing,
               icon: <EditIcon />,
             },

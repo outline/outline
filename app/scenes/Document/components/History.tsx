@@ -8,7 +8,7 @@ import Empty from "~/components/Empty";
 import PaginatedEventList from "~/components/PaginatedEventList";
 import useKeyDown from "~/hooks/useKeyDown";
 import useStores from "~/hooks/useStores";
-import { documentUrl } from "~/utils/routeHelpers";
+import { documentPath } from "~/utils/routeHelpers";
 import Sidebar from "./SidebarLayout";
 
 const EMPTY_ARRAY: Event[] = [];
@@ -26,7 +26,7 @@ function History() {
 
   const onCloseHistory = () => {
     if (document) {
-      history.push(documentUrl(document));
+      history.push(documentPath(document));
     } else {
       history.goBack();
     }

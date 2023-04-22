@@ -58,9 +58,7 @@ export default class Heading extends Node {
           anchor.innerText = "#";
           anchor.type = "button";
           anchor.className = "heading-anchor";
-          anchor.addEventListener("click", (event) =>
-            this.handleCopyLink(event)
-          );
+          anchor.addEventListener("click", this.handleCopyLink);
 
           fold = document.createElement("button");
           fold.innerText = "";
@@ -181,8 +179,10 @@ export default class Heading extends Node {
 
     // the existing url might contain a hash already, lets make sure to remove
     // that rather than appending another one.
-    const urlWithoutHash = window.location.href.split("#")[0];
-    copy(urlWithoutHash + hash);
+    const normalizedUrl = window.location.href
+      .split("#")[0]
+      .replace("/edit", "");
+    copy(normalizedUrl + hash);
 
     this.options.onShowToast(this.options.dictionary.linkCopied);
   };

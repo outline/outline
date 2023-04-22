@@ -26,7 +26,7 @@ import Time from "~/components/Time";
 import useStores from "~/hooks/useStores";
 import RevisionMenu from "~/menus/RevisionMenu";
 import Logger from "~/utils/Logger";
-import { documentHistoryUrl } from "~/utils/routeHelpers";
+import { documentHistoryPath } from "~/utils/routeHelpers";
 
 type Props = {
   document: Document;
@@ -62,7 +62,7 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
       icon = <EditIcon size={16} />;
       meta = t("{{userName}} edited", opts);
       to = {
-        pathname: documentHistoryUrl(document, event.modelId || ""),
+        pathname: documentHistoryPath(document, event.modelId || ""),
         state: { retainScrollPosition: true },
       };
       break;
@@ -71,7 +71,7 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
       icon = <LightningIcon size={16} />;
       meta = t("Latest");
       to = {
-        pathname: documentHistoryUrl(document),
+        pathname: documentHistoryPath(document),
         state: { retainScrollPosition: true },
       };
       break;

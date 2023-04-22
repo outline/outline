@@ -199,8 +199,10 @@ export default class CollectionsStore extends BaseStore<Collection> {
     return this.pathsToDocuments.find((path) => path.id === documentId);
   }
 
-  titleForDocument(documentUrl: string): string | undefined {
-    const path = this.pathsToDocuments.find((path) => path.url === documentUrl);
+  titleForDocument(documentPath: string): string | undefined {
+    const path = this.pathsToDocuments.find(
+      (path) => path.url === documentPath
+    );
     if (path) {
       return path.title;
     }
