@@ -81,12 +81,15 @@ router.post(
         },
       };
     }
-    const [notifications, total] = await Promise.all([
+    const [notifications, total, unseen] = await Promise.all([
       Notification.scope(["withUser", "withActor"]).findAll({
         where,
         order: [["createdAt", "DESC"]],
         offset: ctx.state.pagination.offset,
         limit: ctx.state.pagination.limit,
+      }),
+      Notification.count({
+        where,
       }),
       Notification.count({
         where: {
@@ -98,13 +101,14 @@ router.post(
       }),
     ]);
 
-    const data = notifications.map((notification) =>
-      presentNotification(notification)
-    );
-
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
-      data,
+      data: {
+        notifications: notifications.map((notification) =>
+          presentNotification(notification)
+        ),
+        unseen,
+      },
     };
   }
 );

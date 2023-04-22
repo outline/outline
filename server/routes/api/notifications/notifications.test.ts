@@ -59,11 +59,15 @@ describe("#notifications.list", () => {
     const body = await res.json();
 
     expect(res.status).toBe(200);
-    expect(body.data.length).toBe(3);
-    expect(body.pagination.total).toBe(2);
-    expect((randomElement(body.data) as any).actor.id).toBe(actor.id);
-    expect((randomElement(body.data) as any).userId).toBe(user.id);
-    const events = body.data.map((n: any) => n.event);
+    expect(body.data.notifications.length).toBe(3);
+    expect(body.pagination.total).toBe(3);
+    expect((randomElement(body.data.notifications) as any).actor.id).toBe(
+      actor.id
+    );
+    expect((randomElement(body.data.notifications) as any).userId).toBe(
+      user.id
+    );
+    const events = body.data.notifications.map((n: any) => n.event);
     expect(events).toContain(NotificationEventType.UpdateDocument);
     expect(events).toContain(NotificationEventType.CreateComment);
     expect(events).toContain(NotificationEventType.MentionedInComment);
@@ -116,11 +120,15 @@ describe("#notifications.list", () => {
     const body = await res.json();
 
     expect(res.status).toBe(200);
-    expect(body.data.length).toBe(1);
+    expect(body.data.notifications.length).toBe(1);
     expect(body.pagination.total).toBe(1);
-    expect((randomElement(body.data) as any).actor.id).toBe(actor.id);
-    expect((randomElement(body.data) as any).userId).toBe(user.id);
-    const events = body.data.map((n: any) => n.event);
+    expect((randomElement(body.data.notifications) as any).actor.id).toBe(
+      actor.id
+    );
+    expect((randomElement(body.data.notifications) as any).userId).toBe(
+      user.id
+    );
+    const events = body.data.notifications.map((n: any) => n.event);
     expect(events).toContain(NotificationEventType.MentionedInComment);
   });
 
@@ -173,11 +181,15 @@ describe("#notifications.list", () => {
     const body = await res.json();
 
     expect(res.status).toBe(200);
-    expect(body.data.length).toBe(2);
+    expect(body.data.notifications.length).toBe(2);
     expect(body.pagination.total).toBe(2);
-    expect((randomElement(body.data) as any).actor.id).toBe(actor.id);
-    expect((randomElement(body.data) as any).userId).toBe(user.id);
-    const events = body.data.map((n: any) => n.event);
+    expect((randomElement(body.data.notifications) as any).actor.id).toBe(
+      actor.id
+    );
+    expect((randomElement(body.data.notifications) as any).userId).toBe(
+      user.id
+    );
+    const events = body.data.notifications.map((n: any) => n.event);
     expect(events).toContain(NotificationEventType.CreateComment);
     expect(events).toContain(NotificationEventType.UpdateDocument);
   });
