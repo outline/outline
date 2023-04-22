@@ -11,7 +11,9 @@ import isMarkActive from "@shared/editor/queries/isMarkActive";
 import isNodeActive from "@shared/editor/queries/isNodeActive";
 import { MenuItem } from "@shared/editor/types";
 import { creatingUrlPrefix } from "@shared/utils/urls";
+import useBoolean from "~/hooks/useBoolean";
 import useDictionary from "~/hooks/useDictionary";
+import useEventListener from "~/hooks/useEventListener";
 import useMobile from "~/hooks/useMobile";
 import usePrevious from "~/hooks/usePrevious";
 import useToasts from "~/hooks/useToasts";
@@ -73,6 +75,14 @@ function useIsActive(state: EditorState) {
   return some(nodes, (n) => n.content.size);
 }
 
+function useIsDragging() {
+  const [isDragging, setDragging, setNotDragging] = useBoolean();
+  useEventListener("dragstart", setDragging);
+  useEventListener("dragend", setNotDragging);
+  useEventListener("drop", setNotDragging);
+  return isDragging;
+}
+
 export default function SelectionToolbar(props: Props) {
   const { onClose, onOpen } = props;
   const { view, commands } = useEditor();
@@ -80,6 +90,7 @@ export default function SelectionToolbar(props: Props) {
   const dictionary = useDictionary();
   const menuRef = React.useRef<HTMLDivElement | null>(null);
   const isActive = useIsActive(view.state);
+  const isDragging = useIsDragging();
   const previousIsActuve = usePrevious(isActive);
   const isMobile = useMobile();
 
@@ -182,7 +193,7 @@ export default function SelectionToolbar(props: Props) {
   const isDividerSelection = isNodeActive(state.schema.nodes.hr)(state);
 
   // toolbar is disabled in code blocks, no bold / italic etc
-  if (isCodeSelection) {
+  if (isCodeSelection || isDragging) {
     return null;
   }
 
