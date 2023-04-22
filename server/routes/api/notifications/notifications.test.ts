@@ -195,7 +195,7 @@ describe("#notifications.list", () => {
   });
 });
 
-describe("#notification.update", () => {
+describe("#notifications.update", () => {
   it("should mark notification as viewed", async () => {
     const team = await buildTeam();
     const user = await buildUser({
@@ -383,6 +383,58 @@ describe("#notifications.update_all", () => {
     expect(body.data.total).toBe(2);
   });
 
+  it("should mark all seen notifications as unseen", async () => {
+    const actor = await buildUser();
+    const user = await buildUser({
+      teamId: actor.teamId,
+    });
+    const collection = await buildCollection({
+      teamId: actor.teamId,
+      createdById: actor.id,
+    });
+    const document = await buildDocument({
+      teamId: actor.teamId,
+      createdById: actor.id,
+      collectionId: collection.id,
+    });
+    await Promise.all([
+      buildNotification({
+        actorId: actor.id,
+        documentId: document.id,
+        collectionId: collection.id,
+        event: NotificationEventType.UpdateDocument,
+        viewedAt: new Date(),
+        userId: user.id,
+      }),
+      buildNotification({
+        actorId: actor.id,
+        documentId: document.id,
+        collectionId: collection.id,
+        event: NotificationEventType.CreateComment,
+        viewedAt: new Date(),
+        userId: user.id,
+      }),
+      buildNotification({
+        actorId: actor.id,
+        documentId: document.id,
+        collectionId: collection.id,
+        event: NotificationEventType.MentionedInComment,
+        userId: user.id,
+      }),
+    ]);
+
+    const res = await server.post("/api/notifications.update_all", {
+      body: {
+        token: user.getJwtToken(),
+        viewedAt: null,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toBe(200);
+    expect(body.success).toBe(true);
+    expect(body.data.total).toBe(2);
+  });
+
   it("should archive all notifications", async () => {
     const actor = await buildUser();
     const user = await buildUser({
@@ -434,7 +486,7 @@ describe("#notifications.update_all", () => {
     expect(body.data.total).toBe(2);
   });
 
-  it("should unarchive all notifications", async () => {
+  it("should unarchive all archived notifications", async () => {
     const actor = await buildUser();
     const user = await buildUser({
       teamId: actor.teamId,

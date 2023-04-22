@@ -28,7 +28,7 @@ export default async function notificationUpdater({
   ip,
   transaction,
 }: Props): Promise<Notification> {
-  if (viewedAt) {
+  if (!isUndefined(viewedAt)) {
     notification.viewedAt = viewedAt;
   }
   if (!isUndefined(archivedAt)) {
