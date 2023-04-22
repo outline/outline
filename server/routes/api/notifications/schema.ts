@@ -47,10 +47,6 @@ export const NotificationsListSchema = BaseSchema.extend({
     eventType: z.nativeEnum(NotificationEventType).nullish(),
     archived: z.boolean().nullish(),
   }),
-  query: z.object({
-    eventType: z.nativeEnum(NotificationEventType).nullish(),
-    archived: z.boolean().nullish(),
-  }),
 });
 
 export type NotificationsListReq = z.infer<typeof NotificationsListSchema>;

@@ -57,6 +57,49 @@ describe("notificationUpdater", () => {
     expect(event!.modelId).toEqual(notification.id);
   });
 
+  it("should mark the notification as unseen", async () => {
+    const user = await buildUser();
+    const actor = await buildUser({
+      teamId: user.teamId,
+    });
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      createdById: actor.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      collectionId: collection.id,
+      createdById: actor.id,
+    });
+    const notification = await buildNotification({
+      actorId: actor.id,
+      event: NotificationEventType.UpdateDocument,
+      userId: user.id,
+      teamId: user.teamId,
+      documentId: document.id,
+      collectionId: collection.id,
+      viewedAt: new Date(),
+    });
+
+    expect(notification.archivedAt).toBe(null);
+    expect(notification.viewedAt).not.toBe(null);
+
+    await sequelize.transaction(async (transaction) =>
+      notificationUpdater({
+        notification,
+        viewedAt: null,
+        ip,
+        transaction,
+      })
+    );
+    const event = await Event.findOne();
+
+    expect(notification.viewedAt).toBe(null);
+    expect(notification.archivedAt).toBe(null);
+    expect(event!.name).toEqual("notifications.update");
+    expect(event!.modelId).toEqual(notification.id);
+  });
+
   it("should archive the notification", async () => {
     const user = await buildUser();
     const actor = await buildUser({

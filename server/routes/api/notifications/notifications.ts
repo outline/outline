@@ -64,8 +64,7 @@ router.post(
   validate(T.NotificationsListSchema),
   transaction(),
   async (ctx: APIContext<T.NotificationsListReq>) => {
-    const eventType = ctx.input.body.eventType ?? ctx.input.query.eventType;
-    const archived = ctx.input.body.archived ?? ctx.input.query.archived;
+    const { eventType, archived } = ctx.input.body;
     const user = ctx.state.auth.user;
     let where: WhereOptions<Notification> = {
       userId: user.id,
@@ -152,13 +151,11 @@ router.post(
     let where: WhereOptions<Notification> = {
       userId: user.id,
     };
-    if (viewedAt) {
+    if (!isUndefined(viewedAt)) {
       values.viewedAt = viewedAt;
       where = {
         ...where,
-        viewedAt: {
-          [Op.is]: null,
-        },
+        viewedAt: !isNull(viewedAt) ? { [Op.is]: null } : { [Op.ne]: null },
       };
     }
     if (!isUndefined(archivedAt)) {
