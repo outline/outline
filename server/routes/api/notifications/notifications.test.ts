@@ -60,7 +60,7 @@ describe("#notifications.list", () => {
 
     expect(res.status).toBe(200);
     expect(body.data.length).toBe(3);
-    expect(body.unseenCount).toBe(2);
+    expect(body.pagination.total).toBe(2);
     expect((randomElement(body.data) as any).actor.id).toBe(actor.id);
     expect((randomElement(body.data) as any).userId).toBe(user.id);
     const events = body.data.map((n: any) => n.event);
@@ -117,7 +117,7 @@ describe("#notifications.list", () => {
 
     expect(res.status).toBe(200);
     expect(body.data.length).toBe(1);
-    expect(body.unseenCount).toBe(1);
+    expect(body.pagination.total).toBe(1);
     expect((randomElement(body.data) as any).actor.id).toBe(actor.id);
     expect((randomElement(body.data) as any).userId).toBe(user.id);
     const events = body.data.map((n: any) => n.event);
@@ -174,7 +174,7 @@ describe("#notifications.list", () => {
 
     expect(res.status).toBe(200);
     expect(body.data.length).toBe(2);
-    expect(body.unseenCount).toBe(2);
+    expect(body.pagination.total).toBe(2);
     expect((randomElement(body.data) as any).actor.id).toBe(actor.id);
     expect((randomElement(body.data) as any).userId).toBe(user.id);
     const events = body.data.map((n: any) => n.event);
@@ -216,7 +216,7 @@ describe("#notification.update", () => {
       body: {
         token: user.getJwtToken(),
         id: notification.id,
-        markAsViewed: true,
+        viewedAt: new Date(),
       },
     });
     const body = await res.json();
@@ -258,7 +258,7 @@ describe("#notification.update", () => {
       body: {
         token: user.getJwtToken(),
         id: notification.id,
-        archive: true,
+        archivedAt: new Date(),
       },
     });
     const body = await res.json();
@@ -317,7 +317,7 @@ describe("#notifications.update_all", () => {
     const body = await res.json();
     expect(res.status).toBe(200);
     expect(body.success).toBe(true);
-    expect(body.data.updateCount).toBe(0);
+    expect(body.data.total).toBe(0);
   });
 
   it("should mark all notifications as viewed", async () => {
@@ -362,13 +362,13 @@ describe("#notifications.update_all", () => {
     const res = await server.post("/api/notifications.update_all", {
       body: {
         token: user.getJwtToken(),
-        markAsViewed: true,
+        viewedAt: new Date(),
       },
     });
     const body = await res.json();
     expect(res.status).toBe(200);
     expect(body.success).toBe(true);
-    expect(body.data.updateCount).toBe(2);
+    expect(body.data.total).toBe(2);
   });
 
   it("should archive all notifications", async () => {
@@ -413,12 +413,64 @@ describe("#notifications.update_all", () => {
     const res = await server.post("/api/notifications.update_all", {
       body: {
         token: user.getJwtToken(),
-        archive: true,
+        archivedAt: new Date(),
       },
     });
     const body = await res.json();
     expect(res.status).toBe(200);
     expect(body.success).toBe(true);
-    expect(body.data.updateCount).toBe(2);
+    expect(body.data.total).toBe(2);
+  });
+
+  it("should unarchive all notifications", async () => {
+    const actor = await buildUser();
+    const user = await buildUser({
+      teamId: actor.teamId,
+    });
+    const collection = await buildCollection({
+      teamId: actor.teamId,
+      createdById: actor.id,
+    });
+    const document = await buildDocument({
+      teamId: actor.teamId,
+      createdById: actor.id,
+      collectionId: collection.id,
+    });
+    await Promise.all([
+      buildNotification({
+        actorId: actor.id,
+        documentId: document.id,
+        collectionId: collection.id,
+        event: NotificationEventType.UpdateDocument,
+        archivedAt: new Date(),
+        userId: user.id,
+      }),
+      buildNotification({
+        actorId: actor.id,
+        documentId: document.id,
+        collectionId: collection.id,
+        event: NotificationEventType.CreateComment,
+        archivedAt: new Date(),
+        userId: user.id,
+      }),
+      buildNotification({
+        actorId: actor.id,
+        documentId: document.id,
+        collectionId: collection.id,
+        event: NotificationEventType.MentionedInComment,
+        userId: user.id,
+      }),
+    ]);
+
+    const res = await server.post("/api/notifications.update_all", {
+      body: {
+        token: user.getJwtToken(),
+        archivedAt: null,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toBe(200);
+    expect(body.success).toBe(true);
+    expect(body.data.total).toBe(2);
   });
 });

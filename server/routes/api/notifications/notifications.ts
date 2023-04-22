@@ -1,4 +1,5 @@
 import Router from "koa-router";
+import { isNull, isUndefined } from "lodash";
 import { WhereOptions, Op } from "sequelize";
 import { NotificationEventType } from "@shared/types";
 import notificationUpdater from "@server/commands/notificationUpdater";
@@ -80,7 +81,7 @@ router.post(
         },
       };
     }
-    const [notifications, unseenCount] = await Promise.all([
+    const [notifications, total] = await Promise.all([
       Notification.scope(["withUser", "withActor"]).findAll({
         where,
         order: [["createdAt", "DESC"]],
@@ -102,9 +103,8 @@ router.post(
     );
 
     ctx.body = {
-      pagination: ctx.state.pagination,
+      pagination: { ...ctx.state.pagination, total },
       data,
-      unseenCount,
     };
   }
 );
@@ -115,7 +115,7 @@ router.post(
   validate(T.NotificationsUpdateSchema),
   transaction(),
   async (ctx: APIContext<T.NotificationsUpdateReq>) => {
-    const { id, markAsViewed, archive } = ctx.input.body;
+    const { id, viewedAt, archivedAt } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     const notification = await Notification.findByPk(id);
@@ -123,8 +123,8 @@ router.post(
 
     await notificationUpdater({
       notification,
-      markAsViewed,
-      archive,
+      viewedAt,
+      archivedAt,
       ip: ctx.request.ip,
       transaction: ctx.state.transaction,
     });
@@ -141,15 +141,15 @@ router.post(
   auth(),
   validate(T.NotificationsUpdateAllSchema),
   async (ctx: APIContext<T.NotificationsUpdateAllReq>) => {
-    const { markAsViewed, archive } = ctx.input.body;
+    const { viewedAt, archivedAt } = ctx.input.body;
     const { user } = ctx.state.auth;
 
     const values: { [x: string]: any } = {};
     let where: WhereOptions<Notification> = {
       userId: user.id,
     };
-    if (markAsViewed) {
-      values.viewedAt = new Date();
+    if (viewedAt) {
+      values.viewedAt = viewedAt;
       where = {
         ...where,
         viewedAt: {
@@ -157,21 +157,19 @@ router.post(
         },
       };
     }
-    if (archive) {
-      values.archivedAt = new Date();
+    if (!isUndefined(archivedAt)) {
+      values.archivedAt = archivedAt;
       where = {
         ...where,
-        archivedAt: {
-          [Op.is]: null,
-        },
+        archivedAt: !isNull(archivedAt) ? { [Op.is]: null } : { [Op.ne]: null },
       };
     }
 
-    const [updateCount] = await Notification.update(values, { where });
+    const [total] = await Notification.update(values, { where });
 
     ctx.body = {
       success: true,
-      data: { updateCount },
+      data: { total },
     };
   }
 );
