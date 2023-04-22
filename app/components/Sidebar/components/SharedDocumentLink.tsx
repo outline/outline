@@ -53,7 +53,7 @@ function DocumentLink(
             activeDocumentId
           )) ||
           isActiveDocument ||
-          depth === 0)
+          depth <= 1)
       ),
     [hasChildDocuments, activeDocumentId, isActiveDocument, depth, node]
   );
