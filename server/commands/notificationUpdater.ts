@@ -1,13 +1,14 @@
+import { isUndefined } from "lodash";
 import { Transaction } from "sequelize";
 import { Event, Notification } from "@server/models";
 
 type Props = {
   /** Notification to be updated */
   notification: Notification;
-  /** Mark the notification as viewed */
-  markAsViewed?: boolean | null;
-  /** Whether to archive the notification */
-  archive?: boolean | null;
+  /** Time at which notification was viewed */
+  viewedAt?: Date | null;
+  /** Time at which notification was archived */
+  archivedAt?: Date | null;
   /** The IP address of the user updating the notification */
   ip: string;
   /** The database transaction to run within */
@@ -22,16 +23,16 @@ type Props = {
  */
 export default async function notificationUpdater({
   notification,
-  markAsViewed,
-  archive,
+  viewedAt,
+  archivedAt,
   ip,
   transaction,
 }: Props): Promise<Notification> {
-  if (markAsViewed) {
-    notification.viewedAt = new Date();
+  if (viewedAt) {
+    notification.viewedAt = viewedAt;
   }
-  if (archive) {
-    notification.archivedAt = new Date();
+  if (!isUndefined(archivedAt)) {
+    notification.archivedAt = archivedAt;
   }
   const changed = notification.changed();
   if (changed) {

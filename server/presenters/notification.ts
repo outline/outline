@@ -15,6 +15,5 @@ export default function presentNotification(notification: Notification) {
     documentId: notification.documentId,
     revisionId: notification.revisionId,
     collectionId: notification.collectionId,
-    teamId: notification.teamId,
   };
 }

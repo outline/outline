@@ -58,8 +58,8 @@ export type NotificationsListReq = z.infer<typeof NotificationsListSchema>;
 export const NotificationsUpdateSchema = BaseSchema.extend({
   body: z.object({
     id: z.string().uuid(),
-    markAsViewed: z.boolean().nullish(),
-    archive: z.boolean().nullish(),
+    viewedAt: z.coerce.date().nullish(),
+    archivedAt: z.coerce.date().nullish(),
   }),
 });
 
@@ -67,8 +67,8 @@ export type NotificationsUpdateReq = z.infer<typeof NotificationsUpdateSchema>;
 
 export const NotificationsUpdateAllSchema = BaseSchema.extend({
   body: z.object({
-    markAsViewed: z.boolean().nullish(),
-    archive: z.boolean().nullish(),
+    viewedAt: z.coerce.date().nullish(),
+    archivedAt: z.coerce.date().nullish(),
   }),
 });
 

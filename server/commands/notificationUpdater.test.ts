@@ -44,7 +44,7 @@ describe("notificationUpdater", () => {
     await sequelize.transaction(async (transaction) =>
       notificationUpdater({
         notification,
-        markAsViewed: true,
+        viewedAt: new Date(),
         ip,
         transaction,
       })
@@ -86,7 +86,7 @@ describe("notificationUpdater", () => {
     await sequelize.transaction(async (transaction) =>
       notificationUpdater({
         notification,
-        archive: true,
+        archivedAt: new Date(),
         ip,
         transaction,
       })
@@ -95,6 +95,49 @@ describe("notificationUpdater", () => {
 
     expect(notification.viewedAt).toBe(null);
     expect(notification.archivedAt).not.toBe(null);
+    expect(event!.name).toEqual("notifications.update");
+    expect(event!.modelId).toEqual(notification.id);
+  });
+
+  it("should unarchive the notification", async () => {
+    const user = await buildUser();
+    const actor = await buildUser({
+      teamId: user.teamId,
+    });
+    const collection = await buildCollection({
+      teamId: user.teamId,
+      createdById: actor.id,
+    });
+    const document = await buildDocument({
+      teamId: user.teamId,
+      collectionId: collection.id,
+      createdById: actor.id,
+    });
+    const notification = await buildNotification({
+      actorId: actor.id,
+      event: NotificationEventType.UpdateDocument,
+      userId: user.id,
+      teamId: user.teamId,
+      documentId: document.id,
+      collectionId: collection.id,
+      archivedAt: new Date(),
+    });
+
+    expect(notification.archivedAt).not.toBe(null);
+    expect(notification.viewedAt).toBe(null);
+
+    await sequelize.transaction(async (transaction) =>
+      notificationUpdater({
+        notification,
+        archivedAt: null,
+        ip,
+        transaction,
+      })
+    );
+    const event = await Event.findOne();
+
+    expect(notification.viewedAt).toBe(null);
+    expect(notification.archivedAt).toBeNull();
     expect(event!.name).toEqual("notifications.update");
     expect(event!.modelId).toEqual(notification.id);
   });
