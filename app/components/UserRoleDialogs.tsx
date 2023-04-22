@@ -110,14 +110,10 @@ export function UserSuspendDialog({ user, onSubmit }: Props) {
 
 export function UserChangeNameDialog({ user, onSubmit }: Props) {
   const { t } = useTranslation();
-  const { users } = useStores();
   const [name, setName] = React.useState<string>(user.name);
 
   const handleSubmit = async () => {
-    await users.update({
-      id: user.id,
-      name,
-    });
+    await user.save({ name });
     onSubmit();
   };
 
@@ -128,7 +124,7 @@ export function UserChangeNameDialog({ user, onSubmit }: Props) {
   return (
     <ConfirmationDialog
       onSubmit={handleSubmit}
-      submitText={t("Confirm")}
+      submitText={t("Save")}
       savingText={`${t("Saving")}…`}
       disabled={!name}
     >
