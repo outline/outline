@@ -11,6 +11,7 @@ import { RefHandle } from "~/components/ContentEditable";
 import Editor, { Props as EditorProps } from "~/components/Editor";
 import Flex from "~/components/Flex";
 import useFocusedComment from "~/hooks/useFocusedComment";
+import useMobile from "~/hooks/useMobile";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import {
@@ -47,6 +48,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   const titleRef = React.useRef<RefHandle>(null);
   const { t } = useTranslation();
   const match = useRouteMatch();
+  const isMobile = useMobile();
   const focusedComment = useFocusedComment();
   const { ui, comments, auth } = useStores();
   const { user, team } = auth;
@@ -195,8 +197,8 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         }
         extensions={extensions}
         editorStyle={{
-          padding: "0 60px",
-          margin: "0 -60px",
+          padding: isMobile ? "0 32px" : "0 64px",
+          margin: isMobile ? "0 -32px" : "0 -64px",
           paddingBottom: `calc(50vh - ${
             childRef.current?.offsetHeight || 0
           }px)`,
