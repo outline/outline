@@ -61,6 +61,7 @@ describe("#notifications.list", () => {
     expect(res.status).toBe(200);
     expect(body.data.notifications.length).toBe(3);
     expect(body.pagination.total).toBe(3);
+    expect(body.data.unseen).toBe(2);
     expect((randomElement(body.data.notifications) as any).actor.id).toBe(
       actor.id
     );
@@ -122,6 +123,7 @@ describe("#notifications.list", () => {
     expect(res.status).toBe(200);
     expect(body.data.notifications.length).toBe(1);
     expect(body.pagination.total).toBe(1);
+    expect(body.data.unseen).toBe(1);
     expect((randomElement(body.data.notifications) as any).actor.id).toBe(
       actor.id
     );
@@ -183,6 +185,7 @@ describe("#notifications.list", () => {
     expect(res.status).toBe(200);
     expect(body.data.notifications.length).toBe(2);
     expect(body.pagination.total).toBe(2);
+    expect(body.data.unseen).toBe(2);
     expect((randomElement(body.data.notifications) as any).actor.id).toBe(
       actor.id
     );
