@@ -98,7 +98,7 @@
   "Viewers": "Người xem",
   "I’m sure – Delete": "Tôi chắc chắn - Xóa",
   "Deleting": "Đang xóa",
-  "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however documents within will be moved to the trash.": "Bạn có chắc chắn về điều đó không? Việc xóa <em>{{collectionName}}</em> là vĩnh viễn và không thể khôi phục được, tuy nhiên, các tài liệu bên trong sẽ được chuyển vào thùng rác.",
+  "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however all published documents within will be moved to the trash.": "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however all published documents within will be moved to the trash.",
   "Also, <em>{{collectionName}}</em> is being used as the start view – deleting it will reset the start view to the Home page.": "Ngoài ra, <em>{{collectionName}}</em> đang được sử dụng làm chế độ xem bắt đầu - việc xóa nó sẽ đặt lại chế độ xem bắt đầu về Trang chủ.",
   "Sorry, an error occurred saving the collection": "Xin lỗi, đã xảy ra lỗi khi lưu bộ sưu tập",
   "Add a description": "Thêm mô tả",
