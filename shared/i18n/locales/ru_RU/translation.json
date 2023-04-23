@@ -98,7 +98,7 @@
   "Viewers": "Просмотры",
   "I’m sure – Delete": "Я уверен – удалить",
   "Deleting": "Удаление",
-  "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however documents within will be moved to the trash.": "Вы в этом уверены? Удаление коллекции <em>{{collectionName}}</em> необратимо и ее будет невозможно восстановить, однако документы, принадлежащие этой коллекции - будут перемещены в корзину.",
+  "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however all published documents within will be moved to the trash.": "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however all published documents within will be moved to the trash.",
   "Also, <em>{{collectionName}}</em> is being used as the start view – deleting it will reset the start view to the Home page.": "Кроме того, <em>{{collectionName}}</em> используется в качестве стартового экрана — его удаление приведет к сбросу стартового экрана на домашнюю страницу.",
   "Sorry, an error occurred saving the collection": "К сожалению, при сохранении коллекции произошла ошибка",
   "Add a description": "Добавить описание",
