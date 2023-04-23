@@ -13,6 +13,7 @@ export type HeaderButtonProps = React.ComponentProps<typeof Wrapper> & {
   showDisclosure?: boolean;
   showMoreMenu?: boolean;
   onClick: React.MouseEventHandler<HTMLButtonElement>;
+  children?: React.ReactNode;
 };
 
 const HeaderButton = React.forwardRef<HTMLButtonElement, HeaderButtonProps>(
@@ -23,6 +24,7 @@ const HeaderButton = React.forwardRef<HTMLButtonElement, HeaderButtonProps>(
       image,
       title,
       minHeight = 0,
+      children,
       ...rest
     }: HeaderButtonProps,
     ref
@@ -42,6 +44,7 @@ const HeaderButton = React.forwardRef<HTMLButtonElement, HeaderButtonProps>(
       </Title>
       {showDisclosure && <ExpandedIcon />}
       {showMoreMenu && <MoreIcon />}
+      {children}
     </Wrapper>
   )
 );

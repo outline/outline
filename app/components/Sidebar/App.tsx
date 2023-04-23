@@ -6,6 +6,7 @@ import { HTML5Backend } from "react-dnd-html5-backend";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Flex from "~/components/Flex";
+import NotificationsButton from "~/components/Notifications/NotificationsButton";
 import Scrollable from "~/components/Scrollable";
 import Text from "~/components/Text";
 import { inviteUser } from "~/actions/definitions/users";
@@ -64,26 +65,30 @@ function AppSidebar() {
         <DndProvider backend={HTML5Backend} options={html5Options}>
           <DragPlaceholder />
 
-          <OrganizationMenu>
-            {(props: HeaderButtonProps) => (
-              <HeaderButton
-                {...props}
-                title={team.name}
-                image={
-                  <TeamLogo
-                    model={team}
-                    size={Desktop.hasInsetTitlebar() ? 24 : 32}
-                    alt={t("Logo")}
-                  />
-                }
-                style={
-                  // Move the logo over to align with smaller size
-                  Desktop.hasInsetTitlebar() ? { paddingLeft: 8 } : undefined
-                }
-                showDisclosure
-              />
-            )}
-          </OrganizationMenu>
+          <Flex align="center" auto>
+            <OrganizationMenu>
+              {(props: HeaderButtonProps) => (
+                <HeaderButton
+                  {...props}
+                  title={team.name}
+                  image={
+                    <TeamLogo
+                      model={team}
+                      size={Desktop.hasInsetTitlebar() ? 24 : 32}
+                      alt={t("Logo")}
+                    />
+                  }
+                  style={
+                    // Move the logo over to align with smaller size
+                    Desktop.hasInsetTitlebar() ? { paddingLeft: 8 } : undefined
+                  }
+                  showDisclosure
+                />
+              )}
+            </OrganizationMenu>
+
+            <NotificationsButton />
+          </Flex>
           <Scrollable flex shadow>
             <Section>
               <SidebarLink
