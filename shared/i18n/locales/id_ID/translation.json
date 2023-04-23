@@ -98,7 +98,7 @@
   "Viewers": "Jumlah viewer",
   "I’m sure – Delete": "Saya yakin – Hapus",
   "Deleting": "Menghapus",
-  "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however documents within will be moved to the trash.": "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however documents within will be moved to the trash.",
+  "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however all published documents within will be moved to the trash.": "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however all published documents within will be moved to the trash.",
   "Also, <em>{{collectionName}}</em> is being used as the start view – deleting it will reset the start view to the Home page.": "Juga, <em>{{collectionName}}</em> digunakan sebagai tampilan awal – menghapusnya akan mengatur ulang tampilan awal ke halaman Beranda.",
   "Sorry, an error occurred saving the collection": "Maaf, terjadi kesalahan saat menyimpan koleksi",
   "Add a description": "Tambahkan keterangan",
