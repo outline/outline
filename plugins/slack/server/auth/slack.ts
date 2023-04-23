@@ -16,7 +16,7 @@ import {
   Team,
   User,
 } from "@server/models";
-import { APIContext, AuthenticationResult } from "@server/types";
+import { AppContext, AuthenticationResult } from "@server/types";
 import {
   getClientFromContext,
   getTeamFromContext,
@@ -132,7 +132,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
     auth({
       optional: true,
     }),
-    async (ctx: APIContext) => {
+    async (ctx: AppContext) => {
       const { code, state, error } = ctx.request.query;
       const { user } = ctx.state.auth;
       assertPresent(code || error, "code is required");
@@ -195,7 +195,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
     auth({
       optional: true,
     }),
-    async (ctx: APIContext) => {
+    async (ctx: AppContext) => {
       const { code, error, state } = ctx.request.query;
       const { user } = ctx.state.auth;
       assertPresent(code || error, "code is required");
