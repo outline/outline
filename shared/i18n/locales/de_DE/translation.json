@@ -98,7 +98,7 @@
   "Viewers": "Betrachter",
   "I’m sure – Delete": "Ich bin mir sicher – Löschen",
   "Deleting": "Wird gelöscht",
-  "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however documents within will be moved to the trash.": "Bist du sicher? Die Löschung der <em>{{collectionName}}</em> Sammlung ist dauerhaft und nicht wiederrufbar. Die Dokumente selbst werden jedoch dem Papierkorb hinzugefügt.",
+  "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however all published documents within will be moved to the trash.": "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however all published documents within will be moved to the trash.",
   "Also, <em>{{collectionName}}</em> is being used as the start view – deleting it will reset the start view to the Home page.": "Die Sammlung <em>{{collectionName}}</em> wird außerdem als Startseite genutzt – sollte diese Sammlung gelöscht werden, wird die Startseite auf die Standardeinstellung zurückgesetzt.",
   "Sorry, an error occurred saving the collection": "Beim Speichern der Sammlung ist leider ein Fehler aufgetreten",
   "Add a description": "Beschreibung hinzufügen",
