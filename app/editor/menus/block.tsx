@@ -117,6 +117,7 @@ export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
       name: "blockquote",
       title: dictionary.quote,
       icon: <BlockQuoteIcon />,
+      keywords: "blockquote pullquote",
       shortcut: `${metaDisplay} ]`,
     },
     {

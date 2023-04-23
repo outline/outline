@@ -53,6 +53,26 @@ export default class Notice extends Node {
               : undefined,
           }),
         },
+        // Quill editor parsing
+        {
+          tag: "div.ql-hint",
+          preserveWhitespace: "full",
+          getAttrs: (dom: HTMLDivElement) => ({
+            style: dom.dataset.hint,
+          }),
+        },
+        // GitBook parsing
+        {
+          tag: "div.alert.theme-admonition",
+          preserveWhitespace: "full",
+          getAttrs: (dom: HTMLDivElement) => ({
+            style: dom.className.includes("warning")
+              ? "warning"
+              : dom.className.includes("success")
+              ? "success"
+              : undefined,
+          }),
+        },
       ],
       toDOM: (node) => {
         let icon, actions;
