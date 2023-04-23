@@ -98,7 +98,7 @@
   "Viewers": "Görüntüleyenler",
   "I’m sure – Delete": "Eminim – Sil",
   "Deleting": "Siliniyor",
-  "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however documents within will be moved to the trash.": "Devam etmek istediğinize emin misiniz? <em>{{collectionName}}</em> koleksiyonunun silinmesi kalıcıdır ve geri yüklenemez, ancak içindeki belgeler çöp kutusuna taşınacaktır.",
+  "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however all published documents within will be moved to the trash.": "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however all published documents within will be moved to the trash.",
   "Also, <em>{{collectionName}}</em> is being used as the start view – deleting it will reset the start view to the Home page.": "Ayrıca, başlangıç görünümü olarak <em>{{collectionName}}</em> kullanılıyor - silinmesi, başlangıç görünümünü Ana sayfaya sıfırlayacaktır.",
   "Sorry, an error occurred saving the collection": "Üzgünüz, koleksiyon kaydedilirken bir hata oluştu",
   "Add a description": "Açıklama ekle",
