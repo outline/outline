@@ -98,7 +98,7 @@
   "Viewers": "ビューアー",
   "I’m sure – Delete": "間違いありません – 削除",
   "Deleting": "削除中",
-  "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however documents within will be moved to the trash.": "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however documents within will be moved to the trash.",
+  "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however all published documents within will be moved to the trash.": "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however all published documents within will be moved to the trash.",
   "Also, <em>{{collectionName}}</em> is being used as the start view – deleting it will reset the start view to the Home page.": "また、<em>{{collectionName}}</em>がホームページとして使用されています – これを削除すると、ホームページはデフォルトのオプションにリセットされます。",
   "Sorry, an error occurred saving the collection": "申し訳ございません、コレクションの保存中にエラーが発生しました。",
   "Add a description": "説明文を追加",
