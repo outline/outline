@@ -492,6 +492,7 @@
   "Viewed {{ count }} times by {{ teamMembers }} people": "Просмотрено {{ count }} раз {{ teamMembers }} людьми",
   "Viewed {{ count }} times by {{ teamMembers }} people_plural": "Просмотрели {{ count }} раз {{ teamMembers }} людей",
   "Sorry, it looks like you don’t have permission to access the document": "Извините, похоже, что у вас нет прав на доступ к этой странице",
+  "Sorry, this document is too large - edits will no longer be persisted.": "Sorry, this document is too large - edits will no longer be persisted.",
   "Sorry, the last change could not be persisted – please reload the page": "К сожалению, последнее изменение не может быть сохранено. Пожалуйста, перезагрузите страницу",
   "This template will be permanently deleted in <2></2> unless restored.": "Этот шаблон будет окончательно удален <2></2>, если не восстановить его вручную.",
   "This document will be permanently deleted in <2></2> unless restored.": "Этот документ будет окончательно удален <2></2>, если не восстановить его вручную.",
