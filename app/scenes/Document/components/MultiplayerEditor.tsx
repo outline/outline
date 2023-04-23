@@ -38,7 +38,9 @@ type ConnectionStatusEvent = { status: ConnectionStatus };
 
 type MessageEvent = {
   message: string;
-  event: Event;
+  event: Event & {
+    code?: number;
+  };
 };
 
 function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
