@@ -645,7 +645,11 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   @action
   removeCollectionDocuments(collectionId: string) {
-    const documents = this.inCollection(collectionId);
+    // drafts are to be detached from collection rather than deleted, hence excluded here
+    const documents = filter(
+      this.inCollection(collectionId),
+      (d) => !!d.publishedAt
+    );
     const documentIds = documents.map((doc) => doc.id);
     documentIds.forEach((id) => this.remove(id));
   }
@@ -795,6 +799,8 @@ export default class DocumentsStore extends BaseStore<Document> {
     find(this.orderedData, (doc) => url.endsWith(doc.urlId));
 
   getCollectionForDocument(document: Document) {
-    return this.rootStore.collections.data.get(document.collectionId);
+    return document.collectionId
+      ? this.rootStore.collections.get(document.collectionId)
+      : undefined;
   }
 }

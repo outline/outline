@@ -98,7 +98,7 @@
   "Viewers": "Viewers",
   "I’m sure – Delete": "I’m sure – Delete",
   "Deleting": "Deleting",
-  "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however documents within will be moved to the trash.": "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however documents within will be moved to the trash.",
+  "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however all published documents within will be moved to the trash.": "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however all published documents within will be moved to the trash.",
   "Also, <em>{{collectionName}}</em> is being used as the start view – deleting it will reset the start view to the Home page.": "Also, <em>{{collectionName}}</em> is being used as the start view – deleting it will reset the start view to the Home page.",
   "Sorry, an error occurred saving the collection": "Sorry, an error occurred saving the collection",
   "Add a description": "Add a description",

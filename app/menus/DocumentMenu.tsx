@@ -123,7 +123,9 @@ function DocumentMenu({
     [showToast, t, document]
   );
 
-  const collection = collections.get(document.collectionId);
+  const collection = document.collectionId
+    ? collections.get(document.collectionId)
+    : undefined;
   const can = usePolicy(document);
   const restoreItems = React.useMemo(
     () => [

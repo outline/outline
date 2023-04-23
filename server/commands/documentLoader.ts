@@ -126,7 +126,9 @@ export default async function loadDocument({
     if (canReadDocument) {
       // Cannot use document.collection here as it does not include the
       // documentStructure by default through the relationship.
-      collection = await Collection.findByPk(document.collectionId);
+      if (document.collectionId) {
+        collection = await Collection.findByPk(document.collectionId);
+      }
       if (!collection) {
         throw NotFoundError("Collection could not be found for document");
       }
@@ -146,7 +148,9 @@ export default async function loadDocument({
     }
 
     // It is possible to disable sharing at the collection so we must check
-    collection = await Collection.findByPk(document.collectionId);
+    if (document.collectionId) {
+      collection = await Collection.findByPk(document.collectionId);
+    }
     invariant(collection, "collection not found");
 
     if (!collection.sharing) {

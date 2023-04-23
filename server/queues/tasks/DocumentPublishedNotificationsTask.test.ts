@@ -31,7 +31,7 @@ describe("documents.publish", () => {
     await processor.perform({
       name: "documents.publish",
       documentId: document.id,
-      collectionId: document.collectionId,
+      collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: document.createdById,
       data: {
@@ -55,7 +55,7 @@ describe("documents.publish", () => {
     await processor.perform({
       name: "documents.publish",
       documentId: document.id,
-      collectionId: document.collectionId,
+      collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: document.createdById,
       data: {
@@ -95,7 +95,7 @@ describe("documents.publish", () => {
     await processor.perform({
       name: "documents.publish",
       documentId: document.id,
-      collectionId: document.collectionId,
+      collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: document.createdById,
       data: {
@@ -124,7 +124,7 @@ describe("documents.publish", () => {
     await processor.perform({
       name: "documents.publish",
       documentId: document.id,
-      collectionId: document.collectionId,
+      collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: document.createdById,
       data: {

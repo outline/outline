@@ -57,7 +57,9 @@ const DocumentMeta: React.FC<Props> = ({
     return null;
   }
 
-  const collection = collections.get(document.collectionId);
+  const collection = document.collectionId
+    ? collections.get(document.collectionId)
+    : undefined;
   const lastUpdatedByCurrentUser = user.id === updatedBy.id;
   const userName = updatedBy.name;
   let content;

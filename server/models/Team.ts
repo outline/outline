@@ -252,7 +252,9 @@ class Team extends ParanoidModel {
           },
           { transaction }
         );
-        await document.publish(collection.createdById, { transaction });
+        await document.publish(collection.createdById, collection.id, {
+          transaction,
+        });
       }
     });
   };

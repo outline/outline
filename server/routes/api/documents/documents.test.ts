@@ -2928,6 +2928,35 @@ describe("#documents.delete", () => {
     expect(deletedDoc?.deletedAt).toBeTruthy();
   });
 
+  it("should delete a draft under deleted collection", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      createdById: user.id,
+      teamId: user.teamId,
+      deletedAt: new Date(),
+    });
+    const document = await buildDocument({
+      createdById: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      publishedAt: null,
+    });
+
+    const res = await server.post("/api/documents.delete", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+      },
+    });
+
+    expect(res.status).toBe(200);
+    const deletedDoc = await Document.findByPk(document.id, {
+      paranoid: false,
+    });
+    expect(deletedDoc).not.toBe(null);
+    expect(deletedDoc?.deletedAt).not.toBe(null);
+  });
+
   it("should allow permanently deleting a document", async () => {
     const user = await buildUser();
     const document = await buildDocument({

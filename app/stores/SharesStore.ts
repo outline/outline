@@ -78,7 +78,9 @@ export default class SharesStore extends BaseStore<Share> {
       return;
     }
 
-    const collection = this.rootStore.collections.get(document.collectionId);
+    const collection = document.collectionId
+      ? this.rootStore.collections.get(document.collectionId)
+      : undefined;
     if (!collection) {
       return;
     }

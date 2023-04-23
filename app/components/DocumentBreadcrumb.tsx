@@ -62,7 +62,9 @@ const DocumentBreadcrumb: React.FC<Props> = ({
   const { collections } = useStores();
   const { t } = useTranslation();
   const category = useCategory(document);
-  const collection = collections.get(document.collectionId);
+  const collection = document.collectionId
+    ? collections.get(document.collectionId)
+    : undefined;
 
   let collectionNode: MenuInternalLink | undefined;
 
