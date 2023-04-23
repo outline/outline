@@ -651,9 +651,23 @@ h6 {
   }
 }
 
+.notice-block.success {
+  background: ${transparentize(0.9, props.theme.noticeSuccessBackground)};
+  border-left: 4px solid ${props.theme.noticeSuccessBackground};
+  color: ${props.theme.noticeSuccessText};
+
+  .icon {
+    color: ${props.theme.noticeSuccessBackground};
+  }
+
+  a {
+    color: ${props.theme.noticeSuccessText};
+  }
+}
+
 blockquote {
   margin: 0;
-  padding-left: 1.5em;
+  padding: 8px 10px 8px 1.5em;
   font-style: italic;
   overflow: hidden;
   position: relative;
