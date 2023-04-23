@@ -601,13 +601,12 @@ class Document extends ParanoidModel {
     }
 
     await this.sequelize.transaction(async (transaction: Transaction) => {
-      let collection;
-      if (this.collectionId) {
-        collection = await Collection.findByPk(this.collectionId, {
-          transaction,
-          lock: transaction.LOCK.UPDATE,
-        });
-      }
+      const collection = this.collectionId
+        ? await Collection.findByPk(this.collectionId, {
+            transaction,
+            lock: transaction.LOCK.UPDATE,
+          })
+        : undefined;
 
       if (collection) {
         await collection.removeDocumentInStructure(this, { transaction });
@@ -627,13 +626,12 @@ class Document extends ParanoidModel {
   // to the archived area, where it can be subsequently restored.
   archive = async (userId: string) => {
     await this.sequelize.transaction(async (transaction: Transaction) => {
-      let collection;
-      if (this.collectionId) {
-        collection = await Collection.findByPk(this.collectionId, {
-          transaction,
-          lock: transaction.LOCK.UPDATE,
-        });
-      }
+      const collection = this.collectionId
+        ? await Collection.findByPk(this.collectionId, {
+            transaction,
+            lock: transaction.LOCK.UPDATE,
+          })
+        : undefined;
 
       if (collection) {
         await collection.removeDocumentInStructure(this, { transaction });
@@ -648,13 +646,12 @@ class Document extends ParanoidModel {
   // Restore an archived document back to being visible to the team
   unarchive = async (userId: string) => {
     await this.sequelize.transaction(async (transaction: Transaction) => {
-      let collection;
-      if (this.collectionId) {
-        collection = await Collection.findByPk(this.collectionId, {
-          transaction,
-          lock: transaction.LOCK.UPDATE,
-        });
-      }
+      const collection = this.collectionId
+        ? await Collection.findByPk(this.collectionId, {
+            transaction,
+            lock: transaction.LOCK.UPDATE,
+          })
+        : undefined;
 
       // check to see if the documents parent hasn't been archived also
       // If it has then restore the document to the collection root.

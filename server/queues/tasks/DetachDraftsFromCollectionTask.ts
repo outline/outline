@@ -4,19 +4,19 @@ import { sequelize } from "@server/database/sequelize";
 import { Collection, Document, User } from "@server/models";
 import BaseTask from "./BaseTask";
 
-type Task = {
+type Props = {
   collectionId: string;
   actorId: string;
   ip: string;
 };
 
-export default class DetachDraftsFromCollectionTask extends BaseTask<Task> {
-  async perform(task: Task) {
+export default class DetachDraftsFromCollectionTask extends BaseTask<Props> {
+  async perform(props: Props) {
     const [collection, actor] = await Promise.all([
-      Collection.findByPk(task.collectionId, {
+      Collection.findByPk(props.collectionId, {
         paranoid: false,
       }),
-      User.findByPk(task.actorId),
+      User.findByPk(props.actorId),
     ]);
 
     if (!actor || !collection || !collection.deletedAt) {
@@ -25,7 +25,7 @@ export default class DetachDraftsFromCollectionTask extends BaseTask<Task> {
 
     const documents = await Document.scope("withDrafts").findAll({
       where: {
-        collectionId: task.collectionId,
+        collectionId: props.collectionId,
         publishedAt: {
           [Op.is]: null,
         },
@@ -38,7 +38,7 @@ export default class DetachDraftsFromCollectionTask extends BaseTask<Task> {
         await documentMover({
           document,
           user: actor,
-          ip: task.ip,
+          ip: props.ip,
           collectionId: null,
           transaction,
         });

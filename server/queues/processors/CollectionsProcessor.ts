@@ -4,6 +4,7 @@ import BaseProcessor from "./BaseProcessor";
 
 export default class CollectionsProcessor extends BaseProcessor {
   static applicableEvents: Event["name"][] = ["collections.delete"];
+
   async perform(event: CollectionEvent) {
     switch (event.name) {
       case "collections.delete":
