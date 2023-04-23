@@ -492,6 +492,7 @@
   "Viewed {{ count }} times by {{ teamMembers }} people": "{{ teamMembers }} 人共瀏覽過 {{ count }} 次",
   "Viewed {{ count }} times by {{ teamMembers }} people_plural": "{{ teamMembers }} 人共瀏覽過 {{ count }} 次",
   "Sorry, it looks like you don’t have permission to access the document": "抱歉，您似乎沒有權限存取該文件",
+  "Sorry, this document is too large - edits will no longer be persisted.": "Sorry, this document is too large - edits will no longer be persisted.",
   "Sorry, the last change could not be persisted – please reload the page": "抱歉，無法保留上次更改 - 請重新加載頁面",
   "This template will be permanently deleted in <2></2> unless restored.": "範本若未於 <2></2> 還原，將被永久刪除。",
   "This document will be permanently deleted in <2></2> unless restored.": "文件若未於 <2></2> 還原，將被永久刪除。",
