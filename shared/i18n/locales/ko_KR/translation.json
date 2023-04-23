@@ -98,7 +98,7 @@
   "Viewers": "뷰어",
   "I’m sure – Delete": "이해했습니다 – 삭제",
   "Deleting": "삭제 중",
-  "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however documents within will be moved to the trash.": "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however documents within will be moved to the trash.",
+  "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however all published documents within will be moved to the trash.": "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however all published documents within will be moved to the trash.",
   "Also, <em>{{collectionName}}</em> is being used as the start view – deleting it will reset the start view to the Home page.": "또한 <em>{{collectionName}}</em> 는(은) 초기 화면으로 사용 중입니다. 삭제하면 초기 화면이 홈 페이지로 재설정됩니다.",
   "Sorry, an error occurred saving the collection": "컬렉션을 저장하는 중에 오류가 발생했습니다.",
   "Add a description": "설명 추가",
