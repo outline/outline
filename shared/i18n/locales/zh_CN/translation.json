@@ -98,7 +98,7 @@
   "Viewers": "浏览者",
   "I’m sure – Delete": "确认删除",
   "Deleting": "正在删除",
-  "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however documents within will be moved to the trash.": "您确定要这样做吗？ 删除 <em>{{collectionName}}</em> 文档集是永久性的，且无法还原。不过，文档集中的文件将被移动到回收站。",
+  "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however all published documents within will be moved to the trash.": "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however all published documents within will be moved to the trash.",
   "Also, <em>{{collectionName}}</em> is being used as the start view – deleting it will reset the start view to the Home page.": "另外，<em>{{collectionName}}</em> 被用作起始视图--删除它将重置起始视图为主页。",
   "Sorry, an error occurred saving the collection": "抱歉，保存文档集时出错",
   "Add a description": "添加描述",
