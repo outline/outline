@@ -492,6 +492,7 @@
   "Viewed {{ count }} times by {{ teamMembers }} people": "{{ count }} Mal von {{ teamMembers }} Person angesehen",
   "Viewed {{ count }} times by {{ teamMembers }} people_plural": "{{ count }} Mal von {{ teamMembers }} Personen angesehen",
   "Sorry, it looks like you don’t have permission to access the document": "Leider scheint es so, als hättest du keine Zugriffsberechtigung für dieses Dokument",
+  "Sorry, this document is too large - edits will no longer be persisted.": "Sorry, this document is too large - edits will no longer be persisted.",
   "Sorry, the last change could not be persisted – please reload the page": "Die letzte Änderung konnte leider nicht übernommen werden – bitte lade die Seite neu",
   "This template will be permanently deleted in <2></2> unless restored.": "Diese Vorlage wird dauerhaft in <2></2> gelöscht, wenn sie nicht wiederhergestellt wird.",
   "This document will be permanently deleted in <2></2> unless restored.": "Dieses Dokument wird dauerhaft in <2></2> gelöscht, wenn es nicht wiederhergestellt wird.",
