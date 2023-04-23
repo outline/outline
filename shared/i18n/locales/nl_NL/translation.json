@@ -98,7 +98,7 @@
   "Viewers": "Kijkers",
   "I’m sure – Delete": "Dat weet ik zeker – Verwijder",
   "Deleting": "Verwijderen",
-  "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however documents within will be moved to the trash.": "Weet je dat zeker? De <em>{{collectionName}}</em> collectie verwijderen is permanent en kan niet worden teruggedraaid. De documenten in deze collectie zullen worden verplaatst naar de prullenbak.",
+  "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however all published documents within will be moved to the trash.": "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however all published documents within will be moved to the trash.",
   "Also, <em>{{collectionName}}</em> is being used as the start view – deleting it will reset the start view to the Home page.": "Ook wordt <em>{{collectionName}}</em> gebruikt als de startweergave. Als je deze verwijdert, wordt de startweergave teruggezet naar het startscherm.",
   "Sorry, an error occurred saving the collection": "Er is een fout opgetreden bij het opslaan van de collectie",
   "Add a description": "Beschrijving toevoegen",
