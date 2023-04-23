@@ -53,6 +53,8 @@ declare module "styled-components" {
     noticeTipText: string;
     noticeWarningBackground: string;
     noticeWarningText: string;
+    noticeSuccessBackground: string;
+    noticeSuccessText: string;
   }
 
   interface Colors {
