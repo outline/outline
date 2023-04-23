@@ -98,7 +98,7 @@
   "Viewers": "Oglądający",
   "I’m sure – Delete": "Jestem pewien – Usuń",
   "Deleting": "Usuwanie",
-  "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however documents within will be moved to the trash.": "Czy jesteś tego pewien? Usunięcie kolekcji <em>{{collectionName}}</em> jest permanentne i nie może być cofnięte, jednakże dokumenty, które się w niej znajdują, zostaną przeniesione do kosza.",
+  "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however all published documents within will be moved to the trash.": "Are you sure about that? Deleting the <em>{{collectionName}}</em> collection is permanent and cannot be restored, however all published documents within will be moved to the trash.",
   "Also, <em>{{collectionName}}</em> is being used as the start view – deleting it will reset the start view to the Home page.": "Ponadto widok <em>{{collectionName}}</em> jest używany jako widok początkowy – usunięcie go spowoduje zresetowanie widoku początkowego do strony głównej.",
   "Sorry, an error occurred saving the collection": "Przepraszamy, wystąpił błąd podczas zapisywania kolekcji",
   "Add a description": "Dodaj opis",
