@@ -215,7 +215,7 @@
     "validator": "13.7.0",
     "vite": "^4.1.3",
     "vite-plugin-pwa": "^0.14.4",
-    "winston": "^3.3.3",
+    "winston": "^3.8.2",
     "ws": "^7.5.3",
     "y-indexeddb": "^9.0.9",
     "y-protocols": "^1.0.5",
