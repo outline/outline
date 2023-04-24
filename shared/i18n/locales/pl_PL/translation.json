@@ -623,7 +623,7 @@
   "Continue with {{ authProviderName }}": "Kontynuuj za pomocą {{ authProviderName }}",
   "Back to home": "Wróć do strony głównej",
   "Login": "Login",
-  "Error": "Error",
+  "Error": "Błąd",
   "Failed to load configuration.": "Failed to load configuration.",
   "Check the network requests and server logs for full details of the error.": "Check the network requests and server logs for full details of the error.",
   "Custom domain setup": "Custom domain setup",
