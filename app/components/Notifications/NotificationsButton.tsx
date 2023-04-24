@@ -14,7 +14,6 @@ function NotificationsButton() {
   const popover = usePopoverState({
     gutter: 0,
     placement: "bottom-end",
-    unstable_fixed: true,
   });
 
   return (
@@ -31,7 +30,7 @@ function NotificationsButton() {
         )}
       </PopoverDisclosure>
 
-      <Popover {...popover} aria-label={t("Notifications")}>
+      <Popover {...popover} scrollable={false} aria-label={t("Notifications")}>
         <Notifications />
       </Popover>
     </>

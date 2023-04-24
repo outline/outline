@@ -4,6 +4,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
 import { useTheme } from "styled-components";
+import Notification from "~/models/Notification";
 import Button from "~/components/Button";
 import Popover from "~/components/Popover";
 import useStores from "~/hooks/useStores";
@@ -12,6 +13,7 @@ import Scrollable from "../Scrollable";
 import Tab from "../Tab";
 import Tabs from "../Tabs";
 import Text from "../Text";
+import NotificationListItem from "./NotificationListItem";
 
 function Notifications() {
   const { notifications } = useStores();
@@ -32,7 +34,9 @@ function Notifications() {
         <PaginatedList
           fetch={notifications.fetchPage}
           items={notifications.orderedData}
-          renderItem={(item) => <div>{item.id}</div>}
+          renderItem={(item: Notification) => (
+            <NotificationListItem notification={item} />
+          )}
         />
       </Scrollable>
     </div>

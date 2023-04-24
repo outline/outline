@@ -1,6 +1,9 @@
+import invariant from "invariant";
 import { orderBy, sortBy } from "lodash";
-import { computed } from "mobx";
+import { action, computed, runInAction } from "mobx";
 import Notification from "~/models/Notification";
+import { PaginationParams } from "~/types";
+import { client } from "~/utils/ApiClient";
 import BaseStore, { RPCAction } from "./BaseStore";
 import RootStore from "./RootStore";
 
@@ -10,6 +13,28 @@ export default class NotificationsStore extends BaseStore<Notification> {
   constructor(rootStore: RootStore) {
     super(rootStore, Notification);
   }
+
+  @action
+  fetchPage = async (
+    options: PaginationParams | undefined
+  ): Promise<Notification[]> => {
+    this.isFetching = true;
+
+    try {
+      const res = await client.post("/notifications.list", options);
+      invariant(res?.data, "Document revisions not available");
+
+      let models: Notification[] = [];
+      runInAction("NotificationsStore#fetchPage", () => {
+        models = res.data.notifications.map(this.add);
+        this.isLoaded = true;
+      });
+
+      return models;
+    } finally {
+      this.isFetching = false;
+    }
+  };
 
   @computed
   get orderedData(): Notification[] {
