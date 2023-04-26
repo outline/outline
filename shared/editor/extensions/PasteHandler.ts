@@ -79,6 +79,7 @@ export default class PasteHandler extends Extension {
 
               if (
                 embeds &&
+                this.editor.commands.embed &&
                 !isInTable(state) &&
                 !isInCode(state) &&
                 !isInList(state)
