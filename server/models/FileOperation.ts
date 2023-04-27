@@ -62,7 +62,7 @@ class FileOperation extends IdModel {
    * Mark the current file operation as expired and remove the file from storage.
    */
   expire = async function () {
-    this.state = "expired";
+    this.state = FileOperationState.Expired;
     try {
       await deleteFromS3(this.key);
     } catch (err) {
