@@ -254,21 +254,17 @@ class Collection extends ParanoidModel {
     model: Collection,
     options: { transaction: Transaction }
   ) {
-    if (model.permission !== CollectionPermission.ReadWrite) {
-      return CollectionUser.findOrCreate({
-        where: {
-          collectionId: model.id,
-          userId: model.createdById,
-        },
-        defaults: {
-          permission: CollectionPermission.ReadWrite,
-          createdById: model.createdById,
-        },
-        transaction: options.transaction,
-      });
-    }
-
-    return undefined;
+    return CollectionUser.findOrCreate({
+      where: {
+        collectionId: model.id,
+        userId: model.createdById,
+      },
+      defaults: {
+        permission: CollectionPermission.Admin,
+        createdById: model.createdById,
+      },
+      transaction: options.transaction,
+    });
   }
 
   // associations

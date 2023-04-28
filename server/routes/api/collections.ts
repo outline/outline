@@ -148,6 +148,21 @@ router.post("collections.info", auth(), async (ctx: APIContext) => {
   };
 });
 
+router.post("collections.documents", auth(), async (ctx: APIContext) => {
+  const { id } = ctx.request.body;
+  assertPresent(id, "id is required");
+  const { user } = ctx.state.auth;
+  const collection = await Collection.scope({
+    method: ["withMembership", user.id],
+  }).findByPk(id);
+
+  authorize(user, "readDocument", collection);
+
+  ctx.body = {
+    data: collection.documentStructure || [],
+  };
+});
+
 router.post(
   "collections.import",
   rateLimiter(RateLimiterStrategy.TenPerHour),
@@ -641,22 +656,22 @@ router.post("collections.update", auth(), async (ctx: APIContext) => {
   authorize(user, "update", collection);
 
   // we're making this collection have no default access, ensure that the
-  // current user has a read-write membership so that at least they can edit it
-  // if (
-  //   permission !== CollectionPermission.ReadWrite &&
-  //   collection.permission === CollectionPermission.ReadWrite
-  // ) {
-  //   await CollectionUser.findOrCreate({
-  //     where: {
-  //       collectionId: collection.id,
-  //       userId: user.id,
-  //     },
-  //     defaults: {
-  //       permission: CollectionPermission.Admin,
-  //       createdById: user.id,
-  //     },
-  //   });
-  // }
+  // current user has an admin membership so that at least they can manage it.
+  if (
+    permission !== CollectionPermission.ReadWrite &&
+    collection.permission === CollectionPermission.ReadWrite
+  ) {
+    await CollectionUser.findOrCreate({
+      where: {
+        collectionId: collection.id,
+        userId: user.id,
+      },
+      defaults: {
+        permission: CollectionPermission.Admin,
+        createdById: user.id,
+      },
+    });
+  }
 
   let privacyChanged = false;
   let sharingChanged = false;

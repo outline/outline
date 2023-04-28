@@ -1,5 +1,5 @@
 import { trim } from "lodash";
-import { action, computed, observable } from "mobx";
+import { action, computed, observable, runInAction } from "mobx";
 import {
   CollectionPermission,
   FileOperationFormat,
@@ -124,6 +124,20 @@ export default class Collection extends ParanoidModel {
     }
     return sortNavigationNodes(this.documents, this.sort);
   }
+
+  fetchDocuments = async (options?: { force: boolean }) => {
+    if (this.documents && options?.force !== true) {
+      return;
+    }
+
+    const { data } = await client.post("/collections.documents", {
+      id: this.id,
+    });
+
+    runInAction(() => {
+      this.documents = data;
+    });
+  };
 
   /**
    * Updates the document identified by the given id in the collection in memory.

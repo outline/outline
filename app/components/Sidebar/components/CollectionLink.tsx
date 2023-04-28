@@ -49,6 +49,12 @@ const CollectionLink: React.FC<Props> = ({
   const history = useHistory();
   const inStarredSection = useStarredContext();
 
+  React.useEffect(() => {
+    if (expanded) {
+      collection.fetchDocuments();
+    }
+  }, [expanded, collection]);
+
   const handleTitleChange = React.useCallback(
     async (name: string) => {
       await collection.save({
