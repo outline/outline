@@ -86,6 +86,7 @@ export enum IntegrationService {
 export enum CollectionPermission {
   Read = "read",
   ReadWrite = "read_write",
+  Admin = "admin",
 }
 
 export type IntegrationSettings<T> = T extends IntegrationType.Embed

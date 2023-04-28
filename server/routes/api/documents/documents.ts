@@ -98,7 +98,7 @@ router.post(
       const collection = await Collection.scope({
         method: ["withMembership", user.id],
       }).findByPk(collectionId);
-      authorize(user, "read", collection);
+      authorize(user, "readDocuments", collection);
 
       // index sort is special because it uses the order of the documents in the
       // collection.documentStructure rather than a database column
@@ -342,7 +342,7 @@ router.post(
       const collection = await Collection.scope({
         method: ["withMembership", user.id],
       }).findByPk(collectionId);
-      authorize(user, "read", collection);
+      authorize(user, "readDocuments", collection);
     }
 
     const collectionIds = collectionId
@@ -599,7 +599,7 @@ router.post(
     }
 
     if (document.collection) {
-      authorize(user, "update", collection);
+      authorize(user, "updateDocuments", collection);
     }
 
     if (document.deletedAt) {
@@ -686,7 +686,7 @@ router.post(
       const collection = await Collection.scope({
         method: ["withMembership", user.id],
       }).findByPk(collectionId);
-      authorize(user, "read", collection);
+      authorize(user, "readDocuments", collection);
     }
 
     if (userId) {
@@ -780,7 +780,7 @@ router.post(
         const collection = await Collection.scope({
           method: ["withMembership", user.id],
         }).findByPk(collectionId);
-        authorize(user, "read", collection);
+        authorize(user, "readDocuments", collection);
       }
 
       let collaboratorIds = undefined;
@@ -921,7 +921,7 @@ router.post(
           method: ["withMembership", user.id],
         }).findByPk(collectionId!);
       }
-      authorize(user, "publish", collection);
+      authorize(user, "publishDocuments", collection);
     }
 
     collection = await sequelize.transaction(async (transaction) => {
@@ -982,7 +982,7 @@ router.post(
     const collection = await Collection.scope({
       method: ["withMembership", user.id],
     }).findByPk(collectionId);
-    authorize(user, "update", collection);
+    authorize(user, "updateDocuments", collection);
 
     if (parentDocumentId) {
       const parent = await Document.findByPk(parentDocumentId, {
@@ -1205,7 +1205,7 @@ router.post(
         teamId: user.teamId,
       },
     });
-    authorize(user, "publish", collection);
+    authorize(user, "publishDocuments", collection);
     let parentDocument;
 
     if (parentDocumentId) {
@@ -1282,7 +1282,7 @@ router.post(
           teamId: user.teamId,
         },
       });
-      authorize(user, "publish", collection);
+      authorize(user, "publishDocuments", collection);
     }
 
     let parentDocument;

@@ -8,7 +8,7 @@ setupTestDatabase();
 
 describe("member", () => {
   describe("read_write permission", () => {
-    it("should allow read write permissions for team member", async () => {
+    it("should allow read write documents for team member", async () => {
       const team = await buildTeam();
       const user = await buildUser({
         teamId: team.id,
@@ -19,8 +19,9 @@ describe("member", () => {
       });
       const abilities = serialize(user, collection);
       expect(abilities.read).toEqual(true);
-      expect(abilities.update).toEqual(true);
+      expect(abilities.readDocuments).toEqual(true);
       expect(abilities.share).toEqual(true);
+      expect(abilities.update).toEqual(false);
     });
 
     it("should override read membership permission", async () => {
@@ -44,8 +45,9 @@ describe("member", () => {
       }).findByPk(collection.id);
       const abilities = serialize(user, reloaded);
       expect(abilities.read).toEqual(true);
-      expect(abilities.update).toEqual(true);
+      expect(abilities.readDocuments).toEqual(true);
       expect(abilities.share).toEqual(true);
+      expect(abilities.update).toEqual(false);
     });
   });
 
@@ -86,8 +88,9 @@ describe("member", () => {
       }).findByPk(collection.id);
       const abilities = serialize(user, reloaded);
       expect(abilities.read).toEqual(true);
-      expect(abilities.update).toEqual(true);
+      expect(abilities.readDocuments).toEqual(true);
       expect(abilities.share).toEqual(true);
+      expect(abilities.update).toEqual(false);
     });
   });
 
@@ -103,8 +106,9 @@ describe("member", () => {
       });
       const abilities = serialize(user, collection);
       expect(abilities.read).toEqual(false);
-      expect(abilities.update).toEqual(false);
+      expect(abilities.readDocuments).toEqual(false);
       expect(abilities.share).toEqual(false);
+      expect(abilities.update).toEqual(false);
     });
 
     it("should allow override with team member membership permission", async () => {
@@ -128,8 +132,9 @@ describe("member", () => {
       }).findByPk(collection.id);
       const abilities = serialize(user, reloaded);
       expect(abilities.read).toEqual(true);
-      expect(abilities.update).toEqual(true);
+      expect(abilities.readDocuments).toEqual(true);
       expect(abilities.share).toEqual(true);
+      expect(abilities.update).toEqual(false);
     });
   });
 });
@@ -148,6 +153,7 @@ describe("viewer", () => {
       });
       const abilities = serialize(user, collection);
       expect(abilities.read).toEqual(true);
+      expect(abilities.readDocuments).toEqual(true);
       expect(abilities.update).toEqual(false);
       expect(abilities.share).toEqual(false);
     });
@@ -174,8 +180,9 @@ describe("viewer", () => {
       }).findByPk(collection.id);
       const abilities = serialize(user, reloaded);
       expect(abilities.read).toEqual(true);
-      expect(abilities.update).toEqual(true);
+      expect(abilities.readDocuments).toEqual(true);
       expect(abilities.share).toEqual(true);
+      expect(abilities.update).toEqual(false);
     });
   });
 
@@ -202,8 +209,9 @@ describe("viewer", () => {
       }).findByPk(collection.id);
       const abilities = serialize(user, reloaded);
       expect(abilities.read).toEqual(true);
-      expect(abilities.update).toEqual(true);
+      expect(abilities.readDocuments).toEqual(true);
       expect(abilities.share).toEqual(true);
+      expect(abilities.update).toEqual(false);
     });
   });
 
@@ -246,8 +254,9 @@ describe("viewer", () => {
       }).findByPk(collection.id);
       const abilities = serialize(user, reloaded);
       expect(abilities.read).toEqual(true);
-      expect(abilities.update).toEqual(true);
+      expect(abilities.readDocuments).toEqual(true);
       expect(abilities.share).toEqual(true);
+      expect(abilities.update).toEqual(false);
     });
   });
 });
