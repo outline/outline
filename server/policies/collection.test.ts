@@ -1,12 +1,67 @@
 import { CollectionPermission } from "@shared/types";
 import { CollectionUser, Collection } from "@server/models";
-import { buildUser, buildTeam, buildCollection } from "@server/test/factories";
+import {
+  buildUser,
+  buildTeam,
+  buildCollection,
+  buildAdmin,
+} from "@server/test/factories";
 import { setupTestDatabase } from "@server/test/support";
 import { serialize } from "./index";
 
 setupTestDatabase();
 
+describe("admin", () => {
+  it("should allow updating collection but not reading documents", async () => {
+    const team = await buildTeam();
+    const user = await buildAdmin({
+      teamId: team.id,
+    });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: null,
+    });
+    // reload to get membership
+    const reloaded = await Collection.scope({
+      method: ["withMembership", user.id],
+    }).findByPk(collection.id);
+    const abilities = serialize(user, reloaded);
+    expect(abilities.readDocuments).toEqual(false);
+    expect(abilities.share).toEqual(false);
+    expect(abilities.read).toEqual(true);
+    expect(abilities.update).toEqual(true);
+  });
+});
+
 describe("member", () => {
+  describe("admin permission", () => {
+    it("should allow updating collection", async () => {
+      const team = await buildTeam();
+      const user = await buildUser({
+        teamId: team.id,
+      });
+      const collection = await buildCollection({
+        teamId: team.id,
+        permission: CollectionPermission.ReadWrite,
+      });
+      await CollectionUser.create({
+        createdById: user.id,
+        collectionId: collection.id,
+        userId: user.id,
+        permission: CollectionPermission.Admin,
+      });
+      // reload to get membership
+      const reloaded = await Collection.scope({
+        method: ["withMembership", user.id],
+      }).findByPk(collection.id);
+      const abilities = serialize(user, reloaded);
+      expect(abilities.read).toEqual(true);
+      expect(abilities.readDocuments).toEqual(true);
+      expect(abilities.share).toEqual(true);
+      expect(abilities.update).toEqual(true);
+    });
+  });
+
   describe("read_write permission", () => {
     it("should allow read write documents for team member", async () => {
       const team = await buildTeam();

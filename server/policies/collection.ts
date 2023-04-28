@@ -40,7 +40,23 @@ allow(User, "move", Collection, (user, collection) => {
   throw AdminRequiredError();
 });
 
-allow(User, ["read", "star", "unstar"], Collection, (user, collection) => {
+allow(User, "read", Collection, (user, collection) => {
+  if (!collection || user.teamId !== collection.teamId) {
+    return false;
+  }
+
+  if (user.isAdmin) {
+    return true;
+  }
+
+  if (collection.isPrivate) {
+    return includesMembership(collection, Object.values(CollectionPermission));
+  }
+
+  return true;
+});
+
+allow(User, ["star", "unstar"], Collection, (user, collection) => {
   if (!collection || user.teamId !== collection.teamId) {
     return false;
   }
