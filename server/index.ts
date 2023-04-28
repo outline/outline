@@ -24,6 +24,7 @@ import onerror from "./onerror";
 import ShutdownHelper, { ShutdownOrder } from "./utils/ShutdownHelper";
 import { sequelize } from "./database/sequelize";
 import RedisAdapter from "./redis";
+import Metrics from "./logging/Metrics";
 
 // The default is to run all services to make development and OSS installations
 // easier to deal with. Separate services are only needed at scale.
@@ -153,6 +154,8 @@ async function start(id: number, disconnect: () => void) {
         });
       })
   );
+
+  ShutdownHelper.add("metrics", ShutdownOrder.last, () => Metrics.flush());
 
   // Handle shutdown signals
   process.once("SIGTERM", () => ShutdownHelper.execute());

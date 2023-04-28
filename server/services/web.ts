@@ -57,7 +57,7 @@ if (env.CDN_URL) {
   defaultSrc.push(env.CDN_URL);
 }
 
-export default function init(app: Koa = new Koa(), server: Server): Koa {
+export default function init(app: Koa = new Koa(), server?: Server): Koa {
   initI18n();
 
   if (isProduction) {
@@ -85,7 +85,7 @@ export default function init(app: Koa = new Koa(), server: Server): Koa {
   app.use(mount("/api", api));
 
   // Monitor server connections
-  if (env.ENVIRONMENT !== "test") {
+  if (server) {
     setInterval(async () => {
       server.getConnections((err, count) => {
         if (err) {
