@@ -4,6 +4,7 @@ import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
+import DocumentsLoader from "~/components/DocumentsLoader";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
@@ -61,6 +62,8 @@ function CollectionLinkChildren({
     }),
   });
 
+  const Wrapper = expanded ? DocumentsLoader : React.Fragment;
+
   return (
     <Folder expanded={expanded}>
       {isDraggingAnyDocument && can.createDocument && manualSort && (
@@ -70,19 +73,23 @@ function CollectionLinkChildren({
           position="top"
         />
       )}
-      {childDocuments?.map((node, index) => (
-        <DocumentLink
-          key={node.id}
-          node={node}
-          collection={collection}
-          activeDocument={documents.active}
-          prefetchDocument={prefetchDocument}
-          isDraft={node.isDraft}
-          depth={2}
-          index={index}
-        />
-      ))}
-      {childDocuments?.length === 0 && <EmptyCollectionPlaceholder />}
+      <React.Suspense fallback={<p>Loading…</p>}>
+        <Wrapper collection={collection}>
+          {childDocuments?.map((node, index) => (
+            <DocumentLink
+              key={node.id}
+              node={node}
+              collection={collection}
+              activeDocument={documents.active}
+              prefetchDocument={prefetchDocument}
+              isDraft={node.isDraft}
+              depth={2}
+              index={index}
+            />
+          ))}
+          {childDocuments?.length === 0 && <EmptyCollectionPlaceholder />}
+        </Wrapper>
+      </React.Suspense>
     </Folder>
   );
 }
