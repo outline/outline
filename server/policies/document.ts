@@ -50,10 +50,7 @@ allow(User, "download", Document, (user, document) => {
 });
 
 allow(User, "star", Document, (user, document) => {
-  if (!document || !document.isActive) {
-    return false;
-  }
-  if (document.template) {
+  if (!document || !document.isActive || document.template) {
     return false;
   }
 
@@ -197,11 +194,13 @@ allow(User, ["subscribe", "unsubscribe"], Document, (user, document) => {
   return user.teamId === document.teamId;
 });
 
-allow(User, ["pinToHome"], Document, (user, document) => {
-  if (!document || !document.isActive || document.isDraft) {
-    return false;
-  }
-  if (document.template) {
+allow(User, "pinToHome", Document, (user, document) => {
+  if (
+    !document ||
+    !document.isActive ||
+    document.isDraft ||
+    document.template
+  ) {
     return false;
   }
 
@@ -209,26 +208,23 @@ allow(User, ["pinToHome"], Document, (user, document) => {
 });
 
 allow(User, "delete", Document, (user, document) => {
-  if (!document) {
-    return false;
-  }
-  if (document.deletedAt) {
+  if (!document || document.deletedAt) {
     return false;
   }
 
   // allow deleting document without a collection
   if (
     document.collection &&
-    cannot(user, "updateDocument", document.collection)
+    cannot(user, "deleteDocument", document.collection)
   ) {
     return false;
   }
 
-  // unpublished drafts can always be deleted
+  // unpublished drafts can always be deleted by their owner
   if (
     !document.deletedAt &&
     document.isDraft &&
-    user.teamId === document.teamId
+    user.id === document.createdById
   ) {
     return true;
   }
@@ -237,10 +233,7 @@ allow(User, "delete", Document, (user, document) => {
 });
 
 allow(User, "permanentDelete", Document, (user, document) => {
-  if (!document) {
-    return false;
-  }
-  if (!document.deletedAt) {
+  if (!document || !document.deletedAt) {
     return false;
   }
 
@@ -256,10 +249,7 @@ allow(User, "permanentDelete", Document, (user, document) => {
 });
 
 allow(User, "restore", Document, (user, document) => {
-  if (!document) {
-    return false;
-  }
-  if (!document.deletedAt) {
+  if (!document || !document.deletedAt) {
     return false;
   }
 

@@ -70,7 +70,7 @@ function CollectionLinkChildren({
           position="top"
         />
       )}
-      {childDocuments.map((node, index) => (
+      {childDocuments?.map((node, index) => (
         <DocumentLink
           key={node.id}
           node={node}
@@ -82,7 +82,7 @@ function CollectionLinkChildren({
           index={index}
         />
       ))}
-      {childDocuments.length === 0 && <EmptyCollectionPlaceholder />}
+      {childDocuments?.length === 0 && <EmptyCollectionPlaceholder />}
     </Folder>
   );
 }

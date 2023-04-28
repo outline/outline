@@ -57,14 +57,19 @@ export default class Collection extends ParanoidModel {
     direction: "asc" | "desc";
   };
 
-  documents: NavigationNode[];
+  @observable
+  documents?: NavigationNode[];
 
   url: string;
 
   urlId: string;
 
   @computed
-  get isEmpty(): boolean {
+  get isEmpty(): boolean | undefined {
+    if (!this.documents) {
+      return undefined;
+    }
+
     return (
       this.documents.length === 0 &&
       this.store.rootStore.documents.inCollection(this.id).length === 0
@@ -83,7 +88,11 @@ export default class Collection extends ParanoidModel {
   }
 
   @computed
-  get documentIds(): string[] {
+  get documentIds(): string[] | undefined {
+    if (!this.documents) {
+      return undefined;
+    }
+
     const results: string[] = [];
 
     const travelNodes = (nodes: NavigationNode[]) =>
@@ -109,7 +118,10 @@ export default class Collection extends ParanoidModel {
   }
 
   @computed
-  get sortedDocuments() {
+  get sortedDocuments(): NavigationNode[] | undefined {
+    if (!this.documents) {
+      return undefined;
+    }
     return sortNavigationNodes(this.documents, this.sort);
   }
 
@@ -121,6 +133,10 @@ export default class Collection extends ParanoidModel {
    */
   @action
   updateDocument(document: Pick<Document, "id" | "title" | "url">) {
+    if (!this.documents) {
+      throw new Error("Collection documents not loaded");
+    }
+
     const travelNodes = (nodes: NavigationNode[]) =>
       nodes.forEach((node) => {
         if (node.id === document.id) {
@@ -142,6 +158,10 @@ export default class Collection extends ParanoidModel {
    */
   @action
   removeDocument(documentId: string) {
+    if (!this.documents) {
+      throw new Error("Collection documents not loaded");
+    }
+
     this.documents = this.documents.filter(function f(node): boolean {
       if (node.id === documentId) {
         return false;
@@ -174,7 +194,7 @@ export default class Collection extends ParanoidModel {
       });
     };
 
-    if (this.documents) {
+    if (this.sortedDocuments) {
       travelNodes(this.sortedDocuments);
     }
 
