@@ -642,21 +642,21 @@ router.post("collections.update", auth(), async (ctx: APIContext) => {
 
   // we're making this collection have no default access, ensure that the
   // current user has a read-write membership so that at least they can edit it
-  if (
-    permission !== CollectionPermission.ReadWrite &&
-    collection.permission === CollectionPermission.ReadWrite
-  ) {
-    await CollectionUser.findOrCreate({
-      where: {
-        collectionId: collection.id,
-        userId: user.id,
-      },
-      defaults: {
-        permission: CollectionPermission.ReadWrite,
-        createdById: user.id,
-      },
-    });
-  }
+  // if (
+  //   permission !== CollectionPermission.ReadWrite &&
+  //   collection.permission === CollectionPermission.ReadWrite
+  // ) {
+  //   await CollectionUser.findOrCreate({
+  //     where: {
+  //       collectionId: collection.id,
+  //       userId: user.id,
+  //     },
+  //     defaults: {
+  //       permission: CollectionPermission.Admin,
+  //       createdById: user.id,
+  //     },
+  //   });
+  // }
 
   let privacyChanged = false;
   let sharingChanged = false;

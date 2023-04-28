@@ -31,6 +31,10 @@ export default function InputSelectPermission(
       label={t("Default access")}
       options={[
         {
+          label: t("Admin"),
+          value: CollectionPermission.Admin,
+        },
+        {
           label: t("View and edit"),
           value: CollectionPermission.ReadWrite,
         },

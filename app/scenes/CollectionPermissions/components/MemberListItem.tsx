@@ -65,6 +65,10 @@ const MemberListItem = ({
                   label: t("View and edit"),
                   value: CollectionPermission.ReadWrite,
                 },
+                {
+                  label: t("Admin"),
+                  value: CollectionPermission.Admin,
+                },
               ]}
               value={membership ? membership.permission : undefined}
               onChange={onUpdate}
