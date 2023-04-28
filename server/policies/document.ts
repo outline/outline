@@ -18,7 +18,7 @@ allow(User, ["read", "comment"], Document, (user, document) => {
   // existence of collection option is not required here to account for share tokens
   if (
     document.collection &&
-    cannot(user, "readDocuments", document.collection)
+    cannot(user, "readDocument", document.collection)
   ) {
     return false;
   }
@@ -34,7 +34,7 @@ allow(User, "download", Document, (user, document) => {
   // existence of collection option is not required here to account for share tokens
   if (
     document.collection &&
-    cannot(user, "readDocuments", document.collection)
+    cannot(user, "readDocument", document.collection)
   ) {
     return false;
   }
@@ -62,7 +62,7 @@ allow(User, "star", Document, (user, document) => {
       document.collection,
       "collection is missing, did you forget to include in the query scope?"
     );
-    if (cannot(user, "readDocuments", document.collection)) {
+    if (cannot(user, "readDocument", document.collection)) {
       return false;
     }
   }
@@ -83,7 +83,7 @@ allow(User, "unstar", Document, (user, document) => {
       document.collection,
       "collection is missing, did you forget to include in the query scope?"
     );
-    if (cannot(user, "readDocuments", document.collection)) {
+    if (cannot(user, "readDocument", document.collection)) {
       return false;
     }
   }
@@ -190,7 +190,7 @@ allow(User, ["subscribe", "unsubscribe"], Document, (user, document) => {
     document.collection,
     "collection is missing, did you forget to include in the query scope?"
   );
-  if (cannot(user, "readDocuments", document.collection)) {
+  if (cannot(user, "readDocument", document.collection)) {
     return false;
   }
 

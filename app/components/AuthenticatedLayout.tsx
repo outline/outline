@@ -61,7 +61,7 @@ const AuthenticatedLayout: React.FC = ({ children }) => {
       return;
     }
     const { activeCollectionId } = ui;
-    if (!activeCollectionId || !can.createDocuments) {
+    if (!activeCollectionId || !can.createDocument) {
       return;
     }
     history.push(newDocumentPath(activeCollectionId));

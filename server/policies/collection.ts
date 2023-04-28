@@ -89,7 +89,7 @@ allow(User, "share", Collection, (user, collection) => {
   return true;
 });
 
-allow(User, ["readDocuments"], Collection, (user, collection) => {
+allow(User, ["readDocument"], Collection, (user, collection) => {
   if (!collection || user.teamId !== collection.teamId) {
     return false;
   }
@@ -103,7 +103,7 @@ allow(User, ["readDocuments"], Collection, (user, collection) => {
 
 allow(
   User,
-  ["updateDocuments", "createDocuments"],
+  ["updateDocument", "createDocument"],
   Collection,
   (user, collection) => {
     if (!collection || user.teamId !== collection.teamId) {

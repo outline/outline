@@ -148,7 +148,7 @@ function CollectionScene() {
     >
       <DropToImport
         accept={documents.importFileTypes.join(", ")}
-        disabled={!can.createDocuments}
+        disabled={!can.createDocument}
         collectionId={collection.id}
       >
         <CenteredContent withStickyHeader>

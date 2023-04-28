@@ -63,7 +63,7 @@ function CollectionLinkChildren({
 
   return (
     <Folder expanded={expanded}>
-      {isDraggingAnyDocument && can.createDocuments && manualSort && (
+      {isDraggingAnyDocument && can.createDocument && manualSort && (
         <DropCursor
           isActiveDrop={isOverReorder}
           innerRef={dropToReorder}
