@@ -27,6 +27,7 @@ describe("admin", () => {
     }).findByPk(collection.id);
     const abilities = serialize(user, reloaded);
     expect(abilities.readDocuments).toEqual(false);
+    expect(abilities.createDocuments).toEqual(false);
     expect(abilities.share).toEqual(false);
     expect(abilities.read).toEqual(true);
     expect(abilities.update).toEqual(true);
@@ -57,6 +58,7 @@ describe("member", () => {
       const abilities = serialize(user, reloaded);
       expect(abilities.read).toEqual(true);
       expect(abilities.readDocuments).toEqual(true);
+      expect(abilities.createDocuments).toEqual(true);
       expect(abilities.share).toEqual(true);
       expect(abilities.update).toEqual(true);
     });
@@ -162,6 +164,7 @@ describe("member", () => {
       const abilities = serialize(user, collection);
       expect(abilities.read).toEqual(false);
       expect(abilities.readDocuments).toEqual(false);
+      expect(abilities.createDocuments).toEqual(false);
       expect(abilities.share).toEqual(false);
       expect(abilities.update).toEqual(false);
     });
@@ -188,6 +191,7 @@ describe("member", () => {
       const abilities = serialize(user, reloaded);
       expect(abilities.read).toEqual(true);
       expect(abilities.readDocuments).toEqual(true);
+      expect(abilities.createDocuments).toEqual(true);
       expect(abilities.share).toEqual(true);
       expect(abilities.update).toEqual(false);
     });
@@ -209,6 +213,7 @@ describe("viewer", () => {
       const abilities = serialize(user, collection);
       expect(abilities.read).toEqual(true);
       expect(abilities.readDocuments).toEqual(true);
+      expect(abilities.createDocuments).toEqual(false);
       expect(abilities.update).toEqual(false);
       expect(abilities.share).toEqual(false);
     });
@@ -265,6 +270,7 @@ describe("viewer", () => {
       const abilities = serialize(user, reloaded);
       expect(abilities.read).toEqual(true);
       expect(abilities.readDocuments).toEqual(true);
+      expect(abilities.createDocuments).toEqual(true);
       expect(abilities.share).toEqual(true);
       expect(abilities.update).toEqual(false);
     });
@@ -310,6 +316,7 @@ describe("viewer", () => {
       const abilities = serialize(user, reloaded);
       expect(abilities.read).toEqual(true);
       expect(abilities.readDocuments).toEqual(true);
+      expect(abilities.createDocuments).toEqual(true);
       expect(abilities.share).toEqual(true);
       expect(abilities.update).toEqual(false);
     });

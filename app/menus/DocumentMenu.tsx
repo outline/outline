@@ -132,7 +132,7 @@ function DocumentMenu({
       ...collections.orderedData.reduce<MenuItem[]>((filtered, collection) => {
         const can = policies.abilities(collection.id);
 
-        if (can.update) {
+        if (can.createDocuments) {
           filtered.push({
             type: "button",
             onClick: (ev) =>

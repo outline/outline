@@ -103,7 +103,7 @@ allow(User, ["readDocuments"], Collection, (user, collection) => {
 
 allow(
   User,
-  ["publishDocument", "updateDocument", "createDocument"],
+  ["updateDocuments", "createDocuments"],
   Collection,
   (user, collection) => {
     if (!collection || user.teamId !== collection.teamId) {

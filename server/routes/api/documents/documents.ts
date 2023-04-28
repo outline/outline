@@ -921,7 +921,7 @@ router.post(
           method: ["withMembership", user.id],
         }).findByPk(collectionId!);
       }
-      authorize(user, "publishDocuments", collection);
+      authorize(user, "createDocuments", collection);
     }
 
     collection = await sequelize.transaction(async (transaction) => {
@@ -1205,7 +1205,7 @@ router.post(
         teamId: user.teamId,
       },
     });
-    authorize(user, "publishDocuments", collection);
+    authorize(user, "createDocuments", collection);
     let parentDocument;
 
     if (parentDocumentId) {
@@ -1282,7 +1282,7 @@ router.post(
           teamId: user.teamId,
         },
       });
-      authorize(user, "publishDocuments", collection);
+      authorize(user, "createDocuments", collection);
     }
 
     let parentDocument;
