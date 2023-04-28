@@ -71,6 +71,17 @@ export default class Collection extends ParanoidModel {
     );
   }
 
+  /**
+   * Convenience method to return if a collection is considered private.
+   * This means that a membership is required to view it rather than just being
+   * a workspace member.
+   *
+   * @returns boolean
+   */
+  get isPrivate(): boolean {
+    return !this.permission;
+  }
+
   @computed
   get documentIds(): string[] {
     const results: string[] = [];
