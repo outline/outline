@@ -1,5 +1,4 @@
 import Router from "koa-router";
-import { Transaction } from "sequelize";
 import commentCreator from "@server/commands/commentCreator";
 import commentDestroyer from "@server/commands/commentDestroyer";
 import commentUpdater from "@server/commands/commentUpdater";
@@ -122,9 +121,8 @@ router.post(
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
 
-    const comment = await Comment.unscoped().findByPk(id, {
+    const comment = await Comment.findByPk(id, {
       transaction,
-      lock: Transaction.LOCK.UPDATE,
     });
     authorize(user, "delete", comment);
 
