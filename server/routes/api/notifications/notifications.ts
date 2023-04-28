@@ -81,7 +81,7 @@ router.post(
       };
     }
     const [notifications, total, unseen] = await Promise.all([
-      Notification.scope(["withUser", "withActor"]).findAll({
+      Notification.findAll({
         where,
         order: [["createdAt", "DESC"]],
         offset: ctx.state.pagination.offset,
@@ -103,8 +103,8 @@ router.post(
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
       data: {
-        notifications: notifications.map((notification) =>
-          presentNotification(notification)
+        notifications: await Promise.all(
+          notifications.map(presentNotification)
         ),
         unseen,
       },

@@ -13,6 +13,7 @@ import {
   AllowNull,
   Scopes,
   AfterCreate,
+  DefaultScope,
 } from "sequelize-typescript";
 import { NotificationEventType } from "@shared/types";
 import Collection from "./Collection";
@@ -32,10 +33,17 @@ import Fix from "./decorators/Fix";
       },
     ],
   },
-  withUser: {
+  withDocument: {
     include: [
       {
-        association: "user",
+        association: "document",
+      },
+    ],
+  },
+  withComment: {
+    include: [
+      {
+        association: "comment",
       },
     ],
   },
@@ -46,6 +54,19 @@ import Fix from "./decorators/Fix";
       },
     ],
   },
+}))
+@DefaultScope(() => ({
+  include: [
+    {
+      association: "document",
+    },
+    {
+      association: "comment",
+    },
+    {
+      association: "actor",
+    },
+  ],
 }))
 @Table({
   tableName: "notifications",
