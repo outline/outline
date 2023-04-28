@@ -141,10 +141,8 @@ export default class CollectionsStore extends BaseStore<Collection> {
     // remove all locally cached policies for documents in the collection as they
     // are now invalid
     if (params.sharing !== undefined) {
-      const collection = this.get(params.id);
-
-      collection?.documentIds?.forEach((id) => {
-        this.rootStore.policies.remove(id);
+      this.rootStore.documents.inCollection(params.id).forEach((document) => {
+        this.rootStore.policies.remove(document.id);
       });
     }
 

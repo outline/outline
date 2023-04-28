@@ -88,24 +88,6 @@ export default class Collection extends ParanoidModel {
   }
 
   @computed
-  get documentIds(): string[] | undefined {
-    if (!this.documents) {
-      return undefined;
-    }
-
-    const results: string[] = [];
-
-    const travelNodes = (nodes: NavigationNode[]) =>
-      nodes.forEach((node) => {
-        results.push(node.id);
-        travelNodes(node.children);
-      });
-
-    travelNodes(this.documents);
-    return results;
-  }
-
-  @computed
   get hasDescription(): boolean {
     return !!trim(this.description, "\\").trim();
   }
