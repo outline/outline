@@ -4,7 +4,7 @@ import CollectionGroupMembership from "~/models/CollectionGroupMembership";
 import Group from "~/models/Group";
 import GroupListItem from "~/components/GroupListItem";
 import CollectionGroupMemberMenu from "~/menus/CollectionGroupMemberMenu";
-import PermissionsSelect from "./PermissionsSelect";
+import InputMemberPermissionSelect from "./InputMemberPermissionSelect";
 
 type Props = {
   group: Group;
@@ -24,7 +24,7 @@ const CollectionGroupMemberListItem = ({
     showAvatar
     renderActions={({ openMembersModal }) => (
       <>
-        <PermissionsSelect
+        <InputMemberPermissionSelect
           value={
             collectionGroupMembership
               ? collectionGroupMembership.permission

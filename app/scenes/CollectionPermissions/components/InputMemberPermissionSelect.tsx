@@ -5,7 +5,9 @@ import { s } from "@shared/styles";
 import { CollectionPermission } from "@shared/types";
 import InputSelect, { Props as SelectProps } from "~/components/InputSelect";
 
-export default function PermissionsSelect(props: Partial<SelectProps>) {
+export default function InputMemberPermissionSelect(
+  props: Partial<SelectProps>
+) {
   const { t } = useTranslation();
 
   return (

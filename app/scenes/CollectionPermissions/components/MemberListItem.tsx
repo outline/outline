@@ -11,7 +11,7 @@ import Flex from "~/components/Flex";
 import ListItem from "~/components/List/Item";
 import Time from "~/components/Time";
 import MemberMenu from "~/menus/MemberMenu";
-import PermissionsSelect from "./PermissionsSelect";
+import InputMemberPermissionSelect from "./InputMemberPermissionSelect";
 
 type Props = {
   user: User;
@@ -52,7 +52,7 @@ const MemberListItem = ({
       actions={
         <Flex align="center" gap={8}>
           {onUpdate && (
-            <PermissionsSelect
+            <InputMemberPermissionSelect
               value={membership ? membership.permission : undefined}
               onChange={onUpdate}
               disabled={!canEdit}

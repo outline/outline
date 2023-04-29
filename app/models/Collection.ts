@@ -18,6 +18,8 @@ export default class Collection extends ParanoidModel {
   @observable
   isSaving: boolean;
 
+  isFetching = false;
+
   @Field
   @observable
   id: string;
@@ -108,17 +110,25 @@ export default class Collection extends ParanoidModel {
   }
 
   fetchDocuments = async (options?: { force: boolean }) => {
+    if (this.isFetching) {
+      return;
+    }
     if (this.documents && options?.force !== true) {
       return;
     }
 
-    const { data } = await client.post("/collections.documents", {
-      id: this.id,
-    });
+    try {
+      this.isFetching = true;
+      const { data } = await client.post("/collections.documents", {
+        id: this.id,
+      });
 
-    runInAction(() => {
-      this.documents = data;
-    });
+      runInAction("Collection#fetchDocuments", () => {
+        this.documents = data;
+      });
+    } finally {
+      this.isFetching = false;
+    }
   };
 
   /**
