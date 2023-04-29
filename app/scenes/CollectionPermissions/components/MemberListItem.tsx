@@ -1,8 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
-import styled from "styled-components";
-import { s } from "@shared/styles";
 import { CollectionPermission } from "@shared/types";
 import Membership from "~/models/Membership";
 import User from "~/models/User";
@@ -10,10 +8,10 @@ import Avatar from "~/components/Avatar";
 import Badge from "~/components/Badge";
 import Button from "~/components/Button";
 import Flex from "~/components/Flex";
-import InputSelect, { Props as SelectProps } from "~/components/InputSelect";
 import ListItem from "~/components/List/Item";
 import Time from "~/components/Time";
 import MemberMenu from "~/menus/MemberMenu";
+import PermissionsSelect from "./PermissionsSelect";
 
 type Props = {
   user: User;
@@ -54,28 +52,10 @@ const MemberListItem = ({
       actions={
         <Flex align="center" gap={8}>
           {onUpdate && (
-            <Select
-              label={t("Permissions")}
-              options={[
-                {
-                  label: t("View only"),
-                  value: CollectionPermission.Read,
-                },
-                {
-                  label: t("View and edit"),
-                  value: CollectionPermission.ReadWrite,
-                },
-                {
-                  label: t("Admin"),
-                  value: CollectionPermission.Admin,
-                },
-              ]}
+            <PermissionsSelect
               value={membership ? membership.permission : undefined}
               onChange={onUpdate}
               disabled={!canEdit}
-              ariaLabel={t("Permissions")}
-              labelHidden
-              nude
             />
           )}
           {canEdit && (
@@ -93,17 +73,5 @@ const MemberListItem = ({
     />
   );
 };
-
-const Select = styled(InputSelect)`
-  margin: 0;
-  font-size: 14px;
-  border-color: transparent;
-  box-shadow: none;
-  color: ${s("textSecondary")};
-
-  select {
-    margin: 0;
-  }
-` as React.ComponentType<SelectProps>;
 
 export default observer(MemberListItem);
