@@ -118,6 +118,10 @@ const CollectionLink: React.FC<Props> = ({
     setIsEditing(isEditing);
   }, []);
 
+  const handleMouseEnter = React.useCallback(() => {
+    void collection.fetchDocuments();
+  }, [collection]);
+
   const context = useActionContext({
     activeCollectionId: collection.id,
     inStarredSection,
@@ -134,6 +138,7 @@ const CollectionLink: React.FC<Props> = ({
             }}
             expanded={expanded}
             onDisclosureClick={onDisclosureClick}
+            onMouseEnter={handleMouseEnter}
             icon={
               <CollectionIcon collection={collection} expanded={expanded} />
             }
