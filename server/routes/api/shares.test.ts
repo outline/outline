@@ -156,12 +156,18 @@ describe("#shares.create", () => {
     const { user, document, collection } = await seed();
     collection.permission = null;
     await collection.save();
-    await CollectionUser.create({
-      createdById: user.id,
-      collectionId: collection.id,
-      userId: user.id,
-      permission: CollectionPermission.Read,
-    });
+    await CollectionUser.update(
+      {
+        userId: user.id,
+        permission: CollectionPermission.Read,
+      },
+      {
+        where: {
+          createdById: user.id,
+          collectionId: collection.id,
+        },
+      }
+    );
     const res = await server.post("/api/shares.create", {
       body: {
         token: user.getJwtToken(),

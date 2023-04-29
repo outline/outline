@@ -839,12 +839,7 @@ describe("#collections.memberships", () => {
     const { collection, user } = await seed();
     collection.permission = null;
     await collection.save();
-    await CollectionUser.create({
-      createdById: user.id,
-      collectionId: collection.id,
-      userId: user.id,
-      permission: CollectionPermission.ReadWrite,
-    });
+
     const res = await server.post("/api/collections.memberships", {
       body: {
         token: user.getJwtToken(),
@@ -857,7 +852,7 @@ describe("#collections.memberships", () => {
     expect(body.data.users[0].id).toEqual(user.id);
     expect(body.data.memberships.length).toEqual(1);
     expect(body.data.memberships[0].permission).toEqual(
-      CollectionPermission.ReadWrite
+      CollectionPermission.Admin
     );
   });
 
@@ -865,12 +860,6 @@ describe("#collections.memberships", () => {
     const { collection, user } = await seed();
     const user2 = await buildUser({
       name: "Won't find",
-    });
-    await CollectionUser.create({
-      createdById: user.id,
-      collectionId: collection.id,
-      userId: user.id,
-      permission: CollectionPermission.ReadWrite,
     });
     await CollectionUser.create({
       createdById: user2.id,
@@ -957,6 +946,12 @@ describe("#collections.info", () => {
     const { user, collection } = await seed();
     collection.permission = null;
     await collection.save();
+    await CollectionUser.destroy({
+      where: {
+        collectionId: collection.id,
+        userId: user.id,
+      },
+    });
     const res = await server.post("/api/collections.info", {
       body: {
         token: user.getJwtToken(),
@@ -1335,12 +1330,18 @@ describe("#collections.update", () => {
     const { user, collection } = await seed();
     collection.permission = null;
     await collection.save();
-    await CollectionUser.create({
-      collectionId: collection.id,
-      userId: user.id,
-      createdById: user.id,
-      permission: CollectionPermission.Read,
-    });
+    await CollectionUser.update(
+      {
+        createdById: user.id,
+        permission: CollectionPermission.Read,
+      },
+      {
+        where: {
+          collectionId: collection.id,
+          userId: user.id,
+        },
+      }
+    );
     const res = await server.post("/api/collections.update", {
       body: {
         token: user.getJwtToken(),

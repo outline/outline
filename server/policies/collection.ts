@@ -89,7 +89,7 @@ allow(User, "share", Collection, (user, collection) => {
   return true;
 });
 
-allow(User, ["readDocument"], Collection, (user, collection) => {
+allow(User, "readDocument", Collection, (user, collection) => {
   if (!collection || user.teamId !== collection.teamId) {
     return false;
   }

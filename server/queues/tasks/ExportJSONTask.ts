@@ -56,7 +56,7 @@ export default class ExportJSONTask extends ExportTask {
   private async addCollectionToArchive(zip: JSZip, collection: Collection) {
     const output: CollectionJSONExport = {
       collection: {
-        ...omit(presentCollection(collection), ["url", "documents"]),
+        ...omit(presentCollection(collection), ["url"]),
         description: collection.description
           ? parser.parse(collection.description)
           : null,
