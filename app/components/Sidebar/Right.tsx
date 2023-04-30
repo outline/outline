@@ -69,7 +69,7 @@ function Right({ children, border, className }: Props) {
   const style = React.useMemo(
     () =>
       isMobile
-        ? { width: "80vw" }
+        ? { width: "80%" }
         : {
             width: `${ui.sidebarRightWidth}px`,
           },
@@ -112,10 +112,9 @@ function Right({ children, border, className }: Props) {
 }
 
 const Position = styled(Flex)`
-  position: absolute;
+  position: fixed;
   top: 0;
   bottom: 0;
-  left: 0;
 `;
 
 const Sidebar = styled(m.div)<{
@@ -124,16 +123,17 @@ const Sidebar = styled(m.div)<{
   display: flex;
   flex-shrink: 0;
   background: ${s("background")};
-  max-width: 80vw;
+  max-width: 80%;
   border-left: 1px solid ${s("divider")};
   transition: border-left 100ms ease-in-out;
-  z-index: ${depths.sidebar};
+  z-index: 1;
 
   ${breakpoint("mobile", "tablet")`
     position: absolute;
     top: 0;
     right: 0;
     bottom: 0;
+    z-index: ${depths.sidebar};
   `}
 
   ${breakpoint("tablet")`
