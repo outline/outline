@@ -1027,8 +1027,7 @@ mark {
     top: calc(1px + 0.75em);
     width: calc(var(--line-number-gutter-width,0) * 1em + .25em);
     word-break: break-all;
-    text-align: right;
-
+    white-space: break-spaces;
     font-family: ${props.theme.fontFamilyMono};
     font-size: 13px;
     line-height: 1.4em;
