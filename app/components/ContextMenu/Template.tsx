@@ -66,6 +66,7 @@ const SubMenu = React.forwardRef(
           {...menu}
           aria-label={t("Submenu")}
           onClick={parentMenuState.hide}
+          parentMenuState={parentMenuState}
         >
           <MouseSafeArea parentRef={menu.unstable_popoverRef} />
           <Template {...menu} items={templateItems} />
