@@ -34,6 +34,7 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
     format: FileOperationFormat;
     pathMap: Map<string, string>;
   }) {
+    Logger.debug("task", `Adding document to archive`, { documentId });
     const document = await Document.findByPk(documentId);
     if (!document) {
       return;
@@ -43,18 +44,27 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
       format === FileOperationFormat.HTMLZip
         ? await DocumentHelper.toHTML(document, { centered: true })
         : await DocumentHelper.toMarkdown(document);
-    const attachments = await Attachment.findAll({
-      where: {
-        teamId: document.teamId,
-        id: parseAttachmentIds(document.text),
-      },
-    });
+
+    const attachmentIds = parseAttachmentIds(document.text);
+    const attachments = attachmentIds.length
+      ? await Attachment.findAll({
+          where: {
+            teamId: document.teamId,
+            id: attachmentIds,
+          },
+        })
+      : [];
 
     // Add any referenced attachments to the zip file and replace the
     // reference in the document with the path to the attachment in the zip
     await Promise.all(
       attachments.map(async (attachment) => {
         try {
+          Logger.debug("task", `Adding attachment to archive`, {
+            documentId,
+            key: attachment.key,
+          });
+
           const stream = getFileByKey(attachment.key);
           const dir = path.dirname(pathInZip);
           if (stream) {
@@ -119,6 +129,10 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
     format: FileOperationFormat
   ) {
     const pathMap = this.createPathMap(collections, format);
+    Logger.debug(
+      "task",
+      `Start adding ${Object.values(pathMap).length} documents to archive`
+    );
 
     for (const path of pathMap) {
       const documentId = path[0].replace("/doc/", "");
@@ -133,7 +147,9 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
       });
     }
 
-    return ZipHelper.toTmpFile(zip);
+    Logger.debug("task", "Completed adding documents to archive");
+
+    return await ZipHelper.toTmpFile(zip);
   }
 
   /**
