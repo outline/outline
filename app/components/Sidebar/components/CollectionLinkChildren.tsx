@@ -2,8 +2,12 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
+import styled from "styled-components";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
+import DelayedMount from "~/components/DelayedMount";
+import DocumentsLoader from "~/components/DocumentsLoader";
+import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
@@ -11,6 +15,7 @@ import DocumentLink from "./DocumentLink";
 import DropCursor from "./DropCursor";
 import EmptyCollectionPlaceholder from "./EmptyCollectionPlaceholder";
 import Folder from "./Folder";
+import PlaceholderCollections from "./PlaceholderCollections";
 import { DragObject } from "./SidebarLink";
 import useCollectionDocuments from "./useCollectionDocuments";
 
@@ -63,28 +68,42 @@ function CollectionLinkChildren({
 
   return (
     <Folder expanded={expanded}>
-      {isDraggingAnyDocument && can.update && manualSort && (
+      {isDraggingAnyDocument && can.createDocument && manualSort && (
         <DropCursor
           isActiveDrop={isOverReorder}
           innerRef={dropToReorder}
           position="top"
         />
       )}
-      {childDocuments.map((node, index) => (
-        <DocumentLink
-          key={node.id}
-          node={node}
-          collection={collection}
-          activeDocument={documents.active}
-          prefetchDocument={prefetchDocument}
-          isDraft={node.isDraft}
-          depth={2}
-          index={index}
-        />
-      ))}
-      {childDocuments.length === 0 && <EmptyCollectionPlaceholder />}
+      <DocumentsLoader collection={collection} enabled={expanded}>
+        {!childDocuments && (
+          <ResizingHeightContainer hideOverflow>
+            <DelayedMount>
+              <Loading />
+            </DelayedMount>
+          </ResizingHeightContainer>
+        )}
+        {childDocuments?.map((node, index) => (
+          <DocumentLink
+            key={node.id}
+            node={node}
+            collection={collection}
+            activeDocument={documents.active}
+            prefetchDocument={prefetchDocument}
+            isDraft={node.isDraft}
+            depth={2}
+            index={index}
+          />
+        ))}
+        {childDocuments?.length === 0 && <EmptyCollectionPlaceholder />}
+      </DocumentsLoader>
     </Folder>
   );
 }
+
+const Loading = styled(PlaceholderCollections)`
+  margin-left: 44px;
+  min-height: 90px;
+`;
 
 export default observer(CollectionLinkChildren);

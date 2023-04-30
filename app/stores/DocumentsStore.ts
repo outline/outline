@@ -139,7 +139,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   rootInCollection(collectionId: string): Document[] {
     const collection = this.rootStore.collections.get(collectionId);
 
-    if (!collection) {
+    if (!collection || !collection.sortedDocuments) {
       return [];
     }
 

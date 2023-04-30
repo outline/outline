@@ -11,7 +11,7 @@ export default class CollectionCreatedNotificationsTask extends BaseTask<
     const collection = await Collection.findByPk(event.collectionId);
 
     // We only send notifications for collections visible to the entire team
-    if (!collection || !collection.permission) {
+    if (!collection || collection.isPrivate) {
       return;
     }
 

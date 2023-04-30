@@ -1,4 +1,4 @@
-import { Revision } from "@server/models";
+import { CollectionUser, Revision } from "@server/models";
 import { buildDocument, buildUser } from "@server/test/factories";
 import { seed, getTestServer } from "@server/test/support";
 
@@ -141,6 +141,12 @@ describe("#revisions.list", () => {
     await Revision.createFromDocument(document);
     collection.permission = null;
     await collection.save();
+    await CollectionUser.destroy({
+      where: {
+        userId: user.id,
+        collectionId: collection.id,
+      },
+    });
     const res = await server.post("/api/revisions.list", {
       body: {
         token: user.getJwtToken(),

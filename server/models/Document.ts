@@ -473,6 +473,25 @@ class Document extends ParanoidModel {
 
   // instance methods
 
+  /**
+   * Whether this document is considered active or not. A document is active if
+   * it has not been archived or deleted.
+   *
+   * @returns boolean
+   */
+  get isActive(): boolean {
+    return !this.archivedAt && !this.deletedAt;
+  }
+
+  /**
+   * Convenience method that returns whether this document is a draft.
+   *
+   * @returns boolean
+   */
+  get isDraft(): boolean {
+    return !this.publishedAt;
+  }
+
   get titleWithDefault(): string {
     return this.title || "Untitled";
   }

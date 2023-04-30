@@ -8,7 +8,9 @@ const DocumentsSortParamsSchema = z.object({
   /** Specifies the attributes by which documents will be sorted in the list */
   sort: z
     .string()
-    .refine((val) => ["createdAt", "updatedAt", "index", "title"].includes(val))
+    .refine((val) =>
+      ["createdAt", "updatedAt", "publishedAt", "index", "title"].includes(val)
+    )
     .default("updatedAt"),
 
   /** Specifies the sort order with respect to sort field */

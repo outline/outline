@@ -148,7 +148,7 @@ function CollectionScene() {
     >
       <DropToImport
         accept={documents.importFileTypes.join(", ")}
-        disabled={!can.update}
+        disabled={!can.createDocument}
         collectionId={collection.id}
       >
         <CenteredContent withStickyHeader>
@@ -159,7 +159,7 @@ function CollectionScene() {
               <HeadingWithIcon $isStarred={collection.isStarred}>
                 <HeadingIcon collection={collection} size={40} expanded />
                 {collection.name}
-                {!collection.permission && (
+                {collection.isPrivate && (
                   <Tooltip
                     tooltip={t(
                       "This collection is only visible to those given access"

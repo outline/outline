@@ -196,7 +196,7 @@ class WebsocketProvider extends React.Component<Props> {
             }
 
             try {
-              await collections.fetch(collectionId, {
+              await collection?.fetchDocuments({
                 force: true,
               });
             } catch (err) {
@@ -290,6 +290,10 @@ class WebsocketProvider extends React.Component<Props> {
     });
 
     this.socket.on("collections.create", (event: PartialWithId<Collection>) => {
+      collections.add(event);
+    });
+
+    this.socket.on("collections.update", (event: PartialWithId<Collection>) => {
       collections.add(event);
     });
 

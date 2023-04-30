@@ -34,8 +34,14 @@ export default class CollectionsStore extends BaseStore<Collection> {
     super(rootStore, Collection);
   }
 
+  /**
+   * Returns the currently active collection, or undefined if not in the context
+   * of a collection.
+   *
+   * @returns The active Collection or undefined
+   */
   @computed
-  get active(): Collection | null | undefined {
+  get active(): Collection | undefined {
     return this.rootStore.ui.activeCollectionId
       ? this.data.get(this.rootStore.ui.activeCollectionId)
       : undefined;
@@ -92,7 +98,10 @@ export default class CollectionsStore extends BaseStore<Collection> {
           url,
         };
         results.push([node]);
-        travelDocuments(collection.documents, id, [node]);
+
+        if (collection.documents) {
+          travelDocuments(collection.documents, id, [node]);
+        }
       });
     }
 
@@ -132,13 +141,9 @@ export default class CollectionsStore extends BaseStore<Collection> {
     // remove all locally cached policies for documents in the collection as they
     // are now invalid
     if (params.sharing !== undefined) {
-      const collection = this.get(params.id);
-
-      if (collection) {
-        collection.documentIds.forEach((id) => {
-          this.rootStore.policies.remove(id);
-        });
-      }
+      this.rootStore.documents.inCollection(params.id).forEach((document) => {
+        this.rootStore.policies.remove(document.id);
+      });
     }
 
     return result;
