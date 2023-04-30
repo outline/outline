@@ -136,7 +136,7 @@ export function sharedDocumentPath(shareId: string, docPath?: string) {
 }
 
 export function urlify(path: string): string {
-  return `${window.location.host}${path}`;
+  return `${window.location.origin}${path}`;
 }
 
 export const matchDocumentSlug =
