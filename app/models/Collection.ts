@@ -140,7 +140,7 @@ export default class Collection extends ParanoidModel {
   @action
   updateDocument(document: Pick<Document, "id" | "title" | "url">) {
     if (!this.documents) {
-      throw new Error("Collection documents not loaded");
+      return;
     }
 
     const travelNodes = (nodes: NavigationNode[]) =>
