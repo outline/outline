@@ -40,8 +40,6 @@ type Props = {
   onFocus?: () => void;
   /** Callback when the editor is blurred */
   onBlur?: () => void;
-  /** Callback when the editor is clicked outside of */
-  onClickOutside?: (event: MouseEvent | TouchEvent) => void;
 };
 
 function CommentForm({
@@ -50,7 +48,6 @@ function CommentForm({
   onTyping,
   onFocus,
   onBlur,
-  onClickOutside,
   autoFocus,
   standalone,
   placeholder,
