@@ -37,6 +37,20 @@ function TitleDocumentMeta({ to, isDraft, document, ...rest }: Props) {
 
   return (
     <Meta document={document} to={to} replace {...rest}>
+      {team?.getPreference(TeamPreference.Commenting) && (
+        <>
+          &nbsp;•&nbsp;
+          <CommentLink
+            to={documentPath(document)}
+            onClick={() => ui.toggleComments(document.id)}
+          >
+            <CommentIcon size={18} />
+            {commentsCount
+              ? t("{{ count }} comment", { count: commentsCount })
+              : t("Comment")}
+          </CommentLink>
+        </>
+      )}
       {totalViewers && !isDraft ? (
         <Wrapper>
           &nbsp;•&nbsp;
@@ -54,20 +68,6 @@ function TitleDocumentMeta({ to, isDraft, document, ...rest }: Props) {
           </Link>
         </Wrapper>
       ) : null}
-      {team?.getPreference(TeamPreference.Commenting) && (
-        <>
-          &nbsp;•&nbsp;
-          <CommentLink
-            to={documentPath(document)}
-            onClick={() => ui.toggleComments(document.id)}
-          >
-            <CommentIcon size={18} />
-            {commentsCount
-              ? t("{{ count }} comment", { count: commentsCount })
-              : t("Comment")}
-          </CommentLink>
-        </>
-      )}
     </Meta>
   );
 }
