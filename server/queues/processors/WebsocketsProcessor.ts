@@ -31,6 +31,7 @@ export default class WebsocketsProcessor {
   async perform(event: Event, socketio: Server) {
     switch (event.name) {
       case "documents.publish":
+      case "documents.unpublish":
       case "documents.restore":
       case "documents.unarchive": {
         const document = await Document.findByPk(event.documentId, {
