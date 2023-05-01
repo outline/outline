@@ -1,4 +1,6 @@
+import path from "path";
 import { Sequelize } from "sequelize-typescript";
+import { Umzug, SequelizeStorage } from "umzug";
 import env from "@server/env";
 import Logger from "../logging/Logger";
 import * as models from "../models";
@@ -30,5 +32,29 @@ export const sequelize = new Sequelize(url, {
     min: poolMin,
     acquire: 30000,
     idle: 10000,
+  },
+});
+
+export const umzug = new Umzug({
+  migrations: {
+    glob: ["migrations/*.js", { cwd: path.resolve("server") }],
+    resolve: ({ name, path, context }) => {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const migration = require(path as string);
+      return {
+        name,
+        up: async () => migration.up(context, Sequelize),
+        down: async () => migration.down(context, Sequelize),
+      };
+    },
+  },
+  context: sequelize.getQueryInterface(),
+  storage: new SequelizeStorage({ sequelize }),
+  logger: {
+    warn: (msg) => Logger.warn("database", msg),
+    error: (msg) =>
+      Logger.error("database", new Error("Migration failed!"), msg),
+    info: (msg) => Logger.info("database", JSON.stringify(msg)),
+    debug: (msg) => Logger.debug("database", JSON.stringify(msg)),
   },
 });
