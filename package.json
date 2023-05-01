@@ -326,7 +326,7 @@
     "jest-environment-jsdom": "^29.4.1",
     "jest-fetch-mock": "^3.0.3",
     "lint-staged": "^13.1.0",
-    "nodemon": "^2.0.21",
+    "nodemon": "^2.0.22",
     "postinstall-postinstall": "^2.1.0",
     "prettier": "^2.0.5",
     "react-refresh": "^0.14.0",
