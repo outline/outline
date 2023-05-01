@@ -1,4 +1,5 @@
 import { toggleMark } from "prosemirror-commands";
+import { Slice } from "prosemirror-model";
 import { Plugin } from "prosemirror-state";
 import { isInTable } from "prosemirror-tables";
 import { isUrl } from "../../utils/urls";
@@ -13,6 +14,14 @@ function isDropboxPaper(html: string): boolean {
   // The best we have to detect if a paste is likely coming from Paper
   // In this case it's actually better to use the text version
   return html?.includes("usually-unique-id");
+}
+
+function sliceSingleNode(slice: Slice) {
+  return slice.openStart === 0 &&
+    slice.openEnd === 0 &&
+    slice.content.childCount === 1
+    ? slice.content.firstChild
+    : null;
 }
 
 export default class PasteHandler extends Extension {
@@ -154,13 +163,35 @@ export default class PasteHandler extends Extension {
             ) {
               event.preventDefault();
 
+              // get pasted content as slice
               const paste = this.editor.pasteParser.parse(
                 normalizePastedMarkdown(text)
               );
               const slice = paste.slice(0);
+              const tr = view.state.tr;
+              let currentPos = view.state.selection.from;
 
-              const transaction = view.state.tr.replaceSelection(slice);
-              view.dispatch(transaction);
+              // If the pasted content is a single paragraph then we loop over
+              // it's content and insert each node one at a time to allow it to
+              // be pasted inline with surrounding content.
+              const singleNode = sliceSingleNode(slice);
+              if (singleNode?.type === this.editor.schema.nodes.paragraph) {
+                singleNode.forEach((node) => {
+                  tr.insert(currentPos, node);
+                  currentPos += node.nodeSize;
+                });
+              } else {
+                singleNode
+                  ? tr.replaceSelectionWith(singleNode, this.shiftKey)
+                  : tr.replaceSelection(slice);
+              }
+
+              view.dispatch(
+                tr
+                  .scrollIntoView()
+                  .setMeta("paste", true)
+                  .setMeta("uiEvent", "paste")
+              );
               return true;
             }
 
