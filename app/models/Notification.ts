@@ -32,7 +32,7 @@ class Notification extends BaseModel {
     switch (this.event) {
       case "documents.publish":
         return t("published");
-      case "documents.update":
+      case "revisions.create":
         return t("edited");
       case "collections.create":
         return t("created the collection");

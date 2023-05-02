@@ -3,7 +3,7 @@ import { SubscribeIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
-import { useTheme } from "styled-components";
+import styled, { useTheme } from "styled-components";
 import Notification from "~/models/Notification";
 import Button from "~/components/Button";
 import Popover from "~/components/Popover";
@@ -20,7 +20,7 @@ function Notifications() {
   const { t } = useTranslation();
 
   return (
-    <div>
+    <Wrapper>
       <Text>{t("Notifications")}</Text>
       <Tabs>
         <Tab to="#" isActive={() => true}>
@@ -39,8 +39,12 @@ function Notifications() {
           )}
         />
       </Scrollable>
-    </div>
+    </Wrapper>
   );
 }
+
+const Wrapper = styled.div`
+  height: 100%;
+`;
 
 export default observer(Notifications);
