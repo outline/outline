@@ -1,6 +1,6 @@
 import path from "path";
 import { Sequelize } from "sequelize-typescript";
-import { Umzug, SequelizeStorage } from "umzug";
+import { Umzug, SequelizeStorage, MigrationError } from "umzug";
 import env from "@server/env";
 import Logger from "../logging/Logger";
 import * as models from "../models";
@@ -51,10 +51,25 @@ export const migrations = new Umzug({
   context: sequelize.getQueryInterface(),
   storage: new SequelizeStorage({ sequelize }),
   logger: {
-    warn: (msg) => Logger.warn("database", msg),
-    error: (msg) =>
-      Logger.error(JSON.stringify(msg), new Error("Database migration failed")),
-    info: (msg) => Logger.info("database", JSON.stringify(msg)),
-    debug: (msg) => Logger.debug("database", JSON.stringify(msg)),
+    warn: (params) => Logger.warn("database", params),
+    error: (params) =>
+      Logger.error(
+        params.message as string,
+        (params as unknown) as MigrationError
+      ),
+    info: (params) =>
+      Logger.info(
+        "database",
+        params.event === "migrating"
+          ? `Migrating ${params.name}…`
+          : `Migrated ${params.name} in ${params.durationSeconds}s`
+      ),
+    debug: (params) =>
+      Logger.debug(
+        "database",
+        params.event === "migrating"
+          ? `Migrating ${params.name}…`
+          : `Migrated ${params.name} in ${params.durationSeconds}s`
+      ),
   },
 });
