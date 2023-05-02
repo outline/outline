@@ -1,6 +1,7 @@
 import passport from "@outlinewiki/koa-passport";
 import { Context } from "koa";
 import env from "@server/env";
+import { AuthenticationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { AuthenticationResult } from "@server/types";
 import { signIn } from "@server/utils/authentication";
@@ -55,7 +56,11 @@ export default function createMiddleware(providerName: string) {
         // the event that error=access_denied is received from the OAuth server.
         // I'm not sure why this exception to the rule exists, but it does:
         // https://github.com/jaredhanson/passport-oauth2/blob/e20f26aad60ed54f0e7952928cbb64979ef8da2b/lib/strategy.js#L135
-        if (!user) {
+        if (!user && !result?.user) {
+          Logger.error(
+            "No user returned during authentication",
+            AuthenticationError()
+          );
           return ctx.redirect(`/?notice=auth-error`);
         }
 
