@@ -1,5 +1,6 @@
 import passport from "@outlinewiki/koa-passport";
 import { Context } from "koa";
+import { InternalOAuthError } from "passport-oauth2";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { AuthenticationResult } from "@server/types";
@@ -15,7 +16,10 @@ export default function createMiddleware(providerName: string) {
       },
       async (err, user, result: AuthenticationResult) => {
         if (err) {
-          Logger.error("Error during authentication", err);
+          Logger.error(
+            "Error during authentication",
+            err instanceof InternalOAuthError ? err.oauthError : err
+          );
 
           if (err.id) {
             const notice = err.id.replace(/_/g, "-");
