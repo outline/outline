@@ -35,7 +35,7 @@ export const sequelize = new Sequelize(url, {
   },
 });
 
-export const umzug = new Umzug({
+export const migrations = new Umzug({
   migrations: {
     glob: ["migrations/*.js", { cwd: path.resolve("server") }],
     resolve: ({ name, path, context }) => {
@@ -53,7 +53,7 @@ export const umzug = new Umzug({
   logger: {
     warn: (msg) => Logger.warn("database", msg),
     error: (msg) =>
-      Logger.error("database", new Error("Migration failed!"), msg),
+      Logger.error(JSON.stringify(msg), new Error("Database migration failed")),
     info: (msg) => Logger.info("database", JSON.stringify(msg)),
     debug: (msg) => Logger.debug("database", JSON.stringify(msg)),
   },

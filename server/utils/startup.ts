@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import { isEmpty } from "lodash";
-import { umzug } from "@server/database/sequelize";
+import { migrations } from "@server/database/sequelize";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import AuthenticationProvider from "@server/models/AuthenticationProvider";
@@ -8,15 +8,14 @@ import Team from "@server/models/Team";
 
 export async function checkPendingMigrations() {
   try {
-    const pending = await umzug.pending();
+    const pending = await migrations.pending();
     if (!isEmpty(pending)) {
       if (env.isCloudHosted()) {
-        Logger.warn(chalk.red("Run pending migrations!"));
+        Logger.warn(chalk.red("Migrations are pending"));
         process.exit(1);
       } else {
-        Logger.info("database", "Running migrations...");
-        await umzug.up();
-        Logger.info("database", "Done!");
+        Logger.info("database", "Running migrations…");
+        await migrations.up();
       }
     }
     await checkDataMigrations();
