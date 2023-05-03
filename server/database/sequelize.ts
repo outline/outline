@@ -52,11 +52,8 @@ export const migrations = new Umzug({
   storage: new SequelizeStorage({ sequelize }),
   logger: {
     warn: (params) => Logger.warn("database", params),
-    error: (params) =>
-      Logger.error(
-        params.message as string,
-        (params as unknown) as MigrationError
-      ),
+    error: (params: Record<string, unknown> & MigrationError) =>
+      Logger.error(params.message, params),
     info: (params) =>
       Logger.info(
         "database",
