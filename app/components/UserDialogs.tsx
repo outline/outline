@@ -58,6 +58,31 @@ export function UserChangeToMemberDialog({ user, onSubmit }: Props) {
   );
 }
 
+export function UserDeleteDialog({ user, onSubmit }: Props) {
+  const { t } = useTranslation();
+
+  const handleSubmit = async () => {
+    await user.delete();
+    onSubmit();
+  };
+
+  return (
+    <ConfirmationDialog
+      onSubmit={handleSubmit}
+      submitText={t("I understand, delete")}
+      savingText={`${t("Deleting")}…`}
+      danger
+    >
+      {t(
+        "Are you sure you want to permanently delete {{ userName }}? This operation is unrecoverable, consider suspending the user instead.",
+        {
+          userName: user.name,
+        }
+      )}
+    </ConfirmationDialog>
+  );
+}
+
 export function UserChangeToAdminDialog({ user, onSubmit }: Props) {
   const { t } = useTranslation();
   const { users } = useStores();
