@@ -184,16 +184,35 @@ export const getAWSKeyForFileOp = (teamId: string, name: string) => {
   return `${bucket}/${teamId}/${uuidv4()}/${name}-export.zip`;
 };
 
-export const getFileByKey = (key: string) => {
-  const params = {
-    Bucket: AWS_S3_UPLOAD_BUCKET_NAME,
-    Key: key,
-  };
-
+export const getFileStream = (key: string) => {
   try {
-    return s3.getObject(params).createReadStream();
+    return s3
+      .getObject({
+        Bucket: AWS_S3_UPLOAD_BUCKET_NAME,
+        Key: key,
+      })
+      .createReadStream();
   } catch (err) {
-    Logger.error("Error getting file from S3 by key", err, {
+    Logger.error("Error getting file stream from S3 ", err, {
+      key,
+    });
+  }
+
+  return null;
+};
+
+export const getFileBuffer = async (key: string) => {
+  try {
+    const response = await s3
+      .getObject({
+        Bucket: AWS_S3_UPLOAD_BUCKET_NAME,
+        Key: key,
+      })
+      .promise();
+
+    return response.Body || null;
+  } catch (err) {
+    Logger.error("Error getting file buffer from S3", err, {
       key,
     });
   }

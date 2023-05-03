@@ -9,7 +9,6 @@ import DocumentHelper from "@server/models/helpers/DocumentHelper";
 import ZipHelper from "@server/utils/ZipHelper";
 import { serializeFilename } from "@server/utils/fs";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
-import { getFileByKey } from "@server/utils/s3";
 import ExportTask from "./ExportTask";
 
 export default abstract class ExportDocumentTreeTask extends ExportTask {
@@ -65,13 +64,11 @@ export default abstract class ExportDocumentTreeTask extends ExportTask {
             key: attachment.key,
           });
 
-          const stream = getFileByKey(attachment.key);
           const dir = path.dirname(pathInZip);
-          if (stream) {
-            zip.file(path.join(dir, attachment.key), stream, {
-              createFolders: true,
-            });
-          }
+          zip.file(path.join(dir, attachment.key), attachment.buffer, {
+            date: attachment.updatedAt,
+            createFolders: true,
+          });
         } catch (err) {
           Logger.error(
             `Failed to add attachment to archive: ${attachment.key}`,

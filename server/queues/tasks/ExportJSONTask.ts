@@ -16,7 +16,6 @@ import { CollectionJSONExport, JSONExportMetadata } from "@server/types";
 import ZipHelper from "@server/utils/ZipHelper";
 import { serializeFilename } from "@server/utils/fs";
 import parseAttachmentIds from "@server/utils/parseAttachmentIds";
-import { getFileByKey } from "@server/utils/s3";
 import packageJson from "../../../package.json";
 import ExportTask from "./ExportTask";
 
@@ -86,12 +85,10 @@ export default class ExportJSONTask extends ExportTask {
         await Promise.all(
           attachments.map(async (attachment) => {
             try {
-              const stream = getFileByKey(attachment.key);
-              if (stream) {
-                zip.file(attachment.key, stream, {
-                  createFolders: true,
-                });
-              }
+              zip.file(attachment.key, attachment.buffer, {
+                date: attachment.updatedAt,
+                createFolders: true,
+              });
 
               output.attachments[attachment.id] = {
                 ...omit(presentAttachment(attachment), "url"),

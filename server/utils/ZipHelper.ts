@@ -3,6 +3,7 @@ import path from "path";
 import JSZip from "jszip";
 import { find } from "lodash";
 import tmp from "tmp";
+import { bytesToHumanReadable } from "@shared/utils/files";
 import { ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
 import { trace } from "@server/logging/tracing";
@@ -114,10 +115,14 @@ export default class ZipHelper {
                     currentFile: metadata.currentFile,
                     percent,
                   };
+                  const memory = process.memoryUsage();
                   Logger.debug(
                     "utils",
-                    `Writing zip file progress… %${percent}`,
-                    { currentFile: metadata.currentFile }
+                    `Writing zip file progress… ${percent}%`,
+                    {
+                      currentFile: metadata.currentFile,
+                      memory: bytesToHumanReadable(memory.rss),
+                    }
                   );
                 }
               }
