@@ -83,7 +83,7 @@ class Attachment extends IdModel {
    * Get the contents of this attachment as a buffer.
    */
   get buffer() {
-    return getFileBuffer(this.key) as Blob;
+    return getFileBuffer(this.key);
   }
 
   /**

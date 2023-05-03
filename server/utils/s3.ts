@@ -202,20 +202,16 @@ export const getFileStream = (key: string) => {
 };
 
 export const getFileBuffer = async (key: string) => {
-  try {
-    const response = await s3
-      .getObject({
-        Bucket: AWS_S3_UPLOAD_BUCKET_NAME,
-        Key: key,
-      })
-      .promise();
+  const response = await s3
+    .getObject({
+      Bucket: AWS_S3_UPLOAD_BUCKET_NAME,
+      Key: key,
+    })
+    .promise();
 
-    return response.Body || null;
-  } catch (err) {
-    Logger.error("Error getting file buffer from S3", err, {
-      key,
-    });
+  if (response.Body) {
+    return response.Body as Blob;
   }
 
-  return null;
+  throw new Error("Error getting file buffer from S3");
 };
