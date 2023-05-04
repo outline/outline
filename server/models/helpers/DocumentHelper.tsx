@@ -298,7 +298,7 @@ export default class DocumentHelper {
    *
    * @param text The text either html or markdown which contains urls to be converted
    * @param teamId The team context
-   * @param expiresIn The time that signed urls should expire in (ms)
+   * @param expiresIn The time that signed urls should expire (in seconds)
    * @returns The replaced text
    */
   static async attachmentsToSignedUrls(

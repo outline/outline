@@ -158,12 +158,12 @@ export const deleteFromS3 = (key: string) =>
     })
     .promise();
 
-export const getSignedUrl = async (key: string, expiresInMs = 60) => {
+export const getSignedUrl = async (key: string, expiresIn = 60) => {
   const isDocker = AWS_S3_UPLOAD_BUCKET_URL.match(/http:\/\/s3:/);
   const params = {
     Bucket: AWS_S3_UPLOAD_BUCKET_NAME,
     Key: key,
-    Expires: expiresInMs,
+    Expires: expiresIn,
     ResponseContentDisposition: "attachment",
   };
 
