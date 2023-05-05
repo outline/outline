@@ -7,11 +7,11 @@ import BaseSchema from "../BaseSchema";
 export const CronSchema = BaseSchema.extend({
   body: z.object({
     token: z.string().optional(),
-    limit: z.number().gt(0).default(500),
+    limit: z.coerce.number().gt(0).default(500),
   }),
   query: z.object({
     token: z.string().optional(),
-    limit: z.number().gt(0).default(500),
+    limit: z.coerce.number().gt(0).default(500),
   }),
 }).superRefine((req, ctx) => {
   if (isEmpty(req.body.token) && isEmpty(req.query.token)) {

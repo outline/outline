@@ -20,6 +20,17 @@ describe("POST /api/cron.daily", () => {
     expect(res.status).toEqual(400);
     expect(body.message).toBe("invalid token");
   });
+
+  it("should validate limit", async () => {
+    const res = await server.post("/api/cron.daily", {
+      body: {
+        limit: -1,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toBe("limit: Number must be greater than 0");
+  });
 });
 
 describe("GET /api/cron.daily", () => {
@@ -35,5 +46,12 @@ describe("GET /api/cron.daily", () => {
     const body = await res.json();
     expect(res.status).toEqual(400);
     expect(body.message).toBe("invalid token");
+  });
+
+  it("should validate limit", async () => {
+    const res = await server.get("/api/cron.daily?limit=-1");
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toBe("limit: Number must be greater than 0");
   });
 });
