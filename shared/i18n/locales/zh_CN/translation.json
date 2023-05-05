@@ -346,6 +346,7 @@
   "Delete group": "刪除群組",
   "Group options": "分组选项",
   "Member options": "成员选项",
+  "Leave": "Leave",
   "New child document": "新建子文档",
   "New document in <em>{{ collectionName }}</em>": "在 <em>{{ collectionName }}</em> 中新建文档",
   "New template": "新建模板",
