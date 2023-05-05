@@ -346,6 +346,7 @@
   "Delete group": "Xóa nhóm",
   "Group options": "Tùy chọn nhóm",
   "Member options": "Tùy chọn thành viên",
+  "Leave": "Leave",
   "New child document": "Tài liệu con mới",
   "New document in <em>{{ collectionName }}</em>": "Tài liệu mới trong <em>{{ collectionName }}</em>",
   "New template": "Mẫu mới",
