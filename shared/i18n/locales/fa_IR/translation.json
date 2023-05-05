@@ -346,6 +346,7 @@
   "Delete group": "حذف گروه",
   "Group options": "گزینه‌های گروه",
   "Member options": "گزینه‌های اعضا",
+  "Leave": "Leave",
   "New child document": "سند فرزند جدید",
   "New document in <em>{{ collectionName }}</em>": "سند جدید در <em>{{ collectionName }}</em>",
   "New template": "قالب جدید",
