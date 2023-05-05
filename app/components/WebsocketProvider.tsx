@@ -377,15 +377,29 @@ class WebsocketProvider extends React.Component<Props> {
     // or otherwise just remove any membership state we have for that user.
     this.socket.on(
       "collections.remove_user",
-      action((event: WebsocketCollectionUserEvent) => {
+      async (event: WebsocketCollectionUserEvent) => {
         if (auth.user && event.userId === auth.user.id) {
-          collections.remove(event.collectionId);
-          memberships.removeCollectionMemberships(event.collectionId);
+          // check if we still have access to the collection
+          try {
+            await collections.fetch(event.collectionId, {
+              force: true,
+            });
+          } catch (err) {
+            if (
+              err instanceof AuthorizationError ||
+              err instanceof NotFoundError
+            ) {
+              collections.remove(event.collectionId);
+              memberships.remove(`${event.userId}-${event.collectionId}`);
+              return;
+            }
+          }
+
           documents.removeCollectionDocuments(event.collectionId);
         } else {
           memberships.remove(`${event.userId}-${event.collectionId}`);
         }
-      })
+      }
     );
 
     this.socket.on(

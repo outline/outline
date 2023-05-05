@@ -60,7 +60,7 @@ const MemberListItem = ({
           )}
           {canEdit && (
             <>
-              {onRemove && <MemberMenu onRemove={onRemove} />}
+              {onRemove && <MemberMenu user={user} onRemove={onRemove} />}
               {onAdd && (
                 <Button onClick={onAdd} neutral>
                   {t("Add")}
