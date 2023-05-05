@@ -13,8 +13,9 @@ import {
 import {
   publicS3Endpoint,
   deleteFromS3,
-  getFileByKey,
+  getFileStream,
   getSignedUrl,
+  getFileBuffer,
 } from "@server/utils/s3";
 import Document from "./Document";
 import Team from "./Team";
@@ -75,7 +76,14 @@ class Attachment extends IdModel {
    * Get the contents of this attachment as a readable stream.
    */
   get stream() {
-    return getFileByKey(this.key);
+    return getFileStream(this.key);
+  }
+
+  /**
+   * Get the contents of this attachment as a buffer.
+   */
+  get buffer() {
+    return getFileBuffer(this.key);
   }
 
   /**
