@@ -75,6 +75,9 @@ allow(User, "share", Collection, (user, collection) => {
   if (!collection.sharing) {
     return false;
   }
+  if (!collection.isPrivate && user.isAdmin) {
+    return true;
+  }
 
   if (
     collection.permission !== CollectionPermission.ReadWrite ||
@@ -108,6 +111,10 @@ allow(
   (user, collection) => {
     if (!collection || user.teamId !== collection.teamId) {
       return false;
+    }
+
+    if (!collection.isPrivate && user.isAdmin) {
+      return true;
     }
 
     if (

@@ -32,6 +32,23 @@ describe("admin", () => {
     expect(abilities.read).toEqual(true);
     expect(abilities.update).toEqual(true);
   });
+
+  it("should allow updating documents in view only collection", async () => {
+    const team = await buildTeam();
+    const user = await buildAdmin({
+      teamId: team.id,
+    });
+    const collection = await buildCollection({
+      teamId: team.id,
+      permission: CollectionPermission.Read,
+    });
+    const abilities = serialize(user, collection);
+    expect(abilities.readDocument).toEqual(true);
+    expect(abilities.createDocument).toEqual(true);
+    expect(abilities.share).toEqual(true);
+    expect(abilities.read).toEqual(true);
+    expect(abilities.update).toEqual(true);
+  });
 });
 
 describe("member", () => {
