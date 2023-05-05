@@ -67,6 +67,7 @@ export default class Mention extends Suggestion {
           "data-type": node.attrs.type,
           "data-id": node.attrs.modelId,
           "data-actorId": node.attrs.actorId,
+          "data-url": `mention://${node.attrs.id}/${node.attrs.type}/${node.attrs.modelId}`,
         },
         node.attrs.label,
       ],
