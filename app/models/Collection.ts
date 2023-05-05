@@ -165,7 +165,7 @@ export default class Collection extends ParanoidModel {
   @action
   removeDocument(documentId: string) {
     if (!this.documents) {
-      throw new Error("Collection documents not loaded");
+      return;
     }
 
     this.documents = this.documents.filter(function f(node): boolean {
