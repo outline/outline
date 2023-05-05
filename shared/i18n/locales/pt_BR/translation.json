@@ -346,6 +346,7 @@
   "Delete group": "Remover grupo",
   "Group options": "Opções do grupo",
   "Member options": "Opções do membro",
+  "Leave": "Leave",
   "New child document": "Novo documento filho",
   "New document in <em>{{ collectionName }}</em>": "Novo documento em <em>{{ collectionName }}</em>",
   "New template": "Novo modelo",
