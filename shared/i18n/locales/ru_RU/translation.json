@@ -346,6 +346,7 @@
   "Delete group": "Удалить группу",
   "Group options": "Параметры группы",
   "Member options": "Параметры участников",
+  "Leave": "Leave",
   "New child document": "Новый вложенный документ",
   "New document in <em>{{ collectionName }}</em>": "Новый документ в <em>{{ collectionName }}</em>",
   "New template": "Новый шаблон",
