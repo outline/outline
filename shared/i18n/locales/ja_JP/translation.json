@@ -346,6 +346,7 @@
   "Delete group": "グループを削除",
   "Group options": "グループのオプション",
   "Member options": "メンバーのオプション",
+  "Leave": "Leave",
   "New child document": "新規子ドキュメント",
   "New document in <em>{{ collectionName }}</em>": "<em>{{ collectionName }}</em> の新規ドキュメント",
   "New template": "新規テンプレート",
