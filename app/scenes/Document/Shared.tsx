@@ -7,12 +7,13 @@ import { RouteComponentProps, useLocation, Redirect } from "react-router-dom";
 import styled, { ThemeProvider } from "styled-components";
 import { setCookie } from "tiny-cookie";
 import { s } from "@shared/styles";
-import { CustomTheme, NavigationNode } from "@shared/types";
+import { NavigationNode, PublicTeam } from "@shared/types";
 import DocumentModel from "~/models/Document";
 import Error404 from "~/scenes/Error404";
 import ErrorOffline from "~/scenes/ErrorOffline";
 import Layout from "~/components/Layout";
 import Sidebar from "~/components/Sidebar/Shared";
+import { TeamContext } from "~/components/TeamContext";
 import Text from "~/components/Text";
 import env from "~/env";
 import useBuildTheme from "~/hooks/useBuildTheme";
@@ -29,11 +30,7 @@ const EMPTY_OBJECT = {};
 
 type Response = {
   document: DocumentModel;
-  team?: {
-    name: string;
-    avatarUrl: string;
-    customTheme?: Partial<CustomTheme>;
-  };
+  team?: PublicTeam;
   sharedTree?: NavigationNode | undefined;
 };
 
@@ -166,14 +163,6 @@ function SharedDocumentScene(props: Props) {
     return <Redirect to={response.document.url} />;
   }
 
-  const sidebar = response.sharedTree?.children.length ? (
-    <Sidebar
-      rootNode={response.sharedTree}
-      team={response.team}
-      shareId={shareId}
-    />
-  ) : undefined;
-
   return (
     <>
       <Helmet>
@@ -182,17 +171,26 @@ function SharedDocumentScene(props: Props) {
           href={canonicalOrigin + location.pathname.replace(/\/$/, "")}
         />
       </Helmet>
-      <ThemeProvider theme={theme}>
-        <Layout title={response.document.title} sidebar={sidebar}>
-          <Document
-            abilities={EMPTY_OBJECT}
-            document={response.document}
-            sharedTree={response.sharedTree}
-            shareId={shareId}
-            readOnly
-          />
-        </Layout>
-      </ThemeProvider>
+      <TeamContext.Provider value={response.team}>
+        <ThemeProvider theme={theme}>
+          <Layout
+            title={response.document.title}
+            sidebar={
+              response.sharedTree?.children.length ? (
+                <Sidebar rootNode={response.sharedTree} shareId={shareId} />
+              ) : undefined
+            }
+          >
+            <Document
+              abilities={EMPTY_OBJECT}
+              document={response.document}
+              sharedTree={response.sharedTree}
+              shareId={shareId}
+              readOnly
+            />
+          </Layout>
+        </ThemeProvider>
+      </TeamContext.Provider>
     </>
   );
 }

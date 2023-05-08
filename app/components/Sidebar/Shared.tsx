@@ -8,7 +8,7 @@ import SearchPopover from "~/components/SearchPopover";
 import useStores from "~/hooks/useStores";
 import history from "~/utils/history";
 import { homePath, sharedDocumentPath } from "~/utils/routeHelpers";
-import { IAvatar } from "../Avatar/Avatar";
+import { useTeamContext } from "../TeamContext";
 import TeamLogo from "../TeamLogo";
 import Sidebar from "./Sidebar";
 import HeaderButton from "./components/HeaderButton";
@@ -16,12 +16,12 @@ import Section from "./components/Section";
 import DocumentLink from "./components/SharedDocumentLink";
 
 type Props = {
-  team?: IAvatar & { name: string };
   rootNode: NavigationNode;
   shareId: string;
 };
 
-function SharedSidebar({ rootNode, team, shareId }: Props) {
+function SharedSidebar({ rootNode, shareId }: Props) {
+  const team = useTeamContext();
   const { ui, documents, auth } = useStores();
   const { t } = useTranslation();
 

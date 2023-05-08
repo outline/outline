@@ -5,7 +5,7 @@ import { Context, Next } from "koa";
 import { escape } from "lodash";
 import { Sequelize } from "sequelize";
 import isUUID from "validator/lib/isUUID";
-import { IntegrationType } from "@shared/types";
+import { IntegrationType, TeamPreference } from "@shared/types";
 import documentLoader from "@server/commands/documentLoader";
 import env from "@server/env";
 import { Integration } from "@server/models";
@@ -49,6 +49,7 @@ export const renderApp = async (
     title?: string;
     description?: string;
     canonical?: string;
+    shortcutIcon?: string;
     analytics?: Integration | null;
   } = {}
 ) => {
@@ -56,6 +57,7 @@ export const renderApp = async (
     title = env.APP_NAME,
     description = "A modern team knowledge base for your internal documentation, product specs, support answers, meeting notes, onboarding, &amp; more…",
     canonical = "",
+    shortcutIcon = `${env.CDN_URL || ""}/images/favicon-32.png`,
   } = options;
 
   if (ctx.request.path === "/realtime/") {
@@ -91,6 +93,7 @@ export const renderApp = async (
     .replace(/\{title\}/g, escape(title))
     .replace(/\{description\}/g, escape(description))
     .replace(/\{canonical-url\}/g, canonical)
+    .replace(/\{shortcut-icon\}/g, shortcutIcon)
     .replace(/\{prefetch\}/g, shareId ? "" : prefetchTags)
     .replace(/\{slack-app-id\}/g, env.SLACK_APP_ID || "")
     .replace(/\{cdn-url\}/g, env.CDN_URL || "")
@@ -102,10 +105,10 @@ export const renderShare = async (ctx: Context, next: Next) => {
   // Find the share record if publicly published so that the document title
   // can be be returned in the server-rendered HTML. This allows it to appear in
   // unfurls with more reliablity
-  let share, document, analytics;
+  let share, document, team, analytics;
 
   try {
-    const team = await getTeamFromContext(ctx);
+    team = await getTeamFromContext(ctx);
     const result = await documentLoader({
       id: documentSlug,
       shareId,
@@ -146,6 +149,10 @@ export const renderShare = async (ctx: Context, next: Next) => {
   return renderApp(ctx, next, {
     title: document?.title,
     description: document?.getSummary(),
+    shortcutIcon:
+      team?.getPreference(TeamPreference.PublicBranding) && team.avatarUrl
+        ? team.avatarUrl
+        : undefined,
     analytics,
     canonical: share
       ? `${share.canonicalUrl}${documentSlug && document ? document.url : ""}`
