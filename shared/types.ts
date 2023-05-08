@@ -119,6 +119,12 @@ export type CustomTheme = {
   accentText: string;
 };
 
+export type PublicTeam = {
+  avatarUrl: string;
+  name: string;
+  customTheme: Partial<CustomTheme>;
+};
+
 export enum TeamPreference {
   /** Whether documents have a separate edit mode instead of seamless editing. */
   SeamlessEdit = "seamlessEdit",
