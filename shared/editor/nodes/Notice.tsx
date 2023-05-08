@@ -73,6 +73,20 @@ export default class Notice extends Node {
               : undefined,
           }),
         },
+        // Confluence parsing
+        {
+          tag: "div.confluence-information-macro",
+          preserveWhitespace: "full",
+          getAttrs: (dom: HTMLDivElement) => ({
+            style: dom.className.includes("confluence-information-macro-tip")
+              ? "success"
+              : dom.className.includes("confluence-information-macro-note")
+              ? "tip"
+              : dom.className.includes("confluence-information-macro-warning")
+              ? "warning"
+              : undefined,
+          }),
+        },
       ],
       toDOM: (node) => {
         let icon, actions;
