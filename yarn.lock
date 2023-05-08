@@ -3223,13 +3223,12 @@
     "@types/prosemirror-state" "*"
     "@types/prosemirror-view" "*"
 
-"@types/prosemirror-markdown@^1.0.3":
-  version "1.5.6"
-  resolved "https://registry.yarnpkg.com/@types/prosemirror-markdown/-/prosemirror-markdown-1.5.6.tgz#f985cec020ff37adcc2b490536adb4f82985dfae"
-  integrity sha512-Zm2YvkDsOrvvTct6GxTHAOQ/eAMwmeUMWoyyS1meNqdM3QHmp+mHln03tTAZKd6iRu1WbIKwHzTz/Mhof3C54Q==
+"@types/prosemirror-markdown@^1.9.0":
+  version "1.9.0"
+  resolved "https://registry.yarnpkg.com/@types/prosemirror-markdown/-/prosemirror-markdown-1.9.0.tgz#c696fa10541a6870fed8fe681cf9757469ec34ba"
+  integrity sha512-6ghbzhx/JshByvYfqQmknSkth03Pf+78TGLB555kTnL6AxuJeL2zOx1EAg6kVRSFv6eckLt1dZs984ioWeD9Bg==
   dependencies:
-    "@types/markdown-it" "*"
-    "@types/prosemirror-model" "*"
+    prosemirror-markdown "*"
 
 "@types/prosemirror-model@*", "@types/prosemirror-model@^1.7.2":
   version "1.16.0"
@@ -10731,10 +10730,10 @@ prosemirror-keymap@^1.0.0, prosemirror-keymap@^1.1.2, prosemirror-keymap@^1.1.5:
     prosemirror-state "^1.0.0"
     w3c-keyname "^2.2.0"
 
-prosemirror-markdown@^1.9.3:
-  version "1.9.3"
-  resolved "https://registry.yarnpkg.com/prosemirror-markdown/-/prosemirror-markdown-1.9.3.tgz#13615fdeea71b744cc7bbbc64480968c8b7a2cee"
-  integrity sha512-tPJ3jEUTF3C5m60m/Eq8Y3SW6d5av0Ll61HuK1NuDP+jXsFFywG2nw500+nn7GQi5lSXP3n1HQP9zd0fpmAlzw==
+prosemirror-markdown@*, prosemirror-markdown@^1.10.1:
+  version "1.10.1"
+  resolved "https://registry.yarnpkg.com/prosemirror-markdown/-/prosemirror-markdown-1.10.1.tgz#e20468201cda1916a6182686159398b242bb78ab"
+  integrity sha512-s7iaTLiX+qO5z8kF2NcMmy2T7mIlxzkS4Sp3vTKSYChPtbMpg6YxFkU0Y06rUg2WtKlvBu7v1bXzlGBkfjUWAA==
   dependencies:
     markdown-it "^13.0.1"
     prosemirror-model "^1.0.0"
