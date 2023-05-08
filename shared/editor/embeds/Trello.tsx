@@ -10,7 +10,7 @@ function Trello(props: Props) {
     return (
       <Frame
         width="316px"
-        height="158px"
+        height="141px"
         src={`https://trello.com/embed/card?id=${objectId}`}
         title={`Trello Card (${objectId})`}
       />
