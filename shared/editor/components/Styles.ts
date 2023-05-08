@@ -1222,6 +1222,10 @@ table {
     min-width: 100px;
   }
 
+  td .component-embed {
+    padding: 4px 0;
+  }
+
   .selectedCell {
     background: ${
       props.readOnly ? "inherit" : props.theme.tableSelectedBackground

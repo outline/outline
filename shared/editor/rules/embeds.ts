@@ -3,11 +3,7 @@ import Token from "markdown-it/lib/token";
 import { EmbedDescriptor } from "../embeds";
 
 function isParagraph(token: Token) {
-  return token.type === "paragraph_open";
-}
-
-function isInline(token: Token) {
-  return token.type === "inline" && token.level === 1;
+  return token?.type === "paragraph_open";
 }
 
 function isLinkOpen(token: Token) {
@@ -49,8 +45,8 @@ export default function linksToEmbeds(embeds: EmbedDescriptor[]) {
       let insideLink;
 
       for (let i = 0; i < tokens.length - 1; i++) {
-        // once we find an inline token look through it's children for links
-        if (isInline(tokens[i]) && isParagraph(tokens[i - 1])) {
+        // once we find a paragraph, look through it's children for links
+        if (isParagraph(tokens[i - 1])) {
           const tokenChildren = tokens[i].children || [];
 
           for (let j = 0; j < tokenChildren.length - 1; j++) {

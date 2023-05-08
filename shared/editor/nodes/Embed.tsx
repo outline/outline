@@ -126,7 +126,9 @@ export default class Embed extends Node {
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {
-    state.ensureNewLine();
+    if (!state.inTable) {
+      state.ensureNewLine();
+    }
     state.write(
       "[" +
         state.esc(node.attrs.href, false) +
@@ -134,7 +136,9 @@ export default class Embed extends Node {
         state.esc(node.attrs.href, false) +
         ")"
     );
-    state.write("\n\n");
+    if (!state.inTable) {
+      state.write("\n\n");
+    }
   }
 
   parseMarkdown() {
