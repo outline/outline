@@ -66,9 +66,7 @@ const Analytics: React.FC = ({ children }) => {
 
     const script = document.createElement("script");
     script.type = "text/javascript";
-    script.src = `https://www.googletagmanager.com/gtag/js?id=${measurementIds.join(
-      ","
-    )}`;
+    script.src = `https://www.googletagmanager.com/gtag/js?id=${measurementIds[0]}`;
     script.async = true;
     document.getElementsByTagName("head")[0]?.appendChild(script);
   }, []);
