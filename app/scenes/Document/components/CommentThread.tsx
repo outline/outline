@@ -143,7 +143,7 @@ function CommentThread({
       $focused={focused}
       $recessed={recessed}
       $dir={document.dir}
-      onPointerUp={handleClickThread}
+      onClick={handleClickThread}
     >
       {commentsInThread.map((comment, index) => {
         const firstOfAuthor =
@@ -192,7 +192,7 @@ function CommentThread({
         )}
       </ResizingHeightContainer>
       {!focused && !recessed && can.comment && (
-        <Reply onPointerDown={() => setAutoFocus(true)}>{t("Reply")}…</Reply>
+        <Reply onClick={() => setAutoFocus(true)}>{t("Reply")}…</Reply>
       )}
     </Thread>
   );
