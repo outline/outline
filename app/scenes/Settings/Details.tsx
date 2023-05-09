@@ -7,7 +7,7 @@ import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { ThemeProvider, useTheme } from "styled-components";
 import { buildDarkTheme, buildLightTheme } from "@shared/styles/theme";
-import { CustomTheme } from "@shared/types";
+import { CustomTheme, TeamPreference } from "@shared/types";
 import { getBaseDomain } from "@shared/utils/domains";
 import Button from "~/components/Button";
 import ButtonLink from "~/components/ButtonLink";
@@ -16,6 +16,7 @@ import Heading from "~/components/Heading";
 import Input from "~/components/Input";
 import InputColor from "~/components/InputColor";
 import Scene from "~/components/Scene";
+import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import env from "~/env";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -40,6 +41,9 @@ function Details() {
   );
   const [name, setName] = useState(team.name);
   const [subdomain, setSubdomain] = useState(team.subdomain);
+  const [publicBranding, setPublicBranding] = useState(
+    team.preferences?.publicBranding
+  );
   const [defaultCollectionId, setDefaultCollectionId] = useState<string | null>(
     team.defaultCollectionId
   );
@@ -65,6 +69,7 @@ function Details() {
           defaultCollectionId,
           preferences: {
             ...team.preferences,
+            publicBranding,
             customTheme,
           },
         });
@@ -83,6 +88,7 @@ function Details() {
       subdomain,
       defaultCollectionId,
       team.preferences,
+      publicBranding,
       customTheme,
       showToast,
       t,
@@ -214,6 +220,24 @@ function Details() {
               flex
             />
           </SettingRow>
+          {team.avatarUrl && (
+            <SettingRow
+              name={TeamPreference.PublicBranding}
+              label={t("Public branding")}
+              description={t(
+                "Show your team’s logo on public pages like login and shared documents."
+              )}
+            >
+              <Switch
+                id={TeamPreference.PublicBranding}
+                name={TeamPreference.PublicBranding}
+                checked={publicBranding}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
+                  setPublicBranding(event.target.checked)
+                }
+              />
+            </SettingRow>
+          )}
 
           <Heading as="h2">{t("Behavior")}</Heading>
 
