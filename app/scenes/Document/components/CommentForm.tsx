@@ -121,7 +121,6 @@ function CommentForm({
 
     setData(undefined);
     setForceRender((s) => ++s);
-    setInputFocused(false);
 
     const comment = new Comment(
       {
@@ -145,6 +144,11 @@ function CommentForm({
     comment.isNew = false;
     comment.createdById = user.id;
     comment.createdBy = user;
+
+    // re-focus the comment editor
+    setTimeout(() => {
+      editorRef.current?.focusAtStart();
+    }, 0);
   });
 
   const handleChange = (
