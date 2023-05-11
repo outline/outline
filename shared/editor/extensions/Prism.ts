@@ -41,6 +41,8 @@ export const LANGUAGES = {
   swift: "Swift",
   toml: "TOML",
   typescript: "TypeScript",
+  tsx: "TSX",
+  jsx: "JSX",
   vb: "Visual Basic",
   yaml: "YAML",
   zig: "Zig",
