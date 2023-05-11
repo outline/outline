@@ -19,6 +19,7 @@ import Fix from "./decorators/Fix";
 export enum UserCreatableIntegrationService {
   Diagrams = "diagrams",
   GoogleAnalytics = "google-analytics",
+  Iframely = "iframely",
 }
 
 @Scopes(() => ({
@@ -77,7 +78,7 @@ class Integration<T = unknown> extends IdModel {
 
   @ForeignKey(() => IntegrationAuthentication)
   @Column(DataType.UUID)
-  authenticationId: string;
+  authenticationId?: string | null;
 }
 
 export default Integration;
