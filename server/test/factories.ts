@@ -244,23 +244,26 @@ export async function buildIntegration(overrides: Partial<Integration> = {}) {
   const user = await buildUser({
     teamId: overrides.teamId,
   });
-  const authentication = await IntegrationAuthentication.create({
-    service: IntegrationService.Slack,
-    userId: user.id,
-    teamId: user.teamId,
-    token: "fake-access-token",
-    scopes: ["example", "scopes", "here"],
-  });
-  return Integration.create({
+  const integration = await Integration.create({
     service: IntegrationService.Slack,
     type: IntegrationType.Post,
     events: ["documents.update", "documents.publish"],
     settings: {
       serviceTeamId: "slack_team_id",
     },
-    authenticationId: authentication.id,
     ...overrides,
   });
+  const authentication = await IntegrationAuthentication.create({
+    service: IntegrationService.Slack,
+    userId: user.id,
+    teamId: user.teamId,
+    token: "fake-access-token",
+    scopes: ["example", "scopes", "here"],
+    integrationId: integration.id,
+  });
+
+  integration.authenticationId = authentication.id;
+  return integration.save();
 }
 
 export async function buildCollection(
