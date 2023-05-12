@@ -761,12 +761,18 @@ router.post(
   auth(),
   pagination(),
   async (ctx: APIContext) => {
+    const { includeListOnly } = ctx.request.body;
     const { user } = ctx.state.auth;
     const collectionIds = await user.collectionIds();
-    const where: WhereOptions<Collection> = {
-      teamId: user.teamId,
-      id: collectionIds,
-    };
+    const where: WhereOptions<Collection> =
+      includeListOnly && user.isAdmin
+        ? {
+            teamId: user.teamId,
+          }
+        : {
+            teamId: user.teamId,
+            id: collectionIds,
+          };
     const collections = await Collection.scope({
       method: ["withMembership", user.id],
     }).findAll({
