@@ -1023,7 +1023,8 @@ mark {
   &:after {
     content: attr(data-line-numbers);
     position: absolute;
-    left: 1em;
+    padding-left: 1em;
+    left: 0;
     top: calc(1px + 0.75em);
     width: calc(var(--line-number-gutter-width,0) * 1em + .25em);
     word-break: break-all;
@@ -1032,6 +1033,7 @@ mark {
     font-size: 13px;
     line-height: 1.4em;
     color: ${props.theme.textTertiary};
+    background: ${props.theme.codeBackground};
     text-align: right;
     font-variant-numeric: tabular-nums;
     user-select: none;
