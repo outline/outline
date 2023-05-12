@@ -1,6 +1,6 @@
 import { IntegrationService } from "@shared/types";
 import env from "@server/env";
-import { IntegrationAuthentication, SearchQuery } from "@server/models";
+import { SearchQuery } from "@server/models";
 import { buildDocument, buildIntegration } from "@server/test/factories";
 import { seed, getTestServer } from "@server/test/support";
 import * as Slack from "../slack";
@@ -14,10 +14,11 @@ const server = getTestServer();
 describe("#hooks.unfurl", () => {
   it("should return documents", async () => {
     const { user, document } = await seed();
-    await IntegrationAuthentication.create({
-      service: IntegrationService.Slack,
-      userId: user.id,
+    await buildIntegration({
+      auth: true,
       teamId: user.teamId,
+      userId: user.id,
+      service: IntegrationService.Slack,
       token: "",
     });
     const res = await server.post("/api/hooks.unfurl", {

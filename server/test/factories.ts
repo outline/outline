@@ -235,16 +235,24 @@ export async function buildInvite(overrides: Partial<User> = {}) {
   });
 }
 
-export async function buildIntegration(overrides: Partial<Integration> = {}) {
+export async function buildIntegration(
+  overrides: Partial<
+    Integration & IntegrationAuthentication & { auth: boolean }
+  > = {}
+) {
   if (!overrides.teamId) {
     const team = await buildTeam();
     overrides.teamId = team.id;
   }
 
-  const user = await buildUser({
-    teamId: overrides.teamId,
-  });
-  const integration = await Integration.create({
+  if (!overrides.userId) {
+    const user = await buildUser({
+      teamId: overrides.teamId,
+    });
+    overrides.userId = user.id;
+  }
+
+  let integration = await Integration.create({
     service: IntegrationService.Slack,
     type: IntegrationType.Post,
     events: ["documents.update", "documents.publish"],
@@ -253,17 +261,26 @@ export async function buildIntegration(overrides: Partial<Integration> = {}) {
     },
     ...overrides,
   });
-  const authentication = await IntegrationAuthentication.create({
-    service: IntegrationService.Slack,
-    userId: user.id,
-    teamId: user.teamId,
-    token: "fake-access-token",
-    scopes: ["example", "scopes", "here"],
-    integrationId: integration.id,
-  });
 
-  integration.authenticationId = authentication.id;
-  return integration.save();
+  if (overrides.auth) {
+    const authentication = await IntegrationAuthentication.create({
+      service: integration.service,
+      userId: integration.userId,
+      teamId: integration.teamId,
+      token: overrides.token ?? "fake-access-token",
+      scopes: overrides.scopes ?? ["example", "scopes", "here"],
+      integrationId: integration.id,
+    });
+
+    integration.authenticationId = authentication.id;
+    integration = await integration.save();
+
+    return Integration.scope("withAuthentication").findByPk(
+      integration.id
+    ) as Promise<Integration<unknown>>;
+  }
+
+  return integration;
 }
 
 export async function buildCollection(
