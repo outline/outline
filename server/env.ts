@@ -507,6 +507,12 @@ export class Environment {
     process.env.OIDC_USERNAME_CLAIM ?? "preferred_username";
 
   /**
+   * The OIDC profile field to use as the provider id. The default value is
+   * "sub".
+   */
+  public OIDC_PROVIDER_ID_CLAIM = process.env.OIDC_PROVIDER_ID_CLAIM ?? "sub";
+
+  /**
    * A space separated list of OIDC scopes to request. Defaults to "openid
    * profile email".
    */
