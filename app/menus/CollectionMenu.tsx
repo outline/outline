@@ -239,7 +239,7 @@ function CollectionMenu({
       {
         type: "button",
         title: `${t("Export")}…`,
-        visible: !!(collection && canUserInTeam.createExport),
+        visible: !!(collection && canUserInTeam.createExport && can.export),
         onClick: handleExport,
         icon: <ExportIcon />,
       },

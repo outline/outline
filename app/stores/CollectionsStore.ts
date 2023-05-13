@@ -1,5 +1,5 @@
 import invariant from "invariant";
-import { concat, find, last } from "lodash";
+import { concat, find, last, sortBy } from "lodash";
 import { computed, action } from "mobx";
 import {
   CollectionPermission,
@@ -50,9 +50,12 @@ export default class CollectionsStore extends BaseStore<Collection> {
   @computed
   get orderedData(): Collection[] {
     let collections = Array.from(this.data.values());
-    collections = collections.filter((collection) =>
-      collection.deletedAt ? false : true
-    );
+    collections = collections
+      .filter((collection) => !collection.deletedAt)
+      .filter(
+        (collection) =>
+          this.rootStore.policies.abilities(collection.id).readDocument
+      );
     return collections.sort((a, b) => {
       if (a.index === b.index) {
         return a.updatedAt > b.updatedAt ? -1 : 1;
@@ -60,6 +63,14 @@ export default class CollectionsStore extends BaseStore<Collection> {
 
       return a.index < b.index ? -1 : 1;
     });
+  }
+
+  @computed
+  get all(): Collection[] {
+    return sortBy(
+      Array.from(this.data.values()),
+      (collection) => collection.name
+    );
   }
 
   /**

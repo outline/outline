@@ -576,7 +576,7 @@ router.post(
     const collection = await Collection.scope({
       method: ["withMembership", user.id],
     }).findByPk(id);
-    authorize(user, "read", collection);
+    authorize(user, "export", collection);
 
     const fileOperation = await sequelize.transaction(async (transaction) =>
       collectionExporter({
