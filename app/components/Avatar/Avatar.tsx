@@ -4,6 +4,12 @@ import { s } from "@shared/styles";
 import useBoolean from "~/hooks/useBoolean";
 import Initials from "./Initials";
 
+export enum AvatarSize {
+  Small = 18,
+  Medium = 24,
+  Large = 32,
+}
+
 export interface IAvatar {
   avatarUrl: string | null;
   color?: string;
@@ -12,7 +18,7 @@ export interface IAvatar {
 }
 
 type Props = {
-  size: number;
+  size: AvatarSize;
   src?: string;
   icon?: React.ReactNode;
   model?: IAvatar;
@@ -50,7 +56,7 @@ function Avatar(props: Props) {
 }
 
 Avatar.defaultProps = {
-  size: 24,
+  size: AvatarSize.Medium,
 };
 
 const Relative = styled.div`

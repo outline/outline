@@ -33,7 +33,7 @@ const Text = styled.p<Props>`
       : "inherit"};
   font-weight: ${(props) =>
     props.weight === "bold"
-      ? "bold"
+      ? 500
       : props.weight === "normal"
       ? "normal"
       : "inherit"};

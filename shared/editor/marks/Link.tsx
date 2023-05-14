@@ -209,6 +209,7 @@ export default class Link extends Mark {
             const target = (event.target as HTMLElement)?.closest("a");
             if (
               target instanceof HTMLAnchorElement &&
+              this.editor.elementRef.current?.contains(target) &&
               !target.className.includes("ProseMirror-widget") &&
               (!view.editable || (view.editable && !view.hasFocus()))
             ) {

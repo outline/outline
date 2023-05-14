@@ -11,6 +11,7 @@ type Props = PopoverProps & {
   children: React.ReactNode;
   width?: number;
   shrink?: boolean;
+  flex?: boolean;
   tabIndex?: number;
   scrollable?: boolean;
 };
@@ -20,6 +21,7 @@ const Popover: React.FC<Props> = ({
   shrink,
   width = 380,
   scrollable = true,
+  flex,
   ...rest
 }) => {
   const isMobile = useMobile();
@@ -36,7 +38,12 @@ const Popover: React.FC<Props> = ({
 
   return (
     <ReakitPopover {...rest}>
-      <Contents $shrink={shrink} $width={width} $scrollable={scrollable}>
+      <Contents
+        $shrink={shrink}
+        $width={width}
+        $scrollable={scrollable}
+        $flex={flex}
+      >
         {children}
       </Contents>
     </ReakitPopover>
@@ -46,8 +53,10 @@ const Popover: React.FC<Props> = ({
 const Contents = styled.div<{
   $shrink?: boolean;
   $width?: number;
+  $flex?: boolean;
   $scrollable: boolean;
 }>`
+  display: ${(props) => (props.$flex ? "flex" : "block")};
   animation: ${fadeAndScaleIn} 200ms ease;
   transform-origin: 75% 0;
   background: ${s("menuBackground")};

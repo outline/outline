@@ -1,50 +1,47 @@
 import { observer } from "mobx-react";
-import { SubscribeIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
-import styled, { useTheme } from "styled-components";
+import styled from "styled-components";
 import Notification from "~/models/Notification";
-import Button from "~/components/Button";
-import Popover from "~/components/Popover";
 import useStores from "~/hooks/useStores";
+import Flex from "../Flex";
 import PaginatedList from "../PaginatedList";
 import Scrollable from "../Scrollable";
-import Tab from "../Tab";
-import Tabs from "../Tabs";
 import Text from "../Text";
 import NotificationListItem from "./NotificationListItem";
 
-function Notifications() {
+type Props = {
+  onRequestClose?: () => void;
+};
+
+function Notifications({ onRequestClose }: Props) {
   const { notifications } = useStores();
   const { t } = useTranslation();
 
   return (
-    <Wrapper>
-      <Text>{t("Notifications")}</Text>
-      <Tabs>
-        <Tab to="#" isActive={() => true}>
-          {t("Inbox")}
-        </Tab>
-        <Tab to="#" isActive={() => false}>
-          {t("Archive")}
-        </Tab>
-      </Tabs>
-      <Scrollable topShadow>
+    <Flex style={{ width: "100%" }} column>
+      <Header>
+        <Text weight="bold">{t("Notifications")}</Text>
+      </Header>
+      <Scrollable flex topShadow>
         <PaginatedList
           fetch={notifications.fetchPage}
           items={notifications.orderedData}
           renderItem={(item: Notification) => (
-            <NotificationListItem notification={item} />
+            <NotificationListItem
+              key={item.id}
+              notification={item}
+              onClick={onRequestClose}
+            />
           )}
         />
       </Scrollable>
-    </Wrapper>
+    </Flex>
   );
 }
 
-const Wrapper = styled.div`
-  height: 100%;
+const Header = styled(Flex)`
+  padding: 8px 12px;
 `;
 
 export default observer(Notifications);

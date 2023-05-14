@@ -86,8 +86,6 @@ function AppSidebar() {
                 />
               )}
             </OrganizationMenu>
-
-            <NotificationsButton />
           </Flex>
           <Scrollable flex shadow>
             <Section>
@@ -103,6 +101,7 @@ function AppSidebar() {
                 label={t("Search")}
                 exact={false}
               />
+              <NotificationsButton />
               {can.createDocument && (
                 <SidebarLink
                   to={draftsPath()}
