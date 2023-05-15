@@ -12629,10 +12629,10 @@ timers-ext@^0.1.7:
     es5-ext "~0.10.46"
     next-tick "1"
 
-tiny-cookie@^2.4.0:
-  version "2.4.0"
-  resolved "https://registry.yarnpkg.com/tiny-cookie/-/tiny-cookie-2.4.0.tgz#f2f2d4c2b1714cbb28ded23a7024e026c02b4a4a"
-  integrity sha512-MbXgqX1JwuaOgHWIM7KsEryxIHSpRchroXh/fy67mw2XLPvrpZvQ2j85zSf8bLpRhTztLnOtOkVSKytJPo1ATA==
+tiny-cookie@^2.4.1:
+  version "2.4.1"
+  resolved "https://registry.yarnpkg.com/tiny-cookie/-/tiny-cookie-2.4.1.tgz#3adb7c360b607b0c5e2ab29503b4d93b02d04737"
+  integrity sha512-h8ueaMyvUd/9ZfRqCfa1t+0tXqfVFhdK8WpLHz8VXMqsiaj3Sqg64AOCH/xevLQGZk0ZV+/75ouITdkvp3taVA==
 
 tiny-glob@^0.2.9:
   version "0.2.9"
