@@ -94,7 +94,7 @@
     "email-providers": "^1.13.1",
     "emoji-regex": "^10.2.1",
     "es6-error": "^4.1.1",
-    "fetch-retry": "^5.0.3",
+    "fetch-retry": "^5.0.5",
     "fetch-with-proxy": "^3.0.1",
     "focus-visible": "^5.2.0",
     "fractional-index": "^1.0.0",
