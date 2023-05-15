@@ -81,6 +81,7 @@ export enum IntegrationService {
   Diagrams = "diagrams",
   Slack = "slack",
   GoogleAnalytics = "google-analytics",
+  Iframely = "iframely",
 }
 
 export enum CollectionPermission {
@@ -101,7 +102,8 @@ export type IntegrationSettings<T> = T extends IntegrationType.Embed
       | { url: string }
       | { url: string; channel: string; channelId: string }
       | { serviceTeamId: string }
-      | { measurementId: string };
+      | { measurementId: string }
+      | undefined;
 
 export enum UserPreference {
   /** Whether reopening the app should redirect to the last viewed document. */
