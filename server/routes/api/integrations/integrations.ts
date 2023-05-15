@@ -35,7 +35,9 @@ router.post(
       };
     }
 
-    const integrations = await Integration.findAll({
+    const integrations = await Integration.scope([
+      "withAuthentication",
+    ]).findAll({
       where,
       order: [[sort, direction]],
       offset: ctx.state.pagination.offset,
@@ -44,7 +46,9 @@ router.post(
 
     ctx.body = {
       pagination: ctx.state.pagination,
-      data: integrations.map(presentIntegration),
+      data: integrations.map((integration) =>
+        presentIntegration(integration, { includeToken: user.isAdmin })
+      ),
     };
   }
 );
@@ -90,7 +94,7 @@ router.post(
     }
 
     ctx.body = {
-      data: presentIntegration(integration),
+      data: presentIntegration(integration, { includeToken: user.isAdmin }),
     };
   }
 );
@@ -157,7 +161,7 @@ router.post(
     await integration.save({ transaction });
 
     ctx.body = {
-      data: presentIntegration(integration),
+      data: presentIntegration(integration, { includeToken: user.isAdmin }),
     };
   }
 );

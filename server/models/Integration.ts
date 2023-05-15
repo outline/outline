@@ -28,7 +28,6 @@ export enum UserCreatableIntegrationService {
       {
         model: IntegrationAuthentication,
         as: "authentication",
-        required: true,
       },
     ],
   },

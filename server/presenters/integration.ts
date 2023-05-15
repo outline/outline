@@ -1,6 +1,13 @@
 import { Integration } from "@server/models";
 
-export default function presentIntegration(integration: Integration) {
+type Options = {
+  includeToken?: boolean;
+};
+
+export default function presentIntegration(
+  integration: Integration,
+  options?: Options
+) {
   return {
     id: integration.id,
     type: integration.type,
@@ -8,6 +15,10 @@ export default function presentIntegration(integration: Integration) {
     teamId: integration.teamId,
     collectionId: integration.collectionId,
     authenticationId: integration.authenticationId,
+    token:
+      options && options.includeToken && integration.authentication
+        ? integration.authentication.token
+        : undefined,
     service: integration.service,
     events: integration.events,
     settings: integration.settings,
