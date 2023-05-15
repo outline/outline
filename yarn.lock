@@ -1225,45 +1225,45 @@
     pako "^2.0.4"
     url-parse "^1.4.3"
 
-"@datadog/native-appsec@2.0.0":
-  version "2.0.0"
-  resolved "https://registry.yarnpkg.com/@datadog/native-appsec/-/native-appsec-2.0.0.tgz#ad65ba19bfd68e6b6c6cf64bb8ef55d099af8edc"
-  integrity sha512-XHARZ6MVgbnfOUO6/F3ZoZ7poXHJCNYFlgcyS2Xetuk9ITA5bfcooX2B2F7tReVB+RLJ+j8bsm0t55SyF04KDw==
+"@datadog/native-appsec@^3.1.0":
+  version "3.1.0"
+  resolved "https://registry.yarnpkg.com/@datadog/native-appsec/-/native-appsec-3.1.0.tgz#967145398dbbc8e13b8e2baa76e0a55f0a1569ff"
+  integrity sha512-YSso/MWlphS5F0KDja42Oe5wGRL0CplremEf0fWE7OcoTQiHZKEPFtKAfT8bDQI+x8N4MRAVQGk4ew7AG2ICgQ==
   dependencies:
     node-gyp-build "^3.9.0"
 
-"@datadog/native-iast-rewriter@1.1.2":
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/@datadog/native-iast-rewriter/-/native-iast-rewriter-1.1.2.tgz#793cbf92d218ec80d645be0830023656b81018ea"
-  integrity sha512-pigRfRtAjZjMjqIXyXb98S4aDnuHz/EmqpoxAajFZsNjBLM87YonwSY5zoBdCsOyA46ddKOJRoCQd5ZalpOFMQ==
+"@datadog/native-iast-rewriter@2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@datadog/native-iast-rewriter/-/native-iast-rewriter-2.0.1.tgz#dc4a23796870f2d840053ae879c61547eda6bb89"
+  integrity sha512-Mm+FG3XxEbPrAfJQPOMHts7iZZXRvg9gnGeeFRGkyirmRcQcOpZO4wFe/8K61DUVa5pXpgAJQ2ZkBGYF1O9STg==
   dependencies:
     node-gyp-build "^4.5.0"
 
-"@datadog/native-iast-taint-tracking@1.1.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@datadog/native-iast-taint-tracking/-/native-iast-taint-tracking-1.1.0.tgz#8f7d0016157b32dbf5c01b15b8afb1c4286b4a18"
-  integrity sha512-TOrngpt6Qh52zWFOz1CkFXw0g43rnuUziFBtIMUsOLGzSHr9wdnTnE6HAyuvKy3f3ecAoZESlMfilGRKP93hXQ==
+"@datadog/native-iast-taint-tracking@^1.4.1":
+  version "1.4.1"
+  resolved "https://registry.yarnpkg.com/@datadog/native-iast-taint-tracking/-/native-iast-taint-tracking-1.4.1.tgz#e84198607230e0193d0d88f06c1f56d5938daf9e"
+  integrity sha512-wWJebnK5fADXGGwmoHi9ElMsvR/M4IZpRxBxzAfKU2WI1GRkCvSxQBhbIFUTQEuO7l6ZOpASWQ9yUXK3cx8n+w==
   dependencies:
     node-gyp-build "^3.9.0"
 
-"@datadog/native-metrics@^1.5.0":
-  version "1.5.0"
-  resolved "https://registry.yarnpkg.com/@datadog/native-metrics/-/native-metrics-1.5.0.tgz#e71b6b6d65f4bd58dfdffab2737890e8eef34584"
-  integrity sha512-K63XMDx74RLhOpM8I9GGZR9ft0CNNB/RkjYPLHcVGvVnBR47zmWE2KFa7Yrtzjbk73+88PXI4nzqLyR3PJsaIQ==
+"@datadog/native-metrics@^2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@datadog/native-metrics/-/native-metrics-2.0.0.tgz#65bf03313ee419956361e097551db36173e85712"
+  integrity sha512-YklGVwUtmKGYqFf1MNZuOHvTYdKuR4+Af1XkWcMD8BwOAjxmd9Z+97328rCOY8TFUJzlGUPaXzB8j2qgG/BMwA==
   dependencies:
+    node-addon-api "^6.1.0"
     node-gyp-build "^3.9.0"
 
-"@datadog/pprof@^1.1.1":
-  version "1.1.1"
-  resolved "https://registry.yarnpkg.com/@datadog/pprof/-/pprof-1.1.1.tgz#17e86035140523ac3a96f3662e5dd29822042d61"
-  integrity sha512-5lYXUpikQhrJwzODtJ7aFM0oKmPccISnTCecuWhjxIj4/7UJv0DamkLak634bgEW+kiChgkKFDapHSesuXRDXQ==
+"@datadog/pprof@^2.2.1":
+  version "2.2.1"
+  resolved "https://registry.yarnpkg.com/@datadog/pprof/-/pprof-2.2.1.tgz#405e39f354beeb0f53ffa248e03ea64b2e8d5549"
+  integrity sha512-kPxN9ADjajUEU1zRtVqLT/q5AP8Ge7S1R1UkpUlKOzNgBznFXmNzhTtQqGhB8ew6LPssfIQTDVd/rBIcJvuMOw==
   dependencies:
     delay "^5.0.0"
-    findit2 "^2.2.3"
     node-gyp-build "^3.9.0"
     p-limit "^3.1.0"
     pify "^5.0.0"
-    protobufjs "^7.0.0"
+    pprof-format "^2.0.6"
     source-map "^0.7.3"
     split "^1.0.1"
 
@@ -5569,21 +5569,21 @@ date-fns@^2.28.0, date-fns@^2.29.1, date-fns@^2.30.0:
   dependencies:
     "@babel/runtime" "^7.21.0"
 
-dd-trace@^3.14.1:
-  version "3.14.1"
-  resolved "https://registry.yarnpkg.com/dd-trace/-/dd-trace-3.14.1.tgz#db1de48abc52202edba5dd5c2c8580141d2c3e7c"
-  integrity sha512-s77EQ+LtrguMg1fs0TaO/JgCZfVS/OSBShDYfRSNm5bQdlfQL0YUSizPNpWTLB6cc9AHNA2sSGtOcQsY2xTFfA==
+dd-trace@^3.21.0:
+  version "3.21.0"
+  resolved "https://registry.yarnpkg.com/dd-trace/-/dd-trace-3.21.0.tgz#01f72be668d8cfe01490a969eed39f312ed977dd"
+  integrity sha512-c86ZIVihUlIWx5XvzQ8xikgNwT7+w+2PllY7NRYRrxbN6ZjIqdg7tTkoUYMaIo1bvpNBGtW2mRV7JN6b76PlhA==
   dependencies:
-    "@datadog/native-appsec" "2.0.0"
-    "@datadog/native-iast-rewriter" "1.1.2"
-    "@datadog/native-iast-taint-tracking" "1.1.0"
-    "@datadog/native-metrics" "^1.5.0"
-    "@datadog/pprof" "^1.1.1"
+    "@datadog/native-appsec" "^3.1.0"
+    "@datadog/native-iast-rewriter" "2.0.1"
+    "@datadog/native-iast-taint-tracking" "^1.4.1"
+    "@datadog/native-metrics" "^2.0.0"
+    "@datadog/pprof" "^2.2.1"
     "@datadog/sketches-js" "^2.1.0"
     crypto-randomuuid "^1.0.0"
     diagnostics_channel "^1.1.0"
     ignore "^5.2.0"
-    import-in-the-middle "^1.3.4"
+    import-in-the-middle "^1.3.5"
     ipaddr.js "^2.0.1"
     istanbul-lib-coverage "3.2.0"
     koalas "^1.0.2"
@@ -5600,7 +5600,7 @@ dd-trace@^3.14.1:
     path-to-regexp "^0.1.2"
     protobufjs "^7.1.2"
     retry "^0.10.1"
-    semver "^5.5.0"
+    semver "^7.3.8"
 
 de-indent@^1.0.2:
   version "1.0.2"
@@ -6864,11 +6864,6 @@ find-yarn-workspace-root@^2.0.0:
   dependencies:
     micromatch "^4.0.2"
 
-findit2@^2.2.3:
-  version "2.2.3"
-  resolved "https://registry.yarnpkg.com/findit2/-/findit2-2.2.3.tgz#58a466697df8a6205cdfdbf395536b8bd777a5f6"
-  integrity sha1-WKRmaX34piBc39vzlVNri9d3pfY=
-
 flat-cache@^3.0.4:
   version "3.0.4"
   resolved "https://registry.yarnpkg.com/flat-cache/-/flat-cache-3.0.4.tgz#61b0338302b2fe9f957dcc32fc2a87f1c3048b11"
@@ -7705,10 +7700,10 @@ import-fresh@^3.0.0, import-fresh@^3.2.1:
     parent-module "^1.0.0"
     resolve-from "^4.0.0"
 
-import-in-the-middle@^1.3.4:
-  version "1.3.4"
-  resolved "https://registry.yarnpkg.com/import-in-the-middle/-/import-in-the-middle-1.3.4.tgz#7074bbd4e84e8cdafd1eae400b04e6fe252a0768"
-  integrity sha512-TUXqqEFacJ2DWAeYOhHwGZTMJtFxFVw0C1pYA+AXmuWXZGnBqUhHdtVrSkSbW5D7k2yriBG45j23iH9TRtI+bQ==
+import-in-the-middle@^1.3.5:
+  version "1.3.5"
+  resolved "https://registry.yarnpkg.com/import-in-the-middle/-/import-in-the-middle-1.3.5.tgz#78384fbcfc7c08faf2b1f61cb94e7dd25651df9c"
+  integrity sha512-yzHlBqi1EBFrkieAnSt8eTgO5oLSl+YJ7qaOpUH/PMqQOMZoQ/RmDlwnTLQrwYto+gHYjRG+i/IbsB1eDx32NQ==
   dependencies:
     module-details-from-path "^1.0.3"
 
@@ -9801,6 +9796,11 @@ node-abort-controller@^3.0.1:
   resolved "https://registry.yarnpkg.com/node-abort-controller/-/node-abort-controller-3.1.1.tgz#a94377e964a9a37ac3976d848cb5c765833b8548"
   integrity sha512-AGK2yQKIjRuqnc6VkX2Xj5d+QW8xZ87pa1UK6yA6ouUyuxfHuMP6umE5QK7UmTeOAymo+Zx1Fxiuw9rVx8taHQ==
 
+node-addon-api@^6.1.0:
+  version "6.1.0"
+  resolved "https://registry.yarnpkg.com/node-addon-api/-/node-addon-api-6.1.0.tgz#ac8470034e58e67d0c6f1204a18ae6995d9c0d76"
+  integrity sha512-+eawOlIgy680F0kBzPUNFhMZGtJ1YmqM6l4+Crf4IkImjYrO/mqPwRMh352g23uIaQKFItcQ64I7KMaJxHgAVA==
+
 node-fetch@2.6.7, node-fetch@^2.1.2, node-fetch@^2.6.1, node-fetch@^2.6.7:
   version "2.6.7"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.6.7.tgz#24de9fba827e3b4ae44dc8b20256a379160052ad"
@@ -10579,6 +10579,11 @@ postinstall-postinstall@^2.1.0:
   resolved "https://registry.yarnpkg.com/postinstall-postinstall/-/postinstall-postinstall-2.1.0.tgz#4f7f77441ef539d1512c40bd04c71b06a4704ca3"
   integrity sha512-7hQX6ZlZXIoRiWNrbMQaLzUUfH+sSx39u8EJ9HYuDc1kLo9IXKWjM5RSquZN1ad5GnH8CGFM78fsAAQi3OKEEQ==
 
+pprof-format@^2.0.6:
+  version "2.0.7"
+  resolved "https://registry.yarnpkg.com/pprof-format/-/pprof-format-2.0.7.tgz#526e4361f8b37d16b2ec4bb0696b5292de5046a4"
+  integrity sha512-1qWaGAzwMpaXJP9opRa23nPnt2Egi7RMNoNBptEE/XwHbcn4fC2b/4U4bKc5arkGkIh2ZabpF2bEb+c5GNHEKA==
+
 prelude-ls@^1.2.1:
   version "1.2.1"
   resolved "https://registry.yarnpkg.com/prelude-ls/-/prelude-ls-1.2.1.tgz#debc6489d7a6e6b0e7611888cec880337d316396"
@@ -10808,7 +10813,7 @@ proto-list@~1.2.1:
   resolved "https://registry.yarnpkg.com/proto-list/-/proto-list-1.2.4.tgz#212d5bfe1318306a420f6402b8e26ff39647a849"
   integrity sha1-IS1b/hMYMGpCD2QCuOJv85ZHqEk=
 
-protobufjs@^7.0.0, protobufjs@^7.1.2:
+protobufjs@^7.1.2:
   version "7.1.2"
   resolved "https://registry.yarnpkg.com/protobufjs/-/protobufjs-7.1.2.tgz#a0cf6aeaf82f5625bffcf5a38b7cd2a7de05890c"
   integrity sha512-4ZPTPkXCdel3+L81yw3dG6+Kq3umdWKh7Dc7GW/CpNk4SX3hK58iPCWeCyhVTDrbkNeKrYNZ7EojM5WDaEWTLQ==
