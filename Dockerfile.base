@@ -1,8 +1,6 @@
 ARG APP_PATH=/opt/outline
 FROM node:18-alpine AS deps
 
-RUN apk --no-cache add curl
-
 ARG APP_PATH
 WORKDIR $APP_PATH
 COPY ./package.json ./yarn.lock ./
