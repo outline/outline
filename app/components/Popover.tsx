@@ -29,7 +29,7 @@ const Popover: React.FC<Props> = ({
   if (isMobile) {
     return (
       <Dialog {...rest} modal>
-        <Contents $shrink={shrink} $scrollable={scrollable}>
+        <Contents $shrink={shrink} $scrollable={scrollable} $flex={flex}>
           {children}
         </Contents>
       </Dialog>

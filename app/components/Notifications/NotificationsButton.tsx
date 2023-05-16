@@ -5,14 +5,18 @@ import { useTranslation } from "react-i18next";
 import { usePopoverState, PopoverDisclosure } from "reakit/Popover";
 import styled from "styled-components";
 import { depths } from "@shared/styles";
+import { DEFAULT_PAGINATION_LIMIT } from "~/stores/BaseStore";
 import Popover from "~/components/Popover";
 import useStores from "~/hooks/useStores";
+import Flex from "../Flex";
 import SidebarLink from "../Sidebar/components/SidebarLink";
+import Text from "../Text";
 import Notifications from "./Notifications";
 
 function NotificationsButton() {
-  const { ui } = useStores();
+  const { ui, notifications } = useStores();
   const { t } = useTranslation();
+  const { approximateUnreadCount } = notifications;
 
   const popover = usePopoverState({
     gutter: 0,
@@ -26,8 +30,20 @@ function NotificationsButton() {
       <PopoverDisclosure {...popover}>
         {(props) => (
           <SidebarLink
+            active={popover.visible}
             icon={<SubscribeIcon />}
-            label={t("Notifications")}
+            label={
+              <Flex align="center" justify="space-between">
+                {t("Notifications")}
+                {approximateUnreadCount > 0 ? (
+                  <Count size="xsmall" type="tertiary">
+                    {approximateUnreadCount === DEFAULT_PAGINATION_LIMIT
+                      ? DEFAULT_PAGINATION_LIMIT + "+"
+                      : approximateUnreadCount}
+                  </Count>
+                ) : null}
+              </Flex>
+            }
             {...props}
           />
         )}
@@ -45,6 +61,10 @@ function NotificationsButton() {
     </>
   );
 }
+
+const Count = styled(Text)`
+  margin: 0 4px;
+`;
 
 const StyledPopover = styled(Popover)`
   z-index: ${depths.menu};

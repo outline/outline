@@ -133,7 +133,7 @@ router.post(
     });
 
     ctx.body = {
-      data: presentNotification(notification),
+      data: await presentNotification(notification),
       policies: presentPolicies(user, [notification]),
     };
   }

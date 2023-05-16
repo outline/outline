@@ -2,8 +2,11 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { s } from "@shared/styles";
 import Notification from "~/models/Notification";
 import useStores from "~/hooks/useStores";
+import { Inner } from "../Button";
+import ButtonSmall from "../ButtonSmall";
 import Flex from "../Flex";
 import PaginatedList from "../PaginatedList";
 import Scrollable from "../Scrollable";
@@ -11,7 +14,7 @@ import Text from "../Text";
 import NotificationListItem from "./NotificationListItem";
 
 type Props = {
-  onRequestClose?: () => void;
+  onRequestClose: () => void;
 };
 
 function Notifications({ onRequestClose }: Props) {
@@ -20,8 +23,19 @@ function Notifications({ onRequestClose }: Props) {
 
   return (
     <Flex style={{ width: "100%" }} column>
-      <Header>
-        <Text weight="bold">{t("Notifications")}</Text>
+      <Header justify="space-between">
+        <Text weight="bold" as="span">
+          {t("Notifications")}
+        </Text>
+        {notifications.approximateUnreadCount > 0 && (
+          <StyledButtonSmall
+            neutral
+            borderOnHover
+            onClick={notifications.markAllAsRead}
+          >
+            Mark all as read
+          </StyledButtonSmall>
+        )}
       </Header>
       <Scrollable flex topShadow>
         <PaginatedList
@@ -31,7 +45,7 @@ function Notifications({ onRequestClose }: Props) {
             <NotificationListItem
               key={item.id}
               notification={item}
-              onClick={onRequestClose}
+              onNavigate={onRequestClose}
             />
           )}
         />
@@ -40,8 +54,15 @@ function Notifications({ onRequestClose }: Props) {
   );
 }
 
+const StyledButtonSmall = styled(ButtonSmall)`
+  ${Inner} {
+    color: ${s("textSecondary")};
+  }
+`;
+
 const Header = styled(Flex)`
-  padding: 8px 12px;
+  padding: 8px 18px 12px;
+  height: 44px;
 `;
 
 export default observer(Notifications);

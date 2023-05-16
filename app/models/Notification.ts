@@ -1,5 +1,5 @@
 import { TFunction } from "i18next";
-import { observable } from "mobx";
+import { action, observable } from "mobx";
 import { NotificationEventType } from "@shared/types";
 import {
   collectionPath,
@@ -19,11 +19,11 @@ class Notification extends BaseModel {
 
   @Field
   @observable
-  viewedAt: string;
+  viewedAt: Date | null;
 
   @Field
   @observable
-  archivedAt: string;
+  archivedAt: Date | null;
 
   actor: User;
 
@@ -37,8 +37,20 @@ class Notification extends BaseModel {
 
   event: NotificationEventType;
 
-  get subject() {
-    return this.document?.title;
+  @action
+  toggleRead() {
+    this.viewedAt = this.viewedAt ? null : new Date();
+    return this.save();
+  }
+
+  @action
+  markAsRead() {
+    if (this.viewedAt) {
+      return;
+    }
+
+    this.viewedAt = new Date();
+    return this.save();
   }
 
   eventText(t: TFunction): string {
@@ -58,6 +70,10 @@ class Notification extends BaseModel {
       default:
         return this.event;
     }
+  }
+
+  get subject() {
+    return this.document?.title;
   }
 
   get path() {

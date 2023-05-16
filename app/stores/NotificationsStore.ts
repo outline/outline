@@ -8,7 +8,7 @@ import BaseStore, { RPCAction } from "./BaseStore";
 import RootStore from "./RootStore";
 
 export default class NotificationsStore extends BaseStore<Notification> {
-  actions = [RPCAction.List];
+  actions = [RPCAction.List, RPCAction.Update];
 
   constructor(rootStore: RootStore) {
     super(rootStore, Notification);
@@ -35,6 +35,26 @@ export default class NotificationsStore extends BaseStore<Notification> {
       this.isFetching = false;
     }
   };
+
+  @action
+  markAllAsRead = async () => {
+    await client.post("/notifications.update_all", {
+      viewedAt: new Date(),
+    });
+
+    runInAction("NotificationsStore#markAllAsRead", () => {
+      const viewedAt = new Date();
+      this.data.forEach((notification) => {
+        notification.viewedAt = viewedAt;
+      });
+    });
+  };
+
+  @computed
+  get approximateUnreadCount(): number {
+    return this.orderedData.filter((notification) => !notification.viewedAt)
+      .length;
+  }
 
   @computed
   get orderedData(): Notification[] {

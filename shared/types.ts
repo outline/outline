@@ -171,6 +171,7 @@ export type CollectionSort = {
 export enum NotificationEventType {
   PublishDocument = "documents.publish",
   UpdateDocument = "documents.update",
+  CreateRevision = "revisions.create",
   CreateCollection = "collections.create",
   CreateComment = "comments.create",
   MentionedInDocument = "documents.mentioned",
