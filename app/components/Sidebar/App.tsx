@@ -65,28 +65,26 @@ function AppSidebar() {
         <DndProvider backend={HTML5Backend} options={html5Options}>
           <DragPlaceholder />
 
-          <Flex align="center" auto>
-            <OrganizationMenu>
-              {(props: HeaderButtonProps) => (
-                <HeaderButton
-                  {...props}
-                  title={team.name}
-                  image={
-                    <TeamLogo
-                      model={team}
-                      size={Desktop.hasInsetTitlebar() ? 24 : 32}
-                      alt={t("Logo")}
-                    />
-                  }
-                  style={
-                    // Move the logo over to align with smaller size
-                    Desktop.hasInsetTitlebar() ? { paddingLeft: 8 } : undefined
-                  }
-                  showDisclosure
-                />
-              )}
-            </OrganizationMenu>
-          </Flex>
+          <OrganizationMenu>
+            {(props: HeaderButtonProps) => (
+              <HeaderButton
+                {...props}
+                title={team.name}
+                image={
+                  <TeamLogo
+                    model={team}
+                    size={Desktop.hasInsetTitlebar() ? 24 : 32}
+                    alt={t("Logo")}
+                  />
+                }
+                style={
+                  // Move the logo over to align with smaller size
+                  Desktop.hasInsetTitlebar() ? { paddingLeft: 8 } : undefined
+                }
+                showDisclosure
+              />
+            )}
+          </OrganizationMenu>
           <Scrollable flex shadow>
             <Section>
               <SidebarLink
