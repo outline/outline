@@ -19,7 +19,9 @@ function NewChildDocumentMenu({ document, label }: Props) {
   });
   const { collections } = useStores();
   const { t } = useTranslation();
-  const collection = collections.get(document.collectionId);
+  const collection = document.collectionId
+    ? collections.get(document.collectionId)
+    : undefined;
   const collectionName = collection ? collection.name : t("collection");
 
   return (

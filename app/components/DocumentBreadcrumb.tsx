@@ -9,7 +9,12 @@ import Breadcrumb from "~/components/Breadcrumb";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import useStores from "~/hooks/useStores";
 import { MenuInternalLink } from "~/types";
-import { collectionUrl } from "~/utils/routeHelpers";
+import {
+  archivePath,
+  collectionPath,
+  templatesPath,
+  trashPath,
+} from "~/utils/routeHelpers";
 
 type Props = {
   document: Document;
@@ -24,7 +29,7 @@ function useCategory(document: Document): MenuInternalLink | null {
       type: "route",
       icon: <TrashIcon />,
       title: t("Trash"),
-      to: "/trash",
+      to: trashPath(),
     };
   }
 
@@ -33,7 +38,7 @@ function useCategory(document: Document): MenuInternalLink | null {
       type: "route",
       icon: <ArchiveIcon />,
       title: t("Archive"),
-      to: "/archive",
+      to: archivePath(),
     };
   }
 
@@ -42,7 +47,7 @@ function useCategory(document: Document): MenuInternalLink | null {
       type: "route",
       icon: <ShapesIcon />,
       title: t("Templates"),
-      to: "/templates",
+      to: templatesPath(),
     };
   }
 
@@ -57,7 +62,9 @@ const DocumentBreadcrumb: React.FC<Props> = ({
   const { collections } = useStores();
   const { t } = useTranslation();
   const category = useCategory(document);
-  const collection = collections.get(document.collectionId);
+  const collection = document.collectionId
+    ? collections.get(document.collectionId)
+    : undefined;
 
   let collectionNode: MenuInternalLink | undefined;
 
@@ -66,14 +73,14 @@ const DocumentBreadcrumb: React.FC<Props> = ({
       type: "route",
       title: collection.name,
       icon: <CollectionIcon collection={collection} expanded />,
-      to: collectionUrl(collection.url),
+      to: collectionPath(collection.url),
     };
   } else if (document.collectionId && !collection) {
     collectionNode = {
       type: "route",
       title: t("Deleted Collection"),
       icon: undefined,
-      to: collectionUrl("deleted-collection"),
+      to: collectionPath("deleted-collection"),
     };
   }
 

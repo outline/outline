@@ -87,7 +87,9 @@ export const seed = async () =>
       },
       { transaction }
     );
-    await document.publish(collection.createdById, { transaction });
+    await document.publish(collection.createdById, collection.id, {
+      transaction,
+    });
     await collection.reload({ transaction });
     return {
       user,

@@ -175,6 +175,7 @@ function Input(
     labelHidden,
     onFocus,
     onBlur,
+    children,
     ...rest
   } = props;
 
@@ -211,6 +212,7 @@ function Input(
               {...rest}
             />
           )}
+          {children}
         </Outline>
       </label>
       {error && (

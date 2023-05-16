@@ -414,6 +414,39 @@ describe("#users.update", () => {
     expect(body.data.name).toEqual("New name");
   });
 
+  it("should allow admin to update other user's profile info", async () => {
+    const admin = await buildAdmin();
+    const user = await buildUser({
+      teamId: admin.teamId,
+    });
+    const res = await server.post("/api/users.update", {
+      body: {
+        id: user.id,
+        token: admin.getJwtToken(),
+        name: "New name",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.name).toEqual("New name");
+    expect(body.data.avatarUrl).toBe(user.avatarUrl);
+  });
+
+  it("should disallow non-admin to update other user's profile info", async () => {
+    const actor = await buildUser();
+    const user = await buildUser({
+      teamId: actor.teamId,
+    });
+    const res = await server.post("/api/users.update", {
+      body: {
+        id: user.id,
+        token: actor.getJwtToken(),
+        name: "New name",
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
   it("should fail upon sending invalid user preference", async () => {
     const { user } = await seed();
     const res = await server.post("/api/users.update", {

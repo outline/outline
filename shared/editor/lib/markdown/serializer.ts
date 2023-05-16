@@ -366,16 +366,20 @@ export class MarkdownSerializerState {
       row.forEach((cell, _, j) => {
         this.out += j === 0 ? "| " : " | ";
 
-        cell.forEach((para) => {
+        cell.forEach((node) => {
           // just padding the output so that empty cells take up the same space
           // as headings.
           // TODO: Ideally we'd calc the longest cell length and use that
           // to pad all the others.
-          if (para.textContent === "" && para.content.size === 0) {
+          if (
+            node.textContent === "" &&
+            node.content.size === 0 &&
+            node.type.name === "paragraph"
+          ) {
             this.out += "  ";
           } else {
             this.closed = false;
-            this.render(para, row, j);
+            this.render(node, row, j);
           }
         });
 

@@ -15,6 +15,7 @@ import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import OutlineIcon from "~/components/Icons/OutlineIcon";
+import Input from "~/components/Input";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import PageTitle from "~/components/PageTitle";
 import TeamLogo from "~/components/TeamLogo";
@@ -34,11 +35,11 @@ function Header({ config }: { config?: Config | undefined }) {
   const { t } = useTranslation();
   const isSubdomain = !!config?.hostname;
 
-  if (
-    !isCloudHosted ||
-    parseDomain(window.location.origin).custom ||
-    Desktop.isElectron()
-  ) {
+  if (!isCloudHosted || parseDomain(window.location.origin).custom) {
+    return null;
+  }
+
+  if (Desktop.isElectron() && !isSubdomain) {
     return null;
   }
 
@@ -56,6 +57,8 @@ type Props = {
 function Login({ children }: Props) {
   const location = useLocation();
   const query = useQuery();
+  const notice = query.get("notice");
+
   const { t, i18n } = useTranslation();
   const { auth } = useStores();
   const { config } = auth;
@@ -72,6 +75,22 @@ function Login({ children }: Props) {
   }, []);
   const handleEmailSuccess = React.useCallback((email) => {
     setEmailLinkSentTo(email);
+  }, []);
+
+  const handleGoSubdomain = React.useCallback(async (event) => {
+    event.preventDefault();
+    const data = Object.fromEntries(new FormData(event.target));
+    const normalizedSubdomain = data.subdomain
+      .toString()
+      .toLowerCase()
+      .trim()
+      .replace(/^https?:\/\//, "");
+    const host = `https://${normalizedSubdomain}.getoutline.com`;
+    await Desktop.bridge.addCustomHost(host);
+
+    setTimeout(() => {
+      window.location.href = host;
+    }, 500);
   }, []);
 
   React.useEffect(() => {
@@ -155,6 +174,43 @@ function Login({ children }: Props) {
               "Your custom domain is successfully pointing at Outline. To complete the setup process please contact support."
             )}
           </Note>
+        </Centered>
+      </Background>
+    );
+  }
+
+  if (Desktop.isElectron() && notice === "domain-required") {
+    return (
+      <Background>
+        <Header config={config} />
+
+        <Centered
+          as="form"
+          onSubmit={handleGoSubdomain}
+          align="center"
+          justify="center"
+          column
+          auto
+        >
+          <Heading centered>{t("Choose workspace")}</Heading>
+          <Note>
+            {t(
+              "This login method requires choosing your workspace to continue"
+            )}
+            …
+          </Note>
+          <Flex>
+            <Input
+              name="subdomain"
+              style={{ textAlign: "right" }}
+              placeholder={t("subdomain")}
+            >
+              <Domain>.getoutline.com</Domain>
+            </Input>
+          </Flex>
+          <ButtonLarge type="submit" fullwidth>
+            {t("Continue")}
+          </ButtonLarge>
         </Centered>
       </Background>
     );
@@ -273,6 +329,11 @@ function Login({ children }: Props) {
 
 const StyledHeading = styled(Heading)`
   margin: 0;
+`;
+
+const Domain = styled.div`
+  color: ${s("textSecondary")};
+  padding: 0 8px 0 0;
 `;
 
 const CheckEmailIcon = styled(EmailIcon)`

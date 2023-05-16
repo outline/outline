@@ -85,7 +85,7 @@ export default class Comment extends Mark {
       new Plugin({
         props: {
           handleDOMEvents: {
-            mousedown: (view, event: MouseEvent) => {
+            mouseup: (view, event: MouseEvent) => {
               if (
                 !(event.target instanceof HTMLSpanElement) ||
                 !event.target.classList.contains("comment-marker")
@@ -95,8 +95,6 @@ export default class Comment extends Mark {
 
               const commentId = event.target.id.replace("comment-", "");
               if (commentId) {
-                event.preventDefault();
-                event.stopPropagation();
                 this.options?.onClickCommentMark?.(commentId);
               }
 

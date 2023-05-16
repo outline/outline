@@ -10,7 +10,7 @@ import Document from "~/models/Document";
 import DocumentMeta from "~/components/DocumentMeta";
 import Fade from "~/components/Fade";
 import useStores from "~/hooks/useStores";
-import { documentUrl, documentInsightsUrl } from "~/utils/routeHelpers";
+import { documentPath, documentInsightsPath } from "~/utils/routeHelpers";
 
 type Props = {
   /* The document to display meta data for */
@@ -32,16 +32,32 @@ function TitleDocumentMeta({ to, isDraft, document, ...rest }: Props) {
 
   const Wrapper = viewsLoadedOnMount.current ? React.Fragment : Fade;
 
-  const insightsUrl = documentInsightsUrl(document);
+  const insightsPath = documentInsightsPath(document);
   const commentsCount = comments.inDocument(document.id).length;
 
   return (
     <Meta document={document} to={to} replace {...rest}>
+      {team?.getPreference(TeamPreference.Commenting) && (
+        <>
+          &nbsp;•&nbsp;
+          <CommentLink
+            to={documentPath(document)}
+            onClick={() => ui.toggleComments(document.id)}
+          >
+            <CommentIcon size={18} />
+            {commentsCount
+              ? t("{{ count }} comment", { count: commentsCount })
+              : t("Comment")}
+          </CommentLink>
+        </>
+      )}
       {totalViewers && !isDraft ? (
         <Wrapper>
           &nbsp;•&nbsp;
           <Link
-            to={match.url === insightsUrl ? documentUrl(document) : insightsUrl}
+            to={
+              match.url === insightsPath ? documentPath(document) : insightsPath
+            }
           >
             {t("Viewed by")}{" "}
             {onlyYou
@@ -52,20 +68,6 @@ function TitleDocumentMeta({ to, isDraft, document, ...rest }: Props) {
           </Link>
         </Wrapper>
       ) : null}
-      {team?.getPreference(TeamPreference.Commenting) && (
-        <>
-          &nbsp;•&nbsp;
-          <CommentLink
-            to={documentUrl(document)}
-            onClick={() => ui.toggleComments(document.id)}
-          >
-            <CommentIcon size={18} />
-            {commentsCount
-              ? t("{{ count }} comment", { count: commentsCount })
-              : t("Comment")}
-          </CommentLink>
-        </>
-      )}
     </Meta>
   );
 }

@@ -16,7 +16,6 @@ import {
   IsIn,
   IsEmail,
   IsBoolean,
-  Contains,
   MaxLength,
 } from "class-validator";
 import { languages } from "@shared/i18n";
@@ -344,9 +343,8 @@ export class Environment {
   public RELEASE = this.toOptionalString(process.env.RELEASE);
 
   /**
-   * A Google Analytics tracking ID, supports only v3 properties.
+   * A Google Analytics tracking ID, supports v3 or v4 properties.
    */
-  @Contains("UA-")
   @IsOptional()
   public GOOGLE_ANALYTICS_ID = this.toOptionalString(
     process.env.GOOGLE_ANALYTICS_ID

@@ -200,14 +200,14 @@ function CollectionMenu({
       {
         type: "button",
         title: t("New document"),
-        visible: can.update,
+        visible: can.createDocument,
         onClick: handleNewDocument,
         icon: <NewDocumentIcon />,
       },
       {
         type: "button",
         title: t("Import document"),
-        visible: can.update,
+        visible: can.createDocument,
         onClick: handleImportDocument,
         icon: <ImportIcon />,
       },
@@ -239,7 +239,7 @@ function CollectionMenu({
       {
         type: "button",
         title: `${t("Export")}…`,
-        visible: !!(collection && canUserInTeam.createExport),
+        visible: !!(collection && canUserInTeam.createExport && can.export),
         onClick: handleExport,
         icon: <ExportIcon />,
       },
@@ -261,6 +261,7 @@ function CollectionMenu({
       collection,
       can.unstar,
       can.star,
+      can.createDocument,
       can.update,
       can.delete,
       handleStar,

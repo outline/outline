@@ -1,6 +1,5 @@
 import crypto from "crypto";
 import Router from "koa-router";
-import { has } from "lodash";
 import { Op, WhereOptions } from "sequelize";
 import { UserPreference } from "@shared/types";
 import { UserValidation } from "@shared/validations";
@@ -30,8 +29,6 @@ import {
   assertPresent,
   assertArray,
   assertUuid,
-  assertKeysIn,
-  assertBoolean,
 } from "@server/validation";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
@@ -197,47 +194,56 @@ router.post("users.info", auth(), async (ctx: APIContext) => {
   };
 });
 
-router.post("users.update", auth(), transaction(), async (ctx: APIContext) => {
-  const { auth, transaction } = ctx.state;
-  const { user } = auth;
-  const { name, avatarUrl, language, preferences } = ctx.request.body;
-  if (name) {
-    user.name = name;
-  }
-  if (avatarUrl) {
-    user.avatarUrl = avatarUrl;
-  }
-  if (language) {
-    user.language = language;
-  }
-  if (preferences) {
-    assertKeysIn(preferences, UserPreference);
+router.post(
+  "users.update",
+  auth(),
+  transaction(),
+  validate(T.UsersUpdateSchema),
+  async (ctx: APIContext<T.UsersUpdateReq>) => {
+    const { auth, transaction } = ctx.state;
+    const actor = auth.user;
+    const { id, name, avatarUrl, language, preferences } = ctx.input.body;
 
-    for (const value of Object.values(UserPreference)) {
-      if (has(preferences, value)) {
-        assertBoolean(preferences[value]);
-        user.setPreference(value, preferences[value]);
+    let user: User | null = actor;
+    if (id) {
+      user = await User.findByPk(id);
+    }
+    authorize(actor, "update", user);
+    const includeDetails = can(actor, "readDetails", user);
+
+    if (name) {
+      user.name = name;
+    }
+    if (avatarUrl) {
+      user.avatarUrl = avatarUrl;
+    }
+    if (language) {
+      user.language = language;
+    }
+    if (preferences) {
+      for (const key of Object.keys(preferences) as Array<UserPreference>) {
+        user.setPreference(key, preferences[key] as boolean);
       }
     }
-  }
-  await user.save({ transaction });
-  await Event.create(
-    {
-      name: "users.update",
-      actorId: user.id,
-      userId: user.id,
-      teamId: user.teamId,
-      ip: ctx.request.ip,
-    },
-    { transaction }
-  );
+    await user.save({ transaction });
+    await Event.create(
+      {
+        name: "users.update",
+        actorId: user.id,
+        userId: user.id,
+        teamId: user.teamId,
+        ip: ctx.request.ip,
+      },
+      { transaction }
+    );
 
-  ctx.body = {
-    data: presentUser(user, {
-      includeDetails: true,
-    }),
-  };
-});
+    ctx.body = {
+      data: presentUser(user, {
+        includeDetails,
+      }),
+    };
+  }
+);
 
 // Admin specific
 router.post("users.promote", auth(), async (ctx: APIContext) => {
@@ -348,8 +354,8 @@ router.post("users.activate", auth(), async (ctx: APIContext) => {
 
 router.post(
   "users.invite",
-  auth(),
   rateLimiter(RateLimiterStrategy.TenPerHour),
+  auth(),
   async (ctx: APIContext) => {
     const { invites } = ctx.request.body;
     assertArray(invites, "invites must be an array");
@@ -420,8 +426,8 @@ router.post(
 
 router.post(
   "users.requestDelete",
-  auth(),
   rateLimiter(RateLimiterStrategy.FivePerHour),
+  auth(),
   async (ctx: APIContext) => {
     const { user } = ctx.state.auth;
     authorize(user, "delete", user);
@@ -441,8 +447,8 @@ router.post(
 
 router.post(
   "users.delete",
-  auth(),
   rateLimiter(RateLimiterStrategy.TenPerHour),
+  auth(),
   async (ctx: APIContext) => {
     const { id, code = "" } = ctx.request.body;
     const actor = ctx.state.auth.user;

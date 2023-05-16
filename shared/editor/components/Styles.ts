@@ -575,7 +575,6 @@ h6 {
 .comment-marker {
   border-bottom: 2px solid ${transparentize(0.5, props.theme.brand.marine)};
   transition: background 100ms ease-in-out;
-  cursor: pointer;
   border-radius: 2px;
 
   &:hover {
@@ -651,9 +650,23 @@ h6 {
   }
 }
 
+.notice-block.success {
+  background: ${transparentize(0.9, props.theme.noticeSuccessBackground)};
+  border-left: 4px solid ${props.theme.noticeSuccessBackground};
+  color: ${props.theme.noticeSuccessText};
+
+  .icon {
+    color: ${props.theme.noticeSuccessBackground};
+  }
+
+  a {
+    color: ${props.theme.noticeSuccessText};
+  }
+}
+
 blockquote {
   margin: 0;
-  padding-left: 1.5em;
+  padding: 8px 10px 8px 1.5em;
   font-style: italic;
   overflow: hidden;
   position: relative;
@@ -1010,16 +1023,17 @@ mark {
   &:after {
     content: attr(data-line-numbers);
     position: absolute;
-    left: 1em;
+    padding-left: 1em;
+    left: 0;
     top: calc(1px + 0.75em);
     width: calc(var(--line-number-gutter-width,0) * 1em + .25em);
     word-break: break-all;
-    text-align: right;
-
+    white-space: break-spaces;
     font-family: ${props.theme.fontFamilyMono};
     font-size: 13px;
     line-height: 1.4em;
     color: ${props.theme.textTertiary};
+    background: ${props.theme.codeBackground};
     text-align: right;
     font-variant-numeric: tabular-nums;
     user-select: none;
@@ -1208,6 +1222,10 @@ table {
     padding: 4px 8px;
     text-align: ${props.rtl ? "right" : "left"};
     min-width: 100px;
+  }
+
+  td .component-embed {
+    padding: 4px 0;
   }
 
   .selectedCell {

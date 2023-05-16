@@ -175,7 +175,7 @@ class WebsocketProvider extends React.Component<Props> {
                 id: document.collectionId,
               });
 
-              if (!existing) {
+              if (!existing && document.collectionId) {
                 event.collectionIds.push({
                   id: document.collectionId,
                 });
@@ -196,7 +196,7 @@ class WebsocketProvider extends React.Component<Props> {
             }
 
             try {
-              await collections.fetch(collectionId, {
+              await collection?.fetchDocuments({
                 force: true,
               });
             } catch (err) {
@@ -293,15 +293,23 @@ class WebsocketProvider extends React.Component<Props> {
       collections.add(event);
     });
 
+    this.socket.on("collections.update", (event: PartialWithId<Collection>) => {
+      collections.add(event);
+    });
+
     this.socket.on(
       "collections.delete",
       action((event: WebsocketEntityDeletedEvent) => {
         const collectionId = event.modelId;
         const deletedAt = new Date().toISOString();
-
         const deletedDocuments = documents.inCollection(collectionId);
         deletedDocuments.forEach((doc) => {
-          doc.deletedAt = deletedAt;
+          if (!doc.publishedAt) {
+            // draft is to be detached from collection, not deleted
+            doc.collectionId = null;
+          } else {
+            doc.deletedAt = deletedAt;
+          }
           policies.remove(doc.id);
         });
         documents.removeCollectionDocuments(collectionId);
@@ -369,15 +377,29 @@ class WebsocketProvider extends React.Component<Props> {
     // or otherwise just remove any membership state we have for that user.
     this.socket.on(
       "collections.remove_user",
-      action((event: WebsocketCollectionUserEvent) => {
+      async (event: WebsocketCollectionUserEvent) => {
         if (auth.user && event.userId === auth.user.id) {
-          collections.remove(event.collectionId);
-          memberships.removeCollectionMemberships(event.collectionId);
+          // check if we still have access to the collection
+          try {
+            await collections.fetch(event.collectionId, {
+              force: true,
+            });
+          } catch (err) {
+            if (
+              err instanceof AuthorizationError ||
+              err instanceof NotFoundError
+            ) {
+              collections.remove(event.collectionId);
+              memberships.remove(`${event.userId}-${event.collectionId}`);
+              return;
+            }
+          }
+
           documents.removeCollectionDocuments(event.collectionId);
         } else {
           memberships.remove(`${event.userId}-${event.collectionId}`);
         }
-      })
+      }
     );
 
     this.socket.on(

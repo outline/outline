@@ -1,21 +1,17 @@
 import crypto from "crypto";
-import { Context } from "koa";
 import Router from "koa-router";
 import env from "@server/env";
 import { AuthenticationError } from "@server/errors";
+import validate from "@server/middlewares/validate";
 import tasks from "@server/queues/tasks";
+import { APIContext } from "@server/types";
+import * as T from "./schema";
 
 const router = new Router();
 
-const cronHandler = async (ctx: Context) => {
-  const token =
-    ctx.method === "POST" ? ctx.request.body?.token : ctx.query.token;
-  const limit =
-    (ctx.method === "POST" ? ctx.request.body?.limit : ctx.query.limit) ?? 500;
-
-  if (!token || typeof token !== "string") {
-    throw AuthenticationError("Token is required");
-  }
+const cronHandler = async (ctx: APIContext<T.CronSchemaReq>) => {
+  const token = (ctx.input.body.token ?? ctx.input.query.token) as string;
+  const limit = ctx.input.body.limit ?? ctx.input.query.limit;
 
   if (
     token.length !== env.UTILS_SECRET.length ||
@@ -39,11 +35,11 @@ const cronHandler = async (ctx: Context) => {
   };
 };
 
-router.get("cron.:period", cronHandler);
-router.post("cron.:period", cronHandler);
+router.get("cron.:period", validate(T.CronSchema), cronHandler);
+router.post("cron.:period", validate(T.CronSchema), cronHandler);
 
 // For backwards compatibility
-router.get("utils.gc", cronHandler);
-router.post("utils.gc", cronHandler);
+router.get("utils.gc", validate(T.CronSchema), cronHandler);
+router.post("utils.gc", validate(T.CronSchema), cronHandler);
 
 export default router;

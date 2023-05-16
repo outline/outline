@@ -1,6 +1,8 @@
+import { differenceInMilliseconds } from "date-fns";
 import fetch from "fetch-with-proxy";
 import { Op } from "sequelize";
 import { IntegrationService, IntegrationType } from "@shared/types";
+import { Minute } from "@shared/utils/time";
 import env from "@server/env";
 import { Document, Integration, Collection, Team } from "@server/models";
 import BaseProcessor from "@server/queues/processors/BaseProcessor";
@@ -94,9 +96,12 @@ export default class SlackProcessor extends BaseProcessor {
       return;
     }
 
+    // if the document was published less than a minute ago, don't send a
+    // separate notification.
     if (
       event.name === "revisions.create" &&
-      document.updatedAt === document.publishedAt
+      differenceInMilliseconds(document.updatedAt, document.publishedAt) <
+        Minute
     ) {
       return;
     }

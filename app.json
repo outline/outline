@@ -3,13 +3,7 @@
   "description": "Open source wiki and knowledge base for growing teams",
   "website": "https://www.getoutline.com/",
   "repository": "https://github.com/outline/outline",
-  "keywords": [
-    "wiki",
-    "team",
-    "node",
-    "markdown",
-    "slack"
-  ],
+  "keywords": ["wiki", "team", "node", "markdown", "slack"],
   "success_url": "/",
   "formation": {
     "web": {
@@ -188,7 +182,7 @@
       "required": false
     },
     "GOOGLE_ANALYTICS_ID": {
-      "description": "UA-xxxx (optional)",
+      "description": "G-xxxx (optional)",
       "required": false
     },
     "SENTRY_DSN": {

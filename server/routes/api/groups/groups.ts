@@ -2,6 +2,7 @@ import Router from "koa-router";
 import { Op } from "sequelize";
 import { MAX_AVATAR_DISPLAY } from "@shared/constants";
 import auth from "@server/middlewares/authentication";
+import { rateLimiter } from "@server/middlewares/rateLimiter";
 import validate from "@server/middlewares/validate";
 import { User, Event, Group, GroupUser } from "@server/models";
 import { authorize } from "@server/policies";
@@ -12,6 +13,7 @@ import {
   presentGroupMembership,
 } from "@server/presenters";
 import { APIContext } from "@server/types";
+import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -75,6 +77,7 @@ router.post(
 
 router.post(
   "groups.create",
+  rateLimiter(RateLimiterStrategy.TenPerHour),
   auth(),
   validate(T.GroupsCreateSchema),
   async (ctx: APIContext<T.GroupsCreateReq>) => {

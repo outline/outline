@@ -164,11 +164,12 @@ export default class NotificationHelper {
       const collectionIds = await recipient.collectionIds();
 
       // Check the recipient has access to the collection this document is in. Just
-      // because they are subscribed doesn't meant they "still have access to read
+      // because they are subscribed doesn't mean they still have access to read
       // the document.
       if (
         recipient.email &&
         !recipient.isSuspended &&
+        document.collectionId &&
         collectionIds.includes(document.collectionId)
       ) {
         filtered.push(recipient);

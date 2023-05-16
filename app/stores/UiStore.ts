@@ -37,7 +37,7 @@ class UiStore {
   activeDocumentId: string | undefined;
 
   @observable
-  activeCollectionId: string | undefined;
+  activeCollectionId?: string | null;
 
   @observable
   observingUserId: string | undefined;

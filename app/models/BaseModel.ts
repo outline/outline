@@ -60,7 +60,6 @@ export default abstract class BaseModel {
   };
 
   updateFromJson = (data: any) => {
-    // const isNew = !data.id && !this.id && this.isNew;
     set(this, { ...data, isNew: false });
     this.persistedAttributes = this.toAPI();
   };

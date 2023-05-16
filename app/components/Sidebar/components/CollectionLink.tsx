@@ -44,7 +44,7 @@ const CollectionLink: React.FC<Props> = ({
   const { dialogs, documents, collections } = useStores();
   const [menuOpen, handleMenuOpen, handleMenuClose] = useBoolean();
   const [isEditing, setIsEditing] = React.useState(false);
-  const canUpdate = usePolicy(collection).update;
+  const can = usePolicy(collection);
   const { t } = useTranslation();
   const history = useHistory();
   const inStarredSection = useStarredContext();
@@ -105,7 +105,7 @@ const CollectionLink: React.FC<Props> = ({
         }
       }
     },
-    canDrop: () => canUpdate,
+    canDrop: () => can.createDocument,
     collect: (monitor) => ({
       isOver: !!monitor.isOver({
         shallow: true,
@@ -117,6 +117,10 @@ const CollectionLink: React.FC<Props> = ({
   const handleTitleEditing = React.useCallback((isEditing: boolean) => {
     setIsEditing(isEditing);
   }, []);
+
+  const handleMouseEnter = React.useCallback(() => {
+    void collection.fetchDocuments();
+  }, [collection]);
 
   const context = useActionContext({
     activeCollectionId: collection.id,
@@ -134,6 +138,7 @@ const CollectionLink: React.FC<Props> = ({
             }}
             expanded={expanded}
             onDisclosureClick={onDisclosureClick}
+            onMouseEnter={handleMouseEnter}
             icon={
               <CollectionIcon collection={collection} expanded={expanded} />
             }
@@ -147,7 +152,7 @@ const CollectionLink: React.FC<Props> = ({
                 title={collection.name}
                 onSubmit={handleTitleChange}
                 onEditing={handleTitleEditing}
-                canUpdate={canUpdate}
+                canUpdate={can.update}
               />
             }
             exact={false}

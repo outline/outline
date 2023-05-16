@@ -5,7 +5,7 @@ import Document from "~/models/Document";
 import Revision from "~/models/Revision";
 import { Props as EditorProps } from "~/components/Editor";
 import Flex from "~/components/Flex";
-import { documentUrl } from "~/utils/routeHelpers";
+import { documentPath } from "~/utils/routeHelpers";
 import { Meta as DocumentMeta } from "./DocumentMeta";
 
 type Props = Omit<EditorProps, "extensions"> & {
@@ -28,7 +28,7 @@ function RevisionViewer(props: Props) {
       {!shareId && (
         <DocumentMeta
           document={document}
-          to={documentUrl(document)}
+          to={documentPath(document)}
           rtl={revision.rtl}
         />
       )}

@@ -73,9 +73,11 @@ export default function useCollectionTrees(): NavigationNode[] {
     return addParent(addCollectionId(addDepth(addType(collectionNode))));
   };
 
+  const key = collections.orderedData.map((o) => o.documents?.length).join("-");
   const collectionTrees = React.useMemo(
     () => collections.orderedData.map(getCollectionTree),
-    [collections.orderedData]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [collections.orderedData, key]
   );
 
   return collectionTrees;

@@ -18,7 +18,7 @@ describe("documents.publish", () => {
     await processor.perform({
       name: "documents.publish",
       documentId: document.id,
-      collectionId: document.collectionId,
+      collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: document.createdById,
       data: { title: document.title },
@@ -46,7 +46,7 @@ describe("documents.publish", () => {
     await processor.perform({
       name: "documents.publish",
       documentId: document.id,
-      collectionId: document.collectionId,
+      collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: document.createdById,
       data: { title: document.title },
@@ -72,7 +72,7 @@ describe("documents.update", () => {
     await processor.perform({
       name: "documents.update",
       documentId: document.id,
-      collectionId: document.collectionId,
+      collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: document.createdById,
       createdAt: new Date().toISOString(),
@@ -100,7 +100,7 @@ describe("documents.update", () => {
     await processor.perform({
       name: "documents.update",
       documentId: document.id,
-      collectionId: document.collectionId,
+      collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: document.createdById,
       createdAt: new Date().toISOString(),
@@ -125,7 +125,7 @@ describe("documents.update", () => {
     await processor.perform({
       name: "documents.update",
       documentId: document.id,
-      collectionId: document.collectionId,
+      collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: document.createdById,
       createdAt: new Date().toISOString(),
@@ -153,7 +153,7 @@ describe("documents.update", () => {
     await processor.perform({
       name: "documents.publish",
       documentId: document.id,
-      collectionId: document.collectionId,
+      collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: document.createdById,
       data: { title: document.title },
@@ -167,7 +167,7 @@ describe("documents.update", () => {
     await processor.perform({
       name: "documents.update",
       documentId: document.id,
-      collectionId: document.collectionId,
+      collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: document.createdById,
       createdAt: new Date().toISOString(),
@@ -195,7 +195,7 @@ describe("documents.delete", () => {
     await processor.perform({
       name: "documents.update",
       documentId: document.id,
-      collectionId: document.collectionId,
+      collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: document.createdById,
       createdAt: new Date().toISOString(),
@@ -206,7 +206,7 @@ describe("documents.delete", () => {
     await processor.perform({
       name: "documents.delete",
       documentId: document.id,
-      collectionId: document.collectionId,
+      collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: document.createdById,
       data: { title: document.title },

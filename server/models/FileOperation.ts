@@ -13,7 +13,7 @@ import {
   FileOperationState,
   FileOperationType,
 } from "@shared/types";
-import { deleteFromS3, getFileByKey } from "@server/utils/s3";
+import { deleteFromS3, getFileStream } from "@server/utils/s3";
 import Collection from "./Collection";
 import Team from "./Team";
 import User from "./User";
@@ -62,7 +62,7 @@ class FileOperation extends IdModel {
    * Mark the current file operation as expired and remove the file from storage.
    */
   expire = async function () {
-    this.state = "expired";
+    this.state = FileOperationState.Expired;
     try {
       await deleteFromS3(this.key);
     } catch (err) {
@@ -77,7 +77,7 @@ class FileOperation extends IdModel {
    * The file operation contents as a readable stream.
    */
   get stream() {
-    return getFileByKey(this.key);
+    return getFileStream(this.key);
   }
 
   // hooks

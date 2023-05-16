@@ -6,6 +6,7 @@ interface Plugin {
     name: string;
     description: string;
     requiredEnvVars?: string[];
+    deployments?: string[];
   };
   settings: React.FC;
   icon: React.FC<{ size?: number; fill?: string }>;

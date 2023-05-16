@@ -98,7 +98,7 @@ router.post(
       const collection = await Collection.scope({
         method: ["withMembership", user.id],
       }).findByPk(collectionId);
-      authorize(user, "read", collection);
+      authorize(user, "readDocument", collection);
 
       // index sort is special because it uses the order of the documents in the
       // collection.documentStructure rather than a database column
@@ -342,7 +342,7 @@ router.post(
       const collection = await Collection.scope({
         method: ["withMembership", user.id],
       }).findByPk(collectionId);
-      authorize(user, "read", collection);
+      authorize(user, "readDocument", collection);
     }
 
     const collectionIds = collectionId
@@ -582,9 +582,11 @@ router.post(
       document.collectionId = collectionId;
     }
 
-    const collection = await Collection.scope({
-      method: ["withMembership", user.id],
-    }).findByPk(document.collectionId);
+    const collection = document.collectionId
+      ? await Collection.scope({
+          method: ["withMembership", user.id],
+        }).findByPk(document.collectionId)
+      : undefined;
 
     // if the collectionId was provided in the request and isn't valid then it will
     // be caught as a 403 on the authorize call below. Otherwise we're checking here
@@ -597,7 +599,7 @@ router.post(
     }
 
     if (document.collection) {
-      authorize(user, "update", collection);
+      authorize(user, "updateDocument", collection);
     }
 
     if (document.deletedAt) {
@@ -684,7 +686,7 @@ router.post(
       const collection = await Collection.scope({
         method: ["withMembership", user.id],
       }).findByPk(collectionId);
-      authorize(user, "read", collection);
+      authorize(user, "readDocument", collection);
     }
 
     if (userId) {
@@ -778,7 +780,7 @@ router.post(
         const collection = await Collection.scope({
           method: ["withMembership", user.id],
         }).findByPk(collectionId);
-        authorize(user, "read", collection);
+        authorize(user, "readDocument", collection);
       }
 
       let collaboratorIds = undefined;
@@ -919,7 +921,7 @@ router.post(
           method: ["withMembership", user.id],
         }).findByPk(collectionId!);
       }
-      authorize(user, "publish", collection);
+      authorize(user, "createDocument", collection);
     }
 
     collection = await sequelize.transaction(async (transaction) => {
@@ -937,6 +939,10 @@ router.post(
         transaction,
         ip: ctx.request.ip,
       });
+
+      if (!document.collectionId) {
+        return null;
+      }
 
       return await Collection.scope({
         method: ["withMembership", user.id],
@@ -976,7 +982,7 @@ router.post(
     const collection = await Collection.scope({
       method: ["withMembership", user.id],
     }).findByPk(collectionId);
-    authorize(user, "update", collection);
+    authorize(user, "updateDocument", collection);
 
     if (parentDocumentId) {
       const parent = await Document.findByPk(parentDocumentId, {
@@ -1199,7 +1205,7 @@ router.post(
         teamId: user.teamId,
       },
     });
-    authorize(user, "publish", collection);
+    authorize(user, "createDocument", collection);
     let parentDocument;
 
     if (parentDocumentId) {
@@ -1276,7 +1282,7 @@ router.post(
           teamId: user.teamId,
         },
       });
-      authorize(user, "publish", collection);
+      authorize(user, "createDocument", collection);
     }
 
     let parentDocument;

@@ -76,6 +76,8 @@ export default function useDictionary() {
       showSource: t("Show source"),
       warning: t("Warning"),
       warningNotice: t("Warning notice"),
+      success: t("Success"),
+      successNotice: t("Success notice"),
       insertDate: t("Current date"),
       insertTime: t("Current time"),
       insertDateTime: t("Current date and time"),

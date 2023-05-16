@@ -1,4 +1,3 @@
-import { mapValues } from "lodash";
 import {
   EmailIcon,
   ProfileIcon,
@@ -40,19 +39,13 @@ import { accountPreferencesPath } from "~/utils/routeHelpers";
 import useCurrentTeam from "./useCurrentTeam";
 import usePolicy from "./usePolicy";
 
-type SettingsGroups = "Account" | "Workspace" | "Integrations";
-
 export type ConfigItem = {
   name: string;
   path: string;
   icon: React.FC<any>;
-  component: () => JSX.Element;
+  component: React.ComponentType<any>;
   enabled: boolean;
-  group: SettingsGroups;
-};
-
-type ConfigType = {
-  [key in string]: ConfigItem;
+  group: string;
 };
 
 const useSettingsConfig = () => {
@@ -60,9 +53,9 @@ const useSettingsConfig = () => {
   const can = usePolicy(team);
   const { t } = useTranslation();
 
-  const config: ConfigType = React.useMemo(
-    () => ({
-      Profile: {
+  const config = React.useMemo(() => {
+    const items: ConfigItem[] = [
+      {
         name: t("Profile"),
         path: "/settings",
         component: Profile,
@@ -70,7 +63,7 @@ const useSettingsConfig = () => {
         group: t("Account"),
         icon: ProfileIcon,
       },
-      Preferences: {
+      {
         name: t("Preferences"),
         path: accountPreferencesPath(),
         component: Preferences,
@@ -78,7 +71,7 @@ const useSettingsConfig = () => {
         group: t("Account"),
         icon: SettingsIcon,
       },
-      Notifications: {
+      {
         name: t("Notifications"),
         path: "/settings/notifications",
         component: Notifications,
@@ -86,7 +79,7 @@ const useSettingsConfig = () => {
         group: t("Account"),
         icon: EmailIcon,
       },
-      Api: {
+      {
         name: t("API Tokens"),
         path: "/settings/tokens",
         component: ApiKeys,
@@ -95,7 +88,7 @@ const useSettingsConfig = () => {
         icon: CodeIcon,
       },
       // Team group
-      Details: {
+      {
         name: t("Details"),
         path: "/settings/details",
         component: Details,
@@ -103,7 +96,7 @@ const useSettingsConfig = () => {
         group: t("Workspace"),
         icon: TeamIcon,
       },
-      Security: {
+      {
         name: t("Security"),
         path: "/settings/security",
         component: Security,
@@ -111,7 +104,7 @@ const useSettingsConfig = () => {
         group: t("Workspace"),
         icon: PadlockIcon,
       },
-      Features: {
+      {
         name: t("Features"),
         path: "/settings/features",
         component: Features,
@@ -119,7 +112,7 @@ const useSettingsConfig = () => {
         group: t("Workspace"),
         icon: BeakerIcon,
       },
-      Members: {
+      {
         name: t("Members"),
         path: "/settings/members",
         component: Members,
@@ -127,7 +120,7 @@ const useSettingsConfig = () => {
         group: t("Workspace"),
         icon: UserIcon,
       },
-      Groups: {
+      {
         name: t("Groups"),
         path: "/settings/groups",
         component: Groups,
@@ -135,7 +128,7 @@ const useSettingsConfig = () => {
         group: t("Workspace"),
         icon: GroupIcon,
       },
-      Shares: {
+      {
         name: t("Shared Links"),
         path: "/settings/shares",
         component: Shares,
@@ -143,7 +136,7 @@ const useSettingsConfig = () => {
         group: t("Workspace"),
         icon: LinkIcon,
       },
-      Import: {
+      {
         name: t("Import"),
         path: "/settings/import",
         component: Import,
@@ -151,7 +144,7 @@ const useSettingsConfig = () => {
         group: t("Workspace"),
         icon: ImportIcon,
       },
-      Export: {
+      {
         name: t("Export"),
         path: "/settings/export",
         component: Export,
@@ -159,20 +152,7 @@ const useSettingsConfig = () => {
         group: t("Workspace"),
         icon: ExportIcon,
       },
-      // Integrations
-      ...mapValues(
-        PluginLoader.plugins,
-        (plugin) =>
-          ({
-            name: plugin.config.name,
-            path: integrationSettingsPath(plugin.id),
-            group: t("Integrations"),
-            component: plugin.settings,
-            enabled: !!plugin.settings && can.update,
-            icon: plugin.icon,
-          } as ConfigItem)
-      ),
-      SelfHosted: {
+      {
         name: t("Self Hosted"),
         path: integrationSettingsPath("self-hosted"),
         component: SelfHosted,
@@ -180,7 +160,7 @@ const useSettingsConfig = () => {
         group: t("Integrations"),
         icon: BuildingBlocksIcon,
       },
-      GoogleAnalytics: {
+      {
         name: t("Google Analytics"),
         path: integrationSettingsPath("google-analytics"),
         component: GoogleAnalytics,
@@ -188,7 +168,7 @@ const useSettingsConfig = () => {
         group: t("Integrations"),
         icon: GoogleIcon,
       },
-      Zapier: {
+      {
         name: "Zapier",
         path: integrationSettingsPath("zapier"),
         component: Zapier,
@@ -196,21 +176,34 @@ const useSettingsConfig = () => {
         group: t("Integrations"),
         icon: ZapierIcon,
       },
-    }),
-    [t, can.createApiKey, can.update, can.createImport, can.createExport]
-  );
+    ];
 
-  const enabledConfigs = React.useMemo(
-    () =>
-      Object.keys(config).reduce(
-        (acc, key: string) =>
-          config[key].enabled ? [...acc, config[key]] : acc,
-        []
-      ),
-    [config]
-  );
+    // Plugins
+    Object.values(PluginLoader.plugins).map((plugin) => {
+      const hasSettings = !!plugin.settings;
+      const enabledInDeployment =
+        !plugin.config.deployments ||
+        plugin.config.deployments.length === 0 ||
+        (plugin.config.deployments.includes("cloud") && isCloudHosted) ||
+        (plugin.config.deployments.includes("enterprise") && !isCloudHosted);
 
-  return enabledConfigs;
+      const item = {
+        name: t(plugin.config.name),
+        path: integrationSettingsPath(plugin.id),
+        group: plugin.id === "collections" ? t("Workspace") : t("Integrations"),
+        component: plugin.settings,
+        enabled: enabledInDeployment && hasSettings && can.update,
+        icon: plugin.icon,
+      } as ConfigItem;
+
+      const insertIndex = items.findIndex((i) => i.group === t("Integrations"));
+      items.splice(insertIndex, 0, item);
+    });
+
+    return items;
+  }, [t, can.createApiKey, can.update, can.createImport, can.createExport]);
+
+  return config.filter((item) => item.enabled);
 };
 
 export default useSettingsConfig;

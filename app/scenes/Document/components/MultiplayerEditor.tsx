@@ -36,7 +36,12 @@ type AwarenessChangeEvent = {
 
 type ConnectionStatusEvent = { status: ConnectionStatus };
 
-type MessageEvent = { message: string };
+type MessageEvent = {
+  message: string;
+  event: Event & {
+    code?: number;
+  };
+};
 
 function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   const documentId = props.id;
@@ -136,6 +141,17 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     provider.on("synced", () => {
       presence.touch(documentId, currentUser.id, false);
       setRemoteSynced(true);
+    });
+
+    provider.on("close", (ev: MessageEvent) => {
+      if ("code" in ev.event && ev.event.code === 1009) {
+        provider.shouldConnect = false;
+        showToast(
+          t(
+            "Sorry, this document is too large - edits will no longer be persisted."
+          )
+        );
+      }
     });
 
     if (debug) {

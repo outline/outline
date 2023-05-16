@@ -47,7 +47,7 @@ import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 import { MenuItem } from "~/types";
-import { editDocumentUrl, newDocumentPath } from "~/utils/routeHelpers";
+import { documentEditPath, newDocumentPath } from "~/utils/routeHelpers";
 
 type Props = {
   document: Document;
@@ -123,14 +123,16 @@ function DocumentMenu({
     [showToast, t, document]
   );
 
-  const collection = collections.get(document.collectionId);
+  const collection = document.collectionId
+    ? collections.get(document.collectionId)
+    : undefined;
   const can = usePolicy(document);
   const restoreItems = React.useMemo(
     () => [
       ...collections.orderedData.reduce<MenuItem[]>((filtered, collection) => {
         const can = policies.abilities(collection.id);
 
-        if (can.update) {
+        if (can.createDocument) {
           filtered.push({
             type: "button",
             onClick: (ev) =>
@@ -260,7 +262,7 @@ function DocumentMenu({
             {
               type: "route",
               title: t("Edit"),
-              to: editDocumentUrl(document),
+              to: documentEditPath(document),
               visible: !!can.update && !team.seamlessEditing,
               icon: <EditIcon />,
             },

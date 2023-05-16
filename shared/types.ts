@@ -86,6 +86,7 @@ export enum IntegrationService {
 export enum CollectionPermission {
   Read = "read",
   ReadWrite = "read_write",
+  Admin = "admin",
 }
 
 export type IntegrationSettings<T> = T extends IntegrationType.Embed
@@ -116,6 +117,12 @@ export type UserPreferences = { [key in UserPreference]?: boolean };
 export type CustomTheme = {
   accent: string;
   accentText: string;
+};
+
+export type PublicTeam = {
+  avatarUrl: string;
+  name: string;
+  customTheme: Partial<CustomTheme>;
 };
 
 export enum TeamPreference {

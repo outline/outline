@@ -1,3 +1,4 @@
+import { colorPalette } from "@shared/utils/collections";
 import Collection from "@server/models/Collection";
 
 export default function presentCollection(collection: Collection) {
@@ -10,12 +11,11 @@ export default function presentCollection(collection: Collection) {
     sort: collection.sort,
     icon: collection.icon,
     index: collection.index,
-    color: collection.color || "#4E5C6E",
+    color: collection.color || colorPalette[0],
     permission: collection.permission,
     sharing: collection.sharing,
     createdAt: collection.createdAt,
     updatedAt: collection.updatedAt,
     deletedAt: collection.deletedAt,
-    documents: collection.documentStructure || [],
   };
 }

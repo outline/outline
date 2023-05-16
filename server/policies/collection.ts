@@ -40,26 +40,29 @@ allow(User, "move", Collection, (user, collection) => {
   throw AdminRequiredError();
 });
 
-allow(User, ["read", "star", "unstar"], Collection, (user, collection) => {
+allow(User, "read", Collection, (user, collection) => {
   if (!collection || user.teamId !== collection.teamId) {
     return false;
   }
+
   if (user.isAdmin) {
     return true;
   }
 
-  if (!collection.permission) {
-    invariant(
-      collection.memberships,
-      "membership should be preloaded, did you forget withMembership scope?"
-    );
-    const allMemberships = [
-      ...collection.memberships,
-      ...collection.collectionGroupMemberships,
-    ];
-    return some(allMemberships, (m) =>
-      Object.values(CollectionPermission).includes(m.permission)
-    );
+  if (collection.isPrivate) {
+    return includesMembership(collection, Object.values(CollectionPermission));
+  }
+
+  return true;
+});
+
+allow(User, ["star", "unstar"], Collection, (user, collection) => {
+  if (!collection || user.teamId !== collection.teamId) {
+    return false;
+  }
+
+  if (collection.isPrivate) {
+    return includesMembership(collection, Object.values(CollectionPermission));
   }
 
   return true;
@@ -72,7 +75,7 @@ allow(User, "share", Collection, (user, collection) => {
   if (!collection.sharing) {
     return false;
   }
-  if (user.isAdmin) {
+  if (!collection.isPrivate && user.isAdmin) {
     return true;
   }
 
@@ -80,24 +83,55 @@ allow(User, "share", Collection, (user, collection) => {
     collection.permission !== CollectionPermission.ReadWrite ||
     user.isViewer
   ) {
-    invariant(
-      collection.memberships,
-      "membership should be preloaded, did you forget withMembership scope?"
-    );
-    const allMemberships = [
-      ...collection.memberships,
-      ...collection.collectionGroupMemberships,
-    ];
-    return some(
-      allMemberships,
-      (m) => m.permission === CollectionPermission.ReadWrite
-    );
+    return includesMembership(collection, [
+      CollectionPermission.ReadWrite,
+      CollectionPermission.Admin,
+    ]);
   }
 
   return true;
 });
 
-allow(User, ["publish", "update"], Collection, (user, collection) => {
+allow(User, ["readDocument", "export"], Collection, (user, collection) => {
+  if (!collection || user.teamId !== collection.teamId) {
+    return false;
+  }
+
+  if (collection.isPrivate) {
+    return includesMembership(collection, Object.values(CollectionPermission));
+  }
+
+  return true;
+});
+
+allow(
+  User,
+  ["updateDocument", "createDocument", "deleteDocument"],
+  Collection,
+  (user, collection) => {
+    if (!collection || user.teamId !== collection.teamId) {
+      return false;
+    }
+
+    if (!collection.isPrivate && user.isAdmin) {
+      return true;
+    }
+
+    if (
+      collection.permission !== CollectionPermission.ReadWrite ||
+      user.isViewer
+    ) {
+      return includesMembership(collection, [
+        CollectionPermission.ReadWrite,
+        CollectionPermission.Admin,
+      ]);
+    }
+
+    return true;
+  }
+);
+
+allow(User, ["update", "delete"], Collection, (user, collection) => {
   if (!collection || user.teamId !== collection.teamId) {
     return false;
   }
@@ -105,56 +139,19 @@ allow(User, ["publish", "update"], Collection, (user, collection) => {
     return true;
   }
 
-  if (
-    collection.permission !== CollectionPermission.ReadWrite ||
-    user.isViewer
-  ) {
-    invariant(
-      collection.memberships,
-      "membership should be preloaded, did you forget withMembership scope?"
-    );
-    const allMemberships = [
-      ...collection.memberships,
-      ...collection.collectionGroupMemberships,
-    ];
-    return some(
-      allMemberships,
-      (m) => m.permission === CollectionPermission.ReadWrite
-    );
-  }
-
-  return true;
+  return includesMembership(collection, [CollectionPermission.Admin]);
 });
 
-allow(User, "delete", Collection, (user, collection) => {
-  if (!collection || user.teamId !== collection.teamId) {
-    return false;
-  }
-  if (user.isAdmin) {
-    return true;
-  }
-
-  if (
-    collection.permission !== CollectionPermission.ReadWrite ||
-    user.isViewer
-  ) {
-    invariant(
-      collection.memberships,
-      "membership should be preloaded, did you forget withMembership scope?"
-    );
-    const allMemberships = [
-      ...collection.memberships,
-      ...collection.collectionGroupMemberships,
-    ];
-    return some(
-      allMemberships,
-      (m) => m.permission === CollectionPermission.ReadWrite
-    );
-  }
-
-  if (user.id === collection.createdById) {
-    return true;
-  }
-
-  throw AdminRequiredError();
-});
+function includesMembership(
+  collection: Collection,
+  memberships: CollectionPermission[]
+) {
+  invariant(
+    collection.memberships,
+    "memberships should be preloaded, did you forget withMembership scope?"
+  );
+  return some(
+    [...collection.memberships, ...collection.collectionGroupMemberships],
+    (m) => memberships.includes(m.permission)
+  );
+}

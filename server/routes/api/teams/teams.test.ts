@@ -50,6 +50,17 @@ describe("#team.update", () => {
     expect(body.data.name).toEqual("New name");
   });
 
+  it("should not invalidate request if subdomain is sent as null", async () => {
+    const admin = await buildAdmin();
+    const res = await server.post("/api/team.update", {
+      body: {
+        token: admin.getJwtToken(),
+        subdomain: null,
+      },
+    });
+    expect(res.status).not.toBe(400);
+  });
+
   it("should add new allowed Domains, removing empty string values", async () => {
     const { admin, team } = await seed();
     const res = await server.post("/api/team.update", {

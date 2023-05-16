@@ -48,7 +48,6 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
   const [initialScrollOffset, setInitialScrollOffset] = React.useState<number>(
     0
   );
-  const [nodes, setNodes] = React.useState<NavigationNode[]>([]);
   const [activeNode, setActiveNode] = React.useState<number>(0);
   const [expandedNodes, setExpandedNodes] = React.useState<string[]>([]);
   const [itemRefs, setItemRefs] = React.useState<
@@ -80,19 +79,6 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
   }, [searchTerm]);
 
   React.useEffect(() => {
-    let results;
-
-    if (searchTerm) {
-      results = searchIndex.search(searchTerm);
-    } else {
-      results = items.filter((item) => item.type === "collection");
-    }
-
-    setInitialScrollOffset(0);
-    setNodes(results);
-  }, [searchTerm, items, searchIndex]);
-
-  React.useEffect(() => {
     setItemRefs((itemRefs) =>
       map(
         fill(Array(items.length), 0),
@@ -104,6 +90,22 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
   React.useEffect(() => {
     onSelect(selectedNode);
   }, [selectedNode, onSelect]);
+
+  function getNodes() {
+    function includeDescendants(item: NavigationNode): NavigationNode[] {
+      return expandedNodes.includes(item.id)
+        ? [item, ...descendants(item, 1).flatMap(includeDescendants)]
+        : [item];
+    }
+
+    return searchTerm
+      ? searchIndex.search(searchTerm)
+      : items
+          .filter((item) => item.type === "collection")
+          .flatMap(includeDescendants);
+  }
+
+  const nodes = getNodes();
 
   const scrollNodeIntoView = React.useCallback(
     (node: number) => {
@@ -130,7 +132,7 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
         scrollOffset: number;
       };
       const itemsHeight = itemCount * itemSize;
-      return itemsHeight < height ? 0 : scrollOffset;
+      return itemsHeight < Number(height) ? 0 : scrollOffset;
     }
     return 0;
   };
@@ -145,7 +147,6 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
     const newNodes = filter(nodes, (node) => !includes(descendantIds, node.id));
     const scrollOffset = calculateInitialScrollOffset(newNodes.length);
     setInitialScrollOffset(scrollOffset);
-    setNodes(newNodes);
   };
 
   const expand = (node: number) => {
@@ -156,8 +157,17 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
     newNodes.splice(node + 1, 0, ...descendants(nodes[node], 1));
     const scrollOffset = calculateInitialScrollOffset(newNodes.length);
     setInitialScrollOffset(scrollOffset);
-    setNodes(newNodes);
   };
+
+  React.useEffect(() => {
+    collections.orderedData
+      .filter(
+        (collection) => expandedNodes.includes(collection.id) || searchTerm
+      )
+      .forEach((collection) => {
+        collection.fetchDocuments();
+      });
+  }, [collections, expandedNodes, searchTerm]);
 
   const isSelected = (node: number) => {
     if (!selectedNode) {
@@ -169,7 +179,8 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
     return selectedNodeId === nodeId;
   };
 
-  const hasChildren = (node: number) => nodes[node].children.length > 0;
+  const hasChildren = (node: number) =>
+    nodes[node].children.length > 0 || nodes[node].type === "collection";
 
   const toggleCollapse = (node: number) => {
     if (!hasChildren(node)) {
@@ -219,7 +230,7 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
       } else if (doc?.isStarred) {
         icon = <StarredIcon color={theme.yellow} />;
       } else {
-        icon = <DocumentIcon />;
+        icon = <DocumentIcon color={theme.textSecondary} />;
       }
 
       path = ancestors(node)
@@ -281,12 +292,14 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
     switch (ev.key) {
       case "ArrowDown": {
         ev.preventDefault();
+        ev.stopPropagation();
         setActiveNode(next());
         scrollNodeIntoView(next());
         break;
       }
       case "ArrowUp": {
         ev.preventDefault();
+        ev.stopPropagation();
         if (activeNode === 0) {
           focusSearchInput();
         } else {
