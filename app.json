@@ -86,11 +86,6 @@
       "value": "preferred_username",
       "required": false
     },
-    "OIDC_PROVIDER_ID_CLAIM": {
-      "description": "Specify which claims to derive provider id information from. Supports any valid JSON path with the JWT payload",
-      "value": "sub",
-      "required": false
-    },
     "OIDC_DISPLAY_NAME": {
       "description": "Display name for OIDC authentication",
       "value": "OpenID",

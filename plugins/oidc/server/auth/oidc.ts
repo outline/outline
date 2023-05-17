@@ -111,7 +111,7 @@ if (
           // Default is 'preferred_username' as per OIDC spec.
           const username = get(profile, env.OIDC_USERNAME_CLAIM);
           const name = profile.name || username || profile.username;
-          const providerId = get(profile, env.OIDC_PROVIDER_ID_CLAIM);
+          const providerId = profile.sub ? profile.sub : profile.id;
 
           if (!name) {
             throw AuthenticationError(
