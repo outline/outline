@@ -15,7 +15,7 @@ export default function presentIntegration(
     teamId: integration.teamId,
     collectionId: integration.collectionId,
     authenticationId: integration.authenticationId,
-    token:
+    authToken:
       options && options.includeToken && integration.authentication
         ? integration.authentication.token
         : undefined,

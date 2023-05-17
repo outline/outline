@@ -1,6 +1,7 @@
 import { isUndefined, uniq } from "lodash";
 import { IntegrationType } from "@shared/types";
 import { User } from "@server/models";
+import { UserCreatableIntegrationService } from "@server/models/Integration";
 import {
   buildAdmin,
   buildTeam,
@@ -68,7 +69,7 @@ describe("#integrations.list", () => {
     expect(body.message).toContain("type: Invalid enum value");
   });
 
-  it("should succeed with status 200 ok but not return token in response when the user is not an admin", async () => {
+  it("should succeed with status 200 ok but not return authToken in response when the user is not an admin", async () => {
     const user = await buildUser({
       teamId: admin.teamId,
     });
@@ -81,10 +82,12 @@ describe("#integrations.list", () => {
 
     const body = await res.json();
     expect(body.data).toHaveLength(2);
-    expect(body.data.filter((d: any) => !isUndefined(d.token))).toHaveLength(0);
+    expect(
+      body.data.filter((d: any) => !isUndefined(d.authToken))
+    ).toHaveLength(0);
   });
 
-  it("should succeed with status 200 ok and return token in response when the user is an admin", async () => {
+  it("should succeed with status 200 ok and return authToken in response when the user is an admin", async () => {
     const res = await server.post("/api/integrations.list", {
       body: {
         token: admin.getJwtToken(),
@@ -93,9 +96,11 @@ describe("#integrations.list", () => {
 
     const body = await res.json();
     expect(body.data).toHaveLength(2);
-    const integrations = body.data.filter((d: any) => !isUndefined(d.token));
+    const integrations = body.data.filter(
+      (d: any) => !isUndefined(d.authToken)
+    );
     expect(integrations).toHaveLength(1);
-    expect(integrations[0].token).toBe("token");
+    expect(integrations[0].authToken).toBe("token");
   });
 
   it("should succeed with status 200 ok and only return integrations belonging to user's team", async () => {
@@ -131,6 +136,85 @@ describe("#integrations.list", () => {
     const body = await res.json();
     expect(body.data).toHaveLength(1);
     expect(body.data[0].type).toBe(IntegrationType.Embed);
+  });
+});
+
+describe("#integrations.create", () => {
+  it("should fail with status 400 bad request for an invalid url value supplied in settings param", async () => {
+    const admin = await buildAdmin();
+
+    const res = await server.post("/api/integrations.create", {
+      body: {
+        token: admin.getJwtToken(),
+        type: IntegrationType.Embed,
+        service: UserCreatableIntegrationService.Diagrams,
+        settings: { url: "not a url" },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("url: Invalid url");
+  });
+
+  it("should fail with status 403 unauthorized when the user is not an admin", async () => {
+    const user = await buildUser();
+
+    const res = await server.post("/api/integrations.create", {
+      body: {
+        token: user.getJwtToken(),
+        type: IntegrationType.Embed,
+        service: UserCreatableIntegrationService.Diagrams,
+        settings: { url: "https://example.com" },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(403);
+    expect(body.message).toEqual("Admin role required");
+  });
+
+  it("should succeed with status 200 ok when integration authToken is not supplied", async () => {
+    const admin = await buildAdmin();
+
+    const res = await server.post("/api/integrations.create", {
+      body: {
+        token: admin.getJwtToken(),
+        type: IntegrationType.Embed,
+        service: UserCreatableIntegrationService.Diagrams,
+        settings: { url: "https://example.com" },
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.userId).toEqual(admin.id);
+    expect(body.data.teamId).toEqual(admin.teamId);
+    expect(body.data.type).toEqual(IntegrationType.Embed);
+    expect(body.data.service).toEqual(UserCreatableIntegrationService.Diagrams);
+    expect(body.data.authenticationId).toBeNull();
+    expect(body.data.authToken).toBeUndefined();
+    expect(body.data.settings.url).toEqual("https://example.com");
+  });
+
+  it("should succeed with status 200 ok when integration authToken is supplied", async () => {
+    const admin = await buildAdmin();
+
+    const res = await server.post("/api/integrations.create", {
+      body: {
+        token: admin.getJwtToken(),
+        type: IntegrationType.Embed,
+        service: UserCreatableIntegrationService.Diagrams,
+        settings: { url: "https://example.com" },
+        authToken: "token",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data.userId).toEqual(admin.id);
+    expect(body.data.teamId).toEqual(admin.teamId);
+    expect(body.data.type).toEqual(IntegrationType.Embed);
+    expect(body.data.service).toEqual(UserCreatableIntegrationService.Diagrams);
+    expect(body.data.authenticationId).not.toBeNull();
+    expect(body.data.authToken).toEqual("token");
+    expect(body.data.settings.url).toEqual("https://example.com");
   });
 });
 

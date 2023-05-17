@@ -59,13 +59,13 @@ router.post(
   auth({ admin: true }),
   validate(T.IntegrationsCreateSchema),
   async (ctx: APIContext<T.IntegrationsCreateReq>) => {
-    const { type, service, settings, token } = ctx.input.body;
+    const { type, service, settings, authToken: token } = ctx.input.body;
     const { transaction } = ctx.state;
     const { user } = ctx.state.auth;
 
     authorize(user, "createIntegration", user.team);
 
-    const integration = await Integration.create(
+    let integration = await Integration.create(
       {
         userId: user.id,
         teamId: user.teamId,
@@ -93,8 +93,14 @@ router.post(
       await integration.save({ transaction });
     }
 
+    integration = (await Integration.scope(
+      "withAuthentication"
+    ).findByPk(integration.id, { transaction })) as Integration<unknown>;
+
     ctx.body = {
-      data: presentIntegration(integration, { includeToken: user.isAdmin }),
+      data: presentIntegration(integration, {
+        includeToken: user.isAdmin,
+      }),
     };
   }
 );
@@ -105,7 +111,7 @@ router.post(
   auth({ admin: true }),
   validate(T.IntegrationsUpdateSchema),
   async (ctx: APIContext<T.IntegrationsUpdateReq>) => {
-    const { id, events, settings, token } = ctx.input.body;
+    const { id, events, settings, authToken: token } = ctx.input.body;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
 

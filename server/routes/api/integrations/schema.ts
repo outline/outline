@@ -50,7 +50,7 @@ export const IntegrationsCreateSchema = BaseSchema.extend({
       .optional(),
 
     /** Integration token */
-    token: z.string().nullish(),
+    authToken: z.string().nullish(),
   }),
 });
 
@@ -76,7 +76,7 @@ export const IntegrationsUpdateSchema = BaseSchema.extend({
       .optional(),
 
     /** Integration token */
-    token: z.string().nullish(),
+    authToken: z.string().nullish(),
 
     /** Integration events */
     events: z.array(z.string()).optional().default([]),
