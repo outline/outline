@@ -35,7 +35,7 @@ export function createAction(definition: Optional<Action, "id">): Action {
           return definition.perform?.(context);
         }
       : undefined,
-    id: uuidv4(),
+    id: definition.id ?? uuidv4(),
   };
 }
 

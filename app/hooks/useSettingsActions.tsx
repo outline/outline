@@ -25,6 +25,7 @@ const useSettingsActions = () => {
   const navigateToSettings = React.useMemo(
     () =>
       createAction({
+        id: "settings",
         name: ({ t }) => t("Settings"),
         section: NavigationSection,
         shortcut: ["g", "s"],
