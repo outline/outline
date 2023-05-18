@@ -16,7 +16,7 @@ export function changeLanguage(
     ? unicodeCLDRtoBCP47(toLanguageString)
     : undefined;
 
-  if (locale && i18n.languages[0] !== locale) {
+  if (locale && i18n.languages?.[0] !== locale) {
     // Languages are stored in en_US format in the database, however the
     // frontend translation framework (i18next) expects en-US
     i18n.changeLanguage(locale);
