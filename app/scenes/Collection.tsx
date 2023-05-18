@@ -12,6 +12,7 @@ import {
 } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
+import { s } from "@shared/styles";
 import Collection from "~/models/Collection";
 import Search from "~/scenes/Search";
 import Badge from "~/components/Badge";
@@ -178,90 +179,97 @@ function CollectionScene() {
                 canUpdate={can.update}
               />
 
-              <Tabs>
-                <Tab to={collectionPath(collection.url)} exact>
-                  {t("Documents")}
-                </Tab>
-                <Tab to={collectionPath(collection.url, "updated")} exact>
-                  {t("Recently updated")}
-                </Tab>
-                <Tab to={collectionPath(collection.url, "published")} exact>
-                  {t("Recently published")}
-                </Tab>
-                <Tab to={collectionPath(collection.url, "old")} exact>
-                  {t("Least recently updated")}
-                </Tab>
-                <Tab to={collectionPath(collection.url, "alphabetical")} exact>
-                  {t("A–Z")}
-                </Tab>
-              </Tabs>
-              <Switch>
-                <Route path={collectionPath(collection.url, "alphabetical")}>
-                  <PaginatedDocumentList
-                    key="alphabetical"
-                    documents={documents.alphabeticalInCollection(
-                      collection.id
-                    )}
-                    fetch={documents.fetchAlphabetical}
-                    options={{
-                      collectionId: collection.id,
-                    }}
-                  />
-                </Route>
-                <Route path={collectionPath(collection.url, "old")}>
-                  <PaginatedDocumentList
-                    key="old"
-                    documents={documents.leastRecentlyUpdatedInCollection(
-                      collection.id
-                    )}
-                    fetch={documents.fetchLeastRecentlyUpdated}
-                    options={{
-                      collectionId: collection.id,
-                    }}
-                  />
-                </Route>
-                <Route path={collectionPath(collection.url, "recent")}>
-                  <Redirect to={collectionPath(collection.url, "published")} />
-                </Route>
-                <Route path={collectionPath(collection.url, "published")}>
-                  <PaginatedDocumentList
-                    key="published"
-                    documents={documents.recentlyPublishedInCollection(
-                      collection.id
-                    )}
-                    fetch={documents.fetchRecentlyPublished}
-                    options={{
-                      collectionId: collection.id,
-                    }}
-                    showPublished
-                  />
-                </Route>
-                <Route path={collectionPath(collection.url, "updated")}>
-                  <PaginatedDocumentList
-                    key="updated"
-                    documents={documents.recentlyUpdatedInCollection(
-                      collection.id
-                    )}
-                    fetch={documents.fetchRecentlyUpdated}
-                    options={{
-                      collectionId: collection.id,
-                    }}
-                  />
-                </Route>
-                <Route path={collectionPath(collection.url)} exact>
-                  <PaginatedDocumentList
-                    documents={documents.rootInCollection(collection.id)}
-                    fetch={documents.fetchPage}
-                    options={{
-                      collectionId: collection.id,
-                      parentDocumentId: null,
-                      sort: collection.sort.field,
-                      direction: collection.sort.direction,
-                    }}
-                    showParentDocuments
-                  />
-                </Route>
-              </Switch>
+              <Documents>
+                <Tabs>
+                  <Tab to={collectionPath(collection.url)} exact>
+                    {t("Documents")}
+                  </Tab>
+                  <Tab to={collectionPath(collection.url, "updated")} exact>
+                    {t("Recently updated")}
+                  </Tab>
+                  <Tab to={collectionPath(collection.url, "published")} exact>
+                    {t("Recently published")}
+                  </Tab>
+                  <Tab to={collectionPath(collection.url, "old")} exact>
+                    {t("Least recently updated")}
+                  </Tab>
+                  <Tab
+                    to={collectionPath(collection.url, "alphabetical")}
+                    exact
+                  >
+                    {t("A–Z")}
+                  </Tab>
+                </Tabs>
+                <Switch>
+                  <Route path={collectionPath(collection.url, "alphabetical")}>
+                    <PaginatedDocumentList
+                      key="alphabetical"
+                      documents={documents.alphabeticalInCollection(
+                        collection.id
+                      )}
+                      fetch={documents.fetchAlphabetical}
+                      options={{
+                        collectionId: collection.id,
+                      }}
+                    />
+                  </Route>
+                  <Route path={collectionPath(collection.url, "old")}>
+                    <PaginatedDocumentList
+                      key="old"
+                      documents={documents.leastRecentlyUpdatedInCollection(
+                        collection.id
+                      )}
+                      fetch={documents.fetchLeastRecentlyUpdated}
+                      options={{
+                        collectionId: collection.id,
+                      }}
+                    />
+                  </Route>
+                  <Route path={collectionPath(collection.url, "recent")}>
+                    <Redirect
+                      to={collectionPath(collection.url, "published")}
+                    />
+                  </Route>
+                  <Route path={collectionPath(collection.url, "published")}>
+                    <PaginatedDocumentList
+                      key="published"
+                      documents={documents.recentlyPublishedInCollection(
+                        collection.id
+                      )}
+                      fetch={documents.fetchRecentlyPublished}
+                      options={{
+                        collectionId: collection.id,
+                      }}
+                      showPublished
+                    />
+                  </Route>
+                  <Route path={collectionPath(collection.url, "updated")}>
+                    <PaginatedDocumentList
+                      key="updated"
+                      documents={documents.recentlyUpdatedInCollection(
+                        collection.id
+                      )}
+                      fetch={documents.fetchRecentlyUpdated}
+                      options={{
+                        collectionId: collection.id,
+                      }}
+                    />
+                  </Route>
+                  <Route path={collectionPath(collection.url)} exact>
+                    <PaginatedDocumentList
+                      documents={documents.rootInCollection(collection.id)}
+                      fetch={documents.fetchPage}
+                      options={{
+                        collectionId: collection.id,
+                        parentDocumentId: null,
+                        sort: collection.sort.field,
+                        direction: collection.sort.direction,
+                      }}
+                      showParentDocuments
+                    />
+                  </Route>
+                </Switch>
+              </Documents>
             </>
           )}
         </CenteredContent>
@@ -288,6 +296,11 @@ const StarButton = styled(Star)`
     position: relative;
     left: -4px;
   }
+`;
+
+const Documents = styled.div`
+  position: relative;
+  background: ${s("background")};
 `;
 
 const HeadingWithIcon = styled(Heading)<{ $isStarred: boolean }>`

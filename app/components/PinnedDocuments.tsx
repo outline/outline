@@ -23,6 +23,7 @@ import breakpoint from "styled-components-breakpoint";
 import Pin from "~/models/Pin";
 import DocumentCard from "~/components/DocumentCard";
 import useStores from "~/hooks/useStores";
+import { ResizingHeightContainer } from "./ResizingHeightContainer";
 
 type Props = {
   /** Pins to display */
@@ -98,27 +99,36 @@ function PinnedDocuments({ limit, pins, canUpdate, ...rest }: Props) {
       collisionDetection={closestCenter}
       onDragEnd={handleDragEnd}
     >
-      <SortableContext items={items} strategy={rectSortingStrategy}>
-        <List>
-          <AnimatePresence initial={false}>
-            {items.map((documentId) => {
-              const document = documents.get(documentId);
-              const pin = pins.find((pin) => pin.documentId === documentId);
+      <ResizingHeightContainer
+        config={{
+          transition: {
+            duration: 0.2,
+            ease: "easeInOut",
+          },
+        }}
+      >
+        <SortableContext items={items} strategy={rectSortingStrategy}>
+          <List>
+            <AnimatePresence initial={false}>
+              {items.map((documentId) => {
+                const document = documents.get(documentId);
+                const pin = pins.find((pin) => pin.documentId === documentId);
 
-              return document ? (
-                <DocumentCard
-                  key={documentId}
-                  document={document}
-                  canUpdatePin={canUpdate}
-                  isDraggable={items.length > 1}
-                  pin={pin}
-                  {...rest}
-                />
-              ) : null;
-            })}
-          </AnimatePresence>
-        </List>
-      </SortableContext>
+                return document ? (
+                  <DocumentCard
+                    key={documentId}
+                    document={document}
+                    canUpdatePin={canUpdate}
+                    isDraggable={items.length > 1}
+                    pin={pin}
+                    {...rest}
+                  />
+                ) : null;
+              })}
+            </AnimatePresence>
+          </List>
+        </SortableContext>
+      </ResizingHeightContainer>
     </DndContext>
   );
 }
