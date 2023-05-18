@@ -4,6 +4,7 @@ import {
   PadlockIcon,
   PlusIcon,
   StarredIcon,
+  TrashIcon,
   UnstarredIcon,
 } from "outline-icons";
 import * as React from "react";
@@ -12,6 +13,7 @@ import Collection from "~/models/Collection";
 import CollectionEdit from "~/scenes/CollectionEdit";
 import CollectionNew from "~/scenes/CollectionNew";
 import CollectionPermissions from "~/scenes/CollectionPermissions";
+import CollectionDeleteDialog from "~/components/CollectionDeleteDialog";
 import DynamicCollectionIcon from "~/components/Icons/CollectionIcon";
 import { createAction } from "~/actions";
 import { CollectionSection } from "~/actions/sections";
@@ -158,9 +160,44 @@ export const unstarCollection = createAction({
   },
 });
 
+export const deleteCollection = createAction({
+  name: ({ t }) => t("Delete"),
+  analyticsName: "Delete collection",
+  section: CollectionSection,
+  icon: <TrashIcon />,
+  visible: ({ activeCollectionId, stores }) => {
+    if (!activeCollectionId) {
+      return false;
+    }
+    return stores.policies.abilities(activeCollectionId).delete;
+  },
+  perform: ({ activeCollectionId, stores, t }) => {
+    if (!activeCollectionId) {
+      return;
+    }
+
+    const collection = stores.collections.get(activeCollectionId);
+    if (!collection) {
+      return;
+    }
+
+    stores.dialogs.openModal({
+      isCentered: true,
+      title: t("Delete collection"),
+      content: (
+        <CollectionDeleteDialog
+          collection={collection}
+          onSubmit={stores.dialogs.closeAllModals}
+        />
+      ),
+    });
+  },
+});
+
 export const rootCollectionActions = [
   openCollection,
   createCollection,
   starCollection,
   unstarCollection,
+  deleteCollection,
 ];

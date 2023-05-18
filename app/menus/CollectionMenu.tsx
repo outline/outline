@@ -1,13 +1,10 @@
 import { observer } from "mobx-react";
 import {
   NewDocumentIcon,
-  TrashIcon,
   ImportIcon,
   ExportIcon,
   AlphabeticalSortIcon,
   ManualSortIcon,
-  UnstarredIcon,
-  StarredIcon,
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -16,15 +13,17 @@ import { useMenuState, MenuButton, MenuButtonHTMLProps } from "reakit/Menu";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
 import { getEventFiles } from "@shared/utils/files";
 import Collection from "~/models/Collection";
-import CollectionDeleteDialog from "~/components/CollectionDeleteDialog";
 import ContextMenu, { Placement } from "~/components/ContextMenu";
 import OverflowMenuButton from "~/components/ContextMenu/OverflowMenuButton";
 import Template from "~/components/ContextMenu/Template";
 import ExportDialog from "~/components/ExportDialog";
 import { actionToMenuItem } from "~/actions";
 import {
+  deleteCollection,
   editCollection,
   editCollectionPermissions,
+  starCollection,
+  unstarCollection,
 } from "~/actions/definitions/collections";
 import useActionContext from "~/hooks/useActionContext";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
@@ -139,37 +138,6 @@ function CollectionMenu({
     [collection, menu]
   );
 
-  const handleDelete = React.useCallback(() => {
-    dialogs.openModal({
-      isCentered: true,
-      title: t("Delete collection"),
-      content: (
-        <CollectionDeleteDialog
-          collection={collection}
-          onSubmit={dialogs.closeAllModals}
-        />
-      ),
-    });
-  }, [dialogs, t, collection]);
-
-  const handleStar = React.useCallback(
-    (ev: React.SyntheticEvent) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-      collection.star();
-    },
-    [collection]
-  );
-
-  const handleUnstar = React.useCallback(
-    (ev: React.SyntheticEvent) => {
-      ev.preventDefault();
-      ev.stopPropagation();
-      collection.unstar();
-    },
-    [collection]
-  );
-
   const context = useActionContext({
     isContextMenu: true,
     activeCollectionId: collection.id,
@@ -180,20 +148,8 @@ function CollectionMenu({
   const canUserInTeam = usePolicy(team);
   const items: MenuItem[] = React.useMemo(
     () => [
-      {
-        type: "button",
-        title: t("Unstar"),
-        onClick: handleUnstar,
-        visible: collection.isStarred && !!can.unstar,
-        icon: <UnstarredIcon />,
-      },
-      {
-        type: "button",
-        title: t("Star"),
-        onClick: handleStar,
-        visible: !collection.isStarred && !!can.star,
-        icon: <StarredIcon />,
-      },
+      actionToMenuItem(starCollection, context),
+      actionToMenuItem(unstarCollection, context),
       {
         type: "separator",
       },
@@ -246,32 +202,20 @@ function CollectionMenu({
       {
         type: "separator",
       },
-      {
-        type: "button",
-        title: `${t("Delete")}…`,
-        dangerous: true,
-        visible: !!(collection && can.delete),
-        onClick: handleDelete,
-        icon: <TrashIcon />,
-      },
+      actionToMenuItem(deleteCollection, context),
     ],
     [
       t,
-      handleUnstar,
       collection,
-      can.unstar,
-      can.star,
       can.createDocument,
       can.update,
-      can.delete,
-      handleStar,
+      can.export,
       handleNewDocument,
       handleImportDocument,
       context,
       alphabeticalSort,
       canUserInTeam.createExport,
       handleExport,
-      handleDelete,
       handleChangeSort,
     ]
   );
