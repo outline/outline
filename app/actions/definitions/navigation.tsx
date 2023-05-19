@@ -115,6 +115,15 @@ export const navigateToProfileSettings = createAction({
   perform: () => history.push(settingsPath()),
 });
 
+export const navigateToNotificationSettings = createAction({
+  name: ({ t }) => t("Notifications"),
+  analyticsName: "Navigate to notification settings",
+  section: NavigationSection,
+  iconInContextMenu: false,
+  icon: <EmailIcon />,
+  perform: () => history.push(settingsPath("notifications")),
+});
+
 export const navigateToAccountPreferences = createAction({
   name: ({ t }) => t("Preferences"),
   analyticsName: "Navigate to account preferences",

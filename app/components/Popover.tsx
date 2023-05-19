@@ -14,6 +14,7 @@ type Props = PopoverProps & {
   flex?: boolean;
   tabIndex?: number;
   scrollable?: boolean;
+  mobilePosition?: "top" | "bottom";
 };
 
 const Popover: React.FC<Props> = ({
@@ -22,6 +23,7 @@ const Popover: React.FC<Props> = ({
   width = 380,
   scrollable = true,
   flex,
+  mobilePosition,
   ...rest
 }) => {
   const isMobile = useMobile();
@@ -29,7 +31,12 @@ const Popover: React.FC<Props> = ({
   if (isMobile) {
     return (
       <Dialog {...rest} modal>
-        <Contents $shrink={shrink} $scrollable={scrollable} $flex={flex}>
+        <Contents
+          $shrink={shrink}
+          $scrollable={scrollable}
+          $flex={flex}
+          $mobilePosition={mobilePosition}
+        >
           {children}
         </Contents>
       </Dialog>
@@ -50,12 +57,15 @@ const Popover: React.FC<Props> = ({
   );
 };
 
-const Contents = styled.div<{
+type ContentsProps = {
   $shrink?: boolean;
   $width?: number;
   $flex?: boolean;
   $scrollable: boolean;
-}>`
+  $mobilePosition?: "top" | "bottom";
+};
+
+const Contents = styled.div<ContentsProps>`
   display: ${(props) => (props.$flex ? "flex" : "block")};
   animation: ${fadeAndScaleIn} 200ms ease;
   transform-origin: 75% 0;
@@ -78,7 +88,10 @@ const Contents = styled.div<{
     z-index: ${depths.menu};
 
     // 50 is a magic number that positions us nicely under the top bar
-    top: 50px;
+    top: ${(props: ContentsProps) =>
+      props.$mobilePosition === "bottom" ? "auto" : "50px"};
+    bottom: ${(props: ContentsProps) =>
+      props.$mobilePosition === "bottom" ? "0" : "auto"};
     left: 8px;
     right: 8px;
     width: auto;

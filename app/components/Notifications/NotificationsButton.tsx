@@ -17,6 +17,7 @@ function NotificationsButton() {
   const { ui, notifications } = useStores();
   const { t } = useTranslation();
   const { approximateUnreadCount } = notifications;
+  const focusRef = React.useRef<HTMLDivElement>(null);
 
   const popover = usePopoverState({
     gutter: 0,
@@ -52,11 +53,13 @@ function NotificationsButton() {
       <StyledPopover
         {...popover}
         scrollable={false}
+        mobilePosition="bottom"
         aria-label={t("Notifications")}
+        unstable_initialFocusRef={focusRef}
         shrink
         flex
       >
-        <Notifications onRequestClose={popover.hide} />
+        <Notifications onRequestClose={popover.hide} ref={focusRef} />
       </StyledPopover>
     </>
   );
