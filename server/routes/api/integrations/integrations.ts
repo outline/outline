@@ -115,7 +115,7 @@ router.post(
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
 
-    const integration = await Integration.findByPk(id, { transaction });
+    let integration = await Integration.findByPk(id, { transaction });
     authorize(user, "update", integration);
 
     if (integration.type === IntegrationType.Post) {
@@ -165,6 +165,10 @@ router.post(
     integration.settings = settings;
 
     await integration.save({ transaction });
+
+    integration = (await Integration.scope(
+      "withAuthentication"
+    ).findByPk(integration.id, { transaction })) as Integration<unknown>;
 
     ctx.body = {
       data: presentIntegration(integration, { includeToken: user.isAdmin }),
