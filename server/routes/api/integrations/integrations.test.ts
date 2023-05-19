@@ -1,6 +1,6 @@
 import { isUndefined, uniq } from "lodash";
 import { IntegrationService, IntegrationType } from "@shared/types";
-import { User } from "@server/models";
+import { IntegrationAuthentication, User } from "@server/models";
 import Integration, {
   UserCreatableIntegrationService,
 } from "@server/models/Integration";
@@ -352,5 +352,89 @@ describe("#integrations.update", () => {
     expect(res.status).toEqual(200);
     expect(body.data.id).toEqual(integration.id);
     expect(body.data.events.length).toEqual(1);
+  });
+});
+
+describe("#integrations.delete", () => {
+  let admin: User;
+  let integration: Integration;
+  let integrationWithAuth: Integration;
+
+  beforeEach(async () => {
+    admin = await buildAdmin();
+
+    integration = await buildIntegration({
+      userId: admin.id,
+      teamId: admin.teamId,
+      service: IntegrationService.Diagrams,
+      type: IntegrationType.Embed,
+      settings: { url: "https://example.com" },
+    });
+
+    integrationWithAuth = await buildIntegration({
+      auth: true,
+      userId: admin.id,
+      teamId: admin.teamId,
+      token: "token",
+    });
+  });
+
+  it("should fail with status 403 unauthorized when the user is not an admin", async () => {
+    const user = await buildUser();
+
+    const res = await server.post("/api/integrations.delete", {
+      body: {
+        token: user.getJwtToken(),
+        id: integration.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(403);
+    expect(body.message).toEqual("Admin role required");
+  });
+
+  it("should fail with status 400 bad request when id is not sent", async () => {
+    const res = await server.post("/api/integrations.delete", {
+      body: {
+        token: admin.getJwtToken(),
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("id: Required");
+  });
+
+  it("should succeed with status 200 when an integration without auth is deleted", async () => {
+    const res = await server.post("/api/integrations.delete", {
+      body: {
+        token: admin.getJwtToken(),
+        id: integration.id,
+      },
+    });
+
+    expect(res.status).toEqual(200);
+
+    const intg = await Integration.findByPk(integration.id);
+    expect(intg).toBeNull();
+  });
+
+  it("should succeed with status 200 ok when integration with auth is deleted", async () => {
+    const res = await server.post("/api/integrations.delete", {
+      body: {
+        token: admin.getJwtToken(),
+        id: integrationWithAuth.id,
+      },
+    });
+
+    expect(res.status).toEqual(200);
+
+    const intg = await Integration.findByPk(integrationWithAuth.id);
+    expect(intg).toBeNull();
+
+    const auth = await IntegrationAuthentication.findByPk(
+      integrationWithAuth.authenticationId!
+    );
+    expect(auth).toBeNull();
   });
 });
