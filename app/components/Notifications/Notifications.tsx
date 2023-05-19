@@ -8,6 +8,7 @@ import Notification from "~/models/Notification";
 import { navigateToNotificationSettings } from "~/actions/definitions/navigation";
 import useActionContext from "~/hooks/useActionContext";
 import useStores from "~/hooks/useStores";
+import Empty from "../Empty";
 import Flex from "../Flex";
 import NudeButton from "../NudeButton";
 import PaginatedList from "../PaginatedList";
@@ -27,6 +28,7 @@ function Notifications(
   const context = useActionContext();
   const { notifications } = useStores();
   const { t } = useTranslation();
+  const isEmpty = notifications.orderedData.length === 0;
 
   return (
     <Flex style={{ width: "100%" }} ref={ref} column>
@@ -62,9 +64,19 @@ function Notifications(
           )}
         />
       </Scrollable>
+      {isEmpty && (
+        <EmptyNotifications>{t("No notifications yet")}.</EmptyNotifications>
+      )}
     </Flex>
   );
 }
+
+const EmptyNotifications = styled(Empty)`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+`;
 
 const Button = styled(NudeButton)`
   color: ${s("textSecondary")};
