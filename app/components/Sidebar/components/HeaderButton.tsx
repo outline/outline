@@ -5,7 +5,7 @@ import { s } from "@shared/styles";
 import Flex from "~/components/Flex";
 import { undraggableOnDesktop } from "~/styles";
 
-export type HeaderButtonProps = React.ComponentProps<typeof Wrapper> & {
+export type HeaderButtonProps = React.ComponentProps<typeof Button> & {
   title: React.ReactNode;
   image: React.ReactNode;
   minHeight?: number;
@@ -29,41 +29,44 @@ const HeaderButton = React.forwardRef<HTMLButtonElement, HeaderButtonProps>(
     }: HeaderButtonProps,
     ref
   ) => (
-    <Wrapper
-      role="button"
-      justify="space-between"
-      align="center"
-      as="button"
-      minHeight={minHeight}
-      {...rest}
-      ref={ref}
-    >
-      <Title gap={6} align="center">
-        {image}
-        {title}
-      </Title>
-      {showDisclosure && <ExpandedIcon />}
-      {showMoreMenu && <MoreIcon />}
+    <Flex justify="space-between" align="center" shrink={false}>
+      <Button
+        {...rest}
+        minHeight={minHeight}
+        as="button"
+        ref={ref}
+        role="button"
+      >
+        <Title gap={8} align="center">
+          {image}
+          {title}
+        </Title>
+        {showDisclosure && <ExpandedIcon />}
+        {showMoreMenu && <MoreIcon />}
+      </Button>
       {children}
-    </Wrapper>
+    </Flex>
   )
 );
 
 const Title = styled(Flex)`
   color: ${s("text")};
   flex-shrink: 1;
+  flex-grow: 1;
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;
 `;
 
-const Wrapper = styled(Flex)<{ minHeight: number }>`
+const Button = styled(Flex)<{ minHeight: number }>`
+  flex: 1;
+  color: ${s("textTertiary")};
+  align-items: center;
   padding: 8px 4px;
   font-size: 15px;
   font-weight: 500;
   border-radius: 4px;
   margin: 8px;
-  color: ${s("textTertiary")};
   border: 0;
   background: none;
   flex-shrink: 0;

@@ -1,4 +1,5 @@
 import { observer } from "mobx-react";
+import { SubscribeIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Portal } from "react-portal";
@@ -15,7 +16,9 @@ import { draggableOnDesktop, fadeOnDesktopBackgrounded } from "~/styles";
 import { fadeIn } from "~/styles/animations";
 import Desktop from "~/utils/Desktop";
 import Avatar from "../Avatar";
+import NotificationsButton from "../Notifications/NotificationsButton";
 import HeaderButton, { HeaderButtonProps } from "./components/HeaderButton";
+import Relative from "./components/Relative";
 import ResizeBorder from "./components/ResizeBorder";
 import Toggle, { ToggleButton, Positioner } from "./components/Toggle";
 
@@ -184,7 +187,16 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(
                       showBorder={false}
                     />
                   }
-                />
+                >
+                  <NotificationsButton>
+                    {(rest: HeaderButtonProps) => (
+                      <HeaderButton
+                        {...rest}
+                        image={<BadgedNotificationIcon />}
+                      />
+                    )}
+                  </NotificationsButton>
+                </HeaderButton>
               )}
             </AccountMenu>
           )}
@@ -210,6 +222,29 @@ const Sidebar = React.forwardRef<HTMLDivElement, Props>(
     );
   }
 );
+
+const BadgedNotificationIcon = observer(() => {
+  const { notifications } = useStores();
+  const theme = useTheme();
+  const count = notifications.approximateUnreadCount;
+
+  return (
+    <Relative>
+      <SubscribeIcon color={theme.textTertiary} />
+      {count > 0 && <Badge />}
+    </Relative>
+  );
+});
+
+const Badge = styled.div`
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: ${s("accent")};
+  top: 0;
+  right: 0;
+`;
 
 const StyledAvatar = styled(Avatar)`
   margin-left: 4px;
