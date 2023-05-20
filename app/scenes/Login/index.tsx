@@ -45,7 +45,7 @@ function Header({ config }: { config?: Config | undefined }) {
 
   return (
     <Back href={isSubdomain ? env.URL : "https://www.getoutline.com"}>
-      <BackIcon /> {t("Back to home")}
+      <BackIcon /> {Desktop.isElectron() ? t("Back") : t("Back to home")}
     </Back>
   );
 }
@@ -374,7 +374,7 @@ const Back = styled.a`
   display: flex;
   align-items: center;
   color: inherit;
-  padding: 32px;
+  padding: ${Desktop.isElectron() ? "48px 32px" : "32px"};
   font-weight: 500;
   position: absolute;
 
