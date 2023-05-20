@@ -19,9 +19,13 @@ import Tooltip from "../Tooltip";
 import NotificationListItem from "./NotificationListItem";
 
 type Props = {
+  /* Callback when the notification panel wants to close. */
   onRequestClose: () => void;
 };
 
+/**
+ * A panel containing a list of notifications and controls to manage them.
+ */
 function Notifications(
   { onRequestClose }: Props,
   ref: React.RefObject<HTMLDivElement>

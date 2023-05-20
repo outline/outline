@@ -37,12 +37,22 @@ class Notification extends BaseModel {
 
   event: NotificationEventType;
 
+  /**
+   * Mark the notification as read or unread
+   *
+   * @returns A promise that resolves when the notification has been saved.
+   */
   @action
   toggleRead() {
     this.viewedAt = this.viewedAt ? null : new Date();
     return this.save();
   }
 
+  /**
+   * Mark the notification as read
+   *
+   * @returns A promise that resolves when the notification has been saved.
+   */
   @action
   markAsRead() {
     if (this.viewedAt) {
@@ -53,6 +63,12 @@ class Notification extends BaseModel {
     return this.save();
   }
 
+  /**
+   * Returns translated text that describes the notification
+   *
+   * @param t - The translation function
+   * @returns The event text
+   */
   eventText(t: TFunction): string {
     switch (this.event) {
       case "documents.publish":
@@ -76,6 +92,12 @@ class Notification extends BaseModel {
     return this.document?.title;
   }
 
+  /**
+   * Returns the path to the model associated with the notification that can be
+   * used with the router.
+   *
+   * @returns The router path.
+   */
   get path() {
     switch (this.event) {
       case "documents.publish":

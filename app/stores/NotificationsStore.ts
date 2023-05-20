@@ -36,6 +36,9 @@ export default class NotificationsStore extends BaseStore<Notification> {
     }
   };
 
+  /**
+   * Mark all notifications as read.
+   */
   @action
   markAllAsRead = async () => {
     await client.post("/notifications.update_all", {
@@ -50,12 +53,18 @@ export default class NotificationsStore extends BaseStore<Notification> {
     });
   };
 
+  /**
+   * Returns the approximate number of unread notifications.
+   */
   @computed
   get approximateUnreadCount(): number {
     return this.orderedData.filter((notification) => !notification.viewedAt)
       .length;
   }
 
+  /**
+   * Returns the notifications in order of created date.
+   */
   @computed
   get orderedData(): Notification[] {
     return sortBy(

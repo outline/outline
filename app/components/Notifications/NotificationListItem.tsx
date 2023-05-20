@@ -72,9 +72,6 @@ function NotificationListItem({ notification, onNavigate }: Props) {
   );
 }
 
-// ${(props) =>
-//   props.$unread && `background: ${props.theme.listItemHoverBackground};`}
-
 const StyledCommentEditor = styled(CommentEditor)`
   font-size: 0.9em;
   margin-top: 4px;
