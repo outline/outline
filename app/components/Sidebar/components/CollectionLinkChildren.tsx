@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Collection from "~/models/Collection";
 import Document from "~/models/Document";
-import DelayedMount from "~/components/DelayedMount";
 import DocumentsLoader from "~/components/DocumentsLoader";
 import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import usePolicy from "~/hooks/usePolicy";
@@ -78,9 +77,7 @@ function CollectionLinkChildren({
       <DocumentsLoader collection={collection} enabled={expanded}>
         {!childDocuments && (
           <ResizingHeightContainer hideOverflow>
-            <DelayedMount>
-              <Loading />
-            </DelayedMount>
+            <Loading />
           </ResizingHeightContainer>
         )}
         {childDocuments?.map((node, index) => (
