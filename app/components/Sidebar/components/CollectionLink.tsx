@@ -118,7 +118,7 @@ const CollectionLink: React.FC<Props> = ({
     setIsEditing(isEditing);
   }, []);
 
-  const handleMouseEnter = React.useCallback(() => {
+  const handlePrefetch = React.useCallback(() => {
     void collection.fetchDocuments();
   }, [collection]);
 
@@ -138,7 +138,7 @@ const CollectionLink: React.FC<Props> = ({
             }}
             expanded={expanded}
             onDisclosureClick={onDisclosureClick}
-            onMouseEnter={handleMouseEnter}
+            onClickIntent={handlePrefetch}
             icon={
               <CollectionIcon collection={collection} expanded={expanded} />
             }

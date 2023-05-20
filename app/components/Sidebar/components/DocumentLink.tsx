@@ -114,7 +114,7 @@ function InnerDocumentLink(
     [expanded]
   );
 
-  const handleMouseEnter = React.useCallback(() => {
+  const handlePrefetch = React.useCallback(() => {
     prefetchDocument?.(node.id);
   }, [prefetchDocument, node]);
 
@@ -317,7 +317,7 @@ function InnerDocumentLink(
               <SidebarLink
                 expanded={hasChildren ? isExpanded : undefined}
                 onDisclosureClick={handleDisclosureClick}
-                onMouseEnter={handleMouseEnter}
+                onClickIntent={handlePrefetch}
                 to={{
                   pathname: node.url,
                   state: {

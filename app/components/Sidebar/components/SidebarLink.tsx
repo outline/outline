@@ -6,6 +6,7 @@ import { s } from "@shared/styles";
 import { NavigationNode } from "@shared/types";
 import EventBoundary from "~/components/EventBoundary";
 import NudeButton from "~/components/NudeButton";
+import useUnmount from "~/hooks/useUnmount";
 import { undraggableOnDesktop } from "~/styles";
 import Disclosure from "./Disclosure";
 import NavLink, { Props as NavLinkProps } from "./NavLink";
@@ -20,7 +21,8 @@ type Props = Omit<NavLinkProps, "to"> & {
   to?: LocationDescriptor;
   innerRef?: (ref: HTMLElement | null | undefined) => void;
   onClick?: React.MouseEventHandler<HTMLAnchorElement>;
-  onMouseEnter?: React.MouseEventHandler<HTMLAnchorElement>;
+  /* Callback when we expect the user to click on the link. Used for prefetching data. */
+  onClickIntent?: () => void;
   onDisclosureClick?: React.MouseEventHandler<HTMLButtonElement>;
   icon?: React.ReactNode;
   label?: React.ReactNode;
@@ -44,7 +46,7 @@ function SidebarLink(
   {
     icon,
     onClick,
-    onMouseEnter,
+    onClickIntent,
     to,
     label,
     active,
@@ -63,6 +65,7 @@ function SidebarLink(
   }: Props,
   ref: React.RefObject<HTMLAnchorElement>
 ) {
+  const timer = React.useRef<number>();
   const theme = useTheme();
   const style = React.useMemo(
     () => ({
@@ -81,6 +84,28 @@ function SidebarLink(
     [theme.text, theme.sidebarActiveBackground, style]
   );
 
+  const handleMouseEnter = React.useCallback(() => {
+    if (timer.current) {
+      clearTimeout(timer.current);
+    }
+
+    if (onClickIntent) {
+      timer.current = window.setTimeout(onClickIntent, 100);
+    }
+  }, [onClickIntent]);
+
+  const handleMouseLeave = React.useCallback(() => {
+    if (timer.current) {
+      clearTimeout(timer.current);
+    }
+  }, []);
+
+  useUnmount(() => {
+    if (timer.current) {
+      clearTimeout(timer.current);
+    }
+  });
+
   return (
     <>
       <Link
@@ -90,7 +115,8 @@ function SidebarLink(
         activeStyle={isActiveDrop ? activeDropStyle : activeStyle}
         style={active ? activeStyle : style}
         onClick={onClick}
-        onMouseEnter={onMouseEnter}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
         // @ts-expect-error exact does not exist on div
         exact={exact !== false}
         to={to}
