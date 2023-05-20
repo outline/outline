@@ -66,7 +66,7 @@ const Button = styled(Flex)<{ minHeight: number }>`
   font-size: 15px;
   font-weight: 500;
   border-radius: 4px;
-  margin: 8px;
+  margin: 8px 0;
   border: 0;
   background: none;
   flex-shrink: 0;
@@ -86,6 +86,14 @@ const Button = styled(Flex)<{ minHeight: number }>`
     color: ${s("sidebarText")};
     transition: background 100ms ease-in-out;
     background: ${s("sidebarActiveBackground")};
+  }
+
+  &:last-child {
+    margin-right: 8px;
+  }
+
+  &:first-child {
+    margin-left: 8px;
   }
 `;
 
