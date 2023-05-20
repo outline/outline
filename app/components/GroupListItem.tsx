@@ -14,6 +14,7 @@ import ListItem from "~/components/List/Item";
 import Modal from "~/components/Modal";
 import useBoolean from "~/hooks/useBoolean";
 import useStores from "~/hooks/useStores";
+import { hover } from "~/styles";
 import NudeButton from "./NudeButton";
 
 type Props = {
@@ -87,7 +88,7 @@ const Image = styled(Flex)`
 `;
 
 const Title = styled.span`
-  &:hover {
+  &: ${hover} {
     text-decoration: underline;
     cursor: var(--pointer);
   }

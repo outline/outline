@@ -8,6 +8,7 @@ import { s } from "@shared/styles";
 import Notification from "~/models/Notification";
 import CommentEditor from "~/scenes/Document/components/CommentEditor";
 import useStores from "~/hooks/useStores";
+import { hover } from "~/styles";
 import Avatar from "../Avatar";
 import { AvatarSize } from "../Avatar/Avatar";
 import Flex from "../Flex";
@@ -87,7 +88,7 @@ const Container = styled(Flex)<{ $unread: boolean }>`
   margin: 0 8px;
   border-radius: 4px;
 
-  &:hover,
+  &:${hover},
   &:active {
     background: ${s("listItemHoverBackground")};
     cursor: var(--pointer);

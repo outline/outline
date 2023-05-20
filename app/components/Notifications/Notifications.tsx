@@ -9,6 +9,7 @@ import { navigateToNotificationSettings } from "~/actions/definitions/navigation
 import { markNotificationsAsRead } from "~/actions/definitions/notifications";
 import useActionContext from "~/hooks/useActionContext";
 import useStores from "~/hooks/useStores";
+import { hover } from "~/styles";
 import Empty from "../Empty";
 import Flex from "../Flex";
 import NudeButton from "../NudeButton";
@@ -86,7 +87,7 @@ const EmptyNotifications = styled(Empty)`
 const Button = styled(NudeButton)`
   color: ${s("textSecondary")};
 
-  &:hover,
+  &:${hover},
   &:active {
     color: ${s("text")};
     background: ${s("sidebarControlHoverBackground")};
@@ -102,7 +103,7 @@ const Header = styled(Flex)`
     transition: opacity 250ms ease-in-out;
   }
 
-  &:hover,
+  &:${hover},
   &:focus-within {
     ${Button} {
       opacity: 1;

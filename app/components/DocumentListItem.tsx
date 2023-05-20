@@ -181,8 +181,7 @@ const Actions = styled(EventBoundary)`
   color: ${s("textSecondary")};
 
   ${NudeButton} {
-    &:hover,
-    &[aria-expanded="true"] {
+    &: ${hover}, &[aria-expanded= "true" ] {
       background: ${s("sidebarControlHoverBackground")};
     }
   }
@@ -234,7 +233,7 @@ const DocumentLink = styled(Link)<{
     ${AnimatedStar} {
       opacity: 0.5;
 
-      &:hover {
+      &:${hover} {
         opacity: 1;
       }
     }

@@ -18,6 +18,7 @@ import Time from "~/components/Time";
 import useBoolean from "~/hooks/useBoolean";
 import useToasts from "~/hooks/useToasts";
 import CommentMenu from "~/menus/CommentMenu";
+import { hover } from "~/styles";
 import CommentEditor from "./CommentEditor";
 
 /**
@@ -244,8 +245,7 @@ const Menu = styled(CommentMenu)<{ dir?: "rtl" | "ltr" }>`
   transition: opacity 100ms ease-in-out;
   color: ${s("textSecondary")};
 
-  &:hover,
-  &[aria-expanded="true"] {
+  &: ${hover}, &[aria-expanded= "true" ] {
     opacity: 1;
     background: ${s("sidebarActiveBackground")};
   }
@@ -296,7 +296,7 @@ export const Bubble = styled(Flex)<{
     margin-bottom: 0;
   }
 
-  &:hover ${Menu} {
+  &: ${hover} ${Menu} {
     opacity: 1;
   }
 

@@ -14,6 +14,7 @@ import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
 import Time from "~/components/Time";
 import useStores from "~/hooks/useStores";
+import { hover } from "~/styles";
 import CollectionIcon from "./Icons/CollectionIcon";
 import EmojiIcon from "./Icons/EmojiIcon";
 import Squircle from "./Squircle";
@@ -179,7 +180,7 @@ const Fold = styled.svg`
 const PinButton = styled(NudeButton)`
   color: ${s("textTertiary")};
 
-  &:hover,
+  &:${hover},
   &:active {
     color: ${s("text")};
   }
@@ -209,7 +210,7 @@ const Reorderable = styled.div<{ $isDragging: boolean }>`
   z-index: ${(props) => (props.$isDragging ? 1 : "inherit")};
   pointer-events: ${(props) => (props.$isDragging ? "none" : "inherit")};
 
-  &:hover ${Actions} {
+  &: ${hover} ${Actions} {
     opacity: 1;
   }
 `;
@@ -248,7 +249,7 @@ const DocumentLink = styled(Link)<{
     opacity: 0;
   }
 
-  &:hover,
+  &:${hover},
   &:active,
   &:focus,
   &:focus-within {

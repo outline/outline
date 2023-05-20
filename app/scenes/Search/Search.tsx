@@ -24,6 +24,7 @@ import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import withStores from "~/components/withStores";
+import { hover } from "~/styles";
 import Logger from "~/utils/Logger";
 import { searchPath } from "~/utils/routeHelpers";
 import { decodeURIComponentSafe } from "~/utils/urls";
@@ -453,7 +454,7 @@ const Filters = styled(Flex)`
     padding: 0;
   `};
 
-  &:hover {
+  &: ${hover} {
     opacity: 1;
   }
 `;

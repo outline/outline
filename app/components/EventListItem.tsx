@@ -25,6 +25,7 @@ import Item, { Actions } from "~/components/List/Item";
 import Time from "~/components/Time";
 import useStores from "~/hooks/useStores";
 import RevisionMenu from "~/menus/RevisionMenu";
+import { hover } from "~/styles";
 import Logger from "~/utils/Logger";
 import { documentHistoryPath } from "~/utils/routeHelpers";
 
@@ -220,7 +221,7 @@ const ItemStyle = css`
   ${Actions} {
     opacity: 0.5;
 
-    &:hover {
+    &: ${hover} {
       opacity: 1;
     }
   }
