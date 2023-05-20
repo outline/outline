@@ -6,6 +6,7 @@ import styled from "styled-components";
 import { s } from "@shared/styles";
 import Notification from "~/models/Notification";
 import { navigateToNotificationSettings } from "~/actions/definitions/navigation";
+import { markNotificationsAsRead } from "~/actions/definitions/notifications";
 import useActionContext from "~/hooks/useActionContext";
 import useStores from "~/hooks/useStores";
 import Empty from "../Empty";
@@ -39,7 +40,7 @@ function Notifications(
         <Text color="textSecondary" as={Flex} gap={8}>
           {notifications.approximateUnreadCount > 0 && (
             <Tooltip delay={500} tooltip={t("Mark all as read")}>
-              <Button onClick={notifications.markAllAsRead}>
+              <Button action={markNotificationsAsRead} context={context}>
                 <MarkAsReadIcon />
               </Button>
             </Tooltip>
