@@ -229,7 +229,7 @@ const BadgedNotificationIcon = observer(() => {
   const count = notifications.approximateUnreadCount;
 
   return (
-    <Relative>
+    <Relative style={{ height: 24 }}>
       <SubscribeIcon color={theme.textTertiary} />
       {count > 0 && <Badge />}
     </Relative>

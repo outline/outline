@@ -93,7 +93,7 @@ const Header = styled(Flex)`
   height: 44px;
 
   ${Button} {
-    opacity: 0.8;
+    opacity: 0.75;
     transition: opacity 250ms ease-in-out;
   }
 
