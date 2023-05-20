@@ -9,13 +9,20 @@ import Notifications from "./Notifications";
 
 const NotificationsButton: React.FC = ({ children }) => {
   const { t } = useTranslation();
-  const focusRef = React.useRef<HTMLDivElement>(null);
+  const scrollableRef = React.useRef<HTMLDivElement>(null);
 
   const popover = usePopoverState({
     gutter: 0,
     placement: "top-start",
     unstable_fixed: true,
   });
+
+  // Reset scroll position to the top when popover is opened
+  React.useEffect(() => {
+    if (popover.visible && scrollableRef.current) {
+      scrollableRef.current.scrollTop = 0;
+    }
+  }, [popover.visible]);
 
   return (
     <>
@@ -25,11 +32,11 @@ const NotificationsButton: React.FC = ({ children }) => {
         scrollable={false}
         mobilePosition="bottom"
         aria-label={t("Notifications")}
-        unstable_initialFocusRef={focusRef}
+        unstable_initialFocusRef={scrollableRef}
         shrink
         flex
       >
-        <Notifications onRequestClose={popover.hide} ref={focusRef} />
+        <Notifications onRequestClose={popover.hide} ref={scrollableRef} />
       </StyledPopover>
     </>
   );

@@ -37,7 +37,7 @@ function Notifications(
   const isEmpty = notifications.orderedData.length === 0;
 
   return (
-    <Flex style={{ width: "100%" }} ref={ref} column>
+    <Flex style={{ width: "100%" }} column>
       <Header justify="space-between">
         <Text weight="bold" as="span">
           {t("Notifications")}
@@ -57,7 +57,7 @@ function Notifications(
           </Tooltip>
         </Text>
       </Header>
-      <Scrollable flex topShadow>
+      <Scrollable ref={ref} flex topShadow>
         <PaginatedList
           fetch={notifications.fetchPage}
           items={notifications.orderedData}
