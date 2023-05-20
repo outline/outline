@@ -7,7 +7,7 @@ import { depths } from "@shared/styles";
 import Popover from "~/components/Popover";
 import Notifications from "./Notifications";
 
-const NotificationsButton: React.FC = ({ children }) => {
+const NotificationsPopover: React.FC = ({ children }) => {
   const { t } = useTranslation();
   const scrollableRef = React.useRef<HTMLDivElement>(null);
 
@@ -46,4 +46,4 @@ const StyledPopover = styled(Popover)`
   z-index: ${depths.menu};
 `;
 
-export default observer(NotificationsButton);
+export default observer(NotificationsPopover);

@@ -10,6 +10,7 @@ import { markNotificationsAsRead } from "~/actions/definitions/notifications";
 import useActionContext from "~/hooks/useActionContext";
 import useStores from "~/hooks/useStores";
 import { hover } from "~/styles";
+import Desktop from "~/utils/Desktop";
 import Empty from "../Empty";
 import Flex from "../Flex";
 import NudeButton from "../NudeButton";
@@ -35,6 +36,15 @@ function Notifications(
   const { notifications } = useStores();
   const { t } = useTranslation();
   const isEmpty = notifications.orderedData.length === 0;
+
+  // Update the notification count in the dock icon, if possible.
+  React.useEffect(() => {
+    // Account for old versions of the desktop app that don't have the
+    // setNotificationCount method on the bridge.
+    if (Desktop.bridge && "setNotificationCount" in Desktop.bridge) {
+      Desktop.bridge.setNotificationCount(notifications.approximateUnreadCount);
+    }
+  }, [notifications.approximateUnreadCount]);
 
   return (
     <Flex style={{ width: "100%" }} column>
