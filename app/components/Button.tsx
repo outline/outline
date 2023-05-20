@@ -60,7 +60,7 @@ const RealButton = styled(ActionButton)<RealProps>`
   ${(props) =>
     props.$neutral &&
     `
-    background: ${props.theme.buttonNeutralBackground};
+    background: inherit;
     color: ${props.theme.buttonNeutralText};
     box-shadow: ${
       props.$borderOnHover

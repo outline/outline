@@ -35,7 +35,7 @@ import GoogleIcon from "~/components/Icons/GoogleIcon";
 import ZapierIcon from "~/components/Icons/ZapierIcon";
 import PluginLoader from "~/utils/PluginLoader";
 import isCloudHosted from "~/utils/isCloudHosted";
-import { accountPreferencesPath } from "~/utils/routeHelpers";
+import { settingsPath } from "~/utils/routeHelpers";
 import useCurrentTeam from "./useCurrentTeam";
 import usePolicy from "./usePolicy";
 
@@ -57,7 +57,7 @@ const useSettingsConfig = () => {
     const items: ConfigItem[] = [
       {
         name: t("Profile"),
-        path: "/settings",
+        path: settingsPath(),
         component: Profile,
         enabled: true,
         group: t("Account"),
@@ -65,7 +65,7 @@ const useSettingsConfig = () => {
       },
       {
         name: t("Preferences"),
-        path: accountPreferencesPath(),
+        path: settingsPath("preferences"),
         component: Preferences,
         enabled: true,
         group: t("Account"),
@@ -73,7 +73,7 @@ const useSettingsConfig = () => {
       },
       {
         name: t("Notifications"),
-        path: "/settings/notifications",
+        path: settingsPath("notifications"),
         component: Notifications,
         enabled: true,
         group: t("Account"),
@@ -81,7 +81,7 @@ const useSettingsConfig = () => {
       },
       {
         name: t("API Tokens"),
-        path: "/settings/tokens",
+        path: settingsPath("tokens"),
         component: ApiKeys,
         enabled: can.createApiKey,
         group: t("Account"),
@@ -90,7 +90,7 @@ const useSettingsConfig = () => {
       // Team group
       {
         name: t("Details"),
-        path: "/settings/details",
+        path: settingsPath("details"),
         component: Details,
         enabled: can.update,
         group: t("Workspace"),
@@ -98,7 +98,7 @@ const useSettingsConfig = () => {
       },
       {
         name: t("Security"),
-        path: "/settings/security",
+        path: settingsPath("security"),
         component: Security,
         enabled: can.update,
         group: t("Workspace"),
@@ -106,7 +106,7 @@ const useSettingsConfig = () => {
       },
       {
         name: t("Features"),
-        path: "/settings/features",
+        path: settingsPath("features"),
         component: Features,
         enabled: can.update,
         group: t("Workspace"),
@@ -114,7 +114,7 @@ const useSettingsConfig = () => {
       },
       {
         name: t("Members"),
-        path: "/settings/members",
+        path: settingsPath("members"),
         component: Members,
         enabled: true,
         group: t("Workspace"),
@@ -122,7 +122,7 @@ const useSettingsConfig = () => {
       },
       {
         name: t("Groups"),
-        path: "/settings/groups",
+        path: settingsPath("groups"),
         component: Groups,
         enabled: true,
         group: t("Workspace"),
@@ -130,7 +130,7 @@ const useSettingsConfig = () => {
       },
       {
         name: t("Shared Links"),
-        path: "/settings/shares",
+        path: settingsPath("shares"),
         component: Shares,
         enabled: true,
         group: t("Workspace"),
@@ -138,7 +138,7 @@ const useSettingsConfig = () => {
       },
       {
         name: t("Import"),
-        path: "/settings/import",
+        path: settingsPath("import"),
         component: Import,
         enabled: can.createImport,
         group: t("Workspace"),
@@ -146,7 +146,7 @@ const useSettingsConfig = () => {
       },
       {
         name: t("Export"),
-        path: "/settings/export",
+        path: settingsPath("export"),
         component: Export,
         enabled: can.createExport,
         group: t("Workspace"),

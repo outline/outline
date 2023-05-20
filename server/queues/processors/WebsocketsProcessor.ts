@@ -13,6 +13,7 @@ import {
   Star,
   Team,
   Subscription,
+  Notification,
 } from "@server/models";
 import {
   presentComment,
@@ -25,6 +26,7 @@ import {
   presentSubscription,
   presentTeam,
 } from "@server/presenters";
+import presentNotification from "@server/presenters/notification";
 import { Event } from "../../types";
 
 export default class WebsocketsProcessor {
@@ -388,6 +390,17 @@ export default class WebsocketsProcessor {
           .emit(event.name, {
             modelId: event.modelId,
           });
+      }
+
+      case "notifications.create":
+      case "notifications.update": {
+        const notification = await Notification.findByPk(event.modelId);
+        if (!notification) {
+          return;
+        }
+
+        const data = await presentNotification(notification);
+        return socketio.to(`user-${event.userId}`).emit(event.name, data);
       }
 
       case "stars.create":

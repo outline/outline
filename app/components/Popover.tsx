@@ -1,7 +1,7 @@
 import * as React from "react";
 import { Dialog } from "reakit/Dialog";
 import { Popover as ReakitPopover, PopoverProps } from "reakit/Popover";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { depths, s } from "@shared/styles";
 import useMobile from "~/hooks/useMobile";
@@ -11,13 +11,19 @@ type Props = PopoverProps & {
   children: React.ReactNode;
   width?: number;
   shrink?: boolean;
+  flex?: boolean;
   tabIndex?: number;
+  scrollable?: boolean;
+  mobilePosition?: "top" | "bottom";
 };
 
 const Popover: React.FC<Props> = ({
   children,
   shrink,
   width = 380,
+  scrollable = true,
+  flex,
+  mobilePosition,
   ...rest
 }) => {
   const isMobile = useMobile();
@@ -25,38 +31,67 @@ const Popover: React.FC<Props> = ({
   if (isMobile) {
     return (
       <Dialog {...rest} modal>
-        <Contents $shrink={shrink}>{children}</Contents>
+        <Contents
+          $shrink={shrink}
+          $scrollable={scrollable}
+          $flex={flex}
+          $mobilePosition={mobilePosition}
+        >
+          {children}
+        </Contents>
       </Dialog>
     );
   }
 
   return (
     <ReakitPopover {...rest}>
-      <Contents $shrink={shrink} $width={width}>
+      <Contents
+        $shrink={shrink}
+        $width={width}
+        $scrollable={scrollable}
+        $flex={flex}
+      >
         {children}
       </Contents>
     </ReakitPopover>
   );
 };
 
-const Contents = styled.div<{ $shrink?: boolean; $width?: number }>`
+type ContentsProps = {
+  $shrink?: boolean;
+  $width?: number;
+  $flex?: boolean;
+  $scrollable: boolean;
+  $mobilePosition?: "top" | "bottom";
+};
+
+const Contents = styled.div<ContentsProps>`
+  display: ${(props) => (props.$flex ? "flex" : "block")};
   animation: ${fadeAndScaleIn} 200ms ease;
   transform-origin: 75% 0;
   background: ${s("menuBackground")};
   border-radius: 6px;
   padding: ${(props) => (props.$shrink ? "6px 0" : "12px 24px")};
   max-height: 75vh;
-  overflow-x: hidden;
-  overflow-y: auto;
   box-shadow: ${s("menuShadow")};
   width: ${(props) => props.$width}px;
+
+  ${(props) =>
+    props.$scrollable &&
+    css`
+      overflow-x: hidden;
+      overflow-y: auto;
+    `}
 
   ${breakpoint("mobile", "tablet")`
     position: fixed;
     z-index: ${depths.menu};
 
     // 50 is a magic number that positions us nicely under the top bar
-    top: 50px;
+    top: ${(props: ContentsProps) =>
+      props.$mobilePosition === "bottom" ? "auto" : "50px"};
+    bottom: ${(props: ContentsProps) =>
+      props.$mobilePosition === "bottom" ? "0" : "auto"};
     left: 8px;
     right: 8px;
     width: auto;

@@ -28,7 +28,8 @@ const Flex = styled.div<{
   align-items: ${({ align }) => align};
   justify-content: ${({ justify }) => justify};
   flex-wrap: ${({ wrap }) => (wrap ? "wrap" : "initial")};
-  flex-shrink: ${({ shrink }) => (shrink ? 1 : "initial")};
+  flex-shrink: ${({ shrink }) =>
+    shrink === true ? 1 : shrink === false ? 0 : "initial"};
   gap: ${({ gap }) => (gap ? `${gap}px` : "initial")};
   min-height: 0;
   min-width: 0;

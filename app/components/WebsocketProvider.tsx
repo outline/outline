@@ -10,6 +10,7 @@ import Comment from "~/models/Comment";
 import Document from "~/models/Document";
 import FileOperation from "~/models/FileOperation";
 import Group from "~/models/Group";
+import Notification from "~/models/Notification";
 import Pin from "~/models/Pin";
 import Star from "~/models/Star";
 import Subscription from "~/models/Subscription";
@@ -89,6 +90,7 @@ class WebsocketProvider extends React.Component<Props> {
       views,
       subscriptions,
       fileOperations,
+      notifications,
     } = this.props;
     if (!auth.token) {
       return;
@@ -322,6 +324,20 @@ class WebsocketProvider extends React.Component<Props> {
     this.socket.on("teams.update", (event: PartialWithId<Team>) => {
       auth.team?.updateFromJson(event);
     });
+
+    this.socket.on(
+      "notifications.create",
+      (event: PartialWithId<Notification>) => {
+        notifications.add(event);
+      }
+    );
+
+    this.socket.on(
+      "notifications.update",
+      (event: PartialWithId<Notification>) => {
+        notifications.add(event);
+      }
+    );
 
     this.socket.on("pins.create", (event: PartialWithId<Pin>) => {
       pins.add(event);

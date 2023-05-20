@@ -1,4 +1,4 @@
-import { sharedDocumentPath, accountPreferencesPath } from "./routeHelpers";
+import { sharedDocumentPath } from "./routeHelpers";
 
 describe("#sharedDocumentPath", () => {
   test("should return share path for a document", () => {
@@ -10,11 +10,5 @@ describe("#sharedDocumentPath", () => {
     expect(sharedDocumentPath(shareId, docPath)).toBe(
       "/s/1c922644-40d8-41fe-98f9-df2b67239d45/doc/test-DjDlkBi77t"
     );
-  });
-});
-
-describe("#accountPreferencesPath", () => {
-  test("should return account preferences path", () => {
-    expect(accountPreferencesPath()).toBe("/settings/preferences");
   });
 });

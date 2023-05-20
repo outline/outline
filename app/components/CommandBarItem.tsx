@@ -5,6 +5,7 @@ import styled, { css, useTheme } from "styled-components";
 import { s, ellipsis } from "@shared/styles";
 import Flex from "~/components/Flex";
 import Key from "~/components/Key";
+import Text from "./Text";
 
 type Props = {
   action: ActionImpl;
@@ -55,21 +56,35 @@ function CommandBarItem(
         {action.children?.length ? "…" : ""}
       </Content>
       {action.shortcut?.length ? (
-        <div
-          style={{
-            display: "grid",
-            gridAutoFlow: "column",
-            gap: "4px",
-          }}
-        >
-          {action.shortcut.map((sc: string) => (
-            <Key key={sc}>{sc}</Key>
+        <Shortcut>
+          {action.shortcut.map((sc: string, index) => (
+            <React.Fragment key={sc}>
+              {index > 0 ? (
+                <>
+                  {" "}
+                  <Text size="xsmall" as="span" type="secondary">
+                    then
+                  </Text>{" "}
+                </>
+              ) : (
+                ""
+              )}
+              {sc.split("+").map((s) => (
+                <Key key={s}>{s}</Key>
+              ))}
+            </React.Fragment>
           ))}
-        </div>
+        </Shortcut>
       ) : null}
     </Item>
   );
 }
+
+const Shortcut = styled.div`
+  display: grid;
+  grid-auto-flow: column;
+  gap: 4px;
+`;
 
 const Icon = styled(Flex)`
   align-items: center;

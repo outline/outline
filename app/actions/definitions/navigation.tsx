@@ -30,15 +30,13 @@ import { isMac } from "~/utils/browser";
 import history from "~/utils/history";
 import isCloudHosted from "~/utils/isCloudHosted";
 import {
-  organizationSettingsPath,
-  profileSettingsPath,
-  accountPreferencesPath,
   homePath,
   searchPath,
   draftsPath,
   templatesPath,
   archivePath,
   trashPath,
+  settingsPath,
 } from "~/utils/routeHelpers";
 
 export const navigateToHome = createAction({
@@ -105,7 +103,7 @@ export const navigateToSettings = createAction({
   icon: <SettingsIcon />,
   visible: ({ stores }) =>
     stores.policies.abilities(stores.auth.team?.id || "").update,
-  perform: () => history.push(organizationSettingsPath()),
+  perform: () => history.push(settingsPath("details")),
 });
 
 export const navigateToProfileSettings = createAction({
@@ -114,7 +112,16 @@ export const navigateToProfileSettings = createAction({
   section: NavigationSection,
   iconInContextMenu: false,
   icon: <ProfileIcon />,
-  perform: () => history.push(profileSettingsPath()),
+  perform: () => history.push(settingsPath()),
+});
+
+export const navigateToNotificationSettings = createAction({
+  name: ({ t }) => t("Notifications"),
+  analyticsName: "Navigate to notification settings",
+  section: NavigationSection,
+  iconInContextMenu: false,
+  icon: <EmailIcon />,
+  perform: () => history.push(settingsPath("notifications")),
 });
 
 export const navigateToAccountPreferences = createAction({
@@ -123,7 +130,7 @@ export const navigateToAccountPreferences = createAction({
   section: NavigationSection,
   iconInContextMenu: false,
   icon: <SettingsIcon />,
-  perform: () => history.push(accountPreferencesPath()),
+  perform: () => history.push(settingsPath("preferences")),
 });
 
 export const openAPIDocumentation = createAction({

@@ -23,24 +23,8 @@ export function trashPath(): string {
   return "/trash";
 }
 
-export function settingsPath(): string {
-  return "/settings";
-}
-
-export function organizationSettingsPath(): string {
-  return "/settings/details";
-}
-
-export function profileSettingsPath(): string {
-  return "/settings";
-}
-
-export function accountPreferencesPath(): string {
-  return "/settings/preferences";
-}
-
-export function groupSettingsPath(): string {
-  return "/settings/groups";
+export function settingsPath(section?: string): string {
+  return "/settings" + (section ? `/${section}` : "");
 }
 
 export function commentPath(document: Document, comment: Comment): string {

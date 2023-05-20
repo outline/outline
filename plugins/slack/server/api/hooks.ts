@@ -1,4 +1,3 @@
-import crypto from "crypto";
 import { t } from "i18next";
 import Router from "koa-router";
 import { escapeRegExp } from "lodash";
@@ -18,6 +17,7 @@ import {
 } from "@server/models";
 import SearchHelper from "@server/models/helpers/SearchHelper";
 import { APIContext } from "@server/types";
+import { safeEqual } from "@server/utils/crypto";
 import { opts } from "@server/utils/i18n";
 import { assertPresent } from "@server/validation";
 import presentMessageAttachment from "../presenters/messageAttachment";
@@ -32,13 +32,7 @@ function verifySlackToken(token: string) {
     );
   }
 
-  if (
-    token.length !== env.SLACK_VERIFICATION_TOKEN.length ||
-    !crypto.timingSafeEqual(
-      Buffer.from(env.SLACK_VERIFICATION_TOKEN),
-      Buffer.from(token)
-    )
-  ) {
+  if (!safeEqual(env.SLACK_VERIFICATION_TOKEN, token)) {
     throw AuthenticationError("Invalid token");
   }
 }
