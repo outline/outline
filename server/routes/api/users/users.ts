@@ -1,4 +1,3 @@
-import crypto from "crypto";
 import Router from "koa-router";
 import { Op, WhereOptions } from "sequelize";
 import { UserPreference } from "@shared/types";
@@ -23,6 +22,7 @@ import { can, authorize } from "@server/policies";
 import { presentUser, presentPolicies } from "@server/presenters";
 import { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
+import { safeEqual } from "@server/utils/crypto";
 import {
   assertIn,
   assertSort,
@@ -469,14 +469,7 @@ router.post(
     if ((!id || id === actor.id) && emailEnabled) {
       const deleteConfirmationCode = user.deleteConfirmationCode;
 
-      if (
-        !code ||
-        code.length !== deleteConfirmationCode.length ||
-        !crypto.timingSafeEqual(
-          Buffer.from(code),
-          Buffer.from(deleteConfirmationCode)
-        )
-      ) {
+      if (!safeEqual(code, deleteConfirmationCode)) {
         throw ValidationError("The confirmation code was incorrect");
       }
     }

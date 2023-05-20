@@ -71,3 +71,12 @@ export const NotificationsUpdateAllSchema = BaseSchema.extend({
 export type NotificationsUpdateAllReq = z.infer<
   typeof NotificationsUpdateAllSchema
 >;
+
+export const NotificationsPixelSchema = BaseSchema.extend({
+  query: z.object({
+    id: z.string(),
+    token: z.string(),
+  }),
+});
+
+export type NotificationsPixelReq = z.infer<typeof NotificationsPixelSchema>;

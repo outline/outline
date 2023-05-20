@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import type { SaveOptions } from "sequelize";
 import {
   Table,
@@ -16,6 +17,7 @@ import {
   DefaultScope,
 } from "sequelize-typescript";
 import { NotificationEventType } from "@shared/types";
+import env from "@server/env";
 import Collection from "./Collection";
 import Comment from "./Comment";
 import Document from "./Document";
@@ -174,6 +176,18 @@ class Notification extends Model {
       return;
     }
     await Event.schedule(params);
+  }
+
+  /**
+   * Returns a token that can be used to mark this notification as read
+   * without being logged in.
+   *
+   * @returns A string token
+   */
+  public get pixelToken() {
+    const hash = crypto.createHash("sha256");
+    hash.update(`${this.id}-${env.SECRET_KEY}`);
+    return hash.digest("hex");
   }
 }
 

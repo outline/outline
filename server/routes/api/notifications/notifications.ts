@@ -4,6 +4,7 @@ import { WhereOptions, Op } from "sequelize";
 import { NotificationEventType } from "@shared/types";
 import notificationUpdater from "@server/commands/notificationUpdater";
 import env from "@server/env";
+import { AuthenticationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
@@ -13,10 +14,15 @@ import { authorize } from "@server/policies";
 import { presentPolicies } from "@server/presenters";
 import presentNotification from "@server/presenters/notification";
 import { APIContext } from "@server/types";
+import { safeEqual } from "@server/utils/crypto";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
 const router = new Router();
+const pixel = Buffer.from(
+  "R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7",
+  "base64"
+);
 
 const handleUnsubscribe = async (
   ctx: APIContext<T.NotificationsUnsubscribeReq>
@@ -109,6 +115,29 @@ router.post(
         unseen,
       },
     };
+  }
+);
+
+router.get(
+  "notifications.pixel",
+  transaction(),
+  async (ctx: APIContext<T.NotificationsPixelReq>) => {
+    const { id, token } = ctx.input.query;
+    const notification = await Notification.findByPk(id);
+
+    if (!notification || !safeEqual(token, notification.pixelToken)) {
+      throw AuthenticationError();
+    }
+
+    await notificationUpdater({
+      notification,
+      viewedAt: new Date(),
+      ip: ctx.request.ip,
+      transaction: ctx.state.transaction,
+    });
+
+    ctx.response.set("Content-Type", "image/gif");
+    ctx.body = pixel;
   }
 );
 
