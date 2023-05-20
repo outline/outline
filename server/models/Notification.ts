@@ -56,6 +56,13 @@ import Fix from "./decorators/Fix";
       },
     ],
   },
+  withUser: {
+    include: [
+      {
+        association: "user",
+      },
+    ],
+  },
 }))
 @DefaultScope(() => ({
   include: [
