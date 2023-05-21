@@ -1,6 +1,7 @@
 import passport from "@outlinewiki/koa-passport";
 import { Context } from "koa";
 import { InternalOAuthError } from "passport-oauth2";
+import { Client } from "@shared/types";
 import env from "@server/env";
 import { AuthenticationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
@@ -32,11 +33,13 @@ export default function createMiddleware(providerName: string) {
             // same domain or subdomain that they originated from (found in state).
 
             // get original host
-            const state = ctx.cookies.get("state");
-            const host = state ? parseState(state).host : ctx.hostname;
+            const stateString = ctx.cookies.get("state");
+            const state = stateString ? parseState(stateString) : undefined;
+            const host = state?.host ?? ctx.hostname;
 
             // form a URL object with the err.redirectUrl and replace the host
-            const reqProtocol = ctx.protocol;
+            const reqProtocol =
+              state?.client === Client.Desktop ? "outline" : ctx.protocol;
             const requestHost = ctx.get("host");
             const url = new URL(
               `${reqProtocol}://${requestHost}${redirectUrl}`
