@@ -1,17 +1,14 @@
 import * as React from "react";
 import styled from "styled-components";
-import DelayedMount from "~/components/DelayedMount";
 import PlaceholderText from "~/components/PlaceholderText";
 
 function PlaceholderCollections(props: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <DelayedMount>
-      <Wrapper {...props}>
-        <PlaceholderText />
-        <PlaceholderText delay={0.2} />
-        <PlaceholderText delay={0.4} />
-      </Wrapper>
-    </DelayedMount>
+    <Wrapper {...props}>
+      <PlaceholderText />
+      <PlaceholderText delay={0.2} />
+      <PlaceholderText delay={0.4} />
+    </Wrapper>
   );
 }
 

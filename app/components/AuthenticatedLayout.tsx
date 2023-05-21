@@ -118,7 +118,9 @@ const AuthenticatedLayout: React.FC = ({ children }) => {
         <RegisterKeyDown trigger="t" handler={goToSearch} />
         <RegisterKeyDown trigger="/" handler={goToSearch} />
         {children}
-        <CommandBar />
+        <React.Suspense fallback={null}>
+          <CommandBar />
+        </React.Suspense>
       </Layout>
     </DocumentContext.Provider>
   );

@@ -67,19 +67,21 @@ function Notifications(
           </Tooltip>
         </Text>
       </Header>
-      <Scrollable ref={ref} flex topShadow>
-        <PaginatedList
-          fetch={notifications.fetchPage}
-          items={notifications.orderedData}
-          renderItem={(item: Notification) => (
-            <NotificationListItem
-              key={item.id}
-              notification={item}
-              onNavigate={onRequestClose}
-            />
-          )}
-        />
-      </Scrollable>
+      <React.Suspense fallback={null}>
+        <Scrollable ref={ref} flex topShadow>
+          <PaginatedList
+            fetch={notifications.fetchPage}
+            items={notifications.orderedData}
+            renderItem={(item: Notification) => (
+              <NotificationListItem
+                key={item.id}
+                notification={item}
+                onNavigate={onRequestClose}
+              />
+            )}
+          />
+        </Scrollable>
+      </React.Suspense>
       {isEmpty && (
         <EmptyNotifications>{t("No notifications yet")}.</EmptyNotifications>
       )}
