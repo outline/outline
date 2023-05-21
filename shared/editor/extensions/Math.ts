@@ -1,7 +1,6 @@
 import { MathView } from "@benrbray/prosemirror-math";
-import { Node as ProseNode } from "prosemirror-model";
 import { Plugin, PluginKey, PluginSpec } from "prosemirror-state";
-import { EditorView } from "prosemirror-view";
+import { NodeViewConstructor } from "prosemirror-view";
 
 export interface IMathPluginState {
   macros: { [cmd: string]: string };
@@ -11,12 +10,8 @@ export interface IMathPluginState {
 
 const MATH_PLUGIN_KEY = new PluginKey<IMathPluginState>("prosemirror-math");
 
-export function createMathView(displayMode: boolean) {
-  return (
-    node: ProseNode,
-    view: EditorView,
-    getPos: boolean | (() => number)
-  ): MathView => {
+export function createMathView(displayMode: boolean): NodeViewConstructor {
+  return (node, view, getPos) => {
     // dynamically load katex styles and fonts
     import("katex/dist/katex.min.css");
 

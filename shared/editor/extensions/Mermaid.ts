@@ -135,7 +135,7 @@ export default function Mermaid({
   return new Plugin({
     key: new PluginKey("mermaid"),
     state: {
-      init: (_: Plugin, { doc }) => {
+      init: (_, { doc }) => {
         const pluginState: MermaidState = {
           decorationSet: DecorationSet.create(doc, []),
           diagramVisibility: {},
@@ -209,7 +209,7 @@ export default function Mermaid({
     },
     props: {
       decorations(state) {
-        return this.getState(state).decorationSet;
+        return this.getState(state)?.decorationSet;
       },
     },
   });

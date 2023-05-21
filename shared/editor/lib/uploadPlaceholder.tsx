@@ -95,7 +95,7 @@ export function findPlaceholder(
   state: EditorState,
   id: string
 ): [number, number] | null {
-  const decos: DecorationSet = uploadPlaceholder.getState(state);
-  const found = decos.find(undefined, undefined, (spec) => spec.id === id);
-  return found.length ? [found[0].from, found[0].to] : null;
+  const decos = uploadPlaceholder.getState(state);
+  const found = decos?.find(undefined, undefined, (spec) => spec.id === id);
+  return found?.length ? [found[0].from, found[0].to] : null;
 }

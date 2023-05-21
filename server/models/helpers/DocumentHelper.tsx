@@ -54,7 +54,7 @@ export default class DocumentHelper {
       Y.applyUpdate(ydoc, document.state);
       return Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
     }
-    return parser.parse(document.text);
+    return parser.parse(document.text) || Node.fromJSON(schema, {});
   }
 
   /**

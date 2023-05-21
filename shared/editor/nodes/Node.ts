@@ -1,5 +1,5 @@
 import { InputRule } from "prosemirror-inputrules";
-import { TokenConfig } from "prosemirror-markdown";
+import { ParseSpec } from "prosemirror-markdown";
 import {
   NodeSpec,
   Node as ProsemirrorNode,
@@ -41,7 +41,7 @@ export default abstract class Node extends Extension {
     throw new Error("toMarkdown not implemented");
   }
 
-  parseMarkdown(): TokenConfig | void {
+  parseMarkdown(): ParseSpec | void {
     return undefined;
   }
 }

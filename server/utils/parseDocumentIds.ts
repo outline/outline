@@ -12,6 +12,9 @@ import { parser } from "@server/editor";
 export default function parseDocumentIds(text: string): string[] {
   const doc = parser.parse(text);
   const identifiers: string[] = [];
+  if (!doc) {
+    return identifiers;
+  }
 
   doc.descendants((node: Node) => {
     // get text nodes

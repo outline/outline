@@ -4,6 +4,9 @@ import { parser } from "@server/editor";
 export default function parseImages(text: string): string[] {
   const doc = parser.parse(text);
   const images: string[] = [];
+  if (!doc) {
+    return images;
+  }
 
   doc.descendants((node: Node) => {
     if (node.type.name === "image") {
