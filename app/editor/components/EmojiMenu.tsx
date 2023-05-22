@@ -57,7 +57,7 @@ const EmojiMenu = (props: Props) => {
     dispatch(
       state.tr.insertText(
         "",
-        state.selection.$from.pos - (props.search ?? "").length - 1,
+        state.selection.from - (props.search ?? "").length - 1,
         state.selection.to
       )
     );

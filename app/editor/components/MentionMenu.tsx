@@ -8,6 +8,7 @@ import { MentionType } from "@shared/types";
 import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import User from "~/models/User";
 import Avatar from "~/components/Avatar";
+import { AvatarSize } from "~/components/Avatar/Avatar";
 import Flex from "~/components/Flex";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
@@ -87,7 +88,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
     dispatch(
       state.tr.insertText(
         "",
-        state.selection.$from.pos - (search ?? "").length - 1,
+        state.selection.from - (search ?? "").length - 1,
         state.selection.to
       )
     );
@@ -122,7 +123,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
                 model={item.user}
                 showBorder={false}
                 alt={t("Profile picture")}
-                size={16}
+                size={AvatarSize.Small}
               />
             </Flex>
           }

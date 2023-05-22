@@ -1,4 +1,3 @@
-import { findParentNode } from "prosemirror-utils";
 import React from "react";
 import useDictionary from "~/hooks/useDictionary";
 import getMenuItems from "../menus/block";
@@ -15,17 +14,25 @@ type Props = Omit<
   Required<Pick<SuggestionsMenuProps, "onLinkToolbarOpen" | "embeds">>;
 
 function BlockMenu(props: Props) {
+  const { search } = props;
   const { view } = useEditor();
   const dictionary = useDictionary();
 
-  const clearSearch = React.useCallback(() => {
+  const clearSearch = () => {
     const { state, dispatch } = view;
-    const parent = findParentNode((node) => !!node)(state.selection);
-
-    if (parent) {
-      dispatch(state.tr.insertText("", parent.pos, state.selection.to));
+    if (!search) {
+      return;
     }
-  }, [view]);
+
+    // clear search input
+    dispatch(
+      state.tr.insertText(
+        "",
+        state.selection.from - (search ?? "").length - 1,
+        state.selection.to
+      )
+    );
+  };
 
   return (
     <SuggestionsMenu
