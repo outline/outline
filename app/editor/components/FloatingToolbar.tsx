@@ -87,13 +87,11 @@ function usePosition({
 
   // tables are an oddity, and need their own positioning logic
   const isColSelection =
-    selection instanceof CellSelection &&
-    selection.isColSelection &&
-    selection.isColSelection();
+    "isColSelection" in selection &&
+    (selection as CellSelection).isColSelection();
   const isRowSelection =
-    selection instanceof CellSelection &&
-    selection.isRowSelection &&
-    selection.isRowSelection();
+    "isRowSelection" in selection &&
+    (selection as CellSelection).isRowSelection();
 
   if (isColSelection) {
     const { node: element } = view.domAtPos(selection.from);
