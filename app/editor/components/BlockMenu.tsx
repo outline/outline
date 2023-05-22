@@ -1,7 +1,6 @@
 import React from "react";
 import useDictionary from "~/hooks/useDictionary";
 import getMenuItems from "../menus/block";
-import { useEditor } from "./EditorContext";
 import SuggestionsMenu, {
   Props as SuggestionsMenuProps,
 } from "./SuggestionsMenu";
@@ -9,36 +8,18 @@ import SuggestionsMenuItem from "./SuggestionsMenuItem";
 
 type Props = Omit<
   SuggestionsMenuProps,
-  "renderMenuItem" | "items" | "onClearSearch"
+  "renderMenuItem" | "items" | "trigger"
 > &
   Required<Pick<SuggestionsMenuProps, "onLinkToolbarOpen" | "embeds">>;
 
 function BlockMenu(props: Props) {
-  const { search } = props;
-  const { view } = useEditor();
   const dictionary = useDictionary();
-
-  const clearSearch = () => {
-    const { state, dispatch } = view;
-    if (!search) {
-      return;
-    }
-
-    // clear search input
-    dispatch(
-      state.tr.insertText(
-        "",
-        state.selection.from - (search ?? "").length - 1,
-        state.selection.to
-      )
-    );
-  };
 
   return (
     <SuggestionsMenu
       {...props}
       filterable
-      onClearSearch={clearSearch}
+      trigger="/"
       renderMenuItem={(item, _index, options) => (
         <SuggestionsMenuItem
           onClick={options.onClick}

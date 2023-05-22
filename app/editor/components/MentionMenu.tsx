@@ -12,7 +12,6 @@ import { AvatarSize } from "~/components/Avatar/Avatar";
 import Flex from "~/components/Flex";
 import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
-import { useEditor } from "./EditorContext";
 import MentionMenuItem from "./MentionMenuItem";
 import SuggestionsMenu, {
   Props as SuggestionsMenuProps,
@@ -33,7 +32,7 @@ interface MentionItem extends MenuItem {
 
 type Props = Omit<
   SuggestionsMenuProps<MentionItem>,
-  "renderMenuItem" | "items" | "onLinkToolbarOpen" | "embeds" | "onClearSearch"
+  "renderMenuItem" | "items" | "onLinkToolbarOpen" | "embeds" | "trigger"
 >;
 
 function MentionMenu({ search, isActive, ...rest }: Props) {
@@ -43,7 +42,6 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
   const { users, auth } = useStores();
   const location = useLocation();
   const documentId = parseDocumentSlug(location.pathname);
-  const { view } = useEditor();
   const { data, loading, request } = useRequest(
     React.useCallback(
       () =>
@@ -81,19 +79,6 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
     }
   }, [auth.user?.id, loading, data]);
 
-  const clearSearch = () => {
-    const { state, dispatch } = view;
-
-    // clear search input
-    dispatch(
-      state.tr.insertText(
-        "",
-        state.selection.from - (search ?? "").length - 1,
-        state.selection.to
-      )
-    );
-  };
-
   // Prevent showing the menu until we have data otherwise it will be positioned
   // incorrectly due to the height being unknown.
   if (!loaded) {
@@ -105,7 +90,7 @@ function MentionMenu({ search, isActive, ...rest }: Props) {
       {...rest}
       isActive={isActive}
       filterable={false}
-      onClearSearch={clearSearch}
+      trigger="@"
       search={search}
       renderMenuItem={(item, _index, options) => (
         <MentionMenuItem
