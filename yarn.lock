@@ -3282,14 +3282,12 @@
   dependencies:
     "@types/prosemirror-model" "*"
 
-"@types/prosemirror-view@*", "@types/prosemirror-view@^1.11.4":
-  version "1.19.2"
-  resolved "https://registry.yarnpkg.com/@types/prosemirror-view/-/prosemirror-view-1.19.2.tgz#1bab4daf0f1f14313fe0d3f6b57f0a3b4ef6c50d"
-  integrity sha512-pmh2DuMJzva4D7SxspRKIzkV6FK2o52uAqGjq2dPYcQFPwu4+5RcS1TMjFVCh1R+Ia1Rx8wsCNIId/5+6DB0Bg==
+"@types/prosemirror-view@*", "@types/prosemirror-view@^1.24.0":
+  version "1.24.0"
+  resolved "https://registry.yarnpkg.com/@types/prosemirror-view/-/prosemirror-view-1.24.0.tgz#1065ff91c1b9f3f2039182707048b6a31584135c"
+  integrity sha512-Swn08/O+QIOKOSfFFa+KKF19eeHetwA+pBMAHZ7wbF0wPrMS3zJ+G9wbOGqSkUv6JOVpuhlOP8Xg5nA3MyIXgQ==
   dependencies:
-    "@types/prosemirror-model" "*"
-    "@types/prosemirror-state" "*"
-    "@types/prosemirror-transform" "*"
+    prosemirror-view "*"
 
 "@types/qs@*":
   version "6.9.7"
@@ -10766,10 +10764,10 @@ prosemirror-utils@^0.9.6:
   resolved "https://registry.yarnpkg.com/prosemirror-utils/-/prosemirror-utils-0.9.6.tgz#3d97bd85897e3b535555867dc95a51399116a973"
   integrity sha512-UC+j9hQQ1POYfMc5p7UFxBTptRiGPR7Kkmbl3jVvU8VgQbkI89tR/GK+3QYC8n+VvBZrtAoCrJItNhWSxX3slA==
 
-prosemirror-view@1.26.5, prosemirror-view@^1.0.0, prosemirror-view@^1.1.0, prosemirror-view@^1.13.3:
-  version "1.26.5"
-  resolved "https://registry.yarnpkg.com/prosemirror-view/-/prosemirror-view-1.26.5.tgz#65cb890d0971e94e0cbc09fdb0c5320cd474bc6f"
-  integrity sha512-SO+AX6WwdbJZHVvuloXI0qfO+YJAnZAat8qrYwfiqTQwL/FewLUnr0m3EXZ6a60hQs8/Q/lzeJXiFR/dOPaaKQ==
+prosemirror-view@*, prosemirror-view@1.31.3, prosemirror-view@^1.0.0, prosemirror-view@^1.1.0, prosemirror-view@^1.13.3:
+  version "1.31.3"
+  resolved "https://registry.yarnpkg.com/prosemirror-view/-/prosemirror-view-1.31.3.tgz#cfe171c4e50a577526d0235d9ec757cdddf6017d"
+  integrity sha512-UYDa8WxRFZm0xQLXiPJUVTl6H08Fn0IUVDootA7ZlQwzooqVWnBOXLovJyyTKgws1nprfsPhhlvWgt2jo4ZA6g==
   dependencies:
     prosemirror-model "^1.16.0"
     prosemirror-state "^1.0.0"
