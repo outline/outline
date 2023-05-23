@@ -1,3 +1,4 @@
+import { chainCommands } from "prosemirror-commands";
 import { NodeSpec, Node as ProsemirrorNode, Schema } from "prosemirror-model";
 import { EditorState, Plugin, TextSelection } from "prosemirror-state";
 import {
@@ -7,23 +8,20 @@ import {
   deleteRow,
   deleteTable,
   goToNextCell,
-  isInTable,
   tableEditing,
   toggleHeaderCell,
   toggleHeaderColumn,
   toggleHeaderRow,
-  CellSelection,
 } from "prosemirror-tables";
 import {
   addRowAt,
   createTable,
   getCellsInColumn,
   moveRow,
-  setTextSelection,
 } from "prosemirror-utils";
 import { Decoration, DecorationSet } from "prosemirror-view";
+import addTableRow from "../commands/addTableRow";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
-import { getRowIndexFromText } from "../queries/getRowIndex";
 import tablesRule from "../rules/tables";
 import { Dispatch } from "../types";
 import Node from "./Node";
@@ -60,56 +58,47 @@ export default class Table extends Node {
 
   commands({ schema }: { schema: Schema }) {
     return {
-      createTable: ({
-        rowsCount,
-        colsCount,
-      }: {
-        rowsCount: number;
-        colsCount: number;
-      }) => (state: EditorState, dispatch: Dispatch) => {
-        const offset = state.tr.selection.anchor + 1;
-        const nodes = createTable(schema, rowsCount, colsCount);
-        const tr = state.tr.replaceSelectionWith(nodes).scrollIntoView();
-        const resolvedPos = tr.doc.resolve(offset);
+      createTable:
+        ({ rowsCount, colsCount }: { rowsCount: number; colsCount: number }) =>
+        (state: EditorState, dispatch: Dispatch) => {
+          const offset = state.tr.selection.anchor + 1;
+          const nodes = createTable(schema, rowsCount, colsCount);
+          const tr = state.tr.replaceSelectionWith(nodes).scrollIntoView();
+          const resolvedPos = tr.doc.resolve(offset);
 
-        tr.setSelection(TextSelection.near(resolvedPos));
-        dispatch(tr);
-        return true;
-      },
-      setColumnAttr: ({
-        index,
-        alignment,
-      }: {
-        index: number;
-        alignment: string;
-      }) => (state: EditorState, dispatch: Dispatch) => {
-        const cells = getCellsInColumn(index)(state.selection) || [];
-        let transaction = state.tr;
-        cells.forEach(({ pos }) => {
-          transaction = transaction.setNodeMarkup(pos, undefined, {
-            alignment,
+          tr.setSelection(TextSelection.near(resolvedPos));
+          dispatch(tr);
+          return true;
+        },
+      setColumnAttr:
+        ({ index, alignment }: { index: number; alignment: string }) =>
+        (state: EditorState, dispatch: Dispatch) => {
+          const cells = getCellsInColumn(index)(state.selection) || [];
+          let transaction = state.tr;
+          cells.forEach(({ pos }) => {
+            transaction = transaction.setNodeMarkup(pos, undefined, {
+              alignment,
+            });
           });
-        });
-        dispatch(transaction);
-        return true;
-      },
+          dispatch(transaction);
+          return true;
+        },
       addColumnBefore: () => addColumnBefore,
       addColumnAfter: () => addColumnAfter,
       deleteColumn: () => deleteColumn,
-      addRowAfter: ({ index }: { index: number }) => (
-        state: EditorState,
-        dispatch: Dispatch
-      ) => {
-        if (index === 0) {
-          // A little hack to avoid cloning the heading row by cloning the row
-          // beneath and then moving it to the right index.
-          const tr = addRowAt(index + 2, true)(state.tr);
-          dispatch(moveRow(index + 2, index + 1)(tr));
-        } else {
-          dispatch(addRowAt(index + 1, true)(state.tr));
-        }
-        return true;
-      },
+      addRowAfter:
+        ({ index }: { index: number }) =>
+        (state: EditorState, dispatch: Dispatch) => {
+          if (index === 0) {
+            // A little hack to avoid cloning the heading row by cloning the row
+            // beneath and then moving it to the right index.
+            const tr = addRowAt(index + 2, true)(state.tr);
+            dispatch(moveRow(index + 2, index + 1)(tr));
+          } else {
+            dispatch(addRowAt(index + 1, true)(state.tr));
+          }
+          return true;
+        },
       deleteRow: () => deleteRow,
       deleteTable: () => deleteTable,
       toggleHeaderColumn: () => toggleHeaderColumn,
@@ -120,31 +109,9 @@ export default class Table extends Node {
 
   keys() {
     return {
-      Tab: goToNextCell(1),
+      Tab: chainCommands(goToNextCell(1), addTableRow),
       "Shift-Tab": goToNextCell(-1),
-      Enter: (state: EditorState, dispatch: Dispatch) => {
-        if (!isInTable(state)) {
-          return false;
-        }
-        const index = getRowIndexFromText(
-          (state.selection as unknown) as CellSelection
-        );
-
-        if (index === 0) {
-          const cells = getCellsInColumn(0)(state.selection);
-          if (!cells) {
-            return false;
-          }
-
-          const tr = addRowAt(index + 2, true)(state.tr);
-          dispatch(
-            setTextSelection(cells[1].pos)(moveRow(index + 2, index + 1)(tr))
-          );
-        } else {
-          dispatch(addRowAt(index + 1, true)(state.tr));
-        }
-        return true;
-      },
+      Enter: addTableRow,
     };
   }
 
