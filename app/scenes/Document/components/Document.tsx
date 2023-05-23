@@ -376,16 +376,8 @@ class DocumentScene extends React.Component<Props> {
   };
 
   render() {
-    const {
-      document,
-      revision,
-      readOnly,
-      abilities,
-      auth,
-      ui,
-      shareId,
-      t,
-    } = this.props;
+    const { document, revision, readOnly, abilities, auth, ui, shareId, t } =
+      this.props;
     const team = auth.team;
     const isShare = !!shareId;
     const embedsDisabled =

@@ -114,15 +114,13 @@ export default class Embed extends Node {
   }
 
   commands({ type }: { type: NodeType }) {
-    return (attrs: Record<string, any>) => (
-      state: EditorState,
-      dispatch: Dispatch
-    ) => {
-      dispatch(
-        state.tr.replaceSelectionWith(type.create(attrs)).scrollIntoView()
-      );
-      return true;
-    };
+    return (attrs: Record<string, any>) =>
+      (state: EditorState, dispatch: Dispatch) => {
+        dispatch(
+          state.tr.replaceSelectionWith(type.create(attrs)).scrollIntoView()
+        );
+        return true;
+      };
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {

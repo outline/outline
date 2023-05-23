@@ -80,24 +80,22 @@ export default class Mention extends Suggestion {
   }
 
   commands({ type }: { type: NodeType; schema: Schema }) {
-    return (attrs: Record<string, string>) => (
-      state: EditorState,
-      dispatch: Dispatch
-    ) => {
-      const { selection } = state;
-      const position =
-        selection instanceof TextSelection
-          ? selection.$cursor?.pos
-          : selection.$to.pos;
-      if (position === undefined) {
-        return false;
-      }
+    return (attrs: Record<string, string>) =>
+      (state: EditorState, dispatch: Dispatch) => {
+        const { selection } = state;
+        const position =
+          selection instanceof TextSelection
+            ? selection.$cursor?.pos
+            : selection.$to.pos;
+        if (position === undefined) {
+          return false;
+        }
 
-      const node = type.create(attrs);
-      const transaction = state.tr.insert(position, node);
-      dispatch(transaction);
-      return true;
-    };
+        const node = type.create(attrs);
+        const transaction = state.tr.insert(position, node);
+        dispatch(transaction);
+        return true;
+      };
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {

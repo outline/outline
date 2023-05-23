@@ -27,11 +27,8 @@ function AddPeopleToCollection({ collection }: Props) {
   const { showToast } = useToasts();
   const team = useCurrentTeam();
   const { t } = useTranslation();
-  const [
-    inviteModalOpen,
-    setInviteModalOpen,
-    setInviteModalClosed,
-  ] = useBoolean();
+  const [inviteModalOpen, setInviteModalOpen, setInviteModalClosed] =
+    useBoolean();
   const [query, setQuery] = React.useState("");
 
   const handleFilter = (ev: React.ChangeEvent<HTMLInputElement>) => {

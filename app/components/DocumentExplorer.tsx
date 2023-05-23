@@ -45,9 +45,8 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
   const [selectedNode, selectNode] = React.useState<NavigationNode | null>(
     null
   );
-  const [initialScrollOffset, setInitialScrollOffset] = React.useState<number>(
-    0
-  );
+  const [initialScrollOffset, setInitialScrollOffset] =
+    React.useState<number>(0);
   const [activeNode, setActiveNode] = React.useState<number>(0);
   const [expandedNodes, setExpandedNodes] = React.useState<string[]>([]);
   const [itemRefs, setItemRefs] = React.useState<

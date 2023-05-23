@@ -168,10 +168,8 @@ router.post(
   rateLimiter(RateLimiterStrategy.TenPerHour),
   auth(),
   async (ctx: APIContext) => {
-    const {
-      attachmentId,
-      format = FileOperationFormat.MarkdownZip,
-    } = ctx.request.body;
+    const { attachmentId, format = FileOperationFormat.MarkdownZip } =
+      ctx.request.body;
     assertUuid(attachmentId, "attachmentId is required");
 
     const { user } = ctx.state.auth;
@@ -630,16 +628,8 @@ router.post(
 );
 
 router.post("collections.update", auth(), async (ctx: APIContext) => {
-  const {
-    id,
-    name,
-    description,
-    icon,
-    permission,
-    color,
-    sort,
-    sharing,
-  } = ctx.request.body;
+  const { id, name, description, icon, permission, color, sort, sharing } =
+    ctx.request.body;
 
   if (color) {
     assertHexColor(color, "Invalid hex value (please use format #FFFFFF)");

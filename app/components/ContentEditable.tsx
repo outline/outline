@@ -85,27 +85,33 @@ const ContentEditable = React.forwardRef(
       },
     }));
 
-    const wrappedEvent = (
-      callback:
-        | React.FocusEventHandler<HTMLSpanElement>
-        | React.FormEventHandler<HTMLSpanElement>
-        | React.KeyboardEventHandler<HTMLSpanElement>
-        | undefined
-    ) => (event: any) => {
-      const text = contentRef.current?.innerText || "";
+    const wrappedEvent =
+      (
+        callback:
+          | React.FocusEventHandler<HTMLSpanElement>
+          | React.FormEventHandler<HTMLSpanElement>
+          | React.KeyboardEventHandler<HTMLSpanElement>
+          | undefined
+      ) =>
+      (event: any) => {
+        const text = contentRef.current?.innerText || "";
 
-      if (maxLength && isPrintableKeyEvent(event) && text.length >= maxLength) {
-        event?.preventDefault();
-        return;
-      }
+        if (
+          maxLength &&
+          isPrintableKeyEvent(event) &&
+          text.length >= maxLength
+        ) {
+          event?.preventDefault();
+          return;
+        }
 
-      if (text !== lastValue.current) {
-        lastValue.current = text;
-        onChange && onChange(text);
-      }
+        if (text !== lastValue.current) {
+          lastValue.current = text;
+          onChange && onChange(text);
+        }
 
-      callback?.(event);
-    };
+        callback?.(event);
+      };
 
     // This is to account for being within a React.Suspense boundary, in this
     // case the component may be rendered with display: none. React 18 may solve

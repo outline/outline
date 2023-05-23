@@ -6,9 +6,7 @@ import NotificationHelper from "@server/models/helpers/NotificationHelper";
 import { DocumentEvent } from "@server/types";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
-export default class DocumentPublishedNotificationsTask extends BaseTask<
-  DocumentEvent
-> {
+export default class DocumentPublishedNotificationsTask extends BaseTask<DocumentEvent> {
   public async perform(event: DocumentEvent) {
     const document = await Document.findByPk(event.documentId, {
       includeState: true,

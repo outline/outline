@@ -31,9 +31,8 @@ function DomainManagement({ onSuccess }: Props) {
     allowedDomains.length
   );
 
-  const [existingDomainsTouched, setExistingDomainsTouched] = React.useState(
-    false
-  );
+  const [existingDomainsTouched, setExistingDomainsTouched] =
+    React.useState(false);
 
   const handleSaveDomains = React.useCallback(async () => {
     try {
@@ -67,19 +66,18 @@ function DomainManagement({ onSuccess }: Props) {
     setAllowedDomains(newDomains);
   };
 
-  const createOnDomainChangedHandler = (index: number) => (
-    ev: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const newDomains = allowedDomains.slice();
+  const createOnDomainChangedHandler =
+    (index: number) => (ev: React.ChangeEvent<HTMLInputElement>) => {
+      const newDomains = allowedDomains.slice();
 
-    newDomains[index] = ev.currentTarget.value;
-    setAllowedDomains(newDomains);
+      newDomains[index] = ev.currentTarget.value;
+      setAllowedDomains(newDomains);
 
-    const touchedExistingDomain = index < lastKnownDomainCount;
-    if (touchedExistingDomain) {
-      setExistingDomainsTouched(true);
-    }
-  };
+      const touchedExistingDomain = index < lastKnownDomainCount;
+      if (touchedExistingDomain) {
+        setExistingDomainsTouched(true);
+      }
+    };
 
   const showSaveChanges =
     existingDomainsTouched ||

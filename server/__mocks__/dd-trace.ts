@@ -7,7 +7,7 @@ const emptyFn = function () {};
 const callableHandlers = {
   get<T, P extends keyof T>(_target: T, _prop: P, _receiver: any): T[P] {
     const newMock = new Proxy(emptyFn, callableHandlers);
-    return (newMock as any) as T[P];
+    return newMock as any as T[P];
   },
 
   apply<T extends (...args: any) => any, A extends Parameters<T>>(
@@ -16,7 +16,7 @@ const callableHandlers = {
     _args: A
   ): ReturnType<T> {
     const newMock = new Proxy(emptyFn, callableHandlers);
-    return (newMock as any) as ReturnType<T>;
+    return newMock as any as ReturnType<T>;
   },
 };
 

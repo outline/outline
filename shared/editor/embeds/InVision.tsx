@@ -3,8 +3,10 @@ import Frame from "../components/Frame";
 import ImageZoom from "../components/ImageZoom";
 import { EmbedProps as Props } from ".";
 
-const IFRAME_REGEX = /^https:\/\/(invis\.io\/.*)|(projects\.invisionapp\.com\/share\/.*)$/;
-const IMAGE_REGEX = /^https:\/\/(opal\.invisionapp\.com\/static-signed\/live-embed\/.*)$/;
+const IFRAME_REGEX =
+  /^https:\/\/(invis\.io\/.*)|(projects\.invisionapp\.com\/share\/.*)$/;
+const IMAGE_REGEX =
+  /^https:\/\/(opal\.invisionapp\.com\/static-signed\/live-embed\/.*)$/;
 
 function InVision(props: Props) {
   if (IMAGE_REGEX.test(props.attrs.href)) {

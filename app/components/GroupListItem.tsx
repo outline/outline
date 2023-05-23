@@ -28,11 +28,8 @@ type Props = {
 function GroupListItem({ group, showFacepile, renderActions }: Props) {
   const { groupMemberships } = useStores();
   const { t } = useTranslation();
-  const [
-    membersModalOpen,
-    setMembersModalOpen,
-    setMembersModalClosed,
-  ] = useBoolean();
+  const [membersModalOpen, setMembersModalOpen, setMembersModalClosed] =
+    useBoolean();
   const memberCount = group.memberCount;
   const membershipsInGroup = groupMemberships.inGroup(group.id);
   const users = membershipsInGroup

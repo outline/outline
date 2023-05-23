@@ -22,7 +22,8 @@ export default class Emoji extends Suggestion {
     return {
       type: SuggestionsMenuType.Emoji,
       openRegex: /(?:^|\s):([0-9a-zA-Z_+-]+)?$/,
-      closeRegex: /(?:^|\s):(([0-9a-zA-Z_+-]*\s+)|(\s+[0-9a-zA-Z_+-]+)|[^0-9a-zA-Z_+-]+)$/,
+      closeRegex:
+        /(?:^|\s):(([0-9a-zA-Z_+-]*\s+)|(\s+[0-9a-zA-Z_+-]+)|[^0-9a-zA-Z_+-]+)$/,
       enabledInTable: true,
     };
   }
@@ -77,24 +78,22 @@ export default class Emoji extends Suggestion {
   }
 
   commands({ type }: { type: NodeType; schema: Schema }) {
-    return (attrs: Record<string, string>) => (
-      state: EditorState,
-      dispatch: Dispatch
-    ) => {
-      const { selection } = state;
-      const position =
-        selection instanceof TextSelection
-          ? selection.$cursor?.pos
-          : selection.$to.pos;
-      if (position === undefined) {
-        return false;
-      }
+    return (attrs: Record<string, string>) =>
+      (state: EditorState, dispatch: Dispatch) => {
+        const { selection } = state;
+        const position =
+          selection instanceof TextSelection
+            ? selection.$cursor?.pos
+            : selection.$to.pos;
+        if (position === undefined) {
+          return false;
+        }
 
-      const node = type.create(attrs);
-      const transaction = state.tr.insert(position, node);
-      dispatch(transaction);
-      return true;
-    };
+        const node = type.create(attrs);
+        const transaction = state.tr.insert(position, node);
+        dispatch(transaction);
+        return true;
+      };
   }
 
   toMarkdown(state: MarkdownSerializerState, node: ProsemirrorNode) {

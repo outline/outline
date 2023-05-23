@@ -24,8 +24,12 @@ type Positions = {
 export default function MouseSafeArea(props: {
   parentRef: React.RefObject<HTMLElement | null>;
 }) {
-  const { x = 0, y = 0, height: h = 0, width: w = 0 } =
-    props.parentRef.current?.getBoundingClientRect() || {};
+  const {
+    x = 0,
+    y = 0,
+    height: h = 0,
+    width: w = 0,
+  } = props.parentRef.current?.getBoundingClientRect() || {};
   const [mouseX, mouseY] = useMousePosition();
   const positions = { x, y, h, w, mouseX, mouseY };
 

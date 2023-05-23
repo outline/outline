@@ -30,9 +30,8 @@ type SocketWithAuthentication = Socket & {
   authenticated?: boolean;
 };
 
-export const WebsocketContext = React.createContext<SocketWithAuthentication | null>(
-  null
-);
+export const WebsocketContext =
+  React.createContext<SocketWithAuthentication | null>(null);
 
 type Props = RootStore;
 

@@ -55,7 +55,8 @@ it("should parse attachment ID from markdown with title", () => {
 it("should parse multiple attachment IDs from markdown", () => {
   const uuid = uuidv4();
   const uuid2 = uuidv4();
-  const results = parseAttachmentIds(`![caption text](/api/attachments.redirect?id=${uuid})
+  const results =
+    parseAttachmentIds(`![caption text](/api/attachments.redirect?id=${uuid})
 
 some text
 

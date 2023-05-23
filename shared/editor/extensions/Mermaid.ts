@@ -164,9 +164,8 @@ export default function Mermaid({
         }
 
         if (diagramToggled) {
-          pluginState.diagramVisibility[
-            mermaidMeta.toggleDiagram
-          ] = !pluginState.diagramVisibility[mermaidMeta.toggleDiagram];
+          pluginState.diagramVisibility[mermaidMeta.toggleDiagram] =
+            !pluginState.diagramVisibility[mermaidMeta.toggleDiagram];
         }
 
         if (

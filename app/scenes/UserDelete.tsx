@@ -19,9 +19,11 @@ function UserDelete() {
   const { auth } = useStores();
   const { showToast } = useToasts();
   const { t } = useTranslation();
-  const { register, handleSubmit: formHandleSubmit, formState } = useForm<
-    FormData
-  >();
+  const {
+    register,
+    handleSubmit: formHandleSubmit,
+    formState,
+  } = useForm<FormData>();
 
   const handleRequestDelete = React.useCallback(
     async (ev: React.SyntheticEvent) => {
