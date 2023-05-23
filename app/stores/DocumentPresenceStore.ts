@@ -38,8 +38,10 @@ export default class PresenceStore {
 
     event.states.forEach((state) => {
       const { user, cursor } = state;
-      this.update(documentId, user.id, !!cursor);
-      existingUserIds = existingUserIds.filter((id) => id !== user.id);
+      if (user) {
+        this.update(documentId, user.id, !!cursor);
+        existingUserIds = existingUserIds.filter((id) => id !== user.id);
+      }
     });
 
     existingUserIds.forEach((userId) => {

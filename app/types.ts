@@ -204,5 +204,5 @@ export type WebsocketEvent =
   | WebsocketEntitiesEvent;
 
 export type AwarenessChangeEvent = {
-  states: { user: { id: string }; cursor: any; scrollY: number | undefined }[];
+  states: { user?: { id: string }; cursor: any; scrollY: number | undefined }[];
 };
