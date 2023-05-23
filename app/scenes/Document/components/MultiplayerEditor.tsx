@@ -15,6 +15,7 @@ import useIsMounted from "~/hooks/useIsMounted";
 import usePageVisibility from "~/hooks/usePageVisibility";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
+import { AwarenessChangeEvent } from "~/types";
 import Logger from "~/utils/Logger";
 import { supportsPassiveListener } from "~/utils/browser";
 import { homePath } from "~/utils/routeHelpers";
@@ -29,10 +30,6 @@ export type ConnectionStatus =
   | "connected"
   | "disconnected"
   | void;
-
-type AwarenessChangeEvent = {
-  states: { user: { id: string }; cursor: any; scrollY: number | undefined }[];
-};
 
 type ConnectionStatusEvent = { status: ConnectionStatus };
 
@@ -108,11 +105,11 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
       history.replace(homePath());
     });
 
-    provider.on("awarenessChange", ({ states }: AwarenessChangeEvent) => {
-      states.forEach(({ user, cursor, scrollY }) => {
-        if (user) {
-          presence.touch(documentId, user.id, !!cursor);
+    provider.on("awarenessChange", (event: AwarenessChangeEvent) => {
+      presence.updateFromAwarenessChangeEvent(documentId, event);
 
+      event.states.forEach(({ user, scrollY }) => {
+        if (user) {
           if (scrollY !== undefined && user.id === ui.observingUserId) {
             window.scrollTo({
               top: scrollY * window.innerHeight,
