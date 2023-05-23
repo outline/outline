@@ -24,11 +24,8 @@ function Groups() {
   const { groups } = useStores();
   const team = useCurrentTeam();
   const can = usePolicy(team);
-  const [
-    newGroupModalOpen,
-    handleNewGroupModalOpen,
-    handleNewGroupModalClose,
-  ] = useBoolean();
+  const [newGroupModalOpen, handleNewGroupModalOpen, handleNewGroupModalClose] =
+    useBoolean();
 
   return (
     <Scene

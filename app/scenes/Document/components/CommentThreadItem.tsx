@@ -245,7 +245,7 @@ const Menu = styled(CommentMenu)<{ dir?: "rtl" | "ltr" }>`
   transition: opacity 100ms ease-in-out;
   color: ${s("textSecondary")};
 
-  &: ${hover}, &[aria-expanded= "true" ] {
+  &: ${hover}, &[aria-expanded= "true"] {
     opacity: 1;
     background: ${s("sidebarActiveBackground")};
   }

@@ -48,10 +48,8 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   const { presence, ui } = useStores();
   const token = useCurrentToken();
   const [showCursorNames, setShowCursorNames] = React.useState(false);
-  const [
-    remoteProvider,
-    setRemoteProvider,
-  ] = React.useState<HocuspocusProvider | null>(null);
+  const [remoteProvider, setRemoteProvider] =
+    React.useState<HocuspocusProvider | null>(null);
   const [isLocalSynced, setLocalSynced] = React.useState(false);
   const [isRemoteSynced, setRemoteSynced] = React.useState(false);
   const [ydoc] = React.useState(() => new Y.Doc());

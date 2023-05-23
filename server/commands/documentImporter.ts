@@ -30,8 +30,7 @@ const importMapping: ImportableFile[] = [
     getMarkdown: docxToMarkdown,
   },
   {
-    type:
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     getMarkdown: docxToMarkdown,
   },
   {

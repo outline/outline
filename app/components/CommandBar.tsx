@@ -25,9 +25,9 @@ function CommandBar() {
 
   const { rootAction } = useKBar((state) => ({
     rootAction: state.currentRootActionId
-      ? ((state.actions[
+      ? (state.actions[
           state.currentRootActionId
-        ] as unknown) as CommandBarAction)
+        ] as unknown as CommandBarAction)
       : undefined,
   }));
 

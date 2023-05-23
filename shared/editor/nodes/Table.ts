@@ -60,56 +60,47 @@ export default class Table extends Node {
 
   commands({ schema }: { schema: Schema }) {
     return {
-      createTable: ({
-        rowsCount,
-        colsCount,
-      }: {
-        rowsCount: number;
-        colsCount: number;
-      }) => (state: EditorState, dispatch: Dispatch) => {
-        const offset = state.tr.selection.anchor + 1;
-        const nodes = createTable(schema, rowsCount, colsCount);
-        const tr = state.tr.replaceSelectionWith(nodes).scrollIntoView();
-        const resolvedPos = tr.doc.resolve(offset);
+      createTable:
+        ({ rowsCount, colsCount }: { rowsCount: number; colsCount: number }) =>
+        (state: EditorState, dispatch: Dispatch) => {
+          const offset = state.tr.selection.anchor + 1;
+          const nodes = createTable(schema, rowsCount, colsCount);
+          const tr = state.tr.replaceSelectionWith(nodes).scrollIntoView();
+          const resolvedPos = tr.doc.resolve(offset);
 
-        tr.setSelection(TextSelection.near(resolvedPos));
-        dispatch(tr);
-        return true;
-      },
-      setColumnAttr: ({
-        index,
-        alignment,
-      }: {
-        index: number;
-        alignment: string;
-      }) => (state: EditorState, dispatch: Dispatch) => {
-        const cells = getCellsInColumn(index)(state.selection) || [];
-        let transaction = state.tr;
-        cells.forEach(({ pos }) => {
-          transaction = transaction.setNodeMarkup(pos, undefined, {
-            alignment,
+          tr.setSelection(TextSelection.near(resolvedPos));
+          dispatch(tr);
+          return true;
+        },
+      setColumnAttr:
+        ({ index, alignment }: { index: number; alignment: string }) =>
+        (state: EditorState, dispatch: Dispatch) => {
+          const cells = getCellsInColumn(index)(state.selection) || [];
+          let transaction = state.tr;
+          cells.forEach(({ pos }) => {
+            transaction = transaction.setNodeMarkup(pos, undefined, {
+              alignment,
+            });
           });
-        });
-        dispatch(transaction);
-        return true;
-      },
+          dispatch(transaction);
+          return true;
+        },
       addColumnBefore: () => addColumnBefore,
       addColumnAfter: () => addColumnAfter,
       deleteColumn: () => deleteColumn,
-      addRowAfter: ({ index }: { index: number }) => (
-        state: EditorState,
-        dispatch: Dispatch
-      ) => {
-        if (index === 0) {
-          // A little hack to avoid cloning the heading row by cloning the row
-          // beneath and then moving it to the right index.
-          const tr = addRowAt(index + 2, true)(state.tr);
-          dispatch(moveRow(index + 2, index + 1)(tr));
-        } else {
-          dispatch(addRowAt(index + 1, true)(state.tr));
-        }
-        return true;
-      },
+      addRowAfter:
+        ({ index }: { index: number }) =>
+        (state: EditorState, dispatch: Dispatch) => {
+          if (index === 0) {
+            // A little hack to avoid cloning the heading row by cloning the row
+            // beneath and then moving it to the right index.
+            const tr = addRowAt(index + 2, true)(state.tr);
+            dispatch(moveRow(index + 2, index + 1)(tr));
+          } else {
+            dispatch(addRowAt(index + 1, true)(state.tr));
+          }
+          return true;
+        },
       deleteRow: () => deleteRow,
       deleteTable: () => deleteTable,
       toggleHeaderColumn: () => toggleHeaderColumn,
@@ -127,7 +118,7 @@ export default class Table extends Node {
           return false;
         }
         const index = getRowIndexFromText(
-          (state.selection as unknown) as CellSelection
+          state.selection as unknown as CellSelection
         );
 
         if (index === 0) {

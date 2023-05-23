@@ -181,7 +181,7 @@ const Actions = styled(EventBoundary)`
   color: ${s("textSecondary")};
 
   ${NudeButton} {
-    &: ${hover}, &[aria-expanded= "true" ] {
+    &: ${hover}, &[aria-expanded= "true"] {
       background: ${s("sidebarControlHoverBackground")};
     }
   }

@@ -197,10 +197,8 @@ export default function SelectionToolbar(props: Props) {
     return null;
   }
 
-  const colIndex = getColumnIndex(
-    (state.selection as unknown) as CellSelection
-  );
-  const rowIndex = getRowIndex((state.selection as unknown) as CellSelection);
+  const colIndex = getColumnIndex(state.selection as unknown as CellSelection);
+  const rowIndex = getRowIndex(state.selection as unknown as CellSelection);
   const isTableSelection = colIndex !== undefined && rowIndex !== undefined;
   const link = isMarkActive(state.schema.marks.link)(state);
   const range = getMarkRange(selection.$from, state.schema.marks.link);

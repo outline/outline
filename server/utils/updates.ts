@@ -14,17 +14,13 @@ const UPDATES_KEY = "UPDATES_KEY";
 export async function checkUpdates() {
   const secret = env.SECRET_KEY.slice(0, 6) + env.URL;
   const id = crypto.createHash("sha256").update(secret).digest("hex");
-  const [
-    userCount,
-    teamCount,
-    collectionCount,
-    documentCount,
-  ] = await Promise.all([
-    User.count(),
-    Team.count(),
-    Collection.count(),
-    Document.count(),
-  ]);
+  const [userCount, teamCount, collectionCount, documentCount] =
+    await Promise.all([
+      User.count(),
+      Team.count(),
+      Collection.count(),
+      Document.count(),
+    ]);
   const body = JSON.stringify({
     id,
     version: 1,

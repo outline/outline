@@ -464,9 +464,8 @@ export class Editor extends React.PureComponent<
       nodeViews: this.nodeViews,
       dispatchTransaction(transaction) {
         // callback is bound to have the view instance as its this binding
-        const { state, transactions } = this.state.applyTransaction(
-          transaction
-        );
+        const { state, transactions } =
+          this.state.applyTransaction(transaction);
 
         this.updateState(state);
 
@@ -520,9 +519,8 @@ export class Editor extends React.PureComponent<
       return trim ? content.trim() : content;
     }
 
-    return (trim
-      ? ProsemirrorHelper.trim(this.view.state.doc)
-      : this.view.state.doc
+    return (
+      trim ? ProsemirrorHelper.trim(this.view.state.doc) : this.view.state.doc
     ).toJSON();
   };
 

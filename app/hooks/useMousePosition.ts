@@ -16,8 +16,7 @@ type MousePosition = [number, number];
 export const useMousePosition = () => {
   const isMounted = useIsMounted();
   const [mousePosition, setMousePosition] = React.useState<MousePosition>([
-    0,
-    0,
+    0, 0,
   ]);
 
   const updateMousePosition = React.useMemo(

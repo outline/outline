@@ -133,14 +133,12 @@ router.post("auth.info", auth(), async (ctx: APIContext) => {
         includeDetails: true,
       }),
       team: presentTeam(team),
-      availableTeams: uniqBy(
-        [...signedInTeams, ...availableTeams],
-        "id"
-      ).map((team) =>
-        presentAvailableTeam(
-          team,
-          signedInTeamIds.includes(team.id) || team.id === user.teamId
-        )
+      availableTeams: uniqBy([...signedInTeams, ...availableTeams], "id").map(
+        (team) =>
+          presentAvailableTeam(
+            team,
+            signedInTeamIds.includes(team.id) || team.id === user.teamId
+          )
       ),
     },
     policies: presentPolicies(user, [team]),

@@ -272,16 +272,15 @@ class LinkEditor extends React.Component<Props, State> {
     view.focus();
   };
 
-  handleSelectLink = (url: string, title: string) => (
-    event: React.MouseEvent
-  ) => {
-    event.preventDefault();
-    this.save(url, title);
+  handleSelectLink =
+    (url: string, title: string) => (event: React.MouseEvent) => {
+      event.preventDefault();
+      this.save(url, title);
 
-    if (this.initialSelectionLength) {
-      this.moveSelectionToEnd();
-    }
-  };
+      if (this.initialSelectionLength) {
+        this.moveSelectionToEnd();
+      }
+    };
 
   moveSelectionToEnd = () => {
     const { to, view } = this.props;
