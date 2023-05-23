@@ -2,11 +2,11 @@ import Router from "koa-router";
 import { isNull } from "lodash";
 import { WhereOptions } from "sequelize";
 import { IntegrationType } from "@shared/types";
+import integrationCreator from "@server/commands/integrationCreator";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Event, IntegrationAuthentication } from "@server/models";
-import Integration from "@server/models/Integration";
+import { Event, IntegrationAuthentication, Integration } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentIntegration } from "@server/presenters";
 import { APIContext } from "@server/types";
@@ -65,37 +65,14 @@ router.post(
 
     authorize(user, "createIntegration", user.team);
 
-    let integration = await Integration.create(
-      {
-        userId: user.id,
-        teamId: user.teamId,
-        service,
-        settings,
-        type,
-      },
-      { transaction }
-    );
-
-    let authentication: IntegrationAuthentication | undefined;
-    if (token) {
-      authentication = await IntegrationAuthentication.create(
-        {
-          userId: user.id,
-          teamId: user.teamId,
-          integrationId: integration.id,
-          service,
-          token,
-        },
-        { transaction }
-      );
-
-      integration.authenticationId = authentication.id;
-      await integration.save({ transaction });
-    }
-
-    integration = (await Integration.scope(
-      "withAuthentication"
-    ).findByPk(integration.id, { transaction })) as Integration<unknown>;
+    const integration = await integrationCreator({
+      user,
+      type,
+      service,
+      settings,
+      token,
+      transaction,
+    });
 
     ctx.body = {
       data: presentIntegration(integration, {
