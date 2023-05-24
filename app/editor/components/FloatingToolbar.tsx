@@ -91,24 +91,28 @@ function usePosition({
   const isRowSelection =
     selection instanceof CellSelection && selection.isRowSelection();
 
-  if (isColSelection) {
+  if (isColSelection && isRowSelection) {
+    const rect = selectedRect(view.state);
+    const table = view.domAtPos(rect.tableStart);
+    const bounds = (table.node as HTMLElement).getBoundingClientRect();
+    selectionBounds.top = bounds.top - 16;
+    selectionBounds.left = bounds.left - 10;
+    selectionBounds.right = bounds.left - 10;
+  } else if (isColSelection) {
     const rect = selectedRect(view.state);
     const table = view.domAtPos(rect.tableStart);
     const element = (table.node as HTMLElement).querySelector(
-      `tr td:nth-child(${rect.left + 1})`
+      `tr > *:nth-child(${rect.left + 1})`
     );
     const bounds = (element as HTMLElement).getBoundingClientRect();
     selectionBounds.top = bounds.top - 16;
-    selectionBounds.bottom = bounds.bottom;
     selectionBounds.left = bounds.left;
     selectionBounds.right = bounds.right;
-  }
-
-  if (isRowSelection) {
+  } else if (isRowSelection) {
     const rect = selectedRect(view.state);
     const table = view.domAtPos(rect.tableStart);
     const element = (table.node as HTMLElement).querySelector(
-      `tr:nth-child(${rect.top + 1}) td`
+      `tr:nth-child(${rect.top + 1}) > *`
     );
     const bounds = (element as HTMLElement).getBoundingClientRect();
     selectionBounds.top = bounds.top;
