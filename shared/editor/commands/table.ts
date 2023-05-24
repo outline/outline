@@ -8,6 +8,7 @@ import {
 import {
   CellSelection,
   addRow,
+  isInTable,
   selectedRect,
   tableNodeTypes,
 } from "prosemirror-tables";
@@ -67,13 +68,19 @@ export function addRowAfterAndMoveSelection({
   index?: number;
 } = {}): Command {
   return (state, dispatch) => {
+    if (!isInTable(state)) {
+      return false;
+    }
+
     if (dispatch) {
       const rect = selectedRect(state);
       const indexAfter = index !== undefined ? index + 1 : rect.bottom;
       const tr = addRow(state.tr, rect, indexAfter);
       const cells = getCellsInColumn(0)(state);
 
-      if (index !== undefined) {
+      // Special case when adding row to the end of the table as the calculated
+      // rect does not include the row that we just added.
+      if (indexAfter !== rect.map.height) {
         const pos = cells[Math.min(cells.length - 1, indexAfter)];
         const $pos = tr.doc.resolve(pos);
         dispatch(tr.setSelection(TextSelection.near($pos)));
