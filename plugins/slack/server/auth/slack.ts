@@ -6,16 +6,12 @@ import { Strategy as SlackStrategy } from "passport-slack-oauth2";
 import { IntegrationService, IntegrationType } from "@shared/types";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";
 import accountProvisioner from "@server/commands/accountProvisioner";
+import integrationCreator from "@server/commands/integrationCreator";
 import env from "@server/env";
 import auth from "@server/middlewares/authentication";
 import passportMiddleware from "@server/middlewares/passport";
-import {
-  IntegrationAuthentication,
-  Collection,
-  Integration,
-  Team,
-  User,
-} from "@server/models";
+import { transaction } from "@server/middlewares/transaction";
+import { Collection, Team, User } from "@server/models";
 import { AppContext, AuthenticationResult } from "@server/types";
 import {
   getClientFromContext,
@@ -132,6 +128,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
     auth({
       optional: true,
     }),
+    transaction(),
     async (ctx: AppContext) => {
       const { code, state, error } = ctx.request.query;
       const { user } = ctx.state.auth;
@@ -169,22 +166,14 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
 
       const endpoint = `${env.URL}/auth/slack.commands`;
       const data = await Slack.oauthAccess(String(code), endpoint);
-      const authentication = await IntegrationAuthentication.create({
+      await integrationCreator({
+        user,
         service: IntegrationService.Slack,
-        userId: user.id,
-        teamId: user.teamId,
         token: data.access_token,
-        scopes: data.scope.split(","),
-      });
-      await Integration.create({
-        service: IntegrationService.Slack,
+        authScopes: data.scope.split(","),
         type: IntegrationType.Command,
-        userId: user.id,
-        teamId: user.teamId,
-        authenticationId: authentication.id,
-        settings: {
-          serviceTeamId: data.team_id,
-        },
+        settings: { serviceTeamId: data.team_id },
+        transaction: ctx.state.transaction,
       });
       ctx.redirect(integrationSettingsPath("slack"));
     }
@@ -195,12 +184,13 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
     auth({
       optional: true,
     }),
+    transaction(),
     async (ctx: AppContext) => {
       const { code, error, state } = ctx.request.query;
       const { user } = ctx.state.auth;
       assertPresent(code || error, "code is required");
 
-      const collectionId = state;
+      const collectionId = state as string | undefined;
       assertUuid(collectionId, "collectionId must be an uuid");
 
       if (error) {
@@ -235,20 +225,12 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
 
       const endpoint = `${env.URL}/auth/slack.post`;
       const data = await Slack.oauthAccess(code as string, endpoint);
-      const authentication = await IntegrationAuthentication.create({
+      await integrationCreator({
+        user,
         service: IntegrationService.Slack,
-        userId: user.id,
-        teamId: user.teamId,
         token: data.access_token,
-        scopes: data.scope.split(","),
-      });
-
-      await Integration.create({
-        service: IntegrationService.Slack,
+        authScopes: data.scope.split(","),
         type: IntegrationType.Post,
-        userId: user.id,
-        teamId: user.teamId,
-        authenticationId: authentication.id,
         collectionId,
         events: ["documents.update", "documents.publish"],
         settings: {
@@ -256,6 +238,7 @@ if (env.SLACK_CLIENT_ID && env.SLACK_CLIENT_SECRET) {
           channel: data.incoming_webhook.channel,
           channelId: data.incoming_webhook.channel_id,
         },
+        transaction: ctx.state.transaction,
       });
       ctx.redirect(integrationSettingsPath("slack"));
     }
