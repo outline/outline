@@ -166,7 +166,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
   const handleClearSearch = React.useCallback(() => {
     const { state, dispatch } = view;
     const poss = state.doc.cut(
-      state.selection.from - props.search.length - 1,
+      state.selection.from - (props.search ?? "").length - 1,
       state.selection.from
     );
     const trimTrigger = poss.textContent.startsWith(props.trigger);
