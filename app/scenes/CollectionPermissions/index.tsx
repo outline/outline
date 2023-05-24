@@ -44,11 +44,8 @@ function CollectionPermissions({ collectionId }: Props) {
   const collection = collections.get(collectionId);
   invariant(collection, "Collection not found");
 
-  const [
-    addGroupModalOpen,
-    handleAddGroupModalOpen,
-    handleAddGroupModalClose,
-  ] = useBoolean();
+  const [addGroupModalOpen, handleAddGroupModalOpen, handleAddGroupModalClose] =
+    useBoolean();
 
   const [
     addMemberModalOpen,

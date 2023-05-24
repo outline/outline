@@ -67,10 +67,8 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   const localRef = React.useRef<SharedEditor>();
   const preferences = auth.user?.preferences;
   const previousHeadings = React.useRef<Heading[] | null>(null);
-  const [
-    activeLinkElement,
-    setActiveLink,
-  ] = React.useState<HTMLAnchorElement | null>(null);
+  const [activeLinkElement, setActiveLink] =
+    React.useState<HTMLAnchorElement | null>(null);
   const previousCommentIds = React.useRef<string[]>();
 
   const handleLinkActive = React.useCallback((element: HTMLAnchorElement) => {

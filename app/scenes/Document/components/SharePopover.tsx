@@ -43,7 +43,7 @@ function SharePopover({
 }: Props) {
   const team = useCurrentTeam();
   const { t } = useTranslation();
-  const { shares } = useStores();
+  const { shares, collections } = useStores();
   const { showToast } = useToasts();
   const [expandedOptions, setExpandedOptions] = React.useState(false);
   const [isEditMode, setIsEditMode] = React.useState(false);
@@ -53,10 +53,14 @@ function SharePopover({
   const buttonRef = React.useRef<HTMLButtonElement>(null);
   const can = usePolicy(share ? share.id : "");
   const documentAbilities = usePolicy(document);
+  const collection = document.collectionId
+    ? collections.get(document.collectionId)
+    : undefined;
   const canPublish =
     can.update &&
     !document.isTemplate &&
     team.sharing &&
+    collection?.sharing &&
     documentAbilities.share;
   const isPubliclyShared =
     team.sharing &&

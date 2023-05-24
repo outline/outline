@@ -995,21 +995,18 @@ router.post(
       }
     }
 
-    const {
-      documents,
-      collections,
-      collectionChanged,
-    } = await sequelize.transaction(async (transaction) =>
-      documentMover({
-        user,
-        document,
-        collectionId,
-        parentDocumentId,
-        index,
-        ip: ctx.request.ip,
-        transaction,
-      })
-    );
+    const { documents, collections, collectionChanged } =
+      await sequelize.transaction(async (transaction) =>
+        documentMover({
+          user,
+          document,
+          collectionId,
+          parentDocumentId,
+          index,
+          ip: ctx.request.ip,
+          transaction,
+        })
+      );
 
     ctx.body = {
       data: {

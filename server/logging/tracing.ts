@@ -26,7 +26,7 @@ import env from "@server/env";
 import tracer from "./tracer";
 import * as Tracing from "./tracer";
 
-type DDTag = typeof DDTags[keyof typeof DDTags];
+type DDTag = (typeof DDTags)[keyof typeof DDTags];
 
 type Tags = {
   [tag in DDTag]?: any;
@@ -55,72 +55,74 @@ interface TraceConfig {
  *
  * @param config Optional configuration for the span that will be created for this trace.
  */
-export const traceFunction = (config: TraceConfig) => <
-  F extends (...args: any[]) => any,
-  P extends Parameters<F>,
-  R extends ReturnType<F>
->(
-  target: F
-): F =>
-  env.ENVIRONMENT === "test"
-    ? target
-    : (function wrapperFn(this: any, ...args: P): R {
-        const { className, methodName = target.name, tags } = config;
-        const childOf = config.isRoot
-          ? undefined
-          : tracer.scope().active() || undefined;
+export const traceFunction =
+  (config: TraceConfig) =>
+  <
+    F extends (...args: any[]) => any,
+    P extends Parameters<F>,
+    R extends ReturnType<F>
+  >(
+    target: F
+  ): F =>
+    env.ENVIRONMENT === "test"
+      ? target
+      : (function wrapperFn(this: any, ...args: P): R {
+          const { className, methodName = target.name, tags } = config;
+          const childOf = config.isRoot
+            ? undefined
+            : tracer.scope().active() || undefined;
 
-        const spanName = config.spanName || className || "DEFAULT_SPAN_NAME";
+          const spanName = config.spanName || className || "DEFAULT_SPAN_NAME";
 
-        const resourceName = config.resourceName
-          ? config.resourceName
-          : methodName;
-        const spanOptions: SpanOptions = {
-          childOf,
-          tags: {
-            [DDTags.RESOURCE_NAME]: resourceName,
-            ...tags,
-          },
-        };
+          const resourceName = config.resourceName
+            ? config.resourceName
+            : methodName;
+          const spanOptions: SpanOptions = {
+            childOf,
+            tags: {
+              [DDTags.RESOURCE_NAME]: resourceName,
+              ...tags,
+            },
+          };
 
-        const span = tracer.startSpan(spanName, spanOptions);
+          const span = tracer.startSpan(spanName, spanOptions);
 
-        if (!span) {
-          return target.call(this, ...args);
-        }
-
-        if (config.serviceName) {
-          span.setTag(
-            DDTags.SERVICE_NAME,
-            `${env.DD_SERVICE}-${config.serviceName}`
-          );
-        }
-
-        if (config.makeSearchable) {
-          span.setTag(DDTags.ANALYTICS, true);
-        }
-
-        // The callback fn needs to be wrapped in an arrow fn as the activate fn clobbers `this`
-        return tracer.scope().activate(span, () => {
-          const output = target.call(this, ...args);
-
-          if (output && typeof output.then === "function") {
-            output
-              .catch((error: Error | undefined) => {
-                if (error instanceof Error) {
-                  Tracing.setError(error, span);
-                }
-              })
-              .finally(() => {
-                span.finish();
-              });
-          } else {
-            span.finish();
+          if (!span) {
+            return target.call(this, ...args);
           }
 
-          return output;
-        });
-      } as F);
+          if (config.serviceName) {
+            span.setTag(
+              DDTags.SERVICE_NAME,
+              `${env.DD_SERVICE}-${config.serviceName}`
+            );
+          }
+
+          if (config.makeSearchable) {
+            span.setTag(DDTags.ANALYTICS, true);
+          }
+
+          // The callback fn needs to be wrapped in an arrow fn as the activate fn clobbers `this`
+          return tracer.scope().activate(span, () => {
+            const output = target.call(this, ...args);
+
+            if (output && typeof output.then === "function") {
+              output
+                .catch((error: Error | undefined) => {
+                  if (error instanceof Error) {
+                    Tracing.setError(error, span);
+                  }
+                })
+                .finally(() => {
+                  span.finish();
+                });
+            } else {
+              span.finish();
+            }
+
+            return output;
+          });
+        } as F);
 
 const traceMethod = (config?: TraceConfig) =>
   function <R, A extends any[], F extends (...args: A) => R>(

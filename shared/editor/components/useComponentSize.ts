@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 
-export default function useComponentSize(
-  ref: React.RefObject<HTMLElement>
-): { width: number; height: number } {
+export default function useComponentSize(ref: React.RefObject<HTMLElement>): {
+  width: number;
+  height: number;
+} {
   const [size, setSize] = useState({
     width: ref.current?.clientWidth || 0,
     height: ref.current?.clientHeight || 0,

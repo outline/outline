@@ -98,8 +98,9 @@ class AuthenticationProvider extends Model {
   }
 
   disable = async (options?: SaveOptions<AuthenticationProvider>) => {
-    const res = await (this
-      .constructor as typeof AuthenticationProvider).findAndCountAll({
+    const res = await (
+      this.constructor as typeof AuthenticationProvider
+    ).findAndCountAll({
       ...options,
       where: {
         teamId: this.teamId,

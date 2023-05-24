@@ -46,7 +46,7 @@ function NotificationListItem({ notification, onNavigate }: Props) {
         <Flex column>
           <Text as="div" size="small">
             <Text as="span" weight="bold">
-              {notification.actor.name}
+              {notification.actor?.name ?? t("Unknown")}
             </Text>{" "}
             {notification.eventText(t)}{" "}
             <Text as="span" weight="bold">

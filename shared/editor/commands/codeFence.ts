@@ -92,9 +92,8 @@ export const newlineInCode: Command = (state, dispatch) => {
 
   if (text) {
     const splitByNewLine = text.split("\n");
-    const numOfSpaces = splitByNewLine[splitByNewLine.length - 1].search(
-      /\S|$/
-    );
+    const numOfSpaces =
+      splitByNewLine[splitByNewLine.length - 1].search(/\S|$/);
     newText += " ".repeat(numOfSpaces);
   }
 

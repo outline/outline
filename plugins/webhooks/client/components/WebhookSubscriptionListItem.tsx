@@ -19,11 +19,8 @@ type Props = {
 const WebhookSubscriptionListItem = ({ webhook }: Props) => {
   const { t } = useTranslation();
   const { dialogs } = useStores();
-  const [
-    editModalOpen,
-    handleEditModalOpen,
-    handleEditModalClose,
-  ] = useBoolean();
+  const [editModalOpen, handleEditModalOpen, handleEditModalClose] =
+    useBoolean();
 
   const showDeletionConfirmation = React.useCallback(() => {
     dialogs.openModal({

@@ -1,5 +1,5 @@
 import { trim } from "lodash";
-import { action, computed, observable, runInAction } from "mobx";
+import { action, computed, observable, reaction, runInAction } from "mobx";
 import {
   CollectionPermission,
   FileOperationFormat,
@@ -65,6 +65,21 @@ export default class Collection extends ParanoidModel {
   url: string;
 
   urlId: string;
+
+  constructor(fields: Partial<Collection>, store: CollectionsStore) {
+    super(fields, store);
+
+    const resetDocumentPolicies = () => {
+      this.store.rootStore.documents
+        .inCollection(this.id)
+        .forEach((document) => {
+          this.store.rootStore.policies.remove(document.id);
+        });
+    };
+
+    reaction(() => this.permission, resetDocumentPolicies);
+    reaction(() => this.sharing, resetDocumentPolicies);
+  }
 
   @computed
   get isEmpty(): boolean | undefined {

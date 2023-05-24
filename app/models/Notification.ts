@@ -25,7 +25,7 @@ class Notification extends BaseModel {
   @observable
   archivedAt: Date | null;
 
-  actor: User;
+  actor?: User;
 
   documentId?: string;
 

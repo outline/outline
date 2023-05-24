@@ -189,35 +189,31 @@ export default class Image extends SimpleImage {
     ];
   }
 
-  handleChangeSize = ({
-    node,
-    getPos,
-  }: {
-    node: ProsemirrorNode;
-    getPos: () => number;
-  }) => ({ width, height }: { width: number; height?: number }) => {
-    const { view } = this.editor;
-    const { tr } = view.state;
+  handleChangeSize =
+    ({ node, getPos }: { node: ProsemirrorNode; getPos: () => number }) =>
+    ({ width, height }: { width: number; height?: number }) => {
+      const { view } = this.editor;
+      const { tr } = view.state;
 
-    const pos = getPos();
-    const transaction = tr
-      .setNodeMarkup(pos, undefined, {
-        ...node.attrs,
-        width,
-        height,
-      })
-      .setMeta("addToHistory", true);
-    const $pos = transaction.doc.resolve(getPos());
-    view.dispatch(transaction.setSelection(new NodeSelection($pos)));
-  };
+      const pos = getPos();
+      const transaction = tr
+        .setNodeMarkup(pos, undefined, {
+          ...node.attrs,
+          width,
+          height,
+        })
+        .setMeta("addToHistory", true);
+      const $pos = transaction.doc.resolve(getPos());
+      view.dispatch(transaction.setSelection(new NodeSelection($pos)));
+    };
 
-  handleDownload = ({ node }: { node: ProsemirrorNode }) => (
-    event: React.MouseEvent
-  ) => {
-    event.preventDefault();
-    event.stopPropagation();
-    downloadImageNode(node);
-  };
+  handleDownload =
+    ({ node }: { node: ProsemirrorNode }) =>
+    (event: React.MouseEvent) => {
+      event.preventDefault();
+      event.stopPropagation();
+      downloadImageNode(node);
+    };
 
   component = (props: ComponentProps) => (
     <ImageComponent
@@ -360,7 +356,8 @@ export default class Image extends SimpleImage {
      * ![](image.jpg "class") -> [, "", "image.jpg", "small"]
      * ![Lorem](image.jpg "class") -> [, "Lorem", "image.jpg", "small"]
      */
-    const IMAGE_INPUT_REGEX = /!\[(?<alt>[^\][]*?)]\((?<filename>[^\][]*?)(?=“|\))“?(?<layoutclass>[^\][”]+)?”?\)$/;
+    const IMAGE_INPUT_REGEX =
+      /!\[(?<alt>[^\][]*?)]\((?<filename>[^\][]*?)(?=“|\))“?(?<layoutclass>[^\][”]+)?”?\)$/;
 
     return [
       new InputRule(IMAGE_INPUT_REGEX, (state, match, start, end) => {

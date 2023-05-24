@@ -7,9 +7,7 @@ import ProsemirrorHelper from "@server/models/helpers/ProsemirrorHelper";
 import { CommentEvent } from "@server/types";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
-export default class CommentCreatedNotificationsTask extends BaseTask<
-  CommentEvent
-> {
+export default class CommentCreatedNotificationsTask extends BaseTask<CommentEvent> {
   public async perform(event: CommentEvent) {
     const [document, comment] = await Promise.all([
       Document.scope("withCollection").findOne({

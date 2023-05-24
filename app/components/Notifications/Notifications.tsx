@@ -12,6 +12,7 @@ import useStores from "~/hooks/useStores";
 import { hover } from "~/styles";
 import Desktop from "~/utils/Desktop";
 import Empty from "../Empty";
+import ErrorBoundary from "../ErrorBoundary";
 import Flex from "../Flex";
 import NudeButton from "../NudeButton";
 import PaginatedList from "../PaginatedList";
@@ -47,45 +48,47 @@ function Notifications(
   }, [notifications.approximateUnreadCount]);
 
   return (
-    <Flex style={{ width: "100%" }} column>
-      <Header justify="space-between">
-        <Text weight="bold" as="span">
-          {t("Notifications")}
-        </Text>
-        <Text color="textSecondary" as={Flex} gap={8}>
-          {notifications.approximateUnreadCount > 0 && (
-            <Tooltip delay={500} tooltip={t("Mark all as read")}>
-              <Button action={markNotificationsAsRead} context={context}>
-                <MarkAsReadIcon />
+    <ErrorBoundary>
+      <Flex style={{ width: "100%" }} column>
+        <Header justify="space-between">
+          <Text weight="bold" as="span">
+            {t("Notifications")}
+          </Text>
+          <Text color="textSecondary" as={Flex} gap={8}>
+            {notifications.approximateUnreadCount > 0 && (
+              <Tooltip delay={500} tooltip={t("Mark all as read")}>
+                <Button action={markNotificationsAsRead} context={context}>
+                  <MarkAsReadIcon />
+                </Button>
+              </Tooltip>
+            )}
+            <Tooltip delay={500} tooltip={t("Settings")}>
+              <Button action={navigateToNotificationSettings} context={context}>
+                <SettingsIcon />
               </Button>
             </Tooltip>
-          )}
-          <Tooltip delay={500} tooltip={t("Settings")}>
-            <Button action={navigateToNotificationSettings} context={context}>
-              <SettingsIcon />
-            </Button>
-          </Tooltip>
-        </Text>
-      </Header>
-      <React.Suspense fallback={null}>
-        <Scrollable ref={ref} flex topShadow>
-          <PaginatedList
-            fetch={notifications.fetchPage}
-            items={notifications.orderedData}
-            renderItem={(item: Notification) => (
-              <NotificationListItem
-                key={item.id}
-                notification={item}
-                onNavigate={onRequestClose}
-              />
-            )}
-          />
-        </Scrollable>
-      </React.Suspense>
-      {isEmpty && (
-        <EmptyNotifications>{t("No notifications yet")}.</EmptyNotifications>
-      )}
-    </Flex>
+          </Text>
+        </Header>
+        <React.Suspense fallback={null}>
+          <Scrollable ref={ref} flex topShadow>
+            <PaginatedList
+              fetch={notifications.fetchPage}
+              items={notifications.orderedData}
+              renderItem={(item: Notification) => (
+                <NotificationListItem
+                  key={item.id}
+                  notification={item}
+                  onNavigate={onRequestClose}
+                />
+              )}
+            />
+          </Scrollable>
+        </React.Suspense>
+        {isEmpty && (
+          <EmptyNotifications>{t("No notifications yet")}.</EmptyNotifications>
+        )}
+      </Flex>
+    </ErrorBoundary>
   );
 }
 

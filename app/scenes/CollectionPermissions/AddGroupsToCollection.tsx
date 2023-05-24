@@ -25,20 +25,12 @@ type Props = {
 function AddGroupsToCollection(props: Props) {
   const { collection } = props;
 
-  const [
-    newGroupModalOpen,
-    handleNewGroupModalOpen,
-    handleNewGroupModalClose,
-  ] = useBoolean(false);
+  const [newGroupModalOpen, handleNewGroupModalOpen, handleNewGroupModalClose] =
+    useBoolean(false);
   const [query, setQuery] = React.useState("");
 
-  const {
-    auth,
-    collectionGroupMemberships,
-    groups,
-    policies,
-    toasts,
-  } = useStores();
+  const { auth, collectionGroupMemberships, groups, policies, toasts } =
+    useStores();
   const { fetchPage: fetchGroups } = groups;
 
   const { t } = useTranslation();

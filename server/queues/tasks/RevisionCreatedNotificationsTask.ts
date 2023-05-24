@@ -11,9 +11,7 @@ import NotificationHelper from "@server/models/helpers/NotificationHelper";
 import { RevisionEvent } from "@server/types";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
-export default class RevisionCreatedNotificationsTask extends BaseTask<
-  RevisionEvent
-> {
+export default class RevisionCreatedNotificationsTask extends BaseTask<RevisionEvent> {
   public async perform(event: RevisionEvent) {
     const [document, revision] = await Promise.all([
       Document.findByPk(event.documentId, { includeState: true }),

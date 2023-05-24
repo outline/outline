@@ -27,12 +27,13 @@ export default class HorizontalRule extends Node {
   }
 
   commands({ type }: { type: NodeType }) {
-    return (attrs: Record<string, any>): Command => (state, dispatch) => {
-      dispatch?.(
-        state.tr.replaceSelectionWith(type.create(attrs)).scrollIntoView()
-      );
-      return true;
-    };
+    return (attrs: Record<string, any>): Command =>
+      (state, dispatch) => {
+        dispatch?.(
+          state.tr.replaceSelectionWith(type.create(attrs)).scrollIntoView()
+        );
+        return true;
+      };
   }
 
   keys({ type }: { type: NodeType }): Record<string, Command> {

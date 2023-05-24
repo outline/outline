@@ -100,18 +100,18 @@ const Image = (
     document.removeEventListener("mousemove", handlePointerMove);
   };
 
-  const handlePointerDown = (dragging: "left" | "right") => (
-    event: React.PointerEvent<HTMLDivElement>
-  ) => {
-    event.preventDefault();
-    event.stopPropagation();
-    setSizeAtDragStart({
-      width: constrainWidth(size.width),
-      height: size.height,
-    });
-    setOffset(event.pageX);
-    setDragging(dragging);
-  };
+  const handlePointerDown =
+    (dragging: "left" | "right") =>
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+      setSizeAtDragStart({
+        width: constrainWidth(size.width),
+        height: size.height,
+      });
+      setOffset(event.pageX);
+      setDragging(dragging);
+    };
 
   const handleKeyDown = (event: KeyboardEvent) => {
     if (event.key === "Escape") {
@@ -170,11 +170,14 @@ const Image = (
         onClick={dragging ? undefined : props.onClick}
         style={widthStyle}
       >
-        {!dragging && size.width > 60 && size.height > 60 && props.onDownload && (
-          <Button onClick={props.onDownload}>
-            <DownloadIcon />
-          </Button>
-        )}
+        {!dragging &&
+          size.width > 60 &&
+          size.height > 60 &&
+          props.onDownload && (
+            <Button onClick={props.onDownload}>
+              <DownloadIcon />
+            </Button>
+          )}
         <ImageZoom zoomMargin={24}>
           <img
             style={{

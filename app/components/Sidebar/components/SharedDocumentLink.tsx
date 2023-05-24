@@ -42,9 +42,10 @@ function DocumentLink(
     !!node.children.length || activeDocument?.parentDocumentId === node.id;
   const document = documents.get(node.id);
 
-  const showChildren = React.useMemo(() => !!hasChildDocuments, [
-    hasChildDocuments,
-  ]);
+  const showChildren = React.useMemo(
+    () => !!hasChildDocuments,
+    [hasChildDocuments]
+  );
 
   const [expanded, setExpanded] = React.useState(showChildren);
 

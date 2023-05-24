@@ -88,9 +88,8 @@ export default class PersistenceExtension implements Extension {
     // Find the collaborators that have modified the document since it was last
     // persisted and clear the map, if there's no collaborators then we don't
     // need to persist the document.
-    const documentCollaboratorIds = this.documentCollaboratorIds.get(
-      documentName
-    );
+    const documentCollaboratorIds =
+      this.documentCollaboratorIds.get(documentName);
     if (!documentCollaboratorIds) {
       Logger.debug("multiplayer", `No changes for ${documentName}`);
       return;

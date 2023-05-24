@@ -28,11 +28,8 @@ import UserStatusFilter from "./components/UserStatusFilter";
 function Members() {
   const location = useLocation();
   const history = useHistory();
-  const [
-    inviteModalOpen,
-    handleInviteModalOpen,
-    handleInviteModalClose,
-  ] = useBoolean();
+  const [inviteModalOpen, handleInviteModalOpen, handleInviteModalClose] =
+    useBoolean();
   const team = useCurrentTeam();
   const { users } = useStores();
   const { t } = useTranslation();

@@ -55,23 +55,25 @@ export default class Table extends Node {
 
   commands() {
     return {
-      createTable: ({
-        rowsCount,
-        colsCount,
-      }: {
-        rowsCount: number;
-        colsCount: number;
-      }): Command => (state, dispatch) => {
-        if (dispatch) {
-          const offset = state.tr.selection.anchor + 1;
-          const nodes = createTable(state, rowsCount, colsCount);
-          const tr = state.tr.replaceSelectionWith(nodes).scrollIntoView();
-          const resolvedPos = tr.doc.resolve(offset);
-          tr.setSelection(TextSelection.near(resolvedPos));
-          dispatch(tr);
-        }
-        return true;
-      },
+      createTable:
+        ({
+          rowsCount,
+          colsCount,
+        }: {
+          rowsCount: number;
+          colsCount: number;
+        }): Command =>
+        (state, dispatch) => {
+          if (dispatch) {
+            const offset = state.tr.selection.anchor + 1;
+            const nodes = createTable(state, rowsCount, colsCount);
+            const tr = state.tr.replaceSelectionWith(nodes).scrollIntoView();
+            const resolvedPos = tr.doc.resolve(offset);
+            tr.setSelection(TextSelection.near(resolvedPos));
+            dispatch(tr);
+          }
+          return true;
+        },
       setColumnAttr,
       addColumnBefore: () => addColumnBefore,
       addColumnAfter: () => addColumnAfter,

@@ -7,9 +7,7 @@ import { client } from "~/utils/ApiClient";
 import BaseStore, { PAGINATION_SYMBOL, RPCAction } from "./BaseStore";
 import RootStore from "./RootStore";
 
-export default class CollectionGroupMembershipsStore extends BaseStore<
-  CollectionGroupMembership
-> {
+export default class CollectionGroupMembershipsStore extends BaseStore<CollectionGroupMembership> {
   actions = [RPCAction.Create, RPCAction.Delete];
 
   constructor(rootStore: RootStore) {
