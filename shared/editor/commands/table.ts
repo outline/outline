@@ -109,22 +109,28 @@ export function setColumnAttr({
   };
 }
 
-export function selectRow(index: number) {
+export function selectRow(index: number, expand = false) {
   return (state: EditorState): Transaction => {
     const rect = selectedRect(state);
     const pos = rect.map.positionAt(index, 0, rect.table);
     const $pos = state.doc.resolve(rect.tableStart + pos);
-    const rowSelection = CellSelection.rowSelection($pos);
+    const rowSelection =
+      expand && state.selection instanceof CellSelection
+        ? CellSelection.rowSelection(state.selection.$anchorCell, $pos)
+        : CellSelection.rowSelection($pos);
     return state.tr.setSelection(rowSelection);
   };
 }
 
-export function selectColumn(index: number) {
+export function selectColumn(index: number, expand = false) {
   return (state: EditorState): Transaction => {
     const rect = selectedRect(state);
     const pos = rect.map.positionAt(0, index, rect.table);
     const $pos = state.doc.resolve(rect.tableStart + pos);
-    const colSelection = CellSelection.colSelection($pos);
+    const colSelection =
+      expand && state.selection instanceof CellSelection
+        ? CellSelection.colSelection(state.selection.$anchorCell, $pos)
+        : CellSelection.colSelection($pos);
     return state.tr.setSelection(colSelection);
   };
 }

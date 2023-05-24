@@ -98,7 +98,9 @@ export default class TableCell extends Node {
                     grip.addEventListener("mousedown", (event) => {
                       event.preventDefault();
                       event.stopImmediatePropagation();
-                      this.editor.view.dispatch(selectRow(index)(state));
+                      this.editor.view.dispatch(
+                        selectRow(index, event.metaKey || event.shiftKey)(state)
+                      );
                     });
                     return grip;
                   })
