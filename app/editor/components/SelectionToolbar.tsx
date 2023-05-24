@@ -1,14 +1,12 @@
 import { some } from "lodash";
 import { EditorState, NodeSelection, TextSelection } from "prosemirror-state";
-import { CellSelection } from "prosemirror-tables";
 import * as React from "react";
 import createAndInsertLink from "@shared/editor/commands/createAndInsertLink";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
-import getColumnIndex from "@shared/editor/queries/getColumnIndex";
 import getMarkRange from "@shared/editor/queries/getMarkRange";
-import getRowIndex from "@shared/editor/queries/getRowIndex";
 import isMarkActive from "@shared/editor/queries/isMarkActive";
 import isNodeActive from "@shared/editor/queries/isNodeActive";
+import { getColumnIndex, getRowIndex } from "@shared/editor/queries/table";
 import { MenuItem } from "@shared/editor/types";
 import { creatingUrlPrefix } from "@shared/utils/urls";
 import useBoolean from "~/hooks/useBoolean";
@@ -197,10 +195,8 @@ export default function SelectionToolbar(props: Props) {
     return null;
   }
 
-  const colIndex = getColumnIndex(
-    (state.selection as unknown) as CellSelection
-  );
-  const rowIndex = getRowIndex((state.selection as unknown) as CellSelection);
+  const colIndex = getColumnIndex(state);
+  const rowIndex = getRowIndex(state);
   const isTableSelection = colIndex !== undefined && rowIndex !== undefined;
   const link = isMarkActive(state.schema.marks.link)(state);
   const range = getMarkRange(selection.$from, state.schema.marks.link);
