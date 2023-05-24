@@ -86,5 +86,10 @@ export function isRowSelected(index: number) {
 export function isTableSelected(state: EditorState): boolean {
   const rect = selectedRect(state);
 
-  return rect.bottom === rect.map.height && rect.right === rect.map.width;
+  return (
+    rect.top === 0 &&
+    rect.left === 0 &&
+    rect.bottom === rect.map.height &&
+    rect.right === rect.map.width
+  );
 }

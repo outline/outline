@@ -1,5 +1,5 @@
 import { NodeSelection } from "prosemirror-state";
-import { CellSelection } from "prosemirror-tables";
+import { CellSelection, selectedRect } from "prosemirror-tables";
 import * as React from "react";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
@@ -87,21 +87,33 @@ function usePosition({
 
   // tables are an oddity, and need their own positioning logic
   const isColSelection =
-    "isColSelection" in selection &&
-    (selection as CellSelection).isColSelection();
+    selection instanceof CellSelection && selection.isColSelection();
   const isRowSelection =
-    "isRowSelection" in selection &&
-    (selection as CellSelection).isRowSelection();
+    selection instanceof CellSelection && selection.isRowSelection();
 
   if (isColSelection) {
-    const { node: element } = view.domAtPos(selection.from);
-    const { width } = (element as HTMLElement).getBoundingClientRect();
-    selectionBounds.top -= 20;
-    selectionBounds.right = selectionBounds.left + width;
+    const rect = selectedRect(view.state);
+    const table = view.domAtPos(rect.tableStart);
+    const element = (table.node as HTMLElement).querySelector(
+      `tr td:nth-child(${rect.left + 1})`
+    );
+    const bounds = (element as HTMLElement).getBoundingClientRect();
+    selectionBounds.top = bounds.top - 16;
+    selectionBounds.bottom = bounds.bottom;
+    selectionBounds.left = bounds.left;
+    selectionBounds.right = bounds.right;
   }
 
   if (isRowSelection) {
-    selectionBounds.right = selectionBounds.left = selectionBounds.left - 18;
+    const rect = selectedRect(view.state);
+    const table = view.domAtPos(rect.tableStart);
+    const element = (table.node as HTMLElement).querySelector(
+      `tr:nth-child(${rect.top + 1}) td`
+    );
+    const bounds = (element as HTMLElement).getBoundingClientRect();
+    selectionBounds.top = bounds.top;
+    selectionBounds.left = bounds.left - 10;
+    selectionBounds.right = bounds.left - 10;
   }
 
   const isImageSelection =
