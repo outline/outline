@@ -1,12 +1,12 @@
 import Token from "markdown-it/lib/token";
 import { InputRule } from "prosemirror-inputrules";
 import { Node as ProsemirrorNode, NodeSpec, NodeType } from "prosemirror-model";
-import { NodeSelection, EditorState, Plugin } from "prosemirror-state";
+import { NodeSelection, Plugin, Command } from "prosemirror-state";
 import * as React from "react";
 import { sanitizeUrl } from "../../utils/urls";
 import { default as ImageComponent, Caption } from "../components/Image";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
-import { ComponentProps, Dispatch } from "../types";
+import { ComponentProps } from "../types";
 import SimpleImage from "./SimpleImage";
 
 const imageSizeRegex = /\s=(\d+)?x(\d+)?$/;
@@ -286,7 +286,7 @@ export default class Image extends SimpleImage {
   commands({ type }: { type: NodeType }) {
     return {
       ...super.commands({ type }),
-      downloadImage: () => (state: EditorState) => {
+      downloadImage: (): Command => (state) => {
         if (!(state.selection instanceof NodeSelection)) {
           return false;
         }
@@ -300,7 +300,7 @@ export default class Image extends SimpleImage {
 
         return true;
       },
-      alignRight: () => (state: EditorState, dispatch: Dispatch) => {
+      alignRight: (): Command => (state, dispatch) => {
         if (!(state.selection instanceof NodeSelection)) {
           return false;
         }
@@ -310,10 +310,10 @@ export default class Image extends SimpleImage {
           layoutClass: "right-50",
         };
         const { selection } = state;
-        dispatch(state.tr.setNodeMarkup(selection.from, undefined, attrs));
+        dispatch?.(state.tr.setNodeMarkup(selection.from, undefined, attrs));
         return true;
       },
-      alignLeft: () => (state: EditorState, dispatch: Dispatch) => {
+      alignLeft: (): Command => (state, dispatch) => {
         if (!(state.selection instanceof NodeSelection)) {
           return false;
         }
@@ -323,10 +323,10 @@ export default class Image extends SimpleImage {
           layoutClass: "left-50",
         };
         const { selection } = state;
-        dispatch(state.tr.setNodeMarkup(selection.from, undefined, attrs));
+        dispatch?.(state.tr.setNodeMarkup(selection.from, undefined, attrs));
         return true;
       },
-      alignFullWidth: () => (state: EditorState, dispatch: Dispatch) => {
+      alignFullWidth: (): Command => (state, dispatch) => {
         if (!(state.selection instanceof NodeSelection)) {
           return false;
         }
@@ -336,16 +336,16 @@ export default class Image extends SimpleImage {
           layoutClass: "full-width",
         };
         const { selection } = state;
-        dispatch(state.tr.setNodeMarkup(selection.from, undefined, attrs));
+        dispatch?.(state.tr.setNodeMarkup(selection.from, undefined, attrs));
         return true;
       },
-      alignCenter: () => (state: EditorState, dispatch: Dispatch) => {
+      alignCenter: (): Command => (state, dispatch) => {
         if (!(state.selection instanceof NodeSelection)) {
           return false;
         }
         const attrs = { ...state.selection.node.attrs, layoutClass: null };
         const { selection } = state;
-        dispatch(state.tr.setNodeMarkup(selection.from, undefined, attrs));
+        dispatch?.(state.tr.setNodeMarkup(selection.from, undefined, attrs));
         return true;
       },
     };

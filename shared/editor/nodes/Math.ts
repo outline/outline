@@ -17,11 +17,10 @@ import {
   Schema,
   Node as ProsemirrorNode,
 } from "prosemirror-model";
-import { EditorState, Plugin } from "prosemirror-state";
+import { Command, Plugin } from "prosemirror-state";
 import MathPlugin from "../extensions/Math";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import mathRule, { REGEX_INLINE_MATH_DOLLARS } from "../rules/math";
-import { Dispatch } from "../types";
 import Node from "./Node";
 
 export default class Math extends Node {
@@ -34,8 +33,8 @@ export default class Math extends Node {
   }
 
   commands({ type }: { type: NodeType }) {
-    return () => (state: EditorState, dispatch: Dispatch) => {
-      dispatch(state.tr.replaceSelectionWith(type.create()).scrollIntoView());
+    return (): Command => (state, dispatch) => {
+      dispatch?.(state.tr.replaceSelectionWith(type.create()).scrollIntoView());
       return true;
     };
   }

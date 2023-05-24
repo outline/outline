@@ -1,10 +1,9 @@
 import { NodeSpec, NodeType } from "prosemirror-model";
-import { EditorState } from "prosemirror-state";
+import { Command } from "prosemirror-state";
 import { isInTable } from "prosemirror-tables";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import isNodeActive from "../queries/isNodeActive";
 import breakRule from "../rules/breaks";
-import { Dispatch } from "../types";
 import Node from "./Node";
 
 export default class HardBreak extends Node {
@@ -28,22 +27,24 @@ export default class HardBreak extends Node {
   }
 
   commands({ type }: { type: NodeType }) {
-    return () => (state: EditorState, dispatch: Dispatch) => {
-      dispatch(state.tr.replaceSelectionWith(type.create()).scrollIntoView());
+    return (): Command => (state, dispatch) => {
+      dispatch?.(state.tr.replaceSelectionWith(type.create()).scrollIntoView());
       return true;
     };
   }
 
-  keys({ type }: { type: NodeType }) {
+  keys({ type }: { type: NodeType }): Record<string, Command> {
     return {
-      "Shift-Enter": (state: EditorState, dispatch: Dispatch) => {
+      "Shift-Enter": (state, dispatch) => {
         if (
           !isInTable(state) &&
           !isNodeActive(state.schema.nodes.paragraph)(state)
         ) {
           return false;
         }
-        dispatch(state.tr.replaceSelectionWith(type.create()).scrollIntoView());
+        dispatch?.(
+          state.tr.replaceSelectionWith(type.create()).scrollIntoView()
+        );
         return true;
       },
     };

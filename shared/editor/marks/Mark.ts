@@ -7,7 +7,8 @@ import {
   Node as ProsemirrorNode,
   Schema,
 } from "prosemirror-model";
-import Extension, { Command, CommandFactory } from "../lib/Extension";
+import { Command } from "prosemirror-state";
+import Extension, { CommandFactory } from "../lib/Extension";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 
 export default abstract class Mark extends Extension {

@@ -1,13 +1,13 @@
 import { InputRule } from "prosemirror-inputrules";
 import { Schema } from "prosemirror-model";
-import { EditorState } from "prosemirror-state";
+import { Command } from "prosemirror-state";
 import {
   getCurrentDateAsString,
   getCurrentDateTimeAsString,
   getCurrentTimeAsString,
 } from "../../utils/date";
 import Extension from "../lib/Extension";
-import { Dispatch, EventType } from "../types";
+import { EventType } from "../types";
 
 /**
  * An editor extension that adds commands to insert the current date and time.
@@ -43,16 +43,16 @@ export default class DateTime extends Extension {
 
   commands(_options: { schema: Schema }) {
     return {
-      date: () => (state: EditorState, dispatch: Dispatch) => {
-        dispatch(state.tr.insertText(getCurrentDateAsString() + " "));
+      date: (): Command => (state, dispatch) => {
+        dispatch?.(state.tr.insertText(getCurrentDateAsString() + " "));
         return true;
       },
-      time: () => (state: EditorState, dispatch: Dispatch) => {
-        dispatch(state.tr.insertText(getCurrentTimeAsString() + " "));
+      time: (): Command => (state, dispatch) => {
+        dispatch?.(state.tr.insertText(getCurrentTimeAsString() + " "));
         return true;
       },
-      datetime: () => (state: EditorState, dispatch: Dispatch) => {
-        dispatch(state.tr.insertText(getCurrentDateTimeAsString() + " "));
+      datetime: (): Command => (state, dispatch) => {
+        dispatch?.(state.tr.insertText(getCurrentDateTimeAsString() + " "));
         return true;
       },
     };

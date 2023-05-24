@@ -1,4 +1,5 @@
-import Extension, { Command } from "../lib/Extension";
+import { Command } from "prosemirror-state";
+import Extension from "../lib/Extension";
 
 export default class PreventTab extends Extension {
   get name() {

@@ -1,12 +1,10 @@
 import { toggleMark } from "prosemirror-commands";
 import { MarkSpec, MarkType, Schema } from "prosemirror-model";
-import { EditorState, Plugin } from "prosemirror-state";
+import { Command, Plugin } from "prosemirror-state";
 import { v4 as uuidv4 } from "uuid";
 import collapseSelection from "../commands/collapseSelection";
-import { Command } from "../lib/Extension";
 import chainTransactions from "../lib/chainTransactions";
 import isMarkActive from "../queries/isMarkActive";
-import { Dispatch } from "../types";
 import Mark from "./Mark";
 
 export default class Comment extends Mark {
@@ -32,7 +30,7 @@ export default class Comment extends Mark {
   keys({ type }: { type: MarkType }): Record<string, Command> {
     return this.options.onCreateCommentMark
       ? {
-          "Mod-Alt-m": (state: EditorState, dispatch: Dispatch) => {
+          "Mod-Alt-m": (state, dispatch) => {
             if (isMarkActive(state.schema.marks.comment)(state)) {
               return false;
             }
@@ -53,7 +51,7 @@ export default class Comment extends Mark {
 
   commands({ type }: { type: MarkType; schema: Schema }) {
     return this.options.onCreateCommentMark
-      ? () => (state: EditorState, dispatch: Dispatch) => {
+      ? (): Command => (state, dispatch) => {
           if (isMarkActive(state.schema.marks.comment)(state)) {
             return false;
           }

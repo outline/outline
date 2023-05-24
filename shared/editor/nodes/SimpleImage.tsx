@@ -1,7 +1,7 @@
 import Token from "markdown-it/lib/token";
 import { InputRule } from "prosemirror-inputrules";
 import { Node as ProsemirrorNode, NodeSpec, NodeType } from "prosemirror-model";
-import { TextSelection, NodeSelection, EditorState } from "prosemirror-state";
+import { TextSelection, NodeSelection, Command } from "prosemirror-state";
 import * as React from "react";
 import { getEventFiles } from "../../utils/files";
 import { sanitizeUrl } from "../../utils/urls";
@@ -11,7 +11,7 @@ import { default as ImageComponent } from "../components/Image";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import uploadPlaceholderPlugin from "../lib/uploadPlaceholder";
 import uploadPlugin from "../lib/uploadPlugin";
-import { ComponentProps, Dispatch } from "../types";
+import { ComponentProps } from "../types";
 import Node from "./Node";
 
 export default class SimpleImage extends Node {
@@ -179,11 +179,11 @@ export default class SimpleImage extends Node {
 
   commands({ type }: { type: NodeType }) {
     return {
-      deleteImage: () => (state: EditorState, dispatch: Dispatch) => {
-        dispatch(state.tr.deleteSelection());
+      deleteImage: (): Command => (state, dispatch) => {
+        dispatch?.(state.tr.deleteSelection());
         return true;
       },
-      replaceImage: () => (state: EditorState) => {
+      replaceImage: (): Command => (state) => {
         if (!(state.selection instanceof NodeSelection)) {
           return false;
         }
@@ -225,9 +225,9 @@ export default class SimpleImage extends Node {
         inputElement.click();
         return true;
       },
-      createImage: (attrs: Record<string, any>) => (
-        state: EditorState,
-        dispatch: Dispatch
+      createImage: (attrs: Record<string, any>): Command => (
+        state,
+        dispatch
       ) => {
         const { selection } = state;
         const position =
@@ -240,7 +240,7 @@ export default class SimpleImage extends Node {
 
         const node = type.create(attrs);
         const transaction = state.tr.insert(position, node);
-        dispatch(transaction);
+        dispatch?.(transaction);
         return true;
       },
     };

@@ -1,6 +1,6 @@
 import { chainCommands } from "prosemirror-commands";
 import { NodeSpec, Node as ProsemirrorNode } from "prosemirror-model";
-import { EditorState, Plugin, TextSelection } from "prosemirror-state";
+import { Command, Plugin, TextSelection } from "prosemirror-state";
 import {
   addColumnAfter,
   addColumnBefore,
@@ -21,7 +21,6 @@ import {
 } from "../commands/table";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import tablesRule from "../rules/tables";
-import { Dispatch } from "../types";
 import Node from "./Node";
 
 export default class Table extends Node {
@@ -62,13 +61,15 @@ export default class Table extends Node {
       }: {
         rowsCount: number;
         colsCount: number;
-      }) => (state: EditorState, dispatch: Dispatch) => {
-        const offset = state.tr.selection.anchor + 1;
-        const nodes = createTable(state, rowsCount, colsCount);
-        const tr = state.tr.replaceSelectionWith(nodes).scrollIntoView();
-        const resolvedPos = tr.doc.resolve(offset);
-        tr.setSelection(TextSelection.near(resolvedPos));
-        dispatch(tr);
+      }): Command => (state, dispatch) => {
+        if (dispatch) {
+          const offset = state.tr.selection.anchor + 1;
+          const nodes = createTable(state, rowsCount, colsCount);
+          const tr = state.tr.replaceSelectionWith(nodes).scrollIntoView();
+          const resolvedPos = tr.doc.resolve(offset);
+          tr.setSelection(TextSelection.near(resolvedPos));
+          dispatch(tr);
+        }
         return true;
       },
       setColumnAttr,
