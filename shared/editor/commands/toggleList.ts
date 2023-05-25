@@ -1,8 +1,8 @@
 import { NodeType } from "prosemirror-model";
 import { wrapInList, liftListItem } from "prosemirror-schema-list";
 import { Command } from "prosemirror-state";
-import { findParentNode } from "prosemirror-utils";
 import chainTransactions from "../lib/chainTransactions";
+import { findParentNode } from "../queries/findParentNode";
 import isList from "../queries/isList";
 import clearNodes from "./clearNodes";
 

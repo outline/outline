@@ -1,9 +1,9 @@
 import { flattenDeep, padStart } from "lodash";
 import { Node } from "prosemirror-model";
 import { Plugin, PluginKey, Transaction } from "prosemirror-state";
-import { findBlockNodes } from "prosemirror-utils";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import refractor from "refractor/core";
+import { findBlockNodes } from "../queries/findChildren";
 
 export const LANGUAGES = {
   none: "None", // additional entry to disable highlighting

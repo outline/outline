@@ -1,8 +1,8 @@
 import { Node } from "prosemirror-model";
 import { Plugin, PluginKey, Transaction } from "prosemirror-state";
-import { findBlockNodes } from "prosemirror-utils";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { v4 as uuidv4 } from "uuid";
+import { findBlockNodes } from "../queries/findChildren";
 
 type MermaidState = {
   decorationSet: DecorationSet;

@@ -1,8 +1,8 @@
 import { Plugin, PluginKey } from "prosemirror-state";
-import { findBlockNodes } from "prosemirror-utils";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import Storage from "../../utils/Storage";
 import { headingToPersistenceKey } from "../lib/headingToSlug";
+import { findBlockNodes } from "../queries/findChildren";
 import findCollapsedNodes from "../queries/findCollapsedNodes";
 
 export class FoldingHeadersPlugin extends Plugin {

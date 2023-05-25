@@ -1,10 +1,10 @@
 import { PlusIcon } from "outline-icons";
 import { Plugin } from "prosemirror-state";
-import { findParentNode } from "prosemirror-utils";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import * as React from "react";
 import ReactDOM from "react-dom";
 import { SuggestionsMenuType } from "../plugins/Suggestions";
+import { findParentNode } from "../queries/findParentNode";
 import { EventType } from "../types";
 import Suggestion from "./Suggestion";
 

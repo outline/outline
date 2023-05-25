@@ -1,6 +1,5 @@
 import commandScore from "command-score";
 import { capitalize } from "lodash";
-import { findParentNode } from "prosemirror-utils";
 import * as React from "react";
 import { Trans } from "react-i18next";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
@@ -8,6 +7,7 @@ import styled from "styled-components";
 import insertFiles from "@shared/editor/commands/insertFiles";
 import { EmbedDescriptor } from "@shared/editor/embeds";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
+import { findParentNode } from "@shared/editor/queries/findParentNode";
 import { MenuItem } from "@shared/editor/types";
 import { depths, s } from "@shared/styles";
 import { getEventFiles } from "@shared/utils/files";

@@ -11,9 +11,9 @@ import {
   TextSelection,
   Command,
 } from "prosemirror-state";
-import { findParentNodeClosestToPos } from "prosemirror-utils";
 import { DecorationSet, Decoration } from "prosemirror-view";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import { findParentNodeClosestToPos } from "../queries/findParentNode";
 import getParentListItem from "../queries/getParentListItem";
 import isInList from "../queries/isInList";
 import isList from "../queries/isList";
