@@ -6,13 +6,12 @@ import {
   NodeType,
   Schema,
 } from "prosemirror-model";
-import { Plugin, Selection } from "prosemirror-state";
+import { Command, Plugin, Selection } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import Storage from "../../utils/Storage";
 import backspaceToParagraph from "../commands/backspaceToParagraph";
 import splitHeading from "../commands/splitHeading";
 import toggleBlockType from "../commands/toggleBlockType";
-import { Command } from "../lib/Extension";
 import headingToSlug, { headingToPersistenceKey } from "../lib/headingToSlug";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import { FoldingHeadersPlugin } from "../plugins/FoldingHeaders";
@@ -119,7 +118,10 @@ export default class Heading extends Node {
 
   handleFoldContent = (event: MouseEvent) => {
     event.preventDefault();
-    if (!(event.currentTarget instanceof HTMLButtonElement)) {
+    if (
+      !(event.currentTarget instanceof HTMLButtonElement) ||
+      event.button !== 0
+    ) {
       return;
     }
 

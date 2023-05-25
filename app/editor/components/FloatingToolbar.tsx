@@ -1,5 +1,5 @@
 import { NodeSelection } from "prosemirror-state";
-import { CellSelection } from "prosemirror-tables";
+import { CellSelection, selectedRect } from "prosemirror-tables";
 import * as React from "react";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
@@ -87,23 +87,37 @@ function usePosition({
 
   // tables are an oddity, and need their own positioning logic
   const isColSelection =
-    selection instanceof CellSelection &&
-    selection.isColSelection &&
-    selection.isColSelection();
+    selection instanceof CellSelection && selection.isColSelection();
   const isRowSelection =
-    selection instanceof CellSelection &&
-    selection.isRowSelection &&
-    selection.isRowSelection();
+    selection instanceof CellSelection && selection.isRowSelection();
 
-  if (isColSelection) {
-    const { node: element } = view.domAtPos(selection.from);
-    const { width } = (element as HTMLElement).getBoundingClientRect();
-    selectionBounds.top -= 20;
-    selectionBounds.right = selectionBounds.left + width;
-  }
-
-  if (isRowSelection) {
-    selectionBounds.right = selectionBounds.left = selectionBounds.left - 18;
+  if (isColSelection && isRowSelection) {
+    const rect = selectedRect(view.state);
+    const table = view.domAtPos(rect.tableStart);
+    const bounds = (table.node as HTMLElement).getBoundingClientRect();
+    selectionBounds.top = bounds.top - 16;
+    selectionBounds.left = bounds.left - 10;
+    selectionBounds.right = bounds.left - 10;
+  } else if (isColSelection) {
+    const rect = selectedRect(view.state);
+    const table = view.domAtPos(rect.tableStart);
+    const element = (table.node as HTMLElement).querySelector(
+      `tr > *:nth-child(${rect.left + 1})`
+    );
+    const bounds = (element as HTMLElement).getBoundingClientRect();
+    selectionBounds.top = bounds.top - 16;
+    selectionBounds.left = bounds.left;
+    selectionBounds.right = bounds.right;
+  } else if (isRowSelection) {
+    const rect = selectedRect(view.state);
+    const table = view.domAtPos(rect.tableStart);
+    const element = (table.node as HTMLElement).querySelector(
+      `tr:nth-child(${rect.top + 1}) > *`
+    );
+    const bounds = (element as HTMLElement).getBoundingClientRect();
+    selectionBounds.top = bounds.top;
+    selectionBounds.left = bounds.left - 10;
+    selectionBounds.right = bounds.left - 10;
   }
 
   const isImageSelection =

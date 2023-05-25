@@ -5,8 +5,9 @@ import {
   AllSelection,
   TextSelection,
   EditorState,
+  Command,
 } from "prosemirror-state";
-import Extension, { Command } from "../lib/Extension";
+import Extension from "../lib/Extension";
 import isInCode from "../queries/isInCode";
 
 export default class Keys extends Extension {

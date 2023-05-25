@@ -1,6 +1,5 @@
-import { EditorState, TextSelection } from "prosemirror-state";
+import { Command, TextSelection } from "prosemirror-state";
 import isInCode from "../queries/isInCode";
-import { Dispatch } from "../types";
 
 /**
  * Moves the current selection to the previous newline, this is used inside
@@ -8,10 +7,7 @@ import { Dispatch } from "../types";
  *
  * @returns A prosemirror command.
  */
-export const moveToPreviousNewline = (
-  state: EditorState,
-  dispatch: Dispatch
-) => {
+export const moveToPreviousNewline: Command = (state, dispatch) => {
   if (!isInCode(state)) {
     return false;
   }
@@ -34,7 +30,7 @@ export const moveToPreviousNewline = (
     return false;
   }
 
-  dispatch(
+  dispatch?.(
     state.tr.setSelection(
       TextSelection.create(
         state.doc,
@@ -52,7 +48,7 @@ export const moveToPreviousNewline = (
  *
  * @returns A prosemirror command.
  */
-export const moveToNextNewline = (state: EditorState, dispatch: Dispatch) => {
+export const moveToNextNewline: Command = (state, dispatch) => {
   if (!isInCode(state)) {
     return false;
   }
@@ -69,7 +65,7 @@ export const moveToNextNewline = (state: EditorState, dispatch: Dispatch) => {
     return false;
   }
 
-  dispatch(
+  dispatch?.(
     state.tr.setSelection(
       TextSelection.create(state.doc, beginningOfNode + endOfLine)
     )
@@ -85,7 +81,7 @@ export const moveToNextNewline = (state: EditorState, dispatch: Dispatch) => {
  *
  * @returns A prosemirror command
  */
-export const newlineInCode = (state: EditorState, dispatch: Dispatch) => {
+export const newlineInCode: Command = (state, dispatch) => {
   if (!isInCode(state)) {
     return false;
   }
@@ -101,7 +97,7 @@ export const newlineInCode = (state: EditorState, dispatch: Dispatch) => {
     newText += " ".repeat(numOfSpaces);
   }
 
-  dispatch(tr.insertText(newText, selection.from, selection.to));
+  dispatch?.(tr.insertText(newText, selection.from, selection.to));
   return true;
 };
 
@@ -110,12 +106,12 @@ export const newlineInCode = (state: EditorState, dispatch: Dispatch) => {
  *
  * @returns A prosemirror command
  */
-export const insertSpaceTab = (state: EditorState, dispatch: Dispatch) => {
+export const insertSpaceTab: Command = (state, dispatch) => {
   if (!isInCode(state)) {
     return false;
   }
 
   const { tr, selection } = state;
-  dispatch(tr.insertText("  ", selection.from, selection.to));
+  dispatch?.(tr.insertText("  ", selection.from, selection.to));
   return true;
 };

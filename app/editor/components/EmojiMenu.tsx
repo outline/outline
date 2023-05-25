@@ -1,7 +1,6 @@
 import FuzzySearch from "fuzzy-search";
 import gemojies from "gemoji";
 import React from "react";
-import { useEditor } from "./EditorContext";
 import EmojiMenuItem from "./EmojiMenuItem";
 import SuggestionsMenu, {
   Props as SuggestionsMenuProps,
@@ -26,12 +25,11 @@ const searcher = new FuzzySearch<{
 
 type Props = Omit<
   SuggestionsMenuProps<Emoji>,
-  "renderMenuItem" | "items" | "onLinkToolbarOpen" | "embeds" | "onClearSearch"
+  "renderMenuItem" | "items" | "onLinkToolbarOpen" | "embeds" | "trigger"
 >;
 
 const EmojiMenu = (props: Props) => {
   const { search = "" } = props;
-  const { view } = useEditor();
 
   const items = React.useMemo(() => {
     const n = search.toLowerCase();
@@ -50,24 +48,11 @@ const EmojiMenu = (props: Props) => {
     return result.slice(0, 10);
   }, [search]);
 
-  const clearSearch = React.useCallback(() => {
-    const { state, dispatch } = view;
-
-    // clear search input
-    dispatch(
-      state.tr.insertText(
-        "",
-        state.selection.$from.pos - (props.search ?? "").length - 1,
-        state.selection.to
-      )
-    );
-  }, [view, props.search]);
-
   return (
     <SuggestionsMenu
       {...props}
+      trigger=":"
       filterable={false}
-      onClearSearch={clearSearch}
       renderMenuItem={(item, _index, options) => (
         <EmojiMenuItem
           onClick={options.onClick}

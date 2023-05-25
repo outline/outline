@@ -14,7 +14,7 @@ import {
   Node as ProsemirrorNode,
 } from "prosemirror-model";
 import { EditorState, Selection, Plugin, Transaction } from "prosemirror-state";
-import { Decoration, EditorView } from "prosemirror-view";
+import { Decoration, EditorView, NodeViewConstructor } from "prosemirror-view";
 import * as React from "react";
 import styled, { css, DefaultTheme, ThemeProps } from "styled-components";
 import Styles from "@shared/editor/components/Styles";
@@ -193,14 +193,7 @@ export class Editor extends React.PureComponent<
   keymaps: Plugin[];
   inputRules: InputRule[];
   nodeViews: {
-    [name: string]: (
-      node: ProsemirrorNode,
-      view: EditorView,
-      getPos: () => number,
-      decorations: Decoration<{
-        [key: string]: any;
-      }>[]
-    ) => ComponentView;
+    [name: string]: NodeViewConstructor;
   };
 
   nodes: { [name: string]: NodeSpec };
@@ -350,9 +343,7 @@ export class Editor extends React.PureComponent<
           node: ProsemirrorNode,
           view: EditorView,
           getPos: () => number,
-          decorations: Decoration<{
-            [key: string]: any;
-          }>[]
+          decorations: Decoration[]
         ) =>
           new ComponentView(extension.component, {
             editor: this,
@@ -435,7 +426,7 @@ export class Editor extends React.PureComponent<
   private createDocument(content: string | object) {
     // Looks like Markdown
     if (typeof content === "string") {
-      return this.parser.parse(content);
+      return this.parser.parse(content) || undefined;
     }
 
     return ProsemirrorNode.fromJSON(this.schema, content);
@@ -464,8 +455,9 @@ export class Editor extends React.PureComponent<
       nodeViews: this.nodeViews,
       dispatchTransaction(transaction) {
         // callback is bound to have the view instance as its this binding
-        const { state, transactions } =
-          this.state.applyTransaction(transaction);
+        const { state, transactions } = (
+          this.state as EditorState
+        ).applyTransaction(transaction);
 
         this.updateState(state);
 

@@ -6,7 +6,7 @@ import {
   OpenIcon,
 } from "outline-icons";
 import { Mark } from "prosemirror-model";
-import { setTextSelection } from "prosemirror-utils";
+import { Selection } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import styled from "styled-components";
@@ -285,7 +285,10 @@ class LinkEditor extends React.Component<Props, State> {
   moveSelectionToEnd = () => {
     const { to, view } = this.props;
     const { state, dispatch } = view;
-    dispatch(setTextSelection(to)(state.tr));
+    const nextSelection = Selection.findFrom(state.tr.doc.resolve(to), 1, true);
+    if (nextSelection) {
+      dispatch(state.tr.setSelection(nextSelection));
+    }
     view.focus();
   };
 

@@ -1,7 +1,6 @@
-import { EditorState, TextSelection } from "prosemirror-state";
-import { Dispatch } from "../types";
+import { Command, TextSelection } from "prosemirror-state";
 
-const collapseSelection = () => (state: EditorState, dispatch?: Dispatch) => {
+const collapseSelection = (): Command => (state, dispatch) => {
   dispatch?.(
     state.tr.setSelection(
       TextSelection.create(state.doc, state.tr.selection.from)

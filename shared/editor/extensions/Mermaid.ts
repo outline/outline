@@ -1,8 +1,8 @@
 import { Node } from "prosemirror-model";
 import { Plugin, PluginKey, Transaction } from "prosemirror-state";
-import { findBlockNodes } from "prosemirror-utils";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import { v4 as uuidv4 } from "uuid";
+import { findBlockNodes } from "../queries/findChildren";
 
 type MermaidState = {
   decorationSet: DecorationSet;
@@ -135,7 +135,7 @@ export default function Mermaid({
   return new Plugin({
     key: new PluginKey("mermaid"),
     state: {
-      init: (_: Plugin, { doc }) => {
+      init: (_, { doc }) => {
         const pluginState: MermaidState = {
           decorationSet: DecorationSet.create(doc, []),
           diagramVisibility: {},
@@ -208,7 +208,7 @@ export default function Mermaid({
     },
     props: {
       decorations(state) {
-        return this.getState(state).decorationSet;
+        return this.getState(state)?.decorationSet;
       },
     },
   });

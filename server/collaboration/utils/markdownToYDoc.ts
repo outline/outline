@@ -13,13 +13,12 @@ export default function markdownToYDoc(
   // in the editor embeds were created at runtime by converting links
   // into embeds where they match. Because we're converting to a CRDT structure
   // on the server we need to mimic this behavior.
-  function urlsToEmbeds(node: Node): Node {
+  function urlsToEmbeds(node: Node): Node | null {
     if (node.type.name === "paragraph") {
       // @ts-expect-error ts-migrate(2339) FIXME: Property 'content' does not exist on type 'Fragmen... Remove this comment to see the full error message
       for (const textNode of node.content.content) {
         for (const embed of embeds) {
           if (textNode.text && embed.matcher(textNode.text)) {
-            // @ts-expect-error ts-migrate(2322) FIXME: Type 'ProsemirrorNode<Schema<never, never>> | null... Remove this comment to see the full error message
             return schema.nodes.embed.createAndFill({
               href: textNode.text,
             });
@@ -30,14 +29,19 @@ export default function markdownToYDoc(
 
     if (node.content) {
       const contentAsArray =
-        // @ts-expect-error ts-migrate(2339) FIXME: Property 'content' does not exist on type 'Fragmen... Remove this comment to see the full error message
+        // @ts-expect-error content
         node.content instanceof Fragment ? node.content.content : node.content;
+      // @ts-expect-error content
       node.content = Fragment.fromArray(contentAsArray.map(urlsToEmbeds));
     }
 
     return node;
   }
 
-  node = urlsToEmbeds(node);
+  if (node) {
+    node = urlsToEmbeds(node);
+  }
+
+  // @ts-expect-error null node
   return prosemirrorToYDoc(node, fieldName);
 }

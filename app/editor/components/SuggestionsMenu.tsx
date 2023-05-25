@@ -1,6 +1,5 @@
 import commandScore from "command-score";
 import { capitalize } from "lodash";
-import { findParentNode } from "prosemirror-utils";
 import * as React from "react";
 import { Trans } from "react-i18next";
 import { VisuallyHidden } from "reakit/VisuallyHidden";
@@ -8,6 +7,7 @@ import styled from "styled-components";
 import insertFiles from "@shared/editor/commands/insertFiles";
 import { EmbedDescriptor } from "@shared/editor/embeds";
 import filterExcessSeparators from "@shared/editor/lib/filterExcessSeparators";
+import { findParentNode } from "@shared/editor/queries/findParentNode";
 import { MenuItem } from "@shared/editor/types";
 import { depths, s } from "@shared/styles";
 import { getEventFiles } from "@shared/utils/files";
@@ -56,12 +56,12 @@ export type Props<T extends MenuItem = MenuItem> = {
   rtl: boolean;
   isActive: boolean;
   search: string;
+  trigger: string;
   uploadFile?: (file: File) => Promise<string>;
   onFileUploadStart?: () => void;
   onFileUploadStop?: () => void;
   onLinkToolbarOpen?: () => void;
   onClose: (insertNewLine?: boolean) => void;
-  onClearSearch: () => void;
   embeds?: EmbedDescriptor[];
   renderMenuItem: (
     item: T,
@@ -163,6 +163,30 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     [view]
   );
 
+  const handleClearSearch = React.useCallback(() => {
+    const { state, dispatch } = view;
+    const poss = state.doc.cut(
+      state.selection.from - (props.search ?? "").length - 1,
+      state.selection.from
+    );
+    const trimTrigger = poss.textContent.startsWith(props.trigger);
+
+    if (!props.search && !trimTrigger) {
+      return;
+    }
+
+    // clear search input
+    dispatch(
+      state.tr.insertText(
+        "",
+        state.selection.from -
+          (props.search ?? "").length -
+          (trimTrigger ? 1 : 0),
+        state.selection.to
+      )
+    );
+  }, [props.search, props.trigger, view]);
+
   React.useEffect(() => {
     if (!props.isActive) {
       return;
@@ -185,7 +209,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
 
   const insertNode = React.useCallback(
     (item: MenuItem | EmbedDescriptor) => {
-      props.onClearSearch();
+      handleClearSearch();
 
       const command = item.name ? commands[item.name] : undefined;
 
@@ -201,7 +225,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
 
       props.onClose();
     },
-    [commands, props, view]
+    [commands, handleClearSearch, props, view]
   );
 
   const handleClickItem = React.useCallback(
@@ -216,7 +240,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
         case "embed":
           return triggerLinkInput(item);
         case "link": {
-          props.onClearSearch();
+          handleClearSearch();
           props.onClose();
           props.onLinkToolbarOpen?.();
           return;
@@ -225,7 +249,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
           insertNode(item);
       }
     },
-    [insertNode, props]
+    [insertNode, handleClearSearch, props]
   );
 
   const close = React.useCallback(() => {
@@ -313,7 +337,7 @@ function SuggestionsMenu<T extends MenuItem>(props: Props<T>) {
     const files = getEventFiles(event);
     const parent = findParentNode((node) => !!node)(view.state.selection);
 
-    props.onClearSearch();
+    handleClearSearch();
 
     if (!uploadFile) {
       throw new Error("uploadFile prop is required to replace files");
