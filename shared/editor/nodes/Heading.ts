@@ -118,7 +118,10 @@ export default class Heading extends Node {
 
   handleFoldContent = (event: MouseEvent) => {
     event.preventDefault();
-    if (!(event.currentTarget instanceof HTMLButtonElement)) {
+    if (
+      !(event.currentTarget instanceof HTMLButtonElement) ||
+      event.button !== 0
+    ) {
       return;
     }
 
