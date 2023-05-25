@@ -285,27 +285,24 @@ export default class Link extends Mark {
 
   toMarkdown() {
     return {
-      open(
+      open: (
         _state: MarkdownSerializerState,
         mark: ProsemirrorMark,
         parent: Node,
         index: number
-      ) {
-        return isPlainURL(mark, parent, index, 1) ? "<" : "[";
-      },
-      close(
+      ) => (isPlainURL(mark, parent, index, 1) ? "<" : "["),
+      close: (
         state: MarkdownSerializerState,
         mark: ProsemirrorMark,
         parent: Node,
         index: number
-      ) {
-        return isPlainURL(mark, parent, index, -1)
+      ) =>
+        isPlainURL(mark, parent, index, -1)
           ? ">"
           : "](" +
-              state.esc(mark.attrs.href) +
-              (mark.attrs.title ? " " + this.quote(mark.attrs.title) : "") +
-              ")";
-      },
+            state.esc(mark.attrs.href) +
+            (mark.attrs.title ? " " + this.quote(mark.attrs.title) : "") +
+            ")",
     };
   }
 
