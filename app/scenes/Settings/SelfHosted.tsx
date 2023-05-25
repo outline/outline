@@ -16,6 +16,7 @@ import SettingRow from "./components/SettingRow";
 
 type FormData = {
   drawIoUrl: string;
+  krokiSelfUrl: string;
 };
 
 function SelfHosted() {
@@ -23,9 +24,14 @@ function SelfHosted() {
   const { t } = useTranslation();
   const { showToast } = useToasts();
 
-  const integration = find(integrations.orderedData, {
+  const integrationdiagrams = find(integrations.orderedData, {
     type: IntegrationType.Embed,
     service: IntegrationService.Diagrams,
+  }) as Integration<IntegrationType.Embed> | undefined;
+
+  const integrationkroki = find(integrations.orderedData, {
+    type: IntegrationType.Embed,
+    service: IntegrationService.Kroki,
   }) as Integration<IntegrationType.Embed> | undefined;
 
   const {
@@ -36,7 +42,8 @@ function SelfHosted() {
   } = useForm<FormData>({
     mode: "all",
     defaultValues: {
-      drawIoUrl: integration?.settings.url,
+      drawIoUrl: integrationdiagrams?.settings.url,
+      krokiSelfUrl: integrationkroki?.settings.url,
     },
   });
 
@@ -47,15 +54,18 @@ function SelfHosted() {
   }, [integrations]);
 
   React.useEffect(() => {
-    reset({ drawIoUrl: integration?.settings.url });
-  }, [integration, reset]);
+    reset({
+      drawIoUrl: integrationdiagrams?.settings.url,
+      krokiSelfUrl: integrationkroki?.settings.url,
+    });
+  }, [integrationdiagrams, integrationkroki, reset]);
 
   const handleSubmit = React.useCallback(
     async (data: FormData) => {
       try {
         if (data.drawIoUrl) {
           await integrations.save({
-            id: integration?.id,
+            id: integrationdiagrams?.id,
             type: IntegrationType.Embed,
             service: IntegrationService.Diagrams,
             settings: {
@@ -63,7 +73,20 @@ function SelfHosted() {
             },
           });
         } else {
-          await integration?.delete();
+          await integrationdiagrams?.delete();
+        }
+
+        if (data.krokiSelfUrl) {
+          await integrations.save({
+            id: integrationkroki?.id,
+            type: IntegrationType.Embed,
+            service: IntegrationService.Kroki,
+            settings: {
+              url: data.krokiSelfUrl,
+            },
+          });
+        } else {
+          await integrationkroki?.delete();
         }
 
         showToast(t("Settings saved"), {
@@ -75,7 +98,7 @@ function SelfHosted() {
         });
       }
     },
-    [integrations, integration, t, showToast]
+    [integrations, integrationdiagrams, integrationkroki, t, showToast]
   );
 
   return (
@@ -95,6 +118,21 @@ function SelfHosted() {
             placeholder="https://app.diagrams.net/"
             pattern="https?://.*"
             {...register("drawIoUrl")}
+          />
+        </SettingRow>
+
+        <SettingRow
+          label={t("Kroki.self deployment")}
+          name="krokiSelfUrl"
+          description={t(
+            "Add your self-hosted kroki.io installation url here to enable automatic creates diagrams from textual descriptions!."
+          )}
+          border={false}
+        >
+          <Input
+            placeholder="https://app.kroki.io/"
+            pattern="https?://.*"
+            {...register("krokiSelfUrl")}
           />
         </SettingRow>
 

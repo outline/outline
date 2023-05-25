@@ -30,6 +30,7 @@ import GoogleSlides from "./GoogleSlides";
 import Grist from "./Grist";
 import InVision from "./InVision";
 import JSFiddle from "./JSFiddle";
+import Kroki from "./Kroki";
 import Loom from "./Loom";
 import Lucidchart from "./Lucidchart";
 import Marvel from "./Marvel";
@@ -280,6 +281,13 @@ const embeds: EmbedDescriptor[] = [
     defaultHidden: true,
     icon: <Img src="/images/jsfiddle.png" alt="JSFiddle" />,
     component: JSFiddle,
+  }),
+  new EmbedDescriptor({
+    title: "Kroki",
+    keywords: "diagrams textual",
+    defaultHidden: true,
+    icon: <Img src="/images/kroki.png" alt="Kroki" />,
+    component: Kroki,
   }),
   new EmbedDescriptor({
     title: "Loom",
