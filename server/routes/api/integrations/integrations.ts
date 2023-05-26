@@ -134,7 +134,7 @@ router.post(
         );
 
         if (authentication) {
-          await authentication.destroy();
+          await authentication.destroy({ transaction });
         }
       }
     }
@@ -156,22 +156,27 @@ router.post(
 router.post(
   "integrations.delete",
   auth({ admin: true }),
+  transaction(),
   validate(T.IntegrationsDeleteSchema),
   async (ctx: APIContext<T.IntegrationsDeleteReq>) => {
     const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
+    const { transaction } = ctx.state;
 
-    const integration = await Integration.findByPk(id);
+    const integration = await Integration.findByPk(id, { transaction });
     authorize(user, "delete", integration);
 
-    await integration.destroy();
-    await Event.create({
-      name: "integrations.delete",
-      modelId: integration.id,
-      teamId: integration.teamId,
-      actorId: user.id,
-      ip: ctx.request.ip,
-    });
+    await integration.destroy({ transaction });
+    await Event.create(
+      {
+        name: "integrations.delete",
+        modelId: integration.id,
+        teamId: integration.teamId,
+        actorId: user.id,
+        ip: ctx.request.ip,
+      },
+      { transaction }
+    );
 
     ctx.body = {
       success: true,
