@@ -1,12 +1,11 @@
 import Router from "koa-router";
-import { isNull } from "lodash";
 import { WhereOptions } from "sequelize";
-import { IntegrationType } from "@shared/types";
 import integrationCreator from "@server/commands/integrationCreator";
+import integrationUpdater from "@server/commands/integrationUpdater";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Event, IntegrationAuthentication, Integration } from "@server/models";
+import { Event, Integration } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentIntegration } from "@server/presenters";
 import { APIContext } from "@server/types";
@@ -95,57 +94,13 @@ router.post(
     let integration = await Integration.findByPk(id, { transaction });
     authorize(user, "update", integration);
 
-    if (integration.type === IntegrationType.Post) {
-      integration.events = events.filter((event: string) =>
-        ["documents.update", "documents.publish"].includes(event)
-      );
-    }
-
-    if (token) {
-      let authentication: IntegrationAuthentication | undefined;
-      if (integration.authenticationId) {
-        const authentication = await IntegrationAuthentication.findByPk(
-          integration.authenticationId,
-          { transaction }
-        );
-
-        if (authentication) {
-          authentication.token = token;
-          await authentication.save({ transaction });
-        }
-      } else {
-        authentication = await IntegrationAuthentication.create(
-          {
-            userId: integration.userId,
-            teamId: integration.teamId,
-            integrationId: integration.id,
-            service: integration.service,
-            token,
-          },
-          { transaction }
-        );
-        integration.authenticationId = authentication.id;
-      }
-    } else if (isNull(token)) {
-      if (integration.authenticationId) {
-        const authentication = await IntegrationAuthentication.findByPk(
-          integration.authenticationId,
-          { transaction }
-        );
-
-        if (authentication) {
-          await authentication.destroy({ transaction });
-        }
-      }
-    }
-
-    integration.settings = settings;
-
-    await integration.save({ transaction });
-
-    integration = (await Integration.scope(
-      "withAuthentication"
-    ).findByPk(integration.id, { transaction })) as Integration<unknown>;
+    integration = await integrationUpdater({
+      integration,
+      events,
+      settings,
+      token,
+      transaction,
+    });
 
     ctx.body = {
       data: presentIntegration(integration, { includeToken: user.isAdmin }),
