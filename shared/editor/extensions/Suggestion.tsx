@@ -29,7 +29,10 @@ export default class Suggestion extends Extension {
     }),
     new InputRule(this.options.closeRegex, (state, match) => {
       if (match) {
-        this.editor.events.emit(EventType.SuggestionsMenuClose);
+        this.editor.events.emit(
+          EventType.SuggestionsMenuClose,
+          this.options.type
+        );
       }
       return null;
     }),

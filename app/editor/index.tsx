@@ -711,7 +711,7 @@ export class Editor extends React.PureComponent<
       this.view.dispatch(transaction);
       this.view.focus();
     }
-    if (this.state.suggestionsMenuOpen !== type) {
+    if (type && this.state.suggestionsMenuOpen !== type) {
       return;
     }
     this.setState((state) => ({
