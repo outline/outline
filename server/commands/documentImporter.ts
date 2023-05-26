@@ -56,7 +56,10 @@ async function fileToMarkdown(content: Buffer | string): Promise<string> {
 
 async function docxToMarkdown(content: Buffer | string): Promise<string> {
   if (content instanceof Buffer) {
-    const { value: html } = await mammoth.convertToHtml({ buffer: content });
+    const { value: html } = await mammoth.convertToHtml({
+      buffer: content,
+    });
+
     return turndownService.turndown(html);
   }
 
