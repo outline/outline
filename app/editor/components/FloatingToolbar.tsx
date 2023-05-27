@@ -104,20 +104,24 @@ function usePosition({
     const element = (table.node as HTMLElement).querySelector(
       `tr > *:nth-child(${rect.left + 1})`
     );
-    const bounds = (element as HTMLElement).getBoundingClientRect();
-    selectionBounds.top = bounds.top - 16;
-    selectionBounds.left = bounds.left;
-    selectionBounds.right = bounds.right;
+    if (element instanceof HTMLElement) {
+      const bounds = element.getBoundingClientRect();
+      selectionBounds.top = bounds.top - 16;
+      selectionBounds.left = bounds.left;
+      selectionBounds.right = bounds.right;
+    }
   } else if (isRowSelection) {
     const rect = selectedRect(view.state);
     const table = view.domAtPos(rect.tableStart);
     const element = (table.node as HTMLElement).querySelector(
       `tr:nth-child(${rect.top + 1}) > *`
     );
-    const bounds = (element as HTMLElement).getBoundingClientRect();
-    selectionBounds.top = bounds.top;
-    selectionBounds.left = bounds.left - 10;
-    selectionBounds.right = bounds.left - 10;
+    if (element instanceof HTMLElement) {
+      const bounds = element.getBoundingClientRect();
+      selectionBounds.top = bounds.top;
+      selectionBounds.left = bounds.left - 10;
+      selectionBounds.right = bounds.left - 10;
+    }
   }
 
   const isImageSelection =
