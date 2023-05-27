@@ -301,7 +301,7 @@ export default class Link extends Mark {
           ? ">"
           : "](" +
             state.esc(mark.attrs.href) +
-            (mark.attrs.title ? " " + this.quote(mark.attrs.title) : "") +
+            (mark.attrs.title ? " " + quote(mark.attrs.title) : "") +
             ")",
     };
   }
@@ -315,10 +315,10 @@ export default class Link extends Mark {
       }),
     };
   }
+}
 
-  private quote(str: string) {
-    const wrap =
-      str.indexOf('"') === -1 ? '""' : str.indexOf("'") === -1 ? "''" : "()";
-    return wrap[0] + str + wrap[1];
-  }
+function quote(str: string) {
+  const wrap =
+    str.indexOf('"') === -1 ? '""' : str.indexOf("'") === -1 ? "''" : "()";
+  return wrap[0] + str + wrap[1];
 }
