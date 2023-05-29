@@ -59,7 +59,12 @@ function DataLoader({ match, children }: Props) {
     documents.getByUrl(match.params.documentSlug) ??
     documents.get(match.params.documentSlug);
 
-  const revision = revisionId ? revisions.get(revisionId) : undefined;
+  const revision = revisionId
+    ? revisions.get(
+        revisionId === "latest" ? `latest-${document?.id}` : revisionId
+      )
+    : undefined;
+
   const sharedTree = document
     ? documents.getSharedTree(document.id)
     : undefined;
@@ -93,6 +98,19 @@ function DataLoader({ match, children }: Props) {
     }
     fetchRevision();
   }, [revisions, revisionId]);
+
+  React.useEffect(() => {
+    async function fetchRevision() {
+      if (document && revisionId === "latest") {
+        try {
+          await document.fetchLatestRevision();
+        } catch (err) {
+          setError(err);
+        }
+      }
+    }
+    fetchRevision();
+  }, [document, revisionId]);
 
   React.useEffect(() => {
     async function fetchSubscription() {

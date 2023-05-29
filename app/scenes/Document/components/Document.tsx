@@ -451,8 +451,8 @@ class DocumentScene extends React.Component<Props> {
             <Header
               document={document}
               documentHasHeadings={hasHeadings}
+              revision={revision}
               shareId={shareId}
-              isRevision={!!revision}
               isDraft={document.isDraft}
               isEditing={!readOnly && !team?.seamlessEditing}
               isSaving={this.isSaving}

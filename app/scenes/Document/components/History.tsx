@@ -41,8 +41,8 @@ function History() {
       eventsInDocument.unshift(
         new Event(
           {
-            id: "live",
-            name: "documents.live_editing",
+            id: `latest-${document.id}`,
+            name: "revisions.create",
             documentId: document.id,
             createdAt: document.updatedAt,
             actor: document.updatedBy,
