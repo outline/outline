@@ -221,7 +221,7 @@
     "zod": "^3.21.4"
   },
   "devDependencies": {
-    "@babel/cli": "^7.21.0",
+    "@babel/cli": "^7.21.5",
     "@babel/preset-typescript": "^7.21.4",
     "@getoutline/jest-runner-serial": "^2.0.0",
     "@optimize-lodash/rollup-plugin": "4.0.3",
