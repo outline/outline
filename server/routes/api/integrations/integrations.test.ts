@@ -218,6 +218,23 @@ describe("#integrations.create", () => {
     expect(body.data.authToken).toEqual("token");
     expect(body.data.settings.url).toEqual("https://example.com");
   });
+
+  it("should fail with status 400 bad request when authToken is supplied without url", async () => {
+    const admin = await buildAdmin();
+
+    const res = await server.post("/api/integrations.create", {
+      body: {
+        token: admin.getJwtToken(),
+        type: IntegrationType.Embed,
+        service: UserCreatableIntegrationService.Iframely,
+        authToken: "token",
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("url not provided");
+  });
 });
 
 describe("#integrations.update", () => {

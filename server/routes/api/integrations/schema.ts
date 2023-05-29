@@ -52,7 +52,16 @@ export const IntegrationsCreateSchema = BaseSchema.extend({
     /** Integration token */
     authToken: z.string().nullish(),
   }),
-});
+}).refine(
+  (req) =>
+    !(
+      req.body.authToken &&
+      !(req.body.settings && (req.body.settings as any).url)
+    ),
+  {
+    message: "url not provided",
+  }
+);
 
 export type IntegrationsCreateReq = z.infer<typeof IntegrationsCreateSchema>;
 
