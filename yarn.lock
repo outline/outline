@@ -4132,10 +4132,10 @@ babel-plugin-transform-typescript-metadata@^0.3.2:
   dependencies:
     "@babel/helper-plugin-utils" "^7.0.0"
 
-babel-plugin-tsconfig-paths-module-resolver@^1.0.3:
-  version "1.0.3"
-  resolved "https://registry.yarnpkg.com/babel-plugin-tsconfig-paths-module-resolver/-/babel-plugin-tsconfig-paths-module-resolver-1.0.3.tgz#ed5296034c82ac54a55b5e43e5d5789079545823"
-  integrity sha512-VfQNSKv8kTdKvBYWC7ck5lOs4/yV/6msDNOPjlwQqeRJcpAgp8oS1a6fqeSlhKeumTwVoNeFs9MFGYqG5ut/bg==
+babel-plugin-tsconfig-paths-module-resolver@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/babel-plugin-tsconfig-paths-module-resolver/-/babel-plugin-tsconfig-paths-module-resolver-1.0.4.tgz#114a1761033c1534d1b55ad347be67eebefeeeeb"
+  integrity sha512-XnIYjL6J2l8mt3oO+mXGkuLRCBhhNlS+LlCqmjTZfXpQCJod8dLETKrJA2wPRbQi8YAKqjfFxc7PhklTGcJ9hQ==
   dependencies:
     babel-plugin-module-resolver "^4.1.0"
     tsconfig-paths "^3.11.0"
