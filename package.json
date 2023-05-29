@@ -292,7 +292,7 @@
     "babel-jest": "^29.4.3",
     "babel-plugin-transform-inline-environment-variables": "^0.4.4",
     "babel-plugin-transform-typescript-metadata": "^0.3.2",
-    "babel-plugin-tsconfig-paths-module-resolver": "^1.0.3",
+    "babel-plugin-tsconfig-paths-module-resolver": "^1.0.4",
     "browserslist-to-esbuild": "^1.2.0",
     "concurrently": "^7.4.0",
     "enzyme": "^3.11.0",
