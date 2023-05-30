@@ -1,5 +1,6 @@
 import Router from "koa-router";
 import { Op } from "sequelize";
+import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import { ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
@@ -40,7 +41,7 @@ router.post(
       });
       authorize(user, "read", document);
       after = Revision.buildFromDocument(document);
-      after.id = `latest-${document.id}`;
+      after.id = RevisionHelper.latestId(document.id);
       after.user = document.updatedBy;
 
       before = await Revision.findLatest(documentId);

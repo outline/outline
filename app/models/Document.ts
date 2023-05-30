@@ -342,11 +342,6 @@ export default class Document extends ParanoidModel {
     }
   };
 
-  fetchLatestRevision = async () => {
-    const res = await client.post(`/revisions.info`, { documentId: this.id });
-    return this.store.rootStore.revisions.add(res.data);
-  };
-
   move = (collectionId: string, parentDocumentId?: string | undefined) =>
     this.store.move(this.id, collectionId, parentDocumentId);
 
