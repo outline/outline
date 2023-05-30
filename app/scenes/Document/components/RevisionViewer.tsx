@@ -20,18 +20,17 @@ type Props = Omit<EditorProps, "extensions"> & {
  * Displays revision HTML pre-rendered on the server.
  */
 function RevisionViewer(props: Props) {
-  const { document, shareId, children, revision } = props;
+  const { document, children, revision } = props;
 
   return (
     <Flex auto column>
       <h1 dir={revision.dir}>{revision.title}</h1>
-      {!shareId && (
-        <DocumentMeta
-          document={document}
-          to={documentPath(document)}
-          rtl={revision.rtl}
-        />
-      )}
+      <DocumentMeta
+        document={document}
+        revision={revision}
+        to={documentPath(document)}
+        rtl={revision.rtl}
+      />
       <EditorContainer
         dangerouslySetInnerHTML={{ __html: revision.html }}
         dir={revision.dir}

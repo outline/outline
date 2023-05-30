@@ -14,6 +14,7 @@ import styled from "styled-components";
 import { NavigationNode } from "@shared/types";
 import { Theme } from "~/stores/UiStore";
 import Document from "~/models/Document";
+import Revision from "~/models/Revision";
 import { Action, Separator } from "~/components/Actions";
 import Badge from "~/components/Badge";
 import Button from "~/components/Button";
@@ -40,11 +41,11 @@ import ShareButton from "./ShareButton";
 type Props = {
   document: Document;
   documentHasHeadings: boolean;
+  revision: Revision | undefined;
   sharedTree: NavigationNode | undefined;
   shareId: string | null | undefined;
   isDraft: boolean;
   isEditing: boolean;
-  isRevision: boolean;
   isSaving: boolean;
   isPublishing: boolean;
   publishingIsDisabled: boolean;
@@ -65,11 +66,11 @@ type Props = {
 function DocumentHeader({
   document,
   documentHasHeadings,
+  revision,
   shareId,
   isEditing,
   isDraft,
   isPublishing,
-  isRevision,
   isSaving,
   savingIsDisabled,
   publishingIsDisabled,
@@ -83,6 +84,7 @@ function DocumentHeader({
   const { resolvedTheme } = ui;
   const { team } = auth;
   const isMobile = useMobile();
+  const isRevision = !!revision;
 
   // We cache this value for as long as the component is mounted so that if you
   // apply a template there is still the option to replace it until the user
@@ -287,7 +289,7 @@ function DocumentHeader({
                 </Button>
               </Action>
             )}
-            {isRevision && (
+            {revision && revision.createdAt !== document.updatedAt && (
               <Action>
                 <Tooltip
                   tooltip={t("Restore version")}
