@@ -11,14 +11,13 @@ describe("#integrationUpdater", () => {
   });
 
   it("should successfully update integration settings", async () => {
-    const integration: Integration<IntegrationType.Embed> = await buildIntegration(
-      {
+    const integration: Integration<IntegrationType.Embed> =
+      await buildIntegration({
         userId: user.id,
         teamId: user.teamId,
         type: IntegrationType.Embed,
         settings: { url: "https://foo.bar" },
-      }
-    );
+      });
 
     await sequelize.transaction(async (transaction) =>
       integrationUpdater({
@@ -31,14 +30,13 @@ describe("#integrationUpdater", () => {
   });
 
   it("should successfully update integration events when integration type is post", async () => {
-    const integration: Integration<IntegrationType.Post> = await buildIntegration(
-      {
+    const integration: Integration<IntegrationType.Post> =
+      await buildIntegration({
         userId: user.id,
         teamId: user.teamId,
         type: IntegrationType.Post,
         events: ["documents.publish"],
-      }
-    );
+      });
 
     await sequelize.transaction(async (transaction) =>
       integrationUpdater({
@@ -54,15 +52,14 @@ describe("#integrationUpdater", () => {
   });
 
   it("should successfully update integration events when integration type is not post", async () => {
-    const integration: Integration<IntegrationType.Post> = await buildIntegration(
-      {
+    const integration: Integration<IntegrationType.Post> =
+      await buildIntegration({
         userId: user.id,
         teamId: user.teamId,
         type: IntegrationType.Embed,
         service: IntegrationService.Iframely,
         events: [],
-      }
-    );
+      });
 
     await sequelize.transaction(async (transaction) =>
       integrationUpdater({
@@ -77,16 +74,15 @@ describe("#integrationUpdater", () => {
   });
 
   it("should successfully update the previously existing integration token", async () => {
-    const integration: Integration<IntegrationType.Post> = await buildIntegration(
-      {
+    const integration: Integration<IntegrationType.Post> =
+      await buildIntegration({
         auth: true,
         userId: user.id,
         teamId: user.teamId,
         service: IntegrationService.Iframely,
         type: IntegrationType.Embed,
         token: "token",
-      }
-    );
+      });
 
     await sequelize.transaction(async (transaction) =>
       integrationUpdater({
@@ -104,14 +100,13 @@ describe("#integrationUpdater", () => {
   });
 
   it("should successfully update the previously absent integration token", async () => {
-    const integration: Integration<IntegrationType.Post> = await buildIntegration(
-      {
+    const integration: Integration<IntegrationType.Post> =
+      await buildIntegration({
         userId: user.id,
         teamId: user.teamId,
         service: IntegrationService.Iframely,
         type: IntegrationType.Embed,
-      }
-    );
+      });
 
     await sequelize.transaction(async (transaction) =>
       integrationUpdater({
@@ -129,16 +124,15 @@ describe("#integrationUpdater", () => {
   });
 
   it("should successfully update the integration when a null token is passed", async () => {
-    const integration: Integration<IntegrationType.Post> = await buildIntegration(
-      {
+    const integration: Integration<IntegrationType.Post> =
+      await buildIntegration({
         auth: true,
         userId: user.id,
         teamId: user.teamId,
         service: IntegrationService.Iframely,
         type: IntegrationType.Embed,
         token: "token",
-      }
-    );
+      });
 
     await sequelize.transaction(async (transaction) =>
       integrationUpdater({

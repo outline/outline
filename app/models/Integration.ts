@@ -16,6 +16,8 @@ class Integration<T = unknown> extends BaseModel {
 
   collectionId: string;
 
+  authToken?: string | null;
+
   @Field
   @observable
   events: string[];

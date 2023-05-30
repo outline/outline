@@ -61,9 +61,10 @@ export default async function integrationCreator({
     await integration.save({ transaction });
   }
 
-  integration = (await Integration.scope(
-    "withAuthentication"
-  ).findByPk(integration.id, { transaction })) as Integration<unknown>;
+  integration = (await Integration.scope("withAuthentication").findByPk(
+    integration.id,
+    { transaction }
+  )) as Integration<unknown>;
 
   return integration;
 }
