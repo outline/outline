@@ -1,58 +1,21 @@
-import { execSync } from "child_process";
 import chalk from "chalk";
 import { isEmpty } from "lodash";
+import { migrations } from "@server/database/sequelize";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import AuthenticationProvider from "@server/models/AuthenticationProvider";
 import Team from "@server/models/Team";
 
-function getPendingMigrations() {
-  const commandResult = execSync(
-    `yarn sequelize db:migrate:status${
-      env.PGSSLMODE === "disable" ? " --env=production-ssl-disabled" : ""
-    }`
-  );
-  const commandResultArray = Buffer.from(commandResult)
-    .toString("utf-8")
-    .split("\n");
-
-  const pendingMigrations = commandResultArray.filter((line) =>
-    line.startsWith("down")
-  );
-
-  return pendingMigrations;
-}
-
-function runMigrations() {
-  Logger.info("database", "Running migrations...");
-  const cmdResult = execSync(
-    `yarn db:migrate${
-      env.PGSSLMODE === "disable" ? " --env=production-ssl-disabled" : ""
-    }`
-  );
-  const cmdOutput = Buffer.from(cmdResult).toString("utf-8");
-  Logger.info("database", cmdOutput);
-  Logger.info("database", "Done.");
-}
-
-function logMigrations(migrations: string[]) {
-  Logger.warn("You have pending migrations");
-  Logger.warn(
-    migrations
-      .map((line, i) => `${i + 1}. ${line.replace("down ", "")}`)
-      .join("\n")
-  );
-}
-
 export async function checkPendingMigrations() {
   try {
-    const pending = getPendingMigrations();
+    const pending = await migrations.pending();
     if (!isEmpty(pending)) {
       if (env.isCloudHosted()) {
-        logMigrations(pending);
+        Logger.warn(chalk.red("Migrations are pending"));
         process.exit(1);
       } else {
-        runMigrations();
+        Logger.info("database", "Running migrations…");
+        await migrations.up();
       }
     }
     await checkDataMigrations();
