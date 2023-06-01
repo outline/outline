@@ -487,15 +487,15 @@ export class Editor extends React.PureComponent<
     return view;
   }
 
-  public scrollToAnchor(hash: string) {
+  public async scrollToAnchor(hash: string) {
     if (!hash) {
       return;
     }
 
     try {
-      const element = document.querySelector(hash);
+      const element = await observe(hash);
       if (element) {
-        setTimeout(() => element.scrollIntoView({ behavior: "smooth" }), 0);
+        element.scrollIntoView({ behavior: "smooth" });
       }
     } catch (err) {
       // querySelector will throw an error if the hash begins with a number
@@ -850,5 +850,20 @@ const LazyLoadedEditor = React.forwardRef<Editor, Props>(
     </WithTheme>
   )
 );
+
+const observe = (
+  selector: string,
+  targetNode = document.body
+): Promise<HTMLElement> =>
+  new Promise((res) => {
+    new MutationObserver((mutations) => {
+      const match = [...mutations]
+        .flatMap((mutation) => [...mutation.addedNodes])
+        .find((node: HTMLElement) => node.matches?.(selector));
+      if (match) {
+        res(match as HTMLElement);
+      }
+    }).observe(targetNode, { childList: true, subtree: true });
+  });
 
 export default LazyLoadedEditor;
