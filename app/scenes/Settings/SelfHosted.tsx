@@ -16,7 +16,7 @@ import SettingRow from "./components/SettingRow";
 
 type FormData = {
   drawIoUrl: string;
-  krokiSelfUrl: string;
+  krokiIoUrl: string;
 };
 
 function SelfHosted() {
@@ -43,7 +43,7 @@ function SelfHosted() {
     mode: "all",
     defaultValues: {
       drawIoUrl: integrationdiagrams?.settings.url,
-      krokiSelfUrl: integrationkroki?.settings.url,
+      krokiIoUrl: integrationkroki?.settings.url,
     },
   });
 
@@ -56,7 +56,7 @@ function SelfHosted() {
   React.useEffect(() => {
     reset({
       drawIoUrl: integrationdiagrams?.settings.url,
-      krokiSelfUrl: integrationkroki?.settings.url,
+      krokiIoUrl: integrationkroki?.settings.url,
     });
   }, [integrationdiagrams, integrationkroki, reset]);
 
@@ -76,13 +76,13 @@ function SelfHosted() {
           await integrationdiagrams?.delete();
         }
 
-        if (data.krokiSelfUrl) {
+        if (data.krokiIoUrl) {
           await integrations.save({
             id: integrationkroki?.id,
             type: IntegrationType.Embed,
             service: IntegrationService.Kroki,
             settings: {
-              url: data.krokiSelfUrl,
+              url: data.krokiIoUrl,
             },
           });
         } else {
@@ -122,17 +122,17 @@ function SelfHosted() {
         </SettingRow>
 
         <SettingRow
-          label={t("Kroki.self deployment")}
-          name="krokiSelfUrl"
+          label={t("Kroki.io deployment")}
+          name="krokiIoUrl"
           description={t(
-            "Add your self-hosted kroki.io installation url here to enable automatic creates diagrams from textual descriptions!."
+            "Add your self-hosted kroki.io installation url here to enable automatic embedding of diagrams from textual descriptions."
           )}
           border={false}
         >
           <Input
             placeholder="https://app.kroki.io/"
             pattern="https?://.*"
-            {...register("krokiSelfUrl")}
+            {...register("krokiIoUrl")}
           />
         </SettingRow>
 

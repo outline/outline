@@ -27,9 +27,7 @@ function Kroki(props: Props) {
   );
 }
 
-// Kroki.ENABLED = [new RegExp("https?://kroki.io/(.*)/(.*)/(.*)")];
-
-Kroki.ENABLED = [/^https:\/\/kroki\.io\/[a-zA-Z]+\/[a-zA-Z]+\/.*/];
+Kroki.ENABLED = [/^https?:\/\/kroki\.io\/[a-zA-Z]+\/[a-zA-Z]+\/.*/];
 
 Kroki.URL_PATH_REGEX = /\/[a-zA-Z]+\/[a-zA-Z]+\/.*/;
 
