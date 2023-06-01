@@ -201,6 +201,7 @@ export class Editor extends React.PureComponent<
   commands: Record<string, CommandFactory>;
   rulePlugins: PluginSimple[];
   events = new EventEmitter();
+  mutationObserver?: MutationObserver;
 
   public constructor(props: Props & ThemeProps<DefaultTheme>) {
     super(props);
@@ -292,6 +293,7 @@ export class Editor extends React.PureComponent<
 
   public componentWillUnmount(): void {
     window.removeEventListener("theme-changed", this.dispatchThemeChanged);
+    this.mutationObserver?.disconnect();
   }
 
   private init() {
@@ -493,10 +495,10 @@ export class Editor extends React.PureComponent<
     }
 
     try {
-      const element = await observe(hash);
-      if (element) {
+      this.mutationObserver?.disconnect();
+      this.mutationObserver = observe(hash, (element) => {
         element.scrollIntoView({ behavior: "smooth" });
-      }
+      });
     } catch (err) {
       // querySelector will throw an error if the hash begins with a number
       // or contains a period. This is protected against now by safeSlugify
@@ -853,17 +855,19 @@ const LazyLoadedEditor = React.forwardRef<Editor, Props>(
 
 const observe = (
   selector: string,
+  callback: (element: HTMLElement) => void,
   targetNode = document.body
-): Promise<HTMLElement> =>
-  new Promise((res) => {
-    new MutationObserver((mutations) => {
-      const match = [...mutations]
-        .flatMap((mutation) => [...mutation.addedNodes])
-        .find((node: HTMLElement) => node.matches?.(selector));
-      if (match) {
-        res(match as HTMLElement);
-      }
-    }).observe(targetNode, { childList: true, subtree: true });
+) => {
+  const observer = new MutationObserver((mutations) => {
+    const match = [...mutations]
+      .flatMap((mutation) => [...mutation.addedNodes])
+      .find((node: HTMLElement) => node.matches?.(selector));
+    if (match) {
+      callback(match as HTMLElement);
+    }
   });
+  observer.observe(targetNode, { childList: true, subtree: true });
+  return observer;
+};
 
 export default LazyLoadedEditor;
