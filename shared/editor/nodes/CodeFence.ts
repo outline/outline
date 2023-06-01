@@ -148,7 +148,8 @@ export default class CodeFence extends Node {
         {
           tag: ".code-block",
           preserveWhitespace: "full",
-          contentElement: "code",
+          contentElement: (node: HTMLElement) =>
+            node.querySelector("code") || node,
           getAttrs: (dom: HTMLDivElement) => ({
             language: dom.dataset.language,
           }),
