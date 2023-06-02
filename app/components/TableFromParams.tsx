@@ -3,9 +3,10 @@ import * as React from "react";
 import { useHistory, useLocation } from "react-router-dom";
 import scrollIntoView from "smooth-scroll-into-view-if-needed";
 import useQuery from "~/hooks/useQuery";
+import lazyWtihRetry from "~/utils/lazyWithRetry";
 import type { Props } from "./Table";
 
-const Table = React.lazy(() => import("~/components/Table"));
+const Table = lazyWtihRetry(() => import("~/components/Table"));
 
 const TableFromParams = (
   props: Omit<Props, "onChangeSort" | "onChangePage" | "topRef">
