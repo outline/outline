@@ -1,8 +1,8 @@
 import { formatDistanceToNow } from "date-fns";
 import * as React from "react";
-import lazyWtihRetry from "~/utils/lazyWithRetry";
+import lazyWithRetry from "~/utils/lazyWithRetry";
 
-const LocaleTime = lazyWtihRetry(() => import("~/components/LocaleTime"));
+const LocaleTime = lazyWithRetry(() => import("~/components/LocaleTime"));
 
 type Props = React.ComponentProps<typeof LocaleTime> & {
   onClick?: () => void;

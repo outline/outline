@@ -26,12 +26,12 @@ import useToasts from "~/hooks/useToasts";
 import { NotFoundError } from "~/utils/errors";
 import { uploadFile } from "~/utils/files";
 import { isModKey } from "~/utils/keyboard";
-import lazyWtihRetry from "~/utils/lazyWithRetry";
+import lazyWithRetry from "~/utils/lazyWithRetry";
 import { sharedDocumentPath } from "~/utils/routeHelpers";
 import { isHash } from "~/utils/urls";
 import DocumentBreadcrumb from "./DocumentBreadcrumb";
 
-const LazyLoadedEditor = lazyWtihRetry(() => import("~/editor"));
+const LazyLoadedEditor = lazyWithRetry(() => import("~/editor"));
 
 export type Props = Optional<
   EditorProps,
