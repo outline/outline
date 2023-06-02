@@ -48,7 +48,8 @@ export default class Heading extends Node {
       parseDOM: this.options.levels.map((level: number) => ({
         tag: `h${level}`,
         attrs: { level },
-        contentElement: ".heading-content",
+        contentElement: (node: HTMLHeadingElement) =>
+          node.querySelector(".heading-content") || node,
       })),
       toDOM: (node) => {
         let anchor, fold;
