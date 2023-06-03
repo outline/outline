@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { MenuButton, useMenuState } from "reakit/Menu";
 import styled from "styled-components";
 import { s } from "@shared/styles";
+import lazyWithRetry from "~/utils/lazyWithRetry";
 import ContextMenu from "./ContextMenu";
 import DelayedMount from "./DelayedMount";
 import Input, { Props as InputProps } from "./Input";
@@ -68,7 +69,7 @@ const SwatchButton = styled(NudeButton)<{ $background: string | undefined }>`
   right: 6px;
 `;
 
-const ColorPicker = React.lazy(
+const ColorPicker = lazyWithRetry(
   () => import("react-color/lib/components/chrome/Chrome")
 );
 

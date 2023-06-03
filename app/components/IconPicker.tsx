@@ -47,6 +47,7 @@ import Flex from "~/components/Flex";
 import { LabelText } from "~/components/Input";
 import NudeButton from "~/components/NudeButton";
 import Text from "~/components/Text";
+import lazyWithRetry from "~/utils/lazyWithRetry";
 import DelayedMount from "./DelayedMount";
 
 const style = {
@@ -54,7 +55,7 @@ const style = {
   height: 30,
 };
 
-const TwitterPicker = React.lazy(
+const TwitterPicker = lazyWithRetry(
   () => import("react-color/lib/components/twitter/Twitter")
 );
 

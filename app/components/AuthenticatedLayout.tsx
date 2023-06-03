@@ -15,6 +15,7 @@ import type { Editor as TEditor } from "~/editor";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import history from "~/utils/history";
+import lazyWithRetry from "~/utils/lazyWithRetry";
 import {
   searchPath,
   newDocumentPath,
@@ -25,16 +26,16 @@ import {
 } from "~/utils/routeHelpers";
 import Fade from "./Fade";
 
-const DocumentComments = React.lazy(
+const DocumentComments = lazyWithRetry(
   () => import("~/scenes/Document/components/Comments")
 );
-const DocumentHistory = React.lazy(
+const DocumentHistory = lazyWithRetry(
   () => import("~/scenes/Document/components/History")
 );
-const DocumentInsights = React.lazy(
+const DocumentInsights = lazyWithRetry(
   () => import("~/scenes/Document/components/Insights")
 );
-const CommandBar = React.lazy(() => import("~/components/CommandBar"));
+const CommandBar = lazyWithRetry(() => import("~/components/CommandBar"));
 
 const AuthenticatedLayout: React.FC = ({ children }) => {
   const { ui, auth } = useStores();
