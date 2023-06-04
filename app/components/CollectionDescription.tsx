@@ -111,7 +111,7 @@ function CollectionDescription({ collection }: Props) {
                 onBlur={handleStopEditing}
                 maxLength={1000}
                 embedsDisabled
-                readOnlyWriteCheckboxes
+                canUpdate
               />
             </React.Suspense>
           ) : (

@@ -19,6 +19,7 @@ export type MenuItem = {
   shortcut?: string;
   keywords?: string;
   tooltip?: string;
+  label?: string;
   defaultHidden?: boolean;
   attrs?: Record<string, any>;
   visible?: boolean;

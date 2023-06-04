@@ -15,6 +15,7 @@ import useEventListener from "~/hooks/useEventListener";
 import useMobile from "~/hooks/useMobile";
 import usePrevious from "~/hooks/usePrevious";
 import useToasts from "~/hooks/useToasts";
+import getCommentingMenuItems from "../menus/commenting";
 import getDividerMenuItems from "../menus/divider";
 import getFormattingMenuItems from "../menus/formatting";
 import getImageMenuItems from "../menus/image";
@@ -29,6 +30,8 @@ import ToolbarMenu from "./ToolbarMenu";
 type Props = {
   rtl: boolean;
   isTemplate: boolean;
+  readOnly?: boolean;
+  canComment?: boolean;
   onOpen: () => void;
   onClose: () => void;
   onSearchLink?: (term: string) => Promise<SearchResult[]>;
@@ -91,6 +94,8 @@ export default function SelectionToolbar(props: Props) {
   const isDragging = useIsDragging();
   const previousIsActuve = usePrevious(isActive);
   const isMobile = useMobile();
+
+  console.log(props);
 
   React.useEffect(() => {
     // Trigger callbacks when the toolbar is opened or closed
@@ -184,7 +189,8 @@ export default function SelectionToolbar(props: Props) {
     );
   };
 
-  const { onCreateLink, isTemplate, rtl, ...rest } = props;
+  const { onCreateLink, isTemplate, rtl, readOnly, canComment, ...rest } =
+    props;
   const { state } = view;
   const { selection }: { selection: any } = state;
   const isCodeSelection = isNodeActive(state.schema.nodes.code_block)(state);
@@ -192,6 +198,11 @@ export default function SelectionToolbar(props: Props) {
 
   // toolbar is disabled in code blocks, no bold / italic etc
   if (isCodeSelection || isDragging) {
+    return null;
+  }
+
+  // no toolbar in this circumstance
+  if (readOnly && !canComment) {
     return null;
   }
 
@@ -213,6 +224,8 @@ export default function SelectionToolbar(props: Props) {
     items = getImageMenuItems(state, dictionary);
   } else if (isDividerSelection) {
     items = getDividerMenuItems(state, dictionary);
+  } else if (readOnly) {
+    items = getCommentingMenuItems(state, dictionary);
   } else {
     items = getFormattingMenuItems(state, isTemplate, isMobile, dictionary);
   }
