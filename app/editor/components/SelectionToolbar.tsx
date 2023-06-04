@@ -85,7 +85,7 @@ function useIsDragging() {
 }
 
 export default function SelectionToolbar(props: Props) {
-  const { onClose, onOpen } = props;
+  const { onClose, readOnly, onOpen } = props;
   const { view, commands } = useEditor();
   const { showToast: onShowToast } = useToasts();
   const dictionary = useDictionary();
@@ -94,8 +94,6 @@ export default function SelectionToolbar(props: Props) {
   const isDragging = useIsDragging();
   const previousIsActuve = usePrevious(isActive);
   const isMobile = useMobile();
-
-  console.log(props);
 
   React.useEffect(() => {
     // Trigger callbacks when the toolbar is opened or closed
@@ -121,7 +119,8 @@ export default function SelectionToolbar(props: Props) {
         return;
       }
 
-      if (view.hasFocus()) {
+      // TODO: does not close on click outside editor
+      if (view.hasFocus() || readOnly) {
         return;
       }
 
@@ -136,7 +135,7 @@ export default function SelectionToolbar(props: Props) {
     return () => {
       window.removeEventListener("mouseup", handleClickOutside);
     };
-  }, [isActive, view]);
+  }, [isActive, readOnly, view]);
 
   const handleOnCreateLink = async (title: string): Promise<void> => {
     const { onCreateLink } = props;
@@ -148,7 +147,7 @@ export default function SelectionToolbar(props: Props) {
     const { dispatch, state } = view;
     const { from, to } = state.selection;
     if (from === to) {
-      // selection cannot be collapsed
+      // Do not display a selection toolbar for collapsed selections
       return;
     }
 
@@ -189,8 +188,7 @@ export default function SelectionToolbar(props: Props) {
     );
   };
 
-  const { onCreateLink, isTemplate, rtl, readOnly, canComment, ...rest } =
-    props;
+  const { onCreateLink, isTemplate, rtl, canComment, ...rest } = props;
   const { state } = view;
   const { selection }: { selection: any } = state;
   const isCodeSelection = isNodeActive(state.schema.nodes.code_block)(state);

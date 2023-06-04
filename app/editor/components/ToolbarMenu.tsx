@@ -45,8 +45,12 @@ function ToolbarMenu(props: Props) {
         const isActive = item.active ? item.active(state) : false;
 
         return (
-          <Tooltip tooltip={item.tooltip} key={index}>
+          <Tooltip
+            tooltip={item.label === item.tooltip ? undefined : item.tooltip}
+            key={index}
+          >
             <ToolbarButton onClick={handleClick(item)} active={isActive}>
+              {item.label && <Label>{item.label}</Label>}
               {item.icon}
             </ToolbarButton>
           </Tooltip>
@@ -55,5 +59,10 @@ function ToolbarMenu(props: Props) {
     </FlexibleWrapper>
   );
 }
+
+const Label = styled.span`
+  font-size: 15px;
+  font-weight: 500;
+`;
 
 export default ToolbarMenu;

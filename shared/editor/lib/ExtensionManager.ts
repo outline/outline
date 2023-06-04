@@ -205,7 +205,7 @@ export default class ExtensionManager {
           callback: CommandFactory,
           attrs: Record<string, any>
         ) => {
-          if (!view.editable) {
+          if (!view.editable && !extension.allowInReadOnly) {
             return false;
           }
           view.focus();
