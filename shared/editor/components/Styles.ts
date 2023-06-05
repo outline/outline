@@ -578,6 +578,7 @@ h6 {
   border-radius: 2px;
 
   &:hover {
+    ${props.readOnly ? "cursor: var(--pointer);" : ""}
     background: ${transparentize(0.5, props.theme.brand.marine)};
   }
 }

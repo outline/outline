@@ -92,18 +92,18 @@ export default function SelectionToolbar(props: Props) {
   const menuRef = React.useRef<HTMLDivElement | null>(null);
   const isActive = useIsActive(view.state);
   const isDragging = useIsDragging();
-  const previousIsActuve = usePrevious(isActive);
+  const previousIsActive = usePrevious(isActive);
   const isMobile = useMobile();
 
   React.useEffect(() => {
     // Trigger callbacks when the toolbar is opened or closed
-    if (previousIsActuve && !isActive) {
+    if (previousIsActive && !isActive) {
       onClose();
     }
-    if (!previousIsActuve && isActive) {
+    if (!previousIsActive && isActive) {
       onOpen();
     }
-  }, [isActive, onClose, onOpen, previousIsActuve]);
+  }, [isActive, onClose, onOpen, previousIsActive]);
 
   React.useEffect(() => {
     const handleClickOutside = (ev: MouseEvent): void => {
@@ -135,7 +135,7 @@ export default function SelectionToolbar(props: Props) {
     return () => {
       window.removeEventListener("mouseup", handleClickOutside);
     };
-  }, [isActive, readOnly, view]);
+  }, [isActive, previousIsActive, readOnly, view]);
 
   const handleOnCreateLink = async (title: string): Promise<void> => {
     const { onCreateLink } = props;
