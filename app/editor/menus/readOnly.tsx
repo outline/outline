@@ -6,7 +6,7 @@ import isMarkActive from "@shared/editor/queries/isMarkActive";
 import { MenuItem } from "@shared/editor/types";
 import { Dictionary } from "~/hooks/useDictionary";
 
-export default function commentingMenuItems(
+export default function readOnlyMenuItems(
   state: EditorState,
   dictionary: Dictionary
 ): MenuItem[] {
