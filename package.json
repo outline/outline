@@ -283,7 +283,7 @@
     "@types/stoppable": "^1.1.1",
     "@types/styled-components": "^5.1.15",
     "@types/throng": "^5.0.4",
-    "@types/tmp": "^0.2.2",
+    "@types/tmp": "^0.2.3",
     "@types/turndown": "^5.0.1",
     "@types/utf8": "^3.0.1",
     "@types/validator": "^13.7.10",
