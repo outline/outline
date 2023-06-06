@@ -114,13 +114,11 @@ export default function SelectionToolbar(props: Props) {
       ) {
         return;
       }
-
-      if (!isActive || document.activeElement?.tagName === "INPUT") {
+      if (view.dom.contains(ev.target as HTMLElement)) {
         return;
       }
 
-      // TODO: does not close on click outside editor
-      if (view.hasFocus() || readOnly) {
+      if (!isActive || document.activeElement?.tagName === "INPUT") {
         return;
       }
 
