@@ -242,7 +242,7 @@
     "@types/inline-css": "^3.0.1",
     "@types/invariant": "^2.2.35",
     "@types/jest": "^29.4.0",
-    "@types/jsonwebtoken": "^8.5.8",
+    "@types/jsonwebtoken": "^8.5.9",
     "@types/katex": "^0.16.0",
     "@types/koa": "^2.13.6",
     "@types/koa-compress": "^4.0.3",
