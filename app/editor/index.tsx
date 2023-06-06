@@ -14,6 +14,12 @@ import {
   Node as ProsemirrorNode,
 } from "prosemirror-model";
 import { EditorState, Selection, Plugin, Transaction } from "prosemirror-state";
+import {
+  AddMarkStep,
+  RemoveMarkStep,
+  ReplaceAroundStep,
+  ReplaceStep,
+} from "prosemirror-transform";
 import { Decoration, EditorView, NodeViewConstructor } from "prosemirror-view";
 import * as React from "react";
 import styled, { css, DefaultTheme, ThemeProps } from "styled-components";
@@ -443,9 +449,17 @@ export class Editor extends React.PureComponent<
 
     const isEditingCheckbox = (tr: Transaction) =>
       tr.steps.some(
-        (step: any) =>
-          step.slice?.content?.firstChild?.type.name ===
-          this.schema.nodes.checkbox_item.name
+        (step) =>
+          (step instanceof ReplaceAroundStep || step instanceof ReplaceStep) &&
+          step.slice.content?.firstChild?.type.name ===
+            this.schema.nodes.checkbox_item.name
+      );
+
+    const isEditingComment = (tr: Transaction) =>
+      tr.steps.some(
+        (step) =>
+          (step instanceof AddMarkStep || step instanceof RemoveMarkStep) &&
+          step.mark.type.name === this.schema.marks.comment.name
       );
 
     const self = this; // eslint-disable-line
@@ -469,9 +483,10 @@ export class Editor extends React.PureComponent<
         // changing then call our own change handler to let the outside world
         // know
         if (
-          transactions.some((tr) => tr.docChanged) // &&
-          // (!self.props.readOnly ||
-          //   (self.props.canUpdate && transactions.some(isEditingCheckbox)))
+          transactions.some((tr) => tr.docChanged) &&
+          (!self.props.readOnly ||
+            (self.props.canUpdate && transactions.some(isEditingCheckbox)) ||
+            (self.props.canComment && transactions.some(isEditingComment)))
         ) {
           self.handleChange();
         }
