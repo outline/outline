@@ -62,7 +62,7 @@ const NavLink = ({
   to,
   ...rest
 }: Props) => {
-  const linkRef = React.useRef(null);
+  const linkRef = React.useRef<HTMLAnchorElement>(null);
   const context = React.useContext(RouterContext);
   const [preActive, setPreActive] = React.useState<boolean | undefined>(
     undefined
@@ -93,10 +93,18 @@ const NavLink = ({
 
   React.useLayoutEffect(() => {
     if (isActive && linkRef.current && scrollIntoViewIfNeeded !== false) {
-      scrollIntoView(linkRef.current, {
-        scrollMode: "if-needed",
-        behavior: "auto",
-      });
+      // If the page has an anchor hash then this means we're linking to an
+      // anchor in the document generally – smooth scrolling the sidebar may
+      // interrupt the scrolling to the anchor of the document so we jump
+      // directly to the anchor instead.
+      if (window.location.hash) {
+        linkRef.current.scrollIntoView();
+      } else {
+        scrollIntoView(linkRef.current, {
+          scrollMode: "if-needed",
+          behavior: "auto",
+        });
+      }
     }
   }, [linkRef, scrollIntoViewIfNeeded, isActive]);
 
