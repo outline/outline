@@ -69,7 +69,7 @@ function CommentForm({
   const { comments } = useStores();
   const user = useCurrentUser();
 
-  useOnClickOutside(formRef, () => {
+  const reset = React.useCallback(() => {
     const isEmpty = editorRef.current?.isEmpty() ?? true;
 
     if (isEmpty && thread?.isNew) {
@@ -78,7 +78,9 @@ function CommentForm({
       }
       thread.delete();
     }
-  });
+  }, [editor, thread]);
+
+  useOnClickOutside(formRef, reset);
 
   const handleCreateComment = action(async (event: React.FormEvent) => {
     event.preventDefault();
@@ -175,6 +177,7 @@ function CommentForm({
     setData(undefined);
     setForceRender((s) => ++s);
     setInputFocused(false);
+    reset();
   };
 
   const handleFocus = () => {
