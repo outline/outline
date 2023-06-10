@@ -9,6 +9,7 @@ import Abstract from "./Abstract";
 import Airtable from "./Airtable";
 import Berrycast from "./Berrycast";
 import Bilibili from "./Bilibili";
+import Canva from "./Canva";
 import Cawemo from "./Cawemo";
 import ClickUp from "./ClickUp";
 import Codepen from "./Codepen";
@@ -149,6 +150,12 @@ const embeds: EmbedDescriptor[] = [
     defaultHidden: true,
     icon: <Img src="/images/bilibili.png" alt="Bilibili" />,
     component: Bilibili,
+  }),
+  new EmbedDescriptor({
+    title: "Canva",
+    keywords: "design",
+    icon: <Img src="/images/canva.png" alt="Canva" />,
+    component: Canva,
   }),
   new EmbedDescriptor({
     title: "Cawemo",
