@@ -41,6 +41,10 @@ export default class Extension {
     return {};
   }
 
+  get allowInReadOnly(): boolean {
+    return false;
+  }
+
   keys(_options: {
     type?: NodeType | MarkType;
     schema: Schema;

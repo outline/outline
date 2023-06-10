@@ -6,9 +6,11 @@ type Props = { active?: boolean; disabled?: boolean };
 export default styled.button.attrs((props) => ({
   type: props.type || "button",
 }))<Props>`
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   flex: 0;
-  width: 24px;
+  min-width: 24px;
   height: 24px;
   cursor: var(--pointer);
   border: none;

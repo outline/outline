@@ -27,6 +27,10 @@ export default class Comment extends Mark {
     };
   }
 
+  get allowInReadOnly() {
+    return true;
+  }
+
   keys({ type }: { type: MarkType }): Record<string, Command> {
     return this.options.onCreateCommentMark
       ? {
