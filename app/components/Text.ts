@@ -14,7 +14,7 @@ type Props = {
  */
 const Text = styled.p<Props>`
   margin-top: 0;
-  text-align: ${(props) => (props.dir ? props.dir : "left")};
+  text-align: ${(props) => (props.dir ? props.dir : "auto")};
   color: ${(props) =>
     props.type === "secondary"
       ? props.theme.textSecondary
