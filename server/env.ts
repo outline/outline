@@ -397,10 +397,9 @@ export class Environment {
   );
 
   /**
-   * This is injected into the HTML page headers for Slack.
+   * This is used to verify webhook requests received from Slack.
    */
   @IsOptional()
-  @CannotUseWithout("SLACK_CLIENT_ID")
   public SLACK_VERIFICATION_TOKEN = this.toOptionalString(
     process.env.SLACK_VERIFICATION_TOKEN
   );
