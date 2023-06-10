@@ -168,7 +168,7 @@ class Collection extends ParanoidModel {
 
   @Length({
     max: 50,
-    msg: `index must 50 characters or less`,
+    msg: `index must be 50 characters or less`,
   })
   @Column
   index: string | null;
