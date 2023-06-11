@@ -1219,7 +1219,7 @@ router.post(
 
     const content = await fs.readFile(file.filepath);
     const document = await sequelize.transaction(async (transaction) => {
-      const { text, title } = await documentImporter({
+      const { text, state, title } = await documentImporter({
         user,
         fileName: file.originalFilename ?? file.newFilename,
         mimeType: file.mimetype ?? "",
@@ -1232,6 +1232,7 @@ router.post(
         source: "import",
         title,
         text,
+        state,
         publish,
         collectionId,
         parentDocumentId,
