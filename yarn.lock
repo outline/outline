@@ -10643,10 +10643,10 @@ prosemirror-markdown@^1.11.0:
     markdown-it "^13.0.1"
     prosemirror-model "^1.0.0"
 
-prosemirror-model@^1.0.0, prosemirror-model@^1.16.0, prosemirror-model@^1.19.1, prosemirror-model@^1.8.1:
-  version "1.19.1"
-  resolved "https://registry.yarnpkg.com/prosemirror-model/-/prosemirror-model-1.19.1.tgz#7e10cd9584a0a55c87ffbecc68aa9d105b9a0f53"
-  integrity sha512-RpV0fZfy74DEO9GPRbGcG6xN33KuqEvlLE2V0e5CXUGs3xkZsiJfx1dcYPU57+606NVYCaDN1riFXdXBQRaRcg==
+prosemirror-model@^1.0.0, prosemirror-model@^1.16.0, prosemirror-model@^1.19.2, prosemirror-model@^1.8.1:
+  version "1.19.2"
+  resolved "https://registry.yarnpkg.com/prosemirror-model/-/prosemirror-model-1.19.2.tgz#297c9ecfb103154e605f0dbaf3cc72ee32ca0ad5"
+  integrity sha512-RXl0Waiss4YtJAUY3NzKH0xkJmsZupCIccqcIFoLTIKFlKNbIvFDRl27/kQy1FP8iUAxrjRRfIVvOebnnXJgqQ==
   dependencies:
     orderedmap "^2.0.0"
 
