@@ -27,7 +27,7 @@ const InputColor: React.FC<Props> = ({ value, onChange, ...rest }) => {
     <Relative>
       <Input
         value={value}
-        onChange={(event) => onChange(event.target.value)}
+        onChange={(event) => onChange(event.target.value.replace(/^#?/, "#"))}
         placeholder="#"
         maxLength={7}
         {...rest}
