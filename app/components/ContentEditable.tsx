@@ -53,7 +53,7 @@ const ContentEditable = React.forwardRef(
   ) => {
     const contentRef = React.useRef<HTMLSpanElement>(null);
     const [innerValue, setInnerValue] = React.useState<string>(value);
-    const lastValue = React.useRef("");
+    const lastValue = React.useRef(value);
 
     React.useImperativeHandle(ref, () => ({
       focus: () => {
@@ -94,7 +94,11 @@ const ContentEditable = React.forwardRef(
           | undefined
       ) =>
       (event: any) => {
-        const text = contentRef.current?.innerText || "";
+        if (readOnly) {
+          return;
+        }
+
+        const text = event.currentTarget.textContent || "";
 
         if (
           maxLength &&
@@ -107,7 +111,7 @@ const ContentEditable = React.forwardRef(
 
         if (text !== lastValue.current) {
           lastValue.current = text;
-          onChange && onChange(text);
+          onChange?.(text);
         }
 
         callback?.(event);
@@ -126,13 +130,14 @@ const ContentEditable = React.forwardRef(
     }, [autoFocus, disabled, isVisible, readOnly, contentRef]);
 
     React.useEffect(() => {
-      if (value !== contentRef.current?.innerText) {
+      if (contentRef.current && value !== contentRef.current.textContent) {
         setInnerValue(value);
       }
     }, [value, contentRef]);
 
     // Ensure only plain text can be pasted into input when pasting from another
-    // rich text source
+    // rich text source. Note: If `onPaste` prop is passed then it takes
+    // priority over this behavior.
     const handlePaste = React.useCallback(
       (event: React.ClipboardEvent<HTMLSpanElement>) => {
         event.preventDefault();
@@ -186,6 +191,7 @@ const Content = styled.span`
   outline: none;
   resize: none;
   cursor: text;
+  word-break: anywhere;
 
   &:empty {
     display: inline-block;
