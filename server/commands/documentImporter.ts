@@ -9,6 +9,7 @@ import parseTitle from "@shared/utils/parseTitle";
 import { DocumentValidation } from "@shared/validations";
 import { traceFunction } from "@server/logging/tracing";
 import { User } from "@server/models";
+import ProsemirrorHelper from "@server/models/helpers/ProsemirrorHelper";
 import dataURItoBuffer from "@server/utils/dataURItoBuffer";
 import parseImages from "@server/utils/parseImages";
 import turndownService from "@server/utils/turndown";
@@ -149,6 +150,7 @@ async function documentImporter({
 }): Promise<{
   text: string;
   title: string;
+  state: Buffer;
 }> {
   const fileInfo = importMapping.filter((item) => {
     if (item.type === mimeType) {
@@ -225,8 +227,18 @@ async function documentImporter({
   // It's better to truncate particularly long titles than fail the import
   title = truncate(title, { length: DocumentValidation.maxTitleLength });
 
+  const ydoc = ProsemirrorHelper.toYDoc(text);
+  const state = ProsemirrorHelper.toState(ydoc);
+
+  if (state.length > DocumentValidation.maxStateLength) {
+    throw InvalidRequestError(
+      `The document is too large to import, please reduce the length and try again`
+    );
+  }
+
   return {
     text,
+    state,
     title,
   };
 }
