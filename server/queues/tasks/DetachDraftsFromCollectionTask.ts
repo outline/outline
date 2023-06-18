@@ -26,6 +26,7 @@ export default class DetachDraftsFromCollectionTask extends BaseTask<Props> {
     const documents = await Document.scope("withDrafts").findAll({
       where: {
         collectionId: props.collectionId,
+        template: false,
         publishedAt: {
           [Op.is]: null,
         },
