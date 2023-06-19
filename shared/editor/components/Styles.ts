@@ -1,7 +1,6 @@
 /* eslint-disable no-irregular-whitespace */
 import { darken, lighten, transparentize } from "polished";
 import styled, { DefaultTheme } from "styled-components";
-import depths from "../../styles/depths";
 
 export type Props = {
   rtl: boolean;
@@ -501,7 +500,6 @@ h6:not(.placeholder):before {
 
 .heading-actions {
   opacity: 0;
-  z-index: ${depths.editorHeadingActions};
   background: ${props.theme.background};
   margin-${props.rtl ? "right" : "left"}: -26px;
   flex-direction: ${props.rtl ? "row-reverse" : "row"};

@@ -1,9 +1,10 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import styled from "styled-components";
+import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
 import Arrow from "~/components/Arrow";
+import useEventListener from "~/hooks/useEventListener";
 
 type Props = {
   direction: "left" | "right";
@@ -14,8 +15,26 @@ type Props = {
 const Toggle = React.forwardRef<HTMLButtonElement, Props>(
   ({ direction = "left", onClick, style }: Props, ref) => {
     const { t } = useTranslation();
+    const [hovering, setHovering] = React.useState(false);
+    const positionRef = React.useRef<HTMLDivElement>(null);
+
+    // Not using CSS hover here so that we can disable pointer events on this
+    // div and allow click through to the editor elements behind.
+    useEventListener("mousemove", (event: MouseEvent) => {
+      if (!positionRef.current) {
+        return;
+      }
+
+      const bound = positionRef.current.getBoundingClientRect();
+      const withinBounds =
+        event.clientX >= bound.left && event.clientX <= bound.right;
+      if (withinBounds !== hovering) {
+        setHovering(withinBounds);
+      }
+    });
+
     return (
-      <Positioner style={style}>
+      <Positioner style={style} ref={positionRef} $hovering={hovering}>
         <ToggleButton
           ref={ref}
           $direction={direction}
@@ -56,7 +75,7 @@ export const ToggleButton = styled.button<{ $direction?: "left" | "right" }>`
   }
 `;
 
-export const Positioner = styled.div`
+export const Positioner = styled.div<{ $hovering: boolean }>`
   display: none;
   z-index: 2;
   position: absolute;
@@ -64,10 +83,19 @@ export const Positioner = styled.div`
   bottom: 0;
   right: -30px;
   width: 30px;
+  pointer-events: none;
 
-  &:hover ${ToggleButton}, &:focus-within ${ToggleButton} {
+  &:focus-within ${ToggleButton} {
     opacity: 1;
   }
+
+  ${(props) =>
+    props.$hovering &&
+    css`
+      ${ToggleButton} {
+        opacity: 1;
+      }
+    `}
 
   ${breakpoint("tablet")`
     display: block;
