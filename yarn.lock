@@ -10679,10 +10679,10 @@ prosemirror-tables@^1.3.2:
     prosemirror-transform "^1.2.1"
     prosemirror-view "^1.13.3"
 
-prosemirror-transform@^1.0.0, prosemirror-transform@^1.1.0, prosemirror-transform@^1.2.1, prosemirror-transform@^1.7.2:
-  version "1.7.2"
-  resolved "https://registry.yarnpkg.com/prosemirror-transform/-/prosemirror-transform-1.7.2.tgz#f3e57d8424afa6ab7c2b2319cc0ac58e75f7160b"
-  integrity sha512-b94lVUdA9NyaYRb2WuGSgb5YANiITa05dtew9eSK+KkYu64BCnU27WhJPE95gAWAnhV57CM3FabWXM23gri8Kg==
+prosemirror-transform@^1.0.0, prosemirror-transform@^1.1.0, prosemirror-transform@^1.2.1, prosemirror-transform@^1.7.3:
+  version "1.7.3"
+  resolved "https://registry.yarnpkg.com/prosemirror-transform/-/prosemirror-transform-1.7.3.tgz#cc2225cd1bf88a3c62404b9eb051ff73e9c716a6"
+  integrity sha512-qDapyx5lqYfxVeUWEw0xTGgeP2S8346QtE7DxkalsXlX89lpzkY6GZfulgfHyk1n4tf74sZ7CcXgcaCcGjsUtA==
   dependencies:
     prosemirror-model "^1.0.0"
 
