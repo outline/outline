@@ -86,6 +86,7 @@ export enum IntegrationService {
 export enum CollectionPermission {
   Read = "read",
   ReadWrite = "read_write",
+  Admin = "admin",
 }
 
 export type IntegrationSettings<T> = T extends IntegrationType.Embed
@@ -107,6 +108,7 @@ export enum UserPreference {
   RememberLastPath = "rememberLastPath",
   /** If web-style hand pointer should be used on interactive elements. */
   UseCursorPointer = "useCursorPointer",
+  /** Whether code blocks should show line numbers. */
   CodeBlockLineNumers = "codeBlockLineNumbers",
 }
 
@@ -115,6 +117,12 @@ export type UserPreferences = { [key in UserPreference]?: boolean };
 export type CustomTheme = {
   accent: string;
   accentText: string;
+};
+
+export type PublicTeam = {
+  avatarUrl: string;
+  name: string;
+  customTheme: Partial<CustomTheme>;
 };
 
 export enum TeamPreference {
@@ -163,6 +171,7 @@ export type CollectionSort = {
 export enum NotificationEventType {
   PublishDocument = "documents.publish",
   UpdateDocument = "documents.update",
+  CreateRevision = "revisions.create",
   CreateCollection = "collections.create",
   CreateComment = "comments.create",
   MentionedInDocument = "documents.mentioned",

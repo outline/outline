@@ -17,8 +17,8 @@ const router = new Router();
 
 router.post(
   "team.update",
-  auth(),
   rateLimiter(RateLimiterStrategy.TenPerHour),
+  auth(),
   validate(T.TeamsUpdateSchema),
   async (ctx: APIContext<T.TeamsUpdateSchemaReq>) => {
     const { user } = ctx.state.auth;
@@ -43,8 +43,8 @@ router.post(
 
 router.post(
   "teams.create",
-  auth(),
   rateLimiter(RateLimiterStrategy.FivePerHour),
+  auth(),
   async (ctx: APIContext) => {
     const { user } = ctx.state.auth;
     const { name } = ctx.request.body;

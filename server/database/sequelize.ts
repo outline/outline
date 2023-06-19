@@ -1,4 +1,6 @@
+import path from "path";
 import { Sequelize } from "sequelize-typescript";
+import { Umzug, SequelizeStorage, MigrationError } from "umzug";
 import env from "@server/env";
 import Logger from "../logging/Logger";
 import * as models from "../models";
@@ -30,5 +32,41 @@ export const sequelize = new Sequelize(url, {
     min: poolMin,
     acquire: 30000,
     idle: 10000,
+  },
+});
+
+export const migrations = new Umzug({
+  migrations: {
+    glob: ["migrations/*.js", { cwd: path.resolve("server") }],
+    resolve: ({ name, path, context }) => {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const migration = require(path as string);
+      return {
+        name,
+        up: async () => migration.up(context, Sequelize),
+        down: async () => migration.down(context, Sequelize),
+      };
+    },
+  },
+  context: sequelize.getQueryInterface(),
+  storage: new SequelizeStorage({ sequelize }),
+  logger: {
+    warn: (params) => Logger.warn("database", params),
+    error: (params: Record<string, unknown> & MigrationError) =>
+      Logger.error(params.message, params),
+    info: (params) =>
+      Logger.info(
+        "database",
+        params.event === "migrating"
+          ? `Migrating ${params.name}…`
+          : `Migrated ${params.name} in ${params.durationSeconds}s`
+      ),
+    debug: (params) =>
+      Logger.debug(
+        "database",
+        params.event === "migrating"
+          ? `Migrating ${params.name}…`
+          : `Migrated ${params.name} in ${params.durationSeconds}s`
+      ),
   },
 });

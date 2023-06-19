@@ -39,9 +39,9 @@ import { emojiToUrl } from "~/utils/emoji";
 import { isModKey } from "~/utils/keyboard";
 
 import {
-  documentHistoryUrl,
-  editDocumentUrl,
-  updateDocumentUrl,
+  documentHistoryPath,
+  documentEditPath,
+  updateDocumentPath,
 } from "~/utils/routeHelpers";
 import Container from "./Container";
 import Contents from "./Contents";
@@ -140,11 +140,15 @@ class DocumentScene extends React.Component<Props> {
     }
 
     const { view, parser } = editorRef;
-    view.dispatch(
-      view.state.tr
-        .setSelection(new AllSelection(view.state.doc))
-        .replaceSelectionWith(parser.parse(template.text))
-    );
+    const doc = parser.parse(template.text);
+
+    if (doc) {
+      view.dispatch(
+        view.state.tr
+          .setSelection(new AllSelection(view.state.doc))
+          .replaceSelectionWith(doc)
+      );
+    }
 
     this.isEditorDirty = true;
 
@@ -211,7 +215,7 @@ class DocumentScene extends React.Component<Props> {
     const { document, abilities } = this.props;
 
     if (abilities.update) {
-      this.props.history.push(editDocumentUrl(document));
+      this.props.history.push(documentEditPath(document));
     }
   };
 
@@ -228,7 +232,7 @@ class DocumentScene extends React.Component<Props> {
     if (location.pathname.endsWith("history")) {
       this.props.history.push(document.url);
     } else {
-      this.props.history.push(documentHistoryUrl(document));
+      this.props.history.push(documentHistoryPath(document));
     }
   };
 
@@ -307,7 +311,7 @@ class DocumentScene extends React.Component<Props> {
         this.props.history.push(savedDocument.url);
         this.props.ui.setActiveDocument(savedDocument);
       } else if (document.isNew) {
-        this.props.history.push(editDocumentUrl(savedDocument));
+        this.props.history.push(documentEditPath(savedDocument));
         this.props.ui.setActiveDocument(savedDocument);
       }
     } catch (err) {
@@ -376,16 +380,8 @@ class DocumentScene extends React.Component<Props> {
   };
 
   render() {
-    const {
-      document,
-      revision,
-      readOnly,
-      abilities,
-      auth,
-      ui,
-      shareId,
-      t,
-    } = this.props;
+    const { document, revision, readOnly, abilities, auth, ui, shareId, t } =
+      this.props;
     const team = auth.team;
     const isShare = !!shareId;
     const embedsDisabled =
@@ -399,7 +395,7 @@ class DocumentScene extends React.Component<Props> {
 
     const canonicalUrl = shareId
       ? this.props.match.url
-      : updateDocumentUrl(this.props.match.url, document);
+      : updateDocumentPath(this.props.match.url, document);
 
     return (
       <ErrorBoundary showTitle>
@@ -455,8 +451,8 @@ class DocumentScene extends React.Component<Props> {
             <Header
               document={document}
               documentHasHeadings={hasHeadings}
+              revision={revision}
               shareId={shareId}
-              isRevision={!!revision}
               isDraft={document.isDraft}
               isEditing={!readOnly && !team?.seamlessEditing}
               isSaving={this.isSaving}
@@ -514,7 +510,8 @@ class DocumentScene extends React.Component<Props> {
                         onPublish={this.onPublish}
                         onCancel={this.goBack}
                         readOnly={readOnly}
-                        readOnlyWriteCheckboxes={readOnly && abilities.update}
+                        canUpdate={abilities.update}
+                        canComment={abilities.comment}
                       >
                         {shareId && (
                           <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>

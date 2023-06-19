@@ -695,6 +695,12 @@ describe("#documents.list", () => {
     const { user, collection } = await seed();
     collection.permission = null;
     await collection.save();
+    await CollectionUser.destroy({
+      where: {
+        userId: user.id,
+        collectionId: collection.id,
+      },
+    });
     const res = await server.post("/api/documents.list", {
       body: {
         token: user.getJwtToken(),
@@ -766,12 +772,18 @@ describe("#documents.list", () => {
     const { user, collection } = await seed();
     collection.permission = null;
     await collection.save();
-    await CollectionUser.create({
-      createdById: user.id,
-      collectionId: collection.id,
-      userId: user.id,
-      permission: CollectionPermission.Read,
-    });
+    await CollectionUser.update(
+      {
+        userId: user.id,
+        permission: CollectionPermission.Read,
+      },
+      {
+        where: {
+          createdById: user.id,
+          collectionId: collection.id,
+        },
+      }
+    );
     const res = await server.post("/api/documents.list", {
       body: {
         token: user.getJwtToken(),
@@ -891,6 +903,12 @@ describe("#documents.drafts", () => {
     await document.save();
     collection.permission = null;
     await collection.save();
+    await CollectionUser.destroy({
+      where: {
+        userId: user.id,
+        collectionId: collection.id,
+      },
+    });
     const res = await server.post("/api/documents.drafts", {
       body: {
         token: user.getJwtToken(),
@@ -1792,6 +1810,12 @@ describe("#documents.viewed", () => {
     });
     collection.permission = null;
     await collection.save();
+    await CollectionUser.destroy({
+      where: {
+        userId: user.id,
+        collectionId: collection.id,
+      },
+    });
     const res = await server.post("/api/documents.viewed", {
       body: {
         token: user.getJwtToken(),
@@ -2565,12 +2589,18 @@ describe("#documents.update", () => {
     await document.save();
     collection.permission = null;
     await collection.save();
-    await CollectionUser.create({
-      createdById: user.id,
-      collectionId: collection.id,
-      userId: user.id,
-      permission: CollectionPermission.ReadWrite,
-    });
+    await CollectionUser.update(
+      {
+        userId: user.id,
+        permission: CollectionPermission.ReadWrite,
+      },
+      {
+        where: {
+          createdById: user.id,
+          collectionId: collection.id,
+        },
+      }
+    );
     const res = await server.post("/api/documents.update", {
       body: {
         token: user.getJwtToken(),
@@ -2634,18 +2664,24 @@ describe("#documents.update", () => {
   });
 
   it("allows editing by read-write collection user", async () => {
-    const { admin, document, collection } = await seed();
+    const { user, document, collection } = await seed();
     collection.permission = null;
     await collection.save();
-    await CollectionUser.create({
-      collectionId: collection.id,
-      userId: admin.id,
-      createdById: admin.id,
-      permission: CollectionPermission.ReadWrite,
-    });
+    await CollectionUser.update(
+      {
+        createdById: user.id,
+        permission: CollectionPermission.ReadWrite,
+      },
+      {
+        where: {
+          collectionId: collection.id,
+          userId: user.id,
+        },
+      }
+    );
     const res = await server.post("/api/documents.update", {
       body: {
-        token: admin.getJwtToken(),
+        token: user.getJwtToken(),
         id: document.id,
         text: "Changed text",
       },
@@ -2653,19 +2689,25 @@ describe("#documents.update", () => {
     const body = await res.json();
     expect(res.status).toEqual(200);
     expect(body.data.text).toBe("Changed text");
-    expect(body.data.updatedBy.id).toBe(admin.id);
+    expect(body.data.updatedBy.id).toBe(user.id);
   });
 
   it("does not allow editing by read-only collection user", async () => {
     const { user, document, collection } = await seed();
     collection.permission = null;
     await collection.save();
-    await CollectionUser.create({
-      collectionId: collection.id,
-      userId: user.id,
-      createdById: user.id,
-      permission: CollectionPermission.Read,
-    });
+    await CollectionUser.update(
+      {
+        createdById: user.id,
+        permission: CollectionPermission.Read,
+      },
+      {
+        where: {
+          collectionId: collection.id,
+          userId: user.id,
+        },
+      }
+    );
     const res = await server.post("/api/documents.update", {
       body: {
         token: user.getJwtToken(),
@@ -2680,6 +2722,12 @@ describe("#documents.update", () => {
     const { user, document, collection } = await seed();
     collection.permission = CollectionPermission.Read;
     await collection.save();
+    await CollectionUser.destroy({
+      where: {
+        userId: user.id,
+        collectionId: collection.id,
+      },
+    });
     const res = await server.post("/api/documents.update", {
       body: {
         token: user.getJwtToken(),
@@ -2831,10 +2879,6 @@ describe("#documents.update", () => {
       expect(body.data.document.collectionId).toBe(collection.id);
       expect(body.data.document.title).toBe("Updated title");
       expect(body.data.document.text).toBe("Updated text");
-      expect(body.data.collection.icon).toBe(collection.icon);
-      expect(body.data.collection.documents.length).toBe(
-        collection.documentStructure!.length + 1
-      );
     });
   });
 });
@@ -2926,6 +2970,35 @@ describe("#documents.delete", () => {
     expect(deletedDoc).toBeDefined();
     expect(deletedDoc).not.toBeNull();
     expect(deletedDoc?.deletedAt).toBeTruthy();
+  });
+
+  it("should delete a draft under deleted collection", async () => {
+    const user = await buildUser();
+    const collection = await buildCollection({
+      createdById: user.id,
+      teamId: user.teamId,
+      deletedAt: new Date(),
+    });
+    const document = await buildDocument({
+      createdById: user.id,
+      teamId: user.teamId,
+      collectionId: collection.id,
+      publishedAt: null,
+    });
+
+    const res = await server.post("/api/documents.delete", {
+      body: {
+        token: user.getJwtToken(),
+        id: document.id,
+      },
+    });
+
+    expect(res.status).toBe(200);
+    const deletedDoc = await Document.findByPk(document.id, {
+      paranoid: false,
+    });
+    expect(deletedDoc).not.toBe(null);
+    expect(deletedDoc?.deletedAt).not.toBe(null);
   });
 
   it("should allow permanently deleting a document", async () => {

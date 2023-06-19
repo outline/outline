@@ -17,7 +17,7 @@ import Time from "~/components/Time";
 import useKeyDown from "~/hooks/useKeyDown";
 import useStores from "~/hooks/useStores";
 import useTextSelection from "~/hooks/useTextSelection";
-import { documentUrl } from "~/utils/routeHelpers";
+import { documentPath } from "~/utils/routeHelpers";
 import Sidebar from "./SidebarLayout";
 
 function Insights() {
@@ -34,7 +34,7 @@ function Insights() {
 
   const onCloseInsights = () => {
     if (document) {
-      history.push(documentUrl(document));
+      history.push(documentPath(document));
     }
   };
 

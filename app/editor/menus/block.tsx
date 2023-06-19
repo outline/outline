@@ -19,6 +19,7 @@ import {
   ClockIcon,
   CalendarIcon,
   MathIcon,
+  DoneIcon,
 } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
@@ -116,6 +117,7 @@ export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
       name: "blockquote",
       title: dictionary.quote,
       icon: <BlockQuoteIcon />,
+      keywords: "blockquote pullquote",
       shortcut: `${metaDisplay} ]`,
     },
     {
@@ -172,6 +174,13 @@ export default function blockMenuItems(dictionary: Dictionary): MenuItem[] {
       icon: <InfoIcon />,
       keywords: "notice card information",
       attrs: { style: "info" },
+    },
+    {
+      name: "container_notice",
+      title: dictionary.successNotice,
+      icon: <DoneIcon />,
+      keywords: "notice card success",
+      attrs: { style: "success" },
     },
     {
       name: "container_notice",

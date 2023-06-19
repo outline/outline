@@ -2,9 +2,9 @@ import * as React from "react";
 import styled from "styled-components";
 import PlaceholderText from "~/components/PlaceholderText";
 
-function PlaceholderCollections() {
+function PlaceholderCollections(props: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <Wrapper>
+    <Wrapper {...props}>
       <PlaceholderText />
       <PlaceholderText delay={0.2} />
       <PlaceholderText delay={0.4} />

@@ -7,7 +7,6 @@ import useQuery from "~/hooks/useQuery";
 export default function Notices() {
   const query = useQuery();
   const notice = query.get("notice");
-  const description = query.get("description");
 
   if (!notice) {
     return null;
@@ -15,12 +14,18 @@ export default function Notices() {
 
   return (
     <Notice icon={<WarningIcon color="currentcolor" />}>
+      {notice === "domain-not-allowed" && (
+        <Trans>
+          The domain associated with your email address has not been allowed for
+          this workspace.
+        </Trans>
+      )}
       {notice === "domain-required" && (
         <Trans>
-          Unable to sign-in. Please navigate to your team's custom URL, then try
-          to sign-in again.
+          Unable to sign-in. Please navigate to your workspace's custom URL,
+          then try to sign-in again.
           <hr />
-          If you were invited to a team, you will find a link to it in the
+          If you were invited to a workspace, you will find a link to it in the
           invite email.
         </Trans>
       )}
@@ -33,7 +38,7 @@ export default function Notices() {
       )}
       {notice === "maximum-teams" && (
         <Trans>
-          The team you authenticated with is not authorized on this
+          The workspace you authenticated with is not authorized on this
           installation. Try another?
         </Trans>
       )}
@@ -54,34 +59,28 @@ export default function Notices() {
           try again in a few minutes.
         </Trans>
       )}
-      {(notice === "auth-error" || notice === "state-mismatch") &&
-        (description ? (
-          <>{description}</>
-        ) : (
-          <Trans>
-            Authentication failed – we were unable to sign you in at this time.
-            Please try again.
-          </Trans>
-        ))}
-      {notice === "invalid-authentication" &&
-        (description ? (
-          <>{description}</>
-        ) : (
-          <Trans>
-            Authentication failed – you do not have permission to access this
-            team.
-          </Trans>
-        ))}
+      {(notice === "auth-error" || notice === "state-mismatch") && (
+        <Trans>
+          Authentication failed – we were unable to sign you in at this time.
+          Please try again.
+        </Trans>
+      )}
+      {notice === "invalid-authentication" && (
+        <Trans>
+          Authentication failed – you do not have permission to access this
+          workspace.
+        </Trans>
+      )}
       {notice === "expired-token" && (
         <Trans>
           Sorry, it looks like that sign-in link is no longer valid, please try
           requesting another.
         </Trans>
       )}
-      {notice === "suspended" && (
+      {(notice === "suspended" || notice === "user-suspended") && (
         <Trans>
           Your account has been suspended. To re-activate your account, please
-          contact a team admin.
+          contact a workspace admin.
         </Trans>
       )}
       {notice === "authentication-provider-disabled" && (
@@ -92,16 +91,16 @@ export default function Notices() {
       )}
       {notice === "invite-required" && (
         <Trans>
-          The team you are trying to join requires an invite before you can
+          The workspace you are trying to join requires an invite before you can
           create an account.
           <hr />
-          Please request an invite from your team admin and try again.
+          Please request an invite from your workspace admin and try again.
         </Trans>
       )}
       {notice === "domain-not-allowed" && (
         <Trans>
           Sorry, your domain is not allowed. Please try again with an allowed
-          team domain.
+          workspace domain.
         </Trans>
       )}
     </Notice>

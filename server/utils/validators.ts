@@ -18,7 +18,7 @@ export function CannotUseWithout(
       options: validationOptions,
       validator: {
         validate<T>(value: T, args: ValidationArguments) {
-          const object = (args.object as unknown) as T;
+          const object = args.object as unknown as T;
           const required = args.constraints[0] as string;
           return object[required] !== undefined;
         },

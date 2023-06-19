@@ -5,6 +5,7 @@ import styled, { css, useTheme } from "styled-components";
 import { s, ellipsis } from "@shared/styles";
 import Flex from "~/components/Flex";
 import Key from "~/components/Key";
+import Text from "./Text";
 
 type Props = {
   action: ActionImpl;
@@ -39,10 +40,9 @@ function CommandBarItem(
             // @ts-expect-error no icon on ActionImpl
             React.cloneElement(action.icon, {
               size: 22,
-              color: "currentColor",
             })
           ) : (
-            <ArrowIcon color="currentColor" />
+            <ArrowIcon />
           )}
         </Icon>
 
@@ -56,21 +56,35 @@ function CommandBarItem(
         {action.children?.length ? "…" : ""}
       </Content>
       {action.shortcut?.length ? (
-        <div
-          style={{
-            display: "grid",
-            gridAutoFlow: "column",
-            gap: "4px",
-          }}
-        >
-          {action.shortcut.map((sc: string) => (
-            <Key key={sc}>{sc}</Key>
+        <Shortcut>
+          {action.shortcut.map((sc: string, index) => (
+            <React.Fragment key={sc}>
+              {index > 0 ? (
+                <>
+                  {" "}
+                  <Text size="xsmall" as="span" type="secondary">
+                    then
+                  </Text>{" "}
+                </>
+              ) : (
+                ""
+              )}
+              {sc.split("+").map((s) => (
+                <Key key={s}>{s}</Key>
+              ))}
+            </React.Fragment>
           ))}
-        </div>
+        </Shortcut>
       ) : null}
     </Item>
   );
 }
+
+const Shortcut = styled.div`
+  display: grid;
+  grid-auto-flow: column;
+  gap: 4px;
+`;
 
 const Icon = styled(Flex)`
   align-items: center;
@@ -91,7 +105,7 @@ const Content = styled(Flex)`
 `;
 
 const Item = styled.div<{ active?: boolean }>`
-  font-size: 15px;
+  font-size: 14px;
   padding: 9px 12px;
   margin: 0 8px;
   border-radius: 4px;

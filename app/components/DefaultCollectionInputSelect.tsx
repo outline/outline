@@ -73,7 +73,7 @@ const DefaultCollectionInputSelect = ({
             label: (
               <Flex align="center">
                 <IconWrapper>
-                  <HomeIcon color="currentColor" />
+                  <HomeIcon />
                 </IconWrapper>
                 {t("Home")}
               </Flex>

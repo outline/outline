@@ -14,7 +14,7 @@ const useSettingsActions = () => {
         return {
           id: item.path,
           name: item.name,
-          icon: <Icon color="currentColor" />,
+          icon: <Icon />,
           section: NavigationSection,
           perform: () => history.push(item.path),
         };
@@ -25,6 +25,7 @@ const useSettingsActions = () => {
   const navigateToSettings = React.useMemo(
     () =>
       createAction({
+        id: "settings",
         name: ({ t }) => t("Settings"),
         section: NavigationSection,
         shortcut: ["g", "s"],

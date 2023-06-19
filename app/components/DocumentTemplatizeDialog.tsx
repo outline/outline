@@ -6,7 +6,7 @@ import { useHistory } from "react-router-dom";
 import ConfirmationDialog from "~/components/ConfirmationDialog";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
-import { documentUrl } from "~/utils/routeHelpers";
+import { documentPath } from "~/utils/routeHelpers";
 
 type Props = {
   documentId: string;
@@ -23,7 +23,7 @@ function DocumentTemplatizeDialog({ documentId }: Props) {
   const handleSubmit = React.useCallback(async () => {
     const template = await document?.templatize();
     if (template) {
-      history.push(documentUrl(template));
+      history.push(documentPath(template));
       showToast(t("Template created, go ahead and customize it"), {
         type: "info",
       });

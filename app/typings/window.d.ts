@@ -57,6 +57,11 @@ declare global {
       setSpellCheckerLanguages: (languages: string[]) => Promise<void>;
 
       /**
+       * Set the badge on the app icon.
+       */
+      setNotificationCount: (count: number) => Promise<void>;
+
+      /**
        * Registers a callback to be called when the window is focused.
        */
       focus: (callback: () => void) => void;

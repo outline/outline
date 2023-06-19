@@ -75,8 +75,11 @@ export const getScale: GetScale = ({
   offset,
   targetHeight,
   targetWidth,
-}) =>
-  !hasScalableSrc && targetHeight && targetWidth
+}) => {
+  if (!containerHeight || !containerWidth) {
+    return 1;
+  }
+  return !hasScalableSrc && targetHeight && targetWidth
     ? getScaleToWindowMax({
         containerHeight,
         containerWidth,
@@ -89,6 +92,7 @@ export const getScale: GetScale = ({
         offset,
         width: containerWidth,
       });
+};
 
 const URL_REGEX = /url(?:\(['"]?)(.*?)(?:['"]?\))/;
 

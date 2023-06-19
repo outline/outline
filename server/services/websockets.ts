@@ -53,25 +53,24 @@ export default function init(
     );
   }
 
-  server.on("upgrade", function (
-    req: IncomingMessage,
-    socket: Duplex,
-    head: Buffer
-  ) {
-    if (req.url?.startsWith(path)) {
-      invariant(ioHandleUpgrade, "Existing upgrade handler must exist");
-      ioHandleUpgrade(req, socket, head);
-      return;
-    }
+  server.on(
+    "upgrade",
+    function (req: IncomingMessage, socket: Duplex, head: Buffer) {
+      if (req.url?.startsWith(path)) {
+        invariant(ioHandleUpgrade, "Existing upgrade handler must exist");
+        ioHandleUpgrade(req, socket, head);
+        return;
+      }
 
-    if (serviceNames.includes("collaboration")) {
-      // Nothing to do, the collaboration service will handle this request
-      return;
-    }
+      if (serviceNames.includes("collaboration")) {
+        // Nothing to do, the collaboration service will handle this request
+        return;
+      }
 
-    // If the collaboration service isn't running then we need to close the connection
-    socket.end(`HTTP/1.1 400 Bad Request\r\n`);
-  });
+      // If the collaboration service isn't running then we need to close the connection
+      socket.end(`HTTP/1.1 400 Bad Request\r\n`);
+    }
+  );
 
   ShutdownHelper.add("websockets", ShutdownOrder.normal, async () => {
     Metrics.gaugePerInstance("websockets.count", 0);

@@ -14,6 +14,7 @@ import ListItem from "~/components/List/Item";
 import Modal from "~/components/Modal";
 import useBoolean from "~/hooks/useBoolean";
 import useStores from "~/hooks/useStores";
+import { hover } from "~/styles";
 import NudeButton from "./NudeButton";
 
 type Props = {
@@ -27,11 +28,8 @@ type Props = {
 function GroupListItem({ group, showFacepile, renderActions }: Props) {
   const { groupMemberships } = useStores();
   const { t } = useTranslation();
-  const [
-    membersModalOpen,
-    setMembersModalOpen,
-    setMembersModalClosed,
-  ] = useBoolean();
+  const [membersModalOpen, setMembersModalOpen, setMembersModalClosed] =
+    useBoolean();
   const memberCount = group.memberCount;
   const membershipsInGroup = groupMemberships.inGroup(group.id);
   const users = membershipsInGroup
@@ -87,7 +85,7 @@ const Image = styled(Flex)`
 `;
 
 const Title = styled.span`
-  &:hover {
+  &: ${hover} {
     text-decoration: underline;
     cursor: var(--pointer);
   }

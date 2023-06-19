@@ -43,7 +43,7 @@ function SharePopover({
 }: Props) {
   const team = useCurrentTeam();
   const { t } = useTranslation();
-  const { shares } = useStores();
+  const { shares, collections } = useStores();
   const { showToast } = useToasts();
   const [expandedOptions, setExpandedOptions] = React.useState(false);
   const [isEditMode, setIsEditMode] = React.useState(false);
@@ -53,10 +53,14 @@ function SharePopover({
   const buttonRef = React.useRef<HTMLButtonElement>(null);
   const can = usePolicy(share ? share.id : "");
   const documentAbilities = usePolicy(document);
+  const collection = document.collectionId
+    ? collections.get(document.collectionId)
+    : undefined;
   const canPublish =
     can.update &&
     !document.isTemplate &&
     team.sharing &&
+    collection?.sharing &&
     documentAbilities.share;
   const isPubliclyShared =
     team.sharing &&
@@ -222,11 +226,7 @@ function SharePopover({
   return (
     <>
       <Heading>
-        {isPubliclyShared ? (
-          <GlobeIcon size={28} color="currentColor" />
-        ) : (
-          <PadlockIcon size={28} color="currentColor" />
-        )}
+        {isPubliclyShared ? <GlobeIcon size={28} /> : <PadlockIcon size={28} />}
         <span>{t("Share this document")}</span>
       </Heading>
 
@@ -327,7 +327,7 @@ function SharePopover({
           <span />
         ) : (
           <MoreOptionsButton
-            icon={<ExpandedIcon color="currentColor" />}
+            icon={<ExpandedIcon />}
             onClick={() => setExpandedOptions(true)}
             neutral
             borderOnHover

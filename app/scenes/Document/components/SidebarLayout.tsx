@@ -10,6 +10,7 @@ import Flex from "~/components/Flex";
 import Scrollable from "~/components/Scrollable";
 import Tooltip from "~/components/Tooltip";
 import useMobile from "~/hooks/useMobile";
+import { draggableOnDesktop } from "~/styles";
 import { fadeIn } from "~/styles/animations";
 
 type Props = React.HTMLAttributes<HTMLDivElement> & {
@@ -87,6 +88,7 @@ const Title = styled(Flex)`
 `;
 
 const Header = styled(Flex)`
+  ${draggableOnDesktop()}
   align-items: center;
   position: relative;
   padding: 16px 12px 16px 16px;

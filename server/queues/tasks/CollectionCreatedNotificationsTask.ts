@@ -4,21 +4,20 @@ import NotificationHelper from "@server/models/helpers/NotificationHelper";
 import { CollectionEvent } from "@server/types";
 import BaseTask, { TaskPriority } from "./BaseTask";
 
-export default class CollectionCreatedNotificationsTask extends BaseTask<
-  CollectionEvent
-> {
+export default class CollectionCreatedNotificationsTask extends BaseTask<CollectionEvent> {
   public async perform(event: CollectionEvent) {
     const collection = await Collection.findByPk(event.collectionId);
 
     // We only send notifications for collections visible to the entire team
-    if (!collection || !collection.permission) {
+    if (!collection || collection.isPrivate) {
       return;
     }
 
-    const recipients = await NotificationHelper.getCollectionNotificationRecipients(
-      collection,
-      NotificationEventType.CreateCollection
-    );
+    const recipients =
+      await NotificationHelper.getCollectionNotificationRecipients(
+        collection,
+        NotificationEventType.CreateCollection
+      );
 
     for (const recipient of recipients) {
       // Suppress notifications for suspended users

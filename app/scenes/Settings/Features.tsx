@@ -3,8 +3,6 @@ import { BeakerIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { TeamPreference } from "@shared/types";
-import Badge from "~/components/Badge";
-import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
 import Scene from "~/components/Scene";
 import Switch from "~/components/Switch";
@@ -35,7 +33,7 @@ function Features() {
   };
 
   return (
-    <Scene title={t("Features")} icon={<BeakerIcon color="currentColor" />}>
+    <Scene title={t("Features")} icon={<BeakerIcon />}>
       <Heading>{t("Features")}</Heading>
       <Text type="secondary">
         <Trans>
@@ -53,17 +51,13 @@ function Features() {
         <Switch
           id={TeamPreference.SeamlessEdit}
           name={TeamPreference.SeamlessEdit}
-          checked={team.getPreference(TeamPreference.SeamlessEdit, true)}
+          checked={team.getPreference(TeamPreference.SeamlessEdit)}
           onChange={handlePreferenceChange}
         />
       </SettingRow>
       <SettingRow
         name={TeamPreference.Commenting}
-        label={
-          <Flex align="center">
-            {t("Commenting")} <Badge>Beta</Badge>
-          </Flex>
-        }
+        label={t("Commenting")}
         description={t(
           "When enabled team members can add comments to documents."
         )}
@@ -71,26 +65,10 @@ function Features() {
         <Switch
           id={TeamPreference.Commenting}
           name={TeamPreference.Commenting}
-          checked={team.getPreference(TeamPreference.Commenting, false)}
+          checked={team.getPreference(TeamPreference.Commenting)}
           onChange={handlePreferenceChange}
         />
       </SettingRow>
-      {team.avatarUrl && (
-        <SettingRow
-          name={TeamPreference.PublicBranding}
-          label={t("Public branding")}
-          description={t(
-            "Show your team’s logo on public pages like login and shared documents."
-          )}
-        >
-          <Switch
-            id={TeamPreference.PublicBranding}
-            name={TeamPreference.PublicBranding}
-            checked={team.getPreference(TeamPreference.PublicBranding, false)}
-            onChange={handlePreferenceChange}
-          />
-        </SettingRow>
-      )}
     </Scene>
   );
 }

@@ -20,7 +20,8 @@ export default function SearchActions() {
   }));
 
   useCommandBarActions(
-    searchQuery ? [searchDocumentsForQuery(searchQuery)] : []
+    searchQuery ? [searchDocumentsForQuery(searchQuery)] : [],
+    [searchQuery]
   );
 
   useCommandBarActions(searches.recent.map(navigateToRecentSearchQuery));

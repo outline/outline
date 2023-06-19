@@ -9,7 +9,7 @@ import Flex from "~/components/Flex";
 import PlaceholderDocument from "~/components/PlaceholderDocument";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
-import { editDocumentUrl } from "~/utils/routeHelpers";
+import { documentEditPath } from "~/utils/routeHelpers";
 
 function DocumentNew() {
   const history = useHistory();
@@ -37,7 +37,7 @@ function DocumentNew() {
           title: "",
           text: "",
         });
-        history.replace(editDocumentUrl(document), location.state);
+        history.replace(documentEditPath(document), location.state);
       } catch (err) {
         showToast(t("Couldn’t create the document, try again?"), {
           type: "error",

@@ -36,7 +36,7 @@ const Image = (
   const [offset, setOffset] = React.useState(0);
   const [dragging, setDragging] = React.useState<DragDirection>();
   const [documentWidth, setDocumentWidth] = React.useState(
-    props.view?.dom.clientWidth || 0
+    props.view ? getInnerWidth(props.view.dom) : 0
   );
   const maxWidth = layoutClass ? documentWidth / 3 : documentWidth;
   const isFullWidth = layoutClass === "full-width";
@@ -51,7 +51,7 @@ const Image = (
       const contentWidth =
         document.body.querySelector("#full-width-container")?.clientWidth || 0;
       setContentWidth(contentWidth);
-      setDocumentWidth(props.view?.dom.clientWidth || 0);
+      setDocumentWidth(props.view ? getInnerWidth(props.view.dom) : 0);
     };
 
     window.addEventListener("resize", handleResize);
@@ -100,18 +100,18 @@ const Image = (
     document.removeEventListener("mousemove", handlePointerMove);
   };
 
-  const handlePointerDown = (dragging: "left" | "right") => (
-    event: React.PointerEvent<HTMLDivElement>
-  ) => {
-    event.preventDefault();
-    event.stopPropagation();
-    setSizeAtDragStart({
-      width: constrainWidth(size.width),
-      height: size.height,
-    });
-    setOffset(event.pageX);
-    setDragging(dragging);
-  };
+  const handlePointerDown =
+    (dragging: "left" | "right") =>
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      event.preventDefault();
+      event.stopPropagation();
+      setSizeAtDragStart({
+        width: constrainWidth(size.width),
+        height: size.height,
+      });
+      setOffset(event.pageX);
+      setDragging(dragging);
+    };
 
   const handleKeyDown = (event: KeyboardEvent) => {
     if (event.key === "Escape") {
@@ -170,11 +170,14 @@ const Image = (
         onClick={dragging ? undefined : props.onClick}
         style={widthStyle}
       >
-        {!dragging && size.width > 60 && size.height > 60 && props.onDownload && (
-          <Button onClick={props.onDownload}>
-            <DownloadIcon color="currentColor" />
-          </Button>
-        )}
+        {!dragging &&
+          size.width > 60 &&
+          size.height > 60 &&
+          props.onDownload && (
+            <Button onClick={props.onDownload}>
+              <DownloadIcon />
+            </Button>
+          )}
         <ImageZoom zoomMargin={24}>
           <img
             style={{
@@ -231,6 +234,16 @@ const Image = (
     </div>
   );
 };
+
+function getInnerWidth(element: Element) {
+  const computedStyle = window.getComputedStyle(element, null);
+  let width = element.clientWidth;
+  width -=
+    parseFloat(computedStyle.paddingLeft) +
+    parseFloat(computedStyle.paddingRight);
+
+  return width;
+}
 
 function getPlaceholder(width: number, height: number) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" />`;

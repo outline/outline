@@ -4,6 +4,7 @@ import * as React from "react";
 import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import Star from "~/models/Star";
+import DelayedMount from "~/components/DelayedMount";
 import Flex from "~/components/Flex";
 import useStores from "~/hooks/useStores";
 import DropCursor from "./DropCursor";
@@ -90,7 +91,9 @@ function Starred() {
             )}
             {(stars.isFetching || fetchError) && !stars.orderedData.length && (
               <Flex column>
-                <PlaceholderCollections />
+                <DelayedMount>
+                  <PlaceholderCollections />
+                </DelayedMount>
               </Flex>
             )}
           </Relative>

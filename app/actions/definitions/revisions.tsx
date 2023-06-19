@@ -6,7 +6,10 @@ import stores from "~/stores";
 import { createAction } from "~/actions";
 import { RevisionSection } from "~/actions/sections";
 import history from "~/utils/history";
-import { documentHistoryUrl, matchDocumentHistory } from "~/utils/routeHelpers";
+import {
+  documentHistoryPath,
+  matchDocumentHistory,
+} from "~/utils/routeHelpers";
 
 export const restoreRevision = createAction({
   name: ({ t }) => t("Restore revision"),
@@ -57,7 +60,7 @@ export const copyLinkToRevision = createAction({
       return;
     }
 
-    const url = `${window.location.origin}${documentHistoryUrl(
+    const url = `${window.location.origin}${documentHistoryPath(
       document,
       revisionId
     )}`;

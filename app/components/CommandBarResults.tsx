@@ -8,23 +8,32 @@ export default function CommandBarResults() {
   const { results, rootActionId } = useMatches();
 
   return (
-    <KBarResults
-      items={results}
-      maxHeight={400}
-      onRender={({ item, active }) =>
-        typeof item === "string" ? (
-          <Header>{item}</Header>
-        ) : (
-          <CommandBarItem
-            action={item}
-            active={active}
-            currentRootActionId={rootActionId}
-          />
-        )
-      }
-    />
+    <Container>
+      <KBarResults
+        items={results}
+        maxHeight={400}
+        onRender={({ item, active }) =>
+          typeof item === "string" ? (
+            <Header>{item}</Header>
+          ) : (
+            <CommandBarItem
+              action={item}
+              active={active}
+              currentRootActionId={rootActionId}
+            />
+          )
+        }
+      />
+    </Container>
   );
 }
+
+// Cannot style KBarResults unfortunately, so we must wrap and target the inner
+const Container = styled.div`
+  > div {
+    padding-bottom: 8px;
+  }
+`;
 
 const Header = styled.h3`
   font-size: 13px;

@@ -23,6 +23,13 @@ function Collections() {
   const { t } = useTranslation();
   const orderedCollections = collections.orderedData;
 
+  const params = React.useMemo(
+    () => ({
+      limit: 100,
+    }),
+    []
+  );
+
   const [
     { isCollectionDropping, isDraggingAnyCollection },
     dropToReorderCollection,
@@ -47,7 +54,7 @@ function Collections() {
         <Relative>
           <PaginatedList
             fetch={collections.fetchPage}
-            options={{ limit: 25 }}
+            options={params}
             aria-label={t("Collections")}
             items={collections.orderedData}
             loading={<PlaceholderCollections />}

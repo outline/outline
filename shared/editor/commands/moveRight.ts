@@ -17,12 +17,11 @@ limitations under the License.
 // This file is based on the implementation found here:
 // https://bitbucket.org/atlassian/design-system-mirror/src/master/editor/editor-core/src/plugins/text-formatting/commands/text-formatting.ts
 
-import { EditorState, TextSelection } from "prosemirror-state";
+import { Command, TextSelection } from "prosemirror-state";
 import isMarkActive from "../queries/isMarkActive";
-import { Dispatch } from "../types";
 
-export default function moveRight() {
-  return (state: EditorState, dispatch: Dispatch): boolean => {
+export default function moveRight(): Command {
+  return (state, dispatch): boolean => {
     const { code_inline } = state.schema.marks;
     const { empty, $cursor } = state.selection as TextSelection;
     if (!empty || !$cursor) {
@@ -54,14 +53,14 @@ export default function moveRight() {
 
       // entering code mark (from the left edge): don't move the cursor, just add the mark
       if (!insideCode && enteringCode) {
-        dispatch(state.tr.addStoredMark(code_inline.create()));
+        dispatch?.(state.tr.addStoredMark(code_inline.create()));
 
         return true;
       }
 
       // exiting code mark: don't move the cursor, just remove the mark
       if (insideCode && exitingCode) {
-        dispatch(state.tr.removeStoredMark(code_inline));
+        dispatch?.(state.tr.removeStoredMark(code_inline));
 
         return true;
       }

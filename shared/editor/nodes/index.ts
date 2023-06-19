@@ -1,3 +1,14 @@
+import BlockMenu from "../extensions/BlockMenu";
+import ClipboardTextSerializer from "../extensions/ClipboardTextSerializer";
+import DateTime from "../extensions/DateTime";
+import History from "../extensions/History";
+import Keys from "../extensions/Keys";
+import MaxLength from "../extensions/MaxLength";
+import PasteHandler from "../extensions/PasteHandler";
+import Placeholder from "../extensions/Placeholder";
+import PreventTab from "../extensions/PreventTab";
+import SmartText from "../extensions/SmartText";
+import TrailingNode from "../extensions/TrailingNode";
 import Extension from "../lib/Extension";
 import Bold from "../marks/Bold";
 import Code from "../marks/Code";
@@ -9,18 +20,6 @@ import Mark from "../marks/Mark";
 import TemplatePlaceholder from "../marks/Placeholder";
 import Strikethrough from "../marks/Strikethrough";
 import Underline from "../marks/Underline";
-import BlockMenuTrigger from "../plugins/BlockMenuTrigger";
-import ClipboardTextSerializer from "../plugins/ClipboardTextSerializer";
-import DateTime from "../plugins/DateTime";
-import Folding from "../plugins/Folding";
-import History from "../plugins/History";
-import Keys from "../plugins/Keys";
-import MaxLength from "../plugins/MaxLength";
-import PasteHandler from "../plugins/PasteHandler";
-import Placeholder from "../plugins/Placeholder";
-import PreventTab from "../plugins/PreventTab";
-import SmartText from "../plugins/SmartText";
-import TrailingNode from "../plugins/TrailingNode";
 import Attachment from "./Attachment";
 import Blockquote from "./Blockquote";
 import BulletList from "./BulletList";
@@ -106,8 +105,7 @@ export const richExtensions: Nodes = [
   TableRow,
   Highlight,
   TemplatePlaceholder,
-  Folding,
-  BlockMenuTrigger,
+  BlockMenu,
   Math,
   MathBlock,
   PreventTab,

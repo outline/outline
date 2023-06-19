@@ -26,7 +26,7 @@ function Import() {
   const appName = env.APP_NAME;
 
   return (
-    <Scene title={t("Import")} icon={<NewDocumentIcon color="currentColor" />}>
+    <Scene title={t("Import")} icon={<NewDocumentIcon />}>
       <Heading>{t("Import")}</Heading>
       <Text type="secondary">
         <Trans>

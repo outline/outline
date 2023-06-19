@@ -46,7 +46,7 @@ export default class Document extends ParanoidModel {
 
   @Field
   @observable
-  collectionId: string;
+  collectionId?: string | null;
 
   @Field
   @observable
@@ -261,7 +261,7 @@ export default class Document extends ParanoidModel {
   };
 
   @action
-  pin = (collectionId?: string) =>
+  pin = (collectionId?: string | null) =>
     this.store.rootStore.pins.create({
       documentId: this.id,
       ...(collectionId ? { collectionId } : {}),

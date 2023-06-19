@@ -54,7 +54,7 @@ export default class DocumentHelper {
       Y.applyUpdate(ydoc, document.state);
       return Node.fromJSON(schema, yDocToProsemirrorJSON(ydoc, "default"));
     }
-    return parser.parse(document.text);
+    return parser.parse(document.text) || Node.fromJSON(schema, {});
   }
 
   /**
@@ -298,7 +298,7 @@ export default class DocumentHelper {
    *
    * @param text The text either html or markdown which contains urls to be converted
    * @param teamId The team context
-   * @param expiresIn The time that signed urls should expire in (ms)
+   * @param expiresIn The time that signed urls should expire (in seconds)
    * @returns The replaced text
    */
   static async attachmentsToSignedUrls(

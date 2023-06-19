@@ -1,4 +1,4 @@
-import { FindOptions, Op } from "sequelize";
+import { Op, SaveOptions } from "sequelize";
 import {
   DataType,
   BelongsTo,
@@ -74,24 +74,26 @@ class Revision extends IdModel {
     });
   }
 
+  static buildFromDocument(document: Document) {
+    return this.build({
+      title: document.title,
+      text: document.text,
+      userId: document.lastModifiedById,
+      editorVersion: document.editorVersion,
+      version: document.version,
+      documentId: document.id,
+      // revision time is set to the last time document was touched as this
+      // handler can be debounced in the case of an update
+      createdAt: document.updatedAt,
+    });
+  }
+
   static createFromDocument(
     document: Document,
-    options?: FindOptions<Revision>
+    options?: SaveOptions<Revision>
   ) {
-    return this.create(
-      {
-        title: document.title,
-        text: document.text,
-        userId: document.lastModifiedById,
-        editorVersion: document.editorVersion,
-        version: document.version,
-        documentId: document.id,
-        // revision time is set to the last time document was touched as this
-        // handler can be debounced in the case of an update
-        createdAt: document.updatedAt,
-      },
-      options
-    );
+    const revision = this.buildFromDocument(document);
+    return revision.save(options);
   }
 
   // instance methods

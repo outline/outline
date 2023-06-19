@@ -2,6 +2,7 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useLocation, RouteComponentProps, StaticContext } from "react-router";
 import { NavigationNode, TeamPreference } from "@shared/types";
+import { RevisionHelper } from "@shared/utils/RevisionHelper";
 import Document from "~/models/Document";
 import Revision from "~/models/Revision";
 import Error404 from "~/scenes/Error404";
@@ -59,7 +60,14 @@ function DataLoader({ match, children }: Props) {
     documents.getByUrl(match.params.documentSlug) ??
     documents.get(match.params.documentSlug);
 
-  const revision = revisionId ? revisions.get(revisionId) : undefined;
+  const revision = revisionId
+    ? revisions.get(
+        revisionId === "latest"
+          ? RevisionHelper.latestId(document?.id)
+          : revisionId
+      )
+    : undefined;
+
   const sharedTree = document
     ? documents.getSharedTree(document.id)
     : undefined;
@@ -93,6 +101,19 @@ function DataLoader({ match, children }: Props) {
     }
     fetchRevision();
   }, [revisions, revisionId]);
+
+  React.useEffect(() => {
+    async function fetchRevision() {
+      if (document && revisionId === "latest") {
+        try {
+          await revisions.fetchLatest(document.id);
+        } catch (err) {
+          setError(err);
+        }
+      }
+    }
+    fetchRevision();
+  }, [document, revisionId, revisions]);
 
   React.useEffect(() => {
     async function fetchSubscription() {

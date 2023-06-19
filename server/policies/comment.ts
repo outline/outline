@@ -12,5 +12,9 @@ allow(User, ["read", "update", "delete"], Comment, (user, comment) => {
   if (!comment) {
     return false;
   }
-  return user?.id === comment.createdById;
+  if (user.teamId !== comment.createdBy.teamId) {
+    return false;
+  }
+
+  return user.isAdmin || user?.id === comment.createdById;
 });

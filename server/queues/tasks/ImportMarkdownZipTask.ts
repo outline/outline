@@ -60,6 +60,13 @@ export default class ImportMarkdownZipTask extends ImportTask {
           }
 
           const zipObject = zip.files[child.path];
+          if (!zipObject) {
+            Logger.info("task", "Zip file referenced path that doesn't exist", {
+              path: child.path,
+            });
+            return;
+          }
+
           const id = uuidv4();
 
           // this is an attachment

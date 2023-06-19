@@ -1,8 +1,6 @@
-import { findParentNode } from "prosemirror-utils";
 import React from "react";
 import useDictionary from "~/hooks/useDictionary";
 import getMenuItems from "../menus/block";
-import { useEditor } from "./EditorContext";
 import SuggestionsMenu, {
   Props as SuggestionsMenuProps,
 } from "./SuggestionsMenu";
@@ -10,28 +8,18 @@ import SuggestionsMenuItem from "./SuggestionsMenuItem";
 
 type Props = Omit<
   SuggestionsMenuProps,
-  "renderMenuItem" | "items" | "onClearSearch"
+  "renderMenuItem" | "items" | "trigger"
 > &
   Required<Pick<SuggestionsMenuProps, "onLinkToolbarOpen" | "embeds">>;
 
 function BlockMenu(props: Props) {
-  const { view } = useEditor();
   const dictionary = useDictionary();
-
-  const clearSearch = React.useCallback(() => {
-    const { state, dispatch } = view;
-    const parent = findParentNode((node) => !!node)(state.selection);
-
-    if (parent) {
-      dispatch(state.tr.insertText("", parent.pos, state.selection.to));
-    }
-  }, [view]);
 
   return (
     <SuggestionsMenu
       {...props}
       filterable
-      onClearSearch={clearSearch}
+      trigger="/"
       renderMenuItem={(item, _index, options) => (
         <SuggestionsMenuItem
           onClick={options.onClick}

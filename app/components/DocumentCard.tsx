@@ -14,6 +14,7 @@ import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
 import Time from "~/components/Time";
 import useStores from "~/hooks/useStores";
+import { hover } from "~/styles";
 import CollectionIcon from "./Icons/CollectionIcon";
 import EmojiIcon from "./Icons/EmojiIcon";
 import Squircle from "./Squircle";
@@ -36,7 +37,9 @@ function DocumentCard(props: Props) {
   const { collections } = useStores();
   const theme = useTheme();
   const { document, pin, canUpdatePin, isDraggable } = props;
-  const collection = collections.get(document.collectionId);
+  const collection = document.collectionId
+    ? collections.get(document.collectionId)
+    : undefined;
   const {
     attributes,
     listeners,
@@ -128,7 +131,7 @@ function DocumentCard(props: Props) {
                   : document.titleWithDefault}
               </Heading>
               <DocumentMeta size="xsmall">
-                <Clock color="currentColor" size={18} />
+                <Clock size={18} />
                 <Time
                   dateTime={document.updatedAt}
                   tooltipDelay={500}
@@ -143,7 +146,7 @@ function DocumentCard(props: Props) {
               {!isDragging && pin && (
                 <Tooltip tooltip={t("Unpin")}>
                   <PinButton onClick={handleUnpin} aria-label={t("Unpin")}>
-                    <CloseIcon color="currentColor" />
+                    <CloseIcon />
                   </PinButton>
                 </Tooltip>
               )}
@@ -177,7 +180,7 @@ const Fold = styled.svg`
 const PinButton = styled(NudeButton)`
   color: ${s("textTertiary")};
 
-  &:hover,
+  &:${hover},
   &:active {
     color: ${s("text")};
   }
@@ -207,7 +210,7 @@ const Reorderable = styled.div<{ $isDragging: boolean }>`
   z-index: ${(props) => (props.$isDragging ? 1 : "inherit")};
   pointer-events: ${(props) => (props.$isDragging ? "none" : "inherit")};
 
-  &:hover ${Actions} {
+  &: ${hover} ${Actions} {
     opacity: 1;
   }
 `;
@@ -246,7 +249,7 @@ const DocumentLink = styled(Link)<{
     opacity: 0;
   }
 
-  &:hover,
+  &:${hover},
   &:active,
   &:focus,
   &:focus-within {

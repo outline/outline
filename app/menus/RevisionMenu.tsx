@@ -33,7 +33,6 @@ function RevisionMenu({ document, className }: Props) {
     <>
       <OverflowMenuButton
         className={className}
-        iconColor="currentColor"
         aria-label={t("Show menu")}
         {...menu}
       />

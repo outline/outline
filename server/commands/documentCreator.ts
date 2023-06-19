@@ -109,7 +109,7 @@ export default async function documentCreator({
   );
 
   if (publish) {
-    await document.publish(user.id, { transaction });
+    await document.publish(user.id, collectionId!, { transaction });
     await Event.create(
       {
         name: "documents.publish",

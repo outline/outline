@@ -2,6 +2,14 @@
   "extends": [
     "../.eslintrc"
   ],
+  "overrides": [
+    {
+      "files": ["scripts/*"],
+      "rules": {
+        "no-console": "off"
+      }
+    }
+  ],
   "env": {
     "jest": true,
     "node": true

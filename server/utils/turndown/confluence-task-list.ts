@@ -10,16 +10,14 @@ export default function confluenceTaskList(turndownService: TurndownService) {
     filter(node) {
       return (
         node.nodeName === "LI" &&
-        node.parentNode?.nodeName === "UL" &&
-        // @ts-expect-error className exists
-        node.parentNode?.className.includes("inline-task-list")
+        node.parentElement?.nodeName === "UL" &&
+        node.parentElement?.className.includes("inline-task-list")
       );
     },
     replacement(content, node) {
-      return (
-        // @ts-expect-error className exists
-        (node.className === "checked" ? "- [x]" : "- [ ]") + ` ${content} \n`
-      );
+      return "className" in node
+        ? (node.className === "checked" ? "- [x]" : "- [ ]") + ` ${content} \n`
+        : content;
     },
   });
 }

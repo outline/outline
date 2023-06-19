@@ -39,7 +39,7 @@ export type Placement =
 type Props = MenuStateReturn & {
   "aria-label"?: string;
   /** The parent menu state if this is a submenu. */
-  parentMenuState?: MenuStateReturn;
+  parentMenuState?: Omit<MenuStateReturn, "items">;
   /** Called when the context menu is opened. */
   onOpen?: () => void;
   /** Called when the context menu is closed. */
@@ -62,6 +62,7 @@ const ContextMenu: React.FC<Props> = ({
   const { t } = useTranslation();
   const { setIsMenuOpen } = useMenuContext();
   const isMobile = useMobile();
+  const isSubMenu = !!parentMenuState;
 
   useUnmount(() => {
     setIsMenuOpen(false);
@@ -71,7 +72,7 @@ const ContextMenu: React.FC<Props> = ({
     if (rest.visible && !previousVisible) {
       onOpen?.();
 
-      if (!parentMenuState) {
+      if (!isSubMenu) {
         setIsMenuOpen(true);
       }
     }
@@ -79,7 +80,7 @@ const ContextMenu: React.FC<Props> = ({
     if (!rest.visible && previousVisible) {
       onClose?.();
 
-      if (!parentMenuState) {
+      if (!isSubMenu) {
         setIsMenuOpen(false);
       }
     }
@@ -90,7 +91,7 @@ const ContextMenu: React.FC<Props> = ({
     rest.visible,
     ui.sidebarCollapsed,
     setIsMenuOpen,
-    parentMenuState,
+    isSubMenu,
     t,
   ]);
 
@@ -99,13 +100,15 @@ const ContextMenu: React.FC<Props> = ({
   // https://github.com/ariakit/ariakit/issues/469
   React.useEffect(() => {
     const scrollElement = backgroundRef.current;
-    if (rest.visible && scrollElement) {
-      disableBodyScroll(scrollElement);
+    if (rest.visible && scrollElement && !isSubMenu) {
+      disableBodyScroll(scrollElement, {
+        reserveScrollBarGap: true,
+      });
     }
     return () => {
-      scrollElement && enableBodyScroll(scrollElement);
+      scrollElement && !isSubMenu && enableBodyScroll(scrollElement);
     };
-  }, [rest.visible]);
+  }, [isSubMenu, rest.visible]);
 
   // Perf win – don't render anything until the menu has been opened
   if (!rest.visible && !previousVisible) {

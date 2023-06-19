@@ -36,9 +36,7 @@ export const Header: React.FC<Props> = ({ id, title, children }) => {
       <H3>
         <Button onClick={handleClick} disabled={!id}>
           {title}
-          {id && (
-            <Disclosure expanded={expanded} color="currentColor" size={20} />
-          )}
+          {id && <Disclosure expanded={expanded} size={20} />}
         </Button>
       </H3>
       {expanded && (firstRender ? children : <Fade>{children}</Fade>)}

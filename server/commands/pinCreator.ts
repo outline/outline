@@ -11,7 +11,7 @@ type Props = {
   /** The document to pin */
   documentId: string;
   /** The collection to pin the document in. If no collection is provided then it will be pinned to home */
-  collectionId?: string | undefined;
+  collectionId?: string | null;
   /** The index to pin the document at. If no index is provided then it will be pinned to the end of the collection */
   index?: string;
   /** The IP address of the user creating the pin */

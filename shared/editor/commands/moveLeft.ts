@@ -17,9 +17,13 @@ limitations under the License.
 // This file is based on the implementation found here:
 // https://bitbucket.org/atlassian/design-system-mirror/src/master/editor/editor-core/src/plugins/text-formatting/commands/text-formatting.ts
 
-import { Selection, EditorState, TextSelection } from "prosemirror-state";
+import {
+  Selection,
+  EditorState,
+  TextSelection,
+  Command,
+} from "prosemirror-state";
 import isMarkActive from "../queries/isMarkActive";
-import { Dispatch } from "../types";
 
 function hasCode(state: EditorState, pos: number) {
   const { code_inline } = state.schema.marks;
@@ -30,8 +34,8 @@ function hasCode(state: EditorState, pos: number) {
     : false;
 }
 
-export default function moveLeft() {
-  return (state: EditorState, dispatch: Dispatch): boolean => {
+export default function moveLeft(): Command {
+  return (state, dispatch): boolean => {
     const { code_inline } = state.schema.marks;
     const { empty, $cursor } = state.selection as TextSelection;
     if (!empty || !$cursor) {
@@ -70,14 +74,14 @@ export default function moveLeft() {
           Selection.near(state.doc.resolve($cursor.pos - 1))
         );
 
-        dispatch(tr.removeStoredMark(code_inline));
+        dispatch?.(tr.removeStoredMark(code_inline));
 
         return true;
       }
 
       // entering code mark (from right edge): don't move the cursor, just add the mark
       if (!insideCode && enteringCode) {
-        dispatch(state.tr.addStoredMark(code_inline.create()));
+        dispatch?.(state.tr.addStoredMark(code_inline.create()));
         return true;
       }
 
@@ -87,7 +91,7 @@ export default function moveLeft() {
           Selection.near(state.doc.resolve($cursor.pos - 1))
         );
 
-        dispatch(tr.addStoredMark(code_inline.create()));
+        dispatch?.(tr.addStoredMark(code_inline.create()));
         return true;
       }
 
@@ -97,7 +101,7 @@ export default function moveLeft() {
         insideCode &&
         (exitingCode || (!$cursor.nodeBefore && isFirstChild))
       ) {
-        dispatch(state.tr.removeStoredMark(code_inline));
+        dispatch?.(state.tr.removeStoredMark(code_inline));
         return true;
       }
     }

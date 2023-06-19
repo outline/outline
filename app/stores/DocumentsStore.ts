@@ -1,7 +1,7 @@
 import invariant from "invariant";
 import { find, orderBy, filter, compact, omitBy } from "lodash";
 import { observable, action, computed, runInAction } from "mobx";
-import { DateFilter, NavigationNode } from "@shared/types";
+import { DateFilter, NavigationNode, PublicTeam } from "@shared/types";
 import { subtractDate } from "@shared/utils/date";
 import { bytesToHumanReadable } from "@shared/utils/files";
 import naturalSort from "@shared/utils/naturalSort";
@@ -9,7 +9,6 @@ import { DocumentValidation } from "@shared/validations";
 import BaseStore from "~/stores/BaseStore";
 import RootStore from "~/stores/RootStore";
 import Document from "~/models/Document";
-import Team from "~/models/Team";
 import env from "~/env";
 import { FetchOptions, PaginationParams, SearchResult } from "~/types";
 import { client } from "~/utils/ApiClient";
@@ -38,7 +37,7 @@ type ImportOptions = {
 export default class DocumentsStore extends BaseStore<Document> {
   sharedCache: Map<
     string,
-    { sharedTree: NavigationNode; team: Team } | undefined
+    { sharedTree: NavigationNode; team: PublicTeam } | undefined
   > = new Map();
 
   @observable
@@ -139,7 +138,7 @@ export default class DocumentsStore extends BaseStore<Document> {
   rootInCollection(collectionId: string): Document[] {
     const collection = this.rootStore.collections.get(collectionId);
 
-    if (!collection) {
+    if (!collection || !collection.sortedDocuments) {
       return [];
     }
 
@@ -471,7 +470,7 @@ export default class DocumentsStore extends BaseStore<Document> {
     options: FetchOptions = {}
   ): Promise<{
     document: Document;
-    team?: Team;
+    team?: PublicTeam;
     sharedTree?: NavigationNode;
   }> => {
     if (!options.prefetch) {
@@ -645,7 +644,11 @@ export default class DocumentsStore extends BaseStore<Document> {
 
   @action
   removeCollectionDocuments(collectionId: string) {
-    const documents = this.inCollection(collectionId);
+    // drafts are to be detached from collection rather than deleted, hence excluded here
+    const documents = filter(
+      this.inCollection(collectionId),
+      (d) => !!d.publishedAt
+    );
     const documentIds = documents.map((doc) => doc.id);
     documentIds.forEach((id) => this.remove(id));
   }
@@ -795,6 +798,8 @@ export default class DocumentsStore extends BaseStore<Document> {
     find(this.orderedData, (doc) => url.endsWith(doc.urlId));
 
   getCollectionForDocument(document: Document) {
-    return this.rootStore.collections.data.get(document.collectionId);
+    return document.collectionId
+      ? this.rootStore.collections.get(document.collectionId)
+      : undefined;
   }
 }

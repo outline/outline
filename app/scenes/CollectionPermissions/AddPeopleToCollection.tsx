@@ -13,7 +13,6 @@ import PaginatedList from "~/components/PaginatedList";
 import Text from "~/components/Text";
 import useBoolean from "~/hooks/useBoolean";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
-import useCurrentUser from "~/hooks/useCurrentUser";
 import useDebouncedCallback from "~/hooks/useDebouncedCallback";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
@@ -26,14 +25,10 @@ type Props = {
 function AddPeopleToCollection({ collection }: Props) {
   const { memberships, users } = useStores();
   const { showToast } = useToasts();
-  const user = useCurrentUser();
   const team = useCurrentTeam();
   const { t } = useTranslation();
-  const [
-    inviteModalOpen,
-    setInviteModalOpen,
-    setInviteModalClosed,
-  ] = useBoolean();
+  const [inviteModalOpen, setInviteModalOpen, setInviteModalClosed] =
+    useBoolean();
   const [query, setQuery] = React.useState("");
 
   const handleFilter = (ev: React.ChangeEvent<HTMLInputElement>) => {
@@ -99,9 +94,7 @@ function AddPeopleToCollection({ collection }: Props) {
             <Empty>{t("No people left to add")}</Empty>
           )
         }
-        items={users
-          .notInCollection(collection.id, query)
-          .filter((member) => member.id !== user.id)}
+        items={users.notInCollection(collection.id, query)}
         fetch={query ? undefined : users.fetchPage}
         renderItem={(item: User) => (
           <MemberListItem

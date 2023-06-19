@@ -5,6 +5,7 @@ import { bytesToHumanReadable } from "@shared/utils/files";
 import { AttachmentValidation } from "@shared/validations";
 import { AuthorizationError, ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
+import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
 import { Attachment, Document, Event } from "@server/models";
@@ -12,6 +13,7 @@ import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
 import { authorize } from "@server/policies";
 import { presentAttachment } from "@server/presenters";
 import { APIContext } from "@server/types";
+import { RateLimiterStrategy } from "@server/utils/RateLimiter";
 import { getPresignedPost, publicS3Endpoint } from "@server/utils/s3";
 import { assertIn } from "@server/validation";
 import * as T from "./schema";
@@ -20,6 +22,7 @@ const router = new Router();
 
 router.post(
   "attachments.create",
+  rateLimiter(RateLimiterStrategy.TenPerMinute),
   auth(),
   validate(T.AttachmentsCreateSchema),
   transaction(),

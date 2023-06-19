@@ -7,6 +7,7 @@ export type Props = {
   rtl: boolean;
   readOnly?: boolean;
   readOnlyWriteCheckboxes?: boolean;
+  editorStyle?: React.CSSProperties;
   grow?: boolean;
   theme: DefaultTheme;
 };
@@ -117,13 +118,13 @@ width: 100%;
 
 .mention {
   background: ${props.theme.mentionBackground};
-  border-radius: 12px;
+  border-radius: 8px;
   padding-bottom: 2px;
   padding-top: 1px;
   padding-left: 4px;
   padding-right: 4px;
   font-weight: 500;
-  font-size: 14px;
+  font-size: 0.9em;
 }
 
 > div {
@@ -143,6 +144,8 @@ width: 100%;
   -webkit-font-variant-ligatures: none;
   font-variant-ligatures: none;
   font-feature-settings: "liga" 0; /* the above doesn't seem to work in Edge */
+  padding: ${props.editorStyle?.padding ?? "initial"};
+  margin: ${props.editorStyle?.margin ?? "initial"};
 
   & > .ProseMirror-yjs-cursor {
     display: none;
@@ -572,10 +575,10 @@ h6 {
 .comment-marker {
   border-bottom: 2px solid ${transparentize(0.5, props.theme.brand.marine)};
   transition: background 100ms ease-in-out;
-  cursor: pointer;
   border-radius: 2px;
 
   &:hover {
+    ${props.readOnly ? "cursor: var(--pointer);" : ""}
     background: ${transparentize(0.5, props.theme.brand.marine)};
   }
 }
@@ -648,9 +651,23 @@ h6 {
   }
 }
 
+.notice-block.success {
+  background: ${transparentize(0.9, props.theme.noticeSuccessBackground)};
+  border-left: 4px solid ${props.theme.noticeSuccessBackground};
+  color: ${props.theme.noticeSuccessText};
+
+  .icon {
+    color: ${props.theme.noticeSuccessBackground};
+  }
+
+  a {
+    color: ${props.theme.noticeSuccessText};
+  }
+}
+
 blockquote {
   margin: 0;
-  padding-left: 1.5em;
+  padding: 8px 10px 8px 1.5em;
   font-style: italic;
   overflow: hidden;
   position: relative;
@@ -724,7 +741,7 @@ a:hover {
 ul,
 ol {
   margin: ${props.rtl ? "0 -26px 0 0.1em" : "0 0.1em 0 -26px"};
-  padding: ${props.rtl ? "0 44px 0 0" : "0 0 0 44px"};
+  padding: ${props.rtl ? "0 48px 0 0" : "0 0 0 48px"};
 }
 
 ol ol {
@@ -1007,16 +1024,17 @@ mark {
   &:after {
     content: attr(data-line-numbers);
     position: absolute;
-    left: 1em;
+    padding-left: 1em;
+    left: 0;
     top: calc(1px + 0.75em);
     width: calc(var(--line-number-gutter-width,0) * 1em + .25em);
     word-break: break-all;
-    text-align: right;
-
+    white-space: break-spaces;
     font-family: ${props.theme.fontFamilyMono};
     font-size: 13px;
     line-height: 1.4em;
     color: ${props.theme.textTertiary};
+    background: ${props.theme.codeBackground};
     text-align: right;
     font-variant-numeric: tabular-nums;
     user-select: none;
@@ -1207,6 +1225,10 @@ table {
     min-width: 100px;
   }
 
+  td .component-embed {
+    padding: 4px 0;
+  }
+
   .selectedCell {
     background: ${
       props.readOnly ? "inherit" : props.theme.tableSelectedBackground
@@ -1224,7 +1246,7 @@ table {
      * https://github.com/ProseMirror/prosemirror/issues/947 */
     &::after {
       content: "";
-      cursor: pointer;
+      cursor: var(--pointer);
       position: absolute;
       top: -16px;
       ${props.rtl ? "right" : "left"}: 0;
@@ -1252,7 +1274,7 @@ table {
   .grip-row {
     &::after {
       content: "";
-      cursor: pointer;
+      cursor: var(--pointer);
       position: absolute;
       ${props.rtl ? "right" : "left"}: -16px;
       top: 0;
@@ -1281,7 +1303,7 @@ table {
   .grip-table {
     &::after {
       content: "";
-      cursor: pointer;
+      cursor: var(--pointer);
       background: ${props.theme.tableDivider};
       width: 13px;
       height: 13px;

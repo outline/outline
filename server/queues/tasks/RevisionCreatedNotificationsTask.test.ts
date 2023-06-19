@@ -34,7 +34,7 @@ describe("revisions.create", () => {
     await task.perform({
       name: "revisions.create",
       documentId: document.id,
-      collectionId: document.collectionId,
+      collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: collaborator.id,
       modelId: revision.id,
@@ -63,7 +63,7 @@ describe("revisions.create", () => {
     await task.perform({
       name: "revisions.create",
       documentId: document.id,
-      collectionId: document.collectionId,
+      collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: collaborator.id,
       modelId: revision.id,
@@ -88,7 +88,7 @@ describe("revisions.create", () => {
     await task.perform({
       name: "revisions.create",
       documentId: document.id,
-      collectionId: document.collectionId,
+      collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: user.id,
       modelId: revision.id,
@@ -123,7 +123,7 @@ describe("revisions.create", () => {
     await task.perform({
       name: "revisions.create",
       documentId: document.id,
-      collectionId: document.collectionId,
+      collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: collaborator.id,
       modelId: revision.id,
@@ -152,7 +152,7 @@ describe("revisions.create", () => {
     await task.perform({
       name: "revisions.create",
       documentId: document.id,
-      collectionId: document.collectionId,
+      collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: collaborator0.id,
       modelId: revision.id,
@@ -202,7 +202,7 @@ describe("revisions.create", () => {
     await task.perform({
       name: "revisions.create",
       documentId: document.id,
-      collectionId: document.collectionId,
+      collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: collaborator0.id,
       modelId: revision.id,
@@ -247,7 +247,7 @@ describe("revisions.create", () => {
     await task.perform({
       name: "revisions.create",
       documentId: document.id,
-      collectionId: document.collectionId,
+      collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: collaborator0.id,
       modelId: revision.id,
@@ -303,7 +303,7 @@ describe("revisions.create", () => {
     await task.perform({
       name: "revisions.create",
       documentId: document.id,
-      collectionId: document.collectionId,
+      collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: collaborator.id,
       modelId: revision.id,
@@ -345,7 +345,7 @@ describe("revisions.create", () => {
     await task.perform({
       name: "revisions.create",
       documentId: document.id,
-      collectionId: document.collectionId,
+      collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: collaborator.id,
       modelId: revision.id,
@@ -391,7 +391,7 @@ describe("revisions.create", () => {
     await task.perform({
       name: "revisions.create",
       documentId: document.id,
-      collectionId: document.collectionId,
+      collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: collaborator.id,
       modelId: revision.id,
@@ -421,7 +421,7 @@ describe("revisions.create", () => {
     await task.perform({
       name: "revisions.create",
       documentId: document.id,
-      collectionId: document.collectionId,
+      collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: collaborator.id,
       modelId: revision.id,
@@ -444,7 +444,7 @@ describe("revisions.create", () => {
     await task.perform({
       name: "revisions.create",
       documentId: document.id,
-      collectionId: document.collectionId,
+      collectionId: document.collectionId!,
       teamId: document.teamId,
       actorId: user.id,
       modelId: revision.id,

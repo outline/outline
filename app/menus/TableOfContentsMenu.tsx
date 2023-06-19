@@ -65,7 +65,6 @@ function TableOfContentsMenu({ headings }: Props) {
           <Button
             {...props}
             icon={<TableOfContentsIcon />}
-            iconColor="currentColor"
             borderOnHover
             neutral
           />

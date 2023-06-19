@@ -56,6 +56,7 @@ class Frame extends React.Component<PropsWithRef> {
       canonicalUrl,
       isSelected,
       referrerPolicy,
+      className = "",
       src,
     } = this.props;
     const withBar = !!(icon || canonicalUrl);
@@ -66,7 +67,9 @@ class Frame extends React.Component<PropsWithRef> {
         height={height}
         $withBar={withBar}
         $border={border}
-        className={isSelected ? "ProseMirror-selectednode" : ""}
+        className={
+          isSelected ? `ProseMirror-selectednode ${className}` : className
+        }
       >
         {this.isLoaded && (
           <Iframe
@@ -92,7 +95,7 @@ class Frame extends React.Component<PropsWithRef> {
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                <OpenIcon color="currentColor" size={18} /> Open
+                <OpenIcon size={18} /> Open
               </Open>
             )}
           </Bar>
@@ -148,6 +151,7 @@ const Bar = styled.div`
   border-bottom-left-radius: 6px;
   border-bottom-right-radius: 6px;
   user-select: none;
+  position: relative;
 `;
 
 export default React.forwardRef<HTMLIFrameElement, Props>((props, ref) => (

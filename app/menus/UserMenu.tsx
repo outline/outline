@@ -11,7 +11,11 @@ import {
   UserChangeToMemberDialog,
   UserChangeToViewerDialog,
   UserSuspendDialog,
-} from "~/components/UserRoleDialogs";
+  UserChangeNameDialog,
+} from "~/components/UserDialogs";
+import { actionToMenuItem } from "~/actions";
+import { deleteUserActionFactory } from "~/actions/definitions/users";
+import useActionContext from "~/hooks/useActionContext";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
@@ -28,6 +32,9 @@ function UserMenu({ user }: Props) {
   });
   const can = usePolicy(user.id);
   const { showToast } = useToasts();
+  const context = useActionContext({
+    isContextMenu: true,
+  });
 
   const handlePromote = React.useCallback(
     (ev: React.SyntheticEvent) => {
@@ -80,11 +87,25 @@ function UserMenu({ user }: Props) {
     [dialogs, t, user]
   );
 
+  const handleChangeName = React.useCallback(
+    (ev: React.SyntheticEvent) => {
+      ev.preventDefault();
+      dialogs.openModal({
+        title: t("Change name"),
+        isCentered: true,
+        content: (
+          <UserChangeNameDialog user={user} onSubmit={dialogs.closeAllModals} />
+        ),
+      });
+    },
+    [dialogs, t, user]
+  );
+
   const handleSuspend = React.useCallback(
     (ev: React.SyntheticEvent) => {
       ev.preventDefault();
       dialogs.openModal({
-        title: t("Suspend account"),
+        title: t("Suspend user"),
         isCentered: true,
         content: (
           <UserSuspendDialog user={user} onSubmit={dialogs.closeAllModals} />
@@ -156,6 +177,12 @@ function UserMenu({ user }: Props) {
             },
             {
               type: "button",
+              title: `${t("Change name")}…`,
+              onClick: handleChangeName,
+              visible: can.update && user.role !== "admin",
+            },
+            {
+              type: "button",
               title: t("Resend invite"),
               onClick: handleResendInvite,
               visible: can.resendInvite,
@@ -178,11 +205,14 @@ function UserMenu({ user }: Props) {
             },
             {
               type: "button",
-              title: `${t("Suspend account")}…`,
-              dangerous: true,
+              title: `${t("Suspend user")}…`,
               onClick: handleSuspend,
               visible: !user.isInvited && !user.isSuspended,
             },
+            {
+              type: "separator",
+            },
+            actionToMenuItem(deleteUserActionFactory(user.id), context),
           ]}
         />
       </ContextMenu>

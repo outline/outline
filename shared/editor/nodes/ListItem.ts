@@ -9,14 +9,14 @@ import {
   EditorState,
   Plugin,
   TextSelection,
+  Command,
 } from "prosemirror-state";
-import { findParentNodeClosestToPos } from "prosemirror-utils";
 import { DecorationSet, Decoration } from "prosemirror-view";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
+import { findParentNodeClosestToPos } from "../queries/findParentNode";
 import getParentListItem from "../queries/getParentListItem";
 import isInList from "../queries/isInList";
 import isList from "../queries/isList";
-import { Dispatch } from "../types";
 import Node from "./Node";
 
 export default class ListItem extends Node {
@@ -193,14 +193,21 @@ export default class ListItem extends Node {
     ];
   }
 
-  keys({ type }: { type: NodeType }) {
+  commands({ type }: { type: NodeType }) {
+    return {
+      indentList: () => sinkListItem(type),
+      outdentList: () => liftListItem(type),
+    };
+  }
+
+  keys({ type }: { type: NodeType }): Record<string, Command> {
     return {
       Enter: splitListItem(type),
       Tab: sinkListItem(type),
       "Shift-Tab": liftListItem(type),
       "Mod-]": sinkListItem(type),
       "Mod-[": liftListItem(type),
-      "Shift-Enter": (state: EditorState, dispatch: Dispatch) => {
+      "Shift-Enter": (state, dispatch) => {
         if (!isInList(state)) {
           return false;
         }
@@ -209,10 +216,10 @@ export default class ListItem extends Node {
         }
 
         const { tr, selection } = state;
-        dispatch(tr.split(selection.to));
+        dispatch?.(tr.split(selection.to));
         return true;
       },
-      "Alt-ArrowUp": (state: EditorState, dispatch: Dispatch) => {
+      "Alt-ArrowUp": (state, dispatch) => {
         if (!state.selection.empty) {
           return false;
         }
@@ -234,7 +241,7 @@ export default class ListItem extends Node {
         const { tr } = state;
         const newPos = pos - $pos.nodeBefore.nodeSize;
 
-        dispatch(
+        dispatch?.(
           tr
             .delete(pos, pos + li.nodeSize)
             .insert(newPos, li)
@@ -242,7 +249,7 @@ export default class ListItem extends Node {
         );
         return true;
       },
-      "Alt-ArrowDown": (state: EditorState, dispatch: Dispatch) => {
+      "Alt-ArrowDown": (state, dispatch) => {
         if (!state.selection.empty) {
           return false;
         }
@@ -264,7 +271,7 @@ export default class ListItem extends Node {
         const { tr } = state;
         const newPos = pos + li.nodeSize + $pos.nodeAfter.nodeSize;
 
-        dispatch(
+        dispatch?.(
           tr
             .insert(newPos, li)
             .setSelection(TextSelection.near(tr.doc.resolve(newPos)))

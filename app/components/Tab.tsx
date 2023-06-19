@@ -3,6 +3,7 @@ import * as React from "react";
 import styled, { useTheme } from "styled-components";
 import { s } from "@shared/styles";
 import NavLink from "~/components/NavLink";
+import { hover } from "~/styles";
 
 type Props = Omit<React.ComponentProps<typeof NavLink>, "children"> & {
   to: string;
@@ -21,7 +22,7 @@ const TabLink = styled(NavLink)`
   margin-right: 24px;
   padding: 6px 0;
 
-  &:hover {
+  &: ${hover} {
     color: ${s("textSecondary")};
   }
 `;

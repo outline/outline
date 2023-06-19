@@ -7,7 +7,6 @@ import {
   PublishIcon,
   MoveIcon,
   UnpublishIcon,
-  LightningIcon,
 } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -25,7 +24,9 @@ import Item, { Actions } from "~/components/List/Item";
 import Time from "~/components/Time";
 import useStores from "~/hooks/useStores";
 import RevisionMenu from "~/menus/RevisionMenu";
-import { documentHistoryUrl } from "~/utils/routeHelpers";
+import { hover } from "~/styles";
+import Logger from "~/utils/Logger";
+import { documentHistoryPath } from "~/utils/routeHelpers";
 
 type Props = {
   document: Document;
@@ -58,25 +59,22 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
 
   switch (event.name) {
     case "revisions.create":
-      icon = <EditIcon color="currentColor" size={16} />;
-      meta = t("{{userName}} edited", opts);
+      icon = <EditIcon size={16} />;
+      meta = latest ? (
+        <>
+          {t("Current version")} &middot; {event.actor.name}
+        </>
+      ) : (
+        t("{{userName}} edited", opts)
+      );
       to = {
-        pathname: documentHistoryUrl(document, event.modelId || ""),
-        state: { retainScrollPosition: true },
-      };
-      break;
-
-    case "documents.live_editing":
-      icon = <LightningIcon color="currentColor" size={16} />;
-      meta = t("Latest");
-      to = {
-        pathname: documentHistoryUrl(document),
+        pathname: documentHistoryPath(document, event.modelId || "latest"),
         state: { retainScrollPosition: true },
       };
       break;
 
     case "documents.archive":
-      icon = <ArchiveIcon color="currentColor" size={16} />;
+      icon = <ArchiveIcon size={16} />;
       meta = t("{{userName}} archived", opts);
       break;
 
@@ -85,7 +83,7 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
       break;
 
     case "documents.delete":
-      icon = <TrashIcon color="currentColor" size={16} />;
+      icon = <TrashIcon size={16} />;
       meta = t("{{userName}} deleted", opts);
       break;
 
@@ -94,22 +92,22 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
       break;
 
     case "documents.publish":
-      icon = <PublishIcon color="currentColor" size={16} />;
+      icon = <PublishIcon size={16} />;
       meta = t("{{userName}} published", opts);
       break;
 
     case "documents.unpublish":
-      icon = <UnpublishIcon color="currentColor" size={16} />;
+      icon = <UnpublishIcon size={16} />;
       meta = t("{{userName}} unpublished", opts);
       break;
 
     case "documents.move":
-      icon = <MoveIcon color="currentColor" size={16} />;
+      icon = <MoveIcon size={16} />;
       meta = t("{{userName}} moved", opts);
       break;
 
     default:
-      console.warn("Unhandled event: ", event.name);
+      Logger.warn("Unhandled event", { event });
   }
 
   if (!meta) {
@@ -151,7 +149,7 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
         </Subtitle>
       }
       actions={
-        isRevision && isActive && event.modelId ? (
+        isRevision && isActive && event.modelId && !latest ? (
           <RevisionMenu document={document} revisionId={event.modelId} />
         ) : undefined
       }
@@ -219,7 +217,7 @@ const ItemStyle = css`
   ${Actions} {
     opacity: 0.5;
 
-    &:hover {
+    &: ${hover} {
       opacity: 1;
     }
   }

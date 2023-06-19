@@ -25,6 +25,7 @@
   "rules": {
     "eqeqeq": 2,
     "curly": 2,
+    "no-console": "error",
     "arrow-body-style": ["error", "as-needed"],
     "spaced-comment": "error",
     "object-shorthand": "error",

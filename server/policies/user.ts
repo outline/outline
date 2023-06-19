@@ -28,6 +28,10 @@ allow(User, "update", User, (actor, user) => {
     return true;
   }
 
+  if (actor.isAdmin) {
+    return true;
+  }
+
   return false;
 });
 

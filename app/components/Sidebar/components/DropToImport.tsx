@@ -26,10 +26,14 @@ function DropToImport({ disabled, children, collectionId, documentId }: Props) {
     collectionId,
     documentId
   );
-  const targetId = collectionId || documentId;
-  invariant(targetId, "Must provide either collectionId or documentId");
+  invariant(
+    collectionId || documentId,
+    "Must provide either collectionId or documentId"
+  );
 
-  const can = usePolicy(targetId);
+  const canCollection = usePolicy(collectionId);
+  const canDocument = usePolicy(documentId);
+
   const handleRejection = React.useCallback(() => {
     showToast(
       t("Document not supported – try Markdown, Plain text, HTML, or Word"),
@@ -39,7 +43,11 @@ function DropToImport({ disabled, children, collectionId, documentId }: Props) {
     );
   }, [t, showToast]);
 
-  if (disabled || !can.update) {
+  if (
+    disabled ||
+    (collectionId && !canCollection.createDocument) ||
+    (documentId && !canDocument.createChildDocument)
+  ) {
     return children;
   }
 

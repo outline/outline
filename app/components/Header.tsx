@@ -63,7 +63,6 @@ function Header({ left, title, actions, hasSidebar }: Props) {
             <MobileMenuButton
               onClick={ui.toggleMobileSidebar}
               icon={<MenuIcon />}
-              iconColor="currentColor"
               neutral
             />
           )}

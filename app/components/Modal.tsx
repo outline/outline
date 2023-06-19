@@ -94,7 +94,7 @@ const Modal: React.FC<Props> = ({
                       )}
                       <Text as="span" size="large">
                         <NudeButton onClick={onRequestClose}>
-                          <CloseIcon color="currentColor" />
+                          <CloseIcon />
                         </NudeButton>
                       </Text>
                     </Header>
@@ -119,10 +119,10 @@ const Modal: React.FC<Props> = ({
                     </Centered>
                   </Content>
                   <Close onClick={onRequestClose}>
-                    <CloseIcon size={32} color="currentColor" />
+                    <CloseIcon size={32} />
                   </Close>
                   <Back onClick={onRequestClose}>
-                    <BackIcon size={32} color="currentColor" />
+                    <BackIcon size={32} />
                     <Text as="span">{t("Back")} </Text>
                   </Back>
                 </Fullscreen>

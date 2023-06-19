@@ -6,7 +6,7 @@ import {
   OpenIcon,
 } from "outline-icons";
 import { Mark } from "prosemirror-model";
-import { setTextSelection } from "prosemirror-utils";
+import { Selection } from "prosemirror-state";
 import { EditorView } from "prosemirror-view";
 import * as React from "react";
 import styled from "styled-components";
@@ -17,6 +17,7 @@ import { ResizingHeightContainer } from "~/components/ResizingHeightContainer";
 import Scrollable from "~/components/Scrollable";
 import { Dictionary } from "~/hooks/useDictionary";
 import { ToastOptions } from "~/types";
+import Logger from "~/utils/Logger";
 import Input from "./Input";
 import LinkSearchResult from "./LinkSearchResult";
 import ToolbarButton from "./ToolbarButton";
@@ -223,8 +224,8 @@ class LinkEditor extends React.Component<Props, State> {
           },
           previousValue: trimmedValue,
         }));
-      } catch (error) {
-        console.error(error);
+      } catch (err) {
+        Logger.error("Error searching for link", err);
       }
     }
   };
@@ -271,21 +272,23 @@ class LinkEditor extends React.Component<Props, State> {
     view.focus();
   };
 
-  handleSelectLink = (url: string, title: string) => (
-    event: React.MouseEvent
-  ) => {
-    event.preventDefault();
-    this.save(url, title);
+  handleSelectLink =
+    (url: string, title: string) => (event: React.MouseEvent) => {
+      event.preventDefault();
+      this.save(url, title);
 
-    if (this.initialSelectionLength) {
-      this.moveSelectionToEnd();
-    }
-  };
+      if (this.initialSelectionLength) {
+        this.moveSelectionToEnd();
+      }
+    };
 
   moveSelectionToEnd = () => {
     const { to, view } = this.props;
     const { state, dispatch } = view;
-    dispatch(setTextSelection(to)(state.tr));
+    const nextSelection = Selection.findFrom(state.tr.doc.resolve(to), 1, true);
+    if (nextSelection) {
+      dispatch(state.tr.setSelection(nextSelection));
+    }
     view.focus();
   };
 
@@ -335,16 +338,12 @@ class LinkEditor extends React.Component<Props, State> {
           tooltip={isInternal ? dictionary.goToLink : dictionary.openLink}
         >
           <ToolbarButton onClick={this.handleOpenLink} disabled={!value}>
-            {isInternal ? (
-              <ArrowIcon color="currentColor" />
-            ) : (
-              <OpenIcon color="currentColor" />
-            )}
+            {isInternal ? <ArrowIcon /> : <OpenIcon />}
           </ToolbarButton>
         </Tooltip>
         <Tooltip tooltip={dictionary.removeLink}>
           <ToolbarButton onClick={this.handleRemoveLink}>
-            <CloseIcon color="currentColor" />
+            <CloseIcon />
           </ToolbarButton>
         </Tooltip>
 
@@ -361,7 +360,7 @@ class LinkEditor extends React.Component<Props, State> {
                     key={result.url}
                     title={result.title}
                     subtitle={result.subtitle}
-                    icon={<DocumentIcon color="currentColor" />}
+                    icon={<DocumentIcon />}
                     onPointerMove={() => this.handleFocusLink(index)}
                     onClick={this.handleSelectLink(result.url, result.title)}
                     selected={index === selectedIndex}
@@ -375,7 +374,7 @@ class LinkEditor extends React.Component<Props, State> {
                     containerRef={this.resultsRef}
                     title={suggestedLinkTitle}
                     subtitle={dictionary.createNewDoc}
-                    icon={<PlusIcon color="currentColor" />}
+                    icon={<PlusIcon />}
                     onPointerMove={() => this.handleFocusLink(results.length)}
                     onClick={() => {
                       this.handleCreateLink(suggestedLinkTitle);

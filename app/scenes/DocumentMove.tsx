@@ -28,13 +28,15 @@ function DocumentMove({ document }: Props) {
     null
   );
 
-  const moveOptions = React.useMemo(() => {
-    // filter out the document itself and also its parent doc if any
+  const items = React.useMemo(() => {
+    // Filter out the document itself and its existing parent doc, if any.
     const nodes = flatten(collectionTrees.map(flattenTree)).filter(
       (node) => node.id !== document.id && node.id !== document.parentDocumentId
     );
+
+    // If the document we're moving is a template, only show collections as
+    // move targets.
     if (document.isTemplate) {
-      // only show collections with children stripped off to prevent node expansion
       return nodes
         .filter((node) => node.type === "collection")
         .map((node) => ({ ...node, children: [] }));
@@ -80,11 +82,7 @@ function DocumentMove({ document }: Props) {
 
   return (
     <FlexContainer column>
-      <DocumentExplorer
-        items={moveOptions}
-        onSubmit={move}
-        onSelect={selectPath}
-      />
+      <DocumentExplorer items={items} onSubmit={move} onSelect={selectPath} />
       <Footer justify="space-between" align="center" gap={8}>
         <StyledText type="secondary">
           {selectedPath ? (

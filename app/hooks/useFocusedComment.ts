@@ -7,5 +7,9 @@ export default function useFocusedComment() {
   const location = useLocation<{ commentId?: string }>();
   const query = useQuery();
   const focusedCommentId = location.state?.commentId || query.get("commentId");
-  return focusedCommentId ? comments.get(focusedCommentId) : undefined;
+  const comment = focusedCommentId ? comments.get(focusedCommentId) : undefined;
+
+  return comment?.parentCommentId
+    ? comments.get(comment.parentCommentId)
+    : comment;
 }

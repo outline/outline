@@ -167,8 +167,8 @@ class Collection extends ParanoidModel {
   color: string | null;
 
   @Length({
-    max: 50,
-    msg: `index must 50 characters or less`,
+    max: 100,
+    msg: `index must be 100 characters or less`,
   })
   @Column
   index: string | null;
@@ -254,21 +254,17 @@ class Collection extends ParanoidModel {
     model: Collection,
     options: { transaction: Transaction }
   ) {
-    if (model.permission !== CollectionPermission.ReadWrite) {
-      return CollectionUser.findOrCreate({
-        where: {
-          collectionId: model.id,
-          userId: model.createdById,
-        },
-        defaults: {
-          permission: CollectionPermission.ReadWrite,
-          createdById: model.createdById,
-        },
-        transaction: options.transaction,
-      });
-    }
-
-    return undefined;
+    return CollectionUser.findOrCreate({
+      where: {
+        collectionId: model.id,
+        userId: model.createdById,
+      },
+      defaults: {
+        permission: CollectionPermission.Admin,
+        createdById: model.createdById,
+      },
+      transaction: options.transaction,
+    });
   }
 
   // associations
@@ -394,6 +390,17 @@ class Collection extends ParanoidModel {
         ["updatedAt", "DESC"],
       ],
     });
+  }
+
+  /**
+   * Convenience method to return if a collection is considered private.
+   * This means that a membership is required to view it rather than just being
+   * a workspace member.
+   *
+   * @returns boolean
+   */
+  get isPrivate() {
+    return !this.permission;
   }
 
   getDocumentTree = (documentId: string): NavigationNode | null => {

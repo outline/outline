@@ -44,11 +44,8 @@ function CollectionPermissions({ collectionId }: Props) {
   const collection = collections.get(collectionId);
   invariant(collection, "Collection not found");
 
-  const [
-    addGroupModalOpen,
-    handleAddGroupModalOpen,
-    handleAddGroupModalClose,
-  ] = useBoolean();
+  const [addGroupModalOpen, handleAddGroupModalOpen, handleAddGroupModalClose] =
+    useBoolean();
 
   const [
     addMemberModalOpen,
@@ -211,7 +208,7 @@ function CollectionPermissions({ collectionId }: Props) {
         value={collection.permission || ""}
       />
       <PermissionExplainer size="small">
-        {!collection.permission && (
+        {collection.isPrivate && (
           <Trans
             defaults="The <em>{{ collectionName }}</em> collection is private. Workspace members have no access to it by default."
             values={{
@@ -318,7 +315,7 @@ function CollectionPermissions({ collectionId }: Props) {
             key={item.id}
             user={item}
             membership={memberships.get(`${item.id}-${collection.id}`)}
-            canEdit={item.id !== user.id}
+            canEdit={item.id !== user.id || user.isAdmin}
             onRemove={() => handleRemoveUser(item)}
             onUpdate={(permission) => handleUpdateUser(item, permission)}
           />

@@ -14,7 +14,6 @@ type RealProps = {
   $borderOnHover?: boolean;
   $neutral?: boolean;
   $danger?: boolean;
-  $iconColor?: string;
 };
 
 const RealButton = styled(ActionButton)<RealProps>`
@@ -36,14 +35,6 @@ const RealButton = styled(ActionButton)<RealProps>`
   user-select: none;
   appearance: none !important;
   ${undraggableOnDesktop()}
-
-  ${(props) =>
-    !props.$borderOnHover &&
-    `
-      svg {
-        fill: ${props.$iconColor || "currentColor"};
-      }
-    `}
 
   &::-moz-focus-inner {
     padding: 0;
@@ -69,22 +60,13 @@ const RealButton = styled(ActionButton)<RealProps>`
   ${(props) =>
     props.$neutral &&
     `
-    background: ${props.theme.buttonNeutralBackground};
+    background: inherit;
     color: ${props.theme.buttonNeutralText};
     box-shadow: ${
       props.$borderOnHover
         ? "none"
         : `rgba(0, 0, 0, 0.07) 0px 1px 2px, ${props.theme.buttonNeutralBorder} 0 0 0 1px inset`
     };
-
-    ${
-      props.$borderOnHover
-        ? ""
-        : `svg {
-      fill: ${props.$iconColor || "currentColor"};
-    }`
-    }
-
 
     &:hover:not(:disabled),
     &[aria-expanded="true"] {
@@ -156,7 +138,6 @@ export const Inner = styled.span<{
 
 export type Props<T> = ActionButtonProps & {
   icon?: React.ReactNode;
-  iconColor?: string;
   children?: React.ReactNode;
   disclosure?: boolean;
   neutral?: boolean;
@@ -184,7 +165,6 @@ const Button = <T extends React.ElementType = "button">(
     neutral,
     action,
     icon,
-    iconColor,
     borderOnHover,
     hideIcon,
     fullwidth,
@@ -204,13 +184,12 @@ const Button = <T extends React.ElementType = "button">(
       $danger={danger}
       $fullwidth={fullwidth}
       $borderOnHover={borderOnHover}
-      $iconColor={iconColor}
       {...rest}
     >
       <Inner hasIcon={hasIcon} hasText={hasText} disclosure={disclosure}>
         {hasIcon && ic}
         {hasText && <Label hasIcon={hasIcon}>{children || value}</Label>}
-        {disclosure && <ExpandedIcon color="currentColor" />}
+        {disclosure && <ExpandedIcon />}
       </Inner>
     </RealButton>
   );

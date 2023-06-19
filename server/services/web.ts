@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
+import { Server } from "https";
 import Koa from "koa";
 import {
   contentSecurityPolicy,
@@ -10,8 +11,11 @@ import enforceHttps, {
   httpsResolver,
   xForwardedProtoResolver,
 } from "koa-sslify";
+import { Second } from "@shared/utils/time";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
+import Metrics from "@server/logging/Metrics";
+import ShutdownHelper, { ShutdownOrder } from "@server/utils/ShutdownHelper";
 import { initI18n } from "@server/utils/i18n";
 import routes from "../routes";
 import api from "../routes/api";
@@ -53,7 +57,7 @@ if (env.CDN_URL) {
   defaultSrc.push(env.CDN_URL);
 }
 
-export default function init(app: Koa = new Koa()): Koa {
+export default function init(app: Koa = new Koa(), server?: Server): Koa {
   initI18n();
 
   if (isProduction) {
@@ -79,6 +83,23 @@ export default function init(app: Koa = new Koa()): Koa {
 
   app.use(mount("/auth", auth));
   app.use(mount("/api", api));
+
+  // Monitor server connections
+  if (server) {
+    setInterval(async () => {
+      server.getConnections((err, count) => {
+        if (err) {
+          return;
+        }
+        Metrics.gaugePerInstance("connections.count", count);
+      });
+    }, 5 * Second);
+  }
+
+  ShutdownHelper.add("connections", ShutdownOrder.normal, async () => {
+    Metrics.gaugePerInstance("connections.count", 0);
+  });
+
   // Sets common security headers by default, such as no-sniff, hsts, hide powered
   // by etc, these are applied after auth and api so they are only returned on
   // standard non-XHR accessed routes
@@ -95,6 +116,7 @@ export default function init(app: Koa = new Koa()): Koa {
       },
     })
   );
+
   // Allow DNS prefetching for performance, we do not care about leaking requests
   // to our own CDN's
   app.use(

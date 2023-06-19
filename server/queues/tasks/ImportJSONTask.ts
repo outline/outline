@@ -147,22 +147,14 @@ export default class ImportJSONTask extends ImportTask {
     // and replace them out with attachment redirect urls before continuing.
     for (const document of output.documents) {
       for (const attachment of output.attachments) {
-        const encodedPath = encodeURI(attachment.path);
-
-        // Pull the collection and subdirectory out of the path name, upload
-        // folders in an export are relative to the document itself
-        const normalizedAttachmentPath = encodedPath.replace(
-          /(.*)uploads\//,
-          "uploads/"
+        const encodedPath = encodeURI(
+          `/api/attachments.redirect?id=${attachment.sourceId}`
         );
 
-        const reference = `<<${attachment.id}>>`;
-        document.text = document.text
-          .replace(new RegExp(escapeRegExp(encodedPath), "g"), reference)
-          .replace(
-            new RegExp(`/?${escapeRegExp(normalizedAttachmentPath)}`, "g"),
-            reference
-          );
+        document.text = document.text.replace(
+          new RegExp(escapeRegExp(encodedPath), "g"),
+          `<<${attachment.id}>>`
+        );
       }
     }
 

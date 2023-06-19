@@ -1,9 +1,11 @@
 import { differenceInMilliseconds, formatDistanceToNow } from "date-fns";
 import { toJS } from "mobx";
 import { observer } from "mobx-react";
+import { darken } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled, { css } from "styled-components";
+import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
 import { Minute } from "@shared/utils/time";
 import Comment from "~/models/Comment";
@@ -16,6 +18,7 @@ import Time from "~/components/Time";
 import useBoolean from "~/hooks/useBoolean";
 import useToasts from "~/hooks/useToasts";
 import CommentMenu from "~/menus/CommentMenu";
+import { hover } from "~/styles";
 import CommentEditor from "./CommentEditor";
 
 /**
@@ -67,6 +70,8 @@ type Props = {
   lastOfAuthor?: boolean;
   /** The date of the previous comment in the thread */
   previousCommentCreatedAt?: string;
+  /** Whether the user can reply in the thread */
+  canReply: boolean;
 };
 
 function CommentThreadItem({
@@ -76,6 +81,7 @@ function CommentThreadItem({
   lastOfThread,
   dir,
   previousCommentCreatedAt,
+  canReply,
 }: Props) {
   const { editor } = useDocumentContext();
   const { showToast } = useToasts();
@@ -84,6 +90,8 @@ function CommentThreadItem({
   const [data, setData] = React.useState(toJS(comment.data));
   const showAuthor = firstOfAuthor;
   const showTime = useShowTime(comment.createdAt, previousCommentCreatedAt);
+  const showEdited =
+    comment.updatedAt && comment.updatedAt !== comment.createdAt;
   const [isEditing, setEditing, setReadOnly] = useBoolean();
   const formRef = React.useRef<HTMLFormElement>(null);
 
@@ -138,6 +146,7 @@ function CommentThreadItem({
         $firstOfAuthor={firstOfAuthor}
         $lastOfThread={lastOfThread}
         $dir={dir}
+        $canReply={canReply}
         column
       >
         {(showAuthor || showTime) && (
@@ -151,6 +160,16 @@ function CommentThreadItem({
                 addSuffix
                 shorten
               />
+            )}
+            {showEdited && (
+              <>
+                {" "}
+                (
+                <Time dateTime={comment.updatedAt} tooltipDelay={500}>
+                  {t("edited")}
+                </Time>
+                )
+              </>
             )}
           </Meta>
         )}
@@ -197,6 +216,10 @@ const StyledCommentEditor = styled(CommentEditor)`
       margin: 2px;
       margin-bottom: 8px;
     `}
+
+  .mention {
+    background: ${(props) => darken(0.05, props.theme.mentionBackground)};
+  }
 `;
 
 const AvatarSpacer = styled(Flex)`
@@ -220,9 +243,9 @@ const Menu = styled(CommentMenu)<{ dir?: "rtl" | "ltr" }>`
   top: 4px;
   opacity: 0;
   transition: opacity 100ms ease-in-out;
+  color: ${s("textSecondary")};
 
-  &:hover,
-  &[aria-expanded="true"] {
+  &: ${hover}, &[aria-expanded= "true"] {
     opacity: 1;
     background: ${s("sidebarActiveBackground")};
   }
@@ -241,12 +264,13 @@ export const Bubble = styled(Flex)<{
   $firstOfThread?: boolean;
   $firstOfAuthor?: boolean;
   $lastOfThread?: boolean;
+  $canReply?: boolean;
   $focused?: boolean;
   $dir?: "rtl" | "ltr";
 }>`
   position: relative;
   flex-grow: 1;
-  font-size: 15px;
+  font-size: 16px;
   color: ${s("text")};
   background: ${s("commentBackground")};
   min-width: 2em;
@@ -254,8 +278,9 @@ export const Bubble = styled(Flex)<{
   padding: 8px 12px;
   transition: color 100ms ease-out, ${s("backgroundTransition")};
 
-  ${({ $lastOfThread }) =>
+  ${({ $lastOfThread, $canReply }) =>
     $lastOfThread &&
+    !$canReply &&
     "border-bottom-left-radius: 8px; border-bottom-right-radius: 8px"};
 
   ${({ $firstOfThread }) =>
@@ -271,9 +296,13 @@ export const Bubble = styled(Flex)<{
     margin-bottom: 0;
   }
 
-  &:hover ${Menu} {
+  &: ${hover} ${Menu} {
     opacity: 1;
   }
+
+  ${breakpoint("tablet")`
+    font-size: 15px;
+  `}
 `;
 
 export default observer(CommentThreadItem);

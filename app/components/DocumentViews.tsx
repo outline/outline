@@ -33,9 +33,10 @@ function DocumentViews({ document, isOpen }: Props) {
     documentViews,
     (view) => !presentIds.includes(view.user.id)
   );
-  const users = React.useMemo(() => sortedViews.map((v) => v.user), [
-    sortedViews,
-  ]);
+  const users = React.useMemo(
+    () => sortedViews.map((v) => v.user),
+    [sortedViews]
+  );
 
   return (
     <>

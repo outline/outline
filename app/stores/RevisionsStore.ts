@@ -47,6 +47,16 @@ export default class RevisionsStore extends BaseStore<Revision> {
     return revisions;
   }
 
+  /**
+   * Fetches the latest revision for the given document.
+   *
+   * @returns A promise that resolves to the latest revision for the given document
+   */
+  fetchLatest = async (documentId: string) => {
+    const res = await client.post(`/revisions.info`, { documentId });
+    return this.add(res.data);
+  };
+
   @action
   fetchPage = async (
     options: PaginationParams | undefined

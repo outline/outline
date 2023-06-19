@@ -152,7 +152,9 @@ function StarredLink({ star }: Props) {
       return null;
     }
 
-    const collection = collections.get(document.collectionId);
+    const collection = document.collectionId
+      ? collections.get(document.collectionId)
+      : undefined;
     const childDocuments = collection
       ? collection.getDocumentChildren(documentId)
       : [];

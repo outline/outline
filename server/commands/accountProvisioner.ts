@@ -112,7 +112,11 @@ async function accountProvisioner({
     }
 
     if (!result) {
-      throw InvalidAuthenticationError(err.message);
+      if (err.id) {
+        throw err;
+      } else {
+        throw InvalidAuthenticationError(err.message);
+      }
     }
   }
 

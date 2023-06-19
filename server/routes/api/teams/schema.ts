@@ -9,7 +9,7 @@ export const TeamsUpdateSchema = BaseSchema.extend({
     /** Avatar URL */
     avatarUrl: z.string().optional(),
     /** The subdomain to access the team */
-    subdomain: z.string().optional(),
+    subdomain: z.string().nullish(),
     /** Whether public sharing is enabled */
     sharing: z.boolean().optional(),
     /** Whether siginin with email is enabled */

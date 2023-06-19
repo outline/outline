@@ -9,11 +9,14 @@ import Editor from "~/components/Editor";
 import useStores from "~/hooks/useStores";
 
 type Props = {
+  /* The document associated with the editor, if any */
+  id?: string;
+  /* The URL we want a preview for */
   url: string;
   children: (content: React.ReactNode) => React.ReactNode;
 };
 
-function HoverPreviewDocument({ url, children }: Props) {
+function HoverPreviewDocument({ url, id, children }: Props) {
   const { documents } = useStores();
   const slug = parseDocumentSlug(url);
 
@@ -22,7 +25,7 @@ function HoverPreviewDocument({ url, children }: Props) {
   }
 
   const document = slug ? documents.getByUrl(slug) : undefined;
-  if (!document) {
+  if (!document || document.id === id) {
     return null;
   }
 

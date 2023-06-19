@@ -16,7 +16,6 @@ import {
   IsIn,
   IsEmail,
   IsBoolean,
-  Contains,
   MaxLength,
 } from "class-validator";
 import { languages } from "@shared/i18n";
@@ -344,9 +343,8 @@ export class Environment {
   public RELEASE = this.toOptionalString(process.env.RELEASE);
 
   /**
-   * A Google Analytics tracking ID, supports only v3 properties.
+   * A Google Analytics tracking ID, supports v3 or v4 properties.
    */
-  @Contains("UA-")
   @IsOptional()
   public GOOGLE_ANALYTICS_ID = this.toOptionalString(
     process.env.GOOGLE_ANALYTICS_ID
@@ -399,10 +397,9 @@ export class Environment {
   );
 
   /**
-   * This is injected into the HTML page headers for Slack.
+   * This is used to verify webhook requests received from Slack.
    */
   @IsOptional()
-  @CannotUseWithout("SLACK_CLIENT_ID")
   public SLACK_VERIFICATION_TOKEN = this.toOptionalString(
     process.env.SLACK_VERIFICATION_TOKEN
   );

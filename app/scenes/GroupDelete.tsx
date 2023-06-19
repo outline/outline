@@ -7,7 +7,7 @@ import Button from "~/components/Button";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import useToasts from "~/hooks/useToasts";
-import { groupSettingsPath } from "~/utils/routeHelpers";
+import { settingsPath } from "~/utils/routeHelpers";
 
 type Props = {
   group: Group;
@@ -26,7 +26,7 @@ function GroupDelete({ group, onSubmit }: Props) {
 
     try {
       await group.delete();
-      history.push(groupSettingsPath());
+      history.push(settingsPath("groups"));
       onSubmit();
     } catch (err) {
       showToast(err.message, {

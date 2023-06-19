@@ -67,12 +67,12 @@ function Shares() {
   }, [shares.orderedData, shareIds]);
 
   return (
-    <Scene title={t("Shared Links")} icon={<LinkIcon color="currentColor" />}>
+    <Scene title={t("Shared Links")} icon={<LinkIcon />}>
       <Heading>{t("Shared Links")}</Heading>
 
       {can.manage && !canShareDocuments && (
         <>
-          <Notice icon={<WarningIcon color="currentColor" />}>
+          <Notice icon={<WarningIcon />}>
             {t("Sharing is currently disabled.")}{" "}
             <Trans
               defaults="You can globally enable and disable public document sharing in the <em>security settings</em>."

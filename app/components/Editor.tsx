@@ -26,11 +26,12 @@ import useToasts from "~/hooks/useToasts";
 import { NotFoundError } from "~/utils/errors";
 import { uploadFile } from "~/utils/files";
 import { isModKey } from "~/utils/keyboard";
+import lazyWithRetry from "~/utils/lazyWithRetry";
 import { sharedDocumentPath } from "~/utils/routeHelpers";
 import { isHash } from "~/utils/urls";
 import DocumentBreadcrumb from "./DocumentBreadcrumb";
 
-const LazyLoadedEditor = React.lazy(() => import("~/editor"));
+const LazyLoadedEditor = lazyWithRetry(() => import("~/editor"));
 
 export type Props = Optional<
   EditorProps,
@@ -47,7 +48,7 @@ export type Props = Optional<
   onHeadingsChange?: (headings: Heading[]) => void;
   onSynced?: () => Promise<void>;
   onPublish?: (event: React.MouseEvent) => any;
-  bottomPadding?: string;
+  editorStyle?: React.CSSProperties;
 };
 
 function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
@@ -67,10 +68,8 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   const localRef = React.useRef<SharedEditor>();
   const preferences = auth.user?.preferences;
   const previousHeadings = React.useRef<Heading[] | null>(null);
-  const [
-    activeLinkElement,
-    setActiveLink,
-  ] = React.useState<HTMLAnchorElement | null>(null);
+  const [activeLinkElement, setActiveLink] =
+    React.useState<HTMLAnchorElement | null>(null);
   const previousCommentIds = React.useRef<string[]>();
 
   const handleLinkActive = React.useCallback((element: HTMLAnchorElement) => {
@@ -340,16 +339,17 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
           placeholder={props.placeholder || ""}
           defaultValue={props.defaultValue || ""}
         />
-        {props.bottomPadding && !props.readOnly && (
+        {props.editorStyle?.paddingBottom && !props.readOnly && (
           <ClickablePadding
             onClick={focusAtEnd}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
-            minHeight={props.bottomPadding}
+            minHeight={props.editorStyle.paddingBottom}
           />
         )}
         {activeLinkElement && !shareId && (
           <HoverPreview
+            id={props.id}
             element={activeLinkElement}
             onClose={handleLinkInactive}
           />

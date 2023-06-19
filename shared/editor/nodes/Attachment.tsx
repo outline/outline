@@ -84,7 +84,7 @@ export default class Attachment extends Node {
         isSelected={isSelected}
         theme={theme}
       >
-        {node.attrs.href && <DownloadIcon color="currentColor" size={20} />}
+        {node.attrs.href && <DownloadIcon size={20} />}
       </Widget>
     );
   }

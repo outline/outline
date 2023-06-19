@@ -80,10 +80,7 @@ function GoogleAnalytics() {
   );
 
   return (
-    <Scene
-      title={t("Google Analytics")}
-      icon={<GoogleIcon color="currentColor" />}
-    >
+    <Scene title={t("Google Analytics")} icon={<GoogleIcon />}>
       <Heading>{t("Google Analytics")}</Heading>
 
       <Text type="secondary">

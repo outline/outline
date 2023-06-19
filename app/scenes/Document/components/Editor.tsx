@@ -11,10 +11,12 @@ import { RefHandle } from "~/components/ContentEditable";
 import Editor, { Props as EditorProps } from "~/components/Editor";
 import Flex from "~/components/Flex";
 import useFocusedComment from "~/hooks/useFocusedComment";
+import useMobile from "~/hooks/useMobile";
+import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
 import {
-  documentHistoryUrl,
-  documentUrl,
+  documentHistoryPath,
+  documentPath,
   matchDocumentHistory,
 } from "~/utils/routeHelpers";
 import { useDocumentContext } from "../../../components/DocumentContext";
@@ -24,7 +26,7 @@ import EditableTitle from "./EditableTitle";
 
 const extensions = withComments(richExtensions);
 
-type Props = Omit<EditorProps, "extensions"> & {
+type Props = Omit<EditorProps, "extensions" | "editorStyle"> & {
   onChangeTitle: (text: string) => void;
   id: string;
   document: Document;
@@ -46,6 +48,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
   const titleRef = React.useRef<RefHandle>(null);
   const { t } = useTranslation();
   const match = useRouteMatch();
+  const isMobile = useMobile();
   const focusedComment = useFocusedComment();
   const { ui, comments, auth } = useStores();
   const { user, team } = auth;
@@ -60,6 +63,7 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
     multiplayer,
     ...rest
   } = props;
+  const can = usePolicy(document.id);
 
   const childRef = React.useRef<HTMLDivElement>(null);
   const focusAtStart = React.useCallback(() => {
@@ -67,6 +71,12 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
       ref.current.focusAtStart();
     }
   }, [ref]);
+
+  React.useEffect(() => {
+    if (focusedComment) {
+      ui.expandComments(document.id);
+    }
+  }, [focusedComment, ui, document.id]);
 
   // Save document when blurring title, but delay so that if clicking on a
   // button this is allowed to execute first.
@@ -89,13 +99,12 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
 
   const handleClickComment = React.useCallback(
     (commentId: string) => {
-      ui.expandComments(document.id);
       history.replace({
         pathname: window.location.pathname.replace(/\/history$/, ""),
         state: { commentId },
       });
     },
-    [ui, document.id, history]
+    [history]
   );
 
   // Create a Comment model in local store when a comment mark is created, this
@@ -117,13 +126,12 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
       comment.id = commentId;
       comments.add(comment);
 
-      ui.expandComments(document.id);
       history.replace({
         pathname: window.location.pathname.replace(/\/history$/, ""),
         state: { commentId },
       });
     },
-    [comments, user?.id, props.id, ui, document.id, history]
+    [comments, user?.id, props.id, history]
   );
 
   // Soft delete the Comment model when associated mark is totally removed.
@@ -159,8 +167,8 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
           document={document}
           to={
             match.path === matchDocumentHistory
-              ? documentUrl(document)
-              : documentHistoryUrl(document)
+              ? documentPath(document)
+              : documentHistoryPath(document)
           }
           rtl={
             titleRef.current?.getComputedDirection() === "rtl" ? true : false
@@ -178,17 +186,23 @@ function DocumentEditor(props: Props, ref: React.RefObject<any>) {
         focusedCommentId={focusedComment?.id}
         onClickCommentMark={handleClickComment}
         onCreateCommentMark={
-          team?.getPreference(TeamPreference.Commenting)
+          team?.getPreference(TeamPreference.Commenting) && can.comment
             ? handleDraftComment
             : undefined
         }
         onDeleteCommentMark={
-          team?.getPreference(TeamPreference.Commenting)
+          team?.getPreference(TeamPreference.Commenting) && can.comment
             ? handleRemoveComment
             : undefined
         }
         extensions={extensions}
-        bottomPadding={`calc(50vh - ${childRef.current?.offsetHeight || 0}px)`}
+        editorStyle={{
+          padding: document.fullWidth || isMobile ? "0 32px" : "0 64px",
+          margin: document.fullWidth || isMobile ? "0 -32px" : "0 -64px",
+          paddingBottom: `calc(50vh - ${
+            childRef.current?.offsetHeight || 0
+          }px)`,
+        }}
         {...rest}
       />
       <div ref={childRef}>{children}</div>

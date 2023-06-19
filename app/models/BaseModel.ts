@@ -1,5 +1,6 @@
 import { pick } from "lodash";
 import { set, observable } from "mobx";
+import Logger from "~/utils/Logger";
 import { getFieldsForModel } from "./decorators/Field";
 
 export default abstract class BaseModel {
@@ -59,7 +60,6 @@ export default abstract class BaseModel {
   };
 
   updateFromJson = (data: any) => {
-    // const isNew = !data.id && !this.id && this.isNew;
     set(this, { ...data, isNew: false });
     this.persistedAttributes = this.toAPI();
   };
@@ -126,7 +126,7 @@ export default abstract class BaseModel {
     const attributes = this.toAPI();
 
     if (Object.keys(attributes).length === 0) {
-      console.warn("Checking dirty on model with no @Field decorators");
+      Logger.warn("Checking dirty on model with no @Field decorators");
     }
 
     return (

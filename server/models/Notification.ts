@@ -1,3 +1,4 @@
+import crypto from "crypto";
 import type { SaveOptions } from "sequelize";
 import {
   Table,
@@ -11,10 +12,12 @@ import {
   DataType,
   Default,
   AllowNull,
-  AfterSave,
   Scopes,
+  AfterCreate,
+  DefaultScope,
 } from "sequelize-typescript";
 import { NotificationEventType } from "@shared/types";
+import env from "@server/env";
 import Collection from "./Collection";
 import Comment from "./Comment";
 import Document from "./Document";
@@ -32,10 +35,17 @@ import Fix from "./decorators/Fix";
       },
     ],
   },
-  withUser: {
+  withDocument: {
     include: [
       {
-        association: "user",
+        association: "document",
+      },
+    ],
+  },
+  withComment: {
+    include: [
+      {
+        association: "comment",
       },
     ],
   },
@@ -46,6 +56,26 @@ import Fix from "./decorators/Fix";
       },
     ],
   },
+  withUser: {
+    include: [
+      {
+        association: "user",
+      },
+    ],
+  },
+}))
+@DefaultScope(() => ({
+  include: [
+    {
+      association: "document",
+    },
+    {
+      association: "comment",
+    },
+    {
+      association: "actor",
+    },
+  ],
 }))
 @Table({
   tableName: "notifications",
@@ -66,7 +96,11 @@ class Notification extends Model {
 
   @AllowNull
   @Column
-  viewedAt: Date;
+  viewedAt: Date | null;
+
+  @AllowNull
+  @Column
+  archivedAt: Date | null;
 
   @CreatedAt
   createdAt: Date;
@@ -130,7 +164,7 @@ class Notification extends Model {
   @Column(DataType.UUID)
   teamId: string;
 
-  @AfterSave
+  @AfterCreate
   static async createEvent(
     model: Notification,
     options: SaveOptions<Notification>
@@ -149,6 +183,18 @@ class Notification extends Model {
       return;
     }
     await Event.schedule(params);
+  }
+
+  /**
+   * Returns a token that can be used to mark this notification as read
+   * without being logged in.
+   *
+   * @returns A string token
+   */
+  public get pixelToken() {
+    const hash = crypto.createHash("sha256");
+    hash.update(`${this.id}-${env.SECRET_KEY}`);
+    return hash.digest("hex");
   }
 }
 

@@ -76,7 +76,7 @@ export type ActionContext = {
   isCommandBar: boolean;
   isButton: boolean;
   inStarredSection?: boolean;
-  activeCollectionId: string | undefined;
+  activeCollectionId?: string | null;
   activeDocumentId: string | undefined;
   currentUserId: string | undefined;
   currentTeamId: string | undefined;
@@ -202,3 +202,7 @@ export type WebsocketEvent =
   | WebsocketCollectionUpdateIndexEvent
   | WebsocketEntityDeletedEvent
   | WebsocketEntitiesEvent;
+
+export type AwarenessChangeEvent = {
+  states: { user?: { id: string }; cursor: any; scrollY: number | undefined }[];
+};

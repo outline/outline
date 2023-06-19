@@ -38,9 +38,11 @@ function Security() {
     inviteRequired: team.inviteRequired,
   });
 
-  const { data: providers, loading, request } = useRequest(() =>
-    authenticationProviders.fetchPage({})
-  );
+  const {
+    data: providers,
+    loading,
+    request,
+  } = useRequest(() => authenticationProviders.fetchPage({}));
 
   React.useEffect(() => {
     if (!providers && !loading) {
@@ -137,7 +139,7 @@ function Security() {
   );
 
   return (
-    <Scene title={t("Security")} icon={<PadlockIcon color="currentColor" />}>
+    <Scene title={t("Security")} icon={<PadlockIcon />}>
       <Heading>{t("Security")}</Heading>
       <Text type="secondary">
         <Trans>
@@ -155,8 +157,7 @@ function Security() {
             key={provider.name}
             label={
               <Flex gap={8} align="center">
-                <PluginIcon id={provider.name} color="currentColor" />{" "}
-                {provider.displayName}
+                <PluginIcon id={provider.name} /> {provider.displayName}
               </Flex>
             }
             name={provider.name}
@@ -178,7 +179,7 @@ function Security() {
       <SettingRow
         label={
           <Flex gap={8} align="center">
-            <EmailIcon color="currentColor" /> {t("Email")}
+            <EmailIcon /> {t("Email")}
           </Flex>
         }
         name="guestSignin"
@@ -265,7 +266,7 @@ function Security() {
       >
         <Switch
           id={TeamPreference.ViewersCanExport}
-          checked={team.getPreference(TeamPreference.ViewersCanExport, true)}
+          checked={team.getPreference(TeamPreference.ViewersCanExport)}
           onChange={handlePreferenceChange}
         />
       </SettingRow>

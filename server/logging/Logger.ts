@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { IncomingMessage } from "http";
 import chalk from "chalk";
 import { isEmpty, isArray, isObject, isString } from "lodash";
@@ -170,12 +171,12 @@ class Logger {
 
     if (isString(input)) {
       if (sensitiveFields.some((field) => input.includes(field))) {
-        return ("[Filtered]" as any) as T;
+        return "[Filtered]" as any as T;
       }
     }
 
     if (isArray(input)) {
-      return (input.map(this.sanitize) as any) as T;
+      return input.map(this.sanitize) as any as T;
     }
 
     if (isObject(input)) {

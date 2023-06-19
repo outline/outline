@@ -1,7 +1,5 @@
 ARG APP_PATH=/opt/outline
-FROM node:16.14.2-alpine3.15 AS deps
-
-RUN apk --no-cache add curl
+FROM node:18-alpine AS deps
 
 ARG APP_PATH
 WORKDIR $APP_PATH

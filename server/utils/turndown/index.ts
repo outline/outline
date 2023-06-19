@@ -3,6 +3,7 @@ import TurndownService from "turndown";
 import breaks from "./breaks";
 import confluenceCodeBlock from "./confluence-code-block";
 import confluenceTaskList from "./confluence-task-list";
+import emptyLists from "./empty-lists";
 import images from "./images";
 
 /**
@@ -27,6 +28,7 @@ const service = new TurndownService({
   .use(confluenceTaskList)
   .use(confluenceCodeBlock)
   .use(images)
-  .use(breaks);
+  .use(breaks)
+  .use(emptyLists);
 
 export default service;

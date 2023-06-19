@@ -287,7 +287,8 @@ export default class ImportNotionTask extends ImportTask {
   /**
    * Regex to find markdown images of all types
    */
-  private ImageRegex = /!\[(?<alt>[^\][]*?)]\((?<filename>[^\][]*?)(?=“|\))“?(?<title>[^\][”]+)?”?\)/g;
+  private ImageRegex =
+    /!\[(?<alt>[^\][]*?)]\((?<filename>[^\][]*?)(?=“|\))“?(?<title>[^\][”]+)?”?\)/g;
 
   /**
    * Regex to find markdown links containing ID's that look like UUID's with the
@@ -298,5 +299,6 @@ export default class ImportNotionTask extends ImportTask {
   /**
    * Regex to find Notion document UUID's in the title of a document.
    */
-  private NotionUUIDRegex = /\s([0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}|[0-9a-fA-F]{32})$/;
+  private NotionUUIDRegex =
+    /\s([0-9a-fA-F]{8}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{4}\b-[0-9a-fA-F]{12}|[0-9a-fA-F]{32})$/;
 }

@@ -1,8 +1,7 @@
-import { EditorState } from "prosemirror-state";
+import { Command } from "prosemirror-state";
 import { liftTarget } from "prosemirror-transform";
-import { Dispatch } from "../types";
 
-const clearNodes = () => (state: EditorState, dispatch?: Dispatch) => {
+const clearNodes = (): Command => (state, dispatch) => {
   const { tr } = state;
   const { selection } = tr;
   const { ranges } = selection;
