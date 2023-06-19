@@ -97,7 +97,9 @@ export default abstract class ExportTask extends BaseTask<Props> {
       throw error;
     } finally {
       if (filePath) {
-        await fs.promises.unlink(filePath);
+        await fs.promises.unlink(filePath).catch((error) => {
+          Logger.error("Failed to delete temporary file ${filePath}", error);
+        });
       }
     }
   }
