@@ -157,7 +157,7 @@
     "prosemirror-keymap": "^1.2.2",
     "prosemirror-markdown": "^1.11.0",
     "prosemirror-model": "^1.19.2",
-    "prosemirror-schema-list": "^1.2.3",
+    "prosemirror-schema-list": "^1.3.0",
     "prosemirror-state": "^1.4.3",
     "prosemirror-tables": "^1.3.2",
     "prosemirror-transform": "^1.7.3",
