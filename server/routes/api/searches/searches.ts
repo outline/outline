@@ -1,10 +1,11 @@
 import Router from "koa-router";
 import auth from "@server/middlewares/authentication";
+import validate from "@server/middlewares/validate";
 import { SearchQuery } from "@server/models";
 import { presentSearchQuery } from "@server/presenters";
 import { APIContext } from "@server/types";
-import { assertPresent, assertUuid } from "@server/validation";
-import pagination from "./middlewares/pagination";
+import pagination from "../middlewares/pagination";
+import * as T from "./schema";
 
 const router = new Router();
 
@@ -26,24 +27,26 @@ router.post("searches.list", auth(), pagination(), async (ctx: APIContext) => {
   };
 });
 
-router.post("searches.delete", auth(), async (ctx: APIContext) => {
-  const { id, query } = ctx.request.body;
-  assertPresent(id || query, "id or query is required");
-  if (id) {
-    assertUuid(id, "id is must be a uuid");
+router.post(
+  "searches.delete",
+  auth(),
+  validate(T.SearchesDeleteSchema),
+  async (ctx: APIContext<T.SearchesDeleteReq>) => {
+    const { id, query } = ctx.input.body;
+
+    const { user } = ctx.state.auth;
+
+    await SearchQuery.destroy({
+      where: {
+        ...(id ? { id } : { query }),
+        userId: user.id,
+      },
+    });
+
+    ctx.body = {
+      success: true,
+    };
   }
-
-  const { user } = ctx.state.auth;
-  await SearchQuery.destroy({
-    where: {
-      ...(id ? { id } : { query }),
-      userId: user.id,
-    },
-  });
-
-  ctx.body = {
-    success: true,
-  };
-});
+);
 
 export default router;
