@@ -9,6 +9,7 @@ type Props = {
   href: string;
   isSelected: boolean;
   children?: React.ReactNode;
+  onMouseDown?: React.MouseEventHandler<HTMLAnchorElement>;
 };
 
 export default function Widget(props: Props & ThemeProps<DefaultTheme>) {
@@ -19,6 +20,7 @@ export default function Widget(props: Props & ThemeProps<DefaultTheme>) {
       }
       href={props.href}
       rel="noreferrer nofollow"
+      onMouseDown={props.onMouseDown}
     >
       {props.icon}
       <Preview>

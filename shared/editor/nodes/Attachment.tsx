@@ -1,6 +1,7 @@
 import Token from "markdown-it/lib/token";
 import { DownloadIcon } from "outline-icons";
 import { NodeSpec, NodeType, Node as ProsemirrorNode } from "prosemirror-model";
+import { NodeSelection } from "prosemirror-state";
 import * as React from "react";
 import { Trans } from "react-i18next";
 import { bytesToHumanReadable } from "../../utils/files";
@@ -66,12 +67,23 @@ export default class Attachment extends Node {
     };
   }
 
-  component({ isSelected, theme, node }: ComponentProps) {
+  handleSelect =
+    ({ getPos }: { getPos: () => number }) =>
+    () => {
+      const { view } = this.editor;
+      const $pos = view.state.doc.resolve(getPos());
+      const transaction = view.state.tr.setSelection(new NodeSelection($pos));
+      view.dispatch(transaction);
+    };
+
+  component = (props: ComponentProps) => {
+    const { isSelected, theme, node } = props;
     return (
       <Widget
         icon={<FileExtension title={node.attrs.title} />}
         href={node.attrs.href}
         title={node.attrs.title}
+        onMouseDown={this.handleSelect(props)}
         context={
           node.attrs.href ? (
             bytesToHumanReadable(node.attrs.size)
@@ -87,7 +99,7 @@ export default class Attachment extends Node {
         {node.attrs.href && <DownloadIcon size={20} />}
       </Widget>
     );
-  }
+  };
 
   commands({ type }: { type: NodeType }) {
     return (attrs: Record<string, any>) => toggleWrap(type, attrs);
