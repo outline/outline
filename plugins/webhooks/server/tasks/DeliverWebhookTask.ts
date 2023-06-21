@@ -515,16 +515,26 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
     subscription: WebhookSubscription,
     event: RevisionEvent
   ): Promise<void> {
-    const model = await Revision.findByPk(event.modelId, {
-      paranoid: false,
-    });
+    const [model, document] = await Promise.all([
+      Revision.findByPk(event.modelId, {
+        paranoid: false,
+      }),
+      Document.findByPk(event.documentId, {
+        paranoid: false,
+      }),
+    ]);
+
+    const data = {
+      ...(model ? await presentRevision(model) : {}),
+      collectionId: document ? document.collectionId : undefined,
+    };
 
     await this.sendWebhook({
       event,
       subscription,
       payload: {
         id: event.modelId,
-        model: model && (await presentRevision(model)),
+        model: data,
       },
     });
   }
