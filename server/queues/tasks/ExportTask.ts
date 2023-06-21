@@ -40,7 +40,7 @@ export default abstract class ExportTask extends BaseTask<Props> {
       },
     });
 
-    let filePath;
+    let filePath: string | undefined;
 
     try {
       Logger.info("task", `ExportTask processing data for ${fileOperationId}`);
