@@ -25,7 +25,11 @@ export default class ExportJSONTask extends ExportTask {
 
     // serial to avoid overloading, slow and steady wins the race
     for (const collection of collections) {
-      await this.addCollectionToArchive(zip, collection);
+      await this.addCollectionToArchive(
+        zip,
+        collection,
+        fileOperation.includeAttachments
+      );
     }
 
     await this.addMetadataToArchive(zip, fileOperation);
@@ -52,7 +56,11 @@ export default class ExportJSONTask extends ExportTask {
     );
   }
 
-  private async addCollectionToArchive(zip: JSZip, collection: Collection) {
+  private async addCollectionToArchive(
+    zip: JSZip,
+    collection: Collection,
+    includeAttachments: boolean
+  ) {
     const output: CollectionJSONExport = {
       collection: {
         ...omit(presentCollection(collection), ["url"]),
@@ -75,12 +83,14 @@ export default class ExportJSONTask extends ExportTask {
           continue;
         }
 
-        const attachments = await Attachment.findAll({
-          where: {
-            teamId: document.teamId,
-            id: parseAttachmentIds(document.text),
-          },
-        });
+        const attachments = includeAttachments
+          ? await Attachment.findAll({
+              where: {
+                teamId: document.teamId,
+                id: parseAttachmentIds(document.text),
+              },
+            })
+          : [];
 
         await Promise.all(
           attachments.map(async (attachment) => {

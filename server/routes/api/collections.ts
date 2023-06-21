@@ -49,6 +49,7 @@ import {
   assertHexColor,
   assertIndexCharacters,
   assertCollectionPermission,
+  assertBoolean,
 } from "@server/validation";
 import pagination from "./middlewares/pagination";
 
@@ -562,10 +563,14 @@ router.post(
   auth(),
   async (ctx: APIContext) => {
     const { id } = ctx.request.body;
-    const { format = FileOperationFormat.MarkdownZip } = ctx.request.body;
+    const {
+      format = FileOperationFormat.MarkdownZip,
+      includeAttachments = true,
+    } = ctx.request.body;
 
     assertUuid(id, "id is required");
     assertIn(format, Object.values(FileOperationFormat), "Invalid format");
+    assertBoolean(includeAttachments, "includeAttachments must be a boolean");
 
     const { user } = ctx.state.auth;
     const team = await Team.findByPk(user.teamId);
@@ -582,6 +587,7 @@ router.post(
         user,
         team,
         format,
+        includeAttachments,
         ip: ctx.request.ip,
         transaction,
       })
@@ -601,18 +607,23 @@ router.post(
   rateLimiter(RateLimiterStrategy.FivePerHour),
   auth(),
   async (ctx: APIContext) => {
-    const { format = FileOperationFormat.MarkdownZip } = ctx.request.body;
+    const {
+      format = FileOperationFormat.MarkdownZip,
+      includeAttachments = true,
+    } = ctx.request.body;
     const { user } = ctx.state.auth;
     const team = await Team.findByPk(user.teamId);
     authorize(user, "createExport", team);
 
     assertIn(format, Object.values(FileOperationFormat), "Invalid format");
+    assertBoolean(includeAttachments, "includeAttachments must be a boolean");
 
     const fileOperation = await sequelize.transaction(async (transaction) =>
       collectionExporter({
         user,
         team,
         format,
+        includeAttachments,
         ip: ctx.request.ip,
         transaction,
       })

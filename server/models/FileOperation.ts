@@ -58,6 +58,9 @@ class FileOperation extends IdModel {
   @Column(DataType.BIGINT)
   size: number;
 
+  @Column(DataType.BOOLEAN)
+  includeAttachments: boolean;
+
   /**
    * Mark the current file operation as expired and remove the file from storage.
    */
