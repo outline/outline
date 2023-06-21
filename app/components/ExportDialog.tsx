@@ -21,6 +21,8 @@ function ExportDialog({ collection, onSubmit }: Props) {
   const [format, setFormat] = React.useState<FileOperationFormat>(
     FileOperationFormat.MarkdownZip
   );
+  const [includeAttachments, setIncludeAttachments] =
+    React.useState<boolean>(true);
   const user = useCurrentUser();
   const { showToast } = useToasts();
   const { collections } = useStores();
@@ -34,11 +36,18 @@ function ExportDialog({ collection, onSubmit }: Props) {
     []
   );
 
+  const handleIncludeAttachmentsChange = React.useCallback(
+    (ev: React.ChangeEvent<HTMLInputElement>) => {
+      setIncludeAttachments(ev.target.checked);
+    },
+    []
+  );
+
   const handleSubmit = async () => {
     if (collection) {
-      await collection.export(format);
+      await collection.export(format, includeAttachments);
     } else {
-      await collections.export(format);
+      await collections.export(format, includeAttachments);
     }
     onSubmit();
     showToast(t("Export started"), { type: "success" });
@@ -107,6 +116,23 @@ function ExportDialog({ collection, onSubmit }: Props) {
           </Option>
         ))}
       </Flex>
+      <hr />
+      <Option>
+        <input
+          type="checkbox"
+          name="includeAttachments"
+          checked={includeAttachments}
+          onChange={handleIncludeAttachmentsChange}
+        />
+        <div>
+          <Text size="small" weight="bold">
+            {t("Include attachments")}
+          </Text>
+          <Text size="small">
+            {t("Including uploaded images and files in the exported data")}.
+          </Text>{" "}
+        </div>
+      </Option>
     </ConfirmationDialog>
   );
 }

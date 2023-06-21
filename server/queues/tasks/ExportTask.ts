@@ -41,7 +41,9 @@ export default abstract class ExportTask extends BaseTask<Props> {
     });
 
     try {
-      Logger.info("task", `ExportTask processing data for ${fileOperationId}`);
+      Logger.info("task", `ExportTask processing data for ${fileOperationId}`, {
+        includeAttachments: fileOperation.includeAttachments,
+      });
 
       await this.updateFileOperation(fileOperation, {
         state: FileOperationState.Creating,

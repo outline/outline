@@ -13,6 +13,7 @@ type Props = {
   team: Team;
   user: User;
   format?: FileOperationFormat;
+  includeAttachments?: boolean;
   ip: string;
   transaction: Transaction;
 };
@@ -22,6 +23,7 @@ async function collectionExporter({
   team,
   user,
   format = FileOperationFormat.MarkdownZip,
+  includeAttachments = true,
   ip,
   transaction,
 }: Props) {
@@ -36,6 +38,7 @@ async function collectionExporter({
       url: null,
       size: 0,
       collectionId,
+      includeAttachments,
       userId: user.id,
       teamId: user.teamId,
     },
