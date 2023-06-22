@@ -1,7 +1,7 @@
 import { isEmpty } from "lodash";
 import isUUID from "validator/lib/isUUID";
 import { z } from "zod";
-import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
+import { SHARE_URL_SLUG_REGEX, SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
 import BaseSchema from "../BaseSchema";
 
 export const SharesInfoSchema = BaseSchema.extend({
@@ -60,7 +60,19 @@ export const SharesListSchema = BaseSchema.extend({
 
 export type SharesListReq = z.infer<typeof SharesListSchema>;
 
-export const SharesUpdateSchema = BaseSchema.extend({});
+export const SharesUpdateSchema = BaseSchema.extend({
+  body: z.object({
+    id: z.string().uuid(),
+    includeChildDocuments: z.boolean().optional(),
+    published: z.boolean().optional(),
+    urlId: z
+      .string()
+      .regex(SHARE_URL_SLUG_REGEX, {
+        message: "must contain only aphanumeric and dashes",
+      })
+      .nullish(),
+  }),
+});
 
 export type SharesUpdateReq = z.infer<typeof SharesUpdateSchema>;
 

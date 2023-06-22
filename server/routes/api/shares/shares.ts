@@ -162,58 +162,62 @@ router.post(
   }
 );
 
-router.post("shares.update", auth(), async (ctx: APIContext) => {
-  const { id, includeChildDocuments, published, urlId } = ctx.request.body;
-  assertUuid(id, "id is required");
+router.post(
+  "shares.update",
+  auth(),
+  validate(T.SharesUpdateSchema),
+  async (ctx: APIContext<T.SharesUpdateReq>) => {
+    const { id, includeChildDocuments, published, urlId } = ctx.input.body;
 
-  const { user } = ctx.state.auth;
-  const team = await Team.findByPk(user.teamId);
-  authorize(user, "share", team);
+    const { user } = ctx.state.auth;
+    const team = await Team.findByPk(user.teamId);
+    authorize(user, "share", team);
 
-  // fetch the share with document and collection.
-  const share = await Share.scope({
-    method: ["withCollectionPermissions", user.id],
-  }).findByPk(id);
+    // fetch the share with document and collection.
+    const share = await Share.scope({
+      method: ["withCollectionPermissions", user.id],
+    }).findByPk(id);
 
-  authorize(user, "update", share);
+    authorize(user, "update", share);
 
-  if (published !== undefined) {
-    share.published = published;
+    if (published !== undefined) {
+      share.published = published;
 
-    // Reset nested document sharing when unpublishing a share link. So that
-    // If it's ever re-published this doesn't immediately share nested docs
-    // without forewarning the user
-    if (!published) {
-      share.includeChildDocuments = false;
+      // Reset nested document sharing when unpublishing a share link. So that
+      // If it's ever re-published this doesn't immediately share nested docs
+      // without forewarning the user
+      if (!published) {
+        share.includeChildDocuments = false;
+      }
     }
+
+    if (includeChildDocuments !== undefined) {
+      share.includeChildDocuments = includeChildDocuments;
+    }
+
+    if (!isUndefined(urlId)) {
+      share.urlId = urlId;
+    }
+
+    await share.save();
+    await Event.create({
+      name: "shares.update",
+      documentId: share.documentId,
+      modelId: share.id,
+      teamId: user.teamId,
+      actorId: user.id,
+      data: {
+        published,
+      },
+      ip: ctx.request.ip,
+    });
+
+    ctx.body = {
+      data: presentShare(share, user.isAdmin),
+      policies: presentPolicies(user, [share]),
+    };
   }
-
-  if (includeChildDocuments !== undefined) {
-    share.includeChildDocuments = includeChildDocuments;
-  }
-
-  if (!isUndefined(urlId)) {
-    share.urlId = urlId;
-  }
-
-  await share.save();
-  await Event.create({
-    name: "shares.update",
-    documentId: share.documentId,
-    modelId: share.id,
-    teamId: user.teamId,
-    actorId: user.id,
-    data: {
-      published,
-    },
-    ip: ctx.request.ip,
-  });
-
-  ctx.body = {
-    data: presentShare(share, user.isAdmin),
-    policies: presentPolicies(user, [share]),
-  };
-});
+);
 
 router.post("shares.create", auth(), async (ctx: APIContext) => {
   const { documentId } = ctx.request.body;

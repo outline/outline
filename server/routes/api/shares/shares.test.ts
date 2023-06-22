@@ -551,8 +551,21 @@ describe("#shares.update", () => {
     const body = await res.json();
     expect(res.status).toEqual(400);
     expect(body.message).toEqual(
-      "Must be only alphanumeric and dashes (urlId)"
+      "urlId: must contain only aphanumeric and dashes"
     );
+  });
+
+  it("should fail with status 400 bad request when id is missing", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/shares.update", {
+      body: {
+        token: user.getJwtToken(),
+        urlId: "url-id",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("id: Required");
   });
 
   it("should update urlId", async () => {
