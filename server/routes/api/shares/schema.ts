@@ -76,7 +76,15 @@ export const SharesUpdateSchema = BaseSchema.extend({
 
 export type SharesUpdateReq = z.infer<typeof SharesUpdateSchema>;
 
-export const SharesCreateSchema = BaseSchema.extend({});
+export const SharesCreateSchema = BaseSchema.extend({
+  body: z.object({
+    documentId: z
+      .string()
+      .refine((val) => isUUID(val) || SLUG_URL_REGEX.test(val), {
+        message: "must be uuid or url slug",
+      }),
+  }),
+});
 
 export type SharesCreateReq = z.infer<typeof SharesCreateSchema>;
 

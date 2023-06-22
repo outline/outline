@@ -153,6 +153,31 @@ describe("#shares.list", () => {
 });
 
 describe("#shares.create", () => {
+  it("should fail with status 400 bad request when documentId is missing", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/shares.create", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("documentId: Required");
+  });
+
+  it("should fail with status 400 bad request when documentId is invalid", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/shares.create", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: "id",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("documentId: must be uuid or url slug");
+  });
+
   it("should allow creating a share record for document", async () => {
     const { user, document } = await seed();
     const res = await server.post("/api/shares.create", {
