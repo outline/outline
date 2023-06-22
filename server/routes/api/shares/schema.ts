@@ -88,6 +88,10 @@ export const SharesCreateSchema = BaseSchema.extend({
 
 export type SharesCreateReq = z.infer<typeof SharesCreateSchema>;
 
-export const SharesRevokeSchema = BaseSchema.extend({});
+export const SharesRevokeSchema = BaseSchema.extend({
+  body: z.object({
+    id: z.string().uuid(),
+  }),
+});
 
 export type SharesRevokeReq = z.infer<typeof SharesRevokeSchema>;

@@ -734,6 +734,18 @@ describe("#shares.update", () => {
 });
 
 describe("#shares.revoke", () => {
+  it("should fail with status 400 bad request when id is missing", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/shares.revoke", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("id: Required");
+  });
+
   it("should allow author to revoke a share", async () => {
     const { user, document } = await seed();
     const share = await buildShare({

@@ -8,7 +8,6 @@ import { Document, User, Event, Share, Team, Collection } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentShare, presentPolicies } from "@server/presenters";
 import { APIContext } from "@server/types";
-import { assertUuid } from "@server/validation";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -274,37 +273,40 @@ router.post(
   }
 );
 
-router.post("shares.revoke", auth(), async (ctx: APIContext) => {
-  const { id } = ctx.request.body;
-  assertUuid(id, "id is required");
+router.post(
+  "shares.revoke",
+  auth(),
+  validate(T.SharesRevokeSchema),
+  async (ctx: APIContext<T.SharesRevokeReq>) => {
+    const { id } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const share = await Share.findByPk(id);
 
-  const { user } = ctx.state.auth;
-  const share = await Share.findByPk(id);
+    if (!share?.document) {
+      throw NotFoundError();
+    }
 
-  if (!share?.document) {
-    throw NotFoundError();
+    authorize(user, "revoke", share);
+    const { document } = share;
+
+    await share.revoke(user.id);
+    await Event.create({
+      name: "shares.revoke",
+      documentId: document.id,
+      collectionId: document.collectionId,
+      modelId: share.id,
+      teamId: user.teamId,
+      actorId: user.id,
+      data: {
+        name: document.title,
+      },
+      ip: ctx.request.ip,
+    });
+
+    ctx.body = {
+      success: true,
+    };
   }
-
-  authorize(user, "revoke", share);
-  const { document } = share;
-
-  await share.revoke(user.id);
-  await Event.create({
-    name: "shares.revoke",
-    documentId: document.id,
-    collectionId: document.collectionId,
-    modelId: share.id,
-    teamId: user.teamId,
-    actorId: user.id,
-    data: {
-      name: document.title,
-    },
-    ip: ctx.request.ip,
-  });
-
-  ctx.body = {
-    success: true,
-  };
-});
+);
 
 export default router;
