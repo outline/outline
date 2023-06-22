@@ -13,6 +13,21 @@ import { seed, getTestServer } from "@server/test/support";
 const server = getTestServer();
 
 describe("#shares.list", () => {
+  it("should fail with status 400 bad request when an invalid sort value is suppled", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/shares.list", {
+      body: {
+        token: user.getJwtToken(),
+        sort: "foo",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual(
+      "sort: must be one of createdAt, updatedAt, revokedAt, published, lastAccessedAt, views"
+    );
+  });
+
   it("should only return shares created by user", async () => {
     const { user, admin, document } = await seed();
     await buildShare({

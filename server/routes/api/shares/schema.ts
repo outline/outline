@@ -25,7 +25,38 @@ export const SharesInfoSchema = BaseSchema.extend({
 
 export type SharesInfoReq = z.infer<typeof SharesInfoSchema>;
 
-export const SharesListSchema = BaseSchema.extend({});
+export const SharesListSchema = BaseSchema.extend({
+  body: z.object({
+    sort: z
+      .string()
+      .refine(
+        (val) =>
+          [
+            "createdAt",
+            "updatedAt",
+            "revokedAt",
+            "published",
+            "lastAccessedAt",
+            "views",
+          ].includes(val),
+        {
+          message: `must be one of ${[
+            "createdAt",
+            "updatedAt",
+            "revokedAt",
+            "published",
+            "lastAccessedAt",
+            "views",
+          ].join(", ")}`,
+        }
+      )
+      .default("updatedAt"),
+    direction: z
+      .string()
+      .optional()
+      .transform((val) => (val !== "ASC" ? "DESC" : val)),
+  }),
+});
 
 export type SharesListReq = z.infer<typeof SharesListSchema>;
 

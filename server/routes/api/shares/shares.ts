@@ -8,7 +8,7 @@ import { Document, User, Event, Share, Team, Collection } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentShare, presentPolicies } from "@server/presenters";
 import { APIContext } from "@server/types";
-import { assertUuid, assertSort, assertPresent } from "@server/validation";
+import { assertUuid, assertPresent } from "@server/validation";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -92,75 +92,75 @@ router.post(
   }
 );
 
-router.post("shares.list", auth(), pagination(), async (ctx: APIContext) => {
-  let { direction } = ctx.request.body;
-  const { sort = "updatedAt" } = ctx.request.body;
-  if (direction !== "ASC") {
-    direction = "DESC";
-  }
-  assertSort(sort, Share);
+router.post(
+  "shares.list",
+  auth(),
+  pagination(),
+  validate(T.SharesListSchema),
+  async (ctx: APIContext<T.SharesListReq>) => {
+    const { sort, direction } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const where: WhereOptions<Share> = {
+      teamId: user.teamId,
+      userId: user.id,
+      published: true,
+      revokedAt: {
+        [Op.is]: null,
+      },
+    };
 
-  const { user } = ctx.state.auth;
-  const where: WhereOptions<Share> = {
-    teamId: user.teamId,
-    userId: user.id,
-    published: true,
-    revokedAt: {
-      [Op.is]: null,
-    },
-  };
+    if (user.isAdmin) {
+      delete where.userId;
+    }
 
-  if (user.isAdmin) {
-    delete where.userId;
-  }
+    const collectionIds = await user.collectionIds();
 
-  const collectionIds = await user.collectionIds();
-
-  const [shares, total] = await Promise.all([
-    Share.findAll({
-      where,
-      order: [[sort, direction]],
-      include: [
-        {
-          model: Document,
-          required: true,
-          paranoid: true,
-          as: "document",
-          where: {
-            collectionId: collectionIds,
-          },
-          include: [
-            {
-              model: Collection.scope({
-                method: ["withMembership", user.id],
-              }),
-              as: "collection",
+    const [shares, total] = await Promise.all([
+      Share.findAll({
+        where,
+        order: [[sort, direction]],
+        include: [
+          {
+            model: Document,
+            required: true,
+            paranoid: true,
+            as: "document",
+            where: {
+              collectionId: collectionIds,
             },
-          ],
-        },
-        {
-          model: User,
-          required: true,
-          as: "user",
-        },
-        {
-          model: Team,
-          required: true,
-          as: "team",
-        },
-      ],
-      offset: ctx.state.pagination.offset,
-      limit: ctx.state.pagination.limit,
-    }),
-    Share.count({ where }),
-  ]);
+            include: [
+              {
+                model: Collection.scope({
+                  method: ["withMembership", user.id],
+                }),
+                as: "collection",
+              },
+            ],
+          },
+          {
+            model: User,
+            required: true,
+            as: "user",
+          },
+          {
+            model: Team,
+            required: true,
+            as: "team",
+          },
+        ],
+        offset: ctx.state.pagination.offset,
+        limit: ctx.state.pagination.limit,
+      }),
+      Share.count({ where }),
+    ]);
 
-  ctx.body = {
-    pagination: { ...ctx.state.pagination, total },
-    data: shares.map((share) => presentShare(share, user.isAdmin)),
-    policies: presentPolicies(user, shares),
-  };
-});
+    ctx.body = {
+      pagination: { ...ctx.state.pagination, total },
+      data: shares.map((share) => presentShare(share, user.isAdmin)),
+      policies: presentPolicies(user, shares),
+    };
+  }
+);
 
 router.post("shares.update", auth(), async (ctx: APIContext) => {
   const { id, includeChildDocuments, published, urlId } = ctx.request.body;
