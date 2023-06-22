@@ -30,7 +30,20 @@ class Logger {
 
   public constructor() {
     this.output = winston.createLogger({
-      level: env.LOG_LEVEL,
+      // The check for log level validity is here in addition to the ENV validation
+      // as entering an incorrect LOG_LEVEL in env could otherwise prevent the
+      // related error message from being displayed.
+      level: [
+        "error",
+        "warn",
+        "info",
+        "http",
+        "verbose",
+        "debug",
+        "silly",
+      ].includes(env.LOG_LEVEL)
+        ? env.LOG_LEVEL
+        : "info",
     });
     this.output.add(
       new winston.transports.Console({
