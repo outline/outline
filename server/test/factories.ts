@@ -29,6 +29,7 @@ import {
   Subscription,
   Notification,
   SearchQuery,
+  Pin,
 } from "@server/models";
 
 let count = 1;
@@ -547,4 +548,27 @@ export async function buildSearchQuery(
   }
 
   return SearchQuery.create(overrides);
+}
+
+export async function buildPin(overrides: Partial<Pin> = {}): Promise<Pin> {
+  if (!overrides.teamId) {
+    const team = await buildTeam();
+    overrides.teamId = team.id;
+  }
+
+  if (!overrides.createdById) {
+    const user = await buildUser({
+      teamId: overrides.teamId,
+    });
+    overrides.createdById = user.id;
+  }
+
+  if (!overrides.documentId) {
+    const document = await buildDocument({
+      teamId: overrides.teamId,
+    });
+    overrides.documentId = document.id;
+  }
+
+  return Pin.create(overrides);
 }
