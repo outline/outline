@@ -3,95 +3,94 @@ import { isUndefined } from "lodash";
 import { Op, WhereOptions } from "sequelize";
 import { NotFoundError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
+import validate from "@server/middlewares/validate";
 import { Document, User, Event, Share, Team, Collection } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentShare, presentPolicies } from "@server/presenters";
 import { APIContext } from "@server/types";
 import { assertUuid, assertSort, assertPresent } from "@server/validation";
-import pagination from "./middlewares/pagination";
+import pagination from "../middlewares/pagination";
+import * as T from "./schema";
 
 const router = new Router();
 
-router.post("shares.info", auth(), async (ctx: APIContext) => {
-  const { id, documentId } = ctx.request.body;
-  assertPresent(id || documentId, "id or documentId is required");
-  if (id) {
-    assertUuid(id, "id is must be a uuid");
-  }
-  if (documentId) {
-    assertUuid(documentId, "documentId is must be a uuid");
-  }
-
-  const { user } = ctx.state.auth;
-  const shares = [];
-  const share = await Share.scope({
-    method: ["withCollectionPermissions", user.id],
-  }).findOne({
-    where: id
-      ? {
-          id,
-          revokedAt: {
-            [Op.is]: null,
-          },
-        }
-      : {
-          documentId,
-          teamId: user.teamId,
-          revokedAt: {
-            [Op.is]: null,
-          },
-        },
-  });
-
-  // We return the response for the current documentId and any parent documents
-  // that are publicly shared and accessible to the user
-  if (share && share.document) {
-    authorize(user, "read", share);
-    shares.push(share);
-  }
-
-  if (documentId) {
-    const document = await Document.findByPk(documentId, {
-      userId: user.id,
-    });
-    authorize(user, "read", document);
-
-    const collection = await document.$get("collection");
-    const parentIds = collection?.getDocumentParents(documentId);
-    const parentShare = parentIds
-      ? await Share.scope({
-          method: ["withCollectionPermissions", user.id],
-        }).findOne({
-          where: {
-            documentId: parentIds,
+router.post(
+  "shares.info",
+  auth(),
+  validate(T.SharesInfoSchema),
+  async (ctx: APIContext<T.SharesInfoReq>) => {
+    const { id, documentId } = ctx.input.body;
+    const { user } = ctx.state.auth;
+    const shares = [];
+    const share = await Share.scope({
+      method: ["withCollectionPermissions", user.id],
+    }).findOne({
+      where: id
+        ? {
+            id,
+            revokedAt: {
+              [Op.is]: null,
+            },
+          }
+        : {
+            documentId,
             teamId: user.teamId,
             revokedAt: {
               [Op.is]: null,
             },
-            includeChildDocuments: true,
-            published: true,
           },
-        })
-      : undefined;
+    });
 
-    if (parentShare && parentShare.document) {
-      authorize(user, "read", parentShare);
-      shares.push(parentShare);
+    // We return the response for the current documentId and any parent documents
+    // that are publicly shared and accessible to the user
+    if (share && share.document) {
+      authorize(user, "read", share);
+      shares.push(share);
     }
-  }
 
-  if (!shares.length) {
-    ctx.response.status = 204;
-    return;
-  }
+    if (documentId) {
+      const document = await Document.findByPk(documentId, {
+        userId: user.id,
+      });
+      authorize(user, "read", document);
 
-  ctx.body = {
-    data: {
-      shares: shares.map((share) => presentShare(share, user.isAdmin)),
-    },
-    policies: presentPolicies(user, shares),
-  };
-});
+      const collection = await document.$get("collection");
+      const parentIds = collection?.getDocumentParents(documentId);
+      const parentShare = parentIds
+        ? await Share.scope({
+            method: ["withCollectionPermissions", user.id],
+          }).findOne({
+            where: {
+              documentId: parentIds,
+              teamId: user.teamId,
+              revokedAt: {
+                [Op.is]: null,
+              },
+              includeChildDocuments: true,
+              published: true,
+            },
+          })
+        : undefined;
+
+      if (parentShare && parentShare.document) {
+        authorize(user, "read", parentShare);
+        shares.push(parentShare);
+      }
+    }
+
+    if (!shares.length) {
+      ctx.response.status = 204;
+      return;
+    }
+
+    ctx.body = {
+      data: {
+        shares: shares.map((share) => presentShare(share, user.isAdmin)),
+      },
+      policies: presentPolicies(user, shares),
+    };
+  }
+);
 
 router.post("shares.list", auth(), pagination(), async (ctx: APIContext) => {
   let { direction } = ctx.request.body;
