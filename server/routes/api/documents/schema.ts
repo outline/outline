@@ -203,6 +203,9 @@ export const DocumentsUpdateSchema = BaseSchema.extend({
 
     /** Version of the API to be used */
     apiVersion: z.number().optional(),
+
+    /** Whether the editing session is complete */
+    done: z.boolean().optional(),
   }),
 }).refine((req) => !(req.body.append && !req.body.text), {
   message: "text is required while appending",

@@ -899,6 +899,7 @@ router.post(
       collectionId,
       append,
       apiVersion,
+      done,
     } = ctx.input.body;
     const editorVersion = ctx.headers["x-editor-version"] as string | undefined;
     const { user } = ctx.state.auth;
@@ -937,6 +938,7 @@ router.post(
         templateId,
         editorVersion,
         transaction,
+        done,
         ip: ctx.request.ip,
       });
 
