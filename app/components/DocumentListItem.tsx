@@ -261,7 +261,6 @@ const Heading = styled.h3<{ rtl?: boolean }>`
   height: 24px;
   margin-top: 0;
   margin-bottom: 0.25em;
-  overflow: hidden;
   white-space: nowrap;
   color: ${s("text")};
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
