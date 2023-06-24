@@ -75,7 +75,7 @@ class Frame extends React.Component<PropsWithRef> {
           <Iframe
             ref={forwardedRef}
             $withBar={withBar}
-            sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-downloads"
+            sandbox="allow-same-origin allow-scripts allow-popups allow-forms allow-downloads allow-storage-access-by-user-activation"
             width={width}
             height={height}
             frameBorder="0"
