@@ -19,6 +19,7 @@ import go from "refractor/lang/go";
 import graphql from "refractor/lang/graphql";
 import groovy from "refractor/lang/groovy";
 import haskell from "refractor/lang/haskell";
+import hcl from "refractor/lang/hcl";
 import ini from "refractor/lang/ini";
 import java from "refractor/lang/java";
 import javascript from "refractor/lang/javascript";
@@ -78,6 +79,7 @@ const DEFAULT_LANGUAGE = "javascript";
   graphql,
   groovy,
   haskell,
+  hcl,
   ini,
   java,
   javascript,

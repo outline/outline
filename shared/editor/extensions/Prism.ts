@@ -17,6 +17,7 @@ export const LANGUAGES = {
   graphql: "GraphQL",
   groovy: "Groovy",
   haskell: "Haskell",
+  hcl: "HCL",
   markup: "HTML",
   ini: "INI",
   java: "Java",
