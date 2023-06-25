@@ -1,5 +1,5 @@
 import { CollectionPermission } from "@shared/types";
-import { CollectionUser } from "@server/models";
+import { CollectionUser, Share } from "@server/models";
 import {
   buildUser,
   buildDocument,
@@ -13,6 +13,21 @@ import { seed, getTestServer } from "@server/test/support";
 const server = getTestServer();
 
 describe("#shares.list", () => {
+  it("should fail with status 400 bad request when an invalid sort value is suppled", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/shares.list", {
+      body: {
+        token: user.getJwtToken(),
+        sort: "foo",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual(
+      `sort: must be one of ${Object.keys(Share.getAttributes()).join(", ")}`
+    );
+  });
+
   it("should only return shares created by user", async () => {
     const { user, admin, document } = await seed();
     await buildShare({
@@ -138,6 +153,31 @@ describe("#shares.list", () => {
 });
 
 describe("#shares.create", () => {
+  it("should fail with status 400 bad request when documentId is missing", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/shares.create", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("documentId: Required");
+  });
+
+  it("should fail with status 400 bad request when documentId is invalid", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/shares.create", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: "id",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("documentId: must be uuid or url slug");
+  });
+
   it("should allow creating a share record for document", async () => {
     const { user, document } = await seed();
     const res = await server.post("/api/shares.create", {
@@ -296,6 +336,118 @@ describe("#shares.create", () => {
 });
 
 describe("#shares.info", () => {
+  it("should fail with status 400 bad request when id and documentId both are missing", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/shares.info", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("body: id or documentId is required");
+  });
+
+  it("should fail with status 400 bad request when documentId is invalid", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/shares.info", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: "id",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("documentId: must be uuid or url slug");
+  });
+
+  it("should not find share by documentId in private collection", async () => {
+    const admin = await buildAdmin();
+    const collection = await buildCollection({
+      permission: null,
+      teamId: admin.teamId,
+    });
+    const document = await buildDocument({
+      collectionId: collection.id,
+      userId: admin.id,
+      teamId: admin.teamId,
+    });
+    const user = await buildUser({
+      teamId: admin.teamId,
+    });
+    await buildShare({
+      documentId: document.id,
+      teamId: admin.teamId,
+      userId: admin.id,
+    });
+    const res = await server.post("/api/shares.info", {
+      body: {
+        token: user.getJwtToken(),
+        documentId: document.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should require authentication", async () => {
+    const { user, document } = await seed();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const res = await server.post("/api/shares.info", {
+      body: {
+        id: share.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(401);
+    expect(body).toMatchSnapshot();
+  });
+
+  it("should require authorization", async () => {
+    const { admin, document } = await seed();
+    const user = await buildUser();
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: admin.teamId,
+      userId: admin.id,
+    });
+    const res = await server.post("/api/shares.info", {
+      body: {
+        token: user.getJwtToken(),
+        id: share.id,
+      },
+    });
+    expect(res.status).toEqual(403);
+  });
+
+  it("should succeed with status 200 ok", async () => {
+    const user = await buildUser();
+    const document = await buildDocument({
+      createdById: user.id,
+      teamId: user.teamId,
+    });
+    const share = await buildShare({
+      documentId: document.id,
+      teamId: user.teamId,
+      userId: user.id,
+    });
+    const res = await server.post("/api/shares.info", {
+      body: {
+        token: user.getJwtToken(),
+        id: share.id,
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(200);
+    expect(body.data).toBeTruthy();
+    expect(body.data.shares).toBeTruthy();
+    expect(body.data.shares).toHaveLength(1);
+    expect(body.data.shares[0].id).toEqual(share.id);
+  });
+
   it("should allow reading share by documentId", async () => {
     const { user, document } = await seed();
     const share = await buildShare({
@@ -407,68 +559,6 @@ describe("#shares.info", () => {
   });
 });
 
-it("should not find share by documentId in private collection", async () => {
-  const admin = await buildAdmin();
-  const collection = await buildCollection({
-    permission: null,
-    teamId: admin.teamId,
-  });
-  const document = await buildDocument({
-    collectionId: collection.id,
-    userId: admin.id,
-    teamId: admin.teamId,
-  });
-  const user = await buildUser({
-    teamId: admin.teamId,
-  });
-  await buildShare({
-    documentId: document.id,
-    teamId: admin.teamId,
-    userId: admin.id,
-  });
-  const res = await server.post("/api/shares.info", {
-    body: {
-      token: user.getJwtToken(),
-      documentId: document.id,
-    },
-  });
-  expect(res.status).toEqual(403);
-});
-
-it("should require authentication", async () => {
-  const { user, document } = await seed();
-  const share = await buildShare({
-    documentId: document.id,
-    teamId: user.teamId,
-    userId: user.id,
-  });
-  const res = await server.post("/api/shares.info", {
-    body: {
-      id: share.id,
-    },
-  });
-  const body = await res.json();
-  expect(res.status).toEqual(401);
-  expect(body).toMatchSnapshot();
-});
-
-it("should require authorization", async () => {
-  const { admin, document } = await seed();
-  const user = await buildUser();
-  const share = await buildShare({
-    documentId: document.id,
-    teamId: admin.teamId,
-    userId: admin.id,
-  });
-  const res = await server.post("/api/shares.info", {
-    body: {
-      token: user.getJwtToken(),
-      id: share.id,
-    },
-  });
-  expect(res.status).toEqual(403);
-});
-
 describe("#shares.update", () => {
   it("should fail for invalid urlId", async () => {
     const { user, document } = await seed();
@@ -486,8 +576,21 @@ describe("#shares.update", () => {
     const body = await res.json();
     expect(res.status).toEqual(400);
     expect(body.message).toEqual(
-      "Must be only alphanumeric and dashes (urlId)"
+      "urlId: must contain only alphanumeric and dashes"
     );
+  });
+
+  it("should fail with status 400 bad request when id is missing", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/shares.update", {
+      body: {
+        token: user.getJwtToken(),
+        urlId: "url-id",
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("id: Required");
   });
 
   it("should update urlId", async () => {
@@ -631,6 +734,18 @@ describe("#shares.update", () => {
 });
 
 describe("#shares.revoke", () => {
+  it("should fail with status 400 bad request when id is missing", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/shares.revoke", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("id: Required");
+  });
+
   it("should allow author to revoke a share", async () => {
     const { user, document } = await seed();
     const share = await buildShare({
