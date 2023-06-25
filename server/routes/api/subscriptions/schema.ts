@@ -15,3 +15,16 @@ export const SubscriptionsListSchema = BaseSchema.extend({
 });
 
 export type SubscriptionsListReq = z.infer<typeof SubscriptionsListSchema>;
+
+export const SubscriptionsInfoSchema = BaseSchema.extend({
+  body: z.object({
+    documentId: z
+      .string()
+      .refine((val) => isUUID(val) || SLUG_URL_REGEX.test(val), {
+        message: "must be uuid or url slug",
+      }),
+    event: z.literal("documents.update"),
+  }),
+});
+
+export type SubscriptionsInfoReq = z.infer<typeof SubscriptionsInfoSchema>;

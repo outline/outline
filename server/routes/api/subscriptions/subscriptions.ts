@@ -45,36 +45,33 @@ router.post(
   }
 );
 
-router.post("subscriptions.info", auth(), async (ctx: APIContext) => {
-  const { user } = ctx.state.auth;
-  const { documentId, event } = ctx.request.body;
+router.post(
+  "subscriptions.info",
+  auth(),
+  validate(T.SubscriptionsInfoSchema),
+  async (ctx: APIContext<T.SubscriptionsInfoReq>) => {
+    const { user } = ctx.state.auth;
+    const { documentId, event } = ctx.input.body;
 
-  assertUuid(documentId, "documentId is required");
+    const document = await Document.findByPk(documentId, { userId: user.id });
 
-  assertIn(
-    event,
-    ["documents.update"],
-    "Not a valid subscription event for documents"
-  );
+    authorize(user, "read", document);
 
-  const document = await Document.findByPk(documentId, { userId: user.id });
+    // There can be only one subscription with these props.
+    const subscription = await Subscription.findOne({
+      where: {
+        userId: user.id,
+        documentId: document.id,
+        event,
+      },
+      rejectOnEmpty: true,
+    });
 
-  authorize(user, "read", document);
-
-  // There can be only one subscription with these props.
-  const subscription = await Subscription.findOne({
-    where: {
-      userId: user.id,
-      documentId: document.id,
-      event,
-    },
-    rejectOnEmpty: true,
-  });
-
-  ctx.body = {
-    data: presentSubscription(subscription),
-  };
-});
+    ctx.body = {
+      data: presentSubscription(subscription),
+    };
+  }
+);
 
 router.post(
   "subscriptions.create",
