@@ -93,13 +93,17 @@ async function start(id: number, disconnect: () => void) {
     try {
       await sequelize.query("SELECT 1");
     } catch (err) {
-      throw new Error("Database connection failed");
+      Logger.error("Database connection failed", err);
+      ctx.status = 500;
+      return;
     }
 
     try {
       await RedisAdapter.defaultClient.ping();
     } catch (err) {
-      throw new Error("Redis ping failed");
+      Logger.error("Redis ping failed", err);
+      ctx.status = 500;
+      return;
     }
 
     ctx.body = "OK";
