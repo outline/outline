@@ -107,6 +107,18 @@ describe("#stars.update", () => {
 });
 
 describe("#stars.delete", () => {
+  it("should fail with status 400 bad request when id is missing", async () => {
+    const user = await buildUser();
+    const res = await server.post("/api/stars.delete", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual("id: Required");
+  });
+
   it("should delete users star", async () => {
     const user = await buildUser();
     const star = await buildStar({

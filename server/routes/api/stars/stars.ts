@@ -15,7 +15,6 @@ import {
 } from "@server/presenters";
 import { APIContext } from "@server/types";
 import { starIndexing } from "@server/utils/indexing";
-import { assertUuid } from "@server/validation";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -144,19 +143,23 @@ router.post(
   }
 );
 
-router.post("stars.delete", auth(), async (ctx: APIContext) => {
-  const { id } = ctx.request.body;
-  assertUuid(id, "id is required");
+router.post(
+  "stars.delete",
+  auth(),
+  validate(T.StarsDeleteSchema),
+  async (ctx: APIContext<T.StarsDeleteReq>) => {
+    const { id } = ctx.input.body;
 
-  const { user } = ctx.state.auth;
-  const star = await Star.findByPk(id);
-  authorize(user, "delete", star);
+    const { user } = ctx.state.auth;
+    const star = await Star.findByPk(id);
+    authorize(user, "delete", star);
 
-  await starDestroyer({ user, star, ip: ctx.request.ip });
+    await starDestroyer({ user, star, ip: ctx.request.ip });
 
-  ctx.body = {
-    success: true,
-  };
-});
+    ctx.body = {
+      success: true,
+    };
+  }
+);
 
 export default router;

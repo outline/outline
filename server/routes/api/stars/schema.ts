@@ -48,3 +48,11 @@ export const StarsUpdateSchema = BaseSchema.extend({
 });
 
 export type StarsUpdateReq = z.infer<typeof StarsUpdateSchema>;
+
+export const StarsDeleteSchema = BaseSchema.extend({
+  body: z.object({
+    id: z.string().uuid(),
+  }),
+});
+
+export type StarsDeleteReq = z.infer<typeof StarsDeleteSchema>;
