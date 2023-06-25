@@ -1,5 +1,5 @@
 import { CollectionPermission } from "@shared/types";
-import { CollectionUser } from "@server/models";
+import { CollectionUser, Share } from "@server/models";
 import {
   buildUser,
   buildDocument,
@@ -24,7 +24,7 @@ describe("#shares.list", () => {
     const body = await res.json();
     expect(res.status).toEqual(400);
     expect(body.message).toEqual(
-      "sort: must be one of createdAt, updatedAt, revokedAt, published, lastAccessedAt, views"
+      `sort: must be one of ${Object.keys(Share.getAttributes()).join(", ")}`
     );
   });
 
@@ -576,7 +576,7 @@ describe("#shares.update", () => {
     const body = await res.json();
     expect(res.status).toEqual(400);
     expect(body.message).toEqual(
-      "urlId: must contain only aphanumeric and dashes"
+      "urlId: must contain only alphanumeric and dashes"
     );
   });
 

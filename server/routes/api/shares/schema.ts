@@ -2,6 +2,7 @@ import { isEmpty } from "lodash";
 import isUUID from "validator/lib/isUUID";
 import { z } from "zod";
 import { SHARE_URL_SLUG_REGEX, SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
+import { Share } from "@server/models";
 import BaseSchema from "../BaseSchema";
 
 export const SharesInfoSchema = BaseSchema.extend({
@@ -29,27 +30,11 @@ export const SharesListSchema = BaseSchema.extend({
   body: z.object({
     sort: z
       .string()
-      .refine(
-        (val) =>
-          [
-            "createdAt",
-            "updatedAt",
-            "revokedAt",
-            "published",
-            "lastAccessedAt",
-            "views",
-          ].includes(val),
-        {
-          message: `must be one of ${[
-            "createdAt",
-            "updatedAt",
-            "revokedAt",
-            "published",
-            "lastAccessedAt",
-            "views",
-          ].join(", ")}`,
-        }
-      )
+      .refine((val) => Object.keys(Share.getAttributes()).includes(val), {
+        message: `must be one of ${Object.keys(Share.getAttributes()).join(
+          ", "
+        )}`,
+      })
       .default("updatedAt"),
     direction: z
       .string()
@@ -68,7 +53,7 @@ export const SharesUpdateSchema = BaseSchema.extend({
     urlId: z
       .string()
       .regex(SHARE_URL_SLUG_REGEX, {
-        message: "must contain only aphanumeric and dashes",
+        message: "must contain only alphanumeric and dashes",
       })
       .nullish(),
   }),
