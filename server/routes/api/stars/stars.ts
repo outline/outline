@@ -5,6 +5,7 @@ import starDestroyer from "@server/commands/starDestroyer";
 import starUpdater from "@server/commands/starUpdater";
 import { sequelize } from "@server/database/sequelize";
 import auth from "@server/middlewares/authentication";
+import validate from "@server/middlewares/validate";
 import { Document, Star, Collection } from "@server/models";
 import { authorize } from "@server/policies";
 import {
@@ -15,53 +16,49 @@ import {
 import { APIContext } from "@server/types";
 import { starIndexing } from "@server/utils/indexing";
 import { assertUuid, assertIndexCharacters } from "@server/validation";
-import pagination from "./middlewares/pagination";
+import pagination from "../middlewares/pagination";
+import * as T from "./schema";
 
 const router = new Router();
 
-router.post("stars.create", auth(), async (ctx: APIContext) => {
-  const { documentId, collectionId } = ctx.request.body;
-  const { index } = ctx.request.body;
-  const { user } = ctx.state.auth;
+router.post(
+  "stars.create",
+  auth(),
+  validate(T.StarsCreateSchema),
+  async (ctx: APIContext<T.StarsCreateReq>) => {
+    const { documentId, collectionId, index } = ctx.input.body;
+    const { user } = ctx.state.auth;
 
-  assertUuid(
-    documentId || collectionId,
-    "documentId or collectionId is required"
-  );
+    if (documentId) {
+      const document = await Document.findByPk(documentId, {
+        userId: user.id,
+      });
+      authorize(user, "star", document);
+    }
 
-  if (documentId) {
-    const document = await Document.findByPk(documentId, {
-      userId: user.id,
-    });
-    authorize(user, "star", document);
+    if (collectionId) {
+      const collection = await Collection.scope({
+        method: ["withMembership", user.id],
+      }).findByPk(collectionId);
+      authorize(user, "star", collection);
+    }
+
+    const star = await sequelize.transaction(async (transaction) =>
+      starCreator({
+        user,
+        documentId,
+        collectionId,
+        ip: ctx.request.ip,
+        index,
+        transaction,
+      })
+    );
+    ctx.body = {
+      data: presentStar(star),
+      policies: presentPolicies(user, [star]),
+    };
   }
-
-  if (collectionId) {
-    const collection = await Collection.scope({
-      method: ["withMembership", user.id],
-    }).findByPk(collectionId);
-    authorize(user, "star", collection);
-  }
-
-  if (index) {
-    assertIndexCharacters(index);
-  }
-
-  const star = await sequelize.transaction(async (transaction) =>
-    starCreator({
-      user,
-      documentId,
-      collectionId,
-      ip: ctx.request.ip,
-      index,
-      transaction,
-    })
-  );
-  ctx.body = {
-    data: presentStar(star),
-    policies: presentPolicies(user, [star]),
-  };
-});
+);
 
 router.post("stars.list", auth(), pagination(), async (ctx: APIContext) => {
   const { user } = ctx.state.auth;

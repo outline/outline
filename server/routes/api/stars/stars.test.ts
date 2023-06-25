@@ -4,6 +4,22 @@ import { getTestServer } from "@server/test/support";
 const server = getTestServer();
 
 describe("#stars.create", () => {
+  it("should fail with status 400 bad request when both documentId and collectionId are missing", async () => {
+    const user = await buildUser();
+
+    const res = await server.post("/api/stars.create", {
+      body: {
+        token: user.getJwtToken(),
+      },
+    });
+
+    const body = await res.json();
+    expect(res.status).toEqual(400);
+    expect(body.message).toEqual(
+      "body: one of documentId or collectionId is required"
+    );
+  });
+
   it("should create a star", async () => {
     const user = await buildUser();
     const document = await buildDocument({
