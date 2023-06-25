@@ -54,6 +54,7 @@ export default async function documentUpdater({
   ip,
 }: Props): Promise<Document> {
   const previousTitle = document.title;
+  const cId = collectionId || document.collectionId;
 
   if (title !== undefined) {
     document.title = title.trim();
@@ -76,7 +77,7 @@ export default async function documentUpdater({
   const event = {
     name: "documents.update",
     documentId: document.id,
-    collectionId: document.collectionId,
+    collectionId: cId,
     teamId: document.teamId,
     actorId: user.id,
     data: {
@@ -85,11 +86,11 @@ export default async function documentUpdater({
     ip,
   };
 
-  if (publish && collectionId) {
+  if (publish && cId) {
     if (!document.collectionId) {
-      document.collectionId = collectionId;
+      document.collectionId = cId;
     }
-    await document.publish(user.id, collectionId, { transaction });
+    await document.publish(user.id, cId, { transaction });
 
     await Event.create(
       {
@@ -111,7 +112,7 @@ export default async function documentUpdater({
     await Event.schedule({
       name: "documents.title_change",
       documentId: document.id,
-      collectionId: document.collectionId,
+      collectionId: cId,
       teamId: document.teamId,
       actorId: user.id,
       data: {
