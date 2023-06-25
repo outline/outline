@@ -41,3 +41,11 @@ export const SubscriptionsCreateSchema = BaseSchema.extend({
 });
 
 export type SubscriptionsCreateReq = z.infer<typeof SubscriptionsCreateSchema>;
+
+export const SubscriptionsDeleteSchema = BaseSchema.extend({
+  body: z.object({
+    id: z.string().uuid(),
+  }),
+});
+
+export type SubscriptionsDeleteReq = z.infer<typeof SubscriptionsDeleteSchema>;

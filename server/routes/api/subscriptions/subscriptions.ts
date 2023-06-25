@@ -8,7 +8,6 @@ import { Subscription, Document } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentSubscription } from "@server/presenters";
 import { APIContext } from "@server/types";
-import { assertUuid } from "@server/validation";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -107,13 +106,12 @@ router.post(
 router.post(
   "subscriptions.delete",
   auth(),
+  validate(T.SubscriptionsDeleteSchema),
   transaction(),
-  async (ctx: APIContext) => {
+  async (ctx: APIContext<T.SubscriptionsDeleteReq>) => {
     const { auth, transaction } = ctx.state;
     const { user } = auth;
-    const { id } = ctx.request.body;
-
-    assertUuid(id, "id is required");
+    const { id } = ctx.input.body;
 
     const subscription = await Subscription.findByPk(id, {
       rejectOnEmpty: true,
