@@ -15,7 +15,7 @@ import {
 } from "@server/presenters";
 import { APIContext } from "@server/types";
 import { starIndexing } from "@server/utils/indexing";
-import { assertUuid, assertIndexCharacters } from "@server/validation";
+import { assertUuid } from "@server/validation";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -119,28 +119,30 @@ router.post(
   }
 );
 
-router.post("stars.update", auth(), async (ctx: APIContext) => {
-  const { id, index } = ctx.request.body;
-  assertUuid(id, "id is required");
+router.post(
+  "stars.update",
+  auth(),
+  validate(T.StarsUpdateSchema),
+  async (ctx: APIContext<T.StarsUpdateReq>) => {
+    const { id, index } = ctx.input.body;
 
-  assertIndexCharacters(index);
+    const { user } = ctx.state.auth;
+    let star = await Star.findByPk(id);
+    authorize(user, "update", star);
 
-  const { user } = ctx.state.auth;
-  let star = await Star.findByPk(id);
-  authorize(user, "update", star);
+    star = await starUpdater({
+      user,
+      star,
+      ip: ctx.request.ip,
+      index,
+    });
 
-  star = await starUpdater({
-    user,
-    star,
-    ip: ctx.request.ip,
-    index,
-  });
-
-  ctx.body = {
-    data: presentStar(star),
-    policies: presentPolicies(user, [star]),
-  };
-});
+    ctx.body = {
+      data: presentStar(star),
+      policies: presentPolicies(user, [star]),
+    };
+  }
+);
 
 router.post("stars.delete", auth(), async (ctx: APIContext) => {
   const { id } = ctx.request.body;

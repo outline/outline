@@ -37,3 +37,14 @@ export type StarsCreateReq = z.infer<typeof StarsCreateSchema>;
 export const StarsListSchema = BaseSchema;
 
 export type StarsListReq = z.infer<typeof StarsListSchema>;
+
+export const StarsUpdateSchema = BaseSchema.extend({
+  body: z.object({
+    id: z.string().uuid(),
+    index: z.string().regex(new RegExp("^[\x20-\x7E]+$"), {
+      message: "must be between x20 to x7E ASCII",
+    }),
+  }),
+});
+
+export type StarsUpdateReq = z.infer<typeof StarsUpdateSchema>;
