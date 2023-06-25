@@ -82,6 +82,7 @@ export default class PersistenceExtension implements Extension {
     document,
     context,
     documentName,
+    clientsCount,
   }: onStoreDocumentPayload) {
     const [, documentId] = documentName.split(".");
 
@@ -105,6 +106,7 @@ export default class PersistenceExtension implements Extension {
         // TODO: Right now we're attributing all changes to the last editor,
         // It would be nice in the future to have multiple editors per revision.
         userId: collaboratorIds.pop(),
+        isLastConnection: clientsCount === 0,
       });
     } catch (err) {
       Logger.error("Unable to persist document", err, {

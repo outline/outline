@@ -14,12 +14,15 @@ type Props = {
   ydoc: Y.Doc;
   /** The user ID that is performing the update, if known */
   userId?: string;
+  /** Whether the last connection to the document left */
+  isLastConnection: boolean;
 };
 
 export default async function documentCollaborativeUpdater({
   documentId,
   ydoc,
   userId,
+  isLastConnection,
 }: Props) {
   return sequelize.transaction(async (transaction) => {
     const document = await Document.unscoped()
@@ -79,6 +82,7 @@ export default async function documentCollaborativeUpdater({
       data: {
         multiplayer: true,
         title: document.title,
+        done: isLastConnection,
       },
     });
   });

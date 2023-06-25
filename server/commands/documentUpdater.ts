@@ -11,6 +11,8 @@ type Props = {
   title?: string;
   /** The new text content */
   text?: string;
+  /** Whether the editing session is complete */
+  done?: boolean;
   /** The version of the client editor that was used */
   editorVersion?: string;
   /** The ID of the template that was used */
@@ -47,10 +49,12 @@ export default async function documentUpdater({
   append,
   publish,
   collectionId,
+  done,
   transaction,
   ip,
 }: Props): Promise<Document> {
   const previousTitle = document.title;
+  const cId = collectionId || document.collectionId;
 
   if (title !== undefined) {
     document.title = title.trim();
@@ -70,23 +74,28 @@ export default async function documentUpdater({
 
   const changed = document.changed();
 
-  if (publish) {
+  const event = {
+    name: "documents.update",
+    documentId: document.id,
+    collectionId: cId,
+    teamId: document.teamId,
+    actorId: user.id,
+    data: {
+      title: document.title,
+    },
+    ip,
+  };
+
+  if (publish && cId) {
     if (!document.collectionId) {
-      document.collectionId = collectionId as string;
+      document.collectionId = cId;
     }
-    await document.publish(user.id, collectionId!, { transaction });
+    await document.publish(user.id, cId, { transaction });
 
     await Event.create(
       {
+        ...event,
         name: "documents.publish",
-        documentId: document.id,
-        collectionId: document.collectionId,
-        teamId: document.teamId,
-        actorId: user.id,
-        data: {
-          title: document.title,
-        },
-        ip,
       },
       { transaction }
     );
@@ -94,27 +103,16 @@ export default async function documentUpdater({
     document.lastModifiedById = user.id;
     await document.save({ transaction });
 
-    await Event.create(
-      {
-        name: "documents.update",
-        documentId: document.id,
-        collectionId: document.collectionId,
-        teamId: document.teamId,
-        actorId: user.id,
-        data: {
-          title: document.title,
-        },
-        ip,
-      },
-      { transaction }
-    );
+    await Event.create(event, { transaction });
+  } else if (done) {
+    await Event.schedule(event);
   }
 
   if (document.title !== previousTitle) {
     await Event.schedule({
       name: "documents.title_change",
       documentId: document.id,
-      collectionId: document.collectionId,
+      collectionId: cId,
       teamId: document.teamId,
       actorId: user.id,
       data: {
