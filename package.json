@@ -149,6 +149,7 @@
     "pg": "^8.8.0",
     "pg-tsquery": "^8.4.0",
     "polished": "^4.2.2",
+    "prosemirror-codemark": "^0.4.2",
     "prosemirror-commands": "^1.5.2",
     "prosemirror-dropcursor": "^1.8.1",
     "prosemirror-gapcursor": "^1.3.2",
