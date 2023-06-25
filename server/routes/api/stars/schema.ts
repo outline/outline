@@ -33,3 +33,7 @@ export const StarsCreateSchema = BaseSchema.extend({
 });
 
 export type StarsCreateReq = z.infer<typeof StarsCreateSchema>;
+
+export const StarsListSchema = BaseSchema;
+
+export type StarsListReq = z.infer<typeof StarsListSchema>;
