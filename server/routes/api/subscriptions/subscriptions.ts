@@ -3,12 +3,14 @@ import subscriptionCreator from "@server/commands/subscriptionCreator";
 import subscriptionDestroyer from "@server/commands/subscriptionDestroyer";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
+import validate from "@server/middlewares/validate";
 import { Subscription, Document } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentSubscription } from "@server/presenters";
 import { APIContext } from "@server/types";
 import { assertIn, assertUuid } from "@server/validation";
-import pagination from "./middlewares/pagination";
+import pagination from "../middlewares/pagination";
+import * as T from "./schema";
 
 const router = new Router();
 
@@ -16,17 +18,10 @@ router.post(
   "subscriptions.list",
   auth(),
   pagination(),
-  async (ctx: APIContext) => {
+  validate(T.SubscriptionsListSchema),
+  async (ctx: APIContext<T.SubscriptionsListReq>) => {
     const { user } = ctx.state.auth;
-    const { documentId, event } = ctx.request.body;
-
-    assertUuid(documentId, "documentId is required");
-
-    assertIn(
-      event,
-      ["documents.update"],
-      `Not a valid subscription event for documents`
-    );
+    const { documentId, event } = ctx.input.body;
 
     const document = await Document.findByPk(documentId, { userId: user.id });
 
