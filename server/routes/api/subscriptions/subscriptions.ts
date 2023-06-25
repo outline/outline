@@ -8,7 +8,7 @@ import { Subscription, Document } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentSubscription } from "@server/presenters";
 import { APIContext } from "@server/types";
-import { assertIn, assertUuid } from "@server/validation";
+import { assertUuid } from "@server/validation";
 import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
@@ -76,19 +76,12 @@ router.post(
 router.post(
   "subscriptions.create",
   auth(),
+  validate(T.SubscriptionsCreateSchema),
   transaction(),
-  async (ctx: APIContext) => {
+  async (ctx: APIContext<T.SubscriptionsCreateReq>) => {
     const { auth, transaction } = ctx.state;
     const { user } = auth;
-    const { documentId, event } = ctx.request.body;
-
-    assertUuid(documentId, "documentId is required");
-
-    assertIn(
-      event,
-      ["documents.update"],
-      "Not a valid subscription event for documents"
-    );
+    const { documentId, event } = ctx.input.body;
 
     const document = await Document.findByPk(documentId, {
       userId: user.id,

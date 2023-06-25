@@ -140,7 +140,7 @@ describe("#subscriptions.create", () => {
     expect(body.ok).toEqual(false);
     expect(body.error).toEqual("validation_error");
     expect(body.message).toEqual(
-      "Not a valid subscription event for documents"
+      `event: Invalid literal value, expected "documents.update"`
     );
   });
 });
