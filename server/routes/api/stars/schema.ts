@@ -1,7 +1,11 @@
 import { isEmpty } from "lodash";
-import isUUID from "validator/lib/isUUID";
 import { z } from "zod";
-import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
+import {
+  INDEX_REGEX,
+  INVALID_DOCUMENT_ID,
+  INVALID_INDEX,
+  isValidDocumentId,
+} from "@server/validation";
 import BaseSchema from "../BaseSchema";
 
 export const StarsCreateSchema = BaseSchema.extend({
@@ -9,18 +13,15 @@ export const StarsCreateSchema = BaseSchema.extend({
     .object({
       documentId: z
         .string()
-        .optional()
-        .refine(
-          (val) => (val ? isUUID(val) || SLUG_URL_REGEX.test(val) : true),
-          {
-            message: "must be uuid or url slug",
-          }
-        ),
+        .refine(isValidDocumentId, {
+          message: INVALID_DOCUMENT_ID,
+        })
+        .optional(),
       collectionId: z.string().uuid().optional(),
       index: z
         .string()
-        .regex(new RegExp("^[\x20-\x7E]+$"), {
-          message: "must be between x20 to x7E ASCII",
+        .regex(INDEX_REGEX, {
+          message: INVALID_INDEX,
         })
         .optional(),
     })
@@ -41,8 +42,8 @@ export type StarsListReq = z.infer<typeof StarsListSchema>;
 export const StarsUpdateSchema = BaseSchema.extend({
   body: z.object({
     id: z.string().uuid(),
-    index: z.string().regex(new RegExp("^[\x20-\x7E]+$"), {
-      message: "must be between x20 to x7E ASCII",
+    index: z.string().regex(INDEX_REGEX, {
+      message: INVALID_INDEX,
     }),
   }),
 });
