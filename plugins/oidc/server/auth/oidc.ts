@@ -109,10 +109,12 @@ if (
 
           // Claim name can be overriden using an env variable.
           // Default is 'preferred_username' as per OIDC spec.
+
           const username = get(profile, env.OIDC_USERNAME_CLAIM);
           const name = profile.name || username || profile.username;
           const providerId = profile.sub ? profile.sub : profile.id;
 
+          console.log(profile);
           if (!name) {
             throw AuthenticationError(
               `Neither a name or username was returned in the profile parameter, but at least one is required.`
