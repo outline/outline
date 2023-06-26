@@ -17,10 +17,11 @@ import {
 import ValidateSSOAccessTask from "@server/queues/tasks/ValidateSSOAccessTask";
 import { APIContext } from "@server/types";
 import { getSessionsInCookie } from "@server/utils/authentication";
+import * as T from "./schema";
 
 const router = new Router();
 
-router.post("auth.config", async (ctx: APIContext) => {
+router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
   // If self hosted AND there is only one team then that team becomes the
   // brand for the knowledge base and it's guest signin option is used for the
   // root login page.
@@ -108,7 +109,7 @@ router.post("auth.config", async (ctx: APIContext) => {
   };
 });
 
-router.post("auth.info", auth(), async (ctx: APIContext) => {
+router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
   const { user } = ctx.state.auth;
   const sessions = getSessionsInCookie(ctx);
   const signedInTeamIds = Object.keys(sessions);
@@ -145,30 +146,35 @@ router.post("auth.info", auth(), async (ctx: APIContext) => {
   };
 });
 
-router.post("auth.delete", auth(), transaction(), async (ctx: APIContext) => {
-  const { auth, transaction } = ctx.state;
-  const { user } = auth;
+router.post(
+  "auth.delete",
+  auth(),
+  transaction(),
+  async (ctx: APIContext<T.AuthDeleteReq>) => {
+    const { auth, transaction } = ctx.state;
+    const { user } = auth;
 
-  await user.rotateJwtSecret({ transaction });
-  await Event.create(
-    {
-      name: "users.signout",
-      actorId: user.id,
-      userId: user.id,
-      teamId: user.teamId,
-      data: {
-        name: user.name,
+    await user.rotateJwtSecret({ transaction });
+    await Event.create(
+      {
+        name: "users.signout",
+        actorId: user.id,
+        userId: user.id,
+        teamId: user.teamId,
+        data: {
+          name: user.name,
+        },
+        ip: ctx.request.ip,
       },
-      ip: ctx.request.ip,
-    },
-    {
-      transaction,
-    }
-  );
+      {
+        transaction,
+      }
+    );
 
-  ctx.body = {
-    success: true,
-  };
-});
+    ctx.body = {
+      success: true,
+    };
+  }
+);
 
 export default router;
