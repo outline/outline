@@ -11674,10 +11674,10 @@ semver@~7.0.0:
   resolved "https://registry.yarnpkg.com/semver/-/semver-7.0.0.tgz#5f3ca35761e47e05b206c6daff2cf814f0316b8e"
   integrity sha512-+GB6zVA9LWh6zovYQLALHwv5rb2PHGlJi3lfiqIHxR0uuwCgefcOJc59v9fv1w8GbStwxuuqqAjI9NMAOOgq1A==
 
-sequelize-cli@^6.6.0:
-  version "6.6.0"
-  resolved "https://registry.yarnpkg.com/sequelize-cli/-/sequelize-cli-6.6.0.tgz#f11588c93b53321637f8aedd5b10ed57d6d06482"
-  integrity sha512-FwTClhGRvXKanFRHMZbgfXOBV8UC2B3VkE0WOdW1n39/36PF4lWyurF95f246une/V4eaO3a7/Ywvy++3r+Jmg==
+sequelize-cli@^6.6.1:
+  version "6.6.1"
+  resolved "https://registry.yarnpkg.com/sequelize-cli/-/sequelize-cli-6.6.1.tgz#ab86fc8de79f56bf1d1c4e3bbb1104aee4a5eaf4"
+  integrity sha512-C3qRpy1twBsFa855qOQFSYWer8ngiaZP05/OAsT1QCUwtc6UxVNNiQ0CGUt98T9T1gi5D3TGWL6le8HWUKELyw==
   dependencies:
     cli-color "^2.0.3"
     fs-extra "^9.1.0"
