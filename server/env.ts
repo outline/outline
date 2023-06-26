@@ -541,8 +541,8 @@ export class Environment {
     this.toOptionalNumber(process.env.RATE_LIMITER_REQUESTS) ?? 1000;
 
   /**
-   * Set max allowed realtime connections in a minute before throttling. Defaults
-   * to 50 requests/ip/min.
+   * Set max allowed realtime connections before throttling. Defaults to 50
+   * requests/ip/duration window.
    */
   @IsOptional()
   @IsNumber()

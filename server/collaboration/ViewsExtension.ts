@@ -70,4 +70,15 @@ export class ViewsExtension implements Extension {
       this.intervalsBySocket.delete(socketId);
     }
   }
+
+  /**
+   * onDestroy hook
+   * @param data The destroy payload
+   */
+  async onDestroy() {
+    this.intervalsBySocket.forEach((interval, socketId) => {
+      clearInterval(interval);
+      this.intervalsBySocket.delete(socketId);
+    });
+  }
 }

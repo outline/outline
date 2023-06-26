@@ -34,6 +34,7 @@ export default function init(
     extensions: [
       new Throttle({
         throttle: env.RATE_LIMITER_COLLABORATION_REQUESTS,
+        consideredSeconds: env.RATE_LIMITER_DURATION_WINDOW,
         // Ban time is defined in minutes
         banTime: 5,
       }),
