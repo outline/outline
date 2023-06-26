@@ -88,7 +88,7 @@
     },
     "OIDC_DISPLAY_NAME": {
       "description": "Display name for OIDC authentication",
-      "value": "OpenID",
+      "value": "OpenID Connect",
       "required": false
     },
     "OIDC_SCOPES": {
