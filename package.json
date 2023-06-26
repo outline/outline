@@ -59,6 +59,7 @@
     "@dnd-kit/modifiers": "^6.0.0",
     "@dnd-kit/sortable": "^7.0.1",
     "@getoutline/y-prosemirror": "^1.0.18",
+    "@hocuspocus/extension-throttle": "1.1.2",
     "@hocuspocus/provider": "1.1.2",
     "@hocuspocus/server": "1.1.2",
     "@joplin/turndown-plugin-gfm": "^1.0.47",

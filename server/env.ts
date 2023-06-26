@@ -541,6 +541,16 @@ export class Environment {
     this.toOptionalNumber(process.env.RATE_LIMITER_REQUESTS) ?? 1000;
 
   /**
+   * Set max allowed realtime connections in a minute before throttling. Defaults
+   * to 50 requests/ip/min.
+   */
+  @IsOptional()
+  @IsNumber()
+  public RATE_LIMITER_COLLABORATION_REQUESTS =
+    this.toOptionalNumber(process.env.RATE_LIMITER_COLLABORATION_REQUESTS) ??
+    50;
+
+  /**
    * Set fixed duration window(in secs) for default rate limiter, elapsing which
    * the request quota is reset (the bucket is refilled with tokens).
    */

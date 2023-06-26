@@ -1626,6 +1626,13 @@
   dependencies:
     lib0 "^0.2.47"
 
+"@hocuspocus/extension-throttle@1.1.2":
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/@hocuspocus/extension-throttle/-/extension-throttle-1.1.2.tgz#4b07a72c11775931e740ea83a13ea11def5025e3"
+  integrity sha512-L5lE4lu7+jm2fOSxiVASjD9PB4A7u4UaqzZQAlNWz4uunsa7Cwy596tyKZtpNXZXoC0C103yn+FeT0TOWMeBIg==
+  dependencies:
+    "@hocuspocus/server" "^1.1.2"
+
 "@hocuspocus/provider@1.1.2":
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/@hocuspocus/provider/-/provider-1.1.2.tgz#6b20c2446555a602919f0a94d7750adef00e8b16"
@@ -1635,7 +1642,7 @@
     "@lifeomic/attempt" "^3.0.2"
     lib0 "^0.2.46"
 
-"@hocuspocus/server@1.1.2":
+"@hocuspocus/server@1.1.2", "@hocuspocus/server@^1.1.2":
   version "1.1.2"
   resolved "https://registry.yarnpkg.com/@hocuspocus/server/-/server-1.1.2.tgz#c2ceab9938d4ff679ba22446e70fa3ce71fd6600"
   integrity sha512-L6YHENRSyXDbYyFGt3S1etJq62XZEj6Z9QUmhqzOjlxQYHC/eaGtrCbAxi5dLKXORl3AY4CVtTfFN+3asmmT6w==
