@@ -5,8 +5,10 @@ import userInviter, { Invite } from "@server/commands/userInviter";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
+import validate from "@server/middlewares/validate";
 import { presentUser } from "@server/presenters";
 import { APIContext } from "@server/types";
+import * as T from "./schema";
 
 const router = new Router();
 
@@ -24,8 +26,9 @@ router.post(
   "developer.create_test_users",
   dev(),
   auth(),
-  async (ctx: APIContext) => {
-    const { count = 10 } = ctx.request.body;
+  validate(T.CreateTestUsersSchema),
+  async (ctx: APIContext<T.CreateTestUsersReq>) => {
+    const { count = 10 } = ctx.input.body;
     const { user } = ctx.state.auth;
     const invites = Array(Math.min(count, 100))
       .fill(0)
