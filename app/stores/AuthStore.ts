@@ -14,7 +14,7 @@ import { client } from "~/utils/ApiClient";
 import Desktop from "~/utils/Desktop";
 
 const AUTH_STORE = "AUTH_STORE";
-const NO_REDIRECT_PATHS = ["/", "/create", "/home"];
+const NO_REDIRECT_PATHS = ["/", "/create", "/home", "/logout"];
 
 type PersistedData = {
   user?: User;
