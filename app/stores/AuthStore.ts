@@ -12,6 +12,7 @@ import User from "~/models/User";
 import env from "~/env";
 import { client } from "~/utils/ApiClient";
 import Desktop from "~/utils/Desktop";
+import Logger from "~/utils/Logger";
 
 const AUTH_STORE = "AUTH_STORE";
 const NO_REDIRECT_PATHS = ["/", "/create", "/home", "/logout"];
@@ -322,7 +323,7 @@ export default class AuthStore {
     }
 
     // invalidate authentication token on server
-    client.post(`/auth.delete`);
+    const promise = client.post(`/auth.delete`);
 
     // remove authentication token itself
     removeCookie("accessToken", {
@@ -349,5 +350,11 @@ export default class AuthStore {
     // Tell the host application we logged out, if any – allows window cleanup.
     Desktop.bridge?.onLogout?.();
     this.rootStore.logout();
+
+    try {
+      await promise;
+    } catch (err) {
+      Logger.error("Failed to delete authentication", err);
+    }
   };
 }

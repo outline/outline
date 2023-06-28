@@ -147,7 +147,7 @@ class ApiClient {
 
     // Handle 401, log out user
     if (response.status === 401) {
-      stores.auth.logout();
+      await stores.auth.logout();
       return;
     }
 
@@ -178,7 +178,7 @@ class ApiClient {
 
     if (response.status === 403) {
       if (error.error === "user_suspended") {
-        stores.auth.logout();
+        await stores.auth.logout();
         return;
       }
 
