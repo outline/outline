@@ -25,7 +25,7 @@ import Logger from "./utils/Logger";
 import history from "./utils/history";
 import { initSentry } from "./utils/sentry";
 
-void initI18n(env.DEFAULT_LANGUAGE);
+initI18n(env.DEFAULT_LANGUAGE);
 const element = window.document.getElementById("root");
 
 history.listen(() => {

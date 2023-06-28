@@ -57,7 +57,7 @@ if (env.CDN_URL) {
   defaultSrc.push(env.CDN_URL);
 }
 
-export default function init(app: Koa = new Koa(), server?: Server): Koa {
+export default function init(app: Koa = new Koa(), server?: Server) {
   void initI18n();
 
   if (isProduction) {

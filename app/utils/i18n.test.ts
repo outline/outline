@@ -5,8 +5,8 @@ import pt_PT from "../../shared/i18n/locales/pt_PT/translation.json";
 import { initI18n } from "./i18n";
 
 describe("i18n env is unset", () => {
-  beforeEach(async () => {
-    (await initI18n())
+  beforeEach(() => {
+    initI18n()
       .addResources("en-US", "translation", en_US)
       .addResources("de-DE", "translation", de_DE)
       .addResources("pt-PT", "translation", pt_PT);
@@ -26,8 +26,8 @@ describe("i18n env is unset", () => {
   });
 });
 describe("i18n env is en-US", () => {
-  beforeEach(async () => {
-    (await initI18n("en-US"))
+  beforeEach(() => {
+    initI18n("en-US")
       .addResources("en-US", "translation", en_US)
       .addResources("de-DE", "translation", de_DE)
       .addResources("pt-PT", "translation", pt_PT);
@@ -48,8 +48,8 @@ describe("i18n env is en-US", () => {
 });
 
 describe("i18n env is de-DE", () => {
-  beforeEach(async () => {
-    (await initI18n("de-DE"))
+  beforeEach(() => {
+    initI18n("de-DE")
       .addResources("en-US", "translation", en_US)
       .addResources("de-DE", "translation", de_DE)
       .addResources("pt-PT", "translation", pt_PT);
@@ -70,8 +70,8 @@ describe("i18n env is de-DE", () => {
 });
 
 describe("i18n env is pt-PT", () => {
-  beforeEach(async () => {
-    (await initI18n("pt-PT"))
+  beforeEach(() => {
+    initI18n("pt-PT")
       .addResources("en-US", "translation", en_US)
       .addResources("de-DE", "translation", de_DE)
       .addResources("pt-PT", "translation", pt_PT);

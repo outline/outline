@@ -6,6 +6,7 @@ import winston from "winston";
 import env from "@server/env";
 import Metrics from "@server/logging/Metrics";
 import Sentry from "@server/logging/sentry";
+import ShutdownHelper from "@server/utils/ShutdownHelper";
 import * as Tracing from "./tracer";
 
 const isProduction = env.ENVIRONMENT === "production";
@@ -160,6 +161,18 @@ class Logger {
         extra,
       });
     }
+  }
+
+  /**
+   * Report a fatal error and shut down the server
+   *
+   * @param message A description of the error
+   * @param error The error that occurred
+   * @param extra Arbitrary data to be logged that will appear in prod logs
+   */
+  public fatal(message: string, error: Error, extra?: Extra) {
+    this.error(message, error, extra);
+    void ShutdownHelper.execute();
   }
 
   /**
