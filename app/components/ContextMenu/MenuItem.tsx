@@ -38,13 +38,13 @@ const MenuItem = (
   ref: React.Ref<HTMLAnchorElement>
 ) => {
   const handleClick = React.useCallback(
-    (ev) => {
+    async (ev) => {
+      hide?.();
+
       if (onClick) {
         ev.preventDefault();
-        onClick(ev);
+        await onClick(ev);
       }
-
-      hide?.();
     },
     [onClick, hide]
   );

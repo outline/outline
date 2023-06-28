@@ -338,7 +338,7 @@ describe("revisions.create", () => {
       enabled: true,
     });
 
-    subscription.destroy();
+    await subscription.destroy();
 
     const task = new RevisionCreatedNotificationsTask();
 

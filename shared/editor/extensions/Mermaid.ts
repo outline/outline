@@ -62,7 +62,7 @@ function getNewState({
           element.classList.remove("diagram-hidden");
         }
 
-        import("mermaid").then((module) => {
+        void import("mermaid").then((module) => {
           module.default.initialize({
             startOnLoad: true,
             // TODO: Make dynamic based on the width of the editor or remove in

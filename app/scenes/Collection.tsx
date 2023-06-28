@@ -84,14 +84,14 @@ function CollectionScene() {
     setError(undefined);
 
     if (collection) {
-      pins.fetchPage({
+      void pins.fetchPage({
         collectionId: collection.id,
       });
     }
   }, [pins, collection]);
 
   React.useEffect(() => {
-    async function load() {
+    async function fetchData() {
       if ((!can || !collection) && !error && !isFetching) {
         try {
           setError(undefined);
@@ -105,7 +105,7 @@ function CollectionScene() {
       }
     }
 
-    load();
+    void fetchData();
   }, [collections, isFetching, collection, error, id, can]);
 
   useCommandBarActions(

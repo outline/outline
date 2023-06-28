@@ -101,7 +101,7 @@ function Login({ children }: Props) {
   // Try to detect the user's language and show the login page on its idiom
   // if translation is available
   React.useEffect(() => {
-    changeLanguage(detectLanguage(), i18n);
+    void changeLanguage(detectLanguage(), i18n);
   }, [i18n]);
 
   React.useEffect(() => {

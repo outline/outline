@@ -111,7 +111,7 @@ export default class AuthStore {
         // we are signed in and the received data contains no user then sign out
         if (this.authenticated) {
           if (data.user === null) {
-            this.logout();
+            void this.logout();
           }
         } else {
           this.rehydrate(data);
@@ -348,7 +348,7 @@ export default class AuthStore {
     this.token = null;
 
     // Tell the host application we logged out, if any – allows window cleanup.
-    Desktop.bridge?.onLogout?.();
+    void Desktop.bridge?.onLogout?.();
     this.rootStore.logout();
 
     try {

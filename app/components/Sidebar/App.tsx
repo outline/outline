@@ -43,8 +43,8 @@ function AppSidebar() {
 
   React.useEffect(() => {
     if (!user.isViewer) {
-      documents.fetchDrafts();
-      documents.fetchTemplates();
+      void documents.fetchDrafts();
+      void documents.fetchTemplates();
     }
   }, [documents, user.isViewer]);
 

@@ -71,7 +71,7 @@ class ImageUpload extends React.Component<RootStore & Props> {
         name: this.file.name,
         preset: AttachmentPreset.Avatar,
       });
-      this.props.onSuccess(attachment.url);
+      void this.props.onSuccess(attachment.url);
     } catch (err) {
       this.props.onError(err.message);
     } finally {

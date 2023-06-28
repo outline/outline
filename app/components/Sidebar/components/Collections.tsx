@@ -36,7 +36,7 @@ function Collections() {
   ] = useDrop({
     accept: "collection",
     drop: async (item: DragObject) => {
-      collections.move(
+      void collections.move(
         item.id,
         fractionalIndex(null, orderedCollections[0].index)
       );

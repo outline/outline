@@ -22,7 +22,7 @@ function LinkSearchResult({
   const ref = React.useCallback(
     (node: HTMLElement | null) => {
       if (selected && node) {
-        scrollIntoView(node, {
+        void scrollIntoView(node, {
           scrollMode: "if-needed",
           block: "center",
           boundary: (parent) =>

@@ -53,7 +53,7 @@ function Shares() {
       }
     };
 
-    fetchData();
+    void fetchData();
   }, [query, sort, page, direction, shares]);
 
   React.useEffect(() => {

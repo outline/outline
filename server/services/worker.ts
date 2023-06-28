@@ -12,10 +12,10 @@ import processors from "../queues/processors";
 import tasks from "../queues/tasks";
 
 export default function init() {
-  initI18n();
+  void initI18n();
 
   // This queue processes the global event bus
-  globalEventQueue.process(
+  void globalEventQueue.process(
     traceFunction({
       serviceName: "worker",
       spanName: "process",
@@ -72,7 +72,7 @@ export default function init() {
 
   // Jobs for individual processors are processed here. Only applicable events
   // as unapplicable events were filtered in the global event queue above.
-  processorEventQueue.process(
+  void processorEventQueue.process(
     traceFunction({
       serviceName: "worker",
       spanName: "process",
@@ -107,7 +107,7 @@ export default function init() {
   );
 
   // Jobs for async tasks are processed here.
-  taskQueue.process(
+  void taskQueue.process(
     traceFunction({
       serviceName: "worker",
       spanName: "process",

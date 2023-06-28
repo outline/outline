@@ -67,7 +67,7 @@ function InnerDocumentLink(
 
   React.useEffect(() => {
     if (isActiveDocument && hasChildDocuments) {
-      fetchChildDocuments(node.id);
+      void fetchChildDocuments(node.id);
     }
   }, [fetchChildDocuments, node, hasChildDocuments, isActiveDocument]);
 
@@ -115,7 +115,7 @@ function InnerDocumentLink(
   );
 
   const handlePrefetch = React.useCallback(() => {
-    prefetchDocument?.(node.id);
+    void prefetchDocument?.(node.id);
   }, [prefetchDocument, node]);
 
   const handleTitleChange = React.useCallback(
@@ -242,11 +242,11 @@ function InnerDocumentLink(
       }
 
       if (expanded) {
-        documents.move(item.id, collection.id, node.id, 0);
+        void documents.move(item.id, collection.id, node.id, 0);
         return;
       }
 
-      documents.move(item.id, collection.id, parentId, index + 1);
+      void documents.move(item.id, collection.id, parentId, index + 1);
     },
     collect: (monitor) => ({
       isOverReorder: monitor.isOver(),

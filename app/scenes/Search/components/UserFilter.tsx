@@ -18,7 +18,7 @@ function UserFilter(props: Props) {
   const { users } = useStores();
 
   React.useEffect(() => {
-    users.fetchPage({
+    void users.fetchPage({
       limit: 100,
     });
   }, [users]);

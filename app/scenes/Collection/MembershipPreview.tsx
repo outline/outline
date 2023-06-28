@@ -53,7 +53,7 @@ const MembershipPreview = ({ collection, limit = 8 }: Props) => {
       }
     };
 
-    fetchData();
+    void fetchData();
   }, [
     isMobile,
     collection.permission,

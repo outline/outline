@@ -30,11 +30,11 @@ function NotificationListItem({ notification, onNavigate }: Props) {
     if (event.altKey) {
       event.preventDefault();
       event.stopPropagation();
-      notification.toggleRead();
+      void notification.toggleRead();
       return;
     }
 
-    notification.markAsRead();
+    void notification.markAsRead();
 
     onNavigate();
   };

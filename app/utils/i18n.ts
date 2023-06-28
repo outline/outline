@@ -61,31 +61,32 @@ export function dateLocale(language: string | null | undefined) {
  * is not supported.
  * @returns i18n instance
  */
-export function initI18n(defaultLanguage = "en_US") {
+export async function initI18n(defaultLanguage = "en_US") {
   const lng = unicodeCLDRtoBCP47(defaultLanguage);
-  i18n
-    .use(backend)
-    .use(initReactI18next)
-    .init({
-      compatibilityJSON: "v3",
-      backend: {
-        // this must match the path defined in routes. It's the path that the
-        // frontend UI code will hit to load missing translations.
-        loadPath: (languages: string[]) =>
-          `/locales/${unicodeBCP47toCLDR(languages[0])}.json`,
-      },
-      interpolation: {
-        escapeValue: false,
-      },
-      react: {
-        useSuspense: false,
-      },
-      lng,
-      fallbackLng: lng,
-      supportedLngs: languages.map(unicodeCLDRtoBCP47),
-      keySeparator: false,
-      returnNull: false,
-    });
+
+  i18n.use(backend).use(initReactI18next);
+
+  await i18n.init({
+    compatibilityJSON: "v3",
+    backend: {
+      // this must match the path defined in routes. It's the path that the
+      // frontend UI code will hit to load missing translations.
+      loadPath: (languages: string[]) =>
+        `/locales/${unicodeBCP47toCLDR(languages[0])}.json`,
+    },
+    interpolation: {
+      escapeValue: false,
+    },
+    react: {
+      useSuspense: false,
+    },
+    lng,
+    fallbackLng: lng,
+    supportedLngs: languages.map(unicodeCLDRtoBCP47),
+    keySeparator: false,
+    returnNull: false,
+  });
+
   return i18n;
 }
 

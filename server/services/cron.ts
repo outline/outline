@@ -18,7 +18,7 @@ export default function init() {
   // Just give everything time to startup before running the first time. Not
   // _technically_ required to function.
   setTimeout(() => {
-    run(TaskSchedule.Daily);
-    run(TaskSchedule.Hourly);
+    void run(TaskSchedule.Daily);
+    void run(TaskSchedule.Hourly);
   }, 30 * Second);
 }

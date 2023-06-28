@@ -76,7 +76,7 @@ function SharePopover({
 
   React.useEffect(() => {
     if (visible && team.sharing) {
-      document.share();
+      void document.share();
       buttonRef.current?.focus();
     }
 

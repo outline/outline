@@ -43,7 +43,9 @@ function Notifications(
     // Account for old versions of the desktop app that don't have the
     // setNotificationCount method on the bridge.
     if (Desktop.bridge && "setNotificationCount" in Desktop.bridge) {
-      Desktop.bridge.setNotificationCount(notifications.approximateUnreadCount);
+      void Desktop.bridge.setNotificationCount(
+        notifications.approximateUnreadCount
+      );
     }
   }, [notifications.approximateUnreadCount]);
 

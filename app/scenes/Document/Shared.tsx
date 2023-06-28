@@ -99,7 +99,7 @@ function SharedDocumentScene(props: Props) {
 
   React.useEffect(() => {
     if (!auth.user) {
-      changeLanguage(detectLanguage(), i18n);
+      void changeLanguage(detectLanguage(), i18n);
     }
   }, [auth, i18n]);
 
@@ -125,7 +125,7 @@ function SharedDocumentScene(props: Props) {
         setError(err);
       }
     }
-    fetchData();
+    void fetchData();
   }, [documents, documentSlug, shareId, ui]);
 
   if (error) {

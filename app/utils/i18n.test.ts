@@ -5,8 +5,8 @@ import pt_PT from "../../shared/i18n/locales/pt_PT/translation.json";
 import { initI18n } from "./i18n";
 
 describe("i18n env is unset", () => {
-  beforeEach(() => {
-    initI18n()
+  beforeEach(async () => {
+    (await initI18n())
       .addResources("en-US", "translation", en_US)
       .addResources("de-DE", "translation", de_DE)
       .addResources("pt-PT", "translation", pt_PT);
@@ -15,19 +15,19 @@ describe("i18n env is unset", () => {
   it("translation of key should match", () =>
     expect(i18n.t("Saving")).toBe("Saving"));
 
-  it("translation if changed to de-DE", () => {
-    i18n.changeLanguage("de-DE");
+  it("translation if changed to de-DE", async () => {
+    await i18n.changeLanguage("de-DE");
     expect(i18n.t("Saving")).toBe("Speichert");
   });
 
-  it("translation if changed to pt-PT", () => {
-    i18n.changeLanguage("pt-PT");
+  it("translation if changed to pt-PT", async () => {
+    await i18n.changeLanguage("pt-PT");
     expect(i18n.t("Saving")).toBe("A guardar");
   });
 });
 describe("i18n env is en-US", () => {
-  beforeEach(() => {
-    initI18n("en-US")
+  beforeEach(async () => {
+    (await initI18n("en-US"))
       .addResources("en-US", "translation", en_US)
       .addResources("de-DE", "translation", de_DE)
       .addResources("pt-PT", "translation", pt_PT);
@@ -36,13 +36,13 @@ describe("i18n env is en-US", () => {
   it("translation of key should match", () =>
     expect(i18n.t("Saving")).toBe("Saving"));
 
-  it("translation if changed to de-DE", () => {
-    i18n.changeLanguage("de-DE");
+  it("translation if changed to de-DE", async () => {
+    await i18n.changeLanguage("de-DE");
     expect(i18n.t("Saving")).toBe("Speichert");
   });
 
-  it("translation if changed to pt-PT", () => {
-    i18n.changeLanguage("pt-PT");
+  it("translation if changed to pt-PT", async () => {
+    await i18n.changeLanguage("pt-PT");
     expect(i18n.t("Saving")).toBe("A guardar");
   });
 });
@@ -59,12 +59,12 @@ describe("i18n env is de-DE", () => {
     expect(i18n.t("Saving")).toBe("Speichert"));
 
   it("translation if changed to en-US", () => {
-    i18n.changeLanguage("en-US");
+    await i18n.changeLanguage("en-US");
     expect(i18n.t("Saving")).toBe("Saving");
   });
 
   it("translation if changed to pt-PT", () => {
-    i18n.changeLanguage("pt-PT");
+    await i18n.changeLanguage("pt-PT");
     expect(i18n.t("Saving")).toBe("A guardar");
   });
 });
@@ -81,12 +81,12 @@ describe("i18n env is pt-PT", () => {
     expect(i18n.t("Saving")).toBe("A guardar"));
 
   it("translation if changed to en-US", () => {
-    i18n.changeLanguage("en-US");
+    await i18n.changeLanguage("en-US");
     expect(i18n.t("Saving")).toBe("Saving");
   });
 
   it("translation if changed to de-DE", () => {
-    i18n.changeLanguage("de-DE");
+    await i18n.changeLanguage("de-DE");
     expect(i18n.t("Saving")).toBe("Speichert");
   });
 });

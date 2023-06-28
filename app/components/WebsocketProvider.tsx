@@ -380,9 +380,9 @@ class WebsocketProvider extends React.Component<Props> {
     // if the user is us then we go ahead and load the collection from API.
     this.socket.on(
       "collections.add_user",
-      action((event: WebsocketCollectionUserEvent) => {
+      async (event: WebsocketCollectionUserEvent) => {
         if (auth.user && event.userId === auth.user.id) {
-          collections.fetch(event.collectionId, {
+          await collections.fetch(event.collectionId, {
             force: true,
           });
         }
@@ -391,7 +391,7 @@ class WebsocketProvider extends React.Component<Props> {
         documents.inCollection(event.collectionId).forEach((document) => {
           policies.remove(document.id);
         });
-      })
+      }
     );
 
     // received when a user is removed from having access to a collection

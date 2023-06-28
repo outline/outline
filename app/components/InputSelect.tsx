@@ -108,11 +108,7 @@ const InputSelect = (props: Props) => {
     }
     previousValue.current = select.selectedValue;
 
-    async function load() {
-      await onChange?.(select.selectedValue);
-    }
-
-    load();
+    onChange?.(select.selectedValue);
   }, [onChange, select.selectedValue]);
 
   React.useLayoutEffect(() => {

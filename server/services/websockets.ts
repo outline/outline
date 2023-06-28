@@ -130,7 +130,7 @@ export default function init(
 
   // Handle events from event queue that should be sent to the clients down ws
   const websockets = new WebsocketsProcessor();
-  websocketQueue.process(
+  void websocketQueue.process(
     traceFunction({
       serviceName: "websockets",
       spanName: "process",
@@ -168,9 +168,6 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
     rooms.push(`collection-${collectionId}`)
   );
 
-  // join all of the rooms at once
-  socket.join(rooms);
-
   // allow the client to request to join rooms
   socket.on("join", async (event) => {
     // user is joining a collection channel, because their permissions have
@@ -194,6 +191,9 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
       Metrics.increment("websockets.collections.leave");
     }
   });
+
+  // join all of the rooms at once
+  await socket.join(rooms);
 }
 
 /**

@@ -7,7 +7,6 @@ import parseDocumentSlug from "@shared/utils/parseDocumentSlug";
 import { isExternalUrl } from "@shared/utils/urls";
 import HoverPreviewDocument from "~/components/HoverPreviewDocument";
 import useMobile from "~/hooks/useMobile";
-import useStores from "~/hooks/useStores";
 import { fadeAndSlideDown } from "~/styles/animations";
 
 const DELAY_OPEN = 300;
@@ -23,7 +22,6 @@ type Props = {
 };
 
 function HoverPreviewInternal({ element, id, onClose }: Props) {
-  const { documents } = useStores();
   const slug = parseDocumentSlug(element.href);
   const [isVisible, setVisible] = React.useState(false);
   const timerClose = React.useRef<ReturnType<typeof setTimeout>>();
@@ -57,10 +55,6 @@ function HoverPreviewInternal({ element, id, onClose }: Props) {
   };
 
   React.useEffect(() => {
-    if (slug) {
-      documents.prefetchDocument(slug);
-    }
-
     startOpenTimer();
 
     if (cardRef.current) {

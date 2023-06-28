@@ -124,13 +124,13 @@ export const starCollection = createAction({
       stores.policies.abilities(activeCollectionId).star
     );
   },
-  perform: ({ activeCollectionId, stores }) => {
+  perform: async ({ activeCollectionId, stores }) => {
     if (!activeCollectionId) {
       return;
     }
 
     const collection = stores.collections.get(activeCollectionId);
-    collection?.star();
+    await collection?.star();
   },
 });
 
@@ -150,13 +150,13 @@ export const unstarCollection = createAction({
       stores.policies.abilities(activeCollectionId).unstar
     );
   },
-  perform: ({ activeCollectionId, stores }) => {
+  perform: async ({ activeCollectionId, stores }) => {
     if (!activeCollectionId) {
       return;
     }
 
     const collection = stores.collections.get(activeCollectionId);
-    collection?.unstar();
+    await collection?.unstar();
   },
 });
 
