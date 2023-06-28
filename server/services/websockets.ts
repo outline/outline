@@ -130,23 +130,27 @@ export default function init(
 
   // Handle events from event queue that should be sent to the clients down ws
   const websockets = new WebsocketsProcessor();
-  void websocketQueue.process(
-    traceFunction({
-      serviceName: "websockets",
-      spanName: "process",
-      isRoot: true,
-    })(async function (job) {
-      const event = job.data;
+  websocketQueue
+    .process(
+      traceFunction({
+        serviceName: "websockets",
+        spanName: "process",
+        isRoot: true,
+      })(async function (job) {
+        const event = job.data;
 
-      Tracing.setResource(`Processor.WebsocketsProcessor`);
+        Tracing.setResource(`Processor.WebsocketsProcessor`);
 
-      websockets.perform(event, io).catch((error) => {
-        Logger.error("Error processing websocket event", error, {
-          event,
+        websockets.perform(event, io).catch((error) => {
+          Logger.error("Error processing websocket event", error, {
+            event,
+          });
         });
-      });
-    })
-  );
+      })
+    )
+    .catch((err) => {
+      Logger.fatal("Error starting websocketQueue", err);
+    });
 }
 
 async function authenticated(io: IO.Server, socket: SocketWithAuth) {
