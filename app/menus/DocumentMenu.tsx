@@ -100,7 +100,7 @@ function DocumentMenu({
 
   const handleOpen = React.useCallback(async () => {
     if (!data && !loading) {
-      return request();
+      await request();
     }
 
     if (onOpen) {

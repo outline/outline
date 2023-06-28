@@ -48,8 +48,8 @@ describe("i18n env is en-US", () => {
 });
 
 describe("i18n env is de-DE", () => {
-  beforeEach(() => {
-    initI18n("de-DE")
+  beforeEach(async () => {
+    (await initI18n("de-DE"))
       .addResources("en-US", "translation", en_US)
       .addResources("de-DE", "translation", de_DE)
       .addResources("pt-PT", "translation", pt_PT);
@@ -58,20 +58,20 @@ describe("i18n env is de-DE", () => {
   it("translation of key should match", () =>
     expect(i18n.t("Saving")).toBe("Speichert"));
 
-  it("translation if changed to en-US", () => {
+  it("translation if changed to en-US", async () => {
     await i18n.changeLanguage("en-US");
     expect(i18n.t("Saving")).toBe("Saving");
   });
 
-  it("translation if changed to pt-PT", () => {
+  it("translation if changed to pt-PT", async () => {
     await i18n.changeLanguage("pt-PT");
     expect(i18n.t("Saving")).toBe("A guardar");
   });
 });
 
 describe("i18n env is pt-PT", () => {
-  beforeEach(() => {
-    initI18n("pt-PT")
+  beforeEach(async () => {
+    (await initI18n("pt-PT"))
       .addResources("en-US", "translation", en_US)
       .addResources("de-DE", "translation", de_DE)
       .addResources("pt-PT", "translation", pt_PT);
@@ -80,12 +80,12 @@ describe("i18n env is pt-PT", () => {
   it("translation of key should match", () =>
     expect(i18n.t("Saving")).toBe("A guardar"));
 
-  it("translation if changed to en-US", () => {
+  it("translation if changed to en-US", async () => {
     await i18n.changeLanguage("en-US");
     expect(i18n.t("Saving")).toBe("Saving");
   });
 
-  it("translation if changed to de-DE", () => {
+  it("translation if changed to de-DE", async () => {
     await i18n.changeLanguage("de-DE");
     expect(i18n.t("Saving")).toBe("Speichert");
   });
