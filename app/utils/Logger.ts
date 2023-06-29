@@ -30,7 +30,7 @@ class Logger {
    * @param extra Arbitrary data to be logged
    */
   debug(label: LogCategory, message: string, extra?: Extra) {
-    if (env.ENVIRONMENT === "development") {
+    if (env.ENVIRONMENT === "development" || this.debugLoggingEnabled) {
       console.debug(`[${label}] ${message}`, extra);
     }
   }
@@ -82,6 +82,11 @@ class Logger {
       extra,
     });
   }
+
+  /**
+   * Whether additional debug logging is shown in the console or not.
+   */
+  public debugLoggingEnabled = false;
 }
 
 export default new Logger();
