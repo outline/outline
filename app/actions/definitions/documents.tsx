@@ -98,13 +98,13 @@ export const starDocument = createAction({
       !document?.isStarred && stores.policies.abilities(activeDocumentId).star
     );
   },
-  perform: ({ activeDocumentId, stores }) => {
+  perform: async ({ activeDocumentId, stores }) => {
     if (!activeDocumentId) {
       return;
     }
 
     const document = stores.documents.get(activeDocumentId);
-    document?.star();
+    await document?.star();
   },
 });
 
@@ -124,13 +124,13 @@ export const unstarDocument = createAction({
       stores.policies.abilities(activeDocumentId).unstar
     );
   },
-  perform: ({ activeDocumentId, stores }) => {
+  perform: async ({ activeDocumentId, stores }) => {
     if (!activeDocumentId) {
       return;
     }
 
     const document = stores.documents.get(activeDocumentId);
-    document?.unstar();
+    await document?.unstar();
   },
 });
 
@@ -186,14 +186,14 @@ export const unpublishDocument = createAction({
     }
     return stores.policies.abilities(activeDocumentId).unpublish;
   },
-  perform: ({ activeDocumentId, stores, t }) => {
+  perform: async ({ activeDocumentId, stores, t }) => {
     if (!activeDocumentId) {
       return;
     }
 
     const document = stores.documents.get(activeDocumentId);
 
-    document?.unpublish();
+    await document?.unpublish();
 
     stores.toasts.showToast(t("Document unpublished"), {
       type: "success",
@@ -218,14 +218,14 @@ export const subscribeDocument = createAction({
       stores.policies.abilities(activeDocumentId).subscribe
     );
   },
-  perform: ({ activeDocumentId, stores, t }) => {
+  perform: async ({ activeDocumentId, stores, t }) => {
     if (!activeDocumentId) {
       return;
     }
 
     const document = stores.documents.get(activeDocumentId);
 
-    document?.subscribe();
+    await document?.subscribe();
 
     stores.toasts.showToast(t("Subscribed to document notifications"), {
       type: "success",
@@ -250,14 +250,14 @@ export const unsubscribeDocument = createAction({
       stores.policies.abilities(activeDocumentId).unsubscribe
     );
   },
-  perform: ({ activeDocumentId, stores, currentUserId, t }) => {
+  perform: async ({ activeDocumentId, stores, currentUserId, t }) => {
     if (!activeDocumentId || !currentUserId) {
       return;
     }
 
     const document = stores.documents.get(activeDocumentId);
 
-    document?.unsubscribe(currentUserId);
+    await document?.unsubscribe(currentUserId);
 
     stores.toasts.showToast(t("Unsubscribed from document notifications"), {
       type: "success",
@@ -274,13 +274,13 @@ export const downloadDocumentAsHTML = createAction({
   iconInContextMenu: false,
   visible: ({ activeDocumentId, stores }) =>
     !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
-  perform: ({ activeDocumentId, stores }) => {
+  perform: async ({ activeDocumentId, stores }) => {
     if (!activeDocumentId) {
       return;
     }
 
     const document = stores.documents.get(activeDocumentId);
-    document?.download(ExportContentType.Html);
+    await document?.download(ExportContentType.Html);
   },
 });
 
@@ -321,13 +321,13 @@ export const downloadDocumentAsMarkdown = createAction({
   iconInContextMenu: false,
   visible: ({ activeDocumentId, stores }) =>
     !!activeDocumentId && stores.policies.abilities(activeDocumentId).download,
-  perform: ({ activeDocumentId, stores }) => {
+  perform: async ({ activeDocumentId, stores }) => {
     if (!activeDocumentId) {
       return;
     }
 
     const document = stores.documents.get(activeDocumentId);
-    document?.download(ExportContentType.Markdown);
+    await document?.download(ExportContentType.Markdown);
   },
 });
 

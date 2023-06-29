@@ -174,7 +174,7 @@ This is a new paragraph.
 |    |    |    |`,
       });
 
-      const text = await DocumentHelper.toPlainText(revision);
+      const text = DocumentHelper.toPlainText(revision);
 
       // Strip all formatting
       expect(text).toEqual(`This is a test paragraph

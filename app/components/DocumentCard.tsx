@@ -58,10 +58,10 @@ function DocumentCard(props: Props) {
   };
 
   const handleUnpin = React.useCallback(
-    (ev) => {
+    async (ev) => {
       ev.preventDefault();
       ev.stopPropagation();
-      pin?.delete();
+      await pin?.delete();
     },
     [pin]
   );

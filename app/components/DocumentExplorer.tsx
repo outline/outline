@@ -164,7 +164,7 @@ function DocumentExplorer({ onSubmit, onSelect, items }: Props) {
         (collection) => expandedNodes.includes(collection.id) || searchTerm
       )
       .forEach((collection) => {
-        collection.fetchDocuments();
+        void collection.fetchDocuments();
       });
   }, [collections, expandedNodes, searchTerm]);
 

@@ -86,7 +86,7 @@ function DataLoader({ match, children }: Props) {
         setError(err);
       }
     }
-    fetchDocument();
+    void fetchDocument();
   }, [ui, documents, document, shareId, documentSlug]);
 
   React.useEffect(() => {
@@ -99,7 +99,7 @@ function DataLoader({ match, children }: Props) {
         }
       }
     }
-    fetchRevision();
+    void fetchRevision();
   }, [revisions, revisionId]);
 
   React.useEffect(() => {
@@ -112,7 +112,7 @@ function DataLoader({ match, children }: Props) {
         }
       }
     }
-    fetchRevision();
+    void fetchRevision();
   }, [document, revisionId, revisions]);
 
   React.useEffect(() => {
@@ -128,7 +128,7 @@ function DataLoader({ match, children }: Props) {
         }
       }
     }
-    fetchSubscription();
+    void fetchSubscription();
   }, [document?.id, subscriptions, revisionId]);
 
   React.useEffect(() => {
@@ -143,7 +143,7 @@ function DataLoader({ match, children }: Props) {
         }
       }
     }
-    fetchViews();
+    void fetchViews();
   }, [document?.id, document?.isDeleted, revisionId, views]);
 
   const onCreateLink = React.useCallback(
@@ -180,7 +180,7 @@ function DataLoader({ match, children }: Props) {
       // when viewing a public share link
       if (can.read) {
         if (team?.getPreference(TeamPreference.Commenting)) {
-          comments.fetchDocumentComments(document.id, {
+          void comments.fetchDocumentComments(document.id, {
             limit: 100,
           });
         }

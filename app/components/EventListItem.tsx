@@ -51,9 +51,9 @@ const EventListItem = ({ event, latest, document, ...rest }: Props) => {
     ref.current?.focus();
   };
 
-  const prefetchRevision = () => {
+  const prefetchRevision = async () => {
     if (event.name === "revisions.create" && event.modelId) {
-      revisions.fetch(event.modelId);
+      await revisions.fetch(event.modelId);
     }
   };
 

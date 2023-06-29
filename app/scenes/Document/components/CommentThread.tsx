@@ -114,7 +114,7 @@ function CommentThread({
           if (!topRef.current) {
             return;
           }
-          scrollIntoView(topRef.current, {
+          return scrollIntoView(topRef.current, {
             scrollMode: "if-needed",
             behavior: "smooth",
             block: "end",

@@ -20,9 +20,11 @@ function HoverPreviewDocument({ url, id, children }: Props) {
   const { documents } = useStores();
   const slug = parseDocumentSlug(url);
 
-  if (slug) {
-    documents.prefetchDocument(slug);
-  }
+  React.useEffect(() => {
+    if (slug) {
+      void documents.prefetchDocument(slug);
+    }
+  }, [documents, slug]);
 
   const document = slug ? documents.getByUrl(slug) : undefined;
   if (!document || document.id === id) {

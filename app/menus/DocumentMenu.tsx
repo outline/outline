@@ -100,7 +100,7 @@ function DocumentMenu({
 
   const handleOpen = React.useCallback(async () => {
     if (!data && !loading) {
-      request();
+      await request();
     }
 
     if (onOpen) {
@@ -325,7 +325,7 @@ function DocumentMenu({
                   checked={document.fullWidth}
                   onChange={(ev) => {
                     document.fullWidth = ev.currentTarget.checked;
-                    document.save();
+                    void document.save();
                   }}
                 />
               </Style>

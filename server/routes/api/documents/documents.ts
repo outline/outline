@@ -21,6 +21,7 @@ import {
   ValidationError,
   IncorrectEditionError,
 } from "@server/errors";
+import Logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import validate from "@server/middlewares/validate";
@@ -815,13 +816,15 @@ router.post(
     // When requesting subsequent pages of search results we don't want to record
     // duplicate search query records
     if (offset === 0) {
-      SearchQuery.create({
+      void SearchQuery.create({
         userId: user?.id,
         teamId,
         shareId,
         source: ctx.state.auth.type || "app", // we'll consider anything that isn't "api" to be "app"
         query,
         results: totalCount,
+      }).catch((err) => {
+        Logger.error("Failed to create search query", err);
       });
     }
 

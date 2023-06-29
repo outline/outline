@@ -18,7 +18,7 @@ const Authenticated = ({ children }: Props) => {
   // Watching for language changes here as this is the earliest point we have
   // the user available and means we can start loading translations faster
   React.useEffect(() => {
-    changeLanguage(language, i18n);
+    void changeLanguage(language, i18n);
   }, [i18n, language]);
 
   if (auth.authenticated) {
@@ -31,7 +31,7 @@ const Authenticated = ({ children }: Props) => {
     return children;
   }
 
-  auth.logout(true);
+  void auth.logout(true);
   return <Redirect to="/" />;
 };
 

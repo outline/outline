@@ -36,10 +36,7 @@ function AddGroupsToCollection(props: Props) {
   const { t } = useTranslation();
 
   const debouncedFetch = React.useMemo(
-    () =>
-      debounce((query) => {
-        fetchGroups({ query });
-      }, 250),
+    () => debounce((query) => fetchGroups({ query }), 250),
     [fetchGroups]
   );
 
@@ -47,14 +44,14 @@ function AddGroupsToCollection(props: Props) {
     (ev: React.ChangeEvent<HTMLInputElement>) => {
       const updatedQuery = ev.target.value;
       setQuery(updatedQuery);
-      debouncedFetch(updatedQuery);
+      void debouncedFetch(updatedQuery);
     },
     [debouncedFetch]
   );
 
-  const handleAddGroup = (group: Group) => {
+  const handleAddGroup = async (group: Group) => {
     try {
-      collectionGroupMemberships.create({
+      await collectionGroupMemberships.create({
         collectionId: collection.id,
         groupId: group.id,
       });

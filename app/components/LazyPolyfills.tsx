@@ -1,4 +1,5 @@
 import * as React from "react";
+import Logger from "~/utils/Logger";
 import { loadPolyfills } from "~/utils/polyfills";
 
 /**
@@ -8,9 +9,13 @@ export const LazyPolyfill: React.FC = ({ children }) => {
   const [isLoaded, setIsLoaded] = React.useState(false);
 
   React.useEffect(() => {
-    loadPolyfills().then(() => {
-      setIsLoaded(true);
-    });
+    loadPolyfills()
+      .then(() => {
+        setIsLoaded(true);
+      })
+      .catch((error) => {
+        Logger.error("Polyfills failed to load", error);
+      });
   }, []);
 
   if (!isLoaded) {

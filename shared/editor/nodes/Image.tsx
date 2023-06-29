@@ -212,7 +212,7 @@ export default class Image extends SimpleImage {
     (event: React.MouseEvent) => {
       event.preventDefault();
       event.stopPropagation();
-      downloadImageNode(node);
+      void downloadImageNode(node);
     };
 
   component = (props: ComponentProps) => (
@@ -292,7 +292,7 @@ export default class Image extends SimpleImage {
           return false;
         }
 
-        downloadImageNode(node);
+        void downloadImageNode(node);
 
         return true;
       },

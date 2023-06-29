@@ -46,7 +46,7 @@ function DocumentNew() {
       }
     }
 
-    createDocument();
+    void createDocument();
   });
 
   return (

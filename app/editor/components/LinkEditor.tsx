@@ -139,7 +139,7 @@ class LinkEditor extends React.Component<Props, State> {
           if (result) {
             this.save(result.url, result.title);
           } else if (onCreateLink && selectedIndex === results.length) {
-            this.handleCreateLink(this.suggestedLinkTitle);
+            void this.handleCreateLink(this.suggestedLinkTitle);
           }
         } else {
           // saves the raw input as href
@@ -376,8 +376,8 @@ class LinkEditor extends React.Component<Props, State> {
                     subtitle={dictionary.createNewDoc}
                     icon={<PlusIcon />}
                     onPointerMove={() => this.handleFocusLink(results.length)}
-                    onClick={() => {
-                      this.handleCreateLink(suggestedLinkTitle);
+                    onClick={async () => {
+                      await this.handleCreateLink(suggestedLinkTitle);
 
                       if (this.initialSelectionLength) {
                         this.moveSelectionToEnd();

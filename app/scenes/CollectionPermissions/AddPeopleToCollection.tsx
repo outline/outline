@@ -44,9 +44,9 @@ function AddPeopleToCollection({ collection }: Props) {
     250
   );
 
-  const handleAddUser = (user: User) => {
+  const handleAddUser = async (user: User) => {
     try {
-      memberships.create({
+      await memberships.create({
         collectionId: collection.id,
         userId: user.id,
       });

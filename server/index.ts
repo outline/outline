@@ -53,7 +53,7 @@ async function master() {
   await checkPendingMigrations();
 
   if (env.TELEMETRY && env.ENVIRONMENT === "production") {
-    checkUpdates();
+    void checkUpdates();
     setInterval(checkUpdates, 24 * 3600 * 1000);
   }
 }
@@ -166,7 +166,7 @@ async function start(id: number, disconnect: () => void) {
   process.once("SIGINT", () => ShutdownHelper.execute());
 }
 
-throng({
+void throng({
   master,
   worker: start,
   count: processCount,

@@ -232,8 +232,8 @@ export default class CollectionsStore extends BaseStore<Collection> {
 
   delete = async (collection: Collection) => {
     await super.delete(collection);
-    this.rootStore.documents.fetchRecentlyUpdated();
-    this.rootStore.documents.fetchRecentlyViewed();
+    await this.rootStore.documents.fetchRecentlyUpdated();
+    await this.rootStore.documents.fetchRecentlyViewed();
   };
 
   export = (format: FileOperationFormat, includeAttachments: boolean) =>

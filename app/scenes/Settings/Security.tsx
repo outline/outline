@@ -46,7 +46,7 @@ function Security() {
 
   React.useEffect(() => {
     if (!providers && !loading) {
-      request();
+      void request();
     }
   }, [loading, providers, request]);
 

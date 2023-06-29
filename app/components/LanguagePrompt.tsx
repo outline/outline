@@ -73,11 +73,11 @@ export default function LanguagePrompt() {
           </Trans>
           <br />
           <Link
-            onClick={() => {
-              auth.updateUser({
+            onClick={async () => {
+              ui.setLanguagePromptDismissed();
+              await auth.updateUser({
                 language,
               });
-              ui.setLanguagePromptDismissed();
             }}
           >
             {t("Change Language")}

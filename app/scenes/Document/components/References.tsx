@@ -19,7 +19,7 @@ function References({ document }: Props) {
   const location = useLocation();
 
   React.useEffect(() => {
-    documents.fetchBacklinks(document.id);
+    void documents.fetchBacklinks(document.id);
   }, [documents, document.id]);
 
   const backlinks = documents.getBacklinkedDocuments(document.id);

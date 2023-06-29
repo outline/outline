@@ -116,9 +116,9 @@ function UserMenu({ user }: Props) {
   );
 
   const handleRevoke = React.useCallback(
-    (ev: React.SyntheticEvent) => {
+    async (ev: React.SyntheticEvent) => {
       ev.preventDefault();
-      users.delete(user);
+      await users.delete(user);
     },
     [users, user]
   );
@@ -143,9 +143,9 @@ function UserMenu({ user }: Props) {
   );
 
   const handleActivate = React.useCallback(
-    (ev: React.SyntheticEvent) => {
+    async (ev: React.SyntheticEvent) => {
       ev.preventDefault();
-      users.activate(user);
+      await users.activate(user);
     },
     [users, user]
   );

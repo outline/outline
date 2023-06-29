@@ -57,8 +57,8 @@ if (env.CDN_URL) {
   defaultSrc.push(env.CDN_URL);
 }
 
-export default function init(app: Koa = new Koa(), server?: Server): Koa {
-  initI18n();
+export default function init(app: Koa = new Koa(), server?: Server) {
+  void initI18n();
 
   if (isProduction) {
     // Force redirect to HTTPS protocol unless explicitly disabled

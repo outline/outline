@@ -29,7 +29,7 @@ export default function useEmbeds(loadIfMissing = false) {
     }
 
     if (!integrations.isLoaded && !integrations.isFetching && loadIfMissing) {
-      fetchEmbedIntegrations();
+      void fetchEmbedIntegrations();
     }
   }, [integrations, loadIfMissing]);
 

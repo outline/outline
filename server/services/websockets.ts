@@ -130,23 +130,27 @@ export default function init(
 
   // Handle events from event queue that should be sent to the clients down ws
   const websockets = new WebsocketsProcessor();
-  websocketQueue.process(
-    traceFunction({
-      serviceName: "websockets",
-      spanName: "process",
-      isRoot: true,
-    })(async function (job) {
-      const event = job.data;
+  websocketQueue
+    .process(
+      traceFunction({
+        serviceName: "websockets",
+        spanName: "process",
+        isRoot: true,
+      })(async function (job) {
+        const event = job.data;
 
-      Tracing.setResource(`Processor.WebsocketsProcessor`);
+        Tracing.setResource(`Processor.WebsocketsProcessor`);
 
-      websockets.perform(event, io).catch((error) => {
-        Logger.error("Error processing websocket event", error, {
-          event,
+        websockets.perform(event, io).catch((error) => {
+          Logger.error("Error processing websocket event", error, {
+            event,
+          });
         });
-      });
-    })
-  );
+      })
+    )
+    .catch((err) => {
+      Logger.fatal("Error starting websocketQueue", err);
+    });
 }
 
 async function authenticated(io: IO.Server, socket: SocketWithAuth) {
@@ -167,9 +171,6 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
   collectionIds.forEach((collectionId) =>
     rooms.push(`collection-${collectionId}`)
   );
-
-  // join all of the rooms at once
-  socket.join(rooms);
 
   // allow the client to request to join rooms
   socket.on("join", async (event) => {
@@ -194,6 +195,9 @@ async function authenticated(io: IO.Server, socket: SocketWithAuth) {
       Metrics.increment("websockets.collections.leave");
     }
   });
+
+  // join all of the rooms at once
+  await socket.join(rooms);
 }
 
 /**

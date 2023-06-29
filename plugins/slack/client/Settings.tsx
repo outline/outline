@@ -30,10 +30,10 @@ function Slack() {
   const error = query.get("error");
 
   React.useEffect(() => {
-    collections.fetchPage({
+    void collections.fetchPage({
       limit: 100,
     });
-    integrations.fetchPage({
+    void integrations.fetchPage({
       limit: 100,
     });
   }, [collections, integrations]);

@@ -60,7 +60,7 @@ export async function signIn(
   await user.updateSignedIn(ctx.request.ip);
 
   // don't await event creation for a faster sign-in
-  Event.create({
+  void Event.create({
     name: "users.signin",
     actorId: user.id,
     userId: user.id,
