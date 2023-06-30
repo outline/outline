@@ -97,7 +97,10 @@ const AuthenticatedLayout: React.FC = ({ children }) => {
     team?.getPreference(TeamPreference.Commenting);
 
   const sidebarRight = (
-    <AnimatePresence>
+    <AnimatePresence
+      initial={false}
+      key={ui.activeDocumentId ? "active" : "inactive"}
+    >
       {(showHistory || showInsights || showComments) && (
         <Route path={`/doc/${slug}`}>
           <SidebarRight>
