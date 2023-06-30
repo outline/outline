@@ -87,7 +87,7 @@ function Notifications(
           </Scrollable>
         </React.Suspense>
         {isEmpty && (
-          <EmptyNotifications>{t("No notifications yet")}.</EmptyNotifications>
+          <EmptyNotifications>{t("You're all caught up")}.</EmptyNotifications>
         )}
       </Flex>
     </ErrorBoundary>
