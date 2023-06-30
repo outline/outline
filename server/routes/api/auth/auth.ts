@@ -1,3 +1,4 @@
+import { subHours } from "date-fns";
 import Router from "koa-router";
 import { uniqBy } from "lodash";
 import { TeamPreference } from "@shared/types";
@@ -126,7 +127,11 @@ router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
     user.availableTeams(),
   ]);
 
-  await ValidateSSOAccessTask.schedule({ userId: user.id });
+  // If the user did not _just_ sign in then we need to check if they continue
+  // to have access to the workspace they are signed into.
+  if (user.lastSignedInAt && user.lastSignedInAt < subHours(new Date(), 1)) {
+    await ValidateSSOAccessTask.schedule({ userId: user.id });
+  }
 
   ctx.body = {
     data: {
