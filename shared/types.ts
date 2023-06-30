@@ -208,3 +208,6 @@ export const NotificationEventDefaults = {
   [NotificationEventType.Features]: true,
   [NotificationEventType.ExportCompleted]: true,
 };
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type ProsemirrorData = Record<string, any>;

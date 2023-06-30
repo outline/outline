@@ -1,6 +1,7 @@
 import { subSeconds } from "date-fns";
 import { computed, observable } from "mobx";
 import { now } from "mobx-utils";
+import type { ProsemirrorData } from "@shared/types";
 import User from "~/models/User";
 import BaseModel from "./BaseModel";
 import Field from "./decorators/Field";
@@ -22,7 +23,7 @@ class Comment extends BaseModel {
    */
   @Field
   @observable
-  data: Record<string, any>;
+  data: ProsemirrorData;
 
   /**
    * If this comment is a reply then the parent comment will be set, otherwise
