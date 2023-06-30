@@ -879,7 +879,13 @@ const observe = (
       callback(match as HTMLElement);
     }
   });
-  observer.observe(targetNode, { childList: true, subtree: true });
+
+  if (targetNode.querySelector(selector)) {
+    callback(targetNode.querySelector(selector) as HTMLElement);
+  } else {
+    observer.observe(targetNode, { childList: true, subtree: true });
+  }
+
   return observer;
 };
 
