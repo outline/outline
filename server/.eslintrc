@@ -2,6 +2,9 @@
   "extends": [
     "../.eslintrc"
   ],
+  "parserOptions": {
+    "project": "./tsconfig.json"
+  },
   "overrides": [
     {
       "files": ["scripts/*"],
