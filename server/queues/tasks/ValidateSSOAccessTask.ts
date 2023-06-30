@@ -20,6 +20,7 @@ export default class ValidateSSOAccessTask extends BaseTask<Props> {
       }
 
       // Check the validity of all the user's associated authentications.
+      // @ts-expect-error TODO: Need to setup nested tsconfig with ES2021
       const valid = await Promise.any(
         userAuthentications.map(async (authentication) =>
           authentication.validateAccess({ transaction })
