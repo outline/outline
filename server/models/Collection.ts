@@ -457,10 +457,11 @@ class Collection extends ParanoidModel {
           parentDocumentId: documentId,
         },
       });
-      childDocuments.forEach(async (child) => {
+
+      for (const child of childDocuments) {
         await loopChildren(child.id, opts);
         await child.destroy(opts);
-      });
+      }
     };
 
     await loopChildren(document.id, options);
