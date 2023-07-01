@@ -512,9 +512,13 @@ export class Editor extends React.PureComponent<
 
     try {
       this.mutationObserver?.disconnect();
-      this.mutationObserver = observe(hash, (element) => {
-        element.scrollIntoView({ behavior: "smooth" });
-      });
+      this.mutationObserver = observe(
+        hash,
+        (element) => {
+          element.scrollIntoView({ behavior: "instant" });
+        },
+        this.elementRef.current || undefined
+      );
     } catch (err) {
       // querySelector will throw an error if the hash begins with a number
       // or contains a period. This is protected against now by safeSlugify
