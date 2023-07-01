@@ -1,6 +1,8 @@
 import { isArrayLike } from "lodash";
 import { Primitive } from "utility-types";
 import validator from "validator";
+import isUUID from "validator/lib/isUUID";
+import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
 import { CollectionPermission } from "../shared/types";
 import { validateColorHex } from "../shared/utils/color";
 import { validateIndexCharacters } from "../shared/utils/indexCharacters";
@@ -165,3 +167,22 @@ export const assertCollectionPermission = (
 ) => {
   assertIn(value, [...Object.values(CollectionPermission), null], message);
 };
+
+export class ValidateDocumentId {
+  /**
+   * Checks if documentId is valid. A valid documentId is either
+   * a UUID or a url slug matching a particular regex.
+   *
+   * @param documentId
+   * @returns true if documentId is valid, false otherwise
+   */
+  public static isValid = (documentId: string) =>
+    isUUID(documentId) || SLUG_URL_REGEX.test(documentId);
+
+  public static message = "Must be uuid or url slug";
+}
+
+export class ValidateIndex {
+  public static regex = new RegExp("^[\x20-\x7E]+$");
+  public static message = "Must be between x20 to x7E ASCII";
+}
