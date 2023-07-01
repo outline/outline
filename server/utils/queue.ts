@@ -53,6 +53,7 @@ export function createQueue(
   });
 
   if (env.ENVIRONMENT !== "test") {
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     setInterval(async () => {
       Metrics.gauge(`${prefix}.count`, await queue.count());
       Metrics.gauge(`${prefix}.delayed_count`, await queue.getDelayedCount());

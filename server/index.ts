@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-misused-promises */
 /* eslint-disable import/order */
 import env from "./env";
 
@@ -69,8 +70,8 @@ async function start(id: number, disconnect: () => void) {
   const app = new Koa();
   const server = stoppable(
     useHTTPS
-      ? https.createServer(ssl, app.callback())
-      : http.createServer(app.callback()),
+      ? https.createServer(ssl, void app.callback())
+      : http.createServer(void app.callback()),
     ShutdownHelper.connectionGraceTimeout
   );
   const router = new Router();
@@ -162,8 +163,8 @@ async function start(id: number, disconnect: () => void) {
   ShutdownHelper.add("metrics", ShutdownOrder.last, () => Metrics.flush());
 
   // Handle shutdown signals
-  process.once("SIGTERM", () => ShutdownHelper.execute());
-  process.once("SIGINT", () => ShutdownHelper.execute());
+  process.once("SIGTERM", () => void ShutdownHelper.execute());
+  process.once("SIGINT", () => void ShutdownHelper.execute());
 }
 
 void throng({
