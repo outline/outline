@@ -168,18 +168,21 @@ export const assertCollectionPermission = (
   assertIn(value, [...Object.values(CollectionPermission), null], message);
 };
 
-/**
- * Checks if documentId is valid
- *
- * @param documentId
- * @returns true if documentId is valid else false
- */
-export const isValidDocumentId = (documentId: string) =>
-  isUUID(documentId) || SLUG_URL_REGEX.test(documentId);
+export class ValidateDocumentId {
+  /**
+   * Checks if documentId is valid. A valid documentId is either
+   * a UUID or a url slug matching a particular regex.
+   *
+   * @param documentId
+   * @returns true if documentId is valid, false otherwise
+   */
+  public static isValid = (documentId: string) =>
+    isUUID(documentId) || SLUG_URL_REGEX.test(documentId);
 
-export const INDEX_REGEX = new RegExp("^[\x20-\x7E]+$");
+  public static message = "Must be uuid or url slug";
+}
 
-// Validation messages
-export const INVALID_DOCUMENT_ID = "Must be uuid or url slug";
-
-export const INVALID_INDEX = "Must be between x20 to x7E ASCII";
+export class ValidateIndex {
+  public static regex = new RegExp("^[\x20-\x7E]+$");
+  public static message = "Must be between x20 to x7E ASCII";
+}

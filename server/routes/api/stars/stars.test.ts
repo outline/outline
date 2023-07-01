@@ -16,7 +16,7 @@ describe("#stars.create", () => {
     const body = await res.json();
     expect(res.status).toEqual(400);
     expect(body.message).toEqual(
-      "body: one of documentId or collectionId is required"
+      "body: One of documentId or collectionId is required"
     );
   });
 

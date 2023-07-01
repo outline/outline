@@ -1,11 +1,6 @@
 import { isEmpty } from "lodash";
 import { z } from "zod";
-import {
-  INDEX_REGEX,
-  INVALID_DOCUMENT_ID,
-  INVALID_INDEX,
-  isValidDocumentId,
-} from "@server/validation";
+import { ValidateDocumentId, ValidateIndex } from "@server/validation";
 import BaseSchema from "../BaseSchema";
 
 export const StarsCreateSchema = BaseSchema.extend({
@@ -13,22 +8,22 @@ export const StarsCreateSchema = BaseSchema.extend({
     .object({
       documentId: z
         .string()
-        .refine(isValidDocumentId, {
-          message: INVALID_DOCUMENT_ID,
+        .refine(ValidateDocumentId.isValid, {
+          message: ValidateDocumentId.message,
         })
         .optional(),
       collectionId: z.string().uuid().optional(),
       index: z
         .string()
-        .regex(INDEX_REGEX, {
-          message: INVALID_INDEX,
+        .regex(ValidateIndex.regex, {
+          message: ValidateIndex.message,
         })
         .optional(),
     })
     .refine(
       (body) => !(isEmpty(body.documentId) && isEmpty(body.collectionId)),
       {
-        message: "one of documentId or collectionId is required",
+        message: "One of documentId or collectionId is required",
       }
     ),
 });
@@ -42,8 +37,8 @@ export type StarsListReq = z.infer<typeof StarsListSchema>;
 export const StarsUpdateSchema = BaseSchema.extend({
   body: z.object({
     id: z.string().uuid(),
-    index: z.string().regex(INDEX_REGEX, {
-      message: INVALID_INDEX,
+    index: z.string().regex(ValidateIndex.regex, {
+      message: ValidateIndex.message,
     }),
   }),
 });
