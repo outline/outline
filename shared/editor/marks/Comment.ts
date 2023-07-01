@@ -19,10 +19,31 @@ export default class Comment extends Mark {
         userId: {},
       },
       inclusive: false,
-      parseDOM: [{ tag: "span.comment-marker" }],
+      parseDOM: [
+        {
+          tag: "span.comment-marker",
+          getAttrs: (dom: HTMLSpanElement) => {
+            // Ignore comment markers from other documents
+            const documentId = dom.getAttribute("data-document-id");
+            if (documentId && documentId !== this.editor.props.id) {
+              return false;
+            }
+
+            return {
+              id: dom.getAttribute("id")?.replace("comment-", ""),
+              userId: dom.getAttribute("data-user-id"),
+            };
+          },
+        },
+      ],
       toDOM: (node) => [
         "span",
-        { class: "comment-marker", id: `comment-${node.attrs.id}` },
+        {
+          class: "comment-marker",
+          id: `comment-${node.attrs.id}`,
+          "data-user-id": node.attrs.userId,
+          "data-document-id": this.editor.props.id,
+        },
       ],
     };
   }
@@ -87,7 +108,7 @@ export default class Comment extends Mark {
       new Plugin({
         props: {
           handleDOMEvents: {
-            mouseup: (view, event: MouseEvent) => {
+            mouseup: (_view, event: MouseEvent) => {
               if (
                 !(event.target instanceof HTMLSpanElement) ||
                 !event.target.classList.contains("comment-marker")
