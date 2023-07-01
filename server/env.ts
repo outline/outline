@@ -621,6 +621,13 @@ export class Environment {
   private toBoolean(value: string) {
     return value ? !!JSON.parse(value) : false;
   }
+
+  /**
+   * Date time env
+   */
+  public DATE_FORMAT = process.env.DATE_FORMAT;
+  public TIME_FORMAT = process.env.TIME_FORMAT;
+  public DATETIME_FORMAT = process.env.TIME_FORMAT;
 }
 
 const env = new Environment();

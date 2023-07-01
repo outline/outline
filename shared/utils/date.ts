@@ -1,4 +1,5 @@
-import { subDays, subMonths, subWeeks, subYears } from "date-fns";
+import { subDays, subMonths, subWeeks, subYears, format } from "date-fns";
+import env from "../env";
 import type { DateFilter } from "../types";
 
 export function subtractDate(date: Date, period: DateFilter) {
@@ -46,6 +47,9 @@ export function unicodeBCP47toCLDR(locale: string) {
  * @returns The current date
  */
 export function getCurrentDateAsString(locales?: Intl.LocalesArgument) {
+  if (typeof env.DATE_FORMAT !== "undefined") {
+    return format(new Date(), env.DATE_FORMAT);
+  }
   return new Date().toLocaleDateString(locales, {
     year: "numeric",
     month: "long",
@@ -59,6 +63,9 @@ export function getCurrentDateAsString(locales?: Intl.LocalesArgument) {
  * @returns The current time
  */
 export function getCurrentTimeAsString(locales?: Intl.LocalesArgument) {
+  if (typeof env.TIME_FORMAT !== "undefined") {
+    return format(new Date(), env.TIME_FORMAT);
+  }
   return new Date().toLocaleTimeString(locales, {
     hour: "numeric",
     minute: "numeric",
@@ -72,6 +79,9 @@ export function getCurrentTimeAsString(locales?: Intl.LocalesArgument) {
  * @returns The current date and time
  */
 export function getCurrentDateTimeAsString(locales?: Intl.LocalesArgument) {
+  if (typeof env.DATETIME_FORMAT !== "undefined") {
+    return format(new Date(), env.DATETIME_FORMAT);
+  }
   return new Date().toLocaleString(locales, {
     year: "numeric",
     month: "long",
