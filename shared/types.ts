@@ -62,6 +62,9 @@ export type PublicEnv = {
     service?: IntegrationService;
     settings?: IntegrationSettings<IntegrationType.Analytics>;
   };
+  DATE_FORMAT: string | undefined;
+  TIME_FORMAT: string | undefined;
+  DATETIME_FORMAT: string | undefined;
 };
 
 export enum AttachmentPreset {

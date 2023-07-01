@@ -35,5 +35,8 @@ export default function present(
       service: analytics?.service,
       settings: analytics?.settings,
     },
+    DATE_FORMAT: env.DATE_FORMAT,
+    TIME_FORMAT: env.TIME_FORMAT,
+    DATETIME_FORMAT: env.DATETIME_FORMAT,
   };
 }
