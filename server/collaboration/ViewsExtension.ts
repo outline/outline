@@ -53,6 +53,7 @@ export class ViewsExtension implements Extension {
 
     // Set up an interval to update the last viewed at timestamp continuously
     // while the user is connected. This should only be done once per socket.
+    // eslint-disable-next-line @typescript-eslint/no-misused-promises
     const interval = setInterval(updateView, 30 * Second);
 
     this.intervalsBySocket.set(socketId, interval);

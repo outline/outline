@@ -12,8 +12,8 @@ export default function init() {
     }
   }
 
-  setInterval(() => run(TaskSchedule.Daily), Day);
-  setInterval(() => run(TaskSchedule.Hourly), Hour);
+  setInterval(() => void run(TaskSchedule.Daily), Day);
+  setInterval(() => void run(TaskSchedule.Hourly), Hour);
 
   // Just give everything time to startup before running the first time. Not
   // _technically_ required to function.

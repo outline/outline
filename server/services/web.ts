@@ -86,7 +86,7 @@ export default function init(app: Koa = new Koa(), server?: Server) {
 
   // Monitor server connections
   if (server) {
-    setInterval(async () => {
+    setInterval(() => {
       server.getConnections((err, count) => {
         if (err) {
           return;
