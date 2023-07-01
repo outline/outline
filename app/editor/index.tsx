@@ -515,7 +515,7 @@ export class Editor extends React.PureComponent<
       this.mutationObserver = observe(
         hash,
         (element) => {
-          element.scrollIntoView({ behavior: "instant" });
+          element.scrollIntoView();
         },
         this.elementRef.current || undefined
       );
