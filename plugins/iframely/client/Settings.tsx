@@ -47,7 +47,7 @@ function Iframely() {
   });
 
   React.useEffect(() => {
-    integrations.fetchPage({
+    void integrations.fetchPage({
       type: IntegrationType.Embed,
     });
   }, [integrations]);
