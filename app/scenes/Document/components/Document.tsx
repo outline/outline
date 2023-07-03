@@ -517,7 +517,7 @@ class DocumentScene extends React.Component<Props> {
                         canComment={abilities.comment}
                       >
                         {shareId && (
-                          <ReferencesWrapper isOnlyTitle={document.isOnlyTitle}>
+                          <ReferencesWrapper>
                             <PublicReferences
                               shareId={shareId}
                               documentId={document.id}
@@ -528,9 +528,7 @@ class DocumentScene extends React.Component<Props> {
                         {!isShare && !revision && (
                           <>
                             <MarkAsViewed document={document} />
-                            <ReferencesWrapper
-                              isOnlyTitle={document.isOnlyTitle}
-                            >
+                            <ReferencesWrapper>
                               <References document={document} />
                             </ReferencesWrapper>
                           </>
@@ -580,8 +578,8 @@ const Background = styled(Container)`
   transition: ${s("backgroundTransition")};
 `;
 
-const ReferencesWrapper = styled.div<{ isOnlyTitle?: boolean }>`
-  margin-top: ${(props) => (props.isOnlyTitle ? -45 : 16)}px;
+const ReferencesWrapper = styled.div`
+  margin-top: 16px;
 
   @media print {
     display: none;

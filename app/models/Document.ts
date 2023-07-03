@@ -123,11 +123,6 @@ export default class Document extends ParanoidModel {
   }
 
   @computed
-  get isOnlyTitle(): boolean {
-    return !this.text.trim();
-  }
-
-  @computed
   get modifiedSinceViewed(): boolean {
     return !!this.lastViewedAt && this.lastViewedAt < this.updatedAt;
   }
