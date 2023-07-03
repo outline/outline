@@ -125,7 +125,6 @@ function InnerDocumentLink(
       }
       await documents.update({
         id: document.id,
-        text: document.text,
         title,
       });
     },
