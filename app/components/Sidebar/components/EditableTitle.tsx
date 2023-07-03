@@ -121,7 +121,7 @@ const Input = styled.input`
   border: 0;
   padding: 5px 6px;
   margin: -4px;
-  height: 32px;
+  height: 30px;
 
   &:focus {
     outline-color: ${s("accent")};
