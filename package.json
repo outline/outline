@@ -326,7 +326,7 @@
     "terser": "^5.16.6",
     "typescript": "^5.0.0",
     "vite-plugin-static-copy": "^0.13.0",
-    "yarn-deduplicate": "^6.0.1"
+    "yarn-deduplicate": "^6.0.2"
   },
   "resolutions": {
     "body-scroll-lock": "^4.0.0-beta.0",
