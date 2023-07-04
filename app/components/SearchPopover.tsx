@@ -88,10 +88,14 @@ function SearchPopover({ shareId }: Props) {
 
   const handleSearchInputFocus = React.useCallback(() => {
     focusRef.current = searchInputRef.current;
-  }, []);
+  }, [searchInputRef]);
 
   const handleKeyDown = React.useCallback(
     (ev: React.KeyboardEvent<HTMLInputElement>) => {
+      if (ev.nativeEvent.isComposing) {
+        return;
+      }
+
       if (ev.key === "Enter") {
         if (searchResults) {
           popover.show();
