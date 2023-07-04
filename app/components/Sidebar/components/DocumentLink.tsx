@@ -334,9 +334,9 @@ function InnerDocumentLink(
                   />
                 }
                 isActive={(match, location: Location<{ starred?: boolean }>) =>
-                  (document
-                    ? location.pathname.endsWith(document.urlId)
-                    : !!match) && location.state?.starred === inStarredSection
+                  ((document && location.pathname.endsWith(document.urlId)) ||
+                    !!match) &&
+                  location.state?.starred === inStarredSection
                 }
                 isActiveDrop={isOverReparent && canDropToReparent}
                 depth={depth}
