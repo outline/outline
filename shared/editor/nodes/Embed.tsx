@@ -127,12 +127,11 @@ export default class Embed extends Node {
     if (!state.inTable) {
       state.ensureNewLine();
     }
+
+    const href = node.attrs.href.replace(/_/g, "%5F");
+
     state.write(
-      "[" +
-        state.esc(node.attrs.href, false) +
-        "](" +
-        state.esc(node.attrs.href, false) +
-        ")"
+      "[" + state.esc(href, false) + "](" + state.esc(href, false) + ")"
     );
     if (!state.inTable) {
       state.write("\n\n");
