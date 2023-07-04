@@ -1,7 +1,7 @@
 import Router from "koa-router";
 import { WhereOptions } from "sequelize";
+import { IntegrationType } from "@shared/types";
 import integrationCreator from "@server/commands/integrationCreator";
-import integrationUpdater from "@server/commands/integrationUpdater";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
@@ -45,9 +45,7 @@ router.post(
 
     ctx.body = {
       pagination: ctx.state.pagination,
-      data: integrations.map((integration) =>
-        presentIntegration(integration, { includeToken: user.isAdmin })
-      ),
+      data: integrations.map(presentIntegration),
     };
   }
 );
@@ -74,9 +72,7 @@ router.post(
     });
 
     ctx.body = {
-      data: presentIntegration(integration, {
-        includeToken: user.isAdmin,
-      }),
+      data: presentIntegration(integration),
     };
   }
 );
@@ -87,23 +83,25 @@ router.post(
   auth({ admin: true }),
   validate(T.IntegrationsUpdateSchema),
   async (ctx: APIContext<T.IntegrationsUpdateReq>) => {
-    const { id, events, settings, authToken: token } = ctx.input.body;
+    const { id, events, settings } = ctx.input.body;
     const { user } = ctx.state.auth;
     const { transaction } = ctx.state;
 
-    let integration = await Integration.findByPk(id, { transaction });
+    const integration = await Integration.findByPk(id, { transaction });
     authorize(user, "update", integration);
 
-    integration = await integrationUpdater({
-      integration,
-      events,
-      settings,
-      token,
-      transaction,
-    });
+    if (integration.type === IntegrationType.Post) {
+      integration.events = events.filter((event: string) =>
+        ["documents.update", "documents.publish"].includes(event)
+      );
+    }
+
+    integration.settings = settings;
+
+    await integration.save({ transaction });
 
     ctx.body = {
-      data: presentIntegration(integration, { includeToken: user.isAdmin }),
+      data: presentIntegration(integration),
     };
   }
 );

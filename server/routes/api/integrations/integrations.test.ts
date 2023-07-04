@@ -91,7 +91,7 @@ describe("#integrations.list", () => {
     ).toHaveLength(0);
   });
 
-  it("should succeed with status 200 ok and return authToken in response when the user is an admin", async () => {
+  it("should succeed with status 200 ok but not return authToken in response when the user is an admin", async () => {
     const res = await server.post("/api/integrations.list", {
       body: {
         token: admin.getJwtToken(),
@@ -103,8 +103,7 @@ describe("#integrations.list", () => {
     const integrations = body.data.filter(
       (d: any) => !isUndefined(d.authToken)
     );
-    expect(integrations).toHaveLength(1);
-    expect(integrations[0].authToken).toBe("token");
+    expect(integrations).toHaveLength(0);
   });
 
   it("should succeed with status 200 ok and only return integrations belonging to user's team", async () => {
@@ -217,7 +216,7 @@ describe("#integrations.create", () => {
     expect(body.data.type).toEqual(IntegrationType.Embed);
     expect(body.data.service).toEqual(UserCreatableIntegrationService.Diagrams);
     expect(body.data.authenticationId).not.toBeNull();
-    expect(body.data.authToken).toEqual("token");
+    expect(body.data.authToken).toBeUndefined();
     expect(body.data.settings.url).toEqual("https://example.com");
   });
 
@@ -240,120 +239,7 @@ describe("#integrations.create", () => {
 });
 
 describe("#integrations.update", () => {
-  let admin: User;
-  let integration: Integration;
-  let integrationWithAuth: Integration;
-
-  beforeEach(async () => {
-    admin = await buildAdmin();
-
-    integration = await buildIntegration({
-      userId: admin.id,
-      teamId: admin.teamId,
-      service: IntegrationService.Diagrams,
-      type: IntegrationType.Embed,
-      settings: { url: "https://example.com" },
-    });
-
-    integrationWithAuth = await buildIntegration({
-      userId: admin.id,
-      teamId: admin.teamId,
-      authentication: {
-        token: "token",
-      },
-    });
-  });
-
-  it("should fail with status 403 unauthorized when the user is not an admin", async () => {
-    const user = await buildUser();
-
-    const res = await server.post("/api/integrations.update", {
-      body: {
-        token: user.getJwtToken(),
-        id: integration.id,
-        settings: { url: "https://foo.bar" },
-      },
-    });
-    const body = await res.json();
-    expect(res.status).toEqual(403);
-    expect(body.message).toEqual("Admin role required");
-  });
-
-  it("should fail with status 400 bad request when id is not sent", async () => {
-    const res = await server.post("/api/integrations.update", {
-      body: {
-        token: admin.getJwtToken(),
-        settings: { url: "https://foo.bar" },
-      },
-    });
-
-    const body = await res.json();
-    expect(res.status).toEqual(400);
-    expect(body.message).toEqual("id: Required");
-  });
-
-  it("should succeed with status 200 ok when previously existing authToken is updated", async () => {
-    const res = await server.post("/api/integrations.update", {
-      body: {
-        token: admin.getJwtToken(),
-        id: integrationWithAuth.id,
-        authToken: "new-token",
-      },
-    });
-
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.id).toEqual(integrationWithAuth.id);
-    expect(body.data.authToken).toEqual("new-token");
-  });
-
-  it("should succeed with status 200 ok when new authToken is added to an existing integration without authToken", async () => {
-    const res = await server.post("/api/integrations.update", {
-      body: {
-        token: admin.getJwtToken(),
-        id: integration.id,
-        authToken: "some-token",
-      },
-    });
-
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.id).toEqual(integration.id);
-    expect(body.authenticationId).not.toBeNull();
-    expect(body.data.authToken).toEqual("some-token");
-  });
-
-  it("should succeed with status 200 ok when token is sent as null for a previously existing token", async () => {
-    const res = await server.post("/api/integrations.update", {
-      body: {
-        token: admin.getJwtToken(),
-        id: integrationWithAuth.id,
-        authToken: null,
-      },
-    });
-
-    const body = await res.json();
-    expect(res.status).toEqual(200);
-    expect(body.data.id).toEqual(integrationWithAuth.id);
-    expect(body.data.authenticationId).toBeNull();
-    expect(body.data.token).toBeUndefined();
-  });
-
-  it("should succeed with status 200 ok when settings are updated", async () => {
-    const res = await server.post("/api/integrations.update", {
-      body: {
-        token: admin.getJwtToken(),
-        id: integration.id,
-        settings: { url: "https://foo.bar" },
-      },
-    });
-
-    const body = await res.json();
-    expect(body.data.id).toEqual(integration.id);
-    expect(body.data.settings.url).toEqual("https://foo.bar");
-  });
-
-  it("should succeed with status 200 ok when updating integration events", async () => {
+  it("should allow updating integration events", async () => {
     const team = await buildTeam();
     const user = await buildAdmin({ teamId: team.id });
     const integration = await buildIntegration({
@@ -372,6 +258,20 @@ describe("#integrations.update", () => {
     expect(res.status).toEqual(200);
     expect(body.data.id).toEqual(integration.id);
     expect(body.data.events.length).toEqual(1);
+  });
+
+  it("should require authorization", async () => {
+    const user = await buildUser();
+    const integration = await buildIntegration({
+      userId: user.id,
+    });
+    const res = await server.post("/api/integrations.update", {
+      body: {
+        token: user.getJwtToken(),
+        id: integration.id,
+      },
+    });
+    expect(res.status).toEqual(403);
   });
 });
 

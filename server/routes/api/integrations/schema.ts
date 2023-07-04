@@ -84,9 +84,6 @@ export const IntegrationsUpdateSchema = BaseSchema.extend({
       .or(z.object({ serviceTeamId: z.string() }))
       .optional(),
 
-    /** Integration token */
-    authToken: z.string().nullish(),
-
     /** Integration events */
     events: z.array(z.string()).optional().default([]),
   }),
