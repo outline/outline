@@ -76,12 +76,13 @@ describe("#integrationUpdater", () => {
   it("should successfully update the previously existing integration token", async () => {
     const integration: Integration<IntegrationType.Post> =
       await buildIntegration({
-        auth: true,
         userId: user.id,
         teamId: user.teamId,
         service: IntegrationService.Iframely,
         type: IntegrationType.Embed,
-        token: "token",
+        authentication: {
+          token: "token",
+        },
       });
 
     await sequelize.transaction(async (transaction) =>
@@ -126,12 +127,13 @@ describe("#integrationUpdater", () => {
   it("should successfully update the integration when a null token is passed", async () => {
     const integration: Integration<IntegrationType.Post> =
       await buildIntegration({
-        auth: true,
         userId: user.id,
         teamId: user.teamId,
         service: IntegrationService.Iframely,
         type: IntegrationType.Embed,
-        token: "token",
+        authentication: {
+          token: "token",
+        },
       });
 
     await sequelize.transaction(async (transaction) =>

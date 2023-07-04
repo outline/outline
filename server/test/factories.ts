@@ -237,7 +237,9 @@ export async function buildInvite(overrides: Partial<User> = {}) {
 
 export async function buildIntegration(
   overrides: Partial<
-    Integration & IntegrationAuthentication & { auth: boolean }
+    Omit<Integration, "authentication"> & {
+      authentication: Partial<IntegrationAuthentication>;
+    }
   > = {}
 ) {
   if (!overrides.teamId) {
@@ -252,35 +254,40 @@ export async function buildIntegration(
     overrides.userId = user.id;
   }
 
-  let integration = await Integration.create({
-    service: IntegrationService.Slack,
-    type: IntegrationType.Post,
-    events: ["documents.update", "documents.publish"],
-    settings: {
-      serviceTeamId: "slack_team_id",
+  return Integration.create(
+    {
+      service: IntegrationService.Slack,
+      type: IntegrationType.Post,
+      events: ["documents.update", "documents.publish"],
+      settings: {
+        serviceTeamId: "slack_team_id",
+      },
+      ...overrides,
+      authentication: overrides.authentication
+        ? {
+            service:
+              overrides.authentication.service ?? IntegrationService.Slack,
+            userId: overrides.userId,
+            teamId: overrides.teamId,
+            token: overrides.authentication.token ?? "fake-access-token",
+            scopes: overrides.authentication.scopes ?? [
+              "example",
+              "scopes",
+              "here",
+            ],
+          }
+        : undefined,
     },
-    ...overrides,
-  });
-
-  if (overrides.auth) {
-    const authentication = await IntegrationAuthentication.create({
-      service: integration.service,
-      userId: integration.userId,
-      teamId: integration.teamId,
-      token: overrides.token ?? "fake-access-token",
-      scopes: overrides.scopes ?? ["example", "scopes", "here"],
-      integrationId: integration.id,
-    });
-
-    integration.authenticationId = authentication.id;
-    integration = await integration.save();
-
-    return Integration.scope("withAuthentication").findByPk(
-      integration.id
-    ) as Promise<Integration<unknown>>;
-  }
-
-  return integration;
+    {
+      include: overrides.authentication
+        ? [
+            {
+              association: "authentication",
+            },
+          ]
+        : undefined,
+    }
+  );
 }
 
 export async function buildCollection(

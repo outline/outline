@@ -27,20 +27,22 @@ describe("#integrations.list", () => {
         type: IntegrationType.Embed,
       }),
       buildIntegration({
-        auth: true,
         userId: admin.id,
         teamId: admin.teamId,
-        token: "token",
+        authentication: {
+          token: "token",
+        },
       }),
       buildIntegration({
         userId: anotherAdmin.id,
         teamId: anotherAdmin.teamId,
       }),
       buildIntegration({
-        auth: true,
         userId: anotherAdmin.id,
         teamId: anotherAdmin.teamId,
-        token: "token",
+        authentication: {
+          token: "token",
+        },
       }),
     ]);
   });
@@ -254,10 +256,11 @@ describe("#integrations.update", () => {
     });
 
     integrationWithAuth = await buildIntegration({
-      auth: true,
       userId: admin.id,
       teamId: admin.teamId,
-      token: "token",
+      authentication: {
+        token: "token",
+      },
     });
   });
 
@@ -389,10 +392,11 @@ describe("#integrations.delete", () => {
     });
 
     integrationWithAuth = await buildIntegration({
-      auth: true,
       userId: admin.id,
       teamId: admin.teamId,
-      token: "token",
+      authentication: {
+        token: "token",
+      },
     });
   });
 

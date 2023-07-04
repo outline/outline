@@ -15,11 +15,12 @@ describe("#hooks.unfurl", () => {
   it("should return documents", async () => {
     const { user, document } = await seed();
     await buildIntegration({
-      auth: true,
       teamId: user.teamId,
       userId: user.id,
       service: IntegrationService.Slack,
-      token: "",
+      authentication: {
+        token: "",
+      },
     });
     const res = await server.post("/api/hooks.unfurl", {
       body: {
