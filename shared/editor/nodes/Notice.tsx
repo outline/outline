@@ -43,7 +43,7 @@ export default class Notice extends Node {
           tag: "div.notice-block",
           preserveWhitespace: "full",
           contentElement: (node: HTMLDivElement) =>
-            node.querySelector("div.conten") || node,
+            node.querySelector("div.content") || node,
           getAttrs: (dom: HTMLDivElement) => ({
             style: dom.className.includes("tip")
               ? "tip"
