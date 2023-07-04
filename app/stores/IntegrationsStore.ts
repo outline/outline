@@ -1,5 +1,5 @@
 import { filter } from "lodash";
-import { computed } from "mobx";
+import { action, computed } from "mobx";
 import { IntegrationService } from "@shared/types";
 import naturalSort from "@shared/utils/naturalSort";
 import BaseStore from "~/stores/BaseStore";
@@ -21,6 +21,14 @@ class IntegrationsStore extends BaseStore<Integration> {
     return filter(this.orderedData, {
       service: IntegrationService.Slack,
     });
+  }
+
+  @action
+  async create(
+    params: Partial<Integration & { authToken?: string | null }>,
+    options?: Record<string, string | boolean | number | undefined>
+  ) {
+    return super.create(params, options);
   }
 }
 

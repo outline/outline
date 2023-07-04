@@ -5,7 +5,7 @@ import integrationUpdater from "@server/commands/integrationUpdater";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { Event, Integration } from "@server/models";
+import { Event, Integration, IntegrationAuthentication } from "@server/models";
 import { authorize } from "@server/policies";
 import { presentIntegration } from "@server/presenters";
 import { APIContext } from "@server/types";
@@ -122,6 +122,16 @@ router.post(
     authorize(user, "delete", integration);
 
     await integration.destroy({ transaction });
+    // also remove the corresponding authentication if it exists
+    if (integration.authenticationId) {
+      await IntegrationAuthentication.destroy({
+        where: {
+          id: integration.authenticationId,
+        },
+        transaction,
+      });
+    }
+
     await Event.create(
       {
         name: "integrations.delete",

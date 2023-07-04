@@ -8,21 +8,37 @@ import Integration from "~/models/Integration";
 import Button from "~/components/Button";
 import Heading from "~/components/Heading";
 import Input from "~/components/Input";
+import LoadingIndicator from "~/components/LoadingIndicator";
 import Scene from "~/components/Scene";
+import Text from "~/components/Text";
+import useRequest from "~/hooks/useRequest";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
-import SlackIcon from "./Icon";
+import IframelyIcon from "./Icon";
 import SettingRow from "./components/SettingRow";
 
 type FormData = {
-  url: string;
-  authToken: string;
+  baseUrl: string;
+  apiKey: string;
 };
 
 function Iframely() {
   const { integrations } = useStores();
   const { t } = useTranslation();
   const { showToast } = useToasts();
+  const [disconnecting, setDisconnecting] = React.useState<boolean>(false);
+
+  const { loading, loaded, request } = useRequest(() =>
+    integrations.fetchPage({
+      type: IntegrationType.Embed,
+    })
+  );
+
+  React.useEffect(() => {
+    if (!loaded && !loading) {
+      void request();
+    }
+  }, [loaded, loading, request]);
 
   const integration = find(integrations.orderedData, {
     type: IntegrationType.Embed,
@@ -36,49 +52,22 @@ function Iframely() {
     formState,
   } = useForm<FormData>({
     mode: "all",
-
-    defaultValues: {
-      url: integration?.settings.url,
-      authToken:
-        integration && integration.authToken
-          ? integration.authToken
-          : undefined,
-    },
   });
-
-  React.useEffect(() => {
-    void integrations.fetchPage({
-      type: IntegrationType.Embed,
-    });
-  }, [integrations]);
-
-  React.useEffect(() => {
-    reset({
-      url: integration?.settings.url,
-      authToken:
-        integration && integration.authToken
-          ? integration.authToken
-          : undefined,
-    });
-  }, [integration, reset]);
 
   const handleSubmit = React.useCallback(
     async (data: FormData) => {
       try {
-        if (data.url) {
-          await integrations.save({
-            id: integration?.id,
+        if (data.baseUrl) {
+          await integrations.create({
             type: IntegrationType.Embed,
             service: IntegrationService.Iframely,
-            authToken: data.authToken ? data.authToken : null,
-            settings: data.url
+            authToken: data.apiKey ? data.apiKey : null,
+            settings: data.baseUrl
               ? {
-                  url: data.url,
+                  url: data.baseUrl,
                 }
               : undefined,
           });
-        } else {
-          await integration?.delete();
         }
 
         showToast(t("Settings saved"), {
@@ -93,35 +82,70 @@ function Iframely() {
     [integrations, integration, t, showToast]
   );
 
-  return (
-    <Scene title={t("Iframely")} icon={<SlackIcon />}>
-      <Heading>{t("Iframely")}</Heading>
+  const disconnect = React.useCallback(async () => {
+    setDisconnecting(true);
+    try {
+      await integration?.delete();
+      showToast(t("Integration disconnected"), {
+        type: "success",
+      });
+      reset();
+    } catch (err) {
+      showToast(err.message, {
+        type: "error",
+      });
+    } finally {
+      setDisconnecting(false);
+    }
+  }, [integration]);
 
-      <form onSubmit={formHandleSubmit(handleSubmit)}>
-        <SettingRow
-          label={t("Iframely url")}
-          name="iframelyUrl"
-          description={t("Add your Iframely url here.")}
-          border={false}
-        >
-          <Input
-            placeholder="https://iframe.ly"
-            pattern="https?://.*"
-            {...register("url")}
-          />
-        </SettingRow>
-        <SettingRow
-          label={t("Iframely key")}
-          name="key"
-          description={t("Add your Iframely key here.")}
-          border={false}
-        >
-          <Input placeholder="x-xxxx-xxxx-xxxx" {...register("authToken")} />
-        </SettingRow>
-        <Button type="submit" disabled={formState.isSubmitting}>
-          {formState.isSubmitting ? `${t("Saving")}…` : t("Save")}
+  if (!loaded) {
+    return null;
+  }
+
+  return loading ? (
+    <LoadingIndicator />
+  ) : (
+    <Scene title={t("Iframely")} icon={<IframelyIcon />}>
+      <Heading>{t("Iframely")}</Heading>
+      <Text type="secondary">
+        {t("Get rich previews of links in documents")}
+      </Text>
+      {!integration ? (
+        <form onSubmit={formHandleSubmit(handleSubmit)}>
+          <SettingRow
+            label={t("Deployment url")}
+            name="url"
+            description={t(
+              "Optionally add your self-hosted Iframely installation url here or leave blank to use the cloud hosted Iframely."
+            )}
+            border={false}
+          >
+            <Input
+              placeholder="https://iframe.ly"
+              pattern="https?://.*"
+              {...register("baseUrl")}
+            />
+          </SettingRow>
+          <SettingRow
+            label={t("API key")}
+            name="key"
+            description={t(
+              "Add your Iframely API key to enable previewing of links."
+            )}
+            border={false}
+          >
+            <Input {...register("apiKey")} />
+          </SettingRow>
+          <Button type="submit" disabled={formState.isSubmitting}>
+            {formState.isSubmitting ? `${t("Saving")}…` : t("Save")}
+          </Button>
+        </form>
+      ) : (
+        <Button onClick={disconnect} disabled={disconnecting}>
+          {disconnecting ? `${t("Disconnecting")}…` : t("Disconnect")}
         </Button>
-      </form>
+      )}
     </Scene>
   );
 }

@@ -7,6 +7,8 @@ type RequestResponse<T> = {
   error: unknown;
   /** Whether the request is currently in progress. */
   loading: boolean;
+  /** Whether the request has successfully completed */
+  loaded: boolean;
   /** Function to start the request. */
   request: () => Promise<T | undefined>;
 };
@@ -22,6 +24,7 @@ export default function useRequest<T = unknown>(
 ): RequestResponse<T> {
   const [data, setData] = React.useState<T>();
   const [loading, setLoading] = React.useState<boolean>(false);
+  const [loaded, setLoaded] = React.useState<boolean>(false);
   const [error, setError] = React.useState();
 
   const request = React.useCallback(async () => {
@@ -29,6 +32,7 @@ export default function useRequest<T = unknown>(
     try {
       const response = await requestFn();
       setData(response);
+      setLoaded(true);
       return response;
     } catch (err) {
       setError(err);
@@ -39,5 +43,5 @@ export default function useRequest<T = unknown>(
     return undefined;
   }, [requestFn]);
 
-  return { data, loading, error, request };
+  return { data, loading, loaded, error, request };
 }

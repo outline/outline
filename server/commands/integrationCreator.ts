@@ -4,7 +4,7 @@ import {
   IntegrationSettings,
   IntegrationType,
 } from "@shared/types";
-import { User, Integration, IntegrationAuthentication } from "@server/models";
+import { User, Integration } from "@server/models";
 import { UserCreatableIntegrationService } from "@server/models/Integration";
 
 type Props = {
@@ -30,7 +30,7 @@ export default async function integrationCreator({
   events,
   transaction,
 }: Props) {
-  let integration = await Integration.create(
+  return Integration.create(
     {
       userId: user.id,
       teamId: user.teamId,
@@ -39,32 +39,25 @@ export default async function integrationCreator({
       collectionId,
       events,
       type,
+      authentication: token
+        ? {
+            userId: user.id,
+            teamId: user.teamId,
+            service,
+            scopes: authScopes,
+            token,
+          }
+        : undefined,
     },
-    { transaction }
+    {
+      include: token
+        ? [
+            {
+              association: "authentication",
+            },
+          ]
+        : undefined,
+      transaction,
+    }
   );
-
-  let authentication: IntegrationAuthentication | undefined;
-  if (token) {
-    authentication = await IntegrationAuthentication.create(
-      {
-        userId: user.id,
-        teamId: user.teamId,
-        integrationId: integration.id,
-        service,
-        scopes: authScopes,
-        token,
-      },
-      { transaction }
-    );
-
-    integration.authenticationId = authentication.id;
-    await integration.save({ transaction });
-  }
-
-  integration = (await Integration.scope("withAuthentication").findByPk(
-    integration.id,
-    { transaction }
-  )) as Integration<unknown>;
-
-  return integration;
 }

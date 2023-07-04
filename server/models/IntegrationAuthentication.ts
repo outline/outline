@@ -4,11 +4,8 @@ import {
   ForeignKey,
   BelongsTo,
   Column,
-  Unique,
-  AllowNull,
 } from "sequelize-typescript";
 import { IntegrationService } from "@shared/types";
-import Integration from "./Integration";
 import Team from "./Team";
 import User from "./User";
 import IdModel from "./base/IdModel";
@@ -52,15 +49,6 @@ class IntegrationAuthentication extends IdModel {
   @ForeignKey(() => Team)
   @Column(DataType.UUID)
   teamId: string;
-
-  @BelongsTo(() => Integration, "integrationId")
-  integration: Integration;
-
-  @ForeignKey(() => Integration)
-  @Unique
-  @AllowNull(false)
-  @Column(DataType.UUID)
-  integrationId: string;
 }
 
 export default IntegrationAuthentication;
