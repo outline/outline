@@ -52,7 +52,7 @@ function CommandBar() {
   );
 }
 
-const KBarPortal: React.FC = ({ children }) => {
+const KBarPortal: React.FC<React.PropsWithChildren> = ({ children }) => {
   const { showing } = useKBar((state) => ({
     showing: state.visualState !== "hidden",
   }));

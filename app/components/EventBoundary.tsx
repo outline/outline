@@ -1,8 +1,8 @@
 import * as React from "react";
 
-type Props = {
+type Props = React.PropsWithChildren<{
   className?: string;
-};
+}>;
 
 const EventBoundary: React.FC<Props> = ({ children, className }) => {
   const handleClick = React.useCallback((event: React.SyntheticEvent) => {

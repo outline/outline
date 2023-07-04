@@ -2,10 +2,10 @@ import * as React from "react";
 import styled from "styled-components";
 import Flex from "./Flex";
 
-type Props = {
+type Props = React.PropsWithChildren<{
   size?: number;
   color?: string;
-};
+}>;
 
 const Squircle: React.FC<Props> = ({ color, size = 28, children }) => (
   <Wrapper

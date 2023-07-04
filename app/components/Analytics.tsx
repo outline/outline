@@ -5,7 +5,7 @@ import * as React from "react";
 import { IntegrationService } from "@shared/types";
 import env from "~/env";
 
-const Analytics: React.FC = ({ children }) => {
+const Analytics: React.FC<React.PropsWithChildren> = ({ children }) => {
   // Google Analytics 3
   React.useEffect(() => {
     if (!env.GOOGLE_ANALYTICS_ID?.startsWith("UA-")) {

@@ -16,10 +16,10 @@ import {
   trashPath,
 } from "~/utils/routeHelpers";
 
-type Props = {
+type Props = React.PropsWithChildren<{
   document: Document;
   onlyText?: boolean;
-};
+}>;
 
 function useCategory(document: Document): MenuInternalLink | null {
   const { t } = useTranslation();

@@ -2,7 +2,7 @@ import { Table, TBody, TR, TD } from "oy-vey";
 import * as React from "react";
 import theme from "@shared/styles/theme";
 
-const EmailLayout: React.FC = ({ children }) => (
+const EmailLayout: React.FC<React.PropsWithChildren> = ({ children }) => (
   <Table width="550">
     <TBody>
       <TR>

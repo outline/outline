@@ -6,7 +6,7 @@ import Text from "~/components/Text";
 import useStores from "~/hooks/useStores";
 import useToasts from "~/hooks/useToasts";
 
-type Props = {
+type Props = React.PropsWithChildren<{
   /** Callback when the dialog is submitted */
   onSubmit: () => Promise<void> | void;
   /** Text to display on the submit button */
@@ -17,7 +17,7 @@ type Props = {
   danger?: boolean;
   /** Keep the submit button disabled */
   disabled?: boolean;
-};
+}>;
 
 const ConfirmationDialog: React.FC<Props> = ({
   onSubmit,

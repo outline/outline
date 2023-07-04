@@ -4,14 +4,14 @@ import CenteredContent from "~/components/CenteredContent";
 import Header from "~/components/Header";
 import PageTitle from "~/components/PageTitle";
 
-type Props = {
+type Props = React.PropsWithChildren<{
   icon?: React.ReactNode;
   title?: React.ReactNode;
   textTitle?: string;
   left?: React.ReactNode;
   actions?: React.ReactNode;
   centered?: boolean;
-};
+}>;
 
 const Scene: React.FC<Props> = ({
   title,

@@ -4,9 +4,9 @@ import styled from "styled-components";
 import { s } from "@shared/styles";
 import Flex from "~/components/Flex";
 
-type Props = {
+type Props = React.PropsWithChildren<{
   label: React.ReactNode | string;
-};
+}>;
 
 const Labeled: React.FC<Props> = ({ label, children, ...props }) => (
   <Flex column {...props}>

@@ -1,7 +1,7 @@
 import { EditorState, Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import * as React from "react";
-import ReactDOM from "react-dom";
+import ReactDOM from "react-dom/client";
 import FileExtension from "../components/FileExtension";
 
 // based on the example at: https://prosemirror.net/examples/upload/
@@ -55,7 +55,7 @@ const uploadPlaceholder = new Plugin({
           icon.className = "icon";
 
           const component = <FileExtension title={action.add.file.name} />;
-          ReactDOM.render(component, icon);
+          ReactDOM.createRoot(icon).render(component);
           element.appendChild(icon);
 
           const text = document.createElement("span");

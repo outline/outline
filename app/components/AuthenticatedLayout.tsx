@@ -37,7 +37,9 @@ const DocumentInsights = lazyWithRetry(
 );
 const CommandBar = lazyWithRetry(() => import("~/components/CommandBar"));
 
-const AuthenticatedLayout: React.FC = ({ children }) => {
+const AuthenticatedLayout: React.FC<React.PropsWithChildren> = ({
+  children,
+}) => {
   const { ui, auth } = useStores();
   const location = useLocation();
   const can = usePolicy(ui.activeCollectionId);

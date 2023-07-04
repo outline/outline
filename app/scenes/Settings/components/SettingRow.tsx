@@ -5,13 +5,13 @@ import breakpoint from "styled-components-breakpoint";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 
-type Props = {
+type Props = React.PropsWithChildren<{
   label: React.ReactNode;
   description?: React.ReactNode;
   name: string;
   visible?: boolean;
   border?: boolean;
-};
+}>;
 
 const Row = styled(Flex)<{ $border?: boolean }>`
   display: block;

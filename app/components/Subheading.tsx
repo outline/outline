@@ -2,9 +2,9 @@ import * as React from "react";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 
-type Props = {
+type Props = React.PropsWithChildren<{
   sticky?: boolean;
-};
+}>;
 
 const H3 = styled.h3`
   border-bottom: 1px solid ${s("divider")};

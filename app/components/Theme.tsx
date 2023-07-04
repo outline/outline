@@ -7,7 +7,7 @@ import useBuildTheme from "~/hooks/useBuildTheme";
 import useStores from "~/hooks/useStores";
 import { TooltipStyles } from "./Tooltip";
 
-const Theme: React.FC = ({ children }) => {
+const Theme: React.FC<React.PropsWithChildren> = ({ children }) => {
   const { auth, ui } = useStores();
   const theme = useBuildTheme(
     auth.team?.getPreference(TeamPreference.CustomTheme) ||

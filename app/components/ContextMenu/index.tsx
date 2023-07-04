@@ -36,17 +36,18 @@ export type Placement =
   | "left"
   | "left-start";
 
-type Props = MenuStateReturn & {
-  "aria-label"?: string;
-  /** The parent menu state if this is a submenu. */
-  parentMenuState?: Omit<MenuStateReturn, "items">;
-  /** Called when the context menu is opened. */
-  onOpen?: () => void;
-  /** Called when the context menu is closed. */
-  onClose?: () => void;
-  /** Called when the context menu is clicked. */
-  onClick?: (ev: React.MouseEvent) => void;
-};
+type Props = MenuStateReturn &
+  React.PropsWithChildren<{
+    "aria-label"?: string;
+    /** The parent menu state if this is a submenu. */
+    parentMenuState?: Omit<MenuStateReturn, "items">;
+    /** Called when the context menu is opened. */
+    onOpen?: () => void;
+    /** Called when the context menu is closed. */
+    onClose?: () => void;
+    /** Called when the context menu is clicked. */
+    onClick?: (ev: React.MouseEvent) => void;
+  }>;
 
 const ContextMenu: React.FC<Props> = ({
   children,

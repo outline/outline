@@ -8,7 +8,9 @@ type MenuContextType = {
 
 const MenuContext = React.createContext<MenuContextType | null>(null);
 
-export const MenuProvider: React.FC = ({ children }) => {
+export const MenuProvider: React.FC<React.PropsWithChildren> = ({
+  children,
+}) => {
   const [isMenuOpen, setIsMenuOpen] = React.useState(false);
   const memoized = React.useMemo(
     () => ({

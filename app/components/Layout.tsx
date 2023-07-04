@@ -15,11 +15,11 @@ import { MenuProvider } from "~/hooks/useMenuContext";
 import useStores from "~/hooks/useStores";
 import { isModKey } from "~/utils/keyboard";
 
-type Props = {
+type Props = React.PropsWithChildren<{
   title?: string;
   sidebar?: React.ReactNode;
   sidebarRight?: React.ReactNode;
-};
+}>;
 
 const Layout: React.FC<Props> = ({
   title,

@@ -3,7 +3,7 @@ import { WarningIcon, InfoIcon, StarredIcon, DoneIcon } from "outline-icons";
 import { wrappingInputRule } from "prosemirror-inputrules";
 import { NodeSpec, Node as ProsemirrorNode, NodeType } from "prosemirror-model";
 import * as React from "react";
-import ReactDOM from "react-dom";
+import ReactDOM from "react-dom/client";
 import toggleWrap from "../commands/toggleWrap";
 import { MarkdownSerializerState } from "../lib/markdown/serializer";
 import noticesRule from "../rules/notices";
@@ -121,7 +121,7 @@ export default class Notice extends Node {
 
           icon = document.createElement("div");
           icon.className = "icon";
-          ReactDOM.render(component, icon);
+          ReactDOM.createRoot(icon).render(component);
         }
 
         return [

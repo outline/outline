@@ -12,7 +12,7 @@ import {
 import { Command, EditorState, Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet, EditorView } from "prosemirror-view";
 import * as React from "react";
-import ReactDOM from "react-dom";
+import ReactDOM from "react-dom/client";
 import { isExternalUrl, sanitizeUrl } from "../../utils/urls";
 import findLinkNodes from "../queries/findLinkNodes";
 import getMarkRange from "../queries/getMarkRange";
@@ -27,7 +27,7 @@ if (typeof window !== "undefined") {
   const component = <OpenIcon size={16} />;
   icon = document.createElement("span");
   icon.className = "external-link";
-  ReactDOM.render(component, icon);
+  ReactDOM.createRoot(icon).render(component);
 }
 
 function isPlainURL(

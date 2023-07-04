@@ -12,7 +12,7 @@ const style: React.CSSProperties = {
   letterSpacing: "0.1em",
 };
 
-const CopyableCode: React.FC = (props) => (
+const CopyableCode: React.FC<React.PropsWithChildren> = (props) => (
   <pre {...props} style={style}>
     {props.children}
   </pre>

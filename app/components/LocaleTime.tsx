@@ -20,14 +20,14 @@ function eachMinute(fn: () => void) {
   };
 }
 
-type Props = {
+type Props = React.PropsWithChildren<{
   dateTime: string;
   tooltipDelay?: number;
   addSuffix?: boolean;
   shorten?: boolean;
   relative?: boolean;
   format?: Partial<Record<keyof typeof locales, string>>;
-};
+}>;
 
 const LocaleTime: React.FC<Props> = ({
   addSuffix,

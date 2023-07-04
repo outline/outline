@@ -5,7 +5,7 @@ import { LazyMotion } from "framer-motion";
 import { KBarProvider } from "kbar";
 import { Provider } from "mobx-react";
 import * as React from "react";
-import { render } from "react-dom";
+import ReactDOM from "react-dom/client";
 import { HelmetProvider } from "react-helmet-async";
 import { Router } from "react-router-dom";
 import stores from "~/stores";
@@ -81,7 +81,7 @@ if (element) {
     </React.StrictMode>
   );
 
-  render(<App />, element);
+  ReactDOM.createRoot(element).render(<App />);
 }
 
 window.addEventListener("load", async () => {

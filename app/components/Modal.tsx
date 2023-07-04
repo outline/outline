@@ -19,12 +19,13 @@ import Desktop from "~/utils/Desktop";
 import ErrorBoundary from "./ErrorBoundary";
 
 let openModals = 0;
-type Props = {
+
+type Props = React.PropsWithChildren<{
   isOpen: boolean;
   isCentered?: boolean;
   title?: React.ReactNode;
   onRequestClose: () => void;
-};
+}>;
 
 const Modal: React.FC<Props> = ({
   children,

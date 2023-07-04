@@ -8,11 +8,11 @@ import Text from "~/components/Text";
 import useImportDocument from "~/hooks/useImportDocument";
 import useToasts from "~/hooks/useToasts";
 
-type Props = {
+type Props = React.PropsWithChildren<{
   disabled: boolean;
   accept: string;
   collectionId: string;
-};
+}>;
 
 const DropToImport: React.FC<Props> = ({
   children,

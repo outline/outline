@@ -2,7 +2,7 @@ import { PlusIcon } from "outline-icons";
 import { Plugin } from "prosemirror-state";
 import { Decoration, DecorationSet } from "prosemirror-view";
 import * as React from "react";
-import ReactDOM from "react-dom";
+import ReactDOM from "react-dom/client";
 import { SuggestionsMenuType } from "../plugins/Suggestions";
 import { findParentNode } from "../queries/findParentNode";
 import { EventType } from "../types";
@@ -25,7 +25,7 @@ export default class BlockMenu extends Suggestion {
     const button = document.createElement("button");
     button.className = "block-menu-trigger";
     button.type = "button";
-    ReactDOM.render(<PlusIcon />, button);
+    ReactDOM.createRoot(button).render(<PlusIcon />);
 
     return [
       ...super.plugins,

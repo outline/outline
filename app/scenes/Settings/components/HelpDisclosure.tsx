@@ -9,9 +9,9 @@ import styled, { useTheme } from "styled-components";
 import Button from "~/components/Button";
 import Text from "~/components/Text";
 
-type Props = {
+type Props = React.PropsWithChildren<{
   title: React.ReactNode;
-};
+}>;
 
 const HelpDisclosure: React.FC<Props> = ({ title, children }) => {
   const disclosure = useDisclosureState({ animated: true });

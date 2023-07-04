@@ -5,11 +5,11 @@ import { depths, s } from "@shared/styles";
 import Scrollable from "~/components/Scrollable";
 import usePrevious from "~/hooks/usePrevious";
 
-type Props = {
+type Props = React.PropsWithChildren<{
   isOpen: boolean;
   title?: string;
   onRequestClose: () => void;
-};
+}>;
 
 const Guide: React.FC<Props> = ({
   children,

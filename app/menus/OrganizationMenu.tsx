@@ -11,7 +11,7 @@ import usePrevious from "~/hooks/usePrevious";
 import useStores from "~/hooks/useStores";
 import separator from "~/menus/separator";
 
-const OrganizationMenu: React.FC = ({ children }) => {
+const OrganizationMenu: React.FC<React.PropsWithChildren> = ({ children }) => {
   const menu = useMenuState({
     unstable_offset: [4, -4],
     placement: "bottom-start",

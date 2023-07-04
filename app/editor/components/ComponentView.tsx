@@ -1,7 +1,7 @@
 import { Node as ProsemirrorNode } from "prosemirror-model";
 import { EditorView, Decoration } from "prosemirror-view";
 import * as React from "react";
-import ReactDOM from "react-dom";
+import ReactDOM from "react-dom/client";
 import { ThemeProvider } from "styled-components";
 import Extension from "@shared/editor/lib/Extension";
 import { ComponentProps } from "@shared/editor/types";
@@ -19,6 +19,7 @@ export default class ComponentView {
   decorations: Decoration[];
 
   isSelected = false;
+  root: ReactDOM.Root;
   dom: HTMLElement | null;
 
   // See https://prosemirror.net/docs/ref/#view.NodeView
@@ -70,10 +71,10 @@ export default class ComponentView {
       getPos: this.getPos,
     });
 
-    ReactDOM.render(
-      <ThemeProvider theme={theme}>{children}</ThemeProvider>,
-      this.dom
-    );
+    if (this.dom) {
+      this.root = ReactDOM.createRoot(this.dom);
+      this.root.render(<ThemeProvider theme={theme}>{children}</ThemeProvider>);
+    }
   };
 
   update(node: ProsemirrorNode) {
@@ -108,9 +109,7 @@ export default class ComponentView {
     window.removeEventListener("theme-changed", this.renderElement);
     window.removeEventListener("location-changed", this.renderElement);
 
-    if (this.dom) {
-      ReactDOM.unmountComponentAtNode(this.dom);
-    }
+    this.root?.unmount();
     this.dom = null;
   }
 

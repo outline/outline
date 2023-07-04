@@ -14,7 +14,7 @@ import Time from "~/components/Time";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
 
-type Props = {
+type Props = React.PropsWithChildren<{
   showCollection?: boolean;
   showPublished?: boolean;
   showLastViewed?: boolean;
@@ -23,7 +23,7 @@ type Props = {
   revision?: Revision;
   replace?: boolean;
   to?: LocationDescriptor;
-};
+}>;
 
 const DocumentMeta: React.FC<Props> = ({
   showPublished,

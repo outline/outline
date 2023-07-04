@@ -1,8 +1,8 @@
 import * as React from "react";
 
-type Props = {
+type Props = React.PropsWithChildren<{
   href: string;
-};
+}>;
 
 const style: React.CSSProperties = {
   display: "inline-block",

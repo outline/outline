@@ -1,5 +1,5 @@
 import * as React from "react";
-import styled, { css, DefaultTheme, ThemeProps } from "styled-components";
+import styled, { css } from "styled-components";
 import { s } from "../../styles";
 
 type Props = {
@@ -12,7 +12,7 @@ type Props = {
   onMouseDown?: React.MouseEventHandler<HTMLAnchorElement>;
 };
 
-export default function Widget(props: Props & ThemeProps<DefaultTheme>) {
+export default function Widget(props: Props) {
   return (
     <Wrapper
       className={

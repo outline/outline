@@ -5,7 +5,9 @@ import { loadPolyfills } from "~/utils/polyfills";
 /**
  * Asyncronously load required polyfills. Should wrap the React tree.
  */
-export const LazyPolyfill: React.FC = ({ children }) => {
+export const LazyPolyfill: React.FC<React.PropsWithChildren> = ({
+  children,
+}) => {
   const [isLoaded, setIsLoaded] = React.useState(false);
 
   React.useEffect(() => {

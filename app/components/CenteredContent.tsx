@@ -2,9 +2,9 @@ import * as React from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 
-type Props = {
+type Props = React.PropsWithChildren<{
   withStickyHeader?: boolean;
-};
+}>;
 
 const Container = styled.div<Props>`
   width: 100%;
