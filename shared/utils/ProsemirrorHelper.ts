@@ -158,6 +158,15 @@ export default class ProsemirrorHelper {
     return tasks;
   }
 
+  static getTasksSummary(doc: Node): { completed: number; total: number } {
+    const tasks = ProsemirrorHelper.getTasks(doc);
+
+    return {
+      completed: tasks.filter((t) => t.completed).length,
+      total: tasks.length,
+    };
+  }
+
   /**
    * Iterates through the document to find all of the headings and their level.
    *

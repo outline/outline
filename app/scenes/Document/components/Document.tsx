@@ -294,12 +294,8 @@ class DocumentScene extends React.Component<Props> {
       return;
     }
 
-    const tasks = ProsemirrorHelper.getTasks(doc);
     document.data = doc.toJSON();
-    document.tasks = {
-      completed: tasks.filter((t) => t.completed).length,
-      total: tasks.length,
-    };
+    document.tasks = ProsemirrorHelper.getTasksSummary(doc);
 
     // prevent autosave if nothing has changed
     if (options.autosave && !this.isEditorDirty && !document.isDirty()) {

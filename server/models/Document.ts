@@ -31,7 +31,7 @@ import {
 } from "sequelize-typescript";
 import isUUID from "validator/lib/isUUID";
 import type { NavigationNode } from "@shared/types";
-import getTasks from "@shared/utils/getTasks";
+import ProsemirrorHelper from "@shared/utils/ProsemirrorHelper";
 import parseTitle from "@shared/utils/parseTitle";
 import { SLUG_URL_REGEX } from "@shared/utils/urlHelpers";
 import { DocumentValidation } from "@shared/validations";
@@ -251,7 +251,9 @@ class Document extends ParanoidModel {
   }
 
   get tasks() {
-    return getTasks(this.text || "");
+    return ProsemirrorHelper.getTasksSummary(
+      DocumentHelper.toProsemirror(this)
+    );
   }
 
   // hooks
