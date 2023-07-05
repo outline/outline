@@ -15,19 +15,21 @@ async function presentDocument(
     isPublic: false,
     ...options,
   };
-  const text = options.isPublic
-    ? await DocumentHelper.attachmentsToSignedUrls(
-        document.text,
-        document.teamId
-      )
-    : document.text;
+
+  // TODO
+  // const text = options.isPublic
+  //   ? await DocumentHelper.attachmentsToSignedUrls(
+  //       document.text,
+  //       document.teamId
+  //     )
+  //   : document.text;
 
   const data: Record<string, any> = {
     id: document.id,
     url: document.url,
     urlId: document.urlId,
     title: document.title,
-    text,
+    data: DocumentHelper.toJSON(document),
     tasks: document.tasks,
     createdAt: document.createdAt,
     createdBy: undefined,

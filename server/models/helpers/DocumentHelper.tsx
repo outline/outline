@@ -57,6 +57,15 @@ export default class DocumentHelper {
     return parser.parse(document.text) || Node.fromJSON(schema, {});
   }
 
+  static toJSON(document: Document | Revision) {
+    if ("state" in document && document.state) {
+      const ydoc = new Y.Doc();
+      Y.applyUpdate(ydoc, document.state);
+      return yDocToProsemirrorJSON(ydoc, "default");
+    }
+    return parser.parse(document.text)?.toJSON() || {};
+  }
+
   /**
    * Returns the document as plain text. This method uses the
    * collaborative state if available, otherwise it falls back to Markdown.

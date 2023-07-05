@@ -2,7 +2,7 @@ import { addDays, differenceInDays } from "date-fns";
 import { floor } from "lodash";
 import { action, autorun, computed, observable, set } from "mobx";
 import { ExportContentType } from "@shared/types";
-import type { NavigationNode } from "@shared/types";
+import type { NavigationNode, ProsemirrorData } from "@shared/types";
 import Storage from "@shared/utils/Storage";
 import parseTitle from "@shared/utils/parseTitle";
 import { isRTL } from "@shared/utils/rtl";
@@ -52,8 +52,8 @@ export default class Document extends ParanoidModel {
   @observable
   id: string;
 
-  @observable
-  text: string;
+  @observable.shallow
+  data: ProsemirrorData;
 
   @Field
   @observable
@@ -342,10 +342,16 @@ export default class Document extends ParanoidModel {
 
   duplicate = () => this.store.duplicate(this);
 
-  getSummary = (paragraphs = 4) => {
-    const result = this.text.trim().split("\n").slice(0, paragraphs).join("\n");
-    return result;
-  };
+  /**
+   * Returns the first blocks of the document, useful for displaying a preview.
+   *
+   * @param blocks The number of blocks to return, defaults to 4.
+   * @returns A new ProseMirror document.
+   */
+  getSummary = (blocks = 4) => ({
+    ...this.data,
+    content: this.data.content.slice(0, blocks),
+  });
 
   @computed
   get pinned(): boolean {

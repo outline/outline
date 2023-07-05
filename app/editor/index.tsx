@@ -35,7 +35,7 @@ import Node from "@shared/editor/nodes/Node";
 import ReactNode from "@shared/editor/nodes/ReactNode";
 import { SuggestionsMenuType } from "@shared/editor/plugins/Suggestions";
 import { EventType } from "@shared/editor/types";
-import { UserPreferences } from "@shared/types";
+import { ProsemirrorData, UserPreferences } from "@shared/types";
 import ProsemirrorHelper from "@shared/utils/ProsemirrorHelper";
 import EventEmitter from "@shared/utils/events";
 import Flex from "~/components/Flex";
@@ -62,7 +62,7 @@ export type Props = {
   /** The current userId, if any */
   userId?: string;
   /** The editor content, should only be changed if you wish to reset the content */
-  value?: string;
+  value?: string | ProsemirrorData;
   /** The initial editor content as a markdown string or JSON object */
   defaultValue: string | object;
   /** Placeholder displayed when the editor is empty */
