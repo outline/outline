@@ -25,7 +25,7 @@ export default class Comment extends Mark {
           getAttrs: (dom: HTMLSpanElement) => {
             // Ignore comment markers from other documents
             const documentId = dom.getAttribute("data-document-id");
-            if (documentId && documentId !== this.editor.props.id) {
+            if (documentId && documentId !== this.editor?.props.id) {
               return false;
             }
 
@@ -42,7 +42,7 @@ export default class Comment extends Mark {
           class: "comment-marker",
           id: `comment-${node.attrs.id}`,
           "data-user-id": node.attrs.userId,
-          "data-document-id": this.editor.props.id,
+          "data-document-id": this.editor?.props.id,
         },
       ],
     };
