@@ -1,4 +1,4 @@
-import { debounce, isEqual } from "lodash";
+import { cloneDeep, debounce, isEqual } from "lodash";
 import { action, observable } from "mobx";
 import { observer } from "mobx-react";
 import { Node } from "prosemirror-model";
@@ -164,7 +164,7 @@ class DocumentScene extends React.Component<Props> {
       this.props.document.title = title;
     }
 
-    this.props.document.data = template.data;
+    this.props.document.data = cloneDeep(template.data);
     this.updateIsDirty();
 
     return this.onSave({

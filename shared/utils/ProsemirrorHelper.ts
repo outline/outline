@@ -174,6 +174,12 @@ export default class ProsemirrorHelper {
     return tasks;
   }
 
+  /**
+   * Returns a summary of total and completed tasks in the node.
+   *
+   * @param doc Prosemirror document node
+   * @returns Object with completed and total keys
+   */
   static getTasksSummary(doc: Node): { completed: number; total: number } {
     const tasks = ProsemirrorHelper.getTasks(doc);
 
