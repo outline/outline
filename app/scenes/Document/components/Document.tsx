@@ -33,6 +33,7 @@ import PlaceholderDocument from "~/components/PlaceholderDocument";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import withStores from "~/components/withStores";
 import type { Editor as TEditor } from "~/editor";
+import { SearchResult } from "~/editor/components/LinkEditor";
 import { client } from "~/utils/ApiClient";
 import { replaceTitleVariables } from "~/utils/date";
 import { emojiToUrl } from "~/utils/emoji";
@@ -72,13 +73,13 @@ type Props = WithTranslation &
   RootStore &
   RouteComponentProps<Params, StaticContext, LocationState> & {
     sharedTree?: NavigationNode;
-    abilities: Record<string, any>;
+    abilities: Record<string, boolean>;
     document: Document;
     revision?: Revision;
     readOnly: boolean;
     shareId?: string;
     onCreateLink?: (title: string) => Promise<string>;
-    onSearchLink?: (term: string) => any;
+    onSearchLink?: (term: string) => Promise<SearchResult[]>;
   };
 
 @observer

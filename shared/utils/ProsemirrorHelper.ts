@@ -27,6 +27,22 @@ export type Task = {
 
 export default class ProsemirrorHelper {
   /**
+   * Get a new empty document.
+   *
+   * @returns A new empty document as JSON.
+   */
+  static getEmptyDocument() {
+    return {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+        },
+      ],
+    };
+  }
+
+  /**
    * Returns the node as plain text.
    *
    * @param node The node to convert.

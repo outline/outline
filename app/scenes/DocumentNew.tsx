@@ -4,6 +4,7 @@ import * as React from "react";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation, useRouteMatch } from "react-router-dom";
+import ProsemirrorHelper from "@shared/utils/ProsemirrorHelper";
 import CenteredContent from "~/components/CenteredContent";
 import Flex from "~/components/Flex";
 import PlaceholderDocument from "~/components/PlaceholderDocument";
@@ -35,7 +36,7 @@ function DocumentNew() {
           templateId: params.templateId?.toString(),
           template: params.template === "true" ? true : false,
           title: "",
-          text: "",
+          data: ProsemirrorHelper.getEmptyDocument(),
         });
         history.replace(documentEditPath(document), location.state);
       } catch (err) {

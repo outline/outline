@@ -57,6 +57,13 @@ export default class DocumentHelper {
     return parser.parse(document.text) || Node.fromJSON(schema, {});
   }
 
+  /**
+   * Returns the document as a plain JSON object. This method uses the
+   * collaborative state if available, otherwise it falls back to Markdown.
+   *
+   * @param document The document or revision to convert
+   * @returns The document content as a plain JSON object
+   */
   static toJSON(document: Document | Revision) {
     if ("state" in document && document.state) {
       const ydoc = new Y.Doc();
