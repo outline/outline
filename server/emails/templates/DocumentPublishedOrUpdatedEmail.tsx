@@ -76,12 +76,14 @@ export default class DocumentPublishedOrUpdatedEmail extends BaseEmail<
         });
 
         // inline all css so that it works in as many email providers as possible.
-        body = await inlineCss(content, {
-          url: env.URL,
-          applyStyleTags: true,
-          applyLinkTags: false,
-          removeStyleTags: true,
-        });
+        body = content
+          ? await inlineCss(content, {
+              url: env.URL,
+              applyStyleTags: true,
+              applyLinkTags: false,
+              removeStyleTags: true,
+            })
+          : undefined;
       }
     }
 
