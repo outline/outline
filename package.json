@@ -138,7 +138,7 @@
     "mobx-react": "^6.3.1",
     "mobx-utils": "^4.0.1",
     "natural-sort": "^1.0.0",
-    "node-fetch": "2.6.7",
+    "node-fetch": "2.6.12",
     "nodemailer": "^6.9.1",
     "outline-icons": "^2.2.0",
     "oy-vey": "^0.12.0",
@@ -331,7 +331,7 @@
   "resolutions": {
     "body-scroll-lock": "^4.0.0-beta.0",
     "d3": "^7.0.0",
-    "node-fetch": "^2.6.7",
+    "node-fetch": "^2.6.12",
     "dot-prop": "^5.2.0",
     "js-yaml": "^3.14.1",
     "jpeg-js": "0.4.4",
