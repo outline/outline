@@ -404,13 +404,19 @@ export const pinDocumentToCollection = createAction({
       return;
     }
 
-    const document = stores.documents.get(activeDocumentId);
-    await document?.pin(document.collectionId);
+    try {
+      const document = stores.documents.get(activeDocumentId);
+      await document?.pin(document.collectionId);
 
-    const collection = stores.collections.get(activeCollectionId);
+      const collection = stores.collections.get(activeCollectionId);
 
-    if (!collection || !location.pathname.startsWith(collection?.url)) {
-      stores.toasts.showToast(t("Pinned to collection"));
+      if (!collection || !location.pathname.startsWith(collection?.url)) {
+        stores.toasts.showToast(t("Pinned to collection"));
+      }
+    } catch (err) {
+      stores.toasts.showToast(err.message, {
+        type: "error",
+      });
     }
   },
 });
@@ -443,10 +449,16 @@ export const pinDocumentToHome = createAction({
     }
     const document = stores.documents.get(activeDocumentId);
 
-    await document?.pin();
+    try {
+      await document?.pin();
 
-    if (location.pathname !== homePath()) {
-      stores.toasts.showToast(t("Pinned to team home"));
+      if (location.pathname !== homePath()) {
+        stores.toasts.showToast(t("Pinned to team home"));
+      }
+    } catch (err) {
+      stores.toasts.showToast(err.message, {
+        type: "error",
+      });
     }
   },
 });
