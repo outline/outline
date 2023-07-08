@@ -7,13 +7,26 @@ const isProduction = env.ENVIRONMENT === "production";
 
 const prefetchTags = [];
 
-if (process.env.AWS_S3_UPLOAD_BUCKET_URL) {
+if (env.AWS_S3_ACCELERATE_URL) {
   prefetchTags.push(
     <link
-      rel="dns-prefetch"
-      href={process.env.AWS_S3_UPLOAD_BUCKET_URL}
-      key="dns"
+      rel="preconnect"
+      href={env.AWS_S3_ACCELERATE_URL}
+      key={env.AWS_S3_ACCELERATE_URL}
     />
+  );
+} else if (env.AWS_S3_UPLOAD_BUCKET_URL) {
+  prefetchTags.push(
+    <link
+      rel="preconnect"
+      href={env.AWS_S3_UPLOAD_BUCKET_URL}
+      key={env.AWS_S3_UPLOAD_BUCKET_URL}
+    />
+  );
+}
+if (env.CDN_URL) {
+  prefetchTags.push(
+    <link rel="preconnect" href={env.CDN_URL} key={env.CDN_URL} />
   );
 }
 

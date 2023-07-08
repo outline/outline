@@ -569,6 +569,22 @@ export class Environment {
     this.toOptionalNumber(process.env.AWS_S3_UPLOAD_MAX_SIZE) ?? 100000000;
 
   /**
+   * Optional AWS S3 endpoint URL for file attachments.
+   */
+  @IsOptional()
+  public AWS_S3_ACCELERATE_URL = this.toOptionalString(
+    process.env.AWS_S3_ACCELERATE_URL
+  );
+
+  /**
+   * Optional AWS S3 endpoint URL for file attachments.
+   */
+  @IsOptional()
+  public AWS_S3_UPLOAD_BUCKET_URL = this.toOptionalString(
+    process.env.AWS_S3_UPLOAD_BUCKET_URL
+  );
+
+  /**
    * Set default AWS S3 ACL for file attachments.
    */
   @IsOptional()
