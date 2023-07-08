@@ -1,4 +1,5 @@
 import fetch from "fetch-with-proxy";
+import { FetchError } from "node-fetch";
 import { useAgent } from "request-filtering-agent";
 import { Op } from "sequelize";
 import WebhookDisabledEmail from "@server/emails/templates/WebhookDisabledEmail";
@@ -600,10 +601,17 @@ export default class DeliverWebhookTask extends BaseTask<Props> {
       });
       status = response.ok ? "success" : "failed";
     } catch (err) {
-      Logger.error("Failed to send webhook", err, {
-        event,
-        deliveryId: delivery.id,
-      });
+      if (err instanceof FetchError && env.DEPLOYMENT === "hosted") {
+        Logger.warn(`Failed to send webhook: ${err.message}`, {
+          event,
+          deliveryId: delivery.id,
+        });
+      } else {
+        Logger.error("Failed to send webhook", err, {
+          event,
+          deliveryId: delivery.id,
+        });
+      }
       status = "failed";
     }
 
