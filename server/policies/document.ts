@@ -160,7 +160,7 @@ allow(User, "move", Document, (user, document) => {
 });
 
 allow(User, ["pin", "unpin"], Document, (user, document) => {
-  if (!document || !document.isActive || document.isDraft) {
+  if (!document || document.isDraft) {
     return false;
   }
   if (document.template) {
