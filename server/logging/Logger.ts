@@ -157,7 +157,11 @@ class Logger {
       });
     } else {
       console.error(message);
-      console.error(error, extra);
+      console.error(error);
+
+      if (extra) {
+        console.error(extra);
+      }
     }
   }
 
