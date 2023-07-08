@@ -146,8 +146,8 @@ const insertFiles = function (
             }
           };
 
-          newImg.onerror = (event) => {
-            throw new Error(`Error loading image: ${event}`);
+          newImg.onerror = () => {
+            throw new Error(`Error loading image: ${src}`);
           };
 
           newImg.src = src;
