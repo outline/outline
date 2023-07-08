@@ -156,10 +156,8 @@ class Logger {
         stack: error.stack,
       });
     } else {
-      console.error(message, {
-        error,
-        extra,
-      });
+      console.error(message);
+      console.error(error, extra);
     }
   }
 
