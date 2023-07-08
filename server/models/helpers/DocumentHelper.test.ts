@@ -113,6 +113,25 @@ same on both sides`,
       expect(html).not.toContain("this is a highlight");
     });
 
+    it("should return undefined if no diff is renderable", async () => {
+      const before = new Revision({
+        title: "Title",
+        text: `
+This is a test paragraph`,
+      });
+
+      const after = new Revision({
+        title: "Title",
+        text: `
+This is a [test paragraph](https://example.net)`,
+      });
+
+      // Note: This test may fail in the future when support for diffing marks
+      // is improved.
+      const html = await DocumentHelper.toEmailDiff(before, after);
+      expect(html).toBeUndefined();
+    });
+
     it("should trim table rows to show minimal diff including header", async () => {
       const before = new Revision({
         title: "Title",

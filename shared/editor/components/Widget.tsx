@@ -1,6 +1,7 @@
 import * as React from "react";
 import styled, { css, DefaultTheme, ThemeProps } from "styled-components";
 import { s } from "../../styles";
+import { sanitizeUrl } from "../../utils/urls";
 
 type Props = {
   icon: React.ReactNode;
@@ -18,7 +19,7 @@ export default function Widget(props: Props & ThemeProps<DefaultTheme>) {
       className={
         props.isSelected ? "ProseMirror-selectednode widget" : "widget"
       }
-      href={props.href}
+      href={sanitizeUrl(props.href)}
       rel="noreferrer nofollow"
       onMouseDown={props.onMouseDown}
     >

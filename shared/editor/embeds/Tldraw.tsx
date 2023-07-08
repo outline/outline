@@ -14,6 +14,6 @@ function Tldraw(props: Props) {
   );
 }
 
-Tldraw.ENABLED = [new RegExp("https?://beta\\.tldraw\\.com/r/(.*)")];
+Tldraw.ENABLED = [new RegExp("^https?://beta\\.tldraw\\.com/r/(.*)")];
 
 export default Tldraw;

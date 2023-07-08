@@ -211,6 +211,13 @@ export default class DocumentHelper {
     const containsDiffElement = (node: Element | null) =>
       node && node.innerHTML.includes("data-operation-index");
 
+    // The diffing lib isn't able to catch all changes currently, e.g. changing
+    // the type of a mark will result in an empty diff.
+    // see: https://github.com/tnwinc/htmldiff.js/issues/10
+    if (!containsDiffElement(doc.querySelector("#content"))) {
+      return;
+    }
+
     // We use querySelectorAll to get a static NodeList as we'll be modifying
     // it as we iterate, rather than getting content.childNodes.
     const contents = doc.querySelectorAll("#content > *");

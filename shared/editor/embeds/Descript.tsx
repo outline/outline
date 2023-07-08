@@ -15,4 +15,6 @@ export default function Descript(props: Props) {
   );
 }
 
-Descript.ENABLED = [new RegExp("https?://share\\.descript\\.com/view/(\\w+)$")];
+Descript.ENABLED = [
+  new RegExp("^https?://share\\.descript\\.com/view/(\\w+)$"),
+];

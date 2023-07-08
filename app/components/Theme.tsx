@@ -29,8 +29,7 @@ const Theme: React.FC = ({ children }) => {
         <TooltipStyles />
         <GlobalStyles
           useCursorPointer={auth.user?.getPreference(
-            UserPreference.UseCursorPointer,
-            true
+            UserPreference.UseCursorPointer
           )}
         />
         {children}

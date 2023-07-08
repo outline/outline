@@ -20,6 +20,6 @@ function JSFiddle(props: Props) {
   );
 }
 
-JSFiddle.ENABLED = [new RegExp("https?://jsfiddle\\.net/(.*)/(.*)$")];
+JSFiddle.ENABLED = [new RegExp("^https?://jsfiddle\\.net/(.*)/(.*)$")];
 
 export default JSFiddle;

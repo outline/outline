@@ -17,4 +17,4 @@ export default function DBDiagram(props: Props) {
   );
 }
 
-DBDiagram.ENABLED = [new RegExp("https://dbdiagram.io/(embed|d)/(\\w+)$")];
+DBDiagram.ENABLED = [new RegExp("^https://dbdiagram.io/(embed|d)/(\\w+)$")];

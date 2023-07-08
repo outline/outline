@@ -136,9 +136,11 @@ export default class SimpleImage extends Node {
     };
 
   handleMouseDown = (ev: React.MouseEvent<HTMLParagraphElement>) => {
+    // always prevent clicks in caption from bubbling to the editor
+    ev.stopPropagation();
+
     if (document.activeElement !== ev.currentTarget) {
       ev.preventDefault();
-      ev.stopPropagation();
       ev.currentTarget.focus();
     }
   };

@@ -1,6 +1,7 @@
 import { subMinutes } from "date-fns";
 import { computed, action, observable } from "mobx";
 import { now } from "mobx-utils";
+import { UserPreferenceDefaults } from "@shared/constants";
 import {
   NotificationEventDefaults,
   NotificationEventType,
@@ -126,11 +127,10 @@ class User extends ParanoidModel {
    * none is set.
    *
    * @param key The UserPreference key to retrieve
-   * @param fallback An optional fallback value, defaults to false.
    * @returns The value
    */
-  getPreference(key: UserPreference, fallback = false): boolean {
-    return this.preferences?.[key] ?? fallback;
+  getPreference(key: UserPreference): boolean {
+    return this.preferences?.[key] ?? UserPreferenceDefaults[key] ?? false;
   }
 
   /**
