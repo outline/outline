@@ -12,7 +12,7 @@
   "Delete collection": "Supprimer la collection",
   "Delete IndexedDB cache": "Supprimer le cache IndexedDB",
   "IndexedDB cache deleted": "Cache IndexedDB supprimé",
-  "Toggle debug logging": "Toggle debug logging",
+  "Toggle debug logging": "Activer les journaux de débogage",
   "Debug logging enabled": "Journal de débogage activé",
   "Debug logging disabled": "Journal de débogage désactivé",
   "Development": "Développement",
