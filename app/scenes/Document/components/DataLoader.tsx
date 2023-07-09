@@ -88,7 +88,7 @@ function DataLoader({ match, children }: Props) {
       }
     }
     void fetchDocument();
-  }, [ui, documents, document, shareId, documentSlug]);
+  }, [ui, documents, shareId, documentSlug]);
 
   React.useEffect(() => {
     async function fetchRevision() {

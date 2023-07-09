@@ -52,9 +52,6 @@ import Length from "./validators/Length";
 export const DOCUMENT_VERSION = 2;
 
 @DefaultScope(() => ({
-  attributes: {
-    exclude: ["state"],
-  },
   include: [
     {
       model: User,
@@ -441,7 +438,7 @@ class Document extends ParanoidModel {
     // allow default preloading of collection membership if `userId` is passed in find options
     // almost every endpoint needs the collection membership to determine policy permissions.
     const scope = this.scope([
-      ...(options.includeState ? [] : ["withoutState"]),
+      // ...(options.includeState ? [] : ["withoutState"]),
       "withDrafts",
       {
         method: ["withCollectionPermissions", options.userId, options.paranoid],
