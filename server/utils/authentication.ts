@@ -118,7 +118,7 @@ export async function signIn(
       );
     }
   } else {
-    ctx.cookies.set("accessToken", user.getJwtToken(), {
+    ctx.cookies.set("accessToken", user.getJwtToken(expires), {
       sameSite: "lax",
       expires,
     });

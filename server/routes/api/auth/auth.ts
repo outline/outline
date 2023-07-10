@@ -139,6 +139,7 @@ router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
         includeDetails: true,
       }),
       team: presentTeam(team),
+      collaborationToken: user.getCollaborationToken(),
       availableTeams: uniqBy([...signedInTeams, ...availableTeams], "id").map(
         (team) =>
           presentAvailableTeam(

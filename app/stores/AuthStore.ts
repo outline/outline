@@ -20,6 +20,7 @@ const NO_REDIRECT_PATHS = ["/", "/create", "/home", "/logout"];
 type PersistedData = {
   user?: User;
   team?: Team;
+  collaborationToken?: string;
   availableTeams?: {
     id: string;
     name: string;
@@ -50,6 +51,9 @@ export default class AuthStore {
 
   @observable
   team?: Team | null;
+
+  @observable
+  collaborationToken?: string;
 
   @observable
   availableTeams?: {
@@ -121,12 +125,10 @@ export default class AuthStore {
   rehydrate(data: PersistedData) {
     this.user = data.user ? new User(data.user, this) : undefined;
     this.team = data.team ? new Team(data.team, this) : undefined;
+    this.collaborationToken = data.collaborationToken;
     this.lastSignedIn = getCookie("lastSignedIn");
     this.addPolicies(data.policies);
-
-    if (this.user) {
-      setTimeout(() => this.fetch(), 0);
-    }
+    void this.fetch();
   }
 
   addPolicies(policies?: Policy[]) {
@@ -147,6 +149,7 @@ export default class AuthStore {
     return {
       user: this.user,
       team: this.team,
+      collaborationToken: this.collaborationToken,
       availableTeams: this.availableTeams,
       policies: this.policies,
     };
@@ -172,6 +175,7 @@ export default class AuthStore {
         this.user = new User(user, this);
         this.team = new Team(team, this);
         this.availableTeams = res.data.availableTeams;
+        this.collaborationToken = res.data.collaborationToken;
 
         if (env.SENTRY_DSN) {
           Sentry.configureScope(function (scope) {

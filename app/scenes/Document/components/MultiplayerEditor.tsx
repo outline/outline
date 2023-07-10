@@ -44,7 +44,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   const history = useHistory();
   const { t } = useTranslation();
   const currentUser = useCurrentUser();
-  const { presence, ui } = useStores();
+  const { presence, auth, ui } = useStores();
   const [showCursorNames, setShowCursorNames] = React.useState(false);
   const [remoteProvider, setRemoteProvider] =
     React.useState<HocuspocusProvider | null>(null);
@@ -68,7 +68,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
       url: `${env.COLLABORATION_URL}/collaboration`,
       name,
       document: ydoc,
-      token: "not-used",
+      token: auth.collaborationToken,
     });
 
     const syncScrollPosition = throttle(() => {

@@ -1,7 +1,6 @@
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
-import { Redirect } from "react-router-dom";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import useStores from "~/hooks/useStores";
 import { changeLanguage } from "~/utils/language";
@@ -21,18 +20,11 @@ const Authenticated = ({ children }: Props) => {
     void changeLanguage(language, i18n);
   }, [i18n, language]);
 
-  if (auth.authenticated) {
-    const { user, team } = auth;
-
-    if (!team || !user) {
-      return <LoadingIndicator />;
-    }
-
+  if (auth.user && auth.team) {
     return children;
   }
 
-  void auth.logout(true);
-  return <Redirect to="/" />;
+  return <LoadingIndicator />;
 };
 
 export default observer(Authenticated);
