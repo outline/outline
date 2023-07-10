@@ -13,6 +13,7 @@ import env from "~/env";
 import { client } from "~/utils/ApiClient";
 import Desktop from "~/utils/Desktop";
 import Logger from "~/utils/Logger";
+import history from "~/utils/history";
 
 const AUTH_STORE = "AUTH_STORE";
 const NO_REDIRECT_PATHS = ["/", "/create", "/home", "/logout"];
@@ -53,7 +54,7 @@ export default class AuthStore {
   team?: Team | null;
 
   @observable
-  collaborationToken?: string;
+  collaborationToken?: string | null;
 
   @observable
   availableTeams?: {
@@ -305,7 +306,12 @@ export default class AuthStore {
   };
 
   @action
-  logout = async (savePath = false) => {
+  logout = async (
+    /** Whether the current path should be saved and returned to after login */
+    savePath = false,
+    /** Whether the auth token is already expired. */
+    tokenIsExpired = false
+  ) => {
     // if this logout was forced from an authenticated route then
     // save the current path so we can go back there once signed in
     if (savePath) {
@@ -317,10 +323,12 @@ export default class AuthStore {
     }
 
     // invalidate authentication token on server and unset auth cookie
-    try {
-      await client.post(`/auth.delete`);
-    } catch (err) {
-      Logger.error("Failed to delete authentication", err);
+    if (!tokenIsExpired) {
+      try {
+        await client.post(`/auth.delete`);
+      } catch (err) {
+        Logger.error("Failed to delete authentication", err);
+      }
     }
 
     // remove session record on apex cookie
@@ -337,10 +345,13 @@ export default class AuthStore {
     // clear all credentials from cache (and local storage via autorun)
     this.user = null;
     this.team = null;
+    this.collaborationToken = null;
     this.policies = [];
 
     // Tell the host application we logged out, if any – allows window cleanup.
     void Desktop.bridge?.onLogout?.();
     this.rootStore.logout();
+
+    history.replace("/");
   };
 }

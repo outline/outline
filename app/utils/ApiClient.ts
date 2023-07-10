@@ -131,7 +131,8 @@ class ApiClient {
 
     // Handle 401, log out user
     if (response.status === 401) {
-      await stores.auth.logout();
+      const tokenIsExpired = true;
+      await stores.auth.logout(false, tokenIsExpired);
       return;
     }
 
