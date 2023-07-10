@@ -20,7 +20,7 @@ const Authenticated = ({ children }: Props) => {
     void changeLanguage(language, i18n);
   }, [i18n, language]);
 
-  if (auth.user && auth.team) {
+  if (auth.authenticated) {
     return children;
   }
 

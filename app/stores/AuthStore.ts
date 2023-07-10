@@ -142,7 +142,7 @@ export default class AuthStore {
 
   @computed
   get authenticated(): boolean {
-    return !!this.user;
+    return !!this.user && !!this.team;
   }
 
   @computed
