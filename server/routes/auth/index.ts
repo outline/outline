@@ -32,7 +32,6 @@ router.get("/redirect", auth(), async (ctx: APIContext) => {
   await user.updateActiveAt(ctx, true);
 
   ctx.cookies.set("accessToken", jwtToken, {
-    httpOnly: false,
     sameSite: "lax",
     expires: addMonths(new Date(), 3),
   });

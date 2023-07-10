@@ -8,7 +8,6 @@ import * as Y from "yjs";
 import MultiplayerExtension from "@shared/editor/extensions/Multiplayer";
 import Editor, { Props as EditorProps } from "~/components/Editor";
 import env from "~/env";
-import useCurrentToken from "~/hooks/useCurrentToken";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useIdle from "~/hooks/useIdle";
 import useIsMounted from "~/hooks/useIsMounted";
@@ -46,7 +45,6 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   const { t } = useTranslation();
   const currentUser = useCurrentUser();
   const { presence, ui } = useStores();
-  const token = useCurrentToken();
   const [showCursorNames, setShowCursorNames] = React.useState(false);
   const [remoteProvider, setRemoteProvider] =
     React.useState<HocuspocusProvider | null>(null);
@@ -70,7 +68,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
       url: `${env.COLLABORATION_URL}/collaboration`,
       name,
       document: ydoc,
-      token,
+      token: "not-used",
     });
 
     const syncScrollPosition = throttle(() => {
@@ -188,7 +186,6 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     documentId,
     ui,
     presence,
-    token,
     ydoc,
     currentUser.id,
     isMounted,

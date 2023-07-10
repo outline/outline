@@ -120,7 +120,6 @@ export async function signIn(
   } else {
     ctx.cookies.set("accessToken", user.getJwtToken(), {
       sameSite: "lax",
-      httpOnly: false,
       expires,
     });
 

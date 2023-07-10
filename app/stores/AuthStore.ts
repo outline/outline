@@ -61,9 +61,6 @@ export default class AuthStore {
   }[];
 
   @observable
-  token?: string | null;
-
-  @observable
   policies: Policy[] = [];
 
   @observable
@@ -124,11 +121,10 @@ export default class AuthStore {
   rehydrate(data: PersistedData) {
     this.user = data.user ? new User(data.user, this) : undefined;
     this.team = data.team ? new Team(data.team, this) : undefined;
-    this.token = getCookie("accessToken");
     this.lastSignedIn = getCookie("lastSignedIn");
     this.addPolicies(data.policies);
 
-    if (this.token) {
+    if (this.user) {
       setTimeout(() => this.fetch(), 0);
     }
   }
@@ -143,7 +139,7 @@ export default class AuthStore {
 
   @computed
   get authenticated(): boolean {
-    return !!this.token;
+    return !!this.user;
   }
 
   @computed
@@ -236,7 +232,6 @@ export default class AuthStore {
         (team) => team.id !== this.team?.id
       );
       this.policies = [];
-      this.token = null;
     });
   };
 
@@ -317,18 +312,12 @@ export default class AuthStore {
       }
     }
 
-    // If there is no auth token stored there is nothing else to do
-    if (!this.token) {
-      return;
+    // invalidate authentication token on server and unset auth cookie
+    try {
+      await client.post(`/auth.delete`);
+    } catch (err) {
+      Logger.error("Failed to delete authentication", err);
     }
-
-    // invalidate authentication token on server
-    const promise = client.post(`/auth.delete`);
-
-    // remove authentication token itself
-    removeCookie("accessToken", {
-      path: "/",
-    });
 
     // remove session record on apex cookie
     const team = this.team;
@@ -345,16 +334,9 @@ export default class AuthStore {
     this.user = null;
     this.team = null;
     this.policies = [];
-    this.token = null;
 
     // Tell the host application we logged out, if any – allows window cleanup.
     void Desktop.bridge?.onLogout?.();
     this.rootStore.logout();
-
-    try {
-      await promise;
-    } catch (err) {
-      Logger.error("Failed to delete authentication", err);
-    }
   };
 }

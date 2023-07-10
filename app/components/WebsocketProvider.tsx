@@ -70,6 +70,7 @@ class WebsocketProvider extends React.Component<Props> {
       transports: ["websocket"],
       reconnectionDelay: 1000,
       reconnectionDelayMax: 30000,
+      withCredentials: true,
     });
     invariant(this.socket, "Socket should be defined");
 
@@ -89,18 +90,6 @@ class WebsocketProvider extends React.Component<Props> {
       fileOperations,
       notifications,
     } = this.props;
-    if (!auth.token) {
-      return;
-    }
-
-    this.socket.on("connect", () => {
-      // immediately send current users token to the websocket backend where it
-      // is verified, if all goes well an 'authenticated' message will be
-      // received in response
-      this.socket?.emit("authentication", {
-        token: auth.token,
-      });
-    });
 
     // on reconnection, reset the transports option, as the Websocket
     // connection may have failed (caused by proxy, firewall, browser, ...)

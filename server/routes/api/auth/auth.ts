@@ -1,8 +1,8 @@
-import { subHours } from "date-fns";
+import { subHours, subMinutes } from "date-fns";
 import Router from "koa-router";
 import { uniqBy } from "lodash";
 import { TeamPreference } from "@shared/types";
-import { parseDomain } from "@shared/utils/domains";
+import { getCookieDomain, parseDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
@@ -175,6 +175,11 @@ router.post(
         transaction,
       }
     );
+
+    ctx.cookies.set("accessToken", "", {
+      expires: subMinutes(new Date(), 1),
+      domain: getCookieDomain(ctx.hostname),
+    });
 
     ctx.body = {
       success: true,
