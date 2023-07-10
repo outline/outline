@@ -10321,10 +10321,10 @@ pg-protocol@^1.6.0:
   resolved "https://registry.yarnpkg.com/pg-protocol/-/pg-protocol-1.6.0.tgz#4c91613c0315349363af2084608db843502f8833"
   integrity sha512-M+PDm637OY5WM307051+bsDia5Xej6d9IR4GwJse1qA1DIhiKlksvrneZOYQq42OM+spubpcNYEo2FcKQrDk+Q==
 
-pg-tsquery@^8.4.0:
-  version "8.4.0"
-  resolved "https://registry.yarnpkg.com/pg-tsquery/-/pg-tsquery-8.4.0.tgz#411293cce23ca1eeb8c29109af9fadf28f20a7d9"
-  integrity sha512-m0jIxUVwLKSdmOAlqtlbo6K+EFIOZ/hyOMnoe8DmYFqEmOmvafIjGQFmcPP+z5MWd/p7ExxoKNIL31gmM+CwxQ==
+pg-tsquery@^8.4.1:
+  version "8.4.1"
+  resolved "https://registry.yarnpkg.com/pg-tsquery/-/pg-tsquery-8.4.1.tgz#7346aefd90983f321c59382e1468f192b1b10894"
+  integrity sha512-GoeRhw6o4Bpt7awdUwHq6ITOw40IWSrb5IC2qR6dF9ZECtHFGdSpnjHOl9Rumd8Rx12kLI2T9TGV0gvxD5pFgA==
 
 pg-types@^2.1.0:
   version "2.2.0"
