@@ -233,6 +233,7 @@ export default class AuthStore {
     runInAction("AuthStore#updateUser", () => {
       this.user = null;
       this.team = null;
+      this.collaborationToken = null;
       this.availableTeams = this.availableTeams?.filter(
         (team) => team.id !== this.team?.id
       );

@@ -52,6 +52,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   const [isRemoteSynced, setRemoteSynced] = React.useState(false);
   const [ydoc] = React.useState(() => new Y.Doc());
   const { showToast } = useToasts();
+  const token = auth.collaborationToken;
   const isIdle = useIdle();
   const isVisible = usePageVisibility();
   const isMounted = useIsMounted();
@@ -68,7 +69,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
       url: `${env.COLLABORATION_URL}/collaboration`,
       name,
       document: ydoc,
-      token: auth.collaborationToken,
+      token,
     });
 
     const syncScrollPosition = throttle(() => {
@@ -187,6 +188,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     ui,
     presence,
     ydoc,
+    token,
     currentUser.id,
     isMounted,
   ]);
