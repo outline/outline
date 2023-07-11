@@ -93,6 +93,7 @@ class UserAuthentication extends IdModel {
   ): Promise<boolean> {
     // Check a maximum of once every 5 minutes
     if (this.lastValidatedAt > subMinutes(Date.now(), 5) && !force) {
+      Logger.debug("utils", "Skipping access token validation");
       return true;
     }
 
@@ -158,7 +159,10 @@ class UserAuthentication extends IdModel {
 
     const client = authenticationProvider.oauthClient;
     if (client) {
-      const response = await client.rotateToken(this.refreshToken);
+      const response = await client.rotateToken(
+        this.accessToken,
+        this.refreshToken
+      );
 
       // Not all OAuth providers return a new refreshToken so we need to guard
       // against setting to an empty value.
