@@ -289,7 +289,7 @@
     "@types/turndown": "^5.0.1",
     "@types/utf8": "^3.0.1",
     "@types/validator": "^13.7.10",
-    "@typescript-eslint/eslint-plugin": "^5.60.1",
+    "@typescript-eslint/eslint-plugin": "^5.61.0",
     "@typescript-eslint/parser": "^5.60.1",
     "babel-eslint": "^10.1.0",
     "babel-jest": "^29.4.3",
