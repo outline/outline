@@ -292,7 +292,7 @@
     "@typescript-eslint/eslint-plugin": "^5.61.0",
     "@typescript-eslint/parser": "^5.60.1",
     "babel-eslint": "^10.1.0",
-    "babel-jest": "^29.4.3",
+    "babel-jest": "^29.6.1",
     "babel-plugin-transform-inline-environment-variables": "^0.4.4",
     "babel-plugin-transform-typescript-metadata": "^0.3.2",
     "babel-plugin-tsconfig-paths-module-resolver": "^1.0.4",
