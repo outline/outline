@@ -1,8 +1,8 @@
-import { subHours } from "date-fns";
+import { subHours, subMinutes } from "date-fns";
 import Router from "koa-router";
 import { uniqBy } from "lodash";
 import { TeamPreference } from "@shared/types";
-import { parseDomain } from "@shared/utils/domains";
+import { getCookieDomain, parseDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
@@ -139,6 +139,7 @@ router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
         includeDetails: true,
       }),
       team: presentTeam(team),
+      collaborationToken: user.getCollaborationToken(),
       availableTeams: uniqBy([...signedInTeams, ...availableTeams], "id").map(
         (team) =>
           presentAvailableTeam(
@@ -175,6 +176,11 @@ router.post(
         transaction,
       }
     );
+
+    ctx.cookies.set("accessToken", "", {
+      expires: subMinutes(new Date(), 1),
+      domain: getCookieDomain(ctx.hostname),
+    });
 
     ctx.body = {
       success: true,
