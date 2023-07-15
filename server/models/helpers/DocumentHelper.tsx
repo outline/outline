@@ -13,7 +13,6 @@ import {
   getCurrentTimeAsString,
   unicodeCLDRtoBCP47,
 } from "@shared/utils/date";
-import unescape from "@shared/utils/unescape";
 import { parser, schema } from "@server/editor";
 import { trace } from "@server/logging/tracing";
 import type Document from "@server/models/Document";
@@ -83,7 +82,7 @@ export default class DocumentHelper {
    * @returns The document title and content as a Markdown string
    */
   static toMarkdown(document: Document | Revision) {
-    const text = unescape(document.text);
+    const text = document.text.replace(/\n\\\n/g, "\n\n");
 
     if (document.version) {
       return `# ${document.title}\n\n${text}`;
