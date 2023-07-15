@@ -19,7 +19,7 @@ export default class AuthenticationExtension implements Extension {
       throw AuthenticationError("Authentication required");
     }
 
-    const user = await getUserForJWT(token);
+    const user = await getUserForJWT(token, ["session", "collaboration"]);
 
     if (user.isSuspended) {
       throw AuthenticationError("Account suspended");

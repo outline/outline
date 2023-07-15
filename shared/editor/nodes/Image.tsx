@@ -215,6 +215,14 @@ export default class Image extends SimpleImage {
       void downloadImageNode(node);
     };
 
+  // Ensure only plain text can be pasted into input when pasting from another
+  // rich text source.
+  handlePaste = (event: React.ClipboardEvent<HTMLSpanElement>) => {
+    event.preventDefault();
+    const text = event.clipboardData.getData("text/plain");
+    window.document.execCommand("insertText", false, text);
+  };
+
   component = (props: ComponentProps) => (
     <ImageComponent
       {...props}
@@ -223,6 +231,7 @@ export default class Image extends SimpleImage {
       onChangeSize={this.handleChangeSize(props)}
     >
       <Caption
+        onPaste={this.handlePaste}
         onKeyDown={this.handleKeyDown(props)}
         onBlur={this.handleBlur(props)}
         onMouseDown={this.handleMouseDown}

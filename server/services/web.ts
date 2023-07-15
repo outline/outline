@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
+import crypto from "crypto";
 import { Server } from "https";
 import Koa from "koa";
 import {
@@ -27,8 +28,6 @@ const isProduction = env.ENVIRONMENT === "production";
 const defaultSrc = ["'self'"];
 const scriptSrc = [
   "'self'",
-  "'unsafe-inline'",
-  "'unsafe-eval'",
   "gist.github.com",
   "www.googletagmanager.com",
   "cdn.zapier.com",
@@ -103,19 +102,22 @@ export default function init(app: Koa = new Koa(), server?: Server) {
   // Sets common security headers by default, such as no-sniff, hsts, hide powered
   // by etc, these are applied after auth and api so they are only returned on
   // standard non-XHR accessed routes
-  app.use(
-    contentSecurityPolicy({
+  app.use((ctx, next) => {
+    ctx.state.cspNonce = crypto.randomBytes(16).toString("hex");
+
+    return contentSecurityPolicy({
       directives: {
         defaultSrc,
-        scriptSrc,
         styleSrc,
+        scriptSrc: [...scriptSrc, `'nonce-${ctx.state.cspNonce}'`],
         imgSrc: ["*", "data:", "blob:"],
         frameSrc: ["*", "data:"],
-        connectSrc: ["*"], // Do not use connect-src: because self + websockets does not work in
+        // Do not use connect-src: because self + websockets does not work in
         // Safari, ref: https://bugs.webkit.org/show_bug.cgi?id=201591
+        connectSrc: ["*"],
       },
-    })
-  );
+    })(ctx, next);
+  });
 
   // Allow DNS prefetching for performance, we do not care about leaking requests
   // to our own CDN's
@@ -129,6 +131,8 @@ export default function init(app: Koa = new Koa(), server?: Server) {
       policy: "no-referrer",
     })
   );
+
   app.use(mount(routes));
+
   return app;
 }

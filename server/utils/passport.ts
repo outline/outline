@@ -27,7 +27,6 @@ export class StateStore {
     const state = buildState(host, token, client);
 
     ctx.cookies.set(this.key, state, {
-      httpOnly: false,
       expires: addMinutes(new Date(), 10),
       domain: getCookieDomain(ctx.hostname),
     });
@@ -54,7 +53,6 @@ export class StateStore {
 
     // Destroy the one-time pad token and ensure it matches
     ctx.cookies.set(this.key, "", {
-      httpOnly: false,
       expires: subMinutes(new Date(), 1),
       domain: getCookieDomain(ctx.hostname),
     });

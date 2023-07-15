@@ -8,7 +8,6 @@ import * as Y from "yjs";
 import MultiplayerExtension from "@shared/editor/extensions/Multiplayer";
 import Editor, { Props as EditorProps } from "~/components/Editor";
 import env from "~/env";
-import useCurrentToken from "~/hooks/useCurrentToken";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useIdle from "~/hooks/useIdle";
 import useIsMounted from "~/hooks/useIsMounted";
@@ -45,8 +44,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   const history = useHistory();
   const { t } = useTranslation();
   const currentUser = useCurrentUser();
-  const { presence, ui } = useStores();
-  const token = useCurrentToken();
+  const { presence, auth, ui } = useStores();
   const [showCursorNames, setShowCursorNames] = React.useState(false);
   const [remoteProvider, setRemoteProvider] =
     React.useState<HocuspocusProvider | null>(null);
@@ -54,6 +52,7 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
   const [isRemoteSynced, setRemoteSynced] = React.useState(false);
   const [ydoc] = React.useState(() => new Y.Doc());
   const { showToast } = useToasts();
+  const token = auth.collaborationToken;
   const isIdle = useIdle();
   const isVisible = usePageVisibility();
   const isMounted = useIsMounted();
@@ -188,8 +187,8 @@ function MultiplayerEditor({ onSynced, ...props }: Props, ref: any) {
     documentId,
     ui,
     presence,
-    token,
     ydoc,
+    token,
     currentUser.id,
     isMounted,
   ]);

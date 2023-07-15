@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { addMinutes, subMinutes } from "date-fns";
+import { addHours, addMinutes, subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
 import { Context } from "koa";
 import { Transaction, QueryTypes, SaveOptions, Op } from "sequelize";
@@ -449,6 +449,22 @@ class User extends ParanoidModel {
         id: this.id,
         expiresAt: expiresAt ? expiresAt.toISOString() : undefined,
         type: "session",
+      },
+      this.jwtSecret
+    );
+
+  /**
+   * Returns a session token that is used to make collaboration requests and is
+   * stored in the client memory.
+   *
+   * @returns The session token
+   */
+  getCollaborationToken = () =>
+    JWT.sign(
+      {
+        id: this.id,
+        expiresAt: addHours(new Date(), 24).toISOString(),
+        type: "collaboration",
       },
       this.jwtSecret
     );

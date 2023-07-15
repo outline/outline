@@ -122,6 +122,110 @@ const mathStyle = (props: Props) => css`
   }
 `;
 
+const codeBlockStyle = (props: Props) => css`
+  .token.comment,
+  .token.prolog,
+  .token.doctype,
+  .token.cdata {
+    color: ${props.theme.codeComment};
+  }
+
+  .token.punctuation {
+    color: ${props.theme.codePunctuation};
+  }
+
+  .token.namespace {
+    opacity: 0.7;
+  }
+
+  .token.operator,
+  .token.boolean,
+  .token.number {
+    color: ${props.theme.codeNumber};
+  }
+
+  .token.property {
+    color: ${props.theme.codeProperty};
+  }
+
+  .token.tag {
+    color: ${props.theme.codeTag};
+  }
+
+  .token.string {
+    color: ${props.theme.codeString};
+  }
+
+  .token.selector {
+    color: ${props.theme.codeSelector};
+  }
+
+  .token.attr-name {
+    color: ${props.theme.codeAttr};
+  }
+
+  .token.entity,
+  .token.url,
+  .language-css .token.string,
+  .style .token.string {
+    color: ${props.theme.codeEntity};
+  }
+
+  .token.attr-value,
+  .token.keyword,
+  .token.control,
+  .token.directive,
+  .token.unit {
+    color: ${props.theme.codeKeyword};
+  }
+
+  .token.function,
+  .token.class-name-definition {
+    color: ${props.theme.codeFunction};
+  }
+
+  .token.class-name {
+    color: ${props.theme.codeClassName};
+  }
+
+  .token.statement,
+  .token.regex,
+  .token.atrule {
+    color: ${props.theme.codeStatement};
+  }
+
+  .token.placeholder,
+  .token.variable {
+    color: ${props.theme.codePlaceholder};
+  }
+
+  .token.deleted {
+    text-decoration: line-through;
+  }
+
+  .token.inserted {
+    border-bottom: 1px dotted ${props.theme.codeInserted};
+    text-decoration: none;
+  }
+
+  .token.italic {
+    font-style: italic;
+  }
+
+  .token.important,
+  .token.bold {
+    font-weight: bold;
+  }
+
+  .token.important {
+    color: ${props.theme.codeImportant};
+  }
+
+  .token.entity {
+    cursor: help;
+  }
+`;
+
 const style = (props: Props) => `
 flex-grow: ${props.grow ? 1 : 0};
 justify-content: start;
@@ -1112,103 +1216,6 @@ pre {
   }
 }
 
-.token.comment,
-.token.prolog,
-.token.doctype,
-.token.cdata {
-  color: ${props.theme.codeComment};
-}
-
-.token.punctuation {
-  color: ${props.theme.codePunctuation};
-}
-
-.token.namespace {
-  opacity: 0.7;
-}
-
-.token.operator,
-.token.boolean,
-.token.number {
-  color: ${props.theme.codeNumber};
-}
-
-.token.property {
-  color: ${props.theme.codeProperty};
-}
-
-.token.tag {
-  color: ${props.theme.codeTag};
-}
-
-.token.string {
-  color: ${props.theme.codeString};
-}
-
-.token.selector {
-  color: ${props.theme.codeSelector};
-}
-
-.token.attr-name {
-  color: ${props.theme.codeAttr};
-}
-
-.token.entity,
-.token.url,
-.language-css .token.string,
-.style .token.string {
-  color: ${props.theme.codeEntity};
-}
-
-.token.attr-value,
-.token.keyword,
-.token.control,
-.token.directive,
-.token.unit {
-  color: ${props.theme.codeKeyword};
-}
-
-.token.function {
-  color: ${props.theme.codeFunction};
-}
-
-.token.statement,
-.token.regex,
-.token.atrule {
-  color: ${props.theme.codeStatement};
-}
-
-.token.placeholder,
-.token.variable {
-  color: ${props.theme.codePlaceholder};
-}
-
-.token.deleted {
-  text-decoration: line-through;
-}
-
-.token.inserted {
-  border-bottom: 1px dotted ${props.theme.codeInserted};
-  text-decoration: none;
-}
-
-.token.italic {
-  font-style: italic;
-}
-
-.token.important,
-.token.bold {
-  font-weight: bold;
-}
-
-.token.important {
-  color: ${props.theme.codeImportant};
-}
-
-.token.entity {
-  cursor: help;
-}
-
 table {
   width: 100%;
   border-collapse: collapse;
@@ -1533,6 +1540,7 @@ const EditorContainer = styled.div<Props>`
   ${style}
   ${mathStyle}
   ${codeMarkCursor}
+  ${codeBlockStyle}
 `;
 
 export default EditorContainer;

@@ -85,6 +85,7 @@
     "class-validator": "^0.14.0",
     "command-score": "^0.1.2",
     "compressorjs": "^1.2.1",
+    "cookie": "^0.5.0",
     "copy-to-clipboard": "^3.3.3",
     "core-js": "^3.30.2",
     "crypto-js": "^4.1.1",
@@ -148,7 +149,7 @@
     "passport-slack-oauth2": "^1.1.1",
     "patch-package": "^7.0.0",
     "pg": "^8.11.1",
-    "pg-tsquery": "^8.4.0",
+    "pg-tsquery": "^8.4.1",
     "polished": "^4.2.2",
     "prosemirror-codemark": "^0.4.2",
     "prosemirror-commands": "^1.5.2",
@@ -289,10 +290,10 @@
     "@types/turndown": "^5.0.1",
     "@types/utf8": "^3.0.1",
     "@types/validator": "^13.7.10",
-    "@typescript-eslint/eslint-plugin": "^5.60.1",
+    "@typescript-eslint/eslint-plugin": "^5.61.0",
     "@typescript-eslint/parser": "^5.60.1",
     "babel-eslint": "^10.1.0",
-    "babel-jest": "^29.4.3",
+    "babel-jest": "^29.6.1",
     "babel-plugin-transform-inline-environment-variables": "^0.4.4",
     "babel-plugin-transform-typescript-metadata": "^0.3.2",
     "babel-plugin-tsconfig-paths-module-resolver": "^1.0.4",
@@ -323,7 +324,7 @@
     "react-refresh": "^0.14.0",
     "rimraf": "^2.5.4",
     "rollup-plugin-webpack-stats": "^0.2.0",
-    "terser": "^5.16.6",
+    "terser": "^5.18.2",
     "typescript": "^5.0.0",
     "vite-plugin-static-copy": "^0.13.0",
     "yarn-deduplicate": "^6.0.2"
@@ -338,5 +339,5 @@
     "qs": "6.9.7",
     "rollup": "^3.14.0"
   },
-  "version": "0.70.1"
+  "version": "0.70.2"
 }

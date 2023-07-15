@@ -38,6 +38,7 @@ declare module "styled-components" {
     codeProperty: string;
     codeTag: string;
     codeString: string;
+    codeClassName: string;
     codeSelector: string;
     codeAttr: string;
     codeEntity: string;

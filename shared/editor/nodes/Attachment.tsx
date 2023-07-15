@@ -86,7 +86,7 @@ export default class Attachment extends Node {
         onMouseDown={this.handleSelect(props)}
         context={
           node.attrs.href ? (
-            bytesToHumanReadable(node.attrs.size)
+            bytesToHumanReadable(node.attrs.size || "0")
           ) : (
             <>
               <Trans>Uploading</Trans>…
