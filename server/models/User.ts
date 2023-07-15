@@ -1,5 +1,5 @@
 import crypto from "crypto";
-import { addMinutes, addWeeks, subMinutes } from "date-fns";
+import { addHours, addMinutes, subMinutes } from "date-fns";
 import JWT from "jsonwebtoken";
 import { Context } from "koa";
 import { Transaction, QueryTypes, SaveOptions, Op } from "sequelize";
@@ -463,7 +463,7 @@ class User extends ParanoidModel {
     JWT.sign(
       {
         id: this.id,
-        expiresAt: addWeeks(new Date(), 1).toISOString(),
+        expiresAt: addHours(new Date(), 24).toISOString(),
         type: "collaboration",
       },
       this.jwtSecret

@@ -5,6 +5,7 @@ import { getCookie, setCookie, removeCookie } from "tiny-cookie";
 import { CustomTheme, TeamPreferences, UserPreferences } from "@shared/types";
 import Storage from "@shared/utils/Storage";
 import { getCookieDomain, parseDomain } from "@shared/utils/domains";
+import { Hour } from "@shared/utils/time";
 import RootStore from "~/stores/RootStore";
 import Policy from "~/models/Policy";
 import Team from "~/models/Team";
@@ -47,15 +48,19 @@ export type Config = {
 };
 
 export default class AuthStore {
+  /* The user that is currently signed in. */
   @observable
   user?: User | null;
 
+  /* The team that the current user is signed into. */
   @observable
   team?: Team | null;
 
+  /* A short-lived token to be used to authenticate with the collaboration server. */
   @observable
   collaborationToken?: string | null;
 
+  /* A list of teams that the current user has access to. */
   @observable
   availableTeams?: {
     id: string;
@@ -65,21 +70,27 @@ export default class AuthStore {
     isSignedIn: boolean;
   }[];
 
+  /* A list of cancan policies for the current user. */
   @observable
   policies: Policy[] = [];
 
+  /* The authentication provider the user signed in with. */
   @observable
   lastSignedIn?: string | null;
 
+  /* Whether the user is currently saving their profile or team settings. */
   @observable
   isSaving = false;
 
+  /* Whether the user is currently suspended. */
   @observable
   isSuspended = false;
 
+  /* The email address to contact if the user is suspended. */
   @observable
   suspendedContactEmail?: string | null;
 
+  /* The auth configuration for the current domain. */
   @observable
   config: Config | null | undefined;
 
@@ -91,6 +102,9 @@ export default class AuthStore {
     const data: PersistedData = Storage.get(AUTH_STORE) || {};
 
     this.rehydrate(data);
+
+    // Refresh the auth store every 12 hours that the window is open
+    setInterval(this.fetch, 12 * Hour);
 
     // persists this entire store to localstorage whenever any keys are changed
     autorun(() => {
